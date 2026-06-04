@@ -53,6 +53,9 @@ require_env_key TRADING_ADMIN_KEY
 require_env_key TRADING_MCP_KEY
 require_env_key AGORA_MARKET_BASE_URL
 require_env_key AGORA_MARKET_INTERNAL_API_KEY
+require_env_key SPRING_DATASOURCE_URL
+require_env_key SPRING_DATASOURCE_USERNAME
+require_env_key SPRING_DATASOURCE_PASSWORD
 
 if [ -f "$PORT_FILE" ]; then
   ACTIVE_PORT="$(tr -d '[:space:]' < "$PORT_FILE")"

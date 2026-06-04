@@ -25,6 +25,10 @@ Trading service runtime:
 ```bash
 TRADING_ADMIN_KEY=<set for admin endpoints>
 TRADING_MCP_KEY=<set for MCP endpoints>
+SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_trading?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+SPRING_DATASOURCE_USERNAME=<set for trading DB>
+SPRING_DATASOURCE_PASSWORD=<set for trading DB>
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
 PORT=8084
 ```
 
@@ -146,6 +150,7 @@ Exchange-rate behavior:
 - required local tools: `curl`, `git`, `java`, `mvn`.
 - required server env keys exist in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy installs `AgoraMarketAPI/internal-client` into the server Maven local repo before building trading.
+- trading uses an independent MySQL database, currently `agora_trading`.
 - active local trading health via `app.port` or default `8084`.
 - AgoraMarket production health.
 - optional public trading health URL.

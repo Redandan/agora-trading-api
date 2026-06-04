@@ -56,6 +56,10 @@ TRADING_MCP_KEY=
 AGORA_MARKET_BASE_URL=http://127.0.0.1:8082
 AGORA_MARKET_INTERNAL_API_KEY=
 AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000
+SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_trading?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+SPRING_DATASOURCE_USERNAME=
+SPRING_DATASOURCE_PASSWORD=
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
 PORT=8084
 EOF
 ok "wrote env template: $APP_DIR/.env.trading.secrets.example"

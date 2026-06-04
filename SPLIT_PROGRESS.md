@@ -65,8 +65,9 @@ Trading deployment prep:
 - 2026-06-05 server preflight confirmed AgoraMarketAPI is healthy on local port `8082`.
 - 2026-06-05 server bootstrap installed `/home/ubuntu/agora-trading-api` and verified fast-forward from `origin/main`.
 - 2026-06-05 server bootstrap created `/home/ubuntu/agora-trading-api/.env.trading.secrets.example`.
-- 2026-06-05 server verification confirmed `/home/ubuntu/.env.trading.secrets` is still missing.
-- 2026-06-05 server preflight did not find nginx `/api/trading/` routing yet.
+- 2026-06-05 server configuration created `/home/ubuntu/.env.trading.secrets` without printing secret values.
+- 2026-06-05 server configuration created independent MySQL database `agora_trading` for trading runtime.
+- 2026-06-05 server configuration installed nginx `/api/trading/` routing.
 - Production must define `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets` before trading can use AgoraMarket exchange rates.
 - Server-side deploy acceptance can be checked with `scripts/verify_server.sh` after the service is installed.
 

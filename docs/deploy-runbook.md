@@ -88,10 +88,33 @@ curl -fsS "http://127.0.0.1:${PORT}/api/trading/actuator/health"
 curl -fsS "https://agoramarketapi.purrtechllc.com/api/actuator/health"
 ```
 
+Or run the server verifier:
+
+```bash
+cd /home/ubuntu/agora-trading-api
+bash scripts/verify_server.sh
+```
+
+Optional public path check:
+
+```bash
+PUBLIC_TRADING_HEALTH_URL="https://agoramarketapi.purrtechllc.com/api/trading/actuator/health" \
+  bash scripts/verify_server.sh
+```
+
 Exchange-rate behavior:
 
 - with `AGORA_MARKET_INTERNAL_API_KEY`: trading calls AgoraMarket internal API.
 - without key, timeout, or 401: trading falls back to static rates.
+
+`scripts/verify_server.sh` checks:
+
+- required local tools: `curl`, `git`, `java`, `mvn`.
+- required server env keys exist in `/home/ubuntu/.env.trading.secrets` without printing secret values.
+- active local trading health via `app.port` or default `8084`.
+- AgoraMarket production health.
+- optional public trading health URL.
+- nginx `/api/trading/` path split presence.
 
 ## Rollback
 

@@ -43,3 +43,9 @@ See:
 - [INTERNAL_API_TODO.md](INTERNAL_API_TODO.md)
 - [SPLIT_PROGRESS.md](SPLIT_PROGRESS.md)
 - [docs/deploy-runbook.md](docs/deploy-runbook.md)
+
+Server verification after deploy:
+
+```bash
+bash scripts/verify_server.sh
+```

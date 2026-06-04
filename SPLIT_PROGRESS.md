@@ -61,6 +61,7 @@ Current deploy blocker:
 
 - Trading has a deploy skeleton in `deploy.sh`, but it has not been installed on the server yet.
 - Production must define `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets` before trading can use AgoraMarket exchange rates.
+- Server-side deploy acceptance can be checked with `scripts/verify_server.sh` after the service is installed.
 
 ## Cleanup Priority
 

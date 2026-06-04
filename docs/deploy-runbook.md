@@ -44,6 +44,7 @@ Expected:
 - No marketplace support-ticket, image-audit, or product-classification residue remains.
 - No marketplace address/postal delivery residue remains.
 - No unused OAuth2 service/DTO residue remains.
+- No WalletConnect/Web3 login residue or OAuth2 client dependency remains.
 
 ## Server Deploy Template
 

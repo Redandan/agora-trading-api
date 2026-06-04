@@ -29,6 +29,7 @@
 - Unreferenced chat, staking, transaction DTOs and unused marketplace/betting enums were removed from trading.
 - Unused referrer DTO and marketplace logistics enum translation leftovers were removed from trading.
 - Unused Telegram login/OAuth binding service chain was removed from trading while keeping Telegram notifications and MCP auth intact.
+- Unused member CRUD service and member admin DTO leftovers were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -78,7 +79,7 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Review remaining generic user/member service code in smaller slices; JWT/MCP auth and withdraw-risk still reference `User`.
+1. Review remaining generic `User` entity fields and repository methods in smaller slices; JWT/MCP auth and withdraw-risk still reference `User`.
 2. Reduce generic security/account dependencies after the remaining `User` boundary is settled.
 3. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
 

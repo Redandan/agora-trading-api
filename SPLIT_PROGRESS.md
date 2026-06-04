@@ -28,6 +28,7 @@
 - Unused PWA log, traffic analytics, slot analytics DTOs, slot symbol enum, slot cache, and stale product/PWA/slot security rules were removed from trading.
 - Unreferenced chat, staking, transaction DTOs and unused marketplace/betting enums were removed from trading.
 - Unused referrer DTO and marketplace logistics enum translation leftovers were removed from trading.
+- Unused Telegram login/OAuth binding service chain was removed from trading while keeping Telegram notifications and MCP auth intact.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -77,10 +78,9 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Decide whether Telegram login should remain in trading or be replaced by MCP/API-key-only access.
-2. Review remaining user/OAuth binding code in smaller slices; Telegram trading notifications still need separate treatment from user login.
-3. Reduce generic security/account dependencies after Telegram login boundary is settled.
-4. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
+1. Review remaining generic user/member service code in smaller slices; JWT/MCP auth and withdraw-risk still reference `User`.
+2. Reduce generic security/account dependencies after the remaining `User` boundary is settled.
+3. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
 
 ## Do Not Do Yet
 

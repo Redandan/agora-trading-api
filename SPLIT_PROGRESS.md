@@ -27,6 +27,7 @@
 - Unreferenced betting and marketplace status/type enums were removed from trading.
 - Unused PWA log, traffic analytics, slot analytics DTOs, slot symbol enum, slot cache, and stale product/PWA/slot security rules were removed from trading.
 - Unreferenced chat, staking, transaction DTOs and unused marketplace/betting enums were removed from trading.
+- Unused referrer DTO and marketplace logistics enum translation leftovers were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`

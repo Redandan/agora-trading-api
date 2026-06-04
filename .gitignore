@@ -1,0 +1,10 @@
+target/
+*.class
+.idea/
+*.iml
+*.log
+*.pid
+*.port
+.env
+.env.*
+!.env.example

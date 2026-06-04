@@ -7,7 +7,7 @@ try {
     mvn test
 
     Write-Host "[verify] checking source boundary markers"
-    $forbidden = rg "FlutterDeployment|FlutterAppDeployment|AppVersion|flutter/deployment|SearchLog|UserSearchLog|user_search_log|CustomerIssue|CreateIssueParam|IssueSearchParam|ReplyIssueParam|IssueTypeEnum|IssueStatusEnum|AdminImageAuditService|BrokenImage|AiProductClassificationSuggestion|imageaudit" src/main/java src/main/resources/application.yml
+    $forbidden = rg "FlutterDeployment|FlutterAppDeployment|AppVersion|flutter/deployment|SearchLog|UserSearchLog|user_search_log|CustomerIssue|CreateIssueParam|IssueSearchParam|ReplyIssueParam|IssueTypeEnum|IssueStatusEnum|AdminImageAuditService|BrokenImage|AiProductClassificationSuggestion|imageaudit|UserAddress|PostalArea|TaiwanPostalArea|DeliveryCountryPolicy" src/main/java src/main/resources/application.yml
     if ($LASTEXITCODE -eq 0) {
         Write-Error "Forbidden Flutter/AppVersion residue found:`n$forbidden"
     }

@@ -11,6 +11,9 @@ spring:
   ai:
     model:
       chat: none
+    chat:
+      client:
+        enabled: false
   threads:
     virtual:
       enabled: true

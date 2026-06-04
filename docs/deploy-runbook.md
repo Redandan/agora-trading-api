@@ -51,6 +51,7 @@ Expected:
 - No empty legacy marketplace MCP tool placeholder residue remains.
 - No unreferenced betting or marketplace status/type enum residue remains.
 - No unused PWA log, traffic analytics, slot analytics, slot cache, or stale product/PWA/slot security-route residue remains.
+- No unreferenced chat, staking, transaction DTO or unused marketplace/betting enum residue remains.
 
 ## Server Deploy Template
 

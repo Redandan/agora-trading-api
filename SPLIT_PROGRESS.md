@@ -58,9 +58,13 @@ AgoraMarketAPI deployment/acceptance runbook:
 
 - `C:\Users\Redan\IdeaProjects\AgoraMarketAPI\docs\split-service-acceptance-deploy.md`
 
-Current deploy blocker:
+Trading deployment prep:
 
 - Trading has a deploy skeleton in `deploy.sh`, but it has not been installed on the server yet.
+- `scripts/bootstrap_server.sh` can clone/fetch the repo on the server and write a non-secret env template.
+- 2026-06-05 server preflight confirmed AgoraMarketAPI is healthy on local port `8082`.
+- 2026-06-05 server preflight confirmed `/home/ubuntu/agora-trading-api` and `/home/ubuntu/.env.trading.secrets` are still missing.
+- 2026-06-05 server preflight did not find nginx `/api/trading/` routing yet.
 - Production must define `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets` before trading can use AgoraMarket exchange rates.
 - Server-side deploy acceptance can be checked with `scripts/verify_server.sh` after the service is installed.
 

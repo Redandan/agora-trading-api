@@ -57,6 +57,36 @@ Expected:
 
 `deploy.sh` is a blue-green skeleton for one host:
 
+First-time server bootstrap/preflight:
+
+```bash
+cd /home/ubuntu/agora-trading-api
+bash scripts/bootstrap_server.sh
+```
+
+If the repo has not been cloned yet:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/Redandan/agora-trading-api/main/scripts/bootstrap_server.sh)"
+```
+
+The bootstrap script checks server tools, clones or fetches this repo, writes only
+`.env.trading.secrets.example`, checks AgoraMarket local health, and reports
+whether nginx already contains `/api/trading/`. It does not create or print the
+real secret file.
+
+Current server preflight from 2026-06-05 Asia/Taipei:
+
+- AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
+- AgoraMarketAPI active port file reports `8082`.
+- Local AgoraMarketAPI health is `UP`.
+- `git`, `mvn`, `java`, and `curl` are installed.
+- `/home/ubuntu/agora-trading-api` is not installed yet.
+- `/home/ubuntu/.env.trading.secrets` is not created yet.
+- nginx site exists, but no `/api/trading/` location was found yet.
+
+Deploy after secrets and nginx path are ready:
+
 ```bash
 cd /home/ubuntu/agora-trading-api
 bash deploy.sh

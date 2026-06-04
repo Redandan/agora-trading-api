@@ -18,6 +18,7 @@
 - CustomerIssue/support-ticket leftovers were removed from trading.
 - Product classification and image audit leftovers were removed from trading.
 - UserAddress, postal-area, and delivery-country leftovers were removed from trading.
+- Unused OAuth2 service interfaces and OAuth2 DTO leftovers were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -57,7 +58,7 @@ Current deploy blocker:
 ## Cleanup Priority
 
 1. Decide whether trading keeps independent auth or only MCP/API-key auth.
-2. Remove OAuth/passkey/wallet-connect code if trading does not need user-facing login.
+2. Remove remaining OAuth/passkey/wallet-connect code if trading does not need user-facing login.
 3. Review remaining auth/user code in smaller slices; Telegram trading notifications still need separate treatment from user login.
 
 ## Do Not Do Yet

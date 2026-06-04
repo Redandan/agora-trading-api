@@ -19,8 +19,7 @@ public class SecurityPaths {
             "/v3/api-docs**",
             "/public/**",
             "/swagger-ui.html",
-            "/auth/**",        // 所有認證相關端點（包括 OAuth2 標準流程）
-            "/login/oauth2/**", // OAuth2 回調端點
+            "/auth/**",        // 認證相關端點
             "/test/**",
             "/images/**",
             "/webpush/vapid-public-key",

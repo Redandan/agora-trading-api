@@ -43,6 +43,7 @@ Expected:
 - No marketplace search logging residue remains.
 - No marketplace support-ticket, image-audit, or product-classification residue remains.
 - No marketplace address/postal delivery residue remains.
+- No unused OAuth2 service/DTO residue remains.
 
 ## Server Deploy Template
 

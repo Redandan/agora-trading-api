@@ -14,11 +14,24 @@ INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal
 
 cd "$APP_DIR"
 
+load_env_file() {
+  local file="$1"
+  local line key value
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|\#*) continue ;;
+    esac
+    key="${line%%=*}"
+    value="${line#*=}"
+    case "$key" in
+      [A-Za-z_][A-Za-z0-9_]*) export "$key=$value" ;;
+      *) echo "[deploy] ignoring invalid env key in $file: $key" >&2 ;;
+    esac
+  done < "$file"
+}
+
 if [ -f "$ENV_FILE" ]; then
-  set -a
-  # shellcheck disable=SC1090
-  . "$ENV_FILE"
-  set +a
+  load_env_file "$ENV_FILE"
 fi
 
 CURRENT_PORT=""

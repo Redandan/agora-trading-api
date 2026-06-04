@@ -8,6 +8,9 @@ server:
 spring:
   application:
     name: agora-trading-api
+  ai:
+    model:
+      chat: none
   threads:
     virtual:
       enabled: true

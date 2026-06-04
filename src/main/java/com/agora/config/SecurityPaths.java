@@ -25,7 +25,6 @@ public class SecurityPaths {
             "/images/**",
             "/webpush/vapid-public-key",
             "/oci/notifications",
-            "/flutter/deployment/**",  // Flutter App 部署端點
             "/telegram/webhook/**",    // Telegram Webhook 回調端點
             "/backtests/**",           // Backtest MVP 執行與查詢
             "/mcp/**",                 // MCP AI 工具探索端點

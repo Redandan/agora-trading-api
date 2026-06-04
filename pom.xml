@@ -63,6 +63,13 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
+
+        <!-- AgoraMarket internal SDK for split-service HTTP contracts -->
+        <dependency>
+            <groupId>com.agora</groupId>
+            <artifactId>agora-market-internal-client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         
         <!-- Spring Cache -->
         <dependency>

@@ -11,7 +11,9 @@
 - Trading app entry point uses full `com.agora` component scan.
 - JPA repository scan is limited to trading/system repositories.
 - Obvious marketplace product/order/cart/delivery/game/webpush/notification code was removed from trading.
-- `StaticExchangeRateServiceImpl` exists as a local fallback.
+- `AgoraMarketExchangeRateServiceImpl` uses the `agora-market-internal-client` SDK when configured.
+- `StaticExchangeRateServiceImpl` exists as the local/downstream-failure fallback.
+- Flutter/AppVersion deployment leftovers were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -23,21 +25,19 @@
   - `ExchangeRateInfo`
   - `AgoraMarketInternalClientProperties`
 
-## Next Implementation Step
-
-Replace `StaticExchangeRateServiceImpl` with an SDK-backed implementation after publishing or locally installing `agora-market-internal-client`.
-
-Suggested class shape in trading:
-
-- `AgoraMarketExchangeRateClient`
-- `AgoraMarketExchangeRateProperties`
-- `AgoraMarketExchangeRateServiceImpl implements ExchangeRateService`
+## Exchange Rate Runtime
 
 Keep static fallback behavior for:
 
 - Local dev without `AGORA_MARKET_INTERNAL_API_KEY`.
 - AgoraMarketAPI downtime.
 - Timeout or `401` during transition.
+
+Fresh-machine build prerequisite:
+
+```powershell
+mvn -f C:\Users\Redan\IdeaProjects\AgoraMarketAPI\internal-client\pom.xml install
+```
 
 ## Acceptance And Deploy
 
@@ -47,16 +47,15 @@ AgoraMarketAPI deployment/acceptance runbook:
 
 Current deploy blocker:
 
-- AgoraMarketAPI production `deploy.sh` fetches/resets from git, so local uncommitted changes must be committed and pushed before deployment.
-- Production must define `INTERNAL_API_KEY` in `/home/ubuntu/.env.secrets` before the internal endpoint can be used by trading.
+- Trading has a deploy skeleton in `deploy.sh`, but it has not been installed on the server yet.
+- Production must define `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets` before trading can use AgoraMarket exchange rates.
 
 ## Cleanup Priority
 
-1. Remove or isolate Flutter/AppVersion deployment leftovers.
-2. Remove UserSearchLog and search logging aspect.
-3. Remove CustomerIssue, UserAddress, product classification suggestions, and image audit leftovers.
-4. Decide whether trading keeps independent auth or only MCP/API-key auth.
-5. Remove OAuth/passkey/wallet-connect code if trading does not need user-facing login.
+1. Remove UserSearchLog and search logging aspect.
+2. Remove CustomerIssue, UserAddress, product classification suggestions, and image audit leftovers.
+3. Decide whether trading keeps independent auth or only MCP/API-key auth.
+4. Remove OAuth/passkey/wallet-connect code if trading does not need user-facing login.
 
 ## Do Not Do Yet
 

@@ -14,6 +14,22 @@ Health check:
 curl http://localhost:8084/api/trading/actuator/health
 ```
 
+Local verification:
+
+```powershell
+.\scripts\verify_local.ps1
+```
+
+AgoraMarket exchange-rate integration:
+
+- Configure `AGORA_MARKET_BASE_URL` and `AGORA_MARKET_INTERNAL_API_KEY` to call AgoraMarket internal API.
+- Leave `AGORA_MARKET_INTERNAL_API_KEY` blank for local static fallback.
+- Install the provider SDK first when building from a fresh machine:
+
+```powershell
+mvn -f C:\Users\Redan\IdeaProjects\AgoraMarketAPI\internal-client\pom.xml install
+```
+
 ## Initial boundaries
 
 - Owns trading strategy, OCO/grid, signal, market data, backtest, trading diagnostics, and trading MCP.
@@ -26,3 +42,4 @@ See:
 - [SERVICE_BOUNDARY.md](SERVICE_BOUNDARY.md)
 - [INTERNAL_API_TODO.md](INTERNAL_API_TODO.md)
 - [SPLIT_PROGRESS.md](SPLIT_PROGRESS.md)
+- [docs/deploy-runbook.md](docs/deploy-runbook.md)

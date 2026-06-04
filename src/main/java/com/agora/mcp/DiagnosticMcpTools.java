@@ -3382,17 +3382,9 @@ public class DiagnosticMcpTools {
 
     boolean isJwtAuthRejection(String line) {
         if (line == null) return false;
-        return (line.contains("JwtAuthenticationFilter")
-                && (line.contains("JWT Authentication Error")
-                || line.contains("URI:")
-                || line.contains("Error: JWT signature does not match")
-                || line.contains("Token Info - Failed")
-                || line.contains("Stack trace:")
-                || line.contains("================================")))
-                || line.contains("SignatureException: JWT signature does not match")
+        return line.contains("SignatureException: JWT signature does not match")
                 || line.contains("MalformedJwtException")
-                || (line.contains("com.agora.util.JwtUtil")
-                && line.contains("Device/IP validation failed"));
+                || line.contains("io.jsonwebtoken.security.SignatureException");
     }
 
     private boolean isBeforeStartupFallback(String line, LocalDateTime startupFallback) {

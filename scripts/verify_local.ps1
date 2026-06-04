@@ -15,6 +15,14 @@ try {
         throw "rg failed with exit code $LASTEXITCODE"
     }
 
+    $authForbidden = rg "JwtAuthenticationFilter|CurrentUserMethodArgumentResolver|\bCurrentUser\b|UserPrincipal|CustomUserDetailsServiceImpl|DeviceFingerprintUtil|SecurityUtils|/auth/\*\*" src/main/java src/main/resources/application.yml pom.xml
+    if ($LASTEXITCODE -eq 0) {
+        Write-Error "Forbidden web auth residue found:`n$authForbidden"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "rg auth check failed with exit code $LASTEXITCODE"
+    }
+
     Write-Host "[verify] OK"
 } finally {
     Pop-Location

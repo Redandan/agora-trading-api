@@ -11,7 +11,6 @@ public class SecurityPaths {
      * 包括：
      * - Swagger UI 相關路徑
      * - API 文檔路徑
-     * - 認證相關路徑（註冊、登入）
      */
     public static final String[] ALLOWED_PATHS = {
             "/swagger-ui/**",
@@ -19,7 +18,6 @@ public class SecurityPaths {
             "/v3/api-docs**",
             "/public/**",
             "/swagger-ui.html",
-            "/auth/**",        // 認證相關端點
             "/test/**",
             "/images/**",
             "/oci/notifications",

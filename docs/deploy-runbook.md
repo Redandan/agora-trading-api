@@ -90,9 +90,9 @@ Current server state from 2026-06-05 Asia/Taipei:
 - `/home/ubuntu/.env.trading.secrets` has been created without printing secret values.
 - independent trading database `agora_trading` has been created.
 - nginx `/api/trading/` location has been installed and reloaded.
-- trading deployed from `origin/main` commit `de62782`, active port `8084`.
+- trading deployed from `origin/main` commit `480abc0`, active port `8085`.
 - `scripts/verify_server.sh` passed with:
-  - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
+  - local trading health: `http://127.0.0.1:8085/api/trading/actuator/health`
   - AgoraMarket health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 

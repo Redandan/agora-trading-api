@@ -32,8 +32,11 @@ require_cmd mvn
 
 if [ -d "$APP_DIR/.git" ]; then
   ok "repo already exists: $APP_DIR"
-  git -C "$APP_DIR" fetch origin "$BRANCH" --quiet
-  ok "origin/$BRANCH is reachable"
+  git -C "$APP_DIR" diff --quiet || fail "$APP_DIR has unstaged changes"
+  git -C "$APP_DIR" diff --cached --quiet || fail "$APP_DIR has staged changes"
+  git -C "$APP_DIR" checkout "$BRANCH" --quiet
+  git -C "$APP_DIR" pull --ff-only origin "$BRANCH" --quiet
+  ok "repo fast-forwarded from origin/$BRANCH"
 elif [ -e "$APP_DIR" ]; then
   fail "$APP_DIR exists but is not a git worktree"
 else

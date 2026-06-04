@@ -81,7 +81,7 @@ Current server preflight from 2026-06-05 Asia/Taipei:
 - AgoraMarketAPI active port file reports `8082`.
 - Local AgoraMarketAPI health is `UP`.
 - `git`, `mvn`, `java`, and `curl` are installed.
-- `/home/ubuntu/agora-trading-api` has been bootstrapped at commit `86579d6`.
+- `/home/ubuntu/agora-trading-api` has been bootstrapped and can fast-forward from `origin/main`.
 - `/home/ubuntu/agora-trading-api/.env.trading.secrets.example` has been created.
 - `/home/ubuntu/.env.trading.secrets` is not created yet.
 - nginx site exists, but no `/api/trading/` location was found yet.

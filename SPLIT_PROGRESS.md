@@ -63,7 +63,7 @@ Trading deployment prep:
 - Trading has a deploy skeleton in `deploy.sh`.
 - `scripts/bootstrap_server.sh` can clone/fetch the repo on the server and write a non-secret env template.
 - 2026-06-05 server preflight confirmed AgoraMarketAPI is healthy on local port `8082`.
-- 2026-06-05 server bootstrap installed `/home/ubuntu/agora-trading-api` at commit `86579d6`.
+- 2026-06-05 server bootstrap installed `/home/ubuntu/agora-trading-api` and verified fast-forward from `origin/main`.
 - 2026-06-05 server bootstrap created `/home/ubuntu/agora-trading-api/.env.trading.secrets.example`.
 - 2026-06-05 server verification confirmed `/home/ubuntu/.env.trading.secrets` is still missing.
 - 2026-06-05 server preflight did not find nginx `/api/trading/` routing yet.

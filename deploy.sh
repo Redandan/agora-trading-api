@@ -8,6 +8,8 @@ PORT_A="${PORT_A:-8084}"
 PORT_B="${PORT_B:-8085}"
 JAVA_OPTS="${JAVA_OPTS:--Xms512m -Xmx2g -Duser.timezone=UTC}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
+NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}"
+UPDATE_NGINX="${UPDATE_NGINX:-1}"
 
 cd "$APP_DIR"
 
@@ -36,6 +38,20 @@ git reset --hard "origin/$BRANCH"
 
 mvn clean package -DskipTests -q
 
+PIDS_ON_NEW_PORT="$(lsof -ti ":$NEW_PORT" 2>/dev/null || true)"
+if [ -n "$PIDS_ON_NEW_PORT" ]; then
+  for pid in $PIDS_ON_NEW_PORT; do
+    if ps -p "$pid" -o args= 2>/dev/null | grep -q "agora-trading-api"; then
+      echo "[deploy] killing stale $APP_NAME PID=$pid on port=$NEW_PORT"
+      kill "$pid" 2>/dev/null || true
+      sleep 2
+    else
+      echo "[deploy] port $NEW_PORT is held by non-$APP_NAME PID=$pid" >&2
+      exit 1
+    fi
+  done
+fi
+
 mkdir -p logs/runs
 RUN_LOG="logs/runs/app-$(date -u +%Y%m%dT%H%M%SZ)-port${NEW_PORT}.log"
 
@@ -63,8 +79,30 @@ if ! curl -fsS "http://127.0.0.1:${NEW_PORT}/api/trading/actuator/health" >/dev/
   exit 1
 fi
 
-echo "$NEW_PORT" > app.port
-echo "$NEW_PID" > app.pid
+if [ "$UPDATE_NGINX" = "1" ]; then
+  if [ ! -f "$NGINX_CONF" ]; then
+    echo "[deploy] nginx config missing: $NGINX_CONF" >&2
+    kill "$NEW_PID" 2>/dev/null || true
+    exit 1
+  fi
+  if ! sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
+    echo "[deploy] nginx /api/trading/ location missing in $NGINX_CONF" >&2
+    kill "$NEW_PID" 2>/dev/null || true
+    exit 1
+  fi
+
+  sudo cp "$NGINX_CONF" "$NGINX_CONF.bak-trading"
+  sudo sed -E -i "s#127\\.0\\.0\\.1:(8084|8085)#127.0.0.1:${NEW_PORT}#g" "$NGINX_CONF"
+  if ! sudo nginx -t >/dev/null 2>&1; then
+    echo "[deploy] nginx config invalid after trading upstream swap; rolling back" >&2
+    sudo mv "$NGINX_CONF.bak-trading" "$NGINX_CONF"
+    kill "$NEW_PID" 2>/dev/null || true
+    exit 1
+  fi
+  sudo rm -f "$NGINX_CONF.bak-trading"
+  sudo systemctl reload nginx
+  echo "[deploy] nginx /api/trading/ switched to port $NEW_PORT"
+fi
 
 if [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
   OLD_PID="$(cat "app.pid.$CURRENT_PORT")"
@@ -73,5 +111,8 @@ if [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
   kill "$OLD_PID" 2>/dev/null || true
   rm -f "app.pid.$CURRENT_PORT"
 fi
+
+echo "$NEW_PORT" > app.port
+echo "$NEW_PID" > app.pid
 
 echo "[deploy] complete: $APP_NAME running on port $NEW_PORT"

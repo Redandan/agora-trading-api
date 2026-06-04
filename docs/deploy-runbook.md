@@ -91,6 +91,7 @@ Deploy after secrets and nginx path are ready:
 
 ```bash
 cd /home/ubuntu/agora-trading-api
+bash scripts/install_nginx_path.sh
 bash deploy.sh
 ```
 

@@ -79,7 +79,7 @@ The bootstrap script checks server tools, clones or fetches this repo, writes on
 whether nginx already contains `/api/trading/`. It does not create or print the
 real secret file.
 
-Current server preflight from 2026-06-05 Asia/Taipei:
+Current server state from 2026-06-05 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
 - AgoraMarketAPI active port file reports `8082`.
@@ -87,9 +87,14 @@ Current server preflight from 2026-06-05 Asia/Taipei:
 - `git`, `mvn`, `java`, and `curl` are installed.
 - `/home/ubuntu/agora-trading-api` has been bootstrapped and can fast-forward from `origin/main`.
 - `/home/ubuntu/agora-trading-api/.env.trading.secrets.example` has been created.
-- `/home/ubuntu/.env.trading.secrets` is not created yet.
-- nginx site exists, but no `/api/trading/` location was found yet.
-- `scripts/verify_server.sh` currently fails cleanly at the missing env file.
+- `/home/ubuntu/.env.trading.secrets` has been created without printing secret values.
+- independent trading database `agora_trading` has been created.
+- nginx `/api/trading/` location has been installed and reloaded.
+- trading deployed from `origin/main` commit `de62782`, active port `8084`.
+- `scripts/verify_server.sh` passed with:
+  - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
+  - AgoraMarket health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
+  - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 
 Deploy after secrets and nginx path are ready:
 

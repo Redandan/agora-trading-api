@@ -68,14 +68,18 @@ Trading deployment prep:
 - 2026-06-05 server configuration created `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - 2026-06-05 server configuration created independent MySQL database `agora_trading` for trading runtime.
 - 2026-06-05 server configuration installed nginx `/api/trading/` routing.
-- Production must define `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets` before trading can use AgoraMarket exchange rates.
-- Server-side deploy acceptance can be checked with `scripts/verify_server.sh` after the service is installed.
+- 2026-06-05 server deployment completed from `origin/main` commit `de62782`.
+- 2026-06-05 trading service started on active port `8084`.
+- 2026-06-05 `scripts/verify_server.sh` passed with public health check:
+  - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+- Production defines `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets`, so trading can call AgoraMarket exchange rates and still fall back on timeout or failure.
 
 ## Cleanup Priority
 
 1. Decide whether Telegram login should remain in trading or be replaced by MCP/API-key-only access.
 2. Review remaining user/OAuth binding code in smaller slices; Telegram trading notifications still need separate treatment from user login.
 3. Reduce generic security/account dependencies after Telegram login boundary is settled.
+4. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
 
 ## Do Not Do Yet
 

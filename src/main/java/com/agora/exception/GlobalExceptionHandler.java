@@ -1,7 +1,6 @@
 package com.agora.exception;
 
 
-import com.agora.dto.auth.RegisterResult;
 import com.agora.dto.common.FileAssociationErrorResponse;
 import com.agora.service.DatabaseConnectionAlertService;
 import lombok.RequiredArgsConstructor;
@@ -97,7 +96,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<RegisterResult> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         // 獲取第一個驗證錯誤
         String fieldName = null;
         String errorMessage = null;
@@ -112,8 +111,11 @@ public class GlobalExceptionHandler {
             errorCode = generateValidationErrorCode(fieldError);
         }
         
-        // 返回 RegisterResult 格式的錯誤響應
-        RegisterResult result = RegisterResult.error(errorMessage, errorCode, fieldName);
+        ErrorResponse result = new ErrorResponse(
+                errorCode != null ? errorCode : "VALIDATION_FAILED",
+                "Validation Failed",
+                fieldName != null ? fieldName + ": " + errorMessage : errorMessage
+        );
         return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
     

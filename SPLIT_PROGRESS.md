@@ -20,6 +20,7 @@
 - UserAddress, postal-area, and delivery-country leftovers were removed from trading.
 - Unused OAuth2 service interfaces and OAuth2 DTO leftovers were removed from trading.
 - WalletConnect/Web3 login leftovers and the unused OAuth2 client dependency were removed from trading.
+- Unused AuthService/AuthCode/2FA and marketplace account-login DTO leftovers were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -58,9 +59,9 @@ Current deploy blocker:
 
 ## Cleanup Priority
 
-1. Decide whether trading keeps independent auth or only MCP/API-key auth.
-2. Remove remaining OAuth/passkey/login code if trading does not need user-facing login.
-3. Review remaining auth/user code in smaller slices; Telegram trading notifications still need separate treatment from user login.
+1. Decide whether Telegram login should remain in trading or be replaced by MCP/API-key-only access.
+2. Review remaining user/OAuth binding code in smaller slices; Telegram trading notifications still need separate treatment from user login.
+3. Reduce generic security/account dependencies after Telegram login boundary is settled.
 
 ## Do Not Do Yet
 

@@ -15,8 +15,8 @@ import java.util.List;
  * <pre>
  * nightly-cleanup:
  *   tables:
- *     - table: user_search_log
- *       column: request_time
+ *     - table: bt_live_signal
+ *       column: created_at
  *       retention-days: 90
  *       batch-size: 5000
  * </pre>

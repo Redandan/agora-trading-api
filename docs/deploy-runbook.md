@@ -40,6 +40,7 @@ Expected:
 - SDK-backed exchange-rate unit tests pass.
 - Spring context test starts with fallback if `AGORA_MARKET_INTERNAL_API_KEY` is not configured.
 - No Flutter/AppVersion deployment residue remains.
+- No marketplace search logging residue remains.
 
 ## Server Deploy Template
 

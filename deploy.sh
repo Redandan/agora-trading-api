@@ -10,6 +10,7 @@ JAVA_OPTS="${JAVA_OPTS:--Xms512m -Xmx2g -Duser.timezone=UTC}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}"
 UPDATE_NGINX="${UPDATE_NGINX:-1}"
+INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 
 cd "$APP_DIR"
 
@@ -35,6 +36,11 @@ echo "[deploy] $APP_NAME blue-green: ${CURRENT_PORT:-none} -> $NEW_PORT"
 
 git fetch origin "$BRANCH" --quiet
 git reset --hard "origin/$BRANCH"
+
+if [ -f "$INTERNAL_CLIENT_POM" ]; then
+  echo "[deploy] installing AgoraMarket internal-client SDK"
+  mvn -f "$INTERNAL_CLIENT_POM" install -DskipTests -q
+fi
 
 mvn clean package -DskipTests -q
 

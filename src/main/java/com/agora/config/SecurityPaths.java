@@ -34,8 +34,6 @@ public class SecurityPaths {
             "/market/intervals",       // 可用週期清單
             "/market/ticker",          // 最新 K 線快照
             "/ratelimit",              // nginx error_page 429 internal redirect target（結構化 JSON + Retry-After）
-            "/slot/symbols",           // Slot Symbol 目錄（前端載入圖片資源用，無需認證）
-            "/slot/rtp",               // Slot 理論 RTP 設定表（公開資訊，無需認證）
             "/actuator/health",        // 匿名健康探針（liveness/readiness），details 走 when_authorized 機制
             "/actuator/health/**",
             "/actuator/info",          // 公開版本/構建資訊

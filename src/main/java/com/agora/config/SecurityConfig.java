@@ -4,18 +4,13 @@ import com.agora.security.JwtAuthenticationFilter;
 import com.agora.util.JwtUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,37 +41,19 @@ public class SecurityConfig implements WebMvcConfigurer {
     private final JwtUtil jwtUtil;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SecurityPaths.ALLOWED_PATHS).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/products/*").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/products/search").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/products/search/natural").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/pwa-logs").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/slot/paytable/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.GET,  "/slot/paytable/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.GET,  "/slot/revenue/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.GET,  "/slot/revenue").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.GET,  "/slot/revenue/by-version").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider(ObjectProvider<UserDetailsService> userDetailsServiceProvider) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(username -> userDetailsServiceProvider.getObject().loadUserByUsername(username));
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
     }
 
     @Bean

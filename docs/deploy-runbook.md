@@ -50,6 +50,7 @@ Expected:
 - No unused marketplace delivery/order/wallet enum, notification enum, logistics utility, or delivery/digital-order property residue remains.
 - No empty legacy marketplace MCP tool placeholder residue remains.
 - No unreferenced betting or marketplace status/type enum residue remains.
+- No unused PWA log, traffic analytics, slot analytics, slot cache, or stale product/PWA/slot security-route residue remains.
 
 ## Server Deploy Template
 

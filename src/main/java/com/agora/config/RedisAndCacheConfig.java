@@ -34,13 +34,6 @@ public class RedisAndCacheConfig {
                 cacheBuilder().expireAfterWrite(15, TimeUnit.MINUTES).maximumSize(100).build());
         manager.registerCustomCache("oauthBindings",
                 cacheBuilder().expireAfterWrite(30, TimeUnit.MINUTES).maximumSize(200).build());
-        // Slot 賠率設定快取（TTL 1 小時；更新賠率時由 @CacheEvict 清除）
-        manager.registerCustomCache("slotPaytableConfig",
-                cacheBuilder().expireAfterWrite(1, TimeUnit.HOURS).maximumSize(20).build());
-        // Slot RTP 計算結果快取（O(32768) 迴圈，TTL 1 小時；更新賠率時由 @CacheEvict 清除）
-        manager.registerCustomCache("slotRtp",
-                cacheBuilder().expireAfterWrite(1, TimeUnit.HOURS).maximumSize(20).build());
-
         // LiveSignal K 線快取（TTL 60s；每次 KlineClosedEvent 時由 @CacheEvict 清除）
         manager.registerCustomCache("liveSignalKlines",
                 cacheBuilder().expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(20).build());

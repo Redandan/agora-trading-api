@@ -15,6 +15,8 @@
 - `StaticExchangeRateServiceImpl` exists as the local/downstream-failure fallback.
 - Flutter/AppVersion deployment leftovers were removed from trading.
 - UserSearchLog/SearchLogAspect leftovers were removed from trading.
+- CustomerIssue/support-ticket leftovers were removed from trading.
+- Product classification and image audit leftovers were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -53,9 +55,9 @@ Current deploy blocker:
 
 ## Cleanup Priority
 
-1. Remove CustomerIssue, UserAddress, product classification suggestions, and image audit leftovers.
-2. Decide whether trading keeps independent auth or only MCP/API-key auth.
-3. Remove OAuth/passkey/wallet-connect code if trading does not need user-facing login.
+1. Decide whether trading keeps independent auth or only MCP/API-key auth.
+2. Remove OAuth/passkey/wallet-connect code if trading does not need user-facing login.
+3. Evaluate UserAddress/postal-area leftovers separately; do not hard-delete until auth/user boundaries are settled.
 
 ## Do Not Do Yet
 

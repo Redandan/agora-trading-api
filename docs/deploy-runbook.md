@@ -41,6 +41,7 @@ Expected:
 - Spring context test starts with fallback if `AGORA_MARKET_INTERNAL_API_KEY` is not configured.
 - No Flutter/AppVersion deployment residue remains.
 - No marketplace search logging residue remains.
+- No marketplace support-ticket, image-audit, or product-classification residue remains.
 
 ## Server Deploy Template
 

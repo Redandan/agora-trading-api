@@ -46,6 +46,7 @@ Expected:
 - No unused OAuth2 service/DTO residue remains.
 - No WalletConnect/Web3 login residue or OAuth2 client dependency remains.
 - No unused AuthService/AuthCode/2FA or marketplace account-login DTO residue remains.
+- No WebPush, product-report, product-validator, cart-summary, or marketplace order-event residue remains.
 
 ## Server Deploy Template
 

@@ -23,7 +23,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jjwt.version>0.13.0</jjwt.version>
         <okhttp.version>4.12.0</okhttp.version>
-        <webpush.version>5.1.1</webpush.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <flyway.version>11.20.0</flyway.version>
@@ -173,13 +172,6 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.79</version>
-        </dependency>
-
-        <!-- Web Push -->
-        <dependency>
-            <groupId>nl.martijndwars</groupId>
-            <artifactId>web-push</artifactId>
-            <version>${webpush.version}</version>
         </dependency>
 
         <!-- Hibernate Validator -->

@@ -22,7 +22,6 @@ public class SecurityPaths {
             "/auth/**",        // 認證相關端點
             "/test/**",
             "/images/**",
-            "/webpush/vapid-public-key",
             "/oci/notifications",
             "/telegram/webhook/**",    // Telegram Webhook 回調端點
             "/backtests/**",           // Backtest MVP 執行與查詢

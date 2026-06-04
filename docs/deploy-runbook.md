@@ -48,6 +48,7 @@ Expected:
 - No unused AuthService/AuthCode/2FA or marketplace account-login DTO residue remains.
 - No WebPush, product-report, product-validator, cart-summary, or marketplace order-event residue remains.
 - No unused marketplace delivery/order/wallet enum, notification enum, logistics utility, or delivery/digital-order property residue remains.
+- No empty legacy marketplace MCP tool placeholder residue remains.
 
 ## Server Deploy Template
 

@@ -23,6 +23,7 @@
 - Unused AuthService/AuthCode/2FA and marketplace account-login DTO leftovers were removed from trading.
 - WebPush, product-report, product-validator, cart-summary, and marketplace order-event leftovers were removed from trading.
 - Unused marketplace delivery/order/wallet enums, notification enums, logistics utilities, and delivery/digital-order properties were removed from trading.
+- Empty legacy marketplace MCP tool placeholders were removed from trading.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`

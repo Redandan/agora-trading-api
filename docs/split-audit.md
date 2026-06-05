@@ -68,6 +68,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
 - Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate and deferred identity contracts.
+- `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.
 
 ## Retained Trading Domains
 

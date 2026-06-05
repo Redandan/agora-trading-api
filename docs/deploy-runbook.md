@@ -200,7 +200,8 @@ stopping the old port. If verification fails, the old process is still available
 and deploy logs `post-deploy verification failed; rolling back active metadata`.
 The rollback restores `app.port`, `app.pid`, and `app.commit`; when nginx was
 updated, it also logs `restoring nginx trading upstream after failed verification`
-and restores the nginx backup before cleaning up the new instance.
+and restores the nginx backup before cleaning up the new instance. A missing
+post-deploy verifier is treated as the same rollback-worthy failure.
 
 ## Nginx Path Split
 
@@ -258,7 +259,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
-- deploy restores active metadata and nginx backup when post-deploy verification fails.
+- deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.
 - deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`.
 - nginx deploy verifies public trading health through `DEFAULT_PUBLIC_TRADING_HEALTH_URL` by default.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.

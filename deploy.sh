@@ -256,6 +256,7 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
   VERIFY_SCRIPT="$APP_DIR/scripts/verify_server.sh"
   if [ ! -f "$VERIFY_SCRIPT" ]; then
     echo "[deploy] post-deploy verifier missing: $VERIFY_SCRIPT" >&2
+    rollback_after_failed_verify
     exit 1
   fi
   echo "[deploy] running post-deploy server verification"

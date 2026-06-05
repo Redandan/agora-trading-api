@@ -124,6 +124,7 @@ try {
         "--trading.okx.api-key=",
         "--trading.okx.secret-key=",
         "--trading.okx.passphrase=",
+        "--trading.oco-poller.enabled=false",
         "--trading.binance.api-key=",
         "--trading.binance.secret-key=",
         "--gemini.api.key=",
@@ -195,7 +196,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern "jdbc:h2:mem:trading-local-smoke" -Description "local-smoke uses in-memory H2 database"
     Assert-LogContains -Path $stdout -Pattern "Auto-trade enabled\s*:\s*false" -Description "OKX auto-trade is disabled"
     Assert-LogContains -Path $stdout -Pattern "API Key configured\s*:\s*false" -Description "OKX API key is cleared for local-smoke"
-    Assert-LogContains -Path $stdout -Pattern "Trading disabled.*private WS skipped" -Description "OKX private WebSocket is skipped"
+    Assert-LogContains -Path $stdout -Pattern "OCO poller disabled.*private WS skipped" -Description "OKX private WebSocket is skipped by OCO poller guard"
     Assert-LogContains -Path $stdout -Pattern "AGORA_MARKET_INTERNAL_API_KEY not configured; using static fallback rates" -Description "exchange-rate client uses static fallback"
     Assert-LogContains -Path $stdout -Pattern "startup check disabled" -Description "ML materialized refresh startup check is disabled"
     Assert-LogContains -Path $stdout -Pattern "AiTaskRouter.*initialized with 0 providers" -Description "local-smoke does not initialize external AI providers"

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +64,9 @@ public class OcoPositionPollerScheduler {
     /** #380 — dedup 舊 orphan alert（24h TTL，每天最多 1 條）via #362 framework */
     private final TgNotificationDeduper tgDeduper;
 
+    @Value("${trading.oco-poller.enabled:false}")
+    private boolean ocoPollerEnabled;
+
     /** OCO 補掛重試計數（in-memory；服務重啟後歸零，重新評估是正確行為）。
      *  value ≥ 5 = 已放棄重試；value = 6 = 放棄 TG 已發送，保持靜默。 */
     private final ConcurrentHashMap<Long, Integer> ocoRetryCount = new ConcurrentHashMap<>();
@@ -72,6 +76,7 @@ public class OcoPositionPollerScheduler {
     /** 啟動後 15 秒開始，之後每 10 分鐘執行一次（WS 推送為主要路徑，此 polling 為 fallback）。 */
     @Scheduled(initialDelay = 15_000, fixedDelay = 600_000)
     public void pollOcoPositions() {
+        if (!ocoPollerEnabled) return;
         if (!tradingProperties.isEnabled()) return;
         Timer.Sample sample = Timer.start(tradingMetrics.registry());
         try {
@@ -261,6 +266,10 @@ public class OcoPositionPollerScheduler {
      * 從 DB 查出對應倉位後呼叫 checkAndClose()，exitTimeIsNull 作為天然冪等保護。
      */
     public void handleAlgoFillPush(Long algoId) {
+        if (!ocoPollerEnabled) {
+            log.debug("[WsPush] OCO poller disabled, ignoring algo fill push: algoId={}", algoId);
+            return;
+        }
         liveSignalRepository
                 .findFirstByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListId(algoId)
                 .ifPresentOrElse(pos -> {

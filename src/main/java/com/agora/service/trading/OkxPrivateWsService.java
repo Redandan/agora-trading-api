@@ -13,6 +13,7 @@ import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -51,6 +52,9 @@ public class OkxPrivateWsService implements DisposableBean {
     private final NotificationPort           notificationPort;
     private final OkHttpClient               wsClient;
 
+    @Value("${trading.oco-poller.enabled:false}")
+    private boolean ocoPollerEnabled;
+
     private final ScheduledExecutorService executor =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "okx-private-ws");
@@ -81,6 +85,10 @@ public class OkxPrivateWsService implements DisposableBean {
 
     @PostConstruct
     public void init() {
+        if (!ocoPollerEnabled) {
+            log.info("[OkxPrivateWs] OCO poller disabled — private WS skipped");
+            return;
+        }
         if (!tradingProperties.isEnabled()) {
             log.info("[OkxPrivateWs] Trading disabled — private WS skipped");
             return;

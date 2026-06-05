@@ -61,6 +61,35 @@ cleanup_new_instance() {
   fi
 }
 
+rollback_after_failed_verify() {
+  echo "[deploy] post-deploy verification failed; rolling back active metadata" >&2
+
+  if [ -n "${CURRENT_PORT:-}" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
+    echo "$CURRENT_PORT" > app.port
+    cat "app.pid.$CURRENT_PORT" > app.pid
+  else
+    rm -f app.port app.pid
+  fi
+
+  if [ -n "${PREVIOUS_COMMIT:-}" ]; then
+    printf '%s\n' "$PREVIOUS_COMMIT" > app.commit
+  else
+    rm -f app.commit
+  fi
+
+  if [ "${UPDATE_NGINX:-0}" = "1" ] && [ -f "$NGINX_CONF.bak-trading" ]; then
+    echo "[deploy] restoring nginx trading upstream after failed verification" >&2
+    sudo mv "$NGINX_CONF.bak-trading" "$NGINX_CONF"
+    if sudo nginx -t >/dev/null 2>&1; then
+      sudo systemctl reload nginx
+    else
+      echo "[deploy] nginx rollback config failed validation; manual intervention required" >&2
+    fi
+  fi
+
+  cleanup_new_instance
+}
+
 require_cmd curl
 require_cmd git
 require_cmd java
@@ -90,6 +119,10 @@ require_env_key SPRING_DATASOURCE_PASSWORD
 CURRENT_PORT=""
 if [ -f app.port ]; then
   CURRENT_PORT="$(cat app.port)"
+fi
+PREVIOUS_COMMIT=""
+if [ -f app.commit ]; then
+  PREVIOUS_COMMIT="$(cat app.commit)"
 fi
 
 case "$CURRENT_PORT" in
@@ -211,7 +244,6 @@ if [ "$UPDATE_NGINX" = "1" ]; then
     cleanup_new_instance
     exit 1
   fi
-  sudo rm -f "$NGINX_CONF.bak-trading"
   sudo systemctl reload nginx
   echo "[deploy] nginx /api/trading/ switched to port $NEW_PORT"
 fi
@@ -228,14 +260,24 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
   fi
   echo "[deploy] running post-deploy server verification"
   if [ "$UPDATE_NGINX" = "1" ]; then
-    PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
-      RUN_PREFLIGHT=0 \
-      bash "$VERIFY_SCRIPT"
+    if ! PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
+        RUN_PREFLIGHT=0 \
+        bash "$VERIFY_SCRIPT"; then
+      rollback_after_failed_verify
+      exit 1
+    fi
   else
-    RUN_PREFLIGHT=0 bash "$VERIFY_SCRIPT"
+    if ! RUN_PREFLIGHT=0 bash "$VERIFY_SCRIPT"; then
+      rollback_after_failed_verify
+      exit 1
+    fi
   fi
 else
   echo "[deploy] post-deploy server verification skipped: RUN_POST_DEPLOY_VERIFY=$RUN_POST_DEPLOY_VERIFY"
+fi
+
+if [ "$UPDATE_NGINX" = "1" ]; then
+  sudo rm -f "$NGINX_CONF.bak-trading"
 fi
 
 # Keep the previous instance alive until post-deploy verification has proven the

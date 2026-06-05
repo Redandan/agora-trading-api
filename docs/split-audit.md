@@ -103,6 +103,7 @@ These domains are retained unless a later audit proves they are unused:
 - Deploy writes `app.commit`, and server verification checks it against the worktree HEAD when present.
 - Deploy writes `app.pid`, and server verification checks it still owns the active `app.port` when present.
 - Deploy runs server verification after switching active metadata by default; `RUN_POST_DEPLOY_VERIFY=0` is an explicit emergency bypass.
+- Deploy restores active metadata and nginx backup when post-deploy verification fails; logs include `post-deploy verification failed; rolling back active metadata`.
 - Deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`.
 - Nginx deploy verifies public trading health through `DEFAULT_PUBLIC_TRADING_HEALTH_URL` by default.
 - Server verification requires nginx `/api/trading/` path presence by default; non-nginx verification must opt out with `REQUIRE_NGINX_TRADING_PATH=0`.

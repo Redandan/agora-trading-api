@@ -135,6 +135,8 @@ try {
     Assert-RgMatch -Pattern 'rm -f "app.pid.\$NEW_PORT"' -Paths @("deploy.sh") -Description "deploy removes new-port pid file on failed startup"
     Assert-RgMatch -Pattern "RUN_POST_DEPLOY_VERIFY" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy runs server verification after switching active metadata"
     Assert-RgMatch -Pattern 'RUN_PREFLIGHT=0 bash "\$VERIFY_SCRIPT"' -Paths @("deploy.sh") -Description "deploy post-verify reuses server verifier without repeating preflight"
+    Assert-RgMatch -Pattern "post-deploy verification failed; rolling back active metadata" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy rolls back active metadata when post-deploy verification fails"
+    Assert-RgMatch -Pattern "restoring nginx trading upstream after failed verification" -Paths @("deploy.sh", "docs/deploy-runbook.md") -Description "deploy restores nginx backup when post-deploy verification fails"
     Assert-RgMatch -Pattern "draining old instance after verification" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy drains previous instance only after post-deploy verification"
     Assert-RgMatch -Pattern "DEFAULT_PUBLIC_TRADING_HEALTH_URL" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "nginx deploy verifies public trading health by default"
     Assert-RgMatch -Pattern "PUBLIC_TRADING_HEALTH_URL=.*DEFAULT_PUBLIC_TRADING_HEALTH_URL" -Paths @("deploy.sh") -Description "post-deploy verify sets public trading health URL when nginx is updated"

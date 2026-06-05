@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
+@Profile("!local-smoke")
 // 只有當 spring.ai.model.chat=anthropic 時才註冊 Claude provider。
 // 預設不啟用(Anthropic API key 政策不穩;用戶決定要才開)。
 @ConditionalOnProperty(name = "spring.ai.model.chat", havingValue = "anthropic")

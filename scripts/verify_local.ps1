@@ -169,7 +169,15 @@ try {
 
     Assert-RgNoMatch -Pattern "@SpringBootTest\(properties|spring\.datasource\.url|market\.liquidation-ws\.enabled|trading\.tiny-live\.auto-execution\.enabled" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "inline local-smoke duplicate properties in context test"
 
-    foreach ($pattern in @("Assert-LogContains", "Assert-LogNotContains", "AGORA_MARKET_INTERNAL_API_KEY", "TRADING_OKX_API_KEY", "TRADING_BINANCE_API_KEY", "TELEGRAM_BOT_TOKEN", "Scheduling disabled for local-smoke profile", "Auto-trade enabled", "API Key configured", "Trading disabled.*private WS skipped", "order placed", "send telegram")) {
+    foreach ($providerFile in @(
+        "src/main/java/com/agora/service/ai/router/GeminiFlashProvider.java",
+        "src/main/java/com/agora/service/ai/router/GroqLlamaProvider.java",
+        "src/main/java/com/agora/service/ai/router/ClaudeSonnetProvider.java"
+    )) {
+        Assert-RgMatch -Pattern '@Profile\("!local-smoke"\)' -Paths @($providerFile) -Description "external AI provider excluded from local-smoke $providerFile"
+    }
+
+    foreach ($pattern in @("Assert-LogContains", "Assert-LogNotContains", "AGORA_MARKET_INTERNAL_API_KEY", "TRADING_OKX_API_KEY", "TRADING_BINANCE_API_KEY", "TELEGRAM_BOT_TOKEN", "GEMINI_API_KEY", "GROQ_API_KEY", "ANTHROPIC_API_KEY", "JINA_API_KEY", "EXTERNAL_COINALYZE_API_KEY", "EXCHANGE_RATE_COINMARKETCAP_API_KEY", "spring-boot.run.arguments", "gemini.api.key=", "groq.api.key=", "trading.okx.api-key=", "telegram.bot.token=", "Scheduling disabled for local-smoke profile", "Auto-trade enabled", "API Key configured", "Trading disabled.*private WS skipped", "AiTaskRouter.*initialized with 0 providers", "order placed", "send telegram")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_local_health.ps1") -Description "local-smoke log guard pattern $pattern"
     }
 

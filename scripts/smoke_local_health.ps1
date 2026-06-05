@@ -76,6 +76,17 @@ $envOverrides = @{
     TRADING_BINANCE_ENABLED = "false"
     TRADING_BINANCE_API_KEY = ""
     TRADING_BINANCE_SECRET_KEY = ""
+    GEMINI_API_KEY = ""
+    GROQ_API_KEY = ""
+    ANTHROPIC_API_KEY = ""
+    JINA_API_KEY = ""
+    EXTERNAL_COINALYZE_API_KEY = ""
+    EXTERNAL_COINGECKO_DEMO_API_KEY = ""
+    EXTERNAL_FRED_API_KEY = ""
+    EXTERNAL_ETHERSCAN_API_KEY = ""
+    EXTERNAL_ALCHEMY_API_KEY = ""
+    EXTERNAL_THEGRAPH_API_KEY = ""
+    EXCHANGE_RATE_COINMARKETCAP_API_KEY = ""
     TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
 }
@@ -86,11 +97,32 @@ try {
         $previousEnv[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
         [Environment]::SetEnvironmentVariable($name, $envOverrides[$name], "Process")
     }
+    $bootArguments = @(
+        "--server.port=$Port",
+        "--agora-market.internal-api-key=",
+        "--telegram.bot.token=",
+        "--trading.okx.api-key=",
+        "--trading.okx.secret-key=",
+        "--trading.okx.passphrase=",
+        "--trading.binance.api-key=",
+        "--trading.binance.secret-key=",
+        "--gemini.api.key=",
+        "--groq.api.key=",
+        "--anthropic.api.key=",
+        "--jina.api.key=",
+        "--external.coinalyze.api-key=",
+        "--external.coingecko.demo-api-key=",
+        "--external.fred.api-key=",
+        "--external.etherscan.api-key=",
+        "--external.alchemy.api-key=",
+        "--external.thegraph.api-key=",
+        "--exchange-rate.coinmarketcap.api-key="
+    )
     $args = @(
         "spring-boot:run",
         "-Dspring-boot.run.profiles=local-smoke",
         "-Dspring-boot.run.useTestClasspath=true",
-        "-Dspring-boot.run.arguments=--server.port=$Port"
+        "-Dspring-boot.run.arguments=`"$($bootArguments -join ' ')`""
     )
     $process = Start-Process `
         -FilePath $mvn.Source `
@@ -132,6 +164,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern "Trading disabled.*private WS skipped" -Description "OKX private WebSocket is skipped"
     Assert-LogContains -Path $stdout -Pattern "AGORA_MARKET_INTERNAL_API_KEY not configured; using static fallback rates" -Description "exchange-rate client uses static fallback"
     Assert-LogContains -Path $stdout -Pattern "startup check disabled" -Description "ML materialized refresh startup check is disabled"
+    Assert-LogContains -Path $stdout -Pattern "AiTaskRouter.*initialized with 0 providers" -Description "local-smoke does not initialize external AI providers"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 
     Write-Host "[smoke] OK $healthUrl"

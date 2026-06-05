@@ -96,8 +96,9 @@ Expected:
 - Spring Boot starts with profile `local-smoke`.
 - `local-smoke` does not register scheduled tasks; smoke logs include `Scheduling disabled for local-smoke profile`.
 - Health passes at `http://127.0.0.1:18084/api/trading/actuator/health`.
-- Smoke command-line overrides clear local external keys for AgoraMarket, OKX, Binance, and Telegram even if host environment variables are set.
+- Smoke command-line overrides clear local external keys for AgoraMarket, OKX, Binance, Telegram, AI providers, and market-data providers even if host environment variables are set.
 - Smoke logs prove H2 local DB, exchange-rate fallback, cleared OKX API key, disabled OKX auto-trade, skipped private WS, and disabled startup refresh.
+- Smoke logs prove `AiTaskRouter` initialized with 0 providers.
 - Smoke logs must not show order placement, Telegram sends, private trading WS connection, or auto-execution enabled.
 - The script stops the temporary Maven/Java process tree after the check.
 

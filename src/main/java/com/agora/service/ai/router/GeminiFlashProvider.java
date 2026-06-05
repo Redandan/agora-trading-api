@@ -4,6 +4,7 @@ import com.agora.service.ai.GeminiApiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
+@Profile("!local-smoke")
 @ConditionalOnProperty(name = "gemini.api.key", matchIfMissing = false)
 public class GeminiFlashProvider implements AiProvider {
 

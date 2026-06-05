@@ -90,6 +90,8 @@ $envOverrides = @{
     EXTERNAL_ALCHEMY_API_KEY = ""
     EXTERNAL_THEGRAPH_API_KEY = ""
     EXCHANGE_RATE_COINMARKETCAP_API_KEY = ""
+    META_CONTROL_ATTENTION_WEEKLY_DIGEST_ENABLED = "false"
+    META_CONTROL_SCORECARD_DIGEST_ENABLED = "false"
     META_CONTROL_STARTUP_BACKFILL_COINALYZE_ENABLED = "false"
     META_CONTROL_STARTUP_BACKFILL_COMPOSITE_INDICATOR_ENABLED = "false"
     META_CONTROL_STARTUP_BACKFILL_DEX_FLOW_ENABLED = "false"
@@ -143,6 +145,8 @@ try {
         "--external.alchemy.api-key=",
         "--external.thegraph.api-key=",
         "--exchange-rate.coinmarketcap.api-key=",
+        "--meta-control.attention-weekly-digest.enabled=false",
+        "--meta-control.scorecard-digest.enabled=false",
         "--meta-control.startup-backfill.coinalyze.enabled=false",
         "--meta-control.startup-backfill.composite-indicator.enabled=false",
         "--meta-control.startup-backfill.dex-flow.enabled=false",

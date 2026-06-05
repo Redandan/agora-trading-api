@@ -61,11 +61,12 @@ X-Internal-Api-Key: <same value>
 
 ## Identity
 
-Status: deferred.
+Status: not part of the current split.
 
 Decision for first split:
 
 - Prefer independent trading auth or MCP/API-key auth.
 - Do not add identity internal API until there is a real shared-login requirement.
+- Do not predefine user internal API contracts in trading.
 
 If needed later, add `IdentityInternalClient` with DTOs only. Do not share `User`, `UserOAuthBinding`, or repositories.

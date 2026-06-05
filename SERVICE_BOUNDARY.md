@@ -43,17 +43,14 @@ The response DTO should match the current `ExchangeRateInfo` shape:
 - `currencyName`
 - `lastUpdated`
 
-## Deferred Internal API
+## Identity Boundary
 
-Identity should remain local to trading for the first split unless there is a clear product requirement to share marketplace login.
+Trading does not share marketplace login, user profiles, or marketplace user tables.
 
-If shared identity is later required, add a separate `IdentityInternalClient` instead of importing marketplace user tables.
-
-Candidate endpoints:
-
-- `GET /api/internal/users/{id}`
-- `GET /api/internal/users/by-telegram/{telegramId}`
-- `POST /api/internal/users/resolve-or-create-telegram`
+For the current split, do not add identity internal APIs. If a future product
+requirement explicitly needs shared identity, treat that as a separate design
+change with a dedicated DTO-only SDK. Do not predefine user internal API
+contracts in trading.
 
 ## Cleanup Regression Guard
 

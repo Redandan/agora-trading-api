@@ -91,5 +91,5 @@ Trading deployment prep:
 
 - Do not share marketplace JPA entities with trading.
 - Do not let trading read the marketplace database directly.
-- Do not add identity internal API until shared login is required.
+- Do not add or predefine identity internal API until shared login is required.
 - Do not convert every leftover marketplace service into an internal API.

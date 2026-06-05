@@ -55,7 +55,7 @@ public class SignalTrainingMaterializedRefreshService {
     private static final String VIEW  = "vw_signal_training_v8_dedup";
 
     private final JdbcTemplate jdbc;
-    @Value("${meta-control.ml-materialized-refresh.startup-check-enabled:true}")
+    @Value("${meta-control.ml-materialized-refresh.startup-check-enabled:false}")
     private boolean startupCheckEnabled;
 
     /**

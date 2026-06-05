@@ -16,6 +16,8 @@ meta-control:
     enabled: false
   composite-indicator:
     scheduler-enabled: false
+  hourly-orchestrator:
+    enabled: false
   ml-materialized-refresh:
     startup-check-enabled: false
 
@@ -26,6 +28,13 @@ market:
 okx:
   earn-topup:
     enabled: false
+
+polymarket:
+  monitor:
+    enabled: false
+
+trailing-stop:
+  enabled: false
 
 trading:
   admin:
@@ -38,3 +47,5 @@ trading:
   tiny-live:
     auto-execution:
       enabled: false
+  wai:
+    enabled: false

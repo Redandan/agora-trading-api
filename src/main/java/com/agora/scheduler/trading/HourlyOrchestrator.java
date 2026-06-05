@@ -2,6 +2,7 @@ package com.agora.scheduler.trading;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,9 @@ public class HourlyOrchestrator {
     private final MetaControlAttributionScheduler metaControlAttributionScheduler;
     private final LiveSignalHealthScheduler liveSignalHealthScheduler;
 
+    @Value("${meta-control.hourly-orchestrator.enabled:true}")
+    private boolean enabled;
+
     /**
      * 每小時 UTC +1 分鐘觸發。
      *
@@ -42,6 +46,10 @@ public class HourlyOrchestrator {
      */
     @Scheduled(cron = "0 1 * * * *", zone = "UTC")
     public void runHourlyTasks() {
+        if (!enabled) {
+            log.debug("[HourlyOrchestrator] disabled by meta-control.hourly-orchestrator.enabled=false");
+            return;
+        }
         log.info("[HourlyOrchestrator] ===== Start hourly task sequence =====");
         long t0 = System.currentTimeMillis();
 

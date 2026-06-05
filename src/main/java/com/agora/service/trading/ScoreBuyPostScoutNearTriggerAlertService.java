@@ -28,10 +28,10 @@ public class ScoreBuyPostScoutNearTriggerAlertService {
     private final NotificationPort notificationPort;
     private final TgNotificationDeduper tgNotificationDeduper;
 
-    @Value("${trading.score-buy.post-scout-add.notification.enabled:true}")
+    @Value("${trading.score-buy.post-scout-add.notification.enabled:false}")
     private boolean enabled;
 
-    @Value("${trading.score-buy.post-scout-add.notification.telegram-enabled:true}")
+    @Value("${trading.score-buy.post-scout-add.notification.telegram-enabled:false}")
     private boolean telegramEnabled;
 
     @Value("${trading.score-buy.post-scout-add.notification.cooldown-minutes:30}")

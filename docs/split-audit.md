@@ -100,6 +100,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Grid runtime, auto-rebalance scheduling, and grid orphan recovery are disabled by default in code and in the tracked template, so grid order placement, automatic range rebuilds, and recovery writes are explicit production opt-in behavior.
 - OKX Earn trading-buffer top-up and trailing-stop scheduling are disabled by default in code and in the tracked template, so automatic Earn redemption/transfers, trailing state writes, and OCO update attempts are explicit production opt-in behavior.
 - OCO poller and OKX private WS OCO handling are disabled by default in code and in the tracked template, so OCO close detection, auto retry, reconciliation writes, and related Telegram alerts are explicit production opt-in behavior.
+- ScoreBuy post-scout add execution and near-trigger notifications are disabled by default in code and in the tracked template, so dry-run/execution polling and Telegram alerts are explicit production opt-in behavior.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
 - `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.

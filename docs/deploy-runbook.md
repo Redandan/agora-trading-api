@@ -171,6 +171,7 @@ Expected:
 - Grid runtime, auto-rebalance scheduling, and grid orphan recovery default off in code and the tracked template; enable `TRADING_GRID_ENABLED=true`, `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=true`, and `GRID_RECOVERY_ENABLED=true` only after the deployed trading service should own grid order placement and recovery.
 - OCO poller and OKX private WS OCO handling default off in code and the tracked template; enable `TRADING_OCO_POLLER_ENABLED=true` only when the deployed trading service should own OCO close detection, auto retry, reconciliation writes, and related Telegram alerts.
 - OKX Earn trading-buffer top-up and trailing-stop scheduling default off in code and the tracked template; enable `OKX_EARN_TOPUP_ENABLED=true` only when this service should redeem/transfer Earn funds automatically, and enable `TRAILING_STOP_ENABLED=true` only when it should write trailing state or manage OCO updates.
+- ScoreBuy post-scout add execution and near-trigger notifications default off in code and the tracked template; enable `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED=true`, and `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED=true` only after that dry-run/execution and Telegram alert path belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.
 - `AgoraMarketAPI/internal-client` exists for local SDK install during deploy.

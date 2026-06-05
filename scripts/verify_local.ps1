@@ -148,6 +148,7 @@ try {
     Assert-RgMatch -Pattern "Scheduling disabled for local-smoke profile" -Paths @("src/main/java/com/agora/config/LocalSmokeSchedulingConfig.java", "scripts/smoke_local_health.ps1") -Description "local-smoke smoke logs prove scheduling is disabled"
     Assert-RgMatch -Pattern "localSmokeDoesNotRegisterScheduledTasks" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test proves local-smoke scheduling is disabled"
     Assert-RgMatch -Pattern "does not register scheduled tasks" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md") -Description "local-smoke scheduler exclusion is documented"
+    Assert-RgMatch -Pattern "position-exit manager is disabled" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md") -Description "local-smoke position-exit manager guard is documented"
 
     Assert-RgNoMatch -Pattern "sed[^\r\n]*(8084|8085|/api/trading/|127\\.0\\.0\\.1)" -Paths @("deploy.sh") -Description "unsafe deploy nginx sed swap"
     Assert-RgMatch -Pattern "required env key missing or empty" -Paths @("deploy.sh") -Description "deploy fails fast on missing or empty required env key"

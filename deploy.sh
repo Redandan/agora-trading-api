@@ -11,6 +11,7 @@ ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}"
 UPDATE_NGINX="${UPDATE_NGINX:-1}"
 RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
+DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/trading/actuator/health}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 
 cd "$APP_DIR"
@@ -234,7 +235,13 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
     exit 1
   fi
   echo "[deploy] running post-deploy server verification"
-  RUN_PREFLIGHT=0 bash "$VERIFY_SCRIPT"
+  if [ "$UPDATE_NGINX" = "1" ]; then
+    PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
+      RUN_PREFLIGHT=0 \
+      bash "$VERIFY_SCRIPT"
+  else
+    RUN_PREFLIGHT=0 bash "$VERIFY_SCRIPT"
+  fi
 else
   echo "[deploy] post-deploy server verification skipped: RUN_POST_DEPLOY_VERIFY=$RUN_POST_DEPLOY_VERIFY"
 fi

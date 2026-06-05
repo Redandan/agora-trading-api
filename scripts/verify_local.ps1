@@ -135,6 +135,8 @@ try {
     Assert-RgMatch -Pattern 'rm -f "app.pid.\$NEW_PORT"' -Paths @("deploy.sh") -Description "deploy removes new-port pid file on failed startup"
     Assert-RgMatch -Pattern "RUN_POST_DEPLOY_VERIFY" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy runs server verification after switching active metadata"
     Assert-RgMatch -Pattern 'RUN_PREFLIGHT=0 bash "\$VERIFY_SCRIPT"' -Paths @("deploy.sh") -Description "deploy post-verify reuses server verifier without repeating preflight"
+    Assert-RgMatch -Pattern "DEFAULT_PUBLIC_TRADING_HEALTH_URL" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "nginx deploy verifies public trading health by default"
+    Assert-RgMatch -Pattern "PUBLIC_TRADING_HEALTH_URL=.*DEFAULT_PUBLIC_TRADING_HEALTH_URL" -Paths @("deploy.sh") -Description "post-deploy verify sets public trading health URL when nginx is updated"
     Assert-RgMatch -Pattern "invalid app.port value" -Paths @("deploy.sh") -Description "deploy rejects unknown active port state"
     Assert-RgMatch -Pattern "unknown active port" -Paths @("scripts/verify_server.sh") -Description "server verify rejects unknown active port state"
     Assert-RgMatch -Pattern "deployed app.pid.*is not running" -Paths @("scripts/verify_server.sh") -Description "server verify fails when deployed pid metadata is stale"

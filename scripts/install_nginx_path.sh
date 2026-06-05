@@ -16,7 +16,22 @@ ok() {
 [ -f "$NGINX_CONF" ] || fail "nginx config missing: $NGINX_CONF"
 
 if sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
-  sudo sed -E -i.bak-trading "s#127\\.0\\.0\\.1:(8084|8085)#127.0.0.1:${TRADING_PORT}#g" "$NGINX_CONF"
+  tmp_file="$(mktemp)"
+  awk -v port="$TRADING_PORT" '
+    /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
+      in_trading = 1
+    }
+    in_trading {
+      gsub(/127\.0\.0\.1:(8084|8085)/, "127.0.0.1:" port)
+    }
+    { print }
+    in_trading && /^[[:space:]]*}/ {
+      in_trading = 0
+    }
+  ' "$NGINX_CONF" > "$tmp_file"
+  sudo cp "$NGINX_CONF" "$NGINX_CONF.bak-trading"
+  sudo cp "$tmp_file" "$NGINX_CONF"
+  rm -f "$tmp_file"
   ok "updated existing /api/trading/ upstream to $TRADING_PORT"
 else
   tmp_file="$(mktemp)"

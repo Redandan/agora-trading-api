@@ -81,6 +81,7 @@ try {
     Assert-RgNoMatch -Pattern "GET /internal/exchange-rates" -Paths @("SERVICE_BOUNDARY.md") -Description "service boundary uses externally callable internal API path"
     Assert-RgNoMatch -Pattern "(GET|POST) /internal/users" -Paths @("SERVICE_BOUNDARY.md") -Description "deferred identity candidates use externally callable internal API path"
     Assert-RgMatch -Pattern "GET /api/internal/exchange-rates/usdt" -Paths @("SERVICE_BOUNDARY.md", "SPLIT_PROGRESS.md", "INTERNAL_API_TODO.md") -Description "exchange-rate internal API path is consistent"
+    Assert-RgMatch -Pattern "Status: implemented in trading" -Paths @("INTERNAL_API_TODO.md") -Description "exchange-rate internal API TODO reflects current SDK implementation"
     Assert-RgMatch -Pattern "Split Guardrails Covered By Verification" -Paths @("docs/split-audit.md") -Description "split audit documents local deploy/schema/contract guards"
     Assert-RgMatch -Pattern "Split deploy guardrails stay documented" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents local split deploy/schema/contract guards"
 

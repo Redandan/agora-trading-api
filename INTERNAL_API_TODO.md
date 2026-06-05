@@ -2,18 +2,19 @@
 
 ## Exchange Rate
 
-Status: planned.
+Status: implemented in trading; keep server/provider deployment verification as the remaining acceptance step.
 
 Current trading implementation:
 
-- `com.agora.service.impl.StaticExchangeRateServiceImpl`
-- Static fallback rates for `USD`, `USDT`, and `TWD`.
+- `com.agora.service.impl.AgoraMarketExchangeRateServiceImpl`
+- Uses the `agora-market-internal-client` SDK when `AGORA_MARKET_INTERNAL_API_KEY` is configured.
+- Falls back to `com.agora.service.impl.StaticExchangeRateServiceImpl` for local dev, timeout, `401`, or AgoraMarketAPI downtime.
 
-Target implementation:
+Provider/SDK expectation:
 
 - `AgoraMarketAPI` publishes a thin internal-client SDK.
 - `agora-trading-api` depends on the SDK, not the marketplace application jar.
-- `StaticExchangeRateServiceImpl` becomes fallback-only or is replaced by an SDK-backed implementation.
+- `StaticExchangeRateServiceImpl` stays fallback-only.
 
 SDK contract:
 

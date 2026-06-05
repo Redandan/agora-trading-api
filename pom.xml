@@ -136,20 +136,6 @@
             <version>${okhttp.version}</version>
         </dependency>
 
-        <!-- Commons Codec -->
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.15</version>
-        </dependency>
-
-        <!-- Bouncy Castle -->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.79</version>
-        </dependency>
-
         <!-- Hibernate Validator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

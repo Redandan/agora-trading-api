@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Validated
 @ConfigurationProperties(prefix = "trading.grid")
 public record TradingGridProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("24") @Positive int sellFailedAgingHours,
         @DefaultValue("300000") @Positive long checkIntervalMs,
         @DefaultValue("true") boolean recycleClosedLevels,

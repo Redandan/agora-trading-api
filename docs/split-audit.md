@@ -90,6 +90,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Autonomous exploration monitoring is disabled by default in the tracked template, including its Telegram notification flag.
 - Market-signal risk-card scheduling is disabled and dry-run by default in the tracked template.
 - The tracked server env template keeps market WebSocket side effects off by default, including `MARKET_LIQUIDATION_WS_ENABLED=false`; production can opt in explicitly when OKX public liquidation streams are intended.
+- Grid runtime, auto-rebalance scheduling, and grid orphan recovery are disabled by default in code and in the tracked template, so grid order placement, automatic range rebuilds, and recovery writes are explicit production opt-in behavior.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
 - `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.

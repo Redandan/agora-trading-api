@@ -161,6 +161,7 @@ Expected:
 - Autonomous exploration monitoring defaults off in the tracked template; enable `TRADING_EXPLORATION_MONITOR_ENABLED` and its Telegram flag only after that monitor belongs to the deployed trading service.
 - Market-signal risk-card scheduling defaults off and dry-run in the tracked template.
 - Market WebSocket side effects default off in the tracked template; set `MARKET_LIQUIDATION_WS_ENABLED=true` only after the trading runtime is ready to connect to OKX public liquidation streams.
+- Grid runtime, auto-rebalance scheduling, and grid orphan recovery default off in code and the tracked template; enable `TRADING_GRID_ENABLED=true`, `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=true`, and `GRID_RECOVERY_ENABLED=true` only after the deployed trading service should own grid order placement and recovery.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.
 - `AgoraMarketAPI/internal-client` exists for local SDK install during deploy.

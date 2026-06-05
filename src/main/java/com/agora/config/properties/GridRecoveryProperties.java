@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "grid.recovery")
 public record GridRecoveryProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("60") @PositiveOrZero long delaySeconds,
         @DefaultValue("30") @Positive long giveUpMinutes,
         @DefaultValue("50.0") @Positive double priceTolerance,

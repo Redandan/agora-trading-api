@@ -10,6 +10,7 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.trading.OkxTradingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "trading.grid.auto-rebalance-scheduler.enabled", havingValue = "true")
 public class GridAutoRebalanceScheduler {
 
     /** ATR 倍數 — 以當前 4h ATR 計算重建後的網格寬度（預設 8×，BTC 4h ATR ≈ $1200-2000 → 寬度 $9600-16000）。 */

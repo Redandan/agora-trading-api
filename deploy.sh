@@ -87,6 +87,19 @@ fi
 
 echo "[deploy] $APP_NAME blue-green: ${CURRENT_PORT:-none} -> $NEW_PORT"
 
+git rev-parse --is-inside-work-tree >/dev/null || {
+  echo "[deploy] $APP_DIR is not a git worktree" >&2
+  exit 1
+}
+git diff --quiet || {
+  echo "[deploy] $APP_DIR has unstaged changes; refusing to overwrite during deploy" >&2
+  exit 1
+}
+git diff --cached --quiet || {
+  echo "[deploy] $APP_DIR has staged changes; refusing to overwrite during deploy" >&2
+  exit 1
+}
+
 git fetch origin "$BRANCH" --quiet
 git reset --hard "origin/$BRANCH"
 

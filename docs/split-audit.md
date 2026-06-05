@@ -68,6 +68,7 @@ The local verification gate currently covers these previously removed or forbidd
 The local verification gate also checks that split/deploy assumptions stay aligned:
 
 - Deploy scripts do not use unsafe broad `sed` rewrites for nginx trading path swaps.
+- Deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.
 - Failed blue-green deploys clean the new process, new-port pid file, and temporary nginx file.
 - Deploy/server verification rejects unknown `app.port` or `TRADING_PORT` state outside the `8084/8085` set.
 - Server preflight/verify require non-empty env keys without printing secret values.

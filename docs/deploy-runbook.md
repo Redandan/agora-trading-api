@@ -123,6 +123,9 @@ The bootstrap script checks server tools, clones or fetches this repo, confirms
 health endpoint, and reports whether nginx already contains `/api/trading/`. It
 does not create or print the real secret file.
 
+`deploy.sh` refuses to overwrite staged or unstaged server worktree changes before
+syncing from `origin/main`.
+
 Pre-deploy check that does not deploy, start, stop, or switch traffic:
 
 ```bash
@@ -233,6 +236,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required local tools: `bash`, `curl`, `git`, `java`, `mvn`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
+- deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.

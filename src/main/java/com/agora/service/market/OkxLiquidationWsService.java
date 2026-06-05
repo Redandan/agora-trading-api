@@ -78,7 +78,7 @@ public class OkxLiquidationWsService implements DisposableBean {
     @Autowired
     public OkxLiquidationWsService(
             ObjectMapper objectMapper,
-            @Value("${market.liquidation-ws.enabled:true}") boolean enabled) {
+            @Value("${market.liquidation-ws.enabled:false}") boolean enabled) {
         this.objectMapper = objectMapper;
         this.enabled = enabled;
         this.wsClient = new OkHttpClient.Builder()

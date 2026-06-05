@@ -52,7 +52,7 @@ public class CompositeIndicatorScheduler {
     private final HysteresisAlertGuard hysteresisGuard;
     private final AtomicBoolean evaluateRunning = new AtomicBoolean(false);
 
-    @Value("${meta-control.composite-indicator.scheduler-enabled:true}")
+    @Value("${meta-control.composite-indicator.scheduler-enabled:false}")
     private boolean schedulerEnabled;
 
     @Scheduled(fixedRate = 60_000, initialDelay = 90_000)

@@ -7,6 +7,7 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.market.PolymarketMonitorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
@@ -41,6 +42,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "trading.daily-tg-report.enabled", havingValue = "true")
 public class DailyTgReportOrchestrator {
 
     private final DailyReportScheduler dailyReportScheduler;

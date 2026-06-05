@@ -152,6 +152,7 @@ Expected:
 - `.env.trading.secrets.example` lists optional runtime safety toggles for startup backfills, market WebSockets, trading execution, Telegram, AI providers, and external market-data providers.
 - Composite indicator scheduled evaluation defaults off in the tracked template; set `META_CONTROL_COMPOSITE_INDICATOR_SCHEDULER_ENABLED=true` only after the trading service should persist CMI scores and emit CMI alerts.
 - Daily ML digest notifications default off in the tracked template; set `META_CONTROL_DAILY_ML_DIGEST_ENABLED=true` only after Telegram and ML pipeline digest behavior are intended for the trading service.
+- Daily TG report orchestration defaults off in code and the tracked template; enable `TRADING_DAILY_TG_REPORT_ENABLED=true` only when the deployed trading service owns daily Telegram reporting.
 - Scheduled trading notification digests default off in the tracked template, including attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification.
 - Event-scan scheduled outbound notifications default off and dry-run in the tracked template.
 - Execution-event scheduled scanning defaults off and its notification path defaults dry-run in the tracked template.

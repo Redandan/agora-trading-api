@@ -3,6 +3,7 @@ package com.agora.scheduler.trading;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.trading.OkxEarnService;
 import com.agora.service.trading.OkxTradingService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,11 @@ public class EarnTradingBufferTopUpScheduler {
 
     @Value("${okx.earn-topup.enabled:true}")
     private boolean enabled;
+
+    @PostConstruct
+    void logConfig() {
+        log.info("[EarnTopUp] config: enabled={}", enabled);
+    }
 
     @Scheduled(
             initialDelayString = "${okx.earn-topup.initial-delay-ms:30000}",

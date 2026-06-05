@@ -75,7 +75,7 @@ public class PositionMcpTools {
     private final Map<String, RiskReductionPreview> riskReductionPreviews = new ConcurrentHashMap<>();
     private static final Duration RISK_REDUCTION_PREVIEW_TTL = Duration.ofMinutes(10);
 
-    @Value("${trailing-stop.enabled:true}")
+    @Value("${trailing-stop.enabled:false}")
     private boolean trailingStopEnabled;
 
     @Value("${trailing-stop.dry-run:true}")

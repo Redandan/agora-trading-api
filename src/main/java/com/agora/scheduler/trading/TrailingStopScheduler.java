@@ -38,6 +38,9 @@ import java.util.List;
  *
  * <p>Strategy opt-in via config flag {@code trailingStopEnabled=true}. Default off.
  *
+ * <p>Global scheduler opt-in (env {@code trailing-stop.enabled=false}, default false)
+ * keeps split-service deploys from automatically writing trailing state or touching OCO.
+ *
  * <p>Global dry-run (env {@code trailing-stop.dry-run=true}, default true): logs
  * what it would do but does NOT call modifyOco. Run for ≥ 1 week observing
  * dry-run behavior before enabling per-strategy real OCO updates.
@@ -64,7 +67,7 @@ public class TrailingStopScheduler {
     private final NotificationPort notificationPort;
     private final ObjectMapper objectMapper;
 
-    @Value("${trailing-stop.enabled:true}")
+    @Value("${trailing-stop.enabled:false}")
     private boolean schedulerEnabled;
 
     @Value("${trailing-stop.dry-run:true}")

@@ -95,6 +95,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Market-signal risk-card scheduling is disabled and dry-run by default in the tracked template.
 - The tracked server env template keeps market WebSocket side effects off by default, including `MARKET_LIQUIDATION_WS_ENABLED=false`; production can opt in explicitly when OKX public liquidation streams are intended.
 - Grid runtime, auto-rebalance scheduling, and grid orphan recovery are disabled by default in code and in the tracked template, so grid order placement, automatic range rebuilds, and recovery writes are explicit production opt-in behavior.
+- OKX Earn trading-buffer top-up and trailing-stop scheduling are disabled by default in code and in the tracked template, so automatic Earn redemption/transfers, trailing state writes, and OCO update attempts are explicit production opt-in behavior.
 - OCO poller and OKX private WS OCO handling are disabled by default in code and in the tracked template, so OCO close detection, auto retry, reconciliation writes, and related Telegram alerts are explicit production opt-in behavior.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.

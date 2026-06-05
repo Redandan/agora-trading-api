@@ -17,6 +17,10 @@ import java.math.BigDecimal;
  *
  * <p>This is intentionally independent from OCO polling. Capital availability is a trading
  * readiness concern, so it must not depend on position reconciliation completing first.</p>
+ *
+ * <p>Disabled by default for split-service deploys; enable
+ * {@code okx.earn-topup.enabled=true} only after this service should own
+ * automatic Earn redemption and transfer side effects.</p>
  */
 @Slf4j
 @Component
@@ -27,7 +31,7 @@ public class EarnTradingBufferTopUpScheduler {
     private final OkxEarnService okxEarnService;
     private final NotificationPort notificationPort;
 
-    @Value("${okx.earn-topup.enabled:true}")
+    @Value("${okx.earn-topup.enabled:false}")
     private boolean enabled;
 
     @PostConstruct

@@ -1,6 +1,7 @@
 package com.agora.scheduler.trading;
 
 import com.agora.service.market.PolymarketMonitorService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,11 @@ public class PolymarketMonitorScheduler {
 
     @Value("${polymarket.monitor.enabled:true}")
     private boolean enabled;
+
+    @PostConstruct
+    void logConfig() {
+        log.info("[PolymarketMonitor] config: enabled={}", enabled);
+    }
 
     /** 每 15 分鐘掃一次，首次延遲 2 分鐘等應用完全啟動 */
     @Scheduled(fixedDelay = 900_000, initialDelay = 120_000)

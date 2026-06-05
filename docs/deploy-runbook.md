@@ -101,6 +101,7 @@ Expected:
 - Smoke logs prove `AiTaskRouter` initialized with 0 providers.
 - Smoke logs prove Jina embeddings are disabled with `Jina embedding client initialised: enabled=false`.
 - Smoke logs prove public market WebSocket auto-subscribe is disabled with `[MarketWS] auto-subscribe config: enabled=false`.
+- Smoke logs prove Polymarket external market monitoring is disabled with `[PolymarketMonitor] config: enabled=false`.
 - Smoke logs must not show order placement, Telegram sends, private trading WS connection, or auto-execution enabled.
 - The script stops the temporary Maven/Java process tree after the check.
 

@@ -87,6 +87,10 @@ $envOverrides = @{
     EXTERNAL_ALCHEMY_API_KEY = ""
     EXTERNAL_THEGRAPH_API_KEY = ""
     EXCHANGE_RATE_COINMARKETCAP_API_KEY = ""
+    META_CONTROL_STARTUP_BACKFILL_COINALYZE_ENABLED = "false"
+    META_CONTROL_STARTUP_BACKFILL_COMPOSITE_INDICATOR_ENABLED = "false"
+    META_CONTROL_STARTUP_BACKFILL_DEX_FLOW_ENABLED = "false"
+    META_CONTROL_STARTUP_BACKFILL_HYPERLIQUID_FUNDING_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
     OKX_EARN_TOPUP_ENABLED = "false"
@@ -124,6 +128,10 @@ try {
         "--external.alchemy.api-key=",
         "--external.thegraph.api-key=",
         "--exchange-rate.coinmarketcap.api-key=",
+        "--meta-control.startup-backfill.coinalyze.enabled=false",
+        "--meta-control.startup-backfill.composite-indicator.enabled=false",
+        "--meta-control.startup-backfill.dex-flow.enabled=false",
+        "--meta-control.startup-backfill.hyperliquid-funding.enabled=false",
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",
         "--okx.earn-topup.enabled=false",
@@ -186,6 +194,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern "TrailingStop.*config: enabled=false" -Description "local-smoke does not enable trailing-stop OCO updates"
     Assert-LogContains -Path $stdout -Pattern "ShortSqueezeAlert.*config: enabled=false takerBuyCollectorEnabled=false" -Description "local-smoke does not enable short-squeeze alert or taker-buy collector"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Auto subscribed via|Warming up MarketSignalCache)" -Description "local-smoke must not auto-subscribe public market WebSockets or warm market cache"
+    Assert-LogNotContains -Path $stdout -Pattern "(?i)(DexFlowBackfill|HLFundingBackfill|CoinalyzeBackfill|CMIBackfill)" -Description "local-smoke must not run startup market-data backfills"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Trading buffer topped from Earn|Simple Earn)" -Description "local-smoke must not top up from OKX Earn"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|state .*→|sl .*->|sl .*→)" -Description "local-smoke must not modify trailing-stop OCO state"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(ShortSqueezeAlert.*FIRED|SpotTakerBuy.*15m taker buy|SpotTakerBuy.*collect failed)" -Description "local-smoke must not run short-squeeze alert or taker-buy collection"

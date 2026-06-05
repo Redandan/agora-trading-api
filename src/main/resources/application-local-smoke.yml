@@ -12,6 +12,15 @@ spring:
 meta-control:
   migration-drift-check:
     enabled: false
+  startup-backfill:
+    coinalyze:
+      enabled: false
+    composite-indicator:
+      enabled: false
+    dex-flow:
+      enabled: false
+    hyperliquid-funding:
+      enabled: false
   attribution:
     enabled: false
   composite-indicator:

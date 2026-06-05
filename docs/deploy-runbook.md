@@ -102,6 +102,7 @@ Expected:
 - Smoke logs prove `AiTaskRouter` initialized with 0 providers.
 - Smoke logs prove Jina embeddings are disabled with `Jina embedding client initialised: enabled=false`.
 - Smoke logs prove public market WebSocket auto-subscribe is disabled with `[MarketWS] auto-subscribe config: enabled=false`.
+- Smoke logs prove OKX liquidation WebSocket is disabled with `[OkxLiqWS] disabled by market.liquidation-ws.enabled=false`.
 - Smoke logs prove OKX Earn trading-buffer top-up is disabled with `[EarnTopUp] config: enabled=false`.
 - Smoke logs prove Polymarket external market monitoring is disabled with `[PolymarketMonitor] config: enabled=false`.
 - Smoke logs prove position-exit manager is disabled with `[ExitMgr] init: enabled=false`.

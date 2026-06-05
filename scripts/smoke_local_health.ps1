@@ -96,6 +96,7 @@ $envOverrides = @{
     META_CONTROL_STARTUP_BACKFILL_HYPERLIQUID_FUNDING_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
+    MARKET_LIQUIDATION_WS_ENABLED = "false"
     OKX_EARN_TOPUP_ENABLED = "false"
     POLYMARKET_MONITOR_ENABLED = "false"
     TRAILING_STOP_ENABLED = "false"
@@ -142,6 +143,7 @@ try {
         "--meta-control.startup-backfill.hyperliquid-funding.enabled=false",
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",
+        "--market.liquidation-ws.enabled=false",
         "--okx.earn-topup.enabled=false",
         "--polymarket.monitor.enabled=false",
         "--trailing-stop.enabled=false",
@@ -199,6 +201,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern "AiTaskRouter.*initialized with 0 providers" -Description "local-smoke does not initialize external AI providers"
     Assert-LogContains -Path $stdout -Pattern "Jina embedding client initialised: enabled=false" -Description "local-smoke does not enable external Jina embeddings"
     Assert-LogContains -Path $stdout -Pattern "MarketWS.*auto-subscribe config: enabled=false" -Description "local-smoke does not enable public market WS auto-subscribe"
+    Assert-LogContains -Path $stdout -Pattern "OkxLiqWS.*disabled by market\.liquidation-ws\.enabled=false" -Description "local-smoke does not enable OKX liquidation WebSocket"
     Assert-LogContains -Path $stdout -Pattern "EarnTopUp.*config: enabled=false" -Description "local-smoke does not enable OKX Earn top-up"
     Assert-LogContains -Path $stdout -Pattern "PolymarketMonitor.*config: enabled=false" -Description "local-smoke does not enable Polymarket monitor"
     Assert-LogContains -Path $stdout -Pattern "ExitMgr.*init: enabled=false" -Description "local-smoke does not enable position exit manager"

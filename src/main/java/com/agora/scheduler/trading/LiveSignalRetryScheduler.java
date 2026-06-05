@@ -5,6 +5,7 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.infra.notification.NotificationPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +31,15 @@ public class LiveSignalRetryScheduler {
     private final BtLiveSignalRepository liveSignalRepository;
     private final NotificationPort notificationPort;
 
+    @Value("${trading.live-signal.retry-notification.enabled:false}")
+    private boolean enabled;
+
     @Scheduled(cron = "0 */10 * * * ?")
     public void retryPending() {
+        if (!enabled) {
+            log.debug("[LiveSignalRetry] disabled by trading.live-signal.retry-notification.enabled=false");
+            return;
+        }
         LocalDateTime cutoff = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(RETRY_DELAY_MINUTES);
         List<BtLiveSignal> pending = liveSignalRepository
                 .findByNotifiedAtIsNullAndCreatedAtBefore(cutoff);

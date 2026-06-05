@@ -38,6 +38,9 @@ public class SignalOutcomeVerifierScheduler {
     private final NotificationPort notificationPort;
     private final com.agora.config.properties.SignalVerificationProperties props;
 
+    @Value("${signal-verification.scheduler.enabled:false}")
+    private boolean enabled;
+
     // #323: NOW() 是 MySQL UTC 而 created_at 是 JDBC 寫入的 Taipei wall-clock，
     //       原本 `created_at < NOW() - INTERVAL ? DAY` 有 8h 偏移；改用 Java
     //       LocalDateTime 參數，與儲存欄位走相同 JDBC round-trip，比較才正確。
@@ -98,6 +101,10 @@ public class SignalOutcomeVerifierScheduler {
 
     @Scheduled(cron = "0 */30 * * * *", zone = "UTC")
     public void verifyOutcomes() {
+        if (!enabled) {
+            log.debug("[SignalVerifier] disabled by signal-verification.scheduler.enabled=false");
+            return;
+        }
         try {
             // #323: 用 Java 端 LocalDateTime 參數消除 JDBC serverTimezone=Asia/Taipei 與 MySQL UTC NOW() 的 8h 偏移
             LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
@@ -119,6 +126,10 @@ public class SignalOutcomeVerifierScheduler {
 
     @Scheduled(cron = "0 0 9 * * *", zone = "UTC")
     public void dailyAccuracyAlert() {
+        if (!enabled) {
+            log.debug("[SignalVerifier] daily alert disabled by signal-verification.scheduler.enabled=false");
+            return;
+        }
         try {
             LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusDays(7);
             List<Object[]> rows = repo.accuracyByLayerSinceDedup(since);

@@ -47,9 +47,16 @@ public class AlphaPromotionTracker {
     @Value("${agora.alpha-tracker.snapshot-path:/home/ubuntu/agora-trading-api/alpha-tracker-snapshot.json}")
     private String snapshotPath;
 
+    @Value("${agora.alpha-tracker.enabled:false}")
+    private boolean enabled;
+
     /** Cron：每週日 09:00 UTC */
     @Scheduled(cron = "0 0 9 * * SUN", zone = "UTC")
     public void weeklyScan() {
+        if (!enabled) {
+            log.debug("[AlphaPromotionTracker] disabled by agora.alpha-tracker.enabled=false");
+            return;
+        }
         log.info("[AlphaPromotionTracker] weekly scan starting");
         try {
             scanAndCompare();

@@ -21,10 +21,13 @@ Outputs:
 
 - `target/schema-baseline/entity-tables.txt`
 - `target/schema-baseline/implicit-entities.txt`
+- `target/schema-baseline/forbidden-marketplace-tables.txt`
 
 This is source inventory only. It does not connect to MySQL, write migrations, or mutate runtime configuration.
 The inventory fails if any JPA entity relies on an implicit table name; baseline
 generation requires explicit `@Table(name = "...")` mappings.
+The inventory also fails if a trading entity maps to an obvious marketplace-owned
+table such as users, products, carts, orders, stores, delivery, or wallet tables.
 
 ## Read-Only Server Compare
 
@@ -47,6 +50,7 @@ The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 
 - `target/schema-baseline/server-source-entity-tables.txt`
 - `target/schema-baseline/server-implicit-entities.txt`
+- `target/schema-baseline/server-forbidden-marketplace-tables.txt`
 - `target/schema-baseline/server-db-tables.txt`
 - `target/schema-baseline/missing-in-db.txt`
 - `target/schema-baseline/extra-in-db.txt`
@@ -54,6 +58,8 @@ The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 It must not print database passwords, write migrations, or mutate the database.
 The compare fails if any server-side source entity relies on an implicit table
 name, matching the local inventory requirement.
+It also fails before database comparison if source entity mappings include an
+obvious marketplace-owned table name.
 
 ## Baseline Acceptance
 

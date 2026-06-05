@@ -12,6 +12,25 @@ try {
 
     $explicitTables = New-Object System.Collections.Generic.List[string]
     $implicitEntities = New-Object System.Collections.Generic.List[string]
+    $forbiddenMarketplaceTables = @(
+        "cart",
+        "cart_item",
+        "carts",
+        "delivery_order",
+        "order",
+        "order_item",
+        "orders",
+        "product",
+        "products",
+        "store",
+        "stores",
+        "user",
+        "user_address",
+        "user_wallet",
+        "users",
+        "wallet",
+        "wallets"
+    )
 
     $entityFiles = rg --files src/main/java/com/agora/model |
         Where-Object { $_ -like "*.java" } |
@@ -38,19 +57,25 @@ try {
 
     $tablesPath = Join-Path $resolvedOutputDir "entity-tables.txt"
     $implicitPath = Join-Path $resolvedOutputDir "implicit-entities.txt"
+    $forbiddenPath = Join-Path $resolvedOutputDir "forbidden-marketplace-tables.txt"
 
-    $explicitTables |
-        Sort-Object -Unique |
-        Set-Content -Encoding UTF8 -Path $tablesPath
+    $uniqueTables = @($explicitTables | Sort-Object -Unique)
+    $uniqueImplicitEntities = @($implicitEntities | Sort-Object -Unique)
+    $forbiddenTables = @($uniqueTables | Where-Object { $forbiddenMarketplaceTables -contains $_ } | Sort-Object -Unique)
 
-    $implicitEntities |
-        Sort-Object -Unique |
-        Set-Content -Encoding UTF8 -Path $implicitPath
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    [System.IO.File]::WriteAllLines($tablesPath, [string[]]$uniqueTables, $utf8NoBom)
+    [System.IO.File]::WriteAllLines($implicitPath, [string[]]$uniqueImplicitEntities, $utf8NoBom)
+    [System.IO.File]::WriteAllLines($forbiddenPath, [string[]]$forbiddenTables, $utf8NoBom)
 
-    Write-Host "[schema-inventory] explicit entity tables: $($explicitTables.Count) -> $tablesPath"
-    Write-Host "[schema-inventory] implicit entity names: $($implicitEntities.Count) -> $implicitPath"
-    if ($implicitEntities.Count -gt 0) {
-        throw "Schema inventory found entity class(es) without explicit @Table(name=...): $($implicitEntities -join ', ')"
+    Write-Host "[schema-inventory] explicit entity tables: $($uniqueTables.Count) -> $tablesPath"
+    Write-Host "[schema-inventory] implicit entity names: $($uniqueImplicitEntities.Count) -> $implicitPath"
+    Write-Host "[schema-inventory] forbidden marketplace tables: $($forbiddenTables.Count) -> $forbiddenPath"
+    if ($uniqueImplicitEntities.Count -gt 0) {
+        throw "Schema inventory found entity class(es) without explicit @Table(name=...): $($uniqueImplicitEntities -join ', ')"
+    }
+    if ($forbiddenTables.Count -gt 0) {
+        throw "Schema inventory found marketplace-owned table mapping(s): $($forbiddenTables -join ', ')"
     }
     Write-Host "[schema-inventory] read-only source inventory complete; no database or migration files changed"
 } finally {

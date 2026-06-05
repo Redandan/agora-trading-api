@@ -6,6 +6,7 @@ import com.agora.service.backtest.LiveSignalEvaluator;
 import com.agora.service.market.KlineStreamService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(prefix = "market.ws.auto-subscribe", name = "enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class MarketWsAutoSubscriber {
 

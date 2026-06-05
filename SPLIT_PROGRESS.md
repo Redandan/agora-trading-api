@@ -32,6 +32,7 @@
 - Unused member CRUD service and member admin DTO leftovers were removed from trading.
 - Unused marketplace user fields, user repository member queries, and post service/DTO leftovers were removed from trading.
 - Unused web JWT filter, CurrentUser resolver, UserDetailsService, and `/auth/**` route leftover were removed while keeping MCP API-key auth intact.
+- Trading withdrawal risk state no longer reads the marketplace `users` table; unused User entity/repository, AutoReply service, and WebRTC signaling service leftovers were removed.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`
@@ -82,8 +83,7 @@ Trading deployment prep:
 ## Cleanup Priority
 
 1. Decide whether MCP `MEMBER` compatibility should still accept syntactically valid JWTs or move to MCP/API-key-only access for trading.
-2. Reduce the remaining `User` dependency in withdrawal risk state after account-age handling is redesigned.
-3. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
+2. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
 
 ## Do Not Do Yet
 

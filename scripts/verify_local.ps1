@@ -23,6 +23,14 @@ try {
         throw "rg auth check failed with exit code $LASTEXITCODE"
     }
 
+    $userBoundaryForbidden = rg "UserRepository|AutoReplyService|AutoReplyServiceImpl|WebRTCSignalingService|UserStatusEnum|@Table\(name = `"users`"" src/main/java src/main/resources/application.yml pom.xml
+    if ($LASTEXITCODE -eq 0) {
+        Write-Error "Forbidden marketplace user boundary residue found:`n$userBoundaryForbidden"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "rg user boundary check failed with exit code $LASTEXITCODE"
+    }
+
     Write-Host "[verify] OK"
 } finally {
     Pop-Location

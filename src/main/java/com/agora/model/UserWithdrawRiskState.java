@@ -2,6 +2,7 @@ package com.agora.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
@@ -38,6 +39,10 @@ public class UserWithdrawRiskState {
 
     @Column(name = "cooldown_until")
     private LocalDateTime cooldownUntil;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)

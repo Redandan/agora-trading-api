@@ -1,9 +1,7 @@
 package com.agora.service;
 
 import com.agora.exception.BusinessException;
-import com.agora.model.User;
 import com.agora.model.UserWithdrawRiskState;
-import com.agora.repository.system.UserRepository;
 import com.agora.repository.system.UserWithdrawRiskStateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 /**
  * Tier-based withdrawal rate limiting (no-KYC compensating control).
@@ -29,7 +28,6 @@ import java.time.temporal.ChronoUnit;
 public class WithdrawRiskService {
 
     private final UserWithdrawRiskStateRepository riskStateRepository;
-    private final UserRepository userRepository;
 
     /**
      * Validates and records a withdrawal attempt.
@@ -38,21 +36,18 @@ public class WithdrawRiskService {
      */
     @Transactional
     public void checkAndRecord(Long userId, BigDecimal amount) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("用戶不存在"));
+        Optional<UserWithdrawRiskState> existingState = riskStateRepository.findByUserId(userId);
+        UserWithdrawRiskState state = existingState.orElseGet(() -> {
+            UserWithdrawRiskState s = new UserWithdrawRiskState();
+            s.setUserId(userId);
+            return riskStateRepository.saveAndFlush(s);
+        });
 
-        long accountAgeDays = ChronoUnit.DAYS.between(user.getCreatedAt(), LocalDateTime.now());
+        long accountAgeDays = ChronoUnit.DAYS.between(resolveObservedAt(state), LocalDateTime.now());
 
         if (accountAgeDays < 7) {
-            throw new BusinessException("帳號需至少 7 天才能提款");
+            throw new BusinessException("提款風控狀態需至少 7 天才能提款");
         }
-
-        UserWithdrawRiskState state = riskStateRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    UserWithdrawRiskState s = new UserWithdrawRiskState();
-                    s.setUserId(userId);
-                    return s;
-                });
 
         if (state.getCooldownUntil() != null && state.getCooldownUntil().isAfter(LocalDateTime.now())) {
             throw new BusinessException("帳號提款功能暫時凍結，請聯繫客服");
@@ -96,6 +91,19 @@ public class WithdrawRiskService {
         if (ageDays > 90 && successCount >= 10) return new long[]{10_000, 50_000};
         if (ageDays > 30) return new long[]{2_000, 10_000};
         return new long[]{500, 3_000};
+    }
+
+    private LocalDateTime resolveObservedAt(UserWithdrawRiskState state) {
+        if (state.getCreatedAt() != null) {
+            return state.getCreatedAt();
+        }
+        if (state.getFirstWithdrawAt() != null) {
+            return state.getFirstWithdrawAt();
+        }
+        if (state.getUpdatedAt() != null) {
+            return state.getUpdatedAt();
+        }
+        return LocalDateTime.now();
     }
 
     private void resetCountersIfStale(UserWithdrawRiskState state) {

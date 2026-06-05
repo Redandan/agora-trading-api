@@ -93,10 +93,6 @@ public class ChatSession {
     @Schema(description = "聊天消息列表", nullable = true)
     private Page<ChatMessage> messages;
     
-    @Transient
-    @Schema(description = "當前用戶信息", nullable = true)
-    private User currentUser;
-
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

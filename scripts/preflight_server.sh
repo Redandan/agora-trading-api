@@ -38,10 +38,15 @@ require_env_key() {
 }
 
 require_cmd bash
+require_cmd awk
 require_cmd curl
 require_cmd git
 require_cmd java
+require_cmd lsof
+require_cmd mktemp
 require_cmd mvn
+require_cmd ps
+require_cmd sudo
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
 cd "$APP_DIR"

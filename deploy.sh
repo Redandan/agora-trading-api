@@ -30,6 +30,13 @@ load_env_file() {
   done < "$file"
 }
 
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "[deploy] missing command: $1" >&2
+    exit 1
+  }
+}
+
 require_env_key() {
   local key="$1"
   local value="${!key:-}"
@@ -51,6 +58,18 @@ cleanup_new_instance() {
     rm -f "$tmp_nginx"
   fi
 }
+
+require_cmd curl
+require_cmd git
+require_cmd java
+require_cmd lsof
+require_cmd mvn
+require_cmd ps
+if [ "$UPDATE_NGINX" = "1" ]; then
+  require_cmd awk
+  require_cmd mktemp
+  require_cmd sudo
+fi
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "[deploy] env file missing: $ENV_FILE" >&2

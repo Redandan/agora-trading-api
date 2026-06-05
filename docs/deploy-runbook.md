@@ -125,6 +125,7 @@ Expected:
 
 - shell syntax passes for `deploy.sh` and `scripts/*.sh`.
 - required server tools exist.
+- `.env.trading.secrets.example` covers every server script `require_env_key` without committing real secret values.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.
 - `AgoraMarketAPI/internal-client` exists for local SDK install during deploy.

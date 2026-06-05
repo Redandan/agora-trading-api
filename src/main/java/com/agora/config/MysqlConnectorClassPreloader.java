@@ -58,8 +58,8 @@ public class MysqlConnectorClassPreloader {
 
     /**
      * Classes whose name we know upfront — load by reflection at startup.
-     * Public so {@link com.agora.scheduler.system.MysqlConnectorHealthCheckScheduler}
-     * can re-verify on a daily cadence.
+     * Public so diagnostics or a future opt-in health check can re-verify
+     * without duplicating the class list.
      */
     public static final List<String> KNOWN_LAZY_CLASSES = List.of(
             "com.mysql.cj.protocol.ExportControlled",

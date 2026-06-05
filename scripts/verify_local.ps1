@@ -242,6 +242,7 @@ try {
     Assert-RgMatch -Pattern "META_CONTROL_AUDIT_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "docs/deploy-runbook.md") -Description "decision audit cleanup opt-in key is documented and validated"
     Assert-RgMatch -Pattern "KLINE_PRUNING_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "docs/deploy-runbook.md") -Description "kline pruning opt-in key is documented and validated"
     Assert-RgMatch -Pattern "TRADING_EPHEMERAL_CLEANUP_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "docs/deploy-runbook.md") -Description "ephemeral cleanup opt-in key is documented and validated"
+    Assert-RgNoMatch -Pattern "scheduler\.system|com\.agora\.scheduler\.system" -Paths @("src", "docs", ".env.trading.secrets.example") -Description "stale scheduler.system package reference"
     Assert-RgNoMatch -Pattern "NightlyCleanupOrchestrator|scheduler\.system\.NightlyCleanupOrchestrator" -Paths @("src", "docs", ".env.trading.secrets.example") -Description "stale nightly cleanup orchestrator reference"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean flipDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint flip detector defaults off"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean stalenessDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint staleness detector defaults off"

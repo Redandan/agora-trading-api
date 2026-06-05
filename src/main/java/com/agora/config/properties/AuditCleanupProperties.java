@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.audit")
 public record AuditCleanupProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("120") @Positive int retentionDays,
         @DefaultValue("10000") @Positive int cleanupBatchSize
 ) {}

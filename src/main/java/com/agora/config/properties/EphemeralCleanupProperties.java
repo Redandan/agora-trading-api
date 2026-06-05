@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "trading.ephemeral-cleanup")
 public record EphemeralCleanupProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("7") @Positive int retainDays,
         @DefaultValue("AI-,EXT-") @NotBlank String prefixes
 ) {}

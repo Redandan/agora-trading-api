@@ -12,6 +12,7 @@ PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
+RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
 
 fail() {
   echo "[server-verify] FAIL: $*" >&2
@@ -43,6 +44,7 @@ require_env_key() {
   ok "$key is present and non-empty in env file"
 }
 
+require_cmd bash
 require_cmd curl
 require_cmd git
 require_cmd java
@@ -74,6 +76,17 @@ require_env_key AGORA_MARKET_INTERNAL_API_KEY
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD
+
+if [ "$RUN_SCHEMA_BASELINE_COMPARE" = "1" ]; then
+  SCHEMA_COMPARE_SCRIPT="$APP_DIR/scripts/schema_baseline_compare_server.sh"
+  [ -f "$SCHEMA_COMPARE_SCRIPT" ] || fail "schema baseline compare script missing: $SCHEMA_COMPARE_SCRIPT"
+  APP_DIR="$APP_DIR" \
+    ENV_FILE="$ENV_FILE" \
+    bash "$SCHEMA_COMPARE_SCRIPT"
+  ok "schema baseline database comparison passed"
+else
+  ok "schema baseline database comparison skipped; set RUN_SCHEMA_BASELINE_COMPARE=1 before Flyway baseline generation"
+fi
 
 if [ -f "$PORT_FILE" ]; then
   ACTIVE_PORT="$(tr -d '[:space:]' < "$PORT_FILE")"

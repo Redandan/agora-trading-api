@@ -84,7 +84,7 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Run the read-only schema baseline inventory in `scripts/schema_baseline_inventory.ps1`, compare it with the real `agora_trading` database via `scripts/schema_baseline_compare_server.sh`, then add an explicit Flyway baseline under `src/main/resources/db/migration`.
+1. Run the read-only schema baseline inventory in `scripts/schema_baseline_inventory.ps1`, compare it with the real `agora_trading` database via `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh`, then add an explicit Flyway baseline under `src/main/resources/db/migration`.
 2. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet

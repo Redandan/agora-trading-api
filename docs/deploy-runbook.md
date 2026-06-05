@@ -42,6 +42,9 @@ Use `scripts/schema_baseline_inventory.ps1` and `docs/schema-baseline.md` as the
 read-only inventory step before generating the baseline.
 Use `scripts/schema_baseline_compare_server.sh` on the server for the read-only
 database table comparison; it must not deploy or mutate schema.
+`scripts/verify_server.sh` can run that comparison with
+`RUN_SCHEMA_BASELINE_COMPARE=1`; the default remains skipped for normal deploy
+health checks.
 
 ## Local Acceptance
 
@@ -201,6 +204,12 @@ PUBLIC_TRADING_HEALTH_URL="https://agoramarketapi.purrtechllc.com/api/trading/ac
   bash scripts/verify_server.sh
 ```
 
+Optional schema baseline table comparison before generating Flyway baseline:
+
+```bash
+RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
+```
+
 Exchange-rate behavior:
 
 - with `AGORA_MARKET_INTERNAL_API_KEY`: trading calls AgoraMarket internal API.
@@ -211,13 +220,13 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 
 `scripts/verify_server.sh` checks:
 
-- required local tools: `curl`, `git`, `java`, `mvn`.
+- required local tools: `bash`, `curl`, `git`, `java`, `mvn`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
-- schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it manually before generating `V1__baseline.sql`.
+- schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
 - active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
 - AgoraMarket exchange-rate dependency health.
 - optional public trading health URL.

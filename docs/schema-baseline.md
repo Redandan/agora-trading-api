@@ -33,6 +33,12 @@ cd /home/ubuntu/agora-trading-api
 bash scripts/schema_baseline_compare_server.sh
 ```
 
+The same comparison can be included in server verification:
+
+```bash
+RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
+```
+
 The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and
 `SPRING_DATASOURCE_PASSWORD` from `/home/ubuntu/.env.trading.secrets`, queries
 `information_schema.tables`, and writes these read-only outputs:
@@ -49,7 +55,7 @@ It must not print database passwords, write migrations, or mutate the database.
 Before replacing Hibernate schema update with Flyway validation:
 
 - Compare `target/schema-baseline/entity-tables.txt` with the real `agora_trading` database tables.
-- Run `scripts/schema_baseline_compare_server.sh` and resolve any `missing-in-db.txt` or `extra-in-db.txt` rows.
+- Run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` and resolve any `missing-in-db.txt` or `extra-in-db.txt` rows.
 - Confirm no marketplace-owned tables are required by trading.
 - Generate an explicit `V1__baseline.sql` under `src/main/resources/db/migration`.
 - Set production to `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`.

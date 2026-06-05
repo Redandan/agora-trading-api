@@ -105,6 +105,7 @@ $envOverrides = @{
     SIGNAL_VERIFICATION_SCHEDULER_ENABLED = "false"
     AGORA_ALPHA_TRACKER_ENABLED = "false"
     AI_STRATEGY_DISCOVERY_ENABLED = "false"
+    TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
     POSITION_EXIT_MANAGER_ENABLED = "false"
@@ -156,6 +157,7 @@ try {
         "--signal-verification.scheduler.enabled=false",
         "--agora.alpha-tracker.enabled=false",
         "--ai.strategy.discovery.enabled=false",
+        "--trading.live-signal.retry-notification.enabled=false",
         "--position-exit-manager.enabled=false",
         "--position-exit-manager.dry-run=true"
     )

@@ -61,6 +61,7 @@ SPRING_DATASOURCE_USERNAME=
 SPRING_DATASOURCE_PASSWORD=
 # temporary bootstrap-only schema mode; replace after Flyway baseline is added.
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
+SPRING_FLYWAY_ENABLED=false
 PORT=8084
 EOF
 ok "wrote env template: $APP_DIR/.env.trading.secrets.example"

@@ -70,10 +70,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- #377 Flyway — schema versioning. baseline-on-migrate=true marks
-             V101 as the existing prod baseline; future migrations go in
-             src/main/resources/db/migration/ as V102+. Version pinned to
-             current Flyway so MySQL 9.x is recognized by runtime checks. -->
+        <!-- Flyway is present for the future trading migration baseline.
+             It stays disabled by default until src/main/resources/db/migration
+             contains an explicit baseline. Version pinned so MySQL 9.x is
+             recognized by runtime checks once Flyway is enabled. -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>

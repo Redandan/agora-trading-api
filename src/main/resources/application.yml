@@ -27,6 +27,8 @@ spring:
       pool:
         size: ${TRADING_SCHEDULER_POOL_SIZE:4}
       thread-name-prefix: trading-sched-
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:false}
 
 management:
   endpoints:

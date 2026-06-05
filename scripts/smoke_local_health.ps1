@@ -125,6 +125,7 @@ try {
 
     Start-Sleep -Milliseconds 500
     Assert-LogContains -Path $stdout -Pattern 'profile is active: "local-smoke"' -Description "local-smoke profile is active"
+    Assert-LogContains -Path $stdout -Pattern "Scheduling disabled for local-smoke profile" -Description "local-smoke scheduling is disabled"
     Assert-LogContains -Path $stdout -Pattern "jdbc:h2:mem:trading-local-smoke" -Description "local-smoke uses in-memory H2 database"
     Assert-LogContains -Path $stdout -Pattern "Auto-trade enabled\s*:\s*false" -Description "OKX auto-trade is disabled"
     Assert-LogContains -Path $stdout -Pattern "API Key configured\s*:\s*false" -Description "OKX API key is cleared for local-smoke"

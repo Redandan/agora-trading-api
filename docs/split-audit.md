@@ -39,7 +39,7 @@ Expected:
 
 - `smoke_local_health.ps1` starts the service with profile `local-smoke`, checks `http://127.0.0.1:18084/api/trading/actuator/health`, then stops the temporary Maven/Java process tree.
 - `verify_local.ps1` runs `mvn test`.
-- `verify_local.ps1` scans for forbidden marketplace, frontend, login, auth, commerce, wallet, realtime, and stale utility residue.
+- `verify_local.ps1` scans for forbidden marketplace, frontend, login, auth, commerce, wallet, realtime, stale utility residue, deployment guard regressions, schema-bootstrap drift, and internal API contract drift.
 
 ## Removed Residue Covered By Verification
 
@@ -53,6 +53,19 @@ The local verification gate currently covers these previously removed or forbidd
 - WebPush, notification enum, chat, WebRTC, SSE, and realtime marketplace residue
 - Betting, marketplace status/type enum, PWA log, traffic analytics, slot analytics, slot cache, staking, and transaction DTO residue
 - Object storage, login/Tron, security audit, group AI, common utility, OCI maintenance, and AI group config residue
+
+## Split Guardrails Covered By Verification
+
+The local verification gate also checks that split/deploy assumptions stay aligned:
+
+- Deploy scripts do not use unsafe broad `sed` rewrites for nginx trading path swaps.
+- Failed blue-green deploys clean the new process, new-port pid file, and temporary nginx file.
+- Deploy/server verification rejects unknown `app.port` or `TRADING_PORT` state outside the `8084/8085` set.
+- Server preflight/verify require non-empty env keys without printing secret values.
+- Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
+- Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
+- Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
+- Internal API docs use externally callable `/api/internal/...` paths for exchange-rate and deferred identity contracts.
 
 ## Retained Trading Domains
 

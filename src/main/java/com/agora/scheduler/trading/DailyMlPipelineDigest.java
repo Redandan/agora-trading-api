@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>Config:
  * <ul>
- *   <li>{@code meta-control.daily-ml-digest.enabled} 預設 true</li>
+ *   <li>{@code meta-control.daily-ml-digest.enabled} 預設 false</li>
  *   <li>{@code meta-control.daily-ml-digest.cron} 預設 {@code 0 17 9 * * *}(UTC 每日 09:17)</li>
  *   <li>09:17 故意錯開整點 market-indicator / verifier schedulers，避免 HeatWave
  *       training 與 hourly collectors 同時搶 DB connection。</li>
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "meta-control.daily-ml-digest.enabled",
-        havingValue = "true", matchIfMissing = true)
+        havingValue = "true", matchIfMissing = false)
 public class DailyMlPipelineDigest {
 
     private final MlPipelineDigestService digestService;

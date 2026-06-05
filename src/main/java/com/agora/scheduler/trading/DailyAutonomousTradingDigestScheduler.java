@@ -25,16 +25,16 @@ public class DailyAutonomousTradingDigestScheduler {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicReference<String> lastSevereFingerprint = new AtomicReference<>();
 
-    @Value("${trading.autonomous.digest.enabled:true}")
+    @Value("${trading.autonomous.digest.enabled:false}")
     private boolean enabled;
 
-    @Value("${trading.autonomous.digest.telegram-enabled:true}")
+    @Value("${trading.autonomous.digest.telegram-enabled:false}")
     private boolean telegramEnabled;
 
     @Value("${trading.autonomous.digest.severe-scan-enabled:false}")
     private boolean severeScanEnabled;
 
-    @Value("${trading.autonomous.digest.snapshot-refresh-enabled:true}")
+    @Value("${trading.autonomous.digest.snapshot-refresh-enabled:false}")
     private boolean snapshotRefreshEnabled;
 
     @Scheduled(

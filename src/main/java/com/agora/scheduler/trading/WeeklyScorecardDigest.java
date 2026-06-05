@@ -36,7 +36,7 @@ import java.util.Map;
  *
  * <p>Config:
  * <ul>
- *   <li>{@code meta-control.scorecard-digest.enabled}(預設 {@code true})</li>
+ *   <li>{@code meta-control.scorecard-digest.enabled}(預設 {@code false})</li>
  * </ul>
  */
 @Slf4j
@@ -50,7 +50,7 @@ public class WeeklyScorecardDigest {
     private final MarketIndicatorHistoryRepository indicatorHistoryRepo;
     private final ObjectMapper objectMapper;
 
-    @Value("${meta-control.scorecard-digest.enabled:true}")
+    @Value("${meta-control.scorecard-digest.enabled:false}")
     private boolean enabled;
 
     /** #429 — 視窗(天):active attention rule 引用的 mih_indicator 在這段時間內 0 samples → zombie。 */

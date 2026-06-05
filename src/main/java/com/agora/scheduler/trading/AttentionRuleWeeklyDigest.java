@@ -39,7 +39,7 @@ public class AttentionRuleWeeklyDigest {
     private final AttentionRuleRepository ruleRepo;
     private final NotificationPort notificationPort;
 
-    @Value("${meta-control.attention-weekly-digest.enabled:true}")
+    @Value("${meta-control.attention-weekly-digest.enabled:false}")
     private boolean enabled;
 
     /** 每週一 09:10 UTC (Taipei 17:10 每週一)。DailyMlPipelineDigest 已錯開到 09:17。 */

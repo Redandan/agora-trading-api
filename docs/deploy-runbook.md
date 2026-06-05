@@ -166,6 +166,7 @@ Expected:
 - BTC price-move Telegram alerts default off in code and the tracked template; enable `TRADING_BTC_PRICE_MOVE_ALERT_ENABLED=true` only after that alert stream belongs to trading production.
 - Gemini advisor and its hint flip/staleness detectors default off in code and the tracked template; enable `TRADING_GEMINI_ADVISOR_ENABLED=true` plus detector flags only after AI hint generation and Telegram alerts belong to trading production.
 - Autonomous exploration monitoring defaults off in code and the tracked template; enable `TRADING_EXPLORATION_MONITOR_ENABLED` and its Telegram flag only after that monitor belongs to the deployed trading service.
+- Autonomous exploration loop, auto-rollout promotion, runtime-evidence writes, funding-arb scheduler, discovery AI suggestions, and MCP guardian live actions are explicit opt-in keys in the tracked template and default off.
 - Market-signal risk-card scheduling defaults off and dry-run in the tracked template.
 - Polymarket monitoring and WAI scheduled calculation default off in code and the tracked template; enable `POLYMARKET_MONITOR_ENABLED=true` only when this service should call Polymarket APIs, persist odds/alert rows, and send related Telegram digests, and enable `TRADING_WAI_ENABLED=true` only when it should persist WAI `market_indicator_history` rows.
 - Market WebSocket side effects default off in code and the tracked template; set `MARKET_LIQUIDATION_WS_ENABLED=true` only after the trading runtime is ready to connect to OKX public liquidation streams.

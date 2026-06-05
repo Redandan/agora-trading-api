@@ -10,6 +10,7 @@ import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OkxTradingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +69,11 @@ public class TrailingStopScheduler {
 
     @Value("${trailing-stop.dry-run:true}")
     private boolean globalDryRun;
+
+    @PostConstruct
+    void logConfig() {
+        log.info("[TrailingStop] config: enabled={} dryRun={}", schedulerEnabled, globalDryRun);
+    }
 
     @Scheduled(fixedDelay = 30_000L, initialDelay = 60_000L)
     public void tick() {

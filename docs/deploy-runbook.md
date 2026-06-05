@@ -195,7 +195,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required local tools: `curl`, `git`, `java`, `mvn`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - required server env keys exist in `/home/ubuntu/.env.trading.secrets` without printing secret values.
-- deploy installs `AgoraMarketAPI/internal-client` into the server Maven local repo before building trading.
+- deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - active local trading health via `app.port` or default `8084`.
 - AgoraMarket exchange-rate dependency health.

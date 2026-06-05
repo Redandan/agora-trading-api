@@ -50,10 +50,12 @@ echo "[deploy] $APP_NAME blue-green: ${CURRENT_PORT:-none} -> $NEW_PORT"
 git fetch origin "$BRANCH" --quiet
 git reset --hard "origin/$BRANCH"
 
-if [ -f "$INTERNAL_CLIENT_POM" ]; then
-  echo "[deploy] installing AgoraMarket internal-client SDK"
-  mvn -f "$INTERNAL_CLIENT_POM" install -DskipTests -q
+if [ ! -f "$INTERNAL_CLIENT_POM" ]; then
+  echo "[deploy] AgoraMarket internal-client pom missing: $INTERNAL_CLIENT_POM" >&2
+  exit 1
 fi
+echo "[deploy] installing AgoraMarket internal-client SDK"
+mvn -f "$INTERNAL_CLIENT_POM" install -DskipTests -q
 
 mvn clean package -DskipTests -q
 

@@ -1,5 +1,6 @@
 package com.agora.mcp;
 
+import com.agora.config.properties.MlSqlProperties;
 import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
@@ -67,12 +68,11 @@ public class TradingMlMcpTools {
      * {@link com.agora.service.ml.SignalTrainingMaterializedRefreshService}
      * and reads in milliseconds.
      */
-    private static final String SIGNAL_SCORER_VIEW = "agora_market.bt_signal_training_v8_mat";
     /** Same materialized table, used for regression — distinguishes via target_column = target_return. */
-    private static final String SIGNAL_SCORER_REGRESSION_VIEW = "agora_market.bt_signal_training_v8_mat";
     private static final String SIGNAL_SCORER_TARGET = "profitable";
 
     private final MlTrainingOrchestrator orchestrator;
+    private final MlSqlProperties mlSqlProperties;
     private final com.agora.service.ml.SignalTrainingMaterializedRefreshService matRefresh;
     private final com.agora.service.ml.MlFeatureBackfillService backfillService;
     private final com.agora.service.ml.SignalScorerEnsemble ensemble;
@@ -83,6 +83,10 @@ public class TradingMlMcpTools {
     private final ObjectMapper objectMapper;
     /** Retro-scoring for evalEnsembleOnLiveSignalHistory. */
     private final com.agora.service.meta.TradeDecisionEngine tradeDecisionEngine;
+
+    private String signalScorerTrainingTable() {
+        return mlSqlProperties.signalScorerTrainingTableName();
+    }
 
     /**
      * Default holdout window in days for {@link #trainSignalScorer(String)}.
@@ -155,7 +159,7 @@ public class TradingMlMcpTools {
 
             long id = orchestrator.trainAndRegister(
                     SIGNAL_SCORER,
-                    SIGNAL_SCORER_VIEW,
+                    signalScorerTrainingTable(),
                     whereClause,
                     SIGNAL_SCORER_TARGET,
                     "classification",
@@ -303,7 +307,7 @@ public class TradingMlMcpTools {
                     "row_id", "entry_time", "target_return", "replica_count"));
             String whereClause = "entry_time >= '" + startDate + "' AND entry_time <= '" + endDate + " 23:59:59'";
             long id = orchestrator.trainAndRegister(
-                    SIGNAL_SCORER, SIGNAL_SCORER_VIEW, whereClause,
+                    SIGNAL_SCORER, signalScorerTrainingTable(), whereClause,
                     SIGNAL_SCORER_TARGET, "classification",
                     "mcp:trainOnWindow", notes.trim() + " [walk-forward: " + startDate + "→" + endDate + "]",
                     options);
@@ -341,7 +345,7 @@ public class TradingMlMcpTools {
             options.put("task", "regression");
             String whereClause = "entry_time >= '" + startDate + "' AND entry_time <= '" + endDate + " 23:59:59'";
             long id = orchestrator.trainAndRegister(
-                    SIGNAL_SCORER, SIGNAL_SCORER_REGRESSION_VIEW, whereClause,
+                    SIGNAL_SCORER, signalScorerTrainingTable(), whereClause,
                     "target_return", "regression",
                     "mcp:trainRegressionOnWindow",
                     notes.trim() + " [walk-forward regression: " + startDate + "→" + endDate + "]",
@@ -452,12 +456,12 @@ public class TradingMlMcpTools {
             { String _e = McpParamValidator.requireNonBlank(handle, "handle"); if (_e != null) return _e; }
             orchestrator.loadModel(handle);
 
-            String evalTable = "agora_market._ml_reg_eval_" + versionId + "_" + System.currentTimeMillis();
+            String evalTable = mlSqlProperties.tempTable("_ml_reg_eval_", versionId, System.currentTimeMillis());
             String predTable = evalTable + "_pred";
             try {
                 jdbc.update("DROP TABLE IF EXISTS " + evalTable);
                 jdbc.update("CREATE TABLE " + evalTable + " AS SELECT * FROM "
-                        + SIGNAL_SCORER_REGRESSION_VIEW + " WHERE " + whereClause);
+                        + signalScorerTrainingTable() + " WHERE " + whereClause);
                 Integer evalN = jdbc.queryForObject("SELECT COUNT(*) FROM " + evalTable, Integer.class);
                 if (evalN == null || evalN == 0) return "⚠️ holdout 視窗無 trades";
                 jdbc.update("DROP TABLE IF EXISTS " + predTable);
@@ -1254,7 +1258,7 @@ public class TradingMlMcpTools {
             Map<String, Object> popMap = jdbc.queryForMap(
                     "SELECT COUNT(*) AS pop_n, "
                             + "       ROUND(100*AVG(profitable),2) AS pop_winrate_pct "
-                            + "FROM " + SIGNAL_SCORER_VIEW + " WHERE " + whereClause);
+                            + "FROM " + signalScorerTrainingTable() + " WHERE " + whereClause);
             long popN = ((Number) popMap.get("pop_n")).longValue();
             double popWinrate = popMap.get("pop_winrate_pct") instanceof Number
                     ? ((Number) popMap.get("pop_winrate_pct")).doubleValue() : 0;
@@ -1453,7 +1457,7 @@ public class TradingMlMcpTools {
                     "realized_vol_20bar, dist_from_ema200_pct, range_pct_50bar, " +
                     "htf_momentum_50bar_pct, htf_trend_up, htf_dist_ema50_pct, " +
                     "profitable " +
-                    "FROM " + SIGNAL_SCORER_VIEW + " " +
+                    "FROM " + signalScorerTrainingTable() + " " +
                     "WHERE entry_time >= ? AND entry_time <= ? " +
                     "ORDER BY RAND() LIMIT ?";
             List<Map<String, Object>> rows = jdbc.queryForList(

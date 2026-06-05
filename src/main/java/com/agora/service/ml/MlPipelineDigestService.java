@@ -1,5 +1,6 @@
 package com.agora.service.ml;
 
+import com.agora.config.properties.MlSqlProperties;
 import com.agora.config.properties.DailyMlDigestProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class MlPipelineDigestService {
     private final MlTrainingOrchestrator orchestrator;
     private final JdbcTemplate jdbc;
     private final DailyMlDigestProperties props;
+    private final MlSqlProperties mlSqlProperties;
 
     /**
      * 產生每日 ML pipeline digest 報告。
@@ -329,8 +331,8 @@ public class MlPipelineDigestService {
         String whereClause = "entry_time < '" + cutoff + "'";
         return orchestrator.trainAndRegister(
                 props.modelName(),
-                // #444 — materialized table; nightly-refreshed snapshot of vw_signal_training_v8_dedup.
-                "agora_market.bt_signal_training_v8_mat",
+                // #444 — materialized table; operator-configured schema for the split trading service.
+                mlSqlProperties.signalScorerTrainingTableName(),
                 whereClause,
                 "profitable",
                 "classification",

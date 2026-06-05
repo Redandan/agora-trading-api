@@ -1,6 +1,7 @@
 package com.agora.scheduler.trading;
 
 import com.agora.config.properties.MlAutoRetrainProperties;
+import com.agora.config.properties.MlSqlProperties;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.ml.MlTrainingOrchestrator;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,7 @@ public class MlAutoRetrainScheduler {
     private final NotificationPort notificationPort;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final MlAutoRetrainProperties props;
+    private final MlSqlProperties mlSqlProperties;
 
     /** Weekly cron — Sunday 05:00 UTC. Change via application.yml if needed. */
     @Scheduled(cron = "${meta-control.ml-autoretrain.cron:0 0 5 * * SUN}",
@@ -93,7 +95,7 @@ public class MlAutoRetrainScheduler {
                 options.put("task", "classification");
                 modelId = orchestrator.trainAndRegister(
                         "signal_scorer",
-                        "agora_market.vw_signal_training_v2",
+                        mlSqlProperties.weeklyRetrainTrainingViewName(),
                         whereClause,
                         "profitable",
                         "classification",

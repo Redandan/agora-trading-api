@@ -28,11 +28,18 @@ TRADING_MCP_KEY=<set for MCP endpoints>
 SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_trading?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
 SPRING_DATASOURCE_USERNAME=<set for trading DB>
 SPRING_DATASOURCE_PASSWORD=<set for trading DB>
+META_CONTROL_ML_SQL_SCHEMA=agora_trading
+META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE=bt_signal_training_v8_mat
+META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW=vw_signal_training_v2
 # temporary bootstrap-only schema mode; replace after Flyway baseline is added.
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
 SPRING_FLYWAY_ENABLED=false
 PORT=8084
 ```
+
+ML training and evaluation table names are bound through `meta-control.ml.sql.*`.
+Keep `META_CONTROL_ML_SQL_SCHEMA=agora_trading` for the standalone trading
+schema, or set it explicitly to a legacy schema during a controlled transition.
 
 `SPRING_JPA_HIBERNATE_DDL_AUTO=update` is a temporary bootstrap-only schema mode.
 It is not production hardening. Keep `SPRING_FLYWAY_ENABLED=false` until a

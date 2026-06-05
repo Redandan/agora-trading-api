@@ -38,7 +38,7 @@ try {
         }
     }
 
-    foreach ($key in @("AGORA_MARKET_INTERNAL_TIMEOUT_MS", "SPRING_JPA_HIBERNATE_DDL_AUTO", "SPRING_FLYWAY_ENABLED", "PORT")) {
+    foreach ($key in @("AGORA_MARKET_INTERNAL_TIMEOUT_MS", "META_CONTROL_ML_SQL_SCHEMA", "META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE", "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW", "SPRING_JPA_HIBERNATE_DDL_AUTO", "SPRING_FLYWAY_ENABLED", "PORT")) {
         if (-not $templateKeys.Contains($key)) {
             throw "Env template missing deploy default key: $key"
         }
@@ -152,6 +152,15 @@ try {
 
     if ($templateKeys["AGORA_MARKET_BASE_URL"] -ne "http://127.0.0.1:8082") {
         throw "AGORA_MARKET_BASE_URL should point at local AgoraMarketAPI dependency in the template"
+    }
+    if ($templateKeys["META_CONTROL_ML_SQL_SCHEMA"] -ne "agora_trading") {
+        throw "META_CONTROL_ML_SQL_SCHEMA should default to the standalone trading schema"
+    }
+    if ($templateKeys["META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE"] -ne "bt_signal_training_v8_mat") {
+        throw "META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE should default to the signal scorer materialized table"
+    }
+    if ($templateKeys["META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW"] -ne "vw_signal_training_v2") {
+        throw "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW should default to the weekly retrain view"
     }
     if ($templateKeys["SPRING_JPA_HIBERNATE_DDL_AUTO"] -ne "update") {
         throw "Template must keep temporary bootstrap-only schema mode until Flyway baseline exists"

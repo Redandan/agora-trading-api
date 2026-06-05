@@ -26,6 +26,23 @@ Expected behavior:
 - Without the key, or if the internal API times out, returns 401, or is unavailable, trading falls back to static rates.
 - Local tests cover the SDK-backed service and fallback behavior.
 
+## Trading-Owned SQL Configuration
+
+ML training and evaluation SQL object names are configuration-backed through
+`meta-control.ml.sql.*` instead of hardcoded to the old AgoraMarket database
+schema. The tracked server template defaults to:
+
+```bash
+META_CONTROL_ML_SQL_SCHEMA=agora_trading
+META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE=bt_signal_training_v8_mat
+META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW=vw_signal_training_v2
+```
+
+If production temporarily keeps HeatWave ML objects in a legacy schema, set
+`META_CONTROL_ML_SQL_SCHEMA` explicitly in `/home/ubuntu/.env.trading.secrets`.
+Local verification rejects new `agora_market.*` source hardcoding so that this
+choice stays a deploy-time boundary, not a Java dependency on the old repo.
+
 ## Local Gates
 
 Use these checks before committing split-cleanup batches:

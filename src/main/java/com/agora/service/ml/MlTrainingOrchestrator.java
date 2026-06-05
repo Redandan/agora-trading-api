@@ -1,5 +1,6 @@
 package com.agora.service.ml;
 
+import com.agora.config.properties.MlSqlProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class MlTrainingOrchestrator {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
+    private final MlSqlProperties mlSqlProperties;
 
     // ══════════════════════════════════════════════════════════════════════
     // Resource guards — protect HeatWave + DB + MODEL_CATALOG from abuse
@@ -113,7 +115,7 @@ public class MlTrainingOrchestrator {
      * appropriate timeout budget.
      *
      * @param modelName    logical name, e.g. "signal_scorer"
-     * @param trainingView fully-qualified VIEW, e.g. "agora_market.vw_signal_training_v1"
+     * @param trainingView fully-qualified VIEW, e.g. "agora_trading.vw_signal_training_v1"
      * @param targetColumn column in the view that carries the label
      * @param taskType     classification / regression
      * @param actor        who kicked off the training
@@ -186,7 +188,7 @@ public class MlTrainingOrchestrator {
         // table so (a) ML_TRAIN accepts it and (b) we retain reproducibility
         // (the exact rows used by version N stay around until manually dropped).
         // Name pattern: _ml_snapshot_{model}_v{version}
-        String snapshotTable = "agora_market._ml_snapshot_" + sanitizeIdent(modelName) + "_v" + version;
+        String snapshotTable = mlSqlProperties.snapshotTable(modelName, version);
         String handle;
         long startMs = System.currentTimeMillis();
         try {
@@ -555,7 +557,7 @@ public class MlTrainingOrchestrator {
         }
         loadModel(handle);
 
-        String evalTable = "agora_market._ml_eval_" + registryId + "_" + System.currentTimeMillis();
+        String evalTable = mlSqlProperties.tempTable("_ml_eval_", registryId, System.currentTimeMillis());
         String predTable = evalTable + "_pred";
         try {
             // Materialize eval set from the training view with WHERE filter
@@ -631,7 +633,7 @@ public class MlTrainingOrchestrator {
         }
         loadModel(handle);
 
-        String evalTable = "agora_market._ml_topn_" + registryId + "_" + System.currentTimeMillis();
+        String evalTable = mlSqlProperties.tempTable("_ml_topn_", registryId, System.currentTimeMillis());
         String predTable = evalTable + "_pred";
         try {
             String ctas = "CREATE TABLE " + evalTable + " AS SELECT * FROM " + view;
@@ -684,7 +686,7 @@ public class MlTrainingOrchestrator {
         }
         loadModel(handle);
 
-        String evalTable = "agora_market._ml_boot_" + registryId + "_" + System.currentTimeMillis();
+        String evalTable = mlSqlProperties.tempTable("_ml_boot_", registryId, System.currentTimeMillis());
         String predTable = evalTable + "_pred";
         try {
             String ctas = "CREATE TABLE " + evalTable + " AS SELECT * FROM " + view;

@@ -40,6 +40,18 @@ require_env_key() {
   echo "[deploy] required env key present: $key"
 }
 
+cleanup_new_instance() {
+  if [ -n "${NEW_PID:-}" ]; then
+    kill "$NEW_PID" 2>/dev/null || true
+  fi
+  if [ -n "${NEW_PORT:-}" ]; then
+    rm -f "app.pid.$NEW_PORT"
+  fi
+  if [ -n "${tmp_nginx:-}" ]; then
+    rm -f "$tmp_nginx"
+  fi
+}
+
 if [ ! -f "$ENV_FILE" ]; then
   echo "[deploy] env file missing: $ENV_FILE" >&2
   exit 1
@@ -109,6 +121,7 @@ for attempt in $(seq 1 120); do
   if ! kill -0 "$NEW_PID" 2>/dev/null; then
     echo "[deploy] new instance exited before ready; tailing log" >&2
     tail -80 "$RUN_LOG" >&2 || true
+    cleanup_new_instance
     exit 1
   fi
   sleep 1
@@ -117,18 +130,19 @@ done
 if ! curl -fsS "http://127.0.0.1:${NEW_PORT}/api/trading/actuator/health" >/dev/null; then
   echo "[deploy] health check timed out; tailing log" >&2
   tail -80 "$RUN_LOG" >&2 || true
+  cleanup_new_instance
   exit 1
 fi
 
 if [ "$UPDATE_NGINX" = "1" ]; then
   if [ ! -f "$NGINX_CONF" ]; then
     echo "[deploy] nginx config missing: $NGINX_CONF" >&2
-    kill "$NEW_PID" 2>/dev/null || true
+    cleanup_new_instance
     exit 1
   fi
   if ! sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
     echo "[deploy] nginx /api/trading/ location missing in $NGINX_CONF" >&2
-    kill "$NEW_PID" 2>/dev/null || true
+    cleanup_new_instance
     exit 1
   fi
 
@@ -152,8 +166,7 @@ if [ "$UPDATE_NGINX" = "1" ]; then
   if ! sudo nginx -t >/dev/null 2>&1; then
     echo "[deploy] nginx config invalid after trading upstream swap; rolling back" >&2
     sudo mv "$NGINX_CONF.bak-trading" "$NGINX_CONF"
-    rm -f "$tmp_nginx"
-    kill "$NEW_PID" 2>/dev/null || true
+    cleanup_new_instance
     exit 1
   fi
   sudo rm -f "$NGINX_CONF.bak-trading"

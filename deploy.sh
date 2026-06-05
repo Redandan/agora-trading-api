@@ -71,6 +71,14 @@ if [ -f app.port ]; then
   CURRENT_PORT="$(cat app.port)"
 fi
 
+case "$CURRENT_PORT" in
+  ""|"$PORT_A"|"$PORT_B") ;;
+  *)
+    echo "[deploy] invalid app.port value: $CURRENT_PORT (expected $PORT_A or $PORT_B)" >&2
+    exit 1
+    ;;
+esac
+
 if [ "$CURRENT_PORT" = "$PORT_A" ]; then
   NEW_PORT="$PORT_B"
 else

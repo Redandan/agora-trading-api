@@ -17,23 +17,13 @@ import java.util.concurrent.TimeUnit;
  */
 @Configuration
 @EnableCaching
-public class RedisAndCacheConfig {
+public class LocalCacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
         CaffeineCacheManager manager = new CaffeineCacheManager();
 
         // 各快取獨立 TTL 設定
-        manager.registerCustomCache("users",
-                cacheBuilder().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(500).build());
-        manager.registerCustomCache("markets",
-                cacheBuilder().expireAfterWrite(3, TimeUnit.MINUTES).maximumSize(200).build());
-        manager.registerCustomCache("systemConfig",
-                cacheBuilder().expireAfterWrite(1, TimeUnit.HOURS).maximumSize(50).build());
-        manager.registerCustomCache("exchangeRates",
-                cacheBuilder().expireAfterWrite(15, TimeUnit.MINUTES).maximumSize(100).build());
-        manager.registerCustomCache("oauthBindings",
-                cacheBuilder().expireAfterWrite(30, TimeUnit.MINUTES).maximumSize(200).build());
         // LiveSignal K 線快取（TTL 60s；每次 KlineClosedEvent 時由 @CacheEvict 清除）
         manager.registerCustomCache("liveSignalKlines",
                 cacheBuilder().expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(20).build());

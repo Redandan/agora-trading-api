@@ -911,7 +911,7 @@ public class AiStrategyDiscoveryService {
         return "正常";
     }
 
-    /** 從 DB 取最近 K 線，計算 RSI/EMA/ATR/ADX/MACD/Volume 快照。TTL=5min（由 RedisAndCacheConfig 設定）。 */
+    /** 從 DB 取最近 K 線，計算 RSI/EMA/ATR/ADX/MACD/Volume 快照。TTL=5min（由 LocalCacheConfig 設定）。 */
     @org.springframework.cache.annotation.Cacheable(value = "marketSnapshot", key = "#symbol + '-' + #intervalCode")
     public MarketSnapshot buildMarketSnapshot(String symbol, String intervalCode) {
         List<MdKline> raw = klineRepository.findBySymbolAndIntervalCodeAndSourceOrderByOpenTimeDesc(

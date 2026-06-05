@@ -63,7 +63,7 @@ public class JinaEmbeddingClient {
     void initRateLimiter() {
         int permits = Math.max(1, maxConcurrent);
         this.jinaPermits = new Semaphore(permits, true);
-        log.info("Jina rate limiter initialised: max-concurrent={}", permits);
+        log.info("Jina embedding client initialised: enabled={} max-concurrent={}", isEnabled(), permits);
     }
 
     /**

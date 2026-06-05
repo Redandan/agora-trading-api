@@ -55,6 +55,19 @@ try {
         throw "rg deploy nginx swap check failed with exit code $LASTEXITCODE"
     }
 
+    $contextTestProfile = rg '@ActiveProfiles\("local-smoke"\)' src/test/java/com/agora/trading/TradingApiApplicationTests.java
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "TradingApiApplicationTests must use the local-smoke profile so context tests share the smoke external-side-effect guard."
+    }
+
+    $contextTestInlineProps = rg "@SpringBootTest\(properties|spring\.datasource\.url|market\.liquidation-ws\.enabled|trading\.tiny-live\.auto-execution\.enabled" src/test/java/com/agora/trading/TradingApiApplicationTests.java
+    if ($LASTEXITCODE -eq 0) {
+        Write-Error "TradingApiApplicationTests should not duplicate local-smoke disable properties inline:`n$contextTestInlineProps"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "rg context test profile check failed with exit code $LASTEXITCODE"
+    }
+
     Write-Host "[verify] checking deploy script git attributes"
     $shellEol = git ls-files --eol -- deploy.sh scripts/*.sh
     foreach ($line in $shellEol) {

@@ -83,6 +83,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - The tracked server env template keeps scheduled notification side effects opt-in, including `META_CONTROL_DAILY_ML_DIGEST_ENABLED=false`; production can enable the daily ML digest explicitly after Telegram and digest ownership are intended.
 - The same template keeps attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification disabled by default until production intentionally opts in.
 - Event-scan scheduled outbound notifications also stay disabled and dry-run by default in the tracked template.
+- Execution-event scheduled scanning is disabled by default in the tracked template, and its notification path stays dry-run unless explicitly enabled.
 - Autonomous exploration monitoring is disabled by default in the tracked template, including its Telegram notification flag.
 - Market-signal risk-card scheduling is disabled and dry-run by default in the tracked template.
 - The tracked server env template keeps market WebSocket side effects off by default, including `MARKET_LIQUIDATION_WS_ENABLED=false`; production can opt in explicitly when OKX public liquidation streams are intended.

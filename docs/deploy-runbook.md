@@ -303,6 +303,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.
 - deploy and server verification fail fast if `AgoraMarketAPI/internal-client` is missing; deploy installs it into the server Maven local repo before building trading.
+- Remaining `enabled:true` fallbacks are deliberately limited to protective or internal behavior and enforced by `scripts/verify_local.ps1`: MCP master-approval probe wait, Telegram noise reduction, enabled-strategy kline data validation, and deterministic regime filtering. Any new default-on fallback must be classified or changed to explicit opt-in before deploy prep is considered clean.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.

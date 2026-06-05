@@ -64,6 +64,49 @@ function Resolve-BashCommand {
     throw "bash is required for local shell syntax verification; install Git Bash or put bash on PATH"
 }
 
+function Assert-OnlyAllowedEnabledTrueFallbacks {
+    $allowedFragments = @(
+        "McpApiKeyFilter.java|mcp.master-approval.probe-wait-enabled:true",
+        "TelegramServiceImpl.java|telegram.noise-reduction.enabled:true",
+        "EnabledStrategyDataValidator.java|backtest.enabled-strategy-validator.enabled:true",
+        "LiveSignalEvaluator.java|trade-decision-engine.regime-filter.enabled:true"
+    )
+
+    $matches = @(rg -n "enabled:true" src/main/java/com/agora)
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -gt 1) {
+        throw "rg failed with exit code $exitCode for enabled:true fallback scan"
+    }
+
+    foreach ($line in $matches) {
+        $isAllowed = $false
+        foreach ($fragment in $allowedFragments) {
+            $parts = $fragment.Split("|")
+            if ($line.Contains($parts[0]) -and $line.Contains($parts[1])) {
+                $isAllowed = $true
+                break
+            }
+        }
+        if (-not $isAllowed) {
+            Write-Error "Unexpected enabled:true fallback found. New default-on behavior must be classified as protective/internal or changed to explicit opt-in:`n$line"
+        }
+    }
+
+    foreach ($fragment in $allowedFragments) {
+        $found = $false
+        foreach ($line in $matches) {
+            $parts = $fragment.Split("|")
+            if ($line.Contains($parts[0]) -and $line.Contains($parts[1])) {
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            Write-Error "Expected documented enabled:true fallback missing or moved without updating split verification allowlist: $fragment"
+        }
+    }
+}
+
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     Write-Host "[verify] mvn test"
@@ -144,6 +187,8 @@ try {
     & "$PSScriptRoot\verify_split_boundaries.ps1"
     Assert-RgMatch -Pattern "Split Guardrails Covered By Verification" -Paths @("docs/split-audit.md") -Description "split audit documents local deploy/schema/contract guards"
     Assert-RgMatch -Pattern "Split deploy guardrails stay documented" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents local split deploy/schema/contract guards"
+    Assert-OnlyAllowedEnabledTrueFallbacks
+    Assert-RgMatch -Pattern "Remaining ``enabled:true`` fallbacks are deliberately limited" -Paths @("docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining enabled:true fallback classification is documented"
     Assert-RgMatch -Pattern '@Profile\("!local-smoke"\)' -Paths @("src/main/java/com/agora/config/TradingSchedulingConfig.java") -Description "local-smoke does not register scheduled tasks"
     Assert-RgMatch -Pattern "Scheduling disabled for local-smoke profile" -Paths @("src/main/java/com/agora/config/LocalSmokeSchedulingConfig.java", "scripts/smoke_local_health.ps1") -Description "local-smoke smoke logs prove scheduling is disabled"
     Assert-RgMatch -Pattern "localSmokeDoesNotRegisterScheduledTasks" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test proves local-smoke scheduling is disabled"

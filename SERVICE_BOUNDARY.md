@@ -31,8 +31,8 @@ Direct database reads against the marketplace database are not allowed after the
 
 The first required internal API is exchange rates:
 
-- `GET /internal/exchange-rates/usdt`
-- `GET /internal/exchange-rates/usdt/{currency}`
+- `GET /api/internal/exchange-rates/usdt`
+- `GET /api/internal/exchange-rates/usdt/{currency}`
 
 The response DTO should match the current `ExchangeRateInfo` shape:
 

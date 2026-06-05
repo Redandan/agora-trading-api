@@ -18,7 +18,7 @@ import java.util.stream.StreamSupport;
 /**
  * 服務端本地 MCP 客戶端。
  *
- * <p>透過 JSON-RPC 2.0 {@code POST /api/mcp} 呼叫同一 JVM 實例上的 MCP 伺服器，
+ * <p>透過 JSON-RPC 2.0 {@code POST /api/trading/mcp} 呼叫同一 JVM 實例上的 MCP 伺服器，
  * 讓伺服器端 AI（如 ShortAiFilter 的 Claude agentic loop）直接使用所有已定義的 MCP 工具，
  * 無需在 AI 呼叫端重複實作工具邏輯。
  *
@@ -44,6 +44,9 @@ public class LocalMcpClient {
 
     @Value("${server.port:8080}")
     private int serverPort;
+
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
 
     @Value("${mcp.api-key:}")
     private String mcpApiKey;
@@ -127,7 +130,7 @@ public class LocalMcpClient {
         body.put("method", method);
         body.put("params", params);
 
-        String url = "http://localhost:" + serverPort + "/api/mcp";
+        String url = "http://localhost:" + serverPort + normalizedContextPath() + "/mcp";
         try {
             String requestJson = objectMapper.writeValueAsString(body);
             Request request = new Request.Builder()
@@ -149,5 +152,18 @@ public class LocalMcpClient {
         } catch (Exception e) {
             throw new RuntimeException("LocalMcpClient HTTP call failed [" + method + "]: " + e.getMessage(), e);
         }
+    }
+
+    private String normalizedContextPath() {
+        if (contextPath == null || contextPath.isBlank() || "/".equals(contextPath.trim())) {
+            return "";
+        }
+        String normalized = contextPath.trim();
+        if (!normalized.startsWith("/")) {
+            normalized = "/" + normalized;
+        }
+        return normalized.endsWith("/")
+                ? normalized.substring(0, normalized.length() - 1)
+                : normalized;
     }
 }

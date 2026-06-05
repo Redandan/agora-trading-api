@@ -47,6 +47,10 @@ trading:
   mcp:
     api-key: ${TRADING_MCP_KEY:}
 
+mcp:
+  api-key: ${MCP_API_KEY:${TRADING_MCP_KEY:}}
+  ops-key: ${MCP_OPS_KEY:${TRADING_MCP_KEY:}}
+
 agora-market:
   base-url: ${AGORA_MARKET_BASE_URL:http://localhost:8080}
   internal-api-key: ${AGORA_MARKET_INTERNAL_API_KEY:}

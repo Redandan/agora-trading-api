@@ -68,6 +68,8 @@ $previousEnv = @{}
 $envOverrides = @{
     AGORA_MARKET_INTERNAL_API_KEY = ""
     AGORA_MARKET_BASE_URL = "http://127.0.0.1:0"
+    MCP_API_KEY = "local-smoke-mcp"
+    MCP_OPS_KEY = "local-smoke-mcp"
     TELEGRAM_BOT_TOKEN = ""
     TRADING_OKX_ENABLED = "false"
     TRADING_OKX_API_KEY = ""
@@ -111,6 +113,8 @@ try {
     $bootArguments = @(
         "--server.port=$Port",
         "--agora-market.internal-api-key=",
+        "--mcp.api-key=local-smoke-mcp",
+        "--mcp.ops-key=local-smoke-mcp",
         "--telegram.bot.token=",
         "--trading.okx.api-key=",
         "--trading.okx.secret-key=",

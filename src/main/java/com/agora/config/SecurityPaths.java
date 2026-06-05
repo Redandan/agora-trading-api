@@ -22,6 +22,7 @@ public class SecurityPaths {
             "/images/**",
             "/telegram/webhook/**",    // Telegram Webhook 回調端點
             "/backtests/**",           // Backtest MVP 執行與查詢
+            "/mcp",                    // MCP Streamable HTTP endpoint; tool auth is enforced by McpApiKeyFilter
             "/mcp/**",                 // MCP AI 工具探索端點
             "/admin/market/import",       // K 線歷史匯入（公開 Binance 資料，冪等操作）
             "/admin/market/backfill-oi",  // OI 歷史回填（一次性，localhost-only via SSH）

@@ -58,3 +58,7 @@ trading:
       enabled: false
   wai:
     enabled: false
+
+mcp:
+  api-key: local-smoke-mcp
+  ops-key: local-smoke-mcp

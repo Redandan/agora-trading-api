@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.agora")
 @EnableJpaRepositories(basePackages = {
@@ -15,7 +14,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 })
 @EntityScan("com.agora.model")
 @EnableAsync
-@EnableScheduling
 @ConfigurationPropertiesScan("com.agora")
 public class TradingApiApplication {
 

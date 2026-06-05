@@ -38,6 +38,7 @@ Use these checks before committing split-cleanup batches:
 Expected:
 
 - `smoke_local_health.ps1` starts the service with profile `local-smoke`, checks `http://127.0.0.1:18084/api/trading/actuator/health`, then stops the temporary Maven/Java process tree.
+- `local-smoke` excludes scheduled task registration, so local health checks do not run trading schedulers or data collectors.
 - `verify_local.ps1` runs `mvn test`.
 - `verify_local.ps1` scans for forbidden marketplace, frontend, login, auth, commerce, wallet, realtime, stale utility residue, deployment guard regressions, schema-bootstrap drift, and internal API contract drift.
 

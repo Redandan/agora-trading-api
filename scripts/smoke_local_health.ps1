@@ -113,6 +113,7 @@ try {
     }
     $bootArguments = @(
         "--server.port=$Port",
+        "--agora-market.base-url=http://127.0.0.1:0",
         "--agora-market.internal-api-key=",
         "--mcp.api-key=local-smoke-mcp",
         "--mcp.ops-key=local-smoke-mcp",

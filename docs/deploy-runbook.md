@@ -154,6 +154,7 @@ Expected:
 - Daily ML digest notifications default off in the tracked template; set `META_CONTROL_DAILY_ML_DIGEST_ENABLED=true` only after Telegram and ML pipeline digest behavior are intended for the trading service.
 - Scheduled trading notification digests default off in the tracked template, including attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification.
 - Event-scan scheduled outbound notifications default off and dry-run in the tracked template.
+- Autonomous exploration monitoring defaults off in the tracked template; enable `TRADING_EXPLORATION_MONITOR_ENABLED` and its Telegram flag only after that monitor belongs to the deployed trading service.
 - Market WebSocket side effects default off in the tracked template; set `MARKET_LIQUIDATION_WS_ENABLED=true` only after the trading runtime is ready to connect to OKX public liquidation streams.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

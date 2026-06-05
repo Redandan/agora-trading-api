@@ -28,9 +28,14 @@ TRADING_MCP_KEY=<set for MCP endpoints>
 SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_trading?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
 SPRING_DATASOURCE_USERNAME=<set for trading DB>
 SPRING_DATASOURCE_PASSWORD=<set for trading DB>
+# temporary bootstrap-only schema mode; replace after Flyway baseline is added.
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
 PORT=8084
 ```
+
+`SPRING_JPA_HIBERNATE_DDL_AUTO=update` is a temporary bootstrap-only schema mode.
+It is not production hardening. Add a Flyway baseline under
+`src/main/resources/db/migration` before replacing this with schema validation.
 
 ## Local Acceptance
 
@@ -201,6 +206,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
+- `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode; Flyway baseline is required before full production hardening.
 - active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
 - AgoraMarket exchange-rate dependency health.
 - optional public trading health URL.

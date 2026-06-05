@@ -23,7 +23,7 @@ import org.springframework.validation.annotation.Validated;
 public record GeminiAdvisorProperties(
 
         /** Master switch for {@code GeminiMarketAdvisor.scheduledAdvise()}. */
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
 
         /** Cron expression for {@code GeminiMarketAdvisor.runOnSchedule()}. */
         @DefaultValue("0 5 */8 * * *") @NotBlank String cron,
@@ -59,10 +59,10 @@ public record GeminiAdvisorProperties(
         @DefaultValue("true") boolean priorHintContextEnabled,
 
         /** Master switch for {@code GeminiHintFlipDetector.scheduledScan()}. */
-        @DefaultValue("true") boolean flipDetectorEnabled,
+        @DefaultValue("false") boolean flipDetectorEnabled,
 
         /** Master switch for {@code GeminiHintStalenessDetector.scheduledScan()}. */
-        @DefaultValue("true") boolean stalenessDetectorEnabled,
+        @DefaultValue("false") boolean stalenessDetectorEnabled,
 
         /** Min hints required before staleness alert. */
         @DefaultValue("24") @Positive int stalenessMinHints,

@@ -30,13 +30,15 @@ require_cmd() {
 
 require_env_key() {
   local key="$1"
+  local line
   if [ ! -f "$ENV_FILE" ]; then
     fail "env file missing: $ENV_FILE"
   fi
-  if ! grep -Eq "^[[:space:]]*${key}=" "$ENV_FILE"; then
-    fail "missing $key in $ENV_FILE"
+  line="$(grep -E "^[[:space:]]*${key}=" "$ENV_FILE" | tail -n 1 || true)"
+  if [ -z "$line" ] || ! printf '%s\n' "$line" | grep -Eq "^[[:space:]]*${key}=[^[:space:]#]"; then
+    fail "missing or empty $key in $ENV_FILE"
   fi
-  ok "$key is present in env file"
+  ok "$key is present and non-empty in env file"
 }
 
 require_cmd curl

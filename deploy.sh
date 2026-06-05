@@ -30,9 +30,29 @@ load_env_file() {
   done < "$file"
 }
 
-if [ -f "$ENV_FILE" ]; then
-  load_env_file "$ENV_FILE"
+require_env_key() {
+  local key="$1"
+  local value="${!key:-}"
+  if [ -z "$value" ]; then
+    echo "[deploy] required env key missing or empty: $key" >&2
+    exit 1
+  fi
+  echo "[deploy] required env key present: $key"
+}
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "[deploy] env file missing: $ENV_FILE" >&2
+  exit 1
 fi
+load_env_file "$ENV_FILE"
+
+require_env_key TRADING_ADMIN_KEY
+require_env_key TRADING_MCP_KEY
+require_env_key AGORA_MARKET_BASE_URL
+require_env_key AGORA_MARKET_INTERNAL_API_KEY
+require_env_key SPRING_DATASOURCE_URL
+require_env_key SPRING_DATASOURCE_USERNAME
+require_env_key SPRING_DATASOURCE_PASSWORD
 
 CURRENT_PORT=""
 if [ -f app.port ]; then

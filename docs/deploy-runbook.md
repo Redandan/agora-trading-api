@@ -108,7 +108,7 @@ Expected:
 
 - shell syntax passes for `deploy.sh` and `scripts/*.sh`.
 - required server tools exist.
-- required secret keys are present without printing values.
+- required secret keys are present and non-empty without printing values.
 - `AgoraMarketAPI/internal-client` exists for local SDK install during deploy.
 - AgoraMarket exchange-rate dependency health is checked.
 - nginx `/api/trading/` path split is reported.
@@ -194,7 +194,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 
 - required local tools: `curl`, `git`, `java`, `mvn`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
-- required server env keys exist in `/home/ubuntu/.env.trading.secrets` without printing secret values.
+- required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - active local trading health via `app.port` or default `8084`.

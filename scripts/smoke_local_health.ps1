@@ -92,6 +92,8 @@ $envOverrides = @{
     OKX_EARN_TOPUP_ENABLED = "false"
     POLYMARKET_MONITOR_ENABLED = "false"
     TRAILING_STOP_ENABLED = "false"
+    TRADING_SHORT_SQUEEZE_ALERT_ENABLED = "false"
+    TRADING_SHORT_SQUEEZE_ALERT_TAKER_BUY_COLLECTOR_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
 }
@@ -126,7 +128,9 @@ try {
         "--market.ws.auto-subscribe.warm-up-enabled=false",
         "--okx.earn-topup.enabled=false",
         "--polymarket.monitor.enabled=false",
-        "--trailing-stop.enabled=false"
+        "--trailing-stop.enabled=false",
+        "--trading.short-squeeze-alert.enabled=false",
+        "--trading.short-squeeze-alert.taker-buy-collector-enabled=false"
     )
     $args = @(
         "spring-boot:run",
@@ -180,9 +184,11 @@ try {
     Assert-LogContains -Path $stdout -Pattern "EarnTopUp.*config: enabled=false" -Description "local-smoke does not enable OKX Earn top-up"
     Assert-LogContains -Path $stdout -Pattern "PolymarketMonitor.*config: enabled=false" -Description "local-smoke does not enable Polymarket monitor"
     Assert-LogContains -Path $stdout -Pattern "TrailingStop.*config: enabled=false" -Description "local-smoke does not enable trailing-stop OCO updates"
+    Assert-LogContains -Path $stdout -Pattern "ShortSqueezeAlert.*config: enabled=false takerBuyCollectorEnabled=false" -Description "local-smoke does not enable short-squeeze alert or taker-buy collector"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Auto subscribed via|Warming up MarketSignalCache)" -Description "local-smoke must not auto-subscribe public market WebSockets or warm market cache"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Trading buffer topped from Earn|Simple Earn)" -Description "local-smoke must not top up from OKX Earn"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|state .*→|sl .*->|sl .*→)" -Description "local-smoke must not modify trailing-stop OCO state"
+    Assert-LogNotContains -Path $stdout -Pattern "(?i)(ShortSqueezeAlert.*FIRED|SpotTakerBuy.*15m taker buy|SpotTakerBuy.*collect failed)" -Description "local-smoke must not run short-squeeze alert or taker-buy collection"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 
     Write-Host "[smoke] OK $healthUrl"

@@ -11,6 +11,7 @@ import com.agora.service.market.OkxLiquidationWsService;
 import com.agora.service.market.SqueezeIndicatorService;
 import com.agora.service.market.SqueezeIndicatorService.Level;
 import com.agora.service.market.SqueezeIndicatorService.SqiResult;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -73,6 +74,12 @@ public class ShortSqueezeAlertScheduler {
     private enum MarketPhase { BULL, NEUTRAL, BEAR }
 
     // ─────────────────────────────────────────────────────────────────────────
+
+    @PostConstruct
+    void logConfig() {
+        log.info("[ShortSqueezeAlert] config: enabled={} takerBuyCollectorEnabled={}",
+                props.enabled(), props.takerBuyCollectorEnabled());
+    }
 
     @Scheduled(fixedRate = 60_000, initialDelay = 90_000)
     public void evaluate() {

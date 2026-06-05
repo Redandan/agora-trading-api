@@ -63,6 +63,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Failed blue-green deploys clean the new process, new-port pid file, and temporary nginx file.
 - Deploy/server verification rejects unknown `app.port` or `TRADING_PORT` state outside the `8084/8085` set.
 - Server preflight/verify require non-empty env keys without printing secret values.
+- The tracked `.env.trading.secrets.example` documents required trading-only server env keys; the real `/home/ubuntu/.env.trading.secrets` remains untracked.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
 - Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.

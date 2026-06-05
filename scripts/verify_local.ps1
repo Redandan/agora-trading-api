@@ -107,6 +107,14 @@ try {
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("deploy.sh") -Description "deploy fails fast when AgoraMarket internal-client is missing"
     Assert-RgMatch -Pattern 'mvn -f "\$INTERNAL_CLIENT_POM" install' -Paths @("deploy.sh") -Description "deploy installs AgoraMarket internal-client before building trading"
     Assert-RgMatch -Pattern 'missing or empty.*in \$ENV_FILE' -Paths @("scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server preflight/verify require non-empty env keys"
+    Assert-RgMatch -Pattern "!\.env\.trading\.secrets\.example" -Paths @(".gitignore") -Description "tracked env template is not ignored"
+    foreach ($envKey in @("TRADING_ADMIN_KEY", "TRADING_MCP_KEY", "AGORA_MARKET_BASE_URL", "AGORA_MARKET_INTERNAL_API_KEY", "SPRING_DATASOURCE_URL", "SPRING_DATASOURCE_USERNAME", "SPRING_DATASOURCE_PASSWORD")) {
+        Assert-RgMatch -Pattern $envKey -Paths @(".env.trading.secrets.example", "scripts/preflight_server.sh", "scripts/verify_server.sh", "deploy.sh") -Description "server env template and scripts include $envKey"
+    }
+    foreach ($envSetting in @("AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000", "SPRING_JPA_HIBERNATE_DDL_AUTO=update", "SPRING_FLYWAY_ENABLED=false", "PORT=8084")) {
+        Assert-RgMatch -Pattern $envSetting -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md") -Description "server env template documents $envSetting"
+    }
+    Assert-RgMatch -Pattern "env template available" -Paths @("scripts/bootstrap_server.sh") -Description "bootstrap uses tracked env template"
 
     Assert-RgMatch -Pattern '@ActiveProfiles\("local-smoke"\)' -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test uses local-smoke profile"
 

@@ -109,8 +109,8 @@ If the repo has not been cloned yet:
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Redandan/agora-trading-api/main/scripts/bootstrap_server.sh)"
 ```
 
-The bootstrap script checks server tools, clones or fetches this repo, writes only
-`.env.trading.secrets.example`, checks the AgoraMarket exchange-rate dependency
+The bootstrap script checks server tools, clones or fetches this repo, confirms
+`.env.trading.secrets.example` is present, checks the AgoraMarket exchange-rate dependency
 health endpoint, and reports whether nginx already contains `/api/trading/`. It
 does not create or print the real secret file.
 

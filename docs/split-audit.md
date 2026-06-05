@@ -106,7 +106,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Shadow signal cleanup is disabled by default in code and in the tracked template, so automatic `bt_live_signal` timeout updates for stale shadow signals are explicit production opt-in behavior.
 - Daily TG report orchestration is opt-in at the scheduler bean and disabled by default in the tracked template, so daily Telegram reporting does not start automatically after repo split deploys.
 - The same code/template contract keeps attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification disabled by default until production intentionally opts in.
-- Event-calendar freshness notifications are disabled by default in code and in the tracked template, so weekly calendar-maintenance Telegram reminders are explicit production opt-in behavior.
+- Event-calendar freshness notifications are disabled by default in code and in the tracked template; enable `TRADING_EVENT_CALENDAR_FRESHNESS_NOTIFICATION_ENABLED=true` only when this service should send weekly calendar-maintenance Telegram reminders.
 - Live-signal retry notifications are disabled by default in code and in the tracked template; enable `TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED=true` only when this service should resend pending `bt_live_signal` Telegram notifications and mark them notified.
 - Event-scan scheduled outbound notifications also stay disabled and dry-run by default in the tracked template.
 - Execution-event scheduled scanning is disabled by default in the tracked template, and its notification path stays dry-run unless explicitly enabled.

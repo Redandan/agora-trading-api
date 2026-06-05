@@ -13,14 +13,13 @@ This package is reserved for persistent domain models.
 
 ## Current structure note
 - Most business entities are in this package.
-- Some telemetry/game entities are in `com.agora.entity`.
 - New non-persistent runtime models should be placed under feature-specific packages, e.g.:
-  - `com.agora.bot.conversation`
-  - `com.agora.service.auth.model`
+  - `com.agora.service.trading.model`
+  - `com.agora.service.market.model`
 
 ## Future cleanup (optional)
 Choose one long-term convention and migrate incrementally:
 1. Keep all persistence classes under `com.agora.model`.
-2. Or move all persistence classes to `com.agora.entity`.
+2. Or move all persistence classes to a single explicitly chosen entity package.
 
 Avoid mixing conventions for newly added files.

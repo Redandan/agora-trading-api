@@ -64,9 +64,28 @@ if (-not $mvn) {
 }
 
 $process = $null
+$previousEnv = @{}
+$envOverrides = @{
+    AGORA_MARKET_INTERNAL_API_KEY = ""
+    AGORA_MARKET_BASE_URL = "http://127.0.0.1:0"
+    TELEGRAM_BOT_TOKEN = ""
+    TRADING_OKX_ENABLED = "false"
+    TRADING_OKX_API_KEY = ""
+    TRADING_OKX_SECRET_KEY = ""
+    TRADING_OKX_PASSPHRASE = ""
+    TRADING_BINANCE_ENABLED = "false"
+    TRADING_BINANCE_API_KEY = ""
+    TRADING_BINANCE_SECRET_KEY = ""
+    TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
+    TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
+}
 Push-Location $repo
 try {
     Write-Host "[smoke] starting local-smoke profile on port $Port"
+    foreach ($name in $envOverrides.Keys) {
+        $previousEnv[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
+        [Environment]::SetEnvironmentVariable($name, $envOverrides[$name], "Process")
+    }
     $args = @(
         "spring-boot:run",
         "-Dspring-boot.run.profiles=local-smoke",
@@ -108,6 +127,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern 'profile is active: "local-smoke"' -Description "local-smoke profile is active"
     Assert-LogContains -Path $stdout -Pattern "jdbc:h2:mem:trading-local-smoke" -Description "local-smoke uses in-memory H2 database"
     Assert-LogContains -Path $stdout -Pattern "Auto-trade enabled\s*:\s*false" -Description "OKX auto-trade is disabled"
+    Assert-LogContains -Path $stdout -Pattern "API Key configured\s*:\s*false" -Description "OKX API key is cleared for local-smoke"
     Assert-LogContains -Path $stdout -Pattern "Trading disabled.*private WS skipped" -Description "OKX private WebSocket is skipped"
     Assert-LogContains -Path $stdout -Pattern "AGORA_MARKET_INTERNAL_API_KEY not configured; using static fallback rates" -Description "exchange-rate client uses static fallback"
     Assert-LogContains -Path $stdout -Pattern "startup check disabled" -Description "ML materialized refresh startup check is disabled"
@@ -117,6 +137,9 @@ try {
 } finally {
     if ($null -ne $process -and -not $process.HasExited) {
         Stop-ProcessTree -RootPid $process.Id
+    }
+    foreach ($name in $envOverrides.Keys) {
+        [Environment]::SetEnvironmentVariable($name, $previousEnv[$name], "Process")
     }
     Pop-Location
 }

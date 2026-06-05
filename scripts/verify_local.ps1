@@ -73,7 +73,7 @@ try {
 
     Assert-RgNoMatch -Pattern "@SpringBootTest\(properties|spring\.datasource\.url|market\.liquidation-ws\.enabled|trading\.tiny-live\.auto-execution\.enabled" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "inline local-smoke duplicate properties in context test"
 
-    foreach ($pattern in @("Assert-LogContains", "Assert-LogNotContains", "Auto-trade enabled", "Trading disabled.*private WS skipped", "order placed", "send telegram")) {
+    foreach ($pattern in @("Assert-LogContains", "Assert-LogNotContains", "AGORA_MARKET_INTERNAL_API_KEY", "TRADING_OKX_API_KEY", "TRADING_BINANCE_API_KEY", "TELEGRAM_BOT_TOKEN", "Auto-trade enabled", "API Key configured", "Trading disabled.*private WS skipped", "order placed", "send telegram")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_local_health.ps1") -Description "local-smoke log guard pattern $pattern"
     }
 

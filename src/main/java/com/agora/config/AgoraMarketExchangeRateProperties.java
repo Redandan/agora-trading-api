@@ -13,7 +13,7 @@ public record AgoraMarketExchangeRateProperties(
 
     public AgoraMarketExchangeRateProperties {
         if (baseUrl == null || baseUrl.isBlank()) {
-            baseUrl = "http://localhost:8080";
+            baseUrl = "http://127.0.0.1:8082";
         }
         if (timeoutMs == null) {
             timeoutMs = Duration.ofSeconds(3);

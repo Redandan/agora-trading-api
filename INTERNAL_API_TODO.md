@@ -29,7 +29,7 @@ Runtime config:
 
 ```yaml
 agora-market:
-  base-url: ${AGORA_MARKET_BASE_URL:http://localhost:8080}
+  base-url: ${AGORA_MARKET_BASE_URL:http://127.0.0.1:8082}
   internal-api-key: ${AGORA_MARKET_INTERNAL_API_KEY:}
   timeout-ms: ${AGORA_MARKET_INTERNAL_TIMEOUT_MS:3000}
 ```
@@ -37,13 +37,13 @@ agora-market:
 Expected local call path:
 
 ```text
-agora-trading-api -> http://localhost:8080/api/internal/exchange-rates/usdt
+agora-trading-api -> http://127.0.0.1:8082/api/internal/exchange-rates/usdt
 ```
 
 Expected server call path:
 
 ```text
-agora-trading-api -> http://127.0.0.1:8080/api/internal/exchange-rates/usdt
+agora-trading-api -> http://127.0.0.1:8082/api/internal/exchange-rates/usdt
 ```
 
 AgoraMarketAPI provider config:

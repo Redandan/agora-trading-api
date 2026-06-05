@@ -35,7 +35,7 @@ public class HourlyOrchestrator {
     private final MetaControlAttributionScheduler metaControlAttributionScheduler;
     private final LiveSignalHealthScheduler liveSignalHealthScheduler;
 
-    @Value("${meta-control.hourly-orchestrator.enabled:true}")
+    @Value("${meta-control.hourly-orchestrator.enabled:false}")
     private boolean enabled;
 
     /**

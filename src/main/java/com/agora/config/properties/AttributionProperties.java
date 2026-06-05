@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.attribution")
 public record AttributionProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("2") @Positive int scanHours,
         @DefaultValue("24") @PositiveOrZero int startupBackfillHours,
         @DefaultValue("5") @PositiveOrZero int startupDelayMinutes,

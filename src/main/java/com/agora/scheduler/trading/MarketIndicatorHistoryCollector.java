@@ -67,7 +67,7 @@ import java.util.function.Supplier;
  *
  * <p>Config:
  * <ul>
- *   <li>{@code meta-control.indicator-history.enabled}(預設 true)— 關閉整個 collector</li>
+ *   <li>{@code meta-control.indicator-history.enabled}(預設 false)— 啟用整個 collector</li>
  *   <li>{@code meta-control.indicator-history.symbols}(預設 BTCUSDT,ETHUSDT)</li>
  * </ul>
  */

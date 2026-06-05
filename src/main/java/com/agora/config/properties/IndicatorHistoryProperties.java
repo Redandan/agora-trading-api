@@ -8,6 +8,6 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.indicator-history")
 public record IndicatorHistoryProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("BTCUSDT,ETHUSDT") @NotBlank String symbols
 ) {}

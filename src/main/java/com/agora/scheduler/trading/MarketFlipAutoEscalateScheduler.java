@@ -6,7 +6,6 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.meta.DecisionAuditWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +22,7 @@ import java.util.List;
  * <p>用意:Claude scheduled task 可能因為 claude.ai session 掛、網路問題或 cron skip 沒跑;
  * 此 scheduler 是 fallback safety net。
  *
- * <p>Config: {@code meta-control.market-flip.auto-escalate-enabled} (預設 true)
+ * <p>Config: {@code meta-control.market-flip.auto-escalate-enabled} (預設 false)
  *           {@code meta-control.market-flip.escalate-age-minutes} (預設 60)
  */
 @Slf4j

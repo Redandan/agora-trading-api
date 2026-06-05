@@ -5,7 +5,6 @@ import com.agora.repository.trading.MarketFlipEventRepository;
 import com.agora.service.meta.MarketFlipConsensusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,7 @@ import java.util.List;
  *
  * <p>Config:
  * <ul>
- *   <li>{@code meta-control.market-flip.analysis-enabled} (預設 true)</li>
+ *   <li>{@code meta-control.market-flip.analysis-enabled} (預設 false)</li>
  *   <li>{@code meta-control.market-flip.analysis-batch-size} (預設 10) — 單次 tick 處理上限</li>
  * </ul>
  */

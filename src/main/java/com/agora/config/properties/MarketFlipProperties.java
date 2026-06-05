@@ -13,9 +13,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.market-flip")
 public record MarketFlipProperties(
-        @DefaultValue("true") boolean analysisEnabled,
+        @DefaultValue("false") boolean analysisEnabled,
         @DefaultValue("10") @Positive int analysisBatchSize,
-        @DefaultValue("true") boolean autoEscalateEnabled,
+        @DefaultValue("false") boolean autoEscalateEnabled,
         @DefaultValue("60") @Positive int escalateAgeMinutes,
         @DefaultValue AiConsensus aiConsensus
 ) {

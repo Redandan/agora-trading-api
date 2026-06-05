@@ -66,6 +66,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - The tracked `.env.trading.secrets.example` documents required trading-only server env keys; `scripts/validate_env_template.ps1` checks it against server script `require_env_key` usage, while the real `/home/ubuntu/.env.trading.secrets` remains untracked.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
+- `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.
 - Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate and deferred identity contracts.
 - `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.

@@ -49,6 +49,9 @@ try {
 
     Write-Host "[schema-inventory] explicit entity tables: $($explicitTables.Count) -> $tablesPath"
     Write-Host "[schema-inventory] implicit entity names: $($implicitEntities.Count) -> $implicitPath"
+    if ($implicitEntities.Count -gt 0) {
+        throw "Schema inventory found entity class(es) without explicit @Table(name=...): $($implicitEntities -join ', ')"
+    }
     Write-Host "[schema-inventory] read-only source inventory complete; no database or migration files changed"
 } finally {
     Pop-Location

@@ -23,6 +23,8 @@ Outputs:
 - `target/schema-baseline/implicit-entities.txt`
 
 This is source inventory only. It does not connect to MySQL, write migrations, or mutate runtime configuration.
+The inventory fails if any JPA entity relies on an implicit table name; baseline
+generation requires explicit `@Table(name = "...")` mappings.
 
 ## Read-Only Server Compare
 

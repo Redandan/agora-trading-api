@@ -110,11 +110,27 @@ if [ "$UPDATE_NGINX" = "1" ]; then
     exit 1
   fi
 
+  tmp_nginx="$(mktemp)"
+  awk -v port="$NEW_PORT" '
+    /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
+      in_trading = 1
+    }
+    in_trading {
+      gsub(/127\.0\.0\.1:(8084|8085)/, "127.0.0.1:" port)
+    }
+    { print }
+    in_trading && /^[[:space:]]*}/ {
+      in_trading = 0
+    }
+  ' "$NGINX_CONF" > "$tmp_nginx"
+
   sudo cp "$NGINX_CONF" "$NGINX_CONF.bak-trading"
-  sudo sed -E -i "s#127\\.0\\.0\\.1:(8084|8085)#127.0.0.1:${NEW_PORT}#g" "$NGINX_CONF"
+  sudo cp "$tmp_nginx" "$NGINX_CONF"
+  rm -f "$tmp_nginx"
   if ! sudo nginx -t >/dev/null 2>&1; then
     echo "[deploy] nginx config invalid after trading upstream swap; rolling back" >&2
     sudo mv "$NGINX_CONF.bak-trading" "$NGINX_CONF"
+    rm -f "$tmp_nginx"
     kill "$NEW_PID" 2>/dev/null || true
     exit 1
   fi

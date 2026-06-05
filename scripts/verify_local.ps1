@@ -47,6 +47,14 @@ try {
         throw "rg user boundary check failed with exit code $LASTEXITCODE"
     }
 
+    $unsafeDeployNginxSwap = rg "sed[^\r\n]*(8084|8085|/api/trading/|127\\.0\\.0\\.1)" deploy.sh
+    if ($LASTEXITCODE -eq 0) {
+        Write-Error "Unsafe deploy nginx sed swap found; keep deploy.sh scoped to the /api/trading/ block:`n$unsafeDeployNginxSwap"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "rg deploy nginx swap check failed with exit code $LASTEXITCODE"
+    }
+
     Write-Host "[verify] OK"
 } finally {
     Pop-Location

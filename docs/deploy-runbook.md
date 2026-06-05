@@ -172,7 +172,7 @@ Last observed server state from 2026-06-05 Asia/Taipei:
   worktree commit matches `origin/main` by default.
 - `scripts/verify_server.sh` passed with:
   - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
-  - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
+  - local AgoraMarket exchange-rate dependency health: `http://127.0.0.1:8082/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 
 Deploy after secrets and nginx path are ready:
@@ -230,7 +230,7 @@ If blue-green is used, deploy should update nginx to the active `app.port`, matc
 ```bash
 PORT=$(cat /home/ubuntu/agora-trading-api/app.port)
 curl -fsS "http://127.0.0.1:${PORT}/api/trading/actuator/health"
-curl -fsS "https://agoramarketapi.purrtechllc.com/api/actuator/health"
+curl -fsS "http://127.0.0.1:8082/api/actuator/health"
 ```
 
 Or run the server verifier:
@@ -282,7 +282,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
 - active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
-- AgoraMarket exchange-rate dependency health.
+- local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8082/api/actuator/health` by default.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
 

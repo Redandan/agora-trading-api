@@ -74,6 +74,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Failed blue-green deploys clean the new process, new-port pid file, and temporary nginx file.
 - Deploy/server verification rejects unknown `app.port` or `TRADING_PORT` state outside the `8084/8085` set.
 - Server preflight/verify require non-empty env keys without printing secret values.
+- Deploy/server verification require `AGORA_MARKET_BASE_URL` to point at local AgoraMarketAPI dependency `http://127.0.0.1:8082` and fail on stale values.
 - Server verification calls local MCP `getMcpRegistryVersion` through `/api/trading/mcp` with `TRADING_MCP_KEY`, proving the split context path and MCP auth mapping.
 - Deploy/preflight fail fast when required server tools for blue-green and nginx swaps are missing.
 - The nginx path installer fails fast when its own `awk`, `mktemp`, or `sudo` dependencies are missing.

@@ -269,6 +269,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon.
+- `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8082`; deploy, preflight, and server verification fail on stale values.
 - local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 - deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.

@@ -13,6 +13,7 @@ UPDATE_NGINX="${UPDATE_NGINX:-1}"
 RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
 DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/trading/actuator/health}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
+EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8082}"
 
 cd "$APP_DIR"
 
@@ -115,6 +116,12 @@ require_env_key AGORA_MARKET_INTERNAL_API_KEY
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD
+
+if [ "$AGORA_MARKET_BASE_URL" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
+  echo "[deploy] AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL" >&2
+  exit 1
+fi
+echo "[deploy] AGORA_MARKET_BASE_URL points at local AgoraMarketAPI dependency"
 
 CURRENT_PORT=""
 if [ -f app.port ]; then

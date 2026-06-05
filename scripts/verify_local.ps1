@@ -112,6 +112,8 @@ try {
     Assert-RgMatch -Pattern "app.commit" -Paths @("deploy.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "deploy records and server verify checks deployed commit metadata"
     Assert-RgMatch -Pattern "deployed app.commit.*does not match worktree HEAD" -Paths @("scripts/verify_server.sh") -Description "server verification fails when deployed commit metadata is stale"
     Assert-RgMatch -Pattern "schema baseline database comparison skipped" -Paths @("scripts/verify_server.sh") -Description "schema compare is opt-in for normal server verification"
+    Assert-RgMatch -Pattern "EXPECTED_AGORA_MARKET_BASE_URL" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard AgoraMarket local dependency base URL"
+    Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server scripts fail on stale AgoraMarket base URL"
     Assert-RgMatch -Pattern "information_schema.tables" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare queries database metadata only"
     Assert-RgMatch -Pattern "server-implicit-entities.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects implicit entity table names"
     Assert-RgMatch -Pattern "read-only compare complete" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare documents read-only behavior"

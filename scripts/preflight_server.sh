@@ -6,6 +6,7 @@ ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8082/api/actuator/health}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
+EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8082}"
 
 fail() {
   echo "[server-preflight] FAIL: $*" >&2
@@ -35,6 +36,19 @@ require_env_key() {
     fail "missing or empty $key in $ENV_FILE"
   fi
   ok "$key is present and non-empty in env file"
+}
+
+env_value() {
+  local key="$1"
+  local line
+  if [ ! -f "$ENV_FILE" ]; then
+    fail "env file missing: $ENV_FILE"
+  fi
+  line="$(grep -E "^[[:space:]]*${key}=" "$ENV_FILE" | tail -n 1 || true)"
+  if [ -z "$line" ]; then
+    return 1
+  fi
+  printf '%s' "${line#*=}"
 }
 
 require_cmd bash
@@ -69,6 +83,11 @@ require_env_key AGORA_MARKET_INTERNAL_API_KEY
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD
+
+if [ "$(env_value AGORA_MARKET_BASE_URL)" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
+  fail "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"
+fi
+ok "AGORA_MARKET_BASE_URL points at local AgoraMarketAPI dependency"
 
 [ -f "$INTERNAL_CLIENT_POM" ] || fail "AgoraMarket internal-client pom missing: $INTERNAL_CLIENT_POM"
 ok "AgoraMarket internal-client pom found"

@@ -3,6 +3,7 @@ package com.agora.service.ml;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -54,6 +55,8 @@ public class SignalTrainingMaterializedRefreshService {
     private static final String VIEW  = "vw_signal_training_v8_dedup";
 
     private final JdbcTemplate jdbc;
+    @Value("${meta-control.ml-materialized-refresh.startup-check-enabled:true}")
+    private boolean startupCheckEnabled;
 
     /**
      * Use {@link ApplicationReadyEvent} (post-startup) + {@link Async} to defer
@@ -65,6 +68,10 @@ public class SignalTrainingMaterializedRefreshService {
     @EventListener(ApplicationReadyEvent.class)
     @Async
     public void ensurePopulatedOnStartup() {
+        if (!startupCheckEnabled) {
+            log.info("[MlMatRefresh] startup check disabled");
+            return;
+        }
         try {
             Integer count = jdbc.queryForObject(
                     "SELECT COUNT(*) FROM " + TABLE, Integer.class);

@@ -12,6 +12,10 @@ spring:
 meta-control:
   migration-drift-check:
     enabled: false
+  attribution:
+    enabled: false
+  ml-materialized-refresh:
+    startup-check-enabled: false
 
 market:
   liquidation-ws:

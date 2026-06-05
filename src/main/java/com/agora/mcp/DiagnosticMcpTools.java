@@ -3077,8 +3077,7 @@ public class DiagnosticMcpTools {
             buckets.put("AI 429", 0);
             buckets.put("AI degraded", 0);
             buckets.put("Connection leak", 0);
-            buckets.put("JWT malformed", 0);
-            buckets.put("JWT rejected", 0);
+            buckets.put("Auth rejected", 0);
 
             java.util.List<String> hits = new java.util.ArrayList<>();
             if (startIdx >= 0 && isSlowStartup(lines.get(startIdx))) {
@@ -3138,8 +3137,8 @@ public class DiagnosticMcpTools {
                             || line.contains("Exception");
                     continue;
                 }
-                if (isJwtAuthRejection(line)) {
-                    buckets.computeIfPresent("JWT rejected", (k, v) -> v + 1);
+                if (isAuthRejection(line)) {
+                    buckets.computeIfPresent("Auth rejected", (k, v) -> v + 1);
                     continue;
                 }
                 if (isAiProviderDegraded(line)) {
@@ -3163,7 +3162,6 @@ public class DiagnosticMcpTools {
                 if (line.contains("Duplicate entry")) buckets.computeIfPresent("Duplicate key", (k, v) -> v + 1);
                 if (line.contains("HTTP 429") || line.contains("API HTTP 429")) buckets.computeIfPresent("AI 429", (k, v) -> v + 1);
                 if (line.contains("Apparent connection leak")) buckets.computeIfPresent("Connection leak", (k, v) -> v + 1);
-                if (line.contains("MalformedJwtException")) buckets.computeIfPresent("JWT malformed", (k, v) -> v + 1);
                 hits.add(line);
             }
 
@@ -3185,9 +3183,9 @@ public class DiagnosticMcpTools {
 
             sb.append("\nrecent hits:\n");
             if (hits.isEmpty()) {
-                if (buckets.getOrDefault("JWT rejected", 0) > 0) {
+                if (buckets.getOrDefault("Auth rejected", 0) > 0) {
                     sb.append("  ✅ No unclassified WARN/ERROR hits after current startup cutoff.\n");
-                    sb.append("  ℹ️ JWT rejected lines are counted separately as expected security rejects.\n");
+                    sb.append("  ℹ️ Auth rejected lines are counted separately as expected security rejects.\n");
                 } else {
                     sb.append("  ✅ No WARN/ERROR hits after current startup cutoff.\n");
                 }
@@ -3380,11 +3378,11 @@ public class DiagnosticMcpTools {
                 || line.contains("ip=0:0:0:0:0:0:0:1"));
     }
 
-    boolean isJwtAuthRejection(String line) {
+    boolean isAuthRejection(String line) {
         if (line == null) return false;
-        return line.contains("SignatureException: JWT signature does not match")
-                || line.contains("MalformedJwtException")
-                || line.contains("io.jsonwebtoken.security.SignatureException");
+        return line.contains("[McpAuth] DENIED")
+                || line.contains("[McpAuthDebug]")
+                || line.contains("AuthorizationDeniedException: Access Denied");
     }
 
     private boolean isBeforeStartupFallback(String line, LocalDateTime startupFallback) {

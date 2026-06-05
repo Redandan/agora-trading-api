@@ -23,6 +23,14 @@ try {
         throw "rg auth check failed with exit code $LASTEXITCODE"
     }
 
+    $loginForbidden = rg "JwtUtil|JwtConfig|jjwt|McpAuthLevel\.MEMBER|\bMEMBER\b|User JWT|isValidJwt|/auth/\*\*|TelegramLoginBotConfig|TelegramWebhookConfig|login-bot|USER_LOGIN|USER_LOGOUT|LOGIN_ANOMALY|TWO_FACTOR_AUTH_REQUIRED|SUSPICIOUS_LOGIN_ATTEMPT|ACCOUNT_LOCKED|AppMarketProperties|agora_login_bot" src/main/java src/main/resources/application.yml pom.xml
+    if ($LASTEXITCODE -eq 0) {
+        Write-Error "Forbidden login/JWT residue found:`n$loginForbidden"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "rg login/JWT check failed with exit code $LASTEXITCODE"
+    }
+
     $userBoundaryForbidden = rg "UserRepository|AutoReplyService|AutoReplyServiceImpl|WebRTCSignalingService|UserStatusEnum|@Table\(name = `"users`"" src/main/java src/main/resources/application.yml pom.xml
     if ($LASTEXITCODE -eq 0) {
         Write-Error "Forbidden marketplace user boundary residue found:`n$userBoundaryForbidden"

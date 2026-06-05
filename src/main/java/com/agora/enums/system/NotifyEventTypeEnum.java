@@ -74,27 +74,7 @@ public enum NotifyEventTypeEnum {
     @Schema(description = "退款完成")
     REFUND_COMPLETED,
     
-    // === 用戶認證相關事件 ===
-    @Schema(description = "用戶登入")
-    USER_LOGIN,
-    @Schema(description = "用戶登出")
-    USER_LOGOUT,
-    @Schema(description = "登入異常")
-    LOGIN_ANOMALY,
-    @Schema(description = "Token即將過期")
-    TOKEN_EXPIRING_SOON,
-    @Schema(description = "Token已過期")
-    TOKEN_EXPIRED,
-    @Schema(description = "密碼重設")
-    PASSWORD_RESET,
-    @Schema(description = "雙因素認證")
-    TWO_FACTOR_AUTH_REQUIRED,
-    
     // === 系統安全事件 ===
-    @Schema(description = "異常登入嘗試")
-    SUSPICIOUS_LOGIN_ATTEMPT,
-    @Schema(description = "帳戶被鎖定")
-    ACCOUNT_LOCKED,
     @Schema(description = "安全警告")
     SECURITY_WARNING,
     

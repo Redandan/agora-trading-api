@@ -26,7 +26,7 @@ public class SecurityPaths {
             "/mcp/**",                 // MCP AI 工具探索端點
             "/admin/market/import",       // K 線歷史匯入（公開 Binance 資料，冪等操作）
             "/admin/market/backfill-oi",  // OI 歷史回填（一次性，localhost-only via SSH）
-            "/admin/oco/**",            // OCO 手動重試（僅限 localhost，SSH 存取，無需 JWT）
+            "/admin/oco/**",            // OCO 手動重試（僅限 localhost，SSH 存取，無需登入）
             "/market/klines",          // K 線圖表資料查詢（前端展示用，無需認證）
             "/market/symbols",         // 可用交易對清單
             "/market/intervals",       // 可用週期清單

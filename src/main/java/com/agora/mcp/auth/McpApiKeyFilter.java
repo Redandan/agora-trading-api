@@ -1,6 +1,5 @@
 package com.agora.mcp.auth;
 
-import com.agora.util.JwtUtil;
 import com.agora.service.TelegramService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -123,7 +122,6 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
     private final long probePollMs;
     private final int probeWaitMaxConcurrency;
     private final AtomicInteger activeProbeWaits = new AtomicInteger(0);
-    private final JwtUtil jwtUtil;
     private final ApplicationContext applicationContext;
     private final ObjectMapper objectMapper;
     private final McpSessionMasterApproval mcpSessionMasterApproval;
@@ -139,7 +137,6 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
             @Value("${mcp.master-approval.probe-wait-ms:8000}") long probeWaitMs,
             @Value("${mcp.master-approval.probe-poll-ms:250}") long probePollMs,
             @Value("${mcp.master-approval.probe-wait-max-concurrency:5}") int probeWaitMaxConcurrency,
-            JwtUtil jwtUtil,
             ApplicationContext applicationContext,
             ObjectMapper objectMapper,
             McpSessionMasterApproval mcpSessionMasterApproval,
@@ -153,7 +150,6 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
         this.probeWaitMs = Math.max(0L, probeWaitMs);
         this.probePollMs = Math.max(50L, probePollMs);
         this.probeWaitMaxConcurrency = Math.max(1, probeWaitMaxConcurrency);
-        this.jwtUtil = jwtUtil;
         this.applicationContext = applicationContext;
         this.objectMapper = objectMapper;
         this.mcpSessionMasterApproval = mcpSessionMasterApproval;
@@ -388,7 +384,6 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
                 boolean authorized = isGuardianKey(token)
                         ? guardianPolicyAllows(toolName, guardianLiveActionsEnabled)
                         : switch (requiredLevel) {
-                            case MEMBER    -> isDevKey(token) || isOpsKey(token) || isValidJwt(token) || authorizedExternalAi;
                             case OPS       -> isDevKey(token) || isOpsKey(token) || authorizedExternalAi;
                             case DEV       -> isDevKey(token) || authorizedExternalAi;
                             case LOCAL_ONLY -> LOCALHOST_ADDRS.contains(ip) || authorizedExternalAi;
@@ -661,16 +656,6 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
         return liveActionsEnabled && GUARDIAN_RISK_REDUCING_LIVE_TOOLS.contains(toolName);
     }
 
-    private boolean isValidJwt(String token) {
-        if (token == null) return false;
-        try {
-            jwtUtil.extractAllClaimsPublic(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     private void sendExternalAiApprovalRequired(
             HttpServletResponse response,
             HttpServletRequest request,
@@ -852,7 +837,6 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
             authorized = isGuardianKey(token)
                     ? guardianPolicyAllows(toolName, guardianLiveActionsEnabled)
                     : switch (requiredLevel) {
-                        case MEMBER -> isDevKey(token) || isOpsKey(token) || isValidJwt(token) || approvedExternalAi;
                         case OPS -> isDevKey(token) || isOpsKey(token) || approvedExternalAi;
                         case DEV -> isDevKey(token) || approvedExternalAi;
                         case LOCAL_ONLY -> LOCALHOST_ADDRS.contains(request.getRemoteAddr()) || approvedExternalAi;

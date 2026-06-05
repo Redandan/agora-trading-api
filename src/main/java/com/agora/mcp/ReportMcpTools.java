@@ -284,7 +284,7 @@ public class ReportMcpTools {
         }
     }
 
-    @McpAuth(McpAuthLevel.MEMBER)
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.REPORTING, Category.ANALYTICS})
     @Tool(description = "DEPRECATED, use getReport(scope='now', focus='trading'). " +
             "生成當前倉位狀況 AI 分析報告。" +
@@ -300,7 +300,7 @@ public class ReportMcpTools {
         }
     }
 
-    @McpAuth(McpAuthLevel.MEMBER)
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.REPORTING})
     @Tool(description = "DEPRECATED, use getReport(scope='week', focus='trading'). " +
             "生成近 7 日交易績效週報。" +
@@ -331,7 +331,7 @@ public class ReportMcpTools {
         }
     }
 
-    @McpAuth(McpAuthLevel.MEMBER)
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.REPORTING, Category.MARKET_DATA})
     @Tool(description = "AI 市場機會分析。彙整所有監控幣種的最新技術信號（NN 分數、RSI、EMA 趨勢）、" +
             "Fear & Greed 指數、鯨魚流向，由 Groq AI 生成繁體中文交易機會建議（約 150 字）。")

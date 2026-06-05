@@ -1,6 +1,6 @@
 package com.agora.service.impl;
 
-import com.agora.config.TelegramLoginBotConfig;
+import com.agora.config.TelegramBotConfig;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.model.TgNotificationLog;
 import com.agora.repository.system.TgNotificationLogRepository;
@@ -73,7 +73,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                 return t;
             });
 
-    private final TelegramLoginBotConfig telegramBotConfig;
+    private final TelegramBotConfig telegramBotConfig;
     private final TelegramClient telegramClient;
     private final TgNotificationLogRepository notificationLogRepo;
     private final TgTradingNotificationClassifier notificationClassifier;
@@ -85,13 +85,13 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private final Path pinnedFile = Paths.get(
             System.getProperty("user.home"), ".agora-state", "pinned_messages.properties");
 
-    public TelegramServiceImpl(TelegramLoginBotConfig telegramBotConfig,
+    public TelegramServiceImpl(TelegramBotConfig telegramBotConfig,
                               TgNotificationLogRepository notificationLogRepo) {
         this(telegramBotConfig, notificationLogRepo, new TgTradingNotificationClassifier());
     }
 
     @Autowired
-    public TelegramServiceImpl(TelegramLoginBotConfig telegramBotConfig,
+    public TelegramServiceImpl(TelegramBotConfig telegramBotConfig,
                               TgNotificationLogRepository notificationLogRepo,
                               TgTradingNotificationClassifier notificationClassifier) {
         this.telegramBotConfig    = telegramBotConfig;
@@ -100,7 +100,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         this.notificationClassifier = notificationClassifier;
     }
 
-    private TelegramClient createTelegramClient(TelegramLoginBotConfig config) {
+    private TelegramClient createTelegramClient(TelegramBotConfig config) {
         String token = config.getToken();
         if (token == null || token.isBlank()) {
             log.warn("Telegram bot token is not configured. Telegram notifications will be logged only.");

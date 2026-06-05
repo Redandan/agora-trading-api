@@ -653,8 +653,8 @@ public class TradingManagerMcpTools {
             critical.add("System health reports a failing dependency or readiness issue.");
         }
         if (title.contains("Current Startup Log Issues")) {
-            if (hasNonZeroMetric(text, "Connection leak") || hasNonZeroMetric(text, "JWT malformed")) {
-                critical.add("Current startup log has connection-leak or JWT/security hits after cutoff.");
+            if (hasNonZeroMetric(text, "Connection leak") || hasNonZeroMetric(text, "Auth rejected")) {
+                critical.add("Current startup log has connection-leak or auth/security hits after cutoff.");
             } else if (hasNonZeroMetric(text, "WARN") || hasNonZeroMetric(text, "Slow startup")
                     || hasNonZeroMetric(text, "ERROR") || hasNonZeroMetric(text, "AI 429")
                     || hasNonZeroMetric(text, "Duplicate key")) {

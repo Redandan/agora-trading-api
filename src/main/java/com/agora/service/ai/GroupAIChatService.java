@@ -1,6 +1,6 @@
 package com.agora.service.ai;
 
-import com.agora.config.TelegramLoginBotConfig;
+import com.agora.config.TelegramBotConfig;
 import com.agora.dto.telegram.GroupAiPromptPreviewDTO;
 import com.agora.dto.telegram.GroupAiSimulationResponseDTO;
 import com.agora.dto.telegram.GroupAiStrategyDTO;
@@ -64,7 +64,7 @@ public class GroupAIChatService {
 
     private final TelegramGroupMonitoringService monitoringService;
     private final GroqApiClient groqApiClient;
-    private final TelegramLoginBotConfig telegramLoginBotConfig;
+    private final TelegramBotConfig telegramBotConfig;
     private final VectorStoreService vectorStoreService;
     private final AiPendingQuestionService pendingQuestionService;
     private final SkillRegistry skillRegistry;
@@ -470,7 +470,7 @@ public class GroupAIChatService {
 
     private String getIdentitySuffix() {
         if (identitySuffix == null) {
-            String username = telegramLoginBotConfig.getUsername();
+            String username = telegramBotConfig.getUsername();
             if (username != null && !username.trim().isEmpty()) {
                 identitySuffix = "\n- 你在 Telegram 上的帳號是 @" + username + "，當有人 @" + username + " 時，就是在直接呼叫你，請用第一人稱回應。";
             } else {
@@ -481,7 +481,7 @@ public class GroupAIChatService {
     }
 
     private String stripMention(String text) {
-        String username = telegramLoginBotConfig.getUsername();
+        String username = telegramBotConfig.getUsername();
         if (username == null || username.trim().isEmpty()) return text.trim();
         return text.replace("@" + username, "").trim();
     }
@@ -490,12 +490,12 @@ public class GroupAIChatService {
         if (message.getReplyToMessage() == null) return false;
         org.telegram.telegrambots.meta.api.objects.User from = message.getReplyToMessage().getFrom();
         if (from == null || !Boolean.TRUE.equals(from.getIsBot())) return false;
-        String username = telegramLoginBotConfig.getUsername();
+        String username = telegramBotConfig.getUsername();
         return username != null && username.equalsIgnoreCase(from.getUserName());
     }
 
     private boolean isMentioned(String text) {
-        String username = telegramLoginBotConfig.getUsername();
+        String username = telegramBotConfig.getUsername();
         if (username == null || username.trim().isEmpty()) return false;
         return text.contains("@" + username);
     }

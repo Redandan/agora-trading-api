@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Wick-capture observer (shadow-only):
+ * Wick-capture observer (shadow-only, disabled by default):
  * - detect 15m intrabar wick-recovery candidates
  * - write audit + shadow table
  * - send deduped TG context notification
@@ -47,7 +47,7 @@ public class WickCaptureShadowObserverScheduler {
 
     private final AtomicBoolean bootstrapAttempted = new AtomicBoolean(false);
 
-    @Value("${wick-capture.shadow.enabled:true}")
+    @Value("${wick-capture.shadow.enabled:false}")
     private boolean enabled;
 
     @Value("${wick-capture.shadow.symbol:BTCUSDT}")
@@ -62,7 +62,7 @@ public class WickCaptureShadowObserverScheduler {
     @Value("${wick-capture.shadow.lookback-hours:12}")
     private int lookbackHours;
 
-    @Value("${wick-capture.shadow.bootstrap-enabled:true}")
+    @Value("${wick-capture.shadow.bootstrap-enabled:false}")
     private boolean bootstrapEnabled;
 
     @Value("${wick-capture.shadow.bootstrap-days:180}")

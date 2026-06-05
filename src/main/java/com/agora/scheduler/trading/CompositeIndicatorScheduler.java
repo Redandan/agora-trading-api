@@ -9,6 +9,7 @@ import com.agora.service.indicator.IndicatorLevel;
 import com.agora.service.indicator.SubDimension;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -51,8 +52,15 @@ public class CompositeIndicatorScheduler {
     private final HysteresisAlertGuard hysteresisGuard;
     private final AtomicBoolean evaluateRunning = new AtomicBoolean(false);
 
+    @Value("${meta-control.composite-indicator.scheduler-enabled:true}")
+    private boolean schedulerEnabled;
+
     @Scheduled(fixedRate = 60_000, initialDelay = 90_000)
     public void evaluate() {
+        if (!schedulerEnabled) {
+            log.debug("[CMI] scheduler disabled by meta-control.composite-indicator.scheduler-enabled=false");
+            return;
+        }
         if (!evaluateRunning.compareAndSet(false, true)) {
             log.warn("[CMI] previous evaluation still running; skipping this tick");
             return;

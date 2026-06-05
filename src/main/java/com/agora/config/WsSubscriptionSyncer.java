@@ -28,14 +28,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <h3>Separation from {@code MarketWsAutoSubscriber}</h3>
  * {@code MarketWsAutoSubscriber} handles the <em>initial</em> boot-time
  * subscription + cache warm-up. This class handles <em>ongoing</em> drift
- * resolution. Splitting them keeps the boot path linear and makes the
- * long-running syncer testable in isolation.
+ * resolution. Both are controlled by {@code market.ws.auto-subscribe.enabled}
+ * so local smoke/test profiles can keep every WS subscription path inert.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class WsSubscriptionSyncer {
 
+    private final MarketWsAutoSubscribeProperties properties;
     private final WsSubscriptionResolver resolver;
     private final List<KlineStreamService> streamServices;
 
@@ -67,6 +68,11 @@ public class WsSubscriptionSyncer {
     }
 
     private String resync(String trigger) {
+        if (!properties.isEnabled()) {
+            String msg = "[WsSubSyncer] Resync disabled by market.ws.auto-subscribe.enabled=false trigger=" + trigger;
+            log.debug(msg);
+            return msg;
+        }
         if (!running.compareAndSet(false, true)) {
             String msg = "[WsSubSyncer] Resync skipped (another in progress) trigger=" + trigger;
             log.info(msg);

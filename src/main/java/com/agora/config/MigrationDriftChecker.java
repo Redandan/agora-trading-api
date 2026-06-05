@@ -15,25 +15,29 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Startup sanity check: repo V*.sql count vs db_migration_history row count.
- * WARN-only; never crashes the app. Disable via
- * meta-control.migration-drift-check.enabled=false.
+ * Startup sanity check: repo V*.sql count vs Flyway schema history row count.
+ * WARN-only; never crashes the app. Enable after a trading migration baseline
+ * exists via meta-control.migration-drift-check.enabled=true.
  */
 @Slf4j
 @Component
 @ConditionalOnProperty(
         name = "meta-control.migration-drift-check.enabled",
         havingValue = "true",
-        matchIfMissing = true)
+        matchIfMissing = false)
 @RequiredArgsConstructor
 public class MigrationDriftChecker {
 
     private static final Pattern MIGRATION_FILE = Pattern.compile("^V[^_]+__.+\\.sql$");
+    private static final Pattern SQL_IDENTIFIER = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Value("${meta-control.migration-drift-check.directory:db/migrations}")
+    @Value("${meta-control.migration-drift-check.directory:src/main/resources/db/migration}")
     private String migrationDir;
+
+    @Value("${meta-control.migration-drift-check.table:flyway_schema_history}")
+    private String historyTable;
 
     @PostConstruct
     public void check() {
@@ -56,11 +60,16 @@ public class MigrationDriftChecker {
 
             Integer dbCount;
             try {
+                if (!SQL_IDENTIFIER.matcher(historyTable).matches()) {
+                    log.warn("MigrationDriftChecker: invalid history table name '{}', skipping drift check",
+                            historyTable);
+                    return;
+                }
                 dbCount = jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM db_migration_history", Integer.class);
+                        "SELECT COUNT(*) FROM " + historyTable + " WHERE success = 1", Integer.class);
             } catch (Exception e) {
-                log.warn("MigrationDriftChecker: db_migration_history unavailable ({}). "
-                        + "Has V040 been applied? Skipping drift check.", e.getMessage());
+                log.warn("MigrationDriftChecker: {} unavailable ({}). Skipping drift check.",
+                        historyTable, e.getMessage());
                 return;
             }
 
@@ -69,9 +78,9 @@ public class MigrationDriftChecker {
                 log.info("MigrationDriftChecker OK: {} V*.sql files, {} history rows", fileCount, db);
             } else {
                 log.warn("MigrationDriftChecker MISMATCH: repo has {} V*.sql files "
-                                + "but db_migration_history has {} rows. "
-                                + "Reconcile with: `ls {}/V*.sql` vs `SELECT version FROM db_migration_history ORDER BY version;`",
-                        fileCount, db, migrationDir);
+                                + "but {} has {} successful rows. "
+                                + "Reconcile with: `ls {}/V*.sql` vs `SELECT version FROM {} WHERE success = 1 ORDER BY installed_rank;`",
+                        fileCount, historyTable, db, migrationDir, historyTable);
             }
         } catch (Exception e) {
             log.warn("MigrationDriftChecker: unexpected error ({}), continuing startup", e.toString());

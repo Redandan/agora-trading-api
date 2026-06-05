@@ -84,7 +84,7 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
+1. Add an explicit Flyway baseline under `src/main/resources/db/migration`, then replace Hibernate `ddl-auto=update` production bootstrap before treating the deploy as full production hardening.
 2. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet

@@ -40,6 +40,8 @@ Flyway baseline exists under `src/main/resources/db/migration`; then replace
 Hibernate schema update with schema validation and enable Flyway.
 Use `scripts/schema_baseline_inventory.ps1` and `docs/schema-baseline.md` as the
 read-only inventory step before generating the baseline.
+Use `scripts/schema_baseline_compare_server.sh` on the server for the read-only
+database table comparison; it must not deploy or mutate schema.
 
 ## Local Acceptance
 
@@ -120,6 +122,7 @@ Expected:
 
 - shell syntax passes for `deploy.sh` and `scripts/*.sh`.
 - required server tools exist.
+- schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.
 - `AgoraMarketAPI/internal-client` exists for local SDK install during deploy.
 - AgoraMarket exchange-rate dependency health is checked.
@@ -214,6 +217,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
+- schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it manually before generating `V1__baseline.sql`.
 - active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
 - AgoraMarket exchange-rate dependency health.
 - optional public trading health URL.

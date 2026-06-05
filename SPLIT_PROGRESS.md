@@ -48,6 +48,8 @@
   - `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` starts the service under `local-smoke`, proves `/api/trading/actuator/health`, calls `/api/trading/mcp` with `getMcpRegistryVersion`, and checks logs for disabled external side effects.
   - `scripts/verify_local.ps1` runs compile/tests, split boundary scanners, env-template checks, shell syntax checks, schema source inventory, and documentation drift guards.
   - `scripts/schema_baseline_inventory.ps1` writes `target/schema-baseline/entity-tables.txt`, `implicit-entities.txt`, and `forbidden-marketplace-tables.txt`; the latest local guard run found no implicit entity tables and no obvious marketplace-owned table mappings.
+  - Runtime side effects that could surprise a split deployment now default off in code and/or the tracked env template, including scheduled market-data writes, Telegram digests/alerts, Polymarket/WAI, market WebSockets, OCO/grid/Earn/trailing-stop automation, ScoreBuy post-scout notification, and ML materialized startup refresh.
+  - Remaining `enabled:true` fallbacks are enforced by `scripts/verify_local.ps1` as a four-item protective/internal allowlist: MCP master-approval probe wait, Telegram noise reduction, enabled-strategy kline data validation, and deterministic regime filtering.
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8082`.
 - Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
 
@@ -87,6 +89,7 @@ Trading deployment prep:
   - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - Production defines `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets`, so trading can call AgoraMarket exchange rates and still fall back on timeout or failure.
 - Current `origin/main` has advanced beyond the observed deployed commit. Treat production currentness as unproven until `deploy.sh` and `scripts/verify_server.sh` are re-run on the server; `scripts/verify_server.sh` now checks that the server worktree matches `origin/main` by default.
+- Local split cleanup has continued past the observed deployment snapshot. Recent pushed batches tightened default-off runtime safety and verifier guardrails, but no production deploy has been run for those commits in this thread.
 
 ## Cleanup Priority
 

@@ -53,5 +53,3 @@ agora-market:
 app:
   cors:
     allowed-origins: ${TRADING_CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
-  web3:
-    domain: ${TRADING_WEB3_DOMAIN:localhost}

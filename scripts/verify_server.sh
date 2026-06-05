@@ -5,6 +5,8 @@ APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 PORT_FILE="${PORT_FILE:-$APP_DIR/app.port}"
 DEFAULT_PORT="${PORT:-8084}"
+PORT_A="${PORT_A:-8084}"
+PORT_B="${PORT_B:-8085}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
@@ -82,6 +84,10 @@ fi
 
 case "$ACTIVE_PORT" in
   ''|*[!0-9]*) fail "invalid active port: $ACTIVE_PORT" ;;
+esac
+case "$ACTIVE_PORT" in
+  "$PORT_A"|"$PORT_B") ;;
+  *) fail "unknown active port: $ACTIVE_PORT (expected $PORT_A or $PORT_B)" ;;
 esac
 
 LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"

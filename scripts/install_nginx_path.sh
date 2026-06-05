@@ -3,6 +3,8 @@ set -euo pipefail
 
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}"
 TRADING_PORT="${TRADING_PORT:-8084}"
+PORT_A="${PORT_A:-8084}"
+PORT_B="${PORT_B:-8085}"
 
 fail() {
   echo "[nginx-trading] FAIL: $*" >&2
@@ -14,6 +16,11 @@ ok() {
 }
 
 [ -f "$NGINX_CONF" ] || fail "nginx config missing: $NGINX_CONF"
+
+case "$TRADING_PORT" in
+  "$PORT_A"|"$PORT_B") ;;
+  *) fail "invalid TRADING_PORT: $TRADING_PORT (expected $PORT_A or $PORT_B)" ;;
+esac
 
 if sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
   tmp_file="$(mktemp)"

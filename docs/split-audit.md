@@ -81,6 +81,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - The tracked `.env.trading.secrets.example` documents required trading-only server env keys and optional runtime safety toggles; `scripts/validate_env_template.ps1` checks it against server script `require_env_key` usage and safe optional defaults, while the real `/home/ubuntu/.env.trading.secrets` remains untracked.
 - The tracked server env template keeps scheduled notification side effects opt-in, including `META_CONTROL_DAILY_ML_DIGEST_ENABLED=false`; production can enable the daily ML digest explicitly after Telegram and digest ownership are intended.
 - The same template keeps attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification disabled by default until production intentionally opts in.
+- Event-scan scheduled outbound notifications also stay disabled and dry-run by default in the tracked template.
 - The tracked server env template keeps market WebSocket side effects off by default, including `MARKET_LIQUIDATION_WS_ENABLED=false`; production can opt in explicitly when OKX public liquidation streams are intended.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.

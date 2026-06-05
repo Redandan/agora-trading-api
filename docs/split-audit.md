@@ -70,7 +70,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate and deferred identity contracts.
 - `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.
-- `scripts/validate_package_boundary.ps1` keeps top-level `com.agora.*` packages inside the trading-owned allowlist and rejects marketplace-style packages such as product, order, cart, user, wallet, OAuth, and webpush.
+- `scripts/validate_package_boundary.ps1` keeps top-level and nested `com.agora.*` packages inside the trading-owned allowlist and rejects marketplace-style package segments such as product, order, cart, user, wallet, OAuth, and webpush. The retained `com.agora.mcp.auth` package is service-level MCP API-key auth, not marketplace login.
 
 ## Retained Trading Domains
 

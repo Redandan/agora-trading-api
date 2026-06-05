@@ -72,8 +72,8 @@ else
 fi
 
 curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null \
-  && ok "AgoraMarket local health passed: $AGORA_MARKET_HEALTH_URL" \
-  || warn "AgoraMarket local health failed: $AGORA_MARKET_HEALTH_URL"
+  && ok "AgoraMarket exchange-rate dependency local health passed: $AGORA_MARKET_HEALTH_URL" \
+  || warn "AgoraMarket exchange-rate dependency local health failed: $AGORA_MARKET_HEALTH_URL"
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   if grep -R "location[[:space:]]*/api/trading/" $NGINX_CONF_GLOB >/dev/null 2>&1; then

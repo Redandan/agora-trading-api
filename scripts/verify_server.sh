@@ -72,8 +72,8 @@ LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"
 curl -fsS "$LOCAL_HEALTH_URL" >/dev/null || fail "local trading health failed: $LOCAL_HEALTH_URL"
 ok "local trading health passed: $LOCAL_HEALTH_URL"
 
-curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null || fail "AgoraMarket health failed: $AGORA_MARKET_HEALTH_URL"
-ok "AgoraMarket health passed: $AGORA_MARKET_HEALTH_URL"
+curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null || fail "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL"
+ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"
 
 if [ -n "$PUBLIC_TRADING_HEALTH_URL" ]; then
   curl -fsS "$PUBLIC_TRADING_HEALTH_URL" >/dev/null || fail "public trading health failed: $PUBLIC_TRADING_HEALTH_URL"

@@ -88,9 +88,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/Redandan/agora-trading-a
 ```
 
 The bootstrap script checks server tools, clones or fetches this repo, writes only
-`.env.trading.secrets.example`, checks AgoraMarket local health, and reports
-whether nginx already contains `/api/trading/`. It does not create or print the
-real secret file.
+`.env.trading.secrets.example`, checks the AgoraMarket exchange-rate dependency
+health endpoint, and reports whether nginx already contains `/api/trading/`. It
+does not create or print the real secret file.
 
 Last observed server state from 2026-06-05 Asia/Taipei:
 
@@ -109,7 +109,7 @@ Last observed server state from 2026-06-05 Asia/Taipei:
   production as current.
 - `scripts/verify_server.sh` passed with:
   - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
-  - AgoraMarket health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
+  - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 
 Deploy after secrets and nginx path are ready:
@@ -166,6 +166,9 @@ Exchange-rate behavior:
 - with `AGORA_MARKET_INTERNAL_API_KEY`: trading calls AgoraMarket internal API.
 - without key, timeout, or 401: trading falls back to static rates.
 
+AgoraMarket checks in these scripts are dependency checks for the trading
+exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
+
 `scripts/verify_server.sh` checks:
 
 - required local tools: `curl`, `git`, `java`, `mvn`.
@@ -173,7 +176,7 @@ Exchange-rate behavior:
 - deploy installs `AgoraMarketAPI/internal-client` into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - active local trading health via `app.port` or default `8084`.
-- AgoraMarket production health.
+- AgoraMarket exchange-rate dependency health.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence.
 

@@ -4,7 +4,7 @@
 
 - `agora-trading-api` is extracted and compiles as a standalone Spring Boot app.
 - Current test baseline: `mvn test` should load the full Spring context with `com.agora` component scanning.
-- The repo still contains some system/auth/frontend remnants needed for the current context or queued for cleanup.
+- The repo keeps trading/system runtime code needed for the Spring context. Marketplace auth/frontend remnants are treated as forbidden cleanup regressions by `scripts/verify_local.ps1`.
 
 ## Completed
 
@@ -80,10 +80,12 @@ Trading deployment prep:
 - 2026-06-05 `scripts/verify_server.sh` passed with public health check:
   - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - Production defines `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets`, so trading can call AgoraMarket exchange rates and still fall back on timeout or failure.
+- Current `origin/main` has advanced beyond the observed deployed commit. Treat production currentness as unproven until `deploy.sh` and `scripts/verify_server.sh` are re-run on the server.
 
 ## Cleanup Priority
 
 1. Replace Hibernate `ddl-auto=update` production bootstrap with explicit trading migrations before treating the deploy as full production hardening.
+2. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet
 

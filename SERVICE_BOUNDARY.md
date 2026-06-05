@@ -55,12 +55,12 @@ Candidate endpoints:
 - `GET /internal/users/by-telegram/{telegramId}`
 - `POST /internal/users/resolve-or-create-telegram`
 
-## Cleanup Queue
+## Cleanup Regression Guard
 
-These are marketplace leftovers and should be removed or replaced locally, not turned into internal APIs:
+Marketplace leftovers should be removed or replaced locally, not turned into internal APIs. `scripts/verify_local.ps1` guards the current forbidden categories, including:
 
-- AppVersion and Flutter deployment services.
-- UserSearchLog and search logging aspect.
-- CustomerIssue and user address models.
-- Product classification suggestions and image audit DTOs/services.
-- PWA/client-log workflows unless trading explicitly needs its own client log.
+- Flutter/AppVersion deployment, search logging, customer issue, address, image audit, and product-classification residue.
+- OAuth2, WalletConnect/Web3 login, AuthService/AuthCode/2FA, JWT/member login, and marketplace account DTO residue.
+- WebPush, chat/realtime, commerce order/cart/delivery/logistics, marketplace wallet enum, PWA/slot analytics, staking, and transaction DTO residue.
+
+If a later trading feature really needs one of these capabilities, add a trading-owned model/service or an explicit SDK/HTTP DTO contract. Do not re-import marketplace entities, repositories, controllers, or service implementations.

@@ -14,7 +14,7 @@ public class WashoutAccumulationIndexScheduler {
 
     private final WashoutAccumulationIndexService waiService;
 
-    @Value("${trading.wai.enabled:true}")
+    @Value("${trading.wai.enabled:false}")
     private boolean enabled;
 
     @Scheduled(cron = "${trading.wai.cron:0 5 * * * *}", zone = "UTC")

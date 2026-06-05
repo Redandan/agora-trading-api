@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>Config（application.yml 可覆蓋）：
  * <ul>
- *   <li>{@code polymarket.monitor.enabled}（預設 true）</li>
+ *   <li>{@code polymarket.monitor.enabled}（預設 false）</li>
  * </ul>
  */
 @Slf4j
@@ -29,7 +29,7 @@ public class PolymarketMonitorScheduler {
 
     private final PolymarketMonitorService monitorService;
 
-    @Value("${polymarket.monitor.enabled:true}")
+    @Value("${polymarket.monitor.enabled:false}")
     private boolean enabled;
 
     @PostConstruct

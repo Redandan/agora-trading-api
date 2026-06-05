@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -15,12 +14,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.apache.catalina.connector.ClientAbortException;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RestControllerAdvice(basePackages = "com.agora.controller")
@@ -161,18 +156,6 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle SSE connection timeout exceptions specifically
-     * This prevents the content-type conversion error when SSE connections timeout
-     */
-    @ExceptionHandler(AsyncRequestTimeoutException.class)
-    public ResponseEntity<String> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex) {
-        // Return a simple string message instead of ErrorResponse to avoid content-type conversion issues
-        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
-                .contentType(MediaType.TEXT_PLAIN)
-                .body("SSE connection timed out");
-    }
-
-    /**
      * Handle client abort exceptions (broken pipe)
      * This is a normal case when clients disconnect, so we don't log it as an error
      */
@@ -193,14 +176,6 @@ public class GlobalExceptionHandler {
             log.warn("Client abort exception: {}", ex.getMessage());
         }
         
-        // For SSE requests, return empty response
-        if (isSSERequest(request)) {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body("");
-        }
-        
-        // For other requests, return no content
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -241,46 +216,11 @@ public class GlobalExceptionHandler {
             log.error("數據庫連接錯誤已被捕獲並發送告警", ex);
         }
         
-        // 檢測是否為SSE請求（Server-Sent Events）
-        if (isSSERequest(request)) {
-            log.error("SSE connection error: {}", ex.getMessage(), ex);
-            // SSE請求返回純文本錯誤，避免Content-Type衝突
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .body("SSE connection error: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"));
-        }
-        
-        // 普通請求返回JSON錯誤
         ErrorResponse response = new ErrorResponse(
                 "INTERNAL_SERVER_ERROR",
                 "Internal Server Error",
                 ex.getMessage()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    
-    /**
-     * 檢測是否為SSE請求
-     * 通過檢查請求路徑和Accept header來判斷
-     */
-    private boolean isSSERequest(WebRequest request) {
-        if (request instanceof ServletWebRequest) {
-            ServletWebRequest servletRequest = (ServletWebRequest) request;
-            HttpServletRequest httpRequest = servletRequest.getRequest();
-            
-            // 方法1: 檢查請求路徑是否包含 /sse/
-            String requestURI = httpRequest.getRequestURI();
-            if (requestURI != null && requestURI.contains("/sse/")) {
-                return true;
-            }
-            
-            // 方法2: 檢查Accept header是否包含 text/event-stream
-            String acceptHeader = httpRequest.getHeader("Accept");
-            if (acceptHeader != null && acceptHeader.contains(MediaType.TEXT_EVENT_STREAM_VALUE)) {
-                return true;
-            }
-        }
-        
-        return false;
     }
 } 

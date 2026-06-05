@@ -308,12 +308,7 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
         if (requiredLevel == McpAuthLevel.DEV || categories.contains(Category.WRITE_TRADING)) {
             return "WRITE";
         }
-        if (categories.contains(Category.GOVERNANCE)
-                || categories.contains(Category.WALLET_OPS)
-                || categories.contains(Category.STORE_OPS)
-                || categories.contains(Category.SOURCING_OPS)
-                || categories.contains(Category.RISK_OPS)
-                || categories.contains(Category.FOUNDER_SELLER)) {
+        if (categories.contains(Category.GOVERNANCE)) {
             return "MIXED";
         }
         return "READ";
@@ -325,12 +320,7 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
                 || categories.contains(Category.WRITE_TRADING)) {
             return "HIGH";
         }
-        if (categories.contains(Category.GOVERNANCE)
-                || categories.contains(Category.WALLET_OPS)
-                || categories.contains(Category.STORE_OPS)
-                || categories.contains(Category.SOURCING_OPS)
-                || categories.contains(Category.RISK_OPS)
-                || categories.contains(Category.FOUNDER_SELLER)) {
+        if (categories.contains(Category.GOVERNANCE)) {
             return "MEDIUM";
         }
         return "LOW";

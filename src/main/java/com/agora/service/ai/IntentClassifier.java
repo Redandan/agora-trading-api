@@ -81,35 +81,6 @@ public class IntentClassifier {
         KEYWORD_RULES.put("績效",            "TRADING_ANALYSIS");
         KEYWORD_RULES.put("勝率",            "TRADING_ANALYSIS");
 
-        // ── Recharge ───────────────────────────────────────────────────────────
-        KEYWORD_RULES.put("儲值",            "RECHARGE");
-        KEYWORD_RULES.put("充值",            "RECHARGE");
-        KEYWORD_RULES.put("加值",            "RECHARGE");
-        KEYWORD_RULES.put("recharge",       "RECHARGE");
-
-        // ── Promo Code ─────────────────────────────────────────────────────────
-        KEYWORD_RULES.put("優惠碼",          "PROMO_CODE");
-        KEYWORD_RULES.put("折扣碼",          "PROMO_CODE");
-        KEYWORD_RULES.put("promo code",     "PROMO_CODE");
-        KEYWORD_RULES.put("coupon",         "PROMO_CODE");
-        KEYWORD_RULES.put("discount code",  "PROMO_CODE");
-
-        // ── Store Query ────────────────────────────────────────────────────────
-        KEYWORD_RULES.put("商店",            "STORE_QUERY");
-        KEYWORD_RULES.put("店家",            "STORE_QUERY");
-        KEYWORD_RULES.put("賣家",            "STORE_QUERY");
-        KEYWORD_RULES.put("store",          "STORE_QUERY");
-
-        // ── Product Search ─────────────────────────────────────────────────────
-        KEYWORD_RULES.put("找商品",          "PRODUCT_SEARCH");
-        KEYWORD_RULES.put("搜尋商品",        "PRODUCT_SEARCH");
-        KEYWORD_RULES.put("搜商品",          "PRODUCT_SEARCH");
-
-        // ── Game ───────────────────────────────────────────────────────────────
-        KEYWORD_RULES.put("競猜",            "GAME");
-        KEYWORD_RULES.put("遊戲",            "GAME");
-        KEYWORD_RULES.put("moonshot",       "GAME");
-
         // ── Platform Introduction ──────────────────────────────────────────────
         KEYWORD_RULES.put("agora是什麼",     "INTRODUCTION");
         KEYWORD_RULES.put("平台介紹",        "INTRODUCTION");
@@ -122,7 +93,7 @@ public class IntentClassifier {
         StringBuilder sb = new StringBuilder(
                 "你是一個意圖分類器。根據用戶訊息，從以下類別中選擇**最符合**的一個，只回傳類別代碼，不要其他文字。\n\n");
         sb.append("【背景】\n");
-        sb.append("你正在服務「Agora」平台的 Telegram 群組助理。Agora 是一個加密貨幣交易與競猜的電商平台，內有多間商家進駐。\n\n");
+        sb.append("你正在服務「Agora Trading」Telegram 群組助理。Agora Trading 專注加密貨幣行情、交易策略、回測與風控。\n\n");
         sb.append("【分類原則】\n");
         sb.append("只有當用戶**明確發出請求**（想查詢、想找、想知道某項資訊）時，才使用對應類別。\n");
         sb.append("若用戶只是閒聊、提及平台名稱、分享消息、問候，或訊息中雖包含關鍵詞但並非主動請求，一律回傳 GENERAL。\n\n");

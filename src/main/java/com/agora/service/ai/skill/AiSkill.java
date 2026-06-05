@@ -3,7 +3,7 @@ package com.agora.service.ai.skill;
 /**
  * AI Skill 介面
  * <p>
- * 每個實作代表一種 AI 可執行的能力（查詢行情、搜尋商品等）。
+ * 每個實作代表一種 AI 可執行的 trading 能力（查詢行情、匯率、交易分析等）。
  * Spring 會自動掃描所有實作，注冊至 SkillRegistry。
  * 新增功能只需建立新的實作類，不需修改任何現有程式碼。
  */

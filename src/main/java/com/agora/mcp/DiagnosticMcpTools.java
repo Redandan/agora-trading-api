@@ -3278,8 +3278,8 @@ public class DiagnosticMcpTools {
                 || line.contains("mcpSyncServer' propagated an exception")
                 || line.contains("webMvcSseServerTransportProvider' propagated an exception")
                 || line.contains("io/modelcontextprotocol/spec/McpServerSession")
-                // Browser/client disconnects are normal for SSE and often emit
-                // container-level stack frames after the application has cleaned up.
+                // Browser/client disconnects can emit container-level stack frames
+                // after the application has already cleaned up the request.
                 || line.contains("AsyncRequestNotUsableException")
                 || line.contains("Servlet container error notification for disconnected client")
                 || line.contains("Caused by: java.io.IOException: Broken pipe")

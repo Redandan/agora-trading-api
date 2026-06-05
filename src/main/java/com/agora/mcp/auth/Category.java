@@ -45,27 +45,5 @@ public enum Category {
     REPORTING,
 
     /** 系統層工具:AI provider list、reminder、session brief、scheduler meta。 */
-    META,
-
-    // ==========================================================================
-    // Marketplace D2C Operations (added 2026-04-18 for digital procurement store)
-    // ==========================================================================
-
-    /** 託管錢包運營:餘額查詢/冷錢包池管理/充值監控/提現處理。 */
-    WALLET_OPS,
-
-    /** D2C 商店運營:訂單/商品/爭議/公告/health check。 */
-    STORE_OPS,
-
-    /** 數位商品採購:供應商管理/代購紀錄/COGS 追蹤。 */
-    SOURCING_OPS,
-
-    /** 反洗錢/反詐欺:大額訂單 review/可疑模式/標記買家。 */
-    RISK_OPS,
-
-    /** TG GTM 成長:bot 對話統計/知識庫管理/促銷/群歸因。 */
-    GROWTH_OPS,
-
-    /** 平台合作賣家管理:標記/列表/SoLR 訂單轉移。 */
-    FOUNDER_SELLER
+    META
 }

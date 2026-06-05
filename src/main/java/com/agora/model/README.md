@@ -8,7 +8,6 @@ This package is reserved for persistent domain models.
 
 ## What should NOT be placed here
 - In-memory conversation/session state for Telegram or bot flows.
-- SSE connection runtime holders.
 - Service-specific runtime models used only inside one service.
 - Request/response transport objects (use `dto`).
 
@@ -17,7 +16,6 @@ This package is reserved for persistent domain models.
 - Some telemetry/game entities are in `com.agora.entity`.
 - New non-persistent runtime models should be placed under feature-specific packages, e.g.:
   - `com.agora.bot.conversation`
-  - `com.agora.service.sse.model`
   - `com.agora.service.auth.model`
   - `com.agora.service.walletconnect.model`
 

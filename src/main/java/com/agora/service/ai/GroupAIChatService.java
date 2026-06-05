@@ -49,18 +49,18 @@ public class GroupAIChatService {
     private static final String REPLY_GOAL = "請根據以上內容，生成一句自然、口語、可直接發在群組的回覆。";
 
     private static final String DEFAULT_SYSTEM_PROMPT =
-            "你是 Agora 平台的官方群組助理，暱稱「小幣」。\n" +
-            "Agora 是一個結合加密貨幣交易、電商購物與競猜遊戲的綜合平台，目前有多間商家進駐。\n" +
-            "你的職責是自然地參與群組對話，同時積極推廣 Agora 平台。\n" +
+            "你是 Agora Trading 的官方群組助理，暱稱「小幣」。\n" +
+            "Agora Trading 專注於加密貨幣市場資料、策略分析、回測與交易風控。\n" +
+            "你的職責是自然地參與群組對話，協助用戶理解行情、策略與風險。\n" +
             "請遵守以下規則：\n" +
             "- 回答要簡短，最多 2 句話，就像真人在用手機打字\n" +
             "- 使用繁體中文\n" +
             "- 語氣輕鬆自然，可適當加入 1~2 個表情符號\n" +
             "- 不要自我介紹為 AI，不要說「作為 AI」之類的話\n" +
             "- 不要重複前面用戶說過的話\n" +
-            "- 若話題涉及加密貨幣或市場，可分享簡短看法，並適時提到 Agora 平台\n" +
-            "- 若有人提到或詢問 Agora，要熱情介紹平台特色（加密交易、多間商家、競猜），並邀請對方來逛逛\n" +
-            "- 若用戶詢問關於平台功能的問題，請根據提供的項目知識回答，若知識庫無相關內容則誠實說不清楚";
+            "- 若話題涉及加密貨幣或市場，可分享簡短看法，但不要給出保證獲利承諾\n" +
+            "- 若有人提到或詢問 Agora，請聚焦介紹 trading、行情、回測、策略與風控能力\n" +
+            "- 若用戶詢問非 trading 功能，請簡短說明此服務目前只處理 trading 相關問題";
 
     private final TelegramGroupMonitoringService monitoringService;
     private final GroqApiClient groqApiClient;
@@ -69,7 +69,6 @@ public class GroupAIChatService {
     private final AiPendingQuestionService pendingQuestionService;
     private final SkillRegistry skillRegistry;
     private final IntentClassifier intentClassifier;
-    private final AiGroupConversionService conversionService;
     private final com.agora.config.properties.AiGroupProperties props;
 
     /** 各群組最後一次 AI 回覆時間（冷卻控制） */
@@ -139,12 +138,6 @@ public class GroupAIChatService {
         log.info("AI 決定參與群組 {} 的對話（mention={}）", groupId, mentioned);
 
         Long userId = message.getFrom() != null ? message.getFrom().getId().longValue() : null;
-        if (mentioned) {
-            conversionService.recordMentionChat(groupId, userId);
-        } else {
-            conversionService.recordProactiveChat(groupId, userId);
-        }
-
         String askedBy = message.getFrom() != null
                 ? (message.getFrom().getUserName() != null
                         ? message.getFrom().getUserName()
@@ -181,14 +174,12 @@ public class GroupAIChatService {
                 if (reply == null && skillRegistry.needsFallback(intentCode)) {
                     reply = generateReply(groupId, text, askedBy);
                     skillResponse = null;
-                    conversionService.recordGeneralFallback(groupId, userId);
                     maybeRecordPendingQuestion(text, groupId, askedBy);
                 } else {
-                    conversionService.recordSkillTriggered(groupId, intentCode, userId);
+                    log.debug("[AI群組] skill triggered groupId={} intent={}", groupId, intentCode);
                 }
             } else {
                 reply = generateReply(groupId, text, askedBy);
-                conversionService.recordGeneralFallback(groupId, userId);
                 maybeRecordPendingQuestion(text, groupId, askedBy);
             }
 
@@ -352,7 +343,6 @@ public class GroupAIChatService {
         if (!safeTrigger.isEmpty()) {
             List<String> knowledge = queryProjectKnowledge(safeTrigger);
             if (!knowledge.isEmpty()) {
-                conversionService.recordKnowledgeHit(groupId);
                 sb.append("【項目知識庫】\n");
                 for (String k : knowledge) {
                     sb.append("- ").append(k.trim()).append("\n");
@@ -404,23 +394,23 @@ public class GroupAIChatService {
         if (personality == null) return DEFAULT_SYSTEM_PROMPT;
         switch (personality) {
             case PROFESSIONAL:
-                return "你是 Agora 平台的專業客服助理，暱稱「小幣」。\n" +
-                       "Agora 是一個結合加密貨幣交易、電商購物與競猜遊戲的綜合平台。\n" +
+                return "你是 Agora Trading 的專業交易助理，暱稱「小幣」。\n" +
+                       "Agora Trading 專注於加密貨幣市場資料、策略分析、回測與交易風控。\n" +
                        "請遵守以下規則：\n" +
                        "- 回答簡潔精準，不廢話\n" +
                        "- 使用繁體中文\n" +
                        "- 語氣專業有禮，避免表情符號\n" +
                        "- 不要自我介紹為 AI\n" +
-                       "- 以解決用戶問題為優先，必要時引導至平台功能";
+                       "- 以 trading、策略、行情與風控問題為優先";
             case HUMOROUS:
-                return "你是 Agora 平台的搞笑助理，暱稱「小幣」。\n" +
-                       "Agora 是一個結合加密貨幣交易、電商購物與競猜遊戲的綜合平台。\n" +
+                return "你是 Agora Trading 的輕鬆型交易助理，暱稱「小幣」。\n" +
+                       "Agora Trading 專注於加密貨幣市場資料、策略分析、回測與交易風控。\n" +
                        "請遵守以下規則：\n" +
-                       "- 語氣幽默風趣，偶爾說諧音梗，但關鍵問題仍認真回答\n" +
+                       "- 語氣輕鬆，但行情、風控和策略問題要保持清楚\n" +
                        "- 使用繁體中文\n" +
                        "- 可適當加入 1~2 個表情符號\n" +
                        "- 不要自我介紹為 AI\n" +
-                       "- 若有人問 Agora，用有趣的方式介紹平台";
+                       "- 若有人問 Agora，聚焦介紹 trading、行情、回測、策略與風控能力";
             default:
                 return DEFAULT_SYSTEM_PROMPT;
         }
@@ -531,8 +521,8 @@ public class GroupAIChatService {
             List<Map<String, String>> messages = Collections.singletonList(
                 buildMessage("user",
                     "判斷以下訊息是否屬於「用戶詢問某平台或服務的具體功能/規則/流程/問題」，且必須由平台方才能正確回答。\n" +
-                    "符合條件的例子：詢問出金方式、帳號問題、購物流程、平台規則、特定商品資訊。\n" +
-                    "不符合條件的例子：說笑話、介紹遊戲（娛樂性）、問候、一般市場行情、閒聊、感謝語。\n" +
+                    "符合條件的例子：詢問交易策略、風控規則、行情解讀、回測結果、系統配置。\n" +
+                    "不符合條件的例子：說笑話、問候、非 trading 功能、閒聊、感謝語。\n" +
                     "只回答 YES 或 NO，不要有其他文字。\n" +
                     "訊息：" + text)
             );

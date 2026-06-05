@@ -34,6 +34,8 @@ PORT=8084
 
 ## Local Acceptance
 
+Split-boundary expectations are documented in `docs/split-audit.md`.
+
 ```powershell
 .\scripts\verify_local.ps1
 ```

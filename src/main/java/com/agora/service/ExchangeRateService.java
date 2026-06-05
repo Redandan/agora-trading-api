@@ -1,7 +1,3 @@
-// DOMAIN: marketplace
-// Plan §9 — should live under com.agora.service.marketplace once that
-// sub-package exists. ArchTest classifier already maps the ExchangeRate*
-// name pattern to MARKETPLACE_CLASS_PATTERN.
 package com.agora.service;
 
 import com.agora.dto.ExchangeRateInfo;
@@ -9,7 +5,10 @@ import com.agora.dto.ExchangeRateInfo;
 import java.math.BigDecimal;
 
 /**
- * 匯率服務接口
+ * Trading-facing FX rate service.
+ *
+ * <p>The concrete implementation reads AgoraMarket internal API when configured
+ * and falls back to a small static rate table for local/offline verification.
  */
 public interface ExchangeRateService {
     

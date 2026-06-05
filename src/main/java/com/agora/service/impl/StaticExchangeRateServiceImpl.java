@@ -11,8 +11,8 @@ import java.util.Map;
 @Component
 public class StaticExchangeRateServiceImpl {
 
-    // TODO(split-repo): replace this fallback with an AgoraMarket-backed client.
-    // Trading should read authoritative FX rates from the marketplace service once the repo split is deployed.
+    // Local/offline fallback. AgoraMarketExchangeRateServiceImpl provides the
+    // authoritative internal-API-backed path when configured.
     private static final Map<String, BigDecimal> DEFAULT_RATES = Map.of(
             "USD", BigDecimal.ONE,
             "USDT", BigDecimal.ONE,

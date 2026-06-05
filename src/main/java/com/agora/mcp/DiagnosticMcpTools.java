@@ -3193,7 +3193,7 @@ public class DiagnosticMcpTools {
             }
             sb.append("\nnotes: blue/green old-JVM shutdown hook noise is excluded; ");
             sb.append("recovered startup-budget warnings are excluded; ");
-            sb.append("AI_PROVIDER_DEGRADED lines are non-core AI advisory/provider degradation, not marketplace/checkout/trading/OCO failure; ");
+            sb.append("AI_PROVIDER_DEGRADED lines are non-core AI advisory/provider degradation, not trading/OCO failure; ");
             sb.append("server_startup_log cutoff is an intentional fallback when app.log does not contain the Spring started marker; ");
             sb.append("localhost MCP auth-denied lines are security rejects, not app health failures; ");
             sb.append("Spring MVC malformed-request lines such as missing request body are request noise, not startup/trading failure.");

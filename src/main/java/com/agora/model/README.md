@@ -17,7 +17,6 @@ This package is reserved for persistent domain models.
 - New non-persistent runtime models should be placed under feature-specific packages, e.g.:
   - `com.agora.bot.conversation`
   - `com.agora.service.auth.model`
-  - `com.agora.service.walletconnect.model`
 
 ## Future cleanup (optional)
 Choose one long-term convention and migrate incrementally:

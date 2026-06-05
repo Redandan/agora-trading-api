@@ -44,6 +44,12 @@
   - `HttpExchangeRateInternalClient`
   - `ExchangeRateInfo`
   - `AgoraMarketInternalClientProperties`
+- Local split verification now guards the remaining handoff assumptions:
+  - `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` starts the service under `local-smoke`, proves `/api/trading/actuator/health`, calls `/api/trading/mcp` with `getMcpRegistryVersion`, and checks logs for disabled external side effects.
+  - `scripts/verify_local.ps1` runs compile/tests, split boundary scanners, env-template checks, shell syntax checks, schema source inventory, and documentation drift guards.
+  - `scripts/schema_baseline_inventory.ps1` writes `target/schema-baseline/entity-tables.txt`, `implicit-entities.txt`, and `forbidden-marketplace-tables.txt`; the latest local guard run found no implicit entity tables and no obvious marketplace-owned table mappings.
+- Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8082`.
+- Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
 
 ## Exchange Rate Runtime
 
@@ -84,8 +90,9 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Run the read-only schema baseline inventory in `scripts/schema_baseline_inventory.ps1`, compare it with the real `agora_trading` database via `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh`, then add an explicit Flyway baseline under `src/main/resources/db/migration`.
-2. Re-run server deploy/verify when production deployment is explicitly requested.
+1. Compare the local schema inventory with the real `agora_trading` database via `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` only after server/DB verification is explicitly requested.
+2. After the read-only server compare matches, add an explicit Flyway baseline under `src/main/resources/db/migration` and replace temporary `ddl-auto=update` bootstrap mode with schema validation plus Flyway.
+3. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet
 

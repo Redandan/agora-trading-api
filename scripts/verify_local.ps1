@@ -45,6 +45,25 @@ function Assert-RgNoMatch {
     }
 }
 
+function Resolve-BashCommand {
+    $fromPath = Get-Command bash -ErrorAction SilentlyContinue
+    if ($null -ne $fromPath) {
+        return $fromPath.Source
+    }
+
+    foreach ($candidate in @(
+        "C:\Program Files\Git\bin\bash.exe",
+        "C:\Program Files\Git\usr\bin\bash.exe",
+        "C:\Program Files (x86)\Git\bin\bash.exe"
+    )) {
+        if (Test-Path -LiteralPath $candidate) {
+            return $candidate
+        }
+    }
+
+    throw "bash is required for local shell syntax verification; install Git Bash or put bash on PATH"
+}
+
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     Write-Host "[verify] mvn test"
@@ -116,6 +135,11 @@ try {
     Assert-RgMatch -Pattern 'mvn -f "\$INTERNAL_CLIENT_POM" install' -Paths @("deploy.sh") -Description "deploy installs AgoraMarket internal-client before building trading"
     Assert-RgMatch -Pattern 'missing or empty.*in \$ENV_FILE' -Paths @("scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server preflight/verify require non-empty env keys"
     Assert-RgMatch -Pattern "env template available" -Paths @("scripts/bootstrap_server.sh") -Description "bootstrap uses tracked env template"
+
+    Write-Host "[verify] checking shell script syntax"
+    $bash = Resolve-BashCommand
+    $shellScripts = git ls-files -- deploy.sh scripts/*.sh
+    & $bash -n @shellScripts
 
     Assert-RgMatch -Pattern '@ActiveProfiles\("local-smoke"\)' -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test uses local-smoke profile"
 

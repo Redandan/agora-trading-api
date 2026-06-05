@@ -23,6 +23,10 @@ market:
   liquidation-ws:
     enabled: false
 
+okx:
+  earn-topup:
+    enabled: false
+
 trading:
   admin:
     api-key: local-smoke-admin
@@ -31,3 +35,6 @@ trading:
   short-squeeze-alert:
     enabled: false
     taker-buy-collector-enabled: false
+  tiny-live:
+    auto-execution:
+      enabled: false

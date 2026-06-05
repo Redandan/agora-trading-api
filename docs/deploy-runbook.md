@@ -80,6 +80,7 @@ Expected:
 - No WebPush, product-report, product-validator, cart-summary, or marketplace order-event residue remains.
 - No unused marketplace delivery/order/wallet enum, notification enum, logistics utility, or delivery/digital-order property residue remains.
 - No empty legacy marketplace MCP tool placeholder residue remains.
+- No legacy public HTTP allowlist residue remains for public assets, test routes, Telegram webhook, backtest routes, admin market/OCO routes, or market-data frontend paths.
 - No unreferenced betting or marketplace status/type enum residue remains.
 - No unused PWA log, traffic analytics, slot analytics, slot cache, or stale product/PWA/slot security-route residue remains.
 - No unreferenced chat, staking, transaction DTO or unused marketplace/betting enum residue remains.
@@ -267,6 +268,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
+- public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon.
 - local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 - deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.

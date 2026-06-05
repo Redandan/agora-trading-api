@@ -63,6 +63,7 @@ The local verification gate currently covers these previously removed or forbidd
 - WebPush, notification enum, chat, WebRTC, SSE, and realtime marketplace residue
 - Betting, marketplace status/type enum, PWA log, traffic analytics, slot analytics, slot cache, staking, and transaction DTO residue
 - Object storage, login/Tron, security audit, group AI, common utility, OCI maintenance, and AI group config residue
+- Legacy public HTTP route allowlist residue such as public assets, test, Telegram webhook, backtest, admin market, admin OCO, and market-data frontend paths
 
 ## Split Guardrails Covered By Verification
 
@@ -85,6 +86,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate contracts and do not predefine identity/user contracts.
 - `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.
 - `scripts/validate_package_boundary.ps1` keeps top-level and nested `com.agora.*` packages inside the trading-owned allowlist and rejects marketplace-style package segments such as product, order, cart, user, wallet, OAuth, and webpush. The retained `com.agora.mcp.auth` package is service-level MCP API-key auth, not marketplace login.
+- `SecurityPaths` exposes only the real retained public HTTP surfaces: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon.
 
 ## Retained Trading Domains
 

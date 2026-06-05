@@ -15,6 +15,14 @@ ok() {
   echo "[nginx-trading] OK: $*"
 }
 
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || fail "missing command: $1"
+}
+
+require_cmd awk
+require_cmd mktemp
+require_cmd sudo
+
 [ -f "$NGINX_CONF" ] || fail "nginx config missing: $NGINX_CONF"
 
 case "$TRADING_PORT" in

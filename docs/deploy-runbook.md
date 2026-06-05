@@ -233,7 +233,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 
 `scripts/verify_server.sh` checks:
 
-- required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`.
+- required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`; the nginx path installer also fails fast on its own required tools.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.

@@ -216,14 +216,6 @@ if [ "$UPDATE_NGINX" = "1" ]; then
   echo "[deploy] nginx /api/trading/ switched to port $NEW_PORT"
 fi
 
-if [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
-  OLD_PID="$(cat "app.pid.$CURRENT_PORT")"
-  echo "[deploy] draining old instance PID=$OLD_PID port=$CURRENT_PORT"
-  sleep "${DRAIN_SECONDS:-30}"
-  kill "$OLD_PID" 2>/dev/null || true
-  rm -f "app.pid.$CURRENT_PORT"
-fi
-
 echo "$NEW_PORT" > app.port
 echo "$NEW_PID" > app.pid
 git rev-parse HEAD > app.commit
@@ -244,6 +236,16 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
   fi
 else
   echo "[deploy] post-deploy server verification skipped: RUN_POST_DEPLOY_VERIFY=$RUN_POST_DEPLOY_VERIFY"
+fi
+
+# Keep the previous instance alive until post-deploy verification has proven the
+# new active metadata, nginx path, and health checks.
+if [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
+  OLD_PID="$(cat "app.pid.$CURRENT_PORT")"
+  echo "[deploy] draining old instance after verification PID=$OLD_PID port=$CURRENT_PORT"
+  sleep "${DRAIN_SECONDS:-30}"
+  kill "$OLD_PID" 2>/dev/null || true
+  rm -f "app.pid.$CURRENT_PORT"
 fi
 
 echo "[deploy] complete: $APP_NAME running on port $NEW_PORT"

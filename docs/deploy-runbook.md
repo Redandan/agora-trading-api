@@ -194,6 +194,11 @@ and nginx `/api/trading/` path before the deploy reports complete. When
 `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`. Set
 `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 
+Blue-green deploy keeps the previous instance alive until post-deploy
+verification passes, then logs `draining old instance after verification` before
+stopping the old port. If verification fails, the old process is still available
+for manual rollback.
+
 ## Nginx Path Split
 
 Suggested routing:
@@ -250,6 +255,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
+- deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`.
 - nginx deploy verifies public trading health through `DEFAULT_PUBLIC_TRADING_HEALTH_URL` by default.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.

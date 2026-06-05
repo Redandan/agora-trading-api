@@ -4,6 +4,20 @@ Standalone Trading service extracted from AgoraMarketAPI.
 
 ## Local run
 
+Compile/test-only verification:
+
+```powershell
+.\scripts\verify_local.ps1
+```
+
+HTTP startup smoke test with an in-memory local database:
+
+```powershell
+.\scripts\smoke_local_health.ps1
+```
+
+Run against a real configured database:
+
 ```powershell
 mvn spring-boot:run
 ```
@@ -12,12 +26,6 @@ Health check:
 
 ```powershell
 curl http://localhost:8084/api/trading/actuator/health
-```
-
-Local verification:
-
-```powershell
-.\scripts\verify_local.ps1
 ```
 
 AgoraMarket exchange-rate integration:

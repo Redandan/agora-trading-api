@@ -57,6 +57,18 @@ Expected:
 - No unused PWA log, traffic analytics, slot analytics, slot cache, or stale product/PWA/slot security-route residue remains.
 - No unreferenced chat, staking, transaction DTO or unused marketplace/betting enum residue remains.
 
+HTTP startup smoke with an in-memory local database:
+
+```powershell
+.\scripts\smoke_local_health.ps1
+```
+
+Expected:
+
+- Spring Boot starts with profile `local-smoke`.
+- Health passes at `http://127.0.0.1:18084/api/trading/actuator/health`.
+- The script stops the temporary Maven/Java process tree after the check.
+
 ## Server Deploy Template
 
 `deploy.sh` is a blue-green skeleton for one host:

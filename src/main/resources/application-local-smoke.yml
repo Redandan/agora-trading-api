@@ -28,3 +28,6 @@ trading:
     api-key: local-smoke-admin
   mcp:
     api-key: local-smoke-mcp
+  short-squeeze-alert:
+    enabled: false
+    taker-buy-collector-enabled: false

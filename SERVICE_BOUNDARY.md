@@ -51,9 +51,9 @@ If shared identity is later required, add a separate `IdentityInternalClient` in
 
 Candidate endpoints:
 
-- `GET /internal/users/{id}`
-- `GET /internal/users/by-telegram/{telegramId}`
-- `POST /internal/users/resolve-or-create-telegram`
+- `GET /api/internal/users/{id}`
+- `GET /api/internal/users/by-telegram/{telegramId}`
+- `POST /api/internal/users/resolve-or-create-telegram`
 
 ## Cleanup Regression Guard
 

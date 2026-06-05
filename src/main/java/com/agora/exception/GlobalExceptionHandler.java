@@ -59,16 +59,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(WalletException.class)
-    public ResponseEntity<ErrorResponse> handleWalletException(WalletException ex) {
-        ErrorResponse response = new ErrorResponse(
-                "WALLET_ERROR",
-                "Wallet Error",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<String> handleSecurityException(SecurityException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)

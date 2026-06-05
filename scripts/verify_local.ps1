@@ -15,6 +15,14 @@ try {
         throw "rg failed with exit code $LASTEXITCODE"
     }
 
+    $marketplaceRealtimeForbiddenFiles = rg --files src/main/java | rg "Chat(Session|Message)(Repository)?\.java|ChatMessageBuilder\.java|WebRTC.*\.java|SSE(Service|Config|Event(Request|Response)|ExceptionHandler)\.java|SseProperties\.java|NotifyEventTypeEnum\.java|ClientId(Validator|FormatException)\.java|UnauthorizedException\.java|ReturnRejectedEvent\.java|PromoCodeView\.java|StakingStatusEnum\.java|WalletException\.java|BuyerInfoSchemaValidator\.java|CreateColdWalletParam\.java|FounderAffiliatedSellerRegistry\.java"
+    if ($LASTEXITCODE -eq 0) {
+        Write-Error "Forbidden marketplace realtime/frontend files found:`n$marketplaceRealtimeForbiddenFiles"
+    }
+    if ($LASTEXITCODE -gt 1) {
+        throw "rg marketplace realtime file check failed with exit code $LASTEXITCODE"
+    }
+
     $authForbidden = rg "JwtAuthenticationFilter|CurrentUserMethodArgumentResolver|\bCurrentUser\b|UserPrincipal|CustomUserDetailsServiceImpl|DeviceFingerprintUtil|SecurityUtils|/auth/\*\*" src/main/java src/main/resources/application.yml pom.xml
     if ($LASTEXITCODE -eq 0) {
         Write-Error "Forbidden web auth residue found:`n$authForbidden"

@@ -239,6 +239,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
+- deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.

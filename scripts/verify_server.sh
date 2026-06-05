@@ -5,6 +5,7 @@ APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 BRANCH="${BRANCH:-main}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 PORT_FILE="${PORT_FILE:-$APP_DIR/app.port}"
+PID_FILE="${PID_FILE:-$APP_DIR/app.pid}"
 COMMIT_FILE="${COMMIT_FILE:-$APP_DIR/app.commit}"
 DEFAULT_PORT="${PORT:-8084}"
 PORT_A="${PORT_A:-8084}"
@@ -52,7 +53,9 @@ require_cmd bash
 require_cmd curl
 require_cmd git
 require_cmd java
+require_cmd lsof
 require_cmd mvn
+require_cmd ps
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
 
@@ -129,6 +132,21 @@ case "$ACTIVE_PORT" in
   "$PORT_A"|"$PORT_B") ;;
   *) fail "unknown active port: $ACTIVE_PORT (expected $PORT_A or $PORT_B)" ;;
 esac
+
+if [ -f "$PID_FILE" ]; then
+  ACTIVE_PID="$(tr -d '[:space:]' < "$PID_FILE")"
+  case "$ACTIVE_PID" in
+    ''|*[!0-9]*) fail "invalid deployed app.pid: $ACTIVE_PID" ;;
+  esac
+  ps -p "$ACTIVE_PID" >/dev/null || fail "deployed app.pid $ACTIVE_PID is not running"
+  if lsof -ti ":$ACTIVE_PORT" 2>/dev/null | grep -qx "$ACTIVE_PID"; then
+    ok "deployed app.pid $ACTIVE_PID is listening on active port $ACTIVE_PORT"
+  else
+    fail "deployed app.pid $ACTIVE_PID is not listening on active port $ACTIVE_PORT"
+  fi
+else
+  warn "deploy pid file missing: $PID_FILE"
+fi
 
 LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"
 curl -fsS "$LOCAL_HEALTH_URL" >/dev/null || fail "local trading health failed: $LOCAL_HEALTH_URL"

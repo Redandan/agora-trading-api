@@ -101,6 +101,7 @@ These domains are retained unless a later audit proves they are unused:
 - Production deploy currentness is not proven by this audit.
 - Server verification checks that the deployed worktree matches `origin/main` by default; explicit rollback verification must opt out with `VERIFY_GIT_CURRENT=0`.
 - Deploy writes `app.commit`, and server verification checks it against the worktree HEAD when present.
+- Deploy writes `app.pid`, and server verification checks it still owns the active `app.port` when present.
 - Server verification requires nginx `/api/trading/` path presence by default; non-nginx verification must opt out with `REQUIRE_NGINX_TRADING_PATH=0`.
 - Server shell script syntax is checked locally when Git Bash or `bash` is available, and on Linux/server with `bash scripts/preflight_server.sh`.
 - `scripts/verify_server.sh` still requires server verification for production exchange-rate mode and nginx path split.

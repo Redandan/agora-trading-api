@@ -94,6 +94,22 @@ The bootstrap script checks server tools, clones or fetches this repo, writes on
 health endpoint, and reports whether nginx already contains `/api/trading/`. It
 does not create or print the real secret file.
 
+Pre-deploy check that does not deploy, start, stop, or switch traffic:
+
+```bash
+cd /home/ubuntu/agora-trading-api
+bash scripts/preflight_server.sh
+```
+
+Expected:
+
+- shell syntax passes for `deploy.sh` and `scripts/*.sh`.
+- required server tools exist.
+- required secret keys are present without printing values.
+- `AgoraMarketAPI/internal-client` exists for local SDK install during deploy.
+- AgoraMarket exchange-rate dependency health is checked.
+- nginx `/api/trading/` path split is reported.
+
 Last observed server state from 2026-06-05 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
@@ -174,6 +190,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 `scripts/verify_server.sh` checks:
 
 - required local tools: `curl`, `git`, `java`, `mvn`.
+- shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - required server env keys exist in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy installs `AgoraMarketAPI/internal-client` into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.

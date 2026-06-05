@@ -8,6 +8,8 @@ DEFAULT_PORT="${PORT:-8084}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
+INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
+RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
 
 fail() {
   echo "[server-verify] FAIL: $*" >&2
@@ -43,6 +45,18 @@ require_cmd java
 require_cmd mvn
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
+
+if [ "$RUN_PREFLIGHT" = "1" ]; then
+  PREFLIGHT_SCRIPT="$APP_DIR/scripts/preflight_server.sh"
+  [ -f "$PREFLIGHT_SCRIPT" ] || fail "preflight script missing: $PREFLIGHT_SCRIPT"
+  APP_DIR="$APP_DIR" \
+    ENV_FILE="$ENV_FILE" \
+    INTERNAL_CLIENT_POM="$INTERNAL_CLIENT_POM" \
+    AGORA_MARKET_HEALTH_URL="$AGORA_MARKET_HEALTH_URL" \
+    NGINX_CONF_GLOB="$NGINX_CONF_GLOB" \
+    bash "$PREFLIGHT_SCRIPT"
+fi
+
 cd "$APP_DIR"
 ok "app dir exists: $APP_DIR"
 

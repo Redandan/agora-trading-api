@@ -84,7 +84,7 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Add an explicit Flyway baseline under `src/main/resources/db/migration`, then replace Hibernate `ddl-auto=update` production bootstrap before treating the deploy as full production hardening.
+1. Run the read-only schema baseline inventory in `scripts/schema_baseline_inventory.ps1`, compare it with the real `agora_trading` database, then add an explicit Flyway baseline under `src/main/resources/db/migration`.
 2. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet

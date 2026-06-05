@@ -148,6 +148,10 @@ Defaults:
 - jar: `target/agora-trading-api-1.0-SNAPSHOT.jar`
 - env file: `/home/ubuntu/.env.trading.secrets`
 
+`deploy.sh`, `scripts/install_nginx_path.sh`, and `scripts/verify_server.sh`
+all treat `8084/8085` as the blue-green port set. Unknown active port state is
+an error, not a fallback target.
+
 ## Nginx Path Split
 
 Suggested routing:
@@ -197,7 +201,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
 - trading uses an independent MySQL database, currently `agora_trading`.
-- active local trading health via `app.port` or default `8084`.
+- active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
 - AgoraMarket exchange-rate dependency health.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence.

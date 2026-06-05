@@ -158,7 +158,8 @@ Last observed server state from 2026-06-05 Asia/Taipei:
 - trading was deployed from `origin/main` commit `11612b9`, active port `8084`.
 - This is an observed deployment snapshot, not proof that the current `origin/main`
   commit is deployed. Re-run deploy and `scripts/verify_server.sh` before treating
-  production as current.
+  production as current. `scripts/verify_server.sh` now checks that the server
+  worktree commit matches `origin/main` by default.
 - `scripts/verify_server.sh` passed with:
   - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
@@ -235,6 +236,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 
 - required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`; the nginx path installer also fails fast on its own required tools.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
+- server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.
@@ -260,4 +262,11 @@ If the old process was already stopped, redeploy the prior git commit:
 ```bash
 git reset --hard <previous-good-commit>
 bash deploy.sh
+```
+
+For a deliberate rollback verification where the server commit should not match
+`origin/main`, run:
+
+```bash
+VERIFY_GIT_CURRENT=0 bash scripts/verify_server.sh
 ```

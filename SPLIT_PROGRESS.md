@@ -80,7 +80,7 @@ Trading deployment prep:
 - 2026-06-05 `scripts/verify_server.sh` passed with public health check:
   - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - Production defines `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets`, so trading can call AgoraMarket exchange rates and still fall back on timeout or failure.
-- Current `origin/main` has advanced beyond the observed deployed commit. Treat production currentness as unproven until `deploy.sh` and `scripts/verify_server.sh` are re-run on the server.
+- Current `origin/main` has advanced beyond the observed deployed commit. Treat production currentness as unproven until `deploy.sh` and `scripts/verify_server.sh` are re-run on the server; `scripts/verify_server.sh` now checks that the server worktree matches `origin/main` by default.
 
 ## Cleanup Priority
 

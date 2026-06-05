@@ -6,6 +6,7 @@ import com.agora.repository.trading.MdKlineRepository;
 import com.agora.util.AtrCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -56,9 +57,16 @@ public class BtcPriceMoveIndicatorCollector {
     private final MdKlineRepository klineRepo;
     private final MarketIndicatorHistoryRepository historyRepo;
 
+    @Value("${meta-control.btc-price-move-indicator.enabled:false}")
+    private boolean enabled;
+
     /** 1h + 4h indicators every 5 minutes — captures intra-hour spikes for alerts. */
     @Scheduled(cron = "0 */5 * * * *", zone = "UTC")
     public void collectShortWindows() {
+        if (!enabled) {
+            log.debug("[BtcPriceMove] disabled by meta-control.btc-price-move-indicator.enabled=false");
+            return;
+        }
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         compute("1h",  "btc_change_pct_1h",  "btc_atr_units_1h",  now);
         compute("4h",  "btc_change_pct_4h",  "btc_atr_units_4h",  now);
@@ -67,6 +75,10 @@ public class BtcPriceMoveIndicatorCollector {
     /** 24h indicator every 15 minutes — daily window doesn't need sub-15min reaction. */
     @Scheduled(cron = "0 */15 * * * *", zone = "UTC")
     public void collectLongWindow() {
+        if (!enabled) {
+            log.debug("[BtcPriceMove] disabled by meta-control.btc-price-move-indicator.enabled=false");
+            return;
+        }
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         compute("1d", "btc_change_pct_24h", "btc_atr_units_24h", now);
     }

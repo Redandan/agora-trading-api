@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -53,6 +54,9 @@ public class EtfPressureIndicator implements CompositeIndicator {
     // 最新 ETF 數據快取（由 @Scheduled 每日更新）
     private final AtomicReference<EtfSnapshot> latestSnapshot = new AtomicReference<>();
 
+    @Value("${meta-control.etf-pressure.refresh-enabled:false}")
+    private boolean refreshEnabled;
+
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
@@ -77,6 +81,10 @@ public class EtfPressureIndicator implements CompositeIndicator {
     // ETF 數據每日美股收盤後更新（UTC 22:00）
     @Scheduled(cron = "0 0 22 * * *", zone = "UTC")
     public void refreshEtfData() {
+        if (!refreshEnabled) {
+            log.debug("[EPI] refresh disabled by meta-control.etf-pressure.refresh-enabled=false");
+            return;
+        }
         try {
             EtfSnapshot snapshot = fetchAllEtfs();
             latestSnapshot.set(snapshot);

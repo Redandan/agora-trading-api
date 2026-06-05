@@ -54,6 +54,12 @@ Split-boundary expectations are documented in `docs/split-audit.md`.
 .\scripts\verify_local.ps1
 ```
 
+For split-boundary-only checks during cleanup:
+
+```powershell
+.\scripts\verify_split_boundaries.ps1
+```
+
 Expected:
 
 - `mvn test` passes.

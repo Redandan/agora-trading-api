@@ -159,6 +159,7 @@ Expected:
 - Shadow signal cleanup defaults off in code and the tracked template; set `SHADOW_CLEANUP_ENABLED=true` only after this service should own automatic `bt_live_signal` timeout writes with `exit_reason='SHADOW_TIMEOUT'`.
 - Daily TG report orchestration defaults off in code and the tracked template; enable `TRADING_DAILY_TG_REPORT_ENABLED=true` only when the deployed trading service owns daily Telegram reporting.
 - Scheduled trading notification digests default off in code and the tracked template, including attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification.
+- Event-calendar freshness notifications default off in code and the tracked template; enable `TRADING_EVENT_CALENDAR_FRESHNESS_NOTIFICATION_ENABLED=true` only when this service should send weekly calendar-maintenance Telegram reminders.
 - Event-scan scheduled outbound notifications default off and dry-run in the tracked template.
 - Execution-event scheduled scanning defaults off and its notification path defaults dry-run in the tracked template.
 - BTC price-move Telegram alerts default off in code and the tracked template; enable `TRADING_BTC_PRICE_MOVE_ALERT_ENABLED=true` only after that alert stream belongs to trading production.

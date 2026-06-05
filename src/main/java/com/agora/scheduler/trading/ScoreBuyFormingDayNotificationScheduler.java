@@ -31,10 +31,10 @@ public class ScoreBuyFormingDayNotificationScheduler {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicReference<String> lastFingerprint = new AtomicReference<>();
 
-    @Value("${trading.score-buy.forming-day.notification.enabled:true}")
+    @Value("${trading.score-buy.forming-day.notification.enabled:false}")
     private boolean enabled;
 
-    @Value("${trading.score-buy.forming-day.notification.telegram-enabled:true}")
+    @Value("${trading.score-buy.forming-day.notification.telegram-enabled:false}")
     private boolean telegramEnabled;
 
     @Value("${trading.score-buy.forming-day.notification.symbol:BTCUSDT}")

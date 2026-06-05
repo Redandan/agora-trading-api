@@ -4,6 +4,7 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.market.EventCalendarService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -28,9 +29,15 @@ public class EventCalendarFreshnessScheduler {
     private final EventCalendarService eventCalendarService;
     private final NotificationPort notificationPort;
 
+    @Value("${trading.event-calendar.freshness-notification-enabled:false}")
+    private boolean freshnessNotificationEnabled;
+
     /** 每週一 00:02 UTC 檢查（錯開 DailyReportScheduler 00:00，避免 TG rate limit）；若未來 60 天內事件 < 2 個，發 TG 警告。 */
     @Scheduled(cron = "0 2 0 * * MON")
     public void checkFreshness() {
+        if (!freshnessNotificationEnabled) {
+            return;
+        }
         try {
             List<EventCalendarService.Event> upcoming = eventCalendarService.listUpcoming(LOOK_AHEAD_DAYS);
             if (upcoming.size() < LOW_THRESHOLD) {

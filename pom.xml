@@ -45,12 +45,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        <!-- Spring Mail -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-
         <!-- Caffeine cache (in-memory) -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -165,11 +159,6 @@
         <!-- OCI Java SDK -->
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
-            <artifactId>oci-java-sdk-objectstorage</artifactId>
-            <version>3.36.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-core</artifactId>
             <version>3.36.0</version>
         </dependency>
@@ -183,12 +172,6 @@
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-common-httpclient-jersey3</artifactId>
             <version>3.36.0</version>
-        </dependency>
-
-        <!-- Thymeleaf Template Engine -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- JSoup for HTML parsing -->

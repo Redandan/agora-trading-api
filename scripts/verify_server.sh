@@ -49,6 +49,19 @@ require_env_key() {
   ok "$key is present and non-empty in env file"
 }
 
+env_value() {
+  local key="$1"
+  local line
+  if [ ! -f "$ENV_FILE" ]; then
+    fail "env file missing: $ENV_FILE"
+  fi
+  line="$(grep -E "^[[:space:]]*${key}=" "$ENV_FILE" | tail -n 1 || true)"
+  if [ -z "$line" ]; then
+    return 1
+  fi
+  printf '%s' "${line#*=}"
+}
+
 require_cmd bash
 require_cmd curl
 require_cmd git
@@ -151,6 +164,17 @@ fi
 LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"
 curl -fsS "$LOCAL_HEALTH_URL" >/dev/null || fail "local trading health failed: $LOCAL_HEALTH_URL"
 ok "local trading health passed: $LOCAL_HEALTH_URL"
+
+MCP_KEY="$(env_value TRADING_MCP_KEY)"
+MCP_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/mcp"
+MCP_RESPONSE="$(curl -fsS \
+  --max-time 30 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${MCP_KEY}" \
+  --data '{"jsonrpc":"2.0","id":"server-verify-registry-version","method":"tools/call","params":{"name":"getMcpRegistryVersion","arguments":{}}}' \
+  "$MCP_URL")" || fail "local MCP getMcpRegistryVersion failed: $MCP_URL"
+printf '%s' "$MCP_RESPONSE" | grep -q '"content"' || fail "local MCP getMcpRegistryVersion response missing content array: $MCP_URL"
+ok "local MCP getMcpRegistryVersion passed: $MCP_URL"
 
 curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null || fail "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL"
 ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"

@@ -47,6 +47,7 @@ function Assert-LogNotContains {
 
 $repo = Resolve-Path "$PSScriptRoot\.."
 $healthUrl = "http://127.0.0.1:$Port/api/trading/actuator/health"
+$mcpUrl = "http://127.0.0.1:$Port/api/trading/mcp"
 $logDir = Join-Path $repo "logs\local-smoke"
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $stamp = Get-Date -Format "yyyyMMddTHHmmss"
@@ -203,6 +204,22 @@ try {
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|state .*→|sl .*->|sl .*→)" -Description "local-smoke must not modify trailing-stop OCO state"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(ShortSqueezeAlert.*FIRED|SpotTakerBuy.*15m taker buy|SpotTakerBuy.*collect failed)" -Description "local-smoke must not run short-squeeze alert or taker-buy collection"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
+
+    $mcpBody = '{"jsonrpc":"2.0","id":"local-smoke-registry-version","method":"tools/call","params":{"name":"getMcpRegistryVersion","arguments":{}}}'
+    $mcpResponse = Invoke-WebRequest `
+        -Uri $mcpUrl `
+        -Method Post `
+        -UseBasicParsing `
+        -TimeoutSec 30 `
+        -ContentType "application/json" `
+        -Headers @{ Authorization = "Bearer local-smoke-mcp" } `
+        -Body $mcpBody
+    if ($mcpResponse.StatusCode -lt 200 -or $mcpResponse.StatusCode -ge 300) {
+        throw "Local smoke MCP getMcpRegistryVersion failed with HTTP $($mcpResponse.StatusCode). url=$mcpUrl stdout=$stdout stderr=$stderr"
+    }
+    if ($mcpResponse.Content -notmatch '"content"\s*:') {
+        throw "Local smoke MCP getMcpRegistryVersion response missing content array. url=$mcpUrl"
+    }
 
     Write-Host "[smoke] OK $healthUrl"
 } finally {

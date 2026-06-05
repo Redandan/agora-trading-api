@@ -155,13 +155,6 @@
             <version>7.3.0</version>
         </dependency>
         
-        <!-- Web3j for Tron signature verification -->
-        <dependency>
-            <groupId>org.web3j</groupId>
-            <artifactId>core</artifactId>
-            <version>4.9.8</version>
-        </dependency>
-        
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

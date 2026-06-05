@@ -103,6 +103,8 @@ $envOverrides = @{
     TRADING_SHORT_SQUEEZE_ALERT_TAKER_BUY_COLLECTOR_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
+    POSITION_EXIT_MANAGER_ENABLED = "false"
+    POSITION_EXIT_MANAGER_DRY_RUN = "true"
 }
 Push-Location $repo
 try {
@@ -144,7 +146,9 @@ try {
         "--polymarket.monitor.enabled=false",
         "--trailing-stop.enabled=false",
         "--trading.short-squeeze-alert.enabled=false",
-        "--trading.short-squeeze-alert.taker-buy-collector-enabled=false"
+        "--trading.short-squeeze-alert.taker-buy-collector-enabled=false",
+        "--position-exit-manager.enabled=false",
+        "--position-exit-manager.dry-run=true"
     )
     $args = @(
         "spring-boot:run",
@@ -197,6 +201,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern "MarketWS.*auto-subscribe config: enabled=false" -Description "local-smoke does not enable public market WS auto-subscribe"
     Assert-LogContains -Path $stdout -Pattern "EarnTopUp.*config: enabled=false" -Description "local-smoke does not enable OKX Earn top-up"
     Assert-LogContains -Path $stdout -Pattern "PolymarketMonitor.*config: enabled=false" -Description "local-smoke does not enable Polymarket monitor"
+    Assert-LogContains -Path $stdout -Pattern "ExitMgr.*init: enabled=false" -Description "local-smoke does not enable position exit manager"
     Assert-LogContains -Path $stdout -Pattern "TrailingStop.*config: enabled=false" -Description "local-smoke does not enable trailing-stop OCO updates"
     Assert-LogContains -Path $stdout -Pattern "ShortSqueezeAlert.*config: enabled=false takerBuyCollectorEnabled=false" -Description "local-smoke does not enable short-squeeze alert or taker-buy collector"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Auto subscribed via|Warming up MarketSignalCache)" -Description "local-smoke must not auto-subscribe public market WebSockets or warm market cache"

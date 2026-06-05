@@ -21,7 +21,7 @@ public class AppDomainConfig {
     
     /**
      * 允许的域名列表（从 CORS 配置中提取）
-     * 格式：http://localhost:*, https://redandan.github.io*, https://agoramarket.purrtechllc.com*, https://agoramarketapi.purrtechllc.com*
+     * 格式：http://localhost:*, http://127.0.0.1:*
      */
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
@@ -137,4 +137,3 @@ public class AppDomainConfig {
         return primaryDomain;
     }
 }
-

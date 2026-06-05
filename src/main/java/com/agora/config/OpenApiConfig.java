@@ -14,27 +14,27 @@ import java.util.Arrays;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI agoraMarketOpenAPI() {
+    public OpenAPI agoraTradingOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Agora Market API")
-                        .description("RESTful API documentation for Agora Market - A comprehensive e-commerce platform")
+                        .title("Agora Trading API")
+                        .description("Trading service API documentation for MCP and internal trading operations")
                         .version("1.0")
                         .contact(new Contact()
                                 .name("Purr Tech LLC")
                                 .email("admin@PURRTECHLLC.COM")))
                 .servers(Arrays.asList(
                         new Server()
-                                .url("https://agoramarketapi.purrtechllc.com/api")
-                                .description("Production API Server")
+                                .url("https://agoratrading.purrtechllc.com/api/trading")
+                                .description("Trading API Server")
                 ));
     }
 
     @Bean
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
-                .group("agora-market-api")
-                .packagesToScan("com.agora.controller")
+                .group("agora-trading-api")
+                .packagesToScan("com.agora.mcp")
                 .packagesToExclude("org.telegram")
                 .build();
     }

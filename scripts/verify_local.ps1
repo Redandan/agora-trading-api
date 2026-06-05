@@ -55,6 +55,21 @@ try {
         throw "rg deploy nginx swap check failed with exit code $LASTEXITCODE"
     }
 
+    Write-Host "[verify] checking deploy script git attributes"
+    $shellEol = git ls-files --eol -- deploy.sh scripts/*.sh
+    foreach ($line in $shellEol) {
+        if ($line -notmatch "w/lf" -or $line -notmatch "attr/text eol=lf") {
+            Write-Error "Shell script must stay LF in the worktree and git attributes:`n$line"
+        }
+    }
+
+    $shellModes = git ls-files -s -- deploy.sh scripts/*.sh
+    foreach ($line in $shellModes) {
+        if ($line -notmatch "^100755 ") {
+            Write-Error "Server shell script must keep executable mode 100755:`n$line"
+        }
+    }
+
     Write-Host "[verify] OK"
 } finally {
     Pop-Location

@@ -69,6 +69,6 @@ These domains are retained unless a later audit proves they are unused:
 ## Remaining Risks
 
 - Production deploy currentness is not proven by this audit.
-- Server shell script syntax is not checked locally on Windows. Check on Linux/server with `bash -n scripts/*.sh`.
+- Server shell script syntax is not checked locally on Windows. Check on Linux/server with `bash -n deploy.sh scripts/*.sh`.
 - `scripts/verify_server.sh` still requires server verification for production exchange-rate mode and nginx path split.
 - This audit does not prove live OKX/Binance, Telegram, scheduler, or production MCP behavior. It only documents local compile, health-smoke, and split-boundary expectations.

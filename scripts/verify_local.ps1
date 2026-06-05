@@ -133,6 +133,8 @@ try {
     Assert-RgMatch -Pattern "has staged changes; refusing to overwrite during deploy" -Paths @("deploy.sh") -Description "deploy refuses to overwrite staged server changes before reset"
     Assert-RgMatch -Pattern "cleanup_new_instance" -Paths @("deploy.sh") -Description "deploy cleans new process and pid file on failure after startup"
     Assert-RgMatch -Pattern 'rm -f "app.pid.\$NEW_PORT"' -Paths @("deploy.sh") -Description "deploy removes new-port pid file on failed startup"
+    Assert-RgMatch -Pattern "RUN_POST_DEPLOY_VERIFY" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy runs server verification after switching active metadata"
+    Assert-RgMatch -Pattern 'RUN_PREFLIGHT=0 bash "\$VERIFY_SCRIPT"' -Paths @("deploy.sh") -Description "deploy post-verify reuses server verifier without repeating preflight"
     Assert-RgMatch -Pattern "invalid app.port value" -Paths @("deploy.sh") -Description "deploy rejects unknown active port state"
     Assert-RgMatch -Pattern "unknown active port" -Paths @("scripts/verify_server.sh") -Description "server verify rejects unknown active port state"
     Assert-RgMatch -Pattern "deployed app.pid.*is not running" -Paths @("scripts/verify_server.sh") -Description "server verify fails when deployed pid metadata is stale"

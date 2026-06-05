@@ -10,6 +10,7 @@ JAVA_OPTS="${JAVA_OPTS:--Xms512m -Xmx2g -Duser.timezone=UTC}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}"
 UPDATE_NGINX="${UPDATE_NGINX:-1}"
+RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 
 cd "$APP_DIR"
@@ -225,5 +226,17 @@ fi
 echo "$NEW_PORT" > app.port
 echo "$NEW_PID" > app.pid
 git rev-parse HEAD > app.commit
+
+if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
+  VERIFY_SCRIPT="$APP_DIR/scripts/verify_server.sh"
+  if [ ! -f "$VERIFY_SCRIPT" ]; then
+    echo "[deploy] post-deploy verifier missing: $VERIFY_SCRIPT" >&2
+    exit 1
+  fi
+  echo "[deploy] running post-deploy server verification"
+  RUN_PREFLIGHT=0 bash "$VERIFY_SCRIPT"
+else
+  echo "[deploy] post-deploy server verification skipped: RUN_POST_DEPLOY_VERIFY=$RUN_POST_DEPLOY_VERIFY"
+fi
 
 echo "[deploy] complete: $APP_NAME running on port $NEW_PORT"

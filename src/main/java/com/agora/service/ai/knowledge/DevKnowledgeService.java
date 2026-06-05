@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * Chroma auto-creates the collection on first write (getOrCreateCollection).
  * topic_key = Chroma document ID → free upsert semantics.
  *
- * Default project: "agora-backend" (backward-compatible with existing entries).
+ * Default project: "agora-trading-api".
  *
  * Layer hierarchy:
  *   raw   — session notes, debugging findings, quick decisions
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DevKnowledgeService {
 
-    public static final String DEFAULT_PROJECT = "agora-backend";
+    public static final String DEFAULT_PROJECT = "agora-trading-api";
 
     private final VectorStoreService vectorStoreService;
 

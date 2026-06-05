@@ -20,10 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class VectorStoreService {
 
-    // Collection 名稱常數
-    public static final String COLLECTION_PROJECT_KNOWLEDGE = "project_knowledge";
-    public static final String COLLECTION_GROUP_PREFIX = "group_";
-
     private final ChromaClient chromaClient;
     private final JinaEmbeddingClient jinaEmbeddingClient;
 
@@ -38,7 +34,7 @@ public class VectorStoreService {
      * @param collectionName collection 名稱（自動建立）
      * @param id             文件唯一 ID（重複則更新）
      * @param text           原始文字（同時作為 embedding 輸入與儲存內容）
-     * @param metadata       附加資訊，例如 groupId、timestamp、source 等
+     * @param metadata       附加資訊，例如 timestamp、source 等
      * @return 是否成功
      */
     public boolean addDocument(String collectionName, String id, String text, Map<String, Object> metadata) {
@@ -123,13 +119,6 @@ public class VectorStoreService {
         String collectionId = resolveCollectionId(collectionName);
         if (collectionId == null) return;
         chromaClient.delete(collectionId, id);
-    }
-
-    /**
-     * 群組 collection 名稱
-     */
-    public static String groupCollection(Long groupId) {
-        return COLLECTION_GROUP_PREFIX + groupId;
     }
 
     // ─── 私有方法 ─────────────────────────────────────────────────────────────

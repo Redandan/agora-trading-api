@@ -2557,7 +2557,7 @@ public class MetaControlMcpTools {
                         wr * 100, days, aiText),
                 "trading", "raw", "factor-exploration,ta4j,rule-ideas",
                 0.7, "src/main/java/com/agora/service/trading/LongAiFilter.java",
-                "draft", "claude-session", "agora-backend");
+                "draft", "claude-session", "agora-trading-api");
 
         return String.format(
                 "=== Factor Exploration ===\nrecentWinRate=%.1f%%  lookbackDays=%d\n\n%s\n\n✅ KB written: %s",

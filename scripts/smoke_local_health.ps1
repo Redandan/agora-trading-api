@@ -87,6 +87,8 @@ $envOverrides = @{
     EXTERNAL_ALCHEMY_API_KEY = ""
     EXTERNAL_THEGRAPH_API_KEY = ""
     EXCHANGE_RATE_COINMARKETCAP_API_KEY = ""
+    MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
+    MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
 }
@@ -116,7 +118,9 @@ try {
         "--external.etherscan.api-key=",
         "--external.alchemy.api-key=",
         "--external.thegraph.api-key=",
-        "--exchange-rate.coinmarketcap.api-key="
+        "--exchange-rate.coinmarketcap.api-key=",
+        "--market.ws.auto-subscribe.enabled=false",
+        "--market.ws.auto-subscribe.warm-up-enabled=false"
     )
     $args = @(
         "spring-boot:run",
@@ -166,6 +170,8 @@ try {
     Assert-LogContains -Path $stdout -Pattern "startup check disabled" -Description "ML materialized refresh startup check is disabled"
     Assert-LogContains -Path $stdout -Pattern "AiTaskRouter.*initialized with 0 providers" -Description "local-smoke does not initialize external AI providers"
     Assert-LogContains -Path $stdout -Pattern "Jina embedding client initialised: enabled=false" -Description "local-smoke does not enable external Jina embeddings"
+    Assert-LogContains -Path $stdout -Pattern "MarketWS.*auto-subscribe config: enabled=false" -Description "local-smoke does not enable public market WS auto-subscribe"
+    Assert-LogNotContains -Path $stdout -Pattern "(?i)(Auto subscribed via|Warming up MarketSignalCache)" -Description "local-smoke must not auto-subscribe public market WebSockets or warm market cache"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 
     Write-Host "[smoke] OK $healthUrl"

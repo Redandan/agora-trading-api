@@ -119,24 +119,6 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- OCI Java SDK -->
-        <dependency>
-            <groupId>com.oracle.oci.sdk</groupId>
-            <artifactId>oci-java-sdk-core</artifactId>
-            <version>3.36.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.oci.sdk</groupId>
-            <artifactId>oci-java-sdk-announcementsservice</artifactId>
-            <version>3.36.0</version>
-        </dependency>
-        <!-- jersey3 variant uses jakarta.ws.rs (required for Java 21 / Spring Boot 3) -->
-        <dependency>
-            <groupId>com.oracle.oci.sdk</groupId>
-            <artifactId>oci-java-sdk-common-httpclient-jersey3</artifactId>
-            <version>3.36.0</version>
-        </dependency>
-
         <!-- Logback Classic (显式声明，避免关闭时的类加载问题) -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

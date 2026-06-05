@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.ml-edge-watcher")
 public record MlEdgeWatcherProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("7") @Positive int consecutiveDays,
         @DefaultValue("7") @Positive int cooldownDays
 ) {}

@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.ml-protection")
 public record MlProtectionProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("60") int scanIntervalSeconds,
         @DefaultValue("120") int secondaryLoadTimeoutSeconds,
         @DefaultValue("1") int minSecondaryLoadRowsToTrip,

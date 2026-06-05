@@ -80,6 +80,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - The nginx path installer fails fast when its own `awk`, `mktemp`, or `sudo` dependencies are missing.
 - The tracked `.env.trading.secrets.example` documents required trading-only server env keys and optional runtime safety toggles; `scripts/validate_env_template.ps1` checks it against server script `require_env_key` usage and safe optional defaults, while the real `/home/ubuntu/.env.trading.secrets` remains untracked.
 - Composite indicator scheduled evaluation is disabled by default in the tracked server env template, so CMI DB writes and alerts are explicit production opt-in behavior.
+- ML protection scans, edge staleness alerts, and auto-retrain are disabled by default in code and in the tracked template, so ML circuit writes, model registry writes, and related Telegram alerts are explicit production opt-in behavior.
 - The tracked server env template keeps scheduled notification side effects opt-in, including `META_CONTROL_DAILY_ML_DIGEST_ENABLED=false`; production can enable the daily ML digest explicitly after Telegram and digest ownership are intended.
 - Daily TG report orchestration is opt-in at the scheduler bean and disabled by default in the tracked template, so daily Telegram reporting does not start automatically after repo split deploys.
 - The same template keeps attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification disabled by default until production intentionally opts in.

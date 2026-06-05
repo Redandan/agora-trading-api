@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li>ML_PREDICT_ROW single: ~1.6 s (ok for low-frequency signal eval)</li>
  *   <li>ML_EXPLAIN_ROW returns SHAP-like attribution + human-readable Notes</li>
  * </ul>
- *
- * @see db/migrations/V046__create_ml_pipeline.sql
+ * <p>ML pipeline schema should be covered by the pending trading Flyway
+ * baseline before production schema hardening.
  */
 @Slf4j
 @Service

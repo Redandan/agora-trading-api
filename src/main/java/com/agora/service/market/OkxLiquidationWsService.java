@@ -12,6 +12,7 @@ import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +67,7 @@ public class OkxLiquidationWsService implements DisposableBean {
 
     private final ObjectMapper objectMapper;
     private final OkHttpClient wsClient;
+    private final boolean enabled;
     private final ScheduledExecutorService reconnectScheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "okx-liq-ws-scheduler");
@@ -74,8 +76,11 @@ public class OkxLiquidationWsService implements DisposableBean {
             });
 
     @Autowired
-    public OkxLiquidationWsService(ObjectMapper objectMapper) {
+    public OkxLiquidationWsService(
+            ObjectMapper objectMapper,
+            @Value("${market.liquidation-ws.enabled:true}") boolean enabled) {
         this.objectMapper = objectMapper;
+        this.enabled = enabled;
         this.wsClient = new OkHttpClient.Builder()
                 .pingInterval(0, TimeUnit.SECONDS)
                 .readTimeout(0, TimeUnit.MILLISECONDS)
@@ -85,6 +90,11 @@ public class OkxLiquidationWsService implements DisposableBean {
 
     @PostConstruct
     void start() {
+        if (!enabled) {
+            status = "DISABLED";
+            log.info("[OkxLiqWS] disabled by market.liquidation-ws.enabled=false");
+            return;
+        }
         log.info("[OkxLiqWS] Starting liquidation + trades WebSocket");
         connect();
     }
@@ -131,6 +141,7 @@ public class OkxLiquidationWsService implements DisposableBean {
     /** 每分鐘檢查連線健康 */
     @Scheduled(fixedDelay = 60_000, initialDelay = 120_000)
     public void healthCheck() {
+        if (!enabled) return;
         if (isStale()) {
             log.warn("[OkxLiqWS] No message for 90s, reconnecting...");
             degraded = true;
@@ -143,6 +154,7 @@ public class OkxLiquidationWsService implements DisposableBean {
     // ── 連線邏輯 ──────────────────────────────────────────────────────────────
 
     private void connect() {
+        if (!enabled) return;
         status = "CONNECTING";
         Request request = new Request.Builder().url(WS_URL).build();
         webSocket = wsClient.newWebSocket(request, new LiqWsListener());

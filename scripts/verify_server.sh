@@ -14,6 +14,7 @@ NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
 VERIFY_GIT_CURRENT="${VERIFY_GIT_CURRENT:-1}"
+REQUIRE_NGINX_TRADING_PATH="${REQUIRE_NGINX_TRADING_PATH:-1}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
 
 fail() {
@@ -133,10 +134,16 @@ if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   if grep -R "location[[:space:]]*/api/trading/" $NGINX_CONF_GLOB >/dev/null 2>&1; then
     ok "nginx /api/trading/ location found"
   else
-    warn "nginx /api/trading/ location not found under $NGINX_CONF_GLOB"
+    if [ "$REQUIRE_NGINX_TRADING_PATH" = "1" ]; then
+      fail "nginx /api/trading/ location not found under $NGINX_CONF_GLOB"
+    fi
+    warn "nginx /api/trading/ location not found under $NGINX_CONF_GLOB; REQUIRE_NGINX_TRADING_PATH=$REQUIRE_NGINX_TRADING_PATH"
   fi
 else
-  warn "nginx config glob has no matches: $NGINX_CONF_GLOB"
+  if [ "$REQUIRE_NGINX_TRADING_PATH" = "1" ]; then
+    fail "nginx config glob has no matches: $NGINX_CONF_GLOB"
+  fi
+  warn "nginx config glob has no matches: $NGINX_CONF_GLOB; REQUIRE_NGINX_TRADING_PATH=$REQUIRE_NGINX_TRADING_PATH"
 fi
 
 if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet nginx; then

@@ -133,6 +133,8 @@ try {
     Assert-RgMatch -Pattern 'rm -f "app.pid.\$NEW_PORT"' -Paths @("deploy.sh") -Description "deploy removes new-port pid file on failed startup"
     Assert-RgMatch -Pattern "invalid app.port value" -Paths @("deploy.sh") -Description "deploy rejects unknown active port state"
     Assert-RgMatch -Pattern "unknown active port" -Paths @("scripts/verify_server.sh") -Description "server verify rejects unknown active port state"
+    Assert-RgMatch -Pattern "REQUIRE_NGINX_TRADING_PATH" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server verify requires nginx trading path by default"
+    Assert-RgMatch -Pattern "nginx /api/trading/ location not found" -Paths @("scripts/verify_server.sh") -Description "server verify fails when nginx trading path is missing"
     Assert-RgMatch -Pattern "invalid TRADING_PORT" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer rejects unknown trading port"
     Assert-RgMatch -Pattern "require_cmd bash" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when bash is unavailable"
     Assert-RgMatch -Pattern "require_cmd lsof" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when lsof is unavailable"

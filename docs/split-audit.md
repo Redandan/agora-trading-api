@@ -100,6 +100,7 @@ These domains are retained unless a later audit proves they are unused:
 
 - Production deploy currentness is not proven by this audit.
 - Server verification checks that the deployed worktree matches `origin/main` by default; explicit rollback verification must opt out with `VERIFY_GIT_CURRENT=0`.
+- Server verification requires nginx `/api/trading/` path presence by default; non-nginx verification must opt out with `REQUIRE_NGINX_TRADING_PATH=0`.
 - Server shell script syntax is checked locally when Git Bash or `bash` is available, and on Linux/server with `bash scripts/preflight_server.sh`.
 - `scripts/verify_server.sh` still requires server verification for production exchange-rate mode and nginx path split.
 - This audit does not prove live OKX/Binance, Telegram, scheduler, or production MCP behavior. It only documents local compile, health-smoke, and split-boundary expectations.

@@ -246,7 +246,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
 - AgoraMarket exchange-rate dependency health.
 - optional public trading health URL.
-- nginx `/api/trading/` path split presence.
+- nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
 
 ## Rollback
 

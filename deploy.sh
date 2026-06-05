@@ -224,5 +224,6 @@ fi
 
 echo "$NEW_PORT" > app.port
 echo "$NEW_PID" > app.pid
+git rev-parse HEAD > app.commit
 
 echo "[deploy] complete: $APP_NAME running on port $NEW_PORT"

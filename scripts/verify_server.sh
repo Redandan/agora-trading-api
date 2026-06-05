@@ -5,6 +5,7 @@ APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 BRANCH="${BRANCH:-main}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 PORT_FILE="${PORT_FILE:-$APP_DIR/app.port}"
+COMMIT_FILE="${COMMIT_FILE:-$APP_DIR/app.commit}"
 DEFAULT_PORT="${PORT:-8084}"
 PORT_A="${PORT_A:-8084}"
 PORT_B="${PORT_B:-8085}"
@@ -82,6 +83,17 @@ if [ "$VERIFY_GIT_CURRENT" = "1" ]; then
   ok "worktree commit matches origin/$BRANCH: $(git rev-parse --short HEAD)"
 else
   ok "git currentness check skipped; VERIFY_GIT_CURRENT=$VERIFY_GIT_CURRENT"
+fi
+
+if [ -f "$COMMIT_FILE" ]; then
+  DEPLOYED_COMMIT="$(tr -d '[:space:]' < "$COMMIT_FILE")"
+  HEAD_COMMIT="$(git rev-parse HEAD)"
+  if [ "$DEPLOYED_COMMIT" != "$HEAD_COMMIT" ]; then
+    fail "deployed app.commit ${DEPLOYED_COMMIT:-empty} does not match worktree HEAD $(git rev-parse --short HEAD)"
+  fi
+  ok "deployed app.commit matches worktree HEAD: $(git rev-parse --short HEAD)"
+else
+  warn "deploy commit file missing: $COMMIT_FILE"
 fi
 
 require_env_key TRADING_ADMIN_KEY

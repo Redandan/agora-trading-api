@@ -179,6 +179,7 @@ Defaults:
 - health: `http://127.0.0.1:<port>/api/trading/actuator/health`
 - jar: `target/agora-trading-api-1.0-SNAPSHOT.jar`
 - env file: `/home/ubuntu/.env.trading.secrets`
+- deployment metadata: `app.port`, `app.pid`, and `app.commit`
 
 `deploy.sh`, `scripts/install_nginx_path.sh`, and `scripts/verify_server.sh`
 all treat `8084/8085` as the blue-green port set. Unknown active port state is
@@ -237,6 +238,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`; the nginx path installer also fails fast on its own required tools.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
+- deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.
 - deploy fails fast if `AgoraMarketAPI/internal-client` is missing, then installs it into the server Maven local repo before building trading.

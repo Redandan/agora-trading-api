@@ -104,6 +104,7 @@ $envOverrides = @{
     TRADING_SHORT_SQUEEZE_ALERT_TAKER_BUY_COLLECTOR_ENABLED = "false"
     SIGNAL_VERIFICATION_SCHEDULER_ENABLED = "false"
     AGORA_ALPHA_TRACKER_ENABLED = "false"
+    AI_STRATEGY_DISCOVERY_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
     POSITION_EXIT_MANAGER_ENABLED = "false"
@@ -154,6 +155,7 @@ try {
         "--trading.short-squeeze-alert.taker-buy-collector-enabled=false",
         "--signal-verification.scheduler.enabled=false",
         "--agora.alpha-tracker.enabled=false",
+        "--ai.strategy.discovery.enabled=false",
         "--position-exit-manager.enabled=false",
         "--position-exit-manager.dry-run=true"
     )

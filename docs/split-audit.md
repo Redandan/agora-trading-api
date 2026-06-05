@@ -111,6 +111,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Execution-event scheduled scanning is disabled by default in the tracked template, and its notification path stays dry-run unless explicitly enabled.
 - BTC price-move Telegram alerts are opt-in at the scheduler bean and disabled by default in the tracked template.
 - Gemini advisor and its hint flip/staleness detectors are disabled by default in code and in the tracked template, so AI hint generation and related Telegram alerts are explicit production opt-in behavior.
+- AI strategy discovery scheduling is disabled by default in code and in the tracked template; enable `AI_STRATEGY_DISCOVERY_ENABLED=true` only when this service should own scheduled AI strategy generation and `bt_strategy` writes.
 - Autonomous exploration monitoring is disabled by default in code and in the tracked template, including its Telegram notification flag.
 - Market-signal risk-card scheduling is disabled and dry-run by default in the tracked template.
 - Signal outcome verification and alpha promotion tracking are disabled by default in code and in the tracked template; enable `SIGNAL_VERIFICATION_SCHEDULER_ENABLED=true` or `AGORA_ALPHA_TRACKER_ENABLED=true` only when this service should own outcome verification writes, snapshot-file writes, accuracy reports, and related Telegram alerts.

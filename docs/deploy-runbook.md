@@ -176,6 +176,7 @@ Expected:
 - BTC price-move Telegram alerts default off in code and the tracked template; enable `TRADING_BTC_PRICE_MOVE_ALERT_ENABLED=true` only after that alert stream belongs to trading production.
 - Gemini advisor and its hint flip/staleness detectors default off in code and the tracked template; enable `TRADING_GEMINI_ADVISOR_ENABLED=true` plus detector flags only after AI hint generation and Telegram alerts belong to trading production.
 - Autonomous exploration monitoring defaults off in code and the tracked template; enable `TRADING_EXPLORATION_MONITOR_ENABLED` and its Telegram flag only after that monitor belongs to the deployed trading service.
+- AI strategy discovery scheduling defaults off in code and the tracked template; enable `AI_STRATEGY_DISCOVERY_ENABLED=true` only when this service should own scheduled AI strategy generation and `bt_strategy` writes.
 - Autonomous exploration loop, auto-rollout promotion, runtime-evidence writes, funding-arb scheduler, discovery AI suggestions, and MCP guardian live actions are explicit opt-in keys in the tracked template and default off.
 - Signal outcome verification and alpha promotion tracking default off in code and the tracked template; enable `SIGNAL_VERIFICATION_SCHEDULER_ENABLED=true` or `AGORA_ALPHA_TRACKER_ENABLED=true` only when this service should own outcome verification writes, accuracy reports, snapshot-file writes, and related Telegram alerts.
 - Market-signal risk-card scheduling defaults off and dry-run in the tracked template.

@@ -68,6 +68,11 @@ try {
         throw "rg context test profile check failed with exit code $LASTEXITCODE"
     }
 
+    $smokeLogGuard = rg "Assert-LogContains|Assert-LogNotContains|Auto-trade enabled|Trading disabled.*private WS skipped|order placed|send telegram" scripts/smoke_local_health.ps1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "smoke_local_health.ps1 must keep log guards for local-smoke external side effects."
+    }
+
     Write-Host "[verify] checking deploy script git attributes"
     $shellEol = git ls-files --eol -- deploy.sh scripts/*.sh
     foreach ($line in $shellEol) {

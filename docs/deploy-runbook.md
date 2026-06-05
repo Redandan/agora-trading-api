@@ -70,6 +70,8 @@ Expected:
 
 - Spring Boot starts with profile `local-smoke`.
 - Health passes at `http://127.0.0.1:18084/api/trading/actuator/health`.
+- Smoke logs prove H2 local DB, exchange-rate fallback, disabled OKX auto-trade, skipped private WS, and disabled startup refresh.
+- Smoke logs must not show order placement, Telegram sends, private trading WS connection, or auto-execution enabled.
 - The script stops the temporary Maven/Java process tree after the check.
 
 ## Server Deploy Template

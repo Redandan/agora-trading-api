@@ -93,7 +93,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Execution-event scheduled scanning is disabled by default in the tracked template, and its notification path stays dry-run unless explicitly enabled.
 - BTC price-move Telegram alerts are opt-in at the scheduler bean and disabled by default in the tracked template.
 - Gemini advisor and its hint flip/staleness detectors are disabled by default in code and in the tracked template, so AI hint generation and related Telegram alerts are explicit production opt-in behavior.
-- Autonomous exploration monitoring is disabled by default in the tracked template, including its Telegram notification flag.
+- Autonomous exploration monitoring is disabled by default in code and in the tracked template, including its Telegram notification flag.
 - Market-signal risk-card scheduling is disabled and dry-run by default in the tracked template.
 - Polymarket monitoring and WAI scheduled calculation are disabled by default in code and in the tracked template, so Polymarket API calls, odds/alert persistence, Telegram digests, and WAI `market_indicator_history` writes are explicit production opt-in behavior.
 - The tracked server env template keeps market WebSocket side effects off by default, including `MARKET_LIQUIDATION_WS_ENABLED=false`; production can opt in explicitly when OKX public liquidation streams are intended.

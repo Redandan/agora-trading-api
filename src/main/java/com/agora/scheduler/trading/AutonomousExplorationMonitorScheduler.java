@@ -24,7 +24,7 @@ public class AutonomousExplorationMonitorScheduler {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicReference<String> lastFingerprint = new AtomicReference<>();
 
-    @Value("${trading.exploration.monitor.enabled:true}")
+    @Value("${trading.exploration.monitor.enabled:false}")
     private boolean enabled;
 
     @Value("${trading.exploration.monitor.telegram.enabled:false}")

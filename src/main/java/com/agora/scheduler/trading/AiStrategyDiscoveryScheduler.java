@@ -37,7 +37,7 @@ public class AiStrategyDiscoveryScheduler {
      * - 如需指定時區，可搭配 {@code spring.task.scheduling.pool.size} 或
      *   在部署時設定 JVM 的 {@code -Duser.timezone=Asia/Taipei}
      */
-    // 預設 05:30 UTC（避開 03:00 NightlyCleanupOrchestrator 的 DB 批次清理 + Groq/backtest 資源競爭）
+    // 預設 05:30 UTC（避開夜間 DB 維護窗口 + Groq/backtest 資源競爭）
     @Scheduled(cron = "${ai.strategy.discovery.cron:0 30 5 * * ?}")
     public void scheduledDiscovery() {
         if (!props.enabled()) {

@@ -5,8 +5,6 @@ import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.service.BtStrategyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -33,8 +31,8 @@ public class EphemeralStrategyCleanupScheduler {
     private final com.agora.config.properties.EphemeralCleanupProperties props;
 
     /**
-     * 由 {@link NightlyCleanupOrchestrator} 在 UTC 03:00 串行排程呼叫。
-     * （原本 03:30 獨立 @Scheduled，已合并至 Orchestrator 集中管理）
+     * No scheduler owns this in the split repo yet. Keep it explicit opt-in and
+     * invoke from a future orchestrator only after cleanup ownership is decided.
      */
     public void cleanupOnSchedule() {
         if (!props.enabled()) {

@@ -3,8 +3,6 @@ package com.agora.scheduler.trading;
 import com.agora.repository.trading.BtDecisionAuditRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +32,7 @@ public class DecisionAuditCleanupScheduler {
     private final BtDecisionAuditRepository repo;
     private final com.agora.config.properties.AuditCleanupProperties props;
 
-    // @Scheduled 已移至 NightlyCleanupOrchestrator（03:00 UTC 串行執行，避免與其他清理任務同時 lock DB）
+    // No scheduler owns this in the split repo yet; keep deletion opt-in.
     @Transactional
     public void cleanup() {
         if (!props.enabled()) {

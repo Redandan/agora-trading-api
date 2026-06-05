@@ -34,8 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
  *       then {@code INSERT INTO bt_signal_training_v8_mat SELECT * FROM
  *       vw_signal_training_v8_dedup} — single transaction so MCP queries
  *       never see a partial table.
- *   <li>Triggered nightly by {@link
- *       com.agora.scheduler.system.NightlyCleanupOrchestrator} at 03:00 UTC.
+ *   <li>No nightly orchestrator exists in this split repo yet; refresh is an
+ *       explicit MCP/operator action unless a future opt-in scheduler is added.
  *   <li>{@link #ensurePopulatedOnStartup()} runs once on application start; if
  *       the table is empty (e.g. fresh V109 migration just applied) it kicks
  *       off an async refresh so MCP eval tools work without waiting for the

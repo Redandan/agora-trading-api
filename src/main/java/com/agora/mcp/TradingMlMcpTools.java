@@ -624,7 +624,7 @@ public class TradingMlMcpTools {
     @McpAuth(McpAuthLevel.DEV)
     @McpCategory({Category.MODEL_OPS, Category.DIAGNOSTIC})
     @Tool(description = "#444 — 手動 refresh signal_training 物化表 bt_signal_training_v8_mat。" +
-            "每天 03:00 UTC 自動跑(NightlyCleanupOrchestrator),這個 MCP 用於:" +
+            "目前沒有 nightly orchestrator 自動 refresh；這個 MCP 用於:" +
             "(a) 即時補回 stale snapshot 之後再跑 evalOnHoldout,(b) 啟動後第一次驗證,(c) 改完 view 定義後手動重 build。" +
             "會 DELETE 全表 + INSERT FROM vw_signal_training_v8_dedup,單 transaction(看不到 partial state)。" +
             "view 慢(2-3 min) → MCP timeout 可能觸發,但實際 SQL 在 background 仍會跑完。回傳:before/after row count + elapsedMs。")

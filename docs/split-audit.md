@@ -48,6 +48,7 @@ Expected:
 - `verify_local.ps1` runs `mvn test`.
 - `verify_local.ps1` scans for forbidden marketplace, frontend, login, auth, commerce, wallet, realtime, stale utility residue, deployment guard regressions, schema-bootstrap drift, and internal API contract drift.
 - `verify_split_boundaries.ps1` runs the schema inventory, POM dependency boundary, package boundary, and server env template contract checks.
+- Server schema comparison rejects implicit entity table names before comparing database metadata.
 
 ## Removed Residue Covered By Verification
 
@@ -74,6 +75,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
 - `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.
+- `scripts/schema_baseline_compare_server.sh` repeats the implicit JPA table-name check on the server before comparing database metadata.
 - Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate contracts and do not predefine identity/user contracts.
 - `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.

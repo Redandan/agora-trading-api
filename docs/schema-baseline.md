@@ -46,11 +46,14 @@ The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 `information_schema.tables`, and writes these read-only outputs:
 
 - `target/schema-baseline/server-source-entity-tables.txt`
+- `target/schema-baseline/server-implicit-entities.txt`
 - `target/schema-baseline/server-db-tables.txt`
 - `target/schema-baseline/missing-in-db.txt`
 - `target/schema-baseline/extra-in-db.txt`
 
 It must not print database passwords, write migrations, or mutate the database.
+The compare fails if any server-side source entity relies on an implicit table
+name, matching the local inventory requirement.
 
 ## Baseline Acceptance
 

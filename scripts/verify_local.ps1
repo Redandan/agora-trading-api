@@ -85,6 +85,7 @@ try {
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "schema baseline database comparison skipped" -Paths @("scripts/verify_server.sh") -Description "schema compare is opt-in for normal server verification"
     Assert-RgMatch -Pattern "information_schema.tables" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare queries database metadata only"
+    Assert-RgMatch -Pattern "server-implicit-entities.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects implicit entity table names"
     Assert-RgMatch -Pattern "read-only compare complete" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare documents read-only behavior"
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED:false" -Paths @("src/main/resources/application.yml") -Description "Flyway is disabled by default until baseline exists"
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED=false" -Paths @("scripts/bootstrap_server.sh", "docs/deploy-runbook.md") -Description "server template keeps Flyway disabled before baseline"

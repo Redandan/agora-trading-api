@@ -68,13 +68,18 @@ esac
 mkdir -p "$OUTPUT_DIR"
 
 source_tables="$OUTPUT_DIR/server-source-entity-tables.txt"
+implicit_entities="$OUTPUT_DIR/server-implicit-entities.txt"
 db_tables="$OUTPUT_DIR/server-db-tables.txt"
 missing_tables="$OUTPUT_DIR/missing-in-db.txt"
 extra_tables="$OUTPUT_DIR/extra-in-db.txt"
 
 find src/main/java/com/agora/model -name '*.java' -print0 |
-  xargs -0 perl -0ne 'while (/@Entity\b.*?@Table\s*\(\s*name\s*=\s*"([^"]+)"/sg) { print "$1\n" }' |
+  xargs -0 perl -0ne 'if (/@Entity\b/ && /@Table\s*\(\s*name\s*=\s*"([^"]+)"/s) { print "$1\n" }' |
   sort -u > "$source_tables"
+
+find src/main/java/com/agora/model -name '*.java' -print0 |
+  xargs -0 perl -0ne 'if (/@Entity\b/ && !/@Table\s*\(\s*name\s*=\s*"([^"]+)"/s) { print "$ARGV\n" }' |
+  sort -u > "$implicit_entities"
 
 MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysql \
   --batch \
@@ -90,14 +95,20 @@ comm -23 "$source_tables" "$db_tables" > "$missing_tables"
 comm -13 "$source_tables" "$db_tables" > "$extra_tables"
 
 source_count="$(wc -l < "$source_tables" | tr -d '[:space:]')"
+implicit_count="$(wc -l < "$implicit_entities" | tr -d '[:space:]')"
 db_count="$(wc -l < "$db_tables" | tr -d '[:space:]')"
 missing_count="$(wc -l < "$missing_tables" | tr -d '[:space:]')"
 extra_count="$(wc -l < "$extra_tables" | tr -d '[:space:]')"
 
 echo "[schema-compare] source entity tables: $source_count -> $source_tables"
+echo "[schema-compare] implicit entity names: $implicit_count -> $implicit_entities"
 echo "[schema-compare] database tables: $db_count -> $db_tables"
 echo "[schema-compare] missing in database: $missing_count -> $missing_tables"
 echo "[schema-compare] extra in database: $extra_count -> $extra_tables"
+
+if [ "$implicit_count" != "0" ]; then
+  fail "schema baseline source inventory found entity class(es) without explicit @Table(name=...); inspect $implicit_entities"
+fi
 
 if [ "$missing_count" != "0" ] || [ "$extra_count" != "0" ]; then
   fail "schema baseline table inventory differs; inspect $missing_tables and $extra_tables before generating Flyway baseline"

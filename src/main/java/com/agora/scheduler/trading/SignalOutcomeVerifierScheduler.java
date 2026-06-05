@@ -6,6 +6,7 @@ import com.agora.mcp.MarketDataMcpTools;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "signal-verification.scheduler.enabled", havingValue = "true", matchIfMissing = false)
 public class SignalOutcomeVerifierScheduler {
 
     private final JdbcTemplate jdbc;

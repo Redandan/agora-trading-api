@@ -83,7 +83,7 @@ $envOverrides = @{
     GROQ_API_KEY = ""
     ANTHROPIC_API_KEY = ""
     JINA_API_KEY = ""
-    EXTERNAL_COINALYZE_API_KEY = ""
+    TRADING_MARKET_DATA_COINALYZE_API_KEY = ""
     EXTERNAL_COINGECKO_DEMO_API_KEY = ""
     EXTERNAL_FRED_API_KEY = ""
     EXTERNAL_ETHERSCAN_API_KEY = ""
@@ -131,7 +131,7 @@ try {
         "--groq.api.key=",
         "--anthropic.api.key=",
         "--jina.api.key=",
-        "--external.coinalyze.api-key=",
+        "--trading.market-data.coinalyze.api-key=",
         "--external.coingecko.demo-api-key=",
         "--external.fred.api-key=",
         "--external.etherscan.api-key=",

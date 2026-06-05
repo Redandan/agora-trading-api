@@ -8,6 +8,7 @@ import com.agora.service.indicator.HysteresisAlertGuard;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -61,6 +62,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "trading.btc-price-move-alert.enabled", havingValue = "true")
 public class BtcPriceMoveAlertScheduler {
 
     private static final String SYMBOL = "BTCUSDT";

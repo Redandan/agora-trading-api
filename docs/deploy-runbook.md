@@ -155,6 +155,7 @@ Expected:
 - Scheduled trading notification digests default off in the tracked template, including attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification.
 - Event-scan scheduled outbound notifications default off and dry-run in the tracked template.
 - Execution-event scheduled scanning defaults off and its notification path defaults dry-run in the tracked template.
+- BTC price-move Telegram alerts default off in code and the tracked template; enable `TRADING_BTC_PRICE_MOVE_ALERT_ENABLED=true` only after that alert stream belongs to trading production.
 - Autonomous exploration monitoring defaults off in the tracked template; enable `TRADING_EXPLORATION_MONITOR_ENABLED` and its Telegram flag only after that monitor belongs to the deployed trading service.
 - Market-signal risk-card scheduling defaults off and dry-run in the tracked template.
 - Market WebSocket side effects default off in the tracked template; set `MARKET_LIQUIDATION_WS_ENABLED=true` only after the trading runtime is ready to connect to OKX public liquidation streams.

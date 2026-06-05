@@ -56,6 +56,7 @@ Expected:
 - No unreferenced betting or marketplace status/type enum residue remains.
 - No unused PWA log, traffic analytics, slot analytics, slot cache, or stale product/PWA/slot security-route residue remains.
 - No unreferenced chat, staking, transaction DTO or unused marketplace/betting enum residue remains.
+- No unused object storage, login/Tron, security audit, group AI, common utility, OCI maintenance, or AI group config residue remains.
 
 HTTP startup smoke with an in-memory local database:
 
@@ -91,7 +92,7 @@ The bootstrap script checks server tools, clones or fetches this repo, writes on
 whether nginx already contains `/api/trading/`. It does not create or print the
 real secret file.
 
-Current server state from 2026-06-05 Asia/Taipei:
+Last observed server state from 2026-06-05 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
 - AgoraMarketAPI active port file reports `8082`.
@@ -102,7 +103,10 @@ Current server state from 2026-06-05 Asia/Taipei:
 - `/home/ubuntu/.env.trading.secrets` has been created without printing secret values.
 - independent trading database `agora_trading` has been created.
 - nginx `/api/trading/` location has been installed and reloaded.
-- trading deployed from `origin/main` commit `11612b9`, active port `8084`.
+- trading was deployed from `origin/main` commit `11612b9`, active port `8084`.
+- This is an observed deployment snapshot, not proof that the current `origin/main`
+  commit is deployed. Re-run deploy and `scripts/verify_server.sh` before treating
+  production as current.
 - `scripts/verify_server.sh` passed with:
   - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
   - AgoraMarket health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`

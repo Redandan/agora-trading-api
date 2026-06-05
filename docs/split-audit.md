@@ -84,6 +84,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - The tracked server env template keeps scheduled notification side effects opt-in, including `META_CONTROL_DAILY_ML_DIGEST_ENABLED=false`; production can enable the daily ML digest explicitly after Telegram and digest ownership are intended.
 - Market flip analysis and auto-escalation are disabled by default in code and in the tracked template, so pending flip AI analysis, event status updates, audit writes, and Telegram escalation are explicit production opt-in behavior.
 - Wick-capture shadow observation and historical bootstrap are disabled by default in code and in the tracked template, so shadow table writes, attention audit rows, outcome backfill writes, and Telegram context alerts are explicit production opt-in behavior.
+- Shadow signal cleanup is disabled by default in code and in the tracked template, so automatic `bt_live_signal` timeout updates for stale shadow signals are explicit production opt-in behavior.
 - Daily TG report orchestration is opt-in at the scheduler bean and disabled by default in the tracked template, so daily Telegram reporting does not start automatically after repo split deploys.
 - The same template keeps attention weekly digest, scorecard digest, autonomous digest, and ScoreBuy forming-day notification disabled by default until production intentionally opts in.
 - Event-scan scheduled outbound notifications also stay disabled and dry-run by default in the tracked template.

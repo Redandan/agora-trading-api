@@ -15,6 +15,10 @@ import java.time.ZoneOffset;
 /**
  * 自動 close 過期的 shadow 訊號(auto_traded != 1 且未平倉超過策略 maxHoldingHours)。
  *
+ * <p>Disabled by default for split-service deploys; enable
+ * {@code shadow-cleanup.enabled=true} only after this service should own
+ * shadow signal timeout writes.
+ *
  * <p><b>背景</b>:LiveSignalEvaluator 的 #332 dedup gate 用 {@code exit_time IS NULL}
  * 判定「strategy 還有開倉」,以防止同 bar 重複生 entry 污染 ML training。
  * 但 shadow 訊號(auto_traded NULL)走 notify 路徑不真開倉,沒有 OCO 機制,
@@ -43,7 +47,7 @@ public class ShadowSignalCleanupScheduler {
     @Value("${shadow-cleanup.default-max-hours:24}")
     private int defaultMaxHours;
 
-    @Value("${shadow-cleanup.enabled:true}")
+    @Value("${shadow-cleanup.enabled:false}")
     private boolean enabled;
 
     @Scheduled(fixedDelay = 1_800_000L, initialDelay = 300_000L)  // 30min, start after 5min

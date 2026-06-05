@@ -49,6 +49,9 @@ public class DiagnosticMcpTools {
 
     private static final ZoneId TZ = ZoneId.of("Asia/Taipei");
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+    private static final String APP_LOG_PATH = "/home/ubuntu/agora-trading-api/app.log";
+    private static final String APP_STARTED_MARKER = "Started TradingApiApplication";
+    private static final String APP_STARTING_MARKER = "Starting TradingApiApplication";
 
     private final ServerStartupLogRepository startupLogRepo;
     private final BtStrategyRepository strategyRepo;
@@ -67,6 +70,14 @@ public class DiagnosticMcpTools {
     private final McpApiKeyFilter mcpApiKeyFilter;
     private final com.agora.service.trading.EventRiskLevelEngine eventRiskLevelEngine;
     private final McpRegistryVersionService mcpRegistryVersionService;
+
+    private java.io.File resolveAppLogFile() {
+        java.io.File logFile = new java.io.File(APP_LOG_PATH);
+        if (!logFile.exists()) {
+            logFile = new java.io.File("logs/app.log");
+        }
+        return logFile;
+    }
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.META})
@@ -2708,14 +2719,9 @@ public class DiagnosticMcpTools {
             "params: lines=行數(預設 50,最多 200), filter=關鍵字過濾(可選,如 DexFlowBackfill/ML003011/Started)")
     public String tailAppLog(Integer lines, String filter) {
         int n = lines != null ? Math.min(Math.max(lines, 1), 200) : 50;
-        String logPath = "/home/ubuntu/AgoraMarketAPI/app.log";
-        // Fallback for dev/test environment
-        java.io.File logFile = new java.io.File(logPath);
+        java.io.File logFile = resolveAppLogFile();
         if (!logFile.exists()) {
-            logFile = new java.io.File("logs/app.log");
-        }
-        if (!logFile.exists()) {
-            return "⚠️ Log file not found at " + logPath;
+            return "⚠️ Log file not found at " + APP_LOG_PATH;
         }
         try {
             // Read last N lines using RandomAccessFile
@@ -2754,21 +2760,19 @@ public class DiagnosticMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC})
-    @Tool(description = "#232 近期 deploy 紀錄：從 app.log 解析 'Started AgoraMarketApiApplication' 條目，" +
+    @Tool(description = "#232 近期 deploy 紀錄：從 app.log 解析 TradingApiApplication started 條目，" +
             "顯示最近 N 次啟動時間及 HEAD commit（從 git log 獲取）。" +
             "param: limit=筆數(預設 5)")
     public String getDeployHistory(Integer limit) {
         int lim = limit != null ? Math.min(Math.max(limit, 1), 20) : 5;
-        String logPath = "/home/ubuntu/AgoraMarketAPI/app.log";
-        java.io.File logFile = new java.io.File(logPath);
-        if (!logFile.exists()) logFile = new java.io.File("logs/app.log");
+        java.io.File logFile = resolveAppLogFile();
         try {
             java.util.List<String> startups = new java.util.ArrayList<>();
             if (logFile.exists()) {
                 try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(logFile))) {
                     String line;
                     while ((line = br.readLine()) != null) {
-                        if (line.contains("Started AgoraMarketApiApplication")) startups.add(line);
+                        if (line.contains(APP_STARTED_MARKER)) startups.add(line);
                     }
                 }
             }
@@ -2833,20 +2837,19 @@ public class DiagnosticMcpTools {
     public String getStartupPerformanceReport(Integer limit, Integer minGapSeconds) {
         int lim = limit != null ? Math.min(Math.max(limit, 1), 10) : 3;
         int gapThreshold = minGapSeconds != null ? Math.min(Math.max(minGapSeconds, 1), 60) : 5;
-        java.io.File logFile = new java.io.File("/home/ubuntu/AgoraMarketAPI/app.log");
-        if (!logFile.exists()) logFile = new java.io.File("logs/app.log");
+        java.io.File logFile = resolveAppLogFile();
         if (!logFile.exists()) return "⚠️ app.log not found";
 
         try {
             java.util.List<String> lines = java.nio.file.Files.readAllLines(logFile.toPath());
             java.util.List<Integer> startupIndexes = new java.util.ArrayList<>();
             for (int i = 0; i < lines.size(); i++) {
-                if (lines.get(i).contains("Started AgoraMarketApiApplication")) {
+                if (lines.get(i).contains(APP_STARTED_MARKER)) {
                     startupIndexes.add(i);
                 }
             }
             if (startupIndexes.isEmpty()) {
-                return "ℹ️ app.log has no Started AgoraMarketApiApplication lines";
+                return "ℹ️ app.log has no " + APP_STARTED_MARKER + " lines";
             }
 
             StringBuilder sb = new StringBuilder();
@@ -2876,7 +2879,7 @@ public class DiagnosticMcpTools {
 
     private int findStartupBeginIndex(java.util.List<String> lines, int beforeOrAt) {
         for (int i = Math.min(beforeOrAt, lines.size() - 1); i >= 0; i--) {
-            if (lines.get(i).contains("Starting AgoraMarketApiApplication")) {
+            if (lines.get(i).contains(APP_STARTING_MARKER)) {
                 return i;
             }
         }
@@ -2885,7 +2888,7 @@ public class DiagnosticMcpTools {
 
     private int findNextStartupBeginIndex(java.util.List<String> lines, int after) {
         for (int i = Math.max(0, after); i < lines.size(); i++) {
-            if (lines.get(i).contains("Starting AgoraMarketApiApplication")) {
+            if (lines.get(i).contains(APP_STARTING_MARKER)) {
                 return i;
             }
         }
@@ -2990,7 +2993,7 @@ public class DiagnosticMcpTools {
     private java.util.Optional<Double> parseStartupSeconds(String line) {
         if (line == null) return java.util.Optional.empty();
         java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("Started AgoraMarketApiApplication in ([0-9]+(?:\\.[0-9]+)?) seconds")
+                .compile(APP_STARTED_MARKER + " in ([0-9]+(?:\\.[0-9]+)?) seconds")
                 .matcher(line);
         return matcher.find()
                 ? java.util.Optional.of(Double.parseDouble(matcher.group(1)))
@@ -3010,7 +3013,7 @@ public class DiagnosticMcpTools {
     private boolean isStartupPhaseLine(String line) {
         if (line == null) return false;
         return line.contains("Tomcat started")
-                || line.contains("Started AgoraMarketApiApplication")
+                || line.contains(APP_STARTED_MARKER)
                 || line.contains("[StartupBudget]")
                 || line.contains("ApplicationRunner.run() called")
                 || line.contains("ApplicationReadyEvent")
@@ -3033,19 +3036,18 @@ public class DiagnosticMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.REPORTING})
-    @Tool(description = "本次 JVM 啟動後 app.log WARN/ERROR 摘要。以最後一條 'Started AgoraMarketApiApplication' 為切點，" +
+    @Tool(description = "本次 JVM 啟動後 app.log WARN/ERROR 摘要。以最後一條 TradingApiApplication started marker 為切點，" +
             "避免把舊 deploy 失敗、舊 429、舊 duplicate key 誤判為當前問題。params: limit=最多顯示幾行(預設40,最多120)")
     public String getCurrentStartupLogIssues(Integer limit) {
         int lim = limit != null ? Math.min(Math.max(limit, 1), 120) : 40;
-        java.io.File logFile = new java.io.File("/home/ubuntu/AgoraMarketAPI/app.log");
-        if (!logFile.exists()) logFile = new java.io.File("logs/app.log");
+        java.io.File logFile = resolveAppLogFile();
         if (!logFile.exists()) return "⚠️ app.log not found";
 
         try {
             java.util.List<String> lines = java.nio.file.Files.readAllLines(logFile.toPath());
             int startIdx = -1;
             for (int i = lines.size() - 1; i >= 0; i--) {
-                if (lines.get(i).contains("Started AgoraMarketApiApplication")) {
+                if (lines.get(i).contains(APP_STARTED_MARKER)) {
                     startIdx = i;
                     break;
                 }
@@ -3206,7 +3208,7 @@ public class DiagnosticMcpTools {
     private boolean isSlowStartup(String line) {
         if (line == null) return false;
         java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("Started AgoraMarketApiApplication in ([0-9]+(?:\\.[0-9]+)?) seconds")
+                .compile(APP_STARTED_MARKER + " in ([0-9]+(?:\\.[0-9]+)?) seconds")
                 .matcher(line);
         return matcher.find() && Double.parseDouble(matcher.group(1)) > 120.0;
     }

@@ -10,6 +10,6 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "kb.daily-export")
 public record KbDailyExportProperties(
         @DefaultValue("true") boolean enabled,
-        @DefaultValue("/home/ubuntu/AgoraMarketAPI/kb-snapshots") @NotBlank String exportPath,
+        @DefaultValue("/home/ubuntu/agora-trading-api/kb-snapshots") @NotBlank String exportPath,
         @DefaultValue("true") boolean gitCommit
 ) {}

@@ -103,7 +103,7 @@ public sealed interface AiTask
         }
         @Override public String type() { return "answer-user-query"; }
         @Override public String systemPrompt() {
-            return "你是 AgoraMarketAPI 系統助手。使用者問題前會附一份 system snapshot JSON(--- 分隔)。" +
+            return "你是 Agora Trading 服務助手。使用者問題前會附一份 system snapshot JSON(--- 分隔)。" +
                    "**嚴格根據 snapshot 內的事實回答**,不要用訓練資料腦補。若 snapshot 沒有答案所需資訊,誠實說「snapshot 無此資訊,建議直接 call <tool_name>」。" +
                    "用繁體中文,精簡回答 100-200 字,附相關數字。";
         }

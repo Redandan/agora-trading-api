@@ -44,7 +44,7 @@ public class AlphaPromotionTracker {
     private final ObjectMapper objectMapper;
 
     /** Snapshot file 位置（可被 application.yml 覆蓋） */
-    @Value("${agora.alpha-tracker.snapshot-path:/home/ubuntu/AgoraMarketAPI/alpha-tracker-snapshot.json}")
+    @Value("${agora.alpha-tracker.snapshot-path:/home/ubuntu/agora-trading-api/alpha-tracker-snapshot.json}")
     private String snapshotPath;
 
     /** Cron：每週日 09:00 UTC */

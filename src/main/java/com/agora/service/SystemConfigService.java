@@ -23,19 +23,4 @@ public interface SystemConfigService {
      * @return 如果配置值為 "true" 則返回 true，否則返回 false
      */
     boolean isConfigEnabled(String configKey);
-    
-    /**
-     * 檢查賣家入口是否維護中
-     * 注意：該狀態在系統啟動時預加載到內存，直接從緩存讀取，性能高效
-     * @return true 表示維護中，false 表示正常
-     */
-    boolean isSellerMaintenanceEnabled();
-    
-    /**
-     * 檢查外送員入口是否維護中
-     * 注意：該狀態在系統啟動時預加載到內存，直接從緩存讀取，性能高效
-     * @return true 表示維護中，false 表示正常
-     */
-    boolean isDeliveryMaintenanceEnabled();
 }
-

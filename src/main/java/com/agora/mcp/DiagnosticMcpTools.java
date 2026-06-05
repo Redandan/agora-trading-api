@@ -3153,10 +3153,6 @@ public class DiagnosticMcpTools {
                 boolean warn = line.contains(" WARN ");
                 boolean error = line.contains(" ERROR ") || line.contains("Exception") || line.contains("APPLICATION FAILED");
                 if (!warn && !error) continue;
-                if (line.contains("digital-order.code-encryption-key")) {
-                    // Known and intentionally unhandled in production per ops decision.
-                    warn = true;
-                }
                 if (error) buckets.computeIfPresent("ERROR", (k, v) -> v + 1);
                 if (warn) buckets.computeIfPresent("WARN", (k, v) -> v + 1);
                 if (line.contains("Duplicate entry")) buckets.computeIfPresent("Duplicate key", (k, v) -> v + 1);
@@ -3195,8 +3191,7 @@ public class DiagnosticMcpTools {
                     sb.append("  ").append(trimLine(hits.get(i), 220)).append("\n");
                 }
             }
-            sb.append("\nnotes: digital-order.code-encryption-key warning is intentionally left unresolved; ");
-            sb.append("blue/green old-JVM shutdown hook noise is excluded; ");
+            sb.append("\nnotes: blue/green old-JVM shutdown hook noise is excluded; ");
             sb.append("recovered startup-budget warnings are excluded; ");
             sb.append("AI_PROVIDER_DEGRADED lines are non-core AI advisory/provider degradation, not marketplace/checkout/trading/OCO failure; ");
             sb.append("server_startup_log cutoff is an intentional fallback when app.log does not contain the Spring started marker; ");

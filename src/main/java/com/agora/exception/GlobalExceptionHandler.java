@@ -1,7 +1,6 @@
 package com.agora.exception;
 
 
-import com.agora.dto.common.FileAssociationErrorResponse;
 import com.agora.service.DatabaseConnectionAlertService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -148,11 +147,6 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(FileAssociationException.class)
-    public ResponseEntity<FileAssociationErrorResponse> handleFileAssociationException(FileAssociationException ex) {
-        return new ResponseEntity<>(ex.getErrorResponse(), HttpStatus.BAD_REQUEST);
     }
 
     /**

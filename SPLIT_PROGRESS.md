@@ -65,6 +65,7 @@
 - Env-template verification now discovers both required server env keys and fixed-value env guards from deploy/server scripts.
 - Deploy keeps the previous blue-green instance and nginx backup when `RUN_POST_DEPLOY_VERIFY=0`, so skipped verification does not drain the last proven instance.
 - Deploy now passes its actual app/env/port/AgoraMarket/nginx context into post-deploy server verification instead of letting the verifier fall back to default paths.
+- Deploy now also preserves an explicit `RUN_SCHEMA_BASELINE_COMPARE=1` request into post-deploy server verification, so the Flyway-baseline DB compare cannot be silently skipped during acceptance.
 - Short-squeeze alerting and Binance taker-buy collection now default off in code as well as in the tracked env template and local smoke.
 - Market-flip detector now defaults off in code and the tracked env template, so flip event writes and related notifications are production opt-in.
 - ML shadow inference logging now defaults off in code and the tracked env template, so live-signal HeatWave prediction lookups and `ml_inference_log` writes are production opt-in.

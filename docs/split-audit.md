@@ -172,6 +172,7 @@ These domains are retained unless a later audit proves they are unused:
 - Server verification checks `app.commit` against the worktree HEAD and checks that `app.pid` still owns the active `app.port`.
 - Deploy runs server verification after switching active metadata by default; `RUN_POST_DEPLOY_VERIFY=0` is an explicit emergency bypass.
 - Deploy passes its actual `APP_DIR`, `ENV_FILE`, port pair, AgoraMarket dependency URL, internal-client path, and nginx config path into post-deploy server verification, so custom deploy invocations are verified against the same environment that was deployed.
+- Deploy also propagates `RUN_SCHEMA_BASELINE_COMPARE` into post-deploy server verification, so an explicit schema-baseline compare request is not lost during deploy acceptance.
 - Deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing; logs include `post-deploy verification failed; rolling back active metadata`.
 - Deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`. If post-deploy verification is skipped, deploy keeps the previous instance and nginx backup.
 - Nginx deploy verifies public trading health through `DEFAULT_PUBLIC_TRADING_HEALTH_URL` by default.

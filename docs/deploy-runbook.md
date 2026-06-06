@@ -307,6 +307,10 @@ Optional schema baseline table comparison before generating Flyway baseline:
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 ```
 
+When `RUN_SCHEMA_BASELINE_COMPARE=1` is set for `deploy.sh`, the deploy script
+passes that flag into post-deploy `scripts/verify_server.sh`; the default remains
+`0` for normal deploy acceptance until a baseline migration is ready.
+
 Exchange-rate behavior:
 
 - with `AGORA_MARKET_INTERNAL_API_KEY`: trading calls AgoraMarket internal API.

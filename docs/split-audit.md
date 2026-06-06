@@ -63,6 +63,7 @@ Expected:
 
 - `smoke_local_health.ps1` starts the service with profile `local-smoke`, checks `http://127.0.0.1:18084/api/trading/actuator/health`, then stops the temporary Maven/Java process tree.
 - `local-smoke` excludes scheduled task registration, and smoke logs include `Scheduling disabled for local-smoke profile`.
+- Local smoke calls `/api/trading/mcp` and verifies representative market-data MCP guard responses for disabled live sentiment reads, external health probes, and external backfill/import reads.
 - `verify_local.ps1` runs `mvn test`.
 - `verify_local.ps1` scans for forbidden marketplace, frontend, login, auth, commerce, wallet, realtime, stale utility residue, deployment guard regressions, schema-bootstrap drift, and internal API contract drift.
 - `verify_split_boundaries.ps1` runs the schema inventory, POM dependency boundary, package boundary, and server env template contract checks.

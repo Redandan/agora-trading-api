@@ -45,6 +45,53 @@ function Assert-LogNotContains {
     }
 }
 
+function Invoke-McpTool {
+    param(
+        [string]$Url,
+        [string]$ToolName,
+        [hashtable]$Arguments = @{}
+    )
+
+    $body = @{
+        jsonrpc = "2.0"
+        id = "local-smoke-$ToolName"
+        method = "tools/call"
+        params = @{
+            name = $ToolName
+            arguments = $Arguments
+        }
+    } | ConvertTo-Json -Depth 8 -Compress
+
+    $response = Invoke-WebRequest `
+        -Uri $Url `
+        -Method Post `
+        -UseBasicParsing `
+        -TimeoutSec 30 `
+        -ContentType "application/json" `
+        -Headers @{ Authorization = "Bearer local-smoke-mcp" } `
+        -Body $body
+
+    if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) {
+        throw "Local smoke MCP $ToolName failed with HTTP $($response.StatusCode). url=$Url"
+    }
+    if ($response.Content -notmatch '"content"\s*:') {
+        throw "Local smoke MCP $ToolName response missing content array. url=$Url"
+    }
+    return $response.Content
+}
+
+function Assert-McpContentContains {
+    param(
+        [string]$Content,
+        [string]$Pattern,
+        [string]$Description
+    )
+
+    if ($Content -notmatch $Pattern) {
+        throw "Local smoke MCP response missing expected evidence: $Description. pattern=$Pattern content=$Content"
+    }
+}
+
 $repo = Resolve-Path "$PSScriptRoot\.."
 $healthUrl = "http://127.0.0.1:$Port/api/trading/actuator/health"
 $mcpUrl = "http://127.0.0.1:$Port/api/trading/mcp"
@@ -376,21 +423,16 @@ try {
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(ShortSqueezeAlert.*FIRED|SpotTakerBuy.*15m taker buy|SpotTakerBuy.*collect failed)" -Description "local-smoke must not run short-squeeze alert or taker-buy collection"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 
-    $mcpBody = '{"jsonrpc":"2.0","id":"local-smoke-registry-version","method":"tools/call","params":{"name":"getMcpRegistryVersion","arguments":{}}}'
-    $mcpResponse = Invoke-WebRequest `
-        -Uri $mcpUrl `
-        -Method Post `
-        -UseBasicParsing `
-        -TimeoutSec 30 `
-        -ContentType "application/json" `
-        -Headers @{ Authorization = "Bearer local-smoke-mcp" } `
-        -Body $mcpBody
-    if ($mcpResponse.StatusCode -lt 200 -or $mcpResponse.StatusCode -ge 300) {
-        throw "Local smoke MCP getMcpRegistryVersion failed with HTTP $($mcpResponse.StatusCode). url=$mcpUrl stdout=$stdout stderr=$stderr"
-    }
-    if ($mcpResponse.Content -notmatch '"content"\s*:') {
-        throw "Local smoke MCP getMcpRegistryVersion response missing content array. url=$mcpUrl"
-    }
+    [void](Invoke-McpTool -Url $mcpUrl -ToolName "getMcpRegistryVersion")
+
+    $sentimentGuard = Invoke-McpTool -Url $mcpUrl -ToolName "getMarketSentiment" -Arguments @{ symbol = "BTCUSDT" }
+    Assert-McpContentContains -Content $sentimentGuard -Pattern "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true" -Description "live sentiment MCP tools are disabled by default"
+
+    $healthGuard = Invoke-McpTool -Url $mcpUrl -ToolName "getSystemHealth"
+    Assert-McpContentContains -Content $healthGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED=true" -Description "external MCP health probes are disabled by default"
+
+    $backfillGuard = Invoke-McpTool -Url $mcpUrl -ToolName "backfillOkxKlines" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1h"; days = 1 }
+    Assert-McpContentContains -Content $backfillGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true" -Description "external MCP backfills are disabled by default"
 
     Write-Host "[smoke] OK $healthUrl"
 } finally {

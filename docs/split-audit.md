@@ -25,6 +25,7 @@ Expected behavior:
 - With `AGORA_MARKET_INTERNAL_API_KEY`, trading calls the AgoraMarket internal exchange-rate API.
 - Without the key, or if the internal API times out, returns 401, or is unavailable, trading falls back to static rates.
 - Local tests cover the SDK-backed service and fallback behavior.
+- The old public exchange-rate provider chain was removed; trading no longer owns CoinGecko/Binance/CoinMarketCap fallback providers for this contract.
 
 ## Trading-Owned SQL Configuration
 

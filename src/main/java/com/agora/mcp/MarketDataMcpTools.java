@@ -2761,24 +2761,24 @@ public class MarketDataMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MARKET_DATA, Category.DIAGNOSTIC})
-    @Tool(description = "查詢 USDT 匯率快取狀態。回傳所有支援貨幣（USD/TWD/CNY/JPY/EUR/GBP/KRW/SGD/HKD/AUD）的當前匯率、" +
-            "上次更新時間、快取是否過期，以及各 Provider（CoinGecko → Binance → CoinMarketCap）的可用性摘要。" +
-            "部署後用來驗證 ExchangeRateProvider 鏈正常運作。")
+    @Tool(description = "查詢 USDT 匯率狀態。回傳所有支援貨幣（USD/TWD/CNY/JPY/EUR/GBP/KRW/SGD/HKD/AUD）的當前匯率、" +
+            "上次更新時間，以及 AgoraMarket internal API 或 static fallback 的結果。" +
+            "部署後用來驗證 exchange-rate split contract 正常運作。")
     public String getExchangeRates() {
         try {
             List<ExchangeRateInfo> rates = exchangeRateService.getAllUsdtRates();
             boolean stale = exchangeRateService.needsUpdate();
 
             StringBuilder sb = new StringBuilder();
-            sb.append("── USDT 匯率快取狀態 ──\n\n");
+            sb.append("── USDT 匯率狀態 ──\n\n");
 
             if (rates.isEmpty()) {
-                sb.append("⚠️ 快取為空 — 所有 Provider 均失敗或服務剛啟動\n");
+                sb.append("⚠️ 匯率列表為空 — internal API 與 static fallback 都未回傳資料\n");
                 return sb.toString();
             }
 
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Taipei"));
-            sb.append(stale ? "🔴 快取已過期（>3 秒）\n" : "🟢 快取新鮮\n");
+            sb.append(stale ? "🔴 匯率資料需要更新\n" : "🟢 匯率資料可用\n");
 
             // 找最舊的 lastUpdated 作為「快取時間」
             rates.stream()
@@ -2802,7 +2802,7 @@ public class MarketDataMcpTools {
             }
 
             if (rates.size() < 10) {
-                sb.append("\n⚠️ 部分幣種缺失，可能某個 Provider 回傳資料不完整");
+                sb.append("\n⚠️ 部分幣種缺失，請檢查 AgoraMarket internal API 或 static fallback 設定");
             }
 
             return sb.toString();

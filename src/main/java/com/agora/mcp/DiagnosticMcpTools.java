@@ -3298,7 +3298,6 @@ public class DiagnosticMcpTools {
                 || line.contains("[AttentionRule] hit counter update failed: ch/qos/logback/classic/spi/ThrowableProxy")
                 || line.contains("[MarketFlip]") && line.contains("TelegramServiceImpl$QueuedMessage")
                 || line.contains("[IndicatorHistory] parallel fetch execution error: com/agora/service/market/CoinGeckoGlobalService$CachedDouble")
-                || line.contains("Scheduled 任務發生異常: ExchangeRateServiceImpl.scheduledRefreshRates()")
                 // a4469c7b replaced the unbounded "async-vt-" executor with a
                 // bounded "async-" executor. Any async-vt EntityManagerFactory
                 // closed line after that deploy is a drained old JVM task, not

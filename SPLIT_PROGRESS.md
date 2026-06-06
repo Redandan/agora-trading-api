@@ -13,6 +13,7 @@
 - Obvious marketplace product/order/cart/delivery/game/webpush/notification code was removed from trading.
 - `AgoraMarketExchangeRateServiceImpl` uses the `agora-market-internal-client` SDK when configured.
 - `StaticExchangeRateServiceImpl` exists as the local/downstream-failure fallback.
+- Unused public exchange-rate provider chain leftovers were removed; exchange rates now use AgoraMarket internal SDK or static fallback only.
 - Flutter/AppVersion deployment leftovers were removed from trading.
 - UserSearchLog/SearchLogAspect leftovers were removed from trading.
 - CustomerIssue/support-ticket leftovers were removed from trading.

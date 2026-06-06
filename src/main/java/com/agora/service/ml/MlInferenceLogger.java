@@ -44,8 +44,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * would block other strategies.
  *
  * <h3>Disabled-by-default safety</h3>
- * Controlled by {@code meta-control.ml-shadow.enabled} (default true). Set
- * false to fully disable ML inference logging without redeployment.
+ * Controlled by {@code meta-control.ml-shadow.enabled} (default false). Set
+ * true to enable ML inference logging without redeployment.
  */
 @Slf4j
 @Service

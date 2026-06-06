@@ -111,6 +111,7 @@ $envOverrides = @{
     META_CONTROL_MARKET_FLIP_ANALYSIS_ENABLED = "false"
     META_CONTROL_MARKET_FLIP_AUTO_ESCALATE_ENABLED = "false"
     META_CONTROL_ML_PROTECTION_ENABLED = "false"
+    META_CONTROL_ML_SHADOW_ENABLED = "false"
     META_CONTROL_ML_EDGE_WATCHER_ENABLED = "false"
     META_CONTROL_ML_AUTORETRAIN_ENABLED = "false"
     META_CONTROL_DAILY_ML_DIGEST_ENABLED = "false"
@@ -228,6 +229,7 @@ try {
         "--meta-control.market-flip.analysis-enabled=false",
         "--meta-control.market-flip.auto-escalate-enabled=false",
         "--meta-control.ml-protection.enabled=false",
+        "--meta-control.ml-shadow.enabled=false",
         "--meta-control.ml-edge-watcher.enabled=false",
         "--meta-control.ml-autoretrain.enabled=false",
         "--meta-control.daily-ml-digest.enabled=false",

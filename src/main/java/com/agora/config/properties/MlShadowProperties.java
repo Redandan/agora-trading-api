@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.ml-shadow")
 public record MlShadowProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("signal_scorer") @NotBlank String modelName,
         @DefaultValue("0.5") double threshold
 ) {}

@@ -7,7 +7,10 @@ function Invoke-Rg {
         [string[]]$Paths
     )
 
-    $output = & rg $Pattern @Paths
+    # Windows PowerShell 5.1 can split native-command args when the regex contains
+    # embedded literal quotes. Escape them before handing the pattern to rg.
+    $nativePattern = $Pattern -replace '"', '\"'
+    $output = & rg $nativePattern @Paths
     $exitCode = $LASTEXITCODE
     if ($exitCode -gt 1) {
         throw "rg failed with exit code $exitCode for pattern: $Pattern"
@@ -164,7 +167,7 @@ try {
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline has read-only server compare step"
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "VERIFY_GIT_CURRENT" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "server verification checks deployed git currentness by default"
-    Assert-RgMatch -Pattern 'REQUIRE_DEPLOY_METADATA="\$\{REQUIRE_DEPLOY_METADATA:-1\}"' -Paths @("scripts/verify_server.sh") -Description "server verification requires deploy metadata by default"
+    Assert-RgMatch -Pattern "REQUIRE_DEPLOY_METADATA=.*REQUIRE_DEPLOY_METADATA:-1" -Paths @("scripts/verify_server.sh") -Description "server verification requires deploy metadata by default"
     Assert-RgMatch -Pattern "REQUIRE_DEPLOY_METADATA=0.*diagnostics" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "deploy metadata bypass is documented as diagnostic only"
     Assert-RgMatch -Pattern "deploy commit file missing" -Paths @("scripts/verify_server.sh") -Description "server verification fails when app.commit metadata is missing by default"
     Assert-RgMatch -Pattern "deploy port file missing" -Paths @("scripts/verify_server.sh") -Description "server verification fails when app.port metadata is missing by default"
@@ -180,9 +183,9 @@ try {
     Assert-RgMatch -Pattern "AGORA_MARKET_HEALTH_URL=.*http://127\.0\.0\.1:8082/api/actuator/health" -Paths @("deploy.sh", "scripts/bootstrap_server.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts check local AgoraMarket dependency health by default"
     Assert-RgMatch -Pattern "AgoraMarket exchange-rate dependency health failed" -Paths @("deploy.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy/verify fail on AgoraMarket health failure"
     Assert-RgMatch -Pattern "before starting the blue-green switch" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "deploy pre-switch AgoraMarket health gate is documented"
-    Assert-RgMatch -Pattern 'REQUIRE_AGORA_MARKET_HEALTH="\$\{REQUIRE_AGORA_MARKET_HEALTH:-1\}"' -Paths @("scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server preflight/verify require AgoraMarket health by default"
+    Assert-RgMatch -Pattern "REQUIRE_AGORA_MARKET_HEALTH=.*REQUIRE_AGORA_MARKET_HEALTH:-1" -Paths @("scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server preflight/verify require AgoraMarket health by default"
     Assert-RgMatch -Pattern "REQUIRE_AGORA_MARKET_HEALTH=0.*diagnostic" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "AgoraMarket health bypass is documented as diagnostic only"
-    Assert-RgMatch -Pattern "fail `"AgoraMarket exchange-rate dependency local health failed" -Paths @("scripts/preflight_server.sh") -Description "server preflight fails on AgoraMarket health failure by default"
+    Assert-RgMatch -Pattern "AgoraMarket exchange-rate dependency local health failed" -Paths @("scripts/preflight_server.sh") -Description "server preflight fails on AgoraMarket health failure by default"
     Assert-RgNoMatch -Pattern "agoramarketapi\.purrtechllc\.com/api/actuator/health" -Paths @("scripts/bootstrap_server.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "server dependency health checks must not use public AgoraMarket health URL"
     Assert-RgMatch -Pattern "information_schema.tables" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare queries database metadata only"
     Assert-RgMatch -Pattern "server-implicit-entities.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects implicit entity table names"
@@ -201,7 +204,7 @@ try {
     Assert-RgMatch -Pattern "old public exchange-rate provider chain was removed" -Paths @("docs/split-audit.md") -Description "split audit documents removed public exchange-rate provider chain"
     Assert-RgMatch -Pattern "internal SDK or static fallback only" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents exchange-rate runtime ownership"
     Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL:http://127\.0\.0\.1:8082" -Paths @("src/main/resources/application.yml", "INTERNAL_API_TODO.md") -Description "AgoraMarket internal API default points at local server dependency port"
-    Assert-RgMatch -Pattern 'baseUrl = "http://127\.0\.0\.1:8082"' -Paths @("src/main/java/com/agora/config/AgoraMarketExchangeRateProperties.java") -Description "AgoraMarket exchange-rate Java fallback matches server dependency port"
+    Assert-RgMatch -Pattern "baseUrl = .*127\.0\.0\.1:8082" -Paths @("src/main/java/com/agora/config/AgoraMarketExchangeRateProperties.java") -Description "AgoraMarket exchange-rate Java fallback matches server dependency port"
     Assert-RgNoMatch -Pattern "agora_market\." -Paths @("src/main/java", "src/main/resources/application.yml") -Description "hardcoded legacy AgoraMarket database schema"
     Assert-RgMatch -Pattern "META_CONTROL_ML_SQL_SCHEMA=agora_trading" -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ML SQL schema is explicit in split deploy docs"
     Assert-RgMatch -Pattern "meta-control\.ml\.sql" -Paths @("src/main/java/com/agora/config/properties/MlSqlProperties.java", "src/main/resources/application.yml", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ML SQL schema/table names are configuration-backed"
@@ -294,6 +297,8 @@ try {
     Assert-RgNoMatch -Pattern "NightlyCleanupOrchestrator|scheduler\.system\.NightlyCleanupOrchestrator" -Paths @("src", "docs", ".env.trading.secrets.example") -Description "stale nightly cleanup orchestrator reference"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean flipDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint flip detector defaults off"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean stalenessDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint staleness detector defaults off"
+    Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/ShortAiFilterProperties.java") -Description "ShortAiFilter AI/MCP layer defaults off"
+    Assert-RgMatch -Pattern "TRADING_SHORT_AI_FILTER_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ShortAiFilter opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern "if \(!props\.flipDetectorEnabled\(\)\) return" -Paths @("src/main/java/com/agora/scheduler/trading/GeminiHintFlipDetector.java") -Description "Gemini hint flip scheduler has method-level opt-in guard"
     Assert-RgMatch -Pattern "if \(!props\.stalenessDetectorEnabled\(\)\) return" -Paths @("src/main/java/com/agora/scheduler/trading/GeminiHintStalenessDetector.java") -Description "Gemini hint staleness scheduler has method-level opt-in guard"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/AiStrategyDiscoveryProperties.java") -Description "AI strategy discovery scheduler defaults off"
@@ -411,6 +416,7 @@ try {
         "TRADING_GEMINI_ADVISOR_ENABLED",
         "TRADING_GEMINI_ADVISOR_FLIP_DETECTOR_ENABLED",
         "TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED",
+        "TRADING_SHORT_AI_FILTER_ENABLED",
         "TRADING_GRID_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN",
@@ -432,6 +438,7 @@ try {
         "trading.gemini-advisor.enabled=false",
         "trading.gemini-advisor.flip-detector-enabled=false",
         "trading.gemini-advisor.staleness-detector-enabled=false",
+        "trading.short-ai-filter.enabled=false",
         "trading.grid.enabled=false",
         "trading.tiny-live.auto-execution.enabled=false",
         "trading.tiny-live.auto-execution.dry-run=true",

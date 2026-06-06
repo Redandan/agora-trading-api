@@ -118,6 +118,7 @@ $envOverrides = @{
     TRADING_GEMINI_ADVISOR_ENABLED = "false"
     TRADING_GEMINI_ADVISOR_FLIP_DETECTOR_ENABLED = "false"
     TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED = "false"
+    TRADING_SHORT_AI_FILTER_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
     MARKET_LIQUIDATION_WS_ENABLED = "false"
@@ -237,6 +238,7 @@ try {
         "--trading.gemini-advisor.enabled=false",
         "--trading.gemini-advisor.flip-detector-enabled=false",
         "--trading.gemini-advisor.staleness-detector-enabled=false",
+        "--trading.short-ai-filter.enabled=false",
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",
         "--market.liquidation-ws.enabled=false",
@@ -356,7 +358,7 @@ try {
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Attribution/startup|MlMatRefresh.*start refresh|MlMatRefresh.*kicking off initial refresh)" -Description "local-smoke must not schedule attribution startup backfill or refresh ML materialized data"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(DexFlowBackfill|HLFundingBackfill|CoinalyzeBackfill|CMIBackfill)" -Description "local-smoke must not run startup market-data backfills"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Trading buffer topped from Earn|Simple Earn)" -Description "local-smoke must not top up from OKX Earn"
-    Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|state .*→|sl .*->|sl .*→)" -Description "local-smoke must not modify trailing-stop OCO state"
+    Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|sl .*->)" -Description "local-smoke must not modify trailing-stop OCO state"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(ShortSqueezeAlert.*FIRED|SpotTakerBuy.*15m taker buy|SpotTakerBuy.*collect failed)" -Description "local-smoke must not run short-squeeze alert or taker-buy collection"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 

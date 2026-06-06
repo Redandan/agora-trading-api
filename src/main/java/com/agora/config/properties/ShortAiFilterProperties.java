@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "trading.short-ai-filter")
 public record ShortAiFilterProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("shadow") @NotBlank String mode,
         @DefaultValue("0.40") double macroRiskThreshold,
         @DefaultValue("-0.0003") double fundingRateThreshold,

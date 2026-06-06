@@ -137,6 +137,10 @@ public class MarketDataMcpTools {
             "可用來了解過去市場情緒走勢，或驗證特定日期的 F&G 值。" +
             "param: days=天數（預設30，最多365）。顯示日期、指數值、市場情緒分類。")
     public String getFearGreedHistory(Integer days) {
+        if (!liveSentimentEnabled) {
+            return disabledLiveSentimentMessage("getFearGreedHistory",
+                    "read alternative.me Fear&Greed history directly");
+        }
         if (days == null || days <= 0 || days > 365) days = 30;
 
         List<FearGreedService.FearGreedEntry> history = fearGreedService.getHistoricalFearGreed(days);
@@ -1135,10 +1139,7 @@ public class MarketDataMcpTools {
             "riskScore >= 0.40 時 ShortAiFilter Layer 1 會封鎖做空。")
     public String getPolymarketRisk() {
         if (!liveSentimentEnabled) {
-            return "⚠️ getPolymarketRisk live external reads are disabled by "
-                    + "trading.market-data-mcp.live-sentiment-enabled=false. "
-                    + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP market-data tools "
-                    + "should read Polymarket directly.";
+            return disabledLiveSentimentMessage("getPolymarketRisk", "read Polymarket directly");
         }
 
         try {
@@ -1183,10 +1184,8 @@ public class MarketDataMcpTools {
             "param: symbol=交易對（如 BTCUSDT 或 ETHUSDT）。")
     public String getMarketSentiment(String symbol) {
         if (!liveSentimentEnabled) {
-            return "⚠️ getMarketSentiment live external reads are disabled by "
-                    + "trading.market-data-mcp.live-sentiment-enabled=false. "
-                    + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP market-data tools "
-                    + "should read Fear&Greed, whale flow, OKX, Polymarket, and orderbook endpoints directly.";
+            return disabledLiveSentimentMessage("getMarketSentiment",
+                    "read Fear&Greed, whale flow, OKX, Polymarket, and orderbook endpoints directly");
         }
 
         StringBuilder sb = new StringBuilder();
@@ -2167,6 +2166,10 @@ public class MarketDataMcpTools {
     @McpCategory({Category.MARKET_DATA})
     @Tool(description = "回填 Fear & Greed 歷史數據至 market_indicator_history（daily，最多 365 天）。idempotent。")
     public String backfillFearGreed(Integer days) {
+        if (!liveSentimentEnabled) {
+            return disabledLiveSentimentMessage("backfillFearGreed",
+                    "read alternative.me Fear&Greed history and write market_indicator_history");
+        }
         int d = (days == null || days <= 0) ? 365 : Math.min(days, 365);
         log.info("[MCP] backfillFearGreed {}d", d);
         return indicatorHistoryBackfillService.backfillFearGreed(d);
@@ -2242,6 +2245,10 @@ public class MarketDataMcpTools {
             "param: strategyId=策略ID, days=回溯天數（預設 30，最多 180）。" +
             "回傳:總勝率、各 F&G 區間勝率與 PnL、最近 5 筆交易明細。")
     public String analyzeStrategyTrades(Long strategyId, Integer days) {
+        if (!liveSentimentEnabled) {
+            return disabledLiveSentimentMessage("analyzeStrategyTrades",
+                    "read alternative.me Fear&Greed history for trade context analysis");
+        }
         if (strategyId == null) return "❌ strategyId 不可為空";
         int daysVal = days != null ? Math.min(days, 180) : 30;
         LocalDateTime since = LocalDateTime.now().minusDays(daysVal);
@@ -2311,6 +2318,13 @@ public class MarketDataMcpTools {
 
         sb.append("\n💡 系統性 bias 提示：若某 F&G 區間勝率顯著低於總勝率（差距 >15%），考慮在該區間封鎖進場。");
         return sb.toString();
+    }
+
+    private String disabledLiveSentimentMessage(String toolName, String action) {
+        return "⚠️ " + toolName + " live external reads are disabled by "
+                + "trading.market-data-mcp.live-sentiment-enabled=false. "
+                + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP market-data tools "
+                + "should " + action + ".";
     }
 
     private List<FearGreedService.FearGreedEntry> fetchFgHistorySafe(int days) {

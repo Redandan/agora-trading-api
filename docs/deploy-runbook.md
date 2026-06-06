@@ -160,7 +160,7 @@ Expected:
 - shell syntax passes for `deploy.sh` and `scripts/*.sh`.
 - required server tools exist.
 - AgoraMarket exchange-rate dependency health passes by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is diagnostic-only and is not deploy acceptance.
-- `.env.trading.secrets.example` covers every server script `require_env_key` without committing real secret values.
+- `.env.trading.secrets.example` covers every server script `require_env_key` and `require_env_value` without committing real secret values.
 - `.env.trading.secrets.example` lists optional runtime safety toggles for startup backfills, market WebSockets, trading execution, Telegram, AI providers, and external market-data providers.
 - Hourly orchestrator, market indicator collection, BTC price-move indicator writes, ETF pressure refresh/calculation fetches, and meta-control attribution default off in code and the tracked template; enable `META_CONTROL_HOURLY_ORCHESTRATOR_ENABLED=true`, `META_CONTROL_INDICATOR_HISTORY_ENABLED=true`, `META_CONTROL_BTC_PRICE_MOVE_INDICATOR_ENABLED=true`, `META_CONTROL_ETF_PRESSURE_REFRESH_ENABLED=true`, or `META_CONTROL_ATTRIBUTION_ENABLED=true` only after this service should own external indicator API collection, `market_indicator_history` writes, ETF Yahoo Finance reads, K-line gap backfills, attribution writes, and wide-TP Telegram scans.
 - Decision-audit cleanup, 1m kline pruning, and ephemeral strategy cleanup default off in code and the tracked template; enable `META_CONTROL_AUDIT_ENABLED=true`, `KLINE_PRUNING_ENABLED=true`, or `TRADING_EPHEMERAL_CLEANUP_ENABLED=true` only after this service should own those deletion jobs.

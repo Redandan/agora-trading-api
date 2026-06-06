@@ -23,7 +23,7 @@ try {
     $requiredByScripts = [ordered]@{}
     foreach ($scriptPath in @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh")) {
         $content = Get-Content -Raw $scriptPath
-        [regex]::Matches($content, "require_env_key\s+([A-Z0-9_]+)") | ForEach-Object {
+        [regex]::Matches($content, "require_env_(?:key|value)\s+([A-Z0-9_]+)") | ForEach-Object {
             $key = $_.Groups[1].Value
             if (-not $requiredByScripts.Contains($key)) {
                 $requiredByScripts[$key] = New-Object System.Collections.Generic.List[string]

@@ -62,6 +62,7 @@
 - Server verification now requires deploy metadata (`app.commit`, `app.pid`, `app.port`) by default, with `REQUIRE_DEPLOY_METADATA=0` reserved for non-deploy diagnostics.
 - Server verification now requires nginx service active by default, with `REQUIRE_NGINX_SERVICE=0` reserved for non-nginx diagnostics.
 - Deploy, server preflight, and verification now require temporary schema bootstrap env values (`SPRING_JPA_HIBERNATE_DDL_AUTO=update`, `SPRING_FLYWAY_ENABLED=false`) until a Flyway baseline is added.
+- Env-template verification now discovers both required server env keys and fixed-value env guards from deploy/server scripts.
 - Deploy keeps the previous blue-green instance and nginx backup when `RUN_POST_DEPLOY_VERIFY=0`, so skipped verification does not drain the last proven instance.
 - Short-squeeze alerting and Binance taker-buy collection now default off in code as well as in the tracked env template and local smoke.
 - Market-flip detector now defaults off in code and the tracked env template, so flip event writes and related notifications are production opt-in.

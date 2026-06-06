@@ -186,6 +186,7 @@ try {
     Assert-RgMatch -Pattern "validate_pom_boundary.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs pom dependency boundary"
     Assert-RgMatch -Pattern "validate_package_boundary.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs package boundary"
     Assert-RgMatch -Pattern "validate_env_template.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs env template boundary"
+    Assert-RgMatch -Pattern "require_env_.*key.*value" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator tracks required key and fixed-value env guards"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline has read-only server compare step"
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "VERIFY_GIT_CURRENT" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "server verification checks deployed git currentness by default"

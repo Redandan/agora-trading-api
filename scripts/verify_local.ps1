@@ -211,6 +211,7 @@ try {
     Assert-RgMatch -Pattern "AgoraMarket exchange-rate dependency local health failed" -Paths @("scripts/preflight_server.sh") -Description "server preflight fails on AgoraMarket health failure by default"
     Assert-RgNoMatch -Pattern "agoramarketapi\.purrtechllc\.com/api/actuator/health" -Paths @("scripts/bootstrap_server.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "server dependency health checks must not use public AgoraMarket health URL"
     Assert-RgMatch -Pattern "information_schema.tables" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare queries database metadata only"
+    Assert-RgMatch -Pattern "missing or empty.*ENV_FILE" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare rejects empty datasource env keys when run directly"
     Assert-RgMatch -Pattern "server-implicit-entities.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects implicit entity table names"
     Assert-RgMatch -Pattern "server-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects obvious marketplace-owned table names"
     Assert-RgMatch -Pattern "read-only compare complete" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare documents read-only behavior"

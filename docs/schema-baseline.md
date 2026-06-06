@@ -48,6 +48,9 @@ The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 `SPRING_DATASOURCE_PASSWORD` from `/home/ubuntu/.env.trading.secrets`, queries
 `information_schema.tables`, and writes these read-only outputs:
 
+Those datasource env keys must be present and non-empty even when the compare
+script is run directly instead of through `scripts/verify_server.sh`.
+
 - `target/schema-baseline/server-source-entity-tables.txt`
 - `target/schema-baseline/server-implicit-entities.txt`
 - `target/schema-baseline/server-forbidden-marketplace-tables.txt`

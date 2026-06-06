@@ -23,7 +23,9 @@ read_env_key() {
   local line
   [ -f "$ENV_FILE" ] || fail "env file missing: $ENV_FILE"
   line="$(grep -E "^[[:space:]]*${key}=" "$ENV_FILE" | tail -n 1 || true)"
-  [ -n "$line" ] || fail "missing $key in $ENV_FILE"
+  if [ -z "$line" ] || ! printf '%s\n' "$line" | grep -Eq "^[[:space:]]*${key}=[^[:space:]#]"; then
+    fail "missing or empty $key in $ENV_FILE"
+  fi
   printf '%s\n' "${line#*=}"
 }
 

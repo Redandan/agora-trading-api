@@ -142,7 +142,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - ScoreBuy pre-position, confirmed-deploy, post-scout add execution, and near-trigger notifications are disabled by default and dry-run in code and in the tracked template, so execution polling, order placement, and Telegram alerts are explicit production opt-in behavior.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
-- Server preflight and verification fail if `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` drift away from temporary bootstrap mode before the Flyway baseline exists.
+- Deploy, server preflight, and verification fail if `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` drift away from temporary bootstrap mode before the Flyway baseline exists.
 - `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.
 - `scripts/schema_baseline_compare_server.sh` repeats the implicit JPA table-name check on the server before comparing database metadata.
 - Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.

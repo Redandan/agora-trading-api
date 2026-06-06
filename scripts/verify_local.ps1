@@ -221,6 +221,9 @@ try {
     Assert-RgMatch -Pattern "server-db-known-system-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare classifies known database system tables"
     Assert-RgMatch -Pattern "flyway_schema_history" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "schema compare classifies Flyway history table separately"
     Assert-RgMatch -Pattern "read-only compare complete" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare documents read-only behavior"
+    foreach ($commandName in @("comm", "find", "grep", "mkdir", "mysql", "perl", "sort", "tail", "tr", "wc", "xargs")) {
+        Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare fails fast when $commandName is unavailable"
+    }
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED:false" -Paths @("src/main/resources/application.yml") -Description "Flyway is disabled by default until baseline exists"
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED=false" -Paths @("scripts/bootstrap_server.sh", "docs/deploy-runbook.md") -Description "server template keeps Flyway disabled before baseline"
     Assert-RgMatch -Pattern "require_env_value SPRING_JPA_HIBERNATE_DDL_AUTO update" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server deploy/verification keeps ddl-auto update until Flyway baseline exists"

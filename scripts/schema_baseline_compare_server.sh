@@ -32,10 +32,16 @@ read_env_key() {
 }
 
 require_cmd comm
+require_cmd find
 require_cmd grep
+require_cmd mkdir
 require_cmd mysql
 require_cmd perl
 require_cmd sort
+require_cmd tail
+require_cmd tr
+require_cmd wc
+require_cmd xargs
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
 cd "$APP_DIR"

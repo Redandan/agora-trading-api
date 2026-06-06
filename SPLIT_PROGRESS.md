@@ -36,6 +36,7 @@
 - Trading withdrawal risk state no longer reads the marketplace `users` table; unused User entity/repository, AutoReply service, and WebRTC signaling service leftovers were removed.
 - Trading no longer accepts login/member JWTs; MCP protected tools use service-level API-key authorization only.
 - Unused KB daily-export and post-deploy audit config residue was removed, including stale default-on file/git export and listener properties.
+- Unused one-shot OKX OI backfill service residue was removed; OI history backfill remains only through the guarded market-data MCP external-backfill path.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`

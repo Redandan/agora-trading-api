@@ -127,6 +127,9 @@ public class MarketDataMcpTools {
     @org.springframework.beans.factory.annotation.Value("${trading.market-data-mcp.external-health-probes-enabled:false}")
     private boolean externalHealthProbesEnabled;
 
+    @org.springframework.beans.factory.annotation.Value("${trading.market-data-mcp.external-backfills-enabled:false}")
+    private boolean externalBackfillsEnabled;
+
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     // ─── Fear & Greed 歷史 ────────────────────────────────────────────────────
@@ -2131,6 +2134,9 @@ public class MarketDataMcpTools {
             "端點分頁 300 根/頁，150ms/頁保守避開 rate limit。" +
             "param: symbol=交易對, intervalCode=週期, days=回填天數（最多 365）")
     public String backfillOkxKlines(String symbol, String intervalCode, Integer days) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillOkxKlines", "read OKX REST and write md_kline");
+        }
         int d = (days == null || days <= 0) ? 180 : Math.min(days, 365);
         LocalDateTime end = LocalDateTime.now(ZoneOffset.UTC);
         LocalDateTime start = end.minusDays(d);
@@ -2155,6 +2161,10 @@ public class MarketDataMcpTools {
             "rate limit: 150ms/請求，180 天 ≈ 10 分鐘完成。" +
             "param: days=回填天數（預設 180，最多 730）")
     public String backfillDexFlow(Integer days) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillDexFlow",
+                    "read The Graph and write market_indicator_history");
+        }
         int d = (days == null || days <= 0) ? 180 : Math.min(days, 730);
         LocalDateTime end   = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS);
         LocalDateTime start = end.minusDays(d);
@@ -2179,6 +2189,10 @@ public class MarketDataMcpTools {
     @McpCategory({Category.MARKET_DATA})
     @Tool(description = "回填 OKX 資金費率歷史至 market_indicator_history（每 8h，最多 100 筆）。idempotent。")
     public String backfillFundingRateHistory(String symbol, Integer limit) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillFundingRateHistory",
+                    "read OKX funding-rate history and write market_indicator_history");
+        }
         String sym = (symbol == null || symbol.isBlank()) ? "BTCUSDT" : symbol.toUpperCase();
         int lim = (limit == null || limit <= 0) ? 100 : Math.min(limit, 100);
         log.info("[MCP] backfillFundingRateHistory sym={} limit={}", sym, lim);
@@ -2190,6 +2204,10 @@ public class MarketDataMcpTools {
     @Tool(description = "#309 回填 OKX BTC 多空帳戶比 (long_short_ratio) 至 market_indicator_history（1H，最多 1440 筆 = 60 天）。" +
             "idempotent。param: symbol=交易對（預設 BTCUSDT）, limit=筆數（預設 1440 = 60 天）")
     public String backfillLongShortRatioHistory(String symbol, Integer limit) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillLongShortRatioHistory",
+                    "read OKX long/short history and write market_indicator_history");
+        }
         String sym = (symbol == null || symbol.isBlank()) ? "BTCUSDT" : symbol.toUpperCase();
         int lim = (limit == null || limit <= 0) ? 1440 : Math.min(limit, 1440);
         log.info("[MCP] backfillLongShortRatioHistory sym={} limit={}", sym, lim);
@@ -2201,6 +2219,10 @@ public class MarketDataMcpTools {
     @Tool(description = "回填 FRED 宏觀指標歷史至 market_indicator_history（daily，us_10y_yield/us_vix/us_sp500/us_dxy）。" +
             "param: years=回填年數（預設 2，最多 5）。需要 FRED_API_KEY。")
     public String backfillFredMacro(Integer years) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillFredMacro",
+                    "read FRED macro series and write market_indicator_history");
+        }
         int y = (years == null || years <= 0) ? 2 : Math.min(years, 5);
         log.info("[MCP] backfillFredMacro {}y", y);
         return indicatorHistoryBackfillService.backfillFredSeries(y);
@@ -2211,6 +2233,10 @@ public class MarketDataMcpTools {
     @Tool(description = "回填 Hyperliquid BTC 資金費率歷史至 market_indicator_history（hourly，最多 90 天）。" +
             "Hyperliquid API 免費、無需 key。idempotent。param: days=回填天數（預設 90）")
     public String backfillHyperliquidFunding(Integer days) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillHyperliquidFunding",
+                    "read Hyperliquid funding history and write market_indicator_history");
+        }
         int d = (days == null || days <= 0) ? 90 : Math.min(days, 180);
         log.info("[MCP] backfillHyperliquidFunding {}d", d);
         return indicatorHistoryBackfillService.backfillHyperliquidFunding(d);
@@ -2221,6 +2247,10 @@ public class MarketDataMcpTools {
     @Tool(description = "回填 OKX rubik BTC 未平倉合約歷史至 market_indicator_history（1H，最多 288 筆 = 12 天）。" +
             "存入 btc_open_interest_usd_m（USD millions 單位，區別於 Binance 的 btc_open_interest BTC 合約數）。idempotent。")
     public String backfillOpenInterest(String symbol, Integer limit) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillOpenInterest",
+                    "read OKX open-interest history and write market_indicator_history");
+        }
         String sym = (symbol == null || symbol.isBlank()) ? "BTCUSDT" : symbol.toUpperCase();
         int lim = (limit == null || limit <= 0) ? 288 : Math.min(limit, 288);
         log.info("[MCP] backfillOpenInterest sym={} limit={}", sym, lim);
@@ -2324,6 +2354,13 @@ public class MarketDataMcpTools {
         return "⚠️ " + toolName + " live external reads are disabled by "
                 + "trading.market-data-mcp.live-sentiment-enabled=false. "
                 + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP market-data tools "
+                + "should " + action + ".";
+    }
+
+    private String disabledExternalBackfillMessage(String toolName, String action) {
+        return "⚠️ " + toolName + " external backfills are disabled by "
+                + "trading.market-data-mcp.external-backfills-enabled=false. "
+                + "Set TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true only when manual MCP backfill/import tools "
                 + "should " + action + ".";
     }
 
@@ -2643,6 +2680,10 @@ public class MarketDataMcpTools {
             + "首次執行約 5-15 分鐘（市場數量 × API 限速），之後增量跑只補缺口。"
             + "完成後 runPolymarketBacktest 即可分析相關性。")
     public String importPolymarketHistory() {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("importPolymarketHistory",
+                    "read Polymarket CLOB history and write historical odds rows");
+        }
         try {
             log.info("[MCP] importPolymarketHistory triggered");
             PolymarketHistoricalImportService.ImportResult result =
@@ -3074,6 +3115,10 @@ public class MarketDataMcpTools {
             "使用場景：系統剛部署 Coinalyze 整合時回補歷史資料，供 simulateAttentionRulesOnHistory 回測。" +
             "params: days=回溯天數（預設 30，最多 90）")
     public String backfillCoinalyzeLiquidation(Integer days) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillCoinalyzeLiquidation",
+                    "read Coinalyze liquidation history and write market_indicator_history");
+        }
         int d = days != null ? Math.min(Math.max(days, 1), 90) : 30;
         String sym = "BTCUSDT";
 

@@ -318,6 +318,12 @@ try {
     Assert-RgMatch -Pattern 'trading\.market-data-mcp\.external-health-probes-enabled:false' -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP external health probes default off"
     Assert-RgMatch -Pattern "if \(externalHealthProbesEnabled\)" -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP external health probes are guarded"
     Assert-RgMatch -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "market-data MCP external health probe opt-in key is documented, validated, and cleared in local smoke"
+    Assert-RgMatch -Pattern 'trading\.market-data-mcp\.external-backfills-enabled:false' -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP external backfills default off"
+    Assert-RgMatch -Pattern "if \(!externalBackfillsEnabled\)" -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP external backfills are guarded"
+    foreach ($tool in @("backfillOkxKlines", "backfillDexFlow", "backfillFundingRateHistory", "backfillLongShortRatioHistory", "backfillFredMacro", "backfillHyperliquidFunding", "backfillOpenInterest", "importPolymarketHistory", "backfillCoinalyzeLiquidation")) {
+        Assert-RgMatch -Pattern "disabledExternalBackfillMessage\(`"$tool`"" -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP external backfill tool $tool is guarded"
+    }
+    Assert-RgMatch -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "market-data MCP external backfill opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean statusNotifyEnabled' -Paths @("src/main/java/com/agora/config/properties/EventRiskControlProperties.java") -Description "EventRiskControl state-change notifications default off"
     Assert-RgMatch -Pattern "if \(!properties\.statusNotifyEnabled\(\)\) return" -Paths @("src/main/java/com/agora/service/trading/EventRiskActionOrchestrator.java") -Description "EventRiskControl state-change notification has method-level opt-in guard"
     Assert-RgMatch -Pattern "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "EventRiskControl notification opt-in key is documented, validated, and cleared in local smoke"
@@ -444,6 +450,7 @@ try {
         "TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED",
         "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED",
         "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
+        "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
         "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED",
         "TRADING_GRID_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED",
@@ -472,6 +479,7 @@ try {
         "trading.ensemble-preview.live-market-reads-enabled=false",
         "trading.market-data-mcp.live-sentiment-enabled=false",
         "trading.market-data-mcp.external-health-probes-enabled=false",
+        "trading.market-data-mcp.external-backfills-enabled=false",
         "event-risk-control.status-notify-enabled=false",
         "trading.grid.enabled=false",
         "trading.tiny-live.auto-execution.enabled=false",

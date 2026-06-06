@@ -71,6 +71,7 @@
 - Ensemble MCP preview no longer reads live Fear&Greed/OKX/whale/Polymarket inputs unless `TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED=true`.
 - Market-data MCP sentiment dashboard, Polymarket risk, Fear&Greed history/backfill, and F&G trade-analysis tools no longer read live Fear&Greed/OKX/whale/Polymarket/orderbook inputs unless `TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true`.
 - Market-data MCP system health no longer actively pings OKX/Fear&Greed/whale/Polymarket/orderbook endpoints unless `TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED=true`.
+- Market-data MCP external backfill/import tools no longer read OKX/The Graph/FRED/Hyperliquid/Polymarket/Coinalyze or write indicator/import rows unless `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true`.
 - EventRiskControl keeps protective new-entry blocking default-on, while state-change Telegram notifications now default off and require `EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED=true`.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
 - Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.

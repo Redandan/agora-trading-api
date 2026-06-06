@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -78,31 +77,6 @@ public class DbSlowQueryMonitorService {
                 props.watchSeconds(), props.warnSeconds(), props.criticalSeconds());
     }
 
-    public List<SafeKillResult> killSafeExpectedReportQueries(Report report) {
-        if (!props.safeKillEnabled()) return List.of();
-        return report.rows().stream()
-                .filter(row -> row.timeSeconds() >= props.safeKillExpectedReportSeconds())
-                .filter(this::isSafeKillableExpectedReportRow)
-                .map(this::killQuery)
-                .toList();
-    }
-
-    public String renderSafeKillResults(List<SafeKillResult> results) {
-        if (results == null || results.isEmpty()) return "";
-        StringBuilder sb = new StringBuilder("safe auto-kill results:\n");
-        for (SafeKillResult result : results) {
-            sb.append(String.format(
-                    "- id=%d time=%ds killed=%s category=%s%s%n  sql=%s%n",
-                    result.id(),
-                    result.timeSeconds(),
-                    result.killed(),
-                    result.category(),
-                    result.errorMessage() == null ? "" : " error=" + abbreviate(result.errorMessage(), 120),
-                    abbreviate(result.info(), 220)));
-        }
-        return sb.toString();
-    }
-
     public String render(Report report) {
         StringBuilder sb = new StringBuilder();
         sb.append("=== DB Slow Query Monitor ===\n");
@@ -163,26 +137,6 @@ public class DbSlowQueryMonitorService {
         return row.expectedReportQuery() && row.timeSeconds() < props.criticalSeconds();
     }
 
-    private boolean isSafeKillableExpectedReportRow(Row row) {
-        if (!row.expectedReportQuery()) return false;
-        if (!"Query".equalsIgnoreCase(row.command())) return false;
-        String lower = row.info() == null ? "" : row.info().stripLeading().toLowerCase(Locale.ROOT);
-        if (!lower.startsWith("select ")) return false;
-        return lower.contains(" from market_indicator_history")
-                || lower.contains(" from md_kline")
-                || lower.contains(" from bt_runtime_decision_evidence")
-                || lower.contains(" from bt_decision_audit");
-    }
-
-    private SafeKillResult killQuery(Row row) {
-        try {
-            jdbc.execute("KILL QUERY " + row.id());
-            return SafeKillResult.success(row);
-        } catch (Exception e) {
-            return SafeKillResult.failure(row, e.getMessage());
-        }
-    }
-
     private static String nullToDash(String value) {
         return value == null || value.isBlank() ? "-" : value;
     }
@@ -218,23 +172,6 @@ public class DbSlowQueryMonitorService {
             int warnSeconds,
             int criticalSeconds
     ) {}
-
-    public record SafeKillResult(
-            long id,
-            int timeSeconds,
-            Category category,
-            boolean killed,
-            String errorMessage,
-            String info
-    ) {
-        static SafeKillResult success(Row row) {
-            return new SafeKillResult(row.id(), row.timeSeconds(), row.category(), true, null, row.info());
-        }
-
-        static SafeKillResult failure(Row row, String errorMessage) {
-            return new SafeKillResult(row.id(), row.timeSeconds(), row.category(), false, errorMessage, row.info());
-        }
-    }
 
     public record Row(
             long id,

@@ -62,6 +62,7 @@
 - Short-squeeze alerting and Binance taker-buy collection now default off in code as well as in the tracked env template and local smoke.
 - Market-flip detector now defaults off in code and the tracked env template, so flip event writes and related notifications are production opt-in.
 - ML shadow inference logging now defaults off in code and the tracked env template, so live-signal HeatWave prediction lookups and `ml_inference_log` writes are production opt-in.
+- DB slow-query monitoring is read-only; unused safe-kill query termination code was removed and is blocked by local verification.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
 - Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
 

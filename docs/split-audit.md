@@ -83,6 +83,7 @@ The local verification gate currently covers these previously removed or forbidd
 - Object storage, login/Tron, security audit, group AI, common utility, OCI maintenance, and AI group config residue
 - KB daily-export and post-deploy audit config residue with default-on file/git/listener side effects
 - Legacy public HTTP route allowlist residue such as public assets, test, Telegram webhook, backtest, admin market, admin OCO, and market-data frontend paths
+- Unused DB slow-query safe-kill residue; the retained diagnostic monitor is read-only and local verification rejects `KILL QUERY`/safe-kill code.
 
 ## Split Guardrails Covered By Verification
 

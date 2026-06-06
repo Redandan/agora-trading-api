@@ -14,8 +14,6 @@ public record DbSlowQueryMonitorProperties(
         @DefaultValue("30") @Positive int watchSeconds,
         @DefaultValue("120") @Positive int warnSeconds,
         @DefaultValue("300") @Positive int criticalSeconds,
-        @DefaultValue("true") boolean safeKillEnabled,
-        @DefaultValue("1800") @Positive int safeKillExpectedReportSeconds,
         @DefaultValue("10") @Positive int maxRows,
         @DefaultValue("30") @Positive int alertCooldownMinutes
 ) {}

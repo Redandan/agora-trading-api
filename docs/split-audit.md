@@ -81,7 +81,7 @@ The local verification gate currently covers these previously removed or forbidd
 - WebPush, notification enum, chat, WebRTC, SSE, and realtime marketplace residue
 - Betting, marketplace status/type enum, PWA log, traffic analytics, slot analytics, slot cache, staking, and transaction DTO residue
 - Object storage, login/Tron, security audit, group AI, common utility, OCI maintenance, and AI group config residue
-- KB daily-export scheduler config residue with default-on file/git side effects
+- KB daily-export and post-deploy audit config residue with default-on file/git/listener side effects
 - Legacy public HTTP route allowlist residue such as public assets, test, Telegram webhook, backtest, admin market, admin OCO, and market-data frontend paths
 
 ## Split Guardrails Covered By Verification

@@ -305,6 +305,9 @@ try {
     Assert-RgMatch -Pattern "TRADING_LONG_AI_FILTER_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "LongAiFilter opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/ShortAiFilterProperties.java") -Description "ShortAiFilter AI/MCP layer defaults off"
     Assert-RgMatch -Pattern "TRADING_SHORT_AI_FILTER_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ShortAiFilter opt-in key is documented, validated, and cleared in local smoke"
+    Assert-RgMatch -Pattern 'trading\.ensemble-preview\.live-market-reads-enabled:false' -Paths @("src/main/java/com/agora/mcp/EnsembleMcpTools.java") -Description "ensemble preview live market reads default off"
+    Assert-RgMatch -Pattern "if \(liveMarketReadsEnabled\)" -Paths @("src/main/java/com/agora/mcp/EnsembleMcpTools.java") -Description "ensemble preview live market reads are guarded"
+    Assert-RgMatch -Pattern "TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ensemble preview live market read opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean statusNotifyEnabled' -Paths @("src/main/java/com/agora/config/properties/EventRiskControlProperties.java") -Description "EventRiskControl state-change notifications default off"
     Assert-RgMatch -Pattern "if \(!properties\.statusNotifyEnabled\(\)\) return" -Paths @("src/main/java/com/agora/service/trading/EventRiskActionOrchestrator.java") -Description "EventRiskControl state-change notification has method-level opt-in guard"
     Assert-RgMatch -Pattern "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "EventRiskControl notification opt-in key is documented, validated, and cleared in local smoke"
@@ -428,6 +431,7 @@ try {
         "TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED",
         "TRADING_LONG_AI_FILTER_ENABLED",
         "TRADING_SHORT_AI_FILTER_ENABLED",
+        "TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED",
         "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED",
         "TRADING_GRID_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED",
@@ -453,6 +457,7 @@ try {
         "trading.gemini-advisor.staleness-detector-enabled=false",
         "trading.long-ai-filter.enabled=false",
         "trading.short-ai-filter.enabled=false",
+        "trading.ensemble-preview.live-market-reads-enabled=false",
         "event-risk-control.status-notify-enabled=false",
         "trading.grid.enabled=false",
         "trading.tiny-live.auto-execution.enabled=false",

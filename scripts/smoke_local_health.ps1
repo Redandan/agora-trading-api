@@ -121,6 +121,7 @@ $envOverrides = @{
     TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED = "false"
     TRADING_LONG_AI_FILTER_ENABLED = "false"
     TRADING_SHORT_AI_FILTER_ENABLED = "false"
+    TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED = "false"
     EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
@@ -244,6 +245,7 @@ try {
         "--trading.gemini-advisor.staleness-detector-enabled=false",
         "--trading.long-ai-filter.enabled=false",
         "--trading.short-ai-filter.enabled=false",
+        "--trading.ensemble-preview.live-market-reads-enabled=false",
         "--event-risk-control.status-notify-enabled=false",
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",

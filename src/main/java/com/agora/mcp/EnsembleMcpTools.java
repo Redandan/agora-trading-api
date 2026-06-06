@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,9 @@ public class EnsembleMcpTools {
     private final MarketFlipEventRepository flipEventRepository;
     private final AiStrategyDiscoveryService discoveryService;
     private final JdbcTemplate jdbc;
+
+    @Value("${trading.ensemble-preview.live-market-reads-enabled:false}")
+    private boolean liveMarketReadsEnabled;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -114,14 +118,20 @@ public class EnsembleMcpTools {
             }
 
             // ── Sentiment snapshot ──
-            Integer fg = safeInt(() -> fearGreedService.getFearGreedValue());
-            Double whale = safeDouble(() -> whaleFlowService.getBuyRatio(symbol));
-            // funding rate from OKX returns decimal (e.g. 0.0001 = 0.01%), normalize to percent-per-8h
-            Double fundingPct = safeDouble(() -> okxTradingService.getCurrentFundingRate(symbol) * 100);
-            Double lsRatio = safeDouble(() -> {
-                double r = okxTradingService.getLongShortRatio(symbol);
-                return r < 0 ? null : r;  // -1 sentinel = fetch failure
-            });
+            Integer fg = null;
+            Double whale = null;
+            Double fundingPct = null;
+            Double lsRatio = null;
+            if (liveMarketReadsEnabled) {
+                fg = safeInt(() -> fearGreedService.getFearGreedValue());
+                whale = safeDouble(() -> whaleFlowService.getBuyRatio(symbol));
+                // funding rate from OKX returns decimal (e.g. 0.0001 = 0.01%), normalize to percent-per-8h
+                fundingPct = safeDouble(() -> okxTradingService.getCurrentFundingRate(symbol) * 100);
+                lsRatio = safeDouble(() -> {
+                    double r = okxTradingService.getLongShortRatio(symbol);
+                    return r < 0 ? null : r;  // -1 sentinel = fetch failure
+                });
+            }
 
             // ── Gemini hint (latest active for this symbol/timeframe) ──
             String geminiStyle = null;
@@ -145,13 +155,15 @@ public class EnsembleMcpTools {
 
             // ── Polymarket macro risk ──
             Double polyRiskPct = null;
-            try {
-                PolymarketService.MacroRiskResult poly = polymarketService.getMacroRisk();
-                if (poly != null && poly.riskScore() >= 0) {
-                    polyRiskPct = poly.riskScore() * 100.0;
+            if (liveMarketReadsEnabled) {
+                try {
+                    PolymarketService.MacroRiskResult poly = polymarketService.getMacroRisk();
+                    if (poly != null && poly.riskScore() >= 0) {
+                        polyRiskPct = poly.riskScore() * 100.0;
+                    }
+                } catch (Exception e) {
+                    log.debug("[previewEnsemble] polymarket failed: {}", e.getMessage());
                 }
-            } catch (Exception e) {
-                log.debug("[previewEnsemble] polymarket failed: {}", e.getMessage());
             }
 
             // ── Recent market flip (last 4h window for engine) ──
@@ -221,6 +233,9 @@ public class EnsembleMcpTools {
                     lsRatio == null ? "?" : String.format("%.2f", lsRatio)));
             sb.append(String.format("  Polymarket     risk=%s%n",
                     polyRiskPct == null ? "?" : String.format("%.0f%%", polyRiskPct)));
+            if (!liveMarketReadsEnabled) {
+                sb.append("  Live reads      disabled by trading.ensemble-preview.live-market-reads-enabled=false\n");
+            }
             sb.append(String.format("  MarketFlip     recent=%s%n",
                     flipMinutes == null ? "none" : flipMinutes + " min ago"));
 

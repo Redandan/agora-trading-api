@@ -117,6 +117,7 @@ Expected:
 - Smoke logs prove trailing-stop OCO updates are disabled with `[TrailingStop] config: enabled=false`.
 - Smoke logs prove short-squeeze alerting and Binance taker-buy collection are disabled with `[ShortSqueezeAlert] config: enabled=false takerBuyCollectorEnabled=false`; code defaults also keep both off if the env keys are omitted.
 - Smoke logs must not show startup market-data backfills (`DexFlowBackfill`, `HLFundingBackfill`, `CoinalyzeBackfill`, or `CMIBackfill`).
+- Local verification dynamically checks every `ApplicationRunner`/`CommandLineRunner`, so startup jobs must be async and explicit opt-in before deploy prep can pass.
 - Smoke logs must not show order placement, Telegram sends, private trading WS connection, or auto-execution enabled.
 - The script stops the temporary Maven/Java process tree after the check.
 

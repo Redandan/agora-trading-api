@@ -110,6 +110,28 @@ function Assert-OnlyAllowedEnabledTrueFallbacks {
     }
 }
 
+function Assert-StartupRunnersAreSplitSafe {
+    $runnerFiles = @(rg -l "implements (ApplicationRunner|CommandLineRunner)" src/main/java)
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -gt 1) {
+        throw "rg failed with exit code $exitCode for startup runner scan"
+    }
+
+    foreach ($file in $runnerFiles) {
+        $text = Get-Content -LiteralPath $file -Raw
+        foreach ($required in @(
+            "@AsyncStartup",
+            "@ConditionalOnProperty",
+            'havingValue = "true"',
+            "matchIfMissing = false"
+        )) {
+            if (-not $text.Contains($required)) {
+                Write-Error "Startup runner must be async and explicit opt-in for split-safe deploys. Missing '$required' in $file"
+            }
+        }
+    }
+}
+
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     Write-Host "[verify] mvn test"
@@ -386,6 +408,7 @@ try {
     Assert-RgMatch -Pattern 'meta-control\.ml-materialized-refresh\.startup-check-enabled:false' -Paths @("src/main/java/com/agora/service/ml/SignalTrainingMaterializedRefreshService.java") -Description "ML materialized startup refresh defaults off"
     Assert-RgMatch -Pattern "if \(!startupCheckEnabled\)" -Paths @("src/main/java/com/agora/service/ml/SignalTrainingMaterializedRefreshService.java") -Description "ML materialized startup refresh has method-level opt-in guard"
     Assert-RgMatch -Pattern '@ConditionalOnProperty\(' -Paths @("src/main/java/com/agora/config/MarketWsAutoSubscriber.java", "src/main/java/com/agora/config/CoinalyzeBackfillRunner.java", "src/main/java/com/agora/config/CompositeIndicatorBackfillRunner.java", "src/main/java/com/agora/config/DexFlowBackfillRunner.java", "src/main/java/com/agora/config/HyperliquidFundingBackfillRunner.java") -Description "startup WS/backfill beans are property-gated"
+    Assert-StartupRunnersAreSplitSafe
     Assert-RgMatch -Pattern "if \(!properties\.isEnabled\(\)\)" -Paths @("src/main/java/com/agora/config/WsSubscriptionSyncer.java") -Description "WS subscription syncer has method-level opt-in guard"
     Assert-RgMatch -Pattern "META_CONTROL_ATTENTION_WEEKLY_DIGEST_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "attention weekly digest opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern "META_CONTROL_SCORECARD_DIGEST_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "scorecard digest opt-in key is documented, validated, and cleared in local smoke"

@@ -14,6 +14,7 @@ RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
 DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/trading/actuator/health}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8082}"
+AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8082/api/actuator/health}"
 
 cd "$APP_DIR"
 
@@ -123,6 +124,12 @@ if [ "$AGORA_MARKET_BASE_URL" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
   exit 1
 fi
 echo "[deploy] AGORA_MARKET_BASE_URL points at local AgoraMarketAPI dependency"
+
+curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null || {
+  echo "[deploy] AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL" >&2
+  exit 1
+}
+echo "[deploy] AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"
 
 CURRENT_PORT=""
 if [ -f app.port ]; then

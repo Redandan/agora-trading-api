@@ -121,6 +121,9 @@ public class MarketDataMcpTools {
     @org.springframework.beans.factory.annotation.Value("${market.signal.source:okx}")
     private String defaultKlineQualitySource;
 
+    @org.springframework.beans.factory.annotation.Value("${trading.market-data-mcp.live-sentiment-enabled:false}")
+    private boolean liveSentimentEnabled;
+
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     // ─── Fear & Greed 歷史 ────────────────────────────────────────────────────
@@ -1169,6 +1172,13 @@ public class MarketDataMcpTools {
             "BTC Basis(SWAP-現貨溢價)、BTC DVOL(隱含波動率)、US VIX。" +
             "param: symbol=交易對（如 BTCUSDT 或 ETHUSDT）。")
     public String getMarketSentiment(String symbol) {
+        if (!liveSentimentEnabled) {
+            return "⚠️ getMarketSentiment live external reads are disabled by "
+                    + "trading.market-data-mcp.live-sentiment-enabled=false. "
+                    + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP dashboards "
+                    + "should read Fear&Greed, whale flow, OKX, Polymarket, and orderbook endpoints directly.";
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append("=== Long/Short Filter 指標儀表板 ===\n");
         sb.append("幣種: ").append(symbol).append("\n");

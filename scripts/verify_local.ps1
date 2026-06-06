@@ -308,6 +308,9 @@ try {
     Assert-RgMatch -Pattern 'trading\.ensemble-preview\.live-market-reads-enabled:false' -Paths @("src/main/java/com/agora/mcp/EnsembleMcpTools.java") -Description "ensemble preview live market reads default off"
     Assert-RgMatch -Pattern "if \(liveMarketReadsEnabled\)" -Paths @("src/main/java/com/agora/mcp/EnsembleMcpTools.java") -Description "ensemble preview live market reads are guarded"
     Assert-RgMatch -Pattern "TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ensemble preview live market read opt-in key is documented, validated, and cleared in local smoke"
+    Assert-RgMatch -Pattern 'trading\.market-data-mcp\.live-sentiment-enabled:false' -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP live sentiment reads default off"
+    Assert-RgMatch -Pattern "if \(!liveSentimentEnabled\)" -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "market-data MCP live sentiment reads are guarded"
+    Assert-RgMatch -Pattern "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "market-data MCP live sentiment opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean statusNotifyEnabled' -Paths @("src/main/java/com/agora/config/properties/EventRiskControlProperties.java") -Description "EventRiskControl state-change notifications default off"
     Assert-RgMatch -Pattern "if \(!properties\.statusNotifyEnabled\(\)\) return" -Paths @("src/main/java/com/agora/service/trading/EventRiskActionOrchestrator.java") -Description "EventRiskControl state-change notification has method-level opt-in guard"
     Assert-RgMatch -Pattern "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "EventRiskControl notification opt-in key is documented, validated, and cleared in local smoke"
@@ -432,6 +435,7 @@ try {
         "TRADING_LONG_AI_FILTER_ENABLED",
         "TRADING_SHORT_AI_FILTER_ENABLED",
         "TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED",
+        "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED",
         "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED",
         "TRADING_GRID_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED",
@@ -458,6 +462,7 @@ try {
         "trading.long-ai-filter.enabled=false",
         "trading.short-ai-filter.enabled=false",
         "trading.ensemble-preview.live-market-reads-enabled=false",
+        "trading.market-data-mcp.live-sentiment-enabled=false",
         "event-risk-control.status-notify-enabled=false",
         "trading.grid.enabled=false",
         "trading.tiny-live.auto-execution.enabled=false",

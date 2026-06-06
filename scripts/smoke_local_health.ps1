@@ -107,6 +107,7 @@ $envOverrides = @{
     TRADING_EPHEMERAL_CLEANUP_ENABLED = "false"
     META_CONTROL_COMPOSITE_INDICATOR_SCHEDULER_ENABLED = "false"
     META_CONTROL_MARKET_INDICATOR_ATTENTION_ENABLED = "false"
+    META_CONTROL_MARKET_FLIP_DETECTOR_ENABLED = "false"
     META_CONTROL_MARKET_FLIP_ANALYSIS_ENABLED = "false"
     META_CONTROL_MARKET_FLIP_AUTO_ESCALATE_ENABLED = "false"
     META_CONTROL_ML_PROTECTION_ENABLED = "false"
@@ -223,6 +224,7 @@ try {
         "--trading.ephemeral-cleanup.enabled=false",
         "--meta-control.composite-indicator.scheduler-enabled=false",
         "--meta-control.market-indicator-attention.enabled=false",
+        "--meta-control.market-flip-detector.enabled=false",
         "--meta-control.market-flip.analysis-enabled=false",
         "--meta-control.market-flip.auto-escalate-enabled=false",
         "--meta-control.ml-protection.enabled=false",

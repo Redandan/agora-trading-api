@@ -9,6 +9,6 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "meta-control.market-flip-detector")
 public record MarketFlipDetectorProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("SHADOW") @NotBlank String mode
 ) {}

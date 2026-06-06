@@ -67,6 +67,8 @@ It also fails before database comparison if source entity mappings include an
 obvious marketplace-owned table name.
 It also writes and fails on `server-db-forbidden-marketplace-tables.txt` if the
 target trading database contains obvious marketplace-owned tables.
+The source and database marketplace checks share one shell pattern in
+`scripts/schema_baseline_compare_server.sh` so the two lists cannot drift.
 `server-db-known-system-tables.txt` classifies known non-entity system tables
 such as `flyway_schema_history`, but this does not relax `extra-in-db.txt`
 failure before baseline acceptance.

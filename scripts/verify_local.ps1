@@ -216,6 +216,8 @@ try {
     Assert-RgMatch -Pattern "server-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects obvious marketplace-owned table names"
     Assert-RgMatch -Pattern "server-db-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects marketplace-owned database tables"
     Assert-RgMatch -Pattern "database contains obvious marketplace-owned table" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare fails explicitly on marketplace-owned database tables"
+    Assert-RgMatch -Pattern "MARKETPLACE_TABLE_PATTERN" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare shares marketplace table pattern across source and database checks"
+    Assert-RgMatch -Pattern "KNOWN_SYSTEM_TABLE_PATTERN" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare centralizes known system table pattern"
     Assert-RgMatch -Pattern "server-db-known-system-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare classifies known database system tables"
     Assert-RgMatch -Pattern "flyway_schema_history" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "schema compare classifies Flyway history table separately"
     Assert-RgMatch -Pattern "read-only compare complete" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare documents read-only behavior"

@@ -4,6 +4,8 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 OUTPUT_DIR="${OUTPUT_DIR:-$APP_DIR/target/schema-baseline}"
+MARKETPLACE_TABLE_PATTERN='^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$'
+KNOWN_SYSTEM_TABLE_PATTERN='^(flyway_schema_history)$'
 
 fail() {
   echo "[schema-compare] FAIL: $*" >&2
@@ -86,7 +88,7 @@ find src/main/java/com/agora/model -name '*.java' -print0 |
   xargs -0 perl -0ne 'if (/@Entity\b/ && !/@Table\s*\(\s*name\s*=\s*"([^"]+)"/s) { print "$ARGV\n" }' |
   sort -u > "$implicit_entities"
 
-grep -E '^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$' "$source_tables" \
+grep -E "$MARKETPLACE_TABLE_PATTERN" "$source_tables" \
   > "$forbidden_tables" || true
 
 MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysql \
@@ -99,10 +101,10 @@ MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysql \
   -e "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' ORDER BY table_name" |
   sort -u > "$db_tables"
 
-grep -E '^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$' "$db_tables" \
+grep -E "$MARKETPLACE_TABLE_PATTERN" "$db_tables" \
   > "$db_forbidden_tables" || true
 
-grep -E '^(flyway_schema_history)$' "$db_tables" \
+grep -E "$KNOWN_SYSTEM_TABLE_PATTERN" "$db_tables" \
   > "$known_system_tables" || true
 
 comm -23 "$source_tables" "$db_tables" > "$missing_tables"

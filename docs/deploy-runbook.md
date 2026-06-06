@@ -45,6 +45,8 @@ schema, or set it explicitly to a legacy schema during a controlled transition.
 It is not production hardening. Keep `SPRING_FLYWAY_ENABLED=false` until a
 Flyway baseline exists under `src/main/resources/db/migration`; then replace
 Hibernate schema update with schema validation and enable Flyway.
+Server preflight and verification fail if those env values drift before the
+baseline exists.
 Use `scripts/schema_baseline_inventory.ps1` and `docs/schema-baseline.md` as the
 read-only inventory step before generating the baseline.
 Use `scripts/schema_baseline_compare_server.sh` on the server for the read-only
@@ -337,6 +339,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - Coinalyze credentials use `TRADING_MARKET_DATA_COINALYZE_API_KEY`, which maps to `trading.market-data.coinalyze.api-key`; legacy external-style Coinalyze env names are not used by the trading code.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
+- server preflight and verification fail if the real server env changes `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` before the baseline migration exists.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
 - local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8082/api/actuator/health` by default.

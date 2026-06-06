@@ -52,6 +52,16 @@ env_value() {
   printf '%s' "${line#*=}"
 }
 
+require_env_value() {
+  local key="$1"
+  local expected="$2"
+  require_env_key "$key"
+  if [ "$(env_value "$key")" != "$expected" ]; then
+    fail "$key must be $expected until the Flyway baseline exists"
+  fi
+  ok "$key matches expected temporary bootstrap value: $expected"
+}
+
 require_cmd bash
 require_cmd awk
 require_cmd curl
@@ -84,6 +94,8 @@ require_env_key AGORA_MARKET_INTERNAL_API_KEY
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD
+require_env_value SPRING_JPA_HIBERNATE_DDL_AUTO update
+require_env_value SPRING_FLYWAY_ENABLED false
 
 if [ "$(env_value AGORA_MARKET_BASE_URL)" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
   fail "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"

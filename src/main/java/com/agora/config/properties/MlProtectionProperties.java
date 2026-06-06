@@ -12,6 +12,6 @@ public record MlProtectionProperties(
         @DefaultValue("60") int scanIntervalSeconds,
         @DefaultValue("120") int secondaryLoadTimeoutSeconds,
         @DefaultValue("1") int minSecondaryLoadRowsToTrip,
-        @DefaultValue("true") boolean autoKillSecondaryLoad,
+        @DefaultValue("false") boolean autoKillSecondaryLoad,
         @DefaultValue("30") int alertCooldownMinutes
 ) {}

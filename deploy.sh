@@ -106,12 +106,17 @@ rollback_after_failed_verify() {
 }
 
 require_cmd curl
+require_cmd date
+require_cmd env
+require_cmd grep
 require_cmd git
 require_cmd java
 require_cmd lsof
 require_cmd mvn
+require_cmd nohup
 require_cmd ps
 require_cmd seq
+require_cmd sleep
 require_cmd tail
 if [ "$UPDATE_NGINX" = "1" ]; then
   require_cmd awk

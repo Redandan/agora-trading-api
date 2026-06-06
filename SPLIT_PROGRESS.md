@@ -35,6 +35,7 @@
 - Unused web JWT filter, CurrentUser resolver, UserDetailsService, and `/auth/**` route leftover were removed while keeping MCP API-key auth intact.
 - Trading withdrawal risk state no longer reads the marketplace `users` table; unused User entity/repository, AutoReply service, and WebRTC signaling service leftovers were removed.
 - Trading no longer accepts login/member JWTs; MCP protected tools use service-level API-key authorization only.
+- Unused KB daily-export scheduler config residue was removed, including stale default-on file/git export properties.
 - `AgoraMarketAPI` now has the first internal exchange-rate endpoint:
   - `GET /api/internal/exchange-rates/usdt`
   - `GET /api/internal/exchange-rates/usdt/{currency}`

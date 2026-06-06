@@ -48,9 +48,11 @@
   - `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` starts the service under `local-smoke`, proves `/api/trading/actuator/health`, calls `/api/trading/mcp` with `getMcpRegistryVersion`, and checks logs for disabled external side effects.
   - `scripts/verify_local.ps1` runs compile/tests, split boundary scanners, env-template checks, shell syntax checks, schema source inventory, and documentation drift guards.
   - `scripts/schema_baseline_inventory.ps1` writes `target/schema-baseline/entity-tables.txt`, `implicit-entities.txt`, and `forbidden-marketplace-tables.txt`; the latest local guard run found no implicit entity tables and no obvious marketplace-owned table mappings.
-  - Runtime side effects that could surprise a split deployment now default off in code and/or the tracked env template, including scheduled market-data writes, Telegram digests/alerts, Polymarket/WAI, market WebSockets, OCO/grid/Earn/trailing-stop automation, ScoreBuy post-scout notification, and ML materialized startup refresh.
+  - Runtime side effects that could surprise a split deployment now default off in code and/or the tracked env template, including scheduled market-data writes, startup backfills, attribution startup work, Telegram digests/alerts, Polymarket/WAI, market WebSockets, OCO/grid/Earn/trailing-stop automation, ScoreBuy execution/notification paths, ML materialized startup refresh, ML protection/autoretrain/digest automation, Gemini advisor, Tiny Live auto-execution, guardian live actions, runtime evidence, and discovery AI suggestions.
+  - `scripts/smoke_local_health.ps1` explicitly clears high-risk host env values and passes matching boot args so local smoke cannot inherit accidental trading/deletion/AI automation from the developer or CI environment.
   - Remaining `enabled:true` fallbacks are enforced by `scripts/verify_local.ps1` as a four-item protective/internal allowlist: MCP master-approval probe wait, Telegram noise reduction, enabled-strategy kline data validation, and deterministic regime filtering.
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8082`.
+- Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
 - Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
 
 ## Exchange Rate Runtime

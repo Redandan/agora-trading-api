@@ -123,6 +123,7 @@ $envOverrides = @{
     TRADING_SHORT_AI_FILTER_ENABLED = "false"
     TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED = "false"
     TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED = "false"
+    TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED = "false"
     EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
@@ -248,6 +249,7 @@ try {
         "--trading.short-ai-filter.enabled=false",
         "--trading.ensemble-preview.live-market-reads-enabled=false",
         "--trading.market-data-mcp.live-sentiment-enabled=false",
+        "--trading.market-data-mcp.external-health-probes-enabled=false",
         "--event-risk-control.status-notify-enabled=false",
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",

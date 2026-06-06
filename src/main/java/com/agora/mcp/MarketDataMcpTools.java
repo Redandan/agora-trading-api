@@ -124,6 +124,9 @@ public class MarketDataMcpTools {
     @org.springframework.beans.factory.annotation.Value("${trading.market-data-mcp.live-sentiment-enabled:false}")
     private boolean liveSentimentEnabled;
 
+    @org.springframework.beans.factory.annotation.Value("${trading.market-data-mcp.external-health-probes-enabled:false}")
+    private boolean externalHealthProbesEnabled;
+
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     // ─── Fear & Greed 歷史 ────────────────────────────────────────────────────
@@ -1938,44 +1941,49 @@ public class MarketDataMcpTools {
             }
         }
 
-        // 2. OKX REST（funding rate 為快取代理 ping）
-        sb.append("\n").append(checkDep("OKX REST",
-                () -> String.format("BTC funding=%.4f%%/8h",
-                        okxTradingService.getCurrentFundingRate("BTCUSDT") * 100)));
+        if (externalHealthProbesEnabled) {
+            // 2. OKX REST（funding rate 為快取代理 ping）
+            sb.append("\n").append(checkDep("OKX REST",
+                    () -> String.format("BTC funding=%.4f%%/8h",
+                            okxTradingService.getCurrentFundingRate("BTCUSDT") * 100)));
 
-        // 3. OKX Long/Short ratio
-        sb.append(checkDep("OKX L/S Ratio",
-                () -> String.format("BTC ls=%.2f", okxTradingService.getLongShortRatio("BTCUSDT"))));
+            // 3. OKX Long/Short ratio
+            sb.append(checkDep("OKX L/S Ratio",
+                    () -> String.format("BTC ls=%.2f", okxTradingService.getLongShortRatio("BTCUSDT"))));
 
-        // 4. Fear & Greed
-        sb.append(checkDep("Fear&Greed",
-                () -> "value=" + fearGreedService.getFearGreedValue()));
+            // 4. Fear & Greed
+            sb.append(checkDep("Fear&Greed",
+                    () -> "value=" + fearGreedService.getFearGreedValue()));
 
-        // 5. Polymarket
-        sb.append(checkDep("Polymarket",
-                () -> {
-                    PolymarketService.MacroRiskResult r = polymarketService.getMacroRisk();
-                    return r.riskScore() < 0
-                            ? "no relevant markets"
-                            : String.format("risk=%.0f%% markets=%d",
-                                    r.riskScore() * 100, r.markets().size());
-                }));
+            // 5. Polymarket
+            sb.append(checkDep("Polymarket",
+                    () -> {
+                        PolymarketService.MacroRiskResult r = polymarketService.getMacroRisk();
+                        return r.riskScore() < 0
+                                ? "no relevant markets"
+                                : String.format("risk=%.0f%% markets=%d",
+                                        r.riskScore() * 100, r.markets().size());
+                    }));
 
-        // 6. Whale (OKX taker-volume)
-        sb.append(checkDep("Whale (OKX)",
-                () -> {
-                    double btc = whaleFlowService.getBuyRatio("BTCUSDT");
-                    double eth = whaleFlowService.getBuyRatio("ETHUSDT");
-                    return String.format("BTC buyRatio=%.0f%% ETH buyRatio=%.0f%%", btc * 100, eth * 100);
-                }));
+            // 6. Whale (OKX taker-volume)
+            sb.append(checkDep("Whale (OKX)",
+                    () -> {
+                        double btc = whaleFlowService.getBuyRatio("BTCUSDT");
+                        double eth = whaleFlowService.getBuyRatio("ETHUSDT");
+                        return String.format("BTC buyRatio=%.0f%% ETH buyRatio=%.0f%%", btc * 100, eth * 100);
+                    }));
 
-        // 7. Orderbook imbalance (OKX books)
-        sb.append(checkDep("Orderbook (OKX)",
-                () -> {
-                    double btc = orderbookImbalanceService.getImbalance("BTCUSDT");
-                    double eth = orderbookImbalanceService.getImbalance("ETHUSDT");
-                    return String.format("BTC=%+.2f ETH=%+.2f", btc, eth);
-                }));
+            // 7. Orderbook imbalance (OKX books)
+            sb.append(checkDep("Orderbook (OKX)",
+                    () -> {
+                        double btc = orderbookImbalanceService.getImbalance("BTCUSDT");
+                        double eth = orderbookImbalanceService.getImbalance("ETHUSDT");
+                        return String.format("BTC=%+.2f ETH=%+.2f", btc, eth);
+                    }));
+        } else {
+            sb.append("\n⚠️ External dependency probes disabled by trading.market-data-mcp.external-health-probes-enabled=false\n");
+            sb.append("   Set TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED=true to ping OKX, Fear&Greed, Polymarket, whale flow, and orderbook endpoints.\n");
+        }
 
         // 8. DB（kline + strategy 簡單 count）
         sb.append(checkDep("DB",

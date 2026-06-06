@@ -16,6 +16,9 @@ public record EventRiskControlProperties(
         /** When true, R2/R3 risk gates can block new auto-trade entries. */
         @DefaultValue("true") boolean blockNewEntries,
 
+        /** When true, risk-level changes can emit operator notifications. */
+        @DefaultValue("false") boolean statusNotifyEnabled,
+
         /** Lookback window for MARKET_SIGNAL Telegram rows. */
         @DefaultValue("4") @Min(1) @Max(48) int tgWindowHours,
 

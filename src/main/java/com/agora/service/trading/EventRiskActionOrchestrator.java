@@ -81,6 +81,7 @@ public class EventRiskActionOrchestrator {
 
     private void maybeNotifyStateChange(EventRiskLevelEngine.Snapshot snapshot) {
         if (!properties.enabled()) return;
+        if (!properties.statusNotifyEnabled()) return;
         String symbol = snapshot.symbol();
         String fingerprint = snapshot.level().name();
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);

@@ -301,6 +301,9 @@ try {
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean stalenessDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint staleness detector defaults off"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/ShortAiFilterProperties.java") -Description "ShortAiFilter AI/MCP layer defaults off"
     Assert-RgMatch -Pattern "TRADING_SHORT_AI_FILTER_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ShortAiFilter opt-in key is documented, validated, and cleared in local smoke"
+    Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean statusNotifyEnabled' -Paths @("src/main/java/com/agora/config/properties/EventRiskControlProperties.java") -Description "EventRiskControl state-change notifications default off"
+    Assert-RgMatch -Pattern "if \(!properties\.statusNotifyEnabled\(\)\) return" -Paths @("src/main/java/com/agora/service/trading/EventRiskActionOrchestrator.java") -Description "EventRiskControl state-change notification has method-level opt-in guard"
+    Assert-RgMatch -Pattern "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "EventRiskControl notification opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern "if \(!props\.flipDetectorEnabled\(\)\) return" -Paths @("src/main/java/com/agora/scheduler/trading/GeminiHintFlipDetector.java") -Description "Gemini hint flip scheduler has method-level opt-in guard"
     Assert-RgMatch -Pattern "if \(!props\.stalenessDetectorEnabled\(\)\) return" -Paths @("src/main/java/com/agora/scheduler/trading/GeminiHintStalenessDetector.java") -Description "Gemini hint staleness scheduler has method-level opt-in guard"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/AiStrategyDiscoveryProperties.java") -Description "AI strategy discovery scheduler defaults off"
@@ -420,6 +423,7 @@ try {
         "TRADING_GEMINI_ADVISOR_FLIP_DETECTOR_ENABLED",
         "TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED",
         "TRADING_SHORT_AI_FILTER_ENABLED",
+        "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED",
         "TRADING_GRID_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN",
@@ -443,6 +447,7 @@ try {
         "trading.gemini-advisor.flip-detector-enabled=false",
         "trading.gemini-advisor.staleness-detector-enabled=false",
         "trading.short-ai-filter.enabled=false",
+        "event-risk-control.status-notify-enabled=false",
         "trading.grid.enabled=false",
         "trading.tiny-live.auto-execution.enabled=false",
         "trading.tiny-live.auto-execution.dry-run=true",

@@ -101,6 +101,7 @@ if [ "$UPDATE_NGINX" = "1" ]; then
   require_cmd awk
   require_cmd mktemp
   require_cmd sudo
+  require_cmd systemctl
 fi
 
 if [ ! -f "$ENV_FILE" ]; then

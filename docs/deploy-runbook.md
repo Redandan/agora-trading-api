@@ -301,7 +301,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 
 `scripts/verify_server.sh` checks:
 
-- required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`; the nginx path installer also fails fast on its own required tools.
+- required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`, and `systemctl` when nginx reload is enabled; the nginx path installer also fails fast on its own required tools.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.

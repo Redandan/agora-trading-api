@@ -22,6 +22,7 @@ require_cmd() {
 require_cmd awk
 require_cmd mktemp
 require_cmd sudo
+require_cmd systemctl
 
 [ -f "$NGINX_CONF" ] || fail "nginx config missing: $NGINX_CONF"
 

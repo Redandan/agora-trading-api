@@ -100,7 +100,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Deploy checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops before a new instance or nginx change is attempted.
 - Server preflight and verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is diagnostic-only and not deploy acceptance.
 - Server verification calls local MCP `getMcpRegistryVersion` through `/api/trading/mcp` with `TRADING_MCP_KEY`, proving the split context path and MCP auth mapping.
-- Deploy/preflight fail fast when required server tools for blue-green and nginx swaps are missing.
+- Deploy/preflight fail fast when required server tools for blue-green readiness loops, failure diagnostics, and nginx swaps are missing.
 - The nginx path installer fails fast when its own `awk`, `mktemp`, `sudo`, or `systemctl` dependencies are missing.
 - The tracked `.env.trading.secrets.example` documents required trading-only server env keys and optional runtime safety toggles; `scripts/validate_env_template.ps1` checks it against server script `require_env_key`/`require_env_value` usage and safe optional defaults, while the real `/home/ubuntu/.env.trading.secrets` remains untracked.
 - Hourly orchestrator, market indicator collection, ETF pressure refresh/calculation fetches, and meta-control attribution are disabled by default in code and in the tracked template, so external indicator API collection, ETF Yahoo Finance reads, `market_indicator_history` writes, K-line gap backfills, attribution startup/hourly writes, and wide-TP Telegram scans are explicit production opt-in behavior.

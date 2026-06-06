@@ -71,7 +71,9 @@ require_cmd lsof
 require_cmd mktemp
 require_cmd mvn
 require_cmd ps
+require_cmd seq
 require_cmd sudo
+require_cmd tail
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
 cd "$APP_DIR"

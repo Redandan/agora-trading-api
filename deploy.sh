@@ -111,6 +111,8 @@ require_cmd java
 require_cmd lsof
 require_cmd mvn
 require_cmd ps
+require_cmd seq
+require_cmd tail
 if [ "$UPDATE_NGINX" = "1" ]; then
   require_cmd awk
   require_cmd mktemp

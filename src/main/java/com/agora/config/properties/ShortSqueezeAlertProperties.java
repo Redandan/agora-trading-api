@@ -22,10 +22,10 @@ import org.springframework.validation.annotation.Validated;
 public record ShortSqueezeAlertProperties(
 
         /** Master switch for {@code ShortSqueezeAlertScheduler.tick()}. */
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
 
         /** Master switch for {@code BinanceSpotTakerBuyCollector}. */
-        @DefaultValue("true") boolean takerBuyCollectorEnabled,
+        @DefaultValue("false") boolean takerBuyCollectorEnabled,
 
         /** Funding rate lower bound (negative — short-heavy regime). */
         @DefaultValue("-0.00005") double fundingRateThreshold,

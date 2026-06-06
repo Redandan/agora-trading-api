@@ -114,7 +114,7 @@ Expected:
 - Smoke logs prove Polymarket external market monitoring is disabled with `[PolymarketMonitor] config: enabled=false`.
 - Smoke logs prove position-exit manager is disabled with `[ExitMgr] init: enabled=false`.
 - Smoke logs prove trailing-stop OCO updates are disabled with `[TrailingStop] config: enabled=false`.
-- Smoke logs prove short-squeeze alerting and Binance taker-buy collection are disabled with `[ShortSqueezeAlert] config: enabled=false takerBuyCollectorEnabled=false`.
+- Smoke logs prove short-squeeze alerting and Binance taker-buy collection are disabled with `[ShortSqueezeAlert] config: enabled=false takerBuyCollectorEnabled=false`; code defaults also keep both off if the env keys are omitted.
 - Smoke logs must not show startup market-data backfills (`DexFlowBackfill`, `HLFundingBackfill`, `CoinalyzeBackfill`, or `CMIBackfill`).
 - Smoke logs must not show order placement, Telegram sends, private trading WS connection, or auto-execution enabled.
 - The script stops the temporary Maven/Java process tree after the check.

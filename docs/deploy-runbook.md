@@ -177,6 +177,7 @@ Expected:
 - BTC price-move Telegram alerts default off in code and the tracked template; keep `TRADING_BTC_PRICE_MOVE_ALERT_ENABLED=false` until that alert stream belongs to trading production.
 - DB slow-query monitoring is read-only in the split service; local verification rejects `KILL QUERY`/safe-kill code so the diagnostic report cannot terminate database queries.
 - Gemini advisor and its hint flip/staleness detectors default off in code and the tracked template; enable `TRADING_GEMINI_ADVISOR_ENABLED=true` plus detector flags only after AI hint generation and Telegram alerts belong to trading production.
+- LongAiFilter defaults off in code and the tracked template; enable `TRADING_LONG_AI_FILTER_ENABLED=true` only after LONG entry guard reads to Fear&Greed/OKX public market endpoints belong to trading production.
 - ShortAiFilter defaults off in code and the tracked template; enable `TRADING_SHORT_AI_FILTER_ENABLED=true` only after short-signal external AI/MCP shadow checks belong to trading production.
 - EventRiskControl remains a protective new-entry gate by default, but state-change Telegram notifications default off; enable `EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED=true` only when this service should emit event-risk operator alerts.
 - Autonomous exploration monitoring defaults off in code and the tracked template; enable `TRADING_EXPLORATION_MONITOR_ENABLED=true` and `TRADING_EXPLORATION_MONITOR_TELEGRAM_ENABLED=true` only after that monitor belongs to the deployed trading service.

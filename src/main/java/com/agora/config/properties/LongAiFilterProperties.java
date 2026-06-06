@@ -18,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 public record LongAiFilterProperties(
 
         /** Master switch. */
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
 
         /** {@code shadow} = log only, {@code active} = enforce. */
         @DefaultValue("shadow") @NotBlank String mode,

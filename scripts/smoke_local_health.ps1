@@ -119,6 +119,7 @@ $envOverrides = @{
     TRADING_GEMINI_ADVISOR_ENABLED = "false"
     TRADING_GEMINI_ADVISOR_FLIP_DETECTOR_ENABLED = "false"
     TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED = "false"
+    TRADING_LONG_AI_FILTER_ENABLED = "false"
     TRADING_SHORT_AI_FILTER_ENABLED = "false"
     EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
@@ -241,6 +242,7 @@ try {
         "--trading.gemini-advisor.enabled=false",
         "--trading.gemini-advisor.flip-detector-enabled=false",
         "--trading.gemini-advisor.staleness-detector-enabled=false",
+        "--trading.long-ai-filter.enabled=false",
         "--trading.short-ai-filter.enabled=false",
         "--event-risk-control.status-notify-enabled=false",
         "--market.ws.auto-subscribe.enabled=false",

@@ -299,6 +299,8 @@ try {
     Assert-RgNoMatch -Pattern "NightlyCleanupOrchestrator|scheduler\.system\.NightlyCleanupOrchestrator" -Paths @("src", "docs", ".env.trading.secrets.example") -Description "stale nightly cleanup orchestrator reference"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean flipDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint flip detector defaults off"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean stalenessDetectorEnabled' -Paths @("src/main/java/com/agora/config/properties/GeminiAdvisorProperties.java") -Description "Gemini hint staleness detector defaults off"
+    Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/LongAiFilterProperties.java") -Description "LongAiFilter external market reads default off"
+    Assert-RgMatch -Pattern "TRADING_LONG_AI_FILTER_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "LongAiFilter opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/ShortAiFilterProperties.java") -Description "ShortAiFilter AI/MCP layer defaults off"
     Assert-RgMatch -Pattern "TRADING_SHORT_AI_FILTER_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ShortAiFilter opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean statusNotifyEnabled' -Paths @("src/main/java/com/agora/config/properties/EventRiskControlProperties.java") -Description "EventRiskControl state-change notifications default off"
@@ -422,6 +424,7 @@ try {
         "TRADING_GEMINI_ADVISOR_ENABLED",
         "TRADING_GEMINI_ADVISOR_FLIP_DETECTOR_ENABLED",
         "TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED",
+        "TRADING_LONG_AI_FILTER_ENABLED",
         "TRADING_SHORT_AI_FILTER_ENABLED",
         "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED",
         "TRADING_GRID_ENABLED",
@@ -446,6 +449,7 @@ try {
         "trading.gemini-advisor.enabled=false",
         "trading.gemini-advisor.flip-detector-enabled=false",
         "trading.gemini-advisor.staleness-detector-enabled=false",
+        "trading.long-ai-filter.enabled=false",
         "trading.short-ai-filter.enabled=false",
         "event-risk-control.status-notify-enabled=false",
         "trading.grid.enabled=false",

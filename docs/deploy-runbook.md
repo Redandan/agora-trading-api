@@ -203,7 +203,7 @@ Last observed server state from 2026-06-05 Asia/Taipei:
 - `/home/ubuntu/.env.trading.secrets` has been created without printing secret values.
 - independent trading database `agora_trading` has been created.
 - nginx `/api/trading/` location has been installed and reloaded.
-- trading was deployed from `origin/main` commit `11612b9`, active port `8084`.
+- trading snapshot was observed at `origin/main` commit `11612b9`, active port `8084`; this is historical evidence, not a current-deployment claim.
 - This is an observed deployment snapshot, not proof that the current `origin/main`
   commit is deployed. Re-run deploy and `scripts/verify_server.sh` before treating
   production as current. `scripts/verify_server.sh` now checks that the server

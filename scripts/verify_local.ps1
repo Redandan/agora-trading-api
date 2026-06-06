@@ -167,6 +167,8 @@ try {
     Assert-RgMatch -Pattern 'does not match origin/\$BRANCH' -Paths @("scripts/verify_server.sh") -Description "server verification fails when deployed commit differs from origin branch"
     Assert-RgMatch -Pattern "app.commit" -Paths @("deploy.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "deploy records and server verify checks deployed commit metadata"
     Assert-RgMatch -Pattern "deployed app.commit.*does not match worktree HEAD" -Paths @("scripts/verify_server.sh") -Description "server verification fails when deployed commit metadata is stale"
+    Assert-RgNoMatch -Pattern "deployment completed from ``origin/main`` commit|trading was deployed from ``origin/main`` commit" -Paths @("SPLIT_PROGRESS.md", "docs/deploy-runbook.md") -Description "stale observed deployment commit must not be phrased as current production"
+    Assert-RgMatch -Pattern "historical evidence, not a current-deployment claim" -Paths @("SPLIT_PROGRESS.md", "docs/deploy-runbook.md") -Description "observed deployment commit is clearly marked historical"
     Assert-RgMatch -Pattern "schema baseline database comparison skipped" -Paths @("scripts/verify_server.sh") -Description "schema compare is opt-in for normal server verification"
     Assert-RgMatch -Pattern "EXPECTED_AGORA_MARKET_BASE_URL" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard AgoraMarket local dependency base URL"
     Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server scripts fail on stale AgoraMarket base URL"

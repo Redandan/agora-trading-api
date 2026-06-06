@@ -86,7 +86,7 @@ Trading deployment prep:
 - 2026-06-05 server configuration created `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - 2026-06-05 server configuration created independent MySQL database `agora_trading` for trading runtime.
 - 2026-06-05 server configuration installed nginx `/api/trading/` routing.
-- 2026-06-05 server deployment completed from `origin/main` commit `11612b9`.
+- 2026-06-05 observed deployment snapshot used `origin/main` commit `11612b9`; this is historical evidence, not a current-deployment claim.
 - 2026-06-05 trading service started on active port `8084`.
 - 2026-06-05 `scripts/verify_server.sh` passed with public health check:
   - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`

@@ -75,6 +75,7 @@ db_tables="$OUTPUT_DIR/server-db-tables.txt"
 missing_tables="$OUTPUT_DIR/missing-in-db.txt"
 extra_tables="$OUTPUT_DIR/extra-in-db.txt"
 forbidden_tables="$OUTPUT_DIR/server-forbidden-marketplace-tables.txt"
+db_forbidden_tables="$OUTPUT_DIR/server-db-forbidden-marketplace-tables.txt"
 
 find src/main/java/com/agora/model -name '*.java' -print0 |
   xargs -0 perl -0ne 'if (/@Entity\b/ && /@Table\s*\(\s*name\s*=\s*"([^"]+)"/s) { print "$1\n" }' |
@@ -97,12 +98,16 @@ MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysql \
   -e "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' ORDER BY table_name" |
   sort -u > "$db_tables"
 
+grep -E '^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$' "$db_tables" \
+  > "$db_forbidden_tables" || true
+
 comm -23 "$source_tables" "$db_tables" > "$missing_tables"
 comm -13 "$source_tables" "$db_tables" > "$extra_tables"
 
 source_count="$(wc -l < "$source_tables" | tr -d '[:space:]')"
 implicit_count="$(wc -l < "$implicit_entities" | tr -d '[:space:]')"
 forbidden_count="$(wc -l < "$forbidden_tables" | tr -d '[:space:]')"
+db_forbidden_count="$(wc -l < "$db_forbidden_tables" | tr -d '[:space:]')"
 db_count="$(wc -l < "$db_tables" | tr -d '[:space:]')"
 missing_count="$(wc -l < "$missing_tables" | tr -d '[:space:]')"
 extra_count="$(wc -l < "$extra_tables" | tr -d '[:space:]')"
@@ -111,6 +116,7 @@ echo "[schema-compare] source entity tables: $source_count -> $source_tables"
 echo "[schema-compare] implicit entity names: $implicit_count -> $implicit_entities"
 echo "[schema-compare] forbidden marketplace tables: $forbidden_count -> $forbidden_tables"
 echo "[schema-compare] database tables: $db_count -> $db_tables"
+echo "[schema-compare] database marketplace tables: $db_forbidden_count -> $db_forbidden_tables"
 echo "[schema-compare] missing in database: $missing_count -> $missing_tables"
 echo "[schema-compare] extra in database: $extra_count -> $extra_tables"
 
@@ -120,6 +126,10 @@ fi
 
 if [ "$forbidden_count" != "0" ]; then
   fail "schema baseline source inventory found marketplace-owned table mapping(s); inspect $forbidden_tables"
+fi
+
+if [ "$db_forbidden_count" != "0" ]; then
+  fail "schema baseline database contains obvious marketplace-owned table(s); inspect $db_forbidden_tables"
 fi
 
 if [ "$missing_count" != "0" ] || [ "$extra_count" != "0" ]; then

@@ -54,6 +54,7 @@ script is run directly instead of through `scripts/verify_server.sh`.
 - `target/schema-baseline/server-source-entity-tables.txt`
 - `target/schema-baseline/server-implicit-entities.txt`
 - `target/schema-baseline/server-forbidden-marketplace-tables.txt`
+- `target/schema-baseline/server-db-forbidden-marketplace-tables.txt`
 - `target/schema-baseline/server-db-tables.txt`
 - `target/schema-baseline/missing-in-db.txt`
 - `target/schema-baseline/extra-in-db.txt`
@@ -63,6 +64,8 @@ The compare fails if any server-side source entity relies on an implicit table
 name, matching the local inventory requirement.
 It also fails before database comparison if source entity mappings include an
 obvious marketplace-owned table name.
+It also writes and fails on `server-db-forbidden-marketplace-tables.txt` if the
+target trading database contains obvious marketplace-owned tables.
 
 ## Baseline Acceptance
 

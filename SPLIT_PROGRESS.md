@@ -66,6 +66,7 @@
 - DB slow-query monitoring is read-only; unused safe-kill query termination code was removed and is blocked by local verification.
 - K-line divergence alerting now defaults off in code and the tracked env template; both manual scan and alert paths require `TRADING_KLINE_DIVERGENCE_ENABLED=true`.
 - LongAiFilter now defaults off in code and the tracked env template, so LONG entry guard reads to Fear&Greed/OKX public market endpoints require `TRADING_LONG_AI_FILTER_ENABLED=true`.
+- ETF pressure calculation no longer fetches Yahoo Finance data unless `META_CONTROL_ETF_PRESSURE_REFRESH_ENABLED=true`; without a refreshed snapshot it returns no-data output instead of issuing an implicit external read.
 - ShortAiFilter now defaults off in code and the tracked env template, so short-signal external AI/MCP shadow checks require `TRADING_SHORT_AI_FILTER_ENABLED=true`.
 - EventRiskControl keeps protective new-entry blocking default-on, while state-change Telegram notifications now default off and require `EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED=true`.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.

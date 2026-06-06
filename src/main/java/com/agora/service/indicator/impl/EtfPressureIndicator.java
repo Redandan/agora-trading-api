@@ -97,8 +97,8 @@ public class EtfPressureIndicator implements CompositeIndicator {
     @Override
     public CompositeResult calculate(LocalDateTime now) {
         EtfSnapshot snap = latestSnapshot.get();
-        if (snap == null) {
-            // 首次運行：嘗試即時取得
+        if (snap == null && refreshEnabled) {
+            // Only opt-in runtime may issue Yahoo Finance reads from calculation paths.
             try { snap = fetchAllEtfs(); latestSnapshot.set(snap); }
             catch (Exception e) { log.warn("[EPI] fetch failed: {}", e.getMessage()); }
         }

@@ -160,6 +160,7 @@ These domains are retained unless a later audit proves they are unused:
 - Deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`.
 - Nginx deploy verifies public trading health through `DEFAULT_PUBLIC_TRADING_HEALTH_URL` by default.
 - Server verification requires nginx `/api/trading/` path presence by default; non-nginx verification must opt out with `REQUIRE_NGINX_TRADING_PATH=0`.
+- Server verification requires nginx service active by default; non-nginx verification must opt out with `REQUIRE_NGINX_SERVICE=0`.
 - Server shell script syntax is checked locally when Git Bash or `bash` is available, and on Linux/server with `bash scripts/preflight_server.sh`.
 - `scripts/verify_server.sh` still requires server verification for production exchange-rate mode and nginx path split.
 - This audit does not prove live OKX/Binance, Telegram, scheduler, or production MCP behavior. It only documents local compile, health-smoke, and split-boundary expectations.

@@ -17,6 +17,7 @@ INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
 VERIFY_GIT_CURRENT="${VERIFY_GIT_CURRENT:-1}"
 REQUIRE_NGINX_TRADING_PATH="${REQUIRE_NGINX_TRADING_PATH:-1}"
+REQUIRE_NGINX_SERVICE="${REQUIRE_NGINX_SERVICE:-1}"
 REQUIRE_DEPLOY_METADATA="${REQUIRE_DEPLOY_METADATA:-1}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8082}"
@@ -220,8 +221,10 @@ fi
 
 if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet nginx; then
   ok "nginx service is active"
+elif [ "$REQUIRE_NGINX_SERVICE" = "1" ]; then
+  fail "nginx service is not active or systemctl is unavailable"
 else
-  warn "nginx service is not active or systemctl is unavailable"
+  warn "nginx service is not active or systemctl is unavailable; REQUIRE_NGINX_SERVICE=$REQUIRE_NGINX_SERVICE"
 fi
 
 ok "server verification complete"

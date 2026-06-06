@@ -155,6 +155,7 @@ Expected:
 
 - shell syntax passes for `deploy.sh` and `scripts/*.sh`.
 - required server tools exist.
+- AgoraMarket exchange-rate dependency health passes by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is diagnostic-only and is not deploy acceptance.
 - `.env.trading.secrets.example` covers every server script `require_env_key` without committing real secret values.
 - `.env.trading.secrets.example` lists optional runtime safety toggles for startup backfills, market WebSockets, trading execution, Telegram, AI providers, and external market-data providers.
 - Hourly orchestrator, market indicator collection, BTC price-move indicator writes, ETF pressure refresh, and meta-control attribution default off in code and the tracked template; enable `META_CONTROL_HOURLY_ORCHESTRATOR_ENABLED=true`, `META_CONTROL_INDICATOR_HISTORY_ENABLED=true`, `META_CONTROL_BTC_PRICE_MOVE_INDICATOR_ENABLED=true`, `META_CONTROL_ETF_PRESSURE_REFRESH_ENABLED=true`, or `META_CONTROL_ATTRIBUTION_ENABLED=true` only after this service should own external indicator API collection, `market_indicator_history` writes, ETF refresh calls, K-line gap backfills, attribution writes, and wide-TP Telegram scans.
@@ -308,6 +309,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon.
 - `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8082`; deploy, preflight, and server verification fail on stale values.
+- preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
 - local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 - deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.

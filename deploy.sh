@@ -11,6 +11,7 @@ ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-enabled/agoramarketapi}"
 UPDATE_NGINX="${UPDATE_NGINX:-1}"
 RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
+POST_DEPLOY_VERIFIED=0
 DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/trading/actuator/health}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8082}"
@@ -288,22 +289,27 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
       exit 1
     fi
   fi
+  POST_DEPLOY_VERIFIED=1
 else
   echo "[deploy] post-deploy server verification skipped: RUN_POST_DEPLOY_VERIFY=$RUN_POST_DEPLOY_VERIFY"
 fi
 
-if [ "$UPDATE_NGINX" = "1" ]; then
+if [ "$UPDATE_NGINX" = "1" ] && [ "$POST_DEPLOY_VERIFIED" = "1" ]; then
   sudo rm -f "$NGINX_CONF.bak-trading"
+elif [ "$UPDATE_NGINX" = "1" ] && [ -f "$NGINX_CONF.bak-trading" ]; then
+  echo "[deploy] keeping nginx backup because post-deploy verification was not proven: $NGINX_CONF.bak-trading" >&2
 fi
 
 # Keep the previous instance alive until post-deploy verification has proven the
 # new active metadata, nginx path, and health checks.
-if [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
+if [ "$POST_DEPLOY_VERIFIED" = "1" ] && [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
   OLD_PID="$(cat "app.pid.$CURRENT_PORT")"
   echo "[deploy] draining old instance after verification PID=$OLD_PID port=$CURRENT_PORT"
   sleep "${DRAIN_SECONDS:-30}"
   kill "$OLD_PID" 2>/dev/null || true
   rm -f "app.pid.$CURRENT_PORT"
+elif [ -n "$CURRENT_PORT" ] && [ -f "app.pid.$CURRENT_PORT" ]; then
+  echo "[deploy] keeping old instance because post-deploy verification was not proven PID=$(cat "app.pid.$CURRENT_PORT") port=$CURRENT_PORT" >&2
 fi
 
 echo "[deploy] complete: $APP_NAME running on port $NEW_PORT"

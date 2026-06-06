@@ -241,7 +241,9 @@ and nginx `/api/trading/` path before the deploy reports complete. When
 `UPDATE_NGINX=1`, deploy also verifies public trading health through
 `DEFAULT_PUBLIC_TRADING_HEALTH_URL`, defaulting to
 `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`. Set
-`RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
+`RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses. When it is
+used, deploy keeps the previous blue-green instance and nginx backup because the
+new instance has not been proven by server verification.
 
 Blue-green deploy keeps the previous instance alive until post-deploy
 verification passes, then logs `draining old instance after verification` before
@@ -315,7 +317,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 - deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.
-- deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`.
+- deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`. If post-deploy verification is skipped, deploy keeps the previous instance and nginx backup.
 - nginx deploy verifies public trading health through `DEFAULT_PUBLIC_TRADING_HEALTH_URL` by default.
 - required server env keys exist and are non-empty in `/home/ubuntu/.env.trading.secrets` without printing secret values.
 - deploy refuses to overwrite staged or unstaged server worktree changes before syncing from `origin/main`.

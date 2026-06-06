@@ -96,6 +96,8 @@ $envOverrides = @{
     META_CONTROL_STARTUP_BACKFILL_COMPOSITE_INDICATOR_ENABLED = "false"
     META_CONTROL_STARTUP_BACKFILL_DEX_FLOW_ENABLED = "false"
     META_CONTROL_STARTUP_BACKFILL_HYPERLIQUID_FUNDING_ENABLED = "false"
+    META_CONTROL_ATTRIBUTION_ENABLED = "false"
+    META_CONTROL_ML_MATERIALIZED_REFRESH_STARTUP_CHECK_ENABLED = "false"
     META_CONTROL_HOURLY_ORCHESTRATOR_ENABLED = "false"
     META_CONTROL_COMPOSITE_INDICATOR_SCHEDULER_ENABLED = "false"
     META_CONTROL_MARKET_INDICATOR_ATTENTION_ENABLED = "false"
@@ -193,6 +195,8 @@ try {
         "--meta-control.startup-backfill.composite-indicator.enabled=false",
         "--meta-control.startup-backfill.dex-flow.enabled=false",
         "--meta-control.startup-backfill.hyperliquid-funding.enabled=false",
+        "--meta-control.attribution.enabled=false",
+        "--meta-control.ml-materialized-refresh.startup-check-enabled=false",
         "--meta-control.hourly-orchestrator.enabled=false",
         "--meta-control.composite-indicator.scheduler-enabled=false",
         "--meta-control.market-indicator-attention.enabled=false",
@@ -307,6 +311,7 @@ try {
     Assert-LogContains -Path $stdout -Pattern "TrailingStop.*config: enabled=false" -Description "local-smoke does not enable trailing-stop OCO updates"
     Assert-LogContains -Path $stdout -Pattern "ShortSqueezeAlert.*config: enabled=false takerBuyCollectorEnabled=false" -Description "local-smoke does not enable short-squeeze alert or taker-buy collector"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Auto subscribed via|Warming up MarketSignalCache)" -Description "local-smoke must not auto-subscribe public market WebSockets or warm market cache"
+    Assert-LogNotContains -Path $stdout -Pattern "(?i)(Attribution/startup|MlMatRefresh.*start refresh|MlMatRefresh.*kicking off initial refresh)" -Description "local-smoke must not schedule attribution startup backfill or refresh ML materialized data"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(DexFlowBackfill|HLFundingBackfill|CoinalyzeBackfill|CMIBackfill)" -Description "local-smoke must not run startup market-data backfills"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(Trading buffer topped from Earn|Simple Earn)" -Description "local-smoke must not top up from OKX Earn"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|state .*→|sl .*->|sl .*→)" -Description "local-smoke must not modify trailing-stop OCO state"

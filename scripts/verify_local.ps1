@@ -216,6 +216,8 @@ try {
     Assert-RgMatch -Pattern "server-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects obvious marketplace-owned table names"
     Assert-RgMatch -Pattern "server-db-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects marketplace-owned database tables"
     Assert-RgMatch -Pattern "database contains obvious marketplace-owned table" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare fails explicitly on marketplace-owned database tables"
+    Assert-RgMatch -Pattern "server-db-known-system-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare classifies known database system tables"
+    Assert-RgMatch -Pattern "flyway_schema_history" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "schema compare classifies Flyway history table separately"
     Assert-RgMatch -Pattern "read-only compare complete" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare documents read-only behavior"
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED:false" -Paths @("src/main/resources/application.yml") -Description "Flyway is disabled by default until baseline exists"
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED=false" -Paths @("scripts/bootstrap_server.sh", "docs/deploy-runbook.md") -Description "server template keeps Flyway disabled before baseline"

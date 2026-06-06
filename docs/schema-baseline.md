@@ -55,6 +55,7 @@ script is run directly instead of through `scripts/verify_server.sh`.
 - `target/schema-baseline/server-implicit-entities.txt`
 - `target/schema-baseline/server-forbidden-marketplace-tables.txt`
 - `target/schema-baseline/server-db-forbidden-marketplace-tables.txt`
+- `target/schema-baseline/server-db-known-system-tables.txt`
 - `target/schema-baseline/server-db-tables.txt`
 - `target/schema-baseline/missing-in-db.txt`
 - `target/schema-baseline/extra-in-db.txt`
@@ -66,6 +67,9 @@ It also fails before database comparison if source entity mappings include an
 obvious marketplace-owned table name.
 It also writes and fails on `server-db-forbidden-marketplace-tables.txt` if the
 target trading database contains obvious marketplace-owned tables.
+`server-db-known-system-tables.txt` classifies known non-entity system tables
+such as `flyway_schema_history`, but this does not relax `extra-in-db.txt`
+failure before baseline acceptance.
 
 ## Baseline Acceptance
 

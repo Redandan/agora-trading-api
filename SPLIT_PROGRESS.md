@@ -68,6 +68,7 @@
 - Deploy now also preserves an explicit `RUN_SCHEMA_BASELINE_COMPARE=1` request into post-deploy server verification, so the Flyway-baseline DB compare cannot be silently skipped during acceptance.
 - Direct schema-baseline DB compare now rejects missing or empty datasource env keys before querying MySQL.
 - Server schema-baseline DB compare now classifies obvious marketplace-owned database tables separately before generic missing/extra table drift.
+- Server schema-baseline DB compare now classifies known system tables such as `flyway_schema_history` separately while still failing generic extra-table drift before baseline acceptance.
 - Short-squeeze alerting and Binance taker-buy collection now default off in code as well as in the tracked env template and local smoke.
 - Market-flip detector now defaults off in code and the tracked env template, so flip event writes and related notifications are production opt-in.
 - ML shadow inference logging now defaults off in code and the tracked env template, so live-signal HeatWave prediction lookups and `ml_inference_log` writes are production opt-in.

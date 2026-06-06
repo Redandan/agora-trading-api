@@ -66,6 +66,7 @@
 - ML shadow inference logging now defaults off in code and the tracked env template, so live-signal HeatWave prediction lookups and `ml_inference_log` writes are production opt-in.
 - ML protection auto-kill now defaults off in code and the tracked env template, so killing stuck HeatWave connections requires `META_CONTROL_ML_PROTECTION_AUTO_KILL_SECONDARY_LOAD=true`.
 - DB slow-query monitoring is read-only; unused safe-kill query termination code was removed and is blocked by local verification.
+- Disabled legacy SQI startup backfill runner residue was removed; SQI and ShortBuild history remain covered by the gated composite indicator backfill path.
 - K-line divergence alerting now defaults off in code and the tracked env template; both manual scan and alert paths require `TRADING_KLINE_DIVERGENCE_ENABLED=true`.
 - LongAiFilter now defaults off in code and the tracked env template, so LONG entry guard reads to Fear&Greed/OKX public market endpoints require `TRADING_LONG_AI_FILTER_ENABLED=true`.
 - ETF pressure calculation no longer fetches Yahoo Finance data unless `META_CONTROL_ETF_PRESSURE_REFRESH_ENABLED=true`; without a refreshed snapshot it returns no-data output instead of issuing an implicit external read.

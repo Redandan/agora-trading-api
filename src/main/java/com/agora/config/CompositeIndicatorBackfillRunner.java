@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
  *   2. 需要 rebuild 時：清除舊數據 → 重算歷史
  *   3. 以 btc_short_liq_usd_1h 時間軸為骨架（最多 58 天）
  *
- * 取代：SqiBackfillRunner（保留作為 fallback，待確認新 runner 穩定後可刪除）
+ * 取代舊 SQI 專用 backfill runner；SQI/ShortBuild 都走同一套 composite 指標回填。
  */
 @Slf4j
 @Component

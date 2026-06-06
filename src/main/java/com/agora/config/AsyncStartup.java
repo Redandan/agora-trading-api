@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * times out at 240s. Past incidents:
  * <ul>
  *   <li>{@code CompositeIndicatorBackfillRunner} — synchronous backfill froze deploy</li>
- *   <li>{@code SqiBackfillRunner} — JPA Metaspace exhaustion via too many distinct queries</li>
+ *   <li>Legacy SQI startup backfill — JPA Metaspace exhaustion via too many distinct queries</li>
  * </ul>
  *
  * <p><b>Compliance options for ApplicationRunner classes:</b>

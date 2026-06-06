@@ -45,6 +45,9 @@ public class KlineDivergenceAlerter {
     public boolean tryAlertSingle(String symbol, String intervalCode, LocalDateTime openTime,
                                    BigDecimal binClose, BigDecimal okxClose,
                                    BigDecimal binVol, BigDecimal okxVol) {
+        if (!props.enabled()) {
+            return false;
+        }
         double diff = diffPct(binClose, okxClose);
         DivergenceLevel level = classify(diff, binVol, okxVol);
         if (level == DivergenceLevel.OK) {

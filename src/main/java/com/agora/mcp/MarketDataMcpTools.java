@@ -2202,7 +2202,7 @@ public class MarketDataMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.MARKET_DATA})
     @Tool(description = "手動觸發跨源 K 線偏差掃描（binance vs okx）。" +
-            "平常每小時 :10 自動跑，超過門檻會發 TG；此工具可即刻確認目前狀態。" +
+            "由 trading.kline-divergence.enabled 明確開啟後才會掃描並在超過門檻時發 TG；此工具可即刻確認目前狀態。" +
             "回傳每個 (symbol, interval) 最近 N 根 bar 中超過 WARN/CRITICAL 閾值的筆數與樣本。")
     public String runKlineDivergenceScan() {
         return klineDivergenceMonitor.runManual();

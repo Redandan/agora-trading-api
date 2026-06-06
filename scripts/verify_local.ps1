@@ -281,6 +281,9 @@ try {
     Assert-RgMatch -Pattern "META_CONTROL_MARKET_FLIP_DETECTOR_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "market-flip detector opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/MlShadowProperties.java") -Description "ML shadow inference logging defaults off"
     Assert-RgMatch -Pattern "META_CONTROL_ML_SHADOW_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ML shadow opt-in key is documented, validated, and cleared in local smoke"
+    Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/KlineDivergenceProperties.java") -Description "kline divergence alerting defaults off"
+    Assert-RgMatch -Pattern "TRADING_KLINE_DIVERGENCE_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "kline divergence opt-in key is documented, validated, and cleared in local smoke"
+    Assert-RgMatch -Pattern "if \(!props\.enabled\(\)\)" -Paths @("src/main/java/com/agora/scheduler/trading/KlineDivergenceMonitor.java", "src/main/java/com/agora/service/market/KlineDivergenceAlerter.java") -Description "kline divergence manual and alert paths have method-level opt-in guards"
     Assert-RgMatch -Pattern "META_CONTROL_MARKET_FLIP_ANALYSIS_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md") -Description "market-flip analysis opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern "META_CONTROL_MARKET_FLIP_AUTO_ESCALATE_ENABLED" -Paths @(".env.trading.secrets.example", "scripts/validate_env_template.ps1", "scripts/smoke_local_health.ps1", "docs/deploy-runbook.md") -Description "market-flip auto-escalation opt-in key is documented, validated, and cleared in local smoke"
     Assert-RgMatch -Pattern '@DefaultValue\("false"\) boolean enabled' -Paths @("src/main/java/com/agora/config/properties/AuditCleanupProperties.java", "src/main/java/com/agora/config/properties/KlinePruningProperties.java", "src/main/java/com/agora/config/properties/EphemeralCleanupProperties.java") -Description "cleanup jobs default off"
@@ -414,6 +417,7 @@ try {
         "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED",
         "TRADING_RUNTIME_EVIDENCE_ENABLED",
         "TRADING_DISCOVERY_AI_SUGGESTIONS_ENABLED",
+        "TRADING_KLINE_DIVERGENCE_ENABLED",
         "meta-control.indicator-history.enabled=false",
         "meta-control.btc-price-move-indicator.enabled=false",
         "meta-control.etf-pressure.refresh-enabled=false",
@@ -433,7 +437,8 @@ try {
         "trading.tiny-live.auto-execution.dry-run=true",
         "mcp.guardian-live-actions-enabled=false",
         "trading.runtime-evidence.enabled=false",
-        "trading.discovery.ai-suggestions.enabled=false"
+        "trading.discovery.ai-suggestions.enabled=false",
+        "trading.kline-divergence.enabled=false"
     )) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_local_health.ps1") -Description "local-smoke clears high-risk split runtime key $pattern"
     }

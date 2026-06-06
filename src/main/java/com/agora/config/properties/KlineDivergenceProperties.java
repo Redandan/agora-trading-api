@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "trading.kline-divergence")
 public record KlineDivergenceProperties(
-        @DefaultValue("true") boolean enabled,
+        @DefaultValue("false") boolean enabled,
         @DefaultValue("3") @Positive int recentBars,
         @DefaultValue("0.5") @PositiveOrZero double warnPct,
         @DefaultValue("1.0") @PositiveOrZero double criticalPct,

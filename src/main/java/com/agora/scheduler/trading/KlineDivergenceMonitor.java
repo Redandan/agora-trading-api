@@ -37,6 +37,9 @@ public class KlineDivergenceMonitor {
 
     /** Manual scan：由 MCP {@code runKlineDivergenceScan} 工具觸發。回傳 summary。 */
     public String runManual() {
+        if (!props.enabled()) {
+            return "[KlineDivergence] disabled by trading.kline-divergence.enabled=false";
+        }
         if (wsProps.getItems() == null || wsProps.getItems().isEmpty()) {
             return "No subscribed pairs.";
         }

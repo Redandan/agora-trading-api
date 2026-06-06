@@ -121,6 +121,7 @@ $envOverrides = @{
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
     MARKET_LIQUIDATION_WS_ENABLED = "false"
+    TRADING_KLINE_DIVERGENCE_ENABLED = "false"
     OKX_EARN_TOPUP_ENABLED = "false"
     POLYMARKET_MONITOR_ENABLED = "false"
     TRADING_EXPLORATION_MONITOR_ENABLED = "false"
@@ -239,6 +240,7 @@ try {
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",
         "--market.liquidation-ws.enabled=false",
+        "--trading.kline-divergence.enabled=false",
         "--okx.earn-topup.enabled=false",
         "--polymarket.monitor.enabled=false",
         "--trading.exploration.monitor.enabled=false",

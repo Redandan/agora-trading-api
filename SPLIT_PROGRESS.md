@@ -72,6 +72,7 @@
 - Server schema-baseline source and database marketplace-table checks now share one shell pattern to avoid future drift.
 - Deploy/preflight now fail fast when `seq` or `tail` is unavailable before blue-green readiness loops or failure-log diagnostics need them.
 - Deploy/preflight now also fail fast for core process-launch and post-verify tools (`date`, `env`, `grep`, `nohup`, `sleep`).
+- Server verification now also fails fast when env/metadata parsing tools (`grep`, `tail`, `tr`) are unavailable.
 - Local verification now checks every local-smoke external key and boot-argument clear marker, including exchange secrets, external data-provider keys, warm-up disables, and dry-run guards.
 - Short-squeeze alerting and Binance taker-buy collection now default off in code as well as in the tracked env template and local smoke.
 - Market-flip detector now defaults off in code and the tracked env template, so flip event writes and related notifications are production opt-in.

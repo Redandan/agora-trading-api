@@ -79,10 +79,13 @@ require_env_value() {
 require_cmd bash
 require_cmd curl
 require_cmd git
+require_cmd grep
 require_cmd java
 require_cmd lsof
 require_cmd mvn
 require_cmd ps
+require_cmd tail
+require_cmd tr
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
 

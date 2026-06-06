@@ -1134,6 +1134,13 @@ public class MarketDataMcpTools {
             "評估當前宏觀正面衝擊風險（關稅暫停/貿易協議概率），用於判斷 ShortAiFilter 宏觀風險狀態。" +
             "riskScore >= 0.40 時 ShortAiFilter Layer 1 會封鎖做空。")
     public String getPolymarketRisk() {
+        if (!liveSentimentEnabled) {
+            return "⚠️ getPolymarketRisk live external reads are disabled by "
+                    + "trading.market-data-mcp.live-sentiment-enabled=false. "
+                    + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP market-data tools "
+                    + "should read Polymarket directly.";
+        }
+
         try {
             PolymarketService.MacroRiskResult result = polymarketService.getMacroRisk();
 
@@ -1178,7 +1185,7 @@ public class MarketDataMcpTools {
         if (!liveSentimentEnabled) {
             return "⚠️ getMarketSentiment live external reads are disabled by "
                     + "trading.market-data-mcp.live-sentiment-enabled=false. "
-                    + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP dashboards "
+                    + "Set TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true only when manual MCP market-data tools "
                     + "should read Fear&Greed, whale flow, OKX, Polymarket, and orderbook endpoints directly.";
         }
 

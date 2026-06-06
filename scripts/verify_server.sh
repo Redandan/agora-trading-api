@@ -17,6 +17,7 @@ INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
 VERIFY_GIT_CURRENT="${VERIFY_GIT_CURRENT:-1}"
 REQUIRE_NGINX_TRADING_PATH="${REQUIRE_NGINX_TRADING_PATH:-1}"
+REQUIRE_DEPLOY_METADATA="${REQUIRE_DEPLOY_METADATA:-1}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8082}"
 REQUIRE_AGORA_MARKET_HEALTH="${REQUIRE_AGORA_MARKET_HEALTH:-1}"
@@ -111,8 +112,10 @@ if [ -f "$COMMIT_FILE" ]; then
     fail "deployed app.commit ${DEPLOYED_COMMIT:-empty} does not match worktree HEAD $(git rev-parse --short HEAD)"
   fi
   ok "deployed app.commit matches worktree HEAD: $(git rev-parse --short HEAD)"
+elif [ "$REQUIRE_DEPLOY_METADATA" = "1" ]; then
+  fail "deploy commit file missing: $COMMIT_FILE"
 else
-  warn "deploy commit file missing: $COMMIT_FILE"
+  warn "deploy commit file missing: $COMMIT_FILE; REQUIRE_DEPLOY_METADATA=$REQUIRE_DEPLOY_METADATA"
 fi
 
 require_env_key TRADING_ADMIN_KEY
@@ -144,9 +147,11 @@ fi
 
 if [ -f "$PORT_FILE" ]; then
   ACTIVE_PORT="$(tr -d '[:space:]' < "$PORT_FILE")"
+elif [ "$REQUIRE_DEPLOY_METADATA" = "1" ]; then
+  fail "deploy port file missing: $PORT_FILE"
 else
   ACTIVE_PORT="$DEFAULT_PORT"
-  warn "port file missing: $PORT_FILE; using PORT/default $ACTIVE_PORT"
+  warn "port file missing: $PORT_FILE; using PORT/default $ACTIVE_PORT; REQUIRE_DEPLOY_METADATA=$REQUIRE_DEPLOY_METADATA"
 fi
 
 case "$ACTIVE_PORT" in
@@ -168,8 +173,10 @@ if [ -f "$PID_FILE" ]; then
   else
     fail "deployed app.pid $ACTIVE_PID is not listening on active port $ACTIVE_PORT"
   fi
+elif [ "$REQUIRE_DEPLOY_METADATA" = "1" ]; then
+  fail "deploy pid file missing: $PID_FILE"
 else
-  warn "deploy pid file missing: $PID_FILE"
+  warn "deploy pid file missing: $PID_FILE; REQUIRE_DEPLOY_METADATA=$REQUIRE_DEPLOY_METADATA"
 fi
 
 LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"

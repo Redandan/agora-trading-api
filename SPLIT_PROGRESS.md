@@ -55,6 +55,7 @@
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8082`.
 - `deploy.sh` now checks AgoraMarket exchange-rate dependency health before starting the blue-green switch.
 - Server preflight now requires AgoraMarket exchange-rate dependency health by default, with `REQUIRE_AGORA_MARKET_HEALTH=0` reserved for diagnostic-only checks.
+- Server verification now requires deploy metadata (`app.commit`, `app.pid`, `app.port`) by default, with `REQUIRE_DEPLOY_METADATA=0` reserved for non-deploy diagnostics.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
 - Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
 

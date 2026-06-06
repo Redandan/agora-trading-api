@@ -305,8 +305,9 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - required local tools: `bash`, `awk`, `curl`, `git`, `java`, `lsof`, `mktemp`, `mvn`, `ps`, `sudo`, and `systemctl` when nginx reload is enabled; the nginx path installer also fails fast on its own required tools.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
-- deployed `app.commit` metadata matches the current worktree HEAD when the metadata file exists.
-- deployed `app.pid` metadata points to a running process that is listening on the active `app.port` when the metadata file exists.
+- deployed `app.commit`, `app.pid`, and `app.port` metadata must exist by default; set `REQUIRE_DEPLOY_METADATA=0` only for explicit non-deploy diagnostics.
+- deployed `app.commit` metadata matches the current worktree HEAD.
+- deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon.
 - `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8082`; deploy, preflight, and server verification fail on stale values.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
@@ -324,7 +325,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
-- active local trading health via `app.port` or default `8084`, limited to the `8084/8085` blue-green port set.
+- active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
 - local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8082/api/actuator/health` by default.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.

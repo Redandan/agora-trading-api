@@ -290,15 +290,26 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
     exit 1
   fi
   echo "[deploy] running post-deploy server verification"
+  VERIFY_ENV=(
+    APP_DIR="$APP_DIR"
+    ENV_FILE="$ENV_FILE"
+    PORT_A="$PORT_A"
+    PORT_B="$PORT_B"
+    INTERNAL_CLIENT_POM="$INTERNAL_CLIENT_POM"
+    AGORA_MARKET_HEALTH_URL="$AGORA_MARKET_HEALTH_URL"
+    EXPECTED_AGORA_MARKET_BASE_URL="$EXPECTED_AGORA_MARKET_BASE_URL"
+    NGINX_CONF_GLOB="$NGINX_CONF"
+    RUN_PREFLIGHT=0
+  )
   if [ "$UPDATE_NGINX" = "1" ]; then
-    if ! PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
-        RUN_PREFLIGHT=0 \
+    if ! env "${VERIFY_ENV[@]}" \
+        PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
         bash "$VERIFY_SCRIPT"; then
       rollback_after_failed_verify
       exit 1
     fi
   else
-    if ! RUN_PREFLIGHT=0 bash "$VERIFY_SCRIPT"; then
+    if ! env "${VERIFY_ENV[@]}" bash "$VERIFY_SCRIPT"; then
       rollback_after_failed_verify
       exit 1
     fi

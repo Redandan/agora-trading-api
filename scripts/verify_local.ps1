@@ -261,7 +261,19 @@ try {
     Assert-RgMatch -Pattern "POST_DEPLOY_VERIFIED=1" -Paths @("deploy.sh") -Description "deploy records successful post-deploy verification before cleanup"
     Assert-RgMatch -Pattern "keeping old instance because post-deploy verification was not proven" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "deploy keeps previous instance when post-deploy verification is skipped"
     Assert-RgMatch -Pattern "keeping nginx backup because post-deploy verification was not proven" -Paths @("deploy.sh") -Description "deploy keeps nginx backup when post-deploy verification is skipped"
-    Assert-RgMatch -Pattern 'RUN_PREFLIGHT=0 bash "\$VERIFY_SCRIPT"' -Paths @("deploy.sh") -Description "deploy post-verify reuses server verifier without repeating preflight"
+    Assert-RgMatch -Pattern 'VERIFY_ENV=\(' -Paths @("deploy.sh") -Description "deploy passes actual context into post-deploy server verifier"
+    foreach ($pattern in @(
+        'APP_DIR="\$APP_DIR"',
+        'ENV_FILE="\$ENV_FILE"',
+        'INTERNAL_CLIENT_POM="\$INTERNAL_CLIENT_POM"',
+        'AGORA_MARKET_HEALTH_URL="\$AGORA_MARKET_HEALTH_URL"',
+        'EXPECTED_AGORA_MARKET_BASE_URL="\$EXPECTED_AGORA_MARKET_BASE_URL"',
+        'NGINX_CONF_GLOB="\$NGINX_CONF"',
+        'RUN_PREFLIGHT=0',
+        'env "\$\{VERIFY_ENV\[@\]\}" bash "\$VERIFY_SCRIPT"'
+    )) {
+        Assert-RgMatch -Pattern $pattern -Paths @("deploy.sh") -Description "deploy post-verifier context marker $pattern"
+    }
     Assert-RgMatch -Pattern "post-deploy verification failed; rolling back active metadata" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy rolls back active metadata when post-deploy verification fails"
     Assert-RgMatch -Pattern "post-deploy verifier missing" -Paths @("deploy.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy treats missing post-deploy verifier as rollback-worthy failure"
     Assert-RgMatch -Pattern "restoring nginx trading upstream after failed verification" -Paths @("deploy.sh", "docs/deploy-runbook.md") -Description "deploy restores nginx backup when post-deploy verification fails"

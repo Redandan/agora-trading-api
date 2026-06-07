@@ -5,6 +5,7 @@ import com.agora.repository.trading.MarketIndicatorHistoryRepository;
 import com.agora.service.market.BinanceSpotTakerBuyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "trading.short-squeeze-alert.taker-buy-collector-enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class BinanceSpotTakerBuyCollector {
 

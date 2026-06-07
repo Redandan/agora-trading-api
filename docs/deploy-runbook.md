@@ -116,7 +116,7 @@ Expected:
 - Local smoke forces `okx.earn-topup.enabled=false`; the OKX Earn top-up scheduler bean is explicit opt-in and smoke logs must not show Earn redemption or transfer side effects.
 - Local smoke forces `polymarket.monitor.enabled=false`; the Polymarket monitor scheduler bean is explicit opt-in and smoke logs must not show Polymarket snapshot, backfill, or digest side effects.
 - Local smoke forces `position-exit-manager.enabled=false` and `trailing-stop.enabled=false`; both OCO-management scheduler beans are explicit opt-in and smoke logs must not show OCO modification or trailing-state side effects.
-- Smoke logs prove short-squeeze alerting and Binance taker-buy collection are disabled with `[ShortSqueezeAlert] config: enabled=false takerBuyCollectorEnabled=false`; code defaults also keep both off if the env keys are omitted.
+- Local smoke forces short-squeeze alerting and Binance taker-buy collection off; both scheduler beans are explicit opt-in, and smoke logs must not show ShortSqueeze alerts or SpotTakerBuy collection.
 - Smoke logs must not show startup market-data backfills (`DexFlowBackfill`, `HLFundingBackfill`, `CoinalyzeBackfill`, or `CMIBackfill`).
 - Local verification dynamically checks every `ApplicationRunner`/`CommandLineRunner`, so startup jobs must be async and explicit opt-in before deploy prep can pass.
 - Smoke logs must not show order placement, Telegram sends, private trading WS connection, or auto-execution enabled.

@@ -789,6 +789,8 @@ try {
     Assert-RgMatch -Pattern "POST /api/trading/mcp" -Paths @("src/main/java/com/agora/service/ai/LocalMcpClient.java", "src/main/java/com/agora/mcp/McpStreamableHttpController.java") -Description "MCP docs use trading context path"
     Assert-RgNoMatch -Pattern 'POST /api/mcp|localhost:" \+ serverPort \+ "/api/mcp' -Paths @("src/main/java/com/agora/service/ai/LocalMcpClient.java", "src/main/java/com/agora/mcp/McpStreamableHttpController.java") -Description "stale pre-split MCP path"
     Assert-RgMatch -Pattern '"\/mcp",' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "Spring Security permits bare MCP endpoint for MCP filter auth"
+    Assert-RgMatch -Pattern '@ConditionalOnProperty\(name = "trading\.tiny-live\.auto-execution\.enabled", havingValue = "true", matchIfMissing = false\)' -Paths @("src/main/java/com/agora/scheduler/trading/TinyLiveAutoExecutionScheduler.java") -Description "TinyLive auto-execution scheduler bean is explicit opt-in"
+    Assert-RgMatch -Pattern 'trading\.tiny-live\.auto-execution\.enabled:false' -Paths @("src/main/java/com/agora/scheduler/trading/TinyLiveAutoExecutionScheduler.java") -Description "TinyLive auto-execution method guard defaults off"
 
     Write-Host "[verify] checking shell script syntax"
     $bash = Resolve-BashCommand

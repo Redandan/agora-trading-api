@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "event-scan.notification.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "event-scan.notification.enabled", havingValue = "true", matchIfMissing = false)
 public class EventScanNotificationScheduler {
 
     private final MetaControlMcpTools metaControlMcpTools;

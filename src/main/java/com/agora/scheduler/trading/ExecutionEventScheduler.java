@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "execution-event.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "execution-event.enabled", havingValue = "true", matchIfMissing = false)
 public class ExecutionEventScheduler {
 
     private final ExecutionEventMcpTools executionEventMcpTools;

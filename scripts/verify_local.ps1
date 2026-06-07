@@ -322,7 +322,7 @@ try {
     Assert-RgMatch -Pattern "require_cmd ps" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when ps is unavailable"
     Assert-RgMatch -Pattern "require_cmd tail" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when tail is unavailable"
     Assert-RgMatch -Pattern "require_cmd tr" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when tr is unavailable"
-    foreach ($commandName in @("date", "env", "grep", "nohup", "sleep")) {
+    foreach ($commandName in @("bash", "date", "env", "grep", "nohup", "sleep")) {
         Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when $commandName is unavailable"
     }
     Assert-RgMatch -Pattern "require_cmd lsof" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when lsof is unavailable"

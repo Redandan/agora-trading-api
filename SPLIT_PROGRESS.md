@@ -74,7 +74,7 @@
 - Server schema-baseline source and database marketplace-table checks now share one shell pattern to avoid future drift.
 - Server schema-baseline DB compare now fails fast when required inventory and comparison tools are unavailable.
 - Deploy/preflight now fail fast when `seq` or `tail` is unavailable before blue-green readiness loops or failure-log diagnostics need them.
-- Deploy/preflight now also fail fast for core process-launch and post-verify tools (`date`, `env`, `grep`, `nohup`, `sleep`).
+- Deploy/preflight now also fail fast for core process-launch and post-verify tools (`bash`, `date`, `env`, `grep`, `nohup`, `sleep`).
 - Server verification now also fails fast when env/metadata parsing tools (`grep`, `tail`, `tr`) are unavailable.
 - Bootstrap and nginx path installation now fail fast when their repo/nginx inspection and file-update tools are unavailable.
 - Local verification now checks every local-smoke external key and boot-argument clear marker, including exchange secrets, external data-provider keys, warm-up disables, and dry-run guards.

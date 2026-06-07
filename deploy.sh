@@ -106,6 +106,7 @@ rollback_after_failed_verify() {
   cleanup_new_instance
 }
 
+require_cmd bash
 require_cmd curl
 require_cmd date
 require_cmd env

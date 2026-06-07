@@ -59,10 +59,10 @@ require_env_value() {
   require_env_key "$key"
   local value="${!key:-}"
   if [ "$value" != "$expected" ]; then
-    echo "[deploy] $key must be $expected until the Flyway baseline exists" >&2
+    echo "[deploy] $key must be $expected" >&2
     exit 1
   fi
-  echo "[deploy] $key matches expected temporary bootstrap value: $expected"
+  echo "[deploy] $key matches expected value: $expected"
 }
 
 cleanup_new_instance() {

@@ -342,6 +342,7 @@ try {
     }
     Assert-RgMatch -Pattern "require_cmd systemctl" -Paths @("deploy.sh", "scripts/install_nginx_path.sh") -Description "nginx deploy/install fail fast when systemctl is unavailable for nginx reload"
     Assert-RgMatch -Pattern "blue-green process launch, active metadata checks, health probes, nginx swaps, and post-verify parsing" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents deploy/preflight/server verify tool guard scope"
+    Assert-RgMatch -Pattern "grep.*ls.*cp.*mv.*nginx.*rm" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents bootstrap/nginx file-update tool guard list"
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("deploy.sh") -Description "deploy fails fast when AgoraMarket internal-client is missing"
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when AgoraMarket internal-client is missing even when preflight is skipped"
     Assert-RgMatch -Pattern 'mvn -f "\$INTERNAL_CLIENT_POM" install' -Paths @("deploy.sh") -Description "deploy installs AgoraMarket internal-client before building trading"

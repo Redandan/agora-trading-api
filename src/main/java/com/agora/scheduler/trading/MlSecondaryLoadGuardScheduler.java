@@ -5,6 +5,7 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.ml.MlTrainingOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "meta-control.ml-protection.enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class MlSecondaryLoadGuardScheduler {
 

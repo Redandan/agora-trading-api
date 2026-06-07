@@ -6,6 +6,7 @@ import com.agora.service.TgNotificationDeduper.Severity;
 import com.agora.service.ml.MlPipelineDigestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,7 @@ import java.time.ZoneOffset;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "meta-control.ml-edge-watcher.enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class MlEdgeStalenessWatcher {
 

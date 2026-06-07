@@ -549,6 +549,7 @@ try {
         "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED",
         "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
         "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
+        "TRADING_MCP_KEY",
         "EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED",
         "EXTERNAL_ALCHEMY_API_KEY",
         "EXTERNAL_COINGECKO_DEMO_API_KEY",
@@ -556,6 +557,7 @@ try {
         "EXTERNAL_FRED_API_KEY",
         "EXTERNAL_THEGRAPH_API_KEY",
         "TRADING_OKX_ENABLED",
+        "TRADING_OCO_POLLER_ENABLED",
         "TRADING_OKX_SECRET_KEY",
         "TRADING_OKX_PASSPHRASE",
         "TRADING_BINANCE_ENABLED",
@@ -570,6 +572,7 @@ try {
         "TRADING_DISCOVERY_AI_SUGGESTIONS_ENABLED",
         "TRADING_KLINE_DIVERGENCE_ENABLED",
         "POSITION_EXIT_MANAGER_DRY_RUN",
+        "TRAILING_STOP_DRY_RUN",
         "server.port=",
         "agora-market.internal-api-key=",
         "anthropic.api.key=",
@@ -614,7 +617,8 @@ try {
         "trading.discovery.ai-suggestions.enabled=false",
         "trading.kline-divergence.enabled=false",
         "market.ws.auto-subscribe.warm-up-enabled=false",
-        "position-exit-manager.dry-run=true"
+        "position-exit-manager.dry-run=true",
+        "trailing-stop.dry-run=true"
     )) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_local_health.ps1") -Description "local-smoke clears high-risk split runtime key $pattern"
     }

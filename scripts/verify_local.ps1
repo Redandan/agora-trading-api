@@ -321,6 +321,7 @@ try {
         Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when $commandName is unavailable"
     }
     Assert-RgMatch -Pattern "require_cmd systemctl" -Paths @("deploy.sh", "scripts/install_nginx_path.sh") -Description "nginx deploy/install fail fast when systemctl is unavailable for nginx reload"
+    Assert-RgMatch -Pattern "blue-green process launch, active metadata checks, health probes, nginx swaps, and post-verify parsing" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents deploy/preflight/server verify tool guard scope"
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("deploy.sh") -Description "deploy fails fast when AgoraMarket internal-client is missing"
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when AgoraMarket internal-client is missing even when preflight is skipped"
     Assert-RgMatch -Pattern 'mvn -f "\$INTERNAL_CLIENT_POM" install' -Paths @("deploy.sh") -Description "deploy installs AgoraMarket internal-client before building trading"
@@ -329,6 +330,10 @@ try {
     foreach ($commandName in @("grep", "ls")) {
         Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("scripts/bootstrap_server.sh") -Description "bootstrap fails fast when $commandName is unavailable"
     }
+    Assert-RgMatch -Pattern "Bootstrap and nginx path installation fail fast" -Paths @("docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "bootstrap/nginx install tool guards are documented"
+    Assert-RgMatch -Pattern "bootstrap and nginx path installation fail fast" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents bootstrap/nginx install tool guards"
+    Assert-RgMatch -Pattern "schema baseline database comparison fails fast" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents schema compare tool guards"
+    Assert-RgMatch -Pattern "Server verification and schema baseline comparison fail fast" -Paths @("docs/split-audit.md") -Description "split audit documents server verify/schema compare tool guards"
     Assert-RgMatch -Pattern "Optional runtime safety toggles" -Paths @(".env.trading.secrets.example") -Description "server env template documents optional safety toggles"
     Assert-RgMatch -Pattern "optional safety key" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator checks optional safety toggles"
     Assert-RgMatch -Pattern "meta-control\.btc-price-move-indicator\.enabled:false" -Paths @("src/main/java/com/agora/scheduler/trading/BtcPriceMoveIndicatorCollector.java") -Description "BTC price-move indicator collector is explicit opt-in"

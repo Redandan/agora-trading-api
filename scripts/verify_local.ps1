@@ -309,6 +309,47 @@ function Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks {
     }
 }
 
+function Assert-SecurityPathsAllowedListExact {
+    $allowedPaths = @(
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/v3/api-docs**",
+        "/swagger-ui.html",
+        "/mcp",
+        "/mcp/**",
+        "/ratelimit",
+        "/actuator/health",
+        "/actuator/health/**",
+        "/actuator/info",
+        "/actuator/prometheus",
+        "/actuator/metrics",
+        "/actuator/metrics/**",
+        "/favicon.ico"
+    )
+
+    $text = Get-Content -LiteralPath "src/main/java/com/agora/config/SecurityPaths.java" -Raw
+    $actualPaths = @()
+    [regex]::Matches($text, '"(?<path>/[^"]*)"') | ForEach-Object {
+        $actualPaths += $_.Groups["path"].Value
+    }
+
+    foreach ($path in $actualPaths) {
+        if ($allowedPaths -notcontains $path) {
+            Write-Error "Unexpected public HTTP path in SecurityPaths.ALLOWED_PATHS. New public route must be classified as retained trading surface or removed:`n$path"
+        }
+    }
+
+    foreach ($path in $allowedPaths) {
+        if ($actualPaths -notcontains $path) {
+            Write-Error "Expected public HTTP path missing from SecurityPaths.ALLOWED_PATHS: $path"
+        }
+    }
+
+    if ($actualPaths.Count -ne $allowedPaths.Count) {
+        Write-Error "SecurityPaths.ALLOWED_PATHS has duplicate or missing entries. expected=$($allowedPaths.Count) actual=$($actualPaths.Count)"
+    }
+}
+
 function Assert-StartupRunnersAreSplitSafe {
     $runnerFiles = @(rg -l "implements (ApplicationRunner|CommandLineRunner)" src/main/java)
     $exitCode = $LASTEXITCODE
@@ -360,7 +401,9 @@ try {
     Assert-RgMatch -Pattern "Non-public HTTP routes default to deny-all" -Paths @("SERVICE_BOUNDARY.md") -Description "service boundary documents deny-all HTTP default"
     Assert-RgNoMatch -Pattern "TRADING_ADMIN_KEY|trading\.admin|local-smoke-admin" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "scripts/validate_env_template.ps1", ".env.trading.secrets.example", "src/main/resources/application.yml", "src/main/resources/application-local-smoke.yml", "docs/deploy-runbook.md") -Description "unused admin HTTP secret residue"
     Assert-RgNoMatch -Pattern '"/(public|test|images|telegram/webhook|backtests|admin/market|admin/oco|market)/(.*)?"' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "legacy public HTTP route allowlist residue"
+    Assert-SecurityPathsAllowedListExact
     Assert-RgMatch -Pattern '"/mcp"' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "MCP endpoint remains the only trading tool HTTP surface"
+    Assert-RgMatch -Pattern "exact public HTTP allowlist is enforced by ``scripts/verify_local.ps1``" -Paths @("SPLIT_PROGRESS.md", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "exact public HTTP allowlist verification is documented"
 
     Assert-RgNoMatch -Pattern "service\\.auth\\.model|bot\\.conversation|com\\.agora\\.entity|telemetry/game" -Paths @("src/main/java/com/agora/model/README.md") -Description "stale model package guidance"
     Assert-RgNoMatch -Pattern "system/auth/frontend remnants|Cleanup Queue" -Paths @("SPLIT_PROGRESS.md", "SERVICE_BOUNDARY.md") -Description "stale split progress/boundary wording"

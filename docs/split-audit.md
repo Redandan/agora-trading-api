@@ -156,7 +156,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, which only logs slow Spring bean creation during startup and has no network, DB, order, or notification side effects.
 - `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.
 - `scripts/validate_package_boundary.ps1` keeps top-level and nested `com.agora.*` packages inside the trading-owned allowlist and rejects marketplace-style package segments such as product, order, cart, user, wallet, OAuth, webpush, PWA, member, referrer, support-ticket, recharge/withdraw, transaction, Web3, and WalletConnect. The retained `com.agora.mcp.auth` package is service-level MCP API-key auth, not marketplace login.
-- `SecurityPaths` exposes only the real retained public HTTP surfaces: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon.
+- `SecurityPaths` exposes only the real retained public HTTP surfaces: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon; the exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`.
 
 ## Retained Trading Domains
 

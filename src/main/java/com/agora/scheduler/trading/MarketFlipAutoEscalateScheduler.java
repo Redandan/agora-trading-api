@@ -6,6 +6,7 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.meta.DecisionAuditWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "meta-control.market-flip.auto-escalate-enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class MarketFlipAutoEscalateScheduler {
 

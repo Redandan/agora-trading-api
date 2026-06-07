@@ -116,6 +116,17 @@ $previousEnv = @{}
 $envOverrides = @{
     AGORA_MARKET_INTERNAL_API_KEY = ""
     AGORA_MARKET_BASE_URL = "http://127.0.0.1:0"
+    AGORA_MARKET_INTERNAL_TIMEOUT_MS = "3000"
+    SPRING_DATASOURCE_URL = "jdbc:h2:mem:trading-local-smoke;MODE=MySQL;DATABASE_TO_LOWER=TRUE;NON_KEYWORDS=VALUE;DB_CLOSE_DELAY=-1"
+    SPRING_DATASOURCE_USERNAME = "sa"
+    SPRING_DATASOURCE_PASSWORD = ""
+    SPRING_JPA_HIBERNATE_DDL_AUTO = "create-drop"
+    SPRING_FLYWAY_ENABLED = "false"
+    TRADING_SCHEDULER_POOL_SIZE = "1"
+    TRADING_CORS_ALLOWED_ORIGINS = "http://localhost:*,http://127.0.0.1:*"
+    META_CONTROL_ML_SQL_SCHEMA = "agora_trading"
+    META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE = "bt_signal_training_v8_mat"
+    META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW = "vw_signal_training_v2"
     TRADING_MCP_KEY = "local-smoke-mcp"
     MCP_API_KEY = "local-smoke-mcp"
     MCP_OPS_KEY = "local-smoke-mcp"
@@ -247,6 +258,17 @@ try {
         "--server.port=$Port",
         "--agora-market.base-url=http://127.0.0.1:0",
         "--agora-market.internal-api-key=",
+        "--agora-market.timeout-ms=3000",
+        "--spring.datasource.url=jdbc:h2:mem:trading-local-smoke;MODE=MySQL;DATABASE_TO_LOWER=TRUE;NON_KEYWORDS=VALUE;DB_CLOSE_DELAY=-1",
+        "--spring.datasource.username=sa",
+        "--spring.datasource.password=",
+        "--spring.jpa.hibernate.ddl-auto=create-drop",
+        "--spring.flyway.enabled=false",
+        "--spring.task.scheduling.pool.size=1",
+        "--app.cors.allowed-origins=http://localhost:*,http://127.0.0.1:*",
+        "--meta-control.ml.sql.schema=agora_trading",
+        "--meta-control.ml.sql.signal-scorer-training-table=bt_signal_training_v8_mat",
+        "--meta-control.ml.sql.weekly-retrain-training-view=vw_signal_training_v2",
         "--mcp.api-key=local-smoke-mcp",
         "--mcp.ops-key=local-smoke-mcp",
         "--telegram.bot.token=",

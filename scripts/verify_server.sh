@@ -250,12 +250,12 @@ else
   warn "nginx config glob has no matches: $NGINX_CONF_GLOB; REQUIRE_NGINX_TRADING_PATH=$REQUIRE_NGINX_TRADING_PATH"
 fi
 
-if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet nginx; then
+if systemctl is-active --quiet nginx; then
   ok "nginx service is active"
 elif [ "$REQUIRE_NGINX_SERVICE" = "1" ]; then
-  fail "nginx service is not active or systemctl is unavailable"
+  fail "nginx service is not active"
 else
-  warn "nginx service is not active or systemctl is unavailable; REQUIRE_NGINX_SERVICE=$REQUIRE_NGINX_SERVICE"
+  warn "nginx service is not active; REQUIRE_NGINX_SERVICE=$REQUIRE_NGINX_SERVICE"
 fi
 
 ok "server verification complete"

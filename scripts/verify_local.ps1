@@ -317,7 +317,7 @@ try {
     Assert-RgMatch -Pattern "REQUIRE_NGINX_TRADING_PATH" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server verify requires nginx trading path by default"
     Assert-RgMatch -Pattern 'REQUIRE_NGINX_SERVICE="\$\{REQUIRE_NGINX_SERVICE:-1\}"' -Paths @("scripts/verify_server.sh") -Description "server verify requires nginx service active by default"
     Assert-RgMatch -Pattern "REQUIRE_NGINX_SERVICE=0.*non-nginx" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "nginx service bypass is documented as non-nginx diagnostic only"
-    Assert-RgMatch -Pattern "fail `"nginx service is not active or systemctl is unavailable" -Paths @("scripts/verify_server.sh") -Description "server verify fails when nginx service is unavailable by default"
+    Assert-RgMatch -Pattern "fail `"nginx service is not active" -Paths @("scripts/verify_server.sh") -Description "server verify fails when nginx service is not active by default"
     Assert-RgMatch -Pattern "nginx /api/trading/ location not found" -Paths @("scripts/verify_server.sh") -Description "server verify fails when nginx trading path is missing"
     Assert-RgMatch -Pattern "invalid TRADING_PORT" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer rejects unknown trading port"
     Assert-RgMatch -Pattern "require_cmd bash" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when bash is unavailable"

@@ -127,6 +127,10 @@ AgoraMarketAPI deployment/acceptance runbook:
 
 - `C:\Users\Redan\IdeaProjects\AgoraMarketAPI\docs\split-service-acceptance-deploy.md`
 
+Current standalone trading acceptance handoff:
+
+- `docs/split-acceptance-status.md`
+
 Trading deployment prep:
 
 - Trading has a deploy skeleton in `deploy.sh`.

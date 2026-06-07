@@ -4,6 +4,9 @@
 
 This repo deploys the standalone trading service. It should not deploy marketplace frontend assets or AgoraMarket commerce APIs.
 
+For the current acceptance state and remaining cutover blockers, start with
+`docs/split-acceptance-status.md`.
+
 ## Required Environment
 
 Server secrets file:

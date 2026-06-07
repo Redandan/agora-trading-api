@@ -418,6 +418,8 @@ try {
     Assert-RgMatch -Pattern "temporary bootstrap-only schema mode" -Paths @("scripts/bootstrap_server.sh", "docs/deploy-runbook.md") -Description "ddl-auto update is documented as temporary bootstrap-only"
     Assert-RgMatch -Pattern "Flyway baseline" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "migration baseline prerequisite is documented"
     Assert-RgMatch -Pattern "AgoraMarketAPI Trading Cutover Plan" -Paths @("docs/deploy-runbook.md") -Description "legacy AgoraMarketAPI trading cutover plan is documented"
+    Assert-RgMatch -Pattern "split-acceptance-status.md" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "current split acceptance handoff is linked"
+    Assert-RgMatch -Pattern "Do not disable AgoraMarketAPI legacy trading before schema compare passes" -Paths @("docs/split-acceptance-status.md") -Description "acceptance handoff blocks legacy trading cutover before schema compare"
     Assert-RgMatch -Pattern "schema_baseline_inventory.ps1" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline starts with read-only source inventory"
     Assert-RgMatch -Pattern "Runtime side effects that could surprise a split deployment now default off" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents default-off runtime side-effect cleanup"
     Assert-RgMatch -Pattern "high-risk host env values" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents local-smoke high-risk host env clearing"

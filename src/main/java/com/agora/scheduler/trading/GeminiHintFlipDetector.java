@@ -5,6 +5,7 @@ import com.agora.model.GeminiMarketHint;
 import com.agora.repository.trading.GeminiMarketHintRepository;
 import com.agora.infra.notification.NotificationPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "trading.gemini-advisor.flip-detector-enabled", havingValue = "true", matchIfMissing = false)
 public class GeminiHintFlipDetector {
 
     private final GeminiMarketHintRepository hintRepo;

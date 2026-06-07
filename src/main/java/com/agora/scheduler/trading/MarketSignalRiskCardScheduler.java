@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "market-signal.risk-card.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "market-signal.risk-card.enabled", havingValue = "true", matchIfMissing = false)
 public class MarketSignalRiskCardScheduler {
 
     private final MetaControlMcpTools metaControlMcpTools;

@@ -97,6 +97,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Deploy/server verification rejects unknown `app.port` or `TRADING_PORT` state outside the `8084/8085` set.
 - Server preflight/verify require non-empty env keys without printing secret values.
 - Deploy/server verification require `AGORA_MARKET_BASE_URL` to point at local AgoraMarketAPI dependency `http://127.0.0.1:8082` and fail on stale values.
+- Deploy/server verification require `SPRING_DATASOURCE_URL` to point at standalone trading database `agora_trading` and fail on marketplace datasource targets.
 - Deploy checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops before a new instance or nginx change is attempted.
 - Server preflight and verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is diagnostic-only and not deploy acceptance.
 - Server verification calls local MCP `getMcpRegistryVersion` through `/api/trading/mcp` with `TRADING_MCP_KEY`, proving the split context path and MCP auth mapping.

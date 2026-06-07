@@ -206,6 +206,9 @@ try {
     Assert-RgMatch -Pattern "schema baseline database comparison skipped" -Paths @("scripts/verify_server.sh") -Description "schema compare is opt-in for normal server verification"
     Assert-RgMatch -Pattern "EXPECTED_AGORA_MARKET_BASE_URL" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard AgoraMarket local dependency base URL"
     Assert-RgMatch -Pattern 'EXPECTED_AGORA_MARKET_BASE_URL="\$EXPECTED_AGORA_MARKET_BASE_URL"' -Paths @("scripts/verify_server.sh") -Description "server verification passes AgoraMarket expected base URL into preflight"
+    Assert-RgMatch -Pattern "EXPECTED_TRADING_DATABASE" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard standalone trading database target"
+    Assert-RgMatch -Pattern 'EXPECTED_TRADING_DATABASE="\$EXPECTED_TRADING_DATABASE"' -Paths @("deploy.sh", "scripts/verify_server.sh") -Description "deploy/server verification propagate expected trading database target"
+    Assert-RgMatch -Pattern "SPRING_DATASOURCE_URL must point at standalone trading database" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server scripts reject marketplace datasource target"
     Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server scripts fail on stale AgoraMarket base URL"
     Assert-RgMatch -Pattern "SPRING_DATASOURCE_URL should point at the standalone agora_trading database" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator rejects marketplace datasource target"
     Assert-RgMatch -Pattern "AGORA_MARKET_HEALTH_URL=.*http://127\.0\.0\.1:8082/api/actuator/health" -Paths @("deploy.sh", "scripts/bootstrap_server.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts check local AgoraMarket dependency health by default"
@@ -285,6 +288,7 @@ try {
         'INTERNAL_CLIENT_POM="\$INTERNAL_CLIENT_POM"',
         'AGORA_MARKET_HEALTH_URL="\$AGORA_MARKET_HEALTH_URL"',
         'EXPECTED_AGORA_MARKET_BASE_URL="\$EXPECTED_AGORA_MARKET_BASE_URL"',
+        'EXPECTED_TRADING_DATABASE="\$EXPECTED_TRADING_DATABASE"',
         'NGINX_CONF_GLOB="\$NGINX_CONF"',
         'RUN_SCHEMA_BASELINE_COMPARE="\$\{RUN_SCHEMA_BASELINE_COMPARE:-0\}"',
         'RUN_PREFLIGHT=0',

@@ -485,6 +485,7 @@ try {
     Assert-RgMatch -Pattern "SPRING_FLYWAY_ENABLED=false" -Paths @("scripts/bootstrap_server.sh", "docs/deploy-runbook.md") -Description "server template keeps Flyway disabled before baseline"
     Assert-RgMatch -Pattern "require_env_value SPRING_JPA_HIBERNATE_DDL_AUTO update" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server deploy/verification keeps ddl-auto update until Flyway baseline exists"
     Assert-RgMatch -Pattern "require_env_value SPRING_FLYWAY_ENABLED false" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server deploy/verification keeps Flyway disabled until baseline exists"
+    Assert-RgMatch -Pattern "require_env_value AGORA_MARKET_INTERNAL_TIMEOUT_MS 3000" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server deploy/verification keeps AgoraMarket internal API timeout bounded"
     Assert-RgMatch -Pattern "temporary schema bootstrap env values" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents schema bootstrap env guard"
     Assert-RgMatch -Pattern "Deploy, server preflight, and verification fail if" -Paths @("docs/split-audit.md", "docs/deploy-runbook.md") -Description "schema bootstrap env guard is documented"
     Assert-RgNoMatch -Pattern "baseline-on-migrate=true|baseline-on-migrate" -Paths @("pom.xml") -Description "pom does not claim Flyway baseline is already enabled"

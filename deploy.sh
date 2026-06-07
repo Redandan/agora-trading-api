@@ -143,6 +143,7 @@ load_env_file "$ENV_FILE"
 require_env_key TRADING_MCP_KEY
 require_env_key AGORA_MARKET_BASE_URL
 require_env_key AGORA_MARKET_INTERNAL_API_KEY
+require_env_value AGORA_MARKET_INTERNAL_TIMEOUT_MS 3000
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD

@@ -72,9 +72,9 @@ require_env_value() {
   local expected="$2"
   require_env_key "$key"
   if [ "$(env_value "$key")" != "$expected" ]; then
-    fail "$key must be $expected until the Flyway baseline exists"
+    fail "$key must be $expected"
   fi
-  ok "$key matches expected temporary bootstrap value: $expected"
+  ok "$key matches expected value: $expected"
 }
 
 require_cmd bash
@@ -140,6 +140,7 @@ fi
 require_env_key TRADING_MCP_KEY
 require_env_key AGORA_MARKET_BASE_URL
 require_env_key AGORA_MARKET_INTERNAL_API_KEY
+require_env_value AGORA_MARKET_INTERNAL_TIMEOUT_MS 3000
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD

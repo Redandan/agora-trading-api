@@ -69,6 +69,7 @@
 - Server verification now also requires active per-port pid metadata (`app.pid.<app.port>`) by default and rejects values that do not match `app.pid`.
 - Server verification now requires nginx service active by default, with `REQUIRE_NGINX_SERVICE=0` reserved for non-nginx diagnostics.
 - Deploy, server preflight, and verification now require temporary schema bootstrap env values (`SPRING_JPA_HIBERNATE_DDL_AUTO=update`, `SPRING_FLYWAY_ENABLED=false`) until a Flyway baseline is added.
+- Deploy, server preflight, and verification now also require `AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000`, so AgoraMarket internal API failure stays bounded during split deploys.
 - Env-template verification now discovers both required server env keys and fixed-value env guards from deploy/server scripts.
 - Env-template verification now also pins the AgoraMarket internal API timeout and local-only default CORS, so deploy prep cannot silently widen browser access or slow exchange-rate dependency failure.
 - Deploy keeps the previous blue-green instance and nginx backup when `RUN_POST_DEPLOY_VERIFY=0`, so skipped verification does not drain the last proven instance.

@@ -75,12 +75,34 @@ The source and database marketplace checks share one shell pattern in
 such as `flyway_schema_history`, but this does not relax `extra-in-db.txt`
 failure before baseline acceptance.
 
+## Extra Table Cleanup Planning
+
+If the server compare reports only empty residual extra tables, generate a
+review-only cleanup plan:
+
+```bash
+cd /home/ubuntu/agora-trading-api
+bash scripts/schema_extra_tables_cleanup_plan_server.sh
+```
+
+The cleanup-plan script reads the existing `extra-in-db.txt`, queries exact
+`COUNT(*)` values for every listed table, and writes:
+
+- `target/schema-baseline/extra-table-row-counts.tsv`
+- `target/schema-baseline/extra-table-cleanup-plan.sql`
+
+It must not execute `DROP TABLE` or mutate the database. The generated SQL keeps
+drop statements commented out so an operator must explicitly review, back up the
+database, re-run the compare, and choose what to apply. If any extra table has
+rows, the cleanup-plan script fails.
+
 ## Baseline Acceptance
 
 Before replacing Hibernate schema update with Flyway validation:
 
 - Compare `target/schema-baseline/entity-tables.txt` with the real `agora_trading` database tables.
 - Run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` and resolve any `missing-in-db.txt` or `extra-in-db.txt` rows.
+- For empty residual extra tables, generate and review `scripts/schema_extra_tables_cleanup_plan_server.sh` output before any manual cleanup.
 - Confirm no marketplace-owned tables are required by trading.
 - Generate an explicit `V1__baseline.sql` under `src/main/resources/db/migration`.
 - Set production to `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`.

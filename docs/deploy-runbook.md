@@ -357,6 +357,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
 - deploy, server preflight, and verification fail if the real server env changes `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` before the baseline migration exists.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
+- Empty residual extra tables must be handled through a reviewed cleanup plan first: `bash scripts/schema_extra_tables_cleanup_plan_server.sh` writes row counts and commented DROP statements without mutating the database.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
 - local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8082/api/actuator/health` by default.
 - optional public trading health URL.

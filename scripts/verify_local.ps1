@@ -438,6 +438,8 @@ try {
     Assert-RgMatch -Pattern "validate_env_template.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs env template boundary"
     Assert-RgMatch -Pattern "require_env_.*key.*value" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator tracks required key and fixed-value env guards"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline has read-only server compare step"
+    Assert-RgMatch -Pattern "schema_extra_tables_cleanup_plan_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline extra-table cleanup planning is documented"
+    Assert-RgNoMatch -Pattern "^[[:space:]]*DROP TABLE" -Paths @("scripts/schema_extra_tables_cleanup_plan_server.sh") -Description "schema extra-table cleanup planner must not execute drop statements"
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "VERIFY_GIT_CURRENT" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "server verification checks deployed git currentness by default"
     Assert-RgMatch -Pattern "REQUIRE_DEPLOY_METADATA=.*REQUIRE_DEPLOY_METADATA:-1" -Paths @("scripts/verify_server.sh") -Description "server verification requires deploy metadata by default"

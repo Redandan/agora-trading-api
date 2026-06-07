@@ -76,6 +76,7 @@
 - Server verification now also fails fast when env/metadata parsing tools (`grep`, `tail`, `tr`) are unavailable.
 - Bootstrap and nginx path installation now fail fast when their repo/nginx inspection and file-update tools are unavailable.
 - Local verification now checks every local-smoke external key and boot-argument clear marker, including exchange secrets, external data-provider keys, warm-up disables, and dry-run guards.
+- Package boundary verification now rejects residual marketplace package segments for account/member, PWA, support-ticket, referrer, recharge/withdraw, transaction, Web3, and WalletConnect code.
 - Short-squeeze alerting and Binance taker-buy collection now default off in code as well as in the tracked env template and local smoke.
 - Market-flip detector now defaults off in code and the tracked env template, so flip event writes and related notifications are production opt-in.
 - ML shadow inference logging now defaults off in code and the tracked env template, so live-signal HeatWave prediction lookups and `ml_inference_log` writes are production opt-in.

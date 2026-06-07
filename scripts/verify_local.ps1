@@ -185,6 +185,9 @@ try {
     Assert-RgMatch -Pattern "schema_baseline_inventory.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs schema inventory"
     Assert-RgMatch -Pattern "validate_pom_boundary.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs pom dependency boundary"
     Assert-RgMatch -Pattern "validate_package_boundary.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs package boundary"
+    foreach ($marketplacePackageSegment in @("member", "pwa", "transaction", "walletconnect", "web3", "withdraw")) {
+        Assert-RgMatch -Pattern "`"$marketplacePackageSegment`"" -Paths @("scripts/validate_package_boundary.ps1") -Description "package boundary rejects residual marketplace package segment: $marketplacePackageSegment"
+    }
     Assert-RgMatch -Pattern "validate_env_template.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs env template boundary"
     Assert-RgMatch -Pattern "require_env_.*key.*value" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator tracks required key and fixed-value env guards"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline has read-only server compare step"

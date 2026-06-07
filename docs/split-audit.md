@@ -171,7 +171,7 @@ These domains are retained unless a later audit proves they are unused:
 - Production deploy currentness is not proven by this audit.
 - Server verification checks that the deployed worktree matches `origin/main` by default; explicit rollback verification must opt out with `VERIFY_GIT_CURRENT=0`.
 - Deploy writes `app.commit`, `app.pid`, and `app.port`; server verification requires those metadata files by default and only allows missing metadata with `REQUIRE_DEPLOY_METADATA=0` for explicit diagnostics.
-- Server verification checks `app.commit` against the worktree HEAD and checks that `app.pid` still owns the active `app.port`.
+- Server verification checks `app.commit` against the worktree HEAD, requires active per-port `app.pid.<app.port>` metadata by default, and checks that `app.pid` still owns the active `app.port`.
 - Deploy runs server verification after switching active metadata by default; `RUN_POST_DEPLOY_VERIFY=0` is an explicit emergency bypass.
 - Deploy passes its actual `APP_DIR`, `ENV_FILE`, port pair, AgoraMarket dependency URL, expected AgoraMarket base URL, internal-client path, and nginx config path into post-deploy server verification, so custom deploy invocations are verified against the same environment that was deployed. Server verification passes the same expected AgoraMarket base URL into preflight.
 - Deploy also propagates `RUN_SCHEMA_BASELINE_COMPARE` into post-deploy server verification, so an explicit schema-baseline compare request is not lost during deploy acceptance.

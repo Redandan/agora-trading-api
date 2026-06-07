@@ -194,6 +194,18 @@ if [ -f "$PID_FILE" ]; then
   case "$ACTIVE_PID" in
     ''|*[!0-9]*) fail "invalid deployed app.pid: $ACTIVE_PID" ;;
   esac
+  ACTIVE_PORT_PID_FILE="$APP_DIR/app.pid.$ACTIVE_PORT"
+  if [ -f "$ACTIVE_PORT_PID_FILE" ]; then
+    ACTIVE_PORT_PID="$(tr -d '[:space:]' < "$ACTIVE_PORT_PID_FILE")"
+    if [ "$ACTIVE_PORT_PID" != "$ACTIVE_PID" ]; then
+      fail "active per-port pid metadata $ACTIVE_PORT_PID_FILE value ${ACTIVE_PORT_PID:-empty} does not match app.pid $ACTIVE_PID"
+    fi
+    ok "active per-port pid metadata matches app.pid: $ACTIVE_PORT_PID_FILE"
+  elif [ "$REQUIRE_DEPLOY_METADATA" = "1" ]; then
+    fail "active per-port pid metadata missing: $ACTIVE_PORT_PID_FILE"
+  else
+    warn "active per-port pid metadata missing: $ACTIVE_PORT_PID_FILE; REQUIRE_DEPLOY_METADATA=$REQUIRE_DEPLOY_METADATA"
+  fi
   ps -p "$ACTIVE_PID" >/dev/null || fail "deployed app.pid $ACTIVE_PID is not running"
   if lsof -ti ":$ACTIVE_PORT" 2>/dev/null | grep -qx "$ACTIVE_PID"; then
     ok "deployed app.pid $ACTIVE_PID is listening on active port $ACTIVE_PORT"

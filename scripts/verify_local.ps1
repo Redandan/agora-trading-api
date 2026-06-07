@@ -311,6 +311,8 @@ try {
     Assert-RgMatch -Pattern "PUBLIC_TRADING_HEALTH_URL=.*DEFAULT_PUBLIC_TRADING_HEALTH_URL" -Paths @("deploy.sh") -Description "post-deploy verify sets public trading health URL when nginx is updated"
     Assert-RgMatch -Pattern "invalid app.port value" -Paths @("deploy.sh") -Description "deploy rejects unknown active port state"
     Assert-RgMatch -Pattern "unknown active port" -Paths @("scripts/verify_server.sh") -Description "server verify rejects unknown active port state"
+    Assert-RgMatch -Pattern "active per-port pid metadata missing" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "server verify requires active blue-green per-port pid metadata by default"
+    Assert-RgMatch -Pattern "does not match app.pid" -Paths @("scripts/verify_server.sh") -Description "server verify rejects mismatched active per-port pid metadata"
     Assert-RgMatch -Pattern "deployed app.pid.*is not running" -Paths @("scripts/verify_server.sh") -Description "server verify fails when deployed pid metadata is stale"
     Assert-RgMatch -Pattern "is not listening on active port" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "server verify fails when deployed pid does not own active port"
     Assert-RgMatch -Pattern "local MCP getMcpRegistryVersion passed" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server verify proves local MCP endpoint with MCP key"

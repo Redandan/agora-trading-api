@@ -44,7 +44,25 @@ require_cmd tail
 require_cmd tr
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
-[ -f "$EXTRA_TABLES_FILE" ] || fail "extra table list missing: $EXTRA_TABLES_FILE; run RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh first"
+
+if [ ! -f "$EXTRA_TABLES_FILE" ]; then
+  compare_script="$APP_DIR/scripts/schema_baseline_compare_server.sh"
+  [ -f "$compare_script" ] || fail "schema compare script missing: $compare_script"
+  echo "[schema-cleanup-apply] extra table list missing; generating read-only schema compare outputs"
+  set +e
+  APP_DIR="$APP_DIR" \
+    ENV_FILE="$ENV_FILE" \
+    OUTPUT_DIR="$OUTPUT_DIR" \
+    EXPECTED_TRADING_DATABASE="$EXPECTED_TRADING_DATABASE" \
+    bash "$compare_script"
+  compare_status=$?
+  set -e
+  if [ "$compare_status" != "0" ]; then
+    echo "[schema-cleanup-apply] schema compare exited with status $compare_status; continuing only if extra table list was generated"
+  fi
+fi
+
+[ -f "$EXTRA_TABLES_FILE" ] || fail "extra table list missing after schema compare: $EXTRA_TABLES_FILE"
 
 SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"
 SPRING_DATASOURCE_USERNAME="$(read_env_key SPRING_DATASOURCE_USERNAME)"

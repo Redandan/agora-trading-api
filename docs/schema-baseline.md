@@ -106,8 +106,11 @@ bash scripts/schema_extra_tables_cleanup_apply_server.sh
 
 The apply script is dry-run by default. It re-runs the cleanup planner, refuses
 to continue if any listed table has rows, and writes a full database backup under
-`/home/ubuntu/backups/agora-trading-api-schema-cleanup/`. It drops tables only
-when `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly set for that command:
+`/home/ubuntu/backups/agora-trading-api-schema-cleanup/`. If `extra-in-db.txt`
+is missing, it first runs the read-only schema compare to regenerate comparison
+outputs, and then continues only if the extra-table list exists. It drops tables
+only when `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly set for that
+command:
 
 ```bash
 APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1 bash scripts/schema_extra_tables_cleanup_apply_server.sh

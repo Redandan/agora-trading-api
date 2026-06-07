@@ -444,6 +444,7 @@ try {
     Assert-RgMatch -Pattern "APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup apply path requires explicit apply flag"
     Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path creates a backup before destructive cleanup"
     Assert-RgMatch -Pattern "dry-run complete" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path defaults to dry-run"
+    Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "schema extra-table cleanup apply path can regenerate read-only compare outputs"
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "VERIFY_GIT_CURRENT" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "server verification checks deployed git currentness by default"
     Assert-RgMatch -Pattern "REQUIRE_DEPLOY_METADATA=.*REQUIRE_DEPLOY_METADATA:-1" -Paths @("scripts/verify_server.sh") -Description "server verification requires deploy metadata by default"

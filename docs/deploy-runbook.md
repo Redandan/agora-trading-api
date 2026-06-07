@@ -30,6 +30,7 @@ SPRING_DATASOURCE_PASSWORD=<set for trading DB>
 META_CONTROL_ML_SQL_SCHEMA=agora_trading
 META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE=bt_signal_training_v8_mat
 META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW=vw_signal_training_v2
+TRADING_CORS_ALLOWED_ORIGINS=http://localhost:*,http://127.0.0.1:*
 # temporary bootstrap-only schema mode; replace after Flyway baseline is added.
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
 SPRING_FLYWAY_ENABLED=false
@@ -161,6 +162,7 @@ Expected:
 - AgoraMarket exchange-rate dependency health passes by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is diagnostic-only and is not deploy acceptance.
 - `.env.trading.secrets.example` covers every server script `require_env_key` and `require_env_value` without committing real secret values.
 - `.env.trading.secrets.example` lists optional runtime safety toggles for startup backfills, market WebSockets, trading execution, Telegram, AI providers, and external market-data providers.
+- Env-template validation pins the AgoraMarket internal API timeout to `3000` and keeps default CORS local-only through `TRADING_CORS_ALLOWED_ORIGINS=http://localhost:*,http://127.0.0.1:*`; widen CORS only when the deployed ingress/domain is intentionally ready.
 - Hourly orchestrator, market indicator collection, BTC price-move indicator writes, ETF pressure refresh/calculation fetches, and meta-control attribution default off in code and the tracked template; enable `META_CONTROL_HOURLY_ORCHESTRATOR_ENABLED=true`, `META_CONTROL_INDICATOR_HISTORY_ENABLED=true`, `META_CONTROL_BTC_PRICE_MOVE_INDICATOR_ENABLED=true`, `META_CONTROL_ETF_PRESSURE_REFRESH_ENABLED=true`, or `META_CONTROL_ATTRIBUTION_ENABLED=true` only after this service should own external indicator API collection, `market_indicator_history` writes, ETF Yahoo Finance reads, K-line gap backfills, attribution writes, and wide-TP Telegram scans.
 - Decision-audit cleanup, 1m kline pruning, and ephemeral strategy cleanup default off in code and the tracked template; enable `META_CONTROL_AUDIT_ENABLED=true`, `KLINE_PRUNING_ENABLED=true`, or `TRADING_EPHEMERAL_CLEANUP_ENABLED=true` only after this service should own those deletion jobs.
 - Composite indicator scheduled evaluation defaults off in code and the tracked template; set `META_CONTROL_COMPOSITE_INDICATOR_SCHEDULER_ENABLED=true` only after the trading service should persist CMI scores and emit CMI alerts.

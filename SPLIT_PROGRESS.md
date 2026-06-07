@@ -70,6 +70,7 @@
 - Server verification now requires nginx service active by default, with `REQUIRE_NGINX_SERVICE=0` reserved for non-nginx diagnostics.
 - Deploy, server preflight, and verification now require temporary schema bootstrap env values (`SPRING_JPA_HIBERNATE_DDL_AUTO=update`, `SPRING_FLYWAY_ENABLED=false`) until a Flyway baseline is added.
 - Env-template verification now discovers both required server env keys and fixed-value env guards from deploy/server scripts.
+- Env-template verification now also pins the AgoraMarket internal API timeout and local-only default CORS, so deploy prep cannot silently widen browser access or slow exchange-rate dependency failure.
 - Deploy keeps the previous blue-green instance and nginx backup when `RUN_POST_DEPLOY_VERIFY=0`, so skipped verification does not drain the last proven instance.
 - Deploy now passes its actual app/env/port/AgoraMarket/nginx context into post-deploy server verification instead of letting the verifier fall back to default paths.
 - Deploy now also preserves an explicit `RUN_SCHEMA_BASELINE_COMPARE=1` request into post-deploy server verification, so the Flyway-baseline DB compare cannot be silently skipped during acceptance.

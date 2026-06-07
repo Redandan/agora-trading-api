@@ -46,6 +46,7 @@ try {
 
     $safeDefaults = [ordered]@{
         TRADING_SCHEDULER_POOL_SIZE = "4"
+        TRADING_CORS_ALLOWED_ORIGINS = "http://localhost:*,http://127.0.0.1:*"
         META_CONTROL_STARTUP_BACKFILL_COINALYZE_ENABLED = "false"
         META_CONTROL_STARTUP_BACKFILL_COMPOSITE_INDICATOR_ENABLED = "false"
         META_CONTROL_STARTUP_BACKFILL_DEX_FLOW_ENABLED = "false"
@@ -164,6 +165,9 @@ try {
 
     if ($templateKeys["AGORA_MARKET_BASE_URL"] -ne "http://127.0.0.1:8082") {
         throw "AGORA_MARKET_BASE_URL should point at local AgoraMarketAPI dependency in the template"
+    }
+    if ($templateKeys["AGORA_MARKET_INTERNAL_TIMEOUT_MS"] -ne "3000") {
+        throw "AGORA_MARKET_INTERNAL_TIMEOUT_MS should default to the bounded internal API timeout"
     }
     if ($templateKeys["SPRING_DATASOURCE_URL"] -notmatch "^jdbc:mysql://[^/]+/agora_trading(\?|$)") {
         throw "SPRING_DATASOURCE_URL should point at the standalone agora_trading database in the template"

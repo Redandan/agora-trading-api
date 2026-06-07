@@ -23,6 +23,7 @@ require_cmd awk
 require_cmd cp
 require_cmd grep
 require_cmd mktemp
+require_cmd mv
 require_cmd nginx
 require_cmd rm
 require_cmd sudo

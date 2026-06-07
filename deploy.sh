@@ -126,7 +126,10 @@ require_cmd sleep
 require_cmd tail
 if [ "$UPDATE_NGINX" = "1" ]; then
   require_cmd awk
+  require_cmd cp
   require_cmd mktemp
+  require_cmd mv
+  require_cmd nginx
   require_cmd sudo
   require_cmd systemctl
 fi

@@ -334,7 +334,10 @@ try {
     Assert-RgMatch -Pattern "require_cmd sudo" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when sudo is unavailable for nginx swap"
     Assert-RgMatch -Pattern "require_cmd sudo" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when sudo is unavailable"
     Assert-RgMatch -Pattern "require_cmd awk" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when awk is unavailable"
-    foreach ($commandName in @("cp", "grep", "nginx", "rm")) {
+    foreach ($commandName in @("cp", "mv", "nginx")) {
+        Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("deploy.sh") -Description "deploy fails fast when $commandName is unavailable for nginx swap"
+    }
+    foreach ($commandName in @("cp", "grep", "mv", "nginx", "rm")) {
         Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when $commandName is unavailable"
     }
     Assert-RgMatch -Pattern "require_cmd systemctl" -Paths @("deploy.sh", "scripts/install_nginx_path.sh") -Description "nginx deploy/install fail fast when systemctl is unavailable for nginx reload"

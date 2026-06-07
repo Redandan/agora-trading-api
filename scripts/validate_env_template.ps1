@@ -163,7 +163,7 @@ try {
         }
     }
 
-    if ($templateKeys["AGORA_MARKET_BASE_URL"] -ne "http://127.0.0.1:8082") {
+    if ($templateKeys["AGORA_MARKET_BASE_URL"] -ne "http://127.0.0.1:8080") {
         throw "AGORA_MARKET_BASE_URL should point at local AgoraMarketAPI dependency in the template"
     }
     if ($templateKeys["AGORA_MARKET_INTERNAL_TIMEOUT_MS"] -ne "3000") {

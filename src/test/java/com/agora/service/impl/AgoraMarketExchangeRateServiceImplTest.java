@@ -24,7 +24,7 @@ class AgoraMarketExchangeRateServiceImplTest {
                 null
         );
 
-        assertThat(properties.baseUrl()).isEqualTo("http://127.0.0.1:8082");
+        assertThat(properties.baseUrl()).isEqualTo("http://127.0.0.1:8080");
         assertThat(properties.timeout()).isEqualTo(Duration.ofSeconds(3));
     }
 

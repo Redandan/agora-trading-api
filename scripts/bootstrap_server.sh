@@ -5,7 +5,7 @@ APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 REPO_URL="${REPO_URL:-https://github.com/Redandan/agora-trading-api.git}"
 BRANCH="${BRANCH:-main}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
-AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8082/api/actuator/health}"
+AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/actuator/health}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 
 fail() {

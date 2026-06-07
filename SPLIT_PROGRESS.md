@@ -61,7 +61,7 @@
   - Remaining `Environment.getProperty` default-`true` fallbacks are deliberately limited to MCP master-approval protection, ScoreBuy/TinyLive dry-run flags, and post-scout add sub-options behind disabled execution; `scripts/verify_local.ps1` rejects new default-on environment property fallbacks until they are classified or changed to explicit opt-in.
   - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup diagnostic logger with no network, DB, order, or notification side effects.
   - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, MCP streamable HTTP, actuator probes/metrics with filter gates, rate-limit JSON redirect, and favicon.
-- Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8082`.
+- Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8080`.
 - `deploy.sh` now checks AgoraMarket exchange-rate dependency health before starting the blue-green switch.
 - Server preflight now requires AgoraMarket exchange-rate dependency health by default, with `REQUIRE_AGORA_MARKET_HEALTH=0` reserved for diagnostic-only checks.
 - Server verification uses the same AgoraMarket exchange-rate dependency health rule: required by default, warning-only only when `REQUIRE_AGORA_MARKET_HEALTH=0` is explicitly set for diagnostics.
@@ -131,7 +131,7 @@ Trading deployment prep:
 
 - Trading has a deploy skeleton in `deploy.sh`.
 - `scripts/bootstrap_server.sh` can clone/fetch the repo on the server and write a non-secret env template.
-- 2026-06-05 server preflight confirmed AgoraMarketAPI is healthy on local port `8082`.
+- 2026-06-05 server preflight confirmed AgoraMarketAPI is healthy on local port `8080`.
 - 2026-06-05 server bootstrap installed `/home/ubuntu/agora-trading-api` and verified fast-forward from `origin/main`.
 - 2026-06-05 server bootstrap created `/home/ubuntu/agora-trading-api/.env.trading.secrets.example`.
 - 2026-06-05 server configuration created `/home/ubuntu/.env.trading.secrets` without printing secret values.

@@ -15,7 +15,7 @@ Server secrets file:
 Required before enabling AgoraMarket-backed exchange rates:
 
 ```bash
-AGORA_MARKET_BASE_URL=http://127.0.0.1:8082
+AGORA_MARKET_BASE_URL=http://127.0.0.1:8080
 AGORA_MARKET_INTERNAL_API_KEY=<same internal key configured in AgoraMarketAPI>
 AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000
 ```
@@ -211,7 +211,7 @@ Expected:
 Last observed server state from 2026-06-05 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
-- AgoraMarketAPI active port file reports `8082`.
+- AgoraMarketAPI active port file reports `8080`.
 - Local AgoraMarketAPI health is `UP`.
 - `git`, `mvn`, `java`, and `curl` are installed.
 - `/home/ubuntu/agora-trading-api` has been bootstrapped and can fast-forward from `origin/main`.
@@ -226,7 +226,7 @@ Last observed server state from 2026-06-05 Asia/Taipei:
   worktree commit matches `origin/main` by default.
 - `scripts/verify_server.sh` passed with:
   - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
-  - local AgoraMarket exchange-rate dependency health: `http://127.0.0.1:8082/api/actuator/health`
+  - local AgoraMarket exchange-rate dependency health: `http://127.0.0.1:8080/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 
 Deploy after secrets and nginx path are ready:
@@ -286,7 +286,7 @@ If blue-green is used, deploy should update nginx to the active `app.port`, matc
 ```bash
 PORT=$(cat /home/ubuntu/agora-trading-api/app.port)
 curl -fsS "http://127.0.0.1:${PORT}/api/trading/actuator/health"
-curl -fsS "http://127.0.0.1:8082/api/actuator/health"
+curl -fsS "http://127.0.0.1:8080/api/actuator/health"
 ```
 
 Or run the server verifier:
@@ -313,6 +313,49 @@ When `RUN_SCHEMA_BASELINE_COMPARE=1` is set for `deploy.sh`, the deploy script
 passes that flag into post-deploy `scripts/verify_server.sh`; the default remains
 `0` for normal deploy acceptance until a baseline migration is ready.
 
+## AgoraMarketAPI Trading Cutover Plan
+
+This is a plan only. Do not stop or disable the legacy AgoraMarketAPI trading
+runtime until the schema baseline compare is clean and the owner explicitly
+starts cutover.
+
+Prerequisites:
+
+- `agora-trading-api` is deployed from current `origin/main`.
+- `scripts/verify_server.sh` passes without override-only dependency routing.
+- `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passes with no
+  `missing-in-db.txt`, no `extra-in-db.txt`, and no marketplace-owned tables.
+- `/api/trading/actuator/health` passes through nginx.
+- `/api/trading/mcp` `getMcpRegistryVersion` passes with `TRADING_MCP_KEY`.
+- Scheduler ownership is reviewed so order/OCO/grid/fund/Earn-capable jobs are
+  either disabled in both services or intentionally enabled in exactly one
+  service.
+- AgoraMarketAPI still owns only the marketplace/internal APIs needed by trading,
+  including `/api/internal/exchange-rates/usdt`.
+
+Cutover sequence:
+
+1. Take a fresh backup of the standalone `agora_trading` database.
+2. Re-run schema compare and, if needed, apply only reviewed cleanup for empty
+   residual tables.
+3. Re-run server verify with schema compare enabled.
+4. Add and deploy the Flyway baseline, then switch trading env from
+   `SPRING_JPA_HIBERNATE_DDL_AUTO=update` / `SPRING_FLYWAY_ENABLED=false` to
+   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` / `SPRING_FLYWAY_ENABLED=true`.
+5. Re-run local verify, server verify, public health, and MCP registry smoke.
+6. In AgoraMarketAPI, disable only the legacy trading HTTP/MCP/scheduler entry
+   points after confirming the new trading service owns the path.
+7. Keep AgoraMarketAPI internal exchange-rate endpoints available for
+   `agora-trading-api`.
+8. Monitor logs for duplicate scheduler execution, SQL errors, MCP auth errors,
+   and nginx `/api/trading/` routing failures before removing any legacy code.
+
+Rollback:
+
+- Re-enable the legacy AgoraMarketAPI trading entry points.
+- Point nginx `/api/trading/` back to the previous proven target if needed.
+- Keep the `agora_trading` backup until post-cutover monitoring is clean.
+
 Exchange-rate behavior:
 
 - with `AGORA_MARKET_INTERNAL_API_KEY`: trading calls AgoraMarket internal API.
@@ -335,7 +378,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - active blue-green `app.pid.<app.port>` metadata exists by default and matches `app.pid`.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon; the exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`.
-- `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8082`; deploy, preflight, and server verification fail on stale values.
+- `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8080`; deploy, preflight, and server verification fail on stale values.
 - `SPRING_DATASOURCE_URL` must point at standalone trading database `agora_trading`; deploy, preflight, and server verification fail on marketplace datasource targets.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
 - preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
@@ -359,7 +402,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
 - Empty residual extra tables must be handled through a reviewed cleanup plan first: `bash scripts/schema_extra_tables_cleanup_plan_server.sh` writes row counts and commented DROP statements without mutating the database.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
-- local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8082/api/actuator/health` by default.
+- local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8080/api/actuator/health` by default.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
 - nginx service must be active by default; set `REQUIRE_NGINX_SERVICE=0` only for non-nginx verification environments.

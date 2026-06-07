@@ -50,7 +50,7 @@ mcp:
   ops-key: ${MCP_OPS_KEY:${TRADING_MCP_KEY:}}
 
 agora-market:
-  base-url: ${AGORA_MARKET_BASE_URL:http://127.0.0.1:8082}
+  base-url: ${AGORA_MARKET_BASE_URL:http://127.0.0.1:8080}
   internal-api-key: ${AGORA_MARKET_INTERNAL_API_KEY:}
   timeout-ms: ${AGORA_MARKET_INTERNAL_TIMEOUT_MS:3000}
 

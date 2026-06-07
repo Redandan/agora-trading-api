@@ -168,6 +168,47 @@ function Assert-OnlyAllowedDefaultValueTrueProperties {
     }
 }
 
+function Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks {
+    $allowedFragments = @(
+        "StartupBeanTimingProbe.java|STARTUP_BEAN_TIMING_ENABLED"
+    )
+
+    $defaultTrueLines = @()
+    Get-ChildItem -LiteralPath "src/main/java/com/agora" -Filter "*.java" -Recurse | ForEach-Object {
+        $file = $_
+        $text = Get-Content -LiteralPath $file.FullName -Raw
+        [regex]::Matches($text, 'System\.getenv\(\)\.getOrDefault\(\s*"(?<key>[^"]+)"\s*,\s*"true"\s*\)') | ForEach-Object {
+            $defaultTrueLines += "$($file.Name)|$($_.Groups["key"].Value)"
+        }
+    }
+
+    foreach ($line in $defaultTrueLines) {
+        $isAllowed = $false
+        foreach ($fragment in $allowedFragments) {
+            if ($line -eq $fragment) {
+                $isAllowed = $true
+                break
+            }
+        }
+        if (-not $isAllowed) {
+            Write-Error "Unexpected System.getenv().getOrDefault(..., `"true`") fallback found. New default-on env behavior must be classified as internal diagnostic/protective or changed to explicit opt-in:`n$line"
+        }
+    }
+
+    foreach ($fragment in $allowedFragments) {
+        $found = $false
+        foreach ($line in $defaultTrueLines) {
+            if ($line -eq $fragment) {
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            Write-Error "Expected documented System.getenv default-true fallback missing or moved without updating split verification allowlist: $fragment"
+        }
+    }
+}
+
 function Assert-StartupRunnersAreSplitSafe {
     $runnerFiles = @(rg -l "implements (ApplicationRunner|CommandLineRunner)" src/main/java)
     $exitCode = $LASTEXITCODE
@@ -330,8 +371,10 @@ try {
     Assert-RgMatch -Pattern "Split deploy guardrails stay documented" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents local split deploy/schema/contract guards"
     Assert-OnlyAllowedEnabledTrueFallbacks
     Assert-OnlyAllowedDefaultValueTrueProperties
+    Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks
     Assert-RgMatch -Pattern "Remaining ``enabled:true`` fallbacks are deliberately limited" -Paths @("docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining enabled:true fallback classification is documented"
     Assert-RgMatch -Pattern "Remaining ``@DefaultValue\(`"true`"\)`` properties are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining @DefaultValue true fallback classification is documented"
+    Assert-RgMatch -Pattern "STARTUP_BEAN_TIMING_ENABLED" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining System.getenv default-true fallback classification is documented"
     Assert-RgMatch -Pattern '@Profile\("!local-smoke"\)' -Paths @("src/main/java/com/agora/config/TradingSchedulingConfig.java") -Description "local-smoke does not register scheduled tasks"
     Assert-RgMatch -Pattern "Scheduling disabled for local-smoke profile" -Paths @("src/main/java/com/agora/config/LocalSmokeSchedulingConfig.java", "scripts/smoke_local_health.ps1") -Description "local-smoke smoke logs prove scheduling is disabled"
     Assert-RgMatch -Pattern "localSmokeDoesNotRegisterScheduledTasks" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test proves local-smoke scheduling is disabled"

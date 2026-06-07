@@ -346,6 +346,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deploy and server verification fail fast if `AgoraMarketAPI/internal-client` is missing; deploy installs it into the server Maven local repo before building trading.
 - Remaining `enabled:true` fallbacks are deliberately limited to protective or internal behavior and enforced by `scripts/verify_local.ps1`: MCP master-approval probe wait, Telegram noise reduction, enabled-strategy kline data validation, and deterministic regime filtering. Any new default-on fallback must be classified or changed to explicit opt-in before deploy prep is considered clean.
 - Remaining `@DefaultValue("true")` properties are deliberately limited to protective gates, dry-run flags, internal diagnostics, or subordinate behavior behind disabled parent switches and are enforced by `scripts/verify_local.ps1`.
+- Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup timing diagnostic that does not call external services or mutate runtime state.
 - Coinalyze credentials use `TRADING_MARKET_DATA_COINALYZE_API_KEY`, which maps to `trading.market-data.coinalyze.api-key`; legacy external-style Coinalyze env names are not used by the trading code.
 - trading uses an independent MySQL database, currently `agora_trading`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.

@@ -322,6 +322,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 `scripts/verify_server.sh` checks:
 
 - deploy, preflight, and server verification fail fast on required local tools for git sync, build, blue-green process launch, active metadata checks, health probes, nginx swaps, and post-verify parsing.
+- server verification passes `EXPECTED_AGORA_MARKET_BASE_URL` into preflight so custom dependency-routing checks use one expected base URL throughout the server acceptance run.
 - bootstrap and nginx path installation fail fast on their repo/nginx inspection and file-update tools, including `grep`, `ls`, `cp`, `nginx`, and `rm` where used.
 - schema baseline database comparison fails fast on its inventory and comparison tools, including `find`, `xargs`, `perl`, `mysql`, `comm`, `sort`, `wc`, and `tr`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.

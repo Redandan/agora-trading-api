@@ -16,7 +16,7 @@ DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8080}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/actuator/health}"
-EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
 
 cd "$APP_DIR"
 
@@ -153,11 +153,11 @@ require_env_value SPRING_FLYWAY_ENABLED false
 case "$SPRING_DATASOURCE_URL" in
   jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"|jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"\?*) ;;
   *)
-    echo "[deploy] SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE" >&2
+    echo "[deploy] SPRING_DATASOURCE_URL must point at expected shared database: $EXPECTED_TRADING_DATABASE" >&2
     exit 1
     ;;
 esac
-echo "[deploy] SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
+echo "[deploy] SPRING_DATASOURCE_URL points at expected shared database: $EXPECTED_TRADING_DATABASE"
 
 if [ "$AGORA_MARKET_BASE_URL" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
   echo "[deploy] AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL" >&2

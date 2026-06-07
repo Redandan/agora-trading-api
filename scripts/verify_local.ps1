@@ -419,7 +419,7 @@ try {
     Assert-RgMatch -Pattern "Flyway baseline" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "migration baseline prerequisite is documented"
     Assert-RgMatch -Pattern "AgoraMarketAPI Trading Cutover Plan" -Paths @("docs/deploy-runbook.md") -Description "legacy AgoraMarketAPI trading cutover plan is documented"
     Assert-RgMatch -Pattern "split-acceptance-status.md" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "current split acceptance handoff is linked"
-    Assert-RgMatch -Pattern "Do not disable AgoraMarketAPI legacy trading before schema compare passes" -Paths @("docs/split-acceptance-status.md") -Description "acceptance handoff blocks legacy trading cutover before schema compare"
+    Assert-RgMatch -Pattern "Do not disable AgoraMarketAPI legacy trading before shared-DB schema compare" -Paths @("docs/split-acceptance-status.md") -Description "acceptance handoff blocks legacy trading cutover before shared DB schema compare"
     Assert-RgMatch -Pattern "schema_baseline_inventory.ps1" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline starts with read-only source inventory"
     Assert-RgMatch -Pattern "Runtime side effects that could surprise a split deployment now default off" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents default-off runtime side-effect cleanup"
     Assert-RgMatch -Pattern "high-risk host env values" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents local-smoke high-risk host env clearing"
@@ -441,11 +441,12 @@ try {
     Assert-RgMatch -Pattern "validate_env_template.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs env template boundary"
     Assert-RgMatch -Pattern "require_env_.*key.*value" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator tracks required key and fixed-value env guards"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline has read-only server compare step"
-    Assert-RgMatch -Pattern "schema_extra_tables_cleanup_plan_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline extra-table cleanup planning is documented"
+    Assert-RgMatch -Pattern "schema_extra_tables_cleanup_plan_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "standalone-only schema extra-table cleanup planning is documented"
     Assert-RgNoMatch -Pattern "^[[:space:]]*DROP TABLE" -Paths @("scripts/schema_extra_tables_cleanup_plan_server.sh") -Description "schema extra-table cleanup planner must not execute drop statements"
-    Assert-RgMatch -Pattern "APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup apply path requires explicit apply flag"
+    Assert-RgMatch -Pattern "disabled in shared DB mode" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "scripts/schema_extra_tables_cleanup_plan_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup is disabled in shared DB mode"
+    Assert-RgMatch -Pattern "APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "standalone schema extra-table cleanup apply path requires explicit apply flag"
     Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path creates a backup before destructive cleanup"
-    Assert-RgMatch -Pattern "dry-run complete" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path defaults to dry-run"
+    Assert-RgMatch -Pattern "dry-run complete" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "standalone schema extra-table cleanup apply path defaults to dry-run"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "schema extra-table cleanup apply path can regenerate read-only compare outputs"
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "VERIFY_GIT_CURRENT" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "server verification checks deployed git currentness by default"
@@ -462,13 +463,14 @@ try {
     Assert-RgMatch -Pattern "schema baseline database comparison skipped" -Paths @("scripts/verify_server.sh") -Description "schema compare is opt-in for normal server verification"
     Assert-RgMatch -Pattern "EXPECTED_AGORA_MARKET_BASE_URL" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard AgoraMarket local dependency base URL"
     Assert-RgMatch -Pattern 'EXPECTED_AGORA_MARKET_BASE_URL="\$EXPECTED_AGORA_MARKET_BASE_URL"' -Paths @("scripts/verify_server.sh") -Description "server verification passes AgoraMarket expected base URL into preflight"
-    Assert-RgMatch -Pattern "EXPECTED_TRADING_DATABASE" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard standalone trading database target"
+    Assert-RgMatch -Pattern "EXPECTED_TRADING_DATABASE" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts guard shared trading database target"
     Assert-RgMatch -Pattern 'EXPECTED_TRADING_DATABASE="\$EXPECTED_TRADING_DATABASE"' -Paths @("deploy.sh", "scripts/verify_server.sh") -Description "deploy/server verification propagate expected trading database target"
-    Assert-RgMatch -Pattern "EXPECTED_TRADING_DATABASE" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare guards standalone trading database target even when run directly"
+    Assert-RgMatch -Pattern "EXPECTED_TRADING_DATABASE" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare guards shared trading database target even when run directly"
     Assert-RgMatch -Pattern 'EXPECTED_TRADING_DATABASE="\$EXPECTED_TRADING_DATABASE"' -Paths @("scripts/verify_server.sh") -Description "server verification propagates expected trading database target into schema compare"
-    Assert-RgMatch -Pattern "SPRING_DATASOURCE_URL must point at standalone trading database" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "scripts/schema_baseline_compare_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md", "docs/schema-baseline.md") -Description "server scripts reject marketplace datasource target"
+    Assert-RgMatch -Pattern "SPRING_DATASOURCE_URL must point at expected shared database" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md", "docs/schema-baseline.md") -Description "server scripts require shared datasource target"
+    Assert-RgMatch -Pattern "SCHEMA_COMPARE_MODE" -Paths @("scripts/schema_baseline_compare_server.sh", "scripts/verify_server.sh", "docs/schema-baseline.md") -Description "schema compare supports explicit shared or standalone mode"
     Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "server scripts fail on stale AgoraMarket base URL"
-    Assert-RgMatch -Pattern "SPRING_DATASOURCE_URL should point at the standalone agora_trading database" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator rejects marketplace datasource target"
+    Assert-RgMatch -Pattern "SPRING_DATASOURCE_URL should point at the shared agora_market database" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator requires shared datasource target"
     Assert-RgMatch -Pattern "AGORA_MARKET_HEALTH_URL=.*http://127\.0\.0\.1:8080/api/actuator/health" -Paths @("deploy.sh", "scripts/bootstrap_server.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server scripts check local AgoraMarket dependency health by default"
     Assert-RgMatch -Pattern "AgoraMarket exchange-rate dependency health failed" -Paths @("deploy.sh", "scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "deploy/verify fail on AgoraMarket health failure"
     Assert-RgMatch -Pattern "before starting the blue-green switch" -Paths @("docs/deploy-runbook.md", "docs/split-audit.md", "SPLIT_PROGRESS.md") -Description "deploy pre-switch AgoraMarket health gate is documented"
@@ -481,8 +483,8 @@ try {
     Assert-RgMatch -Pattern "missing or empty.*ENV_FILE" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "schema compare rejects empty datasource env keys when run directly"
     Assert-RgMatch -Pattern "server-implicit-entities.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects implicit entity table names"
     Assert-RgMatch -Pattern "server-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects obvious marketplace-owned table names"
-    Assert-RgMatch -Pattern "server-db-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare rejects marketplace-owned database tables"
-    Assert-RgMatch -Pattern "database contains obvious marketplace-owned table" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare fails explicitly on marketplace-owned database tables"
+    Assert-RgMatch -Pattern "server-db-forbidden-marketplace-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare reports marketplace-owned database tables"
+    Assert-RgMatch -Pattern "SCHEMA_COMPARE_MODE.*standalone" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare fails on marketplace-owned database tables only in standalone mode"
     Assert-RgMatch -Pattern "MARKETPLACE_TABLE_PATTERN" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare shares marketplace table pattern across source and database checks"
     Assert-RgMatch -Pattern "KNOWN_SYSTEM_TABLE_PATTERN" -Paths @("scripts/schema_baseline_compare_server.sh") -Description "server schema compare centralizes known system table pattern"
     Assert-RgMatch -Pattern "server-db-known-system-tables.txt" -Paths @("scripts/schema_baseline_compare_server.sh", "docs/schema-baseline.md") -Description "server schema compare classifies known database system tables"
@@ -512,7 +514,7 @@ try {
     Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL:http://127\.0\.0\.1:8080" -Paths @("src/main/resources/application.yml", "INTERNAL_API_TODO.md") -Description "AgoraMarket internal API default points at local server dependency port"
     Assert-RgMatch -Pattern "baseUrl = .*127\.0\.0\.1:8080" -Paths @("src/main/java/com/agora/config/AgoraMarketExchangeRateProperties.java") -Description "AgoraMarket exchange-rate Java fallback matches server dependency port"
     Assert-RgNoMatch -Pattern "agora_market\." -Paths @("src/main/java", "src/main/resources/application.yml") -Description "hardcoded legacy AgoraMarket database schema"
-    Assert-RgMatch -Pattern "META_CONTROL_ML_SQL_SCHEMA=agora_trading" -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ML SQL schema is explicit in split deploy docs"
+    Assert-RgMatch -Pattern "META_CONTROL_ML_SQL_SCHEMA=agora_market" -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ML SQL schema is explicit in shared split deploy docs"
     Assert-RgMatch -Pattern "meta-control\.ml\.sql" -Paths @("src/main/java/com/agora/config/properties/MlSqlProperties.java", "src/main/resources/application.yml", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "ML SQL schema/table names are configuration-backed"
     Assert-RgNoMatch -Pattern "localhost:8082|127\.0\.0\.1:8082" -Paths @("INTERNAL_API_TODO.md") -Description "internal API TODO has no stale AgoraMarket dependency port"
     Assert-RgMatch -Pattern 'api-key: \$\{MCP_API_KEY:\$\{TRADING_MCP_KEY:\}\}' -Paths @("src/main/resources/application.yml") -Description "TRADING_MCP_KEY maps to MCP dev auth key"
@@ -910,7 +912,7 @@ try {
         "spring.flyway.enabled=false",
         "spring.task.scheduling.pool.size=1",
         "app.cors.allowed-origins=http://localhost:",
-        "meta-control.ml.sql.schema=agora_trading",
+        "meta-control.ml.sql.schema=agora_market",
         "meta-control.ml.sql.signal-scorer-training-table=bt_signal_training_v8_mat",
         "meta-control.ml.sql.weekly-retrain-training-view=vw_signal_training_v2",
         "anthropic.api.key=",

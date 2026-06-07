@@ -22,7 +22,8 @@ REQUIRE_DEPLOY_METADATA="${REQUIRE_DEPLOY_METADATA:-1}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8080}"
 REQUIRE_AGORA_MARKET_HEALTH="${REQUIRE_AGORA_MARKET_HEALTH:-1}"
-EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
+SCHEMA_COMPARE_MODE="${SCHEMA_COMPARE_MODE:-shared}"
 
 fail() {
   echo "[server-verify] FAIL: $*" >&2
@@ -149,9 +150,9 @@ require_env_value SPRING_FLYWAY_ENABLED false
 
 case "$(env_value SPRING_DATASOURCE_URL)" in
   jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"|jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"\?*) ;;
-  *) fail "SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE" ;;
+  *) fail "SPRING_DATASOURCE_URL must point at expected shared database: $EXPECTED_TRADING_DATABASE" ;;
 esac
-ok "SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
+ok "SPRING_DATASOURCE_URL points at expected shared database: $EXPECTED_TRADING_DATABASE"
 
 [ -f "$INTERNAL_CLIENT_POM" ] || fail "AgoraMarket internal-client pom missing: $INTERNAL_CLIENT_POM"
 ok "AgoraMarket internal-client pom found"
@@ -167,6 +168,7 @@ if [ "$RUN_SCHEMA_BASELINE_COMPARE" = "1" ]; then
   APP_DIR="$APP_DIR" \
     ENV_FILE="$ENV_FILE" \
     EXPECTED_TRADING_DATABASE="$EXPECTED_TRADING_DATABASE" \
+    SCHEMA_COMPARE_MODE="$SCHEMA_COMPARE_MODE" \
     bash "$SCHEMA_COMPARE_SCRIPT"
   ok "schema baseline database comparison passed"
 else

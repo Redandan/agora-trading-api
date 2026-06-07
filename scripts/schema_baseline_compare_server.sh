@@ -4,7 +4,8 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 OUTPUT_DIR="${OUTPUT_DIR:-$APP_DIR/target/schema-baseline}"
-EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
+SCHEMA_COMPARE_MODE="${SCHEMA_COMPARE_MODE:-shared}"
 MARKETPLACE_TABLE_PATTERN='^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$'
 KNOWN_SYSTEM_TABLE_PATTERN='^(flyway_schema_history)$'
 
@@ -47,6 +48,11 @@ require_cmd xargs
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
 cd "$APP_DIR"
 
+case "$SCHEMA_COMPARE_MODE" in
+  shared|standalone) ;;
+  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
+esac
+
 SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"
 SPRING_DATASOURCE_USERNAME="$(read_env_key SPRING_DATASOURCE_USERNAME)"
 SPRING_DATASOURCE_PASSWORD="$(read_env_key SPRING_DATASOURCE_PASSWORD)"
@@ -63,9 +69,9 @@ database="${jdbc_without_query#*/}"
 
 [ -n "$database" ] && [ "$database" != "$jdbc_without_query" ] || fail "database name missing in SPRING_DATASOURCE_URL"
 if [ "$database" != "$EXPECTED_TRADING_DATABASE" ]; then
-  fail "SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE"
+  fail "SPRING_DATASOURCE_URL must point at expected $SCHEMA_COMPARE_MODE database: $EXPECTED_TRADING_DATABASE"
 fi
-ok "SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
+ok "SPRING_DATASOURCE_URL points at expected $SCHEMA_COMPARE_MODE database: $EXPECTED_TRADING_DATABASE"
 
 if printf '%s\n' "$host_port" | grep -q ':'; then
   host="${host_port%%:*}"
@@ -138,6 +144,7 @@ echo "[schema-compare] database marketplace tables: $db_forbidden_count -> $db_f
 echo "[schema-compare] database known system tables: $known_system_count -> $known_system_tables"
 echo "[schema-compare] missing in database: $missing_count -> $missing_tables"
 echo "[schema-compare] extra in database: $extra_count -> $extra_tables"
+echo "[schema-compare] mode: $SCHEMA_COMPARE_MODE"
 
 if [ "$implicit_count" != "0" ]; then
   fail "schema baseline source inventory found entity class(es) without explicit @Table(name=...); inspect $implicit_entities"
@@ -147,12 +154,20 @@ if [ "$forbidden_count" != "0" ]; then
   fail "schema baseline source inventory found marketplace-owned table mapping(s); inspect $forbidden_tables"
 fi
 
-if [ "$db_forbidden_count" != "0" ]; then
+if [ "$SCHEMA_COMPARE_MODE" = "standalone" ] && [ "$db_forbidden_count" != "0" ]; then
   fail "schema baseline database contains obvious marketplace-owned table(s); inspect $db_forbidden_tables"
 fi
 
-if [ "$missing_count" != "0" ] || [ "$extra_count" != "0" ]; then
+if [ "$missing_count" != "0" ]; then
+  fail "schema baseline database is missing trading table(s); inspect $missing_tables"
+fi
+
+if [ "$SCHEMA_COMPARE_MODE" = "standalone" ] && [ "$extra_count" != "0" ]; then
   fail "schema baseline table inventory differs; inspect $missing_tables and $extra_tables before generating Flyway baseline"
 fi
 
-ok "schema baseline source inventory matches database table list; read-only compare complete"
+if [ "$SCHEMA_COMPARE_MODE" = "shared" ]; then
+  ok "schema baseline source inventory is present in shared database; read-only compare complete"
+else
+  ok "schema baseline source inventory matches standalone database table list; read-only compare complete"
+fi

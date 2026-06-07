@@ -76,9 +76,9 @@
 - Deploy now passes its actual app/env/port/AgoraMarket/nginx context into post-deploy server verification instead of letting the verifier fall back to default paths.
 - Deploy now also preserves an explicit `RUN_SCHEMA_BASELINE_COMPARE=1` request into post-deploy server verification, so the Flyway-baseline DB compare cannot be silently skipped during acceptance.
 - Direct schema-baseline DB compare now rejects missing or empty datasource env keys before querying MySQL.
-- Direct schema-baseline DB compare now rejects datasource targets outside the standalone trading database before querying MySQL.
-- Server schema-baseline DB compare now classifies obvious marketplace-owned database tables separately before generic missing/extra table drift.
-- Server schema-baseline DB compare now classifies known system tables such as `flyway_schema_history` separately while still failing generic extra-table drift before baseline acceptance.
+- Direct schema-baseline DB compare now rejects datasource targets outside the expected shared trading database before querying MySQL.
+- Server schema-baseline DB compare now classifies obvious marketplace-owned database tables separately and allows them in `SCHEMA_COMPARE_MODE=shared`.
+- Server schema-baseline DB compare now classifies known system tables such as `flyway_schema_history` separately; in shared mode, extra database tables are reported for visibility and do not block acceptance.
 - Server schema-baseline source and database marketplace-table checks now share one shell pattern to avoid future drift.
 - Server schema-baseline DB compare now fails fast when required inventory and comparison tools are unavailable.
 - Deploy/preflight now fail fast when `seq` or `tail` is unavailable before blue-green readiness loops or failure-log diagnostics need them.
@@ -139,7 +139,7 @@ Trading deployment prep:
 - 2026-06-05 server bootstrap installed `/home/ubuntu/agora-trading-api` and verified fast-forward from `origin/main`.
 - 2026-06-05 server bootstrap created `/home/ubuntu/agora-trading-api/.env.trading.secrets.example`.
 - 2026-06-05 server configuration created `/home/ubuntu/.env.trading.secrets` without printing secret values.
-- 2026-06-05 server configuration created independent MySQL database `agora_trading` for trading runtime.
+- 2026-06-05 server configuration created an independent MySQL database for an earlier standalone-DB path. The current target is code split only with shared `agora_market` DB.
 - 2026-06-05 server configuration installed nginx `/api/trading/` routing.
 - 2026-06-05 observed deployment snapshot used `origin/main` commit `11612b9`; this is historical evidence, not a current-deployment claim.
 - 2026-06-05 trading service started on active port `8084`.
@@ -151,14 +151,14 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Resolve read-only schema compare extras before Flyway baseline. If extras are empty residual bootstrap tables, generate a reviewed cleanup plan with `bash scripts/schema_extra_tables_cleanup_plan_server.sh`; do not run destructive DB cleanup without a fresh backup and explicit operator approval.
-2. Use `bash scripts/schema_extra_tables_cleanup_apply_server.sh` for the reviewed cleanup path only after approval; it backs up `agora_trading` and requires `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` before dropping empty extra tables.
-3. After the read-only server compare matches, add an explicit Flyway baseline under `src/main/resources/db/migration` and replace temporary `ddl-auto=update` bootstrap mode with schema validation plus Flyway.
+1. Point Trading server env at the shared `agora_market` database and run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` in shared mode.
+2. Keep `scripts/schema_extra_tables_cleanup_plan_server.sh` and `scripts/schema_extra_tables_cleanup_apply_server.sh` disabled in shared DB mode; extra marketplace/shared tables are expected.
+3. After the read-only server compare confirms no missing trading tables, add an explicit Flyway baseline under `src/main/resources/db/migration` and replace temporary `ddl-auto=update` bootstrap mode with schema validation plus Flyway.
 3. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet
 
 - Do not share marketplace JPA entities with trading.
-- Do not let trading read the marketplace database directly.
+- Do not map marketplace entities or repositories in trading code; the DB is shared, but commerce access must still go through explicit internal APIs or SDK contracts.
 - Do not add or predefine identity internal API until shared login is required.
 - Do not convert every leftover marketplace service into an internal API.

@@ -5,7 +5,8 @@ APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 OUTPUT_DIR="${OUTPUT_DIR:-$APP_DIR/target/schema-baseline}"
 EXTRA_TABLES_FILE="${EXTRA_TABLES_FILE:-$OUTPUT_DIR/extra-in-db.txt}"
-EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
+SCHEMA_COMPARE_MODE="${SCHEMA_COMPARE_MODE:-shared}"
 
 fail() {
   echo "[schema-cleanup-plan] FAIL: $*" >&2
@@ -43,6 +44,11 @@ require_cmd tr
 require_cmd wc
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
+case "$SCHEMA_COMPARE_MODE" in
+  shared) fail "schema extra-table cleanup planning is disabled in shared DB mode; extra marketplace/shared tables are expected" ;;
+  standalone) ;;
+  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
+esac
 [ -f "$EXTRA_TABLES_FILE" ] || fail "extra table list missing: $EXTRA_TABLES_FILE; run RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh first"
 
 SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"
@@ -61,9 +67,9 @@ database="${jdbc_without_query#*/}"
 
 [ -n "$database" ] && [ "$database" != "$jdbc_without_query" ] || fail "database name missing in SPRING_DATASOURCE_URL"
 if [ "$database" != "$EXPECTED_TRADING_DATABASE" ]; then
-  fail "SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE"
+  fail "SPRING_DATASOURCE_URL must point at expected standalone database: $EXPECTED_TRADING_DATABASE"
 fi
-ok "SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
+ok "SPRING_DATASOURCE_URL points at expected standalone database: $EXPECTED_TRADING_DATABASE"
 
 if printf '%s\n' "$host_port" | grep -q ':'; then
   host="${host_port%%:*}"

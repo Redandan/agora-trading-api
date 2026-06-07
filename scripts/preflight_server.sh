@@ -8,7 +8,7 @@ AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/ac
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8080}"
 REQUIRE_AGORA_MARKET_HEALTH="${REQUIRE_AGORA_MARKET_HEALTH:-1}"
-EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
 
 fail() {
   echo "[server-preflight] FAIL: $*" >&2
@@ -108,9 +108,9 @@ require_env_value SPRING_FLYWAY_ENABLED false
 
 case "$(env_value SPRING_DATASOURCE_URL)" in
   jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"|jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"\?*) ;;
-  *) fail "SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE" ;;
+  *) fail "SPRING_DATASOURCE_URL must point at expected shared database: $EXPECTED_TRADING_DATABASE" ;;
 esac
-ok "SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
+ok "SPRING_DATASOURCE_URL points at expected shared database: $EXPECTED_TRADING_DATABASE"
 
 if [ "$(env_value AGORA_MARKET_BASE_URL)" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
   fail "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"

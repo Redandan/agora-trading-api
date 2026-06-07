@@ -45,7 +45,7 @@ mvn -f C:\Users\Redan\IdeaProjects\AgoraMarketAPI\internal-client\pom.xml instal
 - Current baseline keeps the extracted trading/system repositories needed for the Spring context to start.
 - Cross-service dependencies must go through an internal-client SDK or HTTP DTOs, not shared entities/repositories.
 - Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, and MCP streamable HTTP at `/api/trading/mcp`.
-- Schema baseline prep remains read-only until the real `agora_trading` database has been compared; marketplace-owned table names are rejected by the local/server baseline inventory guards.
+- Schema baseline prep remains read-only against the shared `agora_market` database; marketplace-owned table names are rejected in trading source mappings, while shared DB extra tables are expected.
 
 See:
 

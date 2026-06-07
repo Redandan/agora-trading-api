@@ -57,7 +57,7 @@ agora-market:
 meta-control:
   ml:
     sql:
-      schema: ${META_CONTROL_ML_SQL_SCHEMA:agora_trading}
+      schema: ${META_CONTROL_ML_SQL_SCHEMA:agora_market}
       signal-scorer-training-table: ${META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE:bt_signal_training_v8_mat}
       weekly-retrain-training-view: ${META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW:vw_signal_training_v2}
 

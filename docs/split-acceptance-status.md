@@ -2,24 +2,24 @@
 
 Last refreshed: 2026-06-07
 
-This file is the current handoff for deciding whether the standalone
-`agora-trading-api` split is accepted enough to start disabling legacy
-AgoraMarketAPI trading entry points.
+This file is the current handoff for deciding whether the extracted
+`agora-trading-api` service is accepted enough to run as the Trading owner while
+AgoraMarketAPI keeps the shared database and internal exchange-rate API.
+
+## Current Architecture
+
+- Code is split into a standalone Trading service.
+- DB is not split. Trading and AgoraMarketAPI use the shared `agora_market`
+  database.
+- Nginx routes Trading through `/api/trading/`.
+- Trading must not import AgoraMarketAPI marketplace entities or repositories.
+- Trading may call AgoraMarketAPI through the internal-client SDK or internal
+  HTTP DTOs for explicit internal APIs such as exchange rates.
 
 ## Proven
 
-- The standalone trading service is deployed on the production host under
+- The trading service has a deployment directory on the production host under
   `/home/ubuntu/agora-trading-api`.
-- The server worktree is expected to match `origin/main`; verify with:
-
-  ```bash
-  cd /home/ubuntu/agora-trading-api
-  git status --short --branch
-  git rev-parse --short HEAD
-  cat app.commit
-  cat app.port
-  ```
-
 - `scripts/verify_server.sh` proves:
   - server worktree equals `origin/main`
   - deployed `app.commit` equals the worktree commit
@@ -39,27 +39,18 @@ AgoraMarketAPI trading entry points.
   .\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180
   ```
 
-- The schema cleanup path is guarded:
-  - `scripts/schema_extra_tables_cleanup_apply_server.sh` is dry-run by default.
-  - it regenerates read-only schema compare outputs when needed.
-  - it refuses non-empty extra tables.
-  - it writes a database backup before any possible cleanup.
-  - it only drops tables when `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly
-    set for that invocation.
+- Shared-DB schema compare is read-only. It proves every trading entity table is
+  present in `agora_market`; marketplace/shared extra tables are expected and do
+  not block acceptance in `SCHEMA_COMPARE_MODE=shared`.
 
 ## Not Yet Accepted
 
 Do not mark the split complete while any item in this section remains true.
 
-- `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` currently fails
-  until the standalone `agora_trading` database has no extra tables.
-- The known unresolved state is:
-  - source entity tables: 39
-  - database tables: 56
-  - missing database tables: 0
-  - extra database tables: 17
-  - obvious marketplace-owned database tables: `users`
-  - the 17 extra tables have been observed as empty during dry-run cleanup
+- `/home/ubuntu/.env.trading.secrets` must point `SPRING_DATASOURCE_URL` and
+  `META_CONTROL_ML_SQL_SCHEMA` at the shared `agora_market` database.
+- `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` must pass in
+  shared mode.
 - Flyway baseline has not been generated.
 - Production still uses temporary bootstrap schema mode:
   - `SPRING_JPA_HIBERNATE_DDL_AUTO=update`
@@ -69,17 +60,15 @@ Do not mark the split complete while any item in this section remains true.
 
 ## Required Next Step
 
-Run a final dry-run, review the printed backup path and row counts, then apply
-the empty-table cleanup only when DB schema cleanup is explicitly authorized:
+Switch the trading service env to the shared DB and verify without destructive
+schema cleanup:
 
 ```bash
 cd /home/ubuntu/agora-trading-api
-bash scripts/schema_extra_tables_cleanup_apply_server.sh
-APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1 bash scripts/schema_extra_tables_cleanup_apply_server.sh
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 ```
 
-If the compare passes after cleanup, continue with the Flyway baseline:
+If the compare passes, continue with the Flyway baseline:
 
 1. Generate an explicit baseline migration under
    `src/main/resources/db/migration`.
@@ -90,7 +79,7 @@ If the compare passes after cleanup, continue with the Flyway baseline:
 
 ## Cutover Boundary
 
-Only after schema compare and Flyway baseline acceptance pass:
+Only after shared-DB schema compare and Trading deployment acceptance pass:
 
 1. Review scheduler ownership so order/OCO/grid/fund/Earn-capable jobs run in
    exactly one service.
@@ -101,8 +90,10 @@ Only after schema compare and Flyway baseline acceptance pass:
 
 ## Do Not Do
 
-- Do not drop tables without a fresh backup and explicit apply flag.
-- Do not disable AgoraMarketAPI legacy trading before schema compare passes.
+- Do not run extra-table cleanup in shared DB mode; marketplace/shared tables
+  are expected in `agora_market`.
+- Do not disable AgoraMarketAPI legacy trading before shared-DB schema compare
+  and Trading deployment verification pass.
 - Do not remove AgoraMarketAPI internal exchange-rate endpoints; trading still
   depends on them.
 - Do not treat public health alone as split acceptance.

@@ -169,10 +169,10 @@ try {
     if ($templateKeys["AGORA_MARKET_INTERNAL_TIMEOUT_MS"] -ne "3000") {
         throw "AGORA_MARKET_INTERNAL_TIMEOUT_MS should default to the bounded internal API timeout"
     }
-    if ($templateKeys["SPRING_DATASOURCE_URL"] -notmatch "^jdbc:mysql://[^/]+/agora_trading(\?|$)") {
-        throw "SPRING_DATASOURCE_URL should point at the standalone agora_trading database in the template"
+    if ($templateKeys["SPRING_DATASOURCE_URL"] -notmatch "^jdbc:mysql://[^/]+/agora_market(\?|$)") {
+        throw "SPRING_DATASOURCE_URL should point at the shared agora_market database in the template"
     }
-    if ($templateKeys["META_CONTROL_ML_SQL_SCHEMA"] -ne "agora_trading") {
+    if ($templateKeys["META_CONTROL_ML_SQL_SCHEMA"] -ne "agora_market") {
         throw "META_CONTROL_ML_SQL_SCHEMA should default to the standalone trading schema"
     }
     if ($templateKeys["META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE"] -ne "bt_signal_training_v8_mat") {

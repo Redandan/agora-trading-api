@@ -27,10 +27,10 @@ Trading service runtime:
 
 ```bash
 TRADING_MCP_KEY=<set for MCP endpoints>
-SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_trading?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
-SPRING_DATASOURCE_USERNAME=<set for trading DB>
-SPRING_DATASOURCE_PASSWORD=<set for trading DB>
-META_CONTROL_ML_SQL_SCHEMA=agora_trading
+SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_market?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+SPRING_DATASOURCE_USERNAME=<set for shared DB>
+SPRING_DATASOURCE_PASSWORD=<set for shared DB>
+META_CONTROL_ML_SQL_SCHEMA=agora_market
 META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE=bt_signal_training_v8_mat
 META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW=vw_signal_training_v2
 TRADING_CORS_ALLOWED_ORIGINS=http://localhost:*,http://127.0.0.1:*
@@ -41,8 +41,7 @@ PORT=8084
 ```
 
 ML training and evaluation table names are bound through `meta-control.ml.sql.*`.
-Keep `META_CONTROL_ML_SQL_SCHEMA=agora_trading` for the standalone trading
-schema, or set it explicitly to a legacy schema during a controlled transition.
+Keep `META_CONTROL_ML_SQL_SCHEMA=agora_market` for the current shared-DB split.
 
 `SPRING_JPA_HIBERNATE_DDL_AUTO=update` is a temporary bootstrap-only schema mode.
 It is not production hardening. Keep `SPRING_FLYWAY_ENABLED=false` until a
@@ -220,7 +219,8 @@ Last observed server state from 2026-06-05 Asia/Taipei:
 - `/home/ubuntu/agora-trading-api` has been bootstrapped and can fast-forward from `origin/main`.
 - `/home/ubuntu/agora-trading-api/.env.trading.secrets.example` has been created.
 - `/home/ubuntu/.env.trading.secrets` has been created without printing secret values.
-- independent trading database `agora_trading` has been created.
+- an independent trading database was created during the earlier standalone-DB
+  path; the current target is shared `agora_market`.
 - nginx `/api/trading/` location has been installed and reloaded.
 - trading snapshot was observed at `origin/main` commit `11612b9`, active port `8084`; this is historical evidence, not a current-deployment claim.
 - This is an observed deployment snapshot, not proof that the current `origin/main`
@@ -338,9 +338,8 @@ Prerequisites:
 
 Cutover sequence:
 
-1. Take a fresh backup of the standalone `agora_trading` database.
-2. Re-run schema compare and, if needed, apply only reviewed cleanup for empty
-   residual tables.
+1. Confirm Trading env points at the shared `agora_market` database.
+2. Re-run schema compare in shared mode and resolve any missing trading tables.
 3. Re-run server verify with schema compare enabled.
 4. Add and deploy the Flyway baseline, then switch trading env from
    `SPRING_JPA_HIBERNATE_DDL_AUTO=update` / `SPRING_FLYWAY_ENABLED=false` to
@@ -357,7 +356,8 @@ Rollback:
 
 - Re-enable the legacy AgoraMarketAPI trading entry points.
 - Point nginx `/api/trading/` back to the previous proven target if needed.
-- Keep the `agora_trading` backup until post-cutover monitoring is clean.
+- Keep the previous deploy metadata and DB backup evidence until post-cutover
+  monitoring is clean.
 
 Exchange-rate behavior:
 
@@ -373,7 +373,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - server verification passes `EXPECTED_AGORA_MARKET_BASE_URL` into preflight so custom dependency-routing checks use one expected base URL throughout the server acceptance run.
 - bootstrap and nginx path installation fail fast on their repo/nginx inspection and file-update tools, including `grep`, `ls`, `cp`, `mv`, `nginx`, and `rm` where used.
 - schema baseline database comparison fails fast on its inventory and comparison tools, including `find`, `xargs`, `perl`, `mysql`, `comm`, `sort`, `wc`, and `tr`.
-- schema baseline database comparison rejects non-trading datasource targets before querying MySQL.
+- schema baseline database comparison rejects datasource targets outside the expected shared database before querying MySQL.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit`, `app.pid`, and `app.port` metadata must exist by default; set `REQUIRE_DEPLOY_METADATA=0` only for explicit non-deploy diagnostics.
@@ -382,7 +382,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon; the exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`.
 - `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8080`; deploy, preflight, and server verification fail on stale values.
-- `SPRING_DATASOURCE_URL` must point at standalone trading database `agora_trading`; deploy, preflight, and server verification fail on marketplace datasource targets.
+- `SPRING_DATASOURCE_URL` must point at expected shared database `agora_market`; deploy, preflight, and server verification fail on unexpected datasource targets.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
 - preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
 - local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
@@ -399,17 +399,17 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - Remaining `Environment.getProperty` default-`true` fallbacks are deliberately limited to MCP master-approval protection, ScoreBuy/TinyLive dry-run flags, and post-scout add sub-options behind disabled execution; new default-on environment property fallbacks must be classified or changed to explicit opt-in before deploy prep is considered clean.
 - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup timing diagnostic that does not call external services or mutate runtime state.
 - Coinalyze credentials use `TRADING_MARKET_DATA_COINALYZE_API_KEY`, which maps to `trading.market-data.coinalyze.api-key`; legacy external-style Coinalyze env names are not used by the trading code.
-- trading uses an independent MySQL database, currently `agora_trading`.
+- trading uses the shared MySQL database, currently `agora_market`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
 - deploy, server preflight, and verification fail if the real server env changes `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` before the baseline migration exists.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
-- Empty residual extra tables must be handled through a reviewed cleanup plan first: `bash scripts/schema_extra_tables_cleanup_plan_server.sh` writes row counts and commented DROP statements without mutating the database.
+- Extra marketplace/shared tables are expected in shared DB mode. The standalone-only cleanup planner is disabled unless `SCHEMA_COMPARE_MODE=standalone`.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
 - local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8080/api/actuator/health` by default.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
 - nginx service must be active by default; set `REQUIRE_NGINX_SERVICE=0` only for non-nginx verification environments.
-- guarded empty-table cleanup through `scripts/schema_extra_tables_cleanup_apply_server.sh`; the script backs up `agora_trading` and refuses to drop tables unless `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly set.
+- guarded standalone-only empty-table cleanup through `scripts/schema_extra_tables_cleanup_apply_server.sh`; the script is disabled in shared DB mode and refuses to drop tables unless `SCHEMA_COMPARE_MODE=standalone` plus `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` are explicitly set.
 
 ## Rollback
 

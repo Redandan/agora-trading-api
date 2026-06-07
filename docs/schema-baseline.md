@@ -7,7 +7,8 @@ Current production bootstrap mode remains:
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=update`
 - `SPRING_FLYWAY_ENABLED=false`
 
-Do not enable Flyway until the baseline has been generated from the real trading database schema and reviewed.
+Do not enable Flyway until the baseline has been generated from the real shared
+`agora_market` database schema and reviewed.
 
 ## Read-Only Inventory
 
@@ -31,7 +32,8 @@ table such as users, products, carts, orders, stores, delivery, or wallet tables
 
 ## Read-Only Server Compare
 
-On the server, compare the source inventory against the configured trading database:
+On the server, compare the source inventory against the configured shared
+trading database:
 
 ```bash
 cd /home/ubuntu/agora-trading-api
@@ -51,7 +53,7 @@ The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 Those datasource env keys must be present and non-empty even when the compare
 script is run directly instead of through `scripts/verify_server.sh`.
 The compare also fails before querying MySQL unless the datasource points at
-the standalone trading database, `agora_trading` by default.
+the expected shared database, `agora_market` by default.
 
 - `target/schema-baseline/server-source-entity-tables.txt`
 - `target/schema-baseline/server-implicit-entities.txt`
@@ -67,18 +69,26 @@ The compare fails if any server-side source entity relies on an implicit table
 name, matching the local inventory requirement.
 It also fails before database comparison if source entity mappings include an
 obvious marketplace-owned table name.
-It also writes and fails on `server-db-forbidden-marketplace-tables.txt` if the
-target trading database contains obvious marketplace-owned tables.
+It also writes `server-db-forbidden-marketplace-tables.txt` to report
+marketplace-owned tables seen in the target database. In
+`SCHEMA_COMPARE_MODE=shared`, these rows are expected because Trading uses the
+shared `agora_market` database. In `SCHEMA_COMPARE_MODE=standalone`, they still
+fail the compare.
 The source and database marketplace checks share one shell pattern in
 `scripts/schema_baseline_compare_server.sh` so the two lists cannot drift.
 `server-db-known-system-tables.txt` classifies known non-entity system tables
-such as `flyway_schema_history`, but this does not relax `extra-in-db.txt`
-failure before baseline acceptance.
+such as `flyway_schema_history`. In shared mode, `extra-in-db.txt` is reported
+for visibility but does not fail acceptance; missing trading entity tables still
+fail.
 
 ## Extra Table Cleanup Planning
 
-If the server compare reports only empty residual extra tables, generate a
-review-only cleanup plan:
+Extra-table cleanup is a standalone-DB-only historical/operator path. It is
+disabled in shared DB mode because marketplace/shared tables are expected in
+`agora_market`.
+
+If `SCHEMA_COMPARE_MODE=standalone` and the server compare reports only empty
+residual extra tables, generate a review-only cleanup plan:
 
 ```bash
 cd /home/ubuntu/agora-trading-api
@@ -123,11 +133,13 @@ after any applied cleanup.
 
 Before replacing Hibernate schema update with Flyway validation:
 
-- Compare `target/schema-baseline/entity-tables.txt` with the real `agora_trading` database tables.
-- Run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` and resolve any `missing-in-db.txt` or `extra-in-db.txt` rows.
-- For empty residual extra tables, generate and review `scripts/schema_extra_tables_cleanup_plan_server.sh` output before any manual cleanup.
-- Use `scripts/schema_extra_tables_cleanup_apply_server.sh` only after the generated row counts and backup path have been reviewed.
-- Confirm no marketplace-owned tables are required by trading.
+- Compare `target/schema-baseline/entity-tables.txt` with the real shared
+  `agora_market` database tables.
+- Run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` and resolve
+  any `missing-in-db.txt` rows.
+- Keep `SCHEMA_COMPARE_MODE=shared` for the current split. Do not run
+  extra-table cleanup in shared DB mode.
+- Confirm no marketplace-owned tables are mapped by trading source entities.
 - Generate an explicit `V1__baseline.sql` under `src/main/resources/db/migration`.
 - Set production to `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`.
 - Set production to `SPRING_FLYWAY_ENABLED=true`.

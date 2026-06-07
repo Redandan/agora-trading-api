@@ -6,7 +6,8 @@ ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 OUTPUT_DIR="${OUTPUT_DIR:-$APP_DIR/target/schema-baseline}"
 EXTRA_TABLES_FILE="${EXTRA_TABLES_FILE:-$OUTPUT_DIR/extra-in-db.txt}"
 COUNTS_FILE="${COUNTS_FILE:-$OUTPUT_DIR/extra-table-row-counts.tsv}"
-EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
+SCHEMA_COMPARE_MODE="${SCHEMA_COMPARE_MODE:-shared}"
 APPLY_SCHEMA_EXTRA_TABLE_CLEANUP="${APPLY_SCHEMA_EXTRA_TABLE_CLEANUP:-0}"
 BACKUP_DIR="${BACKUP_DIR:-/home/ubuntu/backups/agora-trading-api-schema-cleanup}"
 
@@ -44,6 +45,11 @@ require_cmd tail
 require_cmd tr
 
 [ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
+case "$SCHEMA_COMPARE_MODE" in
+  shared) fail "schema extra-table cleanup is disabled in shared DB mode; do not drop marketplace/shared tables" ;;
+  standalone) ;;
+  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
+esac
 
 if [ ! -f "$EXTRA_TABLES_FILE" ]; then
   compare_script="$APP_DIR/scripts/schema_baseline_compare_server.sh"
@@ -54,6 +60,7 @@ if [ ! -f "$EXTRA_TABLES_FILE" ]; then
     ENV_FILE="$ENV_FILE" \
     OUTPUT_DIR="$OUTPUT_DIR" \
     EXPECTED_TRADING_DATABASE="$EXPECTED_TRADING_DATABASE" \
+    SCHEMA_COMPARE_MODE="$SCHEMA_COMPARE_MODE" \
     bash "$compare_script"
   compare_status=$?
   set -e
@@ -80,9 +87,9 @@ database="${jdbc_without_query#*/}"
 
 [ -n "$database" ] && [ "$database" != "$jdbc_without_query" ] || fail "database name missing in SPRING_DATASOURCE_URL"
 if [ "$database" != "$EXPECTED_TRADING_DATABASE" ]; then
-  fail "SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE"
+  fail "SPRING_DATASOURCE_URL must point at expected standalone database: $EXPECTED_TRADING_DATABASE"
 fi
-ok "SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
+ok "SPRING_DATASOURCE_URL points at expected standalone database: $EXPECTED_TRADING_DATABASE"
 
 if printf '%s\n' "$host_port" | grep -q ':'; then
   host="${host_port%%:*}"

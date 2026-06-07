@@ -124,7 +124,7 @@ $envOverrides = @{
     SPRING_FLYWAY_ENABLED = "false"
     TRADING_SCHEDULER_POOL_SIZE = "1"
     TRADING_CORS_ALLOWED_ORIGINS = "http://localhost:*,http://127.0.0.1:*"
-    META_CONTROL_ML_SQL_SCHEMA = "agora_trading"
+    META_CONTROL_ML_SQL_SCHEMA = "agora_market"
     META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE = "bt_signal_training_v8_mat"
     META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW = "vw_signal_training_v2"
     TRADING_MCP_KEY = "local-smoke-mcp"
@@ -266,7 +266,7 @@ try {
         "--spring.flyway.enabled=false",
         "--spring.task.scheduling.pool.size=1",
         "--app.cors.allowed-origins=http://localhost:*,http://127.0.0.1:*",
-        "--meta-control.ml.sql.schema=agora_trading",
+        "--meta-control.ml.sql.schema=agora_market",
         "--meta-control.ml.sql.signal-scorer-training-table=bt_signal_training_v8_mat",
         "--meta-control.ml.sql.weekly-retrain-training-view=vw_signal_training_v2",
         "--mcp.api-key=local-smoke-mcp",

@@ -27,7 +27,9 @@ require_cmd() {
 
 require_cmd curl
 require_cmd git
+require_cmd grep
 require_cmd java
+require_cmd ls
 require_cmd mvn
 
 if [ -d "$APP_DIR/.git" ]; then

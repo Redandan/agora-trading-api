@@ -317,12 +317,18 @@ try {
     Assert-RgMatch -Pattern "require_cmd sudo" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when sudo is unavailable for nginx swap"
     Assert-RgMatch -Pattern "require_cmd sudo" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when sudo is unavailable"
     Assert-RgMatch -Pattern "require_cmd awk" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when awk is unavailable"
+    foreach ($commandName in @("cp", "grep", "nginx", "rm")) {
+        Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("scripts/install_nginx_path.sh") -Description "nginx path installer fails fast when $commandName is unavailable"
+    }
     Assert-RgMatch -Pattern "require_cmd systemctl" -Paths @("deploy.sh", "scripts/install_nginx_path.sh") -Description "nginx deploy/install fail fast when systemctl is unavailable for nginx reload"
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("deploy.sh") -Description "deploy fails fast when AgoraMarket internal-client is missing"
     Assert-RgMatch -Pattern "internal-client pom missing" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when AgoraMarket internal-client is missing even when preflight is skipped"
     Assert-RgMatch -Pattern 'mvn -f "\$INTERNAL_CLIENT_POM" install' -Paths @("deploy.sh") -Description "deploy installs AgoraMarket internal-client before building trading"
     Assert-RgMatch -Pattern 'missing or empty.*in \$ENV_FILE' -Paths @("scripts/preflight_server.sh", "scripts/verify_server.sh") -Description "server preflight/verify require non-empty env keys"
     Assert-RgMatch -Pattern "env template available" -Paths @("scripts/bootstrap_server.sh") -Description "bootstrap uses tracked env template"
+    foreach ($commandName in @("grep", "ls")) {
+        Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("scripts/bootstrap_server.sh") -Description "bootstrap fails fast when $commandName is unavailable"
+    }
     Assert-RgMatch -Pattern "Optional runtime safety toggles" -Paths @(".env.trading.secrets.example") -Description "server env template documents optional safety toggles"
     Assert-RgMatch -Pattern "optional safety key" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator checks optional safety toggles"
     Assert-RgMatch -Pattern "meta-control\.btc-price-move-indicator\.enabled:false" -Paths @("src/main/java/com/agora/scheduler/trading/BtcPriceMoveIndicatorCollector.java") -Description "BTC price-move indicator collector is explicit opt-in"

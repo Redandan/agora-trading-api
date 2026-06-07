@@ -218,6 +218,56 @@ function Assert-OnlyAllowedValueAnnotationTrueFallbacks {
     }
 }
 
+function Assert-OnlyAllowedEnvironmentPropertyDefaultTrueFallbacks {
+    $allowedFragments = @(
+        "McpSessionMasterApproval.java|mcp.master-approval.enabled",
+        "ScoreBuyConfirmedDeployAutoExecutionService.java|trading.score-buy.confirmed-deploy.execution.dry-run",
+        "ScoreBuyPostScoutAutoAddExecutionService.java|trading.score-buy.post-scout-add.execution.adaptive-extra-orders-enabled",
+        "ScoreBuyPostScoutAutoAddExecutionService.java|trading.score-buy.post-scout-add.execution.adaptive-extra-requires-confirmation",
+        "ScoreBuyPostScoutAutoAddExecutionService.java|trading.score-buy.post-scout-add.execution.budget-residual-extra-orders-enabled",
+        "ScoreBuyPostScoutAutoAddExecutionService.java|trading.score-buy.post-scout-add.execution.budget-residual-extra-requires-confirmation",
+        "ScoreBuyPostScoutAutoAddExecutionService.java|trading.score-buy.post-scout-add.execution.dry-run",
+        "ScoreBuyPostScoutAutoAddExecutionService.java|trading.score-buy.post-scout-add.execution.missed-alpha-micro-slot-enabled",
+        "ScoreBuyPrePositionAutoExecutionService.java|trading.score-buy.pre-position.execution.dry-run",
+        "TinyLiveExecutionService.java|trading.tiny-live.auto-execution.dry-run"
+    )
+
+    $defaultTrueLines = @()
+    Get-ChildItem -LiteralPath "src/main/java/com/agora" -Filter "*.java" -Recurse | ForEach-Object {
+        $file = $_
+        $text = Get-Content -LiteralPath $file.FullName -Raw
+        [regex]::Matches($text, '\.getProperty\(\s*"(?<key>[^"]+)"\s*,\s*"true"\s*\)') | ForEach-Object {
+            $defaultTrueLines += "$($file.Name)|$($_.Groups["key"].Value)"
+        }
+    }
+
+    foreach ($line in $defaultTrueLines) {
+        $isAllowed = $false
+        foreach ($fragment in $allowedFragments) {
+            if ($line -eq $fragment) {
+                $isAllowed = $true
+                break
+            }
+        }
+        if (-not $isAllowed) {
+            Write-Error "Unexpected Environment.getProperty(..., `"true`") fallback found. New default-on property must be classified as protective/internal/dry-run or changed to explicit opt-in:`n$line"
+        }
+    }
+
+    foreach ($fragment in $allowedFragments) {
+        $found = $false
+        foreach ($line in $defaultTrueLines) {
+            if ($line -eq $fragment) {
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            Write-Error "Expected documented Environment.getProperty default-true fallback missing or moved without updating split verification allowlist: $fragment"
+        }
+    }
+}
+
 function Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks {
     $allowedFragments = @(
         "StartupBeanTimingProbe.java|STARTUP_BEAN_TIMING_ENABLED"
@@ -422,10 +472,12 @@ try {
     Assert-OnlyAllowedEnabledTrueFallbacks
     Assert-OnlyAllowedDefaultValueTrueProperties
     Assert-OnlyAllowedValueAnnotationTrueFallbacks
+    Assert-OnlyAllowedEnvironmentPropertyDefaultTrueFallbacks
     Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks
     Assert-RgMatch -Pattern "Remaining ``enabled:true`` fallbacks are deliberately limited" -Paths @("docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining enabled:true fallback classification is documented"
     Assert-RgMatch -Pattern "Remaining ``@DefaultValue\(`"true`"\)`` properties are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining @DefaultValue true fallback classification is documented"
     Assert-RgMatch -Pattern "Remaining ``@Value`` ``:true`` fallbacks are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining @Value true fallback classification is documented"
+    Assert-RgMatch -Pattern "Remaining ``Environment.getProperty`` default-``true`` fallbacks are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining Environment.getProperty true fallback classification is documented"
     Assert-RgMatch -Pattern "STARTUP_BEAN_TIMING_ENABLED" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining System.getenv default-true fallback classification is documented"
     Assert-RgMatch -Pattern '@Profile\("!local-smoke"\)' -Paths @("src/main/java/com/agora/config/TradingSchedulingConfig.java") -Description "local-smoke does not register scheduled tasks"
     Assert-RgMatch -Pattern "Scheduling disabled for local-smoke profile" -Paths @("src/main/java/com/agora/config/LocalSmokeSchedulingConfig.java", "scripts/smoke_local_health.ps1") -Description "local-smoke smoke logs prove scheduling is disabled"

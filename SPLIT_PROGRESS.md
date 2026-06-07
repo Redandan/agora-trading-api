@@ -58,6 +58,7 @@
   - Remaining `enabled:true` fallbacks are enforced by `scripts/verify_local.ps1` as a four-item protective/internal allowlist: MCP master-approval probe wait, Telegram noise reduction, enabled-strategy kline data validation, and deterministic regime filtering.
   - Remaining `@DefaultValue("true")` properties are enforced by `scripts/verify_local.ps1` as protective, dry-run, internal diagnostic, or subordinate options behind disabled parent switches.
   - Remaining `@Value` `:true` fallbacks are deliberately limited to protective/internal checks and dry-run flags; `scripts/verify_local.ps1` rejects new default-on `@Value` fallbacks until they are classified or changed to explicit opt-in.
+  - Remaining `Environment.getProperty` default-`true` fallbacks are deliberately limited to MCP master-approval protection, ScoreBuy/TinyLive dry-run flags, and post-scout add sub-options behind disabled execution; `scripts/verify_local.ps1` rejects new default-on environment property fallbacks until they are classified or changed to explicit opt-in.
   - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup diagnostic logger with no network, DB, order, or notification side effects.
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `http://127.0.0.1:8082`.
 - `deploy.sh` now checks AgoraMarket exchange-rate dependency health before starting the blue-green switch.

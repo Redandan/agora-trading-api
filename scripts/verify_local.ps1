@@ -322,6 +322,8 @@ try {
     Assert-RgMatch -Pattern 'api-key: \$\{MCP_API_KEY:\$\{TRADING_MCP_KEY:\}\}' -Paths @("src/main/resources/application.yml") -Description "TRADING_MCP_KEY maps to MCP dev auth key"
     Assert-RgMatch -Pattern 'ops-key: \$\{MCP_OPS_KEY:\$\{TRADING_MCP_KEY:\}\}' -Paths @("src/main/resources/application.yml") -Description "TRADING_MCP_KEY maps to MCP ops auth key"
     Assert-RgMatch -Pattern "localSmokeMcpAuthKeysAreConfigured" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test proves local-smoke MCP auth keys are configured"
+    Assert-RgMatch -Pattern "actuatorMetricsRequireLocalhostOrMcpKey" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test proves actuator metrics filter requires localhost or MCP key"
+    Assert-RgMatch -Pattern "setRemoteAddr\(`"203\.0\.113\.10`"\)" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "actuator metrics auth test uses non-local remote address"
     Write-Host "[verify] checking split boundary validators"
     & "$PSScriptRoot\verify_split_boundaries.ps1"
     Assert-RgMatch -Pattern "Split Guardrails Covered By Verification" -Paths @("docs/split-audit.md") -Description "split audit documents local deploy/schema/contract guards"

@@ -51,4 +51,23 @@ class TradingApiApplicationTests {
         mockMvc.perform(get("/admin/anything")).andExpect(status().isForbidden());
         mockMvc.perform(get("/internal/anything")).andExpect(status().isForbidden());
     }
+
+    @Test
+    void actuatorMetricsRequireLocalhostOrMcpKey() throws Exception {
+        mockMvc.perform(get("/actuator/metrics").with(request -> {
+            request.setRemoteAddr("203.0.113.10");
+            return request;
+        })).andExpect(status().isUnauthorized());
+
+        String mcpKey = environment.getProperty("mcp.api-key", "");
+        assertFalse(mcpKey.isBlank());
+
+        mockMvc.perform(get("/actuator/metrics")
+                        .header("Authorization", "Bearer " + mcpKey)
+                        .with(request -> {
+                            request.setRemoteAddr("203.0.113.10");
+                            return request;
+                        }))
+                .andExpect(status().isNotFound());
+    }
 }

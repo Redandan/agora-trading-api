@@ -86,6 +86,7 @@ require_cmd lsof
 require_cmd ls
 require_cmd mvn
 require_cmd ps
+require_cmd systemctl
 require_cmd tail
 require_cmd tr
 

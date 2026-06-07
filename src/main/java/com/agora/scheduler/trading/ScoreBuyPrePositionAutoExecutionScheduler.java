@@ -4,11 +4,13 @@ import com.agora.service.trading.ScoreBuyPrePositionAutoExecutionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "trading.score-buy.pre-position.execution.enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class ScoreBuyPrePositionAutoExecutionScheduler {
 

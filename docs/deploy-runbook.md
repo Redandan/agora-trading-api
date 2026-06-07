@@ -114,7 +114,7 @@ Expected:
 - Smoke logs prove public market WebSocket auto-subscribe is disabled with `[MarketWS] auto-subscribe config: enabled=false`.
 - Smoke logs prove OKX liquidation WebSocket is disabled with `[OkxLiqWS] disabled by market.liquidation-ws.enabled=false`.
 - Local smoke forces `okx.earn-topup.enabled=false`; the OKX Earn top-up scheduler bean is explicit opt-in and smoke logs must not show Earn redemption or transfer side effects.
-- Smoke logs prove Polymarket external market monitoring is disabled with `[PolymarketMonitor] config: enabled=false`.
+- Local smoke forces `polymarket.monitor.enabled=false`; the Polymarket monitor scheduler bean is explicit opt-in and smoke logs must not show Polymarket snapshot, backfill, or digest side effects.
 - Smoke logs prove position-exit manager is disabled with `[ExitMgr] init: enabled=false`.
 - Smoke logs prove trailing-stop OCO updates are disabled with `[TrailingStop] config: enabled=false`.
 - Smoke logs prove short-squeeze alerting and Binance taker-buy collection are disabled with `[ShortSqueezeAlert] config: enabled=false takerBuyCollectorEnabled=false`; code defaults also keep both off if the env keys are omitted.

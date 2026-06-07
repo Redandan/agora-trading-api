@@ -244,7 +244,7 @@ echo "$NEW_PID" > "app.pid.$NEW_PORT"
 echo "[deploy] new instance PID=$NEW_PID port=$NEW_PORT log=$RUN_LOG"
 
 for attempt in $(seq 1 120); do
-  if curl -fsS "http://127.0.0.1:${NEW_PORT}/api/trading/actuator/health" >/dev/null; then
+  if curl -fsS "http://127.0.0.1:${NEW_PORT}/api/trading/actuator/health" >/dev/null 2>&1; then
     echo "[deploy] READY in ${attempt}s"
     break
   fi
@@ -257,7 +257,7 @@ for attempt in $(seq 1 120); do
   sleep 1
 done
 
-if ! curl -fsS "http://127.0.0.1:${NEW_PORT}/api/trading/actuator/health" >/dev/null; then
+if ! curl -fsS "http://127.0.0.1:${NEW_PORT}/api/trading/actuator/health" >/dev/null 2>&1; then
   echo "[deploy] health check timed out; tailing log" >&2
   tail -80 "$RUN_LOG" >&2 || true
   cleanup_new_instance

@@ -148,7 +148,8 @@ Trading deployment prep:
 ## Cleanup Priority
 
 1. Resolve read-only schema compare extras before Flyway baseline. If extras are empty residual bootstrap tables, generate a reviewed cleanup plan with `bash scripts/schema_extra_tables_cleanup_plan_server.sh`; do not run destructive DB cleanup without a fresh backup and explicit operator approval.
-2. After the read-only server compare matches, add an explicit Flyway baseline under `src/main/resources/db/migration` and replace temporary `ddl-auto=update` bootstrap mode with schema validation plus Flyway.
+2. Use `bash scripts/schema_extra_tables_cleanup_apply_server.sh` for the reviewed cleanup path only after approval; it backs up `agora_trading` and requires `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` before dropping empty extra tables.
+3. After the read-only server compare matches, add an explicit Flyway baseline under `src/main/resources/db/migration` and replace temporary `ddl-auto=update` bootstrap mode with schema validation plus Flyway.
 3. Re-run server deploy/verify when production deployment is explicitly requested.
 
 ## Do Not Do Yet

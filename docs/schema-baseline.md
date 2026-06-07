@@ -96,6 +96,26 @@ drop statements commented out so an operator must explicitly review, back up the
 database, re-run the compare, and choose what to apply. If any extra table has
 rows, the cleanup-plan script fails.
 
+After review, a guarded operator script can create a fresh MySQL backup and
+optionally apply the empty-table cleanup:
+
+```bash
+cd /home/ubuntu/agora-trading-api
+bash scripts/schema_extra_tables_cleanup_apply_server.sh
+```
+
+The apply script is dry-run by default. It re-runs the cleanup planner, refuses
+to continue if any listed table has rows, and writes a full database backup under
+`/home/ubuntu/backups/agora-trading-api-schema-cleanup/`. It drops tables only
+when `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly set for that command:
+
+```bash
+APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1 bash scripts/schema_extra_tables_cleanup_apply_server.sh
+```
+
+Re-run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` immediately
+after any applied cleanup.
+
 ## Baseline Acceptance
 
 Before replacing Hibernate schema update with Flyway validation:
@@ -103,6 +123,7 @@ Before replacing Hibernate schema update with Flyway validation:
 - Compare `target/schema-baseline/entity-tables.txt` with the real `agora_trading` database tables.
 - Run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` and resolve any `missing-in-db.txt` or `extra-in-db.txt` rows.
 - For empty residual extra tables, generate and review `scripts/schema_extra_tables_cleanup_plan_server.sh` output before any manual cleanup.
+- Use `scripts/schema_extra_tables_cleanup_apply_server.sh` only after the generated row counts and backup path have been reviewed.
 - Confirm no marketplace-owned tables are required by trading.
 - Generate an explicit `V1__baseline.sql` under `src/main/resources/db/migration`.
 - Set production to `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`.

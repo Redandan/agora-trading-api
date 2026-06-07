@@ -406,6 +406,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
 - nginx service must be active by default; set `REQUIRE_NGINX_SERVICE=0` only for non-nginx verification environments.
+- guarded empty-table cleanup through `scripts/schema_extra_tables_cleanup_apply_server.sh`; the script backs up `agora_trading` and refuses to drop tables unless `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly set.
 
 ## Rollback
 

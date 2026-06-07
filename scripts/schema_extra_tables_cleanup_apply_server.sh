@@ -100,6 +100,7 @@ backup_file="$BACKUP_DIR/${database}-before-extra-table-cleanup-$(date -u +%Y%m%
 echo "[schema-cleanup-apply] backup target: $backup_file"
 MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysqldump \
   --single-transaction \
+  --set-gtid-purged=OFF \
   --routines \
   --triggers \
   -h "$host" \

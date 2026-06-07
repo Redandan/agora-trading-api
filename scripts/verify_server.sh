@@ -219,8 +219,13 @@ MCP_RESPONSE="$(curl -fsS \
 printf '%s' "$MCP_RESPONSE" | grep -q '"content"' || fail "local MCP getMcpRegistryVersion response missing content array: $MCP_URL"
 ok "local MCP getMcpRegistryVersion passed: $MCP_URL"
 
-curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null || fail "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL"
-ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"
+if curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null; then
+  ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"
+elif [ "$REQUIRE_AGORA_MARKET_HEALTH" = "1" ]; then
+  fail "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL"
+else
+  warn "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL; REQUIRE_AGORA_MARKET_HEALTH=$REQUIRE_AGORA_MARKET_HEALTH"
+fi
 
 if [ -n "$PUBLIC_TRADING_HEALTH_URL" ]; then
   curl -fsS "$PUBLIC_TRADING_HEALTH_URL" >/dev/null || fail "public trading health failed: $PUBLIC_TRADING_HEALTH_URL"

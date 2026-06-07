@@ -10,6 +10,7 @@ import com.agora.service.indicator.SubDimension;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "meta-control.composite-indicator.scheduler-enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 public class CompositeIndicatorScheduler {
 

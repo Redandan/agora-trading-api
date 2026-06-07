@@ -135,7 +135,6 @@ else
   warn "deploy commit file missing: $COMMIT_FILE; REQUIRE_DEPLOY_METADATA=$REQUIRE_DEPLOY_METADATA"
 fi
 
-require_env_key TRADING_ADMIN_KEY
 require_env_key TRADING_MCP_KEY
 require_env_key AGORA_MARKET_BASE_URL
 require_env_key AGORA_MARKET_INTERNAL_API_KEY

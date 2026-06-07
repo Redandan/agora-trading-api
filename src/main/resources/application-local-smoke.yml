@@ -46,8 +46,6 @@ trailing-stop:
   enabled: false
 
 trading:
-  admin:
-    api-key: local-smoke-admin
   mcp:
     api-key: local-smoke-mcp
   short-squeeze-alert:

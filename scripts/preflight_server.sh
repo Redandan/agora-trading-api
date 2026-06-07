@@ -95,7 +95,6 @@ ok "git worktree is clean"
 bash -n deploy.sh scripts/*.sh
 ok "shell syntax passed: deploy.sh scripts/*.sh"
 
-require_env_key TRADING_ADMIN_KEY
 require_env_key TRADING_MCP_KEY
 require_env_key AGORA_MARKET_BASE_URL
 require_env_key AGORA_MARKET_INTERNAL_API_KEY

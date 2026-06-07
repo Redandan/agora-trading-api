@@ -140,7 +140,6 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 load_env_file "$ENV_FILE"
 
-require_env_key TRADING_ADMIN_KEY
 require_env_key TRADING_MCP_KEY
 require_env_key AGORA_MARKET_BASE_URL
 require_env_key AGORA_MARKET_INTERNAL_API_KEY

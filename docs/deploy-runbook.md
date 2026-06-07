@@ -23,7 +23,6 @@ AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000
 Trading service runtime:
 
 ```bash
-TRADING_ADMIN_KEY=<set for admin endpoints>
 TRADING_MCP_KEY=<set for MCP endpoints>
 SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_trading?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
 SPRING_DATASOURCE_USERNAME=<set for trading DB>

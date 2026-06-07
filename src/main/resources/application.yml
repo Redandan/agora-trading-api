@@ -42,8 +42,6 @@ management:
       show-details: never
 
 trading:
-  admin:
-    api-key: ${TRADING_ADMIN_KEY:}
   mcp:
     api-key: ${TRADING_MCP_KEY:}
 

@@ -159,6 +159,7 @@ try {
     Assert-RgNoMatch -Pattern "ROLE_ADMIN|hasAuthority|\.authenticated\(" -Paths @("src/main/java/com/agora/config/SecurityConfig.java") -Description "role/login HTTP security fallback residue"
     Assert-RgMatch -Pattern "\.anyRequest\(\)\.denyAll\(\)" -Paths @("src/main/java/com/agora/config/SecurityConfig.java") -Description "non-public HTTP routes default deny without login fallback"
     Assert-RgMatch -Pattern "Non-public HTTP routes default to deny-all" -Paths @("SERVICE_BOUNDARY.md") -Description "service boundary documents deny-all HTTP default"
+    Assert-RgNoMatch -Pattern "TRADING_ADMIN_KEY|trading\.admin|local-smoke-admin" -Paths @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh", "scripts/validate_env_template.ps1", ".env.trading.secrets.example", "src/main/resources/application.yml", "src/main/resources/application-local-smoke.yml", "docs/deploy-runbook.md") -Description "unused admin HTTP secret residue"
     Assert-RgNoMatch -Pattern '"/(public|test|images|telegram/webhook|backtests|admin/market|admin/oco|market)/(.*)?"' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "legacy public HTTP route allowlist residue"
     Assert-RgMatch -Pattern '"/mcp"' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "MCP endpoint remains the only trading tool HTTP surface"
 

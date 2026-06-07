@@ -436,7 +436,6 @@ try {
     Assert-LogContains -Path $stdout -Pattern "Jina embedding client initialised: enabled=false" -Description "local-smoke does not enable external Jina embeddings"
     Assert-LogContains -Path $stdout -Pattern "MarketWS.*auto-subscribe config: enabled=false" -Description "local-smoke does not enable public market WS auto-subscribe"
     Assert-LogContains -Path $stdout -Pattern "OkxLiqWS.*disabled by market\.liquidation-ws\.enabled=false" -Description "local-smoke does not enable OKX liquidation WebSocket"
-    Assert-LogContains -Path $stdout -Pattern "EarnTopUp.*config: enabled=false" -Description "local-smoke does not enable OKX Earn top-up"
     Assert-LogContains -Path $stdout -Pattern "PolymarketMonitor.*config: enabled=false" -Description "local-smoke does not enable Polymarket monitor"
     Assert-LogContains -Path $stdout -Pattern "ExitMgr.*init: enabled=false" -Description "local-smoke does not enable position exit manager"
     Assert-LogContains -Path $stdout -Pattern "TrailingStop.*config: enabled=false" -Description "local-smoke does not enable trailing-stop OCO updates"

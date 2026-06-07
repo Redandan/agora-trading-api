@@ -3469,12 +3469,12 @@ public class DiagnosticMcpTools {
     }
 
     // ==========================================================================
-    // #352 runAlphaPromotionTracker — 手動觸發（cron 每週日 09:00 UTC 自動跑）
+    // #352 runAlphaPromotionTracker — 手動觸發（scheduler enabled 時每週日 09:00 UTC 自動跑）
     // ==========================================================================
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.ANALYTICS})
-    @Tool(description = "#352 V1 — 手動觸發 alpha promotion tracker（cron 每週日 09:00 UTC 自動）。" +
+    @Tool(description = "#352 V1 — 手動觸發 alpha promotion tracker（scheduler enabled 時每週日 09:00 UTC 自動）。" +
             "比對上週 snapshot 找：① 新升級 alpha (lowN→n≥10 hit≥60%) ② 新淪為 contra (alpha→hit<40% 反向)。" +
             "第一次跑只寫 baseline。有變更則發 TG。")
     public String runAlphaPromotionTracker() {

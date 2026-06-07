@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * #352 AlphaPromotionTracker — 每週日 09:00 UTC 自動跑 #338 scanIndicatorAccuracy，
+ * #352 AlphaPromotionTracker — 由 AlphaPromotionTrackerScheduler 每週日 09:00 UTC 自動跑 #338 scanIndicatorAccuracy，
  * 跟上週 snapshot 比對，找出：
  * <ul>
  *   <li>✅ 新升級 alpha：原 lowN（n&lt;10）→ 現 n≥10 + hit≥60%</li>
@@ -46,24 +45,6 @@ public class AlphaPromotionTracker {
     /** Snapshot file 位置（可被 application.yml 覆蓋） */
     @Value("${agora.alpha-tracker.snapshot-path:/home/ubuntu/agora-trading-api/alpha-tracker-snapshot.json}")
     private String snapshotPath;
-
-    @Value("${agora.alpha-tracker.enabled:false}")
-    private boolean enabled;
-
-    /** Cron：每週日 09:00 UTC */
-    @Scheduled(cron = "0 0 9 * * SUN", zone = "UTC")
-    public void weeklyScan() {
-        if (!enabled) {
-            log.debug("[AlphaPromotionTracker] disabled by agora.alpha-tracker.enabled=false");
-            return;
-        }
-        log.info("[AlphaPromotionTracker] weekly scan starting");
-        try {
-            scanAndCompare();
-        } catch (Exception e) {
-            log.warn("[AlphaPromotionTracker] weekly scan failed", e);
-        }
-    }
 
     /** 公開呼叫（給 MCP @Tool runAlphaPromotionTracker） */
     public String scanAndCompare() {

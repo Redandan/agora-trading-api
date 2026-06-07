@@ -164,6 +164,7 @@ if [ "$RUN_SCHEMA_BASELINE_COMPARE" = "1" ]; then
   [ -f "$SCHEMA_COMPARE_SCRIPT" ] || fail "schema baseline compare script missing: $SCHEMA_COMPARE_SCRIPT"
   APP_DIR="$APP_DIR" \
     ENV_FILE="$ENV_FILE" \
+    EXPECTED_TRADING_DATABASE="$EXPECTED_TRADING_DATABASE" \
     bash "$SCHEMA_COMPARE_SCRIPT"
   ok "schema baseline database comparison passed"
 else

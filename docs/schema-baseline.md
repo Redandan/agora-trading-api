@@ -50,6 +50,8 @@ The compare script reads `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 
 Those datasource env keys must be present and non-empty even when the compare
 script is run directly instead of through `scripts/verify_server.sh`.
+The compare also fails before querying MySQL unless the datasource points at
+the standalone trading database, `agora_trading` by default.
 
 - `target/schema-baseline/server-source-entity-tables.txt`
 - `target/schema-baseline/server-implicit-entities.txt`

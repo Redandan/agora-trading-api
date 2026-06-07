@@ -4,6 +4,7 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 OUTPUT_DIR="${OUTPUT_DIR:-$APP_DIR/target/schema-baseline}"
+EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_trading}"
 MARKETPLACE_TABLE_PATTERN='^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$'
 KNOWN_SYSTEM_TABLE_PATTERN='^(flyway_schema_history)$'
 
@@ -61,6 +62,10 @@ host_port="${jdbc_without_query%%/*}"
 database="${jdbc_without_query#*/}"
 
 [ -n "$database" ] && [ "$database" != "$jdbc_without_query" ] || fail "database name missing in SPRING_DATASOURCE_URL"
+if [ "$database" != "$EXPECTED_TRADING_DATABASE" ]; then
+  fail "SPRING_DATASOURCE_URL must point at standalone trading database: $EXPECTED_TRADING_DATABASE"
+fi
+ok "SPRING_DATASOURCE_URL points at standalone trading database: $EXPECTED_TRADING_DATABASE"
 
 if printf '%s\n' "$host_port" | grep -q ':'; then
   host="${host_port%%:*}"

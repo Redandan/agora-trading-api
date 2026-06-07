@@ -325,6 +325,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - server verification passes `EXPECTED_AGORA_MARKET_BASE_URL` into preflight so custom dependency-routing checks use one expected base URL throughout the server acceptance run.
 - bootstrap and nginx path installation fail fast on their repo/nginx inspection and file-update tools, including `grep`, `ls`, `cp`, `nginx`, and `rm` where used.
 - schema baseline database comparison fails fast on its inventory and comparison tools, including `find`, `xargs`, `perl`, `mysql`, `comm`, `sort`, `wc`, and `tr`.
+- schema baseline database comparison rejects non-trading datasource targets before querying MySQL.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit`, `app.pid`, and `app.port` metadata must exist by default; set `REQUIRE_DEPLOY_METADATA=0` only for explicit non-deploy diagnostics.

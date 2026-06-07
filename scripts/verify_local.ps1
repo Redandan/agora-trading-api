@@ -110,6 +110,64 @@ function Assert-OnlyAllowedEnabledTrueFallbacks {
     }
 }
 
+function Assert-OnlyAllowedDefaultValueTrueProperties {
+    $allowedFragments = @(
+        'DataQualityProperties.java|@DefaultValue("true") boolean enabled',
+        'DbSlowQueryMonitorProperties.java|@DefaultValue("true") boolean enabled',
+        'EventCalendarProperties.java|@DefaultValue("true") boolean enabled',
+        'EventScanNotificationProperties.java|@DefaultValue("true") boolean dryRun',
+        'EventRiskControlProperties.java|@DefaultValue("true") boolean enabled',
+        'EventRiskControlProperties.java|@DefaultValue("true") boolean blockNewEntries',
+        'ExecutionEventProperties.java|@DefaultValue("true") boolean notificationEnabled',
+        'ExecutionEventProperties.java|@DefaultValue("true") boolean notificationDryRun',
+        'GeminiAdvisorProperties.java|@DefaultValue("true") boolean tgSummary',
+        'GeminiAdvisorProperties.java|@DefaultValue("true") boolean skipStuckEnabled',
+        'GeminiAdvisorProperties.java|@DefaultValue("true") boolean priorHintContextEnabled',
+        'KlineDivergenceProperties.java|@DefaultValue("true") boolean thinSourceDowngradeEnabled',
+        'LongAiFilterProperties.java|@DefaultValue("true") boolean spotMode',
+        'MarketSignalRiskCardProperties.java|@DefaultValue("true") boolean dryRun',
+        'MarketSignalRiskCardProperties.java|@DefaultValue("true") boolean sendOnStatusChangeOnly',
+        'MemoryMonitorProperties.java|@DefaultValue("true") boolean enabled',
+        'StartupWatcherProperties.java|@DefaultValue("true") boolean enabled',
+        'TradingGridProperties.java|@DefaultValue("true") boolean recycleClosedLevels'
+    )
+
+    $defaultTrueLines = @()
+    Get-ChildItem -LiteralPath "src/main/java/com/agora/config/properties" -Filter "*.java" | ForEach-Object {
+        $file = $_
+        Select-String -LiteralPath $file.FullName -Pattern '@DefaultValue("true")' -SimpleMatch | ForEach-Object {
+            $lineText = $_.Line.Trim().TrimEnd(",")
+            $defaultTrueLines += "$($file.Name)|$lineText"
+        }
+    }
+
+    foreach ($line in $defaultTrueLines) {
+        $isAllowed = $false
+        foreach ($fragment in $allowedFragments) {
+            if ($line -eq $fragment) {
+                $isAllowed = $true
+                break
+            }
+        }
+        if (-not $isAllowed) {
+            Write-Error "Unexpected @DefaultValue(`"true`") fallback found. New default-on property must be classified as protective/internal/dry-run or changed to explicit opt-in:`n$line"
+        }
+    }
+
+    foreach ($fragment in $allowedFragments) {
+        $found = $false
+        foreach ($line in $defaultTrueLines) {
+            if ($line -eq $fragment) {
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            Write-Error "Expected documented @DefaultValue(`"true`") fallback missing or moved without updating split verification allowlist: $fragment"
+        }
+    }
+}
+
 function Assert-StartupRunnersAreSplitSafe {
     $runnerFiles = @(rg -l "implements (ApplicationRunner|CommandLineRunner)" src/main/java)
     $exitCode = $LASTEXITCODE
@@ -269,7 +327,9 @@ try {
     Assert-RgMatch -Pattern "Split Guardrails Covered By Verification" -Paths @("docs/split-audit.md") -Description "split audit documents local deploy/schema/contract guards"
     Assert-RgMatch -Pattern "Split deploy guardrails stay documented" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents local split deploy/schema/contract guards"
     Assert-OnlyAllowedEnabledTrueFallbacks
+    Assert-OnlyAllowedDefaultValueTrueProperties
     Assert-RgMatch -Pattern "Remaining ``enabled:true`` fallbacks are deliberately limited" -Paths @("docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining enabled:true fallback classification is documented"
+    Assert-RgMatch -Pattern "Remaining ``@DefaultValue\(`"true`"\)`` properties are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining @DefaultValue true fallback classification is documented"
     Assert-RgMatch -Pattern '@Profile\("!local-smoke"\)' -Paths @("src/main/java/com/agora/config/TradingSchedulingConfig.java") -Description "local-smoke does not register scheduled tasks"
     Assert-RgMatch -Pattern "Scheduling disabled for local-smoke profile" -Paths @("src/main/java/com/agora/config/LocalSmokeSchedulingConfig.java", "scripts/smoke_local_health.ps1") -Description "local-smoke smoke logs prove scheduling is disabled"
     Assert-RgMatch -Pattern "localSmokeDoesNotRegisterScheduledTasks" -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test proves local-smoke scheduling is disabled"

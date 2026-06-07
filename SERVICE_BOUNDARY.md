@@ -46,6 +46,8 @@ The response DTO should match the current `ExchangeRateInfo` shape:
 ## Identity Boundary
 
 Trading does not share marketplace login, user profiles, or marketplace user tables.
+Non-public HTTP routes default to deny-all; trading access is through explicit
+public probes/docs and MCP API-key guarded tools, not role-based web login.
 
 For the current split, do not add identity internal APIs. If a future product
 requirement explicitly needs shared identity, treat that as a separate design

@@ -279,6 +279,8 @@ try {
     foreach ($pattern in @(
         'APP_DIR="\$APP_DIR"',
         'ENV_FILE="\$ENV_FILE"',
+        'PORT_A="\$PORT_A"',
+        'PORT_B="\$PORT_B"',
         'INTERNAL_CLIENT_POM="\$INTERNAL_CLIENT_POM"',
         'AGORA_MARKET_HEALTH_URL="\$AGORA_MARKET_HEALTH_URL"',
         'EXPECTED_AGORA_MARKET_BASE_URL="\$EXPECTED_AGORA_MARKET_BASE_URL"',

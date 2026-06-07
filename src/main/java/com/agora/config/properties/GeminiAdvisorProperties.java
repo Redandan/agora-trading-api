@@ -22,10 +22,10 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "trading.gemini-advisor")
 public record GeminiAdvisorProperties(
 
-        /** Master switch for {@code GeminiMarketAdvisor.scheduledAdvise()}. */
+        /** Master switch for {@code GeminiMarketAdvisorScheduler}. */
         @DefaultValue("false") boolean enabled,
 
-        /** Cron expression for {@code GeminiMarketAdvisor.runOnSchedule()}. */
+        /** Cron expression for {@code GeminiMarketAdvisorScheduler.runOnSchedule()}. */
         @DefaultValue("0 5 */8 * * *") @NotBlank String cron,
 
         /** CSV of monitored symbols. */

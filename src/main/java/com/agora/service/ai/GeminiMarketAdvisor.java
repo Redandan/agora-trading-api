@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -51,8 +50,6 @@ public class GeminiMarketAdvisor {
     /** style+regime 快取，用於偵測「無變化時靜默」。key = symbol+timeframe */
     private final Map<String, String> lastSentHintKey = new java.util.concurrent.ConcurrentHashMap<>();
 
-    /** 00:05, 08:05, 16:05 UTC(避開 0:00 / :10 既有排程)。 */
-    @Scheduled(cron = "${trading.gemini-advisor.cron:0 5 */8 * * *}", zone = "UTC")
     public void runOnSchedule() {
         log.info("[GeminiAdvisor scheduled] tick enabled={} cron={} symbols={} timeframes={}",
                 props.enabled(), props.cron(), props.symbols(), props.timeframes());

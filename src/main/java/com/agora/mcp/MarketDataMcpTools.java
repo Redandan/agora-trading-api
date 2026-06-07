@@ -2481,13 +2481,13 @@ public class MarketDataMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MARKET_DATA, Category.DIAGNOSTIC})
     @Tool(description = "查看 GeminiMarketAdvisor 目前設定與最近 hint 狀態。" +
-            "用於確認 scheduler 是否啟用、cron、symbols/timeframes、TTL 與最新 hint 時間。")
+            "用於確認 scheduler opt-in 是否啟用、cron、symbols/timeframes、TTL 與最新 hint 時間。")
     public String getGeminiAdvisorStatus() {
         List<GeminiMarketHint> recent = geminiMarketHintRepository.findTop50ByOrderByCreatedAtDesc();
 
         StringBuilder sb = new StringBuilder();
         sb.append("=== Gemini Market Advisor Status ===\n\n");
-        sb.append(String.format("enabled: %s%n", geminiAdvisorProperties.enabled()));
+        sb.append(String.format("scheduler enabled: %s%n", geminiAdvisorProperties.enabled()));
         sb.append(String.format("cron(UTC): %s%n", geminiAdvisorProperties.cron()));
         sb.append(String.format("symbols: %s%n", geminiAdvisorProperties.symbols()));
         sb.append(String.format("timeframes: %s%n", geminiAdvisorProperties.timeframes()));

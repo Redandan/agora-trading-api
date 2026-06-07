@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -93,9 +92,8 @@ public class GridManagerService {
             new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
-     * 預設每 5 分鐘檢查一次。fixedDelay 從上一次 finish 算,避免 overlap。
+     * 預設由 GridManagerScheduler 每 5 分鐘檢查一次。固定延遲排程留在 wrapper,避免 service bean 自行註冊排程。
      */
-    @Scheduled(fixedDelayString = "${trading.grid.check-interval-ms:300000}")
     public void checkAllGrids() {
         if (!props.enabled()) return;
         List<BtGrid> active = gridRepository.findByEnabledTrueAndClosedAtIsNull();

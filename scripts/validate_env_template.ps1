@@ -165,6 +165,9 @@ try {
     if ($templateKeys["AGORA_MARKET_BASE_URL"] -ne "http://127.0.0.1:8082") {
         throw "AGORA_MARKET_BASE_URL should point at local AgoraMarketAPI dependency in the template"
     }
+    if ($templateKeys["SPRING_DATASOURCE_URL"] -notmatch "^jdbc:mysql://[^/]+/agora_trading(\?|$)") {
+        throw "SPRING_DATASOURCE_URL should point at the standalone agora_trading database in the template"
+    }
     if ($templateKeys["META_CONTROL_ML_SQL_SCHEMA"] -ne "agora_trading") {
         throw "META_CONTROL_ML_SQL_SCHEMA should default to the standalone trading schema"
     }

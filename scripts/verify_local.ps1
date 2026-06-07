@@ -410,6 +410,7 @@ try {
     Assert-RgNoMatch -Pattern "archunit|ArchitectureTest|arch-boundaries-violations|arch-refactor-plan" -Paths @("pom.xml") -Description "stale ArchUnit boundary-test residue"
     Assert-RgMatch -Pattern "smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180" -Paths @("README.md") -Description "README documents full local smoke command"
     Assert-RgMatch -Pattern "AGORA_MARKET_BASE_URL=http://127\.0\.0\.1:8082" -Paths @("README.md") -Description "README documents AgoraMarket local dependency base URL"
+    Assert-RgMatch -Pattern "AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000" -Paths @("README.md") -Description "README documents bounded AgoraMarket internal API timeout"
     Assert-RgMatch -Pattern "/api/trading/mcp" -Paths @("README.md") -Description "README documents trading MCP context path"
     Assert-RgMatch -Pattern "production currentness" -Paths @("README.md") -Description "README warns local verification does not prove production currentness"
     Assert-RgNoMatch -Pattern "db_migration_history|db/migrations|matchIfMissing = true|Has V040" -Paths @("src/main/java/com/agora/config/MigrationDriftChecker.java") -Description "stale migration drift checker defaults"

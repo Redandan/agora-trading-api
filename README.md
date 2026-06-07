@@ -30,7 +30,7 @@ curl http://localhost:8084/api/trading/actuator/health
 
 AgoraMarket exchange-rate integration:
 
-- Configure `AGORA_MARKET_BASE_URL=http://127.0.0.1:8082` and `AGORA_MARKET_INTERNAL_API_KEY` to call AgoraMarket internal API.
+- Configure `AGORA_MARKET_BASE_URL=http://127.0.0.1:8082`, `AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000`, and `AGORA_MARKET_INTERNAL_API_KEY` to call AgoraMarket internal API.
 - Leave `AGORA_MARKET_INTERNAL_API_KEY` blank for local static fallback.
 - Install the provider SDK first when building from a fresh machine:
 

@@ -168,6 +168,56 @@ function Assert-OnlyAllowedDefaultValueTrueProperties {
     }
 }
 
+function Assert-OnlyAllowedValueAnnotationTrueFallbacks {
+    $allowedFragments = @(
+        "McpApiKeyFilter.java|mcp.master-approval.probe-wait-enabled",
+        "PositionMcpTools.java|trailing-stop.dry-run",
+        "EnabledStrategyDataValidator.java|backtest.enabled-strategy-validator.enabled",
+        "TelegramServiceImpl.java|telegram.noise-reduction.enabled",
+        "ScoreBuyPrePositionAutoExecutionScheduler.java|trading.score-buy.pre-position.execution.dry-run",
+        "ScoreBuyPostScoutAutoAddExecutionScheduler.java|trading.score-buy.post-scout-add.execution.dry-run",
+        "PositionExitManagerScheduler.java|position-exit-manager.dry-run",
+        "ScoreBuyConfirmedDeployAutoExecutionScheduler.java|trading.score-buy.confirmed-deploy.execution.dry-run",
+        "TinyLiveAutoExecutionScheduler.java|trading.tiny-live.auto-execution.dry-run",
+        "TrailingStopScheduler.java|trailing-stop.dry-run"
+    )
+
+    $valueTrueLines = @()
+    Get-ChildItem -LiteralPath "src/main/java/com/agora" -Filter "*.java" -Recurse | ForEach-Object {
+        $file = $_
+        $text = Get-Content -LiteralPath $file.FullName -Raw
+        [regex]::Matches($text, '@Value\("\$\{(?<key>[^}:]+):true\}"\)') | ForEach-Object {
+            $valueTrueLines += "$($file.Name)|$($_.Groups["key"].Value)"
+        }
+    }
+
+    foreach ($line in $valueTrueLines) {
+        $isAllowed = $false
+        foreach ($fragment in $allowedFragments) {
+            if ($line -eq $fragment) {
+                $isAllowed = $true
+                break
+            }
+        }
+        if (-not $isAllowed) {
+            Write-Error "Unexpected @Value property fallback ':true' found. New default-on property must be classified as protective/internal/dry-run or changed to explicit opt-in:`n$line"
+        }
+    }
+
+    foreach ($fragment in $allowedFragments) {
+        $found = $false
+        foreach ($line in $valueTrueLines) {
+            if ($line -eq $fragment) {
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            Write-Error "Expected documented @Value ':true' fallback missing or moved without updating split verification allowlist: $fragment"
+        }
+    }
+}
+
 function Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks {
     $allowedFragments = @(
         "StartupBeanTimingProbe.java|STARTUP_BEAN_TIMING_ENABLED"
@@ -371,9 +421,11 @@ try {
     Assert-RgMatch -Pattern "Split deploy guardrails stay documented" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents local split deploy/schema/contract guards"
     Assert-OnlyAllowedEnabledTrueFallbacks
     Assert-OnlyAllowedDefaultValueTrueProperties
+    Assert-OnlyAllowedValueAnnotationTrueFallbacks
     Assert-OnlyAllowedSystemEnvDefaultTrueFallbacks
     Assert-RgMatch -Pattern "Remaining ``enabled:true`` fallbacks are deliberately limited" -Paths @("docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining enabled:true fallback classification is documented"
     Assert-RgMatch -Pattern "Remaining ``@DefaultValue\(`"true`"\)`` properties are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining @DefaultValue true fallback classification is documented"
+    Assert-RgMatch -Pattern "Remaining ``@Value`` ``:true`` fallbacks are deliberately limited" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining @Value true fallback classification is documented"
     Assert-RgMatch -Pattern "STARTUP_BEAN_TIMING_ENABLED" -Paths @("SPLIT_PROGRESS.md", "docs/split-audit.md", "docs/deploy-runbook.md") -Description "remaining System.getenv default-true fallback classification is documented"
     Assert-RgMatch -Pattern '@Profile\("!local-smoke"\)' -Paths @("src/main/java/com/agora/config/TradingSchedulingConfig.java") -Description "local-smoke does not register scheduled tasks"
     Assert-RgMatch -Pattern "Scheduling disabled for local-smoke profile" -Paths @("src/main/java/com/agora/config/LocalSmokeSchedulingConfig.java", "scripts/smoke_local_health.ps1") -Description "local-smoke smoke logs prove scheduling is disabled"

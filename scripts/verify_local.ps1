@@ -325,6 +325,9 @@ try {
     foreach ($commandName in @("bash", "date", "env", "grep", "nohup", "sleep")) {
         Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when $commandName is unavailable"
     }
+    foreach ($commandName in @("cat", "kill", "mkdir", "rm")) {
+        Assert-RgMatch -Pattern "require_cmd $commandName" -Paths @("deploy.sh") -Description "deploy fails fast when $commandName is unavailable"
+    }
     Assert-RgMatch -Pattern "require_cmd lsof" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when lsof is unavailable"
     Assert-RgMatch -Pattern "require_cmd seq" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when seq is unavailable for readiness loops"
     Assert-RgMatch -Pattern "require_cmd tail" -Paths @("deploy.sh", "scripts/preflight_server.sh") -Description "deploy/preflight fail fast when tail is unavailable for failure diagnostics"

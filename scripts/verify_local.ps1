@@ -323,6 +323,7 @@ try {
     Assert-RgMatch -Pattern "require_cmd bash" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when bash is unavailable"
     Assert-RgMatch -Pattern "require_cmd grep" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when grep is unavailable"
     Assert-RgMatch -Pattern "require_cmd lsof" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when lsof is unavailable"
+    Assert-RgMatch -Pattern "require_cmd ls" -Paths @("scripts/verify_server.sh", "scripts/preflight_server.sh") -Description "server preflight/verify fail fast when ls is unavailable for nginx glob checks"
     Assert-RgMatch -Pattern "require_cmd ps" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when ps is unavailable"
     Assert-RgMatch -Pattern "require_cmd tail" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when tail is unavailable"
     Assert-RgMatch -Pattern "require_cmd tr" -Paths @("scripts/verify_server.sh") -Description "server verify fails fast when tr is unavailable"

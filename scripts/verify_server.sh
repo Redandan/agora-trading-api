@@ -83,6 +83,7 @@ require_cmd git
 require_cmd grep
 require_cmd java
 require_cmd lsof
+require_cmd ls
 require_cmd mvn
 require_cmd ps
 require_cmd tail

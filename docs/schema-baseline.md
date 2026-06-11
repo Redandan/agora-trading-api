@@ -146,3 +146,26 @@ Before replacing Hibernate schema update with Flyway validation:
 - Enable `meta-control.migration-drift-check.enabled=true` only after the baseline exists.
 
 Until those checks pass, keep Flyway disabled and keep this repo in temporary bootstrap-only schema mode.
+
+## Baseline Generation
+
+After the shared-mode compare passes on the server, generate the reviewable
+baseline DDL without mutating MySQL:
+
+```bash
+cd /home/ubuntu/agora-trading-api
+bash scripts/schema_baseline_generate_server.sh
+```
+
+The generator:
+
+- re-runs `scripts/schema_baseline_compare_server.sh` in `SCHEMA_COMPARE_MODE=shared`;
+- fails if any trading entity table is missing from `agora_market`;
+- dumps DDL only for tables listed in
+  `target/schema-baseline/server-source-entity-tables.txt`;
+- excludes shared marketplace extra tables by construction;
+- writes `src/main/resources/db/migration/V1__baseline.sql`.
+
+This script does not enable Flyway, does not change `ddl-auto`, and does not run
+extra-table cleanup. Review and commit the generated migration separately before
+any deploy that changes production schema settings.

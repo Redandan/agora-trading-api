@@ -106,6 +106,17 @@
 - EventRiskControl keeps protective new-entry blocking default-on, while state-change Telegram notifications now default off and require `EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED=true`.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
 - Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
+- Legacy AgoraMarketAPI trading HTTP/MCP/scheduler parity inventory is documented
+  in `docs/legacy-trading-parity-inventory.md`; standalone carries the trading
+  MCP/scheduler classes through `/api/trading/mcp` while intentionally not
+  carrying legacy trading admin HTTP controllers as public HTTP.
+- MCP parity smoke coverage now checks representative standalone trading tools
+  through `tools/list` in `scripts/smoke_local_health.ps1` and the reusable
+  `scripts/smoke_mcp_parity.ps1`.
+- Shared-DB Flyway baseline prep now includes
+  `scripts/schema_baseline_generate_server.sh`, which re-runs shared-mode
+  compare and dumps reviewable trading entity DDL for `V1__baseline.sql` without
+  enabling Flyway or cleaning extra shared tables.
 
 ## Exchange Rate Runtime
 

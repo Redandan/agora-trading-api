@@ -54,6 +54,7 @@ See:
 - [SPLIT_PROGRESS.md](SPLIT_PROGRESS.md)
 - [docs/deploy-runbook.md](docs/deploy-runbook.md)
 - [docs/schema-baseline.md](docs/schema-baseline.md)
+- [docs/legacy-trading-parity-inventory.md](docs/legacy-trading-parity-inventory.md)
 
 Server verification after deploy:
 
@@ -62,3 +63,9 @@ bash scripts/verify_server.sh
 ```
 
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
+
+MCP parity smoke against a running local or deployed Trading service:
+
+```powershell
+.\scripts\smoke_mcp_parity.ps1 -BaseUrl http://127.0.0.1:18084/api/trading -McpKey local-smoke-mcp
+```

@@ -70,12 +70,15 @@ Do not mark the split complete while any item in this section remains true.
 The trading service is deployed and verified. The next split step is the
 AgoraMarketAPI cutover inventory and disable plan:
 
-1. In AgoraMarketAPI, inventory legacy trading HTTP/MCP/scheduler entry points.
+1. In AgoraMarketAPI, inventory legacy trading HTTP/MCP/scheduler entry points
+   using `docs/legacy-trading-parity-inventory.md` as the current source-code
+   parity record.
 2. Add a low-risk disable path for legacy Trading ownership while preserving
    marketplace and internal APIs.
 3. Keep AgoraMarketAPI internal exchange-rate APIs available.
 4. Generate an explicit baseline migration under
-   `src/main/resources/db/migration`.
+   `src/main/resources/db/migration` with
+   `scripts/schema_baseline_generate_server.sh` after shared-mode compare passes.
 5. Deploy with `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and
    `SPRING_FLYWAY_ENABLED=true`.
 6. Re-run local verify, local smoke, server verify, public health, and MCP

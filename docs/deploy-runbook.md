@@ -53,6 +53,10 @@ Use `scripts/schema_baseline_inventory.ps1` and `docs/schema-baseline.md` as the
 read-only inventory step before generating the baseline.
 Use `scripts/schema_baseline_compare_server.sh` on the server for the read-only
 database table comparison; it must not deploy or mutate schema.
+Use `scripts/schema_baseline_generate_server.sh` only after the shared-mode
+compare passes; it dumps reviewable trading-entity DDL into
+`src/main/resources/db/migration/V1__baseline.sql` without enabling Flyway or
+cleaning shared tables.
 `scripts/verify_server.sh` can run that comparison with
 `RUN_SCHEMA_BASELINE_COMPARE=1`; the default remains skipped for normal deploy
 health checks.
@@ -310,6 +314,12 @@ Optional schema baseline table comparison before generating Flyway baseline:
 
 ```bash
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
+```
+
+Reviewable Flyway baseline generation after a clean shared-mode compare:
+
+```bash
+bash scripts/schema_baseline_generate_server.sh
 ```
 
 When `RUN_SCHEMA_BASELINE_COMPARE=1` is set for `deploy.sh`, the deploy script

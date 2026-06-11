@@ -92,6 +92,36 @@ function Assert-McpContentContains {
     }
 }
 
+function Assert-McpToolsPresent {
+    param(
+        [string]$Url,
+        [string[]]$RequiredTools
+    )
+
+    $body = @{
+        jsonrpc = "2.0"
+        id = "local-smoke-tools-list"
+        method = "tools/list"
+        params = @{}
+    } | ConvertTo-Json -Depth 8 -Compress
+
+    $response = Invoke-WebRequest `
+        -Uri $Url `
+        -Method Post `
+        -UseBasicParsing `
+        -TimeoutSec 30 `
+        -ContentType "application/json" `
+        -Headers @{ Authorization = "Bearer local-smoke-mcp" } `
+        -Body $body
+
+    $parsed = $response.Content | ConvertFrom-Json
+    $toolNames = @($parsed.result.tools | ForEach-Object { $_.name } | Sort-Object -Unique)
+    $missing = @($RequiredTools | Where-Object { $toolNames -notcontains $_ })
+    if ($missing.Count -gt 0) {
+        throw "Local smoke MCP tools/list missing required parity tool(s): $($missing -join ', ')"
+    }
+}
+
 $repo = Resolve-Path "$PSScriptRoot\.."
 $healthUrl = "http://127.0.0.1:$Port/api/trading/actuator/health"
 $mcpUrl = "http://127.0.0.1:$Port/api/trading/mcp"
@@ -446,6 +476,29 @@ try {
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 
     [void](Invoke-McpTool -Url $mcpUrl -ToolName "getMcpRegistryVersion")
+    Assert-McpToolsPresent -Url $mcpUrl -RequiredTools @(
+        "getMcpRegistryVersion",
+        "getMcpAuthProbe",
+        "listStrategies",
+        "runBacktest",
+        "listGrids",
+        "getOpenPositions",
+        "getSystemHealth",
+        "getMarketSentiment",
+        "getCollectionFreshness",
+        "getReport",
+        "getTradingManagerDigest",
+        "getMlLimits",
+        "listRuntimeDecisionEvidence",
+        "getScoreBuyFormingDayStatus",
+        "listExecutionEvents",
+        "getGuardianSnapshot",
+        "listFundingArb",
+        "getEarnBalance",
+        "previewEnsembleScore",
+        "listAiProviders",
+        "listAiTasks"
+    )
 
     $sentimentGuard = Invoke-McpTool -Url $mcpUrl -ToolName "getMarketSentiment" -Arguments @{ symbol = "BTCUSDT" }
     Assert-McpContentContains -Content $sentimentGuard -Pattern "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true" -Description "live sentiment MCP tools are disabled by default"

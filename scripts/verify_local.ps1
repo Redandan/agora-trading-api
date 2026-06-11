@@ -372,6 +372,47 @@ function Assert-StartupRunnersAreSplitSafe {
     }
 }
 
+function Get-McpParityRequiredTools {
+    $script = Get-Content -LiteralPath "scripts/smoke_mcp_parity.ps1" -Raw
+    $match = [regex]::Match($script, '\$requiredTools\s*=\s*@\((?<body>.*?)\)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if (-not $match.Success) {
+        throw "Unable to find required MCP parity tool list in scripts/smoke_mcp_parity.ps1"
+    }
+    $tools = @()
+    [regex]::Matches($match.Groups["body"].Value, '"(?<tool>[A-Za-z0-9_]+)"') | ForEach-Object {
+        $tools += $_.Groups["tool"].Value
+    }
+    if ($tools.Count -eq 0) {
+        throw "Required MCP parity tool list is empty"
+    }
+    return @($tools | Sort-Object -Unique)
+}
+
+function Assert-McpParityToolCoverage {
+    $requiredTools = Get-McpParityRequiredTools
+    $mcpSource = Get-ChildItem -LiteralPath "src/main/java/com/agora/mcp" -Filter "*.java" -Recurse
+    foreach ($tool in $requiredTools) {
+        $foundInSource = $false
+        foreach ($file in $mcpSource) {
+            if (Select-String -LiteralPath $file.FullName -Pattern "\b$tool\s*\(" -Quiet) {
+                $foundInSource = $true
+                break
+            }
+        }
+        if (-not $foundInSource) {
+            Write-Error "MCP parity smoke requires tool '$tool' but no matching MCP Java method exists"
+        }
+
+        if (-not (Select-String -LiteralPath "scripts/smoke_local_health.ps1" -Pattern "`"$tool`"" -Quiet)) {
+            Write-Error "Local smoke must require the same MCP parity tool as smoke_mcp_parity.ps1: $tool"
+        }
+    }
+
+    foreach ($marker in @("tools/list", "getMcpRegistryVersion", "api/trading/mcp")) {
+        Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1", "scripts/smoke_local_health.ps1") -Description "MCP parity smoke marker $marker"
+    }
+}
+
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     Write-Host "[verify] mvn test"
@@ -441,6 +482,13 @@ try {
     Assert-RgMatch -Pattern "validate_env_template.ps1" -Paths @("scripts/verify_split_boundaries.ps1") -Description "split boundary verifier runs env template boundary"
     Assert-RgMatch -Pattern "require_env_.*key.*value" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator tracks required key and fixed-value env guards"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline has read-only server compare step"
+    Assert-RgMatch -Pattern "schema_baseline_generate_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "schema baseline has guarded server baseline generation step"
+    Assert-RgMatch -Pattern "SCHEMA_COMPARE_MODE=.*shared" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator defaults to shared DB mode"
+    Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator re-runs read-only compare first"
+    Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator dumps DDL without mutating schema"
+    Assert-RgMatch -Pattern "V1__baseline.sql" -Paths @("scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md", "docs/deploy-runbook.md") -Description "baseline generator writes reviewable Flyway baseline path"
+    Assert-RgMatch -Pattern "shared marketplace tables are intentionally excluded|Shared marketplace tables are intentionally excluded" -Paths @("scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md") -Description "baseline generator excludes shared marketplace tables"
+    Assert-RgNoMatch -Pattern "SPRING_FLYWAY_ENABLED=true|SPRING_JPA_HIBERNATE_DDL_AUTO=validate|flyway enabled|DROP TABLE|schema_extra_tables_cleanup" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not enable Flyway, switch ddl-auto, or run cleanup"
     Assert-RgMatch -Pattern "schema_extra_tables_cleanup_plan_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "standalone-only schema extra-table cleanup planning is documented"
     Assert-RgNoMatch -Pattern "^[[:space:]]*DROP TABLE" -Paths @("scripts/schema_extra_tables_cleanup_plan_server.sh") -Description "schema extra-table cleanup planner must not execute drop statements"
     Assert-RgMatch -Pattern "disabled in shared DB mode" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "scripts/schema_extra_tables_cleanup_plan_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup is disabled in shared DB mode"
@@ -628,6 +676,11 @@ try {
     Assert-RgMatch -Pattern "bootstrap and nginx path installation fail fast" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents bootstrap/nginx install tool guards"
     Assert-RgMatch -Pattern "schema baseline database comparison fails fast" -Paths @("docs/deploy-runbook.md") -Description "deploy runbook documents schema compare tool guards"
     Assert-RgMatch -Pattern "Server verification and schema baseline comparison fail fast" -Paths @("docs/split-audit.md") -Description "split audit documents server verify/schema compare tool guards"
+    Assert-RgMatch -Pattern "Legacy AgoraMarketAPI trading HTTP/MCP/scheduler parity inventory" -Paths @("docs/legacy-trading-parity-inventory.md", "SPLIT_PROGRESS.md") -Description "legacy trading parity inventory is documented"
+    Assert-RgMatch -Pattern "/api/trading/mcp" -Paths @("docs/legacy-trading-parity-inventory.md", "README.md", "scripts/smoke_mcp_parity.ps1") -Description "legacy parity docs and smoke use standalone MCP path"
+    Assert-RgMatch -Pattern "Covered through .*McpTools|MCP-first" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy HTTP parity inventory records MCP-first replacement boundary"
+    Assert-RgMatch -Pattern "Do not remove AgoraMarketAPI marketplace HTTP or internal exchange-rate APIs" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy parity inventory preserves marketplace/internal API boundary"
+    Assert-McpParityToolCoverage
     Assert-RgMatch -Pattern "Optional runtime safety toggles" -Paths @(".env.trading.secrets.example") -Description "server env template documents optional safety toggles"
     Assert-RgMatch -Pattern "optional safety key" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator checks optional safety toggles"
     Assert-RgMatch -Pattern '@ConditionalOnProperty\(name = "meta-control\.btc-price-move-indicator\.enabled", havingValue = "true", matchIfMissing = false\)' -Paths @("src/main/java/com/agora/scheduler/trading/BtcPriceMoveIndicatorCollector.java") -Description "BTC price-move indicator collector bean is explicit opt-in"
@@ -837,7 +890,7 @@ try {
 
     Write-Host "[verify] checking shell script syntax"
     $bash = Resolve-BashCommand
-    $shellScripts = git ls-files -- deploy.sh scripts/*.sh
+    $shellScripts = @("deploy.sh") + @(Get-ChildItem -LiteralPath "scripts" -Filter "*.sh" | ForEach-Object { "scripts/$($_.Name)" })
     & $bash -n @shellScripts
 
     Assert-RgMatch -Pattern '@ActiveProfiles\("local-smoke"\)' -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test uses local-smoke profile"

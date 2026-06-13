@@ -175,3 +175,23 @@ The generator:
 This script does not enable Flyway, does not change `ddl-auto`, and does not run
 extra-table cleanup. Review and commit the generated migration separately before
 any deploy that changes production schema settings.
+
+## Production Verification
+
+The 2026-06-13 hardening deploy verified the baseline in production with:
+
+- `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`
+- `SPRING_FLYWAY_ENABLED=true`
+- `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`
+- `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true`
+- `SPRING_FLYWAY_BASELINE_VERSION=1`
+
+Flyway created `trading_flyway_schema_history` in the shared `agora_market`
+database and recorded baseline version `1`. The post-hardening shared-mode
+compare passed with 39 source entity tables, 0 missing trading tables, 176
+database tables, 2 known system tables, and 137 expected marketplace/shared
+extra tables.
+
+Future Trading schema changes should be added as `V2__...` migrations under
+`src/main/resources/db/migration`. Do not use AgoraMarketAPI's
+`flyway_schema_history` table for Trading migrations.

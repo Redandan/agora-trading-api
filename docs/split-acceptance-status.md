@@ -59,13 +59,20 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     shared mode
   - source entity tables: 39
   - missing database tables: 0
-  - shared database tables: 175
+  - shared database tables: 176
   - database marketplace tables: 5, expected in shared DB mode
-  - extra database tables: 136, expected in shared DB mode
+  - known system tables: 2, including AgoraMarketAPI's `flyway_schema_history`
+    and Trading's `trading_flyway_schema_history`
+  - extra database tables: 137, expected in shared DB mode
+  - hardened schema env values were active:
+    `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+    `SPRING_FLYWAY_ENABLED=true`, and
+    `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`
+  - `trading_flyway_schema_history` was created and baselined at version `1`
 
 ## Schema Hardening
 
-Trading schema management is hardened when production is deployed with:
+Trading schema management is deployed in hardened mode with:
 
 - `src/main/resources/db/migration/V1__baseline.sql`
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`
@@ -79,12 +86,14 @@ The Trading-owned Flyway table avoids mixing with AgoraMarketAPI's existing
 ## Required Next Step
 
 The trading service is deployed, verified, and ready for separate Trading-side
-development. The next Trading-side hardening step is:
+development. The schema baseline hardening step is complete. The next
+Trading-side work is:
 
 1. Keep AgoraMarketAPI internal exchange-rate APIs available.
-2. Deploy the reviewed baseline with the hardened schema env values above.
-3. Re-run local verify, local smoke, server verify, public health, and MCP
-   registry smoke.
+2. Add future Trading schema changes as `V2__...` Flyway migrations under
+   `src/main/resources/db/migration`.
+3. Re-run local verify, local smoke, server verify with schema compare, public
+   health, and MCP registry smoke after any deploy-affecting change.
 
 ## Cutover Boundary
 

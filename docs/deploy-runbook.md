@@ -236,22 +236,33 @@ Last verified server state from 2026-06-13 Asia/Taipei:
 - production was deployed from the then-current `origin/main`; the active
   blue-green port is recorded in `app.port`.
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
-  shared mode with 39 source entity tables, 0 missing trading tables, 175
-  database tables, and 136 extra marketplace/shared tables expected in shared
-  DB mode.
+  shared mode before schema hardening with 39 source entity tables, 0 missing
+  trading tables, 175 database tables, and 136 extra marketplace/shared tables
+  expected in shared DB mode.
+- hardened schema deployment passed with
+  `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+  `SPRING_FLYWAY_ENABLED=true`,
+  `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`,
+  `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true`, and
+  `SPRING_FLYWAY_BASELINE_VERSION=1`.
+- `trading_flyway_schema_history` exists in the shared `agora_market` database
+  with Flyway baseline version `1`; this keeps Trading schema history separate
+  from AgoraMarketAPI's `flyway_schema_history`.
+- post-hardening `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh`
+  passed in shared mode with 39 source entity tables, 0 missing trading tables,
+  176 database tables, 2 known system tables, and 137 extra marketplace/shared
+  tables expected in shared DB mode.
 - production MCP parity passed on `/api/trading/mcp` with 21 representative
   trading tools present from 303 registered tools.
 - `scripts/verify_server.sh` passed with:
   - local trading health on the active `app.port`
   - local AgoraMarket exchange-rate dependency health: `http://127.0.0.1:8080/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
-- startup logs still show the expected risk of temporary
-  `SPRING_JPA_HIBERNATE_DDL_AUTO=update`: Hibernate attempted to alter
-  `market_indicator_history.value` and MySQL rejected it with data truncation.
-  The service stayed healthy, but the next hardening step is a reviewed Flyway
-  baseline plus `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
-  `SPRING_FLYWAY_ENABLED=true`, and the Trading-owned
-  `trading_flyway_schema_history` table.
+- hardened startup logs showed Flyway creating and baselining the Trading-owned
+  history table. No Hibernate `alter table` attempt or schema-validation error
+  was observed in the post-hardening log sample. Flyway may warn that MySQL 9.7
+  is newer than the Flyway version it was tested against; this warning did not
+  block startup.
 
 Historical note: 2026-06-05 first observed deployment snapshot used commit
 `11612b9` on active port `8084`; it is no longer the current deployment.
@@ -357,7 +368,8 @@ Prerequisites:
 - `agora-trading-api` is deployed from current `origin/main`.
 - `scripts/verify_server.sh` passes without override-only dependency routing.
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passes with no
-  `missing-in-db.txt`, no `extra-in-db.txt`, and no marketplace-owned tables.
+  `missing-in-db.txt`; extra marketplace/shared tables are expected while
+  `SCHEMA_COMPARE_MODE=shared`.
 - `/api/trading/actuator/health` passes through nginx.
 - `/api/trading/mcp` `getMcpRegistryVersion` passes with `TRADING_MCP_KEY`.
 - Scheduler ownership is reviewed so order/OCO/grid/fund/Earn-capable jobs are
@@ -371,11 +383,11 @@ Cutover sequence:
 1. Confirm Trading env points at the shared `agora_market` database.
 2. Re-run schema compare in shared mode and resolve any missing trading tables.
 3. Re-run server verify with schema compare enabled.
-4. Add and deploy the Flyway baseline, then keep trading env on
-   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+4. Keep trading env on `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
    `SPRING_FLYWAY_ENABLED=true`, and
    `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`.
-5. Re-run local verify, server verify, public health, and MCP registry smoke.
+5. Re-run local verify, server verify with schema compare, public health, and
+   MCP registry smoke.
 6. In AgoraMarketAPI, disable only the legacy trading HTTP/MCP/scheduler entry
    points after confirming the new trading service owns the path.
 7. Keep AgoraMarketAPI internal exchange-rate endpoints available for

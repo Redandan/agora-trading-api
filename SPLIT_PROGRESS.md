@@ -176,15 +176,25 @@ Trading deployment prep:
 - 2026-06-13 read-only validate smoke showed schema validation can start after
   aligning `market_indicator_history.error_flag` mapping with MySQL
   `tinyint(1)`/Boolean semantics.
+- 2026-06-13 hardened schema deploy moved production to
+  `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+  `SPRING_FLYWAY_ENABLED=true`, and
+  `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`; Flyway successfully
+  created the Trading-owned history table and baselined version `1`.
+- 2026-06-13 post-hardening schema compare passed through
+  `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh`: 39 source
+  entity tables, 0 implicit entity names, 0 forbidden marketplace source
+  mappings, 176 database tables, 2 known system tables, 0 missing trading
+  tables, and 137 extra marketplace/shared tables expected in shared DB mode.
 
 ## Cleanup Priority
 
 1. Keep `scripts/schema_extra_tables_cleanup_plan_server.sh` and `scripts/schema_extra_tables_cleanup_apply_server.sh` disabled in shared DB mode; extra marketplace/shared tables are expected.
-2. Keep the reviewed Flyway baseline under `src/main/resources/db/migration`.
+2. Keep the reviewed Flyway baseline under `src/main/resources/db/migration` and add future Trading schema changes as `V2__...` migrations.
 3. Keep production on schema validation plus Flyway with the Trading-owned
    `trading_flyway_schema_history` table.
 4. Re-run local verify, local smoke, deploy, server verify with schema compare,
-   public health, and MCP parity smoke after the baseline change.
+   public health, and MCP parity smoke after deploy-affecting changes.
 
 ## Do Not Do Yet
 

@@ -68,7 +68,7 @@
 - Server verification now requires deploy metadata (`app.commit`, `app.pid`, `app.port`) by default, with `REQUIRE_DEPLOY_METADATA=0` reserved for non-deploy diagnostics.
 - Server verification now also requires active per-port pid metadata (`app.pid.<app.port>`) by default and rejects values that do not match `app.pid`.
 - Server verification now requires nginx service active by default, with `REQUIRE_NGINX_SERVICE=0` reserved for non-nginx diagnostics.
-- Deploy, server preflight, and verification now require temporary schema bootstrap env values (`SPRING_JPA_HIBERNATE_DDL_AUTO=update`, `SPRING_FLYWAY_ENABLED=false`) until a Flyway baseline is added.
+- Deploy, server preflight, and verification now require hardened schema env values (`SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, `SPRING_FLYWAY_ENABLED=true`, `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`) after the Flyway baseline is added.
 - Deploy, server preflight, and verification now also require `AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000`, so AgoraMarket internal API failure stays bounded during split deploys.
 - Env-template verification now discovers both required server env keys and fixed-value env guards from deploy/server scripts.
 - Env-template verification now also pins the AgoraMarket internal API timeout and local-only default CORS, so deploy prep cannot silently widen browser access or slow exchange-rate dependency failure.
@@ -78,7 +78,7 @@
 - Direct schema-baseline DB compare now rejects missing or empty datasource env keys before querying MySQL.
 - Direct schema-baseline DB compare now rejects datasource targets outside the expected shared trading database before querying MySQL.
 - Server schema-baseline DB compare now classifies obvious marketplace-owned database tables separately and allows them in `SCHEMA_COMPARE_MODE=shared`.
-- Server schema-baseline DB compare now classifies known system tables such as `flyway_schema_history` separately; in shared mode, extra database tables are reported for visibility and do not block acceptance.
+- Server schema-baseline DB compare now classifies known system tables such as `flyway_schema_history` and `trading_flyway_schema_history` separately; in shared mode, extra database tables are reported for visibility and do not block acceptance.
 - Server schema-baseline source and database marketplace-table checks now share one shell pattern to avoid future drift.
 - Server schema-baseline DB compare now fails fast when required inventory and comparison tools are unavailable.
 - Deploy/preflight now fail fast when `seq` or `tail` is unavailable before blue-green readiness loops or failure-log diagnostics need them.
@@ -173,20 +173,16 @@ Trading deployment prep:
 - 2026-06-13 production MCP parity passed on the active service:
   `/api/trading/mcp` registered 303 tools and included the 21 representative
   trading tools checked by the parity smoke.
-- 2026-06-13 startup logs still showed Hibernate bootstrap DDL attempting to
-  alter `market_indicator_history.value` and being rejected by MySQL data
-  truncation. The service stayed healthy, but this confirms temporary
-  `ddl-auto=update` should be replaced by an explicit Flyway baseline plus
-  validation mode.
+- 2026-06-13 read-only validate smoke showed schema validation can start after
+  aligning `market_indicator_history.error_flag` mapping with MySQL
+  `tinyint(1)`/Boolean semantics.
 
 ## Cleanup Priority
 
 1. Keep `scripts/schema_extra_tables_cleanup_plan_server.sh` and `scripts/schema_extra_tables_cleanup_apply_server.sh` disabled in shared DB mode; extra marketplace/shared tables are expected.
-2. Generate and review an explicit Flyway baseline under
-   `src/main/resources/db/migration` with
-   `scripts/schema_baseline_generate_server.sh`.
-3. Replace temporary `ddl-auto=update` bootstrap mode with schema validation
-   plus Flyway only after the baseline is reviewed.
+2. Keep the reviewed Flyway baseline under `src/main/resources/db/migration`.
+3. Keep production on schema validation plus Flyway with the Trading-owned
+   `trading_flyway_schema_history` table.
 4. Re-run local verify, local smoke, deploy, server verify with schema compare,
    public health, and MCP parity smoke after the baseline change.
 

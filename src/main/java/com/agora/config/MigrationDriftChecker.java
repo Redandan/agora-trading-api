@@ -36,7 +36,7 @@ public class MigrationDriftChecker {
     @Value("${meta-control.migration-drift-check.directory:src/main/resources/db/migration}")
     private String migrationDir;
 
-    @Value("${meta-control.migration-drift-check.table:flyway_schema_history}")
+    @Value("${meta-control.migration-drift-check.table:trading_flyway_schema_history}")
     private String historyTable;
 
     @PostConstruct

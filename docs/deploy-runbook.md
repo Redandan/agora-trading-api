@@ -34,21 +34,28 @@ META_CONTROL_ML_SQL_SCHEMA=agora_market
 META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE=bt_signal_training_v8_mat
 META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW=vw_signal_training_v2
 TRADING_CORS_ALLOWED_ORIGINS=http://localhost:*,http://127.0.0.1:*
-# temporary bootstrap-only schema mode; replace after Flyway baseline is added.
-SPRING_JPA_HIBERNATE_DDL_AUTO=update
-SPRING_FLYWAY_ENABLED=false
+# Hardened schema mode. Flyway uses a Trading-owned history table so it does not
+# mix with AgoraMarketAPI's shared flyway_schema_history rows.
+SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+SPRING_FLYWAY_ENABLED=true
+SPRING_FLYWAY_TABLE=trading_flyway_schema_history
+SPRING_FLYWAY_BASELINE_ON_MIGRATE=true
+SPRING_FLYWAY_BASELINE_VERSION=1
 PORT=8084
 ```
 
 ML training and evaluation table names are bound through `meta-control.ml.sql.*`.
 Keep `META_CONTROL_ML_SQL_SCHEMA=agora_market` for the current shared-DB split.
 
-`SPRING_JPA_HIBERNATE_DDL_AUTO=update` is a temporary bootstrap-only schema mode.
-It is not production hardening. Keep `SPRING_FLYWAY_ENABLED=false` until a
-Flyway baseline exists under `src/main/resources/db/migration`; then replace
-Hibernate schema update with schema validation and enable Flyway.
-Deploy, server preflight, and verification fail if those env values drift before the
-baseline exists.
+`SPRING_JPA_HIBERNATE_DDL_AUTO=validate` is the production hardening target.
+`SPRING_FLYWAY_ENABLED=true` uses `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`,
+so the Trading service does not read or validate AgoraMarketAPI's existing
+`flyway_schema_history` rows in the shared `agora_market` database.
+`SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` is required for the first Trading
+Flyway adoption on the existing shared schema; with the Trading-owned history
+table present, it is harmless on later deploys.
+Deploy, server preflight, and verification require these hardened schema env
+values.
 Use `scripts/schema_baseline_inventory.ps1` and `docs/schema-baseline.md` as the
 read-only inventory step before generating the baseline.
 Use `scripts/schema_baseline_compare_server.sh` on the server for the read-only
@@ -242,8 +249,9 @@ Last verified server state from 2026-06-13 Asia/Taipei:
   `SPRING_JPA_HIBERNATE_DDL_AUTO=update`: Hibernate attempted to alter
   `market_indicator_history.value` and MySQL rejected it with data truncation.
   The service stayed healthy, but the next hardening step is a reviewed Flyway
-  baseline plus `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and
-  `SPRING_FLYWAY_ENABLED=true`.
+  baseline plus `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+  `SPRING_FLYWAY_ENABLED=true`, and the Trading-owned
+  `trading_flyway_schema_history` table.
 
 Historical note: 2026-06-05 first observed deployment snapshot used commit
 `11612b9` on active port `8084`; it is no longer the current deployment.
@@ -363,9 +371,10 @@ Cutover sequence:
 1. Confirm Trading env points at the shared `agora_market` database.
 2. Re-run schema compare in shared mode and resolve any missing trading tables.
 3. Re-run server verify with schema compare enabled.
-4. Add and deploy the Flyway baseline, then switch trading env from
-   `SPRING_JPA_HIBERNATE_DDL_AUTO=update` / `SPRING_FLYWAY_ENABLED=false` to
-   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` / `SPRING_FLYWAY_ENABLED=true`.
+4. Add and deploy the Flyway baseline, then keep trading env on
+   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+   `SPRING_FLYWAY_ENABLED=true`, and
+   `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`.
 5. Re-run local verify, server verify, public health, and MCP registry smoke.
 6. In AgoraMarketAPI, disable only the legacy trading HTTP/MCP/scheduler entry
    points after confirming the new trading service owns the path.
@@ -422,8 +431,8 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup timing diagnostic that does not call external services or mutate runtime state.
 - Coinalyze credentials use `TRADING_MARKET_DATA_COINALYZE_API_KEY`, which maps to `trading.market-data.coinalyze.api-key`; legacy external-style Coinalyze env names are not used by the trading code.
 - trading uses the shared MySQL database, currently `agora_market`.
-- `SPRING_JPA_HIBERNATE_DDL_AUTO=update` remains temporary bootstrap-only schema mode and `SPRING_FLYWAY_ENABLED=false` remains required until a Flyway baseline exists.
-- deploy, server preflight, and verification fail if the real server env changes `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` before the baseline migration exists.
+- `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true` are required after the Flyway baseline exists.
+- Deploy, server preflight, and verification require the real server env to use the Trading-owned `trading_flyway_schema_history` table.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
 - Extra marketplace/shared tables are expected in shared DB mode. The standalone-only cleanup planner is disabled unless `SCHEMA_COMPARE_MODE=standalone`.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.

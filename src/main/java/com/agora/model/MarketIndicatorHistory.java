@@ -54,8 +54,8 @@ public class MarketIndicatorHistory {
     private String metadataJson;
 
     /** #234: 1 = API-returned garbage, exclude from ML training. Default 0. */
-    @Column(name = "error_flag", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private int errorFlag = 0;
+    @Column(name = "error_flag", nullable = false)
+    private boolean errorFlag = false;
 
     @Column(name = "error_reason", length = 255)
     private String errorReason;

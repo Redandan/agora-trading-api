@@ -1,14 +1,19 @@
 # Trading Schema Baseline Prep
 
-This repo does not yet contain a Flyway baseline migration.
+This repo contains a reviewable Flyway baseline migration at
+`src/main/resources/db/migration/V1__baseline.sql`.
 
-Current production bootstrap mode remains:
+Current production schema mode should be:
 
-- `SPRING_JPA_HIBERNATE_DDL_AUTO=update`
-- `SPRING_FLYWAY_ENABLED=false`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`
+- `SPRING_FLYWAY_ENABLED=true`
+- `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`
+- `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true`
+- `SPRING_FLYWAY_BASELINE_VERSION=1`
 
-Do not enable Flyway until the baseline has been generated from the real shared
-`agora_market` database schema and reviewed.
+The Trading service uses a Trading-owned Flyway history table so it does not mix
+with AgoraMarketAPI's existing `flyway_schema_history` rows in the shared
+`agora_market` database.
 
 ## Read-Only Inventory
 
@@ -77,9 +82,9 @@ fail the compare.
 The source and database marketplace checks share one shell pattern in
 `scripts/schema_baseline_compare_server.sh` so the two lists cannot drift.
 `server-db-known-system-tables.txt` classifies known non-entity system tables
-such as `flyway_schema_history`. In shared mode, `extra-in-db.txt` is reported
-for visibility but does not fail acceptance; missing trading entity tables still
-fail.
+such as `flyway_schema_history` and `trading_flyway_schema_history`. In shared
+mode, `extra-in-db.txt` is reported for visibility but does not fail
+acceptance; missing trading entity tables still fail.
 
 ## Extra Table Cleanup Planning
 
@@ -140,12 +145,13 @@ Before replacing Hibernate schema update with Flyway validation:
 - Keep `SCHEMA_COMPARE_MODE=shared` for the current split. Do not run
   extra-table cleanup in shared DB mode.
 - Confirm no marketplace-owned tables are mapped by trading source entities.
-- Generate an explicit `V1__baseline.sql` under `src/main/resources/db/migration`.
+- Keep the explicit `V1__baseline.sql` under `src/main/resources/db/migration`.
 - Set production to `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`.
 - Set production to `SPRING_FLYWAY_ENABLED=true`.
+- Set production to `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`.
+- Set production to `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` for existing
+  shared-schema adoption.
 - Enable `meta-control.migration-drift-check.enabled=true` only after the baseline exists.
-
-Until those checks pass, keep Flyway disabled and keep this repo in temporary bootstrap-only schema mode.
 
 ## Baseline Generation
 

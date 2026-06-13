@@ -63,20 +63,18 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - database marketplace tables: 5, expected in shared DB mode
   - extra database tables: 136, expected in shared DB mode
 
-## Remaining Hardening
+## Schema Hardening
 
-These items do not block two-repo development or `/api/trading/` ownership, but
-they do block treating Trading schema management as production-hardened.
+Trading schema management is hardened when production is deployed with:
 
-- Flyway baseline has not been generated.
-- Production still uses temporary bootstrap schema mode:
-  - `SPRING_JPA_HIBERNATE_DDL_AUTO=update`
-  - `SPRING_FLYWAY_ENABLED=false`
-- The 2026-06-13 startup log showed Hibernate attempting a bootstrap DDL change
-  for `market_indicator_history.value` and MySQL rejecting it with data
-  truncation. The service stayed healthy, but this confirms the next hardening
-  step should be baseline plus validation mode instead of Hibernate schema
-  update.
+- `src/main/resources/db/migration/V1__baseline.sql`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`
+- `SPRING_FLYWAY_ENABLED=true`
+- `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`
+- `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true`
+
+The Trading-owned Flyway table avoids mixing with AgoraMarketAPI's existing
+`flyway_schema_history` rows in the shared database.
 
 ## Required Next Step
 
@@ -84,13 +82,8 @@ The trading service is deployed, verified, and ready for separate Trading-side
 development. The next Trading-side hardening step is:
 
 1. Keep AgoraMarketAPI internal exchange-rate APIs available.
-2. Generate an explicit baseline migration under
-   `src/main/resources/db/migration` with
-   `scripts/schema_baseline_generate_server.sh` after shared-mode compare passes.
-3. Review the generated baseline and deploy with
-   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and
-   `SPRING_FLYWAY_ENABLED=true`.
-4. Re-run local verify, local smoke, server verify, public health, and MCP
+2. Deploy the reviewed baseline with the hardened schema env values above.
+3. Re-run local verify, local smoke, server verify, public health, and MCP
    registry smoke.
 
 ## Cutover Boundary

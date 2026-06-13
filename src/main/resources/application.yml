@@ -29,6 +29,9 @@ spring:
       thread-name-prefix: trading-sched-
   flyway:
     enabled: ${SPRING_FLYWAY_ENABLED:false}
+    table: ${SPRING_FLYWAY_TABLE:trading_flyway_schema_history}
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+    baseline-version: ${SPRING_FLYWAY_BASELINE_VERSION:1}
 
 management:
   endpoints:

@@ -155,7 +155,7 @@ public interface MarketIndicatorHistoryRepository
     /** #234: Mark a data point as erroneous to exclude from ML training. */
     @Modifying
     @Transactional
-    @Query("UPDATE MarketIndicatorHistory m SET m.errorFlag = 1, m.errorReason = :reason " +
+    @Query("UPDATE MarketIndicatorHistory m SET m.errorFlag = true, m.errorReason = :reason " +
            "WHERE m.symbol = :symbol AND m.indicator = :indicator AND m.capturedAt = :capturedAt")
     int flagAsError(@Param("symbol") String symbol,
                     @Param("indicator") String indicator,

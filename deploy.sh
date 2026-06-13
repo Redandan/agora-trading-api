@@ -147,8 +147,11 @@ require_env_value AGORA_MARKET_INTERNAL_TIMEOUT_MS 3000
 require_env_key SPRING_DATASOURCE_URL
 require_env_key SPRING_DATASOURCE_USERNAME
 require_env_key SPRING_DATASOURCE_PASSWORD
-require_env_value SPRING_JPA_HIBERNATE_DDL_AUTO update
-require_env_value SPRING_FLYWAY_ENABLED false
+require_env_value SPRING_JPA_HIBERNATE_DDL_AUTO validate
+require_env_value SPRING_FLYWAY_ENABLED true
+require_env_value SPRING_FLYWAY_TABLE trading_flyway_schema_history
+require_env_value SPRING_FLYWAY_BASELINE_ON_MIGRATE true
+require_env_value SPRING_FLYWAY_BASELINE_VERSION 1
 
 case "$SPRING_DATASOURCE_URL" in
   jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"|jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"\?*) ;;

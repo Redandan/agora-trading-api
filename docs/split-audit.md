@@ -147,11 +147,11 @@ The local verification gate also checks that split/deploy assumptions stay align
 - ScoreBuy pre-position, confirmed-deploy, post-scout add execution, and near-trigger notifications are disabled by default and dry-run in code and in the tracked template; the execution schedulers are bean-level explicit opt-in, so execution polling, order placement, and Telegram alerts are explicit production opt-in behavior.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template, including `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true`, so order-capable TinyLive sweeps are explicit production opt-in behavior.
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
-- Flyway remains disabled until a trading baseline exists, and `ddl-auto=update` is documented as temporary bootstrap-only schema mode.
-- Deploy, server preflight, and verification fail if `SPRING_JPA_HIBERNATE_DDL_AUTO` or `SPRING_FLYWAY_ENABLED` drift away from temporary bootstrap mode before the Flyway baseline exists.
+- Flyway is enabled after the trading baseline exists, and `ddl-auto=validate` is documented as hardened schema mode.
+- Deploy, server preflight, and verification require `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, `SPRING_FLYWAY_ENABLED=true`, and the Trading-owned Flyway history table.
 - `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.
 - `scripts/schema_baseline_compare_server.sh` repeats the implicit JPA table-name check on the server before comparing database metadata.
-- Migration drift checks use `flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
+- Migration drift checks use `trading_flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate contracts and do not predefine identity/user contracts.
 - Remaining `enabled:true` fallbacks are deliberately limited to protective or internal behavior and enforced by `scripts/verify_local.ps1`: MCP master-approval probe wait, Telegram noise reduction, enabled-strategy kline data validation, and deterministic regime filtering. Any new default-on fallback must be classified here or changed to explicit opt-in.
 - Remaining `@DefaultValue("true")` properties are deliberately limited to protective gates, dry-run flags, internal diagnostics, or subordinate behavior behind disabled parent switches. `scripts/verify_local.ps1` enforces that allowlist so new default-on configuration must be classified or changed to explicit opt-in.

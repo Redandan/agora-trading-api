@@ -38,7 +38,7 @@ try {
         }
     }
 
-    foreach ($key in @("AGORA_MARKET_INTERNAL_TIMEOUT_MS", "META_CONTROL_ML_SQL_SCHEMA", "META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE", "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW", "SPRING_JPA_HIBERNATE_DDL_AUTO", "SPRING_FLYWAY_ENABLED", "PORT")) {
+    foreach ($key in @("AGORA_MARKET_INTERNAL_TIMEOUT_MS", "META_CONTROL_ML_SQL_SCHEMA", "META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE", "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW", "SPRING_JPA_HIBERNATE_DDL_AUTO", "SPRING_FLYWAY_ENABLED", "SPRING_FLYWAY_TABLE", "SPRING_FLYWAY_BASELINE_ON_MIGRATE", "SPRING_FLYWAY_BASELINE_VERSION", "PORT")) {
         if (-not $templateKeys.Contains($key)) {
             throw "Env template missing deploy default key: $key"
         }
@@ -181,11 +181,20 @@ try {
     if ($templateKeys["META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW"] -ne "vw_signal_training_v2") {
         throw "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW should default to the weekly retrain view"
     }
-    if ($templateKeys["SPRING_JPA_HIBERNATE_DDL_AUTO"] -ne "update") {
-        throw "Template must keep temporary bootstrap-only schema mode until Flyway baseline exists"
+    if ($templateKeys["SPRING_JPA_HIBERNATE_DDL_AUTO"] -ne "validate") {
+        throw "Template must use Hibernate schema validation after the Flyway baseline exists"
     }
-    if ($templateKeys["SPRING_FLYWAY_ENABLED"] -ne "false") {
-        throw "Template must keep Flyway disabled until baseline exists"
+    if ($templateKeys["SPRING_FLYWAY_ENABLED"] -ne "true") {
+        throw "Template must enable Flyway after the baseline exists"
+    }
+    if ($templateKeys["SPRING_FLYWAY_TABLE"] -ne "trading_flyway_schema_history") {
+        throw "Template must use the Trading-owned Flyway history table"
+    }
+    if ($templateKeys["SPRING_FLYWAY_BASELINE_ON_MIGRATE"] -ne "true") {
+        throw "Template must baseline the existing shared schema on first Flyway migrate"
+    }
+    if ($templateKeys["SPRING_FLYWAY_BASELINE_VERSION"] -ne "1") {
+        throw "Template must baseline at version 1"
     }
     if ($templateKeys["PORT"] -ne "8084") {
         throw "Template must default to the blue-green 8084 port"

@@ -7,7 +7,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-$APP_DIR/target/schema-baseline}"
 EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
 SCHEMA_COMPARE_MODE="${SCHEMA_COMPARE_MODE:-shared}"
 MARKETPLACE_TABLE_PATTERN='^(cart|cart_item|carts|delivery_order|order|order_item|orders|product|products|store|stores|user|user_address|user_wallet|users|wallet|wallets)$'
-KNOWN_SYSTEM_TABLE_PATTERN='^(flyway_schema_history)$'
+KNOWN_SYSTEM_TABLE_PATTERN='^(flyway_schema_history|trading_flyway_schema_history)$'
 
 fail() {
   echo "[schema-compare] FAIL: $*" >&2

@@ -4,7 +4,9 @@ target/
 *.iml
 *.log
 *.pid
+app.pid.*
 *.port
+app.commit
 .env
 .env.*
 !.env.example

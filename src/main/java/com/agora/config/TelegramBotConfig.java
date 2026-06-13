@@ -81,20 +81,21 @@ public class TelegramBotConfig {
 
                 for (String apiUrl : candidates) {
                     try {
-                        log.info("Fetching Telegram bot username from API: {}", apiUrl.replaceAll("bot[^/]+", "bot***"));
+                        String maskedApiUrl = maskTelegramBotDetails(apiUrl);
+                        log.info("Fetching Telegram bot username from API: {}", maskedApiUrl);
                         GetMeResponse response = restTemplate.getForObject(apiUrl, GetMeResponse.class);
 
                         if (response != null && response.isOk() && response.getResult() != null) {
                             String fetchedUsername = response.getResult().getUsername();
                             if (fetchedUsername != null && !fetchedUsername.isEmpty()) {
                                 this.username = fetchedUsername;
-                                log.info("Telegram bot username auto-fetched: @{} (source={})", username, apiUrl);
+                                log.info("Telegram bot username auto-fetched: @{} (source={})", username, maskedApiUrl);
                                 return;
                             }
                         }
-                        log.warn("Fetch attempt did not return valid username from {}", apiUrl);
+                        log.warn("Fetch attempt did not return valid username from {}", maskedApiUrl);
                     } catch (Exception ex) {
-                        log.warn("Fetch attempt failed from {} : {}", apiUrl, ex.getMessage());
+                        log.warn("Fetch attempt failed from {} : {}", maskTelegramBotDetails(apiUrl), maskTelegramBotDetails(ex.getMessage()));
                     }
                 }
 
@@ -102,11 +103,18 @@ public class TelegramBotConfig {
                 this.username = null;
                 scheduleRetry(attempt + 1);
             } catch (Exception e) {
-                log.warn("Unable to fetch Telegram bot username: {}. This is normal if behind a firewall.", e.getMessage());
+                log.warn("Unable to fetch Telegram bot username: {}. This is normal if behind a firewall.", maskTelegramBotDetails(e.getMessage()));
                 this.username = null;
                 scheduleRetry(attempt + 1);
             }
         }, "telegram-username-fetcher").start();
+    }
+
+    private static String maskTelegramBotDetails(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        return value.replaceAll("bot[^/\\s]+", "bot***");
     }
 
     private void scheduleRetry(int attempt) {

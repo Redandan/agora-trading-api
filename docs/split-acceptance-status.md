@@ -46,9 +46,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - `.\scripts\verify_local.ps1`
   - `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`
 - Production was deployed and verified on 2026-06-13:
-  - deployed commit: `f73a469`
-  - active port: `8085`
-  - server worktree matched `origin/main`
+  - deployed `app.commit`, server worktree `HEAD`, and `origin/main` matched
+    during the deploy verification run
+  - active `app.port` was listening with matching per-port `app.pid` metadata
   - public health passed through
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
   - production MCP parity passed at local `/api/trading/mcp` with 21

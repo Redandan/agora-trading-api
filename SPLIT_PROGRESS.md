@@ -158,8 +158,8 @@ Trading deployment prep:
   - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - Production defines `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets`, so trading can call AgoraMarket exchange rates and still fall back on timeout or failure.
 - 2026-06-13 production deploy advanced `/home/ubuntu/agora-trading-api` to
-  `origin/main` commit `f73a469` and switched the active blue-green port to
-  `8085`.
+  the then-current `origin/main` and switched the active blue-green port
+  recorded in `app.port`.
 - 2026-06-13 post-deploy verification passed: server worktree matched
   `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
   `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency

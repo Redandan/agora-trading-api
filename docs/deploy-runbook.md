@@ -214,7 +214,7 @@ Expected:
 - AgoraMarket exchange-rate dependency health is checked.
 - nginx `/api/trading/` path split is reported.
 
-Last observed server state from 2026-06-05 Asia/Taipei:
+Last verified server state from 2026-06-13 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
 - AgoraMarketAPI active port file reports `8080`.
@@ -226,15 +226,26 @@ Last observed server state from 2026-06-05 Asia/Taipei:
 - an independent trading database was created during the earlier standalone-DB
   path; the current target is shared `agora_market`.
 - nginx `/api/trading/` location has been installed and reloaded.
-- trading snapshot was observed at `origin/main` commit `11612b9`, active port `8084`; this is historical evidence, not a current-deployment claim.
-- This is an observed deployment snapshot, not proof that the current `origin/main`
-  commit is deployed. Re-run deploy and `scripts/verify_server.sh` before treating
-  production as current. `scripts/verify_server.sh` now checks that the server
-  worktree commit matches `origin/main` by default.
+- production was deployed from `origin/main` commit `f73a469`, active port `8085`.
+- `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
+  shared mode with 39 source entity tables, 0 missing trading tables, 175
+  database tables, and 136 extra marketplace/shared tables expected in shared
+  DB mode.
+- production MCP parity passed on `/api/trading/mcp` with 21 representative
+  trading tools present from 303 registered tools.
 - `scripts/verify_server.sh` passed with:
-  - local trading health: `http://127.0.0.1:8084/api/trading/actuator/health`
+  - local trading health: `http://127.0.0.1:8085/api/trading/actuator/health`
   - local AgoraMarket exchange-rate dependency health: `http://127.0.0.1:8080/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+- startup logs still show the expected risk of temporary
+  `SPRING_JPA_HIBERNATE_DDL_AUTO=update`: Hibernate attempted to alter
+  `market_indicator_history.value` and MySQL rejected it with data truncation.
+  The service stayed healthy, but the next hardening step is a reviewed Flyway
+  baseline plus `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and
+  `SPRING_FLYWAY_ENABLED=true`.
+
+Historical note: 2026-06-05 first observed deployment snapshot used commit
+`11612b9` on active port `8084`; it is no longer the current deployment.
 
 Deploy after secrets and nginx path are ready:
 

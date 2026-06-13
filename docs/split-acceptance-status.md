@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-11
+Last refreshed: 2026-06-13
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -42,9 +42,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Shared-DB schema compare is read-only. It proves every trading entity table is
   present in `agora_market`; marketplace/shared extra tables are expected and do
   not block acceptance in `SCHEMA_COMPARE_MODE=shared`.
-- Production was verified on 2026-06-11:
-  - deployed commit: `44e6328`
-  - active port: `8084`
+- Local validation passed on 2026-06-13 with:
+  - `.\scripts\verify_local.ps1`
+  - `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`
+- Production was deployed and verified on 2026-06-13:
+  - deployed commit: `f73a469`
+  - active port: `8085`
+  - server worktree matched `origin/main`
+  - public health passed through
+    `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+  - production MCP parity passed at local `/api/trading/mcp` with 21
+    representative trading tools present from 303 registered tools
   - `SPRING_DATASOURCE_URL` database: `agora_market`
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
   - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
@@ -52,55 +60,53 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - source entity tables: 39
   - missing database tables: 0
   - shared database tables: 175
+  - database marketplace tables: 5, expected in shared DB mode
   - extra database tables: 136, expected in shared DB mode
 
-## Not Yet Accepted
+## Remaining Hardening
 
-Do not mark the split complete while any item in this section remains true.
+These items do not block two-repo development or `/api/trading/` ownership, but
+they do block treating Trading schema management as production-hardened.
 
 - Flyway baseline has not been generated.
 - Production still uses temporary bootstrap schema mode:
   - `SPRING_JPA_HIBERNATE_DDL_AUTO=update`
   - `SPRING_FLYWAY_ENABLED=false`
-- Legacy AgoraMarketAPI trading entry points and schedulers have not been
-  disabled.
+- The 2026-06-13 startup log showed Hibernate attempting a bootstrap DDL change
+  for `market_indicator_history.value` and MySQL rejecting it with data
+  truncation. The service stayed healthy, but this confirms the next hardening
+  step should be baseline plus validation mode instead of Hibernate schema
+  update.
 
 ## Required Next Step
 
-The trading service is deployed and verified. The next split step is the
-AgoraMarketAPI cutover inventory and disable plan:
+The trading service is deployed, verified, and ready for separate Trading-side
+development. The next Trading-side hardening step is:
 
-1. In AgoraMarketAPI, inventory legacy trading HTTP/MCP/scheduler entry points
-   using `docs/legacy-trading-parity-inventory.md` as the current source-code
-   parity record.
-2. Add a low-risk disable path for legacy Trading ownership while preserving
-   marketplace and internal APIs.
-3. Keep AgoraMarketAPI internal exchange-rate APIs available.
-4. Generate an explicit baseline migration under
+1. Keep AgoraMarketAPI internal exchange-rate APIs available.
+2. Generate an explicit baseline migration under
    `src/main/resources/db/migration` with
    `scripts/schema_baseline_generate_server.sh` after shared-mode compare passes.
-5. Deploy with `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and
+3. Review the generated baseline and deploy with
+   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and
    `SPRING_FLYWAY_ENABLED=true`.
-6. Re-run local verify, local smoke, server verify, public health, and MCP
+4. Re-run local verify, local smoke, server verify, public health, and MCP
    registry smoke.
 
 ## Cutover Boundary
 
-Only after shared-DB schema compare and Trading deployment acceptance pass:
+Shared-DB schema compare and Trading deployment acceptance have passed. Keep
+these boundaries:
 
-1. Review scheduler ownership so order/OCO/grid/fund/Earn-capable jobs run in
-   exactly one service.
+1. Keep order/OCO/grid/fund/Earn-capable jobs running in exactly one service.
 2. Keep AgoraMarketAPI internal exchange-rate APIs available.
-3. Disable only legacy AgoraMarketAPI trading HTTP/MCP/scheduler entry points.
-4. Monitor logs for duplicate scheduler execution, SQL errors, MCP auth errors,
+3. Monitor logs for duplicate scheduler execution, SQL errors, MCP auth errors,
    and nginx `/api/trading/` routing failures.
 
 ## Do Not Do
 
 - Do not run extra-table cleanup in shared DB mode; marketplace/shared tables
   are expected in `agora_market`.
-- Do not disable AgoraMarketAPI legacy trading before shared-DB schema compare
-  and Trading deployment verification pass.
 - Do not remove AgoraMarketAPI internal exchange-rate endpoints; trading still
   depends on them.
 - Do not treat public health alone as split acceptance.

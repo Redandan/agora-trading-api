@@ -157,15 +157,38 @@ Trading deployment prep:
 - 2026-06-05 `scripts/verify_server.sh` passed with public health check:
   - `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - Production defines `AGORA_MARKET_INTERNAL_API_KEY` in `/home/ubuntu/.env.trading.secrets`, so trading can call AgoraMarket exchange rates and still fall back on timeout or failure.
-- Current `origin/main` has advanced beyond the observed deployed commit. Treat production currentness as unproven until `deploy.sh` and `scripts/verify_server.sh` are re-run on the server; `scripts/verify_server.sh` now checks that the server worktree matches `origin/main` by default.
-- Local split cleanup has continued past the observed deployment snapshot. Recent pushed batches tightened default-off runtime safety and verifier guardrails, but no production deploy has been run for those commits in this thread.
+- 2026-06-13 production deploy advanced `/home/ubuntu/agora-trading-api` to
+  `origin/main` commit `f73a469` and switched the active blue-green port to
+  `8085`.
+- 2026-06-13 post-deploy verification passed: server worktree matched
+  `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
+  `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
+  health passed on `127.0.0.1:8080`, public trading health passed through nginx,
+  and nginx service was active.
+- 2026-06-13 shared-mode schema compare passed through
+  `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh`: 39 source
+  entity tables, 0 implicit entity names, 0 forbidden marketplace source
+  mappings, 175 database tables, 0 missing trading tables, 136 extra
+  marketplace/shared tables expected in shared DB mode.
+- 2026-06-13 production MCP parity passed on the active service:
+  `/api/trading/mcp` registered 303 tools and included the 21 representative
+  trading tools checked by the parity smoke.
+- 2026-06-13 startup logs still showed Hibernate bootstrap DDL attempting to
+  alter `market_indicator_history.value` and being rejected by MySQL data
+  truncation. The service stayed healthy, but this confirms temporary
+  `ddl-auto=update` should be replaced by an explicit Flyway baseline plus
+  validation mode.
 
 ## Cleanup Priority
 
-1. Point Trading server env at the shared `agora_market` database and run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` in shared mode.
-2. Keep `scripts/schema_extra_tables_cleanup_plan_server.sh` and `scripts/schema_extra_tables_cleanup_apply_server.sh` disabled in shared DB mode; extra marketplace/shared tables are expected.
-3. After the read-only server compare confirms no missing trading tables, add an explicit Flyway baseline under `src/main/resources/db/migration` and replace temporary `ddl-auto=update` bootstrap mode with schema validation plus Flyway.
-3. Re-run server deploy/verify when production deployment is explicitly requested.
+1. Keep `scripts/schema_extra_tables_cleanup_plan_server.sh` and `scripts/schema_extra_tables_cleanup_apply_server.sh` disabled in shared DB mode; extra marketplace/shared tables are expected.
+2. Generate and review an explicit Flyway baseline under
+   `src/main/resources/db/migration` with
+   `scripts/schema_baseline_generate_server.sh`.
+3. Replace temporary `ddl-auto=update` bootstrap mode with schema validation
+   plus Flyway only after the baseline is reviewed.
+4. Re-run local verify, local smoke, deploy, server verify with schema compare,
+   public health, and MCP parity smoke after the baseline change.
 
 ## Do Not Do Yet
 

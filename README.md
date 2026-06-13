@@ -49,6 +49,7 @@ mvn -f C:\Users\Redan\IdeaProjects\AgoraMarketAPI\internal-client\pom.xml instal
 
 See:
 
+- [AGENTS.md](AGENTS.md)
 - [SERVICE_BOUNDARY.md](SERVICE_BOUNDARY.md)
 - [INTERNAL_API_TODO.md](INTERNAL_API_TODO.md)
 - [SPLIT_PROGRESS.md](SPLIT_PROGRESS.md)

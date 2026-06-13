@@ -347,6 +347,27 @@ Optional schema baseline table comparison before generating Flyway baseline:
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 ```
 
+## Startup Warning Baseline
+
+Observed on 2026-06-13 after the `5957d10` deploy, the latest Trading run log
+contained startup WARN lines while `scripts/verify_server.sh`, local health,
+local MCP registry, public health, and nginx checks all passed. Classify these
+as startup audit evidence, not deploy failure evidence, unless they prevent
+readiness or reappear after the app is already serving traffic.
+
+Current warning classes:
+
+| Warning | Current handling |
+|---|---|
+| Flyway reports MySQL 9.7 is newer than the verified Flyway version | Known compatibility warning; schema hardening remains valid because `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, `SPRING_FLYWAY_ENABLED=true`, and `SPRING_FLYWAY_TABLE=trading_flyway_schema_history` are verified by deploy. |
+| `StartupBeanTimingProbe` slow bean warnings | Internal startup timing telemetry. Investigate only if readiness approaches the deploy timeout or a specific bean regresses materially. |
+| Spring AOP proxy warning for final servlet filter methods | Framework proxy warning around final methods; do not treat as trading behavior failure without a related request/filter bug. |
+| `spring.jpa.open-in-view is enabled by default` | Do not flip to `false` as a drive-by cleanup; it can change lazy-loading behavior and should be handled through a focused API/DTO audit. |
+
+The warning baseline is intentionally separate from Trading split acceptance.
+Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`,
+public `/api/trading/actuator/health`, and MCP registry smoke.
+
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 
 ```bash

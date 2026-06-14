@@ -5,7 +5,7 @@ APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 REPO_URL="${REPO_URL:-https://github.com/Redandan/agora-trading-api.git}"
 BRANCH="${BRANCH:-main}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
-AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/actuator/health}"
+AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 
 fail() {
@@ -61,8 +61,8 @@ else
 fi
 
 curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null \
-  && ok "AgoraMarket exchange-rate dependency local health passed: $AGORA_MARKET_HEALTH_URL" \
-  || warn "AgoraMarket exchange-rate dependency local health failed: $AGORA_MARKET_HEALTH_URL"
+  && ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL" \
+  || warn "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL"
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   if grep -R "location[[:space:]]*/api/trading/" $NGINX_CONF_GLOB >/dev/null 2>&1; then

@@ -18,7 +18,7 @@ Server secrets file:
 Required before enabling AgoraMarket-backed exchange rates:
 
 ```bash
-AGORA_MARKET_BASE_URL=http://127.0.0.1:8080
+AGORA_MARKET_BASE_URL=https://agoramarketapi.purrtechllc.com
 AGORA_MARKET_INTERNAL_API_KEY=<same internal key configured in AgoraMarketAPI>
 AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000
 ```
@@ -256,7 +256,7 @@ Last verified server state from 2026-06-13 Asia/Taipei:
   trading tools present from 303 registered tools.
 - `scripts/verify_server.sh` passed with:
   - local trading health on the active `app.port`
-  - local AgoraMarket exchange-rate dependency health: `http://127.0.0.1:8080/api/actuator/health`
+  - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - hardened startup logs showed Flyway creating and baselining the Trading-owned
   history table. No Hibernate `alter table` attempt or schema-validation error
@@ -324,7 +324,7 @@ If blue-green is used, deploy should update nginx to the active `app.port`, matc
 ```bash
 PORT=$(cat /home/ubuntu/agora-trading-api/app.port)
 curl -fsS "http://127.0.0.1:${PORT}/api/trading/actuator/health"
-curl -fsS "http://127.0.0.1:8080/api/actuator/health"
+curl -fsS "https://agoramarketapi.purrtechllc.com/api/actuator/health"
 ```
 
 Or run the server verifier:
@@ -445,7 +445,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - active blue-green `app.pid.<app.port>` metadata exists by default and matches `app.pid`.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon; the exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`.
-- `AGORA_MARKET_BASE_URL` must point at local AgoraMarketAPI dependency `http://127.0.0.1:8080`; deploy, preflight, and server verification fail on stale values.
+- `AGORA_MARKET_BASE_URL` must point at stable AgoraMarketAPI nginx vhost dependency `https://agoramarketapi.purrtechllc.com`; deploy, preflight, and server verification fail on stale values.
 - `SPRING_DATASOURCE_URL` must point at expected shared database `agora_market`; deploy, preflight, and server verification fail on unexpected datasource targets.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
 - preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
@@ -469,7 +469,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
 - Extra marketplace/shared tables are expected in shared DB mode. The standalone-only cleanup planner is disabled unless `SCHEMA_COMPARE_MODE=standalone`.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
-- local AgoraMarket exchange-rate dependency health through `http://127.0.0.1:8080/api/actuator/health` by default.
+- AgoraMarket exchange-rate dependency health through `https://agoramarketapi.purrtechllc.com/api/actuator/health` by default.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
 - nginx service must be active by default; set `REQUIRE_NGINX_SERVICE=0` only for non-nginx verification environments.

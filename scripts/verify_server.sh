@@ -10,7 +10,7 @@ COMMIT_FILE="${COMMIT_FILE:-$APP_DIR/app.commit}"
 DEFAULT_PORT="${PORT:-8084}"
 PORT_A="${PORT_A:-8084}"
 PORT_B="${PORT_B:-8085}"
-AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/actuator/health}"
+AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
@@ -20,7 +20,7 @@ REQUIRE_NGINX_TRADING_PATH="${REQUIRE_NGINX_TRADING_PATH:-1}"
 REQUIRE_NGINX_SERVICE="${REQUIRE_NGINX_SERVICE:-1}"
 REQUIRE_DEPLOY_METADATA="${REQUIRE_DEPLOY_METADATA:-1}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
-EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8080}"
+EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-https://agoramarketapi.purrtechllc.com}"
 REQUIRE_AGORA_MARKET_HEALTH="${REQUIRE_AGORA_MARKET_HEALTH:-1}"
 EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
 SCHEMA_COMPARE_MODE="${SCHEMA_COMPARE_MODE:-shared}"
@@ -161,9 +161,9 @@ ok "SPRING_DATASOURCE_URL points at expected shared database: $EXPECTED_TRADING_
 ok "AgoraMarket internal-client pom found"
 
 if [ "$(env_value AGORA_MARKET_BASE_URL)" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
-  fail "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"
+  fail "AGORA_MARKET_BASE_URL must point at stable AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"
 fi
-ok "AGORA_MARKET_BASE_URL points at local AgoraMarketAPI dependency"
+ok "AGORA_MARKET_BASE_URL points at stable AgoraMarketAPI dependency"
 
 if [ "$RUN_SCHEMA_BASELINE_COMPARE" = "1" ]; then
   SCHEMA_COMPARE_SCRIPT="$APP_DIR/scripts/schema_baseline_compare_server.sh"

@@ -4,9 +4,9 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/home/ubuntu/agora-trading-api}"
 ENV_FILE="${ENV_FILE:-/home/ubuntu/.env.trading.secrets}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
-AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/actuator/health}"
+AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
-EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8080}"
+EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-https://agoramarketapi.purrtechllc.com}"
 REQUIRE_AGORA_MARKET_HEALTH="${REQUIRE_AGORA_MARKET_HEALTH:-1}"
 EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
 
@@ -116,19 +116,19 @@ esac
 ok "SPRING_DATASOURCE_URL points at expected shared database: $EXPECTED_TRADING_DATABASE"
 
 if [ "$(env_value AGORA_MARKET_BASE_URL)" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
-  fail "AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"
+  fail "AGORA_MARKET_BASE_URL must point at stable AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL"
 fi
-ok "AGORA_MARKET_BASE_URL points at local AgoraMarketAPI dependency"
+ok "AGORA_MARKET_BASE_URL points at stable AgoraMarketAPI dependency"
 
 [ -f "$INTERNAL_CLIENT_POM" ] || fail "AgoraMarket internal-client pom missing: $INTERNAL_CLIENT_POM"
 ok "AgoraMarket internal-client pom found"
 
 if curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null; then
-  ok "AgoraMarket exchange-rate dependency local health passed: $AGORA_MARKET_HEALTH_URL"
+  ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"
 elif [ "$REQUIRE_AGORA_MARKET_HEALTH" = "1" ]; then
-  fail "AgoraMarket exchange-rate dependency local health failed: $AGORA_MARKET_HEALTH_URL"
+  fail "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL"
 else
-  warn "AgoraMarket exchange-rate dependency local health failed: $AGORA_MARKET_HEALTH_URL; REQUIRE_AGORA_MARKET_HEALTH=$REQUIRE_AGORA_MARKET_HEALTH"
+  warn "AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL; REQUIRE_AGORA_MARKET_HEALTH=$REQUIRE_AGORA_MARKET_HEALTH"
 fi
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then

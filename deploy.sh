@@ -14,8 +14,8 @@ RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
 POST_DEPLOY_VERIFIED=0
 DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/trading/actuator/health}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
-EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-http://127.0.0.1:8080}"
-AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-http://127.0.0.1:8080/api/actuator/health}"
+EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-https://agoramarketapi.purrtechllc.com}"
+AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 EXPECTED_TRADING_DATABASE="${EXPECTED_TRADING_DATABASE:-agora_market}"
 
 cd "$APP_DIR"
@@ -163,10 +163,10 @@ esac
 echo "[deploy] SPRING_DATASOURCE_URL points at expected shared database: $EXPECTED_TRADING_DATABASE"
 
 if [ "$AGORA_MARKET_BASE_URL" != "$EXPECTED_AGORA_MARKET_BASE_URL" ]; then
-  echo "[deploy] AGORA_MARKET_BASE_URL must point at local AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL" >&2
+  echo "[deploy] AGORA_MARKET_BASE_URL must point at stable AgoraMarketAPI dependency: expected $EXPECTED_AGORA_MARKET_BASE_URL" >&2
   exit 1
 fi
-echo "[deploy] AGORA_MARKET_BASE_URL points at local AgoraMarketAPI dependency"
+echo "[deploy] AGORA_MARKET_BASE_URL points at stable AgoraMarketAPI dependency"
 
 curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null || {
   echo "[deploy] AgoraMarket exchange-rate dependency health failed: $AGORA_MARKET_HEALTH_URL" >&2

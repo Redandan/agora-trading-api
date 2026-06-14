@@ -30,7 +30,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - public health works through
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
   - AgoraMarket dependency health works at
-    `http://127.0.0.1:8080/api/actuator/health`
+    `https://agoramarketapi.purrtechllc.com/api/actuator/health`
 
 - Local validation is expected to pass with:
 

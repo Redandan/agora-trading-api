@@ -67,6 +67,28 @@ function Resolve-BashCommand {
     throw "bash is required for local shell syntax verification; install Git Bash or put bash on PATH"
 }
 
+function Resolve-MavenProperty {
+    param([string]$Name)
+
+    $output = & mvn help:evaluate "-Dexpression=$Name" -q "-DforceStdout"
+    if ($LASTEXITCODE -ne 0) {
+        throw "mvn help:evaluate failed for $Name with exit code $LASTEXITCODE"
+    }
+
+    $value = @($output | Where-Object { $_ -and -not $_.StartsWith("[") } | Select-Object -Last 1)[0]
+    if ([string]::IsNullOrWhiteSpace($value) -or $value -match "null object|invalid expression") {
+        throw "Unable to resolve Maven property: $Name"
+    }
+    return $value.Trim()
+}
+
+function Resolve-MockitoJavaAgentArgLine {
+    $localRepository = Resolve-MavenProperty -Name "settings.localRepository"
+    $mockitoVersion = Resolve-MavenProperty -Name "mockito.version"
+    $mockitoJar = Join-Path $localRepository "org\mockito\mockito-core\$mockitoVersion\mockito-core-$mockitoVersion.jar"
+    return "-javaagent:`"$mockitoJar`""
+}
+
 function Assert-OnlyAllowedEnabledTrueFallbacks {
     $allowedFragments = @(
         "McpApiKeyFilter.java|mcp.master-approval.probe-wait-enabled:true",
@@ -415,8 +437,9 @@ function Assert-McpParityToolCoverage {
 
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
+    $mockitoArgLine = Resolve-MockitoJavaAgentArgLine
     Write-Host "[verify] mvn test"
-    mvn test
+    mvn test "-DargLine=$mockitoArgLine"
     if ($LASTEXITCODE -ne 0) {
         throw "mvn test failed with exit code $LASTEXITCODE"
     }

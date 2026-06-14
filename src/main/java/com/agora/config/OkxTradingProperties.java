@@ -67,4 +67,12 @@ public class OkxTradingProperties {
      * 設為 0 或正值可停用熔斷。
      */
     private double dailyLossLimitUsdt = -15.0;
+
+    public boolean hasPrivateCredentials() {
+        return hasText(apiKey) && hasText(secretKey) && hasText(passphrase);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
 }

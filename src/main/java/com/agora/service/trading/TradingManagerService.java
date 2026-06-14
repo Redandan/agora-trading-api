@@ -65,13 +65,21 @@ public class TradingManagerService {
     public String reportCurrentSituation() {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         List<BtLiveSignal> openPositions = liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull();
+        boolean okxPrivateReady = okxTradingService.hasPrivateCredentials();
+        String okxPrivateNotice = null;
+        if (!okxPrivateReady) {
+            log.warn("[TradingManager] OKX private API credentials are not configured; current report omits account balances, Earn balances, Funding balances, and OCO live status");
+            okxPrivateNotice = "OKX 私有 API 憑證未配置，餘額、活存、資金帳戶與 OCO 即時狀態略過。";
+        }
 
-        List<OkxTradingService.SpotHolding> holdings;
-        try {
-            holdings = okxTradingService.getSpotHoldings();
-        } catch (Exception e) {
-            log.warn("[TradingManager] getSpotHoldings failed: {}", e.getMessage());
-            holdings = Collections.emptyList();
+        List<OkxTradingService.SpotHolding> holdings = Collections.emptyList();
+        if (okxPrivateReady) {
+            try {
+                holdings = okxTradingService.getSpotHoldings();
+            } catch (Exception e) {
+                log.warn("[TradingManager] getSpotHoldings failed: {}", e.getMessage());
+                holdings = Collections.emptyList();
+            }
         }
 
         // 拆出 USDT 可用餘額（格式化至 2 位小數）
@@ -86,22 +94,26 @@ public class TradingManagerService {
         }
 
         // 活存餘額（失敗不影響主流程）
-        List<OkxEarnService.EarnBalance> earnBalances;
-        try {
-            earnBalances = okxEarnService.getBalance(null);
-        } catch (Exception e) {
-            log.warn("[TradingManager] getEarnBalance failed: {}", e.getMessage());
-            earnBalances = Collections.emptyList();
+        List<OkxEarnService.EarnBalance> earnBalances = Collections.emptyList();
+        if (okxPrivateReady) {
+            try {
+                earnBalances = okxEarnService.getBalance(null);
+            } catch (Exception e) {
+                log.warn("[TradingManager] getEarnBalance failed: {}", e.getMessage());
+                earnBalances = Collections.emptyList();
+            }
         }
 
         // 資金帳戶餘額（Funding Account, /api/v5/asset/balances）— Issue #155 修補
         // 過去只查交易帳戶 + 賺幣帳戶，漏算資金帳戶導致總資產低估
-        List<OkxTradingService.SpotHolding> fundingHoldings;
-        try {
-            fundingHoldings = okxTradingService.getFundingHoldings();
-        } catch (Exception e) {
-            log.warn("[TradingManager] getFundingHoldings failed: {}", e.getMessage());
-            fundingHoldings = Collections.emptyList();
+        List<OkxTradingService.SpotHolding> fundingHoldings = Collections.emptyList();
+        if (okxPrivateReady) {
+            try {
+                fundingHoldings = okxTradingService.getFundingHoldings();
+            } catch (Exception e) {
+                log.warn("[TradingManager] getFundingHoldings failed: {}", e.getMessage());
+                fundingHoldings = Collections.emptyList();
+            }
         }
 
         // 活躍 Grid（DB 查詢，不需 API）
@@ -113,14 +125,14 @@ public class TradingManagerService {
             activeGrids = Collections.emptyList();
         }
 
-        List<PositionView> views = buildPositionViews(openPositions, now);
+        List<PositionView> views = buildPositionViews(openPositions, now, okxPrivateReady);
         String positionTable = buildPositionTable(views);
         String holdingsSection = buildHoldingsSection(nonUsdt, activeGrids);
         String earnSection = buildEarnSection(earnBalances);
         String fundingSection = buildFundingSection(fundingHoldings);
         // AI comment 移除：/report 已在第二條訊息提供完整市場分析，此處重複呼叫 Gemini 浪費 token
         return formatCurrentReport(openPositions.size(), usdtBalance, earnSection, fundingSection,
-                holdingsSection, positionTable, null, now, activeGrids);
+                holdingsSection, positionTable, null, now, activeGrids, okxPrivateNotice);
     }
 
     /** 建立 OKX Funding Account 段落（Issue #155）；若無餘額回傳 null。 */
@@ -140,7 +152,8 @@ public class TradingManagerService {
     }
 
     /** 為每個 DB 持倉即時向 OKX 查詢現價與 OCO 狀態，組成 PositionView 列表。 */
-    private List<PositionView> buildPositionViews(List<BtLiveSignal> positions, LocalDateTime now) {
+    private List<PositionView> buildPositionViews(List<BtLiveSignal> positions, LocalDateTime now,
+                                                  boolean okxPrivateReady) {
         List<PositionView> views = new ArrayList<>();
         for (BtLiveSignal pos : positions) {
             PositionView v = new PositionView();
@@ -153,7 +166,7 @@ public class TradingManagerService {
             v.lastPrice = okxTradingService.getLastPrice(pos.getSymbol());
 
             // 即時確認 OCO 狀態（有 OCO 才查）
-            if (pos.getOcoOrderListId() != null) {
+            if (okxPrivateReady && pos.getOcoOrderListId() != null) {
                 try {
                     JsonNode algo = okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
                     String state = algo.path("state").asText("live");
@@ -377,10 +390,14 @@ public class TradingManagerService {
     private String formatCurrentReport(int count, String usdtBalance, String earnSection,
                                        String fundingSection, String holdingsSection,
                                        String table, String aiComment, LocalDateTime now,
-                                       List<BtGrid> activeGrids) {
+                                       List<BtGrid> activeGrids, String okxPrivateNotice) {
         StringBuilder sb = new StringBuilder();
         sb.append("🤖 <b>交易經理｜當前倉位報告</b>\n");
         sb.append("🕐 ").append(now.format(FMT)).append(" (UTC)\n\n");
+
+        if (okxPrivateNotice != null && !okxPrivateNotice.isBlank()) {
+            sb.append("⚠️ ").append(escapeHtml(okxPrivateNotice)).append("\n\n");
+        }
 
         sb.append("<b>💰 可用 USDT：</b>").append(usdtBalance).append("\n");
 

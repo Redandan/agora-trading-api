@@ -102,23 +102,24 @@ public class OkxTradingService implements TradingService {
      * 啟動時印出設定摘要，並在 enabled=true 時驗證 API Key 是否有效。
      */
     private void logStartupStatus() {
-        boolean keyConfigured = props.getApiKey() != null && !props.getApiKey().isEmpty();
-        boolean passphraseConfigured = props.getPassphrase() != null && !props.getPassphrase().isEmpty();
+        boolean keyConfigured = props.getApiKey() != null && !props.getApiKey().isBlank();
+        boolean secretConfigured = props.getSecretKey() != null && !props.getSecretKey().isBlank();
+        boolean passphraseConfigured = props.getPassphrase() != null && !props.getPassphrase().isBlank();
 
         log.info("[OKX] ======================================");
         log.info("[OKX] Auto-trade enabled   : {}", props.isEnabled());
         log.info("[OKX] API Key configured   : {} ({}...)",
                 keyConfigured,
                 keyConfigured ? props.getApiKey().substring(0, Math.min(8, props.getApiKey().length())) : "N/A");
-        log.info("[OKX] Secret configured    : {}", props.getSecretKey() != null && !props.getSecretKey().isEmpty());
+        log.info("[OKX] Secret configured    : {}", secretConfigured);
         log.info("[OKX] Passphrase configured: {}", passphraseConfigured);
         log.info("[OKX] Trade amount (USDT)  : {}", props.getTradeAmountUsdt());
         log.info("[OKX] Max open positions   : {}", props.getMaxOpenPositions());
         log.info("[OKX] ======================================");
 
         if (props.isEnabled()) {
-            if (!keyConfigured || !passphraseConfigured) {
-                log.error("[OKX] enabled=true 但 API Key 或 Passphrase 未設定，自動交易將無法運作！");
+            if (!props.hasPrivateCredentials()) {
+                log.error("[OKX] enabled=true 但 API Key / Secret / Passphrase 未完整設定，自動交易將無法運作！");
                 return;
             }
             CompletableFuture.runAsync(this::verifyApiKey);
@@ -154,6 +155,10 @@ public class OkxTradingService implements TradingService {
         }
     }
 
+    public boolean hasPrivateCredentials() {
+        return props.hasPrivateCredentials();
+    }
+
     // ──────────────────────────────────────────────
     //  公開查詢方法
     // ──────────────────────────────────────────────
@@ -172,7 +177,7 @@ public class OkxTradingService implements TradingService {
     public SpotInstrumentRules getSpotInstrumentRules(String symbol) {
         String instId = toInstId(symbol);
         String path = "/api/v5/public/instruments?instType=SPOT&instId=" + instId;
-        JsonNode resp = get(path);
+        JsonNode resp = getPublic(path);
         assertOkxCode(resp);
         JsonNode row = resp.path("data").path(0);
         if (row == null || row.isMissingNode() || row.isNull()) {
@@ -200,7 +205,7 @@ public class OkxTradingService implements TradingService {
         String path = "/api/v5/market/ticker?instId=" + instId;
         try {
             throttleLastPriceLookup();
-            JsonNode resp = get(path);
+            JsonNode resp = getPublic(path);
             assertOkxCode(resp);
             String last = resp.path("data").path(0).path("last").asText("");
             if (last.isEmpty()) {
@@ -1174,7 +1179,20 @@ public class OkxTradingService implements TradingService {
         return execute(req, path);
     }
 
+    /** GET for OKX public endpoints. Public market data does not require private API credentials. */
+    private JsonNode getPublic(String path) {
+        Request req = new Request.Builder()
+                .url(props.getBaseUrl() + path)
+                .get()
+                .build();
+        return execute(req, path);
+    }
+
     private okhttp3.Headers buildHeaders(String timestamp, String method, String path, String body) {
+        if (!props.hasPrivateCredentials()) {
+            throw new IllegalStateException(
+                    "OKX private API credentials are not configured (trading.okx.api-key/secret-key/passphrase)");
+        }
         return new okhttp3.Headers.Builder()
                 .add("OK-ACCESS-KEY",        props.getApiKey())
                 .add("OK-ACCESS-SIGN",       sign(timestamp, method, path, body))

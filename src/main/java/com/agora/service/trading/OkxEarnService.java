@@ -419,6 +419,10 @@ public class OkxEarnService {
     }
 
     private okhttp3.Headers buildHeaders(String timestamp, String method, String path, String body) {
+        if (!props.hasPrivateCredentials()) {
+            throw new IllegalStateException(
+                    "OKX private API credentials are not configured (trading.okx.api-key/secret-key/passphrase)");
+        }
         return new okhttp3.Headers.Builder()
                 .add("OK-ACCESS-KEY",        props.getApiKey())
                 .add("OK-ACCESS-SIGN",       sign(timestamp, method, path, body))

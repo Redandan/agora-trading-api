@@ -506,6 +506,10 @@ try {
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
 
     Assert-HttpStatus -Url $internalReportUrl -ExpectedStatus 401 -Description "internal report gateway rejects missing service key"
+    Assert-HttpStatus -Url $internalReportUrl -ExpectedStatus 200 -Headers @{ "X-Internal-Api-Key" = "local-smoke-internal-key" } -Description "internal report gateway serves current report with service key"
+    Start-Sleep -Milliseconds 200
+    Assert-LogContains -Path $stdout -Pattern "OKX private API credentials are not configured; current report omits account balances" -Description "current report degrades explicitly when OKX private credentials are empty"
+    Assert-LogNotContains -Path $stdout -Pattern "OKX signing failed" -Description "current report must not attempt OKX private signing when credentials are empty"
 
     [void](Invoke-McpTool -Url $mcpUrl -ToolName "getMcpRegistryVersion")
     Assert-McpToolsPresent -Url $mcpUrl -RequiredTools @(

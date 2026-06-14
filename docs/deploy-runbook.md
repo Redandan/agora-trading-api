@@ -445,6 +445,10 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit`, `app.pid`, and `app.port` metadata must exist by default; set `REQUIRE_DEPLOY_METADATA=0` only for explicit non-deploy diagnostics.
 - deployed `app.commit` metadata matches the current worktree HEAD.
+- if deployed `app.commit` differs from worktree `HEAD`, server verification
+  fails when runtime files differ from deployed `app.commit`; it may pass only
+  when the delta is docs/tooling-only and logs
+  `deployed app.commit differs from worktree HEAD only by docs/tooling files`.
 - active blue-green `app.pid.<app.port>` metadata exists by default and matches `app.pid`.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
 - public HTTP allowlist stays minimal: OpenAPI docs, MCP streamable HTTP, actuator probes/metrics, rate-limit JSON redirect, and favicon; the exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`.

@@ -78,6 +78,18 @@ require_env_value() {
   ok "$key matches expected value: $expected"
 }
 
+classify_deployed_delta_path() {
+  local path="$1"
+  case "$path" in
+    .gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|scripts/verify_server.sh)
+      echo "docs-tooling"
+      ;;
+    *)
+      echo "runtime"
+      ;;
+  esac
+}
+
 require_cmd bash
 require_cmd curl
 require_cmd git
@@ -129,9 +141,23 @@ if [ -f "$COMMIT_FILE" ]; then
   DEPLOYED_COMMIT="$(tr -d '[:space:]' < "$COMMIT_FILE")"
   HEAD_COMMIT="$(git rev-parse HEAD)"
   if [ "$DEPLOYED_COMMIT" != "$HEAD_COMMIT" ]; then
-    fail "deployed app.commit ${DEPLOYED_COMMIT:-empty} does not match worktree HEAD $(git rev-parse --short HEAD)"
+    git cat-file -e "${DEPLOYED_COMMIT}^{commit}" 2>/dev/null || fail "deployed app.commit ${DEPLOYED_COMMIT:-empty} is not a known git commit"
+    mapfile -t deployed_delta < <(git diff --name-only "$DEPLOYED_COMMIT"..HEAD || true)
+    runtime_delta=0
+    docs_tooling_delta=0
+    for delta_path in "${deployed_delta[@]}"; do
+      case "$(classify_deployed_delta_path "$delta_path")" in
+        docs-tooling) docs_tooling_delta=$((docs_tooling_delta + 1)) ;;
+        *) runtime_delta=$((runtime_delta + 1)) ;;
+      esac
+    done
+    if [ "$runtime_delta" -gt 0 ]; then
+      fail "runtime files differ from deployed app.commit ${DEPLOYED_COMMIT:-empty}; deploy required before server verification can pass"
+    fi
+    ok "deployed app.commit differs from worktree HEAD only by docs/tooling files: deployed=$(git rev-parse --short "$DEPLOYED_COMMIT") head=$(git rev-parse --short HEAD) docs_tooling_files=$docs_tooling_delta"
+  else
+    ok "deployed app.commit matches worktree HEAD: $(git rev-parse --short HEAD)"
   fi
-  ok "deployed app.commit matches worktree HEAD: $(git rev-parse --short HEAD)"
 elif [ "$REQUIRE_DEPLOY_METADATA" = "1" ]; then
   fail "deploy commit file missing: $COMMIT_FILE"
 else

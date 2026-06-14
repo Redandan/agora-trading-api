@@ -65,9 +65,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     runbook
   - `SPRING_DATASOURCE_URL` database: `agora_market`
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
-  - latest full schema compare remains the 2026-06-13
-    `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` shared-mode
-    run
+  - latest full schema compare was rerun on 2026-06-14 through
+    `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` in
+    shared mode
   - source entity tables: 39
   - missing database tables: 0
   - shared database tables: 176
@@ -75,6 +75,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - known system tables: 2, including AgoraMarketAPI's `flyway_schema_history`
     and Trading's `trading_flyway_schema_history`
   - extra database tables: 137, expected in shared DB mode
+  - production MCP parity smoke passed against
+    `https://agoramarketapi.purrtechllc.com/api/trading/mcp` with 303 tools
+    and all 21 representative Trading tools present
   - hardened schema env values were active:
     `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
     `SPRING_FLYWAY_ENABLED=true`, and

@@ -259,8 +259,17 @@ Last verified server state from 2026-06-14 Asia/Taipei:
   passed in shared mode with 39 source entity tables, 0 missing trading tables,
   176 database tables, 2 known system tables, and 137 extra marketplace/shared
   tables expected in shared DB mode.
-- production MCP parity passed on `/api/trading/mcp` with 21 representative
-  trading tools present from 303 registered tools.
+- 2026-06-14 maintenance verification reran
+  `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` successfully.
+  The server worktree matched `origin/main` at `41589bf`, deployed
+  `app.commit` remained `02fd886`, and the delta was still docs/tooling-only.
+  Shared-mode compare found 39 source entity tables, 0 implicit entity names,
+  0 forbidden marketplace source mappings, 176 database tables, 2 known system
+  tables, 0 missing trading tables, and 137 extra marketplace/shared tables
+  expected in shared DB mode.
+- 2026-06-14 production MCP parity passed against the public
+  `/api/trading/mcp` route with 21 representative trading tools present from
+  303 registered tools.
 - `scripts/verify_server.sh` passed after the `02fd886` deploy with:
   - local trading health on the active `app.port`
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`

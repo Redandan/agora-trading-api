@@ -202,6 +202,14 @@ Trading deployment prep:
   `deploy_needed=no`. Treat the latest verifier output, not a stale handoff
   SHA, as the current worktree evidence. The same maintenance pass confirmed
   post-startup WARN/ERROR counts are 0 for the running trading service.
+- 2026-06-14 shared-mode schema compare was rerun through
+  `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh`: 39 source
+  entity tables, 0 implicit entity names, 0 forbidden marketplace source
+  mappings, 176 database tables, 2 known system tables, 0 missing trading
+  tables, and 137 extra marketplace/shared tables expected in shared DB mode.
+- 2026-06-14 production MCP parity smoke passed through the public
+  `/api/trading/mcp` path with 303 registered tools and all 21 representative
+  Trading tools present.
 
 ## Cleanup Priority
 

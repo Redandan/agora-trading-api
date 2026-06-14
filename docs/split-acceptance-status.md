@@ -56,9 +56,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
   - latest server verification after docs/tooling updates passed with server
-    worktree `HEAD` and `origin/main` at `16af847`; `scripts/verify_server.sh`
+    worktree `HEAD` and `origin/main` at `ac61c9d`; `scripts/verify_server.sh`
     reported that deployed `app.commit` differed from worktree `HEAD` only by
     5 docs/tooling files
+  - post-startup WARN/ERROR counts were 0 in the active trading run log; the
+    startup warning baseline remains documented separately in the deploy
+    runbook
   - `SPRING_DATASOURCE_URL` database: `agora_market`
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
   - latest full schema compare remains the 2026-06-13

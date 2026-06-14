@@ -461,6 +461,8 @@ try {
     Assert-RgMatch -Pattern "AgoraMarketAPI Trading Cutover Plan" -Paths @("docs/deploy-runbook.md") -Description "legacy AgoraMarketAPI trading cutover plan is documented"
     Assert-RgMatch -Pattern "split-acceptance-status.md" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "current split acceptance handoff is linked"
     Assert-RgMatch -Pattern "Shared-DB schema compare and Trading deployment acceptance have passed" -Paths @("docs/split-acceptance-status.md") -Description "acceptance handoff records post-cutover trading deployment acceptance"
+    Assert-RgMatch -Pattern "check-live-mcp-split-ownership\.ps1" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "cross-service live MCP ownership smoke is documented"
+    Assert-RgMatch -Pattern "representative legacy Trading tools are absent" -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "cross-service ownership smoke documents AgoraMarketAPI legacy Trading absence"
     Assert-RgMatch -Pattern "schema_baseline_inventory.ps1" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline starts with read-only source inventory"
     Assert-RgMatch -Pattern "Runtime side effects that could surprise a split deployment now default off" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents default-off runtime side-effect cleanup"
     Assert-RgMatch -Pattern "high-risk host env values" -Paths @("SPLIT_PROGRESS.md") -Description "split progress documents local-smoke high-risk host env clearing"

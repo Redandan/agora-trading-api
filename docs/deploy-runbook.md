@@ -375,6 +375,15 @@ Optional schema baseline table comparison before generating Flyway baseline:
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 ```
 
+Cross-service live MCP ownership smoke is maintained by AgoraMarketAPI tooling.
+Run it from the AgoraMarketAPI checkout when the acceptance question is whether
+representative legacy Trading tools are absent from AgoraMarketAPI and present
+in `agora-trading-api`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarketAPI\tools\codex\check-live-mcp-split-ownership.ps1
+```
+
 ## Startup Warning Baseline
 
 Observed on 2026-06-14 after the `6a656fe` deploy, the latest Trading run log
@@ -395,7 +404,8 @@ Current warning classes:
 
 The warning baseline is intentionally separate from Trading split acceptance.
 Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`,
-public `/api/trading/actuator/health`, and MCP registry smoke.
+public `/api/trading/actuator/health`, MCP registry smoke, and cross-service
+live MCP ownership smoke when live ownership boundaries are being validated.
 
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 
@@ -422,6 +432,9 @@ Prerequisites:
   `SCHEMA_COMPARE_MODE=shared`.
 - `/api/trading/actuator/health` passes through nginx.
 - `/api/trading/mcp` `getMcpRegistryVersion` passes with `TRADING_MCP_KEY`.
+- AgoraMarketAPI's `check-live-mcp-split-ownership.ps1` passes, proving
+  representative legacy Trading tools are absent from AgoraMarketAPI `/api/mcp`
+  and present in `agora-trading-api` `/api/trading/mcp`.
 - Scheduler ownership is reviewed so order/OCO/grid/fund/Earn-capable jobs are
   either disabled in both services or intentionally enabled in exactly one
   service.

@@ -83,6 +83,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     all 21 representative Trading tools present, and the read-only
     `listSchedulerTasks` compatibility alias smoke returning
     `alias_call_ok=listSchedulerTasks`
+  - cross-service live MCP ownership smoke passed from AgoraMarketAPI's
+    `tools/codex/check-live-mcp-split-ownership.ps1`: AgoraMarketAPI
+    `/api/mcp` exposed 153 marketplace/system/internal tools with
+    representative legacy Trading tools absent, while `agora-trading-api`
+    `/api/trading/mcp` exposed 304 tools with representative Trading tools
+    present
   - hardened schema env values were active:
     `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
     `SPRING_FLYWAY_ENABLED=true`, and
@@ -112,7 +118,8 @@ Trading-side work is:
 2. Add future Trading schema changes as `V2__...` Flyway migrations under
    `src/main/resources/db/migration`.
 3. Re-run local verify, local smoke, server verify with schema compare, public
-   health, and MCP registry smoke after any deploy-affecting change.
+   health, MCP registry smoke, and cross-service live MCP ownership smoke after
+   any deploy-affecting change.
 
 ## Cutover Boundary
 
@@ -121,7 +128,9 @@ these boundaries:
 
 1. Keep order/OCO/grid/fund/Earn-capable jobs running in exactly one service.
 2. Keep AgoraMarketAPI internal exchange-rate APIs available.
-3. Monitor logs for duplicate scheduler execution, SQL errors, MCP auth errors,
+3. Use cross-service live MCP ownership smoke when validating the live boundary,
+   not Trading parity smoke alone.
+4. Monitor logs for duplicate scheduler execution, SQL errors, MCP auth errors,
    and nginx `/api/trading/` routing failures.
 
 ## Do Not Do

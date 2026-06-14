@@ -233,6 +233,12 @@ Trading deployment prep:
   AgoraMarket exchange-rate dependency health passed, nginx was active, and
   shared-mode schema compare still found 39 source entity tables, 0 missing
   trading tables, and 137 expected extra marketplace/shared tables.
+- 2026-06-14 cross-service live MCP ownership smoke passed from
+  `AgoraMarketAPI/tools/codex/check-live-mcp-split-ownership.ps1`:
+  AgoraMarketAPI `/api/mcp` exposed 153 marketplace/system/internal tools with
+  representative legacy Trading tools absent, while `agora-trading-api`
+  `/api/trading/mcp` exposed 304 tools with representative Trading tools
+  present.
 
 ## Cleanup Priority
 
@@ -241,7 +247,8 @@ Trading deployment prep:
 3. Keep production on schema validation plus Flyway with the Trading-owned
    `trading_flyway_schema_history` table.
 4. Re-run local verify, local smoke, deploy, server verify with schema compare,
-   public health, and MCP parity smoke after deploy-affecting changes.
+   public health, MCP parity smoke, and cross-service live MCP ownership smoke
+   after deploy-affecting changes.
 
 ## Do Not Do Yet
 

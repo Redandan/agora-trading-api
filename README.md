@@ -70,3 +70,11 @@ MCP parity smoke against a running local or deployed Trading service:
 ```powershell
 .\scripts\smoke_mcp_parity.ps1 -BaseUrl http://127.0.0.1:18084/api/trading -McpKey local-smoke-mcp
 ```
+
+Cross-service live ownership smoke is maintained in the AgoraMarketAPI repo.
+Run it when validating that representative legacy Trading tools are absent from
+AgoraMarketAPI and present in `agora-trading-api`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarketAPI\tools\codex\check-live-mcp-split-ownership.ps1
+```

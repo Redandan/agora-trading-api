@@ -469,7 +469,7 @@ try {
     Assert-SecurityPathsAllowedListExact
     Assert-RgMatch -Pattern '"/mcp"' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "MCP endpoint remains a retained trading HTTP surface"
     Assert-RgMatch -Pattern '"/internal/reports/\*\*"' -Paths @("src/main/java/com/agora/config/SecurityPaths.java") -Description "internal report gateway remains API-key guarded retained HTTP surface"
-    Assert-RgMatch -Pattern "X-Internal-Api-Key" -Paths @("src/main/java/com/agora/controller/InternalTradingReportController.java") -Description "internal report gateway enforces service API key header"
+    Assert-RgMatch -Pattern "X-Internal-Api-Key" -Paths @("src/main/java/com/agora/infra/bot/InternalTradingReportController.java") -Description "internal report gateway enforces service API key header"
     Assert-RgMatch -Pattern "TRADING_INTERNAL_API_KEY" -Paths @(".env.trading.secrets.example", "README.md", "src/main/resources/application.yml", "scripts/validate_env_template.ps1") -Description "internal report gateway secret is documented and validated"
     Assert-RgMatch -Pattern "exact public HTTP allowlist is enforced by ``scripts/verify_local.ps1``" -Paths @("SPLIT_PROGRESS.md", "docs/deploy-runbook.md", "docs/split-audit.md") -Description "exact public HTTP allowlist verification is documented"
 

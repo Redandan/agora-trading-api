@@ -1,8 +1,7 @@
-package com.agora.controller;
+package com.agora.infra.bot;
 
 import com.agora.config.TradingInternalApiProperties;
 import com.agora.dto.internalapi.TradingReportResponse;
-import com.agora.infra.bot.TradingReportFacade;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

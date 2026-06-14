@@ -221,20 +221,22 @@ Expected:
 - AgoraMarket exchange-rate dependency health is checked.
 - nginx `/api/trading/` path split is reported.
 
-Last verified server state from 2026-06-13 Asia/Taipei:
+Last verified server state from 2026-06-14 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
-- AgoraMarketAPI active port file reports `8080`.
+- AgoraMarketAPI active port file reports `8082`.
 - Local AgoraMarketAPI health is `UP`.
 - `git`, `mvn`, `java`, and `curl` are installed.
 - `/home/ubuntu/agora-trading-api` has been bootstrapped and can fast-forward from `origin/main`.
 - `/home/ubuntu/agora-trading-api/.env.trading.secrets.example` has been created.
 - `/home/ubuntu/.env.trading.secrets` has been created without printing secret values.
+- `AGORA_MARKET_BASE_URL` points at the stable AgoraMarketAPI nginx vhost:
+  `https://agoramarketapi.purrtechllc.com`.
 - an independent trading database was created during the earlier standalone-DB
   path; the current target is shared `agora_market`.
 - nginx `/api/trading/` location has been installed and reloaded.
-- production was deployed from the then-current `origin/main`; the active
-  blue-green port is recorded in `app.port`.
+- production was deployed from `origin/main` commit `02fd886`; the active
+  blue-green port is `8084` and is recorded in `app.port`.
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
   shared mode before schema hardening with 39 source entity tables, 0 missing
   trading tables, 175 database tables, and 136 extra marketplace/shared tables
@@ -254,8 +256,9 @@ Last verified server state from 2026-06-13 Asia/Taipei:
   tables expected in shared DB mode.
 - production MCP parity passed on `/api/trading/mcp` with 21 representative
   trading tools present from 303 registered tools.
-- `scripts/verify_server.sh` passed with:
+- `scripts/verify_server.sh` passed after the `02fd886` deploy with:
   - local trading health on the active `app.port`
+  - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
 - hardened startup logs showed Flyway creating and baselining the Trading-owned
@@ -349,7 +352,7 @@ RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 
 ## Startup Warning Baseline
 
-Observed on 2026-06-13 after the `5957d10` deploy, the latest Trading run log
+Observed on 2026-06-14 after the `02fd886` deploy, the latest Trading run log
 contained startup WARN lines while `scripts/verify_server.sh`, local health,
 local MCP registry, public health, and nginx checks all passed. Classify these
 as startup audit evidence, not deploy failure evidence, unless they prevent

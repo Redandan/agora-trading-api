@@ -186,6 +186,15 @@ Trading deployment prep:
   entity tables, 0 implicit entity names, 0 forbidden marketplace source
   mappings, 176 database tables, 2 known system tables, 0 missing trading
   tables, and 137 extra marketplace/shared tables expected in shared DB mode.
+- 2026-06-14 production deploy advanced `/home/ubuntu/agora-trading-api` to
+  `02fd886`, switched the active blue-green port to `8084`, and updated
+  `AGORA_MARKET_BASE_URL` to the stable AgoraMarketAPI nginx vhost
+  `https://agoramarketapi.purrtechllc.com`.
+- 2026-06-14 post-deploy verification passed: server worktree matched
+  `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
+  `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
+  health passed through the stable AgoraMarketAPI nginx vhost, public trading
+  health passed through nginx, and nginx service was active.
 
 ## Cleanup Priority
 

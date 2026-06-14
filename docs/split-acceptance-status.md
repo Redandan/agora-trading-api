@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-13
+Last refreshed: 2026-06-14
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -45,18 +45,21 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Local validation passed on 2026-06-13 with:
   - `.\scripts\verify_local.ps1`
   - `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`
-- Production was deployed and verified on 2026-06-13:
+- Production was deployed and verified on 2026-06-14:
   - deployed `app.commit`, server worktree `HEAD`, and `origin/main` matched
-    during the deploy verification run
-  - active `app.port` was listening with matching per-port `app.pid` metadata
+    commit `02fd886`
+  - active `app.port` was `8084` and listened with matching per-port
+    `app.pid` metadata
+  - `AGORA_MARKET_BASE_URL` pointed at the stable AgoraMarketAPI nginx vhost
+    `https://agoramarketapi.purrtechllc.com`
   - public health passed through
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
-  - production MCP parity passed at local `/api/trading/mcp` with 21
-    representative trading tools present from 303 registered tools
+  - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
   - `SPRING_DATASOURCE_URL` database: `agora_market`
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
-  - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
-    shared mode
+  - latest full schema compare remains the 2026-06-13
+    `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` shared-mode
+    run
   - source entity tables: 39
   - missing database tables: 0
   - shared database tables: 176

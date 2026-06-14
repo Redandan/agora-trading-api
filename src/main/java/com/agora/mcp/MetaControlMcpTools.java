@@ -489,6 +489,13 @@ public class MetaControlMcpTools {
         return sb.toString();
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.META, Category.DIAGNOSTIC})
+    @Tool(description = "Read-only compatibility alias for listSchedulers. Lists registered Spring @Scheduled tasks in the split trading service. No scheduler is triggered and no trading/OCO/order/fund/Earn state is changed.")
+    public String listSchedulerTasks() {
+        return listSchedulers();
+    }
+
     private static String describeTarget(Object task) {
         Object runnable = null;
         try {

@@ -46,6 +46,7 @@ $toolNames = @($list.result.tools | ForEach-Object { $_.name } | Sort-Object -Un
 $requiredTools = @(
     "getMcpRegistryVersion",
     "getMcpAuthProbe",
+    "listSchedulerTasks",
     "listStrategies",
     "runBacktest",
     "listGrids",

@@ -479,6 +479,7 @@ try {
     Assert-McpToolsPresent -Url $mcpUrl -RequiredTools @(
         "getMcpRegistryVersion",
         "getMcpAuthProbe",
+        "listSchedulerTasks",
         "listStrategies",
         "runBacktest",
         "listGrids",

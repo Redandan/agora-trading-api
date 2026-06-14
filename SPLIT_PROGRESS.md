@@ -227,6 +227,12 @@ Trading deployment prep:
   `.\scripts\verify_local.ps1` and
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`; the
   local Spring context registered 304 MCP tools.
+- 2026-06-14 maintenance server verification passed after the docs-only
+  handoff refresh at `1585942`: deployed `app.commit` remained `6a656fe`,
+  the delta was docs/tooling-only, local/public health and local MCP passed,
+  AgoraMarket exchange-rate dependency health passed, nginx was active, and
+  shared-mode schema compare still found 39 source entity tables, 0 missing
+  trading tables, and 137 expected extra marketplace/shared tables.
 
 ## Cleanup Priority
 

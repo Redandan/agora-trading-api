@@ -60,6 +60,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - post-deploy server verification passed with server worktree, `origin/main`,
     and deployed `app.commit` all at `6a656fe`; later docs-only handoff commits
     may place the worktree ahead without runtime drift
+  - latest maintenance server verification passed with server worktree and
+    `origin/main` at `1585942`; deployed `app.commit` remained `6a656fe` and
+    differed from worktree `HEAD` only by docs/tooling files
   - post-ready WARN/ERROR counts were 0 in the active trading run log; the
     startup warning baseline remains documented separately in the deploy
     runbook
@@ -67,7 +70,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
   - latest full schema compare was rerun on 2026-06-14 through
     `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` in
-    shared mode
+    shared mode after the docs-only handoff refresh at `1585942`
   - source entity tables: 39
   - missing database tables: 0
   - shared database tables: 176

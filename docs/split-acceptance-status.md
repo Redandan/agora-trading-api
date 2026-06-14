@@ -47,20 +47,18 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - `.\scripts\verify_local.ps1`
   - `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`
 - Production runtime was deployed on 2026-06-14:
-  - deployed `app.commit` remains commit `02fd886`
-  - active `app.port` was `8084` and listened with matching per-port
+  - deployed `app.commit` is runtime commit `6a656fe`
+  - active `app.port` was `8085` and listened with matching per-port
     `app.pid` metadata
   - `AGORA_MARKET_BASE_URL` pointed at the stable AgoraMarketAPI nginx vhost
     `https://agoramarketapi.purrtechllc.com`
   - public health passed through
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
-  - latest server verification after docs/tooling updates passed with server
-    worktree `HEAD` and `origin/main` current at verification time;
-    `scripts/verify_server.sh` reported that deployed `app.commit` differed
-    from worktree `HEAD` only by docs/tooling files. Treat the latest verifier
-    output, not this static handoff's prior SHA, as current worktree evidence
-  - post-startup WARN/ERROR counts were 0 in the active trading run log; the
+  - post-deploy server verification passed with server worktree, `origin/main`,
+    and deployed `app.commit` all at `6a656fe`; later docs-only handoff commits
+    may place the worktree ahead without runtime drift
+  - post-ready WARN/ERROR counts were 0 in the active trading run log; the
     startup warning baseline remains documented separately in the deploy
     runbook
   - `SPRING_DATASOURCE_URL` database: `agora_market`
@@ -76,8 +74,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     and Trading's `trading_flyway_schema_history`
   - extra database tables: 137, expected in shared DB mode
   - production MCP parity smoke passed against
-    `https://agoramarketapi.purrtechllc.com/api/trading/mcp` with 303 tools
-    and all 21 representative Trading tools present
+    `https://agoramarketapi.purrtechllc.com/api/trading/mcp` with 304 tools,
+    all 21 representative Trading tools present, and the read-only
+    `listSchedulerTasks` compatibility alias smoke returning
+    `alias_call_ok=listSchedulerTasks`
   - hardened schema env values were active:
     `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
     `SPRING_FLYWAY_ENABLED=true`, and

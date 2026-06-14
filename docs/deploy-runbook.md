@@ -235,12 +235,12 @@ Last verified server state from 2026-06-14 Asia/Taipei:
 - an independent trading database was created during the earlier standalone-DB
   path; the current target is shared `agora_market`.
 - nginx `/api/trading/` location has been installed and reloaded.
-- production was deployed from `origin/main` commit `02fd886`; the active
-  blue-green port is `8084` and is recorded in `app.port`.
+- production was deployed from `origin/main` commit `6a656fe`; the active
+  blue-green port is `8085` and is recorded in `app.port`.
 - current server verification allows the worktree to advance past deployed
   `app.commit` only when the delta is docs/tooling-only. Treat the latest
   `scripts/verify_server.sh` output as current worktree evidence instead of
-  relying on a static handoff SHA; deployed `app.commit` remains `02fd886`
+  relying on a static handoff SHA; deployed `app.commit` remains `6a656fe`
   until the service is rebuilt and redeployed.
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
   shared mode before schema hardening with 39 source entity tables, 0 missing
@@ -259,27 +259,24 @@ Last verified server state from 2026-06-14 Asia/Taipei:
   passed in shared mode with 39 source entity tables, 0 missing trading tables,
   176 database tables, 2 known system tables, and 137 extra marketplace/shared
   tables expected in shared DB mode.
-- 2026-06-14 maintenance verification reran
+- 2026-06-14 post-alias verification reran
   `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` successfully.
-  The server worktree matched `origin/main` at `41589bf`, deployed
-  `app.commit` remained `02fd886`, and the delta was still docs/tooling-only.
-  Shared-mode compare found 39 source entity tables, 0 implicit entity names,
-  0 forbidden marketplace source mappings, 176 database tables, 2 known system
-  tables, 0 missing trading tables, and 137 extra marketplace/shared tables
-  expected in shared DB mode.
+  The server worktree matched `origin/main` at `6a656fe`, deployed
+  `app.commit` matched `HEAD`, and shared-mode compare found 39 source entity
+  tables, 0 implicit entity names, 0 forbidden marketplace source mappings,
+  176 database tables, 2 known system tables, 0 missing trading tables, and
+  137 extra marketplace/shared tables expected in shared DB mode.
 - 2026-06-14 production MCP parity passed against the public
   `/api/trading/mcp` route with 21 representative trading tools present from
-  303 registered tools.
-- `scripts/verify_server.sh` passed after the `02fd886` deploy with:
+  304 registered tools, plus direct production smoke for the read-only
+  `listSchedulerTasks` compatibility alias.
+- `scripts/verify_server.sh` passed after the `6a656fe` deploy with:
   - local trading health on the active `app.port`
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
-- after docs/tooling verifier updates, `scripts/verify_server.sh` also passed
-  with deployed `app.commit` `02fd886` and worktree `HEAD` ahead only by
-  docs/tooling files.
-- the same maintenance pass confirmed post-startup WARN/ERROR counts are 0 for
-  the active `8084` trading process; startup-only warnings remain classified by
+- the same maintenance pass confirmed post-ready WARN/ERROR counts are 0 for
+  the active `8085` trading process; startup-only warnings remain classified by
   the warning baseline below.
 - hardened startup logs showed Flyway creating and baselining the Trading-owned
   history table. No Hibernate `alter table` attempt or schema-validation error
@@ -372,11 +369,12 @@ RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 
 ## Startup Warning Baseline
 
-Observed on 2026-06-14 after the `02fd886` deploy, the latest Trading run log
+Observed on 2026-06-14 after the `6a656fe` deploy, the latest Trading run log
 contained startup WARN lines while `scripts/verify_server.sh`, local health,
-local MCP registry, public health, and nginx checks all passed. Classify these
-as startup audit evidence, not deploy failure evidence, unless they prevent
-readiness or reappear after the app is already serving traffic.
+local MCP registry, public health, nginx checks, and the `listSchedulerTasks`
+alias smoke all passed. Classify these as startup audit evidence, not deploy
+failure evidence, unless they prevent readiness or reappear after the app is
+already serving traffic.
 
 Current warning classes:
 

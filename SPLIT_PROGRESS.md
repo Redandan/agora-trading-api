@@ -210,6 +210,19 @@ Trading deployment prep:
 - 2026-06-14 production MCP parity smoke passed through the public
   `/api/trading/mcp` path with 303 registered tools and all 21 representative
   Trading tools present.
+- 2026-06-14 scheduler-alias deploy advanced the runtime to `6a656fe`,
+  switched the active blue-green port to `8085`, and kept
+  `AGORA_MARKET_BASE_URL` on the stable AgoraMarketAPI nginx vhost.
+- 2026-06-14 post-alias verification passed: server worktree matched
+  `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
+  `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
+  health passed, public trading health passed through nginx, schema compare
+  passed in shared mode, post-ready WARN/ERROR counts were 0, and direct
+  production smoke confirmed the read-only `listSchedulerTasks` compatibility
+  alias.
+- 2026-06-14 production MCP parity now includes 304 registered tools: the 21
+  representative Trading tools plus the read-only `listSchedulerTasks`
+  scheduler-list alias.
 
 ## Cleanup Priority
 

@@ -223,6 +223,10 @@ Trading deployment prep:
 - 2026-06-14 production MCP parity now includes 304 registered tools: the 21
   representative Trading tools plus the read-only `listSchedulerTasks`
   scheduler-list alias.
+- 2026-06-14 post-alias local validation passed with
+  `.\scripts\verify_local.ps1` and
+  `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`; the
+  local Spring context registered 304 MCP tools.
 
 ## Cleanup Priority
 

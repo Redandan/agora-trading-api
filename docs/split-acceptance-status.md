@@ -56,9 +56,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
   - latest server verification after docs/tooling updates passed with server
-    worktree `HEAD` and `origin/main` at `ac61c9d`; `scripts/verify_server.sh`
-    reported that deployed `app.commit` differed from worktree `HEAD` only by
-    5 docs/tooling files
+    worktree `HEAD` and `origin/main` current at verification time;
+    `scripts/verify_server.sh` reported that deployed `app.commit` differed
+    from worktree `HEAD` only by docs/tooling files. Treat the latest verifier
+    output, not this static handoff's prior SHA, as current worktree evidence
   - post-startup WARN/ERROR counts were 0 in the active trading run log; the
     startup warning baseline remains documented separately in the deploy
     runbook

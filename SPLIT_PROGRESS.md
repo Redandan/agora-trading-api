@@ -195,12 +195,13 @@ Trading deployment prep:
   `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
   health passed through the stable AgoraMarketAPI nginx vhost, public trading
   health passed through nginx, and nginx service was active.
-- 2026-06-14 verifier/docs updates advanced the server worktree to `ac61c9d`
-  without a runtime deploy. `scripts/verify_server.sh` passed because deployed
-  `app.commit` `02fd886` differed from worktree `HEAD` only by 5 docs/tooling
-  files; runtime drift still classified as `deploy_needed=no`. The same
-  maintenance pass confirmed post-startup WARN/ERROR counts are 0 for the
-  running trading service.
+- 2026-06-14 verifier/docs updates advanced the server worktree beyond the
+  deployed runtime commit without a runtime deploy. `scripts/verify_server.sh`
+  passed because deployed `app.commit` `02fd886` differed from worktree `HEAD`
+  only by docs/tooling files; runtime drift still classified as
+  `deploy_needed=no`. Treat the latest verifier output, not a stale handoff
+  SHA, as the current worktree evidence. The same maintenance pass confirmed
+  post-startup WARN/ERROR counts are 0 for the running trading service.
 
 ## Cleanup Priority
 

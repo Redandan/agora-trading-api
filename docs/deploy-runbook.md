@@ -30,6 +30,10 @@ Trading service runtime:
 
 ```bash
 TRADING_MCP_KEY=<set for MCP endpoints>
+TELEGRAM_BOT_TOKEN=<set before enabling Telegram sends>
+# New deployments may use TELEGRAM_BOT_CHANNEL_ID; TELEGRAM_CHANNEL_ID is kept
+# as the compatibility key for the legacy AgoraMarketAPI Telegram channel env.
+TELEGRAM_CHANNEL_ID=<set before enabling Telegram channel broadcasts>
 SPRING_DATASOURCE_URL=jdbc:mysql://10.0.0.119:3306/agora_market?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
 SPRING_DATASOURCE_USERNAME=<set for shared DB>
 SPRING_DATASOURCE_PASSWORD=<set for shared DB>
@@ -125,6 +129,7 @@ Expected:
 - Health passes at `http://127.0.0.1:18084/api/trading/actuator/health`.
 - MCP guard checks pass through `/api/trading/mcp`, proving disabled responses for live sentiment reads, external health probes, and external backfill/import reads.
 - Smoke command-line overrides clear local external keys for AgoraMarket, OKX, Binance, Telegram, AI providers, and market-data providers even if host environment variables are set.
+- Smoke command-line overrides clear both Telegram bot token and channel id, so local smoke cannot send channel messages even when host `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_CHANNEL_ID`, or legacy `TELEGRAM_CHANNEL_ID` are present.
 - Smoke logs prove H2 local DB, exchange-rate fallback, cleared OKX API key, disabled OKX auto-trade, skipped private WS, and disabled startup refresh.
 - Smoke logs prove `AiTaskRouter` initialized with 0 providers.
 - Smoke logs prove Jina embeddings are disabled with `Jina embedding client initialised: enabled=false`.

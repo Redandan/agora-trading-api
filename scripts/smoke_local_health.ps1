@@ -191,6 +191,8 @@ $envOverrides = @{
     MCP_API_KEY = "local-smoke-mcp"
     MCP_OPS_KEY = "local-smoke-mcp"
     TELEGRAM_BOT_TOKEN = ""
+    TELEGRAM_CHANNEL_ID = ""
+    TELEGRAM_BOT_CHANNEL_ID = ""
     TRADING_OKX_ENABLED = "false"
     TRADING_OCO_POLLER_ENABLED = "false"
     TRADING_OKX_API_KEY = ""
@@ -332,6 +334,7 @@ try {
         "--mcp.api-key=local-smoke-mcp",
         "--mcp.ops-key=local-smoke-mcp",
         "--telegram.bot.token=",
+        "--telegram.bot.channel-id=",
         "--trading.okx.api-key=",
         "--trading.okx.secret-key=",
         "--trading.okx.passphrase=",

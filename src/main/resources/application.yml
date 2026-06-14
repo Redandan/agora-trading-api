@@ -59,6 +59,14 @@ agora-market:
   internal-api-key: ${AGORA_MARKET_INTERNAL_API_KEY:}
   timeout-ms: ${AGORA_MARKET_INTERNAL_TIMEOUT_MS:3000}
 
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN:}
+    username: ${TELEGRAM_BOT_USERNAME:}
+    channel-id: ${TELEGRAM_BOT_CHANNEL_ID:${TELEGRAM_CHANNEL_ID:}}
+    api-base-url: ${TELEGRAM_API_BASE_URL:https://api.telegram.org}
+    http-proxy: ${TELEGRAM_HTTP_PROXY:}
+
 meta-control:
   ml:
     sql:

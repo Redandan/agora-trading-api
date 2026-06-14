@@ -48,6 +48,8 @@ trailing-stop:
 trading:
   mcp:
     api-key: local-smoke-mcp
+  internal:
+    api-key: local-smoke-internal-key
   short-squeeze-alert:
     enabled: false
     taker-buy-collector-enabled: false

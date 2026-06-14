@@ -38,13 +38,21 @@ AgoraMarket exchange-rate integration:
 mvn -f C:\Users\Redan\IdeaProjects\AgoraMarketAPI\internal-client\pom.xml install
 ```
 
+AgoraMarketAPI Telegram gateway integration:
+
+- `GET /api/trading/internal/reports/current`
+- `GET /api/trading/internal/reports/analysis`
+- `GET /api/trading/internal/reports/weekly`
+- Header: `X-Internal-Api-Key`
+- Configure `TRADING_INTERNAL_API_KEY` for an independent inbound key, or leave it unset to reuse `AGORA_MARKET_INTERNAL_API_KEY` during the split.
+
 ## Initial boundaries
 
 - Owns trading strategy, OCO/grid, signal, market data, backtest, trading diagnostics, and trading MCP.
 - Does not depend on AgoraMarket commerce users, orders, products, or wallet tables.
 - Current baseline keeps the extracted trading/system repositories needed for the Spring context to start.
 - Cross-service dependencies must go through an internal-client SDK or HTTP DTOs, not shared entities/repositories.
-- Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, and MCP streamable HTTP at `/api/trading/mcp`.
+- Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, MCP streamable HTTP at `/api/trading/mcp`, and API-key guarded internal report reads for the AgoraMarketAPI Telegram gateway.
 - Schema baseline prep remains read-only against the shared `agora_market` database; marketplace-owned table names are rejected in trading source mappings, while shared DB extra tables are expected.
 
 See:

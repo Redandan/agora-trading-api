@@ -21,6 +21,9 @@ Required before enabling AgoraMarket-backed exchange rates:
 AGORA_MARKET_BASE_URL=https://agoramarketapi.purrtechllc.com
 AGORA_MARKET_INTERNAL_API_KEY=<same internal key configured in AgoraMarketAPI>
 AGORA_MARKET_INTERNAL_TIMEOUT_MS=3000
+# Optional: independent inbound key for AgoraMarketAPI -> Trading report gateway.
+# If unset, trading reuses AGORA_MARKET_INTERNAL_API_KEY.
+TRADING_INTERNAL_API_KEY=<optional>
 ```
 
 Trading service runtime:
@@ -89,6 +92,7 @@ Expected:
 - Shell syntax checks pass for `deploy.sh` and `scripts/*.sh` when Git Bash or `bash` is available.
 - Spring context test starts with profile `local-smoke` and exchange-rate fallback if `AGORA_MARKET_INTERNAL_API_KEY` is not configured.
 - Split deploy guardrails stay documented: blue-green cleanup, strict server env checks, `8084/8085` port validation, internal-client SDK install, temporary schema bootstrap mode, Flyway baseline prerequisite, and `/api/internal/...` contract paths.
+- The API-key guarded report gateway stays limited to read-only `/api/trading/internal/reports/**` endpoints for AgoraMarketAPI Telegram commands.
 - POM dependency boundary stays explicit: trading may depend on `com.agora:agora-market-internal-client`, not the marketplace application jar.
 - Java package boundary stays explicit: trading-owned `com.agora.*` packages are allowlisted, nested marketplace-style package segments are rejected by local verification, and `com.agora.mcp.auth` remains service-level MCP API-key auth.
 - Schema baseline prep stays read-only until the real trading database schema has been compared with `target/schema-baseline/entity-tables.txt`.

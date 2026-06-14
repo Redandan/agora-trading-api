@@ -13,6 +13,10 @@
 - Obvious marketplace product/order/cart/delivery/game/webpush/notification code was removed from trading.
 - `AgoraMarketExchangeRateServiceImpl` uses the `agora-market-internal-client` SDK when configured.
 - `StaticExchangeRateServiceImpl` exists as the local/downstream-failure fallback.
+- Trading exposes API-key guarded, read-only internal report endpoints for the AgoraMarketAPI Telegram gateway:
+  - `GET /api/trading/internal/reports/current`
+  - `GET /api/trading/internal/reports/analysis`
+  - `GET /api/trading/internal/reports/weekly`
 - Unused public exchange-rate provider chain leftovers were removed; exchange rates now use AgoraMarket internal SDK or static fallback only.
 - Flutter/AppVersion deployment leftovers were removed from trading.
 - UserSearchLog/SearchLogAspect leftovers were removed from trading.

@@ -19,6 +19,7 @@ public class SecurityPaths {
             "/swagger-ui.html",
             "/mcp",                    // MCP Streamable HTTP endpoint; tool auth is enforced by McpApiKeyFilter
             "/mcp/**",                 // MCP AI 工具探索端點
+            "/internal/reports/**",     // Internal API key is enforced by InternalTradingReportController
             "/ratelimit",              // nginx error_page 429 internal redirect target（結構化 JSON + Retry-After）
             "/actuator/health",        // 匿名健康探針（liveness/readiness），details 走 when_authorized 機制
             "/actuator/health/**",

@@ -27,6 +27,20 @@ Expected behavior:
 - Local tests cover the SDK-backed service and fallback behavior.
 - The old public exchange-rate provider chain was removed; trading no longer owns CoinGecko/Binance/CoinMarketCap fallback providers for this contract.
 
+## Intentional Telegram Gateway Surface
+
+AgoraMarketAPI owns the Telegram webhook and bot command dispatcher. Trading
+owns the report content and exposes read-only internal report endpoints for that
+gateway:
+
+- `GET /api/trading/internal/reports/current`
+- `GET /api/trading/internal/reports/analysis`
+- `GET /api/trading/internal/reports/weekly`
+
+All report routes require `X-Internal-Api-Key`; they do not expose login,
+marketplace user identity, scheduler triggers, order execution, OCO, fund, Earn,
+or live strategy mutation.
+
 ## Trading-Owned SQL Configuration
 
 ML training and evaluation SQL object names are configuration-backed through

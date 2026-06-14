@@ -122,9 +122,39 @@ function Assert-McpToolsPresent {
     }
 }
 
+function Assert-HttpStatus {
+    param(
+        [string]$Url,
+        [int]$ExpectedStatus,
+        [hashtable]$Headers = @{},
+        [string]$Description
+    )
+
+    $actualStatus = $null
+    try {
+        $response = Invoke-WebRequest `
+            -Uri $Url `
+            -UseBasicParsing `
+            -TimeoutSec 10 `
+            -Headers $Headers
+        $actualStatus = [int]$response.StatusCode
+    } catch {
+        if ($_.Exception.Response -ne $null) {
+            $actualStatus = [int]$_.Exception.Response.StatusCode
+        } else {
+            throw "Local smoke HTTP request failed before status check: $Description. url=$Url error=$($_.Exception.Message)"
+        }
+    }
+
+    if ($actualStatus -ne $ExpectedStatus) {
+        throw "Local smoke HTTP status mismatch: $Description. expected=$ExpectedStatus actual=$actualStatus url=$Url"
+    }
+}
+
 $repo = Resolve-Path "$PSScriptRoot\.."
 $healthUrl = "http://127.0.0.1:$Port/api/trading/actuator/health"
 $mcpUrl = "http://127.0.0.1:$Port/api/trading/mcp"
+$internalReportUrl = "http://127.0.0.1:$Port/api/trading/internal/reports/current"
 $logDir = Join-Path $repo "logs\local-smoke"
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $stamp = Get-Date -Format "yyyyMMddTHHmmss"
@@ -474,6 +504,8 @@ try {
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(modifyOco|state .*->|sl .*->)" -Description "local-smoke must not modify trailing-stop OCO state"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(ShortSqueezeAlert.*FIRED|SpotTakerBuy.*15m taker buy|SpotTakerBuy.*collect failed)" -Description "local-smoke must not run short-squeeze alert or taker-buy collection"
     Assert-LogNotContains -Path $stdout -Pattern "(?i)(order placed|placing order|submitted order|send telegram|sent telegram|connected to private|private ws connected|auto-execution enabled|auto-trade enabled\s*:\s*true)" -Description "local-smoke must not place orders, send notifications, connect private trading WS, or enable auto execution"
+
+    Assert-HttpStatus -Url $internalReportUrl -ExpectedStatus 401 -Description "internal report gateway rejects missing service key"
 
     [void](Invoke-McpTool -Url $mcpUrl -ToolName "getMcpRegistryVersion")
     Assert-McpToolsPresent -Url $mcpUrl -RequiredTools @(

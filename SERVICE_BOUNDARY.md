@@ -24,6 +24,7 @@ Allowed dependency shapes:
 - A small internal-client SDK jar published by `AgoraMarketAPI`.
 - HTTP calls through SDK DTOs.
 - Local fallback implementation for development or degraded mode.
+- AgoraMarketAPI may call Trading's read-only internal report endpoints as the Telegram command gateway; it must not import Trading classes.
 
 Direct database reads against the marketplace database are not allowed after the split.
 
@@ -48,6 +49,13 @@ The response DTO should match the current `ExchangeRateInfo` shape:
 Trading does not share marketplace login, user profiles, or marketplace user tables.
 Non-public HTTP routes default to deny-all; trading access is through explicit
 public probes/docs and MCP API-key guarded tools, not role-based web login.
+
+## Telegram Report Gateway
+
+AgoraMarketAPI owns the Telegram webhook and command dispatch for `/report`,
+`/manager`, `/analysis`, and `/weekly`. This service owns the report content
+and exposes only read-only internal endpoints under `/api/trading/internal/reports/**`,
+protected by `X-Internal-Api-Key`.
 
 For the current split, do not add identity internal APIs. If a future product
 requirement explicitly needs shared identity, treat that as a separate design

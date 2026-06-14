@@ -237,6 +237,9 @@ Last verified server state from 2026-06-14 Asia/Taipei:
 - nginx `/api/trading/` location has been installed and reloaded.
 - production was deployed from `origin/main` commit `02fd886`; the active
   blue-green port is `8084` and is recorded in `app.port`.
+- current server verification allows the worktree to advance past deployed
+  `app.commit` only when the delta is docs/tooling-only; the latest verified
+  worktree was `16af847` while deployed `app.commit` remained `02fd886`.
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
   shared mode before schema hardening with 39 source entity tables, 0 missing
   trading tables, 175 database tables, and 136 extra marketplace/shared tables
@@ -261,6 +264,9 @@ Last verified server state from 2026-06-14 Asia/Taipei:
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+- after docs/tooling verifier updates, `scripts/verify_server.sh` also passed
+  with deployed `app.commit` `02fd886`, worktree `HEAD` `16af847`, and
+  `docs_tooling_files=5`.
 - hardened startup logs showed Flyway creating and baselining the Trading-owned
   history table. No Hibernate `alter table` attempt or schema-validation error
   was observed in the post-hardening log sample. Flyway may warn that MySQL 9.7

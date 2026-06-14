@@ -22,7 +22,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `/home/ubuntu/agora-trading-api`.
 - `scripts/verify_server.sh` proves:
   - server worktree equals `origin/main`
-  - deployed `app.commit` equals the worktree commit
+  - deployed `app.commit` equals the worktree commit, or differs only by
+    docs/tooling files that do not require runtime deploy
   - active `app.pid` listens on `app.port`
   - local health works at `/api/trading/actuator/health`
   - local MCP works at `/api/trading/mcp`
@@ -45,9 +46,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Local validation passed on 2026-06-13 with:
   - `.\scripts\verify_local.ps1`
   - `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`
-- Production was deployed and verified on 2026-06-14:
-  - deployed `app.commit`, server worktree `HEAD`, and `origin/main` matched
-    commit `02fd886`
+- Production runtime was deployed on 2026-06-14:
+  - deployed `app.commit` remains commit `02fd886`
   - active `app.port` was `8084` and listened with matching per-port
     `app.pid` metadata
   - `AGORA_MARKET_BASE_URL` pointed at the stable AgoraMarketAPI nginx vhost
@@ -55,6 +55,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - public health passed through
     `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
+  - latest server verification after docs/tooling updates passed with server
+    worktree `HEAD` and `origin/main` at `16af847`; `scripts/verify_server.sh`
+    reported that deployed `app.commit` differed from worktree `HEAD` only by
+    5 docs/tooling files
   - `SPRING_DATASOURCE_URL` database: `agora_market`
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
   - latest full schema compare remains the 2026-06-13

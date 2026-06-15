@@ -154,6 +154,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   and passed active port `8084`, local health, local MCP
   `getMcpRegistryVersion`, public dedicated-host health, public dedicated-host
   MCP `tools/list` with 304 tools, and nginx shared/dedicated upstream checks.
+  A read-only runtime-log smoke against the active run log then passed with
+  runtime `ERROR` count 0, known WARN counts
+  `flyway_mysql_version=1`, `startup_bean_timing=11`, `cglib_proxy=2`,
+  `open_in_view=1`, `thegraph_optional_key=3`,
+  `autonomous_digest_severe=1`, `unknown=0`, and no high-risk
+  trading/OCO/grid/Earn/fund operation-like lines in the last 3000 lines.
   Deploy is required before the read-only `verifyStrategyExecution` and
   DataFreshnessGuard RCA smoke improvements are production-current.
 

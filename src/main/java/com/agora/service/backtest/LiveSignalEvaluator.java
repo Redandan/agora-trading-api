@@ -46,7 +46,7 @@ import java.util.Map;
 /**
  * 即時訊號評估服務。
  *
- * <p>由 {@link com.agora.listener.KlineClosedEventListener}（WS 收盤即時觸發）與
+ * <p>由 {@link KlineClosedEventListener}（WS 收盤即時觸發）與
  * {@link LiveSignalScheduler}（每小時 :05 fallback）呼叫。</p>
  *
  * <p>流程：

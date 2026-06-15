@@ -528,6 +528,7 @@ try {
         "getSystemHealth",
         "getMarketSentiment",
         "getCollectionFreshness",
+        "diagnoseDataFreshnessGuardBlocks",
         "getReport",
         "getTradingManagerDigest",
         "getMlLimits",
@@ -550,6 +551,10 @@ try {
 
     $backfillGuard = Invoke-McpTool -Url $mcpUrl -ToolName "backfillOkxKlines" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1h"; days = 1 }
     Assert-McpContentContains -Content $backfillGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true" -Description "external MCP backfills are disabled by default"
+
+    $dataFreshnessRca = Invoke-McpTool -Url $mcpUrl -ToolName "diagnoseDataFreshnessGuardBlocks" -Arguments @{ days = 1; symbol = "BTCUSDT"; limit = 5 }
+    Assert-McpContentContains -Content $dataFreshnessRca -Pattern "boundary: READ_ONLY" -Description "DataFreshnessGuard RCA stays read-only in local smoke"
+    Assert-McpContentContains -Content $dataFreshnessRca -Pattern "acceptance: PASS_NO_CURRENT_SAMPLE|acceptance: PASS_RCA_CLASSIFIED" -Description "DataFreshnessGuard RCA returns an explicit acceptance marker"
 
     Write-Host "[smoke] OK $healthUrl"
 } finally {

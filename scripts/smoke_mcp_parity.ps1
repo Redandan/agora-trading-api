@@ -54,6 +54,7 @@ $requiredTools = @(
     "getSystemHealth",
     "getMarketSentiment",
     "getCollectionFreshness",
+    "diagnoseDataFreshnessGuardBlocks",
     "getReport",
     "getTradingManagerDigest",
     "getMlLimits",

@@ -16,9 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +45,12 @@ public class ExecutionEventService {
             LocalDateTime detectedAt,
             LocalDateTime expiresAt
     ) {
+    }
+
+    public record CleanupResult(int expired, int resolvedClosedPositions) {
+        public int total() {
+            return expired + resolvedClosedPositions;
+        }
     }
 
     @Transactional
@@ -83,20 +91,32 @@ public class ExecutionEventService {
     @Transactional(readOnly = true)
     public List<ExecutionEvent> listActive(String symbol, Long positionId, int limit) {
         int size = Math.max(1, Math.min(limit, 100));
-        return repository.findActive(
+        List<ExecutionEvent> raw = repository.findActive(
                 ExecutionEventStatus.ACTIVE,
                 normalizeNullableSymbol(symbol),
                 positionId,
                 LocalDateTime.now(),
-                PageRequest.of(0, size));
+                PageRequest.of(0, 100));
+        return dedupeLatestByEventKey(raw, size);
     }
 
     @Transactional
     public int expireStale(LocalDateTime now) {
-        return repository.expireStale(
-                now == null ? LocalDateTime.now() : now,
+        return cleanupStale(now).total();
+    }
+
+    @Transactional
+    public CleanupResult cleanupStale(LocalDateTime now) {
+        LocalDateTime cutoff = now == null ? LocalDateTime.now() : now;
+        int expired = repository.expireStale(
+                cutoff,
                 ExecutionEventStatus.ACTIVE,
                 ExecutionEventStatus.EXPIRED);
+        int resolvedClosed = repository.resolveClosedPositionEvents(
+                cutoff,
+                ExecutionEventStatus.ACTIVE,
+                ExecutionEventStatus.RESOLVED);
+        return new CleanupResult(expired, resolvedClosed);
     }
 
     @Transactional
@@ -153,6 +173,31 @@ public class ExecutionEventService {
         return status == ExecutionEventStatus.ACKED
                 || status == ExecutionEventStatus.IGNORED
                 || status == ExecutionEventStatus.RESOLVED;
+    }
+
+    private static List<ExecutionEvent> dedupeLatestByEventKey(List<ExecutionEvent> events, int limit) {
+        if (events == null || events.isEmpty()) return List.of();
+        Set<String> seen = new HashSet<>();
+        return events.stream()
+                .filter(event -> seen.add(activeEventKey(event)))
+                .limit(Math.max(1, Math.min(limit, 100)))
+                .toList();
+    }
+
+    private static String activeEventKey(ExecutionEvent event) {
+        if (event == null) return "null";
+        String positionOrScope;
+        if (event.getPositionId() != null) {
+            positionOrScope = "position:" + event.getPositionId();
+        } else {
+            positionOrScope = "scope:"
+                    + (event.getStrategyId() == null ? "ALL" : event.getStrategyId())
+                    + ":" + normalizeNullable(event.getIntervalCode());
+        }
+        return event.getSource() + "|"
+                + event.getType() + "|"
+                + normalizeNullableSymbol(event.getSymbol()) + "|"
+                + positionOrScope;
     }
 
     private static String normalizeSymbol(String symbol) {

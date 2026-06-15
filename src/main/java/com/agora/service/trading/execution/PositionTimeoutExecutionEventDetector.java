@@ -57,7 +57,7 @@ public class PositionTimeoutExecutionEventDetector implements ExecutionEventDete
                 ExecutionEventType.POSITION_TIMEOUT,
                 pos.getSymbol(),
                 pos.getId(),
-                "age-days=" + (ageHours / 24));
+                "open-position-aging");
 
         return new ExecutionEventService.Draft(
                 ExecutionEventSource.POSITION_TIMEOUT,

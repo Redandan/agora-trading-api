@@ -46,12 +46,15 @@ public class ExecutionEventMcpTools {
             return renderDrafts(drafts, true);
         }
 
+        ExecutionEventService.CleanupResult cleanup = eventService.cleanupStale(LocalDateTime.now());
         int saved = 0;
         for (ExecutionEventService.Draft draft : drafts) {
             eventService.upsert(draft);
             saved++;
         }
         return renderDrafts(drafts, false) + "\n\nsaved=" + saved
+                + "\nexpired=" + cleanup.expired()
+                + "\nresolvedClosedPositions=" + cleanup.resolvedClosedPositions()
                 + "\nNo trading, OCO, strategy, grid order, or fund behavior was changed.";
     }
 
@@ -95,8 +98,10 @@ public class ExecutionEventMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
     public String expireExecutionEvents() {
-        int expired = eventService.expireStale(LocalDateTime.now());
-        return "expired=" + expired + "\nNo trading, OCO, strategy, grid order, or fund behavior was changed.";
+        ExecutionEventService.CleanupResult cleanup = eventService.cleanupStale(LocalDateTime.now());
+        return "expired=" + cleanup.expired()
+                + "\nresolvedClosedPositions=" + cleanup.resolvedClosedPositions()
+                + "\nNo trading, OCO, strategy, grid order, or fund behavior was changed.";
     }
 
     @Tool(description = "Mark an execution-manager event as ACKED, IGNORED, RESOLVED, or EXPIRED. " +

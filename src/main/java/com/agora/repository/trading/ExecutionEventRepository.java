@@ -23,6 +23,10 @@ public interface ExecutionEventRepository extends JpaRepository<ExecutionEvent, 
             "WHERE e.status = :status " +
             "AND (:symbol IS NULL OR e.symbol = :symbol) " +
             "AND (:positionId IS NULL OR e.positionId = :positionId) " +
+            "AND (e.positionId IS NULL OR NOT EXISTS (" +
+            "   SELECT 1 FROM BtLiveSignal pos " +
+            "   WHERE pos.id = e.positionId AND pos.exitTime IS NOT NULL" +
+            ")) " +
             "AND (e.expiresAt IS NULL OR e.expiresAt > :now) " +
             "ORDER BY e.detectedAt DESC")
     List<ExecutionEvent> findActive(
@@ -34,6 +38,10 @@ public interface ExecutionEventRepository extends JpaRepository<ExecutionEvent, 
 
     @Query("SELECT e FROM ExecutionEvent e " +
             "WHERE e.type = :type AND e.status = :status " +
+            "AND (e.positionId IS NULL OR NOT EXISTS (" +
+            "   SELECT 1 FROM BtLiveSignal pos " +
+            "   WHERE pos.id = e.positionId AND pos.exitTime IS NOT NULL" +
+            ")) " +
             "AND (e.expiresAt IS NULL OR e.expiresAt > :now) " +
             "ORDER BY e.detectedAt DESC")
     List<ExecutionEvent> findActiveByType(
@@ -48,4 +56,16 @@ public interface ExecutionEventRepository extends JpaRepository<ExecutionEvent, 
     int expireStale(@Param("now") LocalDateTime now,
                     @Param("active") ExecutionEventStatus active,
                     @Param("expired") ExecutionEventStatus expired);
+
+    @Modifying
+    @Query("UPDATE ExecutionEvent e SET e.status = :resolved, e.updatedAt = :now, e.resolvedAt = :now " +
+            "WHERE e.status = :active " +
+            "AND e.positionId IS NOT NULL " +
+            "AND EXISTS (" +
+            "   SELECT 1 FROM BtLiveSignal pos " +
+            "   WHERE pos.id = e.positionId AND pos.exitTime IS NOT NULL" +
+            ")")
+    int resolveClosedPositionEvents(@Param("now") LocalDateTime now,
+                                    @Param("active") ExecutionEventStatus active,
+                                    @Param("resolved") ExecutionEventStatus resolved);
 }

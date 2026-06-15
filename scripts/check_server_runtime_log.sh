@@ -71,7 +71,8 @@ WARN_STARTUP_TIMING_PATTERN='StartupBeanTiming'
 WARN_CGLIB_PROXY_PATTERN='CglibAopProxy.*Unable to proxy'
 WARN_OPEN_IN_VIEW_PATTERN='spring.jpa.open-in-view is enabled by default'
 WARN_THEGRAPH_PATTERN='external[.]thegraph[.]api-key not configured'
-KNOWN_WARN_PATTERN="${WARN_FLYWAY_MYSQL_PATTERN}|${WARN_STARTUP_TIMING_PATTERN}|${WARN_CGLIB_PROXY_PATTERN}|${WARN_OPEN_IN_VIEW_PATTERN}|${WARN_THEGRAPH_PATTERN}"
+WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN='DailyAutonomousTradingDigest.*severe notification sent'
+KNOWN_WARN_PATTERN="${WARN_FLYWAY_MYSQL_PATTERN}|${WARN_STARTUP_TIMING_PATTERN}|${WARN_CGLIB_PROXY_PATTERN}|${WARN_OPEN_IN_VIEW_PATTERN}|${WARN_THEGRAPH_PATTERN}|${WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN}"
 
 warn_category_count() {
   local pattern="$1"
@@ -83,6 +84,7 @@ WARN_STARTUP_TIMING_COUNT="$(warn_category_count "$WARN_STARTUP_TIMING_PATTERN")
 WARN_CGLIB_PROXY_COUNT="$(warn_category_count "$WARN_CGLIB_PROXY_PATTERN")"
 WARN_OPEN_IN_VIEW_COUNT="$(warn_category_count "$WARN_OPEN_IN_VIEW_PATTERN")"
 WARN_THEGRAPH_COUNT="$(warn_category_count "$WARN_THEGRAPH_PATTERN")"
+WARN_AUTONOMOUS_DIGEST_SEVERE_COUNT="$(warn_category_count "$WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN")"
 
 UNKNOWN_WARN_LINES="$(grep -nE ' WARN ' "$RUN_LOG_FILE" | grep -Ev "$KNOWN_WARN_PATTERN" || true)"
 UNKNOWN_WARN_COUNT="$(printf '%s\n' "$UNKNOWN_WARN_LINES" | sed '/^[[:space:]]*$/d' | wc -l | tr -d '[:space:]')"
@@ -95,7 +97,7 @@ if [ "$UNKNOWN_WARN_COUNT" -gt 0 ]; then
   fi
 else
   ok "runtime WARN lines match known baseline: total_warn=$WARN_COUNT"
-  ok "WARN baseline category flyway_mysql_version=$WARN_FLYWAY_MYSQL_COUNT startup_bean_timing=$WARN_STARTUP_TIMING_COUNT cglib_proxy=$WARN_CGLIB_PROXY_COUNT open_in_view=$WARN_OPEN_IN_VIEW_COUNT thegraph_optional_key=$WARN_THEGRAPH_COUNT unknown=0"
+  ok "WARN baseline category flyway_mysql_version=$WARN_FLYWAY_MYSQL_COUNT startup_bean_timing=$WARN_STARTUP_TIMING_COUNT cglib_proxy=$WARN_CGLIB_PROXY_COUNT open_in_view=$WARN_OPEN_IN_VIEW_COUNT thegraph_optional_key=$WARN_THEGRAPH_COUNT autonomous_digest_severe=$WARN_AUTONOMOUS_DIGEST_SEVERE_COUNT unknown=0"
 fi
 
 HIGH_RISK_LINES="$(tail -n "$LOG_TAIL_LINES" "$RUN_LOG_FILE" | grep -nEi 'Auto-trade enabled[[:space:]]*:[[:space:]]*true|(order|okx).*(placed|submitted|filled|executed)|(modifyOco|createGrid|closeGrid|redeemEarn|subscribeEarn|forceClosePosition|cancelHardOco|retryOco).*(executed|success|submitted|placed|complete)' || true)"

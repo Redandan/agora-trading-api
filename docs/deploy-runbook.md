@@ -456,7 +456,9 @@ Current warning classes:
 | Flyway reports MySQL 9.7 is newer than the verified Flyway version | Known compatibility warning; schema hardening remains valid because `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, `SPRING_FLYWAY_ENABLED=true`, and `SPRING_FLYWAY_TABLE=trading_flyway_schema_history` are verified by deploy. |
 | `StartupBeanTimingProbe` slow bean warnings | Internal startup timing telemetry. Investigate only if readiness approaches the deploy timeout or a specific bean regresses materially. |
 | Spring AOP proxy warning for final servlet filter methods | Framework proxy warning around final methods; do not treat as trading behavior failure without a related request/filter bug. |
+| `external.thegraph.api-key not configured` | Optional external data-provider warning; acceptable only while The Graph-backed reads/backfills remain disabled by split guards. |
 | `spring.jpa.open-in-view is enabled by default` | Do not flip to `false` as a drive-by cleanup; it can change lazy-loading behavior and should be handled through a focused API/DTO audit. |
+| `DailyAutonomousTradingDigest` severe notification sent | Known operator-alert warning only when production explicitly enables autonomous digest Telegram/severe-scan flags. It is not an order/OCO/grid/Earn/fund action, but the category count should still be reviewed after each deploy. |
 
 The warning baseline is intentionally separate from Trading split acceptance.
 Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`,
@@ -469,7 +471,7 @@ active run log. It fails on runtime `ERROR` lines, WARN lines outside the known
 baseline above, and operation-like live trading/OCO/grid/Earn/fund lines in the
 recent log tail. On success, it also prints the known WARN category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
-optional TheGraph key warnings.
+optional TheGraph key, and autonomous digest severe-notification warnings.
 
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 

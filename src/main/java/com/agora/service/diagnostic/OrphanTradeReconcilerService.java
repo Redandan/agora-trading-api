@@ -196,8 +196,11 @@ public class OrphanTradeReconcilerService {
                 WHERE symbol = ?
                   AND auto_traded = 1
                   AND traded_qty IS NOT NULL
-                  AND notified_at >= ?
-                ORDER BY notified_at DESC
+                  AND (
+                    notified_at >= ?
+                    OR (exit_time IS NOT NULL AND exit_time >= ?)
+                  )
+                ORDER BY COALESCE(exit_time, notified_at) DESC
                 """;
             List<DbRec> out = new ArrayList<>();
             jdbc.query(sql, rs -> {
@@ -220,7 +223,7 @@ public class OrphanTradeReconcilerService {
                             exitPx, qty, exitTime.toLocalDateTime(),
                             "LiveSignal id=" + id + " exit " + side));
                 }
-            }, symbol, sqlSince);
+            }, symbol, sqlSince, sqlSince);
             return out;
         } catch (Exception e) {
             log.warn("[OrphanReconciler] live_signal query failed: {}", e.getMessage());

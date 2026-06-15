@@ -252,11 +252,12 @@ public class PositionMcpTools {
                         } catch (Exception ignored) {}
                     }
                     if (childFilled) {
+                        String exitReason = inferOcoExitReason(pos, childAvgPx);
                         sb.append(String.format(
                                 "🔴 [SYNC_ERROR] Position #%d %s — child %s filled @ %s but parent=effective & DB still OPEN\n" +
                                 "  (OKX bug: parent algoId stays effective after fill)\n" +
-                                "  → forceClosePosition(positionId=%d, exitPrice=%s, exitReason=SL)\n",
-                                pos.getId(), pos.getSymbol(), childOrdId, childAvgPx, pos.getId(), childAvgPx));
+                                "  → forceClosePosition(positionId=%d, exitPrice=%s, exitReason=%s)\n",
+                                pos.getId(), pos.getSymbol(), childOrdId, childAvgPx, pos.getId(), childAvgPx, exitReason));
                         syncErr++;
                     } else {
                         sb.append(String.format("✅ Position #%d %s entry=%.2f — OCO active (effective, child not yet filled)\n",
@@ -283,6 +284,27 @@ public class PositionMcpTools {
         }
         sb.append(String.format("\n✅ %d OK | 🔴 %d SYNC_ERROR | ⚠️ %d 異常", ok, syncErr, unprotected));
         return sb.toString();
+    }
+
+    private String inferOcoExitReason(BtLiveSignal pos, String childAvgPx) {
+        try {
+            BigDecimal exit = new BigDecimal(childAvgPx);
+            BigDecimal tp = pos.getSuggestedTp();
+            BigDecimal sl = pos.getSuggestedSl();
+            if (tp != null && sl != null) {
+                BigDecimal tpDistance = exit.subtract(tp).abs();
+                BigDecimal slDistance = exit.subtract(sl).abs();
+                return tpDistance.compareTo(slDistance) <= 0 ? "TP" : "SL";
+            }
+            BigDecimal entry = entryPrice(pos);
+            if (entry != null) {
+                boolean isShort = "SHORT".equals(pos.getSide());
+                boolean profitable = isShort ? exit.compareTo(entry) <= 0 : exit.compareTo(entry) >= 0;
+                return profitable ? "TP" : "SL";
+            }
+        } catch (Exception ignored) {
+        }
+        return "TP/SL";
     }
 
     @McpAuth(McpAuthLevel.OPS)

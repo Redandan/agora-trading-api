@@ -26,6 +26,10 @@ public class ExecutionEventNotificationService {
 
     private static final ZoneId TAIPEI = ZoneId.of("Asia/Taipei");
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+    private static final int TELEGRAM_SAFE_TEXT_LIMIT = 3800;
+    private static final int EVENT_TITLE_LIMIT = 120;
+    private static final int EVENT_SUMMARY_LIMIT = 220;
+    private static final String SAFETY_FOOTER = "\n未執行任何交易、OCO、策略、Grid 訂單或資金行為變更。";
 
     private final ExecutionEventService eventService;
     private final ExecutionEventProperties properties;
@@ -92,23 +96,56 @@ public class ExecutionEventNotificationService {
                 .append(" / 先用按鈕做只讀 drill-down，再決定是否調整 OCO、trailing、strategy、grid 或資金。\n\n");
 
         int i = 1;
+        int omitted = 0;
         for (ExecutionEvent e : sorted) {
-            sb.append(i++).append(". ")
-                    .append(toDisplay(e.getSeverity())).append(" ")
-                    .append("類型=").append(e.getType()).append(" ")
-                    .append(e.getSymbol() == null ? "未知(UNKNOWN)" : e.getSymbol());
-            if (e.getPositionId() != null) sb.append(" 倉位#").append(e.getPositionId());
-            sb.append("\n")
-                    .append("   ").append(toDisplayTitle(e.getTitle())).append("\n")
-                    .append("   ").append(toDisplaySummary(e.getSummary())).append("\n")
-                    .append("   建議=").append(toDisplay(e.getRecommendation()))
-                    .append(" 邊界=").append(toDisplay(e.getActionBoundary()))
-                    .append(" 偵測時間=").append(formatTime(e.getDetectedAt()))
-                    .append("\n");
+            String block = renderEventBlock(i, e);
+            if (sb.length() + block.length() + SAFETY_FOOTER.length() > TELEGRAM_SAFE_TEXT_LIMIT) {
+                omitted = sorted.size() - i + 1;
+                break;
+            }
+            sb.append(block);
+            i++;
         }
 
-        sb.append("\n未執行任何交易、OCO、策略、Grid 訂單或資金行為變更。");
+        if (omitted > 0) {
+            sb.append("\n另有 ").append(omitted)
+                    .append(" 筆 active event 已省略；請用按鈕或只讀 MCP 查完整列表。\n");
+        }
+
+        sb.append(SAFETY_FOOTER);
+        return enforceTelegramLimit(sb.toString());
+    }
+
+    private static String renderEventBlock(int index, ExecutionEvent e) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(index).append(". ")
+                .append(toDisplay(e.getSeverity())).append(" ")
+                .append("類型=").append(e.getType()).append(" ")
+                .append(e.getSymbol() == null ? "未知(UNKNOWN)" : e.getSymbol());
+        if (e.getPositionId() != null) sb.append(" 倉位#").append(e.getPositionId());
+        sb.append("\n")
+                .append("   ").append(compact(toDisplayTitle(e.getTitle()), EVENT_TITLE_LIMIT)).append("\n")
+                .append("   ").append(compact(toDisplaySummary(e.getSummary()), EVENT_SUMMARY_LIMIT)).append("\n")
+                .append("   建議=").append(toDisplay(e.getRecommendation()))
+                .append(" 邊界=").append(toDisplay(e.getActionBoundary()))
+                .append(" 偵測時間=").append(formatTime(e.getDetectedAt()))
+                .append("\n");
         return sb.toString();
+    }
+
+    private static String compact(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, Math.max(0, maxLength - 1)) + "…";
+    }
+
+    private static String enforceTelegramLimit(String message) {
+        if (message.length() <= TELEGRAM_SAFE_TEXT_LIMIT) {
+            return message;
+        }
+        String suffix = "\n...[truncated for Telegram safety]";
+        return message.substring(0, TELEGRAM_SAFE_TEXT_LIMIT - suffix.length()) + suffix;
     }
 
     private static String toDisplay(Object value) {

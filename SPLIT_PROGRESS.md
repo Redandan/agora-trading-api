@@ -267,6 +267,16 @@ Trading deployment prep:
   39 source entity tables, 0 missing DB tables, 176 DB tables, 2 known system
   tables, and 137 extra marketplace/shared tables expected in shared DB mode.
   Dedicated-host MCP smoke reported exactly 304 Trading tools.
+- 2026-06-15 runtime-log smoke deploy advanced runtime to `7e02307` on active
+  port `8084`. The deploy post-verifier passed with shared-mode schema compare,
+  dedicated-host health, dedicated-host MCP `tools/list` with 304 Trading
+  tools, and nginx shared/dedicated upstreams on active port `8084`. The full
+  `scripts/verify_split_acceptance_ssh.ps1` pass also checked the active run log:
+  0 runtime ERROR lines, 15 WARN lines matching the known baseline, and no
+  high-risk trading/OCO/grid/Earn/fund operation-like lines in the recent log
+  tail. Cross-service MCP ownership smoke reported AgoraMarketAPI 155 tools
+  with representative Trading tools absent and `agora-trading-api` 304 Trading
+  tools present.
 
 ## Cleanup Priority
 

@@ -120,6 +120,22 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     `SPRING_FLYWAY_ENABLED=true`, and
     `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`
   - `trading_flyway_schema_history` was created and baselined at version `1`
+- 2026-06-15 runtime-log smoke deploy advanced production to commit `7e02307`
+  on active port `8084`. Post-deploy verification passed with shared-mode
+  schema compare, dedicated-host health, dedicated-host MCP `tools/list`
+  reporting 304 Trading tools, and nginx shared/dedicated upstreams both
+  pointing at active port `8084`. The full
+  `.\scripts\verify_split_acceptance_ssh.ps1` pass then confirmed:
+  - active run log:
+    `/home/ubuntu/agora-trading-api/logs/runs/app-20260615T094927Z-port8084.log`
+  - runtime `ERROR` count: 0
+  - WARN lines matched the known startup/runtime baseline: 15
+  - no high-risk trading/OCO/grid/Earn/fund operation-like lines in the recent
+    log tail
+  - AgoraMarketAPI live MCP exposed 155 marketplace/system/internal tools with
+    representative Trading tools absent
+  - `agora-trading-api` live MCP exposed 304 Trading tools with representative
+    Trading tools present
 
 ## Schema Hardening
 

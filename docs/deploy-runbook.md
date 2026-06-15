@@ -437,12 +437,12 @@ mutate database schema, or call MCP write tools.
 
 ## Startup Warning Baseline
 
-Observed again on 2026-06-15 after the `31af005` deploy, the latest Trading run log
-contained startup WARN lines while `scripts/verify_server.sh`, local health,
-local MCP registry, public health, nginx checks, and the `listSchedulerTasks`
-alias smoke all passed. Classify these as startup audit evidence, not deploy
-failure evidence, unless they prevent readiness or reappear after the app is
-already serving traffic.
+Observed again on 2026-06-15 after the `7e02307` deploy, the latest Trading run
+log contained only known WARN baseline lines while `scripts/verify_server.sh`,
+local health, local MCP registry, public health, nginx checks, runtime log smoke,
+and cross-service MCP ownership smoke all passed. Classify these as startup
+audit evidence, not deploy failure evidence, unless they prevent readiness or
+reappear after the app is already serving traffic.
 
 Current warning classes:
 

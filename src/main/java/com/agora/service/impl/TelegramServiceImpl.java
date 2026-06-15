@@ -60,8 +60,12 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private static final long DRAIN_MS     = 1100;
     /** 佇列容量；超出時丟棄並記 WARN */
     private static final int  QUEUE_CAP    = 500;
+    /** Telegram Bot API text limit is 4096 chars; keep chunks below it with room for part markers. */
+    static final int TELEGRAM_MESSAGE_LIMIT = 4096;
+    private static final int TELEGRAM_CHUNK_BODY_LIMIT = 3800;
 
     private record QueuedMessage(String message, boolean useHtml) {}
+    record ChannelPayload(String message, boolean useHtml) {}
 
     private final LinkedBlockingQueue<QueuedMessage> channelQueue =
             new LinkedBlockingQueue<>(QUEUE_CAP);
@@ -94,13 +98,20 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     public TelegramServiceImpl(TelegramBotConfig telegramBotConfig,
                               TgNotificationLogRepository notificationLogRepo,
                               TgTradingNotificationClassifier notificationClassifier) {
+        this(telegramBotConfig, notificationLogRepo, notificationClassifier, createTelegramClient(telegramBotConfig));
+    }
+
+    TelegramServiceImpl(TelegramBotConfig telegramBotConfig,
+                        TgNotificationLogRepository notificationLogRepo,
+                        TgTradingNotificationClassifier notificationClassifier,
+                        TelegramClient telegramClient) {
         this.telegramBotConfig    = telegramBotConfig;
-        this.telegramClient       = createTelegramClient(telegramBotConfig);
+        this.telegramClient       = telegramClient;
         this.notificationLogRepo  = notificationLogRepo;
         this.notificationClassifier = notificationClassifier;
     }
 
-    private TelegramClient createTelegramClient(TelegramBotConfig config) {
+    private static TelegramClient createTelegramClient(TelegramBotConfig config) {
         String token = config.getToken();
         if (token == null || token.isBlank()) {
             log.warn("Telegram bot token is not configured. Telegram notifications will be logged only.");
@@ -455,10 +466,16 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                        .map(QueuedMessage::message)
                        .collect(Collectors.joining("\n─────────────────────────\n"));
 
+        List<ChannelPayload> payloads = toChannelPayloads(text, useHtml);
+
         try {
-            doSendToChannel(channelId, text, useHtml);
+            sendChannelPayloads(channelId, payloads);
             if (batch.size() > 1) {
-                log.info("[TgQueue] Merged {} messages → sent to channel: {}", batch.size(), channelId);
+                log.info("[TgQueue] Merged {} messages into {} payload(s) → sent to channel: {}",
+                        batch.size(), payloads.size(), channelId);
+            } else if (payloads.size() > 1) {
+                log.info("[TgQueue] Split long message length={} into {} payload(s) → sent to channel: {}",
+                        text.length(), payloads.size(), channelId);
             } else {
                 log.info("Telegram message sent successfully to channel: {}", channelId);
             }
@@ -469,7 +486,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                         "請更新環境變數 TELEGRAM_CHANNEL_ID={}，正在用新 ID 重試...",
                         channelId, newChatId, newChatId);
                 try {
-                    doSendToChannel(newChatId.toString(), text, useHtml);
+                    sendChannelPayloads(newChatId.toString(), payloads);
                     log.info("重試成功：訊息已發送至新 chatId={}", newChatId);
                 } catch (TelegramApiException retryEx) {
                     log.error("重試失敗 newChatId={}: {}", newChatId, retryEx.getMessage(), retryEx);
@@ -480,6 +497,76 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         } catch (Exception e) {
             log.error("[TgQueue] Failed to send channel message: {}", e.getMessage(), e);
         }
+    }
+
+    private void sendChannelPayloads(String channelId, List<ChannelPayload> payloads) throws TelegramApiException {
+        for (ChannelPayload payload : payloads) {
+            doSendToChannel(channelId, payload.message(), payload.useHtml());
+        }
+    }
+
+    static List<ChannelPayload> toChannelPayloads(String message, boolean useHtml) {
+        if (message == null || message.length() <= TELEGRAM_MESSAGE_LIMIT) {
+            return List.of(new ChannelPayload(message, useHtml));
+        }
+
+        boolean strippedHtml = useHtml;
+        String deliverable = strippedHtml ? stripHtmlTags(message) : message;
+        List<String> parts = splitPlainText(deliverable, TELEGRAM_CHUNK_BODY_LIMIT);
+        if (parts.size() == 1 && parts.get(0).length() <= TELEGRAM_MESSAGE_LIMIT) {
+            return List.of(new ChannelPayload(parts.get(0), false));
+        }
+
+        List<ChannelPayload> payloads = new ArrayList<>(parts.size());
+        int total = parts.size();
+        for (int i = 0; i < total; i++) {
+            String prefix = String.format("(%d/%d)%n", i + 1, total);
+            String text = prefix + parts.get(i);
+            payloads.add(new ChannelPayload(text, false));
+        }
+        return payloads;
+    }
+
+    private static List<String> splitPlainText(String text, int maxLen) {
+        if (text == null || text.length() <= maxLen) {
+            return List.of(text);
+        }
+
+        List<String> parts = new ArrayList<>();
+        int start = 0;
+        while (start < text.length()) {
+            int hardEnd = Math.min(start + maxLen, text.length());
+            int end = chooseChunkEnd(text, start, hardEnd);
+            String part = text.substring(start, end).stripTrailing();
+            if (!part.isEmpty()) {
+                parts.add(part);
+            }
+            start = end;
+            while (start < text.length() && (text.charAt(start) == '\n' || text.charAt(start) == '\r')) {
+                start++;
+            }
+        }
+        return parts;
+    }
+
+    private static int chooseChunkEnd(String text, int start, int hardEnd) {
+        if (hardEnd >= text.length()) {
+            return text.length();
+        }
+        int minUsefulBreak = start + Math.min(200, Math.max(1, (hardEnd - start) / 4));
+        int newline = text.lastIndexOf('\n', hardEnd - 1);
+        if (newline >= minUsefulBreak) {
+            return newline + 1;
+        }
+        int space = text.lastIndexOf(' ', hardEnd - 1);
+        if (space >= minUsefulBreak) {
+            return space + 1;
+        }
+        return hardEnd;
+    }
+
+    private static String stripHtmlTags(String text) {
+        return text.replaceAll("<[^>]+>", "");
     }
 
     private void doSendToChannel(String chatId, String message, boolean useHtml) throws TelegramApiException {

@@ -147,7 +147,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - 2026-06-15 read-only server verification after local diagnostic/smoke
   improvements confirmed the running service was healthy but not current:
   regular `.\scripts\verify_server_ssh.ps1` failed at git currentness because
-  the server worktree was `8419bee` while `origin/main` was `5c62887`.
+  the server worktree was `8419bee` while the checked local head was `5c62887`;
+  later docs-only handoff commits may advance `origin/main` without changing
+  the deploy requirement.
   Re-running with `-SkipGitCurrent` performed no deploy or production mutation
   and passed active port `8084`, local health, local MCP
   `getMcpRegistryVersion`, public dedicated-host health, public dedicated-host

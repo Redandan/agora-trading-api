@@ -358,7 +358,9 @@ location /api/trading/ {
 }
 ```
 
-If blue-green is used, deploy should update nginx to the active `app.port`, matching the existing AgoraMarketAPI style.
+If blue-green is used, deploy updates nginx to the active `app.port`, matching
+the existing AgoraMarketAPI style. The port swap must cover both the shared
+host `/api/trading/` upstream and the dedicated Trading host `/api/*` upstreams.
 
 ## Post-Deploy Smoke
 

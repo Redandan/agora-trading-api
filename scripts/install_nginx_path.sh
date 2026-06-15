@@ -42,7 +42,7 @@ if sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
     /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
       in_trading = 1
     }
-    in_trading {
+    in_trading || /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading/ {
       gsub(/127\.0\.0\.1:(8084|8085)/, "127.0.0.1:" port)
     }
     { print }

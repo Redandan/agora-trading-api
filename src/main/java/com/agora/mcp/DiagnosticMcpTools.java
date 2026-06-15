@@ -14,7 +14,6 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.system.ServerStartupLogRepository;
 import com.agora.service.BacktestService;
-import com.agora.service.market.BinanceKlineImportService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,7 @@ import java.util.Set;
 
 /**
  * MCP 診斷工具集。
- * 提供策略執行驗證：先補齊 K 線資料，以回測為基準，比對啟動後實際觸發的買入訊號，排查漏單。
+ * 提供策略執行驗證：先以只讀方式檢查策略 K 線資料就緒狀態，再以回測為基準比對啟動後實際觸發的買入訊號，排查漏單。
  */
 @Slf4j
 @Service
@@ -58,7 +57,6 @@ public class DiagnosticMcpTools {
     private final BtStrategyRepository strategyRepo;
     private final BtLiveSignalRepository liveSignalRepo;
     private final BacktestService backtestService;
-    private final BinanceKlineImportService klineImportService;
     private final ObjectMapper objectMapper;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final com.agora.service.diagnostic.IndicatorOutcomeService outcomeService;
@@ -247,10 +245,10 @@ public class DiagnosticMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC})
     @Tool(description = "驗證策略執行情況，找出漏單或漏評估的潛在 Bug。" +
-            "先自動補齊所需 K 線資料，再對每個啟用策略執行回測，比對回測 BUY 信號數與實際觸發數。" +
+            "只讀檢查所需 K 線資料覆蓋/新鮮度，再對每個啟用策略執行回測，比對回測 BUY 信號數與實際觸發數。" +
             "days 參數指定往回驗證的天數（例如 days=7 表示近 7 天）；" +
             "不傳 days 則預設從本次伺服器啟動時間起算。" +
-            "MTF 策略會同時補齊 1h 與 4h K 線資料。")
+            "MTF 策略會同時檢查 1h 與 4h K 線資料；不呼叫外部 backfill/import，不寫 md_kline 或 backtest result。")
     public String verifyStrategyExecution(Integer days) {
         LocalDateTime now = LocalDateTime.now(TZ);
         LocalDateTime since;
@@ -287,31 +285,25 @@ public class DiagnosticMcpTools {
             return sb.append("⚠️ 無啟用策略").toString();
         }
 
-        // 3. 先補齊所有策略需要的 K 線資料（去重，同 symbol+interval 只 import 一次）
-        sb.append("📥 補齊 K 線資料...\n");
-        Set<String> imported = new HashSet<>();
+        // 3. 只讀檢查所有策略需要的 K 線資料（去重，同 symbol+interval+source 只查一次）
+        sb.append("📊 K 線資料就緒檢查（READ_ONLY，no external import/backfill）...\n");
+        Set<String> checked = new HashSet<>();
         for (BtStrategy strategy : strategies) {
             String symbol = resolveSymbol(strategy);
             if (symbol == null) continue;
+            String klineSource = resolveStrategyKlineSource(strategy);
 
             // MTF 策略需同時補齊主週期與 4h 資料
             Set<String> intervals = resolveAllIntervals(strategy);
             for (String intervalCode : intervals) {
-                String key = symbol + ":" + intervalCode;
-                if (imported.contains(key)) continue;
-                imported.add(key);
-
-                try {
-                    var resp = klineImportService.importHistorical(
-                            symbol.toUpperCase(), intervalCode, backtestStart, now);
-                    sb.append(String.format("  %s@%s → 新增 %d 筆，略過 %d 筆\n",
-                            symbol, intervalCode,
-                            resp.getImportedCount(), resp.getSkippedCount()));
-                } catch (Exception e) {
-                    sb.append(String.format("  %s@%s → import 失敗：%s\n", symbol, intervalCode, e.getMessage()));
-                }
+                String key = symbol + ":" + intervalCode + ":" + klineSource;
+                if (checked.contains(key)) continue;
+                checked.add(key);
+                sb.append("  ").append(loadKlineReadinessLine(
+                        symbol.toUpperCase(), intervalCode, klineSource, backtestStart, now)).append("\n");
             }
         }
+        sb.append("  note: Binance REST 451 不再影響此驗證；若 source=okx 的 DB bars 足夠且 fresh，策略驗證可繼續。\n");
         sb.append("\n");
 
         // 4. 逐策略回測 + 比對
@@ -323,6 +315,7 @@ public class DiagnosticMcpTools {
 
             String symbol = resolveSymbol(strategy);
             String intervalCode = resolveInterval(strategy);
+            String klineSource = resolveStrategyKlineSource(strategy);
             boolean notifyOnly = resolveNotifyOnly(strategy);
 
             if (symbol == null) {
@@ -332,6 +325,7 @@ public class DiagnosticMcpTools {
 
             sb.append(String.format("  幣種：%s｜週期：%s｜模式：%s\n",
                     symbol, intervalCode, notifyOnly ? "通知Only" : "自動下單"));
+            sb.append(String.format("  K線源：%s\n", klineSource));
 
             // 回測（資料已補齊）
             int backtestBuyCount = 0;
@@ -344,6 +338,8 @@ public class DiagnosticMcpTools {
                 req.setEndTime(now);
                 req.setInitialCapital(new BigDecimal("10000"));
                 req.setFeeRate(new BigDecimal("0.001"));
+                req.setSource(klineSource);
+                req.setSkipPersist(true);
 
                 BacktestResultResponse result = backtestService.runForExploration(req);
                 if (result.getTrades() != null) {
@@ -2770,6 +2766,68 @@ public class DiagnosticMcpTools {
             if (cfg.has("runIntervalCode")) return cfg.get("runIntervalCode").asText("1h");
         } catch (Exception ignored) {}
         return "1h";
+    }
+
+    private String resolveStrategyKlineSource(BtStrategy strategy) {
+        if (strategy != null && hasText(strategy.getKlineSource())) {
+            return strategy.getKlineSource().trim().toLowerCase();
+        }
+        try {
+            JsonNode cfg = objectMapper.readTree(strategy.getConfigJson());
+            if (cfg.has("klineSource") && hasText(cfg.get("klineSource").asText())) {
+                return cfg.get("klineSource").asText().trim().toLowerCase();
+            }
+        } catch (Exception ignored) {}
+        return "okx";
+    }
+
+    private String loadKlineReadinessLine(String symbol, String intervalCode, String source,
+                                          LocalDateTime start, LocalDateTime end) {
+        String src = hasText(source) ? source.trim().toLowerCase() : "okx";
+        try {
+            Map<String, Object> row = jdbc.queryForMap("""
+                    SELECT COUNT(*) AS cnt, MIN(open_time) AS first_bar, MAX(open_time) AS latest_bar
+                    FROM md_kline
+                    WHERE symbol = ? AND interval_code = ? AND source = ?
+                      AND open_time BETWEEN ? AND ?
+                    """, symbol, intervalCode, src, start, end);
+            int count = asInt(row.get("cnt"));
+            LocalDateTime first = asDateTime(row.get("first_bar"));
+            LocalDateTime latest = asDateTime(row.get("latest_bar"));
+            if (count <= 0 || latest == null) {
+                return String.format("%s@%s source=%s → NO_DB_BARS in window; backtest may fail, run explicit guarded backfill outside this verifier",
+                        symbol, intervalCode, src);
+            }
+            long ageMin = java.time.Duration.between(latest, LocalDateTime.now(ZoneOffset.UTC)).toMinutes();
+            long threshold = klineStaleThresholdMinutes(intervalCode);
+            String status = ageMin > threshold ? "STALE_DB_BARS" : "READY";
+            String coverage = count < 60 ? "LOW_COVERAGE" : "OK";
+            return String.format("%s@%s source=%s → %s coverage=%s bars=%d first=%s latest=%s ageMin=%d thresholdMin=%d",
+                    symbol, intervalCode, src, status, coverage, count, first, latest, ageMin, threshold);
+        } catch (Exception e) {
+            return String.format("%s@%s source=%s → QUERY_FAILED: %s",
+                    symbol, intervalCode, src, truncate(e.getMessage(), 180));
+        }
+    }
+
+    private long klineStaleThresholdMinutes(String intervalCode) {
+        long minutes = intervalMinutes(intervalCode);
+        return minutes > 0 ? 2L * minutes + 15L : 135L;
+    }
+
+    private long intervalMinutes(String intervalCode) {
+        if (intervalCode == null || intervalCode.isBlank()) {
+            return 60L;
+        }
+        String code = intervalCode.trim().toLowerCase();
+        try {
+            if (code.endsWith("m")) return Long.parseLong(code.substring(0, code.length() - 1));
+            if (code.endsWith("h")) return Long.parseLong(code.substring(0, code.length() - 1)) * 60L;
+            if (code.endsWith("d")) return Long.parseLong(code.substring(0, code.length() - 1)) * 1440L;
+        } catch (NumberFormatException ignored) {
+            return 60L;
+        }
+        return 60L;
     }
 
     private boolean resolveNotifyOnly(BtStrategy strategy) {

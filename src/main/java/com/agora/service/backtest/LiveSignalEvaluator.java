@@ -1586,6 +1586,10 @@ public class LiveSignalEvaluator {
                         legacyTradeAmount, tradeAmount);
             }
         }
+        if (shouldSkipRiskSizedAutoTrade(sizingDecision, forceRiskSizingForWickAwareSl)) {
+            markAutoTradeSkipped(record, riskSizingSkipReason(sizingDecision));
+            return;
+        }
         if (stagedMicroAddEntry && stagedMicroAddMaxNotionalUsdt > 0 && tradeAmount > stagedMicroAddMaxNotionalUsdt) {
             log.info("[AutoTrade] staged micro-add notional cap applied: strategyId={} symbol={} amount={} cap={}",
                     record.getStrategyId(), symbol, tradeAmount, stagedMicroAddMaxNotionalUsdt);
@@ -1631,6 +1635,10 @@ public class LiveSignalEvaluator {
                         if (forceRiskSizingForWickAwareSl && !tradingProperties.isPositionSizingLiveEnabled()) {
                             tradeAmount = sizingDecision.recommendedAmountUsdt();
                         }
+                    }
+                    if (shouldSkipRiskSizedAutoTrade(sizingDecision, forceRiskSizingForWickAwareSl)) {
+                        markAutoTradeSkipped(record, riskSizingSkipReason(sizingDecision));
+                        return;
                     }
                 }
                 if (stagedMicroAddEntry && stagedMicroAddMaxNotionalUsdt > 0 && tradeAmount > stagedMicroAddMaxNotionalUsdt) {
@@ -1731,16 +1739,19 @@ public class LiveSignalEvaluator {
             tradeCtx.put("staged_micro_add_entry", stagedMicroAddEntry);
             tradeCtx.put("staged_micro_add_notional_cap_usdt", stagedMicroAddMaxNotionalUsdt);
             tradeCtx.put("estimated_slippage_pct", estimatedSlippagePct);
-            tradeCtx.put("position_sizing", java.util.Map.of(
-                    "mode", sizingDecision.liveEnabled() ? "LIVE" : "SHADOW",
-                    "legacyAmountUsdt", sizingDecision.legacyAmountUsdt(),
-                    "recommendedAmountUsdt", sizingDecision.recommendedAmountUsdt(),
-                    "finalAmountUsdt", sizingDecision.finalAmountUsdt(),
-                    "slDistancePct", sizingDecision.slDistancePct(),
-                    "riskBudgetUsdt", sizingDecision.riskBudgetUsdt(),
-                    "availableUsdt", sizingDecision.availableUsdt() != null ? sizingDecision.availableUsdt() : "N/A",
-                    "reason", sizingDecision.reason()
-            ));
+            java.util.Map<String, Object> sizingCtx = new java.util.LinkedHashMap<>();
+            sizingCtx.put("mode", sizingDecision.liveEnabled() ? "LIVE" : "SHADOW");
+            sizingCtx.put("legacyAmountUsdt", sizingDecision.legacyAmountUsdt());
+            sizingCtx.put("recommendedAmountUsdt", sizingDecision.recommendedAmountUsdt());
+            sizingCtx.put("finalAmountUsdt", sizingDecision.finalAmountUsdt());
+            sizingCtx.put("slDistancePct", sizingDecision.slDistancePct());
+            sizingCtx.put("riskBudgetUsdt", sizingDecision.riskBudgetUsdt());
+            sizingCtx.put("minNotionalUsdt", sizingDecision.minNotionalUsdt());
+            sizingCtx.put("belowMinNotional", sizingDecision.belowMinNotional());
+            sizingCtx.put("liveEntryAllowed", sizingDecision.liveEntryAllowed());
+            sizingCtx.put("availableUsdt", sizingDecision.availableUsdt() != null ? sizingDecision.availableUsdt() : "N/A");
+            sizingCtx.put("reason", sizingDecision.reason());
+            tradeCtx.put("position_sizing", sizingCtx);
             auditWriter.logAutoTradeOk(record.getStrategyId(), symbol, record.getId(), tradeCtx);
 
             // TG 通知
@@ -1791,6 +1802,22 @@ public class LiveSignalEvaluator {
                         java.util.Map.of("side", "LONG", "buySucceeded", false));
             }
         }
+    }
+
+    private boolean shouldSkipRiskSizedAutoTrade(PositionSizingService.PositionSizingDecision sizingDecision,
+                                                boolean forceRiskSizingForWickAwareSl) {
+        return sizingDecision != null
+                && (tradingProperties.isPositionSizingLiveEnabled() || forceRiskSizingForWickAwareSl)
+                && !sizingDecision.liveEntryAllowed();
+    }
+
+    private String riskSizingSkipReason(PositionSizingService.PositionSizingDecision sizingDecision) {
+        String reason = String.format(java.util.Locale.ROOT,
+                "AutoTrade: risk-sized notional %.2f below min %.2f; skip live entry",
+                sizingDecision.recommendedAmountUsdt(),
+                sizingDecision.minNotionalUsdt());
+        log.info("[AutoTrade] Skip: {}", reason);
+        return reason;
     }
 
     private void markAutoTradeSkipped(BtLiveSignal record, String reason) {

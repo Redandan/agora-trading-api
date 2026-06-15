@@ -1270,6 +1270,7 @@ public class PositionMcpTools {
         int shadowCovered = 0;
         int review = 0;
         int shortOnly = 0;
+        int asymmetric = 0;
         if (strategies.isEmpty()) {
             sb.append("Enabled strategies covering ").append(sym).append(": none\n");
         } else {
@@ -1283,6 +1284,12 @@ public class PositionMcpTools {
                         "BTCUSDT".equalsIgnoreCase(sym) ? "ULTRA_LOW_DISASTER" : "STRUCTURAL")
                         .trim().toUpperCase();
                 double disasterPct = configDouble(cfg, "spotWickAwareDisasterSlPct", 0.12);
+                double plannedTpPct = configDouble(cfg, "fixedTakeProfitPct",
+                        configDouble(cfg, "takeProfitPct", 0.0));
+                boolean tpSlAsymmetry = plannedTpPct > 0.0
+                        && plannedTpPct <= 0.06
+                        && "ULTRA_LOW_DISASTER".equals(mode)
+                        && disasterPct >= 0.10;
                 String status;
                 String action;
                 if (allowShort) {
@@ -1300,12 +1307,17 @@ public class PositionMcpTools {
                 } else if (notifyOnly) {
                     shadowCovered++;
                     status = "SHADOW_COVERED";
-                    action = "Covered before promotion; still notifyOnly now.";
+                    action = tpSlAsymmetry
+                            ? "Covered before promotion; still notifyOnly now. Review TP/SL asymmetry before live promotion."
+                            : "Covered before promotion; still notifyOnly now.";
                 } else {
                     liveCovered++;
                     status = "LIVE_COVERED";
-                    action = "Future live LONG entries use disaster SL plus risk sizing.";
+                    action = tpSlAsymmetry
+                            ? "Future live LONG entries use disaster SL plus risk sizing; TP/SL asymmetry must stay size-capped."
+                            : "Future live LONG entries use disaster SL plus risk sizing.";
                 }
+                if (tpSlAsymmetry) asymmetric++;
 
                 sb.append(String.format("#%d %s status=%s\n",
                         strategy.getId(), nullSafe(strategy.getName()), status));
@@ -1317,6 +1329,12 @@ public class PositionMcpTools {
                         .append(" | spotWickAwareSlMode=").append(mode)
                         .append(" | disasterSlPct=").append(String.format(java.util.Locale.ROOT, "%.2f%%", disasterPct * 100.0))
                         .append("\n");
+                if (tpSlAsymmetry) {
+                    sb.append("  asymmetryFlag=TP_SL_ASYMMETRY")
+                            .append(" | plannedTpPct=").append(String.format(java.util.Locale.ROOT, "%.2f%%", plannedTpPct * 100.0))
+                            .append(" | effectiveSlPct=").append(String.format(java.util.Locale.ROOT, "%.2f%%", disasterPct * 100.0))
+                            .append(" | rule=planned TP <= 6% and effective SL >= 10%\n");
+                }
                 sb.append("  action: ").append(action).append("\n");
                 sb.append("---\n");
             }
@@ -1328,8 +1346,11 @@ public class PositionMcpTools {
         sb.append("shadowCovered=").append(shadowCovered).append("\n");
         sb.append("review=").append(review).append("\n");
         sb.append("shortReview=").append(shortOnly).append("\n");
+        sb.append("tpSlAsymmetry=").append(asymmetric).append("\n");
         if (review > 0) {
             sb.append("Operator action: REVIEW_POLICY_GAPS before promoting or relying on those BTC spot strategies.\n");
+        } else if (asymmetric > 0) {
+            sb.append("Operator action: HOLD_WITH_SIZE_CAPS; TP/SL asymmetry exists, so live entries must rely on disaster-SL risk sizing and below-min skip guard.\n");
         } else {
             sb.append("Operator action: HOLD; enabled BTC spot LONG strategies are covered by anti-wick disaster-SL policy.\n");
         }

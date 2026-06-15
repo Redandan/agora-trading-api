@@ -37,7 +37,8 @@ public class PositionSizingService {
         if (entryPx <= 0 || slPx <= 0 || slPx == entryPx) {
             return new PositionSizingDecision(symbol, strategyId, legacyAmountUsdt, legacyAmountUsdt,
                     legacyAmountUsdt, 0.0, 0.0, 0.0, 0.0, availableUsdt,
-                    false, "INVALID_SL_OR_ENTRY", "missing valid entry/sl; keep legacy amount");
+                    min, false, true, false, "INVALID_SL_OR_ENTRY",
+                    "missing valid entry/sl; keep legacy amount");
         }
 
         double slDistancePct = Math.abs(entryPx - slPx) / entryPx;
@@ -47,11 +48,8 @@ public class PositionSizingService {
         double riskBudget = hardRisk * quality;
         double raw = riskBudget / slDistancePct;
         double recommended = raw;
+        boolean belowMinNotional = recommended < min;
 
-        if (recommended < min) {
-            recommended = min;
-            reasons.add("min_notional_floor");
-        }
         if (recommended > max) {
             recommended = max;
             reasons.add("max_notional_cap");
@@ -64,9 +62,14 @@ public class PositionSizingService {
             }
         }
         recommended = Math.max(0.0, round2(recommended));
+        if (recommended < min) {
+            belowMinNotional = true;
+            reasons.add("below_min_notional_skip");
+        }
 
         boolean live = props.isPositionSizingLiveEnabled();
-        double finalAmount = live ? recommended : legacyAmountUsdt;
+        boolean liveEntryAllowed = !belowMinNotional;
+        double finalAmount = live ? (liveEntryAllowed ? recommended : 0.0) : legacyAmountUsdt;
         if (!live) {
             reasons.add("shadow_only_live_amount_unchanged");
         }
@@ -75,7 +78,8 @@ public class PositionSizingService {
         }
 
         return new PositionSizingDecision(symbol, strategyId, legacyAmountUsdt, recommended, finalAmount,
-                slDistancePct, tpDistancePct, rr, riskBudget, availableUsdt, live,
+                slDistancePct, tpDistancePct, rr, riskBudget, availableUsdt, min,
+                belowMinNotional, liveEntryAllowed, live,
                 String.join(",", reasons), buildExplain(legacyAmountUsdt, recommended, slDistancePct, riskBudget, rr, live));
     }
 
@@ -114,6 +118,9 @@ public class PositionSizingService {
             double riskReward,
             double riskBudgetUsdt,
             Double availableUsdt,
+            double minNotionalUsdt,
+            boolean belowMinNotional,
+            boolean liveEntryAllowed,
             boolean liveEnabled,
             String reason,
             String explain
@@ -121,7 +128,7 @@ public class PositionSizingService {
         public String tgLine() {
             return String.format(
                     "📐 Sizing: %s %.2f USDT (legacy %.2f, shadow %.2f) | SL %.2f%% | risk %.2f USDT | %s",
-                    liveEnabled ? "LIVE" : "SHADOW",
+                    liveEnabled ? (liveEntryAllowed ? "LIVE" : "SKIP") : "SHADOW",
                     finalAmountUsdt,
                     legacyAmountUsdt,
                     recommendedAmountUsdt,

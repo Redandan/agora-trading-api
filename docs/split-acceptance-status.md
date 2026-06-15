@@ -56,6 +56,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Shared-DB schema compare is read-only. It proves every trading entity table is
   present in `agora_market`; marketplace/shared extra tables are expected and do
   not block acceptance in `SCHEMA_COMPARE_MODE=shared`.
+- Trading MCP DataFreshnessGuard RCA is read-only. After a deploy containing
+  the latest diagnostic changes, `diagnoseDataFreshnessGuardBlocks` should show
+  current kline snapshot status per symbol/interval/source with
+  `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW` and a
+  `staleNowKeys` summary, so historical stale audit rows can be separated from
+  an active collector/source outage.
 - Local validation passed on 2026-06-15 after the dedicated-host blue-green
   port-swap fix with:
   - `.\scripts\verify_local.ps1`

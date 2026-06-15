@@ -1302,19 +1302,44 @@ public class DiagnosticMcpTools {
         }
 
         sb.append("\nCurrent kline source snapshot:\n");
+        int readyNowKeys = 0;
+        int staleNowKeys = 0;
+        int noDataNowKeys = 0;
+        int queryFailedNowKeys = 0;
         for (String key : klineKeys) {
             String[] parts = key.split("\\|", -1);
-            sb.append(loadKlineFreshnessLine(sym, parts[0], parts.length > 1 ? parts[1] : "unknown")).append("\n");
+            KlineFreshnessSnapshot snapshot = loadKlineFreshnessSnapshot(
+                    sym, parts[0], parts.length > 1 ? parts[1] : "unknown");
+            switch (snapshot.status()) {
+                case "READY_NOW" -> readyNowKeys++;
+                case "STALE_NOW" -> staleNowKeys++;
+                case "NO_DATA_NOW" -> noDataNowKeys++;
+                case "QUERY_FAILED_NOW" -> queryFailedNowKeys++;
+                default -> queryFailedNowKeys++;
+            }
+            sb.append(snapshot.line()).append("\n");
         }
+
+        sb.append("\nCurrent snapshot summary:\n");
+        sb.append("  readyNowKeys=").append(readyNowKeys).append("\n");
+        sb.append("  staleNowKeys=").append(staleNowKeys).append("\n");
+        sb.append("  noDataNowKeys=").append(noDataNowKeys).append("\n");
+        sb.append("  queryFailedNowKeys=").append(queryFailedNowKeys).append("\n");
 
         sb.append("\nRecent samples:\n");
         samples.forEach(s -> sb.append(s).append("\n"));
-        sb.append("\nOperator conclusion: keep DataFreshnessGuard strict; fix collector/event cadence only if TRUE_STALE_KLINE rows persist after source snapshot confirms missing recent bars.\n");
+        if (staleNowKeys > 0 || noDataNowKeys > 0) {
+            sb.append("\nOperator conclusion: keep DataFreshnessGuard strict; current source snapshot still has stale or missing kline keys, so fix collector/event cadence before relaxing the guard.\n");
+        } else if (queryFailedNowKeys > 0) {
+            sb.append("\nOperator conclusion: keep DataFreshnessGuard strict; current source snapshot could not be fully queried, so retry RCA before changing collector or guard behavior.\n");
+        } else {
+            sb.append("\nOperator conclusion: keep DataFreshnessGuard strict; recent blocks were historical stale rows, but the current source snapshot is recovered now. Investigate collector/gap cadence only if staleNowKeys reappears.\n");
+        }
         sb.append("acceptance: PASS_RCA_CLASSIFIED\n");
         return sb.toString();
     }
 
-    private String loadKlineFreshnessLine(String symbol, String interval, String source) {
+    private KlineFreshnessSnapshot loadKlineFreshnessSnapshot(String symbol, String interval, String source) {
         if (interval == null || interval.isBlank()) interval = "unknown";
         String sql = """
                 SELECT open_time
@@ -1326,14 +1351,28 @@ public class DiagnosticMcpTools {
             List<Map<String, Object>> rows = "unknown".equalsIgnoreCase(source)
                     ? jdbc.queryForList(sql, symbol, interval)
                     : jdbc.queryForList(sql, symbol, interval, source);
+            long threshold = klineStaleThresholdMinutes(interval);
             if (rows.isEmpty()) {
-                return "- " + symbol + "@" + interval + "/" + source + " latestOpen=N/A";
+                return new KlineFreshnessSnapshot(
+                        "NO_DATA_NOW",
+                        "- " + symbol + "@" + interval + "/" + source
+                                + " status=NO_DATA_NOW latestOpen=N/A thresholdMin=" + threshold);
             }
             LocalDateTime latest = asDateTime(rows.get(0).get("open_time"));
             long ageMin = latest != null ? java.time.Duration.between(latest, LocalDateTime.now(ZoneOffset.UTC)).toMinutes() : -1;
-            return "- " + symbol + "@" + interval + "/" + source + " latestOpen=" + latest + " ageMin=" + ageMin;
+            String status = ageMin >= 0 && ageMin <= threshold ? "READY_NOW" : "STALE_NOW";
+            return new KlineFreshnessSnapshot(
+                    status,
+                    "- " + symbol + "@" + interval + "/" + source
+                            + " status=" + status
+                            + " latestOpen=" + latest
+                            + " ageMin=" + ageMin
+                            + " thresholdMin=" + threshold);
         } catch (Exception e) {
-            return "- " + symbol + "@" + interval + "/" + source + " latestOpen=query_failed: " + e.getMessage();
+            return new KlineFreshnessSnapshot(
+                    "QUERY_FAILED_NOW",
+                    "- " + symbol + "@" + interval + "/" + source
+                            + " status=QUERY_FAILED_NOW latestOpen=query_failed: " + e.getMessage());
         }
     }
 
@@ -1359,6 +1398,9 @@ public class DiagnosticMcpTools {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private record KlineFreshnessSnapshot(String status, String line) {
     }
 
     private static class DataFreshnessGroup {

@@ -117,6 +117,11 @@
 - MCP parity smoke coverage now checks representative standalone trading tools
   through `tools/list` in `scripts/smoke_local_health.ps1` and the reusable
   `scripts/smoke_mcp_parity.ps1`.
+- `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
+  DataFreshnessGuard blocks from current source freshness: the read-only MCP
+  RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`
+  per symbol/interval/source and summarizes `staleNowKeys` so operators do not
+  mistake recovered historical stale rows for an active collector failure.
 - Shared-DB Flyway baseline prep now includes
   `scripts/schema_baseline_generate_server.sh`, which re-runs shared-mode
   compare and dumps reviewable trading entity DDL for `V1__baseline.sql` without

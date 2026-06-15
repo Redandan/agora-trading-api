@@ -128,6 +128,11 @@ Expected:
 - `local-smoke` does not register scheduled tasks; smoke logs include `Scheduling disabled for local-smoke profile`.
 - Health passes at `http://127.0.0.1:18084/api/trading/actuator/health`.
 - MCP guard checks pass through `/api/trading/mcp`, proving disabled responses for live sentiment reads, external health probes, and external backfill/import reads.
+- DataFreshnessGuard RCA remains read-only. `diagnoseDataFreshnessGuardBlocks`
+  may read recent `bt_decision_audit` rows and existing `md_kline` freshness,
+  but it must only report current snapshot states such as `READY_NOW`,
+  `STALE_NOW`, `NO_DATA_NOW`, and `QUERY_FAILED_NOW`; it must not import,
+  backfill, trade, or mutate guard behavior.
 - Smoke command-line overrides clear local external keys for AgoraMarket, OKX, Binance, Telegram, AI providers, and market-data providers even if host environment variables are set.
 - Smoke command-line overrides clear both Telegram bot token and channel id, so local smoke cannot send channel messages even when host `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_CHANNEL_ID`, or legacy `TELEGRAM_CHANNEL_ID` are present.
 - Smoke logs prove H2 local DB, exchange-rate fallback, cleared OKX API key, disabled OKX auto-trade, skipped private WS, and disabled startup refresh.

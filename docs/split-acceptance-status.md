@@ -144,6 +144,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     representative Trading tools absent
   - `agora-trading-api` live MCP exposed 304 Trading tools with representative
     Trading tools present
+- 2026-06-15 read-only server verification after local diagnostic/smoke
+  improvements confirmed the running service was healthy but not current:
+  regular `.\scripts\verify_server_ssh.ps1` failed at git currentness because
+  the server worktree was `8419bee` while `origin/main` was `5c62887`.
+  Re-running with `-SkipGitCurrent` performed no deploy or production mutation
+  and passed active port `8084`, local health, local MCP
+  `getMcpRegistryVersion`, public dedicated-host health, public dedicated-host
+  MCP `tools/list` with 304 tools, and nginx shared/dedicated upstream checks.
+  Deploy is required before the read-only `verifyStrategyExecution` and
+  DataFreshnessGuard RCA smoke improvements are production-current.
 
 ## Schema Hardening
 

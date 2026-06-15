@@ -49,6 +49,7 @@ public class DiagnosticMcpTools {
 
     private static final ZoneId TZ = ZoneId.of("Asia/Taipei");
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+    private static final String SERVER_APP_DIR = "/home/ubuntu/agora-trading-api";
     private static final String APP_LOG_PATH = "/home/ubuntu/agora-trading-api/app.log";
     private static final String APP_STARTED_MARKER = "Started TradingApiApplication";
     private static final String APP_STARTING_MARKER = "Starting TradingApiApplication";
@@ -72,11 +73,77 @@ public class DiagnosticMcpTools {
     private final McpRegistryVersionService mcpRegistryVersionService;
 
     private java.io.File resolveAppLogFile() {
-        java.io.File logFile = new java.io.File(APP_LOG_PATH);
-        if (!logFile.exists()) {
-            logFile = new java.io.File("logs/app.log");
+        for (java.io.File candidate : new java.io.File[] {
+                new java.io.File(APP_LOG_PATH),
+                new java.io.File("logs/app.log"),
+                new java.io.File("app.log")
+        }) {
+            if (candidate.isFile()) {
+                return candidate;
+            }
         }
-        return logFile;
+        java.io.File activeRunLog = resolveActiveRunLogFile();
+        if (activeRunLog != null) {
+            return activeRunLog;
+        }
+        java.io.File latestLocalRunLog = resolveLatestRunLogFile(new java.io.File("logs/runs"), null);
+        if (latestLocalRunLog != null) {
+            return latestLocalRunLog;
+        }
+        java.io.File latestServerRunLog = resolveLatestRunLogFile(
+                new java.io.File(SERVER_APP_DIR, "logs/runs"), null);
+        if (latestServerRunLog != null) {
+            return latestServerRunLog;
+        }
+        return new java.io.File(APP_LOG_PATH);
+    }
+
+    private java.io.File resolveActiveRunLogFile() {
+        for (java.io.File baseDir : new java.io.File[] {
+                new java.io.File("."),
+                new java.io.File(SERVER_APP_DIR)
+        }) {
+            String port = readTrimmedFile(new java.io.File(baseDir, "app.port"));
+            if (port == null || port.isBlank()) {
+                continue;
+            }
+            java.io.File active = resolveLatestRunLogFile(new java.io.File(baseDir, "logs/runs"), port);
+            if (active != null) {
+                return active;
+            }
+        }
+        return null;
+    }
+
+    private java.io.File resolveLatestRunLogFile(java.io.File runDir, String port) {
+        if (runDir == null || !runDir.isDirectory()) {
+            return null;
+        }
+        String portMarker = port == null || port.isBlank() ? null : "-port" + port.trim() + ".log";
+        java.io.File[] matches = runDir.listFiles((dir, name) ->
+                name != null
+                        && name.startsWith("app-")
+                        && name.endsWith(".log")
+                        && (portMarker == null || name.endsWith(portMarker)));
+        if (matches == null || matches.length == 0) {
+            return null;
+        }
+        java.util.Arrays.sort(matches, (left, right) -> {
+            int modified = Long.compare(right.lastModified(), left.lastModified());
+            return modified != 0 ? modified : right.getName().compareTo(left.getName());
+        });
+        return matches[0];
+    }
+
+    private String readTrimmedFile(java.io.File file) {
+        if (file == null || !file.isFile()) {
+            return null;
+        }
+        try {
+            return java.nio.file.Files.readString(file.toPath()).trim();
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     @McpAuth(McpAuthLevel.OPS)
@@ -3165,6 +3232,7 @@ public class DiagnosticMcpTools {
 
             StringBuilder sb = new StringBuilder();
             sb.append("=== Current Startup Log Issues ===\n\n");
+            sb.append("log_file: ").append(logFile.getPath()).append("\n");
             sb.append("cutoff: ");
             if (startIdx >= 0) {
                 sb.append(trimLine(lines.get(startIdx), 160));

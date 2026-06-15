@@ -1832,8 +1832,8 @@ public class PositionMcpTools {
                         case "live", "effective" -> "✅";
                         default -> "⚠️";
                     };
-                    sb.append(String.format("  %s %s  %-20s  algoId=%-14s\n",
-                            cTime, stateEmoji, instId, algoId));
+                    sb.append(String.format("  %s %s  %-20s  algoId=%-14s state=%s\n",
+                            cTime, stateEmoji, instId, algoId, state));
                     sb.append(String.format("    TP=%-10s SL=%-10s avgPx=%-10s sz=%s\n",
                             tpPx, slPx, "0".equals(avgPx) ? "未成交" : avgPx, sz));
                     total++;

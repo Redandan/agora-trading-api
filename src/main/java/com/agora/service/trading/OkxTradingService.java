@@ -3,6 +3,7 @@ package com.agora.service.trading;
 import com.agora.config.OkxTradingProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -24,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -64,6 +66,7 @@ public class OkxTradingService implements TradingService {
     private static final long ACCOUNT_HOLDINGS_SUCCESS_CACHE_TTL_MS = 15_000L;
     private static final long ACCOUNT_HOLDINGS_STALE_CACHE_TTL_MS = 180_000L;
     private static final long ACCOUNT_HOLDINGS_LOOKUP_MIN_INTERVAL_MS = 500L;
+    private static final List<String> ALGO_ORDER_HISTORY_STATES = List.of("effective", "canceled", "order_failed");
 
     private final OkxTradingProperties props;
     private final ObjectMapper objectMapper;
@@ -496,17 +499,38 @@ public class OkxTradingService implements TradingService {
     }
 
     /**
-     * 查詢 OCO Algo 訂單歷史（包含已觸發/已取消）。
-     * 適用於 debug：不需要 algoId 即可列出所有歷史 OCO 訂單及實際成交均價。
+     * 查詢 OCO Algo 訂單歷史（包含已觸發/已取消/失敗）。
+     * OKX history endpoint requires either state or algoId; query every
+     * documented terminal state and merge the latest rows for diagnostics.
      *
      * @param instType "SPOT" 或 "SWAP"
      * @param limit    筆數（最多 100）
      */
     public JsonNode getAlgoOrderHistory(String instType, int limit) {
-        String path = "/api/v5/trade/orders-algo-history?ordType=oco&instType=" + instType + "&limit=" + limit;
-        JsonNode resp = get(path);
-        assertOkxCode(resp);
-        return resp.path("data");
+        int safeLimit = Math.max(1, Math.min(limit, 100));
+        List<JsonNode> rows = new ArrayList<>();
+        for (String state : ALGO_ORDER_HISTORY_STATES) {
+            String path = "/api/v5/trade/orders-algo-history?ordType=oco&instType="
+                    + instType + "&state=" + state + "&limit=" + safeLimit;
+            JsonNode resp = get(path);
+            assertOkxCode(resp);
+            JsonNode data = resp.path("data");
+            if (data.isArray()) {
+                data.forEach(rows::add);
+            }
+        }
+        rows.sort(Comparator.comparingLong(OkxTradingService::algoCreatedAt).reversed());
+        ArrayNode result = objectMapper.createArrayNode();
+        rows.stream().limit(safeLimit).forEach(result::add);
+        return result;
+    }
+
+    private static long algoCreatedAt(JsonNode order) {
+        try {
+            return Long.parseLong(order.path("cTime").asText("0"));
+        } catch (NumberFormatException ignored) {
+            return 0L;
+        }
     }
 
     /**

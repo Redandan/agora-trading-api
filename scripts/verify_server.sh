@@ -281,19 +281,37 @@ if [ -n "$PUBLIC_TRADING_HEALTH_URL" ]; then
 fi
 
 if [ -n "$PUBLIC_TRADING_MCP_URL" ]; then
+  command -v python3 >/dev/null 2>&1 || fail "python3 is required when PUBLIC_TRADING_MCP_URL is set"
   PUBLIC_MCP_RESPONSE="$(curl -fsS \
     --max-time 30 \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${MCP_KEY}" \
     --data '{"jsonrpc":"2.0","id":"server-verify-public-tools","method":"tools/list","params":{}}' \
     "$PUBLIC_TRADING_MCP_URL")" || fail "public trading MCP tools/list failed: $PUBLIC_TRADING_MCP_URL"
-  PUBLIC_MCP_TOOL_COUNT="$(printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -o '"name"' | wc -l | tr -d '[:space:]')"
+  PUBLIC_MCP_SUMMARY="$(printf '%s' "$PUBLIC_MCP_RESPONSE" | python3 -c '
+import json
+import sys
+
+data = json.load(sys.stdin)
+tools = data.get("result", {}).get("tools", [])
+names = {tool.get("name", "") for tool in tools}
+required = {"previewPositionSizing", "getTradingManagerDigest"}
+missing = sorted(required - names)
+has_marketplace = "updateCartItem" in names
+print(len(tools))
+print(",".join(missing))
+print("true" if has_marketplace else "false")
+')"
+  PUBLIC_MCP_TOOL_COUNT="$(printf '%s\n' "$PUBLIC_MCP_SUMMARY" | sed -n '1p')"
+  PUBLIC_MCP_MISSING="$(printf '%s\n' "$PUBLIC_MCP_SUMMARY" | sed -n '2p')"
+  PUBLIC_MCP_HAS_MARKETPLACE="$(printf '%s\n' "$PUBLIC_MCP_SUMMARY" | sed -n '3p')"
   if [ "$PUBLIC_MCP_TOOL_COUNT" -lt "$PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS" ]; then
     fail "public trading MCP tool count too low: count=$PUBLIC_MCP_TOOL_COUNT expected_min=$PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS url=$PUBLIC_TRADING_MCP_URL"
   fi
-  printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -q '"name":"previewPositionSizing"' || fail "public trading MCP missing previewPositionSizing: $PUBLIC_TRADING_MCP_URL"
-  printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -q '"name":"getTradingManagerDigest"' || fail "public trading MCP missing getTradingManagerDigest: $PUBLIC_TRADING_MCP_URL"
-  if printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -q '"name":"updateCartItem"'; then
+  if [ -n "$PUBLIC_MCP_MISSING" ]; then
+    fail "public trading MCP missing required tool(s): $PUBLIC_MCP_MISSING url=$PUBLIC_TRADING_MCP_URL"
+  fi
+  if [ "$PUBLIC_MCP_HAS_MARKETPLACE" = "true" ]; then
     fail "public trading MCP exposed marketplace tool updateCartItem: $PUBLIC_TRADING_MCP_URL"
   fi
   ok "public trading MCP tools/list passed: $PUBLIC_TRADING_MCP_URL toolCount=$PUBLIC_MCP_TOOL_COUNT"

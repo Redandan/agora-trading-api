@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
@@ -47,9 +48,9 @@ public class ExecutionEventService {
     ) {
     }
 
-    public record CleanupResult(int expired, int resolvedClosedPositions) {
+    public record CleanupResult(int expired, int resolvedClosedPositions, int expiredSuperseded) {
         public int total() {
-            return expired + resolvedClosedPositions;
+            return expired + resolvedClosedPositions + expiredSuperseded;
         }
     }
 
@@ -116,7 +117,8 @@ public class ExecutionEventService {
                 cutoff,
                 ExecutionEventStatus.ACTIVE,
                 ExecutionEventStatus.RESOLVED);
-        return new CleanupResult(expired, resolvedClosed);
+        int expiredSuperseded = expireSupersededActiveEvents(cutoff);
+        return new CleanupResult(expired, resolvedClosed, expiredSuperseded);
     }
 
     @Transactional
@@ -182,6 +184,31 @@ public class ExecutionEventService {
                 .filter(event -> seen.add(activeEventKey(event)))
                 .limit(Math.max(1, Math.min(limit, 100)))
                 .toList();
+    }
+
+    private int expireSupersededActiveEvents(LocalDateTime now) {
+        List<ExecutionEvent> active = repository.findActive(
+                ExecutionEventStatus.ACTIVE,
+                null,
+                null,
+                now,
+                PageRequest.of(0, 100));
+        if (active == null || active.isEmpty()) return 0;
+
+        Set<String> seen = new HashSet<>();
+        List<ExecutionEvent> superseded = new ArrayList<>();
+        for (ExecutionEvent event : active) {
+            if (seen.add(activeEventKey(event))) {
+                continue;
+            }
+            event.setStatus(ExecutionEventStatus.EXPIRED);
+            event.setUpdatedAt(now);
+            event.setResolvedAt(now);
+            superseded.add(event);
+        }
+        if (superseded.isEmpty()) return 0;
+        repository.saveAll(superseded);
+        return superseded.size();
     }
 
     private static String activeEventKey(ExecutionEvent event) {

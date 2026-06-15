@@ -46,15 +46,16 @@ public class ExecutionEventMcpTools {
             return renderDrafts(drafts, true);
         }
 
-        ExecutionEventService.CleanupResult cleanup = eventService.cleanupStale(LocalDateTime.now());
         int saved = 0;
         for (ExecutionEventService.Draft draft : drafts) {
             eventService.upsert(draft);
             saved++;
         }
+        ExecutionEventService.CleanupResult cleanup = eventService.cleanupStale(LocalDateTime.now());
         return renderDrafts(drafts, false) + "\n\nsaved=" + saved
                 + "\nexpired=" + cleanup.expired()
                 + "\nresolvedClosedPositions=" + cleanup.resolvedClosedPositions()
+                + "\nexpiredSuperseded=" + cleanup.expiredSuperseded()
                 + "\nNo trading, OCO, strategy, grid order, or fund behavior was changed.";
     }
 
@@ -101,6 +102,7 @@ public class ExecutionEventMcpTools {
         ExecutionEventService.CleanupResult cleanup = eventService.cleanupStale(LocalDateTime.now());
         return "expired=" + cleanup.expired()
                 + "\nresolvedClosedPositions=" + cleanup.resolvedClosedPositions()
+                + "\nexpiredSuperseded=" + cleanup.expiredSuperseded()
                 + "\nNo trading, OCO, strategy, grid order, or fund behavior was changed.";
     }
 

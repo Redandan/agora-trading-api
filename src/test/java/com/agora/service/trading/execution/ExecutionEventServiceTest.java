@@ -61,7 +61,35 @@ class ExecutionEventServiceTest {
 
         assertThat(result.expired()).isEqualTo(2);
         assertThat(result.resolvedClosedPositions()).isEqualTo(3);
+        assertThat(result.expiredSuperseded()).isZero();
         assertThat(result.total()).isEqualTo(5);
+    }
+
+    @Test
+    void cleanupStaleExpiresSupersededActiveEventsForSamePositionScope() {
+        ExecutionEventRepository repository = mock(ExecutionEventRepository.class);
+        ExecutionEventService service = new ExecutionEventService(repository);
+        LocalDateTime now = LocalDateTime.of(2026, 6, 15, 6, 30);
+        ExecutionEvent latest = event(2L, 150L, 574L, now, "new");
+        ExecutionEvent older = event(1L, 150L, 574L, now.minusHours(6), "old");
+        ExecutionEvent otherPosition = event(3L, 152L, 574L, now.minusMinutes(5), "other-position");
+
+        when(repository.findActive(
+                eq(ExecutionEventStatus.ACTIVE),
+                isNull(),
+                isNull(),
+                eq(now),
+                any(Pageable.class)))
+                .thenReturn(List.of(latest, older, otherPosition));
+
+        ExecutionEventService.CleanupResult result = service.cleanupStale(now);
+
+        assertThat(result.expiredSuperseded()).isEqualTo(1);
+        assertThat(result.total()).isEqualTo(1);
+        assertThat(older.getStatus()).isEqualTo(ExecutionEventStatus.EXPIRED);
+        assertThat(older.getResolvedAt()).isEqualTo(now);
+        assertThat(latest.getStatus()).isEqualTo(ExecutionEventStatus.ACTIVE);
+        assertThat(otherPosition.getStatus()).isEqualTo(ExecutionEventStatus.ACTIVE);
     }
 
     private static ExecutionEvent event(Long id, Long positionId, Long strategyId,

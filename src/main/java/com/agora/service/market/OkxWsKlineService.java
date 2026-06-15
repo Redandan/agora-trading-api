@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
 /**
  * OKX v5 WebSocket 即時 K 線訂閱（Business channel）。與交易所執行面一致的價源。
  *
- * <p>僅當 {@code market.ws.provider=okx} 時由 Spring 載入；否則使用 {@link BinanceWsKlineService}。
+ * <p>Spring loads this provider alongside other kline providers; automatic
+ * subscription ownership is controlled by {@code market.ws.auto-subscribe.providers}.
  *
  * <p>OKX 協定摘要：
  * <ul>

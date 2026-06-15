@@ -79,15 +79,27 @@ public class WsSubscriptionSyncer {
             return msg;
         }
         try {
+            List<KlineStreamService> activeServices = activeStreamServices();
+            if (activeServices.isEmpty()) {
+                String msg = "[WsSubSyncer] Resync skipped because no enabled WS providers are available trigger=" + trigger;
+                log.warn(msg);
+                return msg;
+            }
+
             List<MarketWsAutoSubscribeProperties.Item> desired = resolver.resolve();
             Set<String> desiredKeys = new LinkedHashSet<>();
-            for (var item : desired) desiredKeys.add(WsSubscriptionResolver.keyOf(item));
+            for (var item : desired) {
+                String baseKey = WsSubscriptionResolver.keyOf(item);
+                for (KlineStreamService svc : activeServices) {
+                    desiredKeys.add(providerKey(svc.providerName(), baseKey));
+                }
+            }
 
             Set<String> currentKeys = new HashSet<>();
-            for (KlineStreamService svc : streamServices) {
+            for (KlineStreamService svc : activeServices) {
                 for (var sub : svc.listSubscriptions()) {
-                    currentKeys.add(sub.getMarketType().toUpperCase() + ":"
-                            + sub.getSymbol().toUpperCase() + ":" + sub.getIntervalCode());
+                    currentKeys.add(providerKey(svc.providerName(), sub.getMarketType().toUpperCase() + ":"
+                            + sub.getSymbol().toUpperCase() + ":" + sub.getIntervalCode()));
                 }
             }
 
@@ -99,9 +111,9 @@ public class WsSubscriptionSyncer {
             int added = 0;
             int removed = 0;
             for (var item : desired) {
-                String key = WsSubscriptionResolver.keyOf(item);
-                if (!toAdd.contains(key)) continue;
-                for (KlineStreamService svc : streamServices) {
+                String baseKey = WsSubscriptionResolver.keyOf(item);
+                for (KlineStreamService svc : activeServices) {
+                    if (!toAdd.contains(providerKey(svc.providerName(), baseKey))) continue;
                     try {
                         svc.subscribe(item.getSymbol(), item.getIntervalCode(), item.getMarketType());
                         added++;
@@ -113,10 +125,11 @@ public class WsSubscriptionSyncer {
             }
             for (String key : toRemove) {
                 String[] parts = key.split(":");
-                if (parts.length != 3) continue;
-                for (KlineStreamService svc : streamServices) {
+                if (parts.length != 4) continue;
+                for (KlineStreamService svc : activeServices) {
+                    if (!providerKey(svc.providerName()).equals(parts[0])) continue;
                     try {
-                        boolean ok = svc.unsubscribe(parts[1], parts[2], parts[0]);
+                        boolean ok = svc.unsubscribe(parts[2], parts[3], parts[1]);
                         if (ok) removed++;
                     } catch (Exception e) {
                         log.warn("[WsSubSyncer] unsubscribe failed provider={} key={}: {}",
@@ -137,5 +150,19 @@ public class WsSubscriptionSyncer {
         } finally {
             running.set(false);
         }
+    }
+
+    private List<KlineStreamService> activeStreamServices() {
+        return streamServices.stream()
+                .filter(svc -> properties.isProviderEnabled(svc.providerName()))
+                .toList();
+    }
+
+    private static String providerKey(String providerName, String baseKey) {
+        return providerKey(providerName) + ":" + baseKey;
+    }
+
+    private static String providerKey(String providerName) {
+        return providerName == null ? "" : providerName.trim().toLowerCase(java.util.Locale.ROOT);
     }
 }

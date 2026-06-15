@@ -134,6 +134,7 @@ Expected:
 - Smoke logs prove `AiTaskRouter` initialized with 0 providers.
 - Smoke logs prove Jina embeddings are disabled with `Jina embedding client initialised: enabled=false`.
 - Smoke logs prove public market WebSocket auto-subscribe is disabled with `[MarketWS] auto-subscribe config: enabled=false`.
+- When production intentionally enables public market WebSocket auto-subscribe, keep `MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=okx` unless Binance WS access from the host has been explicitly verified; Binance Spot can return HTTP 451 from restricted regions.
 - Smoke logs prove OKX liquidation WebSocket is disabled with `[OkxLiqWS] disabled by market.liquidation-ws.enabled=false`.
 - Local smoke forces `okx.earn-topup.enabled=false`; the OKX Earn top-up scheduler bean is explicit opt-in and smoke logs must not show Earn redemption or transfer side effects.
 - Local smoke forces `polymarket.monitor.enabled=false`; the Polymarket monitor scheduler bean is explicit opt-in and smoke logs must not show Polymarket snapshot, backfill, or digest side effects.

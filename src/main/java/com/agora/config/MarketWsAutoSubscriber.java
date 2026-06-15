@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MarketWsAutoSubscriber {
 
-    /** Spring 會注入所有 KlineStreamService 實作（binance + okx 都會被列入）。 */
+    /** Spring 會注入所有 KlineStreamService 實作；provider allowlist 決定自動訂閱哪些。 */
     private final List<KlineStreamService> wsKlineServices;
     private final NotificationPort notificationPort;
     private final MarketWsAutoSubscribeProperties properties;
@@ -51,6 +51,12 @@ public class MarketWsAutoSubscriber {
             log.warn("[MarketWS] No items to subscribe (DB empty + yaml empty)");
             return;
         }
+        List<KlineStreamService> activeServices = activeStreamServices();
+        if (activeServices.isEmpty()) {
+            log.warn("[MarketWS] No enabled providers for auto-subscribe; configured providers={}",
+                    properties.normalizedProviders().isEmpty() ? "all" : properties.normalizedProviders());
+            return;
+        }
 
         long startupLogId = serverStartupService.recordStarted();
         List<MarketWsAutoSubscribeProperties.Item> subscribed = new ArrayList<>();
@@ -63,8 +69,8 @@ public class MarketWsAutoSubscriber {
                             item.getSymbol(), item.getIntervalCode());
                     continue;
                 }
-                // 雙源訂閱：binance + okx 同時寫入 DB（以 source 欄位區分）
-                for (KlineStreamService svc : wsKlineServices) {
+                // 每個允許的 provider 各開一條訂閱，資料以 source 欄位區分。
+                for (KlineStreamService svc : activeServices) {
                     svc.subscribe(item.getSymbol(), item.getIntervalCode(), item.getMarketType());
                     log.info("[MarketWS] Auto subscribed via {} → {} {}@{}",
                             svc.providerName(), item.getMarketType(), item.getSymbol(), item.getIntervalCode());
@@ -87,7 +93,7 @@ public class MarketWsAutoSubscriber {
         }
 
         // 等待所有 WS 真正連線（onOpen 後 status 變 RUNNING），最多 30 秒
-        waitForWsRunning(subscribed);
+        waitForWsRunning(subscribed, activeServices);
         serverStartupService.recordWsReady(startupLogId);
 
         // 暖機快取：從 DB 讀取最新 K 線補跑評估，避免重啟後等待下一根 K 線才有數據
@@ -116,7 +122,8 @@ public class MarketWsAutoSubscriber {
      * 輪詢直到所有已訂閱的 WS 均為 RUNNING 狀態，或超時（30 秒）。
      * 避免在 TCP 握手完成前就記錄 ws_ready_at。
      */
-    private void waitForWsRunning(List<MarketWsAutoSubscribeProperties.Item> subscribed) {
+    private void waitForWsRunning(List<MarketWsAutoSubscribeProperties.Item> subscribed,
+                                  List<KlineStreamService> activeServices) {
         if (subscribed.isEmpty()) return;
 
         Set<String> expectedKeys = subscribed.stream()
@@ -129,10 +136,10 @@ public class MarketWsAutoSubscriber {
         int intervalMs = 200;
         int elapsed = 0;
 
-        // 雙源：每個 item 會在每個 provider 各開 1 條連線，total = items × providers
-        int expectedTotal = expectedKeys.size() * wsKlineServices.size();
+        // 每個 item 會在每個允許的 provider 各開 1 條連線，total = items × providers
+        int expectedTotal = expectedKeys.size() * activeServices.size();
         while (elapsed < maxWaitMs) {
-            long runningCount = wsKlineServices.stream()
+            long runningCount = activeServices.stream()
                     .flatMap(svc -> svc.listSubscriptions().stream())
                     .filter(s -> "RUNNING".equals(s.getStatus()))
                     .filter(s -> expectedKeys.contains(
@@ -143,7 +150,7 @@ public class MarketWsAutoSubscriber {
 
             if (runningCount >= expectedTotal) {
                 log.info("[MarketWS] All {} WS connections RUNNING across {} provider(s) (+{}ms)",
-                        expectedTotal, wsKlineServices.size(), elapsed);
+                        expectedTotal, activeServices.size(), elapsed);
                 return;
             }
             try {
@@ -155,5 +162,11 @@ public class MarketWsAutoSubscriber {
             elapsed += intervalMs;
         }
         log.warn("[MarketWS] WS connection wait timed out after {}ms", maxWaitMs);
+    }
+
+    private List<KlineStreamService> activeStreamServices() {
+        return wsKlineServices.stream()
+                .filter(svc -> properties.isProviderEnabled(svc.providerName()))
+                .toList();
     }
 }

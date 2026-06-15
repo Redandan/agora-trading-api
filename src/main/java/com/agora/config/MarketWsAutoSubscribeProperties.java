@@ -8,6 +8,9 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Binance WS 自動訂閱配置。
@@ -33,10 +36,40 @@ public class MarketWsAutoSubscribeProperties {
      */
     private boolean warmUpEnabled = false;
 
+    /**
+     * Providers allowed for automatic subscriptions. Empty means all available
+     * KlineStreamService beans, preserving the legacy dual-write behavior.
+     */
+    private List<String> providers = new ArrayList<>();
+
     @PostConstruct
     void logConfig() {
-        log.info("[MarketWS] auto-subscribe config: enabled={} warm-up-enabled={} items={}",
-                enabled, warmUpEnabled, items.size());
+        log.info("[MarketWS] auto-subscribe config: enabled={} warm-up-enabled={} providers={} items={}",
+                enabled, warmUpEnabled, providerSummary(), items.size());
+    }
+
+    public boolean isProviderEnabled(String providerName) {
+        Set<String> allowed = normalizedProviders();
+        return allowed.isEmpty() || allowed.contains(normalizeProvider(providerName));
+    }
+
+    public Set<String> normalizedProviders() {
+        if (providers == null || providers.isEmpty()) {
+            return Set.of();
+        }
+        return providers.stream()
+                .map(MarketWsAutoSubscribeProperties::normalizeProvider)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private String providerSummary() {
+        Set<String> allowed = normalizedProviders();
+        return allowed.isEmpty() ? "all" : String.join(",", allowed);
+    }
+
+    private static String normalizeProvider(String providerName) {
+        return providerName == null ? "" : providerName.trim().toLowerCase(Locale.ROOT);
     }
 
     @Data

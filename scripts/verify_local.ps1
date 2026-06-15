@@ -978,6 +978,7 @@ try {
         "TRADING_BINANCE_API_KEY",
         "TRADING_BINANCE_SECRET_KEY",
         "MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED",
+        "MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS",
         "TRADING_GRID_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN",
@@ -1042,6 +1043,7 @@ try {
         "trading.discovery.ai-suggestions.enabled=false",
         "trading.kline-divergence.enabled=false",
         "market.ws.auto-subscribe.warm-up-enabled=false",
+        "market.ws.auto-subscribe.providers=okx",
         "position-exit-manager.dry-run=true",
         "trailing-stop.dry-run=true"
     )) {

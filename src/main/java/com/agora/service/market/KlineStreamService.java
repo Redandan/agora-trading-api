@@ -13,8 +13,9 @@ import java.util.List;
  *   <li>{@link OkxWsKlineService} — OKX v5 WebSocket（與交易所一致的價源）</li>
  * </ul>
  *
- * <p>Spring 透過 {@code market.ws.provider=binance|okx} 選擇載入哪個 bean。
- * 呼叫端（如 {@link com.agora.config.MarketWsAutoSubscriber}）只需注入此介面，無需關心 provider。
+ * <p>Spring loads available providers. Automatic startup/resync subscribers use
+ * {@code market.ws.auto-subscribe.providers} to choose which providers receive
+ * automatic subscriptions.
  */
 public interface KlineStreamService {
 

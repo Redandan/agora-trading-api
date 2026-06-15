@@ -250,6 +250,7 @@ $envOverrides = @{
     EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
     MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
+    MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS = "okx"
     MARKET_LIQUIDATION_WS_ENABLED = "false"
     TRADING_KLINE_DIVERGENCE_ENABLED = "false"
     OKX_EARN_TOPUP_ENABLED = "false"
@@ -390,6 +391,7 @@ try {
         "--event-risk-control.status-notify-enabled=false",
         "--market.ws.auto-subscribe.enabled=false",
         "--market.ws.auto-subscribe.warm-up-enabled=false",
+        "--market.ws.auto-subscribe.providers=okx",
         "--market.liquidation-ws.enabled=false",
         "--trading.kline-divergence.enabled=false",
         "--okx.earn-topup.enabled=false",

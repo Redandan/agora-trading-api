@@ -258,6 +258,10 @@ Trading deployment prep:
   `/api/trading/` route switched. Commit `1cb9e60` fixed `deploy.sh` and
   `scripts/install_nginx_path.sh` so both shared-host and dedicated-host
   upstreams follow the active blue-green port.
+- Server verification now supports `PUBLIC_TRADING_MCP_URL` and deploy passes
+  `https://agoratradingapi.purrtechllc.com/api/mcp` by default when nginx is
+  updated. The check requires a large Trading MCP registry, representative
+  Trading tools, and absence of marketplace `updateCartItem`.
 
 ## Cleanup Priority
 

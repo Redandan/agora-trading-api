@@ -12,6 +12,8 @@ PORT_A="${PORT_A:-8084}"
 PORT_B="${PORT_B:-8085}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
+PUBLIC_TRADING_MCP_URL="${PUBLIC_TRADING_MCP_URL:-}"
+PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS="${PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS:-300}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
@@ -276,6 +278,25 @@ fi
 if [ -n "$PUBLIC_TRADING_HEALTH_URL" ]; then
   curl -fsS "$PUBLIC_TRADING_HEALTH_URL" >/dev/null || fail "public trading health failed: $PUBLIC_TRADING_HEALTH_URL"
   ok "public trading health passed: $PUBLIC_TRADING_HEALTH_URL"
+fi
+
+if [ -n "$PUBLIC_TRADING_MCP_URL" ]; then
+  PUBLIC_MCP_RESPONSE="$(curl -fsS \
+    --max-time 30 \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${MCP_KEY}" \
+    --data '{"jsonrpc":"2.0","id":"server-verify-public-tools","method":"tools/list","params":{}}' \
+    "$PUBLIC_TRADING_MCP_URL")" || fail "public trading MCP tools/list failed: $PUBLIC_TRADING_MCP_URL"
+  PUBLIC_MCP_TOOL_COUNT="$(printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -o '"name"' | wc -l | tr -d '[:space:]')"
+  if [ "$PUBLIC_MCP_TOOL_COUNT" -lt "$PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS" ]; then
+    fail "public trading MCP tool count too low: count=$PUBLIC_MCP_TOOL_COUNT expected_min=$PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS url=$PUBLIC_TRADING_MCP_URL"
+  fi
+  printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -q '"name":"previewPositionSizing"' || fail "public trading MCP missing previewPositionSizing: $PUBLIC_TRADING_MCP_URL"
+  printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -q '"name":"getTradingManagerDigest"' || fail "public trading MCP missing getTradingManagerDigest: $PUBLIC_TRADING_MCP_URL"
+  if printf '%s' "$PUBLIC_MCP_RESPONSE" | grep -q '"name":"updateCartItem"'; then
+    fail "public trading MCP exposed marketplace tool updateCartItem: $PUBLIC_TRADING_MCP_URL"
+  fi
+  ok "public trading MCP tools/list passed: $PUBLIC_TRADING_MCP_URL toolCount=$PUBLIC_MCP_TOOL_COUNT"
 fi
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then

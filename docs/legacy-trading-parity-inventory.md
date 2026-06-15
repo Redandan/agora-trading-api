@@ -1,6 +1,6 @@
 # Legacy Trading Parity Inventory
 
-Last refreshed: 2026-06-11
+Last refreshed: 2026-06-15
 
 This inventory compares the legacy `AgoraMarketAPI` trading ownership surface
 with the standalone `agora-trading-api` service. It is source-code evidence only;
@@ -12,6 +12,8 @@ it does not prove production cutover and does not disable legacy behavior.
 - Standalone source inspected: `C:\Users\Redan\IdeaProjects\agora-trading-api`
 - Standalone HTTP base path: `/api/trading`
 - Standalone MCP endpoint: `POST /api/trading/mcp`
+- Dedicated public Trading host: `https://agoratradingapi.purrtechllc.com/api`
+  maps public `/api/*` to standalone internal `/api/trading/*`.
 - Shared DB mode remains `agora_market`.
 - Extra marketplace/shared DB tables are expected and must not be cleaned up in
   shared mode.
@@ -23,8 +25,8 @@ package. Its direct HTTP surface is the narrow split surface:
 
 | Surface | Legacy AgoraMarketAPI | Standalone Trading | Status |
 | --- | --- | --- | --- |
-| MCP Streamable HTTP | `POST /api/mcp` | `POST /api/trading/mcp` | Carried by standalone path |
-| Health | `/api/actuator/health` | `/api/trading/actuator/health` | Carried by standalone path |
+| MCP Streamable HTTP | `POST /api/mcp` | `POST /api/trading/mcp`; dedicated host `POST /api/mcp` | Carried by standalone path |
+| Health | `/api/actuator/health` | `/api/trading/actuator/health`; dedicated host `/api/actuator/health` | Carried by standalone path |
 | Backtest admin HTTP | `/api/backtests/**` via `BacktestController` | no public HTTP controller | Covered through `BacktestValidationMcpTools`; legacy HTTP still needs disable decision |
 | Admin market import/backfill | `/api/admin/market/import`, `/reimport`, `/info`, `/subscribe`, `/backfill-oi` | no public HTTP controller | Covered through guarded MCP/backfill paths where retained; legacy HTTP still needs disable decision |
 | Public kline/market HTTP | `/api/market/klines`, `/symbols`, `/intervals`, `/ticker` | no public HTTP controller | Not carried as public HTTP; standalone keeps market-data MCP and internal services |
@@ -85,6 +87,19 @@ from strategy, backtest, grid, market data, diagnostic, ML, reporting, position,
 guardian, execution-event, score-buy, runtime-evidence, funding, Earn, ensemble,
 AI router, and AI task orchestration surfaces.
 
+Production smoke on 2026-06-15:
+
+- `https://agoratradingapi.purrtechllc.com/api/mcp` exposed 304 standalone
+  Trading tools.
+- Required Trading tools including `previewPositionSizing` and
+  `getTradingManagerDigest` were present.
+- Marketplace `updateCartItem` was absent from the dedicated Trading host.
+- AgoraMarketAPI `https://agoramarketapi.purrtechllc.com/api/mcp` still exposed
+  153 marketplace/system/internal tools and did not expose
+  `previewPositionSizing`.
+- `scripts/verify_server.sh` now supports `PUBLIC_TRADING_MCP_URL` to keep this
+  dedicated-host split covered during deploy verification.
+
 ## Scheduler Parity
 
 Standalone Trading carries the legacy trading scheduler package and adds explicit
@@ -124,7 +139,8 @@ schedulers and the internal exchange-rate API available.
 3. Generate and review the Flyway baseline, then switch Trading itself to
    `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true`
    only during an approved deploy.
-4. Smoke `/api/trading/mcp` with `getMcpRegistryVersion` and
+4. Smoke `/api/trading/mcp` with `getMcpRegistryVersion`,
+   dedicated-host `/api/mcp` with `tools/list`, and
    `scripts/smoke_mcp_parity.ps1`.
 5. Add a low-risk disable switch in AgoraMarketAPI for legacy trading HTTP/MCP
    and `com.agora.scheduler.trading` only.

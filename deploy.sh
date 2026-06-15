@@ -13,6 +13,7 @@ UPDATE_NGINX="${UPDATE_NGINX:-1}"
 RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
 POST_DEPLOY_VERIFIED=0
 DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoratradingapi.purrtechllc.com/api/actuator/health}"
+DEFAULT_PUBLIC_TRADING_MCP_URL="${DEFAULT_PUBLIC_TRADING_MCP_URL:-https://agoratradingapi.purrtechllc.com/api/mcp}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-https://agoramarketapi.purrtechllc.com}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
@@ -334,6 +335,7 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
   if [ "$UPDATE_NGINX" = "1" ]; then
     if ! env "${VERIFY_ENV[@]}" \
         PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
+        PUBLIC_TRADING_MCP_URL="${PUBLIC_TRADING_MCP_URL:-$DEFAULT_PUBLIC_TRADING_MCP_URL}" \
         bash "$VERIFY_SCRIPT"; then
       rollback_after_failed_verify
       exit 1

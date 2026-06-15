@@ -336,7 +336,9 @@ new active metadata, local health, AgoraMarket exchange-rate dependency health,
 and nginx `/api/trading/` path before the deploy reports complete. When
 `UPDATE_NGINX=1`, deploy also verifies public trading health through
 `DEFAULT_PUBLIC_TRADING_HEALTH_URL`, defaulting to
-`https://agoratradingapi.purrtechllc.com/api/actuator/health`. Set
+`https://agoratradingapi.purrtechllc.com/api/actuator/health`, and public
+Trading MCP through `DEFAULT_PUBLIC_TRADING_MCP_URL`, defaulting to
+`https://agoratradingapi.purrtechllc.com/api/mcp`. Set
 `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses. When it is
 used, deploy keeps the previous blue-green instance and nginx backup because the
 new instance has not been proven by server verification.
@@ -524,6 +526,10 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
 - preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
 - local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
+- optional public Trading MCP `tools/list` passes through
+  `PUBLIC_TRADING_MCP_URL`, with at least 300 tools, required Trading tools
+  present, and marketplace `updateCartItem` absent. This catches dedicated-host
+  blue-green port drift and host mixups.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 - deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.
 - deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`. If post-deploy verification is skipped, deploy keeps the previous instance and nginx backup.

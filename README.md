@@ -72,6 +72,8 @@ bash scripts/verify_server.sh
 ```
 
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
+When nginx is updated, deploy also verifies the dedicated Trading host health
+and MCP registry at `https://agoratradingapi.purrtechllc.com/api`.
 
 MCP parity smoke against a running local or deployed Trading service:
 

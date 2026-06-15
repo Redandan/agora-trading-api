@@ -84,7 +84,7 @@ require_env_value() {
 classify_deployed_delta_path() {
   local path="$1"
   case "$path" in
-    .gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|scripts/verify_local.ps1|scripts/verify_server.sh|scripts/verify_server_ssh.ps1|scripts/verify_split_acceptance_ssh.ps1)
+    .gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|scripts/check_server_runtime_log.sh|scripts/verify_local.ps1|scripts/verify_server.sh|scripts/verify_server_ssh.ps1|scripts/verify_split_acceptance_ssh.ps1)
       echo "docs-tooling"
       ;;
     *)

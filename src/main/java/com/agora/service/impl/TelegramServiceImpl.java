@@ -506,12 +506,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     }
 
     static List<ChannelPayload> toChannelPayloads(String message, boolean useHtml) {
-        if (message == null || message.length() <= TELEGRAM_MESSAGE_LIMIT) {
-            return List.of(new ChannelPayload(message, useHtml));
+        String deliverable = useHtml ? stripHtmlTags(message) : message;
+        if (deliverable == null || deliverable.length() <= TELEGRAM_MESSAGE_LIMIT) {
+            return List.of(new ChannelPayload(deliverable, false));
         }
 
-        boolean strippedHtml = useHtml;
-        String deliverable = strippedHtml ? stripHtmlTags(message) : message;
         List<String> parts = splitPlainText(deliverable, TELEGRAM_CHUNK_BODY_LIMIT);
         if (parts.size() == 1 && parts.get(0).length() <= TELEGRAM_MESSAGE_LIMIT) {
             return List.of(new ChannelPayload(parts.get(0), false));
@@ -566,6 +565,9 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     }
 
     private static String stripHtmlTags(String text) {
+        if (text == null) {
+            return null;
+        }
         return text.replaceAll("<[^>]+>", "");
     }
 

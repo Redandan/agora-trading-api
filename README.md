@@ -79,7 +79,7 @@ tools such as `lsof` are checked on the server instead of the workstation:
 ```
 
 Full read-only split acceptance from Windows, including cross-service live MCP
-ownership smoke:
+ownership smoke and active runtime log smoke:
 
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1

@@ -391,8 +391,8 @@ host:
 ```
 
 For the full read-only split acceptance pass, run the Trading server verifier
-with shared-DB schema compare and then AgoraMarketAPI's live MCP ownership
-smoke:
+with shared-DB schema compare, active runtime log smoke, and then
+AgoraMarketAPI's live MCP ownership smoke:
 
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1
@@ -431,9 +431,9 @@ powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarket
 ```
 
 The Trading-side `scripts/verify_split_acceptance_ssh.ps1` wrapper calls that
-same AgoraMarketAPI smoke after `scripts/verify_server_ssh.ps1 -SchemaCompare`;
-it does not deploy, reload nginx, mutate database schema, or call MCP write
-tools.
+same AgoraMarketAPI smoke after `scripts/verify_server_ssh.ps1 -SchemaCompare`
+and `scripts/check_server_runtime_log.sh`; it does not deploy, reload nginx,
+mutate database schema, or call MCP write tools.
 
 ## Startup Warning Baseline
 
@@ -458,6 +458,11 @@ Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`
 public dedicated-host `/api/actuator/health`, MCP registry smoke, and
 cross-service live MCP ownership smoke when live ownership boundaries are being
 validated.
+
+`scripts/check_server_runtime_log.sh` enforces this warning baseline for the
+active run log. It fails on runtime `ERROR` lines, WARN lines outside the known
+baseline above, and operation-like live trading/OCO/grid/Earn/fund lines in the
+recent log tail.
 
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 

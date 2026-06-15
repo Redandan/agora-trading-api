@@ -6,7 +6,8 @@ param(
     [string]$PublicTradingHealthUrl = "https://agoratradingapi.purrtechllc.com/api/actuator/health",
     [string]$PublicTradingMcpUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
     [switch]$SkipSchemaCompare,
-    [switch]$SkipGitCurrent
+    [switch]$SkipGitCurrent,
+    [switch]$SkipRuntimeLog
 )
 
 $ErrorActionPreference = "Stop"
@@ -37,6 +38,20 @@ if ($SkipGitCurrent) {
     $serverArgs.SkipGitCurrent = $true
 }
 & $serverVerify @serverArgs
+
+if (-not $SkipRuntimeLog) {
+    Write-Host ""
+    Write-Host "[split-acceptance] trading runtime log smoke"
+    $remoteScript = @"
+set -euo pipefail
+cd '$TradingAppDir'
+bash scripts/check_server_runtime_log.sh
+"@
+    $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+    if ($LASTEXITCODE -ne 0) {
+        throw "runtime log smoke failed with exit code $LASTEXITCODE"
+    }
+}
 
 Write-Host ""
 Write-Host "[split-acceptance] cross-service live MCP ownership"

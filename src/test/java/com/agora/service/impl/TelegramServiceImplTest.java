@@ -52,6 +52,19 @@ class TelegramServiceImplTest {
     }
 
     @Test
+    void sendsQueuedHtmlAsPlainTextEvenWhenShort() {
+        String html = "<b>risk</b>\nprice <> threshold";
+
+        List<TelegramServiceImpl.ChannelPayload> payloads =
+                TelegramServiceImpl.toChannelPayloads(html, true);
+
+        assertThat(payloads).hasSize(1);
+        assertThat(payloads.getFirst().useHtml()).isFalse();
+        assertThat(payloads.getFirst().message()).doesNotContain("<b>", "</b>");
+        assertThat(payloads.getFirst().message()).contains("price <> threshold");
+    }
+
+    @Test
     void drainQueueSendsLongMessageAsMultipleTelegramMessages() throws Exception {
         TelegramBotConfig config = new TelegramBotConfig();
         config.setChannelId("-100test");

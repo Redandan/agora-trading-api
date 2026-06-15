@@ -245,6 +245,9 @@ Last verified server state from 2026-06-14 Asia/Taipei:
 - an independent trading database was created during the earlier standalone-DB
   path; the current target is shared `agora_market`.
 - nginx `/api/trading/` location has been installed and reloaded.
+- nginx also exposes the dedicated Trading API host
+  `https://agoratradingapi.purrtechllc.com/api`, where public `/api/*` maps to
+  the standalone service's internal `/api/trading/*` paths.
 - production was deployed from `origin/main` commit `6a656fe`; the active
   blue-green port is `8085` and is recorded in `app.port`.
 - current server verification allows the worktree to advance past deployed
@@ -292,7 +295,7 @@ Last verified server state from 2026-06-14 Asia/Taipei:
   - local trading health on the active `app.port`
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
-  - public trading health: `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+  - public trading health: `https://agoratradingapi.purrtechllc.com/api/actuator/health`
 - the same maintenance pass confirmed post-ready WARN/ERROR counts are 0 for
   the active `8085` trading process; startup-only warnings remain classified by
   the warning baseline below.
@@ -331,7 +334,7 @@ new active metadata, local health, AgoraMarket exchange-rate dependency health,
 and nginx `/api/trading/` path before the deploy reports complete. When
 `UPDATE_NGINX=1`, deploy also verifies public trading health through
 `DEFAULT_PUBLIC_TRADING_HEALTH_URL`, defaulting to
-`https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`. Set
+`https://agoratradingapi.purrtechllc.com/api/actuator/health`. Set
 `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses. When it is
 used, deploy keeps the previous blue-green instance and nginx backup because the
 new instance has not been proven by server verification.
@@ -379,6 +382,16 @@ PUBLIC_TRADING_HEALTH_URL="https://agoramarketapi.purrtechllc.com/api/trading/ac
   bash scripts/verify_server.sh
 ```
 
+Dedicated Trading host check:
+
+```bash
+curl -fsS "https://agoratradingapi.purrtechllc.com/api/actuator/health"
+curl -fsS -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":"tools","method":"tools/list","params":{}}' \
+  "https://agoratradingapi.purrtechllc.com/api/mcp"
+```
+
 Optional schema baseline table comparison before generating Flyway baseline:
 
 ```bash
@@ -414,8 +427,9 @@ Current warning classes:
 
 The warning baseline is intentionally separate from Trading split acceptance.
 Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`,
-public `/api/trading/actuator/health`, MCP registry smoke, and cross-service
-live MCP ownership smoke when live ownership boundaries are being validated.
+public dedicated-host `/api/actuator/health`, MCP registry smoke, and
+cross-service live MCP ownership smoke when live ownership boundaries are being
+validated.
 
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 

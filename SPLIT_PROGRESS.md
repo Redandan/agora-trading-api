@@ -243,6 +243,12 @@ Trading deployment prep:
   representative legacy Trading tools absent, while `agora-trading-api`
   `/api/trading/mcp` exposed 304 tools with representative Trading tools
   present.
+- 2026-06-15 nginx added the dedicated Trading API host
+  `https://agoratradingapi.purrtechllc.com/api`, mapping public `/api/*` to the
+  standalone service's `/api/trading/*` paths on the active port. Smoke showed
+  `/api/actuator/health` returned `UP`, `POST /api/mcp` returned 304 Trading
+  tools including `previewPositionSizing` and `getTradingManagerDigest`, and
+  marketplace `updateCartItem` remained absent from the dedicated Trading host.
 
 ## Cleanup Priority
 

@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-14
+Last refreshed: 2026-06-15
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -11,7 +11,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Code is split into a standalone Trading service.
 - DB is not split. Trading and AgoraMarketAPI use the shared `agora_market`
   database.
-- Nginx routes Trading through `/api/trading/`.
+- Nginx routes Trading through `/api/trading/` on the shared AgoraMarketAPI
+  host and through `/api/` on the dedicated
+  `https://agoratradingapi.purrtechllc.com` host.
 - Trading must not import AgoraMarketAPI marketplace entities or repositories.
 - Trading may call AgoraMarketAPI through the internal-client SDK or internal
   HTTP DTOs for explicit internal APIs such as exchange rates.
@@ -28,8 +30,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - local health works at `/api/trading/actuator/health`
   - local MCP works at `/api/trading/mcp`
   - nginx exposes `/api/trading/`
-  - public health works through
-    `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+  - public health works through the dedicated Trading host
+    `https://agoratradingapi.purrtechllc.com/api/actuator/health`
   - AgoraMarket dependency health works at
     `https://agoramarketapi.purrtechllc.com/api/actuator/health`
 
@@ -89,6 +91,11 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     representative legacy Trading tools absent, while `agora-trading-api`
     `/api/trading/mcp` exposed 304 tools with representative Trading tools
     present
+  - 2026-06-15 nginx host alias smoke passed for the dedicated Trading host:
+    `https://agoratradingapi.purrtechllc.com/api/actuator/health` returned
+    `UP`, and `POST https://agoratradingapi.purrtechllc.com/api/mcp`
+    returned 304 Trading tools including `previewPositionSizing` and
+    `getTradingManagerDigest` while excluding marketplace `updateCartItem`.
   - hardened schema env values were active:
     `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
     `SPRING_FLYWAY_ENABLED=true`, and
@@ -131,7 +138,7 @@ these boundaries:
 3. Use cross-service live MCP ownership smoke when validating the live boundary,
    not Trading parity smoke alone.
 4. Monitor logs for duplicate scheduler execution, SQL errors, MCP auth errors,
-   and nginx `/api/trading/` routing failures.
+   and nginx `/api/trading/` or dedicated-host `/api/` routing failures.
 
 ## Do Not Do
 

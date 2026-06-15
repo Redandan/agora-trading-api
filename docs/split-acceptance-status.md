@@ -163,6 +163,30 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   trading/OCO/grid/Earn/fund operation-like lines in the last 3000 lines.
   Deploy is required before the read-only `verifyStrategyExecution` and
   DataFreshnessGuard RCA smoke improvements are production-current.
+- 2026-06-15 production deploy advanced Trading runtime to commit `4636a08`
+  on active port `8085`. Post-deploy `deploy.sh` verification passed with
+  worktree, `origin/main`, and deployed `app.commit` all matching `4636a08`;
+  local health, local MCP `getMcpRegistryVersion`, AgoraMarket dependency
+  health, public dedicated-host health, public dedicated-host MCP `tools/list`
+  with 304 tools, nginx shared/dedicated upstreams, and nginx service checks
+  all passed. `.\scripts\verify_server_ssh.ps1 -SchemaCompare` passed after
+  deploy: 39 source entity tables, 176 shared database tables, 0 missing
+  trading tables, 5 marketplace/shared tables, 2 known system tables, and 137
+  extra database tables expected in shared mode. Runtime-log smoke passed on
+  `/home/ubuntu/agora-trading-api/logs/runs/app-20260615T155705Z-port8085.log`
+  with `ERROR` count 0, WARN baseline counts
+  `flyway_mysql_version=1`, `startup_bean_timing=16`, `cglib_proxy=2`,
+  `open_in_view=1`, `thegraph_optional_key=0`,
+  `autonomous_digest_severe=0`, `okx_ws_connection_reset=0`, `unknown=0`,
+  and no high-risk trading/OCO/grid/Earn/fund operation-like lines in the last
+  3000 lines. Full `.\scripts\verify_split_acceptance_ssh.ps1` passed,
+  including cross-service live MCP ownership: AgoraMarketAPI exposed 155
+  marketplace/system/internal tools with representative Trading tools absent,
+  and `agora-trading-api` exposed 304 Trading tools with representative Trading
+  tools present. Additional production MCP smoke confirmed
+  `diagnoseDataFreshnessGuardBlocks` returns the read-only boundary and
+  acceptance marker, and `verifyStrategyExecution` returns the read-only
+  `no external import/backfill` marker without Binance API failure noise.
 
 ## Schema Hardening
 

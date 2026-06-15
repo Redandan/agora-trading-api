@@ -71,6 +71,13 @@ Server verification after deploy:
 bash scripts/verify_server.sh
 ```
 
+From Windows, run the same server-side verifier through SSH so Linux-only
+tools such as `lsof` are checked on the server instead of the workstation:
+
+```powershell
+.\scripts\verify_server_ssh.ps1 -SchemaCompare
+```
+
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
 When nginx is updated, deploy also verifies the dedicated Trading host health
 and MCP registry at `https://agoratradingapi.purrtechllc.com/api`.

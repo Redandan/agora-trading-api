@@ -382,6 +382,14 @@ cd /home/ubuntu/agora-trading-api
 bash scripts/verify_server.sh
 ```
 
+From Windows/Codex Desktop, run the server-side verifier over SSH so tool
+checks such as `lsof`, `systemctl`, and nginx inspection run on the production
+host:
+
+```powershell
+.\scripts\verify_server_ssh.ps1 -SchemaCompare
+```
+
 Optional public path check:
 
 ```bash
@@ -553,6 +561,9 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - AgoraMarket exchange-rate dependency health through `https://agoramarketapi.purrtechllc.com/api/actuator/health` by default.
 - optional public trading health URL.
 - nginx `/api/trading/` path split presence by default; set `REQUIRE_NGINX_TRADING_PATH=0` only for non-nginx verification environments.
+- nginx shared `/api/trading/` and dedicated Trading host `/api/` upstreams
+  must point at the active blue-green `app.port` by default; set
+  `REQUIRE_NGINX_DEDICATED_API=0` only for non-nginx diagnostics.
 - nginx service must be active by default; set `REQUIRE_NGINX_SERVICE=0` only for non-nginx verification environments.
 - guarded standalone-only empty-table cleanup through `scripts/schema_extra_tables_cleanup_apply_server.sh`; the script is disabled in shared DB mode and refuses to drop tables unless `SCHEMA_COMPARE_MODE=standalone` plus `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` are explicitly set.
 

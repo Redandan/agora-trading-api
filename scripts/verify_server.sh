@@ -19,6 +19,7 @@ INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
 VERIFY_GIT_CURRENT="${VERIFY_GIT_CURRENT:-1}"
 REQUIRE_NGINX_TRADING_PATH="${REQUIRE_NGINX_TRADING_PATH:-1}"
+REQUIRE_NGINX_DEDICATED_API="${REQUIRE_NGINX_DEDICATED_API:-1}"
 REQUIRE_NGINX_SERVICE="${REQUIRE_NGINX_SERVICE:-1}"
 REQUIRE_DEPLOY_METADATA="${REQUIRE_DEPLOY_METADATA:-1}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
@@ -83,7 +84,7 @@ require_env_value() {
 classify_deployed_delta_path() {
   local path="$1"
   case "$path" in
-    .gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|scripts/verify_local.ps1|scripts/verify_server.sh)
+    .gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|scripts/verify_local.ps1|scripts/verify_server.sh|scripts/verify_server_ssh.ps1)
       echo "docs-tooling"
       ;;
     *)
@@ -331,6 +332,27 @@ else
     fail "nginx config glob has no matches: $NGINX_CONF_GLOB"
   fi
   warn "nginx config glob has no matches: $NGINX_CONF_GLOB; REQUIRE_NGINX_TRADING_PATH=$REQUIRE_NGINX_TRADING_PATH"
+fi
+
+if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
+  DEDICATED_API_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/"
+  DEDICATED_MCP_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/mcp"
+  SHARED_TRADING_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}([[:space:];]|$)"
+  if grep -RE "$DEDICATED_API_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1 \
+      && grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1 \
+      && grep -RE "$SHARED_TRADING_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
+    ok "nginx shared and dedicated trading upstreams point at active port $ACTIVE_PORT"
+  else
+    if [ "$REQUIRE_NGINX_DEDICATED_API" = "1" ]; then
+      fail "nginx shared/dedicated trading upstreams do not all point at active port $ACTIVE_PORT under $NGINX_CONF_GLOB"
+    fi
+    warn "nginx shared/dedicated trading upstreams do not all point at active port $ACTIVE_PORT under $NGINX_CONF_GLOB; REQUIRE_NGINX_DEDICATED_API=$REQUIRE_NGINX_DEDICATED_API"
+  fi
+else
+  if [ "$REQUIRE_NGINX_DEDICATED_API" = "1" ]; then
+    fail "nginx config glob has no matches for dedicated trading check: $NGINX_CONF_GLOB"
+  fi
+  warn "nginx config glob has no matches for dedicated trading check: $NGINX_CONF_GLOB; REQUIRE_NGINX_DEDICATED_API=$REQUIRE_NGINX_DEDICATED_API"
 fi
 
 if systemctl is-active --quiet nginx; then

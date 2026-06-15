@@ -262,6 +262,11 @@ Trading deployment prep:
   `https://agoratradingapi.purrtechllc.com/api/mcp` by default when nginx is
   updated. The check requires a large Trading MCP registry, representative
   Trading tools, and absence of marketplace `updateCartItem`.
+- 2026-06-15 production deploy advanced runtime to `31af005` on active port
+  `8085`. Post-deploy verification and full read-only schema compare passed:
+  39 source entity tables, 0 missing DB tables, 176 DB tables, 2 known system
+  tables, and 137 extra marketplace/shared tables expected in shared DB mode.
+  Dedicated-host MCP smoke reported exactly 304 Trading tools.
 
 ## Cleanup Priority
 

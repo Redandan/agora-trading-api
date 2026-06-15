@@ -248,7 +248,7 @@ Last verified server state from 2026-06-15 Asia/Taipei:
 - nginx also exposes the dedicated Trading API host
   `https://agoratradingapi.purrtechllc.com/api`, where public `/api/*` maps to
   the standalone service's internal `/api/trading/*` paths.
-- production was deployed from `origin/main` commit `1cb9e60`; the active
+- production was deployed from `origin/main` commit `31af005`; the active
   blue-green port is `8085` and is recorded in `app.port`.
 - current server verification requires worktree, `origin/main`, and deployed
   `app.commit` to match unless the delta is explicitly docs/tooling-only and
@@ -289,11 +289,12 @@ Last verified server state from 2026-06-15 Asia/Taipei:
   `/api/trading/mcp` route with 21 representative trading tools present from
   304 registered tools, plus direct production smoke for the read-only
   `listSchedulerTasks` compatibility alias.
-- 2026-06-15 `scripts/verify_server.sh` passed after the `1cb9e60` deploy with:
+- 2026-06-15 `scripts/verify_server.sh` passed after the `31af005` deploy with:
   - local trading health on the active `app.port`
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoratradingapi.purrtechllc.com/api/actuator/health`
+  - public Trading MCP tools/list: `https://agoratradingapi.purrtechllc.com/api/mcp` with 304 tools, required Trading tools present, and marketplace `updateCartItem` absent
 - the same deploy confirmed `ERROR=0` in the active `8085` trading run log;
   startup-only warnings remain classified by the warning baseline below.
 - dedicated-host blue-green routing was fixed in commit `1cb9e60`: deploy and
@@ -415,7 +416,7 @@ powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarket
 
 ## Startup Warning Baseline
 
-Observed again on 2026-06-15 after the `1cb9e60` deploy, the latest Trading run log
+Observed again on 2026-06-15 after the `31af005` deploy, the latest Trading run log
 contained startup WARN lines while `scripts/verify_server.sh`, local health,
 local MCP registry, public health, nginx checks, and the `listSchedulerTasks`
 alias smoke all passed. Classify these as startup audit evidence, not deploy

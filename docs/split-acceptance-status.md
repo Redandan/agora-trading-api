@@ -51,7 +51,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - local Spring context registered 304 MCP tools, matching the deployed
     scheduler-list alias surface
 - Production runtime was deployed on 2026-06-15:
-  - deployed `app.commit` is runtime commit `1cb9e60`
+  - deployed `app.commit` is runtime commit `31af005`
   - active `app.port` was `8085` and listened with matching per-port
     `app.pid` metadata
   - `AGORA_MARKET_BASE_URL` pointed at the stable AgoraMarketAPI nginx vhost
@@ -59,8 +59,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - public health passed through
     `https://agoratradingapi.purrtechllc.com/api/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
+  - public dedicated-host MCP `tools/list` passed at
+    `https://agoratradingapi.purrtechllc.com/api/mcp` with 304 tools,
+    representative Trading tools present, and marketplace `updateCartItem`
+    absent
   - post-deploy server verification passed with server worktree, `origin/main`,
-    and deployed `app.commit` all at `1cb9e60`
+    and deployed `app.commit` all at `31af005`
   - post-ready ERROR count was 0 in the active trading run log; WARN lines were
     the known startup baseline classes documented separately in the deploy
     runbook
@@ -97,8 +101,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - 2026-06-15 dedicated-host blue-green regression was fixed: an earlier
     deploy switched the shared `/api/trading/` route to the new port while the
     dedicated host still pointed at the drained old port, briefly causing
-    dedicated-host 502. Commit `1cb9e60` updates deploy/nginx tooling so both
-    host routes follow the active port.
+    dedicated-host 502. Commit `1cb9e60` updated deploy/nginx tooling so both
+    host routes follow the active port; commit `31af005` made the dedicated
+    host MCP smoke parse the registry exactly.
   - hardened schema env values were active:
     `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
     `SPRING_FLYWAY_ENABLED=true`, and

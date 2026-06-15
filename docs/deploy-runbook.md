@@ -231,7 +231,7 @@ Expected:
 - AgoraMarket exchange-rate dependency health is checked.
 - nginx `/api/trading/` path split is reported.
 
-Last verified server state from 2026-06-14 Asia/Taipei:
+Last verified server state from 2026-06-15 Asia/Taipei:
 
 - AgoraMarketAPI exists at `/home/ubuntu/AgoraMarketAPI`.
 - AgoraMarketAPI active port file reports `8082`.
@@ -248,13 +248,11 @@ Last verified server state from 2026-06-14 Asia/Taipei:
 - nginx also exposes the dedicated Trading API host
   `https://agoratradingapi.purrtechllc.com/api`, where public `/api/*` maps to
   the standalone service's internal `/api/trading/*` paths.
-- production was deployed from `origin/main` commit `6a656fe`; the active
+- production was deployed from `origin/main` commit `1cb9e60`; the active
   blue-green port is `8085` and is recorded in `app.port`.
-- current server verification allows the worktree to advance past deployed
-  `app.commit` only when the delta is docs/tooling-only. Treat the latest
-  `scripts/verify_server.sh` output as current worktree evidence instead of
-  relying on a static handoff SHA; deployed `app.commit` remains `6a656fe`
-  until the service is rebuilt and redeployed.
+- current server verification requires worktree, `origin/main`, and deployed
+  `app.commit` to match unless the delta is explicitly docs/tooling-only and
+  accepted by the verifier.
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passed in
   shared mode before schema hardening with 39 source entity tables, 0 missing
   trading tables, 175 database tables, and 136 extra marketplace/shared tables
@@ -291,14 +289,18 @@ Last verified server state from 2026-06-14 Asia/Taipei:
   `/api/trading/mcp` route with 21 representative trading tools present from
   304 registered tools, plus direct production smoke for the read-only
   `listSchedulerTasks` compatibility alias.
-- `scripts/verify_server.sh` passed after the `6a656fe` deploy with:
+- 2026-06-15 `scripts/verify_server.sh` passed after the `1cb9e60` deploy with:
   - local trading health on the active `app.port`
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoratradingapi.purrtechllc.com/api/actuator/health`
-- the same maintenance pass confirmed post-ready WARN/ERROR counts are 0 for
-  the active `8085` trading process; startup-only warnings remain classified by
-  the warning baseline below.
+- the same deploy confirmed `ERROR=0` in the active `8085` trading run log;
+  startup-only warnings remain classified by the warning baseline below.
+- dedicated-host blue-green routing was fixed in commit `1cb9e60`: deploy and
+  `scripts/install_nginx_path.sh` now update both shared-host `/api/trading/`
+  and dedicated-host `/api/*` upstreams to the active `app.port`. This prevents
+  the dedicated host from pointing at a drained old port after blue-green
+  switch.
 - hardened startup logs showed Flyway creating and baselining the Trading-owned
   history table. No Hibernate `alter table` attempt or schema-validation error
   was observed in the post-hardening log sample. Flyway may warn that MySQL 9.7
@@ -411,7 +413,7 @@ powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarket
 
 ## Startup Warning Baseline
 
-Observed on 2026-06-14 after the `6a656fe` deploy, the latest Trading run log
+Observed again on 2026-06-15 after the `1cb9e60` deploy, the latest Trading run log
 contained startup WARN lines while `scripts/verify_server.sh`, local health,
 local MCP registry, public health, nginx checks, and the `listSchedulerTasks`
 alias smoke all passed. Classify these as startup audit evidence, not deploy

@@ -45,29 +45,27 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Shared-DB schema compare is read-only. It proves every trading entity table is
   present in `agora_market`; marketplace/shared extra tables are expected and do
   not block acceptance in `SCHEMA_COMPARE_MODE=shared`.
-- Local validation passed on 2026-06-14 after the scheduler-alias deploy with:
+- Local validation passed on 2026-06-15 after the dedicated-host blue-green
+  port-swap fix with:
   - `.\scripts\verify_local.ps1`
-  - `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`
   - local Spring context registered 304 MCP tools, matching the deployed
     scheduler-list alias surface
-- Production runtime was deployed on 2026-06-14:
-  - deployed `app.commit` is runtime commit `6a656fe`
+- Production runtime was deployed on 2026-06-15:
+  - deployed `app.commit` is runtime commit `1cb9e60`
   - active `app.port` was `8085` and listened with matching per-port
     `app.pid` metadata
   - `AGORA_MARKET_BASE_URL` pointed at the stable AgoraMarketAPI nginx vhost
     `https://agoramarketapi.purrtechllc.com`
   - public health passed through
-    `https://agoramarketapi.purrtechllc.com/api/trading/actuator/health`
+    `https://agoratradingapi.purrtechllc.com/api/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
   - post-deploy server verification passed with server worktree, `origin/main`,
-    and deployed `app.commit` all at `6a656fe`; later docs-only handoff commits
-    may place the worktree ahead without runtime drift
-  - latest maintenance server verification passed with server worktree and
-    `origin/main` at `1585942`; deployed `app.commit` remained `6a656fe` and
-    differed from worktree `HEAD` only by docs/tooling files
-  - post-ready WARN/ERROR counts were 0 in the active trading run log; the
-    startup warning baseline remains documented separately in the deploy
+    and deployed `app.commit` all at `1cb9e60`
+  - post-ready ERROR count was 0 in the active trading run log; WARN lines were
+    the known startup baseline classes documented separately in the deploy
     runbook
+  - deploy now updates both shared-host `/api/trading/` and dedicated-host
+    `/api/*` nginx upstreams during blue-green port swaps
   - `SPRING_DATASOURCE_URL` database: `agora_market`
   - `META_CONTROL_ML_SQL_SCHEMA`: `agora_market`
   - latest full schema compare was rerun on 2026-06-14 through
@@ -96,6 +94,11 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     `UP`, and `POST https://agoratradingapi.purrtechllc.com/api/mcp`
     returned 304 Trading tools including `previewPositionSizing` and
     `getTradingManagerDigest` while excluding marketplace `updateCartItem`.
+  - 2026-06-15 dedicated-host blue-green regression was fixed: an earlier
+    deploy switched the shared `/api/trading/` route to the new port while the
+    dedicated host still pointed at the drained old port, briefly causing
+    dedicated-host 502. Commit `1cb9e60` updates deploy/nginx tooling so both
+    host routes follow the active port.
   - hardened schema env values were active:
     `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
     `SPRING_FLYWAY_ENABLED=true`, and

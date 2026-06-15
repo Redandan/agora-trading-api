@@ -249,6 +249,15 @@ Trading deployment prep:
   `/api/actuator/health` returned `UP`, `POST /api/mcp` returned 304 Trading
   tools including `previewPositionSizing` and `getTradingManagerDigest`, and
   marketplace `updateCartItem` remained absent from the dedicated Trading host.
+- 2026-06-15 production deploy advanced runtime to `1cb9e60` on active port
+  `8085`. Post-deploy `scripts/verify_server.sh` passed with server worktree,
+  `origin/main`, and deployed `app.commit` all matching `1cb9e60`; dedicated
+  host health passed at `https://agoratradingapi.purrtechllc.com/api/actuator/health`.
+  During the first deploy, the dedicated host briefly returned 502 because its
+  upstream still pointed at the drained old port after the shared
+  `/api/trading/` route switched. Commit `1cb9e60` fixed `deploy.sh` and
+  `scripts/install_nginx_path.sh` so both shared-host and dedicated-host
+  upstreams follow the active blue-green port.
 
 ## Cleanup Priority
 

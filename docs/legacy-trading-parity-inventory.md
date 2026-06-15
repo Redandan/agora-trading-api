@@ -85,7 +85,10 @@ Coverage smoke is provided by `scripts/smoke_mcp_parity.ps1`. It checks the
 standalone MCP endpoint with `tools/list` and requires representative tools
 from strategy, backtest, grid, market data, diagnostic, ML, reporting, position,
 guardian, execution-event, score-buy, runtime-evidence, funding, Earn, ensemble,
-AI router, and AI task orchestration surfaces.
+AI router, and AI task orchestration surfaces. It also calls the read-only
+`diagnoseDataFreshnessGuardBlocks` RCA with a small BTCUSDT sample and requires
+the `boundary: READ_ONLY` plus acceptance marker, so DataFreshnessGuard parity
+covers both tool registration and executable diagnostic behavior.
 
 Production smoke on 2026-06-15:
 
@@ -141,7 +144,8 @@ schedulers and the internal exchange-rate API available.
    only during an approved deploy.
 4. Smoke `/api/trading/mcp` with `getMcpRegistryVersion`,
    dedicated-host `/api/mcp` with `tools/list`, and
-   `scripts/smoke_mcp_parity.ps1`.
+   `scripts/smoke_mcp_parity.ps1`, including the read-only
+   DataFreshnessGuard RCA acceptance marker.
 5. Add a low-risk disable switch in AgoraMarketAPI for legacy trading HTTP/MCP
    and `com.agora.scheduler.trading` only.
 6. Leave AgoraMarketAPI marketplace, user connector, wallet, seller, support,

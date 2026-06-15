@@ -459,6 +459,7 @@ Current warning classes:
 | `external.thegraph.api-key not configured` | Optional external data-provider warning; acceptable only while The Graph-backed reads/backfills remain disabled by split guards. |
 | `spring.jpa.open-in-view is enabled by default` | Do not flip to `false` as a drive-by cleanup; it can change lazy-loading behavior and should be handled through a focused API/DTO audit. |
 | `DailyAutonomousTradingDigest` severe notification sent | Known operator-alert warning only when production explicitly enables autonomous digest Telegram/severe-scan flags. It is not an order/OCO/grid/Earn/fund action, but the category count should still be reviewed after each deploy. |
+| `OkxWsKlineService` public WS `Connection reset` | Treated as transient only while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`) and followed by fresh persisted K-line rows. Exceeding the threshold is a runtime-log smoke failure and should be investigated as collector/network instability. |
 
 The warning baseline is intentionally separate from Trading split acceptance.
 Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`,
@@ -471,7 +472,8 @@ active run log. It fails on runtime `ERROR` lines, WARN lines outside the known
 baseline above, and operation-like live trading/OCO/grid/Earn/fund lines in the
 recent log tail. On success, it also prints the known WARN category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
-optional TheGraph key, and autonomous digest severe-notification warnings.
+optional TheGraph key, autonomous digest severe-notification, and bounded OKX
+public WS connection-reset warnings.
 
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 

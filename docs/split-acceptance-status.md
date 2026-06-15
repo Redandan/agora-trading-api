@@ -42,6 +42,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   .\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180
   ```
 
+- Full read-only live acceptance from Windows/Codex Desktop is expected to pass
+  with:
+
+  ```powershell
+  .\scripts\verify_split_acceptance_ssh.ps1
+  ```
+
+  This wrapper runs Trading server verification with shared-DB schema compare,
+  dedicated-host health/MCP checks, nginx active-port checks, and
+  AgoraMarketAPI's cross-service live MCP ownership smoke.
+
 - Shared-DB schema compare is read-only. It proves every trading entity table is
   present in `agora_market`; marketplace/shared extra tables are expected and do
   not block acceptance in `SCHEMA_COMPARE_MODE=shared`.

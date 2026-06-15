@@ -390,6 +390,14 @@ host:
 .\scripts\verify_server_ssh.ps1 -SchemaCompare
 ```
 
+For the full read-only split acceptance pass, run the Trading server verifier
+with shared-DB schema compare and then AgoraMarketAPI's live MCP ownership
+smoke:
+
+```powershell
+.\scripts\verify_split_acceptance_ssh.ps1
+```
+
 Optional public path check:
 
 ```bash
@@ -421,6 +429,11 @@ in `agora-trading-api`:
 ```powershell
 powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarketAPI\tools\codex\check-live-mcp-split-ownership.ps1
 ```
+
+The Trading-side `scripts/verify_split_acceptance_ssh.ps1` wrapper calls that
+same AgoraMarketAPI smoke after `scripts/verify_server_ssh.ps1 -SchemaCompare`;
+it does not deploy, reload nginx, mutate database schema, or call MCP write
+tools.
 
 ## Startup Warning Baseline
 

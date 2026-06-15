@@ -78,6 +78,13 @@ tools such as `lsof` are checked on the server instead of the workstation:
 .\scripts\verify_server_ssh.ps1 -SchemaCompare
 ```
 
+Full read-only split acceptance from Windows, including cross-service live MCP
+ownership smoke:
+
+```powershell
+.\scripts\verify_split_acceptance_ssh.ps1
+```
+
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
 When nginx is updated, deploy also verifies the dedicated Trading host health
 and MCP registry at `https://agoratradingapi.purrtechllc.com/api`.

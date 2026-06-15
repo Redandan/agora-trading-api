@@ -4,7 +4,8 @@ param(
     [string]$TradingAppDir = "/home/ubuntu/agora-trading-api",
     [string]$AgoraMarketApiToolsDir = "C:\Users\Redan\IdeaProjects\AgoraMarketAPI\tools\codex",
     [string]$PublicTradingHealthUrl = "https://agoratradingapi.purrtechllc.com/api/actuator/health",
-    [string]$PublicTradingMcpUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
+    [string]$PublicTradingMcpBlockedUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
+    [string]$PublicTradingContextMcpBlockedUrl = "https://agoramarketapi.purrtechllc.com/api/trading/mcp",
     [switch]$SkipSchemaCompare,
     [switch]$SkipGitCurrent,
     [switch]$SkipRuntimeLog
@@ -29,7 +30,8 @@ $serverArgs = @{
     SshKey = $SshKey
     AppDir = $TradingAppDir
     PublicTradingHealthUrl = $PublicTradingHealthUrl
-    PublicTradingMcpUrl = $PublicTradingMcpUrl
+    PublicTradingMcpBlockedUrl = $PublicTradingMcpBlockedUrl
+    PublicTradingContextMcpBlockedUrl = $PublicTradingContextMcpBlockedUrl
 }
 if (-not $SkipSchemaCompare) {
     $serverArgs.SchemaCompare = $true

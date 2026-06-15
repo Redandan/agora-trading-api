@@ -25,7 +25,7 @@ package. Its direct HTTP surface is the narrow split surface:
 
 | Surface | Legacy AgoraMarketAPI | Standalone Trading | Status |
 | --- | --- | --- | --- |
-| MCP Streamable HTTP | `POST /api/mcp` | `POST /api/trading/mcp`; dedicated host `POST /api/mcp` | Carried by standalone path |
+| MCP Streamable HTTP | `POST /api/mcp` | server-local `POST /api/trading/mcp`; public dedicated `/api/mcp` and shared `/api/trading/mcp` blocked by nginx | Carried internally only |
 | Health | `/api/actuator/health` | `/api/trading/actuator/health`; dedicated host `/api/actuator/health` | Carried by standalone path |
 | Backtest admin HTTP | `/api/backtests/**` via `BacktestController` | no public HTTP controller | Covered through `BacktestValidationMcpTools`; legacy HTTP still needs disable decision |
 | Admin market import/backfill | `/api/admin/market/import`, `/reimport`, `/info`, `/subscribe`, `/backfill-oi` | no public HTTP controller | Covered through guarded MCP/backfill paths where retained; legacy HTTP still needs disable decision |
@@ -90,7 +90,7 @@ AI router, and AI task orchestration surfaces. It also calls the read-only
 the `boundary: READ_ONLY` plus acceptance marker, so DataFreshnessGuard parity
 covers both tool registration and executable diagnostic behavior.
 
-Production smoke on 2026-06-15:
+Historical production smoke on 2026-06-15 before MCP was made internal-only:
 
 - `https://agoratradingapi.purrtechllc.com/api/mcp` exposed 304 standalone
   Trading tools.
@@ -100,8 +100,10 @@ Production smoke on 2026-06-15:
 - AgoraMarketAPI `https://agoramarketapi.purrtechllc.com/api/mcp` still exposed
   153 marketplace/system/internal tools and did not expose
   `previewPositionSizing`.
-- `scripts/verify_server.sh` now supports `PUBLIC_TRADING_MCP_URL` to keep this
-  dedicated-host split covered during deploy verification.
+- This public route is now superseded by the MCP internal-only policy.
+  `scripts/verify_server.sh` now uses `PUBLIC_TRADING_MCP_BLOCKED_URL` and
+  `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL` to verify public Trading MCP routes
+  are blocked.
 
 ## Scheduler Parity
 
@@ -142,10 +144,10 @@ schedulers and the internal exchange-rate API available.
 3. Generate and review the Flyway baseline, then switch Trading itself to
    `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true`
    only during an approved deploy.
-4. Smoke `/api/trading/mcp` with `getMcpRegistryVersion`,
-   dedicated-host `/api/mcp` with `tools/list`, and
-   `scripts/smoke_mcp_parity.ps1`, including the read-only
-   DataFreshnessGuard RCA acceptance marker.
+4. Smoke server-local `/api/trading/mcp` with `getMcpRegistryVersion` and
+   `scripts/smoke_mcp_parity.ps1`, including the read-only DataFreshnessGuard
+   RCA acceptance marker; verify public dedicated `/api/mcp` and shared
+   `/api/trading/mcp` are blocked.
 5. Add a low-risk disable switch in AgoraMarketAPI for legacy trading HTTP/MCP
    and `com.agora.scheduler.trading` only.
 6. Leave AgoraMarketAPI marketplace, user connector, wallet, seller, support,

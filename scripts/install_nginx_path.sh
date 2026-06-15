@@ -39,7 +39,40 @@ esac
 if sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
   tmp_file="$(mktemp)"
   awk -v port="$TRADING_PORT" '
+    /^[[:space:]]*server[[:space:]]*\{/ {
+      in_server = 1
+      dedicated = 0
+    }
+    in_server && /^[[:space:]]*server_name[[:space:]]+agoratradingapi[.]purrtechllc[.]com;/ {
+      dedicated = 1
+    }
+    dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
+      print "    # MCP is internal-only. Public dedicated host must not expose /api/mcp.";
+      print "    location = /api/mcp {";
+      print "        return 404;";
+      print "    }";
+      skip_mcp = 1
+      next
+    }
+    skip_mcp && /^[[:space:]]*}/ {
+      skip_mcp = 0
+      next
+    }
+    skip_mcp {
+      next
+    }
+    /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
+      inserted_trading_mcp_block = 1
+    }
     /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
+      if (!inserted_trading_mcp_block) {
+        print "    # Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp.";
+        print "    location = /api/trading/mcp {";
+        print "        return 404;";
+        print "    }";
+        print "";
+        inserted_trading_mcp_block = 1;
+      }
       in_trading = 1
     }
     in_trading || /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading/ {
@@ -49,6 +82,10 @@ if sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
     in_trading && /^[[:space:]]*}/ {
       in_trading = 0
     }
+    in_server && /^[[:space:]]*}/ {
+      in_server = 0
+      dedicated = 0
+    }
   ' "$NGINX_CONF" > "$tmp_file"
   sudo cp "$NGINX_CONF" "$NGINX_CONF.bak-trading"
   sudo cp "$tmp_file" "$NGINX_CONF"
@@ -57,6 +94,41 @@ if sudo grep -q "location[[:space:]]*/api/trading/" "$NGINX_CONF"; then
 else
   tmp_file="$(mktemp)"
   awk -v port="$TRADING_PORT" '
+    /^[[:space:]]*server[[:space:]]*\{/ {
+      in_server = 1
+      dedicated = 0
+    }
+    in_server && /^[[:space:]]*server_name[[:space:]]+agoratradingapi[.]purrtechllc[.]com;/ {
+      dedicated = 1
+    }
+    dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
+      print "    # MCP is internal-only. Public dedicated host must not expose /api/mcp.";
+      print "    location = /api/mcp {";
+      print "        return 404;";
+      print "    }";
+      skip_mcp = 1
+      next
+    }
+    skip_mcp && /^[[:space:]]*}/ {
+      skip_mcp = 0
+      next
+    }
+    skip_mcp {
+      next
+    }
+    /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
+      inserted_trading_mcp_block = 1
+    }
+    /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
+      if (!inserted_trading_mcp_block) {
+        print "    # Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp.";
+        print "    location = /api/trading/mcp {";
+        print "        return 404;";
+        print "    }";
+        print "";
+        inserted_trading_mcp_block = 1;
+      }
+    }
     !inserted && /^[[:space:]]*location[[:space:]]+\/api\/[[:space:]]*\{/ {
       print "    # Standalone trading service. Keep this before the generic /api/ fallback.";
       print "    location /api/trading/ {";
@@ -71,6 +143,10 @@ else
       inserted=1;
     }
     { print }
+    in_server && /^[[:space:]]*}/ {
+      in_server = 0
+      dedicated = 0
+    }
     END {
       if (!inserted) {
         exit 42

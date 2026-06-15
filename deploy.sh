@@ -13,7 +13,8 @@ UPDATE_NGINX="${UPDATE_NGINX:-1}"
 RUN_POST_DEPLOY_VERIFY="${RUN_POST_DEPLOY_VERIFY:-1}"
 POST_DEPLOY_VERIFIED=0
 DEFAULT_PUBLIC_TRADING_HEALTH_URL="${DEFAULT_PUBLIC_TRADING_HEALTH_URL:-https://agoratradingapi.purrtechllc.com/api/actuator/health}"
-DEFAULT_PUBLIC_TRADING_MCP_URL="${DEFAULT_PUBLIC_TRADING_MCP_URL:-https://agoratradingapi.purrtechllc.com/api/mcp}"
+DEFAULT_PUBLIC_TRADING_MCP_BLOCKED_URL="${DEFAULT_PUBLIC_TRADING_MCP_BLOCKED_URL:-https://agoratradingapi.purrtechllc.com/api/mcp}"
+DEFAULT_PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL="${DEFAULT_PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL:-https://agoramarketapi.purrtechllc.com/api/trading/mcp}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-https://agoramarketapi.purrtechllc.com}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
@@ -282,7 +283,40 @@ if [ "$UPDATE_NGINX" = "1" ]; then
 
   tmp_nginx="$(mktemp)"
   awk -v port="$NEW_PORT" '
+    /^[[:space:]]*server[[:space:]]*\{/ {
+      in_server = 1
+      dedicated = 0
+    }
+    in_server && /^[[:space:]]*server_name[[:space:]]+agoratradingapi[.]purrtechllc[.]com;/ {
+      dedicated = 1
+    }
+    dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
+      print "    # MCP is internal-only. Public dedicated host must not expose /api/mcp.";
+      print "    location = /api/mcp {";
+      print "        return 404;";
+      print "    }";
+      skip_mcp = 1
+      next
+    }
+    skip_mcp && /^[[:space:]]*}/ {
+      skip_mcp = 0
+      next
+    }
+    skip_mcp {
+      next
+    }
+    /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
+      inserted_trading_mcp_block = 1
+    }
     /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
+      if (!inserted_trading_mcp_block) {
+        print "    # Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp.";
+        print "    location = /api/trading/mcp {";
+        print "        return 404;";
+        print "    }";
+        print "";
+        inserted_trading_mcp_block = 1;
+      }
       in_trading = 1
     }
     in_trading || /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading/ {
@@ -291,6 +325,10 @@ if [ "$UPDATE_NGINX" = "1" ]; then
     { print }
     in_trading && /^[[:space:]]*}/ {
       in_trading = 0
+    }
+    in_server && /^[[:space:]]*}/ {
+      in_server = 0
+      dedicated = 0
     }
   ' "$NGINX_CONF" > "$tmp_nginx"
 
@@ -335,7 +373,8 @@ if [ "$RUN_POST_DEPLOY_VERIFY" = "1" ]; then
   if [ "$UPDATE_NGINX" = "1" ]; then
     if ! env "${VERIFY_ENV[@]}" \
         PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-$DEFAULT_PUBLIC_TRADING_HEALTH_URL}" \
-        PUBLIC_TRADING_MCP_URL="${PUBLIC_TRADING_MCP_URL:-$DEFAULT_PUBLIC_TRADING_MCP_URL}" \
+        PUBLIC_TRADING_MCP_BLOCKED_URL="${PUBLIC_TRADING_MCP_BLOCKED_URL:-$DEFAULT_PUBLIC_TRADING_MCP_BLOCKED_URL}" \
+        PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL="${PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL:-$DEFAULT_PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL}" \
         bash "$VERIFY_SCRIPT"; then
       rollback_after_failed_verify
       exit 1

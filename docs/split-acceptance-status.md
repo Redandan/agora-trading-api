@@ -14,6 +14,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Nginx routes Trading through `/api/trading/` on the shared AgoraMarketAPI
   host and through `/api/` on the dedicated
   `https://agoratradingapi.purrtechllc.com` host.
+- Trading MCP is internal-only through server-local `/api/trading/mcp`. Public
+  dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked
+  by nginx.
 - Trading must not import AgoraMarketAPI marketplace entities or repositories.
 - Trading may call AgoraMarketAPI through the internal-client SDK or internal
   HTTP DTOs for explicit internal APIs such as exchange rates.
@@ -76,10 +79,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - public health passed through
     `https://agoratradingapi.purrtechllc.com/api/actuator/health`
   - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
-  - public dedicated-host MCP `tools/list` passed at
+  - historical public dedicated-host MCP `tools/list` passed at
     `https://agoratradingapi.purrtechllc.com/api/mcp` with 304 tools,
     representative Trading tools present, and marketplace `updateCartItem`
-    absent
+    absent; this public route is now superseded by the MCP internal-only policy
   - post-deploy server verification passed with server worktree, `origin/main`,
     and deployed `app.commit` all at `31af005`
   - post-ready ERROR count was 0 in the active trading run log; WARN lines were
@@ -128,9 +131,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - `trading_flyway_schema_history` was created and baselined at version `1`
 - 2026-06-15 runtime-log smoke deploy advanced production to commit `7e02307`
   on active port `8084`. Post-deploy verification passed with shared-mode
-  schema compare, dedicated-host health, dedicated-host MCP `tools/list`
-  reporting 304 Trading tools, and nginx shared/dedicated upstreams both
-  pointing at active port `8084`. The full
+  schema compare, dedicated-host health, historical dedicated-host MCP
+  `tools/list` reporting 304 Trading tools, and nginx shared/dedicated
+  upstreams both pointing at active port `8084`. This public MCP route is now
+  superseded by the MCP internal-only policy. The full
   `.\scripts\verify_split_acceptance_ssh.ps1` pass then confirmed:
   - active run log:
     `/home/ubuntu/agora-trading-api/logs/runs/app-20260615T094927Z-port8084.log`
@@ -152,8 +156,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   the deploy requirement.
   Re-running with `-SkipGitCurrent` performed no deploy or production mutation
   and passed active port `8084`, local health, local MCP
-  `getMcpRegistryVersion`, public dedicated-host health, public dedicated-host
-  MCP `tools/list` with 304 tools, and nginx shared/dedicated upstream checks.
+  `getMcpRegistryVersion`, public dedicated-host health, historical public
+  dedicated-host MCP `tools/list` with 304 tools, and nginx shared/dedicated
+  upstream checks. This public MCP route is now superseded by the MCP
+  internal-only policy.
   A read-only runtime-log smoke against the active run log then passed with
   runtime `ERROR` count 0, known WARN counts
   `flyway_mysql_version=1`, `startup_bean_timing=11`, `cglib_proxy=2`,
@@ -167,8 +173,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   on active port `8085`. Post-deploy `deploy.sh` verification passed with
   worktree, `origin/main`, and deployed `app.commit` all matching `4636a08`;
   local health, local MCP `getMcpRegistryVersion`, AgoraMarket dependency
-  health, public dedicated-host health, public dedicated-host MCP `tools/list`
-  with 304 tools, nginx shared/dedicated upstreams, and nginx service checks
+  health, public dedicated-host health, historical public dedicated-host MCP
+  `tools/list` with 304 tools, nginx shared/dedicated upstreams, and nginx service checks
   all passed. `.\scripts\verify_server_ssh.ps1 -SchemaCompare` passed after
   deploy: 39 source entity tables, 176 shared database tables, 0 missing
   trading tables, 5 marketplace/shared tables, 2 known system tables, and 137
@@ -187,6 +193,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `diagnoseDataFreshnessGuardBlocks` returns the read-only boundary and
   acceptance marker, and `verifyStrategyExecution` returns the read-only
   `no external import/backfill` marker without Binance API failure noise.
+- After the 2026-06-16 public-surface tightening, the acceptance expectation is
+  that public Trading MCP routes are blocked while server-local
+  `/api/trading/mcp` remains callable for SSH/operator verification.
 
 ## Schema Hardening
 

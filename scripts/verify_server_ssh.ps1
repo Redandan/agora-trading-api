@@ -3,7 +3,8 @@ param(
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [string]$AppDir = "/home/ubuntu/agora-trading-api",
     [string]$PublicTradingHealthUrl = "https://agoratradingapi.purrtechllc.com/api/actuator/health",
-    [string]$PublicTradingMcpUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
+    [string]$PublicTradingMcpBlockedUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
+    [string]$PublicTradingContextMcpBlockedUrl = "https://agoramarketapi.purrtechllc.com/api/trading/mcp",
     [switch]$SchemaCompare,
     [switch]$SkipGitCurrent
 )
@@ -33,7 +34,8 @@ $remoteScript = @"
 set -euo pipefail
 cd '$AppDir'
 PUBLIC_TRADING_HEALTH_URL='$PublicTradingHealthUrl' \
-PUBLIC_TRADING_MCP_URL='$PublicTradingMcpUrl' \
+PUBLIC_TRADING_MCP_BLOCKED_URL='$PublicTradingMcpBlockedUrl' \
+PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL='$PublicTradingContextMcpBlockedUrl' \
 RUN_SCHEMA_BASELINE_COMPARE='$schemaFlag' \
 VERIFY_GIT_CURRENT='$gitFlag' \
 bash scripts/verify_server.sh

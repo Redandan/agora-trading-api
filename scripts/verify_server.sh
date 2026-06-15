@@ -12,8 +12,9 @@ PORT_A="${PORT_A:-8084}"
 PORT_B="${PORT_B:-8085}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
-PUBLIC_TRADING_MCP_URL="${PUBLIC_TRADING_MCP_URL:-}"
-PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS="${PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS:-300}"
+PUBLIC_TRADING_MCP_BLOCKED_URL="${PUBLIC_TRADING_MCP_BLOCKED_URL:-}"
+PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL="${PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL:-}"
+PUBLIC_TRADING_MCP_BLOCKED_STATUSES="${PUBLIC_TRADING_MCP_BLOCKED_STATUSES:-401 403 404 405}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
 INTERNAL_CLIENT_POM="${INTERNAL_CLIENT_POM:-/home/ubuntu/AgoraMarketAPI/internal-client/pom.xml}"
 RUN_PREFLIGHT="${RUN_PREFLIGHT:-1}"
@@ -69,6 +70,27 @@ env_value() {
     return 1
   fi
   printf '%s' "${line#*=}"
+}
+
+verify_public_mcp_blocked() {
+  local url="$1"
+  local label="$2"
+  [ -n "$url" ] || return 0
+
+  local status
+  status="$(curl -sS -o /dev/null -w '%{http_code}' \
+    --max-time 30 \
+    -H "Content-Type: application/json" \
+    --data '{"jsonrpc":"2.0","id":"server-verify-public-mcp-blocked","method":"tools/list","params":{}}' \
+    "$url" || true)"
+  case " $PUBLIC_TRADING_MCP_BLOCKED_STATUSES " in
+    *" $status "*)
+      ok "$label is blocked: $url status=$status"
+      ;;
+    *)
+      fail "$label must be blocked at $url; got HTTP $status expected one of: $PUBLIC_TRADING_MCP_BLOCKED_STATUSES"
+      ;;
+  esac
 }
 
 require_env_value() {
@@ -281,42 +303,8 @@ if [ -n "$PUBLIC_TRADING_HEALTH_URL" ]; then
   ok "public trading health passed: $PUBLIC_TRADING_HEALTH_URL"
 fi
 
-if [ -n "$PUBLIC_TRADING_MCP_URL" ]; then
-  command -v python3 >/dev/null 2>&1 || fail "python3 is required when PUBLIC_TRADING_MCP_URL is set"
-  PUBLIC_MCP_RESPONSE="$(curl -fsS \
-    --max-time 30 \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer ${MCP_KEY}" \
-    --data '{"jsonrpc":"2.0","id":"server-verify-public-tools","method":"tools/list","params":{}}' \
-    "$PUBLIC_TRADING_MCP_URL")" || fail "public trading MCP tools/list failed: $PUBLIC_TRADING_MCP_URL"
-  PUBLIC_MCP_SUMMARY="$(printf '%s' "$PUBLIC_MCP_RESPONSE" | python3 -c '
-import json
-import sys
-
-data = json.load(sys.stdin)
-tools = data.get("result", {}).get("tools", [])
-names = {tool.get("name", "") for tool in tools}
-required = {"previewPositionSizing", "getTradingManagerDigest"}
-missing = sorted(required - names)
-has_marketplace = "updateCartItem" in names
-print(len(tools))
-print(",".join(missing))
-print("true" if has_marketplace else "false")
-')"
-  PUBLIC_MCP_TOOL_COUNT="$(printf '%s\n' "$PUBLIC_MCP_SUMMARY" | sed -n '1p')"
-  PUBLIC_MCP_MISSING="$(printf '%s\n' "$PUBLIC_MCP_SUMMARY" | sed -n '2p')"
-  PUBLIC_MCP_HAS_MARKETPLACE="$(printf '%s\n' "$PUBLIC_MCP_SUMMARY" | sed -n '3p')"
-  if [ "$PUBLIC_MCP_TOOL_COUNT" -lt "$PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS" ]; then
-    fail "public trading MCP tool count too low: count=$PUBLIC_MCP_TOOL_COUNT expected_min=$PUBLIC_TRADING_MCP_EXPECTED_MIN_TOOLS url=$PUBLIC_TRADING_MCP_URL"
-  fi
-  if [ -n "$PUBLIC_MCP_MISSING" ]; then
-    fail "public trading MCP missing required tool(s): $PUBLIC_MCP_MISSING url=$PUBLIC_TRADING_MCP_URL"
-  fi
-  if [ "$PUBLIC_MCP_HAS_MARKETPLACE" = "true" ]; then
-    fail "public trading MCP exposed marketplace tool updateCartItem: $PUBLIC_TRADING_MCP_URL"
-  fi
-  ok "public trading MCP tools/list passed: $PUBLIC_TRADING_MCP_URL toolCount=$PUBLIC_MCP_TOOL_COUNT"
-fi
+verify_public_mcp_blocked "$PUBLIC_TRADING_MCP_BLOCKED_URL" "public dedicated Trading MCP"
+verify_public_mcp_blocked "$PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL" "public shared-host Trading MCP"
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   if grep -R "location[[:space:]]*/api/trading/" $NGINX_CONF_GLOB >/dev/null 2>&1; then
@@ -337,16 +325,22 @@ fi
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   DEDICATED_API_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/"
   DEDICATED_MCP_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/mcp"
+  DEDICATED_MCP_BLOCK="location[[:space:]]*=[[:space:]]*/api/mcp"
+  SHARED_TRADING_MCP_BLOCK="location[[:space:]]*=[[:space:]]*/api/trading/mcp"
   SHARED_TRADING_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}([[:space:];]|$)"
+  if grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
+    fail "nginx dedicated host must not proxy public /api/mcp to Trading MCP under $NGINX_CONF_GLOB"
+  fi
   if grep -RE "$DEDICATED_API_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1 \
-      && grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1 \
+      && grep -RE "$DEDICATED_MCP_BLOCK" $NGINX_CONF_GLOB >/dev/null 2>&1 \
+      && grep -RE "$SHARED_TRADING_MCP_BLOCK" $NGINX_CONF_GLOB >/dev/null 2>&1 \
       && grep -RE "$SHARED_TRADING_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
-    ok "nginx shared and dedicated trading upstreams point at active port $ACTIVE_PORT"
+    ok "nginx shared/dedicated trading upstreams point at active port $ACTIVE_PORT and public MCP is blocked"
   else
     if [ "$REQUIRE_NGINX_DEDICATED_API" = "1" ]; then
-      fail "nginx shared/dedicated trading upstreams do not all point at active port $ACTIVE_PORT under $NGINX_CONF_GLOB"
+      fail "nginx shared/dedicated trading upstreams or public MCP block are not correct for active port $ACTIVE_PORT under $NGINX_CONF_GLOB"
     fi
-    warn "nginx shared/dedicated trading upstreams do not all point at active port $ACTIVE_PORT under $NGINX_CONF_GLOB; REQUIRE_NGINX_DEDICATED_API=$REQUIRE_NGINX_DEDICATED_API"
+    warn "nginx shared/dedicated trading upstreams or public MCP block are not correct for active port $ACTIVE_PORT under $NGINX_CONF_GLOB; REQUIRE_NGINX_DEDICATED_API=$REQUIRE_NGINX_DEDICATED_API"
   fi
 else
   if [ "$REQUIRE_NGINX_DEDICATED_API" = "1" ]; then

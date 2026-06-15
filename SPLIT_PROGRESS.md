@@ -64,7 +64,7 @@
   - Remaining `@Value` `:true` fallbacks are deliberately limited to protective/internal checks and dry-run flags; `scripts/verify_local.ps1` rejects new default-on `@Value` fallbacks until they are classified or changed to explicit opt-in.
   - Remaining `Environment.getProperty` default-`true` fallbacks are deliberately limited to MCP master-approval protection, ScoreBuy/TinyLive dry-run flags, and post-scout add sub-options behind disabled execution; `scripts/verify_local.ps1` rejects new default-on environment property fallbacks until they are classified or changed to explicit opt-in.
   - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup diagnostic logger with no network, DB, order, or notification side effects.
-  - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, MCP streamable HTTP, actuator probes/metrics with filter gates, rate-limit JSON redirect, and favicon.
+  - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, actuator probes/metrics with filter gates, rate-limit JSON redirect, and favicon. Trading MCP is internal-only through server-local `/api/trading/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `https://agoramarketapi.purrtechllc.com`.
 - `deploy.sh` now checks AgoraMarket exchange-rate dependency health before starting the blue-green switch.
 - Server preflight now requires AgoraMarket exchange-rate dependency health by default, with `REQUIRE_AGORA_MARKET_HEALTH=0` reserved for diagnostic-only checks.
@@ -263,19 +263,23 @@ Trading deployment prep:
   `/api/trading/` route switched. Commit `1cb9e60` fixed `deploy.sh` and
   `scripts/install_nginx_path.sh` so both shared-host and dedicated-host
   upstreams follow the active blue-green port.
-- Server verification now supports `PUBLIC_TRADING_MCP_URL` and deploy passes
-  `https://agoratradingapi.purrtechllc.com/api/mcp` by default when nginx is
-  updated. The check requires a large Trading MCP registry, representative
-  Trading tools, and absence of marketplace `updateCartItem`.
+- Server verification now supports `PUBLIC_TRADING_MCP_BLOCKED_URL` and
+  `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`, and deploy passes the dedicated
+  `https://agoratradingapi.purrtechllc.com/api/mcp` plus shared
+  `https://agoramarketapi.purrtechllc.com/api/trading/mcp` URLs by default
+  when nginx is updated. Public Trading MCP must be blocked; server-local
+  `/api/trading/mcp` remains the operator/verification path.
 - 2026-06-15 production deploy advanced runtime to `31af005` on active port
   `8085`. Post-deploy verification and full read-only schema compare passed:
   39 source entity tables, 0 missing DB tables, 176 DB tables, 2 known system
   tables, and 137 extra marketplace/shared tables expected in shared DB mode.
-  Dedicated-host MCP smoke reported exactly 304 Trading tools.
+  Historical dedicated-host MCP smoke reported exactly 304 Trading tools before
+  Trading MCP was made internal-only.
 - 2026-06-15 runtime-log smoke deploy advanced runtime to `7e02307` on active
   port `8084`. The deploy post-verifier passed with shared-mode schema compare,
-  dedicated-host health, dedicated-host MCP `tools/list` with 304 Trading
-  tools, and nginx shared/dedicated upstreams on active port `8084`. The full
+  dedicated-host health, historical dedicated-host MCP `tools/list` with 304
+  Trading tools, and nginx shared/dedicated upstreams on active port `8084`.
+  This public MCP route is now superseded by the MCP internal-only policy. The full
   `scripts/verify_split_acceptance_ssh.ps1` pass also checked the active run log:
   0 runtime ERROR lines, WARN lines matching the known baseline, and no
   high-risk trading/OCO/grid/Earn/fund operation-like lines in the recent log

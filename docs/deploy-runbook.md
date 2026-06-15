@@ -462,7 +462,9 @@ validated.
 `scripts/check_server_runtime_log.sh` enforces this warning baseline for the
 active run log. It fails on runtime `ERROR` lines, WARN lines outside the known
 baseline above, and operation-like live trading/OCO/grid/Earn/fund lines in the
-recent log tail.
+recent log tail. On success, it also prints the known WARN category counts:
+Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
+optional TheGraph key warnings.
 
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 

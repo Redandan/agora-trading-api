@@ -272,11 +272,12 @@ Trading deployment prep:
   dedicated-host health, dedicated-host MCP `tools/list` with 304 Trading
   tools, and nginx shared/dedicated upstreams on active port `8084`. The full
   `scripts/verify_split_acceptance_ssh.ps1` pass also checked the active run log:
-  0 runtime ERROR lines, 15 WARN lines matching the known baseline, and no
+  0 runtime ERROR lines, WARN lines matching the known baseline, and no
   high-risk trading/OCO/grid/Earn/fund operation-like lines in the recent log
-  tail. Cross-service MCP ownership smoke reported AgoraMarketAPI 155 tools
-  with representative Trading tools absent and `agora-trading-api` 304 Trading
-  tools present.
+  tail. Runtime log smoke now prints known WARN category counts, so future total
+  count movement can be explained by warning class. Cross-service MCP ownership
+  smoke reported AgoraMarketAPI 155 tools with representative Trading tools
+  absent and `agora-trading-api` 304 Trading tools present.
 
 ## Cleanup Priority
 

@@ -129,7 +129,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - active run log:
     `/home/ubuntu/agora-trading-api/logs/runs/app-20260615T094927Z-port8084.log`
   - runtime `ERROR` count: 0
-  - WARN lines matched the known startup/runtime baseline: 15
+  - WARN lines matched the known startup/runtime baseline; the runtime log smoke
+    prints category counts so future 15/16-style changes can be traced to a
+    known warning class instead of just a total count
   - no high-risk trading/OCO/grid/Earn/fund operation-like lines in the recent
     log tail
   - AgoraMarketAPI live MCP exposed 155 marketplace/system/internal tools with

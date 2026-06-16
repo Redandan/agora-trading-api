@@ -282,70 +282,7 @@ if [ "$UPDATE_NGINX" = "1" ]; then
   fi
 
   tmp_nginx="$(mktemp)"
-  awk -v port="$NEW_PORT" '
-    function brace_delta(line, copy, opens, closes) {
-      copy = line
-      opens = gsub(/\{/, "{", copy)
-      copy = line
-      closes = gsub(/\}/, "}", copy)
-      return opens - closes
-    }
-    function update_server_depth() {
-      if (in_server) {
-        server_depth += brace_delta($0)
-        if (server_depth <= 0) {
-          in_server = 0
-          dedicated = 0
-          server_depth = 0
-        }
-      }
-    }
-    /^[[:space:]]*server[[:space:]]*\{/ {
-      in_server = 1
-      dedicated = 0
-      server_depth = 0
-    }
-    in_server && /^[[:space:]]*server_name[[:space:]]+agoratradingapi[.]purrtechllc[.]com;/ {
-      dedicated = 1
-    }
-    dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
-      print "    # MCP is internal-only. Public dedicated host must not expose /api/mcp.";
-      print "    location = /api/mcp {";
-      print "        return 404;";
-      print "    }";
-      skip_mcp = 1
-      next
-    }
-    skip_mcp && /^[[:space:]]*}/ {
-      skip_mcp = 0
-      next
-    }
-    skip_mcp {
-      next
-    }
-    /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
-      inserted_trading_mcp_block = 1
-    }
-    /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
-      if (!inserted_trading_mcp_block) {
-        print "    # Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp.";
-        print "    location = /api/trading/mcp {";
-        print "        return 404;";
-        print "    }";
-        print "";
-        inserted_trading_mcp_block = 1;
-      }
-      in_trading = 1
-    }
-    in_trading || /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading/ {
-      gsub(/127\.0\.0\.1:(8084|8085)/, "127.0.0.1:" port)
-    }
-    { print }
-    in_trading && /^[[:space:]]*}/ {
-      in_trading = 0
-    }
-    { update_server_depth() }
-  ' "$NGINX_CONF" > "$tmp_nginx"
+  awk -v port="$NEW_PORT" -f scripts/rewrite_nginx_trading_routes.awk "$NGINX_CONF" > "$tmp_nginx"
 
   sudo cp "$NGINX_CONF" "$NGINX_CONF.bak-trading"
   sudo cp "$tmp_nginx" "$NGINX_CONF"

@@ -246,6 +246,12 @@ case "$ACTIVE_PORT" in
   *) fail "unknown active port: $ACTIVE_PORT (expected $PORT_A or $PORT_B)" ;;
 esac
 
+if [ "$ACTIVE_PORT" = "$PORT_A" ]; then
+  INACTIVE_PORT="$PORT_B"
+else
+  INACTIVE_PORT="$PORT_A"
+fi
+
 if [ -f "$PID_FILE" ]; then
   ACTIVE_PID="$(tr -d '[:space:]' < "$PID_FILE")"
   case "$ACTIVE_PID" in
@@ -274,6 +280,12 @@ elif [ "$REQUIRE_DEPLOY_METADATA" = "1" ]; then
 else
   warn "deploy pid file missing: $PID_FILE; REQUIRE_DEPLOY_METADATA=$REQUIRE_DEPLOY_METADATA"
 fi
+
+INACTIVE_PORT_PIDS="$(lsof -ti ":$INACTIVE_PORT" 2>/dev/null || true)"
+if [ -n "$INACTIVE_PORT_PIDS" ]; then
+  fail "non-active blue-green port $INACTIVE_PORT still has listener pid(s): $INACTIVE_PORT_PIDS"
+fi
+ok "non-active blue-green port $INACTIVE_PORT has no listener"
 
 LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"
 curl -fsS "$LOCAL_HEALTH_URL" >/dev/null || fail "local trading health failed: $LOCAL_HEALTH_URL"

@@ -300,6 +300,13 @@ Trading deployment prep:
   operation-like lines in the recent tail; cross-service MCP ownership smoke
   reported AgoraMarketAPI 155 tools with representative Trading tools absent
   and `agora-trading-api` 304 Trading tools present.
+- Deploy hardening now keeps the nginx Trading route rewrite in
+  `scripts/rewrite_nginx_trading_routes.awk` with a local regression fixture
+  in `scripts/test_nginx_route_rewrite.ps1`, so nested nginx `location {}`
+  blocks cannot cause public dedicated-host MCP to remain proxied. Windows
+  deploys should use `scripts/deploy_ssh.ps1` for durable remote
+  `logs/deploy` output, and server verification fails if the non-active
+  blue-green port still has a listener.
 
 ## Cleanup Priority
 

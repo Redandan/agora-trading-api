@@ -579,7 +579,7 @@ try {
     Assert-RgMatch -Pattern "deployed app.commit differs from worktree HEAD only by docs/tooling files" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "server verification permits docs/tooling-only deployed commit drift"
     Assert-RgMatch -Pattern "PUBLIC_TRADING_MCP_BLOCKED_URL" -Paths @("deploy.sh", "scripts/verify_server.sh", "scripts/verify_server_ssh.ps1", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "deploy/server verification requires public dedicated Trading MCP to be blocked"
     Assert-RgMatch -Pattern "PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL" -Paths @("deploy.sh", "scripts/verify_server.sh", "scripts/verify_server_ssh.ps1", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "deploy/server verification requires public shared-host Trading MCP to be blocked"
-    Assert-RgMatch -Pattern "return 404" -Paths @("deploy.sh", "scripts/install_nginx_path.sh") -Description "nginx deploy/install blocks public Trading MCP routes"
+    Assert-RgMatch -Pattern "return 404" -Paths @("scripts/rewrite_nginx_trading_routes.awk") -Description "nginx deploy/install blocks public Trading MCP routes"
     Assert-RgNoMatch -Pattern "DEFAULT_PUBLIC_TRADING_MCP_URL|PublicTradingMcpUrl" -Paths @("deploy.sh", "scripts/verify_server_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1") -Description "public Trading MCP must not be verified as a successful public registry"
     Assert-RgNoMatch -Pattern "deployment completed from ``origin/main`` commit|trading was deployed from ``origin/main`` commit" -Paths @("SPLIT_PROGRESS.md", "docs/deploy-runbook.md") -Description "stale observed deployment commit must not be phrased as current production"
     Assert-RgMatch -Pattern "historical evidence, not a current-deployment claim" -Paths @("SPLIT_PROGRESS.md", "docs/deploy-runbook.md") -Description "observed deployment commit is clearly marked historical"
@@ -968,6 +968,12 @@ try {
     $bash = Resolve-BashCommand
     $shellScripts = @("deploy.sh") + @(Get-ChildItem -LiteralPath "scripts" -Filter "*.sh" | ForEach-Object { "scripts/$($_.Name)" })
     & $bash -n @shellScripts
+
+    Write-Host "[verify] checking nginx route rewrite regression"
+    & powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/test_nginx_route_rewrite.ps1"
+    if ($LASTEXITCODE -ne 0) {
+        throw "nginx route rewrite regression test failed with exit code $LASTEXITCODE"
+    }
 
     Assert-RgMatch -Pattern '@ActiveProfiles\("local-smoke"\)' -Paths @("src/test/java/com/agora/trading/TradingApiApplicationTests.java") -Description "context test uses local-smoke profile"
 

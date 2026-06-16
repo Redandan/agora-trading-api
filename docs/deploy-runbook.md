@@ -403,6 +403,18 @@ host:
 .\scripts\verify_server_ssh.ps1 -SchemaCompare
 ```
 
+For deploys from Windows/Codex Desktop, prefer the SSH wrapper so the deploy
+continues on the server with a durable `logs/deploy/deploy-*.log` and
+`logs/deploy/deploy-*.exit` marker even if the local SSH session is interrupted:
+
+```powershell
+.\scripts\deploy_ssh.ps1
+```
+
+The server verifier rejects a listener on the non-active blue-green port. This
+guards against a failed or interrupted deploy leaving a second scheduler-capable
+Trading process alive after the active metadata has settled.
+
 For the full read-only split acceptance pass, run the Trading server verifier
 with shared-DB schema compare, active runtime log smoke, and then
 AgoraMarketAPI's live MCP ownership smoke:

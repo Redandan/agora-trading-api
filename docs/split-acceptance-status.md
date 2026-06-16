@@ -16,7 +16,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `https://agoratradingapi.purrtechllc.com` host.
 - Trading MCP is internal-only through server-local `/api/trading/mcp`. Public
   dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked
-  by nginx.
+  by nginx with exact `return 404` blocks and no `proxy_pass`.
 - Trading must not import AgoraMarketAPI marketplace entities or repositories.
 - Trading may call AgoraMarketAPI through the internal-client SDK or internal
   HTTP DTOs for explicit internal APIs such as exchange rates.
@@ -33,6 +33,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - local health works at `/api/trading/actuator/health`
   - local MCP works at `/api/trading/mcp`
   - nginx exposes `/api/trading/`
+  - nginx exact MCP blocks return `404` directly with no `proxy_pass`
   - public health works through the dedicated Trading host
     `https://agoratradingapi.purrtechllc.com/api/actuator/health`
   - AgoraMarket dependency health works at

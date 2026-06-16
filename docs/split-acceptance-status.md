@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-15
+Last refreshed: 2026-06-16
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -196,6 +196,34 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - After the 2026-06-16 public-surface tightening, the acceptance expectation is
   that public Trading MCP routes are blocked while server-local
   `/api/trading/mcp` remains callable for SSH/operator verification.
+- 2026-06-16 production deploy advanced Trading runtime to commit `5cc6782`
+  on active port `8084`. The first public-MCP-block deploy attempt correctly
+  rolled back because the dedicated-host `/api/mcp` route still returned HTTP
+  200; commit `5cc6782` fixed the nginx rewrite to track nested server-block
+  braces before replacing the dedicated Trading MCP location. The successful
+  deploy post-verifier then confirmed:
+  - local health passed at `http://127.0.0.1:8084/api/trading/actuator/health`
+  - server-local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
+  - public dedicated Trading MCP
+    `https://agoratradingapi.purrtechllc.com/api/mcp` returned HTTP 404
+  - public shared-host Trading MCP
+    `https://agoramarketapi.purrtechllc.com/api/trading/mcp` returned HTTP 404
+  - nginx shared/dedicated Trading upstreams pointed at active port `8084`
+    while public MCP was blocked
+  - only active port `8084` remained listening after deploy drain
+- 2026-06-16 `.\scripts\verify_server_ssh.ps1 -SchemaCompare` passed against
+  deployed commit `5cc6782`: 39 source entity tables, 176 shared database
+  tables, 0 missing trading tables, 5 marketplace/shared tables, 2 known
+  system tables, and 137 extra database tables expected in shared mode.
+- 2026-06-16 full `.\scripts\verify_split_acceptance_ssh.ps1` passed:
+  runtime log smoke on
+  `/home/ubuntu/agora-trading-api/logs/runs/app-20260616T013714Z-port8084.log`
+  found runtime `ERROR` count 0, WARN lines matching the known baseline, and
+  no high-risk trading/OCO/grid/Earn/fund operation-like lines in the last
+  3000 lines. Cross-service live MCP ownership smoke reported AgoraMarketAPI
+  155 marketplace/system/internal tools with representative Trading tools
+  absent, and `agora-trading-api` 304 Trading tools with representative
+  Trading tools present.
 
 ## Schema Hardening
 

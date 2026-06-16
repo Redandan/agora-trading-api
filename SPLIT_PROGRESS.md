@@ -287,6 +287,19 @@ Trading deployment prep:
   count movement can be explained by warning class. Cross-service MCP ownership
   smoke reported AgoraMarketAPI 155 tools with representative Trading tools
   absent and `agora-trading-api` 304 Trading tools present.
+- 2026-06-16 public Trading MCP was made internal-only in production. Runtime
+  commit `5cc6782` is active on port `8084`; deploy post-verification,
+  `scripts/verify_server_ssh.ps1 -SchemaCompare`, and
+  `scripts/verify_split_acceptance_ssh.ps1` all passed. Public dedicated
+  `https://agoratradingapi.purrtechllc.com/api/mcp` and public shared-host
+  `https://agoramarketapi.purrtechllc.com/api/trading/mcp` both returned HTTP
+  404, while server-local `/api/trading/mcp` `getMcpRegistryVersion` passed.
+  Schema compare remained in shared mode with 39 source entity tables, 0
+  missing DB tables, and 137 expected extra shared/marketplace tables. Runtime
+  log smoke found 0 ERROR lines and no high-risk trading/OCO/grid/Earn/fund
+  operation-like lines in the recent tail; cross-service MCP ownership smoke
+  reported AgoraMarketAPI 155 tools with representative Trading tools absent
+  and `agora-trading-api` 304 Trading tools present.
 
 ## Cleanup Priority
 
@@ -295,8 +308,9 @@ Trading deployment prep:
 3. Keep production on schema validation plus Flyway with the Trading-owned
    `trading_flyway_schema_history` table.
 4. Re-run local verify, local smoke, deploy, server verify with schema compare,
-   public health, MCP parity smoke, and cross-service live MCP ownership smoke
-   after deploy-affecting changes.
+   public health, public Trading MCP blocked checks, server-local MCP registry
+   smoke, and cross-service live MCP ownership smoke after deploy-affecting
+   changes.
 
 ## Do Not Do Yet
 

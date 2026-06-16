@@ -3,6 +3,7 @@ target/
 .idea/
 *.iml
 *.log
+*.exit
 *.pid
 app.pid.*
 *.port

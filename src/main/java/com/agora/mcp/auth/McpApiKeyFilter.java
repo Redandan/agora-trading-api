@@ -445,6 +445,11 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
                     log.warn("[McpCategory] tool={} has no @McpCategory — consider tagging", toolName);
                 }
             }
+        } else if (!isDevOrOpsRequest(request)) {
+            String method = extractMethod(bodyBytes);
+            log.warn("[McpAuth] DENIED MCP method={} ip={} reason=metadata key missing", method, request.getRemoteAddr());
+            sendEndpointAuthRequired(response, method);
+            return;
         }
 
         // 4. 以可重複讀取的 wrapper 繼續過濾鏈
@@ -465,6 +470,17 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.debug("[McpAuth] Failed to parse tool name: {}", e.getMessage());
             return null;
+        }
+    }
+
+    private String extractMethod(byte[] bodyBytes) {
+        try {
+            JsonNode root = objectMapper.readTree(bodyBytes);
+            String method = root.path("method").asText(null);
+            return method == null || method.isBlank() ? "unknown" : method;
+        } catch (Exception e) {
+            log.debug("[McpAuth] Failed to parse method: {}", e.getMessage());
+            return "unknown";
         }
     }
 
@@ -605,6 +621,11 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
         return token != null && !opsKey.isBlank() && opsKey.equals(token);
     }
 
+    private boolean isDevOrOpsRequest(HttpServletRequest request) {
+        String token = extractBearer(request);
+        return isDevKey(token) || isOpsKey(token);
+    }
+
     private boolean isGuardianKey(String token) {
         return token != null && !guardianKey.isBlank() && guardianKey.equals(token);
     }
@@ -708,6 +729,20 @@ public class McpApiKeyFilter extends OncePerRequestFilter {
         com.fasterxml.jackson.databind.node.ArrayNode tools = arguments.putArray("requestedTools");
         tools.add(toolName);
 
+        response.getWriter().write(objectMapper.writeValueAsString(errorNode));
+    }
+
+    private void sendEndpointAuthRequired(HttpServletResponse response, String method) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+
+        com.fasterxml.jackson.databind.node.ObjectNode errorNode = objectMapper.createObjectNode();
+        errorNode.put("jsonrpc", "2.0");
+        errorNode.putNull("id");
+
+        com.fasterxml.jackson.databind.node.ObjectNode errorBody = errorNode.putObject("error");
+        errorBody.put("code", -32001);
+        errorBody.put("message", "Unauthorized: DEV or OPS authorization required for MCP method '" + method + "'");
         response.getWriter().write(objectMapper.writeValueAsString(errorNode));
     }
 

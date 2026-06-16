@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -69,5 +71,35 @@ class TradingApiApplicationTests {
                             return request;
                         }))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void mcpMetadataMethodsRequireDevOrOpsKey() throws Exception {
+        String toolsListRequest = """
+                {"jsonrpc":"2.0","id":"tools","method":"tools/list","params":{}}
+                """;
+
+        mockMvc.perform(post("/mcp")
+                        .contentType("application/json")
+                        .content(toolsListRequest))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value(-32001));
+
+        mockMvc.perform(post("/mcp")
+                        .contentType("application/json")
+                        .header("Authorization", "Bearer wrong-mcp-key")
+                        .content(toolsListRequest))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value(-32001));
+
+        String mcpKey = environment.getProperty("mcp.api-key", "");
+        assertFalse(mcpKey.isBlank());
+
+        mockMvc.perform(post("/mcp")
+                        .contentType("application/json")
+                        .header("Authorization", "Bearer " + mcpKey)
+                        .content(toolsListRequest))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.tools").isArray());
     }
 }

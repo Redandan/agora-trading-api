@@ -85,6 +85,24 @@ ownership smoke and active runtime log smoke:
 .\scripts\verify_split_acceptance_ssh.ps1
 ```
 
+Post-deploy open-issue acceptance wrapper for the current #1/#2/#3 trading
+guardrail handoffs:
+
+```powershell
+.\scripts\verify_post_deploy_issue_acceptance_ssh.ps1 -RequireTrailingAcceptance
+```
+
+This wrapper runs split acceptance, the reusable server-local MCP parity smoke,
+the #1/#2 guardrail MCP smoke, the read-only signal-correctness MCP smoke, and
+the #3 trailing-stop replay smoke through server-local read-only calls.
+Omit
+`-RequireTrailingAcceptance` only when collecting reachability evidence before
+the deployed DB sample is expected to satisfy the 30d PnL target. The wrapper
+also fails #1/#2 acceptance if anti-wick coverage returns
+`Operator action: REVIEW_POLICY_GAPS`.
+`-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is
+not #1/#2/#3 closure evidence.
+
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
 When nginx is updated, deploy also verifies dedicated Trading host health at
 `https://agoratradingapi.purrtechllc.com/api` and verifies public Trading MCP
@@ -95,7 +113,34 @@ service:
 
 ```powershell
 .\scripts\smoke_mcp_parity.ps1 -BaseUrl http://127.0.0.1:18084/api -McpKey local-smoke-mcp
+.\scripts\smoke_mcp_parity_ssh.ps1
 ```
+
+Read-only trailing-stop PnL replay smoke after a deploy that contains the
+`analyzeTrailingStopPnlReplay` MCP tool:
+
+```powershell
+.\scripts\smoke_trailing_stop_pnl_replay_ssh.ps1
+```
+
+The default mode proves server-local `/api/mcp` reachability, the read-only
+boundary marker, and an explicit replay sample status. Add `-RequireAcceptance`
+only when the deployed DB sample is expected to prove the 30d PnL target
+(`acceptance=PASS`). Ambiguous same-bar replay rows are reported but excluded
+from PnL acceptance totals.
+
+Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
+event-risk-control issue handoffs:
+
+```powershell
+.\scripts\smoke_guardrail_acceptance_ssh.ps1
+```
+
+The script calls server-local `/api/mcp` only. It verifies
+`analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary
+and operator-control markers without changing order/OCO/strategy/grid/fund/Earn
+state. Add `-RequireNoReviewGaps` when this smoke is used as issue-acceptance
+evidence instead of diagnostic reachability evidence.
 
 Cross-service live ownership smoke is maintained in the AgoraMarketAPI repo.
 Run it when validating that representative legacy Trading tools are absent from

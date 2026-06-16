@@ -133,6 +133,17 @@ Expected:
   but it must only report current snapshot states such as `READY_NOW`,
   `STALE_NOW`, `NO_DATA_NOW`, and `QUERY_FAILED_NOW`; it must not import,
   backfill, trade, or mutate guard behavior.
+- Trailing-stop PnL replay remains read-only. Local smoke calls
+  `analyzeTrailingStopPnlReplay` through `/api/mcp` and requires the
+  `boundary: READ_ONLY` marker plus an explicit `sampleStatus`. A local H2
+  `NO_REPLAYABLE_TRADES` result proves tool wiring and safety only; the 30d PnL
+  acceptance for issue #3 still requires a deployed runtime with real
+  normalized backtest/K-line samples.
+- BTC spot anti-wick policy coverage remains read-only. Local smoke calls
+  `analyzeSpotAntiWickPolicyCoverage` through `/api/mcp` and requires the
+  `boundary: READ_ONLY`, `ULTRA_LOW_DISASTER`, and summary markers. This proves
+  the #1 MCP surface wiring locally; closure still requires deployed
+  server-local guardrail smoke without `REVIEW_POLICY_GAPS`.
 - Smoke command-line overrides clear local external keys for AgoraMarket, OKX, Binance, Telegram, AI providers, and market-data providers even if host environment variables are set.
 - Smoke command-line overrides clear both Telegram bot token and channel id, so local smoke cannot send channel messages even when host `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_CHANNEL_ID`, or legacy `TELEGRAM_CHANNEL_ID` are present.
 - Smoke logs prove H2 local DB, exchange-rate fallback, cleared OKX API key, disabled OKX auto-trade, skipped private WS, and disabled startup refresh.
@@ -429,6 +440,24 @@ AgoraMarketAPI's live MCP ownership smoke:
 .\scripts\verify_split_acceptance_ssh.ps1
 ```
 
+For the current open-issue acceptance handoff after an explicitly authorized
+deploy, run the read-only wrapper:
+
+```powershell
+.\scripts\verify_post_deploy_issue_acceptance_ssh.ps1 -RequireTrailingAcceptance
+```
+
+This wrapper runs split acceptance, the reusable server-local MCP parity smoke,
+the focused #1/#2 guardrail MCP smoke, the read-only signal-correctness MCP
+smoke, and the #3 trailing-stop PnL replay smoke through server-local MCP/API
+checks. Use
+`-RequireTrailingAcceptance` when closing issue #3; without it, trailing replay
+can still prove deployed reachability but not the 30d PnL acceptance target.
+The wrapper runs the guardrail smoke in no-review-gaps mode, so
+`Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance.
+`-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is
+not #1/#2/#3 closure evidence.
+
 For a read-only production signal-correctness check, run:
 
 ```powershell
@@ -458,6 +487,52 @@ Expected:
   explicitly approved tiny-live/shadow experiment.
 - The script only calls read-only MCP tools and must not change
   order/OCO/strategy/grid/fund/Earn state.
+
+For a focused read-only guardrail acceptance check after deploying a runtime
+that contains the latest issue #1/#2 local guardrail changes, run:
+
+```powershell
+.\scripts\smoke_guardrail_acceptance_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- `analyzeSpotAntiWickPolicyCoverage` returns `boundary: READ_ONLY`, the
+  BTC spot `ULTRA_LOW_DISASTER` policy marker, a summary, and an operator
+  action.
+- `getEventRiskControlStatus` returns `boundary=READ_ONLY`, `riskLevel=R0-R3`,
+  policy text, and `operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION`.
+- `Operator action: REVIEW_POLICY_GAPS` is a review result, not a script
+  transport failure; do not promote live strategies until the review gap is
+  resolved.
+- Add `-RequireNoReviewGaps` when this smoke is used as issue-acceptance
+  evidence; that mode fails if `REVIEW_POLICY_GAPS` is present. The
+  `verify_post_deploy_issue_acceptance_ssh.ps1` wrapper enables this mode.
+- The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
+  state.
+
+For a read-only trailing-stop 30d PnL replay check after deploying a runtime
+that contains `analyzeTrailingStopPnlReplay`, run:
+
+```powershell
+.\scripts\smoke_trailing_stop_pnl_replay_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- Output includes `boundary: READ_ONLY`.
+- Output includes `sampleStatus=NO_REPLAYABLE_TRADES`, `sampleStatus=REPLAYED`,
+  or `sampleStatus=NO_REPLAYED_ROWS`.
+- Treat `NO_REPLAYABLE_TRADES` or `NO_REPLAYED_ROWS` as deploy reachability
+  evidence only, not PnL acceptance.
+- PnL acceptance totals exclude `ambiguousSameBar` rows where trigger/stop
+  ordering cannot be proven from OHLC bars.
+- To make issue #3 PnL acceptance a hard gate, run with `-RequireAcceptance`;
+  this fails unless the deployed DB sample returns `acceptance=PASS`.
+- The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
+  state.
 
 Optional public path check:
 

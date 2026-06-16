@@ -212,7 +212,7 @@ require_env_value() {
 classify_deployed_delta_path() {
   local path="$1"
   case "$path" in
-    .gitattributes|.gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|deploy.sh|scripts/deploy_ssh.ps1|scripts/install_nginx_path.sh|scripts/rewrite_nginx_trading_routes.awk|scripts/test_nginx_route_rewrite.ps1|scripts/check_server_runtime_log.sh|scripts/verify_local.ps1|scripts/verify_server.sh|scripts/verify_server_ssh.ps1|scripts/verify_split_acceptance_ssh.ps1)
+    .gitattributes|.gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|deploy.sh|scripts/*.ps1|scripts/install_nginx_path.sh|scripts/rewrite_nginx_trading_routes.awk|scripts/check_server_runtime_log.sh|scripts/verify_server.sh)
       echo "docs-tooling"
       ;;
     *)

@@ -75,6 +75,11 @@ public class ExposureOptimizer {
                 .filter(p -> sameStrategyPosition(p, strategy, symbol, intervalCode))
                 .map(this::notional)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sameSymbolLongExposure = open.stream()
+                .filter(p -> sameSymbolLongPosition(p, symbol))
+                .map(this::notional)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        boolean sameSymbolOpenLong = sameSymbolLongExposure.signum() > 0;
 
         int dailyCap = getInt(config, "exposureOptimizerDailyNewEntryCap", 1);
         LocalDateTime dayStart = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
@@ -87,6 +92,7 @@ public class ExposureOptimizer {
         double microAddNotional = getDouble(config, "microAddNotionalUsdt", 5.0);
         double microAddMaxSameStrategyExposure = getDouble(config, "microAddMaxSameStrategyExposureUsdt", 75.0);
         double candidateMaxLoss = Math.max(0.0, microAddNotional) * Math.max(0.0, candidateStopLossPct);
+        boolean blockSameSymbolLong = getBoolean(config, "exposureOptimizerBlockSameSymbolLong", true);
         boolean microAddLiveEnabled = getBoolean(config, "microAddLiveEnabled", false)
                 || "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE".equals(dedupMode);
         boolean notifyOnly = getBoolean(config, "notifyOnly", false);
@@ -110,6 +116,9 @@ public class ExposureOptimizer {
         ctx.put("micro_add_candidate_max_loss_usdt", round(candidateMaxLoss));
         ctx.put("same_strategy_exposure_usdt", plain(sameStrategyExposure));
         ctx.put("same_strategy_exposure_cap_usdt", microAddMaxSameStrategyExposure);
+        ctx.put("same_symbol_open_long", sameSymbolOpenLong);
+        ctx.put("same_symbol_long_exposure_usdt", plain(sameSymbolLongExposure));
+        ctx.put("exposure_optimizer_block_same_symbol_long", blockSameSymbolLong);
         ctx.put("entry_dedup_decision_mode", dedupMode);
         ctx.put("open_auto_position_count", open.size());
         ctx.put("actual_exposure_usdt", plain(actualExposure));
@@ -133,6 +142,11 @@ public class ExposureOptimizer {
         if (notifyOnly && !sameStrategyOpenLong) {
             return new Result(Decision.ALLOW_NEW_ENTRY,
                     "notifyOnly candidate remains observable; exposure caps protect auto-trade path", ctx);
+        }
+
+        if (blockSameSymbolLong && sameSymbolOpenLong && !sameStrategyOpenLong) {
+            return new Result(Decision.BLOCK_DUPLICATE,
+                    "same-symbol LONG exposure already exists across strategy boundary", ctx);
         }
 
         if (capitalUsdt > 0) {
@@ -219,6 +233,11 @@ public class ExposureOptimizer {
                 && p.getStrategyId().equals(strategy.getId())
                 && symbol.equalsIgnoreCase(p.getSymbol())
                 && intervalCode.equalsIgnoreCase(p.getIntervalCode())
+                && "LONG".equalsIgnoreCase(p.getSide());
+    }
+
+    private boolean sameSymbolLongPosition(BtLiveSignal p, String symbol) {
+        return symbol.equalsIgnoreCase(p.getSymbol())
                 && "LONG".equalsIgnoreCase(p.getSide());
     }
 

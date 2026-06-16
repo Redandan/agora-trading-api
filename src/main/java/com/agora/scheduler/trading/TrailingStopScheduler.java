@@ -60,6 +60,7 @@ public class TrailingStopScheduler {
     private static final BigDecimal TRAILING_DISTANCE_ATR_MULT = new BigDecimal("1.0");
     private static final BigDecimal BREAKEVEN_FEE_BUFFER       = new BigDecimal("0.001"); // 0.1% taker
     private static final BigDecimal MIN_SL_DELTA_PCT           = new BigDecimal("0.0005"); // 0.05%
+    private static final int MODIFY_OCO_MAX_ATTEMPTS           = 3;
 
     private final BtLiveSignalRepository liveSignalRepository;
     private final BtStrategyRepository strategyRepository;
@@ -161,9 +162,10 @@ public class TrailingStopScheduler {
                     : currentPrice.compareTo(breakevenTrigger) <= 0;
             if (reached) {
                 newState = "BREAKEVEN_LOCKED";
-                targetSl = isLong
+                BigDecimal breakevenStop = isLong
                         ? entry.multiply(BigDecimal.ONE.add(BREAKEVEN_FEE_BUFFER))
                         : entry.multiply(BigDecimal.ONE.subtract(BREAKEVEN_FEE_BUFFER));
+                targetSl = protectiveStop(pos.getSuggestedSl(), breakevenStop, isLong);
             }
         }
         if ("BREAKEVEN_LOCKED".equals(newState)) {
@@ -173,9 +175,10 @@ public class TrailingStopScheduler {
             if (reached) {
                 newState = "TRAILING";
                 BigDecimal trailDistance = high.multiply(atr.multiply(TRAILING_DISTANCE_ATR_MULT));
-                targetSl = isLong
+                BigDecimal trailingStop = isLong
                         ? high.subtract(trailDistance)
                         : high.add(trailDistance);
+                targetSl = protectiveStop(targetSl, trailingStop, isLong);
             }
         }
         if ("TRAILING".equals(newState) && newExtreme) {
@@ -186,12 +189,12 @@ public class TrailingStopScheduler {
             // Only ratchet (LONG: SL only moves up; SHORT: SL only moves down).
             BigDecimal currentSl = pos.getSuggestedSl();
             if (currentSl != null) {
-                boolean ratchet = isLong
-                        ? candidate.compareTo(currentSl) > 0
-                        : candidate.compareTo(currentSl) < 0;
-                if (ratchet) targetSl = candidate;
+            boolean ratchet = isLong
+                    ? candidate.compareTo(currentSl) > 0
+                    : candidate.compareTo(currentSl) < 0;
+                if (ratchet) targetSl = protectiveStop(targetSl, candidate, isLong);
             } else {
-                targetSl = candidate;
+                targetSl = protectiveStop(targetSl, candidate, isLong);
             }
         }
 
@@ -207,6 +210,9 @@ public class TrailingStopScheduler {
             BigDecimal deltaPct = targetSl.subtract(currentSl).abs()
                     .divide(currentSl, 6, RoundingMode.HALF_UP);
             if (deltaPct.compareTo(MIN_SL_DELTA_PCT) < 0 && newState.equals(state)) {
+                if (newExtreme) {
+                    liveSignalRepository.save(pos);
+                }
                 return;
             }
         }
@@ -228,7 +234,7 @@ public class TrailingStopScheduler {
 
         try {
             if (targetSl != null && newTp != null) {
-                ocoManagementService.modifyOco(pos.getId(), targetSl, newTp);
+                modifyOcoWithRetry(pos, targetSl, newTp);
             }
             if (!newState.equals(state)) {
                 pos.setTrailingLastTransitionAt(LocalDateTime.now());
@@ -253,6 +259,33 @@ public class TrailingStopScheduler {
                         pos.getId(), pos.getSymbol(), e.getMessage()), true);
             } catch (Exception ignore) {}
         }
+    }
+
+    private BigDecimal protectiveStop(BigDecimal currentStop, BigDecimal candidate, boolean isLong) {
+        if (candidate == null) return currentStop;
+        if (currentStop == null) return candidate;
+        return isLong ? currentStop.max(candidate) : currentStop.min(candidate);
+    }
+
+    private void modifyOcoWithRetry(BtLiveSignal pos, BigDecimal targetSl, BigDecimal newTp) {
+        RuntimeException last = null;
+        for (int attempt = 1; attempt <= MODIFY_OCO_MAX_ATTEMPTS; attempt++) {
+            try {
+                ocoManagementService.modifyOco(pos.getId(), targetSl, newTp);
+                if (attempt > 1) {
+                    log.info("[TrailingStop] modifyOco retry recovered id={} attempt={}/{}",
+                            pos.getId(), attempt, MODIFY_OCO_MAX_ATTEMPTS);
+                }
+                return;
+            } catch (RuntimeException e) {
+                last = e;
+                if (attempt < MODIFY_OCO_MAX_ATTEMPTS) {
+                    log.warn("[TrailingStop] modifyOco retry failed id={} attempt={}/{}: {}",
+                            pos.getId(), attempt, MODIFY_OCO_MAX_ATTEMPTS, e.getMessage());
+                }
+            }
+        }
+        throw last != null ? last : new RuntimeException("modifyOco failed without exception detail");
     }
 
     private boolean isTrailingEnabled(Long strategyId) {

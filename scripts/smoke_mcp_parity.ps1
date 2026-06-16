@@ -9,7 +9,8 @@ $ErrorActionPreference = "Stop"
 function Invoke-McpRequest {
     param(
         [string]$Url,
-        [hashtable]$Body
+        [hashtable]$Body,
+        [int]$TimeoutSec = 30
     )
 
     $json = $Body | ConvertTo-Json -Depth 10 -Compress
@@ -17,7 +18,7 @@ function Invoke-McpRequest {
         -Uri $Url `
         -Method Post `
         -UseBasicParsing `
-        -TimeoutSec 30 `
+        -TimeoutSec $TimeoutSec `
         -ContentType "application/json" `
         -Headers @{ Authorization = "Bearer $McpKey" } `
         -Body $json
@@ -27,6 +28,25 @@ function Invoke-McpRequest {
     }
 
     return $response.Content | ConvertFrom-Json
+}
+
+function Invoke-McpTool {
+    param(
+        [string]$Url,
+        [string]$Name,
+        [hashtable]$Arguments = @{},
+        [int]$TimeoutSec = 30
+    )
+
+    return Invoke-McpRequest -Url $Url -TimeoutSec $TimeoutSec -Body @{
+        jsonrpc = "2.0"
+        id = "mcp-parity-$Name"
+        method = "tools/call"
+        params = @{
+            name = $Name
+            arguments = $Arguments
+        }
+    }
 }
 
 function Assert-McpResultTextContains {
@@ -73,11 +93,18 @@ $requiredTools = @(
     "getMlLimits",
     "listRuntimeDecisionEvidence",
     "getScoreBuyFormingDayStatus",
+    "getEventRiskControlStatus",
+    "analyzeSpotAntiWickPolicyCoverage",
+    "verifyStrategyExecution",
+    "analyzeBlockedSignalOutcomes",
+    "getSignalCorrectnessDashboard",
+    "getSignalAccuracyReport",
     "listExecutionEvents",
     "getGuardianSnapshot",
     "listFundingArb",
     "getEarnBalance",
     "previewEnsembleScore",
+    "analyzeTrailingStopPnlReplay",
     "listAiProviders",
     "listAiTasks"
 )
@@ -87,35 +114,42 @@ if ($missing.Count -gt 0) {
     throw "MCP parity smoke missing required standalone trading tool(s): $($missing -join ', ')"
 }
 
-$version = Invoke-McpRequest -Url $mcpUrl -Body @{
-    jsonrpc = "2.0"
-    id = "mcp-parity-registry-version"
-    method = "tools/call"
-    params = @{
-        name = "getMcpRegistryVersion"
-        arguments = @{}
-    }
-}
+$version = Invoke-McpTool -Url $mcpUrl -Name "getMcpRegistryVersion"
 
 if (-not $version.result -or -not $version.result.content) {
     throw "MCP parity smoke: getMcpRegistryVersion returned no content"
 }
 
-$dataFreshnessRca = Invoke-McpRequest -Url $mcpUrl -Body @{
-    jsonrpc = "2.0"
-    id = "mcp-parity-data-freshness-rca"
-    method = "tools/call"
-    params = @{
-        name = "diagnoseDataFreshnessGuardBlocks"
-        arguments = @{
-            days = 1
-            symbol = "BTCUSDT"
-            limit = 5
-        }
-    }
+$dataFreshnessRca = Invoke-McpTool -Url $mcpUrl -Name "diagnoseDataFreshnessGuardBlocks" -Arguments @{
+    days = 1
+    symbol = "BTCUSDT"
+    limit = 5
 }
 
 Assert-McpResultTextContains -Response $dataFreshnessRca -Pattern "boundary: READ_ONLY" -Description "DataFreshnessGuard RCA stays read-only"
 Assert-McpResultTextContains -Response $dataFreshnessRca -Pattern "acceptance: PASS_NO_CURRENT_SAMPLE|acceptance: PASS_RCA_CLASSIFIED" -Description "DataFreshnessGuard RCA returns an explicit acceptance marker"
+
+$eventRiskStatus = Invoke-McpTool -Url $mcpUrl -Name "getEventRiskControlStatus" -Arguments @{
+    symbol = "BTCUSDT"
+}
+Assert-McpResultTextContains -Response $eventRiskStatus -Pattern "boundary=READ_ONLY" -Description "Event-risk control status stays read-only"
+Assert-McpResultTextContains -Response $eventRiskStatus -Pattern "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION" -Description "Event-risk control status keeps config-only operator controls"
+
+$antiWickCoverage = Invoke-McpTool -Url $mcpUrl -Name "analyzeSpotAntiWickPolicyCoverage" -Arguments @{
+    symbol = "BTCUSDT"
+}
+Assert-McpResultTextContains -Response $antiWickCoverage -Pattern "boundary: READ_ONLY" -Description "Anti-wick policy coverage stays read-only"
+Assert-McpResultTextContains -Response $antiWickCoverage -Pattern "policy: live BTC spot LONG entries default to ULTRA_LOW_DISASTER SL" -Description "Anti-wick policy coverage keeps disaster-SL policy marker"
+Assert-McpResultTextContains -Response $antiWickCoverage -Pattern "Summary:" -Description "Anti-wick policy coverage returns an operator summary"
+
+$trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -Name "analyzeTrailingStopPnlReplay" -Arguments @{
+    symbol = "BTCUSDT"
+    intervalCode = "1h"
+    days = 30
+    limit = 10
+} -TimeoutSec 120
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "boundary: READ_ONLY" -Description "Trailing-stop PnL replay stays read-only"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS" -Description "Trailing-stop PnL replay returns an explicit sample status"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals" -Description "Trailing-stop PnL replay keeps ambiguous same-bar exclusion"
 
 Write-Host "[mcp-parity] OK $mcpUrl toolCount=$($toolNames.Count) required=$($requiredTools.Count)"

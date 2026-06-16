@@ -534,14 +534,25 @@ try {
         "getMlLimits",
         "listRuntimeDecisionEvidence",
         "getScoreBuyFormingDayStatus",
+        "getEventRiskControlStatus",
+        "analyzeSpotAntiWickPolicyCoverage",
+        "verifyStrategyExecution",
+        "analyzeBlockedSignalOutcomes",
+        "getSignalCorrectnessDashboard",
+        "getSignalAccuracyReport",
         "listExecutionEvents",
         "getGuardianSnapshot",
         "listFundingArb",
         "getEarnBalance",
         "previewEnsembleScore",
+        "analyzeTrailingStopPnlReplay",
         "listAiProviders",
         "listAiTasks"
     )
+    & (Join-Path $PSScriptRoot "smoke_mcp_parity.ps1") -BaseUrl "http://127.0.0.1:$Port/api" -McpKey "local-smoke-mcp"
+    if (-not $?) {
+        throw "Reusable MCP parity smoke failed"
+    }
 
     $sentimentGuard = Invoke-McpTool -Url $mcpUrl -ToolName "getMarketSentiment" -Arguments @{ symbol = "BTCUSDT" }
     Assert-McpContentContains -Content $sentimentGuard -Pattern "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true" -Description "live sentiment MCP tools are disabled by default"
@@ -555,6 +566,20 @@ try {
     $dataFreshnessRca = Invoke-McpTool -Url $mcpUrl -ToolName "diagnoseDataFreshnessGuardBlocks" -Arguments @{ days = 1; symbol = "BTCUSDT"; limit = 5 }
     Assert-McpContentContains -Content $dataFreshnessRca -Pattern "boundary: READ_ONLY" -Description "DataFreshnessGuard RCA stays read-only in local smoke"
     Assert-McpContentContains -Content $dataFreshnessRca -Pattern "acceptance: PASS_NO_CURRENT_SAMPLE|acceptance: PASS_RCA_CLASSIFIED" -Description "DataFreshnessGuard RCA returns an explicit acceptance marker"
+
+    $eventRiskStatus = Invoke-McpTool -Url $mcpUrl -ToolName "getEventRiskControlStatus" -Arguments @{ symbol = "BTCUSDT" }
+    Assert-McpContentContains -Content $eventRiskStatus -Pattern "boundary=READ_ONLY" -Description "Event-risk control status stays read-only in local smoke"
+    Assert-McpContentContains -Content $eventRiskStatus -Pattern "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION" -Description "Event-risk control status documents config-only operator controls"
+
+    $antiWickCoverage = Invoke-McpTool -Url $mcpUrl -ToolName "analyzeSpotAntiWickPolicyCoverage" -Arguments @{ symbol = "BTCUSDT" }
+    Assert-McpContentContains -Content $antiWickCoverage -Pattern "boundary: READ_ONLY" -Description "Anti-wick policy coverage stays read-only in local smoke"
+    Assert-McpContentContains -Content $antiWickCoverage -Pattern "policy: live BTC spot LONG entries default to ULTRA_LOW_DISASTER SL" -Description "Anti-wick policy coverage documents BTC disaster-SL policy"
+    Assert-McpContentContains -Content $antiWickCoverage -Pattern "Summary:" -Description "Anti-wick policy coverage returns an operator summary"
+
+    $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -ToolName "analyzeTrailingStopPnlReplay" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1h"; days = 30; limit = 10 }
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "boundary: READ_ONLY" -Description "Trailing-stop PnL replay stays read-only in local smoke"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS" -Description "Trailing-stop PnL replay returns an explicit sample status"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals" -Description "Trailing-stop PnL replay documents ambiguous same-bar exclusion"
 
     Write-Host "[smoke] OK $healthUrl"
 } finally {

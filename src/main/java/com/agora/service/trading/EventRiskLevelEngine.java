@@ -57,8 +57,14 @@ public class EventRiskLevelEngine {
         sb.append("=== Event Risk Control Status (#517 Phase A) ===\n");
         sb.append("symbol=").append(snapshot.symbol()).append("\n");
         sb.append("generatedAtUtc=").append(snapshot.generatedAtUtc()).append("\n");
+        sb.append("boundary=READ_ONLY\n");
         sb.append("enabled=").append(properties.enabled()).append("\n");
         sb.append("blockNewEntries=").append(properties.blockNewEntries()).append("\n");
+        sb.append("statusNotifyEnabled=").append(properties.statusNotifyEnabled()).append("\n");
+        sb.append("statusNotifyCooldownMinutes=").append(properties.statusNotifyCooldownMinutes()).append("\n");
+        sb.append("tgWindowHours=").append(properties.tgWindowHours()).append("\n");
+        sb.append("r2AllowlistStrategyIds=").append(blankAsNone(properties.r2AllowlistStrategyIds())).append("\n");
+        sb.append("r3AllowlistStrategyIds=").append(blankAsNone(properties.r3AllowlistStrategyIds())).append("\n");
         sb.append("riskLevel=").append(snapshot.level()).append("\n");
         sb.append("riskScore=").append(snapshot.score()).append("\n");
         sb.append("reasons=").append(snapshot.reasons().isEmpty()
@@ -77,6 +83,7 @@ public class EventRiskLevelEngine {
         } else {
             sb.append("new entries allowed");
         }
+        sb.append("\noperatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION");
         return sb.toString();
     }
 
@@ -194,6 +201,10 @@ public class EventRiskLevelEngine {
 
     private String normalizeSymbol(String symbol) {
         return symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String blankAsNone(String value) {
+        return value == null || value.isBlank() ? "none" : value.trim();
     }
 
     private static String fmt(Double value) {

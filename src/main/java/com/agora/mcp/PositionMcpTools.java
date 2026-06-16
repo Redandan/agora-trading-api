@@ -4,9 +4,11 @@ import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
+import com.agora.model.BtBacktestTrade;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
+import com.agora.repository.trading.BtBacktestTradeRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtOcoAdjustmentAuditRepository;
 import com.agora.repository.trading.BtStrategyRepository;
@@ -15,9 +17,11 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OkxEarnService;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.TrailingStopReplayService;
 import com.agora.service.meta.DecisionAuditWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +61,7 @@ public class PositionMcpTools {
     private static final BigDecimal BTC_SPOT_POLICY_SL_TOLERANCE_PCT = new BigDecimal("0.005");
 
     private final BtLiveSignalRepository liveSignalRepository;
+    private final BtBacktestTradeRepository backtestTradeRepository;
     private final BtStrategyRepository strategyRepository;
     private final MdKlineRepository mdKlineRepository;
     private final OkxTradingService okxTradingService;
@@ -68,6 +73,7 @@ public class PositionMcpTools {
     private final NotificationPort notificationPort;
     private final ObjectMapper objectMapper;
     private final DecisionAuditWriter auditWriter;
+    private final TrailingStopReplayService trailingStopReplayService;
 
     @Autowired(required = false)
     private BtOcoAdjustmentAuditRepository ocoAdjustmentAuditRepository;
@@ -613,6 +619,136 @@ public class PositionMcpTools {
                 .append(replayAdvanced > 0
                         ? "REVIEW_INTRABAR_TRIGGER_EVIDENCE_BEFORE_LIVE_PROMOTION"
                         : "CONTINUE_DRY_RUN_OBSERVATION")
+                .append("\n");
+        return sb.toString();
+    }
+
+    @McpCategory({Category.ANALYTICS})
+    @Transactional(readOnly = true)
+    @Tool(description = "#439 read-only trailing-stop 30d PnL replay over normalized backtest trades. " +
+            "Compares original bt_backtest_trade.net_pnl with a theoretical +0.5 ATR breakeven / +1.0 ATR trailing overlay. " +
+            "READ_ONLY only; does not modify OCO, orders, strategies, grid, funds, Telegram, or DB state.")
+    public String analyzeTrailingStopPnlReplay(
+            @ToolParam(required = false, description = "Symbol filter, default BTCUSDT") String symbol,
+            @ToolParam(required = false, description = "Strategy/backtest interval, default 1h") String intervalCode,
+            @ToolParam(required = false, description = "Lookback days, default 30, max 90") Integer days,
+            @ToolParam(required = false, description = "Max trades to replay, default 100, max 500") Integer limit) {
+
+        String sym = (symbol == null || symbol.isBlank()) ? "BTCUSDT" : symbol.trim().toUpperCase();
+        String interval = (intervalCode == null || intervalCode.isBlank()) ? "1h" : intervalCode.trim();
+        int lookbackDays = days == null || days <= 0 ? 30 : Math.min(days, 90);
+        int max = limit == null || limit <= 0 ? 100 : Math.min(limit, 500);
+        LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusDays(lookbackDays);
+
+        List<BtBacktestTrade> trades = backtestTradeRepository.findReplayableRecentTrades(
+                sym, interval, since, PageRequest.of(0, max));
+
+        StringBuilder sb = new StringBuilder("=== Trailing Stop PnL Replay (#439) ===\n\n");
+        sb.append("boundary: READ_ONLY; no order/OCO/strategy/grid/fund/Earn/Telegram/DB behavior changed\n");
+        sb.append("symbol: ").append(sym).append("\n");
+        sb.append("interval: ").append(interval).append("\n");
+        sb.append("lookbackDays: ").append(lookbackDays).append("\n");
+        sb.append("sampleLimit: ").append(max).append("\n");
+        sb.append("acceptanceTarget: total trailing PnL improvement >= 5% over non-ambiguous original normalized backtest trades\n");
+        sb.append("acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals\n");
+        sb.append("\n");
+
+        if (trades.isEmpty()) {
+            sb.append("sampleStatus=NO_REPLAYABLE_TRADES\n");
+            sb.append("operatorAction: run or locate recent normalized backtests before claiming #439 PnL acceptance.\n");
+            return sb.toString();
+        }
+
+        BigDecimal totalOriginal = BigDecimal.ZERO;
+        BigDecimal totalTrailing = BigDecimal.ZERO;
+        BigDecimal totalDelta = BigDecimal.ZERO;
+        int replayed = 0;
+        int acceptanceRows = 0;
+        int skipped = 0;
+        int trailingExited = 0;
+        int improved = 0;
+        int worsened = 0;
+        int ambiguous = 0;
+        Map<String, Integer> skipReasons = new java.util.LinkedHashMap<>();
+        List<String> examples = new ArrayList<>();
+
+        for (BtBacktestTrade trade : trades) {
+            String source = trade.getBacktest() != null && trade.getBacktest().getKlineSource() != null
+                    && !trade.getBacktest().getKlineSource().isBlank()
+                    ? trade.getBacktest().getKlineSource()
+                    : "okx";
+            List<MdKline> bars = mdKlineRepository
+                    .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                            sym, interval, source, trade.getEntryTime().minusMinutes(1), trade.getExitTime());
+            TrailingStopReplayService.ReplayResult replay = trailingStopReplayService.replayBacktestTrade(trade, bars);
+            if (!replay.replayed()) {
+                skipped++;
+                skipReasons.merge(replay.skipReason(), 1, Integer::sum);
+                continue;
+            }
+            replayed++;
+            if (replay.exitedByTrailing()) trailingExited++;
+            if (replay.ambiguousSameBar()) ambiguous++;
+            if (replay.deltaPnl().signum() > 0) improved++;
+            if (replay.deltaPnl().signum() < 0) worsened++;
+            if (!replay.ambiguousSameBar()) {
+                acceptanceRows++;
+                totalOriginal = totalOriginal.add(replay.originalNetPnl());
+                totalTrailing = totalTrailing.add(replay.trailingNetPnl());
+                totalDelta = totalDelta.add(replay.deltaPnl());
+            }
+            if (examples.size() < 8 && replay.exitedByTrailing()) {
+                examples.add(String.format(
+                        "tradeId=%d backtest=%s entry=%s exit=%s original=%s trailing=%s delta=%s state=%s bars=%d ambiguous=%s",
+                        trade.getId(),
+                        trade.getBacktest() != null ? trade.getBacktest().getId() : "N/A",
+                        fmtTime(trade.getEntryTime()),
+                        fmtTime(replay.exitTime()),
+                        fmt(replay.originalNetPnl()),
+                        fmt(replay.trailingNetPnl()),
+                        fmt(replay.deltaPnl()),
+                        replay.finalState(),
+                        replay.bars(),
+                        replay.ambiguousSameBar()));
+            }
+        }
+
+        BigDecimal improvementPct = totalOriginal.signum() == 0
+                ? null
+                : totalDelta.divide(totalOriginal.abs(), 6, RoundingMode.HALF_UP);
+        boolean pass = acceptanceRows > 0
+                && improvementPct != null
+                && improvementPct.compareTo(new BigDecimal("0.05")) >= 0;
+
+        sb.append("sampleStatus=").append(replayed > 0 ? "REPLAYED" : "NO_REPLAYED_ROWS").append("\n");
+        sb.append("tradesFound=").append(trades.size())
+                .append(" replayed=").append(replayed)
+                .append(" acceptanceRows=").append(acceptanceRows)
+                .append(" skipped=").append(skipped)
+                .append(" trailingExited=").append(trailingExited)
+                .append(" improved=").append(improved)
+                .append(" worsened=").append(worsened)
+                .append(" ambiguousSameBar=").append(ambiguous)
+                .append("\n");
+        sb.append("acceptanceOriginalNetPnl=").append(fmt(totalOriginal))
+                .append(" acceptanceTrailingNetPnl=").append(fmt(totalTrailing))
+                .append(" acceptanceDeltaPnl=").append(fmt(totalDelta))
+                .append(" improvementPct=").append(fmtPct(improvementPct))
+                .append("\n");
+        sb.append("acceptance=").append(pass ? "PASS" : "NOT_PROVEN").append("\n");
+        if (!skipReasons.isEmpty()) {
+            sb.append("skipReasons=").append(skipReasons).append("\n");
+        }
+        if (!examples.isEmpty()) {
+            sb.append("\nexamples:\n");
+            for (String example : examples) {
+                sb.append("- ").append(example).append("\n");
+            }
+        }
+        sb.append("\noperatorAction: ")
+                .append(pass
+                        ? "PNL_ACCEPTANCE_EVIDENCE_AVAILABLE; still keep scheduler dry-run until live promotion is explicitly approved."
+                        : "DO_NOT_CLAIM_PNL_ACCEPTANCE; collect more normalized recent trades or review trailing parameters.")
                 .append("\n");
         return sb.toString();
     }

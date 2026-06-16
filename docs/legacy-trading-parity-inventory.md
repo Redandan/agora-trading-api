@@ -1,6 +1,6 @@
 # Legacy Trading Parity Inventory
 
-Last refreshed: 2026-06-16
+Last refreshed: 2026-06-17
 
 This inventory compares the legacy `AgoraMarketAPI` trading ownership surface
 with the standalone `agora-trading-api` service. It is source-code evidence only;
@@ -86,11 +86,21 @@ seller, wallet, user connector, support, risk-ops, or knowledge surfaces:
 Coverage smoke is provided by `scripts/smoke_mcp_parity.ps1`. It checks the
 standalone MCP endpoint with `tools/list` and requires representative tools
 from strategy, backtest, grid, market data, diagnostic, ML, reporting, position,
-guardian, execution-event, score-buy, runtime-evidence, funding, Earn, ensemble,
-AI router, and AI task orchestration surfaces. It also calls the read-only
-`diagnoseDataFreshnessGuardBlocks` RCA with a small BTCUSDT sample and requires
-the `boundary: READ_ONLY` plus acceptance marker, so DataFreshnessGuard parity
-covers both tool registration and executable diagnostic behavior.
+guardian, execution-event, score-buy, signal-correctness, runtime-evidence,
+funding, Earn, ensemble, AI router, and AI task orchestration surfaces. It also
+calls the read-only
+DataFreshnessGuard RCA, event-risk status, anti-wick policy coverage, and
+trailing-stop PnL replay surfaces with small BTCUSDT samples and requires
+boundary plus acceptance markers, so parity covers both tool registration and
+executable diagnostic behavior.
+
+The current local parity batch registers 305 MCP tools in the local-smoke Spring
+context. The reusable parity list requires 30 representative tools and is kept
+in sync across local smoke and server-local SSH smoke by
+`scripts/verify_local.ps1`, which parses `scripts/smoke_mcp_parity.ps1`,
+`scripts/smoke_local_health.ps1`, and `scripts/smoke_mcp_parity_ssh.ps1`.
+This is local/source evidence only; production parity for the current head still
+requires an authorized deploy followed by server-local read-only acceptance.
 
 Historical production smoke on 2026-06-15 before MCP was made internal-only:
 

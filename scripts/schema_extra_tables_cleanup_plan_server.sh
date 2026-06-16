@@ -32,6 +32,13 @@ read_env_key() {
   printf '%s\n' "${line#*=}"
 }
 
+[ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
+case "$SCHEMA_COMPARE_MODE" in
+  shared) fail "schema extra-table cleanup planning is disabled in shared DB mode; extra marketplace/shared tables are expected" ;;
+  standalone) ;;
+  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
+esac
+
 require_cmd awk
 require_cmd date
 require_cmd grep
@@ -42,13 +49,6 @@ require_cmd rm
 require_cmd tail
 require_cmd tr
 require_cmd wc
-
-[ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
-case "$SCHEMA_COMPARE_MODE" in
-  shared) fail "schema extra-table cleanup planning is disabled in shared DB mode; extra marketplace/shared tables are expected" ;;
-  standalone) ;;
-  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
-esac
 [ -f "$EXTRA_TABLES_FILE" ] || fail "extra table list missing: $EXTRA_TABLES_FILE; run RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh first"
 
 SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"

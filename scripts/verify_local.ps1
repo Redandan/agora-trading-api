@@ -10,7 +10,7 @@ function Invoke-Rg {
     # Windows PowerShell 5.1 can split native-command args when the regex contains
     # embedded literal quotes. Escape them before handing the pattern to rg.
     $nativePattern = $Pattern -replace '"', '\"'
-    $output = & rg $nativePattern @Paths
+    $output = & rg -- $nativePattern @Paths
     $exitCode = $LASTEXITCODE
     if ($exitCode -gt 1) {
         throw "rg failed with exit code $exitCode for pattern: $Pattern"
@@ -411,8 +411,59 @@ function Get-McpParityRequiredTools {
     return @($tools | Sort-Object -Unique)
 }
 
+function Get-LocalSmokeRequiredMcpTools {
+    $script = Get-Content -LiteralPath "scripts/smoke_local_health.ps1" -Raw
+    $match = [regex]::Match($script, 'Assert-McpToolsPresent\s+-Url\s+\$mcpUrl\s+-RequiredTools\s+@\((?<body>.*?)\)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if (-not $match.Success) {
+        throw "Unable to find required MCP parity tool list in scripts/smoke_local_health.ps1"
+    }
+    $tools = @()
+    [regex]::Matches($match.Groups["body"].Value, '"(?<tool>[A-Za-z0-9_]+)"') | ForEach-Object {
+        $tools += $_.Groups["tool"].Value
+    }
+    if ($tools.Count -eq 0) {
+        throw "Local smoke required MCP tool list is empty"
+    }
+    return @($tools | Sort-Object -Unique)
+}
+
+function Get-SshMcpParityRequiredTools {
+    $script = Get-Content -LiteralPath "scripts/smoke_mcp_parity_ssh.ps1" -Raw
+    $match = [regex]::Match($script, 'required_tools\s*=\s*\[(?<body>.*?)\]', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if (-not $match.Success) {
+        throw "Unable to find required MCP parity tool list in scripts/smoke_mcp_parity_ssh.ps1"
+    }
+    $tools = @()
+    [regex]::Matches($match.Groups["body"].Value, '"(?<tool>[A-Za-z0-9_]+)"') | ForEach-Object {
+        $tools += $_.Groups["tool"].Value
+    }
+    if ($tools.Count -eq 0) {
+        throw "SSH MCP parity required tool list is empty"
+    }
+    return @($tools | Sort-Object -Unique)
+}
+
 function Assert-McpParityToolCoverage {
     $requiredTools = Get-McpParityRequiredTools
+    $localSmokeTools = Get-LocalSmokeRequiredMcpTools
+    $sshParityTools = Get-SshMcpParityRequiredTools
+    $missingFromLocalSmoke = @($requiredTools | Where-Object { $localSmokeTools -notcontains $_ })
+    if ($missingFromLocalSmoke.Count -gt 0) {
+        Write-Error "Local smoke MCP parity list is missing tool(s) from smoke_mcp_parity.ps1: $($missingFromLocalSmoke -join ', ')"
+    }
+    $missingFromReusableSmoke = @($localSmokeTools | Where-Object { $requiredTools -notcontains $_ })
+    if ($missingFromReusableSmoke.Count -gt 0) {
+        Write-Error "smoke_mcp_parity.ps1 is missing tool(s) required by local smoke MCP parity list: $($missingFromReusableSmoke -join ', ')"
+    }
+    $missingFromSshSmoke = @($requiredTools | Where-Object { $sshParityTools -notcontains $_ })
+    if ($missingFromSshSmoke.Count -gt 0) {
+        Write-Error "SSH MCP parity smoke list is missing tool(s) from smoke_mcp_parity.ps1: $($missingFromSshSmoke -join ', ')"
+    }
+    $extraInSshSmoke = @($sshParityTools | Where-Object { $requiredTools -notcontains $_ })
+    if ($extraInSshSmoke.Count -gt 0) {
+        Write-Error "smoke_mcp_parity.ps1 is missing tool(s) required by SSH MCP parity smoke list: $($extraInSshSmoke -join ', ')"
+    }
+
     $mcpSource = Get-ChildItem -LiteralPath "src/main/java/com/agora/mcp" -Filter "*.java" -Recurse
     foreach ($tool in $requiredTools) {
         $foundInSource = $false
@@ -429,10 +480,24 @@ function Assert-McpParityToolCoverage {
         if (-not (Select-String -LiteralPath "scripts/smoke_local_health.ps1" -Pattern "`"$tool`"" -Quiet)) {
             Write-Error "Local smoke must require the same MCP parity tool as smoke_mcp_parity.ps1: $tool"
         }
+        if (-not (Select-String -LiteralPath "scripts/smoke_mcp_parity_ssh.ps1" -Pattern "`"$tool`"" -Quiet)) {
+            Write-Error "SSH MCP parity smoke must require the same MCP parity tool as smoke_mcp_parity.ps1: $tool"
+        }
     }
 
     foreach ($marker in @("tools/list", "getMcpRegistryVersion", "api/mcp")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1", "scripts/smoke_local_health.ps1") -Description "MCP parity smoke marker $marker"
+    }
+    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "ambiguousSameBar rows are excluded")) {
+        Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1") -Description "reusable MCP parity smoke calls read-only acceptance surface marker $marker"
+    }
+    Assert-RgMatch -Pattern "requires 30 representative tools|30 required" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md") -Description "MCP parity required-tool count is documented as 30"
+    Assert-RgNoMatch -Pattern "26 required|requires 26" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs") -Description "stale MCP parity required-tool count"
+    foreach ($marker in @("smoke_mcp_parity.ps1", "-BaseUrl", "-McpKey", "Reusable MCP parity smoke failed")) {
+        Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_local_health.ps1") -Description "local smoke invokes reusable MCP parity smoke marker $marker"
+    }
+    foreach ($marker in @("analyzeSpotAntiWickPolicyCoverage", "ULTRA_LOW_DISASTER", "Anti-wick policy coverage stays read-only")) {
+        Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_local_health.ps1") -Description "local smoke calls anti-wick MCP coverage marker $marker"
     }
 }
 
@@ -470,6 +535,41 @@ function Assert-DataFreshnessRcaSnapshotSummary {
         Assert-RgMatch -Pattern $marker `
             -Paths @($diagnosticTool) `
             -Description "DataFreshnessGuard RCA current snapshot marker $marker"
+    }
+}
+
+function Assert-SchemaExtraCleanupSharedModeFailsFast {
+    $bash = Resolve-BashCommand
+    $bashPwd = (& $bash -lc "pwd").Trim()
+    if ([string]::IsNullOrWhiteSpace($bashPwd)) {
+        throw "Unable to resolve bash working directory for schema cleanup guard test"
+    }
+
+    $previousAppDir = $env:APP_DIR
+    $previousEnvFile = $env:ENV_FILE
+    $previousMode = $env:SCHEMA_COMPARE_MODE
+    try {
+        $env:APP_DIR = $bashPwd
+        $env:ENV_FILE = "$bashPwd/.missing-env-for-shared-cleanup-guard"
+        $env:SCHEMA_COMPARE_MODE = "shared"
+
+        foreach ($case in @(
+            @{ Script = "scripts/schema_extra_tables_cleanup_plan_server.sh"; Pattern = "cleanup planning is disabled in shared DB mode" },
+            @{ Script = "scripts/schema_extra_tables_cleanup_apply_server.sh"; Pattern = "cleanup is disabled in shared DB mode" }
+        )) {
+            $output = & $bash $case.Script 2>&1
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) {
+                Write-Error "$($case.Script) must fail in shared DB mode"
+            }
+            if (($output -join "`n") -notmatch $case.Pattern) {
+                Write-Error "$($case.Script) must fail fast with shared-mode cleanup guard before env/db tooling checks. Output:`n$output"
+            }
+        }
+    } finally {
+        $env:APP_DIR = $previousAppDir
+        $env:ENV_FILE = $previousEnvFile
+        $env:SCHEMA_COMPARE_MODE = $previousMode
     }
 }
 
@@ -525,6 +625,8 @@ try {
     Assert-RgMatch -Pattern "trading_flyway_schema_history" -Paths @("src/main/java/com/agora/config/MigrationDriftChecker.java") -Description "migration drift checker uses Trading-owned Flyway history table"
     Assert-RgMatch -Pattern "Hardened schema mode" -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md") -Description "ddl-auto validate is documented as hardened schema mode"
     Assert-RgMatch -Pattern "Flyway baseline" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "migration baseline prerequisite is documented"
+    Assert-RgMatch -Pattern "reviewed V1 baseline" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing columns document shared-DB V1 baseline ownership"
+    Assert-RgNoMatch -Pattern "V108|V116" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing schema comments must not imply standalone V108/V116 migrations"
     Assert-RgMatch -Pattern "AgoraMarketAPI Trading Cutover Plan" -Paths @("docs/deploy-runbook.md") -Description "legacy AgoraMarketAPI trading cutover plan is documented"
     Assert-RgMatch -Pattern "split-acceptance-status.md" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "current split acceptance handoff is linked"
     Assert-RgMatch -Pattern "Shared-DB schema compare and Trading deployment acceptance have passed" -Paths @("docs/split-acceptance-status.md") -Description "acceptance handoff records post-cutover trading deployment acceptance"
@@ -555,12 +657,16 @@ try {
     Assert-RgMatch -Pattern "SCHEMA_COMPARE_MODE=.*shared" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator defaults to shared DB mode"
     Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator re-runs read-only compare first"
     Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator dumps DDL without mutating schema"
+    Assert-RgMatch -Pattern "--no-data" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator dumps schema only"
+    Assert-RgMatch -Pattern "--skip-add-drop-table" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not include DROP TABLE statements"
     Assert-RgMatch -Pattern "V1__baseline.sql" -Paths @("scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md", "docs/deploy-runbook.md") -Description "baseline generator writes reviewable Flyway baseline path"
     Assert-RgMatch -Pattern "shared marketplace tables are intentionally excluded|Shared marketplace tables are intentionally excluded" -Paths @("scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md") -Description "baseline generator excludes shared marketplace tables"
     Assert-RgNoMatch -Pattern "SPRING_FLYWAY_ENABLED=true|SPRING_JPA_HIBERNATE_DDL_AUTO=validate|flyway enabled|DROP TABLE|schema_extra_tables_cleanup" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not enable Flyway, switch ddl-auto, or run cleanup"
+    Assert-RgNoMatch -Pattern "flyway:(migrate|baseline)|spring-boot:run|mvn .*flyway|SPRING_FLYWAY_ENABLED=|SPRING_FLYWAY_TABLE=|APPLY_SCHEMA_EXTRA_TABLE_CLEANUP|schema_extra_tables_cleanup_(plan|apply)_server\.sh|mysql[[:space:]].*-e" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not run Flyway, Spring Boot, cleanup, or MySQL mutation/query commands"
     Assert-RgMatch -Pattern "schema_extra_tables_cleanup_plan_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "standalone-only schema extra-table cleanup planning is documented"
     Assert-RgNoMatch -Pattern "^[[:space:]]*DROP TABLE" -Paths @("scripts/schema_extra_tables_cleanup_plan_server.sh") -Description "schema extra-table cleanup planner must not execute drop statements"
     Assert-RgMatch -Pattern "disabled in shared DB mode" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "scripts/schema_extra_tables_cleanup_plan_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup is disabled in shared DB mode"
+    Assert-SchemaExtraCleanupSharedModeFailsFast
     Assert-RgMatch -Pattern "APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "standalone schema extra-table cleanup apply path requires explicit apply flag"
     Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path creates a backup before destructive cleanup"
     Assert-RgMatch -Pattern "dry-run complete" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "standalone schema extra-table cleanup apply path defaults to dry-run"
@@ -577,6 +683,7 @@ try {
     Assert-RgMatch -Pattern "classify_deployed_delta_path" -Paths @("scripts/verify_server.sh") -Description "server verification classifies deployed commit drift by file type"
     Assert-RgMatch -Pattern "runtime files differ from deployed app.commit" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "server verification fails when runtime files differ from deployed app.commit"
     Assert-RgMatch -Pattern "deployed app.commit differs from worktree HEAD only by docs/tooling files" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md") -Description "server verification permits docs/tooling-only deployed commit drift"
+    Assert-RgMatch -Pattern "scripts/\*\.ps1" -Paths @("scripts/verify_server.sh") -Description "PowerShell operator scripts are docs/tooling-only deploy drift"
     Assert-RgMatch -Pattern "PUBLIC_TRADING_MCP_BLOCKED_URL" -Paths @("deploy.sh", "scripts/verify_server.sh", "scripts/verify_server_ssh.ps1", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "deploy/server verification requires public dedicated Trading MCP to be blocked"
     Assert-RgMatch -Pattern "PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL" -Paths @("deploy.sh", "scripts/verify_server.sh", "scripts/verify_server_ssh.ps1", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "deploy/server verification requires public shared-host Trading MCP to be blocked"
     Assert-RgMatch -Pattern "return 404" -Paths @("scripts/rewrite_nginx_trading_routes.awk") -Description "nginx deploy/install blocks public Trading MCP routes"
@@ -974,6 +1081,18 @@ try {
     $shellScripts = @("deploy.sh") + @(Get-ChildItem -LiteralPath "scripts" -Filter "*.sh" | ForEach-Object { "scripts/$($_.Name)" })
     & $bash -n @shellScripts
 
+    Write-Host "[verify] checking PowerShell script syntax"
+    $powerShellScripts = Get-ChildItem -LiteralPath "scripts" -Filter "*.ps1"
+    foreach ($script in $powerShellScripts) {
+        $parseErrors = $null
+        [System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$null, [ref]$parseErrors) | Out-Null
+        if ($parseErrors.Count -gt 0) {
+            Write-Error "PowerShell syntax check failed: $($script.FullName)"
+            $parseErrors | ForEach-Object { Write-Error $_ }
+            throw "PowerShell syntax check failed"
+        }
+    }
+
     Write-Host "[verify] checking nginx route rewrite regression"
     & powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/test_nginx_route_rewrite.ps1"
     if ($LASTEXITCODE -ne 0) {
@@ -1111,6 +1230,33 @@ try {
     foreach ($pattern in @("Assert-HttpStatus", "api/trading/internal/reports/current")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_local_health.ps1") -Description "local-smoke internal report gateway guard pattern $pattern"
     }
+
+    Write-Host "[verify] checking post-deploy issue acceptance guardrails"
+    foreach ($pattern in @("smoke_mcp_parity_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "reusable MCP parity smoke", "signal-correctness MCP smoke", "-RequireNoReviewGaps", "RequireTrailingAcceptance", "RequireAcceptance", "DIAGNOSTIC_ONLY", "must not be used as #1/#2/#3 closure evidence")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper keeps strict guardrail/trailing closure gate $pattern"
+    }
+    foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "server-local MCP parity smoke failed", "/api/mcp")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_mcp_parity_ssh.ps1") -Description "server-local MCP parity SSH smoke keeps executable read-only surface marker $pattern"
+    }
+    foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getMissedOpportunityRegressionReport", "read-only production MCP check", "OK read-only check complete")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal correctness SSH smoke keeps executable read-only MCP marker $pattern"
+    }
+    foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1")) {
+        Assert-RgMatch -Pattern "http://127\.0\.0\.1:\{os\.environ\['PORT'\]\}/api/mcp" -Paths @($script) -Description "$script uses server-local /api/mcp"
+        Assert-RgMatch -Pattern "TRADING_MCP_KEY" -Paths @($script) -Description "$script reads the server-local MCP key"
+        Assert-RgNoMatch -Pattern "https://agoratradingapi\.purrtechllc\.com/api/mcp|https://agoramarketapi\.purrtechllc\.com/api/trading/mcp|/api/trading/mcp" -Paths @($script) -Description "$script must not call public or legacy Trading MCP routes"
+    }
+    foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"
+    }
+    foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
+    }
+    foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
+    }
+    Assert-RgMatch -Pattern "guardrail, signal-correctness, and trailing replay smokes" -Paths @("SPLIT_PROGRESS.md", "docs/split-acceptance-status.md") -Description "current handoff docs mention all post-deploy issue acceptance smokes"
+    Assert-RgNoMatch -Pattern "Current local (handoff|parity) head.*``[0-9a-f]{7,40}``|local handoff head ``[0-9a-f]{7,40}``" -Paths @("docs/split-acceptance-status.md", "docs/legacy-trading-parity-inventory.md", "SPLIT_PROGRESS.md") -Description "handoff docs must not pin amend-prone local head SHAs"
 
     Write-Host "[verify] checking deploy script git attributes"
     $shellEol = git ls-files --eol -- deploy.sh scripts/*.sh

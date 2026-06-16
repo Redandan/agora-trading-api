@@ -117,6 +117,25 @@
 - Server-local MCP parity smoke coverage now checks representative standalone
   trading tools through `tools/list` in `scripts/smoke_local_health.ps1` and
   the reusable `scripts/smoke_mcp_parity.ps1`.
+- Local smoke now also calls the #1 read-only
+  `analyzeSpotAntiWickPolicyCoverage` MCP surface and checks its boundary,
+  disaster-SL policy, and summary markers before deployed guardrail acceptance.
+- The reusable MCP parity smoke now also invokes representative #1/#2/#3
+  read-only acceptance surfaces, not just `tools/list`, while keeping calls
+  server-local and non-mutating.
+- `scripts/smoke_mcp_parity_ssh.ps1` provides the same representative
+  read-only MCP parity surface over SSH for deployed server-local `/api/mcp`,
+  and the post-deploy issue acceptance wrapper runs it before the focused
+  guardrail, signal-correctness, and trailing replay smokes.
+- Trailing-stop parity now includes a read-only `analyzeTrailingStopPnlReplay`
+  MCP diagnostic, local-smoke registration/call coverage, and
+  `scripts/smoke_trailing_stop_pnl_replay_ssh.ps1` for post-deploy 30d replay
+  evidence through server-local `/api/mcp`. The script does not modify
+  order/OCO/strategy/grid/fund/Earn/Telegram/DB state; `-RequireAcceptance`
+  should be used only when the deployed runtime has enough normalized recent
+  non-ambiguous backtest rows to prove `acceptance=PASS`. Same-bar
+  trigger/stop rows are reported for diagnostics but excluded from PnL
+  acceptance totals.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
   DataFreshnessGuard blocks from current source freshness: the read-only MCP
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`
@@ -133,6 +152,12 @@
   staged-add would allow no groups or dedup-too-coarse suspects are absent. It
   now also prints row-level no-buy classifications, blocker-family breakdowns,
   and high-return no-buy strategy distribution for safer next-action triage.
+- `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
+  post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
+  guardrail handoffs. It calls server-local `/api/mcp` to verify
+  `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary,
+  policy, and operator-control markers without changing
+  order/OCO/strategy/grid/fund/Earn/Telegram/DB state.
 - Shared-DB Flyway baseline prep now includes
   `scripts/schema_baseline_generate_server.sh`, which re-runs shared-mode
   compare and dumps reviewable trading entity DDL for `V1__baseline.sql` without
@@ -335,6 +360,18 @@ Trading deployment prep:
   deploys should use `scripts/deploy_ssh.ps1` for durable remote
   `logs/deploy` output, and server verification fails if the non-active
   blue-green port still has a listener.
+- 2026-06-17 local handoff batch is ahead of the deployed runtime until it is
+  explicitly pushed, deployed, and verified. Local `scripts/verify_local.ps1`
+  passed with 49 tests, 305 MCP tools registered in the local-smoke Spring
+  context, split-boundary/schema-inventory/script-syntax/post-deploy-guardrail
+  checks OK. The reusable MCP parity smoke now has matching local and SSH
+  required-tool lists: local smoke invokes `scripts/smoke_mcp_parity.ps1`, the
+  post-deploy issue wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before
+  the guardrail, signal-correctness, and trailing replay smokes, and
+  `scripts/verify_local.ps1` fails on any required-tool divergence across the
+  three scripts. This is local readiness only; #1/#2/#3 closure still requires
+  deployed server-local read-only acceptance after an explicitly authorized
+  deploy.
 
 ## Cleanup Priority
 

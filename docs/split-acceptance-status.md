@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-16
+Last refreshed: 2026-06-17
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -46,6 +46,18 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   .\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180
   ```
 
+- The current local handoff batch is not deployed evidence until it is pushed,
+  deployed, and verified on the server. Local verification on 2026-06-17 passed
+  with `.\scripts\verify_local.ps1`: 49 tests, 0 failures, 305 MCP tools
+  registered during the local-smoke Spring context,
+  split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
+  OK. The latest local smoke evidence for this batch also passed
+  `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
+  the reusable MCP parity smoke against local `/api/mcp` with 30 required
+  representative tools. Treat this as local readiness only; #1/#2/#3 closure
+  still requires deployed server-local read-only acceptance after an explicitly
+  authorized deploy.
+
 - Full read-only live acceptance from Windows/Codex Desktop is expected to pass
   with:
 
@@ -57,6 +69,32 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   dedicated-host health/MCP checks, nginx active-port checks, active runtime
   log smoke, and AgoraMarketAPI's cross-service live MCP ownership smoke.
 
+- Current open issue acceptance after an explicitly authorized deploy is
+  consolidated by:
+
+  ```powershell
+  .\scripts\verify_post_deploy_issue_acceptance_ssh.ps1 -RequireTrailingAcceptance
+  ```
+
+  This wrapper runs split acceptance plus the reusable server-local MCP parity
+  smoke, the focused #1/#2 guardrail MCP smoke, the read-only
+  signal-correctness MCP smoke, and #3 trailing-stop PnL replay smoke through
+  server-local read-only calls.
+  Use `-RequireTrailingAcceptance` only when the deployed DB sample should prove
+  the issue #3 30d PnL target; otherwise the trailing replay is reachability
+  evidence only. The guardrail smoke is run in no-review-gaps mode, so
+  `Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance instead of
+  being treated as a closure signal. `-SkipSplitAcceptance` is diagnostic-only;
+  output collected with that flag is not #1/#2/#3 closure evidence.
+
+- Current open-issue closure matrix:
+
+  | Issue | Local evidence already covered | Still required before closing |
+  | --- | --- | --- |
+  | #1 BTC small-TP / wide-disaster-SL guardrail | Risk-sized disaster-SL min-notional behavior, TP/SL asymmetry reporting, same-strategy and same-symbol BTCUSDT LONG exposure blocking, and strict no-review-gaps acceptance scripting are covered by unit/local verification. | A deployed server-local `/api/mcp` guardrail smoke must pass without `REVIEW_POLICY_GAPS`. |
+  | #2 event-risk control | R2/R3 new-entry orchestration, MARKET_SIGNAL confluence escalation, config-only operator controls, and read-only MCP status markers are covered locally. | A deployed server-local `/api/mcp` guardrail smoke must prove the read-only event-risk status surface. Phase B OCO/position protection remains future live-promotion scope and is not enabled by this acceptance pass. |
+  | #3 trailing stop | The split baseline carries `bt_live_signal` trailing columns; the scheduler is explicit opt-in at 30s, supports dry-run, +0.5 ATR breakeven, +1.0 ATR trailing activation, LONG/SHORT same-bar ambiguity handling, modifyOco retry x3 + alert, and read-only replay/MCP smoke coverage. The split repo uses the reviewed `V1__baseline.sql`; do not generate an extra V108 migration in shared-DB mode. ATR is currently a per-position snapshot initialized on first trailing tick; dynamic per-tick ATR recompute is not part of this closure gate unless separately promoted. | A deployed server-local trailing replay must return `sampleStatus=REPLAYED` and `acceptance=PASS` with `-RequireTrailingAcceptance`; no-sample or `NOT_PROVEN` results are reachability only. |
+
 - Shared-DB schema compare is read-only. It proves every trading entity table is
   present in `agora_market`; marketplace/shared extra tables are expected and do
   not block acceptance in `SCHEMA_COMPARE_MODE=shared`.
@@ -66,6 +104,21 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW` and a
   `staleNowKeys` summary, so historical stale audit rows can be separated from
   an active collector/source outage.
+- Trading MCP trailing-stop PnL replay is read-only. After a deploy containing
+  `analyzeTrailingStopPnlReplay`, use
+  `.\scripts\smoke_trailing_stop_pnl_replay_ssh.ps1` to call server-local
+  `/api/mcp` and prove the boundary marker plus sample status. The 30d PnL
+  acceptance for issue #3 is only proven when that smoke returns
+  `sampleStatus=REPLAYED` and `acceptance=PASS`; local H2 smoke or a no-sample
+  production result is only reachability evidence. PnL acceptance totals
+  exclude `ambiguousSameBar` rows where trigger/stop ordering cannot be proven
+  from OHLC bars.
+- Reusable MCP parity now has both local and SSH coverage paths. Local
+  `smoke_local_health.ps1` invokes `smoke_mcp_parity.ps1`; deployed issue
+  acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.
+  `verify_local.ps1` parses and compares all three required-tool lists so local
+  smoke, reusable parity smoke, and server-local SSH parity smoke cannot drift
+  silently.
 - Local validation passed on 2026-06-15 after the dedicated-host blue-green
   port-swap fix with:
   - `.\scripts\verify_local.ps1`

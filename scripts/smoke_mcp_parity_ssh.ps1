@@ -1,0 +1,195 @@
+param(
+    [string]$SshHost = $env:AGORA_SSH_HOST,
+    [string]$SshKey = $env:AGORA_SSH_KEY,
+    [string]$AppDir = "/home/ubuntu/agora-trading-api",
+    [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
+    [string]$Symbol = "BTCUSDT",
+    [string]$IntervalCode = "1h"
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($SshHost)) {
+    throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
+}
+
+if ([string]::IsNullOrWhiteSpace($SshKey)) {
+    throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY."
+}
+
+if (-not (Test-Path -LiteralPath $SshKey)) {
+    throw "SSH key not found: $SshKey"
+}
+
+if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
+    throw "ssh is not available on PATH."
+}
+
+$remoteScript = @"
+set -euo pipefail
+cd '$AppDir'
+
+PORT=`$(cat app.port)
+MCP_KEY=`$(grep -E '^TRADING_MCP_KEY=' '$EnvFile' | tail -n 1 | sed 's/^[^=]*=//' | sed 's/^"//; s/"`$//; s/^'\''//; s/'\''`$//')
+if [ -z "`$MCP_KEY" ]; then
+  echo "FAIL: TRADING_MCP_KEY missing in env file" >&2
+  exit 1
+fi
+
+export PORT MCP_KEY SYMBOL='$Symbol' INTERVAL_CODE='$IntervalCode'
+python3 - <<'PY'
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.request
+
+url = f"http://127.0.0.1:{os.environ['PORT']}/api/mcp"
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {os.environ['MCP_KEY']}",
+}
+symbol = os.environ["SYMBOL"].upper()
+interval_code = os.environ["INTERVAL_CODE"]
+
+required_tools = [
+    "getMcpRegistryVersion",
+    "getMcpAuthProbe",
+    "listSchedulerTasks",
+    "listStrategies",
+    "runBacktest",
+    "listGrids",
+    "getOpenPositions",
+    "getSystemHealth",
+    "getMarketSentiment",
+    "getCollectionFreshness",
+    "diagnoseDataFreshnessGuardBlocks",
+    "getReport",
+    "getTradingManagerDigest",
+    "getMlLimits",
+    "listRuntimeDecisionEvidence",
+    "getScoreBuyFormingDayStatus",
+    "getEventRiskControlStatus",
+    "analyzeSpotAntiWickPolicyCoverage",
+    "verifyStrategyExecution",
+    "analyzeBlockedSignalOutcomes",
+    "getSignalCorrectnessDashboard",
+    "getSignalAccuracyReport",
+    "listExecutionEvents",
+    "getGuardianSnapshot",
+    "listFundingArb",
+    "getEarnBalance",
+    "previewEnsembleScore",
+    "analyzeTrailingStopPnlReplay",
+    "listAiProviders",
+    "listAiTasks",
+]
+
+def request(body, timeout=120):
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(body).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            raw = response.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", "replace")
+        raise RuntimeError(f"HTTP {exc.code}: {error_body}") from exc
+    data = json.loads(raw)
+    if "error" in data:
+        raise RuntimeError(f"JSON-RPC error: {data['error']}")
+    return data
+
+def call_tool(name, arguments=None, timeout=120):
+    data = request({
+        "jsonrpc": "2.0",
+        "id": f"mcp-parity-{name}",
+        "method": "tools/call",
+        "params": {
+            "name": name,
+            "arguments": arguments or {},
+        },
+    }, timeout=timeout)
+    result = data.get("result") or {}
+    if result.get("isError"):
+        raise RuntimeError(f"{name} returned isError=true: {result}")
+    content = result.get("content") or []
+    if content and isinstance(content[0], dict):
+        text = content[0].get("text") or ""
+    else:
+        text = json.dumps(result, ensure_ascii=False)
+    if isinstance(text, str) and len(text) >= 2 and text[0] == '"' and text[-1] == '"':
+        try:
+            decoded = json.loads(text)
+            if isinstance(decoded, str):
+                return decoded
+        except Exception:
+            pass
+    return text
+
+def require(description, pattern, text):
+    if not re.search(pattern, text, re.MULTILINE):
+        print(f"FAIL: missing {description}; pattern={pattern}", file=sys.stderr)
+        sys.exit(1)
+
+print("[mcp-parity-ssh] read-only server-local MCP parity smoke")
+print(f"url={url} symbol={symbol} intervalCode={interval_code}")
+
+tools_list = request({
+    "jsonrpc": "2.0",
+    "id": "mcp-parity-tools-list",
+    "method": "tools/list",
+    "params": {},
+}, timeout=120)
+tools = tools_list.get("result", {}).get("tools") or []
+tool_names = sorted({tool.get("name") for tool in tools if tool.get("name")})
+missing = [name for name in required_tools if name not in tool_names]
+if missing:
+    print(f"FAIL: missing required standalone trading tools: {', '.join(missing)}", file=sys.stderr)
+    sys.exit(1)
+
+registry = call_tool("getMcpRegistryVersion")
+if not registry:
+    print("FAIL: getMcpRegistryVersion returned no content", file=sys.stderr)
+    sys.exit(1)
+
+data_freshness = call_tool("diagnoseDataFreshnessGuardBlocks", {
+    "days": 1,
+    "symbol": symbol,
+    "limit": 5,
+})
+require("DataFreshnessGuard read-only boundary", r"boundary:\s*READ_ONLY", data_freshness)
+require("DataFreshnessGuard acceptance marker", r"acceptance: PASS_NO_CURRENT_SAMPLE|acceptance: PASS_RCA_CLASSIFIED", data_freshness)
+
+event_risk = call_tool("getEventRiskControlStatus", {"symbol": symbol})
+require("event-risk read-only boundary", r"boundary=READ_ONLY", event_risk)
+require("event-risk config-only controls", r"operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", event_risk)
+
+anti_wick = call_tool("analyzeSpotAntiWickPolicyCoverage", {"symbol": symbol})
+require("anti-wick read-only boundary", r"boundary:\s*READ_ONLY", anti_wick)
+require("anti-wick disaster-SL policy", r"policy: live BTC spot LONG entries default to ULTRA_LOW_DISASTER SL", anti_wick)
+require("anti-wick summary", r"Summary:", anti_wick)
+
+trailing = call_tool("analyzeTrailingStopPnlReplay", {
+    "symbol": symbol,
+    "intervalCode": interval_code,
+    "days": 30,
+    "limit": 10,
+}, timeout=180)
+require("trailing replay read-only boundary", r"boundary:\s*READ_ONLY", trailing)
+require("trailing replay sample status", r"sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS", trailing)
+require("trailing ambiguous same-bar exclusion", r"acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals", trailing)
+
+print(f"[mcp-parity-ssh] OK toolCount={len(tool_names)} required={len(required_tools)}")
+PY
+"@
+
+$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+if ($LASTEXITCODE -ne 0) {
+    throw "server-local MCP parity smoke failed with exit code $LASTEXITCODE"
+}

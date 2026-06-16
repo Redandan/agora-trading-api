@@ -35,6 +35,13 @@ read_env_key() {
   printf '%s\n' "${line#*=}"
 }
 
+[ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
+case "$SCHEMA_COMPARE_MODE" in
+  shared) fail "schema extra-table cleanup is disabled in shared DB mode; do not drop marketplace/shared tables" ;;
+  standalone) ;;
+  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
+esac
+
 require_cmd awk
 require_cmd date
 require_cmd grep
@@ -43,13 +50,6 @@ require_cmd mysql
 require_cmd mysqldump
 require_cmd tail
 require_cmd tr
-
-[ -d "$APP_DIR" ] || fail "app dir missing: $APP_DIR"
-case "$SCHEMA_COMPARE_MODE" in
-  shared) fail "schema extra-table cleanup is disabled in shared DB mode; do not drop marketplace/shared tables" ;;
-  standalone) ;;
-  *) fail "SCHEMA_COMPARE_MODE must be shared or standalone" ;;
-esac
 
 if [ ! -f "$EXTRA_TABLES_FILE" ]; then
   compare_script="$APP_DIR/scripts/schema_baseline_compare_server.sh"

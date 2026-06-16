@@ -143,7 +143,7 @@ public class BtLiveSignal {
     @Column(name = "last_aging_alert_at")
     private LocalDateTime lastAgingAlertAt;
 
-    // ── #439 trailing stop state (V108) ──────────────────────────────────────
+    // ── #439 trailing stop state (carried by the reviewed V1 baseline) ───────
     /**
      * Trailing-stop machine state. ENTERED → BREAKEVEN_LOCKED (price ≥ entry+0.5×ATR)
      * → TRAILING (price ≥ entry+1.0×ATR; SL follows highest price -1×ATR).
@@ -159,7 +159,7 @@ public class BtLiveSignal {
     @Column(name = "trailing_high", precision = 20, scale = 8)
     private BigDecimal trailingHigh;
 
-    /** Last trailing-stop state transition time. NULL for rows created before V116 or never transitioned. */
+    /** Last trailing-stop state transition time. NULL when the state has never transitioned. */
     @Column(name = "trailing_last_transition_at")
     private LocalDateTime trailingLastTransitionAt;
 }

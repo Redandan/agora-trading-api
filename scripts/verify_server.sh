@@ -23,6 +23,7 @@ REQUIRE_NGINX_TRADING_PATH="${REQUIRE_NGINX_TRADING_PATH:-1}"
 REQUIRE_NGINX_DEDICATED_API="${REQUIRE_NGINX_DEDICATED_API:-1}"
 REQUIRE_NGINX_SERVICE="${REQUIRE_NGINX_SERVICE:-1}"
 REQUIRE_DEPLOY_METADATA="${REQUIRE_DEPLOY_METADATA:-1}"
+ALLOW_INACTIVE_PORT_LISTENER="${ALLOW_INACTIVE_PORT_LISTENER:-0}"
 RUN_SCHEMA_BASELINE_COMPARE="${RUN_SCHEMA_BASELINE_COMPARE:-0}"
 EXPECTED_AGORA_MARKET_BASE_URL="${EXPECTED_AGORA_MARKET_BASE_URL:-https://agoramarketapi.purrtechllc.com}"
 REQUIRE_AGORA_MARKET_HEALTH="${REQUIRE_AGORA_MARKET_HEALTH:-1}"
@@ -389,9 +390,14 @@ fi
 
 INACTIVE_PORT_PIDS="$(lsof -ti ":$INACTIVE_PORT" 2>/dev/null || true)"
 if [ -n "$INACTIVE_PORT_PIDS" ]; then
-  fail "non-active blue-green port $INACTIVE_PORT still has listener pid(s): $INACTIVE_PORT_PIDS"
+  if [ "$ALLOW_INACTIVE_PORT_LISTENER" = "1" ]; then
+    warn "non-active blue-green port $INACTIVE_PORT still has listener pid(s): $INACTIVE_PORT_PIDS; allowed during pre-drain deploy verification"
+  else
+    fail "non-active blue-green port $INACTIVE_PORT still has listener pid(s): $INACTIVE_PORT_PIDS"
+  fi
+else
+  ok "non-active blue-green port $INACTIVE_PORT has no listener"
 fi
-ok "non-active blue-green port $INACTIVE_PORT has no listener"
 
 LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/actuator/health"
 curl -fsS "$LOCAL_HEALTH_URL" >/dev/null || fail "local trading health failed: $LOCAL_HEALTH_URL"

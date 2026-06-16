@@ -451,6 +451,11 @@ Expected:
   Do not treat high EntryDedup/DataFreshness false-block rates as permission to
   relax live execution: EntryDedup relaxation remains not live-ready when
   `wouldAllowStagedAddGroups=0` or `dedupTooCoarseSuspects=0`.
+- The smoke prints no-buy row classifications, top blocker families, row-level
+  next actions, high-return no-buy strategy distribution, and EntryDedup group
+  blocker families so operators can decide whether the next safe step is data
+  freshness repair, runtime-evidence coverage, threshold observation, or an
+  explicitly approved tiny-live/shadow experiment.
 - The script only calls read-only MCP tools and must not change
   order/OCO/strategy/grid/fund/Earn state.
 

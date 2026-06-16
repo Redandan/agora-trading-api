@@ -130,7 +130,9 @@
   smoke also cross-checks EntryDedup governance with missed-opportunity
   regression so operators can distinguish statistical false-block pressure from
   staged-add live-readiness; relaxation is not considered live-ready when
-  staged-add would allow no groups or dedup-too-coarse suspects are absent.
+  staged-add would allow no groups or dedup-too-coarse suspects are absent. It
+  now also prints row-level no-buy classifications, blocker-family breakdowns,
+  and high-return no-buy strategy distribution for safer next-action triage.
 - Shared-DB Flyway baseline prep now includes
   `scripts/schema_baseline_generate_server.sh`, which re-runs shared-mode
   compare and dumps reviewable trading entity DDL for `V1__baseline.sql` without

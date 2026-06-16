@@ -49,6 +49,7 @@ import json
 import os
 import re
 import urllib.request
+from collections import Counter
 
 url = f"http://127.0.0.1:{os.environ['PORT']}/api/mcp"
 headers = {
@@ -116,6 +117,52 @@ def json_field(data, name, default="N/A"):
     value = data.get(name, default)
     return default if value is None else str(value)
 
+def list_value(data, name):
+    value = data.get(name, [])
+    return value if isinstance(value, list) else []
+
+def first_non_empty(*values):
+    for value in values:
+        if value is not None and str(value).strip() and str(value).strip() != "N/A":
+            return str(value).strip()
+    return "N/A"
+
+def short(value, limit=180):
+    text = str(value or "N/A").replace("\n", " ").strip()
+    return text if len(text) <= limit else text[: limit - 3] + "..."
+
+def top_items(counter, limit=5):
+    return counter.most_common(limit)
+
+def blocker_family(blocker):
+    value = str(blocker or "UNKNOWN").upper()
+    if "RUNTIME_EVIDENCE" in value:
+        return "RUNTIME_EVIDENCE"
+    if "DATA_FRESHNESS" in value or "STALE" in value:
+        return "DATA_FRESHNESS"
+    if "OCO" in value:
+        return "OCO"
+    if "EV_" in value or "EXPECTED_VALUE" in value:
+        return "EXPECTED_VALUE"
+    if "TQS" in value:
+        return "TQS"
+    if "BUDGET" in value or "NOTIONAL" in value:
+        return "BUDGET_NOTIONAL"
+    if "DAILY" in value or "CAP" in value:
+        return "CAPACITY"
+    if ("NO_CURRENT_BUY" in value
+            or "SIGNAL" in value
+            or "HOLD" in value
+            or "FORMING_STATE" in value
+            or "PRE_POSITION" in value
+            or "POST_SCOUT" in value
+            or "SCORE_BUY_NOT_CONFIRMED" in value
+            or "CONFIRMED_DEPLOY" in value):
+        return "SIGNAL_NOT_READY"
+    if "ENTRYDEDUP" in value or "DUPLICATE" in value:
+        return "DEDUP"
+    return value[:48]
+
 print("[signal-correctness] read-only production MCP check")
 print(f"symbol={symbol} executionDays={execution_days} blockedDays={blocked_days} accuracyDays={accuracy_days}")
 
@@ -162,6 +209,46 @@ missed_dedup_too_coarse = json_field(missed_json, "dedupTooCoarseSuspects", find
 missed_staged_allow = json_field(missed_json, "genericStagedAddWouldAllowGroups", find(r"genericStagedAddWouldAllowGroups=(\d+)", missed_opportunities))
 missed_high_return = json_field(missed_json, "highForwardReturnNoBuyCount", find(r"highForwardReturnNoBuyCount=(\d+)", missed_opportunities))
 missed_recommended_fix = json_field(missed_json, "recommendedFix", find(r"recommendedFix=(.*)", missed_opportunities))
+missed_rows = list_value(missed_json, "rows")
+high_return_examples = list_value(missed_json, "highForwardReturnNoBuyExamples")
+entry_groups = list_value(entry_dedup_json, "groups")
+
+row_class_counts = Counter()
+row_blocker_families = Counter()
+row_actions = []
+for row in missed_rows:
+    if not isinstance(row, dict):
+        continue
+    classification = str(row.get("classification", "UNKNOWN"))
+    row_class_counts[classification] += 1
+    blockers = row.get("blockers") if isinstance(row.get("blockers"), list) else []
+    warnings = row.get("warnings") if isinstance(row.get("warnings"), list) else []
+    evidence = row.get("evidence") if isinstance(row.get("evidence"), dict) else {}
+    top_blocker = first_non_empty(blockers[0] if blockers else None, evidence.get("primaryNoBuyReason"))
+    row_blocker_families[blocker_family(top_blocker)] += 1
+    action = first_non_empty(
+        evidence.get("nextRequiredAction"),
+        evidence.get("blockingInterpretation"),
+        evidence.get("primaryNoBuyReason"),
+        row.get("reason"),
+    )
+    row_actions.append((row.get("path", "UNKNOWN"), classification, top_blocker, action, warnings[:2]))
+
+high_return_strategy_counts = Counter()
+high_return_blocker_counts = Counter()
+for example in high_return_examples:
+    if not isinstance(example, dict):
+        continue
+    high_return_strategy_counts[str(example.get("strategyId", "UNKNOWN"))] += 1
+    reason = first_non_empty(example.get("terminalBlocker"), example.get("blockerReason"), example.get("selectedAction"))
+    high_return_blocker_counts[blocker_family(reason)] += 1
+
+entry_group_blockers = Counter()
+for group in entry_groups:
+    if not isinstance(group, dict):
+        continue
+    for blocker in group.get("blockers", []):
+        entry_group_blockers[blocker_family(blocker)] += 1
 
 print("")
 print("Execution:")
@@ -201,6 +288,30 @@ print("Missed Opportunity Regression:")
 print(f"  overallStatus={missed_status} suspiciousNoBuyCount={missed_suspicious} falseBlockRiskCount={missed_false_block} dedupTooCoarseSuspects={missed_dedup_too_coarse} genericStagedAddWouldAllowGroups={missed_staged_allow} highForwardReturnNoBuyCount={missed_high_return}")
 if missed_recommended_fix != "N/A":
     print(f"  recommendedFix={missed_recommended_fix}")
+print("")
+print("No-Buy Row Classification:")
+if row_class_counts:
+    print("  classifications=" + ", ".join(f"{name}:{count}" for name, count in top_items(row_class_counts)))
+    print("  blockerFamilies=" + ", ".join(f"{name}:{count}" for name, count in top_items(row_blocker_families)))
+    print("  rowActions:")
+    for path, classification, blocker, action, warnings in row_actions[:6]:
+        warn = (" warnings=" + short("|".join(map(str, warnings)), 140)) if warnings else ""
+        print(f"    - path={path} classification={classification} topBlocker={short(blocker, 80)} action={short(action)}{warn}")
+else:
+    print("  rows=none")
+print("")
+print("High-Return No-Buy Breakdown:")
+if high_return_examples:
+    print("  strategies=" + ", ".join(f"{name}:{count}" for name, count in top_items(high_return_strategy_counts)))
+    print("  blockerFamilies=" + ", ".join(f"{name}:{count}" for name, count in top_items(high_return_blocker_counts)))
+else:
+    print("  examples=none")
+print("")
+print("EntryDedup Group Blockers:")
+if entry_group_blockers:
+    print("  blockerFamilies=" + ", ".join(f"{name}:{count}" for name, count in top_items(entry_group_blockers)))
+else:
+    print("  blockerFamilies=none")
 print("")
 print("Recommendations:")
 if not execution_ok:

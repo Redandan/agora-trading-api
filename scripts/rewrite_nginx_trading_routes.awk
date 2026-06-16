@@ -12,6 +12,7 @@ function update_server_depth() {
     if (server_depth <= 0) {
       in_server = 0
       dedicated = 0
+      shared = 0
       server_depth = 0
     }
   }
@@ -46,11 +47,16 @@ function print_trading_path_block() {
 /^[[:space:]]*server[[:space:]]*\{/ {
   in_server = 1
   dedicated = 0
+  shared = 0
   server_depth = 0
 }
 
 in_server && /^[[:space:]]*server_name[[:space:]]+agoratradingapi[.]purrtechllc[.]com;/ {
   dedicated = 1
+}
+
+in_server && /^[[:space:]]*server_name[[:space:]]+agoramarketapi[.]purrtechllc[.]com;/ {
+  shared = 1
 }
 
 dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
@@ -59,7 +65,7 @@ dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]
   next
 }
 
-/^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
+shared && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
   if (!inserted_trading_mcp_block) {
     print_shared_mcp_block()
     inserted_trading_mcp_block = 1
@@ -77,7 +83,7 @@ skip_block {
   next
 }
 
-/^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
+shared && /^[[:space:]]*location[[:space:]]+\/api\/trading\/[[:space:]]*\{/ {
   if (!inserted_trading_mcp_block) {
     print_shared_mcp_block()
     print ""
@@ -91,7 +97,7 @@ dedicated && /^[[:space:]]*location[[:space:]]+\/api\/[[:space:]]*\{/ {
   in_dedicated_api = 1
 }
 
-insert_trading_path && !inserted_trading_path && /^[[:space:]]*location[[:space:]]+\/api\/[[:space:]]*\{/ {
+shared && insert_trading_path && !inserted_trading_path && /^[[:space:]]*location[[:space:]]+\/api\/[[:space:]]*\{/ {
   if (!inserted_trading_mcp_block) {
     print_shared_mcp_block()
     print ""
@@ -108,6 +114,11 @@ in_trading || /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/tra
 
 in_dedicated_api && /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading\// {
   sub(/proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading\//,
+      "proxy_pass http://127.0.0.1:" port "/api/")
+}
+
+in_dedicated_api && /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\// {
+  sub(/proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\//,
       "proxy_pass http://127.0.0.1:" port "/api/")
 }
 

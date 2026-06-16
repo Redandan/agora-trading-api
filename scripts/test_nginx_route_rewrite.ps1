@@ -84,7 +84,7 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://127.0.0.1:8085/api/trading/;
+        proxy_pass http://127.0.0.1:8085/api/;
         proxy_set_header Host $host;
     }
 }
@@ -147,6 +147,7 @@ server {
     Assert-Contains -Text $rewritten -Needle "Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp." -Description "shared Trading MCP public block comment"
     Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/;" -Description "dedicated /api/ upstream follows active port"
     Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084;" -Description "shared /api/trading/ upstream follows active port"
+    Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8085/api/;" -Description "stale dedicated /api/ upstream is updated"
     Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/trading/mcp;" -Description "dedicated public MCP must not proxy to Trading MCP"
     Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8085/api/trading/mcp;" -Description "stale dedicated public MCP proxy is removed"
 

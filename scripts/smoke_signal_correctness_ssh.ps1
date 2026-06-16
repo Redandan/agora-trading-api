@@ -105,6 +105,17 @@ def find(pattern, text, default="N/A"):
 def contains_any(text, patterns):
     return any(re.search(pattern, text, re.MULTILINE) for pattern in patterns)
 
+def parse_json_object(text):
+    try:
+        data = json.loads(text)
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+def json_field(data, name, default="N/A"):
+    value = data.get(name, default)
+    return default if value is None else str(value)
+
 print("[signal-correctness] read-only production MCP check")
 print(f"symbol={symbol} executionDays={execution_days} blockedDays={blocked_days} accuracyDays={accuracy_days}")
 
@@ -116,6 +127,10 @@ dashboard = call_tool("getSignalCorrectnessDashboard", {"symbol": symbol, "hours
 governance = call_tool("getGovernanceDriftDashboard", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
 relaxation = call_tool("findGovernanceRelaxationCandidates", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
 tightening = call_tool("findGovernanceTighteningCandidates", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
+entry_dedup = call_tool("getEntryDedupGovernanceDashboard", {"symbol": symbol, "hours": blocked_days * 24}, timeout=120)
+missed_opportunities = call_tool("getMissedOpportunityRegressionReport", {"symbol": symbol, "hours": blocked_days * 24}, timeout=120)
+entry_dedup_json = parse_json_object(entry_dedup)
+missed_json = parse_json_object(missed_opportunities)
 
 execution_ok = contains_any(execution, [r"未發現漏評估/漏單 Bug", r"no missing evaluation", r"no missed order"])
 blocked_total = find(r"分析\s+(\d+)\s+筆", blocked)
@@ -135,6 +150,18 @@ governance_mode = find(r"governanceMode=([A-Z_]+)", dashboard)
 governance_mode_7d = find(r"governanceMode=([A-Z_]+)", governance)
 relaxation_lines = [line for line in relaxation.splitlines() if line.startswith("- blocker=")]
 tightening_lines = [line for line in tightening.splitlines() if line.startswith("- source=") or line.startswith("- blocker=")]
+entry_dedup_skips = json_field(entry_dedup_json, "entryDedupSkipCount", find(r"entryDedupSkipCount=(\d+)", entry_dedup))
+entry_dedup_would_allow = json_field(entry_dedup_json, "wouldAllowStagedAddGroups", find(r"wouldAllowStagedAddGroups=(\d+)", entry_dedup))
+entry_dedup_exact = json_field(entry_dedup_json, "exactDuplicateGroups", find(r"exactDuplicateGroups=(\d+)", entry_dedup))
+entry_dedup_budget = json_field(entry_dedup_json, "budgetBlockedGroups", find(r"budgetBlockedGroups=(\d+)", entry_dedup))
+entry_dedup_hard_safety = json_field(entry_dedup_json, "hardSafetyBlockedGroups", find(r"hardSafetyBlockedGroups=(\d+)", entry_dedup))
+missed_status = json_field(missed_json, "overallStatus", find(r"overallStatus=([A-Z_]+)", missed_opportunities))
+missed_suspicious = json_field(missed_json, "suspiciousNoBuyCount", find(r"suspiciousNoBuyCount=(\d+)", missed_opportunities))
+missed_false_block = json_field(missed_json, "falseBlockRiskCount", find(r"falseBlockRiskCount=(\d+)", missed_opportunities))
+missed_dedup_too_coarse = json_field(missed_json, "dedupTooCoarseSuspects", find(r"dedupTooCoarseSuspects=(\d+)", missed_opportunities))
+missed_staged_allow = json_field(missed_json, "genericStagedAddWouldAllowGroups", find(r"genericStagedAddWouldAllowGroups=(\d+)", missed_opportunities))
+missed_high_return = json_field(missed_json, "highForwardReturnNoBuyCount", find(r"highForwardReturnNoBuyCount=(\d+)", missed_opportunities))
+missed_recommended_fix = json_field(missed_json, "recommendedFix", find(r"recommendedFix=(.*)", missed_opportunities))
 
 print("")
 print("Execution:")
@@ -167,6 +194,14 @@ if tightening_lines:
 else:
     print("  tighteningCandidates=none")
 print("")
+print("EntryDedup Live-Readiness Cross-Check:")
+print(f"  entryDedupSkipCount={entry_dedup_skips} wouldAllowStagedAddGroups={entry_dedup_would_allow} exactDuplicateGroups={entry_dedup_exact} budgetBlockedGroups={entry_dedup_budget} hardSafetyBlockedGroups={entry_dedup_hard_safety}")
+print("")
+print("Missed Opportunity Regression:")
+print(f"  overallStatus={missed_status} suspiciousNoBuyCount={missed_suspicious} falseBlockRiskCount={missed_false_block} dedupTooCoarseSuspects={missed_dedup_too_coarse} genericStagedAddWouldAllowGroups={missed_staged_allow} highForwardReturnNoBuyCount={missed_high_return}")
+if missed_recommended_fix != "N/A":
+    print(f"  recommendedFix={missed_recommended_fix}")
+print("")
 print("Recommendations:")
 if not execution_ok:
     print("  - INVESTIGATE: verifyStrategyExecution did not provide the expected no-missing-evaluation/no-missed-order marker.")
@@ -192,6 +227,18 @@ else:
 
 if relaxation_lines:
     print("  - PRIORITIZE: review the listed relaxation candidates in shadow/tiny-live caps before changing any live execution policy.")
+
+try:
+    would_allow_num = int(entry_dedup_would_allow) if entry_dedup_would_allow != "N/A" else 0
+    dedup_too_coarse_num = int(missed_dedup_too_coarse) if missed_dedup_too_coarse != "N/A" else 0
+except ValueError:
+    would_allow_num = 0
+    dedup_too_coarse_num = 0
+
+if would_allow_num <= 0 or dedup_too_coarse_num <= 0:
+    print("  - DO NOT RELAX ENTRY DEDUP LIVE: governance false-block evidence is not enough; staged-add readiness did not find live-ready dedup relaxation candidates.")
+else:
+    print("  - REVIEW ENTRY DEDUP: staged-add readiness found candidate groups; require explicit operator approval before any live policy change.")
 
 print("")
 print("[signal-correctness] OK read-only check complete")

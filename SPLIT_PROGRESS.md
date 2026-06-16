@@ -126,7 +126,11 @@
   production signal-correctness smoke. It checks strategy execution parity,
   blocked-signal outcome false-kill rates, PASS/BLOCK finalized sample counts,
   DataFreshnessGuard current-source recovery, and the 24h signal-correctness
-  dashboard without changing order/OCO/strategy/grid/fund/Earn state.
+  dashboard without changing order/OCO/strategy/grid/fund/Earn state. The
+  smoke also cross-checks EntryDedup governance with missed-opportunity
+  regression so operators can distinguish statistical false-block pressure from
+  staged-add live-readiness; relaxation is not considered live-ready when
+  staged-add would allow no groups or dedup-too-coarse suspects are absent.
 - Shared-DB Flyway baseline prep now includes
   `scripts/schema_baseline_generate_server.sh`, which re-runs shared-mode
   compare and dumps reviewable trading entity DDL for `V1__baseline.sql` without

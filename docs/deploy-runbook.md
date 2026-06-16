@@ -446,6 +446,11 @@ Expected:
   `noDataNowKeys`, and `queryFailedNowKeys`; keep DataFreshnessGuard strict
   unless the current snapshot is clean and relaxation is backed by separate
   blocker-level evidence.
+- `getEntryDedupGovernanceDashboard` and `getMissedOpportunityRegressionReport`
+  separate governance false-block statistics from staged-add live-readiness.
+  Do not treat high EntryDedup/DataFreshness false-block rates as permission to
+  relax live execution: EntryDedup relaxation remains not live-ready when
+  `wouldAllowStagedAddGroups=0` or `dedupTooCoarseSuspects=0`.
 - The script only calls read-only MCP tools and must not change
   order/OCO/strategy/grid/fund/Earn state.
 

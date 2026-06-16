@@ -93,6 +93,111 @@ verify_public_mcp_blocked() {
   esac
 }
 
+verify_nginx_mcp_block_bodies() {
+  if ! awk '
+    function brace_delta(line, copy, opens, closes) {
+      copy = line
+      opens = gsub(/\{/, "{", copy)
+      copy = line
+      closes = gsub(/\}/, "}", copy)
+      return opens - closes
+    }
+    function finish_location() {
+      if (location_kind == "dedicated") {
+        dedicated_seen = 1
+        if (!location_return_404 || location_proxy_pass) {
+          dedicated_bad = 1
+        }
+      } else if (location_kind == "shared") {
+        shared_seen = 1
+        if (!location_return_404 || location_proxy_pass) {
+          shared_bad = 1
+        }
+      }
+      location_kind = ""
+      location_depth = 0
+      location_return_404 = 0
+      location_proxy_pass = 0
+    }
+    function update_server_depth() {
+      if (in_server) {
+        server_depth += brace_delta($0)
+        if (server_depth <= 0) {
+          in_server = 0
+          dedicated_server = 0
+          server_depth = 0
+        }
+      }
+    }
+    /^[[:space:]]*server[[:space:]]*\{/ {
+      in_server = 1
+      dedicated_server = 0
+      server_depth = 0
+    }
+    in_server && /^[[:space:]]*server_name[[:space:]]+agoratradingapi[.]purrtechllc[.]com;/ {
+      dedicated_server = 1
+    }
+    location_kind != "" {
+      if ($0 ~ /return[[:space:]]+404[[:space:]]*;/) {
+        location_return_404 = 1
+      }
+      if ($0 ~ /proxy_pass[[:space:]]+/) {
+        location_proxy_pass = 1
+      }
+      location_depth += brace_delta($0)
+      if (location_depth <= 0) {
+        finish_location()
+      }
+      update_server_depth()
+      next
+    }
+    dedicated_server && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
+      location_kind = "dedicated"
+      location_depth = brace_delta($0)
+      location_return_404 = ($0 ~ /return[[:space:]]+404[[:space:]]*;/)
+      location_proxy_pass = ($0 ~ /proxy_pass[[:space:]]+/)
+      if (location_depth <= 0) {
+        finish_location()
+      }
+      update_server_depth()
+      next
+    }
+    /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/trading\/mcp[[:space:]]*\{/ {
+      location_kind = "shared"
+      location_depth = brace_delta($0)
+      location_return_404 = ($0 ~ /return[[:space:]]+404[[:space:]]*;/)
+      location_proxy_pass = ($0 ~ /proxy_pass[[:space:]]+/)
+      if (location_depth <= 0) {
+        finish_location()
+      }
+      update_server_depth()
+      next
+    }
+    { update_server_depth() }
+    END {
+      if (!dedicated_seen) {
+        print "dedicated /api/mcp block missing" > "/dev/stderr"
+        exit 11
+      }
+      if (!shared_seen) {
+        print "shared /api/trading/mcp block missing" > "/dev/stderr"
+        exit 12
+      }
+      if (dedicated_bad) {
+        print "dedicated /api/mcp block must return 404 and must not proxy_pass" > "/dev/stderr"
+        exit 13
+      }
+      if (shared_bad) {
+        print "shared /api/trading/mcp block must return 404 and must not proxy_pass" > "/dev/stderr"
+        exit 14
+      }
+    }
+  ' $NGINX_CONF_GLOB; then
+    fail "nginx public Trading MCP exact blocks must return 404 and must not proxy_pass under $NGINX_CONF_GLOB"
+  fi
+  ok "nginx public Trading MCP exact blocks return 404 with no proxy_pass"
+}
+
 require_env_value() {
   local key="$1"
   local expected="$2"
@@ -116,6 +221,7 @@ classify_deployed_delta_path() {
 }
 
 require_cmd bash
+require_cmd awk
 require_cmd curl
 require_cmd git
 require_cmd grep
@@ -337,15 +443,12 @@ fi
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   DEDICATED_API_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/"
   DEDICATED_MCP_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/mcp"
-  DEDICATED_MCP_BLOCK="location[[:space:]]*=[[:space:]]*/api/mcp"
-  SHARED_TRADING_MCP_BLOCK="location[[:space:]]*=[[:space:]]*/api/trading/mcp"
   SHARED_TRADING_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}([[:space:];]|$)"
   if grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
     fail "nginx dedicated host must not proxy public /api/mcp to Trading MCP under $NGINX_CONF_GLOB"
   fi
+  verify_nginx_mcp_block_bodies
   if grep -RE "$DEDICATED_API_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1 \
-      && grep -RE "$DEDICATED_MCP_BLOCK" $NGINX_CONF_GLOB >/dev/null 2>&1 \
-      && grep -RE "$SHARED_TRADING_MCP_BLOCK" $NGINX_CONF_GLOB >/dev/null 2>&1 \
       && grep -RE "$SHARED_TRADING_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
     ok "nginx shared/dedicated trading upstreams point at active port $ACTIVE_PORT and public MCP is blocked"
   else

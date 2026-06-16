@@ -102,11 +102,13 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - known system tables: 2, including AgoraMarketAPI's `flyway_schema_history`
     and Trading's `trading_flyway_schema_history`
   - extra database tables: 137, expected in shared DB mode
-  - production MCP parity smoke passed against
+  - historical pre-internal-only production MCP parity smoke passed against
     `https://agoramarketapi.purrtechllc.com/api/trading/mcp` with 304 tools,
     all 21 representative Trading tools present, and the read-only
     `listSchedulerTasks` compatibility alias smoke returning
-    `alias_call_ok=listSchedulerTasks`
+    `alias_call_ok=listSchedulerTasks`; this public route is now superseded by
+    the MCP internal-only policy, and current parity smoke must use
+    server-local MCP
   - cross-service live MCP ownership smoke passed from AgoraMarketAPI's
     `tools/codex/check-live-mcp-split-ownership.ps1`: AgoraMarketAPI
     `/api/mcp` exposed 153 marketplace/system/internal tools with

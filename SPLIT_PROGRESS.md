@@ -114,9 +114,9 @@
   in `docs/legacy-trading-parity-inventory.md`; standalone carries the trading
   MCP/scheduler classes through `/api/trading/mcp` while intentionally not
   carrying legacy trading admin HTTP controllers as public HTTP.
-- MCP parity smoke coverage now checks representative standalone trading tools
-  through `tools/list` in `scripts/smoke_local_health.ps1` and the reusable
-  `scripts/smoke_mcp_parity.ps1`.
+- Server-local MCP parity smoke coverage now checks representative standalone
+  trading tools through `tools/list` in `scripts/smoke_local_health.ps1` and
+  the reusable `scripts/smoke_mcp_parity.ps1`.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
   DataFreshnessGuard blocks from current source freshness: the read-only MCP
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`
@@ -216,9 +216,10 @@ Trading deployment prep:
   entity tables, 0 implicit entity names, 0 forbidden marketplace source
   mappings, 176 database tables, 2 known system tables, 0 missing trading
   tables, and 137 extra marketplace/shared tables expected in shared DB mode.
-- 2026-06-14 production MCP parity smoke passed through the public
-  `/api/trading/mcp` path with 303 registered tools and all 21 representative
-  Trading tools present.
+- 2026-06-14 historical pre-internal-only production MCP parity smoke passed
+  through `/api/trading/mcp` with 303 registered tools and all 21
+  representative Trading tools present; this public route is now superseded by the MCP
+  internal-only policy.
 - 2026-06-14 scheduler-alias deploy advanced the runtime to `6a656fe`,
   switched the active blue-green port to `8085`, and kept
   `AGORA_MARKET_BASE_URL` on the stable AgoraMarketAPI nginx vhost.

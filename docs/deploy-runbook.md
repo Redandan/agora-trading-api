@@ -292,11 +292,12 @@ Last verified server state from 2026-06-15 Asia/Taipei:
   tables, 0 implicit entity names, 0 forbidden marketplace source mappings,
   176 database tables, 2 known system tables, 0 missing trading tables, and
   137 extra marketplace/shared tables expected in shared DB mode.
-- 2026-06-14 historical production MCP parity passed against the public
-  `/api/trading/mcp` route with 21 representative trading tools present from
-  304 registered tools, plus direct production smoke for the read-only
+- 2026-06-14 historical pre-internal-only production MCP parity passed against
+  `/api/trading/mcp` with 21 representative trading tools present from 304
+  registered tools, plus direct production smoke for the read-only
   `listSchedulerTasks` compatibility alias. This public route is now superseded
-  by the MCP internal-only policy.
+  by the MCP internal-only policy; current parity smoke must use server-local
+  MCP.
 - 2026-06-15 `scripts/verify_server.sh` passed after the `31af005` deploy with:
   - local trading health on the active `app.port`
   - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
@@ -441,7 +442,9 @@ curl -sS -o /dev/null -w '%{http_code}\n' \
 ```
 
 Expected MCP status is one of `401`, `403`, `404`, or `405`; `200` means public
-Trading MCP is exposed and the deploy must be treated as failed.
+Trading MCP is exposed and the deploy must be treated as failed. Server
+verification also checks that the nginx exact MCP blocks return `404` directly
+and do not contain `proxy_pass`.
 
 Optional schema baseline table comparison before generating Flyway baseline:
 

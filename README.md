@@ -90,7 +90,8 @@ When nginx is updated, deploy also verifies dedicated Trading host health at
 `https://agoratradingapi.purrtechllc.com/api` and verifies public Trading MCP
 is blocked.
 
-MCP parity smoke against a running local or deployed Trading service:
+Server-local MCP parity smoke against a running local or deployed Trading
+service:
 
 ```powershell
 .\scripts\smoke_mcp_parity.ps1 -BaseUrl http://127.0.0.1:18084/api/trading -McpKey local-smoke-mcp

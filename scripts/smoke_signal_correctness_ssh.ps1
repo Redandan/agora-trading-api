@@ -113,6 +113,9 @@ blocked = call_tool("analyzeBlockedSignalOutcomes", {"days": blocked_days, "symb
 accuracy = call_tool("getSignalAccuracyReport", {"days": accuracy_days}, timeout=120)
 freshness = call_tool("diagnoseDataFreshnessGuardBlocks", {"days": blocked_days, "symbol": symbol, "limit": 50}, timeout=120)
 dashboard = call_tool("getSignalCorrectnessDashboard", {"symbol": symbol, "hours": 24}, timeout=120)
+governance = call_tool("getGovernanceDriftDashboard", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
+relaxation = call_tool("findGovernanceRelaxationCandidates", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
+tightening = call_tool("findGovernanceTighteningCandidates", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
 
 execution_ok = contains_any(execution, [r"未發現漏評估/漏單 Bug", r"no missing evaluation", r"no missed order"])
 blocked_total = find(r"分析\s+(\d+)\s+筆", blocked)
@@ -129,6 +132,9 @@ actionable = find(r"actionableCandidates=(\d+)", dashboard)
 labeled = find(r"labeledCandidates=(\d+)", dashboard)
 false_block_rate = find(r"falseBlockRate=([-+0-9.]+%)", dashboard)
 governance_mode = find(r"governanceMode=([A-Z_]+)", dashboard)
+governance_mode_7d = find(r"governanceMode=([A-Z_]+)", governance)
+relaxation_lines = [line for line in relaxation.splitlines() if line.startswith("- blocker=")]
+tightening_lines = [line for line in tightening.splitlines() if line.startswith("- source=") or line.startswith("- blocker=")]
 
 print("")
 print("Execution:")
@@ -145,6 +151,21 @@ print(f"  staleNowKeys={stale_now} noDataNowKeys={no_data_now} queryFailedNowKey
 print("")
 print("24h Correctness Dashboard:")
 print(f"  governanceMode={governance_mode} actionableCandidates={actionable} labeledCandidates={labeled} falseBlockRate={false_block_rate}")
+print("")
+print("7d Governance Drift:")
+print(f"  governanceMode={governance_mode_7d}")
+if relaxation_lines:
+    print("  relaxationCandidates:")
+    for line in relaxation_lines[:5]:
+        print(f"    {line}")
+else:
+    print("  relaxationCandidates=none")
+if tightening_lines:
+    print("  tighteningCandidates:")
+    for line in tightening_lines[:5]:
+        print(f"    {line}")
+else:
+    print("  tighteningCandidates=none")
 print("")
 print("Recommendations:")
 if not execution_ok:
@@ -168,6 +189,9 @@ if stale_now != "0" or no_data_now != "0" or query_failed_now != "0":
     print("  - FIX DATA FIRST: current DataFreshnessGuard snapshot is not clean; do not relax freshness rules.")
 else:
     print("  - KEEP STRICT: DataFreshnessGuard current snapshot is clean; historical false kills should be handled as collector-cadence evidence, not relaxed blindly.")
+
+if relaxation_lines:
+    print("  - PRIORITIZE: review the listed relaxation candidates in shadow/tiny-live caps before changing any live execution policy.")
 
 print("")
 print("[signal-correctness] OK read-only check complete")

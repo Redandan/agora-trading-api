@@ -358,10 +358,15 @@ and `DEFAULT_PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`, defaulting to
 used, deploy keeps the previous blue-green instance and nginx backup because the
 new instance has not been proven by server verification.
 
-Blue-green deploy keeps the previous instance alive until post-deploy
-verification passes, then logs `draining old instance after verification` before
-stopping the old port. If verification fails, the old process is still available
-and deploy logs `post-deploy verification failed; rolling back active metadata`.
+Blue-green deploy keeps the previous instance alive until pre-drain
+post-deploy verification passes. During that first verifier run,
+`ALLOW_INACTIVE_PORT_LISTENER=1` allows the old blue-green port to remain
+listening while the new metadata, health, MCP path, public MCP blocks, nginx,
+and dependency checks are proven. Deploy then logs
+`draining old instance after verification`, stops the old port, and runs strict
+post-drain verification with the inactive-port listener guard restored. If
+verification fails, the old process is still available and deploy logs
+`post-deploy verification failed; rolling back active metadata`.
 The rollback restores `app.port`, `app.pid`, and `app.commit`; when nginx was
 updated, it also logs `restoring nginx trading upstream after failed verification`
 and restores the nginx backup before cleaning up the new instance. A missing

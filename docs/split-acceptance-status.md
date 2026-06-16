@@ -228,6 +228,33 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   155 marketplace/system/internal tools with representative Trading tools
   absent, and `agora-trading-api` 304 Trading tools with representative
   Trading tools present.
+- 2026-06-16 MCP path deploy advanced Trading runtime to commit `efff0d2` on
+  active port `8085`. Deploy first rolled back safely when strict verification
+  rejected the still-running old blue-green port before drain; commit `efff0d2`
+  split deploy verification into pre-drain and post-drain phases. The
+  successful deploy confirmed:
+  - local health passed at `http://127.0.0.1:8085/api/actuator/health`
+  - server-local MCP `getMcpRegistryVersion` passed at `/api/mcp`
+  - public dedicated Trading MCP
+    `https://agoratradingapi.purrtechllc.com/api/mcp` returned HTTP 404
+  - public shared-host Trading MCP
+    `https://agoramarketapi.purrtechllc.com/api/trading/mcp` returned HTTP 404
+  - nginx shared/dedicated Trading upstreams pointed at active port `8085`
+    while public MCP was blocked
+  - non-active blue-green port `8084` had no listener after drain
+- 2026-06-16 `.\scripts\verify_server_ssh.ps1 -SchemaCompare` passed against
+  deployed commit `efff0d2`: 39 source entity tables, 176 shared database
+  tables, 0 missing trading tables, 5 marketplace/shared tables, 2 known
+  system tables, and 137 extra database tables expected in shared mode.
+- 2026-06-16 full `.\scripts\verify_split_acceptance_ssh.ps1` passed against
+  deployed commit `efff0d2`: runtime log smoke on
+  `/home/ubuntu/agora-trading-api/logs/runs/app-20260616T025852Z-port8085.log`
+  found runtime `ERROR` count 0, WARN lines matching the known baseline, and
+  no high-risk trading/OCO/grid/Earn/fund operation-like lines in the last
+  3000 lines. Cross-service live MCP ownership smoke reported AgoraMarketAPI
+  155 marketplace/system/internal tools with representative Trading tools
+  absent, and `agora-trading-api` 304 Trading tools with representative
+  Trading tools present through server-local `/api/mcp`.
 
 ## Schema Hardening
 

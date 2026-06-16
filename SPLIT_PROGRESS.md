@@ -302,6 +302,21 @@ Trading deployment prep:
   operation-like lines in the recent tail; cross-service MCP ownership smoke
   reported AgoraMarketAPI 155 tools with representative Trading tools absent
   and `agora-trading-api` 304 Trading tools present.
+- 2026-06-16 MCP path deploy advanced production runtime to commit `efff0d2`
+  on active port `8085`. Server-local MCP now verifies through `/api/mcp`;
+  `/api/trading/mcp` is not a standalone MCP endpoint and remains only a public
+  shared-host block target. Public dedicated
+  `https://agoratradingapi.purrtechllc.com/api/mcp` and public shared-host
+  `https://agoramarketapi.purrtechllc.com/api/trading/mcp` both returned HTTP
+  404. Dedicated public health returned `UP` at
+  `https://agoratradingapi.purrtechllc.com/api/actuator/health`; strict
+  post-drain verification confirmed non-active port `8084` had no listener.
+  Shared-mode schema compare found 39 source entity tables, 0 missing DB
+  tables, and 137 expected extra shared/marketplace tables. Full split
+  acceptance passed with runtime `ERROR` count 0, no high-risk
+  trading/OCO/grid/Earn/fund operation-like lines, AgoraMarketAPI 155 tools
+  with representative Trading tools absent, and `agora-trading-api` 304 Trading
+  tools present through server-local `/api/mcp`.
 - Deploy hardening now keeps the nginx Trading route rewrite in
   `scripts/rewrite_nginx_trading_routes.awk` with a local regression fixture
   in `scripts/test_nginx_route_rewrite.ps1`, so nested nginx `location {}`

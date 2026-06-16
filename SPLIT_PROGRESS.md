@@ -122,6 +122,11 @@
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`
   per symbol/interval/source and summarizes `staleNowKeys` so operators do not
   mistake recovered historical stale rows for an active collector failure.
+- `scripts/smoke_signal_correctness_ssh.ps1` provides a repeatable read-only
+  production signal-correctness smoke. It checks strategy execution parity,
+  blocked-signal outcome false-kill rates, PASS/BLOCK finalized sample counts,
+  DataFreshnessGuard current-source recovery, and the 24h signal-correctness
+  dashboard without changing order/OCO/strategy/grid/fund/Earn state.
 - Shared-DB Flyway baseline prep now includes
   `scripts/schema_baseline_generate_server.sh`, which re-runs shared-mode
   compare and dumps reviewable trading entity DDL for `V1__baseline.sql` without

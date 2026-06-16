@@ -429,6 +429,26 @@ AgoraMarketAPI's live MCP ownership smoke:
 .\scripts\verify_split_acceptance_ssh.ps1
 ```
 
+For a read-only production signal-correctness check, run:
+
+```powershell
+.\scripts\smoke_signal_correctness_ssh.ps1
+```
+
+Expected:
+
+- `verifyStrategyExecution` reports no missed evaluation/order bug.
+- `analyzeBlockedSignalOutcomes` prints blocked-signal outcome counts and
+  false-kill rate for recent governance review.
+- `getSignalAccuracyReport` prints PASS/BLOCK finalized sample counts; treat
+  finalized samples below 30 as internal-only evidence.
+- `diagnoseDataFreshnessGuardBlocks` prints current `staleNowKeys`,
+  `noDataNowKeys`, and `queryFailedNowKeys`; keep DataFreshnessGuard strict
+  unless the current snapshot is clean and relaxation is backed by separate
+  blocker-level evidence.
+- The script only calls read-only MCP tools and must not change
+  order/OCO/strategy/grid/fund/Earn state.
+
 Optional public path check:
 
 ```bash

@@ -12,9 +12,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - DB is not split. Trading and AgoraMarketAPI use the shared `agora_market`
   database.
 - Nginx routes Trading through `/api/trading/` on the shared AgoraMarketAPI
-  host and through `/api/` on the dedicated
+  host for compatibility report/API paths and through `/api/` on the dedicated
   `https://agoratradingapi.purrtechllc.com` host.
-- Trading MCP is internal-only through server-local `/api/trading/mcp`. Public
+- Trading MCP is internal-only through server-local `/api/mcp`. Public
   dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked
   by nginx with exact `return 404` blocks and no `proxy_pass`.
 - Trading must not import AgoraMarketAPI marketplace entities or repositories.
@@ -30,8 +30,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   - deployed `app.commit` equals the worktree commit, or differs only by
     docs/tooling files that do not require runtime deploy
   - active `app.pid` listens on `app.port`
-  - local health works at `/api/trading/actuator/health`
-  - local MCP works at `/api/trading/mcp`
+  - local health works at `/api/actuator/health`
+  - local MCP works at `/api/mcp`
   - nginx exposes `/api/trading/`
   - nginx exact MCP blocks return `404` directly with no `proxy_pass`
   - public health works through the dedicated Trading host
@@ -196,9 +196,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `diagnoseDataFreshnessGuardBlocks` returns the read-only boundary and
   acceptance marker, and `verifyStrategyExecution` returns the read-only
   `no external import/backfill` marker without Binance API failure noise.
-- After the 2026-06-16 public-surface tightening, the acceptance expectation is
-  that public Trading MCP routes are blocked while server-local
-  `/api/trading/mcp` remains callable for SSH/operator verification.
+- After the 2026-06-16 MCP path tightening, the acceptance expectation is that
+  public Trading MCP routes are blocked while server-local `/api/mcp` remains
+  callable for SSH/operator verification. `/api/trading/mcp` is not a
+  standalone MCP endpoint and must stay blocked on the public shared host.
 - 2026-06-16 production deploy advanced Trading runtime to commit `5cc6782`
   on active port `8084`. The first public-MCP-block deploy attempt correctly
   rolled back because the dedicated-host `/api/mcp` route still returned HTTP

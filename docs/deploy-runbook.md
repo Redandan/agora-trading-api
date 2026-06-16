@@ -126,8 +126,8 @@ Expected:
 
 - Spring Boot starts with profile `local-smoke`.
 - `local-smoke` does not register scheduled tasks; smoke logs include `Scheduling disabled for local-smoke profile`.
-- Health passes at `http://127.0.0.1:18084/api/trading/actuator/health`.
-- MCP guard checks pass through `/api/trading/mcp`, proving disabled responses for live sentiment reads, external health probes, and external backfill/import reads.
+- Health passes at `http://127.0.0.1:18084/api/actuator/health`.
+- MCP guard checks pass through `/api/mcp`, proving disabled responses for live sentiment reads, external health probes, and external backfill/import reads.
 - DataFreshnessGuard RCA remains read-only. `diagnoseDataFreshnessGuardBlocks`
   may read recent `bt_decision_audit` rows and existing `md_kline` freshness,
   but it must only report current snapshot states such as `READY_NOW`,
@@ -293,14 +293,14 @@ Last verified server state from 2026-06-15 Asia/Taipei:
   176 database tables, 2 known system tables, 0 missing trading tables, and
   137 extra marketplace/shared tables expected in shared DB mode.
 - 2026-06-14 historical pre-internal-only production MCP parity passed against
-  `/api/trading/mcp` with 21 representative trading tools present from 304
+  `/api/mcp` with 21 representative trading tools present from 304
   registered tools, plus direct production smoke for the read-only
   `listSchedulerTasks` compatibility alias. This public route is now superseded
   by the MCP internal-only policy; current parity smoke must use server-local
   MCP.
 - 2026-06-15 `scripts/verify_server.sh` passed after the `31af005` deploy with:
   - local trading health on the active `app.port`
-  - local MCP `getMcpRegistryVersion` through `/api/trading/mcp`
+  - local MCP `getMcpRegistryVersion` through `/api/mcp`
   - AgoraMarket exchange-rate dependency health: `https://agoramarketapi.purrtechllc.com/api/actuator/health`
   - public trading health: `https://agoratradingapi.purrtechllc.com/api/actuator/health`
   - historical public Trading MCP tools/list:
@@ -334,7 +334,7 @@ bash deploy.sh
 Defaults:
 
 - ports: `8084` and `8085`
-- health: `http://127.0.0.1:<port>/api/trading/actuator/health`
+- health: `http://127.0.0.1:<port>/api/actuator/health`
 - jar: `target/agora-trading-api-1.0-SNAPSHOT.jar`
 - env file: `/home/ubuntu/.env.trading.secrets`
 - deployment metadata: `app.port`, `app.pid`, and `app.commit`
@@ -385,7 +385,7 @@ host `/api/trading/` upstream and the dedicated Trading host `/api/*` upstreams.
 
 ```bash
 PORT=$(cat /home/ubuntu/agora-trading-api/app.port)
-curl -fsS "http://127.0.0.1:${PORT}/api/trading/actuator/health"
+curl -fsS "http://127.0.0.1:${PORT}/api/actuator/health"
 curl -fsS "https://agoramarketapi.purrtechllc.com/api/actuator/health"
 ```
 
@@ -427,7 +427,7 @@ AgoraMarketAPI's live MCP ownership smoke:
 Optional public path check:
 
 ```bash
-PUBLIC_TRADING_HEALTH_URL="https://agoramarketapi.purrtechllc.com/api/trading/actuator/health" \
+PUBLIC_TRADING_HEALTH_URL="https://agoratradingapi.purrtechllc.com/api/actuator/health" \
   bash scripts/verify_server.sh
 ```
 
@@ -525,11 +525,11 @@ Prerequisites:
 - `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` passes with no
   `missing-in-db.txt`; extra marketplace/shared tables are expected while
   `SCHEMA_COMPARE_MODE=shared`.
-- `/api/trading/actuator/health` passes through nginx.
-- `/api/trading/mcp` `getMcpRegistryVersion` passes with `TRADING_MCP_KEY`.
+- `/api/actuator/health` passes locally and through the dedicated Trading host.
+- `/api/mcp` `getMcpRegistryVersion` passes server-local with `TRADING_MCP_KEY`.
 - AgoraMarketAPI's `check-live-mcp-split-ownership.ps1` passes, proving
   representative legacy Trading tools are absent from AgoraMarketAPI `/api/mcp`
-  and present in `agora-trading-api` `/api/trading/mcp`.
+  and present in `agora-trading-api` server-local `/api/mcp`.
 - Scheduler ownership is reviewed so order/OCO/grid/fund/Earn-capable jobs are
   either disabled in both services or intentionally enabled in exactly one
   service.
@@ -590,7 +590,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - `SPRING_DATASOURCE_URL` must point at expected shared database `agora_market`; deploy, preflight, and server verification fail on unexpected datasource targets.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
 - preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
-- local MCP `getMcpRegistryVersion` passes through `/api/trading/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
+- local MCP `getMcpRegistryVersion` passes through `/api/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
 - public Trading MCP blocked checks pass through
   `PUBLIC_TRADING_MCP_BLOCKED_URL` and
   `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`; public `tools/list` must not return

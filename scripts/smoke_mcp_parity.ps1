@@ -1,5 +1,5 @@
 param(
-    [string]$BaseUrl = "http://127.0.0.1:18084/api/trading",
+    [string]$BaseUrl = "http://127.0.0.1:18084/api",
     [string]$McpKey = "local-smoke-mcp"
 )
 

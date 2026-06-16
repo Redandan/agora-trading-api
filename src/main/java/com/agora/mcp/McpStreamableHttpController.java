@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * <p>認證由 {@link com.agora.mcp.auth.McpApiKeyFilter} 在 HTTP 層處理，
  * 本控制器無需額外認證邏輯。
  *
- * <p>MCP 入口為 {@code POST /api/trading/mcp}（Streamable HTTP）。
+ * <p>MCP 入口為 {@code POST /api/mcp}（Streamable HTTP）。
  */
 @Slf4j
 @RestController

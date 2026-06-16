@@ -18,7 +18,7 @@ import java.util.stream.StreamSupport;
 /**
  * 服務端本地 MCP 客戶端。
  *
- * <p>透過 JSON-RPC 2.0 {@code POST /api/trading/mcp} 呼叫同一 JVM 實例上的 MCP 伺服器，
+ * <p>透過 JSON-RPC 2.0 {@code POST /api/mcp} 呼叫同一 JVM 實例上的 MCP 伺服器，
  * 讓伺服器端 AI（如 ShortAiFilter 的 Claude agentic loop）直接使用所有已定義的 MCP 工具，
  * 無需在 AI 呼叫端重複實作工具邏輯。
  *

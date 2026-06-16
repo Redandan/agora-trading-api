@@ -1,6 +1,6 @@
 # Legacy Trading Parity Inventory
 
-Last refreshed: 2026-06-15
+Last refreshed: 2026-06-16
 
 This inventory compares the legacy `AgoraMarketAPI` trading ownership surface
 with the standalone `agora-trading-api` service. It is source-code evidence only;
@@ -10,10 +10,11 @@ it does not prove production cutover and does not disable legacy behavior.
 
 - Legacy source inspected: `C:\Users\Redan\IdeaProjects\AgoraMarketAPI`
 - Standalone source inspected: `C:\Users\Redan\IdeaProjects\agora-trading-api`
-- Standalone HTTP base path: `/api/trading`
-- Standalone MCP endpoint: `POST /api/trading/mcp`
+- Standalone HTTP base path: `/api`
+- Standalone MCP endpoint: server-local `POST /api/mcp`
 - Dedicated public Trading host: `https://agoratradingapi.purrtechllc.com/api`
-  maps public `/api/*` to standalone internal `/api/trading/*`.
+  maps public `/api/*` to standalone `/api/*` while exact `/api/mcp` is
+  blocked by nginx.
 - Shared DB mode remains `agora_market`.
 - Extra marketplace/shared DB tables are expected and must not be cleaned up in
   shared mode.
@@ -25,8 +26,8 @@ package. Its direct HTTP surface is the narrow split surface:
 
 | Surface | Legacy AgoraMarketAPI | Standalone Trading | Status |
 | --- | --- | --- | --- |
-| MCP Streamable HTTP | `POST /api/mcp` | server-local `POST /api/trading/mcp`; public dedicated `/api/mcp` and shared `/api/trading/mcp` blocked by nginx | Carried internally only |
-| Health | `/api/actuator/health` | `/api/trading/actuator/health`; dedicated host `/api/actuator/health` | Carried by standalone path |
+| MCP Streamable HTTP | `POST /api/mcp` | server-local `POST /api/mcp`; public dedicated `/api/mcp` and shared `/api/trading/mcp` blocked by nginx | Carried internally only |
+| Health | `/api/actuator/health` | `/api/actuator/health`; dedicated host `/api/actuator/health` | Carried by standalone path |
 | Backtest admin HTTP | `/api/backtests/**` via `BacktestController` | no public HTTP controller | Covered through `BacktestValidationMcpTools`; legacy HTTP still needs disable decision |
 | Admin market import/backfill | `/api/admin/market/import`, `/reimport`, `/info`, `/subscribe`, `/backfill-oi` | no public HTTP controller | Covered through guarded MCP/backfill paths where retained; legacy HTTP still needs disable decision |
 | Public kline/market HTTP | `/api/market/klines`, `/symbols`, `/intervals`, `/ticker` | no public HTTP controller | Not carried as public HTTP; standalone keeps market-data MCP and internal services |
@@ -34,7 +35,8 @@ package. Its direct HTTP surface is the narrow split surface:
 | Admin scheduler HTTP | `/api/admin/scheduler/**` | no public HTTP controller | Covered through `MetaControlMcpTools.listSchedulers`; legacy HTTP still needs disable decision |
 
 Cutover implication: disable legacy trading HTTP entry points only after the
-owner accepts that operator access should be MCP-first under `/api/trading/mcp`.
+owner accepts that operator access should be MCP-first under server-local
+`/api/mcp`.
 Do not remove AgoraMarketAPI marketplace HTTP or internal exchange-rate APIs.
 
 ## MCP Class Parity
@@ -144,7 +146,7 @@ schedulers and the internal exchange-rate API available.
 3. Generate and review the Flyway baseline, then switch Trading itself to
    `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true`
    only during an approved deploy.
-4. Smoke server-local `/api/trading/mcp` with `getMcpRegistryVersion` and
+4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion` and
    `scripts/smoke_mcp_parity.ps1`, including the read-only DataFreshnessGuard
    RCA acceptance marker; verify public dedicated `/api/mcp` and shared
    `/api/trading/mcp` are blocked.

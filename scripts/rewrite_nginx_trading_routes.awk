@@ -87,6 +87,10 @@ skip_block {
   in_trading = 1
 }
 
+dedicated && /^[[:space:]]*location[[:space:]]+\/api\/[[:space:]]*\{/ {
+  in_dedicated_api = 1
+}
+
 insert_trading_path && !inserted_trading_path && /^[[:space:]]*location[[:space:]]+\/api\/[[:space:]]*\{/ {
   if (!inserted_trading_mcp_block) {
     print_shared_mcp_block()
@@ -102,10 +106,19 @@ in_trading || /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/tra
   gsub(/127\.0\.0\.1:(8084|8085)/, "127.0.0.1:" port)
 }
 
+in_dedicated_api && /proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading\// {
+  sub(/proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1:(8084|8085)\/api\/trading\//,
+      "proxy_pass http://127.0.0.1:" port "/api/")
+}
+
 { print }
 
 in_trading && /^[[:space:]]*}/ {
   in_trading = 0
+}
+
+in_dedicated_api && /^[[:space:]]*}/ {
+  in_dedicated_api = 0
 }
 
 { update_server_depth() }

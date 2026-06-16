@@ -52,7 +52,7 @@
   - `ExchangeRateInfo`
   - `AgoraMarketInternalClientProperties`
 - Local split verification now guards the remaining handoff assumptions:
-  - `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` starts the service under `local-smoke`, proves `/api/trading/actuator/health`, calls `/api/trading/mcp` with `getMcpRegistryVersion`, and checks logs for disabled external side effects.
+  - `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` starts the service under `local-smoke`, proves `/api/actuator/health`, calls `/api/mcp` with `getMcpRegistryVersion`, and checks logs for disabled external side effects.
   - Local smoke also calls representative MCP tools and verifies disabled guard responses for live sentiment reads, external health probes, and external backfill/import reads.
   - `scripts/verify_local.ps1` runs compile/tests, split boundary scanners, env-template checks, shell syntax checks, schema source inventory, and documentation drift guards.
   - `scripts/schema_baseline_inventory.ps1` writes `target/schema-baseline/entity-tables.txt`, `implicit-entities.txt`, and `forbidden-marketplace-tables.txt`; the latest local guard run found no implicit entity tables and no obvious marketplace-owned table mappings.
@@ -64,7 +64,7 @@
   - Remaining `@Value` `:true` fallbacks are deliberately limited to protective/internal checks and dry-run flags; `scripts/verify_local.ps1` rejects new default-on `@Value` fallbacks until they are classified or changed to explicit opt-in.
   - Remaining `Environment.getProperty` default-`true` fallbacks are deliberately limited to MCP master-approval protection, ScoreBuy/TinyLive dry-run flags, and post-scout add sub-options behind disabled execution; `scripts/verify_local.ps1` rejects new default-on environment property fallbacks until they are classified or changed to explicit opt-in.
   - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup diagnostic logger with no network, DB, order, or notification side effects.
-  - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, actuator probes/metrics with filter gates, rate-limit JSON redirect, and favicon. Trading MCP is internal-only through server-local `/api/trading/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
+  - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, actuator probes/metrics with filter gates, rate-limit JSON redirect, and favicon. Trading MCP is internal-only through server-local `/api/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `https://agoramarketapi.purrtechllc.com`.
 - `deploy.sh` now checks AgoraMarket exchange-rate dependency health before starting the blue-green switch.
 - Server preflight now requires AgoraMarket exchange-rate dependency health by default, with `REQUIRE_AGORA_MARKET_HEALTH=0` reserved for diagnostic-only checks.
@@ -109,10 +109,10 @@
 - Market-data MCP external backfill/import tools no longer read OKX/The Graph/FRED/Hyperliquid/Polymarket/Coinalyze or write indicator/import rows unless `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true`.
 - EventRiskControl keeps protective new-entry blocking default-on, while state-change Telegram notifications now default off and require `EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED=true`.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
-- Local and server verification now prove the trading MCP context path through `/api/trading/mcp` instead of the pre-split `/api/mcp` path.
+- Local and server verification now prove the trading MCP context path through `/api/mcp`; `/api/trading/mcp` is not a standalone MCP endpoint and remains only a public shared-host block target.
 - Legacy AgoraMarketAPI trading HTTP/MCP/scheduler parity inventory is documented
   in `docs/legacy-trading-parity-inventory.md`; standalone carries the trading
-  MCP/scheduler classes through `/api/trading/mcp` while intentionally not
+  MCP/scheduler classes through `/api/mcp` while intentionally not
   carrying legacy trading admin HTTP controllers as public HTTP.
 - Server-local MCP parity smoke coverage now checks representative standalone
   trading tools through `tools/list` in `scripts/smoke_local_health.ps1` and
@@ -269,7 +269,8 @@ Trading deployment prep:
   `https://agoratradingapi.purrtechllc.com/api/mcp` plus shared
   `https://agoramarketapi.purrtechllc.com/api/trading/mcp` URLs by default
   when nginx is updated. Public Trading MCP must be blocked; server-local
-  `/api/trading/mcp` remains the operator/verification path.
+  `/api/mcp` is the operator/verification path; `/api/trading/mcp` remains a
+  shared-host public block target.
 - 2026-06-15 production deploy advanced runtime to `31af005` on active port
   `8085`. Post-deploy verification and full read-only schema compare passed:
   39 source entity tables, 0 missing DB tables, 176 DB tables, 2 known system

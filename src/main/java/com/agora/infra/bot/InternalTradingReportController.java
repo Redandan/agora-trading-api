@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Hidden
 @RestController
-@RequestMapping("/internal/reports")
+@RequestMapping("/trading/internal/reports")
 @RequiredArgsConstructor
 public class InternalTradingReportController {
 

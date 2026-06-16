@@ -152,8 +152,8 @@ function Assert-HttpStatus {
 }
 
 $repo = Resolve-Path "$PSScriptRoot\.."
-$healthUrl = "http://127.0.0.1:$Port/api/trading/actuator/health"
-$mcpUrl = "http://127.0.0.1:$Port/api/trading/mcp"
+$healthUrl = "http://127.0.0.1:$Port/api/actuator/health"
+$mcpUrl = "http://127.0.0.1:$Port/api/mcp"
 $internalReportUrl = "http://127.0.0.1:$Port/api/trading/internal/reports/current"
 $logDir = Join-Path $repo "logs\local-smoke"
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null

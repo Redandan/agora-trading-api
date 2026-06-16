@@ -145,7 +145,7 @@ server {
     Assert-Contains -Text $rewritten -Needle "location = /api/mcp {" -Description "dedicated MCP exact location remains explicit"
     Assert-Contains -Text $rewritten -Needle "MCP is internal-only. Public dedicated host must not expose /api/mcp." -Description "dedicated MCP public block comment"
     Assert-Contains -Text $rewritten -Needle "Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp." -Description "shared Trading MCP public block comment"
-    Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/trading/;" -Description "dedicated /api/ upstream follows active port"
+    Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/;" -Description "dedicated /api/ upstream follows active port"
     Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084;" -Description "shared /api/trading/ upstream follows active port"
     Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/trading/mcp;" -Description "dedicated public MCP must not proxy to Trading MCP"
     Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8085/api/trading/mcp;" -Description "stale dedicated public MCP proxy is removed"

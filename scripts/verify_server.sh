@@ -393,12 +393,12 @@ if [ -n "$INACTIVE_PORT_PIDS" ]; then
 fi
 ok "non-active blue-green port $INACTIVE_PORT has no listener"
 
-LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/actuator/health"
+LOCAL_HEALTH_URL="http://127.0.0.1:${ACTIVE_PORT}/api/actuator/health"
 curl -fsS "$LOCAL_HEALTH_URL" >/dev/null || fail "local trading health failed: $LOCAL_HEALTH_URL"
 ok "local trading health passed: $LOCAL_HEALTH_URL"
 
 MCP_KEY="$(env_value TRADING_MCP_KEY)"
-MCP_URL="http://127.0.0.1:${ACTIVE_PORT}/api/trading/mcp"
+MCP_URL="http://127.0.0.1:${ACTIVE_PORT}/api/mcp"
 MCP_RESPONSE="$(curl -fsS \
   --max-time 30 \
   -H "Content-Type: application/json" \
@@ -441,7 +441,7 @@ else
 fi
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
-  DEDICATED_API_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/"
+  DEDICATED_API_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/"
   DEDICATED_MCP_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/mcp"
   SHARED_TRADING_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}([[:space:];]|$)"
   if grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then

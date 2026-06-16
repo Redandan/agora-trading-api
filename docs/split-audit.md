@@ -75,9 +75,9 @@ For a faster split-boundary-only pass without Maven tests or app startup:
 
 Expected:
 
-- `smoke_local_health.ps1` starts the service with profile `local-smoke`, checks `http://127.0.0.1:18084/api/trading/actuator/health`, then stops the temporary Maven/Java process tree.
+- `smoke_local_health.ps1` starts the service with profile `local-smoke`, checks `http://127.0.0.1:18084/api/actuator/health`, then stops the temporary Maven/Java process tree.
 - `local-smoke` excludes scheduled task registration, and smoke logs include `Scheduling disabled for local-smoke profile`.
-- Local smoke calls `/api/trading/mcp` and verifies representative market-data MCP guard responses for disabled live sentiment reads, external health probes, and external backfill/import reads.
+- Local smoke calls `/api/mcp` and verifies representative market-data MCP guard responses for disabled live sentiment reads, external health probes, and external backfill/import reads.
 - `verify_local.ps1` runs `mvn test`.
 - `verify_local.ps1` scans for forbidden marketplace, frontend, login, auth, commerce, wallet, realtime, stale utility residue, deployment guard regressions, schema-bootstrap drift, and internal API contract drift.
 - `verify_local.ps1` dynamically scans every `ApplicationRunner`/`CommandLineRunner` and requires async, explicit opt-in startup behavior.
@@ -114,7 +114,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Deploy/server verification require `SPRING_DATASOURCE_URL` to point at expected shared database `agora_market` and fail on unexpected datasource targets.
 - Deploy checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops before a new instance or nginx change is attempted.
 - Server preflight and verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is diagnostic-only and not deploy acceptance.
-- Server verification calls local MCP `getMcpRegistryVersion` through `/api/trading/mcp` with `TRADING_MCP_KEY`, proving the split context path and MCP auth mapping.
+- Server verification calls local MCP `getMcpRegistryVersion` through `/api/mcp` with `TRADING_MCP_KEY`, proving the split context path and MCP auth mapping.
 - Deploy/preflight fail fast when required server tools for blue-green process launch, readiness loops, failure diagnostics, post-verify invocation, and nginx swaps are missing.
 - Server verification and schema baseline comparison fail fast when their env parsing, metadata parsing, inventory, and database comparison tools are missing.
 - Bootstrap and nginx path installation fail fast when their repo/nginx inspection and file-update tools are missing.
@@ -174,7 +174,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, which only logs slow Spring bean creation during startup and has no network, DB, order, or notification side effects.
 - `scripts/validate_pom_boundary.ps1` allows only the thin `com.agora:agora-market-internal-client` SDK as an Agora dependency and rejects marketplace application jar/path references.
 - `scripts/validate_package_boundary.ps1` keeps top-level and nested `com.agora.*` packages inside the trading-owned allowlist and rejects marketplace-style package segments such as product, order, cart, user, wallet, OAuth, webpush, PWA, member, referrer, support-ticket, recharge/withdraw, transaction, Web3, and WalletConnect. The retained `com.agora.mcp.auth` package is service-level MCP API-key auth, not marketplace login.
-- `SecurityPaths` exposes only the real retained service HTTP surfaces: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, and favicon. Trading MCP is internal-only through server-local `/api/trading/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
+- `SecurityPaths` exposes only the real retained service HTTP surfaces: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, and favicon. Trading MCP is internal-only through server-local `/api/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
 
 ## Retained Trading Domains
 

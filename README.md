@@ -25,7 +25,7 @@ mvn spring-boot:run
 Health check:
 
 ```powershell
-curl http://localhost:8084/api/trading/actuator/health
+curl http://localhost:8084/api/actuator/health
 ```
 
 AgoraMarket exchange-rate integration:
@@ -52,7 +52,7 @@ AgoraMarketAPI Telegram gateway integration:
 - Does not depend on AgoraMarket commerce users, orders, products, or wallet tables.
 - Current baseline keeps the extracted trading/system repositories needed for the Spring context to start.
 - Cross-service dependencies must go through an internal-client SDK or HTTP DTOs, not shared entities/repositories.
-- Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, and API-key guarded internal report reads for the AgoraMarketAPI Telegram gateway. Trading MCP is internal-only through server-local `/api/trading/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
+- Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, and API-key guarded internal report reads for the AgoraMarketAPI Telegram gateway. Trading MCP is internal-only through server-local `/api/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
 - Schema baseline prep remains read-only against the shared `agora_market` database; marketplace-owned table names are rejected in trading source mappings, while shared DB extra tables are expected.
 
 See:
@@ -94,7 +94,7 @@ Server-local MCP parity smoke against a running local or deployed Trading
 service:
 
 ```powershell
-.\scripts\smoke_mcp_parity.ps1 -BaseUrl http://127.0.0.1:18084/api/trading -McpKey local-smoke-mcp
+.\scripts\smoke_mcp_parity.ps1 -BaseUrl http://127.0.0.1:18084/api -McpKey local-smoke-mcp
 ```
 
 Cross-service live ownership smoke is maintained in the AgoraMarketAPI repo.

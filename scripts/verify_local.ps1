@@ -655,6 +655,30 @@ function Assert-SchemaExtraCleanupSharedModeFailsFast {
     }
 }
 
+function Assert-SchemaExtraCleanupApplyDropGuard {
+    $path = "scripts/schema_extra_tables_cleanup_apply_server.sh"
+    $text = Get-Content -LiteralPath $path -Raw
+
+    $sharedGuardIndex = $text.IndexOf('shared) fail "schema extra-table cleanup is disabled in shared DB mode')
+    $firstMysqlToolIndex = $text.IndexOf('require_cmd mysql')
+    $firstEnvReadIndex = $text.IndexOf('SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"')
+    $dryRunIndex = $text.IndexOf('if [ "$APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" != "1" ]; then')
+    $dropIndex = $text.IndexOf('-e "DROP TABLE')
+
+    if ($sharedGuardIndex -lt 0) {
+        Write-Error "schema extra-table cleanup apply script must fail fast in shared DB mode before any DB tooling or env reads"
+    }
+    if ($firstMysqlToolIndex -lt 0 -or $firstEnvReadIndex -lt 0 -or $dryRunIndex -lt 0 -or $dropIndex -lt 0) {
+        Write-Error "schema extra-table cleanup apply script guard structure changed; update verifier before changing cleanup semantics"
+    }
+    if ($sharedGuardIndex -gt $firstMysqlToolIndex -or $sharedGuardIndex -gt $firstEnvReadIndex) {
+        Write-Error "schema extra-table cleanup apply script must reject shared DB mode before requiring mysql tooling or reading datasource env"
+    }
+    if ($dropIndex -lt $dryRunIndex) {
+        Write-Error "schema extra-table cleanup apply script must not contain executable DROP TABLE before the explicit APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1 dry-run guard"
+    }
+}
+
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     $mockitoArgLine = Resolve-MockitoJavaAgentArgLine
@@ -754,6 +778,7 @@ try {
     Assert-RgNoMatch -Pattern "^[[:space:]]*DROP TABLE" -Paths @("scripts/schema_extra_tables_cleanup_plan_server.sh") -Description "schema extra-table cleanup planner must not execute drop statements"
     Assert-RgMatch -Pattern "disabled in shared DB mode" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "scripts/schema_extra_tables_cleanup_plan_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup is disabled in shared DB mode"
     Assert-SchemaExtraCleanupSharedModeFailsFast
+    Assert-SchemaExtraCleanupApplyDropGuard
     Assert-RgMatch -Pattern "APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "standalone schema extra-table cleanup apply path requires explicit apply flag"
     Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path creates a backup before destructive cleanup"
     Assert-RgMatch -Pattern "dry-run complete" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "standalone schema extra-table cleanup apply path defaults to dry-run"

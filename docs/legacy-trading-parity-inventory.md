@@ -153,9 +153,12 @@ schedulers and the internal exchange-rate API available.
 
 1. Keep `agora-trading-api` on shared `agora_market`; do not split DB.
 2. Verify standalone deploy and schema compare in shared mode.
-3. Generate and review the Flyway baseline, then switch Trading itself to
-   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true`
-   only during an approved deploy.
+3. Keep the reviewed Trading Flyway baseline and hardened schema env active:
+   `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`,
+   `SPRING_FLYWAY_ENABLED=true`, and
+   `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`. Re-run shared-mode
+   schema compare before any future baseline regeneration or `V2__...`
+   migration review.
 4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion`, the 30-tool
    parity list in `scripts/smoke_mcp_parity.ps1` or
    `scripts/smoke_mcp_parity_ssh.ps1`, and the current read-only acceptance

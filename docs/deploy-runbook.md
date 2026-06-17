@@ -64,7 +64,7 @@ table present, it is harmless on later deploys.
 Deploy, server preflight, and verification require these hardened schema env
 values.
 Use `scripts/schema_baseline_inventory.ps1` and `docs/schema-baseline.md` as the
-read-only inventory step before generating the baseline.
+read-only inventory step for baseline drift review.
 Use `scripts/schema_baseline_compare_server.sh` on the server for the read-only
 database table comparison; it must not deploy or mutate schema.
 Use `scripts/schema_baseline_generate_server.sh` only after the shared-mode
@@ -556,7 +556,7 @@ Trading MCP is exposed and the deploy must be treated as failed. Server
 verification also checks that the nginx exact MCP blocks return `404` directly
 and do not contain `proxy_pass`.
 
-Optional schema baseline table comparison before generating Flyway baseline:
+Optional schema baseline table comparison for Flyway baseline drift review:
 
 ```bash
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
@@ -620,7 +620,8 @@ bash scripts/schema_baseline_generate_server.sh
 
 When `RUN_SCHEMA_BASELINE_COMPARE=1` is set for `deploy.sh`, the deploy script
 passes that flag into post-deploy `scripts/verify_server.sh`; the default remains
-`0` for normal deploy acceptance until a baseline migration is ready.
+`0` for normal deploy acceptance because the heavier shared-DB schema compare is
+reserved for baseline drift review or schema-change acceptance.
 
 ## AgoraMarketAPI Trading Cutover Plan
 
@@ -721,7 +722,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - trading uses the shared MySQL database, currently `agora_market`.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true` are required after the Flyway baseline exists.
 - Deploy, server preflight, and verification require the real server env to use the Trading-owned `trading_flyway_schema_history` table.
-- schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before generating `V1__baseline.sql`.
+- schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before regenerating `V1__baseline.sql` for review or before accepting a future `V2__...` migration.
 - Extra marketplace/shared tables are expected in shared DB mode. The standalone-only cleanup planner is disabled unless `SCHEMA_COMPARE_MODE=standalone`.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
 - AgoraMarket exchange-rate dependency health through `https://agoramarketapi.purrtechllc.com/api/actuator/health` by default.

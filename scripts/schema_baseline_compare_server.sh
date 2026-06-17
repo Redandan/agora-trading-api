@@ -163,7 +163,7 @@ if [ "$missing_count" != "0" ]; then
 fi
 
 if [ "$SCHEMA_COMPARE_MODE" = "standalone" ] && [ "$extra_count" != "0" ]; then
-  fail "schema baseline table inventory differs; inspect $missing_tables and $extra_tables before generating Flyway baseline"
+  fail "schema baseline table inventory differs; inspect $missing_tables and $extra_tables before baseline regeneration or migration review"
 fi
 
 if [ "$SCHEMA_COMPARE_MODE" = "shared" ]; then

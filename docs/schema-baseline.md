@@ -136,7 +136,7 @@ after any applied cleanup.
 
 ## Baseline Acceptance
 
-Before replacing Hibernate schema update with Flyway validation:
+For baseline drift review and future schema-change acceptance:
 
 - Compare `target/schema-baseline/entity-tables.txt` with the real shared
   `agora_market` database tables.

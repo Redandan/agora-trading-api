@@ -1419,6 +1419,8 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-PublicHttpsUrlSafe", "agoratradingapi\.purrtechllc\.com", "agoramarketapi\.purrtechllc\.com")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_server_ssh.ps1") -Description "server SSH verifier validates remote shell embedded paths and public URLs $pattern"
     }
+    Assert-RgMatch -Pattern "dedicated-host health plus public MCP blocked checks" -Paths @("docs/split-acceptance-status.md") -Description "split acceptance handoff describes public MCP as a blocked-route check"
+    Assert-RgNoMatch -Pattern "dedicated-host health/MCP checks" -Paths @("docs/split-acceptance-status.md", "README.md", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "handoff docs must not imply successful public dedicated-host MCP checks"
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-RemoteRelativePathSafe", "Assert-GitBranchSafe", "PollSeconds must be at most 60", "TimeoutSeconds must be between 60 and 3600")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/deploy_ssh.ps1") -Description "deploy SSH wrapper validates remote shell embedded inputs and polling bounds $pattern"
     }

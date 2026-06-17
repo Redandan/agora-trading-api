@@ -67,8 +67,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   ```
 
   This wrapper runs Trading server verification with shared-DB schema compare,
-  dedicated-host health/MCP checks, nginx active-port checks, active runtime
-  log smoke, and AgoraMarketAPI's cross-service live MCP ownership smoke.
+  dedicated-host health plus public MCP blocked checks, nginx active-port
+  checks, active runtime log smoke, and AgoraMarketAPI's cross-service live MCP
+  ownership smoke.
 
 - Current open issue acceptance after an explicitly authorized deploy is
   consolidated by:

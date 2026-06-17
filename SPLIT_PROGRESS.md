@@ -331,7 +331,9 @@ Trading deployment prep:
   `scripts/verify_split_acceptance_ssh.ps1` all passed. Public dedicated
   `https://agoratradingapi.purrtechllc.com/api/mcp` and public shared-host
   `https://agoramarketapi.purrtechllc.com/api/trading/mcp` both returned HTTP
-  404, while server-local `/api/trading/mcp` `getMcpRegistryVersion` passed.
+  404, while the then-current server-local legacy context path
+  `/api/trading/mcp` `getMcpRegistryVersion` check passed before the later
+  `/api/mcp` canonical-path deploy.
   Schema compare remained in shared mode with 39 source entity tables, 0
   missing DB tables, and 137 expected extra shared/marketplace tables. Runtime
   log smoke found 0 ERROR lines and no high-risk trading/OCO/grid/Earn/fund

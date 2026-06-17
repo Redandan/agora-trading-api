@@ -267,7 +267,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   braces before replacing the dedicated Trading MCP location. The successful
   deploy post-verifier then confirmed:
   - local health passed at `http://127.0.0.1:8084/api/trading/actuator/health`
-  - server-local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
+  - server-local MCP `getMcpRegistryVersion` passed at the then-current legacy
+    context path `/api/trading/mcp`; current acceptance uses `/api/mcp`
   - public dedicated Trading MCP
     `https://agoratradingapi.purrtechllc.com/api/mcp` returned HTTP 404
   - public shared-host Trading MCP

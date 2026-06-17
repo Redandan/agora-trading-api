@@ -236,6 +236,7 @@ trailing = call_tool("analyzeTrailingStopPnlReplay", {
 }, timeout=180)
 require("trailing replay read-only boundary", r"boundary:\s*READ_ONLY", trailing)
 require("trailing replay sample status", r"sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS", trailing)
+require("trailing replay acceptance target", r"acceptanceTarget: total trailing PnL improvement >= 5%", trailing)
 require("trailing ambiguous same-bar exclusion", r"acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals", trailing)
 
 print(f"[mcp-parity-ssh] OK toolCount={len(tool_names)} required={len(required_tools)}")

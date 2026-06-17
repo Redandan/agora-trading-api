@@ -362,16 +362,18 @@ Trading deployment prep:
   blue-green port still has a listener.
 - 2026-06-17 local handoff batch is ahead of the deployed runtime until it is
   explicitly pushed, deployed, and verified. Local `scripts/verify_local.ps1`
-  passed with 49 tests, 305 MCP tools registered in the local-smoke Spring
-  context, split-boundary/schema-inventory/script-syntax/post-deploy-guardrail
-  checks OK. The reusable MCP parity smoke now has matching local and SSH
-  required-tool lists: local smoke invokes `scripts/smoke_mcp_parity.ps1`, the
-  post-deploy issue wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before
-  the guardrail, signal-correctness, and trailing replay smokes, and
-  `scripts/verify_local.ps1` fails on any required-tool divergence across the
-  three scripts. This is local readiness only; #1/#2/#3 closure still requires
-  deployed server-local read-only acceptance after an explicitly authorized
-  deploy.
+  passed with 50 tests, 305 MCP tools registered in the local-smoke Spring
+  context,
+  split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
+  OK, and the stale Flyway wording guard now rejects pre-baseline, legacy V10x
+  migration, and generic follow-up migration wording in docs/source comments.
+  The reusable MCP parity smoke has matching local and SSH required-tool lists:
+  local smoke invokes `scripts/smoke_mcp_parity.ps1`, the post-deploy issue
+  wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before the guardrail,
+  signal-correctness, and trailing replay smokes, and `scripts/verify_local.ps1`
+  fails on any required-tool divergence across the three scripts. This is local
+  readiness only; #1/#2/#3 closure still requires deployed server-local
+  read-only acceptance after an explicitly authorized deploy.
 
 ## Cleanup Priority
 

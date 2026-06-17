@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * MCP 診斷工具集。
@@ -52,6 +54,7 @@ public class DiagnosticMcpTools {
     private static final String APP_LOG_PATH = "/home/ubuntu/agora-trading-api/app.log";
     private static final String APP_STARTED_MARKER = "Started TradingApiApplication";
     private static final String APP_STARTING_MARKER = "Starting TradingApiApplication";
+    private static final Pattern SQL_IDENTIFIER = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
 
     private final ServerStartupLogRepository startupLogRepo;
     private final BtStrategyRepository strategyRepo;
@@ -69,6 +72,9 @@ public class DiagnosticMcpTools {
     private final McpApiKeyFilter mcpApiKeyFilter;
     private final com.agora.service.trading.EventRiskLevelEngine eventRiskLevelEngine;
     private final McpRegistryVersionService mcpRegistryVersionService;
+
+    @Value("${meta-control.migration-drift-check.table:trading_flyway_schema_history}")
+    private String migrationHistoryTable;
 
     private java.io.File resolveAppLogFile() {
         for (java.io.File candidate : new java.io.File[] {
@@ -212,15 +218,21 @@ public class DiagnosticMcpTools {
     public String getAppliedMigrations(Boolean failedOnly) {
         boolean failOnly = Boolean.TRUE.equals(failedOnly);
         try {
+            if (!SQL_IDENTIFIER.matcher(migrationHistoryTable).matches()) {
+                return "❌ 查詢失敗: invalid migration history table: " + migrationHistoryTable;
+            }
             String sql = failOnly
                     ? "SELECT version, description, type, installed_on, success, execution_time " +
-                      "FROM flyway_schema_history WHERE success=0 ORDER BY installed_rank DESC"
+                      "FROM " + migrationHistoryTable + " WHERE success=0 ORDER BY installed_rank DESC"
                     : "SELECT version, description, type, installed_on, success, execution_time " +
-                      "FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 20";
+                      "FROM " + migrationHistoryTable + " ORDER BY installed_rank DESC LIMIT 20";
             List<java.util.Map<String, Object>> rows = jdbc.queryForList(sql);
-            if (rows.isEmpty()) return failOnly ? "✅ 無失敗的 migration" : "ℹ️ flyway_schema_history 無記錄";
+            if (rows.isEmpty()) return failOnly
+                    ? "✅ 無失敗的 migration (" + migrationHistoryTable + ")"
+                    : "ℹ️ " + migrationHistoryTable + " 無記錄";
 
             StringBuilder sb = new StringBuilder();
+            sb.append("historyTable=").append(migrationHistoryTable).append("\n");
             sb.append(failOnly ? "=== 失敗的 Migrations ===\n\n" : "=== 最近 20 個已套用 Migrations ===\n\n");
             sb.append(String.format("%-8s| %-45s| %-8s| %-5s%n", "Version", "Description", "Applied", "OK"));
             sb.append("-".repeat(72)).append("\n");

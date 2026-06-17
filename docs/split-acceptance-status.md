@@ -110,20 +110,22 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Trading MCP trailing-stop PnL replay is read-only. After a deploy containing
   `analyzeTrailingStopPnlReplay`, use
   `.\scripts\smoke_trailing_stop_pnl_replay_ssh.ps1` to call server-local
-  `/api/mcp` and prove the boundary marker plus sample status. The 30d PnL
-  acceptance for issue #3 is only proven when that smoke returns
-  `sampleStatus=REPLAYED` and `acceptance=PASS`; local H2 smoke or a no-sample
-  production result is only reachability evidence. PnL acceptance totals
-  exclude `ambiguousSameBar` rows where trigger/stop ordering cannot be proven
-  from OHLC bars.
+  `/api/mcp` and prove the boundary marker, the
+  `acceptanceTarget: total trailing PnL improvement >= 5%` marker, and sample
+  status. The 30d PnL acceptance for issue #3 is only proven when that smoke
+  returns `sampleStatus=REPLAYED` and `acceptance=PASS`; local H2 smoke or a
+  no-sample production result is only reachability evidence. PnL acceptance
+  totals exclude `ambiguousSameBar` rows where trigger/stop ordering cannot be
+  proven from OHLC bars.
 - Reusable MCP parity now has both local and SSH coverage paths. Local
   `smoke_local_health.ps1` invokes `smoke_mcp_parity.ps1`; deployed issue
   acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.
   `verify_local.ps1` parses and compares all three required-tool lists so local
   smoke, reusable parity smoke, and server-local SSH parity smoke cannot drift
-  silently. H2 local smoke executes only H2-compatible read-only parity calls;
-  MySQL-backed governance drift/relaxation/tightening diagnostics are executed
-  by the server-local SSH parity smoke.
+  silently. Both local and SSH parity smokes require the trailing replay
+  acceptance-target marker. H2 local smoke executes only H2-compatible
+  read-only parity calls; MySQL-backed governance drift/relaxation/tightening
+  diagnostics are executed by the server-local SSH parity smoke.
 - Local validation passed on 2026-06-15 after the dedicated-host blue-green
   port-swap fix with:
   - `.\scripts\verify_local.ps1`

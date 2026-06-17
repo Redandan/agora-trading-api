@@ -1381,6 +1381,9 @@ try {
     foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
     }
+    foreach ($pattern in @("acceptanceTarget: total trailing PnL improvement >= 5%")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep trailing replay acceptance target marker $pattern"
+    }
     Assert-RgMatch -Pattern "RequireTrailingAcceptance.*cannot be combined with.*SkipSplitAcceptance" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper rejects hard trailing closure without split acceptance"
     Assert-PostDeployIssueAcceptanceFlagGuard
     Assert-RgMatch -Pattern "guardrail, signal-correctness, and trailing replay smokes" -Paths @("SPLIT_PROGRESS.md", "docs/split-acceptance-status.md") -Description "current handoff docs mention all post-deploy issue acceptance smokes"

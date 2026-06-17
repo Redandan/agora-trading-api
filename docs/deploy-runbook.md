@@ -135,10 +135,11 @@ Expected:
   backfill, trade, or mutate guard behavior.
 - Trailing-stop PnL replay remains read-only. Local smoke calls
   `analyzeTrailingStopPnlReplay` through `/api/mcp` and requires the
-  `boundary: READ_ONLY` marker plus an explicit `sampleStatus`. A local H2
-  `NO_REPLAYABLE_TRADES` result proves tool wiring and safety only; the 30d PnL
-  acceptance for issue #3 still requires a deployed runtime with real
-  normalized backtest/K-line samples.
+  `boundary: READ_ONLY` marker, the
+  `acceptanceTarget: total trailing PnL improvement >= 5%` marker, and an
+  explicit `sampleStatus`. A local H2 `NO_REPLAYABLE_TRADES` result proves tool
+  wiring and safety only; the 30d PnL acceptance for issue #3 still requires a
+  deployed runtime with real normalized backtest/K-line samples.
 - BTC spot anti-wick policy coverage remains read-only. Local smoke calls
   `analyzeSpotAntiWickPolicyCoverage` through `/api/mcp` and requires the
   `boundary: READ_ONLY`, `ULTRA_LOW_DISASTER`, and summary markers. This proves
@@ -525,6 +526,7 @@ Expected:
 
 - The script calls server-local `/api/mcp`, not public Trading MCP.
 - Output includes `boundary: READ_ONLY`.
+- Output includes `acceptanceTarget: total trailing PnL improvement >= 5%`.
 - Output includes `sampleStatus=NO_REPLAYABLE_TRADES`, `sampleStatus=REPLAYED`,
   or `sampleStatus=NO_REPLAYED_ROWS`.
 - Treat `NO_REPLAYABLE_TRADES` or `NO_REPLAYED_ROWS` as deploy reachability

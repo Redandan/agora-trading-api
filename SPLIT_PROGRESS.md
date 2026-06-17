@@ -362,8 +362,8 @@ Trading deployment prep:
   blue-green port still has a listener.
 - 2026-06-17 local handoff batch is ahead of the deployed runtime until it is
   explicitly pushed, deployed, and verified. Local `scripts/verify_local.ps1`
-  passed through `b11e732` with 51 tests, 305 MCP tools registered in the
-  local-smoke Spring context,
+  passed with 51 tests, 305 MCP tools registered in the local-smoke Spring
+  context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
   OK, and the stale Flyway wording guard now rejects pre-baseline, legacy V10x
   migration, and generic follow-up migration wording in docs/source comments.

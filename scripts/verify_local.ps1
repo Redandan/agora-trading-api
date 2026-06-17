@@ -1381,7 +1381,7 @@ try {
     Assert-RgMatch -Pattern "RequireTrailingAcceptance.*cannot be combined with.*SkipSplitAcceptance" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper rejects hard trailing closure without split acceptance"
     Assert-PostDeployIssueAcceptanceFlagGuard
     Assert-RgMatch -Pattern "guardrail, signal-correctness, and trailing replay smokes" -Paths @("SPLIT_PROGRESS.md", "docs/split-acceptance-status.md") -Description "current handoff docs mention all post-deploy issue acceptance smokes"
-    Assert-RgNoMatch -Pattern "Current local (handoff|parity) head.*``[0-9a-f]{7,40}``|local handoff head ``[0-9a-f]{7,40}``" -Paths @("docs/split-acceptance-status.md", "docs/legacy-trading-parity-inventory.md", "SPLIT_PROGRESS.md") -Description "handoff docs must not pin amend-prone local head SHAs"
+    Assert-RgNoMatch -Pattern "Current local (handoff|parity) head.*``[0-9a-f]{7,40}``|local handoff head ``[0-9a-f]{7,40}``|Local .*passed through ``[0-9a-f]{7,40}``|Local verification .*through ``[0-9a-f]{7,40}``" -Paths @("docs/split-acceptance-status.md", "docs/legacy-trading-parity-inventory.md", "SPLIT_PROGRESS.md") -Description "handoff docs must not pin amend-prone local head SHAs"
 
     Write-Host "[verify] checking deploy script git attributes"
     $shellEol = git ls-files --eol -- deploy.sh scripts/*.sh

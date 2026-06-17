@@ -375,9 +375,12 @@ Trading deployment prep:
   local smoke invokes `scripts/smoke_mcp_parity.ps1`, the post-deploy issue
   wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before the guardrail,
   signal-correctness, and trailing replay smokes, and `scripts/verify_local.ps1`
-  fails on any required-tool divergence across the three scripts. This is local
-  readiness only; #1/#2/#3 closure still requires deployed server-local
-  read-only acceptance after an explicitly authorized deploy.
+  fails on any required-tool divergence across the three scripts. H2 local smoke
+  executes the H2-compatible read-only parity calls; MySQL-backed governance
+  drift/relaxation/tightening diagnostics are executable in the server-local SSH
+  parity smoke. This is local readiness only; #1/#2/#3 closure still requires
+  deployed server-local read-only acceptance after an explicitly authorized
+  deploy.
 
 ## Cleanup Priority
 

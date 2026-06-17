@@ -570,8 +570,11 @@ function Assert-McpParityToolCoverage {
     foreach ($marker in @("tools/list", "getMcpRegistryVersion", "api/mcp")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1", "scripts/smoke_local_health.ps1") -Description "MCP parity smoke marker $marker"
     }
-    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "ambiguousSameBar rows are excluded")) {
+    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "orderSent", "ocoModified", "writesRuntimeEvidence", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "ambiguousSameBar rows are excluded")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1") -Description "reusable MCP parity smoke calls read-only acceptance surface marker $marker"
+    }
+    foreach ($marker in @("getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates")) {
+        Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1") -Description "MySQL-backed governance parity smoke is executable on server-local SSH marker $marker"
     }
     Assert-RgMatch -Pattern "requires 35 representative tools|35 required|required=35" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "MCP parity required-tool count is documented as 35"
     Assert-RgNoMatch -Pattern "26 required|requires 26|30 required|requires 30 representative tools|required=30|32 required|requires 32 representative tools|required=32" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs") -Description "stale MCP parity required-tool count"
@@ -981,7 +984,7 @@ try {
     Assert-RgMatch -Pattern "Covered through .*McpTools|MCP-first" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy HTTP parity inventory records MCP-first replacement boundary"
     Assert-RgMatch -Pattern "Do not remove AgoraMarketAPI marketplace HTTP or internal exchange-rate APIs" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy parity inventory preserves marketplace/internal API boundary"
     foreach ($pattern in @(
-        "30-tool",
+        "35-tool",
         "smoke_mcp_parity_ssh\.ps1",
         "anti-wick guardrail coverage",
         "event-risk status",
@@ -1358,7 +1361,7 @@ try {
     foreach ($pattern in @("smoke_mcp_parity_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "reusable MCP parity smoke", "signal-correctness MCP smoke", "-RequireNoReviewGaps", "RequireTrailingAcceptance", "RequireAcceptance", "DIAGNOSTIC_ONLY", "DIAGNOSTIC_ONLY OK", "must not be used as #1/#2/#3 closure evidence", "do not use this output as #1/#2/#3 closure evidence")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper keeps strict guardrail/trailing closure gate $pattern"
     }
-    foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "server-local MCP parity smoke failed", "/api/mcp")) {
+    foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates", "orderSent", "ocoModified", "writesRuntimeEvidence", "server-local MCP parity smoke failed", "/api/mcp")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_mcp_parity_ssh.ps1") -Description "server-local MCP parity SSH smoke keeps executable read-only surface marker $pattern"
     }
     foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "read-only production MCP check", "OK read-only check complete")) {

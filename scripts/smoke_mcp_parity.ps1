@@ -38,7 +38,7 @@ function Invoke-McpTool {
         [int]$TimeoutSec = 30
     )
 
-    return Invoke-McpRequest -Url $Url -TimeoutSec $TimeoutSec -Body @{
+    $response = Invoke-McpRequest -Url $Url -TimeoutSec $TimeoutSec -Body @{
         jsonrpc = "2.0"
         id = "mcp-parity-$Name"
         method = "tools/call"
@@ -47,6 +47,24 @@ function Invoke-McpTool {
             arguments = $Arguments
         }
     }
+
+    $errorProperty = $response.PSObject.Properties["error"]
+    $resultProperty = $response.PSObject.Properties["result"]
+    if ($errorProperty -and $errorProperty.Value) {
+        $errorJson = $errorProperty.Value | ConvertTo-Json -Depth 10 -Compress
+        throw "MCP parity smoke: $Name returned JSON-RPC error: $errorJson"
+    }
+    if (-not $resultProperty -or -not $resultProperty.Value) {
+        $responseJson = $response | ConvertTo-Json -Depth 10 -Compress
+        throw "MCP parity smoke: $Name returned no result: $responseJson"
+    }
+    $isErrorProperty = $resultProperty.Value.PSObject.Properties["isError"]
+    if ($isErrorProperty -and $isErrorProperty.Value) {
+        $resultJson = $resultProperty.Value | ConvertTo-Json -Depth 10 -Compress
+        throw "MCP parity smoke: $Name returned isError=true: $resultJson"
+    }
+
+    return $response
 }
 
 function Assert-McpResultTextContains {
@@ -146,6 +164,27 @@ $antiWickCoverage = Invoke-McpTool -Url $mcpUrl -Name "analyzeSpotAntiWickPolicy
 Assert-McpResultTextContains -Response $antiWickCoverage -Pattern "boundary: READ_ONLY" -Description "Anti-wick policy coverage stays read-only"
 Assert-McpResultTextContains -Response $antiWickCoverage -Pattern "policy: live BTC spot LONG entries default to ULTRA_LOW_DISASTER SL" -Description "Anti-wick policy coverage keeps disaster-SL policy marker"
 Assert-McpResultTextContains -Response $antiWickCoverage -Pattern "Summary:" -Description "Anti-wick policy coverage returns an operator summary"
+
+$entryDedupGovernance = Invoke-McpTool -Url $mcpUrl -Name "getEntryDedupGovernanceDashboard" -Arguments @{
+    symbol = "BTCUSDT"
+    hours = 24
+} -TimeoutSec 120
+Assert-McpResultTextContains -Response $entryDedupGovernance -Pattern "getEntryDedupGovernanceDashboard" -Description "EntryDedup governance dashboard returns its tool marker"
+Assert-McpResultTextContains -Response $entryDedupGovernance -Pattern "READ_ONLY" -Description "EntryDedup governance dashboard stays read-only"
+Assert-McpResultTextContains -Response $entryDedupGovernance -Pattern "orderSent" -Description "EntryDedup governance dashboard reports no order send"
+Assert-McpResultTextContains -Response $entryDedupGovernance -Pattern "ocoModified" -Description "EntryDedup governance dashboard reports no OCO modification"
+Assert-McpResultTextContains -Response $entryDedupGovernance -Pattern "writesRuntimeEvidence" -Description "EntryDedup governance dashboard reports no runtime evidence writes"
+
+$missedOpportunityRegression = Invoke-McpTool -Url $mcpUrl -Name "getMissedOpportunityRegressionReport" -Arguments @{
+    symbol = "BTCUSDT"
+    hours = 24
+} -TimeoutSec 120
+Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "getMissedOpportunityRegressionReport" -Description "Missed-opportunity regression report returns its tool marker"
+Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "READ_ONLY" -Description "Missed-opportunity regression report stays read-only"
+Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "overallStatus" -Description "Missed-opportunity regression report returns an overall status"
+Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "orderSent" -Description "Missed-opportunity regression report reports no order send"
+Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "ocoModified" -Description "Missed-opportunity regression report reports no OCO modification"
+Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "writesRuntimeEvidence" -Description "Missed-opportunity regression report reports no runtime evidence writes"
 
 $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -Name "analyzeTrailingStopPnlReplay" -Arguments @{
     symbol = "BTCUSDT"

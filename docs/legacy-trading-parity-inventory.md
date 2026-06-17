@@ -89,11 +89,14 @@ from strategy, backtest, grid, market data, diagnostic, ML, reporting, position,
 guardian, execution-event, score-buy, signal-correctness, entry-dedup
 governance, governance drift/relaxation/tightening, missed-opportunity
 regression, runtime-evidence, funding, Earn, ensemble, AI router, and AI task
-orchestration surfaces. It also calls the read-only DataFreshnessGuard RCA,
-event-risk status, anti-wick policy coverage, and trailing-stop PnL replay
-surfaces with small BTCUSDT samples and requires boundary plus acceptance
-markers, so parity covers both tool registration and executable diagnostic
-behavior.
+orchestration surfaces. It also calls the H2-compatible read-only
+DataFreshnessGuard RCA, event-risk status, anti-wick policy coverage,
+EntryDedup governance, missed-opportunity regression, and trailing-stop PnL
+replay surfaces with small BTCUSDT samples and requires boundary plus
+acceptance markers. The server-local SSH parity smoke additionally calls the
+MySQL-backed governance drift/relaxation/tightening tools, so local parity
+covers registration plus safe executable diagnostics while deployed acceptance
+covers the production-only governance SQL paths.
 
 The current local parity batch registers 305 MCP tools in the local-smoke Spring
 context. The reusable parity list requires 35 representative tools and is kept
@@ -160,11 +163,12 @@ schedulers and the internal exchange-rate API available.
    `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`. Re-run shared-mode
    schema compare before any future baseline regeneration or `V2__...`
    migration review.
-4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion`, the 30-tool
-   parity list in `scripts/smoke_mcp_parity.ps1` or
+4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion`, the 35-tool
+   representative parity list in `scripts/smoke_mcp_parity.ps1` or
    `scripts/smoke_mcp_parity_ssh.ps1`, and the current read-only acceptance
    surfaces: DataFreshnessGuard RCA, anti-wick guardrail coverage, event-risk
-   status, signal-correctness diagnostics, and trailing-stop replay. For
+   status, signal-correctness diagnostics, governance drift checks, and
+   trailing-stop replay. For
    issue-closure evidence, use
    `scripts/verify_post_deploy_issue_acceptance_ssh.ps1 -RequireTrailingAcceptance`
    after an explicitly authorized deploy; verify public dedicated `/api/mcp`

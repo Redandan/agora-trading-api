@@ -180,6 +180,54 @@ require("anti-wick read-only boundary", r"boundary:\s*READ_ONLY", anti_wick)
 require("anti-wick disaster-SL policy", r"policy: live BTC spot LONG entries default to ULTRA_LOW_DISASTER SL", anti_wick)
 require("anti-wick summary", r"Summary:", anti_wick)
 
+entry_dedup = call_tool("getEntryDedupGovernanceDashboard", {
+    "symbol": symbol,
+    "hours": 24,
+})
+require("EntryDedup governance tool marker", r"getEntryDedupGovernanceDashboard", entry_dedup)
+require("EntryDedup governance read-only boundary", r"READ_ONLY", entry_dedup)
+require("EntryDedup governance no order send marker", r"orderSent", entry_dedup)
+require("EntryDedup governance no OCO modification marker", r"ocoModified", entry_dedup)
+require("EntryDedup governance no runtime evidence writes marker", r"writesRuntimeEvidence", entry_dedup)
+
+missed_opportunity = call_tool("getMissedOpportunityRegressionReport", {
+    "symbol": symbol,
+    "hours": 24,
+})
+require("missed-opportunity regression tool marker", r"getMissedOpportunityRegressionReport", missed_opportunity)
+require("missed-opportunity regression read-only boundary", r"READ_ONLY", missed_opportunity)
+require("missed-opportunity regression overall status", r"overallStatus", missed_opportunity)
+require("missed-opportunity regression no order send marker", r"orderSent", missed_opportunity)
+require("missed-opportunity regression no OCO modification marker", r"ocoModified", missed_opportunity)
+require("missed-opportunity regression no runtime evidence writes marker", r"writesRuntimeEvidence", missed_opportunity)
+
+governance_drift = call_tool("getGovernanceDriftDashboard", {
+    "symbol": symbol,
+    "days": 1,
+    "labelHorizon": "1h",
+})
+require("governance drift heading", r"Governance Drift Dashboard", governance_drift)
+require("governance drift read-only boundary", r"boundary:\s*READ_ONLY", governance_drift)
+require("governance drift mode", r"governanceMode=", governance_drift)
+
+governance_relaxation = call_tool("findGovernanceRelaxationCandidates", {
+    "symbol": symbol,
+    "days": 1,
+    "labelHorizon": "1h",
+})
+require("governance relaxation heading", r"Governance Relaxation Candidates", governance_relaxation)
+require("governance relaxation read-only boundary", r"boundary:\s*READ_ONLY", governance_relaxation)
+require("governance relaxation criteria", r"criteria:", governance_relaxation)
+
+governance_tightening = call_tool("findGovernanceTighteningCandidates", {
+    "symbol": symbol,
+    "days": 1,
+    "labelHorizon": "1h",
+})
+require("governance tightening heading", r"Governance Tightening Candidates", governance_tightening)
+require("governance tightening read-only boundary", r"boundary:\s*READ_ONLY", governance_tightening)
+require("governance tightening criteria", r"criteria:", governance_tightening)
+
 trailing = call_tool("analyzeTrailingStopPnlReplay", {
     "symbol": symbol,
     "intervalCode": interval_code,

@@ -121,7 +121,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.
   `verify_local.ps1` parses and compares all three required-tool lists so local
   smoke, reusable parity smoke, and server-local SSH parity smoke cannot drift
-  silently.
+  silently. H2 local smoke executes only H2-compatible read-only parity calls;
+  MySQL-backed governance drift/relaxation/tightening diagnostics are executed
+  by the server-local SSH parity smoke.
 - Local validation passed on 2026-06-15 after the dedicated-host blue-green
   port-swap fix with:
   - `.\scripts\verify_local.ps1`

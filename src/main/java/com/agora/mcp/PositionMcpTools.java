@@ -623,7 +623,8 @@ public class PositionMcpTools {
         return sb.toString();
     }
 
-    @McpCategory({Category.ANALYTICS})
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
     @Transactional(readOnly = true)
     @Tool(description = "#439 read-only trailing-stop 30d PnL replay over normalized backtest trades. " +
             "Compares original bt_backtest_trade.net_pnl with a theoretical +0.5 ATR breakeven / +1.0 ATR trailing overlay. " +

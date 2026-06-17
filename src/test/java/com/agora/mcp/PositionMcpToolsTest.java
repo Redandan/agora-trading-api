@@ -1,6 +1,10 @@
 package com.agora.mcp;
 
 import com.agora.infra.notification.NotificationPort;
+import com.agora.mcp.auth.Category;
+import com.agora.mcp.auth.McpAuth;
+import com.agora.mcp.auth.McpAuthLevel;
+import com.agora.mcp.auth.McpCategory;
 import com.agora.model.BtBacktestResult;
 import com.agora.model.BtBacktestTrade;
 import com.agora.model.BtStrategy;
@@ -19,7 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +40,25 @@ class PositionMcpToolsTest {
     private final BtStrategyRepository strategyRepository = mock(BtStrategyRepository.class);
     private final MdKlineRepository mdKlineRepository = mock(MdKlineRepository.class);
     private final TrailingStopReplayService trailingStopReplayService = mock(TrailingStopReplayService.class);
+
+    @Test
+    void analyzeTrailingStopPnlReplayKeepsOpsAuthAndReadOnlyAcceptanceCategories() throws Exception {
+        Method method = PositionMcpTools.class.getDeclaredMethod(
+                "analyzeTrailingStopPnlReplay",
+                String.class,
+                String.class,
+                Integer.class,
+                Integer.class);
+
+        McpAuth auth = method.getAnnotation(McpAuth.class);
+        McpCategory category = method.getAnnotation(McpCategory.class);
+
+        assertThat(auth).isNotNull();
+        assertThat(auth.value()).isEqualTo(McpAuthLevel.OPS);
+        assertThat(category).isNotNull();
+        assertThat(Arrays.asList(category.value()))
+                .containsExactlyInAnyOrder(Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS);
+    }
 
     @Test
     void analyzeTrailingStopPnlReplayAlwaysDocumentsAmbiguousRowExclusion() {

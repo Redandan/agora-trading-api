@@ -1377,7 +1377,12 @@ try {
     foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1")) {
         Assert-RgMatch -Pattern "http://127\.0\.0\.1:\{os\.environ\['PORT'\]\}/api/mcp" -Paths @($script) -Description "$script uses server-local /api/mcp"
         Assert-RgMatch -Pattern "TRADING_MCP_KEY" -Paths @($script) -Description "$script reads the server-local MCP key"
+        Assert-RgMatch -Pattern "Assert-RemotePathSafe" -Paths @($script) -Description "$script validates remote shell embedded paths"
+        Assert-RgMatch -Pattern "Assert-McpSmokeTokenSafe" -Paths @($script) -Description "$script validates remote shell embedded smoke tokens"
         Assert-RgNoMatch -Pattern "https://agoratradingapi\.purrtechllc\.com/api/mcp|https://agoramarketapi\.purrtechllc\.com/api/trading/mcp|/api/trading/mcp" -Paths @($script) -Description "$script must not call public or legacy Trading MCP routes"
+    }
+    foreach ($pattern in @("Assert-RemotePathSafe", "Assert-McpSmokeTokenSafe")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper validates remote shell embedded inputs $pattern"
     }
     foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"

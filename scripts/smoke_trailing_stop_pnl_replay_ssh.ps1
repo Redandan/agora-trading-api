@@ -37,6 +37,25 @@ if ($Limit -lt 1 -or $Limit -gt 500) {
     throw "Limit must be between 1 and 500."
 }
 
+function Assert-RemotePathSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+function Assert-McpSmokeTokenSafe {
+    param([string]$Name, [string]$Value, [int]$MaxLength)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt $MaxLength -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9_-]*$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
+Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
+Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
+Assert-McpSmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 21
+
 $requireAcceptanceText = if ($RequireAcceptance.IsPresent) { "true" } else { "false" }
 $remoteScript = @"
 set -euo pipefail

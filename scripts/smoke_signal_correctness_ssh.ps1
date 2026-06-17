@@ -32,6 +32,24 @@ if ($ExecutionDays -lt 1 -or $BlockedDays -lt 1 -or $AccuracyDays -lt 1) {
     throw "ExecutionDays, BlockedDays, and AccuracyDays must all be positive."
 }
 
+function Assert-RemotePathSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+function Assert-McpSmokeTokenSafe {
+    param([string]$Name, [string]$Value, [int]$MaxLength)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt $MaxLength -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9_-]*$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
+Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
+Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
+
 $remoteScript = @"
 set -euo pipefail
 cd '$AppDir'

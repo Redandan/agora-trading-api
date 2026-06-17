@@ -570,11 +570,11 @@ function Assert-McpParityToolCoverage {
     foreach ($marker in @("tools/list", "getMcpRegistryVersion", "api/mcp")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1", "scripts/smoke_local_health.ps1") -Description "MCP parity smoke marker $marker"
     }
-    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "ambiguousSameBar rows are excluded")) {
+    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "ambiguousSameBar rows are excluded")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1") -Description "reusable MCP parity smoke calls read-only acceptance surface marker $marker"
     }
-    Assert-RgMatch -Pattern "requires 30 representative tools|30 required" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md") -Description "MCP parity required-tool count is documented as 30"
-    Assert-RgNoMatch -Pattern "26 required|requires 26" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs") -Description "stale MCP parity required-tool count"
+    Assert-RgMatch -Pattern "requires 32 representative tools|32 required|required=32" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "MCP parity required-tool count is documented as 32"
+    Assert-RgNoMatch -Pattern "26 required|requires 26|30 required|requires 30 representative tools|required=30" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs") -Description "stale MCP parity required-tool count"
     foreach ($marker in @("smoke_mcp_parity.ps1", "-BaseUrl", "-McpKey", "Reusable MCP parity smoke failed")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_local_health.ps1") -Description "local smoke invokes reusable MCP parity smoke marker $marker"
     }
@@ -1361,7 +1361,7 @@ try {
     foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "server-local MCP parity smoke failed", "/api/mcp")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_mcp_parity_ssh.ps1") -Description "server-local MCP parity SSH smoke keeps executable read-only surface marker $pattern"
     }
-    foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getMissedOpportunityRegressionReport", "read-only production MCP check", "OK read-only check complete")) {
+    foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "read-only production MCP check", "OK read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal correctness SSH smoke keeps executable read-only MCP marker $pattern"
     }
     foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1")) {

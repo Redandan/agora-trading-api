@@ -77,6 +77,8 @@ required_tools = [
     "analyzeBlockedSignalOutcomes",
     "getSignalCorrectnessDashboard",
     "getSignalAccuracyReport",
+    "getEntryDedupGovernanceDashboard",
+    "getMissedOpportunityRegressionReport",
     "listExecutionEvents",
     "getGuardianSnapshot",
     "listFundingArb",

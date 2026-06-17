@@ -51,9 +51,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   through `b11e732` passed with `.\scripts\verify_local.ps1`: 51 tests, 0
   failures, 305 MCP tools registered during the local-smoke Spring context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
-  OK. The latest local smoke evidence for this batch also passed
+  OK. After the signal-correctness parity-list expansion, the latest local
+  smoke evidence for this batch also passed
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
-  `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=30`
+  `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=32`
   and local `/api/actuator/health` OK. Treat this as local readiness only;
   #1/#2/#3 closure still requires deployed server-local read-only acceptance
   after an explicitly authorized deploy.

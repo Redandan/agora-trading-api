@@ -367,9 +367,10 @@ Trading deployment prep:
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
   OK, and the stale Flyway wording guard now rejects pre-baseline, legacy V10x
   migration, and generic follow-up migration wording in docs/source comments.
-  Local `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` also
-  passed at `b11e732` with MCP parity
-  `toolCount=305 required=30` on local `/api/mcp` and local health OK.
+  After the signal-correctness parity-list expansion, local
+  `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` also passed
+  with MCP parity `toolCount=305 required=32` on local `/api/mcp` and local
+  health OK.
   The reusable MCP parity smoke has matching local and SSH required-tool lists:
   local smoke invokes `scripts/smoke_mcp_parity.ps1`, the post-deploy issue
   wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before the guardrail,

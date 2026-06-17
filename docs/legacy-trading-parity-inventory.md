@@ -86,16 +86,16 @@ seller, wallet, user connector, support, risk-ops, or knowledge surfaces:
 Coverage smoke is provided by `scripts/smoke_mcp_parity.ps1`. It checks the
 standalone MCP endpoint with `tools/list` and requires representative tools
 from strategy, backtest, grid, market data, diagnostic, ML, reporting, position,
-guardian, execution-event, score-buy, signal-correctness, runtime-evidence,
-funding, Earn, ensemble, AI router, and AI task orchestration surfaces. It also
-calls the read-only
-DataFreshnessGuard RCA, event-risk status, anti-wick policy coverage, and
-trailing-stop PnL replay surfaces with small BTCUSDT samples and requires
+guardian, execution-event, score-buy, signal-correctness, entry-dedup
+governance, missed-opportunity regression, runtime-evidence, funding, Earn,
+ensemble, AI router, and AI task orchestration surfaces. It also calls the
+read-only DataFreshnessGuard RCA, event-risk status, anti-wick policy coverage,
+and trailing-stop PnL replay surfaces with small BTCUSDT samples and requires
 boundary plus acceptance markers, so parity covers both tool registration and
 executable diagnostic behavior.
 
 The current local parity batch registers 305 MCP tools in the local-smoke Spring
-context. The reusable parity list requires 30 representative tools and is kept
+context. The reusable parity list requires 32 representative tools and is kept
 in sync across local smoke and server-local SSH smoke by
 `scripts/verify_local.ps1`, which parses `scripts/smoke_mcp_parity.ps1`,
 `scripts/smoke_local_health.ps1`, and `scripts/smoke_mcp_parity_ssh.ps1`.

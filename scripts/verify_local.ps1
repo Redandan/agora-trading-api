@@ -570,7 +570,7 @@ function Assert-McpParityToolCoverage {
     foreach ($marker in @("tools/list", "getMcpRegistryVersion", "api/mcp")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1", "scripts/smoke_local_health.ps1") -Description "MCP parity smoke marker $marker"
     }
-    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "orderSent", "ocoModified", "writesRuntimeEvidence", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "ambiguousSameBar rows are excluded")) {
+    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "orderSent", "ocoModified", "writesRuntimeEvidence", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "acceptanceTarget: total trailing PnL improvement >= 5%", "ambiguousSameBar rows are excluded")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1") -Description "reusable MCP parity smoke calls read-only acceptance surface marker $marker"
     }
     foreach ($marker in @("getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates")) {
@@ -1375,7 +1375,7 @@ try {
     foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"
     }
-    foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS")) {
+    foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS", "acceptanceTarget: total trailing PnL improvement >= 5%")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
     }
     foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK")) {

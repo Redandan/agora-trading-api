@@ -584,6 +584,7 @@ try {
     $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -ToolName "analyzeTrailingStopPnlReplay" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1h"; days = 30; limit = 10 }
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "boundary: READ_ONLY" -Description "Trailing-stop PnL replay stays read-only in local smoke"
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS" -Description "Trailing-stop PnL replay returns an explicit sample status"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceTarget: total trailing PnL improvement >= 5%" -Description "Trailing-stop PnL replay keeps the issue #3 acceptance target"
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals" -Description "Trailing-stop PnL replay documents ambiguous same-bar exclusion"
 
     Write-Host "[smoke] OK $healthUrl"

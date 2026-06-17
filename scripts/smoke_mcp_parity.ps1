@@ -194,6 +194,7 @@ $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -Name "analyzeTrailingStopPnlRe
 } -TimeoutSec 120
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "boundary: READ_ONLY" -Description "Trailing-stop PnL replay stays read-only"
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS" -Description "Trailing-stop PnL replay returns an explicit sample status"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceTarget: total trailing PnL improvement >= 5%" -Description "Trailing-stop PnL replay keeps the issue #3 acceptance target"
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals" -Description "Trailing-stop PnL replay keeps ambiguous same-bar exclusion"
 
 Write-Host "[mcp-parity] OK $mcpUrl toolCount=$($toolNames.Count) required=$($requiredTools.Count)"

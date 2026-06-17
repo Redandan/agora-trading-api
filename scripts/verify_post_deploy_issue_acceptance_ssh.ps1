@@ -52,6 +52,20 @@ Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 Assert-McpSmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 21
 
+if ($TrailingDays -lt 1 -or $TrailingDays -gt 90) {
+    throw "TrailingDays must be between 1 and 90."
+}
+
+if ($TrailingLimit -lt 1 -or $TrailingLimit -gt 500) {
+    throw "TrailingLimit must be between 1 and 500."
+}
+
+if ($SignalExecutionDays -lt 1 -or $SignalExecutionDays -gt 90 `
+        -or $SignalBlockedDays -lt 1 -or $SignalBlockedDays -gt 90 `
+        -or $SignalAccuracyDays -lt 1 -or $SignalAccuracyDays -gt 90) {
+    throw "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90."
+}
+
 $splitAcceptance = Join-Path $PSScriptRoot "verify_split_acceptance_ssh.ps1"
 $mcpParitySmoke = Join-Path $PSScriptRoot "smoke_mcp_parity_ssh.ps1"
 $guardrailSmoke = Join-Path $PSScriptRoot "smoke_guardrail_acceptance_ssh.ps1"

@@ -28,8 +28,10 @@ if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
     throw "ssh is not available on PATH."
 }
 
-if ($ExecutionDays -lt 1 -or $BlockedDays -lt 1 -or $AccuracyDays -lt 1) {
-    throw "ExecutionDays, BlockedDays, and AccuracyDays must all be positive."
+if ($ExecutionDays -lt 1 -or $ExecutionDays -gt 90 `
+        -or $BlockedDays -lt 1 -or $BlockedDays -gt 90 `
+        -or $AccuracyDays -lt 1 -or $AccuracyDays -gt 90) {
+    throw "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90."
 }
 
 function Assert-RemotePathSafe {

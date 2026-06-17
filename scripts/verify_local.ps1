@@ -1384,6 +1384,10 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-McpSmokeTokenSafe")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper validates remote shell embedded inputs $pattern"
     }
+    foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
+    }
+    Assert-RgMatch -Pattern "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90" -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal-correctness SSH smoke bounds read-only production query window"
     foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"
     }

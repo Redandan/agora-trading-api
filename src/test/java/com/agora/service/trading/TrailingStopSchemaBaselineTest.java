@@ -6,11 +6,36 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TrailingStopSchemaBaselineTest {
+
+    @Test
+    void sharedDbBaselineKeepsSingleReviewedV1Migration() throws Exception {
+        URI migrationUri = getClass().getClassLoader()
+                .getResource("db/migration")
+                .toURI();
+        List<String> migrations;
+        try (var stream = Files.list(Path.of(migrationUri))) {
+            migrations = stream
+                    .map(path -> path.getFileName().toString())
+                    .sorted()
+                    .toList();
+        }
+
+        assertThat(migrations).containsExactly("V1__baseline.sql");
+
+        String baseline = readBaseline();
+        assertThat(baseline).doesNotContain("DROP TABLE");
+        assertThat(baseline).doesNotContain("CREATE TABLE `flyway_schema_history`");
+        assertThat(baseline).doesNotContain("CREATE TABLE `trading_flyway_schema_history`");
+    }
 
     @Test
     void trailingStopColumnsStayMappedInEntityAndFlywayBaseline() throws Exception {

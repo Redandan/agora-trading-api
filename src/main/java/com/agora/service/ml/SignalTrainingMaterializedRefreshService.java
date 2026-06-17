@@ -84,9 +84,8 @@ public class SignalTrainingMaterializedRefreshService {
                     TABLE);
             refresh();
         } catch (Exception e) {
-            // Common cause: V109 migration not yet applied (fresh dev DB).
-            // Don't fail startup — table will be empty and MCP eval tools
-            // surface the underlying error.
+            // Common cause: local/dev schema not present yet. Do not fail startup;
+            // MCP eval tools will surface the underlying schema error.
             log.warn("[MlMatRefresh] startup check failed (non-fatal): {}", e.getMessage());
         }
     }

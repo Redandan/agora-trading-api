@@ -868,6 +868,17 @@ try {
     Assert-RgMatch -Pattern "/api/mcp" -Paths @("docs/legacy-trading-parity-inventory.md", "README.md", "scripts/smoke_mcp_parity.ps1") -Description "legacy parity docs and smoke use standalone MCP path"
     Assert-RgMatch -Pattern "Covered through .*McpTools|MCP-first" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy HTTP parity inventory records MCP-first replacement boundary"
     Assert-RgMatch -Pattern "Do not remove AgoraMarketAPI marketplace HTTP or internal exchange-rate APIs" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy parity inventory preserves marketplace/internal API boundary"
+    foreach ($pattern in @(
+        "30-tool",
+        "smoke_mcp_parity_ssh\.ps1",
+        "anti-wick guardrail coverage",
+        "event-risk status",
+        "signal-correctness diagnostics",
+        "trailing-stop replay",
+        "verify_post_deploy_issue_acceptance_ssh\.ps1 -RequireTrailingAcceptance"
+    )) {
+        Assert-RgMatch -Pattern $pattern -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy parity inventory keeps current server-local issue acceptance handoff marker $pattern"
+    }
     Assert-McpParityToolCoverage
     Assert-RgMatch -Pattern "Optional runtime safety toggles" -Paths @(".env.trading.secrets.example") -Description "server env template documents optional safety toggles"
     Assert-RgMatch -Pattern "optional safety key" -Paths @("scripts/validate_env_template.ps1") -Description "env template validator checks optional safety toggles"

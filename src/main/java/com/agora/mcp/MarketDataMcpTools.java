@@ -240,6 +240,7 @@ public class MarketDataMcpTools {
 
     // flagDataError + autoDetectDataErrors → moved to IndicatorMcpTools (#248)
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
     @Tool(description = "#217 FILTER_BLOCK 事後追蹤：檢視被 RegimeFilter/MlGate 攔截的 BUY 信號，" +
             "事後市場到底漲了還是跌了（回測擋對了嗎？）。" +

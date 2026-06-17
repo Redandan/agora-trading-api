@@ -467,7 +467,20 @@ function Assert-McpParityToolCoverage {
     $mcpSource = Get-ChildItem -LiteralPath "src/main/java/com/agora/mcp" -Filter "*.java" -Recurse
     foreach ($tool in $requiredTools) {
         $foundInSource = $false
+        $annotationBlock = ""
         foreach ($file in $mcpSource) {
+            $lines = Get-Content -LiteralPath $file.FullName
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+                if ($lines[$i] -match "\b(public|private|protected)\s+\S+\s+$([regex]::Escape($tool))\s*\(") {
+                    $start = [Math]::Max(0, $i - 10)
+                    $annotationBlock = $lines[$start..$i] -join "`n"
+                    $foundInSource = $true
+                    break
+                }
+            }
+            if ($foundInSource) {
+                break
+            }
             if (Select-String -LiteralPath $file.FullName -Pattern "\b$tool\s*\(" -Quiet) {
                 $foundInSource = $true
                 break
@@ -475,6 +488,12 @@ function Assert-McpParityToolCoverage {
         }
         if (-not $foundInSource) {
             Write-Error "MCP parity smoke requires tool '$tool' but no matching MCP Java method exists"
+        }
+        if ($annotationBlock -and $annotationBlock -notmatch "@McpAuth") {
+            Write-Error "MCP parity smoke requires tool '$tool' but its Java method is missing explicit @McpAuth"
+        }
+        if ($annotationBlock -and $annotationBlock -notmatch "@McpCategory") {
+            Write-Error "MCP parity smoke requires tool '$tool' but its Java method is missing explicit @McpCategory"
         }
 
         if (-not (Select-String -LiteralPath "scripts/smoke_local_health.ps1" -Pattern "`"$tool`"" -Quiet)) {

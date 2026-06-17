@@ -120,6 +120,7 @@ public class StrategyManagementMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING})
     @Tool(description = "列出交易策略，顯示 id、名稱、類型、啟用狀態、監控幣種、最新回測品質。" +
             "param: enabledOnly=true 只顯示啟用中的策略（預設 false 顯示全部）")

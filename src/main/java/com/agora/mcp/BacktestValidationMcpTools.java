@@ -52,6 +52,7 @@ public class BacktestValidationMcpTools {
     private final com.agora.repository.trading.BtDecisionAuditRepository decisionAuditRepo;
     private final com.agora.repository.trading.MdKlineRepository klineRepo;
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS})
     @Tool(description = "對指定策略執行回測（即使策略停用也可執行）。" +
             "params: strategyId=策略ID, symbol=交易對(BTCUSDT/ETHUSDT), " +

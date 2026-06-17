@@ -1388,6 +1388,9 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-PublicHttpsUrlSafe", "agoratradingapi\.purrtechllc\.com", "agoramarketapi\.purrtechllc\.com")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_server_ssh.ps1") -Description "server SSH verifier validates remote shell embedded paths and public URLs $pattern"
     }
+    foreach ($pattern in @("Assert-RemotePathSafe", "Assert-RemoteRelativePathSafe", "Assert-GitBranchSafe", "PollSeconds must be at most 60", "TimeoutSeconds must be between 60 and 3600")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/deploy_ssh.ps1") -Description "deploy SSH wrapper validates remote shell embedded inputs and polling bounds $pattern"
+    }
     foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
     }

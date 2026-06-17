@@ -30,9 +30,37 @@ if ($PollSeconds -lt 2) {
     throw "PollSeconds must be at least 2."
 }
 
-if ($TimeoutSeconds -lt 60) {
-    throw "TimeoutSeconds must be at least 60."
+if ($PollSeconds -gt 60) {
+    throw "PollSeconds must be at most 60."
 }
+
+if ($TimeoutSeconds -lt 60 -or $TimeoutSeconds -gt 3600) {
+    throw "TimeoutSeconds must be between 60 and 3600."
+}
+
+function Assert-RemotePathSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+function Assert-RemoteRelativePathSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^[A-Za-z0-9._/-]+$" -or $Value.StartsWith("/") -or $Value.Contains("..")) {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+function Assert-GitBranchSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 128 -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9._/-]*$" -or $Value.Contains("..") -or $Value.EndsWith("/") -or $Value.EndsWith(".")) {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
+Assert-GitBranchSafe -Name "Branch" -Value $Branch
 
 function Invoke-RemoteScript {
     param([string]$Script)
@@ -79,6 +107,9 @@ foreach ($line in $startOutput) {
 if ([string]::IsNullOrWhiteSpace($deployLog) -or [string]::IsNullOrWhiteSpace($deployExit)) {
     throw "remote deploy did not return log/exit paths"
 }
+
+Assert-RemoteRelativePathSafe -Name "deployLog" -Value $deployLog
+Assert-RemoteRelativePathSafe -Name "deployExit" -Value $deployExit
 
 $deadline = [DateTimeOffset]::UtcNow.AddSeconds($TimeoutSeconds)
 $lastLineCount = 0

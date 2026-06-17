@@ -68,6 +68,18 @@ if [ -s "$missing_tables" ]; then
   fail "database is missing trading entity tables; inspect $missing_tables before baseline generation"
 fi
 
+dump_tables=()
+while IFS= read -r table || [ -n "$table" ]; do
+  table="$(printf '%s' "$table" | tr -d '[:space:]')"
+  [ -n "$table" ] || continue
+  case "$table" in
+    *[!A-Za-z0-9_]*)
+      fail "unsafe source table name before baseline dump: $table"
+      ;;
+  esac
+  dump_tables+=("$table")
+done < "$source_tables"
+
 SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"
 SPRING_DATASOURCE_USERNAME="$(read_env_key SPRING_DATASOURCE_USERNAME)"
 SPRING_DATASOURCE_PASSWORD="$(read_env_key SPRING_DATASOURCE_PASSWORD)"
@@ -87,7 +99,7 @@ else
   port="3306"
 fi
 
-table_count="$(wc -l < "$source_tables" | tr -d '[:space:]')"
+table_count="${#dump_tables[@]}"
 [ "$table_count" != "0" ] || fail "no source tables to dump"
 
 mkdir -p "$MIGRATION_DIR"
@@ -111,7 +123,7 @@ MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysqldump \
   --skip-add-drop-table \
   --set-gtid-purged=OFF \
   "$database" \
-  $(tr '\n' ' ' < "$source_tables") >> "$tmp_file"
+  "${dump_tables[@]}" >> "$tmp_file"
 
 mv "$tmp_file" "$BASELINE_FILE"
 ok "wrote baseline DDL for $table_count trading entity tables -> $BASELINE_FILE"

@@ -690,6 +690,9 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - bootstrap and nginx path installation fail fast on their repo/nginx inspection and file-update tools, including `grep`, `ls`, `cp`, `mv`, `nginx`, and `rm` where used.
 - schema baseline database comparison fails fast on its inventory and comparison tools, including `find`, `xargs`, `perl`, `mysql`, `comm`, `sort`, `wc`, and `tr`.
 - schema baseline database comparison rejects datasource targets outside the expected shared database before querying MySQL.
+- schema baseline source inventory and server comparison reject unsafe table
+  names outside `[A-Za-z0-9_]` before baseline generation can pass them to
+  `mysqldump`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
 - server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
 - deployed `app.commit`, `app.pid`, and `app.port` metadata must exist by default; set `REQUIRE_DEPLOY_METADATA=0` only for explicit non-deploy diagnostics.

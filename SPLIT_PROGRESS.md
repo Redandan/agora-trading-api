@@ -55,7 +55,7 @@
   - `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` starts the service under `local-smoke`, proves `/api/actuator/health`, calls `/api/mcp` with `getMcpRegistryVersion`, and checks logs for disabled external side effects.
   - Local smoke also calls representative MCP tools and verifies disabled guard responses for live sentiment reads, external health probes, and external backfill/import reads.
   - `scripts/verify_local.ps1` runs compile/tests, split boundary scanners, env-template checks, shell syntax checks, schema source inventory, and documentation drift guards.
-  - `scripts/schema_baseline_inventory.ps1` writes `target/schema-baseline/entity-tables.txt`, `implicit-entities.txt`, and `forbidden-marketplace-tables.txt`; the latest local guard run found no implicit entity tables and no obvious marketplace-owned table mappings.
+  - `scripts/schema_baseline_inventory.ps1` writes `target/schema-baseline/entity-tables.txt`, `implicit-entities.txt`, `forbidden-marketplace-tables.txt`, and `unsafe-table-names.txt`; the latest local guard run found no implicit entity tables, no obvious marketplace-owned table mappings, and no unsafe table names.
   - Runtime side effects that could surprise a split deployment now default off in code and/or the tracked env template, including scheduled market-data writes, startup backfills, attribution startup work, Telegram digests/alerts, market-flip detector/analyzer escalation, Polymarket/WAI, market WebSockets, K-line divergence Telegram alerting, OCO/grid/Earn/trailing-stop automation, ScoreBuy execution/notification paths, short-squeeze/taker-buy alerting, ShortAiFilter external AI/MCP shadow checks, ML shadow inference logging, ML materialized startup refresh, ML protection/autoretrain/digest automation, Gemini advisor, Tiny Live auto-execution, guardian live actions, runtime evidence, and discovery AI suggestions.
   - `scripts/smoke_local_health.ps1` explicitly clears high-risk host env values and passes matching boot args so local smoke cannot inherit accidental trading/deletion/AI automation from the developer or CI environment.
   - `scripts/verify_local.ps1` dynamically scans every `ApplicationRunner`/`CommandLineRunner` and requires async, explicit opt-in startup behavior.
@@ -82,6 +82,8 @@
 - Direct schema-baseline DB compare now rejects missing or empty datasource env keys before querying MySQL.
 - Direct schema-baseline DB compare now rejects datasource targets outside the expected shared trading database before querying MySQL.
 - Server schema-baseline DB compare now classifies obvious marketplace-owned database tables separately and allows them in `SCHEMA_COMPARE_MODE=shared`.
+- Server schema-baseline source inventory now rejects unsafe table names before
+  baseline generation can pass them to `mysqldump`.
 - Server schema-baseline DB compare now classifies known system tables such as `flyway_schema_history` and `trading_flyway_schema_history` separately; in shared mode, extra database tables are reported for visibility and do not block acceptance.
 - Server schema-baseline source and database marketplace-table checks now share one shell pattern to avoid future drift.
 - Server schema-baseline DB compare now fails fast when required inventory and comparison tools are unavailable.

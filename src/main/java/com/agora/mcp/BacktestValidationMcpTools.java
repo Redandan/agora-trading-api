@@ -168,6 +168,7 @@ public class BacktestValidationMcpTools {
 
     // ─── runBacktestSweep ────────────────────────────────────────────────────────
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS})
     @Tool(description = "批量掃描策略參數空間，自動跑所有組合的回測並返回績效矩陣。" +
             "不修改 DB，所有 configOverride 都是臨時的。最多 50 組合。" +
@@ -320,6 +321,7 @@ public class BacktestValidationMcpTools {
 
     // ─── analyzeAlphaByRegime ────────────────────────────────────────────────────
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS})
     @Tool(description = "分析策略在不同市場 Regime 下的 alpha 有效性。從最新回測交易中，" +
             "依 ADX + EMA 動量分類每筆交易的入場 Regime（BULLISH/BEARISH/SIDEWAYS），" +
@@ -383,6 +385,7 @@ public class BacktestValidationMcpTools {
 
     // ─── getShadowSignalStats ────────────────────────────────────────────────────
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.READ_TRADING})
     @Tool(description = "分析 notifyOnly 策略的 live shadow 信號質量。" +
             "查詢最近 N 天的 shadow BUY 信號，計算信號後 4h/12h/24h 的 BTC 價格表現，" +
@@ -487,6 +490,7 @@ public class BacktestValidationMcpTools {
 
     // ─── getBacktestHistory ──────────────────────────────────────────────────────
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.READ_TRADING})
     @Tool(description = "查詢策略過去的回測結果清單（最多 5 筆，依時間降序）。param: strategyId=策略ID")
     public String getBacktestHistory(Long strategyId) {

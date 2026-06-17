@@ -80,6 +80,7 @@ public class StrategyManagementMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
     @Tool(description = "#225 查看策略完整 config_json：顯示所有設定欄位（含 null 值），" +
             "方便在不需要 SSH 進 DB 的情況下確認策略的完整配置。" +
@@ -884,6 +885,7 @@ public class StrategyManagementMcpTools {
         return "AUTONOMOUS_READY_CANONICAL";
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.ANALYTICS})
     @Tool(description = "#238 投資組合策略同時觸發相關性分析：計算所有啟用策略之間的信號相關係數。" +
             "若兩策略高度相關（r>0.7），同時進場會形成集中風險。" +
@@ -943,6 +945,7 @@ public class StrategyManagementMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.ANALYTICS})
     @Tool(description = "#230 策略信號觸發頻率統計：顯示策略每週/月觸發幾次信號、" +
             "被 filter 擋掉多少、實際執行多少。" +
@@ -1003,6 +1006,8 @@ public class StrategyManagementMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.ANALYTICS, Category.MODEL_OPS})
     @Tool(description = "#218: 查看指定策略的 shadow ML 推理統計。" +
             "從 ml_inference_log 讀取 shadow 模式下的 p_win 分佈，判斷是否達到啟用條件（條件B: p_win≥threshold）。" +
             "主要用於追蹤 #485 SCORE_BUY_V2 的 ML 信心度積累，決定何時可從 shadow 切 active。" +
@@ -1071,6 +1076,8 @@ public class StrategyManagementMcpTools {
         return sb.toString();
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.ANALYTICS, Category.GOVERNANCE})
     @Tool(description = "計算策略 SARS（Strategy Activation Risk Score）分數，判斷能否直接切 active 或需等 shadow 觀察期。" +
             "4 維評分：①單筆最壞損失 ②年觸發頻率 ③市場濾網強度 ④持倉回復力。" +
             "0-2分→直接切 active，3-5分→等 1 次 shadow 觸發，6-8分→標準 14-30 天 shadow 期。" +

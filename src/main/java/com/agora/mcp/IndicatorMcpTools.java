@@ -109,6 +109,7 @@ public class IndicatorMcpTools {
 
     // ─── Indicator history & coverage ─────────────────────────────────────────
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MARKET_DATA})
     @Tool(description = "查詢 market_indicator_history 近 N 小時的時間序列:顯示每筆 captured_at + value + z-score。" +
             "用來快速審視指標趨勢、判斷最新值是否異常。" +
@@ -149,6 +150,7 @@ public class IndicatorMcpTools {
         return sb.toString();
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MARKET_DATA})
     @Tool(description = "查詢 market_indicator_history 中 ETF/複合指標的歷史時間序列，顯示 captured_at + value + z-score。" +
             "適用指標：etf_pressure_index / short_build_index / sqi / sqi_short_crowding / " +
@@ -468,6 +470,8 @@ public class IndicatorMcpTools {
         return sb.toString();
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.MARKET_DATA, Category.DIAGNOSTIC, Category.ANALYTICS})
     @Tool(description = "掃 market_indicator_history 近 N 天內單小時變化 > 2σ 的異常點," +
             "判斷當前 MarketFlip events 裡有幾個是真異常 vs 6-period aggregation noise。" +
             "每個 (symbol, indicator) 組合獨立計算 σ,列出該組合內的異常點(最多 10 筆)。" +

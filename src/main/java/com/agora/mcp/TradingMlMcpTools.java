@@ -858,6 +858,7 @@ public class TradingMlMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MODEL_OPS, Category.DIAGNOSTIC, Category.MARKET_DATA})
     @Tool(description = "模擬 ML PROMOTED 模型對『當前市場最新 K 線』的預測(不實際下單,純預覽)。" +
             "回答:『若我現在啟用策略 X 且觸發 BUY,ML 會建議 PASS 還是 BLOCK?』" +
@@ -965,6 +966,7 @@ public class TradingMlMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MODEL_OPS, Category.DIAGNOSTIC})
     @Tool(description = "#226 查看 ml_inference_log 最近 N 筆推理記錄（tail）。" +
             "顯示：predicted_at、model version、p_win、decision、regime、key features 摘要。" +
@@ -1142,6 +1144,8 @@ public class TradingMlMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.MODEL_OPS, Category.DIAGNOSTIC, Category.ANALYTICS})
     @Tool(description = "統計 ml_inference_log 最近 N 天的 shadow-mode 預測分布。" +
             "回答『shadow ML 有沒有在跑 / 預測傾向 PASS 還是 BLOCK / 樣本夠不夠驗證 gate』。" +
             "當 actual_outcome 有 backfill 後可加總勝率對比,目前 V1 尚未接 backfill,只顯示決策分布。" +

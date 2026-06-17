@@ -257,6 +257,7 @@ public class MarketDataMcpTools {
         return analyzeBlockedSignalOutcomesBetween(d + "d", since, until, sym, interval, lookAheadHours);
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
     @Tool(description = "#217/#442 FILTER_BLOCK window 事後追蹤：read-only。用 sinceUtc/untilUtc 將 RegimeFilter 修復前後樣本切開，" +
             "避免把舊 blocker 樣本誤判成新問題。params: sinceUtc=ISO UTC, untilUtc=ISO UTC optional, symbol=BTCUSDT, intervalCode=1h/4h/1d")

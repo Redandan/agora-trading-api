@@ -443,7 +443,65 @@ function Get-SshMcpParityRequiredTools {
     return @($tools | Sort-Object -Unique)
 }
 
+function Get-McpToolMetadataRows {
+    $rows = @()
+    $mcpToolFiles = Get-ChildItem -LiteralPath "src/main/java/com/agora/mcp" -Filter "*McpTools.java" -Recurse
+    foreach ($file in $mcpToolFiles) {
+        $lines = Get-Content -LiteralPath $file.FullName
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -notmatch '^\s*public\s+.+?\s+(?<method>[A-Za-z0-9_]+)\s*\(') {
+                continue
+            }
+            $method = $Matches["method"]
+            $start = $i - 1
+            while ($start -ge 0 -and -not [string]::IsNullOrWhiteSpace($lines[$start])) {
+                $start--
+            }
+            if ($start + 1 -gt $i) {
+                continue
+            }
+            $annotationBlock = $lines[($start + 1)..$i] -join "`n"
+            if ($annotationBlock -notmatch '@Tool\b') {
+                continue
+            }
+            $toolName = $method
+            $toolNameMatch = [regex]::Match($annotationBlock, '@Tool\s*\((?<body>.*?)\)\s*(?:@|\s*public)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+            if ($toolNameMatch.Success) {
+                $explicitName = [regex]::Match($toolNameMatch.Groups["body"].Value, 'name\s*=\s*"(?<name>[^"]+)"')
+                if ($explicitName.Success) {
+                    $toolName = $explicitName.Groups["name"].Value
+                }
+            }
+            $rows += [PSCustomObject]@{
+                File = $file.Name
+                Line = $i + 1
+                Method = $method
+                Tool = $toolName
+                HasAuth = ($annotationBlock -match '@(?:[\w.]+\.)?McpAuth\b')
+                HasCategory = ($annotationBlock -match '@(?:[\w.]+\.)?McpCategory\b')
+            }
+        }
+    }
+    return @($rows)
+}
+
+function Assert-AllMcpToolsHaveExplicitMetadata {
+    $rows = Get-McpToolMetadataRows
+    $missingAuth = @($rows | Where-Object { -not $_.HasAuth })
+    $missingCategory = @($rows | Where-Object { -not $_.HasCategory })
+    if ($missingAuth.Count -gt 0) {
+        $details = ($missingAuth | ForEach-Object { "$($_.File):$($_.Line) $($_.Tool)" }) -join "`n"
+        Write-Error "Every MCP @Tool in *McpTools.java must declare explicit @McpAuth. Missing:`n$details"
+    }
+    if ($missingCategory.Count -gt 0) {
+        $details = ($missingCategory | ForEach-Object { "$($_.File):$($_.Line) $($_.Tool)" }) -join "`n"
+        Write-Error "Every MCP @Tool in *McpTools.java must declare explicit @McpCategory. Missing:`n$details"
+    }
+}
+
 function Assert-McpParityToolCoverage {
+    Assert-AllMcpToolsHaveExplicitMetadata
+
     $requiredTools = Get-McpParityRequiredTools
     $localSmokeTools = Get-LocalSmokeRequiredMcpTools
     $sshParityTools = Get-SshMcpParityRequiredTools
@@ -464,35 +522,16 @@ function Assert-McpParityToolCoverage {
         Write-Error "smoke_mcp_parity.ps1 is missing tool(s) required by SSH MCP parity smoke list: $($extraInSshSmoke -join ', ')"
     }
 
-    $mcpSource = Get-ChildItem -LiteralPath "src/main/java/com/agora/mcp" -Filter "*.java" -Recurse
+    $mcpToolRows = Get-McpToolMetadataRows
     foreach ($tool in $requiredTools) {
-        $foundInSource = $false
-        $annotationBlock = ""
-        foreach ($file in $mcpSource) {
-            $lines = Get-Content -LiteralPath $file.FullName
-            for ($i = 0; $i -lt $lines.Count; $i++) {
-                if ($lines[$i] -match "\b(public|private|protected)\s+\S+\s+$([regex]::Escape($tool))\s*\(") {
-                    $start = [Math]::Max(0, $i - 10)
-                    $annotationBlock = $lines[$start..$i] -join "`n"
-                    $foundInSource = $true
-                    break
-                }
-            }
-            if ($foundInSource) {
-                break
-            }
-            if (Select-String -LiteralPath $file.FullName -Pattern "\b$tool\s*\(" -Quiet) {
-                $foundInSource = $true
-                break
-            }
-        }
-        if (-not $foundInSource) {
+        $row = @($mcpToolRows | Where-Object { $_.Tool -eq $tool -or $_.Method -eq $tool } | Select-Object -First 1)
+        if ($row.Count -eq 0) {
             Write-Error "MCP parity smoke requires tool '$tool' but no matching MCP Java method exists"
         }
-        if ($annotationBlock -and $annotationBlock -notmatch "@McpAuth") {
+        if ($row.Count -gt 0 -and -not $row[0].HasAuth) {
             Write-Error "MCP parity smoke requires tool '$tool' but its Java method is missing explicit @McpAuth"
         }
-        if ($annotationBlock -and $annotationBlock -notmatch "@McpCategory") {
+        if ($row.Count -gt 0 -and -not $row[0].HasCategory) {
             Write-Error "MCP parity smoke requires tool '$tool' but its Java method is missing explicit @McpCategory"
         }
 

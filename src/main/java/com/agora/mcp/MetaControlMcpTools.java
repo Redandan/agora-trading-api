@@ -693,6 +693,7 @@ public class MetaControlMcpTools {
     }
 
     @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.DIAGNOSTIC, Category.MARKET_DATA})
     @Tool(description = "列出最近 N 小時被 DataQualityMonitor flag 為 anomalous 的 MarketFlipEvent。" +
             "判斷規則:單次變化過大 / 3h 內連續震盪 / 值超出合理範圍。用於審查資料品質," +
             "若發現大量 anomalous 可考慮升 flip 門檻或調 upstream 聚合視窗。" +
@@ -960,6 +961,7 @@ public class MetaControlMcpTools {
         }
     }
 
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.GOVERNANCE})
     @Tool(description = "列出最近 N 分鐘的決策審計(signal 評估 / 過濾 / 下單 / 平倉 / override)。" +
             "可按 symbol 過濾。顯示 event_type/outcome/blocker/reason,便於 Claude 排查異常。" +

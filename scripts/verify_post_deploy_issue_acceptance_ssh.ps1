@@ -52,6 +52,10 @@ if ($SkipSplitAcceptance) {
     Write-Warning "[issue-acceptance] DIAGNOSTIC_ONLY: -SkipSplitAcceptance omits full split acceptance and must not be used as #1/#2/#3 closure evidence."
 }
 
+if ($SkipSplitAcceptance -and $RequireTrailingAcceptance) {
+    throw "-RequireTrailingAcceptance is issue-closure evidence and cannot be combined with -SkipSplitAcceptance."
+}
+
 if (-not $SkipSplitAcceptance) {
     Write-Host ""
     Write-Host "[issue-acceptance] split acceptance"

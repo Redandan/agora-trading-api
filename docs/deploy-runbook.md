@@ -456,7 +456,7 @@ can still prove deployed reachability but not the 30d PnL acceptance target.
 The wrapper runs the guardrail smoke in no-review-gaps mode, so
 `Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance.
 `-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is
-not #1/#2/#3 closure evidence.
+not #1/#2/#3 closure evidence, and it cannot be combined with `-RequireTrailingAcceptance`.
 
 For a read-only production signal-correctness check, run:
 

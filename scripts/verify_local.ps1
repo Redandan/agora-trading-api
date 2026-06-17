@@ -1322,9 +1322,10 @@ try {
     foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
     }
-    foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only")) {
+    foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
     }
+    Assert-RgMatch -Pattern "RequireTrailingAcceptance.*cannot be combined with.*SkipSplitAcceptance" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper rejects hard trailing closure without split acceptance"
     Assert-RgMatch -Pattern "guardrail, signal-correctness, and trailing replay smokes" -Paths @("SPLIT_PROGRESS.md", "docs/split-acceptance-status.md") -Description "current handoff docs mention all post-deploy issue acceptance smokes"
     Assert-RgNoMatch -Pattern "Current local (handoff|parity) head.*``[0-9a-f]{7,40}``|local handoff head ``[0-9a-f]{7,40}``" -Paths @("docs/split-acceptance-status.md", "docs/legacy-trading-parity-inventory.md", "SPLIT_PROGRESS.md") -Description "handoff docs must not pin amend-prone local head SHAs"
 

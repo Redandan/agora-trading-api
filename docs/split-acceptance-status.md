@@ -86,7 +86,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance instead of
   being treated as a closure signal. `-SkipSplitAcceptance` is diagnostic-only;
   output collected with that flag is not #1/#2/#3 closure evidence, and it
-  cannot be combined with `-RequireTrailingAcceptance`.
+  cannot be combined with `-RequireTrailingAcceptance`. A diagnostic-only run
+  must end with `DIAGNOSTIC_ONLY OK`, not the normal issue-acceptance OK.
 
 - Current open-issue closure matrix:
 

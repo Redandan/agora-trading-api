@@ -457,6 +457,8 @@ The wrapper runs the guardrail smoke in no-review-gaps mode, so
 `Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance.
 `-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is
 not #1/#2/#3 closure evidence, and it cannot be combined with `-RequireTrailingAcceptance`.
+A diagnostic-only run must end with `DIAGNOSTIC_ONLY OK`, not the normal
+issue-acceptance OK.
 
 For a read-only production signal-correctness check, run:
 

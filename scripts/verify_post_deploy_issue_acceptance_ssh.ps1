@@ -92,4 +92,8 @@ if ($RequireTrailingAcceptance) {
 & $trailingSmoke @trailingArgs
 
 Write-Host ""
-Write-Host "[issue-acceptance] OK"
+if ($SkipSplitAcceptance) {
+    Write-Warning "[issue-acceptance] DIAGNOSTIC_ONLY OK: checks completed without full split acceptance; do not use this output as #1/#2/#3 closure evidence."
+} else {
+    Write-Host "[issue-acceptance] OK"
+}

@@ -369,7 +369,7 @@ Trading deployment prep:
   migration, and generic follow-up migration wording in docs/source comments.
   After the signal-correctness parity-list expansion, local
   `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` also passed
-  with MCP parity `toolCount=305 required=32` on local `/api/mcp` and local
+  with MCP parity `toolCount=305 required=35` on local `/api/mcp` and local
   health OK.
   The reusable MCP parity smoke has matching local and SSH required-tool lists:
   local smoke invokes `scripts/smoke_mcp_parity.ps1`, the post-deploy issue

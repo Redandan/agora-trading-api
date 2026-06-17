@@ -54,7 +54,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   OK. After the signal-correctness parity-list expansion, the latest local
   smoke evidence for this batch also passed
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
-  `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=32`
+  `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
   and local `/api/actuator/health` OK. Treat this as local readiness only;
   #1/#2/#3 closure still requires deployed server-local read-only acceptance
   after an explicitly authorized deploy.

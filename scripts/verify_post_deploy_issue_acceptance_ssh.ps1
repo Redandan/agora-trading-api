@@ -17,6 +17,10 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+if ($SkipSplitAcceptance -and $RequireTrailingAcceptance) {
+    throw "-RequireTrailingAcceptance is issue-closure evidence and cannot be combined with -SkipSplitAcceptance."
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -50,10 +54,6 @@ Write-Host "[issue-acceptance] symbol=$Symbol interval=$IntervalCode trailingDay
 Write-Host "[issue-acceptance] signalExecutionDays=$SignalExecutionDays signalBlockedDays=$SignalBlockedDays signalAccuracyDays=$SignalAccuracyDays"
 if ($SkipSplitAcceptance) {
     Write-Warning "[issue-acceptance] DIAGNOSTIC_ONLY: -SkipSplitAcceptance omits full split acceptance and must not be used as #1/#2/#3 closure evidence."
-}
-
-if ($SkipSplitAcceptance -and $RequireTrailingAcceptance) {
-    throw "-RequireTrailingAcceptance is issue-closure evidence and cannot be combined with -SkipSplitAcceptance."
 }
 
 if (-not $SkipSplitAcceptance) {

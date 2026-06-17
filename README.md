@@ -101,7 +101,8 @@ the deployed DB sample is expected to satisfy the 30d PnL target. The wrapper
 also fails #1/#2 acceptance if anti-wick coverage returns
 `Operator action: REVIEW_POLICY_GAPS`.
 `-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is
-not #1/#2/#3 closure evidence.
+not #1/#2/#3 closure evidence, and it cannot be combined with
+`-RequireTrailingAcceptance`.
 
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
 When nginx is updated, deploy also verifies dedicated Trading host health at

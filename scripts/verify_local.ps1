@@ -67,6 +67,30 @@ function Resolve-BashCommand {
     throw "bash is required for local shell syntax verification; install Git Bash or put bash on PATH"
 }
 
+function Assert-PostDeployIssueAcceptanceFlagGuard {
+    $script = Join-Path $PWD "scripts\verify_post_deploy_issue_acceptance_ssh.ps1"
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for post-deploy issue acceptance flag-guard verification"
+    }
+
+    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $script -SkipSplitAcceptance -RequireTrailingAcceptance 2>&1
+    $exitCode = $LASTEXITCODE
+    $text = ($output | Out-String)
+    if ($exitCode -eq 0) {
+        Write-Error "post-deploy issue acceptance wrapper accepted incompatible -SkipSplitAcceptance and -RequireTrailingAcceptance flags"
+    }
+    if ($text -notmatch "cannot be combined") {
+        Write-Error "post-deploy issue acceptance wrapper did not fail with the expected incompatible-flag message:`n$text"
+    }
+    if ($text -match "SshHost is required|SshKey is required|SSH key not found") {
+        Write-Error "post-deploy issue acceptance wrapper validates SSH inputs before rejecting incompatible acceptance flags:`n$text"
+    }
+}
+
 function Resolve-MavenProperty {
     param([string]$Name)
 
@@ -1326,6 +1350,7 @@ try {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
     }
     Assert-RgMatch -Pattern "RequireTrailingAcceptance.*cannot be combined with.*SkipSplitAcceptance" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper rejects hard trailing closure without split acceptance"
+    Assert-PostDeployIssueAcceptanceFlagGuard
     Assert-RgMatch -Pattern "guardrail, signal-correctness, and trailing replay smokes" -Paths @("SPLIT_PROGRESS.md", "docs/split-acceptance-status.md") -Description "current handoff docs mention all post-deploy issue acceptance smokes"
     Assert-RgNoMatch -Pattern "Current local (handoff|parity) head.*``[0-9a-f]{7,40}``|local handoff head ``[0-9a-f]{7,40}``" -Paths @("docs/split-acceptance-status.md", "docs/legacy-trading-parity-inventory.md", "SPLIT_PROGRESS.md") -Description "handoff docs must not pin amend-prone local head SHAs"
 

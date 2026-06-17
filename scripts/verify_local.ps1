@@ -1442,6 +1442,26 @@ try {
         -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ExecutionDays", "999") `
         -ExpectedPattern "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90" `
         -Description "signal correctness SSH smoke query-window input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_mcp_parity_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-IntervalCode", "1h';echo bad") `
+        -ExpectedPattern "IntervalCode contains unsupported characters" `
+        -Description "MCP parity SSH smoke interval input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_guardrail_acceptance_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Symbol", "BTCUSDT';echo bad") `
+        -ExpectedPattern "Symbol contains unsupported characters" `
+        -Description "guardrail acceptance SSH smoke symbol input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_trailing_stop_pnl_replay_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Days", "999") `
+        -ExpectedPattern "Days must be between 1 and 90" `
+        -Description "trailing replay SSH smoke query-window input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\verify_post_deploy_issue_acceptance_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-TrailingLimit", "999") `
+        -ExpectedPattern "TrailingLimit must be between 1 and 500" `
+        -Description "post-deploy issue acceptance wrapper trailing-limit input guard"
     foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
     }

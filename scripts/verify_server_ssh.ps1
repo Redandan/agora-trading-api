@@ -27,6 +27,31 @@ if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
     throw "ssh is not available on PATH."
 }
 
+function Assert-RemotePathSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+function Assert-PublicHttpsUrlSafe {
+    param([string]$Name, [string]$Value)
+    [System.Uri]$uri = $null
+    if ([string]::IsNullOrWhiteSpace($Value) `
+            -or -not [System.Uri]::TryCreate($Value, [System.UriKind]::Absolute, [ref]$uri) `
+            -or $uri.Scheme -ne "https" `
+            -or $uri.Host -notin @("agoratradingapi.purrtechllc.com", "agoramarketapi.purrtechllc.com") `
+            -or $Value.IndexOf("'") -ge 0 `
+            -or $Value -match "\s|``|\\") {
+        throw "$Name must be a safe purrtechllc HTTPS URL for remote shell embedding."
+    }
+}
+
+Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
+Assert-PublicHttpsUrlSafe -Name "PublicTradingHealthUrl" -Value $PublicTradingHealthUrl
+Assert-PublicHttpsUrlSafe -Name "PublicTradingMcpBlockedUrl" -Value $PublicTradingMcpBlockedUrl
+Assert-PublicHttpsUrlSafe -Name "PublicTradingContextMcpBlockedUrl" -Value $PublicTradingContextMcpBlockedUrl
+
 $schemaFlag = if ($SchemaCompare) { "1" } else { "0" }
 $gitFlag = if ($SkipGitCurrent) { "0" } else { "1" }
 

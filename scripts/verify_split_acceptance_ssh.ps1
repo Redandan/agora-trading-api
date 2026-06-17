@@ -24,6 +24,15 @@ if (-not (Test-Path -LiteralPath $ownershipSmoke)) {
     throw "Cross-service MCP ownership smoke not found: $ownershipSmoke"
 }
 
+function Assert-RemotePathSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {
+        throw "$Name contains unsupported characters for remote shell embedding."
+    }
+}
+
+Assert-RemotePathSafe -Name "TradingAppDir" -Value $TradingAppDir
+
 Write-Host "[split-acceptance] trading server verification"
 $serverArgs = @{
     SshHost = $SshHost

@@ -91,6 +91,37 @@ function Assert-PostDeployIssueAcceptanceFlagGuard {
     }
 }
 
+function Assert-PowerShellScriptFailsBeforeSsh {
+    param(
+        [string]$ScriptRelativePath,
+        [string[]]$Arguments,
+        [string]$ExpectedPattern,
+        [string]$Description
+    )
+
+    $script = Join-Path $PWD $ScriptRelativePath
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for SSH wrapper input-guard verification"
+    }
+
+    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $script @Arguments 2>&1
+    $exitCode = $LASTEXITCODE
+    $text = ($output | Out-String)
+    if ($exitCode -eq 0) {
+        Write-Error "$Description accepted invalid input"
+    }
+    if ($text -notmatch $ExpectedPattern) {
+        Write-Error "$Description did not fail with the expected guard message. pattern=$ExpectedPattern`n$text"
+    }
+    if ($text -match "Could not resolve hostname|Connection timed out|remote command failed|failed to start remote deploy|server verification failed|runtime log smoke failed") {
+        Write-Error "$Description reached SSH/remote execution before local input guard:`n$text"
+    }
+}
+
 function Resolve-MavenProperty {
     param([string]$Name)
 
@@ -1391,6 +1422,26 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-RemoteRelativePathSafe", "Assert-GitBranchSafe", "PollSeconds must be at most 60", "TimeoutSeconds must be between 60 and 3600")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/deploy_ssh.ps1") -Description "deploy SSH wrapper validates remote shell embedded inputs and polling bounds $pattern"
     }
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\deploy_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Branch", "main';echo bad") `
+        -ExpectedPattern "Branch contains unsupported characters" `
+        -Description "deploy SSH wrapper branch input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\verify_server_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-PublicTradingHealthUrl", "https://evil.example/api/actuator/health") `
+        -ExpectedPattern "PublicTradingHealthUrl must be a safe purrtechllc HTTPS URL" `
+        -Description "server SSH verifier public URL input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\verify_split_acceptance_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-TradingAppDir", "/home/ubuntu/agora-trading-api';echo bad") `
+        -ExpectedPattern "TradingAppDir contains unsupported characters" `
+        -Description "split acceptance verifier remote path input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_signal_correctness_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ExecutionDays", "999") `
+        -ExpectedPattern "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90" `
+        -Description "signal correctness SSH smoke query-window input guard"
     foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
     }

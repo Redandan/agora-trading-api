@@ -362,11 +362,14 @@ Trading deployment prep:
   blue-green port still has a listener.
 - 2026-06-17 local handoff batch is ahead of the deployed runtime until it is
   explicitly pushed, deployed, and verified. Local `scripts/verify_local.ps1`
-  passed with 51 tests, 305 MCP tools registered in the local-smoke Spring
-  context,
+  passed through `b11e732` with 51 tests, 305 MCP tools registered in the
+  local-smoke Spring context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
   OK, and the stale Flyway wording guard now rejects pre-baseline, legacy V10x
   migration, and generic follow-up migration wording in docs/source comments.
+  Local `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` also
+  passed at `b11e732` with MCP parity
+  `toolCount=305 required=30` on local `/api/mcp` and local health OK.
   The reusable MCP parity smoke has matching local and SSH required-tool lists:
   local smoke invokes `scripts/smoke_mcp_parity.ps1`, the post-deploy issue
   wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before the guardrail,

@@ -156,10 +156,15 @@ schedulers and the internal exchange-rate API available.
 3. Generate and review the Flyway baseline, then switch Trading itself to
    `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true`
    only during an approved deploy.
-4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion` and
-   `scripts/smoke_mcp_parity.ps1`, including the read-only DataFreshnessGuard
-   RCA acceptance marker; verify public dedicated `/api/mcp` and shared
-   `/api/trading/mcp` are blocked.
+4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion`, the 30-tool
+   parity list in `scripts/smoke_mcp_parity.ps1` or
+   `scripts/smoke_mcp_parity_ssh.ps1`, and the current read-only acceptance
+   surfaces: DataFreshnessGuard RCA, anti-wick guardrail coverage, event-risk
+   status, signal-correctness diagnostics, and trailing-stop replay. For
+   issue-closure evidence, use
+   `scripts/verify_post_deploy_issue_acceptance_ssh.ps1 -RequireTrailingAcceptance`
+   after an explicitly authorized deploy; verify public dedicated `/api/mcp`
+   and shared `/api/trading/mcp` are blocked.
 5. Add a low-risk disable switch in AgoraMarketAPI for legacy trading HTTP/MCP
    and `com.agora.scheduler.trading` only.
 6. Leave AgoraMarketAPI marketplace, user connector, wallet, seller, support,

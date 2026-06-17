@@ -625,6 +625,7 @@ try {
     Assert-RgMatch -Pattern "trading_flyway_schema_history" -Paths @("src/main/java/com/agora/config/MigrationDriftChecker.java") -Description "migration drift checker uses Trading-owned Flyway history table"
     Assert-RgMatch -Pattern "Hardened schema mode" -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md") -Description "ddl-auto validate is documented as hardened schema mode"
     Assert-RgMatch -Pattern "Flyway baseline" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "migration baseline prerequisite is documented"
+    Assert-RgNoMatch -Pattern "pending trading Flyway baseline|fresh V10[0-9] migration|follow-up Flyway migration" -Paths @("src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state"
     Assert-RgMatch -Pattern "reviewed V1 baseline" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing columns document shared-DB V1 baseline ownership"
     Assert-RgNoMatch -Pattern "V108|V116" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing schema comments must not imply standalone V108/V116 migrations"
     Assert-RgMatch -Pattern "AgoraMarketAPI Trading Cutover Plan" -Paths @("docs/deploy-runbook.md") -Description "legacy AgoraMarketAPI trading cutover plan is documented"

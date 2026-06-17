@@ -37,14 +37,14 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>No nightly orchestrator exists in this split repo yet; refresh is an
  *       explicit MCP/operator action unless a future opt-in scheduler is added.
  *   <li>{@link #ensurePopulatedOnStartup()} runs once on application start; if
- *       the table is empty (e.g. fresh V109 migration just applied) it kicks
- *       off an async refresh so MCP eval tools work without waiting for the
- *       first nightly cron.
+ *       the table is empty after a Trading-owned schema migration or baseline
+ *       adoption, it kicks off an async refresh so MCP eval tools work without
+ *       waiting for the first nightly cron.
  * </ol>
  *
  * <p>The view definition remains the schema source-of-truth. If columns change
- * the materialized table must be ALTERed (or dropped and recreated) in a
- * follow-up Flyway migration.
+ * the materialized table must be ALTERed, or dropped and recreated, in a
+ * Trading-owned V2+ Flyway migration.
  */
 @Slf4j
 @Service

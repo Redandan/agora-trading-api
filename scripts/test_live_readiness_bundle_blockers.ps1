@@ -76,6 +76,37 @@ function Merge-Inputs {
     $merged
 }
 
+function Assert-BundleScriptBlockersCovered {
+    param([string[]]$ExpectedBlockers)
+
+    $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
+    $bundleText = Get-Content -Raw -LiteralPath $bundlePath
+    $actualBlockers = @(
+        [regex]::Matches($bundleText, '\$blockers\.Add\("([^"]+)"\)') |
+            ForEach-Object { $_.Groups[1].Value } |
+            Sort-Object -Unique
+    )
+    $expected = @($ExpectedBlockers | Sort-Object -Unique)
+    $actualText = $actualBlockers -join ","
+    $expectedText = $expected -join ","
+    if ($actualText -ne $expectedText) {
+        throw "bundle script blockers [$actualText] differ from test coverage [$expectedText]"
+    }
+}
+
+$allExpectedBlockers = @(
+    "BACKGROUND_AUTOMATION_REVIEW",
+    "DEPLOYED_RUNTIME_NOT_CURRENT",
+    "LIVE_READINESS_NOT_READY",
+    "MCP_PARITY_NOT_PROVEN",
+    "RUNTIME_EVIDENCE_CONFIG_DISABLED",
+    "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
+    "SIGNAL_POLICY_REVIEW_GAPS",
+    "TINY_LIVE_LOSS_HARD_STOP"
+)
+
+Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
+
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED"

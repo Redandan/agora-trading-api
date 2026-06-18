@@ -127,6 +127,11 @@ def find(pattern, text, default="N/A"):
 def contains_any(text, patterns):
     return any(re.search(pattern, text, re.MULTILINE) for pattern in patterns)
 
+def require(description, pattern, text):
+    if not re.search(pattern, text, re.MULTILINE):
+        print(f"FAIL: missing {description}; pattern={pattern}", file=sys.stderr)
+        sys.exit(1)
+
 def parse_json_object(text):
     try:
         data = json.loads(text)
@@ -197,6 +202,26 @@ relaxation = call_tool("findGovernanceRelaxationCandidates", {"symbol": symbol, 
 tightening = call_tool("findGovernanceTighteningCandidates", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
 entry_dedup = call_tool("getEntryDedupGovernanceDashboard", {"symbol": symbol, "hours": blocked_days * 24}, timeout=120)
 missed_opportunities = call_tool("getMissedOpportunityRegressionReport", {"symbol": symbol, "hours": blocked_days * 24}, timeout=120)
+
+require("verifyStrategyExecution read-only marker", r"READ_ONLY|no external import/backfill", execution)
+require("blocked signal outcomes read-only marker", r"mode=READ_ONLY", blocked)
+require("signal accuracy read-only marker", r"mode=READ_ONLY", accuracy)
+require("DataFreshnessGuard read-only boundary", r"boundary:\s*READ_ONLY", freshness)
+require("signal correctness dashboard read-only boundary", r"boundary:\s*READ_ONLY", dashboard)
+require("governance drift read-only boundary", r"boundary:\s*READ_ONLY", governance)
+require("governance relaxation read-only boundary", r"boundary:\s*READ_ONLY", relaxation)
+require("governance relaxation criteria", r"criteria:", relaxation)
+require("governance tightening read-only boundary", r"boundary:\s*READ_ONLY", tightening)
+require("governance tightening criteria", r"criteria:", tightening)
+require("EntryDedup governance read-only boundary", r'"boundary"\s*:\s*"READ_ONLY', entry_dedup)
+require("EntryDedup governance no order send marker", r'"orderSent"\s*:\s*false', entry_dedup)
+require("EntryDedup governance no OCO modification marker", r'"ocoModified"\s*:\s*false', entry_dedup)
+require("EntryDedup governance no runtime evidence writes marker", r'"writesRuntimeEvidence"\s*:\s*false', entry_dedup)
+require("missed opportunity regression read-only boundary", r'"boundary"\s*:\s*"READ_ONLY', missed_opportunities)
+require("missed opportunity regression no order send marker", r'"orderSent"\s*:\s*false', missed_opportunities)
+require("missed opportunity regression no OCO modification marker", r'"ocoModified"\s*:\s*false', missed_opportunities)
+require("missed opportunity regression no runtime evidence writes marker", r'"writesRuntimeEvidence"\s*:\s*false', missed_opportunities)
+
 entry_dedup_json = parse_json_object(entry_dedup)
 missed_json = parse_json_object(missed_opportunities)
 

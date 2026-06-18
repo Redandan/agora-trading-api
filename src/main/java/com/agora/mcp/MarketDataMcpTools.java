@@ -291,6 +291,7 @@ public class MarketDataMcpTools {
 
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("=== FILTER_BLOCK 事後追蹤 (%s %s, window=%s) ===\n", sym, interval, windowLabel));
+        sb.append("mode=READ_ONLY | no signal/order/OCO/strategy/grid/fund/Earn/Telegram behavior changed.\n");
         sb.append(String.format("windowUtc: %sZ → %sZ | effectiveUntil=%sZ\n",
                 since, until, effectiveUntil));
         sb.append(String.format("看前 %dh 後的收盤價判斷攔截是否正確\n\n", lookAheadHours));

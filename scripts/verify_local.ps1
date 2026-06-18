@@ -1482,6 +1482,10 @@ try {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
     }
     Assert-RgMatch -Pattern "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90" -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal-correctness SSH smoke bounds read-only production query window"
+    foreach ($pattern in @("blocked signal outcomes read-only marker", "EntryDedup governance no order send marker", "missed opportunity regression no runtime evidence writes marker")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal-correctness SSH smoke hard-fails when read-only evidence marker drifts $pattern"
+    }
+    Assert-RgMatch -Pattern "mode=READ_ONLY \| no signal/order/OCO/strategy/grid/fund/Earn/Telegram behavior changed" -Paths @("src/main/java/com/agora/mcp/MarketDataMcpTools.java") -Description "blocked signal outcomes MCP output carries read-only boundary marker"
     foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"
     }

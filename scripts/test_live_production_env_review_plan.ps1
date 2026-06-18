@@ -54,6 +54,15 @@ $mustStayDisabled = @(
     "TRADING_EXPLORATION_ROLLOUT_ALLOW_CAP_INCREASE=false"
 )
 
+$rollbackCriteria = @(
+    '`orderSentEvidence` is greater than 0',
+    'Any order/OCO/grid/fund/Earn/Telegram/live exchange write appears in logs',
+    'External backfill/import jobs run unexpectedly',
+    'Public MCP becomes externally offered as a service surface',
+    'DB migration, Flyway baseline regeneration, extra-table cleanup, or table\s+drops are attempted',
+    '`audit_live_readiness_ssh\.ps1` reports new blockers outside the planned\s+evidence collection scope'
+)
+
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",
         "smoke_live_background_automation_ssh.ps1",
@@ -69,6 +78,10 @@ foreach ($scriptName in @(
 
 foreach ($flag in $mustStayDisabled) {
     Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))
+}
+
+foreach ($pattern in $rollbackCriteria) {
+    Assert-Contains -Name "rollback criteria" -Text $proposalText -Pattern $pattern
 }
 
 foreach ($pattern in @(

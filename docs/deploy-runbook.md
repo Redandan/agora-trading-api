@@ -609,6 +609,22 @@ evidence candidate and keeps live/order/OCO/grid/Earn/fund/Telegram/scheduler,
 guardian live-action, and external-backfill/import flags disabled. The checklist
 must not be used as live approval.
 
+To isolate already-enabled background automation before live review, run:
+
+```powershell
+.\scripts\smoke_live_background_automation_ssh.ps1
+```
+
+Expected:
+
+- The script reads server env and app metadata only.
+- Output includes `background_automation_true`,
+  `high_risk_background_automation_true`, `classification`, and `verdict`.
+- `verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW` means live remains blocked
+  until the listed flags are reviewed or separately authorized.
+- The script must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, or external backfill/import state.
+
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:
 

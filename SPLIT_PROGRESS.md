@@ -186,6 +186,12 @@
   scheduler, OCO, grid, Earn, fund, guardian live-action, and
   external-backfill/import flags disabled, and requires read-only smokes before
   any future live approval discussion.
+- `scripts/smoke_live_background_automation_ssh.ps1` provides a read-only
+  server env smoke for already-enabled background automation before live review.
+  It reports `background_automation_true`,
+  `high_risk_background_automation_true`, classification, recommendation, and
+  verdict without changing production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, or external backfill/import state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

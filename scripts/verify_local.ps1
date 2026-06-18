@@ -534,6 +534,8 @@ function Get-McpToolMetadataRows {
                 Tool = $toolName
                 HasAuth = ($annotationBlock -match '@(?:[\w.]+\.)?McpAuth\b')
                 HasCategory = ($annotationBlock -match '@(?:[\w.]+\.)?McpCategory\b')
+                AuthLevel = if ($annotationBlock -match 'McpAuthLevel\.(?<level>[A-Z_]+)') { $Matches["level"] } else { "" }
+                Categories = @([regex]::Matches($annotationBlock, 'Category\.(?<category>[A-Z_]+)') | ForEach-Object { $_.Groups["category"].Value })
             }
         }
     }
@@ -589,6 +591,12 @@ function Assert-McpParityToolCoverage {
         if ($row.Count -gt 0 -and -not $row[0].HasCategory) {
             Write-Error "MCP parity smoke requires tool '$tool' but its Java method is missing explicit @McpCategory"
         }
+        if ($row.Count -gt 0 -and $row[0].AuthLevel -eq "DEV") {
+            Write-Error "MCP parity smoke must stay read-only/ops-callable; required tool '$tool' is DEV-only"
+        }
+        if ($row.Count -gt 0 -and $row[0].Categories -contains "WRITE_TRADING") {
+            Write-Error "MCP parity smoke must not require WRITE_TRADING tool '$tool'"
+        }
 
         if (-not (Select-String -LiteralPath "scripts/smoke_local_health.ps1" -Pattern "`"$tool`"" -Quiet)) {
             Write-Error "Local smoke must require the same MCP parity tool as smoke_mcp_parity.ps1: $tool"
@@ -607,6 +615,7 @@ function Assert-McpParityToolCoverage {
     foreach ($marker in @("getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1") -Description "MySQL-backed governance parity smoke is executable on server-local SSH marker $marker"
     }
+    Assert-RgNoMatch -Pattern "MCP parity smoke must not require WRITE_TRADING|MCP parity smoke must stay read-only/ops-callable" -Paths @("README.md", "docs", "SPLIT_PROGRESS.md") -Description "MCP parity write-tool guard should live in verifier, not operator docs"
     Assert-RgMatch -Pattern "requires 35 representative tools|35 required|required=35" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "MCP parity required-tool count is documented as 35"
     Assert-RgNoMatch -Pattern "26 required|requires 26|30 required|requires 30 representative tools|required=30|32 required|requires 32 representative tools|required=32" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs") -Description "stale MCP parity required-tool count"
     foreach ($marker in @("smoke_mcp_parity.ps1", "-BaseUrl", "-McpKey", "Reusable MCP parity smoke failed")) {

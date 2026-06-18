@@ -471,7 +471,8 @@ For a read-only production signal-correctness check, run:
 
 Expected:
 
-- `verifyStrategyExecution` reports no missed evaluation/order bug.
+- `verifyStrategyExecution` reports no missed evaluation/order bug; the smoke
+  must fail if that no-missed-evaluation/no-missed-order marker is missing.
 - `analyzeBlockedSignalOutcomes` prints blocked-signal outcome counts and
   false-kill rate for recent governance review.
 - `getSignalAccuracyReport` prints PASS/BLOCK finalized sample counts; treat

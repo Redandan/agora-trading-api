@@ -43,7 +43,11 @@ function Get-LiveReadinessBundleBlockers {
             -or $Audit -notmatch 'readiness_details=.*"scoreBuyPostScoutAdd"') {
         $blockers.Add("MCP_AUDIT_TOOL_ERROR")
     }
-    if ($Audit -match "_NOT_EXECUTION_ELIGIBLE") {
+    if ($Audit -match "_NOT_EXECUTION_ELIGIBLE" `
+            -or $Audit -notmatch '"tinyLive"\s*:\s*\{[^}]*"executionEligible"\s*:\s*"true"' `
+            -or $Audit -notmatch '"scoreBuyPrePosition"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
+            -or $Audit -notmatch '"scoreBuyConfirmedDeploy"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
+            -or $Audit -notmatch '"scoreBuyPostScoutAdd"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true') {
         $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
     }
     if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
@@ -332,7 +336,7 @@ Assert-CurrentExpectedBlockersMatchLatestSnapshot
 Assert-AuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
 
-$mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{},"scoreBuyPostScoutAdd":{},"scoreBuyPrePosition":{},"tinyLive":{}}'
+$mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}'
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`n$mcpAuditEvidence"
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED"
@@ -357,8 +361,9 @@ Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInput
 Assert-BlockerCase -Name "audit event risk not baseline" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"EVENT_RISK_NOT_R0`"]" }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
 Assert-BlockerCase -Name "audit missing event risk marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("`nriskLevel=R0", "") }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
 Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"MCP_TOOL_ERROR:getGuardianSnapshot`"]" }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
-Assert-BlockerCase -Name "audit missing mcp readiness details fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, 'readiness_details={"tinyLive":{}}') }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
+Assert-BlockerCase -Name "audit missing mcp readiness details fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, 'readiness_details={"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}') }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
 Assert-BlockerCase -Name "audit execution eligibility not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"PRE_POSITION_NOT_EXECUTION_ELIGIBLE`"]" }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
+Assert-BlockerCase -Name "audit missing execution eligibility marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace('"scoreBuyPostScoutAdd":{"executionEligible":true}', '"scoreBuyPostScoutAdd":{}') }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background missing ok verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "high_risk_background_automation_true=[]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")

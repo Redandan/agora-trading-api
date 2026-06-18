@@ -295,7 +295,11 @@ if ($audit -match "MCP_TOOL_ERROR:" `
         -or $audit -notmatch 'readiness_details=.*"scoreBuyPostScoutAdd"') {
     $blockers.Add("MCP_AUDIT_TOOL_ERROR")
 }
-if ($audit -match "_NOT_EXECUTION_ELIGIBLE") {
+if ($audit -match "_NOT_EXECUTION_ELIGIBLE" `
+        -or $audit -notmatch '"tinyLive"\s*:\s*\{[^}]*"executionEligible"\s*:\s*"true"' `
+        -or $audit -notmatch '"scoreBuyPrePosition"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
+        -or $audit -notmatch '"scoreBuyConfirmedDeploy"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
+        -or $audit -notmatch '"scoreBuyPostScoutAdd"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true') {
     $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
 }
 if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `

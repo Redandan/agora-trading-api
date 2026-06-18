@@ -85,4 +85,30 @@ foreach ($flag in $expectedHighRiskFlags) {
     }
 }
 
+foreach ($pattern in @(
+        "background_automation_false",
+        "lists all nine reviewed background flags",
+        "does not list every reviewed background flag",
+        "OK_BACKGROUND_AUTOMATION_DISABLED",
+        "BACKGROUND_AUTOMATION_REVIEW`` no longer appears in ``bundle_blockers``",
+        "order_capable_flags`` remain false",
+        "not live approval"
+    )) {
+    if ($proposalText -notmatch [regex]::Escape($pattern)) {
+        throw "Background automation proposal missing verification/rollback marker $pattern"
+    }
+}
+
+foreach ($pattern in @(
+        "background_automation_false=",
+        "classification=BACKGROUND_AUTOMATION_CLEARED",
+        "verdict=OK_BACKGROUND_AUTOMATION_DISABLED",
+        "classification=BACKGROUND_AUTOMATION_REVIEW_BEFORE_LIVE",
+        "recommendation=KEEP_LIVE_DISABLED_UNTIL_FLAGS_ARE_REVIEWED_OR_SEPARATELY_AUTHORIZED"
+    )) {
+    if ($smokeText -notmatch [regex]::Escape($pattern)) {
+        throw "Background automation smoke missing output marker $pattern"
+    }
+}
+
 Write-Host "[live-background-automation-flag-test] OK"

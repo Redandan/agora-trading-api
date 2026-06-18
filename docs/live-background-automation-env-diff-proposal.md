@@ -98,6 +98,7 @@ Expected:
 
 - `background_automation_true=[]`
 - `high_risk_background_automation_true=[]`
+- `background_automation_false` lists all nine reviewed background flags.
 - `verdict=OK_BACKGROUND_AUTOMATION_DISABLED`
 - `BACKGROUND_AUTOMATION_REVIEW` no longer appears in `bundle_blockers`
 - `order_capable_flags` remain false
@@ -116,6 +117,8 @@ Restore the prior env state and investigate if any of these occur:
 - any order/OCO/grid/fund/Earn/Telegram/exchange/DB mutation appears
 - `smoke_live_readiness_bundle_ssh.ps1` reports a new blocker unrelated to
   background automation
+- `background_automation_false` does not list every reviewed background flag
+  after the authorized env change
 
 ## Live Boundary
 

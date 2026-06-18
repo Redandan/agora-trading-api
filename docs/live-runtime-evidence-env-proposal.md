@@ -12,11 +12,18 @@ jobs, mutate DB state, or change schedulers.
 The read-only runtime evidence RCA currently reports:
 
 ```text
+observedAt=2026-06-18T17:39+08:00
+serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 diagnosis=CONFIG_DISABLED
 env.TRADING_RUNTIME_EVIDENCE_ENABLED=EMPTY
 runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE
+runtimeEvidenceRows=200
 shadowIntentCount=0
+shadowExecutionIntents=0
 orderSentEvidence=0
+freshnessTerminalBlocks=51
+noCurrentBuyCandidateReason=LATEST_SIGNAL_HOLD
+currentSignalDecision=HOLD
 ```
 
 The live-readiness bundle currently includes:

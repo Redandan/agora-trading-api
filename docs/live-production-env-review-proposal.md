@@ -30,6 +30,20 @@ The current server evidence keeps live blocked while these remain true:
 - `verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW`
 - `HIGH_RISK_BACKGROUND_AUTOMATION_TRUE`
 
+Latest read-only bundle snapshot:
+
+```text
+observedAt=2026-06-18T17:39+08:00
+serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+health=UP
+mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
+runtimeLog=PASS
+orderCapableFlags=false
+dryRunFlags=true
+bundle_blockers=["LIVE_READINESS_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP"]
+bundle_verdict=NOT_READY
+```
+
 ## Evidence-Only Candidate
 
 The only candidate that may be proposed before live execution is runtime

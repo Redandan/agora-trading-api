@@ -34,11 +34,10 @@ class TrailingStopSchemaBaselineTest {
 
         String baseline = readBaseline();
         String normalizedBaseline = baseline.toLowerCase(Locale.ROOT);
-        assertThat(normalizedBaseline).doesNotContain("drop table");
-        assertThat(normalizedBaseline).doesNotContain("drop database");
-        assertThat(normalizedBaseline).doesNotContain("truncate table");
-        assertThat(normalizedBaseline).doesNotContain("create table `flyway_schema_history`");
-        assertThat(normalizedBaseline).doesNotContain("create table `trading_flyway_schema_history`");
+        assertThat(normalizedBaseline).doesNotContainPattern("\\bdrop\\s+(table|database)\\b");
+        assertThat(normalizedBaseline).doesNotContainPattern("\\btruncate\\s+table\\b");
+        assertThat(normalizedBaseline).doesNotContainPattern(
+                "\\bcreate\\s+table\\s+`?(flyway_schema_history|trading_flyway_schema_history)`?\\b");
     }
 
     @Test

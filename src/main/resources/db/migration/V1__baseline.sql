@@ -2,7 +2,8 @@
 -- Generated from shared database 'agora_market' on 2026-06-13T06:41:25Z.
 -- Contains only tables mapped by agora-trading-api JPA entities.
 -- Shared marketplace tables are intentionally excluded.
--- Do not edit production env or enable Flyway until this file is reviewed.
+-- Reviewed shared-DB baseline; do not regenerate or change production env from
+-- this migration. Future Trading schema changes should be V2__... migrations.
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -986,4 +987,3 @@ CREATE TABLE `tg_notification_log` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-

@@ -59,6 +59,18 @@ $proposalOnlyDiff = Get-EnvBlockKeys -Text $proposalText -Heading "Proposed Evid
 $proposalDisabled = Get-EnvBlockKeys -Text $proposalText -Heading "Must Stay Disabled"
 $dryRunDisabled = Get-EnvBlockKeys -Text $dryRunPlanText -Heading "Must Remain Disabled"
 
+$expectedBackgroundFlags = @(
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
+    "MARKET_WS_AUTO_SUBSCRIBE_ENABLED",
+    "EVENT_SCAN_NOTIFICATION_ENABLED",
+    "EXECUTION_EVENT_ENABLED",
+    "TRADING_DAILY_TG_REPORT_ENABLED",
+    "TRADING_AUTONOMOUS_DIGEST_ENABLED",
+    "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED",
+    "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"
+)
+
 Assert-SameSet -Name "runtime evidence only proposed env diff" -Actual $proposalOnlyDiff -Expected @("TRADING_RUNTIME_EVIDENCE_ENABLED")
 
 foreach ($flag in $auditOrderFlags) {
@@ -72,13 +84,15 @@ foreach ($flag in $auditOrderFlags) {
 
 $expectedProposalDisabled = @(
     $auditOrderFlags +
-    "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
-    "EVENT_SCAN_NOTIFICATION_ENABLED",
-    "EXECUTION_EVENT_ENABLED",
-    "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED",
-    "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"
+    $expectedBackgroundFlags
 )
 Assert-SameSet -Name "runtime evidence proposal disabled env keys" -Actual $proposalDisabled -Expected $expectedProposalDisabled
+
+foreach ($flag in $expectedBackgroundFlags) {
+    if ($dryRunPlanText -notmatch [regex]::Escape("$flag=false")) {
+        throw "Dry-run evidence plan must keep background automation disabled: $flag"
+    }
+}
 
 foreach ($flag in @(
         "TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN",

@@ -219,6 +219,11 @@
   execution/Telegram/scheduler/external-backfill/exchange/OCO/grid/fund/Earn
   mutation paths remain disabled, and `shadowIntentCount > 0` plus
   `orderSentEvidence=0` are required before live review.
+- `scripts/verify_local.ps1` now executable-negative-tests the newer live
+  readiness SSH wrappers (`smoke_live_background_automation_ssh.ps1`,
+  `smoke_runtime_evidence_rca_ssh.ps1`, `smoke_tiny_live_loss_rca_ssh.ps1`,
+  and `smoke_live_readiness_bundle_ssh.ps1`) so unsafe SSH targets or invalid
+  read-only query windows fail locally before any SSH call.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

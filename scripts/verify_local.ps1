@@ -1491,7 +1491,7 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-RemoteRelativePathSafe", "Assert-GitBranchSafe", "PollSeconds must be at most 60", "TimeoutSeconds must be between 60 and 3600")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/deploy_ssh.ps1") -Description "deploy SSH wrapper validates remote shell embedded inputs and polling bounds $pattern"
     }
-    foreach ($script in @("scripts/deploy_ssh.ps1", "scripts/verify_server_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1", "scripts/verify_post_deploy_issue_acceptance_ssh.ps1", "scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1")) {
+    foreach ($script in @("scripts/deploy_ssh.ps1", "scripts/verify_server_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1", "scripts/verify_post_deploy_issue_acceptance_ssh.ps1", "scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1", "scripts/smoke_live_background_automation_ssh.ps1", "scripts/smoke_runtime_evidence_rca_ssh.ps1", "scripts/smoke_tiny_live_loss_rca_ssh.ps1", "scripts/smoke_live_readiness_bundle_ssh.ps1")) {
         Assert-RgMatch -Pattern "Assert-SshHostSafe" -Paths @($script) -Description "$script validates SSH target syntax"
         Assert-RgMatch -Pattern "unsupported characters for ssh target" -Paths @($script) -Description "$script rejects unsafe SSH targets"
     }
@@ -1545,6 +1545,26 @@ try {
         -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-TrailingLimit", "999") `
         -ExpectedPattern "TrailingLimit must be between 1 and 500" `
         -Description "post-deploy issue acceptance wrapper trailing-limit input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_live_background_automation_ssh.ps1" `
+        -Arguments @("-SshHost", "-oProxyCommand=bad", "-SshKey", ".\README.md") `
+        -ExpectedPattern "SshHost contains unsupported characters for ssh target" `
+        -Description "live background automation SSH smoke target input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_runtime_evidence_rca_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Minutes", "1") `
+        -ExpectedPattern "Minutes must be between 60 and 43200" `
+        -Description "runtime evidence RCA SSH smoke query-window input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_tiny_live_loss_rca_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Days", "999") `
+        -ExpectedPattern "Days must be between 1 and 90" `
+        -Description "tiny-live loss RCA SSH smoke query-window input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\smoke_live_readiness_bundle_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-RuntimeEvidenceMinutes", "1") `
+        -ExpectedPattern "RuntimeEvidenceMinutes must be between 60 and 43200" `
+        -Description "live readiness bundle SSH smoke query-window input guard"
     foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90", "ReplayIntervalCode")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
     }

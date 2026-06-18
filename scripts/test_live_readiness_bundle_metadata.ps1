@@ -74,8 +74,8 @@ function Assert-BundleFailureMarkers {
             "read_only_bundle_error=",
             'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]',
             "bundle_verdict=NO_EVIDENCE",
-            "not live-readiness evidence",
-            "no live-readiness evidence was collected"
+            "not complete live-readiness evidence",
+            "full live-readiness evidence was not collected"
         )) {
         if ($bundleText -notmatch [regex]::Escape($pattern)) {
             throw "live readiness bundle missing SSH failure marker: $pattern"
@@ -85,16 +85,18 @@ function Assert-BundleFailureMarkers {
     foreach ($pattern in @(
             "SSH_AUTH_FAILED",
             "SSH_CONNECT_FAILED",
+            "SSH_COMMAND_FAILED",
             "LIVE_READINESS_EVIDENCE_UNAVAILABLE",
             "bundle_verdict=NO_EVIDENCE",
-            "not live-readiness evidence"
+            "not live-readiness evidence",
+            "complete evidence"
         )) {
         if ($handoffText -notmatch [regex]::Escape($pattern)) {
             throw "live readiness handoff docs missing SSH failure marker: $pattern"
         }
     }
 
-    if ($splitStatusPath -and ((Get-Content -Raw -LiteralPath $splitStatusPath) -notmatch "fix SSH access or key selection and rerun")) {
+    if ($splitStatusPath -and ((Get-Content -Raw -LiteralPath $splitStatusPath) -notmatch "fix SSH access, key selection, or the\s+failing read-only smoke and rerun")) {
         throw "split acceptance status must explain SSH access failure next action"
     }
 }

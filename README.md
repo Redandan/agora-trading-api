@@ -248,11 +248,11 @@ It prints `deployment_metadata_status`, `origin_metadata_status`,
 runtime and worktree are separately refreshed and verified against
 `origin/main`. Add `-RequireReady` only when the caller wants `NOT_READY` to
 fail the command.
-If the bundle fails before evidence collection with `SSH_AUTH_FAILED` or
-`SSH_CONNECT_FAILED`, it emits
+If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
+`SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED`, it emits
 `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]` and
-`bundle_verdict=NO_EVIDENCE`; treat that output as an access problem, not
-live-readiness evidence.
+`bundle_verdict=NO_EVIDENCE`; treat that output as an incomplete evidence
+problem, not live-readiness evidence.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.

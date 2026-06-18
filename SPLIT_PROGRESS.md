@@ -257,11 +257,12 @@
   `deployment_metadata_status` and adds `DEPLOYED_RUNTIME_NOT_CURRENT` when
   deployed runtime metadata is missing/unknown or runtime files differ from the
   server worktree, so stale runtime evidence cannot be mistaken for current
-  live-readiness. It also classifies SSH access failures such as
-  `SSH_AUTH_FAILED` and `SSH_CONNECT_FAILED` before evidence collection and
+  live-readiness. It also classifies SSH/read-only command failures such as
+  `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, and `SSH_COMMAND_FAILED` before the
+  full bundle completes and
   emits `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]` plus
-  `bundle_verdict=NO_EVIDENCE`, so a rejected key or connection problem cannot
-  be mistaken for a live blocker result.
+  `bundle_verdict=NO_EVIDENCE`, so rejected keys, connection problems, or a
+  failed child smoke cannot be mistaken for a live blocker result.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

@@ -110,7 +110,8 @@ tmp_file="$BASELINE_FILE.tmp"
   echo "-- Generated from shared database '$EXPECTED_TRADING_DATABASE' on $(date -u +%Y-%m-%dT%H:%M:%SZ)."
   echo "-- Contains only tables mapped by agora-trading-api JPA entities."
   echo "-- Shared marketplace tables are intentionally excluded."
-  echo "-- Do not edit production env or enable Flyway until this file is reviewed."
+  echo "-- Reviewed shared-DB baseline; do not regenerate or change production env from"
+  echo "-- this migration. Future Trading schema changes should be V2__... migrations."
   echo ""
 } > "$tmp_file"
 
@@ -127,4 +128,5 @@ MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD" mysqldump \
 
 mv "$tmp_file" "$BASELINE_FILE"
 ok "wrote baseline DDL for $table_count trading entity tables -> $BASELINE_FILE"
-ok "review baseline before enabling Flyway; do not run extra-table cleanup in shared DB mode"
+ok "wrote reviewed shared-DB baseline header; add future Trading schema changes as V2__ migrations"
+ok "do not run extra-table cleanup in shared DB mode"

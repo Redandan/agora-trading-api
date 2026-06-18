@@ -31,6 +31,8 @@ Treat live as blocked while any of these are true:
 - Signal correctness is unresolved: `smoke_signal_correctness_ssh.ps1` reports
   `REVIEW_POLICY_GAPS` or unresolved governance drift / missed-opportunity
   evidence that has not been documented for operator review.
+- The live-readiness bundle reports `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`, including
+  runtime ERROR lines from Telegram-send or scheduler paths.
 - Runtime logs show unexpected order, OCO, grid, Earn, fund, Telegram, scheduler,
   or external provider activity.
 

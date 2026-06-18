@@ -85,6 +85,16 @@ $evidenceOnlyExpectedResults = @(
     'Runtime logs remain free of order placement, OCO modification, live exchange\s+writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler\s+execution, external backfill/import, and DB mutation'
 )
 
+$latestSnapshotMarkers = @(
+    'observedAt=2026-06-18T22:50\+08:00',
+    'originMainCommit=b377be8e53d7908cfe57de2919fbd5136d6bb330',
+    'runtimeLog=FAIL',
+    'runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN',
+    'TelegramServiceImpl',
+    'ExecutionEventScheduler',
+    'RUNTIME_HEALTH_OR_LOG_NOT_CLEAN'
+)
+
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",
         "smoke_live_background_automation_ssh.ps1",
@@ -114,6 +124,10 @@ foreach ($pattern in $evidenceOnlyExpectedResults) {
     Assert-Contains -Name "evidence-only expected result" -Text $proposalText -Pattern $pattern
 }
 
+foreach ($pattern in $latestSnapshotMarkers) {
+    Assert-Contains -Name "latest live-readiness snapshot marker" -Text $proposalText -Pattern $pattern
+}
+
 foreach ($pattern in @(
         'DEPLOYED_RUNTIME_NOT_CURRENT',
         'LIVE_READINESS_EVIDENCE_UNAVAILABLE',
@@ -137,6 +151,7 @@ foreach ($pattern in @(
 }
 
 Assert-Contains -Name "post-authorization bundle blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`DEPLOYED_RUNTIME_NOT_CURRENT`'
+Assert-Contains -Name "post-authorization runtime health blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`'
 Assert-Contains -Name "post-authorization no-evidence blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`'
 Assert-Contains -Name "post-authorization no-evidence verdict expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`bundle_verdict=NO_EVIDENCE`'
 

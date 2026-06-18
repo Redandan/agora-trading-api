@@ -27,6 +27,7 @@ The current server evidence keeps live blocked while these remain true:
 - `bundle_verdict=NO_EVIDENCE`
 - `LIVE_READINESS_EVIDENCE_UNAVAILABLE`
 - `verdict=NOT_READY`
+- `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`
 - `diagnosis=CONFIG_DISABLED`
 - `shadowIntentCount=0`
 - `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`
@@ -38,26 +39,30 @@ The current server evidence keeps live blocked while these remain true:
 Latest read-only bundle snapshot:
 
 ```text
-observedAt=2026-06-18T18:51+08:00
+observedAt=2026-06-18T22:50+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployment_metadata_status=CURRENT
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
-originMainCommit=5553fff7bd278d3338f28cee09a145531d7afd59
+originMainCommit=b377be8e53d7908cfe57de2919fbd5136d6bb330
 health=UP
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
-runtimeLog=PASS
+runtimeLog=FAIL
+runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN
+runtimeLogErrors=TelegramServiceImpl send Telegram keyboard failed; ExecutionEventScheduler scheduled scan failed
 orderCapableFlags=false
 dryRunFlags=true
-bundle_blockers=["LIVE_READINESS_NOT_READY","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","SIGNAL_POLICY_REVIEW_GAPS","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","DEPLOYED_RUNTIME_NOT_CURRENT"]
+bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","DEPLOYED_RUNTIME_NOT_CURRENT"]
 bundle_verdict=NOT_READY
 ```
 
 Because this snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is stale
 live-review evidence only. It is also reclassified by the current local blocker
 rules because the observed signal smoke had unresolved governance drift
-(`governanceMode=TOO_STRICT`). A future operator review must first refresh the
+(`governanceMode=TOO_STRICT`) and the active runtime log smoke failed on
+Telegram-send errors from `TelegramServiceImpl` and
+`ExecutionEventScheduler`. A future operator review must first refresh the
 server worktree/runtime to `origin/main` through a separately authorized deploy,
-then rerun the full live-readiness bundle and attach the current output.
+clear or separately explain the runtime log blocker, then rerun the full live-readiness bundle and attach the current output.
 If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.
@@ -159,6 +164,8 @@ Expected evidence-only result:
   `bundle_verdict=NO_EVIDENCE`.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports
   `DEPLOYED_RUNTIME_NOT_CURRENT`.
+- `smoke_live_readiness_bundle_ssh.ps1` no longer reports
+  `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`.
 - Runtime logs remain free of order placement, OCO modification, live exchange
   writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler
   execution, external backfill/import, and DB mutation.

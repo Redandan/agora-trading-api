@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,9 +33,12 @@ class TrailingStopSchemaBaselineTest {
         assertThat(migrations).containsExactly("V1__baseline.sql");
 
         String baseline = readBaseline();
-        assertThat(baseline).doesNotContain("DROP TABLE");
-        assertThat(baseline).doesNotContain("CREATE TABLE `flyway_schema_history`");
-        assertThat(baseline).doesNotContain("CREATE TABLE `trading_flyway_schema_history`");
+        String normalizedBaseline = baseline.toLowerCase(Locale.ROOT);
+        assertThat(normalizedBaseline).doesNotContain("drop table");
+        assertThat(normalizedBaseline).doesNotContain("drop database");
+        assertThat(normalizedBaseline).doesNotContain("truncate table");
+        assertThat(normalizedBaseline).doesNotContain("create table `flyway_schema_history`");
+        assertThat(normalizedBaseline).doesNotContain("create table `trading_flyway_schema_history`");
     }
 
     @Test

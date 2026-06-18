@@ -92,7 +92,7 @@ if ($SkipSplitAcceptance) {
 if (-not $SkipSplitAcceptance) {
     Write-Host ""
     Write-Host "[issue-acceptance] split acceptance"
-    & $splitAcceptance -SshHost $SshHost -SshKey $SshKey -TradingAppDir $TradingAppDir
+    & $splitAcceptance -SshHost $SshHost -SshKey $SshKey -TradingAppDir $TradingAppDir -EnvFile $EnvFile
 }
 
 Write-Host ""

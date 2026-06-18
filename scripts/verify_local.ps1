@@ -1419,8 +1419,12 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-McpSmokeTokenSafe")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper validates remote shell embedded inputs $pattern"
     }
+    Assert-RgMatch -Pattern 'splitAcceptance .* -EnvFile \$EnvFile' -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper passes the selected env file into split acceptance"
     Assert-RgMatch -Pattern "Assert-RemotePathSafe" -Paths @("scripts/verify_split_acceptance_ssh.ps1") -Description "split acceptance verifier validates remote shell embedded paths"
-    foreach ($pattern in @("Assert-RemotePathSafe", "Assert-PublicHttpsUrlSafe", "agoratradingapi\.purrtechllc\.com", "agoramarketapi\.purrtechllc\.com")) {
+    foreach ($pattern in @("EnvFile", "Assert-RemotePathSafe.*EnvFile", 'EnvFile = \$EnvFile')) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_split_acceptance_ssh.ps1") -Description "split acceptance verifier carries the selected env file into server verification $pattern"
+    }
+    foreach ($pattern in @("EnvFile", "Assert-RemotePathSafe.*EnvFile", 'ENV_FILE=''\$EnvFile''', "Assert-RemotePathSafe", "Assert-PublicHttpsUrlSafe", "agoratradingapi\.purrtechllc\.com", "agoramarketapi\.purrtechllc\.com")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_server_ssh.ps1") -Description "server SSH verifier validates remote shell embedded paths and public URLs $pattern"
     }
     Assert-RgMatch -Pattern "dedicated-host health plus public MCP blocked checks" -Paths @("docs/split-acceptance-status.md") -Description "split acceptance handoff describes public MCP as a blocked-route check"

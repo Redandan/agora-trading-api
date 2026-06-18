@@ -2,6 +2,7 @@ param(
     [string]$SshHost = $env:AGORA_SSH_HOST,
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [string]$TradingAppDir = "/home/ubuntu/agora-trading-api",
+    [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
     [string]$AgoraMarketApiToolsDir = "C:\Users\Redan\IdeaProjects\AgoraMarketAPI\tools\codex",
     [string]$PublicTradingHealthUrl = "https://agoratradingapi.purrtechllc.com/api/actuator/health",
     [string]$PublicTradingMcpBlockedUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
@@ -32,12 +33,14 @@ function Assert-RemotePathSafe {
 }
 
 Assert-RemotePathSafe -Name "TradingAppDir" -Value $TradingAppDir
+Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 
 Write-Host "[split-acceptance] trading server verification"
 $serverArgs = @{
     SshHost = $SshHost
     SshKey = $SshKey
     AppDir = $TradingAppDir
+    EnvFile = $EnvFile
     PublicTradingHealthUrl = $PublicTradingHealthUrl
     PublicTradingMcpBlockedUrl = $PublicTradingMcpBlockedUrl
     PublicTradingContextMcpBlockedUrl = $PublicTradingContextMcpBlockedUrl

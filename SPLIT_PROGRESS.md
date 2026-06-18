@@ -166,9 +166,11 @@
   the live-readiness `risk_hard_stop` / consecutive tiny-live loss blocker. It
   calls server-local `/api/mcp` to summarize tiny-live execution readiness,
   auto-approval blockers, recent tiny-live audit rows, autonomous execution
-  attribution, missed-opportunity context, and monitor/rollout state without
-  changing production env, DB, order, OCO, grid, Earn, fund, Telegram, or live
-  scheduler state.
+  attribution, missed-opportunity context, and monitor/rollout state over the
+  policy-aligned default 30-day window. It prints `hardStopClearCriteria` and
+  rollout gates such as `completedTinyLiveSamples`, `falsePositiveCount`,
+  `canEnableProduction`, and `canIncreaseDailyCap` without changing production
+  env, DB, order, OCO, grid, Earn, fund, Telegram, or live scheduler state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

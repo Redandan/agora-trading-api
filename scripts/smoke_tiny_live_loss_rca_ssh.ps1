@@ -6,7 +6,7 @@ param(
     [string]$Symbol = "BTCUSDT",
     [long]$StrategyId = 574,
     [string]$Side = "LONG",
-    [int]$Days = 14
+    [int]$Days = 30
 )
 
 Set-StrictMode -Version Latest
@@ -203,9 +203,13 @@ print(f"  hardStopDetected={str(hard_stop_detected).lower()}")
 print(f"  autoApprovalEligible={field(r'autoApprovalEligible=([^\n]+)', readiness)}")
 print(f"  autoApprovalMode={field(r'autoApprovalMode=([^\n]+)', readiness)}")
 print(f"  autoApprovalBlockers={compact(field(r'autoApprovalBlockers=([^\n]+)', readiness))}")
+print(f"  missedAlphaBudgetRemaining={field(r'missedAlphaBudgetRemaining=([^\n]+)', auto_approval)}")
+print(f"  maxLossIfWrongUsdt={field(r'maxLossIfWrongUsdt=([^\n]+)', auto_approval)}")
+print(f"  allowedMistakeBudgetUsed={field(r'allowedMistakeBudgetUsed=([^\n]+)', auto_approval)}")
 print(f"  triggerEnabled={field(r'triggerEnabled=([^\n]+)', trigger)} triggerDryRun={field(r'triggerDryRun=([^\n]+)', trigger)}")
 print(f"  executionEligible={field(r'executionEligible=([^\n]+)', trigger)} wouldExecute={field(r'wouldExecute=([^\n]+)', trigger)}")
 print(f"  terminalBlockers={compact(field(r'terminalBlockers=([^\n]+)', trigger))}")
+print("  hardStopClearCriteria=maxConsecutiveTinyLiveLosses<2, current BUY candidate present, runtime evidence available, execution flags separately authorized")
 
 print("")
 print("Recent Tiny-Live Audit:")
@@ -215,6 +219,17 @@ print(f"  successfulOcoAttachRate={field(r'successfulOcoAttachRate=([^\n]+)', at
 print(f"  OCOProtectionEffectiveness={field(r'OCOProtectionEffectiveness=([^\n]+)', attribution)}")
 latest_line = next((line for line in executions.splitlines() if re.match(r'\d+\. #', line)), "N/A")
 print(f"  latestExecutionAudit={compact(latest_line)}")
+
+print("")
+print("Rollout Gates:")
+print(f"  loopState={field(r'loopState=([^\n]+)', rollout)}")
+print(f"  consecutiveReadyTicks={field(r'consecutiveReadyTicks=([^\n]+)', rollout)}")
+print(f"  completedTinyLiveSamples={field(r'completedTinyLiveSamples=([^\n]+)', rollout)}")
+print(f"  falsePositiveCount={field(r'falsePositiveCount=([^\n]+)', rollout)}")
+print(f"  dailyLossBudgetBreached={field(r'dailyLossBudgetBreached=([^\n]+)', rollout)}")
+print(f"  canEnableProduction={field(r'canEnableProduction=([^\n]+)', rollout)}")
+print(f"  canIncreaseDailyCap={field(r'canIncreaseDailyCap=([^\n]+)', rollout)}")
+print(f"  rolloutBlockers={compact(field(r'blockers=([^\n]+)', rollout), 360)}")
 
 print("")
 print("Opportunity/No-Buy Context:")

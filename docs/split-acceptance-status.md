@@ -160,8 +160,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1` to summarize tiny-live
   execution readiness, auto-approval blockers, recent tiny-live audit rows,
   autonomous execution attribution, missed-opportunity context, and
-  monitor/rollout state through server-local `/api/mcp`. This is RCA evidence
-  only; it must not be treated as permission to enable live flags.
+  monitor/rollout state through server-local `/api/mcp`. The default 30-day
+  window matches the auto-approval consecutive-loss guard, and the output
+  includes `hardStopClearCriteria` plus rollout gates such as
+  `completedTinyLiveSamples`, `falsePositiveCount`, `canEnableProduction`, and
+  `canIncreaseDailyCap`. This is RCA evidence only; it must not be treated as
+  permission to enable live flags.
 - Reusable MCP parity now has both local and SSH coverage paths. Local
   `smoke_local_health.ps1` invokes `smoke_mcp_parity.ps1`; deployed issue
   acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.

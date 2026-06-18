@@ -566,7 +566,13 @@ Expected:
 - The script calls server-local `/api/mcp`, not public Trading MCP.
 - It prints `hardStopDetected`, auto-approval blockers, trigger/dry-run state,
   recent tiny-live execution audit summary, autonomous execution attribution,
-  missed-opportunity context, and monitor/rollout excerpts.
+  missed-opportunity context, rollout gates, and monitor/rollout excerpts. The
+  default 30-day window matches the consecutive-loss guard used by the
+  auto-approval policy.
+- It prints `hardStopClearCriteria` so review stays tied to the policy gate:
+  consecutive tiny-live losses below 2, a current BUY candidate, runtime
+  evidence available, and any execution flag change handled by a separately
+  authorized env plan.
 - It requires read-only/no-order markers from the called MCP surfaces.
 - It may report `hardStopDetected=false` after the blocker is legitimately
   cleared; that is not live approval. Re-run the full live-readiness audit and

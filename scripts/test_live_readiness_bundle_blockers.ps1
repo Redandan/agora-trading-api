@@ -94,6 +94,25 @@ function Assert-BundleScriptBlockersCovered {
     }
 }
 
+function Assert-RemediationDocBlockersCovered {
+    param([string[]]$ExpectedBlockers)
+
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
+    $docText = Get-Content -Raw -LiteralPath $docPath
+    $docBlockers = @(
+        [regex]::Matches($docText, '^\| `([A-Z0-9_]+)` \|', [System.Text.RegularExpressions.RegexOptions]::Multiline) |
+            ForEach-Object { $_.Groups[1].Value } |
+            Sort-Object -Unique
+    )
+    $expected = @($ExpectedBlockers | Sort-Object -Unique)
+    $docTextValue = $docBlockers -join ","
+    $expectedText = $expected -join ","
+    if ($docTextValue -ne $expectedText) {
+        throw "remediation doc blockers [$docTextValue] differ from bundle blockers [$expectedText]"
+    }
+}
+
 $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
@@ -106,6 +125,7 @@ $allExpectedBlockers = @(
 )
 
 Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
+Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
 
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"

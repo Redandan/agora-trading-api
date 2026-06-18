@@ -172,7 +172,8 @@ schedulers and the internal exchange-rate API available.
    issue-closure evidence, use
    `scripts/verify_post_deploy_issue_acceptance_ssh.ps1 -RequireTrailingAcceptance`
    after an explicitly authorized deploy; verify public dedicated `/api/mcp`
-   and shared `/api/trading/mcp` are blocked.
+   and shared `/api/trading/mcp` are blocked. `-SkipSplitAcceptance` is diagnostic-only
+   and must not be used as #1/#2/#3 closure evidence.
 5. Add a low-risk disable switch in AgoraMarketAPI for legacy trading HTTP/MCP
    and `com.agora.scheduler.trading` only.
 6. Leave AgoraMarketAPI marketplace, user connector, wallet, seller, support,

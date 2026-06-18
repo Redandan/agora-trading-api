@@ -75,6 +75,16 @@ $rollbackCriteria = @(
     '`audit_live_readiness_ssh\.ps1` reports new blockers outside the planned\s+evidence collection scope'
 )
 
+$evidenceOnlyExpectedResults = @(
+    '`order_capable_flags` remain false',
+    'order_capable_flags_true=\[\]',
+    'high_risk_background_automation_true=\[\]',
+    'smoke_runtime_evidence_rca_ssh\.ps1` no longer reports `CONFIG_DISABLED`',
+    'shadowIntentCount` becomes greater than 0',
+    'orderSentEvidence=0',
+    'Runtime logs remain free of order placement, OCO modification, live exchange\s+writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler\s+execution, external backfill/import, and DB mutation'
+)
+
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",
         "smoke_live_background_automation_ssh.ps1",
@@ -98,6 +108,10 @@ foreach ($flag in $backgroundAutomationReviewFlags) {
 
 foreach ($pattern in $rollbackCriteria) {
     Assert-Contains -Name "rollback criteria" -Text $proposalText -Pattern $pattern
+}
+
+foreach ($pattern in $evidenceOnlyExpectedResults) {
+    Assert-Contains -Name "evidence-only expected result" -Text $proposalText -Pattern $pattern
 }
 
 foreach ($pattern in @(
@@ -125,6 +139,5 @@ foreach ($pattern in @(
 Assert-Contains -Name "post-authorization bundle blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`DEPLOYED_RUNTIME_NOT_CURRENT`'
 Assert-Contains -Name "post-authorization no-evidence blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`'
 Assert-Contains -Name "post-authorization no-evidence verdict expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`bundle_verdict=NO_EVIDENCE`'
-Assert-Contains -Name "post-authorization order-capable true-list expectation" -Text $proposalText -Pattern 'order_capable_flags_true=\[\]'
 
 Write-Host "[live-production-env-review-plan-test] OK"

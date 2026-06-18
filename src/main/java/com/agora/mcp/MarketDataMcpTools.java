@@ -717,7 +717,8 @@ public class MarketDataMcpTools {
         try {
             records = signalVerificationRepository.findSince(since);
         } catch (Exception e) {
-            return "⚠️ 查詢失敗：" + e.getMessage();
+            return "mode=READ_ONLY | no signal/order/OCO/strategy/grid/fund/Earn/Telegram behavior changed.\n"
+                    + "⚠️ 查詢失敗：" + e.getMessage();
         }
 
         return buildSignalAccuracyReport(d, records);
@@ -727,6 +728,7 @@ public class MarketDataMcpTools {
                                             List<com.agora.model.SignalOutcomeVerification> records) {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("=== 信號正確率報告（近 %d 天）===\n\n", days));
+        sb.append("mode=READ_ONLY | no signal/order/OCO/strategy/grid/fund/Earn/Telegram behavior changed.\n");
         sb.append("看對=TP觸發 看錯=SL觸發 再觀察=未觸發；finalized=看對+看錯\n");
         sb.append("樣本數 guard：finalized < 30 時只能做內部觀察，不應作公開/付費信號績效宣稱。\n\n");
 

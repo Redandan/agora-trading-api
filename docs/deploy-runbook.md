@@ -527,6 +527,27 @@ Expected:
 - The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 
+For a read-only live-readiness audit before any explicit live enablement, run:
+
+```powershell
+.\scripts\audit_live_readiness_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- Secret values are never printed; exchange, Telegram, and MCP keys are shown
+  only as `SET` or `EMPTY`.
+- Output includes order-capable flags, dry-run flags, background automation
+  warnings, runtime-log smoke, blockers, and a final verdict.
+- `verdict=NOT_READY` means do not enable live yet; address the listed blockers
+  or intentionally narrow the planned live scope first.
+- `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is not live enablement.
+  It only means the operator can review a separate, explicitly authorized env
+  change plan.
+- The audit must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
+  state.
+
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:
 

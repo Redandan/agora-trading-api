@@ -155,6 +155,18 @@ event-risk-control issue handoffs:
 .\scripts\smoke_guardrail_acceptance_ssh.ps1
 ```
 
+Read-only live-readiness audit before any explicit live enablement:
+
+```powershell
+.\scripts\audit_live_readiness_ssh.ps1
+```
+
+This prints masked server env status, order-capable flags, dry-run flags,
+server-local MCP readiness surfaces, runtime-log smoke, warnings, blockers, and
+a final verdict. `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` means the
+operator may review a separately authorized live-change plan; the script never
+changes production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
+
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary
 and operator-control markers without changing order/OCO/strategy/grid/fund/Earn

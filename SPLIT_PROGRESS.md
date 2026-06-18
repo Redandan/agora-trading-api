@@ -155,6 +155,12 @@
   staged-add would allow no groups or dedup-too-coarse suspects are absent. It
   now also prints row-level no-buy classifications, blocker-family breakdowns,
   and high-return no-buy strategy distribution for safer next-action triage.
+- `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
+  audit before any explicitly authorized live enablement. It masks secrets,
+  reports order-capable flags, dry-run flags, background automation warnings,
+  server-local MCP readiness surfaces, runtime-log smoke, blockers, and a final
+  verdict without changing production env, DB, order, OCO, grid, Earn, fund, or
+  Telegram state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

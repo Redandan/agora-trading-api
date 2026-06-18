@@ -1425,7 +1425,10 @@ try {
     foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "read-only production MCP check", "missing no-missed-evaluation/no-missed-order marker", "sys.exit\(1\)", "OK read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal correctness SSH smoke keeps executable read-only MCP marker $pattern"
     }
-    foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1")) {
+    foreach ($pattern in @("read-only server audit", "order_capable_flags", "dry_run_flags", "secret_presence", "runtime_log_status", "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY", "getTinyLiveAutoExecutionTriggerStatus", "getScoreBuyPrePositionAutoExecutionStatus", "getScoreBuyConfirmedDeployAutoExecutionStatus", "getScoreBuyPostScoutAutoAddStatus", "getTrailingStopStatus", "getGuardianSnapshot")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/audit_live_readiness_ssh.ps1") -Description "live readiness audit keeps read-only blocker/verdict marker $pattern"
+    }
+    foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1")) {
         Assert-RgMatch -Pattern "http://127\.0\.0\.1:\{os\.environ\['PORT'\]\}/api/mcp" -Paths @($script) -Description "$script uses server-local /api/mcp"
         Assert-RgMatch -Pattern "TRADING_MCP_KEY" -Paths @($script) -Description "$script reads the server-local MCP key"
         Assert-RgMatch -Pattern "Assert-RemotePathSafe" -Paths @($script) -Description "$script validates remote shell embedded paths"
@@ -1461,7 +1464,7 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-RemoteRelativePathSafe", "Assert-GitBranchSafe", "PollSeconds must be at most 60", "TimeoutSeconds must be between 60 and 3600")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/deploy_ssh.ps1") -Description "deploy SSH wrapper validates remote shell embedded inputs and polling bounds $pattern"
     }
-    foreach ($script in @("scripts/deploy_ssh.ps1", "scripts/verify_server_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1", "scripts/verify_post_deploy_issue_acceptance_ssh.ps1", "scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1")) {
+    foreach ($script in @("scripts/deploy_ssh.ps1", "scripts/verify_server_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1", "scripts/verify_post_deploy_issue_acceptance_ssh.ps1", "scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1")) {
         Assert-RgMatch -Pattern "Assert-SshHostSafe" -Paths @($script) -Description "$script validates SSH target syntax"
         Assert-RgMatch -Pattern "unsupported characters for ssh target" -Paths @($script) -Description "$script rejects unsafe SSH targets"
     }
@@ -1506,6 +1509,11 @@ try {
         -ExpectedPattern "Days must be between 1 and 90" `
         -Description "trailing replay SSH smoke query-window input guard"
     Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\audit_live_readiness_ssh.ps1" `
+        -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Symbol", "BTCUSDT';echo bad") `
+        -ExpectedPattern "Symbol contains unsupported characters" `
+        -Description "live readiness SSH audit symbol input guard"
+    Assert-PowerShellScriptFailsBeforeSsh `
         -ScriptRelativePath "scripts\verify_post_deploy_issue_acceptance_ssh.ps1" `
         -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-TrailingLimit", "999") `
         -ExpectedPattern "TrailingLimit must be between 1 and 500" `
@@ -1531,7 +1539,7 @@ try {
     Assert-RgMatch -Pattern "CLOSURE_READY OK" -Paths @("SPLIT_PROGRESS.md") -Description "split progress records the current full closure marker"
     Assert-RgMatch -Pattern "full closure mode only: split acceptance, no-review-gaps guardrail smoke" -Paths @("SPLIT_PROGRESS.md") -Description "split progress records the split and guardrail closure prerequisites"
     Assert-RgMatch -Pattern "signal-correctness smoke, and hard trailing replay acceptance must all pass" -Paths @("SPLIT_PROGRESS.md") -Description "split progress records the signal and trailing closure prerequisites"
-    foreach ($pattern in @("If ``-EnvFile`` is overridden", "one consistent runtime configuration", "server verification, split acceptance, and every server-local MCP smoke")) {
+    foreach ($pattern in @("If ``-EnvFile`` is overridden", "one consistent runtime configuration", "server verification, split acceptance, and every server-local MCP smoke", "audit_live_readiness_ssh.ps1")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs explain EnvFile propagation across acceptance wrappers $pattern"
     }
     foreach ($pattern in @("Windows SSH wrappers validate .SshHost. locally", "unsupported SSH target syntax|option-like targets")) {

@@ -30,6 +30,8 @@ The current server evidence keeps live blocked while these remain true:
 - `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`
 - `verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW`
 - `HIGH_RISK_BACKGROUND_AUTOMATION_TRUE`
+- `REVIEW_POLICY_GAPS` or unresolved signal correctness / governance drift
+  findings from `smoke_signal_correctness_ssh.ps1`
 
 Latest read-only bundle snapshot:
 

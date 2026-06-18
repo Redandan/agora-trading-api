@@ -4,7 +4,7 @@ This plan is a read-only/operator-review checklist for moving from the current
 `NOT_READY` live-readiness state toward enough evidence to draft a later live
 enablement proposal. It is not authorization to change production env, enable
 live trading, place orders, enable schedulers, send Telegram, mutate DB state,
-or run external backfill/import jobs.
+or run external backfill/import jobs. This is not live approval.
 
 Use it only after the current read-only checks have been run:
 
@@ -28,6 +28,9 @@ Treat live as blocked while any of these are true:
   `runtimeEvidenceStatus=NOT_READY_*`.
 - `shadowIntentCount` is 0 for the reviewed window.
 - `orderSentEvidence` is not 0 during the evidence-only phase.
+- Signal correctness is unresolved: `smoke_signal_correctness_ssh.ps1` reports
+  `REVIEW_POLICY_GAPS` or unresolved governance drift / missed-opportunity
+  evidence that has not been documented for operator review.
 - Runtime logs show unexpected order, OCO, grid, Earn, fund, Telegram, scheduler,
   or external provider activity.
 

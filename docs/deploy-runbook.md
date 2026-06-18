@@ -495,11 +495,18 @@ Expected:
   Do not treat high EntryDedup/DataFreshness false-block rates as permission to
   relax live execution: EntryDedup relaxation remains not live-ready when
   `wouldAllowStagedAddGroups=0` or `dedupTooCoarseSuspects=0`.
+- Governance drift output is live-review evidence only. A `TOO_STRICT` result
+  or other drift finding must be paired with missed-opportunity evidence and an
+  explicit shadow/tiny-live review plan before any policy relaxation is
+  discussed.
 - The smoke prints no-buy row classifications, top blocker families, row-level
   next actions, high-return no-buy strategy distribution, and EntryDedup group
   blocker families so operators can decide whether the next safe step is data
   freshness repair, runtime-evidence coverage, threshold observation, or an
   explicitly approved tiny-live/shadow experiment.
+- The smoke calls `getNoBuyReasonTruthTable` and prints a
+  `No-Buy Reason Truth Table` summary so policy review can compare the current
+  no-buy explanations against the missed-opportunity and EntryDedup evidence.
 - The script only calls read-only MCP tools and must not change
   order/OCO/strategy/grid/fund/Earn state.
 

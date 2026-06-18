@@ -210,6 +210,7 @@ relaxation = call_tool("findGovernanceRelaxationCandidates", {"symbol": symbol, 
 tightening = call_tool("findGovernanceTighteningCandidates", {"symbol": symbol, "days": blocked_days, "labelHorizon": "24h"}, timeout=120)
 entry_dedup = call_tool("getEntryDedupGovernanceDashboard", {"symbol": symbol, "hours": blocked_days * 24}, timeout=120)
 missed_opportunities = call_tool("getMissedOpportunityRegressionReport", {"symbol": symbol, "hours": blocked_days * 24}, timeout=120)
+truth_table = call_tool("getNoBuyReasonTruthTable", {"symbol": symbol, "hours": blocked_days * 24, "limit": 20}, timeout=120)
 
 require("verifyStrategyExecution read-only marker", r"READ_ONLY|no external import/backfill", execution)
 require("blocked signal outcomes read-only marker", r"mode=READ_ONLY", blocked)
@@ -229,9 +230,12 @@ require("missed opportunity regression read-only boundary", r'"boundary"\s*:\s*"
 require("missed opportunity regression no order send marker", r'"orderSent"\s*:\s*false', missed_opportunities)
 require("missed opportunity regression no OCO modification marker", r'"ocoModified"\s*:\s*false', missed_opportunities)
 require("missed opportunity regression no runtime evidence writes marker", r'"writesRuntimeEvidence"\s*:\s*false', missed_opportunities)
+require("no-buy reason truth table read-only boundary", r'"boundary"\s*:\s*"READ_ONLY', truth_table)
+require("no-buy reason truth table no order send marker", r'"orderSent"\s*:\s*false', truth_table)
 
 entry_dedup_json = parse_json_object(entry_dedup)
 missed_json = parse_json_object(missed_opportunities)
+truth_json = parse_json_object(truth_table)
 
 execution_ok = contains_any(execution, [r"未發現漏評估/漏單 Bug", r"no missing evaluation", r"no missed order"])
 blocked_total = find(r"分析\s+(\d+)\s+筆", blocked)
@@ -264,6 +268,7 @@ missed_staged_allow = json_field(missed_json, "genericStagedAddWouldAllowGroups"
 missed_high_return = json_field(missed_json, "highForwardReturnNoBuyCount", find(r"highForwardReturnNoBuyCount=(\d+)", missed_opportunities))
 missed_recommended_fix = json_field(missed_json, "recommendedFix", find(r"recommendedFix=(.*)", missed_opportunities))
 missed_rows = list_value(missed_json, "rows")
+truth_rows = list_value(truth_json, "rows")
 high_return_examples = list_value(missed_json, "highForwardReturnNoBuyExamples")
 entry_groups = list_value(entry_dedup_json, "groups")
 
@@ -290,12 +295,23 @@ for row in missed_rows:
 
 high_return_strategy_counts = Counter()
 high_return_blocker_counts = Counter()
+truth_class_counts = Counter()
+truth_blocker_families = Counter()
 for example in high_return_examples:
     if not isinstance(example, dict):
         continue
     high_return_strategy_counts[str(example.get("strategyId", "UNKNOWN"))] += 1
     reason = first_non_empty(example.get("terminalBlocker"), example.get("blockerReason"), example.get("selectedAction"))
     high_return_blocker_counts[blocker_family(reason)] += 1
+
+for row in truth_rows:
+    if not isinstance(row, dict):
+        continue
+    truth_class_counts[str(row.get("classification", "UNKNOWN"))] += 1
+    blockers = row.get("blockers") if isinstance(row.get("blockers"), list) else []
+    evidence = row.get("evidence") if isinstance(row.get("evidence"), dict) else {}
+    top_blocker = first_non_empty(blockers[0] if blockers else None, evidence.get("primaryNoBuyReason"))
+    truth_blocker_families[blocker_family(top_blocker)] += 1
 
 entry_group_blockers = Counter()
 for group in entry_groups:
@@ -360,6 +376,13 @@ if high_return_examples:
     print("  blockerFamilies=" + ", ".join(f"{name}:{count}" for name, count in top_items(high_return_blocker_counts)))
 else:
     print("  examples=none")
+print("")
+print("No-Buy Reason Truth Table:")
+if truth_rows:
+    print("  classifications=" + ", ".join(f"{name}:{count}" for name, count in top_items(truth_class_counts)))
+    print("  blockerFamilies=" + ", ".join(f"{name}:{count}" for name, count in top_items(truth_blocker_families)))
+else:
+    print("  rows=none")
 print("")
 print("EntryDedup Group Blockers:")
 if entry_group_blockers:

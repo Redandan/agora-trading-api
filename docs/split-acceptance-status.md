@@ -153,7 +153,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     `https://agoramarketapi.purrtechllc.com`
   - public health passed through
     `https://agoratradingapi.purrtechllc.com/api/actuator/health`
-  - local MCP `getMcpRegistryVersion` passed at `/api/trading/mcp`
+  - MCP registry check passed through the then-current legacy context path
+    `/api/trading/mcp`
   - historical public dedicated-host MCP `tools/list` passed at
     `https://agoratradingapi.purrtechllc.com/api/mcp` with 304 tools,
     representative Trading tools present, and marketplace `updateCartItem`
@@ -188,8 +189,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
     `tools/codex/check-live-mcp-split-ownership.ps1`: AgoraMarketAPI
     `/api/mcp` exposed 153 marketplace/system/internal tools with
     representative legacy Trading tools absent, while `agora-trading-api`
-    `/api/trading/mcp` exposed 304 tools with representative Trading tools
-    present
+    exposed 304 tools with representative Trading tools present through the
+    then-current legacy context path `/api/trading/mcp`
   - 2026-06-15 nginx host alias smoke passed for the dedicated Trading host:
     `https://agoratradingapi.purrtechllc.com/api/actuator/health` returned
     `UP`, and `POST https://agoratradingapi.purrtechllc.com/api/mcp`

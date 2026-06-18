@@ -209,7 +209,8 @@ Trading deployment prep:
   recorded in `app.port`.
 - 2026-06-13 post-deploy verification passed: server worktree matched
   `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
-  `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
+  MCP registry check passed through the then-current legacy context path
+  `/api/trading/mcp`, AgoraMarket dependency
   health passed through the stable AgoraMarketAPI nginx vhost, public trading health passed through nginx,
   and nginx service was active.
 - 2026-06-13 shared-mode schema compare passed through
@@ -218,8 +219,8 @@ Trading deployment prep:
   mappings, 175 database tables, 0 missing trading tables, 136 extra
   marketplace/shared tables expected in shared DB mode.
 - 2026-06-13 production MCP parity passed on the active service:
-  `/api/trading/mcp` registered 303 tools and included the 21 representative
-  trading tools checked by the parity smoke.
+  the then-current legacy context path `/api/trading/mcp` registered 303 tools
+  and included the 21 representative trading tools checked by the parity smoke.
 - 2026-06-13 read-only validate smoke showed schema validation can start after
   aligning `market_indicator_history.error_flag` mapping with MySQL
   `tinyint(1)`/Boolean semantics.
@@ -239,7 +240,8 @@ Trading deployment prep:
   `https://agoramarketapi.purrtechllc.com`.
 - 2026-06-14 post-deploy verification passed: server worktree matched
   `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
-  `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
+  MCP registry check passed through the then-current legacy context path
+  `/api/trading/mcp`, AgoraMarket dependency
   health passed through the stable AgoraMarketAPI nginx vhost, public trading
   health passed through nginx, and nginx service was active.
 - 2026-06-14 verifier/docs updates advanced the server worktree beyond the
@@ -263,7 +265,8 @@ Trading deployment prep:
   `AGORA_MARKET_BASE_URL` on the stable AgoraMarketAPI nginx vhost.
 - 2026-06-14 post-alias verification passed: server worktree matched
   `origin/main`, deployed `app.commit` matched `HEAD`, local health passed,
-  `/api/trading/mcp` `getMcpRegistryVersion` passed, AgoraMarket dependency
+  MCP registry check passed through the then-current legacy context path
+  `/api/trading/mcp`, AgoraMarket dependency
   health passed, public trading health passed through nginx, schema compare
   passed in shared mode, post-ready WARN/ERROR counts were 0, and direct
   production smoke confirmed the read-only `listSchedulerTasks` compatibility
@@ -285,8 +288,8 @@ Trading deployment prep:
   `AgoraMarketAPI/tools/codex/check-live-mcp-split-ownership.ps1`:
   AgoraMarketAPI `/api/mcp` exposed 153 marketplace/system/internal tools with
   representative legacy Trading tools absent, while `agora-trading-api`
-  `/api/trading/mcp` exposed 304 tools with representative Trading tools
-  present.
+  exposed 304 tools with representative Trading tools present through the
+  then-current legacy context path `/api/trading/mcp`.
 - 2026-06-15 nginx added the dedicated Trading API host
   `https://agoratradingapi.purrtechllc.com/api`, mapping public `/api/*` to the
   standalone service's `/api/trading/*` paths on the active port. Smoke showed

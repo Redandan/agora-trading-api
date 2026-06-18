@@ -48,7 +48,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 
 - The current local handoff batch is not deployed evidence until it is pushed,
   deployed, and verified on the server. Local verification on 2026-06-18 passed
-  through commit `4e2edc2` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
+  through commit `8392cd2` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
   305 MCP tools registered during the local-smoke Spring context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
   OK. This includes the reviewed shared-DB baseline guard and
@@ -57,8 +57,11 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `-EnvFile` is carried through server verification, split acceptance, and the
   server-local MCP acceptance smokes, and that the production
   signal-correctness smoke hard-fails if `verifyStrategyExecution` does not
-  provide the expected no-missed-evaluation/no-missed-order marker. Earlier
-  local smoke evidence for this handoff batch passed
+  provide the expected no-missed-evaluation/no-missed-order marker. The same
+  commit also passed `.\scripts\verify_split_boundaries.ps1`: 39 explicit
+  entity tables, 0 implicit entity names, 0 forbidden marketplace mappings,
+  0 unsafe table names, and env-template coverage for 12 required server keys.
+  Local smoke on 2026-06-18 passed
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
   `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
   and local `/api/actuator/health` OK. Treat this as local readiness only;

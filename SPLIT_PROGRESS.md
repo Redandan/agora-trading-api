@@ -385,7 +385,7 @@ Trading deployment prep:
   parity smoke. This is local readiness only; #1/#2/#3 closure still requires
   deployed server-local read-only acceptance after an explicitly authorized
   deploy.
-- 2026-06-18 local verification passed again through commit `4e2edc2` with
+- 2026-06-18 local verification passed again through commit `8392cd2` with
   `scripts/verify_local.ps1`: 51 tests, 305 MCP tools registered in the
   local-smoke Spring context, split-boundary/schema-inventory/script-syntax and
   post-deploy guardrail checks OK. The reviewed shared-DB baseline guard now
@@ -398,7 +398,14 @@ Trading deployment prep:
   configuration. The signal-correctness SSH smoke now hard-fails when
   `verifyStrategyExecution` does not provide the expected
   no-missed-evaluation/no-missed-order marker, so issue acceptance cannot pass
-  on a missing strategy-execution parity result.
+  on a missing strategy-execution parity result. A follow-up boundary-only
+  check passed with `scripts/verify_split_boundaries.ps1`: 39 explicit entity
+  tables, 0 implicit entity names, 0 forbidden marketplace mappings, 0 unsafe
+  table names, and env-template coverage for 12 required server keys. Local
+  HTTP/MCP smoke also passed with
+  `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
+  `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
+  and local `/api/actuator/health` OK.
   This remains local readiness only until pushed, deployed, and verified on the
   server.
 

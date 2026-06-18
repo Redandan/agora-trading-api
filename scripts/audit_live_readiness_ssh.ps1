@@ -186,6 +186,18 @@ def score_buy_details(text):
     ]
     return {key: obj.get(key) for key in keys if key in obj}
 
+def opportunity_details(text):
+    obj = parse_json_text(text)
+    if not obj:
+        return {"parseError": "non_json_response"}
+    keys = [
+        "symbol", "strategyId", "side", "eligible", "orderSent", "reason",
+        "executionMode", "explorationMode", "expectedLearningValue",
+        "explorationBudgetRemaining", "ordersToday", "openTinyLivePositions",
+        "blockers", "warnings",
+    ]
+    return {key: obj.get(key) for key in keys if key in obj}
+
 print("[live-readiness] read-only server audit")
 print(f"url={url}")
 print(f"symbol={symbol}")
@@ -256,6 +268,8 @@ if background_true:
 
 tiny = call_tool("getTinyLiveAutoExecutionTriggerStatus", {"symbol": symbol})
 readiness_details["tinyLive"] = tiny_details(tiny)
+opportunity = call_tool("validateAutonomousOpportunityReadiness", {"symbol": symbol})
+readiness_details["autonomousOpportunity"] = opportunity_details(opportunity)
 require_contains("tiny", tiny, r"boundary:\s*READ_ONLY", "TINY_STATUS_BOUNDARY_MISSING")
 require_contains("tiny", tiny, r"orderSent=false", "TINY_ORDER_SENT_MARKER_MISSING")
 require_contains("tiny", tiny, r"triggerEnabled=false", "TINY_TRIGGER_ALREADY_ENABLED_OR_MARKER_MISSING")

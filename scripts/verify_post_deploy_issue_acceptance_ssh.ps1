@@ -91,6 +91,8 @@ Write-Host "[issue-acceptance] symbol=$Symbol interval=$IntervalCode trailingDay
 Write-Host "[issue-acceptance] signalExecutionDays=$SignalExecutionDays signalBlockedDays=$SignalBlockedDays signalAccuracyDays=$SignalAccuracyDays"
 if ($SkipSplitAcceptance) {
     Write-Warning "[issue-acceptance] DIAGNOSTIC_ONLY: -SkipSplitAcceptance omits full split acceptance and must not be used as #1/#2/#3 closure evidence."
+} elseif (-not $RequireTrailingAcceptance) {
+    Write-Warning "[issue-acceptance] REACHABILITY_ONLY: -RequireTrailingAcceptance is missing, so #3 trailing replay NOT_PROVEN/no-sample output must not be used as #1/#2/#3 closure evidence."
 }
 
 if (-not $SkipSplitAcceptance) {
@@ -131,6 +133,8 @@ if ($RequireTrailingAcceptance) {
 Write-Host ""
 if ($SkipSplitAcceptance) {
     Write-Warning "[issue-acceptance] DIAGNOSTIC_ONLY OK: checks completed without full split acceptance; do not use this output as #1/#2/#3 closure evidence."
+} elseif (-not $RequireTrailingAcceptance) {
+    Write-Warning "[issue-acceptance] REACHABILITY_ONLY OK: checks completed without hard #3 trailing replay acceptance; do not use this output as #1/#2/#3 closure evidence."
 } else {
     Write-Host "[issue-acceptance] OK"
 }

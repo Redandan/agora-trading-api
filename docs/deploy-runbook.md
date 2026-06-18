@@ -456,6 +456,8 @@ through server verification, split acceptance, and every server-local MCP smoke
 so the issue-closure run verifies one consistent runtime configuration. Use
 `-RequireTrailingAcceptance` when closing issue #3; without it, trailing replay
 can still prove deployed reachability but not the 30d PnL acceptance target.
+Reachability-only runs must end with `REACHABILITY_ONLY OK`, not the normal
+issue-acceptance OK; do not use that output as #1/#2/#3 closure evidence.
 The wrapper runs the guardrail smoke in no-review-gaps mode, so
 `Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance.
 `-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is

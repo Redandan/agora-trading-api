@@ -97,7 +97,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   server-local MCP smokes.
   Use `-RequireTrailingAcceptance` only when the deployed DB sample should prove
   the issue #3 30d PnL target; otherwise the trailing replay is reachability
-  evidence only. The guardrail smoke is run in no-review-gaps mode, so
+  evidence only and the wrapper must end with `REACHABILITY_ONLY OK`, not the
+  normal issue-acceptance OK. Do not use reachability-only output as #1/#2/#3
+  closure evidence. The guardrail smoke is run in no-review-gaps mode, so
   `Operator action: REVIEW_POLICY_GAPS` fails #1/#2 issue acceptance instead of
   being treated as a closure signal. `-SkipSplitAcceptance` is diagnostic-only;
   output collected with that flag is not #1/#2/#3 closure evidence, and it

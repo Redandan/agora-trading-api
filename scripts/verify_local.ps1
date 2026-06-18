@@ -1405,7 +1405,7 @@ try {
     }
 
     Write-Host "[verify] checking post-deploy issue acceptance guardrails"
-    foreach ($pattern in @("smoke_mcp_parity_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "reusable MCP parity smoke", "signal-correctness MCP smoke", "-RequireNoReviewGaps", "RequireTrailingAcceptance", "RequireAcceptance", "DIAGNOSTIC_ONLY", "DIAGNOSTIC_ONLY OK", "must not be used as #1/#2/#3 closure evidence", "do not use this output as #1/#2/#3 closure evidence")) {
+    foreach ($pattern in @("smoke_mcp_parity_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "reusable MCP parity smoke", "signal-correctness MCP smoke", "-RequireNoReviewGaps", "RequireTrailingAcceptance", "RequireAcceptance", "DIAGNOSTIC_ONLY", "DIAGNOSTIC_ONLY OK", "REACHABILITY_ONLY", "REACHABILITY_ONLY OK", "must not be used as #1/#2/#3 closure evidence", "do not use this output as #1/#2/#3 closure evidence")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper keeps strict guardrail/trailing closure gate $pattern"
     }
     foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "acceptanceTarget: total trailing PnL improvement >= 5%", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates", "orderSent", "ocoModified", "writesRuntimeEvidence", "server-local MCP parity smoke failed", "/api/mcp")) {
@@ -1492,7 +1492,7 @@ try {
     foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS", "acceptanceTarget: total trailing PnL improvement >= 5%")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
     }
-    foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK")) {
+    foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK", "REACHABILITY_ONLY OK", "reachability-only output")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
     }
     foreach ($pattern in @("If ``-EnvFile`` is overridden", "one consistent runtime configuration", "server verification, split acceptance, and every server-local MCP smoke")) {

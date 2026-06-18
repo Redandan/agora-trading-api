@@ -101,7 +101,9 @@ command verifies one consistent runtime configuration.
 Omit
 `-RequireTrailingAcceptance` only when collecting reachability evidence before
 the deployed DB sample is expected to satisfy the 30d PnL target. The wrapper
-also fails #1/#2 acceptance if anti-wick coverage returns
+then ends with `REACHABILITY_ONLY OK`, not the normal issue-acceptance OK.
+Do not use that output as #1/#2/#3 closure evidence. The wrapper also fails
+#1/#2 acceptance if anti-wick coverage returns
 `Operator action: REVIEW_POLICY_GAPS`.
 `-SkipSplitAcceptance` is diagnostic-only; output collected with that flag is
 not #1/#2/#3 closure evidence, and it cannot be combined with

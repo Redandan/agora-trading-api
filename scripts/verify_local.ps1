@@ -1446,6 +1446,7 @@ try {
     foreach ($pattern in @("live-readiness-bundle", "READ_ONLY", "audit_live_readiness_ssh.ps1", "smoke_live_background_automation_ssh.ps1", "smoke_runtime_evidence_rca_ssh.ps1", "smoke_tiny_live_loss_rca_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "smoke_mcp_parity_ssh.ps1", "deployment-metadata", "liveBundleDeployStatus", "liveBundleOriginStatus", "originMainCommit", "DEPLOYED_RUNTIME_NOT_CURRENT", "deployment_metadata_status", "origin_metadata_status", "bundle_blockers", "bundle_verdict=NOT_READY", "READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "RequireReady", "Assert-RemotePathSafe", "Assert-SshHostSafe", "read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_live_readiness_bundle_ssh.ps1") -Description "live readiness bundle keeps read-only orchestration marker $pattern"
     }
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_readiness_bundle_blockers.ps1")
     & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_readiness_bundle_metadata.ps1")
     foreach ($pattern in @("deployment_metadata_status", "origin_metadata_status", "DEPLOYED_RUNTIME_NOT_CURRENT", "origin/main", "bundle_blockers", "bundle_verdict")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs keep live readiness bundle deployment metadata marker $pattern"

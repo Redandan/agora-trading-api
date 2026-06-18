@@ -17,7 +17,9 @@ function Get-LiveReadinessBundleBlockers {
             -or $Audit -notmatch "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED") {
         $blockers.Add("LIVE_READINESS_NOT_READY")
     }
-    if ($Audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $Audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
+    if ($Audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" `
+            -or $Audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
+            -or $Audit -notmatch "order_capable_flags_true=\[\]") {
         $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
     }
     if ($Audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING") {
@@ -322,7 +324,7 @@ Assert-AuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
 
 $cleanInputs = @{
-    Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
+    Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`norder_capable_flags_true=[]"
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED"
     RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
@@ -330,12 +332,13 @@ $cleanInputs = @{
     McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
-$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
+$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`norder_capable_flags_true=[]"
 
 Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -ExpectedBlockers @()
 
-Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=NOT_READY" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
+Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=NOT_READY`norder_capable_flags_true=[]" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
 Assert-BlockerCase -Name "audit missing ready verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "order_capable_flags_true=[]" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
+Assert-BlockerCase -Name "audit missing order-capable marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
 Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`norder_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
 Assert-BlockerCase -Name "audit secret prerequisites missing" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"OKX_CREDENTIALS_NOT_SET`"]" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
 Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nruntime_log_status=FAIL`nblockers=[`"RUNTIME_LOG_SMOKE_FAILED`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
@@ -374,7 +377,7 @@ Assert-BlockerCase -Name "missing deployment metadata fails closed" -Inputs (Mer
 Assert-BlockerCase `
     -Name "current observed blocker mix" `
     -Inputs @{
-        Audit = "verdict=NOT_READY`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`"]"
+        Audit = "verdict=NOT_READY`norder_capable_flags_true=[]`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`"]"
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"

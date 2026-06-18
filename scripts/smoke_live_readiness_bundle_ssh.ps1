@@ -269,7 +269,9 @@ if ($audit -match "verdict=NOT_READY" `
         -or $audit -notmatch "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED") {
     $blockers.Add("LIVE_READINESS_NOT_READY")
 }
-if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
+if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" `
+        -or $audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
+        -or $audit -notmatch "order_capable_flags_true=\[\]") {
     $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
 }
 if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING") {

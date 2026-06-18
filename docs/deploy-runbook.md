@@ -647,6 +647,11 @@ Expected:
 - The wrapper runs the live-readiness audit, background automation smoke,
   runtime-evidence RCA, tiny-live loss RCA, signal-correctness smoke, and MCP
   parity smoke.
+- Evidence windows stay bounded and are passed to child smokes:
+  `RuntimeEvidenceMinutes=43200`, `TinyLiveDays=30`,
+  `SignalExecutionDays=5`, `SignalBlockedDays=7`, and
+  `SignalAccuracyDays=14` by default. Override them only for a documented
+  read-only diagnostic, not as live approval evidence.
 - Output includes deployment metadata status, `bundle_blockers`, and
   `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
   evidence until a separate deploy and verification refresh the runtime and

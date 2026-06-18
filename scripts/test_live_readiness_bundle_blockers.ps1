@@ -163,6 +163,58 @@ function Assert-CurrentExpectedBlockersMatchLatestSnapshot {
     }
 }
 
+function Assert-BundleEvidenceWindowsCovered {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
+    $readmePath = Join-Path $repoRoot "README.md"
+    $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+    $bundleText = Get-Content -Raw -LiteralPath $bundlePath
+    $docsText = @(
+        Get-Content -Raw -LiteralPath $readmePath
+        Get-Content -Raw -LiteralPath $runbookPath
+    ) -join "`n"
+
+    foreach ($pattern in @(
+            '\[int\]\$RuntimeEvidenceMinutes = 43200',
+            '\[int\]\$TinyLiveDays = 30',
+            '\[int\]\$SignalExecutionDays = 5',
+            '\[int\]\$SignalBlockedDays = 7',
+            '\[int\]\$SignalAccuracyDays = 14',
+            '\$RuntimeEvidenceMinutes -lt 60 -or \$RuntimeEvidenceMinutes -gt 43200',
+            '\$TinyLiveDays -lt 1 -or \$TinyLiveDays -gt 90',
+            '\$SignalExecutionDays -lt 1 -or \$SignalExecutionDays -gt 90',
+            '\$SignalBlockedDays -lt 1 -or \$SignalBlockedDays -gt 90',
+            '\$SignalAccuracyDays -lt 1 -or \$SignalAccuracyDays -gt 90',
+            'Minutes = \$RuntimeEvidenceMinutes',
+            'Days = \$TinyLiveDays',
+            'ExecutionDays = \$SignalExecutionDays',
+            'BlockedDays = \$SignalBlockedDays',
+            'AccuracyDays = \$SignalAccuracyDays'
+        )) {
+        if ($bundleText -notmatch $pattern) {
+            throw "live readiness bundle missing bounded evidence-window marker: $pattern"
+        }
+    }
+
+    foreach ($pattern in @(
+            'runtime evidence defaults to\s+43,200 minutes',
+            'tiny-live RCA defaults to\s+30 days',
+            'signal execution defaults to\s+5 days',
+            'blocked-signal/governance review\s+defaults to\s+7 days',
+            'signal accuracy defaults to\s+14 days',
+            'RuntimeEvidenceMinutes=43200',
+            'TinyLiveDays=30',
+            'SignalExecutionDays=5',
+            'SignalBlockedDays=7',
+            'SignalAccuracyDays=14',
+            'Override them only for a documented\s+read-only diagnostic'
+        )) {
+        if ($docsText -notmatch $pattern) {
+            throw "live readiness bundle docs missing evidence-window marker: $pattern"
+        }
+    }
+}
+
 $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
@@ -177,6 +229,7 @@ $allExpectedBlockers = @(
 Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-CurrentExpectedBlockersMatchLatestSnapshot
+Assert-BundleEvidenceWindowsCovered
 
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"

@@ -238,6 +238,10 @@ runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
+The bundle keeps evidence windows bounded and passes them through to the child
+smokes: runtime evidence defaults to 43,200 minutes, tiny-live RCA defaults to
+30 days, signal execution defaults to 5 days, blocked-signal/governance review
+defaults to 7 days, and signal accuracy defaults to 14 days.
 It prints `deployment_metadata_status`, `origin_metadata_status`,
 `bundle_blockers`, and `bundle_verdict`. Treat
 `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review evidence until the server

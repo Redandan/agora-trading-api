@@ -385,13 +385,17 @@ Trading deployment prep:
   parity smoke. This is local readiness only; #1/#2/#3 closure still requires
   deployed server-local read-only acceptance after an explicitly authorized
   deploy.
-- 2026-06-18 local verification passed again at commit `417beb5` with
+- 2026-06-18 local verification passed again at commit `52a3a99` with
   `scripts/verify_local.ps1`: 51 tests, 305 MCP tools registered in the
   local-smoke Spring context, split-boundary/schema-inventory/script-syntax and
   post-deploy guardrail checks OK. The reviewed shared-DB baseline guard now
   covers both the committed `V1__baseline.sql` and
   `scripts/schema_baseline_generate_server.sh`, so a future guarded baseline
   dump cannot reintroduce pre-review Flyway wording or imply extra-table cleanup.
+  The post-deploy issue acceptance wrapper also carries any custom `-EnvFile`
+  through split acceptance, server verification, and server-local MCP smokes so
+  issue-closure evidence is collected against one consistent runtime
+  configuration.
   This remains local readiness only until pushed, deployed, and verified on the
   server.
 

@@ -451,7 +451,9 @@ deploy, run the read-only wrapper:
 This wrapper runs split acceptance, the reusable server-local MCP parity smoke,
 the focused #1/#2 guardrail MCP smoke, the read-only signal-correctness MCP
 smoke, and the #3 trailing-stop PnL replay smoke through server-local MCP/API
-checks. Use
+checks. If `-EnvFile` is overridden, the wrapper passes the same remote env file
+through server verification, split acceptance, and every server-local MCP smoke
+so the issue-closure run verifies one consistent runtime configuration. Use
 `-RequireTrailingAcceptance` when closing issue #3; without it, trailing replay
 can still prove deployed reachability but not the 30d PnL acceptance target.
 The wrapper runs the guardrail smoke in no-review-gaps mode, so

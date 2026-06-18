@@ -95,6 +95,9 @@ guardrail handoffs:
 This wrapper runs split acceptance, the reusable server-local MCP parity smoke,
 the #1/#2 guardrail MCP smoke, the read-only signal-correctness MCP smoke, and
 the #3 trailing-stop replay smoke through server-local read-only calls.
+If `-EnvFile` is overridden, the same remote env file is passed through server
+verification, split acceptance, and every server-local MCP smoke so the closure
+command verifies one consistent runtime configuration.
 Omit
 `-RequireTrailingAcceptance` only when collecting reachability evidence before
 the deployed DB sample is expected to satisfy the 30d PnL target. The wrapper

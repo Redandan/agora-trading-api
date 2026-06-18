@@ -1485,6 +1485,12 @@ try {
     foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
     }
+    foreach ($pattern in @("If ``-EnvFile`` is overridden", "one consistent runtime configuration", "server verification, split acceptance, and every server-local MCP smoke")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs explain EnvFile propagation across acceptance wrappers $pattern"
+    }
+    foreach ($pattern in @("-EnvFile", "consistent runtime", "server-local MCP (acceptance )?smokes")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "handoff docs record EnvFile-consistent local acceptance wrapper evidence $pattern"
+    }
     foreach ($pattern in @("acceptanceTarget: total trailing PnL improvement >= 5%")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep trailing replay acceptance target marker $pattern"
     }

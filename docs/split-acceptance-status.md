@@ -48,13 +48,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 
 - The current local handoff batch is not deployed evidence until it is pushed,
   deployed, and verified on the server. Local verification on 2026-06-18 passed
-  at commit `417beb5` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
+  at commit `52a3a99` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
   305 MCP tools registered during the local-smoke Spring context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
   OK. This includes the reviewed shared-DB baseline guard and
   `schema_baseline_generate_server.sh` header guard so a future baseline dump
-  cannot reintroduce pre-review Flyway wording. Earlier local smoke evidence for
-  this handoff batch passed
+  cannot reintroduce pre-review Flyway wording. It also verifies that a custom
+  `-EnvFile` is carried through server verification, split acceptance, and the
+  server-local MCP acceptance smokes. Earlier local smoke evidence for this
+  handoff batch passed
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
   `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
   and local `/api/actuator/health` OK. Treat this as local readiness only;
@@ -83,7 +85,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   This wrapper runs split acceptance plus the reusable server-local MCP parity
   smoke, the focused #1/#2 guardrail MCP smoke, the read-only
   signal-correctness MCP smoke, and #3 trailing-stop PnL replay smoke through
-  server-local read-only calls.
+  server-local read-only calls. If `-EnvFile` is overridden, that same remote
+  env file is used for the server verifier, split acceptance, and all
+  server-local MCP smokes.
   Use `-RequireTrailingAcceptance` only when the deployed DB sample should prove
   the issue #3 30d PnL target; otherwise the trailing replay is reachability
   evidence only. The guardrail smoke is run in no-review-gaps mode, so

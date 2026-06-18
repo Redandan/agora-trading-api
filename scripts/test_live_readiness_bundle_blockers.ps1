@@ -65,7 +65,9 @@ function Get-LiveReadinessBundleBlockers {
     }
     if ($Signal -match "REVIEW_POLICY_GAPS" `
             -or $Signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE)" `
-            -or $Signal -match "overallStatus=(FAIL|WARN)") {
+            -or $Signal -match "overallStatus=(FAIL|WARN)" `
+            -or $Signal -notmatch "7d Governance Drift:[\s\S]*governanceMode=" `
+            -or $Signal -notmatch "Missed Opportunity Regression:[\s\S]*overallStatus=PASS") {
         $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
     }
     if ($McpParity -notmatch "\[mcp-parity-ssh\] OK") {
@@ -319,7 +321,7 @@ $cleanInputs = @{
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED"
     RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
-    Signal = "no review gaps"
+    Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS"
     McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
@@ -354,6 +356,8 @@ Assert-BlockerCase -Name "signal governance too strict" -Inputs (Merge-Inputs $c
 Assert-BlockerCase -Name "signal governance too loose" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=TOO_LOOSE" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missed opportunity warning" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=WARN" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missed opportunity failure" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=FAIL" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal missing governance mode fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal missing missed opportunity status fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missing mcp parity ok marker" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "runtime drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=RUNTIME_DRIFT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")

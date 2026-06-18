@@ -317,7 +317,9 @@ if ($tinyLive -notmatch "canEnableProduction=true") {
 }
 if ($signal -match "REVIEW_POLICY_GAPS" `
         -or $signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE)" `
-        -or $signal -match "overallStatus=(FAIL|WARN)") {
+        -or $signal -match "overallStatus=(FAIL|WARN)" `
+        -or $signal -notmatch "7d Governance Drift:[\s\S]*governanceMode=" `
+        -or $signal -notmatch "Missed Opportunity Regression:[\s\S]*overallStatus=PASS") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
 }
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {

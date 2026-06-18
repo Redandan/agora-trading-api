@@ -233,6 +233,9 @@ review packet can be drafted.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.
+Use `docs/live-runtime-evidence-env-proposal.md` when reviewing the separate
+evidence-only diff for `TRADING_RUNTIME_EVIDENCE_ENABLED=true`; it is not live
+approval and must not be bundled with execution flags.
 
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary

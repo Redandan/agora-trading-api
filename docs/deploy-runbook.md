@@ -651,6 +651,10 @@ Expected:
 - Use `docs/live-background-automation-env-diff-proposal.md` to review the
   proposed background automation env diff. It must not be treated as
   authorization to edit production env.
+- Use `docs/live-runtime-evidence-env-proposal.md` to review the separate
+  evidence-only runtime evidence diff. It must not be bundled with execution,
+  Telegram, scheduler, external-backfill/import, exchange, OCO, grid, fund, or
+  Earn enablement.
 
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:

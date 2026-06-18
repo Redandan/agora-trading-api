@@ -213,6 +213,12 @@
   all currently true background automation flags are proposed false, with
   read-only verification and rollback criteria, without authorizing production
   env mutation.
+- `docs/live-runtime-evidence-env-proposal.md` isolates the evidence-only env
+  diff for clearing `RUNTIME_EVIDENCE_CONFIG_DISABLED` after separate
+  authorization: only `TRADING_RUNTIME_EVIDENCE_ENABLED=true` is proposed, all
+  execution/Telegram/scheduler/external-backfill/exchange/OCO/grid/fund/Earn
+  mutation paths remain disabled, and `shadowIntentCount > 0` plus
+  `orderSentEvidence=0` are required before live review.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

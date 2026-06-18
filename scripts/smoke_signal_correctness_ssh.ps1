@@ -68,6 +68,7 @@ python3 - <<'PY'
 import json
 import os
 import re
+import sys
 import urllib.request
 from collections import Counter
 
@@ -335,7 +336,7 @@ else:
 print("")
 print("Recommendations:")
 if not execution_ok:
-    print("  - INVESTIGATE: verifyStrategyExecution did not provide the expected no-missing-evaluation/no-missed-order marker.")
+    print("  - FAIL: verifyStrategyExecution did not provide the expected no-missing-evaluation/no-missed-order marker.")
 else:
     print("  - KEEP: strategy scheduler/evaluation path appears to be running; no missed-evaluation/order marker found.")
 
@@ -372,6 +373,10 @@ else:
     print("  - REVIEW ENTRY DEDUP: staged-add readiness found candidate groups; require explicit operator approval before any live policy change.")
 
 print("")
+if not execution_ok:
+    print("[signal-correctness] FAIL: missing no-missed-evaluation/no-missed-order marker from verifyStrategyExecution.", file=sys.stderr)
+    sys.exit(1)
+
 print("[signal-correctness] OK read-only check complete")
 PY
 "@

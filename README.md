@@ -225,8 +225,12 @@ runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
-It prints `bundle_blockers` and `bundle_verdict`. Add `-RequireReady` only when
-the caller wants `NOT_READY` to fail the command.
+It prints `deployment_metadata_status`, `origin_metadata_status`,
+`bundle_blockers`, and `bundle_verdict`. Treat
+`DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review evidence until the server
+runtime and worktree are separately refreshed and verified against
+`origin/main`. Add `-RequireReady` only when the caller wants `NOT_READY` to
+fail the command.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.

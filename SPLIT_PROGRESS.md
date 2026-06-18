@@ -385,7 +385,7 @@ Trading deployment prep:
   parity smoke. This is local readiness only; #1/#2/#3 closure still requires
   deployed server-local read-only acceptance after an explicitly authorized
   deploy.
-- 2026-06-18 local verification passed again through commit `8476f8d` with
+- 2026-06-18 local verification passed again through commit `4e2edc2` with
   `scripts/verify_local.ps1`: 51 tests, 305 MCP tools registered in the
   local-smoke Spring context, split-boundary/schema-inventory/script-syntax and
   post-deploy guardrail checks OK. The reviewed shared-DB baseline guard now

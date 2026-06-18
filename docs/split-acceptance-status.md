@@ -48,7 +48,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 
 - The current local handoff batch is not deployed evidence until it is pushed,
   deployed, and verified on the server. Local verification on 2026-06-18 passed
-  through commit `8476f8d` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
+  through commit `4e2edc2` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
   305 MCP tools registered during the local-smoke Spring context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
   OK. This includes the reviewed shared-DB baseline guard and

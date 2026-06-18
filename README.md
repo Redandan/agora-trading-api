@@ -227,6 +227,9 @@ runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
 
 It prints `bundle_blockers` and `bundle_verdict`. Add `-RequireReady` only when
 the caller wants `NOT_READY` to fail the command.
+Use `docs/live-readiness-blocker-remediation.md` to map each
+`bundle_blockers` value to the read-only evidence required before a later live
+review packet can be drafted.
 
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary

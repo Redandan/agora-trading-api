@@ -204,6 +204,10 @@
   prints `bundle_blockers` and `bundle_verdict` without changing production env,
   DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, or external
   backfill/import state.
+- `docs/live-readiness-blocker-remediation.md` maps each bundle blocker to the
+  required read-only evidence, clear condition, and allowed next action, while
+  keeping live/order/OCO/grid/Earn/fund/Telegram/exchange/DB/scheduler mutation
+  forbidden without a separate live proposal.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

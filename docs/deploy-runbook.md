@@ -645,6 +645,9 @@ Expected:
   tiny-live hard stop, signal policy, or background automation blockers remain.
 - The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, or external backfill/import state.
+- Use `docs/live-readiness-blocker-remediation.md` to translate
+  `bundle_blockers` into clear conditions and required read-only evidence before
+  drafting any live review packet.
 
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:

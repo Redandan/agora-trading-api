@@ -54,6 +54,18 @@ $mustStayDisabled = @(
     "TRADING_EXPLORATION_ROLLOUT_ALLOW_CAP_INCREASE=false"
 )
 
+$backgroundAutomationReviewFlags = @(
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false",
+    "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED=false",
+    "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED=false",
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED=false",
+    "MARKET_WS_AUTO_SUBSCRIBE_ENABLED=false",
+    "TRADING_DAILY_TG_REPORT_ENABLED=false",
+    "TRADING_AUTONOMOUS_DIGEST_ENABLED=false"
+)
+
 $rollbackCriteria = @(
     '`orderSentEvidence` is greater than 0',
     'Any order/OCO/grid/fund/Earn/Telegram/live exchange write appears in logs',
@@ -78,6 +90,10 @@ foreach ($scriptName in @(
 
 foreach ($flag in $mustStayDisabled) {
     Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))
+}
+
+foreach ($flag in $backgroundAutomationReviewFlags) {
+    Assert-Contains -Name "background automation review flag" -Text $proposalText -Pattern ([regex]::Escape($flag))
 }
 
 foreach ($pattern in $rollbackCriteria) {

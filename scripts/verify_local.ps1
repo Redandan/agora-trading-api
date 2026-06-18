@@ -1046,7 +1046,9 @@ try {
         "trailing-stop replay",
         "verify_post_deploy_issue_acceptance_ssh\.ps1 -RequireTrailingAcceptance",
         "SkipSplitAcceptance.*diagnostic-only",
-        "must not be used as #1/#2/#3 closure evidence"
+        "must not be used as #1/#2/#3 closure evidence",
+        "CLOSURE_READY OK",
+        "output is not closure evidence"
     )) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy parity inventory keeps current server-local issue acceptance handoff marker $pattern"
     }

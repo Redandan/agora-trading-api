@@ -88,12 +88,16 @@ foreach ($marker in @(
 }
 
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '\$signal -match "REVIEW_POLICY_GAPS"'
+Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'governanceMode=\(TOO_STRICT\|TOO_LOOSE\)'
+Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'overallStatus=\(FAIL\|WARN\)'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '\$blockers\.Add\("SIGNAL_POLICY_REVIEW_GAPS"\)'
 
 Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `SIGNAL_POLICY_REVIEW_GAPS` \| `\.\\scripts\\smoke_signal_correctness_ssh\.ps1` \|'
 foreach ($pattern in @(
         'No `REVIEW_POLICY_GAPS`',
-        'governance drift and missed-opportunity recommendations',
+        'governanceMode=TOO_STRICT',
+        'governanceMode=TOO_LOOSE',
+        'overallStatus` is not `FAIL` or `WARN`',
         'shadow/tiny-live caps only',
         'signal correctness and governance drift summary'
     )) {

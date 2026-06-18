@@ -277,7 +277,9 @@ if ($runtimeEvidence -match "shadowIntentCount=0") {
 if ($tinyLive -match "hardStopDetected=true" -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
     $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
 }
-if ($signal -match "REVIEW_POLICY_GAPS") {
+if ($signal -match "REVIEW_POLICY_GAPS" `
+        -or $signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE)" `
+        -or $signal -match "overallStatus=(FAIL|WARN)") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
 }
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {

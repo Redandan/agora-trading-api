@@ -46,12 +46,14 @@ mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=PASS
 orderCapableFlags=false
 dryRunFlags=true
-bundle_blockers=["LIVE_READINESS_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","DEPLOYED_RUNTIME_NOT_CURRENT"]
+bundle_blockers=["LIVE_READINESS_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","SIGNAL_POLICY_REVIEW_GAPS","TINY_LIVE_LOSS_HARD_STOP","DEPLOYED_RUNTIME_NOT_CURRENT"]
 bundle_verdict=NOT_READY
 ```
 
 Because this snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is stale
-live-review evidence only. A future operator review must first refresh the
+live-review evidence only. It is also reclassified by the current local blocker
+rules because the observed signal smoke had unresolved governance drift
+(`governanceMode=TOO_STRICT`). A future operator review must first refresh the
 server worktree/runtime to `origin/main` through a separately authorized deploy,
 then rerun the full live-readiness bundle and attach the current output.
 

@@ -33,6 +33,10 @@ if (-not (Test-Path -LiteralPath $SshKey)) {
     throw "SSH key not found: $SshKey"
 }
 
+if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
+    throw "ssh is not available on PATH."
+}
+
 function Assert-RemotePathSafe {
     param([string]$Name, [string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {

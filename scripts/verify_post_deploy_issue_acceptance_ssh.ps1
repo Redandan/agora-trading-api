@@ -144,5 +144,5 @@ if ($SkipSplitAcceptance) {
 } elseif (-not $RequireTrailingAcceptance) {
     Write-Warning "[issue-acceptance] REACHABILITY_ONLY OK: checks completed without hard #3 trailing replay acceptance; do not use this output as #1/#2/#3 closure evidence."
 } else {
-    Write-Host "[issue-acceptance] OK"
+    Write-Host "[issue-acceptance] CLOSURE_READY OK: full split acceptance, no-review-gaps guardrail smoke, signal-correctness smoke, and hard trailing replay acceptance passed."
 }

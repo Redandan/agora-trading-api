@@ -106,6 +106,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   output collected with that flag is not #1/#2/#3 closure evidence, and it
   cannot be combined with `-RequireTrailingAcceptance`. A diagnostic-only run
   must end with `DIAGNOSTIC_ONLY OK`, not the normal issue-acceptance OK.
+  Only the full closure run may end with `CLOSURE_READY OK`, which means split
+  acceptance, no-review-gaps guardrail smoke, signal-correctness smoke, and hard
+  trailing replay acceptance all passed.
 
 - Current open-issue closure matrix:
 

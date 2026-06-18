@@ -640,7 +640,9 @@ Expected:
 - The wrapper runs the live-readiness audit, background automation smoke,
   runtime-evidence RCA, tiny-live loss RCA, signal-correctness smoke, and MCP
   parity smoke.
-- Output includes `bundle_blockers` and `bundle_verdict`.
+- Output includes deployment metadata status, `bundle_blockers`, and
+  `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
+  evidence until a separate deploy and verification refresh the runtime.
 - `bundle_verdict=NOT_READY` is the expected result while runtime evidence,
   tiny-live hard stop, signal policy, or background automation blockers remain.
 - The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,

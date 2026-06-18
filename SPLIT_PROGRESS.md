@@ -226,11 +226,17 @@
   read-only query windows fail locally before any SSH call.
 - Latest read-only live-readiness bundle observed on 2026-06-18T17:39+08:00
   against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8`: health UP,
-  runtime log PASS, MCP parity OK (`toolCount=305 required=35`), all
-  order-capable flags false, dry-run flags true, and live still blocked by
+  deployment metadata CURRENT, runtime log PASS, MCP parity OK
+  (`toolCount=305 required=35`), all order-capable flags false, dry-run flags
+  true, and live still blocked by
   `LIVE_READINESS_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, and
   `TINY_LIVE_LOSS_HARD_STOP`.
+- `scripts/smoke_live_readiness_bundle_ssh.ps1` now prints
+  `deployment_metadata_status` and adds `DEPLOYED_RUNTIME_NOT_CURRENT` when
+  deployed runtime metadata is missing/unknown or runtime files differ from the
+  server worktree, so stale runtime evidence cannot be mistaken for current
+  live-readiness.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

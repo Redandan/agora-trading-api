@@ -35,6 +35,7 @@ Latest read-only bundle snapshot:
 ```text
 observedAt=2026-06-18T17:39+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+deployment_metadata_status=CURRENT
 health=UP
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=PASS

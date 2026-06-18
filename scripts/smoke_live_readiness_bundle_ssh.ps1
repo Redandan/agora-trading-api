@@ -30,6 +30,10 @@ if (-not (Test-Path -LiteralPath $SshKey)) {
     throw "SSH key not found: $SshKey"
 }
 
+if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
+    throw "ssh is not available on PATH."
+}
+
 if ($StrategyId -lt 1 -or $StrategyId -gt 999999999) {
     throw "StrategyId must be between 1 and 999999999."
 }
@@ -99,6 +103,85 @@ function Invoke-ReadOnlySmoke {
     return ($output -join "`n")
 }
 
+function Invoke-ReadOnlyDeploymentMetadata {
+    $remoteScript = @"
+set -euo pipefail
+APP_DIR='$AppDir'
+cd "`$APP_DIR"
+
+classify_path() {
+  case "`$1" in
+    .gitattributes|.gitignore|AGENTS.md|INTERNAL_API_TODO.md|README.md|SERVICE_BOUNDARY.md|SPLIT_PROGRESS.md|docs/*|deploy.sh|scripts/*.ps1|scripts/install_nginx_path.sh|scripts/rewrite_nginx_trading_routes.awk|scripts/check_server_runtime_log.sh|scripts/verify_server.sh)
+      echo docs-tooling
+      ;;
+    *)
+      echo runtime
+      ;;
+  esac
+}
+
+HEAD_COMMIT="`$(git rev-parse HEAD 2>/dev/null || true)"
+DEPLOYED_COMMIT=""
+if [ -f app.commit ]; then
+  DEPLOYED_COMMIT="`$(tr -d '[:space:]' < app.commit)"
+fi
+
+echo "[deployment-metadata] read-only server commit probe"
+echo "worktreeCommit=`${HEAD_COMMIT:-UNKNOWN}"
+echo "deployedCommit=`${DEPLOYED_COMMIT:-MISSING}"
+
+if [ -z "`$HEAD_COMMIT" ] || [ -z "`$DEPLOYED_COMMIT" ]; then
+  echo "liveBundleDeployStatus=UNKNOWN_DEPLOY_METADATA"
+  exit 0
+fi
+
+if [ "`$HEAD_COMMIT" = "`$DEPLOYED_COMMIT" ]; then
+  echo "liveBundleDeployStatus=CURRENT"
+  echo "deploymentDeltaFiles=0"
+  exit 0
+fi
+
+if ! git cat-file -e "`$DEPLOYED_COMMIT^{commit}" 2>/dev/null; then
+  echo "liveBundleDeployStatus=UNKNOWN_DEPLOY_METADATA"
+  exit 0
+fi
+
+docs_tooling_delta=0
+runtime_delta=0
+total_delta=0
+while IFS= read -r path; do
+  [ -n "`$path" ] || continue
+  total_delta=`$((total_delta + 1))
+  case "`$(classify_path "`$path")" in
+    docs-tooling) docs_tooling_delta=`$((docs_tooling_delta + 1)) ;;
+    runtime) runtime_delta=`$((runtime_delta + 1)) ;;
+  esac
+done <<EOF
+`$(git diff --name-only "`$DEPLOYED_COMMIT"..HEAD || true)
+EOF
+
+echo "deploymentDeltaFiles=`$total_delta"
+echo "deploymentDocsToolingDeltaFiles=`$docs_tooling_delta"
+echo "deploymentRuntimeDeltaFiles=`$runtime_delta"
+if [ "`$runtime_delta" -gt 0 ]; then
+  echo "liveBundleDeployStatus=RUNTIME_DRIFT"
+else
+  echo "liveBundleDeployStatus=DOCS_TOOLING_ONLY_DRIFT"
+fi
+"@
+
+    Write-Host ""
+    Write-Host "===== BEGIN deployment-metadata ====="
+    $output = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s" 2>&1
+    $exitCode = $LASTEXITCODE
+    $output | ForEach-Object { Write-Host $_ }
+    Write-Host "===== END deployment-metadata exit=$exitCode ====="
+    if ($exitCode -ne 0) {
+        throw "deployment metadata probe failed with exit code $exitCode"
+    }
+    return ($output -join "`n")
+}
+
 $common = @{
     SshHost = $SshHost
     SshKey = $SshKey
@@ -110,6 +193,7 @@ Write-Host "[live-readiness-bundle] read-only SSH smoke bundle"
 Write-Host "scope=READ_ONLY; invokes existing read-only SSH smokes only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, or external backfill/import state changed."
 Write-Host "symbol=$Symbol strategyId=$StrategyId side=$Side interval=$IntervalCode"
 
+$deploymentMetadata = Invoke-ReadOnlyDeploymentMetadata
 $audit = Invoke-ReadOnlySmoke -Name "live-readiness-audit" -ScriptName "audit_live_readiness_ssh.ps1" -Arguments ($common + @{
         Symbol = $Symbol
     })
@@ -159,10 +243,16 @@ if ($signal -match "REVIEW_POLICY_GAPS") {
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {
     $blockers.Add("MCP_PARITY_NOT_PROVEN")
 }
+if ($deploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)") {
+    $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
+}
 
 $uniqueBlockers = @($blockers | Select-Object -Unique)
 Write-Host ""
 Write-Host "[live-readiness-bundle] summary"
+if ($deploymentMetadata -match "liveBundleDeployStatus=([A-Z_]+)") {
+    Write-Host ("deployment_metadata_status=" + $Matches[1])
+}
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $uniqueBlockers))
 if ($uniqueBlockers.Count -eq 0) {
     Write-Host "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"

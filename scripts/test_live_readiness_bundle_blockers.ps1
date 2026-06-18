@@ -118,6 +118,10 @@ function Assert-BundleScriptBlockersCovered {
             ForEach-Object { $_.Groups[1].Value } |
             Sort-Object -Unique
     )
+    if ($bundleText -match 'LIVE_READINESS_EVIDENCE_UNAVAILABLE') {
+        $actualBlockers += "LIVE_READINESS_EVIDENCE_UNAVAILABLE"
+    }
+    $actualBlockers = @($actualBlockers | Sort-Object -Unique)
     $expected = @($ExpectedBlockers | Sort-Object -Unique)
     $actualText = $actualBlockers -join ","
     $expectedText = $expected -join ","
@@ -252,6 +256,7 @@ $allExpectedBlockers = @(
     "DEPLOYED_RUNTIME_NOT_CURRENT",
     "EVENT_RISK_NOT_BASELINE",
     "EXECUTION_ELIGIBILITY_NOT_READY",
+    "LIVE_READINESS_EVIDENCE_UNAVAILABLE",
     "LIVE_READINESS_NOT_READY",
     "MCP_AUDIT_TOOL_ERROR",
     "MCP_PARITY_NOT_PROVEN",

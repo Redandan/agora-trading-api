@@ -72,6 +72,8 @@ function Assert-BundleFailureMarkers {
             "SSH_CONNECT_FAILED",
             "SSH_COMMAND_FAILED",
             "read_only_bundle_error=",
+            'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]',
+            "bundle_verdict=NO_EVIDENCE",
             "not live-readiness evidence",
             "no live-readiness evidence was collected"
         )) {
@@ -83,6 +85,8 @@ function Assert-BundleFailureMarkers {
     foreach ($pattern in @(
             "SSH_AUTH_FAILED",
             "SSH_CONNECT_FAILED",
+            "LIVE_READINESS_EVIDENCE_UNAVAILABLE",
+            "bundle_verdict=NO_EVIDENCE",
             "not live-readiness evidence"
         )) {
         if ($handoffText -notmatch [regex]::Escape($pattern)) {

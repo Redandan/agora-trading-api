@@ -20,6 +20,7 @@ skip a blocker.
 
 | Bundle blocker | Required read-only evidence | Clear condition | Allowed next action |
 | --- | --- | --- | --- |
+| `LIVE_READINESS_EVIDENCE_UNAVAILABLE` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` | Bundle reaches deployment metadata and all read-only smoke sections without `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED`. | Fix SSH access or key selection and rerun the read-only bundle before drawing any server/live conclusion. |
 | `LIVE_READINESS_NOT_READY` | `.\scripts\audit_live_readiness_ssh.ps1` | Audit no longer prints `verdict=NOT_READY`; any `READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` result is still not live approval. | Draft or update a separate operator review packet only. |
 | `ORDER_CAPABLE_FLAGS_REVIEW` | `.\scripts\audit_live_readiness_ssh.ps1` | `order_capable_flags_true=[]`; if any order/OCO/grid/fund/Earn/guardian live-action flag is true, it has separate written authorization and rollback evidence. | Stop live review; reconcile the already-enabled order-capable scope before any new proposal. |
 | `SECRET_PREREQUISITES_MISSING` | `.\scripts\audit_live_readiness_ssh.ps1` | Required secret/env prerequisites are present without printing secret values. | Fix server secret prerequisites through a separately authorized ops change, then rerun read-only audit. |

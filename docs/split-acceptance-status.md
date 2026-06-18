@@ -157,8 +157,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
   `SSH_AUTH_FAILED` or `SSH_CONNECT_FAILED` before collecting deployment
-  metadata, fix SSH access or key selection and rerun the read-only bundle
-  before drawing any server/live conclusion.
+  metadata, it must emit `LIVE_READINESS_EVIDENCE_UNAVAILABLE` with
+  `bundle_verdict=NO_EVIDENCE`; fix SSH access or key selection and rerun the
+  read-only bundle before drawing any server/live conclusion.
 - Tiny-live loss hard-stop RCA is read-only. When live-readiness classifies
   `risk_hard_stop` or reports
   `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`, run

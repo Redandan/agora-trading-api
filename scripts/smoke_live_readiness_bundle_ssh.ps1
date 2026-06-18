@@ -110,6 +110,9 @@ function Assert-ReadOnlyCommandSucceeded {
     Write-Host "read_only_bundle_error=$classification"
     Write-Host "read_only_bundle_error_detail=$Name failed before live-readiness evidence could be collected"
     Write-Host "read_only_bundle_error_boundary=not live-readiness evidence; fix SSH access or key selection and rerun the read-only bundle"
+    Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]'
+    Write-Host "bundle_verdict=NO_EVIDENCE"
+    Write-Host "next_action=Fix SSH access or key selection and rerun this read-only bundle before drawing any server/live conclusion."
     throw "$Name failed with exit code $ExitCode ($classification); no live-readiness evidence was collected."
 }
 

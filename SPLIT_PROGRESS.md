@@ -259,8 +259,9 @@
   server worktree, so stale runtime evidence cannot be mistaken for current
   live-readiness. It also classifies SSH access failures such as
   `SSH_AUTH_FAILED` and `SSH_CONNECT_FAILED` before evidence collection and
-  labels them as not live-readiness evidence, so a rejected key or connection
-  problem cannot be mistaken for a live blocker result.
+  emits `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]` plus
+  `bundle_verdict=NO_EVIDENCE`, so a rejected key or connection problem cannot
+  be mistaken for a live blocker result.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

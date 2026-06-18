@@ -13,7 +13,8 @@ function Get-LiveReadinessBundleBlockers {
     )
 
     $blockers = [System.Collections.Generic.List[string]]::new()
-    if ($Audit -match "verdict=NOT_READY") {
+    if ($Audit -match "verdict=NOT_READY" `
+            -or $Audit -notmatch "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED") {
         $blockers.Add("LIVE_READINESS_NOT_READY")
     }
     if ($Audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $Audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
@@ -34,7 +35,9 @@ function Get-LiveReadinessBundleBlockers {
     if ($Audit -match "_NOT_EXECUTION_ELIGIBLE") {
         $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
     }
-    if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
+    if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
+            -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
+            -or $Background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED") {
         $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
     }
     if ($RuntimeEvidence -match "diagnosis=CONFIG_DISABLED") {
@@ -73,10 +76,12 @@ function Get-LiveReadinessBundleBlockers {
     if ($McpParity -notmatch "\[mcp-parity-ssh\] OK") {
         $blockers.Add("MCP_PARITY_NOT_PROVEN")
     }
-    if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)") {
+    if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `
+            -or $DeploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
-    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)") {
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
+            -or $DeploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
 
@@ -325,19 +330,22 @@ $cleanInputs = @{
     McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
+$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
 
 Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -ExpectedBlockers @()
 
 Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=NOT_READY" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
-Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "order_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
-Assert-BlockerCase -Name "audit secret prerequisites missing" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"OKX_CREDENTIALS_NOT_SET`"]" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
-Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "runtime_log_status=FAIL`nblockers=[`"RUNTIME_LOG_SMOKE_FAILED`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
-Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "health={`"status`":`"DOWN`"}`nblockers=[`"HEALTH_NOT_UP`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
-Assert-BlockerCase -Name "audit event risk not baseline" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"EVENT_RISK_NOT_R0`"]" }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
-Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"MCP_TOOL_ERROR:getGuardianSnapshot`"]" }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
-Assert-BlockerCase -Name "audit execution eligibility not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"PRE_POSITION_NOT_EXECUTION_ELIGIBLE`"]" }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
+Assert-BlockerCase -Name "audit missing ready verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "order_capable_flags_true=[]" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
+Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`norder_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
+Assert-BlockerCase -Name "audit secret prerequisites missing" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"OKX_CREDENTIALS_NOT_SET`"]" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
+Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nruntime_log_status=FAIL`nblockers=[`"RUNTIME_LOG_SMOKE_FAILED`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
+Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nhealth={`"status`":`"DOWN`"}`nblockers=[`"HEALTH_NOT_UP`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
+Assert-BlockerCase -Name "audit event risk not baseline" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"EVENT_RISK_NOT_R0`"]" }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
+Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"MCP_TOOL_ERROR:getGuardianSnapshot`"]" }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
+Assert-BlockerCase -Name "audit execution eligibility not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"PRE_POSITION_NOT_EXECUTION_ELIGIBLE`"]" }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
+Assert-BlockerCase -Name "background missing ok verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "high_risk_background_automation_true=[]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
 Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
@@ -361,6 +369,7 @@ Assert-BlockerCase -Name "signal missing missed opportunity status fails closed"
 Assert-BlockerCase -Name "missing mcp parity ok marker" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "runtime drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=RUNTIME_DRIFT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
+Assert-BlockerCase -Name "missing deployment metadata fails closed" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "deployment probe skipped" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 
 Assert-BlockerCase `
     -Name "current observed blocker mix" `

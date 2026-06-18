@@ -265,7 +265,8 @@ $mcpParity = Invoke-ReadOnlySmoke -Name "mcp-parity" -ScriptName "smoke_mcp_pari
     })
 
 $blockers = [System.Collections.Generic.List[string]]::new()
-if ($audit -match "verdict=NOT_READY") {
+if ($audit -match "verdict=NOT_READY" `
+        -or $audit -notmatch "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED") {
     $blockers.Add("LIVE_READINESS_NOT_READY")
 }
 if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
@@ -286,7 +287,9 @@ if ($audit -match "MCP_TOOL_ERROR:") {
 if ($audit -match "_NOT_EXECUTION_ELIGIBLE") {
     $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
 }
-if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
+if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
+        -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
+        -or $background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED") {
     $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
 }
 if ($runtimeEvidence -match "diagnosis=CONFIG_DISABLED") {
@@ -325,10 +328,12 @@ if ($signal -match "REVIEW_POLICY_GAPS" `
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {
     $blockers.Add("MCP_PARITY_NOT_PROVEN")
 }
-if ($deploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)") {
+if ($deploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `
+        -or $deploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
     $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
 }
-if ($deploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)") {
+if ($deploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
+        -or $deploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
     $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
 }
 

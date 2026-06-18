@@ -154,7 +154,11 @@
   staged-add live-readiness; relaxation is not considered live-ready when
   staged-add would allow no groups or dedup-too-coarse suspects are absent. It
   now also prints row-level no-buy classifications, blocker-family breakdowns,
-  and high-return no-buy strategy distribution for safer next-action triage.
+  high-return no-buy strategy distribution, and a `getNoBuyReasonTruthTable`
+  summary for safer next-action triage. `scripts/test_signal_policy_review_plan.ps1`
+  now guards the signal-policy review contract, including read-only tool calls,
+  `SIGNAL_POLICY_REVIEW_GAPS` blocker mapping, governance drift documentation,
+  missed-opportunity evidence, and the no-buy reason truth table.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,
@@ -222,8 +226,9 @@
 - `scripts/verify_local.ps1` now executable-negative-tests the newer live
   readiness SSH wrappers (`smoke_live_background_automation_ssh.ps1`,
   `smoke_runtime_evidence_rca_ssh.ps1`, `smoke_tiny_live_loss_rca_ssh.ps1`,
-  and `smoke_live_readiness_bundle_ssh.ps1`) so unsafe SSH targets or invalid
-  read-only query windows fail locally before any SSH call.
+  `smoke_signal_correctness_ssh.ps1`, and `smoke_live_readiness_bundle_ssh.ps1`)
+  so unsafe SSH targets, invalid read-only query windows, or signal-policy
+  review contract drift fail locally before any SSH call.
 - Latest read-only live-readiness bundle observed on 2026-06-18T18:51+08:00
   against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
   `origin/main` was `5553fff7bd278d3338f28cee09a145531d7afd59`: health UP,

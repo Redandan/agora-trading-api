@@ -197,6 +197,19 @@ shadow-ready, or requiring operator review. It does not write
 RuntimeDecisionEvidence, place orders, enable flags, send Telegram, or change
 production env/DB state.
 
+Read-only signal-correctness and policy review smoke before any live scope
+expansion:
+
+```powershell
+.\scripts\smoke_signal_correctness_ssh.ps1
+```
+
+This calls server-local `/api/mcp` only and checks strategy execution parity,
+blocked-signal outcome quality, DataFreshnessGuard current status, governance
+drift, EntryDedup governance, missed-opportunity regression, and the no-buy
+reason truth table. `REVIEW_POLICY_GAPS` or unresolved signal correctness /
+governance drift findings are live blockers, not permission to relax policy.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

@@ -29,6 +29,8 @@ $remediationPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.
 $dryRunPath = Join-Path $repoRoot "docs/live-dry-run-evidence-plan.md"
 $proposalPath = Join-Path $repoRoot "docs/live-production-env-review-proposal.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+$readmePath = Join-Path $repoRoot "README.md"
+$progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 $bundleText = Get-Content -Raw -LiteralPath $bundlePath
@@ -36,6 +38,8 @@ $remediationText = Get-Content -Raw -LiteralPath $remediationPath
 $dryRunText = Get-Content -Raw -LiteralPath $dryRunPath
 $proposalText = Get-Content -Raw -LiteralPath $proposalPath
 $runbookText = Get-Content -Raw -LiteralPath $runbookPath
+$readmeText = Get-Content -Raw -LiteralPath $readmePath
+$progressText = Get-Content -Raw -LiteralPath $progressPath
 
 foreach ($toolName in @(
         "verifyStrategyExecution",
@@ -126,5 +130,30 @@ foreach ($pattern in @(
     )) {
     Assert-Contains -Name "production env review signal gate" -Text $proposalText -Pattern ([regex]::Escape($pattern))
 }
+
+foreach ($pattern in @(
+        'smoke_signal_correctness_ssh.ps1',
+        'server-local `/api/mcp`',
+        'DataFreshnessGuard current status',
+        'governance drift',
+        'EntryDedup governance',
+        'missed-opportunity regression',
+        'REVIEW_POLICY_GAPS',
+        'live blockers'
+    )) {
+    Assert-Contains -Name "README signal policy handoff" -Text $readmeText -Pattern ([regex]::Escape($pattern))
+}
+Assert-Contains -Name "README signal policy handoff" -Text $readmeText -Pattern 'no-buy\s+reason\s+truth\s+table'
+
+foreach ($pattern in @(
+        'getNoBuyReasonTruthTable',
+        'scripts/test_signal_policy_review_plan.ps1',
+        'SIGNAL_POLICY_REVIEW_GAPS',
+        'governance drift documentation',
+        'missed-opportunity evidence'
+    )) {
+    Assert-Contains -Name "split progress signal policy handoff" -Text $progressText -Pattern ([regex]::Escape($pattern))
+}
+Assert-Contains -Name "split progress signal policy handoff" -Text $progressText -Pattern 'signal-policy\s+review contract drift'
 
 Write-Host "[signal-policy-review-plan-test] OK"

@@ -79,6 +79,40 @@ Assert-SmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 16
 
 $scriptDir = $PSScriptRoot
 
+function Get-ReadOnlySshFailureClassification {
+    param(
+        [int]$ExitCode,
+        [string]$OutputText
+    )
+
+    if ($ExitCode -eq 255 -and $OutputText -match "Permission denied \(publickey\)|Permission denied") {
+        return "SSH_AUTH_FAILED"
+    }
+    if ($ExitCode -eq 255 -and $OutputText -match "Connection timed out|Connection refused|Could not resolve hostname|No route to host|Operation timed out") {
+        return "SSH_CONNECT_FAILED"
+    }
+    return "SSH_COMMAND_FAILED"
+}
+
+function Assert-ReadOnlyCommandSucceeded {
+    param(
+        [string]$Name,
+        [int]$ExitCode,
+        [object[]]$Output
+    )
+
+    if ($ExitCode -eq 0) {
+        return
+    }
+
+    $outputText = ($Output -join "`n")
+    $classification = Get-ReadOnlySshFailureClassification -ExitCode $ExitCode -OutputText $outputText
+    Write-Host "read_only_bundle_error=$classification"
+    Write-Host "read_only_bundle_error_detail=$Name failed before live-readiness evidence could be collected"
+    Write-Host "read_only_bundle_error_boundary=not live-readiness evidence; fix SSH access or key selection and rerun the read-only bundle"
+    throw "$Name failed with exit code $ExitCode ($classification); no live-readiness evidence was collected."
+}
+
 function Invoke-ReadOnlySmoke {
     param(
         [string]$Name,
@@ -97,9 +131,7 @@ function Invoke-ReadOnlySmoke {
     $exitCode = $LASTEXITCODE
     $output | ForEach-Object { Write-Host $_ }
     Write-Host "===== END $Name exit=$exitCode ====="
-    if ($exitCode -ne 0) {
-        throw "$Name failed with exit code $exitCode"
-    }
+    Assert-ReadOnlyCommandSucceeded -Name $Name -ExitCode $exitCode -Output $output
     return ($output -join "`n")
 }
 
@@ -186,9 +218,7 @@ fi
     $exitCode = $LASTEXITCODE
     $output | ForEach-Object { Write-Host $_ }
     Write-Host "===== END deployment-metadata exit=$exitCode ====="
-    if ($exitCode -ne 0) {
-        throw "deployment metadata probe failed with exit code $exitCode"
-    }
+    Assert-ReadOnlyCommandSucceeded -Name "deployment metadata probe" -ExitCode $exitCode -Output $output
     return ($output -join "`n")
 }
 

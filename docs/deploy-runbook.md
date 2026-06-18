@@ -651,6 +651,9 @@ Expected:
   `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
   evidence until a separate deploy and verification refresh the runtime and
   server worktree to `origin/main`.
+- If the bundle fails before evidence collection with `SSH_AUTH_FAILED` or
+  `SSH_CONNECT_FAILED`, treat that as an access/key/connectivity problem, not
+  live-readiness evidence.
 - `bundle_verdict=NOT_READY` is the expected result while runtime evidence,
   tiny-live hard stop, signal policy, or background automation blockers remain.
 - The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,

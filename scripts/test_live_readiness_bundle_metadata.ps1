@@ -50,6 +50,27 @@ function Assert-MetadataCase {
     }
 }
 
+function Assert-BundleFailureMarkers {
+    $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
+    $bundleText = Get-Content -Raw -LiteralPath $bundlePath
+    foreach ($pattern in @(
+            "Get-ReadOnlySshFailureClassification",
+            "Assert-ReadOnlyCommandSucceeded",
+            "SSH_AUTH_FAILED",
+            "SSH_CONNECT_FAILED",
+            "SSH_COMMAND_FAILED",
+            "read_only_bundle_error=",
+            "not live-readiness evidence",
+            "no live-readiness evidence was collected"
+        )) {
+        if ($bundleText -notmatch [regex]::Escape($pattern)) {
+            throw "live readiness bundle missing SSH failure marker: $pattern"
+        }
+    }
+}
+
+Assert-BundleFailureMarkers
+
 Assert-MetadataCase `
     -Name "current runtime and origin" `
     -DeploymentMetadata @"

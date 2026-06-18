@@ -1435,6 +1435,17 @@ try {
     }
     Assert-RgMatch -Pattern "ssh is not available on PATH" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper fails fast when ssh is unavailable"
     Assert-RgMatch -Pattern 'splitAcceptance .* -EnvFile \$EnvFile' -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper passes the selected env file into split acceptance"
+    foreach ($pattern in @(
+            '& \$mcpParitySmoke .* -Symbol \$Symbol -IntervalCode \$IntervalCode',
+            '& \$guardrailSmoke .* -Symbol \$Symbol -RequireNoReviewGaps',
+            '& \$signalCorrectnessSmoke .* -Symbol \$Symbol -ExecutionDays \$SignalExecutionDays -BlockedDays \$SignalBlockedDays -AccuracyDays \$SignalAccuracyDays',
+            'Symbol = \$Symbol',
+            'IntervalCode = \$IntervalCode',
+            'Days = \$TrailingDays',
+            'Limit = \$TrailingLimit',
+            '\$trailingArgs\.RequireAcceptance = \$true')) {
+        Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper propagates custom smoke parameters $pattern"
+    }
     Assert-RgMatch -Pattern "Assert-RemotePathSafe" -Paths @("scripts/verify_split_acceptance_ssh.ps1") -Description "split acceptance verifier validates remote shell embedded paths"
     foreach ($pattern in @("EnvFile", "Assert-RemotePathSafe.*EnvFile", 'EnvFile = \$EnvFile')) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_split_acceptance_ssh.ps1") -Description "split acceptance verifier carries the selected env file into server verification $pattern"

@@ -230,6 +230,9 @@ the caller wants `NOT_READY` to fail the command.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.
+Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
+specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
+proposal only and must not be applied without separate authorization.
 
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary

@@ -208,6 +208,11 @@
   required read-only evidence, clear condition, and allowed next action, while
   keeping live/order/OCO/grid/Earn/fund/Telegram/exchange/DB/scheduler mutation
   forbidden without a separate live proposal.
+- `docs/live-background-automation-env-diff-proposal.md` isolates the env diff
+  that would clear `BACKGROUND_AUTOMATION_REVIEW` after separate authorization:
+  all currently true background automation flags are proposed false, with
+  read-only verification and rollback criteria, without authorizing production
+  env mutation.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

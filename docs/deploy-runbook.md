@@ -648,6 +648,9 @@ Expected:
 - Use `docs/live-readiness-blocker-remediation.md` to translate
   `bundle_blockers` into clear conditions and required read-only evidence before
   drafting any live review packet.
+- Use `docs/live-background-automation-env-diff-proposal.md` to review the
+  proposed background automation env diff. It must not be treated as
+  authorization to edit production env.
 
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:

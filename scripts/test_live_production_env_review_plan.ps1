@@ -86,12 +86,16 @@ $evidenceOnlyExpectedResults = @(
 )
 
 $latestSnapshotMarkers = @(
-    'observedAt=2026-06-18T22:50\+08:00',
-    'originMainCommit=b377be8e53d7908cfe57de2919fbd5136d6bb330',
+    'observedAt=2026-06-18T23:40\+08:00',
+    'originMainCommit=51c5d0f27457a89c3575abf7d1ded06c023b5fe7',
     'runtimeLog=FAIL',
     'runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN',
     'TelegramServiceImpl',
     'ExecutionEventScheduler',
+    'backgroundHighRiskFlags=',
+    'runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0',
+    'tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2',
+    'signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN',
     'RUNTIME_HEALTH_OR_LOG_NOT_CLEAN'
 )
 

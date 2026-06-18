@@ -229,13 +229,13 @@
   `smoke_signal_correctness_ssh.ps1`, and `smoke_live_readiness_bundle_ssh.ps1`)
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
-- Latest read-only live-readiness bundle observed on 2026-06-18T18:51+08:00
+- Latest read-only live-readiness bundle observed on 2026-06-18T23:40+08:00
   against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
-  `origin/main` was `5553fff7bd278d3338f28cee09a145531d7afd59`: health UP,
+  `origin/main` was `51c5d0f27457a89c3575abf7d1ded06c023b5fe7`: health UP,
   deployed metadata CURRENT, but the server worktree was not at `origin/main`.
-  Runtime log smoke passed with 0 ERROR lines, known WARN baseline only, and no
-  high-risk trading/OCO/grid/Earn/fund operation-like lines in the last 3000
-  lines. MCP parity passed (`toolCount=305 required=35`). All order-capable
+  Runtime log smoke failed on two Telegram-send related ERROR lines from
+  `TelegramServiceImpl` and `ExecutionEventScheduler`. MCP parity passed
+  (`toolCount=305 required=35`). All order-capable
   flags were false and dry-run flags were true, but high-risk background
   automation was already true for external backfills, event/execution
   notification scanning, autonomous digest Telegram, and live-signal retry
@@ -246,13 +246,15 @@
   (`hardStopDetected=true`, `completedTinyLiveSamples=2`,
   `falsePositiveCount=2`, `canEnableProduction=false`). Signal correctness
   found no missed-evaluation/order bug and current DataFreshnessGuard snapshot
-  was clean, but 7d governance drift remained TOO_STRICT. The bundle verdict
-  stayed NOT_READY with blockers `LIVE_READINESS_NOT_READY`,
-  `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
-  `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`, and
-  `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this as stale live-review evidence until
-  the server is refreshed to `origin/main` by a separately authorized deploy and
-  the bundle is rerun.
+  was clean, but 7d governance drift remained TOO_STRICT and missed-opportunity
+  regression was WARN. The bundle verdict stayed NOT_READY with blockers
+  `LIVE_READINESS_NOT_READY`, `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
+  `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
+  `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this
+  as stale live-review evidence until the server is refreshed to `origin/main`
+  by a separately authorized deploy and the bundle is rerun.
 - `scripts/smoke_live_readiness_bundle_ssh.ps1` now prints
   `deployment_metadata_status` and adds `DEPLOYED_RUNTIME_NOT_CURRENT` when
   deployed runtime metadata is missing/unknown or runtime files differ from the

@@ -39,11 +39,11 @@ The current server evidence keeps live blocked while these remain true:
 Latest read-only bundle snapshot:
 
 ```text
-observedAt=2026-06-18T22:50+08:00
+observedAt=2026-06-18T23:40+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployment_metadata_status=CURRENT
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
-originMainCommit=b377be8e53d7908cfe57de2919fbd5136d6bb330
+originMainCommit=51c5d0f27457a89c3575abf7d1ded06c023b5fe7
 health=UP
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=FAIL
@@ -51,6 +51,10 @@ runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN
 runtimeLogErrors=TelegramServiceImpl send Telegram keyboard failed; ExecutionEventScheduler scheduled scan failed
 orderCapableFlags=false
 dryRunFlags=true
+backgroundHighRiskFlags=["TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED","EVENT_SCAN_NOTIFICATION_ENABLED","EXECUTION_EVENT_ENABLED","TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED","TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"]
+runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0
+tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2
+signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN
 bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","DEPLOYED_RUNTIME_NOT_CURRENT"]
 bundle_verdict=NOT_READY
 ```

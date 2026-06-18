@@ -553,6 +553,27 @@ Expected:
 - The audit must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 
+When the audit reports `risk_hard_stop` or
+`AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`, run the read-only
+tiny-live loss RCA smoke before drafting any live env-change plan:
+
+```powershell
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- It prints `hardStopDetected`, auto-approval blockers, trigger/dry-run state,
+  recent tiny-live execution audit summary, autonomous execution attribution,
+  missed-opportunity context, and monitor/rollout excerpts.
+- It requires read-only/no-order markers from the called MCP surfaces.
+- It may report `hardStopDetected=false` after the blocker is legitimately
+  cleared; that is not live approval. Re-run the full live-readiness audit and
+  prepare a separately authorized env-change plan before enabling anything.
+- The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
+  state.
+
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:
 

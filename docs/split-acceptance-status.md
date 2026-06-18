@@ -149,10 +149,19 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   enablement, use `.\scripts\audit_live_readiness_ssh.ps1` to check masked
   server env status, order-capable flags, dry-run flags, server-local MCP
   readiness surfaces, runtime-log smoke, machine-readable `readiness_details`,
-  blockers, and final verdict through server-local `/api/mcp`.
+  `blocker_classification`, `next_actions`, blockers, and final verdict through
+  server-local `/api/mcp`.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
+- Tiny-live loss hard-stop RCA is read-only. When live-readiness classifies
+  `risk_hard_stop` or reports
+  `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`, run
+  `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1` to summarize tiny-live
+  execution readiness, auto-approval blockers, recent tiny-live audit rows,
+  autonomous execution attribution, missed-opportunity context, and
+  monitor/rollout state through server-local `/api/mcp`. This is RCA evidence
+  only; it must not be treated as permission to enable live flags.
 - Reusable MCP parity now has both local and SSH coverage paths. Local
   `smoke_local_health.ps1` invokes `smoke_mcp_parity.ps1`; deployed issue
   acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.

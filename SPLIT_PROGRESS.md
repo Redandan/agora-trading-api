@@ -159,8 +159,16 @@
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,
   server-local MCP readiness surfaces, runtime-log smoke, machine-readable
-  `readiness_details`, blockers, and a final verdict without changing
-  production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
+  `readiness_details`, `blocker_classification`, `next_actions`, blockers, and
+  a final verdict without changing production env, DB, order, OCO, grid, Earn,
+  fund, or Telegram state.
+- `scripts/smoke_tiny_live_loss_rca_ssh.ps1` provides a read-only RCA smoke for
+  the live-readiness `risk_hard_stop` / consecutive tiny-live loss blocker. It
+  calls server-local `/api/mcp` to summarize tiny-live execution readiness,
+  auto-approval blockers, recent tiny-live audit rows, autonomous execution
+  attribution, missed-opportunity context, and monitor/rollout state without
+  changing production env, DB, order, OCO, grid, Earn, fund, Telegram, or live
+  scheduler state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

@@ -168,6 +168,19 @@ server-local MCP readiness surfaces, runtime-log smoke, machine-readable
 review a separately authorized live-change plan; the script never changes
 production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
 
+Read-only tiny-live loss hard-stop RCA when live-readiness reports
+`risk_hard_stop` or `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`:
+
+```powershell
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1
+```
+
+This calls server-local `/api/mcp` only and summarizes tiny-live execution
+readiness, auto-approval blockers, recent tiny-live audit rows, autonomous
+execution attribution, missed-opportunity context, and monitor/rollout status.
+It does not place orders, enable scheduler/live flags, send Telegram, modify
+OCO, or change production env/DB state.
+
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary
 and operator-control markers without changing order/OCO/strategy/grid/fund/Earn

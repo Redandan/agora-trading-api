@@ -135,7 +135,8 @@
   evidence through server-local `/api/mcp`. The script does not modify
   order/OCO/strategy/grid/fund/Earn/Telegram/DB state; `-RequireAcceptance`
   should be used only when the deployed runtime has enough normalized recent
-  non-ambiguous backtest rows to prove `acceptance=PASS`. Same-bar
+  non-ambiguous backtest rows to prove `acceptance=PASS`. The issue-closure
+  default is a 30d/500 sample; smaller limits are diagnostic only. Same-bar
   trigger/stop rows are reported for diagnostics but excluded from PnL
   acceptance totals.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical

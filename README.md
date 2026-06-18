@@ -139,6 +139,8 @@ Read-only trailing-stop PnL replay smoke after a deploy that contains the
 The default mode proves server-local `/api/mcp` reachability, the read-only
 boundary marker, the `acceptanceTarget: total trailing PnL improvement >= 5%`
 marker, an explicit replay sample status, and `acceptanceBlocker` diagnostics.
+The acceptance smoke defaults to a 30d/500 sample so a very recent 100-trade
+slice does not dominate the deployed closure signal.
 `intervalCode` selects normalized backtest trades; `replayIntervalCode`
 defaults to `1m` and selects the K-lines used to resolve intrabar
 trigger/stop ordering.

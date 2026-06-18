@@ -1521,9 +1521,10 @@ try {
     foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"
     }
-    foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS", "acceptanceTarget: total trailing PnL improvement >= 5%", "acceptanceBlocker=", "acceptanceBlockerDetail=", "replayIntervalCode", "backtestInterval:", "replayInterval:")) {
+    foreach ($pattern in @("Limit = 500", "RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS", "acceptanceTarget: total trailing PnL improvement >= 5%", "acceptanceBlocker=", "acceptanceBlockerDetail=", "replayIntervalCode", "backtestInterval:", "replayInterval:")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
     }
+    Assert-RgMatch -Pattern "TrailingLimit = 500" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper defaults trailing closure sample to 30d/500"
     foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK", "REACHABILITY_ONLY OK", "CLOSURE_READY OK", "reachability-only output")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "operator docs keep current issue acceptance closure semantics $pattern"
     }
@@ -1539,8 +1540,8 @@ try {
     foreach ($pattern in @("-EnvFile", "consistent runtime", "server-local MCP (acceptance )?smokes")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "handoff docs record EnvFile-consistent local acceptance wrapper evidence $pattern"
     }
-    foreach ($pattern in @("acceptanceTarget: total trailing PnL improvement >= 5%", "replayIntervalCode", "backtest interval selects normalized trades")) {
-        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep trailing replay acceptance target marker $pattern"
+    foreach ($pattern in @("acceptanceTarget: total trailing PnL improvement >= 5%", "replayIntervalCode", "backtest interval selects normalized trades", "30d/500")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "docs keep trailing replay acceptance target marker $pattern"
     }
     Assert-RgMatch -Pattern "RequireTrailingAcceptance.*cannot be combined with.*SkipSplitAcceptance" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper rejects hard trailing closure without split acceptance"
     Assert-PostDeployIssueAcceptanceFlagGuard

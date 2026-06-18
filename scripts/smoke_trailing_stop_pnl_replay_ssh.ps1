@@ -7,7 +7,7 @@ param(
     [string]$IntervalCode = "1h",
     [string]$ReplayIntervalCode = "1m",
     [int]$Days = 30,
-    [int]$Limit = 100,
+    [int]$Limit = 500,
     [switch]$RequireAcceptance
 )
 

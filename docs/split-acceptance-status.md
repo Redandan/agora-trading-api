@@ -133,8 +133,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `/api/mcp` and prove the boundary marker, the
   `acceptanceTarget: total trailing PnL improvement >= 5%` marker, and sample
   status. The 30d PnL acceptance for issue #3 is only proven when that smoke
-  returns `sampleStatus=REPLAYED` and `acceptance=PASS`; local H2 smoke or a
-  no-sample production result is only reachability evidence. PnL acceptance
+  returns `sampleStatus=REPLAYED` and `acceptance=PASS`; the issue-closure
+  smoke defaults to a 30d/500 sample, while smaller limits are only narrow
+  diagnostics. Local H2 smoke or a no-sample production result is only
+  reachability evidence. PnL acceptance
   totals exclude `ambiguousSameBar` rows where trigger/stop ordering cannot be
   proven from OHLC bars. The replay report also prints `acceptanceBlocker` and
   `acceptanceBlockerDetail` so `NOT_PROVEN` output identifies whether closure is

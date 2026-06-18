@@ -7,7 +7,7 @@ param(
     [string]$IntervalCode = "1h",
     [string]$ReplayIntervalCode = "1m",
     [int]$TrailingDays = 30,
-    [int]$TrailingLimit = 100,
+    [int]$TrailingLimit = 500,
     [int]$SignalExecutionDays = 5,
     [int]$SignalBlockedDays = 7,
     [int]$SignalAccuracyDays = 14,

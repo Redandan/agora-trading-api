@@ -545,6 +545,8 @@ Expected:
   1h normalized backtest trades.
 - Output includes `sampleStatus=NO_REPLAYABLE_TRADES`, `sampleStatus=REPLAYED`,
   or `sampleStatus=NO_REPLAYED_ROWS`.
+- The default issue-closure sample is 30d/500; use smaller limits only as
+  narrow diagnostics, not as the final deployed acceptance signal.
 - Treat `NO_REPLAYABLE_TRADES` or `NO_REPLAYED_ROWS` as deploy reachability
   evidence only, not PnL acceptance.
 - PnL acceptance totals exclude `ambiguousSameBar` rows where trigger/stop

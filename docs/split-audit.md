@@ -163,7 +163,7 @@ The local verification gate also checks that split/deploy assumptions stay align
 - Deploy fails fast if the AgoraMarket `internal-client` SDK is missing, then installs that SDK before building trading.
 - Flyway is enabled after the trading baseline exists, and `ddl-auto=validate` is documented as hardened schema mode.
 - Deploy, server preflight, and verification require `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, `SPRING_FLYWAY_ENABLED=true`, and the Trading-owned Flyway history table.
-- `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names before any Flyway baseline is generated.
+- `scripts/verify_local.ps1` runs the read-only schema source inventory and rejects implicit JPA table names so the reviewed `V1__baseline.sql` and future `V2__...` migrations stay table-name safe.
 - `scripts/schema_baseline_compare_server.sh` repeats the implicit JPA table-name check on the server before comparing database metadata.
 - Migration drift checks use `trading_flyway_schema_history` and no stale `db_migration_history` or `db/migrations` comments remain.
 - Internal API docs use externally callable `/api/internal/...` paths for exchange-rate contracts and do not predefine identity/user contracts.

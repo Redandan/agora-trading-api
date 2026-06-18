@@ -70,10 +70,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Flyway is present for the future trading migration baseline.
-             It stays disabled by default until src/main/resources/db/migration
-             contains an explicit baseline. Version pinned so MySQL 9.x is
-             recognized by runtime checks once Flyway is enabled. -->
+        <!-- Flyway is present for the reviewed Trading V1 baseline.
+             It stays disabled in local defaults and is enabled by hardened
+             server env with the Trading-owned schema history table. Version
+             pinned so MySQL 9.x is recognized by runtime checks. -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>

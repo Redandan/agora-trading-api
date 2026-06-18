@@ -43,14 +43,17 @@ function Get-LiveReadinessBundleBlockers {
     if ($RuntimeEvidence -match "diagnosis=NO_CANONICAL_ROWS") {
         $blockers.Add("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
     }
-    if ($RuntimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
+    if ($RuntimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
+            -or $RuntimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
         $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
     }
-    if ($RuntimeEvidence -match "shadowIntentCount=0") {
+    if ($RuntimeEvidence -notmatch "shadowIntentCount=([1-9][0-9]*)") {
         $blockers.Add("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
     }
     if ($RuntimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
         $blockers.Add("RUNTIME_EVIDENCE_ORDER_SENT")
+    } elseif ($RuntimeEvidence -notmatch "orderSentEvidence=0") {
+        $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
     }
     if ($TinyLive -notmatch "hardStopDetected=false" `
             -or $TinyLive -match "hardStopDetected=true" `
@@ -314,7 +317,7 @@ Assert-BundleEvidenceWindowsCovered
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED"
-    RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3"
+    RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
     Signal = "no review gaps"
     McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
@@ -333,11 +336,14 @@ Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInpu
 Assert-BlockerCase -Name "audit execution eligibility not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"PRE_POSITION_NOT_EXECUTION_ELIGIBLE`"]" }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
-Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
+Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
 Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
-Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT`nshadowIntentCount=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=0`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
 Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT")
+Assert-BlockerCase -Name "runtime missing diagnosis fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "shadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime missing shadow intent fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=N/A`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+Assert-BlockerCase -Name "runtime missing order sent evidence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "tiny live hard stop" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=true`nRollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live consecutive loss text" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live rollout not ready" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=false" }) -ExpectedBlockers @("TINY_LIVE_ROLLOUT_NOT_READY")
@@ -357,7 +363,7 @@ Assert-BlockerCase `
     -Inputs @{
         Audit = "verdict=NOT_READY`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`"]"
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
-        RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0"
+        RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=PASS"
         McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"

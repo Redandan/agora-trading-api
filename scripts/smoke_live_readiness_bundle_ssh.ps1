@@ -283,7 +283,8 @@ if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING" `
 if ($audit -match "HEALTH_NOT_UP|RUNTIME_LOG_SMOKE_FAILED|RUNTIME_LOG_SMOKE_EXCEPTION") {
     $blockers.Add("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 }
-if ($audit -match "EVENT_RISK_NOT_R0") {
+if ($audit -match "EVENT_RISK_NOT_R0" `
+        -or $audit -notmatch "riskLevel=R0") {
     $blockers.Add("EVENT_RISK_NOT_BASELINE")
 }
 if ($audit -match "MCP_TOOL_ERROR:") {

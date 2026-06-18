@@ -5,6 +5,7 @@ param(
     [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
     [string]$Symbol = "BTCUSDT",
     [string]$IntervalCode = "1h",
+    [string]$ReplayIntervalCode = "1m",
     [int]$TrailingDays = 30,
     [int]$TrailingLimit = 100,
     [int]$SignalExecutionDays = 5,
@@ -63,6 +64,7 @@ Assert-RemotePathSafe -Name "TradingAppDir" -Value $TradingAppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 Assert-McpSmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 21
+Assert-McpSmokeTokenSafe -Name "ReplayIntervalCode" -Value $ReplayIntervalCode -MaxLength 21
 
 if ($TrailingDays -lt 1 -or $TrailingDays -gt 90) {
     throw "TrailingDays must be between 1 and 90."
@@ -95,7 +97,7 @@ if (-not $SkipSplitAcceptance -and -not (Test-Path -LiteralPath $splitAcceptance
 }
 
 Write-Host "[issue-acceptance] read-only post-deploy issue acceptance"
-Write-Host "[issue-acceptance] symbol=$Symbol interval=$IntervalCode trailingDays=$TrailingDays trailingLimit=$TrailingLimit requireTrailingAcceptance=$($RequireTrailingAcceptance.IsPresent)"
+Write-Host "[issue-acceptance] symbol=$Symbol interval=$IntervalCode replayInterval=$ReplayIntervalCode trailingDays=$TrailingDays trailingLimit=$TrailingLimit requireTrailingAcceptance=$($RequireTrailingAcceptance.IsPresent)"
 Write-Host "[issue-acceptance] signalExecutionDays=$SignalExecutionDays signalBlockedDays=$SignalBlockedDays signalAccuracyDays=$SignalAccuracyDays"
 if ($SkipSplitAcceptance) {
     Write-Warning "[issue-acceptance] DIAGNOSTIC_ONLY: -SkipSplitAcceptance omits full split acceptance and must not be used as #1/#2/#3 closure evidence."
@@ -130,6 +132,7 @@ $trailingArgs = @{
     EnvFile = $EnvFile
     Symbol = $Symbol
     IntervalCode = $IntervalCode
+    ReplayIntervalCode = $ReplayIntervalCode
     Days = $TrailingDays
     Limit = $TrailingLimit
 }

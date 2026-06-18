@@ -189,12 +189,18 @@ Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "wr
 $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -Name "analyzeTrailingStopPnlReplay" -Arguments @{
     symbol = "BTCUSDT"
     intervalCode = "1h"
+    replayIntervalCode = "1m"
     days = 30
     limit = 10
 } -TimeoutSec 120
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "boundary: READ_ONLY" -Description "Trailing-stop PnL replay stays read-only"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "backtestInterval: 1h" -Description "Trailing-stop PnL replay reports backtest interval"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "replayInterval: 1m" -Description "Trailing-stop PnL replay reports replay interval"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "replayIntervalNote=backtest interval selects normalized trades" -Description "Trailing-stop PnL replay explains split interval semantics"
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS" -Description "Trailing-stop PnL replay returns an explicit sample status"
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceTarget: total trailing PnL improvement >= 5%" -Description "Trailing-stop PnL replay keeps the issue #3 acceptance target"
 Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals" -Description "Trailing-stop PnL replay keeps ambiguous same-bar exclusion"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceBlocker=(NO_REPLAYABLE_TRADES|NO_REPLAYED_ROWS|ALL_REPLAYED_ROWS_AMBIGUOUS|NO_NON_AMBIGUOUS_ACCEPTANCE_ROWS|ZERO_OR_MISSING_ORIGINAL_PNL|CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT|BELOW_ACCEPTANCE_TARGET|NONE)" -Description "Trailing-stop PnL replay explains acceptance blocker"
+Assert-McpResultTextContains -Response $trailingPnlReplay -Pattern "acceptanceBlockerDetail=" -Description "Trailing-stop PnL replay explains acceptance blocker detail"
 
 Write-Host "[mcp-parity] OK $mcpUrl toolCount=$($toolNames.Count) required=$($requiredTools.Count)"

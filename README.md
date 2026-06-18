@@ -138,10 +138,13 @@ Read-only trailing-stop PnL replay smoke after a deploy that contains the
 
 The default mode proves server-local `/api/mcp` reachability, the read-only
 boundary marker, the `acceptanceTarget: total trailing PnL improvement >= 5%`
-marker, and an explicit replay sample status. Add `-RequireAcceptance` only
-when the deployed DB sample is expected to prove the 30d PnL target
-(`acceptance=PASS`). Ambiguous same-bar replay rows are reported but excluded
-from PnL acceptance totals.
+marker, an explicit replay sample status, and `acceptanceBlocker` diagnostics.
+`intervalCode` selects normalized backtest trades; `replayIntervalCode`
+defaults to `1m` and selects the K-lines used to resolve intrabar
+trigger/stop ordering.
+Add `-RequireAcceptance` only when the deployed DB sample is expected to prove
+the 30d PnL target (`acceptance=PASS`). Ambiguous same-bar replay rows are
+reported but excluded from PnL acceptance totals.
 
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:

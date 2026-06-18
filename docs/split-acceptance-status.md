@@ -136,7 +136,13 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   returns `sampleStatus=REPLAYED` and `acceptance=PASS`; local H2 smoke or a
   no-sample production result is only reachability evidence. PnL acceptance
   totals exclude `ambiguousSameBar` rows where trigger/stop ordering cannot be
-  proven from OHLC bars.
+  proven from OHLC bars. The replay report also prints `acceptanceBlocker` and
+  `acceptanceBlockerDetail` so `NOT_PROVEN` output identifies whether closure is
+  blocked by all-ambiguous rows, no non-ambiguous rows, zero/missing original
+  PnL, current +0.5/+1.0 ATR parameters producing no accepted-row improvement,
+  or improvement below the required 5% target. `intervalCode` selects
+  normalized backtest trades; `replayIntervalCode` defaults to `1m` and selects
+  the K-lines used to resolve intrabar trigger/stop ordering.
 - Reusable MCP parity now has both local and SSH coverage paths. Local
   `smoke_local_health.ps1` invokes `smoke_mcp_parity.ps1`; deployed issue
   acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.

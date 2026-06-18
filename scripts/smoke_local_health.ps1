@@ -581,11 +581,16 @@ try {
     Assert-McpContentContains -Content $antiWickCoverage -Pattern "policy: live BTC spot LONG entries default to ULTRA_LOW_DISASTER SL" -Description "Anti-wick policy coverage documents BTC disaster-SL policy"
     Assert-McpContentContains -Content $antiWickCoverage -Pattern "Summary:" -Description "Anti-wick policy coverage returns an operator summary"
 
-    $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -ToolName "analyzeTrailingStopPnlReplay" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1h"; days = 30; limit = 10 }
+    $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -ToolName "analyzeTrailingStopPnlReplay" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1h"; replayIntervalCode = "1m"; days = 30; limit = 10 }
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "boundary: READ_ONLY" -Description "Trailing-stop PnL replay stays read-only in local smoke"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "backtestInterval: 1h" -Description "Trailing-stop PnL replay reports backtest interval"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "replayInterval: 1m" -Description "Trailing-stop PnL replay reports replay interval"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "replayIntervalNote=backtest interval selects normalized trades" -Description "Trailing-stop PnL replay explains split interval semantics"
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS" -Description "Trailing-stop PnL replay returns an explicit sample status"
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceTarget: total trailing PnL improvement >= 5%" -Description "Trailing-stop PnL replay keeps the issue #3 acceptance target"
     Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals" -Description "Trailing-stop PnL replay documents ambiguous same-bar exclusion"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceBlocker=(NO_REPLAYABLE_TRADES|NO_REPLAYED_ROWS|ALL_REPLAYED_ROWS_AMBIGUOUS|NO_NON_AMBIGUOUS_ACCEPTANCE_ROWS|ZERO_OR_MISSING_ORIGINAL_PNL|CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT|BELOW_ACCEPTANCE_TARGET|NONE)" -Description "Trailing-stop PnL replay explains acceptance blocker"
+    Assert-McpContentContains -Content $trailingPnlReplay -Pattern "acceptanceBlockerDetail=" -Description "Trailing-stop PnL replay explains acceptance blocker detail"
 
     Write-Host "[smoke] OK $healthUrl"
 } finally {

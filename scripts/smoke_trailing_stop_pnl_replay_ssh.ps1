@@ -5,6 +5,7 @@ param(
     [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
     [string]$Symbol = "BTCUSDT",
     [string]$IntervalCode = "1h",
+    [string]$ReplayIntervalCode = "1m",
     [int]$Days = 30,
     [int]$Limit = 100,
     [switch]$RequireAcceptance
@@ -63,6 +64,7 @@ Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 Assert-McpSmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 21
+Assert-McpSmokeTokenSafe -Name "ReplayIntervalCode" -Value $ReplayIntervalCode -MaxLength 21
 
 $requireAcceptanceText = if ($RequireAcceptance.IsPresent) { "true" } else { "false" }
 $remoteScript = @"
@@ -76,7 +78,7 @@ if [ -z "`$MCP_KEY" ]; then
   exit 1
 fi
 
-export PORT MCP_KEY SYMBOL='$Symbol' INTERVAL_CODE='$IntervalCode' DAYS='$Days' LIMIT='$Limit' REQUIRE_ACCEPTANCE='$requireAcceptanceText'
+export PORT MCP_KEY SYMBOL='$Symbol' INTERVAL_CODE='$IntervalCode' REPLAY_INTERVAL_CODE='$ReplayIntervalCode' DAYS='$Days' LIMIT='$Limit' REQUIRE_ACCEPTANCE='$requireAcceptanceText'
 python3 - <<'PY'
 import json
 import os
@@ -93,6 +95,7 @@ headers = {
 arguments = {
     "symbol": os.environ["SYMBOL"].upper(),
     "intervalCode": os.environ["INTERVAL_CODE"],
+    "replayIntervalCode": os.environ["REPLAY_INTERVAL_CODE"],
     "days": int(os.environ["DAYS"]),
     "limit": int(os.environ["LIMIT"]),
 }
@@ -141,7 +144,7 @@ def call_tool(name, arguments, timeout=120):
     return text
 
 print("[trailing-stop-pnl-replay] read-only production MCP check")
-print(f"symbol={arguments['symbol']} intervalCode={arguments['intervalCode']} days={arguments['days']} limit={arguments['limit']} requireAcceptance={str(require_acceptance).lower()}")
+print(f"symbol={arguments['symbol']} intervalCode={arguments['intervalCode']} replayIntervalCode={arguments['replayIntervalCode']} days={arguments['days']} limit={arguments['limit']} requireAcceptance={str(require_acceptance).lower()}")
 
 try:
     text = call_tool("analyzeTrailingStopPnlReplay", arguments, timeout=180)
@@ -155,9 +158,14 @@ print("")
 
 required_patterns = {
     "read-only boundary": r"boundary:\s*READ_ONLY",
+    "backtest interval": r"backtestInterval:\s*" + re.escape(arguments["intervalCode"]),
+    "replay interval": r"replayInterval:\s*" + re.escape(arguments["replayIntervalCode"]),
+    "split interval semantics": r"replayIntervalNote=backtest interval selects normalized trades",
     "sample status": r"sampleStatus=(NO_REPLAYABLE_TRADES|REPLAYED|NO_REPLAYED_ROWS)",
     "acceptance target": r"acceptanceTarget: total trailing PnL improvement >= 5%",
     "ambiguous same-bar exclusion": r"acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals",
+    "acceptance blocker": r"acceptanceBlocker=(NO_REPLAYABLE_TRADES|NO_REPLAYED_ROWS|ALL_REPLAYED_ROWS_AMBIGUOUS|NO_NON_AMBIGUOUS_ACCEPTANCE_ROWS|ZERO_OR_MISSING_ORIGINAL_PNL|CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT|BELOW_ACCEPTANCE_TARGET|NONE)",
+    "acceptance blocker detail": r"acceptanceBlockerDetail=",
 }
 for description, pattern in required_patterns.items():
     if not re.search(pattern, text):

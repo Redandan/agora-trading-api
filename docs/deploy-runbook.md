@@ -137,9 +137,13 @@ Expected:
   `analyzeTrailingStopPnlReplay` through `/api/mcp` and requires the
   `boundary: READ_ONLY` marker, the
   `acceptanceTarget: total trailing PnL improvement >= 5%` marker, and an
-  explicit `sampleStatus`. A local H2 `NO_REPLAYABLE_TRADES` result proves tool
-  wiring and safety only; the 30d PnL acceptance for issue #3 still requires a
-  deployed runtime with real normalized backtest/K-line samples.
+  explicit `sampleStatus`, `acceptanceBlocker`, and
+  `acceptanceBlockerDetail`. A local H2 `NO_REPLAYABLE_TRADES` result proves
+  tool wiring and safety only; the 30d PnL acceptance for issue #3 still
+  requires a deployed runtime with real normalized backtest/K-line samples.
+  `intervalCode` selects normalized backtest trades, while
+  `replayIntervalCode` defaults to `1m` and selects the K-lines used to resolve
+  intrabar trigger/stop ordering.
 - BTC spot anti-wick policy coverage remains read-only. Local smoke calls
   `analyzeSpotAntiWickPolicyCoverage` through `/api/mcp` and requires the
   `boundary: READ_ONLY`, `ULTRA_LOW_DISASTER`, and summary markers. This proves
@@ -535,12 +539,21 @@ Expected:
 - The script calls server-local `/api/mcp`, not public Trading MCP.
 - Output includes `boundary: READ_ONLY`.
 - Output includes `acceptanceTarget: total trailing PnL improvement >= 5%`.
+- Output includes `backtestInterval`, `replayInterval`, and
+  `replayIntervalNote=backtest interval selects normalized trades`; the default
+  `replayIntervalCode=1m` is intended to reduce false same-bar ambiguity for
+  1h normalized backtest trades.
 - Output includes `sampleStatus=NO_REPLAYABLE_TRADES`, `sampleStatus=REPLAYED`,
   or `sampleStatus=NO_REPLAYED_ROWS`.
 - Treat `NO_REPLAYABLE_TRADES` or `NO_REPLAYED_ROWS` as deploy reachability
   evidence only, not PnL acceptance.
 - PnL acceptance totals exclude `ambiguousSameBar` rows where trigger/stop
   ordering cannot be proven from OHLC bars.
+- `NOT_PROVEN` output must include `acceptanceBlocker` and
+  `acceptanceBlockerDetail`; use these fields to decide whether the next safe
+  step is collecting/choosing non-ambiguous samples, fixing missing replay
+  inputs, or reviewing the +0.5/+1.0 ATR parameters. Do not treat those fields
+  as approval to relax live trailing/OCO behavior.
 - To make issue #3 PnL acceptance a hard gate, run with `-RequireAcceptance`;
   this fails unless the deployed DB sample returns `acceptance=PASS`.
 - The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB

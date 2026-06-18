@@ -48,7 +48,8 @@ class PositionMcpToolsTest {
                 String.class,
                 String.class,
                 Integer.class,
-                Integer.class);
+                Integer.class,
+                String.class);
 
         McpAuth auth = method.getAnnotation(McpAuth.class);
         McpCategory category = method.getAnnotation(McpCategory.class);
@@ -67,12 +68,17 @@ class PositionMcpToolsTest {
                 eq("BTCUSDT"), eq("1h"), any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(List.of());
 
-        String output = tools.analyzeTrailingStopPnlReplay("BTCUSDT", "1h", 30, 10);
+        String output = tools.analyzeTrailingStopPnlReplay("BTCUSDT", "1h", 30, 10, null);
 
         assertThat(output).contains("boundary: READ_ONLY");
+        assertThat(output).contains("backtestInterval: 1h");
+        assertThat(output).contains("replayInterval: 1m");
+        assertThat(output).contains("replayIntervalNote=backtest interval selects normalized trades");
         assertThat(output).contains("acceptanceTarget: total trailing PnL improvement >= 5%");
         assertThat(output).contains("acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals");
         assertThat(output).contains("sampleStatus=NO_REPLAYABLE_TRADES");
+        assertThat(output).contains("acceptanceBlocker=NO_REPLAYABLE_TRADES");
+        assertThat(output).contains("no normalized backtest trades matched the requested symbol/interval/window");
     }
 
     @Test
@@ -87,23 +93,78 @@ class PositionMcpToolsTest {
                 eq("BTCUSDT"), eq("1h"), any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(List.of(ambiguous, accepted));
         when(mdKlineRepository.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                eq("BTCUSDT"), eq("1h"), eq("okx"), any(LocalDateTime.class), any(LocalDateTime.class)))
+                eq("BTCUSDT"), eq("1m"), eq("okx"), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(bars);
         when(trailingStopReplayService.replayBacktestTrade(eq(ambiguous), eq(bars)))
                 .thenReturn(replay(new BigDecimal("-10.00000000"), new BigDecimal("100.00000000"), true));
         when(trailingStopReplayService.replayBacktestTrade(eq(accepted), eq(bars)))
                 .thenReturn(replay(new BigDecimal("-10.00000000"), new BigDecimal("-10.00000000"), false));
 
-        String output = tools.analyzeTrailingStopPnlReplay("BTCUSDT", "1h", 30, 10);
+        String output = tools.analyzeTrailingStopPnlReplay("BTCUSDT", "1h", 30, 10, null);
 
         assertThat(output).contains("boundary: READ_ONLY");
+        assertThat(output).contains("backtestInterval: 1h");
+        assertThat(output).contains("replayInterval: 1m");
         assertThat(output).contains("replayed=2 acceptanceRows=1");
         assertThat(output).contains("ambiguousSameBar=1");
         assertThat(output).contains("acceptanceOriginalNetPnl=-10.00000000");
         assertThat(output).contains("acceptanceTrailingNetPnl=-10.00000000");
         assertThat(output).contains("acceptanceDeltaPnl=0.00000000");
         assertThat(output).contains("acceptance=NOT_PROVEN");
+        assertThat(output).contains("acceptanceBlocker=CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT");
+        assertThat(output).contains("current +0.5/+1.0 ATR overlay did not improve accepted rows");
         assertThat(output).contains("acceptanceNote=ambiguousSameBar rows are excluded");
+    }
+
+    @Test
+    void analyzeTrailingStopPnlReplayExplainsAllAmbiguousRowsAsNotProven() {
+        PositionMcpTools tools = tools();
+
+        BtBacktestTrade first = trade(1L);
+        BtBacktestTrade second = trade(2L);
+        List<MdKline> bars = List.of(new MdKline());
+
+        when(backtestTradeRepository.findReplayableRecentTrades(
+                eq("BTCUSDT"), eq("1h"), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(List.of(first, second));
+        when(mdKlineRepository.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                eq("BTCUSDT"), eq("1m"), eq("okx"), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(bars);
+        when(trailingStopReplayService.replayBacktestTrade(eq(first), eq(bars)))
+                .thenReturn(replay(new BigDecimal("-10.00000000"), new BigDecimal("100.00000000"), true));
+        when(trailingStopReplayService.replayBacktestTrade(eq(second), eq(bars)))
+                .thenReturn(replay(new BigDecimal("-10.00000000"), new BigDecimal("100.00000000"), true));
+
+        String output = tools.analyzeTrailingStopPnlReplay("BTCUSDT", "1h", 30, 10, null);
+
+        assertThat(output).contains("replayed=2 acceptanceRows=0");
+        assertThat(output).contains("ambiguousSameBar=2");
+        assertThat(output).contains("acceptance=NOT_PROVEN");
+        assertThat(output).contains("acceptanceBlocker=ALL_REPLAYED_ROWS_AMBIGUOUS");
+        assertThat(output).contains("OHLC bars cannot prove trigger/stop ordering");
+    }
+
+    @Test
+    void analyzeTrailingStopPnlReplaySeparatesBacktestAndReplayIntervals() {
+        PositionMcpTools tools = tools();
+
+        BtBacktestTrade trade = trade(1L);
+        List<MdKline> bars = List.of(new MdKline());
+
+        when(backtestTradeRepository.findReplayableRecentTrades(
+                eq("BTCUSDT"), eq("1h"), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(List.of(trade));
+        when(mdKlineRepository.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                eq("BTCUSDT"), eq("5m"), eq("okx"), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(bars);
+        when(trailingStopReplayService.replayBacktestTrade(eq(trade), eq(bars)))
+                .thenReturn(replay(new BigDecimal("-10.00000000"), new BigDecimal("100.00000000"), false));
+
+        String output = tools.analyzeTrailingStopPnlReplay("BTCUSDT", "1h", 30, 10, "5m");
+
+        assertThat(output).contains("backtestInterval: 1h");
+        assertThat(output).contains("replayInterval: 5m");
+        assertThat(output).contains("acceptance=PASS");
     }
 
     @Test

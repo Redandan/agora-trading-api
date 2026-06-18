@@ -609,7 +609,7 @@ function Assert-McpParityToolCoverage {
     foreach ($marker in @("tools/list", "getMcpRegistryVersion", "api/mcp")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1", "scripts/smoke_local_health.ps1") -Description "MCP parity smoke marker $marker"
     }
-    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "orderSent", "ocoModified", "writesRuntimeEvidence", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "acceptanceTarget: total trailing PnL improvement >= 5%", "ambiguousSameBar rows are excluded")) {
+    foreach ($marker in @("Invoke-McpTool", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "orderSent", "ocoModified", "writesRuntimeEvidence", "operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "ULTRA_LOW_DISASTER", "acceptanceTarget: total trailing PnL improvement >= 5%", "ambiguousSameBar rows are excluded", "acceptanceBlocker=", "acceptanceBlockerDetail=")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity.ps1") -Description "reusable MCP parity smoke calls read-only acceptance surface marker $marker"
     }
     foreach ($marker in @("getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates")) {
@@ -1419,7 +1419,7 @@ try {
     foreach ($pattern in @("smoke_mcp_parity_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "reusable MCP parity smoke", "signal-correctness MCP smoke", "-RequireNoReviewGaps", "RequireTrailingAcceptance", "RequireAcceptance", "DIAGNOSTIC_ONLY", "DIAGNOSTIC_ONLY OK", "REACHABILITY_ONLY", "REACHABILITY_ONLY OK", "CLOSURE_READY OK", "full split acceptance, no-review-gaps guardrail smoke, signal-correctness smoke, and hard trailing replay acceptance passed", "must not be used as #1/#2/#3 closure evidence", "do not use this output as #1/#2/#3 closure evidence")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper keeps strict guardrail/trailing closure gate $pattern"
     }
-    foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "acceptanceTarget: total trailing PnL improvement >= 5%", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates", "orderSent", "ocoModified", "writesRuntimeEvidence", "server-local MCP parity smoke failed", "/api/mcp")) {
+    foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "acceptanceTarget: total trailing PnL improvement >= 5%", "acceptanceBlocker=", "acceptanceBlockerDetail=", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates", "orderSent", "ocoModified", "writesRuntimeEvidence", "server-local MCP parity smoke failed", "/api/mcp")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_mcp_parity_ssh.ps1") -Description "server-local MCP parity SSH smoke keeps executable read-only surface marker $pattern"
     }
     foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "read-only production MCP check", "missing no-missed-evaluation/no-missed-order marker", "sys.exit\(1\)", "OK read-only check complete")) {
@@ -1443,6 +1443,7 @@ try {
             '& \$signalCorrectnessSmoke .* -Symbol \$Symbol -ExecutionDays \$SignalExecutionDays -BlockedDays \$SignalBlockedDays -AccuracyDays \$SignalAccuracyDays',
             'Symbol = \$Symbol',
             'IntervalCode = \$IntervalCode',
+            'ReplayIntervalCode = \$ReplayIntervalCode',
             'Days = \$TrailingDays',
             'Limit = \$TrailingLimit',
             '\$trailingArgs\.RequireAcceptance = \$true')) {
@@ -1509,7 +1510,7 @@ try {
         -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-TrailingLimit", "999") `
         -ExpectedPattern "TrailingLimit must be between 1 and 500" `
         -Description "post-deploy issue acceptance wrapper trailing-limit input guard"
-    foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90")) {
+    foreach ($pattern in @("TrailingDays must be between 1 and 90", "TrailingLimit must be between 1 and 500", "SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90", "ReplayIntervalCode")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper bounds read-only production query window $pattern"
     }
     Assert-RgMatch -Pattern "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90" -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal-correctness SSH smoke bounds read-only production query window"
@@ -1520,7 +1521,7 @@ try {
     foreach ($pattern in @("RequireNoReviewGaps", "REVIEW_POLICY_GAPS", "review gaps are not acceptable for issue acceptance")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_guardrail_acceptance_ssh.ps1") -Description "guardrail acceptance smoke keeps no-review-gaps closure semantics $pattern"
     }
-    foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS", "acceptanceTarget: total trailing PnL improvement >= 5%")) {
+    foreach ($pattern in @("RequireAcceptance", "acceptance=PASS", "sampleStatus=NO_REPLAYABLE_TRADES", "sampleStatus=NO_REPLAYED_ROWS", "acceptanceTarget: total trailing PnL improvement >= 5%", "acceptanceBlocker=", "acceptanceBlockerDetail=", "replayIntervalCode", "backtestInterval:", "replayInterval:")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
     }
     foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK", "REACHABILITY_ONLY OK", "CLOSURE_READY OK", "reachability-only output")) {
@@ -1538,7 +1539,7 @@ try {
     foreach ($pattern in @("-EnvFile", "consistent runtime", "server-local MCP (acceptance )?smokes")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "handoff docs record EnvFile-consistent local acceptance wrapper evidence $pattern"
     }
-    foreach ($pattern in @("acceptanceTarget: total trailing PnL improvement >= 5%")) {
+    foreach ($pattern in @("acceptanceTarget: total trailing PnL improvement >= 5%", "replayIntervalCode", "backtest interval selects normalized trades")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep trailing replay acceptance target marker $pattern"
     }
     Assert-RgMatch -Pattern "RequireTrailingAcceptance.*cannot be combined with.*SkipSplitAcceptance" -Paths @("scripts/verify_post_deploy_issue_acceptance_ssh.ps1") -Description "post-deploy issue acceptance wrapper rejects hard trailing closure without split acceptance"

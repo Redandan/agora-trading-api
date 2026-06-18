@@ -258,13 +258,19 @@ require("governance tightening criteria", r"criteria:", governance_tightening)
 trailing = call_tool("analyzeTrailingStopPnlReplay", {
     "symbol": symbol,
     "intervalCode": interval_code,
+    "replayIntervalCode": "1m",
     "days": 30,
     "limit": 10,
 }, timeout=180)
 require("trailing replay read-only boundary", r"boundary:\s*READ_ONLY", trailing)
+require("trailing replay backtest interval", r"backtestInterval:\s*1h", trailing)
+require("trailing replay interval", r"replayInterval:\s*1m", trailing)
+require("trailing split interval semantics", r"replayIntervalNote=backtest interval selects normalized trades", trailing)
 require("trailing replay sample status", r"sampleStatus=NO_REPLAYABLE_TRADES|sampleStatus=REPLAYED|sampleStatus=NO_REPLAYED_ROWS", trailing)
 require("trailing replay acceptance target", r"acceptanceTarget: total trailing PnL improvement >= 5%", trailing)
 require("trailing ambiguous same-bar exclusion", r"acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals", trailing)
+require("trailing replay acceptance blocker", r"acceptanceBlocker=(NO_REPLAYABLE_TRADES|NO_REPLAYED_ROWS|ALL_REPLAYED_ROWS_AMBIGUOUS|NO_NON_AMBIGUOUS_ACCEPTANCE_ROWS|ZERO_OR_MISSING_ORIGINAL_PNL|CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT|BELOW_ACCEPTANCE_TARGET|NONE)", trailing)
+require("trailing replay acceptance blocker detail", r"acceptanceBlockerDetail=", trailing)
 
 print(f"[mcp-parity-ssh] OK toolCount={len(tool_names)} required={len(required_tools)}")
 PY

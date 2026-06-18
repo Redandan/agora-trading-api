@@ -633,10 +633,12 @@ public class PositionMcpTools {
             @ToolParam(required = false, description = "Symbol filter, default BTCUSDT") String symbol,
             @ToolParam(required = false, description = "Strategy/backtest interval, default 1h") String intervalCode,
             @ToolParam(required = false, description = "Lookback days, default 30, max 90") Integer days,
-            @ToolParam(required = false, description = "Max trades to replay, default 100, max 500") Integer limit) {
+            @ToolParam(required = false, description = "Max trades to replay, default 100, max 500") Integer limit,
+            @ToolParam(required = false, description = "Replay K-line interval, default 1m") String replayIntervalCode) {
 
         String sym = (symbol == null || symbol.isBlank()) ? "BTCUSDT" : symbol.trim().toUpperCase();
         String interval = (intervalCode == null || intervalCode.isBlank()) ? "1h" : intervalCode.trim();
+        String replayInterval = (replayIntervalCode == null || replayIntervalCode.isBlank()) ? "1m" : replayIntervalCode.trim();
         int lookbackDays = days == null || days <= 0 ? 30 : Math.min(days, 90);
         int max = limit == null || limit <= 0 ? 100 : Math.min(limit, 500);
         LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusDays(lookbackDays);
@@ -648,14 +650,19 @@ public class PositionMcpTools {
         sb.append("boundary: READ_ONLY; no order/OCO/strategy/grid/fund/Earn/Telegram/DB behavior changed\n");
         sb.append("symbol: ").append(sym).append("\n");
         sb.append("interval: ").append(interval).append("\n");
+        sb.append("backtestInterval: ").append(interval).append("\n");
+        sb.append("replayInterval: ").append(replayInterval).append("\n");
         sb.append("lookbackDays: ").append(lookbackDays).append("\n");
         sb.append("sampleLimit: ").append(max).append("\n");
+        sb.append("replayIntervalNote=backtest interval selects normalized trades; replay interval selects K-lines used to resolve intrabar trigger/stop ordering\n");
         sb.append("acceptanceTarget: total trailing PnL improvement >= 5% over non-ambiguous original normalized backtest trades\n");
         sb.append("acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals\n");
         sb.append("\n");
 
         if (trades.isEmpty()) {
             sb.append("sampleStatus=NO_REPLAYABLE_TRADES\n");
+            sb.append("acceptanceBlocker=NO_REPLAYABLE_TRADES\n");
+            sb.append("acceptanceBlockerDetail=no normalized backtest trades matched the requested symbol/interval/window\n");
             sb.append("operatorAction: run or locate recent normalized backtests before claiming #439 PnL acceptance.\n");
             return sb.toString();
         }
@@ -680,7 +687,7 @@ public class PositionMcpTools {
                     : "okx";
             List<MdKline> bars = mdKlineRepository
                     .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                            sym, interval, source, trade.getEntryTime().minusMinutes(1), trade.getExitTime());
+                            sym, replayInterval, source, trade.getEntryTime().minusMinutes(1), trade.getExitTime());
             TrailingStopReplayService.ReplayResult replay = trailingStopReplayService.replayBacktestTrade(trade, bars);
             if (!replay.replayed()) {
                 skipped++;
@@ -720,6 +727,8 @@ public class PositionMcpTools {
         boolean pass = acceptanceRows > 0
                 && improvementPct != null
                 && improvementPct.compareTo(new BigDecimal("0.05")) >= 0;
+        String acceptanceBlocker = trailingPnlAcceptanceBlocker(pass, trades.size(), replayed,
+                acceptanceRows, ambiguous, totalDelta, improvementPct);
 
         sb.append("sampleStatus=").append(replayed > 0 ? "REPLAYED" : "NO_REPLAYED_ROWS").append("\n");
         sb.append("tradesFound=").append(trades.size())
@@ -737,6 +746,11 @@ public class PositionMcpTools {
                 .append(" improvementPct=").append(fmtPct(improvementPct))
                 .append("\n");
         sb.append("acceptance=").append(pass ? "PASS" : "NOT_PROVEN").append("\n");
+        sb.append("acceptanceBlocker=").append(acceptanceBlocker).append("\n");
+        sb.append("acceptanceBlockerDetail=")
+                .append(trailingPnlAcceptanceBlockerDetail(acceptanceBlocker, trades.size(), replayed,
+                        acceptanceRows, ambiguous, skipped, totalDelta, improvementPct))
+                .append("\n");
         if (!skipReasons.isEmpty()) {
             sb.append("skipReasons=").append(skipReasons).append("\n");
         }
@@ -752,6 +766,45 @@ public class PositionMcpTools {
                         : "DO_NOT_CLAIM_PNL_ACCEPTANCE; collect more normalized recent trades or review trailing parameters.")
                 .append("\n");
         return sb.toString();
+    }
+
+    private String trailingPnlAcceptanceBlocker(boolean pass, int tradesFound, int replayed,
+                                                int acceptanceRows, int ambiguous,
+                                                BigDecimal totalDelta,
+                                                BigDecimal improvementPct) {
+        if (pass) return "NONE";
+        if (tradesFound <= 0) return "NO_REPLAYABLE_TRADES";
+        if (replayed <= 0) return "NO_REPLAYED_ROWS";
+        if (acceptanceRows <= 0 && ambiguous > 0) return "ALL_REPLAYED_ROWS_AMBIGUOUS";
+        if (acceptanceRows <= 0) return "NO_NON_AMBIGUOUS_ACCEPTANCE_ROWS";
+        if (improvementPct == null) return "ZERO_OR_MISSING_ORIGINAL_PNL";
+        if (totalDelta == null || totalDelta.signum() <= 0) return "CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT";
+        return "BELOW_ACCEPTANCE_TARGET";
+    }
+
+    private String trailingPnlAcceptanceBlockerDetail(String blocker, int tradesFound, int replayed,
+                                                      int acceptanceRows, int ambiguous, int skipped,
+                                                      BigDecimal totalDelta, BigDecimal improvementPct) {
+        return switch (blocker) {
+            case "NONE" -> "hard acceptance passed; still requires explicit operator approval before live promotion";
+            case "NO_REPLAYABLE_TRADES" -> "no normalized backtest trades matched the requested symbol/interval/window";
+            case "NO_REPLAYED_ROWS" -> String.format("tradesFound=%d skipped=%d; replay inputs were missing or unreplayable",
+                    tradesFound, skipped);
+            case "ALL_REPLAYED_ROWS_AMBIGUOUS" -> String.format(
+                    "replayed=%d ambiguousSameBar=%d acceptanceRows=0; OHLC bars cannot prove trigger/stop ordering",
+                    replayed, ambiguous);
+            case "NO_NON_AMBIGUOUS_ACCEPTANCE_ROWS" -> String.format(
+                    "replayed=%d acceptanceRows=0; collect or select non-ambiguous replay rows before claiming PnL acceptance",
+                    replayed);
+            case "ZERO_OR_MISSING_ORIGINAL_PNL" -> "non-ambiguous original PnL total is zero, so improvementPct is undefined";
+            case "CURRENT_PARAMETERS_NO_PNL_IMPROVEMENT" -> String.format(
+                    "acceptanceRows=%d acceptanceDeltaPnl=%s improvementPct=%s; current +0.5/+1.0 ATR overlay did not improve accepted rows",
+                    acceptanceRows, fmt(totalDelta), fmtPct(improvementPct));
+            case "BELOW_ACCEPTANCE_TARGET" -> String.format(
+                    "acceptanceRows=%d acceptanceDeltaPnl=%s improvementPct=%s below required 5%%",
+                    acceptanceRows, fmt(totalDelta), fmtPct(improvementPct));
+            default -> "unknown blocker";
+        };
     }
 
     @McpAuth(McpAuthLevel.LOCAL_ONLY)

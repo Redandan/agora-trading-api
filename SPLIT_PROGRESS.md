@@ -226,12 +226,14 @@
   read-only query windows fail locally before any SSH call.
 - Latest read-only live-readiness bundle observed on 2026-06-18T17:39+08:00
   against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8`: health UP,
-  deployment metadata CURRENT, runtime log PASS, MCP parity OK
-  (`toolCount=305 required=35`), all order-capable flags false, dry-run flags
-  true, and live still blocked by
+  deployment metadata CURRENT but server worktree not at `origin/main`, runtime
+  log PASS, MCP parity OK (`toolCount=305 required=35`), all order-capable
+  flags false, dry-run flags true, and live still blocked by
   `LIVE_READINESS_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, and
-  `TINY_LIVE_LOSS_HARD_STOP`.
+  `TINY_LIVE_LOSS_HARD_STOP`; the local bundle wrapper now also classifies this
+  evidence as `DEPLOYED_RUNTIME_NOT_CURRENT` until the server is refreshed to
+  `origin/main`.
 - `scripts/smoke_live_readiness_bundle_ssh.ps1` now prints
   `deployment_metadata_status` and adds `DEPLOYED_RUNTIME_NOT_CURRENT` when
   deployed runtime metadata is missing/unknown or runtime files differ from the

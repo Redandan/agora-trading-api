@@ -27,7 +27,7 @@ skip a blocker.
 | `TINY_LIVE_LOSS_HARD_STOP` | `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1` | `hardStopDetected=false`, consecutive tiny-live losses are below policy limit, a current BUY/add candidate exists, and runtime evidence is available. | Prepare a live review packet only after other blockers clear. |
 | `SIGNAL_POLICY_REVIEW_GAPS` | `.\scripts\smoke_signal_correctness_ssh.ps1` | No `REVIEW_POLICY_GAPS`; governance drift and missed-opportunity recommendations are documented for operator review. | Keep hard safety gates; review relaxation candidates in shadow/tiny-live caps only. |
 | `MCP_PARITY_NOT_PROVEN` | `.\scripts\smoke_mcp_parity_ssh.ps1` | Output includes `[mcp-parity-ssh] OK` and required read-only MCP tools are present on server-local `/api/mcp`. | Continue live-readiness review; do not expose public MCP service. |
-| `DEPLOYED_RUNTIME_NOT_CURRENT` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` deployment metadata section | `deployment_metadata_status=CURRENT` or `DOCS_TOOLING_ONLY_DRIFT`; runtime drift or unknown deploy metadata must not be used for live review. | Deploy and verify separately, or treat the bundle as stale evidence only. |
+| `DEPLOYED_RUNTIME_NOT_CURRENT` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` deployment metadata section | `deployment_metadata_status=CURRENT` or `DOCS_TOOLING_ONLY_DRIFT`, and `origin_metadata_status=CURRENT_ORIGIN_MAIN`; runtime drift, a server worktree behind `origin/main`, or unknown metadata must not be used for live review. | Deploy and verify separately, or treat the bundle as stale evidence only. |
 
 ## Current Expected Blockers
 

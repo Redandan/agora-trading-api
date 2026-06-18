@@ -121,6 +121,7 @@ classify_path() {
 }
 
 HEAD_COMMIT="`$(git rev-parse HEAD 2>/dev/null || true)"
+ORIGIN_MAIN_COMMIT="`$(git ls-remote origin refs/heads/main 2>/dev/null | awk '{print `$1}' || true)"
 DEPLOYED_COMMIT=""
 if [ -f app.commit ]; then
   DEPLOYED_COMMIT="`$(tr -d '[:space:]' < app.commit)"
@@ -128,7 +129,16 @@ fi
 
 echo "[deployment-metadata] read-only server commit probe"
 echo "worktreeCommit=`${HEAD_COMMIT:-UNKNOWN}"
+echo "originMainCommit=`${ORIGIN_MAIN_COMMIT:-UNKNOWN}"
 echo "deployedCommit=`${DEPLOYED_COMMIT:-MISSING}"
+
+if [ -z "`$ORIGIN_MAIN_COMMIT" ]; then
+  echo "liveBundleOriginStatus=UNKNOWN_ORIGIN_MAIN"
+elif [ "`$HEAD_COMMIT" = "`$ORIGIN_MAIN_COMMIT" ]; then
+  echo "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
+else
+  echo "liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN"
+fi
 
 if [ -z "`$HEAD_COMMIT" ] || [ -z "`$DEPLOYED_COMMIT" ]; then
   echo "liveBundleDeployStatus=UNKNOWN_DEPLOY_METADATA"
@@ -246,12 +256,18 @@ if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {
 if ($deploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)") {
     $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
 }
+if ($deploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)") {
+    $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
+}
 
 $uniqueBlockers = @($blockers | Select-Object -Unique)
 Write-Host ""
 Write-Host "[live-readiness-bundle] summary"
 if ($deploymentMetadata -match "liveBundleDeployStatus=([A-Z_]+)") {
     Write-Host ("deployment_metadata_status=" + $Matches[1])
+}
+if ($deploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
+    Write-Host ("origin_metadata_status=" + $Matches[1])
 }
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $uniqueBlockers))
 if ($uniqueBlockers.Count -eq 0) {

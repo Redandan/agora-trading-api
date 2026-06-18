@@ -37,6 +37,12 @@ RUNTIME_EVIDENCE_CONFIG_DISABLED
 RUNTIME_EVIDENCE_NO_SHADOW_INTENT
 ```
 
+The bundle also treats `RUNTIME_EVIDENCE_NO_CANONICAL_ROWS`,
+`RUNTIME_EVIDENCE_REVIEW_REQUIRED`, and `RUNTIME_EVIDENCE_ORDER_SENT` as
+runtime-evidence blockers if the RCA smoke reports no canonical rows, an
+unclassified runtime-evidence status, or any order-sent evidence in the bounded
+evidence-only window.
+
 ## Proposed Evidence-Only Diff
 
 If separately authorized, the only production env diff for this phase is:

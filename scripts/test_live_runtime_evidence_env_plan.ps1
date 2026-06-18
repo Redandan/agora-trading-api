@@ -127,4 +127,15 @@ foreach ($flag in $expectedDryRunGuardFlags) {
     }
 }
 
+foreach ($marker in @(
+        "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS",
+        "RUNTIME_EVIDENCE_REVIEW_REQUIRED",
+        "RUNTIME_EVIDENCE_ORDER_SENT",
+        "order-sent evidence in the bounded"
+    )) {
+    if ($proposalText -notmatch [regex]::Escape($marker)) {
+        throw "Runtime evidence proposal missing blocker marker: $marker"
+    }
+}
+
 Write-Host "[live-runtime-evidence-env-plan-test] OK"

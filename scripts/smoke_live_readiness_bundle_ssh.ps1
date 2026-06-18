@@ -271,8 +271,17 @@ if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $background -m
 if ($runtimeEvidence -match "diagnosis=CONFIG_DISABLED") {
     $blockers.Add("RUNTIME_EVIDENCE_CONFIG_DISABLED")
 }
+if ($runtimeEvidence -match "diagnosis=NO_CANONICAL_ROWS") {
+    $blockers.Add("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
+}
+if ($runtimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
+    $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+}
 if ($runtimeEvidence -match "shadowIntentCount=0") {
     $blockers.Add("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+}
+if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
+    $blockers.Add("RUNTIME_EVIDENCE_ORDER_SENT")
 }
 if ($tinyLive -match "hardStopDetected=true" -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
     $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")

@@ -22,8 +22,17 @@ function Get-LiveReadinessBundleBlockers {
     if ($RuntimeEvidence -match "diagnosis=CONFIG_DISABLED") {
         $blockers.Add("RUNTIME_EVIDENCE_CONFIG_DISABLED")
     }
+    if ($RuntimeEvidence -match "diagnosis=NO_CANONICAL_ROWS") {
+        $blockers.Add("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
+    }
+    if ($RuntimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
+        $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+    }
     if ($RuntimeEvidence -match "shadowIntentCount=0") {
         $blockers.Add("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+    }
+    if ($RuntimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
+        $blockers.Add("RUNTIME_EVIDENCE_ORDER_SENT")
     }
     if ($TinyLive -match "hardStopDetected=true" -or $TinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
         $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
@@ -223,7 +232,10 @@ $allExpectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "MCP_PARITY_NOT_PROVEN",
     "RUNTIME_EVIDENCE_CONFIG_DISABLED",
+    "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS",
     "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
+    "RUNTIME_EVIDENCE_ORDER_SENT",
+    "RUNTIME_EVIDENCE_REVIEW_REQUIRED",
     "SIGNAL_POLICY_REVIEW_GAPS",
     "TINY_LIVE_LOSS_HARD_STOP"
 )
@@ -249,7 +261,10 @@ Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
+Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
+Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT`nshadowIntentCount=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT")
 Assert-BlockerCase -Name "tiny live hard stop" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live consecutive loss text" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "signal policy review gaps" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Operator action: REVIEW_POLICY_GAPS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")

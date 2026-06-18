@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-17
+Last refreshed: 2026-06-18
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -47,12 +47,14 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   ```
 
 - The current local handoff batch is not deployed evidence until it is pushed,
-  deployed, and verified on the server. Local verification on 2026-06-17 passed
-  with `.\scripts\verify_local.ps1`: 51 tests, 0 failures, 305 MCP tools
-  registered during the local-smoke Spring context,
+  deployed, and verified on the server. Local verification on 2026-06-18 passed
+  at commit `417beb5` with `.\scripts\verify_local.ps1`: 51 tests, 0 failures,
+  305 MCP tools registered during the local-smoke Spring context,
   split-boundary/schema-inventory/script-syntax/post-deploy-guardrail checks
-  OK. After the signal-correctness parity-list expansion, the latest local
-  smoke evidence for this batch also passed
+  OK. This includes the reviewed shared-DB baseline guard and
+  `schema_baseline_generate_server.sh` header guard so a future baseline dump
+  cannot reintroduce pre-review Flyway wording. Earlier local smoke evidence for
+  this handoff batch passed
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
   `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
   and local `/api/actuator/health` OK. Treat this as local readiness only;

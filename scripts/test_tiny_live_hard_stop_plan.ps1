@@ -69,6 +69,8 @@ Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `
 foreach ($pattern in @(
         'hardStopDetected=false',
         'canEnableProduction=true',
+        'Missing or `N/A` hard-stop evidence stays blocked',
+        'Missing or `N/A` rollout evidence stays blocked',
         'consecutive tiny-live losses are below policy limit',
         'current BUY/add candidate exists',
         'runtime evidence is available',

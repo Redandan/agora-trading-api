@@ -304,10 +304,12 @@ if ($runtimeEvidence -match "shadowIntentCount=0") {
 if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
     $blockers.Add("RUNTIME_EVIDENCE_ORDER_SENT")
 }
-if ($tinyLive -match "hardStopDetected=true" -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
+if ($tinyLive -notmatch "hardStopDetected=false" `
+        -or $tinyLive -match "hardStopDetected=true" `
+        -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
     $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
 }
-if ($tinyLive -match "canEnableProduction=false") {
+if ($tinyLive -notmatch "canEnableProduction=true") {
     $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
 }
 if ($signal -match "REVIEW_POLICY_GAPS" `

@@ -412,6 +412,9 @@ Trading deployment prep:
   `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
   `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
   and local `/api/actuator/health` OK.
+  The post-deploy issue acceptance wrapper now reserves `CLOSURE_READY OK` for
+  the full closure mode only: split acceptance, no-review-gaps guardrail smoke,
+  signal-correctness smoke, and hard trailing replay acceptance must all pass.
   This remains local readiness only until pushed, deployed, and verified on the
   server.
 

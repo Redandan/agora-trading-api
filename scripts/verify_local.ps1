@@ -1522,8 +1522,11 @@ try {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_trailing_stop_pnl_replay_ssh.ps1") -Description "trailing replay smoke keeps hard acceptance and insufficient-sample semantics $pattern"
     }
     foreach ($pattern in @("REVIEW_POLICY_GAPS.*fails #1/#2 issue acceptance", "RequireTrailingAcceptance", "acceptance=PASS", "signal-correctness", "SkipSplitAcceptance.*diagnostic-only", "cannot be combined with.*RequireTrailingAcceptance", "DIAGNOSTIC_ONLY OK", "REACHABILITY_ONLY OK", "CLOSURE_READY OK", "reachability-only output")) {
-        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "docs keep current issue acceptance closure semantics $pattern"
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md") -Description "operator docs keep current issue acceptance closure semantics $pattern"
     }
+    Assert-RgMatch -Pattern "CLOSURE_READY OK" -Paths @("SPLIT_PROGRESS.md") -Description "split progress records the current full closure marker"
+    Assert-RgMatch -Pattern "full closure mode only: split acceptance, no-review-gaps guardrail smoke" -Paths @("SPLIT_PROGRESS.md") -Description "split progress records the split and guardrail closure prerequisites"
+    Assert-RgMatch -Pattern "signal-correctness smoke, and hard trailing replay acceptance must all pass" -Paths @("SPLIT_PROGRESS.md") -Description "split progress records the signal and trailing closure prerequisites"
     foreach ($pattern in @("If ``-EnvFile`` is overridden", "one consistent runtime configuration", "server verification, split acceptance, and every server-local MCP smoke")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs explain EnvFile propagation across acceptance wrappers $pattern"
     }

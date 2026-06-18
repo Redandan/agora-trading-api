@@ -52,6 +52,9 @@ function Get-LiveReadinessBundleBlockers {
     if ($TinyLive -match "hardStopDetected=true" -or $TinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
         $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
     }
+    if ($TinyLive -match "canEnableProduction=false") {
+        $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
+    }
     if ($Signal -match "REVIEW_POLICY_GAPS" `
             -or $Signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE)" `
             -or $Signal -match "overallStatus=(FAIL|WARN)") {
@@ -257,7 +260,8 @@ $allExpectedBlockers = @(
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
     "SECRET_PREREQUISITES_MISSING",
     "SIGNAL_POLICY_REVIEW_GAPS",
-    "TINY_LIVE_LOSS_HARD_STOP"
+    "TINY_LIVE_LOSS_HARD_STOP",
+    "TINY_LIVE_ROLLOUT_NOT_READY"
 )
 
 Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
@@ -293,6 +297,7 @@ Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $clean
 Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT")
 Assert-BlockerCase -Name "tiny live hard stop" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live consecutive loss text" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
+Assert-BlockerCase -Name "tiny live rollout not ready" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "Rollout Gates:`n  canEnableProduction=false" }) -ExpectedBlockers @("TINY_LIVE_ROLLOUT_NOT_READY")
 Assert-BlockerCase -Name "signal policy review gaps" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Operator action: REVIEW_POLICY_GAPS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal governance too strict" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal governance too loose" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=TOO_LOOSE" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
@@ -308,7 +313,7 @@ Assert-BlockerCase `
         Audit = "verdict=NOT_READY"
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0"
-        TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES"
+        TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=PASS"
         McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
         DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN"
@@ -320,6 +325,7 @@ Assert-BlockerCase `
         "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
         "SIGNAL_POLICY_REVIEW_GAPS",
         "TINY_LIVE_LOSS_HARD_STOP",
+        "TINY_LIVE_ROLLOUT_NOT_READY",
         "DEPLOYED_RUNTIME_NOT_CURRENT"
     )
 

@@ -65,8 +65,10 @@ foreach ($marker in @(
 }
 
 Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `TINY_LIVE_LOSS_HARD_STOP` \| `\.\\scripts\\smoke_tiny_live_loss_rca_ssh\.ps1` \|'
+Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `TINY_LIVE_ROLLOUT_NOT_READY` \| `\.\\scripts\\smoke_tiny_live_loss_rca_ssh\.ps1` \|'
 foreach ($pattern in @(
         'hardStopDetected=false',
+        'canEnableProduction=true',
         'consecutive tiny-live losses are below policy limit',
         'current BUY/add candidate exists',
         'runtime evidence is available',

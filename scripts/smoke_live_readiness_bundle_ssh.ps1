@@ -301,6 +301,9 @@ if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
 if ($tinyLive -match "hardStopDetected=true" -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
     $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
 }
+if ($tinyLive -match "canEnableProduction=false") {
+    $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
+}
 if ($signal -match "REVIEW_POLICY_GAPS" `
         -or $signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE)" `
         -or $signal -match "overallStatus=(FAIL|WARN)") {

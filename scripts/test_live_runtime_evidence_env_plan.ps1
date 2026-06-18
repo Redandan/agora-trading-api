@@ -71,6 +71,25 @@ $expectedBackgroundFlags = @(
     "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"
 )
 
+$expectedDryRunGuardFlags = @(
+    "TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN",
+    "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_DRY_RUN",
+    "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_DRY_RUN",
+    "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_DRY_RUN",
+    "TRAILING_STOP_DRY_RUN",
+    "POSITION_EXIT_MANAGER_DRY_RUN"
+)
+
+$expectedEvidencePhaseExtraDisabled = @(
+    "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED",
+    "TRADING_EXPLORATION_LOOP_PRODUCTION_ENABLED",
+    "TRADING_EXPLORATION_ROLLOUT_AUTO_ENABLED",
+    "TRADING_EXPLORATION_ROLLOUT_ALLOW_PRODUCTION_PROMOTION",
+    "TRADING_EXPLORATION_ROLLOUT_ALLOW_CAP_INCREASE",
+    "TRADING_SCORE_BUY_FORMING_DAY_NOTIFICATION_TELEGRAM_ENABLED",
+    "TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED"
+)
+
 Assert-SameSet -Name "runtime evidence only proposed env diff" -Actual $proposalOnlyDiff -Expected @("TRADING_RUNTIME_EVIDENCE_ENABLED")
 
 foreach ($flag in $auditOrderFlags) {
@@ -88,20 +107,21 @@ $expectedProposalDisabled = @(
 )
 Assert-SameSet -Name "runtime evidence proposal disabled env keys" -Actual $proposalDisabled -Expected $expectedProposalDisabled
 
+$expectedDryRunDisabled = @(
+    $auditOrderFlags +
+    $expectedDryRunGuardFlags +
+    $expectedBackgroundFlags +
+    $expectedEvidencePhaseExtraDisabled
+)
+Assert-SameSet -Name "dry-run evidence plan disabled env keys" -Actual $dryRunDisabled -Expected $expectedDryRunDisabled
+
 foreach ($flag in $expectedBackgroundFlags) {
     if ($dryRunPlanText -notmatch [regex]::Escape("$flag=false")) {
         throw "Dry-run evidence plan must keep background automation disabled: $flag"
     }
 }
 
-foreach ($flag in @(
-        "TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN",
-        "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_DRY_RUN",
-        "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_DRY_RUN",
-        "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_DRY_RUN",
-        "TRAILING_STOP_DRY_RUN",
-        "POSITION_EXIT_MANAGER_DRY_RUN"
-    )) {
+foreach ($flag in $expectedDryRunGuardFlags) {
     if ($dryRunPlanText -notmatch [regex]::Escape("$flag=true")) {
         throw "Dry-run evidence plan must keep dry-run guard enabled: $flag"
     }

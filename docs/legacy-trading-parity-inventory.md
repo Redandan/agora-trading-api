@@ -1,6 +1,6 @@
 # Legacy Trading Parity Inventory
 
-Last refreshed: 2026-06-17
+Last refreshed: 2026-06-18
 
 This inventory compares the legacy `AgoraMarketAPI` trading ownership surface
 with the standalone `agora-trading-api` service. It is source-code evidence only;

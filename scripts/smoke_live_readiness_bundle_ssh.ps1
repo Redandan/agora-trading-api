@@ -280,6 +280,9 @@ if ($audit -match "EVENT_RISK_NOT_R0") {
 if ($audit -match "MCP_TOOL_ERROR:") {
     $blockers.Add("MCP_AUDIT_TOOL_ERROR")
 }
+if ($audit -match "_NOT_EXECUTION_ELIGIBLE") {
+    $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
+}
 if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
     $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
 }

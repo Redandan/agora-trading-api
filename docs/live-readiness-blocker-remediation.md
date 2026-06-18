@@ -26,6 +26,7 @@ skip a blocker.
 | `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` | `.\scripts\audit_live_readiness_ssh.ps1` and `scripts/check_server_runtime_log.sh` | Health is `UP`, runtime log smoke passes, and no runtime ERROR/unexpected operation-like log lines are present. | Investigate runtime health/logs before any live proposal. |
 | `EVENT_RISK_NOT_BASELINE` | `.\scripts\audit_live_readiness_ssh.ps1` | Event risk status is back to `riskLevel=R0`, or the elevated level has a separate written event-risk operating decision. | Do not open new live scope while event risk is elevated without explicit operator review. |
 | `MCP_AUDIT_TOOL_ERROR` | `.\scripts\audit_live_readiness_ssh.ps1` | All required read-only audit MCP tool calls complete without `MCP_TOOL_ERROR`. | Fix MCP tool/runtime reachability before trusting bundle evidence. |
+| `EXECUTION_ELIGIBILITY_NOT_READY` | `.\scripts\audit_live_readiness_ssh.ps1` | Audit no longer reports any `*_NOT_EXECUTION_ELIGIBLE` blocker; tiny-live and ScoreBuy execution gates have a current eligible candidate before review. | Keep live disabled; wait for or diagnose the current signal/execution gate before any live proposal. |
 | `BACKGROUND_AUTOMATION_REVIEW` | `.\scripts\smoke_live_background_automation_ssh.ps1` | `high_risk_background_automation_true=[]` or every listed flag has a separate written authorization and rollback plan. | Review production env diff; do not apply it from this document. |
 | `RUNTIME_EVIDENCE_CONFIG_DISABLED` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `CONFIG_DISABLED` after a separately authorized evidence-only env change. | Continue evidence collection; do not enable execution flags. |
 | `RUNTIME_EVIDENCE_NO_CANONICAL_ROWS` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `NO_CANONICAL_ROWS`; canonical evidence rows exist in the bounded window. | Keep collecting evidence; do not enable execution flags. |
@@ -44,6 +45,7 @@ The current server bundle may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY
+EXECUTION_ELIGIBILITY_NOT_READY
 BACKGROUND_AUTOMATION_REVIEW
 RUNTIME_EVIDENCE_CONFIG_DISABLED
 RUNTIME_EVIDENCE_NO_SHADOW_INTENT

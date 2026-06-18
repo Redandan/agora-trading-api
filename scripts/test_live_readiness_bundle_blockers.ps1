@@ -31,6 +31,9 @@ function Get-LiveReadinessBundleBlockers {
     if ($Audit -match "MCP_TOOL_ERROR:") {
         $blockers.Add("MCP_AUDIT_TOOL_ERROR")
     }
+    if ($Audit -match "_NOT_EXECUTION_ELIGIBLE") {
+        $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
+    }
     if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
         $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
     }
@@ -248,6 +251,7 @@ $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
     "EVENT_RISK_NOT_BASELINE",
+    "EXECUTION_ELIGIBILITY_NOT_READY",
     "LIVE_READINESS_NOT_READY",
     "MCP_AUDIT_TOOL_ERROR",
     "MCP_PARITY_NOT_PROVEN",
@@ -288,6 +292,7 @@ Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $clean
 Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "health={`"status`":`"DOWN`"}`nblockers=[`"HEALTH_NOT_UP`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 Assert-BlockerCase -Name "audit event risk not baseline" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"EVENT_RISK_NOT_R0`"]" }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
 Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"MCP_TOOL_ERROR:getGuardianSnapshot`"]" }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
+Assert-BlockerCase -Name "audit execution eligibility not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"PRE_POSITION_NOT_EXECUTION_ELIGIBLE`"]" }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
@@ -310,7 +315,7 @@ Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInp
 Assert-BlockerCase `
     -Name "current observed blocker mix" `
     -Inputs @{
-        Audit = "verdict=NOT_READY"
+        Audit = "verdict=NOT_READY`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`"]"
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
@@ -320,6 +325,7 @@ Assert-BlockerCase `
     } `
     -ExpectedBlockers @(
         "LIVE_READINESS_NOT_READY",
+        "EXECUTION_ELIGIBILITY_NOT_READY",
         "BACKGROUND_AUTOMATION_REVIEW",
         "RUNTIME_EVIDENCE_CONFIG_DISABLED",
         "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",

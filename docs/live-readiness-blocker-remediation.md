@@ -39,13 +39,15 @@ BACKGROUND_AUTOMATION_REVIEW
 RUNTIME_EVIDENCE_CONFIG_DISABLED
 RUNTIME_EVIDENCE_NO_SHADOW_INTENT
 TINY_LIVE_LOSS_HARD_STOP
+DEPLOYED_RUNTIME_NOT_CURRENT
 ```
 
 Those are live-blocking until the clear conditions above are proven by fresh
 read-only evidence. MCP parity is expected to pass with `[mcp-parity-ssh] OK`.
-If `DEPLOYED_RUNTIME_NOT_CURRENT` appears, the bundle was collected from a
-runtime that is not current enough for live review; do not combine it with local
-or GitHub HEAD evidence.
+Because the latest recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`,
+the snapshot is stale live-review evidence only. A future review must refresh
+the server runtime and rerun the full read-only bundle; do not combine stale
+server output with local or GitHub HEAD evidence.
 
 ## Non-Negotiable Guards
 

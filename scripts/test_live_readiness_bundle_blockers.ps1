@@ -113,6 +113,56 @@ function Assert-RemediationDocBlockersCovered {
     }
 }
 
+function Get-CurrentExpectedRemediationBlockers {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
+    $docText = Get-Content -Raw -LiteralPath $docPath
+    $match = [regex]::Match(
+        $docText,
+        '## Current Expected Blockers[\s\S]*?```text\s*(?<blockers>[\s\S]*?)```',
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $match.Success) {
+        throw "remediation doc is missing Current Expected Blockers code block"
+    }
+
+    @(
+        $match.Groups["blockers"].Value -split "`r?`n" |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -match '^[A-Z0-9_]+$' } |
+            Sort-Object -Unique
+    )
+}
+
+function Get-LatestProposalSnapshotBlockers {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docPath = Join-Path $repoRoot "docs/live-production-env-review-proposal.md"
+    $docText = Get-Content -Raw -LiteralPath $docPath
+    $match = [regex]::Match($docText, 'bundle_blockers=\[(?<blockers>[^\]]*)\]')
+    if (-not $match.Success) {
+        throw "production env review proposal is missing latest bundle_blockers snapshot"
+    }
+
+    @(
+        [regex]::Matches($match.Groups["blockers"].Value, '"([^"]+)"') |
+            ForEach-Object { $_.Groups[1].Value } |
+            Sort-Object -Unique
+    )
+}
+
+function Assert-CurrentExpectedBlockersMatchLatestSnapshot {
+    $currentExpected = @(Get-CurrentExpectedRemediationBlockers)
+    $latestSnapshot = @(Get-LatestProposalSnapshotBlockers)
+    $currentText = $currentExpected -join ","
+    $snapshotText = $latestSnapshot -join ","
+    if ($currentText -ne $snapshotText) {
+        throw "remediation current expected blockers [$currentText] differ from latest proposal snapshot blockers [$snapshotText]"
+    }
+    if ($currentExpected -notcontains "DEPLOYED_RUNTIME_NOT_CURRENT") {
+        throw "current expected blockers must include DEPLOYED_RUNTIME_NOT_CURRENT while latest recorded snapshot is stale"
+    }
+}
+
 $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
@@ -126,6 +176,7 @@ $allExpectedBlockers = @(
 
 Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
+Assert-CurrentExpectedBlockersMatchLatestSnapshot
 
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"

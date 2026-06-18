@@ -34,6 +34,26 @@ $proposalText = Get-Content -Raw -LiteralPath $proposalPath
 $requiredEvidence = Get-CommandBlock -Text $proposalText -Heading "Required Evidence Before Review"
 $postAuthorization = Get-CommandBlock -Text $proposalText -Heading "Post-Authorization Verification"
 
+$mustStayDisabled = @(
+    "TRADING_OKX_ENABLED=false",
+    "TRADING_OCO_POLLER_ENABLED=false",
+    "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=false",
+    "TRAILING_STOP_ENABLED=false",
+    "POSITION_EXIT_MANAGER_ENABLED=false",
+    "TRADING_GRID_ENABLED=false",
+    "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
+    "TRADING_FUNDING_ARB_ENABLED=false",
+    "OKX_EARN_TOPUP_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "TRADING_EXPLORATION_LOOP_PRODUCTION_ENABLED=false",
+    "TRADING_EXPLORATION_ROLLOUT_AUTO_ENABLED=false",
+    "TRADING_EXPLORATION_ROLLOUT_ALLOW_PRODUCTION_PROMOTION=false",
+    "TRADING_EXPLORATION_ROLLOUT_ALLOW_CAP_INCREASE=false"
+)
+
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",
         "smoke_live_background_automation_ssh.ps1",
@@ -45,6 +65,10 @@ foreach ($scriptName in @(
     )) {
     Assert-Contains -Name "required evidence commands" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\$scriptName"))
     Assert-Contains -Name "post-authorization commands" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\$scriptName"))
+}
+
+foreach ($flag in $mustStayDisabled) {
+    Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))
 }
 
 foreach ($pattern in @(

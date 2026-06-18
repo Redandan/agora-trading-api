@@ -132,6 +132,44 @@ function Assert-PostDeployIssueAcceptanceFlagGuard {
     }
 }
 
+function Assert-LiveReadinessBundleNoEvidenceGuard {
+    $script = Join-Path $PWD "scripts\smoke_live_readiness_bundle_ssh.ps1"
+    $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for live-readiness no-evidence verification"
+    }
+
+    $output = & $powerShell.Source `
+        -NoProfile `
+        -ExecutionPolicy Bypass `
+        -File $script `
+        -SshHost "127.0.0.1" `
+        -SshKey ".\README.md" `
+        -AppDir "/home/ubuntu/agora-trading-api" `
+        -EnvFile "/home/ubuntu/.env.trading.secrets" 2>&1
+    $exitCode = $LASTEXITCODE
+    $text = ($output | Out-String)
+
+    if ($exitCode -eq 0) {
+        Write-Error "live-readiness bundle accepted an unusable local SSH key during no-evidence guard test"
+    }
+    foreach ($pattern in @(
+            "read_only_bundle_error=",
+            "read_only_bundle_error_detail=.*before live-readiness evidence could be collected",
+            'bundle_blockers=\["LIVE_READINESS_EVIDENCE_UNAVAILABLE"\]',
+            "bundle_verdict=NO_EVIDENCE")) {
+        if ($text -notmatch $pattern) {
+            Write-Error "live-readiness bundle no-evidence guard output missing expected marker '$pattern':`n$text"
+        }
+    }
+    if ($text -match "===== BEGIN live-readiness-audit =====|===== BEGIN live-background-automation =====|===== BEGIN runtime-evidence-rca =====|===== BEGIN tiny-live-loss-rca =====|===== BEGIN signal-correctness =====|===== BEGIN mcp-parity =====") {
+        Write-Error "live-readiness bundle continued into child smokes after SSH evidence collection failed:`n$text"
+    }
+}
+
 function Assert-PowerShellScriptFailsBeforeSsh {
     param(
         [string]$ScriptRelativePath,
@@ -1492,6 +1530,7 @@ try {
     }
     & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_readiness_bundle_blockers.ps1")
     & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_readiness_bundle_metadata.ps1")
+    Assert-LiveReadinessBundleNoEvidenceGuard
     & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_signal_policy_review_plan.ps1")
     foreach ($pattern in @("deployment_metadata_status", "origin_metadata_status", "DEPLOYED_RUNTIME_NOT_CURRENT", "origin/main", "bundle_blockers", "bundle_verdict")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs keep live readiness bundle deployment metadata marker $pattern"

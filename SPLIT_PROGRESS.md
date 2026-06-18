@@ -171,6 +171,15 @@
   rollout gates such as `completedTinyLiveSamples`, `falsePositiveCount`,
   `canEnableProduction`, and `canIncreaseDailyCap` without changing production
   env, DB, order, OCO, grid, Earn, fund, Telegram, or live scheduler state.
+- `scripts/smoke_runtime_evidence_rca_ssh.ps1` provides a read-only RCA smoke
+  for the live-readiness `runtime_evidence_gap`. It calls server-local
+  `/api/mcp` to report runtime-evidence env/dashboard state, preview
+  `runtimeEvidenceStatus`, recent evidence rows, shadow-intent counts, candidate
+  context, and no-buy context, then classifies the gap as `CONFIG_DISABLED`,
+  `NO_CANONICAL_ROWS`, `CANONICAL_ROWS_NO_SHADOW_INTENT`,
+  `CANONICAL_SHADOW_READY`, or `REVIEW_RUNTIME_EVIDENCE_STATUS` without writing
+  RuntimeDecisionEvidence or changing production env, DB, order, OCO, grid,
+  Earn, fund, Telegram, or live scheduler state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

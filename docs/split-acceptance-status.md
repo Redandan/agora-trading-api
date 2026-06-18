@@ -166,6 +166,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `completedTinyLiveSamples`, `falsePositiveCount`, `canEnableProduction`, and
   `canIncreaseDailyCap`. This is RCA evidence only; it must not be treated as
   permission to enable live flags.
+- Runtime-evidence gap RCA is read-only. When live-readiness classifies
+  `runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or
+  `runtimeEvidenceStatus=NOT_READY_*`, run
+  `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` to classify whether the gap is
+  disabled collection, no canonical rows, canonical rows without shadow intent,
+  canonical shadow-ready, or needs operator review. This smoke calls
+  server-local `/api/mcp`, prints recent evidence/candidate context, and must
+  not write RuntimeDecisionEvidence or change production state. A
+  `CANONICAL_SHADOW_READY` result only clears this one evidence question; it is
+  not permission to enable live flags.
 - Reusable MCP parity now has both local and SSH coverage paths. Local
   `smoke_local_health.ps1` invokes `smoke_mcp_parity.ps1`; deployed issue
   acceptance invokes `smoke_mcp_parity_ssh.ps1` before the guardrail, signal-correctness, and trailing replay smokes.

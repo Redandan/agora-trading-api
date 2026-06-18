@@ -183,6 +183,20 @@ auto-approval policy.
 It does not place orders, enable scheduler/live flags, send Telegram, modify
 OCO, or change production env/DB state.
 
+Read-only runtime-evidence gap RCA when live-readiness reports
+`runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or
+`runtimeEvidenceStatus=NOT_READY_*`:
+
+```powershell
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1
+```
+
+This calls server-local `/api/mcp` only and classifies the gap as disabled
+collection, no canonical rows, canonical rows without shadow intent, canonical
+shadow-ready, or requiring operator review. It does not write
+RuntimeDecisionEvidence, place orders, enable flags, send Telegram, or change
+production env/DB state.
+
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary
 and operator-control markers without changing order/OCO/strategy/grid/fund/Earn

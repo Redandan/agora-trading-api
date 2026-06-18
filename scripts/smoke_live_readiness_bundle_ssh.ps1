@@ -287,7 +287,12 @@ if ($audit -match "EVENT_RISK_NOT_R0" `
         -or $audit -notmatch "riskLevel=R0") {
     $blockers.Add("EVENT_RISK_NOT_BASELINE")
 }
-if ($audit -match "MCP_TOOL_ERROR:") {
+if ($audit -match "MCP_TOOL_ERROR:" `
+        -or $audit -notmatch 'readiness_details=.*"tinyLive"' `
+        -or $audit -notmatch 'readiness_details=.*"autonomousOpportunity"' `
+        -or $audit -notmatch 'readiness_details=.*"scoreBuyPrePosition"' `
+        -or $audit -notmatch 'readiness_details=.*"scoreBuyConfirmedDeploy"' `
+        -or $audit -notmatch 'readiness_details=.*"scoreBuyPostScoutAdd"') {
     $blockers.Add("MCP_AUDIT_TOOL_ERROR")
 }
 if ($audit -match "_NOT_EXECUTION_ELIGIBLE") {

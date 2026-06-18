@@ -629,6 +629,23 @@ Expected:
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, or external backfill/import state.
 
+To run the full read-only live-readiness evidence bundle:
+
+```powershell
+.\scripts\smoke_live_readiness_bundle_ssh.ps1
+```
+
+Expected:
+
+- The wrapper runs the live-readiness audit, background automation smoke,
+  runtime-evidence RCA, tiny-live loss RCA, signal-correctness smoke, and MCP
+  parity smoke.
+- Output includes `bundle_blockers` and `bundle_verdict`.
+- `bundle_verdict=NOT_READY` is the expected result while runtime evidence,
+  tiny-live hard stop, signal policy, or background automation blockers remain.
+- The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, or external backfill/import state.
+
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:
 

@@ -218,6 +218,16 @@ external backfill/import, notification, digest, market WebSocket auto-subscribe,
 and retry notification toggles. It does not change production env/DB or perform
 order/OCO/grid/fund/Earn/Telegram/scheduler actions.
 
+Read-only live readiness bundle that runs the audit, background automation,
+runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
+
+```powershell
+.\scripts\smoke_live_readiness_bundle_ssh.ps1
+```
+
+It prints `bundle_blockers` and `bundle_verdict`. Add `-RequireReady` only when
+the caller wants `NOT_READY` to fail the command.
+
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary
 and operator-control markers without changing order/OCO/strategy/grid/fund/Earn

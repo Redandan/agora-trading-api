@@ -198,6 +198,12 @@
   background automation flags that should be disabled or separately justified,
   the order-capable flags that must stay disabled until live approval, and the
   required post-authorization smokes without authorizing env mutation.
+- `scripts/smoke_live_readiness_bundle_ssh.ps1` wraps the live-readiness audit,
+  background automation smoke, runtime-evidence RCA, tiny-live loss RCA,
+  signal-correctness smoke, and MCP parity smoke into one read-only command that
+  prints `bundle_blockers` and `bundle_verdict` without changing production env,
+  DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, or external
+  backfill/import state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

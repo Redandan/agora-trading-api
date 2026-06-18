@@ -1,11 +1,52 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$script:VerifyLocalFileCache = @{}
+
 function Invoke-Rg {
     param(
         [string]$Pattern,
         [string[]]$Paths
     )
+
+    $allLeafPaths = $true
+    foreach ($path in $Paths) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            $allLeafPaths = $false
+            break
+        }
+    }
+
+    if ($allLeafPaths) {
+        $matchLines = @()
+        foreach ($path in $Paths) {
+            $resolvedPath = (Resolve-Path -LiteralPath $path).Path
+            if (-not $script:VerifyLocalFileCache.ContainsKey($resolvedPath)) {
+                $script:VerifyLocalFileCache[$resolvedPath] = Get-Content -LiteralPath $resolvedPath -Raw
+            }
+
+            $content = $script:VerifyLocalFileCache[$resolvedPath]
+            if ($content -match $Pattern) {
+                $lineNumber = 0
+                $fileLineMatched = $false
+                foreach ($line in ($content -split "`r?`n")) {
+                    $lineNumber++
+                    if ($line -match $Pattern) {
+                        $fileLineMatched = $true
+                        $matchLines += "$($path):$($lineNumber):$line"
+                    }
+                }
+                if (-not $fileLineMatched) {
+                    $matchLines += "$($path):<multi-line match>"
+                }
+            }
+        }
+
+        return [PSCustomObject]@{
+            Output = $matchLines
+            Found = ($matchLines.Count -gt 0)
+        }
+    }
 
     # Windows PowerShell 5.1 can split native-command args when the regex contains
     # embedded literal quotes. Escape them before handing the pattern to rg.

@@ -19,6 +19,7 @@ Run these read-only checks and attach the outputs to the operator review:
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
+.\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
 The current server evidence keeps live blocked while these remain true:
@@ -33,10 +34,11 @@ The current server evidence keeps live blocked while these remain true:
 Latest read-only bundle snapshot:
 
 ```text
-observedAt=2026-06-18T17:39+08:00
+observedAt=2026-06-18T18:51+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployment_metadata_status=CURRENT
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+originMainCommit=5553fff7bd278d3338f28cee09a145531d7afd59
 health=UP
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=PASS
@@ -45,6 +47,11 @@ dryRunFlags=true
 bundle_blockers=["LIVE_READINESS_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","DEPLOYED_RUNTIME_NOT_CURRENT"]
 bundle_verdict=NOT_READY
 ```
+
+Because this snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is stale
+live-review evidence only. A future operator review must first refresh the
+server worktree/runtime to `origin/main` through a separately authorized deploy,
+then rerun the full live-readiness bundle and attach the current output.
 
 ## Evidence-Only Candidate
 
@@ -125,6 +132,7 @@ live proposal:
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
+.\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
 Expected evidence-only result:
@@ -135,6 +143,8 @@ Expected evidence-only result:
 - `smoke_runtime_evidence_rca_ssh.ps1` no longer reports `CONFIG_DISABLED`.
 - `shadowIntentCount` becomes greater than 0 before live is discussed.
 - `orderSentEvidence=0`.
+- `smoke_live_readiness_bundle_ssh.ps1` no longer reports
+  `DEPLOYED_RUNTIME_NOT_CURRENT`.
 - Runtime logs remain free of order placement, OCO modification, live exchange
   writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler
   execution, external backfill/import, and DB mutation.

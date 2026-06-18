@@ -1,0 +1,88 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$expectedBackgroundFlags = @(
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
+    "MARKET_WS_AUTO_SUBSCRIBE_ENABLED",
+    "EVENT_SCAN_NOTIFICATION_ENABLED",
+    "EXECUTION_EVENT_ENABLED",
+    "TRADING_DAILY_TG_REPORT_ENABLED",
+    "TRADING_AUTONOMOUS_DIGEST_ENABLED",
+    "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED",
+    "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"
+)
+
+$expectedHighRiskFlags = @(
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
+    "EVENT_SCAN_NOTIFICATION_ENABLED",
+    "EXECUTION_EVENT_ENABLED",
+    "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED",
+    "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"
+)
+
+function Assert-SameSet {
+    param(
+        [string]$Name,
+        [string[]]$Actual,
+        [string[]]$Expected
+    )
+
+    $actualText = @($Actual | Sort-Object -Unique) -join ","
+    $expectedText = @($Expected | Sort-Object -Unique) -join ","
+    if ($actualText -ne $expectedText) {
+        throw "$Name [$actualText] differs from expected [$expectedText]"
+    }
+}
+
+function Get-PythonStringList {
+    param(
+        [string]$Text,
+        [string]$Pattern,
+        [string]$Name
+    )
+
+    $match = [regex]::Match($Text, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if (-not $match.Success) {
+        throw "Could not find $Name list."
+    }
+    @(
+        [regex]::Matches($match.Groups[1].Value, '"([^"]+)"') |
+            ForEach-Object { $_.Groups[1].Value }
+    )
+}
+
+$smokePath = Join-Path $PSScriptRoot "smoke_live_background_automation_ssh.ps1"
+$auditPath = Join-Path $PSScriptRoot "audit_live_readiness_ssh.ps1"
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$proposalPath = Join-Path $repoRoot "docs/live-background-automation-env-diff-proposal.md"
+
+$smokeText = Get-Content -Raw -LiteralPath $smokePath
+$auditText = Get-Content -Raw -LiteralPath $auditPath
+$proposalText = Get-Content -Raw -LiteralPath $proposalPath
+
+$smokeBackground = Get-PythonStringList -Text $smokeText -Pattern 'background_flags\s*=\s*\[(.*?)\]' -Name "smoke background_flags"
+$smokeHighRisk = Get-PythonStringList -Text $smokeText -Pattern 'high_risk_flags\s*=\s*\[(.*?)\]' -Name "smoke high_risk_flags"
+$auditBackground = Get-PythonStringList -Text $auditText -Pattern 'background_true\s*=\s*\[\]\s*for key in \[(.*?)\]:' -Name "audit background_true"
+
+Assert-SameSet -Name "smoke background flags" -Actual $smokeBackground -Expected $expectedBackgroundFlags
+Assert-SameSet -Name "smoke high-risk background flags" -Actual $smokeHighRisk -Expected $expectedHighRiskFlags
+Assert-SameSet -Name "audit background flags" -Actual $auditBackground -Expected $expectedBackgroundFlags
+
+foreach ($flag in $expectedBackgroundFlags) {
+    if ($proposalText -notmatch [regex]::Escape($flag)) {
+        throw "Background automation proposal missing current flag $flag"
+    }
+    if ($proposalText -notmatch ([regex]::Escape("$flag=false"))) {
+        throw "Background automation proposal missing proposed false diff for $flag"
+    }
+}
+
+foreach ($flag in $expectedHighRiskFlags) {
+    $occurrences = [regex]::Matches($proposalText, [regex]::Escape($flag)).Count
+    if ($occurrences -lt 3) {
+        throw "Background automation proposal does not clearly list high-risk flag $flag"
+    }
+}
+
+Write-Host "[live-background-automation-flag-test] OK"

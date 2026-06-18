@@ -95,6 +95,9 @@ guardrail handoffs:
 This wrapper runs split acceptance, the reusable server-local MCP parity smoke,
 the #1/#2 guardrail MCP smoke, the read-only signal-correctness MCP smoke, and
 the #3 trailing-stop replay smoke through server-local read-only calls.
+Windows SSH wrappers validate `SshHost` locally and reject unsupported SSH
+target syntax before invoking `ssh`, so acceptance tooling cannot be redirected
+through option-like targets.
 If `-EnvFile` is overridden, the same remote env file is passed through server
 verification, split acceptance, and every server-local MCP smoke so the closure
 command verifies one consistent runtime configuration.

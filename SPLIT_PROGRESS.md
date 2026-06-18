@@ -399,7 +399,9 @@ Trading deployment prep:
   The post-deploy issue acceptance wrapper also carries any custom `-EnvFile`
   through split acceptance, server verification, and server-local MCP smokes so
   issue-closure evidence is collected against one consistent runtime
-  configuration. The signal-correctness SSH smoke now hard-fails when
+  configuration. Windows SSH wrappers validate `SshHost` locally before
+  invoking `ssh`, so deploy and acceptance tooling rejects option-like targets
+  before remote execution. The signal-correctness SSH smoke now hard-fails when
   `verifyStrategyExecution` does not provide the expected
   no-missed-evaluation/no-missed-order marker, so issue acceptance cannot pass
   on a missing strategy-execution parity result. A follow-up boundary-only

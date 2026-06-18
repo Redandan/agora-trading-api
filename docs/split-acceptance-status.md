@@ -57,7 +57,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `schema_baseline_generate_server.sh` header guard so a future baseline dump
   cannot reintroduce pre-review Flyway wording. It also verifies that a custom
   `-EnvFile` is carried through server verification, split acceptance, and the
-  server-local MCP acceptance smokes, and that the production
+  server-local MCP acceptance smokes, that Windows SSH wrappers validate
+  `SshHost` locally before invoking `ssh`, and that the production
   signal-correctness smoke hard-fails if `verifyStrategyExecution` does not
   provide the expected no-missed-evaluation/no-missed-order marker. The same
   commit also passed `.\scripts\verify_split_boundaries.ps1`: 39 explicit

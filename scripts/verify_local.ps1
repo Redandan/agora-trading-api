@@ -1527,6 +1527,9 @@ try {
     foreach ($pattern in @("If ``-EnvFile`` is overridden", "one consistent runtime configuration", "server verification, split acceptance, and every server-local MCP smoke")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs explain EnvFile propagation across acceptance wrappers $pattern"
     }
+    foreach ($pattern in @("Windows SSH wrappers validate .SshHost. locally", "unsupported SSH target syntax|option-like targets")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "operator docs explain SSH target guard $pattern"
+    }
     foreach ($pattern in @("-EnvFile", "consistent runtime", "server-local MCP (acceptance )?smokes")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "handoff docs record EnvFile-consistent local acceptance wrapper evidence $pattern"
     }

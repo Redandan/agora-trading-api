@@ -584,6 +584,9 @@ The Trading-side `scripts/verify_split_acceptance_ssh.ps1` wrapper calls that
 same AgoraMarketAPI smoke after `scripts/verify_server_ssh.ps1 -SchemaCompare`
 and `scripts/check_server_runtime_log.sh`; it does not deploy, reload nginx,
 mutate database schema, or call MCP write tools.
+Windows SSH wrappers validate `SshHost` locally and reject unsupported SSH
+target syntax before invoking `ssh`; this keeps deploy and acceptance tooling
+from being redirected through option-like targets.
 
 ## Startup Warning Baseline
 

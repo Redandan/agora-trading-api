@@ -415,7 +415,11 @@ require_contains("guardian", guardian, r'"writeMode"\s*:\s*false', "GUARDIAN_WRI
 require_contains("guardian", guardian, r'"liveActionsExecuted"\s*:\s*false', "GUARDIAN_LIVE_ACTIONS_EXECUTED")
 
 try:
-    log = subprocess.run(["bash", "scripts/check_server_runtime_log.sh"], cwd=os.environ["APP_DIR"], check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
+    strict_log_env = dict(os.environ)
+    strict_log_env["ALLOW_UNKNOWN_WARN"] = "0"
+    strict_log_env["ALLOW_RUNTIME_ERROR"] = "0"
+    strict_log_env["ALLOW_HIGH_RISK_LOG"] = "0"
+    log = subprocess.run(["bash", "scripts/check_server_runtime_log.sh"], cwd=os.environ["APP_DIR"], env=strict_log_env, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
     print("runtime_log_status=PASS" if log.returncode == 0 else "runtime_log_status=FAIL")
     for line in log.stdout.splitlines()[-12:]:
         print("runtime_log: " + line)

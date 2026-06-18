@@ -91,6 +91,11 @@ such as `LIVE_READINESS_NOT_READY`, `RUNTIME_EVIDENCE_*`,
 `BACKGROUND_AUTOMATION_REVIEW`, `DEPLOYED_RUNTIME_NOT_CURRENT`, or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`.
 
+Runtime-log allow flags such as `ALLOW_RUNTIME_ERROR=1`,
+`ALLOW_HIGH_RISK_LOG=1`, or `ALLOW_UNKNOWN_WARN=1` are diagnostic-only. They
+must not be used as live-readiness evidence; live audit and split acceptance
+force those values back to `0`.
+
 ## Non-Negotiable Guards
 
 These remain forbidden until a separate live proposal explicitly authorizes a

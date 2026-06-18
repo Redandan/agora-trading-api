@@ -32,20 +32,31 @@ function New-RuntimeLogFixture {
 }
 
 function Invoke-RuntimeLogSmoke {
-    param([string]$AppDir)
+    param(
+        [string]$AppDir,
+        [hashtable]$Environment = @{}
+    )
 
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $scriptPath = Join-Path $repoRoot "scripts\check_server_runtime_log.sh"
     $bash = Resolve-BashCommand
     $oldAppDir = $env:APP_DIR
+    $oldValues = @{}
     try {
         $env:APP_DIR = $AppDir
+        foreach ($key in $Environment.Keys) {
+            $oldValues[$key] = [System.Environment]::GetEnvironmentVariable($key, "Process")
+            [System.Environment]::SetEnvironmentVariable($key, [string]$Environment[$key], "Process")
+        }
         $output = & $bash $scriptPath 2>&1
         [PSCustomObject]@{
             ExitCode = $LASTEXITCODE
             Text = ($output | Out-String)
         }
     } finally {
+        foreach ($key in $Environment.Keys) {
+            [System.Environment]::SetEnvironmentVariable($key, $oldValues[$key], "Process")
+        }
         if ($null -eq $oldAppDir) {
             Remove-Item Env:\APP_DIR -ErrorAction SilentlyContinue
         } else {
@@ -59,12 +70,13 @@ function Assert-SmokeCase {
         [string]$Name,
         [string[]]$Lines,
         [int]$ExpectedExitCode,
-        [string[]]$ExpectedPatterns
+        [string[]]$ExpectedPatterns,
+        [hashtable]$Environment = @{}
     )
 
     $fixture = New-RuntimeLogFixture -Lines $Lines
     try {
-        $result = Invoke-RuntimeLogSmoke -AppDir $fixture
+        $result = Invoke-RuntimeLogSmoke -AppDir $fixture -Environment $Environment
         if ($result.ExitCode -ne $ExpectedExitCode) {
             throw "$Name expected exit $ExpectedExitCode but got $($result.ExitCode):`n$($result.Text)"
         }
@@ -115,5 +127,17 @@ Assert-SmokeCase `
         "high-risk operation-like log lines present",
         "order placed"
     )
+
+Assert-SmokeCase `
+    -Name "runtime error allow flag is diagnostic only" `
+    -Lines @(
+        "2026-06-18T11:15:10.507Z ERROR 184643 --- [agora-trading-api] [trading-sched-1] c.a.service.impl.TelegramServiceImpl     : Failed to send Telegram keyboard message to channel -1003885932854: Unable to executesendmessagemethod"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime ERROR lines present but allowed: count=1",
+        "runtime log smoke complete"
+    ) `
+    -Environment @{ ALLOW_RUNTIME_ERROR = "1" }
 
 Write-Host "[runtime-log-smoke-classification-test] OK"

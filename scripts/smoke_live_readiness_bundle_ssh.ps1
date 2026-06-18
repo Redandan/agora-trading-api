@@ -280,7 +280,9 @@ if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING" `
         -or $audit -notmatch '"TRADING_OKX_PASSPHRASE":\s*"SET"') {
     $blockers.Add("SECRET_PREREQUISITES_MISSING")
 }
-if ($audit -match "HEALTH_NOT_UP|RUNTIME_LOG_SMOKE_FAILED|RUNTIME_LOG_SMOKE_EXCEPTION") {
+if ($audit -match "HEALTH_NOT_UP|RUNTIME_LOG_SMOKE_FAILED|RUNTIME_LOG_SMOKE_EXCEPTION" `
+        -or $audit -notmatch 'health=.*"status"\s*:\s*"UP"' `
+        -or $audit -notmatch "runtime_log_status=PASS") {
     $blockers.Add("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 }
 if ($audit -match "EVENT_RISK_NOT_R0" `

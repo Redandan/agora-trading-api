@@ -198,6 +198,110 @@ def opportunity_details(text):
     ]
     return {key: obj.get(key) for key in keys if key in obj}
 
+def flatten_strings(value):
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, bool):
+        return [str(value).lower()]
+    if isinstance(value, (int, float)):
+        return [str(value)]
+    if isinstance(value, list):
+        result = []
+        for item in value:
+            result.extend(flatten_strings(item))
+        return result
+    if isinstance(value, dict):
+        result = []
+        for item in value.values():
+            result.extend(flatten_strings(item))
+        return result
+    return [str(value)]
+
+def has_any(values, needles):
+    joined = "\n".join(flatten_strings(values))
+    return any(needle in joined for needle in needles)
+
+def classify_live_readiness(details, current_blockers, current_warnings, background_flags):
+    classification = {
+        "market_condition_wait": [],
+        "runtime_evidence_gap": [],
+        "risk_hard_stop": [],
+        "execution_disabled_guard": [],
+        "capacity_not_primary": [],
+        "background_automation_review": [],
+        "security_or_secret_gap": [],
+        "runtime_health_gap": [],
+    }
+
+    if has_any(details, [
+        "NO_CURRENT_BUY_CANDIDATE",
+        "WAIT_BUY_THRESHOLD_CROSS",
+        "DAILY_SCORE_BUY_NOT_CONFIRMED",
+        "HOLD_SCOUT_MONITOR",
+        "FORMING_STATE_SCOUT_ACTIVE_NOT_PRE_POSITION",
+        "SCOUT_ACTIVE",
+        "POST_SCOUT_ADD_NOT_ELIGIBLE",
+    ]):
+        classification["market_condition_wait"].append("No live buy/add candidate is currently confirmed; wait for the documented signal gate to cross.")
+
+    if has_any(details, [
+        "RUNTIME_EVIDENCE_MISSING",
+        "RUNTIME_EVIDENCE_NOT_AVAILABLE",
+        "runtimeEvidenceStatus=NOT_READY",
+        "NOT_READY_ENABLED_FALSE",
+    ]):
+        classification["runtime_evidence_gap"].append("Live-runtime evidence is not available while execution flags remain disabled; collect dry-run evidence before enabling.")
+
+    if has_any(details, [
+        "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES",
+        "CONSECUTIVE_TINY_LIVE_LOSSES",
+    ]):
+        classification["risk_hard_stop"].append("Autonomous approval is blocked by consecutive tiny-live loss protection.")
+
+    if current_blockers:
+        execution_blockers = [item for item in current_blockers if item.endswith("_NOT_EXECUTION_ELIGIBLE")]
+        if execution_blockers:
+            classification["execution_disabled_guard"].extend(execution_blockers)
+        if any(item in current_blockers for item in ["OKX_CREDENTIALS_NOT_SET", "MCP_KEY_MISSING", "ENV_FILE_MISSING"]):
+            classification["security_or_secret_gap"].append("Required server secret material is missing.")
+        if any(item.startswith("RUNTIME_LOG_SMOKE") or item in ["HEALTH_NOT_UP", "EVENT_RISK_NOT_R0"] for item in current_blockers):
+            classification["runtime_health_gap"].extend([item for item in current_blockers if item.startswith("RUNTIME_LOG_SMOKE") or item in ["HEALTH_NOT_UP", "EVENT_RISK_NOT_R0"]])
+
+    if has_any(details, [
+        "NO_PRE_POSITION_NOTIONAL",
+        "NO_PROPOSED_PRE_POSITION_NOTIONAL",
+        "MIN_ORDER",
+        "capacityBlockers",
+    ]):
+        classification["capacity_not_primary"].append("Capacity/notional blockers are secondary until market readiness and risk hard stops clear.")
+
+    if background_flags or any("BACKGROUND_AUTOMATION_ALREADY_TRUE" in item for item in current_warnings):
+        classification["background_automation_review"].extend(background_flags)
+
+    return {key: value for key, value in classification.items() if value}
+
+def live_readiness_next_actions(classification):
+    actions = []
+    if "risk_hard_stop" in classification:
+        actions.append("Do not enable live trading; first review tiny-live loss protection root cause and require fresh dry-run proof.")
+    if "market_condition_wait" in classification:
+        actions.append("Keep observing read-only signal/MCP evidence until a current BUY/add candidate is present.")
+    if "runtime_evidence_gap" in classification:
+        actions.append("Keep execution disabled and gather runtime evidence from dry-run/autonomous readiness surfaces.")
+    if "execution_disabled_guard" in classification:
+        actions.append("Treat disabled execution flags as intentional guards; only change them in a separate explicitly authorized env-change plan.")
+    if "background_automation_review" in classification:
+        actions.append("Review already-enabled background automation before any live scope expansion.")
+    if "security_or_secret_gap" in classification:
+        actions.append("Fix missing server secret prerequisites before operator review.")
+    if "runtime_health_gap" in classification:
+        actions.append("Fix health/log/event-risk gaps before any live operator review.")
+    if not actions:
+        actions.append("No automated blocker class found; operator review is still required before any live env change.")
+    return actions
+
 print("[live-readiness] read-only server audit")
 print(f"url={url}")
 print(f"symbol={symbol}")
@@ -317,7 +421,11 @@ except Exception as exc:
     blockers.append("RUNTIME_LOG_SMOKE_EXCEPTION")
     print(f"runtime_log_exception={type(exc).__name__}:{exc}")
 
+blocker_classification = classify_live_readiness(readiness_details, blockers, warnings, background_true)
+next_actions = live_readiness_next_actions(blocker_classification)
 print("readiness_details=" + json.dumps(readiness_details, ensure_ascii=False, sort_keys=True))
+print("blocker_classification=" + json.dumps(blocker_classification, ensure_ascii=False, sort_keys=True))
+print("next_actions=" + json.dumps(next_actions, ensure_ascii=False))
 print("warnings=" + json.dumps(warnings))
 print("blockers=" + json.dumps(blockers))
 if blockers:

@@ -539,8 +539,12 @@ Expected:
 - Secret values are never printed; exchange, Telegram, and MCP keys are shown
   only as `SET` or `EMPTY`.
 - Output includes order-capable flags, dry-run flags, background automation
-  warnings, runtime-log smoke, machine-readable `readiness_details`, blockers,
-  and a final verdict.
+  warnings, runtime-log smoke, machine-readable `readiness_details`,
+  `blocker_classification`, `next_actions`, blockers, and a final verdict.
+- `blocker_classification` separates market-condition waits, runtime evidence
+  gaps, risk hard stops, execution-disabled guards, background automation review
+  items, and runtime/security gaps so operator review does not confuse secondary
+  capacity issues with live-opening blockers.
 - `verdict=NOT_READY` means do not enable live yet; address the listed blockers
   or intentionally narrow the planned live scope first.
 - `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is not live enablement.

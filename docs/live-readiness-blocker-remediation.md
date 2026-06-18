@@ -65,11 +65,26 @@ current local blocker rules. A future review must refresh the server runtime and
 rerun the full read-only bundle; do not combine stale server output with local
 or GitHub HEAD evidence.
 
-## Secondary Audit Classifications
+## Audit Classifications
 
-`audit_live_readiness_ssh.ps1` may classify `capacity_not_primary` when notional
-or capacity limits are visible in the read-only evidence. Treat that as a
-secondary sizing review only. It must not be used to bypass primary blockers
+`audit_live_readiness_ssh.ps1` also prints `blocker_classification` and
+`next_actions`. These labels are triage hints for the review packet only. They
+are not live approval, do not clear `bundle_blockers`, and must not be used to
+enable live trading, scheduler, order, OCO, grid, Earn, fund, Telegram,
+exchange, external backfill/import, or DB mutation.
+
+| Audit classification | Meaning | Required follow-up |
+| --- | --- | --- |
+| `market_condition_wait` | The read-only evidence does not show a current BUY/add candidate or confirmed signal gate. | Keep observing read-only signal/MCP evidence; do not relax gates only to create a live candidate. |
+| `runtime_evidence_gap` | Runtime evidence is missing, disabled, or not ready while execution remains disabled. | Run the runtime-evidence RCA and collect dry-run/shadow evidence; do not enable execution flags. |
+| `risk_hard_stop` | Tiny-live loss protection or another hard safety stop is active. | Run the tiny-live loss RCA and require fresh dry-run proof before any review packet. |
+| `execution_disabled_guard` | Execution-capable gates report `*_NOT_EXECUTION_ELIGIBLE`. | Treat disabled execution as intentional protection; only change via a separate authorized env plan. |
+| `background_automation_review` | Background automation flags are already true or need explicit review. | Run background automation smoke and reconcile the env diff before any live scope expansion. |
+| `security_or_secret_gap` | Required server secret material or env prerequisites are missing. | Fix secret prerequisites through a separately authorized ops change and rerun read-only audit. |
+| `runtime_health_gap` | Health, runtime log smoke, or event-risk baseline is not clean. | Fix runtime health/log/event-risk evidence before any live operator review. |
+| `capacity_not_primary` | Notional or capacity limits are visible in the read-only evidence. | Secondary sizing review only; handle after primary blockers are clear. |
+
+`capacity_not_primary` is explicitly secondary. It must not be used to bypass primary blockers
 such as `LIVE_READINESS_NOT_READY`, `RUNTIME_EVIDENCE_*`,
 `TINY_LIVE_LOSS_HARD_STOP`, `SIGNAL_POLICY_REVIEW_GAPS`,
 `BACKGROUND_AUTOMATION_REVIEW`, `DEPLOYED_RUNTIME_NOT_CURRENT`, or

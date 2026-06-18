@@ -199,19 +199,32 @@ function Assert-CurrentExpectedBlockersMatchLatestSnapshot {
     }
 }
 
-function Assert-SecondaryAuditClassificationGuidance {
+function Assert-AuditClassificationGuidance {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
     $docText = Get-Content -Raw -LiteralPath $docPath
     foreach ($pattern in @(
-            "Secondary Audit Classifications",
+            "Audit Classifications",
+            "blocker_classification",
+            "next_actions",
+            "market_condition_wait",
+            "runtime_evidence_gap",
+            "risk_hard_stop",
+            "execution_disabled_guard",
+            "background_automation_review",
+            "security_or_secret_gap",
+            "runtime_health_gap",
             "capacity_not_primary",
+            "not live approval",
+            "do not clear ``bundle_blockers``",
+            "do not enable execution flags",
+            "separately authorized ops change",
             "secondary sizing review only",
             "must not be used to bypass primary blockers",
             "LIVE_READINESS_EVIDENCE_UNAVAILABLE"
         )) {
         if ($docText -notmatch [regex]::Escape($pattern)) {
-            throw "remediation doc missing secondary audit classification guidance marker: $pattern"
+            throw "remediation doc missing audit classification guidance marker: $pattern"
         }
     }
 }
@@ -293,7 +306,7 @@ $allExpectedBlockers = @(
 Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-CurrentExpectedBlockersMatchLatestSnapshot
-Assert-SecondaryAuditClassificationGuidance
+Assert-AuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
 
 $cleanInputs = @{

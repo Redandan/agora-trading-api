@@ -84,6 +84,7 @@ env_file = os.environ["ENV_FILE"]
 symbol = os.environ["SYMBOL"].upper()
 blockers = []
 warnings = []
+readiness_details = {}
 
 def read_env_key(key):
     try:
@@ -146,6 +147,44 @@ def call_tool(name, arguments=None, timeout=180):
 def require_contains(name, text, pattern, blocker):
     if not re.search(pattern, text, re.MULTILINE):
         blockers.append(blocker)
+
+def parse_json_text(text):
+    try:
+        decoded = json.loads(text)
+        return decoded if isinstance(decoded, dict) else None
+    except Exception:
+        return None
+
+def regex_value(text, pattern, default=""):
+    match = re.search(pattern, text, re.MULTILINE)
+    return match.group(1).strip() if match else default
+
+def tiny_details(text):
+    return {
+        "executionEligible": regex_value(text, r"executionEligible=(\w+)"),
+        "wouldExecute": regex_value(text, r"wouldExecute=(\w+)"),
+        "previewStatus": regex_value(text, r"previewStatus=([^\n]+)"),
+        "runtimeEvidenceStatus": regex_value(text, r"runtimeEvidenceStatus=([^\n]+)"),
+        "approvalReason": regex_value(text, r"approvalReason=([^\n]+)"),
+        "blockers": regex_value(text, r"blockers=(\[[^\n]+)"),
+        "terminalBlockers": regex_value(text, r"terminalBlockers=(\[[^\n]+)"),
+    }
+
+def score_buy_details(text):
+    obj = parse_json_text(text)
+    if not obj:
+        return {"parseError": "non_json_response"}
+    keys = [
+        "enabled", "dryRun", "orderSent", "ocoAttached", "executionEligible",
+        "wouldExecute", "executionPolicy", "confirmedDeployPolicy",
+        "postScoutManagementState", "recommendedAction", "reason",
+        "primaryNoBuyReason", "blockingInterpretation", "eventRiskLevel",
+        "proposedNotionalUsdt", "firstTrancheNotionalUsdt",
+        "suggestedAddNotionalUsdt", "maxNotionalUsdt", "scoreBuyFormingState",
+        "scoreBuyHoldingState", "dailyScoreBuyConfirmed", "postScoutDuplicateReason",
+        "primaryBlockers", "blockers", "capacityBlockers", "warnings",
+    ]
+    return {key: obj.get(key) for key in keys if key in obj}
 
 print("[live-readiness] read-only server audit")
 print(f"url={url}")
@@ -216,6 +255,7 @@ if background_true:
     warnings.append("BACKGROUND_AUTOMATION_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
 
 tiny = call_tool("getTinyLiveAutoExecutionTriggerStatus", {"symbol": symbol})
+readiness_details["tinyLive"] = tiny_details(tiny)
 require_contains("tiny", tiny, r"boundary:\s*READ_ONLY", "TINY_STATUS_BOUNDARY_MISSING")
 require_contains("tiny", tiny, r"orderSent=false", "TINY_ORDER_SENT_MARKER_MISSING")
 require_contains("tiny", tiny, r"triggerEnabled=false", "TINY_TRIGGER_ALREADY_ENABLED_OR_MARKER_MISSING")
@@ -226,6 +266,9 @@ if "executionEligible=true" not in tiny:
 pre = call_tool("getScoreBuyPrePositionAutoExecutionStatus", {"symbol": symbol})
 confirmed = call_tool("getScoreBuyConfirmedDeployAutoExecutionStatus", {"symbol": symbol})
 post = call_tool("getScoreBuyPostScoutAutoAddStatus", {"symbol": symbol})
+readiness_details["scoreBuyPrePosition"] = score_buy_details(pre)
+readiness_details["scoreBuyConfirmedDeploy"] = score_buy_details(confirmed)
+readiness_details["scoreBuyPostScoutAdd"] = score_buy_details(post)
 for name, text in [("PRE_POSITION", pre), ("CONFIRMED_DEPLOY", confirmed), ("POST_SCOUT_ADD", post)]:
     require_contains(name, text, r'"enabled"\s*:\s*false', f"{name}_ENABLED_NOT_FALSE")
     require_contains(name, text, r'"dryRun"\s*:\s*true', f"{name}_DRY_RUN_NOT_TRUE")
@@ -260,6 +303,7 @@ except Exception as exc:
     blockers.append("RUNTIME_LOG_SMOKE_EXCEPTION")
     print(f"runtime_log_exception={type(exc).__name__}:{exc}")
 
+print("readiness_details=" + json.dumps(readiness_details, ensure_ascii=False, sort_keys=True))
 print("warnings=" + json.dumps(warnings))
 print("blockers=" + json.dumps(blockers))
 if blockers:

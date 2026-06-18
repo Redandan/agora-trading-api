@@ -539,7 +539,8 @@ Expected:
 - Secret values are never printed; exchange, Telegram, and MCP keys are shown
   only as `SET` or `EMPTY`.
 - Output includes order-capable flags, dry-run flags, background automation
-  warnings, runtime-log smoke, blockers, and a final verdict.
+  warnings, runtime-log smoke, machine-readable `readiness_details`, blockers,
+  and a final verdict.
 - `verdict=NOT_READY` means do not enable live yet; address the listed blockers
   or intentionally narrow the planned live scope first.
 - `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is not live enablement.

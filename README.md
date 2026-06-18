@@ -162,10 +162,11 @@ Read-only live-readiness audit before any explicit live enablement:
 ```
 
 This prints masked server env status, order-capable flags, dry-run flags,
-server-local MCP readiness surfaces, runtime-log smoke, warnings, blockers, and
-a final verdict. `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` means the
-operator may review a separately authorized live-change plan; the script never
-changes production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
+server-local MCP readiness surfaces, runtime-log smoke, machine-readable
+`readiness_details`, warnings, blockers, and a final verdict.
+`verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` means the operator may
+review a separately authorized live-change plan; the script never changes
+production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
 
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary

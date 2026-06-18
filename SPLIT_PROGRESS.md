@@ -158,9 +158,9 @@
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,
-  server-local MCP readiness surfaces, runtime-log smoke, blockers, and a final
-  verdict without changing production env, DB, order, OCO, grid, Earn, fund, or
-  Telegram state.
+  server-local MCP readiness surfaces, runtime-log smoke, machine-readable
+  `readiness_details`, blockers, and a final verdict without changing
+  production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

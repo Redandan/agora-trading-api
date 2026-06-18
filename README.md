@@ -197,6 +197,12 @@ shadow-ready, or requiring operator review. It does not write
 RuntimeDecisionEvidence, place orders, enable flags, send Telegram, or change
 production env/DB state.
 
+Before drafting any evidence-only production env change, use
+`docs/live-dry-run-evidence-plan.md`. That checklist keeps
+`TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence
+candidate only, while order-capable, Telegram, scheduler, OCO, grid, Earn, fund,
+external-backfill/import, and guardian live-action flags remain disabled.
+
 The script calls server-local `/api/mcp` only. It verifies
 `analyzeSpotAntiWickPolicyCoverage` and `getEventRiskControlStatus` boundary
 and operator-control markers without changing order/OCO/strategy/grid/fund/Earn

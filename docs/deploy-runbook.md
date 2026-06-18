@@ -602,6 +602,13 @@ Expected:
 - The script must not write RuntimeDecisionEvidence, place orders, change OCO,
   enable flags, send Telegram, mutate production env, or change DB state.
 
+Before drafting an evidence-only production env change, review
+`docs/live-dry-run-evidence-plan.md`. It allows
+`TRADING_RUNTIME_EVIDENCE_ENABLED=true` only as a separately authorized
+evidence candidate and keeps live/order/OCO/grid/Earn/fund/Telegram/scheduler,
+guardian live-action, and external-backfill/import flags disabled. The checklist
+must not be used as live approval.
+
 For a read-only trailing-stop 30d PnL replay check after deploying a runtime
 that contains `analyzeTrailingStopPnlReplay`, run:
 

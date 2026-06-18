@@ -180,6 +180,12 @@
   `CANONICAL_SHADOW_READY`, or `REVIEW_RUNTIME_EVIDENCE_STATUS` without writing
   RuntimeDecisionEvidence or changing production env, DB, order, OCO, grid,
   Earn, fund, Telegram, or live scheduler state.
+- `docs/live-dry-run-evidence-plan.md` records the evidence-only path toward a
+  later live proposal. It treats `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a
+  separately authorized candidate only, keeps order-capable, Telegram,
+  scheduler, OCO, grid, Earn, fund, guardian live-action, and
+  external-backfill/import flags disabled, and requires read-only smokes before
+  any future live approval discussion.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

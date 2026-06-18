@@ -50,9 +50,11 @@ function Get-LiveReadinessBundleBlockers {
             -or $Audit -notmatch '"scoreBuyPostScoutAdd"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true') {
         $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
     }
-    if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
+    if ($Background -match "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
+            -or $Background -match "high_risk_background_automation_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
             -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
-            -or $Background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED") {
+            -or $Background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" `
+            -or $Background -notmatch "high_risk_background_automation_true=\[\]") {
         $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
     }
     if ($RuntimeEvidence -match "diagnosis=CONFIG_DISABLED") {
@@ -339,7 +341,7 @@ Assert-BundleEvidenceWindowsCovered
 $mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}'
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`n$mcpAuditEvidence"
-    Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED"
+    Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nhigh_risk_background_automation_true=[]"
     RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
     Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS"
@@ -367,6 +369,7 @@ Assert-BlockerCase -Name "audit missing execution eligibility marker fails close
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background missing ok verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "high_risk_background_automation_true=[]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
+Assert-BlockerCase -Name "background missing high-risk marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
 Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")

@@ -49,10 +49,14 @@ foreach ($scriptName in @(
 
 foreach ($pattern in @(
         'DEPLOYED_RUNTIME_NOT_CURRENT',
+        'LIVE_READINESS_EVIDENCE_UNAVAILABLE',
+        'bundle_verdict=NO_EVIDENCE',
         'origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN',
         'originMainCommit=',
         'bundle_verdict=NOT_READY',
         'stale\s+live-review evidence only',
+        'stop the review and fix SSH access',
+        'failing read-only smoke',
         'separately authorized deploy',
         'server worktree/runtime to `origin/main`',
         'rerun the full live-readiness bundle',
@@ -66,6 +70,8 @@ foreach ($pattern in @(
 }
 
 Assert-Contains -Name "post-authorization bundle blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`DEPLOYED_RUNTIME_NOT_CURRENT`'
+Assert-Contains -Name "post-authorization no-evidence blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`'
+Assert-Contains -Name "post-authorization no-evidence verdict expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`bundle_verdict=NO_EVIDENCE`'
 Assert-Contains -Name "post-authorization order-capable true-list expectation" -Text $proposalText -Pattern 'order_capable_flags_true=\[\]'
 
 Write-Host "[live-production-env-review-plan-test] OK"

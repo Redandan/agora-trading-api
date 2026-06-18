@@ -24,6 +24,8 @@ Run these read-only checks and attach the outputs to the operator review:
 
 The current server evidence keeps live blocked while these remain true:
 
+- `bundle_verdict=NO_EVIDENCE`
+- `LIVE_READINESS_EVIDENCE_UNAVAILABLE`
 - `verdict=NOT_READY`
 - `diagnosis=CONFIG_DISABLED`
 - `shadowIntentCount=0`
@@ -56,6 +58,9 @@ rules because the observed signal smoke had unresolved governance drift
 (`governanceMode=TOO_STRICT`). A future operator review must first refresh the
 server worktree/runtime to `origin/main` through a separately authorized deploy,
 then rerun the full live-readiness bundle and attach the current output.
+If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
+key selection, or the failing read-only smoke before using the output.
 
 ## Evidence-Only Candidate
 
@@ -148,6 +153,10 @@ Expected evidence-only result:
 - `smoke_runtime_evidence_rca_ssh.ps1` no longer reports `CONFIG_DISABLED`.
 - `shadowIntentCount` becomes greater than 0 before live is discussed.
 - `orderSentEvidence=0`.
+- `smoke_live_readiness_bundle_ssh.ps1` no longer reports
+  `LIVE_READINESS_EVIDENCE_UNAVAILABLE`.
+- `smoke_live_readiness_bundle_ssh.ps1` no longer reports
+  `bundle_verdict=NO_EVIDENCE`.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports
   `DEPLOYED_RUNTIME_NOT_CURRENT`.
 - Runtime logs remain free of order placement, OCO modification, live exchange

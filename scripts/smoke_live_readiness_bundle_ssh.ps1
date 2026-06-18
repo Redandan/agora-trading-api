@@ -274,7 +274,10 @@ if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" `
         -or $audit -notmatch "order_capable_flags_true=\[\]") {
     $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
 }
-if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING") {
+if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING" `
+        -or $audit -notmatch '"TRADING_OKX_API_KEY":\s*"SET"' `
+        -or $audit -notmatch '"TRADING_OKX_SECRET_KEY":\s*"SET"' `
+        -or $audit -notmatch '"TRADING_OKX_PASSPHRASE":\s*"SET"') {
     $blockers.Add("SECRET_PREREQUISITES_MISSING")
 }
 if ($audit -match "HEALTH_NOT_UP|RUNTIME_LOG_SMOKE_FAILED|RUNTIME_LOG_SMOKE_EXCEPTION") {

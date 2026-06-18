@@ -192,6 +192,12 @@
   `high_risk_background_automation_true`, classification, recommendation, and
   verdict without changing production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, or external backfill/import state.
+- `docs/live-production-env-review-proposal.md` turns the current read-only
+  live blockers into an operator review checklist for a future production env
+  proposal. It names the evidence-only runtime evidence candidate, the
+  background automation flags that should be disabled or separately justified,
+  the order-capable flags that must stay disabled until live approval, and the
+  required post-authorization smokes without authorizing env mutation.
 - `scripts/smoke_guardrail_acceptance_ssh.ps1` provides a focused read-only
   post-deploy acceptance smoke for the BTC spot anti-wick and event-risk
   guardrail handoffs. It calls server-local `/api/mcp` to verify

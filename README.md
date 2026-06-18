@@ -202,6 +202,10 @@ Before drafting any evidence-only production env change, use
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence
 candidate only, while order-capable, Telegram, scheduler, OCO, grid, Earn, fund,
 external-backfill/import, and guardian live-action flags remain disabled.
+Use `docs/live-production-env-review-proposal.md` to review which server
+background automation flags must be disabled or separately justified before any
+live proposal. That file is a review artifact only; it is not authorization to
+edit production env.
 
 Read-only background automation env smoke before any live scope expansion:
 

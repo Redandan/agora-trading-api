@@ -608,6 +608,10 @@ Before drafting an evidence-only production env change, review
 evidence candidate and keeps live/order/OCO/grid/Earn/fund/Telegram/scheduler,
 guardian live-action, and external-backfill/import flags disabled. The checklist
 must not be used as live approval.
+Use `docs/live-production-env-review-proposal.md` to classify any proposed
+production env diff. It documents which currently enabled background automation
+flags should be disabled or separately justified before live; it is not an env
+mutation script and does not authorize production changes.
 
 To isolate already-enabled background automation before live review, run:
 

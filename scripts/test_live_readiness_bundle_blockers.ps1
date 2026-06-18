@@ -199,6 +199,23 @@ function Assert-CurrentExpectedBlockersMatchLatestSnapshot {
     }
 }
 
+function Assert-SecondaryAuditClassificationGuidance {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
+    $docText = Get-Content -Raw -LiteralPath $docPath
+    foreach ($pattern in @(
+            "Secondary Audit Classifications",
+            "capacity_not_primary",
+            "secondary sizing review only",
+            "must not be used to bypass primary blockers",
+            "LIVE_READINESS_EVIDENCE_UNAVAILABLE"
+        )) {
+        if ($docText -notmatch [regex]::Escape($pattern)) {
+            throw "remediation doc missing secondary audit classification guidance marker: $pattern"
+        }
+    }
+}
+
 function Assert-BundleEvidenceWindowsCovered {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
@@ -276,6 +293,7 @@ $allExpectedBlockers = @(
 Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-CurrentExpectedBlockersMatchLatestSnapshot
+Assert-SecondaryAuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
 
 $cleanInputs = @{

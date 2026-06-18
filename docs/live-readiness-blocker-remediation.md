@@ -65,6 +65,16 @@ current local blocker rules. A future review must refresh the server runtime and
 rerun the full read-only bundle; do not combine stale server output with local
 or GitHub HEAD evidence.
 
+## Secondary Audit Classifications
+
+`audit_live_readiness_ssh.ps1` may classify `capacity_not_primary` when notional
+or capacity limits are visible in the read-only evidence. Treat that as a
+secondary sizing review only. It must not be used to bypass primary blockers
+such as `LIVE_READINESS_NOT_READY`, `RUNTIME_EVIDENCE_*`,
+`TINY_LIVE_LOSS_HARD_STOP`, `SIGNAL_POLICY_REVIEW_GAPS`,
+`BACKGROUND_AUTOMATION_REVIEW`, `DEPLOYED_RUNTIME_NOT_CURRENT`, or
+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`.
+
 ## Non-Negotiable Guards
 
 These remain forbidden until a separate live proposal explicitly authorizes a

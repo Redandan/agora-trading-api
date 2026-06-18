@@ -268,6 +268,18 @@ if ($audit -match "verdict=NOT_READY") {
 if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
     $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
 }
+if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING") {
+    $blockers.Add("SECRET_PREREQUISITES_MISSING")
+}
+if ($audit -match "HEALTH_NOT_UP|RUNTIME_LOG_SMOKE_FAILED|RUNTIME_LOG_SMOKE_EXCEPTION") {
+    $blockers.Add("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
+}
+if ($audit -match "EVENT_RISK_NOT_R0") {
+    $blockers.Add("EVENT_RISK_NOT_BASELINE")
+}
+if ($audit -match "MCP_TOOL_ERROR:") {
+    $blockers.Add("MCP_AUDIT_TOOL_ERROR")
+}
 if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
     $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
 }

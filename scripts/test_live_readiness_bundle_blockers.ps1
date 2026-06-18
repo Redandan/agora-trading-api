@@ -19,6 +19,18 @@ function Get-LiveReadinessBundleBlockers {
     if ($Audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $Audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
         $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
     }
+    if ($Audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING") {
+        $blockers.Add("SECRET_PREREQUISITES_MISSING")
+    }
+    if ($Audit -match "HEALTH_NOT_UP|RUNTIME_LOG_SMOKE_FAILED|RUNTIME_LOG_SMOKE_EXCEPTION") {
+        $blockers.Add("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
+    }
+    if ($Audit -match "EVENT_RISK_NOT_R0") {
+        $blockers.Add("EVENT_RISK_NOT_BASELINE")
+    }
+    if ($Audit -match "MCP_TOOL_ERROR:") {
+        $blockers.Add("MCP_AUDIT_TOOL_ERROR")
+    }
     if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
         $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
     }
@@ -232,7 +244,9 @@ function Assert-BundleEvidenceWindowsCovered {
 $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
+    "EVENT_RISK_NOT_BASELINE",
     "LIVE_READINESS_NOT_READY",
+    "MCP_AUDIT_TOOL_ERROR",
     "MCP_PARITY_NOT_PROVEN",
     "ORDER_CAPABLE_FLAGS_REVIEW",
     "RUNTIME_EVIDENCE_CONFIG_DISABLED",
@@ -240,6 +254,8 @@ $allExpectedBlockers = @(
     "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
     "RUNTIME_EVIDENCE_ORDER_SENT",
     "RUNTIME_EVIDENCE_REVIEW_REQUIRED",
+    "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
+    "SECRET_PREREQUISITES_MISSING",
     "SIGNAL_POLICY_REVIEW_GAPS",
     "TINY_LIVE_LOSS_HARD_STOP"
 )
@@ -263,6 +279,11 @@ Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -
 
 Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=NOT_READY" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
 Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "order_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
+Assert-BlockerCase -Name "audit secret prerequisites missing" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"OKX_CREDENTIALS_NOT_SET`"]" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
+Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "runtime_log_status=FAIL`nblockers=[`"RUNTIME_LOG_SMOKE_FAILED`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
+Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "health={`"status`":`"DOWN`"}`nblockers=[`"HEALTH_NOT_UP`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
+Assert-BlockerCase -Name "audit event risk not baseline" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"EVENT_RISK_NOT_R0`"]" }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
+Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "blockers=[`"MCP_TOOL_ERROR:getGuardianSnapshot`"]" }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")

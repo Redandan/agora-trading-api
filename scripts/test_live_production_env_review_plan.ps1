@@ -66,5 +66,6 @@ foreach ($pattern in @(
 }
 
 Assert-Contains -Name "post-authorization bundle blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`DEPLOYED_RUNTIME_NOT_CURRENT`'
+Assert-Contains -Name "post-authorization order-capable true-list expectation" -Text $proposalText -Pattern 'order_capable_flags_true=\[\]'
 
 Write-Host "[live-production-env-review-plan-test] OK"

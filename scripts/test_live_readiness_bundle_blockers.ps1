@@ -16,6 +16,9 @@ function Get-LiveReadinessBundleBlockers {
     if ($Audit -match "verdict=NOT_READY") {
         $blockers.Add("LIVE_READINESS_NOT_READY")
     }
+    if ($Audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $Audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
+        $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
+    }
     if ($Background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
         $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
     }
@@ -231,6 +234,7 @@ $allExpectedBlockers = @(
     "DEPLOYED_RUNTIME_NOT_CURRENT",
     "LIVE_READINESS_NOT_READY",
     "MCP_PARITY_NOT_PROVEN",
+    "ORDER_CAPABLE_FLAGS_REVIEW",
     "RUNTIME_EVIDENCE_CONFIG_DISABLED",
     "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS",
     "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
@@ -258,6 +262,7 @@ $cleanInputs = @{
 Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -ExpectedBlockers @()
 
 Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=NOT_READY" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
+Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "order_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")

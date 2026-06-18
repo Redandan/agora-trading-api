@@ -350,7 +350,10 @@ for key in [
     if bool_env(key, False):
         background_true.append(key)
 
+true_order_flags = [key for key, value in order_flags.items() if value]
+
 print("order_capable_flags=" + json.dumps(order_flags, sort_keys=True))
+print("order_capable_flags_true=" + json.dumps(true_order_flags))
 print("dry_run_flags=" + json.dumps(dry_run_flags, sort_keys=True))
 print("background_automation_true=" + json.dumps(background_true))
 print("secret_presence=" + json.dumps({
@@ -364,8 +367,9 @@ print("secret_presence=" + json.dumps({
 if secret_presence("TRADING_OKX_API_KEY") != "SET" or secret_presence("TRADING_OKX_SECRET_KEY") != "SET" or secret_presence("TRADING_OKX_PASSPHRASE") != "SET":
     blockers.append("OKX_CREDENTIALS_NOT_SET")
 
-if order_flags["TRADING_OKX_ENABLED"]:
-    warnings.append("TRADING_OKX_ALREADY_ENABLED")
+if true_order_flags:
+    blockers.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE:" + ",".join(true_order_flags))
+    warnings.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
 
 if background_true:
     warnings.append("BACKGROUND_AUTOMATION_ALREADY_TRUE_REVIEW_BEFORE_LIVE")

@@ -265,6 +265,9 @@ $blockers = [System.Collections.Generic.List[string]]::new()
 if ($audit -match "verdict=NOT_READY") {
     $blockers.Add("LIVE_READINESS_NOT_READY")
 }
+if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" -or $audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]") {
+    $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
+}
 if ($background -match "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW") {
     $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
 }

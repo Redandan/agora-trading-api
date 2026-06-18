@@ -21,6 +21,7 @@ skip a blocker.
 | Bundle blocker | Required read-only evidence | Clear condition | Allowed next action |
 | --- | --- | --- | --- |
 | `LIVE_READINESS_NOT_READY` | `.\scripts\audit_live_readiness_ssh.ps1` | Audit no longer prints `verdict=NOT_READY`; any `READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` result is still not live approval. | Draft or update a separate operator review packet only. |
+| `ORDER_CAPABLE_FLAGS_REVIEW` | `.\scripts\audit_live_readiness_ssh.ps1` | `order_capable_flags_true=[]`; if any order/OCO/grid/fund/Earn/guardian live-action flag is true, it has separate written authorization and rollback evidence. | Stop live review; reconcile the already-enabled order-capable scope before any new proposal. |
 | `BACKGROUND_AUTOMATION_REVIEW` | `.\scripts\smoke_live_background_automation_ssh.ps1` | `high_risk_background_automation_true=[]` or every listed flag has a separate written authorization and rollback plan. | Review production env diff; do not apply it from this document. |
 | `RUNTIME_EVIDENCE_CONFIG_DISABLED` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `CONFIG_DISABLED` after a separately authorized evidence-only env change. | Continue evidence collection; do not enable execution flags. |
 | `RUNTIME_EVIDENCE_NO_CANONICAL_ROWS` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `NO_CANONICAL_ROWS`; canonical evidence rows exist in the bounded window. | Keep collecting evidence; do not enable execution flags. |

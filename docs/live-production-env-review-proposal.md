@@ -142,6 +142,7 @@ live proposal:
 Expected evidence-only result:
 
 - `order_capable_flags` remain false.
+- `order_capable_flags_true=[]`.
 - `high_risk_background_automation_true=[]` or each item has a separate
   explicit authorization.
 - `smoke_runtime_evidence_rca_ssh.ps1` no longer reports `CONFIG_DISABLED`.

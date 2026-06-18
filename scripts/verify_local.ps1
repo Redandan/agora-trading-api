@@ -1458,6 +1458,15 @@ try {
     foreach ($pattern in @("Assert-RemotePathSafe", "Assert-RemoteRelativePathSafe", "Assert-GitBranchSafe", "PollSeconds must be at most 60", "TimeoutSeconds must be between 60 and 3600")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/deploy_ssh.ps1") -Description "deploy SSH wrapper validates remote shell embedded inputs and polling bounds $pattern"
     }
+    foreach ($script in @("scripts/deploy_ssh.ps1", "scripts/verify_server_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1", "scripts/verify_post_deploy_issue_acceptance_ssh.ps1", "scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1")) {
+        Assert-RgMatch -Pattern "Assert-SshHostSafe" -Paths @($script) -Description "$script validates SSH target syntax"
+        Assert-RgMatch -Pattern "unsupported characters for ssh target" -Paths @($script) -Description "$script rejects unsafe SSH targets"
+    }
+    Assert-PowerShellScriptFailsBeforeSsh `
+        -ScriptRelativePath "scripts\verify_post_deploy_issue_acceptance_ssh.ps1" `
+        -Arguments @("-SshHost", "-oProxyCommand=bad", "-SshKey", ".\README.md") `
+        -ExpectedPattern "SshHost contains unsupported characters for ssh target" `
+        -Description "post-deploy issue acceptance wrapper SSH target input guard"
     Assert-PowerShellScriptFailsBeforeSsh `
         -ScriptRelativePath "scripts\deploy_ssh.ps1" `
         -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Branch", "main';echo bad") `

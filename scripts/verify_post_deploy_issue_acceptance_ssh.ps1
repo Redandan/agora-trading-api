@@ -44,6 +44,13 @@ function Assert-RemotePathSafe {
     }
 }
 
+function Assert-SshHostSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 255 -or $Value.StartsWith("-") -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9._@:-]*$") {
+        throw "$Name contains unsupported characters for ssh target."
+    }
+}
+
 function Assert-McpSmokeTokenSafe {
     param([string]$Name, [string]$Value, [int]$MaxLength)
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt $MaxLength -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9_-]*$") {
@@ -51,6 +58,7 @@ function Assert-McpSmokeTokenSafe {
     }
 }
 
+Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "TradingAppDir" -Value $TradingAppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31

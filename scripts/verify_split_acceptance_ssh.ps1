@@ -32,6 +32,14 @@ function Assert-RemotePathSafe {
     }
 }
 
+function Assert-SshHostSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 255 -or $Value.StartsWith("-") -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9._@:-]*$") {
+        throw "$Name contains unsupported characters for ssh target."
+    }
+}
+
+Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "TradingAppDir" -Value $TradingAppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 

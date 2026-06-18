@@ -35,6 +35,13 @@ function Assert-RemotePathSafe {
     }
 }
 
+function Assert-SshHostSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt 255 -or $Value.StartsWith("-") -or $Value -notmatch "^[A-Za-z0-9][A-Za-z0-9._@:-]*$") {
+        throw "$Name contains unsupported characters for ssh target."
+    }
+}
+
 function Assert-PublicHttpsUrlSafe {
     param([string]$Name, [string]$Value)
     [System.Uri]$uri = $null
@@ -48,6 +55,7 @@ function Assert-PublicHttpsUrlSafe {
     }
 }
 
+Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-PublicHttpsUrlSafe -Name "PublicTradingHealthUrl" -Value $PublicTradingHealthUrl

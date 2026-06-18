@@ -51,8 +51,20 @@ function Assert-MetadataCase {
 }
 
 function Assert-BundleFailureMarkers {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
     $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
+    $readmePath = Join-Path $repoRoot "README.md"
+    $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+    $splitStatusPath = Join-Path $repoRoot "docs/split-acceptance-status.md"
+    $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
     $bundleText = Get-Content -Raw -LiteralPath $bundlePath
+    $handoffText = @(
+        Get-Content -Raw -LiteralPath $readmePath
+        Get-Content -Raw -LiteralPath $runbookPath
+        Get-Content -Raw -LiteralPath $splitStatusPath
+        Get-Content -Raw -LiteralPath $progressPath
+    ) -join "`n"
+
     foreach ($pattern in @(
             "Get-ReadOnlySshFailureClassification",
             "Assert-ReadOnlyCommandSucceeded",
@@ -66,6 +78,20 @@ function Assert-BundleFailureMarkers {
         if ($bundleText -notmatch [regex]::Escape($pattern)) {
             throw "live readiness bundle missing SSH failure marker: $pattern"
         }
+    }
+
+    foreach ($pattern in @(
+            "SSH_AUTH_FAILED",
+            "SSH_CONNECT_FAILED",
+            "not live-readiness evidence"
+        )) {
+        if ($handoffText -notmatch [regex]::Escape($pattern)) {
+            throw "live readiness handoff docs missing SSH failure marker: $pattern"
+        }
+    }
+
+    if ($splitStatusPath -and ((Get-Content -Raw -LiteralPath $splitStatusPath) -notmatch "fix SSH access or key selection and rerun")) {
+        throw "split acceptance status must explain SSH access failure next action"
     }
 }
 

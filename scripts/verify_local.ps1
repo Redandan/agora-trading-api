@@ -1455,6 +1455,9 @@ try {
     foreach ($pattern in @("deployment_metadata_status", "origin_metadata_status", "DEPLOYED_RUNTIME_NOT_CURRENT", "origin/main", "bundle_blockers", "bundle_verdict")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs keep live readiness bundle deployment metadata marker $pattern"
     }
+    foreach ($pattern in @("SSH_AUTH_FAILED", "SSH_CONNECT_FAILED", "not live-readiness evidence")) {
+        Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "handoff docs classify live-readiness bundle SSH access failure $pattern"
+    }
     foreach ($pattern in @("Live Readiness Blocker Remediation Matrix", "not authorization", "LIVE_READINESS_NOT_READY", "BACKGROUND_AUTOMATION_REVIEW", "RUNTIME_EVIDENCE_CONFIG_DISABLED", "RUNTIME_EVIDENCE_NO_SHADOW_INTENT", "TINY_LIVE_LOSS_HARD_STOP", "SIGNAL_POLICY_REVIEW_GAPS", "MCP_PARITY_NOT_PROVEN", "DEPLOYED_RUNTIME_NOT_CURRENT", "deployment_metadata_status=CURRENT", "origin_metadata_status=CURRENT_ORIGIN_MAIN", "high_risk_background_automation_true=\[\]", "shadowIntentCount", "orderSentEvidence=0", "\[mcp-parity-ssh\] OK", "TRADING_OKX_ENABLED=true", "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=true", "Review Packet Minimum", "not live approval")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/live-readiness-blocker-remediation.md") -Description "live readiness blocker remediation keeps no-live evidence marker $pattern"
     }

@@ -320,6 +320,20 @@ for group in entry_groups:
     for blocker in group.get("blockers", []):
         entry_group_blockers[blocker_family(blocker)] += 1
 
+required_signal_fields = {
+    "governanceMode7d": governance_mode_7d,
+    "missedOpportunityOverallStatus": missed_status,
+    "staleNowKeys": stale_now,
+    "noDataNowKeys": no_data_now,
+    "queryFailedNowKeys": query_failed_now,
+    "entryDedupWouldAllowStagedAddGroups": entry_dedup_would_allow,
+    "missedDedupTooCoarseSuspects": missed_dedup_too_coarse,
+}
+missing_signal_policy_fields = [
+    name for name, value in required_signal_fields.items()
+    if value is None or str(value).strip() in ("", "N/A")
+]
+
 print("")
 print("Execution:")
 print(f"  missingEvalOrOrderBug={'no' if execution_ok else 'unknown_or_present'}")
@@ -358,6 +372,7 @@ print("Missed Opportunity Regression:")
 print(f"  overallStatus={missed_status} suspiciousNoBuyCount={missed_suspicious} falseBlockRiskCount={missed_false_block} dedupTooCoarseSuspects={missed_dedup_too_coarse} genericStagedAddWouldAllowGroups={missed_staged_allow} highForwardReturnNoBuyCount={missed_high_return}")
 if missed_recommended_fix != "N/A":
     print(f"  recommendedFix={missed_recommended_fix}")
+print(f"  missing_signal_policy_fields={json.dumps(missing_signal_policy_fields)}")
 print("")
 print("No-Buy Row Classification:")
 if row_class_counts:

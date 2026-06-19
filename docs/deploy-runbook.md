@@ -499,6 +499,9 @@ Expected:
   or other drift finding must be paired with missed-opportunity evidence and an
   explicit shadow/tiny-live review plan before any policy relaxation is
   discussed.
+- `missing_signal_policy_fields=[]` is required. Missing governance,
+  missed-opportunity, freshness, or EntryDedup review fields remain a live
+  blocker even if later free-text output looks clean.
 - The smoke prints no-buy row classifications, top blocker families, row-level
   next actions, high-return no-buy strategy distribution, and EntryDedup group
   blocker families so operators can decide whether the next safe step is data

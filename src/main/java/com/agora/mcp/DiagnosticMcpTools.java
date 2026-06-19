@@ -298,6 +298,7 @@ public class DiagnosticMcpTools {
         }
 
         // 3. 只讀檢查所有策略需要的 K 線資料（去重，同 symbol+interval+source 只查一次）
+        // READ_ONLY marker: no external import/backfill.
         sb.append("📊 K 線資料就緒檢查（READ_ONLY，no external import/backfill）...\n");
         Set<String> checked = new HashSet<>();
         for (BtStrategy strategy : strategies) {

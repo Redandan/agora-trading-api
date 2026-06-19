@@ -133,6 +133,7 @@ function Get-LiveReadinessBundleBlockers {
         $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
     }
     if ($Signal -match "REVIEW_POLICY_GAPS" `
+            -or $Signal -match "missing_signal_policy_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
             -or $Signal -match "7d Governance Drift:\s*`r?`n\s*governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
             -or $Signal -match "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=(FAIL|WARN)" `
             -or $Signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
@@ -515,6 +516,7 @@ Assert-BlockerCase -Name "signal governance too loose" -Inputs (Merge-Inputs $cl
 Assert-BlockerCase -Name "signal governance insufficient data" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=INSUFFICIENT_DATA`nMissed Opportunity Regression:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missed opportunity warning" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=WARN" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missed opportunity failure" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=FAIL" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal missing policy fields fail closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  missing_signal_policy_fields=[`"governanceMode7d`"]" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "non-missed warning does not block signal policy" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`nOther Section:`n  overallStatus=WARN" }) -ExpectedBlockers @()
 Assert-BlockerCase -Name "signal missing governance mode fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missing missed opportunity status fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")

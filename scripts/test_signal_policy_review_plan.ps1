@@ -77,6 +77,7 @@ foreach ($marker in @(
 }
 
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'missingEvalOrOrderBug=\{''no'' if execution_ok else ''unknown_or_present''\}'
+Assert-Contains -Name "signal policy smoke missing-field summary" -Text $scriptText -Pattern 'missing_signal_policy_fields=\{json\.dumps\(missing_signal_policy_fields\)\}'
 
 foreach ($marker in @(
         "no-buy reason truth table read-only boundary",
@@ -88,6 +89,7 @@ foreach ($marker in @(
 }
 
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '\$signal -match "REVIEW_POLICY_GAPS"'
+Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'missing_signal_policy_fields=\\\[\[\^\\\]\]\*\[A-Za-z0-9_\]\+\[\^\\\]\]\*\\\]'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '7d Governance Drift:\\s\*`r\?`n\\s\*governanceMode=\(TOO_STRICT\|TOO_LOOSE\|INSUFFICIENT_DATA\)'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'Missed Opportunity Regression:\\s\*`r\?`n\\s\*overallStatus=\(FAIL\|WARN\)'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '7d Governance Drift:\\s\*`r\?`n\\s\*governanceMode='
@@ -102,6 +104,8 @@ foreach ($pattern in @(
         'governanceMode=TOO_LOOSE',
         'governanceMode=INSUFFICIENT_DATA',
         'overallStatus=PASS',
+        'missing_signal_policy_fields=[]',
+        'Missing signal-policy fields',
         'missing or `N/A` governance/missed-opportunity evidence stays blocked',
         'shadow/tiny-live caps only',
         'signal correctness and governance drift summary'

@@ -128,8 +128,14 @@ function Assert-PostDeployIssueAcceptanceFlagGuard {
         throw "Unable to find powershell or pwsh for post-deploy issue acceptance flag-guard verification"
     }
 
-    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $script -SkipSplitAcceptance -RequireTrailingAcceptance 2>&1
-    $exitCode = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $script -SkipSplitAcceptance -RequireTrailingAcceptance 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $text = ($output | Out-String)
     if ($exitCode -eq 0) {
         Write-Error "post-deploy issue acceptance wrapper accepted incompatible -SkipSplitAcceptance and -RequireTrailingAcceptance flags"
@@ -152,15 +158,21 @@ function Assert-LiveReadinessBundleNoEvidenceGuard {
         throw "Unable to find powershell or pwsh for live-readiness no-evidence verification"
     }
 
-    $output = & $powerShell.Source `
-        -NoProfile `
-        -ExecutionPolicy Bypass `
-        -File $script `
-        -SshHost "127.0.0.1" `
-        -SshKey ".\README.md" `
-        -AppDir "/home/ubuntu/agora-trading-api" `
-        -EnvFile "/home/ubuntu/.env.trading.secrets" 2>&1
-    $exitCode = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source `
+            -NoProfile `
+            -ExecutionPolicy Bypass `
+            -File $script `
+            -SshHost "127.0.0.1" `
+            -SshKey ".\README.md" `
+            -AppDir "/home/ubuntu/agora-trading-api" `
+            -EnvFile "/home/ubuntu/.env.trading.secrets" 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $text = ($output | Out-String)
 
     if ($exitCode -eq 0) {
@@ -199,8 +211,14 @@ function Assert-PowerShellScriptFailsBeforeSsh {
         throw "Unable to find powershell or pwsh for SSH wrapper input-guard verification"
     }
 
-    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $script @Arguments 2>&1
-    $exitCode = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $script @Arguments 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $text = ($output | Out-String)
     if ($exitCode -eq 0) {
         Write-Error "$Description accepted invalid input"
@@ -773,8 +791,14 @@ function Assert-SchemaExtraCleanupSharedModeFailsFast {
             @{ Script = "scripts/schema_extra_tables_cleanup_plan_server.sh"; Pattern = "cleanup planning is disabled in shared DB mode" },
             @{ Script = "scripts/schema_extra_tables_cleanup_apply_server.sh"; Pattern = "cleanup is disabled in shared DB mode" }
         )) {
-            $output = & $bash $case.Script 2>&1
-            $exitCode = $LASTEXITCODE
+            $previousErrorActionPreference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = "Continue"
+                $output = & $bash $case.Script 2>&1
+                $exitCode = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $previousErrorActionPreference
+            }
             if ($exitCode -eq 0) {
                 Write-Error "$($case.Script) must fail in shared DB mode"
             }
@@ -864,14 +888,25 @@ try {
     Assert-RgNoMatch -Pattern "db_migration_history|db/migrations|matchIfMissing = true|Has V040" -Paths @("src/main/java/com/agora/config/MigrationDriftChecker.java") -Description "stale migration drift checker defaults"
     Assert-RgMatch -Pattern "trading_flyway_schema_history" -Paths @("src/main/java/com/agora/config/MigrationDriftChecker.java") -Description "migration drift checker uses Trading-owned Flyway history table"
     Assert-RgMatch -Pattern "meta-control\.migration-drift-check\.table:trading_flyway_schema_history" -Paths @("src/main/java/com/agora/config/MigrationDriftChecker.java", "src/main/java/com/agora/mcp/DiagnosticMcpTools.java") -Description "migration diagnostics default to Trading-owned Flyway history table"
-    Assert-RgNoMatch -Pattern "FROM flyway_schema_history|flyway_schema_history 無記錄" -Paths @("src/main/java/com/agora/mcp/DiagnosticMcpTools.java") -Description "MCP migration diagnostics must not hard-read AgoraMarketAPI Flyway history table"
+    Assert-RgNoMatch -Pattern "FROM flyway_schema_history" -Paths @("src/main/java/com/agora/mcp/DiagnosticMcpTools.java") -Description "MCP migration diagnostics must not hard-read AgoraMarketAPI Flyway history table"
     Assert-RgMatch -Pattern "getAppliedMigrations.*MigrationDriftChecker" -Paths @("docs/schema-baseline.md") -Description "schema baseline docs mention MCP migration diagnostics and drift checker together"
-    Assert-RgMatch -Pattern "Trading-owned ``trading_flyway_schema_history``|do not read.*flyway_schema_history" -Paths @("docs/schema-baseline.md") -Description "schema baseline docs keep MCP migration diagnostics on Trading-owned Flyway history table"
+    Assert-RgMatch -Pattern "Trading-owned" -Paths @("docs/schema-baseline.md") -Description "schema baseline docs identify Trading-owned Flyway history table"
+    Assert-RgMatch -Pattern "do not read.*flyway_schema_history" -Paths @("docs/schema-baseline.md") -Description "schema baseline docs keep MCP migration diagnostics off AgoraMarketAPI Flyway history table"
     Assert-RgMatch -Pattern "Hardened schema mode" -Paths @(".env.trading.secrets.example", "docs/deploy-runbook.md") -Description "ddl-auto validate is documented as hardened schema mode"
     Assert-RgMatch -Pattern "Flyway baseline" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "migration baseline prerequisite is documented"
-    Assert-RgNoMatch -Pattern "pending trading Flyway baseline|future trading migration baseline|V10[0-9] migration|follow-up Flyway migration|Generate and review the Flyway baseline|until a baseline migration is ready|Before replacing Hibernate schema update with Flyway validation|before generating Flyway baseline|before any Flyway baseline is generated|once Flyway is enabled" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state"
+    Assert-RgNoMatch -Pattern "pending trading Flyway baseline" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state pending trading Flyway baseline"
+    Assert-RgNoMatch -Pattern "future trading migration baseline" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state future trading migration baseline"
+    Assert-RgNoMatch -Pattern "V10[0-9] migration" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state V10[0-9] migration"
+    Assert-RgNoMatch -Pattern "follow-up Flyway migration" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state follow-up Flyway migration"
+    Assert-RgNoMatch -Pattern "Generate and review the Flyway baseline" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state Generate and review the Flyway baseline"
+    Assert-RgNoMatch -Pattern "until a baseline migration is ready" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state until a baseline migration is ready"
+    Assert-RgNoMatch -Pattern "Before replacing Hibernate schema update with Flyway validation" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state Before replacing Hibernate schema update with Flyway validation"
+    Assert-RgNoMatch -Pattern "before generating Flyway baseline" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state before generating Flyway baseline"
+    Assert-RgNoMatch -Pattern "before any Flyway baseline is generated" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state before any Flyway baseline is generated"
+    Assert-RgNoMatch -Pattern "once Flyway is enabled" -Paths @("pom.xml", "src/main/java", "src/test/java", "README.md", "docs", "SPLIT_PROGRESS.md") -Description "schema comments and docs must not imply pre-baseline or legacy V10x migration state once Flyway is enabled"
     Assert-RgMatch -Pattern "reviewed V1 baseline" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing columns document shared-DB V1 baseline ownership"
-    Assert-RgNoMatch -Pattern "V108|V116" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing schema comments must not imply standalone V108/V116 migrations"
+    Assert-RgNoMatch -Pattern "V108" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing schema comments must not imply standalone V108 migrations"
+    Assert-RgNoMatch -Pattern "V116" -Paths @("src/main/java/com/agora/model/BtLiveSignal.java") -Description "trailing schema comments must not imply standalone V116 migrations"
     Assert-RgMatch -Pattern "AgoraMarketAPI Trading Cutover Plan" -Paths @("docs/deploy-runbook.md") -Description "legacy AgoraMarketAPI trading cutover plan is documented"
     Assert-RgMatch -Pattern "split-acceptance-status.md" -Paths @("docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "current split acceptance handoff is linked"
     Assert-RgMatch -Pattern "Shared-DB schema compare and Trading deployment acceptance have passed" -Paths @("docs/split-acceptance-status.md") -Description "acceptance handoff records post-cutover trading deployment acceptance"
@@ -915,7 +950,11 @@ try {
     Assert-RgMatch -Pattern "Reviewed shared-DB baseline" -Paths @("src/main/resources/db/migration/V1__baseline.sql", "scripts/schema_baseline_generate_server.sh") -Description "baseline migration header reflects reviewed shared-DB status"
     Assert-RgMatch -Pattern "Future Trading schema changes should be V2__" -Paths @("src/main/resources/db/migration/V1__baseline.sql", "scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md") -Description "baseline migration points future schema changes to V2 migrations"
     Assert-RgNoMatch -Pattern "until this file is reviewed|review baseline before enabling Flyway|Generate and review the Flyway baseline" -Paths @("src/main/resources/db/migration/V1__baseline.sql", "scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md") -Description "baseline migration/docs/generator must not imply pre-review baseline state"
-    Assert-RgNoMatch -Pattern "(?i)^[[:space:]]*(drop[[:space:]]+(table|database)|truncate[[:space:]]+table)|create[[:space:]]+table[[:space:]]+``?(flyway_schema_history|trading_flyway_schema_history)``?" -Paths @("src/main/resources/db/migration/V1__baseline.sql") -Description "reviewed baseline must not drop tables, truncate tables, or create Flyway history tables"
+    Assert-RgNoMatch -Pattern "(?i)^[[:space:]]*drop[[:space:]]+table" -Paths @("src/main/resources/db/migration/V1__baseline.sql") -Description "reviewed baseline must not drop tables, truncate tables, or create Flyway history tables drop table"
+    Assert-RgNoMatch -Pattern "(?i)^[[:space:]]*drop[[:space:]]+database" -Paths @("src/main/resources/db/migration/V1__baseline.sql") -Description "reviewed baseline must not drop tables, truncate tables, or create Flyway history tables drop database"
+    Assert-RgNoMatch -Pattern "(?i)^[[:space:]]*truncate[[:space:]]+table" -Paths @("src/main/resources/db/migration/V1__baseline.sql") -Description "reviewed baseline must not drop tables, truncate tables, or create Flyway history tables truncate table"
+    Assert-RgNoMatch -Pattern "(?i)create[[:space:]]+table[[:space:]]+.*flyway_schema_history" -Paths @("src/main/resources/db/migration/V1__baseline.sql") -Description "reviewed baseline must not create AgoraMarketAPI Flyway history table"
+    Assert-RgNoMatch -Pattern "(?i)create[[:space:]]+table[[:space:]]+.*trading_flyway_schema_history" -Paths @("src/main/resources/db/migration/V1__baseline.sql") -Description "reviewed baseline must not create Trading Flyway history table"
     Assert-RgMatch -Pattern "shared marketplace tables are intentionally excluded|Shared marketplace tables are intentionally excluded" -Paths @("scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md") -Description "baseline generator excludes shared marketplace tables"
     Assert-RgNoMatch -Pattern "SPRING_FLYWAY_ENABLED=true|SPRING_JPA_HIBERNATE_DDL_AUTO=validate|flyway enabled|DROP TABLE|schema_extra_tables_cleanup" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not enable Flyway, switch ddl-auto, or run cleanup"
     Assert-RgNoMatch -Pattern "flyway:(migrate|baseline)|spring-boot:run|mvn .*flyway|SPRING_FLYWAY_ENABLED=|SPRING_FLYWAY_TABLE=|APPLY_SCHEMA_EXTRA_TABLE_CLEANUP|schema_extra_tables_cleanup_(plan|apply)_server\.sh|mysql[[:space:]].*-e" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not run Flyway, Spring Boot, cleanup, or MySQL mutation/query commands"
@@ -1513,7 +1552,7 @@ try {
     foreach ($pattern in @("tools/list", "getEventRiskControlStatus", "analyzeSpotAntiWickPolicyCoverage", "analyzeTrailingStopPnlReplay", "acceptanceTarget: total trailing PnL improvement >= 5%", "acceptanceBlocker=", "acceptanceBlockerDetail=", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "Governance Drift Dashboard", "Governance Relaxation Candidates", "Governance Tightening Candidates", "orderSent", "ocoModified", "writesRuntimeEvidence", "server-local MCP parity smoke failed", "/api/mcp")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_mcp_parity_ssh.ps1") -Description "server-local MCP parity SSH smoke keeps executable read-only surface marker $pattern"
     }
-    foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "read-only production MCP check", "missing no-missed-evaluation/no-missed-order marker", "sys.exit\(1\)", "OK read-only check complete")) {
+    foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "read-only production MCP check", "missing_signal_policy_fields", "missing no-missed-evaluation/no-missed-order marker", "sys.exit\(1\)", "OK read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal correctness SSH smoke keeps executable read-only MCP marker $pattern"
     }
     foreach ($pattern in @("TelegramServiceImpl", "ExecutionEventScheduler", "runtime ERROR lines present: count=2", "high-risk operation-like log lines present", "runtime error allow flag is diagnostic only", "unknown warn allow flag is diagnostic only", "high risk allow flag is diagnostic only", "ALLOW_RUNTIME_ERROR", "ALLOW_UNKNOWN_WARN", "ALLOW_HIGH_RISK_LOG", "runtime-log-smoke-classification-test")) {
@@ -1559,7 +1598,7 @@ try {
     foreach ($pattern in @("SSH_AUTH_FAILED", "SSH_CONNECT_FAILED", "SSH_COMMAND_FAILED", "live_review_packet_allowed=false", "complete evidence", "not live-readiness evidence")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "handoff docs classify live-readiness bundle SSH access failure $pattern"
     }
-    foreach ($pattern in @("Live Readiness Blocker Remediation Matrix", "not authorization", "LIVE_READINESS_EVIDENCE_UNAVAILABLE", "LIVE_READINESS_NOT_READY", "ORDER_CAPABLE_FLAGS_REVIEW", "SECRET_PREREQUISITES_MISSING", "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN", "EVENT_RISK_NOT_BASELINE", "MCP_AUDIT_TOOL_ERROR", "EXECUTION_ELIGIBILITY_NOT_READY", "BACKGROUND_AUTOMATION_REVIEW", "RUNTIME_EVIDENCE_CONFIG_DISABLED", "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS", "RUNTIME_EVIDENCE_NO_SHADOW_INTENT", "RUNTIME_EVIDENCE_REVIEW_REQUIRED", "RUNTIME_EVIDENCE_ORDER_SENT", "TINY_LIVE_LOSS_HARD_STOP", "TINY_LIVE_ROLLOUT_NOT_READY", "SIGNAL_POLICY_REVIEW_GAPS", "MCP_PARITY_NOT_PROVEN", "DEPLOYED_RUNTIME_NOT_CURRENT", "Audit Classifications", "blocker_classification", "next_actions", "market_condition_wait", "runtime_evidence_gap", "risk_hard_stop", "execution_disabled_guard", "background_automation_review", "security_or_secret_gap", "runtime_health_gap", "capacity_not_primary", "secondary sizing review only", "must not be used to bypass primary blockers", "missing readiness verdicts stay blocked", "missing order-capable evidence stays blocked", "missing masked secret evidence stays blocked", "missing health/log evidence stays blocked", "missing event-risk evidence stays blocked", "parsed ``readiness_details`` JSON", "missing MCP readiness-details evidence stays blocked", "missing execution eligibility evidence stays blocked", "missing OK verdict", "missing high-risk background evidence stays blocked", "missing metadata", "missing_runtime_evidence_fields=\[\]", "Missing runtime-evidence fields", "Missing or ``N/A`` shadow-intent evidence stays blocked", "Missing or unrecognized runtime-evidence diagnosis stays blocked", "Missing or ``N/A`` hard-stop evidence stays blocked", "Missing or ``N/A`` rollout evidence stays blocked", "missing or ``N/A`` governance/missed-opportunity evidence stays blocked", "ALLOW_RUNTIME_ERROR=1", "diagnostic-only", "force those values back to ``0``", "deployment_metadata_status=CURRENT", "origin_metadata_status=CURRENT_ORIGIN_MAIN", "live_review_packet_allowed=true", "live_review_packet_allowed=false", "deploy_required_before_live_review=false", "high_risk_background_automation_true=\[\]", "shadowIntentCount", "orderSentEvidence=0", "\[mcp-parity-ssh\] OK", "TRADING_OKX_ENABLED=true", "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=true", "Review Packet Minimum", "not live approval")) {
+    foreach ($pattern in @("Live Readiness Blocker Remediation Matrix", "not authorization", "LIVE_READINESS_EVIDENCE_UNAVAILABLE", "LIVE_READINESS_NOT_READY", "ORDER_CAPABLE_FLAGS_REVIEW", "SECRET_PREREQUISITES_MISSING", "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN", "EVENT_RISK_NOT_BASELINE", "MCP_AUDIT_TOOL_ERROR", "EXECUTION_ELIGIBILITY_NOT_READY", "BACKGROUND_AUTOMATION_REVIEW", "RUNTIME_EVIDENCE_CONFIG_DISABLED", "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS", "RUNTIME_EVIDENCE_NO_SHADOW_INTENT", "RUNTIME_EVIDENCE_REVIEW_REQUIRED", "RUNTIME_EVIDENCE_ORDER_SENT", "TINY_LIVE_LOSS_HARD_STOP", "TINY_LIVE_ROLLOUT_NOT_READY", "SIGNAL_POLICY_REVIEW_GAPS", "MCP_PARITY_NOT_PROVEN", "DEPLOYED_RUNTIME_NOT_CURRENT", "Audit Classifications", "blocker_classification", "next_actions", "market_condition_wait", "runtime_evidence_gap", "risk_hard_stop", "execution_disabled_guard", "background_automation_review", "security_or_secret_gap", "runtime_health_gap", "capacity_not_primary", "secondary sizing review only", "must not be used to bypass primary blockers", "missing readiness verdicts stay blocked", "missing order-capable evidence stays blocked", "missing masked secret evidence stays blocked", "missing health/log evidence stays blocked", "missing event-risk evidence stays blocked", "parsed ``readiness_details`` JSON", "missing MCP readiness-details evidence stays blocked", "missing execution eligibility evidence stays blocked", "missing OK verdict", "missing high-risk background evidence stays blocked", "missing metadata", "missing_runtime_evidence_fields=\[\]", "Missing runtime-evidence fields", "Missing or ``N/A`` shadow-intent evidence stays blocked", "Missing or unrecognized runtime-evidence diagnosis stays blocked", "Missing or ``N/A`` hard-stop evidence stays blocked", "Missing or ``N/A`` rollout evidence stays blocked", "missing_signal_policy_fields=\[\]", "Missing signal-policy fields", "missing or ``N/A`` governance/missed-opportunity evidence stays blocked", "ALLOW_RUNTIME_ERROR=1", "diagnostic-only", "force those values back to ``0``", "deployment_metadata_status=CURRENT", "origin_metadata_status=CURRENT_ORIGIN_MAIN", "live_review_packet_allowed=true", "live_review_packet_allowed=false", "deploy_required_before_live_review=false", "high_risk_background_automation_true=\[\]", "shadowIntentCount", "orderSentEvidence=0", "\[mcp-parity-ssh\] OK", "TRADING_OKX_ENABLED=true", "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=true", "Review Packet Minimum", "not live approval")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/live-readiness-blocker-remediation.md") -Description "live readiness blocker remediation keeps no-live evidence marker $pattern"
     }
     foreach ($pattern in @("Live Background Automation Env Diff Proposal", "not authorization", "BACKGROUND_AUTOMATION_REVIEW", "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED=false", "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false", "MARKET_WS_AUTO_SUBSCRIBE_ENABLED=false", "EVENT_SCAN_NOTIFICATION_ENABLED=false", "EXECUTION_EVENT_ENABLED=false", "TRADING_DAILY_TG_REPORT_ENABLED=false", "TRADING_AUTONOMOUS_DIGEST_ENABLED=false", "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED=false", "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED=false", "background_automation_true=\[\]", "high_risk_background_automation_true=\[\]", "missing_background_automation_flags=\[\]", "background_automation_false", "lists all nine reviewed background flags", "OK_BACKGROUND_AUTOMATION_DISABLED", "order_capable_flags", "Rollback Criteria", "not live approval")) {

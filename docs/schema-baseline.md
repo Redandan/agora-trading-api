@@ -159,8 +159,7 @@ For baseline drift review and future schema-change acceptance:
   shared-schema adoption.
 - Enable `meta-control.migration-drift-check.enabled=true` only after the baseline exists.
 - Keep MCP `getAppliedMigrations` and `MigrationDriftChecker` on the same
-  Trading-owned `trading_flyway_schema_history` table; do not read
-  AgoraMarketAPI's shared `flyway_schema_history` for Trading migration status.
+  Trading-owned `trading_flyway_schema_history` table; do not read AgoraMarketAPI's shared `flyway_schema_history` for Trading migration status.
 
 ## Baseline Generation
 

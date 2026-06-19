@@ -210,6 +210,8 @@ blocked-signal outcome quality, DataFreshnessGuard current status, governance
 drift, EntryDedup governance, missed-opportunity regression, and the no-buy
 reason truth table. `REVIEW_POLICY_GAPS` or unresolved signal correctness /
 governance drift findings are live blockers, not permission to relax policy.
+`missing_signal_policy_fields=[]` is required; absent reviewed signal-policy
+fields are not treated as passing evidence.
 
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps

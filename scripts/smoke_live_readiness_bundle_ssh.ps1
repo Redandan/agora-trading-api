@@ -382,10 +382,10 @@ if ($tinyLive -notmatch "canEnableProduction=true") {
     $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
 }
 if ($signal -match "REVIEW_POLICY_GAPS" `
-        -or $signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
+        -or $signal -match "7d Governance Drift:\s*`r?`n\s*governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
         -or $signal -match "overallStatus=(FAIL|WARN)" `
-        -or $signal -notmatch "7d Governance Drift:[\s\S]*governanceMode=" `
-        -or $signal -notmatch "Missed Opportunity Regression:[\s\S]*overallStatus=PASS") {
+        -or $signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
+        -or $signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
 }
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {

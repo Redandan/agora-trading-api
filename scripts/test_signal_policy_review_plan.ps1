@@ -88,10 +88,10 @@ foreach ($marker in @(
 }
 
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '\$signal -match "REVIEW_POLICY_GAPS"'
-Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'governanceMode=\(TOO_STRICT\|TOO_LOOSE\|INSUFFICIENT_DATA\)'
+Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '7d Governance Drift:\\s\*`r\?`n\\s\*governanceMode=\(TOO_STRICT\|TOO_LOOSE\|INSUFFICIENT_DATA\)'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'overallStatus=\(FAIL\|WARN\)'
-Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '7d Governance Drift:\[\\s\\S\]\*governanceMode='
-Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'Missed Opportunity Regression:\[\\s\\S\]\*overallStatus=PASS'
+Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '7d Governance Drift:\\s\*`r\?`n\\s\*governanceMode='
+Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'Missed Opportunity Regression:\\s\*`r\?`n\\s\*overallStatus=PASS'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '\$blockers\.Add\("SIGNAL_POLICY_REVIEW_GAPS"\)'
 
 Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `SIGNAL_POLICY_REVIEW_GAPS` \| `\.\\scripts\\smoke_signal_correctness_ssh\.ps1` \|'

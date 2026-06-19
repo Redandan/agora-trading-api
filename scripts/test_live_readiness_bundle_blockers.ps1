@@ -130,10 +130,10 @@ function Get-LiveReadinessBundleBlockers {
         $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
     }
     if ($Signal -match "REVIEW_POLICY_GAPS" `
-            -or $Signal -match "governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
+            -or $Signal -match "7d Governance Drift:\s*`r?`n\s*governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
             -or $Signal -match "overallStatus=(FAIL|WARN)" `
-            -or $Signal -notmatch "7d Governance Drift:[\s\S]*governanceMode=" `
-            -or $Signal -notmatch "Missed Opportunity Regression:[\s\S]*overallStatus=PASS") {
+            -or $Signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
+            -or $Signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
         $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
     }
     if ($McpParity -notmatch "\[mcp-parity-ssh\] OK") {
@@ -443,6 +443,7 @@ Assert-BlockerCase -Name "missed opportunity warning" -Inputs (Merge-Inputs $cle
 Assert-BlockerCase -Name "missed opportunity failure" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=FAIL" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missing governance mode fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missing missed opportunity status fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal missed opportunity pass in later section fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=N/A`nOther Section:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missing mcp parity ok marker" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "runtime drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=RUNTIME_DRIFT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")

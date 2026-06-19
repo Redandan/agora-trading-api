@@ -138,13 +138,15 @@ foreach ($marker in @(
         "currentSignalAgeMinutes=15",
         "Treat both records as stale live-review evidence",
         "separately authorized",
+        "missing_runtime_evidence_fields=[]",
         "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS",
         "RUNTIME_EVIDENCE_REVIEW_REQUIRED",
         "RUNTIME_EVIDENCE_ORDER_SENT",
         "CANONICAL_ROWS_NO_SHADOW_INTENT",
         "order-sent evidence in the bounded",
         'Missing or `N/A` shadow-intent evidence stays blocked',
-        "Missing or unrecognized runtime-evidence diagnosis stays blocked"
+        "Missing or unrecognized runtime-evidence diagnosis stays blocked",
+        "Missing runtime-evidence fields stay blocked"
     )) {
     if ($proposalText -notmatch [regex]::Escape($marker)) {
         throw "Runtime evidence proposal missing blocker marker: $marker"

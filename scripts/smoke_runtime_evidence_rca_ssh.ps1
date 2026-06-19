@@ -200,8 +200,24 @@ order_sent_evidence = field(r"orderSentEvidence=(\d+)", dashboard)
 freshness_blocks = field(r"freshnessTerminalBlocks=(\d+)", dashboard)
 evidence_row_lines = count_lines(r"^\d+\. #", evidence)
 shadow_line_count = count_lines(r"SHADOW_MODE|intentCreated=True|intentCreated=true|fearGreedWarning", evidence)
+required_fields = {
+    "dashboardEnabled": dashboard_enabled,
+    "runtimeEvidenceStatus": runtime_status,
+    "runtimeEvidenceRows": runtime_rows,
+    "sampleCount": sample_count,
+    "readinessLevel": readiness_level,
+    "evidenceMode": evidence_mode,
+    "finalReadinessVerdict": final_verdict,
+    "shadowExecutionIntents": shadow_intents,
+    "shadowIntentCount": shadow_intent_count,
+    "orderSentEvidence": order_sent_evidence,
+    "freshnessTerminalBlocks": freshness_blocks,
+}
+missing_fields = [key for key, value in required_fields.items() if value in ("", "N/A")]
 
-if runtime_status == "NOT_READY_ENABLED_FALSE" or dashboard_enabled.lower() == "false":
+if missing_fields:
+    diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"
+elif runtime_status == "NOT_READY_ENABLED_FALSE" or dashboard_enabled.lower() == "false":
     diagnosis = "CONFIG_DISABLED"
 elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS" or runtime_rows == "0":
     diagnosis = "NO_CANONICAL_ROWS"
@@ -234,6 +250,7 @@ print(f"  shadowIntentCount={shadow_intent_count}")
 print(f"  shadowLikeListedRows={shadow_line_count}")
 print(f"  orderSentEvidence={order_sent_evidence}")
 print(f"  freshnessTerminalBlocks={freshness_blocks}")
+print(f"  missing_runtime_evidence_fields={json.dumps(missing_fields)}")
 
 print("")
 print("Candidate Context:")

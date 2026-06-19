@@ -195,7 +195,8 @@ This calls server-local `/api/mcp` only and classifies the gap as disabled
 collection, no canonical rows, canonical rows without shadow intent, canonical
 shadow-ready, or requiring operator review. It does not write
 RuntimeDecisionEvidence, place orders, enable flags, send Telegram, or change
-production env/DB state.
+production env/DB state. `missing_runtime_evidence_fields` must be empty before
+`CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
 
 Read-only signal-correctness and policy review smoke before any live scope
 expansion:

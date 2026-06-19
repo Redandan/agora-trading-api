@@ -135,8 +135,11 @@ Expected:
   state is printed
 - `orderSentEvidence=0`
 - `shadowIntentCount` becomes greater than 0 before live is discussed
+- `missing_runtime_evidence_fields=[]`
 - Missing or `N/A` shadow-intent evidence stays blocked
 - Missing or unrecognized runtime-evidence diagnosis stays blocked
+- Missing runtime-evidence fields stay blocked and must not be interpreted as
+  `CANONICAL_SHADOW_READY`.
 - `order_capable_flags` remain false
 - `bundle_blockers` no longer includes `RUNTIME_EVIDENCE_CONFIG_DISABLED`
 - `RUNTIME_EVIDENCE_NO_SHADOW_INTENT` remains blocked until `shadowIntentCount`

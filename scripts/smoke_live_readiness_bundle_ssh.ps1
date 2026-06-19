@@ -366,6 +366,7 @@ if ($runtimeEvidence -match "diagnosis=NO_CANONICAL_ROWS") {
     $blockers.Add("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 }
 if ($runtimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
+        -or $runtimeEvidence -match "missing_runtime_evidence_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
         -or $runtimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
     $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 }

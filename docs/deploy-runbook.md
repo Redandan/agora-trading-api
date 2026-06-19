@@ -600,10 +600,13 @@ Expected:
 - The script calls server-local `/api/mcp`, not public Trading MCP.
 - It prints the masked `TRADING_RUNTIME_EVIDENCE_ENABLED` state, dashboard
   `enabled` flag, preview `runtimeEvidenceStatus`, recent evidence row count,
-  shadow-intent counts, candidate context, and no-buy context.
+  shadow-intent counts, `orderSentEvidence`,
+  `missing_runtime_evidence_fields`, candidate context, and no-buy context.
 - It classifies the gap as `CONFIG_DISABLED`, `NO_CANONICAL_ROWS`,
   `CANONICAL_ROWS_NO_SHADOW_INTENT`, `CANONICAL_SHADOW_READY`, or
   `REVIEW_RUNTIME_EVIDENCE_STATUS`.
+- `missing_runtime_evidence_fields` must be empty before
+  `CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
 - `CANONICAL_SHADOW_READY` is not live approval; it only means this one gate
   should be rechecked by the full live-readiness audit.
 - The script must not write RuntimeDecisionEvidence, place orders, change OCO,

@@ -112,6 +112,7 @@ function Get-LiveReadinessBundleBlockers {
         $blockers.Add("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
     }
     if ($RuntimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
+            -or $RuntimeEvidence -match "missing_runtime_evidence_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
             -or $RuntimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
         $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
     }
@@ -496,6 +497,7 @@ Assert-BlockerCase -Name "background missing high-risk marker fails closed" -Inp
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
 Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime missing core field list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY missing_runtime_evidence_fields=["runtimeEvidenceStatus"] shadowIntentCount=3 orderSentEvidence=0' }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=0`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
 Assert-BlockerCase -Name "runtime canonical rows no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT`nshadowIntentCount=0`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
 Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT")

@@ -164,6 +164,8 @@ Read-only live-readiness audit before any explicit live enablement:
 This prints masked server env status, order-capable flags, dry-run flags,
 server-local MCP readiness surfaces, runtime-log smoke, machine-readable
 `readiness_details`, warnings, blockers, and a final verdict.
+`missing_readiness_detail_fields=[]` is required before the audit's MCP
+readiness details can be used as complete live-review evidence.
 `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` means the operator may
 review a separately authorized live-change plan; the script never changes
 production env, DB, order, OCO, grid, Earn, fund, or Telegram state.

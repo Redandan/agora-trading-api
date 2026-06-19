@@ -198,6 +198,28 @@ def opportunity_details(text):
     ]
     return {key: obj.get(key) for key in keys if key in obj}
 
+def missing_readiness_detail_fields(details):
+    required = {
+        "tinyLive": ["executionEligible", "wouldExecute", "previewStatus", "runtimeEvidenceStatus"],
+        "autonomousOpportunity": ["eligible", "orderSent", "reason"],
+        "scoreBuyPrePosition": ["enabled", "dryRun", "orderSent", "executionEligible"],
+        "scoreBuyConfirmedDeploy": ["enabled", "dryRun", "orderSent", "executionEligible"],
+        "scoreBuyPostScoutAdd": ["enabled", "dryRun", "orderSent", "executionEligible"],
+    }
+    missing = []
+    for section, fields in required.items():
+        value = details.get(section)
+        if not isinstance(value, dict) or not value:
+            missing.append(section)
+            continue
+        if value.get("parseError"):
+            missing.append(f"{section}.parseError")
+        for field_name in fields:
+            field_value = value.get(field_name)
+            if field_value is None or str(field_value).strip() in ("", "N/A"):
+                missing.append(f"{section}.{field_name}")
+    return missing
+
 def flatten_strings(value):
     if value is None:
         return []
@@ -447,9 +469,13 @@ except Exception as exc:
     blockers.append("RUNTIME_LOG_SMOKE_EXCEPTION")
     print(f"runtime_log_exception={type(exc).__name__}:{exc}")
 
+missing_readiness_fields = missing_readiness_detail_fields(readiness_details)
+if missing_readiness_fields:
+    blockers.append("READINESS_DETAILS_MISSING_FIELDS")
 background_review_flags = background_true + [f"MISSING:{key}" for key in background_missing]
 blocker_classification = classify_live_readiness(readiness_details, blockers, warnings, background_review_flags)
 next_actions = live_readiness_next_actions(blocker_classification)
+print("missing_readiness_detail_fields=" + json.dumps(missing_readiness_fields))
 print("readiness_details=" + json.dumps(readiness_details, ensure_ascii=False, sort_keys=True))
 print("blocker_classification=" + json.dumps(blocker_classification, ensure_ascii=False, sort_keys=True))
 print("next_actions=" + json.dumps(next_actions, ensure_ascii=False))

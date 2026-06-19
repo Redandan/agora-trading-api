@@ -402,6 +402,9 @@ if ($audit -match "EVENT_RISK_NOT_R0" `
     $blockers.Add("EVENT_RISK_NOT_BASELINE")
 }
 if ($audit -match "MCP_TOOL_ERROR:" `
+        -or $audit -match "READINESS_DETAILS_MISSING_FIELDS" `
+        -or $audit -match "missing_readiness_detail_fields=\[[^\]]*[A-Za-z0-9_.]+[^\]]*\]" `
+        -or $audit -notmatch "missing_readiness_detail_fields=\[\]" `
         -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "tinyLive") `
         -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "autonomousOpportunity") `
         -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyPrePosition") `

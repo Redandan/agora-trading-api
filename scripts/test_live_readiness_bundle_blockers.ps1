@@ -82,6 +82,9 @@ function Get-LiveReadinessBundleBlockers {
         $blockers.Add("EVENT_RISK_NOT_BASELINE")
     }
     if ($Audit -match "MCP_TOOL_ERROR:" `
+            -or $Audit -match "READINESS_DETAILS_MISSING_FIELDS" `
+            -or $Audit -match "missing_readiness_detail_fields=\[[^\]]*[A-Za-z0-9_.]+[^\]]*\]" `
+            -or $Audit -notmatch "missing_readiness_detail_fields=\[\]" `
             -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "tinyLive") `
             -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "autonomousOpportunity") `
             -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyPrePosition") `
@@ -458,10 +461,10 @@ Assert-BundleEvidenceWindowsCovered
 Assert-ReviewPacketMinimumGuarded
 Assert-OperatorDocsReadyBoundary
 
-$mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}'
-$mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"eligible":true},"scoreBuyPrePosition":{"executionEligible":true,"enabled":false},"scoreBuyConfirmedDeploy":{"executionEligible":true,"enabled":false},"scoreBuyPostScoutAdd":{"executionEligible":true,"enabled":false}}'
+$mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{"eligible":true,"orderSent":false,"reason":"READY"},"scoreBuyConfirmedDeploy":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false},"scoreBuyPostScoutAdd":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false},"scoreBuyPrePosition":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false},"tinyLive":{"executionEligible":"true","previewStatus":"READY","runtimeEvidenceStatus":"AVAILABLE_CANONICAL_SHADOW_EVIDENCE","wouldExecute":"false"}}'
+$mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"wouldExecute":"false","runtimeEvidenceStatus":"AVAILABLE_CANONICAL_SHADOW_EVIDENCE","executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"reason":"READY","orderSent":false,"eligible":true},"scoreBuyPrePosition":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true},"scoreBuyConfirmedDeploy":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true},"scoreBuyPostScoutAdd":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true}}'
 $cleanInputs = @{
-    Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`n$mcpAuditEvidence"
+    Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nhigh_risk_background_automation_true=[]"
     RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
@@ -469,7 +472,7 @@ $cleanInputs = @{
     McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
-$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`n$mcpAuditEvidence"
+$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
 
 Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -ExpectedBlockers @()
 Assert-BlockerCase -Name "clean readiness details json field order drift" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, $mcpAuditEvidenceReordered) }) -ExpectedBlockers @()
@@ -479,7 +482,7 @@ Assert-BlockerCase -Name "audit missing ready verdict fails closed" -Inputs (Mer
 Assert-BlockerCase -Name "audit missing order-capable marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("order_capable_flags_true=[]`n", "") }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
 Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`norder_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
 Assert-BlockerCase -Name "audit secret prerequisites missing" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"OKX_CREDENTIALS_NOT_SET`"]" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
-Assert-BlockerCase -Name "audit missing secret presence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nriskLevel=R0`n$mcpAuditEvidence" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
+Assert-BlockerCase -Name "audit missing secret presence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
 Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nruntime_log_status=FAIL`nblockers=[`"RUNTIME_LOG_SMOKE_FAILED`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nhealth={`"status`":`"DOWN`"}`nblockers=[`"HEALTH_NOT_UP`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 Assert-BlockerCase -Name "audit missing health up marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("`nhealth={`"status`":`"UP`"}", "") }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
@@ -487,10 +490,12 @@ Assert-BlockerCase -Name "audit missing runtime log pass marker fails closed" -I
 Assert-BlockerCase -Name "audit event risk not baseline" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"EVENT_RISK_NOT_R0`"]" }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
 Assert-BlockerCase -Name "audit missing event risk marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("`nriskLevel=R0", "") }) -ExpectedBlockers @("EVENT_RISK_NOT_BASELINE")
 Assert-BlockerCase -Name "audit mcp tool error" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"MCP_TOOL_ERROR:getGuardianSnapshot`"]" }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
+Assert-BlockerCase -Name "audit missing readiness detail field summary fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("missing_readiness_detail_fields=[]`n", "") }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
 Assert-BlockerCase -Name "audit missing mcp readiness details fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, 'readiness_details={"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}') }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR")
 Assert-BlockerCase -Name "audit malformed mcp readiness details fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, 'readiness_details={"tinyLive":{"executionEligible":"true"') }) -ExpectedBlockers @("MCP_AUDIT_TOOL_ERROR", "EXECUTION_ELIGIBILITY_NOT_READY")
+Assert-BlockerCase -Name "audit missing readiness detail fields fail closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$($readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY"))`nmissing_readiness_detail_fields=[`"scoreBuyPostScoutAdd.executionEligible`"]`nblockers=[`"READINESS_DETAILS_MISSING_FIELDS`"]" }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY", "MCP_AUDIT_TOOL_ERROR")
 Assert-BlockerCase -Name "audit execution eligibility not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"PRE_POSITION_NOT_EXECUTION_ELIGIBLE`"]" }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
-Assert-BlockerCase -Name "audit missing execution eligibility marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace('"scoreBuyPostScoutAdd":{"executionEligible":true}', '"scoreBuyPostScoutAdd":{}') }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
+Assert-BlockerCase -Name "audit missing execution eligibility marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace('"scoreBuyPostScoutAdd":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false}', '"scoreBuyPostScoutAdd":{"dryRun":true,"enabled":false,"orderSent":false}') }) -ExpectedBlockers @("EXECUTION_ELIGIBILITY_NOT_READY")
 Assert-BlockerCase -Name "background high risk" -Inputs (Merge-Inputs $cleanInputs @{ Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background not ready verdict" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background missing reviewed flag" -Inputs (Merge-Inputs $cleanInputs @{ Background = 'verdict=OK_BACKGROUND_AUTOMATION_DISABLED missing_background_automation_flags=["EVENT_SCAN_NOTIFICATION_ENABLED"] high_risk_background_automation_true=[]' }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")

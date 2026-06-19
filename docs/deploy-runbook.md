@@ -551,6 +551,9 @@ Expected:
 - Output includes order-capable flags, dry-run flags, background automation
   warnings, runtime-log smoke, machine-readable `readiness_details`,
   `blocker_classification`, `next_actions`, blockers, and a final verdict.
+- Output includes `missing_readiness_detail_fields=[]` when the reviewed
+  `readiness_details` sections and execution fields are complete. Missing or
+  non-empty summaries keep the MCP audit evidence blocked.
 - `blocker_classification` separates market-condition waits, runtime evidence
   gaps, risk hard stops, execution-disabled guards, background automation review
   items, and runtime/security gaps so operator review does not confuse secondary

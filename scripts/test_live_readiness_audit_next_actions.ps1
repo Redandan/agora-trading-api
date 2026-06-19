@@ -38,7 +38,13 @@ Assert-Contains -Name "audit runtime gap label event risk" -Text $auditText -Pat
 Assert-Contains -Name "audit runtime gap action joins labels" -Text $auditText -Pattern '"/"\.join\(gap_labels'
 Assert-Contains -Name "audit runtime gap default" -Text $auditText -Pattern '"runtime health"'
 Assert-NotContains -Name "audit runtime gap old generic action" -Text $auditText -Pattern 'Fix health/log/event-risk gaps before any live operator review\.'
+Assert-Contains -Name "audit readiness detail missing helper" -Text $auditText -Pattern 'def missing_readiness_detail_fields'
+Assert-Contains -Name "audit readiness detail missing output" -Text $auditText -Pattern 'missing_readiness_detail_fields='
+Assert-Contains -Name "audit readiness detail missing blocker" -Text $auditText -Pattern 'READINESS_DETAILS_MISSING_FIELDS'
+Assert-Contains -Name "audit readiness detail required tiny" -Text $auditText -Pattern '"tinyLive": \["executionEligible", "wouldExecute", "previewStatus", "runtimeEvidenceStatus"\]'
+Assert-Contains -Name "audit readiness detail required scorebuy" -Text $auditText -Pattern '"scoreBuyPostScoutAdd": \["enabled", "dryRun", "orderSent", "executionEligible"\]'
 
 Assert-Contains -Name "remediation precise runtime gap guidance" -Text $remediationText -Pattern 'Fix the specific health, runtime log, and/or event-risk evidence named in the audit'
+Assert-Contains -Name "remediation readiness detail missing guidance" -Text $remediationText -Pattern 'missing_readiness_detail_fields=\[\]'
 
 Write-Host "[live-readiness-audit-next-actions-test] OK"

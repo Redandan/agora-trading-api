@@ -664,7 +664,9 @@ Expected:
   remain blocking evidence.
 - If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
   `SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED`, it emits
-  `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]` and
+  `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
+  `live_review_packet_allowed=false`,
+  `deploy_required_before_live_review=unknown`, and
   `bundle_verdict=NO_EVIDENCE`; treat that as an incomplete evidence problem,
   not live-readiness evidence.
 - `bundle_verdict=NOT_READY` is the expected result while runtime evidence,

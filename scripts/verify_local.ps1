@@ -170,6 +170,8 @@ function Assert-LiveReadinessBundleNoEvidenceGuard {
             "read_only_bundle_error=",
             "read_only_bundle_error_detail=.*before full live-readiness evidence could be collected",
             'bundle_blockers=\["LIVE_READINESS_EVIDENCE_UNAVAILABLE"\]',
+            "live_review_packet_allowed=false",
+            "deploy_required_before_live_review=unknown",
             "bundle_verdict=NO_EVIDENCE")) {
         if ($text -notmatch $pattern) {
             Write-Error "live-readiness bundle no-evidence guard output missing expected marker '$pattern':`n$text"

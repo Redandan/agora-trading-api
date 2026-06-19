@@ -75,6 +75,8 @@ function Assert-BundleFailureMarkers {
             "SSH_COMMAND_FAILED",
             "read_only_bundle_error=",
             'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]',
+            "live_review_packet_allowed=false",
+            "deploy_required_before_live_review=unknown",
             "bundle_verdict=NO_EVIDENCE",
             "not complete live-readiness evidence",
             "full live-readiness evidence was not collected"
@@ -89,6 +91,7 @@ function Assert-BundleFailureMarkers {
             "SSH_CONNECT_FAILED",
             "SSH_COMMAND_FAILED",
             "LIVE_READINESS_EVIDENCE_UNAVAILABLE",
+            "live_review_packet_allowed=false",
             "bundle_verdict=NO_EVIDENCE",
             "not live-readiness evidence",
             "complete evidence"
@@ -98,7 +101,7 @@ function Assert-BundleFailureMarkers {
         }
     }
 
-    if ($splitStatusPath -and ((Get-Content -Raw -LiteralPath $splitStatusPath) -notmatch "fix SSH access, key selection, or the\s+failing read-only smoke and rerun")) {
+    if ($splitStatusPath -and ((Get-Content -Raw -LiteralPath $splitStatusPath) -notmatch "fix SSH access, key selection, or the\s+failing\s+read-only smoke and rerun")) {
         throw "split acceptance status must explain SSH access failure next action"
     }
 }

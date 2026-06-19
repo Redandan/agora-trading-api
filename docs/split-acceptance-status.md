@@ -180,13 +180,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
   `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
   `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`.
-- Latest read-only deployment metadata refresh on 2026-06-19T14:31+08:00
+- Recorded read-only deployment metadata refresh on 2026-06-19T14:31+08:00
   observed the server worktree and deployed runtime still at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
   to `735b21c1db7f617bb29de339b65e35242031cc41`. This metadata-only refresh did
   not run a full bundle and is not live-readiness evidence; it only confirms the
   stale-runtime blocker remains until a separately authorized deploy and full
-  read-only bundle rerun.
+  read-only bundle rerun. The recorded `originMainCommit` is historical and can
+  be behind current `origin/main` after later docs or guardrail commits; rerun
+  `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for current metadata.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
   `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or

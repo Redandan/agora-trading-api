@@ -53,12 +53,14 @@ Treat both records as stale live-review evidence until a separately authorized
 deploy refreshes the server to `origin/main` and the read-only runtime evidence
 RCA plus full live-readiness bundle are rerun.
 
-A later read-only deployment metadata refresh on 2026-06-19T14:31+08:00
+A recorded read-only deployment metadata refresh on 2026-06-19T14:31+08:00
 observed the server worktree and deployed runtime still at
 `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
 `735b21c1db7f617bb29de339b65e35242031cc41`. This metadata-only refresh does not
 change the runtime-evidence diagnosis; it only confirms the stale-runtime
-blocker remains.
+blocker remains. The recorded `originMainCommit` is historical and can be behind
+current `origin/main` after later docs or guardrail commits; rerun
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for current metadata.
 
 The live-readiness bundle currently includes:
 

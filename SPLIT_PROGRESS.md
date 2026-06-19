@@ -265,12 +265,15 @@
   `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this
   as stale live-review evidence until the server is refreshed to `origin/main`
   by a separately authorized deploy and the bundle is rerun.
-- A later read-only deployment metadata refresh on 2026-06-19T14:31+08:00
+- A recorded read-only deployment metadata refresh on 2026-06-19T14:31+08:00
   observed the server worktree and deployed runtime still at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
   to `735b21c1db7f617bb29de339b65e35242031cc41`. This was metadata-only, not a
   full live-readiness bundle, and only confirms `DEPLOYED_RUNTIME_NOT_CURRENT`
-  remains until a separately authorized deploy and fresh read-only bundle.
+  remains until a separately authorized deploy and fresh read-only bundle. The
+  recorded `originMainCommit` is historical and can be behind current
+  `origin/main` after later docs or guardrail commits; rerun
+  `scripts/smoke_live_deployment_metadata_ssh.ps1` for current metadata.
 - `scripts/smoke_live_deployment_metadata_ssh.ps1` now provides a reusable
   read-only `DEPLOYMENT_METADATA_ONLY` check for that server-currentness
   question. It is faster than the full bundle but deliberately prints

@@ -82,6 +82,9 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedOriginCommit
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedMetadataObservedAt
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedMetadataOriginCommit
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle 'recorded `originMainCommit` is historical'
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "rerun"
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "smoke_live_deployment_metadata_ssh.ps1"
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "metadata-only"
     Assert-BlockersPresent -Name $doc.Name -Text $doc.Text
 }
@@ -90,6 +93,8 @@ Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Ne
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedOriginCommit
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedMetadataObservedAt
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedMetadataOriginCommit
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle 'recorded `originMainCommit` is historical'
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "smoke_live_deployment_metadata_ssh.ps1"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "metadata-only"
 Assert-BlockersPresent -Name "live readiness remediation" -Text $remediation
 

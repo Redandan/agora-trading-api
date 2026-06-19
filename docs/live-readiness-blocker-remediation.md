@@ -96,12 +96,14 @@ reviewing background automation. A future review must refresh the server
 runtime and rerun the full read-only bundle; do not combine stale server output
 with local or GitHub HEAD evidence.
 
-A later read-only deployment metadata refresh on 2026-06-19T14:31+08:00
+A recorded read-only deployment metadata refresh on 2026-06-19T14:31+08:00
 observed the same server/deployed commit
 `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
 `735b21c1db7f617bb29de339b65e35242031cc41`. That metadata-only refresh does not
 clear any blocker and is not a substitute for rerunning the full bundle after a
-separately authorized deploy.
+separately authorized deploy. The recorded `originMainCommit` is historical and
+can be behind current `origin/main` after later docs or guardrail commits; rerun
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for current metadata.
 
 ## Audit Classifications
 

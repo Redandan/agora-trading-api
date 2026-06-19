@@ -107,7 +107,7 @@ If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.
 
-Latest read-only deployment metadata refresh:
+Recorded read-only deployment metadata refresh:
 
 ```text
 observedAt=2026-06-19T14:31+08:00
@@ -125,7 +125,9 @@ bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
 This metadata-only refresh did not run the full live-readiness bundle. It only
 confirms the deployed runtime is still stale relative to current `origin/main`;
 use it to preserve the `DEPLOYED_RUNTIME_NOT_CURRENT` blocker, not to clear any
-live gate.
+live gate. The recorded `originMainCommit` is historical and can be behind
+current `origin/main` after later docs or guardrail commits; rerun
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for current metadata.
 
 ## Evidence-Only Candidate
 

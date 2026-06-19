@@ -136,6 +136,8 @@ foreach ($marker in @(
         "read-only deployment metadata refresh on",
         "2026-06-19T14:31+08:00",
         "735b21c1db7f617bb29de339b65e35242031cc41",
+        'recorded `originMainCommit` is historical',
+        "smoke_live_deployment_metadata_ssh.ps1",
         "metadata-only refresh",
         "live_review_packet_allowed=false",
         "deploy_required_before_live_review=true",

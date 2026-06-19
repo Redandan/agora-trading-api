@@ -90,6 +90,9 @@ $latestSnapshotMarkers = @(
     'snapshotType=RECORDED_HISTORICAL_EVIDENCE',
     'observedAt=2026-06-19T09:11\+08:00',
     'originMainCommit=12219d6867ec2761f8a8fcae2a5ad78299523904',
+    'Latest refreshed read-only bundle evidence supersedes the recorded snapshot',
+    'observedAt=2026-06-19T10:06\+08:00',
+    'originMainCommit=8b8437c8ad1bae6767393d625ab4454dd08686c5',
     'eventRisk=riskLevel=R0',
     'runtimeLog=FAIL',
     'runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN',
@@ -154,6 +157,9 @@ foreach ($pattern in @(
         'separately\s+authorized\s+deploy',
         'server worktree/runtime to `origin/main`',
         'rerun the full live-readiness bundle',
+        'runtime-log blocker and `BACKGROUND_AUTOMATION_REVIEW` must be reviewed\s+together',
+        'Telegram/ExecutionEvent notification\s+paths',
+        'remaining Telegram/ExecutionEvent notification error has separate written\s+authorization and rollback evidence',
         'not authorization'
     )) {
     if ($pattern -match '\\s') {

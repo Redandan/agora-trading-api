@@ -61,6 +61,18 @@ bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","E
 bundle_verdict=NOT_READY
 ```
 
+Latest refreshed read-only bundle evidence supersedes the recorded snapshot
+hash above for currentness decisions:
+
+```text
+observedAt=2026-06-19T10:06+08:00
+serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+originMainCommit=8b8437c8ad1bae6767393d625ab4454dd08686c5
+origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+bundle_verdict=NOT_READY
+bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","DEPLOYED_RUNTIME_NOT_CURRENT"]
+```
+
 Because this recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is
 stale live-review evidence only. `originMainCommit` records the value observed
 when the bundle ran; later docs or guardrail commits can legitimately advance
@@ -74,6 +86,12 @@ of this latest recorded blocker set. A future operator review must first
 refresh the server worktree/runtime to `origin/main` through a separately
 authorized deploy, clear or separately explain the runtime log blocker, then
 rerun the full live-readiness bundle and attach the current output.
+The runtime-log blocker and `BACKGROUND_AUTOMATION_REVIEW` must be reviewed
+together: the current ERROR lines come from Telegram/ExecutionEvent notification
+paths while high-risk background automation is already enabled. A future env
+change cannot claim background automation is ready unless the refreshed runtime
+log smoke is clean or the remaining errors have a separate written
+authorization and rollback plan.
 If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.
@@ -177,6 +195,9 @@ Expected evidence-only result:
   `DEPLOYED_RUNTIME_NOT_CURRENT`.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports
   `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`.
+- Runtime-log smoke is clean after background automation review, or any
+  remaining Telegram/ExecutionEvent notification error has separate written
+  authorization and rollback evidence.
 - Runtime logs remain free of order placement, OCO modification, live exchange
   writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler
   execution, external backfill/import, and DB mutation.

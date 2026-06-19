@@ -154,13 +154,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
-- Latest recorded read-only live-readiness bundle on 2026-06-19T11:12+08:00
+- Latest recorded read-only live-readiness bundle on 2026-06-19T11:45+08:00
   observed server worktree/deployed commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
-  `514a3d1e0cf800e1c84a83368ad69ae6193cc32d`. Health was `UP`, local MCP
+  `da11835ee81ae8af4cf818aa493651fc2c8bbd8d`. Health was `UP`, local MCP
   parity passed at server-local `/api/mcp` with `toolCount=305 required=35`,
   all order-capable flags were false, and dry-run flags were true. The bundle
-  verdict stayed `NOT_READY` with blockers
+  printed `live_review_packet_allowed=false`,
+  `deploy_required_before_live_review=true`, and verdict `NOT_READY` with
+  blockers
   `LIVE_READINESS_NOT_READY`, `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`,
   `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,

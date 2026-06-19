@@ -44,7 +44,8 @@ skip a blocker.
 
 The latest recorded read-only server bundle
 (`224f550478b20a329775f503b3eaa70ba6a2f6a8` deployed while `origin/main` was
-`514a3d1e0cf800e1c84a83368ad69ae6193cc32d`) may legitimately report:
+`da11835ee81ae8af4cf818aa493651fc2c8bbd8d`; `live_review_packet_allowed=false`,
+`deploy_required_before_live_review=true`) may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY

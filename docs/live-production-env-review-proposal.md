@@ -61,15 +61,17 @@ bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","E
 bundle_verdict=NOT_READY
 ```
 
-Latest refreshed read-only bundle evidence supersedes the earlier 10:59
+Latest refreshed read-only bundle evidence supersedes the earlier 11:12
 refreshed snapshot; both remain historical evidence and become stale again
 whenever `origin/main` advances:
 
 ```text
-observedAt=2026-06-19T11:12+08:00
+observedAt=2026-06-19T11:45+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=514a3d1e0cf800e1c84a83368ad69ae6193cc32d
+originMainCommit=da11835ee81ae8af4cf818aa493651fc2c8bbd8d
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+live_review_packet_allowed=false
+deploy_required_before_live_review=true
 bundle_verdict=NOT_READY
 bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","DEPLOYED_RUNTIME_NOT_CURRENT"]
 ```

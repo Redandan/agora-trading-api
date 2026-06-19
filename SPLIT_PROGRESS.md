@@ -230,9 +230,9 @@
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
 - Latest recorded read-only live-readiness bundle observed on
-  2026-06-19T11:12+08:00 against server commit
+  2026-06-19T11:45+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
-  `514a3d1e0cf800e1c84a83368ad69ae6193cc32d`: health UP, deployed metadata
+  `da11835ee81ae8af4cf818aa493651fc2c8bbd8d`: health UP, deployed metadata
   CURRENT, but the server worktree was not at `origin/main`. The origin hash is
   historical evidence captured at bundle time; later docs or guardrail commits
   can advance `origin/main` without making this recorded snapshot current.
@@ -253,7 +253,8 @@
   `falsePositiveCount=2`, `canEnableProduction=false`). Signal correctness
   found no missed-evaluation/order bug and current DataFreshnessGuard snapshot
   was clean, but 7d governance drift remained TOO_STRICT and missed-opportunity
-  regression was WARN. The bundle verdict stayed NOT_READY with blockers
+  regression was WARN. The bundle printed `live_review_packet_allowed=false`,
+  `deploy_required_before_live_review=true`, and verdict NOT_READY with blockers
   `LIVE_READINESS_NOT_READY`, `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`,
   `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,

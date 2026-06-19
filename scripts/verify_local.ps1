@@ -89,6 +89,16 @@ function Assert-RgNoMatch {
     }
 }
 
+function Invoke-VerifyPowerShellTest {
+    param([string]$ScriptName)
+
+    $scriptPath = Join-Path $PSScriptRoot $ScriptName
+    & pwsh -NoProfile -ExecutionPolicy Bypass -File $scriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "$ScriptName failed with exit code $LASTEXITCODE"
+    }
+}
+
 function Resolve-BashCommand {
     $fromPath = Get-Command bash -ErrorAction SilentlyContinue
     if ($null -ne $fromPath) {
@@ -1510,14 +1520,14 @@ try {
     foreach ($pattern in @("ALLOW_UNKNOWN_WARN.*=.*0", "ALLOW_RUNTIME_ERROR.*=.*0", "ALLOW_HIGH_RISK_LOG.*=.*0")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/audit_live_readiness_ssh.ps1", "scripts/verify_split_acceptance_ssh.ps1") -Description "live readiness runtime log smoke forces strict allow flag $pattern"
     }
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_runtime_log_smoke_classification.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_runtime_log_smoke_classification.ps1"
     foreach ($pattern in @("read-only server audit", "order_capable_flags", "dry_run_flags", "secret_presence", "readiness_details", "autonomousOpportunity", "primaryBlockers", "blockingInterpretation", "terminalBlockers", "runtimeEvidenceStatus", "validateAutonomousOpportunityReadiness", "blocker_classification", "next_actions", "market_condition_wait", "runtime_evidence_gap", "risk_hard_stop", "execution_disabled_guard", "capacity_not_primary", "background_automation_review", "security_or_secret_gap", "runtime_health_gap", "runtime_log_status", "riskLevel=", "EVENT_RISK_NOT_R0", "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY", "getTinyLiveAutoExecutionTriggerStatus", "getScoreBuyPrePositionAutoExecutionStatus", "getScoreBuyConfirmedDeployAutoExecutionStatus", "getScoreBuyPostScoutAutoAddStatus", "getTrailingStopStatus", "getGuardianSnapshot")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/audit_live_readiness_ssh.ps1") -Description "live readiness audit keeps read-only blocker/verdict marker $pattern"
     }
     foreach ($pattern in @("tiny-live-loss-rca", "hardStopDetected", "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES", "hardStopClearCriteria", "maxConsecutiveTinyLiveLosses<2", "Rollout Gates", "completedTinyLiveSamples", "falsePositiveCount", "canEnableProduction", "canIncreaseDailyCap", "listTinyLiveExecutionReadiness", "previewTinyLiveAutoApproval", "previewTinyLiveAutoExecution", "listTinyLiveExecutions", "getAutonomousExecutionAttribution", "getAutonomousExplorationMonitorStatus", "getExplorationRolloutStatus", "getMissedOpportunityRegressionReport", "getNoBuyReasonTruthTable", "KEEP_DISABLED", "read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_tiny_live_loss_rca_ssh.ps1") -Description "tiny-live loss RCA smoke keeps read-only hard-stop evidence marker $pattern"
     }
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_tiny_live_hard_stop_plan.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_tiny_live_hard_stop_plan.ps1"
     foreach ($pattern in @("runtime-evidence-rca", "TRADING_RUNTIME_EVIDENCE_ENABLED", "getAutonomousReadinessDashboard", "listRuntimeDecisionEvidence", "previewTinyLiveMinimumOrder", "previewTinyLiveAutoExecution", "validateAutonomousOpportunityReadiness", "getNoBuyReasonTruthTable", "diagnosis=", "CONFIG_DISABLED", "NO_CANONICAL_ROWS", "CANONICAL_ROWS_NO_SHADOW_INTENT", "CANONICAL_SHADOW_READY", "SCOPE: this smoke is read-only", "read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_runtime_evidence_rca_ssh.ps1") -Description "runtime evidence RCA smoke keeps read-only evidence-gap marker $pattern"
     }
@@ -1527,18 +1537,18 @@ try {
     foreach ($pattern in @("live-background-automation", "READ_ONLY", "background_automation_true", "high_risk_background_automation_true", "BACKGROUND_AUTOMATION_REVIEW_BEFORE_LIVE", "NOT_READY_BACKGROUND_AUTOMATION_REVIEW", "OK_BACKGROUND_AUTOMATION_DISABLED", "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED", "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED", "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED", "Assert-RemotePathSafe", "Assert-SshHostSafe", "read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_live_background_automation_ssh.ps1") -Description "live background automation smoke keeps read-only env marker $pattern"
     }
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_background_automation_flags.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_live_background_automation_flags.ps1"
     foreach ($pattern in @("not authorization", "TRADING_RUNTIME_EVIDENCE_ENABLED=true", "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false", "EVENT_SCAN_NOTIFICATION_ENABLED=false", "EXECUTION_EVENT_ENABLED=false", "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED=false", "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED=false", "TRADING_OKX_ENABLED=false", "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false", "smoke_live_background_automation_ssh.ps1", "HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "orderSentEvidence=0", "shadowIntentCount", "Rollback Criteria", "not live approval")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/live-production-env-review-proposal.md") -Description "live production env review proposal keeps no-mutation/live gate marker $pattern"
     }
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_production_env_review_plan.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_live_production_env_review_plan.ps1"
     foreach ($pattern in @("live-readiness-bundle", "READ_ONLY", "audit_live_readiness_ssh.ps1", "smoke_live_background_automation_ssh.ps1", "smoke_runtime_evidence_rca_ssh.ps1", "smoke_tiny_live_loss_rca_ssh.ps1", "smoke_signal_correctness_ssh.ps1", "smoke_mcp_parity_ssh.ps1", "deployment-metadata", "liveBundleDeployStatus", "liveBundleOriginStatus", "originMainCommit", "DEPLOYED_RUNTIME_NOT_CURRENT", "deployment_metadata_status", "origin_metadata_status", "bundle_blockers", "LIVE_READINESS_EVIDENCE_UNAVAILABLE", "bundle_verdict=NO_EVIDENCE", "bundle_verdict=NOT_READY", "READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "RequireReady", "Assert-RemotePathSafe", "Assert-SshHostSafe", "SSH_AUTH_FAILED", "not complete live-readiness evidence", "read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_live_readiness_bundle_ssh.ps1") -Description "live readiness bundle keeps read-only orchestration marker $pattern"
     }
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_readiness_bundle_blockers.ps1")
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_readiness_bundle_metadata.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_live_readiness_bundle_blockers.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_live_readiness_bundle_metadata.ps1"
     Assert-LiveReadinessBundleNoEvidenceGuard
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_signal_policy_review_plan.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_signal_policy_review_plan.ps1"
     foreach ($pattern in @("deployment_metadata_status", "origin_metadata_status", "DEPLOYED_RUNTIME_NOT_CURRENT", "origin/main", "bundle_blockers", "bundle_verdict")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs keep live readiness bundle deployment metadata marker $pattern"
     }
@@ -1554,7 +1564,7 @@ try {
     foreach ($pattern in @("Live Runtime Evidence Env Proposal", "not authorization", "RUNTIME_EVIDENCE_CONFIG_DISABLED", "RUNTIME_EVIDENCE_NO_SHADOW_INTENT", "TRADING_RUNTIME_EVIDENCE_ENABLED=true", "TRADING_OKX_ENABLED=false", "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false", "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false", "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false", "EVENT_SCAN_NOTIFICATION_ENABLED=false", "EXECUTION_EVENT_ENABLED=false", "smoke_runtime_evidence_rca_ssh.ps1", "smoke_live_readiness_bundle_ssh.ps1", "diagnosis.*CONFIG_DISABLED", "orderSentEvidence=0", "shadowIntentCount", "bundle_blockers", "Rollback Criteria", "not live approval")) {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/live-runtime-evidence-env-proposal.md") -Description "live runtime evidence env proposal keeps evidence-only marker $pattern"
     }
-    & pwsh -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "test_live_runtime_evidence_env_plan.ps1")
+    Invoke-VerifyPowerShellTest -ScriptName "test_live_runtime_evidence_env_plan.ps1"
     foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1", "scripts/smoke_tiny_live_loss_rca_ssh.ps1", "scripts/smoke_runtime_evidence_rca_ssh.ps1")) {
         Assert-RgMatch -Pattern "http://127\.0\.0\.1:\{os\.environ\['PORT'\]\}/api/mcp" -Paths @($script) -Description "$script uses server-local /api/mcp"
         Assert-RgMatch -Pattern "TRADING_MCP_KEY" -Paths @($script) -Description "$script reads the server-local MCP key"

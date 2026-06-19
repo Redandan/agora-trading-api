@@ -125,5 +125,7 @@ Restore the prior env state and investigate if any of these occur:
 Clearing `BACKGROUND_AUTOMATION_REVIEW` is not live approval. The system remains
 blocked while runtime evidence, tiny-live hard stop, market-condition, or signal
 policy blockers remain. A later live proposal still needs exact env diff,
-current smoke outputs, runtime evidence, tiny-live hard-stop state, signal
-governance evidence, and separate operator authorization.
+current smoke outputs, full-bundle `bundle_blockers=[]`,
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, runtime evidence,
+tiny-live hard-stop state, signal governance evidence, and separate operator
+authorization.

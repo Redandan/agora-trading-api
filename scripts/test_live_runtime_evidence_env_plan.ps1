@@ -152,6 +152,9 @@ foreach ($marker in @(
         'full-bundle `bundle_blockers=[]`',
         '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`'
     )) {
+    if ($proposalText -notmatch [regex]::Escape($marker)) {
+        throw "Runtime evidence proposal missing live proposal boundary marker: $marker"
+    }
     if ($dryRunPlanText -notmatch [regex]::Escape($marker)) {
         throw "Dry-run evidence plan missing live proposal boundary marker: $marker"
     }

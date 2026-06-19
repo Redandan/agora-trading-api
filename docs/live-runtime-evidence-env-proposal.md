@@ -159,6 +159,8 @@ Restore the prior env state and investigate if any of these occur:
 Clearing `RUNTIME_EVIDENCE_CONFIG_DISABLED` is not live approval. The system
 remains blocked while `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, tiny-live hard stop,
 market-condition, signal policy, or background automation blockers remain. A
-later live proposal still needs exact env diff, current smoke outputs, runtime
-evidence rows, shadow-intent counts, tiny-live hard-stop state, signal
-governance evidence, rollback steps, and separate operator authorization.
+later live proposal still needs exact env diff, current smoke outputs,
+full-bundle `bundle_blockers=[]`,
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, runtime evidence
+rows, shadow-intent counts, tiny-live hard-stop state, signal governance
+evidence, rollback steps, and separate operator authorization.

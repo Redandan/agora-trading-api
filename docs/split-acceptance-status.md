@@ -154,26 +154,32 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
-- Latest recorded read-only live-readiness bundle on 2026-06-19T12:15+08:00
+- Latest recorded read-only live-readiness bundle on 2026-06-19T14:24+08:00
   observed server worktree/deployed commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
-  `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`. Health was `UP`, local MCP
-  parity passed at server-local `/api/mcp` with `toolCount=305 required=35`,
+  `23d22ce83dcdb1a7780e527787ed68d90296b5b8`. Health was `UP`,
   all order-capable flags were false, and dry-run flags were true. Runtime log
   smoke still failed on the deployed pre-classification runtime with
-  Telegram/ExecutionEvent notification errors, so the `ERROR category ...` and
-  `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` markers must be
-  refreshed after the next authorized deploy. The bundle
-  printed `live_review_packet_allowed=false`,
-  `deploy_required_before_live_review=true`, and verdict `NOT_READY` with
-  blockers
+  Telegram/ExecutionEvent notification errors, and signal-correctness stopped
+  because the deployed `verifyStrategyExecution` output did not yet provide the
+  expected no-missed-evaluation/no-missed-order marker. The bundle therefore
+  ended as incomplete evidence with
+  `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `live_review_packet_allowed=false`,
+  `deploy_required_before_live_review=true`, and `bundle_verdict=NO_EVIDENCE`.
+  Treat this as no live-review evidence until a separately authorized deploy
+  refreshes the server to `origin/main` and the full read-only bundle is rerun.
+  The previous complete blocker snapshot on 2026-06-19T12:15+08:00 observed
+  the same server worktree/deployed commit
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
+  `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`; it remains historical stale
+  live-review evidence for the detailed blocker set until refreshed by a
+  complete post-deploy bundle:
   `LIVE_READINESS_NOT_READY`, `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`,
   `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
   `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
-  `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this
-  as stale live-review evidence until a separately authorized deploy refreshes
-  the server to `origin/main` and the full read-only bundle is rerun.
+  `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`.
 - Latest read-only deployment metadata refresh on 2026-06-19T13:56+08:00
   observed the server worktree and deployed runtime still at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced

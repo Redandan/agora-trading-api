@@ -69,6 +69,8 @@ function Assert-BundleFailureMarkers {
 
     foreach ($pattern in @(
             "Get-ReadOnlySshFailureClassification",
+            "Get-LiveReadinessDeployRequirement",
+            "Write-PartialDeploymentMetadata",
             "Assert-ReadOnlyCommandSucceeded",
             "SSH_AUTH_FAILED",
             "SSH_CONNECT_FAILED",
@@ -76,6 +78,9 @@ function Assert-BundleFailureMarkers {
             "READ_ONLY_SMOKE_FAILED",
             "read_only_bundle_error=",
             'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]',
+            'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]',
+            "deployment_metadata_status=",
+            "origin_metadata_status=",
             "live_review_packet_allowed=false",
             "deploy_required_before_live_review=unknown",
             "bundle_verdict=NO_EVIDENCE",

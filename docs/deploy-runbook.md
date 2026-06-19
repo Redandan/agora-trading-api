@@ -703,6 +703,11 @@ Expected:
   `deploy_required_before_live_review=unknown`, and
   `bundle_verdict=NO_EVIDENCE`; treat that as an incomplete evidence problem,
   not live-readiness evidence.
+- If deployment metadata was already collected before a later child smoke
+  fails, the failure output also preserves `deployment_metadata_status`,
+  `origin_metadata_status`, and, when stale, adds
+  `DEPLOYED_RUNTIME_NOT_CURRENT` to `bundle_blockers` with
+  `deploy_required_before_live_review=true`.
 - `bundle_verdict=NOT_READY` is the expected result while runtime evidence,
   tiny-live hard stop, signal policy, or background automation blockers remain.
 - The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,

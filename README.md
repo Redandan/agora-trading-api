@@ -285,6 +285,10 @@ If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
 `deploy_required_before_live_review=unknown`, and
 `bundle_verdict=NO_EVIDENCE`; treat that output as an incomplete evidence
 problem, not live-readiness evidence.
+If deployment metadata was already collected before a later child smoke fails,
+the failure output also preserves `deployment_metadata_status`,
+`origin_metadata_status`, and, when stale, adds `DEPLOYED_RUNTIME_NOT_CURRENT`
+to `bundle_blockers` with `deploy_required_before_live_review=true`.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.

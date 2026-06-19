@@ -78,6 +78,7 @@ Assert-SmokeTokenSafe -Name "Side" -Value $Side -MaxLength 16
 Assert-SmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 16
 
 $scriptDir = $PSScriptRoot
+$script:LiveReadinessDeploymentMetadataSnapshot = ""
 
 function Get-ReadOnlySshFailureClassification {
     param(
@@ -97,6 +98,37 @@ function Get-ReadOnlySshFailureClassification {
     return "READ_ONLY_SMOKE_FAILED"
 }
 
+function Get-LiveReadinessDeployRequirement {
+    param([string]$DeploymentMetadata)
+
+    if ([string]::IsNullOrWhiteSpace($DeploymentMetadata)) {
+        return "unknown"
+    }
+    if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `
+            -or $DeploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
+        return "true"
+    }
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
+            -or $DeploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+        return "true"
+    }
+    return "false"
+}
+
+function Write-PartialDeploymentMetadata {
+    param([string]$DeploymentMetadata)
+
+    if ([string]::IsNullOrWhiteSpace($DeploymentMetadata)) {
+        return
+    }
+    if ($DeploymentMetadata -match "liveBundleDeployStatus=([A-Z_]+)") {
+        Write-Host ("deployment_metadata_status=" + $Matches[1])
+    }
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
+        Write-Host ("origin_metadata_status=" + $Matches[1])
+    }
+}
+
 function Assert-ReadOnlyCommandSucceeded {
     param(
         [string]$Name,
@@ -110,12 +142,22 @@ function Assert-ReadOnlyCommandSucceeded {
 
     $outputText = ($Output -join "`n")
     $classification = Get-ReadOnlySshFailureClassification -ExitCode $ExitCode -OutputText $outputText
+    $deployRequirement = Get-LiveReadinessDeployRequirement -DeploymentMetadata $script:LiveReadinessDeploymentMetadataSnapshot
     Write-Host "read_only_bundle_error=$classification"
     Write-Host "read_only_bundle_error_detail=$Name failed before full live-readiness evidence could be collected"
     Write-Host "read_only_bundle_error_boundary=not complete live-readiness evidence; fix SSH access, key selection, or the failing read-only smoke and rerun the bundle"
-    Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]'
+    Write-PartialDeploymentMetadata -DeploymentMetadata $script:LiveReadinessDeploymentMetadataSnapshot
+    if ($deployRequirement -eq "true") {
+        Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
+    } else {
+        Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]'
+    }
     Write-Host "live_review_packet_allowed=false"
-    Write-Host "deploy_required_before_live_review=unknown"
+    if ($deployRequirement -eq "unknown") {
+        Write-Host "deploy_required_before_live_review=unknown"
+    } else {
+        Write-Host "deploy_required_before_live_review=$deployRequirement"
+    }
     Write-Host "bundle_verdict=NO_EVIDENCE"
     Write-Host "next_action=Fix SSH access, key selection, or the failing read-only smoke and rerun this bundle before drawing any server/live conclusion."
     throw "$Name failed with exit code $ExitCode ($classification); full live-readiness evidence was not collected."
@@ -305,6 +347,7 @@ Write-Host "scope=READ_ONLY; invokes existing read-only SSH smokes only; no prod
 Write-Host "symbol=$Symbol strategyId=$StrategyId side=$Side interval=$IntervalCode"
 
 $deploymentMetadata = Invoke-ReadOnlyDeploymentMetadata
+$script:LiveReadinessDeploymentMetadataSnapshot = $deploymentMetadata
 $audit = Invoke-ReadOnlySmoke -Name "live-readiness-audit" -ScriptName "audit_live_readiness_ssh.ps1" -Arguments ($common + @{
         Symbol = $Symbol
     })

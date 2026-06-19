@@ -56,6 +56,13 @@ For standalone metadata-only refreshes, `read_only_metadata_error=SSH_AUTH_FAILE
 and `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; this is an
 incomplete metadata refresh and must not be used as live-readiness evidence.
 
+For full-bundle child-smoke failures after deployment metadata was collected,
+`LIVE_READINESS_EVIDENCE_UNAVAILABLE` remains the primary evidence-status
+blocker, but the failure output also preserves `deployment_metadata_status` and
+`origin_metadata_status`. If those metadata lines prove stale runtime or a
+server worktree behind `origin/main`, the same failure output includes
+`DEPLOYED_RUNTIME_NOT_CURRENT` and `deploy_required_before_live_review=true`.
+
 ## Current Expected Blockers
 
 The latest recorded read-only server bundle

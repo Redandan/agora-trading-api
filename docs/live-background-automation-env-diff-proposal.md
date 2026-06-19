@@ -109,6 +109,15 @@ Expected:
   operation, Telegram send, scheduler surprise, exchange write, external
   backfill/import, or DB mutation
 
+Coverage drift guard:
+
+- If a new background automation env flag is introduced, add it to
+  `smoke_live_background_automation_ssh.ps1`,
+  `audit_live_readiness_ssh.ps1`, this proposal, and
+  `test_live_background_automation_flags.ps1` before live review.
+- Missing reviewed env keys remain blockers; a key absent from the server env is
+  not equivalent to explicit `false` evidence.
+
 ## Rollback Criteria
 
 Restore the prior env state and investigate if any of these occur:

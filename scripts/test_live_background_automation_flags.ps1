@@ -63,7 +63,7 @@ $proposalText = Get-Content -Raw -LiteralPath $proposalPath
 
 $smokeBackground = Get-PythonStringList -Text $smokeText -Pattern 'background_flags\s*=\s*\[(.*?)\]' -Name "smoke background_flags"
 $smokeHighRisk = Get-PythonStringList -Text $smokeText -Pattern 'high_risk_flags\s*=\s*\[(.*?)\]' -Name "smoke high_risk_flags"
-$auditBackground = Get-PythonStringList -Text $auditText -Pattern 'background_true\s*=\s*\[\]\s*for key in \[(.*?)\]:' -Name "audit background_true"
+$auditBackground = Get-PythonStringList -Text $auditText -Pattern 'background_flags\s*=\s*\[(.*?)\]' -Name "audit background_flags"
 
 Assert-SameSet -Name "smoke background flags" -Actual $smokeBackground -Expected $expectedBackgroundFlags
 Assert-SameSet -Name "smoke high-risk background flags" -Actual $smokeHighRisk -Expected $expectedHighRiskFlags
@@ -102,6 +102,35 @@ foreach ($pattern in @(
     )) {
     if ($proposalText -notmatch [regex]::Escape($pattern)) {
         throw "Background automation proposal missing verification/rollback marker $pattern"
+    }
+}
+
+foreach ($pattern in @(
+        "background_automation_true=",
+        "high_risk_background_automation_true=",
+        "missing_background_automation_flags=",
+        "if true_flags or missing_flags:",
+        "if high_risk_true:",
+        "if missing_flags:",
+        "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE",
+        "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
+        "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW"
+    )) {
+    if ($smokeText -notmatch [regex]::Escape($pattern)) {
+        throw "Background automation smoke missing fail-closed marker $pattern"
+    }
+}
+
+foreach ($pattern in @(
+        "background_flags = [",
+        "background_missing = []",
+        "missing_background_automation_flags=",
+        "BACKGROUND_AUTOMATION_MISSING_FLAG_REVIEW_BEFORE_LIVE",
+        "MISSING:{key}",
+        "BACKGROUND_AUTOMATION_MISSING_FLAG"
+    )) {
+    if ($auditText -notmatch [regex]::Escape($pattern)) {
+        throw "Live readiness audit missing background missing-flag marker $pattern"
     }
 }
 

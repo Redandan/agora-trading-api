@@ -37,7 +37,9 @@ not use the Telegram/ExecutionEvent RCA text to explain unrelated ERROR lines.
 
 For this blocker, missing high-risk background evidence stays blocked. Missing
 reviewed env keys also stay blocked because absent keys are not explicit false
-evidence for live review.
+evidence for live review. New background automation env flags must be added to
+the background smoke, live-readiness audit, env diff proposal, and local
+coverage test before any live-review packet can use the evidence.
 | `RUNTIME_EVIDENCE_CONFIG_DISABLED` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `CONFIG_DISABLED` after a separately authorized evidence-only env change. | Continue evidence collection; do not enable execution flags. |
 | `RUNTIME_EVIDENCE_NO_CANONICAL_ROWS` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `NO_CANONICAL_ROWS`; canonical evidence rows exist in the bounded window. | Keep collecting evidence; do not enable execution flags. |
 | `RUNTIME_EVIDENCE_NO_SHADOW_INTENT` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | The smoke explicitly prints `diagnosis=CANONICAL_SHADOW_READY`, `shadowIntentCount` greater than 0, and `orderSentEvidence=0` for the reviewed window. Missing or `N/A` shadow-intent evidence stays blocked. | Keep collecting dry-run/shadow evidence and re-run the bundle. |

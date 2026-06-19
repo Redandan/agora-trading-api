@@ -277,8 +277,9 @@ def classify_live_readiness(details, current_blockers, current_warnings, backgro
     ]):
         classification["capacity_not_primary"].append("Capacity/notional blockers are secondary until market readiness and risk hard stops clear.")
 
-    if background_flags or any("BACKGROUND_AUTOMATION_ALREADY_TRUE" in item for item in current_warnings):
-        classification["background_automation_review"].extend(background_flags)
+    background_markers = [item for item in background_flags if item]
+    if background_markers or any("BACKGROUND_AUTOMATION_ALREADY_TRUE" in item or "BACKGROUND_AUTOMATION_MISSING_FLAG" in item for item in current_warnings):
+        classification["background_automation_review"].extend(background_markers)
 
     return {key: value for key, value in classification.items() if value}
 
@@ -343,8 +344,7 @@ dry_run_flags = {
     "TRAILING_STOP_DRY_RUN": bool_env("TRAILING_STOP_DRY_RUN", True),
     "POSITION_EXIT_MANAGER_DRY_RUN": bool_env("POSITION_EXIT_MANAGER_DRY_RUN", True),
 }
-background_true = []
-for key in [
+background_flags = [
     "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
     "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED",
     "MARKET_WS_AUTO_SUBSCRIBE_ENABLED",
@@ -354,9 +354,14 @@ for key in [
     "TRADING_AUTONOMOUS_DIGEST_ENABLED",
     "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED",
     "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED",
-]:
+]
+background_true = []
+background_missing = []
+for key in background_flags:
     if bool_env(key, False):
         background_true.append(key)
+    if not read_env_key(key):
+        background_missing.append(key)
 
 true_order_flags = [key for key, value in order_flags.items() if value]
 
@@ -364,6 +369,7 @@ print("order_capable_flags=" + json.dumps(order_flags, sort_keys=True))
 print("order_capable_flags_true=" + json.dumps(true_order_flags))
 print("dry_run_flags=" + json.dumps(dry_run_flags, sort_keys=True))
 print("background_automation_true=" + json.dumps(background_true))
+print("missing_background_automation_flags=" + json.dumps(background_missing))
 print("secret_presence=" + json.dumps({
     "TRADING_OKX_API_KEY": secret_presence("TRADING_OKX_API_KEY"),
     "TRADING_OKX_SECRET_KEY": secret_presence("TRADING_OKX_SECRET_KEY"),
@@ -381,6 +387,8 @@ if true_order_flags:
 
 if background_true:
     warnings.append("BACKGROUND_AUTOMATION_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
+if background_missing:
+    warnings.append("BACKGROUND_AUTOMATION_MISSING_FLAG_REVIEW_BEFORE_LIVE:" + ",".join(background_missing))
 
 tiny = call_tool("getTinyLiveAutoExecutionTriggerStatus", {"symbol": symbol})
 readiness_details["tinyLive"] = tiny_details(tiny)
@@ -439,7 +447,8 @@ except Exception as exc:
     blockers.append("RUNTIME_LOG_SMOKE_EXCEPTION")
     print(f"runtime_log_exception={type(exc).__name__}:{exc}")
 
-blocker_classification = classify_live_readiness(readiness_details, blockers, warnings, background_true)
+background_review_flags = background_true + [f"MISSING:{key}" for key in background_missing]
+blocker_classification = classify_live_readiness(readiness_details, blockers, warnings, background_review_flags)
 next_actions = live_readiness_next_actions(blocker_classification)
 print("readiness_details=" + json.dumps(readiness_details, ensure_ascii=False, sort_keys=True))
 print("blocker_classification=" + json.dumps(blocker_classification, ensure_ascii=False, sort_keys=True))

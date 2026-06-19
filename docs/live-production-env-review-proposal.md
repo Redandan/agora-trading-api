@@ -61,8 +61,9 @@ bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","E
 bundle_verdict=NOT_READY
 ```
 
-Latest refreshed read-only bundle evidence supersedes the recorded snapshot
-hash above for currentness decisions:
+Latest refreshed read-only bundle evidence supersedes only the older 09:11
+recorded snapshot hash above; it is still historical evidence and becomes
+stale again whenever `origin/main` advances:
 
 ```text
 observedAt=2026-06-19T10:06+08:00

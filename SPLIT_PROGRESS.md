@@ -230,9 +230,9 @@
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
 - Latest recorded read-only live-readiness bundle observed on
-  2026-06-19T10:59+08:00 against server commit
+  2026-06-19T11:12+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
-  `30490f13ab316a533bb0b6762d04c55f774e6f31`: health UP, deployed metadata
+  `514a3d1e0cf800e1c84a83368ad69ae6193cc32d`: health UP, deployed metadata
   CURRENT, but the server worktree was not at `origin/main`. The origin hash is
   historical evidence captured at bundle time; later docs or guardrail commits
   can advance `origin/main` without making this recorded snapshot current.

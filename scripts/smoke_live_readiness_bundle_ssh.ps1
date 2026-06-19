@@ -91,7 +91,10 @@ function Get-ReadOnlySshFailureClassification {
     if ($ExitCode -eq 255 -and $OutputText -match "Connection timed out|Connection refused|Could not resolve hostname|No route to host|Operation timed out") {
         return "SSH_CONNECT_FAILED"
     }
-    return "SSH_COMMAND_FAILED"
+    if ($OutputText -match "ssh:|remote command failed") {
+        return "SSH_COMMAND_FAILED"
+    }
+    return "READ_ONLY_SMOKE_FAILED"
 }
 
 function Assert-ReadOnlyCommandSucceeded {
@@ -132,8 +135,28 @@ function Invoke-ReadOnlySmoke {
 
     Write-Host ""
     Write-Host "===== BEGIN $Name ====="
-    $output = & $scriptPath @Arguments 2>&1
-    $exitCode = $LASTEXITCODE
+    $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for read-only smoke invocation"
+    }
+
+    $processArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $scriptPath)
+    foreach ($key in @($Arguments.Keys | Sort-Object)) {
+        $processArgs += "-$key"
+        $processArgs += [string]$Arguments[$key]
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source @processArgs 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $output | ForEach-Object { Write-Host $_ }
     Write-Host "===== END $Name exit=$exitCode ====="
     Assert-ReadOnlyCommandSucceeded -Name $Name -ExitCode $exitCode -Output $output

@@ -65,7 +65,7 @@ def read_env():
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, value = line.split("=", 1)
-            values[key] = value.strip().strip('"').strip("'")
+            values[key] = value.strip().strip(chr(34)).strip(chr(39))
     return values
 
 def bool_value(values, key):
@@ -140,4 +140,4 @@ print("[live-background-automation] read-only check complete")
 PY
 "@
 
-ssh -i $SshKey -o BatchMode=yes -o StrictHostKeyChecking=accept-new $SshHost $remoteScript
+$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"

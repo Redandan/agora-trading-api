@@ -176,8 +176,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   the server to `origin/main` and the full read-only bundle is rerun.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
-  `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED` before the
-  full bundle completes, it must emit `LIVE_READINESS_EVIDENCE_UNAVAILABLE`
+  `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or
+  `READ_ONLY_SMOKE_FAILED` before the full bundle completes, it must emit
+  `LIVE_READINESS_EVIDENCE_UNAVAILABLE`
   with `live_review_packet_allowed=false` and
   `bundle_verdict=NO_EVIDENCE`; fix SSH access, key selection, or the failing
   read-only smoke and rerun the bundle before drawing any server/live

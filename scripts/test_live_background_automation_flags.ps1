@@ -108,6 +108,8 @@ foreach ($pattern in @(
 foreach ($pattern in @(
         "background_automation_false=",
         "missing_background_automation_flags=",
+        "strip(chr(34)).strip(chr(39))",
+        "tr -d '\r' | bash -s",
         "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
         "classification=BACKGROUND_AUTOMATION_CLEARED",
         "verdict=OK_BACKGROUND_AUTOMATION_DISABLED",

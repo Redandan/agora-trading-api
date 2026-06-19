@@ -261,7 +261,7 @@ Do not draft a live review packet unless the latest full bundle prints
 `NO_EVIDENCE`, `live_review_packet_allowed=false`, and stale runtime metadata
 remain blocking evidence.
 If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
-`SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED`, it emits
+`SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, it emits
 `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
 `live_review_packet_allowed=false`,
 `deploy_required_before_live_review=unknown`, and

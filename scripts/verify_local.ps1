@@ -1514,7 +1514,7 @@ try {
     foreach ($pattern in @("verifyStrategyExecution", "analyzeBlockedSignalOutcomes", "getSignalCorrectnessDashboard", "getEntryDedupGovernanceDashboard", "getMissedOpportunityRegressionReport", "getGovernanceDriftDashboard", "findGovernanceRelaxationCandidates", "findGovernanceTighteningCandidates", "read-only production MCP check", "missing no-missed-evaluation/no-missed-order marker", "sys.exit\(1\)", "OK read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_signal_correctness_ssh.ps1") -Description "signal correctness SSH smoke keeps executable read-only MCP marker $pattern"
     }
-    foreach ($pattern in @("TelegramServiceImpl", "ExecutionEventScheduler", "runtime ERROR lines present: count=2", "high-risk operation-like log lines present", "runtime error allow flag is diagnostic only", "ALLOW_RUNTIME_ERROR", "runtime-log-smoke-classification-test")) {
+    foreach ($pattern in @("TelegramServiceImpl", "ExecutionEventScheduler", "runtime ERROR lines present: count=2", "high-risk operation-like log lines present", "runtime error allow flag is diagnostic only", "unknown warn allow flag is diagnostic only", "high risk allow flag is diagnostic only", "ALLOW_RUNTIME_ERROR", "ALLOW_UNKNOWN_WARN", "ALLOW_HIGH_RISK_LOG", "runtime-log-smoke-classification-test")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/test_runtime_log_smoke_classification.ps1") -Description "runtime log smoke classification test keeps live blocker marker $pattern"
     }
     foreach ($pattern in @("ALLOW_UNKNOWN_WARN.*=.*0", "ALLOW_RUNTIME_ERROR.*=.*0", "ALLOW_HIGH_RISK_LOG.*=.*0")) {

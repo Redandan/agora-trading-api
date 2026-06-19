@@ -140,4 +140,29 @@ Assert-SmokeCase `
     ) `
     -Environment @{ ALLOW_RUNTIME_ERROR = "1" }
 
+Assert-SmokeCase `
+    -Name "unknown warn allow flag is diagnostic only" `
+    -Lines @(
+        "2026-06-18T00:00:00.000Z  WARN 1 --- [agora-trading-api] UnexpectedWarningSource : unexpected warning before live review"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "unknown WARN lines present but allowed: count=1",
+        "runtime log smoke complete"
+    ) `
+    -Environment @{ ALLOW_UNKNOWN_WARN = "1" }
+
+Assert-SmokeCase `
+    -Name "high risk allow flag is diagnostic only" `
+    -Lines @(
+        "2026-06-18T00:00:00.000Z  INFO 1 --- [agora-trading-api] Started TradingApplication",
+        "2026-06-18T00:00:01.000Z  INFO 1 --- [agora-trading-api] order placed successfully for BTCUSDT"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "high-risk operation-like log lines present but allowed: count=1",
+        "runtime log smoke complete"
+    ) `
+    -Environment @{ ALLOW_HIGH_RISK_LOG = "1" }
+
 Write-Host "[runtime-log-smoke-classification-test] OK"

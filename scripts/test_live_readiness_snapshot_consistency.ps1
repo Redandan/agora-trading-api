@@ -1,0 +1,102 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+
+$expectedObservedAt = "2026-06-19T10:06+08:00"
+$expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
+$expectedOriginCommit = "8b8437c8ad1bae6767393d625ab4454dd08686c5"
+$expectedBlockers = @(
+    "LIVE_READINESS_NOT_READY",
+    "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
+    "EXECUTION_ELIGIBILITY_NOT_READY",
+    "BACKGROUND_AUTOMATION_REVIEW",
+    "RUNTIME_EVIDENCE_CONFIG_DISABLED",
+    "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
+    "TINY_LIVE_LOSS_HARD_STOP",
+    "TINY_LIVE_ROLLOUT_NOT_READY",
+    "SIGNAL_POLICY_REVIEW_GAPS",
+    "DEPLOYED_RUNTIME_NOT_CURRENT"
+)
+
+function Read-RepoText {
+    param([string]$RelativePath)
+    Get-Content -Raw -LiteralPath (Join-Path $repoRoot $RelativePath)
+}
+
+function Assert-ContainsLiteral {
+    param(
+        [string]$Name,
+        [string]$Text,
+        [string]$Needle
+    )
+    if (-not $Text.Contains($Needle)) {
+        throw "$Name missing literal: $Needle"
+    }
+}
+
+function Assert-ContainsPattern {
+    param(
+        [string]$Name,
+        [string]$Text,
+        [string]$Pattern
+    )
+    if ($Text -notmatch $Pattern) {
+        throw "$Name missing pattern: $Pattern"
+    }
+}
+
+function Assert-BlockersPresent {
+    param(
+        [string]$Name,
+        [string]$Text
+    )
+    foreach ($blocker in $expectedBlockers) {
+        Assert-ContainsLiteral -Name $Name -Text $Text -Needle $blocker
+    }
+}
+
+function Assert-BlockerJsonExact {
+    param(
+        [string]$Name,
+        [string]$Text
+    )
+    $json = 'bundle_blockers=["' + ($expectedBlockers -join '","') + '"]'
+    Assert-ContainsLiteral -Name $Name -Text $Text -Needle $json
+}
+
+$splitStatus = Read-RepoText "docs/split-acceptance-status.md"
+$splitProgress = Read-RepoText "SPLIT_PROGRESS.md"
+$remediation = Read-RepoText "docs/live-readiness-blocker-remediation.md"
+$productionProposal = Read-RepoText "docs/live-production-env-review-proposal.md"
+
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress },
+        @{ Name = "live production env review proposal"; Text = $productionProposal }
+    )) {
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedObservedAt
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedServerCommit
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedOriginCommit
+    Assert-BlockersPresent -Name $doc.Name -Text $doc.Text
+}
+
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedServerCommit
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedOriginCommit
+Assert-BlockersPresent -Name "live readiness remediation" -Text $remediation
+
+Assert-BlockerJsonExact -Name "live production env review proposal refreshed snapshot" -Text $productionProposal
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "Latest refreshed read-only bundle evidence supersedes only the older 09:11"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'stale again whenever `origin/main` advances'
+
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress },
+        @{ Name = "live readiness remediation"; Text = $remediation },
+        @{ Name = "live production env review proposal"; Text = $productionProposal }
+    )) {
+    Assert-ContainsPattern -Name $doc.Name -Text $doc.Text -Pattern "stale\s+live-review evidence"
+    Assert-ContainsPattern -Name $doc.Name -Text $doc.Text -Pattern "separately\s+authorized"
+}
+
+Write-Host "[live-readiness-snapshot-consistency-test] OK"

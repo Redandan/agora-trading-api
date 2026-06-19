@@ -516,7 +516,7 @@ Assert-BlockerCase -Name "missing deployment metadata fails closed" -Inputs (Mer
 Assert-BlockerCase `
     -Name "current observed blocker mix" `
     -Inputs @{
-        Audit = "$($readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY"))`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`"]"
+        Audit = "$($readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY").Replace("runtime_log_status=PASS", "runtime_log_status=FAIL"))`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"RUNTIME_LOG_SMOKE_FAILED`"]"
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
@@ -528,6 +528,7 @@ Assert-BlockerCase `
         "LIVE_READINESS_NOT_READY",
         "EXECUTION_ELIGIBILITY_NOT_READY",
         "BACKGROUND_AUTOMATION_REVIEW",
+        "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
         "RUNTIME_EVIDENCE_CONFIG_DISABLED",
         "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
         "SIGNAL_POLICY_REVIEW_GAPS",

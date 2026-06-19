@@ -630,7 +630,11 @@ Expected:
 
 - The script reads server env and app metadata only.
 - Output includes `background_automation_true`,
-  `high_risk_background_automation_true`, `classification`, and `verdict`.
+  `high_risk_background_automation_true`,
+  `missing_background_automation_flags`, `classification`, and `verdict`.
+- `missing_background_automation_flags` must be empty before the background
+  automation blocker can clear; absent reviewed env keys are not treated as
+  explicit false evidence.
 - `verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW` means live remains blocked
   until the listed flags are reviewed or separately authorized.
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,

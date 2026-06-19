@@ -87,7 +87,9 @@ foreach ($flag in $expectedHighRiskFlags) {
 
 foreach ($pattern in @(
         "background_automation_false",
+        "missing_background_automation_flags",
         "lists all nine reviewed background flags",
+        "missing background automation flag",
         "does not list every reviewed background flag",
         "OK_BACKGROUND_AUTOMATION_DISABLED",
         "BACKGROUND_AUTOMATION_REVIEW`` no longer appears in ``bundle_blockers``",
@@ -105,6 +107,8 @@ foreach ($pattern in @(
 
 foreach ($pattern in @(
         "background_automation_false=",
+        "missing_background_automation_flags=",
+        "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
         "classification=BACKGROUND_AUTOMATION_CLEARED",
         "verdict=OK_BACKGROUND_AUTOMATION_DISABLED",
         "classification=BACKGROUND_AUTOMATION_REVIEW_BEFORE_LIVE",

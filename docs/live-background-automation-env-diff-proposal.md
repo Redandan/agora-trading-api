@@ -98,9 +98,12 @@ Expected:
 
 - `background_automation_true=[]`
 - `high_risk_background_automation_true=[]`
+- `missing_background_automation_flags=[]`
 - `background_automation_false` lists all nine reviewed background flags.
 - `verdict=OK_BACKGROUND_AUTOMATION_DISABLED`
 - `BACKGROUND_AUTOMATION_REVIEW` no longer appears in `bundle_blockers`
+- No missing background automation flag is reported; each reviewed flag must be
+  present in the server env and explicitly set to `false`.
 - `order_capable_flags` remain false
 - runtime logs show no order placement, OCO modification, grid/fund/Earn
   operation, Telegram send, scheduler surprise, exchange write, external
@@ -119,6 +122,8 @@ Restore the prior env state and investigate if any of these occur:
   background automation
 - `background_automation_false` does not list every reviewed background flag
   after the authorized env change
+- `missing_background_automation_flags` lists any reviewed background flag,
+  because absent env keys are not accepted as explicit live-readiness evidence
 
 ## Live Boundary
 

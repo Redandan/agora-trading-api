@@ -71,6 +71,9 @@ def read_env():
 def bool_value(values, key):
     return str(values.get(key, "")).lower() == "true"
 
+def has_key(values, key):
+    return key in values and str(values.get(key, "")).strip() != ""
+
 def text_file(path, default="UNKNOWN"):
     try:
         with open(os.path.join(app_dir, path), "r", encoding="utf-8") as handle:
@@ -108,7 +111,8 @@ high_risk_flags = [
 
 true_flags = [key for key in background_flags if bool_value(values, key)]
 high_risk_true = [key for key in high_risk_flags if bool_value(values, key)]
-false_flags = [key for key in background_flags if not bool_value(values, key)]
+missing_flags = [key for key in background_flags if not has_key(values, key)]
+false_flags = [key for key in background_flags if has_key(values, key) and not bool_value(values, key)]
 
 print("[live-background-automation] read-only server env smoke")
 print(f"commit={git_commit()}")
@@ -118,12 +122,15 @@ print("background_automation_flags=" + json.dumps({key: bool_value(values, key) 
 print("background_automation_true=" + json.dumps(true_flags))
 print("high_risk_background_automation_true=" + json.dumps(high_risk_true))
 print("background_automation_false=" + json.dumps(false_flags))
+print("missing_background_automation_flags=" + json.dumps(missing_flags))
 
-if true_flags:
+if true_flags or missing_flags:
     print("classification=BACKGROUND_AUTOMATION_REVIEW_BEFORE_LIVE")
     print("recommendation=KEEP_LIVE_DISABLED_UNTIL_FLAGS_ARE_REVIEWED_OR_SEPARATELY_AUTHORIZED")
     if high_risk_true:
         print("blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE")
+    if missing_flags:
+        print("blocker=MISSING_BACKGROUND_AUTOMATION_FLAG")
     print("verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW")
 else:
     print("classification=BACKGROUND_AUTOMATION_CLEARED")

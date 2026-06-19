@@ -372,6 +372,8 @@ function Assert-ReviewPacketMinimumGuarded {
 
     foreach ($pattern in @(
             'bundle_blockers=[]',
+            'live_review_packet_allowed=true',
+            'deploy_required_before_live_review=false',
             'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
             'bundle_verdict=NOT_READY',
             'bundle_verdict=NO_EVIDENCE',
@@ -406,6 +408,7 @@ function Assert-OperatorDocsReadyBoundary {
                 'Do not draft a live review packet unless',
                 'bundle_blockers=[]',
                 'live_review_packet_allowed=true',
+                'deploy_required_before_live_review=false',
                 'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
                 'live_review_packet_allowed=false',
                 'NOT_READY',

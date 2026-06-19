@@ -150,5 +150,6 @@ used as approval to open live trading. A later live proposal must still include
 the exact env diff, blast-radius classification, current smoke outputs,
 full-bundle `bundle_blockers=[]`,
 `live_review_packet_allowed=true`,
+`deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, tiny-live live loss hard-stop status,
 runtime evidence status, rollback steps, and a separate operator authorization.

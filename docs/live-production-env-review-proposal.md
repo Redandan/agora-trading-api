@@ -222,6 +222,7 @@ previous env state before continuing:
 Clearing this proposal is still not live approval. A live proposal must be a
 separate change with exact env diff, current smoke outputs, full-bundle
 `bundle_blockers=[]`, `live_review_packet_allowed=true`,
+`deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
 tiny-live hard-stop status, runtime evidence status, market-signal state, loss
 budget, rollback steps, and explicit operator authorization.

@@ -658,7 +658,8 @@ Expected:
   evidence until a separate deploy and verification refresh the runtime and
   server worktree to `origin/main`.
 - Do not draft a live review packet unless the latest full bundle prints
-  `bundle_blockers=[]`, `live_review_packet_allowed=true`, and
+  `bundle_blockers=[]`, `live_review_packet_allowed=true`,
+  `deploy_required_before_live_review=false`, and
   `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`; `NOT_READY`,
   `NO_EVIDENCE`, `live_review_packet_allowed=false`, and stale runtime metadata
   remain blocking evidence.

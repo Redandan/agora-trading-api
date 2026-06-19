@@ -127,6 +127,7 @@ blocked while runtime evidence, tiny-live hard stop, market-condition, or signal
 policy blockers remain. A later live proposal still needs exact env diff,
 current smoke outputs, full-bundle `bundle_blockers=[]`,
 `live_review_packet_allowed=true`,
+`deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, runtime evidence,
 tiny-live hard-stop state, signal governance evidence, and separate operator
 authorization.

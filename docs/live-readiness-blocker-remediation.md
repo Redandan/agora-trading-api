@@ -125,6 +125,7 @@ A future live review packet must include:
 
 - latest full-bundle output with `bundle_blockers=[]`,
   `live_review_packet_allowed=true`, and
+  `deploy_required_before_live_review=false`, plus
   `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`
 - explicit confirmation that the packet does not rely on
   `bundle_verdict=NOT_READY`, `bundle_verdict=NO_EVIDENCE`,

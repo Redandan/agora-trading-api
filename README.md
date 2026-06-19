@@ -265,6 +265,11 @@ problem, not live-readiness evidence.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.
+If the refreshed runtime log smoke fails after deploying the classified log
+checker, attach the `ERROR category ...` line and
+`ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker before reviewing
+`EVENT_SCAN_NOTIFICATION_ENABLED`, `EXECUTION_EVENT_ENABLED`, Telegram send
+health, or background automation authorization.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.

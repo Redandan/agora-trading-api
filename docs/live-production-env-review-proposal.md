@@ -107,6 +107,26 @@ If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.
 
+Latest read-only deployment metadata refresh:
+
+```text
+observedAt=2026-06-19T13:56+08:00
+refreshType=DEPLOYMENT_METADATA_ONLY
+serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+deployedCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+originMainCommit=27571579ff974c0367339e3e0a4f01d1bc175be7
+origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+deployment_metadata_status=CURRENT
+live_review_packet_allowed=false
+deploy_required_before_live_review=true
+bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
+```
+
+This metadata-only refresh did not run the full live-readiness bundle. It only
+confirms the deployed runtime is still stale relative to current `origin/main`;
+use it to preserve the `DEPLOYED_RUNTIME_NOT_CURRENT` blocker, not to clear any
+live gate.
+
 ## Evidence-Only Candidate
 
 The only candidate that may be proposed before live execution is runtime

@@ -81,6 +81,13 @@ reviewing background automation. A future review must refresh the server
 runtime and rerun the full read-only bundle; do not combine stale server output
 with local or GitHub HEAD evidence.
 
+A later read-only deployment metadata refresh on 2026-06-19T13:56+08:00
+observed the same server/deployed commit
+`224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
+`27571579ff974c0367339e3e0a4f01d1bc175be7`. That metadata-only refresh does not
+clear any blocker and is not a substitute for rerunning the full bundle after a
+separately authorized deploy.
+
 ## Audit Classifications
 
 `audit_live_readiness_ssh.ps1` also prints `blocker_classification` and

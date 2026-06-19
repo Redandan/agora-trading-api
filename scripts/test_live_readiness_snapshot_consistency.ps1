@@ -4,8 +4,10 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $expectedObservedAt = "2026-06-19T12:15+08:00"
+$expectedMetadataObservedAt = "2026-06-19T13:56+08:00"
 $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
+$expectedMetadataOriginCommit = "27571579ff974c0367339e3e0a4f01d1bc175be7"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -78,11 +80,17 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedObservedAt
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedServerCommit
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedOriginCommit
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedMetadataObservedAt
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedMetadataOriginCommit
+    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "metadata-only"
     Assert-BlockersPresent -Name $doc.Name -Text $doc.Text
 }
 
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedServerCommit
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedOriginCommit
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedMetadataObservedAt
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedMetadataOriginCommit
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "metadata-only"
 Assert-BlockersPresent -Name "live readiness remediation" -Text $remediation
 
 Assert-BlockerJsonExact -Name "live production env review proposal refreshed snapshot" -Text $productionProposal
@@ -92,6 +100,8 @@ Assert-ContainsLiteral -Name "live production env review proposal refreshed snap
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=true"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "predates the classified log smoke"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "classified log smoke reached the deployed service"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "refreshType=DEPLOYMENT_METADATA_ONLY"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY"
 
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },

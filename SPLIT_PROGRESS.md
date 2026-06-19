@@ -265,6 +265,12 @@
   `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this
   as stale live-review evidence until the server is refreshed to `origin/main`
   by a separately authorized deploy and the bundle is rerun.
+- A later read-only deployment metadata refresh on 2026-06-19T13:56+08:00
+  observed the server worktree and deployed runtime still at
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
+  to `27571579ff974c0367339e3e0a4f01d1bc175be7`. This was metadata-only, not a
+  full live-readiness bundle, and only confirms `DEPLOYED_RUNTIME_NOT_CURRENT`
+  remains until a separately authorized deploy and fresh read-only bundle.
 - `scripts/smoke_live_readiness_bundle_ssh.ps1` now prints
   `deployment_metadata_status` and adds `DEPLOYED_RUNTIME_NOT_CURRENT` when
   deployed runtime metadata is missing/unknown or runtime files differ from the

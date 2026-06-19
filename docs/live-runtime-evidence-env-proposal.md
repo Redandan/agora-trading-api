@@ -53,6 +53,13 @@ Treat both records as stale live-review evidence until a separately authorized
 deploy refreshes the server to `origin/main` and the read-only runtime evidence
 RCA plus full live-readiness bundle are rerun.
 
+A later read-only deployment metadata refresh on 2026-06-19T13:56+08:00
+observed the server worktree and deployed runtime still at
+`224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
+`27571579ff974c0367339e3e0a4f01d1bc175be7`. This metadata-only refresh does not
+change the runtime-evidence diagnosis; it only confirms the stale-runtime
+blocker remains.
+
 The live-readiness bundle currently includes:
 
 ```text

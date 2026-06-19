@@ -446,10 +446,12 @@ if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
 }
 if ($tinyLive -notmatch "hardStopDetected=false" `
         -or $tinyLive -match "hardStopDetected=true" `
-        -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
+        -or $tinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES" `
+        -or $tinyLive -match "missing_tiny_live_hard_stop_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]") {
     $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
 }
-if ($tinyLive -notmatch "canEnableProduction=true") {
+if ($tinyLive -notmatch "canEnableProduction=true" `
+        -or $tinyLive -match "missing_tiny_live_rollout_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]") {
     $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
 }
 if ($signal -match "REVIEW_POLICY_GAPS" `

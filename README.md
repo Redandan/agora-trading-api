@@ -178,6 +178,8 @@ Read-only tiny-live loss hard-stop RCA when live-readiness reports
 This calls server-local `/api/mcp` only and summarizes tiny-live execution
 readiness, auto-approval blockers, recent tiny-live audit rows, autonomous
 execution attribution, missed-opportunity context, and monitor/rollout status.
+`missing_tiny_live_fields` must be empty before the tiny-live RCA can clear the
+hard-stop or rollout live-readiness gates.
 The default 30-day window matches the consecutive-loss guard used by the
 auto-approval policy.
 It does not place orders, enable scheduler/live flags, send Telegram, modify

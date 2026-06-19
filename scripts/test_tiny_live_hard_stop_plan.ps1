@@ -57,6 +57,9 @@ foreach ($marker in @(
         "dailyLossBudgetBreached",
         "canEnableProduction",
         "canIncreaseDailyCap",
+        "missing_tiny_live_hard_stop_fields",
+        "missing_tiny_live_rollout_fields",
+        "missing_tiny_live_fields",
         "orderSent=false",
         "KEEP_DISABLED",
         "SCOPE: this smoke is read-only"
@@ -71,6 +74,7 @@ foreach ($pattern in @(
         'canEnableProduction=true',
         'Missing or `N/A` hard-stop evidence stays blocked',
         'Missing or `N/A` rollout evidence stays blocked',
+        'missing_tiny_live_fields=[]',
         'consecutive tiny-live losses are below policy limit',
         'current BUY/add candidate exists',
         'runtime evidence is available',

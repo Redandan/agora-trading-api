@@ -196,19 +196,43 @@ missed_json = parse_json_object(missed)
 hard_stop_detected = "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES" in "\n".join([
     readiness, trigger, auto_approval, auto_execution, executions, attribution, monitor, rollout, missed, truth
 ])
+tiny_hard_stop_fields = {
+    "autoApprovalEligible": field(r'autoApprovalEligible=([^\n]+)', readiness),
+    "triggerEnabled": field(r'triggerEnabled=([^\n]+)', trigger),
+    "triggerDryRun": field(r'triggerDryRun=([^\n]+)', trigger),
+    "executionEligible": field(r'executionEligible=([^\n]+)', trigger),
+    "wouldExecute": field(r'wouldExecute=([^\n]+)', trigger),
+}
+tiny_rollout_fields = {
+    "completedTinyLiveSamples": field(r'completedTinyLiveSamples=([^\n]+)', rollout),
+    "falsePositiveCount": field(r'falsePositiveCount=([^\n]+)', rollout),
+    "dailyLossBudgetBreached": field(r'dailyLossBudgetBreached=([^\n]+)', rollout),
+    "canEnableProduction": field(r'canEnableProduction=([^\n]+)', rollout),
+    "canIncreaseDailyCap": field(r'canIncreaseDailyCap=([^\n]+)', rollout),
+}
+missing_tiny_live_hard_stop_fields = [
+    name for name, value in tiny_hard_stop_fields.items()
+    if value is None or str(value).strip() in ("", "N/A")
+]
+missing_tiny_live_rollout_fields = [
+    name for name, value in tiny_rollout_fields.items()
+    if value is None or str(value).strip() in ("", "N/A")
+]
+missing_tiny_live_fields = missing_tiny_live_hard_stop_fields + missing_tiny_live_rollout_fields
 
 print("")
 print("Hard Stop:")
 print(f"  hardStopDetected={str(hard_stop_detected).lower()}")
-print(f"  autoApprovalEligible={field(r'autoApprovalEligible=([^\n]+)', readiness)}")
+print(f"  autoApprovalEligible={tiny_hard_stop_fields['autoApprovalEligible']}")
 print(f"  autoApprovalMode={field(r'autoApprovalMode=([^\n]+)', readiness)}")
 print(f"  autoApprovalBlockers={compact(field(r'autoApprovalBlockers=([^\n]+)', readiness))}")
 print(f"  missedAlphaBudgetRemaining={field(r'missedAlphaBudgetRemaining=([^\n]+)', auto_approval)}")
 print(f"  maxLossIfWrongUsdt={field(r'maxLossIfWrongUsdt=([^\n]+)', auto_approval)}")
 print(f"  allowedMistakeBudgetUsed={field(r'allowedMistakeBudgetUsed=([^\n]+)', auto_approval)}")
-print(f"  triggerEnabled={field(r'triggerEnabled=([^\n]+)', trigger)} triggerDryRun={field(r'triggerDryRun=([^\n]+)', trigger)}")
-print(f"  executionEligible={field(r'executionEligible=([^\n]+)', trigger)} wouldExecute={field(r'wouldExecute=([^\n]+)', trigger)}")
+print(f"  triggerEnabled={tiny_hard_stop_fields['triggerEnabled']} triggerDryRun={tiny_hard_stop_fields['triggerDryRun']}")
+print(f"  executionEligible={tiny_hard_stop_fields['executionEligible']} wouldExecute={tiny_hard_stop_fields['wouldExecute']}")
 print(f"  terminalBlockers={compact(field(r'terminalBlockers=([^\n]+)', trigger))}")
+print(f"  missing_tiny_live_hard_stop_fields={json.dumps(missing_tiny_live_hard_stop_fields)}")
 print("  hardStopClearCriteria=maxConsecutiveTinyLiveLosses<2, current BUY candidate present, runtime evidence available, execution flags separately authorized")
 
 print("")
@@ -224,12 +248,14 @@ print("")
 print("Rollout Gates:")
 print(f"  loopState={field(r'loopState=([^\n]+)', rollout)}")
 print(f"  consecutiveReadyTicks={field(r'consecutiveReadyTicks=([^\n]+)', rollout)}")
-print(f"  completedTinyLiveSamples={field(r'completedTinyLiveSamples=([^\n]+)', rollout)}")
-print(f"  falsePositiveCount={field(r'falsePositiveCount=([^\n]+)', rollout)}")
-print(f"  dailyLossBudgetBreached={field(r'dailyLossBudgetBreached=([^\n]+)', rollout)}")
-print(f"  canEnableProduction={field(r'canEnableProduction=([^\n]+)', rollout)}")
-print(f"  canIncreaseDailyCap={field(r'canIncreaseDailyCap=([^\n]+)', rollout)}")
+print(f"  completedTinyLiveSamples={tiny_rollout_fields['completedTinyLiveSamples']}")
+print(f"  falsePositiveCount={tiny_rollout_fields['falsePositiveCount']}")
+print(f"  dailyLossBudgetBreached={tiny_rollout_fields['dailyLossBudgetBreached']}")
+print(f"  canEnableProduction={tiny_rollout_fields['canEnableProduction']}")
+print(f"  canIncreaseDailyCap={tiny_rollout_fields['canIncreaseDailyCap']}")
 print(f"  rolloutBlockers={compact(field(r'blockers=([^\n]+)', rollout), 360)}")
+print(f"  missing_tiny_live_rollout_fields={json.dumps(missing_tiny_live_rollout_fields)}")
+print(f"  missing_tiny_live_fields={json.dumps(missing_tiny_live_fields)}")
 
 print("")
 print("Opportunity/No-Buy Context:")

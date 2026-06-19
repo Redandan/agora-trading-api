@@ -579,6 +579,10 @@ Expected:
   missed-opportunity context, rollout gates, and monitor/rollout excerpts. The
   default 30-day window matches the consecutive-loss guard used by the
   auto-approval policy.
+- It prints `missing_tiny_live_hard_stop_fields=[]`,
+  `missing_tiny_live_rollout_fields=[]`, and `missing_tiny_live_fields=[]`
+  when reviewed hard-stop and rollout evidence is complete. Any non-empty list
+  keeps the related live-readiness blocker open.
 - It prints `hardStopClearCriteria` so review stays tied to the policy gate:
   consecutive tiny-live losses below 2, a current BUY candidate, runtime
   evidence available, and any execution flag change handled by a separately

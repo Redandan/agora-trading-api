@@ -31,6 +31,9 @@ The current server evidence keeps live blocked while these remain true:
 - `diagnosis=CONFIG_DISABLED`
 - `shadowIntentCount=0`
 - `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`
+- non-empty `missing_tiny_live_fields`,
+  `missing_tiny_live_hard_stop_fields`, or
+  `missing_tiny_live_rollout_fields`
 - `verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW`
 - `HIGH_RISK_BACKGROUND_AUTOMATION_TRUE`
 - `REVIEW_POLICY_GAPS` or unresolved signal correctness / governance drift
@@ -256,5 +259,5 @@ separate change with exact env diff, current smoke outputs, full-bundle
 `bundle_blockers=[]`, `live_review_packet_allowed=true`,
 `deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
-tiny-live hard-stop status, runtime evidence status, market-signal state, loss
+tiny-live hard-stop status with `missing_tiny_live_fields=[]`, runtime evidence status, market-signal state, loss
 budget, rollback steps, and explicit operator authorization.

@@ -126,10 +126,12 @@ function Get-LiveReadinessBundleBlockers {
     }
     if ($TinyLive -notmatch "hardStopDetected=false" `
             -or $TinyLive -match "hardStopDetected=true" `
-            -or $TinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES") {
+            -or $TinyLive -match "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES" `
+            -or $TinyLive -match "missing_tiny_live_hard_stop_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]") {
         $blockers.Add("TINY_LIVE_LOSS_HARD_STOP")
     }
-    if ($TinyLive -notmatch "canEnableProduction=true") {
+    if ($TinyLive -notmatch "canEnableProduction=true" `
+            -or $TinyLive -match "missing_tiny_live_rollout_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]") {
         $blockers.Add("TINY_LIVE_ROLLOUT_NOT_READY")
     }
     if ($Signal -match "REVIEW_POLICY_GAPS" `
@@ -510,6 +512,8 @@ Assert-BlockerCase -Name "tiny live consecutive loss text" -Inputs (Merge-Inputs
 Assert-BlockerCase -Name "tiny live rollout not ready" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=false" }) -ExpectedBlockers @("TINY_LIVE_ROLLOUT_NOT_READY")
 Assert-BlockerCase -Name "tiny live missing hard stop marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "Rollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live missing rollout marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=N/A" }) -ExpectedBlockers @("TINY_LIVE_ROLLOUT_NOT_READY")
+Assert-BlockerCase -Name "tiny live missing hard stop fields fail closed" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nmissing_tiny_live_hard_stop_fields=[`"executionEligible`"]`nRollout Gates:`n  canEnableProduction=true`nmissing_tiny_live_rollout_fields=[]" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
+Assert-BlockerCase -Name "tiny live missing rollout fields fail closed" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nmissing_tiny_live_hard_stop_fields=[]`nRollout Gates:`n  canEnableProduction=true`nmissing_tiny_live_rollout_fields=[`"completedTinyLiveSamples`"]" }) -ExpectedBlockers @("TINY_LIVE_ROLLOUT_NOT_READY")
 Assert-BlockerCase -Name "signal policy review gaps" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Operator action: REVIEW_POLICY_GAPS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal governance too strict" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal governance too loose" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=TOO_LOOSE" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")

@@ -23,6 +23,9 @@ Treat live as blocked while any of these are true:
 - `smoke_tiny_live_loss_rca_ssh.ps1` reports
   `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`,
   `hardStopDetected=true`, or rollout gates that cannot enable production.
+- `smoke_tiny_live_loss_rca_ssh.ps1` reports non-empty
+  `missing_tiny_live_fields`, `missing_tiny_live_hard_stop_fields`, or
+  `missing_tiny_live_rollout_fields`.
 - `smoke_runtime_evidence_rca_ssh.ps1` reports `diagnosis=CONFIG_DISABLED`,
   `NO_CANONICAL_ROWS`, `CANONICAL_ROWS_NO_SHADOW_INTENT`, or
   `runtimeEvidenceStatus=NOT_READY_*`.
@@ -151,5 +154,5 @@ the exact env diff, blast-radius classification, current smoke outputs,
 full-bundle `bundle_blockers=[]`,
 `live_review_packet_allowed=true`,
 `deploy_required_before_live_review=false`,
-`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, tiny-live live loss hard-stop status,
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, tiny-live live loss hard-stop status with `missing_tiny_live_fields=[]`,
 runtime evidence status, rollback steps, and a separate operator authorization.

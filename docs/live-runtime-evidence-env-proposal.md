@@ -9,7 +9,7 @@ jobs, mutate DB state, or change schedulers.
 
 ## Current Evidence
 
-The read-only runtime evidence RCA currently reports:
+The recorded read-only runtime evidence RCA reported:
 
 ```text
 observedAt=2026-06-18T22:50+08:00
@@ -29,6 +29,26 @@ noCurrentBuyCandidateReason=LATEST_SIGNAL_HOLD
 currentSignalDecision=HOLD
 currentSignalAgeMinutes=50
 ```
+
+This RCA output is historical because the server worktree was not at the
+observed `origin/main` commit. The latest recorded live-readiness bundle on
+2026-06-19T10:06+08:00 still reinforced the same runtime-evidence blockers
+against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
+`origin/main` was `8b8437c8ad1bae6767393d625ab4454dd08686c5`:
+
+```text
+diagnosis=CONFIG_DISABLED
+env.TRADING_RUNTIME_EVIDENCE_ENABLED=EMPTY
+runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE
+runtimeEvidenceRows=200
+shadowIntentCount=0
+shadowExecutionIntents=0
+orderSentEvidence=0
+```
+
+Treat both records as stale live-review evidence until a separately authorized
+deploy refreshes the server to `origin/main` and the read-only runtime evidence
+RCA plus full live-readiness bundle are rerun.
 
 The live-readiness bundle currently includes:
 

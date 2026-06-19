@@ -128,6 +128,13 @@ foreach ($flag in $expectedDryRunGuardFlags) {
 }
 
 foreach ($marker in @(
+        "recorded read-only runtime evidence RCA reported",
+        "This RCA output is historical",
+        "latest recorded live-readiness bundle on",
+        "2026-06-19T10:06+08:00",
+        "8b8437c8ad1bae6767393d625ab4454dd08686c5",
+        "Treat both records as stale live-review evidence",
+        "separately authorized",
         "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS",
         "RUNTIME_EVIDENCE_REVIEW_REQUIRED",
         "RUNTIME_EVIDENCE_ORDER_SENT",

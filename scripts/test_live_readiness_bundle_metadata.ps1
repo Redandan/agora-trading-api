@@ -14,10 +14,12 @@ function Get-LiveReadinessMetadataSummary {
     if ($DeploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
         $originStatus = $Matches[1]
     }
-    if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)") {
+    if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `
+            -or $DeploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
-    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)") {
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
+            -or $DeploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
 
@@ -190,6 +192,31 @@ liveBundleDeployStatus=UNKNOWN_DEPLOY_METADATA
 "@ `
     -ExpectedDeploymentStatus "UNKNOWN_DEPLOY_METADATA" `
     -ExpectedOriginStatus "CURRENT_ORIGIN_MAIN" `
+    -ExpectRuntimeCurrentBlocker $true
+
+Assert-MetadataCase `
+    -Name "missing deploy metadata fails closed" `
+    -DeploymentMetadata @"
+liveBundleOriginStatus=CURRENT_ORIGIN_MAIN
+"@ `
+    -ExpectedDeploymentStatus "UNKNOWN" `
+    -ExpectedOriginStatus "CURRENT_ORIGIN_MAIN" `
+    -ExpectRuntimeCurrentBlocker $true
+
+Assert-MetadataCase `
+    -Name "missing origin metadata fails closed" `
+    -DeploymentMetadata @"
+liveBundleDeployStatus=CURRENT
+"@ `
+    -ExpectedDeploymentStatus "CURRENT" `
+    -ExpectedOriginStatus "UNKNOWN" `
+    -ExpectRuntimeCurrentBlocker $true
+
+Assert-MetadataCase `
+    -Name "empty metadata fails closed" `
+    -DeploymentMetadata "" `
+    -ExpectedDeploymentStatus "UNKNOWN" `
+    -ExpectedOriginStatus "UNKNOWN" `
     -ExpectRuntimeCurrentBlocker $true
 
 Write-Host "[live-bundle-metadata-test] OK"

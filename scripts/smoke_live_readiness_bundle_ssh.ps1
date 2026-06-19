@@ -225,6 +225,49 @@ fi
     return ($output -join "`n")
 }
 
+function Get-AuditReadinessDetails {
+    param([string]$AuditText)
+
+    $line = @($AuditText -split "`r?`n" | Where-Object { $_ -like "readiness_details=*" } | Select-Object -Last 1)
+    if (-not $line) {
+        return $null
+    }
+
+    try {
+        return $line.Substring("readiness_details=".Length) | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        return $null
+    }
+}
+
+function Test-ReadinessSectionPresent {
+    param(
+        [object]$Details,
+        [string]$Name
+    )
+
+    return $null -ne $Details -and $null -ne $Details.PSObject.Properties[$Name]
+}
+
+function Test-ExecutionEligibleTrue {
+    param(
+        [object]$Details,
+        [string]$Name
+    )
+
+    if (-not (Test-ReadinessSectionPresent -Details $Details -Name $Name)) {
+        return $false
+    }
+
+    $section = $Details.PSObject.Properties[$Name].Value
+    if ($null -eq $section -or $null -eq $section.PSObject.Properties["executionEligible"]) {
+        return $false
+    }
+
+    $value = $section.PSObject.Properties["executionEligible"].Value
+    return $value -eq $true -or [string]::Equals([string]$value, "true", [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 $common = @{
     SshHost = $SshHost
     SshKey = $SshKey
@@ -263,6 +306,7 @@ $mcpParity = Invoke-ReadOnlySmoke -Name "mcp-parity" -ScriptName "smoke_mcp_pari
         Symbol = $Symbol
         IntervalCode = $IntervalCode
     })
+$readinessDetails = Get-AuditReadinessDetails -AuditText $audit
 
 $blockers = [System.Collections.Generic.List[string]]::new()
 if ($audit -match "verdict=NOT_READY" `
@@ -290,18 +334,18 @@ if ($audit -match "EVENT_RISK_NOT_R0" `
     $blockers.Add("EVENT_RISK_NOT_BASELINE")
 }
 if ($audit -match "MCP_TOOL_ERROR:" `
-        -or $audit -notmatch 'readiness_details=.*"tinyLive"' `
-        -or $audit -notmatch 'readiness_details=.*"autonomousOpportunity"' `
-        -or $audit -notmatch 'readiness_details=.*"scoreBuyPrePosition"' `
-        -or $audit -notmatch 'readiness_details=.*"scoreBuyConfirmedDeploy"' `
-        -or $audit -notmatch 'readiness_details=.*"scoreBuyPostScoutAdd"') {
+        -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "tinyLive") `
+        -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "autonomousOpportunity") `
+        -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyPrePosition") `
+        -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyConfirmedDeploy") `
+        -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyPostScoutAdd")) {
     $blockers.Add("MCP_AUDIT_TOOL_ERROR")
 }
 if ($audit -match "_NOT_EXECUTION_ELIGIBLE" `
-        -or $audit -notmatch '"tinyLive"\s*:\s*\{[^}]*"executionEligible"\s*:\s*"true"' `
-        -or $audit -notmatch '"scoreBuyPrePosition"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
-        -or $audit -notmatch '"scoreBuyConfirmedDeploy"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
-        -or $audit -notmatch '"scoreBuyPostScoutAdd"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true') {
+        -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "tinyLive") `
+        -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "scoreBuyPrePosition") `
+        -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "scoreBuyConfirmedDeploy") `
+        -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "scoreBuyPostScoutAdd")) {
     $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
 }
 if ($background -match "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `

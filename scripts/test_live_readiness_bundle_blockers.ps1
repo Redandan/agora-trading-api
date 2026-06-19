@@ -1,6 +1,49 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+function Get-AuditReadinessDetails {
+    param([string]$AuditText)
+
+    $line = @($AuditText -split "`r?`n" | Where-Object { $_ -like "readiness_details=*" } | Select-Object -Last 1)
+    if (-not $line) {
+        return $null
+    }
+
+    try {
+        return $line.Substring("readiness_details=".Length) | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        return $null
+    }
+}
+
+function Test-ReadinessSectionPresent {
+    param(
+        [object]$Details,
+        [string]$Name
+    )
+
+    return $null -ne $Details -and $null -ne $Details.PSObject.Properties[$Name]
+}
+
+function Test-ExecutionEligibleTrue {
+    param(
+        [object]$Details,
+        [string]$Name
+    )
+
+    if (-not (Test-ReadinessSectionPresent -Details $Details -Name $Name)) {
+        return $false
+    }
+
+    $section = $Details.PSObject.Properties[$Name].Value
+    if ($null -eq $section -or $null -eq $section.PSObject.Properties["executionEligible"]) {
+        return $false
+    }
+
+    $value = $section.PSObject.Properties["executionEligible"].Value
+    return $value -eq $true -or [string]::Equals([string]$value, "true", [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 function Get-LiveReadinessBundleBlockers {
     param(
         [string]$Audit = "",
@@ -12,6 +55,7 @@ function Get-LiveReadinessBundleBlockers {
         [string]$DeploymentMetadata = ""
     )
 
+    $readinessDetails = Get-AuditReadinessDetails -AuditText $Audit
     $blockers = [System.Collections.Generic.List[string]]::new()
     if ($Audit -match "verdict=NOT_READY" `
             -or $Audit -notmatch "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED") {
@@ -38,18 +82,18 @@ function Get-LiveReadinessBundleBlockers {
         $blockers.Add("EVENT_RISK_NOT_BASELINE")
     }
     if ($Audit -match "MCP_TOOL_ERROR:" `
-            -or $Audit -notmatch 'readiness_details=.*"tinyLive"' `
-            -or $Audit -notmatch 'readiness_details=.*"autonomousOpportunity"' `
-            -or $Audit -notmatch 'readiness_details=.*"scoreBuyPrePosition"' `
-            -or $Audit -notmatch 'readiness_details=.*"scoreBuyConfirmedDeploy"' `
-            -or $Audit -notmatch 'readiness_details=.*"scoreBuyPostScoutAdd"') {
+            -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "tinyLive") `
+            -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "autonomousOpportunity") `
+            -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyPrePosition") `
+            -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyConfirmedDeploy") `
+            -or -not (Test-ReadinessSectionPresent -Details $readinessDetails -Name "scoreBuyPostScoutAdd")) {
         $blockers.Add("MCP_AUDIT_TOOL_ERROR")
     }
     if ($Audit -match "_NOT_EXECUTION_ELIGIBLE" `
-            -or $Audit -notmatch '"tinyLive"\s*:\s*\{[^}]*"executionEligible"\s*:\s*"true"' `
-            -or $Audit -notmatch '"scoreBuyPrePosition"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
-            -or $Audit -notmatch '"scoreBuyConfirmedDeploy"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true' `
-            -or $Audit -notmatch '"scoreBuyPostScoutAdd"\s*:\s*\{[^}]*"executionEligible"\s*:\s*true') {
+            -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "tinyLive") `
+            -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "scoreBuyPrePosition") `
+            -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "scoreBuyConfirmedDeploy") `
+            -or -not (Test-ExecutionEligibleTrue -Details $readinessDetails -Name "scoreBuyPostScoutAdd")) {
         $blockers.Add("EXECUTION_ELIGIBILITY_NOT_READY")
     }
     if ($Background -match "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
@@ -341,6 +385,7 @@ Assert-AuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
 
 $mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}'
+$mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"eligible":true},"scoreBuyPrePosition":{"executionEligible":true,"enabled":false},"scoreBuyConfirmedDeploy":{"executionEligible":true,"enabled":false},"scoreBuyPostScoutAdd":{"executionEligible":true,"enabled":false}}'
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`n$mcpAuditEvidence"
     Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nhigh_risk_background_automation_true=[]"
@@ -353,6 +398,7 @@ $cleanInputs = @{
 $readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`n$mcpAuditEvidence"
 
 Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -ExpectedBlockers @()
+Assert-BlockerCase -Name "clean readiness details json field order drift" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, $mcpAuditEvidenceReordered) }) -ExpectedBlockers @()
 
 Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY") }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
 Assert-BlockerCase -Name "audit missing ready verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`n", "") }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")

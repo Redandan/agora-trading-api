@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-18
+Last refreshed: 2026-06-19
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -154,6 +154,20 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
+- Latest recorded read-only live-readiness bundle on 2026-06-19T10:06+08:00
+  observed server worktree/deployed commit
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
+  `8b8437c8ad1bae6767393d625ab4454dd08686c5`. Health was `UP`, local MCP
+  parity passed at server-local `/api/mcp` with `toolCount=305 required=35`,
+  all order-capable flags were false, and dry-run flags were true. The bundle
+  verdict stayed `NOT_READY` with blockers
+  `LIVE_READINESS_NOT_READY`, `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
+  `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
+  `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this
+  as stale live-review evidence until a separately authorized deploy refreshes
+  the server to `origin/main` and the full read-only bundle is rerun.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
   `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED` before the

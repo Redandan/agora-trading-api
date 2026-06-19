@@ -42,7 +42,9 @@ skip a blocker.
 
 ## Current Expected Blockers
 
-The current server bundle may legitimately report:
+The latest recorded read-only server bundle
+(`224f550478b20a329775f503b3eaa70ba6a2f6a8` deployed while `origin/main` was
+`8b8437c8ad1bae6767393d625ab4454dd08686c5`) may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY

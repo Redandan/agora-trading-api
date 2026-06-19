@@ -42,18 +42,21 @@ function Invoke-RuntimeLogSmoke {
     $bash = Resolve-BashCommand
     $oldAppDir = $env:APP_DIR
     $oldValues = @{}
+    $previousErrorActionPreference = $ErrorActionPreference
     try {
         $env:APP_DIR = $AppDir
         foreach ($key in $Environment.Keys) {
             $oldValues[$key] = [System.Environment]::GetEnvironmentVariable($key, "Process")
             [System.Environment]::SetEnvironmentVariable($key, [string]$Environment[$key], "Process")
         }
+        $ErrorActionPreference = "Continue"
         $output = & $bash $scriptPath 2>&1
         [PSCustomObject]@{
             ExitCode = $LASTEXITCODE
             Text = ($output | Out-String)
         }
     } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
         foreach ($key in $Environment.Keys) {
             [System.Environment]::SetEnvironmentVariable($key, $oldValues[$key], "Process")
         }
@@ -116,6 +119,18 @@ Assert-SmokeCase `
         "ERROR category telegram_service=1 execution_event_scheduler=1 unknown=0",
         "ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH",
         "runtime ERROR lines present: count=2"
+    )
+
+Assert-SmokeCase `
+    -Name "unknown runtime errors fail live readiness log smoke" `
+    -Lines @(
+        "2026-06-18T11:16:10.507Z ERROR 184643 --- [agora-trading-api] [main] c.a.UnknownRuntimePath     : unexpected database/runtime failure before live review"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "UnknownRuntimePath",
+        "ERROR category telegram_service=0 execution_event_scheduler=0 unknown=1",
+        "runtime ERROR lines present: count=1"
     )
 
 Assert-SmokeCase `

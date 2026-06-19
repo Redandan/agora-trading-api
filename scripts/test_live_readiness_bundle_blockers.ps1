@@ -356,6 +356,44 @@ function Assert-BundleEvidenceWindowsCovered {
     }
 }
 
+function Assert-ReviewPacketMinimumGuarded {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
+    $docText = Get-Content -Raw -LiteralPath $docPath
+    $match = [regex]::Match(
+        $docText,
+        '## Review Packet Minimum[\s\S]*?ready for a separate operator decision\.',
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $match.Success) {
+        throw "remediation doc is missing Review Packet Minimum section"
+    }
+    $section = $match.Value
+
+    foreach ($pattern in @(
+            'bundle_blockers=[]',
+            'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+            'bundle_verdict=NOT_READY',
+            'bundle_verdict=NO_EVIDENCE',
+            'LIVE_READINESS_EVIDENCE_UNAVAILABLE',
+            'DEPLOYED_RUNTIME_NOT_CURRENT',
+            'orderSentEvidence=0',
+            'shadowIntentCount` is greater than 0',
+            'hardStopDetected=false',
+            'canEnableProduction=true',
+            'TOO_STRICT',
+            'TOO_LOOSE',
+            'INSUFFICIENT_DATA',
+            'overallStatus=PASS',
+            'not live approval',
+            'separate operator decision'
+        )) {
+        if ($section -notmatch [regex]::Escape($pattern)) {
+            throw "Review Packet Minimum missing guarded marker: $pattern"
+        }
+    }
+}
+
 $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
@@ -383,6 +421,7 @@ Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-CurrentExpectedBlockersMatchLatestSnapshot
 Assert-AuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
+Assert-ReviewPacketMinimumGuarded
 
 $mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}'
 $mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"eligible":true},"scoreBuyPrePosition":{"executionEligible":true,"enabled":false},"scoreBuyConfirmedDeploy":{"executionEligible":true,"enabled":false},"scoreBuyPostScoutAdd":{"executionEligible":true,"enabled":false}}'

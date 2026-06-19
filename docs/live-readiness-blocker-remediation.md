@@ -123,7 +123,11 @@ bounded scope:
 
 A future live review packet must include:
 
-- latest `bundle_blockers` and `bundle_verdict`
+- latest full-bundle output with `bundle_blockers=[]` and
+  `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`
+- explicit confirmation that the packet does not rely on
+  `bundle_verdict=NOT_READY`, `bundle_verdict=NO_EVIDENCE`,
+  `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, or `DEPLOYED_RUNTIME_NOT_CURRENT`
 - full outputs from every required read-only smoke listed above
 - production env diff proposal
 - expected blast radius and rollback plan
@@ -131,6 +135,12 @@ A future live review packet must include:
 - tiny-live loss hard-stop status
 - signal correctness and governance drift summary
 - confirmation that `orderSentEvidence=0` during the evidence-only phase
+- confirmation that `shadowIntentCount` is greater than 0 for the reviewed
+  evidence-only window
+- confirmation that `hardStopDetected=false` and `canEnableProduction=true`
+  for the reviewed tiny-live rollout window
+- confirmation that 7d governance drift is not `TOO_STRICT`, `TOO_LOOSE`, or
+  `INSUFFICIENT_DATA`, and missed-opportunity `overallStatus=PASS`
 
 Clearing this matrix is still not live approval. It only proves the evidence is
 ready for a separate operator decision.

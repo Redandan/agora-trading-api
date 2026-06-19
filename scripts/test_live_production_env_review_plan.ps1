@@ -163,6 +163,7 @@ foreach ($pattern in @(
         'Telegram/ExecutionEvent notification\s+paths',
         'remaining Telegram/ExecutionEvent notification error has separate written\s+authorization and rollback evidence',
         'full-bundle\s+`bundle_blockers=\[\]`',
+        '`live_review_packet_allowed=true`',
         '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
         'not authorization'
     )) {

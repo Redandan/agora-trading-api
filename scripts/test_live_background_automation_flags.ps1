@@ -93,6 +93,7 @@ foreach ($pattern in @(
         "BACKGROUND_AUTOMATION_REVIEW`` no longer appears in ``bundle_blockers``",
         "order_capable_flags`` remain false",
         "full-bundle ``bundle_blockers=[]``",
+        "``live_review_packet_allowed=true``",
         "``bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED``",
         "not live approval"
     )) {

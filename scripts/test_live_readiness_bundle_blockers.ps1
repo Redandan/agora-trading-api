@@ -394,6 +394,29 @@ function Assert-ReviewPacketMinimumGuarded {
     }
 }
 
+function Assert-OperatorDocsReadyBoundary {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docs = @(
+        @{ Name = "README"; Text = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "README.md") },
+        @{ Name = "deploy runbook"; Text = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "docs/deploy-runbook.md") }
+    )
+
+    foreach ($doc in $docs) {
+        foreach ($pattern in @(
+                'Do not draft a live review packet unless',
+                'bundle_blockers=[]',
+                'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+                'NOT_READY',
+                'NO_EVIDENCE',
+                'stale runtime metadata remain blocking evidence'
+            )) {
+            if ($doc.Text -notmatch [regex]::Escape($pattern)) {
+                throw "$($doc.Name) missing live review ready boundary marker: $pattern"
+            }
+        }
+    }
+}
+
 $allExpectedBlockers = @(
     "BACKGROUND_AUTOMATION_REVIEW",
     "DEPLOYED_RUNTIME_NOT_CURRENT",
@@ -422,6 +445,7 @@ Assert-CurrentExpectedBlockersMatchLatestSnapshot
 Assert-AuditClassificationGuidance
 Assert-BundleEvidenceWindowsCovered
 Assert-ReviewPacketMinimumGuarded
+Assert-OperatorDocsReadyBoundary
 
 $mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{},"scoreBuyConfirmedDeploy":{"executionEligible":true},"scoreBuyPostScoutAdd":{"executionEligible":true},"scoreBuyPrePosition":{"executionEligible":true},"tinyLive":{"executionEligible":"true"}}'
 $mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"eligible":true},"scoreBuyPrePosition":{"executionEligible":true,"enabled":false},"scoreBuyConfirmedDeploy":{"executionEligible":true,"enabled":false},"scoreBuyPostScoutAdd":{"executionEligible":true,"enabled":false}}'

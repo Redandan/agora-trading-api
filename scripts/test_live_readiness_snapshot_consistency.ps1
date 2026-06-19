@@ -4,10 +4,10 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $expectedObservedAt = "2026-06-19T12:15+08:00"
-$expectedMetadataObservedAt = "2026-06-19T13:56+08:00"
+$expectedMetadataObservedAt = "2026-06-19T14:31+08:00"
 $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
-$expectedMetadataOriginCommit = "27571579ff974c0367339e3e0a4f01d1bc175be7"
+$expectedMetadataOriginCommit = "735b21c1db7f617bb29de339b65e35242031cc41"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",

@@ -110,11 +110,11 @@ key selection, or the failing read-only smoke before using the output.
 Latest read-only deployment metadata refresh:
 
 ```text
-observedAt=2026-06-19T13:56+08:00
+observedAt=2026-06-19T14:31+08:00
 refreshType=DEPLOYMENT_METADATA_ONLY
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployedCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=27571579ff974c0367339e3e0a4f01d1bc175be7
+originMainCommit=735b21c1db7f617bb29de339b65e35242031cc41
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 live_review_packet_allowed=false

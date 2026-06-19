@@ -180,10 +180,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
   `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
   `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`.
-- Latest read-only deployment metadata refresh on 2026-06-19T13:56+08:00
+- Latest read-only deployment metadata refresh on 2026-06-19T14:31+08:00
   observed the server worktree and deployed runtime still at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
-  to `27571579ff974c0367339e3e0a4f01d1bc175be7`. This metadata-only refresh did
+  to `735b21c1db7f617bb29de339b65e35242031cc41`. This metadata-only refresh did
   not run a full bundle and is not live-readiness evidence; it only confirms the
   stale-runtime blocker remains until a separately authorized deploy and full
   read-only bundle rerun.

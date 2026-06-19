@@ -407,6 +407,8 @@ if "open_oco_positions: 0" in trailing:
 event = call_tool("getEventRiskControlStatus", {"symbol": symbol})
 require_contains("event risk", event, r"boundary=READ_ONLY", "EVENT_RISK_BOUNDARY_MISSING")
 require_contains("event risk", event, r"operatorControls=CONFIG_ONLY_NO_RUNTIME_MUTATION", "EVENT_RISK_OPERATOR_CONTROL_MARKER_MISSING")
+event_risk_level = regex_value(event, r"riskLevel=([A-Z0-9_]+)", "MISSING")
+print("riskLevel=" + event_risk_level)
 if "riskLevel=R0" not in event:
     blockers.append("EVENT_RISK_NOT_R0")
 

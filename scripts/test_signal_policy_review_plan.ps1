@@ -59,6 +59,9 @@ foreach ($toolName in @(
 
 foreach ($marker in @(
         "DataFreshnessGuard Current Snapshot",
+        "verifyStrategyExecution machine status marker",
+        "MACHINE_STATUS",
+        "executionMachineStatus",
         "staleNowKeys",
         "noDataNowKeys",
         "queryFailedNowKeys",
@@ -76,6 +79,7 @@ foreach ($marker in @(
     Assert-Contains -Name "signal policy smoke" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
+Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'execution_ok = re\.search\(r"MACHINE_STATUS\\s\+no missing evaluation;\\s\*no missed order", execution\) is not None'
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'missingEvalOrOrderBug=\{''no'' if execution_ok else ''unknown_or_present''\}'
 Assert-Contains -Name "signal policy smoke missing-field summary" -Text $scriptText -Pattern 'missing_signal_policy_fields=\{json\.dumps\(missing_signal_policy_fields\)\}'
 

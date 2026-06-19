@@ -213,6 +213,7 @@ missed_opportunities = call_tool("getMissedOpportunityRegressionReport", {"symbo
 truth_table = call_tool("getNoBuyReasonTruthTable", {"symbol": symbol, "hours": blocked_days * 24, "limit": 20}, timeout=120)
 
 require("verifyStrategyExecution read-only marker", r"READ_ONLY|no external import/backfill", execution)
+require("verifyStrategyExecution machine status marker", r"MACHINE_STATUS\s+(no missing evaluation;\s*no missed order|missing evaluation or missed order suspected)", execution)
 require("blocked signal outcomes read-only marker", r"mode=READ_ONLY", blocked)
 require("signal accuracy read-only marker", r"mode=READ_ONLY", accuracy)
 require("DataFreshnessGuard read-only boundary", r"boundary:\s*READ_ONLY", freshness)
@@ -237,7 +238,8 @@ entry_dedup_json = parse_json_object(entry_dedup)
 missed_json = parse_json_object(missed_opportunities)
 truth_json = parse_json_object(truth_table)
 
-execution_ok = contains_any(execution, [r"no missing evaluation", r"no missed order"])
+execution_machine_status = find(r"MACHINE_STATUS\s+([^\r\n]+)", execution)
+execution_ok = re.search(r"MACHINE_STATUS\s+no missing evaluation;\s*no missed order", execution) is not None
 blocked_total = find(r"(?:total|analyzed|sampleCount)[^0-9]*(\d+)", blocked)
 blocked_correct = find(r"(?:correct|trueBlock)[^0-9]*(\d+)", blocked)
 blocked_wrong = find(r"(?:wrong|falseBlock|falseKill)[^0-9]*(\d+)", blocked)
@@ -336,6 +338,7 @@ missing_signal_policy_fields = [
 
 print("")
 print("Execution:")
+print(f"  executionMachineStatus={execution_machine_status}")
 print(f"  missingEvalOrOrderBug={'no' if execution_ok else 'unknown_or_present'}")
 print("")
 print("Blocked Signal Outcomes:")

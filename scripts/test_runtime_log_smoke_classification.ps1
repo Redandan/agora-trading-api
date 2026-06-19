@@ -113,6 +113,8 @@ Assert-SmokeCase `
     -ExpectedPatterns @(
         "TelegramServiceImpl",
         "ExecutionEventScheduler",
+        "ERROR category telegram_service=1 execution_event_scheduler=1 unknown=0",
+        "ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH",
         "runtime ERROR lines present: count=2"
     )
 
@@ -135,6 +137,8 @@ Assert-SmokeCase `
     ) `
     -ExpectedExitCode 0 `
     -ExpectedPatterns @(
+        "ERROR category telegram_service=1 execution_event_scheduler=0 unknown=0",
+        "ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH",
         "runtime ERROR lines present but allowed: count=1",
         "runtime log smoke complete"
     ) `

@@ -56,6 +56,17 @@ ok "checking active run log: $RUN_LOG_FILE"
 
 ERROR_COUNT="$(grep -cE ' ERROR ' "$RUN_LOG_FILE" || true)"
 if [ "$ERROR_COUNT" -gt 0 ]; then
+  ERROR_TELEGRAM_SERVICE_PATTERN='TelegramServiceImpl.*Failed to send Telegram'
+  ERROR_EXECUTION_EVENT_SCHEDULER_PATTERN='ExecutionEventScheduler.*scheduled scan failed'
+  KNOWN_ERROR_PATTERN="${ERROR_TELEGRAM_SERVICE_PATTERN}|${ERROR_EXECUTION_EVENT_SCHEDULER_PATTERN}"
+  ERROR_TELEGRAM_SERVICE_COUNT="$(grep -cE " ERROR .*(${ERROR_TELEGRAM_SERVICE_PATTERN})" "$RUN_LOG_FILE" || true)"
+  ERROR_EXECUTION_EVENT_SCHEDULER_COUNT="$(grep -cE " ERROR .*(${ERROR_EXECUTION_EVENT_SCHEDULER_PATTERN})" "$RUN_LOG_FILE" || true)"
+  UNKNOWN_ERROR_LINES="$(grep -nE ' ERROR ' "$RUN_LOG_FILE" | grep -Ev "$KNOWN_ERROR_PATTERN" || true)"
+  UNKNOWN_ERROR_COUNT="$(printf '%s\n' "$UNKNOWN_ERROR_LINES" | sed '/^[[:space:]]*$/d' | wc -l | tr -d '[:space:]')"
+  echo "[runtime-log] ERROR category telegram_service=$ERROR_TELEGRAM_SERVICE_COUNT execution_event_scheduler=$ERROR_EXECUTION_EVENT_SCHEDULER_COUNT unknown=$UNKNOWN_ERROR_COUNT" >&2
+  if [ "$ERROR_TELEGRAM_SERVICE_COUNT" -gt 0 ] || [ "$ERROR_EXECUTION_EVENT_SCHEDULER_COUNT" -gt 0 ]; then
+    echo "[runtime-log] ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH review EVENT_SCAN_NOTIFICATION_ENABLED, EXECUTION_EVENT_ENABLED, Telegram send health, and background automation authorization before live review" >&2
+  fi
   if [ "$ALLOW_RUNTIME_ERROR" = "1" ]; then
     warn "runtime ERROR lines present but allowed: count=$ERROR_COUNT"
   else

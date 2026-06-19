@@ -148,5 +148,6 @@ state if any of these are observed:
 This checklist can only move the system toward better evidence. It must not be
 used as approval to open live trading. A later live proposal must still include
 the exact env diff, blast-radius classification, current smoke outputs,
-tiny-live live loss hard-stop status, runtime evidence status, rollback steps,
-and a separate operator authorization.
+full-bundle `bundle_blockers=[]`,
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, tiny-live live loss hard-stop status,
+runtime evidence status, rollback steps, and a separate operator authorization.

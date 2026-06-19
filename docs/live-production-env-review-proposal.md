@@ -220,6 +220,7 @@ previous env state before continuing:
 ## Live Approval Boundary
 
 Clearing this proposal is still not live approval. A live proposal must be a
-separate change with exact env diff, current smoke outputs, tiny-live hard-stop
-status, runtime evidence status, market-signal state, loss budget, rollback
-steps, and explicit operator authorization.
+separate change with exact env diff, current smoke outputs, full-bundle
+`bundle_blockers=[]`, `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
+tiny-live hard-stop status, runtime evidence status, market-signal state, loss
+budget, rollback steps, and explicit operator authorization.

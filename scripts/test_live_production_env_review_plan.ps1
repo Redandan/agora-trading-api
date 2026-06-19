@@ -161,6 +161,8 @@ foreach ($pattern in @(
         'runtime-log blocker and `BACKGROUND_AUTOMATION_REVIEW` must be reviewed\s+together',
         'Telegram/ExecutionEvent notification\s+paths',
         'remaining Telegram/ExecutionEvent notification error has separate written\s+authorization and rollback evidence',
+        'full-bundle\s+`bundle_blockers=\[\]`',
+        '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
         'not authorization'
     )) {
     if ($pattern -match '\\s') {

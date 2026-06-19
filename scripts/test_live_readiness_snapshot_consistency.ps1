@@ -3,9 +3,9 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
-$expectedObservedAt = "2026-06-19T10:06+08:00"
+$expectedObservedAt = "2026-06-19T10:59+08:00"
 $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
-$expectedOriginCommit = "8b8437c8ad1bae6767393d625ab4454dd08686c5"
+$expectedOriginCommit = "30490f13ab316a533bb0b6762d04c55f774e6f31"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -86,8 +86,9 @@ Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Ne
 Assert-BlockersPresent -Name "live readiness remediation" -Text $remediation
 
 Assert-BlockerJsonExact -Name "live production env review proposal refreshed snapshot" -Text $productionProposal
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "Latest refreshed read-only bundle evidence supersedes only the older 09:11"
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'stale again whenever `origin/main` advances'
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "Latest refreshed read-only bundle evidence supersedes the earlier 10:06"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "both remain historical evidence"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "become stale again"
 
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },

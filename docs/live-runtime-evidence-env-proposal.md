@@ -42,6 +42,9 @@ The bundle also treats `RUNTIME_EVIDENCE_NO_CANONICAL_ROWS`,
 runtime-evidence blockers if the RCA smoke reports no canonical rows, an
 unclassified runtime-evidence status, or any order-sent evidence in the bounded
 evidence-only window.
+`diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT` is a known diagnosis and maps to
+`RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, not to
+`RUNTIME_EVIDENCE_REVIEW_REQUIRED`.
 
 ## Proposed Evidence-Only Diff
 

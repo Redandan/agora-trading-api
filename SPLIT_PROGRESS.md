@@ -230,9 +230,9 @@
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
 - Latest recorded read-only live-readiness bundle observed on
-  2026-06-19T11:45+08:00 against server commit
+  2026-06-19T12:15+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
-  `da11835ee81ae8af4cf818aa493651fc2c8bbd8d`: health UP, deployed metadata
+  `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`: health UP, deployed metadata
   CURRENT, but the server worktree was not at `origin/main`. The origin hash is
   historical evidence captured at bundle time; later docs or guardrail commits
   can advance `origin/main` without making this recorded snapshot current.
@@ -240,8 +240,11 @@
   evidence is present and `EVENT_RISK_NOT_BASELINE` is no longer part of the
   latest bundle blockers.
   Runtime log smoke failed on two Telegram-send related ERROR lines from
-  `TelegramServiceImpl` and `ExecutionEventScheduler`. MCP parity passed
-  (`toolCount=305 required=35`). All order-capable
+  `TelegramServiceImpl` and `ExecutionEventScheduler`; the deployed runtime
+  predates the classified log smoke, so `ERROR category ...` and
+  `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` must be refreshed
+  after the next authorized deploy. MCP parity passed (`toolCount=305
+  required=35`). All order-capable
   flags were false and dry-run flags were true, but high-risk background
   automation was already true for external backfills, event/execution
   notification scanning, autonomous digest Telegram, and live-signal retry

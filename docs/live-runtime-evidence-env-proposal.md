@@ -32,9 +32,9 @@ currentSignalAgeMinutes=50
 
 This RCA output is historical because the server worktree was not at the
 observed `origin/main` commit. The latest recorded live-readiness bundle on
-2026-06-19T11:45+08:00 still reinforced the same runtime-evidence blockers
+2026-06-19T12:15+08:00 still reinforced the same runtime-evidence blockers
 against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
-`origin/main` was `da11835ee81ae8af4cf818aa493651fc2c8bbd8d`:
+`origin/main` was `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`:
 
 ```text
 live_review_packet_allowed=false
@@ -46,6 +46,7 @@ runtimeEvidenceRows=200
 shadowIntentCount=0
 shadowExecutionIntents=0
 orderSentEvidence=0
+currentSignalAgeMinutes=15
 ```
 
 Treat both records as stale live-review evidence until a separately authorized

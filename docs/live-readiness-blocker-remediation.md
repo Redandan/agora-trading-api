@@ -44,7 +44,7 @@ skip a blocker.
 
 The latest recorded read-only server bundle
 (`224f550478b20a329775f503b3eaa70ba6a2f6a8` deployed while `origin/main` was
-`da11835ee81ae8af4cf818aa493651fc2c8bbd8d`; `live_review_packet_allowed=false`,
+`0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`; `live_review_packet_allowed=false`,
 `deploy_required_before_live_review=true`) may legitimately report:
 
 ```text
@@ -65,9 +65,13 @@ read-only evidence. MCP parity is expected to pass with `[mcp-parity-ssh] OK`.
 Because the latest recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`,
 and the observed signal smoke showed governance drift (`governanceMode=TOO_STRICT`),
 the snapshot is stale live-review evidence only and is reclassified by the
-current local blocker rules. A future review must refresh the server runtime and
-rerun the full read-only bundle; do not combine stale server output with local
-or GitHub HEAD evidence.
+current local blocker rules. Its runtime log output was captured before the
+classified log smoke reached the deployed service; after the next authorized
+deploy, refresh the `ERROR category ...` and
+`ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` evidence before
+reviewing background automation. A future review must refresh the server
+runtime and rerun the full read-only bundle; do not combine stale server output
+with local or GitHub HEAD evidence.
 
 ## Audit Classifications
 

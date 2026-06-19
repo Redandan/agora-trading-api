@@ -154,12 +154,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
-- Latest recorded read-only live-readiness bundle on 2026-06-19T11:45+08:00
+- Latest recorded read-only live-readiness bundle on 2026-06-19T12:15+08:00
   observed server worktree/deployed commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
-  `da11835ee81ae8af4cf818aa493651fc2c8bbd8d`. Health was `UP`, local MCP
+  `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`. Health was `UP`, local MCP
   parity passed at server-local `/api/mcp` with `toolCount=305 required=35`,
-  all order-capable flags were false, and dry-run flags were true. The bundle
+  all order-capable flags were false, and dry-run flags were true. Runtime log
+  smoke still failed on the deployed pre-classification runtime with
+  Telegram/ExecutionEvent notification errors, so the `ERROR category ...` and
+  `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` markers must be
+  refreshed after the next authorized deploy. The bundle
   printed `live_review_packet_allowed=false`,
   `deploy_required_before_live_review=true`, and verdict `NOT_READY` with
   blockers

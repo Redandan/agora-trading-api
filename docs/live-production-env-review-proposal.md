@@ -61,14 +61,14 @@ bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","E
 bundle_verdict=NOT_READY
 ```
 
-Latest refreshed read-only bundle evidence supersedes the earlier 11:12
+Latest refreshed read-only bundle evidence supersedes the earlier 11:45
 refreshed snapshot; both remain historical evidence and become stale again
 whenever `origin/main` advances:
 
 ```text
-observedAt=2026-06-19T11:45+08:00
+observedAt=2026-06-19T12:15+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=da11835ee81ae8af4cf818aa493651fc2c8bbd8d
+originMainCommit=0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
 live_review_packet_allowed=false
 deploy_required_before_live_review=true
@@ -83,12 +83,15 @@ when the bundle ran; later docs or guardrail commits can legitimately advance
 reclassified by the current local blocker rules because the observed signal
 smoke had unresolved governance drift (`governanceMode=TOO_STRICT`) and the
 active runtime log smoke failed on Telegram-send errors from
-`TelegramServiceImpl` and `ExecutionEventScheduler`. Event-risk baseline
-evidence is present as `riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part
-of this latest recorded blocker set. A future operator review must first
-refresh the server worktree/runtime to `origin/main` through a separately
-authorized deploy, clear or separately explain the runtime log blocker, then
-rerun the full live-readiness bundle and attach the current output.
+`TelegramServiceImpl` and `ExecutionEventScheduler`. The deployed runtime
+predates the classified log smoke, so the `ERROR category ...` line and
+`ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker are not expected
+until after the next authorized deploy. Event-risk baseline evidence is present
+as `riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part of this latest
+recorded blocker set. A future operator review must first refresh the server
+worktree/runtime to `origin/main` through a separately authorized deploy, clear
+or separately explain the runtime log blocker, then rerun the full
+live-readiness bundle and attach the current output.
 The runtime-log blocker and `BACKGROUND_AUTOMATION_REVIEW` must be reviewed
 together: the current ERROR lines come from Telegram/ExecutionEvent notification
 paths while high-risk background automation is already enabled. A future env

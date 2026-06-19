@@ -41,6 +41,47 @@ function Assert-SshHostSafe {
 Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 
+function Get-ReadOnlyMetadataFailureClassification {
+    param(
+        [int]$ExitCode,
+        [string]$OutputText
+    )
+
+    if ($ExitCode -eq 255 -and $OutputText -match "Permission denied \(publickey\)|Permission denied") {
+        return "SSH_AUTH_FAILED"
+    }
+    if ($ExitCode -eq 255 -and $OutputText -match "Connection timed out|Connection refused|Could not resolve hostname|No route to host|Operation timed out") {
+        return "SSH_CONNECT_FAILED"
+    }
+    if ($OutputText -match "ssh:|remote command failed") {
+        return "SSH_COMMAND_FAILED"
+    }
+    return "READ_ONLY_SMOKE_FAILED"
+}
+
+function Assert-ReadOnlyMetadataSucceeded {
+    param(
+        [int]$ExitCode,
+        [object[]]$Output
+    )
+
+    if ($ExitCode -eq 0) {
+        return
+    }
+
+    $outputText = ($Output -join "`n")
+    $classification = Get-ReadOnlyMetadataFailureClassification -ExitCode $ExitCode -OutputText $outputText
+    Write-Host "read_only_metadata_error=$classification"
+    Write-Host "read_only_metadata_error_detail=deployment metadata smoke failed before metadata evidence could be collected"
+    Write-Host "read_only_metadata_error_boundary=not live-readiness evidence; fix SSH access, key selection, or the failing read-only metadata smoke and rerun"
+    Write-Host "metadata_current=false"
+    Write-Host 'metadata_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]'
+    Write-Host "live_review_packet_allowed=false"
+    Write-Host "deploy_required_before_live_review=unknown"
+    Write-Host "bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY"
+    throw "deployment metadata smoke failed with exit code $ExitCode ($classification); metadata evidence was not collected."
+}
+
 $remoteScript = @"
 set -euo pipefail
 APP_DIR='$AppDir'
@@ -142,12 +183,10 @@ echo "metadata_boundary=metadata-only; rerun the full live-readiness bundle afte
 echo "[live-deployment-metadata] read-only check complete"
 "@
 
-$output = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+$output = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s" 2>&1
 $exitCode = $LASTEXITCODE
 $output | ForEach-Object { Write-Host $_ }
-if ($exitCode -ne 0) {
-    throw "deployment metadata smoke failed with exit code $exitCode"
-}
+Assert-ReadOnlyMetadataSucceeded -ExitCode $exitCode -Output $output
 
 $text = ($output -join "`n")
 if ($RequireCurrent -and $text -match 'metadata_current=false') {

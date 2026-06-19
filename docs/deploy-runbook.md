@@ -666,6 +666,14 @@ Expected:
 - It always prints `live_review_packet_allowed=false`.
 - It is metadata-only, not live-readiness evidence and not a substitute for the
   full bundle after a deploy.
+- If SSH access or the remote read-only command fails, it prints
+  `read_only_metadata_error=SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`,
+  `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, plus
+  `metadata_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
+  `live_review_packet_allowed=false`,
+  `deploy_required_before_live_review=unknown`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; treat that as an
+  incomplete metadata refresh, not live-readiness evidence.
 
 Expected:
 

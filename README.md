@@ -252,6 +252,14 @@ server worktree/deployed runtime still matches current `origin/main`:
 
 This emits `refreshType=DEPLOYMENT_METADATA_ONLY`. It is metadata-only, not
 live-readiness evidence and not a substitute for the full bundle.
+If SSH access or the remote read-only command fails, the metadata-only smoke
+prints `read_only_metadata_error=SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`,
+`SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, plus
+`metadata_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
+`live_review_packet_allowed=false`,
+`deploy_required_before_live_review=unknown`, and
+`bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; treat that as an
+incomplete metadata refresh, not live-readiness evidence.
 
 The bundle keeps evidence windows bounded and passes them through to the child
 smokes: runtime evidence defaults to 43,200 minutes, tiny-live RCA defaults to

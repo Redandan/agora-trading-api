@@ -48,6 +48,14 @@ runtime-evidence fields also stay blocked and must not be interpreted as
 | `MCP_PARITY_NOT_PROVEN` | `.\scripts\smoke_mcp_parity_ssh.ps1` | Output includes `[mcp-parity-ssh] OK` and required read-only MCP tools are present on server-local `/api/mcp`. | Continue live-readiness review; do not expose public MCP service. |
 | `DEPLOYED_RUNTIME_NOT_CURRENT` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` deployment metadata section, or `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a metadata-only refresh | `deployment_metadata_status=CURRENT` or `DOCS_TOOLING_ONLY_DRIFT`, and `origin_metadata_status=CURRENT_ORIGIN_MAIN`; missing metadata, runtime drift, a server worktree behind `origin/main`, or unknown metadata must not be used for live review. `DEPLOYMENT_METADATA_ONLY` output is not live-readiness evidence and is not a substitute for the full bundle. | Deploy and verify separately, or treat the bundle as stale evidence only. |
 
+For standalone metadata-only refreshes, `read_only_metadata_error=SSH_AUTH_FAILED`,
+`SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED` maps to
+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`. The script also prints
+`metadata_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
+`live_review_packet_allowed=false`, `deploy_required_before_live_review=unknown`,
+and `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; this is an
+incomplete metadata refresh and must not be used as live-readiness evidence.
+
 ## Current Expected Blockers
 
 The latest recorded read-only server bundle

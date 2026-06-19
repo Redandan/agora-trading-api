@@ -102,8 +102,8 @@ if [ -n "`$HEAD_COMMIT" ] && [ -n "`$DEPLOYED_COMMIT" ]; then
 `$(git diff --name-only "`$DEPLOYED_COMMIT" "`$HEAD_COMMIT")
 EOF
     echo "deploymentDeltaFiles=`$((runtime_delta + docs_tooling_delta))"
-    echo "deploymentDeltaRuntimeFiles=`$runtime_delta"
-    echo "deploymentDeltaDocsToolingFiles=`$docs_tooling_delta"
+    echo "deploymentDocsToolingDeltaFiles=`$docs_tooling_delta"
+    echo "deploymentRuntimeDeltaFiles=`$runtime_delta"
     if [ "`$runtime_delta" -gt 0 ]; then
       deploy_status="RUNTIME_DRIFT"
     else

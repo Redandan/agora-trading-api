@@ -101,7 +101,36 @@ function Assert-BundleFailureMarkers {
     }
 }
 
+function Assert-RequireReadyGuard {
+    $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
+    $bundleText = Get-Content -Raw -LiteralPath $bundlePath
+
+    foreach ($pattern in @(
+            '[switch]$RequireReady',
+            '$uniqueBlockers = @($blockers | Select-Object -Unique)',
+            'if ($uniqueBlockers.Count -eq 0)',
+            'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+            'bundle_verdict=NOT_READY',
+            'if ($RequireReady)',
+            'Live readiness bundle is not ready:'
+        )) {
+        if ($bundleText -notmatch [regex]::Escape($pattern)) {
+            throw "live readiness bundle missing RequireReady guard marker: $pattern"
+        }
+    }
+
+    $summaryMatch = [regex]::Match(
+        $bundleText,
+        'if \(\$uniqueBlockers\.Count -eq 0\) \{[\s\S]*?bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED[\s\S]*?\} else \{[\s\S]*?bundle_verdict=NOT_READY[\s\S]*?if \(\$RequireReady\) \{[\s\S]*?Live readiness bundle is not ready:',
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $summaryMatch.Success) {
+        throw "RequireReady must throw only from the NOT_READY branch after blocker computation"
+    }
+}
+
 Assert-BundleFailureMarkers
+Assert-RequireReadyGuard
 
 Assert-MetadataCase `
     -Name "current runtime and origin" `

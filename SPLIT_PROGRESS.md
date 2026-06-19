@@ -229,10 +229,13 @@
   `smoke_signal_correctness_ssh.ps1`, and `smoke_live_readiness_bundle_ssh.ps1`)
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
-- Latest read-only live-readiness bundle observed on 2026-06-19T09:11+08:00
-  against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
-  `origin/main` was `12219d6867ec2761f8a8fcae2a5ad78299523904`: health UP,
-  deployed metadata CURRENT, but the server worktree was not at `origin/main`.
+- Latest recorded read-only live-readiness bundle observed on
+  2026-06-19T09:11+08:00 against server commit
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
+  `12219d6867ec2761f8a8fcae2a5ad78299523904`: health UP, deployed metadata
+  CURRENT, but the server worktree was not at `origin/main`. The origin hash is
+  historical evidence captured at bundle time; later docs or guardrail commits
+  can advance `origin/main` without making this recorded snapshot current.
   The audit now explicitly prints `riskLevel=R0`, so event-risk baseline
   evidence is present and `EVENT_RISK_NOT_BASELINE` is no longer part of the
   latest bundle blockers.

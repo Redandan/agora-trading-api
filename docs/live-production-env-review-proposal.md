@@ -36,9 +36,10 @@ The current server evidence keeps live blocked while these remain true:
 - `REVIEW_POLICY_GAPS` or unresolved signal correctness / governance drift
   findings from `smoke_signal_correctness_ssh.ps1`
 
-Latest read-only bundle snapshot:
+Latest recorded read-only bundle snapshot:
 
 ```text
+snapshotType=RECORDED_HISTORICAL_EVIDENCE
 observedAt=2026-06-19T09:11+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployment_metadata_status=CURRENT
@@ -60,16 +61,19 @@ bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","E
 bundle_verdict=NOT_READY
 ```
 
-Because this snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is stale
-live-review evidence only. It is also reclassified by the current local blocker
-rules because the observed signal smoke had unresolved governance drift
-(`governanceMode=TOO_STRICT`) and the active runtime log smoke failed on
-Telegram-send errors from `TelegramServiceImpl` and
-`ExecutionEventScheduler`. Event-risk baseline evidence is present as
-`riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part of this latest blocker
-set. A future operator review must first refresh the
-server worktree/runtime to `origin/main` through a separately authorized deploy,
-clear or separately explain the runtime log blocker, then rerun the full live-readiness bundle and attach the current output.
+Because this recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is
+stale live-review evidence only. `originMainCommit` records the value observed
+when the bundle ran; later docs or guardrail commits can legitimately advance
+`origin/main` without changing this historical evidence. It is also
+reclassified by the current local blocker rules because the observed signal
+smoke had unresolved governance drift (`governanceMode=TOO_STRICT`) and the
+active runtime log smoke failed on Telegram-send errors from
+`TelegramServiceImpl` and `ExecutionEventScheduler`. Event-risk baseline
+evidence is present as `riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part
+of this latest recorded blocker set. A future operator review must first
+refresh the server worktree/runtime to `origin/main` through a separately
+authorized deploy, clear or separately explain the runtime log blocker, then
+rerun the full live-readiness bundle and attach the current output.
 If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.

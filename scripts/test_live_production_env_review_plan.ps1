@@ -86,6 +86,8 @@ $evidenceOnlyExpectedResults = @(
 )
 
 $latestSnapshotMarkers = @(
+    'Latest recorded read-only bundle snapshot',
+    'snapshotType=RECORDED_HISTORICAL_EVIDENCE',
     'observedAt=2026-06-19T09:11\+08:00',
     'originMainCommit=12219d6867ec2761f8a8fcae2a5ad78299523904',
     'eventRisk=riskLevel=R0',
@@ -143,11 +145,13 @@ foreach ($pattern in @(
         'bundle_verdict=NO_EVIDENCE',
         'origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN',
         'originMainCommit=',
+        'records the value observed',
+        'later docs or guardrail commits can legitimately advance',
         'bundle_verdict=NOT_READY',
         'stale\s+live-review evidence only',
         'stop the review and fix SSH access',
         'failing read-only smoke',
-        'separately authorized deploy',
+        'separately\s+authorized\s+deploy',
         'server worktree/runtime to `origin/main`',
         'rerun the full live-readiness bundle',
         'not authorization'

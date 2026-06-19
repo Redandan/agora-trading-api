@@ -39,12 +39,13 @@ The current server evidence keeps live blocked while these remain true:
 Latest read-only bundle snapshot:
 
 ```text
-observedAt=2026-06-18T23:40+08:00
+observedAt=2026-06-19T09:11+08:00
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployment_metadata_status=CURRENT
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
-originMainCommit=51c5d0f27457a89c3575abf7d1ded06c023b5fe7
+originMainCommit=12219d6867ec2761f8a8fcae2a5ad78299523904
 health=UP
+eventRisk=riskLevel=R0
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=FAIL
 runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN
@@ -64,7 +65,9 @@ live-review evidence only. It is also reclassified by the current local blocker
 rules because the observed signal smoke had unresolved governance drift
 (`governanceMode=TOO_STRICT`) and the active runtime log smoke failed on
 Telegram-send errors from `TelegramServiceImpl` and
-`ExecutionEventScheduler`. A future operator review must first refresh the
+`ExecutionEventScheduler`. Event-risk baseline evidence is present as
+`riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part of this latest blocker
+set. A future operator review must first refresh the
 server worktree/runtime to `origin/main` through a separately authorized deploy,
 clear or separately explain the runtime log blocker, then rerun the full live-readiness bundle and attach the current output.
 If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or

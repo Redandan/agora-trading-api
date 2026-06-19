@@ -229,10 +229,13 @@
   `smoke_signal_correctness_ssh.ps1`, and `smoke_live_readiness_bundle_ssh.ps1`)
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
-- Latest read-only live-readiness bundle observed on 2026-06-18T23:40+08:00
+- Latest read-only live-readiness bundle observed on 2026-06-19T09:11+08:00
   against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
-  `origin/main` was `51c5d0f27457a89c3575abf7d1ded06c023b5fe7`: health UP,
+  `origin/main` was `12219d6867ec2761f8a8fcae2a5ad78299523904`: health UP,
   deployed metadata CURRENT, but the server worktree was not at `origin/main`.
+  The audit now explicitly prints `riskLevel=R0`, so event-risk baseline
+  evidence is present and `EVENT_RISK_NOT_BASELINE` is no longer part of the
+  latest bundle blockers.
   Runtime log smoke failed on two Telegram-send related ERROR lines from
   `TelegramServiceImpl` and `ExecutionEventScheduler`. MCP parity passed
   (`toolCount=305 required=35`). All order-capable

@@ -86,8 +86,9 @@ $evidenceOnlyExpectedResults = @(
 )
 
 $latestSnapshotMarkers = @(
-    'observedAt=2026-06-18T23:40\+08:00',
-    'originMainCommit=51c5d0f27457a89c3575abf7d1ded06c023b5fe7',
+    'observedAt=2026-06-19T09:11\+08:00',
+    'originMainCommit=12219d6867ec2761f8a8fcae2a5ad78299523904',
+    'eventRisk=riskLevel=R0',
     'runtimeLog=FAIL',
     'runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN',
     'TelegramServiceImpl',
@@ -130,6 +131,10 @@ foreach ($pattern in $evidenceOnlyExpectedResults) {
 
 foreach ($pattern in $latestSnapshotMarkers) {
     Assert-Contains -Name "latest live-readiness snapshot marker" -Text $proposalText -Pattern $pattern
+}
+
+if ($proposalText -match 'bundle_blockers=\[[^\]]*EVENT_RISK_NOT_BASELINE') {
+    throw "latest live-readiness snapshot must not list EVENT_RISK_NOT_BASELINE when eventRisk=riskLevel=R0 is present"
 }
 
 foreach ($pattern in @(

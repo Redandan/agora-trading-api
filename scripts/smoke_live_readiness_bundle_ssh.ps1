@@ -383,7 +383,7 @@ if ($tinyLive -notmatch "canEnableProduction=true") {
 }
 if ($signal -match "REVIEW_POLICY_GAPS" `
         -or $signal -match "7d Governance Drift:\s*`r?`n\s*governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
-        -or $signal -match "overallStatus=(FAIL|WARN)" `
+        -or $signal -match "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=(FAIL|WARN)" `
         -or $signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
         -or $signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")

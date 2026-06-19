@@ -430,11 +430,13 @@ public class DiagnosticMcpTools {
         sb.append("─────────────────────────\n");
         if (bugCount == 0) {
             sb.append("✅ 未發現漏評估/漏單 Bug");
+            sb.append("\nMACHINE_STATUS no missing evaluation; no missed order");
             if (warnCount > 0) {
                 sb.append(String.format("；另有 %d 個策略存在舊式未標記 skip，需觀察新資料", warnCount));
             }
         } else {
             sb.append(String.format("⚠️ 發現 %d 個策略有潛在問題，請確認 app.log 是否有 ERROR", bugCount));
+            sb.append("\nMACHINE_STATUS missing evaluation or missed order suspected");
         }
 
         return sb.toString();

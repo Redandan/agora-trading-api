@@ -744,6 +744,8 @@ function Assert-StrategyExecutionVerifierReadOnly {
 
     foreach ($marker in @(
         "no external import/backfill",
+        "MACHINE_STATUS no missing evaluation; no missed order",
+        "MACHINE_STATUS missing evaluation or missed order suspected",
         "loadKlineReadinessLine",
         "req\.setSource\(klineSource\)",
         "req\.setSkipPersist\(true\)"

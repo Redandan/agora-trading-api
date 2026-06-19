@@ -95,6 +95,11 @@ paths while high-risk background automation is already enabled. A future env
 change cannot claim background automation is ready unless the refreshed runtime
 log smoke is clean or the remaining errors have a separate written
 authorization and rollback plan.
+After deploying a runtime that contains the classified log smoke, attach the
+`ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
+line if the runtime log still fails, then explicitly reconcile
+`EVENT_SCAN_NOTIFICATION_ENABLED`, `EXECUTION_EVENT_ENABLED`, Telegram send
+health, and background automation authorization before any live packet.
 If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.

@@ -243,6 +243,16 @@ runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
+Fast read-only deployment metadata check when the only question is whether the
+server worktree/deployed runtime still matches current `origin/main`:
+
+```powershell
+.\scripts\smoke_live_deployment_metadata_ssh.ps1
+```
+
+This emits `refreshType=DEPLOYMENT_METADATA_ONLY`. It is metadata-only, not
+live-readiness evidence and not a substitute for the full bundle.
+
 The bundle keeps evidence windows bounded and passes them through to the child
 smokes: runtime evidence defaults to 43,200 minutes, tiny-live RCA defaults to
 30 days, signal execution defaults to 5 days, blocked-signal/governance review

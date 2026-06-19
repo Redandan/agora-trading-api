@@ -652,6 +652,21 @@ To run the full read-only live-readiness evidence bundle:
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
+To check only whether the server worktree/deployed runtime is stale relative to
+current `origin/main`, run the faster metadata-only smoke:
+
+```powershell
+.\scripts\smoke_live_deployment_metadata_ssh.ps1
+```
+
+Expected:
+
+- The script prints `refreshType=DEPLOYMENT_METADATA_ONLY`.
+- It may print `DEPLOYED_RUNTIME_NOT_CURRENT` when server metadata is stale.
+- It always prints `live_review_packet_allowed=false`.
+- It is metadata-only, not live-readiness evidence and not a substitute for the
+  full bundle after a deploy.
+
 Expected:
 
 - The wrapper runs the live-readiness audit, background automation smoke,

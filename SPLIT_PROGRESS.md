@@ -271,6 +271,11 @@
   to `27571579ff974c0367339e3e0a4f01d1bc175be7`. This was metadata-only, not a
   full live-readiness bundle, and only confirms `DEPLOYED_RUNTIME_NOT_CURRENT`
   remains until a separately authorized deploy and fresh read-only bundle.
+- `scripts/smoke_live_deployment_metadata_ssh.ps1` now provides a reusable
+  read-only `DEPLOYMENT_METADATA_ONLY` check for that server-currentness
+  question. It is faster than the full bundle but deliberately prints
+  `live_review_packet_allowed=false`; metadata-only output is not
+  live-readiness evidence.
 - `scripts/smoke_live_readiness_bundle_ssh.ps1` now prints
   `deployment_metadata_status` and adds `DEPLOYED_RUNTIME_NOT_CURRENT` when
   deployed runtime metadata is missing/unknown or runtime files differ from the

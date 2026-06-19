@@ -297,7 +297,15 @@ def live_readiness_next_actions(classification):
     if "security_or_secret_gap" in classification:
         actions.append("Fix missing server secret prerequisites before operator review.")
     if "runtime_health_gap" in classification:
-        actions.append("Fix health/log/event-risk gaps before any live operator review.")
+        runtime_gaps = classification["runtime_health_gap"]
+        gap_labels = []
+        if "HEALTH_NOT_UP" in runtime_gaps:
+            gap_labels.append("health")
+        if any(item.startswith("RUNTIME_LOG_SMOKE") for item in runtime_gaps):
+            gap_labels.append("runtime log")
+        if "EVENT_RISK_NOT_R0" in runtime_gaps:
+            gap_labels.append("event-risk baseline")
+        actions.append("Fix " + "/".join(gap_labels or ["runtime health"]) + " evidence before any live operator review.")
     if not actions:
         actions.append("No automated blocker class found; operator review is still required before any live env change.")
     return actions

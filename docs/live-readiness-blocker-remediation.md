@@ -82,7 +82,7 @@ exchange, external backfill/import, or DB mutation.
 | `execution_disabled_guard` | Execution-capable gates report `*_NOT_EXECUTION_ELIGIBLE`. | Treat disabled execution as intentional protection; only change via a separate authorized env plan. |
 | `background_automation_review` | Background automation flags are already true or need explicit review. | Run background automation smoke and reconcile the env diff before any live scope expansion. |
 | `security_or_secret_gap` | Required server secret material or env prerequisites are missing. | Fix secret prerequisites through a separately authorized ops change and rerun read-only audit. |
-| `runtime_health_gap` | Health, runtime log smoke, or event-risk baseline is not clean. | Fix runtime health/log/event-risk evidence before any live operator review. |
+| `runtime_health_gap` | Health, runtime log smoke, or event-risk baseline is not clean. | Fix the specific health, runtime log, and/or event-risk evidence named in the audit before any live operator review. |
 | `capacity_not_primary` | Notional or capacity limits are visible in the read-only evidence. | Secondary sizing review only; handle after primary blockers are clear. |
 
 `capacity_not_primary` is explicitly secondary. It must not be used to bypass primary blockers

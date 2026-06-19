@@ -652,14 +652,16 @@ Expected:
   `SignalExecutionDays=5`, `SignalBlockedDays=7`, and
   `SignalAccuracyDays=14` by default. Override them only for a documented
   read-only diagnostic, not as live approval evidence.
-- Output includes deployment metadata status, `bundle_blockers`, and
+- Output includes deployment metadata status, `bundle_blockers`,
+  `live_review_packet_allowed`, `deploy_required_before_live_review`, and
   `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
   evidence until a separate deploy and verification refresh the runtime and
   server worktree to `origin/main`.
 - Do not draft a live review packet unless the latest full bundle prints
-  `bundle_blockers=[]` and
+  `bundle_blockers=[]`, `live_review_packet_allowed=true`, and
   `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`; `NOT_READY`,
-  `NO_EVIDENCE`, and stale runtime metadata remain blocking evidence.
+  `NO_EVIDENCE`, `live_review_packet_allowed=false`, and stale runtime metadata
+  remain blocking evidence.
 - If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
   `SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED`, it emits
   `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]` and

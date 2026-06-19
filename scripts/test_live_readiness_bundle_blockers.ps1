@@ -405,10 +405,12 @@ function Assert-OperatorDocsReadyBoundary {
         foreach ($pattern in @(
                 'Do not draft a live review packet unless',
                 'bundle_blockers=[]',
+                'live_review_packet_allowed=true',
                 'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+                'live_review_packet_allowed=false',
                 'NOT_READY',
                 'NO_EVIDENCE',
-                'stale runtime metadata remain blocking evidence'
+                'stale runtime metadata'
             )) {
             if ($doc.Text -notmatch [regex]::Escape($pattern)) {
                 throw "$($doc.Name) missing live review ready boundary marker: $pattern"

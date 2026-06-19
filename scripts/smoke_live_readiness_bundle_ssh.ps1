@@ -411,8 +411,16 @@ if ($deploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
 }
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $uniqueBlockers))
 if ($uniqueBlockers.Count -eq 0) {
+    Write-Host "live_review_packet_allowed=true"
+    Write-Host "deploy_required_before_live_review=false"
     Write-Host "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
 } else {
+    Write-Host "live_review_packet_allowed=false"
+    if (@($uniqueBlockers) -contains "DEPLOYED_RUNTIME_NOT_CURRENT") {
+        Write-Host "deploy_required_before_live_review=true"
+    } else {
+        Write-Host "deploy_required_before_live_review=false"
+    }
     Write-Host "bundle_verdict=NOT_READY"
     Write-Host "next_action=Do not enable live; address or separately authorize the listed blockers, then rerun this bundle."
     if ($RequireReady) {

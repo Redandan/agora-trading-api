@@ -112,6 +112,10 @@ function Assert-RequireReadyGuard {
             '$uniqueBlockers = @($blockers | Select-Object -Unique)',
             'if ($uniqueBlockers.Count -eq 0)',
             'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+            'live_review_packet_allowed=true',
+            'live_review_packet_allowed=false',
+            'deploy_required_before_live_review=true',
+            'deploy_required_before_live_review=false',
             'bundle_verdict=NOT_READY',
             'if ($RequireReady)',
             'Live readiness bundle is not ready:'
@@ -128,6 +132,24 @@ function Assert-RequireReadyGuard {
     )
     if (-not $summaryMatch.Success) {
         throw "RequireReady must throw only from the NOT_READY branch after blocker computation"
+    }
+
+    $readyMarkers = [regex]::Match(
+        $bundleText,
+        'if \(\$uniqueBlockers\.Count -eq 0\) \{[\s\S]*?live_review_packet_allowed=true[\s\S]*?deploy_required_before_live_review=false[\s\S]*?bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $readyMarkers.Success) {
+        throw "ready branch must explicitly allow a review packet and clear deploy requirement"
+    }
+
+    $notReadyMarkers = [regex]::Match(
+        $bundleText,
+        '\} else \{[\s\S]*?live_review_packet_allowed=false[\s\S]*?DEPLOYED_RUNTIME_NOT_CURRENT[\s\S]*?deploy_required_before_live_review=true[\s\S]*?bundle_verdict=NOT_READY',
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $notReadyMarkers.Success) {
+        throw "not-ready branch must explicitly block review packets and require deploy when runtime is not current"
     }
 }
 

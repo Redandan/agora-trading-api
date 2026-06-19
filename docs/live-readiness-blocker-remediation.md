@@ -123,11 +123,13 @@ bounded scope:
 
 A future live review packet must include:
 
-- latest full-bundle output with `bundle_blockers=[]` and
+- latest full-bundle output with `bundle_blockers=[]`,
+  `live_review_packet_allowed=true`, and
   `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`
 - explicit confirmation that the packet does not rely on
   `bundle_verdict=NOT_READY`, `bundle_verdict=NO_EVIDENCE`,
-  `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, or `DEPLOYED_RUNTIME_NOT_CURRENT`
+  `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, `live_review_packet_allowed=false`,
+  or `DEPLOYED_RUNTIME_NOT_CURRENT`
 - full outputs from every required read-only smoke listed above
 - production env diff proposal
 - expected blast radius and rollback plan

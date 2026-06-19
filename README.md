@@ -243,15 +243,17 @@ smokes: runtime evidence defaults to 43,200 minutes, tiny-live RCA defaults to
 30 days, signal execution defaults to 5 days, blocked-signal/governance review
 defaults to 7 days, and signal accuracy defaults to 14 days.
 It prints `deployment_metadata_status`, `origin_metadata_status`,
-`bundle_blockers`, and `bundle_verdict`. Treat
+`bundle_blockers`, `live_review_packet_allowed`,
+`deploy_required_before_live_review`, and `bundle_verdict`. Treat
 `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review evidence until the server
 runtime and worktree are separately refreshed and verified against
 `origin/main`. Add `-RequireReady` only when the caller wants `NOT_READY` to
 fail the command.
 Do not draft a live review packet unless the latest full bundle prints
-`bundle_blockers=[]` and
+`bundle_blockers=[]`, `live_review_packet_allowed=true`, and
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`; `NOT_READY`,
-`NO_EVIDENCE`, and stale runtime metadata remain blocking evidence.
+`NO_EVIDENCE`, `live_review_packet_allowed=false`, and stale runtime metadata
+remain blocking evidence.
 If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
 `SSH_CONNECT_FAILED`, or `SSH_COMMAND_FAILED`, it emits
 `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]` and

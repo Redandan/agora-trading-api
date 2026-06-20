@@ -1,6 +1,6 @@
 # Live Production Env Review Proposal
 
-This proposal converts the current read-only live-readiness evidence into an
+This proposal converts the latest attached read-only live-readiness evidence into an
 operator review checklist for a future production env change. It is not
 authorization to edit `/home/ubuntu/.env.trading.secrets`, deploy, restart the
 service, enable live trading, place orders, change OCO, run grid/fund/Earn
@@ -36,10 +36,14 @@ The current server evidence keeps live blocked while these remain true:
 - `REVIEW_POLICY_GAPS` or unresolved signal correctness / governance drift
   findings from `smoke_signal_correctness_ssh.ps1`
 
-Latest current read-only bundle snapshot:
+Latest attached read-only bundle snapshot.
+This block is evidence captured at the observation time, not a currentness
+claim after later docs, scripts, or runtime commits. Before any operator review,
+rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` and the full
+`.\scripts\smoke_live_readiness_bundle_ssh.ps1`, then attach the fresh output.
 
 ```text
-snapshotType=CURRENT_READ_ONLY_EVIDENCE
+snapshotType=ATTACHED_READ_ONLY_EVIDENCE
 observedAt=2026-06-20T15:32+08:00
 serverCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
 deployedCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
@@ -64,15 +68,16 @@ deploy_required_before_live_review=false
 bundle_verdict=NOT_READY
 ```
 
-The current snapshot supersedes earlier stale 2026-06-19 and 2026-06-20 morning
-metadata snapshots that included `DEPLOYED_RUNTIME_NOT_CURRENT` or
-`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`. Keep those records only as historical RCA.
-If `origin/main` advances again, rerun deployment metadata and the full bundle
-before using this proposal.
+This attached snapshot superseded earlier stale 2026-06-19 and 2026-06-20
+morning metadata snapshots that included `DEPLOYED_RUNTIME_NOT_CURRENT` or
+`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` at the time it was captured. Keep those
+records only as historical RCA. If `origin/main`, server worktree, or deployed
+runtime changes again, rerun deployment metadata and the full bundle before
+using this proposal.
 
-Runtime currentness is currently clean. Use
-`.\scripts\smoke_live_deployment_metadata_ssh.ps1` only for a fast metadata
-refresh; it is not a substitute for the full bundle:
+The attached runtime currentness was clean at the observation time. Use
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a fast metadata refresh,
+but it is not a substitute for the full bundle:
 
 ```text
 refreshType=DEPLOYMENT_METADATA_ONLY
@@ -88,16 +93,16 @@ bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
 ```
 
 The metadata-only output is still not live-readiness evidence. It only proves
-there is no deploy/currentness blocker at the time it was run. The full bundle
+whether there is a deploy/currentness blocker at the time it is run. The full bundle
 remains `NOT_READY` because runtime evidence, tiny-live hard-stop, background
 automation, execution eligibility, and signal policy blockers remain. The
-previous MCP audit detail gap is cleared in the current deployed evidence by
+previous MCP audit detail gap was cleared in the attached deployed evidence by
 `missing_readiness_detail_fields=[]`.
 
 The stale 2026-06-20T10:16+08:00 runtime-log failure against
 `app-20260618T070102Z-port8084.log` remains useful RCA for Telegram/ExecutionEvent
 notification paths (`TelegramServiceImpl` and `ExecutionEventScheduler`), but it
-is no longer the current blocker after the `12b1343` deploy. If a future strict read-only runtime-log smoke fails, attach the
+was no longer the current blocker after the `12b1343` deploy. If a future strict read-only runtime-log smoke fails, attach the
 `ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
 line, then explicitly reconcile `EVENT_SCAN_NOTIFICATION_ENABLED`,
 `EXECUTION_EVENT_ENABLED`, Telegram send health, and background automation

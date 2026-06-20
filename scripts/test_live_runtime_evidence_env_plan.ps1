@@ -128,16 +128,18 @@ foreach ($flag in $expectedDryRunGuardFlags) {
 }
 
 foreach ($marker in @(
-        "current read-only runtime evidence RCA reported",
+        "attached read-only runtime evidence RCA reported",
+        "not a currentness",
         "12b1343cb2e379e18b7bfcdc9aeea4374c0e533a",
         "origin_metadata_status=CURRENT_ORIGIN_MAIN",
         "deployedCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a",
         "runtime_log_status=PASS",
         "missing_readiness_detail_fields=[]",
         "smoke_live_deployment_metadata_ssh.ps1",
-        "supersedes the stale 2026-06-18 and 2026-06-19",
-        "Currentness and runtime",
-        "problem is still that runtime evidence collection is disabled",
+        "superseded the stale 2026-06-18 and 2026-06-19",
+        "attached evidence, currentness and runtime-log blockers",
+        "active problem was still that",
+        "runtime evidence collection was disabled",
         "live_review_packet_allowed=false",
         "deploy_required_before_live_review=false",
         "separately authorized",

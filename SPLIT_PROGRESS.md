@@ -229,7 +229,7 @@
   `smoke_signal_correctness_ssh.ps1`, and `smoke_live_readiness_bundle_ssh.ps1`)
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
-- Latest current read-only live-readiness bundle observed on
+- Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T15:42+08:00 after the explicitly authorized deploy of
   `1a32d2b3e5288778276d1e7d3737ca7db8c8f61f`: server worktree,
   `origin/main`, and deployed `app.commit` all matched that commit, active port
@@ -250,9 +250,10 @@
   `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
   `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
   `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`, and
-  `SIGNAL_POLICY_REVIEW_GAPS`. Treat this as the current live-review blocker
-  set until `origin/main` advances again or a newer full read-only bundle
-  supersedes it; it is not permission to enable live trading.
+  `SIGNAL_POLICY_REVIEW_GAPS`. Treat this as the latest recorded blocker set
+  for traceability, not as a substitute for rerunning the full read-only bundle
+  before any future live-review packet; it is not permission to enable live
+  trading.
 - Latest recorded read-only live-readiness bundle observed on
   2026-06-19T12:15+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was

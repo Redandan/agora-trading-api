@@ -76,16 +76,16 @@ blocker, but the failure output also preserves `deployment_metadata_status` and
 server worktree behind `origin/main`, the same failure output includes
 `DEPLOYED_RUNTIME_NOT_CURRENT` and `deploy_required_before_live_review=true`.
 
-## Current Expected Blockers
+## Latest Attached Expected Blockers
 
-The current read-only server bundle on 2026-06-20T15:32+08:00 observed server,
+The attached read-only server bundle on 2026-06-20T15:32+08:00 observed server,
 deployed runtime, and `origin/main` all at
 `12b1343cb2e379e18b7bfcdc9aeea4374c0e533a`, with
 `deployment_metadata_status=CURRENT`, `origin_metadata_status=CURRENT_ORIGIN_MAIN`,
 `runtime_log_status=PASS`, `missing_readiness_detail_fields=[]`,
 `deploy_required_before_live_review=false`, and `live_review_packet_allowed=false`.
 
-That current full-bundle evidence may legitimately report:
+That attached full-bundle evidence may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY
@@ -99,11 +99,12 @@ TINY_LIVE_ROLLOUT_NOT_READY
 ```
 
 Those are live-blocking until the clear conditions above are proven by fresh
-read-only evidence. MCP parity is expected to pass with
+read-only evidence. Treat this block as an attached example for traceability,
+not as currentness evidence after later commits. MCP parity is expected to pass with
 `missing_required_tools=[]` and `[mcp-parity-ssh] OK`.
-The current MCP audit details are complete enough for this gate
+The attached MCP audit details were complete enough for this gate
 (`missing_readiness_detail_fields=[]`), so `MCP_AUDIT_TOOL_ERROR` is no longer
-part of the current blocker set. The current runtime blocker is not a
+part of the attached blocker set. The attached runtime blocker is not a
 runtime-log failure; strict runtime-log evidence is clean, but runtime evidence
 collection is disabled and has no canonical shadow intent evidence.
 

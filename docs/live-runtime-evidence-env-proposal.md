@@ -7,10 +7,11 @@ env, deploy, restart the service, enable live trading, place orders, change
 OCO, run grid/fund/Earn actions, send Telegram, run external backfill/import
 jobs, mutate DB state, or change schedulers.
 
-## Current Evidence
+## Attached Evidence
 
-The current read-only runtime evidence RCA reported after the
-`12b1343` deploy:
+The attached read-only runtime evidence RCA reported after the `12b1343`
+deploy. This block is evidence captured at observation time, not a currentness
+claim after later docs, scripts, or runtime commits:
 
 ```text
 observedAt=2026-06-20T15:32+08:00
@@ -52,15 +53,15 @@ shadowExecutionIntents=0
 orderSentEvidence=0
 ```
 
-This supersedes the stale 2026-06-18 and 2026-06-19 runtime-evidence notes that
-had `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`. Currentness and runtime
-log blockers are not the active runtime-evidence problem anymore; the active
-problem is still that runtime evidence collection is disabled and no shadow
-intent exists. Rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a
-fast currentness check, but use the full bundle before drawing any
-live-readiness conclusion.
+This superseded the stale 2026-06-18 and 2026-06-19 runtime-evidence notes that
+had `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN` at the time it was
+captured. In that attached evidence, currentness and runtime-log blockers were
+not the active runtime-evidence problem; the active problem was still that
+runtime evidence collection was disabled and no shadow intent existed. Rerun
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a fast currentness check,
+but use the full bundle before drawing any live-readiness conclusion.
 
-The live-readiness bundle currently includes:
+The attached live-readiness bundle included:
 
 ```text
 RUNTIME_EVIDENCE_CONFIG_DISABLED

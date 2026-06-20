@@ -465,7 +465,9 @@ if ($signal -match "REVIEW_POLICY_GAPS" `
         -or $signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
 }
-if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK") {
+if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK" `
+        -or $mcpParity -match "missing_required_tools=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
+        -or $mcpParity -notmatch "missing_required_tools=\[\]") {
     $blockers.Add("MCP_PARITY_NOT_PROVEN")
 }
 if ($deploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `

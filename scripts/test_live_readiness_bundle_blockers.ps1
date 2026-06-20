@@ -145,7 +145,9 @@ function Get-LiveReadinessBundleBlockers {
             -or $Signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
         $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
     }
-    if ($McpParity -notmatch "\[mcp-parity-ssh\] OK") {
+    if ($McpParity -notmatch "\[mcp-parity-ssh\] OK" `
+            -or $McpParity -match "missing_required_tools=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
+            -or $McpParity -notmatch "missing_required_tools=\[\]") {
         $blockers.Add("MCP_PARITY_NOT_PROVEN")
     }
     if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `
@@ -469,7 +471,7 @@ $cleanInputs = @{
     RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
     Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS"
-    McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
+    McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
 $readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
@@ -531,6 +533,8 @@ Assert-BlockerCase -Name "signal missing governance mode fails closed" -Inputs (
 Assert-BlockerCase -Name "signal missing missed opportunity status fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missed opportunity pass in later section fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=N/A`nOther Section:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missing mcp parity ok marker" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
+Assert-BlockerCase -Name "missing mcp parity required tool list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
+Assert-BlockerCase -Name "mcp parity missing required tools fail closed" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "missing_required_tools=[`"verifyStrategyExecution`"]`n[mcp-parity-ssh] OK toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "runtime drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=RUNTIME_DRIFT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "missing deployment metadata fails closed" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "deployment probe skipped" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
@@ -543,7 +547,7 @@ Assert-BlockerCase `
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=WARN"
-        McpParity = "[mcp-parity-ssh] OK toolCount=305 required=35"
+        McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
         DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN"
     } `
     -ExpectedBlockers @(

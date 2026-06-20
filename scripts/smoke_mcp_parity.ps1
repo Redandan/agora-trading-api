@@ -133,6 +133,8 @@ $requiredTools = @(
 )
 
 $missing = @($requiredTools | Where-Object { $toolNames -notcontains $_ })
+Write-Host ("required_tools=" + (ConvertTo-Json -InputObject @($requiredTools) -Compress))
+Write-Host ("missing_required_tools=" + (ConvertTo-Json -InputObject @($missing) -Compress))
 if ($missing.Count -gt 0) {
     throw "MCP parity smoke missing required standalone trading tool(s): $($missing -join ', ')"
 }

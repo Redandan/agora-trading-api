@@ -181,6 +181,8 @@ tools_list = request({
 tools = tools_list.get("result", {}).get("tools") or []
 tool_names = sorted({tool.get("name") for tool in tools if tool.get("name")})
 missing = [name for name in required_tools if name not in tool_names]
+print("required_tools=" + json.dumps(required_tools))
+print("missing_required_tools=" + json.dumps(missing))
 if missing:
     print(f"FAIL: missing required standalone trading tools: {', '.join(missing)}", file=sys.stderr)
     sys.exit(1)

@@ -384,12 +384,18 @@ A future live review packet must include:
   `live_review_packet_allowed=true`, and
   `deploy_required_before_live_review=false`, plus
   `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`
+- latest `.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady` output
+  with `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
+  `packet_missing_requirements=[]`
 - explicit confirmation that the packet does not rely on
   `bundle_verdict=NOT_READY`, `bundle_verdict=NO_EVIDENCE`,
   `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, `live_review_packet_allowed=false`,
   or `DEPLOYED_RUNTIME_NOT_CURRENT`
 - full outputs from every required read-only smoke listed above
 - production env diff proposal
+- latest `.\scripts\prepare_live_env_review_packet.ps1 -RequireReady` output
+  with `env_review_packet_status=READY_FOR_OPERATOR_ENV_REVIEW_NOT_AUTHORIZED`,
+  `forbidden_true_candidates=[]`, and `env_review_missing_requirements=[]`
 - expected blast radius and rollback plan
 - runtime evidence status and shadow-intent counts
 - tiny-live loss hard-stop status

@@ -246,7 +246,8 @@
   `/api/mcp` passed, while public dedicated `/api/mcp` and shared-host
   `/api/trading/mcp` remained blocked with 404. The full read-only bundle
   reported runtime log `PASS` with ERROR count 0 and WARN baseline total 13,
-  MCP parity `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`,
+  MCP parity `required_tools=[...]`, `missing_required_tools=[]`,
+  `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`,
   and `autonomousOpportunity.eligible=false` in `readiness_details`.
   Background automation evidence printed
   `backgroundAutomationClear=false` and
@@ -285,8 +286,9 @@
   `origin_runtime_delta_files=0`, and `origin_runtime_delta_paths=[]`.
   Diagnostic stale-runtime bundle output still showed the active service
   healthy on port `8084`, local health and server-local `/api/mcp` passing,
-  MCP parity `missing_required_tools=[]`, `toolCount=305`, `required=35`, and
-  runtime log `PASS` with ERROR count 0 and WARN baseline total 16. The
+  MCP parity `required_tools=[...]`, `missing_required_tools=[]`,
+  `toolCount=305`, `required=35`, and runtime log `PASS` with ERROR count 0
+  and WARN baseline total 16. The
   diagnostic bundle remained `bundle_verdict=NOT_READY` with blockers
   `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
   `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
@@ -316,8 +318,9 @@
   active port `8084`, local health and server-local `/api/mcp` passing, public
   dedicated `/api/mcp` and shared-host `/api/trading/mcp` blocked with 404,
   nginx exact MCP blocks without `proxy_pass`, server-local MCP parity
-  `missing_required_tools=[]`, `toolCount=305`, `required=35`, and runtime log
-  `PASS` with ERROR count 0 and WARN baseline total 14. The diagnostic bundle
+  `required_tools=[...]`, `missing_required_tools=[]`, `toolCount=305`,
+  `required=35`, and runtime log `PASS` with ERROR count 0 and
+  WARN baseline total 14. The diagnostic bundle
   remained `bundle_verdict=NOT_READY` with blockers
   `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
   `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
@@ -375,8 +378,9 @@
   `TelegramServiceImpl` and `ExecutionEventScheduler`; the deployed runtime
   predates the classified log smoke, so `ERROR category ...` and
   `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` must be refreshed
-  after the next authorized deploy. MCP parity passed (`toolCount=305
-  required=35`). All order-capable
+  after the next authorized deploy. MCP parity passed with
+  `required_tools=[...]`, `missing_required_tools=[]`, and `toolCount=305
+  required=35`. All order-capable
   flags were false and dry-run flags were true, but high-risk background
   automation was already true for external backfills, event/execution
   notification scanning, autonomous digest Telegram, and live-signal retry
@@ -438,9 +442,10 @@
 - A read-only server-local MCP parity sanity check on 2026-06-20T10:11+08:00
   passed with `scripts/smoke_mcp_parity_ssh.ps1` on the deployed
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` runtime:
-  `missing_required_tools=[]`, `toolCount=305`, and `required=35` through
-  server-local `/api/mcp`. Because deployment metadata remains stale relative
-  to `origin/main`, this is MCP reachability evidence only; it does not clear
+  `required_tools=[...]`, `missing_required_tools=[]`, `toolCount=305`, and
+  `required=35` through server-local `/api/mcp`. Because deployment metadata
+  remains stale relative to `origin/main`, this is MCP reachability evidence
+  only; it does not clear
   `DEPLOYED_RUNTIME_NOT_CURRENT` and is not live-readiness evidence.
 - A strict read-only runtime-log smoke on 2026-06-20T10:16+08:00 failed against
   active run log
@@ -687,8 +692,8 @@ Trading deployment prep:
   migration, and generic follow-up migration wording in docs/source comments.
   After the signal-correctness parity-list expansion, local
   `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` also passed
-  with MCP parity `toolCount=305 required=35` on local `/api/mcp` and local
-  health OK.
+  with MCP parity `required_tools=[...]`, `missing_required_tools=[]`, and
+  `toolCount=305 required=35` on local `/api/mcp`; local health was OK.
   The reusable MCP parity smoke has matching local and SSH required-tool lists:
   local smoke invokes `scripts/smoke_mcp_parity.ps1`, the post-deploy issue
   wrapper invokes `scripts/smoke_mcp_parity_ssh.ps1` before the guardrail,
@@ -722,7 +727,8 @@ Trading deployment prep:
   HTTP/MCP smoke also passed with
   `scripts/smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
   `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
-  and local `/api/actuator/health` OK.
+  plus `required_tools=[...]` and `missing_required_tools=[]`; local
+  `/api/actuator/health` was OK.
   The post-deploy issue acceptance wrapper now reserves `CLOSURE_READY OK` for
   the full closure mode only: split acceptance, no-review-gaps guardrail smoke,
   signal-correctness smoke, and hard trailing replay acceptance must all pass.

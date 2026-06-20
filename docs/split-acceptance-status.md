@@ -67,7 +67,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   Local smoke on 2026-06-18 passed
   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180`, including
   `[mcp-parity] OK http://127.0.0.1:18084/api/mcp toolCount=305 required=35`
-  and local `/api/actuator/health` OK. Treat this as local readiness only;
+  plus the current parity contract requiring `required_tools=[...]` and
+  `missing_required_tools=[]`; local `/api/actuator/health` was OK. Treat this
+  as local readiness only;
   #1/#2/#3 closure still requires deployed server-local read-only acceptance
   after an explicitly authorized deploy.
 
@@ -167,6 +169,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   passed, while public dedicated `/api/mcp` and shared-host `/api/trading/mcp`
   remained blocked with 404. The full read-only bundle reported runtime log
   `PASS` with ERROR count 0 and WARN baseline total 13, MCP parity
+  `required_tools=[...]`, `missing_required_tools=[]`,
   `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`, and
   `autonomousOpportunity.eligible=false` in `readiness_details`.
   Background automation evidence printed
@@ -209,8 +212,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   Diagnostic stale-runtime bundle output with `-ContinueWhenRuntimeStale`
   confirmed the active service on port `8084` is healthy and reachable:
   health `UP`, runtime log `PASS` with ERROR count 0 and WARN baseline total
-  16, server-local MCP parity `missing_required_tools=[]`, `toolCount=305`,
-  and `required=35`. It remained `bundle_verdict=NOT_READY` with blockers
+  16, server-local MCP parity `required_tools=[...]`,
+  `missing_required_tools=[]`, `toolCount=305`, and `required=35`. It
+  remained `bundle_verdict=NOT_READY` with blockers
   `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
   `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
   `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`,
@@ -244,8 +248,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   server-local `/api/mcp` passed, public dedicated `/api/mcp` and shared-host
   `/api/trading/mcp` were blocked with 404, nginx exact MCP blocks had no
   `proxy_pass`, and nginx upstreams pointed at the active port. Server-local
-  MCP parity passed with `missing_required_tools=[]`, `toolCount=305`, and
-  `required=35`. The diagnostic live-readiness bundle with
+  MCP parity passed with `required_tools=[...]`,
+  `missing_required_tools=[]`, `toolCount=305`, and `required=35`. The
+  diagnostic live-readiness bundle with
   `-ContinueWhenRuntimeStale` reported runtime log `PASS` with ERROR count 0
   and WARN baseline total 14, but remained `bundle_verdict=NOT_READY` with
   blockers `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
@@ -359,10 +364,11 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   evidence and not a substitute for deploy plus the full read-only bundle.
 - Read-only server-local MCP parity sanity on 2026-06-20T10:11+08:00 passed
   with `.\scripts\smoke_mcp_parity_ssh.ps1` against
-  `http://127.0.0.1:8084/api/mcp`: `missing_required_tools=[]`,
-  `toolCount=305`, and `required=35`. Because deployment metadata still shows
-  the server worktree/deployed runtime behind `origin/main`, this is stale
-  runtime MCP reachability evidence only; it does not clear
+  `http://127.0.0.1:8084/api/mcp`: `required_tools=[...]`,
+  `missing_required_tools=[]`, `toolCount=305`, and `required=35`. Because
+  deployment metadata still shows the server worktree/deployed runtime behind
+  `origin/main`, this is stale runtime MCP reachability evidence only; it does
+  not clear
   `DEPLOYED_RUNTIME_NOT_CURRENT` and is not live-readiness evidence.
 - Strict read-only runtime-log smoke on 2026-06-20T10:16+08:00 failed against
   the active run log

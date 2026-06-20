@@ -181,9 +181,9 @@ Latest stale-runtime diagnostic refresh:
 - Stale-runtime diagnostics confirmed active port `8084`, local health and
   server-local `/api/mcp` passed, public dedicated `/api/mcp` and shared-host
   `/api/trading/mcp` were blocked with 404, nginx exact MCP blocks had no
-  `proxy_pass`, server-local MCP parity printed `missing_required_tools=[]`,
-  `toolCount=305`, and `required=35`, and the runtime log smoke passed with
-  ERROR count 0 plus WARN baseline total 14.
+  `proxy_pass`, server-local MCP parity printed `required_tools=[...]`,
+  `missing_required_tools=[]`, `toolCount=305`, and `required=35`, and the
+  runtime log smoke passed with ERROR count 0 plus WARN baseline total 14.
 - The diagnostic bundle with `-ContinueWhenRuntimeStale` still printed
   `bundle_verdict=NOT_READY` with blockers `LIVE_READINESS_NOT_READY`,
   `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,

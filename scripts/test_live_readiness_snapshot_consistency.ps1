@@ -108,6 +108,8 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "reported runtime log"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle '`PASS` with ERROR count 0'
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "WARN baseline total 13"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "required_tools=[...]"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "missing_required_tools=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "toolCount=305 required=35"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "missing_readiness_detail_fields=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "autonomousOpportunity.eligible=false"
@@ -270,6 +272,7 @@ foreach ($doc in @(
     )) {
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "2026-06-20T10:11+08:00"
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "smoke_mcp_parity_ssh.ps1"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "required_tools=[...]"
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "missing_required_tools=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "toolCount=305"
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "required=35"

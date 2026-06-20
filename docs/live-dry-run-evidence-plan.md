@@ -112,7 +112,7 @@ Run these read-only checks from the local repo:
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1
 .\scripts\audit_live_readiness_ssh.ps1
-.\scripts\smoke_runtime_evidence_rca_ssh.ps1
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
@@ -120,11 +120,13 @@ Run these read-only checks from the local repo:
 
 Expected evidence-only outcome:
 
-- `smoke_runtime_evidence_rca_ssh.ps1` no longer reports `CONFIG_DISABLED`.
-- Prefer `diagnosis=CANONICAL_SHADOW_READY`; otherwise document why the
-  remaining diagnosis is still acceptable for review.
-- `shadowIntentCount` is greater than 0 for the reviewed window.
+- `smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` exits 0.
+- `diagnosis=CANONICAL_SHADOW_READY`.
+- `shadowIntentCount > 0` for the reviewed window.
 - `orderSentEvidence=0`.
+- The runtime-evidence smoke exits non-zero after printing RCA details if the
+  diagnosis is not canonical shadow-ready, required fields are missing, shadow
+  intent is absent, or any order-sent evidence appears.
 - `/api/mcp` server-local smoke remains protected by `TRADING_MCP_KEY`.
 - Public MCP remains unavailable as a service surface unless separately
   authorized by product/security.

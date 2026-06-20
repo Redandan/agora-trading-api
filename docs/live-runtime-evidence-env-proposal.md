@@ -131,19 +131,26 @@ After any authorized env change and service restart, run:
 
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1
-.\scripts\smoke_runtime_evidence_rca_ssh.ps1
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
 Expected:
 
+- `smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` exits 0 only when the
+  runtime evidence is canonical shadow-ready.
 - `diagnosis` is no longer `CONFIG_DISABLED`
+- `diagnosis=CANONICAL_SHADOW_READY`
 - `env.TRADING_RUNTIME_EVIDENCE_ENABLED=SET` or an equivalent non-empty masked
   state is printed
 - `orderSentEvidence=0`
-- `shadowIntentCount` becomes greater than 0 before live is discussed
+- `shadowIntentCount > 0`
 - `missing_runtime_evidence_fields=[]`
+- The `-RequireReady` check exits non-zero after printing RCA details when the
+  diagnosis is not `CANONICAL_SHADOW_READY`, when required fields are missing,
+  when `shadowIntentCount` is not greater than 0, or when
+  `orderSentEvidence` is not 0.
 - Missing or `N/A` shadow-intent evidence stays blocked
 - Missing or unrecognized runtime-evidence diagnosis stays blocked
 - Missing runtime-evidence fields stay blocked and must not be interpreted as

@@ -6,7 +6,8 @@ param(
     [string]$Symbol = "BTCUSDT",
     [long]$StrategyId = 574,
     [string]$Side = "LONG",
-    [int]$Minutes = 43200
+    [int]$Minutes = 43200,
+    [switch]$RequireReady
 )
 
 Set-StrictMode -Version Latest
@@ -74,7 +75,7 @@ if [ -z "`$MCP_KEY" ]; then
   exit 1
 fi
 
-export PORT MCP_KEY SYMBOL='$Symbol' STRATEGY_ID='$StrategyId' SIDE='$Side' MINUTES='$Minutes' ENV_FILE='$EnvFile'
+export PORT MCP_KEY SYMBOL='$Symbol' STRATEGY_ID='$StrategyId' SIDE='$Side' MINUTES='$Minutes' ENV_FILE='$EnvFile' REQUIRE_READY='$($RequireReady.IsPresent)'
 python3 - <<'PY'
 import json
 import os
@@ -93,6 +94,7 @@ strategy_id = int(os.environ["STRATEGY_ID"])
 side = os.environ["SIDE"].upper()
 minutes = int(os.environ["MINUTES"])
 env_file = os.environ["ENV_FILE"]
+require_ready = os.environ.get("REQUIRE_READY", "").lower() == "true"
 
 def read_env_key(key):
     value = ""
@@ -276,10 +278,23 @@ else:
     print("  - REVIEW: runtime evidence status needs operator interpretation before any live env plan.")
 print("  - SCOPE: this smoke is read-only and must not write RuntimeDecisionEvidence, place orders, send Telegram, or enable flags.")
 print("[runtime-evidence-rca] OK read-only check complete")
+try:
+    shadow_ready = int(shadow_intent_count) > 0
+except Exception:
+    shadow_ready = False
+try:
+    no_order_sent = int(order_sent_evidence) == 0
+except Exception:
+    no_order_sent = False
+if require_ready and not (diagnosis == "CANONICAL_SHADOW_READY" and not missing_fields and shadow_ready and no_order_sent):
+    raise SystemExit(2)
 PY
 "@
 
 $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
 if ($LASTEXITCODE -ne 0) {
+    if ($RequireReady.IsPresent -and $LASTEXITCODE -eq 2) {
+        exit 2
+    }
     throw "runtime evidence RCA smoke failed with exit code $LASTEXITCODE"
 }

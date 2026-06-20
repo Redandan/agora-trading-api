@@ -199,12 +199,22 @@ Read-only runtime-evidence gap RCA when live-readiness reports
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1
 ```
 
+After a separately authorized evidence-only env change and restart, run the
+hard gate:
+
+```powershell
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
+```
+
 This calls server-local `/api/mcp` only and classifies the gap as disabled
 collection, no canonical rows, canonical rows without shadow intent, canonical
 shadow-ready, or requiring operator review. It does not write
 RuntimeDecisionEvidence, place orders, enable flags, send Telegram, or change
 production env/DB state. `missing_runtime_evidence_fields` must be empty before
 `CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
+`-RequireReady` exits 0 only when `diagnosis=CANONICAL_SHADOW_READY`,
+`missing_runtime_evidence_fields=[]`, `shadowIntentCount > 0`, and
+`orderSentEvidence=0`; otherwise it exits non-zero after printing RCA details.
 
 Read-only signal-correctness and policy review smoke before any live scope
 expansion:

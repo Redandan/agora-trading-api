@@ -47,10 +47,12 @@ function Get-AuditOrderFlags {
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $auditPath = Join-Path $PSScriptRoot "audit_live_readiness_ssh.ps1"
+$runtimeSmokePath = Join-Path $PSScriptRoot "smoke_runtime_evidence_rca_ssh.ps1"
 $proposalPath = Join-Path $repoRoot "docs/live-runtime-evidence-env-proposal.md"
 $dryRunPlanPath = Join-Path $repoRoot "docs/live-dry-run-evidence-plan.md"
 
 $auditText = Get-Content -Raw -LiteralPath $auditPath
+$runtimeSmokeText = Get-Content -Raw -LiteralPath $runtimeSmokePath
 $proposalText = Get-Content -Raw -LiteralPath $proposalPath
 $dryRunPlanText = Get-Content -Raw -LiteralPath $dryRunPlanPath
 
@@ -155,6 +157,49 @@ foreach ($marker in @(
     )) {
     if ($proposalText -notmatch [regex]::Escape($marker)) {
         throw "Runtime evidence proposal missing blocker marker: $marker"
+    }
+}
+
+foreach ($marker in @(
+        "smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+        "exits 0 only when",
+        "exits non-zero",
+        "diagnosis=CANONICAL_SHADOW_READY",
+        "shadowIntentCount > 0",
+        "orderSentEvidence=0"
+    )) {
+    if ($proposalText -notmatch [regex]::Escape($marker)) {
+        throw "Runtime evidence proposal missing RequireReady marker: $marker"
+    }
+}
+
+foreach ($marker in @(
+        "smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+        "exits 0",
+        "diagnosis=CANONICAL_SHADOW_READY",
+        "shadowIntentCount > 0",
+        "orderSentEvidence=0",
+        "exits non-zero"
+    )) {
+    if ($dryRunPlanText -notmatch [regex]::Escape($marker)) {
+        throw "Dry-run evidence plan missing RequireReady marker: $marker"
+    }
+}
+
+foreach ($marker in @(
+        '[switch]$RequireReady',
+        'REQUIRE_READY',
+        'require_ready',
+        'diagnosis == "CANONICAL_SHADOW_READY"',
+        'not missing_fields',
+        'shadow_ready',
+        'no_order_sent',
+        'raise SystemExit(2)',
+        '$RequireReady.IsPresent -and $LASTEXITCODE -eq 2',
+        'exit 2'
+    )) {
+    if ($runtimeSmokeText -notmatch [regex]::Escape($marker)) {
+        throw "Runtime evidence RCA smoke missing RequireReady implementation marker: $marker"
     }
 }
 

@@ -607,6 +607,13 @@ smoke before any live env-change plan:
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1
 ```
 
+After a separately authorized evidence-only env change and restart, use the
+hard gate:
+
+```powershell
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
+```
+
 Expected:
 
 - The script calls server-local `/api/mcp`, not public Trading MCP.
@@ -619,6 +626,10 @@ Expected:
   `REVIEW_RUNTIME_EVIDENCE_STATUS`.
 - `missing_runtime_evidence_fields` must be empty before
   `CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
+- With `-RequireReady`, the smoke exits 0 only when
+  `diagnosis=CANONICAL_SHADOW_READY`, `missing_runtime_evidence_fields=[]`,
+  `shadowIntentCount > 0`, and `orderSentEvidence=0`; otherwise it prints the
+  RCA details and exits non-zero.
 - `CANONICAL_SHADOW_READY` is not live approval; it only means this one gate
   should be rechecked by the full live-readiness audit.
 - The script must not write RuntimeDecisionEvidence, place orders, change OCO,

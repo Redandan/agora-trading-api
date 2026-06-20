@@ -131,6 +131,19 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "DEPLOYED_RUNTIME_NOT_CURRENT"
     Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "not live-readiness evidence"
 }
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress }
+    )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "2026-06-20T10:16+08:00"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "app-20260618T070102Z-port8084.log"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "runtime ERROR lines present: count=2"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "TelegramServiceImpl"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "ExecutionEventScheduler"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "ALLOW_RUNTIME_ERROR=1"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "not live-readiness evidence"
+}
 
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },

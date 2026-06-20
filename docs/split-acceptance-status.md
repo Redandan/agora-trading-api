@@ -212,6 +212,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   the server worktree/deployed runtime behind `origin/main`, this is stale
   runtime MCP reachability evidence only; it does not clear
   `DEPLOYED_RUNTIME_NOT_CURRENT` and is not live-readiness evidence.
+- Strict read-only runtime-log smoke on 2026-06-20T10:16+08:00 failed against
+  the active run log
+  `/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
+  with `runtime ERROR lines present: count=2`: one `TelegramServiceImpl`
+  send failure and one `ExecutionEventScheduler` scheduled scan failure. This
+  keeps `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` active for the stale deployed runtime.
+  Treat it as blocker RCA only; do not use `ALLOW_RUNTIME_ERROR=1` output as
+  live-readiness evidence, and do not review live until a separately authorized
+  deploy refreshes the runtime and the strict log smoke passes.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
   `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or

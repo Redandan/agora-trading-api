@@ -296,6 +296,14 @@
   server-local `/api/mcp`. Because deployment metadata remains stale relative
   to `origin/main`, this is MCP reachability evidence only; it does not clear
   `DEPLOYED_RUNTIME_NOT_CURRENT` and is not live-readiness evidence.
+- A strict read-only runtime-log smoke on 2026-06-20T10:16+08:00 failed against
+  active run log
+  `/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
+  with `runtime ERROR lines present: count=2`: one `TelegramServiceImpl` send
+  failure and one `ExecutionEventScheduler` scheduled scan failure. This keeps
+  `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` active for the stale deployed runtime.
+  `ALLOW_RUNTIME_ERROR=1` remains diagnostic-only and must not be used as
+  live-readiness evidence.
 - `scripts/smoke_live_deployment_metadata_ssh.ps1` now provides a reusable
   read-only `DEPLOYMENT_METADATA_ONLY` check for that server-currentness
   question. It is faster than the full bundle but deliberately prints

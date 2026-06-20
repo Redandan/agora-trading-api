@@ -168,6 +168,34 @@ not as current live-readiness evidence.
 
 Latest stale-runtime diagnostic refresh:
 
+- 2026-06-20T22:31+08:00 metadata-only smoke followed docs/tooling commit
+  `d0e0f4f20a1892b81d1147c631caf04d20e8400a`. Server worktree and deployed
+  `app.commit` remained at `ef6253a4ecff7c27a2e709f226e166389700a82d`, while
+  `origin/main` was `d0e0f4f20a1892b81d1147c631caf04d20e8400a`.
+- Metadata output printed `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`,
+  `live_review_packet_allowed=false`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`.
+- Stale-runtime diagnostics confirmed active port `8084`, local health and
+  server-local `/api/mcp` passed, MCP parity printed
+  `required_tools=[...]`, `missing_required_tools=[]`,
+  `[mcp-parity-ssh] OK`, `toolCount=305`, and `required=35`, and the runtime
+  log smoke passed with ERROR count 0 plus WARN baseline total 16.
+- The diagnostic bundle with `-ContinueWhenRuntimeStale` still printed
+  `bundle_verdict=NOT_READY` with blockers `LIVE_READINESS_NOT_READY`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
+  `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
+  `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`.
+  Signal correctness stayed blocked with `signalPolicyClear=false`,
+  `governanceMode=TOO_STRICT`, and missed-opportunity `overallStatus=WARN`.
+
+This refresh is stale-runtime diagnostic/read-only RCA evidence only. It is not
+live-readiness evidence, not a replacement for a post-deploy full bundle, and
+not permission to enable live trading.
+
 - 2026-06-20T20:53+08:00 metadata-only smoke followed docs/tooling commit
   `0c033972b4bd39531d0e617d0f2702926108686f`. Server worktree and deployed
   `app.commit` remained at `ef6253a4ecff7c27a2e709f226e166389700a82d`, while
@@ -198,6 +226,34 @@ live-readiness evidence, not a replacement for a post-deploy full bundle, and
 not permission to enable live trading.
 
 Latest read-only routing and blocker RCA refresh:
+
+- 2026-06-20T22:31+08:00 origin-delta classifier observed server worktree
+  `ef6253a4ecff7c27a2e709f226e166389700a82d` while local `origin/main` was
+  `d0e0f4f20a1892b81d1147c631caf04d20e8400a`. It printed
+  `origin_delta_local_evidence=true`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=20`,
+  `origin_docs_tooling_delta_files=20`, `origin_runtime_delta_files=0`,
+  `origin_runtime_delta_paths=[]`, and `live_review_packet_allowed=false`.
+- The full read-only bundle remained `bundle_verdict=NOT_READY` with blockers
+  `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
+  `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
+  `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, `SIGNAL_POLICY_REVIEW_GAPS`, and
+  `DEPLOYED_RUNTIME_NOT_CURRENT`.
+- `audit_live_readiness_ssh` reported health `UP`, `runtime_log_status=PASS`,
+  runtime ERROR count 0, WARN baseline total 16, `order_capable_flags_true=[]`,
+  all reviewed dry-run flags true, `riskLevel=R0`, and
+  `missing_readiness_detail_fields=[]`.
+- Server-local MCP parity printed `required_tools=[...]`,
+  `missing_required_tools=[]`, `[mcp-parity-ssh] OK`, `toolCount=305`, and
+  `required=35`.
+- Signal correctness remained executable and showed
+  `executionMachineStatus=no missing evaluation; no missed order`, but
+  `signalPolicyClear=false` because 7d governance drift was `TOO_STRICT` and
+  missed-opportunity `overallStatus=WARN`.
+
+This is read-only RCA evidence only. It is not live-readiness evidence and not
+permission to enable live trading.
 
 - 2026-06-20T21:40+08:00 origin-delta classifier observed server worktree
   `ef6253a4ecff7c27a2e709f226e166389700a82d` while local `origin/main` was

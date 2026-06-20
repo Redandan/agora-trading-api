@@ -155,9 +155,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   review a separately authorized live-change plan; it does not enable live
   trading.
 - Latest recorded current-at-observation read-only live-readiness bundle on
-  2026-06-20T17:51+08:00
+  2026-06-20T18:19+08:00
   followed the explicitly authorized deploy of
-  `da1c81cac4d7075bfc2012d6da1a1cfd69d25452`. The server worktree,
+  `d12d53c8edee09c63031ddb99750c3b9419c2602`. The server worktree,
   `origin/main`, and deployed `app.commit` all matched that commit, active port
   switched to `8084`, `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=CURRENT_ORIGIN_MAIN`, `metadata_blockers=[]`, and
@@ -166,7 +166,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   tables, and 137 expected extra shared tables. Local server MCP `/api/mcp`
   passed, while public dedicated `/api/mcp` and shared-host `/api/trading/mcp`
   remained blocked with 404. The full read-only bundle reported runtime log
-  `PASS` with ERROR count 0 and WARN baseline total 13, MCP parity
+  `PASS` with ERROR count 0 and WARN baseline total 12, MCP parity
   `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`, and
   `autonomousOpportunity.eligible=false` in `readiness_details`.
   Background automation evidence printed

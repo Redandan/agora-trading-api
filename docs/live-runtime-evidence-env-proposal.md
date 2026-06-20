@@ -9,16 +9,16 @@ jobs, mutate DB state, or change schedulers.
 
 ## Attached Evidence
 
-The attached read-only runtime evidence RCA reported after the `da1c81c`
+The attached read-only runtime evidence RCA reported after the `d12d53c`
 deploy. This block is evidence captured at observation time, not a currentness
 claim after later docs, scripts, or runtime commits:
 
 ```text
-observedAt=2026-06-20T17:51+08:00
-serverCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
+observedAt=2026-06-20T18:19+08:00
+serverCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
 deployment_metadata_status=CURRENT
 origin_metadata_status=CURRENT_ORIGIN_MAIN
-deployedCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
+deployedCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
 diagnosis=CONFIG_DISABLED
 env.TRADING_RUNTIME_EVIDENCE_ENABLED=EMPTY
 runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE
@@ -36,8 +36,8 @@ The same live-readiness bundle reached every child smoke with current deployment
 metadata:
 
 ```text
-observedAt=2026-06-20T17:51+08:00
-serverCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
+observedAt=2026-06-20T18:19+08:00
+serverCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
 origin_metadata_status=CURRENT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 live_review_packet_allowed=false

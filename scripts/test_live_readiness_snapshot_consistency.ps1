@@ -10,10 +10,10 @@ $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
 $expectedMetadataOriginCommit = "4ee52d860fb18f79bd989801c471cd71be5c63d1"
 $expectedCurrentOriginCommit = "873b219171755401c40f3a676fb3c7c9477471ec"
-$expectedCurrentObservedAt = "2026-06-20T17:51+08:00"
-$expectedCurrentCommit = "da1c81cac4d7075bfc2012d6da1a1cfd69d25452"
-$expectedLatestSplitObservedAt = "2026-06-20T17:51+08:00"
-$expectedLatestSplitCommit = "da1c81cac4d7075bfc2012d6da1a1cfd69d25452"
+$expectedCurrentObservedAt = "2026-06-20T18:19+08:00"
+$expectedCurrentCommit = "d12d53c8edee09c63031ddb99750c3b9419c2602"
+$expectedLatestSplitObservedAt = "2026-06-20T18:19+08:00"
+$expectedLatestSplitCommit = "d12d53c8edee09c63031ddb99750c3b9419c2602"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -95,14 +95,14 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle $expectedLatestSplitObservedAt
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle $expectedLatestSplitCommit
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "active port"
-    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "8085"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "8084"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "origin_metadata_status=CURRENT_ORIGIN_MAIN"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "deployment_metadata_status=CURRENT"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "metadata_blockers=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "deploy_required_before_live_review=false"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "reported runtime log"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle '`PASS` with ERROR count 0'
-    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "WARN baseline total 13"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "WARN baseline total 12"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "toolCount=305 required=35"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "missing_readiness_detail_fields=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "autonomousOpportunity.eligible=false"
@@ -142,7 +142,7 @@ Assert-ContainsLiteral -Name "live production env review proposal current snapsh
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "deployment_metadata_status=CURRENT"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLog=PASS"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLogErrors=0"
-Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLogWarnBaselineTotal=13"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLogWarnBaselineTotal=12"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "missing_readiness_detail_fields=[]"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "backgroundAutomationClear=false"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle 'backgroundAutomationBlockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"]'

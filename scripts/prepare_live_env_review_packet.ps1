@@ -1,15 +1,35 @@
 param(
+    [string]$RuntimeProposalPath = "",
+    [string]$BackgroundProposalPath = "",
+    [string]$ProductionProposalPath = "",
     [switch]$RequireReady
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+function Resolve-DocPath {
+    param(
+        [string]$Path,
+        [string]$DefaultRelativePath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return (Join-Path (Split-Path -Parent $PSScriptRoot) $DefaultRelativePath)
+    }
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return $Path
+    }
+    return (Join-Path (Get-Location) $Path)
+}
+
 function Get-DocText {
-    param([string]$RelativePath)
-    $path = Join-Path (Split-Path -Parent $PSScriptRoot) $RelativePath
+    param(
+        [string]$Path,
+        [string]$DisplayName
+    )
     if (-not (Test-Path -LiteralPath $path)) {
-        throw "Missing required document: $RelativePath"
+        throw "Missing required document: $DisplayName"
     }
     Get-Content -Raw -LiteralPath $path
 }
@@ -65,9 +85,13 @@ function Assert-SameSet {
     }
 }
 
-$runtimeProposal = Get-DocText "docs/live-runtime-evidence-env-proposal.md"
-$backgroundProposal = Get-DocText "docs/live-background-automation-env-diff-proposal.md"
-$productionProposal = Get-DocText "docs/live-production-env-review-proposal.md"
+$runtimePath = Resolve-DocPath -Path $RuntimeProposalPath -DefaultRelativePath "docs/live-runtime-evidence-env-proposal.md"
+$backgroundPath = Resolve-DocPath -Path $BackgroundProposalPath -DefaultRelativePath "docs/live-background-automation-env-diff-proposal.md"
+$productionPath = Resolve-DocPath -Path $ProductionProposalPath -DefaultRelativePath "docs/live-production-env-review-proposal.md"
+
+$runtimeProposal = Get-DocText -Path $runtimePath -DisplayName "runtime evidence proposal"
+$backgroundProposal = Get-DocText -Path $backgroundPath -DisplayName "background automation proposal"
+$productionProposal = Get-DocText -Path $productionPath -DisplayName "production env review proposal"
 
 $runtimeDiff = Convert-DotenvBlock (Get-DotenvBlock -Text $runtimeProposal -Heading "Proposed Evidence-Only Diff" -Name "runtime evidence proposal")
 $backgroundDiff = Convert-DotenvBlock (Get-DotenvBlock -Text $backgroundProposal -Heading "Proposed Evidence-Only Diff" -Name "background automation proposal")
@@ -121,8 +145,9 @@ Assert-SameSet -Name "background automation proposed diff" -Actual @($background
 $runtimeTrueCandidates = @($runtimeDiff | Where-Object { $_.Value -eq "true" } | ForEach-Object { $_.Key })
 $backgroundTrueCandidates = @($backgroundDiff | Where-Object { $_.Value -eq "true" } | ForEach-Object { $_.Key })
 $productionTrueCandidates = @($productionEvidenceCandidate | Where-Object { $_.Value -eq "true" } | ForEach-Object { $_.Key })
+$mustStayDisabledTrueCandidates = @($productionMustStayDisabled | Where-Object { $_.Value -eq "true" } | ForEach-Object { $_.Key })
 $forbiddenTrueCandidates = @(
-    @($runtimeTrueCandidates + $backgroundTrueCandidates + $productionTrueCandidates) |
+    @($runtimeTrueCandidates + $backgroundTrueCandidates + $productionTrueCandidates + $mustStayDisabledTrueCandidates) |
         Where-Object { $forbiddenTrueKeys -contains $_ } |
         Sort-Object -Unique
 )
@@ -145,6 +170,9 @@ $packetReady = $missingRequirements.Count -eq 0
 
 Write-Host "[live-env-review-packet-preflight] local review-only gate"
 Write-Host "scope=LOCAL_DOCS_ONLY; reads review proposal docs only; no SSH, production env, deploy, restart, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, or policy state changed."
+Write-Host "runtime_proposal_path=$runtimePath"
+Write-Host "background_proposal_path=$backgroundPath"
+Write-Host "production_proposal_path=$productionPath"
 Write-Host ("runtime_evidence_candidate=" + (ConvertTo-Json -Compress @($runtimeDiff.Line)))
 Write-Host ("background_disable_candidates=" + (ConvertTo-Json -Compress @($backgroundDiff.Line)))
 Write-Host ("production_evidence_only_candidate=" + (ConvertTo-Json -Compress @($productionEvidenceCandidate.Line)))

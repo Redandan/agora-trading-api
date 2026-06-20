@@ -88,6 +88,9 @@ foreach ($flag in $expectedHighRiskFlags) {
 foreach ($pattern in @(
         "background_automation_false",
         "missing_background_automation_flags",
+        "smoke_live_background_automation_ssh.ps1 -RequireClear",
+        "exits non-zero",
+        "fail closed",
         "lists all nine reviewed background flags",
         "missing background automation flag",
         "does not list every reviewed background flag",
@@ -114,7 +117,11 @@ foreach ($pattern in @(
         "if missing_flags:",
         "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE",
         "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
-        "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW"
+        "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW",
+        "[switch]`$RequireClear",
+        "REQUIRE_CLEAR",
+        "require_clear",
+        "raise SystemExit(2)"
     )) {
     if ($smokeText -notmatch [regex]::Escape($pattern)) {
         throw "Background automation smoke missing fail-closed marker $pattern"

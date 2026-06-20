@@ -243,6 +243,8 @@ and retry notification toggles. `missing_background_automation_flags` must be
 empty; absent reviewed env keys are not treated as explicit false evidence. It
 does not change production env/DB or perform order/OCO/grid/fund/Earn/Telegram
 or scheduler actions.
+After a separately authorized background-automation env diff, rerun it with
+`-RequireClear` so any remaining true or missing reviewed flag exits non-zero.
 
 Read-only live readiness bundle that runs the audit, background automation,
 runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:

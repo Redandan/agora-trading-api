@@ -647,6 +647,9 @@ Expected:
 - Output includes `background_automation_true`,
   `high_risk_background_automation_true`,
   `missing_background_automation_flags`, `classification`, and `verdict`.
+- After a separately authorized background-automation env diff, rerun with
+  `-RequireClear`; that mode exits non-zero if any reviewed flag is still true
+  or missing, after printing the blocker details.
 - `missing_background_automation_flags` must be empty before the background
   automation blocker can clear; absent reviewed env keys are not treated as
   explicit false evidence.

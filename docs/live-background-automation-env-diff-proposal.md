@@ -89,13 +89,16 @@ After any authorized env change and service restart, run:
 
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1
-.\scripts\smoke_live_background_automation_ssh.ps1
+.\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
 Expected:
 
+- `.\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear` exits 0;
+  if any reviewed flag is true or missing, it exits non-zero after printing
+  the blocker details.
 - `background_automation_true=[]`
 - `high_risk_background_automation_true=[]`
 - `missing_background_automation_flags=[]`
@@ -117,6 +120,8 @@ Coverage drift guard:
   `test_live_background_automation_flags.ps1` before live review.
 - Missing reviewed env keys remain blockers; a key absent from the server env is
   not equivalent to explicit `false` evidence.
+- Do not use non-`-RequireClear` output as final proof after the authorized
+  background automation diff; the required verification must fail closed.
 
 ## Rollback Criteria
 

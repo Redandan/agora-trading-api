@@ -2,7 +2,8 @@ param(
     [string]$SshHost = $env:AGORA_SSH_HOST,
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [string]$AppDir = "/home/ubuntu/agora-trading-api",
-    [string]$EnvFile = "/home/ubuntu/.env.trading.secrets"
+    [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
+    [switch]$RequireClear
 )
 
 Set-StrictMode -Version Latest
@@ -46,9 +47,10 @@ $remoteScript = @"
 set -euo pipefail
 APP_DIR='$AppDir'
 ENV_FILE='$EnvFile'
+REQUIRE_CLEAR='$($RequireClear.IsPresent)'
 cd "`$APP_DIR"
 
-export APP_DIR ENV_FILE
+export APP_DIR ENV_FILE REQUIRE_CLEAR
 python3 - <<'PY'
 import json
 import os
@@ -56,6 +58,7 @@ import subprocess
 
 app_dir = os.environ["APP_DIR"]
 env_file = os.environ["ENV_FILE"]
+require_clear = os.environ.get("REQUIRE_CLEAR", "").lower() == "true"
 
 def read_env():
     values = {}
@@ -137,6 +140,8 @@ else:
     print("verdict=OK_BACKGROUND_AUTOMATION_DISABLED")
 
 print("[live-background-automation] read-only check complete")
+if require_clear and (true_flags or missing_flags):
+    raise SystemExit(2)
 PY
 "@
 

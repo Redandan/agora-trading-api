@@ -44,17 +44,18 @@ rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` and the full
 
 ```text
 snapshotType=ATTACHED_READ_ONLY_EVIDENCE
-observedAt=2026-06-20T17:29+08:00
-serverCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
-deployedCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+observedAt=2026-06-20T17:51+08:00
+serverCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
+deployedCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
 deployment_metadata_status=CURRENT
 origin_metadata_status=CURRENT_ORIGIN_MAIN
-originMainCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+originMainCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
 health=UP
 eventRisk=riskLevel=R0
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=PASS
 runtimeLogErrors=0
+runtimeLogWarnBaselineTotal=13
 missing_readiness_detail_fields=[]
 orderCapableFlags=false
 dryRunFlags=true
@@ -64,6 +65,7 @@ backgroundAutomationBlockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND
 runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0
 tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2
 signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN
+bundle_blocker_summary=present
 bundle_blockers=["LIVE_READINESS_NOT_READY","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]
 live_review_packet_allowed=false
 deploy_required_before_live_review=false
@@ -83,9 +85,9 @@ but it is not a substitute for the full bundle:
 
 ```text
 refreshType=DEPLOYMENT_METADATA_ONLY
-worktreeCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
-originMainCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
-deployedCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+worktreeCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
+originMainCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
+deployedCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
 origin_metadata_status=CURRENT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 metadata_blockers=[]
@@ -104,7 +106,7 @@ previous MCP audit detail gap was cleared in the attached deployed evidence by
 The stale 2026-06-20T10:16+08:00 runtime-log failure against
 `app-20260618T070102Z-port8084.log` remains useful RCA for Telegram/ExecutionEvent
 notification paths (`TelegramServiceImpl` and `ExecutionEventScheduler`), but it
-was no longer the current blocker after the `c3c1ee6` deploy. If a future strict read-only runtime-log smoke fails, attach the
+was no longer the current blocker after the `da1c81c` deploy. If a future strict read-only runtime-log smoke fails, attach the
 `ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
 line, then explicitly reconcile `EVENT_SCAN_NOTIFICATION_ENABLED`,
 `EXECUTION_EVENT_ENABLED`, Telegram send health, and background automation

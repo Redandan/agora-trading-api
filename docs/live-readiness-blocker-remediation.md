@@ -81,9 +81,9 @@ server worktree behind `origin/main`, the same failure output includes
 
 ## Latest Attached Expected Blockers
 
-The attached read-only server bundle on 2026-06-20T17:29+08:00 observed server,
+The attached read-only server bundle on 2026-06-20T17:51+08:00 observed server,
 deployed runtime, and `origin/main` all at
-`c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7`, with
+`da1c81cac4d7075bfc2012d6da1a1cfd69d25452`, with
 `deployment_metadata_status=CURRENT`, `origin_metadata_status=CURRENT_ORIGIN_MAIN`,
 `runtime_log_status=PASS`, `missing_readiness_detail_fields=[]`,
 `deploy_required_before_live_review=false`, and `live_review_packet_allowed=false`.
@@ -113,6 +113,8 @@ collection is disabled and has no canonical shadow intent evidence.
 The attached background automation evidence also printed
 `backgroundAutomationClear=false` and
 `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]`.
+The attached bundle also printed `bundle_blocker_summary` with categories and
+required read-only follow-up evidence for every listed blocker.
 
 With the current fail-fast bundle behavior, if future deployment metadata
 already shows the server worktree or deployed runtime is behind `origin/main`,
@@ -146,7 +148,7 @@ Historical complete blocker snapshot from stale deployed runtime:
   `TelegramServiceImpl` and `ExecutionEventScheduler`.
 - That stale runtime-log failure preserves `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`
   for historical RCA only and is no longer the current blocker after the
-  2026-06-20T17:29+08:00 clean runtime-log bundle.
+  2026-06-20T17:51+08:00 clean runtime-log bundle.
 
 Those stale outputs do not clear any blocker and are not a substitute for
 rerunning the full bundle after a separately authorized deploy; they are stale

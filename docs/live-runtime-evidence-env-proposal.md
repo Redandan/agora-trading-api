@@ -9,16 +9,16 @@ jobs, mutate DB state, or change schedulers.
 
 ## Attached Evidence
 
-The attached read-only runtime evidence RCA reported after the `c3c1ee6`
+The attached read-only runtime evidence RCA reported after the `da1c81c`
 deploy. This block is evidence captured at observation time, not a currentness
 claim after later docs, scripts, or runtime commits:
 
 ```text
-observedAt=2026-06-20T17:29+08:00
-serverCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+observedAt=2026-06-20T17:51+08:00
+serverCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
 deployment_metadata_status=CURRENT
 origin_metadata_status=CURRENT_ORIGIN_MAIN
-deployedCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+deployedCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
 diagnosis=CONFIG_DISABLED
 env.TRADING_RUNTIME_EVIDENCE_ENABLED=EMPTY
 runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE
@@ -29,15 +29,15 @@ orderSentEvidence=0
 freshnessTerminalBlocks=51
 noCurrentBuyCandidateReason=LATEST_SIGNAL_HOLD
 currentSignalDecision=HOLD
-currentSignalAgeMinutes=4
+currentSignalAgeMinutes=1
 ```
 
 The same live-readiness bundle reached every child smoke with current deployment
 metadata:
 
 ```text
-observedAt=2026-06-20T17:29+08:00
-serverCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+observedAt=2026-06-20T17:51+08:00
+serverCommit=da1c81cac4d7075bfc2012d6da1a1cfd69d25452
 origin_metadata_status=CURRENT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 live_review_packet_allowed=false

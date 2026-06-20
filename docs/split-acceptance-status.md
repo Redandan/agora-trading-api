@@ -155,23 +155,26 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   review a separately authorized live-change plan; it does not enable live
   trading.
 - Latest recorded current-at-observation read-only live-readiness bundle on
-  2026-06-20T17:29+08:00
+  2026-06-20T17:51+08:00
   followed the explicitly authorized deploy of
-  `c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7`. The server worktree,
+  `da1c81cac4d7075bfc2012d6da1a1cfd69d25452`. The server worktree,
   `origin/main`, and deployed `app.commit` all matched that commit, active port
-  remained `8085`, `deployment_metadata_status=CURRENT`,
+  switched to `8084`, `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=CURRENT_ORIGIN_MAIN`, `metadata_blockers=[]`, and
   `deploy_required_before_live_review=false`. Split/server verification passed
   in shared-DB mode with 39 source entity tables, 176 DB tables, 0 missing
   tables, and 137 expected extra shared tables. Local server MCP `/api/mcp`
   passed, while public dedicated `/api/mcp` and shared-host `/api/trading/mcp`
   remained blocked with 404. The full read-only bundle reported runtime log
-  `PASS` with ERROR count 0 and WARN baseline total 12, MCP parity
+  `PASS` with ERROR count 0 and WARN baseline total 13, MCP parity
   `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`, and
   `autonomousOpportunity.eligible=false` in `readiness_details`.
   Background automation evidence printed
   `backgroundAutomationClear=false` and
   `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]`.
+  The bundle also printed machine-readable `bundle_blocker_summary` entries
+  mapping each blocker to a category, required read-only evidence, and next
+  action.
   `MCP_AUDIT_TOOL_ERROR`, `DEPLOYED_RUNTIME_NOT_CURRENT`, and
   `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` are no longer current blockers. The bundle
   still printed `live_review_packet_allowed=false` and `bundle_verdict=NOT_READY`

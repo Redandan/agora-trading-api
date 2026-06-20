@@ -327,6 +327,21 @@ review and attach the classifier evidence separately. If it prints
 metadata smoke. In all cases, rerun the full read-only bundle before drafting
 any live review packet.
 
+Local production-env review packet preflight:
+
+```powershell
+.\scripts\prepare_live_env_review_packet.ps1 -RequireReady
+```
+
+This local review packet preflight reads the review proposal docs and verifies that the
+runtime-evidence candidate is only `TRADING_RUNTIME_EVIDENCE_ENABLED=true`,
+that the background-automation candidate only disables the nine reviewed
+background flags, and that no order/OCO/grid/fund/Earn/Telegram/exchange/live
+candidate is enabled. `env_review_packet_status=READY_FOR_OPERATOR_ENV_REVIEW_NOT_AUTHORIZED`
+means the docs are internally consistent enough to attach to a separate
+operator env-change request with fresh read-only SSH smokes; it is not
+authorization, does not apply changes, and the operator must not apply changes from this output. Do not apply changes from this output.
+
 Fast read-only deployment metadata check when the only question is whether the
 server worktree/deployed runtime still matches current `origin/main`:
 

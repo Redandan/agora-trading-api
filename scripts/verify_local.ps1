@@ -1587,6 +1587,7 @@ try {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/live-production-env-review-proposal.md") -Description "live production env review proposal keeps no-mutation/live gate marker $pattern"
     }
     Invoke-VerifyPowerShellTest -ScriptName "test_live_production_env_review_plan.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_live_env_review_packet_preflight.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_live_readiness_snapshot_consistency.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_live_deployment_metadata_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_live_origin_delta_local.ps1"

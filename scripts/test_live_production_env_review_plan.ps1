@@ -19,12 +19,19 @@ function Get-CommandBlock {
         [string]$Heading
     )
 
-    $pattern = '(?ms)^## ' + [regex]::Escape($Heading) + '.*?```powershell\s+(.*?)```'
-    $match = [regex]::Match($Text, $pattern)
-    if (-not $match.Success) {
+    $sectionPattern = '(?ms)^## ' + [regex]::Escape($Heading) + '\s+(.*?)(?=^## |\z)'
+    $sectionMatch = [regex]::Match($Text, $sectionPattern)
+    if (-not $sectionMatch.Success) {
+        throw "Could not find section '$Heading'."
+    }
+    $matches = [regex]::Matches($sectionMatch.Groups[1].Value, '```powershell\s+(.*?)```', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if ($matches.Count -eq 0) {
         throw "Could not find powershell command block under heading '$Heading'."
     }
-    $match.Groups[1].Value
+    @(
+        $matches |
+            ForEach-Object { $_.Groups[1].Value }
+    ) -join "`n"
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -142,6 +149,8 @@ $latestSnapshotMarkers = @(
     'signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN',
     'LIVE_READINESS_NOT_READY'
 )
+
+Assert-Contains -Name "required evidence preflight hard gate" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\prepare_live_env_review_packet.ps1 -RequireReady"))
 
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",

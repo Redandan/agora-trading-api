@@ -10,6 +10,17 @@ This document is a review proposal only, not authorization.
 
 ## Required Evidence Before Review
 
+First run the local review packet preflight:
+
+```powershell
+.\scripts\prepare_live_env_review_packet.ps1 -RequireReady
+```
+
+`env_review_packet_status=READY_FOR_OPERATOR_ENV_REVIEW_NOT_AUTHORIZED` only
+means the proposal docs are internally consistent enough to attach to a
+separate operator env-change request with fresh read-only SSH smokes. It is not
+authorization, it does not change production env, and operators must not apply changes from this output. Do not apply changes from this output.
+
 Run these read-only checks and attach the outputs to the operator review:
 
 ```powershell

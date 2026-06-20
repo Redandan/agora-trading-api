@@ -746,6 +746,29 @@ evidence separately. If it prints `origin_delta_status=NO_LOCAL_EVIDENCE`,
 refresh local git evidence or rerun the metadata smoke. In all cases, rerun the
 full read-only bundle before drafting any live packet.
 
+To prepare a local review packet preflight for production-env review:
+
+```powershell
+.\scripts\prepare_live_env_review_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- The script does not use SSH and does not change production env, deploy,
+  restart, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange,
+  external backfill/import, or policy state.
+- `env_review_packet_status=READY_FOR_OPERATOR_ENV_REVIEW_NOT_AUTHORIZED`
+  means the proposal docs are internally consistent enough to attach to a
+  separate operator env-change request with fresh read-only SSH smokes; it is
+  not authorization, and operators must not apply changes from this output. Do
+  not apply changes from this output.
+- `forbidden_true_candidates=[]`.
+- `env_review_missing_requirements=[]`.
+- The only runtime-evidence candidate is
+  `TRADING_RUNTIME_EVIDENCE_ENABLED=true`.
+- The background-automation candidate only sets the nine reviewed background
+  flags to `false`.
+
 To check only whether the server worktree/deployed runtime is stale relative to
 current `origin/main`, run the faster metadata-only smoke:
 

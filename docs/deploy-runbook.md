@@ -768,6 +768,21 @@ Expected:
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; treat that as an
   incomplete metadata refresh, not live-readiness evidence.
 
+Optional local read-only origin-delta classifier:
+
+```powershell
+.\scripts\smoke_live_origin_delta_local.ps1
+```
+
+Expected:
+
+- It runs the metadata-only SSH smoke, then uses local `git diff --name-only`
+  evidence between the server worktree commit and `origin/main`.
+- It prints `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `RUNTIME_DRIFT`,
+  `CURRENT_ORIGIN_MAIN`, or `NO_LOCAL_EVIDENCE`.
+- It always prints `live_review_packet_allowed=false`; use it only to route the
+  next operator step, not as live-readiness evidence.
+
 Expected:
 
 - The wrapper runs the live-readiness audit, background automation smoke,

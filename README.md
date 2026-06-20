@@ -344,6 +344,19 @@ prints `read_only_metadata_error=SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`,
 `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; treat that as an
 incomplete metadata refresh, not live-readiness evidence.
 
+Optional read-only local classifier for the same currentness question:
+
+```powershell
+.\scripts\smoke_live_origin_delta_local.ps1
+```
+
+This runs the metadata-only SSH smoke and then classifies the server worktree
+commit to `origin/main` diff from the local git object database as
+`DOCS_TOOLING_ONLY_DRIFT`, `RUNTIME_DRIFT`, `CURRENT_ORIGIN_MAIN`, or
+`NO_LOCAL_EVIDENCE`. It still prints `live_review_packet_allowed=false`; it is
+only a routing aid for whether a runtime deploy is likely needed before the
+fresh full bundle.
+
 The bundle keeps evidence windows bounded and passes them through to the child
 smokes: runtime evidence defaults to 43,200 minutes, tiny-live RCA defaults to
 30 days, signal execution defaults to 5 days, blocked-signal/governance review

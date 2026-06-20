@@ -89,6 +89,14 @@ Even a successful metadata-only refresh with `metadata_current=true` or
 `live_review_packet_allowed=false`; it is only a currentness probe and does not
 replace the full live-readiness bundle.
 
+`.\scripts\smoke_live_origin_delta_local.ps1` is an optional read-only routing
+aid for this same question. It runs the metadata-only SSH smoke and uses local
+`git diff --name-only` evidence to classify the server worktree to
+`origin/main` delta as `DOCS_TOOLING_ONLY_DRIFT`, `RUNTIME_DRIFT`,
+`CURRENT_ORIGIN_MAIN`, or `NO_LOCAL_EVIDENCE`. It also prints
+`live_review_packet_allowed=false`; do not use it to clear live-readiness
+blockers without a fresh full bundle.
+
 For full-bundle child-smoke failures after deployment metadata was collected,
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE` remains the primary evidence-status
 blocker, but the failure output also preserves `deployment_metadata_status` and

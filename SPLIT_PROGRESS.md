@@ -289,6 +289,13 @@
   behind `origin/main`, this is service-health evidence only, not live-readiness evidence,
   and not a substitute for a separately authorized deploy plus the full read-only
   bundle.
+- A read-only server-local MCP parity sanity check on 2026-06-20T10:11+08:00
+  passed with `scripts/smoke_mcp_parity_ssh.ps1` on the deployed
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8` runtime:
+  `missing_required_tools=[]`, `toolCount=305`, and `required=35` through
+  server-local `/api/mcp`. Because deployment metadata remains stale relative
+  to `origin/main`, this is MCP reachability evidence only; it does not clear
+  `DEPLOYED_RUNTIME_NOT_CURRENT` and is not live-readiness evidence.
 - `scripts/smoke_live_deployment_metadata_ssh.ps1` now provides a reusable
   read-only `DEPLOYMENT_METADATA_ONLY` check for that server-currentness
   question. It is faster than the full bundle but deliberately prints

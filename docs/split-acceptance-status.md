@@ -205,6 +205,13 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   explicitly skipped git currentness and the server remains behind
   `origin/main`, it is service-health evidence only, not live-readiness
   evidence and not a substitute for deploy plus the full read-only bundle.
+- Read-only server-local MCP parity sanity on 2026-06-20T10:11+08:00 passed
+  with `.\scripts\smoke_mcp_parity_ssh.ps1` against
+  `http://127.0.0.1:8084/api/mcp`: `missing_required_tools=[]`,
+  `toolCount=305`, and `required=35`. Because deployment metadata still shows
+  the server worktree/deployed runtime behind `origin/main`, this is stale
+  runtime MCP reachability evidence only; it does not clear
+  `DEPLOYED_RUNTIME_NOT_CURRENT` and is not live-readiness evidence.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
   `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or

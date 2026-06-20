@@ -119,6 +119,18 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "not live-readiness evidence"
     Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "not a substitute"
 }
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress }
+    )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "2026-06-20T10:11+08:00"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "smoke_mcp_parity_ssh.ps1"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "missing_required_tools=[]"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "toolCount=305"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "required=35"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "DEPLOYED_RUNTIME_NOT_CURRENT"
+    Assert-ContainsLiteral -Name "$($doc.Name) stale mcp parity sanity" -Text $doc.Text -Needle "not live-readiness evidence"
+}
 
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },

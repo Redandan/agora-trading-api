@@ -279,10 +279,10 @@
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. Rerun
   `scripts/smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
   refresh.
-- A current read-only deployment metadata refresh on 2026-06-20T10:31+08:00
+- A current read-only deployment metadata refresh on 2026-06-20T13:34+08:00
   still observed server worktree and deployed runtime at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
-  to `2da9cb94ebc160475366f8e7f9d876b2393830d4`. The metadata-only check
+  to `873b219171755401c40f3a676fb3c7c9477471ec`. The metadata-only check
   reported `liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN`,
   `liveBundleDeployStatus=CURRENT`,
   `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,

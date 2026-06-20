@@ -679,8 +679,12 @@ Expected:
 - The script reads server env and app metadata only.
 - Output includes `background_automation_true`,
   `high_risk_background_automation_true`,
-  `missing_background_automation_flags`, `background_automation_blockers`,
+  `missing_background_automation_flags`,
+  `background_automation_review_plan`, `background_automation_blockers`,
   `backgroundAutomationClear`, `classification`, and `verdict`.
+- `background_automation_review_plan` lists every true or missing reviewed flag
+  with `riskCategory`, `concern`, and `requiredReview`; it routes operator
+  review only and does not clear blockers.
 - After a separately authorized background-automation env diff, rerun with
   `-RequireClear`; that mode exits non-zero if any reviewed flag is still true
   or missing, after printing the blocker details.

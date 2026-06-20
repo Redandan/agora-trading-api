@@ -112,10 +112,71 @@ high_risk_flags = [
     "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED",
 ]
 
+flag_reviews = {
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED": {
+        "riskCategory": "external-read",
+        "concern": "Active provider probes can create network dependency noise during live review.",
+        "requiredReview": "Decide whether external health probing belongs in the live-review baseline or must be disabled first.",
+    },
+    "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED": {
+        "riskCategory": "external-backfill-import",
+        "concern": "Backfill/import-capable MCP paths can write market-data or imported indicator rows when invoked.",
+        "requiredReview": "Disable before live review unless a separate operator plan explicitly keeps external backfills available.",
+    },
+    "MARKET_WS_AUTO_SUBSCRIBE_ENABLED": {
+        "riskCategory": "market-data-runtime",
+        "concern": "Startup market WebSocket subscriptions can add provider/network side effects and noisy runtime warnings.",
+        "requiredReview": "Confirm market WebSocket ownership and provider reachability, or disable for a quieter review baseline.",
+    },
+    "EVENT_SCAN_NOTIFICATION_ENABLED": {
+        "riskCategory": "scheduler-notification",
+        "concern": "Scheduled event-scan notification flow can produce outbound operator notifications.",
+        "requiredReview": "Disable before live review unless scheduled event notifications are separately authorized.",
+    },
+    "EXECUTION_EVENT_ENABLED": {
+        "riskCategory": "scheduler-db-notification",
+        "concern": "Execution-event scanning can evaluate normalized execution events and notification paths.",
+        "requiredReview": "Disable before live review unless execution-event ownership and notification dry-run/send mode are approved.",
+    },
+    "TRADING_DAILY_TG_REPORT_ENABLED": {
+        "riskCategory": "telegram-report",
+        "concern": "Daily report orchestration can send or prepare Trading-owned Telegram report work.",
+        "requiredReview": "Confirm Telegram ownership and send mode, or disable before live review.",
+    },
+    "TRADING_AUTONOMOUS_DIGEST_ENABLED": {
+        "riskCategory": "autonomous-digest",
+        "concern": "Autonomous digest work can evaluate live trading context and produce operator digest output.",
+        "requiredReview": "Review autonomous digest ownership before any live scope expansion.",
+    },
+    "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED": {
+        "riskCategory": "telegram-send",
+        "concern": "Autonomous digest Telegram path can send outbound messages.",
+        "requiredReview": "Disable before live review unless Telegram-send behavior is separately authorized.",
+    },
+    "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED": {
+        "riskCategory": "telegram-send-db-update",
+        "concern": "Live-signal retry notification can resend pending signal notifications and mark rows notified.",
+        "requiredReview": "Disable before live review unless retry notification ownership and write behavior are separately authorized.",
+    },
+}
+
 true_flags = [key for key in background_flags if bool_value(values, key)]
 high_risk_true = [key for key in high_risk_flags if bool_value(values, key)]
 missing_flags = [key for key in background_flags if not has_key(values, key)]
 false_flags = [key for key in background_flags if has_key(values, key) and not bool_value(values, key)]
+review_plan = []
+for key in true_flags + missing_flags:
+    item = dict(flag_reviews.get(key, {}))
+    item["flag"] = key
+    item["state"] = "MISSING" if key in missing_flags else "TRUE"
+    item["highRisk"] = key in high_risk_flags
+    if not item.get("riskCategory"):
+        item["riskCategory"] = "unclassified"
+    if not item.get("concern"):
+        item["concern"] = "Reviewed background automation flag requires explicit live-readiness classification."
+    if not item.get("requiredReview"):
+        item["requiredReview"] = "Classify before live review."
+    review_plan.append(item)
 background_blockers = []
 if high_risk_true:
     background_blockers.append("HIGH_RISK_BACKGROUND_AUTOMATION_TRUE")
@@ -134,6 +195,7 @@ print("background_automation_true=" + json.dumps(true_flags))
 print("high_risk_background_automation_true=" + json.dumps(high_risk_true))
 print("background_automation_false=" + json.dumps(false_flags))
 print("missing_background_automation_flags=" + json.dumps(missing_flags))
+print("background_automation_review_plan=" + json.dumps(review_plan, sort_keys=True))
 print("background_automation_blockers=" + json.dumps(background_blockers))
 print(f"backgroundAutomationClear={str(background_clear).lower()}")
 

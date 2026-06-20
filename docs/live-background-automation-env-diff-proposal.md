@@ -105,6 +105,9 @@ Expected:
 - `background_automation_blockers=[]`
 - `backgroundAutomationClear=true`
 - `background_automation_false` lists all nine reviewed background flags.
+- `background_automation_review_plan=[]`; if it contains entries, each entry's
+  `riskCategory`, `concern`, and `requiredReview` must be reviewed before the
+  blocker can clear.
 - `verdict=OK_BACKGROUND_AUTOMATION_DISABLED`
 - `BACKGROUND_AUTOMATION_REVIEW` no longer appears in `bundle_blockers`
 - No missing background automation flag is reported; each reviewed flag must be
@@ -122,6 +125,9 @@ Coverage drift guard:
   `test_live_background_automation_flags.ps1` before live review.
 - Missing reviewed env keys remain blockers; a key absent from the server env is
   not equivalent to explicit `false` evidence.
+- `background_automation_review_plan` is review routing only.
+  It is not authorization to keep a flag true and is not a substitute for
+  `-RequireClear`.
 - Do not use non-`-RequireClear` output as final proof after the authorized
   background automation diff; the required verification must fail closed.
 

@@ -84,6 +84,10 @@ For standalone metadata-only refreshes, `read_only_metadata_error=SSH_AUTH_FAILE
 `live_review_packet_allowed=false`, `deploy_required_before_live_review=unknown`,
 and `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`; this is an
 incomplete metadata refresh and must not be used as live-readiness evidence.
+Even a successful metadata-only refresh with `metadata_current=true` or
+`deployment_metadata_status=DOCS_TOOLING_ONLY_DRIFT` still prints
+`live_review_packet_allowed=false`; it is only a currentness probe and does not
+replace the full live-readiness bundle.
 
 For full-bundle child-smoke failures after deployment metadata was collected,
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE` remains the primary evidence-status

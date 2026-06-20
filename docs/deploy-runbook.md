@@ -756,6 +756,9 @@ Expected:
 - It always prints `live_review_packet_allowed=false`.
 - It is metadata-only, not live-readiness evidence and not a substitute for the
   full bundle after a deploy.
+- Even when it prints `metadata_current=true` or
+  `deployment_metadata_status=DOCS_TOOLING_ONLY_DRIFT`, treat it only as a
+  currentness probe; it does not replace the full live-readiness bundle.
 - If SSH access or the remote read-only command fails, it prints
   `read_only_metadata_error=SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`,
   `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, plus

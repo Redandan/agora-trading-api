@@ -155,6 +155,9 @@ foreach ($doc in @(
     Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "smoke_live_deployment_metadata_ssh\.ps1"
     Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "DEPLOYMENT_METADATA_ONLY"
     Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "metadata-only"
+    Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "DOCS_TOOLING_ONLY_DRIFT"
+    Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "metadata_current=true"
+    Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "live_review_packet_allowed=false"
     Assert-Contains -Name $doc.Name -Text $doc.Text -Pattern "not live-readiness evidence|not a substitute for"
 }
 

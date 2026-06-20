@@ -331,6 +331,10 @@ server worktree/deployed runtime still matches current `origin/main`:
 
 This emits `refreshType=DEPLOYMENT_METADATA_ONLY`. It is metadata-only, not
 live-readiness evidence and not a substitute for the full bundle.
+Even when metadata-only output reports `metadata_current=true` or
+`deployment_metadata_status=DOCS_TOOLING_ONLY_DRIFT`, it still prints
+`live_review_packet_allowed=false` and must only be used to decide whether a
+fresh full bundle can be trusted.
 If SSH access or the remote read-only command fails, the metadata-only smoke
 prints `read_only_metadata_error=SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`,
 `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, plus

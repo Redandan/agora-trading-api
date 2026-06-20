@@ -172,6 +172,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   Background automation evidence printed
   `backgroundAutomationClear=false` and
   `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]`.
+  Do not chase docs-only deploy commits by rewriting this attached snapshot
+  after every documentation refresh; the currentness source of truth is a
+  freshly rerun deployment metadata smoke plus the full live-readiness bundle,
+  not the SHA embedded in this handoff.
   The bundle also printed machine-readable `bundle_blocker_summary` entries
   mapping each blocker to a category, required read-only evidence, and next
   action.

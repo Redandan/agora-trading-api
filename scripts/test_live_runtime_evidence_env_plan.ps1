@@ -142,6 +142,8 @@ foreach ($marker in @(
         "attached evidence, currentness and runtime-log blockers",
         "active problem was still that",
         "runtime evidence collection was disabled",
+        "Do not chase docs-only deploy commits",
+        "fresh metadata smoke and full live-readiness bundle prove currentness",
         "live_review_packet_allowed=false",
         "deploy_required_before_live_review=false",
         "separately authorized",

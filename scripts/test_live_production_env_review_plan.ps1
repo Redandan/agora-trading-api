@@ -116,6 +116,8 @@ $latestSnapshotMarkers = @(
     'originMainCommit=d12d53c8edee09c63031ddb99750c3b9419c2602',
     'attached snapshot superseded earlier stale 2026-06-19 and 2026-06-20',
     'attached runtime currentness was clean',
+    'Do not chase docs-only deploy commits',
+    'authoritative currentness evidence is the freshly rerun metadata and full\s+bundle output',
     'refreshType=DEPLOYMENT_METADATA_ONLY',
     'metadata_blockers=\[\]',
     'bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY',

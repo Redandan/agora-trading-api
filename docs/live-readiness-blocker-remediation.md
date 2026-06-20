@@ -108,6 +108,11 @@ Those are live-blocking until the clear conditions above are proven by fresh
 read-only evidence. Treat this block as an attached example for traceability,
 not as currentness evidence after later commits. MCP parity is expected to pass with
 `missing_required_tools=[]` and `[mcp-parity-ssh] OK`.
+Do not chase docs-only deploy commits by rewriting this attached snapshot after
+every documentation refresh; currentness must come from a freshly rerun
+`smoke_live_deployment_metadata_ssh.ps1` plus the full
+`smoke_live_readiness_bundle_ssh.ps1` output, not from the SHA embedded in this
+document.
 The attached MCP audit details were complete enough for this gate
 (`missing_readiness_detail_fields=[]`), so `MCP_AUDIT_TOOL_ERROR` is no longer
 part of the attached blocker set. The attached runtime blocker is not a

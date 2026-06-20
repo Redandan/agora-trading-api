@@ -108,6 +108,9 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "autonomousOpportunity.eligible=false"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "backgroundAutomationClear=false"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle 'background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]'
+    Assert-ContainsLiteral -Name "$($doc.Name) docs-only snapshot boundary" -Text $doc.Text -Needle "Do not chase docs-only deploy commits"
+    Assert-ContainsLiteral -Name "$($doc.Name) docs-only snapshot boundary" -Text $doc.Text -Needle "currentness source of truth"
+    Assert-ContainsLiteral -Name "$($doc.Name) docs-only snapshot boundary" -Text $doc.Text -Needle "freshly rerun deployment metadata smoke plus the full live-readiness bundle"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "bundle_blocker_summary"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "MCP_AUDIT_TOOL_ERROR"
     Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "are no longer current blockers"
@@ -172,6 +175,9 @@ Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "missing_readiness_detail_fields=[]"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "backgroundAutomationClear=false"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]'
+Assert-ContainsLiteral -Name "live readiness remediation docs-only snapshot boundary" -Text $remediation -Needle "Do not chase docs-only deploy commits"
+Assert-ContainsLiteral -Name "live readiness remediation docs-only snapshot boundary" -Text $remediation -Needle "currentness must come from a freshly rerun"
+Assert-ContainsLiteral -Name "live readiness remediation docs-only snapshot boundary" -Text $remediation -Needle "not from the SHA embedded"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "deploy_required_before_live_review=false"
 foreach ($blocker in $expectedCurrentBlockers) {
     Assert-ContainsLiteral -Name "live readiness remediation current blocker" -Text $remediation -Needle $blocker

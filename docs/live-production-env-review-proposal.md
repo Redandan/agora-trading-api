@@ -78,6 +78,10 @@ morning metadata snapshots that included `DEPLOYED_RUNTIME_NOT_CURRENT` or
 records only as historical RCA. If `origin/main`, server worktree, or deployed
 runtime changes again, rerun deployment metadata and the full bundle before
 using this proposal.
+Do not chase docs-only deploy commits by rewriting this attached snapshot after
+every documentation refresh. A committed SHA here is traceability only; the
+authoritative currentness evidence is the freshly rerun metadata and full
+bundle output attached to the operator review.
 
 The attached runtime currentness was clean at the observation time. Use
 `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a fast metadata refresh,

@@ -60,6 +60,9 @@ not the active runtime-evidence problem; the active problem was still that
 runtime evidence collection was disabled and no shadow intent existed. Rerun
 `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a fast currentness check,
 but use the full bundle before drawing any live-readiness conclusion.
+Do not chase docs-only deploy commits by rewriting this attached snapshot after
+every documentation refresh. The attached commit proves traceability for the
+sample; a fresh metadata smoke and full live-readiness bundle prove currentness.
 
 The attached live-readiness bundle included:
 

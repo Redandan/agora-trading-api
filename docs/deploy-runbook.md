@@ -643,6 +643,10 @@ Expected:
   `enabled` flag, preview `runtimeEvidenceStatus`, recent evidence row count,
   shadow-intent counts, `orderSentEvidence`,
   `missing_runtime_evidence_fields`, candidate context, and no-buy context.
+- It prints `runtime_evidence_review_plan`, a machine-readable review-routing
+  list with `gate`, `state`, `riskCategory`, `evidenceMarkers`,
+  `requiredEvidence`, `nextAction`, and `notAuthorization`; this is not
+  authorization to mutate production env or enable live behavior.
 - It classifies the gap as `CONFIG_DISABLED`, `NO_CANONICAL_ROWS`,
   `CANONICAL_ROWS_NO_SHADOW_INTENT`, `CANONICAL_SHADOW_READY`, or
   `REVIEW_RUNTIME_EVIDENCE_STATUS`.

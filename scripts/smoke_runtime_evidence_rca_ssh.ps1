@@ -230,6 +230,78 @@ elif runtime_status == "AVAILABLE_CANONICAL_SHADOW_EVIDENCE":
 else:
     diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"
 
+review_plan = []
+if missing_fields:
+    review_plan.append({
+        "gate": "missing-fields",
+        "state": "BLOCKED",
+        "riskCategory": "incomplete-evidence",
+        "evidenceMarkers": [f"missing_runtime_evidence_fields={json.dumps(missing_fields)}"],
+        "requiredEvidence": "missing_runtime_evidence_fields=[]",
+        "nextAction": "Fix runtime-evidence RCA output or MCP tool fields before trusting this evidence.",
+        "notAuthorization": "Do not treat incomplete runtime-evidence output as live-review evidence.",
+    })
+if diagnosis == "CONFIG_DISABLED":
+    review_plan.append({
+        "gate": "config",
+        "state": "BLOCKED",
+        "riskCategory": "evidence-collection-disabled",
+        "evidenceMarkers": [f"env.TRADING_RUNTIME_EVIDENCE_ENABLED={runtime_flag}", f"runtimeEvidenceStatus={runtime_status}", f"dashboardEnabled={dashboard_enabled}"],
+        "requiredEvidence": "A separately authorized evidence-only env change enables runtime evidence while all order-capable/background automation flags remain disabled.",
+        "nextAction": "Review docs/live-runtime-evidence-env-proposal.md; do not apply env changes from this smoke.",
+        "notAuthorization": "This does not authorize production env mutation, scheduler enablement, orders, OCO, grid, fund, Earn, Telegram, exchange writes, or DB mutation.",
+    })
+elif diagnosis == "NO_CANONICAL_ROWS":
+    review_plan.append({
+        "gate": "canonical-rows",
+        "state": "BLOCKED",
+        "riskCategory": "no-evidence-sample",
+        "evidenceMarkers": [f"runtimeEvidenceRows={runtime_rows}", f"sampleCount={sample_count}"],
+        "requiredEvidence": "Canonical runtime evidence rows exist in the bounded review window.",
+        "nextAction": "Keep collection enabled only if separately authorized and rerun this RCA after enough dry-run/shadow candidates exist.",
+        "notAuthorization": "Do not bypass this by enabling live execution.",
+    })
+elif diagnosis == "CANONICAL_ROWS_NO_SHADOW_INTENT":
+    review_plan.append({
+        "gate": "shadow-intent",
+        "state": "BLOCKED",
+        "riskCategory": "missing-shadow-intent",
+        "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"shadowExecutionIntents={shadow_intents}"],
+        "requiredEvidence": "shadowIntentCount > 0 and orderSentEvidence=0 for the reviewed evidence-only window.",
+        "nextAction": "Continue dry-run/shadow evidence collection; keep execution disabled.",
+        "notAuthorization": "Canonical rows without shadow intent do not authorize live trading.",
+    })
+elif diagnosis == "CANONICAL_SHADOW_READY":
+    review_plan.append({
+        "gate": "canonical-shadow",
+        "state": "READY_FOR_OTHER_BLOCKER_REVIEW",
+        "riskCategory": "runtime-evidence-ready",
+        "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"orderSentEvidence={order_sent_evidence}"],
+        "requiredEvidence": "Full live-readiness bundle clears all other blockers.",
+        "nextAction": "Use full bundle, tiny-live hard-stop, signal policy, background automation, and audit evidence before drafting any live review packet.",
+        "notAuthorization": "Runtime evidence readiness alone is not live approval.",
+    })
+else:
+    review_plan.append({
+        "gate": "status-review",
+        "state": "BLOCKED",
+        "riskCategory": "unclassified-runtime-evidence-status",
+        "evidenceMarkers": [f"diagnosis={diagnosis}", f"runtimeEvidenceStatus={runtime_status}"],
+        "requiredEvidence": "diagnosis=CANONICAL_SHADOW_READY, missing_runtime_evidence_fields=[], shadowIntentCount > 0, orderSentEvidence=0.",
+        "nextAction": "Review and classify the runtime-evidence status before any env plan.",
+        "notAuthorization": "Unclassified runtime-evidence status cannot be used for live review.",
+    })
+if order_sent_evidence != "0":
+    review_plan.append({
+        "gate": "order-sent",
+        "state": "HARD_BLOCKED",
+        "riskCategory": "unexpected-order-evidence",
+        "evidenceMarkers": [f"orderSentEvidence={order_sent_evidence}"],
+        "requiredEvidence": "orderSentEvidence=0 in the evidence-only window.",
+        "nextAction": "Stop live review and investigate why order-sent evidence exists.",
+        "notAuthorization": "Any positive order-sent evidence blocks live review.",
+    })
+
 print("")
 print("Runtime Evidence Gate:")
 print(f"  diagnosis={diagnosis}")
@@ -253,6 +325,7 @@ print(f"  shadowLikeListedRows={shadow_line_count}")
 print(f"  orderSentEvidence={order_sent_evidence}")
 print(f"  freshnessTerminalBlocks={freshness_blocks}")
 print(f"  missing_runtime_evidence_fields={json.dumps(missing_fields)}")
+print(f"  runtime_evidence_review_plan={json.dumps(review_plan, sort_keys=True)}")
 
 print("")
 print("Candidate Context:")

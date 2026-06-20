@@ -79,6 +79,12 @@ evidence-only window.
 `diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT` is a known diagnosis and maps to
 `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, not to
 `RUNTIME_EVIDENCE_REVIEW_REQUIRED`.
+The RCA smoke also prints `runtime_evidence_review_plan`, a machine-readable
+review-routing list. Each entry includes `gate`, `state`, `riskCategory`,
+`evidenceMarkers`, `requiredEvidence`, `nextAction`, and `notAuthorization`.
+That plan helps route the evidence review; it is not authorization to mutate
+production env or to keep moving toward live if the blocker evidence is still
+present.
 
 ## Proposed Evidence-Only Diff
 
@@ -150,6 +156,10 @@ Expected:
 - `orderSentEvidence=0`
 - `shadowIntentCount > 0`
 - `missing_runtime_evidence_fields=[]`
+- `runtime_evidence_review_plan` contains no `state=BLOCKED` or
+  `state=HARD_BLOCKED` entries. If entries remain, review `riskCategory`,
+  `evidenceMarkers`, `requiredEvidence`, `nextAction`, and `notAuthorization`
+  before continuing.
 - The `-RequireReady` check exits non-zero after printing RCA details when the
   diagnosis is not `CANONICAL_SHADOW_READY`, when required fields are missing,
   when `shadowIntentCount` is not greater than 0, or when

@@ -46,6 +46,9 @@ The current server evidence keeps live blocked while these remain true:
 - `HIGH_RISK_BACKGROUND_AUTOMATION_TRUE`
 - `REVIEW_POLICY_GAPS` or unresolved signal correctness / governance drift
   findings from `smoke_signal_correctness_ssh.ps1`
+- missing MCP parity `required_tools=[...]`, missing
+  `missing_required_tools=[]`, non-empty `missing_required_tools`, or missing
+  `[mcp-parity-ssh] OK`
 
 Latest attached read-only bundle snapshot.
 This block is evidence captured at the observation time, not a currentness
@@ -63,7 +66,9 @@ origin_metadata_status=CURRENT_ORIGIN_MAIN
 originMainCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
 health=UP
 eventRisk=riskLevel=R0
-mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
+mcpParityRequiredTools=required_tools=[...]
+mcpParityMissingTools=missing_required_tools=[]
+mcpParityOk=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=PASS
 runtimeLogErrors=0
 runtimeLogWarnBaselineTotal=13
@@ -239,6 +244,10 @@ Expected evidence-only result:
 - `signal_policy_review_plan` is present and any remaining gate is handled as
   review evidence only, with `notAuthorization` confirming it is not live
   approval or permission to relax policy.
+- `smoke_mcp_parity_ssh.ps1` exits 0.
+- MCP parity output includes `required_tools=[...]`.
+- MCP parity output includes `missing_required_tools=[]`.
+- MCP parity output includes `[mcp-parity-ssh] OK`.
 - Any hard-gate smoke exiting non-zero means the review remains blocked even
   if the full bundle can still print diagnostic child-smoke details.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports

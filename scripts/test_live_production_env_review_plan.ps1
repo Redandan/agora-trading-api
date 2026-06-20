@@ -104,6 +104,10 @@ $evidenceOnlyExpectedResults = @(
     'missing_signal_policy_fields=\[\]',
     '7d governance drift is not `TOO_STRICT`, `TOO_LOOSE`, or\s+`INSUFFICIENT_DATA`',
     'Missed-opportunity `overallStatus=PASS`',
+    'smoke_mcp_parity_ssh\.ps1` exits 0',
+    'MCP parity output includes `required_tools=\[\.\.\.\]`',
+    'MCP parity output includes `missing_required_tools=\[\]`',
+    'MCP parity output includes `\[mcp-parity-ssh\] OK`',
     'hard-gate smoke exiting non-zero means the review remains blocked',
     'Runtime logs remain free of order placement, OCO modification, live exchange\s+writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler\s+execution, external backfill/import, and DB mutation'
 )
@@ -143,6 +147,9 @@ $latestSnapshotMarkers = @(
     'backgroundHighRiskFlags=',
     'backgroundAutomationClear=false',
     'backgroundAutomationBlockers=\["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"\]',
+    'mcpParityRequiredTools=required_tools=\[\.\.\.\]',
+    'mcpParityMissingTools=missing_required_tools=\[\]',
+    'mcpParityOk=\[mcp-parity-ssh\] OK toolCount=305 required=35',
     'bundle_blocker_summary=present',
     'runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0',
     'tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2',

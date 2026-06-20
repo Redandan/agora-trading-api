@@ -473,7 +473,7 @@ function New-BlockerSummary {
             "SIGNAL_POLICY_REVIEW_GAPS" {
                 $category = "signal-policy"
                 $requiredEvidence = ".\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear"
-                $evidenceMarkers = @("REVIEW_POLICY_GAPS", "governanceMode=TOO_STRICT/TOO_LOOSE/INSUFFICIENT_DATA", "missed opportunity overallStatus is WARN or FAIL")
+                $evidenceMarkers = @("REVIEW_POLICY_GAPS", "governanceMode=TOO_STRICT/TOO_LOOSE/INSUFFICIENT_DATA", "missed opportunity overallStatus is WARN or FAIL", "signalPolicyClear is not true", "signal_policy_review_plan missing or still has BLOCKED/REVIEW entries")
                 $nextAction = "Resolve signal governance and missed-opportunity gaps in shadow/tiny-live caps only."
             }
             "MCP_PARITY_NOT_PROVEN" {
@@ -643,6 +643,10 @@ if ($signal -match "REVIEW_POLICY_GAPS" `
         -or $signal -match "missing_signal_policy_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
         -or $signal -match "7d Governance Drift:\s*`r?`n\s*governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
         -or $signal -match "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=(FAIL|WARN)" `
+        -or $signal -notmatch "signalPolicyClear=true" `
+        -or $signal -notmatch "signal_policy_review_plan=" `
+        -or ($signal -match "signalPolicyClear=true" -and $signal -match '"state"\s*:\s*"BLOCKED"') `
+        -or ($signal -match "signalPolicyClear=true" -and $signal -match '"state"\s*:\s*"REVIEW"') `
         -or $signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
         -or $signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")

@@ -521,6 +521,9 @@ Expected:
   `nextAction`, and `notAuthorization` for each blocked/review gate. Use it to
   draft the next read-only evidence task only; it is not live approval and is
   not permission to relax signal policy.
+- The full bundle also requires `signalPolicyClear=true` and
+  `signal_policy_review_plan` to be present without `state=BLOCKED` or
+  `state=REVIEW` entries when signal policy is otherwise clear.
 - The smoke prints no-buy row classifications, top blocker families, row-level
   next actions, high-return no-buy strategy distribution, and EntryDedup group
   blocker families so operators can decide whether the next safe step is data

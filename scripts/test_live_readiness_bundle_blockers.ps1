@@ -150,6 +150,10 @@ function Get-LiveReadinessBundleBlockers {
             -or $Signal -match "missing_signal_policy_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
             -or $Signal -match "7d Governance Drift:\s*`r?`n\s*governanceMode=(TOO_STRICT|TOO_LOOSE|INSUFFICIENT_DATA)" `
             -or $Signal -match "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=(FAIL|WARN)" `
+            -or $Signal -notmatch "signalPolicyClear=true" `
+            -or $Signal -notmatch "signal_policy_review_plan=" `
+            -or ($Signal -match "signalPolicyClear=true" -and $Signal -match '"state"\s*:\s*"BLOCKED"') `
+            -or ($Signal -match "signalPolicyClear=true" -and $Signal -match '"state"\s*:\s*"REVIEW"') `
             -or $Signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
             -or $Signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
         $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
@@ -579,7 +583,7 @@ shadowIntentCount=3
 orderSentEvidence=0
 runtime_evidence_review_plan=[{"state":"READY_FOR_OTHER_BLOCKER_REVIEW"}]'
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
-    Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS"
+    Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signalPolicyClear=true`n  signal_policy_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]"
     McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
@@ -645,7 +649,11 @@ Assert-BlockerCase -Name "signal governance insufficient data" -Inputs (Merge-In
 Assert-BlockerCase -Name "missed opportunity warning" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=WARN" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "missed opportunity failure" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=FAIL" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missing policy fields fail closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  missing_signal_policy_fields=[`"governanceMode7d`"]" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
-Assert-BlockerCase -Name "non-missed warning does not block signal policy" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`nOther Section:`n  overallStatus=WARN" }) -ExpectedBlockers @()
+Assert-BlockerCase -Name "signal missing clear marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signal_policy_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal missing review plan fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signalPolicyClear=true" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal blocked review plan fails closed when otherwise clear" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signalPolicyClear=true`n  signal_policy_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "signal review plan fails closed when otherwise clear" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signalPolicyClear=true`n  signal_policy_review_plan=[{`"state`":`"REVIEW`"}]" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "non-missed warning does not block signal policy" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signalPolicyClear=true`n  signal_policy_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]`nOther Section:`n  overallStatus=WARN" }) -ExpectedBlockers @()
 Assert-BlockerCase -Name "signal missing governance mode fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missing missed opportunity status fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missed opportunity pass in later section fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=N/A`nOther Section:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")

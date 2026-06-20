@@ -263,6 +263,9 @@ details, including `signalPolicyClear` and the machine-readable
 `riskCategory`, `evidenceMarkers`, `requiredEvidence`, and `notAuthorization`
 for operator review; it is not live approval and must not be used to enable
 trading or relax policy by itself.
+The full bundle also requires `signalPolicyClear=true` and
+`signal_policy_review_plan` to be present without `BLOCKED` or `REVIEW` states
+when signal policy is otherwise clear.
 
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps

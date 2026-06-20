@@ -12,6 +12,7 @@ param(
     [int]$SignalExecutionDays = 5,
     [int]$SignalBlockedDays = 7,
     [int]$SignalAccuracyDays = 14,
+    [switch]$ContinueWhenRuntimeStale,
     [switch]$RequireReady
 )
 
@@ -127,6 +128,28 @@ function Write-PartialDeploymentMetadata {
     if ($DeploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
         Write-Host ("origin_metadata_status=" + $Matches[1])
     }
+}
+
+function Assert-DeploymentMetadataCurrentOrStop {
+    param([string]$DeploymentMetadata)
+
+    $deployRequirement = Get-LiveReadinessDeployRequirement -DeploymentMetadata $DeploymentMetadata
+    if ($deployRequirement -ne "true" -or $ContinueWhenRuntimeStale) {
+        return
+    }
+
+    Write-Host ""
+    Write-Host "[live-readiness-bundle] stale deployment metadata"
+    Write-Host "read_only_bundle_error=DEPLOYED_RUNTIME_NOT_CURRENT"
+    Write-Host "read_only_bundle_error_detail=deployment metadata is stale; child smokes were skipped because stale runtime output is not complete live-readiness evidence"
+    Write-Host "read_only_bundle_error_boundary=not complete live-readiness evidence; deploy and verify separately, then rerun the full bundle"
+    Write-PartialDeploymentMetadata -DeploymentMetadata $DeploymentMetadata
+    Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
+    Write-Host "live_review_packet_allowed=false"
+    Write-Host "deploy_required_before_live_review=true"
+    Write-Host "bundle_verdict=NO_EVIDENCE"
+    Write-Host "next_action=Deploy and verify the current origin/main separately, then rerun this full read-only bundle. Use -ContinueWhenRuntimeStale only for diagnostic stale-runtime child-smoke output."
+    throw "deployment metadata is stale; full live-readiness evidence was not collected."
 }
 
 function Assert-ReadOnlyCommandSucceeded {
@@ -348,6 +371,7 @@ Write-Host "symbol=$Symbol strategyId=$StrategyId side=$Side interval=$IntervalC
 
 $deploymentMetadata = Invoke-ReadOnlyDeploymentMetadata
 $script:LiveReadinessDeploymentMetadataSnapshot = $deploymentMetadata
+Assert-DeploymentMetadataCurrentOrStop -DeploymentMetadata $deploymentMetadata
 $audit = Invoke-ReadOnlySmoke -Name "live-readiness-audit" -ScriptName "audit_live_readiness_ssh.ps1" -Arguments ($common + @{
         Symbol = $Symbol
     })

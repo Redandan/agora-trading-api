@@ -113,13 +113,14 @@ key selection, or the failing read-only smoke before using the output.
 Recorded read-only deployment metadata refresh:
 
 ```text
-observedAt=2026-06-19T14:31+08:00
+observedAt=2026-06-20T09:09+08:00
 refreshType=DEPLOYMENT_METADATA_ONLY
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployedCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=735b21c1db7f617bb29de339b65e35242031cc41
+originMainCommit=37ea17174c646753448b37a2a7f73cc35dc8e41b
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
+metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]
 live_review_packet_allowed=false
 deploy_required_before_live_review=true
 bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
@@ -128,9 +129,8 @@ bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
 This metadata-only refresh did not run the full live-readiness bundle. It only
 confirms the deployed runtime is still stale relative to current `origin/main`;
 use it to preserve the `DEPLOYED_RUNTIME_NOT_CURRENT` blocker, not to clear any
-live gate. The recorded `originMainCommit` is historical and can be behind
-current `origin/main` after later docs or guardrail commits; rerun
-`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for current metadata.
+live gate. Rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a
+current metadata-only refresh.
 
 ## Evidence-Only Candidate
 

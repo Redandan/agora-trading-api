@@ -268,13 +268,15 @@
 - A recorded read-only deployment metadata refresh on 2026-06-20T09:09+08:00
   observed the server worktree and deployed runtime still at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
-  to `f98f1c64cf8fa1e8c277f8708ad78cfaaf79799c`. This was metadata-only, not a
+  to `37ea17174c646753448b37a2a7f73cc35dc8e41b`. This was metadata-only, not a
   full live-readiness bundle, and only confirms `DEPLOYED_RUNTIME_NOT_CURRENT`
   remains until a separately authorized deploy and fresh read-only bundle. The
   output preserved `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
   `deploy_required_before_live_review=true`,
   `live_review_packet_allowed=false`, and
-  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`.
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. Rerun
+  `scripts/smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
+  refresh.
 - `scripts/smoke_live_deployment_metadata_ssh.ps1` now provides a reusable
   read-only `DEPLOYMENT_METADATA_ONLY` check for that server-currentness
   question. It is faster than the full bundle but deliberately prints

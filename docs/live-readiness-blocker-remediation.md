@@ -55,6 +55,12 @@ runtime-evidence fields also stay blocked and must not be interpreted as
 | `MCP_PARITY_NOT_PROVEN` | `.\scripts\smoke_mcp_parity_ssh.ps1` | Output includes `missing_required_tools=[]`, `[mcp-parity-ssh] OK`, and required read-only MCP tools are present on server-local `/api/mcp`. Missing or non-empty required-tool evidence stays blocked. | Continue live-readiness review; do not expose public MCP service. |
 | `DEPLOYED_RUNTIME_NOT_CURRENT` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` deployment metadata section, or `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a metadata-only refresh | `deployment_metadata_status=CURRENT` or `DOCS_TOOLING_ONLY_DRIFT`, and `origin_metadata_status=CURRENT_ORIGIN_MAIN`; missing metadata, runtime drift, a server worktree behind `origin/main`, or unknown metadata must not be used for live review. `DEPLOYMENT_METADATA_ONLY` output is not live-readiness evidence and is not a substitute for the full bundle. | Deploy and verify separately, or treat the bundle as stale evidence only. |
 
+The full bundle also stops before child smokes when deployment metadata is
+already stale, emitting `read_only_bundle_error=DEPLOYED_RUNTIME_NOT_CURRENT`
+and `bundle_verdict=NO_EVIDENCE`. Use `-ContinueWhenRuntimeStale` only for
+diagnostic stale-runtime child-smoke output; do not use that output as current
+live-readiness evidence.
+
 For standalone metadata-only refreshes, `read_only_metadata_error=SSH_AUTH_FAILED`,
 `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED` maps to
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`. The script also prints
@@ -104,14 +110,12 @@ reviewing background automation. A future review must refresh the server
 runtime and rerun the full read-only bundle; do not combine stale server output
 with local or GitHub HEAD evidence.
 
-A recorded read-only deployment metadata refresh on 2026-06-19T14:31+08:00
+A recorded read-only deployment metadata refresh on 2026-06-20T09:09+08:00
 observed the same server/deployed commit
 `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
-`735b21c1db7f617bb29de339b65e35242031cc41`. That metadata-only refresh does not
+`37ea17174c646753448b37a2a7f73cc35dc8e41b`. That metadata-only refresh does not
 clear any blocker and is not a substitute for rerunning the full bundle after a
-separately authorized deploy. The recorded `originMainCommit` is historical and
-can be behind current `origin/main` after later docs or guardrail commits; rerun
-`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for current metadata.
+separately authorized deploy.
 
 ## Audit Classifications
 

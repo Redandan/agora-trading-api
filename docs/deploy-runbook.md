@@ -698,7 +698,10 @@ Expected:
   `live_review_packet_allowed`, `deploy_required_before_live_review`, and
   `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
   evidence until a separate deploy and verification refresh the runtime and
-  server worktree to `origin/main`.
+  server worktree to `origin/main`. By default the full bundle stops after
+  stale deployment metadata and prints `bundle_verdict=NO_EVIDENCE`; use
+  `-ContinueWhenRuntimeStale` only for diagnostic stale-runtime child-smoke
+  output.
 - Do not draft a live review packet unless the latest full bundle prints
   `bundle_blockers=[]`, `live_review_packet_allowed=true`,
   `deploy_required_before_live_review=false`, and

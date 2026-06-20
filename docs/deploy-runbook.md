@@ -737,6 +737,10 @@ only when the underlying bundle proves `bundle_blockers=[]`,
 and `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. `NOT_READY`
 and `NO_EVIDENCE` output is not live approval, does not authorize production
 env changes, and must not be used to enable live trading.
+When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, the preflight's
+next action must be a separately authorized deploy and verification of current
+`origin/main`, followed by a fresh full read-only bundle before any live packet
+is drafted.
 
 To check only whether the server worktree/deployed runtime is stale relative to
 current `origin/main`, run the faster metadata-only smoke:

@@ -152,6 +152,7 @@ if ($originMetadataStatus -ne "CURRENT_ORIGIN_MAIN") {
 }
 
 $packetReady = $missingRequirements.Count -eq 0
+$runtimeStale = @($blockers) -contains "DEPLOYED_RUNTIME_NOT_CURRENT" -or $originMetadataStatus -ne "CURRENT_ORIGIN_MAIN" -or $deployRequired -eq "true"
 
 Write-Host "[live-review-packet-preflight] read-only evidence gate"
 Write-Host "scope=READ_ONLY; runs the full live-readiness bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
@@ -171,7 +172,11 @@ if ($packetReady) {
     Write-Host "packet_next_action=Attach the full bundle output to a separate operator decision; this is not live approval."
 } elseif ($bundleVerdict -eq "NO_EVIDENCE" -or $bundleVerdict -eq "NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY" -or $bundleExitCode -ne 0) {
     Write-Host "packet_status=NO_EVIDENCE"
-    Write-Host "packet_next_action=Fix SSH/currentness/read-only smoke collection, then rerun before drafting any live review packet."
+    if ($runtimeStale) {
+        Write-Host "packet_next_action=Deploy and verify current origin/main separately, then rerun the full read-only live-readiness bundle before drafting any live review packet."
+    } else {
+        Write-Host "packet_next_action=Fix SSH/read-only smoke collection, then rerun before drafting any live review packet."
+    }
 } else {
     Write-Host "packet_status=NOT_READY"
     Write-Host "packet_next_action=Resolve or separately authorize the listed blockers, then rerun the full bundle before drafting any live review packet."

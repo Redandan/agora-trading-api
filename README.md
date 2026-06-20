@@ -318,6 +318,9 @@ ready unless it proves `bundle_blockers=[]`, `live_review_packet_allowed=true`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. `NOT_READY` and
 `NO_EVIDENCE` output is not live approval and does not authorize production env
 changes.
+When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, the next action is
+to deploy and verify current `origin/main` separately, then rerun the full
+read-only bundle before drafting any live review packet.
 
 Fast read-only deployment metadata check when the only question is whether the
 server worktree/deployed runtime still matches current `origin/main`:

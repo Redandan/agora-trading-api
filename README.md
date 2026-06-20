@@ -310,15 +310,17 @@ runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
 Read-only live review packet preflight:
 
 ```powershell
-.\scripts\prepare_live_review_packet_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
 ```
 
 This wrapper runs the full bundle and refuses to treat the output as packet
 ready unless it proves `bundle_blockers=[]`, `live_review_packet_allowed=true`,
 `deploy_required_before_live_review=false`, and
-`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. `NOT_READY` and
-`NO_EVIDENCE` output is not live approval and does not authorize production env
-changes.
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. With
+`-RequireReady`, it must exit 0 with
+`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
+`packet_missing_requirements=[]`. `NOT_READY` and `NO_EVIDENCE` output is not
+live approval and does not authorize production env changes.
 When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, run the read-only
 origin-delta classifier before choosing the next action. If it prints
 `origin_delta_status=RUNTIME_DRIFT`, separately deploy and verify current

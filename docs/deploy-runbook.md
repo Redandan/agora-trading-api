@@ -729,15 +729,18 @@ To run the full read-only live-readiness evidence bundle:
 To run the read-only live review packet preflight:
 
 ```powershell
-.\scripts\prepare_live_review_packet_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
 ```
 
 This wrapper runs the full bundle and emits `packet_status`. It is packet-ready
 only when the underlying bundle proves `bundle_blockers=[]`,
 `live_review_packet_allowed=true`, `deploy_required_before_live_review=false`,
-and `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. `NOT_READY`
-and `NO_EVIDENCE` output is not live approval, does not authorize production
-env changes, and must not be used to enable live trading.
+and `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. With
+`-RequireReady`, it must exit 0 with
+`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
+`packet_missing_requirements=[]`. `NOT_READY` and `NO_EVIDENCE` output is not
+live approval, does not authorize production env changes, and must not be used
+to enable live trading.
 When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, run the read-only
 origin-delta classifier before choosing the next action. If it prints
 `origin_delta_status=RUNTIME_DRIFT`, the next action is a separately authorized

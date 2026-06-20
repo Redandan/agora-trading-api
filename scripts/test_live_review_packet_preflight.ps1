@@ -104,13 +104,15 @@ foreach ($pattern in @(
 }
 
 foreach ($pattern in @(
-        'prepare_live_review_packet_ssh.ps1',
+        'prepare_live_review_packet_ssh.ps1 -RequireReady',
         'live review packet preflight',
         'read-only',
         'bundle_blockers=\[\]',
         'live_review_packet_allowed=true',
         'deploy_required_before_live_review=false',
         'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        'packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        'packet_missing_requirements=\[\]',
         'NOT_READY',
         'NO_EVIDENCE',
         'not live approval',

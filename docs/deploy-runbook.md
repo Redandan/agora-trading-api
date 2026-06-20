@@ -772,8 +772,10 @@ Expected:
   `bundle_blockers` into clear conditions and required read-only evidence before
   drafting any live review packet.
 - Treat `bundle_blocker_summary` as a machine-readable copy of the same
-  remediation mapping; it does not clear blockers and does not authorize
-  production env changes.
+  remediation mapping. Each entry includes `category`, `requiredEvidence`,
+  `evidenceMarkers`, and `nextAction`; those markers explain why the blocker
+  was emitted, but they do not clear blockers or authorize production env
+  changes.
 - If the refreshed runtime log smoke fails after deploying the classified log
   checker, attach the `ERROR category ...` line and
   `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker before reviewing

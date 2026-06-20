@@ -429,6 +429,7 @@ function Assert-BundleBlockerSummaryCovered {
             'function New-BlockerSummary',
             'bundle_blocker_summary=',
             'requiredEvidence',
+            'evidenceMarkers',
             'nextAction',
             '\$partialBlockers = @\("LIVE_READINESS_EVIDENCE_UNAVAILABLE", "DEPLOYED_RUNTIME_NOT_CURRENT"\)',
             '\$partialBlockers = @\("LIVE_READINESS_EVIDENCE_UNAVAILABLE"\)',
@@ -449,6 +450,7 @@ function Assert-BundleBlockerSummaryCovered {
     foreach ($pattern in @(
             'bundle_blocker_summary',
             'machine-readable',
+            'evidenceMarkers',
             'required read-only evidence',
             'does not relax `bundle_blockers`',
             'does not clear `bundle_blockers`',

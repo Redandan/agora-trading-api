@@ -377,101 +377,121 @@ function New-BlockerSummary {
         $category = "review"
         $requiredEvidence = ".\scripts\smoke_live_readiness_bundle_ssh.ps1"
         $nextAction = "Review the blocker remediation matrix and rerun the full read-only bundle after the blocker is addressed."
+        $evidenceMarkers = @("bundle_blockers includes $blocker")
 
         switch ($blocker) {
             "LIVE_READINESS_NOT_READY" {
                 $category = "audit"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $evidenceMarkers = @("verdict=NOT_READY", "missing verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED")
                 $nextAction = "Wait for audit verdict READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED; this is not live approval."
             }
             "ORDER_CAPABLE_FLAGS_REVIEW" {
                 $category = "safety"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $evidenceMarkers = @("order_capable_flags_true is non-empty", "missing order_capable_flags_true=[]")
                 $nextAction = "Reconcile order-capable flags before any live proposal."
             }
             "SECRET_PREREQUISITES_MISSING" {
                 $category = "ops"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $evidenceMarkers = @("masked OKX credential presence is not SET")
                 $nextAction = "Fix masked secret prerequisites through a separately authorized ops change."
             }
             "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN" {
                 $category = "runtime"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1; scripts/check_server_runtime_log.sh"
+                $evidenceMarkers = @("health is not UP", "runtime_log_status is not PASS")
                 $nextAction = "Investigate health/log failures before any live proposal."
             }
             "EVENT_RISK_NOT_BASELINE" {
                 $category = "risk"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $evidenceMarkers = @("riskLevel is not R0", "EVENT_RISK_NOT_R0")
                 $nextAction = "Wait for riskLevel=R0 or get separate event-risk operating approval."
             }
             "MCP_AUDIT_TOOL_ERROR" {
                 $category = "mcp"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $evidenceMarkers = @("MCP_TOOL_ERROR", "READINESS_DETAILS_MISSING_FIELDS", "missing_readiness_detail_fields is non-empty")
                 $nextAction = "Fix MCP readiness-detail evidence before trusting bundle output."
             }
             "EXECUTION_ELIGIBILITY_NOT_READY" {
                 $category = "execution-gate"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $evidenceMarkers = @("*_NOT_EXECUTION_ELIGIBLE", "readiness_details executionEligible is not true")
                 $nextAction = "Keep live disabled until tiny-live and ScoreBuy execution gates are explicitly eligible."
             }
             "BACKGROUND_AUTOMATION_REVIEW" {
                 $category = "background-automation"
                 $requiredEvidence = ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear"
+                $evidenceMarkers = @("backgroundAutomationClear=false", "high_risk_background_automation_true is non-empty", "background_automation_blockers is non-empty")
                 $nextAction = "Review or separately authorize production background automation env diff; do not apply from this bundle."
             }
             "RUNTIME_EVIDENCE_CONFIG_DISABLED" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("diagnosis=CONFIG_DISABLED")
                 $nextAction = "Collect evidence through a separately authorized evidence-only change before any live execution flag."
             }
             "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("diagnosis=NO_CANONICAL_ROWS")
                 $nextAction = "Continue evidence collection until canonical runtime rows exist."
             }
             "RUNTIME_EVIDENCE_NO_SHADOW_INTENT" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("shadowIntentCount is 0 or missing", "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT")
                 $nextAction = "Require canonical shadow intent evidence with orderSentEvidence=0."
             }
             "RUNTIME_EVIDENCE_ORDER_SENT" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("orderSentEvidence is greater than 0")
                 $nextAction = "Stop live review and investigate why order-sent evidence exists."
             }
             "RUNTIME_EVIDENCE_REVIEW_REQUIRED" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS", "missing_runtime_evidence_fields is non-empty", "missing orderSentEvidence=0")
                 $nextAction = "Review unrecognized or incomplete runtime-evidence status before any live proposal."
             }
             "TINY_LIVE_LOSS_HARD_STOP" {
                 $category = "tiny-live"
                 $requiredEvidence = ".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"
+                $evidenceMarkers = @("hardStopDetected=true", "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES", "missing_tiny_live_hard_stop_fields is non-empty")
                 $nextAction = "Clear consecutive-loss hard stop with fresh read-only evidence before live review."
             }
             "TINY_LIVE_ROLLOUT_NOT_READY" {
                 $category = "tiny-live"
                 $requiredEvidence = ".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"
+                $evidenceMarkers = @("canEnableProduction is not true", "missing_tiny_live_rollout_fields is non-empty")
                 $nextAction = "Wait for rollout gates such as completed samples, false-positive count, and canEnableProduction."
             }
             "SIGNAL_POLICY_REVIEW_GAPS" {
                 $category = "signal-policy"
                 $requiredEvidence = ".\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear"
+                $evidenceMarkers = @("REVIEW_POLICY_GAPS", "governanceMode=TOO_STRICT/TOO_LOOSE/INSUFFICIENT_DATA", "missed opportunity overallStatus is WARN or FAIL")
                 $nextAction = "Resolve signal governance and missed-opportunity gaps in shadow/tiny-live caps only."
             }
             "MCP_PARITY_NOT_PROVEN" {
                 $category = "mcp"
                 $requiredEvidence = ".\scripts\smoke_mcp_parity_ssh.ps1"
+                $evidenceMarkers = @("missing_required_tools is non-empty", "missing [mcp-parity-ssh] OK")
                 $nextAction = "Restore required read-only Trading MCP tools on server-local /api/mcp."
             }
             "DEPLOYED_RUNTIME_NOT_CURRENT" {
                 $category = "deployment-metadata"
                 $requiredEvidence = ".\scripts\smoke_live_deployment_metadata_ssh.ps1; .\scripts\smoke_live_readiness_bundle_ssh.ps1"
+                $evidenceMarkers = @("liveBundleDeployStatus is not CURRENT/DOCS_TOOLING_ONLY_DRIFT", "liveBundleOriginStatus is not CURRENT_ORIGIN_MAIN")
                 $nextAction = "Deploy and verify current origin/main separately, then rerun the full read-only bundle."
             }
             "LIVE_READINESS_EVIDENCE_UNAVAILABLE" {
                 $category = "evidence"
                 $requiredEvidence = ".\scripts\smoke_live_readiness_bundle_ssh.ps1"
+                $evidenceMarkers = @("SSH_AUTH_FAILED", "SSH_CONNECT_FAILED", "SSH_COMMAND_FAILED", "READ_ONLY_SMOKE_FAILED")
                 $nextAction = "Fix SSH access or the failing child smoke before drawing a live-readiness conclusion."
             }
         }
@@ -480,6 +500,7 @@ function New-BlockerSummary {
                 blocker = $blocker
                 category = $category
                 requiredEvidence = $requiredEvidence
+                evidenceMarkers = $evidenceMarkers
                 nextAction = $nextAction
             })
     }

@@ -342,8 +342,10 @@ live-readiness evidence.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.
-`bundle_blocker_summary` is a machine-readable helper for the same mapping; it
-does not relax `bundle_blockers` or authorize any production env change.
+`bundle_blocker_summary` is a machine-readable helper for the same mapping. Each
+entry includes `category`, `requiredEvidence`, `evidenceMarkers`, and
+`nextAction`; those markers explain why the blocker was emitted without
+authorizing any production env change. It does not relax `bundle_blockers`.
 If the refreshed runtime log smoke fails after deploying the classified log
 checker, attach the `ERROR category ...` line and
 `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker before reviewing

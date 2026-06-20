@@ -16,8 +16,9 @@ Run the bundle first:
 separately authorized for a narrower non-live phase. Do not use this matrix to
 skip a blocker.
 The bundle also prints `bundle_blocker_summary`, a machine-readable list of the
-same blockers with category, required read-only evidence, and next action. That
-summary is for automation and review-packet drafting only; it does not clear `bundle_blockers` and does not authorize production env changes.
+same blockers with category, required read-only evidence, evidence markers, and
+next action. That summary is for automation and review-packet drafting only; it
+does not clear `bundle_blockers` and does not authorize production env changes.
 
 ## Blocker Matrix
 
@@ -122,7 +123,8 @@ The attached background automation evidence also printed
 `backgroundAutomationClear=false` and
 `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]`.
 The attached bundle also printed `bundle_blocker_summary` with categories and
-required read-only follow-up evidence for every listed blocker.
+required read-only follow-up evidence plus evidence markers for every listed
+blocker.
 
 With the current fail-fast bundle behavior, if future deployment metadata
 already shows the server worktree or deployed runtime is behind `origin/main`,

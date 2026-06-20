@@ -269,6 +269,32 @@
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
+- 2026-06-20T20:53+08:00 read-only metadata and diagnostic refresh followed
+  docs/tooling commit `0c033972b4bd39531d0e617d0f2702926108686f`. The server
+  worktree and deployed `app.commit` still matched
+  `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
+  to `0c033972b4bd39531d0e617d0f2702926108686f`; metadata-only output printed
+  `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`,
+  `live_review_packet_allowed=false`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`.
+  Read-only stale-runtime diagnostics still showed the service healthy on
+  active port `8084`, local health and server-local `/api/mcp` passing, public
+  dedicated `/api/mcp` and shared-host `/api/trading/mcp` blocked with 404,
+  nginx exact MCP blocks without `proxy_pass`, server-local MCP parity
+  `missing_required_tools=[]`, `toolCount=305`, `required=35`, and runtime log
+  `PASS` with ERROR count 0 and WARN baseline total 14. The diagnostic bundle
+  remained `bundle_verdict=NOT_READY` with blockers
+  `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
+  `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
+  `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, `SIGNAL_POLICY_REVIEW_GAPS`, and
+  `DEPLOYED_RUNTIME_NOT_CURRENT`. Signal correctness remained executable but
+  `signalPolicyClear=false` because 7d governance drift was `TOO_STRICT` and
+  missed-opportunity regression was `WARN`. This is current stale-runtime
+  diagnostic evidence only, not live-readiness evidence or live approval.
 - Latest recorded read-only live-readiness bundle observed on
   2026-06-19T12:15+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was

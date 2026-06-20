@@ -14,6 +14,8 @@ $expectedCurrentObservedAt = "2026-06-20T20:28+08:00"
 $expectedCurrentCommit = "ef6253a4ecff7c27a2e709f226e166389700a82d"
 $expectedLatestSplitObservedAt = "2026-06-20T20:28+08:00"
 $expectedLatestSplitCommit = "ef6253a4ecff7c27a2e709f226e166389700a82d"
+$expectedLatestDiagnosticObservedAt = "2026-06-20T20:53+08:00"
+$expectedLatestDiagnosticOriginCommit = "0c033972b4bd39531d0e617d0f2702926108686f"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -131,6 +133,14 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle $expectedCurrentOriginCommit
     Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
     Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle "bundle_verdict=NO_EVIDENCE"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle $expectedLatestDiagnosticObservedAt
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle $expectedLatestDiagnosticOriginCommit
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle 'metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]'
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "WARN baseline total 14"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "signalPolicyClear=false"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "TOO_STRICT"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle 'missed-opportunity regression was `WARN`'
 }
 
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle $expectedCurrentObservedAt
@@ -192,6 +202,14 @@ Assert-ContainsLiteral -Name "live readiness remediation current metadata refres
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle $expectedCurrentOriginCommit
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle "bundle_verdict=NO_EVIDENCE"
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle $expectedLatestDiagnosticObservedAt
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle $expectedLatestDiagnosticOriginCommit
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN"
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle 'metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]'
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "WARN baseline total 14"
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "signalPolicyClear=false"
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "governanceMode=TOO_STRICT"
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "overallStatus=WARN"
 
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]'
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "attached snapshot superseded earlier stale"

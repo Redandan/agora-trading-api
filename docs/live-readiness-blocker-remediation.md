@@ -153,6 +153,37 @@ scenario until a separately authorized deploy refreshes the server runtime. Run
 for diagnostic stale-runtime child-smoke output. Any such diagnostic output is
 not as current live-readiness evidence.
 
+Latest stale-runtime diagnostic refresh:
+
+- 2026-06-20T20:53+08:00 metadata-only smoke followed docs/tooling commit
+  `0c033972b4bd39531d0e617d0f2702926108686f`. Server worktree and deployed
+  `app.commit` remained at `ef6253a4ecff7c27a2e709f226e166389700a82d`, while
+  `origin/main` was `0c033972b4bd39531d0e617d0f2702926108686f`.
+- Metadata output printed `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`,
+  `live_review_packet_allowed=false`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`.
+- Stale-runtime diagnostics confirmed active port `8084`, local health and
+  server-local `/api/mcp` passed, public dedicated `/api/mcp` and shared-host
+  `/api/trading/mcp` were blocked with 404, nginx exact MCP blocks had no
+  `proxy_pass`, server-local MCP parity printed `missing_required_tools=[]`,
+  `toolCount=305`, and `required=35`, and the runtime log smoke passed with
+  ERROR count 0 plus WARN baseline total 14.
+- The diagnostic bundle with `-ContinueWhenRuntimeStale` still printed
+  `bundle_verdict=NOT_READY` with blockers `LIVE_READINESS_NOT_READY`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
+  `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`,
+  `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`.
+  Signal correctness stayed blocked with `signalPolicyClear=false`,
+  `governanceMode=TOO_STRICT`, and missed-opportunity `overallStatus=WARN`.
+
+This refresh is current stale-runtime diagnostic evidence only. It is not
+live-readiness evidence, not a replacement for a post-deploy full bundle, and
+not permission to enable live trading.
+
 Historical complete blocker snapshot from stale deployed runtime:
 
 - 2026-06-20T13:34+08:00 deployment metadata observed server/deployed commit

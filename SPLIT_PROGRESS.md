@@ -270,11 +270,11 @@
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
-- 2026-06-20T23:36+08:00 read-only metadata and diagnostic refresh followed
-  docs/tooling commit `1683eb16cf9ced10ca85c7649f1d9c999ba83390`. The server
+- 2026-06-21T00:04+08:00 read-only metadata and diagnostic refresh followed
+  docs/tooling commit `76b5f00db9e93a249a55f93ff0f87b921ec262bb`. The server
   worktree and deployed `app.commit` still matched
   `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
-  to `1683eb16cf9ced10ca85c7649f1d9c999ba83390`; metadata-only output printed
+  to `76b5f00db9e93a249a55f93ff0f87b921ec262bb`; metadata-only output printed
   `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
   `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
@@ -288,7 +288,7 @@
   healthy on port `8084`, local health and server-local `/api/mcp` passing,
   MCP parity `required_tools=[...]`, `missing_required_tools=[]`,
   `[mcp-parity-ssh] OK`, `toolCount=305`, `required=35`, and runtime log
-  `PASS` with ERROR count 0 and WARN baseline total 17. The diagnostic bundle
+  `PASS` with ERROR count 0 and WARN baseline total 18. The diagnostic bundle
   remained `bundle_verdict=NOT_READY` with blockers
   `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
   `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
@@ -299,8 +299,12 @@
   `missing_readiness_detail_fields=[]`, all nine reviewed background
   automation flags true, runtime evidence disabled with `shadowIntentCount=0`
   and `orderSentEvidence=0`, tiny-live still blocked by the consecutive-loss
-  hard stop and rollout gates, and signal policy remained blocked by
-  `TOO_STRICT` governance drift plus `WARN` missed-opportunity regression. This
+  hard stop and rollout gates, `suspiciousNoBuyCount=10`,
+  `falseBlockRiskCount=10`, and signal policy remained blocked by
+  `TOO_STRICT` governance drift plus `WARN` missed-opportunity regression.
+  `scoreBuyPostScoutAdd` was now `executionEligible=true` with state
+  `ADD_ON_PULLBACK_READY`, but `scoreBuyPrePosition`,
+  `scoreBuyConfirmedDeploy`, and tiny-live remained blocked. This
   is stale-runtime diagnostic/read-only RCA evidence only, not live-readiness
   evidence or live approval.
 - 2026-06-20T22:03+08:00 read-only metadata and diagnostic refresh followed

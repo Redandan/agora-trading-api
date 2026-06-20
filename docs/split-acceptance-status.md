@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-20
+Last refreshed: 2026-06-21
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -193,12 +193,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
-- Latest read-only metadata and diagnostic refresh on 2026-06-20T23:36+08:00
+- Latest read-only metadata and diagnostic refresh on 2026-06-21T00:04+08:00
   followed the docs/tooling commit
-  `1683eb16cf9ced10ca85c7649f1d9c999ba83390`. The metadata-only smoke observed
+  `76b5f00db9e93a249a55f93ff0f87b921ec262bb`. The metadata-only smoke observed
   server worktree and deployed `app.commit` still at
   `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
-  to `1683eb16cf9ced10ca85c7649f1d9c999ba83390`. It printed
+  to `76b5f00db9e93a249a55f93ff0f87b921ec262bb`. It printed
   `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
   `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
@@ -212,7 +212,7 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   Diagnostic stale-runtime bundle output with `-ContinueWhenRuntimeStale`
   confirmed the active service on port `8084` is healthy and reachable:
   health `UP`, runtime log `PASS` with ERROR count 0 and
-  WARN baseline total 17, server-local MCP parity `required_tools=[...]`,
+  WARN baseline total 18, server-local MCP parity `required_tools=[...]`,
   `missing_required_tools=[]`, `[mcp-parity-ssh] OK`, `toolCount=305`, and
   `required=35`. It remained `bundle_verdict=NOT_READY` with blockers
   `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
@@ -226,10 +226,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `diagnosis=CONFIG_DISABLED` with `runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE`,
   `shadowIntentCount=0`, and `orderSentEvidence=0`, tiny-live still had
   `hardStopDetected=true`, `completedTinyLiveSamples=2`,
-  `falsePositiveCount=2`, and `canEnableProduction=false`, and signal policy
+  `falsePositiveCount=2`, `suspiciousNoBuyCount=10`,
+  `falseBlockRiskCount=10`, and `canEnableProduction=false`, and signal policy
   still had `signalPolicyClear=false` because 7d governance drift was
-  `TOO_STRICT` and missed-opportunity regression was `WARN`. Treat this as
-  stale-runtime diagnostic/read-only RCA evidence only; it is not
+  `TOO_STRICT` and missed-opportunity regression was `WARN`. `scoreBuyPostScoutAdd`
+  was now `executionEligible=true` with state `ADD_ON_PULLBACK_READY`, but
+  `scoreBuyPrePosition` remained blocked by `MAX_LOSS_EXCEEDS_PRE_POSITION_BUDGET`
+  and `EXECUTION_POLICY_NOT_READY:BLOCKED`, and confirmed deploy/tiny-live gates
+  still blocked review. Treat this as stale-runtime diagnostic/read-only RCA
+  evidence only; it is not
   live-readiness evidence and not permission to enable live trading.
 - Previous read-only metadata and diagnostic refresh on 2026-06-20T22:03+08:00
   followed the docs/tooling commit

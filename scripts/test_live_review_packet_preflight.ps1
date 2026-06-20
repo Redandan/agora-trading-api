@@ -89,6 +89,9 @@ foreach ($pattern in @(
         'RequireReady',
         'full bundle exited non-zero',
         'bundle_blocker_summary is missing',
+        'bundle_blocker_summary is not valid JSON',
+        'bundle_blocker_summary missing blocker:',
+        'bundle_blocker_summary entry missing field:',
         'bundle_blockers is non-empty',
         'live_review_packet_allowed is not true',
         'deploy_required_before_live_review is not false',
@@ -99,6 +102,8 @@ foreach ($pattern in @(
         'Assert-SshHostSafe',
         'Assert-RemotePathSafe',
         'Assert-SmokeTokenSafe',
+        'Convert-JsonArrayOrNull',
+        'Test-JsonObjectHasProperty',
         'RuntimeEvidenceMinutes must be between 60 and 43200',
         'TinyLiveDays must be between 1 and 90',
         'SignalExecutionDays, SignalBlockedDays, and SignalAccuracyDays must be between 1 and 90'
@@ -114,6 +119,7 @@ foreach ($pattern in @(
         'bundle_blocker_summary',
         'packet_bundle_blocker_summary',
         'requiredEvidence',
+        'evidenceMarkers',
         'nextAction',
         'live_review_packet_allowed=true',
         'deploy_required_before_live_review=false',
@@ -123,7 +129,7 @@ foreach ($pattern in @(
         'NOT_READY',
         'NO_EVIDENCE',
         'not live approval',
-        'does not authorize production env\s+changes'
+        'does not\s+authorize production env\s+changes'
     )) {
     Assert-Contains -Name "preflight docs" -Text $docsText -Pattern $pattern
 }

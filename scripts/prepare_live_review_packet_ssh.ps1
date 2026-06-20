@@ -62,6 +62,27 @@ function Convert-JsonArrayOrEmpty {
     }
 }
 
+function Convert-JsonArrayOrNull {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    try {
+        $parsed = $Value | ConvertFrom-Json -ErrorAction Stop
+        return @($parsed)
+    } catch {
+        return $null
+    }
+}
+
+function Test-JsonObjectHasProperty {
+    param(
+        [object]$Item,
+        [string]$PropertyName
+    )
+    return $null -ne $Item -and $null -ne $Item.PSObject.Properties[$PropertyName]
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -125,6 +146,7 @@ $blockers = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $bundle
 $deploymentMetadataStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "deployment_metadata_status="
 $originMetadataStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "origin_metadata_status="
 $bundleBlockerSummary = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_blocker_summary="
+$bundleBlockerSummaryItems = Convert-JsonArrayOrNull -Value $bundleBlockerSummary
 $liveAllowed = Get-LastPrefixedValue -Text $bundleText -Prefix "live_review_packet_allowed="
 $deployRequired = Get-LastPrefixedValue -Text $bundleText -Prefix "deploy_required_before_live_review="
 $bundleVerdict = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_verdict="
@@ -132,6 +154,27 @@ $bundleVerdict = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_verdict
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ([string]::IsNullOrWhiteSpace($bundleBlockerSummary)) {
     $missingRequirements.Add("bundle_blocker_summary is missing")
+} elseif ($null -eq $bundleBlockerSummaryItems) {
+    $missingRequirements.Add("bundle_blocker_summary is not valid JSON")
+}
+if ($null -ne $bundleBlockerSummaryItems) {
+    $summaryBlockers = @(
+        $bundleBlockerSummaryItems |
+            Where-Object { Test-JsonObjectHasProperty -Item $_ -PropertyName "blocker" } |
+            ForEach-Object { [string]$_.blocker }
+    )
+    foreach ($blocker in @($blockers)) {
+        if ($summaryBlockers -notcontains [string]$blocker) {
+            $missingRequirements.Add("bundle_blocker_summary missing blocker: $blocker")
+        }
+    }
+    foreach ($item in @($bundleBlockerSummaryItems)) {
+        foreach ($field in @("blocker", "category", "requiredEvidence", "evidenceMarkers", "nextAction")) {
+            if (-not (Test-JsonObjectHasProperty -Item $item -PropertyName $field)) {
+                $missingRequirements.Add("bundle_blocker_summary entry missing field: $field")
+            }
+        }
+    }
 }
 if ($bundleExitCode -ne 0) {
     $missingRequirements.Add("full bundle exited non-zero")

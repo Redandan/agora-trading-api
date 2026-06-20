@@ -321,9 +321,10 @@ ready unless it proves `bundle_blockers=[]`, `live_review_packet_allowed=true`,
 `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
 `packet_missing_requirements=[]`. It also carries
 `packet_bundle_blocker_summary` from the underlying bundle so each blocker has
-machine-readable `requiredEvidence` and `nextAction`; missing
-`bundle_blocker_summary` is incomplete evidence. `NOT_READY` and `NO_EVIDENCE`
-output is not live approval and does not authorize production env changes.
+machine-readable `requiredEvidence`, `evidenceMarkers`, and `nextAction`; a
+missing, invalid, or incomplete `bundle_blocker_summary` is incomplete
+evidence. `NOT_READY` and `NO_EVIDENCE` output is not live approval and does
+not authorize production env changes.
 When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, run the read-only
 origin-delta classifier before choosing the next action. If it prints
 `origin_delta_status=RUNTIME_DRIFT`, separately deploy and verify current

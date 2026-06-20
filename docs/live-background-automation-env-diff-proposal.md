@@ -102,6 +102,8 @@ Expected:
 - `background_automation_true=[]`
 - `high_risk_background_automation_true=[]`
 - `missing_background_automation_flags=[]`
+- `background_automation_blockers=[]`
+- `backgroundAutomationClear=true`
 - `background_automation_false` lists all nine reviewed background flags.
 - `verdict=OK_BACKGROUND_AUTOMATION_DISABLED`
 - `BACKGROUND_AUTOMATION_REVIEW` no longer appears in `bundle_blockers`
@@ -138,6 +140,8 @@ Restore the prior env state and investigate if any of these occur:
   after the authorized env change
 - `missing_background_automation_flags` lists any reviewed background flag,
   because absent env keys are not accepted as explicit live-readiness evidence
+- `background_automation_blockers` is non-empty or
+  `backgroundAutomationClear=false`
 
 ## Live Boundary
 

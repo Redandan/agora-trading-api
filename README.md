@@ -277,6 +277,8 @@ does not change production env/DB or perform order/OCO/grid/fund/Earn/Telegram
 or scheduler actions.
 After a separately authorized background-automation env diff, rerun it with
 `-RequireClear` so any remaining true or missing reviewed flag exits non-zero.
+`backgroundAutomationClear=true` and `background_automation_blockers=[]` are
+required before this blocker can clear.
 
 Read-only live readiness bundle that runs the audit, background automation,
 runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:

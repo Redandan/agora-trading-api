@@ -116,6 +116,14 @@ true_flags = [key for key in background_flags if bool_value(values, key)]
 high_risk_true = [key for key in high_risk_flags if bool_value(values, key)]
 missing_flags = [key for key in background_flags if not has_key(values, key)]
 false_flags = [key for key in background_flags if has_key(values, key) and not bool_value(values, key)]
+background_blockers = []
+if high_risk_true:
+    background_blockers.append("HIGH_RISK_BACKGROUND_AUTOMATION_TRUE")
+if [key for key in true_flags if key not in high_risk_flags]:
+    background_blockers.append("BACKGROUND_AUTOMATION_TRUE")
+if missing_flags:
+    background_blockers.append("MISSING_BACKGROUND_AUTOMATION_FLAG")
+background_clear = not true_flags and not missing_flags
 
 print("[live-background-automation] read-only server env smoke")
 print(f"commit={git_commit()}")
@@ -126,8 +134,10 @@ print("background_automation_true=" + json.dumps(true_flags))
 print("high_risk_background_automation_true=" + json.dumps(high_risk_true))
 print("background_automation_false=" + json.dumps(false_flags))
 print("missing_background_automation_flags=" + json.dumps(missing_flags))
+print("background_automation_blockers=" + json.dumps(background_blockers))
+print(f"backgroundAutomationClear={str(background_clear).lower()}")
 
-if true_flags or missing_flags:
+if not background_clear:
     print("classification=BACKGROUND_AUTOMATION_REVIEW_BEFORE_LIVE")
     print("recommendation=KEEP_LIVE_DISABLED_UNTIL_FLAGS_ARE_REVIEWED_OR_SEPARATELY_AUTHORIZED")
     if high_risk_true:
@@ -140,7 +150,7 @@ else:
     print("verdict=OK_BACKGROUND_AUTOMATION_DISABLED")
 
 print("[live-background-automation] read-only check complete")
-if require_clear and (true_flags or missing_flags):
+if require_clear and not background_clear:
     raise SystemExit(2)
 PY
 "@

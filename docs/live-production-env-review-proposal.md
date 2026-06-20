@@ -201,6 +201,8 @@ Expected evidence-only result:
 - `background_automation_true=[]`.
 - `high_risk_background_automation_true=[]`.
 - `missing_background_automation_flags=[]`.
+- `background_automation_blockers=[]`.
+- `backgroundAutomationClear=true`.
 - `smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` exits 0.
 - `diagnosis=CANONICAL_SHADOW_READY`.
 - `shadowIntentCount > 0` before live is discussed.

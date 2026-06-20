@@ -452,10 +452,13 @@ if ($audit -match "_NOT_EXECUTION_ELIGIBLE" `
 }
 if ($background -match "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
         -or $background -match "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG" `
+        -or $background -match "backgroundAutomationClear=false" `
+        -or $background -match "background_automation_blockers=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "missing_background_automation_flags=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "high_risk_background_automation_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
         -or $background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" `
+        -or $background -notmatch "backgroundAutomationClear=true" `
         -or $background -notmatch "high_risk_background_automation_true=\[\]") {
     $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
 }

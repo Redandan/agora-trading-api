@@ -134,6 +134,12 @@ Expected evidence-only outcome:
 - The tiny-live smoke exits non-zero after printing RCA details if the hard
   stop remains, required fields are missing, or rollout cannot enable
   production.
+- `smoke_live_background_automation_ssh.ps1 -RequireClear` exits 0.
+- `backgroundAutomationClear=true`.
+- `background_automation_blockers=[]`.
+- `background_automation_true=[]`.
+- `high_risk_background_automation_true=[]`.
+- `missing_background_automation_flags=[]`.
 - `smoke_signal_correctness_ssh.ps1 -RequireClear` exits 0.
 - `signalPolicyClear=true`.
 - `missing_signal_policy_fields=[]`.

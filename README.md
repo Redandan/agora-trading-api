@@ -233,6 +233,13 @@ expansion:
 .\scripts\smoke_signal_correctness_ssh.ps1
 ```
 
+After a separately authorized evidence-only review path has resolved signal
+policy gaps, run the hard gate:
+
+```powershell
+.\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
+```
+
 This calls server-local `/api/mcp` only and checks strategy execution parity,
 blocked-signal outcome quality, DataFreshnessGuard current status, governance
 drift, EntryDedup governance, missed-opportunity regression, and the no-buy
@@ -240,6 +247,11 @@ reason truth table. `REVIEW_POLICY_GAPS` or unresolved signal correctness /
 governance drift findings are live blockers, not permission to relax policy.
 `missing_signal_policy_fields=[]` is required; absent reviewed signal-policy
 fields are not treated as passing evidence.
+`-RequireClear` exits 0 only when there are no `REVIEW_POLICY_GAPS`,
+`missing_signal_policy_fields=[]`, 7d governance drift is not `TOO_STRICT`,
+`TOO_LOOSE`, or `INSUFFICIENT_DATA`, and missed-opportunity
+`overallStatus=PASS`; otherwise it exits non-zero after printing the review
+details, including `signalPolicyClear`.
 
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps

@@ -6,7 +6,8 @@ param(
     [string]$Symbol = "BTCUSDT",
     [int]$ExecutionDays = 5,
     [int]$BlockedDays = 7,
-    [int]$AccuracyDays = 14
+    [int]$AccuracyDays = 14,
+    [switch]$RequireClear
 )
 
 Set-StrictMode -Version Latest
@@ -71,7 +72,7 @@ if [ -z "`$MCP_KEY" ]; then
   exit 1
 fi
 
-export PORT MCP_KEY SYMBOL='$Symbol' EXECUTION_DAYS='$ExecutionDays' BLOCKED_DAYS='$BlockedDays' ACCURACY_DAYS='$AccuracyDays'
+export PORT MCP_KEY SYMBOL='$Symbol' EXECUTION_DAYS='$ExecutionDays' BLOCKED_DAYS='$BlockedDays' ACCURACY_DAYS='$AccuracyDays' REQUIRE_CLEAR='$($RequireClear.IsPresent)'
 python3 - <<'PY'
 import json
 import os
@@ -89,6 +90,7 @@ symbol = os.environ["SYMBOL"].upper()
 execution_days = int(os.environ["EXECUTION_DAYS"])
 blocked_days = int(os.environ["BLOCKED_DAYS"])
 accuracy_days = int(os.environ["ACCURACY_DAYS"])
+require_clear = os.environ.get("REQUIRE_CLEAR", "").lower() == "true"
 
 def call_tool(name, arguments, timeout=120):
     body = {
@@ -335,6 +337,18 @@ missing_signal_policy_fields = [
     name for name, value in required_signal_fields.items()
     if value is None or str(value).strip() in ("", "N/A")
 ]
+review_policy_gaps = "REVIEW_POLICY_GAPS" in "\n".join([
+    execution, blocked, accuracy, freshness, dashboard, governance, relaxation,
+    tightening, entry_dedup, missed_opportunities, truth_table
+])
+governance_mode_clear = governance_mode_7d not in ("", "N/A", "TOO_STRICT", "TOO_LOOSE", "INSUFFICIENT_DATA")
+missed_opportunity_clear = missed_status == "PASS"
+signal_policy_clear = (
+    not review_policy_gaps
+    and not missing_signal_policy_fields
+    and governance_mode_clear
+    and missed_opportunity_clear
+)
 
 print("")
 print("Execution:")
@@ -375,6 +389,8 @@ print("Missed Opportunity Regression:")
 print(f"  overallStatus={missed_status} suspiciousNoBuyCount={missed_suspicious} falseBlockRiskCount={missed_false_block} dedupTooCoarseSuspects={missed_dedup_too_coarse} genericStagedAddWouldAllowGroups={missed_staged_allow} highForwardReturnNoBuyCount={missed_high_return}")
 if missed_recommended_fix != "N/A":
     print(f"  recommendedFix={missed_recommended_fix}")
+print(f"  reviewPolicyGaps={str(review_policy_gaps).lower()}")
+print(f"  signalPolicyClear={str(signal_policy_clear).lower()}")
 print(f"  missing_signal_policy_fields={json.dumps(missing_signal_policy_fields)}")
 print("")
 print("No-Buy Row Classification:")
@@ -450,6 +466,8 @@ print("")
 if not execution_ok:
     print("[signal-correctness] FAIL: missing no-missed-evaluation/no-missed-order marker from verifyStrategyExecution.", file=sys.stderr)
     sys.exit(1)
+if require_clear and not signal_policy_clear:
+    raise SystemExit(2)
 
 print("[signal-correctness] OK read-only check complete")
 PY
@@ -457,5 +475,8 @@ PY
 
 $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
 if ($LASTEXITCODE -ne 0) {
+    if ($RequireClear.IsPresent -and $LASTEXITCODE -eq 2) {
+        exit 2
+    }
     throw "signal correctness smoke failed with exit code $LASTEXITCODE"
 }

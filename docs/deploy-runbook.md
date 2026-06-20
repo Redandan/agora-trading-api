@@ -480,6 +480,13 @@ For a read-only production signal-correctness check, run:
 .\scripts\smoke_signal_correctness_ssh.ps1
 ```
 
+After a separately authorized evidence-only review path has resolved signal
+policy gaps, run the hard gate:
+
+```powershell
+.\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
+```
+
 Expected:
 
 - `verifyStrategyExecution` reports no missed evaluation/order bug; the smoke
@@ -504,6 +511,11 @@ Expected:
 - `missing_signal_policy_fields=[]` is required. Missing governance,
   missed-opportunity, freshness, or EntryDedup review fields remain a live
   blocker even if later free-text output looks clean.
+- With `-RequireClear`, the smoke exits 0 only when there are no
+  `REVIEW_POLICY_GAPS`, `missing_signal_policy_fields=[]`, 7d governance drift
+  is not `TOO_STRICT`, `TOO_LOOSE`, or `INSUFFICIENT_DATA`, and
+  missed-opportunity `overallStatus=PASS`; otherwise it prints the review
+  details and exits non-zero.
 - The smoke prints no-buy row classifications, top blocker families, row-level
   next actions, high-return no-buy strategy distribution, and EntryDedup group
   blocker families so operators can decide whether the next safe step is data

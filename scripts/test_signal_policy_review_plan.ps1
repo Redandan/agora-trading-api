@@ -72,6 +72,18 @@ foreach ($marker in @(
         "No-Buy Row Classification",
         "High-Return No-Buy Breakdown",
         "No-Buy Reason Truth Table",
+        "[switch]`$RequireClear",
+        "REQUIRE_CLEAR",
+        "require_clear",
+        "review_policy_gaps",
+        "governance_mode_clear",
+        "missed_opportunity_clear",
+        "signal_policy_clear",
+        "reviewPolicyGaps",
+        "signalPolicyClear",
+        "raise SystemExit(2)",
+        "`$RequireClear.IsPresent -and `$LASTEXITCODE -eq 2",
+        "exit 2",
         "DO NOT RELAX ENTRY DEDUP LIVE",
         "REVIEW ENTRY DEDUP",
         "read-only check complete"
@@ -82,6 +94,7 @@ foreach ($marker in @(
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'execution_ok = re\.search\(r"MACHINE_STATUS\\s\+no missing evaluation;\\s\*no missed order", execution\) is not None'
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'missingEvalOrOrderBug=\{''no'' if execution_ok else ''unknown_or_present''\}'
 Assert-Contains -Name "signal policy smoke missing-field summary" -Text $scriptText -Pattern 'missing_signal_policy_fields=\{json\.dumps\(missing_signal_policy_fields\)\}'
+Assert-Contains -Name "signal policy smoke clear summary" -Text $scriptText -Pattern 'signalPolicyClear=\{str\(signal_policy_clear\)\.lower\(\)\}'
 
 foreach ($marker in @(
         "no-buy reason truth table read-only boundary",
@@ -100,8 +113,10 @@ Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern 'Missed Opportunity Regression:\\s\*`r\?`n\\s\*overallStatus=PASS'
 Assert-Contains -Name "bundle signal blocker mapping" -Text $bundleText -Pattern '\$blockers\.Add\("SIGNAL_POLICY_REVIEW_GAPS"\)'
 
-Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `SIGNAL_POLICY_REVIEW_GAPS` \| `\.\\scripts\\smoke_signal_correctness_ssh\.ps1` \|'
+Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `SIGNAL_POLICY_REVIEW_GAPS` \| `\.\\scripts\\smoke_signal_correctness_ssh\.ps1 -RequireClear` \|'
 foreach ($pattern in @(
+        'exits 0 only when',
+        'signalPolicyClear=true',
         'No `REVIEW_POLICY_GAPS`',
         'explicit 7d `governanceMode` is present',
         'governanceMode=TOO_STRICT',
@@ -118,7 +133,7 @@ foreach ($pattern in @(
 }
 
 foreach ($pattern in @(
-        'smoke_signal_correctness_ssh.ps1',
+        'smoke_signal_correctness_ssh.ps1 -RequireClear',
         'REVIEW_POLICY_GAPS',
         'governance drift',
         'missed-opportunity',
@@ -128,20 +143,22 @@ foreach ($pattern in @(
 }
 
 foreach ($pattern in @(
-        'smoke_signal_correctness_ssh.ps1',
+        'smoke_signal_correctness_ssh.ps1 -RequireClear',
         'signal correctness',
         'governance drift',
         'REVIEW_POLICY_GAPS',
+        'signalPolicyClear=true',
         'not live approval'
     )) {
     Assert-Contains -Name "dry-run evidence plan signal gate" -Text $dryRunText -Pattern ([regex]::Escape($pattern))
 }
 
 foreach ($pattern in @(
-        'smoke_signal_correctness_ssh.ps1',
+        'smoke_signal_correctness_ssh.ps1 -RequireClear',
         'signal correctness',
         'governance drift',
         'REVIEW_POLICY_GAPS',
+        'signalPolicyClear=true',
         'market-signal state',
         'not authorization'
     )) {
@@ -150,12 +167,14 @@ foreach ($pattern in @(
 
 foreach ($pattern in @(
         'smoke_signal_correctness_ssh.ps1',
+        'smoke_signal_correctness_ssh.ps1 -RequireClear',
         'server-local `/api/mcp`',
         'DataFreshnessGuard current status',
         'governance drift',
         'EntryDedup governance',
         'missed-opportunity regression',
         'REVIEW_POLICY_GAPS',
+        'signalPolicyClear',
         'live blockers'
     )) {
     Assert-Contains -Name "README signal policy handoff" -Text $readmeText -Pattern ([regex]::Escape($pattern))

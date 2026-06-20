@@ -90,6 +90,11 @@ $evidenceOnlyExpectedResults = @(
     'hardStopDetected=false',
     'canEnableProduction=true',
     'missing_tiny_live_fields=\[\]',
+    'smoke_signal_correctness_ssh\.ps1 -RequireClear` exits 0',
+    'signalPolicyClear=true',
+    'missing_signal_policy_fields=\[\]',
+    '7d governance drift is not `TOO_STRICT`, `TOO_LOOSE`, or\s+`INSUFFICIENT_DATA`',
+    'Missed-opportunity `overallStatus=PASS`',
     'hard-gate smoke exiting non-zero means the review remains blocked',
     'Runtime logs remain free of order placement, OCO modification, live exchange\s+writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler\s+execution, external backfill/import, and DB mutation'
 )
@@ -146,6 +151,7 @@ foreach ($scriptName in @(
 Assert-Contains -Name "post-authorization background hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear"))
 Assert-Contains -Name "post-authorization runtime hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"))
 Assert-Contains -Name "post-authorization tiny-live hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"))
+Assert-Contains -Name "post-authorization signal-policy hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear"))
 
 foreach ($flag in $mustStayDisabled) {
     Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))

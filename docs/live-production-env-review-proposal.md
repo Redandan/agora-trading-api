@@ -188,7 +188,7 @@ live proposal:
 .\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
-.\scripts\smoke_signal_correctness_ssh.ps1
+.\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
 .\scripts\smoke_mcp_parity_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
@@ -209,6 +209,12 @@ Expected evidence-only result:
 - `hardStopDetected=false`.
 - `canEnableProduction=true`.
 - `missing_tiny_live_fields=[]`.
+- `smoke_signal_correctness_ssh.ps1 -RequireClear` exits 0.
+- `signalPolicyClear=true`.
+- `missing_signal_policy_fields=[]`.
+- 7d governance drift is not `TOO_STRICT`, `TOO_LOOSE`, or
+  `INSUFFICIENT_DATA`.
+- Missed-opportunity `overallStatus=PASS`.
 - Any hard-gate smoke exiting non-zero means the review remains blocked even
   if the full bundle can still print diagnostic child-smoke details.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports

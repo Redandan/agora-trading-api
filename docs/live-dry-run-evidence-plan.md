@@ -114,7 +114,7 @@ Run these read-only checks from the local repo:
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
-.\scripts\smoke_signal_correctness_ssh.ps1
+.\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
 .\scripts\smoke_mcp_parity_ssh.ps1
 ```
 
@@ -134,6 +134,15 @@ Expected evidence-only outcome:
 - The tiny-live smoke exits non-zero after printing RCA details if the hard
   stop remains, required fields are missing, or rollout cannot enable
   production.
+- `smoke_signal_correctness_ssh.ps1 -RequireClear` exits 0.
+- `signalPolicyClear=true`.
+- `missing_signal_policy_fields=[]`.
+- 7d governance drift is not `TOO_STRICT`, `TOO_LOOSE`, or
+  `INSUFFICIENT_DATA`.
+- Missed-opportunity `overallStatus=PASS`.
+- The signal-policy smoke exits non-zero after printing review details if
+  signal policy gaps, missing fields, unresolved governance drift, or
+  missed-opportunity warnings remain.
 - `/api/mcp` server-local smoke remains protected by `TRADING_MCP_KEY`.
 - Public MCP remains unavailable as a service surface unless separately
   authorized by product/security.

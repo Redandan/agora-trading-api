@@ -96,9 +96,9 @@ it remains incomplete evidence and does not clear blockers.
 
 ## Latest Attached Expected Blockers
 
-The attached read-only server bundle on 2026-06-20T18:19+08:00 observed server,
+The attached read-only server bundle on 2026-06-20T20:28+08:00 observed server,
 deployed runtime, and `origin/main` all at
-`d12d53c8edee09c63031ddb99750c3b9419c2602`, with
+`ef6253a4ecff7c27a2e709f226e166389700a82d`, with
 `deployment_metadata_status=CURRENT`, `origin_metadata_status=CURRENT_ORIGIN_MAIN`,
 `runtime_log_status=PASS`, `missing_readiness_detail_fields=[]`,
 `deploy_required_before_live_review=false`, and `live_review_packet_allowed=false`.
@@ -169,7 +169,7 @@ Historical complete blocker snapshot from stale deployed runtime:
   `TelegramServiceImpl` and `ExecutionEventScheduler`.
 - That stale runtime-log failure preserves `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`
   for historical RCA only and is no longer the current blocker after the
-  2026-06-20T18:19+08:00 clean runtime-log bundle.
+  2026-06-20T20:28+08:00 clean runtime-log bundle.
 
 Those stale outputs do not clear any blocker and are not a substitute for
 rerunning the full bundle after a separately authorized deploy; they are stale

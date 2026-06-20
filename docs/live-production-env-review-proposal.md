@@ -44,18 +44,18 @@ rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` and the full
 
 ```text
 snapshotType=ATTACHED_READ_ONLY_EVIDENCE
-observedAt=2026-06-20T18:19+08:00
-serverCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
-deployedCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
+observedAt=2026-06-20T20:28+08:00
+serverCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
+deployedCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
 deployment_metadata_status=CURRENT
 origin_metadata_status=CURRENT_ORIGIN_MAIN
-originMainCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
+originMainCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
 health=UP
 eventRisk=riskLevel=R0
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
 runtimeLog=PASS
 runtimeLogErrors=0
-runtimeLogWarnBaselineTotal=12
+runtimeLogWarnBaselineTotal=13
 missing_readiness_detail_fields=[]
 orderCapableFlags=false
 dryRunFlags=true
@@ -89,9 +89,9 @@ but it is not a substitute for the full bundle:
 
 ```text
 refreshType=DEPLOYMENT_METADATA_ONLY
-worktreeCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
-originMainCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
-deployedCommit=d12d53c8edee09c63031ddb99750c3b9419c2602
+worktreeCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
+originMainCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
+deployedCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
 origin_metadata_status=CURRENT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 metadata_blockers=[]
@@ -110,7 +110,7 @@ previous MCP audit detail gap was cleared in the attached deployed evidence by
 The stale 2026-06-20T10:16+08:00 runtime-log failure against
 `app-20260618T070102Z-port8084.log` remains useful RCA for Telegram/ExecutionEvent
 notification paths (`TelegramServiceImpl` and `ExecutionEventScheduler`), but it
-was no longer the current blocker after the `d12d53c` deploy. If a future strict read-only runtime-log smoke fails, attach the
+was no longer the current blocker after the `ef6253a` deploy. If a future strict read-only runtime-log smoke fails, attach the
 `ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
 line, then explicitly reconcile `EVENT_SCAN_NOTIFICATION_ENABLED`,
 `EXECUTION_EVENT_ENABLED`, Telegram send health, and background automation

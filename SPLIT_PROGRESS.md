@@ -235,8 +235,8 @@
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
 - Latest recorded current-at-observation read-only live-readiness bundle on
-  2026-06-20T18:19+08:00 after the explicitly authorized deploy of
-  `d12d53c8edee09c63031ddb99750c3b9419c2602`: server worktree,
+  2026-06-20T20:28+08:00 after the explicitly authorized deploy of
+  `ef6253a4ecff7c27a2e709f226e166389700a82d`: server worktree,
   `origin/main`, and deployed `app.commit` all matched that commit, active port
   switched to `8084`, `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=CURRENT_ORIGIN_MAIN`, `metadata_blockers=[]`, and
@@ -245,7 +245,7 @@
   tables, and 137 expected extra shared tables. Local server MCP
   `/api/mcp` passed, while public dedicated `/api/mcp` and shared-host
   `/api/trading/mcp` remained blocked with 404. The full read-only bundle
-  reported runtime log `PASS` with ERROR count 0 and WARN baseline total 12,
+  reported runtime log `PASS` with ERROR count 0 and WARN baseline total 13,
   MCP parity `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`,
   and `autonomousOpportunity.eligible=false` in `readiness_details`.
   Background automation evidence printed

@@ -188,6 +188,7 @@ foreach ($marker in @(
 foreach ($marker in @(
         "smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
         "prepare_live_review_packet_ssh.ps1 -RequireReady",
+        "smoke_live_background_automation_ssh.ps1 -RequireClear",
         "exits 0",
         "diagnosis=CANONICAL_SHADOW_READY",
         "shadowIntentCount > 0",

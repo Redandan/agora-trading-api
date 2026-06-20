@@ -114,6 +114,7 @@ Run these read-only checks from the local repo:
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
+.\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
 .\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
 .\scripts\smoke_mcp_parity_ssh.ps1
 .\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady

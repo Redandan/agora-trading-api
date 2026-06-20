@@ -136,6 +136,59 @@ If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
 `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
 key selection, or the failing read-only smoke before using the output.
 
+## Pre-Live Review Decision Checklist
+
+Use this checklist before drafting or attaching any live-review packet. It is
+read-only routing only; it is not authorization to deploy, edit production env,
+restart, enable live flags, place orders, change OCO/grid/fund/Earn state, send
+Telegram, run external backfills/imports, mutate DB state, or enable schedulers.
+
+1. Prove runtime currentness first.
+
+   ```powershell
+   .\scripts\smoke_live_deployment_metadata_ssh.ps1
+   .\scripts\smoke_live_origin_delta_local.ps1
+   ```
+
+   Required routing markers: `deployment_metadata_status=CURRENT`,
+   `origin_metadata_status=CURRENT_ORIGIN_MAIN`, `metadata_blockers=[]`, and
+   `origin_delta_status=CURRENT_ORIGIN_MAIN` before a full bundle can be used as
+   current evidence. `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT` may explain
+   why the server is behind a docs/tooling commit, but it is still not
+   live-readiness evidence. `origin_delta_status=RUNTIME_DRIFT`,
+   `DEPLOYED_RUNTIME_NOT_CURRENT`, `NO_LOCAL_EVIDENCE`, or
+   `LIVE_READINESS_EVIDENCE_UNAVAILABLE` means stop and route to deploy,
+   local-git refresh, SSH repair, or smoke repair before any live review.
+
+2. Prove every read-only blocker gate.
+
+   ```powershell
+   .\scripts\smoke_live_readiness_bundle_ssh.ps1
+   ```
+
+   The bundle must print `bundle_blockers=[]`,
+   `bundle_blocker_summary=[]`, `live_review_packet_allowed=true`,
+   `deploy_required_before_live_review=false`, and
+   `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. Any
+   `NOT_READY`, `NO_EVIDENCE`, non-empty `bundle_blockers`, non-empty
+   `bundle_blocker_summary`, missing `missing_required_tools=[]`, missing
+   `missing_readiness_detail_fields=[]`, missing `order_capable_flags_true=[]`,
+   non-zero `orderSentEvidence`, missing `shadowIntentCount`, or non-empty
+   background/tiny-live/signal review plan keeps the packet blocked.
+
+3. Prove packet readiness last.
+
+   ```powershell
+   .\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
+   ```
+
+   Required packet markers: `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
+   `packet_missing_requirements=[]`, `packet_bundle_blocker_summary=[]`,
+   `live_review_packet_allowed=true`, `deploy_required_before_live_review=false`,
+   and `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. This result
+   is still only permission to attach evidence to a separate operator review;
+   it is not live approval.
+
 ## Evidence-Only Candidate
 
 The only candidate that may be proposed before live execution is runtime

@@ -277,6 +277,10 @@ Use `docs/live-production-env-review-proposal.md` to review which server
 background automation flags must be disabled or separately justified before any
 live proposal. That file is a review artifact only; it is not authorization to
 edit production env.
+Its "Pre-Live Review Decision Checklist" is the operator routing gate: prove
+runtime currentness, then prove the full read-only bundle, then run the packet
+preflight. Any stale runtime, `NOT_READY`, `NO_EVIDENCE`, or non-empty blocker
+output stops live review.
 
 Read-only background automation env smoke before any live scope expansion:
 

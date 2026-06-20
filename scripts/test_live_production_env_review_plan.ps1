@@ -34,11 +34,26 @@ function Get-CommandBlock {
     ) -join "`n"
 }
 
+function Get-Section {
+    param(
+        [string]$Text,
+        [string]$Heading
+    )
+
+    $sectionPattern = '(?ms)^## ' + [regex]::Escape($Heading) + '\s+(.*?)(?=^## |\z)'
+    $sectionMatch = [regex]::Match($Text, $sectionPattern)
+    if (-not $sectionMatch.Success) {
+        throw "Could not find section '$Heading'."
+    }
+    return $sectionMatch.Groups[1].Value
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $proposalPath = Join-Path $repoRoot "docs/live-production-env-review-proposal.md"
 $proposalText = Get-Content -Raw -LiteralPath $proposalPath
 
 $requiredEvidence = Get-CommandBlock -Text $proposalText -Heading "Required Evidence Before Review"
+$preLiveChecklist = Get-Section -Text $proposalText -Heading "Pre-Live Review Decision Checklist"
 $postAuthorization = Get-CommandBlock -Text $proposalText -Heading "Post-Authorization Verification"
 
 $mustStayDisabled = @(
@@ -159,6 +174,44 @@ $latestSnapshotMarkers = @(
 
 Assert-Contains -Name "required evidence preflight hard gate" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\prepare_live_env_review_packet.ps1 -RequireReady"))
 Assert-Contains -Name "required evidence live packet preflight hard gate" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady"))
+
+foreach ($pattern in @(
+        'read-only routing only',
+        'not authorization to deploy',
+        'smoke_live_deployment_metadata_ssh\.ps1',
+        'smoke_live_origin_delta_local\.ps1',
+        'deployment_metadata_status=CURRENT',
+        'origin_metadata_status=CURRENT_ORIGIN_MAIN',
+        'metadata_blockers=\[\]',
+        'origin_delta_status=CURRENT_ORIGIN_MAIN',
+        'origin_delta_status=DOCS_TOOLING_ONLY_DRIFT',
+        'not\s+live-readiness evidence',
+        'origin_delta_status=RUNTIME_DRIFT',
+        'DEPLOYED_RUNTIME_NOT_CURRENT',
+        'NO_LOCAL_EVIDENCE',
+        'LIVE_READINESS_EVIDENCE_UNAVAILABLE',
+        'stop and route to deploy',
+        'smoke_live_readiness_bundle_ssh\.ps1',
+        'bundle_blockers=\[\]',
+        'bundle_blocker_summary=\[\]',
+        'live_review_packet_allowed=true',
+        'deploy_required_before_live_review=false',
+        'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        'NOT_READY',
+        'NO_EVIDENCE',
+        'missing_required_tools=\[\]',
+        'missing_readiness_detail_fields=\[\]',
+        'order_capable_flags_true=\[\]',
+        'orderSentEvidence',
+        'shadowIntentCount',
+        'prepare_live_review_packet_ssh\.ps1 -RequireReady',
+        'packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        'packet_missing_requirements=\[\]',
+        'packet_bundle_blocker_summary=\[\]',
+        'not live approval'
+    )) {
+    Assert-Contains -Name "pre-live review decision checklist" -Text $preLiveChecklist -Pattern $pattern
+}
 
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",

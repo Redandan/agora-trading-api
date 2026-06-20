@@ -684,6 +684,10 @@ Use `docs/live-production-env-review-proposal.md` to classify any proposed
 production env diff. It documents which currently enabled background automation
 flags should be disabled or separately justified before live; it is not an env
 mutation script and does not authorize production changes.
+Use its "Pre-Live Review Decision Checklist" before drafting a live packet:
+runtime currentness first, full read-only bundle second, packet preflight last.
+Any stale runtime, `NOT_READY`, `NO_EVIDENCE`, or non-empty blocker output keeps
+the live review blocked.
 
 To isolate already-enabled background automation before live review, run:
 

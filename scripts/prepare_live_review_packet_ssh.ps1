@@ -124,11 +124,15 @@ $bundleText = ($bundleOutput | Out-String)
 $blockers = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_blockers=")
 $deploymentMetadataStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "deployment_metadata_status="
 $originMetadataStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "origin_metadata_status="
+$bundleBlockerSummary = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_blocker_summary="
 $liveAllowed = Get-LastPrefixedValue -Text $bundleText -Prefix "live_review_packet_allowed="
 $deployRequired = Get-LastPrefixedValue -Text $bundleText -Prefix "deploy_required_before_live_review="
 $bundleVerdict = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_verdict="
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
+if ([string]::IsNullOrWhiteSpace($bundleBlockerSummary)) {
+    $missingRequirements.Add("bundle_blocker_summary is missing")
+}
 if ($bundleExitCode -ne 0) {
     $missingRequirements.Add("full bundle exited non-zero")
 }
@@ -162,6 +166,7 @@ Write-Host "source_smoke_exit_code=$bundleExitCode"
 Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
 Write-Host "origin_metadata_status=$originMetadataStatus"
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress @($blockers)))
+Write-Host "packet_bundle_blocker_summary=$bundleBlockerSummary"
 Write-Host "live_review_packet_allowed=$liveAllowed"
 Write-Host "deploy_required_before_live_review=$deployRequired"
 Write-Host "bundle_verdict=$bundleVerdict"

@@ -35,6 +35,54 @@ function Get-ClassifyPathCaseBody {
     ($match.Groups[1].Value -replace '\s+', ' ').Trim()
 }
 
+function Get-MetadataOnlyOutputSummary {
+    param(
+        [string]$DeploymentStatus,
+        [string]$OriginStatus
+    )
+
+    $metadataCurrent = ($DeploymentStatus -eq "CURRENT" -or $DeploymentStatus -eq "DOCS_TOOLING_ONLY_DRIFT") `
+        -and $OriginStatus -eq "CURRENT_ORIGIN_MAIN"
+
+    [pscustomobject]@{
+        MetadataCurrent = $metadataCurrent
+        MetadataBlockers = if ($metadataCurrent) { @() } else { @("DEPLOYED_RUNTIME_NOT_CURRENT") }
+        DeployRequiredBeforeLiveReview = if ($metadataCurrent) { "false" } else { "true" }
+        LiveReviewPacketAllowed = "false"
+        BundleVerdict = "NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY"
+    }
+}
+
+function Assert-MetadataOnlyCase {
+    param(
+        [string]$Name,
+        [string]$DeploymentStatus,
+        [string]$OriginStatus,
+        [bool]$ExpectedMetadataCurrent,
+        [string[]]$ExpectedMetadataBlockers,
+        [string]$ExpectedDeployRequiredBeforeLiveReview
+    )
+
+    $summary = Get-MetadataOnlyOutputSummary -DeploymentStatus $DeploymentStatus -OriginStatus $OriginStatus
+    if ($summary.MetadataCurrent -ne $ExpectedMetadataCurrent) {
+        throw "$Name metadata_current expected $ExpectedMetadataCurrent but got $($summary.MetadataCurrent)"
+    }
+    $actualBlockers = @($summary.MetadataBlockers | Sort-Object)
+    $expectedBlockers = @($ExpectedMetadataBlockers | Sort-Object)
+    if (($actualBlockers -join ",") -ne ($expectedBlockers -join ",")) {
+        throw "$Name metadata_blockers expected [$($expectedBlockers -join ',')] but got [$($actualBlockers -join ',')]"
+    }
+    if ($summary.DeployRequiredBeforeLiveReview -ne $ExpectedDeployRequiredBeforeLiveReview) {
+        throw "$Name deploy_required_before_live_review expected $ExpectedDeployRequiredBeforeLiveReview but got $($summary.DeployRequiredBeforeLiveReview)"
+    }
+    if ($summary.LiveReviewPacketAllowed -ne "false") {
+        throw "$Name metadata-only output must never allow a live review packet"
+    }
+    if ($summary.BundleVerdict -ne "NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY") {
+        throw "$Name metadata-only output must keep NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY"
+    }
+}
+
 $metadataClassifyBody = Get-ClassifyPathCaseBody -Text $scriptText
 $bundleClassifyBody = Get-ClassifyPathCaseBody -Text $bundleText
 if ($metadataClassifyBody -ne $bundleClassifyBody) {
@@ -77,6 +125,13 @@ foreach ($pattern in @(
 }
 
 foreach ($pattern in @(
+        '$RequireCurrent -and $text -match ''metadata_current=false''',
+        'deployment metadata is not current; DEPLOYED_RUNTIME_NOT_CURRENT remains.'
+    )) {
+    Assert-Contains -Name "deployment metadata RequireCurrent guard" -Text $scriptText -Pattern ([regex]::Escape($pattern))
+}
+
+foreach ($pattern in @(
         "systemctl",
         "nginx -t",
         "reload nginx",
@@ -112,5 +167,45 @@ foreach ($pattern in @(
     Assert-Contains -Name "bundle metadata parity marker" -Text $bundleText -Pattern ([regex]::Escape($pattern))
     Assert-Contains -Name "standalone metadata parity marker" -Text $scriptText -Pattern ([regex]::Escape($pattern))
 }
+
+Assert-MetadataOnlyCase `
+    -Name "current metadata-only remains non-live evidence" `
+    -DeploymentStatus "CURRENT" `
+    -OriginStatus "CURRENT_ORIGIN_MAIN" `
+    -ExpectedMetadataCurrent $true `
+    -ExpectedMetadataBlockers @() `
+    -ExpectedDeployRequiredBeforeLiveReview "false"
+
+Assert-MetadataOnlyCase `
+    -Name "docs tooling drift metadata-only remains non-live evidence" `
+    -DeploymentStatus "DOCS_TOOLING_ONLY_DRIFT" `
+    -OriginStatus "CURRENT_ORIGIN_MAIN" `
+    -ExpectedMetadataCurrent $true `
+    -ExpectedMetadataBlockers @() `
+    -ExpectedDeployRequiredBeforeLiveReview "false"
+
+Assert-MetadataOnlyCase `
+    -Name "origin drift metadata-only stays blocked" `
+    -DeploymentStatus "CURRENT" `
+    -OriginStatus "WORKTREE_NOT_ORIGIN_MAIN" `
+    -ExpectedMetadataCurrent $false `
+    -ExpectedMetadataBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT") `
+    -ExpectedDeployRequiredBeforeLiveReview "true"
+
+Assert-MetadataOnlyCase `
+    -Name "runtime drift metadata-only stays blocked" `
+    -DeploymentStatus "RUNTIME_DRIFT" `
+    -OriginStatus "CURRENT_ORIGIN_MAIN" `
+    -ExpectedMetadataCurrent $false `
+    -ExpectedMetadataBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT") `
+    -ExpectedDeployRequiredBeforeLiveReview "true"
+
+Assert-MetadataOnlyCase `
+    -Name "unknown metadata-only stays blocked" `
+    -DeploymentStatus "UNKNOWN_DEPLOY_METADATA" `
+    -OriginStatus "UNKNOWN_ORIGIN_MAIN" `
+    -ExpectedMetadataCurrent $false `
+    -ExpectedMetadataBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT") `
+    -ExpectedDeployRequiredBeforeLiveReview "true"
 
 Write-Host "[live-deployment-metadata-smoke-test] OK"

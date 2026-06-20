@@ -193,12 +193,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
-- Latest read-only metadata and diagnostic refresh on 2026-06-20T22:31+08:00
+- Latest read-only metadata and diagnostic refresh on 2026-06-20T23:36+08:00
   followed the docs/tooling commit
-  `d0e0f4f20a1892b81d1147c631caf04d20e8400a`. The metadata-only smoke observed
+  `1683eb16cf9ced10ca85c7649f1d9c999ba83390`. The metadata-only smoke observed
   server worktree and deployed `app.commit` still at
   `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
-  to `d0e0f4f20a1892b81d1147c631caf04d20e8400a`. It printed
+  to `1683eb16cf9ced10ca85c7649f1d9c999ba83390`. It printed
   `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
   `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
@@ -206,13 +206,13 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `live_review_packet_allowed=false`, and
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. The local
   origin-delta classifier still showed docs/tooling-only drift:
-  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=20`,
-  `origin_docs_tooling_delta_files=20`, `origin_runtime_delta_files=0`, and
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=23`,
+  `origin_docs_tooling_delta_files=23`, `origin_runtime_delta_files=0`, and
   `origin_runtime_delta_paths=[]`.
   Diagnostic stale-runtime bundle output with `-ContinueWhenRuntimeStale`
   confirmed the active service on port `8084` is healthy and reachable:
   health `UP`, runtime log `PASS` with ERROR count 0 and
-  WARN baseline total 16, server-local MCP parity `required_tools=[...]`,
+  WARN baseline total 17, server-local MCP parity `required_tools=[...]`,
   `missing_required_tools=[]`, `[mcp-parity-ssh] OK`, `toolCount=305`, and
   `required=35`. It remained `bundle_verdict=NOT_READY` with blockers
   `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,

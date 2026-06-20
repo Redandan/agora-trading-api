@@ -14,11 +14,11 @@ $expectedCurrentObservedAt = "2026-06-20T20:28+08:00"
 $expectedCurrentCommit = "ef6253a4ecff7c27a2e709f226e166389700a82d"
 $expectedLatestSplitObservedAt = "2026-06-20T20:28+08:00"
 $expectedLatestSplitCommit = "ef6253a4ecff7c27a2e709f226e166389700a82d"
-$expectedLatestDiagnosticObservedAt = "2026-06-20T22:31+08:00"
-$expectedLatestDiagnosticOriginCommit = "d0e0f4f20a1892b81d1147c631caf04d20e8400a"
-$expectedLatestOriginDeltaObservedAt = "2026-06-20T22:31+08:00"
-$expectedLatestOriginDeltaCommit = "d0e0f4f20a1892b81d1147c631caf04d20e8400a"
-$expectedLatestRcaObservedAt = "2026-06-20T22:31+08:00"
+$expectedLatestDiagnosticObservedAt = "2026-06-20T23:36+08:00"
+$expectedLatestDiagnosticOriginCommit = "1683eb16cf9ced10ca85c7649f1d9c999ba83390"
+$expectedLatestOriginDeltaObservedAt = "2026-06-20T23:36+08:00"
+$expectedLatestOriginDeltaCommit = "1683eb16cf9ced10ca85c7649f1d9c999ba83390"
+$expectedLatestRcaObservedAt = "2026-06-20T23:36+08:00"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -142,7 +142,7 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle $expectedLatestDiagnosticOriginCommit
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN"
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle 'metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]'
-    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "WARN baseline total 16"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "WARN baseline total 17"
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "signalPolicyClear=false"
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "TOO_STRICT"
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle 'missed-opportunity regression was `WARN`'
@@ -150,8 +150,8 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle $expectedLatestOriginDeltaCommit
     Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_local_evidence=true"
     Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_status=DOCS_TOOLING_ONLY_DRIFT"
-    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_files=20"
-    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_docs_tooling_delta_files=20"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_files=23"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_docs_tooling_delta_files=23"
     Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_runtime_delta_files=0"
     Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_runtime_delta_paths=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "live_review_packet_allowed=false"
@@ -221,7 +221,7 @@ Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refre
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle $expectedLatestDiagnosticOriginCommit
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN"
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle 'metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]'
-Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "WARN baseline total 16"
+Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "WARN baseline total 17"
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "signalPolicyClear=false"
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "governanceMode=TOO_STRICT"
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "overallStatus=WARN"
@@ -232,7 +232,7 @@ foreach ($doc in @(
     )) {
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle $expectedLatestRcaObservedAt
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "runtime_log_status=PASS"
-    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "WARN baseline total 16"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "WARN baseline total 17"
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "order_capable_flags_true=[]"
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "riskLevel=R0"
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "diagnosis=CONFIG_DISABLED"

@@ -170,6 +170,12 @@ def short(value, limit=180):
 def top_items(counter, limit=5):
     return counter.most_common(limit)
 
+def to_int(value):
+    try:
+        return int(str(value).strip())
+    except Exception:
+        return None
+
 def blocker_family(blocker):
     value = str(blocker or "UNKNOWN").upper()
     if "RUNTIME_EVIDENCE" in value:
@@ -350,6 +356,120 @@ signal_policy_clear = (
     and missed_opportunity_clear
 )
 
+signal_policy_review_plan = []
+
+def add_signal_policy_gate(gate, state, risk_category, evidence_markers, required_evidence, next_action):
+    signal_policy_review_plan.append({
+        "gate": gate,
+        "state": state,
+        "riskCategory": risk_category,
+        "evidenceMarkers": evidence_markers,
+        "requiredEvidence": required_evidence,
+        "nextAction": next_action,
+        "notAuthorization": "read-only review evidence only; does not authorize live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, or policy relaxation",
+    })
+
+if missing_signal_policy_fields:
+    add_signal_policy_gate(
+        "missing-signal-policy-fields",
+        "BLOCKED",
+        "missing_evidence",
+        [f"missing_signal_policy_fields={json.dumps(missing_signal_policy_fields)}"],
+        ["missing_signal_policy_fields=[]", "all required governance, freshness, EntryDedup, and missed-opportunity fields present"],
+        "Fix MCP/report coverage or parser drift, then rerun the read-only signal smoke before any live review packet."
+    )
+
+if review_policy_gaps:
+    add_signal_policy_gate(
+        "review-policy-gaps",
+        "BLOCKED",
+        "policy_gap",
+        ["REVIEW_POLICY_GAPS"],
+        ["no REVIEW_POLICY_GAPS marker in any signal-policy tool output"],
+        "Resolve explicit policy review gaps in the source tool output; do not bypass by relying on later free-text summaries."
+    )
+
+if not governance_mode_clear:
+    add_signal_policy_gate(
+        "governance-drift",
+        "BLOCKED",
+        "governance_drift",
+        [f"7d governanceMode={governance_mode_7d}"],
+        ["explicit 7d governanceMode present", "governanceMode not TOO_STRICT, TOO_LOOSE, INSUFFICIENT_DATA, or N/A"],
+        "Review governance drift with missed-opportunity and no-buy evidence; keep live gates disabled until drift is resolved."
+    )
+
+missed_suspicious_num = to_int(missed_suspicious)
+missed_false_block_num = to_int(missed_false_block)
+missed_high_return_num = to_int(missed_high_return)
+if not missed_opportunity_clear:
+    add_signal_policy_gate(
+        "missed-opportunity-regression",
+        "BLOCKED",
+        "missed_opportunity_risk",
+        [
+            f"overallStatus={missed_status}",
+            f"suspiciousNoBuyCount={missed_suspicious}",
+            f"falseBlockRiskCount={missed_false_block}",
+            f"highForwardReturnNoBuyCount={missed_high_return}",
+        ],
+        ["missed-opportunity overallStatus=PASS", "suspicious/false-block/high-return no-buy evidence reviewed"],
+        "Classify no-buy rows and required next action before any shadow/tiny-live policy experiment is proposed."
+    )
+elif any((value or 0) > 0 for value in (missed_suspicious_num, missed_false_block_num, missed_high_return_num)):
+    add_signal_policy_gate(
+        "missed-opportunity-regression",
+        "REVIEW",
+        "missed_opportunity_watch",
+        [
+            f"overallStatus={missed_status}",
+            f"suspiciousNoBuyCount={missed_suspicious}",
+            f"falseBlockRiskCount={missed_false_block}",
+            f"highForwardReturnNoBuyCount={missed_high_return}",
+        ],
+        ["operator review confirms residual no-buy rows are expected and not policy relaxation candidates"],
+        "Keep as review-only context even if hard status is PASS."
+    )
+
+risky_row_classes = [
+    name for name in row_class_counts.keys()
+    if name in ("MISSED_OPPORTUNITY_RISK", "WATCH_SIGNAL_NEAR_BUY_THRESHOLD")
+]
+if risky_row_classes:
+    add_signal_policy_gate(
+        "no-buy-row-classification",
+        "REVIEW",
+        "row_classification_risk",
+        [f"{name}:{row_class_counts[name]}" for name in risky_row_classes],
+        ["row-level blocker family, topBlocker, action, and warnings reviewed"],
+        "Use row actions to choose data-freshness repair, runtime-evidence coverage, threshold observation, or a separately approved shadow/tiny-live experiment."
+    )
+
+would_allow_num = to_int(entry_dedup_would_allow)
+dedup_too_coarse_num = to_int(missed_dedup_too_coarse)
+if (would_allow_num or 0) <= 0 or (dedup_too_coarse_num or 0) <= 0:
+    add_signal_policy_gate(
+        "entry-dedup-relaxation",
+        "BLOCKED",
+        "dedup_relaxation_not_ready",
+        [
+            f"wouldAllowStagedAddGroups={entry_dedup_would_allow}",
+            f"dedupTooCoarseSuspects={missed_dedup_too_coarse}",
+        ],
+        ["wouldAllowStagedAddGroups>0 and dedupTooCoarseSuspects>0 with hard-safety blockers reviewed"],
+        "Do not relax EntryDedup live; governance false-block evidence alone is insufficient."
+    )
+
+if not signal_policy_review_plan:
+    add_signal_policy_gate(
+        "signal-policy",
+        "READY_FOR_OTHER_BLOCKER_REVIEW",
+        "no_signal_policy_blocker",
+        ["signalPolicyClear=true", "missing_signal_policy_fields=[]"],
+        ["fresh full live-readiness bundle shows bundle_blockers=[] before any live proposal"],
+        "Signal policy is locally clear for review, but this is still not live approval and other blockers must clear."
+    )
+
 print("")
 print("Execution:")
 print(f"  executionMachineStatus={execution_machine_status}")
@@ -392,6 +512,7 @@ if missed_recommended_fix != "N/A":
 print(f"  reviewPolicyGaps={str(review_policy_gaps).lower()}")
 print(f"  signalPolicyClear={str(signal_policy_clear).lower()}")
 print(f"  missing_signal_policy_fields={json.dumps(missing_signal_policy_fields)}")
+print(f"  signal_policy_review_plan={json.dumps(signal_policy_review_plan, separators=(',', ':'))}")
 print("")
 print("No-Buy Row Classification:")
 if row_class_counts:

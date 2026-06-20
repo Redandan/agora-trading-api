@@ -516,6 +516,11 @@ Expected:
   is not `TOO_STRICT`, `TOO_LOOSE`, or `INSUFFICIENT_DATA`, and
   missed-opportunity `overallStatus=PASS`; otherwise it prints the review
   details and exits non-zero.
+- The smoke also prints `signal_policy_review_plan`, a machine-readable
+  review packet with `riskCategory`, `evidenceMarkers`, `requiredEvidence`,
+  `nextAction`, and `notAuthorization` for each blocked/review gate. Use it to
+  draft the next read-only evidence task only; it is not live approval and is
+  not permission to relax signal policy.
 - The smoke prints no-buy row classifications, top blocker families, row-level
   next actions, high-return no-buy strategy distribution, and EntryDedup group
   blocker families so operators can decide whether the next safe step is data

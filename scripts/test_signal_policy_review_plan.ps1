@@ -79,6 +79,15 @@ foreach ($marker in @(
         "governance_mode_clear",
         "missed_opportunity_clear",
         "signal_policy_clear",
+        "signal_policy_review_plan",
+        "add_signal_policy_gate",
+        "notAuthorization",
+        "requiredEvidence",
+        "evidenceMarkers",
+        "governance-drift",
+        "missed-opportunity-regression",
+        "no-buy-row-classification",
+        "entry-dedup-relaxation",
         "reviewPolicyGaps",
         "signalPolicyClear",
         "raise SystemExit(2)",
@@ -95,6 +104,7 @@ Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText 
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'missingEvalOrOrderBug=\{''no'' if execution_ok else ''unknown_or_present''\}'
 Assert-Contains -Name "signal policy smoke missing-field summary" -Text $scriptText -Pattern 'missing_signal_policy_fields=\{json\.dumps\(missing_signal_policy_fields\)\}'
 Assert-Contains -Name "signal policy smoke clear summary" -Text $scriptText -Pattern 'signalPolicyClear=\{str\(signal_policy_clear\)\.lower\(\)\}'
+Assert-Contains -Name "signal policy smoke review plan summary" -Text $scriptText -Pattern 'signal_policy_review_plan=\{json\.dumps\(signal_policy_review_plan, separators=\('','', '':''\)\)\}'
 
 foreach ($marker in @(
         "no-buy reason truth table read-only boundary",
@@ -124,6 +134,7 @@ foreach ($pattern in @(
         'governanceMode=INSUFFICIENT_DATA',
         'overallStatus=PASS',
         'missing_signal_policy_fields=[]',
+        'signal_policy_review_plan',
         'Missing signal-policy fields',
         'missing or `N/A` governance/missed-opportunity evidence stays blocked',
         'shadow/tiny-live caps only',

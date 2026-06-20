@@ -225,6 +225,9 @@ Expected evidence-only result:
 - 7d governance drift is not `TOO_STRICT`, `TOO_LOOSE`, or
   `INSUFFICIENT_DATA`.
 - Missed-opportunity `overallStatus=PASS`.
+- `signal_policy_review_plan` is present and any remaining gate is handled as
+  review evidence only, with `notAuthorization` confirming it is not live
+  approval or permission to relax policy.
 - Any hard-gate smoke exiting non-zero means the review remains blocked even
   if the full bundle can still print diagnostic child-smoke details.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports

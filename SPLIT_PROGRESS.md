@@ -158,7 +158,10 @@
   summary for safer next-action triage. `scripts/test_signal_policy_review_plan.ps1`
   now guards the signal-policy review contract, including read-only tool calls,
   `SIGNAL_POLICY_REVIEW_GAPS` blocker mapping, governance drift documentation,
-  missed-opportunity evidence, and the no-buy reason truth table.
+  missed-opportunity evidence, the no-buy reason truth table, and
+  `signal_policy_review_plan` markers (`riskCategory`, `evidenceMarkers`,
+  `requiredEvidence`, `notAuthorization`) so signal-policy review contract drift
+  fails locally before a server smoke is trusted.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

@@ -255,7 +255,11 @@ fields are not treated as passing evidence.
 `missing_signal_policy_fields=[]`, 7d governance drift is not `TOO_STRICT`,
 `TOO_LOOSE`, or `INSUFFICIENT_DATA`, and missed-opportunity
 `overallStatus=PASS`; otherwise it exits non-zero after printing the review
-details, including `signalPolicyClear`.
+details, including `signalPolicyClear` and the machine-readable
+`signal_policy_review_plan`. That plan lists the blocked/review gates,
+`riskCategory`, `evidenceMarkers`, `requiredEvidence`, and `notAuthorization`
+for operator review; it is not live approval and must not be used to enable
+trading or relax policy by itself.
 
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps

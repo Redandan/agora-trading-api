@@ -149,6 +149,10 @@ Expected evidence-only outcome:
 - The signal-policy smoke exits non-zero after printing review details if
   signal policy gaps, missing fields, unresolved governance drift, or
   missed-opportunity warnings remain.
+- The signal-policy smoke prints `signal_policy_review_plan` with
+  `riskCategory`, `evidenceMarkers`, `requiredEvidence`, `nextAction`, and
+  `notAuthorization` so the next evidence task can be reviewed without treating
+  the output as live approval.
 - `/api/mcp` server-local smoke remains protected by `TRADING_MCP_KEY`.
 - Public MCP remains unavailable as a service surface unless separately
   authorized by product/security.

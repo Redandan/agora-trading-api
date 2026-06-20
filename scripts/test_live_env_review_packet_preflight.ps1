@@ -43,6 +43,15 @@ foreach ($pattern in @(
         'env_review_packet_status=NOT_READY',
         'notAuthorization=local review packet preflight only',
         'TRADING_RUNTIME_EVIDENCE_ENABLED=true',
+        'Assert-RequiredDocMarker',
+        'missing required live packet marker',
+        'packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        'packet_missing_requirements=\[\]',
+        'live_review_packet_allowed=true',
+        'bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
+        'smoke_live_background_automation_ssh\.ps1 -RequireClear',
+        'smoke_live_readiness_bundle_ssh\.ps1',
+        'prepare_live_review_packet_ssh\.ps1 -RequireReady',
         'TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false',
         'EVENT_SCAN_NOTIFICATION_ENABLED=false',
         'EXECUTION_EVENT_ENABLED=false',
@@ -122,6 +131,36 @@ try {
     Assert-Contains -Name "env review preflight forbidden fixture" -Text $badOutputText -Pattern 'env_review_packet_status=NOT_READY'
     Assert-Contains -Name "env review preflight forbidden fixture" -Text $badOutputText -Pattern 'forbidden_true_candidates=\["TRADING_OKX_ENABLED"\]'
     Assert-Contains -Name "env review preflight forbidden fixture" -Text $badOutputText -Pattern 'forbidden true candidates are present'
+
+    Copy-Item -LiteralPath (Join-Path $repoRoot "docs/live-runtime-evidence-env-proposal.md") -Destination $runtimeFixture -Force
+    Copy-Item -LiteralPath (Join-Path $repoRoot "docs/live-background-automation-env-diff-proposal.md") -Destination $backgroundFixture -Force
+    Copy-Item -LiteralPath (Join-Path $repoRoot "docs/live-production-env-review-proposal.md") -Destination $productionFixture -Force
+
+    $badBackground = (Get-Content -Raw -LiteralPath $backgroundFixture).Replace(".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady", ".\scripts\prepare_live_review_packet_ssh.ps1")
+    Set-Content -LiteralPath $backgroundFixture -Value $badBackground -Encoding UTF8
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $missingMarkerOutput = & $powerShell.Source `
+            -NoProfile `
+            -ExecutionPolicy Bypass `
+            -File $scriptPath `
+            -RuntimeProposalPath $runtimeFixture `
+            -BackgroundProposalPath $backgroundFixture `
+            -ProductionProposalPath $productionFixture `
+            -RequireReady 2>&1
+        $missingMarkerExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $missingMarkerOutputText = ($missingMarkerOutput | Out-String)
+    if ($missingMarkerExitCode -eq 0) {
+        throw "env review preflight accepted missing packet marker fixture:`n$missingMarkerOutputText"
+    }
+    Assert-Contains -Name "env review preflight missing marker fixture" -Text $missingMarkerOutputText -Pattern 'env_review_packet_status=NOT_READY'
+    Assert-Contains -Name "env review preflight missing marker fixture" -Text $missingMarkerOutputText -Pattern 'background automation proposal missing required live packet marker'
+    Assert-Contains -Name "env review preflight missing marker fixture" -Text $missingMarkerOutputText -Pattern 'prepare_live_review_packet_ssh\.ps1 -RequireReady'
 } finally {
     Remove-Item -LiteralPath $tempDir -Recurse -Force
 }

@@ -85,6 +85,21 @@ function Assert-SameSet {
     }
 }
 
+function Assert-RequiredDocMarker {
+    param(
+        [string]$Name,
+        [string]$Text,
+        [string[]]$Markers,
+        [System.Collections.Generic.List[string]]$MissingRequirements
+    )
+
+    foreach ($marker in $Markers) {
+        if (-not $Text.Contains($marker)) {
+            $MissingRequirements.Add("$Name missing required live packet marker: $marker")
+        }
+    }
+}
+
 $runtimePath = Resolve-DocPath -Path $RuntimeProposalPath -DefaultRelativePath "docs/live-runtime-evidence-env-proposal.md"
 $backgroundPath = Resolve-DocPath -Path $BackgroundProposalPath -DefaultRelativePath "docs/live-background-automation-env-diff-proposal.md"
 $productionPath = Resolve-DocPath -Path $ProductionProposalPath -DefaultRelativePath "docs/live-production-env-review-proposal.md"
@@ -141,6 +156,43 @@ $missingRequirements = [System.Collections.Generic.List[string]]::new()
 Assert-SameSet -Name "runtime evidence proposed diff" -Actual @($runtimeDiff.Line) -Expected $expectedRuntimeDiff -MissingRequirements $missingRequirements
 Assert-SameSet -Name "production evidence-only candidate" -Actual @($productionEvidenceCandidate.Line) -Expected $expectedProductionCandidate -MissingRequirements $missingRequirements
 Assert-SameSet -Name "background automation proposed diff" -Actual @($backgroundDiff.Line) -Expected $expectedBackgroundDiff -MissingRequirements $missingRequirements
+Assert-RequiredDocMarker `
+    -Name "runtime evidence proposal" `
+    -Text $runtimeProposal `
+    -Markers @(
+        ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+        ".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady",
+        "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
+        "packet_missing_requirements=[]",
+        "live_review_packet_allowed=true",
+        "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
+    ) `
+    -MissingRequirements $missingRequirements
+Assert-RequiredDocMarker `
+    -Name "background automation proposal" `
+    -Text $backgroundProposal `
+    -Markers @(
+        ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+        ".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady",
+        "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
+        "packet_missing_requirements=[]",
+        "live_review_packet_allowed=true",
+        "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
+    ) `
+    -MissingRequirements $missingRequirements
+Assert-RequiredDocMarker `
+    -Name "production env review proposal" `
+    -Text $productionProposal `
+    -Markers @(
+        ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+        ".\scripts\smoke_live_readiness_bundle_ssh.ps1",
+        ".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady",
+        "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
+        "packet_missing_requirements=[]",
+        "live_review_packet_allowed=true",
+        "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
+    ) `
+    -MissingRequirements $missingRequirements
 
 $runtimeTrueCandidates = @($runtimeDiff | Where-Object { $_.Value -eq "true" } | ForEach-Object { $_.Key })
 $backgroundTrueCandidates = @($backgroundDiff | Where-Object { $_.Value -eq "true" } | ForEach-Object { $_.Key })

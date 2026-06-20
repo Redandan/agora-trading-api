@@ -187,7 +187,7 @@ live proposal:
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
-.\scripts\smoke_tiny_live_loss_rca_ssh.ps1
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
@@ -205,7 +205,11 @@ Expected evidence-only result:
 - `diagnosis=CANONICAL_SHADOW_READY`.
 - `shadowIntentCount > 0` before live is discussed.
 - `orderSentEvidence=0`.
-- Either hard-gate smoke exiting non-zero means the review remains blocked even
+- `smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear` exits 0.
+- `hardStopDetected=false`.
+- `canEnableProduction=true`.
+- `missing_tiny_live_fields=[]`.
+- Any hard-gate smoke exiting non-zero means the review remains blocked even
   if the full bundle can still print diagnostic child-smoke details.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports
   `LIVE_READINESS_EVIDENCE_UNAVAILABLE`.

@@ -113,7 +113,7 @@ Run these read-only checks from the local repo:
 .\scripts\verify_split_acceptance_ssh.ps1
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
-.\scripts\smoke_tiny_live_loss_rca_ssh.ps1
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
 ```
@@ -127,6 +127,13 @@ Expected evidence-only outcome:
 - The runtime-evidence smoke exits non-zero after printing RCA details if the
   diagnosis is not canonical shadow-ready, required fields are missing, shadow
   intent is absent, or any order-sent evidence appears.
+- `smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear` exits 0.
+- `hardStopDetected=false`.
+- `missing_tiny_live_fields=[]`.
+- `canEnableProduction=true`.
+- The tiny-live smoke exits non-zero after printing RCA details if the hard
+  stop remains, required fields are missing, or rollout cannot enable
+  production.
 - `/api/mcp` server-local smoke remains protected by `TRADING_MCP_KEY`.
 - Public MCP remains unavailable as a service surface unless separately
   authorized by product/security.

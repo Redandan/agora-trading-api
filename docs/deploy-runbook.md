@@ -576,6 +576,13 @@ tiny-live loss RCA smoke before drafting any live env-change plan:
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 ```
 
+After a separately authorized evidence-only review path has collected fresh
+tiny-live proof, use the hard gate:
+
+```powershell
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
+```
+
 Expected:
 
 - The script calls server-local `/api/mcp`, not public Trading MCP.
@@ -596,6 +603,9 @@ Expected:
 - It may report `hardStopDetected=false` after the blocker is legitimately
   cleared; that is not live approval. Re-run the full live-readiness audit and
   prepare a separately authorized env-change plan before enabling anything.
+- With `-RequireClear`, the smoke exits 0 only when `hardStopDetected=false`,
+  `missing_tiny_live_fields=[]`, and `canEnableProduction=true`; otherwise it
+  prints the RCA details and exits non-zero.
 - The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 

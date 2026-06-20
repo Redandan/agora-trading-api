@@ -181,11 +181,21 @@ Read-only tiny-live loss hard-stop RCA when live-readiness reports
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 ```
 
+After a separately authorized evidence-only review path has collected fresh
+tiny-live proof, run the hard gate:
+
+```powershell
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
+```
+
 This calls server-local `/api/mcp` only and summarizes tiny-live execution
 readiness, auto-approval blockers, recent tiny-live audit rows, autonomous
 execution attribution, missed-opportunity context, and monitor/rollout status.
 `missing_tiny_live_fields` must be empty before the tiny-live RCA can clear the
 hard-stop or rollout live-readiness gates.
+`-RequireClear` exits 0 only when `hardStopDetected=false`,
+`missing_tiny_live_fields=[]`, and `canEnableProduction=true`; otherwise it
+exits non-zero after printing RCA details.
 The default 30-day window matches the consecutive-loss guard used by the
 auto-approval policy.
 It does not place orders, enable scheduler/live flags, send Telegram, modify

@@ -86,6 +86,10 @@ $evidenceOnlyExpectedResults = @(
     'diagnosis=CANONICAL_SHADOW_READY',
     'shadowIntentCount > 0',
     'orderSentEvidence=0',
+    'smoke_tiny_live_loss_rca_ssh\.ps1 -RequireClear` exits 0',
+    'hardStopDetected=false',
+    'canEnableProduction=true',
+    'missing_tiny_live_fields=\[\]',
     'hard-gate smoke exiting non-zero means the review remains blocked',
     'Runtime logs remain free of order placement, OCO modification, live exchange\s+writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler\s+execution, external backfill/import, and DB mutation'
 )
@@ -141,6 +145,7 @@ foreach ($scriptName in @(
 
 Assert-Contains -Name "post-authorization background hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear"))
 Assert-Contains -Name "post-authorization runtime hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"))
+Assert-Contains -Name "post-authorization tiny-live hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"))
 
 foreach ($flag in $mustStayDisabled) {
     Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))

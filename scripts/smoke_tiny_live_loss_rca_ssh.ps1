@@ -6,7 +6,8 @@ param(
     [string]$Symbol = "BTCUSDT",
     [long]$StrategyId = 574,
     [string]$Side = "LONG",
-    [int]$Days = 30
+    [int]$Days = 30,
+    [switch]$RequireClear
 )
 
 Set-StrictMode -Version Latest
@@ -74,7 +75,7 @@ if [ -z "`$MCP_KEY" ]; then
   exit 1
 fi
 
-export PORT MCP_KEY SYMBOL='$Symbol' STRATEGY_ID='$StrategyId' SIDE='$Side' DAYS='$Days'
+export PORT MCP_KEY SYMBOL='$Symbol' STRATEGY_ID='$StrategyId' SIDE='$Side' DAYS='$Days' REQUIRE_CLEAR='$($RequireClear.IsPresent)'
 python3 - <<'PY'
 import json
 import os
@@ -93,6 +94,7 @@ strategy_id = int(os.environ["STRATEGY_ID"])
 side = os.environ["SIDE"].upper()
 days = int(os.environ["DAYS"])
 minutes = days * 24 * 60
+require_clear = os.environ.get("REQUIRE_CLEAR", "").lower() == "true"
 
 def request(body, timeout=160):
     req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), headers=headers, method="POST")
@@ -279,10 +281,16 @@ else:
 print("  - REQUIRE: fresh dry-run/runtime evidence and a current BUY candidate before considering any separately authorized live env change.")
 print("  - SCOPE: this smoke is read-only and must not be used to place orders or enable scheduler/live flags.")
 print("[tiny-live-loss-rca] OK read-only check complete")
+rollout_clear = str(tiny_rollout_fields["canEnableProduction"]).lower() == "true"
+if require_clear and (hard_stop_detected or missing_tiny_live_fields or not rollout_clear):
+    raise SystemExit(2)
 PY
 "@
 
 $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
 if ($LASTEXITCODE -ne 0) {
+    if ($RequireClear.IsPresent -and $LASTEXITCODE -eq 2) {
+        exit 2
+    }
     throw "tiny-live loss RCA smoke failed with exit code $LASTEXITCODE"
 }

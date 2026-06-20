@@ -52,6 +52,13 @@ foreach ($marker in @(
         "hardStopDetected",
         "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES",
         "hardStopClearCriteria=maxConsecutiveTinyLiveLosses<2, current BUY candidate present, runtime evidence available, execution flags separately authorized",
+        "[switch]`$RequireClear",
+        "REQUIRE_CLEAR",
+        "require_clear",
+        "rollout_clear",
+        "raise SystemExit(2)",
+        "`$RequireClear.IsPresent -and `$LASTEXITCODE -eq 2",
+        "exit 2",
         "completedTinyLiveSamples",
         "falsePositiveCount",
         "dailyLossBudgetBreached",
@@ -67,9 +74,10 @@ foreach ($marker in @(
     Assert-Contains -Name "tiny-live RCA script" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
-Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `TINY_LIVE_LOSS_HARD_STOP` \| `\.\\scripts\\smoke_tiny_live_loss_rca_ssh\.ps1` \|'
-Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `TINY_LIVE_ROLLOUT_NOT_READY` \| `\.\\scripts\\smoke_tiny_live_loss_rca_ssh\.ps1` \|'
+Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `TINY_LIVE_LOSS_HARD_STOP` \| `\.\\scripts\\smoke_tiny_live_loss_rca_ssh\.ps1 -RequireClear` \|'
+Assert-Contains -Name "remediation matrix" -Text $remediationText -Pattern '\| `TINY_LIVE_ROLLOUT_NOT_READY` \| `\.\\scripts\\smoke_tiny_live_loss_rca_ssh\.ps1 -RequireClear` \|'
 foreach ($pattern in @(
+        'exits 0 only when',
         'hardStopDetected=false',
         'canEnableProduction=true',
         'Missing or `N/A` hard-stop evidence stays blocked',
@@ -87,7 +95,7 @@ foreach ($pattern in @(
         'AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES',
         'hardStopDetected=true',
         'rollout gates that cannot enable production',
-        'smoke_tiny_live_loss_rca_ssh.ps1',
+        'smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear',
         'live loss hard-stop status'
     )) {
     Assert-Contains -Name "dry-run evidence plan" -Text $dryRunText -Pattern ([regex]::Escape($pattern))
@@ -98,6 +106,8 @@ foreach ($pattern in @(
         'a current BUY candidate',
         'runtime\s+evidence available',
         'separately authorized env-change plan',
+        'smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear',
+        'exits 0 only when',
         'hardStopDetected=false',
         'not live approval'
     )) {

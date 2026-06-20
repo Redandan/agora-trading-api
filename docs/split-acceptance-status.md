@@ -190,7 +190,44 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
-- Latest read-only metadata and diagnostic refresh on 2026-06-20T20:53+08:00
+- Latest read-only metadata and diagnostic refresh on 2026-06-20T22:03+08:00
+  followed the docs/tooling commit
+  `f84ab1440cc7cc574ca8969203a2ade015dcfce8`. The metadata-only smoke observed
+  server worktree and deployed `app.commit` still at
+  `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
+  to `f84ab1440cc7cc574ca8969203a2ade015dcfce8`. It printed
+  `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`,
+  `live_review_packet_allowed=false`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. The local
+  origin-delta classifier still showed docs/tooling-only drift:
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=18`,
+  `origin_docs_tooling_delta_files=18`, `origin_runtime_delta_files=0`, and
+  `origin_runtime_delta_paths=[]`.
+  Diagnostic stale-runtime bundle output with `-ContinueWhenRuntimeStale`
+  confirmed the active service on port `8084` is healthy and reachable:
+  health `UP`, runtime log `PASS` with ERROR count 0 and WARN baseline total
+  16, server-local MCP parity `missing_required_tools=[]`, `toolCount=305`,
+  and `required=35`. It remained `bundle_verdict=NOT_READY` with blockers
+  `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
+  `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
+  `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, `SIGNAL_POLICY_REVIEW_GAPS`, and
+  `DEPLOYED_RUNTIME_NOT_CURRENT`. Current RCA details: all order-capable flags
+  stayed false, all reviewed dry-run flags stayed true, `riskLevel=R0`,
+  `missing_readiness_detail_fields=[]`, all nine reviewed background
+  automation flags were true, runtime evidence was still
+  `diagnosis=CONFIG_DISABLED` with `runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE`,
+  `shadowIntentCount=0`, and `orderSentEvidence=0`, tiny-live still had
+  `hardStopDetected=true`, `completedTinyLiveSamples=2`,
+  `falsePositiveCount=2`, and `canEnableProduction=false`, and signal policy
+  still had `signalPolicyClear=false` because 7d governance drift was
+  `TOO_STRICT` and missed-opportunity regression was `WARN`. Treat this as
+  stale-runtime diagnostic/RCA evidence only; it is not live-readiness evidence
+  and not permission to enable live trading.
+- Previous read-only metadata and diagnostic refresh on 2026-06-20T20:53+08:00
   followed the docs/tooling commit
   `0c033972b4bd39531d0e617d0f2702926108686f`. The metadata-only smoke observed
   server worktree and deployed `app.commit` still at

@@ -269,6 +269,38 @@
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
+- 2026-06-20T22:03+08:00 read-only metadata and diagnostic refresh followed
+  docs/tooling commit `f84ab1440cc7cc574ca8969203a2ade015dcfce8`. The server
+  worktree and deployed `app.commit` still matched
+  `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
+  to `f84ab1440cc7cc574ca8969203a2ade015dcfce8`; metadata-only output printed
+  `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`,
+  `live_review_packet_allowed=false`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. The local
+  origin-delta classifier still reported docs/tooling-only drift with
+  `origin_delta_files=18`, `origin_docs_tooling_delta_files=18`,
+  `origin_runtime_delta_files=0`, and `origin_runtime_delta_paths=[]`.
+  Diagnostic stale-runtime bundle output still showed the active service
+  healthy on port `8084`, local health and server-local `/api/mcp` passing,
+  MCP parity `missing_required_tools=[]`, `toolCount=305`, `required=35`, and
+  runtime log `PASS` with ERROR count 0 and WARN baseline total 16. The
+  diagnostic bundle remained `bundle_verdict=NOT_READY` with blockers
+  `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
+  `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
+  `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, `SIGNAL_POLICY_REVIEW_GAPS`, and
+  `DEPLOYED_RUNTIME_NOT_CURRENT`. Order-capable flags were still all false,
+  reviewed dry-run flags true, `riskLevel=R0`,
+  `missing_readiness_detail_fields=[]`, all nine reviewed background
+  automation flags true, runtime evidence disabled with `shadowIntentCount=0`
+  and `orderSentEvidence=0`, tiny-live still blocked by the consecutive-loss
+  hard stop and rollout gates, and signal policy remained blocked by
+  `TOO_STRICT` governance drift plus `WARN` missed-opportunity regression. This
+  is stale-runtime diagnostic/RCA evidence only, not live-readiness evidence or
+  live approval.
 - 2026-06-20T20:53+08:00 read-only metadata and diagnostic refresh followed
   docs/tooling commit `0c033972b4bd39531d0e617d0f2702926108686f`. The server
   worktree and deployed `app.commit` still matched

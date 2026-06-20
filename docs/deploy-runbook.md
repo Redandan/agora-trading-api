@@ -458,8 +458,9 @@ smoke, and the #3 trailing-stop PnL replay smoke through server-local MCP/API
 checks. If `-EnvFile` is overridden, the wrapper passes the same remote env file
 through server verification, split acceptance, and every server-local MCP smoke
 so the issue-closure run verifies one consistent runtime configuration. MCP
-parity output must include `missing_required_tools=[]`; missing or non-empty
-required-tool evidence is not live-readiness proof. Use
+parity output must include `required_tools=[...]` plus
+`missing_required_tools=[]`; missing either list or non-empty required-tool
+evidence is not live-readiness proof. Use
 `-RequireTrailingAcceptance` when closing issue #3; without it, trailing replay
 can still prove deployed reachability but not the 30d PnL acceptance target.
 Reachability-only runs must end with `REACHABILITY_ONLY OK`, not the normal

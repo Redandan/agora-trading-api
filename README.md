@@ -129,8 +129,9 @@ service:
 .\scripts\smoke_mcp_parity_ssh.ps1
 ```
 
-Both parity smokes print `missing_required_tools=[]` when the representative
-read-only Trading MCP surface is complete. A missing or non-empty list is not
+Both parity smokes print `required_tools=[...]` plus
+`missing_required_tools=[]` when the representative read-only Trading MCP
+surface is complete. Missing either list, or a non-empty missing list, is not
 live-readiness evidence.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the

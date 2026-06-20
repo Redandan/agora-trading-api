@@ -479,7 +479,7 @@ function New-BlockerSummary {
             "MCP_PARITY_NOT_PROVEN" {
                 $category = "mcp"
                 $requiredEvidence = ".\scripts\smoke_mcp_parity_ssh.ps1"
-                $evidenceMarkers = @("missing_required_tools is non-empty", "missing [mcp-parity-ssh] OK")
+                $evidenceMarkers = @("missing required_tools list", "missing_required_tools is non-empty", "missing [mcp-parity-ssh] OK")
                 $nextAction = "Restore required read-only Trading MCP tools on server-local /api/mcp."
             }
             "DEPLOYED_RUNTIME_NOT_CURRENT" {
@@ -652,6 +652,7 @@ if ($signal -match "REVIEW_POLICY_GAPS" `
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
 }
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK" `
+        -or $mcpParity -notmatch "required_tools=\[[^\]]+\]" `
         -or $mcpParity -match "missing_required_tools=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
         -or $mcpParity -notmatch "missing_required_tools=\[\]") {
     $blockers.Add("MCP_PARITY_NOT_PROVEN")

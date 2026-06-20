@@ -67,7 +67,7 @@ correctness and governance drift summary, and explicit review-plan evidence.
 Missing signal-policy fields stay blocked. For machine checks, missing or `N/A` governance/missed-opportunity evidence stays blocked.
 A missing `signal_policy_review_plan`, `state=BLOCKED`, or `state=REVIEW`
 entry on an otherwise clear signal-policy summary also fails closed.
-| `MCP_PARITY_NOT_PROVEN` | `.\scripts\smoke_mcp_parity_ssh.ps1` | Output includes `missing_required_tools=[]`, `[mcp-parity-ssh] OK`, and required read-only MCP tools are present on server-local `/api/mcp`. Missing or non-empty required-tool evidence stays blocked. | Continue live-readiness review; do not expose public MCP service. |
+| `MCP_PARITY_NOT_PROVEN` | `.\scripts\smoke_mcp_parity_ssh.ps1` | Output includes `required_tools=[...]`, `missing_required_tools=[]`, `[mcp-parity-ssh] OK`, and required read-only MCP tools are present on server-local `/api/mcp`. Missing or non-empty required-tool evidence stays blocked: missing `required_tools`, missing or non-empty `missing_required_tools`, or missing OK evidence is not live-readiness proof. | Continue live-readiness review; do not expose public MCP service. |
 | `DEPLOYED_RUNTIME_NOT_CURRENT` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` deployment metadata section, or `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a metadata-only refresh | `deployment_metadata_status=CURRENT` or `DOCS_TOOLING_ONLY_DRIFT`, and `origin_metadata_status=CURRENT_ORIGIN_MAIN`; missing metadata, runtime drift, a server worktree behind `origin/main`, or unknown metadata must not be used for live review. `DEPLOYMENT_METADATA_ONLY` output is not live-readiness evidence and is not a substitute for the full bundle. | Deploy and verify separately, or treat the bundle as stale evidence only. |
 
 The full bundle also stops before child smokes when deployment metadata is
@@ -130,8 +130,9 @@ TINY_LIVE_ROLLOUT_NOT_READY
 
 Those are live-blocking until the clear conditions above are proven by fresh
 read-only evidence. Treat this block as an attached example for traceability,
-not as currentness evidence after later commits. MCP parity is expected to pass with
-`missing_required_tools=[]` and `[mcp-parity-ssh] OK`.
+not as currentness evidence after later commits. MCP parity is expected to pass
+with `required_tools=[...]`, `missing_required_tools=[]`, and
+`[mcp-parity-ssh] OK`.
 Do not chase docs-only deploy commits by rewriting this attached snapshot after
 every documentation refresh; currentness must come from a freshly rerun
 `smoke_live_deployment_metadata_ssh.ps1` plus the full

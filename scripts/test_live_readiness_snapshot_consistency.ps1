@@ -16,6 +16,8 @@ $expectedLatestSplitObservedAt = "2026-06-20T20:28+08:00"
 $expectedLatestSplitCommit = "ef6253a4ecff7c27a2e709f226e166389700a82d"
 $expectedLatestDiagnosticObservedAt = "2026-06-20T20:53+08:00"
 $expectedLatestDiagnosticOriginCommit = "0c033972b4bd39531d0e617d0f2702926108686f"
+$expectedLatestOriginDeltaObservedAt = "2026-06-20T21:21+08:00"
+$expectedLatestOriginDeltaCommit = "5695078403aaf44469773d464c0c6d29f88a300d"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -141,6 +143,16 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "signalPolicyClear=false"
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle "TOO_STRICT"
     Assert-ContainsLiteral -Name "$($doc.Name) latest diagnostic refresh" -Text $doc.Text -Needle 'missed-opportunity regression was `WARN`'
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle $expectedLatestOriginDeltaObservedAt
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle $expectedLatestOriginDeltaCommit
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_local_evidence=true"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_status=DOCS_TOOLING_ONLY_DRIFT"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_delta_files=16"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_docs_tooling_delta_files=16"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_runtime_delta_files=0"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "origin_runtime_delta_paths=[]"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "live_review_packet_allowed=false"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest origin delta classifier" -Text $doc.Text -Needle "routing evidence only"
 }
 
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle $expectedCurrentObservedAt

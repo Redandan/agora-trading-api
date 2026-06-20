@@ -220,6 +220,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `TOO_STRICT` and missed-opportunity regression was `WARN`. Treat this refresh
   as current stale-runtime diagnostic evidence only; it is not live-readiness
   evidence and not permission to enable live trading.
+- Read-only local origin-delta classifier on 2026-06-20T21:21+08:00 observed
+  the same server worktree commit
+  `ef6253a4ecff7c27a2e709f226e166389700a82d` while local `origin/main` was
+  `5695078403aaf44469773d464c0c6d29f88a300d`. It printed
+  `origin_delta_local_evidence=true`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=16`,
+  `origin_docs_tooling_delta_files=16`, `origin_runtime_delta_files=0`,
+  `origin_runtime_delta_paths=[]`, and `live_review_packet_allowed=false`.
+  This is routing evidence only: it explains that the current local delta is
+  docs/tooling-only, but it does not replace a fresh full read-only
+  live-readiness bundle and does not authorize live trading.
 - Latest recorded read-only live-readiness bundle on 2026-06-19T14:24+08:00
   observed server worktree/deployed commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was

@@ -185,8 +185,8 @@ live proposal:
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1
 .\scripts\audit_live_readiness_ssh.ps1
-.\scripts\smoke_live_background_automation_ssh.ps1
-.\scripts\smoke_runtime_evidence_rca_ssh.ps1
+.\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
@@ -197,11 +197,16 @@ Expected evidence-only result:
 
 - `order_capable_flags` remain false.
 - `order_capable_flags_true=[]`.
-- `high_risk_background_automation_true=[]` or each item has a separate
-  explicit authorization.
-- `smoke_runtime_evidence_rca_ssh.ps1` no longer reports `CONFIG_DISABLED`.
-- `shadowIntentCount` becomes greater than 0 before live is discussed.
+- `smoke_live_background_automation_ssh.ps1 -RequireClear` exits 0.
+- `background_automation_true=[]`.
+- `high_risk_background_automation_true=[]`.
+- `missing_background_automation_flags=[]`.
+- `smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` exits 0.
+- `diagnosis=CANONICAL_SHADOW_READY`.
+- `shadowIntentCount > 0` before live is discussed.
 - `orderSentEvidence=0`.
+- Either hard-gate smoke exiting non-zero means the review remains blocked even
+  if the full bundle can still print diagnostic child-smoke details.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports
   `LIVE_READINESS_EVIDENCE_UNAVAILABLE`.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports

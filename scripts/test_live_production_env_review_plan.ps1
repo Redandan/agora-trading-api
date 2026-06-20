@@ -78,10 +78,15 @@ $rollbackCriteria = @(
 $evidenceOnlyExpectedResults = @(
     '`order_capable_flags` remain false',
     'order_capable_flags_true=\[\]',
+    'smoke_live_background_automation_ssh\.ps1 -RequireClear` exits 0',
+    'background_automation_true=\[\]',
     'high_risk_background_automation_true=\[\]',
-    'smoke_runtime_evidence_rca_ssh\.ps1` no longer reports `CONFIG_DISABLED`',
-    'shadowIntentCount` becomes greater than 0',
+    'missing_background_automation_flags=\[\]',
+    'smoke_runtime_evidence_rca_ssh\.ps1 -RequireReady` exits 0',
+    'diagnosis=CANONICAL_SHADOW_READY',
+    'shadowIntentCount > 0',
     'orderSentEvidence=0',
+    'hard-gate smoke exiting non-zero means the review remains blocked',
     'Runtime logs remain free of order placement, OCO modification, live exchange\s+writes, grid/fund/Earn operations, Telegram sends, unexpected scheduler\s+execution, external backfill/import, and DB mutation'
 )
 
@@ -133,6 +138,9 @@ foreach ($scriptName in @(
     Assert-Contains -Name "required evidence commands" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\$scriptName"))
     Assert-Contains -Name "post-authorization commands" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\$scriptName"))
 }
+
+Assert-Contains -Name "post-authorization background hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear"))
+Assert-Contains -Name "post-authorization runtime hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"))
 
 foreach ($flag in $mustStayDisabled) {
     Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))

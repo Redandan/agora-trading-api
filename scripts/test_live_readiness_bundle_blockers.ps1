@@ -106,6 +106,9 @@ function Get-LiveReadinessBundleBlockers {
             -or $Background -match "missing_background_automation_flags=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
             -or $Background -match "high_risk_background_automation_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
             -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
+            -or $Background -notmatch "background_automation_review_plan=" `
+            -or ($Background -match "backgroundAutomationClear=true" -and $Background -match '"state"\s*:\s*"TRUE"') `
+            -or ($Background -match "backgroundAutomationClear=true" -and $Background -match '"state"\s*:\s*"MISSING"') `
             -or $Background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" `
             -or $Background -notmatch "backgroundAutomationClear=true" `
             -or $Background -notmatch "high_risk_background_automation_true=\[\]") {
@@ -570,7 +573,7 @@ $mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{"eligible":true
 $mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"wouldExecute":"false","runtimeEvidenceStatus":"AVAILABLE_CANONICAL_SHADOW_EVIDENCE","executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"reason":"READY","orderSent":false,"eligible":true},"scoreBuyPrePosition":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true},"scoreBuyConfirmedDeploy":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true},"scoreBuyPostScoutAdd":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true}}'
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
-        Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]"
+        Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]`nbackground_automation_review_plan=[]"
     RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY
 shadowIntentCount=3
 orderSentEvidence=0
@@ -612,6 +615,9 @@ Assert-BlockerCase -Name "background missing ok verdict fails closed" -Inputs (M
 Assert-BlockerCase -Name "background missing high-risk marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background explicit clear false fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=false`nhigh_risk_background_automation_true=[]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background blocker summary fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = 'verdict=OK_BACKGROUND_AUTOMATION_DISABLED backgroundAutomationClear=true background_automation_blockers=["BACKGROUND_AUTOMATION_TRUE"] high_risk_background_automation_true=[]' }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
+Assert-BlockerCase -Name "background missing review plan fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
+Assert-BlockerCase -Name "background true review plan fails closed when otherwise clear" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]`nbackground_automation_review_plan=[{`"state`":`"TRUE`"}]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
+Assert-BlockerCase -Name "background missing review plan entry fails closed when otherwise clear" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]`nbackground_automation_review_plan=[{`"state`":`"MISSING`"}]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
 Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")

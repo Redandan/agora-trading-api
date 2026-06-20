@@ -425,7 +425,7 @@ function New-BlockerSummary {
             "BACKGROUND_AUTOMATION_REVIEW" {
                 $category = "background-automation"
                 $requiredEvidence = ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear"
-                $evidenceMarkers = @("backgroundAutomationClear=false", "high_risk_background_automation_true is non-empty", "background_automation_blockers is non-empty")
+                $evidenceMarkers = @("backgroundAutomationClear=false", "high_risk_background_automation_true is non-empty", "background_automation_blockers is non-empty", "background_automation_review_plan missing or still has TRUE/MISSING entries")
                 $nextAction = "Review or separately authorize production background automation env diff; do not apply from this bundle."
             }
             "RUNTIME_EVIDENCE_CONFIG_DISABLED" {
@@ -599,6 +599,9 @@ if ($background -match "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
         -or $background -match "missing_background_automation_flags=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "high_risk_background_automation_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
+        -or $background -notmatch "background_automation_review_plan=" `
+        -or ($background -match "backgroundAutomationClear=true" -and $background -match '"state"\s*:\s*"TRUE"') `
+        -or ($background -match "backgroundAutomationClear=true" -and $background -match '"state"\s*:\s*"MISSING"') `
         -or $background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" `
         -or $background -notmatch "backgroundAutomationClear=true" `
         -or $background -notmatch "high_risk_background_automation_true=\[\]") {

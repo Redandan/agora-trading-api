@@ -707,6 +707,10 @@ Expected:
   explicit false evidence.
 - `backgroundAutomationClear=true` and `background_automation_blockers=[]` are
   required before the background automation blocker can clear.
+- The full bundle also requires `background_automation_review_plan` to be
+  present and empty when background automation is otherwise clear; missing plan
+  evidence or a remaining `state=TRUE`/`state=MISSING` entry keeps
+  `BACKGROUND_AUTOMATION_REVIEW`.
 - `verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW` means live remains blocked
   until the listed flags are reviewed or separately authorized.
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,

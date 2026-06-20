@@ -293,6 +293,8 @@ After a separately authorized background-automation env diff, rerun it with
 `-RequireClear` so any remaining true or missing reviewed flag exits non-zero.
 `backgroundAutomationClear=true` and `background_automation_blockers=[]` are
 required before this blocker can clear.
+The full bundle also requires `background_automation_review_plan` to be present
+and empty when background automation is otherwise clear.
 
 Read-only live readiness bundle that runs the audit, background automation,
 runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:

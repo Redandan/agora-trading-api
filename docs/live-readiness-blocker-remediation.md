@@ -60,7 +60,8 @@ runtime-evidence fields also stay blocked and must not be interpreted as
 
 The full bundle also stops before child smokes when deployment metadata is
 already stale, emitting `read_only_bundle_error=DEPLOYED_RUNTIME_NOT_CURRENT`
-and `bundle_verdict=NO_EVIDENCE`. Use `-ContinueWhenRuntimeStale` only for
+`bundle_blocker_summary`, and `bundle_verdict=NO_EVIDENCE`. Use
+`-ContinueWhenRuntimeStale` only for
 diagnostic stale-runtime child-smoke output; do not use that output as current
 live-readiness evidence.
 
@@ -78,6 +79,8 @@ blocker, but the failure output also preserves `deployment_metadata_status` and
 `origin_metadata_status`. If those metadata lines prove stale runtime or a
 server worktree behind `origin/main`, the same failure output includes
 `DEPLOYED_RUNTIME_NOT_CURRENT` and `deploy_required_before_live_review=true`.
+The same failure output also includes `bundle_blocker_summary` for automation;
+it remains incomplete evidence and does not clear blockers.
 
 ## Latest Attached Expected Blockers
 

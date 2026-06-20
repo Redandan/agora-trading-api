@@ -751,6 +751,7 @@ Expected:
 - If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
   `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, it emits
   `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
+  `bundle_blocker_summary`,
   `live_review_packet_allowed=false`,
   `deploy_required_before_live_review=unknown`, and
   `bundle_verdict=NO_EVIDENCE`; treat that as an incomplete evidence problem,
@@ -760,6 +761,9 @@ Expected:
   `origin_metadata_status`, and, when stale, adds
   `DEPLOYED_RUNTIME_NOT_CURRENT` to `bundle_blockers` with
   `deploy_required_before_live_review=true`.
+- Both fail-fast paths still print `bundle_blocker_summary`, so automation can
+  route incomplete-evidence or stale-runtime output without treating it as
+  live-readiness evidence.
 - `bundle_verdict=NOT_READY` is the expected result while runtime evidence,
   tiny-live hard stop, signal policy, or background automation blockers remain.
 - The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,

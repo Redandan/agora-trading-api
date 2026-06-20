@@ -430,6 +430,9 @@ function Assert-BundleBlockerSummaryCovered {
             'bundle_blocker_summary=',
             'requiredEvidence',
             'nextAction',
+            '\$partialBlockers = @\("LIVE_READINESS_EVIDENCE_UNAVAILABLE", "DEPLOYED_RUNTIME_NOT_CURRENT"\)',
+            '\$partialBlockers = @\("LIVE_READINESS_EVIDENCE_UNAVAILABLE"\)',
+            'New-BlockerSummary -Blockers \$partialBlockers',
             'background-automation',
             'runtime-evidence',
             'tiny-live',
@@ -449,7 +452,10 @@ function Assert-BundleBlockerSummaryCovered {
             'required read-only evidence',
             'does not relax `bundle_blockers`',
             'does not clear `bundle_blockers`',
-            'does not authorize.*production env'
+            'does not authorize.*production env',
+            'NO_EVIDENCE',
+            'fail-fast paths still print `bundle_blocker_summary`',
+            'incomplete evidence'
         )) {
         if ($docsText -notmatch $pattern) {
             throw "live readiness bundle docs missing blocker summary marker: $pattern"

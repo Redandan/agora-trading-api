@@ -327,6 +327,7 @@ remain blocking evidence.
 If the bundle cannot collect complete evidence because of `SSH_AUTH_FAILED`,
 `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or `READ_ONLY_SMOKE_FAILED`, it emits
 `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]`,
+`bundle_blocker_summary`,
 `live_review_packet_allowed=false`,
 `deploy_required_before_live_review=unknown`, and
 `bundle_verdict=NO_EVIDENCE`; treat that output as an incomplete evidence
@@ -335,6 +336,9 @@ If deployment metadata was already collected before a later child smoke fails,
 the failure output also preserves `deployment_metadata_status`,
 `origin_metadata_status`, and, when stale, adds `DEPLOYED_RUNTIME_NOT_CURRENT`
 to `bundle_blockers` with `deploy_required_before_live_review=true`.
+Both fail-fast paths still print `bundle_blocker_summary`, so automation can
+route the incomplete-evidence or stale-runtime result without treating it as
+live-readiness evidence.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.

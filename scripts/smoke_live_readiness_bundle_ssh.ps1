@@ -144,7 +144,9 @@ function Assert-DeploymentMetadataCurrentOrStop {
     Write-Host "read_only_bundle_error_detail=deployment metadata is stale; child smokes were skipped because stale runtime output is not complete live-readiness evidence"
     Write-Host "read_only_bundle_error_boundary=not complete live-readiness evidence; deploy and verify separately, then rerun the full bundle"
     Write-PartialDeploymentMetadata -DeploymentMetadata $DeploymentMetadata
-    Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
+    $partialBlockers = @("LIVE_READINESS_EVIDENCE_UNAVAILABLE", "DEPLOYED_RUNTIME_NOT_CURRENT")
+    Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $partialBlockers))
+    Write-Host ("bundle_blocker_summary=" + (ConvertTo-Json -Compress -Depth 4 @(New-BlockerSummary -Blockers $partialBlockers)))
     Write-Host "live_review_packet_allowed=false"
     Write-Host "deploy_required_before_live_review=true"
     Write-Host "bundle_verdict=NO_EVIDENCE"
@@ -171,10 +173,12 @@ function Assert-ReadOnlyCommandSucceeded {
     Write-Host "read_only_bundle_error_boundary=not complete live-readiness evidence; fix SSH access, key selection, or the failing read-only smoke and rerun the bundle"
     Write-PartialDeploymentMetadata -DeploymentMetadata $script:LiveReadinessDeploymentMetadataSnapshot
     if ($deployRequirement -eq "true") {
-        Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
+        $partialBlockers = @("LIVE_READINESS_EVIDENCE_UNAVAILABLE", "DEPLOYED_RUNTIME_NOT_CURRENT")
     } else {
-        Write-Host 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE"]'
+        $partialBlockers = @("LIVE_READINESS_EVIDENCE_UNAVAILABLE")
     }
+    Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $partialBlockers))
+    Write-Host ("bundle_blocker_summary=" + (ConvertTo-Json -Compress -Depth 4 @(New-BlockerSummary -Blockers $partialBlockers)))
     Write-Host "live_review_packet_allowed=false"
     if ($deployRequirement -eq "unknown") {
         Write-Host "deploy_required_before_live_review=unknown"

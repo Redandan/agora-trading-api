@@ -31,6 +31,7 @@ Run these read-only checks and attach the outputs to the operator review:
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_mcp_parity_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
 ```
 
 The current server evidence keeps live blocked while these remain true:
@@ -215,6 +216,7 @@ live proposal:
 .\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
 .\scripts\smoke_mcp_parity_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
 ```
 
 Expected evidence-only result:
@@ -258,6 +260,9 @@ Expected evidence-only result:
   `DEPLOYED_RUNTIME_NOT_CURRENT`.
 - `smoke_live_readiness_bundle_ssh.ps1` no longer reports
   `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`.
+- `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 with
+  `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
+  `packet_missing_requirements=[]`.
 - Runtime-log smoke is clean after background automation review, or any
   remaining Telegram/ExecutionEvent notification error has separate written
   authorization and rollback evidence.
@@ -286,5 +291,7 @@ separate change with exact env diff, current smoke outputs, full-bundle
 `bundle_blockers=[]`, `live_review_packet_allowed=true`,
 `deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
+`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
+`packet_missing_requirements=[]`,
 tiny-live hard-stop status with `missing_tiny_live_fields=[]`, runtime evidence status, market-signal state, loss
 budget, rollback steps, and explicit operator authorization.

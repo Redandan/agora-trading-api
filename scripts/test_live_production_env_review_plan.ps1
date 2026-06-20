@@ -158,6 +158,7 @@ $latestSnapshotMarkers = @(
 )
 
 Assert-Contains -Name "required evidence preflight hard gate" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\prepare_live_env_review_packet.ps1 -RequireReady"))
+Assert-Contains -Name "required evidence live packet preflight hard gate" -Text $requiredEvidence -Pattern ([regex]::Escape(".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady"))
 
 foreach ($scriptName in @(
         "audit_live_readiness_ssh.ps1",
@@ -176,6 +177,7 @@ Assert-Contains -Name "post-authorization background hard gate" -Text $postAutho
 Assert-Contains -Name "post-authorization runtime hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"))
 Assert-Contains -Name "post-authorization tiny-live hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"))
 Assert-Contains -Name "post-authorization signal-policy hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear"))
+Assert-Contains -Name "post-authorization live packet preflight hard gate" -Text $postAuthorization -Pattern ([regex]::Escape(".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady"))
 
 foreach ($flag in $mustStayDisabled) {
     Assert-Contains -Name "must-stay-disabled live flag" -Text $proposalText -Pattern ([regex]::Escape($flag))
@@ -229,6 +231,8 @@ foreach ($pattern in @(
         '`live_review_packet_allowed=true`',
         '`deploy_required_before_live_review=false`',
         '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
+        '`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
+        '`packet_missing_requirements=[]`',
         'not authorization'
     )) {
     if ($pattern -match '\\s') {
@@ -242,5 +246,8 @@ Assert-Contains -Name "post-authorization bundle blocker expectation" -Text $pro
 Assert-Contains -Name "post-authorization runtime health blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`'
 Assert-Contains -Name "post-authorization no-evidence blocker expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`'
 Assert-Contains -Name "post-authorization no-evidence verdict expectation" -Text $proposalText -Pattern 'smoke_live_readiness_bundle_ssh\.ps1` no longer reports\s+`bundle_verdict=NO_EVIDENCE`'
+Assert-Contains -Name "post-authorization live packet preflight result" -Text $proposalText -Pattern 'prepare_live_review_packet_ssh\.ps1 -RequireReady` exits 0'
+Assert-Contains -Name "post-authorization live packet preflight status" -Text $proposalText -Pattern 'packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED'
+Assert-Contains -Name "post-authorization live packet preflight requirements" -Text $proposalText -Pattern 'packet_missing_requirements=\[\]'
 
 Write-Host "[live-production-env-review-plan-test] OK"

@@ -157,6 +157,7 @@ $runtimeStale = @($blockers) -contains "DEPLOYED_RUNTIME_NOT_CURRENT" -or $origi
 Write-Host "[live-review-packet-preflight] read-only evidence gate"
 Write-Host "scope=READ_ONLY; runs the full live-readiness bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_smoke=smoke_live_readiness_bundle_ssh.ps1"
+Write-Host "origin_delta_classifier=smoke_live_origin_delta_local.ps1"
 Write-Host "source_smoke_exit_code=$bundleExitCode"
 Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
 Write-Host "origin_metadata_status=$originMetadataStatus"
@@ -173,7 +174,7 @@ if ($packetReady) {
 } elseif ($bundleVerdict -eq "NO_EVIDENCE" -or $bundleVerdict -eq "NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY" -or $bundleExitCode -ne 0) {
     Write-Host "packet_status=NO_EVIDENCE"
     if ($runtimeStale) {
-        Write-Host "packet_next_action=Deploy and verify current origin/main separately, then rerun the full read-only live-readiness bundle before drafting any live review packet."
+        Write-Host "packet_next_action=Run smoke_live_origin_delta_local.ps1 to classify current-origin delta. If origin_delta_status=RUNTIME_DRIFT, separately deploy and verify current origin/main. If origin_delta_status=DOCS_TOOLING_ONLY_DRIFT, review and attach classifier evidence separately. If origin_delta_status=NO_LOCAL_EVIDENCE, refresh local git evidence or rerun metadata smoke. In all cases, rerun the full read-only live-readiness bundle before drafting any live review packet."
     } else {
         Write-Host "packet_next_action=Fix SSH/read-only smoke collection, then rerun before drafting any live review packet."
     }

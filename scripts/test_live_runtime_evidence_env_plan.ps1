@@ -194,6 +194,15 @@ foreach ($marker in @(
 }
 
 foreach ($marker in @(
+        "smoke_live_background_automation_ssh.ps1",
+        "smoke_mcp_parity_ssh.ps1",
+        "backgroundAutomationClear=false",
+        "background_automation_blockers",
+        "high_risk_background_automation_true",
+        "missing_background_automation_flags",
+        "required_tools=[...]",
+        "missing_required_tools=[]",
+        "[mcp-parity-ssh] OK",
         "smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
         "prepare_live_review_packet_ssh.ps1 -RequireReady",
         "smoke_live_background_automation_ssh.ps1 -RequireClear",

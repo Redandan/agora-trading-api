@@ -10,9 +10,11 @@ Use it only after the current read-only checks have been run:
 
 ```powershell
 .\scripts\audit_live_readiness_ssh.ps1
+.\scripts\smoke_live_background_automation_ssh.ps1
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 .\scripts\smoke_signal_correctness_ssh.ps1
+.\scripts\smoke_mcp_parity_ssh.ps1
 ```
 
 ## Current Blockers
@@ -20,6 +22,11 @@ Use it only after the current read-only checks have been run:
 Treat live as blocked while any of these are true:
 
 - `audit_live_readiness_ssh.ps1` ends with `verdict=NOT_READY`.
+- `smoke_live_background_automation_ssh.ps1` reports
+  `backgroundAutomationClear=false`, non-empty
+  `background_automation_blockers`, non-empty
+  `high_risk_background_automation_true`, or non-empty
+  `missing_background_automation_flags`.
 - `smoke_tiny_live_loss_rca_ssh.ps1` reports
   `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`,
   `hardStopDetected=true`, or rollout gates that cannot enable production.
@@ -34,6 +41,8 @@ Treat live as blocked while any of these are true:
 - Signal correctness is unresolved: `smoke_signal_correctness_ssh.ps1` reports
   `REVIEW_POLICY_GAPS` or unresolved governance drift / missed-opportunity
   evidence that has not been documented for operator review.
+- `smoke_mcp_parity_ssh.ps1` does not print `required_tools=[...]`,
+  `missing_required_tools=[]`, and `[mcp-parity-ssh] OK`.
 - The live-readiness bundle reports `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`, including
   runtime ERROR lines from Telegram-send or scheduler paths.
 - Runtime logs show unexpected order, OCO, grid, Earn, fund, Telegram, scheduler,

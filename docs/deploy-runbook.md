@@ -692,8 +692,9 @@ Expected:
   `background_automation_review_plan`, `background_automation_blockers`,
   `backgroundAutomationClear`, `classification`, and `verdict`.
 - `background_automation_review_plan` lists every true or missing reviewed flag
-  with `riskCategory`, `concern`, and `requiredReview`; it routes operator
-  review only and does not clear blockers.
+  with `riskCategory`, `concern`, `requiredReview`, `requiredEvidence`,
+  `nextAction`, and `notAuthorization`; it routes operator review only and
+  does not clear blockers.
 - After a separately authorized background-automation env diff, rerun with
   `-RequireClear`; that mode exits non-zero if any reviewed flag is still true
   or missing, after printing the blocker details.

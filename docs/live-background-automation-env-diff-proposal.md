@@ -106,8 +106,9 @@ Expected:
 - `backgroundAutomationClear=true`
 - `background_automation_false` lists all nine reviewed background flags.
 - `background_automation_review_plan=[]`; if it contains entries, each entry's
-  `riskCategory`, `concern`, and `requiredReview` must be reviewed before the
-  blocker can clear.
+  `riskCategory`, `concern`, `requiredReview`, `requiredEvidence`,
+  `nextAction`, and `notAuthorization` must be reviewed before the blocker can
+  clear.
 - `verdict=OK_BACKGROUND_AUTOMATION_DISABLED`
 - `BACKGROUND_AUTOMATION_REVIEW` no longer appears in `bundle_blockers`
 - No missing background automation flag is reported; each reviewed flag must be

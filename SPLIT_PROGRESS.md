@@ -197,8 +197,10 @@
   server env smoke for already-enabled background automation before live review.
   It reports `background_automation_true`,
   `high_risk_background_automation_true`, classification, recommendation, and
-  verdict without changing production env, DB, order, OCO, grid, fund, Earn,
-  Telegram, scheduler, or external backfill/import state.
+  verdict plus review-plan markers (`riskCategory`, `requiredReview`,
+  `requiredEvidence`, `nextAction`, `notAuthorization`) without changing
+  production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, or
+  external backfill/import state.
 - `docs/live-production-env-review-proposal.md` turns the current read-only
   live blockers into an operator review checklist for a future production env
   proposal. It names the evidence-only runtime evidence candidate, the

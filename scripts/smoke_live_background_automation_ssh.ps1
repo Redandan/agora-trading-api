@@ -117,46 +117,64 @@ flag_reviews = {
         "riskCategory": "external-read",
         "concern": "Active provider probes can create network dependency noise during live review.",
         "requiredReview": "Decide whether external health probing belongs in the live-review baseline or must be disabled first.",
+        "requiredEvidence": "Explicit server env false evidence plus a clean background automation smoke.",
+        "nextAction": "Decide whether to keep provider probes out of the live-review baseline, then rerun the read-only smoke after any separately authorized env change.",
     },
     "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED": {
         "riskCategory": "external-backfill-import",
         "concern": "Backfill/import-capable MCP paths can write market-data or imported indicator rows when invoked.",
         "requiredReview": "Disable before live review unless a separate operator plan explicitly keeps external backfills available.",
+        "requiredEvidence": "Explicit false evidence for external backfill/import capability before live review.",
+        "nextAction": "Keep external backfill/import disabled for live review unless a separate operator plan explicitly authorizes it.",
     },
     "MARKET_WS_AUTO_SUBSCRIBE_ENABLED": {
         "riskCategory": "market-data-runtime",
         "concern": "Startup market WebSocket subscriptions can add provider/network side effects and noisy runtime warnings.",
         "requiredReview": "Confirm market WebSocket ownership and provider reachability, or disable for a quieter review baseline.",
+        "requiredEvidence": "Explicit false evidence or a separate reviewed market-data ownership decision.",
+        "nextAction": "Disable or separately justify startup WebSocket subscriptions before live review.",
     },
     "EVENT_SCAN_NOTIFICATION_ENABLED": {
         "riskCategory": "scheduler-notification",
         "concern": "Scheduled event-scan notification flow can produce outbound operator notifications.",
         "requiredReview": "Disable before live review unless scheduled event notifications are separately authorized.",
+        "requiredEvidence": "Explicit false evidence for scheduled outbound event notifications.",
+        "nextAction": "Keep scheduled event notifications disabled unless a separate Telegram/send authorization exists.",
     },
     "EXECUTION_EVENT_ENABLED": {
         "riskCategory": "scheduler-db-notification",
         "concern": "Execution-event scanning can evaluate normalized execution events and notification paths.",
         "requiredReview": "Disable before live review unless execution-event ownership and notification dry-run/send mode are approved.",
+        "requiredEvidence": "Explicit false evidence or separate approval covering execution-event scheduler ownership and notification mode.",
+        "nextAction": "Review execution-event DB/notification ownership before any live packet depends on this flag.",
     },
     "TRADING_DAILY_TG_REPORT_ENABLED": {
         "riskCategory": "telegram-report",
         "concern": "Daily report orchestration can send or prepare Trading-owned Telegram report work.",
         "requiredReview": "Confirm Telegram ownership and send mode, or disable before live review.",
+        "requiredEvidence": "Explicit false evidence or separate approval for the daily Telegram report path.",
+        "nextAction": "Keep report orchestration out of live review unless Telegram ownership is explicitly approved.",
     },
     "TRADING_AUTONOMOUS_DIGEST_ENABLED": {
         "riskCategory": "autonomous-digest",
         "concern": "Autonomous digest work can evaluate live trading context and produce operator digest output.",
         "requiredReview": "Review autonomous digest ownership before any live scope expansion.",
+        "requiredEvidence": "Explicit false evidence or reviewed autonomous digest ownership.",
+        "nextAction": "Disable or separately justify autonomous digest background work before live review.",
     },
     "TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED": {
         "riskCategory": "telegram-send",
         "concern": "Autonomous digest Telegram path can send outbound messages.",
         "requiredReview": "Disable before live review unless Telegram-send behavior is separately authorized.",
+        "requiredEvidence": "Explicit false evidence for autonomous digest Telegram send path.",
+        "nextAction": "Keep Telegram send paths disabled until separately authorized.",
     },
     "TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED": {
         "riskCategory": "telegram-send-db-update",
         "concern": "Live-signal retry notification can resend pending signal notifications and mark rows notified.",
         "requiredReview": "Disable before live review unless retry notification ownership and write behavior are separately authorized.",
+        "requiredEvidence": "Explicit false evidence for live-signal retry notification resend and DB update behavior.",
+        "nextAction": "Keep retry notifications disabled unless a separate operator plan accepts the resend/write behavior.",
     },
 }
 
@@ -176,6 +194,11 @@ for key in true_flags + missing_flags:
         item["concern"] = "Reviewed background automation flag requires explicit live-readiness classification."
     if not item.get("requiredReview"):
         item["requiredReview"] = "Classify before live review."
+    if not item.get("requiredEvidence"):
+        item["requiredEvidence"] = "Explicit false evidence or separate written authorization before live review."
+    if not item.get("nextAction"):
+        item["nextAction"] = "Classify and clear this background automation flag before live review."
+    item["notAuthorization"] = "read-only review evidence only; does not authorize production env mutation, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, or keeping a flag true"
     review_plan.append(item)
 background_blockers = []
 if high_risk_true:

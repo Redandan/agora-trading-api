@@ -281,7 +281,8 @@ This prints server env flags that should be reviewed before live, including
 external backfill/import, notification, digest, market WebSocket auto-subscribe,
 and retry notification toggles. It also prints
 `background_automation_review_plan`, a machine-readable review-routing list for
-each true or missing flag with `riskCategory`, `concern`, and `requiredReview`.
+each true or missing flag with `riskCategory`, `concern`, `requiredReview`,
+`requiredEvidence`, `nextAction`, and `notAuthorization`.
 `missing_background_automation_flags` must be empty; absent reviewed env keys
 are not treated as explicit false evidence. It does not change production
 env/DB or perform order/OCO/grid/fund/Earn/Telegram or scheduler actions.

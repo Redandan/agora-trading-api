@@ -113,11 +113,11 @@ key selection, or the failing read-only smoke before using the output.
 Recorded read-only deployment metadata refresh:
 
 ```text
-observedAt=2026-06-20T09:09+08:00
+observedAt=2026-06-20T09:53+08:00
 refreshType=DEPLOYMENT_METADATA_ONLY
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployedCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=37ea17174c646753448b37a2a7f73cc35dc8e41b
+originMainCommit=4ee52d860fb18f79bd989801c471cd71be5c63d1
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]

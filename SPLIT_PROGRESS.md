@@ -265,10 +265,10 @@
   `SIGNAL_POLICY_REVIEW_GAPS`, and `DEPLOYED_RUNTIME_NOT_CURRENT`. Treat this
   as stale live-review evidence until the server is refreshed to `origin/main`
   by a separately authorized deploy and the bundle is rerun.
-- A recorded read-only deployment metadata refresh on 2026-06-20T09:09+08:00
+- A recorded read-only deployment metadata refresh on 2026-06-20T09:53+08:00
   observed the server worktree and deployed runtime still at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
-  to observed origin `37ea17174c646753448b37a2a7f73cc35dc8e41b`. This was
+  to observed origin `4ee52d860fb18f79bd989801c471cd71be5c63d1`. This was
   metadata-only, not a full live-readiness bundle, and only confirms
   `DEPLOYED_RUNTIME_NOT_CURRENT` remains until a separately authorized deploy
   and fresh read-only bundle. The output preserved

@@ -127,10 +127,10 @@ reviewing background automation. A future review must refresh the server
 runtime and rerun the full read-only bundle; do not combine stale server output
 with local or GitHub HEAD evidence.
 
-A recorded read-only deployment metadata refresh on 2026-06-20T09:09+08:00
+A recorded read-only deployment metadata refresh on 2026-06-20T09:53+08:00
 observed the same server/deployed commit
 `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
-observed origin `37ea17174c646753448b37a2a7f73cc35dc8e41b`. That metadata-only
+observed origin `4ee52d860fb18f79bd989801c471cd71be5c63d1`. That metadata-only
 refresh does not clear any blocker and is not a substitute for rerunning the
 full bundle after a separately authorized deploy. Its `originMainCommit` field
 is an observed origin value, not a currentness claim after later docs/guardrail

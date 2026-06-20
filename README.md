@@ -306,6 +306,19 @@ runtime evidence, tiny-live loss, signal correctness, and MCP parity smokes:
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
 ```
 
+Read-only live review packet preflight:
+
+```powershell
+.\scripts\prepare_live_review_packet_ssh.ps1
+```
+
+This wrapper runs the full bundle and refuses to treat the output as packet
+ready unless it proves `bundle_blockers=[]`, `live_review_packet_allowed=true`,
+`deploy_required_before_live_review=false`, and
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. `NOT_READY` and
+`NO_EVIDENCE` output is not live approval and does not authorize production env
+changes.
+
 Fast read-only deployment metadata check when the only question is whether the
 server worktree/deployed runtime still matches current `origin/main`:
 

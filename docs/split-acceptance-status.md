@@ -194,6 +194,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. Rerun
   `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a current
   metadata-only refresh.
+- Read-only server runtime sanity on 2026-06-20T10:04+08:00 passed with
+  `.\scripts\verify_server_ssh.ps1 -SkipGitCurrent`: preflight passed, deployed
+  `app.commit` matched the server worktree at
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8`, active port `8084` was listening,
+  non-active port `8085` had no listener, local health and server-local
+  `/api/mcp` passed, public dedicated health passed, public dedicated
+  `/api/mcp` and shared-host `/api/trading/mcp` both returned 404, nginx exact
+  MCP blocks had no `proxy_pass`, and nginx was active. Because this check
+  explicitly skipped git currentness and the server remains behind
+  `origin/main`, it is service-health evidence only, not live-readiness
+  evidence and not a substitute for deploy plus the full read-only bundle.
 - Live-readiness bundle SSH access failures are not live-readiness evidence.
   If `.\scripts\smoke_live_readiness_bundle_ssh.ps1` reports
   `SSH_AUTH_FAILED`, `SSH_CONNECT_FAILED`, `SSH_COMMAND_FAILED`, or

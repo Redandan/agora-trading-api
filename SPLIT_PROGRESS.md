@@ -279,6 +279,16 @@
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. Rerun
   `scripts/smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
   refresh.
+- A read-only server runtime sanity check on 2026-06-20T10:04+08:00 passed with
+  `scripts/verify_server_ssh.ps1 -SkipGitCurrent`: server preflight, active
+  port `8084`, non-active port `8085` drained, local health, server-local
+  `/api/mcp`, public dedicated health, public dedicated/shared MCP 404 blocks,
+  nginx exact MCP blocks, nginx upstreams, and nginx service were healthy for
+  the deployed `224f550478b20a329775f503b3eaa70ba6a2f6a8` runtime. Because git
+  currentness was skipped and the server worktree/deployed runtime remains
+  behind `origin/main`, this is service-health evidence only, not live-readiness evidence,
+  and not a substitute for a separately authorized deploy plus the full read-only
+  bundle.
 - `scripts/smoke_live_deployment_metadata_ssh.ps1` now provides a reusable
   read-only `DEPLOYMENT_METADATA_ONLY` check for that server-currentness
   question. It is faster than the full bundle but deliberately prints

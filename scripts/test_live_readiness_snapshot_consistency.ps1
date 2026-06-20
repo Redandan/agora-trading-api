@@ -109,6 +109,16 @@ Assert-ContainsLiteral -Name "live production env review proposal refreshed snap
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "classified log smoke reached the deployed service"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "refreshType=DEPLOYMENT_METADATA_ONLY"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY"
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress }
+    )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "2026-06-20T10:04+08:00"
+    Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "verify_server_ssh.ps1 -SkipGitCurrent"
+    Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "service-health evidence only"
+    Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "not live-readiness evidence"
+    Assert-ContainsLiteral -Name "$($doc.Name) read-only runtime sanity" -Text $doc.Text -Needle "not a substitute"
+}
 
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },

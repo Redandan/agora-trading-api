@@ -117,7 +117,10 @@ foreach ($pattern in @(
         "RequireCurrent",
         "Assert-SshHostSafe",
         "Assert-RemotePathSafe",
+        "TrimStart([char]0xFEFF)",
+        '$ErrorActionPreference = "Continue"',
         "git ls-remote origin refs/heads/main",
+        "sed '1s/^\xEF\xBB\xBF//'",
         "tr -d",
         "bash -s"
     )) {

@@ -307,8 +307,15 @@ fi
 
     Write-Host ""
     Write-Host "===== BEGIN deployment-metadata ====="
-    $output = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s" 2>&1
-    $exitCode = $LASTEXITCODE
+    $remoteScriptForSsh = $remoteScript.TrimStart([char]0xFEFF)
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = $remoteScriptForSsh | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s" 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
     $output | ForEach-Object { Write-Host $_ }
     Write-Host "===== END deployment-metadata exit=$exitCode ====="
     Assert-ReadOnlyCommandSucceeded -Name "deployment metadata probe" -ExitCode $exitCode -Output $output

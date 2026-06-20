@@ -5,11 +5,11 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $expectedObservedAt = "2026-06-19T12:15+08:00"
 $expectedMetadataObservedAt = "2026-06-20T09:53+08:00"
-$expectedCurrentMetadataObservedAt = "2026-06-20T10:31+08:00"
+$expectedCurrentMetadataObservedAt = "2026-06-20T13:34+08:00"
 $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
 $expectedMetadataOriginCommit = "4ee52d860fb18f79bd989801c471cd71be5c63d1"
-$expectedCurrentOriginCommit = "2da9cb94ebc160475366f8e7f9d876b2393830d4"
+$expectedCurrentOriginCommit = "873b219171755401c40f3a676fb3c7c9477471ec"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",

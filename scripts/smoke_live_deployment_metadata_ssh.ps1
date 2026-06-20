@@ -183,8 +183,15 @@ echo "metadata_boundary=metadata-only; rerun the full live-readiness bundle afte
 echo "[live-deployment-metadata] read-only check complete"
 "@
 
-$output = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s" 2>&1
-$exitCode = $LASTEXITCODE
+$remoteScriptForSsh = $remoteScript.TrimStart([char]0xFEFF)
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = "Continue"
+    $output = $remoteScriptForSsh | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s" 2>&1
+    $exitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
 $output | ForEach-Object { Write-Host $_ }
 Assert-ReadOnlyMetadataSucceeded -ExitCode $exitCode -Output $output
 

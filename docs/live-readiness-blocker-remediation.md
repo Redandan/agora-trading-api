@@ -15,6 +15,9 @@ Run the bundle first:
 `bundle_verdict=NOT_READY` is expected until all blockers below are cleared or
 separately authorized for a narrower non-live phase. Do not use this matrix to
 skip a blocker.
+The bundle also prints `bundle_blocker_summary`, a machine-readable list of the
+same blockers with category, required read-only evidence, and next action. That
+summary is for automation and review-packet drafting only; it does not clear `bundle_blockers` and does not authorize production env changes.
 
 ## Blocker Matrix
 

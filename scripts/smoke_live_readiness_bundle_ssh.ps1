@@ -365,6 +365,123 @@ function Test-ExecutionEligibleTrue {
     return $value -eq $true -or [string]::Equals([string]$value, "true", [System.StringComparison]::OrdinalIgnoreCase)
 }
 
+function New-BlockerSummary {
+    param([string[]]$Blockers)
+
+    $items = [System.Collections.Generic.List[object]]::new()
+    foreach ($blocker in @($Blockers | Select-Object -Unique)) {
+        $category = "review"
+        $requiredEvidence = ".\scripts\smoke_live_readiness_bundle_ssh.ps1"
+        $nextAction = "Review the blocker remediation matrix and rerun the full read-only bundle after the blocker is addressed."
+
+        switch ($blocker) {
+            "LIVE_READINESS_NOT_READY" {
+                $category = "audit"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $nextAction = "Wait for audit verdict READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED; this is not live approval."
+            }
+            "ORDER_CAPABLE_FLAGS_REVIEW" {
+                $category = "safety"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $nextAction = "Reconcile order-capable flags before any live proposal."
+            }
+            "SECRET_PREREQUISITES_MISSING" {
+                $category = "ops"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $nextAction = "Fix masked secret prerequisites through a separately authorized ops change."
+            }
+            "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN" {
+                $category = "runtime"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1; scripts/check_server_runtime_log.sh"
+                $nextAction = "Investigate health/log failures before any live proposal."
+            }
+            "EVENT_RISK_NOT_BASELINE" {
+                $category = "risk"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $nextAction = "Wait for riskLevel=R0 or get separate event-risk operating approval."
+            }
+            "MCP_AUDIT_TOOL_ERROR" {
+                $category = "mcp"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $nextAction = "Fix MCP readiness-detail evidence before trusting bundle output."
+            }
+            "EXECUTION_ELIGIBILITY_NOT_READY" {
+                $category = "execution-gate"
+                $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
+                $nextAction = "Keep live disabled until tiny-live and ScoreBuy execution gates are explicitly eligible."
+            }
+            "BACKGROUND_AUTOMATION_REVIEW" {
+                $category = "background-automation"
+                $requiredEvidence = ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear"
+                $nextAction = "Review or separately authorize production background automation env diff; do not apply from this bundle."
+            }
+            "RUNTIME_EVIDENCE_CONFIG_DISABLED" {
+                $category = "runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $nextAction = "Collect evidence through a separately authorized evidence-only change before any live execution flag."
+            }
+            "RUNTIME_EVIDENCE_NO_CANONICAL_ROWS" {
+                $category = "runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $nextAction = "Continue evidence collection until canonical runtime rows exist."
+            }
+            "RUNTIME_EVIDENCE_NO_SHADOW_INTENT" {
+                $category = "runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $nextAction = "Require canonical shadow intent evidence with orderSentEvidence=0."
+            }
+            "RUNTIME_EVIDENCE_ORDER_SENT" {
+                $category = "runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $nextAction = "Stop live review and investigate why order-sent evidence exists."
+            }
+            "RUNTIME_EVIDENCE_REVIEW_REQUIRED" {
+                $category = "runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $nextAction = "Review unrecognized or incomplete runtime-evidence status before any live proposal."
+            }
+            "TINY_LIVE_LOSS_HARD_STOP" {
+                $category = "tiny-live"
+                $requiredEvidence = ".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"
+                $nextAction = "Clear consecutive-loss hard stop with fresh read-only evidence before live review."
+            }
+            "TINY_LIVE_ROLLOUT_NOT_READY" {
+                $category = "tiny-live"
+                $requiredEvidence = ".\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear"
+                $nextAction = "Wait for rollout gates such as completed samples, false-positive count, and canEnableProduction."
+            }
+            "SIGNAL_POLICY_REVIEW_GAPS" {
+                $category = "signal-policy"
+                $requiredEvidence = ".\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear"
+                $nextAction = "Resolve signal governance and missed-opportunity gaps in shadow/tiny-live caps only."
+            }
+            "MCP_PARITY_NOT_PROVEN" {
+                $category = "mcp"
+                $requiredEvidence = ".\scripts\smoke_mcp_parity_ssh.ps1"
+                $nextAction = "Restore required read-only Trading MCP tools on server-local /api/mcp."
+            }
+            "DEPLOYED_RUNTIME_NOT_CURRENT" {
+                $category = "deployment-metadata"
+                $requiredEvidence = ".\scripts\smoke_live_deployment_metadata_ssh.ps1; .\scripts\smoke_live_readiness_bundle_ssh.ps1"
+                $nextAction = "Deploy and verify current origin/main separately, then rerun the full read-only bundle."
+            }
+            "LIVE_READINESS_EVIDENCE_UNAVAILABLE" {
+                $category = "evidence"
+                $requiredEvidence = ".\scripts\smoke_live_readiness_bundle_ssh.ps1"
+                $nextAction = "Fix SSH access or the failing child smoke before drawing a live-readiness conclusion."
+            }
+        }
+
+        $items.Add([pscustomobject]@{
+                blocker = $blocker
+                category = $category
+                requiredEvidence = $requiredEvidence
+                nextAction = $nextAction
+            })
+    }
+    return @($items)
+}
+
 $common = @{
     SshHost = $SshHost
     SshKey = $SshKey
@@ -514,6 +631,7 @@ if ($deploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN
 }
 
 $uniqueBlockers = @($blockers | Select-Object -Unique)
+$blockerSummary = @(New-BlockerSummary -Blockers $uniqueBlockers)
 Write-Host ""
 Write-Host "[live-readiness-bundle] summary"
 if ($deploymentMetadata -match "liveBundleDeployStatus=([A-Z_]+)") {
@@ -523,6 +641,7 @@ if ($deploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
     Write-Host ("origin_metadata_status=" + $Matches[1])
 }
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $uniqueBlockers))
+Write-Host ("bundle_blocker_summary=" + (ConvertTo-Json -Compress -Depth 4 $blockerSummary))
 if ($uniqueBlockers.Count -eq 0) {
     Write-Host "live_review_packet_allowed=true"
     Write-Host "deploy_required_before_live_review=false"

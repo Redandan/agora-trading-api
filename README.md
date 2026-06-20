@@ -310,7 +310,7 @@ smokes: runtime evidence defaults to 43,200 minutes, tiny-live RCA defaults to
 30 days, signal execution defaults to 5 days, blocked-signal/governance review
 defaults to 7 days, and signal accuracy defaults to 14 days.
 It prints `deployment_metadata_status`, `origin_metadata_status`,
-`bundle_blockers`, `live_review_packet_allowed`,
+`bundle_blockers`, `bundle_blocker_summary`, `live_review_packet_allowed`,
 `deploy_required_before_live_review`, and `bundle_verdict`. Treat
 `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review evidence until the server
 runtime and worktree are separately refreshed and verified against
@@ -338,6 +338,8 @@ to `bundle_blockers` with `deploy_required_before_live_review=true`.
 Use `docs/live-readiness-blocker-remediation.md` to map each
 `bundle_blockers` value to the read-only evidence required before a later live
 review packet can be drafted.
+`bundle_blocker_summary` is a machine-readable helper for the same mapping; it
+does not relax `bundle_blockers` or authorize any production env change.
 If the refreshed runtime log smoke fails after deploying the classified log
 checker, attach the `ERROR category ...` line and
 `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker before reviewing

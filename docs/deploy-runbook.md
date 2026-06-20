@@ -734,8 +734,9 @@ Expected:
   `SignalAccuracyDays=14` by default. Override them only for a documented
   read-only diagnostic, not as live approval evidence.
 - Output includes deployment metadata status, `bundle_blockers`,
-  `live_review_packet_allowed`, `deploy_required_before_live_review`, and
-  `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
+  `bundle_blocker_summary`, `live_review_packet_allowed`,
+  `deploy_required_before_live_review`, and `bundle_verdict`. Treat
+  `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
   evidence until a separate deploy and verification refresh the runtime and
   server worktree to `origin/main`. By default the full bundle stops after
   stale deployment metadata and prints `bundle_verdict=NO_EVIDENCE`; use
@@ -766,6 +767,9 @@ Expected:
 - Use `docs/live-readiness-blocker-remediation.md` to translate
   `bundle_blockers` into clear conditions and required read-only evidence before
   drafting any live review packet.
+- Treat `bundle_blocker_summary` as a machine-readable copy of the same
+  remediation mapping; it does not clear blockers and does not authorize
+  production env changes.
 - If the refreshed runtime log smoke fails after deploying the classified log
   checker, attach the `ERROR category ...` line and
   `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker before reviewing

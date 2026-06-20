@@ -412,6 +412,51 @@ function Assert-BundleEvidenceWindowsCovered {
     }
 }
 
+function Assert-BundleBlockerSummaryCovered {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $bundlePath = Join-Path $PSScriptRoot "smoke_live_readiness_bundle_ssh.ps1"
+    $readmePath = Join-Path $repoRoot "README.md"
+    $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+    $remediationPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
+    $bundleText = Get-Content -Raw -LiteralPath $bundlePath
+    $docsText = @(
+        Get-Content -Raw -LiteralPath $readmePath
+        Get-Content -Raw -LiteralPath $runbookPath
+        Get-Content -Raw -LiteralPath $remediationPath
+    ) -join "`n"
+
+    foreach ($pattern in @(
+            'function New-BlockerSummary',
+            'bundle_blocker_summary=',
+            'requiredEvidence',
+            'nextAction',
+            'background-automation',
+            'runtime-evidence',
+            'tiny-live',
+            'signal-policy',
+            'deployment-metadata',
+            'LIVE_READINESS_EVIDENCE_UNAVAILABLE',
+            'ConvertTo-Json -Compress -Depth 4 \$blockerSummary'
+        )) {
+        if ($bundleText -notmatch $pattern) {
+            throw "live readiness bundle missing blocker summary marker: $pattern"
+        }
+    }
+
+    foreach ($pattern in @(
+            'bundle_blocker_summary',
+            'machine-readable',
+            'required read-only evidence',
+            'does not relax `bundle_blockers`',
+            'does not clear `bundle_blockers`',
+            'does not authorize.*production env'
+        )) {
+        if ($docsText -notmatch $pattern) {
+            throw "live readiness bundle docs missing blocker summary marker: $pattern"
+        }
+    }
+}
+
 function Assert-ReviewPacketMinimumGuarded {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
@@ -506,6 +551,7 @@ Assert-CurrentExpectedBlockersMatchLatestSnapshot
 Assert-AuditClassificationGuidance
 Assert-FailFastStaleMetadataGuidance
 Assert-BundleEvidenceWindowsCovered
+Assert-BundleBlockerSummaryCovered
 Assert-ReviewPacketMinimumGuarded
 Assert-OperatorDocsReadyBoundary
 

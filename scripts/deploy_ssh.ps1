@@ -73,7 +73,7 @@ Assert-GitBranchSafe -Name "Branch" -Value $Branch
 function Invoke-RemoteScript {
     param([string]$Script)
 
-    $Script | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+    $Script | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
     if ($LASTEXITCODE -ne 0) {
         throw "remote command failed with exit code $LASTEXITCODE"
     }
@@ -96,7 +96,7 @@ echo "`$pid" > "`$pidfile"
 printf 'DEPLOY_PID=%s\nDEPLOY_LOG=%s\nDEPLOY_EXIT=%s\n' "`$pid" "`$log" "`$exitfile"
 "@
 
-$startOutput = @($startScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s")
+$startOutput = @($startScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s")
 if ($LASTEXITCODE -ne 0) {
     throw "failed to start remote deploy with exit code $LASTEXITCODE"
 }
@@ -137,7 +137,7 @@ if [ -f '$deployExit' ]; then
 fi
 "@
 
-    $pollOutput = @($pollScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s")
+    $pollOutput = @($pollScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s")
     if ($LASTEXITCODE -ne 0) {
         throw "failed to poll remote deploy with exit code $LASTEXITCODE"
     }

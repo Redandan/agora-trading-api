@@ -229,6 +229,30 @@
   `smoke_signal_correctness_ssh.ps1`, and `smoke_live_readiness_bundle_ssh.ps1`)
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
+- Latest current read-only live-readiness bundle observed on
+  2026-06-20T15:42+08:00 after the explicitly authorized deploy of
+  `1a32d2b3e5288778276d1e7d3737ca7db8c8f61f`: server worktree,
+  `origin/main`, and deployed `app.commit` all matched that commit, active port
+  switched to `8085`, `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=CURRENT_ORIGIN_MAIN`, `metadata_blockers=[]`, and
+  `deploy_required_before_live_review=false`. Split/server verification passed
+  in shared-DB mode with 39 source entity tables, 176 DB tables, 0 missing
+  tables, and 137 expected extra shared tables. Local server MCP
+  `/api/mcp` passed, while public dedicated `/api/mcp` and shared-host
+  `/api/trading/mcp` remained blocked with 404. The full read-only bundle
+  reported runtime log `PASS` with ERROR count 0 and WARN baseline total 12,
+  MCP parity `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`,
+  and `autonomousOpportunity.eligible=false` in `readiness_details`.
+  `MCP_AUDIT_TOOL_ERROR`, `DEPLOYED_RUNTIME_NOT_CURRENT`, and
+  `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` are no longer current blockers. The bundle
+  still printed `live_review_packet_allowed=false` and `bundle_verdict=NOT_READY`
+  with blockers `LIVE_READINESS_NOT_READY`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `BACKGROUND_AUTOMATION_REVIEW`,
+  `RUNTIME_EVIDENCE_CONFIG_DISABLED`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_LOSS_HARD_STOP`, `TINY_LIVE_ROLLOUT_NOT_READY`, and
+  `SIGNAL_POLICY_REVIEW_GAPS`. Treat this as the current live-review blocker
+  set until `origin/main` advances again or a newer full read-only bundle
+  supersedes it; it is not permission to enable live trading.
 - Latest recorded read-only live-readiness bundle observed on
   2026-06-19T12:15+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was
@@ -279,7 +303,7 @@
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. Rerun
   `scripts/smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
   refresh.
-- A current read-only deployment metadata refresh on 2026-06-20T13:34+08:00
+- A historical read-only deployment metadata refresh on 2026-06-20T13:34+08:00
   still observed server worktree and deployed runtime at
   `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
   to `873b219171755401c40f3a676fb3c7c9477471ec`. The metadata-only check

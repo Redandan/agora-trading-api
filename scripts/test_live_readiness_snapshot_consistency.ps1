@@ -12,6 +12,8 @@ $expectedMetadataOriginCommit = "4ee52d860fb18f79bd989801c471cd71be5c63d1"
 $expectedCurrentOriginCommit = "873b219171755401c40f3a676fb3c7c9477471ec"
 $expectedCurrentObservedAt = "2026-06-20T15:32+08:00"
 $expectedCurrentCommit = "12b1343cb2e379e18b7bfcdc9aeea4374c0e533a"
+$expectedLatestSplitObservedAt = "2026-06-20T15:42+08:00"
+$expectedLatestSplitCommit = "1a32d2b3e5288778276d1e7d3737ca7db8c8f61f"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -90,6 +92,26 @@ foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },
         @{ Name = "split progress"; Text = $splitProgress }
     )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle $expectedLatestSplitObservedAt
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle $expectedLatestSplitCommit
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "active port"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "8085"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "origin_metadata_status=CURRENT_ORIGIN_MAIN"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "deployment_metadata_status=CURRENT"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "metadata_blockers=[]"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "deploy_required_before_live_review=false"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "reported runtime log"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle '`PASS` with ERROR count 0'
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "WARN baseline total 12"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "toolCount=305 required=35"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "missing_readiness_detail_fields=[]"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "autonomousOpportunity.eligible=false"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "MCP_AUDIT_TOOL_ERROR"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "are no longer current blockers"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest current bundle" -Text $doc.Text -Needle "bundle_verdict=NOT_READY"
+    foreach ($blocker in $expectedCurrentBlockers) {
+        Assert-ContainsLiteral -Name "$($doc.Name) latest current blocker" -Text $doc.Text -Needle $blocker
+    }
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedObservedAt
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedServerCommit
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedOriginCommit

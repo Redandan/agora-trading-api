@@ -114,7 +114,8 @@ Expected:
 - `BACKGROUND_AUTOMATION_REVIEW` no longer appears in `bundle_blockers`
 - `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 with
   `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
-  `packet_missing_requirements=[]`.
+  `packet_missing_requirements=[]`, plus `packet_bundle_blocker_summary=...`
+  carrying machine-readable blocker evidence.
 - No missing background automation flag is reported; each reviewed flag must be
   present in the server env and explicitly set to `false`.
 - `order_capable_flags` remain false
@@ -164,6 +165,7 @@ current smoke outputs, full-bundle `bundle_blockers=[]`,
 `deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
 `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
-`packet_missing_requirements=[]`, runtime evidence,
+`packet_missing_requirements=[]`, `packet_bundle_blocker_summary=present`,
+runtime evidence,
 tiny-live hard-stop state, signal governance evidence, and separate operator
 authorization.

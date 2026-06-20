@@ -186,7 +186,8 @@ foreach ($marker in @(
         "high_risk_background_automation_true=[]",
         "missing_background_automation_flags=[]",
         "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
-        "packet_missing_requirements=[]"
+        "packet_missing_requirements=[]",
+        "packet_bundle_blocker_summary"
     )) {
     if ($proposalText -notmatch [regex]::Escape($marker)) {
         throw "Runtime evidence proposal missing RequireReady marker: $marker"
@@ -212,6 +213,7 @@ foreach ($marker in @(
         "orderSentEvidence=0",
         "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
         "packet_missing_requirements=[]",
+        "packet_bundle_blocker_summary",
         "exits non-zero"
     )) {
     if ($dryRunPlanText -notmatch [regex]::Escape($marker)) {
@@ -247,7 +249,8 @@ foreach ($marker in @(
         'full-bundle `bundle_blockers=[]`',
         '`live_review_packet_allowed=true`',
         '`deploy_required_before_live_review=false`',
-        '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`'
+        '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
+        '`packet_bundle_blocker_summary=present`'
     )) {
     if ($proposalText -notmatch [regex]::Escape($marker)) {
         throw "Runtime evidence proposal missing live proposal boundary marker: $marker"

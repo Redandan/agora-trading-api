@@ -164,6 +164,7 @@ Assert-RequiredDocMarker `
         ".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady",
         "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
         "packet_missing_requirements=[]",
+        "packet_bundle_blocker_summary=",
         "live_review_packet_allowed=true",
         "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
     ) `
@@ -176,6 +177,7 @@ Assert-RequiredDocMarker `
         ".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady",
         "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
         "packet_missing_requirements=[]",
+        "packet_bundle_blocker_summary=",
         "live_review_packet_allowed=true",
         "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
     ) `
@@ -189,6 +191,7 @@ Assert-RequiredDocMarker `
         ".\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady",
         "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
         "packet_missing_requirements=[]",
+        "packet_bundle_blocker_summary=",
         "live_review_packet_allowed=true",
         "bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED"
     ) `

@@ -166,7 +166,8 @@ Expected evidence-only outcome:
   the output as live approval.
 - `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 with
   `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
-  `packet_missing_requirements=[]`.
+  `packet_missing_requirements=[]`, plus `packet_bundle_blocker_summary=...`
+  carrying machine-readable blocker evidence.
 - `/api/mcp` server-local smoke remains protected by `TRADING_MCP_KEY`.
 - Public MCP remains unavailable as a service surface unless separately
   authorized by product/security.
@@ -199,5 +200,6 @@ full-bundle `bundle_blockers=[]`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
 `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
 `packet_missing_requirements=[]`,
+`packet_bundle_blocker_summary=present`,
 tiny-live live loss hard-stop status with `missing_tiny_live_fields=[]`,
 runtime evidence status, rollback steps, and a separate operator authorization.

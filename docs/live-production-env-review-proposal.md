@@ -262,7 +262,8 @@ Expected evidence-only result:
   `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`.
 - `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 with
   `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
-  `packet_missing_requirements=[]`.
+  `packet_missing_requirements=[]`, plus `packet_bundle_blocker_summary=...`
+  carrying machine-readable blocker evidence.
 - Runtime-log smoke is clean after background automation review, or any
   remaining Telegram/ExecutionEvent notification error has separate written
   authorization and rollback evidence.
@@ -293,5 +294,6 @@ separate change with exact env diff, current smoke outputs, full-bundle
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
 `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
 `packet_missing_requirements=[]`,
+`packet_bundle_blocker_summary=present`,
 tiny-live hard-stop status with `missing_tiny_live_fields=[]`, runtime evidence status, market-signal state, loss
 budget, rollback steps, and explicit operator authorization.

@@ -233,6 +233,7 @@ foreach ($pattern in @(
         '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
         '`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
         '`packet_missing_requirements=[]`',
+        '`packet_bundle_blocker_summary=present`',
         'not authorization'
     )) {
     if ($pattern -match '\\s') {
@@ -249,5 +250,6 @@ Assert-Contains -Name "post-authorization no-evidence verdict expectation" -Text
 Assert-Contains -Name "post-authorization live packet preflight result" -Text $proposalText -Pattern 'prepare_live_review_packet_ssh\.ps1 -RequireReady` exits 0'
 Assert-Contains -Name "post-authorization live packet preflight status" -Text $proposalText -Pattern 'packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED'
 Assert-Contains -Name "post-authorization live packet preflight requirements" -Text $proposalText -Pattern 'packet_missing_requirements=\[\]'
+Assert-Contains -Name "post-authorization live packet preflight blocker summary" -Text $proposalText -Pattern 'packet_bundle_blocker_summary='
 
 Write-Host "[live-production-env-review-plan-test] OK"

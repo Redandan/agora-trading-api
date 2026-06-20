@@ -107,6 +107,7 @@ foreach ($pattern in @(
         "prepare_live_review_packet_ssh.ps1 -RequireReady",
         "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
         "packet_missing_requirements=[]",
+        "packet_bundle_blocker_summary",
         "order_capable_flags`` remain false",
         "full-bundle ``bundle_blockers=[]``",
         "``live_review_packet_allowed=true``",
@@ -114,6 +115,7 @@ foreach ($pattern in @(
         "``bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED``",
         "``packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED``",
         "``packet_missing_requirements=[]``",
+        "``packet_bundle_blocker_summary=present``",
         "not live approval"
     )) {
     if ($proposalText -notmatch [regex]::Escape($pattern)) {

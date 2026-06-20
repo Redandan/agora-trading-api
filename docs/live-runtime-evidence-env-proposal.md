@@ -9,14 +9,15 @@ jobs, mutate DB state, or change schedulers.
 
 ## Current Evidence
 
-The recorded read-only runtime evidence RCA reported:
+The current read-only runtime evidence RCA reported after the
+`0b738cf` deploy:
 
 ```text
-observedAt=2026-06-18T22:50+08:00
-serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+observedAt=2026-06-20T14:43+08:00
+serverCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
 deployment_metadata_status=CURRENT
-origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
-originMainCommit=b377be8e53d7908cfe57de2919fbd5136d6bb330
+origin_metadata_status=CURRENT_ORIGIN_MAIN
+deployedCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
 diagnosis=CONFIG_DISABLED
 env.TRADING_RUNTIME_EVIDENCE_ENABLED=EMPTY
 runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE
@@ -27,18 +28,20 @@ orderSentEvidence=0
 freshnessTerminalBlocks=51
 noCurrentBuyCandidateReason=LATEST_SIGNAL_HOLD
 currentSignalDecision=HOLD
-currentSignalAgeMinutes=50
+currentSignalAgeMinutes=1
 ```
 
-This RCA output is historical because the server worktree was not at the
-observed `origin/main` commit. The latest recorded live-readiness bundle on
-2026-06-19T12:15+08:00 still reinforced the same runtime-evidence blockers
-against server commit `224f550478b20a329775f503b3eaa70ba6a2f6a8` while
-`origin/main` was `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`:
+The same live-readiness bundle reached every child smoke with current deployment
+metadata:
 
 ```text
+observedAt=2026-06-20T14:43+08:00
+serverCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
+origin_metadata_status=CURRENT_ORIGIN_MAIN
+deployment_metadata_status=CURRENT
 live_review_packet_allowed=false
-deploy_required_before_live_review=true
+deploy_required_before_live_review=false
+runtime_log_status=PASS
 diagnosis=CONFIG_DISABLED
 env.TRADING_RUNTIME_EVIDENCE_ENABLED=EMPTY
 runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE
@@ -46,22 +49,15 @@ runtimeEvidenceRows=200
 shadowIntentCount=0
 shadowExecutionIntents=0
 orderSentEvidence=0
-currentSignalAgeMinutes=15
 ```
 
-Treat both records as stale live-review evidence until a separately authorized
-deploy refreshes the server to `origin/main` and the read-only runtime evidence
-RCA plus full live-readiness bundle are rerun.
-
-A recorded read-only deployment metadata refresh on 2026-06-20T09:53+08:00
-observed the server worktree and deployed runtime still at
-`224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
-observed origin `4ee52d860fb18f79bd989801c471cd71be5c63d1`. This metadata-only
-refresh does not change the runtime-evidence diagnosis; the metadata-only refresh
-only confirms the stale-runtime blocker remains. Its `originMainCommit` field is an observed
-origin value, not a currentness claim after later docs/guardrail commits. Rerun
-`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
-refresh.
+This supersedes the stale 2026-06-18 and 2026-06-19 runtime-evidence notes that
+had `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`. Currentness and runtime
+log blockers are not the active runtime-evidence problem anymore; the active
+problem is still that runtime evidence collection is disabled and no shadow
+intent exists. Rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a
+fast currentness check, but use the full bundle before drawing any
+live-readiness conclusion.
 
 The live-readiness bundle currently includes:
 

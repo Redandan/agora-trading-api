@@ -280,8 +280,14 @@ function Assert-CurrentExpectedBlockersMatchLatestSnapshot {
     if ($currentText -ne $snapshotText) {
         throw "remediation current expected blockers [$currentText] differ from latest proposal snapshot blockers [$snapshotText]"
     }
-    if ($currentExpected -notcontains "DEPLOYED_RUNTIME_NOT_CURRENT") {
-        throw "current expected blockers must include DEPLOYED_RUNTIME_NOT_CURRENT while latest recorded snapshot is stale"
+    if ($currentExpected -contains "DEPLOYED_RUNTIME_NOT_CURRENT") {
+        throw "current expected blockers must not include DEPLOYED_RUNTIME_NOT_CURRENT while latest recorded snapshot is current"
+    }
+    if ($currentExpected -contains "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN") {
+        throw "current expected blockers must not include RUNTIME_HEALTH_OR_LOG_NOT_CLEAN while latest recorded runtime log passed"
+    }
+    if ($currentExpected -notcontains "MCP_AUDIT_TOOL_ERROR") {
+        throw "current expected blockers must include MCP_AUDIT_TOOL_ERROR while latest recorded readiness details are incomplete"
     }
 }
 
@@ -331,8 +337,8 @@ function Assert-FailFastStaleMetadataGuidance {
             throw "remediation doc missing fail-fast stale metadata guidance: $pattern"
         }
     }
-    if ($docText -notmatch "expected current output until a separately\s+authorized deploy") {
-        throw "remediation doc missing fail-fast stale metadata guidance: expected current output until a separately authorized deploy"
+    if ($docText -notmatch "expected output only for a stale-runtime\s+scenario until a separately authorized deploy") {
+        throw "remediation doc missing fail-fast stale metadata guidance: expected output only for a stale-runtime scenario until a separately authorized deploy"
     }
 
     $failFastSection = [regex]::Match(
@@ -576,28 +582,32 @@ Assert-BlockerCase -Name "runtime drift metadata" -Inputs (Merge-Inputs $cleanIn
 Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "missing deployment metadata fails closed" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "deployment probe skipped" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 
+$currentObservedAudit = $readyAudit.
+    Replace('verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED', 'verdict=NOT_READY').
+    Replace('missing_readiness_detail_fields=[]', 'missing_readiness_detail_fields=["autonomousOpportunity.eligible"]')
+$currentObservedAudit = "$currentObservedAudit`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"READINESS_DETAILS_MISSING_FIELDS`"]"
+
 Assert-BlockerCase `
     -Name "current observed blocker mix" `
     -Inputs @{
-        Audit = "$($readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY").Replace("runtime_log_status=PASS", "runtime_log_status=FAIL"))`nblockers=[`"TINY_LIVE_NOT_EXECUTION_ELIGIBLE`",`"RUNTIME_LOG_SMOKE_FAILED`"]"
+        Audit = $currentObservedAudit
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=WARN"
         McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
-        DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN"
+        DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
     } `
     -ExpectedBlockers @(
         "LIVE_READINESS_NOT_READY",
+        "MCP_AUDIT_TOOL_ERROR",
         "EXECUTION_ELIGIBILITY_NOT_READY",
         "BACKGROUND_AUTOMATION_REVIEW",
-        "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
         "RUNTIME_EVIDENCE_CONFIG_DISABLED",
         "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
         "SIGNAL_POLICY_REVIEW_GAPS",
         "TINY_LIVE_LOSS_HARD_STOP",
-        "TINY_LIVE_ROLLOUT_NOT_READY",
-        "DEPLOYED_RUNTIME_NOT_CURRENT"
+        "TINY_LIVE_ROLLOUT_NOT_READY"
     )
 
 Write-Host "[live-bundle-blocker-test] OK"

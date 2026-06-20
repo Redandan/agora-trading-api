@@ -24,10 +24,7 @@ Run these read-only checks and attach the outputs to the operator review:
 
 The current server evidence keeps live blocked while these remain true:
 
-- `bundle_verdict=NO_EVIDENCE`
-- `LIVE_READINESS_EVIDENCE_UNAVAILABLE`
 - `verdict=NOT_READY`
-- `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`
 - `diagnosis=CONFIG_DISABLED`
 - `shadowIntentCount=0`
 - `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`
@@ -39,117 +36,73 @@ The current server evidence keeps live blocked while these remain true:
 - `REVIEW_POLICY_GAPS` or unresolved signal correctness / governance drift
   findings from `smoke_signal_correctness_ssh.ps1`
 
-Latest recorded read-only bundle snapshot:
+Latest current read-only bundle snapshot:
 
 ```text
-snapshotType=RECORDED_HISTORICAL_EVIDENCE
-observedAt=2026-06-19T09:11+08:00
-serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
+snapshotType=CURRENT_READ_ONLY_EVIDENCE
+observedAt=2026-06-20T14:43+08:00
+serverCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
+deployedCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
 deployment_metadata_status=CURRENT
-origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
-originMainCommit=12219d6867ec2761f8a8fcae2a5ad78299523904
+origin_metadata_status=CURRENT_ORIGIN_MAIN
+originMainCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
 health=UP
 eventRisk=riskLevel=R0
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
-runtimeLog=FAIL
-runtimeLogBlocker=RUNTIME_HEALTH_OR_LOG_NOT_CLEAN
-runtimeLogErrors=TelegramServiceImpl send Telegram keyboard failed; ExecutionEventScheduler scheduled scan failed
+runtimeLog=PASS
+runtimeLogErrors=0
 orderCapableFlags=false
 dryRunFlags=true
 backgroundHighRiskFlags=["TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED","EVENT_SCAN_NOTIFICATION_ENABLED","EXECUTION_EVENT_ENABLED","TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED","TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"]
 runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0
 tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2
 signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN
-bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","DEPLOYED_RUNTIME_NOT_CURRENT"]
-bundle_verdict=NOT_READY
-```
-
-Latest refreshed read-only bundle evidence supersedes the earlier 11:45
-refreshed snapshot; both remain historical evidence and become stale again
-whenever `origin/main` advances:
-
-```text
-observedAt=2026-06-19T12:15+08:00
-serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0
-origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+bundle_blockers=["LIVE_READINESS_NOT_READY","MCP_AUDIT_TOOL_ERROR","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]
 live_review_packet_allowed=false
-deploy_required_before_live_review=true
+deploy_required_before_live_review=false
 bundle_verdict=NOT_READY
-bundle_blockers=["LIVE_READINESS_NOT_READY","RUNTIME_HEALTH_OR_LOG_NOT_CLEAN","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","DEPLOYED_RUNTIME_NOT_CURRENT"]
 ```
 
-Because this recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`, it is
-stale live-review evidence only. `originMainCommit` records the value observed
-when the bundle ran; later docs or guardrail commits can legitimately advance
-`origin/main` without changing this historical evidence. It is also
-reclassified by the current local blocker rules because the observed signal
-smoke had unresolved governance drift (`governanceMode=TOO_STRICT`) and the
-active runtime log smoke failed on Telegram-send errors from
-`TelegramServiceImpl` and `ExecutionEventScheduler`. A later strict read-only
-runtime-log smoke on 2026-06-20T10:16+08:00 reached the stale deployed runtime
-and failed against
-`/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
-with `runtime ERROR lines present: count=2`, preserving
-`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`. Treat that strict result as blocker RCA
-only; `ALLOW_RUNTIME_ERROR=1` output is diagnostic-only and is not
-live-readiness evidence. Event-risk baseline evidence is present as
-`riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part of this latest
-recorded blocker set. A future operator review must first refresh the server
-worktree/runtime to `origin/main` through a separately authorized deploy, clear
-or separately explain the runtime log blocker, then rerun the full
-live-readiness bundle and attach the current output.
-The runtime-log blocker and `BACKGROUND_AUTOMATION_REVIEW` must be reviewed
-together: the current ERROR lines come from Telegram/ExecutionEvent notification
-paths while high-risk background automation is already enabled. A future env
-change cannot claim background automation is ready unless the refreshed runtime
-log smoke is clean or the remaining errors have a separate written
-authorization and rollback plan.
-After deploying a runtime that contains the classified log smoke, attach the
-`ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
-line if the runtime log still fails, then explicitly reconcile
-`EVENT_SCAN_NOTIFICATION_ENABLED`, `EXECUTION_EVENT_ENABLED`, Telegram send
-health, and background automation authorization before any live packet.
-If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
-`LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
-key selection, or the failing read-only smoke before using the output.
+The current snapshot supersedes earlier stale 2026-06-19 and 2026-06-20 morning
+metadata snapshots that included `DEPLOYED_RUNTIME_NOT_CURRENT` or
+`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`. Keep those records only as historical RCA.
+If `origin/main` advances again, rerun deployment metadata and the full bundle
+before using this proposal.
 
-Recorded read-only deployment metadata refresh:
+Runtime currentness is currently clean. Use
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` only for a fast metadata
+refresh; it is not a substitute for the full bundle:
 
 ```text
-observedAt=2026-06-20T13:34+08:00
 refreshType=DEPLOYMENT_METADATA_ONLY
-serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-deployedCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=873b219171755401c40f3a676fb3c7c9477471ec
-origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+worktreeCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
+originMainCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
+deployedCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14
+origin_metadata_status=CURRENT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
-metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]
+metadata_blockers=[]
 live_review_packet_allowed=false
-deploy_required_before_live_review=true
+deploy_required_before_live_review=false
 bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
 ```
 
-The default full read-only bundle was also run after this metadata refresh and
-failed fast before child smokes:
+The metadata-only output is still not live-readiness evidence. It only proves
+there is no deploy/currentness blocker at the time it was run. The full bundle
+remains `NOT_READY` because runtime evidence, tiny-live hard-stop, background
+automation, execution eligibility, MCP audit details, and signal policy blockers
+remain.
 
-```text
-read_only_bundle_error=DEPLOYED_RUNTIME_NOT_CURRENT
-deployment_metadata_status=CURRENT
-origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
-bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]
-live_review_packet_allowed=false
-deploy_required_before_live_review=true
-bundle_verdict=NO_EVIDENCE
-```
-
-This metadata-only refresh did not run the full live-readiness bundle. It only
-confirms the deployed runtime is still stale relative to current `origin/main`;
-use it to preserve the `DEPLOYED_RUNTIME_NOT_CURRENT` blocker, not to clear any
-live gate. The `originMainCommit` field is the observed origin commit at refresh
-time, not a currentness claim after later docs/guardrail commits. Rerun
-`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
-refresh.
+The stale 2026-06-20T10:16+08:00 runtime-log failure against
+`app-20260618T070102Z-port8084.log` remains useful RCA for Telegram/ExecutionEvent
+notification paths (`TelegramServiceImpl` and `ExecutionEventScheduler`), but it
+is no longer the current blocker after the `0b738cf` deploy. If a future strict read-only runtime-log smoke fails, attach the
+`ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
+line, then explicitly reconcile `EVENT_SCAN_NOTIFICATION_ENABLED`,
+`EXECUTION_EVENT_ENABLED`, Telegram send health, and background automation
+authorization before any live packet.
+If the refreshed bundle emits `bundle_verdict=NO_EVIDENCE` or
+`LIVE_READINESS_EVIDENCE_UNAVAILABLE`, stop the review and fix SSH access,
+key selection, or the failing read-only smoke before using the output.
 
 ## Evidence-Only Candidate
 

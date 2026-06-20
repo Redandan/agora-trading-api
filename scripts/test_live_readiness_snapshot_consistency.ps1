@@ -10,6 +10,8 @@ $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
 $expectedMetadataOriginCommit = "4ee52d860fb18f79bd989801c471cd71be5c63d1"
 $expectedCurrentOriginCommit = "873b219171755401c40f3a676fb3c7c9477471ec"
+$expectedCurrentObservedAt = "2026-06-20T14:43+08:00"
+$expectedCurrentCommit = "0b738cfe27f9dd2ea7d68c848f1501d3461a7b14"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -21,6 +23,17 @@ $expectedBlockers = @(
     "TINY_LIVE_ROLLOUT_NOT_READY",
     "SIGNAL_POLICY_REVIEW_GAPS",
     "DEPLOYED_RUNTIME_NOT_CURRENT"
+)
+$expectedCurrentBlockers = @(
+    "LIVE_READINESS_NOT_READY",
+    "MCP_AUDIT_TOOL_ERROR",
+    "EXECUTION_ELIGIBILITY_NOT_READY",
+    "BACKGROUND_AUTOMATION_REVIEW",
+    "RUNTIME_EVIDENCE_CONFIG_DISABLED",
+    "RUNTIME_EVIDENCE_NO_SHADOW_INTENT",
+    "TINY_LIVE_LOSS_HARD_STOP",
+    "TINY_LIVE_ROLLOUT_NOT_READY",
+    "SIGNAL_POLICY_REVIEW_GAPS"
 )
 
 function Read-RepoText {
@@ -76,8 +89,7 @@ $productionProposal = Read-RepoText "docs/live-production-env-review-proposal.md
 
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },
-        @{ Name = "split progress"; Text = $splitProgress },
-        @{ Name = "live production env review proposal"; Text = $productionProposal }
+        @{ Name = "split progress"; Text = $splitProgress }
     )) {
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedObservedAt
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedServerCommit
@@ -94,6 +106,20 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle "bundle_verdict=NO_EVIDENCE"
 }
 
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle $expectedCurrentObservedAt
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle $expectedCurrentCommit
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "snapshotType=CURRENT_READ_ONLY_EVIDENCE"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "origin_metadata_status=CURRENT_ORIGIN_MAIN"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "deployment_metadata_status=CURRENT"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLog=PASS"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLogErrors=0"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "metadata_blockers=[]"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=false"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "there is no deploy/currentness blocker"
+foreach ($blocker in $expectedCurrentBlockers) {
+    Assert-ContainsLiteral -Name "live production env review proposal current blocker" -Text $productionProposal -Needle $blocker
+}
+
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },
         @{ Name = "split progress"; Text = $splitProgress }
@@ -102,8 +128,16 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) historical metadata refresh" -Text $doc.Text -Needle $expectedMetadataOriginCommit
 }
 
-Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedServerCommit
-Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedOriginCommit
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle $expectedCurrentObservedAt
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle $expectedCurrentCommit
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "deployment_metadata_status=CURRENT"
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "origin_metadata_status=CURRENT_ORIGIN_MAIN"
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "runtime_log_status=PASS"
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "deploy_required_before_live_review=false"
+foreach ($blocker in $expectedCurrentBlockers) {
+    Assert-ContainsLiteral -Name "live readiness remediation current blocker" -Text $remediation -Needle $blocker
+}
+Assert-ContainsLiteral -Name "live readiness remediation historical metadata" -Text $remediation -Needle $expectedServerCommit
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "originMainCommit"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "observed origin"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "smoke_live_deployment_metadata_ssh.ps1"
@@ -114,11 +148,10 @@ Assert-ContainsLiteral -Name "live readiness remediation current metadata refres
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle "bundle_verdict=NO_EVIDENCE"
 
-Assert-BlockerJsonExact -Name "live production env review proposal refreshed snapshot" -Text $productionProposal
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "Latest refreshed read-only bundle evidence supersedes the earlier 11:45"
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "both remain historical evidence"
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "become stale again"
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=true"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","MCP_AUDIT_TOOL_ERROR","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]'
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "current snapshot supersedes earlier stale"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'origin/main` advances again'
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=false"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "strict read-only"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "strict read-only"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "refreshType=DEPLOYMENT_METADATA_ONLY"
@@ -160,8 +193,7 @@ foreach ($doc in @(
 }
 
 foreach ($doc in @(
-        @{ Name = "live readiness remediation"; Text = $remediation },
-        @{ Name = "live production env review proposal"; Text = $productionProposal }
+        @{ Name = "live readiness remediation"; Text = $remediation }
     )) {
     Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "2026-06-20T10:16+08:00"
     Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "app-20260618T070102Z-port8084.log"
@@ -173,11 +205,16 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "diagnostic-only"
 }
 
+Assert-ContainsLiteral -Name "live production env review proposal stale runtime log RCA" -Text $productionProposal -Needle "2026-06-20T10:16+08:00"
+Assert-ContainsLiteral -Name "live production env review proposal stale runtime log RCA" -Text $productionProposal -Needle "app-20260618T070102Z-port8084.log"
+Assert-ContainsLiteral -Name "live production env review proposal stale runtime log RCA" -Text $productionProposal -Needle "TelegramServiceImpl"
+Assert-ContainsLiteral -Name "live production env review proposal stale runtime log RCA" -Text $productionProposal -Needle "ExecutionEventScheduler"
+Assert-ContainsLiteral -Name "live production env review proposal stale runtime log RCA" -Text $productionProposal -Needle "no longer the current blocker"
+
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },
         @{ Name = "split progress"; Text = $splitProgress },
-        @{ Name = "live readiness remediation"; Text = $remediation },
-        @{ Name = "live production env review proposal"; Text = $productionProposal }
+        @{ Name = "live readiness remediation"; Text = $remediation }
     )) {
     Assert-ContainsPattern -Name $doc.Name -Text $doc.Text -Pattern "stale\s+live-review evidence"
     Assert-ContainsPattern -Name $doc.Name -Text $doc.Text -Pattern "separately\s+authorized"

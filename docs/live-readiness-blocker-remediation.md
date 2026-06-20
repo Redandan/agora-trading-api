@@ -78,31 +78,18 @@ server worktree behind `origin/main`, the same failure output includes
 
 ## Current Expected Blockers
 
-With the current fail-fast bundle behavior, if deployment metadata already
-shows the server worktree or deployed runtime is behind `origin/main`, the
-default `.\scripts\smoke_live_readiness_bundle_ssh.ps1` output is incomplete
-evidence only:
+The current read-only server bundle on 2026-06-20T14:43+08:00 observed server,
+deployed runtime, and `origin/main` all at
+`0b738cfe27f9dd2ea7d68c848f1501d3461a7b14`, with
+`deployment_metadata_status=CURRENT`, `origin_metadata_status=CURRENT_ORIGIN_MAIN`,
+`runtime_log_status=PASS`, `deploy_required_before_live_review=false`, and
+`live_review_packet_allowed=false`.
 
-```text
-LIVE_READINESS_EVIDENCE_UNAVAILABLE
-DEPLOYED_RUNTIME_NOT_CURRENT
-```
-
-That default fail-fast result is the expected current output until a separately
-authorized deploy refreshes the server runtime. The fuller list below is a
-historical complete blocker snapshot from the stale deployed runtime; use it to
-plan remediation, not as current live-readiness evidence. Run
-`.\scripts\smoke_live_readiness_bundle_ssh.ps1 -ContinueWhenRuntimeStale` only
-for diagnostic stale-runtime child-smoke output.
-
-The latest recorded read-only server bundle
-(`224f550478b20a329775f503b3eaa70ba6a2f6a8` deployed while `origin/main` was
-`0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`; `live_review_packet_allowed=false`,
-`deploy_required_before_live_review=true`) may legitimately report:
+That current full-bundle evidence may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY
-RUNTIME_HEALTH_OR_LOG_NOT_CLEAN
+MCP_AUDIT_TOOL_ERROR
 EXECUTION_ELIGIBILITY_NOT_READY
 BACKGROUND_AUTOMATION_REVIEW
 RUNTIME_EVIDENCE_CONFIG_DISABLED
@@ -110,40 +97,56 @@ RUNTIME_EVIDENCE_NO_SHADOW_INTENT
 SIGNAL_POLICY_REVIEW_GAPS
 TINY_LIVE_LOSS_HARD_STOP
 TINY_LIVE_ROLLOUT_NOT_READY
-DEPLOYED_RUNTIME_NOT_CURRENT
 ```
 
 Those are live-blocking until the clear conditions above are proven by fresh
 read-only evidence. MCP parity is expected to pass with
 `missing_required_tools=[]` and `[mcp-parity-ssh] OK`.
-Because the latest recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`,
-and the observed signal smoke showed governance drift (`governanceMode=TOO_STRICT`),
-the snapshot is stale live-review evidence only and is reclassified by the
-current local blocker rules. A strict read-only runtime-log smoke on
-2026-06-20T10:16+08:00 reached the stale deployed runtime and failed against
-`/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
-with `runtime ERROR lines present: count=2`, including `TelegramServiceImpl`
-and `ExecutionEventScheduler`. That preserves
-`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` for the stale runtime and is blocker RCA only;
-`ALLOW_RUNTIME_ERROR=1` output remains diagnostic-only and must not be used as
-live-readiness evidence. After the next authorized deploy, refresh the
-`ERROR category ...` and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
-evidence if the strict runtime-log smoke still fails before reviewing
-background automation. A future review must refresh the server runtime and
-rerun the full read-only bundle; do not combine stale server output with local
-or GitHub HEAD evidence.
+The current MCP blocker is not a parity failure; it is an audit-readiness
+evidence blocker caused by incomplete required readiness details. The current
+runtime blocker is also not a runtime-log failure; strict runtime-log evidence
+is clean, but runtime evidence collection is disabled and has no canonical
+shadow intent evidence.
 
-A current read-only deployment metadata refresh on 2026-06-20T13:34+08:00
-observed the same server/deployed commit
-`224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
-`873b219171755401c40f3a676fb3c7c9477471ec`. The default full read-only bundle
-then failed fast on `DEPLOYED_RUNTIME_NOT_CURRENT` before child smokes and
-printed
-`bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]`
-with `bundle_verdict=NO_EVIDENCE`. That currentness output does not clear any
-blocker and is not a substitute for rerunning the full bundle after a separately
-authorized deploy. Its `originMainCommit` field is an observed origin value,
-not a currentness claim after later docs/guardrail commits.
+With the current fail-fast bundle behavior, if future deployment metadata
+already shows the server worktree or deployed runtime is behind `origin/main`,
+the default `.\scripts\smoke_live_readiness_bundle_ssh.ps1` output is incomplete
+evidence only:
+
+```text
+LIVE_READINESS_EVIDENCE_UNAVAILABLE
+DEPLOYED_RUNTIME_NOT_CURRENT
+```
+
+That default fail-fast result is the expected output only for a stale-runtime
+scenario until a separately authorized deploy refreshes the server runtime. Run
+`.\scripts\smoke_live_readiness_bundle_ssh.ps1 -ContinueWhenRuntimeStale` only
+for diagnostic stale-runtime child-smoke output. Any such diagnostic output is
+not as current live-readiness evidence.
+
+Historical complete blocker snapshot from stale deployed runtime:
+
+- 2026-06-20T13:34+08:00 deployment metadata observed server/deployed commit
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
+  `873b219171755401c40f3a676fb3c7c9477471ec`.
+- The default full bundle then failed fast on `DEPLOYED_RUNTIME_NOT_CURRENT`
+  before child smokes and printed
+  `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]`
+  with `bundle_verdict=NO_EVIDENCE`.
+- A strict read-only runtime-log smoke on 2026-06-20T10:16+08:00 reached the
+  stale deployed runtime and failed against
+  `/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
+  with `runtime ERROR lines present: count=2`, including
+  `TelegramServiceImpl` and `ExecutionEventScheduler`.
+- That stale runtime-log failure preserves `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`
+  for historical RCA only and is no longer the current blocker after the
+  2026-06-20T14:43+08:00 clean runtime-log bundle.
+
+Those stale outputs do not clear any blocker and are not a substitute for
+rerunning the full bundle after a separately authorized deploy; they are stale
+live-review evidence only. Their
+`originMainCommit` fields are observed origin values, not currentness claims
+after later docs/guardrail commits.
 
 ## Audit Classifications
 

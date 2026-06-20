@@ -44,12 +44,12 @@ rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` and the full
 
 ```text
 snapshotType=ATTACHED_READ_ONLY_EVIDENCE
-observedAt=2026-06-20T15:32+08:00
-serverCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
-deployedCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
+observedAt=2026-06-20T17:29+08:00
+serverCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+deployedCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
 deployment_metadata_status=CURRENT
 origin_metadata_status=CURRENT_ORIGIN_MAIN
-originMainCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
+originMainCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
 health=UP
 eventRisk=riskLevel=R0
 mcpParity=[mcp-parity-ssh] OK toolCount=305 required=35
@@ -59,6 +59,8 @@ missing_readiness_detail_fields=[]
 orderCapableFlags=false
 dryRunFlags=true
 backgroundHighRiskFlags=["TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED","EVENT_SCAN_NOTIFICATION_ENABLED","EXECUTION_EVENT_ENABLED","TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED","TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"]
+backgroundAutomationClear=false
+backgroundAutomationBlockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"]
 runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0
 tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2
 signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN
@@ -81,9 +83,9 @@ but it is not a substitute for the full bundle:
 
 ```text
 refreshType=DEPLOYMENT_METADATA_ONLY
-worktreeCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
-originMainCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
-deployedCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a
+worktreeCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+originMainCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
+deployedCommit=c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7
 origin_metadata_status=CURRENT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 metadata_blockers=[]
@@ -102,7 +104,7 @@ previous MCP audit detail gap was cleared in the attached deployed evidence by
 The stale 2026-06-20T10:16+08:00 runtime-log failure against
 `app-20260618T070102Z-port8084.log` remains useful RCA for Telegram/ExecutionEvent
 notification paths (`TelegramServiceImpl` and `ExecutionEventScheduler`), but it
-was no longer the current blocker after the `12b1343` deploy. If a future strict read-only runtime-log smoke fails, attach the
+was no longer the current blocker after the `c3c1ee6` deploy. If a future strict read-only runtime-log smoke fails, attach the
 `ERROR category ...` line and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
 line, then explicitly reconcile `EVENT_SCAN_NOTIFICATION_ENABLED`,
 `EXECUTION_EVENT_ENABLED`, Telegram send health, and background automation

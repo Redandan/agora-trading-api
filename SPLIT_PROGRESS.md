@@ -230,10 +230,10 @@
   so unsafe SSH targets, invalid read-only query windows, or signal-policy
   review contract drift fail locally before any SSH call.
 - Latest recorded current-at-observation read-only live-readiness bundle on
-  2026-06-20T15:42+08:00 after the explicitly authorized deploy of
-  `1a32d2b3e5288778276d1e7d3737ca7db8c8f61f`: server worktree,
+  2026-06-20T17:29+08:00 after the explicitly authorized deploy of
+  `c3c1ee6c602d58b22b6947cf8ba0d5f9e5993df7`: server worktree,
   `origin/main`, and deployed `app.commit` all matched that commit, active port
-  switched to `8085`, `deployment_metadata_status=CURRENT`,
+  remained `8085`, `deployment_metadata_status=CURRENT`,
   `origin_metadata_status=CURRENT_ORIGIN_MAIN`, `metadata_blockers=[]`, and
   `deploy_required_before_live_review=false`. Split/server verification passed
   in shared-DB mode with 39 source entity tables, 176 DB tables, 0 missing
@@ -243,6 +243,9 @@
   reported runtime log `PASS` with ERROR count 0 and WARN baseline total 12,
   MCP parity `toolCount=305 required=35`, `missing_readiness_detail_fields=[]`,
   and `autonomousOpportunity.eligible=false` in `readiness_details`.
+  Background automation evidence printed
+  `backgroundAutomationClear=false` and
+  `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]`.
   `MCP_AUDIT_TOOL_ERROR`, `DEPLOYED_RUNTIME_NOT_CURRENT`, and
   `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` are no longer current blockers. The bundle
   still printed `live_review_packet_allowed=false` and `bundle_verdict=NOT_READY`

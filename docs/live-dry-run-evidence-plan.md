@@ -116,6 +116,7 @@ Run these read-only checks from the local repo:
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear
 .\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear
 .\scripts\smoke_mcp_parity_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
 ```
 
 Expected evidence-only outcome:
@@ -153,6 +154,9 @@ Expected evidence-only outcome:
   `riskCategory`, `evidenceMarkers`, `requiredEvidence`, `nextAction`, and
   `notAuthorization` so the next evidence task can be reviewed without treating
   the output as live approval.
+- `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 with
+  `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
+  `packet_missing_requirements=[]`.
 - `/api/mcp` server-local smoke remains protected by `TRADING_MCP_KEY`.
 - Public MCP remains unavailable as a service surface unless separately
   authorized by product/security.
@@ -182,5 +186,8 @@ the exact env diff, blast-radius classification, current smoke outputs,
 full-bundle `bundle_blockers=[]`,
 `live_review_packet_allowed=true`,
 `deploy_required_before_live_review=false`,
-`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, tiny-live live loss hard-stop status with `missing_tiny_live_fields=[]`,
+`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
+`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`,
+`packet_missing_requirements=[]`,
+tiny-live live loss hard-stop status with `missing_tiny_live_fields=[]`,
 runtime evidence status, rollback steps, and a separate operator authorization.

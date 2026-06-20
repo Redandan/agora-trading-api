@@ -187,10 +187,13 @@ foreach ($marker in @(
 
 foreach ($marker in @(
         "smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+        "prepare_live_review_packet_ssh.ps1 -RequireReady",
         "exits 0",
         "diagnosis=CANONICAL_SHADOW_READY",
         "shadowIntentCount > 0",
         "orderSentEvidence=0",
+        "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
+        "packet_missing_requirements=[]",
         "exits non-zero"
     )) {
     if ($dryRunPlanText -notmatch [regex]::Escape($marker)) {
@@ -233,6 +236,15 @@ foreach ($marker in @(
     }
     if ($dryRunPlanText -notmatch [regex]::Escape($marker)) {
         throw "Dry-run evidence plan missing live proposal boundary marker: $marker"
+    }
+}
+
+foreach ($marker in @(
+        '`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
+        '`packet_missing_requirements=[]`'
+    )) {
+    if ($dryRunPlanText -notmatch [regex]::Escape($marker)) {
+        throw "Dry-run evidence plan missing live review packet boundary marker: $marker"
     }
 }
 

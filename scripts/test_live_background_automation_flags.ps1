@@ -138,6 +138,7 @@ foreach ($pattern in @(
         "background_automation_false=",
         "missing_background_automation_flags=",
         "strip(chr(34)).strip(chr(39))",
+        "sed '1s/^\xEF\xBB\xBF//'",
         "tr -d '\r' | bash -s",
         "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
         "classification=BACKGROUND_AUTOMATION_CLEARED",

@@ -185,7 +185,7 @@ sys.exit(1 if require_acceptance else 0)
 PY
 "@
 
-$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
 if ($LASTEXITCODE -ne 0) {
     throw "trailing-stop PnL replay smoke failed with exit code $LASTEXITCODE"
 }

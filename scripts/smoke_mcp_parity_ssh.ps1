@@ -278,7 +278,7 @@ print(f"[mcp-parity-ssh] OK toolCount={len(tool_names)} required={len(required_t
 PY
 "@
 
-$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
 if ($LASTEXITCODE -ne 0) {
     throw "server-local MCP parity smoke failed with exit code $LASTEXITCODE"
 }

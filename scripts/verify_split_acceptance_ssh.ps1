@@ -69,7 +69,7 @@ set -euo pipefail
 cd '$TradingAppDir'
 ALLOW_UNKNOWN_WARN=0 ALLOW_RUNTIME_ERROR=0 ALLOW_HIGH_RISK_LOG=0 bash scripts/check_server_runtime_log.sh
 "@
-    $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "tr -d '\r' | bash -s"
+    $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
     if ($LASTEXITCODE -ne 0) {
         throw "runtime log smoke failed with exit code $LASTEXITCODE"
     }

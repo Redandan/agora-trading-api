@@ -104,11 +104,16 @@ foreach ($pattern in @(
         "does not list every reviewed background flag",
         "OK_BACKGROUND_AUTOMATION_DISABLED",
         "BACKGROUND_AUTOMATION_REVIEW`` no longer appears in ``bundle_blockers``",
+        "prepare_live_review_packet_ssh.ps1 -RequireReady",
+        "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
+        "packet_missing_requirements=[]",
         "order_capable_flags`` remain false",
         "full-bundle ``bundle_blockers=[]``",
         "``live_review_packet_allowed=true``",
         "``deploy_required_before_live_review=false``",
         "``bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED``",
+        "``packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED``",
+        "``packet_missing_requirements=[]``",
         "not live approval"
     )) {
     if ($proposalText -notmatch [regex]::Escape($pattern)) {

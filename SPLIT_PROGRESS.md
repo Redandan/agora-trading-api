@@ -295,10 +295,10 @@
   `signalPolicyClear=false` because 7d governance drift was `TOO_STRICT` and
   missed-opportunity regression was `WARN`. This is current stale-runtime
   diagnostic evidence only, not live-readiness evidence or live approval.
-- 2026-06-20T21:21+08:00 read-only local origin-delta classifier observed the
+- 2026-06-20T21:40+08:00 read-only local origin-delta classifier observed the
   same server worktree commit
   `ef6253a4ecff7c27a2e709f226e166389700a82d` while local `origin/main` was
-  `5695078403aaf44469773d464c0c6d29f88a300d`. It printed
+  `20425dd94eb04edddb5f60fc5eba5facb3c8e456`. It printed
   `origin_delta_local_evidence=true`,
   `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=16`,
   `origin_docs_tooling_delta_files=16`, `origin_runtime_delta_files=0`,
@@ -306,6 +306,29 @@
   This is routing evidence only: it explains that the current local delta is
   docs/tooling-only, but it does not replace a fresh full read-only
   live-readiness bundle and does not authorize live trading.
+- 2026-06-20T21:40+08:00 read-only blocker RCA refresh confirmed the active
+  runtime is healthy but still not live-review ready. `audit_live_readiness_ssh`
+  reported health `UP`, `runtime_log_status=PASS`, runtime ERROR count 0,
+  WARN baseline total 15, `order_capable_flags_true=[]`, all reviewed dry-run
+  flags true, `riskLevel=R0`, and `missing_readiness_detail_fields=[]`.
+  Background automation stayed blocked with all nine reviewed flags true,
+  including high-risk
+  `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED`,
+  `EVENT_SCAN_NOTIFICATION_ENABLED`, `EXECUTION_EVENT_ENABLED`,
+  `TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED`, and
+  `TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED`;
+  `backgroundAutomationClear=false` and
+  `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"]`.
+  Runtime evidence remained `diagnosis=CONFIG_DISABLED` with
+  `runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE`, `shadowIntentCount=0`, and
+  `orderSentEvidence=0`. Tiny-live stayed blocked with
+  `hardStopDetected=true`, `autoApprovalMode=BLOCKED`,
+  `completedTinyLiveSamples=2`, `falsePositiveCount=2`, and
+  `canEnableProduction=false`. Signal correctness found no missed
+  evaluation/order bug and current DataFreshnessGuard snapshot was clean, but
+  `signalPolicyClear=false` because 7d `governanceMode=TOO_STRICT` and
+  missed-opportunity `overallStatus=WARN`. This is read-only RCA evidence only,
+  not permission to change env or enable live trading.
 - Latest recorded read-only live-readiness bundle observed on
   2026-06-19T12:15+08:00 against server commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was

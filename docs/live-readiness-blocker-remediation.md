@@ -192,9 +192,52 @@ Latest stale-runtime diagnostic refresh:
   Signal correctness stayed blocked with `signalPolicyClear=false`,
   `governanceMode=TOO_STRICT`, and missed-opportunity `overallStatus=WARN`.
 
-This refresh is current stale-runtime diagnostic evidence only. It is not
+This refresh is stale-runtime diagnostic evidence only. It is not
 live-readiness evidence, not a replacement for a post-deploy full bundle, and
 not permission to enable live trading.
+
+Latest read-only routing and blocker RCA refresh:
+
+- 2026-06-20T21:40+08:00 origin-delta classifier observed server worktree
+  `ef6253a4ecff7c27a2e709f226e166389700a82d` while local `origin/main` was
+  `20425dd94eb04edddb5f60fc5eba5facb3c8e456`. It printed
+  `origin_delta_local_evidence=true`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_delta_files=16`,
+  `origin_docs_tooling_delta_files=16`, `origin_runtime_delta_files=0`,
+  `origin_runtime_delta_paths=[]`, and `live_review_packet_allowed=false`.
+- The packet preflight remained `packet_status=NO_EVIDENCE` because
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `deploy_required_before_live_review=true`, and
+  `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]`.
+  Its next action now routes stale runtime through `smoke_live_origin_delta_local.ps1`
+  before deciding whether runtime deploy is required.
+- `audit_live_readiness_ssh` reported health `UP`, `runtime_log_status=PASS`,
+  runtime ERROR count 0, WARN baseline total 15, `order_capable_flags_true=[]`,
+  all reviewed dry-run flags true, `riskLevel=R0`, and
+  `missing_readiness_detail_fields=[]`.
+- Background automation remained the clearest env-review blocker:
+  `backgroundAutomationClear=false`,
+  `background_automation_true` contained all nine reviewed flags,
+  `high_risk_background_automation_true` contained
+  `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED`,
+  `EVENT_SCAN_NOTIFICATION_ENABLED`, `EXECUTION_EVENT_ENABLED`,
+  `TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED`, and
+  `TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED`, and
+  `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"]`.
+- Runtime evidence remained `diagnosis=CONFIG_DISABLED` with
+  `runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE`, `shadowIntentCount=0`, and
+  `orderSentEvidence=0`.
+- Tiny-live stayed blocked with `hardStopDetected=true`,
+  `autoApprovalMode=BLOCKED`, `completedTinyLiveSamples=2`,
+  `falsePositiveCount=2`, and `canEnableProduction=false`.
+- Signal correctness found no missed-evaluation/order bug and current
+  DataFreshnessGuard snapshot was clean, but `signalPolicyClear=false` because
+  7d `governanceMode=TOO_STRICT` and missed-opportunity `overallStatus=WARN`.
+
+This refresh is read-only RCA evidence only. It does not authorize production
+env mutation, live trading, scheduler enablement, order/OCO/grid/fund/Earn,
+Telegram send, exchange mutation, DB changes, external backfill/import, deploy,
+restart, or policy relaxation.
 
 Historical complete blocker snapshot from stale deployed runtime:
 

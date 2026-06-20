@@ -16,8 +16,9 @@ $expectedLatestSplitObservedAt = "2026-06-20T20:28+08:00"
 $expectedLatestSplitCommit = "ef6253a4ecff7c27a2e709f226e166389700a82d"
 $expectedLatestDiagnosticObservedAt = "2026-06-20T20:53+08:00"
 $expectedLatestDiagnosticOriginCommit = "0c033972b4bd39531d0e617d0f2702926108686f"
-$expectedLatestOriginDeltaObservedAt = "2026-06-20T21:21+08:00"
-$expectedLatestOriginDeltaCommit = "5695078403aaf44469773d464c0c6d29f88a300d"
+$expectedLatestOriginDeltaObservedAt = "2026-06-20T21:40+08:00"
+$expectedLatestOriginDeltaCommit = "20425dd94eb04edddb5f60fc5eba5facb3c8e456"
+$expectedLatestRcaObservedAt = "2026-06-20T21:40+08:00"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -222,6 +223,28 @@ Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refre
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "signalPolicyClear=false"
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "governanceMode=TOO_STRICT"
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "overallStatus=WARN"
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress },
+        @{ Name = "live readiness remediation"; Text = $remediation }
+    )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle $expectedLatestRcaObservedAt
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "runtime_log_status=PASS"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "WARN baseline total 15"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "order_capable_flags_true=[]"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "riskLevel=R0"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "diagnosis=CONFIG_DISABLED"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "shadowIntentCount=0"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "orderSentEvidence=0"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "hardStopDetected=true"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "autoApprovalMode=BLOCKED"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "canEnableProduction=false"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "signalPolicyClear=false"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "governanceMode=TOO_STRICT"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "overallStatus=WARN"
+    Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "read-only RCA evidence only"
+}
 
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]'
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "attached snapshot superseded earlier stale"

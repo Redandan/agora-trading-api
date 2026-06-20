@@ -56,10 +56,12 @@ RCA plus full live-readiness bundle are rerun.
 A recorded read-only deployment metadata refresh on 2026-06-20T09:09+08:00
 observed the server worktree and deployed runtime still at
 `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` had advanced to
-`37ea17174c646753448b37a2a7f73cc35dc8e41b`. This metadata-only refresh does not
-change the runtime-evidence diagnosis; it only confirms the stale-runtime
-blocker remains. Rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a
-current metadata-only refresh.
+observed origin `37ea17174c646753448b37a2a7f73cc35dc8e41b`. This metadata-only
+refresh does not change the runtime-evidence diagnosis; the metadata-only refresh
+only confirms the stale-runtime blocker remains. Its `originMainCommit` field is an observed
+origin value, not a currentness claim after later docs/guardrail commits. Rerun
+`.\scripts\smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
+refresh.
 
 The live-readiness bundle currently includes:
 

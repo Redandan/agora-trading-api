@@ -190,6 +190,36 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   for traceability, not as a substitute for rerunning the full read-only bundle
   before any future live-review packet; it is not permission to enable live
   trading.
+- Latest read-only metadata and diagnostic refresh on 2026-06-20T20:53+08:00
+  followed the docs/tooling commit
+  `0c033972b4bd39531d0e617d0f2702926108686f`. The metadata-only smoke observed
+  server worktree and deployed `app.commit` still at
+  `ef6253a4ecff7c27a2e709f226e166389700a82d`, while `origin/main` had advanced
+  to `0c033972b4bd39531d0e617d0f2702926108686f`. It printed
+  `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`,
+  `live_review_packet_allowed=false`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`.
+  Read-only stale-runtime diagnostics with `-SkipGitCurrent` then confirmed the
+  service itself was serving on active port `8084`: local health and
+  server-local `/api/mcp` passed, public dedicated `/api/mcp` and shared-host
+  `/api/trading/mcp` were blocked with 404, nginx exact MCP blocks had no
+  `proxy_pass`, and nginx upstreams pointed at the active port. Server-local
+  MCP parity passed with `missing_required_tools=[]`, `toolCount=305`, and
+  `required=35`. The diagnostic live-readiness bundle with
+  `-ContinueWhenRuntimeStale` reported runtime log `PASS` with ERROR count 0
+  and WARN baseline total 14, but remained `bundle_verdict=NOT_READY` with
+  blockers `LIVE_READINESS_NOT_READY`, `EXECUTION_ELIGIBILITY_NOT_READY`,
+  `BACKGROUND_AUTOMATION_REVIEW`, `RUNTIME_EVIDENCE_CONFIG_DISABLED`,
+  `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`, `TINY_LIVE_LOSS_HARD_STOP`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, `SIGNAL_POLICY_REVIEW_GAPS`, and
+  `DEPLOYED_RUNTIME_NOT_CURRENT`. Signal correctness remained read-only and
+  executable, but `signalPolicyClear=false` because 7d governance drift was
+  `TOO_STRICT` and missed-opportunity regression was `WARN`. Treat this refresh
+  as current stale-runtime diagnostic evidence only; it is not live-readiness
+  evidence and not permission to enable live trading.
 - Latest recorded read-only live-readiness bundle on 2026-06-19T14:24+08:00
   observed server worktree/deployed commit
   `224f550478b20a329775f503b3eaa70ba6a2f6a8` while `origin/main` was

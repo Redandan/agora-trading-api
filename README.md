@@ -226,6 +226,9 @@ machine-readable review-routing list with `gate`, `state`, `riskCategory`,
 this is not authorization to mutate production env or enable live behavior.
 `missing_runtime_evidence_fields` must be empty before
 `CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
+The full bundle also requires `runtime_evidence_review_plan` to be present and
+free of `BLOCKED` or `HARD_BLOCKED` states when the diagnosis is otherwise
+ready.
 `-RequireReady` exits 0 only when `diagnosis=CANONICAL_SHADOW_READY`,
 `missing_runtime_evidence_fields=[]`, `shadowIntentCount > 0`, and
 `orderSentEvidence=0`; otherwise it exits non-zero after printing RCA details.

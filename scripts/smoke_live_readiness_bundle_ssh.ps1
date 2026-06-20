@@ -455,7 +455,7 @@ function New-BlockerSummary {
             "RUNTIME_EVIDENCE_REVIEW_REQUIRED" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
-                $evidenceMarkers = @("diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS", "missing_runtime_evidence_fields is non-empty", "missing orderSentEvidence=0")
+                $evidenceMarkers = @("diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS", "missing_runtime_evidence_fields is non-empty", "missing orderSentEvidence=0", "runtime_evidence_review_plan has BLOCKED/HARD_BLOCKED entries")
                 $nextAction = "Review unrecognized or incomplete runtime-evidence status before any live proposal."
             }
             "TINY_LIVE_LOSS_HARD_STOP" {
@@ -612,6 +612,9 @@ if ($runtimeEvidence -match "diagnosis=NO_CANONICAL_ROWS") {
 }
 if ($runtimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
         -or $runtimeEvidence -match "missing_runtime_evidence_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
+        -or $runtimeEvidence -notmatch "runtime_evidence_review_plan=" `
+        -or ($runtimeEvidence -match "diagnosis=CANONICAL_SHADOW_READY" -and $runtimeEvidence -match '"state"\s*:\s*"HARD_BLOCKED"') `
+        -or ($runtimeEvidence -match "diagnosis=CANONICAL_SHADOW_READY" -and $runtimeEvidence -match '"state"\s*:\s*"BLOCKED"') `
         -or $runtimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
     $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 }

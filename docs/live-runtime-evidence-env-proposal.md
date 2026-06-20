@@ -160,6 +160,10 @@ Expected:
   `state=HARD_BLOCKED` entries. If entries remain, review `riskCategory`,
   `evidenceMarkers`, `requiredEvidence`, `nextAction`, and `notAuthorization`
   before continuing.
+- The full bundle fails closed if `runtime_evidence_review_plan` is missing, or
+  if an otherwise ready diagnosis still has `state=BLOCKED` or
+  `state=HARD_BLOCKED` in that plan.
+- Machine marker: runtime_evidence_review_plan is missing.
 - The `-RequireReady` check exits non-zero after printing RCA details when the
   diagnosis is not `CANONICAL_SHADOW_READY`, when required fields are missing,
   when `shadowIntentCount` is not greater than 0, or when

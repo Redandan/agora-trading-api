@@ -119,6 +119,9 @@ function Get-LiveReadinessBundleBlockers {
     }
     if ($RuntimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
             -or $RuntimeEvidence -match "missing_runtime_evidence_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
+            -or $RuntimeEvidence -notmatch "runtime_evidence_review_plan=" `
+            -or ($RuntimeEvidence -match "diagnosis=CANONICAL_SHADOW_READY" -and $RuntimeEvidence -match '"state"\s*:\s*"HARD_BLOCKED"') `
+            -or ($RuntimeEvidence -match "diagnosis=CANONICAL_SHADOW_READY" -and $RuntimeEvidence -match '"state"\s*:\s*"BLOCKED"') `
             -or $RuntimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
         $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
     }
@@ -568,7 +571,10 @@ $mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"wouldExecute":"fal
 $cleanInputs = @{
     Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
         Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]"
-    RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0"
+    RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY
+shadowIntentCount=3
+orderSentEvidence=0
+runtime_evidence_review_plan=[{"state":"READY_FOR_OTHER_BLOCKER_REVIEW"}]'
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
     Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS"
     McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
@@ -606,16 +612,19 @@ Assert-BlockerCase -Name "background missing ok verdict fails closed" -Inputs (M
 Assert-BlockerCase -Name "background missing high-risk marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background explicit clear false fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=false`nhigh_risk_background_automation_true=[]" }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
 Assert-BlockerCase -Name "background blocker summary fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Background = 'verdict=OK_BACKGROUND_AUTOMATION_DISABLED backgroundAutomationClear=true background_automation_blockers=["BACKGROUND_AUTOMATION_TRUE"] high_risk_background_automation_true=[]' }) -ExpectedBlockers @("BACKGROUND_AUTOMATION_REVIEW")
-Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
-Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
-Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
-Assert-BlockerCase -Name "runtime missing core field list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY missing_runtime_evidence_fields=["runtimeEvidenceStatus"] shadowIntentCount=3 orderSentEvidence=0' }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
-Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=0`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
-Assert-BlockerCase -Name "runtime canonical rows no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT`nshadowIntentCount=0`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
-Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT")
+Assert-BlockerCase -Name "runtime config disabled" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_CONFIG_DISABLED")
+Assert-BlockerCase -Name "runtime no canonical rows" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=NO_CANONICAL_ROWS`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
+Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime missing core field list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY missing_runtime_evidence_fields=["runtimeEvidenceStatus"] shadowIntentCount=3 orderSentEvidence=0 runtime_evidence_review_plan=[{"state":"READY_FOR_OTHER_BLOCKER_REVIEW"}]' }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+Assert-BlockerCase -Name "runtime canonical rows no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1`nruntime_evidence_review_plan=[{`"state`":`"HARD_BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT", "RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime missing diagnosis fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "shadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
-Assert-BlockerCase -Name "runtime missing shadow intent fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=N/A`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
-Assert-BlockerCase -Name "runtime missing order sent evidence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime missing review plan fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime blocked review plan fails closed when otherwise ready" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime hard-blocked review plan fails closed when otherwise ready" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"HARD_BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime missing shadow intent fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=N/A`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
+Assert-BlockerCase -Name "runtime missing order sent evidence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`nruntime_evidence_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "tiny live hard stop" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=true`nRollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live consecutive loss text" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @("TINY_LIVE_LOSS_HARD_STOP")
 Assert-BlockerCase -Name "tiny live rollout not ready" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=false" }) -ExpectedBlockers @("TINY_LIVE_ROLLOUT_NOT_READY")
@@ -651,7 +660,7 @@ Assert-BlockerCase `
     -Inputs @{
         Audit = $currentObservedAudit
         Background = "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE"
-        RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0"
+        RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=WARN"
         McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"

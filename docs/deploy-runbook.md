@@ -657,6 +657,10 @@ Expected:
   `REVIEW_RUNTIME_EVIDENCE_STATUS`.
 - `missing_runtime_evidence_fields` must be empty before
   `CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
+- The full bundle also requires `runtime_evidence_review_plan` to be present;
+  if the diagnosis is otherwise ready but the plan still contains
+  `state=BLOCKED` or `state=HARD_BLOCKED`, the bundle keeps
+  `RUNTIME_EVIDENCE_REVIEW_REQUIRED`.
 - With `-RequireReady`, the smoke exits 0 only when
   `diagnosis=CANONICAL_SHADOW_READY`, `missing_runtime_evidence_fields=[]`,
   `shadowIntentCount > 0`, and `orderSentEvidence=0`; otherwise it prints the

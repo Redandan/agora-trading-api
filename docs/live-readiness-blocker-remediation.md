@@ -119,13 +119,19 @@ read-only evidence. MCP parity is expected to pass with
 Because the latest recorded snapshot includes `DEPLOYED_RUNTIME_NOT_CURRENT`,
 and the observed signal smoke showed governance drift (`governanceMode=TOO_STRICT`),
 the snapshot is stale live-review evidence only and is reclassified by the
-current local blocker rules. Its runtime log output was captured before the
-classified log smoke reached the deployed service; after the next authorized
-deploy, refresh the `ERROR category ...` and
-`ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` evidence before
-reviewing background automation. A future review must refresh the server
-runtime and rerun the full read-only bundle; do not combine stale server output
-with local or GitHub HEAD evidence.
+current local blocker rules. A strict read-only runtime-log smoke on
+2026-06-20T10:16+08:00 reached the stale deployed runtime and failed against
+`/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
+with `runtime ERROR lines present: count=2`, including `TelegramServiceImpl`
+and `ExecutionEventScheduler`. That preserves
+`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN` for the stale runtime and is blocker RCA only;
+`ALLOW_RUNTIME_ERROR=1` output remains diagnostic-only and must not be used as
+live-readiness evidence. After the next authorized deploy, refresh the
+`ERROR category ...` and `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH`
+evidence if the strict runtime-log smoke still fails before reviewing
+background automation. A future review must refresh the server runtime and
+rerun the full read-only bundle; do not combine stale server output with local
+or GitHub HEAD evidence.
 
 A recorded read-only deployment metadata refresh on 2026-06-20T09:53+08:00
 observed the same server/deployed commit

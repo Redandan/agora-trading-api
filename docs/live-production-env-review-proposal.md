@@ -86,11 +86,15 @@ when the bundle ran; later docs or guardrail commits can legitimately advance
 reclassified by the current local blocker rules because the observed signal
 smoke had unresolved governance drift (`governanceMode=TOO_STRICT`) and the
 active runtime log smoke failed on Telegram-send errors from
-`TelegramServiceImpl` and `ExecutionEventScheduler`. The deployed runtime
-predates the classified log smoke, so the `ERROR category ...` line and
-`ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker are not expected
-until after the next authorized deploy. Event-risk baseline evidence is present
-as `riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part of this latest
+`TelegramServiceImpl` and `ExecutionEventScheduler`. A later strict read-only
+runtime-log smoke on 2026-06-20T10:16+08:00 reached the stale deployed runtime
+and failed against
+`/home/ubuntu/agora-trading-api/logs/runs/app-20260618T070102Z-port8084.log`
+with `runtime ERROR lines present: count=2`, preserving
+`RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`. Treat that strict result as blocker RCA
+only; `ALLOW_RUNTIME_ERROR=1` output is diagnostic-only and is not
+live-readiness evidence. Event-risk baseline evidence is present as
+`riskLevel=R0`, so `EVENT_RISK_NOT_BASELINE` is not part of this latest
 recorded blocker set. A future operator review must first refresh the server
 worktree/runtime to `origin/main` through a separately authorized deploy, clear
 or separately explain the runtime log blocker, then rerun the full

@@ -105,8 +105,8 @@ Assert-ContainsLiteral -Name "live production env review proposal refreshed snap
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "both remain historical evidence"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "become stale again"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=true"
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "predates the classified log smoke"
-Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "classified log smoke reached the deployed service"
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "strict read-only"
+Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "strict read-only"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "refreshType=DEPLOYMENT_METADATA_ONLY"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed metadata" -Text $productionProposal -Needle "bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY"
 foreach ($doc in @(
@@ -143,6 +143,20 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN"
     Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "ALLOW_RUNTIME_ERROR=1"
     Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "not live-readiness evidence"
+}
+
+foreach ($doc in @(
+        @{ Name = "live readiness remediation"; Text = $remediation },
+        @{ Name = "live production env review proposal"; Text = $productionProposal }
+    )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "2026-06-20T10:16+08:00"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "app-20260618T070102Z-port8084.log"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "runtime ERROR lines present: count=2"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "TelegramServiceImpl"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "ExecutionEventScheduler"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "ALLOW_RUNTIME_ERROR=1"
+    Assert-ContainsLiteral -Name "$($doc.Name) strict runtime log blocker" -Text $doc.Text -Needle "diagnostic-only"
 }
 
 foreach ($doc in @(

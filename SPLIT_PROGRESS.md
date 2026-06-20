@@ -279,6 +279,20 @@
   `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. Rerun
   `scripts/smoke_live_deployment_metadata_ssh.ps1` for a current metadata-only
   refresh.
+- A current read-only deployment metadata refresh on 2026-06-20T10:31+08:00
+  still observed server worktree and deployed runtime at
+  `224f550478b20a329775f503b3eaa70ba6a2f6a8`, while `origin/main` had advanced
+  to `2da9cb94ebc160475366f8e7f9d876b2393830d4`. The metadata-only check
+  reported `liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN`,
+  `liveBundleDeployStatus=CURRENT`,
+  `metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `deploy_required_before_live_review=true`, and
+  `bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY`. The default
+  `scripts/smoke_live_readiness_bundle_ssh.ps1` fail-fast path then stopped on
+  stale metadata before child smokes with
+  `bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]`,
+  `live_review_packet_allowed=false`, and `bundle_verdict=NO_EVIDENCE`. This is
+  currentness/blocker evidence only, not live-readiness evidence.
 - A read-only server runtime sanity check on 2026-06-20T10:04+08:00 passed with
   `scripts/verify_server_ssh.ps1 -SkipGitCurrent`: server preflight, active
   port `8084`, non-active port `8085` drained, local health, server-local

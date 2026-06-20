@@ -117,17 +117,30 @@ key selection, or the failing read-only smoke before using the output.
 Recorded read-only deployment metadata refresh:
 
 ```text
-observedAt=2026-06-20T09:53+08:00
+observedAt=2026-06-20T10:31+08:00
 refreshType=DEPLOYMENT_METADATA_ONLY
 serverCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
 deployedCommit=224f550478b20a329775f503b3eaa70ba6a2f6a8
-originMainCommit=4ee52d860fb18f79bd989801c471cd71be5c63d1
+originMainCommit=2da9cb94ebc160475366f8e7f9d876b2393830d4
 origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
 deployment_metadata_status=CURRENT
 metadata_blockers=["DEPLOYED_RUNTIME_NOT_CURRENT"]
 live_review_packet_allowed=false
 deploy_required_before_live_review=true
 bundle_verdict=NO_EVIDENCE_FOR_LIVE_REVIEW_METADATA_ONLY
+```
+
+The default full read-only bundle was also run after this metadata refresh and
+failed fast before child smokes:
+
+```text
+read_only_bundle_error=DEPLOYED_RUNTIME_NOT_CURRENT
+deployment_metadata_status=CURRENT
+origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]
+live_review_packet_allowed=false
+deploy_required_before_live_review=true
+bundle_verdict=NO_EVIDENCE
 ```
 
 This metadata-only refresh did not run the full live-readiness bundle. It only

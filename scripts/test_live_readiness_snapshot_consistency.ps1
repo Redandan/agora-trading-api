@@ -5,9 +5,11 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 $expectedObservedAt = "2026-06-19T12:15+08:00"
 $expectedMetadataObservedAt = "2026-06-20T09:53+08:00"
+$expectedCurrentMetadataObservedAt = "2026-06-20T10:31+08:00"
 $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
 $expectedMetadataOriginCommit = "4ee52d860fb18f79bd989801c471cd71be5c63d1"
+$expectedCurrentOriginCommit = "2da9cb94ebc160475366f8e7f9d876b2393830d4"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -80,25 +82,37 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedObservedAt
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedServerCommit
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedOriginCommit
-    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedMetadataObservedAt
-    Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle $expectedMetadataOriginCommit
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "originMainCommit"
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "observed origin"
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "rerun"
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "smoke_live_deployment_metadata_ssh.ps1"
     Assert-ContainsLiteral -Name $doc.Name -Text $doc.Text -Needle "metadata-only"
     Assert-BlockersPresent -Name $doc.Name -Text $doc.Text
+    Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle $expectedCurrentMetadataObservedAt
+    Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle $expectedCurrentOriginCommit
+    Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
+    Assert-ContainsLiteral -Name "$($doc.Name) current metadata refresh" -Text $doc.Text -Needle "bundle_verdict=NO_EVIDENCE"
+}
+
+foreach ($doc in @(
+        @{ Name = "split acceptance status"; Text = $splitStatus },
+        @{ Name = "split progress"; Text = $splitProgress }
+    )) {
+    Assert-ContainsLiteral -Name "$($doc.Name) historical metadata refresh" -Text $doc.Text -Needle $expectedMetadataObservedAt
+    Assert-ContainsLiteral -Name "$($doc.Name) historical metadata refresh" -Text $doc.Text -Needle $expectedMetadataOriginCommit
 }
 
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedServerCommit
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedOriginCommit
-Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedMetadataObservedAt
-Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle $expectedMetadataOriginCommit
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "originMainCommit"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "observed origin"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "smoke_live_deployment_metadata_ssh.ps1"
 Assert-ContainsLiteral -Name "live readiness remediation" -Text $remediation -Needle "metadata-only"
 Assert-BlockersPresent -Name "live readiness remediation" -Text $remediation
+Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle $expectedCurrentMetadataObservedAt
+Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle $expectedCurrentOriginCommit
+Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
+Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle "bundle_verdict=NO_EVIDENCE"
 
 Assert-BlockerJsonExact -Name "live production env review proposal refreshed snapshot" -Text $productionProposal
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "Latest refreshed read-only bundle evidence supersedes the earlier 11:45"

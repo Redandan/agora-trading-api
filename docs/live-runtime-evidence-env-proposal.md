@@ -140,9 +140,11 @@ After any authorized env change and service restart, run:
 
 ```powershell
 .\scripts\verify_split_acceptance_ssh.ps1
+.\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
 .\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady
 .\scripts\audit_live_readiness_ssh.ps1
 .\scripts\smoke_live_readiness_bundle_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
 ```
 
 Expected:
@@ -173,9 +175,18 @@ Expected:
 - Missing runtime-evidence fields stay blocked and must not be interpreted as
   `CANONICAL_SHADOW_READY`.
 - `order_capable_flags` remain false
+- `smoke_live_background_automation_ssh.ps1 -RequireClear` exits 0.
+- `backgroundAutomationClear=true`.
+- `background_automation_blockers=[]`.
+- `high_risk_background_automation_true=[]`.
+- `missing_background_automation_flags=[]`.
 - `bundle_blockers` no longer includes `RUNTIME_EVIDENCE_CONFIG_DISABLED`
 - `RUNTIME_EVIDENCE_NO_SHADOW_INTENT` remains blocked until `shadowIntentCount`
   is greater than 0
+- `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 only when the full
+  live-readiness packet is ready, with
+  `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
+  `packet_missing_requirements=[]`.
 - runtime logs show no order placement, OCO modification, grid/fund/Earn
   operation, Telegram send, scheduler surprise, exchange write, external
   backfill/import, or DB mutation

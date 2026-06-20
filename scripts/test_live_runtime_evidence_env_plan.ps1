@@ -174,11 +174,19 @@ foreach ($marker in @(
 
 foreach ($marker in @(
         "smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+        "smoke_live_background_automation_ssh.ps1 -RequireClear",
+        "prepare_live_review_packet_ssh.ps1 -RequireReady",
         "exits 0 only when",
         "exits non-zero",
         "diagnosis=CANONICAL_SHADOW_READY",
         "shadowIntentCount > 0",
-        "orderSentEvidence=0"
+        "orderSentEvidence=0",
+        "backgroundAutomationClear=true",
+        "background_automation_blockers=[]",
+        "high_risk_background_automation_true=[]",
+        "missing_background_automation_flags=[]",
+        "packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED",
+        "packet_missing_requirements=[]"
     )) {
     if ($proposalText -notmatch [regex]::Escape($marker)) {
         throw "Runtime evidence proposal missing RequireReady marker: $marker"

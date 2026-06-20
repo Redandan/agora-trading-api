@@ -67,6 +67,32 @@ function Invoke-McpTool {
     return $response
 }
 
+function Get-McpResultText {
+    param([object]$Response)
+
+    $parts = @()
+    foreach ($item in @($Response.result.content)) {
+        $textProperty = $item.PSObject.Properties["text"]
+        if (-not $textProperty) {
+            continue
+        }
+        $text = [string]$textProperty.Value
+        if ($text.Length -ge 2 -and $text.StartsWith('"') -and $text.EndsWith('"')) {
+            try {
+                $decoded = $text | ConvertFrom-Json -ErrorAction Stop
+                if ($decoded -is [string]) {
+                    $text = $decoded
+                }
+            } catch {
+                # Keep the original text; the assertion below will print context.
+            }
+        }
+        $parts += $text
+    }
+
+    return ($parts -join "`n")
+}
+
 function Assert-McpResultTextContains {
     param(
         [object]$Response,
@@ -74,7 +100,7 @@ function Assert-McpResultTextContains {
         [string]$Description
     )
 
-    $text = ($Response.result.content | ConvertTo-Json -Depth 10 -Compress)
+    $text = Get-McpResultText -Response $Response
     if ($text -notmatch $Pattern) {
         throw "MCP parity smoke response missing expected evidence: $Description. pattern=$Pattern content=$text"
     }

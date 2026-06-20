@@ -135,6 +135,7 @@ public class MissedOpportunityRegressionValidationService {
         root.put("strategyId", sid);
         root.put("side", normalizeSide(side));
         root.put("readinessClassification", row.classification());
+        root.put("eligible", autonomousOpportunityEligible(row));
         root.put("reason", row.reason());
         root.set("blockers", stringArray(row.blockers()));
         root.set("warnings", stringArray(row.warnings()));
@@ -411,6 +412,12 @@ public class MissedOpportunityRegressionValidationService {
             return "VALID_SIGNAL_NOT_READY";
         }
         return "MISSED_OPPORTUNITY_RISK";
+    }
+
+    private boolean autonomousOpportunityEligible(Row row) {
+        return row != null
+                && row.blockers().isEmpty()
+                && "MISSED_OPPORTUNITY_RISK".equals(row.classification());
     }
 
     private void sanitizeTinyLiveContextBlockers(TinyLiveMinimumOrderPreviewService.PreviewResult preview,

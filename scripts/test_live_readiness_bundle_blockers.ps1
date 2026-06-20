@@ -241,11 +241,11 @@ function Get-CurrentExpectedRemediationBlockers {
     $docText = Get-Content -Raw -LiteralPath $docPath
     $match = [regex]::Match(
         $docText,
-        '## Current Expected Blockers[\s\S]*?```text\s*(?<blockers>[\s\S]*?)```',
+        'may legitimately report:\s*```text\s*(?<blockers>[\s\S]*?)```',
         [System.Text.RegularExpressions.RegexOptions]::Multiline
     )
     if (-not $match.Success) {
-        throw "remediation doc is missing Current Expected Blockers code block"
+        throw "remediation doc is missing historical complete blocker snapshot code block"
     }
 
     @(
@@ -311,6 +311,42 @@ function Assert-AuditClassificationGuidance {
         )) {
         if ($docText -notmatch [regex]::Escape($pattern)) {
             throw "remediation doc missing audit classification guidance marker: $pattern"
+        }
+    }
+}
+
+function Assert-FailFastStaleMetadataGuidance {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $docPath = Join-Path $repoRoot "docs/live-readiness-blocker-remediation.md"
+    $docText = Get-Content -Raw -LiteralPath $docPath
+    foreach ($pattern in @(
+            "With the current fail-fast bundle behavior",
+            "LIVE_READINESS_EVIDENCE_UNAVAILABLE",
+            "DEPLOYED_RUNTIME_NOT_CURRENT",
+            "historical complete blocker snapshot",
+            "not as current live-readiness evidence",
+            "ContinueWhenRuntimeStale"
+        )) {
+        if ($docText -notmatch [regex]::Escape($pattern)) {
+            throw "remediation doc missing fail-fast stale metadata guidance: $pattern"
+        }
+    }
+    if ($docText -notmatch "expected current output until a separately\s+authorized deploy") {
+        throw "remediation doc missing fail-fast stale metadata guidance: expected current output until a separately authorized deploy"
+    }
+
+    $failFastSection = [regex]::Match(
+        $docText,
+        'With the current fail-fast bundle behavior[\s\S]*?```text\s*(?<blockers>[\s\S]*?)```',
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $failFastSection.Success) {
+        throw "remediation doc missing fail-fast stale metadata blocker block"
+    }
+    $blockerText = $failFastSection.Groups["blockers"].Value
+    foreach ($expected in @("LIVE_READINESS_EVIDENCE_UNAVAILABLE", "DEPLOYED_RUNTIME_NOT_CURRENT")) {
+        if ($blockerText -notmatch [regex]::Escape($expected)) {
+            throw "fail-fast stale metadata blocker block missing $expected"
         }
     }
 }
@@ -459,6 +495,7 @@ Assert-BundleScriptBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-RemediationDocBlockersCovered -ExpectedBlockers $allExpectedBlockers
 Assert-CurrentExpectedBlockersMatchLatestSnapshot
 Assert-AuditClassificationGuidance
+Assert-FailFastStaleMetadataGuidance
 Assert-BundleEvidenceWindowsCovered
 Assert-ReviewPacketMinimumGuarded
 Assert-OperatorDocsReadyBoundary

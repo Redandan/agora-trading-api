@@ -78,6 +78,23 @@ server worktree behind `origin/main`, the same failure output includes
 
 ## Current Expected Blockers
 
+With the current fail-fast bundle behavior, if deployment metadata already
+shows the server worktree or deployed runtime is behind `origin/main`, the
+default `.\scripts\smoke_live_readiness_bundle_ssh.ps1` output is incomplete
+evidence only:
+
+```text
+LIVE_READINESS_EVIDENCE_UNAVAILABLE
+DEPLOYED_RUNTIME_NOT_CURRENT
+```
+
+That default fail-fast result is the expected current output until a separately
+authorized deploy refreshes the server runtime. The fuller list below is a
+historical complete blocker snapshot from the stale deployed runtime; use it to
+plan remediation, not as current live-readiness evidence. Run
+`.\scripts\smoke_live_readiness_bundle_ssh.ps1 -ContinueWhenRuntimeStale` only
+for diagnostic stale-runtime child-smoke output.
+
 The latest recorded read-only server bundle
 (`224f550478b20a329775f503b3eaa70ba6a2f6a8` deployed while `origin/main` was
 `0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0`; `live_review_packet_allowed=false`,

@@ -10,8 +10,8 @@ $expectedServerCommit = "224f550478b20a329775f503b3eaa70ba6a2f6a8"
 $expectedOriginCommit = "0eef3ce5c3964e2520c1c5aa16a57e87f0ba26a0"
 $expectedMetadataOriginCommit = "4ee52d860fb18f79bd989801c471cd71be5c63d1"
 $expectedCurrentOriginCommit = "873b219171755401c40f3a676fb3c7c9477471ec"
-$expectedCurrentObservedAt = "2026-06-20T14:43+08:00"
-$expectedCurrentCommit = "0b738cfe27f9dd2ea7d68c848f1501d3461a7b14"
+$expectedCurrentObservedAt = "2026-06-20T15:32+08:00"
+$expectedCurrentCommit = "12b1343cb2e379e18b7bfcdc9aeea4374c0e533a"
 $expectedBlockers = @(
     "LIVE_READINESS_NOT_READY",
     "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN",
@@ -26,7 +26,6 @@ $expectedBlockers = @(
 )
 $expectedCurrentBlockers = @(
     "LIVE_READINESS_NOT_READY",
-    "MCP_AUDIT_TOOL_ERROR",
     "EXECUTION_ELIGIBILITY_NOT_READY",
     "BACKGROUND_AUTOMATION_REVIEW",
     "RUNTIME_EVIDENCE_CONFIG_DISABLED",
@@ -113,6 +112,7 @@ Assert-ContainsLiteral -Name "live production env review proposal current snapsh
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "deployment_metadata_status=CURRENT"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLog=PASS"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeLogErrors=0"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "missing_readiness_detail_fields=[]"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "metadata_blockers=[]"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=false"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "there is no deploy/currentness blocker"
@@ -133,6 +133,7 @@ Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "deployment_metadata_status=CURRENT"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "origin_metadata_status=CURRENT_ORIGIN_MAIN"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "runtime_log_status=PASS"
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "missing_readiness_detail_fields=[]"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "deploy_required_before_live_review=false"
 foreach ($blocker in $expectedCurrentBlockers) {
     Assert-ContainsLiteral -Name "live readiness remediation current blocker" -Text $remediation -Needle $blocker
@@ -148,7 +149,7 @@ Assert-ContainsLiteral -Name "live readiness remediation current metadata refres
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle 'bundle_blockers=["LIVE_READINESS_EVIDENCE_UNAVAILABLE","DEPLOYED_RUNTIME_NOT_CURRENT"]'
 Assert-ContainsLiteral -Name "live readiness remediation current metadata refresh" -Text $remediation -Needle "bundle_verdict=NO_EVIDENCE"
 
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","MCP_AUDIT_TOOL_ERROR","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]'
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]'
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "current snapshot supersedes earlier stale"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'origin/main` advances again'
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=false"

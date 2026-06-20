@@ -286,8 +286,8 @@ function Assert-CurrentExpectedBlockersMatchLatestSnapshot {
     if ($currentExpected -contains "RUNTIME_HEALTH_OR_LOG_NOT_CLEAN") {
         throw "current expected blockers must not include RUNTIME_HEALTH_OR_LOG_NOT_CLEAN while latest recorded runtime log passed"
     }
-    if ($currentExpected -notcontains "MCP_AUDIT_TOOL_ERROR") {
-        throw "current expected blockers must include MCP_AUDIT_TOOL_ERROR while latest recorded readiness details are incomplete"
+    if ($currentExpected -contains "MCP_AUDIT_TOOL_ERROR") {
+        throw "current expected blockers must not include MCP_AUDIT_TOOL_ERROR while latest recorded readiness details are complete"
     }
 }
 

@@ -78,18 +78,17 @@ server worktree behind `origin/main`, the same failure output includes
 
 ## Current Expected Blockers
 
-The current read-only server bundle on 2026-06-20T14:43+08:00 observed server,
+The current read-only server bundle on 2026-06-20T15:32+08:00 observed server,
 deployed runtime, and `origin/main` all at
-`0b738cfe27f9dd2ea7d68c848f1501d3461a7b14`, with
+`12b1343cb2e379e18b7bfcdc9aeea4374c0e533a`, with
 `deployment_metadata_status=CURRENT`, `origin_metadata_status=CURRENT_ORIGIN_MAIN`,
-`runtime_log_status=PASS`, `deploy_required_before_live_review=false`, and
-`live_review_packet_allowed=false`.
+`runtime_log_status=PASS`, `missing_readiness_detail_fields=[]`,
+`deploy_required_before_live_review=false`, and `live_review_packet_allowed=false`.
 
 That current full-bundle evidence may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY
-MCP_AUDIT_TOOL_ERROR
 EXECUTION_ELIGIBILITY_NOT_READY
 BACKGROUND_AUTOMATION_REVIEW
 RUNTIME_EVIDENCE_CONFIG_DISABLED
@@ -102,11 +101,11 @@ TINY_LIVE_ROLLOUT_NOT_READY
 Those are live-blocking until the clear conditions above are proven by fresh
 read-only evidence. MCP parity is expected to pass with
 `missing_required_tools=[]` and `[mcp-parity-ssh] OK`.
-The current MCP blocker is not a parity failure; it is an audit-readiness
-evidence blocker caused by incomplete required readiness details. The current
-runtime blocker is also not a runtime-log failure; strict runtime-log evidence
-is clean, but runtime evidence collection is disabled and has no canonical
-shadow intent evidence.
+The current MCP audit details are complete enough for this gate
+(`missing_readiness_detail_fields=[]`), so `MCP_AUDIT_TOOL_ERROR` is no longer
+part of the current blocker set. The current runtime blocker is not a
+runtime-log failure; strict runtime-log evidence is clean, but runtime evidence
+collection is disabled and has no canonical shadow intent evidence.
 
 With the current fail-fast bundle behavior, if future deployment metadata
 already shows the server worktree or deployed runtime is behind `origin/main`,
@@ -140,7 +139,7 @@ Historical complete blocker snapshot from stale deployed runtime:
   `TelegramServiceImpl` and `ExecutionEventScheduler`.
 - That stale runtime-log failure preserves `RUNTIME_HEALTH_OR_LOG_NOT_CLEAN`
   for historical RCA only and is no longer the current blocker after the
-  2026-06-20T14:43+08:00 clean runtime-log bundle.
+  2026-06-20T15:32+08:00 clean runtime-log bundle.
 
 Those stale outputs do not clear any blocker and are not a substitute for
 rerunning the full bundle after a separately authorized deploy; they are stale

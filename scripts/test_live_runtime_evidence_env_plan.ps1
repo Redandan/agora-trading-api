@@ -129,10 +129,11 @@ foreach ($flag in $expectedDryRunGuardFlags) {
 
 foreach ($marker in @(
         "current read-only runtime evidence RCA reported",
-        "0b738cfe27f9dd2ea7d68c848f1501d3461a7b14",
+        "12b1343cb2e379e18b7bfcdc9aeea4374c0e533a",
         "origin_metadata_status=CURRENT_ORIGIN_MAIN",
-        "deployedCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14",
+        "deployedCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a",
         "runtime_log_status=PASS",
+        "missing_readiness_detail_fields=[]",
         "smoke_live_deployment_metadata_ssh.ps1",
         "supersedes the stale 2026-06-18 and 2026-06-19",
         "Currentness and runtime",

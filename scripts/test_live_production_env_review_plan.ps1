@@ -88,11 +88,11 @@ $evidenceOnlyExpectedResults = @(
 $latestSnapshotMarkers = @(
     'Latest current read-only bundle snapshot',
     'snapshotType=CURRENT_READ_ONLY_EVIDENCE',
-    'observedAt=2026-06-20T14:43\+08:00',
-    'serverCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14',
-    'deployedCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14',
+    'observedAt=2026-06-20T15:32\+08:00',
+    'serverCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a',
+    'deployedCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a',
     'origin_metadata_status=CURRENT_ORIGIN_MAIN',
-    'originMainCommit=0b738cfe27f9dd2ea7d68c848f1501d3461a7b14',
+    'originMainCommit=12b1343cb2e379e18b7bfcdc9aeea4374c0e533a',
     'current snapshot supersedes earlier stale 2026-06-19 and 2026-06-20 morning',
     'Runtime currentness is currently clean',
     'refreshType=DEPLOYMENT_METADATA_ONLY',
@@ -104,6 +104,7 @@ $latestSnapshotMarkers = @(
     'eventRisk=riskLevel=R0',
     'runtimeLog=PASS',
     'runtimeLogErrors=0',
+    'missing_readiness_detail_fields=\[\]',
     '2026-06-20T10:16\+08:00',
     'app-20260618T070102Z-port8084\.log',
     'TelegramServiceImpl',
@@ -112,7 +113,6 @@ $latestSnapshotMarkers = @(
     'runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0',
     'tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2',
     'signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN',
-    'MCP_AUDIT_TOOL_ERROR',
     'LIVE_READINESS_NOT_READY'
 )
 

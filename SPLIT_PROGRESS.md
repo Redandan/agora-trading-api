@@ -511,6 +511,10 @@
   operator review. `scripts/prepare_profit_operator_latest_action_brief.ps1`
   reads that pointer and rebuilds the action brief through the same
   `-MatrixOutputPath` freshness guard without rerunning the long SSH matrix.
+  `scripts/prepare_profit_operator_review_summary.ps1` converts that latest
+  action brief into `profit_operator_review_summary_packet`, ready lanes,
+  blocked lanes, and required evidence for operator review while preserving
+  the same non-authorization boundary.
   Reused matrix output is freshness-guarded by
   `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
   `matrix_freshness_status=STALE` when stale. The brief does

@@ -1091,6 +1091,19 @@ Expected:
   It reads `latest-profit-operator-matrix.path`, invokes
   `prepare_profit_operator_action_brief_ssh.ps1` with `-MatrixOutputPath`, and
   keeps the same `-MatrixMaxAgeMinutes` freshness guard.
+- To summarize the latest saved action brief for operator review, run:
+
+  ```powershell
+  .\scripts\prepare_profit_operator_review_summary.ps1 -RequireReady
+  ```
+
+  Expected output includes `profit_operator_review_summary_packet`,
+  `profit_operator_review_summary_ready_lanes`,
+  `profit_operator_review_summary_blocked_lanes`, and
+  `profit_operator_review_summary_required_evidence`. The summary is a
+  read-only review packet; it does not authorize live trading, trailing
+  scheduler enablement, policy relaxation, OCO/position changes, deploy, or
+  production env changes.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a

@@ -43,12 +43,14 @@ function Assert-FailsBeforeSsh {
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_action_brief_ssh.ps1"
 $latestScriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_latest_action_brief.ps1"
+$summaryScriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_review_summary.ps1"
 $readmePath = Join-Path $repoRoot "README.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 $latestScriptText = Get-Content -Raw -LiteralPath $latestScriptPath
+$summaryScriptText = Get-Content -Raw -LiteralPath $summaryScriptPath
 $docsText = @(
     Get-Content -Raw -LiteralPath $readmePath
     Get-Content -Raw -LiteralPath $runbookPath
@@ -118,6 +120,25 @@ foreach ($marker in @(
         "RequireReady"
     )) {
     Assert-Contains -Name "profit operator latest action brief marker" -Text $latestScriptText -Pattern ([regex]::Escape($marker))
+}
+
+foreach ($marker in @(
+        "[profit-operator-review-summary] read-only summary",
+        "prepare_profit_operator_latest_action_brief.ps1",
+        "profit_operator_action_brief_packet",
+        "profit_operator_review_summary_packet",
+        "profit_operator_review_summary_ready_lanes",
+        "profit_operator_review_summary_blocked_lanes",
+        "profit_operator_review_summary_required_evidence",
+        "PROFIT_OPERATOR_REVIEW_SUMMARY",
+        "readyLaneCount",
+        "blockedLaneCount",
+        "requiredEvidence",
+        "notAuthorization=read-only profit operator review summary only",
+        "does not deploy",
+        "RequireReady"
+    )) {
+    Assert-Contains -Name "profit operator review summary marker" -Text $summaryScriptText -Pattern ([regex]::Escape($marker))
 }
 
 $tempMatrixPath = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-operator-matrix-" + [guid]::NewGuid().ToString("N") + ".log")
@@ -242,6 +263,38 @@ try {
     if ($latestText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit operator latest action brief unexpectedly invoked a child or SSH:`n$latestText"
     }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $summaryOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $summaryScriptPath -ReviewOutputDir $tempReviewDir -RequireReady 2>&1
+        $summaryExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $summaryText = ($summaryOutput | Out-String)
+    if ($summaryExitCode -ne 0) {
+        throw "profit operator review summary failed to reuse latest pointer matrix output:`n$summaryText"
+    }
+    foreach ($marker in @(
+            "[profit-operator-review-summary] read-only summary",
+            "profit_operator_review_summary_packet=",
+            '"packetType":"PROFIT_OPERATOR_REVIEW_SUMMARY"',
+            '"readyLaneCount":1',
+            '"blockedLaneCount":2',
+            '"lane":"exit-side"',
+            '"lane":"entry-filter"',
+            '"lane":"data-freshness-replay"',
+            '"requirement":"DataFreshness current sample"',
+            '"requirement":"replayCandidateId"',
+            "profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
+            "notAuthorization=read-only profit operator review summary only"
+        )) {
+        Assert-Contains -Name "profit operator review summary latest pointer reuse" -Text $summaryText -Pattern ([regex]::Escape($marker))
+    }
+    if ($summaryText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit operator review summary unexpectedly invoked a child or SSH:`n$summaryText"
+    }
 } finally {
     if (Test-Path -LiteralPath $tempMatrixPath) {
         Remove-Item -LiteralPath $tempMatrixPath -Force
@@ -268,8 +321,10 @@ foreach ($forbidden in @(
 foreach ($marker in @(
         "prepare_profit_operator_action_brief_ssh.ps1",
         "prepare_profit_operator_latest_action_brief.ps1",
+        "prepare_profit_operator_review_summary.ps1",
         "profit operator action brief",
         "profit_operator_action_brief_status",
+        "profit_operator_review_summary_packet",
         "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
         "REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION",
         "profit_operator_action_items",

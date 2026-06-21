@@ -86,7 +86,7 @@ function Assert-BlockerSummaryShape {
     }
 
     foreach ($item in $items) {
-        foreach ($field in @("gate", "status", "riskCategory", "allowedFlag", "allowed", "requiredEvidenceCount", "requiredEvidence", "nextAction", "notAuthorization")) {
+        foreach ($field in @("gate", "status", "riskCategory", "allowedFlag", "allowed", "requiredEvidenceCount", "requiredEvidence", "nextAction", "runtimeDrift", "notAuthorization")) {
             if ($null -eq $item.PSObject.Properties[$field]) {
                 throw "post-deploy profit validation blocker summary entry missing field: $field"
             }
@@ -96,6 +96,14 @@ function Assert-BlockerSummaryShape {
         }
         if ($item.notAuthorization -notmatch "does not authorize live trading") {
             throw "post-deploy profit validation blocker summary entry must preserve no-live authorization text: $($item.gate)"
+        }
+        foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths")) {
+            if ($null -eq $item.runtimeDrift.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation blocker summary runtimeDrift missing field: $field"
+            }
+        }
+        if ($item.runtimeDrift.runtimeDeltaFiles -ne @($item.runtimeDrift.runtimeDeltaPaths).Count) {
+            throw "post-deploy profit validation blocker summary runtimeDeltaFiles mismatch: $($item.gate)"
         }
     }
 }
@@ -164,6 +172,10 @@ foreach ($marker in @(
         "New-ProfitValidationBlockerSummary",
         "Assert-ProfitValidationBlockerSummaryShape",
         "riskCategory",
+        "runtimeDrift",
+        "originDeltaStatus",
+        "runtimeDeltaFiles",
+        "runtimeDeltaPaths",
         "requiredEvidence",
         "requiredEvidenceCount",
         "nextAction",
@@ -174,6 +186,8 @@ foreach ($marker in @(
         "post-deploy profit validation blocker summary entry missing field",
         "post-deploy profit validation blocker summary requiredEvidenceCount mismatch",
         "post-deploy profit validation blocker summary entry must preserve no-live authorization text",
+        "post-deploy profit validation blocker summary runtimeDrift missing field",
+        "post-deploy profit validation blocker summary runtimeDeltaFiles mismatch",
         "operator_review_packet_allowed",
         "loss_source_review_allowed",
         "shadow_experiment_review_allowed",
@@ -274,6 +288,13 @@ $blockerSummaryFixture = @'
     "requiredEvidenceCount": 2,
     "requiredEvidence": ["deployed runtime current", "current strategy 485 OCO health"],
     "nextAction": "Separately deploy and verify current origin/main, then rerun the auto-trading review gate.",
+    "runtimeDrift": {
+      "originDeltaStatus": "RUNTIME_DRIFT",
+      "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
+      "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
+      "runtimeDeltaFiles": 2,
+      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"]
+    },
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   },
   {
@@ -285,6 +306,13 @@ $blockerSummaryFixture = @'
     "requiredEvidenceCount": 2,
     "requiredEvidence": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows"],
     "nextAction": "Separately deploy and verify current origin/main, then rerun profit loss review gate.",
+    "runtimeDrift": {
+      "originDeltaStatus": "RUNTIME_DRIFT",
+      "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
+      "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
+      "runtimeDeltaFiles": 2,
+      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"]
+    },
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   },
   {
@@ -296,6 +324,13 @@ $blockerSummaryFixture = @'
     "requiredEvidenceCount": 2,
     "requiredEvidence": ["deployed runtime current", "entry/TP/SL candidate snapshot"],
     "nextAction": "Separately deploy and verify current origin/main, then rerun replay observation and profit experiment gate.",
+    "runtimeDrift": {
+      "originDeltaStatus": "RUNTIME_DRIFT",
+      "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
+      "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
+      "runtimeDeltaFiles": 2,
+      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"]
+    },
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   }
 ]

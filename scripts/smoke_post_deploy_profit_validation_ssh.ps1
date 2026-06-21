@@ -139,7 +139,10 @@ function Assert-ProfitValidationReviewPlanShape {
 }
 
 function New-ProfitValidationBlockerSummary {
-    param([object[]]$Plan)
+    param(
+        [object[]]$Plan,
+        [object]$RuntimeDrift
+    )
 
     $summary = [System.Collections.Generic.List[object]]::new()
     foreach ($item in @($Plan)) {
@@ -155,6 +158,7 @@ function New-ProfitValidationBlockerSummary {
             requiredEvidenceCount = @($item.requiredEvidence).Count
             requiredEvidence = @($item.requiredEvidence)
             nextAction = $item.nextAction
+            runtimeDrift = $RuntimeDrift
             notAuthorization = $item.notAuthorization
         })
     }
@@ -165,7 +169,7 @@ function Assert-ProfitValidationBlockerSummaryShape {
     param([object[]]$Summary)
 
     foreach ($item in @($Summary)) {
-        foreach ($field in @("gate", "status", "riskCategory", "allowedFlag", "allowed", "requiredEvidenceCount", "requiredEvidence", "nextAction", "notAuthorization")) {
+        foreach ($field in @("gate", "status", "riskCategory", "allowedFlag", "allowed", "requiredEvidenceCount", "requiredEvidence", "nextAction", "runtimeDrift", "notAuthorization")) {
             if ($null -eq $item.PSObject.Properties[$field]) {
                 throw "post-deploy profit validation blocker summary entry missing field: $field"
             }
@@ -175,6 +179,14 @@ function Assert-ProfitValidationBlockerSummaryShape {
         }
         if ($item.notAuthorization -notmatch "does not authorize live trading") {
             throw "post-deploy profit validation blocker summary entry must preserve no-live authorization text: $($item.gate)"
+        }
+        foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths")) {
+            if ($null -eq $item.runtimeDrift.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation blocker summary runtimeDrift missing field: $field"
+            }
+        }
+        if ($item.runtimeDrift.runtimeDeltaFiles -ne @($item.runtimeDrift.runtimeDeltaPaths).Count) {
+            throw "post-deploy profit validation blocker summary runtimeDeltaFiles mismatch: $($item.gate)"
         }
     }
 }
@@ -301,6 +313,7 @@ $originDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin
 $originDocsToolingDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_docs_tooling_delta_files="
 $originRuntimeDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_runtime_delta_files="
 $originRuntimeDeltaPaths = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_runtime_delta_paths="
+$originRuntimeDeltaPathItems = Convert-JsonArrayOrEmpty -Value $originRuntimeDeltaPaths
 $originDeltaValues = @($autoOriginDelta, $profitLossOriginDelta, $profitExperimentOriginDelta, $localOriginDelta) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 $originDelta = if (@($originDeltaValues).Count -eq 1) { [string]@($originDeltaValues)[0] } elseif (@($originDeltaValues).Count -gt 1) { "MISMATCH" } else { "" }
 
@@ -423,7 +436,14 @@ $reviewPlan = @(
         -NextAction $profitExperimentNextAction
 )
 Assert-ProfitValidationReviewPlanShape -Plan $reviewPlan
-$blockerSummary = New-ProfitValidationBlockerSummary -Plan $reviewPlan
+$runtimeDrift = [pscustomobject]@{
+    originDeltaStatus = $originDelta
+    serverWorktreeCommit = $serverWorktreeCommit
+    originMainCommit = $originMainCommit
+    runtimeDeltaFiles = if ([string]::IsNullOrWhiteSpace($originRuntimeDeltaFiles)) { 0 } else { [int]$originRuntimeDeltaFiles }
+    runtimeDeltaPaths = @($originRuntimeDeltaPathItems)
+}
+$blockerSummary = New-ProfitValidationBlockerSummary -Plan $reviewPlan -RuntimeDrift $runtimeDrift
 Assert-ProfitValidationBlockerSummaryShape -Summary $blockerSummary
 
 Write-Host "[post-deploy-profit-validation] read-only validation bundle"

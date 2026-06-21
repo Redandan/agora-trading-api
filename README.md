@@ -429,7 +429,8 @@ profit review packets and does not deploy, restart, change production env, relax
 policy, place orders, or modify OCO/grid/fund/Earn state.
 The blocker summary is a machine-readable routing copy of the blocked child
 gate evidence; each entry preserves `requiredEvidenceCount`, `requiredEvidence`,
-`nextAction`, and no-live authorization text, and does not clear blockers.
+`nextAction`, `runtimeDrift`, and no-live authorization text, and does not clear
+blockers.
 When `origin_delta_status=RUNTIME_DRIFT`, the aggregate output also carries
 `server_worktree_commit`, `origin_main_commit`, `origin_runtime_delta_files`,
 and `origin_runtime_delta_paths`, so the deploy-first blocker points at the

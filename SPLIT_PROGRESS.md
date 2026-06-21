@@ -270,7 +270,7 @@
   `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` so profit review readiness can be checked
   from one read-only command. The blocker summary preserves
-  `requiredEvidenceCount`, `requiredEvidence`, `nextAction`, and no-live
+  `requiredEvidenceCount`, `requiredEvidence`, `nextAction`, `runtimeDrift`, and no-live
   authorization text for each blocked child gate, while runtime-drift output
   shows the concrete runtime files behind deploy-first blockers. `scripts/test_post_deploy_profit_validation.ps1`
   guards the child gate list, blocker summary shape, safety markers, docs

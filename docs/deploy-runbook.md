@@ -732,8 +732,8 @@ Expected:
   `notAuthorization` so the next profit-review step is explicit.
 - `post_deploy_profit_validation_blocker_summary` gives a machine-readable
   blocked-child-gate summary with `requiredEvidenceCount`, `requiredEvidence`,
-  `nextAction`, and no-live authorization text. It routes review work but does
-  not clear blockers or authorize live changes.
+  `nextAction`, `runtimeDrift`, and no-live authorization text. It routes
+  review work but does not clear blockers or authorize live changes.
 - `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` remain hard non-authorization markers.
 - The bundle is read-only. It does not deploy, restart, change production env,

@@ -151,6 +151,19 @@
   trailing scheduler, change strategy opt-in, place orders, modify OCO, close
   positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize exit policy changes.
+- `scripts/prepare_exit_side_profit_review_packet_ssh.ps1` combines the
+  trailing-stop operator packet and strategy 485 aged negative-EV operator
+  packet into `exit_side_profit_review_packet` and
+  `exit_side_profit_review_packet_status`. It can return
+  `READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION` only when both exit-side
+  read-only packets are ready. The combined packet keeps
+  `trailing_stop_acceptance`, `trailing_stop_improvement_pct`,
+  `strategy485_operator_packet_status`, and
+  `strategy485_negative_ev_position_count` visible in one place, but it does
+  not authorize live trailing, scheduler enablement, strategy opt-in changes,
+  orders, OCO modification, close-position, DB/grid/fund/Earn/Telegram/
+  exchange mutation, production env changes, deploy, restart, nginx reload, or
+  external backfill/import.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
   DataFreshnessGuard blocks from current source freshness: the read-only MCP
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`

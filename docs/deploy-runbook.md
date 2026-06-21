@@ -1657,6 +1657,29 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize exit policy changes.
 
+For a read-only exit-side profit review packet, run:
+
+```powershell
+.\scripts\prepare_exit_side_profit_review_packet_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- The packet runs `prepare_trailing_stop_operator_review_packet_ssh.ps1` and
+  `prepare_strategy485_operator_review_packet_ssh.ps1`.
+- Output includes `exit_side_profit_review_packet`,
+  `exit_side_profit_review_packet_status`,
+  `trailing_stop_acceptance`, `trailing_stop_improvement_pct`,
+  `strategy485_operator_packet_status`, and
+  `strategy485_negative_ev_position_count`.
+- `READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION` means exit-side evidence
+  can be attached to a separate operator review.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, enable the trailing scheduler, change
+  strategy opt-in, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize exit policy changes.
+
 Optional public path check:
 
 ```bash

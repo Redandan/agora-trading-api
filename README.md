@@ -168,6 +168,22 @@ and does not deploy, enable live trading, enable the trailing scheduler, change
 strategy opt-in, place orders, modify OCO, close positions, or mutate DB/grid/
 fund/Earn state.
 
+Read-only exit-side profit review packet:
+
+```powershell
+.\scripts\prepare_exit_side_profit_review_packet_ssh.ps1 -RequireReady
+```
+
+This combines the trailing-stop operator packet and strategy 485 aged
+negative-EV operator packet into `exit_side_profit_review_packet` and
+`exit_side_profit_review_packet_status`.
+`READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION` means exit-side evidence is
+ready for a separate operator review; it does not enable live trailing, change
+strategy opt-in, place orders, modify OCO, close positions, or mutate
+DB/grid/fund/Earn state. It keeps `trailing_stop_acceptance` and
+`strategy485_operator_packet_status` in one packet while preserving all
+no-mutation guardrails.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 
@@ -473,6 +489,11 @@ This wraps the strategy 485 gate into a machine-readable
 means the packet can be attached to a separate operator review; it still keeps
 `position_or_oco_mutation_allowed=false` and does not authorize close-position
 or OCO modification.
+
+Use `prepare_exit_side_profit_review_packet_ssh.ps1 -RequireReady` when the
+operator needs one read-only packet covering both trailing-stop PnL acceptance
+and strategy 485 aged negative-EV position risk. The combined packet emits
+`exit_side_profit_review_packet_status` and stays non-mutating.
 
 Read-only auto-trading review bundle:
 

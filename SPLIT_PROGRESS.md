@@ -434,6 +434,7 @@
   bundle into a read-only experiment gate. It emits
   `deploy_required_before_profit_experiment`,
   `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
+  `strategy485_position_review_decision`,
   `profit_experiment_missing_requirements`, and
   `profit_experiment_gate_status`. The gate can route a candidate toward a
   separate shadow-only proposal only after required replay/counterfactual

@@ -936,6 +936,7 @@ Expected:
 - The gate invokes `smoke_profit_improvement_review_bundle_ssh.ps1` only.
 - Output includes `deploy_required_before_profit_experiment`,
   `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
+  `strategy485_position_review_decision`,
   `profit_experiment_missing_requirements`, and
   `profit_experiment_gate_status`.
 - `shadow_experiment_review_allowed=true` is only permission to draft a separate

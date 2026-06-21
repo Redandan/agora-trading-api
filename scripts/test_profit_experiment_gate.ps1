@@ -70,6 +70,7 @@ foreach ($marker in @(
         "profit_improvement_review_decision",
         "top_profit_improvement_candidate",
         "top_profit_improvement_candidate_status",
+        "strategy485_position_review_decision",
         "deploy_required_before_profit_experiment",
         "shadow_experiment_review_allowed",
         "live_policy_change_allowed=false",

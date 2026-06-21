@@ -200,6 +200,10 @@ $scorecardJson = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_impro
 $reviewDecisionJson = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_improvement_review_decision="
 $scorecard = Convert-JsonArrayOrEmpty -Value $scorecardJson
 $reviewDecision = Convert-JsonObjectOrNull -Value $reviewDecisionJson
+$strategy485ReviewDecisionJson = "null"
+if ($null -ne $reviewDecision -and $null -ne $reviewDecision.PSObject.Properties["strategy485ReviewDecision"] -and $null -ne $reviewDecision.strategy485ReviewDecision) {
+    $strategy485ReviewDecisionJson = ConvertTo-Json -Compress -Depth 8 -InputObject $reviewDecision.strategy485ReviewDecision
+}
 $top = @($scorecard | Select-Object -First 1)
 $topStatus = ""
 $topPriority = ""
@@ -281,6 +285,7 @@ Write-Host "top_profit_improvement_candidate_priority=$topPriority"
 Write-Host "top_profit_improvement_candidate_status=$topStatus"
 Write-Host "profit_improvement_bundle_recommendation=$bundleRecommendation"
 Write-Host "profit_improvement_review_decision=$reviewDecisionJson"
+Write-Host "strategy485_position_review_decision=$strategy485ReviewDecisionJson"
 Write-Host "deploy_required_before_profit_experiment=$($deployRequired.ToString().ToLowerInvariant())"
 Write-Host "shadow_experiment_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host "live_policy_change_allowed=false"

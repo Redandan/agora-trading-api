@@ -586,7 +586,8 @@ Read-only profit experiment gate:
 
 This gate runs the profit-improvement review bundle and converts the candidate
 scorecard into `deploy_required_before_profit_experiment`,
-`shadow_experiment_review_allowed`, `live_policy_change_allowed=false`, and
+`shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
+`strategy485_position_review_decision`, and
 `profit_experiment_gate_status`. It is a routing check for shadow/small
 experiment review only; it does not authorize deploy, live policy changes,
 position/OCO changes, or order-capable actions.

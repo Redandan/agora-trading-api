@@ -196,6 +196,20 @@
   place orders, modify OCO, close positions, mutate
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy/filter changes.
+- `scripts/prepare_missed_opportunity_shadow_design_packet_ssh.ps1` wraps the
+  no-buy row packet and extracts only `MISSED_OPPORTUNITY_REVIEW` rows into
+  `missed_opportunity_shadow_design_packet`. It emits
+  `shadow_design_review_allowed`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, candidate row evidence, and
+  `missed_opportunity_shadow_design_packet_status`.
+  `BLOCKED_SIGNAL_POLICY_REVIEW_REQUIRED` means rows are reviewable but blocked
+  by governance, missed-opportunity, or signal-policy evidence.
+  `READY_FOR_MISSED_OPPORTUNITY_SHADOW_DESIGN_NOT_LIVE` means a separate
+  shadow-only design can be drafted; it is not live/tiny-live approval. The
+  packet does not deploy, restart, reload nginx, change production env, enable
+  live trading, execute tiny-live orders, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy/filter changes.
 - `scripts/smoke_strategy574_signal_governance_ssh.ps1` provides a focused
   read-only production RCA for the TinyLive strategy 574 near-BUY path. It
   compares 1d/3d/7d/14d governance drift, extracts strategy 574 rows from

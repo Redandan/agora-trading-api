@@ -582,6 +582,33 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy/filter changes.
 
+For a read-only missed-opportunity shadow design packet preflight, run:
+
+```powershell
+.\scripts\prepare_missed_opportunity_shadow_design_packet_ssh.ps1 -RequireReview
+```
+
+Expected:
+
+- The packet runs `prepare_no_buy_row_review_packet_ssh.ps1` and emits
+  `missed_opportunity_shadow_design_packet`.
+- It extracts only `MISSED_OPPORTUNITY_REVIEW` rows into
+  `candidateMissedOpportunityRows` and keeps `WAIT_FOR_SIGNAL_CONFIRMATION`
+  rows as observation-only evidence.
+- Output includes `shadow_design_review_allowed`,
+  `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
+- `missed_opportunity_shadow_design_packet_status=BLOCKED_SIGNAL_POLICY_REVIEW_REQUIRED`
+  means the candidate row is reviewable but still blocked by governance drift,
+  missed-opportunity regression, or signal-policy evidence.
+- `missed_opportunity_shadow_design_packet_status=READY_FOR_MISSED_OPPORTUNITY_SHADOW_DESIGN_NOT_LIVE`
+  means a separate shadow-only design can be drafted. It is not permission to
+  execute tiny-live/live orders or relax EntryDedup/DataFreshness/live policy.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, execute tiny-live orders, relax
+  EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy/filter changes.
+
 For the focused strategy 574 TinyLive near-BUY / governance RCA, run:
 
 ```powershell

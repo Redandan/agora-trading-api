@@ -341,6 +341,24 @@ be used to draft a bounded shadow design only. The packet does not deploy,
 enable live trading, relax EntryDedup/DataFreshness/live policy, place orders,
 modify OCO, close positions, or mutate DB/grid/fund/Earn state.
 
+Read-only missed-opportunity shadow design packet preflight:
+
+```powershell
+.\scripts\prepare_missed_opportunity_shadow_design_packet_ssh.ps1 -RequireReview
+```
+
+This wraps the no-buy row packet and extracts only `MISSED_OPPORTUNITY_REVIEW`
+rows into `missed_opportunity_shadow_design_packet`. It emits
+`shadow_design_review_allowed`, `tiny_live_order_allowed=false`, and
+`live_policy_change_allowed=false`. `BLOCKED_SIGNAL_POLICY_REVIEW_REQUIRED`
+means the candidate row can be reviewed but still cannot be used to draft a
+shadow/tiny-live experiment until signal policy, governance drift, and
+missed-opportunity regression are clear. `READY_FOR_MISSED_OPPORTUNITY_SHADOW_DESIGN_NOT_LIVE`
+is shadow-design-only evidence, not live execution approval. The packet does
+not deploy, enable live trading, execute tiny-live orders, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close positions,
+or mutate DB/grid/fund/Earn state.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

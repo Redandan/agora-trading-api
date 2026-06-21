@@ -173,9 +173,14 @@
   policy review separate from strategy 485 aged negative-EV position review and
   listing separate authorizations required for trailing enablement,
   close-position, OCO modification, deploy, or production env changes. The
-  brief emits top-level `strategy485_position_summaries` and carries trailing
-  acceptance sample counts in `evidenceSummary` so the key exit-side evidence
-  is visible without digging through nested source packets. It does
+  brief emits `exit_side_operator_decision_lanes` / `decisionLanes` to separate
+  `trailing-stop-rollout`, `strategy485-risk-reduction`, and
+  `entry-filter-datafreshness-policy`; the entry/filter lane is explicitly
+  `NOT_DECIDED_BY_EXIT_SIDE_BRIEF` and remains routed through the profit
+  operator action brief. It also emits top-level
+  `strategy485_position_summaries` and carries trailing acceptance sample
+  counts in `evidenceSummary` so the key exit-side evidence is visible without
+  digging through nested source packets. It does
   not authorize live trailing, scheduler enablement, strategy opt-in changes,
   orders, OCO modification, close-position, DB/grid/fund/Earn/Telegram/exchange
   mutation, production env changes, deploy, restart, nginx reload, or external

@@ -1788,6 +1788,11 @@ Expected:
   negative-EV position review, and lists separate authorizations required for
   trailing enablement, close-position, OCO modification, deployment, or
   production env changes.
+- The brief emits `exit_side_operator_decision_lanes` / `decisionLanes` with
+  `trailing-stop-rollout`, `strategy485-risk-reduction`, and
+  `entry-filter-datafreshness-policy`; the entry/filter lane is
+  `NOT_DECIDED_BY_EXIT_SIDE_BRIEF` and must stay routed through the profit
+  operator action brief.
 - The brief emits top-level `strategy485_position_summaries` and carries
   trailing acceptance sample counts in `evidenceSummary`, so the key operator
   evidence is visible without inspecting nested source packets.

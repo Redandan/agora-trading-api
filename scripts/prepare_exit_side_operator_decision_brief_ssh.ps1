@@ -170,6 +170,39 @@ $recommendations.Add([pscustomobject]@{
     nextAction = "Review OCO health, EV, timeout, and TP-stretch evidence separately; do not close positions or modify OCO from this brief."
 })
 
+$decisionLanes = @(
+    [pscustomobject]@{
+        lane = "trailing-stop-rollout"
+        decisionClass = "EXIT_POLICY_REVIEW_READY_NOT_LIVE"
+        status = if ($trailingAcceptance -eq "PASS") { "READY_FOR_OPERATOR_REVIEW_NOT_LIVE" } else { "BLOCKED_TRAILING_ACCEPTANCE" }
+        evidence = @("trailing_stop_acceptance=$trailingAcceptance", "trailing_stop_improvement_pct=$trailingImprovementPct", "trailing_stop_delta_pnl=$trailingDeltaPnl")
+        separateAuthorizationRequired = @("enable trailing scheduler or trailing live mode", "change strategy opt-in or exit policy", "deploy runtime changes")
+        allowedFromThisBrief = @("attach trailing replay evidence to operator review", "draft a separately authorized dry-run/live rollout plan")
+        forbiddenFromThisBrief = @("enable trailing scheduler", "enable live trading", "modify OCO", "change production env", "deploy")
+        nextAction = "Review trailing acceptance and scheduler/strategy opt-in scope separately; keep scheduler disabled or dry-run until separately approved."
+    },
+    [pscustomobject]@{
+        lane = "strategy485-risk-reduction"
+        decisionClass = "POSITION_RISK_REVIEW_READY_NOT_MUTATION"
+        status = if ($negativeEvCount -ne "N/A" -and $negativeEvCount -ne "0") { "READY_FOR_OPERATOR_REVIEW_NOT_MUTATION" } else { "WATCH_ONLY" }
+        evidence = @("strategy485_oco_health_ok=$ocoHealthOk", "strategy485_negative_ev_position_count=$negativeEvCount", "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount", "strategy485_position_summaries_count=$($strategy485PositionSummaries.Count)")
+        separateAuthorizationRequired = @("close any strategy 485 position", "modify or cancel OCO", "change risk-reduction policy")
+        allowedFromThisBrief = @("attach aged negative-EV position evidence to operator review", "draft a separate risk-reduction decision packet")
+        forbiddenFromThisBrief = @("close positions", "modify OCO", "cancel OCO", "place orders", "change production env", "deploy")
+        nextAction = "Review OCO health, EV, timeout, and TP-stretch evidence separately; require explicit mutation authorization before any close-position or OCO action."
+    },
+    [pscustomobject]@{
+        lane = "entry-filter-datafreshness-policy"
+        decisionClass = "NOT_DECIDED_BY_EXIT_SIDE_BRIEF"
+        status = "BLOCKED_OR_OUT_OF_SCOPE"
+        evidence = @("exit_side_brief_scope=trailing_and_strategy485_only", "entry_filter_and_data_freshness_require_profit_operator_action_brief")
+        separateAuthorizationRequired = @("relax EntryDedup/DataFreshness/live policy", "enable live entry policy changes", "approve DataFreshness shadow/replay policy")
+        allowedFromThisBrief = @("keep entry/filter and DataFreshness policy unchanged", "route operators to profit_operator_action_brief for current blocked-lane evidence")
+        forbiddenFromThisBrief = @("relax EntryDedup", "relax DataFreshnessGuard", "enable TinyLive or entry execution", "change live policy")
+        nextAction = "Use the profit operator action brief for entry/filter and DataFreshness blocked-lane evidence; do not bundle those policy decisions into this exit-side review."
+    }
+)
+
 $decisionStatus = "NOT_READY"
 $primaryRecommendation = "COLLECT_EXIT_SIDE_EVIDENCE"
 if ($exitPacketResult.ExitCode -ne 0 -or $null -eq $exitPacket) {
@@ -189,6 +222,7 @@ $brief = [pscustomobject]@{
     sourcePacketExitCode = $exitPacketResult.ExitCode
     exitSidePacketStatus = $exitStatus
     primaryRecommendation = $primaryRecommendation
+    decisionLanes = @($decisionLanes)
     reviewRecommendations = @($recommendations)
     separateAuthorizationsRequired = @(
         "enable trailing scheduler or trailing live mode",
@@ -236,6 +270,7 @@ Write-Host "strategy485_oco_health_ok=$ocoHealthOk"
 Write-Host "strategy485_negative_ev_position_count=$negativeEvCount"
 Write-Host "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount"
 Write-Host ("strategy485_position_summaries=" + (ConvertTo-Json -Compress -Depth 6 @($strategy485PositionSummaries)))
+Write-Host ("exit_side_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))
 Write-Host ("exit_side_operator_review_recommendations=" + (ConvertTo-Json -Compress -Depth 8 @($recommendations)))
 Write-Host ("exit_side_operator_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 12 $brief))
 Write-Host "exit_side_operator_decision_brief_status=$decisionStatus"

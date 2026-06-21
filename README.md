@@ -197,9 +197,14 @@ This converts the exit-side packet into
 `READY_FOR_OPERATOR_DECISION_NOT_MUTATION` means the evidence can be attached
 to a separate exit-side operator review with
 `PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW`. The brief also emits
-`strategy485_position_summaries` and carries trailing acceptance sample counts
-in `evidenceSummary` so the operator does not need to dig through nested source
-packets for the key exit-side evidence. It does not deploy, enable live
+`exit_side_operator_decision_lanes` / `decisionLanes` to separate
+`trailing-stop-rollout`, `strategy485-risk-reduction`, and
+`entry-filter-datafreshness-policy`; the last lane is explicitly
+`NOT_DECIDED_BY_EXIT_SIDE_BRIEF` and must stay routed through the profit
+operator action brief. It also emits `strategy485_position_summaries` and
+carries trailing acceptance sample counts in `evidenceSummary` so the operator
+does not need to dig through nested source packets for the key exit-side
+evidence. It does not deploy, enable live
 trading, enable trailing, place orders, modify OCO, close positions, change
 strategy opt-in, or mutate DB/grid/fund/Earn state.
 

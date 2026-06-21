@@ -104,6 +104,37 @@ function Add-DecisionMissingRequirements {
     }
 }
 
+function Add-DataFreshnessCounterfactualMissingRequirements {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [object[]]$Scorecard
+    )
+
+    $candidate = @($Scorecard | Where-Object { $_.candidate -eq "DataFreshness false-kill counterfactual" } | Select-Object -First 1)
+    if ($candidate.Count -eq 0 -or $null -eq $candidate[0].PSObject.Properties["evidence"]) {
+        return
+    }
+
+    $evidence = $candidate[0].evidence
+    $counterfactual = if ($null -ne $evidence.PSObject.Properties["counterfactual"]) { [string]$evidence.counterfactual } else { "" }
+    $replayableRows = 0
+    if ($null -ne $evidence.PSObject.Properties["completeReplayableCandidateRows"]) {
+        [void][int]::TryParse([string]$evidence.completeReplayableCandidateRows, [ref]$replayableRows)
+    }
+
+    if ($counterfactual -and $counterfactual -ne "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
+        Add-MissingRequirement -List $List -Value "DataFreshness counterfactual replay candidates reviewable"
+    }
+    if ($replayableRows -le 0) {
+        Add-MissingRequirement -List $List -Value "complete DataFreshness replayable candidate rows"
+    }
+    if ($null -ne $evidence.PSObject.Properties["missingCounterfactualFields"]) {
+        foreach ($field in @($evidence.missingCounterfactualFields)) {
+            Add-MissingRequirement -List $List -Value "DataFreshness counterfactual field: $field"
+        }
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -209,6 +240,7 @@ if ($topStatus -eq "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES") {
     Add-MissingRequirement -List $missingRequirements -Value "current BUY candidate and hard-gate pass evidence"
 }
 Add-DecisionMissingRequirements -List $missingRequirements -Decision $reviewDecision
+Add-DataFreshnessCounterfactualMissingRequirements -List $missingRequirements -Scorecard @($scorecard)
 
 $deployRequired = ($originDelta -eq "RUNTIME_DRIFT" -or @($missingRequirements) -contains "deployed runtime current")
 $shadowReviewAllowed = $false
@@ -252,6 +284,7 @@ Write-Host "profit_improvement_review_decision=$reviewDecisionJson"
 Write-Host "deploy_required_before_profit_experiment=$($deployRequired.ToString().ToLowerInvariant())"
 Write-Host "shadow_experiment_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host "live_policy_change_allowed=false"
+Write-Host ("data_freshness_counterfactual_gate_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements | Where-Object { [string]$_ -like "DataFreshness counterfactual*" -or [string]$_ -eq "complete DataFreshness replayable candidate rows" })))
 Write-Host ("profit_experiment_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
 Write-Host "profit_experiment_gate_status=$gateStatus"
 Write-Host "profit_experiment_next_action=$nextAction"

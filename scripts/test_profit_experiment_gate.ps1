@@ -73,6 +73,7 @@ foreach ($marker in @(
         "deploy_required_before_profit_experiment",
         "shadow_experiment_review_allowed",
         "live_policy_change_allowed=false",
+        "data_freshness_counterfactual_gate_missing_requirements",
         "profit_experiment_missing_requirements",
         "profit_experiment_gate_status",
         "profit_experiment_next_action",
@@ -89,6 +90,13 @@ foreach ($marker in @(
         "Convert-JsonArrayOrEmpty",
         "Convert-JsonObjectOrNull",
         "Add-DecisionMissingRequirements",
+        "Add-DataFreshnessCounterfactualMissingRequirements",
+        "complete DataFreshness replayable candidate rows",
+        "DataFreshness counterfactual field:",
+        "DataFreshness counterfactual replay candidates reviewable",
+        "missingCounterfactualFields",
+        "completeReplayableCandidateRows",
+        "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES",
         "missingRequirements",
         "Add-MissingRequirement"
     )) {
@@ -112,6 +120,7 @@ foreach ($marker in @(
         "read-only",
         "shadow_experiment_review_allowed",
         "deploy_required_before_profit_experiment",
+        "data_freshness_counterfactual_gate_missing_requirements",
         "live_policy_change_allowed=false"
     )) {
     Assert-Contains -Name "operator docs mention profit experiment gate" -Text $docsText -Pattern ([regex]::Escape($marker))

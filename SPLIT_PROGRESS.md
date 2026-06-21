@@ -274,6 +274,7 @@
   `origin_runtime_delta_impact`,
   `post_deploy_profit_validation_status`,
   `post_deploy_profit_validation_missing_requirements`,
+  `data_freshness_counterfactual_gate_missing_requirements`,
   `post_deploy_profit_validation_review_plan`,
   `post_deploy_profit_validation_blocker_summary`,
   `post_deploy_profit_validation_review_decision`,
@@ -285,9 +286,11 @@
   shows the concrete runtime files behind deploy-first blockers. The review
   decision is the top-level routing object with `canPrepareReviewPacket`,
   `deployRequired`, `allowedReviewTypes`, `runtimeDrift`, `blockedGates`, and
-  blocker/missing counts. `scripts/test_post_deploy_profit_validation.ps1`
-  guards the child gate list, blocker summary shape, safety markers, docs
-  coverage, and local input validation.
+  blocker/missing counts. DataFreshness false-kill profit review stays blocked
+  when complete replayable candidate rows or any counterfactual field is still
+  missing. `scripts/test_post_deploy_profit_validation.ps1` guards the child
+  gate list, blocker summary shape, safety markers, docs coverage, and local
+  input validation.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

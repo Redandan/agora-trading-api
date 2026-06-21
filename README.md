@@ -425,6 +425,7 @@ and profit experiment gate after a separately authorized deploy. It emits
 `origin_runtime_delta_paths`, `origin_runtime_delta_impact`,
 `post_deploy_profit_validation_status`,
 `post_deploy_profit_validation_missing_requirements`,
+`data_freshness_counterfactual_gate_missing_requirements`,
 `post_deploy_profit_validation_review_plan`,
 `post_deploy_profit_validation_blocker_summary`,
 `post_deploy_profit_validation_review_decision`,
@@ -432,6 +433,8 @@ and profit experiment gate after a separately authorized deploy. It emits
 and `tiny_live_order_allowed=false`. It is a read-only readiness matrix for
 profit review packets and does not deploy, restart, change production env, relax
 policy, place orders, or modify OCO/grid/fund/Earn state.
+DataFreshness false-kill candidates stay blocked until replayable candidate rows
+and all counterfactual fields are present.
 The blocker summary is a machine-readable routing copy of the blocked child
 gate evidence; each entry preserves `requiredEvidenceCount`, `requiredEvidence`,
 `nextAction`, `runtimeDrift`, and no-live authorization text, and does not clear

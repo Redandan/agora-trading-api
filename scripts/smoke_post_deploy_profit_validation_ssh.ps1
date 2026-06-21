@@ -438,6 +438,12 @@ $shadowReviewAllowed = Get-LastPrefixedValue -Text $profitExperimentText -Prefix
 $autoNextAction = Get-LastPrefixedValue -Text $autoText -Prefix "auto_trading_review_next_action="
 $profitLossNextAction = Get-LastPrefixedValue -Text $profitLossText -Prefix "profit_loss_review_next_action="
 $profitExperimentNextAction = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "profit_experiment_next_action="
+$dataFreshnessCounterfactualGateMissing = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "data_freshness_counterfactual_gate_missing_requirements="
+$dataFreshnessCounterfactualBlockingRequirements = @(
+    "DataFreshness counterfactual replay candidates reviewable",
+    "complete DataFreshness replayable candidate rows",
+    "DataFreshness counterfactual field:"
+)
 
 $autoMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $autoText -Prefix "auto_trading_review_missing_requirements=")
 $profitLossMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $profitLossText -Prefix "profit_loss_review_missing_requirements=")
@@ -445,6 +451,9 @@ $profitExperimentMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValu
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 foreach ($value in @($autoMissing + $profitLossMissing + $profitExperimentMissing)) {
+    Add-MissingRequirement -List $missingRequirements -Value ([string]$value)
+}
+foreach ($value in @(Convert-JsonArrayOrEmpty -Value $dataFreshnessCounterfactualGateMissing)) {
     Add-MissingRequirement -List $missingRequirements -Value ([string]$value)
 }
 foreach ($statusName in @(
@@ -589,6 +598,7 @@ Write-Host "shadow_experiment_review_allowed=$shadowReviewAllowed"
 Write-Host "live_policy_change_allowed=false"
 Write-Host "position_or_oco_mutation_allowed=false"
 Write-Host "tiny_live_order_allowed=false"
+Write-Host "data_freshness_counterfactual_gate_missing_requirements=$dataFreshnessCounterfactualGateMissing"
 Write-Host ("post_deploy_profit_validation_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
 Write-Host ("post_deploy_profit_validation_review_plan=" + (ConvertTo-Json -Compress -Depth 5 @($reviewPlan)))
 Write-Host ("post_deploy_profit_validation_blocker_summary=" + (ConvertTo-Json -Compress -Depth 5 @($blockerSummary)))

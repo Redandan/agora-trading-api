@@ -108,6 +108,23 @@ function Assert-BlockerSummaryShape {
     }
 }
 
+function Assert-ReviewDecisionShape {
+    param([string]$Json)
+
+    $item = $Json | ConvertFrom-Json -ErrorAction Stop
+    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
+        if ($null -eq $item.PSObject.Properties[$field]) {
+            throw "post-deploy profit validation review decision missing field: $field"
+        }
+    }
+    if ($item.missingRequirementCount -ne @($item.missingRequirements).Count) {
+        throw "post-deploy profit validation review decision missingRequirementCount mismatch"
+    }
+    if ($item.notAuthorization -notmatch "does not authorize live trading") {
+        throw "post-deploy profit validation review decision must preserve no-live authorization text"
+    }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "smoke_post_deploy_profit_validation_ssh.ps1"
 $verifyPath = Join-Path $PSScriptRoot "verify_local.ps1"
@@ -151,6 +168,7 @@ foreach ($marker in @(
         "post_deploy_profit_validation_missing_requirements",
         "post_deploy_profit_validation_review_plan",
         "post_deploy_profit_validation_blocker_summary",
+        "post_deploy_profit_validation_review_decision",
         "post_deploy_profit_validation_status",
         "post_deploy_profit_validation_next_action",
         "BLOCKED_DEPLOY_CURRENT_RUNTIME",
@@ -171,6 +189,8 @@ foreach ($marker in @(
         "Assert-ProfitValidationReviewPlanShape",
         "New-ProfitValidationBlockerSummary",
         "Assert-ProfitValidationBlockerSummaryShape",
+        "New-ProfitValidationReviewDecision",
+        "Assert-ProfitValidationReviewDecisionShape",
         "riskCategory",
         "runtimeDrift",
         "originDeltaStatus",
@@ -188,6 +208,11 @@ foreach ($marker in @(
         "post-deploy profit validation blocker summary entry must preserve no-live authorization text",
         "post-deploy profit validation blocker summary runtimeDrift missing field",
         "post-deploy profit validation blocker summary runtimeDeltaFiles mismatch",
+        "post-deploy profit validation review decision missing field",
+        "post-deploy profit validation review decision missingRequirementCount mismatch",
+        "post-deploy profit validation review decision must preserve no-live authorization text",
+        "canPrepareReviewPacket",
+        "allowedReviewTypes",
         "operator_review_packet_allowed",
         "loss_source_review_allowed",
         "shadow_experiment_review_allowed",
@@ -220,6 +245,7 @@ foreach ($marker in @(
         "post_deploy_profit_validation_missing_requirements",
         "post_deploy_profit_validation_review_plan",
         "post_deploy_profit_validation_blocker_summary",
+        "post_deploy_profit_validation_review_decision",
         "live_policy_change_allowed=false",
         "position_or_oco_mutation_allowed=false",
         "tiny_live_order_allowed=false"
@@ -336,5 +362,20 @@ $blockerSummaryFixture = @'
 ]
 '@
 Assert-BlockerSummaryShape -Json $blockerSummaryFixture
+
+$reviewDecisionFixture = @'
+{
+  "decision": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+  "canPrepareReviewPacket": false,
+  "deployRequired": true,
+  "allowedReviewTypes": [],
+  "blockerCount": 3,
+  "missingRequirementCount": 3,
+  "missingRequirements": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows", "entry/TP/SL candidate snapshot"],
+  "nextAction": "Separately deploy and verify current origin/main, then rerun post-deploy profit validation.",
+  "notAuthorization": "read-only routing decision only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+}
+'@
+Assert-ReviewDecisionShape -Json $reviewDecisionFixture
 
 Write-Host "[post-deploy-profit-validation-test] OK"

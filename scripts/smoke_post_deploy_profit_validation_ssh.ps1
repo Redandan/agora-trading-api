@@ -191,6 +191,46 @@ function Assert-ProfitValidationBlockerSummaryShape {
     }
 }
 
+function New-ProfitValidationReviewDecision {
+    param(
+        [string]$Status,
+        [bool]$DeployRequired,
+        [object[]]$ReviewPlan,
+        [object[]]$BlockerSummary,
+        [string[]]$MissingRequirements,
+        [string]$NextAction
+    )
+
+    $allowedReviewTypes = @($ReviewPlan | Where-Object { $_.allowed -eq $true } | ForEach-Object { $_.gate })
+    [pscustomobject]@{
+        decision = $Status
+        canPrepareReviewPacket = ($Status -eq "READY_FOR_READ_ONLY_PROFIT_REVIEW_NOT_LIVE")
+        deployRequired = $DeployRequired
+        allowedReviewTypes = @($allowedReviewTypes)
+        blockerCount = @($BlockerSummary).Count
+        missingRequirementCount = @($MissingRequirements).Count
+        missingRequirements = @($MissingRequirements)
+        nextAction = $NextAction
+        notAuthorization = "read-only routing decision only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+    }
+}
+
+function Assert-ProfitValidationReviewDecisionShape {
+    param([object]$Decision)
+
+    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
+        if ($null -eq $Decision.PSObject.Properties[$field]) {
+            throw "post-deploy profit validation review decision missing field: $field"
+        }
+    }
+    if ($Decision.missingRequirementCount -ne @($Decision.missingRequirements).Count) {
+        throw "post-deploy profit validation review decision missingRequirementCount mismatch"
+    }
+    if ($Decision.notAuthorization -notmatch "does not authorize live trading") {
+        throw "post-deploy profit validation review decision must preserve no-live authorization text"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -445,6 +485,14 @@ $runtimeDrift = [pscustomobject]@{
 }
 $blockerSummary = New-ProfitValidationBlockerSummary -Plan $reviewPlan -RuntimeDrift $runtimeDrift
 Assert-ProfitValidationBlockerSummaryShape -Summary $blockerSummary
+$reviewDecision = New-ProfitValidationReviewDecision `
+    -Status $status `
+    -DeployRequired $deployRequired `
+    -ReviewPlan $reviewPlan `
+    -BlockerSummary $blockerSummary `
+    -MissingRequirements @($missingRequirements) `
+    -NextAction $nextAction
+Assert-ProfitValidationReviewDecisionShape -Decision $reviewDecision
 
 Write-Host "[post-deploy-profit-validation] read-only validation bundle"
 Write-Host "scope=READ_ONLY; runs auto-trading, profit-loss, and profit-experiment gates only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
@@ -476,6 +524,7 @@ Write-Host "tiny_live_order_allowed=false"
 Write-Host ("post_deploy_profit_validation_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
 Write-Host ("post_deploy_profit_validation_review_plan=" + (ConvertTo-Json -Compress -Depth 5 @($reviewPlan)))
 Write-Host ("post_deploy_profit_validation_blocker_summary=" + (ConvertTo-Json -Compress -Depth 5 @($blockerSummary)))
+Write-Host ("post_deploy_profit_validation_review_decision=" + (ConvertTo-Json -Compress -Depth 5 $reviewDecision))
 Write-Host "post_deploy_profit_validation_status=$status"
 Write-Host "post_deploy_profit_validation_next_action=$nextAction"
 Write-Host "notAuthorization=read-only validation only; does not authorize DataFreshnessGuard relaxation, close-position, OCO modification, pre-buying, TinyLive order execution, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, deploy, restart, production env changes, external backfill/import, or policy relaxation"

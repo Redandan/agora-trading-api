@@ -734,6 +734,10 @@ Expected:
   blocked-child-gate summary with `requiredEvidenceCount`, `requiredEvidence`,
   `nextAction`, `runtimeDrift`, and no-live authorization text. It routes
   review work but does not clear blockers or authorize live changes.
+- `post_deploy_profit_validation_review_decision` is the top-level routing
+  object. It includes `canPrepareReviewPacket`, `deployRequired`,
+  `allowedReviewTypes`, `blockerCount`, `missingRequirementCount`, and
+  no-live authorization text.
 - `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` remain hard non-authorization markers.
 - The bundle is read-only. It does not deploy, restart, change production env,

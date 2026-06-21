@@ -423,6 +423,7 @@ and profit experiment gate after a separately authorized deploy. It emits
 `post_deploy_profit_validation_missing_requirements`,
 `post_deploy_profit_validation_review_plan`,
 `post_deploy_profit_validation_blocker_summary`,
+`post_deploy_profit_validation_review_decision`,
 `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
 and `tiny_live_order_allowed=false`. It is a read-only readiness matrix for
 profit review packets and does not deploy, restart, change production env, relax
@@ -435,6 +436,9 @@ When `origin_delta_status=RUNTIME_DRIFT`, the aggregate output also carries
 `server_worktree_commit`, `origin_main_commit`, `origin_runtime_delta_files`,
 and `origin_runtime_delta_paths`, so the deploy-first blocker points at the
 runtime files that must be refreshed before profit evidence is trusted.
+The review decision is the top-level machine-readable routing object; it
+includes `canPrepareReviewPacket`, `deployRequired`, `allowedReviewTypes`,
+`blockerCount`, `missingRequirementCount`, and no-live authorization text.
 
 Focused DataFreshness false-kill review:
 

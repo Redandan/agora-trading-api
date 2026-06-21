@@ -267,12 +267,15 @@
   `post_deploy_profit_validation_missing_requirements`,
   `post_deploy_profit_validation_review_plan`,
   `post_deploy_profit_validation_blocker_summary`,
+  `post_deploy_profit_validation_review_decision`,
   `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` so profit review readiness can be checked
   from one read-only command. The blocker summary preserves
   `requiredEvidenceCount`, `requiredEvidence`, `nextAction`, `runtimeDrift`, and no-live
   authorization text for each blocked child gate, while runtime-drift output
-  shows the concrete runtime files behind deploy-first blockers. `scripts/test_post_deploy_profit_validation.ps1`
+  shows the concrete runtime files behind deploy-first blockers. The review
+  decision is the top-level routing object with `canPrepareReviewPacket`,
+  `deployRequired`, `allowedReviewTypes`, and blocker/missing counts. `scripts/test_post_deploy_profit_validation.ps1`
   guards the child gate list, blocker summary shape, safety markers, docs
   coverage, and local input validation.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused

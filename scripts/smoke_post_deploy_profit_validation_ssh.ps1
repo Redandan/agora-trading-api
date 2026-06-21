@@ -71,6 +71,16 @@ function Add-MissingRequirement {
     }
 }
 
+function Test-OriginDeltaAcceptableForProfitReview {
+    param([string]$Value)
+    return ($Value -eq "CURRENT_ORIGIN_MAIN" -or $Value -eq "DOCS_TOOLING_ONLY_DRIFT")
+}
+
+function Test-OriginDeltaRequiresDeploy {
+    param([string]$Value)
+    return ($Value -eq "RUNTIME_DRIFT" -or $Value -eq "MISMATCH")
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -195,7 +205,10 @@ foreach ($statusName in @(
 if ([string]::IsNullOrWhiteSpace($originDelta)) {
     Add-MissingRequirement -List $missingRequirements -Value "origin_delta_status missing"
 }
-if ($originDelta -eq "RUNTIME_DRIFT" -or $originDelta -eq "MISMATCH" -or $autoDeployRequired -eq "true" -or $profitLossDeployRequired -eq "true" -or $profitExperimentDeployRequired -eq "true") {
+if ((-not [string]::IsNullOrWhiteSpace($originDelta)) -and -not (Test-OriginDeltaAcceptableForProfitReview -Value $originDelta) -and -not (Test-OriginDeltaRequiresDeploy -Value $originDelta)) {
+    Add-MissingRequirement -List $missingRequirements -Value "origin_delta_status must be CURRENT_ORIGIN_MAIN or DOCS_TOOLING_ONLY_DRIFT"
+}
+if ((Test-OriginDeltaRequiresDeploy -Value $originDelta) -or $autoDeployRequired -eq "true" -or $profitLossDeployRequired -eq "true" -or $profitExperimentDeployRequired -eq "true") {
     Add-MissingRequirement -List $missingRequirements -Value "deployed runtime current"
 }
 
@@ -210,7 +223,7 @@ $readyStatuses = @(
 )
 $readyForProfitReview = (
     -not $deployRequired -and
-    $originDelta -eq "CURRENT" -and
+    (Test-OriginDeltaAcceptableForProfitReview -Value $originDelta) -and
     $readyStatuses -contains $autoStatus -and
     $readyStatuses -contains $profitLossStatus -and
     $readyStatuses -contains $profitExperimentStatus

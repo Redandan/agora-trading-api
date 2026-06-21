@@ -94,7 +94,11 @@ foreach ($marker in @(
         "Assert-RemotePathSafe",
         "Assert-SmokeTokenSafe",
         "Convert-JsonArrayOrEmpty",
-        "Add-MissingRequirement"
+        "Add-MissingRequirement",
+        "Test-OriginDeltaAcceptableForProfitReview",
+        "CURRENT_ORIGIN_MAIN",
+        "DOCS_TOOLING_ONLY_DRIFT",
+        "origin_delta_status must be CURRENT_ORIGIN_MAIN or DOCS_TOOLING_ONLY_DRIFT"
     )) {
     Assert-Contains -Name "post-deploy profit validation marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }

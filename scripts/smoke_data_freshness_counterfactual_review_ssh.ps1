@@ -159,7 +159,8 @@ SELECT
       JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.entry')),
       JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.entryPrice')),
       JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.entryPrice')),
-      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.currentPrice'))
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.currentPrice')),
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.candidateEntry'))
     ) IS NULL THEN 0 ELSE 1
   END AS has_explicit_entry,
   CASE
@@ -168,7 +169,9 @@ SELECT
       JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.tp')),
       JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.tpPrice')),
       JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.tp')),
-      JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.tpPrice'))
+      JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.tpPrice')),
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.candidateTp')),
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.tp'))
     ) IS NULL THEN 0 ELSE 1
   END AS has_tp,
   CASE
@@ -177,7 +180,9 @@ SELECT
       JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.sl')),
       JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.slPrice')),
       JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.sl')),
-      JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.slPrice'))
+      JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.slPrice')),
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.candidateSl')),
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.sl'))
     ) IS NULL THEN 0 ELSE 1
   END AS has_sl,
   CASE
@@ -186,6 +191,11 @@ SELECT
       AND e.ev_result_json <> '{{}}'
     THEN 1 ELSE 0
   END AS has_ev_snapshot,
+  CASE
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.ev_result.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+      OR JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayHardGatePreviewStatus')) = 'PREVIEW_ONLY_NOT_REPLAYABLE'
+    THEN 1 ELSE 0
+  END AS has_ev_preview_only,
   CASE
     WHEN JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.status')) IN ('PASS','EV_PASS','READY')
       OR CAST(JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.expected_r')) AS DECIMAL(18,8)) > 0
@@ -200,6 +210,10 @@ SELECT
     THEN 1 ELSE 0
   END AS has_oco_plan,
   CASE
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.oco_preflight.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+    THEN 1 ELSE 0
+  END AS has_oco_preview_only,
+  CASE
     WHEN e.execution_preview_json IS NOT NULL
       AND (
            e.execution_preview_json LIKE '%duplicate%'
@@ -210,6 +224,15 @@ SELECT
       )
     THEN 1 ELSE 0
   END AS has_hard_gate_snapshot,
+  CASE
+    WHEN JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.duplicate_gate.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+      OR JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.daily_cap.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+      OR JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.exposure_gate.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+      OR JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.event_risk.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+      OR JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.open_position.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+      OR JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.loss_budget.status')) = 'NOT_EVALUATED_REPLAY_INPUT_ONLY'
+    THEN 1 ELSE 0
+  END AS has_hard_gate_preview_only,
   (
     SELECT k.close_price
     FROM md_kline k FORCE INDEX (idx_md_kline_sym_int_src_open)
@@ -249,7 +272,9 @@ SELECT
       AND k.open_time <= DATE_ADD(a.event_time, INTERVAL 24 HOUR)
   ) AS min_low_24h,
   LEFT(COALESCE(e.ev_result_json, 'N/A'), 80) AS ev_excerpt,
-  LEFT(COALESCE(e.execution_preview_json, 'N/A'), 120) AS execution_excerpt
+  LEFT(COALESCE(e.execution_preview_json, 'N/A'), 120) AS execution_excerpt,
+  LEFT(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayCollectorStatus')), 'N/A'), 64) AS replay_collector_status,
+  LEFT(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayHardGatePreviewStatus')), 'N/A'), 64) AS hard_gate_preview_status
 FROM bt_decision_audit a FORCE INDEX (idx_audit_symbol_time)
 LEFT JOIN bt_runtime_decision_evidence e ON e.decision_id = a.id
 WHERE a.symbol = '{symbol}'
@@ -280,9 +305,10 @@ except subprocess.CalledProcessError as exc:
 fields = [
     "audit_id", "event_time", "strategy_id", "interval_code",
     "has_runtime_evidence", "has_live_signal", "has_replay_candidate_id", "intent_created", "oco_plan_created",
-    "has_explicit_entry", "has_tp", "has_sl", "has_ev_snapshot", "ev_pass_like",
-    "has_oco_plan", "has_hard_gate_snapshot", "derived_entry", "close_after_24h",
-    "max_high_24h", "min_low_24h", "ev_excerpt", "execution_excerpt",
+    "has_explicit_entry", "has_tp", "has_sl", "has_ev_snapshot", "has_ev_preview_only", "ev_pass_like",
+    "has_oco_plan", "has_oco_preview_only", "has_hard_gate_snapshot", "has_hard_gate_preview_only",
+    "derived_entry", "close_after_24h", "max_high_24h", "min_low_24h", "ev_excerpt", "execution_excerpt",
+    "replay_collector_status", "hard_gate_preview_status",
 ]
 rows = [dict(zip(fields, row)) for row in csv.reader(proc.stdout.splitlines(), delimiter="\t")]
 
@@ -329,9 +355,12 @@ explicit_entry_rows = sum(flag(r, "has_explicit_entry") for r in rows)
 tp_rows = sum(flag(r, "has_tp") for r in rows)
 sl_rows = sum(flag(r, "has_sl") for r in rows)
 ev_snapshot_rows = sum(flag(r, "has_ev_snapshot") for r in rows)
+ev_preview_only_rows = sum(flag(r, "has_ev_preview_only") for r in rows)
 ev_pass_rows = sum(flag(r, "ev_pass_like") for r in rows)
 oco_plan_rows = sum(flag(r, "has_oco_plan") for r in rows)
+oco_preview_only_rows = sum(flag(r, "has_oco_preview_only") for r in rows)
 hard_gate_rows = sum(flag(r, "has_hard_gate_snapshot") for r in rows)
+hard_gate_preview_only_rows = sum(flag(r, "has_hard_gate_preview_only") for r in rows)
 derived_entry_rows = sum(num(r, "derived_entry") is not None for r in rows)
 forward_rows = len(matured)
 positive_forward_rows = sum(1 for v in returns if v >= 1.0)
@@ -344,6 +373,16 @@ replayable_candidate_rows = sum(
     and flag(r, "has_ev_snapshot")
     and flag(r, "has_oco_plan")
     and flag(r, "has_hard_gate_snapshot")
+    for r in rows
+)
+preview_input_rows = sum(
+    (flag(r, "has_live_signal") or flag(r, "has_replay_candidate_id"))
+    and flag(r, "has_explicit_entry")
+    and flag(r, "has_tp")
+    and flag(r, "has_sl")
+    and flag(r, "has_ev_preview_only")
+    and flag(r, "has_oco_preview_only")
+    and flag(r, "has_hard_gate_preview_only")
     for r in rows
 )
 
@@ -366,6 +405,20 @@ if hard_gate_rows == 0:
     missing.append("hard-gate snapshot")
 if replayable_candidate_rows == 0:
     missing.append("complete replayable candidate rows")
+
+preview_missing = []
+if replay_candidate_id_rows == 0:
+    preview_missing.append("replayCandidateId")
+if explicit_entry_rows == 0 or tp_rows == 0 or sl_rows == 0:
+    preview_missing.append("entry/TP/SL preview")
+if ev_preview_only_rows == 0:
+    preview_missing.append("EV preview placeholder")
+if oco_preview_only_rows == 0:
+    preview_missing.append("OCO preview placeholder")
+if hard_gate_preview_only_rows == 0:
+    preview_missing.append("hard-gate preview placeholders")
+if preview_input_rows == 0:
+    preview_missing.append("complete preview-only input rows")
 
 if total == 0:
     recommendation = "NO_DATAFRESHNESS_COUNTERFACTUAL_SAMPLE"
@@ -394,10 +447,14 @@ print(f"  explicit_candidate_entry_rows={explicit_entry_rows}")
 print(f"  explicit_candidate_tp_rows={tp_rows}")
 print(f"  explicit_candidate_sl_rows={sl_rows}")
 print(f"  ev_snapshot_rows={ev_snapshot_rows}")
+print(f"  ev_preview_only_rows={ev_preview_only_rows}")
 print(f"  ev_pass_like_rows={ev_pass_rows}")
 print(f"  oco_plan_snapshot_rows={oco_plan_rows}")
+print(f"  oco_preview_only_rows={oco_preview_only_rows}")
 print(f"  hard_gate_snapshot_rows={hard_gate_rows}")
+print(f"  hard_gate_preview_only_rows={hard_gate_preview_only_rows}")
 print(f"  complete_replayable_candidate_rows={replayable_candidate_rows}")
+print(f"  preview_only_input_rows={preview_input_rows}")
 print(f"  derived_entry_rows={derived_entry_rows}")
 print(f"  forward_24h_window_rows={forward_rows}")
 print("")
@@ -412,6 +469,7 @@ print("Breakdown:")
 print(f"  strategy_counts={top(strategy_counts)}")
 print(f"  interval_counts={top(interval_counts)}")
 print("  missing_counterfactual_fields=" + json.dumps(missing, separators=(",", ":")))
+print("  preview_only_missing_counterfactual_fields=" + json.dumps(preview_missing, separators=(",", ":")))
 print("")
 print("Examples:")
 for r in rows[:5]:
@@ -423,12 +481,16 @@ for r in rows[:5]:
         f"auditId={r.get('audit_id')} time={r.get('event_time')} strategy={r.get('strategy_id')} interval={r.get('interval_code')} "
         f"runtimeEvidence={r.get('has_runtime_evidence')} liveSignal={r.get('has_live_signal')} replayCandidateId={r.get('has_replay_candidate_id')} "
         f"entryPlan={r.get('has_explicit_entry')}/{r.get('has_tp')}/{r.get('has_sl')} "
-        f"evSnapshot={r.get('has_ev_snapshot')} ocoPlan={r.get('has_oco_plan')} hardGateSnapshot={r.get('has_hard_gate_snapshot')} "
+        f"evSnapshot={r.get('has_ev_snapshot')} evPreview={r.get('has_ev_preview_only')} "
+        f"ocoPlan={r.get('has_oco_plan')} ocoPreview={r.get('has_oco_preview_only')} "
+        f"hardGateSnapshot={r.get('has_hard_gate_snapshot')} hardGatePreview={r.get('has_hard_gate_preview_only')} "
+        f"collector={r.get('replay_collector_status')} hardGatePreviewStatus={r.get('hard_gate_preview_status')} "
         f"forward24h={pct(ret)} ev={r.get('ev_excerpt')} execution={r.get('execution_excerpt')}"
     )
 print("")
 print("Conclusion:")
 print(f"  data_freshness_counterfactual_recommendation={recommendation}")
+print("  preview_only_note=preview-only rows prove field presence and terminal-block traceability only; they are not evaluated EV/OCO/risk pass evidence and do not count as complete replayable candidates")
 print("  counterfactual_required_evidence=[\"canonical candidate snapshot with liveSignalId or equivalent replay id\",\"replayCandidateId for DataFreshness L0 rows\",\"entryPrice,tpPrice,slPrice,expectedR and EV pass/fail\",\"OCO-capable preflight and hard-gate states for duplicate/daily-cap/exposure/event-risk\",\"shadow intent or replay result that removes only DataFreshness while preserving all other hard gates\"]")
 print("  notAuthorization=read-only evidence only; does not authorize DataFreshnessGuard relaxation, live trading, strategy activation, closing positions, OCO modification, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, deploy, restart, or production env changes")
 print("")

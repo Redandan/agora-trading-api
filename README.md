@@ -492,8 +492,11 @@ for a replay that removes only DataFreshnessGuard while keeping EV, OCO,
 duplicate, daily-cap, exposure, event-risk, and other hard gates intact. It
 prints `data_freshness_counterfactual_recommendation`,
 `complete_replayable_candidate_rows`, `missing_counterfactual_fields`, and
-forward-return proxy markers. It is evidence only and does not authorize
-DataFreshnessGuard relaxation or any live mutation.
+forward-return proxy markers. It also prints `preview_only_input_rows` and
+`preview_only_note`; preview-only rows prove placeholder field presence and
+terminal-block traceability only, not evaluated EV/OCO/risk pass evidence. They
+do not count as `complete_replayable_candidate_rows`. It is evidence only and
+does not authorize DataFreshnessGuard relaxation or any live mutation.
 Use `docs/data-freshness-shadow-replay-input-plan.md` before proposing any
 collector or shadow/replay change for this path.
 Use `docs/data-freshness-shadow-replay-collector-design.md` before implementing

@@ -822,9 +822,15 @@ Expected:
   `explicit_candidate_entry_rows`, `explicit_candidate_tp_rows`,
   `explicit_candidate_sl_rows`, `ev_snapshot_rows`, `oco_plan_snapshot_rows`,
   `hard_gate_snapshot_rows`, `complete_replayable_candidate_rows`,
+  `ev_preview_only_rows`, `oco_preview_only_rows`,
+  `hard_gate_preview_only_rows`, `preview_only_input_rows`,
   `positive_forward_24h_rows`, `avg_forward_24h_pct`,
-  `missing_counterfactual_fields`, and
+  `missing_counterfactual_fields`, `preview_only_missing_counterfactual_fields`,
+  `preview_only_note`, and
   `data_freshness_counterfactual_recommendation`.
+- `preview_only_*` rows prove field presence and terminal-block traceability
+  only. They do not count as evaluated EV/OCO/risk pass evidence and do not
+  count toward `complete_replayable_candidate_rows`.
 - A recommendation such as
   `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` means the
   historical forward-return alpha proxy still lacks replayable candidate

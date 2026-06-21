@@ -331,11 +331,15 @@
   rows, linked `bt_runtime_decision_evidence`, and OKX `md_kline` forward
   windows. It prints replay-input coverage markers including
   `complete_replayable_candidate_rows`, `missing_counterfactual_fields`,
-  `positive_forward_24h_rows`, `avg_forward_24h_pct`, and
+  `preview_only_input_rows`, `preview_only_missing_counterfactual_fields`,
+  `preview_only_note`, `positive_forward_24h_rows`, `avg_forward_24h_pct`, and
   `data_freshness_counterfactual_recommendation`. A result such as
   `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` means the
   historical alpha proxy still cannot justify DataFreshness policy relaxation
   because liveSignal/candidate plan/EV/OCO/hard-gate snapshots are missing.
+  Preview-only rows prove placeholder field presence and terminal-block
+  traceability only; they do not count as evaluated EV/OCO/risk pass evidence
+  or `complete_replayable_candidate_rows`.
   The smoke is evidence only and does not change production env, DB, order,
   OCO, grid, Earn, fund, Telegram, scheduler, exchange, external
   backfill/import, deploy, restart, or nginx state.

@@ -139,6 +139,18 @@
   default is a 30d/500 sample; smaller limits are diagnostic only. Same-bar
   trigger/stop rows are reported for diagnostics but excluded from PnL
   acceptance totals.
+- `scripts/prepare_trailing_stop_operator_review_packet_ssh.ps1` wraps the
+  hard trailing-stop replay smoke with `-RequireAcceptance` and emits
+  `trailing_stop_operator_review_packet`,
+  `trailing_stop_operator_packet_status`, `sampleStatus`, `acceptanceRows`,
+  `acceptanceDeltaPnl`, `improvementPct`, `acceptance=PASS`,
+  `acceptanceBlocker=NONE`, and ambiguous same-bar exclusion evidence.
+  `READY_FOR_OPERATOR_PACKET_NOT_LIVE` means the exit-side evidence can be
+  attached to a separate operator review, but the packet does not deploy,
+  restart, reload nginx, change production env, enable live trading, enable the
+  trailing scheduler, change strategy opt-in, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize exit policy changes.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
   DataFreshnessGuard blocks from current source freshness: the read-only MCP
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`

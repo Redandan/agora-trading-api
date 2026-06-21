@@ -153,6 +153,21 @@ Add `-RequireAcceptance` only when the deployed DB sample is expected to prove
 the 30d PnL target (`acceptance=PASS`). Ambiguous same-bar replay rows are
 reported but excluded from PnL acceptance totals.
 
+Read-only trailing-stop operator review packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_operator_review_packet_ssh.ps1 -RequireReady
+```
+
+This wraps the hard replay smoke with `-RequireAcceptance` and emits
+`trailing_stop_operator_review_packet` plus
+`trailing_stop_operator_packet_status`. `READY_FOR_OPERATOR_PACKET_NOT_LIVE`
+means exit-side evidence can be attached to a separate operator review. It
+keeps `trailing_stop_acceptance` evidence separate from entry/filter blockers
+and does not deploy, enable live trading, enable the trailing scheduler, change
+strategy opt-in, place orders, modify OCO, close positions, or mutate DB/grid/
+fund/Earn state.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 

@@ -1470,6 +1470,27 @@ Expected:
 - The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 
+For a read-only trailing-stop operator review packet, run:
+
+```powershell
+.\scripts\prepare_trailing_stop_operator_review_packet_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- The packet runs `smoke_trailing_stop_pnl_replay_ssh.ps1 -RequireAcceptance`
+  and emits `trailing_stop_operator_review_packet`.
+- `trailing_stop_operator_packet_status=READY_FOR_OPERATOR_PACKET_NOT_LIVE`
+  means the exit-side evidence can be attached to a separate operator review.
+- The packet carries `sampleStatus`, `acceptanceRows`,
+  `acceptanceDeltaPnl`, `improvementPct`, `acceptance=PASS`,
+  `acceptanceBlocker=NONE`, and the ambiguous same-bar exclusion marker.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, enable the trailing scheduler, change
+  strategy opt-in, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize exit policy changes.
+
 Optional public path check:
 
 ```bash

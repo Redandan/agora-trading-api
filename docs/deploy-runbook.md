@@ -966,6 +966,36 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a bounded read-only profit evidence watch, run:
+
+```powershell
+.\scripts\watch_profit_evidence_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+```
+
+Expected:
+
+- The watcher calls `prepare_profit_readiness_brief_ssh.ps1` and
+  `smoke_data_freshness_replay_observation_bundle_ssh.ps1` only.
+- Output includes `profit_evidence_watch_status`,
+  `attempt_data_freshness_current_status`,
+  `attempt_replay_candidate_id_recommendation`, and
+  `attempt_replay_observation_bundle_recommendation`.
+- `PENDING_DATAFRESHNESS_CURRENT_SAMPLE` means no current DataFreshness sample
+  is available yet; rerun later instead of treating the absence as source
+  health clearance or policy approval.
+- `EVIDENCE_READY_FOR_REVIEW_NOT_LIVE` means the collected read-only evidence
+  can be reviewed separately; it is not permission to enable live trading or
+  relax EntryDedup/DataFreshness/live policy.
+- `-RequireEvidenceReady` fails unless the watcher reaches
+  `EVIDENCE_READY_FOR_REVIEW_NOT_LIVE`.
+- Long child smokes emit `child_start`, periodic `child_heartbeat`, and
+  `child_complete` markers from the watcher itself.
+- The watcher is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, relax EntryDedup/DataFreshness/live
+  policy, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy changes.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

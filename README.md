@@ -618,6 +618,25 @@ Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers. Use `-ChildTimeoutSeconds` to fail a stuck child
 locally without changing production state.
 
+Bounded read-only profit evidence watch:
+
+```powershell
+.\scripts\watch_profit_evidence_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+```
+
+This wrapper repeatedly runs the profit readiness brief and DataFreshness
+replay observation bundle, then emits `profit_evidence_watch_status`,
+`attempt_data_freshness_current_status`, `attempt_replay_candidate_id_recommendation`,
+and `attempt_replay_observation_bundle_recommendation`. It is intended for
+waiting on new DataFreshness/replay evidence after the current result is
+`PENDING_DATAFRESHNESS_CURRENT_SAMPLE`; `EVIDENCE_READY_FOR_REVIEW_NOT_LIVE`
+means a separate read-only review can start, not live approval. It does not
+deploy, change production env, enable live trading, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn state.
+Long child smokes emit `child_start`, periodic `child_heartbeat`, and
+`child_complete` markers from the watcher itself.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

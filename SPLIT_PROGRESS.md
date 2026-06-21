@@ -409,6 +409,23 @@
   EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
   positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize strategy changes.
+- `scripts/watch_profit_evidence_readiness_ssh.ps1` is a bounded read-only
+  watcher for the current profit evidence bottleneck. It reruns
+  `prepare_profit_readiness_brief_ssh.ps1` and
+  `smoke_data_freshness_replay_observation_bundle_ssh.ps1` for a configured
+  number of attempts, then emits `profit_evidence_watch_status`,
+  `attempt_data_freshness_current_status`,
+  `attempt_replay_candidate_id_recommendation`, and
+  `attempt_replay_observation_bundle_recommendation`. It can return
+  `PENDING_DATAFRESHNESS_CURRENT_SAMPLE`,
+  `PENDING_REPLAY_CANDIDATE_ID_EVIDENCE`,
+  `PENDING_COUNTERFACTUAL_REPLAY_EVIDENCE`, or
+  `EVIDENCE_READY_FOR_REVIEW_NOT_LIVE`; the last status only routes a
+  separate read-only review. Long child smokes emit watcher-level
+  `child_start`, `child_heartbeat`, and `child_complete` markers. The watcher
+  does not authorize live trading, policy
+  relaxation, deploy, production env changes, orders, OCO, position closes,
+  DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

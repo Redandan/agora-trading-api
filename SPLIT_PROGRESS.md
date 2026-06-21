@@ -315,6 +315,18 @@
   deploy, restart, reload nginx, change production env, enable live trading,
   place orders, modify OCO/grid/fund/Earn state, send Telegram, mutate DB
   state, touch exchange state, or run external backfill/import.
+- `scripts/prepare_profit_blocker_ledger_ssh.ps1` merges the read-only profit
+  runtime deploy packet, profit shadow experiment packet, strategy 485 operator
+  packet, and DataFreshness replay observation bundle into
+  `profit_blocker_ledger_packet`, `profit_blocker_ledger_items`, and
+  `profit_blocker_ledger_status`. It prioritizes blockers such as
+  `deployed runtime current`, `complete DataFreshness replayable candidate
+  rows`, and `current strategy 485 OCO health`, and can return
+  `BLOCKED_DEPLOY_CURRENT_RUNTIME` when currentness remains the first blocker.
+  The ledger does not deploy, restart, reload nginx, change production env,
+  enable live trading, relax policy, place orders, modify OCO, close positions,
+  mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy/DataFreshness policy changes.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

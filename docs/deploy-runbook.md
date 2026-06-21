@@ -816,6 +816,26 @@ Expected:
   state, send Telegram, mutate DB state, touch exchange state, or run external
   backfill/import.
 
+For a focused read-only profit blocker ledger, run:
+
+```powershell
+.\scripts\prepare_profit_blocker_ledger_ssh.ps1 -RequireActionable
+```
+
+Expected:
+
+- `profit_blocker_ledger_packet` merges the runtime deploy packet, profit
+  shadow experiment packet, strategy 485 operator packet, and DataFreshness
+  replay observation bundle.
+- `profit_blocker_ledger_items` is the prioritized blocker list with source,
+  status, next action, and required read-only commands.
+- `profit_blocker_ledger_status=BLOCKED_DEPLOY_CURRENT_RUNTIME` means runtime
+  currentness remains the first blocker before profit evidence can be trusted.
+- The ledger is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, relax policy, place orders, modify OCO,
+  close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run
+  external backfill/import, or authorize strategy/DataFreshness policy changes.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

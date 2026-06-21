@@ -482,6 +482,20 @@ does not deploy, restart, reload nginx, change production env, enable live
 trading, relax policy, place orders, modify OCO, or mutate DB/grid/fund/Earn
 state.
 
+Read-only profit blocker ledger:
+
+```powershell
+.\scripts\prepare_profit_blocker_ledger_ssh.ps1 -RequireActionable
+```
+
+This combines the runtime deploy packet, shadow experiment packet, strategy 485
+operator packet, and DataFreshness replay observation bundle into
+`profit_blocker_ledger_packet`, `profit_blocker_ledger_items`, and
+`profit_blocker_ledger_status`. `BLOCKED_DEPLOY_CURRENT_RUNTIME` means runtime
+currentness is still the first blocker; the ledger does not deploy, restart,
+reload nginx, change production env, enable live trading, relax policy, place
+orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

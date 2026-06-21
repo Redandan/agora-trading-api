@@ -377,6 +377,25 @@ not approval to relax live policy. The packet does not deploy, enable live
 trading, execute tiny-live orders, relax EntryDedup/DataFreshness/live policy,
 place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
 
+DataFreshness shadow candidate packet:
+
+```powershell
+.\scripts\prepare_data_freshness_shadow_candidate_packet_ssh.ps1 -RequireReview
+```
+
+This read-only packet joins the governance relaxation candidate evidence with
+the DataFreshness counterfactual replay-input smoke into
+`data_freshness_shadow_candidate_packet`. It emits
+`data_freshness_shadow_candidate_packet_status`,
+`shadow_candidate_review_allowed`, `data_freshness_policy_relaxation_allowed=false`,
+`tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
+`BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the DataFreshness candidate
+is still missing complete replayable rows or counterfactual fields.
+`READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` is shadow-candidate review
+evidence only. The packet does not deploy, restart, change production env,
+enable live trading, relax DataFreshnessGuard, execute tiny-live orders, place
+orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

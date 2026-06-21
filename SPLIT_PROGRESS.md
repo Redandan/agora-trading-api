@@ -457,6 +457,22 @@
   `scripts/test_data_freshness_counterfactual_review_smoke.ps1` guards the
   direct-SELECT boundary, marker contract, docs coverage, and
   non-authorization wording.
+- `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
+  read-only governance relaxation packet with the DataFreshness counterfactual
+  replay-input smoke into `data_freshness_shadow_candidate_packet` and
+  `data_freshness_shadow_candidate_packet_status`. It can return
+  `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` when complete replayable rows
+  or counterfactual fields are still missing, or
+  `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` only for a separate
+  shadow-candidate review. It emits `shadow_candidate_review_allowed`,
+  `data_freshness_policy_relaxation_allowed=false`,
+  `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`; it
+  does not deploy, restart, change production env, relax DataFreshnessGuard,
+  execute TinyLive, place orders, modify OCO, or mutate DB/grid/fund/Earn/
+  Telegram/exchange state.
+  `scripts/test_data_freshness_shadow_candidate_packet.ps1` guards the child
+  read-only scripts, packet markers, docs coverage, local input validation,
+  and non-authorization wording.
 - `docs/data-freshness-shadow-replay-input-plan.md` defines the follow-up
   replay-input contract for DataFreshness false-kill evidence: stable replay
   candidate id, DataFreshness snapshot, candidate entry/TP/SL plan, EV/TQS,

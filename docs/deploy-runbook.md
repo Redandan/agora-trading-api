@@ -1075,6 +1075,33 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For a focused read-only DataFreshness shadow candidate packet, run:
+
+```powershell
+.\scripts\prepare_data_freshness_shadow_candidate_packet_ssh.ps1 -RequireReview
+```
+
+Expected:
+
+- The packet invokes only
+  `prepare_governance_relaxation_review_packet_ssh.ps1` and
+  `smoke_data_freshness_counterfactual_review_ssh.ps1`.
+- Output includes `data_freshness_shadow_candidate_packet`,
+  `data_freshness_shadow_candidate_packet_status`,
+  `data_freshness_shadow_candidate_missing_requirements`,
+  `shadow_candidate_review_allowed`,
+  `data_freshness_policy_relaxation_allowed=false`,
+  `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
+- `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the candidate remains
+  blocked by missing complete replayable rows or counterfactual fields.
+- `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` means the emitted packet
+  can be attached to a separate shadow-only candidate review. It is not
+  permission to relax DataFreshnessGuard, enable live trading, deploy, restart,
+  execute TinyLive, place orders, or modify OCO/grid/fund/Earn state.
+- The packet is read-only and does not deploy, restart, change production env,
+  mutate DB/order/OCO/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or change scheduler/live policy.
+
 For the read-only profit-improvement review bundle, run:
 
 ```powershell

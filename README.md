@@ -805,6 +805,10 @@ pending result means no fresh row was available yet, not live approval.
 The smoke also compares deployed `app.commit` with the expected local HEAD and
 prints `DEPLOYED_RUNTIME_NOT_CURRENT` until the replay-id runtime has actually
 been deployed.
+It also prints DataFreshness sample recency, including latest row time, latest
+row age, 1d/3d/7d/14d/30d row counts, and
+`data_freshness_sample_gap_status`, so `PENDING_NO_NEW_DATAFRESHNESS_ROWS` can
+be separated from an all-time sample absence or a review-window gap.
 For the full post-deploy replay observation chain, run:
 
 ```powershell

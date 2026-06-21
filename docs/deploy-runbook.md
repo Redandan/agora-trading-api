@@ -1175,6 +1175,10 @@ Expected:
   `DEPLOYED_RUNTIME_NOT_CURRENT` means the replay-id runtime has not been
   deployed yet; deploy and server verification must happen before replay-id
   evidence can be trusted.
+  The smoke also prints DataFreshness sample recency: latest row time, latest
+  row age, 1d/3d/7d/14d/30d row counts, and
+  `data_freshness_sample_gap_status`, so operators can distinguish all-time
+  sample absence from a review-window gap.
 - Use `.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1` for
   the post-deploy replay observation chain. It combines origin-delta,
   replay-id, and counterfactual smokes and routes stale runtime to

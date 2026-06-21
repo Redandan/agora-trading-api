@@ -202,6 +202,34 @@ fields = [
 ]
 rows = [dict(zip(fields, row)) for row in csv.reader(proc.stdout.splitlines(), delimiter="\t")]
 
+recency_sql = f"""
+SELECT
+  COALESCE(DATE_FORMAT(MAX(a.event_time), '%Y-%m-%dT%H:%i:%s'), 'NONE') AS latest_event_time,
+  COALESCE(TIMESTAMPDIFF(HOUR, MAX(a.event_time), UTC_TIMESTAMP()), -1) AS latest_age_hours,
+  COALESCE(SUM(a.event_time >= UTC_TIMESTAMP() - INTERVAL 1 DAY), 0) AS rows_1d,
+  COALESCE(SUM(a.event_time >= UTC_TIMESTAMP() - INTERVAL 3 DAY), 0) AS rows_3d,
+  COALESCE(SUM(a.event_time >= UTC_TIMESTAMP() - INTERVAL 7 DAY), 0) AS rows_7d,
+  COALESCE(SUM(a.event_time >= UTC_TIMESTAMP() - INTERVAL 14 DAY), 0) AS rows_14d,
+  COALESCE(SUM(a.event_time >= UTC_TIMESTAMP() - INTERVAL 30 DAY), 0) AS rows_30d
+FROM bt_decision_audit a FORCE INDEX (idx_audit_symbol_time)
+WHERE a.symbol = '{symbol}'
+  AND a.event_type = 'FILTER_BLOCK'
+  AND a.blocker = 'DataFreshnessGuard'
+"""
+
+recency_cmd = cmd[:-2] + ["-e", recency_sql]
+try:
+    recency_proc = subprocess.run(recency_cmd, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+except subprocess.CalledProcessError as exc:
+    print(exc.stderr, file=sys.stderr)
+    sys.exit(exc.returncode or 1)
+
+recency_fields = [
+    "latestEventTime", "latestAgeHours", "rows1d", "rows3d", "rows7d", "rows14d", "rows30d",
+]
+recency_rows = [dict(zip(recency_fields, row)) for row in csv.reader(recency_proc.stdout.splitlines(), delimiter="\t")]
+recency = recency_rows[0] if recency_rows else {}
+
 def has_replay_id(row):
     return re.fullmatch(r"dfsr1_[0-9a-f]{24}", row.get("replayCandidateId", "")) is not None
 
@@ -226,6 +254,17 @@ elif len(with_replay_id) == total and len(version_ok) == total and len(status_ok
 else:
     status = "REPLAY_CANDIDATE_ID_EVIDENCE_INCOMPLETE"
 
+latest_time = recency.get("latestEventTime", "NONE") or "NONE"
+latest_age_hours = recency.get("latestAgeHours", "-1") or "-1"
+if latest_time == "NONE":
+    sample_gap_status = "NO_DATAFRESHNESS_ROWS_FOUND"
+elif total == 0:
+    sample_gap_status = "NO_ROWS_IN_REVIEW_WINDOW"
+elif missing_replay_id > 0:
+    sample_gap_status = "RECENT_ROWS_MISSING_REPLAY_ID"
+else:
+    sample_gap_status = "RECENT_ROWS_WITH_REPLAY_ID"
+
 print("[data-freshness-replay-candidate-id] read-only production DB evidence check")
 print("scope=READ_ONLY; direct MySQL SELECTs only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed.")
 print(f"symbol={symbol} reviewDays={review_days} limit={limit} requireObserved={str(require_observed).lower()}")
@@ -243,6 +282,16 @@ print(f"  order_sent_false_rows={len(no_order)}")
 print(f"  intent_created_false_rows={len(no_intent)}")
 print(f"  oco_plan_created_false_rows={len(no_oco)}")
 print(f"  replay_candidate_id_status={status}")
+print("")
+print("DataFreshness Sample Recency:")
+print(f"  latest_data_freshness_row_time={latest_time}")
+print(f"  latest_data_freshness_row_age_hours={latest_age_hours}")
+print(f"  data_freshness_rows_1d={recency.get('rows1d', '0')}")
+print(f"  data_freshness_rows_3d={recency.get('rows3d', '0')}")
+print(f"  data_freshness_rows_7d={recency.get('rows7d', '0')}")
+print(f"  data_freshness_rows_14d={recency.get('rows14d', '0')}")
+print(f"  data_freshness_rows_30d={recency.get('rows30d', '0')}")
+print(f"  data_freshness_sample_gap_status={sample_gap_status}")
 print("")
 print("Examples:")
 for row in rows[:5]:

@@ -601,7 +601,10 @@
   `REPLAY_CANDIDATE_ID_EVIDENCE_INCOMPLETE`, and `-RequireObserved` should only
   be used when a fresh DataFreshnessGuard row is expected. It also reports
   `DEPLOYED_RUNTIME_NOT_CURRENT` when deployed `app.commit` has not reached the
-  replay-id runtime.
+  replay-id runtime. It now also prints latest DataFreshness row time, latest
+  row age, 1d/3d/7d/14d/30d row counts, and
+  `data_freshness_sample_gap_status`, so a pending replay-id result can be
+  classified as an all-time sample absence or a review-window gap.
 - `scripts/smoke_data_freshness_replay_observation_bundle_ssh.ps1` combines
   origin-delta, replay-id, and counterfactual smokes into a read-only
   post-deploy observation chain. It routes stale runtime to

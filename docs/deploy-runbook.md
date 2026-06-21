@@ -846,9 +846,10 @@ Expected:
   separate evidence-only collector rollout is explicitly reviewed.
 - The current `DataFreshnessShadowReplayCollector` hook is only a local/runtime
   skeleton under that flag. Disabled mode emits safety markers only; enabled
-  mode is still `SNAPSHOT_ONLY_NOT_REPLAYABLE` and only captures scalar
-  K-line/strategy context plus missing counterfactual fields. It must not be
-  treated as complete replay evidence or live-readiness evidence.
+  mode is still not replayable and only captures scalar K-line/strategy context
+  plus fixed-config entry/TP/SL snapshots when those can be derived without ATR
+  or side-effectful helpers. Dynamic ATR candidate plans are not guessed. It
+  must not be treated as complete replay evidence or live-readiness evidence.
 - New DataFreshness L0 audit rows include deterministic `replayCandidateId`
   values and explicit no-order/no-intent/no-OCO markers. Treat those ids as
   traceability only; policy review still requires entry/TP/SL/EV/OCO snapshots

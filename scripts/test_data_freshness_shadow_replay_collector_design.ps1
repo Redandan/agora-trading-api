@@ -18,6 +18,7 @@ $designPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-collector-d
 $inputPlanPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-input-plan.md"
 $liveSignalEvaluatorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"
 $collectorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplayCollector.java"
+$candidatePlanBuilderPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplayCandidatePlanBuilder.java"
 $runtimeEvidencePath = Join-Path $repoRoot "src/main/java/com/agora/service/trading/RuntimeDecisionEvidenceService.java"
 $envTemplatePath = Join-Path $repoRoot ".env.trading.secrets.example"
 $applicationPath = Join-Path $repoRoot "src/main/resources/application.yml"
@@ -30,6 +31,7 @@ $designText = Get-Content -Raw -LiteralPath $designPath
 $inputPlanText = Get-Content -Raw -LiteralPath $inputPlanPath
 $liveSignalEvaluatorText = Get-Content -Raw -LiteralPath $liveSignalEvaluatorPath
 $collectorText = Get-Content -Raw -LiteralPath $collectorPath
+$candidatePlanBuilderText = Get-Content -Raw -LiteralPath $candidatePlanBuilderPath
 $runtimeEvidenceText = Get-Content -Raw -LiteralPath $runtimeEvidencePath
 $envTemplateText = Get-Content -Raw -LiteralPath $envTemplatePath
 $applicationText = Get-Content -Raw -LiteralPath $applicationPath
@@ -81,17 +83,37 @@ foreach ($marker in @(
 
 foreach ($marker in @(
         "DataFreshnessShadowReplayCollector",
+        "DataFreshnessShadowReplayCandidatePlanBuilder",
         '@Value("${trading.data-freshness.shadow-replay.collector.enabled:false}")',
         "SNAPSHOT_ONLY_NOT_REPLAYABLE",
+        "CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE",
         "MISSING_REPLAY_FIELDS",
         "shadowReplayKeepsHardBlock",
         "shadowReplayCreatesLiveSignal",
         "shadowReplaySendsTelegram",
         "shadowReplayPlacesOrder",
         "shadowReplayCreatesOco",
-        "shadowReplayMutatesPolicy"
+        "shadowReplayMutatesPolicy",
+        "candidateEntry",
+        "candidateTp",
+        "candidateSl"
     )) {
     Assert-Contains -Name "DataFreshness shadow replay collector code boundary" -Text $collectorText -Pattern $marker
+}
+
+foreach ($marker in @(
+        "DataFreshnessShadowReplayCandidatePlanBuilder",
+        "FIXED_CONFIG_SNAPSHOT_ONLY",
+        "NOT_REPLAYABLE_DYNAMIC_ATR_CONFIG",
+        "fixedStopLossPct",
+        "fixedTakeProfitPct",
+        "maxHoldingHours",
+        "atrSlMultiplier",
+        "atrTpMultiplier",
+        "atrFallback",
+        "higherTfForSl"
+    )) {
+    Assert-Contains -Name "DataFreshness shadow replay candidate plan builder boundary" -Text $candidatePlanBuilderText -Pattern $marker
 }
 
 foreach ($marker in @(

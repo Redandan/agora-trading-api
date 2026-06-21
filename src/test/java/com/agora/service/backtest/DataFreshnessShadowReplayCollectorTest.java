@@ -2,6 +2,7 @@ package com.agora.service.backtest;
 
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -19,7 +20,7 @@ class DataFreshnessShadowReplayCollectorTest {
 
     @Test
     void disabledCollectorOnlyAddsSafetyMarkers() {
-        DataFreshnessShadowReplayCollector collector = new DataFreshnessShadowReplayCollector();
+        DataFreshnessShadowReplayCollector collector = collector();
         ReflectionTestUtils.setField(collector, "enabled", false);
 
         Map<String, Object> context = new LinkedHashMap<>();
@@ -41,12 +42,13 @@ class DataFreshnessShadowReplayCollectorTest {
         assertFalse((Boolean) context.get("shadowReplayCreatesOco"));
         assertFalse((Boolean) context.get("shadowReplayMutatesPolicy"));
         assertNull(context.get("shadowReplayMissingCounterfactualFields"));
+        assertNull(context.get("candidateEntry"));
         assertNull(context.get("snapshotLatestBarOpen"));
     }
 
     @Test
-    void enabledCollectorCapturesScalarSnapshotWithoutExecutableEvidence() {
-        DataFreshnessShadowReplayCollector collector = new DataFreshnessShadowReplayCollector();
+    void enabledCollectorCapturesCandidatePlanSnapshotWithoutExecutableEvidence() {
+        DataFreshnessShadowReplayCollector collector = collector();
         ReflectionTestUtils.setField(collector, "enabled", true);
 
         Map<String, Object> context = new LinkedHashMap<>();
@@ -58,13 +60,19 @@ class DataFreshnessShadowReplayCollectorTest {
                 180, 135, 60, 300);
 
         assertEquals(true, context.get("shadowReplayCollectorEnabled"));
-        assertEquals(DataFreshnessShadowReplayCollector.SNAPSHOT_ONLY_NOT_REPLAYABLE,
+        assertEquals(DataFreshnessShadowReplayCollector.CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE,
                 context.get("shadowReplayCollectorStatus"));
-        assertEquals(DataFreshnessShadowReplayCollector.SNAPSHOT_ONLY_NOT_REPLAYABLE,
+        assertEquals(DataFreshnessShadowReplayCollector.CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE,
                 context.get("shadowReplayCandidateStatus"));
-        assertTrue(((String) context.get("shadowReplayMissingCounterfactualFields")).contains("candidateEntry"));
+        assertEquals("AVAILABLE_NOT_REPLAYABLE", context.get("shadowReplayCandidatePlanStatus"));
+        assertEquals(DataFreshnessShadowReplayCandidatePlanBuilder.FIXED_CONFIG_SNAPSHOT_ONLY,
+                context.get("shadowReplayCandidatePlanSource"));
+        assertEquals(new BigDecimal("65000.00"), context.get("candidateEntry"));
+        assertEquals(new BigDecimal("71500.00"), context.get("candidateTp"));
+        assertEquals(new BigDecimal("61750.00"), context.get("candidateSl"));
+        assertFalse(((String) context.get("shadowReplayMissingCounterfactualFields")).contains("candidateEntry"));
         assertTrue(((String) context.get("shadowReplayMissingCounterfactualFields")).contains("oco_preflight"));
-        assertEquals("extract_pure_candidate_plan_builder_before_policy_review",
+        assertEquals("collect_ev_tqs_oco_and_hard_gate_snapshots_before_policy_review",
                 context.get("shadowReplayRequiredNextAction"));
         assertEquals("BTCUSDT", context.get("snapshotSymbol"));
         assertEquals("1h", context.get("snapshotIntervalCode"));
@@ -78,11 +86,40 @@ class DataFreshnessShadowReplayCollectorTest {
         assertFalse((Boolean) context.get("shadowReplayMutatesPolicy"));
     }
 
+    @Test
+    void enabledCollectorDoesNotGuessDynamicAtrCandidatePlan() {
+        DataFreshnessShadowReplayCollector collector = collector();
+        ReflectionTestUtils.setField(collector, "enabled", true);
+
+        Map<String, Object> context = new LinkedHashMap<>();
+        context.put("replayCandidateId", "dfsr1_test");
+
+        BtStrategy strategy = strategy();
+        strategy.setConfigJson("{\"atrSlMultiplier\":1.5,\"atrTpMultiplier\":3.0}");
+        collector.enrichAfterHardBlock(context, strategy, "BTCUSDT", "1h", "okx",
+                kline(), LocalDateTime.parse("2026-06-21T01:00:00"),
+                LocalDateTime.parse("2026-06-21T00:00:00"),
+                180, 135, 60, 300);
+
+        assertEquals(DataFreshnessShadowReplayCollector.SNAPSHOT_ONLY_NOT_REPLAYABLE,
+                context.get("shadowReplayCollectorStatus"));
+        assertEquals(DataFreshnessShadowReplayCandidatePlanBuilder.NOT_REPLAYABLE_DYNAMIC_ATR_CONFIG,
+                context.get("shadowReplayCandidatePlanStatus"));
+        assertNull(context.get("candidateEntry"));
+        assertTrue(((String) context.get("shadowReplayMissingCounterfactualFields")).contains("candidateEntry"));
+    }
+
+    private DataFreshnessShadowReplayCollector collector() {
+        return new DataFreshnessShadowReplayCollector(
+                new DataFreshnessShadowReplayCandidatePlanBuilder(new ObjectMapper()));
+    }
+
     private BtStrategy strategy() {
         BtStrategy strategy = new BtStrategy();
         strategy.setId(574L);
         strategy.setStrategyType("TINY_LIVE");
         strategy.setKlineSource("okx");
+        strategy.setConfigJson("{}");
         return strategy;
     }
 

@@ -51,11 +51,18 @@ the DataFreshness audit context with safety markers such as
 `shadowReplayMutatesPolicy=false`.
 
 If enabled in a separately reviewed evidence-only rollout, the current skeleton
-captures scalar K-line/strategy snapshot fields and emits
-`shadowReplayCollectorStatus=SNAPSHOT_ONLY_NOT_REPLAYABLE` plus
-`shadowReplayMissingCounterfactualFields`. It still does not write a separate
-replay table, create runtime evidence rows by itself, build entry/TP/SL, run
-EV/TQS/OCO/risk gates, or make the row executable replay evidence.
+captures scalar K-line/strategy snapshot fields. For strategies whose candidate
+plan can be derived from fixed SL/TP config without ATR, live-signal
+persistence, Telegram, order, or OCO helpers, it also emits
+`shadowReplayCollectorStatus=CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE` with
+`candidateEntry`, `candidateTp`, `candidateSl`, `candidateQty=NOT_SIZED`, and
+`riskUsdt=NOT_SIZED`. Dynamic ATR-based plans are not guessed; they stay
+`SNAPSHOT_ONLY_NOT_REPLAYABLE` with
+`shadowReplayCandidatePlanStatus=NOT_REPLAYABLE_DYNAMIC_ATR_CONFIG`.
+
+The skeleton still does not write a separate replay table, create runtime
+evidence rows by itself, run EV/TQS/OCO/risk gates, or make the row executable
+replay evidence.
 
 ## Design Conclusion
 
@@ -124,6 +131,11 @@ place orders, or mutate position/OCO state. If the current candidate logic
 cannot be reused without those side effects, extract a pure candidate snapshot
 builder first and keep its local verification separate from any collector
 activation.
+
+`DataFreshnessShadowReplayCandidatePlanBuilder` is the first such pure builder.
+It intentionally supports only fixed-config SL/TP snapshots and horizon caps
+that can be calculated from already-loaded inputs. It refuses dynamic ATR plans
+instead of fabricating candidate prices.
 
 ## Acceptance Gate
 

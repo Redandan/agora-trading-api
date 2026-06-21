@@ -368,9 +368,11 @@
   DataFreshnessGuard audit path as a disabled-by-default evidence skeleton.
   It keeps the hard block terminal and emits only safety markers while
   disabled; if separately enabled later, it marks scalar K-line/strategy
-  context as `SNAPSHOT_ONLY_NOT_REPLAYABLE` and lists missing counterfactual
-  fields. It still does not create live signals, Telegram sends, orders, OCO,
-  runtime policy changes, DB schema changes, or complete replayable evidence.
+  context and fixed-config entry/TP/SL candidate snapshots as not replayable
+  until EV, TQS, OCO, and hard-gate fields exist. Dynamic ATR candidate plans
+  are not guessed. It still does not create live signals, Telegram sends,
+  orders, OCO, runtime policy changes, DB schema changes, or complete
+  replayable evidence.
 - DataFreshness L0 audit context now writes deterministic `replayCandidateId`
   values (`dfsr1_...`) plus explicit `orderSent=false`, `intentCreated=false`,
   and `ocoPlanCreated=false` markers. This improves future replay traceability

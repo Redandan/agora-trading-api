@@ -2,6 +2,7 @@ package com.agora.service.backtest;
 
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -9,11 +10,13 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 class DataFreshnessShadowReplayCollector {
 
     static final String DISABLED = "DISABLED";
     static final String SNAPSHOT_ONLY_NOT_REPLAYABLE = "SNAPSHOT_ONLY_NOT_REPLAYABLE";
-    static final String MISSING_REPLAY_FIELDS = String.join(",",
+    static final String CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE = "CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE";
+    static final String MISSING_REPLAY_FIELDS_WITHOUT_PLAN = String.join(",",
             "candidateEntry",
             "candidateTp",
             "candidateSl",
@@ -27,6 +30,19 @@ class DataFreshnessShadowReplayCollector {
             "event_risk",
             "open_position",
             "loss_budget");
+    static final String MISSING_REPLAY_FIELDS_WITH_PLAN = String.join(",",
+            "expected_r",
+            "ev_result",
+            "tqs_result",
+            "oco_preflight",
+            "duplicate_gate",
+            "daily_cap",
+            "exposure_gate",
+            "event_risk",
+            "open_position",
+            "loss_budget");
+
+    private final DataFreshnessShadowReplayCandidatePlanBuilder candidatePlanBuilder;
 
     @Value("${trading.data-freshness.shadow-replay.collector.enabled:false}")
     private boolean enabled;
@@ -62,8 +78,8 @@ class DataFreshnessShadowReplayCollector {
         }
 
         context.put("shadowReplayCandidateStatus", SNAPSHOT_ONLY_NOT_REPLAYABLE);
-        context.put("shadowReplayMissingCounterfactualFields", MISSING_REPLAY_FIELDS);
-        context.put("shadowReplayRequiredNextAction", "extract_pure_candidate_plan_builder_before_policy_review");
+        context.put("shadowReplayMissingCounterfactualFields", MISSING_REPLAY_FIELDS_WITHOUT_PLAN);
+        context.put("shadowReplayRequiredNextAction", "collect_ev_tqs_oco_and_hard_gate_snapshots_before_policy_review");
         context.put("strategyType", strategy != null ? strategy.getStrategyType() : null);
         context.put("strategyKlineSource", strategy != null ? strategy.getKlineSource() : null);
         context.put("snapshotSymbol", symbol);
@@ -84,5 +100,32 @@ class DataFreshnessShadowReplayCollector {
             context.put("snapshotClosePrice", newest.getClosePrice());
             context.put("snapshotVolume", newest.getVolume());
         }
+
+        candidatePlanBuilder.build(strategy, newest).ifPresent(plan -> {
+            context.put("shadowReplayCandidatePlanSource", plan.source());
+            if (!plan.available()) {
+                context.put("shadowReplayCandidatePlanStatus", plan.source());
+                return;
+            }
+            context.put("shadowReplayCollectorStatus", CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE);
+            context.put("shadowReplayCandidateStatus", CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE);
+            context.put("shadowReplayCandidatePlanStatus", "AVAILABLE_NOT_REPLAYABLE");
+            context.put("shadowReplayMissingCounterfactualFields", MISSING_REPLAY_FIELDS_WITH_PLAN);
+            context.put("shadowReplayRequiredNextAction", "collect_ev_tqs_oco_and_hard_gate_snapshots_before_policy_review");
+            context.put("currentPrice", plan.entry());
+            context.put("entry", plan.entry());
+            context.put("tp", plan.tp());
+            context.put("sl", plan.sl());
+            context.put("candidateEntry", plan.entry());
+            context.put("candidateTp", plan.tp());
+            context.put("candidateSl", plan.sl());
+            context.put("candidateQty", "NOT_SIZED");
+            context.put("riskUsdt", "NOT_SIZED");
+            context.put("stop_loss_pct", plan.stopLossPct());
+            context.put("take_profit_pct", plan.takeProfitPct());
+            context.put("maxHoldingHours", plan.maxHoldingHours());
+            context.put("candidateContinuedToEv", false);
+            context.put("candidateContinuedToTqs", false);
+        });
     }
 }

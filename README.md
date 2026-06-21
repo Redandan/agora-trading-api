@@ -686,7 +686,11 @@ DataFreshness replay observation bundle and emits
 `data_freshness_profit_blocker_status`. `PENDING_DATAFRESHNESS_CURRENT_SAMPLE`
 means current DataFreshness evidence is still missing;
 `READY_FOR_DATAFRESHNESS_REPLAY_REVIEW_NOT_LIVE` means a separate replay review
-can start. It does not deploy, enable live trading, relax
+can start. The brief also surfaces DataFreshness sample recency from the replay
+bundle, including latest row time, row age, 1d/3d/7d/14d/30d row counts, and
+`data_freshness_sample_gap_status`, so a pending current sample can be separated
+from a recent-window gap with older historical samples. It does not deploy,
+enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.
 

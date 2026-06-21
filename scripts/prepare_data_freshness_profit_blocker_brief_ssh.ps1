@@ -129,6 +129,14 @@ $originDeltaStatus = Get-RegexValue -Text $observation.Text -Pattern "  origin_d
 $runtimeCurrent = Get-RegexValue -Text $observation.Text -Pattern "  deployment_runtime_current_for_replay_id=(true|false|N/A)" -Default "N/A"
 $replayCandidateRecommendation = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_replay_candidate_id_recommendation=([A-Z_]+)" -Default "N/A"
 $replayCandidateRows = Get-RegexValue -Text $observation.Text -Pattern "  replay_candidate_id_rows=([0-9]+)" -Default "0"
+$latestDataFreshnessRowTime = Get-RegexValue -Text $observation.Text -Pattern "  latest_data_freshness_row_time=([^\r\n]+)" -Default "N/A"
+$latestDataFreshnessRowAgeHours = Get-RegexValue -Text $observation.Text -Pattern "  latest_data_freshness_row_age_hours=([^\r\n]+)" -Default "N/A"
+$dataFreshnessRows1d = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_rows_1d=([0-9]+)" -Default "0"
+$dataFreshnessRows3d = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_rows_3d=([0-9]+)" -Default "0"
+$dataFreshnessRows7d = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_rows_7d=([0-9]+)" -Default "0"
+$dataFreshnessRows14d = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_rows_14d=([0-9]+)" -Default "0"
+$dataFreshnessRows30d = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_rows_30d=([0-9]+)" -Default "0"
+$dataFreshnessSampleGapStatus = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_sample_gap_status=([A-Z_]+)" -Default "N/A"
 $counterfactualRecommendation = Get-RegexValue -Text $observation.Text -Pattern "  data_freshness_counterfactual_recommendation=([A-Z_]+)" -Default "N/A"
 $completeReplayRows = Get-RegexValue -Text $observation.Text -Pattern "  complete_replayable_candidate_rows=([0-9]+)" -Default "0"
 $missingCounterfactualFields = Get-RegexValue -Text $observation.Text -Pattern "  missing_counterfactual_fields=(.+)" -Default "[]"
@@ -167,6 +175,9 @@ if ($blockers.Count -eq 0) {
     $nextAction = "Attach this brief to a separate DataFreshness replay review; do not relax DataFreshnessGuard or live policy from this output."
 } elseif ($blockers -contains "DATAFRESHNESS_CURRENT_SAMPLE_MISSING") {
     $status = "PENDING_DATAFRESHNESS_CURRENT_SAMPLE"
+    if ($dataFreshnessSampleGapStatus -eq "NO_ROWS_IN_REVIEW_WINDOW") {
+        $nextAction = "Recent DataFreshnessGuard rows are absent while older samples exist; review upstream no-buy/blocker distribution and wait for a new terminal DataFreshness sample before policy review."
+    }
 } elseif ($blockers -contains "NO_NEW_DATAFRESHNESS_REPLAY_ROWS") {
     $status = "PENDING_REPLAY_CANDIDATE_ID_EVIDENCE"
 } elseif ($blockers -contains "COUNTERFACTUAL_REPLAY_SNAPSHOT_MISSING") {
@@ -185,6 +196,14 @@ $brief = [pscustomobject]@{
     deploymentRuntimeCurrentForReplayId = $runtimeCurrent
     replayCandidateRecommendation = $replayCandidateRecommendation
     replayCandidateRows = $replayCandidateRows
+    latestDataFreshnessRowTime = $latestDataFreshnessRowTime
+    latestDataFreshnessRowAgeHours = $latestDataFreshnessRowAgeHours
+    dataFreshnessRows1d = $dataFreshnessRows1d
+    dataFreshnessRows3d = $dataFreshnessRows3d
+    dataFreshnessRows7d = $dataFreshnessRows7d
+    dataFreshnessRows14d = $dataFreshnessRows14d
+    dataFreshnessRows30d = $dataFreshnessRows30d
+    dataFreshnessSampleGapStatus = $dataFreshnessSampleGapStatus
     counterfactualRecommendation = $counterfactualRecommendation
     completeReplayableCandidateRows = $completeReplayRows
     missingCounterfactualFields = $missingCounterfactualFields
@@ -214,6 +233,14 @@ Write-Host "origin_delta_status=$originDeltaStatus"
 Write-Host "deployment_runtime_current_for_replay_id=$runtimeCurrent"
 Write-Host "data_freshness_replay_candidate_id_recommendation=$replayCandidateRecommendation"
 Write-Host "replay_candidate_id_rows=$replayCandidateRows"
+Write-Host "latest_data_freshness_row_time=$latestDataFreshnessRowTime"
+Write-Host "latest_data_freshness_row_age_hours=$latestDataFreshnessRowAgeHours"
+Write-Host "data_freshness_rows_1d=$dataFreshnessRows1d"
+Write-Host "data_freshness_rows_3d=$dataFreshnessRows3d"
+Write-Host "data_freshness_rows_7d=$dataFreshnessRows7d"
+Write-Host "data_freshness_rows_14d=$dataFreshnessRows14d"
+Write-Host "data_freshness_rows_30d=$dataFreshnessRows30d"
+Write-Host "data_freshness_sample_gap_status=$dataFreshnessSampleGapStatus"
 Write-Host "data_freshness_counterfactual_recommendation=$counterfactualRecommendation"
 Write-Host "complete_replayable_candidate_rows=$completeReplayRows"
 Write-Host "missing_counterfactual_fields=$missingCounterfactualFields"

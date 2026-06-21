@@ -1009,6 +1009,10 @@ Expected:
 - It emits `data_freshness_profit_blocker_brief_packet`,
   `data_freshness_profit_blockers`, and
   `data_freshness_profit_blocker_status`.
+- It also emits DataFreshness sample recency from the replay bundle: latest row
+  time, row age, 1d/3d/7d/14d/30d row counts, and
+  `data_freshness_sample_gap_status`, so a pending current sample can be
+  separated from a recent-window gap with older historical samples.
 - `PENDING_DATAFRESHNESS_CURRENT_SAMPLE` means the current-source RCA still has
   no current DataFreshness sample; rerun after a new sample is expected.
 - `READY_FOR_DATAFRESHNESS_REPLAY_REVIEW_NOT_LIVE` means the current sample,

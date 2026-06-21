@@ -461,8 +461,12 @@
   `data_freshness_profit_blocker_status`. `PENDING_DATAFRESHNESS_CURRENT_SAMPLE`
   means current-source evidence is still missing, while
   `READY_FOR_DATAFRESHNESS_REPLAY_REVIEW_NOT_LIVE` only routes a separate
-  replay review. The brief does not authorize live trading, policy relaxation,
-  deploy, production env changes, orders, OCO, position closes,
+  replay review. The brief now also carries DataFreshness sample recency from
+  the replay bundle, including latest row time, row age, 1d/3d/7d/14d/30d row
+  counts, and `data_freshness_sample_gap_status`, so a pending current sample
+  can be separated from a recent-window gap with older historical samples. The
+  brief does not authorize live trading, policy relaxation, deploy, production
+  env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
 - `scripts/prepare_profit_operator_review_matrix_ssh.ps1` combines
   `prepare_profit_readiness_brief_ssh.ps1`,

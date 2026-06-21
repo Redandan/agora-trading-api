@@ -418,7 +418,7 @@ Read-only post-deploy profit validation:
 This aggregate gate runs the auto-trading review gate, profit loss review gate,
 and profit experiment gate after a separately authorized deploy. It emits
 `deploy_required_before_post_deploy_profit_validation`,
-`origin_runtime_delta_paths`,
+`origin_runtime_delta_paths`, `origin_runtime_delta_impact`,
 `post_deploy_profit_validation_status`,
 `post_deploy_profit_validation_missing_requirements`,
 `post_deploy_profit_validation_review_plan`,
@@ -434,8 +434,9 @@ gate evidence; each entry preserves `requiredEvidenceCount`, `requiredEvidence`,
 blockers.
 When `origin_delta_status=RUNTIME_DRIFT`, the aggregate output also carries
 `server_worktree_commit`, `origin_main_commit`, `origin_runtime_delta_files`,
-and `origin_runtime_delta_paths`, so the deploy-first blocker points at the
-runtime files that must be refreshed before profit evidence is trusted.
+`origin_runtime_delta_paths`, and `origin_runtime_delta_impact`, so the
+deploy-first blocker points at the runtime files and evidence categories that
+must be refreshed before profit evidence is trusted.
 The review decision is the top-level machine-readable routing object; it
 includes `canPrepareReviewPacket`, `deployRequired`, `allowedReviewTypes`,
 `blockerCount`, `missingRequirementCount`, and no-live authorization text.

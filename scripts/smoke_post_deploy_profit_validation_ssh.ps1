@@ -95,6 +95,28 @@ function Test-OriginDeltaRequiresDeploy {
     return ($Value -eq "RUNTIME_DRIFT" -or $Value -eq "MISMATCH")
 }
 
+function Get-RuntimeDeltaImpact {
+    param([string[]]$Paths)
+
+    $impacts = [System.Collections.Generic.List[string]]::new()
+    foreach ($path in @($Paths)) {
+        if ([string]::IsNullOrWhiteSpace($path)) {
+            continue
+        }
+        if ($path -eq "src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java") {
+            Add-MissingRequirement -List $impacts -Value "DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED"
+        } elseif ($path -eq "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java") {
+            Add-MissingRequirement -List $impacts -Value "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED"
+        } else {
+            Add-MissingRequirement -List $impacts -Value "UNCLASSIFIED_RUNTIME_DRIFT"
+        }
+    }
+    if ($impacts.Count -eq 0) {
+        Add-MissingRequirement -List $impacts -Value "NO_RUNTIME_DRIFT_PATHS"
+    }
+    return @($impacts)
+}
+
 function New-ProfitValidationReviewPlanEntry {
     param(
         [string]$Gate,
@@ -194,7 +216,7 @@ function Assert-ProfitValidationBlockerSummaryShape {
         if ($item.notAuthorization -notmatch "does not authorize live trading") {
             throw "post-deploy profit validation blocker summary entry must preserve no-live authorization text: $($item.gate)"
         }
-        foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths")) {
+        foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths", "runtimeDeltaImpact")) {
             if ($null -eq $item.runtimeDrift.PSObject.Properties[$field]) {
                 throw "post-deploy profit validation blocker summary runtimeDrift missing field: $field"
             }
@@ -496,6 +518,7 @@ $runtimeDrift = [pscustomobject]@{
     originMainCommit = $originMainCommit
     runtimeDeltaFiles = if ([string]::IsNullOrWhiteSpace($originRuntimeDeltaFiles)) { 0 } else { [int]$originRuntimeDeltaFiles }
     runtimeDeltaPaths = @($originRuntimeDeltaPathItems)
+    runtimeDeltaImpact = @(Get-RuntimeDeltaImpact -Paths @($originRuntimeDeltaPathItems))
 }
 $blockerSummary = New-ProfitValidationBlockerSummary -Plan $reviewPlan -RuntimeDrift $runtimeDrift
 Assert-ProfitValidationBlockerSummaryShape -Summary $blockerSummary
@@ -521,6 +544,7 @@ Write-Host "origin_delta_files=$originDeltaFiles"
 Write-Host "origin_docs_tooling_delta_files=$originDocsToolingDeltaFiles"
 Write-Host "origin_runtime_delta_files=$originRuntimeDeltaFiles"
 Write-Host "origin_runtime_delta_paths=$originRuntimeDeltaPaths"
+Write-Host ("origin_runtime_delta_impact=" + (ConvertTo-Json -Compress @($runtimeDrift.runtimeDeltaImpact)))
 Write-Host "monthlyPnlTotalUsdt=$monthlyPnlTotalUsdt"
 Write-Host "auto_trading_review_gate_status=$autoStatus"
 Write-Host "profit_loss_review_gate_status=$profitLossStatus"

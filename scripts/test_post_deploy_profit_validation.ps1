@@ -125,7 +125,7 @@ function Assert-BlockerSummaryShape {
         if ($item.notAuthorization -notmatch "does not authorize live trading") {
             throw "post-deploy profit validation blocker summary entry must preserve no-live authorization text: $($item.gate)"
         }
-        foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths")) {
+        foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths", "runtimeDeltaImpact")) {
             if ($null -eq $item.runtimeDrift.PSObject.Properties[$field]) {
                 throw "post-deploy profit validation blocker summary runtimeDrift missing field: $field"
             }
@@ -193,6 +193,7 @@ foreach ($marker in @(
         "origin_docs_tooling_delta_files",
         "origin_runtime_delta_files",
         "origin_runtime_delta_paths",
+        "origin_runtime_delta_impact",
         "monthlyPnlTotalUsdt",
         "auto_trading_review_gate_status",
         "profit_loss_review_gate_status",
@@ -223,6 +224,10 @@ foreach ($marker in @(
         "Convert-JsonArrayOrEmpty",
         "Convert-ToCanonicalMissingRequirement",
         "Add-MissingRequirement",
+        "Get-RuntimeDeltaImpact",
+        "DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED",
+        "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED",
+        "UNCLASSIFIED_RUNTIME_DRIFT",
         "fresh replayCandidateId rows",
         "fresh DataFreshness replayCandidateId rows",
         "Test-OriginDeltaAcceptableForProfitReview",
@@ -238,6 +243,7 @@ foreach ($marker in @(
         "originDeltaStatus",
         "runtimeDeltaFiles",
         "runtimeDeltaPaths",
+        "runtimeDeltaImpact",
         "requiredEvidence",
         "requiredEvidenceCount",
         "nextAction",
@@ -283,6 +289,7 @@ foreach ($marker in @(
         "read-only",
         "deploy_required_before_post_deploy_profit_validation",
         "origin_runtime_delta_paths",
+        "origin_runtime_delta_impact",
         "post_deploy_profit_validation_status",
         "post_deploy_profit_validation_missing_requirements",
         "post_deploy_profit_validation_review_plan",
@@ -362,7 +369,8 @@ $blockerSummaryFixture = @'
       "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
       "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
       "runtimeDeltaFiles": 2,
-      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"]
+      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"],
+      "runtimeDeltaImpact": ["DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED", "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED"]
     },
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   },
@@ -380,7 +388,8 @@ $blockerSummaryFixture = @'
       "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
       "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
       "runtimeDeltaFiles": 2,
-      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"]
+      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"],
+      "runtimeDeltaImpact": ["DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED", "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED"]
     },
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   },
@@ -398,7 +407,8 @@ $blockerSummaryFixture = @'
       "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
       "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
       "runtimeDeltaFiles": 2,
-      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"]
+      "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"],
+      "runtimeDeltaImpact": ["DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED", "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED"]
     },
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   }

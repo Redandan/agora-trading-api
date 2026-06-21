@@ -720,9 +720,10 @@ Expected:
 - `deploy_required_before_post_deploy_profit_validation=false` is required
   before any profit packet can be trusted.
 - `server_worktree_commit`, `origin_main_commit`, `origin_runtime_delta_files`,
-  and `origin_runtime_delta_paths` identify runtime drift when
-  `origin_delta_status=RUNTIME_DRIFT`, so the deploy-first blocker points at
-  concrete files instead of only a status.
+  `origin_runtime_delta_paths`, and `origin_runtime_delta_impact` identify
+  runtime drift when `origin_delta_status=RUNTIME_DRIFT`, so the deploy-first
+  blocker points at concrete files and blocked evidence categories instead of
+  only a status.
 - `post_deploy_profit_validation_status` summarizes the auto-trading review
   gate, profit loss review gate, and profit experiment gate into one matrix.
 - `post_deploy_profit_validation_missing_requirements` lists replay, OCO, EV,

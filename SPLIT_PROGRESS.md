@@ -263,6 +263,7 @@
   `deploy_required_before_post_deploy_profit_validation`,
   `server_worktree_commit`, `origin_main_commit`,
   `origin_runtime_delta_files`, `origin_runtime_delta_paths`,
+  `origin_runtime_delta_impact`,
   `post_deploy_profit_validation_status`,
   `post_deploy_profit_validation_missing_requirements`,
   `post_deploy_profit_validation_review_plan`,

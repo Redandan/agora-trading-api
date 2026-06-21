@@ -409,6 +409,22 @@ route a separate read-only loss-source review packet, but it never authorizes
 DataFreshness relaxation, close-position, OCO modification, TinyLive order
 execution, deploy, or live policy changes.
 
+Read-only post-deploy profit validation:
+
+```powershell
+.\scripts\smoke_post_deploy_profit_validation_ssh.ps1
+```
+
+This aggregate gate runs the auto-trading review gate, profit loss review gate,
+and profit experiment gate after a separately authorized deploy. It emits
+`deploy_required_before_post_deploy_profit_validation`,
+`post_deploy_profit_validation_status`,
+`post_deploy_profit_validation_missing_requirements`,
+`live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
+and `tiny_live_order_allowed=false`. It is a read-only readiness matrix for
+profit review packets and does not deploy, restart, change production env, relax
+policy, place orders, or modify OCO/grid/fund/Earn state.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

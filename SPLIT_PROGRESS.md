@@ -257,6 +257,17 @@
   authorizes DataFreshness relaxation, close-position, OCO modification,
   pre-buying, TinyLive order execution, deploy, restart, or live policy
   changes.
+- `scripts/smoke_post_deploy_profit_validation_ssh.ps1` aggregates the
+  auto-trading review gate, profit loss review gate, and profit experiment gate
+  after a separately authorized deploy. It emits
+  `deploy_required_before_post_deploy_profit_validation`,
+  `post_deploy_profit_validation_status`,
+  `post_deploy_profit_validation_missing_requirements`,
+  `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  and `tiny_live_order_allowed=false` so profit review readiness can be checked
+  from one read-only command. `scripts/test_post_deploy_profit_validation.ps1`
+  guards the child gate list, safety markers, docs coverage, and local input
+  validation.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

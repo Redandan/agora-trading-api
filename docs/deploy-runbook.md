@@ -708,6 +708,27 @@ Expected:
 - `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
   and verified before the loss-source packet can be trusted.
 
+For the read-only post-deploy profit validation bundle, run after a separately
+authorized deploy and verification:
+
+```powershell
+.\scripts\smoke_post_deploy_profit_validation_ssh.ps1
+```
+
+Expected:
+
+- `deploy_required_before_post_deploy_profit_validation=false` is required
+  before any profit packet can be trusted.
+- `post_deploy_profit_validation_status` summarizes the auto-trading review
+  gate, profit loss review gate, and profit experiment gate into one matrix.
+- `post_deploy_profit_validation_missing_requirements` lists replay, OCO, EV,
+  DataFreshness, or runtime evidence still missing.
+- `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  and `tiny_live_order_allowed=false` remain hard non-authorization markers.
+- The bundle is read-only. It does not deploy, restart, change production env,
+  relax policy, place orders, modify OCO/grid/fund/Earn state, send Telegram,
+  touch DB state, run external backfill/import, or change nginx.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

@@ -1069,6 +1069,9 @@ Expected:
   machine-readable lane classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
   `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so ready
   and blocked profit lanes can be shown together in an operator dashboard.
+- Long child matrix runs emit `child_start`, periodic `child_heartbeat`, and
+  `child_complete` markers. `-ChildTimeoutSeconds` bounds a stuck local child
+  wrapper without changing production state.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

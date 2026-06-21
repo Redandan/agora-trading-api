@@ -500,7 +500,9 @@
   `profit_operator_decision_lanes` / `decisionLanes` with machine-readable lane
   classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
   `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so ready
-  and blocked profit lanes stay visible together. The brief does
+  and blocked profit lanes stay visible together. Long child matrix runs emit
+  `child_start`, periodic `child_heartbeat`, and `child_complete` markers, with
+  `-ChildTimeoutSeconds` bounding stuck local children. The brief does
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.

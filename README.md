@@ -739,7 +739,10 @@ blocked entry-filter and DataFreshness replay actions. It also emits
 `profit_operator_decision_lanes` / `decisionLanes` with machine-readable lane
 classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
 `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so the
-operator dashboard can show ready and blocked profit lanes together. It does not deploy,
+operator dashboard can show ready and blocked profit lanes together. Long child
+matrix runs emit `child_start`, periodic `child_heartbeat`, and
+`child_complete` markers; `-ChildTimeoutSeconds` bounds a stuck child locally
+without changing production state. It does not deploy,
 change production env, enable live trading, enable trailing, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.

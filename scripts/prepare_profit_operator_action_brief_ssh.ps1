@@ -72,13 +72,79 @@ function Invoke-ReadOnlyScript {
         throw "Unable to find powershell or pwsh for profit operator action brief."
     }
 
-    Write-Host "[profit-operator-action-brief] child_start script=$ScriptName"
-    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1
-    $exitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($?) { 0 } else { 1 }
-    Write-Host "[profit-operator-action-brief] child_complete script=$ScriptName exitCode=$exitCode"
+    Write-Host "[profit-operator-action-brief] child_start script=$ScriptName timeoutSeconds=$ChildTimeoutSeconds"
+    $startedAt = Get-Date
+    $timedOut = $false
+    $stdout = ""
+    $stderr = ""
+    $exitCode = 1
+    $job = $null
+    try {
+        $job = Start-Job -ScriptBlock {
+            param(
+                [string]$PowerShellSource,
+                [string]$ChildScriptPath,
+                [string]$WorkingDirectory,
+                [object[]]$ChildArguments
+            )
+            $ErrorActionPreference = "Continue"
+            Set-Location -LiteralPath $WorkingDirectory
+            $output = & $PowerShellSource -NoProfile -ExecutionPolicy Bypass -File $ChildScriptPath @ChildArguments 2>&1
+            $childSuccess = $?
+            $code = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($childSuccess) { 0 } else { 1 }
+            [pscustomobject]@{
+                Text = ($output | Out-String -Width 4096)
+                ExitCode = $code
+            }
+        } -ArgumentList @($powerShell.Source, $scriptPath, (Get-Location).Path, (, @($Arguments)))
+
+        $lastHeartbeatSeconds = 0
+        while ($job.State -eq "Running") {
+            $elapsedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+            if ($elapsedSeconds -ge $ChildTimeoutSeconds) {
+                $timedOut = $true
+                Stop-Job -Job $job -ErrorAction SilentlyContinue
+                break
+            }
+            if (($elapsedSeconds - $lastHeartbeatSeconds) -ge 30) {
+                Write-Host "[profit-operator-action-brief] child_heartbeat script=$ScriptName elapsedSeconds=$elapsedSeconds"
+                $lastHeartbeatSeconds = $elapsedSeconds
+            }
+            Start-Sleep -Seconds 5
+            $job = Get-Job -Id $job.Id
+        }
+
+        if (-not $timedOut) {
+            $jobOutput = @(Receive-Job -Job $job)
+            $result = @($jobOutput | Where-Object { $null -ne $_ -and $null -ne $_.PSObject.Properties["ExitCode"] } | Select-Object -Last 1)
+            if ($result) {
+                $stdout = [string]$result[0].Text
+                $exitCode = [int]$result[0].ExitCode
+            } else {
+                $exitCode = 1
+                $stderr = ($jobOutput | Out-String -Width 4096)
+            }
+        } else {
+            $exitCode = -1
+        }
+
+        $elapsedTotalSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+        Write-Host "[profit-operator-action-brief] child_complete script=$ScriptName exitCode=$exitCode timedOut=$($timedOut.ToString().ToLowerInvariant()) elapsedSeconds=$elapsedTotalSeconds"
+        if ($exitCode -ne 0 -or $timedOut) {
+            $summarySource = (($stderr, $stdout) -join "`n").Trim()
+            $summary = if ($summarySource.Length -gt 600) { $summarySource.Substring(0, 600) } else { $summarySource }
+            $summary = ($summary -replace "`r?`n", " | ")
+            Write-Host "child_error_summary script=$ScriptName summary=$summary"
+        }
+    } finally {
+        if ($null -ne $job) {
+            Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+        }
+    }
     return [pscustomobject]@{
-        Text = ($output | Out-String -Width 4096)
+        Text = (($stdout, $stderr) -join "`n")
         ExitCode = $exitCode
+        TimedOut = $timedOut
     }
 }
 

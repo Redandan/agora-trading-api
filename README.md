@@ -421,6 +421,9 @@ After deploying that runtime, verify fresh production rows with:
 
 Use `-RequireObserved` only after a new DataFreshnessGuard row is expected; a
 pending result means no fresh row was available yet, not live approval.
+The smoke also compares deployed `app.commit` with the expected local HEAD and
+prints `DEPLOYED_RUNTIME_NOT_CURRENT` until the replay-id runtime has actually
+been deployed.
 
 Read-only profit-improvement review bundle:
 

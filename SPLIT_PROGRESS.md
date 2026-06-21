@@ -297,7 +297,9 @@
   post-deploy verifier for those ids. It reports
   `PENDING_NO_NEW_DATAFRESHNESS_ROWS`, `REPLAY_CANDIDATE_ID_EVIDENCE_OK`, or
   `REPLAY_CANDIDATE_ID_EVIDENCE_INCOMPLETE`, and `-RequireObserved` should only
-  be used when a fresh DataFreshnessGuard row is expected.
+  be used when a fresh DataFreshnessGuard row is expected. It also reports
+  `DEPLOYED_RUNTIME_NOT_CURRENT` when deployed `app.commit` has not reached the
+  replay-id runtime.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

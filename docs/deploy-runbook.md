@@ -715,6 +715,9 @@ Expected:
   `-RequireObserved` only when a new DataFreshnessGuard row is expected. A
   `PENDING_NO_NEW_DATAFRESHNESS_ROWS` result is incomplete evidence, not live
   approval.
+  `DEPLOYED_RUNTIME_NOT_CURRENT` means the replay-id runtime has not been
+  deployed yet; deploy and server verification must happen before replay-id
+  evidence can be trusted.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

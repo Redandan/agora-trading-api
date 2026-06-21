@@ -6,6 +6,7 @@ param(
     [string]$Symbol = "BTCUSDT",
     [int]$ReviewDays = 3,
     [int]$Limit = 100,
+    [string]$ExpectedCommit = $env:AGORA_EXPECTED_COMMIT,
     [switch]$RequireObserved
 )
 
@@ -36,6 +37,14 @@ if ($Limit -lt 1 -or $Limit -gt 500) {
     throw "Limit must be between 1 and 500."
 }
 
+if ([string]::IsNullOrWhiteSpace($ExpectedCommit) -and (Get-Command git -ErrorAction SilentlyContinue)) {
+    $ExpectedCommit = (git rev-parse HEAD).Trim()
+}
+
+if (-not [string]::IsNullOrWhiteSpace($ExpectedCommit) -and $ExpectedCommit -notmatch "^[0-9a-fA-F]{7,40}$") {
+    throw "ExpectedCommit must be a git hex commit prefix/full SHA."
+}
+
 function Assert-RemotePathSafe {
     param([string]$Name, [string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch "^/[A-Za-z0-9._/-]+$") {
@@ -63,6 +72,7 @@ Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 
 $requireObservedValue = if ($RequireObserved) { "1" } else { "0" }
+$expectedCommitValue = if ([string]::IsNullOrWhiteSpace($ExpectedCommit)) { "" } else { $ExpectedCommit.Trim() }
 
 $remoteScript = @'
 set -euo pipefail
@@ -72,6 +82,7 @@ ENV_FILE='__ENVFILE__'
 SYMBOL='__SYMBOL__'
 REVIEW_DAYS='__REVIEW_DAYS__'
 LIMIT='__LIMIT__'
+EXPECTED_COMMIT='__EXPECTED_COMMIT__'
 REQUIRE_OBSERVED='__REQUIRE_OBSERVED__'
 
 fail() {
@@ -91,6 +102,11 @@ read_env_key() {
 }
 
 command -v mysql >/dev/null 2>&1 || fail "mysql is not available on server"
+
+DEPLOYED_COMMIT="UNKNOWN"
+if [ -s app.commit ]; then
+  DEPLOYED_COMMIT="$(cat app.commit | tr -d '[:space:]')"
+fi
 
 SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"
 SPRING_DATASOURCE_USERNAME="$(read_env_key SPRING_DATASOURCE_USERNAME)"
@@ -124,7 +140,7 @@ case "$port" in
 esac
 
 export MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD"
-export SYMBOL REVIEW_DAYS LIMIT REQUIRE_OBSERVED MYSQL_HOST="$host" MYSQL_PORT="$port" MYSQL_USER="$SPRING_DATASOURCE_USERNAME" MYSQL_DATABASE="$database"
+export SYMBOL REVIEW_DAYS LIMIT REQUIRE_OBSERVED EXPECTED_COMMIT DEPLOYED_COMMIT MYSQL_HOST="$host" MYSQL_PORT="$port" MYSQL_USER="$SPRING_DATASOURCE_USERNAME" MYSQL_DATABASE="$database"
 
 python3 - <<'PY'
 import csv
@@ -137,6 +153,9 @@ symbol = os.environ["SYMBOL"].upper()
 review_days = int(os.environ["REVIEW_DAYS"])
 limit = int(os.environ["LIMIT"])
 require_observed = os.environ["REQUIRE_OBSERVED"] == "1"
+expected_commit = os.environ.get("EXPECTED_COMMIT", "").strip()
+deployed_commit = os.environ.get("DEPLOYED_COMMIT", "").strip() or "UNKNOWN"
+runtime_current = bool(expected_commit) and deployed_commit == expected_commit
 
 sql = f"""
 SELECT
@@ -198,7 +217,9 @@ no_order = [row for row in rows if is_false(row, "orderSent")]
 no_intent = [row for row in rows if is_false(row, "intentCreated")]
 no_oco = [row for row in rows if is_false(row, "ocoPlanCreated")]
 
-if total == 0:
+if expected_commit and not runtime_current:
+    status = "DEPLOYED_RUNTIME_NOT_CURRENT"
+elif total == 0:
     status = "PENDING_NO_NEW_DATAFRESHNESS_ROWS"
 elif len(with_replay_id) == total and len(version_ok) == total and len(status_ok) == total and len(no_order) == total and len(no_intent) == total and len(no_oco) == total:
     status = "REPLAY_CANDIDATE_ID_EVIDENCE_OK"
@@ -208,6 +229,9 @@ else:
 print("[data-freshness-replay-candidate-id] read-only production DB evidence check")
 print("scope=READ_ONLY; direct MySQL SELECTs only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed.")
 print(f"symbol={symbol} reviewDays={review_days} limit={limit} requireObserved={str(require_observed).lower()}")
+print(f"expected_origin_commit={expected_commit or 'UNKNOWN'}")
+print(f"deployed_app_commit={deployed_commit}")
+print(f"deployment_runtime_current_for_replay_id={str(runtime_current).lower()}")
 print("")
 print("Replay Candidate Id Coverage:")
 print(f"  data_freshness_rows={total}")
@@ -252,6 +276,7 @@ $remoteScript = $remoteScript.Replace("__APPDIR__", $AppDir).
     Replace("__SYMBOL__", $Symbol).
     Replace("__REVIEW_DAYS__", [string]$ReviewDays).
     Replace("__LIMIT__", [string]$Limit).
+    Replace("__EXPECTED_COMMIT__", $expectedCommitValue).
     Replace("__REQUIRE_OBSERVED__", $requireObservedValue)
 
 $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"

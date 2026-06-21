@@ -135,6 +135,98 @@ function Add-DataFreshnessCounterfactualMissingRequirements {
     }
 }
 
+function New-ProfitExperimentBlockerItems {
+    param(
+        [object[]]$Scorecard,
+        [object]$ReviewDecision,
+        [string]$OriginDelta,
+        [string]$TopCandidate,
+        [string]$GateStatus,
+        [string[]]$MissingRequirements
+    )
+
+    $items = [System.Collections.Generic.List[object]]::new()
+    $dataFreshnessCandidate = @($Scorecard | Where-Object { $_.candidate -eq "DataFreshness false-kill counterfactual" } | Select-Object -First 1)
+    if ($dataFreshnessCandidate.Count -gt 0) {
+        $candidate = $dataFreshnessCandidate[0]
+        $evidence = if ($null -ne $candidate.PSObject.Properties["evidence"]) { $candidate.evidence } else { $null }
+        $missingFields = @()
+        if ($null -ne $evidence -and $null -ne $evidence.PSObject.Properties["missingCounterfactualFields"]) {
+            $missingFields = @($evidence.missingCounterfactualFields)
+        }
+        $items.Add([pscustomobject]@{
+            lane = "data-freshness-counterfactual"
+            priority = if ($null -ne $candidate.PSObject.Properties["priority"]) { [string]$candidate.priority } else { "P1" }
+            status = if ($null -ne $candidate.PSObject.Properties["status"]) { [string]$candidate.status } else { "UNKNOWN" }
+            topCandidate = ($TopCandidate -eq "DataFreshness false-kill counterfactual")
+            requiredEvidence = @(
+                "fresh replayCandidateId rows",
+                "entry/TP/SL candidate snapshot",
+                "EV and OCO preflight snapshots",
+                "shadow replay removing only DataFreshnessGuard"
+            )
+            missingCounterfactualFields = @($missingFields)
+            completeReplayableCandidateRows = if ($null -ne $evidence -and $null -ne $evidence.PSObject.Properties["completeReplayableCandidateRows"]) { [string]$evidence.completeReplayableCandidateRows } else { "N/A" }
+            recommendation = if ($null -ne $evidence -and $null -ne $evidence.PSObject.Properties["counterfactual"]) { [string]$evidence.counterfactual } else { "COLLECT_COUNTERFACTUAL_EVIDENCE" }
+            nextAction = "Collect replayable DataFreshness candidate snapshots before any shadow or policy review."
+            notAuthorization = "does not authorize DataFreshnessGuard relaxation, live trading, deploy, order/OCO mutation, or production env change"
+        })
+    }
+
+    $strategy485Candidate = @($Scorecard | Where-Object { $_.candidate -eq "Strategy 485 aged negative-EV open positions" } | Select-Object -First 1)
+    if ($strategy485Candidate.Count -gt 0) {
+        $candidate = $strategy485Candidate[0]
+        $evidence = if ($null -ne $candidate.PSObject.Properties["evidence"]) { $candidate.evidence } else { $null }
+        $review = if ($null -ne $evidence -and $null -ne $evidence.PSObject.Properties["reviewDecision"]) { $evidence.reviewDecision } else { $null }
+        $items.Add([pscustomobject]@{
+            lane = "strategy485-risk-reduction"
+            priority = if ($null -ne $candidate.PSObject.Properties["priority"]) { [string]$candidate.priority } else { "P1" }
+            status = if ($null -ne $candidate.PSObject.Properties["status"]) { [string]$candidate.status } else { "UNKNOWN" }
+            topCandidate = ($TopCandidate -eq "Strategy 485 aged negative-EV open positions")
+            requiredEvidence = @(
+                "current OCO health",
+                "position EV reassessment",
+                "TP stretch and timeout events",
+                "operator-approved risk-reducing action before any mutation"
+            )
+            openPositionCount = if ($null -ne $review -and $null -ne $review.PSObject.Properties["openPositionCount"]) { [string]$review.openPositionCount } else { "N/A" }
+            negativeEvPositionCount = if ($null -ne $review -and $null -ne $review.PSObject.Properties["negativeEvPositionCount"]) { [string]$review.negativeEvPositionCount } else { "N/A" }
+            closeOrModifySuggestionCount = if ($null -ne $review -and $null -ne $review.PSObject.Properties["closeOrModifySuggestionCount"]) { [string]$review.closeOrModifySuggestionCount } else { "N/A" }
+            recommendation = if ($null -ne $review -and $null -ne $review.PSObject.Properties["decision"]) { [string]$review.decision } else { "REVIEW_POSITION_RISK_READ_ONLY" }
+            nextAction = "Attach read-only strategy 485 risk evidence to a separate operator review."
+            notAuthorization = "does not authorize close-position, OCO modification, live trading, deploy, or production env change"
+        })
+    }
+
+    if ($OriginDelta -eq "RUNTIME_DRIFT") {
+        $items.Insert(0, [pscustomobject]@{
+            lane = "runtime-currentness"
+            priority = "P0"
+            status = "BLOCKED_DEPLOY_CURRENT_RUNTIME"
+            topCandidate = $false
+            requiredEvidence = @("deployed runtime current", "server verification after separate deploy authorization")
+            recommendation = "DEPLOY_CURRENT_RUNTIME_THEN_RERUN_READ_ONLY_GATE"
+            nextAction = "Deploy only after separate authorization, then rerun this read-only gate."
+            notAuthorization = "does not authorize deploy from this gate"
+        })
+    }
+
+    if ($items.Count -eq 0 -and @($MissingRequirements).Count -gt 0) {
+        $items.Add([pscustomobject]@{
+            lane = "unclassified-profit-experiment-blocker"
+            priority = "P2"
+            status = $GateStatus
+            topCandidate = $false
+            requiredEvidence = @($MissingRequirements)
+            recommendation = if ($null -ne $ReviewDecision -and $null -ne $ReviewDecision.PSObject.Properties["recommendation"]) { [string]$ReviewDecision.recommendation } else { "COLLECT_MISSING_EVIDENCE" }
+            nextAction = "Resolve the listed missing evidence, then rerun this gate."
+            notAuthorization = "does not authorize live trading, policy relaxation, deploy, order/OCO mutation, or production env change"
+        })
+    }
+
+    return @($items)
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -274,6 +366,14 @@ if ($bundleExitCode -ne 0 -or $scorecard.Count -eq 0 -or $null -eq $reviewDecisi
     $nextAction = "Collect the listed replay, EV, OCO, and hard-gate evidence before any shadow/small experiment review."
 }
 
+$blockerItems = New-ProfitExperimentBlockerItems `
+    -Scorecard @($scorecard) `
+    -ReviewDecision $reviewDecision `
+    -OriginDelta $originDelta `
+    -TopCandidate $topCandidate `
+    -GateStatus $gateStatus `
+    -MissingRequirements @($missingRequirements)
+
 Write-Host "[profit-experiment-gate] read-only evidence gate"
 Write-Host "scope=READ_ONLY; runs the profit-improvement review bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_smoke=smoke_profit_improvement_review_bundle_ssh.ps1"
@@ -291,6 +391,7 @@ Write-Host "shadow_experiment_review_allowed=$($shadowReviewAllowed.ToString().T
 Write-Host "live_policy_change_allowed=false"
 Write-Host ("data_freshness_counterfactual_gate_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements | Where-Object { [string]$_ -like "DataFreshness counterfactual*" -or [string]$_ -eq "complete DataFreshness replayable candidate rows" })))
 Write-Host ("profit_experiment_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
+Write-Host ("profit_experiment_blocker_items=" + (ConvertTo-Json -Compress -Depth 8 @($blockerItems)))
 Write-Host "profit_experiment_gate_status=$gateStatus"
 Write-Host "profit_experiment_next_action=$nextAction"
 Write-Host "notAuthorization=read-only gate only; does not authorize DataFreshnessGuard relaxation, closing positions, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, deploy, restart, production env changes, external backfill/import, or policy relaxation"

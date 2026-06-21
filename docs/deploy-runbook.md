@@ -1329,8 +1329,13 @@ Expected:
 - Output includes `deploy_required_before_profit_experiment`,
   `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
   `strategy485_position_review_decision`,
+  `profit_experiment_blocker_items`,
   `profit_experiment_missing_requirements`, and
   `profit_experiment_gate_status`.
+- `profit_experiment_blocker_items` is the machine-readable blocker list for
+  operator dashboards. It keeps DataFreshness replay/candidate snapshot gaps
+  separate from strategy 485 risk-reduction operator approval gaps, and each
+  item includes required evidence, next action, and non-authorization text.
 - `shadow_experiment_review_allowed=true` is only permission to draft a separate
   shadow-only proposal. It is not permission to deploy, relax
   DataFreshnessGuard, close positions, modify OCO, enable live trading, or place

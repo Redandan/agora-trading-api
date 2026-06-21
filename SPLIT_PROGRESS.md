@@ -688,11 +688,16 @@
   `deploy_required_before_profit_experiment`,
   `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
   `strategy485_position_review_decision`,
+  `profit_experiment_blocker_items`,
   `profit_experiment_missing_requirements`, and
   `profit_experiment_gate_status`. The gate can route a candidate toward a
   separate shadow-only proposal only after required replay/counterfactual
   evidence is present; it does not authorize deploy, live policy changes,
   position/OCO changes, or order-capable actions.
+  `profit_experiment_blocker_items` keeps DataFreshness replay/candidate
+  snapshot gaps separate from strategy 485 risk-reduction operator approval
+  gaps, with per-lane required evidence, next action, and non-authorization
+  text for dashboards and operator review.
 - `scripts/prepare_profit_shadow_experiment_packet_ssh.ps1` wraps that gate
   into a machine-readable `profit_shadow_experiment_packet` and
   `profit_shadow_packet_status`. It can become

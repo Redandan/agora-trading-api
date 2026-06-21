@@ -904,10 +904,14 @@ Read-only profit experiment gate:
 This gate runs the profit-improvement review bundle and converts the candidate
 scorecard into `deploy_required_before_profit_experiment`,
 `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
-`strategy485_position_review_decision`, and
+`strategy485_position_review_decision`, `profit_experiment_blocker_items`, and
 `profit_experiment_gate_status`. It is a routing check for shadow/small
 experiment review only; it does not authorize deploy, live policy changes,
 position/OCO changes, or order-capable actions.
+`profit_experiment_blocker_items` splits blocked evidence by lane, including
+DataFreshness replay/candidate snapshot gaps and strategy 485 risk-reduction
+operator approval gaps, so dashboards do not have to infer blockers from the
+flat missing-requirements list.
 
 Read-only profit shadow experiment packet preflight:
 

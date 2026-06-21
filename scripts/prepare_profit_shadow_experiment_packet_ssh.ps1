@@ -163,7 +163,7 @@ if ([string]::IsNullOrWhiteSpace($decisionJson)) {
 if ($null -eq $decision) {
     Add-MissingRequirement -List $missingRequirements -Value "profit_improvement_review_decision valid JSON"
 }
-if ($deployRequired -ne "false") {
+if ($deployRequired -eq "true" -or $originDelta -eq "RUNTIME_DRIFT" -or $gateStatus -eq "BLOCKED_DEPLOY_CURRENT_RUNTIME") {
     Add-MissingRequirement -List $missingRequirements -Value "deployed runtime current"
 }
 if ($shadowAllowed -ne "true") {
@@ -205,9 +205,17 @@ if ($gateExitCode -ne 0 -or $gateStatus -eq "NO_EVIDENCE") {
 } elseif ($gateStatus -eq "OPERATOR_REVIEW_REQUIRED_READ_ONLY") {
     $packetStatus = "OPERATOR_REVIEW_REQUIRED_READ_ONLY"
     $packetNextAction = "Route the strategy 485 operator packet path; this shadow packet does not authorize position or OCO mutation."
-} elseif ($gateStatus -eq "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE") {
+} elseif ($gateStatus -eq "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE" -or $topStatus -eq "BLOCKED_WAIT_REPLAY_EVIDENCE") {
     $packetStatus = "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE"
     $packetNextAction = "Collect replayable DataFreshness candidate snapshots before any shadow experiment packet."
+}
+
+$requiredFreshEvidence = New-Object System.Collections.Generic.List[string]
+if ($deployRequired -eq "true" -or $originDelta -eq "RUNTIME_DRIFT" -or $gateStatus -eq "BLOCKED_DEPLOY_CURRENT_RUNTIME") {
+    Add-MissingRequirement -List $requiredFreshEvidence -Value "deployed runtime current"
+}
+foreach ($required in @("fresh replayCandidateId rows", "entry/TP/SL candidate snapshot", "EV and OCO preflight snapshots", "shadow replay removing only DataFreshnessGuard", "hard-gate preservation review")) {
+    Add-MissingRequirement -List $requiredFreshEvidence -Value $required
 }
 
 $packet = [pscustomobject]@{
@@ -223,7 +231,7 @@ $packet = [pscustomobject]@{
     livePolicyChangeAllowed = $false
     positionOrOcoMutationAllowed = $false
     sourceGate = "prepare_profit_experiment_gate_ssh.ps1"
-    requiredFreshEvidence = @("deployed runtime current", "fresh replayCandidateId rows", "entry/TP/SL candidate snapshot", "EV and OCO preflight snapshots", "shadow replay removing only DataFreshnessGuard", "hard-gate preservation review")
+    requiredFreshEvidence = @($requiredFreshEvidence)
     dataFreshnessCounterfactualMissingRequirements = @($dataFreshnessMissing)
     profitImprovementReviewDecision = $decision
     missingRequirements = @($missingRequirements)

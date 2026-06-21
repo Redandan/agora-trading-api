@@ -137,7 +137,13 @@ $origin = Invoke-Smoke -Name "origin-delta" -ScriptName "smoke_live_origin_delta
     "-EnvFile", $EnvFile
 )
 
+$originDelta = Get-Marker -Text $origin.Text -Prefix "origin_delta_status="
+$serverWorktreeCommit = Get-Marker -Text $origin.Text -Prefix "server_worktree_commit="
+
 $replayIdArgs = $common + @("-ReviewDays", "$ReplayIdDays", "-Limit", "$([Math]::Min($Limit, 500))")
+if ($originDelta -eq "DOCS_TOOLING_ONLY_DRIFT" -and -not [string]::IsNullOrWhiteSpace($serverWorktreeCommit)) {
+    $replayIdArgs += @("-ExpectedCommit", $serverWorktreeCommit)
+}
 if ($RequireObserved) {
     $replayIdArgs += "-RequireObserved"
 }
@@ -145,7 +151,6 @@ $replayId = Invoke-Smoke -Name "replay-candidate-id" -ScriptName "smoke_data_fre
 
 $counterfactual = Invoke-Smoke -Name "counterfactual-review" -ScriptName "smoke_data_freshness_counterfactual_review_ssh.ps1" -Arguments ($common + @("-ReviewDays", "$ReviewDays", "-Limit", "$Limit"))
 
-$originDelta = Get-Marker -Text $origin.Text -Prefix "origin_delta_status="
 $runtimeCurrent = Get-Marker -Text $replayId.Text -Prefix "deployment_runtime_current_for_replay_id="
 $replayIdRecommendation = Get-Marker -Text $replayId.Text -Prefix "  data_freshness_replay_candidate_id_recommendation="
 $replayIdRows = Get-Marker -Text $replayId.Text -Prefix "  replay_candidate_id_rows="

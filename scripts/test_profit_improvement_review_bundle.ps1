@@ -63,6 +63,7 @@ foreach ($marker in @(
         "Strategy 485 aged negative-EV open positions",
         "Strategy 574 TinyLive near-BUY governance",
         "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE",
+        "BLOCKED_WAIT_REPLAY_EVIDENCE",
         "OPERATOR_REVIEW_REQUIRED_READ_ONLY",
         "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES",
         "dataFreshnessRequiredEvidence",

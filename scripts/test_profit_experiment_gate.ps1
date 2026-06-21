@@ -109,6 +109,7 @@ foreach ($marker in @(
         "profit_improvement_review_decision",
         "top_profit_improvement_candidate",
         "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE",
+        "BLOCKED_WAIT_REPLAY_EVIDENCE",
         "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW",
         "canDraftShadowExperimentReview"
     )) {

@@ -232,7 +232,7 @@ if ([string]::IsNullOrWhiteSpace($topCandidate) -or $topCandidate -eq "NONE") {
 if ($originDelta -eq "RUNTIME_DRIFT") {
     Add-MissingRequirement -List $missingRequirements -Value "deployed runtime current"
 }
-if ($topStatus -eq "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE") {
+if ($topStatus -eq "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE" -or $topStatus -eq "BLOCKED_WAIT_REPLAY_EVIDENCE") {
     foreach ($required in Get-RequiredEvidence -Candidate $top[0]) {
         Add-MissingRequirement -List $missingRequirements -Value ([string]$required)
     }

@@ -171,7 +171,7 @@ function New-ProfitImprovementReviewDecision {
             continue
         }
 
-        if ($status -eq "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE") {
+        if ($status -eq "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE" -or $status -eq "BLOCKED_WAIT_REPLAY_EVIDENCE") {
             foreach ($required in @($candidate.requiredEvidence)) {
                 Add-UniqueRequirement -List $missingRequirements -Value ([string]$required)
             }
@@ -361,9 +361,13 @@ if ($reviewItems -contains "REVIEW_DATAFRESHNESS_COUNTERFACTUAL_REPLAY_CANDIDATE
 
 $candidateScorecard = New-Object System.Collections.Generic.List[object]
 if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY" -or $dataFreshnessFalseKillRecommendation -eq "REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE") {
-    $status = "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE"
-    if ($originDelta -ne "RUNTIME_DRIFT" -and $dataFreshnessCounterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
-        $status = "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW"
+    if ($originDelta -eq "RUNTIME_DRIFT") {
+        $status = "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE"
+    } else {
+        $status = "BLOCKED_WAIT_REPLAY_EVIDENCE"
+        if ($dataFreshnessCounterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
+            $status = "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW"
+        }
     }
     $dataFreshnessRequiredEvidence = New-Object System.Collections.Generic.List[string]
     if ($originDelta -eq "RUNTIME_DRIFT") {

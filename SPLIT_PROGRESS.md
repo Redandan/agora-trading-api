@@ -264,6 +264,16 @@
   `scripts/test_data_freshness_counterfactual_review_smoke.ps1` guards the
   direct-SELECT boundary, marker contract, docs coverage, and
   non-authorization wording.
+- `docs/data-freshness-shadow-replay-input-plan.md` defines the follow-up
+  replay-input contract for DataFreshness false-kill evidence: stable replay
+  candidate id, DataFreshness snapshot, candidate entry/TP/SL plan, EV/TQS,
+  OCO preflight, duplicate/daily-cap/exposure/event-risk/open-position/loss
+  hard-gate snapshots, `orderSent=false`, and stop conditions. It makes clear
+  that the current 74-row positive forward-return proxy is not executable
+  evidence until replayable candidate snapshots exist, and it blocks any
+  DataFreshnessGuard relaxation or live mutation without fresh read-only
+  counterfactual evidence. `scripts/test_data_freshness_shadow_replay_input_plan.ps1`
+  guards the plan markers and links it to the existing read-only smokes.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

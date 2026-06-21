@@ -396,6 +396,8 @@ prints `data_freshness_counterfactual_recommendation`,
 `complete_replayable_candidate_rows`, `missing_counterfactual_fields`, and
 forward-return proxy markers. It is evidence only and does not authorize
 DataFreshnessGuard relaxation or any live mutation.
+Use `docs/data-freshness-shadow-replay-input-plan.md` before proposing any
+collector or shadow/replay change for this path.
 
 Read-only profit-improvement review bundle:
 

@@ -690,6 +690,10 @@ Expected:
   `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` means the
   historical forward-return alpha proxy still lacks replayable candidate
   snapshots; collect shadow/replay inputs before any policy review.
+- Use `docs/data-freshness-shadow-replay-input-plan.md` before proposing a
+  collector or shadow/replay change for this path. The plan defines required
+  replay input fields, stop conditions, minimum sample expectations, and the
+  live-mutation boundaries that must remain closed.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

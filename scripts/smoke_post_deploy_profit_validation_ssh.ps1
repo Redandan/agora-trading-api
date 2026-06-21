@@ -211,7 +211,8 @@ if ($null -eq $powerShell) {
 $autoGateScript = Join-Path $PSScriptRoot "prepare_auto_trading_review_gate_ssh.ps1"
 $profitLossGateScript = Join-Path $PSScriptRoot "prepare_profit_loss_review_gate_ssh.ps1"
 $profitExperimentGateScript = Join-Path $PSScriptRoot "prepare_profit_experiment_gate_ssh.ps1"
-foreach ($script in @($autoGateScript, $profitLossGateScript, $profitExperimentGateScript)) {
+$originDeltaScript = Join-Path $PSScriptRoot "smoke_live_origin_delta_local.ps1"
+foreach ($script in @($autoGateScript, $profitLossGateScript, $profitExperimentGateScript, $originDeltaScript)) {
     if (-not (Test-Path -LiteralPath $script)) {
         throw "Missing required read-only gate: $script"
     }
@@ -251,6 +252,33 @@ function Invoke-ChildGate {
     return $text
 }
 
+function Invoke-OriginDeltaClassifier {
+    $arguments = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", $originDeltaScript,
+        "-SshHost", $SshHost,
+        "-SshKey", $SshKey,
+        "-AppDir", $AppDir
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source @arguments 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "origin-delta-classifier failed with exit code $exitCode`n$text"
+    }
+    return $text
+}
+
+$originDeltaText = Invoke-OriginDeltaClassifier
 $autoText = Invoke-ChildGate -Name "auto-trading-review-gate" -ScriptPath $autoGateScript -ExtraArguments @(
     "-ReviewDays", [string]$ReviewDays,
     "-TinyLiveHours", [string]$TinyLiveHours
@@ -266,7 +294,14 @@ $profitExperimentText = Invoke-ChildGate -Name "profit-experiment-gate" -ScriptP
 $autoOriginDelta = Get-LastPrefixedValue -Text $autoText -Prefix "origin_delta_status="
 $profitLossOriginDelta = Get-LastPrefixedValue -Text $profitLossText -Prefix "origin_delta_status="
 $profitExperimentOriginDelta = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "origin_delta_status="
-$originDeltaValues = @($autoOriginDelta, $profitLossOriginDelta, $profitExperimentOriginDelta) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
+$localOriginDelta = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_delta_status="
+$serverWorktreeCommit = Get-LastPrefixedValue -Text $originDeltaText -Prefix "server_worktree_commit="
+$originMainCommit = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_main_commit="
+$originDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_delta_files="
+$originDocsToolingDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_docs_tooling_delta_files="
+$originRuntimeDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_runtime_delta_files="
+$originRuntimeDeltaPaths = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_runtime_delta_paths="
+$originDeltaValues = @($autoOriginDelta, $profitLossOriginDelta, $profitExperimentOriginDelta, $localOriginDelta) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
 $originDelta = if (@($originDeltaValues).Count -eq 1) { [string]@($originDeltaValues)[0] } elseif (@($originDeltaValues).Count -gt 1) { "MISMATCH" } else { "" }
 
 $autoStatus = Get-LastPrefixedValue -Text $autoText -Prefix "auto_trading_review_gate_status="
@@ -305,6 +340,12 @@ foreach ($statusName in @(
 }
 if ([string]::IsNullOrWhiteSpace($originDelta)) {
     Add-MissingRequirement -List $missingRequirements -Value "origin_delta_status missing"
+}
+if ([string]::IsNullOrWhiteSpace($localOriginDelta)) {
+    Add-MissingRequirement -List $missingRequirements -Value "origin_delta_classifier missing"
+}
+if ([string]::IsNullOrWhiteSpace($originRuntimeDeltaPaths)) {
+    Add-MissingRequirement -List $missingRequirements -Value "origin_runtime_delta_paths missing"
 }
 if ((-not [string]::IsNullOrWhiteSpace($originDelta)) -and -not (Test-OriginDeltaAcceptableForProfitReview -Value $originDelta) -and -not (Test-OriginDeltaRequiresDeploy -Value $originDelta)) {
     Add-MissingRequirement -List $missingRequirements -Value "origin_delta_status must be CURRENT_ORIGIN_MAIN or DOCS_TOOLING_ONLY_DRIFT"
@@ -390,7 +431,14 @@ Write-Host "scope=READ_ONLY; runs auto-trading, profit-loss, and profit-experime
 Write-Host "source_gate=prepare_auto_trading_review_gate_ssh.ps1"
 Write-Host "source_gate=prepare_profit_loss_review_gate_ssh.ps1"
 Write-Host "source_gate=prepare_profit_experiment_gate_ssh.ps1"
+Write-Host "source_smoke=smoke_live_origin_delta_local.ps1"
 Write-Host "origin_delta_status=$originDelta"
+Write-Host "server_worktree_commit=$serverWorktreeCommit"
+Write-Host "origin_main_commit=$originMainCommit"
+Write-Host "origin_delta_files=$originDeltaFiles"
+Write-Host "origin_docs_tooling_delta_files=$originDocsToolingDeltaFiles"
+Write-Host "origin_runtime_delta_files=$originRuntimeDeltaFiles"
+Write-Host "origin_runtime_delta_paths=$originRuntimeDeltaPaths"
 Write-Host "monthlyPnlTotalUsdt=$monthlyPnlTotalUsdt"
 Write-Host "auto_trading_review_gate_status=$autoStatus"
 Write-Host "profit_loss_review_gate_status=$profitLossStatus"

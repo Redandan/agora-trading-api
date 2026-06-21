@@ -261,6 +261,8 @@
   auto-trading review gate, profit loss review gate, and profit experiment gate
   after a separately authorized deploy. It emits
   `deploy_required_before_post_deploy_profit_validation`,
+  `server_worktree_commit`, `origin_main_commit`,
+  `origin_runtime_delta_files`, `origin_runtime_delta_paths`,
   `post_deploy_profit_validation_status`,
   `post_deploy_profit_validation_missing_requirements`,
   `post_deploy_profit_validation_review_plan`,
@@ -269,7 +271,8 @@
   and `tiny_live_order_allowed=false` so profit review readiness can be checked
   from one read-only command. The blocker summary preserves
   `requiredEvidenceCount`, `requiredEvidence`, `nextAction`, and no-live
-  authorization text for each blocked child gate. `scripts/test_post_deploy_profit_validation.ps1`
+  authorization text for each blocked child gate, while runtime-drift output
+  shows the concrete runtime files behind deploy-first blockers. `scripts/test_post_deploy_profit_validation.ps1`
   guards the child gate list, blocker summary shape, safety markers, docs
   coverage, and local input validation.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused

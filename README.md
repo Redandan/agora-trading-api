@@ -323,6 +323,18 @@ recent closed trades, execution events, and 3-month PnL through server-local
 `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`; this is review routing only and
 does not authorize closing positions or modifying OCO.
 
+Read-only auto-trading review bundle:
+
+```powershell
+.\scripts\smoke_auto_trading_review_bundle_ssh.ps1
+```
+
+This wrapper runs the origin-delta classifier, live-authorized audit, strategy
+485 position-risk smoke, strategy 574 signal/governance smoke, and TinyLive
+post-trade smoke, then prints `auto_trading_review_recommendation`. It is a
+review bundle only; it does not deploy, restart, close positions, modify OCO, or
+relax live policy.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

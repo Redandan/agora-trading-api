@@ -187,6 +187,17 @@
   backfill/import state. `scripts/test_strategy485_position_risk_smoke.ps1`
   guards the read-only tool calls, no-order/no-OCO markers, risk recommendation
   markers, and non-authorization wording.
+- `scripts/smoke_auto_trading_review_bundle_ssh.ps1` wraps the read-only
+  origin-delta classifier, live-authorized audit, strategy 485 position-risk
+  smoke, strategy 574 signal/governance smoke, and TinyLive post-trade smoke
+  into one review command. It prints `review_items` plus
+  `auto_trading_review_recommendation` such as
+  `OPERATOR_REVIEW_STRATEGY485_POSITION_RISK` or
+  `CONTINUE_TINYLIVE_MONITORING`. The wrapper invokes existing read-only smokes
+  only and does not change production env, DB, order, OCO, grid, Earn, fund,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state. `scripts/test_auto_trading_review_bundle.ps1` guards the child
+  smoke list, output markers, and non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

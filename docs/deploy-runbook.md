@@ -575,6 +575,28 @@ Expected:
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, or external backfill/import state.
 
+For the read-only auto-trading review bundle, run:
+
+```powershell
+.\scripts\smoke_auto_trading_review_bundle_ssh.ps1
+```
+
+Expected:
+
+- The wrapper invokes only existing read-only SSH/local smokes: origin-delta,
+  live-authorized audit, strategy 485 position risk, strategy 574
+  signal/governance, and TinyLive post-trade evidence.
+- Output includes `origin_delta_status`, `live_authorized_audit_verdict`,
+  `strategy485_position_risk_recommendation`,
+  `strategy574_policy_change_recommendation`, `tiny_live_post_trade_status`,
+  `review_items`, and `auto_trading_review_recommendation`.
+- A recommendation such as `OPERATOR_REVIEW_STRATEGY485_POSITION_RISK` is
+  review routing only; it is not permission to close positions, modify OCO,
+  deploy, restart, or relax live policy.
+- The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

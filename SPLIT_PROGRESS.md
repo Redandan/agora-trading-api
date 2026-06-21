@@ -247,6 +247,23 @@
   `scripts/test_data_freshness_executability_review_smoke.ps1` guards the
   read-only MCP calls, hard-fail boundary checks, output markers, docs
   coverage, and non-authorization wording.
+- `scripts/smoke_data_freshness_counterfactual_review_ssh.ps1` provides the
+  next read-only evidence layer after executability review: it uses production
+  MySQL `SELECT` queries to inspect DataFreshnessGuard `bt_decision_audit`
+  rows, linked `bt_runtime_decision_evidence`, and OKX `md_kline` forward
+  windows. It prints replay-input coverage markers including
+  `complete_replayable_candidate_rows`, `missing_counterfactual_fields`,
+  `positive_forward_24h_rows`, `avg_forward_24h_pct`, and
+  `data_freshness_counterfactual_recommendation`. A result such as
+  `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` means the
+  historical alpha proxy still cannot justify DataFreshness policy relaxation
+  because liveSignal/candidate plan/EV/OCO/hard-gate snapshots are missing.
+  The smoke is evidence only and does not change production env, DB, order,
+  OCO, grid, Earn, fund, Telegram, scheduler, exchange, external
+  backfill/import, deploy, restart, or nginx state.
+  `scripts/test_data_freshness_counterfactual_review_smoke.ps1` guards the
+  direct-SELECT boundary, marker contract, docs coverage, and
+  non-authorization wording.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

@@ -382,6 +382,21 @@ preview. It prints `missing_executability_evidence`,
 `ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY` means the +24h
 false-kill return is not enough to justify live policy changes.
 
+Focused DataFreshness counterfactual replay-input review:
+
+```powershell
+.\scripts\smoke_data_freshness_counterfactual_review_ssh.ps1
+```
+
+This read-only smoke uses production MySQL `SELECT` queries to check whether
+historical DataFreshness-only block rows have the candidate snapshots required
+for a replay that removes only DataFreshnessGuard while keeping EV, OCO,
+duplicate, daily-cap, exposure, event-risk, and other hard gates intact. It
+prints `data_freshness_counterfactual_recommendation`,
+`complete_replayable_candidate_rows`, `missing_counterfactual_fields`, and
+forward-return proxy markers. It is evidence only and does not authorize
+DataFreshnessGuard relaxation or any live mutation.
+
 Read-only profit-improvement review bundle:
 
 ```powershell

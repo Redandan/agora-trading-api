@@ -667,6 +667,33 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For a focused read-only DataFreshness counterfactual replay-input review, run:
+
+```powershell
+.\scripts\smoke_data_freshness_counterfactual_review_ssh.ps1
+```
+
+Expected:
+
+- The smoke performs direct production MySQL `SELECT` queries only, reading
+  DataFreshnessGuard `bt_decision_audit` rows, linked
+  `bt_runtime_decision_evidence`, and OKX `md_kline` forward windows.
+- Output includes `data_freshness_counterfactual_rows`,
+  `runtime_evidence_linked_rows`, `live_signal_linked_rows`,
+  `explicit_candidate_entry_rows`, `explicit_candidate_tp_rows`,
+  `explicit_candidate_sl_rows`, `ev_snapshot_rows`, `oco_plan_snapshot_rows`,
+  `hard_gate_snapshot_rows`, `complete_replayable_candidate_rows`,
+  `positive_forward_24h_rows`, `avg_forward_24h_pct`,
+  `missing_counterfactual_fields`, and
+  `data_freshness_counterfactual_recommendation`.
+- A recommendation such as
+  `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` means the
+  historical forward-return alpha proxy still lacks replayable candidate
+  snapshots; collect shadow/replay inputs before any policy review.
+- The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For the read-only profit-improvement review bundle, run:
 
 ```powershell

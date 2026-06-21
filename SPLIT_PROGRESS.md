@@ -508,7 +508,10 @@
   of rerunning the long SSH matrix. Fresh runs default the saved matrix log to
   `target/profit-review/` and update
   `target/profit-review/latest-profit-operator-matrix.path` for the next
-  operator review. Reused matrix output is freshness-guarded by
+  operator review. `scripts/prepare_profit_operator_latest_action_brief.ps1`
+  reads that pointer and rebuilds the action brief through the same
+  `-MatrixOutputPath` freshness guard without rerunning the long SSH matrix.
+  Reused matrix output is freshness-guarded by
   `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
   `matrix_freshness_status=STALE` when stale. The brief does
   not authorize live trading, policy relaxation, deploy, production env

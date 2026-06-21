@@ -1081,6 +1081,16 @@ Expected:
   matrix log under `target/profit-review/` and update
   `target/profit-review/latest-profit-operator-matrix.path` with the newest
   matrix path.
+- To rebuild from the latest saved matrix without rerunning the long SSH matrix,
+  run:
+
+  ```powershell
+  .\scripts\prepare_profit_operator_latest_action_brief.ps1 -RequireReady
+  ```
+
+  It reads `latest-profit-operator-matrix.path`, invokes
+  `prepare_profit_operator_action_brief_ssh.ps1` with `-MatrixOutputPath`, and
+  keeps the same `-MatrixMaxAgeMinutes` freshness guard.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a

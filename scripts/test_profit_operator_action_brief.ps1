@@ -42,11 +42,13 @@ function Assert-FailsBeforeSsh {
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_action_brief_ssh.ps1"
+$latestScriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_latest_action_brief.ps1"
 $readmePath = Join-Path $repoRoot "README.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
+$latestScriptText = Get-Content -Raw -LiteralPath $latestScriptPath
 $docsText = @(
     Get-Content -Raw -LiteralPath $readmePath
     Get-Content -Raw -LiteralPath $runbookPath
@@ -103,7 +105,23 @@ foreach ($marker in @(
     Assert-Contains -Name "profit operator action brief marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
+foreach ($marker in @(
+        "[profit-operator-latest-action-brief] read-only latest brief",
+        "latest-profit-operator-matrix.path",
+        "latest_matrix_pointer",
+        "latest_matrix_output_path",
+        "prepare_profit_operator_action_brief_ssh.ps1",
+        "-MatrixOutputPath",
+        "profit_operator_latest_action_brief_exit_code",
+        "no SSH fresh matrix",
+        "does not deploy",
+        "RequireReady"
+    )) {
+    Assert-Contains -Name "profit operator latest action brief marker" -Text $latestScriptText -Pattern ([regex]::Escape($marker))
+}
+
 $tempMatrixPath = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-operator-matrix-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempReviewDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-review-" + [guid]::NewGuid().ToString("N"))
 try {
     $matrixPacket = [pscustomobject]@{
         reviewItems = @(
@@ -194,9 +212,42 @@ try {
     if ($staleText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit operator action brief stale reuse path unexpectedly invoked a child or SSH:`n$staleText"
     }
+
+    (Get-Item -LiteralPath $tempMatrixPath).LastWriteTime = Get-Date
+    New-Item -ItemType Directory -Force -Path $tempReviewDir | Out-Null
+    $latestPointerPath = Join-Path $tempReviewDir "latest-profit-operator-matrix.path"
+    Set-Content -LiteralPath $latestPointerPath -Encoding UTF8 -Value $tempMatrixPath
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $latestOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $latestScriptPath -ReviewOutputDir $tempReviewDir -RequireReady 2>&1
+        $latestExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $latestText = ($latestOutput | Out-String)
+    if ($latestExitCode -ne 0) {
+        throw "profit operator latest action brief failed to reuse pointer matrix output:`n$latestText"
+    }
+    foreach ($marker in @(
+            "[profit-operator-latest-action-brief] read-only latest brief",
+            "latest_matrix_pointer=",
+            "latest_matrix_output_path=$tempMatrixPath",
+            "source_matrix_mode=REUSED_OUTPUT_FILE",
+            "profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
+            "profit_operator_latest_action_brief_exit_code=0"
+        )) {
+        Assert-Contains -Name "profit operator latest action brief pointer reuse" -Text $latestText -Pattern ([regex]::Escape($marker))
+    }
+    if ($latestText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit operator latest action brief unexpectedly invoked a child or SSH:`n$latestText"
+    }
 } finally {
     if (Test-Path -LiteralPath $tempMatrixPath) {
         Remove-Item -LiteralPath $tempMatrixPath -Force
+    }
+    if (Test-Path -LiteralPath $tempReviewDir) {
+        Remove-Item -LiteralPath $tempReviewDir -Recurse -Force
     }
 }
 
@@ -216,6 +267,7 @@ foreach ($forbidden in @(
 
 foreach ($marker in @(
         "prepare_profit_operator_action_brief_ssh.ps1",
+        "prepare_profit_operator_latest_action_brief.ps1",
         "profit operator action brief",
         "profit_operator_action_brief_status",
         "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",

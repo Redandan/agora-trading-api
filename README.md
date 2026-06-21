@@ -747,7 +747,10 @@ to retain the raw matrix output, then use `-MatrixOutputPath` to rebuild the
 action brief from that read-only evidence without rerunning the long SSH matrix.
 Fresh runs default the saved matrix log to `target/profit-review/` and update
 `target/profit-review/latest-profit-operator-matrix.path` so the next review can
-find the latest evidence file.
+find the latest evidence file. Use
+`.\scripts\prepare_profit_operator_latest_action_brief.ps1 -RequireReady` to
+rebuild from that latest pointer with the same freshness guard and without
+rerunning the long SSH matrix.
 Reused matrix output prints `source_matrix_mode=REUSED_OUTPUT_FILE`; fresh runs
 print `source_matrix_mode=FRESH_CHILD_RUN`. Reused matrix output is guarded by
 `-MatrixMaxAgeMinutes` (default `180`) and fails closed with

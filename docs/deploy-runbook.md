@@ -996,6 +996,29 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a read-only profit operator review matrix, run:
+
+```powershell
+.\scripts\prepare_profit_operator_review_matrix_ssh.ps1 -RequireReviewItems
+```
+
+Expected:
+
+- The matrix calls `prepare_profit_readiness_brief_ssh.ps1`,
+  `watch_profit_evidence_readiness_ssh.ps1`, and
+  `prepare_exit_side_profit_review_packet_ssh.ps1` in read-only mode.
+- It emits `profit_operator_review_items`,
+  `profit_operator_review_matrix_packet`, and
+  `profit_operator_review_matrix_status`.
+- `HAS_REVIEW_READY_ITEMS_NOT_LIVE` means at least one lane, normally
+  `exit-side`, is ready for a separate operator review while blocked lanes such
+  as `entry-filter` or `data-freshness-replay` stay visible.
+- The matrix does not deploy, restart, reload nginx, change production env,
+  enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
+  trailing scheduler, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy changes.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

@@ -658,6 +658,22 @@ positions, or mutate DB/grid/fund/Earn state.
 Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers from the watcher itself.
 
+Read-only profit operator review matrix:
+
+```powershell
+.\scripts\prepare_profit_operator_review_matrix_ssh.ps1 -RequireReviewItems
+```
+
+This wrapper combines the profit readiness brief, bounded evidence watch, and
+exit-side packet into `profit_operator_review_matrix_packet`,
+`profit_operator_review_items`, and `profit_operator_review_matrix_status`.
+`HAS_REVIEW_READY_ITEMS_NOT_LIVE` means at least one lane, such as `exit-side`,
+has enough read-only evidence for a separate operator review while other lanes
+such as `entry-filter` or `data-freshness-replay` can remain blocked. It does
+not deploy, change production env, enable live trading, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn state.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

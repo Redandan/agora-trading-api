@@ -96,6 +96,19 @@ function Invoke-ReadOnlyScript {
     }
 }
 
+function Write-ChildFailureContext {
+    param([string]$ScriptName, [pscustomobject]$Result)
+    if ($Result.ExitCode -eq 0) {
+        return
+    }
+    $text = [string]$Result.Text
+    if ($text.Length -gt 4000) {
+        $text = $text.Substring(0, 4000) + "`n...[truncated]"
+    }
+    Write-Host "[entry-filter-operator-review-packet] child_failure script=$ScriptName exitCode=$($Result.ExitCode)"
+    Write-Host $text
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -125,6 +138,7 @@ $smokeArgs = @(
     "-AccuracyDays", [string]$AccuracyDays
 )
 $smoke = Invoke-ReadOnlyScript -ScriptName "smoke_signal_correctness_ssh.ps1" -Arguments $smokeArgs
+Write-ChildFailureContext -ScriptName "smoke_signal_correctness_ssh.ps1" -Result $smoke
 $text = $smoke.Text
 
 $executionStatus = Get-RegexValue -Text $text -Pattern "executionMachineStatus=([^\r\n]+)" -Default "N/A"

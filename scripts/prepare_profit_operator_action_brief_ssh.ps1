@@ -10,6 +10,7 @@ param(
     [int]$ChildTimeoutSeconds = 900,
     [string]$MatrixOutputPath = "",
     [string]$SaveMatrixOutputPath = "",
+    [int]$MatrixMaxAgeMinutes = 180,
     [switch]$RequireReady
 )
 
@@ -55,6 +56,20 @@ function Convert-JsonObjectOrNull {
         return ($Value | ConvertFrom-Json -ErrorAction Stop)
     } catch {
         return $null
+    }
+}
+
+function Get-MatrixFreshness {
+    param([string]$Path, [int]$MaxAgeMinutes)
+
+    $item = Get-Item -LiteralPath $Path
+    $ageMinutes = [int]((Get-Date) - $item.LastWriteTime).TotalMinutes
+    $status = if ($ageMinutes -le $MaxAgeMinutes) { "FRESH" } else { "STALE" }
+    return [pscustomobject]@{
+        AgeMinutes = $ageMinutes
+        MaxAgeMinutes = $MaxAgeMinutes
+        Status = $status
+        LastWriteTime = $item.LastWriteTime.ToString("o")
     }
 }
 
@@ -159,6 +174,9 @@ if ($ReplayLimit -lt 1 -or $ReplayLimit -gt 500) {
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) {
     throw "ChildTimeoutSeconds must be between 60 and 3600."
 }
+if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) {
+    throw "MatrixMaxAgeMinutes must be between 1 and 1440."
+}
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) {
     throw "StrategyId must be between 1 and 1000000."
 }
@@ -169,9 +187,22 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath) -and -not (Test-Path -L
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
 
 $sourceMatrixMode = "FRESH_CHILD_RUN"
+$matrixFreshness = [pscustomobject]@{
+    AgeMinutes = $null
+    MaxAgeMinutes = $MatrixMaxAgeMinutes
+    Status = "NOT_APPLICABLE"
+    LastWriteTime = $null
+}
 if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
     $sourceMatrixMode = "REUSED_OUTPUT_FILE"
+    $matrixFreshness = Get-MatrixFreshness -Path $MatrixOutputPath -MaxAgeMinutes $MatrixMaxAgeMinutes
     Write-Host "[profit-operator-action-brief] matrix_reuse path=$MatrixOutputPath"
+    Write-Host "matrix_freshness_status=$($matrixFreshness.Status)"
+    Write-Host "matrix_age_minutes=$($matrixFreshness.AgeMinutes)"
+    Write-Host "matrix_max_age_minutes=$($matrixFreshness.MaxAgeMinutes)"
+    if ($matrixFreshness.Status -ne "FRESH") {
+        throw "MatrixOutputPath is stale: ageMinutes=$($matrixFreshness.AgeMinutes) maxAgeMinutes=$($matrixFreshness.MaxAgeMinutes). Rerun without -MatrixOutputPath or raise -MatrixMaxAgeMinutes only for explicit diagnostic review."
+    }
     $matrix = [pscustomobject]@{
         Text = Get-Content -Raw -LiteralPath $MatrixOutputPath
         ExitCode = 0
@@ -324,6 +355,7 @@ $brief = [pscustomobject]@{
     sourceMatrix = "prepare_profit_operator_review_matrix_ssh.ps1"
     sourceMatrixMode = $sourceMatrixMode
     sourceMatrixOutputPath = if ([string]::IsNullOrWhiteSpace($MatrixOutputPath)) { $null } else { $MatrixOutputPath }
+    sourceMatrixFreshness = $matrixFreshness
     sourceMatrixExitCode = $matrix.ExitCode
     nextAction = if ($exitSideReady) { "Prepare a separate exit-side operator review using the attached read-only evidence; keep entry/filter and DataFreshness lanes blocked until their evidence clears." } else { $matrixNextAction }
     notAuthorization = "read-only profit operator action brief only; does not deploy, restart, reload nginx, change production env, enable live trading, relax EntryDedup/DataFreshness/live policy, enable trailing scheduler, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy changes"
@@ -333,6 +365,7 @@ Write-Host "[profit-operator-action-brief] read-only brief"
 Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_review_matrix_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_matrix=prepare_profit_operator_review_matrix_ssh.ps1 exitCode=$($matrix.ExitCode)"
 Write-Host "source_matrix_mode=$sourceMatrixMode"
+Write-Host "source_matrix_freshness_status=$($matrixFreshness.Status)"
 Write-Host "profit_operator_review_matrix_status=$matrixStatus"
 Write-Host "profit_operator_action_primary_recommendation=$primaryRecommendation"
 Write-Host ("profit_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))

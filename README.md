@@ -746,7 +746,9 @@ without changing production state. Use `-SaveMatrixOutputPath` on a fresh run
 to retain the raw matrix output, then use `-MatrixOutputPath` to rebuild the
 action brief from that read-only evidence without rerunning the long SSH matrix.
 Reused matrix output prints `source_matrix_mode=REUSED_OUTPUT_FILE`; fresh runs
-print `source_matrix_mode=FRESH_CHILD_RUN`. It does not deploy,
+print `source_matrix_mode=FRESH_CHILD_RUN`. Reused matrix output is guarded by
+`-MatrixMaxAgeMinutes` (default `180`) and fails closed with
+`matrix_freshness_status=STALE` when the saved evidence is too old. It does not deploy,
 change production env, enable live trading, enable trailing, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.

@@ -1077,6 +1077,10 @@ Expected:
   `-MatrixOutputPath <local-log>` and should print
   `source_matrix_mode=REUSED_OUTPUT_FILE`, avoiding another long SSH matrix
   call while keeping the same read-only evidence packet.
+- Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
+  `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
+  matrix for current operator evidence instead of treating stale output as a
+  current profit recommendation.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

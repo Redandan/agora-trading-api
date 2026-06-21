@@ -505,7 +505,9 @@
   `-ChildTimeoutSeconds` bounding stuck local children. Fresh runs can save raw
   matrix output with `-SaveMatrixOutputPath`, and follow-up briefs can reuse it
   with `-MatrixOutputPath` and `source_matrix_mode=REUSED_OUTPUT_FILE` instead
-  of rerunning the long SSH matrix. The brief does
+  of rerunning the long SSH matrix. Reused matrix output is freshness-guarded by
+  `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
+  `matrix_freshness_status=STALE` when stale. The brief does
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.

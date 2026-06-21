@@ -63,8 +63,12 @@ foreach ($marker in @(
         "child_error_summary",
         "MatrixOutputPath",
         "SaveMatrixOutputPath",
+        "MatrixMaxAgeMinutes",
+        "Get-MatrixFreshness",
         "matrix_reuse",
         "matrix_saved",
+        "matrix_freshness_status",
+        "source_matrix_freshness_status",
         "source_matrix_mode",
         "REUSED_OUTPUT_FILE",
         "FRESH_CHILD_RUN",
@@ -151,6 +155,8 @@ try {
     foreach ($marker in @(
             "matrix_reuse",
             "source_matrix_mode=REUSED_OUTPUT_FILE",
+            "matrix_freshness_status=FRESH",
+            "source_matrix_freshness_status=FRESH",
             "profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
             "REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION"
         )) {
@@ -158,6 +164,29 @@ try {
     }
     if ($reuseText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit operator action brief reuse path unexpectedly invoked a child or SSH:`n$reuseText"
+    }
+
+    (Get-Item -LiteralPath $tempMatrixPath).LastWriteTime = (Get-Date).AddMinutes(-10)
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $staleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -MatrixOutputPath $tempMatrixPath -MatrixMaxAgeMinutes 1 2>&1
+        $staleExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $staleText = ($staleOutput | Out-String)
+    if ($staleExitCode -eq 0) {
+        throw "profit operator action brief accepted stale matrix output:`n$staleText"
+    }
+    foreach ($marker in @(
+            "matrix_freshness_status=STALE",
+            "MatrixOutputPath is stale"
+        )) {
+        Assert-Contains -Name "profit operator action brief stale matrix guard" -Text $staleText -Pattern ([regex]::Escape($marker))
+    }
+    if ($staleText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit operator action brief stale reuse path unexpectedly invoked a child or SSH:`n$staleText"
     }
 } finally {
     if (Test-Path -LiteralPath $tempMatrixPath) {
@@ -202,5 +231,9 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ChildTimeoutSeconds", "1") `
     -ExpectedPattern "ChildTimeoutSeconds must be between 60 and 3600"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-MatrixMaxAgeMinutes", "0") `
+    -ExpectedPattern "MatrixMaxAgeMinutes must be between 1 and 1440"
 
 Write-Host "[profit-operator-action-brief-test] OK"

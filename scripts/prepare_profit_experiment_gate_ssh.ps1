@@ -91,6 +91,19 @@ function Add-MissingRequirement {
     }
 }
 
+function Add-DecisionMissingRequirements {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [object]$Decision
+    )
+    if ($null -eq $Decision -or $null -eq $Decision.PSObject.Properties["missingRequirements"]) {
+        return
+    }
+    foreach ($required in @($Decision.missingRequirements)) {
+        Add-MissingRequirement -List $List -Value ([string]$required)
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -195,6 +208,7 @@ if ($topStatus -eq "OPERATOR_REVIEW_REQUIRED_READ_ONLY") {
 if ($topStatus -eq "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES") {
     Add-MissingRequirement -List $missingRequirements -Value "current BUY candidate and hard-gate pass evidence"
 }
+Add-DecisionMissingRequirements -List $missingRequirements -Decision $reviewDecision
 
 $deployRequired = ($originDelta -eq "RUNTIME_DRIFT" -or @($missingRequirements) -contains "deployed runtime current")
 $shadowReviewAllowed = $false

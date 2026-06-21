@@ -88,6 +88,8 @@ foreach ($marker in @(
         "Assert-SmokeTokenSafe",
         "Convert-JsonArrayOrEmpty",
         "Convert-JsonObjectOrNull",
+        "Add-DecisionMissingRequirements",
+        "missingRequirements",
         "Add-MissingRequirement"
     )) {
     Assert-Contains -Name "profit experiment gate marker" -Text $scriptText -Pattern ([regex]::Escape($marker))

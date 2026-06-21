@@ -527,12 +527,16 @@ This wrapper runs the origin-delta classifier, profit-candidate review,
 DataFreshness false-kill review, DataFreshness executability review, strategy
 485 position-risk review, strategy 574 signal/governance review, and TinyLive
 post-trade evidence. It prints `profit_improvement_review_items` and
-`profit_improvement_candidate_scorecard`, `top_profit_improvement_candidate`,
-and `profit_improvement_bundle_recommendation`, so DataFreshness alpha
+`profit_improvement_candidate_scorecard`, `profit_improvement_review_decision`,
+`top_profit_improvement_candidate`, and `profit_improvement_bundle_recommendation`,
+so DataFreshness alpha
 pressure, strategy 485 open-position risk, strategy 574 near-BUY context, and
 TinyLive sample gaps are reviewed together without authorizing any live change.
 The scorecard ranks read-only candidates and required evidence only; it is not
 permission to relax policy, close or modify positions, or place orders.
+The review decision is the top-level machine-readable routing object with
+`canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,
+missing-requirement counts, and no-live authorization text.
 
 Read-only profit experiment gate:
 

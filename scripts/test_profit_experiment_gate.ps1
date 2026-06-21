@@ -67,6 +67,7 @@ foreach ($marker in @(
         "scope=READ_ONLY",
         "smoke_profit_improvement_review_bundle_ssh.ps1",
         "profit_improvement_candidate_scorecard",
+        "profit_improvement_review_decision",
         "top_profit_improvement_candidate",
         "top_profit_improvement_candidate_status",
         "deploy_required_before_profit_experiment",
@@ -86,6 +87,7 @@ foreach ($marker in @(
         "Assert-RemotePathSafe",
         "Assert-SmokeTokenSafe",
         "Convert-JsonArrayOrEmpty",
+        "Convert-JsonObjectOrNull",
         "Add-MissingRequirement"
     )) {
     Assert-Contains -Name "profit experiment gate marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
@@ -93,9 +95,11 @@ foreach ($marker in @(
 
 foreach ($marker in @(
         "profit_improvement_candidate_scorecard",
+        "profit_improvement_review_decision",
         "top_profit_improvement_candidate",
         "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE",
-        "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW"
+        "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW",
+        "canDraftShadowExperimentReview"
     )) {
     Assert-Contains -Name "profit bundle supports experiment gate" -Text $bundleText -Pattern ([regex]::Escape($marker))
 }

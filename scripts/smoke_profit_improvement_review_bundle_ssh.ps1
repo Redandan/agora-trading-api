@@ -120,6 +120,109 @@ function Convert-MarkerNumber {
     return $null
 }
 
+function Add-UniqueRequirement {
+    param(
+        [System.Collections.Generic.List[string]]$List,
+        [string]$Value
+    )
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return
+    }
+    if ($List -notcontains $Value) {
+        $List.Add($Value)
+    }
+}
+
+function New-ProfitImprovementReviewDecision {
+    param(
+        [string]$OriginDelta,
+        [string]$TopCandidate,
+        [object[]]$CandidateScorecard,
+        [string]$Recommendation
+    )
+
+    $deployRequired = ($OriginDelta -eq "RUNTIME_DRIFT")
+    $allowedReviewTypes = New-Object System.Collections.Generic.List[string]
+    $missingRequirements = New-Object System.Collections.Generic.List[string]
+    $decision = "NO_PROFIT_IMPROVEMENT_ACTION_FROM_BUNDLE"
+
+    if ($deployRequired) {
+        Add-UniqueRequirement -List $missingRequirements -Value "deployed runtime current"
+    }
+
+    foreach ($candidate in @($CandidateScorecard)) {
+        $name = [string]$candidate.candidate
+        $status = [string]$candidate.status
+
+        if ($status -eq "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW" -and -not $deployRequired) {
+            Add-UniqueRequirement -List $allowedReviewTypes -Value "data-freshness-counterfactual-shadow-review"
+            continue
+        }
+
+        if ($status -eq "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE") {
+            foreach ($required in @($candidate.requiredEvidence)) {
+                Add-UniqueRequirement -List $missingRequirements -Value ([string]$required)
+            }
+        } elseif ($status -eq "OPERATOR_REVIEW_REQUIRED_READ_ONLY") {
+            Add-UniqueRequirement -List $missingRequirements -Value "separate operator approval before any position/OCO mutation"
+        } elseif ($status -eq "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES") {
+            Add-UniqueRequirement -List $missingRequirements -Value "current BUY candidate and hard-gate pass evidence"
+        } elseif (-not [string]::IsNullOrWhiteSpace($name) -and [string]::IsNullOrWhiteSpace($status)) {
+            Add-UniqueRequirement -List $missingRequirements -Value "$name status evidence"
+        }
+    }
+
+    if (@($CandidateScorecard).Count -eq 0 -or [string]::IsNullOrWhiteSpace($TopCandidate) -or $TopCandidate -eq "NONE") {
+        $decision = "NO_PROFIT_IMPROVEMENT_ACTION_FROM_BUNDLE"
+        Add-UniqueRequirement -List $missingRequirements -Value "profit_improvement_candidate_scorecard is missing or empty"
+    } elseif ($deployRequired) {
+        $decision = "BLOCKED_DEPLOY_CURRENT_RUNTIME"
+    } elseif ($allowedReviewTypes.Count -gt 0) {
+        $decision = "READY_FOR_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE"
+    } elseif (@($CandidateScorecard | Where-Object { $_.status -eq "OPERATOR_REVIEW_REQUIRED_READ_ONLY" }).Count -gt 0) {
+        $decision = "OPERATOR_REVIEW_REQUIRED_READ_ONLY"
+    } else {
+        $decision = "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE"
+    }
+
+    [pscustomobject]@{
+        decision = $decision
+        canDraftShadowExperimentReview = ($decision -eq "READY_FOR_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE")
+        deployRequired = $deployRequired
+        allowedReviewTypes = @($allowedReviewTypes)
+        topCandidate = $TopCandidate
+        recommendation = $Recommendation
+        missingRequirementCount = @($missingRequirements).Count
+        missingRequirements = @($missingRequirements)
+        nextAction = if ($decision -eq "BLOCKED_DEPLOY_CURRENT_RUNTIME") {
+            "Separately deploy and verify current origin/main, then rerun profit-improvement review."
+        } elseif ($decision -eq "READY_FOR_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE") {
+            "Draft a separate shadow-only experiment review preserving hard gates and no live mutation."
+        } elseif ($decision -eq "OPERATOR_REVIEW_REQUIRED_READ_ONLY") {
+            "Review read-only position-risk evidence; this bundle does not authorize close or OCO modification."
+        } else {
+            "Collect the listed replay, EV, OCO, and hard-gate evidence before any shadow/small experiment review."
+        }
+        notAuthorization = "read-only profit-improvement routing decision only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, close-position, OCO modification, or external backfill/import"
+    }
+}
+
+function Assert-ProfitImprovementReviewDecisionShape {
+    param([object]$Decision)
+
+    foreach ($field in @("decision", "canDraftShadowExperimentReview", "deployRequired", "allowedReviewTypes", "topCandidate", "recommendation", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
+        if ($null -eq $Decision.PSObject.Properties[$field]) {
+            throw "profit improvement review decision missing field: $field"
+        }
+    }
+    if ($Decision.missingRequirementCount -ne @($Decision.missingRequirements).Count) {
+        throw "profit improvement review decision missingRequirementCount mismatch"
+    }
+    if ($Decision.notAuthorization -notmatch "does not authorize live trading") {
+        throw "profit improvement review decision must preserve no-live authorization text"
+    }
+}
+
 Write-Host "[profit-improvement-review-bundle] read-only review bundle"
 Write-Host "scope=READ_ONLY; invokes existing read-only SSH/local smokes only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "symbol=$Symbol reviewDays=$ReviewDays tinyLiveHours=$TinyLiveHours"
@@ -265,6 +368,13 @@ if ($candidateScorecard.Count -gt 0) {
     $topCandidate = $candidateScorecard[0].candidate
 }
 $candidateScorecardJson = ConvertTo-Json -Compress -Depth 8 -InputObject @($candidateScorecard.ToArray())
+$reviewDecision = New-ProfitImprovementReviewDecision `
+    -OriginDelta $originDelta `
+    -TopCandidate $topCandidate `
+    -CandidateScorecard @($candidateScorecard.ToArray()) `
+    -Recommendation $recommendation
+Assert-ProfitImprovementReviewDecisionShape -Decision $reviewDecision
+$reviewDecisionJson = ConvertTo-Json -Compress -Depth 8 -InputObject $reviewDecision
 
 Write-Host ""
 Write-Host "Profit Improvement Bundle Summary:"
@@ -278,6 +388,7 @@ Write-Host "  strategy574_policy_change_recommendation=$strategy574Recommendatio
 Write-Host "  tiny_live_post_trade_status=$tinyLiveStatus"
 Write-Host ("  profit_improvement_review_items=" + (ConvertTo-Json -Compress @($reviewItems)))
 Write-Host "  profit_improvement_candidate_scorecard=$candidateScorecardJson"
+Write-Host "  profit_improvement_review_decision=$reviewDecisionJson"
 Write-Host "  top_profit_improvement_candidate=$topCandidate"
 Write-Host "  profit_improvement_bundle_recommendation=$recommendation"
 Write-Host "  notAuthorization=read-only review evidence only; does not authorize DataFreshnessGuard relaxation, closing positions, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, deploy, restart, production env changes, external backfill/import, or policy relaxation"

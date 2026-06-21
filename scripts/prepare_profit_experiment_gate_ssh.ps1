@@ -58,6 +58,18 @@ function Convert-JsonArrayOrEmpty {
     }
 }
 
+function Convert-JsonObjectOrNull {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    try {
+        return ($Value | ConvertFrom-Json -ErrorAction Stop)
+    } catch {
+        return $null
+    }
+}
+
 function Get-RequiredEvidence {
     param([object]$Candidate)
     if ($null -eq $Candidate -or $null -eq $Candidate.PSObject.Properties["requiredEvidence"]) {
@@ -141,7 +153,9 @@ $monthlyPnlTotalUsdt = Get-LastPrefixedValue -Text $bundleText -Prefix "  monthl
 $topCandidate = Get-LastPrefixedValue -Text $bundleText -Prefix "  top_profit_improvement_candidate="
 $bundleRecommendation = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_improvement_bundle_recommendation="
 $scorecardJson = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_improvement_candidate_scorecard="
+$reviewDecisionJson = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_improvement_review_decision="
 $scorecard = Convert-JsonArrayOrEmpty -Value $scorecardJson
+$reviewDecision = Convert-JsonObjectOrNull -Value $reviewDecisionJson
 $top = @($scorecard | Select-Object -First 1)
 $topStatus = ""
 $topPriority = ""
@@ -160,6 +174,9 @@ if ($bundleExitCode -ne 0) {
 }
 if ([string]::IsNullOrWhiteSpace($scorecardJson) -or $scorecard.Count -eq 0) {
     Add-MissingRequirement -List $missingRequirements -Value "profit_improvement_candidate_scorecard is missing or empty"
+}
+if ($null -eq $reviewDecision) {
+    Add-MissingRequirement -List $missingRequirements -Value "profit_improvement_review_decision is missing or invalid"
 }
 if ([string]::IsNullOrWhiteSpace($topCandidate) -or $topCandidate -eq "NONE") {
     Add-MissingRequirement -List $missingRequirements -Value "top_profit_improvement_candidate is missing"
@@ -184,7 +201,12 @@ $shadowReviewAllowed = $false
 $gateStatus = "BLOCKED"
 $nextAction = "Resolve missing read-only evidence, then rerun this gate."
 
-if ($bundleExitCode -ne 0 -or $scorecard.Count -eq 0) {
+if ($null -ne $reviewDecision) {
+    $deployRequired = [bool]$reviewDecision.deployRequired
+    $shadowReviewAllowed = [bool]$reviewDecision.canDraftShadowExperimentReview
+}
+
+if ($bundleExitCode -ne 0 -or $scorecard.Count -eq 0 -or $null -eq $reviewDecision) {
     $gateStatus = "NO_EVIDENCE"
     $nextAction = "Fix read-only profit bundle collection before drawing any experiment conclusion."
 } elseif ($deployRequired) {
@@ -212,6 +234,7 @@ Write-Host "top_profit_improvement_candidate=$topCandidate"
 Write-Host "top_profit_improvement_candidate_priority=$topPriority"
 Write-Host "top_profit_improvement_candidate_status=$topStatus"
 Write-Host "profit_improvement_bundle_recommendation=$bundleRecommendation"
+Write-Host "profit_improvement_review_decision=$reviewDecisionJson"
 Write-Host "deploy_required_before_profit_experiment=$($deployRequired.ToString().ToLowerInvariant())"
 Write-Host "shadow_experiment_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host "live_policy_change_allowed=false"

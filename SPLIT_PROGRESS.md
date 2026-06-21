@@ -369,13 +369,15 @@
   strategy 574 signal/governance smoke, and TinyLive post-trade smoke into one
   profit-improvement routing command. It prints
   `profit_improvement_review_items`, `profit_improvement_candidate_scorecard`,
-  `top_profit_improvement_candidate`, and
+  `profit_improvement_review_decision`, `top_profit_improvement_candidate`, and
   `profit_improvement_bundle_recommendation` such as
   `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE`, so DataFreshness alpha
   pressure cannot be reviewed without its executability gap, and strategy 485
   risk plus strategy 574/TinyLive context stay visible. The scorecard ranks
   read-only candidates and required evidence only; it does not authorize live
-  mutations. The wrapper invokes existing read-only smokes only and does not
+  mutations. The review decision adds top-level `canDraftShadowExperimentReview`,
+  `deployRequired`, `allowedReviewTypes`, missing-requirement counts, and
+  no-live authorization text for downstream gates. The wrapper invokes existing read-only smokes only and does not
   change production env, DB, order, OCO, grid, Earn, fund, Telegram, scheduler,
   exchange, external backfill/import, deploy, restart, or nginx state.
   `scripts/test_profit_improvement_review_bundle.ps1` guards the child smoke

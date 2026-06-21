@@ -439,8 +439,8 @@ deploy-first blocker points at the runtime files and evidence categories that
 must be refreshed before profit evidence is trusted.
 The review decision is the top-level machine-readable routing object; it
 includes `canPrepareReviewPacket`, `deployRequired`, `allowedReviewTypes`,
-`blockerCount`, `missingRequirementCount`, `runtimeDrift`, and no-live
-authorization text.
+`blockerCount`, `blockedGateCount`, `blockedGates`,
+`missingRequirementCount`, `runtimeDrift`, and no-live authorization text.
 
 Focused DataFreshness false-kill review:
 

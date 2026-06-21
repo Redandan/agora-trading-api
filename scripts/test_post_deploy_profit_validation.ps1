@@ -140,9 +140,19 @@ function Assert-ReviewDecisionShape {
     param([string]$Json)
 
     $item = $Json | ConvertFrom-Json -ErrorAction Stop
-    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "runtimeDrift", "nextAction", "notAuthorization")) {
+    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "blockedGateCount", "blockedGates", "missingRequirementCount", "missingRequirements", "runtimeDrift", "nextAction", "notAuthorization")) {
         if ($null -eq $item.PSObject.Properties[$field]) {
             throw "post-deploy profit validation review decision missing field: $field"
+        }
+    }
+    if ($item.blockedGateCount -ne @($item.blockedGates).Count) {
+        throw "post-deploy profit validation review decision blockedGateCount mismatch"
+    }
+    foreach ($gate in @($item.blockedGates)) {
+        foreach ($field in @("gate", "status", "riskCategory", "recommendation", "allowedFlag", "allowed")) {
+            if ($null -eq $gate.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation review decision blocked gate missing field: $field"
+            }
         }
     }
     if ($item.missingRequirementCount -ne @($item.missingRequirements).Count) {
@@ -249,6 +259,8 @@ foreach ($marker in @(
         "runtimeDeltaFiles",
         "runtimeDeltaPaths",
         "runtimeDeltaImpact",
+        "blockedGateCount",
+        "blockedGates",
         "requiredEvidence",
         "requiredEvidenceCount",
         "nextAction",
@@ -262,6 +274,8 @@ foreach ($marker in @(
         "post-deploy profit validation blocker summary runtimeDrift missing field",
         "post-deploy profit validation blocker summary runtimeDeltaFiles mismatch",
         "post-deploy profit validation review decision missing field",
+        "post-deploy profit validation review decision blockedGateCount mismatch",
+        "post-deploy profit validation review decision blocked gate missing field",
         "post-deploy profit validation review decision missingRequirementCount mismatch",
         "post-deploy profit validation review decision runtimeDrift missing field",
         "post-deploy profit validation review decision must preserve no-live authorization text",
@@ -430,6 +444,33 @@ $reviewDecisionFixture = @'
   "deployRequired": true,
   "allowedReviewTypes": [],
   "blockerCount": 3,
+  "blockedGateCount": 3,
+  "blockedGates": [
+    {
+      "gate": "auto-trading-review",
+      "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+      "riskCategory": "position-risk-and-live-execution-readiness",
+      "recommendation": "OPERATOR_REVIEW_STRATEGY485_POSITION_RISK",
+      "allowedFlag": "operator_review_packet_allowed",
+      "allowed": false
+    },
+    {
+      "gate": "profit-loss-review",
+      "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+      "riskCategory": "loss-source-and-datafreshness-counterfactual",
+      "recommendation": "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY",
+      "allowedFlag": "loss_source_review_allowed",
+      "allowed": false
+    },
+    {
+      "gate": "profit-experiment-review",
+      "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+      "riskCategory": "shadow-experiment-and-policy-counterfactual",
+      "recommendation": "DataFreshness false-kill counterfactual",
+      "allowedFlag": "shadow_experiment_review_allowed",
+      "allowed": false
+    }
+  ],
   "missingRequirementCount": 5,
   "missingRequirements": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows", "entry/TP/SL candidate snapshot", "separate operator approval before any position/OCO mutation", "current BUY candidate and hard-gate pass evidence"],
   "runtimeDrift": {

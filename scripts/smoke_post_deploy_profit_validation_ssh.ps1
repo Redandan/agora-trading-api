@@ -239,12 +239,24 @@ function New-ProfitValidationReviewDecision {
     )
 
     $allowedReviewTypes = @($ReviewPlan | Where-Object { $_.allowed -eq $true } | ForEach-Object { $_.gate })
+    $blockedGates = @($ReviewPlan | Where-Object { $_.status -match "^(BLOCKED|NO_EVIDENCE)" -or $_.allowed -ne $true } | ForEach-Object {
+            [pscustomobject]@{
+                gate = $_.gate
+                status = $_.status
+                riskCategory = $_.riskCategory
+                recommendation = $_.recommendation
+                allowedFlag = $_.allowedFlag
+                allowed = $_.allowed
+            }
+        })
     [pscustomobject]@{
         decision = $Status
         canPrepareReviewPacket = ($Status -eq "READY_FOR_READ_ONLY_PROFIT_REVIEW_NOT_LIVE")
         deployRequired = $DeployRequired
         allowedReviewTypes = @($allowedReviewTypes)
         blockerCount = @($BlockerSummary).Count
+        blockedGateCount = @($blockedGates).Count
+        blockedGates = @($blockedGates)
         missingRequirementCount = @($MissingRequirements).Count
         missingRequirements = @($MissingRequirements)
         runtimeDrift = $RuntimeDrift
@@ -256,9 +268,19 @@ function New-ProfitValidationReviewDecision {
 function Assert-ProfitValidationReviewDecisionShape {
     param([object]$Decision)
 
-    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "runtimeDrift", "nextAction", "notAuthorization")) {
+    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "blockedGateCount", "blockedGates", "missingRequirementCount", "missingRequirements", "runtimeDrift", "nextAction", "notAuthorization")) {
         if ($null -eq $Decision.PSObject.Properties[$field]) {
             throw "post-deploy profit validation review decision missing field: $field"
+        }
+    }
+    if ($Decision.blockedGateCount -ne @($Decision.blockedGates).Count) {
+        throw "post-deploy profit validation review decision blockedGateCount mismatch"
+    }
+    foreach ($gate in @($Decision.blockedGates)) {
+        foreach ($field in @("gate", "status", "riskCategory", "recommendation", "allowedFlag", "allowed")) {
+            if ($null -eq $gate.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation review decision blocked gate missing field: $field"
+            }
         }
     }
     if ($Decision.missingRequirementCount -ne @($Decision.missingRequirements).Count) {

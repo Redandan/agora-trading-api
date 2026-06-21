@@ -276,8 +276,8 @@
   authorization text for each blocked child gate, while runtime-drift output
   shows the concrete runtime files behind deploy-first blockers. The review
   decision is the top-level routing object with `canPrepareReviewPacket`,
-  `deployRequired`, `allowedReviewTypes`, `runtimeDrift`, and blocker/missing
-  counts. `scripts/test_post_deploy_profit_validation.ps1`
+  `deployRequired`, `allowedReviewTypes`, `runtimeDrift`, `blockedGates`, and
+  blocker/missing counts. `scripts/test_post_deploy_profit_validation.ps1`
   guards the child gate list, blocker summary shape, safety markers, docs
   coverage, and local input validation.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused

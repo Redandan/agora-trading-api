@@ -844,6 +844,11 @@ Expected:
   `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false` /
   `trading.data-freshness.shadow-replay.collector.enabled=false` unless a
   separate evidence-only collector rollout is explicitly reviewed.
+- The current `DataFreshnessShadowReplayCollector` hook is only a local/runtime
+  skeleton under that flag. Disabled mode emits safety markers only; enabled
+  mode is still `SNAPSHOT_ONLY_NOT_REPLAYABLE` and only captures scalar
+  K-line/strategy context plus missing counterfactual fields. It must not be
+  treated as complete replay evidence or live-readiness evidence.
 - New DataFreshness L0 audit rows include deterministic `replayCandidateId`
   values and explicit no-order/no-intent/no-OCO markers. Treat those ids as
   traceability only; policy review still requires entry/TP/SL/EV/OCO snapshots

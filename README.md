@@ -506,6 +506,12 @@ The tracked template and runtime config keep
 `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false` /
 `trading.data-freshness.shadow-replay.collector.enabled=false` as the default
 guardrail.
+The current `DataFreshnessShadowReplayCollector` hook is only a
+disabled-by-default skeleton: when disabled it adds no executable replay
+evidence, and when separately enabled it can only mark scalar snapshot fields
+as `SNAPSHOT_ONLY_NOT_REPLAYABLE` with missing counterfactual fields. It does
+not create live signals, send Telegram, place orders, modify OCO, or change
+policy.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

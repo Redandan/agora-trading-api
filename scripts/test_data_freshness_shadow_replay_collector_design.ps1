@@ -17,6 +17,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $designPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-collector-design.md"
 $inputPlanPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-input-plan.md"
 $liveSignalEvaluatorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"
+$collectorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplayCollector.java"
 $runtimeEvidencePath = Join-Path $repoRoot "src/main/java/com/agora/service/trading/RuntimeDecisionEvidenceService.java"
 $envTemplatePath = Join-Path $repoRoot ".env.trading.secrets.example"
 $applicationPath = Join-Path $repoRoot "src/main/resources/application.yml"
@@ -28,6 +29,7 @@ $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 $designText = Get-Content -Raw -LiteralPath $designPath
 $inputPlanText = Get-Content -Raw -LiteralPath $inputPlanPath
 $liveSignalEvaluatorText = Get-Content -Raw -LiteralPath $liveSignalEvaluatorPath
+$collectorText = Get-Content -Raw -LiteralPath $collectorPath
 $runtimeEvidenceText = Get-Content -Raw -LiteralPath $runtimeEvidencePath
 $envTemplateText = Get-Content -Raw -LiteralPath $envTemplatePath
 $applicationText = Get-Content -Raw -LiteralPath $applicationPath
@@ -78,6 +80,21 @@ foreach ($marker in @(
 }
 
 foreach ($marker in @(
+        "DataFreshnessShadowReplayCollector",
+        '@Value("${trading.data-freshness.shadow-replay.collector.enabled:false}")',
+        "SNAPSHOT_ONLY_NOT_REPLAYABLE",
+        "MISSING_REPLAY_FIELDS",
+        "shadowReplayKeepsHardBlock",
+        "shadowReplayCreatesLiveSignal",
+        "shadowReplaySendsTelegram",
+        "shadowReplayPlacesOrder",
+        "shadowReplayCreatesOco",
+        "shadowReplayMutatesPolicy"
+    )) {
+    Assert-Contains -Name "DataFreshness shadow replay collector code boundary" -Text $collectorText -Pattern $marker
+}
+
+foreach ($marker in @(
         "Replay Input Contract",
         "stable replay candidate id",
         "do not create a live signal",
@@ -91,6 +108,7 @@ foreach ($marker in @(
         "DATA_STALE_SKIP",
         "DataFreshnessGuard",
         "dataFreshnessContext",
+        "dataFreshnessShadowReplayCollector.enrichAfterHardBlock",
         "return;",
         "candidateTradePlanContext",
         "shadowExecutionIntentContext",

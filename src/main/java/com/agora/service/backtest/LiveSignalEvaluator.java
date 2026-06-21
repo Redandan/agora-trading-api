@@ -109,6 +109,7 @@ public class LiveSignalEvaluator {
     private final com.agora.service.trading.EventRiskActionOrchestrator eventRiskActionOrchestrator;
     private final ExposureOptimizer exposureOptimizer;
     private final TradeQualityEngine tradeQualityEngine;
+    private final DataFreshnessShadowReplayCollector dataFreshnessShadowReplayCollector;
 
     /** Self-injection for @Cacheable proxy（必須透過 Spring proxy 才能讓 @Cacheable 生效）*/
     @Autowired @Lazy
@@ -359,13 +360,17 @@ public class LiveSignalEvaluator {
                          "latestBarOpen={} minutesSinceOpen={} threshold={}min",
                          strategy.getId(), symbol, intervalCode,
                          newest.getOpenTime().format(FMT_DISPLAY), minSinceOpen, staleThreshold);
+                Map<String, Object> freshnessContext = dataFreshnessContext(strategy.getId(), symbol, intervalCode,
+                        nowUtc, newest, latestCloseEstimate, minSinceOpen,
+                        staleThreshold, intMin, klineSource, klines.size());
+                dataFreshnessShadowReplayCollector.enrichAfterHardBlock(freshnessContext, strategy, symbol,
+                        intervalCode, klineSource, newest, nowUtc, latestCloseEstimate, minSinceOpen,
+                        staleThreshold, intMin, klines.size());
                 auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
                          "DataFreshnessGuard",
                          String.format("K-line stale by %dmin (latestOpen=%s, threshold=%dmin)",
                                  minSinceOpen, newest.getOpenTime(), staleThreshold),
-                         dataFreshnessContext(strategy.getId(), symbol, intervalCode,
-                                 nowUtc, newest, latestCloseEstimate, minSinceOpen,
-                                 staleThreshold, intMin, klineSource, klines.size()));
+                         freshnessContext);
                 return;
             }
         }

@@ -41,6 +41,22 @@ New DataFreshness L0 audit rows include a deterministic `replayCandidateId`
 `BtLiveSignal` or changing the hard block outcome. It is still not a complete
 candidate snapshot until entry, TP, SL, EV, OCO, and hard-gate evidence exist.
 
+`DataFreshnessShadowReplayCollector` is now present as the disabled-by-default
+L0 hook. With
+`trading.data-freshness.shadow-replay.collector.enabled=false`, it only enriches
+the DataFreshness audit context with safety markers such as
+`shadowReplayCollectorStatus=DISABLED`, `shadowReplayKeepsHardBlock=true`,
+`shadowReplayCreatesLiveSignal=false`, `shadowReplaySendsTelegram=false`,
+`shadowReplayPlacesOrder=false`, `shadowReplayCreatesOco=false`, and
+`shadowReplayMutatesPolicy=false`.
+
+If enabled in a separately reviewed evidence-only rollout, the current skeleton
+captures scalar K-line/strategy snapshot fields and emits
+`shadowReplayCollectorStatus=SNAPSHOT_ONLY_NOT_REPLAYABLE` plus
+`shadowReplayMissingCounterfactualFields`. It still does not write a separate
+replay table, create runtime evidence rows by itself, build entry/TP/SL, run
+EV/TQS/OCO/risk gates, or make the row executable replay evidence.
+
 ## Design Conclusion
 
 The existing 74-row DataFreshness counterfactual sample is a positive
@@ -94,11 +110,14 @@ It must not:
 
 ## Implementation Shape
 
-The safest implementation shape is a small service invoked from the
-DataFreshness L0 block after `auditWriter.logFilterBlock(...)` has recorded the
-hard block and before the method returns. That service should receive immutable
-inputs from the already-loaded strategy/config/K-line window and then run a
-side-effect-free candidate snapshot calculation.
+The current skeleton is a pure context-enrichment service invoked from the
+DataFreshness L0 block immediately before `auditWriter.logFilterBlock(...)`, so
+the same hard-block audit row carries the disabled/snapshot markers. It must not
+persist independently or call downstream candidate helpers. A future collector
+that writes a separate replay-evidence row should run only after the hard block
+has been recorded and before the method returns. That future service should
+receive immutable inputs from the already-loaded strategy/config/K-line window
+and then run a side-effect-free candidate snapshot calculation.
 
 The service must not call helpers that persist live signals, send notifications,
 place orders, or mutate position/OCO state. If the current candidate logic

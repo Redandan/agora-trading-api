@@ -364,6 +364,13 @@
   explicit default.
   `scripts/test_data_freshness_shadow_replay_collector_design.ps1` is wired
   into local verification to keep that boundary explicit.
+- `DataFreshnessShadowReplayCollector` is now wired at the L0
+  DataFreshnessGuard audit path as a disabled-by-default evidence skeleton.
+  It keeps the hard block terminal and emits only safety markers while
+  disabled; if separately enabled later, it marks scalar K-line/strategy
+  context as `SNAPSHOT_ONLY_NOT_REPLAYABLE` and lists missing counterfactual
+  fields. It still does not create live signals, Telegram sends, orders, OCO,
+  runtime policy changes, DB schema changes, or complete replayable evidence.
 - DataFreshness L0 audit context now writes deterministic `replayCandidateId`
   values (`dfsr1_...`) plus explicit `orderSent=false`, `intentCreated=false`,
   and `ocoPlanCreated=false` markers. This improves future replay traceability

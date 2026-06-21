@@ -310,6 +310,19 @@ bounded conclusion such as `WAIT_BUY_THRESHOLD_CROSS` or
 `DO_NOT_RELAX_ENTRY_DEDUP_OR_DATAFRESHNESS_LIVE`. It is evidence only and does
 not authorize policy relaxation or live mutations.
 
+Focused strategy 485 open-position risk RCA:
+
+```powershell
+.\scripts\smoke_strategy485_position_risk_ssh.ps1
+```
+
+This read-only smoke reviews SCORE_BUY strategy 485 open positions, OCO health,
+position-defense status, active-position EV, TP stretch, stop-sweep policy,
+recent closed trades, execution events, and 3-month PnL through server-local
+`/api/mcp`. It prints `strategy485_position_risk_recommendation` such as
+`REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`; this is review routing only and
+does not authorize closing positions or modifying OCO.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

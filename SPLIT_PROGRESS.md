@@ -175,6 +175,18 @@
   backfill/import state. `scripts/test_strategy574_signal_governance_smoke.ps1`
   guards the read-only tool calls, no-order markers, window comparison, strategy
   574 row extraction, and non-authorization wording.
+- `scripts/smoke_strategy485_position_risk_ssh.ps1` provides a focused
+  read-only production RCA for SCORE_BUY strategy 485 open-position risk. It
+  calls server-local `/api/mcp` to summarize open positions, OCO health,
+  position-defense status, active-position EV, TP stretch/aging, stop-sweep
+  policy, recent closed trades, execution events, and 3-month PnL, then prints
+  `strategy485_position_risk_recommendation` such as
+  `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`. This smoke is review routing
+  only; it does not close positions, modify OCO, change production env, DB,
+  order, grid, Earn, fund, Telegram, scheduler, exchange, or external
+  backfill/import state. `scripts/test_strategy485_position_risk_smoke.ps1`
+  guards the read-only tool calls, no-order/no-OCO markers, risk recommendation
+  markers, and non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

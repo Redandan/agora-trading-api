@@ -557,6 +557,24 @@ Expected:
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, or external backfill/import state.
 
+For the focused strategy 485 open-position risk RCA, run:
+
+```powershell
+.\scripts\smoke_strategy485_position_risk_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- Output prints open strategy 485 position ids, OCO health, active-position EV,
+  TP stretch/aging counts, recent closed trades, stop-sweep policy, and monthly
+  PnL evidence.
+- Output must include `strategy485_position_risk_recommendation`. A value such
+  as `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY` means operator review is
+  needed, not that the script is allowed to close positions or modify OCO.
+- The script must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, or external backfill/import state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

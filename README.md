@@ -710,6 +710,8 @@ exit-side packet into `profit_operator_review_matrix_packet`,
 `HAS_REVIEW_READY_ITEMS_NOT_LIVE` means at least one lane, such as `exit-side`,
 has enough read-only evidence for a separate operator review while other lanes
 such as `entry-filter` or `data-freshness-replay` can remain blocked. It does
+not treat `REVIEW_SIGNAL_POLICY` as an operator-ready entry-filter lane; the
+entry-filter lane is ready only when the readiness brief reports `CLEAR`. It does
 not deploy, change production env, enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.

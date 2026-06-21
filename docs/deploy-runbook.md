@@ -1040,6 +1040,9 @@ Expected:
 - `HAS_REVIEW_READY_ITEMS_NOT_LIVE` means at least one lane, normally
   `exit-side`, is ready for a separate operator review while blocked lanes such
   as `entry-filter` or `data-freshness-replay` stay visible.
+- `REVIEW_SIGNAL_POLICY` is still pending entry-filter evidence, not an
+  operator-ready lane; entry-filter readiness requires the readiness brief to
+  report `CLEAR`.
 - The matrix does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

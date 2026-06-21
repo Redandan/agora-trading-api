@@ -476,7 +476,9 @@
   `profit_operator_review_matrix_status`. It can return
   `HAS_REVIEW_READY_ITEMS_NOT_LIVE` when a lane such as `exit-side` has enough
   read-only evidence for a separate operator review while other lanes such as
-  `entry-filter` or `data-freshness-replay` remain blocked. The matrix does not
+  `entry-filter` or `data-freshness-replay` remain blocked. `REVIEW_SIGNAL_POLICY`
+  is not treated as an operator-ready entry-filter lane; entry-filter readiness
+  requires the readiness brief to report `CLEAR`. The matrix does not
   authorize live trading, policy relaxation, deploy, production env changes,
   orders, OCO, position closes, DB/grid/fund/Earn/Telegram/exchange mutation,
   or external backfill/import.

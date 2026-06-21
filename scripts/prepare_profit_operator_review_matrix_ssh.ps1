@@ -183,7 +183,7 @@ $reviewItems.Add([pscustomobject]@{
     candidate = "Governance and missed-opportunity entry/filter review"
     status = $entryLaneStatus
     priority = "P2"
-    readyForOperatorReview = ($entryLaneStatus -notmatch "^BLOCKED")
+    readyForOperatorReview = ($entryLaneStatus -eq "CLEAR")
     evidenceMarkers = @("signal_policy_clear=$signalPolicyClear", "data_freshness_current_status=$dataFreshnessStatus")
     missingRequirements = @($readinessMissing | Where-Object { $_ -match "signal policy|governance|missed|DataFreshness current" })
     nextAction = "Keep EntryDedup/DataFreshness/live policy unchanged until signal policy and current DataFreshness evidence are clear."

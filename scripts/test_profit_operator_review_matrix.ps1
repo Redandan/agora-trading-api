@@ -67,6 +67,7 @@ foreach ($marker in @(
         "entry-filter",
         "data-freshness-replay",
         "readyForOperatorReview",
+        'readyForOperatorReview = ($entryLaneStatus -eq "CLEAR")',
         "notAuthorization=read-only profit operator review matrix only",
         "does not deploy",
         "Assert-SshHostSafe",

@@ -407,7 +407,10 @@
   signal/governance smoke, and TinyLive post-trade smoke into one
   profit-improvement routing command. It prints
   `profit_improvement_review_items`, `profit_improvement_candidate_scorecard`,
-  `profit_improvement_review_decision`, `top_profit_improvement_candidate`, and
+  `profit_improvement_review_decision`,
+  `deploy_required_before_profit_improvement_review`,
+  `profit_improvement_missing_requirement_count`,
+  `profit_improvement_missing_requirements`, `top_profit_improvement_candidate`, and
   `profit_improvement_bundle_recommendation` such as
   `COLLECT_DATAFRESHNESS_REPLAYABLE_CANDIDATE_SNAPSHOTS`, so DataFreshness
   alpha pressure cannot be reviewed without replay-input coverage and

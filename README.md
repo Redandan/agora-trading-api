@@ -557,7 +557,10 @@ DataFreshness counterfactual replay-input review, strategy 485 position-risk
 review, strategy 574 signal/governance review, and TinyLive post-trade
 evidence. It prints `profit_improvement_review_items` and
 `profit_improvement_candidate_scorecard`, `profit_improvement_review_decision`,
-`top_profit_improvement_candidate`, and `profit_improvement_bundle_recommendation`,
+`deploy_required_before_profit_improvement_review`,
+`profit_improvement_missing_requirement_count`,
+`profit_improvement_missing_requirements`, `top_profit_improvement_candidate`,
+and `profit_improvement_bundle_recommendation`,
 so DataFreshness alpha
 pressure, strategy 485 open-position risk, strategy 574 near-BUY context, and
 TinyLive sample gaps are reviewed together without authorizing any live change.

@@ -145,8 +145,14 @@ function Get-RuntimeDeltaImpact {
         if ([string]::IsNullOrWhiteSpace($path)) {
             continue
         }
-        if ($path -eq "src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java") {
+        if ($path -eq ".env.trading.secrets.example") {
+            Add-MissingRequirement -List $impacts -Value "SERVER_ENV_TEMPLATE_RUNTIME_CONFIG_NOT_DEPLOYED"
+        } elseif ($path -like "src/main/resources/application*.yml") {
+            Add-MissingRequirement -List $impacts -Value "SPRING_APPLICATION_CONFIG_RUNTIME_NOT_DEPLOYED"
+        } elseif ($path -eq "src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java") {
             Add-MissingRequirement -List $impacts -Value "DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED"
+        } elseif ($path -like "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplay*.java") {
+            Add-MissingRequirement -List $impacts -Value "DATAFRESHNESS_SHADOW_REPLAY_RUNTIME_NOT_DEPLOYED"
         } elseif ($path -eq "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java") {
             Add-MissingRequirement -List $impacts -Value "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED"
         } else {

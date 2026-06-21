@@ -65,6 +65,8 @@ foreach ($marker in @(
         "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE",
         "OPERATOR_REVIEW_REQUIRED_READ_ONLY",
         "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES",
+        "dataFreshnessRequiredEvidence",
+        '$originDelta -eq "RUNTIME_DRIFT"',
         "deployed runtime current",
         "operator-approved risk-reducing action before any mutation",
         "Convert-MarkerJsonOrNull",

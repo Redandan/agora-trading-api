@@ -365,6 +365,18 @@ if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHA
     if ($originDelta -ne "RUNTIME_DRIFT" -and $dataFreshnessCounterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
         $status = "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW"
     }
+    $dataFreshnessRequiredEvidence = New-Object System.Collections.Generic.List[string]
+    if ($originDelta -eq "RUNTIME_DRIFT") {
+        $dataFreshnessRequiredEvidence.Add("deployed runtime current")
+    }
+    foreach ($required in @(
+            "fresh replayCandidateId rows",
+            "entry/TP/SL candidate snapshot",
+            "EV and OCO preflight snapshots",
+            "shadow replay removing only DataFreshnessGuard"
+        )) {
+        $dataFreshnessRequiredEvidence.Add($required)
+    }
     $candidateScorecard.Add([ordered]@{
         rank = 1
         candidate = "DataFreshness false-kill counterfactual"
@@ -382,13 +394,7 @@ if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHA
             missingCounterfactualFields = @($dataFreshnessMissingCounterfactualFields)
             originDelta = $originDelta
         }
-        requiredEvidence = @(
-            "deployed runtime current",
-            "fresh replayCandidateId rows",
-            "entry/TP/SL candidate snapshot",
-            "EV and OCO preflight snapshots",
-            "shadow replay removing only DataFreshnessGuard"
-        )
+        requiredEvidence = @($dataFreshnessRequiredEvidence)
         allowedNextAction = "deploy current runtime only after separate deploy authorization, then collect read-only replay evidence"
     })
 }

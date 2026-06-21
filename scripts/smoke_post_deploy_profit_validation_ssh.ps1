@@ -58,16 +58,30 @@ function Convert-JsonArrayOrEmpty {
     }
 }
 
+function Convert-ToCanonicalMissingRequirement {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return ""
+    }
+
+    $trimmed = $Value.Trim()
+    if ($trimmed -eq "fresh replayCandidateId rows") {
+        return "fresh DataFreshness replayCandidateId rows"
+    }
+    return $trimmed
+}
+
 function Add-MissingRequirement {
     param(
         [System.Collections.Generic.List[string]]$List,
         [string]$Value
     )
-    if ([string]::IsNullOrWhiteSpace($Value)) {
+    $canonical = Convert-ToCanonicalMissingRequirement -Value $Value
+    if ([string]::IsNullOrWhiteSpace($canonical)) {
         return
     }
-    if ($List -notcontains $Value) {
-        $List.Add($Value)
+    if ($List -notcontains $canonical) {
+        $List.Add($canonical)
     }
 }
 

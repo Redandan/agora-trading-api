@@ -148,6 +148,9 @@ function Assert-ReviewDecisionShape {
     if ($item.missingRequirementCount -ne @($item.missingRequirements).Count) {
         throw "post-deploy profit validation review decision missingRequirementCount mismatch"
     }
+    if (@($item.missingRequirements) -contains "fresh replayCandidateId rows") {
+        throw "post-deploy profit validation review decision must canonicalize replayCandidateId missing requirement"
+    }
     if ($item.notAuthorization -notmatch "does not authorize live trading") {
         throw "post-deploy profit validation review decision must preserve no-live authorization text"
     }
@@ -218,7 +221,10 @@ foreach ($marker in @(
         "Assert-RemotePathSafe",
         "Assert-SmokeTokenSafe",
         "Convert-JsonArrayOrEmpty",
+        "Convert-ToCanonicalMissingRequirement",
         "Add-MissingRequirement",
+        "fresh replayCandidateId rows",
+        "fresh DataFreshness replayCandidateId rows",
         "Test-OriginDeltaAcceptableForProfitReview",
         "Invoke-OriginDeltaClassifier",
         "New-ProfitValidationReviewPlanEntry",

@@ -71,6 +71,12 @@ foreach ($marker in @(
         "profit_readiness_missing_requirements",
         "profit_readiness_brief_packet",
         "profit_readiness_brief_status",
+        "ChildTimeoutSeconds",
+        "child_start",
+        "child_heartbeat",
+        "child_complete",
+        "child_error_summary",
+        "timedOut",
         "BLOCKED_DEPLOY_CURRENT_RUNTIME",
         "BLOCKED_ENTRY_FILTER_REVIEW",
         "EXIT_SIDE_EVIDENCE_READY_NOT_LIVE",
@@ -117,5 +123,9 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ReplayLimit", "0") `
     -ExpectedPattern "ReplayLimit must be between 1 and 500"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ChildTimeoutSeconds", "1") `
+    -ExpectedPattern "ChildTimeoutSeconds must be between 60 and 3600"
 
 Write-Host "[profit-readiness-brief-test] OK"

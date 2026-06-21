@@ -608,6 +608,9 @@ replay, and the profit blocker ledger into `profit_readiness_brief_packet` and
 and exit-side candidates can be reviewed separately. It does not deploy, change
 production env, enable live trading, relax EntryDedup/DataFreshness/live policy,
 place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+Long child smokes emit `child_start`, periodic `child_heartbeat`, and
+`child_complete` markers. Use `-ChildTimeoutSeconds` to fail a stuck child
+locally without changing production state.
 
 Focused DataFreshness false-kill review:
 

@@ -398,10 +398,14 @@
   `entry_filter_lane_status`, `exit_lane_status`, and
   `trailing_stop_acceptance` so entry/filter governance/missed-opportunity
   evidence and exit-side trailing/TP-stop evidence stay separate in operator
-  review. The brief does not deploy, restart, reload nginx, change production
-  env, enable live trading, relax EntryDedup/DataFreshness/live policy, place
-  orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/
-  exchange state, run external backfill/import, or authorize strategy changes.
+  review. It now prints `child_start`, periodic `child_heartbeat`, and
+  `child_complete` markers for long child smokes, with
+  `-ChildTimeoutSeconds` bounded to 60..3600 seconds so a stuck local child can
+  fail closed with `timedOut=true`. The brief does not deploy, restart, reload
+  nginx, change production env, enable live trading, relax
+  EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy changes.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

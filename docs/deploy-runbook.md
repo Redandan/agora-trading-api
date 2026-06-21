@@ -950,6 +950,9 @@ Expected:
   opportunity rows still block entry/filter experiments.
 - `exit_lane_status` and `trailing_stop_acceptance` show whether exit-side
   trailing/TP-stop evidence is review-ready.
+- Long child smokes print `child_start`, periodic `child_heartbeat`, and
+  `child_complete` markers. `-ChildTimeoutSeconds` bounds a stuck local child
+  wrapper and reports `timedOut=true` without changing production state.
 - The brief is read-only. It does not deploy, restart, reload nginx, change
   production env, enable live trading, relax EntryDedup/DataFreshness/live
   policy, place orders, modify OCO, close positions, mutate

@@ -450,6 +450,19 @@ TinyLive sample gaps are reviewed together without authorizing any live change.
 The scorecard ranks read-only candidates and required evidence only; it is not
 permission to relax policy, close or modify positions, or place orders.
 
+Read-only profit experiment gate:
+
+```powershell
+.\scripts\prepare_profit_experiment_gate_ssh.ps1
+```
+
+This gate runs the profit-improvement review bundle and converts the candidate
+scorecard into `deploy_required_before_profit_experiment`,
+`shadow_experiment_review_allowed`, `live_policy_change_allowed=false`, and
+`profit_experiment_gate_status`. It is a routing check for shadow/small
+experiment review only; it does not authorize deploy, live policy changes,
+position/OCO changes, or order-capable actions.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

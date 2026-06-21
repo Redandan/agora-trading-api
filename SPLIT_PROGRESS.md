@@ -322,6 +322,15 @@
   exchange, external backfill/import, deploy, restart, or nginx state.
   `scripts/test_profit_improvement_review_bundle.ps1` guards the child smoke
   list, summary markers, docs coverage, and non-authorization wording.
+- `scripts/prepare_profit_experiment_gate_ssh.ps1` wraps the profit-improvement
+  bundle into a read-only experiment gate. It emits
+  `deploy_required_before_profit_experiment`,
+  `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
+  `profit_experiment_missing_requirements`, and
+  `profit_experiment_gate_status`. The gate can route a candidate toward a
+  separate shadow-only proposal only after required replay/counterfactual
+  evidence is present; it does not authorize deploy, live policy changes,
+  position/OCO changes, or order-capable actions.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

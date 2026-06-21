@@ -757,6 +757,26 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For the read-only profit experiment gate, run:
+
+```powershell
+.\scripts\prepare_profit_experiment_gate_ssh.ps1
+```
+
+Expected:
+
+- The gate invokes `smoke_profit_improvement_review_bundle_ssh.ps1` only.
+- Output includes `deploy_required_before_profit_experiment`,
+  `shadow_experiment_review_allowed`, `live_policy_change_allowed=false`,
+  `profit_experiment_missing_requirements`, and
+  `profit_experiment_gate_status`.
+- `shadow_experiment_review_allowed=true` is only permission to draft a separate
+  shadow-only proposal. It is not permission to deploy, relax
+  DataFreshnessGuard, close positions, modify OCO, enable live trading, or place
+  orders.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means deploy and server verification are
+  required before replay/counterfactual evidence can be trusted.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

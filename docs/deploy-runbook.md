@@ -597,6 +597,29 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For a read-only profit-candidate review, run:
+
+```powershell
+.\scripts\smoke_profit_candidate_review_ssh.ps1
+```
+
+Expected:
+
+- The smoke calls only server-local `/api/mcp` read-only evidence tools:
+  monthly PnL, enabled strategy scorecard, ExpectedValueGate stats, signal
+  accuracy, blocked-signal outcomes, missed-opportunity regression, no-buy
+  truth table, shadow readiness, shadow activation candidates, and
+  trailing-stop PnL replay.
+- Output includes `profit_candidate_items` and
+  `profit_candidate_review_recommendation`.
+- A recommendation such as
+  `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY` is review routing only;
+  it is not permission to relax DataFreshness, enable live trading, activate
+  strategies, close positions, modify OCO, deploy, or restart.
+- The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

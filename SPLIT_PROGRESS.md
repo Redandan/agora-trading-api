@@ -198,6 +198,21 @@
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state. `scripts/test_auto_trading_review_bundle.ps1` guards the child
   smoke list, output markers, and non-authorization wording.
+- `scripts/smoke_profit_candidate_review_ssh.ps1` provides a read-only
+  production review for risk-adjusted profit-improvement candidates. It calls
+  server-local `/api/mcp` for monthly PnL, enabled strategy scorecard,
+  ExpectedValueGate stats, signal accuracy, blocked-signal outcomes,
+  missed-opportunity/no-buy truth-table evidence, shadow readiness, shadow
+  activation candidates, and trailing-stop PnL replay, then prints
+  `profit_candidate_items` and `profit_candidate_review_recommendation` such as
+  `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY`. The smoke is evidence
+  only and does not authorize live trading, policy relaxation, strategy
+  activation, closing positions, OCO modification, production env changes, DB,
+  order, grid, Earn, fund, Telegram, scheduler, exchange, external
+  backfill/import, deploy, restart, or nginx state.
+  `scripts/test_profit_candidate_review_smoke.ps1` guards the read-only MCP
+  calls, hard-fail boundary checks, output markers, docs coverage, and
+  non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

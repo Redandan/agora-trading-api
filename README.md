@@ -335,6 +335,22 @@ post-trade smoke, then prints `auto_trading_review_recommendation`. It is a
 review bundle only; it does not deploy, restart, close positions, modify OCO, or
 relax live policy.
 
+Read-only profit-candidate review:
+
+```powershell
+.\scripts\smoke_profit_candidate_review_ssh.ps1
+```
+
+This smoke ranks current risk-adjusted profit-improvement candidates from
+server-local `/api/mcp` evidence: 3-month PnL, enabled strategy scorecard,
+ExpectedValueGate stats, signal accuracy, blocked-signal outcomes, missed
+opportunity and no-buy truth-table rows, shadow readiness, activation
+candidates, and trailing-stop PnL replay. It prints
+`profit_candidate_items` and `profit_candidate_review_recommendation`, for
+example `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY`. The result is
+evidence only; it does not authorize live trading, policy relaxation, strategy
+activation, closing positions, or OCO changes.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

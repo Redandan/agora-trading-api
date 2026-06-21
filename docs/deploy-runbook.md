@@ -974,6 +974,27 @@ Expected:
 - `BLOCKED_DEPLOY_CURRENT_RUNTIME` means deploy and server verification are
   required before replay/counterfactual evidence can be trusted.
 
+For the read-only profit shadow experiment packet preflight, run after the
+profit experiment gate is expected to be ready:
+
+```powershell
+.\scripts\prepare_profit_shadow_experiment_packet_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- The preflight invokes `prepare_profit_experiment_gate_ssh.ps1` only.
+- Output includes `profit_shadow_experiment_packet`,
+  `profit_shadow_packet_status`, `profit_shadow_packet_missing_requirements`,
+  `profit_improvement_review_decision`, `live_policy_change_allowed=false`,
+  and `position_or_oco_mutation_allowed=false`.
+- `READY_FOR_SHADOW_EXPERIMENT_PACKET_NOT_LIVE` means the emitted packet can be
+  attached to a separate shadow-only experiment review. It is not permission to
+  relax DataFreshnessGuard, place orders, deploy, restart, change production
+  env, or mutate OCO/grid/fund/Earn state.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
+  and verified before the packet can be trusted.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

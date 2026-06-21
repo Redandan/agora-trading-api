@@ -448,6 +448,13 @@
   separate shadow-only proposal only after required replay/counterfactual
   evidence is present; it does not authorize deploy, live policy changes,
   position/OCO changes, or order-capable actions.
+- `scripts/prepare_profit_shadow_experiment_packet_ssh.ps1` wraps that gate
+  into a machine-readable `profit_shadow_experiment_packet` and
+  `profit_shadow_packet_status`. It can become
+  `READY_FOR_SHADOW_EXPERIMENT_PACKET_NOT_LIVE` only when the gate is ready,
+  runtime is current, and missing requirements are empty; it keeps
+  `live_policy_change_allowed=false` and never authorizes
+  DataFreshnessGuard relaxation or live trading.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

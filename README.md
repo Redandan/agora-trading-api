@@ -607,6 +607,19 @@ scorecard into `deploy_required_before_profit_experiment`,
 experiment review only; it does not authorize deploy, live policy changes,
 position/OCO changes, or order-capable actions.
 
+Read-only profit shadow experiment packet preflight:
+
+```powershell
+.\scripts\prepare_profit_shadow_experiment_packet_ssh.ps1 -RequireReady
+```
+
+This wraps the profit experiment gate into a machine-readable
+`profit_shadow_experiment_packet` and emits `profit_shadow_packet_status`.
+`READY_FOR_SHADOW_EXPERIMENT_PACKET_NOT_LIVE` means the packet can be attached
+to a separate shadow-only experiment review; it keeps
+`live_policy_change_allowed=false` and `position_or_oco_mutation_allowed=false`
+and does not authorize live trading or DataFreshnessGuard relaxation.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

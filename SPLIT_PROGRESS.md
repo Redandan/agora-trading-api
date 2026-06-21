@@ -247,6 +247,21 @@
   `scripts/test_data_freshness_executability_review_smoke.ps1` guards the
   read-only MCP calls, hard-fail boundary checks, output markers, docs
   coverage, and non-authorization wording.
+- `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
+  origin-delta classifier, profit-candidate review, DataFreshness false-kill
+  review, DataFreshness executability review, strategy 485 position-risk smoke,
+  strategy 574 signal/governance smoke, and TinyLive post-trade smoke into one
+  profit-improvement routing command. It prints
+  `profit_improvement_review_items` and
+  `profit_improvement_bundle_recommendation` such as
+  `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE`, so DataFreshness alpha
+  pressure cannot be reviewed without its executability gap, and strategy 485
+  risk plus strategy 574/TinyLive context stay visible. The wrapper invokes
+  existing read-only smokes only and does not change production env, DB, order,
+  OCO, grid, Earn, fund, Telegram, scheduler, exchange, external
+  backfill/import, deploy, restart, or nginx state.
+  `scripts/test_profit_improvement_review_bundle.ps1` guards the child smoke
+  list, summary markers, docs coverage, and non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

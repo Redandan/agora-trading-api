@@ -667,6 +667,33 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For the read-only profit-improvement review bundle, run:
+
+```powershell
+.\scripts\smoke_profit_improvement_review_bundle_ssh.ps1
+```
+
+Expected:
+
+- The wrapper invokes only existing read-only SSH/local smokes: origin-delta,
+  profit-candidate review, DataFreshness false-kill review, DataFreshness
+  executability review, strategy 485 position risk, strategy 574
+  signal/governance, and TinyLive post-trade evidence.
+- Output includes `profit_candidate_review_recommendation`,
+  `data_freshness_false_kill_recommendation`,
+  `data_freshness_executability_recommendation`,
+  `strategy485_position_risk_recommendation`,
+  `strategy574_policy_change_recommendation`, `tiny_live_post_trade_status`,
+  `profit_improvement_review_items`, and
+  `profit_improvement_bundle_recommendation`.
+- A recommendation such as `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE` is
+  review routing only; it is not permission to relax DataFreshnessGuard,
+  activate strategies, close positions, modify OCO, deploy, restart, or change
+  production env.
+- The wrapper must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

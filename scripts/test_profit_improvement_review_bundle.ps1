@@ -1,0 +1,65 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Assert-Contains {
+    param(
+        [string]$Name,
+        [string]$Text,
+        [string]$Pattern
+    )
+
+    if ($Text -notmatch $Pattern) {
+        throw "$Name missing pattern: $Pattern"
+    }
+}
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$scriptPath = Join-Path $PSScriptRoot "smoke_profit_improvement_review_bundle_ssh.ps1"
+$runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+$readmePath = Join-Path $repoRoot "README.md"
+$progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
+
+$scriptText = Get-Content -Raw -LiteralPath $scriptPath
+$runbookText = Get-Content -Raw -LiteralPath $runbookPath
+$readmeText = Get-Content -Raw -LiteralPath $readmePath
+$progressText = Get-Content -Raw -LiteralPath $progressPath
+
+foreach ($scriptName in @(
+        "smoke_live_origin_delta_local.ps1",
+        "smoke_profit_candidate_review_ssh.ps1",
+        "smoke_data_freshness_false_kill_review_ssh.ps1",
+        "smoke_data_freshness_executability_review_ssh.ps1",
+        "smoke_strategy485_position_risk_ssh.ps1",
+        "smoke_strategy574_signal_governance_ssh.ps1",
+        "smoke_tiny_live_post_trade_ssh.ps1"
+    )) {
+    Assert-Contains -Name "profit improvement bundle child smoke" -Text $scriptText -Pattern ([regex]::Escape($scriptName))
+}
+
+foreach ($marker in @(
+        "scope=READ_ONLY",
+        "invokes existing read-only SSH/local smokes only",
+        "no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed",
+        "profit_candidate_review_recommendation",
+        "data_freshness_false_kill_recommendation",
+        "data_freshness_executability_recommendation",
+        "strategy485_position_risk_recommendation",
+        "strategy574_policy_change_recommendation",
+        "tiny_live_post_trade_status",
+        "profit_improvement_review_items",
+        "profit_improvement_bundle_recommendation",
+        "COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE",
+        "COLLECT_EXECUTABILITY_COUNTERFACTUAL_BEFORE_POLICY_CHANGE",
+        "OPERATOR_REVIEW_STRATEGY485_POSITION_RISK",
+        "notAuthorization",
+        "OK read-only check complete"
+    )) {
+    Assert-Contains -Name "profit improvement bundle marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
+}
+
+foreach ($path in @($runbookText, $readmeText, $progressText)) {
+    Assert-Contains -Name "profit improvement bundle docs mention smoke" -Text $path -Pattern "smoke_profit_improvement_review_bundle_ssh\.ps1"
+    Assert-Contains -Name "profit improvement bundle docs mention read-only" -Text $path -Pattern "read-only"
+}
+
+Write-Host "[profit-improvement-review-bundle-test] OK"

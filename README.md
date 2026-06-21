@@ -382,6 +382,20 @@ preview. It prints `missing_executability_evidence`,
 `ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY` means the +24h
 false-kill return is not enough to justify live policy changes.
 
+Read-only profit-improvement review bundle:
+
+```powershell
+.\scripts\smoke_profit_improvement_review_bundle_ssh.ps1
+```
+
+This wrapper runs the origin-delta classifier, profit-candidate review,
+DataFreshness false-kill review, DataFreshness executability review, strategy
+485 position-risk review, strategy 574 signal/governance review, and TinyLive
+post-trade evidence. It prints `profit_improvement_review_items` and
+`profit_improvement_bundle_recommendation`, so DataFreshness alpha pressure,
+strategy 485 open-position risk, strategy 574 near-BUY context, and TinyLive
+sample gaps are reviewed together without authorizing any live change.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

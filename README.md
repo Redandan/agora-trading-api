@@ -199,6 +199,11 @@ hard-stop or rollout live-readiness gates.
 exits non-zero after printing RCA details.
 The default 30-day window matches the consecutive-loss guard used by the
 auto-approval policy.
+If an operator separately authorizes a bounded tiny-live launch, the production
+env may set `TRADING_TINY_LIVE_AUTO_APPROVAL_IGNORE_CONSECUTIVE_LOSS_HARD_STOP=true`
+to override only that consecutive-loss blocker. It does not bypass the current
+BUY-candidate, OCO preflight, EV, runtime-evidence, daily loss budget, scope,
+duplicate, open-position, notional, or event-risk gates.
 It does not place orders, enable scheduler/live flags, send Telegram, modify
 OCO, or change production env/DB state.
 

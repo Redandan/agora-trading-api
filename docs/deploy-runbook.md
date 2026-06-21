@@ -624,6 +624,14 @@ Expected:
 - It may report `hardStopDetected=false` after the blocker is legitimately
   cleared; that is not live approval. Re-run the full live-readiness audit and
   prepare a separately authorized env-change plan before enabling anything.
+- A separately authorized tiny-live launch may set
+  `TRADING_TINY_LIVE_AUTO_APPROVAL_IGNORE_CONSECUTIVE_LOSS_HARD_STOP=true` to
+  override only the consecutive-loss blocker. This does not bypass
+  `NO_CURRENT_BUY_CANDIDATE`, OCO preflight, EV, runtime-evidence, daily loss
+  budget, scope, duplicate, position, notional, or event-risk gates; the
+  approval preview must print
+  `consecutiveTinyLiveLossHardStopOverride=true` and
+  `"ignoreConsecutiveLossHardStop":true` when the override is active.
 - With `-RequireClear`, the smoke exits 0 only when `hardStopDetected=false`,
   `missing_tiny_live_fields=[]`, and `canEnableProduction=true`; otherwise it
   prints the RCA details and exits non-zero.

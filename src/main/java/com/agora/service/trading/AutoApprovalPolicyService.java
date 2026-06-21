@@ -98,15 +98,18 @@ public class AutoApprovalPolicyService {
                 || contains(preview.denialReasons(), "DUPLICATE_BAR_SUPPRESSED")) {
             blockers.add("DUPLICATE_BAR");
         }
-        if (contains(preview.denialReasons(), "NO_CURRENT_BUY_CANDIDATE")) {
+        boolean noCurrentBuyCandidate = contains(preview.denialReasons(), "NO_CURRENT_BUY_CANDIDATE");
+        if (noCurrentBuyCandidate) {
             blockers.add("NO_CURRENT_BUY_CANDIDATE");
         } else if (preview.evStatus().startsWith("NOT_READY")) {
             blockers.add("EV_SAMPLE_MISSING");
         } else if (!preview.evStatus().startsWith("PASS")) {
             blockers.add("EV_FAIL");
         }
-        if (!preview.ocoPreflightStatus().startsWith("PASS")) {
+        if (!preview.ocoPreflightStatus().startsWith("PASS") && !noCurrentBuyCandidate) {
             blockers.add("OCO_PREFLIGHT_FAIL");
+        } else if (!preview.ocoPreflightStatus().startsWith("PASS")) {
+            warnings.add("ocoPreflightPendingUntilBuyCandidate=" + preview.ocoPreflightStatus());
         }
         if (!runtimeEvidenceAvailable(preview.runtimeEvidenceStatus())) {
             blockers.add("RUNTIME_EVIDENCE_MISSING");
@@ -129,8 +132,12 @@ public class AutoApprovalPolicyService {
         if (budget.maxLossIfWrongUsdt().compareTo(budget.missedAlphaBudgetRemaining()) > 0) {
             blockers.add("MISSED_ALPHA_BUDGET_INSUFFICIENT_FOR_MAX_LOSS");
         }
-        if (budget.consecutiveLosses() >= 2) {
+        boolean ignoreConsecutiveLossHardStop = booleanProperty(
+                "trading.tiny-live.auto-approval.ignore-consecutive-loss-hard-stop", false);
+        if (budget.consecutiveLosses() >= 2 && !ignoreConsecutiveLossHardStop) {
             blockers.add("AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES");
+        } else if (budget.consecutiveLosses() >= 2) {
+            warnings.add("consecutiveTinyLiveLossHardStopOverride=true");
         }
         if (preview.proposedNotionalUsdt() == null
                 || preview.proposedNotionalUsdt().compareTo(new java.math.BigDecimal(MAX_NOTIONAL)) > 0) {
@@ -322,6 +329,9 @@ public class AutoApprovalPolicyService {
             node.put("allowedMistakeBudgetUsed", decimal(budget.allowedMistakeBudgetUsed()));
             node.put("maxDailyTinyLiveLossUsdt", "2");
             node.put("maxConsecutiveTinyLiveLosses", 2);
+            node.put("consecutiveTinyLiveLosses", budget.consecutiveLosses());
+            node.put("ignoreConsecutiveLossHardStop", booleanProperty(
+                    "trading.tiny-live.auto-approval.ignore-consecutive-loss-hard-stop", false));
             node.put("autoTradesToday", preview.autoTradesToday());
             node.put("openTinyLivePositions", preview.currentSameStrategyTinyLiveOpenPositions());
             node.put("existingAutoTradePositionCount", preview.currentAutoTradeOpenPositions());
@@ -405,6 +415,10 @@ public class AutoApprovalPolicyService {
     private boolean runtimeEvidenceAvailable(String runtimeEvidenceStatus) {
         return runtimeEvidenceStatus != null
                 && runtimeEvidenceStatus.toUpperCase(Locale.ROOT).startsWith("AVAILABLE_CANONICAL");
+    }
+
+    private boolean booleanProperty(String key, boolean defaultValue) {
+        return Boolean.parseBoolean(env.getProperty(key, Boolean.toString(defaultValue)));
     }
 
     private String hmac(String secret, String payload) {

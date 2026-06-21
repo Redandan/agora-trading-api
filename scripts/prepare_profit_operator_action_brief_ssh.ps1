@@ -128,6 +128,7 @@ $matrixNextAction = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_ope
 
 $actionItems = [System.Collections.Generic.List[object]]::new()
 $blockedItems = [System.Collections.Generic.List[object]]::new()
+$decisionLanes = [System.Collections.Generic.List[object]]::new()
 $exitSideReady = $false
 
 if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
@@ -163,6 +164,41 @@ if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
         if (-not $ready) {
             $blockedItems.Add($briefItem)
         }
+
+        $decisionClass = "EVIDENCE_COLLECTION"
+        $separateAuthorizationRequired = @("separate operator review before any live or mutation change")
+        $allowedFromThisBrief = @("route read-only evidence")
+        $forbiddenFromThisBrief = @("enable live trading", "change production env", "deploy", "place orders", "modify OCO", "close positions")
+        if ($lane -eq "exit-side") {
+            $decisionClass = if ($ready) { "EXIT_SIDE_REVIEW_READY_NOT_LIVE" } else { "EXIT_SIDE_REVIEW_BLOCKED" }
+            $separateAuthorizationRequired = @("enable trailing scheduler or trailing live mode", "change strategy opt-in or exit policy", "close any position", "modify or cancel OCO", "deploy runtime changes")
+            $allowedFromThisBrief = if ($ready) { @("prepare separate exit-side operator review", "attach trailing and strategy 485 evidence") } else { @("collect exit-side replay and position-risk evidence") }
+            $forbiddenFromThisBrief = @("enable trailing scheduler", "enable live trading", "close positions", "modify OCO", "change production env", "deploy")
+        } elseif ($lane -eq "entry-filter") {
+            $decisionClass = if ($ready) { "ENTRY_FILTER_REVIEW_READY_NOT_LIVE" } else { "ENTRY_FILTER_POLICY_BLOCKED" }
+            $separateAuthorizationRequired = @("relax EntryDedup/DataFreshness/live policy", "enable live entry policy changes", "approve governance relaxation")
+            $allowedFromThisBrief = @("keep entry/filter policy unchanged", "route governance and missed-opportunity evidence")
+            $forbiddenFromThisBrief = @("relax EntryDedup", "relax DataFreshnessGuard", "enable TinyLive or entry execution", "change live policy")
+        } elseif ($lane -eq "data-freshness-replay") {
+            $decisionClass = if ($ready) { "DATAFRESHNESS_REPLAY_REVIEW_READY_NOT_LIVE" } else { "DATAFRESHNESS_REPLAY_BLOCKED" }
+            $separateAuthorizationRequired = @("approve DataFreshness shadow/replay policy", "enable replay collector", "relax DataFreshnessGuard", "enable live entry policy changes")
+            $allowedFromThisBrief = @("keep DataFreshnessGuard strict", "collect replayCandidateId and counterfactual snapshots", "route DataFreshness replay evidence")
+            $forbiddenFromThisBrief = @("relax DataFreshnessGuard", "create live signals", "send Telegram", "place orders", "modify OCO", "change scheduler/live policy")
+        }
+        $decisionLanes.Add([pscustomobject]@{
+            lane = $lane
+            priority = [string]$item.priority
+            decisionClass = $decisionClass
+            status = [string]$item.status
+            readyForOperatorReview = $ready
+            recommendation = $recommendation
+            evidenceMarkers = @($item.evidenceMarkers)
+            missingRequirements = @($item.missingRequirements)
+            separateAuthorizationRequired = @($separateAuthorizationRequired)
+            allowedFromThisBrief = @($allowedFromThisBrief)
+            forbiddenFromThisBrief = @($forbiddenFromThisBrief)
+            nextAction = $operatorAction
+        })
     }
 }
 
@@ -186,6 +222,7 @@ $brief = [pscustomobject]@{
     matrixStatus = $matrixStatus
     primaryRecommendation = $primaryRecommendation
     recommendedNextReview = if ($exitSideReady) { "EXIT_SIDE_OPERATOR_REVIEW" } else { "READ_ONLY_EVIDENCE_COLLECTION" }
+    decisionLanes = @($decisionLanes)
     actionItems = @($actionItems)
     blockedItems = @($blockedItems)
     doNotActions = @(
@@ -206,6 +243,7 @@ Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_review_matrix_ssh.p
 Write-Host "source_matrix=prepare_profit_operator_review_matrix_ssh.ps1 exitCode=$($matrix.ExitCode)"
 Write-Host "profit_operator_review_matrix_status=$matrixStatus"
 Write-Host "profit_operator_action_primary_recommendation=$primaryRecommendation"
+Write-Host ("profit_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))
 Write-Host ("profit_operator_action_items=" + (ConvertTo-Json -Compress -Depth 8 @($actionItems)))
 Write-Host ("profit_operator_action_blocked_items=" + (ConvertTo-Json -Compress -Depth 8 @($blockedItems)))
 Write-Host ("profit_operator_action_brief_packet=" + (ConvertTo-Json -Compress -Depth 10 $brief))

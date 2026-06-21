@@ -496,7 +496,11 @@
   `profit_operator_action_brief_status`. When exit-side evidence is ready it
   returns `READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` with
   `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, while preserving
-  blocked `entry-filter` and `data-freshness-replay` actions. The brief does
+  blocked `entry-filter` and `data-freshness-replay` actions. It also emits
+  `profit_operator_decision_lanes` / `decisionLanes` with machine-readable lane
+  classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
+  `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so ready
+  and blocked profit lanes stay visible together. The brief does
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.

@@ -735,7 +735,11 @@ This converts the review matrix into `profit_operator_action_items`,
 `profit_operator_action_brief_status`. When the exit-side lane is ready, it
 prints `READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` and the recommendation
 `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, while preserving
-blocked entry-filter and DataFreshness replay actions. It does not deploy,
+blocked entry-filter and DataFreshness replay actions. It also emits
+`profit_operator_decision_lanes` / `decisionLanes` with machine-readable lane
+classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
+`ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so the
+operator dashboard can show ready and blocked profit lanes together. It does not deploy,
 change production env, enable live trading, enable trailing, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.

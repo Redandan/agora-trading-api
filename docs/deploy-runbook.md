@@ -1065,6 +1065,10 @@ Expected:
   reviewed separately with
   `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, while entry-filter
   and DataFreshness replay blockers stay visible.
+- The brief emits `profit_operator_decision_lanes` / `decisionLanes` with
+  machine-readable lane classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
+  `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so ready
+  and blocked profit lanes can be shown together in an operator dashboard.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

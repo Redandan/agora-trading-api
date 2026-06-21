@@ -281,6 +281,56 @@ elif tp_watch > 0:
 else:
     recommendation = "NO_POSITION_RISK_ACTION"
 
+required_evidence = [
+    "fresh OCO health",
+    "active-position EV reassessment",
+    "TP stretch and aging evidence",
+    "stop-sweep policy review",
+    "recent-closed PnL context",
+    "monthly PnL context",
+    "separate operator approval before any close-position or OCO mutation",
+]
+if recommendation == "FIX_OCO_PROTECTION_FIRST":
+    next_action = "Review OCO protection evidence first; do not close positions or modify OCO from this smoke."
+elif recommendation == "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY":
+    next_action = "Draft a read-only operator review packet for aged negative-EV strategy 485 positions; separate explicit authorization is required before any close-position or OCO mutation."
+elif recommendation == "WATCH_NEGATIVE_EV_WITH_OCO_PROTECTED":
+    next_action = "Keep read-only monitoring of negative EV while OCO is protected; collect fresh EV and TP-stretch evidence before any operator packet."
+elif recommendation == "WATCH_TP_STRETCH":
+    next_action = "Continue read-only TP-stretch observation; no position or OCO action is authorized."
+elif recommendation == "NO_OPEN_STRATEGY485_POSITION":
+    next_action = "No strategy 485 open-position review packet is needed from current evidence."
+else:
+    next_action = "No strategy 485 position-risk action is recommended from current evidence."
+
+review_decision = {
+    "decision": recommendation,
+    "symbol": symbol,
+    "strategyId": strategy_id,
+    "canDraftOperatorReviewPacket": recommendation == "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY",
+    "positionOrOcoMutationAllowed": False,
+    "ocoHealthOk": oco_ok,
+    "openPositionCount": len(position_ids),
+    "negativeEvPositionCount": len(negative_ev),
+    "closeOrModifySuggestionCount": len(close_or_modify),
+    "positionTimeoutEventCount": aged_events,
+    "tpStretchWatchCount": tp_watch,
+    "tpStretchStretchedCount": tp_stretched,
+    "positions": [
+        {
+            "positionId": row["positionId"],
+            "decision": row["decision"],
+            "suggestion": row["suggestion"],
+            "evUsdt": row["evUsdt"],
+            "paperPct": row["paperPct"],
+        }
+        for row in ev_rows
+    ],
+    "requiredEvidence": required_evidence,
+    "nextAction": next_action,
+    "notAuthorization": "read-only strategy 485 routing decision only; does not authorize close-position, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutation, DB changes, deploy, restart, production env mutation, external backfill/import, or policy relaxation",
+}
+
 print("")
 print("Conclusion:")
 print(f"  openStrategy485Positions={len(position_ids)}")
@@ -288,6 +338,7 @@ print(f"  negativeEvPositions={len(negative_ev)}")
 print(f"  closeOrModifySuggestions={len(close_or_modify)}")
 print(f"  positionTimeoutEvents={aged_events}")
 print(f"  strategy485_position_risk_recommendation={recommendation}")
+print("  strategy485_position_review_decision=" + json.dumps(review_decision, ensure_ascii=False, separators=(",", ":")))
 print("  notAuthorization=read-only evidence only; does not authorize closing positions, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, or policy relaxation")
 print("")
 print("[strategy485-position-risk] OK read-only check complete")

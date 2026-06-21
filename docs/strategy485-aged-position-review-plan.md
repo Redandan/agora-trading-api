@@ -12,6 +12,7 @@ The focused production smoke currently reports the strategy 485 risk route as:
 
 ```text
 strategy485_position_risk_recommendation=REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY
+strategy485_position_review_decision={...}
 ```
 
 The supporting evidence class is:
@@ -49,6 +50,7 @@ The packet must include these markers:
 - `tpStretchStretchedCount`
 - `monthlyPnl`
 - `strategy485_position_risk_recommendation`
+- `strategy485_position_review_decision`
 - `notAuthorization`
 
 For each open position, include:
@@ -63,6 +65,13 @@ For each open position, include:
 - recent execution events such as `POSITION_TIMEOUT`
 - recent closed strategy 485 trade context
 - 3-month PnL context
+
+The `strategy485_position_review_decision` JSON should be the packet's primary
+routing object. It must preserve `canDraftOperatorReviewPacket`,
+`positionOrOcoMutationAllowed=false`, OCO health, open/negative-EV position
+counts, close/modify suggestion counts, timeout and TP-stretch counts,
+per-position EV summaries, required evidence, next action, and
+non-authorization text.
 
 ## Decision Routing
 

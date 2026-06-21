@@ -32,6 +32,7 @@ foreach ($marker in @(
         "read-only review packet contract",
         "not authorization",
         "strategy485_position_risk_recommendation=REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY",
+        "strategy485_position_review_decision={...}",
         "open strategy 485 BTCUSDT positions exist",
         "OCO health is currently OK",
         "active-position EV can be negative",
@@ -50,6 +51,11 @@ foreach ($marker in @(
         "tpStretchWatchCount",
         "tpStretchStretchedCount",
         "monthlyPnl",
+        "strategy485_position_review_decision",
+        "canDraftOperatorReviewPacket",
+        "positionOrOcoMutationAllowed=false",
+        "required evidence",
+        "next action",
         "notAuthorization",
         "FIX_OCO_PROTECTION_FIRST",
         "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY",
@@ -66,6 +72,7 @@ foreach ($marker in @(
 
 foreach ($marker in @(
         "strategy485_position_risk_recommendation",
+        "strategy485_position_review_decision",
         "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY",
         "FIX_OCO_PROTECTION_FIRST",
         "WATCH_NEGATIVE_EV_WITH_OCO_PROTECTED",

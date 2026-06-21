@@ -190,11 +190,15 @@
   position-defense status, active-position EV, TP stretch/aging, stop-sweep
   policy, recent closed trades, execution events, and 3-month PnL, then prints
   `strategy485_position_risk_recommendation` such as
-  `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`. This smoke is review routing
-  only; it does not close positions, modify OCO, change production env, DB,
-  order, grid, Earn, fund, Telegram, scheduler, exchange, or external
-  backfill/import state. `scripts/test_strategy485_position_risk_smoke.ps1`
-  guards the read-only tool calls, no-order/no-OCO markers, risk recommendation
+  `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY` and
+  `strategy485_position_review_decision`, a machine-readable routing object
+  with OCO health, position EV counts, close/modify suggestions, timeout/TP
+  stretch counts, per-position EV summaries, required evidence, next action,
+  and non-authorization text. This smoke is review routing only; it does not
+  close positions, modify OCO, change production env, DB, order, grid, Earn,
+  fund, Telegram, scheduler, exchange, or external backfill/import state.
+  `scripts/test_strategy485_position_risk_smoke.ps1` guards the read-only tool
+  calls, no-order/no-OCO markers, risk recommendation markers, decision
   markers, and non-authorization wording.
 - `docs/strategy485-aged-position-review-plan.md` defines the operator packet
   contract for `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`: fresh OCO,

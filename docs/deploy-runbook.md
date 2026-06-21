@@ -592,6 +592,11 @@ Expected:
 - Output must include `strategy485_position_risk_recommendation`. A value such
   as `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY` means operator review is
   needed, not that the script is allowed to close positions or modify OCO.
+- Output must include `strategy485_position_review_decision`, a
+  machine-readable routing object with OCO health, open/negative-EV position
+  counts, close/modify suggestion counts, timeout/TP-stretch counts,
+  per-position EV summaries, required evidence, next action, and
+  non-authorization text.
 - Use `docs/strategy485-aged-position-review-plan.md` before drafting any
   operator packet for aged negative-EV strategy 485 positions. The packet must
   include fresh OCO, active-position EV, TP stretch, stop-sweep, timeout,

@@ -333,8 +333,12 @@ This read-only smoke reviews SCORE_BUY strategy 485 open positions, OCO health,
 position-defense status, active-position EV, TP stretch, stop-sweep policy,
 recent closed trades, execution events, and 3-month PnL through server-local
 `/api/mcp`. It prints `strategy485_position_risk_recommendation` such as
-`REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`; this is review routing only and
-does not authorize closing positions or modifying OCO.
+`REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY` plus
+`strategy485_position_review_decision`, a machine-readable routing object with
+OCO health, position EV counts, close/modify suggestions, timeout and TP
+stretch counts, per-position EV summaries, required evidence, next action, and
+non-authorization text. This is review routing only and does not authorize
+closing positions or modifying OCO.
 Use `docs/strategy485-aged-position-review-plan.md` before drafting any
 operator packet for aged negative-EV strategy 485 positions. The plan requires
 fresh OCO, active-position EV, TP stretch, stop-sweep, timeout, recent-closed,

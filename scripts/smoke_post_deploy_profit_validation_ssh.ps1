@@ -58,30 +58,72 @@ function Convert-JsonArrayOrEmpty {
     }
 }
 
-function Convert-ToCanonicalMissingRequirement {
-    param([string]$Value)
-    if ([string]::IsNullOrWhiteSpace($Value)) {
-        return ""
+function Expand-MissingRequirement {
+    param([object]$Value)
+    if ($null -eq $Value) {
+        return @()
+    }
+    if ($Value -is [System.Array]) {
+        $expanded = [System.Collections.Generic.List[string]]::new()
+        foreach ($item in @($Value)) {
+            foreach ($part in @(Expand-MissingRequirement -Value $item)) {
+                if ($expanded -notcontains $part) {
+                    $expanded.Add($part)
+                }
+            }
+        }
+        return @($expanded)
     }
 
-    $trimmed = $Value.Trim()
-    if ($trimmed -eq "fresh replayCandidateId rows") {
-        return "fresh DataFreshness replayCandidateId rows"
+    $trimmed = ([string]$Value).Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed)) {
+        return @()
     }
-    return $trimmed
+
+    if ($trimmed -eq "fresh replayCandidateId rows") {
+        return @("fresh DataFreshness replayCandidateId rows")
+    }
+
+    $knownDataFreshnessRequirements = @(
+        "DataFreshness counterfactual replay candidates reviewable",
+        "complete DataFreshness replayable candidate rows",
+        "DataFreshness counterfactual field: liveSignalId",
+        "DataFreshness counterfactual field: replayCandidateId",
+        "DataFreshness counterfactual field: explicit entry/TP/SL candidate plan",
+        "DataFreshness counterfactual field: EV snapshot",
+        "DataFreshness counterfactual field: OCO plan",
+        "DataFreshness counterfactual field: complete replayable candidate rows"
+    )
+    if ($knownDataFreshnessRequirements -notcontains $trimmed) {
+        $matched = @($knownDataFreshnessRequirements | Where-Object { $trimmed.Contains($_) })
+        if ($matched.Count -gt 1) {
+            return @($matched)
+        }
+    }
+    return @($trimmed)
+}
+
+function Convert-ToCanonicalMissingRequirement {
+    param([string]$Value)
+    $expanded = @(Expand-MissingRequirement -Value $Value)
+    if ($expanded.Count -eq 0) {
+        return ""
+    }
+    return [string]$expanded[0]
 }
 
 function Add-MissingRequirement {
     param(
         [System.Collections.Generic.List[string]]$List,
-        [string]$Value
+        [object]$Value
     )
-    $canonical = Convert-ToCanonicalMissingRequirement -Value $Value
-    if ([string]::IsNullOrWhiteSpace($canonical)) {
-        return
-    }
-    if ($List -notcontains $canonical) {
-        $List.Add($canonical)
+    foreach ($canonical in @(Expand-MissingRequirement -Value $Value)) {
+        if ([string]::IsNullOrWhiteSpace($canonical)) {
+            continue
+        }
+        if ($List -notcontains $canonical) {
+            $List.Add($canonical)
+        }
     }
 }
 
@@ -431,6 +473,7 @@ $profitExperimentDeployRequired = Get-LastPrefixedValue -Text $profitExperimentT
 $monthlyPnlTotalUsdt = Get-LastPrefixedValue -Text $profitLossText -Prefix "monthlyPnlTotalUsdt="
 $profitRecommendation = Get-LastPrefixedValue -Text $profitLossText -Prefix "profit_candidate_review_recommendation="
 $topProfitCandidate = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "top_profit_improvement_candidate="
+$strategy485PositionReviewDecision = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "strategy485_position_review_decision="
 $autoRecommendation = Get-LastPrefixedValue -Text $autoText -Prefix "auto_trading_review_recommendation="
 $operatorReviewAllowed = Get-LastPrefixedValue -Text $autoText -Prefix "operator_review_packet_allowed="
 $lossSourceReviewAllowed = Get-LastPrefixedValue -Text $profitLossText -Prefix "loss_source_review_allowed="
@@ -591,6 +634,7 @@ Write-Host "profit_experiment_gate_status=$profitExperimentStatus"
 Write-Host "auto_trading_review_recommendation=$autoRecommendation"
 Write-Host "profit_candidate_review_recommendation=$profitRecommendation"
 Write-Host "top_profit_improvement_candidate=$topProfitCandidate"
+Write-Host "strategy485_position_review_decision=$strategy485PositionReviewDecision"
 Write-Host "deploy_required_before_post_deploy_profit_validation=$($deployRequired.ToString().ToLowerInvariant())"
 Write-Host "operator_review_packet_allowed=$operatorReviewAllowed"
 Write-Host "loss_source_review_allowed=$lossSourceReviewAllowed"

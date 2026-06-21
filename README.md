@@ -431,6 +431,7 @@ and profit experiment gate after a separately authorized deploy. It emits
 `post_deploy_profit_validation_status`,
 `post_deploy_profit_validation_missing_requirements`,
 `data_freshness_counterfactual_gate_missing_requirements`,
+`strategy485_position_review_decision`,
 `post_deploy_profit_validation_review_plan`,
 `post_deploy_profit_validation_blocker_summary`,
 `post_deploy_profit_validation_review_decision`,

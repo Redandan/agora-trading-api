@@ -744,6 +744,10 @@ Expected:
 - `data_freshness_counterfactual_gate_missing_requirements` carries the exact
   replayable candidate row and counterfactual field blockers inherited from the
   profit experiment gate.
+- `strategy485_position_review_decision` carries the read-only aged
+  negative-EV position routing decision inherited from the profit experiment
+  gate; it is evidence for operator review only and does not authorize
+  position or OCO mutation.
 - `post_deploy_profit_validation_review_plan` gives one machine-readable entry
   per child gate with `riskCategory`, `requiredEvidence`, `nextAction`, and
   `notAuthorization` so the next profit-review step is explicit.

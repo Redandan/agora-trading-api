@@ -1135,8 +1135,16 @@ Expected:
   `hard_gate_preview_only_rows`, `preview_only_input_rows`,
   `positive_forward_24h_rows`, `avg_forward_24h_pct`,
   `missing_counterfactual_fields`, `preview_only_missing_counterfactual_fields`,
+  `replay_input_stage`, `collector_status_counts`,
+  `hard_gate_preview_status_counts`, `replay_input_next_action`,
   `preview_only_note`, and
   `data_freshness_counterfactual_recommendation`.
+- `replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE` means the sample
+  predates replay-id/collector markers; wait for new terminal DataFreshness
+  rows before shadow review. `COLLECTOR_DISABLED_TRACE_ONLY` means collector
+  markers are present but evidence collection is disabled. `PREVIEW_ONLY_NOT_REPLAYABLE`
+  means placeholder fields exist but evaluated EV/OCO/hard-gate snapshots are
+  still missing.
 - `preview_only_*` rows prove field presence and terminal-block traceability
   only. They do not count as evaluated EV/OCO/risk pass evidence and do not
   count toward `complete_replayable_candidate_rows`.
@@ -1206,6 +1214,8 @@ Expected:
   `data_freshness_shadow_candidate_packet_status`,
   `data_freshness_shadow_candidate_missing_requirements`,
   `shadow_candidate_review_allowed`,
+  `replay_input_stage`, `collector_status_counts`,
+  `hard_gate_preview_status_counts`, `replay_input_next_action`,
   `data_freshness_policy_relaxation_allowed=false`,
   `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
 - `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the candidate remains

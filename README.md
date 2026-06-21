@@ -425,6 +425,10 @@ the DataFreshness counterfactual replay-input smoke into
 `data_freshness_shadow_candidate_packet_status`,
 `shadow_candidate_review_allowed`, `data_freshness_policy_relaxation_allowed=false`,
 `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
+It also carries `replay_input_stage`, `collector_status_counts`,
+`hard_gate_preview_status_counts`, and `replay_input_next_action` from the
+counterfactual smoke so pre-collector historical samples are not mistaken for
+enabled replay evidence.
 `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the DataFreshness candidate
 is still missing complete replayable rows or counterfactual fields.
 `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` is shadow-candidate review
@@ -769,11 +773,15 @@ for a replay that removes only DataFreshnessGuard while keeping EV, OCO,
 duplicate, daily-cap, exposure, event-risk, and other hard gates intact. It
 prints `data_freshness_counterfactual_recommendation`,
 `complete_replayable_candidate_rows`, `missing_counterfactual_fields`, and
-forward-return proxy markers. It also prints `preview_only_input_rows` and
-`preview_only_note`; preview-only rows prove placeholder field presence and
-terminal-block traceability only, not evaluated EV/OCO/risk pass evidence. They
-do not count as `complete_replayable_candidate_rows`. It is evidence only and
-does not authorize DataFreshnessGuard relaxation or any live mutation.
+forward-return proxy markers. It also prints `replay_input_stage`,
+`collector_status_counts`, `hard_gate_preview_status_counts`,
+`replay_input_next_action`, `preview_only_input_rows`, and `preview_only_note`;
+these distinguish pre-collector historical samples, disabled trace-only
+collector rows, preview-only rows, and real replayable candidates. Preview-only
+rows prove placeholder field presence and terminal-block traceability only, not
+evaluated EV/OCO/risk pass evidence. They do not count as
+`complete_replayable_candidate_rows`. It is evidence only and does not
+authorize DataFreshnessGuard relaxation or any live mutation.
 Use `docs/data-freshness-shadow-replay-input-plan.md` before proposing any
 collector or shadow/replay change for this path.
 Use `docs/data-freshness-shadow-replay-collector-design.md` before implementing

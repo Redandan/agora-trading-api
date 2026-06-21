@@ -346,6 +346,8 @@ for r in matured:
 
 strategy_counts = Counter(str(r.get("strategy_id", "N/A")) for r in rows)
 interval_counts = Counter(str(r.get("interval_code", "N/A")) for r in rows)
+collector_status_counts = Counter(str(r.get("replay_collector_status", "N/A") or "N/A") for r in rows)
+hard_gate_preview_status_counts = Counter(str(r.get("hard_gate_preview_status", "N/A") or "N/A") for r in rows)
 runtime_rows = sum(flag(r, "has_runtime_evidence") for r in rows)
 live_signal_rows = sum(flag(r, "has_live_signal") for r in rows)
 replay_candidate_id_rows = sum(flag(r, "has_replay_candidate_id") for r in rows)
@@ -429,6 +431,31 @@ elif replayable_candidate_rows > 0 and positive_forward_rows > 0:
 else:
     recommendation = "COLLECT_MORE_COUNTERFACTUAL_SAMPLE"
 
+if total == 0:
+    replay_input_stage = "NO_DATAFRESHNESS_SAMPLE"
+elif collector_status_counts.get("N/A", 0) == total and replay_candidate_id_rows == 0:
+    replay_input_stage = "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+elif collector_status_counts.get("DISABLED", 0) > 0 and preview_input_rows == 0 and replayable_candidate_rows == 0:
+    replay_input_stage = "COLLECTOR_DISABLED_TRACE_ONLY"
+elif preview_input_rows > 0 and replayable_candidate_rows == 0:
+    replay_input_stage = "PREVIEW_ONLY_NOT_REPLAYABLE"
+elif replayable_candidate_rows > 0:
+    replay_input_stage = "REPLAYABLE_CANDIDATES_PRESENT"
+else:
+    replay_input_stage = "SNAPSHOT_FIELDS_MISSING"
+
+replay_input_next_actions = {
+    "NO_DATAFRESHNESS_SAMPLE": "wait_for_or_collect_new_datafreshness_terminal_sample",
+    "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE": "wait_for_new_replay_id_rows_before_shadow_review",
+    "COLLECTOR_DISABLED_TRACE_ONLY": "collector_is_disabled_trace_only_review_evidence_only_rollout_before_expecting_snapshots",
+    "PREVIEW_ONLY_NOT_REPLAYABLE": "collect_evaluated_ev_oco_and_hard_gate_snapshots_before_policy_review",
+    "REPLAYABLE_CANDIDATES_PRESENT": "review_replayable_candidates_without_relaxing_policy",
+    "SNAPSHOT_FIELDS_MISSING": "inspect_missing_counterfactual_fields_and_collector_status",
+}
+replay_input_next_action = replay_input_next_actions.get(
+    replay_input_stage,
+    "inspect_missing_counterfactual_fields_and_collector_status")
+
 def top(counter):
     return "none" if not counter else ",".join(f"{k}:{v}" for k, v in counter.most_common(8))
 
@@ -468,6 +495,9 @@ print("")
 print("Breakdown:")
 print(f"  strategy_counts={top(strategy_counts)}")
 print(f"  interval_counts={top(interval_counts)}")
+print(f"  replay_input_stage={replay_input_stage}")
+print(f"  collector_status_counts={top(collector_status_counts)}")
+print(f"  hard_gate_preview_status_counts={top(hard_gate_preview_status_counts)}")
 print("  missing_counterfactual_fields=" + json.dumps(missing, separators=(",", ":")))
 print("  preview_only_missing_counterfactual_fields=" + json.dumps(preview_missing, separators=(",", ":")))
 print("")
@@ -490,6 +520,7 @@ for r in rows[:5]:
 print("")
 print("Conclusion:")
 print(f"  data_freshness_counterfactual_recommendation={recommendation}")
+print(f"  replay_input_next_action={replay_input_next_action}")
 print("  preview_only_note=preview-only rows prove field presence and terminal-block traceability only; they are not evaluated EV/OCO/risk pass evidence and do not count as complete replayable candidates")
 print("  counterfactual_required_evidence=[\"canonical candidate snapshot with liveSignalId or equivalent replay id\",\"replayCandidateId for DataFreshness L0 rows\",\"entryPrice,tpPrice,slPrice,expectedR and EV pass/fail\",\"OCO-capable preflight and hard-gate states for duplicate/daily-cap/exposure/event-risk\",\"shadow intent or replay result that removes only DataFreshness while preserving all other hard gates\"]")
 print("  notAuthorization=read-only evidence only; does not authorize DataFreshnessGuard relaxation, live trading, strategy activation, closing positions, OCO modification, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, deploy, restart, or production env changes")

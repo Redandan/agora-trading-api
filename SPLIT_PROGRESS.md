@@ -531,11 +531,16 @@
   windows. It prints replay-input coverage markers including
   `complete_replayable_candidate_rows`, `missing_counterfactual_fields`,
   `preview_only_input_rows`, `preview_only_missing_counterfactual_fields`,
+  `replay_input_stage`, `collector_status_counts`,
+  `hard_gate_preview_status_counts`, `replay_input_next_action`,
   `preview_only_note`, `positive_forward_24h_rows`, `avg_forward_24h_pct`, and
   `data_freshness_counterfactual_recommendation`. A result such as
   `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` means the
   historical alpha proxy still cannot justify DataFreshness policy relaxation
   because liveSignal/candidate plan/EV/OCO/hard-gate snapshots are missing.
+  `PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`, `COLLECTOR_DISABLED_TRACE_ONLY`,
+  and `PREVIEW_ONLY_NOT_REPLAYABLE` keep the replay-input stage explicit before
+  any shadow review is drafted.
   Preview-only rows prove placeholder field presence and terminal-block
   traceability only; they do not count as evaluated EV/OCO/risk pass evidence
   or `complete_replayable_candidate_rows`.
@@ -552,7 +557,10 @@
   `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` when complete replayable rows
   or counterfactual fields are still missing, or
   `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` only for a separate
-  shadow-candidate review. It emits `shadow_candidate_review_allowed`,
+  shadow-candidate review. It now carries `replay_input_stage`,
+  `collector_status_counts`, `hard_gate_preview_status_counts`, and
+  `replay_input_next_action` from the counterfactual smoke, then emits
+  `shadow_candidate_review_allowed`,
   `data_freshness_policy_relaxation_allowed=false`,
   `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`; it
   does not deploy, restart, change production env, relax DataFreshnessGuard,

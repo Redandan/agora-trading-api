@@ -184,6 +184,10 @@ $positiveForwardRows = Get-RegexValue -Text $counterfactualText -Pattern "positi
 $avgForwardPct = Get-RegexValue -Text $counterfactualText -Pattern "avg_forward_24h_pct=([^\r\n]+)" -Default "N/A"
 $avgMfePct = Get-RegexValue -Text $counterfactualText -Pattern "avg_mfe_24h_pct=([^\r\n]+)" -Default "N/A"
 $avgMaePct = Get-RegexValue -Text $counterfactualText -Pattern "avg_mae_24h_pct=([^\r\n]+)" -Default "N/A"
+$replayInputStage = Get-RegexValue -Text $counterfactualText -Pattern "replay_input_stage=([^\r\n]+)" -Default "N/A"
+$collectorStatusCounts = Get-RegexValue -Text $counterfactualText -Pattern "collector_status_counts=([^\r\n]+)" -Default "N/A"
+$hardGatePreviewStatusCounts = Get-RegexValue -Text $counterfactualText -Pattern "hard_gate_preview_status_counts=([^\r\n]+)" -Default "N/A"
+$replayInputNextAction = Get-RegexValue -Text $counterfactualText -Pattern "replay_input_next_action=([^\r\n]+)" -Default "N/A"
 $counterfactualRecommendation = Get-RegexValue -Text $counterfactualText -Pattern "data_freshness_counterfactual_recommendation=([^\r\n]+)" -Default "N/A"
 $missingCounterfactualFields = Convert-JsonArrayOrEmpty -Value (Get-RegexValue -Text $counterfactualText -Pattern "missing_counterfactual_fields=(\[[^\r\n]*\])" -Default "[]")
 $previewOnlyMissingFields = Convert-JsonArrayOrEmpty -Value (Get-RegexValue -Text $counterfactualText -Pattern "preview_only_missing_counterfactual_fields=(\[[^\r\n]*\])" -Default "[]")
@@ -265,6 +269,10 @@ $packet = [pscustomobject]@{
     avgForward24hPct = $avgForwardPct
     avgMfe24hPct = $avgMfePct
     avgMae24hPct = $avgMaePct
+    replayInputStage = $replayInputStage
+    collectorStatusCounts = $collectorStatusCounts
+    hardGatePreviewStatusCounts = $hardGatePreviewStatusCounts
+    replayInputNextAction = $replayInputNextAction
     counterfactualRecommendation = $counterfactualRecommendation
     missingCounterfactualFields = @($missingCounterfactualFields)
     previewOnlyMissingCounterfactualFields = @($previewOnlyMissingFields)
@@ -305,6 +313,10 @@ Write-Host "preview_only_input_rows=$previewOnlyRows"
 Write-Host "forward_24h_window_rows=$forwardRows"
 Write-Host "positive_forward_24h_rows=$positiveForwardRows"
 Write-Host "avg_forward_24h_pct=$avgForwardPct"
+Write-Host "replay_input_stage=$replayInputStage"
+Write-Host "collector_status_counts=$collectorStatusCounts"
+Write-Host "hard_gate_preview_status_counts=$hardGatePreviewStatusCounts"
+Write-Host "replay_input_next_action=$replayInputNextAction"
 Write-Host ("missing_counterfactual_fields=" + (ConvertTo-Json -Compress @($missingCounterfactualFields)))
 Write-Host ("preview_only_missing_counterfactual_fields=" + (ConvertTo-Json -Compress @($previewOnlyMissingFields)))
 Write-Host "shadow_candidate_review_allowed=$($shadowCandidateAllowed.ToString().ToLowerInvariant())"

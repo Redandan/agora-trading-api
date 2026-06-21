@@ -420,6 +420,7 @@ and profit experiment gate after a separately authorized deploy. It emits
 `deploy_required_before_post_deploy_profit_validation`,
 `post_deploy_profit_validation_status`,
 `post_deploy_profit_validation_missing_requirements`,
+`post_deploy_profit_validation_review_plan`,
 `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
 and `tiny_live_order_allowed=false`. It is a read-only readiness matrix for
 profit review packets and does not deploy, restart, change production env, relax

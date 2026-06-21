@@ -263,6 +263,7 @@
   `deploy_required_before_post_deploy_profit_validation`,
   `post_deploy_profit_validation_status`,
   `post_deploy_profit_validation_missing_requirements`,
+  `post_deploy_profit_validation_review_plan`,
   `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` so profit review readiness can be checked
   from one read-only command. `scripts/test_post_deploy_profit_validation.ps1`

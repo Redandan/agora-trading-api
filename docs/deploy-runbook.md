@@ -723,6 +723,9 @@ Expected:
   gate, profit loss review gate, and profit experiment gate into one matrix.
 - `post_deploy_profit_validation_missing_requirements` lists replay, OCO, EV,
   DataFreshness, or runtime evidence still missing.
+- `post_deploy_profit_validation_review_plan` gives one machine-readable entry
+  per child gate with `riskCategory`, `requiredEvidence`, `nextAction`, and
+  `notAuthorization` so the next profit-review step is explicit.
 - `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` remain hard non-authorization markers.
 - The bundle is read-only. It does not deploy, restart, change production env,

@@ -81,6 +81,33 @@ function Test-OriginDeltaRequiresDeploy {
     return ($Value -eq "RUNTIME_DRIFT" -or $Value -eq "MISMATCH")
 }
 
+function New-ProfitValidationReviewPlanEntry {
+    param(
+        [string]$Gate,
+        [string]$State,
+        [string]$Status,
+        [string]$RiskCategory,
+        [string]$Recommendation,
+        [string]$AllowedFlagName,
+        [string]$AllowedFlagValue,
+        [object[]]$RequiredEvidence,
+        [string]$NextAction
+    )
+
+    [pscustomobject]@{
+        gate = $Gate
+        state = $State
+        status = $Status
+        riskCategory = $RiskCategory
+        recommendation = $Recommendation
+        allowedFlag = $AllowedFlagName
+        allowed = ($AllowedFlagValue -eq "true")
+        requiredEvidence = @($RequiredEvidence)
+        nextAction = $NextAction
+        notAuthorization = "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -184,6 +211,9 @@ $autoRecommendation = Get-LastPrefixedValue -Text $autoText -Prefix "auto_tradin
 $operatorReviewAllowed = Get-LastPrefixedValue -Text $autoText -Prefix "operator_review_packet_allowed="
 $lossSourceReviewAllowed = Get-LastPrefixedValue -Text $profitLossText -Prefix "loss_source_review_allowed="
 $shadowReviewAllowed = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "shadow_experiment_review_allowed="
+$autoNextAction = Get-LastPrefixedValue -Text $autoText -Prefix "auto_trading_review_next_action="
+$profitLossNextAction = Get-LastPrefixedValue -Text $profitLossText -Prefix "profit_loss_review_next_action="
+$profitExperimentNextAction = Get-LastPrefixedValue -Text $profitExperimentText -Prefix "profit_experiment_next_action="
 
 $autoMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $autoText -Prefix "auto_trading_review_missing_requirements=")
 $profitLossMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $profitLossText -Prefix "profit_loss_review_missing_requirements=")
@@ -248,6 +278,39 @@ if ($deployRequired) {
     $nextAction = "Collect the listed child-gate evidence before any review packet."
 }
 
+$reviewPlan = @(
+    New-ProfitValidationReviewPlanEntry `
+        -Gate "auto-trading-review" `
+        -State $(if ($operatorReviewAllowed -eq "true") { "READY" } elseif ($autoStatus -match "^BLOCKED|^NO_EVIDENCE") { "BLOCKED" } else { "OBSERVE" }) `
+        -Status $autoStatus `
+        -RiskCategory "position-risk-and-live-execution-readiness" `
+        -Recommendation $autoRecommendation `
+        -AllowedFlagName "operator_review_packet_allowed" `
+        -AllowedFlagValue $operatorReviewAllowed `
+        -RequiredEvidence @($autoMissing) `
+        -NextAction $autoNextAction
+    New-ProfitValidationReviewPlanEntry `
+        -Gate "profit-loss-review" `
+        -State $(if ($lossSourceReviewAllowed -eq "true") { "READY" } elseif ($profitLossStatus -match "^BLOCKED|^NO_EVIDENCE") { "BLOCKED" } else { "OBSERVE" }) `
+        -Status $profitLossStatus `
+        -RiskCategory "loss-source-and-datafreshness-counterfactual" `
+        -Recommendation $profitRecommendation `
+        -AllowedFlagName "loss_source_review_allowed" `
+        -AllowedFlagValue $lossSourceReviewAllowed `
+        -RequiredEvidence @($profitLossMissing) `
+        -NextAction $profitLossNextAction
+    New-ProfitValidationReviewPlanEntry `
+        -Gate "profit-experiment-review" `
+        -State $(if ($shadowReviewAllowed -eq "true") { "READY" } elseif ($profitExperimentStatus -match "^BLOCKED|^NO_EVIDENCE") { "BLOCKED" } else { "OBSERVE" }) `
+        -Status $profitExperimentStatus `
+        -RiskCategory "shadow-experiment-and-policy-counterfactual" `
+        -Recommendation $topProfitCandidate `
+        -AllowedFlagName "shadow_experiment_review_allowed" `
+        -AllowedFlagValue $shadowReviewAllowed `
+        -RequiredEvidence @($profitExperimentMissing) `
+        -NextAction $profitExperimentNextAction
+)
+
 Write-Host "[post-deploy-profit-validation] read-only validation bundle"
 Write-Host "scope=READ_ONLY; runs auto-trading, profit-loss, and profit-experiment gates only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_gate=prepare_auto_trading_review_gate_ssh.ps1"
@@ -269,6 +332,7 @@ Write-Host "live_policy_change_allowed=false"
 Write-Host "position_or_oco_mutation_allowed=false"
 Write-Host "tiny_live_order_allowed=false"
 Write-Host ("post_deploy_profit_validation_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
+Write-Host ("post_deploy_profit_validation_review_plan=" + (ConvertTo-Json -Compress -Depth 5 @($reviewPlan)))
 Write-Host "post_deploy_profit_validation_status=$status"
 Write-Host "post_deploy_profit_validation_next_action=$nextAction"
 Write-Host "notAuthorization=read-only validation only; does not authorize DataFreshnessGuard relaxation, close-position, OCO modification, pre-buying, TinyLive order execution, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, deploy, restart, production env changes, external backfill/import, or policy relaxation"

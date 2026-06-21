@@ -745,6 +745,9 @@ matrix runs emit `child_start`, periodic `child_heartbeat`, and
 without changing production state. Use `-SaveMatrixOutputPath` on a fresh run
 to retain the raw matrix output, then use `-MatrixOutputPath` to rebuild the
 action brief from that read-only evidence without rerunning the long SSH matrix.
+Fresh runs default the saved matrix log to `target/profit-review/` and update
+`target/profit-review/latest-profit-operator-matrix.path` so the next review can
+find the latest evidence file.
 Reused matrix output prints `source_matrix_mode=REUSED_OUTPUT_FILE`; fresh runs
 print `source_matrix_mode=FRESH_CHILD_RUN`. Reused matrix output is guarded by
 `-MatrixMaxAgeMinutes` (default `180`) and fails closed with

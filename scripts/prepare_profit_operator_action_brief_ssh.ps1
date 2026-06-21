@@ -10,6 +10,7 @@ param(
     [int]$ChildTimeoutSeconds = 900,
     [string]$MatrixOutputPath = "",
     [string]$SaveMatrixOutputPath = "",
+    [string]$ReviewOutputDir = "target/profit-review",
     [int]$MatrixMaxAgeMinutes = 180,
     [switch]$RequireReady
 )
@@ -71,6 +72,31 @@ function Get-MatrixFreshness {
         Status = $status
         LastWriteTime = $item.LastWriteTime.ToString("o")
     }
+}
+
+function Get-DefaultMatrixOutputPath {
+    param([string]$OutputDir, [string]$SymbolValue, [int]$StrategyValue)
+
+    $safeSymbol = ($SymbolValue -replace "[^A-Za-z0-9._-]", "_")
+    $timestamp = (Get-Date).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")
+    $fileName = "profit-operator-matrix-$timestamp-$safeSymbol-strategy$StrategyValue.log"
+    return (Join-Path $OutputDir $fileName)
+}
+
+function Save-MatrixOutput {
+    param([string]$Path, [string]$Text, [string]$OutputDir)
+
+    $parent = Split-Path -Parent $Path
+    if ([string]::IsNullOrWhiteSpace($parent)) {
+        $parent = "."
+    }
+    New-Item -ItemType Directory -Force -Path $parent | Out-Null
+    Set-Content -LiteralPath $Path -Value $Text -Encoding UTF8
+
+    New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+    $pointerPath = Join-Path $OutputDir "latest-profit-operator-matrix.path"
+    Set-Content -LiteralPath $pointerPath -Value $Path -Encoding UTF8
+    return $pointerPath
 }
 
 function Invoke-ReadOnlyScript {
@@ -177,6 +203,9 @@ if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) {
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) {
     throw "MatrixMaxAgeMinutes must be between 1 and 1440."
 }
+if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) {
+    throw "ReviewOutputDir is required."
+}
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) {
     throw "StrategyId must be between 1 and 1000000."
 }
@@ -237,9 +266,13 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
     )
 
     if (-not [string]::IsNullOrWhiteSpace($SaveMatrixOutputPath)) {
-        Set-Content -LiteralPath $SaveMatrixOutputPath -Value $matrix.Text -Encoding UTF8
-        Write-Host "[profit-operator-action-brief] matrix_saved path=$SaveMatrixOutputPath"
+        $matrixSavePath = $SaveMatrixOutputPath
+    } else {
+        $matrixSavePath = Get-DefaultMatrixOutputPath -OutputDir $ReviewOutputDir -SymbolValue $Symbol -StrategyValue $StrategyId
     }
+    $matrixLatestPointerPath = Save-MatrixOutput -Path $matrixSavePath -Text $matrix.Text -OutputDir $ReviewOutputDir
+    Write-Host "[profit-operator-action-brief] matrix_saved path=$matrixSavePath"
+    Write-Host "[profit-operator-action-brief] matrix_latest_pointer path=$matrixLatestPointerPath"
 }
 
 $matrixStatus = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_status="

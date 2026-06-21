@@ -63,10 +63,16 @@ foreach ($marker in @(
         "child_error_summary",
         "MatrixOutputPath",
         "SaveMatrixOutputPath",
+        "ReviewOutputDir",
         "MatrixMaxAgeMinutes",
         "Get-MatrixFreshness",
+        "Get-DefaultMatrixOutputPath",
+        "Save-MatrixOutput",
+        "target/profit-review",
+        "latest-profit-operator-matrix.path",
         "matrix_reuse",
         "matrix_saved",
+        "matrix_latest_pointer",
         "matrix_freshness_status",
         "source_matrix_freshness_status",
         "source_matrix_mode",
@@ -235,5 +241,9 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-MatrixMaxAgeMinutes", "0") `
     -ExpectedPattern "MatrixMaxAgeMinutes must be between 1 and 1440"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ReviewOutputDir", " ") `
+    -ExpectedPattern "ReviewOutputDir is required"
 
 Write-Host "[profit-operator-action-brief-test] OK"

@@ -869,15 +869,18 @@ Expected:
 - Output includes `profit_candidate_review_recommendation`,
   `data_freshness_false_kill_recommendation`,
   `data_freshness_executability_recommendation`,
+  `data_freshness_counterfactual_recommendation`,
+  `data_freshness_counterfactual_rows`,
+  `complete_replayable_candidate_rows`, `missing_counterfactual_fields`,
   `strategy485_position_risk_recommendation`,
   `strategy574_policy_change_recommendation`, `tiny_live_post_trade_status`,
   `profit_improvement_review_items`, `profit_improvement_candidate_scorecard`,
   `profit_improvement_review_decision`, `top_profit_improvement_candidate`,
   and `profit_improvement_bundle_recommendation`.
 - The candidate scorecard ranks read-only profit-improvement candidates and
-  required evidence, including deploy/replay evidence gaps, aged negative-EV
-  position review, and TinyLive near-BUY observation. It does not authorize
-  live mutations.
+  required evidence, including deploy/replay evidence gaps, DataFreshness
+  counterfactual replay-input coverage, aged negative-EV position review, and
+  TinyLive near-BUY observation. It does not authorize live mutations.
 - `profit_improvement_review_decision` is the top-level routing object for
   shadow/small experiment review. It includes
   `canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,

@@ -375,16 +375,21 @@
   rows as useful after deployed runtime is current.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
-  review, DataFreshness executability review, strategy 485 position-risk smoke,
-  strategy 574 signal/governance smoke, and TinyLive post-trade smoke into one
+  review, DataFreshness executability review, DataFreshness counterfactual
+  replay-input review, strategy 485 position-risk smoke, strategy 574
+  signal/governance smoke, and TinyLive post-trade smoke into one
   profit-improvement routing command. It prints
   `profit_improvement_review_items`, `profit_improvement_candidate_scorecard`,
   `profit_improvement_review_decision`, `top_profit_improvement_candidate`, and
   `profit_improvement_bundle_recommendation` such as
-  `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE`, so DataFreshness alpha
-  pressure cannot be reviewed without its executability gap, and strategy 485
-  risk plus strategy 574/TinyLive context stay visible. The scorecard ranks
-  read-only candidates and required evidence only, and the strategy 485
+  `COLLECT_DATAFRESHNESS_REPLAYABLE_CANDIDATE_SNAPSHOTS`, so DataFreshness
+  alpha pressure cannot be reviewed without replay-input coverage and
+  executable snapshot gaps, and strategy 485 risk plus strategy 574/TinyLive
+  context stay visible. The scorecard ranks read-only candidates and required
+  evidence only, the DataFreshness candidate carries
+  `data_freshness_counterfactual_recommendation`,
+  `complete_replayable_candidate_rows`, and `missing_counterfactual_fields`, and
+  the strategy 485
   candidate carries `strategy485_position_review_decision` so EV/OCO/timeout
   counts remain attached to the ranked profit candidate; it does not authorize
   live mutations. The review decision adds top-level `canDraftShadowExperimentReview`,

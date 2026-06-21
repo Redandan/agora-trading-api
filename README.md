@@ -530,14 +530,19 @@ Read-only profit-improvement review bundle:
 ```
 
 This wrapper runs the origin-delta classifier, profit-candidate review,
-DataFreshness false-kill review, DataFreshness executability review, strategy
-485 position-risk review, strategy 574 signal/governance review, and TinyLive
-post-trade evidence. It prints `profit_improvement_review_items` and
+DataFreshness false-kill review, DataFreshness executability review,
+DataFreshness counterfactual replay-input review, strategy 485 position-risk
+review, strategy 574 signal/governance review, and TinyLive post-trade
+evidence. It prints `profit_improvement_review_items` and
 `profit_improvement_candidate_scorecard`, `profit_improvement_review_decision`,
 `top_profit_improvement_candidate`, and `profit_improvement_bundle_recommendation`,
 so DataFreshness alpha
 pressure, strategy 485 open-position risk, strategy 574 near-BUY context, and
 TinyLive sample gaps are reviewed together without authorizing any live change.
+The DataFreshness candidate evidence includes
+`data_freshness_counterfactual_recommendation`,
+`complete_replayable_candidate_rows`, and `missing_counterfactual_fields`, so
+false-kill alpha is not confused with executable replay evidence.
 The strategy 485 scorecard evidence includes `strategy485_position_review_decision`
 so negative-EV position counts, close/modify suggestions, timeout evidence, and
 OCO health stay attached to the ranked profit candidate.

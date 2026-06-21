@@ -283,6 +283,7 @@ $origin = Invoke-Smoke -Name "origin-delta" -ScriptName "smoke_live_origin_delta
 $profitCandidate = Invoke-Smoke -Name "profit-candidate-review" -ScriptName "smoke_profit_candidate_review_ssh.ps1" -Arguments ($common + @("-ReviewDays", "$ReviewDays"))
 $dataFreshnessFalseKill = Invoke-Smoke -Name "data-freshness-false-kill" -ScriptName "smoke_data_freshness_false_kill_review_ssh.ps1" -Arguments ($common + @("-LongDays", "14", "-ReviewDays", "7"))
 $dataFreshnessExecutability = Invoke-Smoke -Name "data-freshness-executability" -ScriptName "smoke_data_freshness_executability_review_ssh.ps1" -Arguments $common
+$dataFreshnessCounterfactual = Invoke-Smoke -Name "data-freshness-counterfactual" -ScriptName "smoke_data_freshness_counterfactual_review_ssh.ps1" -Arguments ($common + @("-ReviewDays", "$ReviewDays"))
 $strategy485 = Invoke-Smoke -Name "strategy485-position-risk" -ScriptName "smoke_strategy485_position_risk_ssh.ps1" -Arguments ($common + @("-Days", "$ReviewDays"))
 $strategy574 = Invoke-Smoke -Name "strategy574-signal-governance" -ScriptName "smoke_strategy574_signal_governance_ssh.ps1" -Arguments $common
 $tinyLive = Invoke-Smoke -Name "tiny-live-post-trade" -ScriptName "smoke_tiny_live_post_trade_ssh.ps1" -Arguments ($common + @("-Hours", "$TinyLiveHours"))
@@ -291,6 +292,7 @@ $originDelta = Get-Marker -Text $origin -Prefix "origin_delta_status="
 $profitCandidateRecommendation = Get-Marker -Text $profitCandidate -Prefix "  profit_candidate_review_recommendation="
 $dataFreshnessFalseKillRecommendation = Get-Marker -Text $dataFreshnessFalseKill -Prefix "  data_freshness_false_kill_recommendation="
 $dataFreshnessExecutabilityRecommendation = Get-Marker -Text $dataFreshnessExecutability -Prefix "  data_freshness_executability_recommendation="
+$dataFreshnessCounterfactualRecommendation = Get-Marker -Text $dataFreshnessCounterfactual -Prefix "  data_freshness_counterfactual_recommendation="
 $strategy485Recommendation = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_risk_recommendation="
 $strategy485DecisionJson = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_review_decision="
 $strategy485Decision = Convert-MarkerJsonOrNull -Value $strategy485DecisionJson
@@ -299,6 +301,12 @@ $tinyLiveStatus = Get-Marker -Text $tinyLive -Prefix "post_trade_status="
 $monthlyPnlTotalUsdt = Get-Marker -Text $profitCandidate -Prefix "  monthlyPnlTotalUsdt="
 $dataFreshnessFalseKillPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessFalseKill -Prefix "  dataFreshnessFalseKillPct=")
 $dataFreshnessAvgRetPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessFalseKill -Prefix "  dataFreshnessAvgRetPct=")
+$dataFreshnessCounterfactualRows = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessCounterfactual -Prefix "  data_freshness_counterfactual_rows=")
+$dataFreshnessReplayableRows = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessCounterfactual -Prefix "  complete_replayable_candidate_rows=")
+$dataFreshnessPositiveForwardRows = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessCounterfactual -Prefix "  positive_forward_24h_rows=")
+$dataFreshnessCounterfactualAvgForwardPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessCounterfactual -Prefix "  avg_forward_24h_pct=")
+$dataFreshnessMissingCounterfactualFieldsJson = Get-Marker -Text $dataFreshnessCounterfactual -Prefix "  missing_counterfactual_fields="
+$dataFreshnessMissingCounterfactualFields = Convert-MarkerJsonOrNull -Value $dataFreshnessMissingCounterfactualFieldsJson
 $negativeEvPositions = Convert-MarkerNumber -Value (Get-Marker -Text $strategy485 -Prefix "  negativeEvPositions=")
 if ($null -ne $strategy485Decision -and $null -ne $strategy485Decision.PSObject.Properties["negativeEvPositionCount"]) {
     $negativeEvPositions = $strategy485Decision.negativeEvPositionCount
@@ -319,6 +327,12 @@ if ($dataFreshnessFalseKillRecommendation -eq "REVIEW_COLLECTOR_CADENCE_SHADOW_R
 if ($dataFreshnessExecutabilityRecommendation -eq "ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY") {
     $reviewItems.Add("COLLECT_EXECUTABILITY_COUNTERFACTUAL_BEFORE_POLICY_CHANGE")
 }
+if ($dataFreshnessCounterfactualRecommendation -eq "COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING") {
+    $reviewItems.Add("COLLECT_DATAFRESHNESS_REPLAYABLE_CANDIDATE_SNAPSHOTS")
+}
+if ($dataFreshnessCounterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
+    $reviewItems.Add("REVIEW_DATAFRESHNESS_COUNTERFACTUAL_REPLAY_CANDIDATES")
+}
 if ($strategy485Recommendation -eq "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY") {
     $reviewItems.Add("REVIEW_STRATEGY485_AGED_NEGATIVE_EV_POSITIONS")
 }
@@ -329,7 +343,11 @@ if ($tinyLiveStatus -eq "PENDING_NO_NEW_TINY_LIVE_EXECUTION") {
     $reviewItems.Add("WAIT_FOR_NEW_TINYLIVE_EXECUTION_SAMPLE")
 }
 
-if ($reviewItems -contains "COLLECT_EXECUTABILITY_COUNTERFACTUAL_BEFORE_POLICY_CHANGE") {
+if ($reviewItems -contains "REVIEW_DATAFRESHNESS_COUNTERFACTUAL_REPLAY_CANDIDATES") {
+    $recommendation = "REVIEW_DATAFRESHNESS_COUNTERFACTUAL_REPLAY_CANDIDATES"
+} elseif ($reviewItems -contains "COLLECT_DATAFRESHNESS_REPLAYABLE_CANDIDATE_SNAPSHOTS") {
+    $recommendation = "COLLECT_DATAFRESHNESS_REPLAYABLE_CANDIDATE_SNAPSHOTS"
+} elseif ($reviewItems -contains "COLLECT_EXECUTABILITY_COUNTERFACTUAL_BEFORE_POLICY_CHANGE") {
     $recommendation = "COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE"
 } elseif ($reviewItems -contains "REVIEW_STRATEGY485_AGED_NEGATIVE_EV_POSITIONS") {
     $recommendation = "OPERATOR_REVIEW_STRATEGY485_POSITION_RISK"
@@ -344,7 +362,7 @@ if ($reviewItems -contains "COLLECT_EXECUTABILITY_COUNTERFACTUAL_BEFORE_POLICY_C
 $candidateScorecard = New-Object System.Collections.Generic.List[object]
 if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY" -or $dataFreshnessFalseKillRecommendation -eq "REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE") {
     $status = "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE"
-    if ($originDelta -ne "RUNTIME_DRIFT" -and $dataFreshnessExecutabilityRecommendation -ne "ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY") {
+    if ($originDelta -ne "RUNTIME_DRIFT" -and $dataFreshnessCounterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
         $status = "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW"
     }
     $candidateScorecard.Add([ordered]@{
@@ -356,6 +374,12 @@ if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHA
             falseKillPct = $dataFreshnessFalseKillPct
             avgForwardRetPct = $dataFreshnessAvgRetPct
             executability = $dataFreshnessExecutabilityRecommendation
+            counterfactual = $dataFreshnessCounterfactualRecommendation
+            counterfactualRows = $dataFreshnessCounterfactualRows
+            completeReplayableCandidateRows = $dataFreshnessReplayableRows
+            positiveForward24hRows = $dataFreshnessPositiveForwardRows
+            counterfactualAvgForward24hPct = $dataFreshnessCounterfactualAvgForwardPct
+            missingCounterfactualFields = @($dataFreshnessMissingCounterfactualFields)
             originDelta = $originDelta
         }
         requiredEvidence = @(
@@ -432,6 +456,10 @@ Write-Host "  monthlyPnlTotalUsdt=$monthlyPnlTotalUsdt"
 Write-Host "  profit_candidate_review_recommendation=$profitCandidateRecommendation"
 Write-Host "  data_freshness_false_kill_recommendation=$dataFreshnessFalseKillRecommendation"
 Write-Host "  data_freshness_executability_recommendation=$dataFreshnessExecutabilityRecommendation"
+Write-Host "  data_freshness_counterfactual_recommendation=$dataFreshnessCounterfactualRecommendation"
+Write-Host "  data_freshness_counterfactual_rows=$dataFreshnessCounterfactualRows"
+Write-Host "  complete_replayable_candidate_rows=$dataFreshnessReplayableRows"
+Write-Host "  missing_counterfactual_fields=$dataFreshnessMissingCounterfactualFieldsJson"
 Write-Host "  strategy485_position_risk_recommendation=$strategy485Recommendation"
 Write-Host "  strategy485_position_review_decision=$strategy485DecisionJson"
 Write-Host "  strategy574_policy_change_recommendation=$strategy574Recommendation"

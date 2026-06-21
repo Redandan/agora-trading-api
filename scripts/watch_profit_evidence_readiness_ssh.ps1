@@ -128,6 +128,22 @@ function Invoke-ReadOnlyScript {
     }
 }
 
+function Write-ChildFailureContext {
+    param(
+        [string]$ScriptName,
+        [pscustomobject]$Result
+    )
+    if ($Result.ExitCode -eq 0) {
+        return
+    }
+    $text = [string]$Result.Text
+    if ($text.Length -gt 4000) {
+        $text = $text.Substring(0, 4000) + "`n...[truncated]"
+    }
+    Write-Host "[profit-evidence-watch] child_failure script=$ScriptName exitCode=$($Result.ExitCode)"
+    Write-Host $text
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -194,6 +210,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
 
     $brief = Invoke-ReadOnlyScript -ScriptName "prepare_profit_readiness_brief_ssh.ps1" -Arguments $briefArgs
     $observation = Invoke-ReadOnlyScript -ScriptName "smoke_data_freshness_replay_observation_bundle_ssh.ps1" -Arguments $observationArgs
+    Write-ChildFailureContext -ScriptName "prepare_profit_readiness_brief_ssh.ps1" -Result $brief
+    Write-ChildFailureContext -ScriptName "smoke_data_freshness_replay_observation_bundle_ssh.ps1" -Result $observation
 
     $briefStatus = Get-LastPrefixedValue -Text $brief.Text -Prefix "profit_readiness_brief_status="
     $signalPolicyClear = Get-LastPrefixedValue -Text $brief.Text -Prefix "signal_policy_clear="

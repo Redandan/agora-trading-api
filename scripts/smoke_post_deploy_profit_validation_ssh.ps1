@@ -108,6 +108,36 @@ function New-ProfitValidationReviewPlanEntry {
     }
 }
 
+function Assert-ProfitValidationReviewPlanShape {
+    param([object[]]$Plan)
+
+    $items = @($Plan)
+    if ($items.Count -ne 3) {
+        throw "post-deploy profit validation review plan must contain 3 child gate entries, got $($items.Count)"
+    }
+
+    $expectedGates = @("auto-trading-review", "profit-loss-review", "profit-experiment-review")
+    foreach ($gate in $expectedGates) {
+        if (-not @($items.gate).Contains($gate)) {
+            throw "post-deploy profit validation review plan missing gate: $gate"
+        }
+    }
+
+    foreach ($item in $items) {
+        foreach ($field in @("gate", "state", "status", "riskCategory", "recommendation", "allowedFlag", "allowed", "requiredEvidence", "nextAction", "notAuthorization")) {
+            if ($null -eq $item.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation review plan entry missing field: $field"
+            }
+        }
+        if (@($item.requiredEvidence).Count -eq 0) {
+            throw "post-deploy profit validation review plan entry must preserve requiredEvidence: $($item.gate)"
+        }
+        if ($item.notAuthorization -notmatch "does not authorize live trading") {
+            throw "post-deploy profit validation review plan entry must preserve no-live authorization text: $($item.gate)"
+        }
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -310,6 +340,7 @@ $reviewPlan = @(
         -RequiredEvidence @($profitExperimentMissing) `
         -NextAction $profitExperimentNextAction
 )
+Assert-ProfitValidationReviewPlanShape -Plan $reviewPlan
 
 Write-Host "[post-deploy-profit-validation] read-only validation bundle"
 Write-Host "scope=READ_ONLY; runs auto-trading, profit-loss, and profit-experiment gates only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."

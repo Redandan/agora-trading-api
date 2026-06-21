@@ -413,6 +413,14 @@ New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without
 entry/TP/SL/EV/OCO snapshots.
+After deploying that runtime, verify fresh production rows with:
+
+```powershell
+.\scripts\smoke_data_freshness_replay_candidate_id_ssh.ps1
+```
+
+Use `-RequireObserved` only after a new DataFreshnessGuard row is expected; a
+pending result means no fresh row was available yet, not live approval.
 
 Read-only profit-improvement review bundle:
 

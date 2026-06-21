@@ -293,6 +293,11 @@
   values (`dfsr1_...`) plus explicit `orderSent=false`, `intentCreated=false`,
   and `ocoPlanCreated=false` markers. This improves future replay traceability
   only; entry/TP/SL/EV/OCO snapshots are still required before any policy review.
+- `scripts/smoke_data_freshness_replay_candidate_id_ssh.ps1` is the read-only
+  post-deploy verifier for those ids. It reports
+  `PENDING_NO_NEW_DATAFRESHNESS_ROWS`, `REPLAY_CANDIDATE_ID_EVIDENCE_OK`, or
+  `REPLAY_CANDIDATE_ID_EVIDENCE_INCOMPLETE`, and `-RequireObserved` should only
+  be used when a fresh DataFreshnessGuard row is expected.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

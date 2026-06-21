@@ -710,6 +710,11 @@ Expected:
   values and explicit no-order/no-intent/no-OCO markers. Treat those ids as
   traceability only; policy review still requires entry/TP/SL/EV/OCO snapshots
   and complete hard-gate evidence.
+- After deploying a runtime that writes those ids, run
+  `.\scripts\smoke_data_freshness_replay_candidate_id_ssh.ps1`. Use
+  `-RequireObserved` only when a new DataFreshnessGuard row is expected. A
+  `PENDING_NO_NEW_DATAFRESHNESS_ROWS` result is incomplete evidence, not live
+  approval.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

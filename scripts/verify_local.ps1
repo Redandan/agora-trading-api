@@ -1612,6 +1612,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_false_kill_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_executability_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_counterfactual_review_smoke.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_candidate_id_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_replay_input_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_replay_collector_design.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_improvement_review_bundle.ps1"

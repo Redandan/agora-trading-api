@@ -164,6 +164,7 @@ foreach ($doc in @(
 foreach ($pattern in @(
         "deploymentDocsToolingDeltaFiles",
         "deploymentRuntimeDeltaFiles",
+        "src/test/*",
         "DOCS_TOOLING_ONLY_DRIFT",
         "RUNTIME_DRIFT",
         "UNKNOWN_DEPLOY_METADATA",

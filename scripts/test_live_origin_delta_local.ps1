@@ -31,6 +31,7 @@ foreach ($pattern in @(
         'smoke_live_deployment_metadata_ssh\.ps1',
         'git diff --name-only',
         'git cat-file -e',
+        'src/test/*',
         'origin_delta_local_evidence=',
         'origin_delta_status=',
         'CURRENT_ORIGIN_MAIN',

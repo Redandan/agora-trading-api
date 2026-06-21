@@ -30,6 +30,7 @@ function Get-DeltaPathKind {
             -or $Path -eq "README.md" `
             -or $Path -eq "SERVICE_BOUNDARY.md" `
             -or $Path -eq "SPLIT_PROGRESS.md" `
+            -or $Path -like "src/test/*" `
             -or $Path -like "docs/*" `
             -or $Path -eq "deploy.sh" `
             -or $Path -like "scripts/*.ps1" `

@@ -306,6 +306,7 @@ $envOverrides = @{
     TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
     MCP_GUARDIAN_LIVE_ACTIONS_ENABLED = "false"
     TRADING_RUNTIME_EVIDENCE_ENABLED = "false"
+    TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED = "false"
     TRADING_DISCOVERY_AI_SUGGESTIONS_ENABLED = "false"
     POSITION_EXIT_MANAGER_ENABLED = "false"
     POSITION_EXIT_MANAGER_DRY_RUN = "true"
@@ -447,6 +448,7 @@ try {
         "--trading.tiny-live.auto-execution.dry-run=true",
         "--mcp.guardian-live-actions-enabled=false",
         "--trading.runtime-evidence.enabled=false",
+        "--trading.data-freshness.shadow-replay.collector.enabled=false",
         "--trading.discovery.ai-suggestions.enabled=false",
         "--position-exit-manager.enabled=false",
         "--position-exit-manager.dry-run=true"

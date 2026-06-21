@@ -358,6 +358,10 @@
   default, evidence-only, keep DataFreshnessGuard terminal, use a stable
   `replayCandidateId`, avoid live signal creation, and never send Telegram,
   place orders, modify OCO, mutate positions, or change scheduler/live policy.
+  The tracked template and runtime config now keep
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false` /
+  `trading.data-freshness.shadow-replay.collector.enabled=false` as the
+  explicit default.
   `scripts/test_data_freshness_shadow_replay_collector_design.ps1` is wired
   into local verification to keep that boundary explicit.
 - DataFreshness L0 audit context now writes deterministic `replayCandidateId`

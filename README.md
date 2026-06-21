@@ -502,6 +502,10 @@ so a future collector must be disabled by default, keep DataFreshnessGuard as
 the terminal live decision, create only replay evidence with a stable
 `replayCandidateId`, and must not create live signals, send Telegram, place
 orders, modify OCO, mutate positions, or change scheduler/live policy.
+The tracked template and runtime config keep
+`TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false` /
+`trading.data-freshness.shadow-replay.collector.enabled=false` as the default
+guardrail.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

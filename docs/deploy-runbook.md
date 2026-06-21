@@ -840,6 +840,10 @@ Expected:
   live decision, writes a stable `replayCandidateId`, and never creates live
   signals, sends Telegram, places orders, modifies OCO, mutates positions, or
   changes scheduler/live policy.
+- The tracked template and runtime config must keep
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false` /
+  `trading.data-freshness.shadow-replay.collector.enabled=false` unless a
+  separate evidence-only collector rollout is explicitly reviewed.
 - New DataFreshness L0 audit rows include deterministic `replayCandidateId`
   values and explicit no-order/no-intent/no-OCO markers. Treat those ids as
   traceability only; policy review still requires entry/TP/SL/EV/OCO snapshots

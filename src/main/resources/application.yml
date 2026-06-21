@@ -49,6 +49,10 @@ trading:
     api-key: ${TRADING_MCP_KEY:}
   internal:
     api-key: ${TRADING_INTERNAL_API_KEY:${AGORA_MARKET_INTERNAL_API_KEY:}}
+  data-freshness:
+    shadow-replay:
+      collector:
+        enabled: ${TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED:false}
 
 mcp:
   api-key: ${MCP_API_KEY:${TRADING_MCP_KEY:}}

@@ -18,6 +18,9 @@ $designPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-collector-d
 $inputPlanPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-input-plan.md"
 $liveSignalEvaluatorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"
 $runtimeEvidencePath = Join-Path $repoRoot "src/main/java/com/agora/service/trading/RuntimeDecisionEvidenceService.java"
+$envTemplatePath = Join-Path $repoRoot ".env.trading.secrets.example"
+$applicationPath = Join-Path $repoRoot "src/main/resources/application.yml"
+$localSmokePath = Join-Path $repoRoot "scripts/smoke_local_health.ps1"
 $readmePath = Join-Path $repoRoot "README.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
@@ -26,6 +29,9 @@ $designText = Get-Content -Raw -LiteralPath $designPath
 $inputPlanText = Get-Content -Raw -LiteralPath $inputPlanPath
 $liveSignalEvaluatorText = Get-Content -Raw -LiteralPath $liveSignalEvaluatorPath
 $runtimeEvidenceText = Get-Content -Raw -LiteralPath $runtimeEvidencePath
+$envTemplateText = Get-Content -Raw -LiteralPath $envTemplatePath
+$applicationText = Get-Content -Raw -LiteralPath $applicationPath
+$localSmokeText = Get-Content -Raw -LiteralPath $localSmokePath
 $readmeText = Get-Content -Raw -LiteralPath $readmePath
 $runbookText = Get-Content -Raw -LiteralPath $runbookPath
 $progressText = Get-Content -Raw -LiteralPath $progressPath
@@ -106,6 +112,29 @@ foreach ($marker in @(
         "orderSent"
     )) {
     Assert-Contains -Name "RuntimeDecisionEvidenceService code inventory anchor" -Text $runtimeEvidenceText -Pattern $marker
+}
+
+foreach ($marker in @(
+        "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false"
+    )) {
+    Assert-Contains -Name "DataFreshness shadow replay collector env template default" -Text $envTemplateText -Pattern $marker
+}
+
+foreach ($marker in @(
+        "data-freshness:",
+        "shadow-replay:",
+        "collector:",
+        "enabled:",
+        '${TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED:false}'
+    )) {
+    Assert-Contains -Name "DataFreshness shadow replay collector application default" -Text $applicationText -Pattern $marker
+}
+
+foreach ($marker in @(
+        "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED",
+        "trading.data-freshness.shadow-replay.collector.enabled=false"
+    )) {
+    Assert-Contains -Name "DataFreshness shadow replay collector local smoke default" -Text $localSmokeText -Pattern $marker
 }
 
 foreach ($doc in @($readmeText, $runbookText, $progressText)) {

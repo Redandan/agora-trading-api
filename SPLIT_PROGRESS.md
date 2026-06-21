@@ -162,6 +162,19 @@
   `signal_policy_review_plan` markers (`riskCategory`, `evidenceMarkers`,
   `requiredEvidence`, `notAuthorization`) so signal-policy review contract drift
   fails locally before a server smoke is trusted.
+- `scripts/smoke_strategy574_signal_governance_ssh.ps1` provides a focused
+  read-only production RCA for the TinyLive strategy 574 near-BUY path. It
+  compares 1d/3d/7d/14d governance drift, extracts strategy 574 rows from
+  `getMissedOpportunityRegressionReport` and `getNoBuyReasonTruthTable`, checks
+  current DataFreshness, TinyLive trigger, and autonomous readiness markers, and
+  prints a bounded `policy_change_recommendation` such as
+  `DO_NOT_RELAX_ENTRY_DEDUP_OR_DATAFRESHNESS_LIVE` or
+  `KEEP_HARD_GATES_AND_OBSERVE_TINY_LIVE_THRESHOLD_CROSS`. The smoke is
+  server-local `/api/mcp` only and does not change production env, DB, order,
+  OCO, grid, Earn, fund, Telegram, scheduler, exchange, or external
+  backfill/import state. `scripts/test_strategy574_signal_governance_smoke.ps1`
+  guards the read-only tool calls, no-order markers, window comparison, strategy
+  574 row extraction, and non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

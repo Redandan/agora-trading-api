@@ -536,6 +536,27 @@ Expected:
 - The script only calls read-only MCP tools and must not change
   order/OCO/strategy/grid/fund/Earn state.
 
+For the focused strategy 574 TinyLive near-BUY / governance RCA, run:
+
+```powershell
+.\scripts\smoke_strategy574_signal_governance_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- Output compares 1d/3d/7d/14d `governanceMode` values so operators can
+  distinguish short-window `INSUFFICIENT_DATA` from 7d/14d `TOO_STRICT`.
+- Output prints `strategy574RowCount`, strategy 574 no-buy classifications,
+  current DataFreshness fields, TinyLive trigger status, and autonomous
+  readiness evidence.
+- Output must include `policy_change_recommendation`; values such as
+  `DO_NOT_RELAX_ENTRY_DEDUP_OR_DATAFRESHNESS_LIVE` or
+  `KEEP_HARD_GATES_AND_OBSERVE_TINY_LIVE_THRESHOLD_CROSS` are read-only
+  routing guidance, not live approval.
+- The script must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, or external backfill/import state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

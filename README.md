@@ -297,6 +297,19 @@ The full bundle also requires `signalPolicyClear=true` and
 `signal_policy_review_plan` to be present without `BLOCKED` or `REVIEW` states
 when signal policy is otherwise clear.
 
+Focused strategy 574 signal/governance RCA:
+
+```powershell
+.\scripts\smoke_strategy574_signal_governance_ssh.ps1
+```
+
+This read-only smoke compares 1d/3d/7d/14d governance drift, extracts strategy
+574 no-buy rows from missed-opportunity and truth-table evidence, checks current
+DataFreshness, TinyLive trigger, and autonomous readiness markers, and prints a
+bounded conclusion such as `WAIT_BUY_THRESHOLD_CROSS` or
+`DO_NOT_RELAX_ENTRY_DEDUP_OR_DATAFRESHNESS_LIVE`. It is evidence only and does
+not authorize policy relaxation or live mutations.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

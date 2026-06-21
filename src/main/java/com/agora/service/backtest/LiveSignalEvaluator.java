@@ -363,7 +363,8 @@ public class LiveSignalEvaluator {
                          "DataFreshnessGuard",
                          String.format("K-line stale by %dmin (latestOpen=%s, threshold=%dmin)",
                                  minSinceOpen, newest.getOpenTime(), staleThreshold),
-                         dataFreshnessContext(nowUtc, newest, latestCloseEstimate, minSinceOpen,
+                         dataFreshnessContext(strategy.getId(), symbol, intervalCode,
+                                 nowUtc, newest, latestCloseEstimate, minSinceOpen,
                                  staleThreshold, intMin, klineSource, klines.size()));
                 return;
             }
@@ -1345,7 +1346,10 @@ public class LiveSignalEvaluator {
         return ctx;
     }
 
-    private Map<String, Object> dataFreshnessContext(LocalDateTime nowUtc,
+    private Map<String, Object> dataFreshnessContext(Long strategyId,
+                                                     String symbol,
+                                                     String intervalCode,
+                                                     LocalDateTime nowUtc,
                                                      MdKline newest,
                                                      LocalDateTime latestCloseEstimate,
                                                      long minSinceOpen,
@@ -1354,6 +1358,14 @@ public class LiveSignalEvaluator {
                                                      String klineSource,
                                                      int klinesLoaded) {
         Map<String, Object> ctx = new LinkedHashMap<>();
+        ctx.put("replayCandidateId", DataFreshnessReplayCandidateIds.create(
+                strategyId, symbol, intervalCode, klineSource, newest.getOpenTime()));
+        ctx.put("replayCandidateVersion", "dfsr1");
+        ctx.put("replayCandidateStatus", "L0_DATA_FRESHNESS_BLOCKED_NO_CANDIDATE_PLAN");
+        ctx.put("liveSignalId", null);
+        ctx.put("orderSent", false);
+        ctx.put("intentCreated", false);
+        ctx.put("ocoPlanCreated", false);
         ctx.put("stale_minutes", minSinceOpen);
         ctx.put("threshold_minutes", staleThreshold);
         ctx.put("latest_bar_open", newest.getOpenTime().toString());

@@ -47,6 +47,9 @@ contain or reference:
 - `decisionId` plus a stable replay candidate id. `liveSignalId` is acceptable
   only if it already exists naturally; do not create a live signal just to make
   the replay pass.
+- New L0 DataFreshness audit rows should carry `replayCandidateId` with the
+  `dfsr1_...` format so replay candidates can be tracked before a live signal
+  exists. This is an identifier only, not executable evidence.
 - symbol, side, strategy id, interval, bar open time, and decision time.
 - Data freshness snapshot: source, latest bar open time, stale minutes,
   threshold minutes, current/source status, and whether the failure is a true

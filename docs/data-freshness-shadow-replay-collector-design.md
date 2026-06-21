@@ -35,6 +35,12 @@ DataFreshness rows:
 `status=NOT_EVALUATED`, and execution previews built without real candidate
 entry/TP/SL/EV/OCO snapshots.
 
+New DataFreshness L0 audit rows include a deterministic `replayCandidateId`
+(`dfsr1_...`) plus `orderSent=false`, `intentCreated=false`, and
+`ocoPlanCreated=false`. This identifies a future replay row without creating a
+`BtLiveSignal` or changing the hard block outcome. It is still not a complete
+candidate snapshot until entry, TP, SL, EV, OCO, and hard-gate evidence exist.
+
 ## Design Conclusion
 
 The existing 74-row DataFreshness counterfactual sample is a positive

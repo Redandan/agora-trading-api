@@ -706,6 +706,10 @@ Expected:
   live decision, writes a stable `replayCandidateId`, and never creates live
   signals, sends Telegram, places orders, modifies OCO, mutates positions, or
   changes scheduler/live policy.
+- New DataFreshness L0 audit rows include deterministic `replayCandidateId`
+  values and explicit no-order/no-intent/no-OCO markers. Treat those ids as
+  traceability only; policy review still requires entry/TP/SL/EV/OCO snapshots
+  and complete hard-gate evidence.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

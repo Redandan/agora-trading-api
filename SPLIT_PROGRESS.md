@@ -289,6 +289,10 @@
   place orders, modify OCO, mutate positions, or change scheduler/live policy.
   `scripts/test_data_freshness_shadow_replay_collector_design.ps1` is wired
   into local verification to keep that boundary explicit.
+- DataFreshness L0 audit context now writes deterministic `replayCandidateId`
+  values (`dfsr1_...`) plus explicit `orderSent=false`, `intentCreated=false`,
+  and `ocoPlanCreated=false` markers. This improves future replay traceability
+  only; entry/TP/SL/EV/OCO snapshots are still required before any policy review.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

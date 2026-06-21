@@ -143,6 +143,12 @@ SELECT
   COALESCE(a.interval_code, 'N/A') AS interval_code,
   CASE WHEN e.id IS NULL THEN 0 ELSE 1 END AS has_runtime_evidence,
   CASE WHEN e.live_signal_id IS NULL THEN 0 ELSE 1 END AS has_live_signal,
+  CASE
+    WHEN COALESCE(
+      JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.replayCandidateId')),
+      JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.replayCandidateId'))
+    ) IS NULL THEN 0 ELSE 1
+  END AS has_replay_candidate_id,
   CASE WHEN COALESCE(e.intent_created, 0) = 1 THEN 1 ELSE 0 END AS intent_created,
   CASE WHEN COALESCE(e.oco_plan_created, 0) = 1 THEN 1 ELSE 0 END AS oco_plan_created,
   CASE
@@ -273,7 +279,7 @@ except subprocess.CalledProcessError as exc:
 
 fields = [
     "audit_id", "event_time", "strategy_id", "interval_code",
-    "has_runtime_evidence", "has_live_signal", "intent_created", "oco_plan_created",
+    "has_runtime_evidence", "has_live_signal", "has_replay_candidate_id", "intent_created", "oco_plan_created",
     "has_explicit_entry", "has_tp", "has_sl", "has_ev_snapshot", "ev_pass_like",
     "has_oco_plan", "has_hard_gate_snapshot", "derived_entry", "close_after_24h",
     "max_high_24h", "min_low_24h", "ev_excerpt", "execution_excerpt",
@@ -316,6 +322,7 @@ strategy_counts = Counter(str(r.get("strategy_id", "N/A")) for r in rows)
 interval_counts = Counter(str(r.get("interval_code", "N/A")) for r in rows)
 runtime_rows = sum(flag(r, "has_runtime_evidence") for r in rows)
 live_signal_rows = sum(flag(r, "has_live_signal") for r in rows)
+replay_candidate_id_rows = sum(flag(r, "has_replay_candidate_id") for r in rows)
 intent_rows = sum(flag(r, "intent_created") for r in rows)
 oco_created_rows = sum(flag(r, "oco_plan_created") for r in rows)
 explicit_entry_rows = sum(flag(r, "has_explicit_entry") for r in rows)
@@ -330,7 +337,7 @@ forward_rows = len(matured)
 positive_forward_rows = sum(1 for v in returns if v >= 1.0)
 positive_mfe_rows = sum(1 for v in mfe_values if v >= 1.0)
 replayable_candidate_rows = sum(
-    flag(r, "has_live_signal")
+    (flag(r, "has_live_signal") or flag(r, "has_replay_candidate_id"))
     and flag(r, "has_explicit_entry")
     and flag(r, "has_tp")
     and flag(r, "has_sl")
@@ -347,6 +354,8 @@ avg_mae = sum(mae_values) / len(mae_values) if mae_values else None
 missing = []
 if live_signal_rows == 0:
     missing.append("liveSignalId")
+if replay_candidate_id_rows == 0:
+    missing.append("replayCandidateId")
 if explicit_entry_rows == 0 or tp_rows == 0 or sl_rows == 0:
     missing.append("explicit entry/TP/SL candidate plan")
 if ev_snapshot_rows == 0:
@@ -378,6 +387,7 @@ print("Counterfactual Sample Coverage:")
 print(f"  data_freshness_counterfactual_rows={total}")
 print(f"  runtime_evidence_linked_rows={runtime_rows}")
 print(f"  live_signal_linked_rows={live_signal_rows}")
+print(f"  replay_candidate_id_rows={replay_candidate_id_rows}")
 print(f"  intent_created_rows={intent_rows}")
 print(f"  oco_plan_created_rows={oco_created_rows}")
 print(f"  explicit_candidate_entry_rows={explicit_entry_rows}")
@@ -411,7 +421,7 @@ for r in rows[:5]:
     print(
         "  - "
         f"auditId={r.get('audit_id')} time={r.get('event_time')} strategy={r.get('strategy_id')} interval={r.get('interval_code')} "
-        f"runtimeEvidence={r.get('has_runtime_evidence')} liveSignal={r.get('has_live_signal')} "
+        f"runtimeEvidence={r.get('has_runtime_evidence')} liveSignal={r.get('has_live_signal')} replayCandidateId={r.get('has_replay_candidate_id')} "
         f"entryPlan={r.get('has_explicit_entry')}/{r.get('has_tp')}/{r.get('has_sl')} "
         f"evSnapshot={r.get('has_ev_snapshot')} ocoPlan={r.get('has_oco_plan')} hardGateSnapshot={r.get('has_hard_gate_snapshot')} "
         f"forward24h={pct(ret)} ev={r.get('ev_excerpt')} execution={r.get('execution_excerpt')}"
@@ -419,7 +429,7 @@ for r in rows[:5]:
 print("")
 print("Conclusion:")
 print(f"  data_freshness_counterfactual_recommendation={recommendation}")
-print("  counterfactual_required_evidence=[\"canonical candidate snapshot with liveSignalId or equivalent replay id\",\"entryPrice,tpPrice,slPrice,expectedR and EV pass/fail\",\"OCO-capable preflight and hard-gate states for duplicate/daily-cap/exposure/event-risk\",\"shadow intent or replay result that removes only DataFreshness while preserving all other hard gates\"]")
+print("  counterfactual_required_evidence=[\"canonical candidate snapshot with liveSignalId or equivalent replay id\",\"replayCandidateId for DataFreshness L0 rows\",\"entryPrice,tpPrice,slPrice,expectedR and EV pass/fail\",\"OCO-capable preflight and hard-gate states for duplicate/daily-cap/exposure/event-risk\",\"shadow intent or replay result that removes only DataFreshness while preserving all other hard gates\"]")
 print("  notAuthorization=read-only evidence only; does not authorize DataFreshnessGuard relaxation, live trading, strategy activation, closing positions, OCO modification, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, deploy, restart, or production env changes")
 print("")
 print("[data-freshness-counterfactual-review] OK read-only check complete")

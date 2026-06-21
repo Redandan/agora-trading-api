@@ -69,7 +69,14 @@ foreach ($marker in @(
         "position defense plan no order marker",
         "position defense plan no OCO marker",
         "TP stretch read-only boundary",
-        "stop sweep read-only boundary"
+        "stop sweep read-only boundary",
+        "def count_before_marker",
+        "def oco_health_ok",
+        "assert oco_health_ok",
+        "SYNC_ERROR",
+        "OCO active",
+        "0 異常",
+        "0 abnormal"
     )) {
     Assert-Contains -Name "strategy485 smoke hard-fail markers" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }

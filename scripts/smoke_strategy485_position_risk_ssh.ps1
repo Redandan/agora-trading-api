@@ -133,6 +133,34 @@ def compact(value, limit=260):
     text = str(value or "N/A").replace("\n", " ").strip()
     return text if len(text) <= limit else text[:limit - 3] + "..."
 
+def count_before_marker(text, marker):
+    index = text.lower().find(marker.lower())
+    if index < 0:
+        return None
+    prefix = text[:index].rstrip()
+    digits = []
+    for char in reversed(prefix):
+        if char.isdigit():
+            digits.append(char)
+        elif digits:
+            break
+    if not digits:
+        return None
+    return int("".join(reversed(digits)))
+
+def oco_health_ok(oco_text):
+    sync_count = count_before_marker(oco_text, "SYNC_ERROR")
+    abnormal_count = count_before_marker(oco_text, "異常")
+    if abnormal_count is None:
+        abnormal_count = count_before_marker(oco_text, "abnormal")
+    if abnormal_count is None:
+        return sync_count == 0 and "OCO active" in oco_text
+    return sync_count == 0 and abnormal_count == 0
+
+assert oco_health_ok("✅ 3 OK | 🔴 0 SYNC_ERROR | ⚠️ 0 異常")
+assert oco_health_ok("3 OK | 0 SYNC_ERROR | 0 abnormal")
+assert oco_health_ok("Position #1 BTCUSDT — OCO active (live) | 0 SYNC_ERROR")
+
 def extract_position_ids(open_positions):
     ids = []
     all_ids = []
@@ -210,7 +238,7 @@ ev_rows = [ev_summary(pid) for pid in position_ids]
 aged_events = len(re.findall(r"POSITION_TIMEOUT", events))
 tp_watch = len(re.findall(r"status=WATCH", tp_stretch))
 tp_stretched = len(re.findall(r"status=STRETCHED|stretched=([1-9]\d*)", tp_stretch))
-oco_ok = "0 SYNC_ERROR" in oco and re.search(r"⚠️\s*0", oco) is not None
+oco_ok = oco_health_ok(oco)
 negative_ev = [row for row in ev_rows if row["evUsdt"] not in ("N/A", "") and float(row["evUsdt"]) < 0]
 close_or_modify = [row for row in ev_rows if row["suggestion"] in ("CLOSE", "MODIFY")]
 

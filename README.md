@@ -366,6 +366,22 @@ prints `data_freshness_false_kill_recommendation` and
 `REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE` is review routing only;
 it does not authorize relaxing DataFreshnessGuard or changing live policy.
 
+Focused DataFreshness executability review:
+
+```powershell
+.\scripts\smoke_data_freshness_executability_review_ssh.ps1
+```
+
+This read-only smoke checks whether the historical DataFreshness false-kill
+alpha evidence is also executable evidence. It reviews the DataFreshness event
+decision window, current autonomous readiness, runtime evidence rows, EV sample
+coverage, OCO plan coverage, shadow-intent coverage, and TinyLive current
+preview. It prints `missing_executability_evidence`,
+`counterfactual_required_evidence`, and
+`data_freshness_executability_recommendation`. A recommendation such as
+`ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY` means the +24h
+false-kill return is not enough to justify live policy changes.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

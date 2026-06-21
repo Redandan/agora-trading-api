@@ -229,6 +229,24 @@
   state. `scripts/test_data_freshness_false_kill_review_smoke.ps1` guards the
   read-only MCP calls, hard-fail boundary checks, output markers, docs
   coverage, and non-authorization wording.
+- `scripts/smoke_data_freshness_executability_review_ssh.ps1` provides a
+  focused read-only production review for whether the DataFreshness false-kill
+  alpha evidence is also executable evidence. It calls server-local `/api/mcp`
+  for the historical DataFreshness decision window, current autonomous
+  readiness, runtime evidence rows, TinyLive current preview, and autonomous
+  opportunity readiness. It prints `missing_executability_evidence`,
+  `counterfactual_required_evidence`, and
+  `data_freshness_executability_recommendation` such as
+  `ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY`, so +24h false-kill
+  return cannot be mistaken for live-tradable profit without EV/OCO/daily-cap/
+  duplicate/exposure/event-risk counterfactual proof. The smoke is evidence
+  only and does not authorize DataFreshnessGuard relaxation, live trading,
+  policy changes, strategy activation, closing positions, OCO modification,
+  production env changes, DB, order, grid, Earn, fund, Telegram, scheduler,
+  exchange, external backfill/import, deploy, restart, or nginx state.
+  `scripts/test_data_freshness_executability_review_smoke.ps1` guards the
+  read-only MCP calls, hard-fail boundary checks, output markers, docs
+  coverage, and non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

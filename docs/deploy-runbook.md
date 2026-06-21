@@ -643,6 +643,30 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For a focused read-only DataFreshness executability review, run:
+
+```powershell
+.\scripts\smoke_data_freshness_executability_review_ssh.ps1
+```
+
+Expected:
+
+- The smoke checks the historical DataFreshness decision window, current
+  autonomous readiness, runtime-evidence rows, EV sample coverage, OCO plan
+  coverage, shadow-intent coverage, and TinyLive current preview.
+- Output includes `windowOnlyDataFreshness`, `windowHasLiveSignalIds`,
+  `evSamples`, `ocoPlansCreated`, `shadowIntentCount`,
+  `missing_executability_evidence`, `counterfactual_required_evidence`, and
+  `data_freshness_executability_recommendation`.
+- A recommendation such as
+  `ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY` means the historical
+  +24h false-kill return is not yet executable profit evidence; collect a
+  shadow/counterfactual replay that keeps EV, OCO, daily cap, duplicate,
+  exposure, event-risk, and hard safety gates intact.
+- The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

@@ -184,6 +184,22 @@ DB/grid/fund/Earn state. It keeps `trailing_stop_acceptance` and
 `strategy485_operator_packet_status` in one packet while preserving all
 no-mutation guardrails.
 
+Read-only exit-side operator decision brief:
+
+```powershell
+.\scripts\prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady
+```
+
+This converts the exit-side packet into
+`exit_side_operator_decision_brief_packet`,
+`exit_side_operator_review_recommendations`, and
+`exit_side_operator_decision_brief_status`.
+`READY_FOR_OPERATOR_DECISION_NOT_MUTATION` means the evidence can be attached
+to a separate exit-side operator review with
+`PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW`. It does not deploy, enable live
+trading, enable trailing, place orders, modify OCO, close positions, change
+strategy opt-in, or mutate DB/grid/fund/Earn state.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 

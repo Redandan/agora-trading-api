@@ -164,6 +164,19 @@
   orders, OCO modification, close-position, DB/grid/fund/Earn/Telegram/
   exchange mutation, production env changes, deploy, restart, nginx reload, or
   external backfill/import.
+- `scripts/prepare_exit_side_operator_decision_brief_ssh.ps1` converts the
+  exit-side packet into `exit_side_operator_review_recommendations`,
+  `exit_side_operator_decision_brief_packet`, and
+  `exit_side_operator_decision_brief_status`. It can return
+  `READY_FOR_OPERATOR_DECISION_NOT_MUTATION` with
+  `PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW`, while keeping trailing-stop
+  policy review separate from strategy 485 aged negative-EV position review and
+  listing separate authorizations required for trailing enablement,
+  close-position, OCO modification, deploy, or production env changes. It does
+  not authorize live trailing, scheduler enablement, strategy opt-in changes,
+  orders, OCO modification, close-position, DB/grid/fund/Earn/Telegram/exchange
+  mutation, production env changes, deploy, restart, nginx reload, or external
+  backfill/import.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
   DataFreshnessGuard blocks from current source freshness: the read-only MCP
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`

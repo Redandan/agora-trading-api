@@ -1725,6 +1725,31 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize exit policy changes.
 
+For a read-only exit-side operator decision brief, run:
+
+```powershell
+.\scripts\prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady
+```
+
+Expected:
+
+- The brief calls `prepare_exit_side_profit_review_packet_ssh.ps1` only and
+  emits `exit_side_operator_review_recommendations`,
+  `exit_side_operator_decision_brief_packet`, and
+  `exit_side_operator_decision_brief_status`.
+- `READY_FOR_OPERATOR_DECISION_NOT_MUTATION` means the exit-side evidence can
+  be attached to a separate operator decision with
+  `PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW`.
+- The brief keeps trailing-stop policy review separate from strategy 485 aged
+  negative-EV position review, and lists separate authorizations required for
+  trailing enablement, close-position, OCO modification, deployment, or
+  production env changes.
+- The brief does not deploy, restart, reload nginx, change production env,
+  enable live trading, enable the trailing scheduler, change strategy opt-in,
+  place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize exit policy changes.
+
 Optional public path check:
 
 ```bash

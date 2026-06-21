@@ -358,6 +358,19 @@ This gate combines origin-delta and strategy 485 position-risk evidence into
 `strategy485_position_review_gate_status`. It may route a separate operator
 review packet, but it never authorizes close-position or OCO modification.
 
+Read-only strategy 485 operator review packet preflight:
+
+```powershell
+.\scripts\prepare_strategy485_operator_review_packet_ssh.ps1 -RequireReady
+```
+
+This wraps the strategy 485 gate into a machine-readable
+`strategy485_operator_review_packet` and emits
+`strategy485_operator_packet_status`. `READY_FOR_OPERATOR_PACKET_NOT_MUTATION`
+means the packet can be attached to a separate operator review; it still keeps
+`position_or_oco_mutation_allowed=false` and does not authorize close-position
+or OCO modification.
+
 Read-only auto-trading review bundle:
 
 ```powershell

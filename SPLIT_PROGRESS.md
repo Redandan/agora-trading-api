@@ -216,6 +216,12 @@
   `strategy485_position_review_gate_status`. The gate can route a separate
   operator review packet only after runtime and evidence stop conditions are
   clear; it never authorizes close-position or OCO modification.
+- `scripts/prepare_strategy485_operator_review_packet_ssh.ps1` wraps that gate
+  into a machine-readable `strategy485_operator_review_packet` and
+  `strategy485_operator_packet_status`. It can become
+  `READY_FOR_OPERATOR_PACKET_NOT_MUTATION` only when the gate is ready and the
+  decision JSON still proves `positionOrOcoMutationAllowed=false`; it never
+  authorizes close-position or OCO modification.
 - `scripts/smoke_auto_trading_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, live-authorized audit, strategy 485 position-risk
   smoke, strategy 574 signal/governance smoke, and TinyLive post-trade smoke

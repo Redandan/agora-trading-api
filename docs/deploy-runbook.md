@@ -626,6 +626,29 @@ Expected:
 - `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
   and verified before the strategy 485 packet can be trusted.
 
+For the read-only strategy 485 operator review packet preflight, run after the
+gate is expected to be ready:
+
+```powershell
+.\scripts\prepare_strategy485_operator_review_packet_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- The preflight invokes `prepare_strategy485_position_review_gate_ssh.ps1`
+  only.
+- Output includes `strategy485_operator_review_packet`,
+  `strategy485_operator_packet_status`,
+  `strategy485_operator_packet_missing_requirements`,
+  `strategy485_position_review_decision`, and
+  `position_or_oco_mutation_allowed=false`.
+- `READY_FOR_OPERATOR_PACKET_NOT_MUTATION` means the emitted packet can be
+  attached to a separate operator review. It is still not permission to close
+  positions, modify OCO, deploy, restart, change production env, or relax live
+  policy.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
+  and verified before the packet can be trusted.
+
 For the read-only auto-trading review bundle, run:
 
 ```powershell

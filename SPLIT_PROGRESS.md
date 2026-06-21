@@ -194,6 +194,14 @@
   OCO-modification actions remain separate explicit-authorized operations.
   `scripts/test_strategy485_aged_position_review_plan.ps1` keeps this plan
   linked to the smoke, profit bundle, and operator docs.
+- `scripts/prepare_strategy485_position_review_gate_ssh.ps1` wraps origin-delta
+  plus the strategy 485 position-risk smoke into a read-only gate. It emits
+  `deploy_required_before_strategy485_review`, `operator_review_packet_allowed`,
+  `position_or_oco_mutation_allowed=false`,
+  `strategy485_review_missing_requirements`, and
+  `strategy485_position_review_gate_status`. The gate can route a separate
+  operator review packet only after runtime and evidence stop conditions are
+  clear; it never authorizes close-position or OCO modification.
 - `scripts/smoke_auto_trading_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, live-authorized audit, strategy 485 position-risk
   smoke, strategy 574 signal/governance smoke, and TinyLive post-trade smoke

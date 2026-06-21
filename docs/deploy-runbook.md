@@ -580,6 +580,26 @@ Expected:
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, or external backfill/import state.
 
+For the read-only strategy 485 position review gate, run:
+
+```powershell
+.\scripts\prepare_strategy485_position_review_gate_ssh.ps1
+```
+
+Expected:
+
+- The gate invokes `smoke_live_origin_delta_local.ps1` and
+  `smoke_strategy485_position_risk_ssh.ps1` only.
+- Output includes `deploy_required_before_strategy485_review`,
+  `operator_review_packet_allowed`, `position_or_oco_mutation_allowed=false`,
+  `strategy485_review_missing_requirements`, and
+  `strategy485_position_review_gate_status`.
+- `READY_FOR_OPERATOR_REVIEW_NOT_MUTATION` means a separate operator packet can
+  be drafted with fresh evidence. It is not permission to close positions,
+  modify OCO, deploy, restart, or change live policy.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
+  and verified before the strategy 485 packet can be trusted.
+
 For the read-only auto-trading review bundle, run:
 
 ```powershell

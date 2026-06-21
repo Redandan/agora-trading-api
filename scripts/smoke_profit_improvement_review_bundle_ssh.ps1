@@ -107,6 +107,19 @@ function Get-Marker {
     return $matches[$matches.Count - 1].Groups[1].Value.Trim()
 }
 
+function Convert-MarkerNumber {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    $clean = $Value.Trim().TrimEnd("%")
+    $parsed = 0.0
+    if ([double]::TryParse($clean, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$parsed)) {
+        return $parsed
+    }
+    return $null
+}
+
 Write-Host "[profit-improvement-review-bundle] read-only review bundle"
 Write-Host "scope=READ_ONLY; invokes existing read-only SSH/local smokes only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "symbol=$Symbol reviewDays=$ReviewDays tinyLiveHours=$TinyLiveHours"
@@ -138,6 +151,12 @@ $dataFreshnessExecutabilityRecommendation = Get-Marker -Text $dataFreshnessExecu
 $strategy485Recommendation = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_risk_recommendation="
 $strategy574Recommendation = Get-Marker -Text $strategy574 -Prefix "  policy_change_recommendation="
 $tinyLiveStatus = Get-Marker -Text $tinyLive -Prefix "post_trade_status="
+$monthlyPnlTotalUsdt = Get-Marker -Text $profitCandidate -Prefix "  monthlyPnlTotalUsdt="
+$dataFreshnessFalseKillPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessFalseKill -Prefix "  dataFreshnessFalseKillPct=")
+$dataFreshnessAvgRetPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessFalseKill -Prefix "  dataFreshnessAvgRetPct=")
+$negativeEvPositions = Convert-MarkerNumber -Value (Get-Marker -Text $strategy485 -Prefix "  negativeEvPositions=")
+$strategy574NearBuy = Get-Marker -Text $strategy574 -Prefix "  strategy574_near_buy="
+$strategy574TerminalReason = Get-Marker -Text $strategy574 -Prefix "  strategy574_terminal_reason="
 
 $reviewItems = New-Object System.Collections.Generic.List[string]
 if ($originDelta -eq "RUNTIME_DRIFT") {
@@ -174,9 +193,83 @@ if ($reviewItems -contains "COLLECT_EXECUTABILITY_COUNTERFACTUAL_BEFORE_POLICY_C
     $recommendation = "NO_PROFIT_IMPROVEMENT_ACTION_FROM_BUNDLE"
 }
 
+$candidateScorecard = New-Object System.Collections.Generic.List[object]
+if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY" -or $dataFreshnessFalseKillRecommendation -eq "REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE") {
+    $status = "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE"
+    if ($originDelta -ne "RUNTIME_DRIFT" -and $dataFreshnessExecutabilityRecommendation -ne "ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY") {
+        $status = "READY_FOR_COUNTERFACTUAL_POLICY_REVIEW"
+    }
+    $candidateScorecard.Add([ordered]@{
+        rank = 1
+        candidate = "DataFreshness false-kill counterfactual"
+        priority = "P1"
+        status = $status
+        evidence = @{
+            falseKillPct = $dataFreshnessFalseKillPct
+            avgForwardRetPct = $dataFreshnessAvgRetPct
+            executability = $dataFreshnessExecutabilityRecommendation
+            originDelta = $originDelta
+        }
+        requiredEvidence = @(
+            "deployed runtime current",
+            "fresh replayCandidateId rows",
+            "entry/TP/SL candidate snapshot",
+            "EV and OCO preflight snapshots",
+            "shadow replay removing only DataFreshnessGuard"
+        )
+        allowedNextAction = "deploy current runtime only after separate deploy authorization, then collect read-only replay evidence"
+    })
+}
+if ($strategy485Recommendation -eq "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY") {
+    $candidateScorecard.Add([ordered]@{
+        rank = 2
+        candidate = "Strategy 485 aged negative-EV open positions"
+        priority = "P1"
+        status = "OPERATOR_REVIEW_REQUIRED_READ_ONLY"
+        evidence = @{
+            negativeEvPositions = $negativeEvPositions
+            recommendation = $strategy485Recommendation
+        }
+        requiredEvidence = @(
+            "current OCO health",
+            "position EV reassessment",
+            "TP stretch and timeout events",
+            "operator-approved risk-reducing action before any mutation"
+        )
+        allowedNextAction = "review position-risk evidence; no close or OCO modification from this bundle"
+    })
+}
+if ($strategy574Recommendation -eq "KEEP_HARD_GATES_AND_OBSERVE_TINY_LIVE_THRESHOLD_CROSS") {
+    $candidateScorecard.Add([ordered]@{
+        rank = 3
+        candidate = "Strategy 574 TinyLive near-BUY governance"
+        priority = "P2"
+        status = "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES"
+        evidence = @{
+            nearBuy = $strategy574NearBuy
+            terminalReason = $strategy574TerminalReason
+            tinyLivePostTrade = $tinyLiveStatus
+        }
+        requiredEvidence = @(
+            "current BUY candidate",
+            "OCO preflight pass",
+            "EV pass sample",
+            "post-trade OCO protection evidence"
+        )
+        allowedNextAction = "continue read-only high-frequency observation; do not pre-buy before hard gates pass"
+    })
+}
+
+$topCandidate = "NONE"
+if ($candidateScorecard.Count -gt 0) {
+    $topCandidate = $candidateScorecard[0].candidate
+}
+$candidateScorecardJson = ConvertTo-Json -Compress -Depth 8 -InputObject @($candidateScorecard.ToArray())
+
 Write-Host ""
 Write-Host "Profit Improvement Bundle Summary:"
 Write-Host "  origin_delta_status=$originDelta"
+Write-Host "  monthlyPnlTotalUsdt=$monthlyPnlTotalUsdt"
 Write-Host "  profit_candidate_review_recommendation=$profitCandidateRecommendation"
 Write-Host "  data_freshness_false_kill_recommendation=$dataFreshnessFalseKillRecommendation"
 Write-Host "  data_freshness_executability_recommendation=$dataFreshnessExecutabilityRecommendation"
@@ -184,6 +277,8 @@ Write-Host "  strategy485_position_risk_recommendation=$strategy485Recommendatio
 Write-Host "  strategy574_policy_change_recommendation=$strategy574Recommendation"
 Write-Host "  tiny_live_post_trade_status=$tinyLiveStatus"
 Write-Host ("  profit_improvement_review_items=" + (ConvertTo-Json -Compress @($reviewItems)))
+Write-Host "  profit_improvement_candidate_scorecard=$candidateScorecardJson"
+Write-Host "  top_profit_improvement_candidate=$topCandidate"
 Write-Host "  profit_improvement_bundle_recommendation=$recommendation"
 Write-Host "  notAuthorization=read-only review evidence only; does not authorize DataFreshnessGuard relaxation, closing positions, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, deploy, restart, production env changes, external backfill/import, or policy relaxation"
 Write-Host ""

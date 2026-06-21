@@ -743,8 +743,12 @@ Expected:
   `data_freshness_executability_recommendation`,
   `strategy485_position_risk_recommendation`,
   `strategy574_policy_change_recommendation`, `tiny_live_post_trade_status`,
-  `profit_improvement_review_items`, and
-  `profit_improvement_bundle_recommendation`.
+  `profit_improvement_review_items`, `profit_improvement_candidate_scorecard`,
+  `top_profit_improvement_candidate`, and `profit_improvement_bundle_recommendation`.
+- The candidate scorecard ranks read-only profit-improvement candidates and
+  required evidence, including deploy/replay evidence gaps, aged negative-EV
+  position review, and TinyLive near-BUY observation. It does not authorize
+  live mutations.
 - A recommendation such as `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE` is
   review routing only; it is not permission to relax DataFreshnessGuard,
   activate strategies, close positions, modify OCO, deploy, restart, or change

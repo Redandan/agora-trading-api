@@ -620,6 +620,29 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For a focused read-only DataFreshness false-kill review, run:
+
+```powershell
+.\scripts\smoke_data_freshness_false_kill_review_ssh.ps1
+```
+
+Expected:
+
+- The smoke proves DataFreshnessGuard RCA through short, review, and longer
+  windows, then separates current source snapshot health from historical stale
+  kline rows.
+- Output includes `currentDataFreshnessClean`, `historicalStaleOnly`,
+  `dataFreshnessFalseKillPct`, `data_freshness_shadow_replay_plan`, and
+  `data_freshness_false_kill_recommendation`.
+- A recommendation such as
+  `REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE` means review
+  collector cadence and shadow replay while keeping the hard gate intact; it is
+  not permission to relax DataFreshnessGuard, enable live trading, activate
+  strategies, modify OCO, deploy, restart, or change production env.
+- The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For a focused read-only guardrail acceptance check after deploying a runtime
 that contains the latest issue #1/#2 local guardrail changes, run:
 

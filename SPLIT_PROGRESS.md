@@ -213,6 +213,22 @@
   `scripts/test_profit_candidate_review_smoke.ps1` guards the read-only MCP
   calls, hard-fail boundary checks, output markers, docs coverage, and
   non-authorization wording.
+- `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
+  read-only production review for the DataFreshnessGuard false-kill profit
+  candidate. It calls server-local `/api/mcp` for short/review/long
+  DataFreshnessGuard RCA windows, blocked-signal outcomes, governance drift,
+  relaxation candidates, missed-opportunity regression, and no-buy truth-table
+  evidence. It prints `currentDataFreshnessClean`, `historicalStaleOnly`,
+  `data_freshness_shadow_replay_plan`, and
+  `data_freshness_false_kill_recommendation` such as
+  `REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE`. The smoke is
+  evidence only and does not authorize DataFreshnessGuard relaxation, live
+  trading, policy changes, strategy activation, closing positions, OCO
+  modification, production env changes, DB, order, grid, Earn, fund, Telegram,
+  scheduler, exchange, external backfill/import, deploy, restart, or nginx
+  state. `scripts/test_data_freshness_false_kill_review_smoke.ps1` guards the
+  read-only MCP calls, hard-fail boundary checks, output markers, docs
+  coverage, and non-authorization wording.
 - `scripts/audit_live_readiness_ssh.ps1` provides a read-only live-readiness
   audit before any explicitly authorized live enablement. It masks secrets,
   reports order-capable flags, dry-run flags, background automation warnings,

@@ -351,6 +351,21 @@ example `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY`. The result is
 evidence only; it does not authorize live trading, policy relaxation, strategy
 activation, closing positions, or OCO changes.
 
+Focused DataFreshness false-kill review:
+
+```powershell
+.\scripts\smoke_data_freshness_false_kill_review_ssh.ps1
+```
+
+This read-only smoke separates current data-source health from historical
+DataFreshnessGuard false-kill pressure. It checks recent/current
+DataFreshnessGuard RCA, blocked-signal outcomes, governance drift, relaxation
+candidates, missed-opportunity regression, and the no-buy truth table, then
+prints `data_freshness_false_kill_recommendation` and
+`data_freshness_shadow_replay_plan`. A recommendation such as
+`REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE` is review routing only;
+it does not authorize relaxing DataFreshnessGuard or changing live policy.
+
 Before drafting any evidence-only production env change, use
 `docs/live-dry-run-evidence-plan.md`. That checklist keeps
 `TRADING_RUNTIME_EVIDENCE_ENABLED=true` as a separately authorized evidence

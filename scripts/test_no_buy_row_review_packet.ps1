@@ -65,6 +65,7 @@ foreach ($marker in @(
         "suspiciousNoBuyCount",
         "falseBlockRiskCount",
         "highForwardReturnNoBuyCount",
+        "dataFreshnessCurrentStatus",
         "noBuyClassifications",
         "noBuyBlockerFamilies",
         "highReturnStrategies",

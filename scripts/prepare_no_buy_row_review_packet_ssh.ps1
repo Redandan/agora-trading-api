@@ -167,7 +167,8 @@ $highReturnStrategies = Get-RegexValue -Text $text -Pattern "High-Return No-Buy 
 $highReturnBlockerFamilies = Get-RegexValue -Text $text -Pattern "High-Return No-Buy Breakdown:\s*[\r\n]+\s*strategies=[^\r\n]+[\r\n]+\s*blockerFamilies=([^\r\n]+)" -Default "N/A"
 $truthClassifications = Get-RegexValue -Text $text -Pattern "No-Buy Reason Truth Table:\s*[\r\n]+\s*classifications=([^\r\n]+)" -Default "N/A"
 $truthBlockerFamilies = Get-RegexValue -Text $text -Pattern "No-Buy Reason Truth Table:\s*[\r\n]+\s*classifications=[^\r\n]+[\r\n]+\s*blockerFamilies=([^\r\n]+)" -Default "N/A"
-$dataFreshnessCurrentClean = (($text -match "staleNowKeys=0") -and ($text -match "noDataNowKeys=0") -and ($text -match "queryFailedNowKeys=0"))
+$dataFreshnessCurrentStatus = Get-RegexValue -Text $text -Pattern "dataFreshnessCurrentStatus=([A-Z_]+)" -Default "N/A"
+$dataFreshnessCurrentClean = ($dataFreshnessCurrentStatus -eq "CLEAN")
 $entryDedupWouldAllow = Get-RegexValue -Text $text -Pattern "wouldAllowStagedAddGroups=([0-9]+)" -Default "0"
 $dedupTooCoarseSuspects = Get-RegexValue -Text $text -Pattern "dedupTooCoarseSuspects=([0-9]+)" -Default "0"
 
@@ -259,6 +260,7 @@ $packet = [pscustomobject]@{
     suspiciousNoBuyCount = $suspiciousNoBuyCount
     falseBlockRiskCount = $falseBlockRiskCount
     highForwardReturnNoBuyCount = $highForwardReturnNoBuyCount
+    dataFreshnessCurrentStatus = $dataFreshnessCurrentStatus
     dataFreshnessCurrentClean = $dataFreshnessCurrentClean
     noBuyClassifications = $classifications
     noBuyBlockerFamilies = $blockerFamilies
@@ -294,6 +296,7 @@ Write-Host "missedOpportunityStatus=$missedStatus"
 Write-Host "suspiciousNoBuyCount=$suspiciousNoBuyCount"
 Write-Host "falseBlockRiskCount=$falseBlockRiskCount"
 Write-Host "highForwardReturnNoBuyCount=$highForwardReturnNoBuyCount"
+Write-Host "dataFreshnessCurrentStatus=$dataFreshnessCurrentStatus"
 Write-Host "dataFreshnessCurrentClean=$($dataFreshnessCurrentClean.ToString().ToLowerInvariant())"
 Write-Host "noBuyClassifications=$classifications"
 Write-Host "noBuyBlockerFamilies=$blockerFamilies"

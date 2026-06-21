@@ -300,6 +300,11 @@
   be used when a fresh DataFreshnessGuard row is expected. It also reports
   `DEPLOYED_RUNTIME_NOT_CURRENT` when deployed `app.commit` has not reached the
   replay-id runtime.
+- `scripts/smoke_data_freshness_replay_observation_bundle_ssh.ps1` combines
+  origin-delta, replay-id, and counterfactual smokes into a read-only
+  post-deploy observation chain. It routes stale runtime to
+  `DEPLOY_CURRENT_RUNTIME_THEN_OBSERVE_REPLAY_ID` and only treats replay-id
+  rows as useful after deployed runtime is current.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

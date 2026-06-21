@@ -424,6 +424,14 @@ pending result means no fresh row was available yet, not live approval.
 The smoke also compares deployed `app.commit` with the expected local HEAD and
 prints `DEPLOYED_RUNTIME_NOT_CURRENT` until the replay-id runtime has actually
 been deployed.
+For the full post-deploy replay observation chain, run:
+
+```powershell
+.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1
+```
+
+This wrapper combines origin-delta, replay-id, and counterfactual evidence and
+fails closed to deploy-first routing while runtime is stale.
 
 Read-only profit-improvement review bundle:
 

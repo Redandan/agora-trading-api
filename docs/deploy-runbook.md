@@ -718,6 +718,10 @@ Expected:
   `DEPLOYED_RUNTIME_NOT_CURRENT` means the replay-id runtime has not been
   deployed yet; deploy and server verification must happen before replay-id
   evidence can be trusted.
+- Use `.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1` for
+  the post-deploy replay observation chain. It combines origin-delta,
+  replay-id, and counterfactual smokes and routes stale runtime to
+  `DEPLOY_CURRENT_RUNTIME_THEN_OBSERVE_REPLAY_ID`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

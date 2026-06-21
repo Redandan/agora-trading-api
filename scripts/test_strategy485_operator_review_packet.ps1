@@ -78,6 +78,7 @@ foreach ($marker in @(
         "strategy485_operator_packet_missing_requirements",
         "strategy485_operator_review_packet",
         "strategy485_operator_packet_status",
+        "gateMissingIsBlocking",
         "READY_FOR_OPERATOR_PACKET_NOT_MUTATION",
         "BLOCKED_DEPLOY_CURRENT_RUNTIME",
         "BLOCKED_OCO_PROTECTION_FIRST",

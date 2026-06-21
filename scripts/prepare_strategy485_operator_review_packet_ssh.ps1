@@ -161,8 +161,11 @@ $mutationAllowed = Get-LastPrefixedValue -Text $gateText -Prefix "position_or_oc
 $deployRequired = Get-LastPrefixedValue -Text $gateText -Prefix "deploy_required_before_strategy485_review="
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-foreach ($item in @($gateMissing)) {
-    Add-MissingRequirement -List $missingRequirements -Value ([string]$item)
+$gateMissingIsBlocking = ($gateStatus -ne "READY_FOR_OPERATOR_REVIEW_NOT_MUTATION")
+if ($gateMissingIsBlocking) {
+    foreach ($item in @($gateMissing)) {
+        Add-MissingRequirement -List $missingRequirements -Value ([string]$item)
+    }
 }
 if ($gateExitCode -ne 0) {
     Add-MissingRequirement -List $missingRequirements -Value "strategy485 position review gate completed"

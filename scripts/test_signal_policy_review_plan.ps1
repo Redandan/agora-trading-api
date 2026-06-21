@@ -59,6 +59,10 @@ foreach ($toolName in @(
 
 foreach ($marker in @(
         "DataFreshnessGuard Current Snapshot",
+        "dataFreshnessCurrentStatus",
+        "data-freshness-current-sample",
+        "NO_CURRENT_SAMPLE",
+        "WAIT DATA SAMPLE",
         "verifyStrategyExecution machine status marker",
         "MACHINE_STATUS",
         "executionMachineStatus",
@@ -85,6 +89,7 @@ foreach ($marker in @(
         "requiredEvidence",
         "evidenceMarkers",
         "governance-drift",
+        "data_freshness_current_clear",
         "missed-opportunity-regression",
         "no-buy-row-classification",
         "entry-dedup-relaxation",
@@ -105,6 +110,7 @@ Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText 
 Assert-Contains -Name "signal policy smoke missing-field summary" -Text $scriptText -Pattern 'missing_signal_policy_fields=\{json\.dumps\(missing_signal_policy_fields\)\}'
 Assert-Contains -Name "signal policy smoke clear summary" -Text $scriptText -Pattern 'signalPolicyClear=\{str\(signal_policy_clear\)\.lower\(\)\}'
 Assert-Contains -Name "signal policy smoke review plan summary" -Text $scriptText -Pattern 'signal_policy_review_plan=\{json\.dumps\(signal_policy_review_plan, separators=\('','', '':''\)\)\}'
+Assert-Contains -Name "signal policy smoke DataFreshness status summary" -Text $scriptText -Pattern 'dataFreshnessCurrentStatus=\{data_freshness_current_status\}'
 
 foreach ($marker in @(
         "no-buy reason truth table read-only boundary",

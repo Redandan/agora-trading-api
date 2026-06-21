@@ -173,7 +173,10 @@
   missed-opportunity evidence, the no-buy reason truth table, and
   `signal_policy_review_plan` markers (`riskCategory`, `evidenceMarkers`,
   `requiredEvidence`, `notAuthorization`) so signal-policy review contract drift
-  fails locally before a server smoke is trusted.
+  fails locally before a server smoke is trusted. It also emits
+  `dataFreshnessCurrentStatus` so `NO_CURRENT_SAMPLE` is treated as blocked
+  clearance evidence rather than a stale-source finding or permission to relax
+  DataFreshnessGuard.
 - `scripts/prepare_entry_filter_operator_review_packet_ssh.ps1` wraps the
   signal-correctness smoke into `entry_filter_operator_review_packet` and
   `entry_filter_operator_packet_status`. It carries `signalPolicyClear`,

@@ -517,6 +517,10 @@ Expected:
   is not `TOO_STRICT`, `TOO_LOOSE`, or `INSUFFICIENT_DATA`, and
   missed-opportunity `overallStatus=PASS`; otherwise it prints the review
   details and exits non-zero.
+- `dataFreshnessCurrentStatus=NO_CURRENT_SAMPLE` means the read-only RCA did
+  not observe a current DataFreshnessGuard sample. Treat it as missing
+  clearance evidence, not as a source outage and not as permission to relax
+  DataFreshnessGuard.
 - The smoke also prints `signal_policy_review_plan`, a machine-readable
   review packet with `riskCategory`, `evidenceMarkers`, `requiredEvidence`,
   `nextAction`, and `notAuthorization` for each blocked/review gate. Use it to
@@ -950,6 +954,9 @@ Expected:
   opportunity rows still block entry/filter experiments.
 - `exit_lane_status` and `trailing_stop_acceptance` show whether exit-side
   trailing/TP-stop evidence is review-ready.
+- `data_freshness_current_status` distinguishes `CLEAN`,
+  `NO_CURRENT_SAMPLE`, and stale/query issue states before the brief summarizes
+  entry/filter readiness.
 - Long child smokes print `child_start`, periodic `child_heartbeat`, and
   `child_complete` markers. `-ChildTimeoutSeconds` bounds a stuck local child
   wrapper and reports `timedOut=true` without changing production state.

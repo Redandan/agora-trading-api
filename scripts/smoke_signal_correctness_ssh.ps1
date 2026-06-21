@@ -258,6 +258,16 @@ pass_line = find(r"(EnsembleGate \[PASS\].*)", accuracy)
 stale_now = find(r"staleNowKeys=(\d+)", freshness)
 no_data_now = find(r"noDataNowKeys=(\d+)", freshness)
 query_failed_now = find(r"queryFailedNowKeys=(\d+)", freshness)
+ready_now = find(r"readyNowKeys=(\d+)", freshness)
+freshness_acceptance = find(r"acceptance:\s*([A-Z_]+)", freshness)
+if stale_now == "0" and no_data_now == "0" and query_failed_now == "0":
+    data_freshness_current_status = "CLEAN"
+elif freshness_acceptance == "PASS_NO_CURRENT_SAMPLE":
+    data_freshness_current_status = "NO_CURRENT_SAMPLE"
+elif stale_now != "N/A" or no_data_now != "N/A" or query_failed_now != "N/A":
+    data_freshness_current_status = "STALE_OR_QUERY_ISSUE"
+else:
+    data_freshness_current_status = "UNKNOWN"
 actionable = find(r"actionableCandidates=(\d+)", dashboard)
 labeled = find(r"labeledCandidates=(\d+)", dashboard)
 false_block_rate = find(r"falseBlockRate=([-+0-9.]+%)", dashboard)
@@ -333,9 +343,7 @@ for group in entry_groups:
 required_signal_fields = {
     "governanceMode7d": governance_mode_7d,
     "missedOpportunityOverallStatus": missed_status,
-    "staleNowKeys": stale_now,
-    "noDataNowKeys": no_data_now,
-    "queryFailedNowKeys": query_failed_now,
+    "dataFreshnessCurrentStatus": data_freshness_current_status,
     "entryDedupWouldAllowStagedAddGroups": entry_dedup_would_allow,
     "missedDedupTooCoarseSuspects": missed_dedup_too_coarse,
 }
@@ -349,11 +357,13 @@ review_policy_gaps = "REVIEW_POLICY_GAPS" in "\n".join([
 ])
 governance_mode_clear = governance_mode_7d not in ("", "N/A", "TOO_STRICT", "TOO_LOOSE", "INSUFFICIENT_DATA")
 missed_opportunity_clear = missed_status == "PASS"
+data_freshness_current_clear = data_freshness_current_status == "CLEAN"
 signal_policy_clear = (
     not review_policy_gaps
     and not missing_signal_policy_fields
     and governance_mode_clear
     and missed_opportunity_clear
+    and data_freshness_current_clear
 )
 
 signal_policy_review_plan = []
@@ -387,6 +397,23 @@ if review_policy_gaps:
         ["REVIEW_POLICY_GAPS"],
         ["no REVIEW_POLICY_GAPS marker in any signal-policy tool output"],
         "Resolve explicit policy review gaps in the source tool output; do not bypass by relying on later free-text summaries."
+    )
+
+if not data_freshness_current_clear:
+    add_signal_policy_gate(
+        "data-freshness-current-sample",
+        "BLOCKED",
+        "data_freshness_current_evidence",
+        [
+            f"dataFreshnessCurrentStatus={data_freshness_current_status}",
+            f"dataFreshnessAcceptance={freshness_acceptance}",
+            f"readyNowKeys={ready_now}",
+            f"staleNowKeys={stale_now}",
+            f"noDataNowKeys={no_data_now}",
+            f"queryFailedNowKeys={query_failed_now}",
+        ],
+        ["dataFreshnessCurrentStatus=CLEAN", "explicit current RCA counts prove staleNowKeys=0, noDataNowKeys=0, and queryFailedNowKeys=0"],
+        "Wait for or collect a fresh read-only DataFreshnessGuard RCA sample before treating signal policy as clear; do not relax freshness rules."
     )
 
 if not governance_mode_clear:
@@ -482,7 +509,7 @@ print("Signal Accuracy:")
 print(f"  passSummary={pass_line}")
 print("")
 print("DataFreshnessGuard Current Snapshot:")
-print(f"  staleNowKeys={stale_now} noDataNowKeys={no_data_now} queryFailedNowKeys={query_failed_now}")
+print(f"  dataFreshnessCurrentStatus={data_freshness_current_status} acceptance={freshness_acceptance} readyNowKeys={ready_now} staleNowKeys={stale_now} noDataNowKeys={no_data_now} queryFailedNowKeys={query_failed_now}")
 print("")
 print("24h Correctness Dashboard:")
 print(f"  governanceMode={governance_mode} actionableCandidates={actionable} labeledCandidates={labeled} falseBlockRate={false_block_rate}")
@@ -563,10 +590,12 @@ if total_num >= 30 and wrong_num * 100.0 / total_num >= 40.0:
 else:
     print("  - WATCH: blocker evidence is either limited or not strongly over-conservative.")
 
-if stale_now != "0" or no_data_now != "0" or query_failed_now != "0":
-    print("  - FIX DATA FIRST: current DataFreshnessGuard snapshot is not clean; do not relax freshness rules.")
-else:
+if data_freshness_current_status == "CLEAN":
     print("  - KEEP STRICT: DataFreshnessGuard current snapshot is clean; historical false kills should be handled as collector-cadence evidence, not relaxed blindly.")
+elif data_freshness_current_status == "NO_CURRENT_SAMPLE":
+    print("  - WAIT DATA SAMPLE: current DataFreshnessGuard RCA has no sample; do not treat it as a source failure or as clearance to relax freshness rules.")
+else:
+    print("  - FIX DATA FIRST: current DataFreshnessGuard snapshot is not clean or not classified; do not relax freshness rules.")
 
 if relaxation_lines:
     print("  - PRIORITIZE: review the listed relaxation candidates in shadow/tiny-live caps before changing any live execution policy.")

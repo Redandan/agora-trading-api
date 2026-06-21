@@ -62,6 +62,7 @@ foreach ($marker in @(
         "signal_policy_clear",
         "governance_mode",
         "missed_opportunity_status",
+        "data_freshness_current_status",
         "data_freshness_current_clean",
         "trailing_stop_acceptance",
         "trailing_stop_improvement_pct",

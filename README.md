@@ -311,6 +311,10 @@ trading or relax policy by itself.
 The full bundle also requires `signalPolicyClear=true` and
 `signal_policy_review_plan` to be present without `BLOCKED` or `REVIEW` states
 when signal policy is otherwise clear.
+The smoke also prints `dataFreshnessCurrentStatus`. `NO_CURRENT_SAMPLE` means
+the read-only RCA did not observe a current DataFreshnessGuard sample; it is
+blocked evidence, not proof of a stale source and not clearance to relax
+DataFreshnessGuard.
 
 Read-only entry/filter operator review packet:
 
@@ -608,6 +612,8 @@ replay, and the profit blocker ledger into `profit_readiness_brief_packet` and
 and exit-side candidates can be reviewed separately. It does not deploy, change
 production env, enable live trading, relax EntryDedup/DataFreshness/live policy,
 place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+It also carries `data_freshness_current_status` so no-current-sample evidence
+is not confused with a source outage.
 Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers. Use `-ChildTimeoutSeconds` to fail a stuck child
 locally without changing production state.

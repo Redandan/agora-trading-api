@@ -245,7 +245,8 @@ $suspiciousNoBuyCount = Get-RegexValue -Text $signal.Text -Pattern "suspiciousNo
 $falseBlockRiskCount = Get-RegexValue -Text $signal.Text -Pattern "falseBlockRiskCount=([0-9]+)" -Default "0"
 $highForwardReturnNoBuyCount = Get-RegexValue -Text $signal.Text -Pattern "highForwardReturnNoBuyCount=([0-9]+)" -Default "0"
 $accuracySummary = Get-RegexValue -Text $signal.Text -Pattern "passSummary=([^\r\n]+)" -Default "N/A"
-$dataFreshnessCurrentClean = (($signal.Text -match "staleNowKeys=0") -and ($signal.Text -match "noDataNowKeys=0") -and ($signal.Text -match "queryFailedNowKeys=0"))
+$dataFreshnessCurrentStatus = Get-RegexValue -Text $signal.Text -Pattern "dataFreshnessCurrentStatus=([A-Z_]+)" -Default "N/A"
+$dataFreshnessCurrentClean = ($dataFreshnessCurrentStatus -eq "CLEAN")
 
 $trailingAcceptance = Get-RegexValue -Text $trailing.Text -Pattern "acceptance=([A-Z_]+)" -Default "N/A"
 $trailingImprovement = Get-RegexValue -Text $trailing.Text -Pattern "improvementPct=([-+0-9.]+%)" -Default "N/A"
@@ -315,6 +316,7 @@ $brief = [pscustomobject]@{
         falseBlockRiskCount = $falseBlockRiskCount
         highForwardReturnNoBuyCount = $highForwardReturnNoBuyCount
         accuracySummary = $accuracySummary
+        dataFreshnessCurrentStatus = $dataFreshnessCurrentStatus
         dataFreshnessCurrentClean = $dataFreshnessCurrentClean
     }
     exitLane = [pscustomobject]@{
@@ -347,6 +349,7 @@ Write-Host "missed_opportunity_status=$missedStatus"
 Write-Host "suspicious_no_buy_count=$suspiciousNoBuyCount"
 Write-Host "false_block_risk_count=$falseBlockRiskCount"
 Write-Host "high_forward_return_no_buy_count=$highForwardReturnNoBuyCount"
+Write-Host "data_freshness_current_status=$dataFreshnessCurrentStatus"
 Write-Host "data_freshness_current_clean=$($dataFreshnessCurrentClean.ToString().ToLowerInvariant())"
 Write-Host "trailing_stop_acceptance=$trailingAcceptance"
 Write-Host "trailing_stop_improvement_pct=$trailingImprovement"

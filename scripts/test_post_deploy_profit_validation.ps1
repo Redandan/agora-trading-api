@@ -77,6 +77,34 @@ function Assert-ReviewPlanShape {
     }
 }
 
+function Assert-ProfitExperimentEvidencePreserved {
+    param(
+        [string]$Name,
+        [string]$Json
+    )
+
+    $items = @($Json | ConvertFrom-Json -ErrorAction Stop | ForEach-Object { $_ })
+    $profitExperiment = @($items | Where-Object { $_.gate -eq "profit-experiment-review" } | Select-Object -First 1)
+    if ($profitExperiment.Count -eq 0) {
+        throw "$Name missing profit-experiment-review entry"
+    }
+
+    $required = @($profitExperiment[0].requiredEvidence)
+    foreach ($marker in @(
+            "deployed runtime current",
+            "fresh replayCandidateId rows",
+            "entry/TP/SL candidate snapshot",
+            "EV and OCO preflight snapshots",
+            "shadow replay removing only DataFreshnessGuard",
+            "separate operator approval before any position/OCO mutation",
+            "current BUY candidate and hard-gate pass evidence"
+        )) {
+        if ($required -notcontains $marker) {
+            throw "$Name profit-experiment-review did not preserve evidence: $marker"
+        }
+    }
+}
+
 function Assert-BlockerSummaryShape {
     param([string]$Json)
 
@@ -122,6 +150,14 @@ function Assert-ReviewDecisionShape {
     }
     if ($item.notAuthorization -notmatch "does not authorize live trading") {
         throw "post-deploy profit validation review decision must preserve no-live authorization text"
+    }
+    foreach ($marker in @(
+            "separate operator approval before any position/OCO mutation",
+            "current BUY candidate and hard-gate pass evidence"
+        )) {
+        if (@($item.missingRequirements) -notcontains $marker) {
+            throw "post-deploy profit validation review decision did not preserve missing requirement: $marker"
+        }
     }
 }
 
@@ -295,13 +331,14 @@ $reviewPlanFixture = @'
     "recommendation": "DataFreshness false-kill counterfactual",
     "allowedFlag": "shadow_experiment_review_allowed",
     "allowed": false,
-    "requiredEvidence": ["deployed runtime current", "entry/TP/SL candidate snapshot"],
+    "requiredEvidence": ["deployed runtime current", "fresh replayCandidateId rows", "entry/TP/SL candidate snapshot", "EV and OCO preflight snapshots", "shadow replay removing only DataFreshnessGuard", "separate operator approval before any position/OCO mutation", "current BUY candidate and hard-gate pass evidence"],
     "nextAction": "Separately deploy and verify current origin/main, then rerun replay observation and profit experiment gate.",
     "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
   }
 ]
 '@
 Assert-ReviewPlanShape -Json $reviewPlanFixture
+Assert-ProfitExperimentEvidencePreserved -Name "review plan fixture" -Json $reviewPlanFixture
 
 $blockerSummaryFixture = @'
 [
@@ -347,8 +384,8 @@ $blockerSummaryFixture = @'
     "riskCategory": "shadow-experiment-and-policy-counterfactual",
     "allowedFlag": "shadow_experiment_review_allowed",
     "allowed": false,
-    "requiredEvidenceCount": 2,
-    "requiredEvidence": ["deployed runtime current", "entry/TP/SL candidate snapshot"],
+    "requiredEvidenceCount": 7,
+    "requiredEvidence": ["deployed runtime current", "fresh replayCandidateId rows", "entry/TP/SL candidate snapshot", "EV and OCO preflight snapshots", "shadow replay removing only DataFreshnessGuard", "separate operator approval before any position/OCO mutation", "current BUY candidate and hard-gate pass evidence"],
     "nextAction": "Separately deploy and verify current origin/main, then rerun replay observation and profit experiment gate.",
     "runtimeDrift": {
       "originDeltaStatus": "RUNTIME_DRIFT",
@@ -362,6 +399,7 @@ $blockerSummaryFixture = @'
 ]
 '@
 Assert-BlockerSummaryShape -Json $blockerSummaryFixture
+Assert-ProfitExperimentEvidencePreserved -Name "blocker summary fixture" -Json $blockerSummaryFixture
 
 $reviewDecisionFixture = @'
 {
@@ -370,8 +408,8 @@ $reviewDecisionFixture = @'
   "deployRequired": true,
   "allowedReviewTypes": [],
   "blockerCount": 3,
-  "missingRequirementCount": 3,
-  "missingRequirements": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows", "entry/TP/SL candidate snapshot"],
+  "missingRequirementCount": 5,
+  "missingRequirements": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows", "entry/TP/SL candidate snapshot", "separate operator approval before any position/OCO mutation", "current BUY candidate and hard-gate pass evidence"],
   "nextAction": "Separately deploy and verify current origin/main, then rerun post-deploy profit validation.",
   "notAuthorization": "read-only routing decision only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
 }

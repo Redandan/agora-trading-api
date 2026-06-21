@@ -197,6 +197,25 @@ function New-ProfitImprovementReviewDecision {
         $decision = "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE"
     }
 
+    $rankedEvidenceRefs = @($CandidateScorecard | ForEach-Object {
+            [pscustomobject]@{
+                rank = $_.rank
+                candidate = $_.candidate
+                status = $_.status
+                evidence = $_.evidence
+            }
+        })
+    $strategy485ReviewDecision = $null
+    $strategy485Evidence = @($rankedEvidenceRefs | Where-Object { $_.candidate -eq "Strategy 485 aged negative-EV open positions" } | Select-Object -First 1)
+    if ($strategy485Evidence.Count -gt 0 -and $null -ne $strategy485Evidence[0].evidence) {
+        $candidateEvidence = $strategy485Evidence[0].evidence
+        if ($candidateEvidence -is [System.Collections.IDictionary] -and $candidateEvidence.Contains("reviewDecision")) {
+            $strategy485ReviewDecision = $candidateEvidence["reviewDecision"]
+        } elseif ($null -ne $candidateEvidence.PSObject.Properties["reviewDecision"]) {
+            $strategy485ReviewDecision = $candidateEvidence.reviewDecision
+        }
+    }
+
     [pscustomobject]@{
         decision = $decision
         canDraftShadowExperimentReview = ($decision -eq "READY_FOR_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE")
@@ -204,6 +223,8 @@ function New-ProfitImprovementReviewDecision {
         allowedReviewTypes = @($allowedReviewTypes)
         topCandidate = $TopCandidate
         recommendation = $Recommendation
+        rankedEvidenceRefs = @($rankedEvidenceRefs)
+        strategy485ReviewDecision = $strategy485ReviewDecision
         missingRequirementCount = @($missingRequirements).Count
         missingRequirements = @($missingRequirements)
         nextAction = if ($decision -eq "BLOCKED_DEPLOY_CURRENT_RUNTIME") {
@@ -222,9 +243,16 @@ function New-ProfitImprovementReviewDecision {
 function Assert-ProfitImprovementReviewDecisionShape {
     param([object]$Decision)
 
-    foreach ($field in @("decision", "canDraftShadowExperimentReview", "deployRequired", "allowedReviewTypes", "topCandidate", "recommendation", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
+    foreach ($field in @("decision", "canDraftShadowExperimentReview", "deployRequired", "allowedReviewTypes", "topCandidate", "recommendation", "rankedEvidenceRefs", "strategy485ReviewDecision", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
         if ($null -eq $Decision.PSObject.Properties[$field]) {
             throw "profit improvement review decision missing field: $field"
+        }
+    }
+    foreach ($ref in @($Decision.rankedEvidenceRefs)) {
+        foreach ($field in @("rank", "candidate", "status", "evidence")) {
+            if ($null -eq $ref.PSObject.Properties[$field]) {
+                throw "profit improvement review decision ranked evidence ref missing field: $field"
+            }
         }
     }
     if ($Decision.missingRequirementCount -ne @($Decision.missingRequirements).Count) {

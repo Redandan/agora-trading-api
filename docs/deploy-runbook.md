@@ -881,7 +881,8 @@ Expected:
 - `profit_improvement_review_decision` is the top-level routing object for
   shadow/small experiment review. It includes
   `canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,
-  missing-requirement counts, and no-live authorization text.
+  `rankedEvidenceRefs`, `strategy485ReviewDecision`, missing-requirement
+  counts, and no-live authorization text.
 - A recommendation such as `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE` is
   review routing only; it is not permission to relax DataFreshnessGuard,
   activate strategies, close positions, modify OCO, deploy, restart, or change

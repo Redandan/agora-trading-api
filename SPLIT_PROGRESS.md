@@ -388,8 +388,9 @@
   candidate carries `strategy485_position_review_decision` so EV/OCO/timeout
   counts remain attached to the ranked profit candidate; it does not authorize
   live mutations. The review decision adds top-level `canDraftShadowExperimentReview`,
-  `deployRequired`, `allowedReviewTypes`, missing-requirement counts, and
-  no-live authorization text for downstream gates. The wrapper invokes existing read-only smokes only and does not
+  `deployRequired`, `allowedReviewTypes`, `rankedEvidenceRefs`,
+  `strategy485ReviewDecision`, missing-requirement counts, and no-live
+  authorization text for downstream gates. The wrapper invokes existing read-only smokes only and does not
   change production env, DB, order, OCO, grid, Earn, fund, Telegram, scheduler,
   exchange, external backfill/import, deploy, restart, or nginx state.
   `scripts/test_profit_improvement_review_bundle.ps1` guards the child smoke

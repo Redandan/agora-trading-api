@@ -545,7 +545,8 @@ The scorecard ranks read-only candidates and required evidence only; it is not
 permission to relax policy, close or modify positions, or place orders.
 The review decision is the top-level machine-readable routing object with
 `canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,
-missing-requirement counts, and no-live authorization text.
+`rankedEvidenceRefs`, `strategy485ReviewDecision`, missing-requirement counts,
+and no-live authorization text.
 
 Read-only profit experiment gate:
 

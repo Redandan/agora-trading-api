@@ -496,6 +496,20 @@ currentness is still the first blocker; the ledger does not deploy, restart,
 reload nginx, change production env, enable live trading, relax policy, place
 orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
 
+Read-only profit readiness brief:
+
+```powershell
+.\scripts\prepare_profit_readiness_brief_ssh.ps1 -RequireBrief
+```
+
+This combines signal correctness/missed-opportunity evidence, trailing-stop PnL
+replay, and the profit blocker ledger into `profit_readiness_brief_packet` and
+`profit_readiness_brief_status`. It emits `entry_filter_lane_status`,
+`exit_lane_status`, and `trailing_stop_acceptance` so entry/filter candidates
+and exit-side candidates can be reviewed separately. It does not deploy, change
+production env, enable live trading, relax EntryDedup/DataFreshness/live policy,
+place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

@@ -327,6 +327,18 @@
   enable live trading, relax policy, place orders, modify OCO, close positions,
   mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize strategy/DataFreshness policy changes.
+- `scripts/prepare_profit_readiness_brief_ssh.ps1` combines
+  `smoke_signal_correctness_ssh.ps1`,
+  `smoke_trailing_stop_pnl_replay_ssh.ps1`, and
+  `prepare_profit_blocker_ledger_ssh.ps1` into
+  `profit_readiness_brief_packet` and `profit_readiness_brief_status`. It emits
+  `entry_filter_lane_status`, `exit_lane_status`, and
+  `trailing_stop_acceptance` so entry/filter governance/missed-opportunity
+  evidence and exit-side trailing/TP-stop evidence stay separate in operator
+  review. The brief does not deploy, restart, reload nginx, change production
+  env, enable live trading, relax EntryDedup/DataFreshness/live policy, place
+  orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/
+  exchange state, run external backfill/import, or authorize strategy changes.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

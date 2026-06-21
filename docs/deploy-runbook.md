@@ -836,6 +836,27 @@ Expected:
   close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run
   external backfill/import, or authorize strategy/DataFreshness policy changes.
 
+For a read-only profit readiness brief, run:
+
+```powershell
+.\scripts\prepare_profit_readiness_brief_ssh.ps1 -RequireBrief
+```
+
+Expected:
+
+- `profit_readiness_brief_packet` merges signal correctness and
+  missed-opportunity evidence, trailing-stop PnL replay, and the profit blocker
+  ledger.
+- `entry_filter_lane_status` shows whether governance drift and missed
+  opportunity rows still block entry/filter experiments.
+- `exit_lane_status` and `trailing_stop_acceptance` show whether exit-side
+  trailing/TP-stop evidence is review-ready.
+- The brief is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, relax EntryDedup/DataFreshness/live
+  policy, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy changes.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

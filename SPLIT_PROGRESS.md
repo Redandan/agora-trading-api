@@ -175,6 +175,15 @@
   backfill/import state. `scripts/test_strategy574_signal_governance_smoke.ps1`
   guards the read-only tool calls, no-order markers, window comparison, strategy
   574 row extraction, and non-authorization wording.
+- `scripts/prepare_strategy574_signal_review_gate_ssh.ps1` wraps origin-delta
+  plus the strategy 574 signal/governance smoke into a read-only gate. It emits
+  `deploy_required_before_strategy574_review`,
+  `shadow_observation_review_allowed`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `strategy574_review_missing_requirements`,
+  and `strategy574_signal_review_gate_status`. The gate can route continued
+  read-only observation only; it never authorizes pre-buying, TinyLive order
+  execution, EntryDedup/DataFreshness relaxation, deploy, restart, or live
+  policy changes.
 - `scripts/smoke_strategy485_position_risk_ssh.ps1` provides a focused
   read-only production RCA for SCORE_BUY strategy 485 open-position risk. It
   calls server-local `/api/mcp` to summarize open positions, OCO health,

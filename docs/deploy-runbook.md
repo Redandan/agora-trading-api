@@ -557,6 +557,26 @@ Expected:
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, or external backfill/import state.
 
+For the read-only strategy 574 signal review gate, run:
+
+```powershell
+.\scripts\prepare_strategy574_signal_review_gate_ssh.ps1
+```
+
+Expected:
+
+- The gate invokes `smoke_live_origin_delta_local.ps1` and
+  `smoke_strategy574_signal_governance_ssh.ps1` only.
+- Output includes `deploy_required_before_strategy574_review`,
+  `shadow_observation_review_allowed`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `strategy574_review_missing_requirements`,
+  and `strategy574_signal_review_gate_status`.
+- `READY_FOR_OBSERVATION_REVIEW_NOT_ORDER` only means continued read-only
+  observation is routed; it is not permission to pre-buy, execute TinyLive,
+  relax EntryDedup/DataFreshness, deploy, restart, or change live policy.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means deploy and server verification are
+  required before the strategy 574 gate can be trusted.
+
 For the focused strategy 485 open-position risk RCA, run:
 
 ```powershell

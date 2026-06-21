@@ -310,6 +310,19 @@ bounded conclusion such as `WAIT_BUY_THRESHOLD_CROSS` or
 `DO_NOT_RELAX_ENTRY_DEDUP_OR_DATAFRESHNESS_LIVE`. It is evidence only and does
 not authorize policy relaxation or live mutations.
 
+Read-only strategy 574 signal review gate:
+
+```powershell
+.\scripts\prepare_strategy574_signal_review_gate_ssh.ps1
+```
+
+This gate combines origin-delta and strategy 574 governance evidence into
+`deploy_required_before_strategy574_review`,
+`shadow_observation_review_allowed`, `tiny_live_order_allowed=false`,
+`live_policy_change_allowed=false`, and `strategy574_signal_review_gate_status`.
+It may route continued read-only observation, but it never authorizes
+pre-buying, TinyLive order execution, or EntryDedup/DataFreshness relaxation.
+
 Focused strategy 485 open-position risk RCA:
 
 ```powershell

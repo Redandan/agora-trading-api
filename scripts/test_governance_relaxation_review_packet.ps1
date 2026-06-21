@@ -72,6 +72,8 @@ foreach ($marker in @(
         "signalPolicyClear",
         "governanceMode",
         "missedOpportunityStatus",
+        "dataFreshnessCurrentStatus",
+        'dataFreshnessCurrentClean = ($dataFreshnessCurrentStatus -eq "CLEAN")',
         "notAuthorization=read-only governance relaxation review packet only",
         "does not deploy",
         "Assert-SshHostSafe",

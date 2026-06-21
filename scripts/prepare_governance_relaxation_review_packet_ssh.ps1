@@ -141,7 +141,8 @@ $classifications = Get-RegexValue -Text $text -Pattern "No-Buy Row Classificatio
 $blockerFamilies = Get-RegexValue -Text $text -Pattern "No-Buy Row Classification:\s*[\r\n]+\s*classifications=[^\r\n]+[\r\n]+\s*blockerFamilies=([^\r\n]+)" -Default "N/A"
 $highReturnStrategies = Get-RegexValue -Text $text -Pattern "High-Return No-Buy Breakdown:\s*[\r\n]+\s*strategies=([^\r\n]+)" -Default "N/A"
 $highReturnBlockerFamilies = Get-RegexValue -Text $text -Pattern "High-Return No-Buy Breakdown:\s*[\r\n]+\s*strategies=[^\r\n]+[\r\n]+\s*blockerFamilies=([^\r\n]+)" -Default "N/A"
-$dataFreshnessCurrentClean = (($text -match "staleNowKeys=0") -and ($text -match "noDataNowKeys=0") -and ($text -match "queryFailedNowKeys=0"))
+$dataFreshnessCurrentStatus = Get-RegexValue -Text $text -Pattern "dataFreshnessCurrentStatus=([A-Z_]+)" -Default "N/A"
+$dataFreshnessCurrentClean = ($dataFreshnessCurrentStatus -eq "CLEAN")
 
 $relaxationRegex = [regex]::new("^\s*-\s+blocker=(?<blocker>\S+)(?<detail>.*)$", [System.Text.RegularExpressions.RegexOptions]::Multiline)
 $relaxationCandidates = [System.Collections.Generic.List[object]]::new()
@@ -223,6 +224,7 @@ $packet = [pscustomobject]@{
     noBuyBlockerFamilies = $blockerFamilies
     highReturnStrategies = $highReturnStrategies
     highReturnBlockerFamilies = $highReturnBlockerFamilies
+    dataFreshnessCurrentStatus = $dataFreshnessCurrentStatus
     relaxationCandidateCount = $relaxationCandidates.Count
     relaxationCandidates = @($relaxationCandidates)
     signalPolicyReviewPlan = @($reviewPlan)
@@ -258,6 +260,7 @@ Write-Host "noBuyClassifications=$classifications"
 Write-Host "noBuyBlockerFamilies=$blockerFamilies"
 Write-Host "highReturnStrategies=$highReturnStrategies"
 Write-Host "highReturnBlockerFamilies=$highReturnBlockerFamilies"
+Write-Host "dataFreshnessCurrentStatus=$dataFreshnessCurrentStatus"
 Write-Host "relaxationCandidateCount=$($relaxationCandidates.Count)"
 Write-Host "shadow_governance_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host "tiny_live_order_allowed=false"

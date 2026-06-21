@@ -638,8 +638,11 @@ Expected:
   signal/governance, and TinyLive post-trade evidence.
 - Output includes `origin_delta_status`, `live_authorized_audit_verdict`,
   `strategy485_position_risk_recommendation`,
+  `strategy485_position_review_decision`,
   `strategy574_policy_change_recommendation`, `tiny_live_post_trade_status`,
   `review_items`, and `auto_trading_review_recommendation`.
+- The bundle summary also prints strategy 485 negative-EV, close/modify, and
+  timeout counts parsed from `strategy485_position_review_decision`.
 - A recommendation such as `OPERATOR_REVIEW_STRATEGY485_POSITION_RISK` is
   review routing only; it is not permission to close positions, modify OCO,
   deploy, restart, or relax live policy.

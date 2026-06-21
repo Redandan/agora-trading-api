@@ -120,6 +120,18 @@ function Convert-MarkerNumber {
     return $null
 }
 
+function Convert-MarkerJsonOrNull {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    try {
+        return $Value | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        throw "failed to parse marker JSON: $($_.Exception.Message)"
+    }
+}
+
 function Add-UniqueRequirement {
     param(
         [System.Collections.Generic.List[string]]$List,
@@ -252,12 +264,17 @@ $profitCandidateRecommendation = Get-Marker -Text $profitCandidate -Prefix "  pr
 $dataFreshnessFalseKillRecommendation = Get-Marker -Text $dataFreshnessFalseKill -Prefix "  data_freshness_false_kill_recommendation="
 $dataFreshnessExecutabilityRecommendation = Get-Marker -Text $dataFreshnessExecutability -Prefix "  data_freshness_executability_recommendation="
 $strategy485Recommendation = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_risk_recommendation="
+$strategy485DecisionJson = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_review_decision="
+$strategy485Decision = Convert-MarkerJsonOrNull -Value $strategy485DecisionJson
 $strategy574Recommendation = Get-Marker -Text $strategy574 -Prefix "  policy_change_recommendation="
 $tinyLiveStatus = Get-Marker -Text $tinyLive -Prefix "post_trade_status="
 $monthlyPnlTotalUsdt = Get-Marker -Text $profitCandidate -Prefix "  monthlyPnlTotalUsdt="
 $dataFreshnessFalseKillPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessFalseKill -Prefix "  dataFreshnessFalseKillPct=")
 $dataFreshnessAvgRetPct = Convert-MarkerNumber -Value (Get-Marker -Text $dataFreshnessFalseKill -Prefix "  dataFreshnessAvgRetPct=")
 $negativeEvPositions = Convert-MarkerNumber -Value (Get-Marker -Text $strategy485 -Prefix "  negativeEvPositions=")
+if ($null -ne $strategy485Decision -and $null -ne $strategy485Decision.PSObject.Properties["negativeEvPositionCount"]) {
+    $negativeEvPositions = $strategy485Decision.negativeEvPositionCount
+}
 $strategy574NearBuy = Get-Marker -Text $strategy574 -Prefix "  strategy574_near_buy="
 $strategy574TerminalReason = Get-Marker -Text $strategy574 -Prefix "  strategy574_terminal_reason="
 
@@ -331,7 +348,11 @@ if ($strategy485Recommendation -eq "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY"
         status = "OPERATOR_REVIEW_REQUIRED_READ_ONLY"
         evidence = @{
             negativeEvPositions = $negativeEvPositions
+            closeOrModifySuggestionCount = if ($null -ne $strategy485Decision) { $strategy485Decision.closeOrModifySuggestionCount } else { $null }
+            positionTimeoutEventCount = if ($null -ne $strategy485Decision) { $strategy485Decision.positionTimeoutEventCount } else { $null }
+            ocoHealthOk = if ($null -ne $strategy485Decision) { $strategy485Decision.ocoHealthOk } else { $null }
             recommendation = $strategy485Recommendation
+            reviewDecision = $strategy485Decision
         }
         requiredEvidence = @(
             "current OCO health",
@@ -384,6 +405,7 @@ Write-Host "  profit_candidate_review_recommendation=$profitCandidateRecommendat
 Write-Host "  data_freshness_false_kill_recommendation=$dataFreshnessFalseKillRecommendation"
 Write-Host "  data_freshness_executability_recommendation=$dataFreshnessExecutabilityRecommendation"
 Write-Host "  strategy485_position_risk_recommendation=$strategy485Recommendation"
+Write-Host "  strategy485_position_review_decision=$strategy485DecisionJson"
 Write-Host "  strategy574_policy_change_recommendation=$strategy574Recommendation"
 Write-Host "  tiny_live_post_trade_status=$tinyLiveStatus"
 Write-Host ("  profit_improvement_review_items=" + (ConvertTo-Json -Compress @($reviewItems)))

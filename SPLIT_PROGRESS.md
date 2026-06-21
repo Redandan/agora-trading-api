@@ -221,11 +221,15 @@
   into one review command. It prints `review_items` plus
   `auto_trading_review_recommendation` such as
   `OPERATOR_REVIEW_STRATEGY485_POSITION_RISK` or
-  `CONTINUE_TINYLIVE_MONITORING`. The wrapper invokes existing read-only smokes
-  only and does not change production env, DB, order, OCO, grid, Earn, fund,
-  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
-  nginx state. `scripts/test_auto_trading_review_bundle.ps1` guards the child
-  smoke list, output markers, and non-authorization wording.
+  `CONTINUE_TINYLIVE_MONITORING`. It also carries
+  `strategy485_position_review_decision` plus parsed strategy 485 negative-EV,
+  close/modify, and timeout counts into the bundle summary. The wrapper invokes
+  existing read-only smokes only and does not change production env, DB, order,
+  OCO, grid, Earn, fund, Telegram, scheduler, exchange, external
+  backfill/import, deploy, restart, or nginx state.
+  `scripts/test_auto_trading_review_bundle.ps1` guards the child smoke list,
+  output markers, strategy 485 decision propagation, and non-authorization
+  wording.
 - `scripts/prepare_auto_trading_review_gate_ssh.ps1` converts the read-only
   auto-trading review bundle into a packet gate with
   `deploy_required_before_auto_trading_review`,
@@ -380,8 +384,10 @@
   `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE`, so DataFreshness alpha
   pressure cannot be reviewed without its executability gap, and strategy 485
   risk plus strategy 574/TinyLive context stay visible. The scorecard ranks
-  read-only candidates and required evidence only; it does not authorize live
-  mutations. The review decision adds top-level `canDraftShadowExperimentReview`,
+  read-only candidates and required evidence only, and the strategy 485
+  candidate carries `strategy485_position_review_decision` so EV/OCO/timeout
+  counts remain attached to the ranked profit candidate; it does not authorize
+  live mutations. The review decision adds top-level `canDraftShadowExperimentReview`,
   `deployRequired`, `allowedReviewTypes`, missing-requirement counts, and
   no-live authorization text for downstream gates. The wrapper invokes existing read-only smokes only and does not
   change production env, DB, order, OCO, grid, Earn, fund, Telegram, scheduler,

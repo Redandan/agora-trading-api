@@ -538,6 +538,9 @@ post-trade evidence. It prints `profit_improvement_review_items` and
 so DataFreshness alpha
 pressure, strategy 485 open-position risk, strategy 574 near-BUY context, and
 TinyLive sample gaps are reviewed together without authorizing any live change.
+The strategy 485 scorecard evidence includes `strategy485_position_review_decision`
+so negative-EV position counts, close/modify suggestions, timeout evidence, and
+OCO health stay attached to the ranked profit candidate.
 The scorecard ranks read-only candidates and required evidence only; it is not
 permission to relax policy, close or modify positions, or place orders.
 The review decision is the top-level machine-readable routing object with

@@ -107,6 +107,18 @@ function Get-Marker {
     return $matches[$matches.Count - 1].Groups[1].Value.Trim()
 }
 
+function Convert-MarkerJsonOrNull {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    try {
+        return $Value | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        throw "failed to parse marker JSON: $($_.Exception.Message)"
+    }
+}
+
 Write-Host "[auto-trading-review-bundle] read-only review bundle"
 Write-Host "scope=READ_ONLY; invokes existing read-only SSH/local smokes only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "symbol=$Symbol reviewDays=$ReviewDays tinyLiveHours=$TinyLiveHours"
@@ -133,6 +145,8 @@ $tinyLive = Invoke-Smoke -Name "tiny-live-post-trade" -ScriptName "smoke_tiny_li
 $originDelta = Get-Marker -Text $origin -Prefix "origin_delta_status="
 $auditVerdict = Get-Marker -Text $audit -Prefix "verdict="
 $strategy485Recommendation = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_risk_recommendation="
+$strategy485DecisionJson = Get-Marker -Text $strategy485 -Prefix "  strategy485_position_review_decision="
+$strategy485Decision = Convert-MarkerJsonOrNull -Value $strategy485DecisionJson
 $strategy574Recommendation = Get-Marker -Text $strategy574 -Prefix "  policy_change_recommendation="
 $tinyLiveStatus = Get-Marker -Text $tinyLive -Prefix "post_trade_status="
 
@@ -168,6 +182,12 @@ Write-Host "Bundle Summary:"
 Write-Host "  origin_delta_status=$originDelta"
 Write-Host "  live_authorized_audit_verdict=$auditVerdict"
 Write-Host "  strategy485_position_risk_recommendation=$strategy485Recommendation"
+Write-Host "  strategy485_position_review_decision=$strategy485DecisionJson"
+if ($null -ne $strategy485Decision) {
+    Write-Host "  strategy485_negative_ev_positions=$($strategy485Decision.negativeEvPositionCount)"
+    Write-Host "  strategy485_close_or_modify_suggestions=$($strategy485Decision.closeOrModifySuggestionCount)"
+    Write-Host "  strategy485_position_timeout_events=$($strategy485Decision.positionTimeoutEventCount)"
+}
 Write-Host "  strategy574_policy_change_recommendation=$strategy574Recommendation"
 Write-Host "  tiny_live_post_trade_status=$tinyLiveStatus"
 Write-Host ("  review_items=" + (ConvertTo-Json -Compress @($reviewItems)))

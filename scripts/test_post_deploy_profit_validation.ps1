@@ -77,6 +77,29 @@ function Assert-ReviewPlanShape {
     }
 }
 
+function Assert-BlockerSummaryShape {
+    param([string]$Json)
+
+    $items = @($Json | ConvertFrom-Json -ErrorAction Stop | ForEach-Object { $_ })
+    if ($items.Count -ne 3) {
+        throw "post-deploy profit validation blocker summary must contain 3 blocked child gate entries, got $($items.Count)"
+    }
+
+    foreach ($item in $items) {
+        foreach ($field in @("gate", "status", "riskCategory", "allowedFlag", "allowed", "requiredEvidenceCount", "requiredEvidence", "nextAction", "notAuthorization")) {
+            if ($null -eq $item.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation blocker summary entry missing field: $field"
+            }
+        }
+        if ($item.requiredEvidenceCount -ne @($item.requiredEvidence).Count) {
+            throw "post-deploy profit validation blocker summary requiredEvidenceCount mismatch: $($item.gate)"
+        }
+        if ($item.notAuthorization -notmatch "does not authorize live trading") {
+            throw "post-deploy profit validation blocker summary entry must preserve no-live authorization text: $($item.gate)"
+        }
+    }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "smoke_post_deploy_profit_validation_ssh.ps1"
 $verifyPath = Join-Path $PSScriptRoot "verify_local.ps1"
@@ -112,6 +135,7 @@ foreach ($marker in @(
         "tiny_live_order_allowed=false",
         "post_deploy_profit_validation_missing_requirements",
         "post_deploy_profit_validation_review_plan",
+        "post_deploy_profit_validation_blocker_summary",
         "post_deploy_profit_validation_status",
         "post_deploy_profit_validation_next_action",
         "BLOCKED_DEPLOY_CURRENT_RUNTIME",
@@ -129,13 +153,19 @@ foreach ($marker in @(
         "Test-OriginDeltaAcceptableForProfitReview",
         "New-ProfitValidationReviewPlanEntry",
         "Assert-ProfitValidationReviewPlanShape",
+        "New-ProfitValidationBlockerSummary",
+        "Assert-ProfitValidationBlockerSummaryShape",
         "riskCategory",
         "requiredEvidence",
+        "requiredEvidenceCount",
         "nextAction",
         "post-deploy profit validation review plan must contain 3 child gate entries",
         "post-deploy profit validation review plan entry missing field",
         "post-deploy profit validation review plan entry must preserve requiredEvidence",
         "post-deploy profit validation review plan entry must preserve no-live authorization text",
+        "post-deploy profit validation blocker summary entry missing field",
+        "post-deploy profit validation blocker summary requiredEvidenceCount mismatch",
+        "post-deploy profit validation blocker summary entry must preserve no-live authorization text",
         "operator_review_packet_allowed",
         "loss_source_review_allowed",
         "shadow_experiment_review_allowed",
@@ -164,6 +194,7 @@ foreach ($marker in @(
         "post_deploy_profit_validation_status",
         "post_deploy_profit_validation_missing_requirements",
         "post_deploy_profit_validation_review_plan",
+        "post_deploy_profit_validation_blocker_summary",
         "live_policy_change_allowed=false",
         "position_or_oco_mutation_allowed=false",
         "tiny_live_order_allowed=false"
@@ -220,5 +251,44 @@ $reviewPlanFixture = @'
 ]
 '@
 Assert-ReviewPlanShape -Json $reviewPlanFixture
+
+$blockerSummaryFixture = @'
+[
+  {
+    "gate": "auto-trading-review",
+    "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+    "riskCategory": "position-risk-and-live-execution-readiness",
+    "allowedFlag": "operator_review_packet_allowed",
+    "allowed": false,
+    "requiredEvidenceCount": 2,
+    "requiredEvidence": ["deployed runtime current", "current strategy 485 OCO health"],
+    "nextAction": "Separately deploy and verify current origin/main, then rerun the auto-trading review gate.",
+    "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+  },
+  {
+    "gate": "profit-loss-review",
+    "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+    "riskCategory": "loss-source-and-datafreshness-counterfactual",
+    "allowedFlag": "loss_source_review_allowed",
+    "allowed": false,
+    "requiredEvidenceCount": 2,
+    "requiredEvidence": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows"],
+    "nextAction": "Separately deploy and verify current origin/main, then rerun profit loss review gate.",
+    "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+  },
+  {
+    "gate": "profit-experiment-review",
+    "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+    "riskCategory": "shadow-experiment-and-policy-counterfactual",
+    "allowedFlag": "shadow_experiment_review_allowed",
+    "allowed": false,
+    "requiredEvidenceCount": 2,
+    "requiredEvidence": ["deployed runtime current", "entry/TP/SL candidate snapshot"],
+    "nextAction": "Separately deploy and verify current origin/main, then rerun replay observation and profit experiment gate.",
+    "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+  }
+]
+'@
+Assert-BlockerSummaryShape -Json $blockerSummaryFixture
 
 Write-Host "[post-deploy-profit-validation-test] OK"

@@ -138,6 +138,47 @@ function Assert-ProfitValidationReviewPlanShape {
     }
 }
 
+function New-ProfitValidationBlockerSummary {
+    param([object[]]$Plan)
+
+    $summary = [System.Collections.Generic.List[object]]::new()
+    foreach ($item in @($Plan)) {
+        if ($item.status -notmatch "^BLOCKED|^NO_EVIDENCE" -and @($item.requiredEvidence).Count -eq 0) {
+            continue
+        }
+        $summary.Add([pscustomobject]@{
+            gate = $item.gate
+            status = $item.status
+            riskCategory = $item.riskCategory
+            allowedFlag = $item.allowedFlag
+            allowed = $item.allowed
+            requiredEvidenceCount = @($item.requiredEvidence).Count
+            requiredEvidence = @($item.requiredEvidence)
+            nextAction = $item.nextAction
+            notAuthorization = $item.notAuthorization
+        })
+    }
+    return @($summary)
+}
+
+function Assert-ProfitValidationBlockerSummaryShape {
+    param([object[]]$Summary)
+
+    foreach ($item in @($Summary)) {
+        foreach ($field in @("gate", "status", "riskCategory", "allowedFlag", "allowed", "requiredEvidenceCount", "requiredEvidence", "nextAction", "notAuthorization")) {
+            if ($null -eq $item.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation blocker summary entry missing field: $field"
+            }
+        }
+        if ($item.requiredEvidenceCount -ne @($item.requiredEvidence).Count) {
+            throw "post-deploy profit validation blocker summary requiredEvidenceCount mismatch: $($item.gate)"
+        }
+        if ($item.notAuthorization -notmatch "does not authorize live trading") {
+            throw "post-deploy profit validation blocker summary entry must preserve no-live authorization text: $($item.gate)"
+        }
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) {
     throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
 }
@@ -341,6 +382,8 @@ $reviewPlan = @(
         -NextAction $profitExperimentNextAction
 )
 Assert-ProfitValidationReviewPlanShape -Plan $reviewPlan
+$blockerSummary = New-ProfitValidationBlockerSummary -Plan $reviewPlan
+Assert-ProfitValidationBlockerSummaryShape -Summary $blockerSummary
 
 Write-Host "[post-deploy-profit-validation] read-only validation bundle"
 Write-Host "scope=READ_ONLY; runs auto-trading, profit-loss, and profit-experiment gates only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
@@ -364,6 +407,7 @@ Write-Host "position_or_oco_mutation_allowed=false"
 Write-Host "tiny_live_order_allowed=false"
 Write-Host ("post_deploy_profit_validation_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
 Write-Host ("post_deploy_profit_validation_review_plan=" + (ConvertTo-Json -Compress -Depth 5 @($reviewPlan)))
+Write-Host ("post_deploy_profit_validation_blocker_summary=" + (ConvertTo-Json -Compress -Depth 5 @($blockerSummary)))
 Write-Host "post_deploy_profit_validation_status=$status"
 Write-Host "post_deploy_profit_validation_next_action=$nextAction"
 Write-Host "notAuthorization=read-only validation only; does not authorize DataFreshnessGuard relaxation, close-position, OCO modification, pre-buying, TinyLive order execution, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, deploy, restart, production env changes, external backfill/import, or policy relaxation"

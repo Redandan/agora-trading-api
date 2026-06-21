@@ -264,11 +264,14 @@
   `post_deploy_profit_validation_status`,
   `post_deploy_profit_validation_missing_requirements`,
   `post_deploy_profit_validation_review_plan`,
+  `post_deploy_profit_validation_blocker_summary`,
   `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   and `tiny_live_order_allowed=false` so profit review readiness can be checked
-  from one read-only command. `scripts/test_post_deploy_profit_validation.ps1`
-  guards the child gate list, safety markers, docs coverage, and local input
-  validation.
+  from one read-only command. The blocker summary preserves
+  `requiredEvidenceCount`, `requiredEvidence`, `nextAction`, and no-live
+  authorization text for each blocked child gate. `scripts/test_post_deploy_profit_validation.ps1`
+  guards the child gate list, blocker summary shape, safety markers, docs
+  coverage, and local input validation.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

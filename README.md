@@ -421,10 +421,14 @@ and profit experiment gate after a separately authorized deploy. It emits
 `post_deploy_profit_validation_status`,
 `post_deploy_profit_validation_missing_requirements`,
 `post_deploy_profit_validation_review_plan`,
+`post_deploy_profit_validation_blocker_summary`,
 `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
 and `tiny_live_order_allowed=false`. It is a read-only readiness matrix for
 profit review packets and does not deploy, restart, change production env, relax
 policy, place orders, or modify OCO/grid/fund/Earn state.
+The blocker summary is a machine-readable routing copy of the blocked child
+gate evidence; each entry preserves `requiredEvidenceCount`, `requiredEvidence`,
+`nextAction`, and no-live authorization text, and does not clear blockers.
 
 Focused DataFreshness false-kill review:
 

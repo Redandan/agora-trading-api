@@ -686,6 +686,28 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For the read-only profit loss review gate, run:
+
+```powershell
+.\scripts\prepare_profit_loss_review_gate_ssh.ps1
+```
+
+Expected:
+
+- The gate invokes only `smoke_live_origin_delta_local.ps1` and
+  `smoke_profit_candidate_review_ssh.ps1`.
+- Output includes `monthlyPnlTotalUsdt`, `profit_loss_candidate_items`,
+  `deploy_required_before_profit_loss_review`, `loss_source_review_allowed`,
+  `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `tiny_live_order_allowed=false`, `profit_loss_review_missing_requirements`,
+  and `profit_loss_review_gate_status`.
+- `READY_FOR_LOSS_SOURCE_REVIEW_NOT_LIVE` means a separate read-only loss-source
+  packet can be drafted. It is not permission to relax DataFreshness, close
+  positions, modify OCO, pre-buy, execute TinyLive, deploy, restart, or change
+  live policy.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
+  and verified before the loss-source packet can be trusted.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

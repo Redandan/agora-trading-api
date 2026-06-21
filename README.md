@@ -395,6 +395,20 @@ example `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY`. The result is
 evidence only; it does not authorize live trading, policy relaxation, strategy
 activation, closing positions, or OCO changes.
 
+Read-only profit loss review gate:
+
+```powershell
+.\scripts\prepare_profit_loss_review_gate_ssh.ps1
+```
+
+This gate combines origin-delta and profit-candidate evidence into
+`deploy_required_before_profit_loss_review`, `loss_source_review_allowed`,
+`live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
+`tiny_live_order_allowed=false`, and `profit_loss_review_gate_status`. It can
+route a separate read-only loss-source review packet, but it never authorizes
+DataFreshness relaxation, close-position, OCO modification, TinyLive order
+execution, deploy, or live policy changes.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

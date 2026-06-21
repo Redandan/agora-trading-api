@@ -247,6 +247,16 @@
   `scripts/test_profit_candidate_review_smoke.ps1` guards the read-only MCP
   calls, hard-fail boundary checks, output markers, docs coverage, and
   non-authorization wording.
+- `scripts/prepare_profit_loss_review_gate_ssh.ps1` converts origin-delta and
+  profit-candidate evidence into a loss-source packet gate with
+  `deploy_required_before_profit_loss_review`, `loss_source_review_allowed`,
+  `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `tiny_live_order_allowed=false`, `profit_loss_review_missing_requirements`,
+  and `profit_loss_review_gate_status`. It can route a separate read-only
+  loss-source review packet after runtime currentness is proven, but it never
+  authorizes DataFreshness relaxation, close-position, OCO modification,
+  pre-buying, TinyLive order execution, deploy, restart, or live policy
+  changes.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

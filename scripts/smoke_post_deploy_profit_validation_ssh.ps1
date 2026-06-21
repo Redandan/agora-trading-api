@@ -234,6 +234,7 @@ function New-ProfitValidationReviewDecision {
         [object[]]$ReviewPlan,
         [object[]]$BlockerSummary,
         [string[]]$MissingRequirements,
+        [object]$RuntimeDrift,
         [string]$NextAction
     )
 
@@ -246,6 +247,7 @@ function New-ProfitValidationReviewDecision {
         blockerCount = @($BlockerSummary).Count
         missingRequirementCount = @($MissingRequirements).Count
         missingRequirements = @($MissingRequirements)
+        runtimeDrift = $RuntimeDrift
         nextAction = $NextAction
         notAuthorization = "read-only routing decision only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
     }
@@ -254,7 +256,7 @@ function New-ProfitValidationReviewDecision {
 function Assert-ProfitValidationReviewDecisionShape {
     param([object]$Decision)
 
-    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
+    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "runtimeDrift", "nextAction", "notAuthorization")) {
         if ($null -eq $Decision.PSObject.Properties[$field]) {
             throw "post-deploy profit validation review decision missing field: $field"
         }
@@ -264,6 +266,11 @@ function Assert-ProfitValidationReviewDecisionShape {
     }
     if ($Decision.notAuthorization -notmatch "does not authorize live trading") {
         throw "post-deploy profit validation review decision must preserve no-live authorization text"
+    }
+    foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths", "runtimeDeltaImpact")) {
+        if ($null -eq $Decision.runtimeDrift.PSObject.Properties[$field]) {
+            throw "post-deploy profit validation review decision runtimeDrift missing field: $field"
+        }
     }
 }
 
@@ -528,6 +535,7 @@ $reviewDecision = New-ProfitValidationReviewDecision `
     -ReviewPlan $reviewPlan `
     -BlockerSummary $blockerSummary `
     -MissingRequirements @($missingRequirements) `
+    -RuntimeDrift $runtimeDrift `
     -NextAction $nextAction
 Assert-ProfitValidationReviewDecisionShape -Decision $reviewDecision
 

@@ -140,7 +140,7 @@ function Assert-ReviewDecisionShape {
     param([string]$Json)
 
     $item = $Json | ConvertFrom-Json -ErrorAction Stop
-    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "nextAction", "notAuthorization")) {
+    foreach ($field in @("decision", "canPrepareReviewPacket", "deployRequired", "allowedReviewTypes", "blockerCount", "missingRequirementCount", "missingRequirements", "runtimeDrift", "nextAction", "notAuthorization")) {
         if ($null -eq $item.PSObject.Properties[$field]) {
             throw "post-deploy profit validation review decision missing field: $field"
         }
@@ -153,6 +153,11 @@ function Assert-ReviewDecisionShape {
     }
     if ($item.notAuthorization -notmatch "does not authorize live trading") {
         throw "post-deploy profit validation review decision must preserve no-live authorization text"
+    }
+    foreach ($field in @("originDeltaStatus", "serverWorktreeCommit", "originMainCommit", "runtimeDeltaFiles", "runtimeDeltaPaths", "runtimeDeltaImpact")) {
+        if ($null -eq $item.runtimeDrift.PSObject.Properties[$field]) {
+            throw "post-deploy profit validation review decision runtimeDrift missing field: $field"
+        }
     }
     foreach ($marker in @(
             "separate operator approval before any position/OCO mutation",
@@ -258,6 +263,7 @@ foreach ($marker in @(
         "post-deploy profit validation blocker summary runtimeDeltaFiles mismatch",
         "post-deploy profit validation review decision missing field",
         "post-deploy profit validation review decision missingRequirementCount mismatch",
+        "post-deploy profit validation review decision runtimeDrift missing field",
         "post-deploy profit validation review decision must preserve no-live authorization text",
         "canPrepareReviewPacket",
         "allowedReviewTypes",
@@ -426,6 +432,14 @@ $reviewDecisionFixture = @'
   "blockerCount": 3,
   "missingRequirementCount": 5,
   "missingRequirements": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows", "entry/TP/SL candidate snapshot", "separate operator approval before any position/OCO mutation", "current BUY candidate and hard-gate pass evidence"],
+  "runtimeDrift": {
+    "originDeltaStatus": "RUNTIME_DRIFT",
+    "serverWorktreeCommit": "ca8d1f24c35872a83b20c40dbb6626e4b8458f23",
+    "originMainCommit": "78bff14d64e114e0c714a7934ae098fefc1d1e3e",
+    "runtimeDeltaFiles": 2,
+    "runtimeDeltaPaths": ["src/main/java/com/agora/service/backtest/DataFreshnessReplayCandidateIds.java", "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"],
+    "runtimeDeltaImpact": ["DATAFRESHNESS_REPLAY_CANDIDATE_ID_RUNTIME_NOT_DEPLOYED", "LIVE_SIGNAL_EVALUATION_RUNTIME_NOT_DEPLOYED"]
+  },
   "nextAction": "Separately deploy and verify current origin/main, then rerun post-deploy profit validation.",
   "notAuthorization": "read-only routing decision only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
 }

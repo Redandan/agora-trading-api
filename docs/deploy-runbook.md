@@ -558,6 +558,30 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy/filter changes.
 
+For a read-only no-buy row review packet, run:
+
+```powershell
+.\scripts\prepare_no_buy_row_review_packet_ssh.ps1 -RequireReview
+```
+
+Expected:
+
+- The packet runs `smoke_signal_correctness_ssh.ps1` and emits
+  `no_buy_row_review_packet`.
+- `rowActionFamilyCounts` groups rows into review lanes such as
+  `WAIT_FOR_SIGNAL_CONFIRMATION`, `MISSED_OPPORTUNITY_REVIEW`,
+  `BUDGET_CAPACITY_REVIEW`, and `KEEP_HARD_SAFETY`.
+- `no_buy_row_review_packet_status=REVIEW_REQUIRED_NOT_EXPERIMENT` means
+  row-level evidence is reviewable but blocked by governance,
+  missed-opportunity, or signal-policy evidence.
+- `no_buy_row_review_packet_status=READY_FOR_SHADOW_DESIGN_NOT_LIVE` means the
+  rows can support a bounded shadow design only; it is not live approval.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, relax EntryDedup/DataFreshness/live
+  policy, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy/filter changes.
+
 For the focused strategy 574 TinyLive near-BUY / governance RCA, run:
 
 ```powershell

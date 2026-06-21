@@ -185,6 +185,17 @@
   reload nginx, change production env, enable live trading, place orders,
   modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange
   state, run external backfill/import, or authorize strategy/filter changes.
+- `scripts/prepare_no_buy_row_review_packet_ssh.ps1` converts the
+  signal-correctness `rowActions`, high-return no-buy breakdown, and no-buy
+  truth table into `no_buy_row_review_packet`, `rowActionFamilyCounts`, and
+  `no_buy_row_review_packet_status`. `REVIEW_REQUIRED_NOT_EXPERIMENT` means
+  no-buy rows are reviewable but still blocked by governance,
+  missed-opportunity, or signal-policy evidence. `READY_FOR_SHADOW_DESIGN_NOT_LIVE`
+  means the rows can support a bounded shadow design only. The packet does not
+  deploy, restart, reload nginx, change production env, enable live trading,
+  place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy/filter changes.
 - `scripts/smoke_strategy574_signal_governance_ssh.ps1` provides a focused
   read-only production RCA for the TinyLive strategy 574 near-BUY path. It
   compares 1d/3d/7d/14d governance drift, extracts strategy 574 rows from

@@ -326,6 +326,21 @@ to treat as EntryDedup/DataFreshness/live policy approval. The packet does not
 deploy, enable live trading, relax EntryDedup/DataFreshness/live policy, place
 orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
 
+Read-only no-buy row review packet:
+
+```powershell
+.\scripts\prepare_no_buy_row_review_packet_ssh.ps1 -RequireReview
+```
+
+This converts the signal-correctness `rowActions`, high-return no-buy
+breakdown, and no-buy truth table into `no_buy_row_review_packet` with
+`rowActionFamilyCounts`. `REVIEW_REQUIRED_NOT_EXPERIMENT` means the rows are
+useful for operator review but still blocked by governance/missed-opportunity
+or signal-policy evidence. `READY_FOR_SHADOW_DESIGN_NOT_LIVE` means the rows can
+be used to draft a bounded shadow design only. The packet does not deploy,
+enable live trading, relax EntryDedup/DataFreshness/live policy, place orders,
+modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

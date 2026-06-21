@@ -1569,6 +1569,7 @@ try {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/audit_live_readiness_ssh.ps1") -Description "live readiness audit keeps read-only blocker/verdict marker $pattern"
     }
     Invoke-VerifyPowerShellTest -ScriptName "test_live_readiness_audit_next_actions.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_tiny_live_post_trade_smoke.ps1"
     foreach ($pattern in @("tiny-live-loss-rca", "hardStopDetected", "AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES", "hardStopClearCriteria", "maxConsecutiveTinyLiveLosses<2", "Rollout Gates", "completedTinyLiveSamples", "falsePositiveCount", "canEnableProduction", "canIncreaseDailyCap", "missing_tiny_live_hard_stop_fields", "missing_tiny_live_rollout_fields", "missing_tiny_live_fields", "listTinyLiveExecutionReadiness", "previewTinyLiveAutoApproval", "previewTinyLiveAutoExecution", "listTinyLiveExecutions", "getAutonomousExecutionAttribution", "getAutonomousExplorationMonitorStatus", "getExplorationRolloutStatus", "getMissedOpportunityRegressionReport", "getNoBuyReasonTruthTable", "KEEP_DISABLED", "read-only check complete")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/smoke_tiny_live_loss_rca_ssh.ps1") -Description "tiny-live loss RCA smoke keeps read-only hard-stop evidence marker $pattern"
     }
@@ -1619,7 +1620,7 @@ try {
         Assert-RgMatch -Pattern $pattern -Paths @("docs/live-runtime-evidence-env-proposal.md") -Description "live runtime evidence env proposal keeps evidence-only marker $pattern"
     }
     Invoke-VerifyPowerShellTest -ScriptName "test_live_runtime_evidence_env_plan.ps1"
-    foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1", "scripts/smoke_tiny_live_loss_rca_ssh.ps1", "scripts/smoke_runtime_evidence_rca_ssh.ps1")) {
+    foreach ($script in @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_guardrail_acceptance_ssh.ps1", "scripts/smoke_trailing_stop_pnl_replay_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1", "scripts/audit_live_readiness_ssh.ps1", "scripts/smoke_tiny_live_loss_rca_ssh.ps1", "scripts/smoke_runtime_evidence_rca_ssh.ps1", "scripts/smoke_tiny_live_post_trade_ssh.ps1")) {
         Assert-RgMatch -Pattern "http://127\.0\.0\.1:\{os\.environ\['PORT'\]\}/api/mcp" -Paths @($script) -Description "$script uses server-local /api/mcp"
         Assert-RgMatch -Pattern "TRADING_MCP_KEY" -Paths @($script) -Description "$script reads the server-local MCP key"
         Assert-RgMatch -Pattern "Assert-RemotePathSafe" -Paths @($script) -Description "$script validates remote shell embedded paths"

@@ -594,6 +594,13 @@ Expected:
   closed on unexpected order-capable flags, missing TinyLive hard-scope proof,
   missing order-sent=false markers, non-R0 event risk, missing OKX secrets,
   guardian write mode, runtime errors, and unexpected high-risk logs.
+- After the first authorized TinyLive execution, run
+  `.\scripts\smoke_tiny_live_post_trade_ssh.ps1`. Until a new execution exists,
+  `post_trade_status=PENDING_NO_NEW_TINY_LIVE_EXECUTION` is expected. Once an
+  execution exists, the smoke checks the latest TinyLive execution audit, OCO
+  attach/protection effectiveness, runtime `orderSentEvidence`, active
+  execution events, and TinyLive Telegram history. Use `-RequireExecution` only
+  when a new execution is expected and absence should fail the check.
 - The audit must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 

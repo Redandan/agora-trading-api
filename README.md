@@ -191,6 +191,17 @@ evidence, while still failing closed on other order-capable flags, missing
 secrets, missing TinyLive hard-scope proof, order-sent markers, runtime errors,
 guardian write mode, and non-R0 event risk.
 
+After the first authorized TinyLive execution, run the post-trade evidence smoke:
+
+```powershell
+.\scripts\smoke_tiny_live_post_trade_ssh.ps1
+```
+
+Before a new execution appears it prints
+`post_trade_status=PENDING_NO_NEW_TINY_LIVE_EXECUTION`. After execution it
+checks TinyLive audit rows, OCO attach/protection evidence, runtime
+`orderSentEvidence`, active execution events, and TinyLive Telegram history.
+
 ```powershell
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 ```

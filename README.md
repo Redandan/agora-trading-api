@@ -210,6 +210,9 @@ need to dig through nested source packets for the key exit-side evidence. It
 does not deploy, enable live
 trading, enable trailing, place orders, modify OCO, close positions, change
 strategy opt-in, or mutate DB/grid/fund/Earn state.
+Use [docs/exit-side-operator-review-plan.md](docs/exit-side-operator-review-plan.md)
+as the review contract before drafting a separate trailing rollout or strategy
+485 risk-reduction decision.
 
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:

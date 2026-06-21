@@ -188,6 +188,11 @@
   orders, OCO modification, close-position, DB/grid/fund/Earn/Telegram/exchange
   mutation, production env changes, deploy, restart, nginx reload, or external
   backfill/import.
+- `docs/exit-side-operator-review-plan.md` is the read-only review contract for
+  the combined exit-side lane. It records the current trailing-stop and strategy
+  485 decision markers, required fresh inputs, separate authorization
+  checklists, stop conditions, and the rule that entry/filter and DataFreshness
+  policy remain out of scope for this review.
 - `diagnoseDataFreshnessGuardBlocks` now distinguishes historical
   DataFreshnessGuard blocks from current source freshness: the read-only MCP
   RCA prints `READY_NOW`, `STALE_NOW`, `NO_DATA_NOW`, or `QUERY_FAILED_NOW`

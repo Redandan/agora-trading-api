@@ -1854,6 +1854,10 @@ Expected:
   place orders, modify OCO, close positions, mutate
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize exit policy changes.
+- Use `docs/exit-side-operator-review-plan.md` as the review contract before
+  drafting a separate trailing rollout or strategy 485 risk-reduction decision.
+  The plan preserves the no-mutation boundary and keeps entry/DataFreshness
+  policy out of this exit-side review.
 
 Optional public path check:
 

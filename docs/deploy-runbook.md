@@ -1019,6 +1019,28 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a read-only profit operator action brief, run:
+
+```powershell
+.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- The brief calls `prepare_profit_operator_review_matrix_ssh.ps1` only and
+  emits `profit_operator_action_items`,
+  `profit_operator_action_brief_packet`, and
+  `profit_operator_action_brief_status`.
+- `READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` means the exit-side lane can be
+  reviewed separately with
+  `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, while entry-filter
+  and DataFreshness replay blockers stay visible.
+- The brief does not deploy, restart, reload nginx, change production env,
+  enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
+  trailing scheduler, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy changes.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

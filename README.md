@@ -674,6 +674,22 @@ not deploy, change production env, enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.
 
+Read-only profit operator action brief:
+
+```powershell
+.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady
+```
+
+This converts the review matrix into `profit_operator_action_items`,
+`profit_operator_action_brief_packet`, and
+`profit_operator_action_brief_status`. When the exit-side lane is ready, it
+prints `READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` and the recommendation
+`REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, while preserving
+blocked entry-filter and DataFreshness replay actions. It does not deploy,
+change production env, enable live trading, enable trailing, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn state.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

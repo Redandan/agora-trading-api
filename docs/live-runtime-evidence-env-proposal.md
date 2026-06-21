@@ -186,8 +186,7 @@ Expected:
 - `prepare_live_review_packet_ssh.ps1 -RequireReady` exits 0 only when the full
   live-readiness packet is ready, with
   `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
-  `packet_missing_requirements=[]`, plus `packet_bundle_blocker_summary=...`
-  carrying machine-readable blocker evidence.
+  `packet_missing_requirements=[]`, plus `packet_bundle_blocker_summary=[]`.
 - runtime logs show no order placement, OCO modification, grid/fund/Earn
   operation, Telegram send, scheduler surprise, exchange write, external
   backfill/import, or DB mutation
@@ -214,6 +213,6 @@ full-bundle `bundle_blockers=[]`,
 `live_review_packet_allowed=true`,
 `deploy_required_before_live_review=false`,
 `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`, runtime evidence
-rows, shadow-intent counts, `packet_bundle_blocker_summary=present`, tiny-live
+rows, shadow-intent counts, `packet_bundle_blocker_summary=[]`, tiny-live
 hard-stop state, signal governance evidence, rollback steps, and separate
 operator authorization.

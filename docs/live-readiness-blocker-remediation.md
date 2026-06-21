@@ -391,7 +391,7 @@ A future live review packet must include:
 - latest `.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady` output
   with `packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` and
   `packet_missing_requirements=[]`, plus
-  `packet_bundle_blocker_summary=present`
+  `packet_bundle_blocker_summary=[]`
 - explicit confirmation that the packet does not rely on
   `bundle_verdict=NOT_READY`, `bundle_verdict=NO_EVIDENCE`,
   `LIVE_READINESS_EVIDENCE_UNAVAILABLE`, `live_review_packet_allowed=false`,

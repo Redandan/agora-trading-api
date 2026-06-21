@@ -745,8 +745,9 @@ and `bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`. With
 `packet_missing_requirements=[]`. It also carries
 `packet_bundle_blocker_summary` from the underlying bundle so each blocker keeps
 machine-readable `requiredEvidence`, `evidenceMarkers`, and `nextAction`; a
-missing, invalid, or incomplete `bundle_blocker_summary` is incomplete
-evidence. `NOT_READY` and `NO_EVIDENCE` output is not live approval, does not
+missing, invalid, incomplete, or non-empty `bundle_blocker_summary` when
+`bundle_blockers=[]` is incomplete evidence. Ready packet output must include
+`packet_bundle_blocker_summary=[]`. `NOT_READY` and `NO_EVIDENCE` output is not live approval, does not
 authorize production env changes, and must not be used to enable live trading.
 When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, run the read-only
 origin-delta classifier before choosing the next action. If it prints

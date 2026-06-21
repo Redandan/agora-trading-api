@@ -498,7 +498,7 @@ function Assert-ReviewPacketMinimumGuarded {
             '.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady',
             'packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED',
             'packet_missing_requirements=[]',
-            'packet_bundle_blocker_summary=present',
+            'packet_bundle_blocker_summary=[]',
             'bundle_verdict=NOT_READY',
             'bundle_verdict=NO_EVIDENCE',
             'LIVE_READINESS_EVIDENCE_UNAVAILABLE',

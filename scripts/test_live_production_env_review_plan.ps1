@@ -286,7 +286,7 @@ foreach ($pattern in @(
         '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
         '`packet_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
         '`packet_missing_requirements=[]`',
-        '`packet_bundle_blocker_summary=present`',
+        '`packet_bundle_blocker_summary=[]`',
         'not authorization'
     )) {
     if ($pattern -match '\\s') {

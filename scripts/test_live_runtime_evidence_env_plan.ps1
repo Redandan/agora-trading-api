@@ -250,7 +250,7 @@ foreach ($marker in @(
         '`live_review_packet_allowed=true`',
         '`deploy_required_before_live_review=false`',
         '`bundle_verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`',
-        '`packet_bundle_blocker_summary=present`'
+        '`packet_bundle_blocker_summary=[]`'
     )) {
     if ($proposalText -notmatch [regex]::Escape($marker)) {
         throw "Runtime evidence proposal missing live proposal boundary marker: $marker"

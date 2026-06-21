@@ -168,6 +168,11 @@ if ($null -ne $bundleBlockerSummaryItems) {
             $missingRequirements.Add("bundle_blocker_summary missing blocker: $blocker")
         }
     }
+    foreach ($summaryBlocker in @($summaryBlockers)) {
+        if (@($blockers) -notcontains [string]$summaryBlocker) {
+            $missingRequirements.Add("bundle_blocker_summary has blocker not present in bundle_blockers: $summaryBlocker")
+        }
+    }
     foreach ($item in @($bundleBlockerSummaryItems)) {
         foreach ($field in @("blocker", "category", "requiredEvidence", "evidenceMarkers", "nextAction")) {
             if (-not (Test-JsonObjectHasProperty -Item $item -PropertyName $field)) {

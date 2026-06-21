@@ -502,7 +502,10 @@
   `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so ready
   and blocked profit lanes stay visible together. Long child matrix runs emit
   `child_start`, periodic `child_heartbeat`, and `child_complete` markers, with
-  `-ChildTimeoutSeconds` bounding stuck local children. The brief does
+  `-ChildTimeoutSeconds` bounding stuck local children. Fresh runs can save raw
+  matrix output with `-SaveMatrixOutputPath`, and follow-up briefs can reuse it
+  with `-MatrixOutputPath` and `source_matrix_mode=REUSED_OUTPUT_FILE` instead
+  of rerunning the long SSH matrix. The brief does
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.

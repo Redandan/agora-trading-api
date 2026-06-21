@@ -742,7 +742,11 @@ classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
 operator dashboard can show ready and blocked profit lanes together. Long child
 matrix runs emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers; `-ChildTimeoutSeconds` bounds a stuck child locally
-without changing production state. It does not deploy,
+without changing production state. Use `-SaveMatrixOutputPath` on a fresh run
+to retain the raw matrix output, then use `-MatrixOutputPath` to rebuild the
+action brief from that read-only evidence without rerunning the long SSH matrix.
+Reused matrix output prints `source_matrix_mode=REUSED_OUTPUT_FILE`; fresh runs
+print `source_matrix_mode=FRESH_CHILD_RUN`. It does not deploy,
 change production env, enable live trading, enable trailing, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.

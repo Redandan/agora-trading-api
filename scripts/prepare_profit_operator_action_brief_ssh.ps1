@@ -8,6 +8,8 @@ param(
     [int]$ReplayDays = 30,
     [int]$ReplayLimit = 500,
     [int]$ChildTimeoutSeconds = 900,
+    [string]$MatrixOutputPath = "",
+    [string]$SaveMatrixOutputPath = "",
     [switch]$RequireReady
 )
 
@@ -148,15 +150,6 @@ function Invoke-ReadOnlyScript {
     }
 }
 
-if ([string]::IsNullOrWhiteSpace($SshHost)) {
-    throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST."
-}
-if ([string]::IsNullOrWhiteSpace($SshKey)) {
-    throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY."
-}
-if (-not (Test-Path -LiteralPath $SshKey)) {
-    throw "SSH key not found: $SshKey"
-}
 if ($ReplayDays -lt 1 -or $ReplayDays -gt 90) {
     throw "ReplayDays must be between 1 and 90."
 }
@@ -169,24 +162,54 @@ if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) {
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) {
     throw "StrategyId must be between 1 and 1000000."
 }
+if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath) -and -not (Test-Path -LiteralPath $MatrixOutputPath)) {
+    throw "MatrixOutputPath not found: $MatrixOutputPath"
+}
 
-Assert-SshHostSafe -Name "SshHost" -Value $SshHost
-Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
-Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
 
-$matrix = Invoke-ReadOnlyScript -ScriptName "prepare_profit_operator_review_matrix_ssh.ps1" -Arguments @(
-    "-SshHost", $SshHost,
-    "-SshKey", $SshKey,
-    "-AppDir", $AppDir,
-    "-EnvFile", $EnvFile,
-    "-Symbol", $Symbol,
-    "-StrategyId", "$StrategyId",
-    "-ReplayDays", "$ReplayDays",
-    "-ReplayLimit", "$ReplayLimit",
-    "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
-    "-RequireReviewItems"
-)
+$sourceMatrixMode = "FRESH_CHILD_RUN"
+if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
+    $sourceMatrixMode = "REUSED_OUTPUT_FILE"
+    Write-Host "[profit-operator-action-brief] matrix_reuse path=$MatrixOutputPath"
+    $matrix = [pscustomobject]@{
+        Text = Get-Content -Raw -LiteralPath $MatrixOutputPath
+        ExitCode = 0
+        TimedOut = $false
+    }
+} else {
+    if ([string]::IsNullOrWhiteSpace($SshHost)) {
+        throw "SshHost is required. Pass -SshHost, set AGORA_SSH_HOST, or pass -MatrixOutputPath."
+    }
+    if ([string]::IsNullOrWhiteSpace($SshKey)) {
+        throw "SshKey is required. Pass -SshKey, set AGORA_SSH_KEY, or pass -MatrixOutputPath."
+    }
+    if (-not (Test-Path -LiteralPath $SshKey)) {
+        throw "SSH key not found: $SshKey"
+    }
+
+    Assert-SshHostSafe -Name "SshHost" -Value $SshHost
+    Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
+    Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
+
+    $matrix = Invoke-ReadOnlyScript -ScriptName "prepare_profit_operator_review_matrix_ssh.ps1" -Arguments @(
+        "-SshHost", $SshHost,
+        "-SshKey", $SshKey,
+        "-AppDir", $AppDir,
+        "-EnvFile", $EnvFile,
+        "-Symbol", $Symbol,
+        "-StrategyId", "$StrategyId",
+        "-ReplayDays", "$ReplayDays",
+        "-ReplayLimit", "$ReplayLimit",
+        "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
+        "-RequireReviewItems"
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($SaveMatrixOutputPath)) {
+        Set-Content -LiteralPath $SaveMatrixOutputPath -Value $matrix.Text -Encoding UTF8
+        Write-Host "[profit-operator-action-brief] matrix_saved path=$SaveMatrixOutputPath"
+    }
+}
 
 $matrixStatus = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_status="
 $matrixPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_packet=")
@@ -299,6 +322,8 @@ $brief = [pscustomobject]@{
         "do not deploy or change production env from this brief"
     )
     sourceMatrix = "prepare_profit_operator_review_matrix_ssh.ps1"
+    sourceMatrixMode = $sourceMatrixMode
+    sourceMatrixOutputPath = if ([string]::IsNullOrWhiteSpace($MatrixOutputPath)) { $null } else { $MatrixOutputPath }
     sourceMatrixExitCode = $matrix.ExitCode
     nextAction = if ($exitSideReady) { "Prepare a separate exit-side operator review using the attached read-only evidence; keep entry/filter and DataFreshness lanes blocked until their evidence clears." } else { $matrixNextAction }
     notAuthorization = "read-only profit operator action brief only; does not deploy, restart, reload nginx, change production env, enable live trading, relax EntryDedup/DataFreshness/live policy, enable trailing scheduler, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy changes"
@@ -307,6 +332,7 @@ $brief = [pscustomobject]@{
 Write-Host "[profit-operator-action-brief] read-only brief"
 Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_review_matrix_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_matrix=prepare_profit_operator_review_matrix_ssh.ps1 exitCode=$($matrix.ExitCode)"
+Write-Host "source_matrix_mode=$sourceMatrixMode"
 Write-Host "profit_operator_review_matrix_status=$matrixStatus"
 Write-Host "profit_operator_action_primary_recommendation=$primaryRecommendation"
 Write-Host ("profit_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))

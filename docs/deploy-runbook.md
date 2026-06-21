@@ -1072,6 +1072,11 @@ Expected:
 - Long child matrix runs emit `child_start`, periodic `child_heartbeat`, and
   `child_complete` markers. `-ChildTimeoutSeconds` bounds a stuck local child
   wrapper without changing production state.
+- Use `-SaveMatrixOutputPath <local-log>` on a fresh action-brief run to retain
+  the raw matrix evidence. Follow-up action briefs can pass
+  `-MatrixOutputPath <local-log>` and should print
+  `source_matrix_mode=REUSED_OUTPUT_FILE`, avoiding another long SSH matrix
+  call while keeping the same read-only evidence packet.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

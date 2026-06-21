@@ -248,7 +248,11 @@
   activation candidates, and trailing-stop PnL replay, then prints
   `profit_candidate_items` and `profit_candidate_review_recommendation` such as
   `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY`. The smoke is evidence
-  only and does not authorize live trading, policy relaxation, strategy
+  only and does not run origin-delta/currentness checks; use
+  `smoke_profit_improvement_review_bundle_ssh.ps1` or
+  `prepare_profit_experiment_gate_ssh.ps1` before treating it as
+  current-post-deploy profit review input. It does not authorize live trading,
+  policy relaxation, strategy
   activation, closing positions, OCO modification, production env changes, DB,
   order, grid, Earn, fund, Telegram, scheduler, exchange, external
   backfill/import, deploy, restart, or nginx state.

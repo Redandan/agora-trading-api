@@ -686,6 +686,10 @@ Expected:
   trailing-stop PnL replay.
 - Output includes `profit_candidate_items` and
   `profit_candidate_review_recommendation`.
+- This direct smoke does not run origin-delta/currentness checks. Use
+  `smoke_profit_improvement_review_bundle_ssh.ps1` or
+  `prepare_profit_experiment_gate_ssh.ps1` before treating the evidence as
+  current-post-deploy profit review input.
 - A recommendation such as
   `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY` is review routing only;
   it is not permission to relax DataFreshness, enable live trading, activate

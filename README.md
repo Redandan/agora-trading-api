@@ -397,7 +397,11 @@ candidates, and trailing-stop PnL replay. It prints
 `profit_candidate_items` and `profit_candidate_review_recommendation`, for
 example `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY`. The result is
 evidence only; it does not authorize live trading, policy relaxation, strategy
-activation, closing positions, or OCO changes.
+activation, closing positions, or OCO changes. This direct smoke does not run
+origin-delta/currentness checks; use
+`smoke_profit_improvement_review_bundle_ssh.ps1` or
+`prepare_profit_experiment_gate_ssh.ps1` before treating the evidence as
+current-post-deploy profit review input.
 
 Read-only profit loss review gate:
 

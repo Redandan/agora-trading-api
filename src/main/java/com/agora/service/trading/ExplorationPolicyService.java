@@ -78,7 +78,8 @@ public class ExplorationPolicyService {
                 || containsText(evidence.freshnessState(), "BLOCKED")) {
             blockers.add("DATA_FRESHNESS_HARD_FAIL");
         }
-        if (contains(preview.denialReasons(), "NO_CURRENT_BUY_CANDIDATE")) {
+        boolean noCurrentBuyCandidate = contains(preview.denialReasons(), "NO_CURRENT_BUY_CANDIDATE");
+        if (noCurrentBuyCandidate) {
             blockers.add("NO_CURRENT_BUY_CANDIDATE");
         } else if (preview.evStatus().startsWith("NOT_READY")) {
             blockers.add("EV_SAMPLE_MISSING");
@@ -88,8 +89,10 @@ public class ExplorationPolicyService {
         if (!isTqsAtLeastProbe(evidence.tqsBand())) {
             blockers.add("TQS_BELOW_PROBE_DRY_RUN");
         }
-        if (!preview.ocoPreflightStatus().startsWith("PASS")) {
+        if (!preview.ocoPreflightStatus().startsWith("PASS") && !noCurrentBuyCandidate) {
             blockers.add("OCO_PREFLIGHT_FAIL");
+        } else if (!preview.ocoPreflightStatus().startsWith("PASS")) {
+            warnings.add("ocoPreflightPendingUntilBuyCandidate=" + preview.ocoPreflightStatus());
         }
         if (!preview.runtimeEvidenceStatus().startsWith("AVAILABLE_CANONICAL")) {
             blockers.add("RUNTIME_EVIDENCE_MISSING");

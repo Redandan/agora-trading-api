@@ -359,6 +359,24 @@ not deploy, enable live trading, execute tiny-live orders, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close positions,
 or mutate DB/grid/fund/Earn state.
 
+Read-only governance relaxation review packet:
+
+```powershell
+.\scripts\prepare_governance_relaxation_review_packet_ssh.ps1 -RequireReview
+```
+
+This wraps `smoke_signal_correctness_ssh.ps1` and the underlying
+`findGovernanceRelaxationCandidates` evidence into
+`governance_relaxation_review_packet`. It emits
+`shadow_governance_review_allowed`, `tiny_live_order_allowed=false`, and
+`live_policy_change_allowed=false`. `REVIEW_REQUIRED_NOT_POLICY_CHANGE` means
+relaxation candidates are reviewable but blocked by signal-policy,
+governance-drift, or missed-opportunity evidence.
+`READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` is shadow-review-only evidence,
+not approval to relax live policy. The packet does not deploy, enable live
+trading, execute tiny-live orders, relax EntryDedup/DataFreshness/live policy,
+place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

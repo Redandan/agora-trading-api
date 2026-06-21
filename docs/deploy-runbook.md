@@ -609,6 +609,32 @@ Expected:
   positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize strategy/filter changes.
 
+For a read-only governance relaxation review packet, run:
+
+```powershell
+.\scripts\prepare_governance_relaxation_review_packet_ssh.ps1 -RequireReview
+```
+
+Expected:
+
+- The packet runs `smoke_signal_correctness_ssh.ps1`, including the
+  `findGovernanceRelaxationCandidates` evidence, and emits
+  `governance_relaxation_review_packet`.
+- Output includes `relaxationCandidateCount`,
+  `shadow_governance_review_allowed`, `tiny_live_order_allowed=false`, and
+  `live_policy_change_allowed=false`.
+- `governance_relaxation_review_packet_status=REVIEW_REQUIRED_NOT_POLICY_CHANGE`
+  means candidates are reviewable but blocked by signal-policy,
+  governance-drift, missed-opportunity, or no-buy evidence.
+- `governance_relaxation_review_packet_status=READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE`
+  means a separate shadow-only governance review can be drafted. It is not
+  permission to relax EntryDedup/DataFreshness/live policy or execute orders.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, execute tiny-live orders, relax
+  EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy/filter changes.
+
 For the focused strategy 574 TinyLive near-BUY / governance RCA, run:
 
 ```powershell

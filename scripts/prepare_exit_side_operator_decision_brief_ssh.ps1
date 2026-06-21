@@ -139,6 +139,20 @@ $trailingDeltaPnl = if ($null -ne $exitPacket) { [string]$exitPacket.trailingDel
 $ocoHealthOk = if ($null -ne $exitPacket) { [string]$exitPacket.strategy485OcoHealthOk } else { "N/A" }
 $negativeEvCount = if ($null -ne $exitPacket) { [string]$exitPacket.strategy485NegativeEvPositionCount } else { "N/A" }
 $closeOrModifyCount = if ($null -ne $exitPacket) { [string]$exitPacket.strategy485CloseOrModifySuggestionCount } else { "N/A" }
+$trailingPacket = if ($null -ne $exitPacket -and $null -ne $exitPacket.trailingStopOperatorPacket) { $exitPacket.trailingStopOperatorPacket } else { $null }
+$strategy485Decision = if ($null -ne $exitPacket -and $null -ne $exitPacket.strategy485OperatorPacket -and $null -ne $exitPacket.strategy485OperatorPacket.strategy485PositionReviewDecision) { $exitPacket.strategy485OperatorPacket.strategy485PositionReviewDecision } else { $null }
+$strategy485PositionSummaries = @()
+if ($null -ne $strategy485Decision -and $null -ne $strategy485Decision.positions) {
+    $strategy485PositionSummaries = @($strategy485Decision.positions | ForEach-Object {
+        [pscustomobject]@{
+            positionId = $_.positionId
+            decision = $_.decision
+            suggestion = $_.suggestion
+            evUsdt = $_.evUsdt
+            paperPct = $_.paperPct
+        }
+    })
+}
 
 $recommendations = [System.Collections.Generic.List[object]]::new()
 $recommendations.Add([pscustomobject]@{
@@ -151,7 +165,7 @@ $recommendations.Add([pscustomobject]@{
 $recommendations.Add([pscustomobject]@{
     candidate = "STRATEGY485_AGED_NEGATIVE_EV_POSITION_REVIEW"
     status = if ($negativeEvCount -ne "N/A" -and $negativeEvCount -ne "0") { "REVIEW_READY_NOT_MUTATION" } else { "WATCH_ONLY" }
-    evidence = @("strategy485_oco_health_ok=$ocoHealthOk", "strategy485_negative_ev_position_count=$negativeEvCount", "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount")
+    evidence = @("strategy485_oco_health_ok=$ocoHealthOk", "strategy485_negative_ev_position_count=$negativeEvCount", "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount", "strategy485_position_summaries_count=$($strategy485PositionSummaries.Count)")
     reviewQuestion = "Should aged negative-EV strategy 485 positions be reviewed under a separate risk-reduction authorization path?"
     nextAction = "Review OCO health, EV, timeout, and TP-stretch evidence separately; do not close positions or modify OCO from this brief."
 })
@@ -195,9 +209,14 @@ $brief = [pscustomobject]@{
         trailingStopAcceptance = $trailingAcceptance
         trailingStopImprovementPct = $trailingImprovementPct
         trailingStopDeltaPnl = $trailingDeltaPnl
+        trailingStopAcceptanceRows = if ($null -ne $trailingPacket) { [string]$trailingPacket.acceptanceRows } else { "N/A" }
+        trailingStopImprovedRows = if ($null -ne $trailingPacket) { [string]$trailingPacket.improved } else { "N/A" }
+        trailingStopWorsenedRows = if ($null -ne $trailingPacket) { [string]$trailingPacket.worsened } else { "N/A" }
+        trailingStopAmbiguousSameBarRows = if ($null -ne $trailingPacket) { [string]$trailingPacket.ambiguousSameBar } else { "N/A" }
         strategy485OcoHealthOk = $ocoHealthOk
         strategy485NegativeEvPositionCount = $negativeEvCount
         strategy485CloseOrModifySuggestionCount = $closeOrModifyCount
+        strategy485PositionSummaries = @($strategy485PositionSummaries)
     }
     missingRequirements = @($missingRequirements)
     sourceExitSidePacket = $exitPacket
@@ -216,6 +235,7 @@ Write-Host "trailing_stop_delta_pnl=$trailingDeltaPnl"
 Write-Host "strategy485_oco_health_ok=$ocoHealthOk"
 Write-Host "strategy485_negative_ev_position_count=$negativeEvCount"
 Write-Host "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount"
+Write-Host ("strategy485_position_summaries=" + (ConvertTo-Json -Compress -Depth 6 @($strategy485PositionSummaries)))
 Write-Host ("exit_side_operator_review_recommendations=" + (ConvertTo-Json -Compress -Depth 8 @($recommendations)))
 Write-Host ("exit_side_operator_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 12 $brief))
 Write-Host "exit_side_operator_decision_brief_status=$decisionStatus"

@@ -196,7 +196,10 @@ This converts the exit-side packet into
 `exit_side_operator_decision_brief_status`.
 `READY_FOR_OPERATOR_DECISION_NOT_MUTATION` means the evidence can be attached
 to a separate exit-side operator review with
-`PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW`. It does not deploy, enable live
+`PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW`. The brief also emits
+`strategy485_position_summaries` and carries trailing acceptance sample counts
+in `evidenceSummary` so the operator does not need to dig through nested source
+packets for the key exit-side evidence. It does not deploy, enable live
 trading, enable trailing, place orders, modify OCO, close positions, change
 strategy opt-in, or mutate DB/grid/fund/Earn state.
 

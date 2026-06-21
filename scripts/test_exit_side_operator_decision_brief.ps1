@@ -58,6 +58,8 @@ foreach ($marker in @(
         "scope=READ_ONLY",
         "prepare_exit_side_profit_review_packet_ssh.ps1",
         "exit_side_operator_primary_recommendation",
+        "strategy485_position_summaries",
+        "trailingStopAcceptanceRows",
         "exit_side_operator_review_recommendations",
         "exit_side_operator_decision_brief_packet",
         "exit_side_operator_decision_brief_status",

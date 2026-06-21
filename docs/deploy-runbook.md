@@ -1788,6 +1788,9 @@ Expected:
   negative-EV position review, and lists separate authorizations required for
   trailing enablement, close-position, OCO modification, deployment, or
   production env changes.
+- The brief emits top-level `strategy485_position_summaries` and carries
+  trailing acceptance sample counts in `evidenceSummary`, so the key operator
+  evidence is visible without inspecting nested source packets.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, enable the trailing scheduler, change strategy opt-in,
   place orders, modify OCO, close positions, mutate

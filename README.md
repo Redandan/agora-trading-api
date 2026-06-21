@@ -354,6 +354,7 @@ Read-only strategy 485 position review gate:
 This gate combines origin-delta and strategy 485 position-risk evidence into
 `deploy_required_before_strategy485_review`,
 `operator_review_packet_allowed`, `position_or_oco_mutation_allowed=false`, and
+`strategy485_position_review_decision`, and
 `strategy485_position_review_gate_status`. It may route a separate operator
 review packet, but it never authorizes close-position or OCO modification.
 

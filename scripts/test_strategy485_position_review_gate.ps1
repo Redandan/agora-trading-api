@@ -75,6 +75,7 @@ foreach ($marker in @(
         "closeOrModifySuggestions",
         "positionTimeoutEvents",
         "strategy485_position_risk_recommendation",
+        "strategy485_position_review_decision",
         "deploy_required_before_strategy485_review",
         "operator_review_packet_allowed",
         "position_or_oco_mutation_allowed=false",

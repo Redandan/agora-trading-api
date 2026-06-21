@@ -617,6 +617,7 @@ Expected:
   `smoke_strategy485_position_risk_ssh.ps1` only.
 - Output includes `deploy_required_before_strategy485_review`,
   `operator_review_packet_allowed`, `position_or_oco_mutation_allowed=false`,
+  `strategy485_position_review_decision`,
   `strategy485_review_missing_requirements`, and
   `strategy485_position_review_gate_status`.
 - `READY_FOR_OPERATOR_REVIEW_NOT_MUTATION` means a separate operator packet can

@@ -143,6 +143,7 @@ $openPositions = Get-LastPrefixedValue -Text $position.Text -Prefix "  openStrat
 $negativeEvPositions = Get-LastPrefixedValue -Text $position.Text -Prefix "  negativeEvPositions="
 $closeOrModifySuggestions = Get-LastPrefixedValue -Text $position.Text -Prefix "  closeOrModifySuggestions="
 $positionTimeoutEvents = Get-LastPrefixedValue -Text $position.Text -Prefix "  positionTimeoutEvents="
+$positionReviewDecisionJson = Get-LastPrefixedValue -Text $position.Text -Prefix "  strategy485_position_review_decision="
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ($origin.ExitCode -ne 0) {
@@ -210,6 +211,7 @@ Write-Host "negativeEvPositions=$negativeEvPositions"
 Write-Host "closeOrModifySuggestions=$closeOrModifySuggestions"
 Write-Host "positionTimeoutEvents=$positionTimeoutEvents"
 Write-Host "strategy485_position_risk_recommendation=$recommendation"
+Write-Host "strategy485_position_review_decision=$positionReviewDecisionJson"
 Write-Host "deploy_required_before_strategy485_review=$($deployRequired.ToString().ToLowerInvariant())"
 Write-Host "operator_review_packet_allowed=$($operatorReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host "position_or_oco_mutation_allowed=false"

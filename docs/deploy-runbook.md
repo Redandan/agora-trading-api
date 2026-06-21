@@ -572,6 +572,11 @@ Expected:
 - Output must include `strategy485_position_risk_recommendation`. A value such
   as `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY` means operator review is
   needed, not that the script is allowed to close positions or modify OCO.
+- Use `docs/strategy485-aged-position-review-plan.md` before drafting any
+  operator packet for aged negative-EV strategy 485 positions. The packet must
+  include fresh OCO, active-position EV, TP stretch, stop-sweep, timeout,
+  recent-closed, and monthly PnL evidence, and actual close/OCO-modification
+  actions require separate explicit authorization.
 - The script must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, or external backfill/import state.
 

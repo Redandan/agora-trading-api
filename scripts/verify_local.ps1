@@ -1606,6 +1606,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_signal_policy_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy574_signal_governance_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_position_risk_smoke.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_aged_position_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_auto_trading_review_bundle.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_candidate_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_false_kill_review_smoke.ps1"

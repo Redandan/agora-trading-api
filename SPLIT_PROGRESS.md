@@ -187,6 +187,13 @@
   backfill/import state. `scripts/test_strategy485_position_risk_smoke.ps1`
   guards the read-only tool calls, no-order/no-OCO markers, risk recommendation
   markers, and non-authorization wording.
+- `docs/strategy485-aged-position-review-plan.md` defines the operator packet
+  contract for `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`: fresh OCO,
+  active-position EV, TP stretch, stop-sweep, timeout, recent-closed, and
+  monthly PnL evidence are required before review, while close-position and
+  OCO-modification actions remain separate explicit-authorized operations.
+  `scripts/test_strategy485_aged_position_review_plan.ps1` keeps this plan
+  linked to the smoke, profit bundle, and operator docs.
 - `scripts/smoke_auto_trading_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, live-authorized audit, strategy 485 position-risk
   smoke, strategy 574 signal/governance smoke, and TinyLive post-trade smoke

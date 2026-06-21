@@ -322,6 +322,11 @@ recent closed trades, execution events, and 3-month PnL through server-local
 `/api/mcp`. It prints `strategy485_position_risk_recommendation` such as
 `REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY`; this is review routing only and
 does not authorize closing positions or modifying OCO.
+Use `docs/strategy485-aged-position-review-plan.md` before drafting any
+operator packet for aged negative-EV strategy 485 positions. The plan requires
+fresh OCO, active-position EV, TP stretch, stop-sweep, timeout, recent-closed,
+and monthly PnL evidence, and it keeps close-position/OCO-modification actions
+behind separate explicit authorization.
 
 Read-only auto-trading review bundle:
 

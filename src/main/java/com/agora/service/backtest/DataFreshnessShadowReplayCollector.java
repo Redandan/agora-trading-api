@@ -32,17 +32,17 @@ class DataFreshnessShadowReplayCollector {
             "loss_budget");
     static final String MISSING_REPLAY_FIELDS_WITH_PLAN = String.join(",",
             "expected_r",
-            "ev_result",
-            "tqs_result",
-            "oco_preflight",
-            "duplicate_gate",
-            "daily_cap",
-            "exposure_gate",
-            "event_risk",
-            "open_position",
-            "loss_budget");
+            "evaluated_ev_result",
+            "evaluated_oco_preflight",
+            "evaluated_duplicate_gate",
+            "evaluated_daily_cap",
+            "evaluated_exposure_gate",
+            "evaluated_event_risk",
+            "evaluated_open_position",
+            "evaluated_loss_budget");
 
     private final DataFreshnessShadowReplayCandidatePlanBuilder candidatePlanBuilder;
+    private final DataFreshnessShadowReplayHardGatePreviewBuilder hardGatePreviewBuilder;
 
     @Value("${trading.data-freshness.shadow-replay.collector.enabled:false}")
     private boolean enabled;
@@ -124,8 +124,7 @@ class DataFreshnessShadowReplayCollector {
             context.put("stop_loss_pct", plan.stopLossPct());
             context.put("take_profit_pct", plan.takeProfitPct());
             context.put("maxHoldingHours", plan.maxHoldingHours());
-            context.put("candidateContinuedToEv", false);
-            context.put("candidateContinuedToTqs", false);
+            hardGatePreviewBuilder.enrich(context);
         });
     }
 }

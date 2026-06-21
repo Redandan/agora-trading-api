@@ -61,8 +61,16 @@ persistence, Telegram, order, or OCO helpers, it also emits
 `shadowReplayCandidatePlanStatus=NOT_REPLAYABLE_DYNAMIC_ATR_CONFIG`.
 
 The skeleton still does not write a separate replay table, create runtime
-evidence rows by itself, run EV/TQS/OCO/risk gates, or make the row executable
+evidence rows by itself, run EV/OCO/risk gates, or make the row executable
 replay evidence.
+
+`DataFreshnessShadowReplayHardGatePreviewBuilder` adds explicit placeholder
+evidence fields when a candidate plan snapshot exists:
+`ev_result`, `tqs_result`, `oco_preflight`, `duplicate_gate`, `daily_cap`,
+`exposure_gate`, `event_risk`, `open_position`, and `loss_budget`. Each gate is
+marked `NOT_EVALUATED_REPLAY_INPUT_ONLY` or terminal-blocked by
+`DataFreshnessGuard`; this closes the hidden-field gap for downstream review
+while still requiring evaluated EV/OCO/risk evidence before any policy review.
 
 ## Design Conclusion
 
@@ -136,6 +144,12 @@ activation.
 It intentionally supports only fixed-config SL/TP snapshots and horizon caps
 that can be calculated from already-loaded inputs. It refuses dynamic ATR plans
 instead of fabricating candidate prices.
+
+`DataFreshnessShadowReplayHardGatePreviewBuilder` is also pure. It does not
+query DB state, does not call exchange or Telegram adapters, and does not attach
+or modify OCO. Its purpose is to make every missing hard gate explicit in the
+audit context so a future replay-input smoke can distinguish "field absent" from
+"field present but not evaluated because DataFreshnessGuard stayed terminal."
 
 ## Acceptance Gate
 

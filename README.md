@@ -510,9 +510,10 @@ The current `DataFreshnessShadowReplayCollector` hook is only a
 disabled-by-default skeleton: when disabled it adds no executable replay
 evidence, and when separately enabled it can only mark scalar snapshot fields
 or fixed-config entry/TP/SL candidate snapshots as not replayable until EV,
-TQS, OCO, and hard-gate fields exist. Dynamic ATR candidate plans are not
-guessed. It does not create live signals, send Telegram, place orders, modify
-OCO, or change policy.
+TQS, OCO, and hard-gate fields are evaluated. Current EV/TQS/OCO/hard-gate
+fields are explicit `NOT_EVALUATED_REPLAY_INPUT_ONLY` previews, not pass
+evidence. Dynamic ATR candidate plans are not guessed. It does not create live
+signals, send Telegram, place orders, modify OCO, or change policy.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

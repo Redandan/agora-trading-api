@@ -72,6 +72,19 @@ class DataFreshnessShadowReplayCollectorTest {
         assertEquals(new BigDecimal("61750.00"), context.get("candidateSl"));
         assertFalse(((String) context.get("shadowReplayMissingCounterfactualFields")).contains("candidateEntry"));
         assertTrue(((String) context.get("shadowReplayMissingCounterfactualFields")).contains("oco_preflight"));
+        assertTrue(context.containsKey("ev_result"));
+        assertTrue(context.containsKey("tqs_result"));
+        assertTrue(context.containsKey("oco_preflight"));
+        assertTrue(context.containsKey("duplicate_gate"));
+        assertTrue(context.containsKey("daily_cap"));
+        assertTrue(context.containsKey("exposure_gate"));
+        assertTrue(context.containsKey("event_risk"));
+        assertTrue(context.containsKey("open_position"));
+        assertTrue(context.containsKey("loss_budget"));
+        assertEquals(DataFreshnessShadowReplayHardGatePreviewBuilder.PREVIEW_ONLY_NOT_REPLAYABLE,
+                context.get("shadowReplayHardGatePreviewStatus"));
+        assertEquals(0, context.get("qualityScore"));
+        assertEquals("BLOCK", context.get("tqsBand"));
         assertEquals("collect_ev_tqs_oco_and_hard_gate_snapshots_before_policy_review",
                 context.get("shadowReplayRequiredNextAction"));
         assertEquals("BTCUSDT", context.get("snapshotSymbol"));
@@ -111,7 +124,8 @@ class DataFreshnessShadowReplayCollectorTest {
 
     private DataFreshnessShadowReplayCollector collector() {
         return new DataFreshnessShadowReplayCollector(
-                new DataFreshnessShadowReplayCandidatePlanBuilder(new ObjectMapper()));
+                new DataFreshnessShadowReplayCandidatePlanBuilder(new ObjectMapper()),
+                new DataFreshnessShadowReplayHardGatePreviewBuilder());
     }
 
     private BtStrategy strategy() {

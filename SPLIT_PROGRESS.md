@@ -369,10 +369,13 @@
   It keeps the hard block terminal and emits only safety markers while
   disabled; if separately enabled later, it marks scalar K-line/strategy
   context and fixed-config entry/TP/SL candidate snapshots as not replayable
-  until EV, TQS, OCO, and hard-gate fields exist. Dynamic ATR candidate plans
-  are not guessed. It still does not create live signals, Telegram sends,
-  orders, OCO, runtime policy changes, DB schema changes, or complete
-  replayable evidence.
+  until EV, TQS, OCO, and hard-gate fields are evaluated. It now also emits
+  explicit `NOT_EVALUATED_REPLAY_INPUT_ONLY` preview fields for EV, TQS, OCO,
+  duplicate, daily-cap, exposure, event-risk, open-position, and loss-budget
+  so downstream review can distinguish missing fields from unevaluated gates.
+  Dynamic ATR candidate plans are not guessed. It still does not create live
+  signals, Telegram sends, orders, OCO, runtime policy changes, DB schema
+  changes, or complete replayable evidence.
 - DataFreshness L0 audit context now writes deterministic `replayCandidateId`
   values (`dfsr1_...`) plus explicit `orderSent=false`, `intentCreated=false`,
   and `ocoPlanCreated=false` markers. This improves future replay traceability

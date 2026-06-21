@@ -19,6 +19,7 @@ $inputPlanPath = Join-Path $repoRoot "docs/data-freshness-shadow-replay-input-pl
 $liveSignalEvaluatorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java"
 $collectorPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplayCollector.java"
 $candidatePlanBuilderPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplayCandidatePlanBuilder.java"
+$hardGatePreviewBuilderPath = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/DataFreshnessShadowReplayHardGatePreviewBuilder.java"
 $runtimeEvidencePath = Join-Path $repoRoot "src/main/java/com/agora/service/trading/RuntimeDecisionEvidenceService.java"
 $envTemplatePath = Join-Path $repoRoot ".env.trading.secrets.example"
 $applicationPath = Join-Path $repoRoot "src/main/resources/application.yml"
@@ -32,6 +33,7 @@ $inputPlanText = Get-Content -Raw -LiteralPath $inputPlanPath
 $liveSignalEvaluatorText = Get-Content -Raw -LiteralPath $liveSignalEvaluatorPath
 $collectorText = Get-Content -Raw -LiteralPath $collectorPath
 $candidatePlanBuilderText = Get-Content -Raw -LiteralPath $candidatePlanBuilderPath
+$hardGatePreviewBuilderText = Get-Content -Raw -LiteralPath $hardGatePreviewBuilderPath
 $runtimeEvidenceText = Get-Content -Raw -LiteralPath $runtimeEvidencePath
 $envTemplateText = Get-Content -Raw -LiteralPath $envTemplatePath
 $applicationText = Get-Content -Raw -LiteralPath $applicationPath
@@ -96,9 +98,31 @@ foreach ($marker in @(
         "shadowReplayMutatesPolicy",
         "candidateEntry",
         "candidateTp",
-        "candidateSl"
+        "candidateSl",
+        "hardGatePreviewBuilder.enrich"
     )) {
     Assert-Contains -Name "DataFreshness shadow replay collector code boundary" -Text $collectorText -Pattern $marker
+}
+
+foreach ($marker in @(
+        "DataFreshnessShadowReplayHardGatePreviewBuilder",
+        "PREVIEW_ONLY_NOT_REPLAYABLE",
+        "NOT_EVALUATED_REPLAY_INPUT_ONLY",
+        "ExpectedValueGate",
+        "OcoPreflight",
+        "DuplicateGate",
+        "DailyCap",
+        "ExposureGate",
+        "EventRisk",
+        "OpenPosition",
+        "LossBudget",
+        "TradeQualityEngine.applyV0Score",
+        "DataFreshnessGuard",
+        "orderSent",
+        "intentCreated",
+        "ocoPlanCreated"
+    )) {
+    Assert-Contains -Name "DataFreshness shadow replay hard-gate preview boundary" -Text $hardGatePreviewBuilderText -Pattern $marker
 }
 
 foreach ($marker in @(

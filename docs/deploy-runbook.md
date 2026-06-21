@@ -848,8 +848,10 @@ Expected:
   skeleton under that flag. Disabled mode emits safety markers only; enabled
   mode is still not replayable and only captures scalar K-line/strategy context
   plus fixed-config entry/TP/SL snapshots when those can be derived without ATR
-  or side-effectful helpers. Dynamic ATR candidate plans are not guessed. It
-  must not be treated as complete replay evidence or live-readiness evidence.
+  or side-effectful helpers. EV/TQS/OCO/hard-gate fields are currently explicit
+  `NOT_EVALUATED_REPLAY_INPUT_ONLY` previews, not pass evidence. Dynamic ATR
+  candidate plans are not guessed. It must not be treated as complete replay
+  evidence or live-readiness evidence.
 - New DataFreshness L0 audit rows include deterministic `replayCandidateId`
   values and explicit no-order/no-intent/no-OCO markers. Treat those ids as
   traceability only; policy review still requires entry/TP/SL/EV/OCO snapshots

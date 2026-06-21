@@ -174,6 +174,17 @@
   `signal_policy_review_plan` markers (`riskCategory`, `evidenceMarkers`,
   `requiredEvidence`, `notAuthorization`) so signal-policy review contract drift
   fails locally before a server smoke is trusted.
+- `scripts/prepare_entry_filter_operator_review_packet_ssh.ps1` wraps the
+  signal-correctness smoke into `entry_filter_operator_review_packet` and
+  `entry_filter_operator_packet_status`. It carries `signalPolicyClear`,
+  `governanceMode`, `missedOpportunityStatus`, no-buy classifications,
+  EntryDedup staged-add evidence, and `signal_policy_review_plan`.
+  `REVIEW_REQUIRED_NOT_POLICY_CHANGE` means governance drift or
+  missed-opportunity rows are reviewable but still not approval to relax
+  EntryDedup/DataFreshness/live policy. The packet does not deploy, restart,
+  reload nginx, change production env, enable live trading, place orders,
+  modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange
+  state, run external backfill/import, or authorize strategy/filter changes.
 - `scripts/smoke_strategy574_signal_governance_ssh.ps1` provides a focused
   read-only production RCA for the TinyLive strategy 574 near-BUY path. It
   compares 1d/3d/7d/14d governance drift, extracts strategy 574 rows from

@@ -312,6 +312,20 @@ The full bundle also requires `signalPolicyClear=true` and
 `signal_policy_review_plan` to be present without `BLOCKED` or `REVIEW` states
 when signal policy is otherwise clear.
 
+Read-only entry/filter operator review packet:
+
+```powershell
+.\scripts\prepare_entry_filter_operator_review_packet_ssh.ps1 -RequireReview
+```
+
+This wraps `smoke_signal_correctness_ssh.ps1` into
+`entry_filter_operator_review_packet` and
+`entry_filter_operator_packet_status`. `REVIEW_REQUIRED_NOT_POLICY_CHANGE`
+means governance drift or missed-opportunity rows are reviewable but not safe
+to treat as EntryDedup/DataFreshness/live policy approval. The packet does not
+deploy, enable live trading, relax EntryDedup/DataFreshness/live policy, place
+orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

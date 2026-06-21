@@ -536,6 +536,28 @@ Expected:
 - The script only calls read-only MCP tools and must not change
   order/OCO/strategy/grid/fund/Earn state.
 
+For a read-only entry/filter operator review packet, run:
+
+```powershell
+.\scripts\prepare_entry_filter_operator_review_packet_ssh.ps1 -RequireReview
+```
+
+Expected:
+
+- The packet runs `smoke_signal_correctness_ssh.ps1` and emits
+  `entry_filter_operator_review_packet`.
+- `entry_filter_operator_packet_status=REVIEW_REQUIRED_NOT_POLICY_CHANGE`
+  means governance drift, missed-opportunity, or no-buy row evidence is
+  reviewable but still not policy approval.
+- The packet carries `signalPolicyClear`, `governanceMode`,
+  `missedOpportunityStatus`, no-buy classifications, EntryDedup staged-add
+  evidence, and `signal_policy_review_plan`.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, relax EntryDedup/DataFreshness/live
+  policy, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy/filter changes.
+
 For the focused strategy 574 TinyLive near-BUY / governance RCA, run:
 
 ```powershell

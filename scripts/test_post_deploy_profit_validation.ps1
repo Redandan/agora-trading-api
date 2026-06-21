@@ -47,6 +47,36 @@ function Assert-FailsBeforeSsh {
     }
 }
 
+function Assert-ReviewPlanShape {
+    param([string]$Json)
+
+    $items = @($Json | ConvertFrom-Json -ErrorAction Stop | ForEach-Object { $_ })
+    if ($items.Count -ne 3) {
+        throw "post-deploy profit validation review plan must contain 3 child gate entries, got $($items.Count)"
+    }
+
+    $expectedGates = @("auto-trading-review", "profit-loss-review", "profit-experiment-review")
+    foreach ($gate in $expectedGates) {
+        if (-not @($items.gate).Contains($gate)) {
+            throw "post-deploy profit validation review plan missing gate: $gate"
+        }
+    }
+
+    foreach ($item in $items) {
+        foreach ($field in @("gate", "state", "status", "riskCategory", "recommendation", "allowedFlag", "allowed", "requiredEvidence", "nextAction", "notAuthorization")) {
+            if ($null -eq $item.PSObject.Properties[$field]) {
+                throw "post-deploy profit validation review plan entry missing field: $field"
+            }
+        }
+        if (@($item.requiredEvidence).Count -eq 0) {
+            throw "post-deploy profit validation review plan entry must preserve requiredEvidence: $($item.gate)"
+        }
+        if ($item.notAuthorization -notmatch "does not authorize live trading") {
+            throw "post-deploy profit validation review plan entry must preserve no-live authorization text: $($item.gate)"
+        }
+    }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "smoke_post_deploy_profit_validation_ssh.ps1"
 $verifyPath = Join-Path $PSScriptRoot "verify_local.ps1"
@@ -143,5 +173,47 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ReviewDays", "0") `
     -ExpectedPattern "ReviewDays must be between 1 and 180"
+
+$reviewPlanFixture = @'
+[
+  {
+    "gate": "auto-trading-review",
+    "state": "BLOCKED",
+    "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+    "riskCategory": "position-risk-and-live-execution-readiness",
+    "recommendation": "OPERATOR_REVIEW_STRATEGY485_POSITION_RISK",
+    "allowedFlag": "operator_review_packet_allowed",
+    "allowed": false,
+    "requiredEvidence": ["deployed runtime current", "current strategy 485 OCO health"],
+    "nextAction": "Separately deploy and verify current origin/main, then rerun the auto-trading review gate.",
+    "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+  },
+  {
+    "gate": "profit-loss-review",
+    "state": "BLOCKED",
+    "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+    "riskCategory": "loss-source-and-datafreshness-counterfactual",
+    "recommendation": "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY",
+    "allowedFlag": "loss_source_review_allowed",
+    "allowed": false,
+    "requiredEvidence": ["deployed runtime current", "fresh DataFreshness replayCandidateId rows"],
+    "nextAction": "Separately deploy and verify current origin/main, then rerun profit loss review gate.",
+    "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+  },
+  {
+    "gate": "profit-experiment-review",
+    "state": "BLOCKED",
+    "status": "BLOCKED_DEPLOY_CURRENT_RUNTIME",
+    "riskCategory": "shadow-experiment-and-policy-counterfactual",
+    "recommendation": "DataFreshness false-kill counterfactual",
+    "allowedFlag": "shadow_experiment_review_allowed",
+    "allowed": false,
+    "requiredEvidence": ["deployed runtime current", "entry/TP/SL candidate snapshot"],
+    "nextAction": "Separately deploy and verify current origin/main, then rerun replay observation and profit experiment gate.",
+    "notAuthorization": "read-only routing evidence only; does not authorize live trading, policy relaxation, deploy, restart, production env mutation, DB changes, order/OCO/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
+  }
+]
+'@
+Assert-ReviewPlanShape -Json $reviewPlanFixture
 
 Write-Host "[post-deploy-profit-validation-test] OK"

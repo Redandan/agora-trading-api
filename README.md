@@ -468,6 +468,20 @@ includes `canPrepareReviewPacket`, `deployRequired`, `allowedReviewTypes`,
 `blockerCount`, `blockedGateCount`, `blockedGates`,
 `missingRequirementCount`, `runtimeDrift`, and no-live authorization text.
 
+Read-only profit runtime deploy review packet:
+
+```powershell
+.\scripts\prepare_profit_runtime_deploy_review_packet_ssh.ps1 -RequireReady
+```
+
+This combines the origin-delta classifier and post-deploy profit validation
+into `profit_runtime_deploy_review_packet` and
+`profit_runtime_deploy_packet_status`. `READY_FOR_DEPLOY_REVIEW_NOT_DEPLOYED`
+means the packet can be attached to a separate deploy authorization request; it
+does not deploy, restart, reload nginx, change production env, enable live
+trading, relax policy, place orders, modify OCO, or mutate DB/grid/fund/Earn
+state.
+
 Focused DataFreshness false-kill review:
 
 ```powershell

@@ -791,6 +791,31 @@ Expected:
   relax policy, place orders, modify OCO/grid/fund/Earn state, send Telegram,
   touch DB state, run external backfill/import, or change nginx.
 
+For a focused read-only profit runtime deploy review packet, run before asking
+for a deploy decision:
+
+```powershell
+.\scripts\prepare_profit_runtime_deploy_review_packet_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- `profit_runtime_deploy_review_packet` combines origin-currentness evidence
+  with the post-deploy profit validation blockers.
+- `profit_runtime_deploy_packet_status=READY_FOR_DEPLOY_REVIEW_NOT_DEPLOYED`
+  means runtime drift and profit blockers are proven enough to ask for a
+  separate deploy review, but the script still does not deploy.
+- `origin_delta_status`, `origin_runtime_delta_paths`, and
+  `origin_runtime_delta_impact` identify the runtime files that must be
+  deployed before profit evidence can be trusted.
+- The packet names the required post-deploy commands:
+  `prepare_profit_shadow_experiment_packet_ssh.ps1 -RequireReady` and
+  `prepare_strategy485_operator_review_packet_ssh.ps1 -RequireReady`.
+- The packet is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, place orders, modify OCO/grid/fund/Earn
+  state, send Telegram, mutate DB state, touch exchange state, or run external
+  backfill/import.
+
 For a focused read-only DataFreshness false-kill review, run:
 
 ```powershell

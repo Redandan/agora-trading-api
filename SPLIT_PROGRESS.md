@@ -303,6 +303,18 @@
   missing. `scripts/test_post_deploy_profit_validation.ps1` guards the child
   gate list, blocker summary shape, safety markers, docs coverage, and local
   input validation.
+- `scripts/prepare_profit_runtime_deploy_review_packet_ssh.ps1` packages the
+  read-only profit runtime deploy review packet before a separate deploy
+  decision. It combines `smoke_live_origin_delta_local.ps1` with
+  `smoke_post_deploy_profit_validation_ssh.ps1`, emits
+  `profit_runtime_deploy_review_packet`,
+  `profit_runtime_deploy_packet_status`,
+  `origin_runtime_delta_paths`, and `origin_runtime_delta_impact`, and can
+  return `READY_FOR_DEPLOY_REVIEW_NOT_DEPLOYED` when runtime drift is proven
+  and profit validation remains blocked until deployment. The packet does not
+  deploy, restart, reload nginx, change production env, enable live trading,
+  place orders, modify OCO/grid/fund/Earn state, send Telegram, mutate DB
+  state, touch exchange state, or run external backfill/import.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

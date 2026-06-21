@@ -201,10 +201,13 @@ to a separate exit-side operator review with
 `trailing-stop-rollout`, `strategy485-risk-reduction`, and
 `entry-filter-datafreshness-policy`; the last lane is explicitly
 `NOT_DECIDED_BY_EXIT_SIDE_BRIEF` and must stay routed through the profit
-operator action brief. It also emits `strategy485_position_summaries` and
-carries trailing acceptance sample counts in `evidenceSummary` so the operator
-does not need to dig through nested source packets for the key exit-side
-evidence. It does not deploy, enable live
+operator action brief. It also emits `exit_side_operator_decision_checklist`
+and `decisionChecklist`, separating the authorization checklist for trailing
+rollout, strategy 485 risk reduction, and entry/DataFreshness out-of-scope
+policy decisions. It also emits `strategy485_position_summaries` and carries
+trailing acceptance sample counts in `evidenceSummary` so the operator does not
+need to dig through nested source packets for the key exit-side evidence. It
+does not deploy, enable live
 trading, enable trailing, place orders, modify OCO, close positions, change
 strategy opt-in, or mutate DB/grid/fund/Earn state.
 

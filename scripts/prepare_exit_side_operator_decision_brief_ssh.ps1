@@ -203,6 +203,82 @@ $decisionLanes = @(
     }
 )
 
+$decisionChecklist = @(
+    [pscustomobject]@{
+        lane = "trailing-stop-rollout"
+        checklistType = "SEPARATE_EXIT_POLICY_REVIEW_NOT_LIVE"
+        mustVerify = @(
+            "trailing_stop_acceptance=PASS",
+            "scheduler remains disabled or dry-run until separately approved",
+            "strategy opt-in scope is reviewed separately",
+            "OCO modification path remains disabled unless separately approved",
+            "ambiguous same-bar rows are excluded from acceptance"
+        )
+        separateAuthorizationRequired = @(
+            "enable trailing scheduler or trailing live mode",
+            "change strategy opt-in or exit policy",
+            "deploy runtime changes"
+        )
+        forbiddenWithoutAuthorization = @(
+            "enable trailing scheduler",
+            "enable live trading",
+            "modify OCO",
+            "change production env",
+            "deploy"
+        )
+        nextAction = "Use this checklist to draft a separate trailing-stop rollout review; do not enable trailing from this brief."
+        notAuthorization = "checklist only; does not authorize live trailing, scheduler enablement, OCO modification, deploy, or production env changes"
+    },
+    [pscustomobject]@{
+        lane = "strategy485-risk-reduction"
+        checklistType = "SEPARATE_POSITION_RISK_REVIEW_NOT_MUTATION"
+        mustVerify = @(
+            "current OCO health remains OK",
+            "active-position EV reassessment is fresh",
+            "TP stretch and timeout evidence is attached",
+            "recent-closed and monthly PnL context is attached",
+            "operator explicitly approves any risk-reducing mutation"
+        )
+        separateAuthorizationRequired = @(
+            "close any strategy 485 position",
+            "modify or cancel OCO",
+            "change risk-reduction policy"
+        )
+        forbiddenWithoutAuthorization = @(
+            "close positions",
+            "modify OCO",
+            "cancel OCO",
+            "place orders",
+            "change production env",
+            "deploy"
+        )
+        nextAction = "Use this checklist to draft a separate strategy 485 risk-reduction review; do not close positions or modify OCO from this brief."
+        notAuthorization = "checklist only; does not authorize close-position, OCO modification, orders, deploy, or production env changes"
+    },
+    [pscustomobject]@{
+        lane = "entry-filter-datafreshness-policy"
+        checklistType = "EXPLICITLY_OUT_OF_SCOPE_FOR_EXIT_SIDE_REVIEW"
+        mustVerify = @(
+            "entry/filter policy remains unchanged",
+            "DataFreshnessGuard remains strict",
+            "profit operator action brief is used for blocked entry/DataFreshness lanes"
+        )
+        separateAuthorizationRequired = @(
+            "relax EntryDedup/DataFreshness/live policy",
+            "approve DataFreshness shadow/replay policy",
+            "enable TinyLive or entry execution"
+        )
+        forbiddenWithoutAuthorization = @(
+            "relax EntryDedup",
+            "relax DataFreshnessGuard",
+            "enable TinyLive or entry execution",
+            "change live policy"
+        )
+        nextAction = "Keep entry/filter and DataFreshness decisions routed through profit operator action brief, not this exit-side checklist."
+        notAuthorization = "checklist only; does not authorize EntryDedup/DataFreshness/live policy relaxation or TinyLive execution"
+    }
+)
+
 $decisionStatus = "NOT_READY"
 $primaryRecommendation = "COLLECT_EXIT_SIDE_EVIDENCE"
 if ($exitPacketResult.ExitCode -ne 0 -or $null -eq $exitPacket) {
@@ -223,6 +299,7 @@ $brief = [pscustomobject]@{
     exitSidePacketStatus = $exitStatus
     primaryRecommendation = $primaryRecommendation
     decisionLanes = @($decisionLanes)
+    decisionChecklist = @($decisionChecklist)
     reviewRecommendations = @($recommendations)
     separateAuthorizationsRequired = @(
         "enable trailing scheduler or trailing live mode",
@@ -271,6 +348,7 @@ Write-Host "strategy485_negative_ev_position_count=$negativeEvCount"
 Write-Host "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount"
 Write-Host ("strategy485_position_summaries=" + (ConvertTo-Json -Compress -Depth 6 @($strategy485PositionSummaries)))
 Write-Host ("exit_side_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))
+Write-Host ("exit_side_operator_decision_checklist=" + (ConvertTo-Json -Compress -Depth 8 @($decisionChecklist)))
 Write-Host ("exit_side_operator_review_recommendations=" + (ConvertTo-Json -Compress -Depth 8 @($recommendations)))
 Write-Host ("exit_side_operator_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 12 $brief))
 Write-Host "exit_side_operator_decision_brief_status=$decisionStatus"

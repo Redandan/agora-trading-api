@@ -1841,6 +1841,11 @@ Expected:
   `entry-filter-datafreshness-policy`; the entry/filter lane is
   `NOT_DECIDED_BY_EXIT_SIDE_BRIEF` and must stay routed through the profit
   operator action brief.
+- The brief emits `exit_side_operator_decision_checklist` / `decisionChecklist`
+  with one checklist per lane. The trailing and strategy 485 checklists list
+  separate authorizations and forbidden actions before any rollout, close, or
+  OCO mutation; the entry/DataFreshness checklist keeps those policy decisions
+  explicitly out of this exit-side review.
 - The brief emits top-level `strategy485_position_summaries` and carries
   trailing acceptance sample counts in `evidenceSummary`, so the key operator
   evidence is visible without inspecting nested source packets.

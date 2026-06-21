@@ -178,6 +178,19 @@ production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
 Read-only tiny-live loss hard-stop RCA when live-readiness reports
 `risk_hard_stop` or `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`:
 
+After TinyLive has been explicitly authorized and enabled, use the live-aware
+readiness audit mode:
+
+```powershell
+.\scripts\audit_live_readiness_ssh.ps1 -LiveAuthorized
+```
+
+This treats `TRADING_OKX_ENABLED=true` plus
+`TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=true` / dry-run false as expected
+evidence, while still failing closed on other order-capable flags, missing
+secrets, missing TinyLive hard-scope proof, order-sent markers, runtime errors,
+guardian write mode, and non-R0 event risk.
+
 ```powershell
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1
 ```

@@ -3,7 +3,8 @@ param(
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [string]$AppDir = "/home/ubuntu/agora-trading-api",
     [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
-    [string]$Symbol = "BTCUSDT"
+    [string]$Symbol = "BTCUSDT",
+    [switch]$LiveAuthorized
 )
 
 Set-StrictMode -Version Latest
@@ -66,7 +67,7 @@ if [ -z "`$MCP_KEY" ]; then
   exit 0
 fi
 
-export PORT MCP_KEY SYMBOL ENV_FILE APP_DIR
+export PORT MCP_KEY SYMBOL ENV_FILE APP_DIR LIVE_AUTHORIZED='$($LiveAuthorized.IsPresent)'
 python3 - <<'PY'
 import json
 import os
@@ -82,6 +83,7 @@ headers = {
 }
 env_file = os.environ["ENV_FILE"]
 symbol = os.environ["SYMBOL"].upper()
+live_authorized = os.environ.get("LIVE_AUTHORIZED", "").lower() == "true"
 blockers = []
 warnings = []
 readiness_details = {}
@@ -338,6 +340,7 @@ print(f"url={url}")
 print(f"symbol={symbol}")
 print(f"commit={open('app.commit', encoding='utf-8').read().strip()}")
 print(f"port={open('app.port', encoding='utf-8').read().strip()}")
+print(f"live_authorized={str(live_authorized).lower()}")
 
 health = urllib.request.urlopen(f"http://127.0.0.1:{os.environ['PORT']}/api/actuator/health", timeout=10).read().decode("utf-8", "replace")
 print(f"health={health}")
@@ -386,6 +389,7 @@ for key in background_flags:
         background_missing.append(key)
 
 true_order_flags = [key for key, value in order_flags.items() if value]
+live_authorized_order_flags = ["TRADING_OKX_ENABLED", "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED"]
 
 print("order_capable_flags=" + json.dumps(order_flags, sort_keys=True))
 print("order_capable_flags_true=" + json.dumps(true_order_flags))
@@ -404,8 +408,15 @@ if secret_presence("TRADING_OKX_API_KEY") != "SET" or secret_presence("TRADING_O
     blockers.append("OKX_CREDENTIALS_NOT_SET")
 
 if true_order_flags:
-    blockers.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE:" + ",".join(true_order_flags))
-    warnings.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
+    unexpected_order_flags = true_order_flags
+    if live_authorized:
+        unexpected_order_flags = [key for key in true_order_flags if key not in live_authorized_order_flags]
+        authorized_true = [key for key in true_order_flags if key in live_authorized_order_flags]
+        if authorized_true:
+            warnings.append("LIVE_AUTHORIZED_ORDER_FLAGS_TRUE:" + ",".join(authorized_true))
+    if unexpected_order_flags:
+        blockers.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE:" + ",".join(unexpected_order_flags))
+        warnings.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
 
 if background_true:
     warnings.append("BACKGROUND_AUTOMATION_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
@@ -418,9 +429,14 @@ opportunity = call_tool("validateAutonomousOpportunityReadiness", {"symbol": sym
 readiness_details["autonomousOpportunity"] = opportunity_details(opportunity)
 require_contains("tiny", tiny, r"boundary:\s*READ_ONLY", "TINY_STATUS_BOUNDARY_MISSING")
 require_contains("tiny", tiny, r"orderSent=false", "TINY_ORDER_SENT_MARKER_MISSING")
-require_contains("tiny", tiny, r"triggerEnabled=false", "TINY_TRIGGER_ALREADY_ENABLED_OR_MARKER_MISSING")
-require_contains("tiny", tiny, r"triggerDryRun=true", "TINY_DRY_RUN_NOT_TRUE")
-if "executionEligible=true" not in tiny:
+if live_authorized:
+    require_contains("tiny", tiny, r"triggerEnabled=true", "TINY_TRIGGER_NOT_ENABLED_IN_LIVE_AUTHORIZED_MODE")
+    require_contains("tiny", tiny, r"triggerDryRun=false", "TINY_DRY_RUN_NOT_FALSE_IN_LIVE_AUTHORIZED_MODE")
+    require_contains("tiny", tiny, r"hardScope=BTCUSDT/574/LONG/5USDT", "TINY_HARD_SCOPE_MARKER_MISSING")
+else:
+    require_contains("tiny", tiny, r"triggerEnabled=false", "TINY_TRIGGER_ALREADY_ENABLED_OR_MARKER_MISSING")
+    require_contains("tiny", tiny, r"triggerDryRun=true", "TINY_DRY_RUN_NOT_TRUE")
+if "executionEligible=true" not in tiny and not (live_authorized and "NO_CURRENT_BUY_CANDIDATE" in tiny):
     blockers.append("TINY_LIVE_NOT_EXECUTION_ELIGIBLE")
 
 pre = call_tool("getScoreBuyPrePositionAutoExecutionStatus", {"symbol": symbol})
@@ -433,7 +449,7 @@ for name, text in [("PRE_POSITION", pre), ("CONFIRMED_DEPLOY", confirmed), ("POS
     require_contains(name, text, r'"enabled"\s*:\s*false', f"{name}_ENABLED_NOT_FALSE")
     require_contains(name, text, r'"dryRun"\s*:\s*true', f"{name}_DRY_RUN_NOT_TRUE")
     require_contains(name, text, r'"orderSent"\s*:\s*false', f"{name}_ORDER_SENT_MARKER_MISSING")
-    if '"executionEligible" : true' not in text and '"executionEligible":true' not in text:
+    if not live_authorized and '"executionEligible" : true' not in text and '"executionEligible":true' not in text:
         blockers.append(f"{name}_NOT_EXECUTION_ELIGIBLE")
 
 trailing = call_tool("getTrailingStopStatus")
@@ -458,7 +474,7 @@ try:
     strict_log_env = dict(os.environ)
     strict_log_env["ALLOW_UNKNOWN_WARN"] = "0"
     strict_log_env["ALLOW_RUNTIME_ERROR"] = "0"
-    strict_log_env["ALLOW_HIGH_RISK_LOG"] = "0"
+    strict_log_env["ALLOW_HIGH_RISK_LOG"] = "1" if live_authorized else "0"
     log = subprocess.run(["bash", "scripts/check_server_runtime_log.sh"], cwd=os.environ["APP_DIR"], env=strict_log_env, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
     print("runtime_log_status=PASS" if log.returncode == 0 else "runtime_log_status=FAIL")
     for line in log.stdout.splitlines()[-12:]:
@@ -483,6 +499,8 @@ print("warnings=" + json.dumps(warnings))
 print("blockers=" + json.dumps(blockers))
 if blockers:
     print("verdict=NOT_READY")
+elif live_authorized:
+    print("verdict=LIVE_AUTHORIZED_MONITORING")
 else:
     print("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED")
 PY

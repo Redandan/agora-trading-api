@@ -586,6 +586,14 @@ Expected:
 - `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is not live enablement.
   It only means the operator can review a separate, explicitly authorized env
   change plan.
+- After a separately authorized TinyLive live launch, rerun the audit with
+  `-LiveAuthorized`. In that mode, the expected live flags
+  `TRADING_OKX_ENABLED=true` and
+  `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=true` with TinyLive dry-run false
+  are reviewed as evidence instead of pre-live blockers. The mode still fails
+  closed on unexpected order-capable flags, missing TinyLive hard-scope proof,
+  missing order-sent=false markers, non-R0 event risk, missing OKX secrets,
+  guardian write mode, runtime errors, and unexpected high-risk logs.
 - The audit must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 

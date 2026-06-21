@@ -398,6 +398,12 @@ forward-return proxy markers. It is evidence only and does not authorize
 DataFreshnessGuard relaxation or any live mutation.
 Use `docs/data-freshness-shadow-replay-input-plan.md` before proposing any
 collector or shadow/replay change for this path.
+Use `docs/data-freshness-shadow-replay-collector-design.md` before implementing
+any collector: the current L0 block returns before candidate/EV/OCO snapshots,
+so a future collector must be disabled by default, keep DataFreshnessGuard as
+the terminal live decision, create only replay evidence with a stable
+`replayCandidateId`, and must not create live signals, send Telegram, place
+orders, modify OCO, mutate positions, or change scheduler/live policy.
 
 Read-only profit-improvement review bundle:
 

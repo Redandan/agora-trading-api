@@ -1,0 +1,139 @@
+# DataFreshness Shadow Replay Collector Design
+
+This is a design contract for a future evidence-only collector. It is not
+authorization to edit production env, deploy, restart the service, relax
+DataFreshnessGuard, enable live trading, place orders, create live positions,
+change OCO, run grid/fund/Earn actions, send Telegram, mutate schedulers, run
+external backfill/import jobs, or mutate DB schema.
+
+## Code Inventory
+
+The current `LiveSignalEvaluator` L0 DataFreshnessGuard path returns before the
+normal candidate pipeline:
+
+- `dataFreshnessContext(...)` is written with stale K-line metadata.
+- `auditWriter.logFilterBlock(..., "DataFreshnessGuard", ...)` persists the
+  block.
+- evaluation then returns before indicators, candidate plan, live signal, EV,
+  TQS, OCO preflight, exposure, duplicate, daily loss, event-risk, or order
+  paths run.
+
+The normal downstream candidate pipeline is therefore not available for current
+DataFreshness rows:
+
+- `candidateTradePlanContext(...)` captures entry, TP, SL, expected R, EV, and
+  related candidate fields after the L0 guard.
+- `shadowExecutionIntentContext(...)` is also downstream of live signal creation
+  and notification/trading gating.
+- `auditExpectedValueGateDryRun(...)` runs only after a candidate and
+  `BtLiveSignal` already exist.
+
+`RuntimeDecisionEvidenceService.writeFromDecisionAudit(...)` is already gated by
+`trading.runtime-evidence.enabled:false`. It can copy decision-audit context into
+`RuntimeDecisionEvidence`, but current DataFreshness rows only resolve to
+`freshnessState=BLOCKED_BY_DATA_FRESHNESS_GUARD`, `evResultJson` with
+`status=NOT_EVALUATED`, and execution previews built without real candidate
+entry/TP/SL/EV/OCO snapshots.
+
+## Design Conclusion
+
+The existing 74-row DataFreshness counterfactual sample is a positive
+forward-return proxy, not an executable replay sample. A collector cannot safely
+reuse the normal downstream candidate helpers by simply moving the L0 guard
+later; that would change the live decision order and could expose side effects
+before a hard freshness failure.
+
+Any future collector must keep the L0 DataFreshnessGuard outcome unchanged and
+run as a separate shadow replay-input path after the hard block is recorded.
+
+## Future Collector Boundary
+
+If implemented later, the collector must be disabled by default:
+
+```text
+TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false
+trading.data-freshness.shadow-replay.collector.enabled=false
+```
+
+The collector may only run after separate evidence-only authorization and
+deploy. It must:
+
+- keep `DataFreshnessGuard` as the terminal live decision
+- keep `TRADING_OKX_ENABLED=false`
+- keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false`
+- keep `TRADING_RUNTIME_EVIDENCE_ENABLED` as the only separately reviewable
+  evidence sink switch
+- create a stable `replayCandidateId` without creating a `BtLiveSignal`
+- set or preserve `liveSignalId=null` unless a live signal already exists
+  naturally from another path
+- produce entry, TP, SL, current price, expected R, EV decision, TQS snapshot,
+  OCO dry-run/preflight, duplicate, daily cap, exposure, event-risk,
+  open-position, and loss-budget snapshots
+- set `orderSent=false`, `intentCreated=false`, and `ocoPlanCreated=false`
+- write only replay evidence or runtime evidence rows explicitly marked as
+  shadow/counterfactual
+
+It must not:
+
+- move L0 below live signal creation, Telegram, order, OCO, or scheduler paths
+- create `BtLiveSignal` just for replay
+- send Telegram
+- place or amend exchange orders
+- create or modify OCO algo orders
+- open, close, or resize positions
+- run grid, fund, or Earn operations
+- run external backfill/import jobs
+- change EntryDedup, live policy, scheduler state, production env, or DB schema
+- treat derived forward-return rows as executable candidates
+
+## Implementation Shape
+
+The safest implementation shape is a small service invoked from the
+DataFreshness L0 block after `auditWriter.logFilterBlock(...)` has recorded the
+hard block and before the method returns. That service should receive immutable
+inputs from the already-loaded strategy/config/K-line window and then run a
+side-effect-free candidate snapshot calculation.
+
+The service must not call helpers that persist live signals, send notifications,
+place orders, or mutate position/OCO state. If the current candidate logic
+cannot be reused without those side effects, extract a pure candidate snapshot
+builder first and keep its local verification separate from any collector
+activation.
+
+## Acceptance Gate
+
+The collector is not useful for policy review until read-only production smokes
+show:
+
+```text
+complete_replayable_candidate_rows > 0
+ev_snapshot_rows > 0
+oco_plan_snapshot_rows > 0
+hard_gate_snapshot_rows > 0
+missing_counterfactual_fields=[]
+orderSentEvidence=0
+data_freshness_counterfactual_recommendation=REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES
+```
+
+The first review sample should contain at least 30 mature replay candidates and
+must keep ExpectedValueGate, TQS, OCO preflight, duplicate, daily cap, exposure,
+event-risk, open-position, and loss-budget gates intact.
+
+Even after that gate passes, the result is only an operator review packet input.
+It is not approval to relax DataFreshnessGuard or enable live trading.
+
+## Stop Conditions
+
+Stop and revert the collector path if any evidence row shows:
+
+- `orderSent=true`
+- non-null exchange order id
+- non-null OCO algo id created by the collector
+- Telegram send
+- live signal creation for replay only
+- position/OCO/grid/fund/Earn mutation
+- scheduler/live-policy mutation
+- DB schema mutation
+- replay that removes any hard gate other than DataFreshnessGuard
+- sample edge that disappears after EV/OCO/daily-cap/exposure/event-risk gates
+  are applied

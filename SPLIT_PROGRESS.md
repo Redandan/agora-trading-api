@@ -274,6 +274,14 @@
   DataFreshnessGuard relaxation or live mutation without fresh read-only
   counterfactual evidence. `scripts/test_data_freshness_shadow_replay_input_plan.ps1`
   guards the plan markers and links it to the existing read-only smokes.
+- `docs/data-freshness-shadow-replay-collector-design.md` records the current
+  code inventory and future collector boundary: L0 returns before candidate,
+  EV, OCO, and hard-gate snapshots, so a future collector must be disabled by
+  default, evidence-only, keep DataFreshnessGuard terminal, use a stable
+  `replayCandidateId`, avoid live signal creation, and never send Telegram,
+  place orders, modify OCO, mutate positions, or change scheduler/live policy.
+  `scripts/test_data_freshness_shadow_replay_collector_design.ps1` is wired
+  into local verification to keep that boundary explicit.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, strategy 485 position-risk smoke,

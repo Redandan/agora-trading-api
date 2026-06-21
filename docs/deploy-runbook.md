@@ -694,6 +694,13 @@ Expected:
   collector or shadow/replay change for this path. The plan defines required
   replay input fields, stop conditions, minimum sample expectations, and the
   live-mutation boundaries that must remain closed.
+- Use `docs/data-freshness-shadow-replay-collector-design.md` before
+  implementing any collector. The current L0 DataFreshnessGuard path returns
+  before candidate/EV/OCO snapshots, so the only acceptable future collector is
+  disabled by default, evidence-only, keeps DataFreshnessGuard as the terminal
+  live decision, writes a stable `replayCandidateId`, and never creates live
+  signals, sends Telegram, places orders, modifies OCO, mutates positions, or
+  changes scheduler/live policy.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

@@ -642,6 +642,27 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For the read-only auto-trading review gate, run:
+
+```powershell
+.\scripts\prepare_auto_trading_review_gate_ssh.ps1
+```
+
+Expected:
+
+- The gate invokes `smoke_auto_trading_review_bundle_ssh.ps1` only.
+- Output includes `deploy_required_before_auto_trading_review`,
+  `operator_review_packet_allowed`, `position_or_oco_mutation_allowed=false`,
+  `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+  `auto_trading_review_missing_requirements`, and
+  `auto_trading_review_gate_status`.
+- `READY_FOR_OPERATOR_POSITION_REVIEW_NOT_MUTATION` means a separate read-only
+  operator packet can be drafted. It is not permission to close positions,
+  modify OCO, pre-buy, execute TinyLive, deploy, restart, or change live
+  policy.
+- `BLOCKED_DEPLOY_CURRENT_RUNTIME` means current origin/main must be deployed
+  and verified before the auto-trading review packet can be trusted.
+
 For a read-only profit-candidate review, run:
 
 ```powershell

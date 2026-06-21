@@ -222,6 +222,16 @@
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state. `scripts/test_auto_trading_review_bundle.ps1` guards the child
   smoke list, output markers, and non-authorization wording.
+- `scripts/prepare_auto_trading_review_gate_ssh.ps1` converts the read-only
+  auto-trading review bundle into a packet gate with
+  `deploy_required_before_auto_trading_review`,
+  `operator_review_packet_allowed`, `position_or_oco_mutation_allowed=false`,
+  `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+  `auto_trading_review_missing_requirements`, and
+  `auto_trading_review_gate_status`. The gate can route a separate operator
+  packet for read-only position review after runtime currentness is proven, but
+  it never authorizes close-position, OCO modification, pre-buying, TinyLive
+  order execution, deploy, restart, or live policy changes.
 - `scripts/smoke_profit_candidate_review_ssh.ps1` provides a read-only
   production review for risk-adjusted profit-improvement candidates. It calls
   server-local `/api/mcp` for monthly PnL, enabled strategy scorecard,

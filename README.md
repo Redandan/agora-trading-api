@@ -365,6 +365,20 @@ post-trade smoke, then prints `auto_trading_review_recommendation`. It is a
 review bundle only; it does not deploy, restart, close positions, modify OCO, or
 relax live policy.
 
+Read-only auto-trading review gate:
+
+```powershell
+.\scripts\prepare_auto_trading_review_gate_ssh.ps1
+```
+
+This gate converts the auto-trading review bundle into
+`deploy_required_before_auto_trading_review`, `operator_review_packet_allowed`,
+`position_or_oco_mutation_allowed=false`, `tiny_live_order_allowed=false`,
+`live_policy_change_allowed=false`, and `auto_trading_review_gate_status`. It
+may route a separate operator packet for read-only position review, but it never
+authorizes close-position, OCO modification, pre-buying, TinyLive order
+execution, or live policy changes.
+
 Read-only profit-candidate review:
 
 ```powershell

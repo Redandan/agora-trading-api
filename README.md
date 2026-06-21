@@ -674,6 +674,22 @@ positions, or mutate DB/grid/fund/Earn state.
 Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers from the watcher itself.
 
+Read-only DataFreshness profit blocker brief:
+
+```powershell
+.\scripts\prepare_data_freshness_profit_blocker_brief_ssh.ps1
+```
+
+This narrower brief combines signal correctness current-source status with the
+DataFreshness replay observation bundle and emits
+`data_freshness_profit_blocker_brief_packet` plus
+`data_freshness_profit_blocker_status`. `PENDING_DATAFRESHNESS_CURRENT_SAMPLE`
+means current DataFreshness evidence is still missing;
+`READY_FOR_DATAFRESHNESS_REPLAY_REVIEW_NOT_LIVE` means a separate replay review
+can start. It does not deploy, enable live trading, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn state.
+
 Read-only profit operator review matrix:
 
 ```powershell

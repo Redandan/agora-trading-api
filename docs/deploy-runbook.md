@@ -996,6 +996,29 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a read-only DataFreshness profit blocker brief, run:
+
+```powershell
+.\scripts\prepare_data_freshness_profit_blocker_brief_ssh.ps1
+```
+
+Expected:
+
+- The brief calls `smoke_signal_correctness_ssh.ps1` and
+  `smoke_data_freshness_replay_observation_bundle_ssh.ps1` only.
+- It emits `data_freshness_profit_blocker_brief_packet`,
+  `data_freshness_profit_blockers`, and
+  `data_freshness_profit_blocker_status`.
+- `PENDING_DATAFRESHNESS_CURRENT_SAMPLE` means the current-source RCA still has
+  no current DataFreshness sample; rerun after a new sample is expected.
+- `READY_FOR_DATAFRESHNESS_REPLAY_REVIEW_NOT_LIVE` means the current sample,
+  replay candidate id, and counterfactual replay evidence can be reviewed
+  separately; it is not approval to relax DataFreshnessGuard or live policy.
+- The brief does not deploy, restart, reload nginx, change production env,
+  enable live trading, relax EntryDedup/DataFreshness/live policy, place orders,
+  modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange
+  state, run external backfill/import, or authorize strategy changes.
+
 For a read-only profit operator review matrix, run:
 
 ```powershell

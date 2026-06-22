@@ -73,6 +73,22 @@ The summary output must include `profit_operator_review_summary_freshness_status
 so a downstream review can reject stale source-matrix evidence before reading
 the ready-lane recommendation.
 
+To convert the fresh summary into a single proposal-only packet without a new
+SSH refresh, run:
+
+```powershell
+.\scripts\prepare_exit_side_operator_experiment_packet.ps1 -RequireReady
+```
+
+Expected output includes:
+
+```text
+packetType=EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW
+exit_side_operator_experiment_packet_status=READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE
+proposalId=trailing-stop-dry-run-experiment-review
+proposalId=strategy485-risk-reduction-shadow-review
+```
+
 ### Proposal: trailing-stop-rollout-review
 
 ```text

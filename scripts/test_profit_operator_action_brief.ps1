@@ -67,6 +67,12 @@ foreach ($marker in @(
         "timeoutSeconds",
         "timedOut",
         "child_error_summary",
+        "MatrixTimeoutSeconds",
+        "effectiveMatrixTimeoutSeconds",
+        "source_matrix_timeout_seconds",
+        "child_timeout_seconds",
+        "sourceMatrixTimeoutSeconds",
+        "childTimeoutSeconds",
         "MatrixOutputPath",
         "SaveMatrixOutputPath",
         "ReviewOutputDir",
@@ -396,6 +402,10 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ChildTimeoutSeconds", "1") `
     -ExpectedPattern "ChildTimeoutSeconds must be between 60 and 3600"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ChildTimeoutSeconds", "900", "-MatrixTimeoutSeconds", "899") `
+    -ExpectedPattern "MatrixTimeoutSeconds must be 0 or between ChildTimeoutSeconds and 14400"
 
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-MatrixMaxAgeMinutes", "0") `

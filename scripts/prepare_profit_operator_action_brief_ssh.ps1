@@ -8,6 +8,7 @@ param(
     [int]$ReplayDays = 30,
     [int]$ReplayLimit = 500,
     [int]$ChildTimeoutSeconds = 900,
+    [int]$MatrixTimeoutSeconds = 0,
     [string]$MatrixOutputPath = "",
     [string]$SaveMatrixOutputPath = "",
     [string]$ReviewOutputDir = "target/profit-review",
@@ -100,7 +101,7 @@ function Save-MatrixOutput {
 }
 
 function Invoke-ReadOnlyScript {
-    param([string]$ScriptName, [string[]]$Arguments)
+    param([string]$ScriptName, [string[]]$Arguments, [int]$TimeoutSeconds)
 
     $scriptPath = Join-Path $PSScriptRoot $ScriptName
     if (-not (Test-Path -LiteralPath $scriptPath)) {
@@ -115,7 +116,7 @@ function Invoke-ReadOnlyScript {
         throw "Unable to find powershell or pwsh for profit operator action brief."
     }
 
-    Write-Host "[profit-operator-action-brief] child_start script=$ScriptName timeoutSeconds=$ChildTimeoutSeconds"
+    Write-Host "[profit-operator-action-brief] child_start script=$ScriptName timeoutSeconds=$TimeoutSeconds"
     $startedAt = Get-Date
     $timedOut = $false
     $stdout = ""
@@ -144,7 +145,7 @@ function Invoke-ReadOnlyScript {
         $lastHeartbeatSeconds = 0
         while ($job.State -eq "Running") {
             $elapsedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
-            if ($elapsedSeconds -ge $ChildTimeoutSeconds) {
+            if ($elapsedSeconds -ge $TimeoutSeconds) {
                 $timedOut = $true
                 Stop-Job -Job $job -ErrorAction SilentlyContinue
                 break
@@ -200,6 +201,9 @@ if ($ReplayLimit -lt 1 -or $ReplayLimit -gt 500) {
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) {
     throw "ChildTimeoutSeconds must be between 60 and 3600."
 }
+if ($MatrixTimeoutSeconds -ne 0 -and ($MatrixTimeoutSeconds -lt $ChildTimeoutSeconds -or $MatrixTimeoutSeconds -gt 14400)) {
+    throw "MatrixTimeoutSeconds must be 0 or between ChildTimeoutSeconds and 14400."
+}
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) {
     throw "MatrixMaxAgeMinutes must be between 1 and 1440."
 }
@@ -214,6 +218,12 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath) -and -not (Test-Path -L
 }
 
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
+
+$effectiveMatrixTimeoutSeconds = if ($MatrixTimeoutSeconds -gt 0) {
+    $MatrixTimeoutSeconds
+} else {
+    [Math]::Min(14400, [Math]::Max($ChildTimeoutSeconds, ($ChildTimeoutSeconds * 4) + 300))
+}
 
 $sourceMatrixMode = "FRESH_CHILD_RUN"
 $matrixFreshness = [pscustomobject]@{
@@ -263,7 +273,7 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
         "-ReplayLimit", "$ReplayLimit",
         "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
         "-RequireReviewItems"
-    )
+    ) -TimeoutSeconds $effectiveMatrixTimeoutSeconds
 
     if (-not [string]::IsNullOrWhiteSpace($SaveMatrixOutputPath)) {
         $matrixSavePath = $SaveMatrixOutputPath
@@ -291,7 +301,7 @@ if ($sourceMatrixMode -eq "FRESH_CHILD_RUN") {
         "-Symbol", $Symbol,
         "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
         "-RequireBrief"
-    )
+    ) -TimeoutSeconds $ChildTimeoutSeconds
 }
 
 $matrixStatus = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_status="
@@ -504,6 +514,8 @@ $brief = [pscustomobject]@{
     sourceMatrixOutputPath = if ([string]::IsNullOrWhiteSpace($MatrixOutputPath)) { $null } else { $MatrixOutputPath }
     sourceMatrixFreshness = $matrixFreshness
     sourceMatrixExitCode = $matrix.ExitCode
+    sourceMatrixTimeoutSeconds = $effectiveMatrixTimeoutSeconds
+    childTimeoutSeconds = $ChildTimeoutSeconds
     sourceSignalMissedBlocker = "prepare_signal_missed_blocker_decision_brief_ssh.ps1"
     nextAction = if ($exitSideReady) { "Prepare a separate exit-side operator review using the attached read-only evidence; keep entry/filter and DataFreshness lanes blocked until their evidence clears." } else { $matrixNextAction }
     notAuthorization = "read-only profit operator action brief only; does not deploy, restart, reload nginx, change production env, enable live trading, relax EntryDedup/DataFreshness/live policy, enable trailing scheduler, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy changes"
@@ -514,6 +526,8 @@ Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_review_matrix_ssh.p
 Write-Host "source_matrix=prepare_profit_operator_review_matrix_ssh.ps1 exitCode=$($matrix.ExitCode)"
 Write-Host "source_matrix_mode=$sourceMatrixMode"
 Write-Host "source_matrix_freshness_status=$($matrixFreshness.Status)"
+Write-Host "source_matrix_timeout_seconds=$effectiveMatrixTimeoutSeconds"
+Write-Host "child_timeout_seconds=$ChildTimeoutSeconds"
 Write-Host "source_signal_missed_blocker=prepare_signal_missed_blocker_decision_brief_ssh.ps1 mode=$signalMissedMode exitCode=$($signalMissed.ExitCode)"
 Write-Host "signal_missed_blocker_decision_brief_status=$signalMissedStatus"
 Write-Host "profit_operator_review_matrix_status=$matrixStatus"

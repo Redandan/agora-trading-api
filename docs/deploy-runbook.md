@@ -1159,6 +1159,11 @@ Expected:
 - Long child matrix runs emit `child_start`, periodic `child_heartbeat`, and
   `child_complete` markers. `-ChildTimeoutSeconds` bounds a stuck local child
   wrapper without changing production state.
+- Fresh action-brief runs use `-MatrixTimeoutSeconds` as the outer timeout for
+  the nested matrix child. The default `0` derives a larger timeout from
+  `-ChildTimeoutSeconds`, so the matrix can finish its own bounded child
+  scripts instead of being stopped at the first inner-child limit. The brief
+  prints `source_matrix_timeout_seconds` and `child_timeout_seconds`.
 - Fresh SSH runs also call
   `prepare_signal_missed_blocker_decision_brief_ssh.ps1` and emit
   `profit_operator_signal_missed_blocker_decision` plus

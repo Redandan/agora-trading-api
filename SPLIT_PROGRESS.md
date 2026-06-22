@@ -563,8 +563,12 @@
   `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so ready
   and blocked profit lanes stay visible together. Long child matrix runs emit
   `child_start`, periodic `child_heartbeat`, and `child_complete` markers, with
-  `-ChildTimeoutSeconds` bounding stuck local children. Fresh runs can save raw
-  matrix output with `-SaveMatrixOutputPath`, and follow-up briefs can reuse it
+  `-ChildTimeoutSeconds` bounding stuck local children. Fresh action-brief runs
+  now apply a separate `-MatrixTimeoutSeconds` outer timeout to the nested
+  matrix child; the default `0` derives a larger timeout from
+  `-ChildTimeoutSeconds` and prints `source_matrix_timeout_seconds` plus
+  `child_timeout_seconds` so the matrix is not killed at the first inner-child
+  limit. Fresh runs can save raw matrix output with `-SaveMatrixOutputPath`, and follow-up briefs can reuse it
   with `-MatrixOutputPath` and `source_matrix_mode=REUSED_OUTPUT_FILE` instead
   of rerunning the long SSH matrix. Fresh SSH runs now also invoke
   `prepare_signal_missed_blocker_decision_brief_ssh.ps1` and emit

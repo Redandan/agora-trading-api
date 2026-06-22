@@ -911,7 +911,13 @@ classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
 operator dashboard can show ready and blocked profit lanes together. Long child
 matrix runs emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers; `-ChildTimeoutSeconds` bounds a stuck child locally
-without changing production state. Use `-SaveMatrixOutputPath` on a fresh run
+without changing production state. Fresh action-brief runs give the nested
+matrix child a separate outer timeout through `-MatrixTimeoutSeconds`; when it
+is left at `0`, the wrapper derives a larger timeout from
+`-ChildTimeoutSeconds` so the matrix can finish its own bounded child scripts
+instead of being killed at the first inner-child limit. The brief prints
+`source_matrix_timeout_seconds` and `child_timeout_seconds` for auditability.
+Use `-SaveMatrixOutputPath` on a fresh run
 to retain the raw matrix output, then use `-MatrixOutputPath` to rebuild the
 action brief from that read-only evidence without rerunning the long SSH matrix.
 Fresh SSH runs also call

@@ -84,12 +84,65 @@ function Invoke-ReadOnlyScript {
         throw "Unable to find powershell or pwsh for profit operator review matrix."
     }
 
-    Write-Host "[profit-operator-review-matrix] child_start script=$ScriptName"
-    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1
-    $exitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+    Write-Host "[profit-operator-review-matrix] child_start script=$ScriptName timeoutSeconds=$ChildTimeoutSeconds"
+    $startedAt = Get-Date
+    $timedOut = $false
+    $output = ""
+    $exitCode = 1
+    $job = $null
+    try {
+        $job = Start-Job -ScriptBlock {
+            param(
+                [string]$PowerShellSource,
+                [string]$ChildScriptPath,
+                [string]$WorkingDirectory,
+                [object[]]$ChildArguments
+            )
+            $ErrorActionPreference = "Continue"
+            Set-Location -LiteralPath $WorkingDirectory
+            $childOutput = & $PowerShellSource -NoProfile -ExecutionPolicy Bypass -File $ChildScriptPath @ChildArguments 2>&1
+            $childSuccess = $?
+            $code = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($childSuccess) { 0 } else { 1 }
+            [pscustomobject]@{
+                Text = ($childOutput | Out-String -Width 4096)
+                ExitCode = $code
+            }
+        } -ArgumentList @($powerShell.Source, $scriptPath, (Get-Location).Path, (, @($Arguments)))
+
+        $lastHeartbeatSeconds = 0
+        while ($job.State -eq "Running") {
+            $elapsedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+            if ($elapsedSeconds -ge $ChildTimeoutSeconds) {
+                $timedOut = $true
+                Stop-Job -Job $job -ErrorAction SilentlyContinue
+                break
+            }
+            if ($elapsedSeconds -ge ($lastHeartbeatSeconds + 30)) {
+                $lastHeartbeatSeconds = $elapsedSeconds
+                Write-Host "[profit-operator-review-matrix] child_heartbeat script=$ScriptName elapsedSeconds=$elapsedSeconds"
+            }
+            Start-Sleep -Seconds 2
+        }
+
+        if ($timedOut) {
+            $output = "timed out after $ChildTimeoutSeconds second(s)"
+            $exitCode = 124
+            Write-Host "[profit-operator-review-matrix] child_timeout script=$ScriptName exitCode=124 timeoutSeconds=$ChildTimeoutSeconds"
+        } else {
+            $result = Receive-Job -Job $job -ErrorAction SilentlyContinue
+            if ($null -ne $result) {
+                $output = [string]$result.Text
+                $exitCode = [int]$result.ExitCode
+            }
+        }
+    } finally {
+        if ($null -ne $job) {
+            Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+        }
+    }
     Write-Host "[profit-operator-review-matrix] child_complete script=$ScriptName exitCode=$exitCode"
     return [pscustomobject]@{
-        Text = ($output | Out-String -Width 4096)
+        Text = $output
         ExitCode = $exitCode
     }
 }

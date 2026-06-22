@@ -73,6 +73,11 @@ foreach ($marker in @(
         "Assert-SshHostSafe",
         "Assert-RemotePathSafe",
         "Assert-SmokeTokenSafe",
+        "Start-Job",
+        "child_heartbeat",
+        "timed out after `$ChildTimeoutSeconds second(s)",
+        "exitCode=124",
+        "Stop-Job",
         "RequireReviewItems"
     )) {
     Assert-Contains -Name "profit operator matrix marker" -Text $scriptText -Pattern ([regex]::Escape($marker))

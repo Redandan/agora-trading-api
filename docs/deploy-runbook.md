@@ -1333,7 +1333,10 @@ Expected:
 - Use `.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1` for
   the post-deploy replay observation chain. It combines origin-delta,
   replay-id, and counterfactual smokes and routes stale runtime to
-  `DEPLOY_CURRENT_RUNTIME_THEN_OBSERVE_REPLAY_ID`.
+  `DEPLOY_CURRENT_RUNTIME_THEN_OBSERVE_REPLAY_ID`. Its summary also promotes
+  latest DataFreshness row time, row age, 1d/3d/7d/14d/30d row counts, and
+  `data_freshness_sample_gap_status`, so downstream blocker briefs can parse
+  the gap classification without relying on child-output visibility.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

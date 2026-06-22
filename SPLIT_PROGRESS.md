@@ -701,7 +701,26 @@
   origin-delta, replay-id, and counterfactual smokes into a read-only
   post-deploy observation chain. It routes stale runtime to
   `DEPLOY_CURRENT_RUNTIME_THEN_OBSERVE_REPLAY_ID` and only treats replay-id
-  rows as useful after deployed runtime is current.
+  rows as useful after deployed runtime is current. Its summary now promotes
+  latest DataFreshness row time, row age, 1d/3d/7d/14d/30d row counts, and
+  `data_freshness_sample_gap_status`, so downstream blocker briefs can parse
+  all-time absence versus review-window gaps without relying on child-output
+  visibility.
+- 2026-06-22 read-only production replay observation for `BTCUSDT` showed
+  `deployment_runtime_current_for_replay_id=true`,
+  `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
+  `latest_data_freshness_row_time=2026-06-14T15:38:16`,
+  `latest_data_freshness_row_age_hours=181`,
+  `data_freshness_rows_1d=0`, `data_freshness_rows_3d=0`,
+  `data_freshness_rows_7d=0`, `data_freshness_rows_14d=74`,
+  `data_freshness_rows_30d=110`, and
+  `data_freshness_sample_gap_status=NO_ROWS_IN_REVIEW_WINDOW`.
+  Counterfactual evidence still had
+  `complete_replayable_candidate_rows=0` and missing
+  `liveSignalId`, `replayCandidateId`, explicit entry/TP/SL plan, EV snapshot,
+  OCO plan, and complete replayable candidate rows. Treat this as a
+  recent-window sample gap and replay-snapshot blocker, not permission to relax
+  DataFreshnessGuard or live entry policy.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

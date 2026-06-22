@@ -965,7 +965,10 @@ For the full post-deploy replay observation chain, run:
 ```
 
 This wrapper combines origin-delta, replay-id, and counterfactual evidence and
-fails closed to deploy-first routing while runtime is stale.
+fails closed to deploy-first routing while runtime is stale. Its summary also
+promotes the replay-id smoke's latest DataFreshness row time, row age,
+1d/3d/7d/14d/30d row counts, and `data_freshness_sample_gap_status`, so
+downstream blocker briefs do not depend on truncated child output.
 
 Read-only profit-improvement review bundle:
 

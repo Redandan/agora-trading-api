@@ -55,6 +55,15 @@ The 2026-06-22T02:21Z summary reused the saved matrix at
 and confirmed the same routing: prepare the separate exit-side operator review
 first; keep entry/filter and DataFreshness lanes blocked.
 
+The 2026-06-22T03:39Z read-only refresh completed in 869 seconds and saved
+`target/profit-review/profit-operator-matrix-20260622T033926Z-BTCUSDT-strategy485.log`.
+The follow-up summary reused that matrix with
+`profit_operator_review_summary_freshness_status=FRESH`,
+`profit_operator_review_summary_matrix_age_minutes=0`, and
+`profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`.
+It preserved the same routing: exit-side P1 is ready for separate operator
+review, while entry-filter and DataFreshness replay remain blocked.
+
 ## Draft Review Packet
 
 This packet is the next safe output for the profit path. It is proposal-only,

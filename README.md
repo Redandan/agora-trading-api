@@ -1010,6 +1010,18 @@ This read-only production DB smoke follows recent BUY-like `SIGNAL_EVAL` /
 `buy_like_followup_classification`, terminal event counts, candidate type
 distribution, and examples. Use it to locate candidate-to-terminal-event loss
 before proposing entry-filter, strategy, or live execution changes.
+When the dominant follow-up is `ENTRY_SKIP:EntryDedup` for strategy 508, run:
+
+```powershell
+.\scripts\smoke_strategy508_entry_dedup_exposure_ssh.ps1
+```
+
+This read-only smoke combines server-local MCP staged-add readiness with direct
+production DB `SELECT` evidence for strategy 508 / 1h EntryDedup skips and open
+same-strategy exposure. It emits
+`strategy508_entry_dedup_exposure_recommendation`, staged-add blockers,
+remaining add budget, OCO/exposure counts, and example open positions. It does
+not relax EntryDedup or authorize staged-add/live execution.
 
 Read-only profit-improvement review bundle:
 

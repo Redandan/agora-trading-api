@@ -1363,6 +1363,15 @@ Expected:
   `buy_like_followup_classification`, terminal event counts, candidate type
   distribution, and examples so trading-candidate loss is not confused with
   macro/attention warning flow.
+- If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,
+  run `.\scripts\smoke_strategy508_entry_dedup_exposure_ssh.ps1`. It combines
+  server-local MCP `getEntryDedupGovernanceDashboard` /
+  `getStagedAddReadiness` with direct production DB `SELECT` evidence for
+  strategy 508 / 1h skips, open same-strategy exposure, OCO coverage, and
+  staged-add blockers. Output includes
+  `strategy508_entry_dedup_exposure_recommendation`,
+  `wouldAllowStagedAdd`, `remainingAddBudget`, `open_same_strategy_positions`,
+  and `target_group_blockers`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

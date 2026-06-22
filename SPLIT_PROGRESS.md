@@ -783,6 +783,33 @@
   `same strategy/symbol/interval LONG exposure already exists`. This routes the
   next profit review toward EntryDedup/existing-position exposure evidence for
   strategy 508 rather than DataFreshness relaxation or live execution changes.
+- `scripts/smoke_strategy508_entry_dedup_exposure_ssh.ps1` is the follow-up
+  read-only RCA for that strategy 508 / 1h EntryDedup lane. It combines
+  server-local MCP `getEntryDedupGovernanceDashboard` and
+  `getStagedAddReadiness` with direct production DB `SELECT` evidence for
+  strategy 508 ENTRY_SKIP rows, open same-strategy exposure, OCO coverage, and
+  staged-add blockers. It emits
+  `strategy508_entry_dedup_exposure_recommendation`,
+  `wouldAllowStagedAdd`, `remainingAddBudget`, `open_same_strategy_positions`,
+  `target_group_blockers`, and open-position examples. The smoke is evidence
+  only and does not relax EntryDedup/DataFreshness/live policy, execute
+  staged-add/live orders, modify OCO, close positions, deploy, or mutate
+  production state.
+- 2026-06-22 read-only production strategy 508 EntryDedup/exposure RCA for
+  `BTCUSDT` / `1h` showed `buy_eval_rows=11`, `entry_dedup_skip_rows=11`,
+  `filter_block_rows=0`, `autotrade_rows=0`, and all skip reasons as
+  `same strategy/symbol/interval LONG exposure already exists`. The only open
+  same-strategy row was `id=240` with `autoTraded=0`, no OCO, zero traded
+  quantity/notional, and `filterReason=EventRiskControl: R2 score=60 blocks new
+  LONG entries`. MCP staged-add readiness returned
+  `staged_add_decision=BLOCK_HARD_SAFETY`, `wouldAllowStagedAdd=false`,
+  `sameStrategyExposureUsed=0`, `remainingAddBudget=10`, and blockers
+  `NO_EXISTING_POSITION_FOR_STAGED_ADD` plus `EV_UNKNOWN`. This means the
+  recent strategy 508 EntryDedup skips are not live-addable staged-add
+  candidates; the next review should inspect whether EntryDedup is too broad
+  because it treats a non-auto-traded EventRisk-blocked signal as existing LONG
+  exposure. It is still not permission to relax EntryDedup or execute live
+  staged adds.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

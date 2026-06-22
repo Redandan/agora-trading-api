@@ -1371,6 +1371,17 @@ Expected:
   latest DataFreshness row time, row age, 1d/3d/7d/14d/30d row counts, and
   `data_freshness_sample_gap_status`, so downstream blocker briefs can parse
   the gap classification without relying on child-output visibility.
+- Use `.\scripts\prepare_data_freshness_replay_evidence_readiness_ssh.ps1` to
+  convert that observation chain into
+  `DATAFRESHNESS_REPLAY_EVIDENCE_READINESS_PACKET`. Expected output includes
+  `data_freshness_replay_evidence_readiness_packet`,
+  `data_freshness_replay_evidence_readiness_status`,
+  `data_freshness_replay_evidence_blockers`, and
+  `data_freshness_replay_evidence_required`. Status values such as
+  `PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS` and
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE` are read-only routing only;
+  they do not authorize deploy, live trading, DataFreshnessGuard relaxation,
+  or position/OCO changes.
 - If the bundle reports a recent-window sample gap, run
   `.\scripts\smoke_data_freshness_sample_gap_rca_ssh.ps1`. The smoke performs
   direct read-only production MySQL `SELECT` queries against

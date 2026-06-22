@@ -771,6 +771,19 @@
   `data_freshness_sample_gap_status`, so downstream blocker briefs can parse
   all-time absence versus review-window gaps without relying on child-output
   visibility.
+- `scripts/prepare_data_freshness_replay_evidence_readiness_ssh.ps1` converts
+  the replay observation chain into
+  `DATAFRESHNESS_REPLAY_EVIDENCE_READINESS_PACKET`, emitting
+  `data_freshness_replay_evidence_readiness_packet`,
+  `data_freshness_replay_evidence_readiness_status`,
+  `data_freshness_replay_evidence_blockers`, and
+  `data_freshness_replay_evidence_required`. It surfaces
+  `PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`,
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`, or
+  `PENDING_COUNTERFACTUAL_REPLAY_SNAPSHOTS` as read-only routing states and
+  conditionally attaches sample-gap RCA evidence. It does not deploy, change
+  production env, relax DataFreshnessGuard, enable live trading, place orders,
+  modify OCO, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - `scripts/smoke_data_freshness_sample_gap_rca_ssh.ps1` is the follow-up
   read-only RCA for a recent-window DataFreshness sample gap. It uses
   production MySQL `SELECT` queries against `bt_decision_audit` to report
@@ -794,9 +807,25 @@
   Counterfactual evidence still had
   `complete_replayable_candidate_rows=0` and missing
   `liveSignalId`, `replayCandidateId`, explicit entry/TP/SL plan, EV snapshot,
-  OCO plan, and complete replayable candidate rows. Treat this as a
-  recent-window sample gap and replay-snapshot blocker, not permission to relax
-  DataFreshnessGuard or live entry policy.
+  OCO plan, and complete replayable candidate rows.
+- 2026-06-22 read-only production
+  `scripts/prepare_data_freshness_replay_evidence_readiness_ssh.ps1 -ReviewDays 14 -ReplayIdDays 3 -Limit 200`
+  completed with both child scripts exiting `0`. The packet returned
+  `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `deployment_runtime_current_for_replay_id=true`,
+  `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
+  `replay_candidate_id_rows=0`,
+  `data_freshness_sample_gap_status=NO_ROWS_IN_REVIEW_WINDOW`, and
+  `data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES`.
+  It also carried `replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `collector_status_counts=N/A:74`,
+  `complete_replayable_candidate_rows=0`, and required evidence for fresh
+  post-runtime DataFreshnessGuard terminal rows, replay-id rows, complete
+  replayable rows, and `missing_counterfactual_fields=[]`. This confirms the
+  next read-only step is to wait for new BUY-style/DataFreshness terminal
+  samples or continue candidate-flow RCA; it is not permission to deploy,
+  enable live trading, relax DataFreshnessGuard, place orders, or mutate OCO.
 - 2026-06-22 read-only production sample-gap RCA for `BTCUSDT`, after
   excluding watch-only `ATTENTION_HIT` and terminal `ENTRY_SKIP` rows from the
   pre-terminal BUY-like candidate definition, showed

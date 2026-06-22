@@ -1092,6 +1092,24 @@
   packet; it still does not authorize EntryDedup relaxation, live trading,
   staged-add execution, orders, OCO modification, deploy, or production env
   changes.
+- `scripts/prepare_entry_dedup_operator_decision_brief_ssh.ps1` now converts
+  the fresh EntryDedup semantics shadow packet into
+  `ENTRY_DEDUP_OPERATOR_DECISION_BRIEF`. Ready output emits
+  `entry_dedup_operator_decision_brief_packet`,
+  `entry_dedup_operator_decision_lanes`,
+  `entry_dedup_operator_decision_checklist`, and
+  `entry_dedup_operator_decision_brief_status=READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE`.
+  The brief routes `entry-dedup-semantics-shadow-operator-review` as a
+  review-only shadow experiment lane and keeps
+  `entry-filter-datafreshness-policy` blocked outside that decision. Its
+  primary recommendation is `PREPARE_SEPARATE_ENTRY_DEDUP_SHADOW_REVIEW`. It
+  must preserve `order_allowed=false`, `live_policy_change_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, and
+  `deploy_or_env_change_allowed=false`; it does not authorize EntryDedup
+  relaxation, DataFreshness/live policy relaxation, live or staged-add
+  execution, orders, OCO modification, deploy, production env changes, or
+  DB/grid/fund/Earn/Telegram/exchange mutation.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

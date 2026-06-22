@@ -1507,6 +1507,22 @@ Expected:
   not authorize EntryDedup relaxation, live trading, staged-add execution,
   orders, OCO modification, deploy, production env changes, or DB/grid/fund/
   Earn/Telegram/exchange/external backfill/import mutation.
+- To convert that fresh packet into an operator decision brief, run
+  `.\scripts\prepare_entry_dedup_operator_decision_brief_ssh.ps1 -RequireDecisionReady`.
+  Expected output includes `entry_dedup_operator_decision_brief_packet`,
+  `entry_dedup_operator_decision_lanes`,
+  `entry_dedup_operator_decision_checklist`, and
+  `entry_dedup_operator_decision_brief_status=READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE`.
+  The packet type is `ENTRY_DEDUP_OPERATOR_DECISION_BRIEF`; it carries the
+  `entry-dedup-semantics-shadow-operator-review` lane as review-only shadow
+  evidence and keeps the entry-filter/DataFreshness policy lane blocked outside
+  the shadow review. The primary recommendation is
+  `PREPARE_SEPARATE_ENTRY_DEDUP_SHADOW_REVIEW`. It keeps `order_allowed=false`,
+  `live_policy_change_allowed=false`, `entry_dedup_policy_change_allowed=false`,
+  and `position_or_oco_mutation_allowed=false`, and does not authorize live
+  trading, staged-add execution, EntryDedup/DataFreshness/live policy
+  relaxation, orders, OCO modification, deploy/env changes,
+  DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

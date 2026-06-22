@@ -1150,6 +1150,25 @@ TP-SL evidence, `order_allowed=false`, `live_policy_change_allowed=false`, and
 authorize EntryDedup relaxation, live trading, staged-add execution, orders,
 OCO modification, deploy, or production env changes.
 
+Read-only EntryDedup operator decision brief from the fresh SSH packet:
+
+```powershell
+.\scripts\prepare_entry_dedup_operator_decision_brief_ssh.ps1 -RequireDecisionReady
+```
+
+This emits `entry_dedup_operator_decision_brief_packet` with
+`packetType=ENTRY_DEDUP_OPERATOR_DECISION_BRIEF` and
+`entry_dedup_operator_decision_brief_status=READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE`.
+It turns the fresh EntryDedup shadow evidence into the
+`entry-dedup-semantics-shadow-operator-review` decision lane and keeps the
+entry-filter/DataFreshness policy lane blocked outside the shadow review. Its
+primary recommendation is `PREPARE_SEPARATE_ENTRY_DEDUP_SHADOW_REVIEW`. The
+brief carries `entry_dedup_operator_decision_checklist`,
+`entry_dedup_policy_change_allowed=false`, `live_policy_change_allowed=false`,
+and `order_allowed=false`; it does not deploy, change production env, relax
+EntryDedup/DataFreshness/live policy, enable staged-add/live execution, place
+orders, or modify OCO.
+
 Read-only profit-improvement review bundle:
 
 ```powershell

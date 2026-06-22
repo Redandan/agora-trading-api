@@ -1046,6 +1046,48 @@
   production env, relax EntryDedup/DataFreshness/live policy, place orders,
   modify OCO, close positions, or mutate DB/grid/fund/Earn/Telegram/exchange
   state. Ready output must keep `order_allowed=false`.
+- `scripts/prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1`
+  performs the fresh production rerun version of that packet. It invokes
+  `smoke_entry_dedup_exposure_consistency_ssh.ps1`,
+  `smoke_entry_dedup_semantics_shadow_review_ssh.ps1`, and
+  `smoke_entry_dedup_semantics_feasibility_review_ssh.ps1` directly, then
+  emits `ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET` with
+  `freshProductionRerun=true`, child exit codes, parsed evidence,
+  `entry_dedup_shadow_packet_missing_requirements`, and
+  `entry_dedup_semantics_shadow_packet_status`. Ready output still requires
+  `order_allowed=false`, `live_policy_change_allowed=false`, and
+  `entry_dedup_policy_change_allowed=false`; it does not authorize EntryDedup
+  relaxation, live trading, staged-add execution, orders, OCO modification,
+  deploy, production env changes, or DB/grid/fund/Earn/Telegram/exchange
+  mutation.
+- 2026-06-22 fresh read-only production run of
+  `scripts/prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1
+  -StrategyId 508 -IntervalCode 1h -Hours 336 -ForwardHours 24
+  -ShortForwardHours 4 -TakeProfitPct 1.00 -StopLossPct 1.00
+  -RoundTripFeePct 0.20 -ReviewNotionalCapUsdt 10 -ObservationHours 72
+  -Limit 30 -RequireReady` completed with all three child scripts exiting `0`.
+  It returned
+  `entry_dedup_semantics_shadow_packet_status=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`,
+  `entry_dedup_shadow_packet_missing_requirements=[]`,
+  `entry_dedup_exposure_consistency_recommendation=ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`,
+  `entry_dedup_semantics_shadow_recommendation=ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE`,
+  and
+  `entry_dedup_semantics_feasibility_recommendation=ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE`.
+  Parsed evidence remained `entry_dedup_skip_rows=11`, `open_signal_rows=1`,
+  `auto_traded_open_rows=0`, `non_auto_zero_qty_rows=1`,
+  `non_auto_eventrisk_rows=1`, `reviewable_forward_rows=11`,
+  `positive_24h_rows=10`, `negative_24h_rows=1`,
+  `avg_24h_return_pct=1.0173`, `replay_reviewed_rows=11`,
+  `tp_hit_rows=11`, `sl_hit_rows=0`, `ambiguous_same_bar_rows=0`, and
+  `avg_net_return_pct=0.8000`. The proposed envelope kept
+  `ReviewNotionalCapUsdt=10`, `ObservationHours=72`, `order_allowed=false`,
+  `live_policy_change_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, and
+  `deploy_or_env_change_allowed=false`. This is a review-only shadow experiment
+  packet; it still does not authorize EntryDedup relaxation, live trading,
+  staged-add execution, orders, OCO modification, deploy, or production env
+  changes.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

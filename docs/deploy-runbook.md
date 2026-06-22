@@ -1491,6 +1491,17 @@ Expected:
   OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, or
   authorize external backfill/import. Ready output must keep
   `order_allowed=false`.
+- For a fresh production rerun before operator review, run
+  `.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1 -RequireReady`.
+  This invokes the exposure consistency, semantics shadow review, and TP/SL
+  feasibility smokes directly, then emits
+  `ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET` with
+  `freshProductionRerun=true`, child exit codes, parsed evidence,
+  `order_allowed=false`, `live_policy_change_allowed=false`, and
+  `entry_dedup_policy_change_allowed=false`. It is still review-only and does
+  not authorize EntryDedup relaxation, live trading, staged-add execution,
+  orders, OCO modification, deploy, production env changes, or DB/grid/fund/
+  Earn/Telegram/exchange/external backfill/import mutation.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

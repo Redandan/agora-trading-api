@@ -442,12 +442,16 @@
 - `scripts/prepare_profit_readiness_brief_ssh.ps1` combines
   `smoke_signal_correctness_ssh.ps1`,
   `smoke_trailing_stop_pnl_replay_ssh.ps1`, and
-  `prepare_profit_blocker_ledger_ssh.ps1` into
+  `prepare_profit_blocker_ledger_ssh.ps1`, plus the
+  `prepare_entry_dedup_operator_decision_brief_ssh.ps1` EntryDedup shadow
+  decision brief, into
   `profit_readiness_brief_packet` and `profit_readiness_brief_status`. It emits
-  `entry_filter_lane_status`, `exit_lane_status`, and
+  `entry_filter_lane_status`, `entry_dedup_shadow_lane_status`,
+  `entry_dedup_operator_decision_brief_status`, `exit_lane_status`, and
   `trailing_stop_acceptance` so entry/filter governance/missed-opportunity
-  evidence and exit-side trailing/TP-stop evidence stay separate in operator
-  review. It now prints `child_start`, periodic `child_heartbeat`, and
+  blockers, EntryDedup shadow review evidence, and exit-side trailing/TP-stop
+  evidence stay separate in operator review. It now prints `child_start`,
+  periodic `child_heartbeat`, and
   `child_complete` markers for long child smokes, with
   `-ChildTimeoutSeconds` bounded to 60..3600 seconds so a stuck local child can
   fail closed with `timedOut=true`. The brief does not deploy, restart, reload

@@ -9,6 +9,8 @@ param(
     [int]$AccuracyDays = 14,
     [int]$ReplayDays = 30,
     [int]$ReplayLimit = 500,
+    [int]$EntryDedupStrategyId = 508,
+    [string]$EntryDedupIntervalCode = "1h",
     [int]$ChildTimeoutSeconds = 900,
     [switch]$RequireBrief
 )
@@ -201,6 +203,9 @@ if ($ReplayDays -lt 1 -or $ReplayDays -gt 90) {
 if ($ReplayLimit -lt 1 -or $ReplayLimit -gt 500) {
     throw "ReplayLimit must be between 1 and 500."
 }
+if ($EntryDedupStrategyId -lt 1 -or $EntryDedupStrategyId -gt 1000000) {
+    throw "EntryDedupStrategyId must be between 1 and 1000000."
+}
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) {
     throw "ChildTimeoutSeconds must be between 60 and 3600."
 }
@@ -209,6 +214,7 @@ Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
+Assert-SmokeTokenSafe -Name "EntryDedupIntervalCode" -Value $EntryDedupIntervalCode
 
 $commonArgs = @(
     "-SshHost", $SshHost,
@@ -230,12 +236,20 @@ $trailing = Invoke-ReadOnlyScript -ScriptName "smoke_trailing_stop_pnl_replay_ss
 $ledger = Invoke-ReadOnlyScript -ScriptName "prepare_profit_blocker_ledger_ssh.ps1" -Arguments ($commonArgs + @(
         "-RequireActionable"
     ))
+$entryDedupDecision = Invoke-ReadOnlyScript -ScriptName "prepare_entry_dedup_operator_decision_brief_ssh.ps1" -Arguments ($commonArgs + @(
+        "-StrategyId", [string]$EntryDedupStrategyId,
+        "-IntervalCode", $EntryDedupIntervalCode,
+        "-RequireDecisionReady"
+    ))
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 foreach ($result in @($signal, $trailing, $ledger)) {
     if ($result.ExitCode -ne 0) {
         Add-UniqueString -List $missingRequirements -Value "$($result.ScriptName) completed"
     }
+}
+if ($entryDedupDecision.ExitCode -ne 0) {
+    Add-UniqueString -List $missingRequirements -Value "$($entryDedupDecision.ScriptName) completed"
 }
 
 $signalPolicyClear = Get-RegexValue -Text $signal.Text -Pattern "signalPolicyClear=([^\r\n]+)" -Default "N/A"
@@ -261,6 +275,17 @@ foreach ($item in @($ledgerMissing)) {
     Add-UniqueString -List $missingRequirements -Value ([string]$item)
 }
 
+$entryDedupDecisionStatus = Get-LastPrefixedValue -Text $entryDedupDecision.Text -Prefix "entry_dedup_operator_decision_brief_status="
+$entryDedupPrimaryRecommendation = Get-LastPrefixedValue -Text $entryDedupDecision.Text -Prefix "entry_dedup_operator_primary_recommendation="
+$entryDedupPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $entryDedupDecision.Text -Prefix "entry_dedup_operator_decision_brief_packet=")
+$entryDedupSummary = if ($null -ne $entryDedupPacket -and $null -ne $entryDedupPacket.evidenceSummary) { $entryDedupPacket.evidenceSummary } else { $null }
+$entryDedupSkipRows = if ($null -ne $entryDedupSummary) { [string]$entryDedupSummary.entryDedupSkipRows } else { "N/A" }
+$entryDedupPositive24hRows = if ($null -ne $entryDedupSummary) { [string]$entryDedupSummary.positive24hRows } else { "N/A" }
+$entryDedupTpHitRows = if ($null -ne $entryDedupSummary) { [string]$entryDedupSummary.tpHitRows } else { "N/A" }
+$entryDedupSlHitRows = if ($null -ne $entryDedupSummary) { [string]$entryDedupSummary.slHitRows } else { "N/A" }
+$entryDedupAmbiguousSameBarRows = if ($null -ne $entryDedupSummary) { [string]$entryDedupSummary.ambiguousSameBarRows } else { "N/A" }
+$entryDedupAvgNetReturnPct = if ($null -ne $entryDedupSummary) { [string]$entryDedupSummary.avgNetReturnPct } else { "N/A" }
+
 if ($signalPolicyClear -ne "true") {
     Add-UniqueString -List $missingRequirements -Value "signal policy review clear"
 }
@@ -269,6 +294,9 @@ if ($governanceMode -eq "TOO_STRICT" -or $missedStatus -eq "WARN") {
 }
 if ($trailingAcceptance -ne "PASS") {
     Add-UniqueString -List $missingRequirements -Value "trailing-stop PnL acceptance PASS"
+}
+if ($entryDedupDecisionStatus -ne "READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE") {
+    Add-UniqueString -List $missingRequirements -Value "EntryDedup operator decision brief ready"
 }
 
 $entryLaneStatus = if ($signalPolicyClear -eq "true") {
@@ -282,6 +310,11 @@ $exitLaneStatus = if ($trailingAcceptance -eq "PASS") {
     "EXIT_SIDE_EVIDENCE_READY_NOT_LIVE"
 } else {
     "EXIT_SIDE_EVIDENCE_NOT_PROVEN"
+}
+$entryDedupShadowLaneStatus = if ($entryDedupDecisionStatus -eq "READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE") {
+    "ENTRY_DEDUP_SHADOW_REVIEW_READY_NOT_LIVE"
+} else {
+    "ENTRY_DEDUP_SHADOW_REVIEW_NOT_READY"
 }
 
 $briefStatus = "READY_FOR_READ_ONLY_REVIEW"
@@ -319,6 +352,20 @@ $brief = [pscustomobject]@{
         dataFreshnessCurrentStatus = $dataFreshnessCurrentStatus
         dataFreshnessCurrentClean = $dataFreshnessCurrentClean
     }
+    entryDedupShadowLane = [pscustomobject]@{
+        status = $entryDedupShadowLaneStatus
+        decisionBriefStatus = $entryDedupDecisionStatus
+        primaryRecommendation = $entryDedupPrimaryRecommendation
+        strategyId = $EntryDedupStrategyId
+        intervalCode = $EntryDedupIntervalCode
+        entryDedupSkipRows = $entryDedupSkipRows
+        positive24hRows = $entryDedupPositive24hRows
+        tpHitRows = $entryDedupTpHitRows
+        slHitRows = $entryDedupSlHitRows
+        ambiguousSameBarRows = $entryDedupAmbiguousSameBarRows
+        avgNetReturnPct = $entryDedupAvgNetReturnPct
+        sourceDecisionBrief = $entryDedupPacket
+    }
     exitLane = [pscustomobject]@{
         status = $exitLaneStatus
         trailingStopAcceptance = $trailingAcceptance
@@ -339,10 +386,11 @@ $brief = [pscustomobject]@{
 }
 
 Write-Host "[profit-readiness-brief] read-only brief"
-Write-Host "scope=READ_ONLY; invokes signal correctness, trailing-stop PnL replay, and profit blocker ledger only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes signal correctness, trailing-stop PnL replay, profit blocker ledger, and EntryDedup operator decision brief only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_smoke=smoke_signal_correctness_ssh.ps1 exitCode=$($signal.ExitCode)"
 Write-Host "source_smoke=smoke_trailing_stop_pnl_replay_ssh.ps1 exitCode=$($trailing.ExitCode)"
 Write-Host "source_packet=prepare_profit_blocker_ledger_ssh.ps1 exitCode=$($ledger.ExitCode)"
+Write-Host "source_packet=prepare_entry_dedup_operator_decision_brief_ssh.ps1 exitCode=$($entryDedupDecision.ExitCode)"
 Write-Host "signal_policy_clear=$signalPolicyClear"
 Write-Host "governance_mode=$governanceMode"
 Write-Host "missed_opportunity_status=$missedStatus"
@@ -354,6 +402,15 @@ Write-Host "data_freshness_current_clean=$($dataFreshnessCurrentClean.ToString()
 Write-Host "trailing_stop_acceptance=$trailingAcceptance"
 Write-Host "trailing_stop_improvement_pct=$trailingImprovement"
 Write-Host "trailing_stop_delta_pnl=$trailingDeltaPnl"
+Write-Host "entry_dedup_operator_decision_brief_status=$entryDedupDecisionStatus"
+Write-Host "entry_dedup_operator_primary_recommendation=$entryDedupPrimaryRecommendation"
+Write-Host "entry_dedup_shadow_lane_status=$entryDedupShadowLaneStatus"
+Write-Host "entry_dedup_skip_rows=$entryDedupSkipRows"
+Write-Host "entry_dedup_positive_24h_rows=$entryDedupPositive24hRows"
+Write-Host "entry_dedup_tp_hit_rows=$entryDedupTpHitRows"
+Write-Host "entry_dedup_sl_hit_rows=$entryDedupSlHitRows"
+Write-Host "entry_dedup_ambiguous_same_bar_rows=$entryDedupAmbiguousSameBarRows"
+Write-Host "entry_dedup_avg_net_return_pct=$entryDedupAvgNetReturnPct"
 Write-Host "profit_blocker_ledger_status=$ledgerStatus"
 Write-Host "entry_filter_lane_status=$entryLaneStatus"
 Write-Host "exit_lane_status=$exitLaneStatus"

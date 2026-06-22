@@ -756,12 +756,15 @@ Read-only profit readiness brief:
 ```
 
 This combines signal correctness/missed-opportunity evidence, trailing-stop PnL
-replay, and the profit blocker ledger into `profit_readiness_brief_packet` and
-`profit_readiness_brief_status`. It emits `entry_filter_lane_status`,
-`exit_lane_status`, and `trailing_stop_acceptance` so entry/filter candidates
-and exit-side candidates can be reviewed separately. It does not deploy, change
-production env, enable live trading, relax EntryDedup/DataFreshness/live policy,
-place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
+replay, the profit blocker ledger, and the EntryDedup operator decision brief
+into `profit_readiness_brief_packet` and `profit_readiness_brief_status`. It
+emits `entry_filter_lane_status`, `exit_lane_status`,
+`entry_dedup_shadow_lane_status`, `entry_dedup_operator_decision_brief_status`,
+and `trailing_stop_acceptance` so entry/filter policy blockers, EntryDedup
+shadow review, and exit-side candidates can be reviewed separately. It does
+not deploy, change production env, enable live trading, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn state.
 It also carries `data_freshness_current_status` so no-current-sample evidence
 is not confused with a source outage.
 Long child smokes emit `child_start`, periodic `child_heartbeat`, and

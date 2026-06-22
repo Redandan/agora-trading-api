@@ -948,10 +948,13 @@ For a read-only profit readiness brief, run:
 Expected:
 
 - `profit_readiness_brief_packet` merges signal correctness and
-  missed-opportunity evidence, trailing-stop PnL replay, and the profit blocker
-  ledger.
+  missed-opportunity evidence, trailing-stop PnL replay, the profit blocker
+  ledger, and the EntryDedup operator decision brief.
 - `entry_filter_lane_status` shows whether governance drift and missed
   opportunity rows still block entry/filter experiments.
+- `entry_dedup_shadow_lane_status` and
+  `entry_dedup_operator_decision_brief_status` show whether the EntryDedup
+  shadow candidate is review-ready without implying policy approval.
 - `exit_lane_status` and `trailing_stop_acceptance` show whether exit-side
   trailing/TP-stop evidence is review-ready.
 - `data_freshness_current_status` distinguishes `CLEAN`,

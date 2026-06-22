@@ -27,6 +27,7 @@ foreach ($marker in @(
         "[profit-verified-recommendations] read-only packet",
         "scope=READ_ONLY",
         "prepare_exit_side_operator_experiment_packet.ps1",
+        "prepare_entry_dedup_semantics_shadow_experiment_packet.ps1",
         "PROFIT_VERIFIED_RECOMMENDATIONS",
         "READY_WITH_REVIEW_ONLY_RECOMMENDATIONS",
         "profit_verified_ready_recommendations",
@@ -35,6 +36,7 @@ foreach ($marker in @(
         "profit_verified_recommendations_status",
         "trailing-stop-dry-run-experiment-review",
         "strategy485-risk-reduction-shadow-review",
+        "entry-dedup-semantics-shadow-experiment-review",
         "notAuthorization=read-only verified recommendations only",
         "RequireReady"
     )) {
@@ -124,10 +126,12 @@ try {
             "source_matrix_freshness_status=FRESH",
             "profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS",
             '"packetType":"PROFIT_VERIFIED_RECOMMENDATIONS"',
-            '"readyRecommendationCount":2',
+            '"readyRecommendationCount":3',
             '"blockedItemCount":2',
             '"recommendationId":"trailing-stop-dry-run-experiment-review"',
             '"recommendationId":"strategy485-risk-reduction-shadow-review"',
+            '"recommendationId":"entry-dedup-semantics-shadow-experiment-review"',
+            '"class":"entry-dedup-shadow-review"',
             '"lane":"entry-filter"',
             '"lane":"data-freshness-replay"',
             "notAuthorization=read-only verified recommendations only"

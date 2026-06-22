@@ -560,10 +560,12 @@
   `trailing-stop-dry-run-experiment-review` and
   `strategy485-risk-reduction-shadow-review` as review-only proposals.
   `scripts/prepare_profit_verified_recommendations.ps1` wraps that exit-side
-  experiment packet into `PROFIT_VERIFIED_RECOMMENDATIONS` with
-  `READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`, listing the review-only ready
-  recommendations and the still-blocked entry-filter/DataFreshness lanes in one
-  machine-readable packet.
+  experiment packet and the recorded EntryDedup semantics shadow experiment
+  packet into `PROFIT_VERIFIED_RECOMMENDATIONS` with
+  `READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`, listing the review-only exit-side
+  recommendations, `entry-dedup-semantics-shadow-experiment-review`, and the
+  still-blocked entry-filter/DataFreshness policy lanes in one machine-readable
+  packet.
   `scripts/prepare_exit_side_verified_experiment_readiness.ps1` then converts
   those verified recommendations into `EXIT_SIDE_VERIFIED_EXPERIMENT_READINESS`
   with `READY_FOR_EXIT_SIDE_DRY_RUN_AND_SHADOW_REVIEW_NOT_LIVE`, carrying
@@ -579,11 +581,13 @@
   `small_experiment_review_cap_usdt`, an observation window, operator choices,
   and `order_allowed=false`.
   `scripts/prepare_profit_operator_consolidated_review_packet.ps1` wraps that
-  exit-side operator packet into `PROFIT_OPERATOR_CONSOLIDATED_REVIEW_PACKET`
-  with `READY_FOR_OPERATOR_REVIEW_NOT_LIVE`, keeping the ready exit-side review
-  items and blocked entry-filter/DataFreshness lanes together in one operator
-  packet while preserving `order_allowed=false`,
-  `live_policy_change_allowed=false`, and
+  exit-side operator packet plus the EntryDedup shadow review packet into
+  `PROFIT_OPERATOR_CONSOLIDATED_REVIEW_PACKET` with
+  `READY_FOR_OPERATOR_REVIEW_NOT_LIVE`, keeping the ready exit-side review
+  items, `entry-dedup-semantics-shadow-operator-review`, and blocked
+  entry-filter/DataFreshness policy lanes together in one operator packet while
+  preserving `order_allowed=false`, `live_policy_change_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`, and
   `position_or_oco_mutation_allowed=false`.
 - 2026-06-22 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through

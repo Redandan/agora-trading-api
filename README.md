@@ -242,15 +242,18 @@ Read-only verified profit recommendations from the latest saved profit matrix:
 .\scripts\prepare_profit_verified_recommendations.ps1 -RequireReady
 ```
 
-This wraps the exit-side experiment packet into
+This wraps the exit-side experiment packet plus the recorded EntryDedup
+semantics shadow experiment packet into
 `profit_verified_recommendations_packet` with
 `packetType=PROFIT_VERIFIED_RECOMMENDATIONS` and
 `profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`.
-It lists the review-only ready recommendations and the still-blocked lanes in
-one packet. It does not rerun SSH, deploy, enable live trading, enable the
-trailing scheduler, place orders, modify OCO, close positions, relax
-EntryDedup/DataFreshness/live policy, or mutate DB/grid/fund/Earn/Telegram/
-exchange state.
+It lists the exit-side review-only ready recommendations, the
+`entry-dedup-semantics-shadow-experiment-review` candidate, and the
+still-blocked policy lanes in one packet. EntryDedup remains review-only shadow
+evidence, not policy approval. It does not rerun SSH, deploy, enable live
+trading, enable the trailing scheduler, place orders, modify OCO, close
+positions, relax EntryDedup/DataFreshness/live policy, or mutate
+DB/grid/fund/Earn/Telegram/exchange state.
 
 Read-only exit-side experiment readiness from those verified recommendations:
 
@@ -294,11 +297,13 @@ Read-only consolidated profit operator review packet:
 This emits `profit_operator_consolidated_review_packet` with
 `packetType=PROFIT_OPERATOR_CONSOLIDATED_REVIEW_PACKET` and
 `profit_operator_consolidated_review_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.
-It puts the ready exit-side review items and
+It puts the ready exit-side review items, the
+`entry-dedup-semantics-shadow-operator-review` item, and
 `profit_operator_consolidated_blocked_lanes` in one packet, including
-entry-filter and DataFreshness replay lanes that must remain unchanged until
-separate evidence and authorization exist. It keeps `order_allowed=false`,
-`live_policy_change_allowed=false`, and `position_or_oco_mutation_allowed=false`.
+entry-filter and DataFreshness replay policy lanes that must remain unchanged
+until separate evidence and authorization exist. It keeps `order_allowed=false`,
+`live_policy_change_allowed=false`, `entry_dedup_policy_change_allowed=false`,
+and `position_or_oco_mutation_allowed=false`.
 
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:

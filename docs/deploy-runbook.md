@@ -1193,8 +1193,11 @@ Expected:
   `profit_verified_ready_recommendations`,
   `profit_verified_blocked_items`, and
   `profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`.
-  The packet is review-only. It does not rerun SSH, deploy, change production
-  env, enable live trading, enable trailing, relax EntryDedup/DataFreshness/live
+  The packet is review-only. It includes the exit-side recommendations plus
+  `entry-dedup-semantics-shadow-experiment-review` from the recorded
+  EntryDedup semantics shadow packet; EntryDedup remains shadow-review evidence,
+  not policy approval. It does not rerun SSH, deploy, change production env,
+  enable live trading, enable trailing, relax EntryDedup/DataFreshness/live
   policy, place orders, modify OCO, close positions, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
 - To convert those verified recommendations into review-only exit-side
@@ -1246,10 +1249,12 @@ Expected:
   `profit_operator_consolidated_blocked_lanes`, and
   `profit_operator_consolidated_review_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.
   The packet type is `PROFIT_OPERATOR_CONSOLIDATED_REVIEW_PACKET`; it keeps
-  ready `trailing-stop-dry-run-operator-review` and
-  `strategy485-risk-reduction-shadow-operator-review` items next to blocked
-  entry-filter/DataFreshness lanes. It is review-only, keeps
-  `order_allowed=false`, `live_policy_change_allowed=false`, and
+  ready `trailing-stop-dry-run-operator-review`,
+  `strategy485-risk-reduction-shadow-operator-review`, and
+  `entry-dedup-semantics-shadow-operator-review` items next to blocked
+  entry-filter/DataFreshness policy lanes. It is review-only, keeps
+  `order_allowed=false`, `live_policy_change_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`, and
   `position_or_oco_mutation_allowed=false`, and does not authorize live trading,
   scheduler enablement, orders, OCO modification, position close, deploy/env
   changes, policy relaxation, DB/grid/fund/Earn/Telegram/exchange mutation, or

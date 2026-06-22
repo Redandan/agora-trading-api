@@ -42,8 +42,12 @@ if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) {
 }
 
 $packetScript = Join-Path $PSScriptRoot "prepare_exit_side_operator_experiment_packet.ps1"
+$entryDedupScript = Join-Path $PSScriptRoot "prepare_entry_dedup_semantics_shadow_experiment_packet.ps1"
 if (-not (Test-Path -LiteralPath $packetScript)) {
     throw "Missing exit-side operator experiment packet script: $packetScript"
+}
+if (-not (Test-Path -LiteralPath $entryDedupScript)) {
+    throw "Missing EntryDedup semantics shadow experiment packet script: $entryDedupScript"
 }
 
 $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
@@ -71,11 +75,32 @@ try {
     $ErrorActionPreference = $previousErrorActionPreference
 }
 
+$entryDedupArgs = @(
+    "-Symbol", $Symbol,
+    "-RequireReady"
+)
+
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = "Continue"
+    $entryDedupOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $entryDedupScript @entryDedupArgs 2>&1
+    $entryDedupExitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
+
 $packetText = ($packetOutput | Out-String -Width 4096)
 $packetJson = Get-LastPrefixedValue -Text $packetText -Prefix "exit_side_operator_experiment_packet="
 $packet = $null
 if (-not [string]::IsNullOrWhiteSpace($packetJson)) {
     $packet = $packetJson | ConvertFrom-Json -ErrorAction Stop
+}
+
+$entryDedupText = ($entryDedupOutput | Out-String -Width 4096)
+$entryDedupJson = Get-LastPrefixedValue -Text $entryDedupText -Prefix "entry_dedup_semantics_shadow_experiment_packet="
+$entryDedupPacket = $null
+if (-not [string]::IsNullOrWhiteSpace($entryDedupJson)) {
+    $entryDedupPacket = $entryDedupJson | ConvertFrom-Json -ErrorAction Stop
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
@@ -85,13 +110,20 @@ if ($packetExitCode -ne 0) {
 if ($null -eq $packet) {
     Add-MissingRequirement -List $missingRequirements -Value "exit_side_operator_experiment_packet valid JSON"
 }
+if ($entryDedupExitCode -ne 0) {
+    Add-MissingRequirement -List $missingRequirements -Value "EntryDedup semantics shadow experiment packet completed"
+}
+if ($null -eq $entryDedupPacket) {
+    Add-MissingRequirement -List $missingRequirements -Value "entry_dedup_semantics_shadow_experiment_packet valid JSON"
+}
 
 $readyRecommendations = @()
 $blockedItems = @()
 $freshnessStatus = ""
 $expectedRecommendationIds = @(
     "trailing-stop-dry-run-experiment-review",
-    "strategy485-risk-reduction-shadow-review"
+    "strategy485-risk-reduction-shadow-review",
+    "entry-dedup-semantics-shadow-experiment-review"
 )
 if ($null -ne $packet) {
     if ($null -ne $packet.PSObject.Properties["sourceMatrixFreshness"] -and $null -ne $packet.sourceMatrixFreshness) {
@@ -123,6 +155,34 @@ if ($null -ne $packet) {
     }
 }
 
+if ($null -ne $entryDedupPacket) {
+    if ([string]$entryDedupPacket.status -ne "READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE") {
+        Add-MissingRequirement -List $missingRequirements -Value "EntryDedup semantics shadow experiment packet ready"
+    }
+    $readyRecommendations += [pscustomobject]@{
+        recommendationId = "entry-dedup-semantics-shadow-experiment-review"
+        sourceProposalId = "entry-dedup-semantics-shadow-experiment"
+        class = "entry-dedup-shadow-review"
+        status = [string]$entryDedupPacket.status
+        allowedMode = "review-only-shadow"
+        objective = "Review the EntryDedup semantics shadow experiment candidate; keep EntryDedup/live policy unchanged."
+        requiredFreshEvidence = @(
+            "rerun prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1 -RequireReady before operator decision",
+            "confirm fresh production rows still show positive skew and no same-bar TP/SL ambiguity",
+            "collect ExpectedValueGate/EventRiskControl evidence before any future mutation request"
+        )
+        successEvidence = @($entryDedupPacket.minimumEvidence)
+        guardrails = @(
+            "order_allowed=false",
+            "live_policy_change_allowed=false",
+            "entry_dedup_policy_change_allowed=false",
+            "position_or_oco_mutation_allowed=false",
+            "deploy_or_env_change_allowed=false"
+        )
+        notAuthorization = [string]$entryDedupPacket.notAuthorization
+    }
+}
+
 if ($freshnessStatus -ne "FRESH") {
     Add-MissingRequirement -List $missingRequirements -Value "source matrix freshness is FRESH"
 }
@@ -150,6 +210,8 @@ $recommendations = [pscustomobject]@{
     strategyId = $StrategyId
     sourcePacket = "prepare_exit_side_operator_experiment_packet.ps1"
     sourcePacketStatus = if ($null -ne $packet) { [string]$packet.status } else { "" }
+    sourceEntryDedupPacket = "prepare_entry_dedup_semantics_shadow_experiment_packet.ps1"
+    sourceEntryDedupPacketStatus = if ($null -ne $entryDedupPacket) { [string]$entryDedupPacket.status } else { "" }
     sourceMatrixMode = if ($null -ne $packet) { [string]$packet.sourceMatrixMode } else { "" }
     sourceMatrixOutputPath = if ($null -ne $packet) { [string]$packet.sourceMatrixOutputPath } else { "" }
     sourceMatrixFreshness = if ($null -ne $packet) { $packet.sourceMatrixFreshness } else { $null }
@@ -174,9 +236,11 @@ $recommendations = [pscustomobject]@{
 }
 
 Write-Host "[profit-verified-recommendations] read-only packet"
-Write-Host "scope=READ_ONLY; invokes prepare_exit_side_operator_experiment_packet.ps1 only; no SSH fresh matrix, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
+Write-Host "scope=READ_ONLY; invokes prepare_exit_side_operator_experiment_packet.ps1 and prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 only; no SSH fresh matrix, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
 Write-Host $packetText
+Write-Host $entryDedupText
 Write-Host "source_packet=prepare_exit_side_operator_experiment_packet.ps1 exitCode=$packetExitCode"
+Write-Host "source_entry_dedup_packet=prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 exitCode=$entryDedupExitCode"
 Write-Host "source_matrix_freshness_status=$freshnessStatus"
 Write-Host ("profit_verified_ready_recommendations=" + (ConvertTo-Json -Compress -Depth 8 @($readyRecommendations)))
 Write-Host ("profit_verified_blocked_items=" + (ConvertTo-Json -Compress -Depth 8 @($blockedItems)))

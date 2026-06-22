@@ -55,6 +55,60 @@ The 2026-06-22T02:21Z summary reused the saved matrix at
 and confirmed the same routing: prepare the separate exit-side operator review
 first; keep entry/filter and DataFreshness lanes blocked.
 
+## Draft Review Packet
+
+This packet is the next safe output for the profit path. It is proposal-only,
+read-only, and expires when the evidence window is stale. It must be refreshed
+with the required inputs before an operator uses it for any later decision.
+
+### Proposal: trailing-stop-rollout-review
+
+```text
+proposalId=trailing-stop-rollout-review
+proposalStatus=READY_TO_DRAFT_REVIEW_NOT_LIVE
+proposalClass=DRY_RUN_OR_ROLLOUT_REVIEW_NOT_LIVE
+candidateNextStep=Draft a trailing-stop dry-run or rollout review for operator approval only.
+notAuthorization=No scheduler enablement, no live trading, no OCO mutation, no deploy, no production env change.
+```
+
+Required fresh evidence:
+
+- `trailing_stop_acceptance=PASS`
+- `exit_side_operator_decision_checklist` includes trailing-stop rollout checks
+- scheduler is still disabled or dry-run for the proposed scope
+- strategy opt-in scope is explicit
+- ambiguous same-bar rows remain excluded from acceptance
+
+### Proposal: strategy485-risk-reduction-review
+
+```text
+proposalId=strategy485-risk-reduction-review
+proposalStatus=READY_TO_DRAFT_REVIEW_NOT_MUTATION
+proposalClass=RISK_REDUCTION_REVIEW_NOT_MUTATION
+candidateNextStep=Draft a strategy 485 risk-reduction decision packet for operator approval only.
+notAuthorization=No close-position action, no OCO modification, no order placement, no deploy, no production env change.
+```
+
+Required fresh evidence:
+
+- `strategy485_oco_health_ok=True`
+- `strategy485_negative_ev_position_count > 0`
+- `strategy485_close_or_modify_suggestion_count > 0`
+- fresh active-position EV reassessment
+- TP stretch, timeout, recent-closed PnL, and monthly PnL context
+
+### Proposal Expiration
+
+Refresh the read-only briefs before using this packet if any of these are true:
+
+- the latest matrix is older than 180 minutes
+- positions 148, 149, or 150 have closed or materially changed
+- OCO health changed
+- trailing acceptance is no longer `PASS`
+- a new current DataFreshness sample appears
+- the operator wants to convert this review into any live, OCO, order,
+  scheduler, deploy, or production-env action
+
 ## Required Fresh Inputs
 
 Before each operator review, rerun the read-only brief:

@@ -252,6 +252,23 @@ trailing scheduler, place orders, modify OCO, close positions, relax
 EntryDedup/DataFreshness/live policy, or mutate DB/grid/fund/Earn/Telegram/
 exchange state.
 
+Read-only exit-side experiment readiness from those verified recommendations:
+
+```powershell
+.\scripts\prepare_exit_side_verified_experiment_readiness.ps1 -RequireReady
+```
+
+This emits `exit_side_verified_experiment_readiness_packet` with
+`packetType=EXIT_SIDE_VERIFIED_EXPERIMENT_READINESS` and
+`exit_side_verified_experiment_readiness_status=READY_FOR_EXIT_SIDE_DRY_RUN_AND_SHADOW_REVIEW_NOT_LIVE`.
+It turns the trailing dry-run and strategy 485 shadow recommendations into
+review-only experiment plans with minimum evidence, success evidence, stop
+criteria, `live_policy_change_allowed=false`, and
+`position_or_oco_mutation_allowed=false`. It does not authorize live trading,
+scheduler enablement, deploy/env changes, orders, OCO modification, position
+close, policy relaxation, DB/grid/fund/Earn/Telegram/exchange mutation, or
+external backfill/import.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 

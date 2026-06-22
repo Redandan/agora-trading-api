@@ -1140,6 +1140,25 @@ Expected:
   env, enable live trading, enable trailing, relax EntryDedup/DataFreshness/live
   policy, place orders, modify OCO, close positions, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
+- To convert those verified recommendations into review-only exit-side
+  experiment readiness plans, run:
+
+  ```powershell
+  .\scripts\prepare_exit_side_verified_experiment_readiness.ps1 -RequireReady
+  ```
+
+  Expected output includes `exit_side_verified_experiment_readiness_packet`,
+  `exit_side_verified_experiment_plans`,
+  `exit_side_verified_experiment_missing_requirements`, and
+  `exit_side_verified_experiment_readiness_status=READY_FOR_EXIT_SIDE_DRY_RUN_AND_SHADOW_REVIEW_NOT_LIVE`.
+  The packet type is `EXIT_SIDE_VERIFIED_EXPERIMENT_READINESS`; it carries
+  `trailing-stop-dry-run-readiness` and
+  `strategy485-risk-reduction-shadow-readiness` plans with minimum evidence,
+  success evidence, stop criteria, `live_policy_change_allowed=false`, and
+  `position_or_oco_mutation_allowed=false`. This is still review-only and does
+  not authorize live trading, scheduler enablement, deploy/env changes, orders,
+  OCO modification, position close, policy relaxation, DB/grid/fund/Earn/
+  Telegram/exchange mutation, or external backfill/import.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a

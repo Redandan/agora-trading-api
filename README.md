@@ -1048,6 +1048,17 @@ emits `entry_dedup_semantics_shadow_recommendation` and
 `entry_dedup_semantics_shadow_review_plan`. A positive result can only support
 a shadow experiment review; it is not live EntryDedup relaxation or staged-add
 approval.
+If forward alpha is positive, run the fee-adjusted TP/SL/OCO feasibility layer:
+
+```powershell
+.\scripts\smoke_entry_dedup_semantics_feasibility_review_ssh.ps1
+```
+
+This read-only smoke applies explicit TP/SL/fee assumptions to the skipped rows
+and reports `entry_dedup_semantics_feasibility_recommendation`,
+`tp_hit_rows`, `sl_hit_rows`, `ambiguous_same_bar_rows`,
+`avg_net_return_pct`, and `net_win_rate_pct`. Same-bar TP/SL ambiguity is not
+treated as pass evidence, and a positive result is still shadow-review-only.
 
 Read-only profit-improvement review bundle:
 

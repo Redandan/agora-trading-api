@@ -855,6 +855,25 @@
   requires fees, TP/SL/OCO feasibility, ExpectedValueGate, EventRiskControl,
   duplicate-hash, daily-cap, and max-loss evidence before any policy change can
   be considered.
+- `scripts/smoke_entry_dedup_semantics_feasibility_review_ssh.ps1` adds the
+  next review layer for that candidate. It applies explicit TP/SL/fee
+  assumptions to the skipped EntryDedup rows, reports TP hits, SL hits,
+  timeouts, same-bar ambiguous rows, net win rate, and average net return, and
+  emits `entry_dedup_semantics_feasibility_recommendation`. Same-bar TP/SL
+  ambiguity is not treated as pass evidence. A positive classification such as
+  `ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE` is still only
+  input to a separate shadow experiment review with live mutation disabled.
+- 2026-06-22 production run of that feasibility review for `BTCUSDT` /
+  strategy 508 / `1h`, using explicit assumptions `takeProfitPct=1.00`,
+  `stopLossPct=1.00`, `roundTripFeePct=0.20`, and `forwardHours=24`, returned
+  `entry_dedup_skip_rows=11`, `replay_reviewed_rows=11`, `tp_hit_rows=11`,
+  `sl_hit_rows=0`, `timeout_rows=0`, `ambiguous_same_bar_rows=0`,
+  `missing_kline_rows=0`, `net_positive_rows=11`,
+  `net_win_rate_pct=100.00`, `avg_net_return_pct=0.8000`, and
+  `entry_dedup_semantics_feasibility_recommendation=ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE`.
+  This supports drafting a separate shadow-only EntryDedup semantics experiment
+  review packet. It still does not authorize EntryDedup relaxation, live
+  staged-add execution, OCO modification, or any production mutation.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

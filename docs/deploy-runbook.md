@@ -1396,6 +1396,18 @@ Expected:
   `ENTRY_DEDUP_SEMANTICS_NO_POSITIVE_ALPHA_EVIDENCE`,
   `ENTRY_DEDUP_SHADOW_REVIEW_LOW_SAMPLE`, and
   `ENTRY_DEDUP_SHADOW_REVIEW_KLINE_GAP`.
+- If the semantics shadow review shows positive forward alpha, run
+  `.\scripts\smoke_entry_dedup_semantics_feasibility_review_ssh.ps1`. This
+  read-only DB smoke applies explicit TP/SL/fee assumptions to the same skipped
+  rows and excludes same-bar ambiguous TP/SL hits from pass evidence. It emits
+  `entry_dedup_semantics_feasibility_recommendation`, `tp_hit_rows`,
+  `sl_hit_rows`, `timeout_rows`, `ambiguous_same_bar_rows`,
+  `avg_net_return_pct`, `net_win_rate_pct`, and
+  `entry_dedup_semantics_feasibility_plan`. Classifications include
+  `ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE`,
+  `ENTRY_DEDUP_FEASIBILITY_AMBIGUOUS_REPLAY_REVIEW`,
+  `ENTRY_DEDUP_FEASIBILITY_POSITIVE_TIMEOUT_REVIEW`, and
+  `ENTRY_DEDUP_FEASIBILITY_NOT_PROVEN`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

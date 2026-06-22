@@ -994,6 +994,31 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a focused read-only signal/missed blocker decision brief, run:
+
+```powershell
+.\scripts\prepare_signal_missed_blocker_decision_brief_ssh.ps1 -RequireBrief
+```
+
+Expected:
+
+- Use it after
+  `entry_filter_blocker_decision_brief_status=BLOCKED_SIGNAL_POLICY_OR_MISSED_OPPORTUNITY_REVIEW`.
+- `signal_missed_blocker_decision_brief_packet` and
+  `signal_missed_blocker_decision_brief_status` combine the entry/filter
+  operator packet, no-buy row review packet, missed-opportunity shadow design
+  preflight, and governance relaxation review packet.
+- `entry_filter_operator_lane_status`, `no_buy_row_review_lane_status`,
+  `missed_opportunity_shadow_lane_status`, and
+  `governance_relaxation_lane_status` keep each review lane separate.
+- `signal_missed_blocker_missing_requirements` is the blocking checklist before
+  any separate shadow-only review can be drafted.
+- The brief is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, execute tiny-live orders, relax
+  EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy changes.
+
 For a bounded read-only profit evidence watch, run:
 
 ```powershell

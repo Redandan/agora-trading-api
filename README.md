@@ -789,6 +789,25 @@ shadow lane is ready. It does not deploy, change production env, enable live
 trading, relax EntryDedup/DataFreshness/live policy, place orders, modify OCO,
 close positions, or mutate DB/grid/fund/Earn state.
 
+Read-only signal/missed blocker decision brief:
+
+```powershell
+.\scripts\prepare_signal_missed_blocker_decision_brief_ssh.ps1 -RequireBrief
+```
+
+This is the focused follow-up when
+`entry_filter_blocker_decision_brief_status=BLOCKED_SIGNAL_POLICY_OR_MISSED_OPPORTUNITY_REVIEW`.
+It combines the entry/filter operator packet, no-buy row review packet,
+missed-opportunity shadow design preflight, and governance relaxation review
+packet into `signal_missed_blocker_decision_brief_packet` and
+`signal_missed_blocker_decision_brief_status`. It emits
+`entry_filter_operator_lane_status`, `no_buy_row_review_lane_status`,
+`missed_opportunity_shadow_lane_status`, `governance_relaxation_lane_status`,
+and `signal_missed_blocker_missing_requirements`. It does not deploy, change
+production env, enable live trading, execute tiny-live orders, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn state.
+
 Bounded read-only profit evidence watch:
 
 ```powershell

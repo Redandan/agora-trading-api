@@ -476,6 +476,25 @@
   EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
   positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize strategy changes.
+- `scripts/prepare_signal_missed_blocker_decision_brief_ssh.ps1` now provides
+  the focused follow-up for
+  `entry_filter_blocker_decision_brief_status=BLOCKED_SIGNAL_POLICY_OR_MISSED_OPPORTUNITY_REVIEW`.
+  It invokes `prepare_entry_filter_operator_review_packet_ssh.ps1`,
+  `prepare_no_buy_row_review_packet_ssh.ps1`,
+  `prepare_missed_opportunity_shadow_design_packet_ssh.ps1`, and
+  `prepare_governance_relaxation_review_packet_ssh.ps1`, then emits
+  `signal_missed_blocker_decision_brief_packet`,
+  `signal_missed_blocker_decision_brief_status`,
+  `entry_filter_operator_lane_status`, `no_buy_row_review_lane_status`,
+  `missed_opportunity_shadow_lane_status`,
+  `governance_relaxation_lane_status`, and
+  `signal_missed_blocker_missing_requirements`. It keeps signal policy,
+  no-buy row, missed-opportunity shadow design, and governance relaxation lanes
+  separate before any shadow-only review. It does not deploy, restart, reload
+  nginx, change production env, enable live trading, execute tiny-live orders,
+  relax EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy changes.
 - `scripts/watch_profit_evidence_readiness_ssh.ps1` is a bounded read-only
   watcher for the current profit evidence bottleneck. It reruns
   `prepare_profit_readiness_brief_ssh.ps1` and

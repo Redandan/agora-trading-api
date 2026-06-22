@@ -665,7 +665,9 @@
   replay-input smoke into `data_freshness_shadow_candidate_packet` and
   `data_freshness_shadow_candidate_packet_status`. It can return
   `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` when complete replayable rows
-  or counterfactual fields are still missing, or
+  or counterfactual fields are still missing,
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE` when only historical proxy
+  rows predate replay-id/collector evidence, or
   `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` only for a separate
   shadow-candidate review. It now carries `replay_input_stage`,
   `collector_status_counts`, `hard_gate_preview_status_counts`, and

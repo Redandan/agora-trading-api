@@ -1460,6 +1460,10 @@ Expected:
   `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
 - `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the candidate remains
   blocked by missing complete replayable rows or counterfactual fields.
+- `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE` means the available
+  DataFreshness evidence is historical proxy data that predates replay-id or
+  collector evidence; wait for fresh replay-id rows or a separately reviewed
+  replay-input collector before shadow review.
 - `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` means the emitted packet
   can be attached to a separate shadow-only candidate review. It is not
   permission to relax DataFreshnessGuard, enable live trading, deploy, restart,

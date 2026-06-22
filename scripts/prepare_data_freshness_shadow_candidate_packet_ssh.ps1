@@ -259,11 +259,17 @@ if ($counterfactualRecommendation -ne "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES")
 $packetStatus = "NO_EVIDENCE"
 $shadowCandidateAllowed = $false
 $nextAction = "Fix read-only DataFreshness governance/counterfactual evidence collection before drafting a shadow candidate packet."
-if ($governance.ExitCode -eq 0 -and $counterfactual.ExitCode -eq 0 -and $hasDataFreshnessCandidate) {
+if ($governance.ExitCode -eq 0 -and $counterfactual.ExitCode -eq 0) {
     if ($missingRequirements.Count -eq 0 -and $governanceStatus -eq "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE") {
         $packetStatus = "READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE"
         $shadowCandidateAllowed = $true
         $nextAction = "Attach this packet to a separate shadow-only DataFreshness replay review; this is not live policy approval."
+    } elseif ($counterfactualEvidenceClass -eq "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE") {
+        $packetStatus = "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+        $nextAction = "Wait for fresh DataFreshness replay-id rows or a separately reviewed replay-input collector before drafting a shadow candidate packet."
+    } elseif (-not $hasDataFreshnessCandidate) {
+        $packetStatus = "BLOCKED_DATAFRESHNESS_GOVERNANCE_CANDIDATE_MISSING"
+        $nextAction = "Collect a fresh DataFreshness governance relaxation candidate before any DataFreshness shadow candidate review."
     } else {
         $packetStatus = "BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING"
         $nextAction = "Collect complete replayable candidate rows and clear governance/missed-opportunity blockers before any DataFreshness shadow review."

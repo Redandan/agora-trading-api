@@ -532,6 +532,9 @@ counterfactual smoke so pre-collector historical samples are not mistaken for
 enabled replay evidence.
 `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the DataFreshness candidate
 is still missing complete replayable rows or counterfactual fields.
+`BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE` means the current evidence is
+historical proxy data that predates replay-id/collector evidence and is not
+shadow-reviewable.
 `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` is shadow-candidate review
 evidence only. The packet does not deploy, restart, change production env,
 enable live trading, relax DataFreshnessGuard, execute tiny-live orders, place

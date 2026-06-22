@@ -832,6 +832,29 @@
   This is evidence of a definition mismatch between EntryDedup open-signal
   exposure and staged-add auto-traded-position exposure; it still does not make
   the row live-addable.
+- `scripts/smoke_entry_dedup_semantics_shadow_review_ssh.ps1` is the next
+  read-only review step for that mismatch. It scores the skipped EntryDedup
+  candidates against later OKX `md_kline` rows, emitting 4h/24h forward
+  returns, 24h MFE/MAE, positive-row counts, and
+  `entry_dedup_semantics_shadow_recommendation`. The strongest classification,
+  `ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE`, is still only
+  input to a separate shadow experiment review; it does not relax EntryDedup,
+  approve staged-add execution, or mutate production.
+- 2026-06-22 production run of that semantics shadow review for `BTCUSDT` /
+  strategy 508 / `1h` kept the same mismatch evidence (`open_signal_rows=1`,
+  `auto_traded_open_rows=0`, `non_auto_zero_qty_rows=1`,
+  `non_auto_eventrisk_rows=1`, `open_notional=0`) and found
+  `entry_dedup_skip_rows=11`, `reviewable_forward_rows=11`,
+  `missing_kline_rows=0`, `positive_24h_rows=10`,
+  `negative_24h_rows=1`, `positive_24h_rate_pct=90.91`,
+  `avg_4h_return_pct=0.8950`, `avg_24h_return_pct=1.0173`,
+  `median_24h_return_pct=1.0572`, `avg_mfe_24h_pct=2.3067`, and
+  `avg_mae_24h_pct=-0.3580`. The recommendation was
+  `ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE`. This is enough
+  to route a separate shadow-only semantics experiment review, but it still
+  requires fees, TP/SL/OCO feasibility, ExpectedValueGate, EventRiskControl,
+  duplicate-hash, daily-cap, and max-loss evidence before any policy change can
+  be considered.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

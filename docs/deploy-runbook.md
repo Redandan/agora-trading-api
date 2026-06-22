@@ -1382,6 +1382,20 @@ Expected:
   include `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`,
   `ENTRY_DEDUP_EXPOSURE_CONSISTENT_AUTO_POSITION`,
   `ENTRY_DEDUP_NO_RECENT_SKIPS`, and `ENTRY_DEDUP_EXPOSURE_INCONCLUSIVE`.
+- If the consistency smoke returns
+  `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`, run
+  `.\scripts\smoke_entry_dedup_semantics_shadow_review_ssh.ps1`. This
+  read-only DB smoke scores the skipped EntryDedup candidates against later
+  OKX `md_kline` bars without changing live policy. It emits
+  `entry_dedup_semantics_shadow_recommendation`, `positive_24h_rows`,
+  `avg_4h_return_pct`, `avg_24h_return_pct`, `avg_mfe_24h_pct`,
+  `avg_mae_24h_pct`, and `entry_dedup_semantics_shadow_review_plan`.
+  Classifications include
+  `ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE`,
+  `ENTRY_DEDUP_SEMANTICS_TP_PATH_REPLAY_REVIEW`,
+  `ENTRY_DEDUP_SEMANTICS_NO_POSITIVE_ALPHA_EVIDENCE`,
+  `ENTRY_DEDUP_SHADOW_REVIEW_LOW_SAMPLE`, and
+  `ENTRY_DEDUP_SHADOW_REVIEW_KLINE_GAP`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

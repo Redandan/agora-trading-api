@@ -1037,6 +1037,17 @@ emits `entry_dedup_exposure_consistency_recommendation`,
 `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW` result means review semantics
 with replay or shadow evidence; it is not permission to relax EntryDedup,
 place/add orders, or mutate production.
+Then score the skipped candidates with read-only forward K-line evidence:
+
+```powershell
+.\scripts\smoke_entry_dedup_semantics_shadow_review_ssh.ps1
+```
+
+This checks 4h/24h forward returns plus 24h MFE/MAE for the skipped rows and
+emits `entry_dedup_semantics_shadow_recommendation` and
+`entry_dedup_semantics_shadow_review_plan`. A positive result can only support
+a shadow experiment review; it is not live EntryDedup relaxation or staged-add
+approval.
 
 Read-only profit-improvement review bundle:
 

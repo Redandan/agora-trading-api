@@ -539,6 +539,16 @@
   `profit_operator_compact_status` without rerunning SSH or replaying the full
   action brief, so the operator can quickly see whether the latest saved matrix
   still routes to `READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`.
+  `scripts/prepare_profit_operator_quick_status.ps1` is the fastest first
+  check: it reads the latest matrix pointer, emits
+  `PROFIT_OPERATOR_QUICK_STATUS`, `profit_operator_quick_status_packet`,
+  `profit_operator_quick_status`, and
+  `profit_operator_quick_refresh_required`, and returns
+  `REFRESH_REQUIRED_NO_MATRIX` or `REFRESH_REQUIRED_STALE_MATRIX` when the
+  operator should refresh the read-only matrix before using the status. It does
+  not rerun SSH or authorize live trading, policy relaxation, deploy,
+  production env changes, orders, OCO, position closes,
+  DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
   `scripts/prepare_profit_operator_review_summary.ps1` converts that latest
   action brief into `profit_operator_review_summary_packet`, ready lanes,
   exit-side proposals, blocked lanes, and required evidence for operator review

@@ -1102,6 +1102,20 @@ Expected:
   It reads `latest-profit-operator-matrix.path`, invokes
   `prepare_profit_operator_action_brief_ssh.ps1` with `-MatrixOutputPath`, and
   keeps the same `-MatrixMaxAgeMinutes` freshness guard.
+- For the fastest first check of whether the latest saved matrix can still be
+  used, run:
+
+  ```powershell
+  .\scripts\prepare_profit_operator_quick_status.ps1
+  ```
+
+  Expected output includes `profit_operator_quick_status_packet`,
+  `profit_operator_quick_status`, and
+  `profit_operator_quick_refresh_required`. `REFRESH_REQUIRED_NO_MATRIX` or
+  `REFRESH_REQUIRED_STALE_MATRIX` means refresh the read-only matrix before
+  using the operator status. This quick status does not rerun SSH, deploy,
+  change production env, enable live trading, relax EntryDedup/DataFreshness
+  policy, or authorize position/OCO changes.
 - For the fastest local status check from the latest saved matrix without
   rerunning SSH or replaying the full action brief, run:
 

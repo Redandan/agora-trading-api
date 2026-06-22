@@ -858,6 +858,12 @@ find the latest evidence file. Use
 `.\scripts\prepare_profit_operator_latest_action_brief.ps1 -RequireReady` to
 rebuild from that latest pointer with the same freshness guard and without
 rerunning the long SSH matrix. Use
+`.\scripts\prepare_profit_operator_quick_status.ps1` as the fastest first check
+of the latest saved matrix. It prints `profit_operator_quick_status_packet`,
+`profit_operator_quick_status`, and `profit_operator_quick_refresh_required`;
+`REFRESH_REQUIRED_NO_MATRIX` or `REFRESH_REQUIRED_STALE_MATRIX` means a fresh
+read-only matrix should be collected before using the operator status. It does
+not rerun SSH and does not deploy. Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints
 `profit_operator_compact_status_packet`, `profit_operator_compact_ready_lanes`,

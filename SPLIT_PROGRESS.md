@@ -709,8 +709,8 @@
 - `scripts/smoke_data_freshness_sample_gap_rca_ssh.ps1` is the follow-up
   read-only RCA for a recent-window DataFreshness sample gap. It uses
   production MySQL `SELECT` queries against `bt_decision_audit` to report
-  event-type counts, top `FILTER_BLOCK` blockers, BUY-style candidate counts,
-  DataFreshness recency, and
+  event-type counts, top `FILTER_BLOCK` blockers, BUY-style trading candidate
+  counts, separate `ATTENTION_HIT` counts, DataFreshness recency, and
   `data_freshness_sample_gap_rca_recommendation` values such as
   `NO_RECENT_BUY_STYLE_CANDIDATES`, `OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW`,
   `CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`, or `DATAFRESHNESS_SAMPLE_PRESENT`.
@@ -732,17 +732,57 @@
   OCO plan, and complete replayable candidate rows. Treat this as a
   recent-window sample gap and replay-snapshot blocker, not permission to relax
   DataFreshnessGuard or live entry policy.
-- 2026-06-22 read-only production sample-gap RCA for `BTCUSDT` showed
-  `audit_rows_7d_review=3348`, `buy_like_rows_7d_review=144`,
-  `filter_block_rows_7d_review=0`, `entry_skip_rows_7d_review=11`,
-  `autotrade_rows_7d_review=0`, and `data_freshness_rows_7d_review=0`.
+- 2026-06-22 read-only production sample-gap RCA for `BTCUSDT`, after
+  excluding watch-only `ATTENTION_HIT` and terminal `ENTRY_SKIP` rows from the
+  pre-terminal BUY-like candidate definition, showed
+  `audit_rows_7d_review=3323`, `buy_like_rows_7d_review=11`,
+  `attention_hit_rows_7d_review=123`, `filter_block_rows_7d_review=0`,
+  `entry_skip_rows_7d_review=11`, `autotrade_rows_7d_review=0`, and
+  `data_freshness_rows_7d_review=0`.
   DataFreshness history is still present in the older window
   (`data_freshness_rows_14d=74`, `data_freshness_rows_30d=110`), but the
   7-day gap is classified as
   `data_freshness_sample_gap_rca_recommendation=CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`.
-  Treat this as evidence to inspect candidate progression after `ATTENTION_HIT`
-  and before terminal filter blocks; it is not permission to relax
-  DataFreshnessGuard or live entry policy.
+  Treat this as evidence to inspect BUY-like candidate progression before
+  terminal skip/filter/order paths; it is not permission to relax
+  DataFreshnessGuard, EntryDedup, or live entry policy.
+- `scripts/smoke_attention_hit_progression_ssh.ps1` is the follow-up read-only
+  RCA for that candidate progression question. It uses production MySQL
+  `SELECT` queries against `bt_decision_audit` to follow recent
+  `ATTENTION_HIT` rows to the next same strategy/interval terminal event
+  (`SIGNAL_BUY`, `FILTER_BLOCK`, `ENTRY_SKIP`, or `AUTOTRADE_*`) within a
+  bounded follow-up window. It emits
+  `attention_hit_progression_recommendation`,
+  `attention_followup_classification`, terminal event counts, strategy
+  distribution, and examples. The smoke is evidence only and does not deploy,
+  change production env, relax EntryDedup/DataFreshness/live policy, enable
+  live trading, place orders, modify OCO, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
+- 2026-06-22 read-only production attention progression for `BTCUSDT` showed
+  `attention_hit_rows=122`, all sampled rows under `strategy=-1 interval=N/A`,
+  `no_terminal_followup_rows=122`, and
+  `attention_hit_progression_recommendation=ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`.
+  The examples were put/call ratio bearish WARN rows, so these attention hits
+  are macro/watch-only warnings, not trading entry candidates.
+- `scripts/smoke_buy_like_candidate_progression_ssh.ps1` performs the same
+  read-only candidate-progression check for true BUY-like pre-terminal trading
+  candidates, excluding watch-only `ATTENTION_HIT` rows and terminal
+  `ENTRY_SKIP` rows. It emits
+  `buy_like_candidate_progression_recommendation`,
+  `buy_like_followup_classification`, terminal event counts, candidate type
+  distribution, and examples so trading-candidate loss can be separated from
+  macro/attention warning flow before any entry-filter, strategy, or live
+  execution review.
+- 2026-06-22 read-only production BUY-like candidate progression for `BTCUSDT`
+  showed `buy_like_candidate_rows=11`, all as `event=SIGNAL_EVAL strategy=508
+  interval=1h`, with `entry_skip_followup_rows=10`,
+  `filter_block_followup_rows=0`, `signal_buy_rows=0`,
+  `autotrade_followup_rows=0`, and
+  `buy_like_candidate_progression_recommendation=BUY_LIKE_TO_ENTRY_SKIP_REVIEW`.
+  The dominant follow-up was `ENTRY_SKIP:EntryDedup` with reason
+  `same strategy/symbol/interval LONG exposure already exists`. This routes the
+  next profit review toward EntryDedup/existing-position exposure evidence for
+  strategy 508 rather than DataFreshness relaxation or live execution changes.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

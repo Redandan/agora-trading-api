@@ -20,7 +20,7 @@ function Assert-ScriptFailsBeforeSsh {
         [string]$Description
     )
 
-    $scriptPath = Join-Path $PSScriptRoot "smoke_data_freshness_sample_gap_rca_ssh.ps1"
+    $scriptPath = Join-Path $PSScriptRoot "smoke_attention_hit_progression_ssh.ps1"
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
@@ -39,7 +39,7 @@ function Assert-ScriptFailsBeforeSsh {
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$scriptPath = Join-Path $PSScriptRoot "smoke_data_freshness_sample_gap_rca_ssh.ps1"
+$scriptPath = Join-Path $PSScriptRoot "smoke_attention_hit_progression_ssh.ps1"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $readmePath = Join-Path $repoRoot "README.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
@@ -53,51 +53,50 @@ foreach ($marker in @(
         "scope=READ_ONLY",
         "direct MySQL SELECTs only",
         "bt_decision_audit",
-        "FILTER_BLOCK",
-        "DataFreshnessGuard",
-        "SIGNAL_EVAL",
-        "SIGNAL_BUY",
         "ATTENTION_HIT",
-        "attention_hit_rows_",
-        "NO_RECENT_BUY_STYLE_CANDIDATES",
-        "CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED",
-        "OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW",
-        "DATAFRESHNESS_SAMPLE_PRESENT",
-        "NO_AUDIT_ROWS_IN_WINDOW",
-        "RECENT_WINDOW_GAP_WITH_OLDER_DATAFRESHNESS_HISTORY",
-        "data_freshness_sample_gap_rca_recommendation",
-        "data_freshness_sample_gap_next_action",
-        "latest_data_freshness_row_time",
-        "data_freshness_rows_7d",
-        "event_type_counts_",
-        "top_filter_blockers_",
+        "SIGNAL_BUY",
+        "FILTER_BLOCK",
+        "ENTRY_SKIP",
+        "AUTOTRADE_OK",
+        "AUTOTRADE_FAIL",
+        "NO_TERMINAL_FOLLOWUP",
+        "NO_ATTENTION_HITS_IN_REVIEW_WINDOW",
+        "ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES",
+        "ATTENTION_TO_ENTRY_SKIP_REVIEW",
+        "ATTENTION_TO_FILTER_BLOCK_REVIEW",
+        "ATTENTION_PIPELINE_HAS_TERMINAL_FOLLOWUP",
+        "attention_hit_progression_recommendation",
+        "attention_followup_classification",
+        "attention_followup_event_types",
+        "attention_hit_strategy_distribution",
+        "attention_hit_progression_next_action",
         "notAuthorization",
         "Assert-SshHostSafe",
         "refusing to query unexpected database",
         "no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange",
         "OK read-only check complete"
     )) {
-    Assert-Contains -Name "DataFreshness sample gap RCA smoke marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
+    Assert-Contains -Name "attention hit progression smoke marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
 foreach ($doc in @($runbookText, $readmeText, $progressText)) {
-    Assert-Contains -Name "operator docs mention sample gap RCA smoke" -Text $doc -Pattern "smoke_data_freshness_sample_gap_rca_ssh\.ps1"
-    Assert-Contains -Name "operator docs mention sample gap RCA read-only" -Text $doc -Pattern "read-only"
+    Assert-Contains -Name "operator docs mention attention progression smoke" -Text $doc -Pattern "smoke_attention_hit_progression_ssh\.ps1"
+    Assert-Contains -Name "operator docs mention attention progression read-only" -Text $doc -Pattern "read-only"
 }
 
 Assert-ScriptFailsBeforeSsh `
     -Arguments @("-SshHost", "-oProxyCommand=bad", "-SshKey", ".\README.md") `
     -ExpectedPattern "SshHost contains unsupported characters for ssh target" `
-    -Description "DataFreshness sample gap RCA SSH target input guard"
+    -Description "attention hit progression SSH target input guard"
 
 Assert-ScriptFailsBeforeSsh `
-    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ReviewDays", "0") `
-    -ExpectedPattern "ReviewDays must be between 1 and 30" `
-    -Description "DataFreshness sample gap RCA review window input guard"
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-FollowupHours", "0") `
+    -ExpectedPattern "FollowupHours must be between 1 and 48" `
+    -Description "attention hit progression follow-up window input guard"
 
 Assert-ScriptFailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Symbol", "BTCUSDT';echo bad") `
     -ExpectedPattern "Symbol contains unsupported characters for smoke invocation" `
-    -Description "DataFreshness sample gap RCA symbol input guard"
+    -Description "attention hit progression symbol input guard"
 
-Write-Host "[data-freshness-sample-gap-rca-test] OK"
+Write-Host "[attention-hit-progression-smoke-test] OK"

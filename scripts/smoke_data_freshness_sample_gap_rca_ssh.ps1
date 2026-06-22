@@ -165,12 +165,17 @@ symbol_sql = esc(symbol)
 
 buy_like = """
 (
-  a.event_type IN ('SIGNAL_BUY','ATTENTION_HIT')
-  OR UPPER(COALESCE(a.outcome,'')) LIKE '%BUY%'
-  OR UPPER(COALESCE(a.reason,'')) LIKE '%BUY%'
-  OR UPPER(COALESCE(a.reason,'')) LIKE '%LONG%'
-  OR UPPER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side')), '')) IN ('LONG','BUY')
-  OR UPPER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.signal')), '')) IN ('LONG','BUY')
+  a.event_type = 'SIGNAL_BUY'
+  OR (
+    a.event_type = 'SIGNAL_EVAL'
+    AND (
+      UPPER(COALESCE(a.outcome,'')) LIKE '%BUY%'
+      OR UPPER(COALESCE(a.reason,'')) LIKE '%BUY%'
+      OR UPPER(COALESCE(a.reason,'')) LIKE '%LONG%'
+      OR UPPER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side')), '')) IN ('LONG','BUY')
+      OR UPPER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.signal')), '')) IN ('LONG','BUY')
+    )
+  )
 )
 """
 
@@ -179,6 +184,7 @@ SELECT
   COUNT(*) AS total_rows,
   COALESCE(SUM(CASE WHEN a.event_type = 'SIGNAL_EVAL' THEN 1 ELSE 0 END), 0) AS signal_eval_rows,
   COALESCE(SUM(CASE WHEN {buy_like} THEN 1 ELSE 0 END), 0) AS buy_like_rows,
+  COALESCE(SUM(CASE WHEN a.event_type = 'ATTENTION_HIT' THEN 1 ELSE 0 END), 0) AS attention_hit_rows,
   COALESCE(SUM(CASE WHEN a.event_type = 'FILTER_BLOCK' THEN 1 ELSE 0 END), 0) AS filter_block_rows,
   COALESCE(SUM(CASE WHEN a.event_type = 'ENTRY_SKIP' THEN 1 ELSE 0 END), 0) AS entry_skip_rows,
   COALESCE(SUM(CASE WHEN a.event_type LIKE 'AUTOTRADE%' THEN 1 ELSE 0 END), 0) AS autotrade_rows,
@@ -186,6 +192,7 @@ SELECT
   COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY THEN 1 ELSE 0 END), 0) AS review_total_rows,
   COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY AND a.event_type = 'SIGNAL_EVAL' THEN 1 ELSE 0 END), 0) AS review_signal_eval_rows,
   COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY AND {buy_like} THEN 1 ELSE 0 END), 0) AS review_buy_like_rows,
+  COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY AND a.event_type = 'ATTENTION_HIT' THEN 1 ELSE 0 END), 0) AS review_attention_hit_rows,
   COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY AND a.event_type = 'FILTER_BLOCK' THEN 1 ELSE 0 END), 0) AS review_filter_block_rows,
   COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY AND a.event_type = 'ENTRY_SKIP' THEN 1 ELSE 0 END), 0) AS review_entry_skip_rows,
   COALESCE(SUM(CASE WHEN a.event_time >= UTC_TIMESTAMP() - INTERVAL {review_days} DAY AND a.event_type LIKE 'AUTOTRADE%' THEN 1 ELSE 0 END), 0) AS review_autotrade_rows,
@@ -254,9 +261,9 @@ blocker_rows = run_query(blocker_counts_sql)
 long_blocker_rows = run_query(long_blocker_counts_sql)
 
 window_fields = [
-    "total_rows", "signal_eval_rows", "buy_like_rows", "filter_block_rows",
+    "total_rows", "signal_eval_rows", "buy_like_rows", "attention_hit_rows", "filter_block_rows",
     "entry_skip_rows", "autotrade_rows", "data_freshness_rows",
-    "review_total_rows", "review_signal_eval_rows", "review_buy_like_rows",
+    "review_total_rows", "review_signal_eval_rows", "review_buy_like_rows", "review_attention_hit_rows",
     "review_filter_block_rows", "review_entry_skip_rows", "review_autotrade_rows",
     "review_data_freshness_rows",
     "rows_1d", "rows_3d", "rows_7d", "rows_14d", "rows_30d",
@@ -317,6 +324,7 @@ print("Audit Window Distribution:")
 print(f"  audit_rows_{long_days}d={window.get('total_rows', '0')}")
 print(f"  signal_eval_rows_{long_days}d={window.get('signal_eval_rows', '0')}")
 print(f"  buy_like_rows_{long_days}d={window.get('buy_like_rows', '0')}")
+print(f"  attention_hit_rows_{long_days}d={window.get('attention_hit_rows', '0')}")
 print(f"  filter_block_rows_{long_days}d={window.get('filter_block_rows', '0')}")
 print(f"  entry_skip_rows_{long_days}d={window.get('entry_skip_rows', '0')}")
 print(f"  autotrade_rows_{long_days}d={window.get('autotrade_rows', '0')}")
@@ -324,6 +332,7 @@ print(f"  data_freshness_rows_{long_days}d={window.get('data_freshness_rows', '0
 print(f"  audit_rows_{review_days}d_review={window.get('review_total_rows', '0')}")
 print(f"  signal_eval_rows_{review_days}d_review={window.get('review_signal_eval_rows', '0')}")
 print(f"  buy_like_rows_{review_days}d_review={window.get('review_buy_like_rows', '0')}")
+print(f"  attention_hit_rows_{review_days}d_review={window.get('review_attention_hit_rows', '0')}")
 print(f"  filter_block_rows_{review_days}d_review={window.get('review_filter_block_rows', '0')}")
 print(f"  entry_skip_rows_{review_days}d_review={window.get('review_entry_skip_rows', '0')}")
 print(f"  autotrade_rows_{review_days}d_review={window.get('review_autotrade_rows', '0')}")

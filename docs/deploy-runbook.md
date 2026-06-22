@@ -1341,11 +1341,28 @@ Expected:
   `.\scripts\smoke_data_freshness_sample_gap_rca_ssh.ps1`. The smoke performs
   direct read-only production MySQL `SELECT` queries against
   `bt_decision_audit` and emits `data_freshness_sample_gap_rca_recommendation`,
-  event-type counts, top `FILTER_BLOCK` blockers, latest DataFreshness row
-  time, row age, and 1d/3d/7d/14d/30d row counts. Classifications include
+  event-type counts, separate `ATTENTION_HIT` counts, top `FILTER_BLOCK`
+  blockers, latest DataFreshness row time, row age, and 1d/3d/7d/14d/30d row
+  counts. Classifications include
   `NO_RECENT_BUY_STYLE_CANDIDATES`, `OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW`,
   `CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`, and
   `DATAFRESHNESS_SAMPLE_PRESENT`.
+- If sample-gap RCA reports `CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`, run
+  `.\scripts\smoke_attention_hit_progression_ssh.ps1`. It follows
+  `ATTENTION_HIT` rows to the next same strategy/interval terminal audit event
+  within `-FollowupHours`, then emits
+  `attention_hit_progression_recommendation`,
+  `attention_followup_classification`, terminal event counts, strategy
+  distribution, and examples. Use this to locate whether candidate loss is no
+  terminal follow-up, `ENTRY_SKIP`, `FILTER_BLOCK`, or post-signal/autotrade
+  routing before changing any live policy.
+- Also run `.\scripts\smoke_buy_like_candidate_progression_ssh.ps1` for true
+  BUY-like pre-terminal trading candidates, excluding watch-only
+  `ATTENTION_HIT` rows and terminal `ENTRY_SKIP` rows. It emits
+  `buy_like_candidate_progression_recommendation`,
+  `buy_like_followup_classification`, terminal event counts, candidate type
+  distribution, and examples so trading-candidate loss is not confused with
+  macro/attention warning flow.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

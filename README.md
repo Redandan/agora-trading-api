@@ -976,12 +976,40 @@ When the bundle reports a recent-window sample gap, run:
 ```
 
 This read-only production DB smoke explains whether the gap is due to no recent
-BUY-style candidates, dominant non-DataFreshness blockers, candidates that were
-not DataFreshness-blocked, or a present current sample. It emits
+BUY-style trading candidates, dominant non-DataFreshness blockers, candidates
+that were not DataFreshness-blocked, or a present current sample. It reports
+`ATTENTION_HIT` counts separately because attention rows can be macro or
+watch-only warnings rather than entry candidates. It emits
 `data_freshness_sample_gap_rca_recommendation`, event-type counts, top
 `FILTER_BLOCK` blockers, and DataFreshness recency markers. It does not deploy,
 change production env, relax DataFreshnessGuard, place orders, modify OCO, or
 mutate DB/grid/fund/Earn/Telegram/exchange state.
+If it reports `CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`, run:
+
+```powershell
+.\scripts\smoke_attention_hit_progression_ssh.ps1
+```
+
+This read-only production DB smoke follows recent `ATTENTION_HIT` rows to the
+next same strategy/interval terminal event (`SIGNAL_BUY`, `FILTER_BLOCK`,
+`ENTRY_SKIP`, or `AUTOTRADE_*`) within a bounded follow-up window. It emits
+`attention_hit_progression_recommendation`,
+`attention_followup_classification`, event-type counts, strategy distribution,
+and examples. It does not authorize entry-filter, DataFreshness, EntryDedup, or
+live execution changes.
+For true BUY-like pre-terminal trading candidates, excluding watch-only
+attention rows and terminal `ENTRY_SKIP` rows, run:
+
+```powershell
+.\scripts\smoke_buy_like_candidate_progression_ssh.ps1
+```
+
+This read-only production DB smoke follows recent BUY-like `SIGNAL_EVAL` /
+`SIGNAL_BUY` audit rows to the next same strategy/interval terminal event and emits
+`buy_like_candidate_progression_recommendation`,
+`buy_like_followup_classification`, terminal event counts, candidate type
+distribution, and examples. Use it to locate candidate-to-terminal-event loss
+before proposing entry-filter, strategy, or live execution changes.
 
 Read-only profit-improvement review bundle:
 

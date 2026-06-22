@@ -39,6 +39,47 @@ Interpretation:
   evidence collection that can replay "remove only DataFreshnessGuard" while
   keeping every other hard gate intact.
 
+Fresh read-only production refresh on 2026-06-22T01:40Z and
+2026-06-22T01:41Z showed that this path is still blocked:
+
+```text
+data_freshness_current_status=NO_CURRENT_SAMPLE
+data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS
+latest_data_freshness_row_time=2026-06-14T15:38:16
+latest_data_freshness_row_age_hours=178
+data_freshness_rows_1d=0
+data_freshness_rows_3d=0
+data_freshness_rows_7d=0
+data_freshness_rows_14d=74
+data_freshness_rows_30d=110
+data_freshness_sample_gap_status=NO_ROWS_IN_REVIEW_WINDOW
+complete_replayable_candidate_rows=0
+missing_counterfactual_fields=["liveSignalId","replayCandidateId","explicit entry/TP/SL candidate plan","EV snapshot","OCO plan","complete replayable candidate rows"]
+```
+
+The same no-buy row review classified the current no-buy evidence as:
+
+```text
+signalPolicyClear=false
+governanceMode=INSUFFICIENT_DATA
+missedOpportunityStatus=WARN
+noBuyClassifications=VALID_SIGNAL_NOT_READY:2, WATCH_SIGNAL_NEAR_BUY_THRESHOLD:1, VALID_HARD_SAFETY_BLOCK:1
+noBuyBlockerFamilies=SIGNAL_NOT_READY:3, CAPACITY:1
+no_buy_row_action_family_counts=[{"family":"WAIT_FOR_SIGNAL_CONFIRMATION","count":4}]
+no_buy_row_review_packet_status=REVIEW_REQUIRED_NOT_EXPERIMENT
+```
+
+Interpretation:
+
+- The latest blocker is not evidence that DataFreshnessGuard is currently
+  over-blocking; there are no recent terminal DataFreshness rows to replay.
+- Recent no-buy evidence is dominated by wait-for-signal / not-ready rows, not
+  an immediately actionable DataFreshness relaxation candidate.
+- The next useful step remains observation: wait for a fresh terminal
+  DataFreshnessGuard sample or instrument a separately authorized
+  replay-input collector. Do not relax DataFreshnessGuard, EntryDedup, or live
+  policy from the historical 74-row proxy.
+
 ## Replay Input Contract
 
 For a DataFreshnessGuard-only block to become replayable, the evidence row must

@@ -771,6 +771,24 @@ Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers. Use `-ChildTimeoutSeconds` to fail a stuck child
 locally without changing production state.
 
+Read-only entry-filter blocker decision brief:
+
+```powershell
+.\scripts\prepare_entry_filter_blocker_decision_brief_ssh.ps1 -RequireBrief
+```
+
+This narrows the current entry/filter blocker into
+`entry_filter_blocker_decision_brief_packet` and
+`entry_filter_blocker_decision_brief_status`. It calls only signal correctness,
+DataFreshness replay evidence readiness, and the EntryDedup operator decision
+brief, then emits `entry_filter_policy_lane_status`,
+`data_freshness_replay_lane_status`, `entry_dedup_shadow_lane_status`, and
+`entry_filter_blocker_missing_requirements`. Use it when
+`profit_readiness_brief_status=BLOCKED_ENTRY_FILTER_REVIEW` but the EntryDedup
+shadow lane is ready. It does not deploy, change production env, enable live
+trading, relax EntryDedup/DataFreshness/live policy, place orders, modify OCO,
+close positions, or mutate DB/grid/fund/Earn state.
+
 Bounded read-only profit evidence watch:
 
 ```powershell

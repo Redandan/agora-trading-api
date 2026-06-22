@@ -969,6 +969,31 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a focused read-only entry-filter blocker decision brief, run:
+
+```powershell
+.\scripts\prepare_entry_filter_blocker_decision_brief_ssh.ps1 -RequireBrief
+```
+
+Expected:
+
+- `entry_filter_blocker_decision_brief_packet` and
+  `entry_filter_blocker_decision_brief_status` explain why entry/filter is
+  still blocked after the wider profit readiness brief.
+- `entry_filter_policy_lane_status` summarizes signal policy, governance drift,
+  and missed-opportunity blockers.
+- `data_freshness_replay_lane_status` summarizes whether replay candidate rows
+  and counterfactual snapshots are ready for DataFreshness review.
+- `entry_dedup_shadow_lane_status` carries the EntryDedup shadow decision lane
+  without implying EntryDedup policy approval.
+- `entry_filter_blocker_missing_requirements` lists the remaining evidence
+  needed before any separate entry-filter operator review.
+- The brief is read-only. It does not deploy, restart, reload nginx, change
+  production env, enable live trading, relax EntryDedup/DataFreshness/live
+  policy, place orders, modify OCO, close positions, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
+  authorize strategy changes.
+
 For a bounded read-only profit evidence watch, run:
 
 ```powershell

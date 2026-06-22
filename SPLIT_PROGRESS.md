@@ -459,6 +459,23 @@
   EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
   positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize strategy changes.
+- `scripts/prepare_entry_filter_blocker_decision_brief_ssh.ps1` now provides a
+  focused read-only entry/filter blocker surface for the current
+  `BLOCKED_ENTRY_FILTER_REVIEW` state. It invokes
+  `smoke_signal_correctness_ssh.ps1`,
+  `prepare_data_freshness_replay_evidence_readiness_ssh.ps1`, and
+  `prepare_entry_dedup_operator_decision_brief_ssh.ps1`, then emits
+  `entry_filter_blocker_decision_brief_packet`,
+  `entry_filter_blocker_decision_brief_status`,
+  `entry_filter_policy_lane_status`, `data_freshness_replay_lane_status`,
+  `entry_dedup_shadow_lane_status`, and
+  `entry_filter_blocker_missing_requirements`. The brief separates signal
+  policy/missed-opportunity blockers, DataFreshness replay evidence blockers,
+  and EntryDedup shadow-review readiness. It does not deploy, restart, reload
+  nginx, change production env, enable live trading, relax
+  EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
+  backfill/import, or authorize strategy changes.
 - `scripts/watch_profit_evidence_readiness_ssh.ps1` is a bounded read-only
   watcher for the current profit evidence bottleneck. It reruns
   `prepare_profit_readiness_brief_ssh.ps1` and

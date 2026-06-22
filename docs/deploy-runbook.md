@@ -1159,6 +1159,24 @@ Expected:
   not authorize live trading, scheduler enablement, deploy/env changes, orders,
   OCO modification, position close, policy relaxation, DB/grid/fund/Earn/
   Telegram/exchange mutation, or external backfill/import.
+- To attach those readiness plans to an operator review packet, run:
+
+  ```powershell
+  .\scripts\prepare_exit_side_experiment_operator_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `exit_side_experiment_operator_review_packet`,
+  `exit_side_experiment_operator_review_items`,
+  `small_experiment_review_cap_usdt`, `order_allowed=false`, and
+  `exit_side_experiment_operator_review_status=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`.
+  The packet type is `EXIT_SIDE_EXPERIMENT_OPERATOR_REVIEW_PACKET`; it carries
+  `trailing-stop-dry-run-operator-review` and
+  `strategy485-risk-reduction-shadow-operator-review` as review-only items with
+  an observation window, a proposed review notional cap, operator choices, stop
+  criteria, and required separate authorizations. It does not authorize live
+  trading, scheduler enablement, orders, OCO modification, position close,
+  deploy/env changes, policy relaxation, DB/grid/fund/Earn/Telegram/exchange
+  mutation, or external backfill/import.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a

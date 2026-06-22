@@ -550,6 +550,13 @@
   `strategy485-risk-reduction-shadow-readiness` plans with minimum evidence,
   success evidence, stop criteria, `live_policy_change_allowed=false`, and
   `position_or_oco_mutation_allowed=false`.
+  `scripts/prepare_exit_side_experiment_operator_review_packet.ps1` attaches
+  that readiness evidence to `EXIT_SIDE_EXPERIMENT_OPERATOR_REVIEW_PACKET` with
+  `READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`, carrying
+  `trailing-stop-dry-run-operator-review` and
+  `strategy485-risk-reduction-shadow-operator-review` review items,
+  `small_experiment_review_cap_usdt`, an observation window, operator choices,
+  and `order_allowed=false`.
   Reused matrix output is freshness-guarded by
   `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
   `matrix_freshness_status=STALE` when stale. The brief does

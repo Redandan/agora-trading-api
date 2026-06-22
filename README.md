@@ -269,6 +269,22 @@ scheduler enablement, deploy/env changes, orders, OCO modification, position
 close, policy relaxation, DB/grid/fund/Earn/Telegram/exchange mutation, or
 external backfill/import.
 
+Read-only exit-side experiment operator review packet:
+
+```powershell
+.\scripts\prepare_exit_side_experiment_operator_review_packet.ps1 -RequireReady
+```
+
+This emits `exit_side_experiment_operator_review_packet` with
+`packetType=EXIT_SIDE_EXPERIMENT_OPERATOR_REVIEW_PACKET` and
+`exit_side_experiment_operator_review_status=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`.
+It carries `trailing-stop-dry-run-operator-review` and
+`strategy485-risk-reduction-shadow-operator-review`, a review-only
+`small_experiment_review_cap_usdt`, observation hours, operator decision
+choices, and `order_allowed=false`. It is an attachment for operator review,
+not approval to trade, deploy, modify OCO, close positions, relax policy, or
+change production env.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 

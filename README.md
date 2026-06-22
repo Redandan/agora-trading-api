@@ -802,6 +802,23 @@ enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.
 
+Read-only profit candidate-flow review packet:
+
+```powershell
+.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1 -RequireActionable
+```
+
+This wrapper combines the DataFreshness replay evidence readiness packet with
+BUY-like candidate progression evidence into
+`PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`. It emits
+`profit_candidate_flow_review_packet`, `profit_candidate_flow_review_status`,
+`profit_candidate_flow_review_items`, `profit_candidate_flow_blockers`, and
+`profit_candidate_flow_required_evidence`. A status such as
+`READY_FOR_ENTRY_SKIP_CANDIDATE_FLOW_REVIEW_NOT_LIVE` means the next review lane
+is EntryDedup/ShadowExecutionIntent row-level RCA and TP/SL/OCO shadow
+feasibility; it does not authorize deploy, live trading, EntryDedup or
+DataFreshness relaxation, order/OCO mutation, or production env changes.
+
 Read-only profit operator review matrix:
 
 ```powershell
@@ -1046,6 +1063,8 @@ This read-only production DB smoke follows recent BUY-like `SIGNAL_EVAL` /
 `buy_like_followup_classification`, terminal event counts, candidate type
 distribution, and examples. Use it to locate candidate-to-terminal-event loss
 before proposing entry-filter, strategy, or live execution changes.
+For a combined operator packet that also carries DataFreshness replay blockers,
+run `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1`.
 When the dominant follow-up is `ENTRY_SKIP:EntryDedup` for strategy 508, run:
 
 ```powershell

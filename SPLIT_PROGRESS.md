@@ -784,6 +784,18 @@
   conditionally attaches sample-gap RCA evidence. It does not deploy, change
   production env, relax DataFreshnessGuard, enable live trading, place orders,
   modify OCO, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- `scripts/prepare_profit_candidate_flow_review_packet_ssh.ps1` combines the
+  DataFreshness replay evidence readiness packet and BUY-like candidate
+  progression smoke into `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`, emitting
+  `profit_candidate_flow_review_packet`, `profit_candidate_flow_review_status`,
+  `profit_candidate_flow_review_items`, `profit_candidate_flow_blockers`, and
+  `profit_candidate_flow_required_evidence`. It routes
+  `READY_FOR_ENTRY_SKIP_CANDIDATE_FLOW_REVIEW_NOT_LIVE`,
+  `READY_FOR_NO_TERMINAL_FOLLOWUP_REVIEW_NOT_LIVE`, or
+  `READY_FOR_FILTER_BLOCK_CANDIDATE_FLOW_REVIEW_NOT_LIVE` as read-only
+  operator-review states. It does not deploy, change production env, relax
+  EntryDedup/DataFreshness/live policy, enable live trading, place orders,
+  modify OCO, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - `scripts/smoke_data_freshness_sample_gap_rca_ssh.ps1` is the follow-up
   read-only RCA for a recent-window DataFreshness sample gap. It uses
   production MySQL `SELECT` queries against `bt_decision_audit` to report
@@ -826,6 +838,59 @@
   next read-only step is to wait for new BUY-style/DataFreshness terminal
   samples or continue candidate-flow RCA; it is not permission to deploy,
   enable live trading, relax DataFreshnessGuard, place orders, or mutate OCO.
+- 2026-06-22 read-only production
+  `scripts/smoke_buy_like_candidate_progression_ssh.ps1 -ReviewDays 14
+  -FollowupHours 6 -Limit 20 -MaxCandidateRows 1000` completed with exit `0`.
+  The smoke found `buy_like_candidate_rows=320`,
+  `sampled_buy_like_candidate_rows=320`, `followup_terminal_event_rows=395`,
+  `entry_skip_followup_rows=265`, `no_terminal_followup_rows=39`,
+  `filter_block_followup_rows=16`, `signal_buy_rows=0`, and
+  `autotrade_followup_rows=0`. The top classifications were
+  `ENTRY_SKIP:EntryDedup=226`, `NO_TERMINAL_FOLLOWUP=39`,
+  `ENTRY_SKIP:DuplicateBar=22`, `ENTRY_SKIP:ShadowExecutionIntent=17`,
+  `FILTER_BLOCK:RegimeFilter=9`, and `FILTER_BLOCK:ExpectedValueGate=7`, with
+  recommendation `BUY_LIKE_TO_ENTRY_SKIP_REVIEW`. This moves the next
+  read-only profit-improvement lane from DataFreshness relaxation toward
+  EntryDedup/ShadowExecutionIntent candidate-flow RCA and TP/SL/OCO shadow
+  feasibility; it is not permission to relax EntryDedup/DataFreshness/live
+  policy, deploy, place orders, or mutate OCO.
+- 2026-06-22 read-only production
+  `scripts/prepare_profit_candidate_flow_review_packet_ssh.ps1 -ReviewDays 14
+  -ReplayIdDays 3 -FollowupHours 6 -Limit 20 -MaxCandidateRows 1000
+  -RequireActionable` completed with both child scripts exiting `0`. It
+  returned `profit_candidate_flow_review_status=READY_FOR_ENTRY_SKIP_CANDIDATE_FLOW_REVIEW_NOT_LIVE`,
+  `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`,
+  `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
+  `complete_replayable_candidate_rows=0`,
+  `buy_like_candidate_progression_recommendation=BUY_LIKE_TO_ENTRY_SKIP_REVIEW`,
+  `buy_like_candidate_rows=320`, `entry_skip_followup_rows=265`,
+  `no_terminal_followup_rows=39`, `filter_block_followup_rows=16`,
+  `signal_buy_rows=0`, and `autotrade_followup_rows=0`. Review items were
+  `ENTRY_SKIP_DOMINATES_BUY_LIKE_CANDIDATE_FLOW` and
+  `NO_BUY_LIKE_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE`; blockers remained the
+  DataFreshness replay-row/counterfactual evidence gaps. The next read-only
+  step is EntryDedup/ShadowExecutionIntent row-level RCA and TP/SL/OCO shadow
+  feasibility, not DataFreshness relaxation or live mutation.
+- 2026-06-22 read-only production EntryDedup RCA for BTCUSDT strategy 508 /
+  1h ran `scripts/smoke_entry_dedup_exposure_consistency_ssh.ps1 -StrategyId
+  508 -IntervalCode 1h -Hours 336 -Limit 20` and
+  `scripts/smoke_entry_dedup_semantics_feasibility_review_ssh.ps1 -StrategyId
+  508 -IntervalCode 1h -Hours 336 -ForwardHours 24 -TakeProfitPct 1.00
+  -StopLossPct 1.00 -RoundTripFeePct 0.20 -Limit 30`, both read-only. The
+  consistency smoke returned
+  `entry_dedup_exposure_consistency_recommendation=ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`:
+  11 recent `EntryDedup` skips pointed at one open same-strategy signal with
+  `auto_traded=0`, zero traded/OCO qty, missing OCO, and
+  `filterReason=EventRiskControl: R2 score=60 blocks new LONG entries`. The
+  feasibility replay returned
+  `entry_dedup_semantics_feasibility_recommendation=ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE`,
+  `entry_dedup_skip_rows=11`, `replay_reviewed_rows=11`, `tp_hit_rows=11`,
+  `sl_hit_rows=0`, `ambiguous_same_bar_rows=0`, `net_positive_rows=11`,
+  `net_win_rate_pct=100.00`, and `avg_net_return_pct=0.8000` under explicit
+  LONG TP 1.00%, SL 1.00%, round-trip fee 0.20%, 24h max-hold assumptions.
+  This is review-only shadow feasibility evidence; it does not authorize
+  EntryDedup relaxation, staged-add execution, live trading, orders, OCO
+  modification, deploy, or production env changes.
 - 2026-06-22 read-only production sample-gap RCA for `BTCUSDT`, after
   excluding watch-only `ATTENTION_HIT` and terminal `ENTRY_SKIP` rows from the
   pre-terminal BUY-like candidate definition, showed

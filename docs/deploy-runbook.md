@@ -1023,6 +1023,29 @@ Expected:
   modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange
   state, run external backfill/import, or authorize strategy changes.
 
+For a read-only profit candidate-flow review packet, run:
+
+```powershell
+.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1 -RequireActionable
+```
+
+Expected:
+
+- The packet invokes `prepare_data_freshness_replay_evidence_readiness_ssh.ps1`
+  and `smoke_buy_like_candidate_progression_ssh.ps1` only.
+- Output includes `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`,
+  `profit_candidate_flow_review_packet`, `profit_candidate_flow_review_status`,
+  `profit_candidate_flow_review_items`, `profit_candidate_flow_blockers`, and
+  `profit_candidate_flow_required_evidence`.
+- `READY_FOR_ENTRY_SKIP_CANDIDATE_FLOW_REVIEW_NOT_LIVE` means BUY-like
+  candidates exist and primarily route into EntryDedup/ShadowExecutionIntent
+  review; continue with row-level EntryDedup RCA and TP/SL/OCO shadow
+  feasibility before any experiment.
+- The packet is read-only routing evidence; it does not authorize deploy, live
+  trading, EntryDedup/DataFreshness/live-policy relaxation, orders, OCO
+  mutation, scheduler enablement, production env changes, or DB/grid/fund/Earn/
+  Telegram/exchange/external backfill/import mutation.
+
 For a read-only profit operator review matrix, run:
 
 ```powershell
@@ -1408,6 +1431,9 @@ Expected:
   `buy_like_followup_classification`, terminal event counts, candidate type
   distribution, and examples so trading-candidate loss is not confused with
   macro/attention warning flow.
+- Use `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1` when the
+  operator needs the BUY-like progression result and DataFreshness replay
+  readiness blockers in one `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`.
 - If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,
   run `.\scripts\smoke_strategy508_entry_dedup_exposure_ssh.ps1`. It combines
   server-local MCP `getEntryDedupGovernanceDashboard` /

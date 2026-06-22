@@ -742,6 +742,12 @@ This converts the review matrix into `profit_operator_action_items`,
 prints `READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` and the recommendation
 `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, while preserving
 blocked entry-filter and DataFreshness replay actions. It also emits
+`exit_side_operator_action_proposals`, splitting the ready exit-side lane into
+trailing-stop rollout and strategy 485 risk-reduction proposal skeletons that
+use proposal ids `trailing-stop-rollout-review` and
+`strategy485-risk-reduction-review`, reference
+`docs/exit-side-operator-review-plan.md`, and remain non-executable.
+It also emits
 `profit_operator_decision_lanes` / `decisionLanes` with machine-readable lane
 classes such as `EXIT_SIDE_REVIEW_READY_NOT_LIVE`,
 `ENTRY_FILTER_POLICY_BLOCKED`, and `DATAFRESHNESS_REPLAY_BLOCKED`, so the

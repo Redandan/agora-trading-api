@@ -85,6 +85,13 @@ foreach ($marker in @(
         "profit_operator_action_primary_recommendation",
         "profit_operator_decision_lanes",
         "decisionLanes",
+        "exitSideActionProposals",
+        "exit_side_operator_action_proposals",
+        "trailing-stop-rollout-review",
+        "strategy485-risk-reduction-review",
+        "DRY_RUN_OR_ROLLOUT_REVIEW_NOT_LIVE",
+        "RISK_REDUCTION_REVIEW_NOT_MUTATION",
+        "docs/exit-side-operator-review-plan.md",
         "EXIT_SIDE_REVIEW_READY_NOT_LIVE",
         "ENTRY_FILTER_POLICY_BLOCKED",
         "DATAFRESHNESS_REPLAY_BLOCKED",
@@ -203,7 +210,12 @@ try {
             "matrix_freshness_status=FRESH",
             "source_matrix_freshness_status=FRESH",
             "profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
-            "REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION"
+            "REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION",
+            "exit_side_operator_action_proposals=",
+            "trailing-stop-rollout-review",
+            "strategy485-risk-reduction-review",
+            "proposal only; does not authorize live trailing",
+            "proposal only; does not authorize close-position"
         )) {
         Assert-Contains -Name "profit operator action brief matrix reuse" -Text $reuseText -Pattern ([regex]::Escape($marker))
     }
@@ -327,6 +339,9 @@ foreach ($marker in @(
         "profit_operator_review_summary_packet",
         "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
         "REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION",
+        "exit_side_operator_action_proposals",
+        "trailing-stop-rollout-review",
+        "strategy485-risk-reduction-review",
         "profit_operator_action_items",
         "does not deploy"
     )) {

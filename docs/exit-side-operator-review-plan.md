@@ -41,6 +41,13 @@ Before each operator review, rerun the read-only brief:
 .\scripts\prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady
 ```
 
+For a higher-level action routing packet that keeps the two exit-side proposal
+lanes separate, run:
+
+```powershell
+.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady
+```
+
 The review packet must include these markers:
 
 - `scope=READ_ONLY`
@@ -51,6 +58,7 @@ The review packet must include these markers:
 - `trailing_stop_acceptance=PASS`
 - `strategy485_oco_health_ok=True`
 - `strategy485_position_summaries`
+- `exit_side_operator_action_proposals`
 - `notAuthorization`
 
 ## Decision Lanes

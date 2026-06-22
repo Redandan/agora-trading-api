@@ -282,6 +282,7 @@ $matrixNextAction = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_ope
 $actionItems = [System.Collections.Generic.List[object]]::new()
 $blockedItems = [System.Collections.Generic.List[object]]::new()
 $decisionLanes = [System.Collections.Generic.List[object]]::new()
+$exitSideActionProposals = [System.Collections.Generic.List[object]]::new()
 $exitSideReady = $false
 
 if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
@@ -295,6 +296,66 @@ if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
             $exitSideReady = $true
             $recommendation = "REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION"
             $actionClass = "OPERATOR_REVIEW_READY_NOT_LIVE"
+            $exitSideActionProposals.Add([pscustomobject]@{
+                proposalId = "trailing-stop-rollout-review"
+                lane = "trailing-stop-rollout"
+                proposalClass = "DRY_RUN_OR_ROLLOUT_REVIEW_NOT_LIVE"
+                status = "READY_TO_DRAFT_REVIEW_NOT_LIVE"
+                reviewContract = "docs/exit-side-operator-review-plan.md"
+                sourceMatrixLane = $lane
+                sourceEvidenceMarkers = @($item.evidenceMarkers)
+                requiredFreshEvidence = @(
+                    "trailing_stop_acceptance=PASS",
+                    "exit_side_operator_decision_checklist includes trailing-stop-rollout",
+                    "scheduler remains disabled or dry-run until separately approved",
+                    "strategy opt-in scope is explicit",
+                    "ambiguous same-bar rows excluded from acceptance"
+                )
+                allowedProposalOutput = @(
+                    "draft trailing-stop dry-run review",
+                    "draft separately authorized trailing rollout review"
+                )
+                forbiddenActions = @(
+                    "enable trailing scheduler",
+                    "enable live trading",
+                    "modify OCO",
+                    "change production env",
+                    "deploy"
+                )
+                nextAction = "Draft a separate trailing-stop rollout review from fresh exit-side evidence; do not enable trailing from this brief."
+                notAuthorization = "proposal only; does not authorize live trailing, scheduler enablement, OCO modification, deploy, or production env changes"
+            })
+            $exitSideActionProposals.Add([pscustomobject]@{
+                proposalId = "strategy485-risk-reduction-review"
+                lane = "strategy485-risk-reduction"
+                proposalClass = "RISK_REDUCTION_REVIEW_NOT_MUTATION"
+                status = "READY_TO_DRAFT_REVIEW_NOT_MUTATION"
+                reviewContract = "docs/exit-side-operator-review-plan.md"
+                sourceMatrixLane = $lane
+                sourceEvidenceMarkers = @($item.evidenceMarkers)
+                requiredFreshEvidence = @(
+                    "strategy485_oco_health_ok=True",
+                    "strategy485_negative_ev_position_count > 0",
+                    "strategy485_close_or_modify_suggestion_count > 0",
+                    "fresh active-position EV reassessment",
+                    "TP stretch and timeout evidence attached",
+                    "recent-closed and monthly PnL context attached"
+                )
+                allowedProposalOutput = @(
+                    "draft strategy 485 risk-reduction decision packet",
+                    "attach aged negative-EV position evidence to operator review"
+                )
+                forbiddenActions = @(
+                    "close positions",
+                    "modify OCO",
+                    "cancel OCO",
+                    "place orders",
+                    "change production env",
+                    "deploy"
+                )
+                nextAction = "Draft a separate strategy 485 risk-reduction review from fresh OCO/EV/timeout evidence; do not close positions or modify OCO from this brief."
+                notAuthorization = "proposal only; does not authorize close-position, OCO modification, orders, deploy, or production env changes"
+            })
         } elseif ($lane -eq "entry-filter") {
             $recommendation = "DO_NOT_RELAX_ENTRY_FILTERS_KEEP_GOVERNANCE_REVIEW"
         } elseif ($lane -eq "data-freshness-replay") {
@@ -376,6 +437,7 @@ $brief = [pscustomobject]@{
     primaryRecommendation = $primaryRecommendation
     recommendedNextReview = if ($exitSideReady) { "EXIT_SIDE_OPERATOR_REVIEW" } else { "READ_ONLY_EVIDENCE_COLLECTION" }
     decisionLanes = @($decisionLanes)
+    exitSideActionProposals = @($exitSideActionProposals)
     actionItems = @($actionItems)
     blockedItems = @($blockedItems)
     doNotActions = @(
@@ -402,6 +464,7 @@ Write-Host "source_matrix_freshness_status=$($matrixFreshness.Status)"
 Write-Host "profit_operator_review_matrix_status=$matrixStatus"
 Write-Host "profit_operator_action_primary_recommendation=$primaryRecommendation"
 Write-Host ("profit_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))
+Write-Host ("exit_side_operator_action_proposals=" + (ConvertTo-Json -Compress -Depth 8 @($exitSideActionProposals)))
 Write-Host ("profit_operator_action_items=" + (ConvertTo-Json -Compress -Depth 8 @($actionItems)))
 Write-Host ("profit_operator_action_blocked_items=" + (ConvertTo-Json -Compress -Depth 8 @($blockedItems)))
 Write-Host ("profit_operator_action_brief_packet=" + (ConvertTo-Json -Compress -Depth 10 $brief))

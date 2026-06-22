@@ -1408,6 +1408,18 @@ Expected:
   `ENTRY_DEDUP_FEASIBILITY_AMBIGUOUS_REPLAY_REVIEW`,
   `ENTRY_DEDUP_FEASIBILITY_POSITIVE_TIMEOUT_REVIEW`, and
   `ENTRY_DEDUP_FEASIBILITY_NOT_PROVEN`.
+- After the consistency, forward-return, and feasibility evidence has been
+  recorded, run
+  `.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 -RequireReady`
+  to emit `entry_dedup_semantics_shadow_experiment_packet` with
+  `packetType=ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET` and
+  `entry_dedup_semantics_shadow_packet_status=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`.
+  This local packet is an attachment for operator review only. It does not
+  rerun SSH, deploy, restart, reload nginx, change production env, enable live
+  trading, relax EntryDedup/DataFreshness/live policy, place orders, modify
+  OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, or
+  authorize external backfill/import. Ready output must keep
+  `order_allowed=false`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

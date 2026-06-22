@@ -1060,6 +1060,22 @@ and reports `entry_dedup_semantics_feasibility_recommendation`,
 `avg_net_return_pct`, and `net_win_rate_pct`. Same-bar TP/SL ambiguity is not
 treated as pass evidence, and a positive result is still shadow-review-only.
 
+Read-only EntryDedup semantics shadow experiment packet from the recorded
+production evidence:
+
+```powershell
+.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 -RequireReady
+```
+
+This emits `entry_dedup_semantics_shadow_experiment_packet` with
+`packetType=ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET` and
+`entry_dedup_semantics_shadow_packet_status=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`
+when the consistency, forward-return, and TP/SL/fee feasibility evidence is
+documented. It is a local packaging check only; it does not rerun SSH, deploy,
+enable live trading, relax EntryDedup/DataFreshness/live policy, place orders,
+modify OCO, close positions, or mutate DB/grid/fund/Earn/Telegram/exchange
+state. Ready output still prints `order_allowed=false`.
+
 Read-only profit-improvement review bundle:
 
 ```powershell

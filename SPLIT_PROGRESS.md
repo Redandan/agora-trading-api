@@ -874,6 +874,19 @@
   This supports drafting a separate shadow-only EntryDedup semantics experiment
   review packet. It still does not authorize EntryDedup relaxation, live
   staged-add execution, OCO modification, or any production mutation.
+- `scripts/prepare_entry_dedup_semantics_shadow_experiment_packet.ps1` now
+  packages the three recorded read-only production evidence layers for the
+  strategy 508 / `BTCUSDT` / `1h` EntryDedup semantics lane: exposure
+  consistency mismatch, forward-return shadow review, and TP/SL/fee
+  feasibility. It emits
+  `entry_dedup_semantics_shadow_experiment_packet`,
+  `entry_dedup_shadow_packet_missing_requirements`, and
+  `entry_dedup_semantics_shadow_packet_status`; the ready status is
+  `READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`. The packet is a
+  local review attachment only and does not rerun SSH, deploy, change
+  production env, relax EntryDedup/DataFreshness/live policy, place orders,
+  modify OCO, close positions, or mutate DB/grid/fund/Earn/Telegram/exchange
+  state. Ready output must keep `order_allowed=false`.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

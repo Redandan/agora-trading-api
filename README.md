@@ -969,6 +969,19 @@ fails closed to deploy-first routing while runtime is stale. Its summary also
 promotes the replay-id smoke's latest DataFreshness row time, row age,
 1d/3d/7d/14d/30d row counts, and `data_freshness_sample_gap_status`, so
 downstream blocker briefs do not depend on truncated child output.
+When the bundle reports a recent-window sample gap, run:
+
+```powershell
+.\scripts\smoke_data_freshness_sample_gap_rca_ssh.ps1
+```
+
+This read-only production DB smoke explains whether the gap is due to no recent
+BUY-style candidates, dominant non-DataFreshness blockers, candidates that were
+not DataFreshness-blocked, or a present current sample. It emits
+`data_freshness_sample_gap_rca_recommendation`, event-type counts, top
+`FILTER_BLOCK` blockers, and DataFreshness recency markers. It does not deploy,
+change production env, relax DataFreshnessGuard, place orders, modify OCO, or
+mutate DB/grid/fund/Earn/Telegram/exchange state.
 
 Read-only profit-improvement review bundle:
 

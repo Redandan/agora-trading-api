@@ -706,6 +706,17 @@
   `data_freshness_sample_gap_status`, so downstream blocker briefs can parse
   all-time absence versus review-window gaps without relying on child-output
   visibility.
+- `scripts/smoke_data_freshness_sample_gap_rca_ssh.ps1` is the follow-up
+  read-only RCA for a recent-window DataFreshness sample gap. It uses
+  production MySQL `SELECT` queries against `bt_decision_audit` to report
+  event-type counts, top `FILTER_BLOCK` blockers, BUY-style candidate counts,
+  DataFreshness recency, and
+  `data_freshness_sample_gap_rca_recommendation` values such as
+  `NO_RECENT_BUY_STYLE_CANDIDATES`, `OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW`,
+  `CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`, or `DATAFRESHNESS_SAMPLE_PRESENT`.
+  The smoke is evidence only and does not deploy, change production env, relax
+  DataFreshnessGuard, enable live trading, place orders, modify OCO, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
 - 2026-06-22 read-only production replay observation for `BTCUSDT` showed
   `deployment_runtime_current_for_replay_id=true`,
   `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
@@ -720,6 +731,17 @@
   `liveSignalId`, `replayCandidateId`, explicit entry/TP/SL plan, EV snapshot,
   OCO plan, and complete replayable candidate rows. Treat this as a
   recent-window sample gap and replay-snapshot blocker, not permission to relax
+  DataFreshnessGuard or live entry policy.
+- 2026-06-22 read-only production sample-gap RCA for `BTCUSDT` showed
+  `audit_rows_7d_review=3348`, `buy_like_rows_7d_review=144`,
+  `filter_block_rows_7d_review=0`, `entry_skip_rows_7d_review=11`,
+  `autotrade_rows_7d_review=0`, and `data_freshness_rows_7d_review=0`.
+  DataFreshness history is still present in the older window
+  (`data_freshness_rows_14d=74`, `data_freshness_rows_30d=110`), but the
+  7-day gap is classified as
+  `data_freshness_sample_gap_rca_recommendation=CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`.
+  Treat this as evidence to inspect candidate progression after `ATTENTION_HIT`
+  and before terminal filter blocks; it is not permission to relax
   DataFreshnessGuard or live entry policy.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill

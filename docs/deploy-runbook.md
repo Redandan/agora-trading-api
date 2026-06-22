@@ -1337,6 +1337,15 @@ Expected:
   latest DataFreshness row time, row age, 1d/3d/7d/14d/30d row counts, and
   `data_freshness_sample_gap_status`, so downstream blocker briefs can parse
   the gap classification without relying on child-output visibility.
+- If the bundle reports a recent-window sample gap, run
+  `.\scripts\smoke_data_freshness_sample_gap_rca_ssh.ps1`. The smoke performs
+  direct read-only production MySQL `SELECT` queries against
+  `bt_decision_audit` and emits `data_freshness_sample_gap_rca_recommendation`,
+  event-type counts, top `FILTER_BLOCK` blockers, latest DataFreshness row
+  time, row age, and 1d/3d/7d/14d/30d row counts. Classifications include
+  `NO_RECENT_BUY_STYLE_CANDIDATES`, `OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW`,
+  `CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED`, and
+  `DATAFRESHNESS_SAMPLE_PRESENT`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

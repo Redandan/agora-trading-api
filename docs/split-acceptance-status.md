@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-21
+Last refreshed: 2026-06-22
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -156,6 +156,27 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
+- Latest read-only profit operator evidence refresh on 2026-06-22T15:47+08:00
+  ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
+  through SSH/server-local MCP and saved the fresh matrix to
+  `target\profit-review\profit-operator-matrix-20260622T074741Z-BTCUSDT-strategy485.log`.
+  It made no production env, DB, order, OCO, grid, fund, Earn, Telegram,
+  scheduler, exchange, deploy, restart, or nginx changes. The machine-readable
+  result was `profit_operator_review_matrix_status=HAS_REVIEW_READY_ITEMS_NOT_LIVE`,
+  `profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`,
+  and primary recommendation
+  `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`. The ready lane is
+  `exit-side`, with review-only proposals `trailing-stop-rollout-review` and
+  `strategy485-risk-reduction-review`. Blocked lanes remain `entry-filter`
+  (`BLOCKED_GOVERNANCE_MISSED_OPPORTUNITY_REVIEW`,
+  `signal_policy_clear=false`, `data_freshness_current_status=NO_CURRENT_SAMPLE`)
+  and `data-freshness-replay` (`PENDING_REPLAY_CANDIDATE_ID_EVIDENCE`,
+  `profit_evidence_watch_reason=PENDING_NO_NEW_DATAFRESHNESS_ROWS`). Reused
+  local summaries then returned `profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`
+  and `exit_side_operator_experiment_packet_status=READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`.
+  Treat this as read-only operator-review routing only: it is not live approval,
+  not deploy approval, and not authorization to enable trailing, close or modify
+  positions/OCO, relax EntryDedup/DataFreshness/live policy, or place orders.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

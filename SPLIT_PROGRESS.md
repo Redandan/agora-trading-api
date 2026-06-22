@@ -564,6 +564,29 @@
   packet while preserving `order_allowed=false`,
   `live_policy_change_allowed=false`, and
   `position_or_oco_mutation_allowed=false`.
+- 2026-06-22 read-only production profit evidence refresh ran
+  `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
+  SSH/server-local MCP and saved
+  `target\profit-review\profit-operator-matrix-20260622T074741Z-BTCUSDT-strategy485.log`.
+  The fresh matrix returned
+  `profit_operator_review_matrix_status=HAS_REVIEW_READY_ITEMS_NOT_LIVE` and
+  `profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`.
+  The next review is the exit-side lane only:
+  `REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION`, with review-only
+  proposals `trailing-stop-rollout-review` and
+  `strategy485-risk-reduction-review`. `entry-filter` remains blocked by
+  governance/missed-opportunity review (`signal_policy_clear=false` and
+  `data_freshness_current_status=NO_CURRENT_SAMPLE`), and
+  `data-freshness-replay` remains blocked pending replay candidate evidence
+  (`profit_evidence_watch_reason=PENDING_NO_NEW_DATAFRESHNESS_ROWS`). Reusing
+  the saved matrix locally produced
+  `profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`
+  and
+  `exit_side_operator_experiment_packet_status=READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`.
+  This evidence is read-only routing only and does not authorize live trading,
+  trailing scheduler enablement, position/OCO changes, EntryDedup/DataFreshness
+  relaxation, production env changes, deploy, Telegram sends, or exchange
+  mutation.
   Reused matrix output is freshness-guarded by
   `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
   `matrix_freshness_status=STALE` when stale. The brief does

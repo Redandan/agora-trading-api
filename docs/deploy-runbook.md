@@ -1177,6 +1177,26 @@ Expected:
   trading, scheduler enablement, orders, OCO modification, position close,
   deploy/env changes, policy relaxation, DB/grid/fund/Earn/Telegram/exchange
   mutation, or external backfill/import.
+- To produce a single operator packet that includes both ready exit-side review
+  items and blocked policy lanes, run:
+
+  ```powershell
+  .\scripts\prepare_profit_operator_consolidated_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `profit_operator_consolidated_review_packet`,
+  `profit_operator_consolidated_ready_items`,
+  `profit_operator_consolidated_blocked_lanes`, and
+  `profit_operator_consolidated_review_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.
+  The packet type is `PROFIT_OPERATOR_CONSOLIDATED_REVIEW_PACKET`; it keeps
+  ready `trailing-stop-dry-run-operator-review` and
+  `strategy485-risk-reduction-shadow-operator-review` items next to blocked
+  entry-filter/DataFreshness lanes. It is review-only, keeps
+  `order_allowed=false`, `live_policy_change_allowed=false`, and
+  `position_or_oco_mutation_allowed=false`, and does not authorize live trading,
+  scheduler enablement, orders, OCO modification, position close, deploy/env
+  changes, policy relaxation, DB/grid/fund/Earn/Telegram/exchange mutation, or
+  external backfill/import.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a

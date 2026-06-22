@@ -285,6 +285,21 @@ choices, and `order_allowed=false`. It is an attachment for operator review,
 not approval to trade, deploy, modify OCO, close positions, relax policy, or
 change production env.
 
+Read-only consolidated profit operator review packet:
+
+```powershell
+.\scripts\prepare_profit_operator_consolidated_review_packet.ps1 -RequireReady
+```
+
+This emits `profit_operator_consolidated_review_packet` with
+`packetType=PROFIT_OPERATOR_CONSOLIDATED_REVIEW_PACKET` and
+`profit_operator_consolidated_review_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.
+It puts the ready exit-side review items and
+`profit_operator_consolidated_blocked_lanes` in one packet, including
+entry-filter and DataFreshness replay lanes that must remain unchanged until
+separate evidence and authorization exist. It keeps `order_allowed=false`,
+`live_policy_change_allowed=false`, and `position_or_oco_mutation_allowed=false`.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 

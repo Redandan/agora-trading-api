@@ -1852,6 +1852,10 @@ Expected:
   separate authorizations and forbidden actions before any rollout, close, or
   OCO mutation; the entry/DataFreshness checklist keeps those policy decisions
   explicitly out of this exit-side review.
+- The brief carries proposal ids matching the profit operator action brief,
+  including `trailing-stop-rollout-review` and
+  `strategy485-risk-reduction-review`, plus the
+  `docs/exit-side-operator-review-plan.md` review contract.
 - The brief emits top-level `strategy485_position_summaries` and carries
   trailing acceptance sample counts in `evidenceSummary`, so the key operator
   evidence is visible without inspecting nested source packets.

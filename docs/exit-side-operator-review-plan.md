@@ -55,6 +55,10 @@ The review packet must include these markers:
 - `exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION`
 - `exit_side_operator_decision_lanes`
 - `exit_side_operator_decision_checklist`
+- `linkedActionProposalIds`
+- `proposalId=trailing-stop-rollout-review`
+- `proposalId=strategy485-risk-reduction-review`
+- `reviewContract=docs/exit-side-operator-review-plan.md`
 - `trailing_stop_acceptance=PASS`
 - `strategy485_oco_health_ok=True`
 - `strategy485_position_summaries`

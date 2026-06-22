@@ -156,15 +156,19 @@ if ($null -ne $strategy485Decision -and $null -ne $strategy485Decision.positions
 
 $recommendations = [System.Collections.Generic.List[object]]::new()
 $recommendations.Add([pscustomobject]@{
+    proposalId = "trailing-stop-rollout-review"
     candidate = "TRAILING_STOP_EXIT_POLICY_REVIEW"
     status = if ($trailingAcceptance -eq "PASS") { "REVIEW_READY_NOT_LIVE" } else { "NOT_READY" }
+    reviewContract = "docs/exit-side-operator-review-plan.md"
     evidence = @("trailing_stop_acceptance=$trailingAcceptance", "trailing_stop_improvement_pct=$trailingImprovementPct", "trailing_stop_delta_pnl=$trailingDeltaPnl")
     reviewQuestion = "Should trailing-stop exit policy be reviewed for a separately authorized dry-run/live rollout plan?"
     nextAction = "Review acceptance evidence and scheduler/strategy opt-in scope separately; do not enable trailing from this brief."
 })
 $recommendations.Add([pscustomobject]@{
+    proposalId = "strategy485-risk-reduction-review"
     candidate = "STRATEGY485_AGED_NEGATIVE_EV_POSITION_REVIEW"
     status = if ($negativeEvCount -ne "N/A" -and $negativeEvCount -ne "0") { "REVIEW_READY_NOT_MUTATION" } else { "WATCH_ONLY" }
+    reviewContract = "docs/exit-side-operator-review-plan.md"
     evidence = @("strategy485_oco_health_ok=$ocoHealthOk", "strategy485_negative_ev_position_count=$negativeEvCount", "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount", "strategy485_position_summaries_count=$($strategy485PositionSummaries.Count)")
     reviewQuestion = "Should aged negative-EV strategy 485 positions be reviewed under a separate risk-reduction authorization path?"
     nextAction = "Review OCO health, EV, timeout, and TP-stretch evidence separately; do not close positions or modify OCO from this brief."
@@ -172,9 +176,11 @@ $recommendations.Add([pscustomobject]@{
 
 $decisionLanes = @(
     [pscustomobject]@{
+        proposalId = "trailing-stop-rollout-review"
         lane = "trailing-stop-rollout"
         decisionClass = "EXIT_POLICY_REVIEW_READY_NOT_LIVE"
         status = if ($trailingAcceptance -eq "PASS") { "READY_FOR_OPERATOR_REVIEW_NOT_LIVE" } else { "BLOCKED_TRAILING_ACCEPTANCE" }
+        reviewContract = "docs/exit-side-operator-review-plan.md"
         evidence = @("trailing_stop_acceptance=$trailingAcceptance", "trailing_stop_improvement_pct=$trailingImprovementPct", "trailing_stop_delta_pnl=$trailingDeltaPnl")
         separateAuthorizationRequired = @("enable trailing scheduler or trailing live mode", "change strategy opt-in or exit policy", "deploy runtime changes")
         allowedFromThisBrief = @("attach trailing replay evidence to operator review", "draft a separately authorized dry-run/live rollout plan")
@@ -182,9 +188,11 @@ $decisionLanes = @(
         nextAction = "Review trailing acceptance and scheduler/strategy opt-in scope separately; keep scheduler disabled or dry-run until separately approved."
     },
     [pscustomobject]@{
+        proposalId = "strategy485-risk-reduction-review"
         lane = "strategy485-risk-reduction"
         decisionClass = "POSITION_RISK_REVIEW_READY_NOT_MUTATION"
         status = if ($negativeEvCount -ne "N/A" -and $negativeEvCount -ne "0") { "READY_FOR_OPERATOR_REVIEW_NOT_MUTATION" } else { "WATCH_ONLY" }
+        reviewContract = "docs/exit-side-operator-review-plan.md"
         evidence = @("strategy485_oco_health_ok=$ocoHealthOk", "strategy485_negative_ev_position_count=$negativeEvCount", "strategy485_close_or_modify_suggestion_count=$closeOrModifyCount", "strategy485_position_summaries_count=$($strategy485PositionSummaries.Count)")
         separateAuthorizationRequired = @("close any strategy 485 position", "modify or cancel OCO", "change risk-reduction policy")
         allowedFromThisBrief = @("attach aged negative-EV position evidence to operator review", "draft a separate risk-reduction decision packet")
@@ -192,9 +200,11 @@ $decisionLanes = @(
         nextAction = "Review OCO health, EV, timeout, and TP-stretch evidence separately; require explicit mutation authorization before any close-position or OCO action."
     },
     [pscustomobject]@{
+        proposalId = "entry-filter-datafreshness-policy-out-of-scope"
         lane = "entry-filter-datafreshness-policy"
         decisionClass = "NOT_DECIDED_BY_EXIT_SIDE_BRIEF"
         status = "BLOCKED_OR_OUT_OF_SCOPE"
+        reviewContract = "profit operator action brief"
         evidence = @("exit_side_brief_scope=trailing_and_strategy485_only", "entry_filter_and_data_freshness_require_profit_operator_action_brief")
         separateAuthorizationRequired = @("relax EntryDedup/DataFreshness/live policy", "enable live entry policy changes", "approve DataFreshness shadow/replay policy")
         allowedFromThisBrief = @("keep entry/filter and DataFreshness policy unchanged", "route operators to profit_operator_action_brief for current blocked-lane evidence")
@@ -205,8 +215,10 @@ $decisionLanes = @(
 
 $decisionChecklist = @(
     [pscustomobject]@{
+        proposalId = "trailing-stop-rollout-review"
         lane = "trailing-stop-rollout"
         checklistType = "SEPARATE_EXIT_POLICY_REVIEW_NOT_LIVE"
+        reviewContract = "docs/exit-side-operator-review-plan.md"
         mustVerify = @(
             "trailing_stop_acceptance=PASS",
             "scheduler remains disabled or dry-run until separately approved",
@@ -230,8 +242,10 @@ $decisionChecklist = @(
         notAuthorization = "checklist only; does not authorize live trailing, scheduler enablement, OCO modification, deploy, or production env changes"
     },
     [pscustomobject]@{
+        proposalId = "strategy485-risk-reduction-review"
         lane = "strategy485-risk-reduction"
         checklistType = "SEPARATE_POSITION_RISK_REVIEW_NOT_MUTATION"
+        reviewContract = "docs/exit-side-operator-review-plan.md"
         mustVerify = @(
             "current OCO health remains OK",
             "active-position EV reassessment is fresh",
@@ -256,8 +270,10 @@ $decisionChecklist = @(
         notAuthorization = "checklist only; does not authorize close-position, OCO modification, orders, deploy, or production env changes"
     },
     [pscustomobject]@{
+        proposalId = "entry-filter-datafreshness-policy-out-of-scope"
         lane = "entry-filter-datafreshness-policy"
         checklistType = "EXPLICITLY_OUT_OF_SCOPE_FOR_EXIT_SIDE_REVIEW"
+        reviewContract = "profit operator action brief"
         mustVerify = @(
             "entry/filter policy remains unchanged",
             "DataFreshnessGuard remains strict",
@@ -298,6 +314,11 @@ $brief = [pscustomobject]@{
     sourcePacketExitCode = $exitPacketResult.ExitCode
     exitSidePacketStatus = $exitStatus
     primaryRecommendation = $primaryRecommendation
+    reviewContract = "docs/exit-side-operator-review-plan.md"
+    linkedActionProposalIds = @(
+        "trailing-stop-rollout-review",
+        "strategy485-risk-reduction-review"
+    )
     decisionLanes = @($decisionLanes)
     decisionChecklist = @($decisionChecklist)
     reviewRecommendations = @($recommendations)

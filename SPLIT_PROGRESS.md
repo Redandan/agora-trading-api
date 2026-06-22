@@ -181,7 +181,11 @@
   `exit_side_operator_decision_checklist` / `decisionChecklist` to keep
   trailing rollout authorization, strategy 485 risk-reduction authorization,
   and entry/DataFreshness out-of-scope policy decisions separated for operator
-  review. It also emits top-level `strategy485_position_summaries` and carries
+  review. The decision brief now carries proposal ids matching the profit
+  operator action brief, including `trailing-stop-rollout-review` and
+  `strategy485-risk-reduction-review`, plus the
+  `docs/exit-side-operator-review-plan.md` review contract. It also emits
+  top-level `strategy485_position_summaries` and carries
   trailing acceptance sample counts in `evidenceSummary` so the key exit-side
   evidence is visible without digging through nested source packets. It does
   not authorize live trailing, scheduler enablement, strategy opt-in changes,

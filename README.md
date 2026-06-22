@@ -849,6 +849,13 @@ find the latest evidence file. Use
 `.\scripts\prepare_profit_operator_latest_action_brief.ps1 -RequireReady` to
 rebuild from that latest pointer with the same freshness guard and without
 rerunning the long SSH matrix. Use
+`.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
+fastest local check of the latest saved matrix; it prints
+`profit_operator_compact_status_packet`, `profit_operator_compact_ready_lanes`,
+`profit_operator_compact_blocked_lanes`, and
+`profit_operator_compact_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` when the
+fresh matrix still supports exit-side review. It does not rerun SSH and does
+not deploy. Use
 `.\scripts\prepare_profit_operator_review_summary.ps1 -RequireReady` to convert
 the latest action brief into `profit_operator_review_summary_packet`, ready
 lanes, exit-side proposals, blocked lanes, and required evidence for operator

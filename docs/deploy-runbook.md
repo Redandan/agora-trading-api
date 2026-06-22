@@ -1096,6 +1096,20 @@ Expected:
   It reads `latest-profit-operator-matrix.path`, invokes
   `prepare_profit_operator_action_brief_ssh.ps1` with `-MatrixOutputPath`, and
   keeps the same `-MatrixMaxAgeMinutes` freshness guard.
+- For the fastest local status check from the latest saved matrix without
+  rerunning SSH or replaying the full action brief, run:
+
+  ```powershell
+  .\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady
+  ```
+
+  Expected output includes `profit_operator_compact_status_packet`,
+  `profit_operator_compact_ready_lanes`,
+  `profit_operator_compact_blocked_lanes`, and
+  `profit_operator_compact_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` when
+  the fresh matrix still supports exit-side review. The compact status does
+  not rerun SSH, deploy, enable live trading, relax EntryDedup/DataFreshness
+  policy, or authorize position/OCO changes.
 - To summarize the latest saved action brief for operator review, run:
 
   ```powershell

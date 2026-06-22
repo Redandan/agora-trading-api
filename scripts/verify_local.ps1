@@ -1643,6 +1643,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_watch.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_review_matrix.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_action_brief.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_compact_status.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_verified_recommendations.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_verified_experiment_readiness.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_experiment_operator_review_packet.ps1"

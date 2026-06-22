@@ -1159,11 +1159,22 @@ Expected:
 - Long child matrix runs emit `child_start`, periodic `child_heartbeat`, and
   `child_complete` markers. `-ChildTimeoutSeconds` bounds a stuck local child
   wrapper without changing production state.
+- Fresh SSH runs also call
+  `prepare_signal_missed_blocker_decision_brief_ssh.ps1` and emit
+  `profit_operator_signal_missed_blocker_decision` plus
+  `signal_missed_blocker_decision_brief_status`. This attaches the current
+  signal/missed/governance blocker detail to the entry-filter lane without
+  authorizing policy relaxation. If matrix collection does not produce a usable
+  packet but the signal/missed blocker child succeeds, the action brief remains
+  fail-closed with
+  `MATRIX_COLLECTION_INCOMPLETE_SIGNAL_MISSED_BLOCKER_COLLECTED`.
 - Use `-SaveMatrixOutputPath <local-log>` on a fresh action-brief run to retain
   the raw matrix evidence. Follow-up action briefs can pass
   `-MatrixOutputPath <local-log>` and should print
   `source_matrix_mode=REUSED_OUTPUT_FILE`, avoiding another long SSH matrix
-  call while keeping the same read-only evidence packet.
+  call while keeping the same read-only evidence packet. Reuse mode prints
+  `signal_missed_blocker_decision_brief_status=NOT_COLLECTED_REUSED_MATRIX`
+  because no fresh signal/missed blocker SSH evidence was collected.
 - When `-SaveMatrixOutputPath` is omitted, fresh action-brief runs save the
   matrix log under `target/profit-review/` and update
   `target/profit-review/latest-profit-operator-matrix.path` with the newest

@@ -566,7 +566,16 @@
   `-ChildTimeoutSeconds` bounding stuck local children. Fresh runs can save raw
   matrix output with `-SaveMatrixOutputPath`, and follow-up briefs can reuse it
   with `-MatrixOutputPath` and `source_matrix_mode=REUSED_OUTPUT_FILE` instead
-  of rerunning the long SSH matrix. Fresh runs default the saved matrix log to
+  of rerunning the long SSH matrix. Fresh SSH runs now also invoke
+  `prepare_signal_missed_blocker_decision_brief_ssh.ps1` and emit
+  `profit_operator_signal_missed_blocker_decision` plus
+  `signal_missed_blocker_decision_brief_status`, attaching signal/missed and
+  governance blocker detail to the entry-filter lane. If matrix collection does
+  not produce a usable packet but the signal/missed blocker child succeeds, the
+  action brief remains fail-closed with
+  `MATRIX_COLLECTION_INCOMPLETE_SIGNAL_MISSED_BLOCKER_COLLECTED`. Matrix reuse mode emits
+  `signal_missed_blocker_decision_brief_status=NOT_COLLECTED_REUSED_MATRIX`
+  because it deliberately avoids fresh SSH evidence collection. Fresh runs default the saved matrix log to
   `target/profit-review/` and update
   `target/profit-review/latest-profit-operator-matrix.path` for the next
   operator review. `scripts/prepare_profit_operator_latest_action_brief.ps1`

@@ -914,6 +914,17 @@ matrix runs emit `child_start`, periodic `child_heartbeat`, and
 without changing production state. Use `-SaveMatrixOutputPath` on a fresh run
 to retain the raw matrix output, then use `-MatrixOutputPath` to rebuild the
 action brief from that read-only evidence without rerunning the long SSH matrix.
+Fresh SSH runs also call
+`prepare_signal_missed_blocker_decision_brief_ssh.ps1` and emit
+`profit_operator_signal_missed_blocker_decision` plus
+`signal_missed_blocker_decision_brief_status` so entry-filter blockers point to
+the current signal/missed/governance lane detail. If the matrix child does not
+produce a usable packet but the signal/missed blocker child succeeds, the action
+brief stays fail-closed with
+`MATRIX_COLLECTION_INCOMPLETE_SIGNAL_MISSED_BLOCKER_COLLECTED` rather than
+claiming review readiness. Matrix reuse mode prints
+`signal_missed_blocker_decision_brief_status=NOT_COLLECTED_REUSED_MATRIX`,
+because it intentionally avoids fresh SSH evidence collection.
 Fresh runs default the saved matrix log to `target/profit-review/` and update
 `target/profit-review/latest-profit-operator-matrix.path` so the next review can
 find the latest evidence file. Use

@@ -275,9 +275,46 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
     Write-Host "[profit-operator-action-brief] matrix_latest_pointer path=$matrixLatestPointerPath"
 }
 
+$signalMissedMode = "NOT_COLLECTED_REUSED_MATRIX"
+$signalMissed = [pscustomobject]@{
+    Text = ""
+    ExitCode = 0
+    TimedOut = $false
+}
+if ($sourceMatrixMode -eq "FRESH_CHILD_RUN") {
+    $signalMissedMode = "FRESH_CHILD_RUN"
+    $signalMissed = Invoke-ReadOnlyScript -ScriptName "prepare_signal_missed_blocker_decision_brief_ssh.ps1" -Arguments @(
+        "-SshHost", $SshHost,
+        "-SshKey", $SshKey,
+        "-AppDir", $AppDir,
+        "-EnvFile", $EnvFile,
+        "-Symbol", $Symbol,
+        "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
+        "-RequireBrief"
+    )
+}
+
 $matrixStatus = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_status="
 $matrixPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_packet=")
 $matrixNextAction = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_next_action="
+$signalMissedStatus = if ($signalMissedMode -eq "FRESH_CHILD_RUN") {
+    Get-LastPrefixedValue -Text $signalMissed.Text -Prefix "signal_missed_blocker_decision_brief_status="
+} else {
+    "NOT_COLLECTED_REUSED_MATRIX"
+}
+if ([string]::IsNullOrWhiteSpace($signalMissedStatus)) {
+    $signalMissedStatus = "NO_EVIDENCE"
+}
+$signalMissedPacket = if ($signalMissedMode -eq "FRESH_CHILD_RUN") {
+    Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $signalMissed.Text -Prefix "signal_missed_blocker_decision_brief_packet=")
+} else {
+    $null
+}
+$signalMissedNextAction = if ($signalMissedMode -eq "FRESH_CHILD_RUN") {
+    Get-LastPrefixedValue -Text $signalMissed.Text -Prefix "signal_missed_blocker_decision_next_action="
+} else {
+    "Rerun without -MatrixOutputPath to collect fresh signal/missed blocker detail."
+}
 
 $actionItems = [System.Collections.Generic.List[object]]::new()
 $blockedItems = [System.Collections.Generic.List[object]]::new()
@@ -358,6 +395,9 @@ if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
             })
         } elseif ($lane -eq "entry-filter") {
             $recommendation = "DO_NOT_RELAX_ENTRY_FILTERS_KEEP_GOVERNANCE_REVIEW"
+            if ($signalMissedStatus -eq "BLOCKED_SIGNAL_MISSED_GOVERNANCE_REVIEW") {
+                $operatorAction = $signalMissedNextAction
+            }
         } elseif ($lane -eq "data-freshness-replay") {
             $recommendation = "COLLECT_DATAFRESHNESS_REPLAY_SNAPSHOTS_BEFORE_POLICY_REVIEW"
         }
@@ -391,7 +431,7 @@ if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
         } elseif ($lane -eq "entry-filter") {
             $decisionClass = if ($ready) { "ENTRY_FILTER_REVIEW_READY_NOT_LIVE" } else { "ENTRY_FILTER_POLICY_BLOCKED" }
             $separateAuthorizationRequired = @("relax EntryDedup/DataFreshness/live policy", "enable live entry policy changes", "approve governance relaxation")
-            $allowedFromThisBrief = @("keep entry/filter policy unchanged", "route governance and missed-opportunity evidence")
+            $allowedFromThisBrief = @("keep entry/filter policy unchanged", "route governance and missed-opportunity evidence", "use signal/missed blocker decision brief when collected")
             $forbiddenFromThisBrief = @("relax EntryDedup", "relax DataFreshnessGuard", "enable TinyLive or entry execution", "change live policy")
         } elseif ($lane -eq "data-freshness-replay") {
             $decisionClass = if ($ready) { "DATAFRESHNESS_REPLAY_REVIEW_READY_NOT_LIVE" } else { "DATAFRESHNESS_REPLAY_BLOCKED" }
@@ -419,7 +459,11 @@ if ($null -ne $matrixPacket -and $null -ne $matrixPacket.reviewItems) {
 $briefStatus = "NO_REVIEW_READY_ITEMS"
 $primaryRecommendation = "CONTINUE_READ_ONLY_EVIDENCE_COLLECTION"
 if ($matrix.ExitCode -ne 0 -or $null -eq $matrixPacket) {
-    $briefStatus = "NO_EVIDENCE"
+    if ($signalMissedMode -eq "FRESH_CHILD_RUN" -and $signalMissed.ExitCode -eq 0 -and $signalMissedStatus -ne "NO_EVIDENCE") {
+        $briefStatus = "MATRIX_COLLECTION_INCOMPLETE_SIGNAL_MISSED_BLOCKER_COLLECTED"
+    } else {
+        $briefStatus = "NO_EVIDENCE"
+    }
     $primaryRecommendation = "FIX_PROFIT_MATRIX_COLLECTION"
 } elseif ($exitSideReady) {
     $briefStatus = "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE"
@@ -438,6 +482,14 @@ $brief = [pscustomobject]@{
     recommendedNextReview = if ($exitSideReady) { "EXIT_SIDE_OPERATOR_REVIEW" } else { "READ_ONLY_EVIDENCE_COLLECTION" }
     decisionLanes = @($decisionLanes)
     exitSideActionProposals = @($exitSideActionProposals)
+    signalMissedBlockerDecision = [pscustomobject]@{
+        mode = $signalMissedMode
+        status = $signalMissedStatus
+        exitCode = $signalMissed.ExitCode
+        timedOut = $signalMissed.TimedOut
+        packet = $signalMissedPacket
+        nextAction = $signalMissedNextAction
+    }
     actionItems = @($actionItems)
     blockedItems = @($blockedItems)
     doNotActions = @(
@@ -452,17 +504,21 @@ $brief = [pscustomobject]@{
     sourceMatrixOutputPath = if ([string]::IsNullOrWhiteSpace($MatrixOutputPath)) { $null } else { $MatrixOutputPath }
     sourceMatrixFreshness = $matrixFreshness
     sourceMatrixExitCode = $matrix.ExitCode
+    sourceSignalMissedBlocker = "prepare_signal_missed_blocker_decision_brief_ssh.ps1"
     nextAction = if ($exitSideReady) { "Prepare a separate exit-side operator review using the attached read-only evidence; keep entry/filter and DataFreshness lanes blocked until their evidence clears." } else { $matrixNextAction }
     notAuthorization = "read-only profit operator action brief only; does not deploy, restart, reload nginx, change production env, enable live trading, relax EntryDedup/DataFreshness/live policy, enable trailing scheduler, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy changes"
 }
 
 Write-Host "[profit-operator-action-brief] read-only brief"
-Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_review_matrix_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_review_matrix_ssh.ps1 and, for fresh child runs, prepare_signal_missed_blocker_decision_brief_ssh.ps1; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_matrix=prepare_profit_operator_review_matrix_ssh.ps1 exitCode=$($matrix.ExitCode)"
 Write-Host "source_matrix_mode=$sourceMatrixMode"
 Write-Host "source_matrix_freshness_status=$($matrixFreshness.Status)"
+Write-Host "source_signal_missed_blocker=prepare_signal_missed_blocker_decision_brief_ssh.ps1 mode=$signalMissedMode exitCode=$($signalMissed.ExitCode)"
+Write-Host "signal_missed_blocker_decision_brief_status=$signalMissedStatus"
 Write-Host "profit_operator_review_matrix_status=$matrixStatus"
 Write-Host "profit_operator_action_primary_recommendation=$primaryRecommendation"
+Write-Host ("profit_operator_signal_missed_blocker_decision=" + (ConvertTo-Json -Compress -Depth 10 $brief.signalMissedBlockerDecision))
 Write-Host ("profit_operator_decision_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($decisionLanes)))
 Write-Host ("exit_side_operator_action_proposals=" + (ConvertTo-Json -Compress -Depth 8 @($exitSideActionProposals)))
 Write-Host ("profit_operator_action_items=" + (ConvertTo-Json -Compress -Depth 8 @($actionItems)))

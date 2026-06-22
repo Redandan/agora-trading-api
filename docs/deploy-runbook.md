@@ -1372,6 +1372,16 @@ Expected:
   `strategy508_entry_dedup_exposure_recommendation`,
   `wouldAllowStagedAdd`, `remainingAddBudget`, `open_same_strategy_positions`,
   and `target_group_blockers`.
+- If the strategy 508 RCA shows EntryDedup skips but no auto-traded open
+  position, run `.\scripts\smoke_entry_dedup_exposure_consistency_ssh.ps1`.
+  This narrower read-only DB smoke compares the EntryDedup open-signal
+  exposure definition with the staged-add auto-traded-position definition. It
+  emits `entry_dedup_exposure_consistency_recommendation`,
+  `open_signal_rows`, `auto_traded_open_rows`, `non_auto_open_rows`,
+  `non_auto_zero_qty_rows`, and `non_auto_eventrisk_rows`. Classifications
+  include `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`,
+  `ENTRY_DEDUP_EXPOSURE_CONSISTENT_AUTO_POSITION`,
+  `ENTRY_DEDUP_NO_RECENT_SKIPS`, and `ENTRY_DEDUP_EXPOSURE_INCONCLUSIVE`.
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.

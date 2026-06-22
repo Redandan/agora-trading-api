@@ -1625,6 +1625,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_attention_hit_progression_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_buy_like_candidate_progression_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_entry_dedup_exposure_smoke.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_exposure_consistency_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_profit_blocker_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_replay_input_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_replay_collector_design.ps1"

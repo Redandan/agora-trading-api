@@ -810,6 +810,28 @@
   because it treats a non-auto-traded EventRisk-blocked signal as existing LONG
   exposure. It is still not permission to relax EntryDedup or execute live
   staged adds.
+- `scripts/smoke_entry_dedup_exposure_consistency_ssh.ps1` now captures that
+  follow-up as a focused read-only DB smoke. It compares the EntryDedup
+  open-signal exposure definition against the staged-add auto-traded open
+  position definition and emits
+  `entry_dedup_exposure_consistency_recommendation`, `open_signal_rows`,
+  `auto_traded_open_rows`, `non_auto_open_rows`, `non_auto_zero_qty_rows`, and
+  `non_auto_eventrisk_rows`. The mismatch classification is
+  `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`; it is a review route only,
+  not approval to relax EntryDedup/DataFreshness/live policy or mutate
+  production.
+- 2026-06-22 production run of that consistency smoke for `BTCUSDT` / strategy
+  508 / `1h` returned `entry_dedup_skip_rows=11`,
+  `same_exposure_reason_rows=11`, `open_signal_rows=1`,
+  `auto_traded_open_rows=0`, `non_auto_open_rows=1`,
+  `non_auto_zero_qty_rows=1`, `non_auto_eventrisk_rows=1`,
+  `missing_oco_rows=1`, `open_notional=0`, and
+  `entry_dedup_exposure_consistency_recommendation=ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`.
+  The example row remained `id=240`, `autoTraded=0`, zero traded/OCO quantity,
+  and `filterReason=EventRiskControl: R2 score=60 blocks new LONG entries`.
+  This is evidence of a definition mismatch between EntryDedup open-signal
+  exposure and staged-add auto-traded-position exposure; it still does not make
+  the row live-addable.
 - `scripts/smoke_profit_improvement_review_bundle_ssh.ps1` wraps the read-only
   origin-delta classifier, profit-candidate review, DataFreshness false-kill
   review, DataFreshness executability review, DataFreshness counterfactual

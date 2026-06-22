@@ -1022,6 +1022,21 @@ same-strategy exposure. It emits
 `strategy508_entry_dedup_exposure_recommendation`, staged-add blockers,
 remaining add budget, OCO/exposure counts, and example open positions. It does
 not relax EntryDedup or authorize staged-add/live execution.
+If that smoke shows recent EntryDedup skips but no auto-traded same-strategy
+open position, run the narrower consistency check:
+
+```powershell
+.\scripts\smoke_entry_dedup_exposure_consistency_ssh.ps1
+```
+
+This read-only production DB smoke compares the EntryDedup open-signal
+exposure definition with the staged-add auto-traded-position definition. It
+emits `entry_dedup_exposure_consistency_recommendation`,
+`open_signal_rows`, `auto_traded_open_rows`, `non_auto_open_rows`,
+`non_auto_zero_qty_rows`, and `non_auto_eventrisk_rows`. A
+`ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW` result means review semantics
+with replay or shadow evidence; it is not permission to relax EntryDedup,
+place/add orders, or mutate production.
 
 Read-only profit-improvement review bundle:
 

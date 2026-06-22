@@ -60,6 +60,9 @@ first; keep entry/filter and DataFreshness lanes blocked.
 This packet is the next safe output for the profit path. It is proposal-only,
 read-only, and expires when the evidence window is stale. It must be refreshed
 with the required inputs before an operator uses it for any later decision.
+The summary output must include `profit_operator_review_summary_freshness_status`
+so a downstream review can reject stale source-matrix evidence before reading
+the ready-lane recommendation.
 
 ### Proposal: trailing-stop-rollout-review
 

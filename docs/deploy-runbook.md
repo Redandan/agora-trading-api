@@ -1104,6 +1104,7 @@ Expected:
 
   Expected output includes `profit_operator_review_summary_packet`,
   `profit_operator_review_summary_ready_lanes`,
+  `profit_operator_review_summary_exit_side_proposals`,
   `profit_operator_review_summary_blocked_lanes`, and
   `profit_operator_review_summary_required_evidence`. The summary is a
   read-only review packet; it does not authorize live trading, trailing

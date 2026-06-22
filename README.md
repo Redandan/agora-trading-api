@@ -765,7 +765,8 @@ rebuild from that latest pointer with the same freshness guard and without
 rerunning the long SSH matrix. Use
 `.\scripts\prepare_profit_operator_review_summary.ps1 -RequireReady` to convert
 the latest action brief into `profit_operator_review_summary_packet`, ready
-lanes, blocked lanes, and required evidence for operator review.
+lanes, exit-side proposals, blocked lanes, and required evidence for operator
+review.
 Reused matrix output prints `source_matrix_mode=REUSED_OUTPUT_FILE`; fresh runs
 print `source_matrix_mode=FRESH_CHILD_RUN`. Reused matrix output is guarded by
 `-MatrixMaxAgeMinutes` (default `180`) and fails closed with

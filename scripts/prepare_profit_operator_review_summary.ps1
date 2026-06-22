@@ -72,6 +72,7 @@ if ([string]::IsNullOrWhiteSpace($packetJson)) {
 
 $packet = $packetJson | ConvertFrom-Json -ErrorAction Stop
 $decisionLanes = @($packet.decisionLanes)
+$exitSideActionProposals = @($packet.exitSideActionProposals)
 $readyLanes = @($decisionLanes | Where-Object { $_.readyForOperatorReview -eq $true })
 $blockedLanes = @($decisionLanes | Where-Object { $_.readyForOperatorReview -ne $true })
 $requiredEvidence = @($blockedLanes | ForEach-Object {
@@ -95,6 +96,7 @@ $summary = [pscustomobject]@{
     recommendedNextReview = [string]$packet.recommendedNextReview
     readyLaneCount = $readyLanes.Count
     blockedLaneCount = $blockedLanes.Count
+    exitSideProposalCount = $exitSideActionProposals.Count
     readyLanes = @($readyLanes | ForEach-Object {
             [pscustomobject]@{
                 lane = [string]$_.lane
@@ -103,6 +105,20 @@ $summary = [pscustomobject]@{
                 recommendation = [string]$_.recommendation
                 nextAction = [string]$_.nextAction
                 separateAuthorizationRequired = @($_.separateAuthorizationRequired)
+            }
+        })
+    exitSideActionProposals = @($exitSideActionProposals | ForEach-Object {
+            [pscustomobject]@{
+                proposalId = [string]$_.proposalId
+                lane = [string]$_.lane
+                proposalClass = [string]$_.proposalClass
+                status = [string]$_.status
+                reviewContract = [string]$_.reviewContract
+                requiredFreshEvidence = @($_.requiredFreshEvidence)
+                allowedProposalOutput = @($_.allowedProposalOutput)
+                forbiddenActions = @($_.forbiddenActions)
+                nextAction = [string]$_.nextAction
+                notAuthorization = [string]$_.notAuthorization
             }
         })
     blockedLanes = @($blockedLanes | ForEach-Object {
@@ -123,6 +139,7 @@ $summary = [pscustomobject]@{
 
 Write-Host ("profit_operator_review_summary_packet=" + (ConvertTo-Json -Compress -Depth 10 $summary))
 Write-Host ("profit_operator_review_summary_ready_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($summary.readyLanes)))
+Write-Host ("profit_operator_review_summary_exit_side_proposals=" + (ConvertTo-Json -Compress -Depth 8 @($summary.exitSideActionProposals)))
 Write-Host ("profit_operator_review_summary_blocked_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($summary.blockedLanes)))
 Write-Host ("profit_operator_review_summary_required_evidence=" + (ConvertTo-Json -Compress -Depth 8 @($summary.requiredEvidence)))
 Write-Host "profit_operator_review_summary_status=$($summary.status)"

@@ -54,6 +54,12 @@ foreach ($marker in @(
         "data_freshness_rows_14d",
         "data_freshness_rows_30d",
         "data_freshness_sample_gap_status",
+        "replay_input_stage",
+        "replay_input_next_action",
+        "preview_only_input_rows",
+        "preview_only_missing_counterfactual_fields",
+        "collector_status_counts",
+        "hard_gate_preview_status_counts",
         "notAuthorization",
         "OK read-only check complete",
         "Assert-SshHostSafe"
@@ -72,7 +78,11 @@ foreach ($marker in @(
 foreach ($marker in @(
         "COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING",
         "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES",
-        "complete_replayable_candidate_rows"
+        "complete_replayable_candidate_rows",
+        "replay_input_stage",
+        "replay_input_next_action",
+        "preview_only_input_rows",
+        "collector_status_counts"
     )) {
     Assert-Contains -Name "counterfactual smoke supports observation bundle" -Text $counterfactualText -Pattern ([regex]::Escape($marker))
 }

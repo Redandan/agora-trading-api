@@ -86,7 +86,8 @@ function Add-LedgerItem {
         [string]$Source,
         [string]$Status,
         [string]$NextAction,
-        [string[]]$RequiredCommands
+        [string[]]$RequiredCommands,
+        [string[]]$EvidenceMarkers = @()
     )
 
     if ([string]::IsNullOrWhiteSpace($Blocker)) {
@@ -97,6 +98,7 @@ function Add-LedgerItem {
             blocker = $Blocker
             source = $Source
             status = $Status
+            evidenceMarkers = @($EvidenceMarkers)
             nextAction = $NextAction
             requiredReadOnlyCommands = @($RequiredCommands)
         })
@@ -210,6 +212,14 @@ $strategy485Missing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Te
 
 $replayRecommendation = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  replay_observation_bundle_recommendation="
 $replayItems = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  replay_observation_review_items=")
+$replayInputStage = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  replay_input_stage="
+$replayInputNextAction = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  replay_input_next_action="
+$latestDataFreshnessRowTime = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  latest_data_freshness_row_time="
+$latestDataFreshnessRowAgeHours = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  latest_data_freshness_row_age_hours="
+$dataFreshnessRows3d = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  data_freshness_rows_3d="
+$completeReplayRows = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  complete_replayable_candidate_rows="
+$missingCounterfactualFields = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  missing_counterfactual_fields="
+$collectorStatusCounts = Get-LastPrefixedValue -Text $replayObservation.Text -Prefix "  collector_status_counts="
 
 foreach ($item in @($runtimeMissing + $shadowMissing + $strategy485Missing)) {
     Add-UniqueString -List $missingRequirements -Value ([string]$item)
@@ -227,12 +237,23 @@ if (@($replayItems) -contains "DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_OBSERVATION"
     Add-LedgerItem -List $ledgerItems -Priority 2 -Blocker "fresh DataFreshness replayCandidateId rows" -Source "smoke_data_freshness_replay_observation_bundle_ssh.ps1" -Status $replayRecommendation -NextAction "Deploy current runtime before waiting for new DataFreshness replayCandidateId evidence." -RequiredCommands @(
         ".\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1",
         ".\scripts\smoke_data_freshness_replay_candidate_id_ssh.ps1 -RequireObserved"
+    ) -EvidenceMarkers @(
+        "replay_input_stage=$replayInputStage",
+        "latest_data_freshness_row_time=$latestDataFreshnessRowTime",
+        "latest_data_freshness_row_age_hours=$latestDataFreshnessRowAgeHours",
+        "data_freshness_rows_3d=$dataFreshnessRows3d"
     )
 }
 if (@($replayItems) -contains "COLLECT_ENTRY_TP_SL_EV_OCO_REPLAY_SNAPSHOTS" -or @($shadowMissing) -contains "complete DataFreshness replayable candidate rows") {
     Add-LedgerItem -List $ledgerItems -Priority 3 -Blocker "complete DataFreshness replayable candidate rows" -Source "prepare_profit_shadow_experiment_packet_ssh.ps1" -Status $shadowStatus -NextAction "Collect replayable entry/TP/SL, EV, OCO, and hard-gate snapshots before any shadow experiment review." -RequiredCommands @(
         ".\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1",
         ".\scripts\prepare_profit_shadow_experiment_packet_ssh.ps1 -RequireReady"
+    ) -EvidenceMarkers @(
+        "replay_input_stage=$replayInputStage",
+        "replay_input_next_action=$replayInputNextAction",
+        "collector_status_counts=$collectorStatusCounts",
+        "complete_replayable_candidate_rows=$completeReplayRows",
+        "missing_counterfactual_fields=$missingCounterfactualFields"
     )
 }
 if ($strategy485Status -eq "BLOCKED_OCO_PROTECTION_FIRST" -or @($strategy485Missing) -contains "current strategy 485 OCO health") {
@@ -287,6 +308,12 @@ Write-Host "profit_runtime_deploy_packet_status=$runtimeStatus"
 Write-Host "profit_shadow_packet_status=$shadowStatus"
 Write-Host "strategy485_operator_packet_status=$strategy485Status"
 Write-Host "replay_observation_bundle_recommendation=$replayRecommendation"
+Write-Host "replay_input_stage=$replayInputStage"
+Write-Host "replay_input_next_action=$replayInputNextAction"
+Write-Host "latest_data_freshness_row_time=$latestDataFreshnessRowTime"
+Write-Host "latest_data_freshness_row_age_hours=$latestDataFreshnessRowAgeHours"
+Write-Host "complete_replayable_candidate_rows=$completeReplayRows"
+Write-Host "missing_counterfactual_fields=$missingCounterfactualFields"
 Write-Host ("profit_blocker_ledger_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
 Write-Host ("profit_blocker_ledger_items=" + (ConvertTo-Json -Compress -Depth 8 @($orderedLedger)))
 Write-Host ("profit_blocker_ledger_packet=" + (ConvertTo-Json -Compress -Depth 10 $ledger))

@@ -165,6 +165,12 @@ $dataFreshnessSampleGapStatus = Get-Marker -Text $replayId.Text -Prefix "  data_
 $counterfactualRecommendation = Get-Marker -Text $counterfactual.Text -Prefix "  data_freshness_counterfactual_recommendation="
 $completeReplayRows = Get-Marker -Text $counterfactual.Text -Prefix "  complete_replayable_candidate_rows="
 $missingCounterfactualFields = Get-Marker -Text $counterfactual.Text -Prefix "  missing_counterfactual_fields="
+$replayInputStage = Get-Marker -Text $counterfactual.Text -Prefix "  replay_input_stage="
+$replayInputNextAction = Get-Marker -Text $counterfactual.Text -Prefix "  replay_input_next_action="
+$previewOnlyInputRows = Get-Marker -Text $counterfactual.Text -Prefix "  preview_only_input_rows="
+$previewOnlyMissingCounterfactualFields = Get-Marker -Text $counterfactual.Text -Prefix "  preview_only_missing_counterfactual_fields="
+$collectorStatusCounts = Get-Marker -Text $counterfactual.Text -Prefix "  collector_status_counts="
+$hardGatePreviewStatusCounts = Get-Marker -Text $counterfactual.Text -Prefix "  hard_gate_preview_status_counts="
 
 $reviewItems = New-Object System.Collections.Generic.List[string]
 if ($originDelta -eq "RUNTIME_DRIFT" -or $runtimeCurrent -eq "false" -or $replayIdRecommendation -eq "DEPLOYED_RUNTIME_NOT_CURRENT") {
@@ -215,6 +221,12 @@ Write-Host "  data_freshness_rows_14d=$dataFreshnessRows14d"
 Write-Host "  data_freshness_rows_30d=$dataFreshnessRows30d"
 Write-Host "  data_freshness_sample_gap_status=$dataFreshnessSampleGapStatus"
 Write-Host "  data_freshness_counterfactual_recommendation=$counterfactualRecommendation"
+Write-Host "  replay_input_stage=$replayInputStage"
+Write-Host "  replay_input_next_action=$replayInputNextAction"
+Write-Host "  preview_only_input_rows=$previewOnlyInputRows"
+Write-Host "  preview_only_missing_counterfactual_fields=$previewOnlyMissingCounterfactualFields"
+Write-Host "  collector_status_counts=$collectorStatusCounts"
+Write-Host "  hard_gate_preview_status_counts=$hardGatePreviewStatusCounts"
 Write-Host "  complete_replayable_candidate_rows=$completeReplayRows"
 Write-Host "  missing_counterfactual_fields=$missingCounterfactualFields"
 Write-Host ("  replay_observation_review_items=" + (ConvertTo-Json -Compress @($reviewItems)))

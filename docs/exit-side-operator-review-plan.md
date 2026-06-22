@@ -9,14 +9,17 @@ relax EntryDedup/DataFreshness/live policy.
 
 ## Current Evidence Snapshot
 
-Fresh read-only SSH refresh on 2026-06-22T01:20Z and 2026-06-22T01:22Z
-reported:
+Fresh read-only SSH refresh on 2026-06-22T01:20Z, 2026-06-22T01:22Z, and
+2026-06-22T02:21Z reported:
 
 ```text
 exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION
 exit_side_operator_primary_recommendation=PREPARE_SEPARATE_EXIT_SIDE_OPERATOR_REVIEW
 profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE
+profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE
 profit_operator_action_primary_recommendation=REVIEW_EXIT_SIDE_TRAILING_AND_STRATEGY485_NOT_MUTATION
+profit_operator_review_summary_ready_lanes=exit-side: P1 EXIT_SIDE_REVIEW_READY_NOT_LIVE
+profit_operator_review_summary_blocked_lanes=entry-filter: P2 ENTRY_FILTER_POLICY_BLOCKED, data-freshness-replay: P2 DATAFRESHNESS_REPLAY_BLOCKED
 trailing_stop_acceptance=PASS
 trailing_stop_improvement_pct=52.602%
 trailing_stop_delta_pnl=12339.29590001
@@ -39,7 +42,7 @@ to execute a live policy change or any position/OCO mutation.
 The same fresh action brief kept these lanes blocked:
 
 ```text
-entry-filter status=REVIEW_SIGNAL_POLICY
+entry-filter status=BLOCKED_GOVERNANCE_MISSED_OPPORTUNITY_REVIEW
 entry-filter evidence=signal_policy_clear=false,data_freshness_current_status=NO_CURRENT_SAMPLE
 data-freshness-replay status=PENDING_DATAFRESHNESS_CURRENT_SAMPLE
 data-freshness-replay missing=fresh replayCandidateId rows, entry/TP/SL candidate snapshot, EV and OCO preflight snapshots, shadow replay removing only DataFreshnessGuard
@@ -47,6 +50,10 @@ data-freshness-replay missing=fresh replayCandidateId rows, entry/TP/SL candidat
 
 Those blockers mean EntryDedup/DataFreshness/live policy must remain unchanged
 until fresh current-sample and replay evidence clears the separate policy path.
+The 2026-06-22T02:21Z summary reused the saved matrix at
+`target/profit-review/profit-operator-matrix-20260622T022122Z-BTCUSDT-strategy485.log`
+and confirmed the same routing: prepare the separate exit-side operator review
+first; keep entry/filter and DataFreshness lanes blocked.
 
 ## Required Fresh Inputs
 

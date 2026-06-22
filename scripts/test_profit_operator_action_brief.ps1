@@ -46,6 +46,7 @@ $latestScriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_latest_acti
 $summaryScriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_review_summary.ps1"
 $readmePath = Join-Path $repoRoot "README.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+$exitSidePlanPath = Join-Path $repoRoot "docs/exit-side-operator-review-plan.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
@@ -54,6 +55,7 @@ $summaryScriptText = Get-Content -Raw -LiteralPath $summaryScriptPath
 $docsText = @(
     Get-Content -Raw -LiteralPath $readmePath
     Get-Content -Raw -LiteralPath $runbookPath
+    Get-Content -Raw -LiteralPath $exitSidePlanPath
     Get-Content -Raw -LiteralPath $progressPath
 ) -join "`n"
 
@@ -350,6 +352,12 @@ foreach ($marker in @(
         "trailing-stop-rollout-review",
         "strategy485-risk-reduction-review",
         "profit_operator_action_items",
+        "profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
+        "profit_operator_review_summary_ready_lanes=exit-side: P1 EXIT_SIDE_REVIEW_READY_NOT_LIVE",
+        "profit_operator_review_summary_blocked_lanes=entry-filter: P2 ENTRY_FILTER_POLICY_BLOCKED, data-freshness-replay: P2 DATAFRESHNESS_REPLAY_BLOCKED",
+        "profit-operator-matrix-20260622T022122Z-BTCUSDT-strategy485.log",
+        "BLOCKED_GOVERNANCE_MISSED_OPPORTUNITY_REVIEW",
+        "DATAFRESHNESS_REPLAY_BLOCKED",
         "does not deploy"
     )) {
     Assert-Contains -Name "operator docs mention profit operator action brief" -Text $docsText -Pattern ([regex]::Escape($marker))

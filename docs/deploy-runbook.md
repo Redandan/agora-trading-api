@@ -1110,6 +1110,21 @@ Expected:
   read-only review packet; it does not authorize live trading, trailing
   scheduler enablement, policy relaxation, OCO/position changes, deploy, or
   production env changes.
+- To convert that fresh latest summary into a single non-live exit-side
+  experiment review packet without rerunning SSH, run:
+
+  ```powershell
+  .\scripts\prepare_exit_side_operator_experiment_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `exit_side_operator_experiment_packet`,
+  `exit_side_experiment_proposals`, and
+  `exit_side_operator_experiment_packet_status=READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`.
+  The packet carries `trailing-stop-dry-run-experiment-review` and
+  `strategy485-risk-reduction-shadow-review` as operator-reviewable proposals
+  only; it does not deploy, change production env, enable live trading, enable
+  trailing, relax EntryDedup/DataFreshness/live policy, place orders, modify
+  OCO, close positions, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a
@@ -1868,6 +1883,12 @@ Expected:
   drafting a separate trailing rollout or strategy 485 risk-reduction decision.
   The plan preserves the no-mutation boundary and keeps entry/DataFreshness
   policy out of this exit-side review.
+- Use `scripts/prepare_exit_side_operator_experiment_packet.ps1 -RequireReady`
+  after the latest profit operator summary is fresh to produce
+  `EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW`. This packet is the review-only bridge
+  from current exit-side evidence to the two non-live proposals:
+  `trailing-stop-dry-run-experiment-review` and
+  `strategy485-risk-reduction-shadow-review`.
 
 Optional public path check:
 

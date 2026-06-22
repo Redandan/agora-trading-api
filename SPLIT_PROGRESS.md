@@ -532,6 +532,12 @@
   action brief into `profit_operator_review_summary_packet`, ready lanes,
   exit-side proposals, blocked lanes, and required evidence for operator review
   while preserving the same non-authorization boundary.
+  `scripts/prepare_exit_side_operator_experiment_packet.ps1` then reuses that
+  fresh latest summary without rerunning SSH and emits
+  `EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW` with
+  `READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`, carrying
+  `trailing-stop-dry-run-experiment-review` and
+  `strategy485-risk-reduction-shadow-review` as review-only proposals.
   Reused matrix output is freshness-guarded by
   `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
   `matrix_freshness_status=STALE` when stale. The brief does

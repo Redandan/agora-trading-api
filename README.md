@@ -218,6 +218,24 @@ Use [docs/exit-side-operator-review-plan.md](docs/exit-side-operator-review-plan
 as the review contract before drafting a separate trailing rollout or strategy
 485 risk-reduction decision.
 
+Read-only exit-side operator experiment packet from the latest saved profit
+matrix:
+
+```powershell
+.\scripts\prepare_exit_side_operator_experiment_packet.ps1 -RequireReady
+```
+
+This reuses `target/profit-review/latest-profit-operator-matrix.path` through
+the profit operator review summary and emits
+`exit_side_operator_experiment_packet` plus
+`exit_side_operator_experiment_packet_status`.
+`READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE` means the packet is ready for
+operator review only. It contains `trailing-stop-dry-run-experiment-review` and
+`strategy485-risk-reduction-shadow-review`, requires a fresh matrix, and does
+not rerun SSH, deploy, enable live trading, enable the trailing scheduler,
+place orders, modify OCO, close positions, relax EntryDedup/DataFreshness/live
+policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 
@@ -771,6 +789,12 @@ rerunning the long SSH matrix. Use
 the latest action brief into `profit_operator_review_summary_packet`, ready
 lanes, exit-side proposals, blocked lanes, and required evidence for operator
 review.
+Then use `.\scripts\prepare_exit_side_operator_experiment_packet.ps1 -RequireReady`
+to convert the fresh latest summary into
+`EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW` with
+`READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`, carrying
+`trailing-stop-dry-run-experiment-review` and
+`strategy485-risk-reduction-shadow-review` as review-only proposals.
 Reused matrix output prints `source_matrix_mode=REUSED_OUTPUT_FILE`; fresh runs
 print `source_matrix_mode=FRESH_CHILD_RUN`. Reused matrix output is guarded by
 `-MatrixMaxAgeMinutes` (default `180`) and fails closed with

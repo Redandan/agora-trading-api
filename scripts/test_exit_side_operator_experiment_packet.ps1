@@ -12,10 +12,18 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "prepare_exit_side_operator_experiment_packet.ps1"
 $summaryScriptPath = Join-Path $PSScriptRoot "prepare_profit_operator_review_summary.ps1"
 $planPath = Join-Path $repoRoot "docs/exit-side-operator-review-plan.md"
+$readmePath = Join-Path $repoRoot "README.md"
+$runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+$progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 $summaryScriptText = Get-Content -Raw -LiteralPath $summaryScriptPath
 $planText = Get-Content -Raw -LiteralPath $planPath
+$docsText = @(
+    Get-Content -Raw -LiteralPath $readmePath
+    Get-Content -Raw -LiteralPath $runbookPath
+    Get-Content -Raw -LiteralPath $progressPath
+) -join "`n"
 
 foreach ($marker in @(
         "[exit-side-operator-experiment-packet] read-only packet",
@@ -54,6 +62,16 @@ foreach ($marker in @(
         "READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE"
     )) {
     Assert-Contains -Name "exit-side plan mentions experiment packet" -Text $planText -Pattern ([regex]::Escape($marker))
+}
+
+foreach ($marker in @(
+        "prepare_exit_side_operator_experiment_packet.ps1",
+        "exit_side_operator_experiment_packet",
+        "READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE",
+        "trailing-stop-dry-run-experiment-review",
+        "strategy485-risk-reduction-shadow-review"
+    )) {
+    Assert-Contains -Name "operator docs mention exit-side experiment packet" -Text $docsText -Pattern ([regex]::Escape($marker))
 }
 
 $tempMatrixPath = Join-Path ([System.IO.Path]::GetTempPath()) ("exit-side-matrix-" + [guid]::NewGuid().ToString("N") + ".log")

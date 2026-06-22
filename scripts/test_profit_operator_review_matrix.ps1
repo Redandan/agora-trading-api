@@ -59,9 +59,13 @@ foreach ($marker in @(
         "prepare_profit_readiness_brief_ssh.ps1",
         "watch_profit_evidence_readiness_ssh.ps1",
         "prepare_exit_side_profit_review_packet_ssh.ps1",
+        "prepare_data_freshness_shadow_candidate_packet_ssh.ps1",
         "profit_operator_review_items",
         "profit_operator_review_matrix_packet",
         "profit_operator_review_matrix_status",
+        "data_freshness_shadow_candidate_packet_status",
+        "counterfactual_evidence_class",
+        "shadow_candidate_review_allowed",
         "HAS_REVIEW_READY_ITEMS_NOT_LIVE",
         "exit-side",
         "entry-filter",
@@ -104,6 +108,8 @@ foreach ($marker in @(
         "HAS_REVIEW_READY_ITEMS_NOT_LIVE",
         "exit-side",
         "data-freshness-replay",
+        "prepare_data_freshness_shadow_candidate_packet_ssh.ps1",
+        "data_freshness_shadow_candidate_packet_status",
         "does not deploy"
     )) {
     Assert-Contains -Name "operator docs mention profit operator matrix" -Text $docsText -Pattern ([regex]::Escape($marker))

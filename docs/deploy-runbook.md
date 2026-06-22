@@ -1033,7 +1033,8 @@ Expected:
 
 - The matrix calls `prepare_profit_readiness_brief_ssh.ps1`,
   `watch_profit_evidence_readiness_ssh.ps1`, and
-  `prepare_exit_side_profit_review_packet_ssh.ps1` in read-only mode.
+  `prepare_exit_side_profit_review_packet_ssh.ps1`, plus
+  `prepare_data_freshness_shadow_candidate_packet_ssh.ps1`, in read-only mode.
 - It emits `profit_operator_review_items`,
   `profit_operator_review_matrix_packet`, and
   `profit_operator_review_matrix_status`.
@@ -1043,6 +1044,11 @@ Expected:
 - `REVIEW_SIGNAL_POLICY` is still pending entry-filter evidence, not an
   operator-ready lane; entry-filter readiness requires the readiness brief to
   report `CLEAR`.
+- The `data-freshness-replay` lane surfaces
+  `data_freshness_shadow_candidate_packet_status`; for example,
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE` means only historical proxy
+  evidence is available and shadow review must wait for replay-id/collector
+  evidence.
 - The matrix does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

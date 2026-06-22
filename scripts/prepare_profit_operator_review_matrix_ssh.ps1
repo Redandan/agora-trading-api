@@ -202,6 +202,11 @@ $exitSide = Invoke-ReadOnlyScript -ScriptName "prepare_exit_side_profit_review_p
     "-ReplayLimit", "$ReplayLimit"
 ))
 
+$dataFreshnessShadow = Invoke-ReadOnlyScript -ScriptName "prepare_data_freshness_shadow_candidate_packet_ssh.ps1" -Arguments ($commonArgs + @(
+    "-CounterfactualReviewDays", "$ReplayDays",
+    "-CounterfactualLimit", "$ReplayLimit"
+))
+
 $readinessStatus = Get-LastPrefixedValue -Text $readiness.Text -Prefix "profit_readiness_brief_status="
 $entryLaneStatus = Get-LastPrefixedValue -Text $readiness.Text -Prefix "entry_filter_lane_status="
 $exitLaneStatus = Get-LastPrefixedValue -Text $readiness.Text -Prefix "exit_lane_status="
@@ -217,6 +222,25 @@ $watchReplayRecommendation = Get-LastPrefixedValue -Text $evidenceWatch.Text -Pr
 $exitStatus = Get-LastPrefixedValue -Text $exitSide.Text -Prefix "exit_side_profit_review_packet_status="
 $exitPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $exitSide.Text -Prefix "exit_side_profit_review_packet=")
 $exitMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $exitSide.Text -Prefix "exit_side_profit_review_missing_requirements=")
+
+$dataFreshnessShadowStatus = Get-LastPrefixedValue -Text $dataFreshnessShadow.Text -Prefix "data_freshness_shadow_candidate_packet_status="
+$dataFreshnessShadowReviewAllowed = Get-LastPrefixedValue -Text $dataFreshnessShadow.Text -Prefix "shadow_candidate_review_allowed="
+$dataFreshnessCounterfactualEvidenceClass = Get-LastPrefixedValue -Text $dataFreshnessShadow.Text -Prefix "counterfactual_evidence_class="
+$dataFreshnessReplayInputMarkers = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $dataFreshnessShadow.Text -Prefix "replay_input_evidence_markers=")
+$dataFreshnessShadowMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $dataFreshnessShadow.Text -Prefix "data_freshness_shadow_candidate_missing_requirements=")
+$dataFreshnessReplayLaneStatus = if (-not [string]::IsNullOrWhiteSpace($dataFreshnessShadowStatus)) { $dataFreshnessShadowStatus } else { $watchStatus }
+$dataFreshnessReplayLaneReady = (
+    $watchStatus -eq "EVIDENCE_READY_FOR_REVIEW_NOT_LIVE" -or
+    $dataFreshnessShadowStatus -eq "READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE" -or
+    $dataFreshnessShadowReviewAllowed -eq "true"
+)
+$dataFreshnessReplayEvidenceMarkers = @(
+    "profit_evidence_watch_reason=$watchReason",
+    "profit_evidence_watch_replay_recommendation=$watchReplayRecommendation",
+    "data_freshness_shadow_candidate_packet_status=$dataFreshnessShadowStatus",
+    "counterfactual_evidence_class=$dataFreshnessCounterfactualEvidenceClass",
+    "shadow_candidate_review_allowed=$dataFreshnessShadowReviewAllowed"
+) + @($dataFreshnessReplayInputMarkers)
 
 $reviewItems = [System.Collections.Generic.List[object]]::new()
 
@@ -245,11 +269,14 @@ $reviewItems.Add([pscustomobject]@{
 $reviewItems.Add([pscustomobject]@{
     lane = "data-freshness-replay"
     candidate = "DataFreshness false-kill shadow/counterfactual replay"
-    status = $watchStatus
+    status = $dataFreshnessReplayLaneStatus
     priority = "P2"
-    readyForOperatorReview = ($watchStatus -eq "EVIDENCE_READY_FOR_REVIEW_NOT_LIVE")
-    evidenceMarkers = @("profit_evidence_watch_reason=$watchReason", "profit_evidence_watch_replay_recommendation=$watchReplayRecommendation")
-    missingRequirements = @($readinessMissing | Where-Object { $_ -match "replay|candidate|EV|OCO|shadow|counterfactual|DataFreshness" })
+    readyForOperatorReview = $dataFreshnessReplayLaneReady
+    evidenceMarkers = @($dataFreshnessReplayEvidenceMarkers)
+    missingRequirements = @(
+        $readinessMissing | Where-Object { $_ -match "replay|candidate|EV|OCO|shadow|counterfactual|DataFreshness" }
+        $dataFreshnessShadowMissing
+    )
     nextAction = "Rerun bounded evidence watch after new DataFreshnessGuard rows are expected; do not relax DataFreshnessGuard from historical proxy alone."
 })
 
@@ -268,26 +295,32 @@ $matrix = [pscustomobject]@{
     readinessStatus = $readinessStatus
     evidenceWatchStatus = $watchStatus
     exitSideStatus = $exitStatus
+    dataFreshnessShadowCandidateStatus = $dataFreshnessShadowStatus
     reviewItems = @($reviewItems)
     sourceScripts = @(
         "prepare_profit_readiness_brief_ssh.ps1",
         "watch_profit_evidence_readiness_ssh.ps1",
-        "prepare_exit_side_profit_review_packet_ssh.ps1"
+        "prepare_exit_side_profit_review_packet_ssh.ps1",
+        "prepare_data_freshness_shadow_candidate_packet_ssh.ps1"
     )
     childExitCodes = @{
         profitReadinessBrief = $readiness.ExitCode
         profitEvidenceWatch = $evidenceWatch.ExitCode
         exitSideProfitReview = $exitSide.ExitCode
+        dataFreshnessShadowCandidate = $dataFreshnessShadow.ExitCode
     }
     nextAction = $nextAction
     notAuthorization = "read-only profit operator review matrix only; does not deploy, restart, reload nginx, change production env, enable live trading, relax EntryDedup/DataFreshness/live policy, enable trailing scheduler, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy changes"
 }
 
 Write-Host "[profit-operator-review-matrix] read-only matrix"
-Write-Host "scope=READ_ONLY; invokes prepare_profit_readiness_brief_ssh.ps1, watch_profit_evidence_readiness_ssh.ps1, and prepare_exit_side_profit_review_packet_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes prepare_profit_readiness_brief_ssh.ps1, watch_profit_evidence_readiness_ssh.ps1, prepare_exit_side_profit_review_packet_ssh.ps1, and prepare_data_freshness_shadow_candidate_packet_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "profit_readiness_brief_status=$readinessStatus"
 Write-Host "profit_evidence_watch_status=$watchStatus"
 Write-Host "exit_side_profit_review_packet_status=$exitStatus"
+Write-Host "data_freshness_shadow_candidate_packet_status=$dataFreshnessShadowStatus"
+Write-Host "counterfactual_evidence_class=$dataFreshnessCounterfactualEvidenceClass"
+Write-Host "shadow_candidate_review_allowed=$dataFreshnessShadowReviewAllowed"
 Write-Host "entry_filter_lane_status=$entryLaneStatus"
 Write-Host "exit_lane_status=$exitLaneStatus"
 Write-Host "data_freshness_current_status=$dataFreshnessStatus"

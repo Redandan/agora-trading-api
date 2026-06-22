@@ -72,10 +72,14 @@ try {
             [pscustomobject]@{
                 lane = "data-freshness-replay"
                 priority = "P2"
-                status = "PENDING_REPLAY_CANDIDATE_ID_EVIDENCE"
+                status = "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
                 readyForOperatorReview = $false
-                evidenceMarkers = @("profit_evidence_watch_reason=PENDING_NO_NEW_DATAFRESHNESS_ROWS")
-                missingRequirements = @("fresh replayCandidateId rows")
+                evidenceMarkers = @(
+                    "profit_evidence_watch_reason=PENDING_NO_NEW_DATAFRESHNESS_ROWS",
+                    "data_freshness_shadow_candidate_packet_status=BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE",
+                    "counterfactual_evidence_class=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+                )
+                missingRequirements = @("fresh replayCandidateId rows", "historical proxy is not shadow-reviewable")
                 nextAction = "Collect replay snapshots."
             }
         )
@@ -112,6 +116,8 @@ try {
             '"proposalId":"strategy485-risk-reduction-review"',
             '"lane":"entry-filter"',
             '"lane":"data-freshness-replay"',
+            '"status":"BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"',
+            'data_freshness_shadow_candidate_packet_status=BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE',
             "notAuthorization=read-only compact profit status only"
         )) {
         Assert-Contains -Name "profit operator compact status fresh output" -Text $text -Pattern ([regex]::Escape($marker))

@@ -86,6 +86,7 @@ $blockedLanes = @($reviewItems | Where-Object { $_.readyForOperatorReview -ne $t
             lane = [string]$_.lane
             priority = [string]$_.priority
             status = [string]$_.status
+            evidenceMarkers = @($_.evidenceMarkers)
             missingRequirements = @($_.missingRequirements)
             nextAction = [string]$_.nextAction
         }

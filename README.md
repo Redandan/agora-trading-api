@@ -808,14 +808,19 @@ Read-only profit operator review matrix:
 .\scripts\prepare_profit_operator_review_matrix_ssh.ps1 -RequireReviewItems
 ```
 
-This wrapper combines the profit readiness brief, bounded evidence watch, and
-exit-side packet into `profit_operator_review_matrix_packet`,
+This wrapper combines the profit readiness brief, bounded evidence watch,
+exit-side packet, and DataFreshness shadow candidate packet into
+`profit_operator_review_matrix_packet`,
 `profit_operator_review_items`, and `profit_operator_review_matrix_status`.
 `HAS_REVIEW_READY_ITEMS_NOT_LIVE` means at least one lane, such as `exit-side`,
 has enough read-only evidence for a separate operator review while other lanes
 such as `entry-filter` or `data-freshness-replay` can remain blocked. It does
 not treat `REVIEW_SIGNAL_POLICY` as an operator-ready entry-filter lane; the
 entry-filter lane is ready only when the readiness brief reports `CLEAR`. It does
+surface `data_freshness_shadow_candidate_packet_status`, including
+`BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`, in the
+`data-freshness-replay` lane so historical proxy blockers remain visible in the
+operator overview. It does
 not deploy, change production env, enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.

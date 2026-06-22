@@ -490,15 +490,19 @@
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
 - `scripts/prepare_profit_operator_review_matrix_ssh.ps1` combines
   `prepare_profit_readiness_brief_ssh.ps1`,
-  `watch_profit_evidence_readiness_ssh.ps1`, and
-  `prepare_exit_side_profit_review_packet_ssh.ps1` into
+  `watch_profit_evidence_readiness_ssh.ps1`,
+  `prepare_exit_side_profit_review_packet_ssh.ps1`, and
+  `prepare_data_freshness_shadow_candidate_packet_ssh.ps1` into
   `profit_operator_review_items`, `profit_operator_review_matrix_packet`, and
   `profit_operator_review_matrix_status`. It can return
   `HAS_REVIEW_READY_ITEMS_NOT_LIVE` when a lane such as `exit-side` has enough
   read-only evidence for a separate operator review while other lanes such as
   `entry-filter` or `data-freshness-replay` remain blocked. `REVIEW_SIGNAL_POLICY`
   is not treated as an operator-ready entry-filter lane; entry-filter readiness
-  requires the readiness brief to report `CLEAR`. The matrix does not
+  requires the readiness brief to report `CLEAR`. The DataFreshness replay lane
+  now carries `data_freshness_shadow_candidate_packet_status`, including
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`, so historical proxy
+  blockers are visible in the operator overview. The matrix does not
   authorize live trading, policy relaxation, deploy, production env changes,
   orders, OCO, position closes, DB/grid/fund/Earn/Telegram/exchange mutation,
   or external backfill/import.
@@ -600,6 +604,23 @@
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
+- 2026-06-22 read-only production profit operator matrix refresh reran
+  `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
+  -ReplayLimit 200` through SSH. All four child scripts exited `0`, including
+  the newly attached `prepare_data_freshness_shadow_candidate_packet_ssh.ps1`.
+  The fresh matrix returned `profit_operator_review_matrix_status=NO_REVIEW_READY_ITEMS`:
+  `exit-side` was `NOT_READY`, `entry-filter` was
+  `BLOCKED_GOVERNANCE_MISSED_OPPORTUNITY_REVIEW`, and
+  `data-freshness-replay` now surfaced
+  `data_freshness_shadow_candidate_packet_status=BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`
+  with `counterfactual_evidence_class=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `shadow_candidate_review_allowed=false`, `complete_replayable_candidate_rows=0`,
+  and `replay_input_next_action=wait_for_new_replay_id_rows_before_shadow_review`.
+  This is read-only evidence only: the historical proxy blocker is visible in
+  the operator overview, but it still does not authorize DataFreshnessGuard
+  relaxation, live trading, deploy, production env changes, orders, OCO,
+  scheduler changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external
+  backfill/import.
 - `scripts/smoke_data_freshness_false_kill_review_ssh.ps1` provides a focused
   read-only production review for the DataFreshnessGuard false-kill profit
   candidate. It calls server-local `/api/mcp` for short/review/long

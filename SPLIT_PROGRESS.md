@@ -939,7 +939,10 @@
   the strategy 485
   candidate carries `strategy485_position_review_decision` so EV/OCO/timeout
   counts remain attached to the ranked profit candidate; it does not authorize
-  live mutations. The review decision adds top-level `canDraftShadowExperimentReview`,
+  live mutations. If the top-ranked candidate is still blocked by deploy or
+  replay evidence, the decision stays
+  `BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE` even when a secondary read-only lane
+  is reviewable. The review decision adds top-level `canDraftShadowExperimentReview`,
   `deployRequired`, `allowedReviewTypes`, `rankedEvidenceRefs`,
   `strategy485ReviewDecision`, missing-requirement counts, and no-live
   authorization text for downstream gates. The wrapper invokes existing read-only smokes only and does not

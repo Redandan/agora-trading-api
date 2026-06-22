@@ -184,6 +184,12 @@ function New-ProfitImprovementReviewDecision {
         }
     }
 
+    $blockedTopCandidate = @($CandidateScorecard | Where-Object {
+            [string]$_.candidate -eq $TopCandidate -and
+            ([string]$_.status -eq "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE" -or
+                [string]$_.status -eq "BLOCKED_WAIT_REPLAY_EVIDENCE")
+        }).Count -gt 0
+
     if (@($CandidateScorecard).Count -eq 0 -or [string]::IsNullOrWhiteSpace($TopCandidate) -or $TopCandidate -eq "NONE") {
         $decision = "NO_PROFIT_IMPROVEMENT_ACTION_FROM_BUNDLE"
         Add-UniqueRequirement -List $missingRequirements -Value "profit_improvement_candidate_scorecard is missing or empty"
@@ -191,6 +197,8 @@ function New-ProfitImprovementReviewDecision {
         $decision = "BLOCKED_DEPLOY_CURRENT_RUNTIME"
     } elseif ($allowedReviewTypes.Count -gt 0) {
         $decision = "READY_FOR_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE"
+    } elseif ($blockedTopCandidate) {
+        $decision = "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE"
     } elseif (@($CandidateScorecard | Where-Object { $_.status -eq "OPERATOR_REVIEW_REQUIRED_READ_ONLY" }).Count -gt 0) {
         $decision = "OPERATOR_REVIEW_REQUIRED_READ_ONLY"
     } else {

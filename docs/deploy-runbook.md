@@ -1502,6 +1502,11 @@ Expected:
   `canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,
   `rankedEvidenceRefs`, `strategy485ReviewDecision`, missing-requirement
   counts, and no-live authorization text.
+- If the top-ranked candidate is still blocked by deploy or replay evidence,
+  the decision stays `BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE` even when a
+  secondary read-only lane, such as strategy 485 position risk, is reviewable.
+  This keeps DataFreshness counterfactual gaps from being hidden by a separate
+  operator-review item.
 - A recommendation such as `COLLECT_DATAFRESHNESS_COUNTERFACTUAL_EVIDENCE` is
   review routing only; it is not permission to relax DataFreshnessGuard,
   activate strategies, close positions, modify OCO, deploy, restart, or change

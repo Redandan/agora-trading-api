@@ -1114,7 +1114,10 @@ permission to relax policy, close or modify positions, or place orders.
 The review decision is the top-level machine-readable routing object with
 `canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,
 `rankedEvidenceRefs`, `strategy485ReviewDecision`, missing-requirement counts,
-and no-live authorization text.
+and no-live authorization text. If the top-ranked candidate is still blocked by
+deploy or replay evidence, the decision remains
+`BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE` even when a secondary lane, such as
+strategy 485 position risk, is reviewable.
 
 Read-only profit experiment gate:
 

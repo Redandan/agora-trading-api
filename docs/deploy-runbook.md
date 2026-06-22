@@ -1455,6 +1455,7 @@ Expected:
   `shadow_candidate_review_allowed`,
   `replay_input_stage`, `collector_status_counts`,
   `hard_gate_preview_status_counts`, `replay_input_next_action`,
+  `counterfactual_evidence_class`, `replay_input_evidence_markers`,
   `data_freshness_policy_relaxation_allowed=false`,
   `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
 - `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the candidate remains

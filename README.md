@@ -526,7 +526,8 @@ the DataFreshness counterfactual replay-input smoke into
 `shadow_candidate_review_allowed`, `data_freshness_policy_relaxation_allowed=false`,
 `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`.
 It also carries `replay_input_stage`, `collector_status_counts`,
-`hard_gate_preview_status_counts`, and `replay_input_next_action` from the
+`hard_gate_preview_status_counts`, `replay_input_next_action`,
+`counterfactualEvidenceClass`, and `replayInputEvidenceMarkers` from the
 counterfactual smoke so pre-collector historical samples are not mistaken for
 enabled replay evidence.
 `BLOCKED_COUNTERFACTUAL_REPLAY_INPUT_MISSING` means the DataFreshness candidate

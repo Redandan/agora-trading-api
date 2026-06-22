@@ -192,6 +192,29 @@ $counterfactualRecommendation = Get-RegexValue -Text $counterfactualText -Patter
 $missingCounterfactualFields = Convert-JsonArrayOrEmpty -Value (Get-RegexValue -Text $counterfactualText -Pattern "missing_counterfactual_fields=(\[[^\r\n]*\])" -Default "[]")
 $previewOnlyMissingFields = Convert-JsonArrayOrEmpty -Value (Get-RegexValue -Text $counterfactualText -Pattern "preview_only_missing_counterfactual_fields=(\[[^\r\n]*\])" -Default "[]")
 
+$counterfactualEvidenceClass = "INCOMPLETE_REPLAY_INPUT"
+if ([int]$completeReplayableRows -gt 0 -and @($missingCounterfactualFields).Count -eq 0 -and $counterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES") {
+    $counterfactualEvidenceClass = "COMPLETE_REPLAYABLE_CANDIDATE_SNAPSHOT"
+} elseif ($replayInputStage -eq "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE") {
+    $counterfactualEvidenceClass = "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+} elseif ($replayInputStage -eq "COLLECTOR_DISABLED_TRACE_ONLY") {
+    $counterfactualEvidenceClass = "COLLECTOR_DISABLED_TRACE_ONLY"
+} elseif ([int]$previewOnlyRows -gt 0 -or $collectorStatusCounts -match "PREVIEW_ONLY|NOT_REPLAYABLE") {
+    $counterfactualEvidenceClass = "PREVIEW_ONLY_NOT_REPLAYABLE"
+}
+
+$replayInputEvidenceMarkers = @(
+    "counterfactualEvidenceClass=$counterfactualEvidenceClass",
+    "replay_input_stage=$replayInputStage",
+    "collector_status_counts=$collectorStatusCounts",
+    "hard_gate_preview_status_counts=$hardGatePreviewStatusCounts",
+    "replay_input_next_action=$replayInputNextAction",
+    "complete_replayable_candidate_rows=$completeReplayableRows",
+    "preview_only_input_rows=$previewOnlyRows",
+    "missing_counterfactual_fields=$(ConvertTo-Json -Compress @($missingCounterfactualFields))",
+    "preview_only_missing_counterfactual_fields=$(ConvertTo-Json -Compress @($previewOnlyMissingFields))"
+)
+
 $hasDataFreshnessCandidate = $false
 $dataFreshnessCandidate = $null
 if ($null -ne $governancePacket) {
@@ -273,6 +296,8 @@ $packet = [pscustomobject]@{
     collectorStatusCounts = $collectorStatusCounts
     hardGatePreviewStatusCounts = $hardGatePreviewStatusCounts
     replayInputNextAction = $replayInputNextAction
+    counterfactualEvidenceClass = $counterfactualEvidenceClass
+    replayInputEvidenceMarkers = @($replayInputEvidenceMarkers)
     counterfactualRecommendation = $counterfactualRecommendation
     missingCounterfactualFields = @($missingCounterfactualFields)
     previewOnlyMissingCounterfactualFields = @($previewOnlyMissingFields)
@@ -317,6 +342,8 @@ Write-Host "replay_input_stage=$replayInputStage"
 Write-Host "collector_status_counts=$collectorStatusCounts"
 Write-Host "hard_gate_preview_status_counts=$hardGatePreviewStatusCounts"
 Write-Host "replay_input_next_action=$replayInputNextAction"
+Write-Host "counterfactual_evidence_class=$counterfactualEvidenceClass"
+Write-Host ("replay_input_evidence_markers=" + (ConvertTo-Json -Compress @($replayInputEvidenceMarkers)))
 Write-Host ("missing_counterfactual_fields=" + (ConvertTo-Json -Compress @($missingCounterfactualFields)))
 Write-Host ("preview_only_missing_counterfactual_fields=" + (ConvertTo-Json -Compress @($previewOnlyMissingFields)))
 Write-Host "shadow_candidate_review_allowed=$($shadowCandidateAllowed.ToString().ToLowerInvariant())"

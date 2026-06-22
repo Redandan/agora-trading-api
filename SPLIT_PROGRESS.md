@@ -669,7 +669,9 @@
   `READY_FOR_DATAFRESHNESS_SHADOW_CANDIDATE_NOT_LIVE` only for a separate
   shadow-candidate review. It now carries `replay_input_stage`,
   `collector_status_counts`, `hard_gate_preview_status_counts`, and
-  `replay_input_next_action` from the counterfactual smoke, then emits
+  `replay_input_next_action` from the counterfactual smoke, classifies the
+  input as `counterfactualEvidenceClass`, carries
+  `replayInputEvidenceMarkers`, then emits
   `shadow_candidate_review_allowed`,
   `data_freshness_policy_relaxation_allowed=false`,
   `tiny_live_order_allowed=false`, and `live_policy_change_allowed=false`; it

@@ -1125,6 +1125,21 @@ Expected:
   only; it does not deploy, change production env, enable live trading, enable
   trailing, relax EntryDedup/DataFreshness/live policy, place orders, modify
   OCO, close positions, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- To turn the ready exit-side proposals and still-blocked lanes into one
+  machine-readable recommendation packet, run:
+
+  ```powershell
+  .\scripts\prepare_profit_verified_recommendations.ps1 -RequireReady
+  ```
+
+  Expected output includes `profit_verified_recommendations_packet`,
+  `profit_verified_ready_recommendations`,
+  `profit_verified_blocked_items`, and
+  `profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`.
+  The packet is review-only. It does not rerun SSH, deploy, change production
+  env, enable live trading, enable trailing, relax EntryDedup/DataFreshness/live
+  policy, place orders, modify OCO, close positions, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
 - Reused matrix output is freshness-guarded by `-MatrixMaxAgeMinutes` (default
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a

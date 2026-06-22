@@ -236,6 +236,22 @@ not rerun SSH, deploy, enable live trading, enable the trailing scheduler,
 place orders, modify OCO, close positions, relax EntryDedup/DataFreshness/live
 policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 
+Read-only verified profit recommendations from the latest saved profit matrix:
+
+```powershell
+.\scripts\prepare_profit_verified_recommendations.ps1 -RequireReady
+```
+
+This wraps the exit-side experiment packet into
+`profit_verified_recommendations_packet` with
+`packetType=PROFIT_VERIFIED_RECOMMENDATIONS` and
+`profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`.
+It lists the review-only ready recommendations and the still-blocked lanes in
+one packet. It does not rerun SSH, deploy, enable live trading, enable the
+trailing scheduler, place orders, modify OCO, close positions, relax
+EntryDedup/DataFreshness/live policy, or mutate DB/grid/fund/Earn/Telegram/
+exchange state.
+
 Read-only post-deploy guardrail acceptance smoke for the BTC anti-wick and
 event-risk-control issue handoffs:
 

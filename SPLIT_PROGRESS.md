@@ -538,6 +538,11 @@
   `READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`, carrying
   `trailing-stop-dry-run-experiment-review` and
   `strategy485-risk-reduction-shadow-review` as review-only proposals.
+  `scripts/prepare_profit_verified_recommendations.ps1` wraps that exit-side
+  experiment packet into `PROFIT_VERIFIED_RECOMMENDATIONS` with
+  `READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`, listing the review-only ready
+  recommendations and the still-blocked entry-filter/DataFreshness lanes in one
+  machine-readable packet.
   Reused matrix output is freshness-guarded by
   `-MatrixMaxAgeMinutes` (default `180`) and fails closed with
   `matrix_freshness_status=STALE` when stale. The brief does

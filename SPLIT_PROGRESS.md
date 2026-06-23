@@ -642,11 +642,15 @@
   preserving `order_allowed=false`, `live_policy_change_allowed=false`,
   `entry_dedup_policy_change_allowed=false`, and
   `position_or_oco_mutation_allowed=false`.
-- 2026-06-22 read-only production profit evidence refresh ran
+- 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved
-  `target\profit-review\profit-operator-matrix-20260622T074741Z-BTCUSDT-strategy485.log`.
-  The fresh matrix returned
+  `target\profit-review\profit-operator-matrix-20260623T020707Z-BTCUSDT-strategy485.log`.
+  The fresh action brief proved the matrix timeout boundary fix in production
+  read-only mode: the nested matrix child used
+  `source_matrix_timeout_seconds=3900`, completed with exit code `0`,
+  `timedOut=false`, and elapsed `882` seconds instead of being killed at the
+  inner-child timeout. The fresh matrix returned
   `profit_operator_review_matrix_status=HAS_REVIEW_READY_ITEMS_NOT_LIVE` and
   `profit_operator_action_brief_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`.
   The next review is the exit-side lane only:
@@ -655,12 +659,13 @@
   `strategy485-risk-reduction-review`. `entry-filter` remains blocked by
   governance/missed-opportunity review (`signal_policy_clear=false` and
   `data_freshness_current_status=NO_CURRENT_SAMPLE`), and
-  `data-freshness-replay` remains blocked pending replay candidate evidence
-  (`profit_evidence_watch_reason=PENDING_NO_NEW_DATAFRESHNESS_ROWS`). Reusing
-  the saved matrix locally produced
-  `profit_operator_review_summary_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE`
-  and
-  `exit_side_operator_experiment_packet_status=READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`.
+  `data-freshness-replay` remains blocked by pre-replay-collector historical
+  proxy evidence (`BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `counterfactual_evidence_class=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `complete_replayable_candidate_rows=0`, and
+  `profit_evidence_watch_reason=NO_CURRENT_SAMPLE`). The fresh signal/missed
+  blocker child exited `0` with
+  `signal_missed_blocker_decision_brief_status=BLOCKED_SIGNAL_MISSED_GOVERNANCE_REVIEW`.
   This evidence is read-only routing only and does not authorize live trading,
   trailing scheduler enablement, position/OCO changes, EntryDedup/DataFreshness
   relaxation, production env changes, deploy, Telegram sends, or exchange

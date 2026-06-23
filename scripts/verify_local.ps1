@@ -1679,6 +1679,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_no_buy_row_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_missed_opportunity_shadow_design_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_governance_relaxation_review_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_governance_relaxation_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_candidate_packet.ps1"
     foreach ($pattern in @("deployment_metadata_status", "origin_metadata_status", "DEPLOYED_RUNTIME_NOT_CURRENT", "origin/main", "bundle_blockers", "live_review_packet_allowed", "deploy_required_before_live_review", "bundle_verdict", "ERROR category", "ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH", "EVENT_SCAN_NOTIFICATION_ENABLED", "EXECUTION_EVENT_ENABLED", "Telegram send")) {
         Assert-RgMatch -Pattern $pattern -Paths @("README.md", "docs/deploy-runbook.md") -Description "operator docs keep live readiness bundle deployment metadata marker $pattern"

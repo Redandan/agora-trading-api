@@ -673,6 +673,26 @@ not approval to relax live policy. The packet does not deploy, enable live
 trading, execute tiny-live orders, relax EntryDedup/DataFreshness/live policy,
 place orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
 
+Read-only governance relaxation preflight review packet:
+
+```powershell
+.\scripts\prepare_governance_relaxation_preflight_review_packet.ps1 -RequireReady
+```
+
+This reads an existing governance relaxation review log, normally
+`target/profit-review/governance-relaxation-review-packet-latest.log`, and emits
+`governance_relaxation_preflight_review_packet` plus
+`governance_relaxation_preflight_status`. A
+`READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE` status means the
+blocked or shadow-only governance relaxation review can be attached to operator
+review; it does not permit any policy change. It keeps
+`live_policy_change_allowed=false`, `tiny_live_order_allowed=false`,
+`entry_dedup_policy_change_allowed=false`,
+`data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`. It does not rerun SSH, deploy, change production
+env, relax governance/EntryDedup/DataFreshness/live policy, enable live or
+staged execution, place orders, modify OCO, or send Telegram.
+
 DataFreshness shadow candidate packet:
 
 ```powershell

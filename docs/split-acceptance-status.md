@@ -400,6 +400,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   prerequisites; it is not authorization to relax EntryDedup/DataFreshness/live
   policy, enable staged-add/live execution, place orders, modify/cancel OCO,
   send Telegram, deploy, change production env, or mutate production state.
+- Governance relaxation preflight review packet is read-only. Run
+  `.\scripts\prepare_governance_relaxation_preflight_review_packet.ps1 -RequireReady`
+  after the governance relaxation review log is saved. It emits
+  `governance_relaxation_preflight_review_packet` and
+  `governance_relaxation_preflight_status`. A
+  `READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE` status means the
+  blocked or shadow-only governance relaxation review can be attached to
+  operator review; it is not authorization to relax governance,
+  EntryDedup/DataFreshness/live policy, enable staged-add/live execution, place
+  orders, modify/cancel OCO, send Telegram, deploy, change production env, or
+  mutate DB/grid/fund/Earn/Telegram/exchange state.
 - Latest local read-only DataFreshness replay blocker operator decision packet
   on 2026-06-23T11:39+08:00 ran
   `.\scripts\prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked`

@@ -639,6 +639,33 @@ Expected:
   positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or authorize strategy/filter changes.
 
+For a local read-only governance relaxation preflight review packet, run after
+the governance relaxation review log is saved:
+
+```powershell
+.\scripts\prepare_governance_relaxation_preflight_review_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- The preflight reads an existing review log, normally
+  `target/profit-review/governance-relaxation-review-packet-latest.log`. It
+  does not rerun SSH, deploy, restart, change production env, or call MCP write
+  tools.
+- Output includes `governance_relaxation_preflight_review_packet`,
+  `governance_relaxation_preflight_status=READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE`,
+  `governance_relaxation_preflight_decision`,
+  `governance_relaxation_review_allowed=true`,
+  `live_policy_change_allowed=false`, `tiny_live_order_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
+- `GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_PACKET` is review evidence only. It
+  does not authorize governance/EntryDedup/DataFreshness/live policy
+  relaxation, staged-add/tiny-live execution, scheduler enablement, orders,
+  OCO, Telegram, deploy, production env changes, DB/grid/fund/Earn/exchange
+  mutation, or external backfill/import.
+
 For the focused strategy 574 TinyLive near-BUY / governance RCA, run:
 
 ```powershell

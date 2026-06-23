@@ -274,6 +274,21 @@
   enable live trading, execute tiny-live orders, place orders, modify OCO,
   close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run
   external backfill/import, or authorize strategy/filter changes.
+- `scripts/prepare_governance_relaxation_preflight_review_packet.ps1` reads an
+  existing governance relaxation review log and emits
+  `governance_relaxation_preflight_review_packet`,
+  `governance_relaxation_preflight_status`, and
+  `governance_relaxation_preflight_decision`. It accepts
+  `REVIEW_REQUIRED_NOT_POLICY_CHANGE` as a blocked review packet and
+  `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` as shadow-only review evidence,
+  but keeps `live_policy_change_allowed=false`,
+  `tiny_live_order_allowed=false`, `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. It is a local operator-review preflight only
+  and does not rerun SSH, deploy, change production env, relax governance or
+  EntryDedup/DataFreshness/live policy, enable staged-add/live execution, place
+  orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange
+  state.
 - `scripts/smoke_strategy574_signal_governance_ssh.ps1` provides a focused
   read-only production RCA for the TinyLive strategy 574 near-BUY path. It
   compares 1d/3d/7d/14d governance drift, extracts strategy 574 rows from

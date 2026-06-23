@@ -271,6 +271,23 @@ keeps `scheduler_enablement_allowed=false`, `order_allowed=false`, and
 trading, scheduler paths, orders, OCO modification, deploy/env changes, or
 policy relaxation.
 
+Read-only trailing-stop dry-run preflight review packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_dry_run_preflight_review_packet.ps1 -RequireReady
+```
+
+This wraps the trailing-stop dry-run operator decision packet and emits
+`trailing_stop_dry_run_preflight_review_packet` plus
+`trailing_stop_dry_run_preflight_status`.
+`READY_FOR_TRAILING_DRY_RUN_PREFLIGHT_REVIEW_NOT_LIVE` means the operator can
+review dry-run-only scope, inputs, and future prerequisites. It keeps
+`scheduler_enablement_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, `position_or_oco_mutation_allowed=false`, and
+`deploy_or_env_change_allowed=false`; it is not authorization to change env,
+enable scheduler/live paths, place orders, modify OCO, send Telegram, or
+deploy.
+
 Read-only strategy485 risk-reduction operator decision packet:
 
 ```powershell

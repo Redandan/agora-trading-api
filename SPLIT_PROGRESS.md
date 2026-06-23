@@ -698,6 +698,15 @@
   `scheduler_enablement_allowed=false`, `order_allowed=false`,
   `position_or_oco_mutation_allowed=false`, and the same no-live/no-deploy/no
   policy-relaxation boundary.
+  `scripts/prepare_trailing_stop_dry_run_preflight_review_packet.ps1` then
+  wraps that decision packet into
+  `TRAILING_STOP_DRY_RUN_PREFLIGHT_REVIEW_PACKET`,
+  `trailing_stop_dry_run_preflight_review_packet`, and
+  `trailing_stop_dry_run_preflight_status`. It clarifies dry-run-only operator
+  inputs and future prerequisites while preserving
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, `position_or_oco_mutation_allowed=false`, and
+  `deploy_or_env_change_allowed=false`.
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1`
   narrows the second-ranked item into
   `STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_PACKET`,

@@ -1429,6 +1429,21 @@ Expected:
   item and the exit-side operator packet to keep the trailing item ready. It is
   a dry-run design review only and does not enable the trailing scheduler,
   live trading, orders, OCO mutation, deploy/env changes, or policy relaxation.
+- To turn that decision packet into a dry-run-only preflight review packet,
+  run:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_dry_run_preflight_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `trailing_stop_dry_run_preflight_review_packet`,
+  `trailing_stop_dry_run_preflight_decision=PREPARE_DRY_RUN_ONLY_OPERATOR_REVIEW`,
+  `scheduler_enablement_allowed=false`, `telegram_send_allowed=false`, and
+  `trailing_stop_dry_run_preflight_status=READY_FOR_TRAILING_DRY_RUN_PREFLIGHT_REVIEW_NOT_LIVE`.
+  The packet type is `TRAILING_STOP_DRY_RUN_PREFLIGHT_REVIEW_PACKET`; it
+  clarifies operator inputs and future prerequisites only. It does not change
+  production env, enable the scheduler, place orders, modify OCO, send
+  Telegram, deploy, or relax trading policy.
 - To convert the second-ranked strategy485 risk item into a review-only
   operator decision packet, run:
 

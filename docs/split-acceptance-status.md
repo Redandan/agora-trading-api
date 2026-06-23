@@ -271,6 +271,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   close-position/OCO/order actions, EntryDedup or DataFreshness policy
   relaxation, deploy, production env changes, DB/grid/fund/Earn/Telegram/
   exchange mutation, or external backfill/import.
+- Trailing-stop dry-run preflight review packet is read-only. Run
+  `.\scripts\prepare_trailing_stop_dry_run_preflight_review_packet.ps1 -RequireReady`
+  after the trailing dry-run decision packet is ready. It emits
+  `trailing_stop_dry_run_preflight_review_packet` and
+  `trailing_stop_dry_run_preflight_status`. A
+  `TRAILING_STOP_DRY_RUN_PREFLIGHT_REVIEW_PACKET` with
+  `READY_FOR_TRAILING_DRY_RUN_PREFLIGHT_REVIEW_NOT_LIVE` means the dry-run-only
+  operator scope and future prerequisites can be reviewed; it is not
+  authorization to change production env, enable scheduler/live paths, place
+  orders, modify OCO, send Telegram, deploy, or relax trading policy.
 - Latest local read-only strategy485 risk-reduction operator decision packet on
   2026-06-23T11:05+08:00 ran
   `.\scripts\prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

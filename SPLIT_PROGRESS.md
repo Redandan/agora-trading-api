@@ -662,6 +662,16 @@
   `scheduler_enablement_allowed=false`, `order_allowed=false`,
   `position_or_oco_mutation_allowed=false`, and the same no-live/no-deploy/no
   policy-relaxation boundary.
+  `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1`
+  narrows the second-ranked item into
+  `STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_PACKET`,
+  `strategy485_risk_reduction_operator_decision_packet`,
+  `strategy485_risk_reduction_priority_rank`, and
+  `strategy485_risk_reduction_operator_decision_status`. It requires the
+  strategy485 item to remain rank `2`, requires the exit-side operator packet
+  to keep that item ready, and preserves `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `order_allowed=false`, and the same
+  no-live/no-OCO/no-deploy/no-policy-relaxation boundary.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved
@@ -777,6 +787,25 @@
   positions, modify OCO, place orders, relax EntryDedup/DataFreshness/live
   policy, deploy, change production env, mutate DB/grid/fund/Earn/Telegram/
   exchange state, or run external backfill/import.
+- 2026-06-23 local read-only strategy485 risk-reduction operator decision
+  packet refresh ran
+  `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`
+  and saved the full output to
+  `target\profit-review\strategy485-risk-reduction-operator-decision-packet-latest.log`.
+  The packet returned
+  `READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION` with
+  `sourcePriorityPacketStatus=READY_FOR_OPERATOR_DECISION_NOT_LIVE`,
+  `sourceExitSidePacketStatus=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `priorityRank=2`, and no missing requirements.
+  Blocked lanes remain `entry-filter` and `data-freshness-replay`. The packet
+  keeps `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `order_allowed=false`, so it is a
+  shadow risk-reduction review only, not permission to close positions,
+  modify/cancel OCO, place orders, enable live trading, scheduler paths, relax
+  EntryDedup/DataFreshness/live policy, deploy, change production env, mutate
+  DB/grid/fund/Earn/Telegram/exchange state, or run external backfill/import.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

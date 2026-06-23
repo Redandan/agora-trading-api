@@ -252,6 +252,22 @@ keeps `scheduler_enablement_allowed=false`, `order_allowed=false`, and
 trading, scheduler paths, orders, OCO modification, deploy/env changes, or
 policy relaxation.
 
+Read-only strategy485 risk-reduction operator decision packet:
+
+```powershell
+.\scripts\prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady
+```
+
+This wraps the priority decision brief plus the exit-side operator review
+packet and emits `strategy485_risk_reduction_operator_decision_packet` and
+`strategy485_risk_reduction_operator_decision_status`.
+`READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION` means the
+second-ranked review item can be attached to operator review as a shadow
+risk-reduction design only. It keeps `close_position_allowed=false`,
+`position_or_oco_mutation_allowed=false`, and `order_allowed=false`; it does
+not close positions, modify/cancel OCO, place orders, enable live trading,
+deploy, change production env, or relax policy.
+
 Read-only exit-side operator experiment packet from the latest saved profit
 matrix:
 

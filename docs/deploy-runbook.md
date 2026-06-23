@@ -1366,6 +1366,23 @@ Expected:
   item and the exit-side operator packet to keep the trailing item ready. It is
   a dry-run design review only and does not enable the trailing scheduler,
   live trading, orders, OCO mutation, deploy/env changes, or policy relaxation.
+- To convert the second-ranked strategy485 risk item into a review-only
+  operator decision packet, run:
+
+  ```powershell
+  .\scripts\prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `strategy485_risk_reduction_operator_decision_packet`,
+  `strategy485_risk_reduction_priority_rank=2`,
+  `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, and
+  `strategy485_risk_reduction_operator_decision_status=READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION`.
+  The packet type is `STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_PACKET`; it
+  requires the priority brief to keep the strategy485 item at rank 2 and the
+  exit-side operator packet to keep that item ready. It is a shadow
+  risk-reduction review only and does not close positions, modify/cancel OCO,
+  place orders, enable live trading, deploy/env changes, or relax policy.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

@@ -377,6 +377,14 @@
   SSH, call MCP, deploy, change production env, enable live/TinyLive/scheduler,
   place orders, send Telegram, modify OCO, or relax EntryDedup/DataFreshness/
   live policy.
+- `scripts/prepare_profit_live_blocker_source_refresh.ps1` orchestrates the
+  read-only source refresh for the live blocker audit. `-PlanOnly` prints the
+  19-step plan without invoking SSH or child refreshes; normal execution runs
+  the existing read-only SSH/MCP/SELECT evidence scripts plus local packet
+  assembly for every audit lane and reruns the final audit. The wrapper keeps
+  deploy, production env, live/TinyLive/scheduler, orders, OCO, close-position,
+  Telegram, policy relaxation, and DB/grid/fund/Earn/exchange mutation out of
+  scope.
 - 2026-06-23 local read-only profit operator next-action board refresh ran
   `scripts/prepare_profit_operator_next_action_board.ps1 -RequireReady` against
   the latest local priority packet and saved strategy574/TinyLive logs. It

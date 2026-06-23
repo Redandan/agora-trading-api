@@ -864,6 +864,24 @@ Expected:
   production env changes, policy relaxation, or DB/grid/fund/Earn/exchange
   mutation.
 
+For a repeatable read-only refresh of the audit source logs, first review the
+plan:
+
+```powershell
+.\scripts\prepare_profit_live_blocker_source_refresh.ps1 -PlanOnly
+```
+
+Then run the same script without `-PlanOnly` when the operator wants current
+evidence. It saves fresh source logs for the profit priority, trailing dry-run,
+strategy485 risk reduction/escalation, EntryDedup semantics, DataFreshness
+replay blocker/collector activation, TP/SL/OCO feasibility,
+strategy574/TinyLive governance, governance relaxation, and final live blocker
+audit lanes. The script only invokes existing read-only SSH/MCP/SELECT evidence
+scripts and local packet assembly; it does not deploy, restart, change
+production env, enable live/TinyLive/scheduler, place orders, send Telegram,
+modify/cancel OCO, close positions, relax policy, or mutate
+DB/grid/fund/Earn/exchange state.
+
 For the focused strategy 485 open-position risk RCA, run:
 
 ```powershell

@@ -884,6 +884,20 @@ SSH, call MCP, deploy, change production env, enable live/TinyLive/scheduler,
 place orders, send Telegram, modify OCO, or relax EntryDedup/DataFreshness/live
 policy.
 
+Read-only source refresh plan for the profit live blocker audit:
+
+```powershell
+.\scripts\prepare_profit_live_blocker_source_refresh.ps1 -PlanOnly
+```
+
+To refresh the source logs, run the same script without `-PlanOnly`. It
+orchestrates existing read-only SSH/MCP/SELECT evidence scripts plus local
+packet assembly, writes every source log consumed by
+`prepare_profit_live_blocker_audit_packet.ps1`, and then reruns the audit. It
+does not deploy, change production env, enable live/TinyLive/scheduler, place
+orders, send Telegram, modify OCO, close positions, or relax
+EntryDedup/DataFreshness/live policy.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

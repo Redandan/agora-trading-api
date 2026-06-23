@@ -931,6 +931,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   Telegram, deploy, change production env, relax EntryDedup/DataFreshness/live
   policy, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
+- Profit live blocker source refresh orchestration is read-only. Run
+  `.\scripts\prepare_profit_live_blocker_source_refresh.ps1 -PlanOnly` to print
+  the full refresh plan before execution. Running without `-PlanOnly` invokes
+  existing read-only SSH/MCP/SELECT evidence scripts and local packet assembly
+  to refresh every source log consumed by the live blocker audit, then reruns
+  `prepare_profit_live_blocker_audit_packet.ps1`. It is not authorization to
+  deploy, change production env, enable live/TinyLive/scheduler, place orders,
+  send Telegram, modify/cancel OCO, close positions, relax
+  EntryDedup/DataFreshness/live policy, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
 - Runtime-evidence gap RCA is read-only. When live-readiness classifies
   `runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or
   `runtimeEvidenceStatus=NOT_READY_*`, run

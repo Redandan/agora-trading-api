@@ -339,6 +339,36 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   authorization to enable live trading, enable scheduler mutation, place
   orders, close positions, modify/cancel OCO, deploy, change production env, or
   relax EntryDedup/DataFreshness/live policy.
+- TP/SL/OCO feasibility preflight review packet is read-only. Run
+  `.\scripts\prepare_tp_sl_oco_feasibility_preflight_review_packet.ps1 -RequireReady`
+  after the TP/SL/OCO feasibility operator packet is ready. It emits
+  `tp_sl_oco_feasibility_preflight_review_packet` and
+  `tp_sl_oco_feasibility_preflight_status`. A
+  `TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_PACKET` with
+  `READY_FOR_TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_NOT_MUTATION` means the
+  operator can review TP/SL/OCO feasibility scope and future prerequisites; it
+  is not authorization to place orders, close positions, modify/cancel OCO,
+  send Telegram, deploy, change production env, enable scheduler/live paths, or
+  relax trading policy.
+- Latest local read-only TP/SL/OCO feasibility preflight packet on
+  2026-06-23T13:11+08:00 ran
+  `.\scripts\prepare_tp_sl_oco_feasibility_preflight_review_packet.ps1 -RequireReady`
+  and wrote
+  `target\profit-review\tp-sl-oco-feasibility-preflight-review-packet-latest.log`.
+  It returned
+  `tp_sl_oco_feasibility_preflight_status=READY_FOR_TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_NOT_MUTATION`,
+  `source_operator_packet_status=READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION`,
+  `source_exit_side_decision_log_freshness=FRESH`,
+  `trailing_stop_acceptance=PASS`,
+  `strategy485_oco_health_ok=True`, and
+  `strategy485_negative_ev_position_count=3`. It kept
+  `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`,
+  `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is not live approval or permission to place
+  orders, close positions, modify/cancel OCO, send Telegram, deploy, change
+  production env, enable scheduler/live paths, or relax trading policy.
 - Latest local read-only EntryDedup semantics operator decision packet on
   2026-06-23T11:23+08:00 ran
   `.\scripts\prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady`

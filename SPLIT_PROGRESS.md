@@ -901,6 +901,36 @@
   close positions, modify/cancel OCO, deploy, change production env, relax
   EntryDedup/DataFreshness/live policy, or mutate DB/grid/fund/Earn/Telegram/
   exchange/external backfill state.
+- `scripts/prepare_tp_sl_oco_feasibility_preflight_review_packet.ps1` wraps the
+  local TP/SL/OCO feasibility operator packet into
+  `TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_PACKET`. It emits
+  `tp_sl_oco_feasibility_preflight_review_packet`,
+  `tp_sl_oco_feasibility_preflight_status`, and
+  `tp_sl_oco_feasibility_preflight_decision`. It keeps
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`; it is a
+  review-only preflight and does not authorize orders, close-position, OCO
+  modification/cancelation, live trading, scheduler enablement, deploy,
+  production env changes, EntryDedup/DataFreshness/live policy relaxation, or
+  DB/grid/fund/Earn/Telegram/exchange/external backfill mutation.
+- 2026-06-23T13:11+08:00 local read-only TP/SL/OCO feasibility preflight ran
+  `scripts/prepare_tp_sl_oco_feasibility_preflight_review_packet.ps1 -RequireReady`
+  and saved
+  `target\profit-review\tp-sl-oco-feasibility-preflight-review-packet-latest.log`.
+  It returned
+  `READY_FOR_TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_NOT_MUTATION` with
+  source packet status
+  `READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION`, source
+  freshness `FRESH`, `trailing_stop_acceptance=PASS`,
+  `strategy485_oco_health_ok=True`, and
+  `strategy485_negative_ev_position_count=3`. The packet kept
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`; it is review-only
+  and not live approval or permission to place orders, close positions,
+  modify/cancel OCO, send Telegram, deploy, change production env, enable
+  scheduler/live paths, or relax trading policy.
 - 2026-06-23 local read-only EntryDedup semantics operator decision packet
   refresh ran
   `scripts/prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady`

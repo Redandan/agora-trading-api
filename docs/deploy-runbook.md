@@ -2434,6 +2434,21 @@ Expected:
   deploy, change production env, enable live trading, enable scheduler
   mutation, place orders, close positions, modify/cancel OCO, or relax
   EntryDedup/DataFreshness/live policy.
+- Use `scripts/prepare_tp_sl_oco_feasibility_preflight_review_packet.ps1 -RequireReady`
+  after the TP/SL/OCO feasibility operator packet is ready to produce
+  `TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_PACKET`. Expected output includes
+  `tp_sl_oco_feasibility_preflight_review_packet`,
+  `tp_sl_oco_feasibility_preflight_status=READY_FOR_TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_NOT_MUTATION`,
+  `tp_sl_oco_feasibility_preflight_decision=PREPARE_REVIEW_ONLY_TP_SL_OCO_FEASIBILITY_REVIEW`,
+  `trailing_stop_acceptance=PASS`, `strategy485_oco_health_ok=True`,
+  `strategy485_negative_ev_position_count`,
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. The preflight packet invokes only the local
+  TP/SL/OCO feasibility operator packet; it does not rerun SSH, deploy, change
+  production env, enable live trading, enable scheduler mutation, place orders,
+  close positions, modify/cancel OCO, send Telegram, or relax
+  EntryDedup/DataFreshness/live policy.
 - Use `scripts/prepare_exit_side_operator_experiment_packet.ps1 -RequireReady`
   after the latest profit operator summary is fresh to produce
   `EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW`. This packet is the review-only bridge

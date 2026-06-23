@@ -237,6 +237,23 @@ and `order_allowed=false`; it is not authorization to enable live trading,
 enable scheduler mutation, place orders, close positions, modify/cancel OCO,
 deploy, change production env, or relax EntryDedup/DataFreshness/live policy.
 
+Read-only TP/SL/OCO feasibility preflight review packet:
+
+```powershell
+.\scripts\prepare_tp_sl_oco_feasibility_preflight_review_packet.ps1 -RequireReady
+```
+
+This wraps the TP/SL/OCO feasibility operator packet and emits
+`tp_sl_oco_feasibility_preflight_review_packet` plus
+`tp_sl_oco_feasibility_preflight_status`.
+`READY_FOR_TP_SL_OCO_FEASIBILITY_PREFLIGHT_REVIEW_NOT_MUTATION` means the
+operator can review TP/SL/OCO feasibility scope and future prerequisites without
+changing runtime or trading state. It keeps `close_position_allowed=false`,
+`position_or_oco_mutation_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false`; it is
+not authorization to place orders, close positions, modify/cancel OCO, send
+Telegram, deploy, change production env, or relax trading policy.
+
 Read-only profit operator priority decision brief:
 
 ```powershell

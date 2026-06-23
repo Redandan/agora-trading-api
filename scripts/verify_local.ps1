@@ -1670,6 +1670,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_operator_decision_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_operator_experiment_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_tp_sl_oco_feasibility_operator_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_tp_sl_oco_feasibility_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_operator_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_filter_operator_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_no_buy_row_review_packet.ps1"

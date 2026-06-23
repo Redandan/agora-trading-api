@@ -1505,6 +1505,29 @@ threshold misses dominate. It does not authorize
 DataFreshnessGuard or
 EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
 production env changes.
+When that packet routes review to strategy threshold gaps, especially strategy
+574 near threshold, run the read-only decision packet:
+
+```powershell
+.\scripts\prepare_strategy574_near_threshold_decision_packet_ssh.ps1 -RequireReady
+```
+
+It invokes or reuses `smoke_signal_eval_no_buy_generation_ssh.ps1` and emits
+`STRATEGY574_NEAR_THRESHOLD_DECISION_PACKET`,
+`strategy574_near_threshold_decision_packet`, and
+`strategy574_near_threshold_decision_status`. A
+`READY_FOR_STRATEGY574_NEAR_THRESHOLD_SHADOW_REVIEW_NOT_LIVE` result means the
+operator can review a shadow-only observation plan for strategy 574 threshold
+misses such as `market_entropy_index` at 69 versus buy threshold 70. It keeps
+`strategy_threshold_change_allowed=false`,
+`strategy_activation_allowed=false`, `tiny_live_order_allowed=false`,
+`live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+`deploy_or_env_change_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, `entry_dedup_policy_change_allowed=false`, and
+`data_freshness_policy_change_allowed=false`; it does not authorize threshold
+changes, strategy activation, TinyLive/live execution, orders, deploy,
+production env changes, Telegram sends, EntryDedup/DataFreshness relaxation, or
+DB/OCO/grid/fund/Earn/exchange mutation.
 When the dominant follow-up is `ENTRY_SKIP:EntryDedup` for strategy 508, run:
 
 ```powershell

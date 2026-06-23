@@ -841,6 +841,24 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `market_entropy_index` at 69 versus buy threshold 70 (gap 1), ETF pressure
   strategies at 51 versus threshold 60 (gap 9), and SQI strategies at 0 versus
   thresholds 30 or 40.
+  The read-only follow-up is
+  `.\scripts\prepare_strategy574_near_threshold_decision_packet_ssh.ps1 -RequireReady`,
+  which emits `STRATEGY574_NEAR_THRESHOLD_DECISION_PACKET` and
+  `strategy574_near_threshold_decision_status=READY_FOR_STRATEGY574_NEAR_THRESHOLD_SHADOW_REVIEW_NOT_LIVE`
+  only as a shadow-observation review route. The packet keeps
+  `strategy_threshold_change_allowed=false`,
+  `strategy_activation_allowed=false`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, `entry_dedup_policy_change_allowed=false`, and
+  `data_freshness_policy_change_allowed=false`.
+  A follow-up run on 2026-06-23 wrote
+  `target\profit-review\strategy574-near-threshold-decision-packet-latest.log`
+  with `signal_eval_rows=2792`, `signal_eval_buy_like_rows=0`,
+  `signalEvalStrategyDecisionContextRows=2264`,
+  `strategy574_threshold_gap_indicator=market_entropy_index`,
+  `strategy574_min_buy_gap=1.0000`, and
+  `strategy574_shadow_observation_review_allowed=true`.
   The same packet reported `sample_gap_buy_like_rows_7d_review=0`,
   `sample_gap_attention_hit_rows_7d_review=174`,
   `sample_gap_data_freshness_rows_7d_review=0`,

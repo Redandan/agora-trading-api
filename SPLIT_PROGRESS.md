@@ -1457,6 +1457,25 @@
   DataFreshnessGuard/EntryDedup/live
   policy, scheduler, orders, OCO, deploy, production env, and DB/grid/fund/
   Earn/Telegram/exchange mutation unauthorized.
+- `scripts/prepare_strategy574_near_threshold_decision_packet_ssh.ps1` is the
+  read-only follow-up for
+  `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when strategy 574 / 1h appears near
+  its buy threshold. It invokes or reuses
+  `smoke_signal_eval_no_buy_generation_ssh.ps1`, extracts the strategy 574
+  threshold-gap row, and emits `STRATEGY574_NEAR_THRESHOLD_DECISION_PACKET`,
+  `strategy574_near_threshold_decision_packet`,
+  `strategy574_near_threshold_decision_status`, `strategy574_min_buy_gap`, and
+  `READY_FOR_STRATEGY574_NEAR_THRESHOLD_SHADOW_REVIEW_NOT_LIVE` only when the
+  gap is within the configured near-threshold bound. It keeps
+  `strategy_threshold_change_allowed=false`,
+  `strategy_activation_allowed=false`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, `entry_dedup_policy_change_allowed=false`, and
+  `data_freshness_policy_change_allowed=false`; it is not approval for
+  threshold changes, strategy activation, TinyLive/live execution, deploy,
+  production env changes, Telegram sends, EntryDedup/DataFreshness relaxation,
+  or DB/OCO/grid/fund/Earn/exchange mutation.
 - 2026-06-23 read-only production no-buy/attention refresh for `BTCUSDT`
   showed the current 7-day window shifted from the 2026-06-22 EntryDedup lane
   to a signal-generation/attention lane: `buy_like_candidate_rows=0`,
@@ -1492,6 +1511,30 @@
   generation threshold-gap review, especially near-threshold strategy 574,
   and attention-to-terminal mapping before any DataFreshness, EntryDedup,
   strategy activation, threshold change, or live policy experiment.
+- 2026-06-23 follow-up read-only production strategy574 near-threshold decision
+  packet ran
+  `.\scripts\prepare_strategy574_near_threshold_decision_packet_ssh.ps1 -RequireReady`
+  and wrote
+  `target\profit-review\strategy574-near-threshold-decision-packet-latest.log`.
+  It made no production env, DB, order, OCO, grid, fund, Earn, Telegram,
+  scheduler, exchange, external backfill/import, deploy, restart, or nginx
+  changes. The packet returned
+  `strategy574_near_threshold_decision_status=READY_FOR_STRATEGY574_NEAR_THRESHOLD_SHADOW_REVIEW_NOT_LIVE`,
+  `signal_eval_rows=2792`, `signal_eval_buy_like_rows=0`,
+  `signalEvalStrategyDecisionContextRows=2264`,
+  `strategy574_threshold_gap_indicator=market_entropy_index`,
+  `strategy574_min_buy_gap=1.0000`, and
+  `strategy574_shadow_observation_review_allowed=true`. This is a
+  shadow-observation review route only; it keeps
+  `strategy_threshold_change_allowed=false`,
+  `strategy_activation_allowed=false`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, `entry_dedup_policy_change_allowed=false`, and
+  `data_freshness_policy_change_allowed=false`. It does not authorize strategy
+  threshold changes, strategy activation, TinyLive/live execution, deploy,
+  production env changes, Telegram sends, EntryDedup/DataFreshness relaxation,
+  or DB/OCO/grid/fund/Earn/exchange mutation.
 - `scripts/smoke_strategy508_entry_dedup_exposure_ssh.ps1` is the follow-up
   read-only RCA for that strategy 508 / 1h EntryDedup lane. It combines
   server-local MCP `getEntryDedupGovernanceDashboard` and

@@ -707,6 +707,33 @@ Expected:
 - `BLOCKED_DEPLOY_CURRENT_RUNTIME` means deploy and server verification are
   required before the strategy 574 gate can be trusted.
 
+For the read-only strategy574 near-threshold decision packet after
+`SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT`, run:
+
+```powershell
+.\scripts\prepare_strategy574_near_threshold_decision_packet_ssh.ps1 -RequireReady
+```
+
+Expected:
+
+- The packet invokes or reuses
+  `smoke_signal_eval_no_buy_generation_ssh.ps1` only.
+- Output includes `STRATEGY574_NEAR_THRESHOLD_DECISION_PACKET`,
+  `strategy574_near_threshold_decision_packet`,
+  `strategy574_near_threshold_decision_status`,
+  `strategy574_threshold_gap_row_count`, and `strategy574_min_buy_gap`.
+- `READY_FOR_STRATEGY574_NEAR_THRESHOLD_SHADOW_REVIEW_NOT_LIVE` means only
+  shadow-observation review is ready. It keeps
+  `strategy_threshold_change_allowed=false`,
+  `strategy_activation_allowed=false`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, `entry_dedup_policy_change_allowed=false`,
+  and `data_freshness_policy_change_allowed=false`.
+- The packet does not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For the strategy574/TinyLive governance operator packet, first refresh and save
 the source logs:
 

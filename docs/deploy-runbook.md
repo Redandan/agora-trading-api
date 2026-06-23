@@ -2344,6 +2344,20 @@ Expected:
   drafting a separate trailing rollout or strategy 485 risk-reduction decision.
   The plan preserves the no-mutation boundary and keeps entry/DataFreshness
   policy out of this exit-side review.
+- Use `scripts/prepare_tp_sl_oco_feasibility_operator_packet.ps1 -RequireReady`
+  after a refreshed exit-side decision brief to produce a local
+  `TP_SL_OCO_FEASIBILITY_OPERATOR_PACKET`. Expected output includes
+  `tp_sl_oco_feasibility_operator_packet`,
+  `tp_sl_oco_feasibility_status=READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION`,
+  `tp_sl_oco_feasibility_primary_decision=PREPARE_SEPARATE_TP_SL_OCO_FEASIBILITY_REVIEW`,
+  `trailing_stop_acceptance`, `strategy485_oco_health_ok`,
+  `strategy485_negative_ev_position_count`, `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `order_allowed=false`. The packet
+  reuses the existing exit-side decision log only; it does not rerun SSH,
+  deploy, change production env, enable live trading, enable scheduler
+  mutation, place orders, close positions, modify/cancel OCO, or relax
+  EntryDedup/DataFreshness/live policy.
 - Use `scripts/prepare_exit_side_operator_experiment_packet.ps1 -RequireReady`
   after the latest profit operator summary is fresh to produce
   `EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW`. This packet is the review-only bridge

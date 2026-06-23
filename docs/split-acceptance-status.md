@@ -292,6 +292,33 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   paths, EntryDedup or DataFreshness policy relaxation, deploy, production env
   changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external
   backfill/import.
+- Latest read-only TP/SL/OCO feasibility operator packet on
+  2026-06-23T11:58+08:00 first refreshed
+  `.\scripts\prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
+  and then ran
+  `.\scripts\prepare_tp_sl_oco_feasibility_operator_packet.ps1 -RequireReady`.
+  The SSH refresh made no production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, deploy, restart, or nginx changes. It returned
+  `exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION`,
+  `exit_side_profit_review_packet_status=READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION`,
+  `trailing_stop_acceptance=PASS`,
+  `trailing_stop_improvement_pct=54.044%`,
+  `strategy485_oco_health_ok=True`, and
+  `strategy485_negative_ev_position_count=3`; the current position summaries
+  are `#148 WATCH/CLOSE evUsdt=-0.32 paperPct=-4.18`,
+  `#149 WATCH/CLOSE evUsdt=-0.31 paperPct=-4.12`, and
+  `#150 WATCH/CLOSE evUsdt=-0.22 paperPct=-3.76`. The local packet wrote
+  `target\profit-review\tp-sl-oco-feasibility-operator-packet-latest.log` and
+  returned
+  `tp_sl_oco_feasibility_status=READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION`
+  with
+  `tp_sl_oco_feasibility_primary_decision=PREPARE_SEPARATE_TP_SL_OCO_FEASIBILITY_REVIEW`.
+  It keeps `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `order_allowed=false`; it is not
+  authorization to enable live trading, enable scheduler mutation, place
+  orders, close positions, modify/cancel OCO, deploy, change production env, or
+  relax EntryDedup/DataFreshness/live policy.
 - Latest local read-only EntryDedup semantics operator decision packet on
   2026-06-23T11:23+08:00 ran
   `.\scripts\prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady`

@@ -218,6 +218,25 @@ Use [docs/exit-side-operator-review-plan.md](docs/exit-side-operator-review-plan
 as the review contract before drafting a separate trailing rollout or strategy
 485 risk-reduction decision.
 
+Local TP/SL/OCO feasibility operator packet from the refreshed exit-side brief:
+
+```powershell
+.\scripts\prepare_tp_sl_oco_feasibility_operator_packet.ps1 -RequireReady
+```
+
+This reuses `target/profit-review/exit-side-operator-decision-brief-refresh.log`
+and emits `tp_sl_oco_feasibility_operator_packet` plus
+`tp_sl_oco_feasibility_status`. It does not rerun SSH. A
+`TP_SL_OCO_FEASIBILITY_OPERATOR_PACKET` with
+`READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION` means the
+latest trailing acceptance, strategy 485 OCO health, and aged negative-EV
+position evidence can be reviewed together for a separate TP/SL/OCO
+feasibility decision. It preserves `close_position_allowed=false`,
+`position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+and `order_allowed=false`; it is not authorization to enable live trading,
+enable scheduler mutation, place orders, close positions, modify/cancel OCO,
+deploy, change production env, or relax EntryDedup/DataFreshness/live policy.
+
 Read-only profit operator priority decision brief:
 
 ```powershell

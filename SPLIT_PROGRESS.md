@@ -816,6 +816,37 @@
   modify/cancel OCO, place orders, enable live trading, scheduler paths, relax
   EntryDedup/DataFreshness/live policy, deploy, change production env, mutate
   DB/grid/fund/Earn/Telegram/exchange state, or run external backfill/import.
+- 2026-06-23 read-only TP/SL/OCO feasibility operator packet refreshed
+  exit-side evidence with
+  `scripts/prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
+  and then ran
+  `scripts/prepare_tp_sl_oco_feasibility_operator_packet.ps1 -RequireReady`.
+  The SSH refresh wrote
+  `target\profit-review\exit-side-operator-decision-brief-refresh.log` and made
+  no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler,
+  exchange, deploy, restart, or nginx change. It returned
+  `exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION`,
+  `exit_side_profit_review_packet_status=READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION`,
+  `trailing_stop_acceptance=PASS`,
+  `trailing_stop_improvement_pct=54.044%`,
+  `strategy485_oco_health_ok=True`, and
+  `strategy485_negative_ev_position_count=3`; the current position summaries
+  are `#148 WATCH/CLOSE evUsdt=-0.32 paperPct=-4.18`,
+  `#149 WATCH/CLOSE evUsdt=-0.31 paperPct=-4.12`, and
+  `#150 WATCH/CLOSE evUsdt=-0.22 paperPct=-3.76`. The local packet saved
+  `target\profit-review\tp-sl-oco-feasibility-operator-packet-latest.log` and
+  returned
+  `READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION` with
+  `tp_sl_oco_feasibility_primary_decision=PREPARE_SEPARATE_TP_SL_OCO_FEASIBILITY_REVIEW`.
+  It packages trailing TP/SL risk-reduction evidence and strategy 485
+  OCO-protected negative-EV position evidence into one operator packet while
+  keeping `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `order_allowed=false`; it is not
+  permission to enable live trading, enable scheduler mutation, place orders,
+  close positions, modify/cancel OCO, deploy, change production env, relax
+  EntryDedup/DataFreshness/live policy, or mutate DB/grid/fund/Earn/Telegram/
+  exchange/external backfill state.
 - 2026-06-23 local read-only EntryDedup semantics operator decision packet
   refresh ran
   `scripts/prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady`

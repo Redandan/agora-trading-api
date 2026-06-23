@@ -117,6 +117,11 @@ $attention = Invoke-ReadOnlyScript -ScriptName "smoke_attention_hit_progression_
     "-MaxAttentionRows", "$MaxRows"
 ))
 
+$signalEvalNoBuy = Invoke-ReadOnlyScript -ScriptName "smoke_signal_eval_no_buy_generation_ssh.ps1" -Arguments ($commonArgs + @(
+    "-ReviewDays", "$ReviewDays",
+    "-Limit", "$Limit"
+))
+
 $buyLike = Invoke-ReadOnlyScript -ScriptName "smoke_buy_like_candidate_progression_ssh.ps1" -Arguments ($commonArgs + @(
     "-ReviewDays", "$ReviewDays",
     "-FollowupHours", "$FollowupHours",
@@ -140,6 +145,13 @@ $attentionEntrySkipRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $atte
 $attentionSignalBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  signal_buy_followup_rows=")
 $attentionAutotradeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  autotrade_followup_rows=")
 
+$signalEvalNoBuyRecommendation = Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  signal_eval_no_buy_generation_recommendation="
+$signalEvalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  signal_eval_rows=")
+$signalEvalBuyLikeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  buy_like_signal_eval_rows=")
+$signalEvalNoBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  no_buy_signal_eval_rows=")
+$signalEvalHoldReasonRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  hold_reason_rows=")
+$signalEvalMacroRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  macro_or_unknown_strategy_rows=")
+
 $buyLikeRecommendation = Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  buy_like_candidate_progression_recommendation="
 $buyLikeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  buy_like_candidate_rows=")
 $buyLikeNoTerminalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  no_terminal_followup_rows=")
@@ -154,11 +166,19 @@ $requiredEvidence = [System.Collections.Generic.List[string]]::new()
 
 if ($profitBlocker.ExitCode -ne 0) { Add-Unique -List $blockers -Value "DATAFRESHNESS_PROFIT_BLOCKER_BRIEF_FAILED" }
 if ($attention.ExitCode -ne 0) { Add-Unique -List $blockers -Value "ATTENTION_HIT_PROGRESSION_FAILED" }
+if ($signalEvalNoBuy.ExitCode -ne 0) { Add-Unique -List $blockers -Value "SIGNAL_EVAL_NO_BUY_GENERATION_FAILED" }
 if ($buyLike.ExitCode -ne 0) { Add-Unique -List $blockers -Value "BUY_LIKE_CANDIDATE_PROGRESSION_FAILED" }
 
 if ($buyLikeRows -eq 0) {
     Add-Unique -List $blockers -Value "NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW"
     Add-Unique -List $requiredEvidence -Value "fresh BUY-like SIGNAL_EVAL or SIGNAL_BUY candidates"
+}
+if ($signalEvalRows -gt 0 -and $signalEvalBuyLikeRows -eq 0) {
+    Add-Unique -List $reviewItems -Value "SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW"
+    Add-Unique -List $requiredEvidence -Value "signal-eval reason/context distribution must explain why no BUY-like candidates were generated"
+}
+if ($signalEvalRows -eq 0) {
+    Add-Unique -List $blockers -Value "NO_SIGNAL_EVAL_IN_REVIEW_WINDOW"
 }
 if ($attentionRows -gt 0 -and $attentionNoTerminalRows -eq $attentionRows) {
     Add-Unique -List $reviewItems -Value "ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES"
@@ -174,7 +194,7 @@ if ($attentionRows -gt 0 -and $attentionSignalBuyRows + $attentionAutotradeRows 
     Add-Unique -List $reviewItems -Value "NO_ATTENTION_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE"
 }
 
-$status = if ($profitBlocker.ExitCode -ne 0 -or $attention.ExitCode -ne 0 -or $buyLike.ExitCode -ne 0) {
+$status = if ($profitBlocker.ExitCode -ne 0 -or $attention.ExitCode -ne 0 -or $signalEvalNoBuy.ExitCode -ne 0 -or $buyLike.ExitCode -ne 0) {
     "NO_EVIDENCE"
 } elseif ($buyLikeRows -eq 0 -and $attentionRows -gt 0 -and $attentionNoTerminalRows -eq $attentionRows) {
     "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE"
@@ -218,6 +238,14 @@ $packet = [pscustomobject]@{
         signalBuyFollowupRows = $attentionSignalBuyRows
         autotradeFollowupRows = $attentionAutotradeRows
     }
+    signalEvalNoBuyGeneration = [pscustomobject]@{
+        recommendation = $signalEvalNoBuyRecommendation
+        signalEvalRows = $signalEvalRows
+        buyLikeSignalEvalRows = $signalEvalBuyLikeRows
+        noBuySignalEvalRows = $signalEvalNoBuyRows
+        holdReasonRows = $signalEvalHoldReasonRows
+        macroOrUnknownStrategyRows = $signalEvalMacroRows
+    }
     buyLikeFlow = [pscustomobject]@{
         recommendation = $buyLikeRecommendation
         buyLikeCandidateRows = $buyLikeRows
@@ -233,6 +261,7 @@ $packet = [pscustomobject]@{
     childExitCodes = @{
         dataFreshnessProfitBlockerBrief = $profitBlocker.ExitCode
         attentionHitProgression = $attention.ExitCode
+        signalEvalNoBuyGeneration = $signalEvalNoBuy.ExitCode
         buyLikeCandidateProgression = $buyLike.ExitCode
     }
     nextAction = $nextAction
@@ -240,9 +269,10 @@ $packet = [pscustomobject]@{
 }
 
 Write-Host "[no-buy-attention-flow-review-packet] read-only packet"
-Write-Host "scope=READ_ONLY; invokes DataFreshness profit blocker brief, ATTENTION_HIT progression, and BUY-like progression only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes DataFreshness profit blocker brief, ATTENTION_HIT progression, SIGNAL_EVAL no-buy generation, and BUY-like progression only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_data_freshness_profit_blocker_brief=prepare_data_freshness_profit_blocker_brief_ssh.ps1 exitCode=$($profitBlocker.ExitCode)"
 Write-Host "source_attention_hit_progression=smoke_attention_hit_progression_ssh.ps1 exitCode=$($attention.ExitCode)"
+Write-Host "source_signal_eval_no_buy_generation=smoke_signal_eval_no_buy_generation_ssh.ps1 exitCode=$($signalEvalNoBuy.ExitCode)"
 Write-Host "source_buy_like_candidate_progression=smoke_buy_like_candidate_progression_ssh.ps1 exitCode=$($buyLike.ExitCode)"
 Write-Host "data_freshness_profit_blocker_status=$profitBlockerStatus"
 Write-Host "data_freshness_sample_gap_rca_recommendation=$sampleGapRcaRecommendation"
@@ -258,6 +288,12 @@ Write-Host "attention_filter_block_followup_rows=$attentionFilterRows"
 Write-Host "attention_entry_skip_followup_rows=$attentionEntrySkipRows"
 Write-Host "attention_signal_buy_followup_rows=$attentionSignalBuyRows"
 Write-Host "attention_autotrade_followup_rows=$attentionAutotradeRows"
+Write-Host "signal_eval_no_buy_generation_recommendation=$signalEvalNoBuyRecommendation"
+Write-Host "signal_eval_rows=$signalEvalRows"
+Write-Host "signal_eval_buy_like_rows=$signalEvalBuyLikeRows"
+Write-Host "signal_eval_no_buy_rows=$signalEvalNoBuyRows"
+Write-Host "signal_eval_hold_reason_rows=$signalEvalHoldReasonRows"
+Write-Host "signal_eval_macro_or_unknown_strategy_rows=$signalEvalMacroRows"
 Write-Host "buy_like_candidate_progression_recommendation=$buyLikeRecommendation"
 Write-Host "buy_like_candidate_rows=$buyLikeRows"
 Write-Host "buy_like_no_terminal_followup_rows=$buyLikeNoTerminalRows"

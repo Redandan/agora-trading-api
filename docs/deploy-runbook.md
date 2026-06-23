@@ -1788,6 +1788,15 @@ Expected:
   distribution, and examples. Use this to locate whether candidate loss is no
   terminal follow-up, `ENTRY_SKIP`, `FILTER_BLOCK`, or post-signal/autotrade
   routing before changing any live policy.
+- If sample-gap RCA reports no recent BUY-like candidates, run
+  `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
+  `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits
+  `signal_eval_no_buy_generation_recommendation`, `signal_eval_rows`,
+  `buy_like_signal_eval_rows`, reason-family distribution, strategy/interval
+  distribution, context-side distribution, and examples. A recommendation such
+  as `NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES` routes the review toward
+  signal-generation/no-condition evidence, not DataFreshnessGuard, EntryDedup,
+  strategy activation, or live execution changes.
 - Also run `.\scripts\smoke_buy_like_candidate_progression_ssh.ps1` for true
   BUY-like pre-terminal trading candidates, excluding watch-only
   `ATTENTION_HIT` rows and terminal `ENTRY_SKIP` rows. It emits
@@ -1803,7 +1812,10 @@ Expected:
   rows exist. Expected output includes `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET`,
   `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`,
   `NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW`, and
-  `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`. The packet is review-only
+  `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`. The packet also invokes the
+  SIGNAL_EVAL no-buy generation smoke and includes
+  `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when recent `SIGNAL_EVAL` rows exist
+  but none are BUY-like. The packet is review-only
   and does not authorize DataFreshnessGuard or EntryDedup relaxation, live
   execution, scheduler enablement, orders, deploy, or production env changes.
 - If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,

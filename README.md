@@ -1454,6 +1454,20 @@ next same strategy/interval terminal event (`SIGNAL_BUY`, `FILTER_BLOCK`,
 `attention_followup_classification`, event-type counts, strategy distribution,
 and examples. It does not authorize entry-filter, DataFreshness, EntryDedup, or
 live execution changes.
+When sample-gap RCA reports no recent BUY-like candidates, split recent
+`SIGNAL_EVAL` rows before changing policy:
+
+```powershell
+.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1
+```
+
+This read-only production DB smoke emits
+`signal_eval_no_buy_generation_recommendation`, `signal_eval_rows`,
+`buy_like_signal_eval_rows`, reason-family distribution, strategy/interval
+distribution, context-side distribution, and examples. Recommendations such as
+`NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES` route the next review toward
+signal-generation/no-condition evidence instead of DataFreshnessGuard,
+EntryDedup, strategy activation, or live execution changes.
 For true BUY-like pre-terminal trading candidates, excluding watch-only
 attention rows and terminal `ENTRY_SKIP` rows, run:
 
@@ -1476,11 +1490,16 @@ exist, run the read-only no-buy attention-flow packet:
 .\scripts\prepare_no_buy_attention_flow_review_packet_ssh.ps1 -RequireReviewReady
 ```
 
-It emits `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET` and
+It invokes the DataFreshness blocker brief, ATTENTION_HIT progression,
+SIGNAL_EVAL no-buy generation smoke, and BUY-like progression smoke, then emits
+`NO_BUY_ATTENTION_FLOW_REVIEW_PACKET` and
 `no_buy_attention_flow_review_status`. A
 `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` result means the operator can
-review why attention rows have no terminal trading follow-up and why BUY-like
-candidates were not generated. It does not authorize DataFreshnessGuard or
+review why attention rows have no terminal trading follow-up, why `SIGNAL_EVAL`
+rows did not become BUY-like candidates, and why BUY-like candidates were not
+generated. The packet includes `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when
+recent `SIGNAL_EVAL` rows exist but none are BUY-like. It does not authorize
+DataFreshnessGuard or
 EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
 production env changes.
 When the dominant follow-up is `ENTRY_SKIP:EntryDedup` for strategy 508, run:

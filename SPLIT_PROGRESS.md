@@ -1421,6 +1421,19 @@
   distribution, and examples so trading-candidate loss can be separated from
   macro/attention warning flow before any entry-filter, strategy, or live
   execution review.
+- `scripts/smoke_signal_eval_no_buy_generation_ssh.ps1` is the read-only
+  generation-side RCA for windows where `SIGNAL_EVAL` exists but no recent
+  BUY-like candidates are found. It uses production MySQL `SELECT` queries
+  against `bt_decision_audit` to emit
+  `signal_eval_no_buy_generation_recommendation`, `signal_eval_rows`,
+  `buy_like_signal_eval_rows`, `no_buy_signal_eval_rows`, reason-family
+  distribution, strategy/interval distribution, context-side distribution, and
+  examples. Recommendations such as
+  `NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES` route review toward
+  signal-generation/no-condition evidence; they do not authorize
+  DataFreshnessGuard or EntryDedup relaxation, strategy activation, live
+  execution, orders, scheduler enablement, deploy, production env changes, or
+  DB/OCO/grid/fund/Earn/Telegram/exchange mutation.
 - 2026-06-22 read-only production BUY-like candidate progression for `BTCUSDT`
   showed `buy_like_candidate_rows=11`, all as `event=SIGNAL_EVAL strategy=508
   interval=1h`, with `entry_skip_followup_rows=10`,
@@ -1432,11 +1445,14 @@
   next profit review toward EntryDedup/existing-position exposure evidence for
   strategy 508 rather than DataFreshness relaxation or live execution changes.
 - `scripts/prepare_no_buy_attention_flow_review_packet_ssh.ps1` combines the
-  DataFreshness profit blocker brief, ATTENTION_HIT progression, and BUY-like
-  progression into `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET`. A
+  DataFreshness profit blocker brief, ATTENTION_HIT progression, SIGNAL_EVAL
+  no-buy generation, and BUY-like progression into
+  `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET`. A
   `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` packet is the operator
   review route when recent BUY-like candidates are absent but attention rows
-  exist without terminal follow-up. It keeps DataFreshnessGuard/EntryDedup/live
+  exist without terminal follow-up. It includes
+  `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when recent `SIGNAL_EVAL` rows exist
+  but none are BUY-like. It keeps DataFreshnessGuard/EntryDedup/live
   policy, scheduler, orders, OCO, deploy, production env, and DB/grid/fund/
   Earn/Telegram/exchange mutation unauthorized.
 - 2026-06-23 read-only production no-buy/attention refresh for `BTCUSDT`
@@ -1445,9 +1461,25 @@
   `attention_hit_rows=173`, `no_terminal_followup_rows=173`,
   `filter_block_followup_rows=0`, `entry_skip_followup_rows=0`,
   `signal_buy_followup_rows=0`, and `autotrade_followup_rows=0`.
+  The follow-up `scripts/smoke_signal_eval_no_buy_generation_ssh.ps1` evidence
+  showed `signal_eval_rows=2797`, `buy_like_signal_eval_rows=0`,
+  `no_buy_signal_eval_rows=2797`, `hold_reason_rows=2797`,
+  `macro_or_unknown_strategy_rows=0`, and
+  `signal_eval_no_buy_generation_recommendation=NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES`.
+  The top strategy/interval rows were 1h strategy 488/508/548/563/566/574 at
+  207 rows each, all with `reason=HOLD` and no context side/signal.
   `attention_hit_progression_recommendation=ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`,
   while the BUY-like progression returned
   `buy_like_candidate_progression_recommendation=NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW`.
+  The consolidated no-buy attention-flow packet returned
+  `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`,
+  review items
+  `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW`,
+  `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`,
+  `SIGNAL_GENERATION_OR_ATTENTION_PIPELINE_REVIEW`, and
+  `NO_ATTENTION_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE`, with blockers
+  `NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW` and
+  `NO_RECENT_DATAFRESHNESS_ROWS`.
   The examples were `strategy=-1 interval=N/A` put/call-ratio WARN rows, so
   they are macro/watch-only attention warnings rather than strategy entry
   candidates. This routes the next read-only profit review toward signal

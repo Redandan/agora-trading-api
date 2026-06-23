@@ -1792,11 +1792,12 @@ Expected:
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits
   `signal_eval_no_buy_generation_recommendation`, `signal_eval_rows`,
-  `buy_like_signal_eval_rows`, reason-family distribution, strategy/interval
-  distribution, context-side distribution, and examples. A recommendation such
-  as `NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES` routes the review toward
-  signal-generation/no-condition evidence, not DataFreshnessGuard, EntryDedup,
-  strategy activation, or live execution changes.
+  `buy_like_signal_eval_rows`, v2 context coverage, hold-reason distribution,
+  strategy/interval distribution, threshold-gap distribution, context decision
+  distribution, and examples. A recommendation such as
+  `NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` routes the review
+  toward strategy threshold/no-condition evidence, not DataFreshnessGuard,
+  EntryDedup, strategy activation, or live execution changes.
 - Also run `.\scripts\smoke_buy_like_candidate_progression_ssh.ps1` for true
   BUY-like pre-terminal trading candidates, excluding watch-only
   `ATTENTION_HIT` rows and terminal `ENTRY_SKIP` rows. It emits
@@ -1815,7 +1816,8 @@ Expected:
   `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`. The packet also invokes the
   SIGNAL_EVAL no-buy generation smoke and includes
   `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when recent `SIGNAL_EVAL` rows exist
-  but none are BUY-like. The packet is review-only
+  but none are BUY-like, plus `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when
+  v2 context shows strategy threshold misses dominate. The packet is review-only
   and does not authorize DataFreshnessGuard or EntryDedup relaxation, live
   execution, scheduler enablement, orders, deploy, or production env changes.
 - If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,

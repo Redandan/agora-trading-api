@@ -1463,10 +1463,11 @@ When sample-gap RCA reports no recent BUY-like candidates, split recent
 
 This read-only production DB smoke emits
 `signal_eval_no_buy_generation_recommendation`, `signal_eval_rows`,
-`buy_like_signal_eval_rows`, reason-family distribution, strategy/interval
-distribution, context-side distribution, and examples. Recommendations such as
-`NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES` route the next review toward
-signal-generation/no-condition evidence instead of DataFreshnessGuard,
+`buy_like_signal_eval_rows`, v2 context coverage, hold-reason distribution,
+strategy/interval distribution, threshold-gap distribution, context decision
+distribution, and examples. Recommendations such as
+`NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` route the next review
+toward strategy threshold/no-condition evidence instead of DataFreshnessGuard,
 EntryDedup, strategy activation, or live execution changes.
 For true BUY-like pre-terminal trading candidates, excluding watch-only
 attention rows and terminal `ENTRY_SKIP` rows, run:
@@ -1498,7 +1499,9 @@ SIGNAL_EVAL no-buy generation smoke, and BUY-like progression smoke, then emits
 review why attention rows have no terminal trading follow-up, why `SIGNAL_EVAL`
 rows did not become BUY-like candidates, and why BUY-like candidates were not
 generated. The packet includes `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when
-recent `SIGNAL_EVAL` rows exist but none are BUY-like. It does not authorize
+recent `SIGNAL_EVAL` rows exist but none are BUY-like, plus
+`SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when the v2 context shows strategy
+threshold misses dominate. It does not authorize
 DataFreshnessGuard or
 EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
 production env changes.

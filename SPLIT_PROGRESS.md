@@ -1426,11 +1426,11 @@
   BUY-like candidates are found. It uses production MySQL `SELECT` queries
   against `bt_decision_audit` to emit
   `signal_eval_no_buy_generation_recommendation`, `signal_eval_rows`,
-  `buy_like_signal_eval_rows`, `no_buy_signal_eval_rows`, reason-family
-  distribution, strategy/interval distribution, context-side distribution, and
-  examples. Recommendations such as
-  `NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES` route review toward
-  signal-generation/no-condition evidence; they do not authorize
+  `buy_like_signal_eval_rows`, `no_buy_signal_eval_rows`, v2 context coverage,
+  hold-reason distribution, strategy/interval distribution, threshold-gap
+  distribution, context decision distribution, and examples. Recommendations
+  such as `NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` route review
+  toward strategy threshold/no-condition evidence; they do not authorize
   DataFreshnessGuard or EntryDedup relaxation, strategy activation, live
   execution, orders, scheduler enablement, deploy, production env changes, or
   DB/OCO/grid/fund/Earn/Telegram/exchange mutation.
@@ -1452,7 +1452,9 @@
   review route when recent BUY-like candidates are absent but attention rows
   exist without terminal follow-up. It includes
   `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when recent `SIGNAL_EVAL` rows exist
-  but none are BUY-like. It keeps DataFreshnessGuard/EntryDedup/live
+  but none are BUY-like, plus `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when
+  v2 context shows strategy threshold misses dominate. It keeps
+  DataFreshnessGuard/EntryDedup/live
   policy, scheduler, orders, OCO, deploy, production env, and DB/grid/fund/
   Earn/Telegram/exchange mutation unauthorized.
 - 2026-06-23 read-only production no-buy/attention refresh for `BTCUSDT`
@@ -1464,10 +1466,13 @@
   The follow-up `scripts/smoke_signal_eval_no_buy_generation_ssh.ps1` evidence
   showed `signal_eval_rows=2797`, `buy_like_signal_eval_rows=0`,
   `no_buy_signal_eval_rows=2797`, `hold_reason_rows=2797`,
-  `macro_or_unknown_strategy_rows=0`, and
-  `signal_eval_no_buy_generation_recommendation=NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES`.
-  The top strategy/interval rows were 1h strategy 488/508/548/563/566/574 at
-  207 rows each, all with `reason=HOLD` and no context side/signal.
+  `macro_or_unknown_strategy_rows=0`, `v2_context_rows=2797`,
+  `strategy_decision_context_rows=2268`, `execution_hold_rows=2797`, and
+  `signal_eval_no_buy_generation_recommendation=NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT`.
+  The top threshold gaps showed strategy 574 / 1h
+  `market_entropy_index` at 69 versus buy threshold 70 (gap 1), ETF pressure
+  strategies at 51 versus threshold 60 (gap 9), and SQI strategies at 0 versus
+  thresholds 30 or 40.
   `attention_hit_progression_recommendation=ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`,
   while the BUY-like progression returned
   `buy_like_candidate_progression_recommendation=NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW`.
@@ -1475,6 +1480,7 @@
   `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`,
   review items
   `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW`,
+  `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT`,
   `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`,
   `SIGNAL_GENERATION_OR_ATTENTION_PIPELINE_REVIEW`, and
   `NO_ATTENTION_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE`, with blockers
@@ -1483,8 +1489,9 @@
   The examples were `strategy=-1 interval=N/A` put/call-ratio WARN rows, so
   they are macro/watch-only attention warnings rather than strategy entry
   candidates. This routes the next read-only profit review toward signal
-  generation and attention-to-terminal mapping before any DataFreshness,
-  EntryDedup, or live policy experiment.
+  generation threshold-gap review, especially near-threshold strategy 574,
+  and attention-to-terminal mapping before any DataFreshness, EntryDedup,
+  strategy activation, threshold change, or live policy experiment.
 - `scripts/smoke_strategy508_entry_dedup_exposure_ssh.ps1` is the follow-up
   read-only RCA for that strategy 508 / 1h EntryDedup lane. It combines
   server-local MCP `getEntryDedupGovernanceDashboard` and

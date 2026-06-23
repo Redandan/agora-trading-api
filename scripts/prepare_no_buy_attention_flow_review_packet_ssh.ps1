@@ -150,6 +150,9 @@ $signalEvalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNo
 $signalEvalBuyLikeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  buy_like_signal_eval_rows=")
 $signalEvalNoBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  no_buy_signal_eval_rows=")
 $signalEvalHoldReasonRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  hold_reason_rows=")
+$signalEvalV2ContextRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  v2_context_rows=")
+$signalEvalStrategyDecisionContextRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  strategy_decision_context_rows=")
+$signalEvalExecutionHoldRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  execution_hold_rows=")
 $signalEvalMacroRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  macro_or_unknown_strategy_rows=")
 
 $buyLikeRecommendation = Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  buy_like_candidate_progression_recommendation="
@@ -176,6 +179,10 @@ if ($buyLikeRows -eq 0) {
 if ($signalEvalRows -gt 0 -and $signalEvalBuyLikeRows -eq 0) {
     Add-Unique -List $reviewItems -Value "SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW"
     Add-Unique -List $requiredEvidence -Value "signal-eval reason/context distribution must explain why no BUY-like candidates were generated"
+}
+if ($signalEvalNoBuyRecommendation -eq "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT") {
+    Add-Unique -List $reviewItems -Value "SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT"
+    Add-Unique -List $requiredEvidence -Value "strategy threshold gap evidence must be reviewed before strategy-threshold or activation changes"
 }
 if ($signalEvalRows -eq 0) {
     Add-Unique -List $blockers -Value "NO_SIGNAL_EVAL_IN_REVIEW_WINDOW"
@@ -206,7 +213,9 @@ $status = if ($profitBlocker.ExitCode -ne 0 -or $attention.ExitCode -ne 0 -or $s
     "NO_ATTENTION_OR_BUY_LIKE_FLOW_EVIDENCE"
 }
 
-$nextAction = if ($status -eq "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE") {
+$nextAction = if ($signalEvalNoBuyRecommendation -eq "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT") {
+    "Review strategy threshold gap evidence, especially near-threshold strategies, before any strategy-threshold, DataFreshnessGuard, EntryDedup, or live policy change."
+} elseif ($status -eq "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE") {
     "Review why ATTENTION_HIT rows are macro/non-strategy rows with no terminal follow-up and why no BUY-like candidates were generated; do not relax DataFreshnessGuard, EntryDedup, or live policy from this packet."
 } elseif ($status -eq "PENDING_BUY_LIKE_CANDIDATES") {
     "Wait for fresh BUY-like candidates or inspect signal-generation thresholds before any entry/filter policy experiment."
@@ -244,6 +253,9 @@ $packet = [pscustomobject]@{
         buyLikeSignalEvalRows = $signalEvalBuyLikeRows
         noBuySignalEvalRows = $signalEvalNoBuyRows
         holdReasonRows = $signalEvalHoldReasonRows
+        v2ContextRows = $signalEvalV2ContextRows
+        strategyDecisionContextRows = $signalEvalStrategyDecisionContextRows
+        executionHoldRows = $signalEvalExecutionHoldRows
         macroOrUnknownStrategyRows = $signalEvalMacroRows
     }
     buyLikeFlow = [pscustomobject]@{
@@ -293,6 +305,9 @@ Write-Host "signal_eval_rows=$signalEvalRows"
 Write-Host "signal_eval_buy_like_rows=$signalEvalBuyLikeRows"
 Write-Host "signal_eval_no_buy_rows=$signalEvalNoBuyRows"
 Write-Host "signal_eval_hold_reason_rows=$signalEvalHoldReasonRows"
+Write-Host "signal_eval_v2_context_rows=$signalEvalV2ContextRows"
+Write-Host "signal_eval_strategy_decision_context_rows=$signalEvalStrategyDecisionContextRows"
+Write-Host "signal_eval_execution_hold_rows=$signalEvalExecutionHoldRows"
 Write-Host "signal_eval_macro_or_unknown_strategy_rows=$signalEvalMacroRows"
 Write-Host "buy_like_candidate_progression_recommendation=$buyLikeRecommendation"
 Write-Host "buy_like_candidate_rows=$buyLikeRows"

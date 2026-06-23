@@ -833,22 +833,30 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`.
   In the 7-day BTCUSDT window, `signal_eval_rows=2797`,
   `signal_eval_buy_like_rows=0`, `signal_eval_no_buy_rows=2797`,
-  `signal_eval_hold_reason_rows=2797`, and
-  `signal_eval_no_buy_generation_recommendation=NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES`.
+  `signal_eval_hold_reason_rows=2797`, `signal_eval_v2_context_rows=2797`,
+  `signal_eval_strategy_decision_context_rows=2268`,
+  `signal_eval_execution_hold_rows=2797`, and
+  `signal_eval_no_buy_generation_recommendation=NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT`.
+  The supporting threshold-gap evidence showed strategy 574 / 1h
+  `market_entropy_index` at 69 versus buy threshold 70 (gap 1), ETF pressure
+  strategies at 51 versus threshold 60 (gap 9), and SQI strategies at 0 versus
+  thresholds 30 or 40.
   The same packet reported `sample_gap_buy_like_rows_7d_review=0`,
-  `sample_gap_attention_hit_rows_7d_review=173`,
+  `sample_gap_attention_hit_rows_7d_review=174`,
   `sample_gap_data_freshness_rows_7d_review=0`,
-  `attention_hit_rows=173`, `attention_no_terminal_followup_rows=173`, and
+  `attention_hit_rows=174`, `attention_no_terminal_followup_rows=174`, and
   `buy_like_candidate_rows=0`. Review items are
   `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW`,
+  `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT`,
   `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`,
   `SIGNAL_GENERATION_OR_ATTENTION_PIPELINE_REVIEW`, and
   `NO_ATTENTION_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE`; blockers remain
   `NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW` and
   `NO_RECENT_DATAFRESHNESS_ROWS`. Treat this as evidence to review signal
-  generation and attention-to-terminal mapping; it is not authorization to
-  relax DataFreshnessGuard or EntryDedup, enable live trading/scheduler,
-  place orders, modify OCO, deploy, change production env, or mutate
+  generation threshold gaps and attention-to-terminal mapping; it is not
+  authorization to relax DataFreshnessGuard or EntryDedup, change strategy
+  thresholds/activation, enable live trading/scheduler, place orders, modify
+  OCO, deploy, change production env, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
 - Profit live blocker audit packet is read-only. Run
   `.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady`

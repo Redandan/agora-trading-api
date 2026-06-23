@@ -62,12 +62,18 @@ foreach ($marker in @(
         "buy_like_signal_eval_rows",
         "no_buy_signal_eval_rows",
         "hold_reason_rows",
+        "v2_context_rows",
+        "strategy_decision_context_rows",
+        "execution_hold_rows",
         "macro_or_unknown_strategy_rows",
         "signal_eval_reason_family_distribution",
+        "signal_eval_hold_reason_distribution",
         "signal_eval_strategy_distribution",
+        "signal_eval_threshold_gap_distribution",
         "signal_eval_context_side_distribution",
         "signal_eval_no_buy_generation_recommendation",
         "NO_SIGNAL_EVAL_IN_REVIEW_WINDOW",
+        "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT",
         "NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES",
         "NO_BUY_LIKE_SIGNAL_EVAL_MACRO_OR_UNKNOWN_DOMINATES",
         "NO_BUY_LIKE_SIGNAL_EVAL_MIXED_REVIEW",
@@ -101,7 +107,7 @@ foreach ($forbidden in @(
 foreach ($marker in @(
         "smoke_signal_eval_no_buy_generation_ssh.ps1",
         "signal_eval_no_buy_generation_recommendation",
-        "NO_BUY_LIKE_SIGNAL_EVAL_HOLD_OR_WAIT_DOMINATES",
+        "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT",
         "SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW",
         "does not authorize live trading"
     )) {

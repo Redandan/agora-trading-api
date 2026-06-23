@@ -919,10 +919,11 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `profit_live_blocker_audit_packet`,
   `profit_live_blocker_audit_status`, and
   `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`. It audits
-  profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
-  semantics, DataFreshness replay blocker, DataFreshness collector activation,
-  TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
-  relaxation lanes; missing or stale source logs remain blockers. If the
+  profit-priority, trailing dry-run, strategy485 risk reduction, strategy485
+  risk escalation, EntryDedup semantics, DataFreshness replay blocker,
+  DataFreshness collector activation, TP/SL/OCO feasibility,
+  strategy574/TinyLive governance, and governance relaxation lanes; missing or
+  stale source logs remain blockers. If the
   governance relaxation preflight packet is absent, the audit falls back to the
   source governance relaxation review packet and keeps `NO_EVIDENCE` as
   blocker evidence. This is not authorization to enable live trading, execute

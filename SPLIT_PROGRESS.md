@@ -363,10 +363,11 @@
   profit-review logs and emits `PROFIT_LIVE_BLOCKER_AUDIT_PACKET`,
   `profit_live_blocker_audit_packet`, `profit_live_blocker_audit_status`, and
   `liveReadinessConclusion=NOT_READY_FOR_LIVE_ENABLEMENT`. It audits
-  profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
-  semantics, DataFreshness replay blocker, DataFreshness collector activation,
-  TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
-  relaxation lanes. Missing or stale logs are blockers, not passes. If the
+  profit-priority, trailing dry-run, strategy485 risk reduction, strategy485
+  risk escalation, EntryDedup semantics, DataFreshness replay blocker,
+  DataFreshness collector activation, TP/SL/OCO feasibility,
+  strategy574/TinyLive governance, and governance relaxation lanes. Missing or
+  stale logs are blockers, not passes. If the
   governance relaxation preflight packet is absent, it falls back to the source
   governance relaxation review packet and keeps `NO_EVIDENCE` as blocker
   evidence. The audit

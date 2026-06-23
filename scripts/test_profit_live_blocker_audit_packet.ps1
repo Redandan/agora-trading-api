@@ -30,6 +30,11 @@ foreach ($marker in @(
         "profit_live_blocker_audit_packet",
         "profit_live_blocker_audit_status",
         "GovernanceRelaxationReviewLogPath",
+        "Strategy485RiskEscalationLogPath",
+        "strategy485-risk-escalation",
+        "strategy485_risk_escalation_brief_status=",
+        "strategy485_risk_escalation_brief_packet=",
+        "READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION",
         "sourceFallback",
         "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
         "tiny_live_order_allowed=false",
@@ -76,6 +81,7 @@ try {
     $priority = Write-PacketLog -Name "priority.log" -StatusPrefix "profit_operator_priority_decision_brief_status=" -Status "READY_FOR_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "profit_operator_priority_decision_brief_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review ranked operator decisions." })
     $trailing = Write-PacketLog -Name "trailing.log" -StatusPrefix "trailing_stop_dry_run_operator_decision_status=" -Status "READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "trailing_stop_dry_run_operator_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review dry-run trailing." })
     $strategy485 = Write-PacketLog -Name "strategy485.log" -StatusPrefix "strategy485_risk_reduction_operator_decision_status=" -Status "READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION" -PacketPrefix "strategy485_risk_reduction_operator_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review shadow risk reduction." })
+    $strategy485Escalation = Write-PacketLog -Name "strategy485-escalation.log" -StatusPrefix "strategy485_risk_escalation_brief_status=" -Status "READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION" -PacketPrefix "strategy485_risk_escalation_brief_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review severe paper-loss strategy485 risk." })
     $entryDedup = Write-PacketLog -Name "entry.log" -StatusPrefix "entry_dedup_semantics_operator_decision_status=" -Status "READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "entry_dedup_semantics_operator_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review EntryDedup semantics shadow." })
     $dfBlocker = Write-PacketLog -Name "df-blocker.log" -StatusPrefix "data_freshness_replay_blocker_decision_status=" -Status "READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "data_freshness_replay_blocker_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @("complete_replayable_candidate_rows=0"); nextAction = "Wait for replayable rows." })
     $dfCollector = Write-PacketLog -Name "df-collector.log" -StatusPrefix "data_freshness_collector_activation_status=" -Status "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "data_freshness_collector_activation_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review evidence-only collector activation." })
@@ -95,6 +101,7 @@ try {
             -PriorityDecisionLogPath $priority `
             -TrailingDryRunLogPath $trailing `
             -Strategy485RiskLogPath $strategy485 `
+            -Strategy485RiskEscalationLogPath $strategy485Escalation `
             -EntryDedupLogPath $entryDedup `
             -DataFreshnessReplayBlockerLogPath $dfBlocker `
             -DataFreshnessCollectorLogPath $dfCollector `
@@ -112,17 +119,19 @@ try {
         throw "profit live blocker audit failed temp-log reuse:`n$text"
     }
     foreach ($marker in @(
-            "profit_live_blocker_audit_lane_count=9",
-            "profit_live_blocker_ready_review_count=8",
+            "profit_live_blocker_audit_lane_count=10",
+            "profit_live_blocker_ready_review_count=9",
             "profit_live_blocker_missing_evidence_count=0",
             "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
             "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
             '"packetType":"PROFIT_LIVE_BLOCKER_AUDIT_PACKET"',
             '"liveReadinessConclusion":"NOT_READY_FOR_LIVE_ENABLEMENT"',
+            '"lane":"strategy485-risk-escalation"',
+            '"sourceStatus":"READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION"',
             '"lane":"data-freshness-replay-blocker"',
             '"lane":"strategy574-tiny-live-governance"',
             '"lane":"governance-relaxation"',
-            '"readyReviewCount":8',
+            '"readyReviewCount":9',
             '"sourceFallback":"governance_relaxation_review_packet"',
             '"sourceStatus":"NO_EVIDENCE"',
             '"classification":"BLOCKED_REVIEW_ONLY"',

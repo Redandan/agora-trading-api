@@ -24,6 +24,7 @@ $docsText = @(
 foreach ($marker in @(
         "[strategy574-tiny-live-governance-operator-packet] read-only packet",
         "scope=READ_ONLY",
+        "NearThresholdShadowObservationLogPath",
         "STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_PACKET",
         "READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE",
         "PREPARE_STRATEGY574_TINY_LIVE_GOVERNANCE_REVIEW",
@@ -38,6 +39,8 @@ foreach ($marker in @(
         "order_allowed=false",
         "telegram_send_allowed=false",
         "position_or_oco_mutation_allowed=false",
+        "strategy574_near_threshold_shadow_recommendation",
+        "strategy574_near_threshold_threshold_relaxation_allowed=false",
         "notAuthorization=read-only strategy574/TinyLive governance operator packet only",
         "RequireReady"
     )) {
@@ -58,6 +61,7 @@ $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("strategy574-tiny-live-p
 New-Item -ItemType Directory -Path $tempDir | Out-Null
 $strategyLog = Join-Path $tempDir "strategy574-gate.log"
 $tinyLog = Join-Path $tempDir "tiny-live-loss-rca.log"
+$nearThresholdLog = Join-Path $tempDir "strategy574-near-threshold-shadow.log"
 try {
     Set-Content -LiteralPath $strategyLog -Encoding UTF8 -Value @(
         "[strategy574-signal-review-gate] read-only evidence gate",
@@ -103,6 +107,22 @@ try {
         "  recommendedFix=Review near-threshold/no-buy candidates with high 1h forward return.",
         "[tiny-live-loss-rca] OK read-only check complete"
     )
+    Set-Content -LiteralPath $nearThresholdLog -Encoding UTF8 -Value @(
+        "[strategy574-near-threshold-shadow-observation] read-only production DB smoke",
+        "scope=READ_ONLY",
+        "near_threshold_rows=30",
+        "reviewable_forward_rows=30",
+        "false_positive_rows=28",
+        "false_positive_rate_pct=93.33",
+        "avg_forward_return_pct=-2.0671",
+        "tp_hit_rows=8",
+        "sl_hit_rows=22",
+        "ambiguous_same_bar_rows=0",
+        "avg_net_return_pct=-0.6667",
+        "oco_preflight_status=REVIEW_REQUIRED_TP_SL_PROXY_AVAILABLE",
+        "strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
+        "notAuthorization=read-only evidence only"
+    )
 
     $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
     if ($null -eq $powerShell) {
@@ -115,7 +135,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Strategy574GateLogPath $strategyLog -TinyLiveLossRcaLogPath $tinyLog -RequireReady 2>&1
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -Strategy574GateLogPath $strategyLog -TinyLiveLossRcaLogPath $tinyLog -NearThresholdShadowObservationLogPath $nearThresholdLog -RequireReady 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -137,8 +157,15 @@ try {
             "tiny_live_completed_samples=2",
             "tiny_live_false_positive_count=2",
             "missed_opportunity_status=WARN",
+            "source_strategy574_near_threshold_shadow_observation_log_freshness=FRESH",
+            "strategy574_near_threshold_evidence_status=FRESH",
+            "strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
+            "strategy574_near_threshold_false_positive_rate_pct=93.33",
+            "strategy574_near_threshold_avg_forward_return_pct=-2.0671",
+            "strategy574_near_threshold_avg_net_return_pct=-0.6667",
+            "strategy574_near_threshold_threshold_relaxation_allowed=false",
             "strategy574_tiny_live_primary_decision=PREPARE_STRATEGY574_TINY_LIVE_GOVERNANCE_REVIEW",
-            "strategy574_tiny_live_risk_posture=BLOCKED_FIX_CURRENT_DATA_FRESHNESS",
+            "strategy574_tiny_live_risk_posture=BLOCKED_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
             "strategy574_tiny_live_governance_review_allowed=true",
             "tiny_live_order_allowed=false",
             "live_policy_change_allowed=false",
@@ -149,7 +176,9 @@ try {
             "position_or_oco_mutation_allowed=false",
             "strategy574_tiny_live_governance_status=READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE",
             '"packetType":"STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_PACKET"',
-            '"riskPosture":"BLOCKED_FIX_CURRENT_DATA_FRESHNESS"',
+            '"riskPosture":"BLOCKED_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH"',
+            '"nearThresholdShadowObservationEvidence"',
+            '"thresholdRelaxationAllowed":false',
             '"canEnableProduction":"false"',
             "notAuthorization=read-only strategy574/TinyLive governance operator packet only"
         )) {

@@ -2,6 +2,7 @@ param(
     [string]$ReviewOutputDir = "target/profit-review",
     [string]$Strategy574GateLogPath = "target/profit-review/strategy574-signal-review-gate-refresh.log",
     [string]$TinyLiveLossRcaLogPath = "target/profit-review/tiny-live-loss-rca-refresh.log",
+    [string]$NearThresholdShadowObservationLogPath = "target/profit-review/strategy574-near-threshold-shadow-observation-latest.log",
     [int]$MaxAgeMinutes = 180,
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 485,
@@ -82,6 +83,7 @@ $priorityResult = Invoke-LocalPacket -ScriptPath $priorityScript -Arguments @(
 $strategy574Result = Invoke-LocalPacket -ScriptPath $strategy574Script -Arguments @(
     "-Strategy574GateLogPath", $Strategy574GateLogPath,
     "-TinyLiveLossRcaLogPath", $TinyLiveLossRcaLogPath,
+    "-NearThresholdShadowObservationLogPath", $NearThresholdShadowObservationLogPath,
     "-MaxAgeMinutes", "$MaxAgeMinutes",
     "-Symbol", $Symbol,
     "-StrategyId", "$Strategy574Id",
@@ -116,6 +118,8 @@ $rankedProfitItems = if ($null -ne $priorityPacket) { @($priorityPacket.rankedRe
 $blockedPolicyLanes = if ($null -ne $priorityPacket) { @($priorityPacket.blockedPolicyLanes) } else { @() }
 $strategy574RiskPosture = if ($null -ne $strategy574Packet) { [string]$strategy574Packet.riskPosture } else { "" }
 $strategy574Status = if ($null -ne $strategy574Packet) { [string]$strategy574Packet.status } else { "" }
+$strategy574NearThresholdRecommendation = if ($null -ne $strategy574Packet) { [string]$strategy574Packet.nearThresholdShadowObservationEvidence.recommendation } else { "" }
+$strategy574NearThresholdFalsePositiveRatePct = if ($null -ne $strategy574Packet) { [string]$strategy574Packet.nearThresholdShadowObservationEvidence.falsePositiveRatePct } else { "" }
 
 $strategy574BoardItem = [pscustomobject]@{
     rank = 4
@@ -125,13 +129,17 @@ $strategy574BoardItem = [pscustomobject]@{
     priorityClass = "P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE"
     sourcePacketStatus = $strategy574Status
     riskPosture = $strategy574RiskPosture
+    nearThresholdRecommendation = $strategy574NearThresholdRecommendation
+    nearThresholdFalsePositiveRatePct = $strategy574NearThresholdFalsePositiveRatePct
+    thresholdRelaxationAllowed = $false
     evidenceStrength = "fresh_strategy574_and_tiny_live_read_only_packet"
-    riskReason = "near-BUY/governance evidence remains blocked by DataFreshness or TinyLive rollout/execution gates; review only, no live enablement"
+    riskReason = if ($strategy574NearThresholdRecommendation -eq "STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH") { "near-threshold forward/TP-SL proxy evidence is negative; do not relax strategy574 threshold in this window" } else { "near-BUY/governance evidence remains blocked by DataFreshness or TinyLive rollout/execution gates; review only, no live enablement" }
     requiredBeforeDecision = @(
         "attach strategy574_tiny_live_governance_operator_packet",
         "confirm DataFreshness current snapshot is clean",
         "confirm current BUY candidate, OCO preflight, and EV pass sample",
         "confirm TinyLive rollout canEnableProduction and false-positive gates before any future live plan"
+        "confirm near-threshold shadow observation is not high false-positive risk before any threshold relaxation review"
     )
     forbiddenFromThisBoard = @(
         "execute TinyLive orders",
@@ -207,6 +215,9 @@ Write-Host "source_priority_packet=prepare_profit_operator_priority_decision_bri
 Write-Host "source_strategy574_tiny_live_packet=prepare_strategy574_tiny_live_governance_operator_packet.ps1 exitCode=$($strategy574Result.ExitCode)"
 Write-Host "profit_operator_next_action_primary_focus=$primaryFocus"
 Write-Host "strategy574_tiny_live_risk_posture=$strategy574RiskPosture"
+Write-Host "strategy574_near_threshold_shadow_recommendation=$strategy574NearThresholdRecommendation"
+Write-Host "strategy574_near_threshold_false_positive_rate_pct=$strategy574NearThresholdFalsePositiveRatePct"
+Write-Host "strategy574_threshold_relaxation_allowed=false"
 Write-Host ("profit_operator_next_action_ranked_profit_items=" + (ConvertTo-Json -Compress -Depth 10 @($rankedProfitItems)))
 Write-Host ("profit_operator_next_action_strategy574_tiny_live_item=" + (ConvertTo-Json -Compress -Depth 8 $strategy574BoardItem))
 Write-Host ("profit_operator_next_action_blocked_policy_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($blockedPolicyLanes)))

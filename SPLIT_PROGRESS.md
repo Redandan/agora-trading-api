@@ -312,23 +312,33 @@
   execution, EntryDedup/DataFreshness relaxation, deploy, restart, or live
   policy changes.
 - `scripts/prepare_strategy574_tiny_live_governance_operator_packet.ps1` wraps
-  refreshed strategy 574 signal gate and TinyLive loss RCA logs into a reusable
+  refreshed strategy 574 signal gate, TinyLive loss RCA, and optional
+  strategy574 near-threshold shadow observation logs into a reusable
   `STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_PACKET`. It emits
   `strategy574_tiny_live_governance_operator_packet`,
   `strategy574_tiny_live_governance_status`,
-  `strategy574_tiny_live_risk_posture`, and hard false markers for
+  `strategy574_tiny_live_risk_posture`,
+  `strategy574_near_threshold_shadow_recommendation`,
+  `strategy574_near_threshold_false_positive_rate_pct`,
+  `strategy574_near_threshold_avg_net_return_pct`,
+  `strategy574_near_threshold_threshold_relaxation_allowed=false`, and hard false markers for
   `tiny_live_order_allowed`, `live_policy_change_allowed`,
   `scheduler_enablement_allowed`, `deploy_or_env_change_allowed`,
   `order_allowed`, `telegram_send_allowed`, and
   `position_or_oco_mutation_allowed`. A
   `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` packet
   means the evidence can be reviewed; it is not live/TinyLive approval.
+  When the near-threshold observation returns
+  `STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`, the packet classifies
+  `strategy574_tiny_live_risk_posture=BLOCKED_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`
+  so operator routing does not treat threshold relaxation as a ready lane.
 - `scripts/prepare_strategy574_tiny_live_governance_preflight_review_packet.ps1`
   wraps the local strategy574/TinyLive governance operator packet into
   `STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_PACKET`. It emits
   `strategy574_tiny_live_governance_preflight_review_packet`,
   `strategy574_tiny_live_governance_preflight_status`, and
   `strategy574_tiny_live_preflight_decision`. It keeps
+  `strategy574_threshold_relaxation_allowed=false`,
   `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
   `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
   `order_allowed=false`, `telegram_send_allowed=false`,

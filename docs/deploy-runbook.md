@@ -763,6 +763,7 @@ the source logs:
 New-Item -ItemType Directory -Force target/profit-review | Out-Null
 .\scripts\prepare_strategy574_signal_review_gate_ssh.ps1 *> target/profit-review/strategy574-signal-review-gate-refresh.log
 .\scripts\smoke_tiny_live_loss_rca_ssh.ps1 *> target/profit-review/tiny-live-loss-rca-refresh.log
+.\scripts\smoke_strategy574_near_threshold_shadow_observation_ssh.ps1 *> target/profit-review/strategy574-near-threshold-shadow-observation-latest.log
 .\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1
 ```
 
@@ -774,8 +775,13 @@ Expected:
   `strategy574_tiny_live_governance_status`,
   `strategy574_tiny_live_risk_posture`, `tiny_live_order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
-  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
-  `telegram_send_allowed=false`.
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`,
+  `strategy574_near_threshold_shadow_recommendation`, and
+  `strategy574_near_threshold_threshold_relaxation_allowed=false`.
+- If the near-threshold observation reports
+  `STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`, treat it as negative
+  evidence for threshold relaxation in the current window.
 - `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` means
   evidence is ready for review, not that TinyLive/live execution is ready.
 
@@ -798,7 +804,9 @@ Expected:
   `strategy574_tiny_live_preflight_decision=PREPARE_REVIEW_ONLY_STRATEGY574_TINY_LIVE_GOVERNANCE_REVIEW`,
   `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
   `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
-  `order_allowed=false`, and `telegram_send_allowed=false`.
+  `order_allowed=false`, `telegram_send_allowed=false`,
+  `strategy574_near_threshold_shadow_recommendation`, and
+  `strategy574_threshold_relaxation_allowed=false`.
 - `STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_PACKET` is review evidence
   only. It does not authorize TinyLive execution, live trading, scheduler
   enablement, orders, OCO, Telegram, deploy, production env changes,

@@ -30,6 +30,7 @@ foreach ($marker in @(
         "scope=READ_ONLY",
         "prepare_profit_operator_priority_decision_brief.ps1",
         "prepare_strategy574_tiny_live_governance_operator_packet.ps1",
+        "NearThresholdShadowObservationLogPath",
         "PROFIT_OPERATOR_NEXT_ACTION_BOARD",
         "READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE",
         "profit_operator_next_action_board_packet",
@@ -37,6 +38,7 @@ foreach ($marker in @(
         "strategy574-tiny-live-governance-review",
         "P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE",
         "strategy574/TinyLive governance blocker review",
+        "strategy574_threshold_relaxation_allowed=false",
         "tiny_live_order_allowed=false",
         "live_policy_change_allowed=false",
         "scheduler_enablement_allowed=false",
@@ -70,6 +72,7 @@ $tempMatrixPath = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-acti
 $tempReviewDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-review-" + [guid]::NewGuid().ToString("N"))
 $tempStrategyLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-strategy574-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempTinyLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-tiny-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempNearThresholdLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-strategy574-near-threshold-" + [guid]::NewGuid().ToString("N") + ".log")
 try {
     $matrixPacket = [pscustomobject]@{
         reviewItems = @(
@@ -154,6 +157,22 @@ try {
         "  recommendedFix=Review near-threshold/no-buy candidates with high 1h forward return.",
         "[tiny-live-loss-rca] OK read-only check complete"
     )
+    Set-Content -LiteralPath $tempNearThresholdLog -Encoding UTF8 -Value @(
+        "[strategy574-near-threshold-shadow-observation] read-only production DB smoke",
+        "scope=READ_ONLY",
+        "near_threshold_rows=30",
+        "reviewable_forward_rows=30",
+        "false_positive_rows=28",
+        "false_positive_rate_pct=93.33",
+        "avg_forward_return_pct=-2.0671",
+        "tp_hit_rows=8",
+        "sl_hit_rows=22",
+        "ambiguous_same_bar_rows=0",
+        "avg_net_return_pct=-0.6667",
+        "oco_preflight_status=REVIEW_REQUIRED_TP_SL_PROXY_AVAILABLE",
+        "strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
+        "notAuthorization=read-only evidence only"
+    )
 
     $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
     if ($null -eq $powerShell) {
@@ -166,7 +185,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -Strategy574GateLogPath $tempStrategyLog -TinyLiveLossRcaLogPath $tempTinyLog -ReviewNotionalCapUsdt 15 -ObservationHours 48 -RequireReady 2>&1
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -Strategy574GateLogPath $tempStrategyLog -TinyLiveLossRcaLogPath $tempTinyLog -NearThresholdShadowObservationLogPath $tempNearThresholdLog -ReviewNotionalCapUsdt 15 -ObservationHours 48 -RequireReady 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -177,11 +196,16 @@ try {
     }
     foreach ($marker in @(
             "profit_operator_next_action_primary_focus=trailing-stop-dry-run-operator-review",
-            "strategy574_tiny_live_risk_posture=BLOCKED_FIX_CURRENT_DATA_FRESHNESS",
+            "strategy574_tiny_live_risk_posture=BLOCKED_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
+            "strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
+            "strategy574_near_threshold_false_positive_rate_pct=93.33",
+            "strategy574_threshold_relaxation_allowed=false",
             "profit_operator_next_action_board_status=READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE",
             '"packetType":"PROFIT_OPERATOR_NEXT_ACTION_BOARD"',
             '"proposalId":"strategy574-tiny-live-governance-review"',
             '"priorityClass":"P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE"',
+            '"nearThresholdRecommendation":"STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH"',
+            '"thresholdRelaxationAllowed":false',
             '"operatorDecisionOrder":["1. trailing-stop dry-run review","2. strategy485 risk-reduction shadow review","3. EntryDedup semantics shadow review","4. strategy574/TinyLive governance blocker review"]',
             '"sourceStrategy574TinyLivePacketStatus":"READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE"',
             "tiny_live_order_allowed=false",
@@ -198,7 +222,7 @@ try {
         throw "profit operator next action board unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 } finally {
-    foreach ($path in @($tempMatrixPath, $tempStrategyLog, $tempTinyLog)) {
+    foreach ($path in @($tempMatrixPath, $tempStrategyLog, $tempTinyLog, $tempNearThresholdLog)) {
         if (Test-Path -LiteralPath $path) {
             Remove-Item -LiteralPath $path -Force
         }

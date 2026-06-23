@@ -786,10 +786,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `completedTinyLiveSamples=2`, `falsePositiveCount=2`, and
   `rolloutBlockers=[LOOP_NOT_READY:WAIT_SIGNAL_BUY, READY_TICKS_LT_3, NO_CURRENT_BUY_CANDIDATE, COMPLETED_TINY_LIVE_SAMPLES_LT_3, FALSE_POSITIVE_COUNT_GT_1]`.
   Use `.\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1`
-  after saving those logs to emit
+  after saving those logs, plus the optional
+  `target\profit-review\strategy574-near-threshold-shadow-observation-latest.log`
+  when threshold relaxation is under review, to emit
   `strategy574_tiny_live_governance_operator_packet`. This packet is operator
   review evidence only and keeps live/TinyLive/order/scheduler/env/Telegram
-  authorization markers false.
+  authorization markers false. If the near-threshold observation is present and
+  reports `STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`, the packet
+  surfaces `strategy574_tiny_live_risk_posture=BLOCKED_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`
+  and `strategy574_near_threshold_threshold_relaxation_allowed=false`.
 - Strategy574/TinyLive governance preflight review packet is read-only. Run
   `.\scripts\prepare_strategy574_tiny_live_governance_preflight_review_packet.ps1 -RequireReady`
   after the governance operator packet source logs are saved. It emits
@@ -802,14 +807,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   change production env, relax EntryDedup/DataFreshness/live policy, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
 - Profit operator next-action board now combines the priority decision brief
-  with the strategy574/TinyLive governance packet. Run
+  with the strategy574/TinyLive governance packet, including saved
+  near-threshold shadow observation evidence when present. Run
   `.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady` after
   refreshing the source evidence. A `PROFIT_OPERATOR_NEXT_ACTION_BOARD` with
   `READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` ranks review work as
   trailing-stop dry-run, strategy485 risk-reduction shadow, EntryDedup
   semantics shadow, then strategy574/TinyLive governance blocker. It is not
   live approval and keeps live/TinyLive/order/scheduler/env/Telegram
-  authorization markers false.
+  authorization markers false, including
+  `strategy574_threshold_relaxation_allowed=false`.
 - Latest local read-only profit operator next-action board on
   2026-06-23T12:26+08:00 ran
   `.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady`

@@ -1,6 +1,7 @@
 param(
     [string]$Strategy574GateLogPath = "target/profit-review/strategy574-signal-review-gate-refresh.log",
     [string]$TinyLiveLossRcaLogPath = "target/profit-review/tiny-live-loss-rca-refresh.log",
+    [string]$NearThresholdShadowObservationLogPath = "target/profit-review/strategy574-near-threshold-shadow-observation-latest.log",
     [int]$MaxAgeMinutes = 180,
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 574,
@@ -13,9 +14,15 @@ $ErrorActionPreference = "Stop"
 
 function Get-LastPrefixedValue {
     param([string]$Text, [string]$Prefix)
-    $line = @($Text -split "`r?`n" | Where-Object { $_.StartsWith($Prefix) } | Select-Object -Last 1)
+    $line = @($Text -split "`r?`n" | Where-Object {
+            $_.StartsWith($Prefix) -or $_.TrimStart().StartsWith($Prefix)
+        } | Select-Object -Last 1)
     if (-not $line) { return "" }
-    return $line.Substring($Prefix.Length).Trim()
+    $valueLine = [string]$line
+    if (-not $valueLine.StartsWith($Prefix)) {
+        $valueLine = $valueLine.TrimStart()
+    }
+    return $valueLine.Substring($Prefix.Length).Trim()
 }
 
 function Get-LastRegexValue {
@@ -81,6 +88,11 @@ if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be b
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $strategyLog = Get-LogTextAndFreshness -PathValue $Strategy574GateLogPath -Label "Strategy574 gate"
 $tinyLog = Get-LogTextAndFreshness -PathValue $TinyLiveLossRcaLogPath -Label "TinyLive loss RCA"
+$nearThresholdLog = $null
+$nearThresholdResolvedPath = Resolve-RepoPath -PathValue $NearThresholdShadowObservationLogPath
+if (Test-Path -LiteralPath $nearThresholdResolvedPath) {
+    $nearThresholdLog = Get-LogTextAndFreshness -PathValue $NearThresholdShadowObservationLogPath -Label "Strategy574 near-threshold shadow observation"
+}
 
 $strategyGateStatus = Get-LastPrefixedValue -Text $strategyLog.Text -Prefix "strategy574_signal_review_gate_status="
 $strategyNextAction = Get-LastPrefixedValue -Text $strategyLog.Text -Prefix "strategy574_signal_review_next_action="
@@ -119,6 +131,32 @@ $suspiciousNoBuyCount = Get-LastPrefixedValue -Text $tinyLog.Text -Prefix "  sus
 $falseBlockRiskCount = Get-LastPrefixedValue -Text $tinyLog.Text -Prefix "  falseBlockRiskCount="
 $recommendedFix = Get-LastPrefixedValue -Text $tinyLog.Text -Prefix "  recommendedFix="
 
+$nearThresholdRecommendation = ""
+$nearThresholdRows = ""
+$nearThresholdReviewableForwardRows = ""
+$nearThresholdFalsePositiveRows = ""
+$nearThresholdFalsePositiveRatePct = ""
+$nearThresholdAvgForwardReturnPct = ""
+$nearThresholdAvgNetReturnPct = ""
+$nearThresholdTpHitRows = ""
+$nearThresholdSlHitRows = ""
+$nearThresholdAmbiguousSameBarRows = ""
+$nearThresholdOcoPreflightStatus = ""
+$nearThresholdEvidenceStatus = if ($null -eq $nearThresholdLog) { "NOT_COLLECTED" } elseif ($nearThresholdLog.Freshness -ne "FRESH") { "STALE" } else { "FRESH" }
+if ($null -ne $nearThresholdLog) {
+    $nearThresholdRecommendation = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "strategy574_near_threshold_shadow_recommendation="
+    $nearThresholdRows = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "near_threshold_rows="
+    $nearThresholdReviewableForwardRows = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "reviewable_forward_rows="
+    $nearThresholdFalsePositiveRows = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "false_positive_rows="
+    $nearThresholdFalsePositiveRatePct = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "false_positive_rate_pct="
+    $nearThresholdAvgForwardReturnPct = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "avg_forward_return_pct="
+    $nearThresholdAvgNetReturnPct = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "avg_net_return_pct="
+    $nearThresholdTpHitRows = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "tp_hit_rows="
+    $nearThresholdSlHitRows = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "sl_hit_rows="
+    $nearThresholdAmbiguousSameBarRows = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "ambiguous_same_bar_rows="
+    $nearThresholdOcoPreflightStatus = Get-LastPrefixedValue -Text $nearThresholdLog.Text -Prefix "oco_preflight_status="
+}
+
 $strategyMissing = ConvertFrom-JsonArrayOrMarker -Raw $strategyMissingRaw -ParseFailureMarker "strategy574_review_missing_requirements JSON parse failed"
 $missingTinyFields = ConvertFrom-JsonArrayOrMarker -Raw $missingTinyFieldsRaw -ParseFailureMarker "missing_tiny_live_fields JSON parse failed"
 
@@ -143,10 +181,16 @@ $evidenceUsable = $missingRequirements.Count -eq 0
 $tinyLiveRolloutReady = $canEnableProduction -eq "true"
 $tinyLiveExecutionReady = $executionEligible -like "true*" -and $autoApprovalEligible -eq "true" -and $wouldExecute -like "*true*"
 $hardStopClear = $hardStopDetected -eq "false" -and @($missingTinyFields).Count -eq 0
+$nearThresholdFalsePositiveRiskHigh = $nearThresholdRecommendation -eq "STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH"
+$nearThresholdAlphaNotProven = $nearThresholdRecommendation -in @("STRATEGY574_NEAR_THRESHOLD_ALPHA_NOT_PROVEN", "STRATEGY574_NEAR_THRESHOLD_LOW_FORWARD_SAMPLE", "STRATEGY574_NEAR_THRESHOLD_NO_RECENT_ROWS")
 $reviewAllowed = $evidenceUsable
 $status = if ($reviewAllowed) { "READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE" } else { "NOT_READY" }
 $primaryDecision = if ($reviewAllowed) { "PREPARE_STRATEGY574_TINY_LIVE_GOVERNANCE_REVIEW" } else { "REFRESH_STRATEGY574_TINY_LIVE_EVIDENCE" }
-$riskPosture = if ($dataFreshnessClean -ne "true") {
+$riskPosture = if ($nearThresholdFalsePositiveRiskHigh) {
+    "BLOCKED_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH"
+} elseif ($nearThresholdAlphaNotProven) {
+    "BLOCKED_NEAR_THRESHOLD_ALPHA_NOT_PROVEN"
+} elseif ($dataFreshnessClean -ne "true") {
     "BLOCKED_FIX_CURRENT_DATA_FRESHNESS"
 } elseif (-not $tinyLiveRolloutReady) {
     "BLOCKED_TINY_LIVE_ROLLOUT_NOT_READY"
@@ -176,6 +220,9 @@ $packet = [pscustomobject]@{
         tinyLiveLossRcaLogPath = $tinyLog.Path
         tinyLiveLossRcaLogAgeMinutes = $tinyLog.AgeMinutes
         tinyLiveLossRcaLogFreshness = $tinyLog.Freshness
+        nearThresholdShadowObservationLogPath = if ($null -ne $nearThresholdLog) { $nearThresholdLog.Path } else { $nearThresholdResolvedPath }
+        nearThresholdShadowObservationLogAgeMinutes = if ($null -ne $nearThresholdLog) { $nearThresholdLog.AgeMinutes } else { $null }
+        nearThresholdShadowObservationLogFreshness = $nearThresholdEvidenceStatus
     }
     strategy574Evidence = [pscustomobject]@{
         gateStatus = $strategyGateStatus
@@ -219,6 +266,22 @@ $packet = [pscustomobject]@{
         falseBlockRiskCount = $falseBlockRiskCount
         recommendedFix = $recommendedFix
     }
+    nearThresholdShadowObservationEvidence = [pscustomobject]@{
+        evidenceStatus = $nearThresholdEvidenceStatus
+        recommendation = $nearThresholdRecommendation
+        nearThresholdRows = $nearThresholdRows
+        reviewableForwardRows = $nearThresholdReviewableForwardRows
+        falsePositiveRows = $nearThresholdFalsePositiveRows
+        falsePositiveRatePct = $nearThresholdFalsePositiveRatePct
+        avgForwardReturnPct = $nearThresholdAvgForwardReturnPct
+        avgNetReturnPct = $nearThresholdAvgNetReturnPct
+        tpHitRows = $nearThresholdTpHitRows
+        slHitRows = $nearThresholdSlHitRows
+        ambiguousSameBarRows = $nearThresholdAmbiguousSameBarRows
+        ocoPreflightStatus = $nearThresholdOcoPreflightStatus
+        thresholdRelaxationAllowed = $false
+        interpretation = if ($nearThresholdFalsePositiveRiskHigh) { "negative evidence for strategy574 threshold relaxation in the current window" } elseif ($nearThresholdAlphaNotProven) { "insufficient or negative alpha evidence for strategy574 threshold relaxation" } elseif ($nearThresholdEvidenceStatus -eq "FRESH") { "fresh near-threshold shadow observation evidence available for review" } else { "near-threshold shadow observation evidence not fresh or not collected" }
+    }
     requiredSeparateAuthorizations = @(
         "deploy runtime changes",
         "change production env",
@@ -252,6 +315,8 @@ Write-Host "source_strategy574_gate_log_path=$($strategyLog.Path)"
 Write-Host "source_strategy574_gate_log_freshness=$($strategyLog.Freshness)"
 Write-Host "source_tiny_live_loss_rca_log_path=$($tinyLog.Path)"
 Write-Host "source_tiny_live_loss_rca_log_freshness=$($tinyLog.Freshness)"
+Write-Host "source_strategy574_near_threshold_shadow_observation_log_path=$nearThresholdResolvedPath"
+Write-Host "source_strategy574_near_threshold_shadow_observation_log_freshness=$nearThresholdEvidenceStatus"
 Write-Host "strategy574_signal_review_gate_status=$strategyGateStatus"
 Write-Host "strategy574_terminal_reason=$terminalReason"
 Write-Host "strategy574_policy_change_recommendation=$policyRecommendation"
@@ -268,6 +333,12 @@ Write-Host "tiny_live_rollout_blockers=$rolloutBlockers"
 Write-Host "missed_opportunity_status=$missedOverallStatus"
 Write-Host "suspicious_no_buy_count=$suspiciousNoBuyCount"
 Write-Host "false_block_risk_count=$falseBlockRiskCount"
+Write-Host "strategy574_near_threshold_evidence_status=$nearThresholdEvidenceStatus"
+Write-Host "strategy574_near_threshold_shadow_recommendation=$nearThresholdRecommendation"
+Write-Host "strategy574_near_threshold_false_positive_rate_pct=$nearThresholdFalsePositiveRatePct"
+Write-Host "strategy574_near_threshold_avg_forward_return_pct=$nearThresholdAvgForwardReturnPct"
+Write-Host "strategy574_near_threshold_avg_net_return_pct=$nearThresholdAvgNetReturnPct"
+Write-Host "strategy574_near_threshold_threshold_relaxation_allowed=false"
 Write-Host "strategy574_tiny_live_primary_decision=$primaryDecision"
 Write-Host "strategy574_tiny_live_risk_posture=$riskPosture"
 Write-Host "strategy574_tiny_live_governance_review_allowed=$($reviewAllowed.ToString().ToLowerInvariant())"

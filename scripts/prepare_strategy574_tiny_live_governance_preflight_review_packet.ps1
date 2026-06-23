@@ -1,6 +1,7 @@
 param(
     [string]$Strategy574GateLogPath = "target/profit-review/strategy574-signal-review-gate-refresh.log",
     [string]$TinyLiveLossRcaLogPath = "target/profit-review/tiny-live-loss-rca-refresh.log",
+    [string]$NearThresholdShadowObservationLogPath = "target/profit-review/strategy574-near-threshold-shadow-observation-latest.log",
     [int]$MaxAgeMinutes = 180,
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 574,
@@ -62,6 +63,7 @@ $operatorScript = Join-Path $PSScriptRoot "prepare_strategy574_tiny_live_governa
 $operatorResult = Invoke-LocalPacket -ScriptPath $operatorScript -Arguments @(
     "-Strategy574GateLogPath", $Strategy574GateLogPath,
     "-TinyLiveLossRcaLogPath", $TinyLiveLossRcaLogPath,
+    "-NearThresholdShadowObservationLogPath", $NearThresholdShadowObservationLogPath,
     "-MaxAgeMinutes", "$MaxAgeMinutes",
     "-Symbol", $Symbol,
     "-StrategyId", "$StrategyId",
@@ -88,6 +90,10 @@ $falsePositiveCount = ""
 $completedTinyLiveSamples = ""
 $hardStopDetected = ""
 $tinyLiveMissingFields = @()
+$nearThresholdEvidenceStatus = ""
+$nearThresholdRecommendation = ""
+$nearThresholdFalsePositiveRatePct = ""
+$nearThresholdAvgNetReturnPct = ""
 if ($null -ne $operatorPacket) {
     $operatorStatus = [string]$operatorPacket.status
     $riskPosture = [string]$operatorPacket.riskPosture
@@ -98,6 +104,10 @@ if ($null -ne $operatorPacket) {
     $completedTinyLiveSamples = [string]$operatorPacket.tinyLiveEvidence.completedTinyLiveSamples
     $hardStopDetected = [string]$operatorPacket.tinyLiveEvidence.hardStopDetected
     $tinyLiveMissingFields = @($operatorPacket.tinyLiveEvidence.missingTinyLiveFields)
+    $nearThresholdEvidenceStatus = [string]$operatorPacket.nearThresholdShadowObservationEvidence.evidenceStatus
+    $nearThresholdRecommendation = [string]$operatorPacket.nearThresholdShadowObservationEvidence.recommendation
+    $nearThresholdFalsePositiveRatePct = [string]$operatorPacket.nearThresholdShadowObservationEvidence.falsePositiveRatePct
+    $nearThresholdAvgNetReturnPct = [string]$operatorPacket.nearThresholdShadowObservationEvidence.avgNetReturnPct
 }
 
 if ($operatorStatus -ne "READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE") {
@@ -138,6 +148,10 @@ $packet = [pscustomobject]@{
     sourceTinyLiveFalsePositiveCount = $falsePositiveCount
     sourceTinyLiveCompletedSamples = $completedTinyLiveSamples
     sourceTinyLiveHardStopDetected = $hardStopDetected
+    sourceNearThresholdEvidenceStatus = $nearThresholdEvidenceStatus
+    sourceNearThresholdRecommendation = $nearThresholdRecommendation
+    sourceNearThresholdFalsePositiveRatePct = $nearThresholdFalsePositiveRatePct
+    sourceNearThresholdAvgNetReturnPct = $nearThresholdAvgNetReturnPct
     preflightDecision = $preflightDecision
     reviewEnvelope = [pscustomobject]@{
         reviewOnly = $true
@@ -155,12 +169,14 @@ $packet = [pscustomobject]@{
     }
     operatorPreflightChecklist = @(
         "attach strategy574_tiny_live_governance_operator_packet",
+        "review near-threshold shadow observation evidence before any threshold relaxation discussion",
         "confirm DataFreshness current snapshot and TinyLive rollout blockers are reviewed",
         "confirm current BUY candidate, OCO preflight, EV, sample count, and false-positive gates before any future live plan",
         "keep TinyLive/order/scheduler/env/Telegram permissions false without separate explicit authorization"
     )
     requiredBeforeAnyFutureMutation = @(
         "fresh production read-only strategy574 signal gate",
+        "fresh near-threshold shadow observation if threshold relaxation is being considered",
         "fresh TinyLive loss RCA",
         "current DataFreshness clean",
         "current BUY candidate and EV/OCO preflight pass",
@@ -199,6 +215,11 @@ Write-Host "tiny_live_can_enable_production=$canEnableProduction"
 Write-Host "tiny_live_completed_samples=$completedTinyLiveSamples"
 Write-Host "tiny_live_false_positive_count=$falsePositiveCount"
 Write-Host "tiny_live_hard_stop_detected=$hardStopDetected"
+Write-Host "strategy574_near_threshold_evidence_status=$nearThresholdEvidenceStatus"
+Write-Host "strategy574_near_threshold_shadow_recommendation=$nearThresholdRecommendation"
+Write-Host "strategy574_near_threshold_false_positive_rate_pct=$nearThresholdFalsePositiveRatePct"
+Write-Host "strategy574_near_threshold_avg_net_return_pct=$nearThresholdAvgNetReturnPct"
+Write-Host "strategy574_threshold_relaxation_allowed=false"
 Write-Host "strategy574_tiny_live_governance_review_allowed=true"
 Write-Host "tiny_live_order_allowed=false"
 Write-Host "live_policy_change_allowed=false"

@@ -830,7 +830,8 @@ Read-only profit operator next-action board:
 ```
 
 This board combines the profit priority decision brief with the
-strategy574/TinyLive governance operator packet. It emits
+strategy574/TinyLive governance operator packet, including any saved
+strategy574 near-threshold shadow observation evidence. It emits
 `profit_operator_next_action_board_packet` and
 `profit_operator_next_action_board_status`. A
 `PROFIT_OPERATOR_NEXT_ACTION_BOARD` with
@@ -839,8 +840,8 @@ order as trailing-stop dry-run review, strategy485 risk-reduction shadow
 review, EntryDedup semantics shadow review, then strategy574/TinyLive
 governance blocker review. It keeps `tiny_live_order_allowed=false`,
 `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
-`deploy_or_env_change_allowed=false`, `order_allowed=false`, and
-`telegram_send_allowed=false`.
+`deploy_or_env_change_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, and `strategy574_threshold_relaxation_allowed=false`.
 
 Read-only profit live blocker audit packet:
 
@@ -896,11 +897,15 @@ Strategy574/TinyLive governance operator packet from refreshed read-only logs:
 .\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1
 ```
 
-Before running it, refresh and save the two source logs:
+Before running it, refresh and save the source logs:
 `.\scripts\prepare_strategy574_signal_review_gate_ssh.ps1` to
 `target/profit-review/strategy574-signal-review-gate-refresh.log` and
 `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1` to
-`target/profit-review/tiny-live-loss-rca-refresh.log`. The packet emits
+`target/profit-review/tiny-live-loss-rca-refresh.log`. If threshold relaxation
+is being reviewed, also save
+`.\scripts\smoke_strategy574_near_threshold_shadow_observation_ssh.ps1` to
+`target/profit-review/strategy574-near-threshold-shadow-observation-latest.log`.
+The packet emits
 `strategy574_tiny_live_governance_operator_packet` and
 `strategy574_tiny_live_governance_status`. A
 `STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_PACKET` with
@@ -908,7 +913,11 @@ Before running it, refresh and save the two source logs:
 evidence is usable for operator review only; it keeps
 `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
 `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
-`order_allowed=false`, and `telegram_send_allowed=false`.
+`order_allowed=false`, `telegram_send_allowed=false`, and
+`strategy574_near_threshold_threshold_relaxation_allowed=false`. A
+`STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH` recommendation is
+negative evidence for threshold relaxation in the current window, not a
+TinyLive/live approval route.
 
 Focused strategy 485 open-position risk RCA:
 

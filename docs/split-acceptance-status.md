@@ -292,6 +292,26 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   paths, EntryDedup or DataFreshness policy relaxation, deploy, production env
   changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external
   backfill/import.
+- Latest local read-only EntryDedup semantics operator decision packet on
+  2026-06-23T11:23+08:00 ran
+  `.\scripts\prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady`
+  and wrote the full evidence log to
+  `target\profit-review\entry-dedup-semantics-operator-decision-packet-latest.log`.
+  It reused the priority decision brief plus the EntryDedup semantics shadow
+  experiment packet and returned
+  `entry_dedup_semantics_operator_decision_status=READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE`,
+  `sourcePriorityPacketStatus=READY_FOR_OPERATOR_DECISION_NOT_LIVE`,
+  `sourceEntryDedupPacketStatus=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `priorityRank=3`, and `missingRequirements=[]`.
+  Blocked lanes remain `entry-filter` and `data-freshness-replay`. The packet
+  kept `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`; it is shadow-only EntryDedup semantics review,
+  not authorization to relax EntryDedup/DataFreshness/live policy, enable
+  staged-add/live execution, place orders, modify/cancel OCO, deploy, change
+  production env, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

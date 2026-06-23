@@ -268,6 +268,23 @@ risk-reduction design only. It keeps `close_position_allowed=false`,
 not close positions, modify/cancel OCO, place orders, enable live trading,
 deploy, change production env, or relax policy.
 
+Read-only EntryDedup semantics operator decision packet:
+
+```powershell
+.\scripts\prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady
+```
+
+This wraps the priority decision brief plus the EntryDedup semantics shadow
+experiment packet and emits `entry_dedup_semantics_operator_decision_packet`
+and `entry_dedup_semantics_operator_decision_status`.
+`READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE` means the
+third-ranked review item can be attached to operator review as shadow-only
+EntryDedup semantics evidence. It keeps
+`entry_dedup_policy_change_allowed=false`,
+`data_freshness_policy_change_allowed=false`, and `order_allowed=false`; it
+does not relax EntryDedup/DataFreshness/live policy, enable staged-add or live
+execution, place orders, modify OCO, deploy, or change production env.
+
 Read-only exit-side operator experiment packet from the latest saved profit
 matrix:
 

@@ -1383,6 +1383,25 @@ Expected:
   exit-side operator packet to keep that item ready. It is a shadow
   risk-reduction review only and does not close positions, modify/cancel OCO,
   place orders, enable live trading, deploy/env changes, or relax policy.
+- To convert the third-ranked EntryDedup semantics item into a review-only
+  operator decision packet, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `entry_dedup_semantics_operator_decision_packet`,
+  `entry_dedup_semantics_priority_rank=3`,
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `order_allowed=false`, and
+  `entry_dedup_semantics_operator_decision_status=READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE`.
+  The packet type is `ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_PACKET`; it
+  requires the priority brief to keep the EntryDedup item at rank 3 and the
+  EntryDedup semantics shadow packet to remain ready. It is shadow-only
+  evidence review and does not relax EntryDedup/DataFreshness/live policy,
+  enable staged-add or live execution, place orders, modify OCO, deploy/env
+  changes, or authorize policy relaxation.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

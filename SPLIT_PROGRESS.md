@@ -672,6 +672,16 @@
   to keep that item ready, and preserves `close_position_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `order_allowed=false`, and the same
   no-live/no-OCO/no-deploy/no-policy-relaxation boundary.
+  `scripts/prepare_entry_dedup_semantics_operator_decision_packet.ps1` narrows
+  the third-ranked item into `ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_PACKET`,
+  `entry_dedup_semantics_operator_decision_packet`,
+  `entry_dedup_semantics_priority_rank`, and
+  `entry_dedup_semantics_operator_decision_status`. It requires the EntryDedup
+  item to remain rank `3`, requires the EntryDedup semantics shadow packet to
+  stay ready, and preserves `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`, `order_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, and the same no-live/no-OCO/no-
+  deploy/no-policy-relaxation boundary.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved
@@ -806,6 +816,26 @@
   modify/cancel OCO, place orders, enable live trading, scheduler paths, relax
   EntryDedup/DataFreshness/live policy, deploy, change production env, mutate
   DB/grid/fund/Earn/Telegram/exchange state, or run external backfill/import.
+- 2026-06-23 local read-only EntryDedup semantics operator decision packet
+  refresh ran
+  `scripts/prepare_entry_dedup_semantics_operator_decision_packet.ps1 -RequireReady`
+  and saved the full output to
+  `target\profit-review\entry-dedup-semantics-operator-decision-packet-latest.log`.
+  The packet returned
+  `READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE` with
+  `sourcePriorityPacketStatus=READY_FOR_OPERATOR_DECISION_NOT_LIVE`,
+  `sourceEntryDedupPacketStatus=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `priorityRank=3`, and no missing requirements.
+  Blocked lanes remain `entry-filter` and `data-freshness-replay`. The packet
+  keeps `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`, so it is shadow-only EntryDedup semantics review,
+  not permission to relax EntryDedup/DataFreshness/live policy, enable
+  staged-add/live execution, place orders, modify OCO, deploy, change
+  production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run
+  external backfill/import.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

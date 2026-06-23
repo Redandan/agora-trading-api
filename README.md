@@ -856,6 +856,9 @@ profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
 semantics, DataFreshness replay blocker, DataFreshness collector activation,
 TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
 relaxation lanes. Missing or stale source logs are blockers, not passes. This
+falls back to the source governance relaxation review packet when the
+governance preflight packet is not saved, so `NO_EVIDENCE` remains blocker
+evidence instead of being treated as a pass or ignored missing input. This
 audit is for choosing the next read-only evidence refresh; it does not rerun
 SSH, call MCP, deploy, change production env, enable live/TinyLive/scheduler,
 place orders, send Telegram, modify OCO, or relax EntryDedup/DataFreshness/live

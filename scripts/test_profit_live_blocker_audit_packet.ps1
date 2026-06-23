@@ -29,6 +29,8 @@ foreach ($marker in @(
         "BLOCKED_REFRESH_EVIDENCE_BEFORE_LIVE_REVIEW",
         "profit_live_blocker_audit_packet",
         "profit_live_blocker_audit_status",
+        "GovernanceRelaxationReviewLogPath",
+        "sourceFallback",
         "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
         "tiny_live_order_allowed=false",
         "live_policy_change_allowed=false",
@@ -79,7 +81,8 @@ try {
     $dfCollector = Write-PacketLog -Name "df-collector.log" -StatusPrefix "data_freshness_collector_activation_status=" -Status "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "data_freshness_collector_activation_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review evidence-only collector activation." })
     $tpSlOco = Write-PacketLog -Name "tp-sl-oco.log" -StatusPrefix "tp_sl_oco_feasibility_status=" -Status "READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION" -PacketPrefix "tp_sl_oco_feasibility_operator_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review TP/SL/OCO feasibility." })
     $strategy574 = Write-PacketLog -Name "strategy574.log" -StatusPrefix "strategy574_tiny_live_governance_preflight_status=" -Status "READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE" -PacketPrefix "strategy574_tiny_live_governance_preflight_review_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review blocked Strategy574/TinyLive governance." })
-    $governance = Write-PacketLog -Name "governance.log" -StatusPrefix "governance_relaxation_preflight_status=" -Status "READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE" -PacketPrefix "governance_relaxation_preflight_review_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review governance relaxation blocker." })
+    $missingGovernancePreflight = Join-Path $tempDir "governance-preflight-missing.log"
+    $governanceReview = Write-PacketLog -Name "governance-review.log" -StatusPrefix "governance_relaxation_review_packet_status=" -Status "NO_EVIDENCE" -PacketPrefix "governance_relaxation_review_packet=" -Packet ([pscustomobject]@{ missingRequirements = @("DataFreshness current snapshot clean", "governance relaxation candidates present"); nextAction = "Fix read-only governance relaxation evidence collection before drafting a review packet." })
 
     $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
     if ($null -eq $powerShell) { $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue }
@@ -97,7 +100,8 @@ try {
             -DataFreshnessCollectorLogPath $dfCollector `
             -TpSlOcoLogPath $tpSlOco `
             -Strategy574TinyLivePreflightLogPath $strategy574 `
-            -GovernanceRelaxationPreflightLogPath $governance `
+            -GovernanceRelaxationPreflightLogPath $missingGovernancePreflight `
+            -GovernanceRelaxationReviewLogPath $governanceReview `
             -RequireAuditReady 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
@@ -109,7 +113,8 @@ try {
     }
     foreach ($marker in @(
             "profit_live_blocker_audit_lane_count=9",
-            "profit_live_blocker_ready_review_count=9",
+            "profit_live_blocker_ready_review_count=8",
+            "profit_live_blocker_missing_evidence_count=0",
             "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
             "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
             '"packetType":"PROFIT_LIVE_BLOCKER_AUDIT_PACKET"',
@@ -117,7 +122,10 @@ try {
             '"lane":"data-freshness-replay-blocker"',
             '"lane":"strategy574-tiny-live-governance"',
             '"lane":"governance-relaxation"',
-            '"readyReviewCount":9',
+            '"readyReviewCount":8',
+            '"sourceFallback":"governance_relaxation_review_packet"',
+            '"sourceStatus":"NO_EVIDENCE"',
+            '"classification":"BLOCKED_REVIEW_ONLY"',
             '"liveReady":false',
             "tiny_live_order_allowed=false",
             "live_policy_change_allowed=false",

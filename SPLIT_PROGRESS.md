@@ -356,7 +356,10 @@
   profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
   semantics, DataFreshness replay blocker, DataFreshness collector activation,
   TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
-  relaxation lanes. Missing or stale logs are blockers, not passes. The audit
+  relaxation lanes. Missing or stale logs are blockers, not passes. If the
+  governance relaxation preflight packet is absent, it falls back to the source
+  governance relaxation review packet and keeps `NO_EVIDENCE` as blocker
+  evidence. The audit
   keeps `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
   `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
   `order_allowed=false`, and `telegram_send_allowed=false`; it does not rerun

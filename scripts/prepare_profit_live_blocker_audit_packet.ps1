@@ -8,6 +8,7 @@ param(
     [string]$TpSlOcoLogPath = "target/profit-review/tp-sl-oco-feasibility-operator-packet-latest.log",
     [string]$Strategy574TinyLivePreflightLogPath = "target/profit-review/strategy574-tiny-live-governance-preflight-review-packet-latest.log",
     [string]$GovernanceRelaxationPreflightLogPath = "target/profit-review/governance-relaxation-preflight-review-packet-latest.log",
+    [string]$GovernanceRelaxationReviewLogPath = "target/profit-review/governance-relaxation-review-packet-latest.log",
     [int]$MaxAgeMinutes = 360,
     [string]$Symbol = "BTCUSDT",
     [switch]$RequireAuditReady
@@ -126,6 +127,21 @@ function Read-Lane {
     }
 }
 
+function Read-GovernanceRelaxationLane {
+    $preflightPath = Resolve-RepoPath -PathValue $GovernanceRelaxationPreflightLogPath
+    if (Test-Path -LiteralPath $preflightPath) {
+        return Read-Lane -Lane "governance-relaxation" -PathValue $GovernanceRelaxationPreflightLogPath -StatusPrefix "governance_relaxation_preflight_status=" -PacketPrefix "governance_relaxation_preflight_review_packet=" -ReadyStatuses @("READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh governance relaxation packet before considering policy review."
+    }
+
+    $reviewLane = Read-Lane -Lane "governance-relaxation" -PathValue $GovernanceRelaxationReviewLogPath -StatusPrefix "governance_relaxation_review_packet_status=" -PacketPrefix "governance_relaxation_review_packet=" -ReadyStatuses @("REVIEW_REQUIRED_NOT_POLICY_CHANGE", "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh governance relaxation review evidence before considering policy review."
+    if ($reviewLane.classification -eq "EVIDENCE_MISSING") {
+        return $reviewLane
+    }
+
+    $reviewLane | Add-Member -NotePropertyName sourceFallback -NotePropertyValue "governance_relaxation_review_packet" -Force
+    return $reviewLane
+}
+
 if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 1440) { throw "MaxAgeMinutes must be between 1 and 1440." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for profit live blocker audit arguments."
@@ -141,7 +157,7 @@ $lanes = @(
     Read-Lane -Lane "data-freshness-collector-activation" -PathValue $DataFreshnessCollectorLogPath -StatusPrefix "data_freshness_collector_activation_status=" -PacketPrefix "data_freshness_collector_activation_packet=" -ReadyStatuses @("READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Prepare separate evidence-only collector activation review before any env change."
     Read-Lane -Lane "tp-sl-oco-feasibility" -PathValue $TpSlOcoLogPath -StatusPrefix "tp_sl_oco_feasibility_status=" -PacketPrefix "tp_sl_oco_feasibility_operator_packet=" -ReadyStatuses @("READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep TP/SL/OCO feasibility as review-only."
     Read-Lane -Lane "strategy574-tiny-live-governance" -PathValue $Strategy574TinyLivePreflightLogPath -StatusPrefix "strategy574_tiny_live_governance_preflight_status=" -PacketPrefix "strategy574_tiny_live_governance_preflight_review_packet=" -ReadyStatuses @("READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep Strategy574/TinyLive governance as blocked review-only evidence."
-    Read-Lane -Lane "governance-relaxation" -PathValue $GovernanceRelaxationPreflightLogPath -StatusPrefix "governance_relaxation_preflight_status=" -PacketPrefix "governance_relaxation_preflight_review_packet=" -ReadyStatuses @("READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Refresh governance relaxation packet before considering policy review."
+    Read-GovernanceRelaxationLane
 )
 
 $readyReviewCount = @($lanes | Where-Object { $_.classification -eq "READY_FOR_OPERATOR_REVIEW_NOT_LIVE" }).Count

@@ -833,10 +833,13 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
   semantics, DataFreshness replay blocker, DataFreshness collector activation,
   TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
-  relaxation lanes; missing or stale source logs remain blockers. This is not
-  authorization to enable live trading, execute TinyLive, enable scheduler
-  mutation, place orders, modify/cancel OCO, send Telegram, deploy, change
-  production env, relax EntryDedup/DataFreshness/live policy, or mutate
+  relaxation lanes; missing or stale source logs remain blockers. If the
+  governance relaxation preflight packet is absent, the audit falls back to the
+  source governance relaxation review packet and keeps `NO_EVIDENCE` as
+  blocker evidence. This is not authorization to enable live trading, execute
+  TinyLive, enable scheduler mutation, place orders, modify/cancel OCO, send
+  Telegram, deploy, change production env, relax EntryDedup/DataFreshness/live
+  policy, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
 - Runtime-evidence gap RCA is read-only. When live-readiness classifies
   `runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or

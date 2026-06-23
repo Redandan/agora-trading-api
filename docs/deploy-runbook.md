@@ -1222,6 +1222,25 @@ Expected:
   the fresh matrix still supports exit-side review. The compact status does
   not rerun SSH, deploy, enable live trading, relax EntryDedup/DataFreshness
   policy, or authorize position/OCO changes.
+- To turn the still-blocked DataFreshness replay lane in the latest saved
+  matrix into a local operator blocker decision packet, run:
+
+  ```powershell
+  .\scripts\prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked
+  ```
+
+  Expected output includes
+  `data_freshness_replay_blocker_decision_packet`,
+  `data_freshness_replay_blocker_decision_status=READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE`,
+  `complete_replayable_candidate_rows=0`,
+  `shadow_candidate_review_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`, and `order_allowed=false`.
+  The packet type is
+  `DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_PACKET`. It reuses the latest
+  matrix only and does not rerun SSH. This is a wait/refresh blocker decision,
+  not DataFreshness shadow-review readiness and not permission to relax
+  DataFreshnessGuard, enable live/staged-add/tiny-live execution, place orders,
+  modify OCO, deploy, or change production env.
 - To summarize the latest saved action brief for operator review, run:
 
   ```powershell

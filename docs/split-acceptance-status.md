@@ -312,6 +312,24 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   not authorization to relax EntryDedup/DataFreshness/live policy, enable
   staged-add/live execution, place orders, modify/cancel OCO, deploy, change
   production env, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- Latest local read-only DataFreshness replay blocker operator decision packet
+  on 2026-06-23T11:39+08:00 ran
+  `.\scripts\prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked`
+  and wrote the full evidence log to
+  `target\profit-review\data-freshness-replay-blocker-decision-packet-latest.log`.
+  It reused the latest profit operator matrix and returned
+  `data_freshness_replay_blocker_decision_status=READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE`,
+  `sourceMatrixFreshnessStatus=FRESH`,
+  `data_freshness_replay_lane_status=BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `counterfactual_evidence_class=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `complete_replayable_candidate_rows=0`,
+  `shadow_candidate_review_allowed=false`, and `missingRequirements=[]`.
+  It is a wait/refresh blocker decision packet only, not DataFreshness
+  shadow-review readiness and not authorization to relax DataFreshnessGuard,
+  enable live/staged-add/tiny-live execution, place orders, modify/cancel OCO,
+  deploy, change production env, or mutate DB/grid/fund/Earn/Telegram/exchange
+  state.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

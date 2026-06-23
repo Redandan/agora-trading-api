@@ -612,6 +612,25 @@ evidence only. The packet does not deploy, restart, change production env,
 enable live trading, relax DataFreshnessGuard, execute tiny-live orders, place
 orders, modify OCO, close positions, or mutate DB/grid/fund/Earn state.
 
+Local DataFreshness replay blocker decision packet from the latest saved profit
+matrix:
+
+```powershell
+.\scripts\prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked
+```
+
+This reuses `target/profit-review/latest-profit-operator-matrix.path` and emits
+`data_freshness_replay_blocker_decision_packet` plus
+`data_freshness_replay_blocker_decision_status`. It does not rerun SSH. A
+`READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE` status
+means the blocker packet is ready for operator review as a wait/refresh
+decision, not that DataFreshness is shadow-reviewable. It preserves
+`complete_replayable_candidate_rows=0`,
+`shadow_candidate_review_allowed=false`,
+`data_freshness_policy_relaxation_allowed=false`, and `order_allowed=false`;
+it does not relax DataFreshnessGuard, enable live/staged-add/tiny-live
+execution, place orders, modify OCO, deploy, or change production env.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

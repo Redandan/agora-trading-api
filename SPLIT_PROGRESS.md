@@ -836,6 +836,28 @@
   staged-add/live execution, place orders, modify OCO, deploy, change
   production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run
   external backfill/import.
+- 2026-06-23 local read-only DataFreshness replay blocker operator decision
+  packet refresh ran
+  `scripts/prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked`
+  and saved the full output to
+  `target\profit-review\data-freshness-replay-blocker-decision-packet-latest.log`.
+  It reused the latest freshness-guarded profit operator matrix and returned
+  `READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE` with
+  `sourceMatrixFreshnessStatus=FRESH`,
+  `data_freshness_replay_lane_status=BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `counterfactual_evidence_class=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `complete_replayable_candidate_rows=0`,
+  `shadow_candidate_review_allowed=false`, and no missing blocker-packet
+  requirements. The packet is a wait/refresh decision for the blocked
+  DataFreshness replay lane, not shadow-review readiness. It keeps
+  `data_freshness_policy_relaxation_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`, so it does not authorize DataFreshnessGuard
+  relaxation, live/staged-add/tiny-live execution, orders, OCO changes, deploy,
+  production env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or
+  external backfill/import.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

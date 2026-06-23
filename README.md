@@ -443,6 +443,26 @@ choices, and `order_allowed=false`. It is an attachment for operator review,
 not approval to trade, deploy, modify OCO, close positions, relax policy, or
 change production env.
 
+Read-only strategy574/TinyLive governance preflight review packet:
+
+```powershell
+.\scripts\prepare_strategy574_tiny_live_governance_preflight_review_packet.ps1 -RequireReady
+```
+
+This local packet invokes only
+`prepare_strategy574_tiny_live_governance_operator_packet.ps1` against existing
+strategy574 gate and TinyLive loss RCA logs. It emits
+`strategy574_tiny_live_governance_preflight_review_packet` with
+`packetType=STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_PACKET` and
+`strategy574_tiny_live_governance_preflight_status=READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE`.
+It is an operator-review attachment for the governance blocker lane, not
+TinyLive/live approval. It keeps `tiny_live_order_allowed=false`,
+`live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+`deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`. It does not rerun SSH, deploy, change production
+env, execute TinyLive, place orders, enable scheduler mutation, send Telegram,
+modify OCO, or relax EntryDedup/DataFreshness/live policy.
+
 Read-only consolidated profit operator review packet:
 
 ```powershell

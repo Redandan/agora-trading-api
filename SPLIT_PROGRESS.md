@@ -323,6 +323,20 @@
   `position_or_oco_mutation_allowed`. A
   `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` packet
   means the evidence can be reviewed; it is not live/TinyLive approval.
+- `scripts/prepare_strategy574_tiny_live_governance_preflight_review_packet.ps1`
+  wraps the local strategy574/TinyLive governance operator packet into
+  `STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_PACKET`. It emits
+  `strategy574_tiny_live_governance_preflight_review_packet`,
+  `strategy574_tiny_live_governance_preflight_status`, and
+  `strategy574_tiny_live_preflight_decision`. It keeps
+  `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, `telegram_send_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`, and
+  `data_freshness_policy_change_allowed=false`. It is a local review-only
+  preflight and does not rerun SSH, deploy, change production env, execute
+  TinyLive, enable scheduler mutation, place orders, modify OCO, send Telegram,
+  or relax EntryDedup/DataFreshness/live policy.
 - `scripts/prepare_profit_operator_next_action_board.ps1` combines the profit
   operator priority decision brief and the strategy574/TinyLive governance
   packet into a `PROFIT_OPERATOR_NEXT_ACTION_BOARD`. It emits

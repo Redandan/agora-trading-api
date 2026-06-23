@@ -790,6 +790,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `strategy574_tiny_live_governance_operator_packet`. This packet is operator
   review evidence only and keeps live/TinyLive/order/scheduler/env/Telegram
   authorization markers false.
+- Strategy574/TinyLive governance preflight review packet is read-only. Run
+  `.\scripts\prepare_strategy574_tiny_live_governance_preflight_review_packet.ps1 -RequireReady`
+  after the governance operator packet source logs are saved. It emits
+  `strategy574_tiny_live_governance_preflight_review_packet` and
+  `strategy574_tiny_live_governance_preflight_status`. A
+  `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE`
+  status means the blocked governance lane can be attached to operator review;
+  it is not authorization to execute TinyLive, enable live trading or
+  scheduler mutation, place orders, modify/cancel OCO, send Telegram, deploy,
+  change production env, relax EntryDedup/DataFreshness/live policy, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
 - Profit operator next-action board now combines the priority decision brief
   with the strategy574/TinyLive governance packet. Run
   `.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady` after

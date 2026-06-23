@@ -730,6 +730,32 @@ Expected:
 - `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` means
   evidence is ready for review, not that TinyLive/live execution is ready.
 
+For the local read-only strategy574/TinyLive governance preflight review packet,
+run after the operator packet source logs are saved:
+
+```powershell
+.\scripts\prepare_strategy574_tiny_live_governance_preflight_review_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- The preflight invokes only
+  `prepare_strategy574_tiny_live_governance_operator_packet.ps1` against
+  existing logs. It does not rerun SSH, deploy, restart, change production env,
+  or call MCP write tools.
+- Output includes
+  `strategy574_tiny_live_governance_preflight_review_packet`,
+  `strategy574_tiny_live_governance_preflight_status=READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE`,
+  `strategy574_tiny_live_preflight_decision=PREPARE_REVIEW_ONLY_STRATEGY574_TINY_LIVE_GOVERNANCE_REVIEW`,
+  `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`.
+- `STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_PACKET` is review evidence
+  only. It does not authorize TinyLive execution, live trading, scheduler
+  enablement, orders, OCO, Telegram, deploy, production env changes,
+  EntryDedup/DataFreshness/live policy relaxation, DB/grid/fund/Earn/exchange
+  mutation, or external backfill/import.
+
 For the consolidated profit operator next-action board, run after refreshing the
 profit priority evidence and the strategy574/TinyLive source logs:
 

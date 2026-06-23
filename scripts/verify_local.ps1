@@ -1628,6 +1628,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_sample_gap_rca.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_attention_hit_progression_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_buy_like_candidate_progression_smoke.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_no_buy_attention_flow_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_entry_dedup_exposure_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_exposure_consistency_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_shadow_review_smoke.ps1"

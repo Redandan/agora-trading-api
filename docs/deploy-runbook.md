@@ -1798,6 +1798,14 @@ Expected:
 - Use `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1` when the
   operator needs the BUY-like progression result and DataFreshness replay
   readiness blockers in one `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`.
+- Use `.\scripts\prepare_no_buy_attention_flow_review_packet_ssh.ps1 -RequireReviewReady`
+  when sample-gap RCA reports no recent BUY-like candidates but ATTENTION_HIT
+  rows exist. Expected output includes `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET`,
+  `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`,
+  `NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW`, and
+  `ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`. The packet is review-only
+  and does not authorize DataFreshnessGuard or EntryDedup relaxation, live
+  execution, scheduler enablement, orders, deploy, or production env changes.
 - If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,
   run `.\scripts\smoke_strategy508_entry_dedup_exposure_ssh.ps1`. It combines
   server-local MCP `getEntryDedupGovernanceDashboard` /

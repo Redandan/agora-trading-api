@@ -1431,6 +1431,28 @@
   `same strategy/symbol/interval LONG exposure already exists`. This routes the
   next profit review toward EntryDedup/existing-position exposure evidence for
   strategy 508 rather than DataFreshness relaxation or live execution changes.
+- `scripts/prepare_no_buy_attention_flow_review_packet_ssh.ps1` combines the
+  DataFreshness profit blocker brief, ATTENTION_HIT progression, and BUY-like
+  progression into `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET`. A
+  `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` packet is the operator
+  review route when recent BUY-like candidates are absent but attention rows
+  exist without terminal follow-up. It keeps DataFreshnessGuard/EntryDedup/live
+  policy, scheduler, orders, OCO, deploy, production env, and DB/grid/fund/
+  Earn/Telegram/exchange mutation unauthorized.
+- 2026-06-23 read-only production no-buy/attention refresh for `BTCUSDT`
+  showed the current 7-day window shifted from the 2026-06-22 EntryDedup lane
+  to a signal-generation/attention lane: `buy_like_candidate_rows=0`,
+  `attention_hit_rows=173`, `no_terminal_followup_rows=173`,
+  `filter_block_followup_rows=0`, `entry_skip_followup_rows=0`,
+  `signal_buy_followup_rows=0`, and `autotrade_followup_rows=0`.
+  `attention_hit_progression_recommendation=ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES`,
+  while the BUY-like progression returned
+  `buy_like_candidate_progression_recommendation=NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW`.
+  The examples were `strategy=-1 interval=N/A` put/call-ratio WARN rows, so
+  they are macro/watch-only attention warnings rather than strategy entry
+  candidates. This routes the next read-only profit review toward signal
+  generation and attention-to-terminal mapping before any DataFreshness,
+  EntryDedup, or live policy experiment.
 - `scripts/smoke_strategy508_entry_dedup_exposure_ssh.ps1` is the follow-up
   read-only RCA for that strategy 508 / 1h EntryDedup lane. It combines
   server-local MCP `getEntryDedupGovernanceDashboard` and

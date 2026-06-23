@@ -1469,6 +1469,20 @@ distribution, and examples. Use it to locate candidate-to-terminal-event loss
 before proposing entry-filter, strategy, or live execution changes.
 For a combined operator packet that also carries DataFreshness replay blockers,
 run `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1`.
+When sample-gap RCA reports no recent BUY-like candidates but ATTENTION_HIT rows
+exist, run the read-only no-buy attention-flow packet:
+
+```powershell
+.\scripts\prepare_no_buy_attention_flow_review_packet_ssh.ps1 -RequireReviewReady
+```
+
+It emits `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET` and
+`no_buy_attention_flow_review_status`. A
+`READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` result means the operator can
+review why attention rows have no terminal trading follow-up and why BUY-like
+candidates were not generated. It does not authorize DataFreshnessGuard or
+EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
+production env changes.
 When the dominant follow-up is `ENTRY_SKIP:EntryDedup` for strategy 508, run:
 
 ```powershell

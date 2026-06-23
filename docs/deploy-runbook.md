@@ -1719,6 +1719,38 @@ Expected:
   mutate DB/order/OCO/grid/fund/Earn/Telegram/exchange state, run external
   backfill/import, or change scheduler/live policy.
 
+For a local read-only DataFreshness replay collector activation decision
+packet, run:
+
+```powershell
+.\scripts\prepare_data_freshness_replay_collector_activation_packet.ps1 -RequireDecisionReady
+```
+
+Expected:
+
+- The packet reuses an existing replay evidence readiness log, normally
+  `target/profit-review/data-freshness-replay-evidence-readiness-refresh.log`.
+  It does not rerun SSH, deploy, restart, change production env, or call MCP
+  write tools.
+- Output includes `data_freshness_collector_activation_packet`,
+  `data_freshness_collector_activation_status`,
+  `collector_activation_operator_decision`,
+  `evidence_only_collector_flag=TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`,
+  `default_collector_flag=TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false`,
+  `complete_replayable_candidate_rows`,
+  `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`, and
+  `order_allowed=false`.
+- `DATAFRESHNESS_REPLAY_COLLECTOR_ACTIVATION_DECISION_PACKET` with
+  `READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE`
+  means the next operator question is whether to separately authorize an
+  evidence-only collector activation. It is not permission to deploy, change
+  production env, relax DataFreshnessGuard, enable live trading, enable
+  scheduler mutation, send Telegram, place orders, modify OCO, mutate
+  DB/grid/fund/Earn/exchange state, or treat preview rows as complete
+  replayable evidence.
+
 For the read-only profit-improvement review bundle, run:
 
 ```powershell

@@ -858,6 +858,37 @@
   relaxation, live/staged-add/tiny-live execution, orders, OCO changes, deploy,
   production env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or
   external backfill/import.
+- 2026-06-23 read-only DataFreshness replay evidence refresh plus local
+  collector activation decision packet ran
+  `scripts/prepare_data_freshness_replay_evidence_readiness_ssh.ps1 -RequireActionable`
+  and then
+  `scripts/prepare_data_freshness_replay_collector_activation_packet.ps1 -RequireDecisionReady`.
+  The SSH refresh wrote
+  `target\profit-review\data-freshness-replay-evidence-readiness-refresh.log`
+  and remained read-only: no production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, deploy, restart, or nginx change. It returned
+  `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`,
+  `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
+  `latest_data_freshness_row_time=2026-06-14T15:38:16`,
+  `data_freshness_rows_1d=0`, `data_freshness_rows_3d=0`,
+  `replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`, and
+  `complete_replayable_candidate_rows=0`. The local packet saved
+  `target\profit-review\data-freshness-replay-collector-activation-packet-latest.log`
+  and returned
+  `READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE`
+  with
+  `collector_activation_operator_decision=PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW`.
+  This turns the repeated replay blocker into a concrete next operator
+  question: whether to separately authorize an evidence-only collector
+  activation such as
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`. The packet keeps
+  `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`, and `order_allowed=false`;
+  it is not permission to deploy, change production env, relax
+  DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
+  scheduler mutation, send Telegram, place orders, modify OCO, or mutate
+  DB/grid/fund/Earn/exchange/external backfill state.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

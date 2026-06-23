@@ -330,6 +330,34 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   enable live/staged-add/tiny-live execution, place orders, modify/cancel OCO,
   deploy, change production env, or mutate DB/grid/fund/Earn/Telegram/exchange
   state.
+- Latest read-only DataFreshness replay evidence refresh and local collector
+  activation decision packet on 2026-06-23T11:44+08:00 ran
+  `.\scripts\prepare_data_freshness_replay_evidence_readiness_ssh.ps1 -RequireActionable`
+  and then
+  `.\scripts\prepare_data_freshness_replay_collector_activation_packet.ps1 -RequireDecisionReady`.
+  The SSH refresh made no production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, deploy, restart, or nginx changes. It returned
+  `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`,
+  `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
+  `latest_data_freshness_row_time=2026-06-14T15:38:16`,
+  `data_freshness_rows_1d=0`, `data_freshness_rows_3d=0`,
+  `replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`, and
+  `complete_replayable_candidate_rows=0`. The local packet wrote
+  `target\profit-review\data-freshness-replay-collector-activation-packet-latest.log`
+  and returned
+  `data_freshness_collector_activation_status=READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE`
+  with
+  `collector_activation_operator_decision=PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW`.
+  This only frames the next operator question around a separately authorized
+  evidence-only collector activation such as
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`; it keeps
+  `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`, and `order_allowed=false`.
+  It is not authorization to deploy, change production env, relax
+  DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
+  scheduler mutation, send Telegram, place orders, modify/cancel OCO, or mutate
+  DB/grid/fund/Earn/exchange state.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

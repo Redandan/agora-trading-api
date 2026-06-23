@@ -631,6 +631,29 @@ decision, not that DataFreshness is shadow-reviewable. It preserves
 it does not relax DataFreshnessGuard, enable live/staged-add/tiny-live
 execution, place orders, modify OCO, deploy, or change production env.
 
+DataFreshness replay collector activation decision packet:
+
+```powershell
+.\scripts\prepare_data_freshness_replay_collector_activation_packet.ps1 -RequireDecisionReady
+```
+
+This local read-only packet reuses an existing replay evidence readiness log,
+normally `target/profit-review/data-freshness-replay-evidence-readiness-refresh.log`,
+and emits `data_freshness_collector_activation_packet` plus
+`data_freshness_collector_activation_status`. It does not rerun SSH. A
+`DATAFRESHNESS_REPLAY_COLLECTOR_ACTIVATION_DECISION_PACKET` with
+`READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE` means
+the next review item is whether to separately authorize evidence-only collector
+activation, for example
+`TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`. It keeps
+`collector_activation_allowed=false`,
+`deploy_or_env_change_allowed=false`,
+`data_freshness_policy_relaxation_allowed=false`, and `order_allowed=false`.
+It is not authorization to deploy, change production env, relax
+DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
+scheduler mutation, send Telegram, place orders, modify OCO, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

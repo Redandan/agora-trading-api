@@ -1637,6 +1637,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_profit_blocker_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_replay_input_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_shadow_replay_collector_design.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_collector_activation_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_improvement_review_bundle.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_experiment_gate.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_shadow_experiment_packet.ps1"

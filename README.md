@@ -236,6 +236,22 @@ trading, enable scheduler paths, place orders, modify OCO, close positions,
 relax EntryDedup/DataFreshness/live policy, change production env, or mutate
 DB/grid/fund/Earn/Telegram/exchange state.
 
+Read-only trailing-stop dry-run operator decision packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_dry_run_operator_decision_packet.ps1 -RequireReady
+```
+
+This wraps the priority decision brief plus the exit-side operator review
+packet and emits `trailing_stop_dry_run_operator_decision_packet` and
+`trailing_stop_dry_run_operator_decision_status`.
+`READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE` means the first-ranked
+review item can be attached to operator review as a dry-run design only. It
+keeps `scheduler_enablement_allowed=false`, `order_allowed=false`, and
+`position_or_oco_mutation_allowed=false`; it does not enable trailing, live
+trading, scheduler paths, orders, OCO modification, deploy/env changes, or
+policy relaxation.
+
 Read-only exit-side operator experiment packet from the latest saved profit
 matrix:
 

@@ -651,6 +651,17 @@
   shadow second, and EntryDedup semantics shadow third, while keeping
   entry-filter/DataFreshness policy lanes blocked and preserving the same
   no-live/no-order/no-OCO/no-deploy/no-policy-relaxation boundary.
+  `scripts/prepare_trailing_stop_dry_run_operator_decision_packet.ps1` then
+  narrows the first-ranked item into
+  `TRAILING_STOP_DRY_RUN_OPERATOR_DECISION_PACKET`,
+  `trailing_stop_dry_run_operator_decision_packet`,
+  `trailing_stop_dry_run_primary_focus`, and
+  `trailing_stop_dry_run_operator_decision_status`. It requires the priority
+  focus to remain `trailing-stop-dry-run-operator-review`, requires the
+  exit-side operator packet to keep that item ready, and preserves
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, and the same no-live/no-deploy/no
+  policy-relaxation boundary.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved
@@ -746,6 +757,26 @@
   OCO, place orders, relax EntryDedup/DataFreshness/live policy, deploy, change
   production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run
   external backfill/import.
+- 2026-06-23 local read-only trailing-stop dry-run operator decision packet
+  refresh ran
+  `scripts/prepare_trailing_stop_dry_run_operator_decision_packet.ps1 -RequireReady`
+  and saved the full output to
+  `target\profit-review\trailing-stop-dry-run-operator-decision-packet-latest.log`.
+  The packet returned
+  `READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE` with
+  `sourcePriorityPacketStatus=READY_FOR_OPERATOR_DECISION_NOT_LIVE`,
+  `sourceExitSidePacketStatus=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `missingRequirements=[]`, and primary focus
+  `trailing-stop-dry-run-operator-review`. Blocked lanes remain
+  `entry-filter` and `data-freshness-replay`. The packet keeps
+  `scheduler_enablement_allowed=false`,
+  `live_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`, so it is a dry-run design review only, not
+  permission to enable trailing, live trading, scheduler paths, close
+  positions, modify OCO, place orders, relax EntryDedup/DataFreshness/live
+  policy, deploy, change production env, mutate DB/grid/fund/Earn/Telegram/
+  exchange state, or run external backfill/import.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

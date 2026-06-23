@@ -250,6 +250,27 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   scheduler enablement, close-position/OCO/order actions, EntryDedup or
   DataFreshness policy relaxation, deploy, production env changes, DB/grid/fund/
   Earn/Telegram/exchange mutation, or external backfill/import.
+- Latest local read-only trailing-stop dry-run operator decision packet on
+  2026-06-23T10:53+08:00 ran
+  `.\scripts\prepare_trailing_stop_dry_run_operator_decision_packet.ps1 -RequireReady`
+  and wrote the full evidence log to
+  `target\profit-review\trailing-stop-dry-run-operator-decision-packet-latest.log`.
+  It reused the priority decision brief plus the exit-side operator review
+  packet and returned
+  `trailing_stop_dry_run_operator_decision_status=READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE`,
+  `sourcePriorityPacketStatus=READY_FOR_OPERATOR_DECISION_NOT_LIVE`,
+  `sourceExitSidePacketStatus=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `missingRequirements=[]`, and
+  `trailing_stop_dry_run_primary_focus=trailing-stop-dry-run-operator-review`.
+  Blocked lanes remain `entry-filter` and `data-freshness-replay`. The packet
+  kept `scheduler_enablement_allowed=false`,
+  `live_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`; it is a dry-run design review packet only, not
+  authorization to enable trailing, scheduler paths, live trading,
+  close-position/OCO/order actions, EntryDedup or DataFreshness policy
+  relaxation, deploy, production env changes, DB/grid/fund/Earn/Telegram/
+  exchange mutation, or external backfill/import.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

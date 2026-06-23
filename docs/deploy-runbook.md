@@ -1350,6 +1350,22 @@ Expected:
   no live/order/OCO mutation, then current strategy 485 risk evidence, then the
   higher-policy-risk EntryDedup shadow alpha candidate. Blocked entry-filter
   and DataFreshness replay lanes remain blocked evidence-collection work.
+- To convert the first-ranked trailing item into a review-only operator
+  decision packet, run:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_dry_run_operator_decision_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `trailing_stop_dry_run_operator_decision_packet`,
+  `trailing_stop_dry_run_primary_focus=trailing-stop-dry-run-operator-review`,
+  `scheduler_enablement_allowed=false`, and
+  `trailing_stop_dry_run_operator_decision_status=READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE`.
+  The packet type is `TRAILING_STOP_DRY_RUN_OPERATOR_DECISION_PACKET`; it
+  requires the priority brief primary focus to remain the trailing dry-run
+  item and the exit-side operator packet to keep the trailing item ready. It is
+  a dry-run design review only and does not enable the trailing scheduler,
+  live trading, orders, OCO mutation, deploy/env changes, or policy relaxation.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

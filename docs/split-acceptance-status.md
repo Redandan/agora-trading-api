@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-22
+Last refreshed: 2026-06-23
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -185,6 +185,28 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   Treat this as read-only operator-review routing only: it is not live approval,
   not deploy approval, and not authorization to enable trailing, close or modify
   positions/OCO, relax EntryDedup/DataFreshness/live policy, or place orders.
+- Latest read-only exit-side operator decision brief on 2026-06-23T10:18+08:00
+  ran `.\scripts\prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
+  through SSH/server-local MCP. It made no production env, DB, order, OCO, grid,
+  fund, Earn, Telegram, scheduler, exchange, deploy, restart, or nginx changes.
+  It returned
+  `exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION`
+  and `exit_side_profit_review_packet_status=READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION`.
+  The trailing-stop lane is review-ready with `trailing_stop_acceptance=PASS`,
+  `trailing_stop_improvement_pct=54.044%`, `trailing_stop_delta_pnl=12860.69161894`,
+  `acceptanceRows=327`, `improved=170`, `worsened=198`, and
+  `ambiguousSameBar=113` excluded from acceptance. The strategy 485 risk lane
+  is review-ready but non-mutating with `strategy485_oco_health_ok=True`,
+  `strategy485_negative_ev_position_count=3`, and
+  `strategy485_close_or_modify_suggestion_count=3`; the current read-only
+  position summaries are `#148 WATCH/CLOSE evUsdt=-0.30 paperPct=-3.96`,
+  `#149 WATCH/CLOSE evUsdt=-0.29 paperPct=-3.90`, and
+  `#150 WATCH/CLOSE evUsdt=-0.21 paperPct=-3.53`. The brief explicitly keeps
+  entry-filter/DataFreshness policy out of scope and routes those blockers back
+  to the profit operator action brief. Treat this as an operator review packet
+  only: it is not authorization to enable trailing, change strategy opt-in,
+  close positions, modify/cancel OCO, deploy, change production env, or place
+  orders.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

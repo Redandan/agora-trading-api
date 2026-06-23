@@ -676,6 +676,28 @@
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
+- 2026-06-23 read-only production exit-side operator decision refresh ran
+  `scripts/prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
+  through SSH/server-local MCP. The brief returned
+  `exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION`
+  with `exit_side_profit_review_packet_status=READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION`.
+  The trailing-stop rollout review lane is ready for operator review only:
+  `trailing_stop_acceptance=PASS`, `trailing_stop_improvement_pct=54.044%`,
+  `trailing_stop_delta_pnl=12860.69161894`, `acceptanceRows=327`,
+  `improved=170`, `worsened=198`, and `ambiguousSameBar=113` excluded from
+  acceptance. The strategy 485 risk-reduction lane is ready for a separate
+  non-mutating operator review with `strategy485_oco_health_ok=True`,
+  `strategy485_negative_ev_position_count=3`, and
+  `strategy485_close_or_modify_suggestion_count=3`; the read-only current
+  position summaries are `#148 WATCH/CLOSE evUsdt=-0.30 paperPct=-3.96`,
+  `#149 WATCH/CLOSE evUsdt=-0.29 paperPct=-3.90`, and
+  `#150 WATCH/CLOSE evUsdt=-0.21 paperPct=-3.53`. The brief keeps
+  entry-filter/DataFreshness policy explicitly out of scope and routes those
+  blockers back to the profit operator action brief. This evidence does not
+  authorize live trading, trailing scheduler enablement, strategy opt-in
+  changes, position close, OCO modification/cancel, production env changes,
+  deploy, orders, DB/grid/fund/Earn/Telegram/exchange mutation, or external
+  backfill/import.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

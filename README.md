@@ -218,6 +218,24 @@ Use [docs/exit-side-operator-review-plan.md](docs/exit-side-operator-review-plan
 as the review contract before drafting a separate trailing rollout or strategy
 485 risk-reduction decision.
 
+Read-only profit operator priority decision brief:
+
+```powershell
+.\scripts\prepare_profit_operator_priority_decision_brief.ps1 -RequireReady
+```
+
+This wraps the consolidated profit operator packet and emits
+`profit_operator_priority_decision_brief_packet`,
+`profit_operator_priority_primary_focus`, and
+`profit_operator_priority_decision_brief_status`.
+`READY_FOR_OPERATOR_DECISION_NOT_LIVE` ranks the current review-only items as
+trailing-stop dry-run review first, strategy485 risk-reduction shadow review
+second, and EntryDedup semantics shadow review third. It keeps entry-filter and
+DataFreshness replay lanes blocked, and it does not deploy, enable live
+trading, enable scheduler paths, place orders, modify OCO, close positions,
+relax EntryDedup/DataFreshness/live policy, change production env, or mutate
+DB/grid/fund/Earn/Telegram/exchange state.
+
 Read-only exit-side operator experiment packet from the latest saved profit
 matrix:
 

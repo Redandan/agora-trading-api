@@ -1332,6 +1332,24 @@ Expected:
   `180`). Stale logs fail closed with `matrix_freshness_status=STALE`; rerun the
   matrix for current operator evidence instead of treating stale output as a
   current profit recommendation.
+- To turn the consolidated packet into a prioritized operator decision brief,
+  run:
+
+  ```powershell
+  .\scripts\prepare_profit_operator_priority_decision_brief.ps1 -RequireReady
+  ```
+
+  Expected output includes `profit_operator_priority_decision_brief_packet`,
+  `profit_operator_priority_primary_focus`, `profit_operator_priority_ranked_items`,
+  and
+  `profit_operator_priority_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_LIVE`.
+  The packet type is `PROFIT_OPERATOR_PRIORITY_DECISION_BRIEF`; it ranks the
+  review-only items as trailing-stop dry-run review first, strategy485
+  risk-reduction shadow review second, and EntryDedup semantics shadow review
+  third. This ordering favors the strongest quantified exit-side evidence with
+  no live/order/OCO mutation, then current strategy 485 risk evidence, then the
+  higher-policy-risk EntryDedup shadow alpha candidate. Blocked entry-filter
+  and DataFreshness replay lanes remain blocked evidence-collection work.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

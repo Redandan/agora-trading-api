@@ -642,6 +642,15 @@
   preserving `order_allowed=false`, `live_policy_change_allowed=false`,
   `entry_dedup_policy_change_allowed=false`, and
   `position_or_oco_mutation_allowed=false`.
+  `scripts/prepare_profit_operator_priority_decision_brief.ps1` then converts
+  the consolidated packet into `PROFIT_OPERATOR_PRIORITY_DECISION_BRIEF`,
+  `profit_operator_priority_ranked_items`,
+  `profit_operator_priority_primary_focus`, and
+  `profit_operator_priority_decision_brief_status`. It ranks the current
+  review-only work as trailing-stop dry-run first, strategy485 risk-reduction
+  shadow second, and EntryDedup semantics shadow third, while keeping
+  entry-filter/DataFreshness policy lanes blocked and preserving the same
+  no-live/no-order/no-OCO/no-deploy/no-policy-relaxation boundary.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved
@@ -714,6 +723,25 @@
   `live_policy_change_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
   and `order_allowed=false`, so this is operator-review routing only, not
+  permission to enable live trading or scheduler paths, close positions, modify
+  OCO, place orders, relax EntryDedup/DataFreshness/live policy, deploy, change
+  production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run
+  external backfill/import.
+- 2026-06-23 local read-only profit operator priority decision brief refresh
+  ran `scripts/prepare_profit_operator_priority_decision_brief.ps1 -RequireReady`
+  and saved the full output to
+  `target\profit-review\profit-operator-priority-decision-brief-latest.log`.
+  The brief returned `READY_FOR_OPERATOR_DECISION_NOT_LIVE` with
+  `sourcePacketStatus=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `missingRequirements=[]`, and primary focus
+  `trailing-stop-dry-run-operator-review`. The ranked operator review order is
+  `1:trailing-stop-dry-run-operator-review`,
+  `2:strategy485-risk-reduction-shadow-operator-review`, and
+  `3:entry-dedup-semantics-shadow-operator-review`, while blocked lanes remain
+  `entry-filter` and `data-freshness-replay`. The brief keeps
+  `live_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`, so it is operator-review ordering only, not
   permission to enable live trading or scheduler paths, close positions, modify
   OCO, place orders, relax EntryDedup/DataFreshness/live policy, deploy, change
   production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run

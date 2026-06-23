@@ -229,6 +229,27 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   scheduler enablement, close-position/OCO/order actions, EntryDedup or
   DataFreshness policy relaxation, deploy, production env changes, DB/grid/fund/
   Earn/Telegram/exchange mutation, or external backfill/import.
+- Latest local read-only profit operator priority decision brief on
+  2026-06-23T10:43+08:00 ran
+  `.\scripts\prepare_profit_operator_priority_decision_brief.ps1 -RequireReady`
+  and wrote the full evidence log to
+  `target\profit-review\profit-operator-priority-decision-brief-latest.log`.
+  It reused the consolidated read-only packet, returned
+  `profit_operator_priority_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_LIVE`,
+  `sourcePacketStatus=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`,
+  `matrixFreshness=FRESH`, `missingRequirements=[]`, and
+  `profit_operator_priority_primary_focus=trailing-stop-dry-run-operator-review`.
+  The ranked operator review order is:
+  `1:trailing-stop-dry-run-operator-review`,
+  `2:strategy485-risk-reduction-shadow-operator-review`, and
+  `3:entry-dedup-semantics-shadow-operator-review`. Blocked lanes remain
+  `entry-filter` and `data-freshness-replay`. The packet kept
+  `live_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`; it is not authorization for live trading,
+  scheduler enablement, close-position/OCO/order actions, EntryDedup or
+  DataFreshness policy relaxation, deploy, production env changes, DB/grid/fund/
+  Earn/Telegram/exchange mutation, or external backfill/import.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

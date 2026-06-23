@@ -717,6 +717,15 @@
   to keep that item ready, and preserves `close_position_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `order_allowed=false`, and the same
   no-live/no-OCO/no-deploy/no-policy-relaxation boundary.
+  `scripts/prepare_strategy485_risk_reduction_preflight_review_packet.ps1`
+  then wraps that decision packet into
+  `STRATEGY485_RISK_REDUCTION_PREFLIGHT_REVIEW_PACKET`,
+  `strategy485_risk_reduction_preflight_review_packet`, and
+  `strategy485_risk_reduction_preflight_status`. It clarifies non-mutating
+  operator inputs and future close/OCO prerequisites while preserving
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `order_allowed=false`, `telegram_send_allowed=false`, and
+  `deploy_or_env_change_allowed=false`.
   `scripts/prepare_entry_dedup_semantics_operator_decision_packet.ps1` narrows
   the third-ranked item into `ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_PACKET`,
   `entry_dedup_semantics_operator_decision_packet`,

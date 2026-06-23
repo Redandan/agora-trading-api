@@ -1461,6 +1461,23 @@ Expected:
   exit-side operator packet to keep that item ready. It is a shadow
   risk-reduction review only and does not close positions, modify/cancel OCO,
   place orders, enable live trading, deploy/env changes, or relax policy.
+- To turn that decision packet into a non-mutating preflight review packet,
+  run:
+
+  ```powershell
+  .\scripts\prepare_strategy485_risk_reduction_preflight_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `strategy485_risk_reduction_preflight_review_packet`,
+  `strategy485_risk_reduction_preflight_decision=PREPARE_REVIEW_ONLY_RISK_REDUCTION_OPERATOR_REVIEW`,
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `telegram_send_allowed=false`, and
+  `strategy485_risk_reduction_preflight_status=READY_FOR_STRATEGY485_RISK_REDUCTION_PREFLIGHT_REVIEW_NOT_MUTATION`.
+  The packet type is `STRATEGY485_RISK_REDUCTION_PREFLIGHT_REVIEW_PACKET`; it
+  clarifies operator inputs and future prerequisites only. It does not close
+  positions, modify OCO, place orders, send Telegram, deploy, change env, or
+  relax trading policy.
 - To convert the third-ranked EntryDedup semantics item into a review-only
   operator decision packet, run:
 

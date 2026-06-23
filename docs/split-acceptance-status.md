@@ -302,6 +302,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   paths, EntryDedup or DataFreshness policy relaxation, deploy, production env
   changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external
   backfill/import.
+- Strategy485 risk-reduction preflight review packet is read-only. Run
+  `.\scripts\prepare_strategy485_risk_reduction_preflight_review_packet.ps1 -RequireReady`
+  after the strategy485 risk-reduction decision packet is ready. It emits
+  `strategy485_risk_reduction_preflight_review_packet` and
+  `strategy485_risk_reduction_preflight_status`. A
+  `STRATEGY485_RISK_REDUCTION_PREFLIGHT_REVIEW_PACKET` with
+  `READY_FOR_STRATEGY485_RISK_REDUCTION_PREFLIGHT_REVIEW_NOT_MUTATION` means
+  the non-mutating operator scope and future prerequisites can be reviewed; it
+  is not authorization to close positions, modify/cancel OCO, place orders,
+  send Telegram, deploy, change production env, or relax trading policy.
 - Latest read-only TP/SL/OCO feasibility operator packet on
   2026-06-23T11:58+08:00 first refreshed
   `.\scripts\prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`

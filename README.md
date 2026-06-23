@@ -304,6 +304,23 @@ risk-reduction design only. It keeps `close_position_allowed=false`,
 not close positions, modify/cancel OCO, place orders, enable live trading,
 deploy, change production env, or relax policy.
 
+Read-only strategy485 risk-reduction preflight review packet:
+
+```powershell
+.\scripts\prepare_strategy485_risk_reduction_preflight_review_packet.ps1 -RequireReady
+```
+
+This wraps the strategy485 risk-reduction operator decision packet and emits
+`strategy485_risk_reduction_preflight_review_packet` plus
+`strategy485_risk_reduction_preflight_status`.
+`READY_FOR_STRATEGY485_RISK_REDUCTION_PREFLIGHT_REVIEW_NOT_MUTATION` means the
+operator can review non-mutating risk-reduction scope and future prerequisites.
+It keeps `close_position_allowed=false`,
+`position_or_oco_mutation_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false`; it is
+not authorization to close positions, modify/cancel OCO, place orders, send
+Telegram, deploy, or change production env.
+
 Read-only EntryDedup semantics operator decision packet:
 
 ```powershell

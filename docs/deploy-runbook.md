@@ -2653,6 +2653,19 @@ Expected:
   drafting a separate trailing rollout or strategy 485 risk-reduction decision.
   The plan preserves the no-mutation boundary and keeps entry/DataFreshness
   policy out of this exit-side review.
+- Use `scripts/prepare_strategy485_risk_escalation_brief.ps1 -RequireReady`
+  after a refreshed exit-side decision brief to produce a local
+  `STRATEGY485_RISK_ESCALATION_BRIEF`. Expected output includes
+  `strategy485_risk_escalation_brief_packet`,
+  `strategy485_risk_escalation_brief_status=READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION`,
+  `strategy485_severe_paper_loss_count`, `strategy485_total_ev_usdt`,
+  `strategy485_worst_paper_pct`, `strategy485_position_risk_rows`,
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`. The brief reads
+  only the saved exit-side decision log; it does not rerun SSH, deploy, change
+  production env, enable live trading, enable scheduler mutation, place orders,
+  close positions, modify/cancel OCO, send Telegram, or relax
+  EntryDedup/DataFreshness/live policy.
 - Use `scripts/prepare_tp_sl_oco_feasibility_operator_packet.ps1 -RequireReady`
   after a refreshed exit-side decision brief to produce a local
   `TP_SL_OCO_FEASIBILITY_OPERATOR_PACKET`. Expected output includes

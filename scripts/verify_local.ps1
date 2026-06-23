@@ -1670,6 +1670,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_reduction_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_reduction_preflight_review_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_escalation_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_blocker_decision_packet.ps1"

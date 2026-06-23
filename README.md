@@ -338,6 +338,24 @@ It keeps `close_position_allowed=false`,
 not authorization to close positions, modify/cancel OCO, place orders, send
 Telegram, deploy, or change production env.
 
+Read-only strategy485 risk escalation brief from the latest exit-side evidence:
+
+```powershell
+.\scripts\prepare_strategy485_risk_escalation_brief.ps1 -RequireReady
+```
+
+This reads only `target/profit-review/exit-side-operator-decision-brief-refresh.log`
+and emits `strategy485_risk_escalation_brief_packet` plus
+`strategy485_risk_escalation_brief_status`. A
+`STRATEGY485_RISK_ESCALATION_BRIEF` with
+`READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION` summarizes current
+negative-EV position risk, severe paper-loss count, total EV, worst/average
+paper loss, and per-position risk buckets for operator review. It keeps
+`close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+`order_allowed=false`, and `telegram_send_allowed=false`; it is not
+authorization to close positions, modify OCO, place orders, deploy, change
+production env, or enable live trading.
+
 Read-only EntryDedup semantics operator decision packet:
 
 ```powershell

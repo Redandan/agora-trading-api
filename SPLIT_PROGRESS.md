@@ -850,6 +850,20 @@
   changes, position close, OCO modification/cancel, production env changes,
   deploy, orders, DB/grid/fund/Earn/Telegram/exchange mutation, or external
   backfill/import.
+- `scripts/prepare_strategy485_risk_escalation_brief.ps1` packages the latest
+  saved exit-side decision log into a local
+  `STRATEGY485_RISK_ESCALATION_BRIEF`. It emits
+  `strategy485_risk_escalation_brief_packet`,
+  `strategy485_risk_escalation_brief_status`,
+  `strategy485_severe_paper_loss_count`, `strategy485_total_ev_usdt`,
+  `strategy485_worst_paper_pct`, `strategy485_avg_paper_pct`, and
+  per-position `strategy485_position_risk_rows`, while keeping
+  `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `order_allowed=false`, `telegram_send_allowed=false`, and all live/deploy/env
+  permissions false. This is an operator escalation brief only and does not
+  authorize close-position, OCO modification/cancel, live trading, scheduler
+  enablement, deploy, production env changes, Telegram sends, or
+  DB/grid/fund/Earn/exchange mutation.
 - 2026-06-23 local read-only consolidated profit operator packet refresh ran
   `scripts/prepare_profit_operator_consolidated_review_packet.ps1 -RequireReady`
   and saved the full output to

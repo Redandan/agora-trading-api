@@ -207,6 +207,18 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   only: it is not authorization to enable trailing, change strategy opt-in,
   close positions, modify/cancel OCO, deploy, change production env, or place
   orders.
+- Strategy485 risk escalation brief is read-only. Run
+  `.\scripts\prepare_strategy485_risk_escalation_brief.ps1 -RequireReady` after
+  the exit-side decision brief is refreshed. It emits
+  `strategy485_risk_escalation_brief_packet` and
+  `strategy485_risk_escalation_brief_status`. A
+  `READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION` status means the
+  current negative-EV / severe paper-loss position risk can be attached to a
+  separate operator review. It keeps `close_position_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is not authorization to close positions,
+  modify/cancel OCO, place orders, send Telegram, deploy, change production
+  env, or enable live trading.
 - Latest local read-only consolidated profit operator packet on
   2026-06-23T10:31+08:00 ran
   `.\scripts\prepare_profit_operator_consolidated_review_packet.ps1 -RequireReady`

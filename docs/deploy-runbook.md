@@ -703,6 +703,27 @@ Expected:
 - `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` means
   evidence is ready for review, not that TinyLive/live execution is ready.
 
+For the consolidated profit operator next-action board, run after refreshing the
+profit priority evidence and the strategy574/TinyLive source logs:
+
+```powershell
+.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady
+```
+
+Expected:
+
+- Output includes `profit_operator_next_action_board_packet`,
+  `profit_operator_next_action_board_status`,
+  `profit_operator_next_action_primary_focus`, and
+  `strategy574_tiny_live_risk_posture`.
+- `READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` ranks the current
+  review work as trailing-stop dry-run, strategy485 risk-reduction shadow,
+  EntryDedup semantics shadow, then strategy574/TinyLive governance blocker.
+- The board keeps `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
+
 For the focused strategy 485 open-position risk RCA, run:
 
 ```powershell

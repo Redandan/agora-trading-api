@@ -673,6 +673,25 @@ DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
 scheduler mutation, send Telegram, place orders, modify OCO, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only profit operator next-action board:
+
+```powershell
+.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady
+```
+
+This board combines the profit priority decision brief with the
+strategy574/TinyLive governance operator packet. It emits
+`profit_operator_next_action_board_packet` and
+`profit_operator_next_action_board_status`. A
+`PROFIT_OPERATOR_NEXT_ACTION_BOARD` with
+`READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` keeps the operator
+order as trailing-stop dry-run review, strategy485 risk-reduction shadow
+review, EntryDedup semantics shadow review, then strategy574/TinyLive
+governance blocker review. It keeps `tiny_live_order_allowed=false`,
+`live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+`deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

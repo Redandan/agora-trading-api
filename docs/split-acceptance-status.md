@@ -690,6 +690,29 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `strategy574_tiny_live_governance_operator_packet`. This packet is operator
   review evidence only and keeps live/TinyLive/order/scheduler/env/Telegram
   authorization markers false.
+- Profit operator next-action board now combines the priority decision brief
+  with the strategy574/TinyLive governance packet. Run
+  `.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady` after
+  refreshing the source evidence. A `PROFIT_OPERATOR_NEXT_ACTION_BOARD` with
+  `READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` ranks review work as
+  trailing-stop dry-run, strategy485 risk-reduction shadow, EntryDedup
+  semantics shadow, then strategy574/TinyLive governance blocker. It is not
+  live approval and keeps live/TinyLive/order/scheduler/env/Telegram
+  authorization markers false.
+- Latest local read-only profit operator next-action board on
+  2026-06-23T12:26+08:00 ran
+  `.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady`
+  against the latest local priority packet plus the saved strategy574/TinyLive
+  logs. It returned
+  `profit_operator_next_action_board_status=READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE`,
+  `profit_operator_next_action_primary_focus=trailing-stop-dry-run-operator-review`,
+  and `strategy574_tiny_live_risk_posture=BLOCKED_FIX_CURRENT_DATA_FRESHNESS`.
+  The operator order remained trailing-stop dry-run, strategy485
+  risk-reduction shadow, EntryDedup semantics shadow, then strategy574/TinyLive
+  governance blocker. The board kept `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
 - Runtime-evidence gap RCA is read-only. When live-readiness classifies
   `runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or
   `runtimeEvidenceStatus=NOT_READY_*`, run

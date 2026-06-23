@@ -308,6 +308,30 @@
   `position_or_oco_mutation_allowed`. A
   `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` packet
   means the evidence can be reviewed; it is not live/TinyLive approval.
+- `scripts/prepare_profit_operator_next_action_board.ps1` combines the profit
+  operator priority decision brief and the strategy574/TinyLive governance
+  packet into a `PROFIT_OPERATOR_NEXT_ACTION_BOARD`. It emits
+  `profit_operator_next_action_board_packet`,
+  `profit_operator_next_action_board_status`, and
+  `strategy574_tiny_live_risk_posture`, ranking trailing-stop dry-run,
+  strategy485 risk-reduction shadow, EntryDedup semantics shadow, and
+  strategy574/TinyLive governance blocker review in one read-only board. It
+  keeps `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`; it is not live
+  approval.
+- 2026-06-23 local read-only profit operator next-action board refresh ran
+  `scripts/prepare_profit_operator_next_action_board.ps1 -RequireReady` against
+  the latest local priority packet and saved strategy574/TinyLive logs. It
+  returned
+  `READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE`,
+  `profit_operator_next_action_primary_focus=trailing-stop-dry-run-operator-review`,
+  and `strategy574_tiny_live_risk_posture=BLOCKED_FIX_CURRENT_DATA_FRESHNESS`.
+  The board ranks trailing-stop dry-run, strategy485 risk-reduction shadow,
+  EntryDedup semantics shadow, and strategy574/TinyLive governance blocker
+  review, while preserving false markers for TinyLive orders, live policy,
+  scheduler enablement, deploy/env change, orders, Telegram send, and
+  position/OCO mutation.
 - `scripts/smoke_strategy485_position_risk_ssh.ps1` provides a focused
   read-only production RCA for SCORE_BUY strategy 485 open-position risk. It
   calls server-local `/api/mcp` to summarize open positions, OCO health,

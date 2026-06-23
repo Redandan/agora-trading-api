@@ -58,6 +58,7 @@ foreach ($marker in @(
         "scope=READ_ONLY",
         "smoke_signal_correctness_ssh.ps1",
         "smoke_data_freshness_replay_observation_bundle_ssh.ps1",
+        "smoke_data_freshness_sample_gap_rca_ssh.ps1",
         "data_freshness_current_status",
         "data_freshness_replay_candidate_id_recommendation",
         "latest_data_freshness_row_time",
@@ -68,6 +69,14 @@ foreach ($marker in @(
         "data_freshness_rows_14d",
         "data_freshness_rows_30d",
         "data_freshness_sample_gap_status",
+        "data_freshness_sample_gap_rca_recommendation",
+        "data_freshness_sample_gap_detail",
+        "sample_gap_buy_like_rows_",
+        "sample_gap_filter_block_rows_",
+        "sample_gap_latest_data_freshness_row_age_hours",
+        "NO_RECENT_BUY_STYLE_CANDIDATES",
+        "OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW",
+        "CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED",
         "NO_ROWS_IN_REVIEW_WINDOW",
         "data_freshness_counterfactual_recommendation",
         "complete_replayable_candidate_rows",
@@ -84,6 +93,9 @@ foreach ($marker in @(
         "Assert-SshHostSafe",
         "Assert-RemotePathSafe",
         "Assert-SmokeTokenSafe",
+        "SampleGapReviewDays",
+        "SampleGapLongDays",
+        "SampleGapLimit",
         "RequireActionable"
     )) {
     Assert-Contains -Name "DataFreshness profit blocker brief marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
@@ -126,5 +138,17 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ReplayIdDays", "31") `
     -ExpectedPattern "ReplayIdDays must be between 1 and 30"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-SampleGapReviewDays", "0") `
+    -ExpectedPattern "SampleGapReviewDays must be between 1 and 30"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-SampleGapLongDays", "91") `
+    -ExpectedPattern "SampleGapLongDays must be between SampleGapReviewDays and 90"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-SampleGapLimit", "0") `
+    -ExpectedPattern "SampleGapLimit must be between 1 and 50"
 
 Write-Host "[data-freshness-profit-blocker-brief-test] OK"

@@ -9,6 +9,9 @@ param(
     [int]$SignalAccuracyDays = 14,
     [int]$ReviewDays = 14,
     [int]$ReplayIdDays = 3,
+    [int]$SampleGapReviewDays = 7,
+    [int]$SampleGapLongDays = 30,
+    [int]$SampleGapLimit = 10,
     [int]$Limit = 200,
     [switch]$RequireActionable
 )
@@ -90,6 +93,15 @@ if ($ReviewDays -lt 1 -or $ReviewDays -gt 90) {
 if ($ReplayIdDays -lt 1 -or $ReplayIdDays -gt 30) {
     throw "ReplayIdDays must be between 1 and 30."
 }
+if ($SampleGapReviewDays -lt 1 -or $SampleGapReviewDays -gt 30) {
+    throw "SampleGapReviewDays must be between 1 and 30."
+}
+if ($SampleGapLongDays -lt $SampleGapReviewDays -or $SampleGapLongDays -gt 90) {
+    throw "SampleGapLongDays must be between SampleGapReviewDays and 90."
+}
+if ($SampleGapLimit -lt 1 -or $SampleGapLimit -gt 50) {
+    throw "SampleGapLimit must be between 1 and 50."
+}
 if ($Limit -lt 1 -or $Limit -gt 1000) {
     throw "Limit must be between 1 and 1000."
 }
@@ -119,6 +131,12 @@ $observation = Invoke-ReadOnlyScript -ScriptName "smoke_data_freshness_replay_ob
     "-Limit", "$Limit"
 ))
 
+$sampleGap = Invoke-ReadOnlyScript -ScriptName "smoke_data_freshness_sample_gap_rca_ssh.ps1" -Arguments ($commonArgs + @(
+    "-ReviewDays", "$SampleGapReviewDays",
+    "-LongDays", "$SampleGapLongDays",
+    "-Limit", "$SampleGapLimit"
+))
+
 $dataFreshnessStatus = Get-RegexValue -Text $signal.Text -Pattern "dataFreshnessCurrentStatus=([A-Z_]+)"
 $dataFreshnessAcceptance = Get-RegexValue -Text $signal.Text -Pattern "dataFreshnessCurrentStatus=[A-Z_]+ acceptance=([A-Z_]+)" -Default "N/A"
 $signalPolicyClear = Get-RegexValue -Text $signal.Text -Pattern "signalPolicyClear=(true|false)" -Default "N/A"
@@ -141,6 +159,16 @@ $counterfactualRecommendation = Get-RegexValue -Text $observation.Text -Pattern 
 $completeReplayRows = Get-RegexValue -Text $observation.Text -Pattern "  complete_replayable_candidate_rows=([0-9]+)" -Default "0"
 $missingCounterfactualFields = Get-RegexValue -Text $observation.Text -Pattern "  missing_counterfactual_fields=(.+)" -Default "[]"
 $observationRecommendation = Get-RegexValue -Text $observation.Text -Pattern "  replay_observation_bundle_recommendation=([A-Z_]+)" -Default "N/A"
+$sampleGapRcaRecommendation = Get-RegexValue -Text $sampleGap.Text -Pattern "data_freshness_sample_gap_rca_recommendation=([A-Z_]+)" -Default "N/A"
+$sampleGapDetail = Get-RegexValue -Text $sampleGap.Text -Pattern "  data_freshness_sample_gap_detail=([A-Z_]+)" -Default "N/A"
+$sampleGapLatestRowTime = Get-RegexValue -Text $sampleGap.Text -Pattern "  latest_data_freshness_row_time=([^\r\n]+)" -Default "N/A"
+$sampleGapLatestRowAgeHours = Get-RegexValue -Text $sampleGap.Text -Pattern "  latest_data_freshness_row_age_hours=([^\r\n]+)" -Default "N/A"
+$sampleGapAuditRowsReview = Get-RegexValue -Text $sampleGap.Text -Pattern "  audit_rows_$($SampleGapReviewDays)d_review=([0-9]+)" -Default "0"
+$sampleGapSignalEvalRowsReview = Get-RegexValue -Text $sampleGap.Text -Pattern "  signal_eval_rows_$($SampleGapReviewDays)d_review=([0-9]+)" -Default "0"
+$sampleGapBuyLikeRowsReview = Get-RegexValue -Text $sampleGap.Text -Pattern "  buy_like_rows_$($SampleGapReviewDays)d_review=([0-9]+)" -Default "0"
+$sampleGapAttentionHitRowsReview = Get-RegexValue -Text $sampleGap.Text -Pattern "  attention_hit_rows_$($SampleGapReviewDays)d_review=([0-9]+)" -Default "0"
+$sampleGapFilterBlockRowsReview = Get-RegexValue -Text $sampleGap.Text -Pattern "  filter_block_rows_$($SampleGapReviewDays)d_review=([0-9]+)" -Default "0"
+$sampleGapDataFreshnessRowsReview = Get-RegexValue -Text $sampleGap.Text -Pattern "  data_freshness_rows_$($SampleGapReviewDays)d_review=([0-9]+)" -Default "0"
 
 $blockers = [System.Collections.Generic.List[string]]::new()
 if ($signal.ExitCode -ne 0) {
@@ -148,6 +176,9 @@ if ($signal.ExitCode -ne 0) {
 }
 if ($observation.ExitCode -ne 0) {
     $blockers.Add("REPLAY_OBSERVATION_BUNDLE_FAILED")
+}
+if ($sampleGap.ExitCode -ne 0) {
+    $blockers.Add("SAMPLE_GAP_RCA_FAILED")
 }
 if ($dataFreshnessStatus -eq "NO_CURRENT_SAMPLE" -or [string]::IsNullOrWhiteSpace($dataFreshnessStatus)) {
     $blockers.Add("DATAFRESHNESS_CURRENT_SAMPLE_MISSING")
@@ -175,7 +206,13 @@ if ($blockers.Count -eq 0) {
     $nextAction = "Attach this brief to a separate DataFreshness replay review; do not relax DataFreshnessGuard or live policy from this output."
 } elseif ($blockers -contains "DATAFRESHNESS_CURRENT_SAMPLE_MISSING") {
     $status = "PENDING_DATAFRESHNESS_CURRENT_SAMPLE"
-    if ($dataFreshnessSampleGapStatus -eq "NO_ROWS_IN_REVIEW_WINDOW") {
+    if ($sampleGapRcaRecommendation -eq "NO_RECENT_BUY_STYLE_CANDIDATES") {
+        $nextAction = "Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review."
+    } elseif ($sampleGapRcaRecommendation -eq "OTHER_BLOCKERS_DOMINATE_RECENT_WINDOW") {
+        $nextAction = "Recent DataFreshnessGuard rows are absent while other filter blockers dominate; inspect dominant blockers before treating DataFreshness as the current profit blocker."
+    } elseif ($sampleGapRcaRecommendation -eq "CANDIDATES_EXIST_BUT_NOT_DF_BLOCKED") {
+        $nextAction = "Recent BUY-style candidates exist but are not DataFreshness-blocked; route to buy-like progression or EntryDedup/other blocker review before DataFreshness policy review."
+    } elseif ($dataFreshnessSampleGapStatus -eq "NO_ROWS_IN_REVIEW_WINDOW") {
         $nextAction = "Recent DataFreshnessGuard rows are absent while older samples exist; review upstream no-buy/blocker distribution and wait for a new terminal DataFreshness sample before policy review."
     }
 } elseif ($blockers -contains "NO_NEW_DATAFRESHNESS_REPLAY_ROWS") {
@@ -204,6 +241,18 @@ $brief = [pscustomobject]@{
     dataFreshnessRows14d = $dataFreshnessRows14d
     dataFreshnessRows30d = $dataFreshnessRows30d
     dataFreshnessSampleGapStatus = $dataFreshnessSampleGapStatus
+    sampleGapRcaRecommendation = $sampleGapRcaRecommendation
+    sampleGapDetail = $sampleGapDetail
+    sampleGapReviewDays = $SampleGapReviewDays
+    sampleGapLongDays = $SampleGapLongDays
+    sampleGapAuditRowsReview = $sampleGapAuditRowsReview
+    sampleGapSignalEvalRowsReview = $sampleGapSignalEvalRowsReview
+    sampleGapBuyLikeRowsReview = $sampleGapBuyLikeRowsReview
+    sampleGapAttentionHitRowsReview = $sampleGapAttentionHitRowsReview
+    sampleGapFilterBlockRowsReview = $sampleGapFilterBlockRowsReview
+    sampleGapDataFreshnessRowsReview = $sampleGapDataFreshnessRowsReview
+    sampleGapLatestDataFreshnessRowTime = $sampleGapLatestRowTime
+    sampleGapLatestDataFreshnessRowAgeHours = $sampleGapLatestRowAgeHours
     counterfactualRecommendation = $counterfactualRecommendation
     completeReplayableCandidateRows = $completeReplayRows
     missingCounterfactualFields = $missingCounterfactualFields
@@ -222,9 +271,10 @@ $brief = [pscustomobject]@{
 }
 
 Write-Host "[data-freshness-profit-blocker-brief] read-only brief"
-Write-Host "scope=READ_ONLY; invokes smoke_signal_correctness_ssh.ps1 and smoke_data_freshness_replay_observation_bundle_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes smoke_signal_correctness_ssh.ps1, smoke_data_freshness_replay_observation_bundle_ssh.ps1, and smoke_data_freshness_sample_gap_rca_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_signal=smoke_signal_correctness_ssh.ps1 exitCode=$($signal.ExitCode)"
 Write-Host "source_observation=smoke_data_freshness_replay_observation_bundle_ssh.ps1 exitCode=$($observation.ExitCode)"
+Write-Host "source_sample_gap_rca=smoke_data_freshness_sample_gap_rca_ssh.ps1 exitCode=$($sampleGap.ExitCode)"
 Write-Host "data_freshness_current_status=$dataFreshnessStatus"
 Write-Host "data_freshness_current_acceptance=$dataFreshnessAcceptance"
 Write-Host "signal_policy_clear=$signalPolicyClear"
@@ -241,6 +291,16 @@ Write-Host "data_freshness_rows_7d=$dataFreshnessRows7d"
 Write-Host "data_freshness_rows_14d=$dataFreshnessRows14d"
 Write-Host "data_freshness_rows_30d=$dataFreshnessRows30d"
 Write-Host "data_freshness_sample_gap_status=$dataFreshnessSampleGapStatus"
+Write-Host "data_freshness_sample_gap_rca_recommendation=$sampleGapRcaRecommendation"
+Write-Host "data_freshness_sample_gap_detail=$sampleGapDetail"
+Write-Host "sample_gap_audit_rows_$($SampleGapReviewDays)d_review=$sampleGapAuditRowsReview"
+Write-Host "sample_gap_signal_eval_rows_$($SampleGapReviewDays)d_review=$sampleGapSignalEvalRowsReview"
+Write-Host "sample_gap_buy_like_rows_$($SampleGapReviewDays)d_review=$sampleGapBuyLikeRowsReview"
+Write-Host "sample_gap_attention_hit_rows_$($SampleGapReviewDays)d_review=$sampleGapAttentionHitRowsReview"
+Write-Host "sample_gap_filter_block_rows_$($SampleGapReviewDays)d_review=$sampleGapFilterBlockRowsReview"
+Write-Host "sample_gap_data_freshness_rows_$($SampleGapReviewDays)d_review=$sampleGapDataFreshnessRowsReview"
+Write-Host "sample_gap_latest_data_freshness_row_time=$sampleGapLatestRowTime"
+Write-Host "sample_gap_latest_data_freshness_row_age_hours=$sampleGapLatestRowAgeHours"
 Write-Host "data_freshness_counterfactual_recommendation=$counterfactualRecommendation"
 Write-Host "complete_replayable_candidate_rows=$completeReplayRows"
 Write-Host "missing_counterfactual_fields=$missingCounterfactualFields"

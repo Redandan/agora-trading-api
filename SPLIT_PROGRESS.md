@@ -597,16 +597,18 @@
 - `scripts/prepare_data_freshness_profit_blocker_brief_ssh.ps1` is a narrower
   read-only DataFreshness profit blocker brief. It combines
   `smoke_signal_correctness_ssh.ps1` current-source evidence with
-  `smoke_data_freshness_replay_observation_bundle_ssh.ps1`, then emits
+  `smoke_data_freshness_replay_observation_bundle_ssh.ps1` and
+  `smoke_data_freshness_sample_gap_rca_ssh.ps1`, then emits
   `data_freshness_profit_blocker_brief_packet`,
   `data_freshness_profit_blockers`, and
   `data_freshness_profit_blocker_status`. `PENDING_DATAFRESHNESS_CURRENT_SAMPLE`
   means current-source evidence is still missing, while
   `READY_FOR_DATAFRESHNESS_REPLAY_REVIEW_NOT_LIVE` only routes a separate
   replay review. The brief now also carries DataFreshness sample recency from
-  the replay bundle, including latest row time, row age, 1d/3d/7d/14d/30d row
-  counts, and `data_freshness_sample_gap_status`, so a pending current sample
-  can be separated from a recent-window gap with older historical samples. The
+  the replay bundle plus `data_freshness_sample_gap_rca_recommendation`,
+  sample-gap row counts, and latest DataFreshness row age, so a pending current
+  sample can be separated from a no-BUY-style-candidate window before any
+  DataFreshness policy review. The
   brief does not authorize live trading, policy relaxation, deploy, production
   env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.

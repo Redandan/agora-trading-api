@@ -828,7 +828,7 @@
   not authorize live trading, policy relaxation, deploy, production env
   changes, trailing scheduler enablement, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
-- 2026-06-23 read-only production exit-side operator decision refresh ran
+- 2026-06-23T23:20+08:00 read-only production exit-side operator decision refresh ran
   `scripts/prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
   through SSH/server-local MCP. The brief returned
   `exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION`
@@ -841,9 +841,9 @@
   non-mutating operator review with `strategy485_oco_health_ok=True`,
   `strategy485_negative_ev_position_count=3`, and
   `strategy485_close_or_modify_suggestion_count=3`; the read-only current
-  position summaries are `#148 WATCH/CLOSE evUsdt=-0.30 paperPct=-3.96`,
-  `#149 WATCH/CLOSE evUsdt=-0.29 paperPct=-3.90`, and
-  `#150 WATCH/CLOSE evUsdt=-0.21 paperPct=-3.53`. The brief keeps
+  position summaries are `#148 WATCH/CLOSE evUsdt=-0.54 paperPct=-6.85`,
+  `#149 WATCH/CLOSE evUsdt=-0.53 paperPct=-6.79`, and
+  `#150 WATCH/CLOSE evUsdt=-0.39 paperPct=-6.43`. The brief keeps
   entry-filter/DataFreshness policy explicitly out of scope and routes those
   blockers back to the profit operator action brief. This evidence does not
   authorize live trading, trailing scheduler enablement, strategy opt-in
@@ -928,7 +928,7 @@
   modify/cancel OCO, place orders, enable live trading, scheduler paths, relax
   EntryDedup/DataFreshness/live policy, deploy, change production env, mutate
   DB/grid/fund/Earn/Telegram/exchange state, or run external backfill/import.
-- 2026-06-23 read-only TP/SL/OCO feasibility operator packet refreshed
+- 2026-06-23T23:22+08:00 read-only TP/SL/OCO feasibility operator packet refreshed
   exit-side evidence with
   `scripts/prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
   and then ran
@@ -943,9 +943,9 @@
   `trailing_stop_improvement_pct=54.044%`,
   `strategy485_oco_health_ok=True`, and
   `strategy485_negative_ev_position_count=3`; the current position summaries
-  are `#148 WATCH/CLOSE evUsdt=-0.32 paperPct=-4.18`,
-  `#149 WATCH/CLOSE evUsdt=-0.31 paperPct=-4.12`, and
-  `#150 WATCH/CLOSE evUsdt=-0.22 paperPct=-3.76`. The local packet saved
+  are `#148 WATCH/CLOSE evUsdt=-0.54 paperPct=-6.85`,
+  `#149 WATCH/CLOSE evUsdt=-0.53 paperPct=-6.79`, and
+  `#150 WATCH/CLOSE evUsdt=-0.39 paperPct=-6.43`. The local packet saved
   `target\profit-review\tp-sl-oco-feasibility-operator-packet-latest.log` and
   returned
   `READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION` with

@@ -763,6 +763,26 @@ DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
 scheduler mutation, send Telegram, place orders, modify OCO, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only DataFreshness collector activation preflight review packet:
+
+```powershell
+.\scripts\prepare_data_freshness_collector_activation_preflight_review_packet.ps1 -RequireReady
+```
+
+This invokes only the local DataFreshness collector activation decision packet
+and emits `data_freshness_collector_activation_preflight_review_packet` plus
+`data_freshness_collector_activation_preflight_status`. A
+`READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_PREFLIGHT_REVIEW_NOT_LIVE` status
+means the evidence-only collector activation question can be reviewed, not that
+the collector may be enabled. It keeps
+`collector_activation_allowed=false`,
+`deploy_or_env_change_allowed=false`,
+`data_freshness_policy_relaxation_allowed=false`,
+`data_freshness_shadow_review_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`. It is not authorization to activate the
+collector, deploy, change production env, relax DataFreshnessGuard, enable live
+or staged execution, place orders, modify OCO, or send Telegram.
+
 Read-only profit operator next-action board:
 
 ```powershell

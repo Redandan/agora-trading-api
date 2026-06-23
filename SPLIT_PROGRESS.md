@@ -1038,6 +1038,23 @@
   DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
   scheduler mutation, send Telegram, place orders, modify OCO, or mutate
   DB/grid/fund/Earn/exchange/external backfill state.
+- `scripts/prepare_data_freshness_collector_activation_preflight_review_packet.ps1`
+  wraps the collector activation decision packet into a local review-only
+  preflight gate. It emits
+  `data_freshness_collector_activation_preflight_review_packet`,
+  `data_freshness_collector_activation_preflight_status`, and
+  `data_freshness_collector_activation_preflight_decision`. It invokes only the
+  local collector activation decision packet and keeps
+  `evidence_only_collector_review_allowed=true`,
+  `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`,
+  `data_freshness_shadow_review_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. It is evidence-only activation preflight, not
+  authorization to activate the collector, deploy, change production env, relax
+  DataFreshnessGuard, allow DataFreshness shadow review, enable live/staged-add/
+  tiny-live execution, enable scheduler mutation, send Telegram, place orders,
+  modify OCO, or mutate DB/grid/fund/Earn/exchange/external backfill state.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

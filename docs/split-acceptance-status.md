@@ -460,6 +460,20 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
   scheduler mutation, send Telegram, place orders, modify/cancel OCO, or mutate
   DB/grid/fund/Earn/exchange state.
+- DataFreshness collector activation preflight review packet is read-only. Run
+  `.\scripts\prepare_data_freshness_collector_activation_preflight_review_packet.ps1 -RequireReady`
+  after the collector activation decision packet is ready. It emits
+  `data_freshness_collector_activation_preflight_review_packet` and
+  `data_freshness_collector_activation_preflight_status`. A
+  `READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_PREFLIGHT_REVIEW_NOT_LIVE`
+  status means the evidence-only collector activation question can be reviewed,
+  not that the collector may be enabled. It keeps
+  `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`,
+  `data_freshness_shadow_review_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; a real env/deploy change still requires
+  separate explicit authorization.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

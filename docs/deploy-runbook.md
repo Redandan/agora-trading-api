@@ -1869,6 +1869,35 @@ Expected:
   DB/grid/fund/Earn/exchange state, or treat preview rows as complete
   replayable evidence.
 
+For the local read-only DataFreshness collector activation preflight review
+packet, run:
+
+```powershell
+.\scripts\prepare_data_freshness_collector_activation_preflight_review_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- The preflight invokes only
+  `prepare_data_freshness_replay_collector_activation_packet.ps1`. It does not
+  rerun SSH, deploy, restart, change production env, or call MCP write tools.
+- Output includes
+  `data_freshness_collector_activation_preflight_review_packet`,
+  `data_freshness_collector_activation_preflight_status=READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_PREFLIGHT_REVIEW_NOT_LIVE`,
+  `data_freshness_collector_activation_preflight_decision=PREPARE_REVIEW_ONLY_EVIDENCE_COLLECTOR_ACTIVATION`,
+  `evidence_only_collector_review_allowed=true`,
+  `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`,
+  `data_freshness_shadow_review_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
+- `DATAFRESHNESS_COLLECTOR_ACTIVATION_PREFLIGHT_REVIEW_PACKET` is preflight
+  evidence only. It is not permission to enable the collector, deploy, change
+  production env, relax DataFreshnessGuard, enable live/staged-add/tiny-live
+  execution, enable scheduler mutation, send Telegram, place orders, modify
+  OCO, mutate DB/grid/fund/Earn/exchange state, or treat preview rows as
+  complete replayable evidence.
+
 For the read-only profit-improvement review bundle, run:
 
 ```powershell

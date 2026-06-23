@@ -1528,6 +1528,24 @@ misses such as `market_entropy_index` at 69 versus buy threshold 70. It keeps
 changes, strategy activation, TinyLive/live execution, orders, deploy,
 production env changes, Telegram sends, EntryDedup/DataFreshness relaxation, or
 DB/OCO/grid/fund/Earn/exchange mutation.
+Then score those near-threshold rows with read-only forward K-line and TP/SL
+proxy evidence:
+
+```powershell
+.\scripts\smoke_strategy574_near_threshold_shadow_observation_ssh.ps1
+```
+
+This smoke reads only `bt_decision_audit` and `md_kline` through production
+MySQL `SELECT` queries and emits `near_threshold_rows`,
+`reviewable_forward_rows`, `false_positive_rows`,
+`false_positive_rate_pct`, `avg_24h_return_pct`, `avg_mfe_24h_pct`,
+`avg_mae_24h_pct`, `tp_hit_rows`, `sl_hit_rows`,
+`ambiguous_same_bar_rows`, `avg_net_return_pct`, `oco_preflight_status`, and
+`strategy574_near_threshold_shadow_recommendation`. It is shadow-observation
+evidence only; `oco_preflight_status` remains required review evidence and the
+smoke does not deploy, change production env, change thresholds, activate
+strategy 574, execute TinyLive/live orders, send Telegram, relax
+EntryDedup/DataFreshness, or mutate DB/OCO/grid/fund/Earn/exchange state.
 When the dominant follow-up is `ENTRY_SKIP:EntryDedup` for strategy 508, run:
 
 ```powershell

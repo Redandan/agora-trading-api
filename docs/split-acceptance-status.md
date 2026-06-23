@@ -859,6 +859,24 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `strategy574_threshold_gap_indicator=market_entropy_index`,
   `strategy574_min_buy_gap=1.0000`, and
   `strategy574_shadow_observation_review_allowed=true`.
+  The next read-only evidence step is
+  `.\scripts\smoke_strategy574_near_threshold_shadow_observation_ssh.ps1`,
+  which emits forward-return, false-positive, TP/SL/fee proxy, and
+  `oco_preflight_status` evidence for the near-threshold rows. That smoke is
+  still observation-only and does not authorize threshold changes, strategy
+  activation, TinyLive/live execution, deploy, production env changes,
+  Telegram sends, EntryDedup/DataFreshness relaxation, or
+  DB/OCO/grid/fund/Earn/exchange mutation.
+  A follow-up run on 2026-06-23 wrote
+  `target\profit-review\strategy574-near-threshold-shadow-observation-latest.log`
+  with `near_threshold_rows=30`, `reviewable_forward_rows=30`,
+  `false_positive_rows=28`, `false_positive_rate_pct=93.33`,
+  `avg_forward_return_pct=-2.0671`, `tp_hit_rows=8`, `sl_hit_rows=22`,
+  `ambiguous_same_bar_rows=0`, `avg_net_return_pct=-0.6667`,
+  `oco_preflight_status=REVIEW_REQUIRED_TP_SL_PROXY_AVAILABLE`, and
+  `strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`.
+  Treat this as negative evidence for relaxing the strategy574 threshold in the
+  current window.
   The same packet reported `sample_gap_buy_like_rows_7d_review=0`,
   `sample_gap_attention_hit_rows_7d_review=174`,
   `sample_gap_data_freshness_rows_7d_review=0`,

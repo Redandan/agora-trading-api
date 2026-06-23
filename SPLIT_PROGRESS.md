@@ -1476,6 +1476,37 @@
   threshold changes, strategy activation, TinyLive/live execution, deploy,
   production env changes, Telegram sends, EntryDedup/DataFreshness relaxation,
   or DB/OCO/grid/fund/Earn/exchange mutation.
+- `scripts/smoke_strategy574_near_threshold_shadow_observation_ssh.ps1` scores
+  those strategy574 near-threshold rows with read-only OKX `md_kline` forward
+  windows plus a TP/SL/fee proxy. It emits `near_threshold_rows`,
+  `reviewable_forward_rows`, `false_positive_rows`,
+  `false_positive_rate_pct`, `avg_24h_return_pct`, `avg_mfe_24h_pct`,
+  `avg_mae_24h_pct`, `tp_hit_rows`, `sl_hit_rows`,
+  `ambiguous_same_bar_rows`, `avg_net_return_pct`, `oco_preflight_status`, and
+  `strategy574_near_threshold_shadow_recommendation`. The smoke treats OCO
+  preflight as required review evidence, not proven live readiness, and it
+  never authorizes threshold changes, strategy activation, TinyLive/live
+  execution, deploy, production env changes, Telegram sends,
+  EntryDedup/DataFreshness relaxation, or DB/OCO/grid/fund/Earn/exchange
+  mutation.
+- 2026-06-23 follow-up read-only production strategy574 near-threshold shadow
+  observation ran
+  `.\scripts\smoke_strategy574_near_threshold_shadow_observation_ssh.ps1` and
+  wrote
+  `target\profit-review\strategy574-near-threshold-shadow-observation-latest.log`.
+  It made no production env, DB, order, OCO, grid, fund, Earn, Telegram,
+  scheduler, exchange, external backfill/import, deploy, restart, or nginx
+  changes. The 7-day sample returned `near_threshold_rows=30`,
+  `reviewable_forward_rows=30`, `false_positive_rows=28`,
+  `false_positive_rate_pct=93.33`, `avg_forward_return_pct=-2.0671`,
+  `tp_hit_rows=8`, `sl_hit_rows=22`, `ambiguous_same_bar_rows=0`,
+  `avg_net_return_pct=-0.6667`,
+  `oco_preflight_status=REVIEW_REQUIRED_TP_SL_PROXY_AVAILABLE`, and
+  `strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`.
+  This is negative evidence for relaxing the strategy574 threshold from 70 to
+  69 in the current window; the next action is to keep the threshold/live path
+  unchanged and require a separate design review before any alternative
+  strategy574 shadow idea.
 - 2026-06-23 read-only production no-buy/attention refresh for `BTCUSDT`
   showed the current 7-day window shifted from the 2026-06-22 EntryDedup lane
   to a signal-generation/attention lane: `buy_like_candidate_rows=0`,

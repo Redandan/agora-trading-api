@@ -734,6 +734,28 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For the read-only strategy574 near-threshold shadow observation smoke, run:
+
+```powershell
+.\scripts\smoke_strategy574_near_threshold_shadow_observation_ssh.ps1
+```
+
+Expected:
+
+- The smoke reads only `bt_decision_audit` and `md_kline` through production
+  MySQL `SELECT` queries.
+- Output includes `near_threshold_rows`, `reviewable_forward_rows`,
+  `false_positive_rows`, `false_positive_rate_pct`, `avg_24h_return_pct`,
+  `avg_mfe_24h_pct`, `avg_mae_24h_pct`, `tp_hit_rows`, `sl_hit_rows`,
+  `ambiguous_same_bar_rows`, `avg_net_return_pct`, `oco_preflight_status`, and
+  `strategy574_near_threshold_shadow_recommendation`.
+- `STRATEGY574_NEAR_THRESHOLD_SHADOW_OBSERVATION_CANDIDATE_NOT_LIVE` is still
+  a review-only observation route. `oco_preflight_status` must be reviewed
+  separately before any future threshold or live plan.
+- The smoke does not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
+
 For the strategy574/TinyLive governance operator packet, first refresh and save
 the source logs:
 

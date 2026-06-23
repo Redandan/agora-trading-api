@@ -207,6 +207,28 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   only: it is not authorization to enable trailing, change strategy opt-in,
   close positions, modify/cancel OCO, deploy, change production env, or place
   orders.
+- Latest local read-only consolidated profit operator packet on
+  2026-06-23T10:31+08:00 ran
+  `.\scripts\prepare_profit_operator_consolidated_review_packet.ps1 -RequireReady`
+  and wrote the full evidence log to
+  `target\profit-review\profit-operator-consolidated-review-latest.log`. It
+  reused the latest freshness-guarded profit matrix, reported
+  `sourceMatrixFreshnessStatus=FRESH`,
+  `sourcePacketStatus=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`,
+  `sourceEntryDedupPacketStatus=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`,
+  and
+  `profit_operator_consolidated_review_status=READY_FOR_OPERATOR_REVIEW_NOT_LIVE`
+  with `missingRequirements=[]`. The ready review items are
+  `trailing-stop-dry-run-operator-review`,
+  `strategy485-risk-reduction-shadow-operator-review`, and
+  `entry-dedup-semantics-shadow-operator-review`. The blocked policy lanes
+  remain `entry-filter` and `data-freshness-replay`. The packet explicitly
+  kept `live_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`; it is not authorization for live trading,
+  scheduler enablement, close-position/OCO/order actions, EntryDedup or
+  DataFreshness policy relaxation, deploy, production env changes, DB/grid/fund/
+  Earn/Telegram/exchange mutation, or external backfill/import.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

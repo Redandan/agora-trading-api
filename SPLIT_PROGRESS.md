@@ -698,6 +698,26 @@
   changes, position close, OCO modification/cancel, production env changes,
   deploy, orders, DB/grid/fund/Earn/Telegram/exchange mutation, or external
   backfill/import.
+- 2026-06-23 local read-only consolidated profit operator packet refresh ran
+  `scripts/prepare_profit_operator_consolidated_review_packet.ps1 -RequireReady`
+  and saved the full output to
+  `target\profit-review\profit-operator-consolidated-review-latest.log`. The
+  packet returned `READY_FOR_OPERATOR_REVIEW_NOT_LIVE` with
+  `sourcePacketStatus=READY_FOR_OPERATOR_REVIEW_PACKET_NOT_LIVE`,
+  `sourceEntryDedupPacketStatus=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`,
+  `sourceMatrixFreshnessStatus=FRESH`, `readyReviewItemCount=3`,
+  `blockedPolicyLaneCount=2`, and no missing requirements. The three ready
+  review-only items are `trailing-stop-dry-run-operator-review`,
+  `strategy485-risk-reduction-shadow-operator-review`, and
+  `entry-dedup-semantics-shadow-operator-review`; the blocked policy lanes
+  remain `entry-filter` and `data-freshness-replay`. The packet keeps
+  `live_policy_change_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`, so this is operator-review routing only, not
+  permission to enable live trading or scheduler paths, close positions, modify
+  OCO, place orders, relax EntryDedup/DataFreshness/live policy, deploy, change
+  production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run
+  external backfill/import.
 - 2026-06-22 read-only production profit operator matrix refresh reran
   `scripts/prepare_profit_operator_review_matrix_ssh.ps1 -ReplayDays 30
   -ReplayLimit 200` through SSH. All four child scripts exited `0`, including

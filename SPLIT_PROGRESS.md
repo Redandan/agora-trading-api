@@ -989,6 +989,24 @@
   relaxation, live/staged-add/tiny-live execution, orders, OCO changes, deploy,
   production env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or
   external backfill/import.
+- `scripts/prepare_data_freshness_replay_blocker_preflight_review_packet.ps1`
+  wraps the DataFreshness replay blocker decision packet into a local
+  review-only preflight gate. It emits
+  `data_freshness_replay_blocker_preflight_review_packet`,
+  `data_freshness_replay_blocker_preflight_status`, and
+  `data_freshness_replay_blocker_preflight_decision`. It invokes only the local
+  blocker decision packet, requires the source lane to remain blocked, requires
+  `complete_replayable_candidate_rows=0` and
+  `shadow_candidate_review_allowed=false`, and keeps
+  `data_freshness_policy_relaxation_allowed=false`,
+  `data_freshness_shadow_review_allowed=false`,
+  `collector_activation_allowed=false`, `staged_add_execution_allowed=false`,
+  `tiny_live_execution_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. It is a wait/refresh blocker preflight only;
+  it does not authorize DataFreshnessGuard relaxation, DataFreshness shadow
+  review, collector activation, live/staged-add/tiny-live execution, scheduler
+  enablement, orders, OCO mutation, deploy, production env changes,
+  DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
 - 2026-06-23 read-only DataFreshness replay evidence refresh plus local
   collector activation decision packet ran
   `scripts/prepare_data_freshness_replay_evidence_readiness_ssh.ps1 -RequireActionable`

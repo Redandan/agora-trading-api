@@ -418,6 +418,20 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   enable live/staged-add/tiny-live execution, place orders, modify/cancel OCO,
   deploy, change production env, or mutate DB/grid/fund/Earn/Telegram/exchange
   state.
+- DataFreshness replay blocker preflight review packet is read-only. Run
+  `.\scripts\prepare_data_freshness_replay_blocker_preflight_review_packet.ps1 -RequireReady`
+  after the blocker decision packet is ready. It emits
+  `data_freshness_replay_blocker_preflight_review_packet` and
+  `data_freshness_replay_blocker_preflight_status`. A
+  `READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_PREFLIGHT_REVIEW_NOT_LIVE` status
+  means the wait/refresh blocker can be attached to operator review, not that
+  DataFreshness shadow review or policy relaxation is allowed. It requires
+  `complete_replayable_candidate_rows=0` and
+  `shadow_candidate_review_allowed=false`, and keeps
+  `data_freshness_policy_relaxation_allowed=false`,
+  `data_freshness_shadow_review_allowed=false`,
+  `collector_activation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
 - Latest read-only DataFreshness replay evidence refresh and local collector
   activation decision packet on 2026-06-23T11:44+08:00 ran
   `.\scripts\prepare_data_freshness_replay_evidence_readiness_ssh.ps1 -RequireActionable`

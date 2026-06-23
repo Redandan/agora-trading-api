@@ -1285,6 +1285,29 @@ Expected:
   not DataFreshness shadow-review readiness and not permission to relax
   DataFreshnessGuard, enable live/staged-add/tiny-live execution, place orders,
   modify OCO, deploy, or change production env.
+- To produce the local DataFreshness replay blocker preflight review packet,
+  run:
+
+  ```powershell
+  .\scripts\prepare_data_freshness_replay_blocker_preflight_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `data_freshness_replay_blocker_preflight_review_packet`,
+  `data_freshness_replay_blocker_preflight_status=READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_PREFLIGHT_REVIEW_NOT_LIVE`,
+  `data_freshness_replay_blocker_preflight_decision=PREPARE_REVIEW_ONLY_DATAFRESHNESS_REPLAY_BLOCKER_REVIEW`,
+  `complete_replayable_candidate_rows=0`,
+  `shadow_candidate_review_allowed=false`,
+  `data_freshness_policy_relaxation_allowed=false`,
+  `data_freshness_shadow_review_allowed=false`,
+  `collector_activation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. The packet type is
+  `DATAFRESHNESS_REPLAY_BLOCKER_PREFLIGHT_REVIEW_PACKET`. It invokes only the
+  local blocker decision packet and does not rerun SSH. This is wait/refresh
+  preflight evidence only, not DataFreshness shadow-review readiness and not
+  permission to relax DataFreshnessGuard, activate the collector, enable
+  live/staged-add/tiny-live execution, place orders, modify OCO, send Telegram,
+  deploy, or change production env.
 - To summarize the latest saved action brief for operator review, run:
 
   ```powershell

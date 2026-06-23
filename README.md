@@ -719,6 +719,27 @@ decision, not that DataFreshness is shadow-reviewable. It preserves
 it does not relax DataFreshnessGuard, enable live/staged-add/tiny-live
 execution, place orders, modify OCO, deploy, or change production env.
 
+Local DataFreshness replay blocker preflight review packet:
+
+```powershell
+.\scripts\prepare_data_freshness_replay_blocker_preflight_review_packet.ps1 -RequireReady
+```
+
+This invokes only the local DataFreshness replay blocker decision packet and
+emits `data_freshness_replay_blocker_preflight_review_packet` plus
+`data_freshness_replay_blocker_preflight_status`. A
+`READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_PREFLIGHT_REVIEW_NOT_LIVE` status means
+the wait/refresh blocker can be attached to review. It requires the source lane
+to remain blocked, `complete_replayable_candidate_rows=0`, and
+`shadow_candidate_review_allowed=false`; it keeps
+`data_freshness_policy_relaxation_allowed=false`,
+`data_freshness_shadow_review_allowed=false`,
+`collector_activation_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`. It does not authorize DataFreshnessGuard
+relaxation, DataFreshness shadow review, collector activation, live/staged-add/
+tiny-live execution, orders, OCO mutation, deploy, production env changes, or
+Telegram sends.
+
 DataFreshness replay collector activation decision packet:
 
 ```powershell

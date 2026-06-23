@@ -389,6 +389,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   not authorization to relax EntryDedup/DataFreshness/live policy, enable
   staged-add/live execution, place orders, modify/cancel OCO, deploy, change
   production env, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- EntryDedup semantics preflight review packet is read-only. Run
+  `.\scripts\prepare_entry_dedup_semantics_preflight_review_packet.ps1 -RequireReady`
+  after the EntryDedup semantics operator decision packet is ready. It emits
+  `entry_dedup_semantics_preflight_review_packet` and
+  `entry_dedup_semantics_preflight_status`. A
+  `ENTRY_DEDUP_SEMANTICS_PREFLIGHT_REVIEW_PACKET` with
+  `READY_FOR_ENTRY_DEDUP_SEMANTICS_PREFLIGHT_REVIEW_NOT_LIVE` means the
+  operator can review shadow-only EntryDedup semantics scope and future
+  prerequisites; it is not authorization to relax EntryDedup/DataFreshness/live
+  policy, enable staged-add/live execution, place orders, modify/cancel OCO,
+  send Telegram, deploy, change production env, or mutate production state.
 - Latest local read-only DataFreshness replay blocker operator decision packet
   on 2026-06-23T11:39+08:00 ran
   `.\scripts\prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked`

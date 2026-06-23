@@ -1497,6 +1497,25 @@ Expected:
   evidence review and does not relax EntryDedup/DataFreshness/live policy,
   enable staged-add or live execution, place orders, modify OCO, deploy/env
   changes, or authorize policy relaxation.
+- To wrap the EntryDedup semantics operator decision into a final review-only
+  preflight, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_semantics_preflight_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `entry_dedup_semantics_preflight_review_packet`,
+  `entry_dedup_semantics_preflight_priority_rank=3`,
+  `entry_dedup_semantics_preflight_decision=PREPARE_REVIEW_ONLY_ENTRY_DEDUP_SEMANTICS_SHADOW_REVIEW`,
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `staged_add_execution_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, and
+  `entry_dedup_semantics_preflight_status=READY_FOR_ENTRY_DEDUP_SEMANTICS_PREFLIGHT_REVIEW_NOT_LIVE`.
+  The preflight invokes only the local EntryDedup semantics operator decision
+  packet; it does not rerun SSH, deploy, change production env, relax
+  EntryDedup/DataFreshness/live policy, enable staged-add/live execution, place
+  orders, modify OCO, send Telegram, or authorize policy relaxation.
 - The brief does not deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, enable the
   trailing scheduler, place orders, modify OCO, close positions, mutate

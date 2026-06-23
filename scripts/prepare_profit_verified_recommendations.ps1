@@ -28,6 +28,15 @@ function Add-MissingRequirement {
     }
 }
 
+function Get-SafeProperty {
+    param([object]$Item, [string]$Name)
+    if ($null -eq $Item) { return "" }
+    $properties = @($Item.PSObject.Properties.Name)
+    if ($properties -contains $Name) { return [string]$Item.$Name }
+    if ($Name -eq "lane" -and $Item -is [string]) { return [string]$Item }
+    return ""
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) {
     throw "ReviewOutputDir is required."
 }
@@ -145,12 +154,12 @@ if ($null -ne $packet) {
     }
     foreach ($lane in @($packet.blockedLanes)) {
         $blockedItems += [pscustomobject]@{
-            lane = [string]$lane.lane
-            priority = [string]$lane.priority
-            status = [string]$lane.status
-            decisionClass = [string]$lane.decisionClass
-            missingRequirements = @($lane.missingRequirements)
-            nextAction = [string]$lane.nextAction
+            lane = Get-SafeProperty -Item $lane -Name "lane"
+            priority = Get-SafeProperty -Item $lane -Name "priority"
+            status = Get-SafeProperty -Item $lane -Name "status"
+            decisionClass = Get-SafeProperty -Item $lane -Name "decisionClass"
+            missingRequirements = if ($null -ne $lane -and @($lane.PSObject.Properties.Name) -contains "missingRequirements") { @($lane.missingRequirements) } else { @() }
+            nextAction = Get-SafeProperty -Item $lane -Name "nextAction"
         }
     }
 }

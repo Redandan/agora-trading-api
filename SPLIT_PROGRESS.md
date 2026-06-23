@@ -951,6 +951,22 @@
   staged-add/live execution, place orders, modify OCO, deploy, change
   production env, mutate DB/grid/fund/Earn/Telegram/exchange state, or run
   external backfill/import.
+- `scripts/prepare_entry_dedup_semantics_preflight_review_packet.ps1` wraps the
+  local EntryDedup semantics operator decision packet into
+  `ENTRY_DEDUP_SEMANTICS_PREFLIGHT_REVIEW_PACKET`. It emits
+  `entry_dedup_semantics_preflight_review_packet`,
+  `entry_dedup_semantics_preflight_status`, and
+  `entry_dedup_semantics_preflight_decision`. It keeps
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `staged_add_execution_allowed=false`,
+  `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is a review-only preflight and does not
+  authorize EntryDedup/DataFreshness/live policy relaxation, staged-add/live
+  execution, orders, OCO modification/cancelation, deploy, production env
+  changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external
+  backfill/import.
 - 2026-06-23 local read-only DataFreshness replay blocker operator decision
   packet refresh ran
   `scripts/prepare_data_freshness_replay_blocker_decision_packet.ps1 -RequireBlocked`

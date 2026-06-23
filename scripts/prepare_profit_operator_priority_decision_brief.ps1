@@ -31,6 +31,15 @@ function Get-ReviewItem {
     return $match[0]
 }
 
+function Get-SafeLane {
+    param([object]$Item)
+    if ($null -eq $Item) { return "" }
+    $properties = @($Item.PSObject.Properties.Name)
+    if ($properties -contains "lane") { return [string]$Item.lane }
+    if ($Item -is [string]) { return [string]$Item }
+    return ""
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) { throw "ReviewOutputDir is required." }
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) { throw "MatrixMaxAgeMinutes must be between 1 and 1440." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
@@ -106,7 +115,7 @@ foreach ($required in @(
     }
 }
 foreach ($requiredBlocked in @("entry-filter", "data-freshness-replay")) {
-    if (@($blockedPolicyLanes | Where-Object { [string]$_.lane -eq $requiredBlocked }).Count -lt 1) {
+    if (@($blockedPolicyLanes | Where-Object { (Get-SafeLane -Item $_) -eq $requiredBlocked }).Count -lt 1) {
         Add-MissingRequirement -List $missingRequirements -Value "blocked policy lane present: $requiredBlocked"
     }
 }

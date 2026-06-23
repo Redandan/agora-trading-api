@@ -355,6 +355,24 @@ EntryDedup semantics evidence. It keeps
 does not relax EntryDedup/DataFreshness/live policy, enable staged-add or live
 execution, place orders, modify OCO, deploy, or change production env.
 
+Read-only EntryDedup semantics preflight review packet:
+
+```powershell
+.\scripts\prepare_entry_dedup_semantics_preflight_review_packet.ps1 -RequireReady
+```
+
+This wraps the EntryDedup semantics operator decision packet and emits
+`entry_dedup_semantics_preflight_review_packet` plus
+`entry_dedup_semantics_preflight_status`.
+`READY_FOR_ENTRY_DEDUP_SEMANTICS_PREFLIGHT_REVIEW_NOT_LIVE` means the operator
+can review shadow-only EntryDedup semantics scope and future prerequisites. It
+keeps `entry_dedup_policy_change_allowed=false`,
+`data_freshness_policy_change_allowed=false`, `staged_add_execution_allowed=false`,
+`order_allowed=false`, `telegram_send_allowed=false`, and
+`deploy_or_env_change_allowed=false`; it is not authorization to relax
+EntryDedup/DataFreshness/live policy, enable staged-add or live execution,
+place orders, modify OCO, send Telegram, deploy, or change production env.
+
 Read-only exit-side operator experiment packet from the latest saved profit
 matrix:
 

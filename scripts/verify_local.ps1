@@ -1661,6 +1661,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_consolidated_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_priority_decision_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_next_action_board.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_profit_live_blocker_audit_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_reduction_operator_decision_packet.ps1"

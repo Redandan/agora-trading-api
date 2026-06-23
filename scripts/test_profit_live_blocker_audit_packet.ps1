@@ -1,0 +1,139 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Assert-Contains {
+    param([string]$Name, [string]$Text, [string]$Pattern)
+    if ($Text -notmatch $Pattern) {
+        throw "$Name missing pattern: $Pattern"
+    }
+}
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$scriptPath = Join-Path $PSScriptRoot "prepare_profit_live_blocker_audit_packet.ps1"
+$readmePath = Join-Path $repoRoot "README.md"
+$runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
+$progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
+
+$scriptText = Get-Content -Raw -LiteralPath $scriptPath
+$docsText = @(
+    Get-Content -Raw -LiteralPath $readmePath
+    Get-Content -Raw -LiteralPath $runbookPath
+    Get-Content -Raw -LiteralPath $progressPath
+) -join "`n"
+
+foreach ($marker in @(
+        "[profit-live-blocker-audit-packet] read-only audit",
+        "scope=READ_ONLY",
+        "PROFIT_LIVE_BLOCKER_AUDIT_PACKET",
+        "BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
+        "BLOCKED_REFRESH_EVIDENCE_BEFORE_LIVE_REVIEW",
+        "profit_live_blocker_audit_packet",
+        "profit_live_blocker_audit_status",
+        "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
+        "tiny_live_order_allowed=false",
+        "live_policy_change_allowed=false",
+        "scheduler_enablement_allowed=false",
+        "position_or_oco_mutation_allowed=false",
+        "deploy_or_env_change_allowed=false",
+        "order_allowed=false",
+        "telegram_send_allowed=false",
+        "notAuthorization=read-only profit live blocker audit only",
+        "RequireAuditReady"
+    )) {
+    Assert-Contains -Name "profit live blocker audit marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
+}
+
+foreach ($marker in @(
+        "prepare_profit_live_blocker_audit_packet.ps1",
+        "PROFIT_LIVE_BLOCKER_AUDIT_PACKET",
+        "profit_live_blocker_audit_packet",
+        "NOT_READY_FOR_LIVE_ENABLEMENT"
+    )) {
+    Assert-Contains -Name "docs mention profit live blocker audit" -Text $docsText -Pattern ([regex]::Escape($marker))
+}
+
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-live-blocker-audit-" + [guid]::NewGuid().ToString("N"))
+New-Item -ItemType Directory -Path $tempDir | Out-Null
+try {
+    function Write-PacketLog {
+        param(
+            [string]$Name,
+            [string]$StatusPrefix,
+            [string]$Status,
+            [string]$PacketPrefix,
+            [object]$Packet
+        )
+        $path = Join-Path $tempDir $Name
+        Set-Content -LiteralPath $path -Encoding UTF8 -Value @(
+            "$StatusPrefix$Status",
+            ($PacketPrefix + (ConvertTo-Json -Compress -Depth 8 $Packet))
+        )
+        return $path
+    }
+
+    $priority = Write-PacketLog -Name "priority.log" -StatusPrefix "profit_operator_priority_decision_brief_status=" -Status "READY_FOR_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "profit_operator_priority_decision_brief_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review ranked operator decisions." })
+    $trailing = Write-PacketLog -Name "trailing.log" -StatusPrefix "trailing_stop_dry_run_operator_decision_status=" -Status "READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "trailing_stop_dry_run_operator_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review dry-run trailing." })
+    $strategy485 = Write-PacketLog -Name "strategy485.log" -StatusPrefix "strategy485_risk_reduction_operator_decision_status=" -Status "READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION" -PacketPrefix "strategy485_risk_reduction_operator_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review shadow risk reduction." })
+    $entryDedup = Write-PacketLog -Name "entry.log" -StatusPrefix "entry_dedup_semantics_operator_decision_status=" -Status "READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "entry_dedup_semantics_operator_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review EntryDedup semantics shadow." })
+    $dfBlocker = Write-PacketLog -Name "df-blocker.log" -StatusPrefix "data_freshness_replay_blocker_decision_status=" -Status "READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "data_freshness_replay_blocker_decision_packet=" -Packet ([pscustomobject]@{ missingRequirements = @("complete_replayable_candidate_rows=0"); nextAction = "Wait for replayable rows." })
+    $dfCollector = Write-PacketLog -Name "df-collector.log" -StatusPrefix "data_freshness_collector_activation_status=" -Status "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE" -PacketPrefix "data_freshness_collector_activation_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review evidence-only collector activation." })
+    $tpSlOco = Write-PacketLog -Name "tp-sl-oco.log" -StatusPrefix "tp_sl_oco_feasibility_status=" -Status "READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION" -PacketPrefix "tp_sl_oco_feasibility_operator_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review TP/SL/OCO feasibility." })
+    $strategy574 = Write-PacketLog -Name "strategy574.log" -StatusPrefix "strategy574_tiny_live_governance_preflight_status=" -Status "READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE" -PacketPrefix "strategy574_tiny_live_governance_preflight_review_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review blocked Strategy574/TinyLive governance." })
+    $governance = Write-PacketLog -Name "governance.log" -StatusPrefix "governance_relaxation_preflight_status=" -Status "READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE" -PacketPrefix "governance_relaxation_preflight_review_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "Review governance relaxation blocker." })
+
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) { $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue }
+    if ($null -eq $powerShell) { throw "Unable to find powershell or pwsh for profit live blocker audit test" }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -PriorityDecisionLogPath $priority `
+            -TrailingDryRunLogPath $trailing `
+            -Strategy485RiskLogPath $strategy485 `
+            -EntryDedupLogPath $entryDedup `
+            -DataFreshnessReplayBlockerLogPath $dfBlocker `
+            -DataFreshnessCollectorLogPath $dfCollector `
+            -TpSlOcoLogPath $tpSlOco `
+            -Strategy574TinyLivePreflightLogPath $strategy574 `
+            -GovernanceRelaxationPreflightLogPath $governance `
+            -RequireAuditReady 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "profit live blocker audit failed temp-log reuse:`n$text"
+    }
+    foreach ($marker in @(
+            "profit_live_blocker_audit_lane_count=9",
+            "profit_live_blocker_ready_review_count=9",
+            "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
+            "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
+            '"packetType":"PROFIT_LIVE_BLOCKER_AUDIT_PACKET"',
+            '"liveReadinessConclusion":"NOT_READY_FOR_LIVE_ENABLEMENT"',
+            '"lane":"data-freshness-replay-blocker"',
+            '"lane":"strategy574-tiny-live-governance"',
+            '"lane":"governance-relaxation"',
+            '"readyReviewCount":9',
+            '"liveReady":false',
+            "tiny_live_order_allowed=false",
+            "live_policy_change_allowed=false",
+            "scheduler_enablement_allowed=false",
+            "deploy_or_env_change_allowed=false",
+            "order_allowed=false",
+            "telegram_send_allowed=false",
+            "notAuthorization=read-only profit live blocker audit only"
+        )) {
+        Assert-Contains -Name "profit live blocker audit temp log reuse" -Text $text -Pattern ([regex]::Escape($marker))
+    }
+    if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit live blocker audit unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+} finally {
+    if (Test-Path -LiteralPath $tempDir) { Remove-Item -LiteralPath $tempDir -Recurse -Force }
+}
+
+Write-Host "[profit-live-blocker-audit-packet-test] OK"

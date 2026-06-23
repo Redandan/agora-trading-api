@@ -777,6 +777,33 @@ Expected:
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`.
 
+For the local read-only profit live blocker audit packet, run after source
+operator/preflight logs are saved:
+
+```powershell
+.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady
+```
+
+Expected:
+
+- The audit reads existing local profit-review logs only. It does not rerun SSH,
+  call MCP, deploy, restart, change production env, or call MCP write tools.
+- Output includes `profit_live_blocker_audit_packet`,
+  `profit_live_blocker_audit_status`, and
+  `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`.
+- `PROFIT_LIVE_BLOCKER_AUDIT_PACKET` covers profit-priority, trailing dry-run,
+  strategy485 risk reduction, EntryDedup semantics, DataFreshness replay
+  blocker, DataFreshness collector activation, TP/SL/OCO feasibility,
+  strategy574/TinyLive governance, and governance relaxation lanes. Missing or
+  stale lane evidence is a blocker, not a pass.
+- The audit keeps `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is not authorization for live trading,
+  TinyLive execution, scheduler enablement, orders, OCO, Telegram, deploy,
+  production env changes, policy relaxation, or DB/grid/fund/Earn/exchange
+  mutation.
+
 For the focused strategy 485 open-position risk RCA, run:
 
 ```powershell

@@ -349,6 +349,20 @@
   `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
   `order_allowed=false`, and `telegram_send_allowed=false`; it is not live
   approval.
+- `scripts/prepare_profit_live_blocker_audit_packet.ps1` reads existing local
+  profit-review logs and emits `PROFIT_LIVE_BLOCKER_AUDIT_PACKET`,
+  `profit_live_blocker_audit_packet`, `profit_live_blocker_audit_status`, and
+  `liveReadinessConclusion=NOT_READY_FOR_LIVE_ENABLEMENT`. It audits
+  profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
+  semantics, DataFreshness replay blocker, DataFreshness collector activation,
+  TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
+  relaxation lanes. Missing or stale logs are blockers, not passes. The audit
+  keeps `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`; it does not rerun
+  SSH, call MCP, deploy, change production env, enable live/TinyLive/scheduler,
+  place orders, send Telegram, modify OCO, or relax EntryDedup/DataFreshness/
+  live policy.
 - 2026-06-23 local read-only profit operator next-action board refresh ran
   `scripts/prepare_profit_operator_next_action_board.ps1 -RequireReady` against
   the latest local priority packet and saved strategy574/TinyLive logs. It

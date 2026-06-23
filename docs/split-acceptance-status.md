@@ -824,6 +824,20 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`.
+- Profit live blocker audit packet is read-only. Run
+  `.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady`
+  after the local operator/preflight source logs are saved. It emits
+  `profit_live_blocker_audit_packet`,
+  `profit_live_blocker_audit_status`, and
+  `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`. It audits
+  profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
+  semantics, DataFreshness replay blocker, DataFreshness collector activation,
+  TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
+  relaxation lanes; missing or stale source logs remain blockers. This is not
+  authorization to enable live trading, execute TinyLive, enable scheduler
+  mutation, place orders, modify/cancel OCO, send Telegram, deploy, change
+  production env, relax EntryDedup/DataFreshness/live policy, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
 - Runtime-evidence gap RCA is read-only. When live-readiness classifies
   `runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or
   `runtimeEvidenceStatus=NOT_READY_*`, run

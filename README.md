@@ -842,6 +842,25 @@ governance blocker review. It keeps `tiny_live_order_allowed=false`,
 `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
 `telegram_send_allowed=false`.
 
+Read-only profit live blocker audit packet:
+
+```powershell
+.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady
+```
+
+This reads existing local profit-review logs and emits
+`profit_live_blocker_audit_packet` with
+`packetType=PROFIT_LIVE_BLOCKER_AUDIT_PACKET` and
+`liveReadinessConclusion=NOT_READY_FOR_LIVE_ENABLEMENT`. It audits
+profit-priority, trailing dry-run, strategy485 risk reduction, EntryDedup
+semantics, DataFreshness replay blocker, DataFreshness collector activation,
+TP/SL/OCO feasibility, strategy574/TinyLive governance, and governance
+relaxation lanes. Missing or stale source logs are blockers, not passes. This
+audit is for choosing the next read-only evidence refresh; it does not rerun
+SSH, call MCP, deploy, change production env, enable live/TinyLive/scheduler,
+place orders, send Telegram, modify OCO, or relax EntryDedup/DataFreshness/live
+policy.
+
 Focused strategy 574 signal/governance RCA:
 
 ```powershell

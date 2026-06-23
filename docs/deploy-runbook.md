@@ -680,6 +680,29 @@ Expected:
 - `BLOCKED_DEPLOY_CURRENT_RUNTIME` means deploy and server verification are
   required before the strategy 574 gate can be trusted.
 
+For the strategy574/TinyLive governance operator packet, first refresh and save
+the source logs:
+
+```powershell
+New-Item -ItemType Directory -Force target/profit-review | Out-Null
+.\scripts\prepare_strategy574_signal_review_gate_ssh.ps1 *> target/profit-review/strategy574-signal-review-gate-refresh.log
+.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 *> target/profit-review/tiny-live-loss-rca-refresh.log
+.\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1
+```
+
+Expected:
+
+- The packet reuses existing logs only; it does not rerun SSH or mutate runtime
+  state.
+- Output includes `strategy574_tiny_live_governance_operator_packet`,
+  `strategy574_tiny_live_governance_status`,
+  `strategy574_tiny_live_risk_posture`, `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
+- `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` means
+  evidence is ready for review, not that TinyLive/live execution is ready.
+
 For the focused strategy 485 open-position risk RCA, run:
 
 ```powershell

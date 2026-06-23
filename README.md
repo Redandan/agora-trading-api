@@ -699,6 +699,26 @@ This gate combines origin-delta and strategy 574 governance evidence into
 It may route continued read-only observation, but it never authorizes
 pre-buying, TinyLive order execution, or EntryDedup/DataFreshness relaxation.
 
+Strategy574/TinyLive governance operator packet from refreshed read-only logs:
+
+```powershell
+.\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1
+```
+
+Before running it, refresh and save the two source logs:
+`.\scripts\prepare_strategy574_signal_review_gate_ssh.ps1` to
+`target/profit-review/strategy574-signal-review-gate-refresh.log` and
+`.\scripts\smoke_tiny_live_loss_rca_ssh.ps1` to
+`target/profit-review/tiny-live-loss-rca-refresh.log`. The packet emits
+`strategy574_tiny_live_governance_operator_packet` and
+`strategy574_tiny_live_governance_status`. A
+`STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_PACKET` with
+`READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` means the
+evidence is usable for operator review only; it keeps
+`tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
+`scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+`order_allowed=false`, and `telegram_send_allowed=false`.
+
 Focused strategy 485 open-position risk RCA:
 
 ```powershell

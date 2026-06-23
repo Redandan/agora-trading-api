@@ -296,6 +296,18 @@
   read-only observation only; it never authorizes pre-buying, TinyLive order
   execution, EntryDedup/DataFreshness relaxation, deploy, restart, or live
   policy changes.
+- `scripts/prepare_strategy574_tiny_live_governance_operator_packet.ps1` wraps
+  refreshed strategy 574 signal gate and TinyLive loss RCA logs into a reusable
+  `STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_PACKET`. It emits
+  `strategy574_tiny_live_governance_operator_packet`,
+  `strategy574_tiny_live_governance_status`,
+  `strategy574_tiny_live_risk_posture`, and hard false markers for
+  `tiny_live_order_allowed`, `live_policy_change_allowed`,
+  `scheduler_enablement_allowed`, `deploy_or_env_change_allowed`,
+  `order_allowed`, `telegram_send_allowed`, and
+  `position_or_oco_mutation_allowed`. A
+  `READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_OPERATOR_REVIEW_NOT_LIVE` packet
+  means the evidence can be reviewed; it is not live/TinyLive approval.
 - `scripts/smoke_strategy485_position_risk_ssh.ps1` provides a focused
   read-only production RCA for SCORE_BUY strategy 485 open-position risk. It
   calls server-local `/api/mcp` to summarize open positions, OCO health,

@@ -672,6 +672,24 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `completedTinyLiveSamples`, `falsePositiveCount`, `canEnableProduction`, and
   `canIncreaseDailyCap`. This is RCA evidence only; it must not be treated as
   permission to enable live flags.
+- Strategy574/TinyLive governance packet is read-only. On
+  2026-06-23T12:11+08:00,
+  `.\scripts\prepare_strategy574_signal_review_gate_ssh.ps1` reported
+  `strategy574_signal_review_gate_status=BLOCKED_FIX_CURRENT_DATA_FRESHNESS`,
+  `strategy574_near_buy=true`,
+  `data_freshness_current_clean=false`,
+  `strategy574_policy_change_recommendation=DO_NOT_RELAX_ENTRY_DEDUP_OR_DATAFRESHNESS_LIVE`,
+  and `tiny_live_order_allowed=false`. The paired
+  `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1` run reported
+  `hardStopDetected=false`, `autoApprovalEligible=false`,
+  `executionEligible=false`, `canEnableProduction=false`,
+  `completedTinyLiveSamples=2`, `falsePositiveCount=2`, and
+  `rolloutBlockers=[LOOP_NOT_READY:WAIT_SIGNAL_BUY, READY_TICKS_LT_3, NO_CURRENT_BUY_CANDIDATE, COMPLETED_TINY_LIVE_SAMPLES_LT_3, FALSE_POSITIVE_COUNT_GT_1]`.
+  Use `.\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1`
+  after saving those logs to emit
+  `strategy574_tiny_live_governance_operator_packet`. This packet is operator
+  review evidence only and keeps live/TinyLive/order/scheduler/env/Telegram
+  authorization markers false.
 - Runtime-evidence gap RCA is read-only. When live-readiness classifies
   `runtime_evidence_gap`, `RUNTIME_EVIDENCE_MISSING`, or
   `runtimeEvidenceStatus=NOT_READY_*`, run

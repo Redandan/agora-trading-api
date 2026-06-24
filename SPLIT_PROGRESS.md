@@ -1359,6 +1359,19 @@
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `issue7_live_relaxation_allowed=false`. `scripts/test_filter_block_false_kill_issue7_operator_handoff.ps1`
   is included in `scripts/verify_local.ps1`.
+- `scripts/prepare_filter_block_false_kill_issue7_collector_activation_review_packet.ps1`
+  converts that handoff into
+  `ISSUE7_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW_PACKET`,
+  `issue7_evidence_collector_activation_review_status`, and
+  `issue7_evidence_collector_activation_review_decision`. It records the only
+  separately reviewable env diff
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`, required
+  disabled trading/execution flags, post-change read-only verification, issue
+  close evidence requirements, and stop conditions. It keeps
+  `collector_activation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, `telegram_send_allowed=false`, and
+  `issue7_live_relaxation_allowed=false`. `scripts/test_filter_block_false_kill_issue7_collector_activation_review_packet.ps1`
+  is included in `scripts/verify_local.ps1`.
 - `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
   read-only governance relaxation packet with the DataFreshness counterfactual
   replay-input smoke into `data_freshness_shadow_candidate_packet` and

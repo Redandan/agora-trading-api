@@ -1452,6 +1452,7 @@ Focused issue #7 BTCUSDT 1h filter-block false-kill review:
 .\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1 *> target\profit-review\issue7-df-replay-observation-latest.log
 .\scripts\prepare_filter_block_false_kill_issue7_close_readiness.ps1 -RequireBlocked
 .\scripts\prepare_filter_block_false_kill_issue7_operator_handoff.ps1 -RequireActionable
+.\scripts\prepare_filter_block_false_kill_issue7_collector_activation_review_packet.ps1 -RequireReady
 ```
 
 This read-only smoke uses production MySQL `SELECT` queries only to rank
@@ -1528,6 +1529,16 @@ but the next review packet is ready for a separately authorized evidence-only
 collector activation discussion. It keeps `collector_activation_allowed=false`,
 `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
 `issue7_live_relaxation_allowed=false`.
+The collector activation review packet emits
+`ISSUE7_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW_PACKET` and
+`issue7_evidence_collector_activation_review_status`. A
+`READY_FOR_ISSUE7_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW_NOT_LIVE` status means
+the review can discuss the single proposed separate env diff
+`TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`, required disabled
+flags, post-change read-only verification, and stop conditions. It is not
+authorization to enable the collector, deploy, change production env, close #7,
+relax DataFreshnessGuard, enable live execution, place orders, modify OCO, or
+send Telegram.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

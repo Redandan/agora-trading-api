@@ -1891,6 +1891,7 @@ For the issue #7 BTCUSDT 1h filter-block false-kill review, run:
 .\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1 *> target\profit-review\issue7-df-replay-observation-latest.log
 .\scripts\prepare_filter_block_false_kill_issue7_close_readiness.ps1 -RequireBlocked
 .\scripts\prepare_filter_block_false_kill_issue7_operator_handoff.ps1 -RequireActionable
+.\scripts\prepare_filter_block_false_kill_issue7_collector_activation_review_packet.ps1 -RequireReady
 ```
 
 Expected:
@@ -1984,6 +1985,18 @@ Expected:
   authorized evidence-only collector activation discussion. It keeps
   `collector_activation_allowed=false`, `deploy_or_env_change_allowed=false`,
   `order_allowed=false`, and `issue7_live_relaxation_allowed=false`.
+- The collector activation review packet emits
+  `ISSUE7_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW_PACKET`,
+  `issue7_evidence_collector_activation_review_status`, and
+  `issue7_evidence_collector_activation_review_decision`. A
+  `READY_FOR_ISSUE7_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW_NOT_LIVE` status
+  means the separate review may discuss the single proposed env diff
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`, required
+  disabled flags, post-change read-only verification, and stop conditions. It
+  keeps `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it does not authorize the env change or
+  deploy.
 - If sample-gap RCA reports no recent BUY-like candidates, run
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits

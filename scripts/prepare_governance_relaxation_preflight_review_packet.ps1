@@ -1,5 +1,6 @@
 param(
     [string]$ReviewLogPath = "target/profit-review/governance-relaxation-review-packet-latest.log",
+    [string]$NoBuyAttentionLogPath = "target/profit-review/no-buy-attention-flow-review-packet-latest.log",
     [string]$Symbol = "BTCUSDT",
     [switch]$RequireReady
 )
@@ -21,6 +22,7 @@ function Add-MissingRequirement {
 }
 
 if ([string]::IsNullOrWhiteSpace($ReviewLogPath)) { throw "ReviewLogPath is required." }
+if ([string]::IsNullOrWhiteSpace($NoBuyAttentionLogPath)) { throw "NoBuyAttentionLogPath is required." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for governance relaxation preflight arguments."
 }
@@ -38,6 +40,27 @@ if (-not (Test-Path -LiteralPath $logPath)) {
 $logFile = Get-Item -LiteralPath $logPath
 $logAgeMinutes = [math]::Round(((Get-Date) - $logFile.LastWriteTime).TotalMinutes, 2)
 $text = Get-Content -Raw -LiteralPath $logPath
+
+$noBuyLogPath = if ([System.IO.Path]::IsPathRooted($NoBuyAttentionLogPath)) {
+    $NoBuyAttentionLogPath
+} else {
+    Join-Path $repoRoot $NoBuyAttentionLogPath
+}
+$noBuyLogExists = Test-Path -LiteralPath $noBuyLogPath
+$noBuyLogAgeMinutes = $null
+$noBuyStatus = ""
+$noBuyJson = ""
+$noBuyPacket = $null
+if ($noBuyLogExists) {
+    $noBuyFile = Get-Item -LiteralPath $noBuyLogPath
+    $noBuyLogAgeMinutes = [math]::Round(((Get-Date) - $noBuyFile.LastWriteTime).TotalMinutes, 2)
+    $noBuyText = Get-Content -Raw -LiteralPath $noBuyLogPath
+    $noBuyStatus = Get-LastPrefixedValue -Text $noBuyText -Prefix "no_buy_attention_flow_review_status="
+    $noBuyJson = Get-LastPrefixedValue -Text $noBuyText -Prefix "no_buy_attention_flow_review_packet="
+    if (-not [string]::IsNullOrWhiteSpace($noBuyJson)) {
+        $noBuyPacket = $noBuyJson | ConvertFrom-Json -ErrorAction Stop
+    }
+}
 
 $sourceStatus = Get-LastPrefixedValue -Text $text -Prefix "governance_relaxation_review_packet_status="
 $sourceJson = Get-LastPrefixedValue -Text $text -Prefix "governance_relaxation_review_packet="
@@ -72,6 +95,28 @@ if ($null -ne $sourcePacket) {
     $sourceMissingRequirements = @($sourcePacket.missingRequirements)
 }
 
+$noBuyReady = ($noBuyStatus -eq "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE" -and $null -ne $noBuyPacket)
+$noBuyNextAction = ""
+$noBuyReviewItems = @()
+$noBuyBlockers = @()
+$noBuyNearThresholdGapCount = $null
+$noBuyClosestThresholdGap = $null
+$noBuyAttentionCandidateInterpretation = ""
+$noBuySignalEvalRecommendation = ""
+if ($null -ne $noBuyPacket) {
+    $noBuyNextAction = [string]$noBuyPacket.nextAction
+    $noBuyReviewItems = @($noBuyPacket.reviewItems)
+    $noBuyBlockers = @($noBuyPacket.blockers)
+    if ($null -ne $noBuyPacket.signalEvalNoBuyGeneration) {
+        $noBuySignalEvalRecommendation = [string]$noBuyPacket.signalEvalNoBuyGeneration.recommendation
+        $noBuyNearThresholdGapCount = $noBuyPacket.signalEvalNoBuyGeneration.nearThresholdGapCount
+        $noBuyClosestThresholdGap = $noBuyPacket.signalEvalNoBuyGeneration.closestThresholdGap
+    }
+    if ($null -ne $noBuyPacket.attentionFlow) {
+        $noBuyAttentionCandidateInterpretation = [string]$noBuyPacket.attentionFlow.candidateInterpretation
+    }
+}
+
 if ($sourceStatus -notin @("REVIEW_REQUIRED_NOT_POLICY_CHANGE", "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE")) {
     Add-MissingRequirement -List $missingRequirements -Value "source governance relaxation status is reviewable"
 }
@@ -102,6 +147,8 @@ $preflightDecision = if (-not $ready -and $sourceStatus -eq "NO_EVIDENCE" -and $
 }
 $nextAction = if ($ready) {
     "Attach this preflight packet to a governance relaxation operator review; require separate explicit authorization before any policy, live, order, deploy, or env change."
+} elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket -and $noBuyReady -and -not [string]::IsNullOrWhiteSpace($noBuyNextAction)) {
+    $noBuyNextAction
 } elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket -and -not [string]::IsNullOrWhiteSpace($sourceNextAction)) {
     $sourceNextAction
 } elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket) {
@@ -116,6 +163,11 @@ $packet = [pscustomobject]@{
     symbol = $Symbol
     sourceReviewLogPath = $logPath
     sourceReviewLogAgeMinutes = $logAgeMinutes
+    noBuyAttentionLogPath = $noBuyLogPath
+    noBuyAttentionLogExists = $noBuyLogExists
+    noBuyAttentionLogAgeMinutes = $noBuyLogAgeMinutes
+    noBuyAttentionStatus = $noBuyStatus
+    noBuyAttentionReady = $noBuyReady
     sourceReviewPacket = "prepare_governance_relaxation_review_packet_ssh.ps1"
     sourceReviewPacketStatus = $sourceStatus
     sourceSignalPolicyClear = $sourceSignalPolicyClear
@@ -125,6 +177,13 @@ $packet = [pscustomobject]@{
     sourceShadowGovernanceReviewAllowed = $shadowReviewAllowed
     sourceMissingRequirements = @($sourceMissingRequirements)
     sourceNextAction = $sourceNextAction
+    noBuyAttentionNextAction = $noBuyNextAction
+    noBuyAttentionReviewItems = @($noBuyReviewItems)
+    noBuyAttentionBlockers = @($noBuyBlockers)
+    noBuySignalEvalRecommendation = $noBuySignalEvalRecommendation
+    noBuySignalEvalNearThresholdGapCount = $noBuyNearThresholdGapCount
+    noBuyClosestThresholdGap = $noBuyClosestThresholdGap
+    noBuyAttentionCandidateInterpretation = $noBuyAttentionCandidateInterpretation
     preflightDecision = $preflightDecision
     reviewEnvelope = [pscustomobject]@{
         reviewOnly = $true
@@ -181,6 +240,11 @@ Write-Host "[governance-relaxation-preflight-review-packet] read-only packet"
 Write-Host "scope=READ_ONLY; reads existing governance relaxation review log only; no SSH fresh run, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
 Write-Host "source_review_log_path=$logPath"
 Write-Host "source_review_log_age_minutes=$logAgeMinutes"
+Write-Host "no_buy_attention_log_path=$noBuyLogPath"
+Write-Host "no_buy_attention_log_exists=$($noBuyLogExists.ToString().ToLowerInvariant())"
+Write-Host "no_buy_attention_log_age_minutes=$noBuyLogAgeMinutes"
+Write-Host "no_buy_attention_status=$noBuyStatus"
+Write-Host "no_buy_attention_ready=$($noBuyReady.ToString().ToLowerInvariant())"
 Write-Host "source_review_packet_status=$sourceStatus"
 Write-Host "source_signal_policy_clear=$sourceSignalPolicyClear"
 Write-Host "source_governance_mode=$sourceGovernanceMode"
@@ -189,6 +253,15 @@ Write-Host "source_relaxation_candidate_count=$relaxationCandidateCount"
 Write-Host "source_shadow_governance_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host ("source_missing_requirements=" + (ConvertTo-Json -Compress @($sourceMissingRequirements)))
 Write-Host "source_next_action=$sourceNextAction"
+Write-Host "no_buy_attention_next_action=$noBuyNextAction"
+Write-Host ("no_buy_attention_review_items=" + (ConvertTo-Json -Compress @($noBuyReviewItems)))
+Write-Host ("no_buy_attention_blockers=" + (ConvertTo-Json -Compress @($noBuyBlockers)))
+Write-Host "no_buy_signal_eval_recommendation=$noBuySignalEvalRecommendation"
+Write-Host "no_buy_signal_eval_near_threshold_gap_count=$noBuyNearThresholdGapCount"
+if ($null -ne $noBuyClosestThresholdGap) {
+    Write-Host ("no_buy_signal_eval_closest_threshold_gap=" + (ConvertTo-Json -Compress $noBuyClosestThresholdGap))
+}
+Write-Host "no_buy_attention_candidate_interpretation=$noBuyAttentionCandidateInterpretation"
 Write-Host "governance_relaxation_preflight_decision=$preflightDecision"
 Write-Host "governance_relaxation_review_allowed=true"
 Write-Host "live_policy_change_allowed=false"

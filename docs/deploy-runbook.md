@@ -653,7 +653,9 @@ the governance relaxation review log is saved:
 Expected:
 
 - The preflight reads an existing review log, normally
-  `target/profit-review/governance-relaxation-review-packet-latest.log`. It
+  `target/profit-review/governance-relaxation-review-packet-latest.log`, plus
+  the latest no-buy attention packet when present, normally
+  `target/profit-review/no-buy-attention-flow-review-packet-latest.log`. It
   does not rerun SSH, deploy, restart, change production env, or call MCP write
   tools.
 - Output includes `governance_relaxation_preflight_review_packet`,
@@ -665,9 +667,11 @@ Expected:
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`.
 - If the source review packet is valid but `NO_EVIDENCE`, the preflight emits
-  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and propagates the source
-  `nextAction` so operators route to no-buy/attention/DataFreshness evidence
-  instead of blindly refreshing the same source log.
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE`. If the no-buy attention
+  packet is ready, it emits `no_buy_attention_next_action`,
+  `no_buy_signal_eval_near_threshold_gap_count`, and closest threshold-gap
+  evidence so operators route to the completed no-buy/attention/threshold
+  review instead of blindly refreshing the same source log.
 - `GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_PACKET` is review evidence only. It
   does not authorize governance/EntryDedup/DataFreshness/live policy
   relaxation, staged-add/tiny-live execution, scheduler enablement, orders,
@@ -886,7 +890,9 @@ replay blocker/collector activation, TP/SL/OCO feasibility,
 strategy574/TinyLive governance, governance relaxation, and final live blocker
 audit lanes. Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
 blocker evidence instead of failing the source-refresh step early; the final
-`-RequireAuditReady` audit remains the readiness gate. The script only invokes
+`-RequireAuditReady` audit remains the readiness gate. The refresh includes the
+no-buy attention-flow packet before governance preflight so governance
+`NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing. The script only invokes
 existing read-only SSH/MCP/SELECT evidence
 scripts and local packet assembly; it does not deploy, restart, change
 production env, enable live/TinyLive/scheduler, place orders, send Telegram,

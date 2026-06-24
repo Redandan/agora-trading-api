@@ -36,6 +36,13 @@ foreach ($marker in @(
         "governance_relaxation_preflight_status",
         "source_missing_requirements",
         "source_next_action",
+        "NoBuyAttentionLogPath",
+        "no_buy_attention_status",
+        "no_buy_attention_ready",
+        "no_buy_attention_next_action",
+        "no_buy_signal_eval_near_threshold_gap_count",
+        "noBuyAttentionReady",
+        "noBuySignalEvalNearThresholdGapCount",
         "governance_relaxation_review_allowed=true",
         "live_policy_change_allowed=false",
         "tiny_live_order_allowed=false",
@@ -108,7 +115,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewLogPath $tempLogPath -RequireReady 2>&1
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewLogPath $tempLogPath -NoBuyAttentionLogPath "$tempLogPath.no-buy-missing" -RequireReady 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -150,6 +157,7 @@ try {
 }
 
 $blockedLogPath = Join-Path ([System.IO.Path]::GetTempPath()) ("governance-relaxation-preflight-blocked-" + [guid]::NewGuid().ToString("N") + ".log")
+$blockedNoBuyPath = Join-Path ([System.IO.Path]::GetTempPath()) ("governance-relaxation-preflight-no-buy-" + [guid]::NewGuid().ToString("N") + ".log")
 try {
     $blockedSourcePacket = [pscustomobject]@{
         packetType = "GOVERNANCE_RELAXATION_REVIEW"
@@ -169,6 +177,34 @@ try {
         )
         nextAction = "Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review."
     }
+    $blockedNoBuyPacket = [pscustomobject]@{
+        packetType = "NO_BUY_ATTENTION_FLOW_REVIEW_PACKET"
+        status = "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE"
+        symbol = "BTCUSDT"
+        attentionFlow = [pscustomobject]@{
+            candidateInterpretation = "ATTENTION_HITS_ARE_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES"
+        }
+        signalEvalNoBuyGeneration = [pscustomobject]@{
+            recommendation = "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT"
+            nearThresholdGapCount = 1
+            closestThresholdGap = [pscustomobject]@{
+                strategyId = "574"
+                intervalCode = "1h"
+                indicator = "market_entropy_index"
+                minBuyGap = 1.0000
+            }
+        }
+        reviewItems = @(
+            "SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT",
+            "SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW",
+            "ATTENTION_HITS_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES"
+        )
+        blockers = @(
+            "NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW",
+            "NO_RECENT_DATAFRESHNESS_ROWS"
+        )
+        nextAction = "Treat current ATTENTION_HIT rows as macro/watch-only non-trading evidence, then review strategy threshold gap evidence before governance relaxation."
+    }
     Set-Content -LiteralPath $blockedLogPath -Encoding UTF8 -Value @(
         "[governance-relaxation-review-packet] read-only packet",
         "scope=READ_ONLY; runs smoke_signal_correctness_ssh.ps1 only",
@@ -178,11 +214,18 @@ try {
         "tiny_live_order_allowed=false",
         "notAuthorization=read-only governance relaxation review packet only"
     )
+    Set-Content -LiteralPath $blockedNoBuyPath -Encoding UTF8 -Value @(
+        "[no-buy-attention-flow-review-packet] read-only packet",
+        "scope=READ_ONLY; no mutation",
+        "no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE",
+        ("no_buy_attention_flow_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $blockedNoBuyPacket)),
+        "notAuthorization=read-only no-buy attention flow review packet only"
+    )
 
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $blockedOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewLogPath $blockedLogPath 2>&1
+        $blockedOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewLogPath $blockedLogPath -NoBuyAttentionLogPath $blockedNoBuyPath 2>&1
         $blockedExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -200,10 +243,23 @@ try {
             "source_shadow_governance_review_allowed=false",
             'source_missing_requirements=["DataFreshness current snapshot clean","governance relaxation candidates present"]',
             "source_next_action=Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review.",
+            "no_buy_attention_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE",
+            "no_buy_attention_ready=true",
+            "no_buy_attention_next_action=Treat current ATTENTION_HIT rows as macro/watch-only non-trading evidence, then review strategy threshold gap evidence before governance relaxation.",
+            'no_buy_attention_review_items=["SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT","SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW","ATTENTION_HITS_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES"]',
+            'no_buy_attention_blockers=["NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW","NO_RECENT_DATAFRESHNESS_ROWS"]',
+            "no_buy_signal_eval_recommendation=NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT",
+            "no_buy_signal_eval_near_threshold_gap_count=1",
+            '"strategyId":"574"',
+            "no_buy_attention_candidate_interpretation=ATTENTION_HITS_ARE_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES",
             "governance_relaxation_preflight_decision=BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
             "governance_relaxation_preflight_status=NOT_READY",
-            "governance_relaxation_preflight_next_action=Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review.",
+            "governance_relaxation_preflight_next_action=Treat current ATTENTION_HIT rows as macro/watch-only non-trading evidence, then review strategy threshold gap evidence before governance relaxation.",
             '"sourceReviewPacketStatus":"NO_EVIDENCE"',
+            '"noBuyAttentionStatus":"READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE"',
+            '"noBuyAttentionReady":true',
+            '"noBuySignalEvalRecommendation":"NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT"',
+            '"noBuySignalEvalNearThresholdGapCount":1',
             '"sourceMissingRequirements":["DataFreshness current snapshot clean","governance relaxation candidates present"]',
             '"preflightDecision":"BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"',
             '"livePolicyChangeAllowed":false',
@@ -224,6 +280,7 @@ try {
     }
 } finally {
     if (Test-Path -LiteralPath $blockedLogPath) { Remove-Item -LiteralPath $blockedLogPath -Force }
+    if (Test-Path -LiteralPath $blockedNoBuyPath) { Remove-Item -LiteralPath $blockedNoBuyPath -Force }
 }
 
 Write-Host "[governance-relaxation-preflight-review-packet-test] OK"

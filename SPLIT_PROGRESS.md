@@ -278,15 +278,20 @@
   close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run
   external backfill/import, or authorize strategy/filter changes.
 - `scripts/prepare_governance_relaxation_preflight_review_packet.ps1` reads an
-  existing governance relaxation review log and emits
+  existing governance relaxation review log plus the latest no-buy attention
+  packet when present, then emits
   `governance_relaxation_preflight_review_packet`,
   `governance_relaxation_preflight_status`, and
   `governance_relaxation_preflight_decision`. It accepts
   `REVIEW_REQUIRED_NOT_POLICY_CHANGE` as a blocked review packet and
   `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` as shadow-only review evidence.
   Valid source `NO_EVIDENCE` packets route to
-  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and propagate the source
-  `nextAction` instead of forcing a blind source refresh. The packet keeps
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE`; when
+  `no-buy-attention-flow-review-packet-latest.log` is ready, the preflight emits
+  `no_buy_attention_next_action`,
+  `no_buy_signal_eval_near_threshold_gap_count`, and closest threshold-gap
+  evidence so governance blockers point at the completed no-buy/threshold
+  review instead of forcing a blind source refresh. The packet keeps
   `live_policy_change_allowed=false`,
   `tiny_live_order_allowed=false`, `entry_dedup_policy_change_allowed=false`,
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
@@ -385,9 +390,11 @@
   live policy.
 - `scripts/prepare_profit_live_blocker_source_refresh.ps1` orchestrates the
   read-only source refresh for the live blocker audit. `-PlanOnly` prints the
-  19-step plan without invoking SSH or child refreshes; normal execution runs
+  20-step plan without invoking SSH or child refreshes; normal execution runs
   the existing read-only SSH/MCP/SELECT evidence scripts plus local packet
-  assembly for every audit lane and reruns the final audit. It preserves
+  assembly for every audit lane and reruns the final audit. It refreshes
+  no-buy attention-flow evidence before governance preflight so governance
+  `NO_EVIDENCE` inherits the latest no-buy/threshold-gap routing. It preserves
   governance relaxation `NO_EVIDENCE` or `NOT_READY` as blocker evidence instead
   of failing the source-refresh step early; the final `-RequireAuditReady`
   audit remains the readiness gate. The wrapper keeps

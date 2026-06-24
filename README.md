@@ -722,16 +722,20 @@ Read-only governance relaxation preflight review packet:
 ```
 
 This reads an existing governance relaxation review log, normally
-`target/profit-review/governance-relaxation-review-packet-latest.log`, and emits
+`target/profit-review/governance-relaxation-review-packet-latest.log`, plus the
+latest no-buy attention packet when present, normally
+`target/profit-review/no-buy-attention-flow-review-packet-latest.log`, and emits
 `governance_relaxation_preflight_review_packet` plus
 `governance_relaxation_preflight_status`. A
 `READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE` status means the
 blocked or shadow-only governance relaxation review can be attached to operator
 review; it does not permit any policy change. If the source review packet is
 valid but `NO_EVIDENCE`, the preflight emits
-`BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and carries the source
-`nextAction` instead of telling the operator to blindly refresh the same source
-log. It keeps
+`BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE`; when the no-buy attention
+packet is ready it carries `no_buy_attention_next_action`,
+`no_buy_signal_eval_near_threshold_gap_count`, and the closest threshold-gap
+evidence so the next action points at the completed no-buy/threshold review
+instead of telling the operator to rerun the same source log. It keeps
 `live_policy_change_allowed=false`, `tiny_live_order_allowed=false`,
 `entry_dedup_policy_change_allowed=false`,
 `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
@@ -902,7 +906,9 @@ To refresh the source logs, run the same script without `-PlanOnly`. It
 orchestrates existing read-only SSH/MCP/SELECT evidence scripts plus local
 packet assembly, writes every source log consumed by
 `prepare_profit_live_blocker_audit_packet.ps1`, and then reruns the audit. It
-preserves governance relaxation `NO_EVIDENCE` or `NOT_READY` output as blocker
+refreshes the no-buy attention-flow packet before governance preflight so
+governance `NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing.
+It preserves governance relaxation `NO_EVIDENCE` or `NOT_READY` output as blocker
 evidence instead of forcing that source step to fail early; the final
 `-RequireAuditReady` audit still exits non-zero until all live-readiness lanes
 are reviewable and not live-ready. It

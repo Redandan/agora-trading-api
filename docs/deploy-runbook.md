@@ -1886,6 +1886,7 @@ For the issue #7 BTCUSDT 1h filter-block false-kill review, run:
 
 ```powershell
 .\scripts\smoke_filter_block_false_kill_issue7_ssh.ps1
+.\scripts\prepare_filter_block_false_kill_issue7_packet.ps1 -RequireBlocked
 ```
 
 Expected:
@@ -1910,6 +1911,13 @@ Expected:
 - The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
+- The packet step reads the saved smoke log and emits
+  `issue7_filter_block_false_kill_packet`,
+  `issue7_filter_block_false_kill_status`, missing requirements,
+  `issue7_filter_block_false_kill_review_allowed`, and
+  `issue7_live_relaxation_allowed=false`. Use `-RequireBlocked` until complete
+  replayable DataFreshness rows exist, so missing snapshots fail closed instead
+  of becoming live-relaxation evidence.
 - If sample-gap RCA reports no recent BUY-like candidates, run
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits

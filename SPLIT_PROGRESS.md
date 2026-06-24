@@ -1288,6 +1288,19 @@
   `scripts/test_filter_block_false_kill_issue7_smoke.ps1` guards the marker
   contract, docs coverage, SSH/remote input safety, database allowlist, and
   non-authorization wording.
+- `scripts/prepare_filter_block_false_kill_issue7_packet.ps1` converts the
+  saved issue #7 smoke log into `issue7_filter_block_false_kill_packet`,
+  `issue7_filter_block_false_kill_status`, missing requirements,
+  `issue7_filter_block_false_kill_review_allowed`, and
+  `issue7_live_relaxation_allowed=false`. `-RequireBlocked` fails closed if the
+  packet unexpectedly becomes review-ready while complete replayable
+  DataFreshness rows are still the expected blocker. It is local packet
+  generation only and does not authorize DataFreshnessGuard relaxation, live
+  trading, scheduler enablement, orders, OCO modification, deploy, production
+  env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external
+  backfill/import. `scripts/test_filter_block_false_kill_issue7_packet.ps1`
+  guards the marker contract, stale/missing-log handling, docs coverage, and
+  blocked-status classification.
 - `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
   read-only governance relaxation packet with the DataFreshness counterfactual
   replay-input smoke into `data_freshness_shadow_candidate_packet` and

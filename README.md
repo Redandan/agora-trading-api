@@ -1447,6 +1447,7 @@ Focused issue #7 BTCUSDT 1h filter-block false-kill review:
 
 ```powershell
 .\scripts\smoke_filter_block_false_kill_issue7_ssh.ps1
+.\scripts\prepare_filter_block_false_kill_issue7_packet.ps1 -RequireBlocked
 ```
 
 This read-only smoke uses production MySQL `SELECT` queries only to rank
@@ -1464,6 +1465,13 @@ liveSignal/replayCandidateId, entry/TP/SL, EV, OCO, and hard-gate snapshots are
 still required before any live relaxation review. It does not authorize live
 trading, scheduler changes, DataFreshnessGuard relaxation, DB writes, deploy,
 or order/OCO/grid/fund/Earn/Telegram/exchange mutations.
+The packet step reads the saved smoke log and emits
+`issue7_filter_block_false_kill_packet`,
+`issue7_filter_block_false_kill_status`, missing requirements,
+`issue7_filter_block_false_kill_review_allowed`, and
+`issue7_live_relaxation_allowed=false`. Use `-RequireBlocked` while complete
+DataFreshness replay snapshots are still missing so accidental review-ready
+classification fails closed.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

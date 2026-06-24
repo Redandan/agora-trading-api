@@ -894,6 +894,10 @@ To refresh the source logs, run the same script without `-PlanOnly`. It
 orchestrates existing read-only SSH/MCP/SELECT evidence scripts plus local
 packet assembly, writes every source log consumed by
 `prepare_profit_live_blocker_audit_packet.ps1`, and then reruns the audit. It
+preserves governance relaxation `NO_EVIDENCE` or `NOT_READY` output as blocker
+evidence instead of forcing that source step to fail early; the final
+`-RequireAuditReady` audit still exits non-zero until all live-readiness lanes
+are reviewable and not live-ready. It
 does not deploy, change production env, enable live/TinyLive/scheduler, place
 orders, send Telegram, modify OCO, close positions, or relax
 EntryDedup/DataFreshness/live policy.

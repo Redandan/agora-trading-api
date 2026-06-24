@@ -876,7 +876,10 @@ evidence. It saves fresh source logs for the profit priority, trailing dry-run,
 strategy485 risk reduction/escalation, EntryDedup semantics, DataFreshness
 replay blocker/collector activation, TP/SL/OCO feasibility,
 strategy574/TinyLive governance, governance relaxation, and final live blocker
-audit lanes. The script only invokes existing read-only SSH/MCP/SELECT evidence
+audit lanes. Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
+blocker evidence instead of failing the source-refresh step early; the final
+`-RequireAuditReady` audit remains the readiness gate. The script only invokes
+existing read-only SSH/MCP/SELECT evidence
 scripts and local packet assembly; it does not deploy, restart, change
 production env, enable live/TinyLive/scheduler, place orders, send Telegram,
 modify/cancel OCO, close positions, relax policy, or mutate

@@ -381,7 +381,10 @@
   read-only source refresh for the live blocker audit. `-PlanOnly` prints the
   19-step plan without invoking SSH or child refreshes; normal execution runs
   the existing read-only SSH/MCP/SELECT evidence scripts plus local packet
-  assembly for every audit lane and reruns the final audit. The wrapper keeps
+  assembly for every audit lane and reruns the final audit. It preserves
+  governance relaxation `NO_EVIDENCE` or `NOT_READY` as blocker evidence instead
+  of failing the source-refresh step early; the final `-RequireAuditReady`
+  audit remains the readiness gate. The wrapper keeps
   deploy, production env, live/TinyLive/scheduler, orders, OCO, close-position,
   Telegram, policy relaxation, and DB/grid/fund/Earn/exchange mutation out of
   scope.

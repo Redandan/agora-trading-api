@@ -936,7 +936,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   the full refresh plan before execution. Running without `-PlanOnly` invokes
   existing read-only SSH/MCP/SELECT evidence scripts and local packet assembly
   to refresh every source log consumed by the live blocker audit, then reruns
-  `prepare_profit_live_blocker_audit_packet.ps1`. It is not authorization to
+  `prepare_profit_live_blocker_audit_packet.ps1`. Governance relaxation
+  `NO_EVIDENCE` or `NOT_READY` is kept as blocker evidence rather than failing
+  the source-refresh step early; the final `-RequireAuditReady` audit remains
+  the readiness gate. It is not authorization to
   deploy, change production env, enable live/TinyLive/scheduler, place orders,
   send Telegram, modify/cancel OCO, close positions, relax
   EntryDedup/DataFreshness/live policy, or mutate

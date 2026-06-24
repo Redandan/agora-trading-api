@@ -1,6 +1,7 @@
 param(
     [string]$ProfitImprovementLog = "target/profit-review/profit-improvement-review-issue6-refresh.log",
     [string]$Issue7BundleLog = "target/profit-review/issue7-post-deploy-read-only-bundle-refresh.log",
+    [string]$Issue7PostActivationLog = "target/profit-review/issue7-collector-post-activation-status-refresh-current.log",
     [string]$ProfitEvidenceWatchLog = "target/profit-review/profit-evidence-watch-remaining-issues.log",
     [int]$MaxAgeMinutes = 240,
     [switch]$RequireBlocked
@@ -59,6 +60,7 @@ if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 10080) {
 $missing = [System.Collections.Generic.List[string]]::new()
 $profit = Read-Log -Path $ProfitImprovementLog
 $issue7 = Read-Log -Path $Issue7BundleLog
+$issue7PostActivation = Read-Log -Path $Issue7PostActivationLog
 $watch = Read-Log -Path $ProfitEvidenceWatchLog
 
 foreach ($log in @($profit, $issue7, $watch)) {
@@ -91,6 +93,26 @@ $issue7CollectorStatus = Get-LastPrefixedValue -Text $issue7.Text -Prefix "  iss
 $issue7RemainingBlocker = Get-LastPrefixedValue -Text $issue7.Text -Prefix "  issue7_remaining_blocker=" -Default "UNKNOWN"
 $issue7CloseAllowed = Get-LastPrefixedValue -Text $issue7.Text -Prefix "  issue7_close_allowed=" -Default "false"
 $issue7LiveRelaxationAllowed = Get-LastPrefixedValue -Text $issue7.Text -Prefix "  issue7_live_relaxation_allowed=" -Default "false"
+if ($issue7Status -eq "UNKNOWN") {
+    if ($issue7PostActivation.Freshness -eq "MISSING") {
+        Add-MissingRequirement -List $missing -Value "missing log: $($issue7PostActivation.Path)"
+    } elseif ($issue7PostActivation.Freshness -eq "STALE") {
+        Add-MissingRequirement -List $missing -Value "stale log: $($issue7PostActivation.Path)"
+    } else {
+        $postActivationStatus = Get-LastPrefixedValue -Text $issue7PostActivation.Text -Prefix "issue7_collector_post_activation_status=" -Default "UNKNOWN"
+        if ($postActivationStatus -ne "UNKNOWN") {
+            $issue7CollectorStatus = $postActivationStatus
+            $issue7Status = if ($postActivationStatus -eq "READY_TO_CLOSE_NOT_LIVE_RELAXATION") {
+                "READY_TO_CLOSE_NOT_LIVE_RELAXATION"
+            } else {
+                "BLOCKED_NOT_CLOSEABLE"
+            }
+            $issue7RemainingBlocker = Get-LastPrefixedValue -Text $issue7PostActivation.Text -Prefix "issue7_remaining_blocker=" -Default $issue7RemainingBlocker
+            $issue7CloseAllowed = Get-LastPrefixedValue -Text $issue7PostActivation.Text -Prefix "issue7_close_allowed=" -Default $issue7CloseAllowed
+            $issue7LiveRelaxationAllowed = Get-LastPrefixedValue -Text $issue7PostActivation.Text -Prefix "issue7_live_relaxation_allowed=" -Default $issue7LiveRelaxationAllowed
+        }
+    }
+}
 
 $watchStatus = Get-LastPrefixedValue -Text $watch.Text -Prefix "profit_evidence_watch_status=" -Default "UNKNOWN"
 $watchReason = Get-LastPrefixedValue -Text $watch.Text -Prefix "profit_evidence_watch_reason=" -Default "UNKNOWN"
@@ -98,7 +120,7 @@ $watchDataFreshnessStatus = Get-LastPrefixedValue -Text $watch.Text -Prefix "pro
 $watchReplayRecommendation = Get-LastPrefixedValue -Text $watch.Text -Prefix "profit_evidence_watch_replay_recommendation=" -Default "UNKNOWN"
 
 if ($issue6Decision -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #6 profit improvement decision marker" }
-if ($issue7Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #7 post-deploy bundle status marker" }
+if ($issue7Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #7 post-deploy bundle or post-activation status marker" }
 if ($watchStatus -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "profit evidence watch status marker" }
 
 $issue6CloseAllowed = $false
@@ -185,6 +207,7 @@ $packet = [ordered]@{
     logFreshness = [ordered]@{
         profitImprovement = $profit.Freshness
         issue7Bundle = $issue7.Freshness
+        issue7PostActivation = $issue7PostActivation.Freshness
         profitEvidenceWatch = $watch.Freshness
     }
     globalBlocker = $globalBlocker

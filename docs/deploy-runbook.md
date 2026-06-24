@@ -1285,6 +1285,10 @@ Expected:
   `remaining_open_issues_status`, `remaining_open_issues_global_blocker`,
   `issue6_status`, `issue7_remaining_blocker`, and
   `profit_evidence_watch_status`.
+- If the full #7 bundle stops before its summary marker because
+  split-acceptance currentness fails on docs/tooling drift, the packet can fall
+  back to a fresh #7 collector post-activation status log for blocker
+  classification.
 - `BLOCKED_NOT_CLOSEABLE` with
   `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` means both #6 and #7 remain open
   and the safe next action is to wait for fresh post-collector

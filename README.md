@@ -1239,7 +1239,10 @@ post-deploy bundle, and bounded profit evidence watcher logs, then emits
 `remaining_open_issues_global_blocker`, `issue6_status`, `issue7_remaining_blocker`,
 and `profit_evidence_watch_status`. It does not run SSH or GitHub calls; refresh
 the underlying read-only evidence logs first when the packet reports stale or
-missing local evidence. `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` keeps #6/#7
+missing local evidence. If the full #7 bundle stops before its summary marker
+because split-acceptance currentness fails on docs/tooling drift, the packet can
+fall back to a fresh #7 collector post-activation status log for the blocker
+classification. `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` keeps #6/#7
 open until fresh post-collector replay rows appear. This packet does not close
 issues, deploy, change production env, enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close

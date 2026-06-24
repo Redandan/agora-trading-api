@@ -1278,9 +1278,17 @@
   coverage, liveSignal/replayCandidateId coverage, entry/TP/SL, EV, OCO, and
   hard-gate snapshot coverage, `data_freshness_preview_only_input_rows`,
   `data_freshness_trace_only_rows`, `replay_input_stage`,
-  `collector_status_counts`, and candidate examples containing entry, block
-  reason, forward return, `shouldHavePassedProxy`, collector stage, and missing
-  replay fields.
+  `collector_status_counts`, stale-severity markers
+  `data_freshness_stale_minutes_min`, `data_freshness_stale_minutes_avg`,
+  `data_freshness_stale_minutes_max`, `data_freshness_near_miss_rows`,
+  `data_freshness_recoverable_grace_rows`, and
+  `data_freshness_severe_stale_rows`, plus candidate examples containing entry,
+  block reason, forward return, `shouldHavePassedProxy`, collector stage, and
+  missing replay fields. It also emits a `DataFreshness Guard Optimization
+  Counterfactual` section that reports candidate stale-threshold grace
+  `releaseRows`, `falseKillReleased`, `correctBlockReleased`, and
+  `data_freshness_guard_optimization_verdict`, so severe stale/outage rows are
+  not mistaken for safely relaxable near-miss rows.
   `shouldHavePassedProxy` is explicitly a historical forward-return proxy, not
   a live pass verdict. A status such as
   `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` keeps live

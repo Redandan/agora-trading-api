@@ -128,6 +128,15 @@ $dfReplayableRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_fre
 $dfPreviewOnlyRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_preview_only_input_rows" -Default "0")
 $dfTraceOnlyRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_trace_only_rows" -Default "0")
 $replayInputStage = Get-FieldValue -Text $text -Name "replay_input_stage" -Default "UNKNOWN"
+$dfStaleMin = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_stale_minutes_min")
+$dfStaleAvg = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_stale_minutes_avg")
+$dfStaleMax = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_stale_minutes_max")
+$dfThresholdAvg = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_threshold_minutes_avg")
+$dfNearMissRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_near_miss_rows" -Default "0")
+$dfRecoverableGraceRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_recoverable_grace_rows" -Default "0")
+$dfSevereStaleRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_severe_stale_rows" -Default "0")
+$dfProxyActionableRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_proxy_actionable_rows" -Default "0")
+$guardOptimizationVerdict = Get-FieldValue -Text $text -Name "data_freshness_guard_optimization_verdict" -Default "UNKNOWN"
 $collectorStatusCounts = Get-FieldValue -Text $text -Name "collector_status_counts" -Default "N/A"
 $hardGatePreviewStatusCounts = Get-FieldValue -Text $text -Name "hard_gate_preview_status_counts" -Default "N/A"
 $replayRequiredNextActionCounts = Get-FieldValue -Text $text -Name "replay_required_next_action_counts" -Default "N/A"
@@ -147,6 +156,21 @@ foreach ($match in [regex]::Matches($text, "(?m)^\s*-\s+blocker=(?<blocker>\S+)\
             falseKillPct = [double]$match.Groups["pct"].Value
             avgForward24hPct = [double]$match.Groups["avg"].Value
             replayableCandidateRows = [int]$match.Groups["replay"].Value
+        })
+}
+
+$graceCounterfactuals = New-Object System.Collections.Generic.List[object]
+foreach ($match in [regex]::Matches($text, "(?m)^\s*-\s+candidate=(?<candidate>\S+)\s+releaseRows=(?<rows>\d+)\s+falseKillReleased=(?<false>\d+)\s+correctBlockReleased=(?<correct>\d+)\s+avgReleasedForward24h=(?<avg>N/A|[+-]?[0-9.]+%)")) {
+    $avgValue = $null
+    if ($match.Groups["avg"].Value -ne "N/A") {
+        $avgValue = Convert-ToNumber $match.Groups["avg"].Value
+    }
+    [void]$graceCounterfactuals.Add([ordered]@{
+            candidate = $match.Groups["candidate"].Value
+            releaseRows = [int]$match.Groups["rows"].Value
+            falseKillReleased = [int]$match.Groups["false"].Value
+            correctBlockReleased = [int]$match.Groups["correct"].Value
+            avgReleasedForward24hPct = $avgValue
         })
 }
 
@@ -200,6 +224,10 @@ $missingRequirementsArray = @()
 foreach ($item in $missingRequirements) {
     $missingRequirementsArray += $item
 }
+$graceCounterfactualArray = @()
+foreach ($item in $graceCounterfactuals) {
+    $graceCounterfactualArray += $item
+}
 $packet = [ordered]@{
     status = $status
     sourceLog = $SourceLog
@@ -222,6 +250,16 @@ $packet = [ordered]@{
     dataFreshnessPreviewOnlyRows = (Convert-ToPacketInt $dfPreviewOnlyRows)
     dataFreshnessTraceOnlyRows = (Convert-ToPacketInt $dfTraceOnlyRows)
     replayInputStage = $replayInputStage
+    dataFreshnessStaleMinutesMin = (Convert-ToPacketScalar $dfStaleMin)
+    dataFreshnessStaleMinutesAvg = (Convert-ToPacketScalar $dfStaleAvg)
+    dataFreshnessStaleMinutesMax = (Convert-ToPacketScalar $dfStaleMax)
+    dataFreshnessThresholdMinutesAvg = (Convert-ToPacketScalar $dfThresholdAvg)
+    dataFreshnessNearMissRows = (Convert-ToPacketInt $dfNearMissRows)
+    dataFreshnessRecoverableGraceRows = (Convert-ToPacketInt $dfRecoverableGraceRows)
+    dataFreshnessSevereStaleRows = (Convert-ToPacketInt $dfSevereStaleRows)
+    dataFreshnessProxyActionableRows = (Convert-ToPacketInt $dfProxyActionableRows)
+    dataFreshnessGuardOptimizationVerdict = $guardOptimizationVerdict
+    dataFreshnessGraceCounterfactuals = $graceCounterfactualArray
     collectorStatusCounts = $collectorStatusCounts
     hardGatePreviewStatusCounts = $hardGatePreviewStatusCounts
     replayRequiredNextActionCounts = $replayRequiredNextActionCounts
@@ -229,7 +267,7 @@ $packet = [ordered]@{
     sourceMissingEvidence = $missingEvidenceRaw
     falseKillSourceRanking = $rankingArray
     missingRequirements = $missingRequirementsArray
-    safeNextAction = "Collect complete replayable DataFreshness rows before any live relaxation; keep DataFreshnessGuard terminal and rerun the issue #7 SSH smoke plus this packet."
+    safeNextAction = "Reduce future false-kill pressure by proving current kline freshness and collecting complete replayable DataFreshness rows; do not relax severe stale/outage rows, and review small grace only if near-miss rows have replay snapshots plus acceptable correct-block leakage."
     notAuthorization = "local issue #7 packet only; does not authorize DataFreshnessGuard relaxation, live trading, scheduler enablement, orders, OCO modification, deploy, production env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
 }
 

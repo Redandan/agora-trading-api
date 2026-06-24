@@ -35,6 +35,9 @@ foreach ($marker in @(
         "issue7_live_relaxation_allowed=false",
         "replayInputStage",
         "dataFreshnessPreviewOnlyRows",
+        "dataFreshnessGuardOptimizationVerdict",
+        "dataFreshnessGraceCounterfactuals",
+        "dataFreshnessSevereStaleRows",
         "complete replayable DataFreshness rows",
         "counterfactual replay removing only DataFreshnessGuard",
         "notAuthorization",
@@ -72,9 +75,22 @@ DataFreshnessGuard RCA:
   data_freshness_preview_only_input_rows=0
   data_freshness_trace_only_rows=0
   replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE
+  data_freshness_stale_minutes_min=2252.00
+  data_freshness_stale_minutes_avg=2255.11
+  data_freshness_stale_minutes_max=2258.00
+  data_freshness_threshold_minutes_avg=135.00
+  data_freshness_near_miss_rows=0
+  data_freshness_recoverable_grace_rows=0
+  data_freshness_severe_stale_rows=27
+  data_freshness_proxy_actionable_rows=0
   collector_status_counts=N/A:27
   hard_gate_preview_status_counts=N/A:27
   replay_required_next_action_counts=N/A:27
+DataFreshness Guard Optimization Counterfactual:
+  definition=releaseRows means DataFreshnessGuard would not terminal-block under the candidate stale threshold; hard gates and replay snapshots are still required before live policy review.
+  - candidate=current_2x_plus_15 releaseRows=0 falseKillReleased=0 correctBlockReleased=0 avgReleasedForward24h=N/A
+  - candidate=grace_3x_plus_15 releaseRows=0 falseKillReleased=0 correctBlockReleased=0 avgReleasedForward24h=N/A
+  data_freshness_guard_optimization_verdict=DO_NOT_RELAX_GRACE_FIX_COLLECTOR_OR_SOURCE_OUTAGE
 Replayable Candidate Evidence:
   candidate_definition=entry and forward return are replayable proxy fields
 Conclusion:

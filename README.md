@@ -1457,9 +1457,20 @@ prints `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
 `DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
 `data_freshness_complete_replayable_candidate_rows`,
 `data_freshness_preview_only_input_rows`, `data_freshness_trace_only_rows`,
-`replay_input_stage`, `collector_status_counts`, and replayable candidate
-examples with entry, block reason, forward return, `shouldHavePassedProxy`,
-collector stage, and missing replay fields. `shouldHavePassedProxy` is only a 24h forward-return
+`replay_input_stage`, `data_freshness_stale_minutes_min`,
+`data_freshness_stale_minutes_avg`, `data_freshness_stale_minutes_max`,
+`data_freshness_near_miss_rows`, `data_freshness_recoverable_grace_rows`,
+`data_freshness_severe_stale_rows`,
+`data_freshness_guard_optimization_verdict`, `collector_status_counts`, and
+replayable candidate examples with entry, block reason, forward return,
+`shouldHavePassedProxy`, collector stage, and missing replay fields.
+The `DataFreshness Guard Optimization Counterfactual` section reports how many
+historical rows a candidate stale-threshold grace would release, including
+false-kill rows released and correct-block rows leaked. A verdict such as
+`DO_NOT_RELAX_GRACE_FIX_COLLECTOR_OR_SOURCE_OUTAGE` means the sample is
+severe-stale/outage evidence, so lowering false-kill pressure should start with
+collector/source freshness and replay snapshots, not live guard relaxation.
+`shouldHavePassedProxy` is only a 24h forward-return
 proxy and is not a live-policy pass verdict. A result such as
 `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_PRE_REPLAY_COLLECTOR` means
 DataFreshnessGuard is the leading profit false-kill source, but complete

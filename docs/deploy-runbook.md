@@ -1901,9 +1901,24 @@ Expected:
   `data_freshness_complete_replayable_candidate_rows`,
   `data_freshness_preview_only_input_rows`, `data_freshness_trace_only_rows`,
   `replay_input_stage`, `collector_status_counts`,
-  `hard_gate_preview_status_counts`, and replayable candidate examples with
+  `hard_gate_preview_status_counts`, stale-severity markers such as
+  `data_freshness_stale_minutes_min`,
+  `data_freshness_stale_minutes_avg`,
+  `data_freshness_stale_minutes_max`,
+  `data_freshness_near_miss_rows`,
+  `data_freshness_recoverable_grace_rows`,
+  `data_freshness_severe_stale_rows`, and replayable candidate examples with
   entry, block reason, 24h forward return, `shouldHavePassedProxy`, collector
   stage, and missing replay fields.
+- The `DataFreshness Guard Optimization Counterfactual` section reports
+  candidate stale-threshold grace outcomes as `releaseRows`,
+  `falseKillReleased`, `correctBlockReleased`, and
+  `avgReleasedForward24h`, then emits
+  `data_freshness_guard_optimization_verdict`. A verdict such as
+  `DO_NOT_RELAX_GRACE_FIX_COLLECTOR_OR_SOURCE_OUTAGE` means the rows are
+  severe stale/outage evidence; lower false-kill pressure by fixing
+  collector/source freshness and collecting replay snapshots, not by relaxing
+  the live guard.
 - `shouldHavePassedProxy=true` means the historical 24h forward-return proxy was
   positive. It is not a live-policy pass verdict.
 - A recommendation such as

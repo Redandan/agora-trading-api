@@ -397,6 +397,9 @@ def avg(values):
     values = [v for v in values if v is not None]
     return sum(values) / len(values) if values else None
 
+def fmt_num(value):
+    return "N/A" if value is None or math.isnan(value) else f"{value:.2f}"
+
 def top(counter):
     return "none" if not counter else ",".join(f"{k}:{v}" for k, v in counter.most_common(8))
 
@@ -412,6 +415,27 @@ candidate_status_counts = Counter(str(r.get("replay_candidate_status", "N/A") or
 candidate_plan_status_counts = Counter(str(r.get("replay_candidate_plan_status", "N/A") or "N/A") for r in data_freshness_rows)
 hard_gate_preview_status_counts = Counter(str(r.get("hard_gate_preview_status", "N/A") or "N/A") for r in data_freshness_rows)
 required_next_action_counts = Counter(str(r.get("replay_required_next_action", "N/A") or "N/A") for r in data_freshness_rows)
+df_stale_minutes = [num(r, "stale_minutes") for r in data_freshness_rows if num(r, "stale_minutes") is not None]
+df_threshold_minutes = [num(r, "threshold_minutes") for r in data_freshness_rows if num(r, "threshold_minutes") is not None]
+near_miss_rows = [
+    r for r in data_freshness_rows
+    if num(r, "stale_minutes") is not None
+    and num(r, "threshold_minutes") is not None
+    and num(r, "threshold_minutes") < num(r, "stale_minutes") <= num(r, "threshold_minutes") + max(30.0, num(r, "threshold_minutes") / 2.0)
+]
+recoverable_grace_rows = [
+    r for r in data_freshness_rows
+    if num(r, "stale_minutes") is not None
+    and num(r, "threshold_minutes") is not None
+    and num(r, "threshold_minutes") < num(r, "stale_minutes") <= num(r, "threshold_minutes") * 2.0
+]
+severe_stale_rows = [
+    r for r in data_freshness_rows
+    if num(r, "stale_minutes") is not None
+    and num(r, "threshold_minutes") is not None
+    and num(r, "stale_minutes") > num(r, "threshold_minutes") * 4.0
+]
+proxy_actionable_rows = [r for r in data_freshness_rows if r not in severe_stale_rows]
 preview_only_rows = [
     r for r in data_freshness_rows
     if str(r.get("hard_gate_preview_status", "")) == "PREVIEW_ONLY_NOT_REPLAYABLE"
@@ -484,11 +508,59 @@ print(f"  data_freshness_complete_replayable_candidate_rows={sum(1 for r in data
 print(f"  data_freshness_preview_only_input_rows={len(preview_only_rows)}")
 print(f"  data_freshness_trace_only_rows={len(trace_only_rows)}")
 print(f"  replay_input_stage={replay_input_stage}")
+print(f"  data_freshness_stale_minutes_min={fmt_num(min(df_stale_minutes) if df_stale_minutes else None)}")
+print(f"  data_freshness_stale_minutes_avg={fmt_num(avg(df_stale_minutes))}")
+print(f"  data_freshness_stale_minutes_max={fmt_num(max(df_stale_minutes) if df_stale_minutes else None)}")
+print(f"  data_freshness_threshold_minutes_avg={fmt_num(avg(df_threshold_minutes))}")
+print(f"  data_freshness_near_miss_rows={len(near_miss_rows)}")
+print(f"  data_freshness_recoverable_grace_rows={len(recoverable_grace_rows)}")
+print(f"  data_freshness_severe_stale_rows={len(severe_stale_rows)}")
+print(f"  data_freshness_proxy_actionable_rows={len(proxy_actionable_rows)}")
 print(f"  collector_status_counts={top(collector_status_counts)}")
 print(f"  candidate_status_counts={top(candidate_status_counts)}")
 print(f"  candidate_plan_status_counts={top(candidate_plan_status_counts)}")
 print(f"  hard_gate_preview_status_counts={top(hard_gate_preview_status_counts)}")
 print(f"  replay_required_next_action_counts={top(required_next_action_counts)}")
+print("")
+print("DataFreshness Guard Optimization Counterfactual:")
+print("  definition=releaseRows means DataFreshnessGuard would not terminal-block under the candidate stale threshold; hard gates and replay snapshots are still required before live policy review.")
+candidate_thresholds = [
+    ("current_2x_plus_15", lambda base, interval: base),
+    ("grace_3x_plus_15", lambda base, interval: 3.0 * interval + 15.0),
+    ("grace_4x_plus_15", lambda base, interval: 4.0 * interval + 15.0),
+    ("grace_6x_plus_15", lambda base, interval: 6.0 * interval + 15.0),
+    ("grace_12x_plus_15", lambda base, interval: 12.0 * interval + 15.0),
+]
+for label, threshold_fn in candidate_thresholds:
+    released = []
+    for row in data_freshness_rows:
+        stale = num(row, "stale_minutes")
+        threshold = num(row, "threshold_minutes")
+        interval_min = num(row, "threshold_minutes")
+        if threshold is not None:
+            interval_min = max((threshold - 15.0) / 2.0, 1.0)
+        if stale is None or threshold is None or interval_min is None:
+            continue
+        candidate_threshold = threshold_fn(threshold, interval_min)
+        if stale <= candidate_threshold:
+            released.append(row)
+    released_false = [r for r in released if ret_pct(r) is not None and ret_pct(r) > 0]
+    released_correct = [r for r in released if ret_pct(r) is not None and ret_pct(r) <= 0]
+    print(
+        "  - "
+        f"candidate={label} releaseRows={len(released)} falseKillReleased={len(released_false)} "
+        f"correctBlockReleased={len(released_correct)} avgReleasedForward24h={pct(avg(ret_pct(r) for r in released))}"
+    )
+if data_freshness_rows and len(severe_stale_rows) == len(data_freshness_rows):
+    optimization_verdict = "DO_NOT_RELAX_GRACE_FIX_COLLECTOR_OR_SOURCE_OUTAGE"
+elif recoverable_grace_rows and not df_correct:
+    optimization_verdict = "REVIEW_SMALL_GRACE_ONLY_AFTER_REPLAYABLE_SNAPSHOTS"
+elif near_miss_rows:
+    optimization_verdict = "REVIEW_NEAR_MISS_GRACE_WITH_CORRECT_BLOCK_LEAKAGE"
+else:
+    optimization_verdict = "COLLECT_FRESH_REPLAYABLE_ROWS_BEFORE_OPTIMIZATION"
+print(f"  data_freshness_guard_optimization_verdict={optimization_verdict}")
+print("  false_kill_reduction_path=reduce future false kills by restoring/monitoring current kline freshness and collecting replay snapshots; do not convert severe stale outage rows into live passes.")
 print("")
 print("Replayable Candidate Evidence:")
 print("  candidate_definition=entry and forward return are replayable proxy fields; live relaxation still requires liveSignal/replayCandidateId plus entry/TP/SL, evaluated EV, OCO, and hard-gate snapshots.")
@@ -524,7 +596,7 @@ elif data_freshness_rows and df_false:
 else:
     recommendation = "COLLECT_MORE_FILTER_BLOCK_SAMPLE"
 print(f"  issue7_recommendation={recommendation}")
-print("  safe_guard_optimization_candidates=[\"review whether BTCUSDT 1h L0 freshness should require current source failure, not only historical latestOpen lag\",\"consider source/interval-specific freshness grace or fallback only after replay evidence proves EV/OCO/hard-gates would pass\",\"keep terminal block when staleNow/noData/queryFailed is current\"]")
+print("  safe_guard_optimization_candidates=[\"do not relax severe stale/outage rows; fix collector/source freshness first\",\"review small grace only for near-miss stale rows after replay snapshots prove EV/OCO/hard-gates would pass\",\"keep terminal block when staleNow/noData/queryFailed is current\"]")
 print("  live_relaxation_missing_evidence=[\"complete replayable DataFreshness rows\",\"liveSignalId or replayCandidateId\",\"entry/TP/SL plan\",\"evaluated EV snapshot\",\"OCO plan snapshot\",\"duplicate/daily-cap/exposure/event-risk hard-gate snapshot\",\"counterfactual replay removing only DataFreshnessGuard\"]")
 print("  issue7_live_relaxation_allowed=false")
 print("  notAuthorization=read-only evidence only; does not authorize DataFreshnessGuard relaxation, live trading, strategy activation, closing positions, OCO modification, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, deploy, restart, or production env changes")

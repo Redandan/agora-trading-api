@@ -923,9 +923,16 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `data_freshness_current_status=NO_CURRENT_SAMPLE`,
   `data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES`,
   `sample_gap_buy_like_rows_7d_review=0`,
-  `sample_gap_attention_hit_rows_7d_review=205`,
+  `sample_gap_attention_hit_rows_7d_review=206`,
   `sample_gap_data_freshness_rows_7d_review=0`, and
   `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`.
+  The no-buy attention packet now preserves
+  `attention_macro_watch_only_rows`, `attention_candidate_interpretation`, and
+  `attention_strategy_distribution`, so all-`strategy=-1 interval=N/A`
+  attention rows are routed as macro/watch-only warnings instead of trading
+  candidates with missing terminal follow-up. The latest refresh classified
+  `attention_macro_watch_only_rows=206` and
+  `attention_candidate_interpretation=ATTENTION_HITS_ARE_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES`.
   Strategy 574 threshold-gap follow-up reported 206 near-threshold
   `market_entropy_index` rows at avg 69 versus threshold 70, while the
   forward/TP-SL proxy still returned

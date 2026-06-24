@@ -1555,7 +1555,9 @@ rows did not become BUY-like candidates, and why BUY-like candidates were not
 generated. The packet includes `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when
 recent `SIGNAL_EVAL` rows exist but none are BUY-like, plus
 `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when the v2 context shows strategy
-threshold misses dominate. It does not authorize
+threshold misses dominate. It also emits `attention_candidate_interpretation`
+and `attention_macro_watch_only_rows` so macro/watch-only attention rows are
+not mistaken for trading candidates with missing terminal follow-up. It does not authorize
 DataFreshnessGuard or
 EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
 production env changes.

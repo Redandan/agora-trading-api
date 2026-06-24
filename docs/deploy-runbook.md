@@ -1904,7 +1904,10 @@ Expected:
   SIGNAL_EVAL no-buy generation smoke and includes
   `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when recent `SIGNAL_EVAL` rows exist
   but none are BUY-like, plus `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when
-  v2 context shows strategy threshold misses dominate. The packet is review-only
+  v2 context shows strategy threshold misses dominate. It also emits
+  `attention_candidate_interpretation`, `attention_macro_watch_only_rows`, and
+  `attention_strategy_distribution` so macro/watch-only attention rows are not
+  treated as trading candidates with missing terminal follow-up. The packet is review-only
   and does not authorize DataFreshnessGuard or EntryDedup relaxation, live
   execution, scheduler enablement, orders, deploy, or production env changes.
 - If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,

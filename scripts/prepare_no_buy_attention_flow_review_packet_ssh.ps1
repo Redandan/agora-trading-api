@@ -49,6 +49,28 @@ function Get-IntValue {
     return 0
 }
 
+function Get-AttentionStrategyDistribution {
+    param([string]$Text)
+    $items = [System.Collections.Generic.List[object]]::new()
+    $inSection = $false
+    foreach ($line in ($Text -split "`r?`n")) {
+        if ($line -eq "attention_hit_strategy_distribution:") {
+            $inSection = $true
+            continue
+        }
+        if (-not $inSection) { continue }
+        if ($line -notmatch "^\s+-\s+") { break }
+        $match = [regex]::Match($line, "strategy=([^\s]+)\s+interval=([^\s]+)\s+count=([0-9]+)")
+        if (-not $match.Success) { continue }
+        $items.Add([pscustomobject]@{
+            strategyId = $match.Groups[1].Value
+            intervalCode = $match.Groups[2].Value
+            count = [int]$match.Groups[3].Value
+        })
+    }
+    return @($items)
+}
+
 function Add-Unique {
     param([System.Collections.Generic.List[string]]$List, [string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value)) { return }
@@ -144,6 +166,23 @@ $attentionFilterRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attenti
 $attentionEntrySkipRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  entry_skip_followup_rows=")
 $attentionSignalBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  signal_buy_followup_rows=")
 $attentionAutotradeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  autotrade_followup_rows=")
+$attentionStrategyDistribution = Get-AttentionStrategyDistribution -Text $attention.Text
+$attentionMacroWatchOnlyRows = 0
+foreach ($item in $attentionStrategyDistribution) {
+    if ($item.strategyId -eq "-1" -and $item.intervalCode -eq "N/A") {
+        $attentionMacroWatchOnlyRows += [int]$item.count
+    }
+}
+$attentionMacroWatchOnlyDominates = ($attentionRows -gt 0 -and $attentionMacroWatchOnlyRows -eq $attentionRows)
+$attentionCandidateInterpretation = if ($attentionMacroWatchOnlyDominates) {
+    "ATTENTION_HITS_ARE_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES"
+} elseif ($attentionRows -gt 0 -and $attentionMacroWatchOnlyRows -gt 0) {
+    "ATTENTION_HITS_MIXED_MACRO_AND_STRATEGY_ROWS"
+} elseif ($attentionRows -gt 0) {
+    "ATTENTION_HITS_STRATEGY_SCOPED_REVIEW_TERMINAL_FOLLOWUP"
+} else {
+    "NO_ATTENTION_HITS_IN_REVIEW_WINDOW"
+}
 
 $signalEvalNoBuyRecommendation = Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  signal_eval_no_buy_generation_recommendation="
 $signalEvalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  signal_eval_rows=")
@@ -189,7 +228,10 @@ if ($signalEvalRows -eq 0) {
 }
 if ($attentionRows -gt 0 -and $attentionNoTerminalRows -eq $attentionRows) {
     Add-Unique -List $reviewItems -Value "ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES"
-    Add-Unique -List $requiredEvidence -Value "attention-hit rows must map to a strategy/interval terminal follow-up or be excluded from trading-candidate evidence"
+    Add-Unique -List $requiredEvidence -Value "attention-hit rows must map to a strategy/interval terminal follow-up or be explicitly classified as macro/watch-only non-trading evidence"
+}
+if ($attentionMacroWatchOnlyDominates) {
+    Add-Unique -List $reviewItems -Value "ATTENTION_HITS_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES"
 }
 if ($sampleGapRcaRecommendation -eq "NO_RECENT_BUY_STYLE_CANDIDATES") {
     Add-Unique -List $reviewItems -Value "SIGNAL_GENERATION_OR_ATTENTION_PIPELINE_REVIEW"
@@ -214,7 +256,11 @@ $status = if ($profitBlocker.ExitCode -ne 0 -or $attention.ExitCode -ne 0 -or $s
 }
 
 $nextAction = if ($signalEvalNoBuyRecommendation -eq "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT") {
-    "Review strategy threshold gap evidence, especially near-threshold strategies, before any strategy-threshold, DataFreshnessGuard, EntryDedup, or live policy change."
+    if ($attentionMacroWatchOnlyDominates) {
+        "Treat current ATTENTION_HIT rows as macro/watch-only non-trading evidence, then review strategy threshold gap evidence for why SIGNAL_EVAL rows did not become BUY-like candidates before any strategy-threshold, DataFreshnessGuard, EntryDedup, or live policy change."
+    } else {
+        "Review strategy threshold gap evidence, especially near-threshold strategies, before any strategy-threshold, DataFreshnessGuard, EntryDedup, or live policy change."
+    }
 } elseif ($status -eq "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE") {
     "Review why ATTENTION_HIT rows are macro/non-strategy rows with no terminal follow-up and why no BUY-like candidates were generated; do not relax DataFreshnessGuard, EntryDedup, or live policy from this packet."
 } elseif ($status -eq "PENDING_BUY_LIKE_CANDIDATES") {
@@ -246,6 +292,9 @@ $packet = [pscustomobject]@{
         entrySkipFollowupRows = $attentionEntrySkipRows
         signalBuyFollowupRows = $attentionSignalBuyRows
         autotradeFollowupRows = $attentionAutotradeRows
+        macroWatchOnlyRows = $attentionMacroWatchOnlyRows
+        strategyDistribution = @($attentionStrategyDistribution)
+        candidateInterpretation = $attentionCandidateInterpretation
     }
     signalEvalNoBuyGeneration = [pscustomobject]@{
         recommendation = $signalEvalNoBuyRecommendation
@@ -300,6 +349,9 @@ Write-Host "attention_filter_block_followup_rows=$attentionFilterRows"
 Write-Host "attention_entry_skip_followup_rows=$attentionEntrySkipRows"
 Write-Host "attention_signal_buy_followup_rows=$attentionSignalBuyRows"
 Write-Host "attention_autotrade_followup_rows=$attentionAutotradeRows"
+Write-Host "attention_macro_watch_only_rows=$attentionMacroWatchOnlyRows"
+Write-Host "attention_candidate_interpretation=$attentionCandidateInterpretation"
+Write-Host ("attention_strategy_distribution=" + (ConvertTo-Json -Compress @($attentionStrategyDistribution)))
 Write-Host "signal_eval_no_buy_generation_recommendation=$signalEvalNoBuyRecommendation"
 Write-Host "signal_eval_rows=$signalEvalRows"
 Write-Host "signal_eval_buy_like_rows=$signalEvalBuyLikeRows"

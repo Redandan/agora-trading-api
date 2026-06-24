@@ -670,6 +670,20 @@
   does not authorize live trading, policy
   relaxation, deploy, production env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
+- `scripts/prepare_remaining_open_issues_status.ps1` is a local-only
+  consolidated packet for the remaining open profit issues. It reads the saved
+  #6 profit-improvement bundle, #7 post-deploy bundle, and bounded profit
+  evidence watcher logs, then emits `REMAINING_OPEN_ISSUES_STATUS_PACKET`,
+  `remaining_open_issues_status`, `remaining_open_issues_global_blocker`,
+  `issue6_status`, `issue7_remaining_blocker`, and
+  `profit_evidence_watch_status`. It does not run SSH or GitHub calls. When it
+  reports `BLOCKED_NOT_CLOSEABLE` with
+  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS`, both #6 and #7 remain open and
+  the next safe action is to wait for fresh post-collector DataFreshnessGuard
+  terminal rows before rerunning read-only evidence. It does not authorize live
+  trading, policy relaxation, deploy, production env changes, orders, OCO,
+  position closes, DB/grid/fund/Earn/Telegram/exchange mutation, issue closure,
+  or external backfill/import.
 - `scripts/prepare_data_freshness_profit_blocker_brief_ssh.ps1` is a narrower
   read-only DataFreshness profit blocker brief. It combines
   `smoke_signal_correctness_ssh.ps1` current-source evidence with

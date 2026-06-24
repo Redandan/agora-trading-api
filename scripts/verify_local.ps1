@@ -1662,6 +1662,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_filter_blocker_decision_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_signal_missed_blocker_decision_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_watch.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_remaining_open_issues_status.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_review_matrix.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_action_brief.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_quick_status.ps1"

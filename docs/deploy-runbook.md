@@ -1269,6 +1269,28 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a local consolidated status packet across the remaining open profit issues,
+run after the underlying read-only logs have been refreshed:
+
+```powershell
+.\scripts\prepare_remaining_open_issues_status.ps1 -RequireBlocked
+```
+
+Expected:
+
+- The packet reads existing local logs only and does not run SSH, GitHub,
+  deploy, restart, nginx reload, production env changes, DB writes, orders, OCO,
+  grid, fund, Earn, Telegram, exchange calls, or external backfill/import.
+- Output includes `REMAINING_OPEN_ISSUES_STATUS_PACKET`,
+  `remaining_open_issues_status`, `remaining_open_issues_global_blocker`,
+  `issue6_status`, `issue7_remaining_blocker`, and
+  `profit_evidence_watch_status`.
+- `BLOCKED_NOT_CLOSEABLE` with
+  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` means both #6 and #7 remain open
+  and the safe next action is to wait for fresh post-collector
+  DataFreshnessGuard terminal rows before rerunning the bounded watcher and #7
+  post-deploy bundle.
+
 For a read-only DataFreshness profit blocker brief, run:
 
 ```powershell

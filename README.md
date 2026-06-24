@@ -1227,6 +1227,24 @@ positions, or mutate DB/grid/fund/Earn state.
 Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers from the watcher itself.
 
+Consolidated remaining open issue status from saved local evidence logs:
+
+```powershell
+.\scripts\prepare_remaining_open_issues_status.ps1 -RequireBlocked
+```
+
+This local packet reads the latest #6 profit-improvement bundle, #7
+post-deploy bundle, and bounded profit evidence watcher logs, then emits
+`REMAINING_OPEN_ISSUES_STATUS_PACKET`, `remaining_open_issues_status`,
+`remaining_open_issues_global_blocker`, `issue6_status`, `issue7_remaining_blocker`,
+and `profit_evidence_watch_status`. It does not run SSH or GitHub calls; refresh
+the underlying read-only evidence logs first when the packet reports stale or
+missing local evidence. `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` keeps #6/#7
+open until fresh post-collector replay rows appear. This packet does not close
+issues, deploy, change production env, enable live trading, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
+positions, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+
 Read-only DataFreshness profit blocker brief:
 
 ```powershell

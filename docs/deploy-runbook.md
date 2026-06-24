@@ -1897,6 +1897,9 @@ Expected:
 - Output includes `filter_block_total_rows`, `filter_block_matured_rows`,
   `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
   `filter_block_avg_forward_24h_pct`, `False-Kill Source Ranking`,
+  `Actionable False-Kill Summary`, `actionable_filter_block_false_kill_pct`,
+  `severe_stale_outage_rows_excluded`, `severe_stale_outage_incidents`,
+  `Actionable False-Kill Source Ranking`,
   `DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
   `data_freshness_complete_replayable_candidate_rows`,
   `data_freshness_preview_only_input_rows`, `data_freshness_trace_only_rows`,
@@ -1919,6 +1922,27 @@ Expected:
   severe stale/outage evidence; lower false-kill pressure by fixing
   collector/source freshness and collecting replay snapshots, not by relaxing
   the live guard.
+- The actionable false-kill section is the policy-error view: it excludes
+  DataFreshness severe-stale/outage rows from the denominator and emits
+  `issue7_actionable_next_blocker` for the next optimizer lane. Use the raw
+  row-level rate to detect outage pressure, and the actionable rate to decide
+  which non-outage blocker family to review next.
+- When `issue7_actionable_next_blocker=ExpectedValueGate`, the smoke also emits
+  `ExpectedValueGate Optimization Counterfactual`,
+  `expected_value_gate_optimization_verdict`, and
+  `issue7_expected_value_gate_verdict`, comparing candidate `minExpectedR`
+  thresholds by `releaseRows`, `falseKillReleased`,
+  `correctBlockReleased`, and `avgReleasedForward24h`. Treat this as
+  shadow-review evidence only; it does not relax the live EV gate. When a
+  TP/SL-clean EV candidate exists, the packet also carries
+  `expected_value_projected_actionable_false_kill_pct_after_review` for the
+  remaining non-EV blocker queue and
+  `expected_value_projected_next_blocker_after_review` for the next lane.
+- The `TP/SL Proxy Actionable Summary` narrows false-kill pressure further by
+  checking rows with candidate entry/TP/SL against the 24h high/low window. It
+  emits `tp_sl_proxy_clean_tp_false_kill_pct`, `tp_sl_proxy_verdict`, and
+  `issue7_tp_sl_proxy_verdict`; clean TP rows hit TP without also touching SL,
+  while ambiguous rows require finer intrabar replay.
 - `shouldHavePassedProxy=true` means the historical 24h forward-return proxy was
   positive. It is not a live-policy pass verdict.
 - A recommendation such as

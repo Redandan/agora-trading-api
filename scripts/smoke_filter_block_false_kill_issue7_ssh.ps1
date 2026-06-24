@@ -173,6 +173,54 @@ SELECT
   COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayCandidatePlanStatus')), 'N/A') AS replay_candidate_plan_status,
   COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayHardGatePreviewStatus')), 'N/A') AS hard_gate_preview_status,
   COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayRequiredNextAction')), 'N/A') AS replay_required_next_action,
+  COALESCE(
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.expected_r')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.expected_r')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.expectedR')),
+    'N/A'
+  ) AS expected_r,
+  COALESCE(
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.min_expected_r')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.min_expected_r')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.minExpectedR')),
+    'N/A'
+  ) AS min_expected_r,
+  COALESCE(
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.ev_reason')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.ev_result_json, '$.ev_reason')),
+    'N/A'
+  ) AS ev_reason,
+  COALESCE(
+    JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.entryPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.entry')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.entryPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.entry')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.entryPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.entryPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.currentPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.candidateEntry')),
+    'N/A'
+  ) AS candidate_entry,
+  COALESCE(
+    JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.tpPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.tp')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.tpPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.tp')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.tpPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.candidateTp')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.tp')),
+    'N/A'
+  ) AS candidate_tp,
+  COALESCE(
+    JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.slPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.sl')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.slPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.sl')),
+    JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.slPrice')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.candidateSl')),
+    JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.sl')),
+    'N/A'
+  ) AS candidate_sl,
   CASE
     WHEN COALESCE(
       JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.entryPrice')),
@@ -302,6 +350,7 @@ fields = [
     "has_replay_candidate_id", "runtime_freshness_state", "runtime_blocker_reason",
     "runtime_terminal_blocker", "replay_collector_status", "replay_candidate_status",
     "replay_candidate_plan_status", "hard_gate_preview_status", "replay_required_next_action",
+    "expected_r", "min_expected_r", "ev_reason", "candidate_entry", "candidate_tp", "candidate_sl",
     "has_explicit_entry", "has_tp", "has_sl",
     "has_ev_snapshot", "has_oco_plan", "has_hard_gate_snapshot", "derived_entry",
     "close_after_24h", "max_high_24h", "min_low_24h",
@@ -347,6 +396,23 @@ def mae_pct(row):
     if not entry or low is None:
         return None
     return (low - entry) / entry * 100.0
+
+def tp_hit(row):
+    tp = num(row, "candidate_tp")
+    high = num(row, "max_high_24h")
+    if tp is None or high is None:
+        return None
+    return high >= tp
+
+def sl_hit(row):
+    sl = num(row, "candidate_sl")
+    low = num(row, "min_low_24h")
+    if sl is None or low is None:
+        return None
+    return low <= sl
+
+def tp_sl_evaluable(row):
+    return num(row, "candidate_entry") is not None and num(row, "candidate_tp") is not None and num(row, "candidate_sl") is not None
 
 def is_replayable(row):
     return (
@@ -436,6 +502,34 @@ severe_stale_rows = [
     and num(r, "stale_minutes") > num(r, "threshold_minutes") * 4.0
 ]
 proxy_actionable_rows = [r for r in data_freshness_rows if r not in severe_stale_rows]
+severe_stale_ids = {r.get("audit_id") for r in severe_stale_rows}
+actionable_rows = [r for r in matured_rows if r.get("audit_id") not in severe_stale_ids]
+actionable_false_kill_rows = [r for r in actionable_rows if ret_pct(r) is not None and ret_pct(r) > 0]
+actionable_correct_block_rows = [r for r in actionable_rows if ret_pct(r) is not None and ret_pct(r) <= 0]
+outage_incident_keys = {
+    "|".join([
+        str(r.get("blocker") or "UNKNOWN"),
+        str(r.get("interval_code") or "UNKNOWN"),
+        str(r.get("kline_source") or "UNKNOWN"),
+        str(r.get("latest_bar_open") or "UNKNOWN"),
+        str(r.get("threshold_minutes") or "UNKNOWN"),
+    ])
+    for r in severe_stale_rows
+}
+actionable_family_rows = defaultdict(list)
+for row in actionable_rows:
+    actionable_family_rows[str(row.get("blocker") or "UNKNOWN")].append(row)
+expected_value_rows = [r for r in actionable_rows if str(r.get("blocker")) == "ExpectedValueGate"]
+expected_value_false = [r for r in expected_value_rows if ret_pct(r) is not None and ret_pct(r) > 0]
+expected_value_correct = [r for r in expected_value_rows if ret_pct(r) is not None and ret_pct(r) <= 0]
+expected_value_expected_rs = [num(r, "expected_r") for r in expected_value_rows if num(r, "expected_r") is not None]
+expected_value_min_expected_rs = [num(r, "min_expected_r") for r in expected_value_rows if num(r, "min_expected_r") is not None]
+tp_sl_rows = [r for r in actionable_rows if tp_sl_evaluable(r)]
+tp_sl_tp_hit_rows = [r for r in tp_sl_rows if tp_hit(r) is True]
+tp_sl_sl_hit_rows = [r for r in tp_sl_rows if sl_hit(r) is True]
+tp_sl_clean_tp_rows = [r for r in tp_sl_rows if tp_hit(r) is True and sl_hit(r) is not True]
+tp_sl_ambiguous_rows = [r for r in tp_sl_rows if tp_hit(r) is True and sl_hit(r) is True]
+tp_sl_clean_sl_rows = [r for r in tp_sl_rows if sl_hit(r) is True and tp_hit(r) is not True]
 preview_only_rows = [
     r for r in data_freshness_rows
     if str(r.get("hard_gate_preview_status", "")) == "PREVIEW_ONLY_NOT_REPLAYABLE"
@@ -474,8 +568,52 @@ print(f"  filter_block_avg_mae_24h_pct={pct(avg(mae_pct(r) for r in matured_rows
 print(f"  blocker_counts={top(blocker_counts)}")
 print(f"  strategy_counts={top(strategy_counts)}")
 print("")
+print("Actionable False-Kill Summary:")
+print("  definition=excludes DataFreshnessGuard severe-stale/outage rows from policy-error denominator; those rows stay blocked and route to collector/source freshness.")
+print(f"  raw_filter_block_false_kill_pct={pct((len(false_kill_rows) / len(matured_rows) * 100.0) if matured_rows else None)}")
+print(f"  severe_stale_outage_rows_excluded={len(severe_stale_rows)}")
+print(f"  severe_stale_outage_incidents={len(outage_incident_keys)}")
+print(f"  actionable_filter_block_matured_rows={len(actionable_rows)}")
+print(f"  actionable_filter_block_false_kill_rows={len(actionable_false_kill_rows)}")
+print(f"  actionable_filter_block_correct_block_rows={len(actionable_correct_block_rows)}")
+print(f"  actionable_filter_block_false_kill_pct={pct((len(actionable_false_kill_rows) / len(actionable_rows) * 100.0) if actionable_rows else None)}")
+print(f"  actionable_filter_block_avg_forward_24h_pct={pct(avg(ret_pct(r) for r in actionable_rows))}")
+print("")
+print("TP/SL Proxy Actionable Summary:")
+print("  definition=counts actionable rows with candidate entry/TP/SL; clean TP rows hit TP within 24h without also touching SL in the same 24h OHLC window. Ambiguous rows require finer intrabar replay.")
+print(f"  tp_sl_proxy_evaluable_rows={len(tp_sl_rows)}")
+print(f"  tp_sl_proxy_tp_hit_rows={len(tp_sl_tp_hit_rows)}")
+print(f"  tp_sl_proxy_sl_hit_rows={len(tp_sl_sl_hit_rows)}")
+print(f"  tp_sl_proxy_clean_tp_rows={len(tp_sl_clean_tp_rows)}")
+print(f"  tp_sl_proxy_clean_sl_rows={len(tp_sl_clean_sl_rows)}")
+print(f"  tp_sl_proxy_ambiguous_rows={len(tp_sl_ambiguous_rows)}")
+print(f"  tp_sl_proxy_clean_tp_false_kill_pct={pct((len(tp_sl_clean_tp_rows) / len(tp_sl_rows) * 100.0) if tp_sl_rows else None)}")
+if tp_sl_rows and not tp_sl_clean_tp_rows:
+    tp_sl_verdict = "NO_CLEAN_TP_FALSE_KILL_IN_ACTIONABLE_SAMPLE"
+elif tp_sl_ambiguous_rows:
+    tp_sl_verdict = "TP_SL_INTRABAR_REPLAY_REQUIRED"
+else:
+    tp_sl_verdict = "REVIEW_CLEAN_TP_FALSE_KILLS"
+print(f"  tp_sl_proxy_verdict={tp_sl_verdict}")
+print("")
 print("False-Kill Source Ranking:")
 for blocker, blocker_rows in sorted(family_rows.items(), key=lambda item: (-sum(1 for r in item[1] if ret_pct(r) is not None and ret_pct(r) > 0), item[0])):
+    returns = [ret_pct(r) for r in blocker_rows]
+    false_rows = [r for r in blocker_rows if ret_pct(r) is not None and ret_pct(r) > 0]
+    correct_rows = [r for r in blocker_rows if ret_pct(r) is not None and ret_pct(r) <= 0]
+    replayable = sum(1 for r in blocker_rows if is_replayable(r))
+    print(
+        "  - "
+        f"blocker={blocker} rows={len(blocker_rows)} falseKillRows={len(false_rows)} "
+        f"correctBlockRows={len(correct_rows)} falseKillPct={pct((len(false_rows) / len(blocker_rows) * 100.0) if blocker_rows else None)} "
+        f"avgForward24h={pct(avg(returns))} avgMfe24h={pct(avg(mfe_pct(r) for r in blocker_rows))} "
+        f"avgMae24h={pct(avg(mae_pct(r) for r in blocker_rows))} replayableCandidateRows={replayable}"
+    )
+print("")
+print("Actionable False-Kill Source Ranking:")
+if not actionable_family_rows:
+    print("  none")
+for blocker, blocker_rows in sorted(actionable_family_rows.items(), key=lambda item: (-sum(1 for r in item[1] if ret_pct(r) is not None and ret_pct(r) > 0), item[0])):
     returns = [ret_pct(r) for r in blocker_rows]
     false_rows = [r for r in blocker_rows if ret_pct(r) is not None and ret_pct(r) > 0]
     correct_rows = [r for r in blocker_rows if ret_pct(r) is not None and ret_pct(r) <= 0]
@@ -562,6 +700,71 @@ else:
 print(f"  data_freshness_guard_optimization_verdict={optimization_verdict}")
 print("  false_kill_reduction_path=reduce future false kills by restoring/monitoring current kline freshness and collecting replay snapshots; do not convert severe stale outage rows into live passes.")
 print("")
+print("ExpectedValueGate Optimization Counterfactual:")
+print("  definition=releaseRows means ExpectedValueGate would not terminal-block at the candidate minExpectedR; this is report-only and still requires operator review before policy changes.")
+print(f"  expected_value_rows={len(expected_value_rows)}")
+print(f"  expected_value_false_kill_rows={len(expected_value_false)}")
+print(f"  expected_value_correct_block_rows={len(expected_value_correct)}")
+print(f"  expected_value_false_kill_pct={pct((len(expected_value_false) / len(expected_value_rows) * 100.0) if expected_value_rows else None)}")
+print(f"  expected_value_avg_forward_24h_pct={pct(avg(ret_pct(r) for r in expected_value_rows))}")
+print(f"  expected_value_expected_r_min={fmt_num(min(expected_value_expected_rs) if expected_value_expected_rs else None)}")
+print(f"  expected_value_expected_r_avg={fmt_num(avg(expected_value_expected_rs))}")
+print(f"  expected_value_expected_r_max={fmt_num(max(expected_value_expected_rs) if expected_value_expected_rs else None)}")
+print(f"  expected_value_min_expected_r_avg={fmt_num(avg(expected_value_min_expected_rs))}")
+ev_candidates = [0.0, 0.05, 0.10, 0.15, 0.20]
+best_ev_candidate = None
+best_ev_release_rows = []
+for candidate_min in ev_candidates:
+    released = []
+    for row in expected_value_rows:
+        expected_r = num(row, "expected_r")
+        if expected_r is None:
+            continue
+        if expected_r > 0 and expected_r >= candidate_min:
+            released.append(row)
+    released_false = [r for r in released if ret_pct(r) is not None and ret_pct(r) > 0]
+    released_correct = [r for r in released if ret_pct(r) is not None and ret_pct(r) <= 0]
+    released_clean_tp = [r for r in released if tp_hit(r) is True and sl_hit(r) is not True]
+    released_non_clean_tp = [r for r in released if not (tp_hit(r) is True and sl_hit(r) is not True)]
+    if released_clean_tp and not released_non_clean_tp and best_ev_candidate is None:
+        best_ev_candidate = candidate_min
+        best_ev_release_rows = released
+    print(
+        "  - "
+        f"candidate=minExpectedR_{candidate_min:.2f} releaseRows={len(released)} "
+        f"falseKillReleased={len(released_false)} correctBlockReleased={len(released_correct)} "
+        f"tpSlCleanTpReleased={len(released_clean_tp)} tpSlNonCleanReleased={len(released_non_clean_tp)} "
+        f"avgReleasedForward24h={pct(avg(ret_pct(r) for r in released))}"
+    )
+if not expected_value_rows:
+    ev_verdict = "NO_EXPECTED_VALUE_SAMPLE"
+elif best_ev_candidate is not None:
+    ev_verdict = f"REVIEW_MIN_EXPECTED_R_{best_ev_candidate:.2f}_TP_SL_SHADOW_ONLY"
+elif expected_value_false:
+    ev_verdict = "EXPECTED_VALUE_FALSE_KILL_HIGH_BUT_CORRECT_BLOCK_LEAKAGE_REVIEW"
+else:
+    ev_verdict = "EXPECTED_VALUE_GATE_OK"
+print(f"  expected_value_gate_optimization_verdict={ev_verdict}")
+if best_ev_release_rows:
+    best_release_ids = {r.get("audit_id") for r in best_ev_release_rows}
+    projected_rows = [r for r in actionable_rows if r.get("audit_id") not in best_release_ids]
+    projected_false = [r for r in projected_rows if ret_pct(r) is not None and ret_pct(r) > 0]
+    projected_correct = [r for r in projected_rows if ret_pct(r) is not None and ret_pct(r) <= 0]
+    projected_family_rows = defaultdict(list)
+    for row in projected_rows:
+        projected_family_rows[str(row.get("blocker") or "UNKNOWN")].append(row)
+    projected_next_blocker = "NONE"
+    if projected_family_rows:
+        projected_next_blocker = max(projected_family_rows.items(), key=lambda item: sum(1 for r in item[1] if ret_pct(r) is not None and ret_pct(r) > 0))[0]
+    print(f"  expected_value_projected_actionable_rows_after_review={len(projected_rows)}")
+    print(f"  expected_value_projected_actionable_false_kill_rows_after_review={len(projected_false)}")
+    print(f"  expected_value_projected_actionable_correct_block_rows_after_review={len(projected_correct)}")
+    print(f"  expected_value_projected_actionable_false_kill_pct_after_review={pct((len(projected_false) / len(projected_rows) * 100.0) if projected_rows else 0.0)}")
+    print(f"  expected_value_projected_next_blocker_after_review={projected_next_blocker}")
+else:
+    print("  expected_value_projected_actionable_false_kill_pct_after_review=N/A")
+    print("  expected_value_projected_next_blocker_after_review=UNKNOWN")
+print("")
 print("Replayable Candidate Evidence:")
 print("  candidate_definition=entry and forward return are replayable proxy fields; live relaxation still requires liveSignal/replayCandidateId plus entry/TP/SL, evaluated EV, OCO, and hard-gate snapshots.")
 print("  should_have_passed_proxy=forward_24h_pct > 0; this is not a live-policy pass verdict.")
@@ -576,8 +779,27 @@ for row in matured_rows[:12]:
         f"replayableCandidate={str(is_replayable(row)).lower()} missingReplayFields={json.dumps(missing, separators=(',', ':'))} "
         f"collector={row.get('replay_collector_status')} candidateStatus={row.get('replay_candidate_status')} "
         f"planStatus={row.get('replay_candidate_plan_status')} hardGatePreview={row.get('hard_gate_preview_status')} "
+        f"expectedR={row.get('expected_r')} minExpectedR={row.get('min_expected_r')} evReason={row.get('ev_reason')} "
+        f"candidateEntry={row.get('candidate_entry')} candidateTp={row.get('candidate_tp')} candidateSl={row.get('candidate_sl')} "
+        f"tpHit={str(tp_hit(row)).lower()} slHit={str(sl_hit(row)).lower()} "
         f"staleClass={stale_class(row)} staleMinutes={row.get('stale_minutes')} thresholdMinutes={row.get('threshold_minutes')} "
         f"latestBarOpen={row.get('latest_bar_open')} blockReason={compact(row.get('reason'))}"
+    )
+print("")
+print("Actionable Candidate Evidence:")
+for row in actionable_rows[:12]:
+    ret = ret_pct(row)
+    missing = missing_replay_fields(row)
+    print(
+        "  - "
+        f"auditId={row.get('audit_id')} time={row.get('event_time')} strategy={row.get('strategy_id')} "
+        f"blocker={row.get('blocker')} entry={row.get('derived_entry')} closeAfter24h={row.get('close_after_24h')} "
+        f"forward24h={pct(ret)} shouldHavePassedProxy={str(ret is not None and ret > 0).lower()} "
+        f"replayableCandidate={str(is_replayable(row)).lower()} missingReplayFields={json.dumps(missing, separators=(',', ':'))} "
+        f"expectedR={row.get('expected_r')} minExpectedR={row.get('min_expected_r')} evReason={row.get('ev_reason')} "
+        f"candidateEntry={row.get('candidate_entry')} candidateTp={row.get('candidate_tp')} candidateSl={row.get('candidate_sl')} "
+        f"tpHit={str(tp_hit(row)).lower()} slHit={str(sl_hit(row)).lower()} "
+        f"staleClass={stale_class(row)} blockReason={compact(row.get('reason'))}"
     )
 print("")
 print("Conclusion:")
@@ -596,6 +818,13 @@ elif data_freshness_rows and df_false:
 else:
     recommendation = "COLLECT_MORE_FILTER_BLOCK_SAMPLE"
 print(f"  issue7_recommendation={recommendation}")
+if actionable_rows:
+    top_actionable = max(actionable_family_rows.items(), key=lambda item: sum(1 for r in item[1] if ret_pct(r) is not None and ret_pct(r) > 0))[0]
+    print(f"  issue7_actionable_next_blocker={top_actionable}")
+else:
+    print("  issue7_actionable_next_blocker=NONE")
+print(f"  issue7_expected_value_gate_verdict={ev_verdict}")
+print(f"  issue7_tp_sl_proxy_verdict={tp_sl_verdict}")
 print("  safe_guard_optimization_candidates=[\"do not relax severe stale/outage rows; fix collector/source freshness first\",\"review small grace only for near-miss stale rows after replay snapshots prove EV/OCO/hard-gates would pass\",\"keep terminal block when staleNow/noData/queryFailed is current\"]")
 print("  live_relaxation_missing_evidence=[\"complete replayable DataFreshness rows\",\"liveSignalId or replayCandidateId\",\"entry/TP/SL plan\",\"evaluated EV snapshot\",\"OCO plan snapshot\",\"duplicate/daily-cap/exposure/event-risk hard-gate snapshot\",\"counterfactual replay removing only DataFreshnessGuard\"]")
 print("  issue7_live_relaxation_allowed=false")

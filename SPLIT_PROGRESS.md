@@ -1273,8 +1273,13 @@
 - `scripts/smoke_filter_block_false_kill_issue7_ssh.ps1` provides the issue #7
   focused read-only production review for `BTCUSDT` `1h` `FILTER_BLOCK`
   false-kill pressure. It uses direct MySQL `SELECT` queries only, ranks blocker
-  families by false-kill rows and average 24h forward return, then surfaces a
-  DataFreshnessGuard RCA with stale-context class counts, runtime evidence
+  families by false-kill rows and average 24h forward return, then emits an
+  `Actionable False-Kill Summary` that excludes DataFreshness severe-stale/
+  outage rows from the policy-error denominator, reports
+  `severe_stale_outage_rows_excluded`, `severe_stale_outage_incidents`,
+  `actionable_filter_block_false_kill_pct`, and an
+  `Actionable False-Kill Source Ranking`, then surfaces a DataFreshnessGuard RCA
+  with stale-context class counts, runtime evidence
   coverage, liveSignal/replayCandidateId coverage, entry/TP/SL, EV, OCO, and
   hard-gate snapshot coverage, `data_freshness_preview_only_input_rows`,
   `data_freshness_trace_only_rows`, `replay_input_stage`,
@@ -1288,7 +1293,24 @@
   Counterfactual` section that reports candidate stale-threshold grace
   `releaseRows`, `falseKillReleased`, `correctBlockReleased`, and
   `data_freshness_guard_optimization_verdict`, so severe stale/outage rows are
-  not mistaken for safely relaxable near-miss rows.
+  not mistaken for safely relaxable near-miss rows. The conclusion also prints
+  `issue7_actionable_next_blocker`, so after outage pressure is separated, the
+  next non-outage blocker family can be optimized without treating repeated
+  stale-source audits as policy false-kill rows. When that blocker is
+  `ExpectedValueGate`, the smoke emits `ExpectedValueGate Optimization
+  Counterfactual`, `expected_value_gate_optimization_verdict`, and
+  `issue7_expected_value_gate_verdict`, comparing candidate `minExpectedR`
+  thresholds by released false-kill rows and leaked correct-block rows before
+  any EV-gate policy review. It also emits a `TP/SL Proxy Actionable Summary`
+  with `tp_sl_proxy_clean_tp_false_kill_pct`, `tp_sl_proxy_verdict`, and
+  `issue7_tp_sl_proxy_verdict`, so 24h close-positive proxy rows are separated
+  from rows that actually hit TP without touching SL in the available OHLC
+  window. The EV packet fields include
+  `expected_value_projected_actionable_false_kill_pct_after_review`, which
+  estimates the remaining non-EV blocker error rate after a shadow-reviewed EV
+  threshold candidate is removed from the actionable queue, and
+  `expected_value_projected_next_blocker_after_review`, which points the next
+  lane to optimize.
   `shouldHavePassedProxy` is explicitly a historical forward-return proxy, not
   a live pass verdict. A status such as
   `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` keeps live

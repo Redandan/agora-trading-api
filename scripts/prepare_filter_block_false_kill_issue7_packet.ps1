@@ -58,6 +58,24 @@ function Convert-ToPacketScalar {
     return $Value
 }
 
+function Get-SectionText {
+    param(
+        [string]$Text,
+        [string]$Start,
+        [string]$End
+    )
+    $startIndex = $Text.IndexOf($Start, [System.StringComparison]::Ordinal)
+    if ($startIndex -lt 0) {
+        return ""
+    }
+    $contentStart = $startIndex + $Start.Length
+    $endIndex = if ([string]::IsNullOrWhiteSpace($End)) { -1 } else { $Text.IndexOf($End, $contentStart, [System.StringComparison]::Ordinal) }
+    if ($endIndex -lt 0) {
+        return $Text.Substring($contentStart)
+    }
+    return $Text.Substring($contentStart, $endIndex - $contentStart)
+}
+
 function Add-MissingRequirement {
     param(
         [System.Collections.Generic.List[string]]$List,
@@ -119,6 +137,35 @@ $falseKillRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "filter_bloc
 $correctBlockRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "filter_block_correct_block_rows" -Default "0")
 $falseKillPct = Convert-ToNumber (Get-FieldValue -Text $text -Name "filter_block_false_kill_pct")
 $avgForward = Convert-ToNumber (Get-FieldValue -Text $text -Name "filter_block_avg_forward_24h_pct")
+$severeStaleOutageRowsExcluded = Convert-ToNumber (Get-FieldValue -Text $text -Name "severe_stale_outage_rows_excluded" -Default "0")
+$severeStaleOutageIncidents = Convert-ToNumber (Get-FieldValue -Text $text -Name "severe_stale_outage_incidents" -Default "0")
+$actionableMaturedRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "actionable_filter_block_matured_rows" -Default "0")
+$actionableFalseKillRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "actionable_filter_block_false_kill_rows" -Default "0")
+$actionableCorrectBlockRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "actionable_filter_block_correct_block_rows" -Default "0")
+$actionableFalseKillPct = Convert-ToNumber (Get-FieldValue -Text $text -Name "actionable_filter_block_false_kill_pct")
+$actionableAvgForward = Convert-ToNumber (Get-FieldValue -Text $text -Name "actionable_filter_block_avg_forward_24h_pct")
+$evRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_rows" -Default "0")
+$evFalseKillRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_false_kill_rows" -Default "0")
+$evCorrectBlockRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_correct_block_rows" -Default "0")
+$evFalseKillPct = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_false_kill_pct")
+$evAvgForward = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_avg_forward_24h_pct")
+$evExpectedRMin = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_expected_r_min")
+$evExpectedRAvg = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_expected_r_avg")
+$evExpectedRMax = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_expected_r_max")
+$evMinExpectedRAvg = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_min_expected_r_avg")
+$evProjectedRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_projected_actionable_rows_after_review" -Default "0")
+$evProjectedFalseKillRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_projected_actionable_false_kill_rows_after_review" -Default "0")
+$evProjectedCorrectBlockRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_projected_actionable_correct_block_rows_after_review" -Default "0")
+$evProjectedFalseKillPct = Convert-ToNumber (Get-FieldValue -Text $text -Name "expected_value_projected_actionable_false_kill_pct_after_review")
+$evProjectedNextBlocker = Get-FieldValue -Text $text -Name "expected_value_projected_next_blocker_after_review" -Default "UNKNOWN"
+$tpSlEvaluableRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_evaluable_rows" -Default "0")
+$tpSlTpHitRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_tp_hit_rows" -Default "0")
+$tpSlSlHitRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_sl_hit_rows" -Default "0")
+$tpSlCleanTpRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_clean_tp_rows" -Default "0")
+$tpSlCleanSlRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_clean_sl_rows" -Default "0")
+$tpSlAmbiguousRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_ambiguous_rows" -Default "0")
+$tpSlCleanTpFalseKillPct = Convert-ToNumber (Get-FieldValue -Text $text -Name "tp_sl_proxy_clean_tp_false_kill_pct")
+$tpSlVerdict = Get-FieldValue -Text $text -Name "issue7_tp_sl_proxy_verdict" -Default (Get-FieldValue -Text $text -Name "tp_sl_proxy_verdict" -Default "UNKNOWN")
 $dfRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_rows" -Default "0")
 $dfFalseKillRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_false_kill_rows" -Default "0")
 $dfCorrectRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_correct_block_rows" -Default "0")
@@ -144,11 +191,28 @@ if ($replayInputStage -eq "UNKNOWN" -and $dfRows -gt 0 -and $dfReplayableRows -l
     $replayInputStage = "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
 }
 $sourceRecommendation = Get-FieldValue -Text $text -Name "issue7_recommendation"
+$actionableNextBlocker = Get-FieldValue -Text $text -Name "issue7_actionable_next_blocker" -Default "UNKNOWN"
+$expectedValueGateVerdict = Get-FieldValue -Text $text -Name "issue7_expected_value_gate_verdict" -Default (Get-FieldValue -Text $text -Name "expected_value_gate_optimization_verdict" -Default "UNKNOWN")
 $missingEvidenceRaw = Get-FieldValue -Text $text -Name "live_relaxation_missing_evidence" -Default "[]"
 
 $ranking = New-Object System.Collections.Generic.List[object]
-foreach ($match in [regex]::Matches($text, "(?m)^\s*-\s+blocker=(?<blocker>\S+)\s+rows=(?<rows>\d+)\s+falseKillRows=(?<false>\d+)\s+correctBlockRows=(?<correct>\d+)\s+falseKillPct=(?<pct>[+-]?[0-9.]+)%\s+avgForward24h=(?<avg>[+-]?[0-9.]+)%.*?replayableCandidateRows=(?<replay>\d+)")) {
+$rawRankingText = Get-SectionText -Text $text -Start "False-Kill Source Ranking:" -End "Actionable False-Kill Source Ranking:"
+foreach ($match in [regex]::Matches($rawRankingText, "(?m)^\s*-\s+blocker=(?<blocker>\S+)\s+rows=(?<rows>\d+)\s+falseKillRows=(?<false>\d+)\s+correctBlockRows=(?<correct>\d+)\s+falseKillPct=(?<pct>[+-]?[0-9.]+)%\s+avgForward24h=(?<avg>[+-]?[0-9.]+)%.*?replayableCandidateRows=(?<replay>\d+)")) {
     [void]$ranking.Add([ordered]@{
+            blocker = $match.Groups["blocker"].Value
+            rows = [int]$match.Groups["rows"].Value
+            falseKillRows = [int]$match.Groups["false"].Value
+            correctBlockRows = [int]$match.Groups["correct"].Value
+            falseKillPct = [double]$match.Groups["pct"].Value
+            avgForward24hPct = [double]$match.Groups["avg"].Value
+            replayableCandidateRows = [int]$match.Groups["replay"].Value
+        })
+}
+
+$actionableRanking = New-Object System.Collections.Generic.List[object]
+$actionableRankingText = Get-SectionText -Text $text -Start "Actionable False-Kill Source Ranking:" -End "DataFreshnessGuard RCA:"
+foreach ($match in [regex]::Matches($actionableRankingText, "(?m)^\s*-\s+blocker=(?<blocker>\S+)\s+rows=(?<rows>\d+)\s+falseKillRows=(?<false>\d+)\s+correctBlockRows=(?<correct>\d+)\s+falseKillPct=(?<pct>[+-]?[0-9.]+)%\s+avgForward24h=(?<avg>[+-]?[0-9.]+)%.*?replayableCandidateRows=(?<replay>\d+)")) {
+    [void]$actionableRanking.Add([ordered]@{
             blocker = $match.Groups["blocker"].Value
             rows = [int]$match.Groups["rows"].Value
             falseKillRows = [int]$match.Groups["false"].Value
@@ -170,6 +234,31 @@ foreach ($match in [regex]::Matches($text, "(?m)^\s*-\s+candidate=(?<candidate>\
             releaseRows = [int]$match.Groups["rows"].Value
             falseKillReleased = [int]$match.Groups["false"].Value
             correctBlockReleased = [int]$match.Groups["correct"].Value
+            avgReleasedForward24hPct = $avgValue
+        })
+}
+
+$evCounterfactuals = New-Object System.Collections.Generic.List[object]
+foreach ($match in [regex]::Matches($text, "(?m)^\s*-\s+candidate=minExpectedR_(?<candidate>[0-9.]+)\s+releaseRows=(?<rows>\d+)\s+falseKillReleased=(?<false>\d+)\s+correctBlockReleased=(?<correct>\d+)(?:\s+tpSlCleanTpReleased=(?<cleanTp>\d+)\s+tpSlNonCleanReleased=(?<nonClean>\d+))?\s+avgReleasedForward24h=(?<avg>N/A|[+-]?[0-9.]+%)")) {
+    $avgValue = $null
+    if ($match.Groups["avg"].Value -ne "N/A") {
+        $avgValue = Convert-ToNumber $match.Groups["avg"].Value
+    }
+    $cleanTpValue = $null
+    if ($match.Groups["cleanTp"].Success) {
+        $cleanTpValue = [int]$match.Groups["cleanTp"].Value
+    }
+    $nonCleanValue = $null
+    if ($match.Groups["nonClean"].Success) {
+        $nonCleanValue = [int]$match.Groups["nonClean"].Value
+    }
+    [void]$evCounterfactuals.Add([ordered]@{
+            candidateMinExpectedR = [double]$match.Groups["candidate"].Value
+            releaseRows = [int]$match.Groups["rows"].Value
+            falseKillReleased = [int]$match.Groups["false"].Value
+            correctBlockReleased = [int]$match.Groups["correct"].Value
+            tpSlCleanTpReleased = $cleanTpValue
+            tpSlNonCleanReleased = $nonCleanValue
             avgReleasedForward24hPct = $avgValue
         })
 }
@@ -220,6 +309,10 @@ $rankingArray = @()
 foreach ($item in $ranking) {
     $rankingArray += $item
 }
+$actionableRankingArray = @()
+foreach ($item in $actionableRanking) {
+    $actionableRankingArray += $item
+}
 $missingRequirementsArray = @()
 foreach ($item in $missingRequirements) {
     $missingRequirementsArray += $item
@@ -227,6 +320,10 @@ foreach ($item in $missingRequirements) {
 $graceCounterfactualArray = @()
 foreach ($item in $graceCounterfactuals) {
     $graceCounterfactualArray += $item
+}
+$evCounterfactualArray = @()
+foreach ($item in $evCounterfactuals) {
+    $evCounterfactualArray += $item
 }
 $packet = [ordered]@{
     status = $status
@@ -241,6 +338,37 @@ $packet = [ordered]@{
     correctBlockRows = (Convert-ToPacketInt $correctBlockRows)
     falseKillPct = (Convert-ToPacketScalar $falseKillPct)
     avgForward24hPct = (Convert-ToPacketScalar $avgForward)
+    severeStaleOutageRowsExcluded = (Convert-ToPacketInt $severeStaleOutageRowsExcluded)
+    severeStaleOutageIncidents = (Convert-ToPacketInt $severeStaleOutageIncidents)
+    actionableMaturedRows = (Convert-ToPacketInt $actionableMaturedRows)
+    actionableFalseKillRows = (Convert-ToPacketInt $actionableFalseKillRows)
+    actionableCorrectBlockRows = (Convert-ToPacketInt $actionableCorrectBlockRows)
+    actionableFalseKillPct = (Convert-ToPacketScalar $actionableFalseKillPct)
+    actionableAvgForward24hPct = (Convert-ToPacketScalar $actionableAvgForward)
+    expectedValueRows = (Convert-ToPacketInt $evRows)
+    expectedValueFalseKillRows = (Convert-ToPacketInt $evFalseKillRows)
+    expectedValueCorrectBlockRows = (Convert-ToPacketInt $evCorrectBlockRows)
+    expectedValueFalseKillPct = (Convert-ToPacketScalar $evFalseKillPct)
+    expectedValueAvgForward24hPct = (Convert-ToPacketScalar $evAvgForward)
+    expectedValueExpectedRMin = (Convert-ToPacketScalar $evExpectedRMin)
+    expectedValueExpectedRAvg = (Convert-ToPacketScalar $evExpectedRAvg)
+    expectedValueExpectedRMax = (Convert-ToPacketScalar $evExpectedRMax)
+    expectedValueMinExpectedRAvg = (Convert-ToPacketScalar $evMinExpectedRAvg)
+    expectedValueProjectedActionableRowsAfterReview = (Convert-ToPacketInt $evProjectedRows)
+    expectedValueProjectedActionableFalseKillRowsAfterReview = (Convert-ToPacketInt $evProjectedFalseKillRows)
+    expectedValueProjectedActionableCorrectBlockRowsAfterReview = (Convert-ToPacketInt $evProjectedCorrectBlockRows)
+    expectedValueProjectedActionableFalseKillPctAfterReview = (Convert-ToPacketScalar $evProjectedFalseKillPct)
+    expectedValueProjectedNextBlockerAfterReview = $evProjectedNextBlocker
+    expectedValueGateVerdict = $expectedValueGateVerdict
+    expectedValueGateCounterfactuals = $evCounterfactualArray
+    tpSlProxyEvaluableRows = (Convert-ToPacketInt $tpSlEvaluableRows)
+    tpSlProxyTpHitRows = (Convert-ToPacketInt $tpSlTpHitRows)
+    tpSlProxySlHitRows = (Convert-ToPacketInt $tpSlSlHitRows)
+    tpSlProxyCleanTpRows = (Convert-ToPacketInt $tpSlCleanTpRows)
+    tpSlProxyCleanSlRows = (Convert-ToPacketInt $tpSlCleanSlRows)
+    tpSlProxyAmbiguousRows = (Convert-ToPacketInt $tpSlAmbiguousRows)
+    tpSlProxyCleanTpFalseKillPct = (Convert-ToPacketScalar $tpSlCleanTpFalseKillPct)
+    tpSlProxyVerdict = $tpSlVerdict
     dataFreshnessRows = (Convert-ToPacketInt $dfRows)
     dataFreshnessFalseKillRows = (Convert-ToPacketInt $dfFalseKillRows)
     dataFreshnessCorrectBlockRows = (Convert-ToPacketInt $dfCorrectRows)
@@ -264,10 +392,12 @@ $packet = [ordered]@{
     hardGatePreviewStatusCounts = $hardGatePreviewStatusCounts
     replayRequiredNextActionCounts = $replayRequiredNextActionCounts
     sourceRecommendation = $sourceRecommendation
+    actionableNextBlocker = $actionableNextBlocker
     sourceMissingEvidence = $missingEvidenceRaw
     falseKillSourceRanking = $rankingArray
+    actionableFalseKillSourceRanking = $actionableRankingArray
     missingRequirements = $missingRequirementsArray
-    safeNextAction = "Reduce future false-kill pressure by proving current kline freshness and collecting complete replayable DataFreshness rows; do not relax severe stale/outage rows, and review small grace only if near-miss rows have replay snapshots plus acceptable correct-block leakage."
+    safeNextAction = "Keep severe DataFreshness outage rows out of live relaxation; review the TP/SL-clean ExpectedValueGate minExpectedR shadow candidate before any EV policy change; then route the projected remaining false-kill queue to the projected next blocker."
     notAuthorization = "local issue #7 packet only; does not authorize DataFreshnessGuard relaxation, live trading, scheduler enablement, orders, OCO modification, deploy, production env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import"
 }
 

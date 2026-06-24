@@ -1454,6 +1454,10 @@ This read-only smoke uses production MySQL `SELECT` queries only to rank
 `BTCUSDT` `1h` `FILTER_BLOCK` blocker families by false-kill pressure. It
 prints `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
 `filter_block_avg_forward_24h_pct`, `False-Kill Source Ranking`,
+`Actionable False-Kill Summary`,
+`actionable_filter_block_false_kill_pct`,
+`severe_stale_outage_rows_excluded`, `severe_stale_outage_incidents`,
+`Actionable False-Kill Source Ranking`,
 `DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
 `data_freshness_complete_replayable_candidate_rows`,
 `data_freshness_preview_only_input_rows`, `data_freshness_trace_only_rows`,
@@ -1470,6 +1474,22 @@ false-kill rows released and correct-block rows leaked. A verdict such as
 `DO_NOT_RELAX_GRACE_FIX_COLLECTOR_OR_SOURCE_OUTAGE` means the sample is
 severe-stale/outage evidence, so lowering false-kill pressure should start with
 collector/source freshness and replay snapshots, not live guard relaxation.
+The actionable false-kill section excludes severe DataFreshness outage rows from
+the policy-error denominator and points `issue7_actionable_next_blocker` at the
+next blocker family to optimize, so repeated outage audits do not hide the real
+policy review queue.
+When that next blocker is `ExpectedValueGate`, the smoke also prints
+`ExpectedValueGate Optimization Counterfactual`,
+`expected_value_gate_optimization_verdict`, and
+`issue7_expected_value_gate_verdict`, comparing candidate `minExpectedR`
+thresholds by false-kill rows released versus correct-block rows leaked.
+It also prints `TP/SL Proxy Actionable Summary`, `tp_sl_proxy_verdict`, and
+`issue7_tp_sl_proxy_verdict` so the actionable error rate can be narrowed from
+24h close-positive rows to candidates that actually hit TP without also touching
+SL in the 24h OHLC window. The EV section also carries
+`expected_value_projected_actionable_false_kill_pct_after_review` for the
+remaining non-EV blocker queue after a shadow-reviewed EV threshold candidate,
+plus `expected_value_projected_next_blocker_after_review` for the next lane.
 `shouldHavePassedProxy` is only a 24h forward-return
 proxy and is not a live-policy pass verdict. A result such as
 `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_PRE_REPLAY_COLLECTOR` means

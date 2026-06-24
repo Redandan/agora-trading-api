@@ -18,10 +18,16 @@ function update_server_depth() {
   }
 }
 
-function print_dedicated_mcp_block() {
-  print "    # MCP is internal-only. Public dedicated host must not expose /api/mcp.";
+function print_dedicated_mcp_proxy() {
+  print "    # Dedicated Trading MCP endpoint. Authentication remains enforced by the app.";
   print "    location = /api/mcp {";
-  print "        return 404;";
+  print "        proxy_pass http://127.0.0.1:" port "/api/mcp;";
+  print "        proxy_http_version 1.1;";
+  print "        proxy_set_header Host $host;";
+  print "        proxy_set_header X-Real-IP $remote_addr;";
+  print "        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;";
+  print "        proxy_set_header X-Forwarded-Proto $scheme;";
+  print "        proxy_read_timeout 3600;";
   print "    }";
 }
 
@@ -60,7 +66,7 @@ in_server && /^[[:space:]]*server_name[[:space:]]+agoramarketapi[.]purrtechllc[.
 }
 
 dedicated && /^[[:space:]]*location[[:space:]]*=[[:space:]]*\/api\/mcp[[:space:]]*\{/ {
-  print_dedicated_mcp_block()
+  print_dedicated_mcp_proxy()
   skip_block = 1
   next
 }

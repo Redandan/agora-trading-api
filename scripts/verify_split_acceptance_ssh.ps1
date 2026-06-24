@@ -5,7 +5,7 @@ param(
     [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
     [string]$AgoraMarketApiToolsDir = "C:\Users\Redan\IdeaProjects\AgoraMarketAPI\tools\codex",
     [string]$PublicTradingHealthUrl = "https://agoratradingapi.purrtechllc.com/api/actuator/health",
-    [string]$PublicTradingMcpBlockedUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
+    [string]$PublicTradingMcpUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
     [string]$PublicTradingContextMcpBlockedUrl = "https://agoramarketapi.purrtechllc.com/api/trading/mcp",
     [switch]$SkipSchemaCompare,
     [switch]$SkipGitCurrent,
@@ -50,7 +50,7 @@ $serverArgs = @{
     AppDir = $TradingAppDir
     EnvFile = $EnvFile
     PublicTradingHealthUrl = $PublicTradingHealthUrl
-    PublicTradingMcpBlockedUrl = $PublicTradingMcpBlockedUrl
+    PublicTradingMcpUrl = $PublicTradingMcpUrl
     PublicTradingContextMcpBlockedUrl = $PublicTradingContextMcpBlockedUrl
 }
 if (-not $SkipSchemaCompare) {

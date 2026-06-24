@@ -64,7 +64,7 @@
   - Remaining `@Value` `:true` fallbacks are deliberately limited to protective/internal checks and dry-run flags; `scripts/verify_local.ps1` rejects new default-on `@Value` fallbacks until they are classified or changed to explicit opt-in.
   - Remaining `Environment.getProperty` default-`true` fallbacks are deliberately limited to MCP master-approval protection, ScoreBuy/TinyLive dry-run flags, and post-scout add sub-options behind disabled execution; `scripts/verify_local.ps1` rejects new default-on environment property fallbacks until they are classified or changed to explicit opt-in.
   - Remaining direct `System.getenv().getOrDefault(..., "true")` fallbacks are deliberately limited to `STARTUP_BEAN_TIMING_ENABLED`, an internal startup diagnostic logger with no network, DB, order, or notification side effects.
-  - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, actuator probes/metrics with filter gates, rate-limit JSON redirect, and favicon. Trading MCP is internal-only through server-local `/api/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
+  - The exact public HTTP allowlist is enforced by `scripts/verify_local.ps1`; retained public paths are limited to OpenAPI docs, actuator probes/metrics with filter gates, rate-limit JSON redirect, favicon, and authenticated dedicated-host Trading MCP. Trading MCP is available through server-local `/api/mcp` and public dedicated-host `/api/mcp` with bearer auth; shared-host `/api/trading/mcp` must be blocked by nginx.
 - Deploy/server scripts now reject stale AgoraMarket dependency routing unless `AGORA_MARKET_BASE_URL` points at `https://agoramarketapi.purrtechllc.com`.
 - `deploy.sh` now checks AgoraMarket exchange-rate dependency health before starting the blue-green switch.
 - Server preflight now requires AgoraMarket exchange-rate dependency health by default, with `REQUIRE_AGORA_MARKET_HEALTH=0` reserved for diagnostic-only checks.
@@ -2439,13 +2439,13 @@ Trading deployment prep:
   `/api/trading/` route switched. Commit `1cb9e60` fixed `deploy.sh` and
   `scripts/install_nginx_path.sh` so both shared-host and dedicated-host
   upstreams follow the active blue-green port.
-- Server verification now supports `PUBLIC_TRADING_MCP_BLOCKED_URL` and
+- Server verification now supports `PUBLIC_TRADING_MCP_URL` and
   `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`, and deploy passes the dedicated
   `https://agoratradingapi.purrtechllc.com/api/mcp` plus shared
   `https://agoramarketapi.purrtechllc.com/api/trading/mcp` URLs by default
-  when nginx is updated. Public Trading MCP must be blocked; server-local
-  `/api/mcp` is the operator/verification path; `/api/trading/mcp` remains a
-  shared-host public block target.
+  when nginx is updated. Dedicated Trading MCP must be reachable with bearer
+  auth; server-local `/api/mcp` remains the operator/verification path; shared
+  `/api/trading/mcp` remains a public block target.
 - 2026-06-15 production deploy advanced runtime to `31af005` on active port
   `8085`. Post-deploy verification and full read-only schema compare passed:
   39 source entity tables, 0 missing DB tables, 176 DB tables, 2 known system
@@ -2560,7 +2560,7 @@ Trading deployment prep:
 3. Keep production on schema validation plus Flyway with the Trading-owned
    `trading_flyway_schema_history` table.
 4. Re-run local verify, local smoke, deploy, server verify with schema compare,
-   public health, public Trading MCP blocked checks, server-local MCP registry
+   public health, authenticated public Trading MCP checks, server-local MCP registry
    smoke, and cross-service live MCP ownership smoke after deploy-affecting
    changes.
 

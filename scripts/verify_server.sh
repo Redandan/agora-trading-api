@@ -12,7 +12,7 @@ PORT_A="${PORT_A:-8084}"
 PORT_B="${PORT_B:-8085}"
 AGORA_MARKET_HEALTH_URL="${AGORA_MARKET_HEALTH_URL:-https://agoramarketapi.purrtechllc.com/api/actuator/health}"
 PUBLIC_TRADING_HEALTH_URL="${PUBLIC_TRADING_HEALTH_URL:-}"
-PUBLIC_TRADING_MCP_BLOCKED_URL="${PUBLIC_TRADING_MCP_BLOCKED_URL:-}"
+PUBLIC_TRADING_MCP_URL="${PUBLIC_TRADING_MCP_URL:-}"
 PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL="${PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL:-}"
 PUBLIC_TRADING_MCP_BLOCKED_STATUSES="${PUBLIC_TRADING_MCP_BLOCKED_STATUSES:-401 403 404 405}"
 NGINX_CONF_GLOB="${NGINX_CONF_GLOB:-/etc/nginx/sites-enabled/*}"
@@ -94,7 +94,24 @@ verify_public_mcp_blocked() {
   esac
 }
 
-verify_nginx_mcp_block_bodies() {
+verify_public_mcp_accessible() {
+  local url="$1"
+  local label="$2"
+  local key="$3"
+  [ -n "$url" ] || return 0
+
+  local response
+  response="$(curl -fsS \
+    --max-time 30 \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${key}" \
+    --data '{"jsonrpc":"2.0","id":"server-verify-public-mcp","method":"tools/call","params":{"name":"getMcpRegistryVersion","arguments":{}}}' \
+    "$url")" || fail "$label getMcpRegistryVersion failed: $url"
+  printf '%s' "$response" | grep -q '"content"' || fail "$label getMcpRegistryVersion response missing content array: $url"
+  ok "$label getMcpRegistryVersion passed: $url"
+}
+
+verify_nginx_mcp_routes() {
   if ! awk '
     function brace_delta(line, copy, opens, closes) {
       copy = line
@@ -106,7 +123,7 @@ verify_nginx_mcp_block_bodies() {
     function finish_location() {
       if (location_kind == "dedicated") {
         dedicated_seen = 1
-        if (!location_return_404 || location_proxy_pass) {
+        if (location_return_404 || !location_proxy_pass) {
           dedicated_bad = 1
         }
       } else if (location_kind == "shared") {
@@ -185,7 +202,7 @@ verify_nginx_mcp_block_bodies() {
         exit 12
       }
       if (dedicated_bad) {
-        print "dedicated /api/mcp block must return 404 and must not proxy_pass" > "/dev/stderr"
+        print "dedicated /api/mcp route must proxy_pass and must not return 404" > "/dev/stderr"
         exit 13
       }
       if (shared_bad) {
@@ -194,9 +211,9 @@ verify_nginx_mcp_block_bodies() {
       }
     }
   ' $NGINX_CONF_GLOB; then
-    fail "nginx public Trading MCP exact blocks must return 404 and must not proxy_pass under $NGINX_CONF_GLOB"
+    fail "nginx public Trading MCP routes are not correct under $NGINX_CONF_GLOB"
   fi
-  ok "nginx public Trading MCP exact blocks return 404 with no proxy_pass"
+  ok "nginx public Trading MCP routes are correct: dedicated /api/mcp proxies, shared /api/trading/mcp blocks"
 }
 
 require_env_value() {
@@ -427,7 +444,7 @@ if [ -n "$PUBLIC_TRADING_HEALTH_URL" ]; then
   ok "public trading health passed: $PUBLIC_TRADING_HEALTH_URL"
 fi
 
-verify_public_mcp_blocked "$PUBLIC_TRADING_MCP_BLOCKED_URL" "public dedicated Trading MCP"
+verify_public_mcp_accessible "$PUBLIC_TRADING_MCP_URL" "public dedicated Trading MCP" "$MCP_KEY"
 verify_public_mcp_blocked "$PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL" "public shared-host Trading MCP"
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
@@ -448,20 +465,20 @@ fi
 
 if ls $NGINX_CONF_GLOB >/dev/null 2>&1; then
   DEDICATED_API_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/"
-  DEDICATED_MCP_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/trading/mcp"
+  DEDICATED_MCP_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}/api/mcp"
   SHARED_TRADING_PASS="proxy_pass[[:space:]]+http://127[.]0[.]0[.]1:${ACTIVE_PORT}([[:space:];]|$)"
-  if grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
-    fail "nginx dedicated host must not proxy public /api/mcp to Trading MCP under $NGINX_CONF_GLOB"
+  if ! grep -RE "$DEDICATED_MCP_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
+    fail "nginx dedicated host must proxy public /api/mcp to Trading MCP under $NGINX_CONF_GLOB"
   fi
-  verify_nginx_mcp_block_bodies
+  verify_nginx_mcp_routes
   if grep -RE "$DEDICATED_API_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1 \
       && grep -RE "$SHARED_TRADING_PASS" $NGINX_CONF_GLOB >/dev/null 2>&1; then
-    ok "nginx shared/dedicated trading upstreams point at active port $ACTIVE_PORT and public MCP is blocked"
+    ok "nginx shared/dedicated trading upstreams point at active port $ACTIVE_PORT and public dedicated MCP is enabled"
   else
     if [ "$REQUIRE_NGINX_DEDICATED_API" = "1" ]; then
-      fail "nginx shared/dedicated trading upstreams or public MCP block are not correct for active port $ACTIVE_PORT under $NGINX_CONF_GLOB"
+      fail "nginx shared/dedicated trading upstreams or public MCP route are not correct for active port $ACTIVE_PORT under $NGINX_CONF_GLOB"
     fi
-    warn "nginx shared/dedicated trading upstreams or public MCP block are not correct for active port $ACTIVE_PORT under $NGINX_CONF_GLOB; REQUIRE_NGINX_DEDICATED_API=$REQUIRE_NGINX_DEDICATED_API"
+    warn "nginx shared/dedicated trading upstreams or public MCP route are not correct for active port $ACTIVE_PORT under $NGINX_CONF_GLOB; REQUIRE_NGINX_DEDICATED_API=$REQUIRE_NGINX_DEDICATED_API"
   fi
 else
   if [ "$REQUIRE_NGINX_DEDICATED_API" = "1" ]; then

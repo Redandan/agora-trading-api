@@ -52,7 +52,7 @@ AgoraMarketAPI Telegram gateway integration:
 - Does not depend on AgoraMarket commerce users, orders, products, or wallet tables.
 - Current baseline keeps the extracted trading/system repositories needed for the Spring context to start.
 - Cross-service dependencies must go through an internal-client SDK or HTTP DTOs, not shared entities/repositories.
-- Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, and API-key guarded internal report reads for the AgoraMarketAPI Telegram gateway. Trading MCP is internal-only through server-local `/api/mcp`; public dedicated-host `/api/mcp` and shared-host `/api/trading/mcp` must be blocked by nginx.
+- Public HTTP surface is intentionally narrow: OpenAPI docs, actuator probes, rate-limit JSON redirect, API-key guarded internal report reads for the AgoraMarketAPI Telegram gateway, and the dedicated Trading MCP endpoint. Public dedicated-host `/api/mcp` is reachable only with MCP bearer auth; shared-host `/api/trading/mcp` remains blocked by nginx.
 - Schema baseline prep remains read-only against the shared `agora_market` database; marketplace-owned table names are rejected in trading source mappings, while shared DB extra tables are expected.
 
 See:
@@ -118,8 +118,9 @@ trailing replay acceptance all passed.
 
 Local verification does not prove production currentness. Treat production as current only after an explicit deploy and server verification pass.
 When nginx is updated, deploy also verifies dedicated Trading host health at
-`https://agoratradingapi.purrtechllc.com/api` and verifies public Trading MCP
-is blocked.
+`https://agoratradingapi.purrtechllc.com/api`, verifies authenticated public
+Trading MCP at `https://agoratradingapi.purrtechllc.com/api/mcp`, and keeps the
+shared-host legacy `/api/trading/mcp` route blocked.
 
 Server-local MCP parity smoke against a running local or deployed Trading
 service:

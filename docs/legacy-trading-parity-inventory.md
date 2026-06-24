@@ -116,10 +116,10 @@ Historical production smoke on 2026-06-15 before MCP was made internal-only:
 - AgoraMarketAPI `https://agoramarketapi.purrtechllc.com/api/mcp` still exposed
   153 marketplace/system/internal tools and did not expose
   `previewPositionSizing`.
-- This public route is now superseded by the MCP internal-only policy.
-  `scripts/verify_server.sh` now uses `PUBLIC_TRADING_MCP_BLOCKED_URL` and
-  `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL` to verify public Trading MCP routes
-  are blocked.
+- This public route is now restored as the dedicated authenticated Trading MCP
+  route. `scripts/verify_server.sh` now uses `PUBLIC_TRADING_MCP_URL` and
+  `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL` to verify dedicated public MCP works
+  with bearer auth while the shared-host legacy route remains blocked.
 
 ## Scheduler Parity
 

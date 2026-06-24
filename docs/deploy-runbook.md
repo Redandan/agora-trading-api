@@ -267,10 +267,10 @@ Last verified server state from 2026-06-15 Asia/Taipei:
   path; the current target is shared `agora_market`.
 - nginx `/api/trading/` location has been installed and reloaded.
 - nginx also exposes the dedicated Trading API host
-  `https://agoratradingapi.purrtechllc.com/api`, where public non-MCP `/api/*`
-  maps to the standalone service's internal `/api/trading/*` paths. Trading MCP
-  is internal-only: public dedicated-host `/api/mcp` and shared-host
-  `/api/trading/mcp` must be blocked by nginx.
+  `https://agoratradingapi.purrtechllc.com/api`, where public `/api/*`
+  maps to the standalone service's internal `/api/*` paths. Public dedicated-host
+  `/api/mcp` is reachable with MCP bearer auth; shared-host `/api/trading/mcp`
+  remains blocked by nginx.
 - production was deployed from `origin/main` commit `31af005`; the active
   blue-green port is `8085` and is recorded in `app.port`.
 - current server verification requires worktree, `origin/main`, and deployed
@@ -365,10 +365,11 @@ new active metadata, local health, AgoraMarket exchange-rate dependency health,
 and nginx `/api/trading/` path before the deploy reports complete. When
 `UPDATE_NGINX=1`, deploy also verifies public trading health through
 `DEFAULT_PUBLIC_TRADING_HEALTH_URL`, defaulting to
-`https://agoratradingapi.purrtechllc.com/api/actuator/health`, and verifies
-public Trading MCP is blocked through `DEFAULT_PUBLIC_TRADING_MCP_BLOCKED_URL`
-and `DEFAULT_PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`, defaulting to
-`https://agoratradingapi.purrtechllc.com/api/mcp` and
+`https://agoratradingapi.purrtechllc.com/api/actuator/health`, verifies
+authenticated public Trading MCP through `DEFAULT_PUBLIC_TRADING_MCP_URL`,
+defaulting to `https://agoratradingapi.purrtechllc.com/api/mcp`, and verifies
+the shared-host legacy Trading MCP route is blocked through
+`DEFAULT_PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`, defaulting to
 `https://agoramarketapi.purrtechllc.com/api/trading/mcp`. Set
 `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses. When it is
 used, deploy keeps the previous blue-green instance and nginx backup because the
@@ -2896,8 +2897,8 @@ Current warning classes:
 
 The warning baseline is intentionally separate from Trading split acceptance.
 Acceptance still requires `scripts/verify_local.ps1`, `scripts/verify_server.sh`,
-public dedicated-host `/api/actuator/health`, public Trading MCP blocked smoke,
-server-local MCP registry smoke, and
+public dedicated-host `/api/actuator/health`, authenticated public Trading MCP
+smoke, server-local MCP registry smoke, and
 cross-service live MCP ownership smoke when live ownership boundaries are being
 validated.
 
@@ -2996,16 +2997,18 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
   `deployed app.commit differs from worktree HEAD only by docs/tooling files`.
 - active blue-green `app.pid.<app.port>` metadata exists by default and matches `app.pid`.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
-- public HTTP allowlist stays minimal: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, and favicon; Trading MCP is internal-only and must not be exposed on public dedicated or shared-host routes.
+- public HTTP allowlist stays minimal: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, favicon, and authenticated dedicated-host Trading MCP; shared-host `/api/trading/mcp` must not expose Trading MCP.
 - `AGORA_MARKET_BASE_URL` must point at stable AgoraMarketAPI nginx vhost dependency `https://agoramarketapi.purrtechllc.com`; deploy, preflight, and server verification fail on stale values.
 - `SPRING_DATASOURCE_URL` must point at expected shared database `agora_market`; deploy, preflight, and server verification fail on unexpected datasource targets.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.
 - preflight and server verification require AgoraMarket exchange-rate dependency health by default; `REQUIRE_AGORA_MARKET_HEALTH=0` is only for diagnostic preflight and does not make deploy acceptance pass.
 - local MCP `getMcpRegistryVersion` passes through `/api/mcp` using `TRADING_MCP_KEY`, proving the trading context path and MCP auth mapping.
-- public Trading MCP blocked checks pass through
-  `PUBLIC_TRADING_MCP_BLOCKED_URL` and
-  `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`; public `tools/list` must not return
-  `200`. This catches dedicated-host or shared-host route drift and host mixups.
+- authenticated public dedicated Trading MCP checks pass through
+  `PUBLIC_TRADING_MCP_URL`; shared-host blocked checks pass through
+  `PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL`. Public dedicated MCP must return
+  the registry with bearer auth, while shared-host `/api/trading/mcp` must not
+  return `200`. This catches dedicated-host or shared-host route drift and host
+  mixups.
 - deploy runs this server verification after switching active metadata by default; set `RUN_POST_DEPLOY_VERIFY=0` only for deliberate emergency bypasses.
 - deploy restores active metadata and nginx backup when post-deploy verification fails or the post-deploy verifier is missing.
 - deploy drains the previous blue-green instance only after verification passes; logs include `draining old instance after verification`. If post-deploy verification is skipped, deploy keeps the previous instance and nginx backup.

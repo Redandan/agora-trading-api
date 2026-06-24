@@ -4,7 +4,7 @@ param(
     [string]$AppDir = "/home/ubuntu/agora-trading-api",
     [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
     [string]$PublicTradingHealthUrl = "https://agoratradingapi.purrtechllc.com/api/actuator/health",
-    [string]$PublicTradingMcpBlockedUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
+    [string]$PublicTradingMcpUrl = "https://agoratradingapi.purrtechllc.com/api/mcp",
     [string]$PublicTradingContextMcpBlockedUrl = "https://agoramarketapi.purrtechllc.com/api/trading/mcp",
     [switch]$SchemaCompare,
     [switch]$SkipGitCurrent
@@ -59,7 +59,7 @@ Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-PublicHttpsUrlSafe -Name "PublicTradingHealthUrl" -Value $PublicTradingHealthUrl
-Assert-PublicHttpsUrlSafe -Name "PublicTradingMcpBlockedUrl" -Value $PublicTradingMcpBlockedUrl
+Assert-PublicHttpsUrlSafe -Name "PublicTradingMcpUrl" -Value $PublicTradingMcpUrl
 Assert-PublicHttpsUrlSafe -Name "PublicTradingContextMcpBlockedUrl" -Value $PublicTradingContextMcpBlockedUrl
 
 $schemaFlag = if ($SchemaCompare) { "1" } else { "0" }
@@ -70,7 +70,7 @@ set -euo pipefail
 cd '$AppDir'
 ENV_FILE='$EnvFile' \
 PUBLIC_TRADING_HEALTH_URL='$PublicTradingHealthUrl' \
-PUBLIC_TRADING_MCP_BLOCKED_URL='$PublicTradingMcpBlockedUrl' \
+PUBLIC_TRADING_MCP_URL='$PublicTradingMcpUrl' \
 PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL='$PublicTradingContextMcpBlockedUrl' \
 RUN_SCHEMA_BASELINE_COMPARE='$schemaFlag' \
 VERIFY_GIT_CURRENT='$gitFlag' \

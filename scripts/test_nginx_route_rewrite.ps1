@@ -143,12 +143,13 @@ server {
     $inserted = Get-Content -LiteralPath $insertOutput -Raw
 
     Assert-Contains -Text $rewritten -Needle "location = /api/mcp {" -Description "dedicated MCP exact location remains explicit"
-    Assert-Contains -Text $rewritten -Needle "MCP is internal-only. Public dedicated host must not expose /api/mcp." -Description "dedicated MCP public block comment"
+    Assert-Contains -Text $rewritten -Needle "Dedicated Trading MCP endpoint. Authentication remains enforced by the app." -Description "dedicated MCP public proxy comment"
     Assert-Contains -Text $rewritten -Needle "Trading MCP is internal-only. Public shared host must not expose /api/trading/mcp." -Description "shared Trading MCP public block comment"
+    Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/mcp;" -Description "dedicated /api/mcp upstream follows active port"
     Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/;" -Description "dedicated /api/ upstream follows active port"
     Assert-Contains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084;" -Description "shared /api/trading/ upstream follows active port"
     Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8085/api/;" -Description "stale dedicated /api/ upstream is updated"
-    Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/trading/mcp;" -Description "dedicated public MCP must not proxy to Trading MCP"
+    Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8084/api/trading/mcp;" -Description "dedicated public MCP must use canonical /api/mcp"
     Assert-NotContains -Text $rewritten -Needle "proxy_pass http://127.0.0.1:8085/api/trading/mcp;" -Description "stale dedicated public MCP proxy is removed"
 
     $sharedMcpCount = ([regex]::Matches($second, 'location\s*=\s*/api/trading/mcp')).Count
@@ -156,9 +157,9 @@ server {
         throw "nginx route rewrite must be idempotent for shared /api/trading/mcp block; count=$sharedMcpCount"
     }
 
-    $dedicatedMcpReturnCount = ([regex]::Matches($second, 'location\s*=\s*/api/mcp\s*\{\s*return 404;', [System.Text.RegularExpressions.RegexOptions]::Singleline)).Count
-    if ($dedicatedMcpReturnCount -ne 1) {
-        throw "nginx route rewrite must keep exactly one dedicated /api/mcp return 404 block; count=$dedicatedMcpReturnCount"
+    $dedicatedMcpProxyCount = ([regex]::Matches($second, 'location\s*=\s*/api/mcp\s*\{.*?proxy_pass\s+http://127\.0\.0\.1:8084/api/mcp;', [System.Text.RegularExpressions.RegexOptions]::Singleline)).Count
+    if ($dedicatedMcpProxyCount -ne 1) {
+        throw "nginx route rewrite must keep exactly one dedicated /api/mcp proxy block; count=$dedicatedMcpProxyCount"
     }
 
     Assert-Contains -Text $inserted -Needle "location = /api/trading/mcp {" -Description "insertion mode creates shared Trading MCP block"

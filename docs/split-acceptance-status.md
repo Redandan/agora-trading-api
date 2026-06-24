@@ -861,7 +861,18 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   The supporting threshold-gap evidence showed strategy 574 / 1h
   `market_entropy_index` at 69 versus buy threshold 70 (gap 1), ETF pressure
   strategies at 51 versus threshold 60 (gap 9), and SQI strategies at 0 versus
-  thresholds 30 or 40.
+  thresholds 30 or 40. The consolidated no-buy packet now carries this as
+  `signal_eval_threshold_gap_distribution`, plus
+  `signal_eval_near_threshold_gap_count` and
+  `signal_eval_closest_threshold_gap_*`, so operators do not need to inspect
+  child smoke logs before routing threshold-gap review.
+  The 2026-06-24 refresh of the consolidated packet reported
+  `signal_eval_rows=2792`, `signal_eval_buy_like_rows=0`,
+  `signal_eval_no_buy_rows=2792`,
+  `signal_eval_strategy_decision_context_rows=2282`,
+  `signal_eval_threshold_gap_count=10`,
+  `signal_eval_near_threshold_gap_count=1`, and closest threshold gap strategy
+  574 / 1h / `market_entropy_index` at `minBuyGap=1.0000`.
   The read-only follow-up is
   `.\scripts\prepare_strategy574_near_threshold_decision_packet_ssh.ps1 -RequireReady`,
   which emits `STRATEGY574_NEAR_THRESHOLD_DECISION_PACKET` and

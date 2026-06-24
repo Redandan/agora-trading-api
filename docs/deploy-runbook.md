@@ -1905,6 +1905,10 @@ Expected:
   `SIGNAL_EVAL_NO_BUY_GENERATION_REVIEW` when recent `SIGNAL_EVAL` rows exist
   but none are BUY-like, plus `SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT` when
   v2 context shows strategy threshold misses dominate. It also emits
+  `signal_eval_threshold_gap_distribution`,
+  `signal_eval_near_threshold_gap_count`, and
+  `signal_eval_closest_threshold_gap_*`; near-threshold rows add
+  `SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW` as a review item. It also emits
   `attention_candidate_interpretation`, `attention_macro_watch_only_rows`, and
   `attention_strategy_distribution` so macro/watch-only attention rows are not
   treated as trading candidates with missing terminal follow-up. The packet is review-only

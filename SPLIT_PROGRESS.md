@@ -429,15 +429,24 @@
   lanes, 9 review-ready lanes, zero missing/stale/incomplete evidence, and
   governance relaxation as the only not-ready lane.
 - `scripts/prepare_no_buy_attention_flow_review_packet_ssh.ps1` now carries
-  attention strategy distribution into the consolidated packet. It emits
-  `attention_macro_watch_only_rows`, `attention_candidate_interpretation`, and
-  `attention_strategy_distribution`; when all attention rows are
+  attention strategy distribution and SIGNAL_EVAL threshold-gap distribution
+  into the consolidated packet. It emits `attention_macro_watch_only_rows`,
+  `attention_candidate_interpretation`, `attention_strategy_distribution`,
+  `signal_eval_threshold_gap_distribution`,
+  `signal_eval_near_threshold_gap_count`, and
+  `signal_eval_closest_threshold_gap_*`; near-threshold gaps add
+  `SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW` to route operator review before any
+  threshold-change discussion. When all attention rows are
   `strategy=-1 interval=N/A`, it classifies them as
   `ATTENTION_HITS_ARE_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES` so operators do
   not treat macro/watch-only warnings as trading candidates with missing
   terminal follow-up. The 2026-06-24 refresh reported
   `attention_macro_watch_only_rows=206` out of 206 attention rows, with
-  `attention_strategy_distribution=[{"strategyId":"-1","intervalCode":"N/A","count":206}]`.
+  `attention_strategy_distribution=[{"strategyId":"-1","intervalCode":"N/A","count":206}]`,
+  `signal_eval_rows=2792`, `signal_eval_buy_like_rows=0`,
+  `signal_eval_threshold_gap_count=10`,
+  `signal_eval_near_threshold_gap_count=1`, and closest threshold gap strategy
+  574 / 1h / `market_entropy_index` at `minBuyGap=1.0000`.
 - `scripts/smoke_strategy485_position_risk_ssh.ps1` provides a focused
   read-only production RCA for SCORE_BUY strategy 485 open-position risk. It
   calls server-local `/api/mcp` to summarize open positions, OCO health,

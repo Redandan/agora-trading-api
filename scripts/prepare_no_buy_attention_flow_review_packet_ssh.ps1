@@ -71,6 +71,33 @@ function Get-AttentionStrategyDistribution {
     return @($items)
 }
 
+function Get-SignalEvalThresholdGapDistribution {
+    param([string]$Text)
+    $items = [System.Collections.Generic.List[object]]::new()
+    $inSection = $false
+    foreach ($line in ($Text -split "`r?`n")) {
+        if ($line -eq "signal_eval_threshold_gap_distribution:") {
+            $inSection = $true
+            continue
+        }
+        if (-not $inSection) { continue }
+        if ($line -notmatch "^\s+-\s+") { break }
+        $match = [regex]::Match($line, "strategy=([^\s]+)\s+interval=([^\s]+)\s+indicator=([^\s]+)\s+count=([0-9]+)\s+avg_mih_value=(-?[0-9.]+)\s+avg_buy_threshold=(-?[0-9.]+)\s+avg_buy_gap=(-?[0-9.]+)\s+min_buy_gap=(-?[0-9.]+)")
+        if (-not $match.Success) { continue }
+        $items.Add([pscustomobject]@{
+            strategyId = $match.Groups[1].Value
+            intervalCode = $match.Groups[2].Value
+            indicator = $match.Groups[3].Value
+            count = [int]$match.Groups[4].Value
+            avgMihValue = [decimal]::Parse($match.Groups[5].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+            avgBuyThreshold = [decimal]::Parse($match.Groups[6].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+            avgBuyGap = [decimal]::Parse($match.Groups[7].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+            minBuyGap = [decimal]::Parse($match.Groups[8].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+        })
+    }
+    return @($items)
+}
+
 function Add-Unique {
     param([System.Collections.Generic.List[string]]$List, [string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value)) { return }
@@ -193,6 +220,9 @@ $signalEvalV2ContextRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $sig
 $signalEvalStrategyDecisionContextRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  strategy_decision_context_rows=")
 $signalEvalExecutionHoldRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  execution_hold_rows=")
 $signalEvalMacroRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $signalEvalNoBuy.Text -Prefix "  macro_or_unknown_strategy_rows=")
+$signalEvalThresholdGaps = Get-SignalEvalThresholdGapDistribution -Text $signalEvalNoBuy.Text
+$signalEvalNearThresholdGaps = @($signalEvalThresholdGaps | Where-Object { $_.minBuyGap -ge 0 -and $_.minBuyGap -le 2 })
+$signalEvalClosestThresholdGap = @($signalEvalThresholdGaps | Sort-Object @{ Expression = { [math]::Abs([decimal]$_.minBuyGap) } }, @{ Expression = { -1 * $_.count } } | Select-Object -First 1)
 
 $buyLikeRecommendation = Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  buy_like_candidate_progression_recommendation="
 $buyLikeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  buy_like_candidate_rows=")
@@ -222,6 +252,9 @@ if ($signalEvalRows -gt 0 -and $signalEvalBuyLikeRows -eq 0) {
 if ($signalEvalNoBuyRecommendation -eq "NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT") {
     Add-Unique -List $reviewItems -Value "SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT"
     Add-Unique -List $requiredEvidence -Value "strategy threshold gap evidence must be reviewed before strategy-threshold or activation changes"
+}
+if (@($signalEvalNearThresholdGaps).Count -gt 0) {
+    Add-Unique -List $reviewItems -Value "SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW"
 }
 if ($signalEvalRows -eq 0) {
     Add-Unique -List $blockers -Value "NO_SIGNAL_EVAL_IN_REVIEW_WINDOW"
@@ -306,6 +339,9 @@ $packet = [pscustomobject]@{
         strategyDecisionContextRows = $signalEvalStrategyDecisionContextRows
         executionHoldRows = $signalEvalExecutionHoldRows
         macroOrUnknownStrategyRows = $signalEvalMacroRows
+        thresholdGapDistribution = @($signalEvalThresholdGaps)
+        nearThresholdGapCount = @($signalEvalNearThresholdGaps).Count
+        closestThresholdGap = if ($signalEvalClosestThresholdGap) { $signalEvalClosestThresholdGap[0] } else { $null }
     }
     buyLikeFlow = [pscustomobject]@{
         recommendation = $buyLikeRecommendation
@@ -361,6 +397,15 @@ Write-Host "signal_eval_v2_context_rows=$signalEvalV2ContextRows"
 Write-Host "signal_eval_strategy_decision_context_rows=$signalEvalStrategyDecisionContextRows"
 Write-Host "signal_eval_execution_hold_rows=$signalEvalExecutionHoldRows"
 Write-Host "signal_eval_macro_or_unknown_strategy_rows=$signalEvalMacroRows"
+Write-Host "signal_eval_threshold_gap_count=$(@($signalEvalThresholdGaps).Count)"
+Write-Host "signal_eval_near_threshold_gap_count=$(@($signalEvalNearThresholdGaps).Count)"
+if ($signalEvalClosestThresholdGap) {
+    Write-Host "signal_eval_closest_threshold_gap_strategy=$($signalEvalClosestThresholdGap[0].strategyId)"
+    Write-Host "signal_eval_closest_threshold_gap_interval=$($signalEvalClosestThresholdGap[0].intervalCode)"
+    Write-Host "signal_eval_closest_threshold_gap_indicator=$($signalEvalClosestThresholdGap[0].indicator)"
+    Write-Host "signal_eval_closest_threshold_gap_min_buy_gap=$($signalEvalClosestThresholdGap[0].minBuyGap)"
+}
+Write-Host ("signal_eval_threshold_gap_distribution=" + (ConvertTo-Json -Compress @($signalEvalThresholdGaps)))
 Write-Host "buy_like_candidate_progression_recommendation=$buyLikeRecommendation"
 Write-Host "buy_like_candidate_rows=$buyLikeRows"
 Write-Host "buy_like_no_terminal_followup_rows=$buyLikeNoTerminalRows"

@@ -78,6 +78,14 @@ foreach ($marker in @(
         "signal_eval_v2_context_rows",
         "signal_eval_strategy_decision_context_rows",
         "SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT",
+        "SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW",
+        "signal_eval_threshold_gap_count",
+        "signal_eval_near_threshold_gap_count",
+        "signal_eval_closest_threshold_gap_strategy",
+        "signal_eval_threshold_gap_distribution",
+        "thresholdGapDistribution",
+        "nearThresholdGapCount",
+        "closestThresholdGap",
         "buy_like_candidate_progression_recommendation",
         "attention_no_terminal_followup_rows",
         "attention_macro_watch_only_rows",
@@ -117,6 +125,9 @@ foreach ($marker in @(
         "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE",
         "NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW",
         "ATTENTION_HIT_NO_TERMINAL_FOLLOWUP_DOMINATES",
+        "SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW",
+        "signal_eval_threshold_gap_distribution",
+        "signal_eval_near_threshold_gap_count",
         "does not deploy"
     )) {
     Assert-Contains -Name "operator docs mention no-buy attention flow packet" -Text $docsText -Pattern ([regex]::Escape($marker))

@@ -28,8 +28,13 @@ foreach ($marker in @(
         "issue7_filter_block_false_kill_packet",
         "issue7_filter_block_false_kill_status",
         "BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING",
+        "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE",
+        "BLOCKED_COLLECTOR_TRACE_ONLY_REPLAY_SNAPSHOTS_MISSING",
+        "BLOCKED_PREVIEW_ONLY_REPLAY_SNAPSHOTS_NOT_EVALUATED",
         "READY_FOR_REPLAYABLE_CANDIDATE_REVIEW_NOT_LIVE",
         "issue7_live_relaxation_allowed=false",
+        "replayInputStage",
+        "dataFreshnessPreviewOnlyRows",
         "complete replayable DataFreshness rows",
         "counterfactual replay removing only DataFreshnessGuard",
         "notAuthorization",
@@ -64,6 +69,12 @@ DataFreshnessGuard RCA:
   data_freshness_false_kill_pct=+100.00%
   data_freshness_avg_forward_24h_pct=+4.90%
   data_freshness_complete_replayable_candidate_rows=0
+  data_freshness_preview_only_input_rows=0
+  data_freshness_trace_only_rows=0
+  replay_input_stage=PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE
+  collector_status_counts=N/A:27
+  hard_gate_preview_status_counts=N/A:27
+  replay_required_next_action_counts=N/A:27
 Replayable Candidate Evidence:
   candidate_definition=entry and forward return are replayable proxy fields
 Conclusion:
@@ -76,7 +87,7 @@ Conclusion:
 try {
     $output = & $scriptPath -SourceLog $temp -RequireBlocked *>&1
     $joined = $output -join "`n"
-    Assert-Contains -Name "Issue #7 packet sample status" -Text $joined -Pattern "issue7_filter_block_false_kill_status=BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING"
+    Assert-Contains -Name "Issue #7 packet sample status" -Text $joined -Pattern "issue7_filter_block_false_kill_status=BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
     Assert-Contains -Name "Issue #7 packet sample live blocked" -Text $joined -Pattern "issue7_live_relaxation_allowed=false"
     Assert-Contains -Name "Issue #7 packet sample missing requirements" -Text $joined -Pattern "complete replayable DataFreshness rows"
 } finally {

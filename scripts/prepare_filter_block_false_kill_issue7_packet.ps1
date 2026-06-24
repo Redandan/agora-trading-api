@@ -125,6 +125,15 @@ $dfCorrectRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshn
 $dfFalseKillPct = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_false_kill_pct")
 $dfAvgForward = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_avg_forward_24h_pct")
 $dfReplayableRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_complete_replayable_candidate_rows" -Default "0")
+$dfPreviewOnlyRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_preview_only_input_rows" -Default "0")
+$dfTraceOnlyRows = Convert-ToNumber (Get-FieldValue -Text $text -Name "data_freshness_trace_only_rows" -Default "0")
+$replayInputStage = Get-FieldValue -Text $text -Name "replay_input_stage" -Default "UNKNOWN"
+$collectorStatusCounts = Get-FieldValue -Text $text -Name "collector_status_counts" -Default "N/A"
+$hardGatePreviewStatusCounts = Get-FieldValue -Text $text -Name "hard_gate_preview_status_counts" -Default "N/A"
+$replayRequiredNextActionCounts = Get-FieldValue -Text $text -Name "replay_required_next_action_counts" -Default "N/A"
+if ($replayInputStage -eq "UNKNOWN" -and $dfRows -gt 0 -and $dfReplayableRows -le 0 -and $dfPreviewOnlyRows -le 0 -and $dfTraceOnlyRows -le 0) {
+    $replayInputStage = "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+}
 $sourceRecommendation = Get-FieldValue -Text $text -Name "issue7_recommendation"
 $missingEvidenceRaw = Get-FieldValue -Text $text -Name "live_relaxation_missing_evidence" -Default "[]"
 
@@ -168,6 +177,12 @@ if ($freshnessStatus -ne "FRESH") {
     $status = "BLOCKED_NO_FILTER_BLOCK_SAMPLE"
 } elseif ($dfRows -le 0) {
     $status = "BLOCKED_NO_DATAFRESHNESS_SAMPLE"
+} elseif ($replayInputStage -eq "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE") {
+    $status = "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+} elseif ($replayInputStage -eq "COLLECTOR_TRACE_ONLY_NOT_REPLAYABLE") {
+    $status = "BLOCKED_COLLECTOR_TRACE_ONLY_REPLAY_SNAPSHOTS_MISSING"
+} elseif ($replayInputStage -eq "PREVIEW_ONLY_NOT_REPLAYABLE") {
+    $status = "BLOCKED_PREVIEW_ONLY_REPLAY_SNAPSHOTS_NOT_EVALUATED"
 } elseif ($dfReplayableRows -le 0) {
     $status = "BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING"
 }
@@ -204,6 +219,12 @@ $packet = [ordered]@{
     dataFreshnessFalseKillPct = (Convert-ToPacketScalar $dfFalseKillPct)
     dataFreshnessAvgForward24hPct = (Convert-ToPacketScalar $dfAvgForward)
     dataFreshnessReplayableRows = (Convert-ToPacketInt $dfReplayableRows)
+    dataFreshnessPreviewOnlyRows = (Convert-ToPacketInt $dfPreviewOnlyRows)
+    dataFreshnessTraceOnlyRows = (Convert-ToPacketInt $dfTraceOnlyRows)
+    replayInputStage = $replayInputStage
+    collectorStatusCounts = $collectorStatusCounts
+    hardGatePreviewStatusCounts = $hardGatePreviewStatusCounts
+    replayRequiredNextActionCounts = $replayRequiredNextActionCounts
     sourceRecommendation = $sourceRecommendation
     sourceMissingEvidence = $missingEvidenceRaw
     falseKillSourceRanking = $rankingArray

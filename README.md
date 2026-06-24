@@ -1455,11 +1455,13 @@ This read-only smoke uses production MySQL `SELECT` queries only to rank
 prints `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
 `filter_block_avg_forward_24h_pct`, `False-Kill Source Ranking`,
 `DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
-`data_freshness_complete_replayable_candidate_rows`, and replayable candidate
+`data_freshness_complete_replayable_candidate_rows`,
+`data_freshness_preview_only_input_rows`, `data_freshness_trace_only_rows`,
+`replay_input_stage`, `collector_status_counts`, and replayable candidate
 examples with entry, block reason, forward return, `shouldHavePassedProxy`,
-and missing replay fields. `shouldHavePassedProxy` is only a 24h forward-return
+collector stage, and missing replay fields. `shouldHavePassedProxy` is only a 24h forward-return
 proxy and is not a live-policy pass verdict. A result such as
-`DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` means
+`DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_PRE_REPLAY_COLLECTOR` means
 DataFreshnessGuard is the leading profit false-kill source, but complete
 liveSignal/replayCandidateId, entry/TP/SL, EV, OCO, and hard-gate snapshots are
 still required before any live relaxation review. It does not authorize live
@@ -1469,7 +1471,11 @@ The packet step reads the saved smoke log and emits
 `issue7_filter_block_false_kill_packet`,
 `issue7_filter_block_false_kill_status`, missing requirements,
 `issue7_filter_block_false_kill_review_allowed`, and
-`issue7_live_relaxation_allowed=false`. Use `-RequireBlocked` while complete
+`issue7_live_relaxation_allowed=false`. Status values distinguish
+`BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+`BLOCKED_COLLECTOR_TRACE_ONLY_REPLAY_SNAPSHOTS_MISSING`,
+`BLOCKED_PREVIEW_ONLY_REPLAY_SNAPSHOTS_NOT_EVALUATED`, and
+`BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING`. Use `-RequireBlocked` while complete
 DataFreshness replay snapshots are still missing so accidental review-ready
 classification fails closed.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`

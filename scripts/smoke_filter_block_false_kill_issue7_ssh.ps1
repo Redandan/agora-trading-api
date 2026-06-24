@@ -168,6 +168,11 @@ SELECT
   COALESCE(e.freshness_state, 'N/A') AS runtime_freshness_state,
   COALESCE(e.blocker_reason, 'N/A') AS runtime_blocker_reason,
   COALESCE(e.terminal_blocker, 'N/A') AS runtime_terminal_blocker,
+  COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayCollectorStatus')), 'N/A') AS replay_collector_status,
+  COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayCandidateStatus')), 'N/A') AS replay_candidate_status,
+  COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayCandidatePlanStatus')), 'N/A') AS replay_candidate_plan_status,
+  COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayHardGatePreviewStatus')), 'N/A') AS hard_gate_preview_status,
+  COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.shadowReplayRequiredNextAction')), 'N/A') AS replay_required_next_action,
   CASE
     WHEN COALESCE(
       JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.entryPrice')),
@@ -295,7 +300,9 @@ fields = [
     "kline_source", "stale_minutes", "threshold_minutes", "latest_bar_open",
     "latest_bar_close_estimate", "now_utc", "has_runtime_evidence", "has_live_signal",
     "has_replay_candidate_id", "runtime_freshness_state", "runtime_blocker_reason",
-    "runtime_terminal_blocker", "has_explicit_entry", "has_tp", "has_sl",
+    "runtime_terminal_blocker", "replay_collector_status", "replay_candidate_status",
+    "replay_candidate_plan_status", "hard_gate_preview_status", "replay_required_next_action",
+    "has_explicit_entry", "has_tp", "has_sl",
     "has_ev_snapshot", "has_oco_plan", "has_hard_gate_snapshot", "derived_entry",
     "close_after_24h", "max_high_24h", "min_low_24h",
 ]
@@ -400,6 +407,32 @@ data_freshness_rows = [r for r in matured_rows if str(r.get("blocker")) == "Data
 df_returns = [ret_pct(r) for r in data_freshness_rows]
 df_false = [r for r in data_freshness_rows if ret_pct(r) is not None and ret_pct(r) > 0]
 df_correct = [r for r in data_freshness_rows if ret_pct(r) is not None and ret_pct(r) <= 0]
+collector_status_counts = Counter(str(r.get("replay_collector_status", "N/A") or "N/A") for r in data_freshness_rows)
+candidate_status_counts = Counter(str(r.get("replay_candidate_status", "N/A") or "N/A") for r in data_freshness_rows)
+candidate_plan_status_counts = Counter(str(r.get("replay_candidate_plan_status", "N/A") or "N/A") for r in data_freshness_rows)
+hard_gate_preview_status_counts = Counter(str(r.get("hard_gate_preview_status", "N/A") or "N/A") for r in data_freshness_rows)
+required_next_action_counts = Counter(str(r.get("replay_required_next_action", "N/A") or "N/A") for r in data_freshness_rows)
+preview_only_rows = [
+    r for r in data_freshness_rows
+    if str(r.get("hard_gate_preview_status", "")) == "PREVIEW_ONLY_NOT_REPLAYABLE"
+    or str(r.get("replay_collector_status", "")) == "CANDIDATE_PLAN_SNAPSHOT_NOT_REPLAYABLE"
+]
+trace_only_rows = [
+    r for r in data_freshness_rows
+    if str(r.get("replay_collector_status", "")) in ("DISABLED", "SNAPSHOT_ONLY_NOT_REPLAYABLE")
+]
+if not data_freshness_rows:
+    replay_input_stage = "NO_DATAFRESHNESS_SAMPLE"
+elif any(is_replayable(r) for r in data_freshness_rows):
+    replay_input_stage = "REPLAYABLE_CANDIDATES_PRESENT"
+elif preview_only_rows:
+    replay_input_stage = "PREVIEW_ONLY_NOT_REPLAYABLE"
+elif trace_only_rows:
+    replay_input_stage = "COLLECTOR_TRACE_ONLY_NOT_REPLAYABLE"
+elif collector_status_counts.get("N/A", 0) == len(data_freshness_rows) and sum(flag(r, "has_replay_candidate_id") for r in data_freshness_rows) == 0:
+    replay_input_stage = "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+else:
+    replay_input_stage = "SNAPSHOT_FIELDS_MISSING"
 
 print("[issue7-filter-block-false-kill] read-only production DB evidence check")
 print("scope=READ_ONLY; direct MySQL SELECTs only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed.")
@@ -448,6 +481,14 @@ print(f"  data_freshness_ev_snapshot_rows={sum(flag(r, 'has_ev_snapshot') for r 
 print(f"  data_freshness_oco_plan_rows={sum(flag(r, 'has_oco_plan') for r in data_freshness_rows)}")
 print(f"  data_freshness_hard_gate_snapshot_rows={sum(flag(r, 'has_hard_gate_snapshot') for r in data_freshness_rows)}")
 print(f"  data_freshness_complete_replayable_candidate_rows={sum(1 for r in data_freshness_rows if is_replayable(r))}")
+print(f"  data_freshness_preview_only_input_rows={len(preview_only_rows)}")
+print(f"  data_freshness_trace_only_rows={len(trace_only_rows)}")
+print(f"  replay_input_stage={replay_input_stage}")
+print(f"  collector_status_counts={top(collector_status_counts)}")
+print(f"  candidate_status_counts={top(candidate_status_counts)}")
+print(f"  candidate_plan_status_counts={top(candidate_plan_status_counts)}")
+print(f"  hard_gate_preview_status_counts={top(hard_gate_preview_status_counts)}")
+print(f"  replay_required_next_action_counts={top(required_next_action_counts)}")
 print("")
 print("Replayable Candidate Evidence:")
 print("  candidate_definition=entry and forward return are replayable proxy fields; live relaxation still requires liveSignal/replayCandidateId plus entry/TP/SL, evaluated EV, OCO, and hard-gate snapshots.")
@@ -461,6 +502,8 @@ for row in matured_rows[:12]:
         f"blocker={row.get('blocker')} entry={row.get('derived_entry')} closeAfter24h={row.get('close_after_24h')} "
         f"forward24h={pct(ret)} shouldHavePassedProxy={str(ret is not None and ret > 0).lower()} "
         f"replayableCandidate={str(is_replayable(row)).lower()} missingReplayFields={json.dumps(missing, separators=(',', ':'))} "
+        f"collector={row.get('replay_collector_status')} candidateStatus={row.get('replay_candidate_status')} "
+        f"planStatus={row.get('replay_candidate_plan_status')} hardGatePreview={row.get('hard_gate_preview_status')} "
         f"staleClass={stale_class(row)} staleMinutes={row.get('stale_minutes')} thresholdMinutes={row.get('threshold_minutes')} "
         f"latestBarOpen={row.get('latest_bar_open')} blockReason={compact(row.get('reason'))}"
     )
@@ -468,6 +511,12 @@ print("")
 print("Conclusion:")
 if total_rows == 0:
     recommendation = "NO_FILTER_BLOCK_SAMPLE"
+elif replay_input_stage == "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE":
+    recommendation = "DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_PRE_REPLAY_COLLECTOR"
+elif replay_input_stage == "COLLECTOR_TRACE_ONLY_NOT_REPLAYABLE":
+    recommendation = "DATAFRESHNESS_COLLECTOR_TRACE_ONLY_REPLAY_SNAPSHOTS_MISSING"
+elif replay_input_stage == "PREVIEW_ONLY_NOT_REPLAYABLE":
+    recommendation = "DATAFRESHNESS_PREVIEW_ONLY_REPLAY_SNAPSHOTS_NOT_EVALUATED"
 elif data_freshness_rows and not any(is_replayable(r) for r in data_freshness_rows):
     recommendation = "DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING"
 elif data_freshness_rows and df_false:

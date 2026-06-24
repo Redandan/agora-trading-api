@@ -1276,8 +1276,11 @@
   families by false-kill rows and average 24h forward return, then surfaces a
   DataFreshnessGuard RCA with stale-context class counts, runtime evidence
   coverage, liveSignal/replayCandidateId coverage, entry/TP/SL, EV, OCO, and
-  hard-gate snapshot coverage, plus candidate examples containing entry, block
-  reason, forward return, `shouldHavePassedProxy`, and missing replay fields.
+  hard-gate snapshot coverage, `data_freshness_preview_only_input_rows`,
+  `data_freshness_trace_only_rows`, `replay_input_stage`,
+  `collector_status_counts`, and candidate examples containing entry, block
+  reason, forward return, `shouldHavePassedProxy`, collector stage, and missing
+  replay fields.
   `shouldHavePassedProxy` is explicitly a historical forward-return proxy, not
   a live pass verdict. A status such as
   `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` keeps live
@@ -1294,7 +1297,11 @@
   `issue7_filter_block_false_kill_review_allowed`, and
   `issue7_live_relaxation_allowed=false`. `-RequireBlocked` fails closed if the
   packet unexpectedly becomes review-ready while complete replayable
-  DataFreshness rows are still the expected blocker. It is local packet
+  DataFreshness rows are still the expected blocker. It now separates
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `BLOCKED_COLLECTOR_TRACE_ONLY_REPLAY_SNAPSHOTS_MISSING`,
+  `BLOCKED_PREVIEW_ONLY_REPLAY_SNAPSHOTS_NOT_EVALUATED`, and
+  `BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING`. It is local packet
   generation only and does not authorize DataFreshnessGuard relaxation, live
   trading, scheduler enablement, orders, OCO modification, deploy, production
   env changes, DB/grid/fund/Earn/Telegram/exchange mutation, or external

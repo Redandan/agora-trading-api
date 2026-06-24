@@ -1898,9 +1898,12 @@ Expected:
   `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
   `filter_block_avg_forward_24h_pct`, `False-Kill Source Ranking`,
   `DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
-  `data_freshness_complete_replayable_candidate_rows`, and replayable
-  candidate examples with entry, block reason, 24h forward return,
-  `shouldHavePassedProxy`, and missing replay fields.
+  `data_freshness_complete_replayable_candidate_rows`,
+  `data_freshness_preview_only_input_rows`, `data_freshness_trace_only_rows`,
+  `replay_input_stage`, `collector_status_counts`,
+  `hard_gate_preview_status_counts`, and replayable candidate examples with
+  entry, block reason, 24h forward return, `shouldHavePassedProxy`, collector
+  stage, and missing replay fields.
 - `shouldHavePassedProxy=true` means the historical 24h forward-return proxy was
   positive. It is not a live-policy pass verdict.
 - A recommendation such as
@@ -1915,7 +1918,11 @@ Expected:
   `issue7_filter_block_false_kill_packet`,
   `issue7_filter_block_false_kill_status`, missing requirements,
   `issue7_filter_block_false_kill_review_allowed`, and
-  `issue7_live_relaxation_allowed=false`. Use `-RequireBlocked` until complete
+  `issue7_live_relaxation_allowed=false`. Status values distinguish
+  `BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE`,
+  `BLOCKED_COLLECTOR_TRACE_ONLY_REPLAY_SNAPSHOTS_MISSING`,
+  `BLOCKED_PREVIEW_ONLY_REPLAY_SNAPSHOTS_NOT_EVALUATED`, and
+  `BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING`. Use `-RequireBlocked` until complete
   replayable DataFreshness rows exist, so missing snapshots fail closed instead
   of becoming live-relaxation evidence.
 - If sample-gap RCA reports no recent BUY-like candidates, run

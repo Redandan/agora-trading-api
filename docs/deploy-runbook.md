@@ -1997,6 +1997,50 @@ Expected:
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`; it does not authorize the env change or
   deploy.
+- After a separately authorized evidence-only collector rollout, run
+  `.\scripts\prepare_filter_block_false_kill_issue7_collector_post_activation_status.ps1 -RequireBlocked`
+  to produce `ISSUE7_COLLECTOR_POST_ACTIVATION_STATUS_PACKET`,
+  `issue7_collector_post_activation_status`, and `issue7_remaining_blocker`.
+  `BLOCKED_DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE` with
+  `DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE` means local HEAD or the
+  replay evidence runtime is ahead of the deployed service; request separate
+  push/deploy authorization, deploy the current runtime, then rerun read-only
+  replay observation before waiting for fresh rows.
+  `BLOCKED_WAITING_FOR_FRESH_DATAFRESHNESS_ROWS` with
+  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` means the collector rollout is
+  not the remaining blocker; #7 is waiting for a fresh post-collector
+  DataFreshnessGuard terminal row with replay snapshots. The packet is
+  read-only and does not authorize issue closure, live relaxation, deploy,
+  production env changes, scheduler enablement, orders, OCO modification,
+  Telegram, or DB/grid/fund/Earn/exchange mutation.
+- If the remaining blocker is
+  `DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE`, run
+  `.\scripts\prepare_filter_block_false_kill_issue7_push_deploy_handoff.ps1 -RequireReady`
+  to produce `ISSUE7_PUSH_DEPLOY_HANDOFF_PACKET` and
+  `issue7_push_deploy_handoff_status`. A
+  `READY_FOR_PUSH_DEPLOY_AUTHORIZATION_NOT_DEPLOYED` packet packages the
+  separate operator authorization request for `git push origin main`, deploy of
+  current `origin/main`, and read-only post-deploy verification only. It does
+  not push, deploy, restart, reload nginx, change production env, close #7,
+  relax DataFreshnessGuard, enable live/staged-add/TinyLive execution, enable
+  scheduler mutation, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
+- After that separate push/deploy authorization is executed, prefer the
+  read-only bundle
+  `.\scripts\smoke_filter_block_false_kill_issue7_post_deploy_read_only_bundle_ssh.ps1 -RequireBlocked`.
+  It emits `issue7_post_deploy_read_only_bundle_plan` and
+  `issue7_post_deploy_read_only_bundle_status`, refreshes split acceptance, the
+  issue #7 filter-block source log, replay-id smoke, replay observation,
+  replay evidence readiness, the runtime evidence-only env smoke
+  `.\scripts\smoke_filter_block_false_kill_issue7_runtime_evidence_only_env_ssh.ps1`
+  into `issue7-runtime-evidence-only-env-current.log`, and the
+  post-activation gate with `-RuntimeEvidenceLog`, and writes each child output
+  under `target/profit-review`. `-PlanOnly` emits
+  `PLAN_READY_NOT_EXECUTED` without SSH. The bundle is read-only and does not
+  push, deploy, restart, change production env, close #7, relax
+  DataFreshnessGuard, enable live/staged-add/TinyLive execution, enable
+  scheduler mutation, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 - If sample-gap RCA reports no recent BUY-like candidates, run
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits

@@ -499,6 +499,22 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `data_freshness_shadow_review_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`; a real env/deploy change still requires
   separate explicit authorization.
+- Issue #7 post-deploy verification after a separately authorized push/deploy
+  should run
+  `.\scripts\smoke_filter_block_false_kill_issue7_post_deploy_read_only_bundle_ssh.ps1 -RequireBlocked`.
+  The bundle emits `issue7_post_deploy_read_only_bundle_plan` and
+  `issue7_post_deploy_read_only_bundle_status`, refreshes split acceptance,
+  the issue #7 filter-block source log, replay-id smoke, replay observation,
+  replay evidence readiness, and
+  `.\scripts\smoke_filter_block_false_kill_issue7_runtime_evidence_only_env_ssh.ps1`.
+  The runtime env smoke writes `issue7-runtime-evidence-only-env-current.log`
+  and the post-activation gate consumes it through `-RuntimeEvidenceLog`, so
+  the bundle can verify the evidence-only collector window as well as replay
+  row readiness. `-PlanOnly` emits `PLAN_READY_NOT_EXECUTED` without SSH. The
+  bundle remains read-only and does not push, deploy, restart, change
+  production env, close #7, relax DataFreshnessGuard, enable live/staged-add/
+  TinyLive execution, enable scheduler mutation, place orders, modify OCO,
+  send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - Latest recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of

@@ -1372,6 +1372,55 @@
   `order_allowed=false`, `telegram_send_allowed=false`, and
   `issue7_live_relaxation_allowed=false`. `scripts/test_filter_block_false_kill_issue7_collector_activation_review_packet.ps1`
   is included in `scripts/verify_local.ps1`.
+- `scripts/prepare_filter_block_false_kill_issue7_collector_post_activation_status.ps1`
+  is the read-only post-rollout gate for issue #7 after an evidence-only
+  collector activation has already been separately authorized. It reuses the
+  close-readiness packet plus the replay evidence readiness log and optional
+  runtime env/log summary, then emits
+  `ISSUE7_COLLECTOR_POST_ACTIVATION_STATUS_PACKET`,
+  `issue7_collector_post_activation_status`, and `issue7_remaining_blocker`.
+  If local HEAD or the replay evidence runtime is ahead of production it emits
+  `BLOCKED_DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE` with
+  `DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE`, routing the next step to a
+  separately authorized push/deploy plus read-only replay observation refresh.
+  The expected blocked state while no fresh post-collector DataFreshnessGuard
+  rows exist is `BLOCKED_WAITING_FOR_FRESH_DATAFRESHNESS_ROWS` with
+  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS`; it keeps
+  `issue7_close_allowed=false` and `issue7_live_relaxation_allowed=false`.
+  `scripts/test_filter_block_false_kill_issue7_collector_post_activation_status.ps1`
+  is included in `scripts/verify_local.ps1`.
+- `scripts/prepare_filter_block_false_kill_issue7_push_deploy_handoff.ps1`
+  packages the issue #7 deploy-currentness blocker into a read-only operator
+  handoff when the post-activation packet reports
+  `DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE`. It emits
+  `ISSUE7_PUSH_DEPLOY_HANDOFF_PACKET`,
+  `issue7_push_deploy_handoff_status`, local/origin commit state, and the
+  required read-only post-deploy verification list. A
+  `READY_FOR_PUSH_DEPLOY_AUTHORIZATION_NOT_DEPLOYED` status is only a request
+  for separate push/deploy authorization; the packet does not push, deploy,
+  restart, change production env, close #7, relax DataFreshnessGuard, enable
+  live/staged-add/TinyLive execution, enable scheduler mutation, place orders,
+  modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+  `scripts/test_filter_block_false_kill_issue7_push_deploy_handoff.ps1` is
+  included in `scripts/verify_local.ps1`.
+- `scripts/smoke_filter_block_false_kill_issue7_post_deploy_read_only_bundle_ssh.ps1`
+  is the replayable issue #7 post-deploy verification bundle to run only after
+  a separately authorized push/deploy. It emits
+  `issue7_post_deploy_read_only_bundle_plan` and
+  `issue7_post_deploy_read_only_bundle_status`, refreshes split acceptance, the
+  issue #7 filter-block source log, DataFreshness replay-id evidence, replay
+  observation, replay evidence readiness, the runtime evidence-only env smoke
+  `scripts/smoke_filter_block_false_kill_issue7_runtime_evidence_only_env_ssh.ps1`
+  into `issue7-runtime-evidence-only-env-current.log`, and the post-activation
+  gate with `-RuntimeEvidenceLog`, then writes child logs under
+  `target/profit-review`. `-PlanOnly` emits
+  `PLAN_READY_NOT_EXECUTED` without SSH. The bundle is read-only and does not
+  push, deploy, restart, change production env, close #7, relax
+  DataFreshnessGuard, enable live/staged-add/TinyLive execution, enable
+  scheduler mutation, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
+  `scripts/test_filter_block_false_kill_issue7_post_deploy_read_only_bundle.ps1`
+  is included in `scripts/verify_local.ps1`.
 - `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
   read-only governance relaxation packet with the DataFreshness counterfactual
   replay-input smoke into `data_freshness_shadow_candidate_packet` and

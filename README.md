@@ -1539,11 +1539,70 @@ flags, post-change read-only verification, and stop conditions. It is not
 authorization to enable the collector, deploy, change production env, close #7,
 relax DataFreshnessGuard, enable live execution, place orders, modify OCO, or
 send Telegram.
+After a separately authorized evidence-only collector rollout, use the
+post-activation status packet:
+
+```powershell
+.\scripts\prepare_filter_block_false_kill_issue7_collector_post_activation_status.ps1 -RequireBlocked
+```
+
+It emits `ISSUE7_COLLECTOR_POST_ACTIVATION_STATUS_PACKET`,
+`issue7_collector_post_activation_status`, and `issue7_remaining_blocker`.
+If local HEAD or the replay evidence runtime is ahead of the deployed service,
+the packet reports `BLOCKED_DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE` with
+`DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE`; request separate push/deploy
+authorization, deploy the current runtime, and rerun read-only replay
+observation before waiting for fresh rows.
+When the collector is active but no fresh post-collector DataFreshnessGuard rows
+exist, the expected status is
+`BLOCKED_WAITING_FOR_FRESH_DATAFRESHNESS_ROWS` with blocker
+`NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS`. This keeps #7 open until stable
+`replayCandidateId` rows, entry/TP/SL, EV/OCO/hard-gate snapshots,
+`complete_replayable_candidate_rows > 0`, and
+`missing_counterfactual_fields=[]` are present. It is read-only and does not
+authorize live relaxation, deploy, production env changes, order/OCO actions,
+or Telegram sends.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without
 entry/TP/SL/EV/OCO snapshots.
 After deploying that runtime, verify fresh production rows with:
+
+If the post-activation packet reports
+`DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_EVIDENCE`, prepare the separate
+push/deploy authorization packet before any runtime action:
+
+```powershell
+.\scripts\prepare_filter_block_false_kill_issue7_push_deploy_handoff.ps1 -RequireReady
+```
+
+It emits `ISSUE7_PUSH_DEPLOY_HANDOFF_PACKET`,
+`issue7_push_deploy_handoff_status`, and the exact read-only post-deploy
+verification commands. `READY_FOR_PUSH_DEPLOY_AUTHORIZATION_NOT_DEPLOYED`
+means local evidence is packaged for operator authorization only; it does not
+push, deploy, restart, change production env, close #7, relax
+DataFreshnessGuard, enable live/staged-add/TinyLive execution, enable
+scheduler mutation, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+After a separately authorized push/deploy, run the replayable verification as
+one read-only bundle:
+
+```powershell
+.\scripts\smoke_filter_block_false_kill_issue7_post_deploy_read_only_bundle_ssh.ps1 -RequireBlocked
+```
+
+Use `-PlanOnly` before the deploy window to inspect the command plan; it emits
+`issue7_post_deploy_read_only_bundle_status=PLAN_READY_NOT_EXECUTED`. The real
+bundle refreshes split acceptance, the issue #7 filter-block source log,
+DataFreshness replay-id evidence, replay observation, replay evidence
+readiness, the runtime evidence-only env smoke
+(`smoke_filter_block_false_kill_issue7_runtime_evidence_only_env_ssh.ps1`,
+writing `issue7-runtime-evidence-only-env-current.log`), and the
+post-activation gate with `-RuntimeEvidenceLog`, then emits
+`issue7_post_deploy_read_only_bundle_status`. It is read-only and does not
+authorize deployment, production env changes, issue closure, live relaxation,
+scheduler mutation, order/OCO actions, Telegram, or DB/grid/fund/Earn/exchange
+mutation.
 
 ```powershell
 .\scripts\smoke_data_freshness_replay_candidate_id_ssh.ps1

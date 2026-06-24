@@ -1881,6 +1881,35 @@ Expected:
   distribution, and examples. Use this to locate whether candidate loss is no
   terminal follow-up, `ENTRY_SKIP`, `FILTER_BLOCK`, or post-signal/autotrade
   routing before changing any live policy.
+
+For the issue #7 BTCUSDT 1h filter-block false-kill review, run:
+
+```powershell
+.\scripts\smoke_filter_block_false_kill_issue7_ssh.ps1
+```
+
+Expected:
+
+- The smoke performs direct production MySQL `SELECT` queries only, reading
+  `bt_decision_audit`, linked `bt_runtime_decision_evidence`, and OKX
+  `md_kline` forward windows for `BTCUSDT` `1h` `FILTER_BLOCK` rows.
+- Output includes `filter_block_total_rows`, `filter_block_matured_rows`,
+  `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
+  `filter_block_avg_forward_24h_pct`, `False-Kill Source Ranking`,
+  `DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
+  `data_freshness_complete_replayable_candidate_rows`, and replayable
+  candidate examples with entry, block reason, 24h forward return,
+  `shouldHavePassedProxy`, and missing replay fields.
+- `shouldHavePassedProxy=true` means the historical 24h forward-return proxy was
+  positive. It is not a live-policy pass verdict.
+- A recommendation such as
+  `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` means the
+  false-kill source is quantified, but live relaxation is still blocked until
+  complete replayable rows prove entry/TP/SL, evaluated EV, OCO, and hard-gate
+  snapshots would pass after removing only DataFreshnessGuard.
+- The smoke must not change production env, DB, order, OCO, grid, fund, Earn,
+  Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
+  nginx state.
 - If sample-gap RCA reports no recent BUY-like candidates, run
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits

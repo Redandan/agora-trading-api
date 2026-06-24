@@ -1270,6 +1270,24 @@
   `scripts/test_data_freshness_counterfactual_review_smoke.ps1` guards the
   direct-SELECT boundary, marker contract, docs coverage, and
   non-authorization wording.
+- `scripts/smoke_filter_block_false_kill_issue7_ssh.ps1` provides the issue #7
+  focused read-only production review for `BTCUSDT` `1h` `FILTER_BLOCK`
+  false-kill pressure. It uses direct MySQL `SELECT` queries only, ranks blocker
+  families by false-kill rows and average 24h forward return, then surfaces a
+  DataFreshnessGuard RCA with stale-context class counts, runtime evidence
+  coverage, liveSignal/replayCandidateId coverage, entry/TP/SL, EV, OCO, and
+  hard-gate snapshot coverage, plus candidate examples containing entry, block
+  reason, forward return, `shouldHavePassedProxy`, and missing replay fields.
+  `shouldHavePassedProxy` is explicitly a historical forward-return proxy, not
+  a live pass verdict. A status such as
+  `DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` keeps live
+  DataFreshness relaxation blocked until complete replayable rows exist.
+  The smoke is evidence only and does not change production env, DB, order,
+  OCO, grid, Earn, fund, Telegram, scheduler, exchange, external
+  backfill/import, deploy, restart, or nginx state.
+  `scripts/test_filter_block_false_kill_issue7_smoke.ps1` guards the marker
+  contract, docs coverage, SSH/remote input safety, database allowlist, and
+  non-authorization wording.
 - `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
   read-only governance relaxation packet with the DataFreshness counterfactual
   replay-input smoke into `data_freshness_shadow_candidate_packet` and

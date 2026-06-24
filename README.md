@@ -1442,6 +1442,28 @@ TQS, OCO, and hard-gate fields are evaluated. Current EV/TQS/OCO/hard-gate
 fields are explicit `NOT_EVALUATED_REPLAY_INPUT_ONLY` previews, not pass
 evidence. Dynamic ATR candidate plans are not guessed. It does not create live
 signals, send Telegram, place orders, modify OCO, or change policy.
+
+Focused issue #7 BTCUSDT 1h filter-block false-kill review:
+
+```powershell
+.\scripts\smoke_filter_block_false_kill_issue7_ssh.ps1
+```
+
+This read-only smoke uses production MySQL `SELECT` queries only to rank
+`BTCUSDT` `1h` `FILTER_BLOCK` blocker families by false-kill pressure. It
+prints `filter_block_false_kill_rows`, `filter_block_correct_block_rows`,
+`filter_block_avg_forward_24h_pct`, `False-Kill Source Ranking`,
+`DataFreshnessGuard RCA`, `data_freshness_stale_class_counts`,
+`data_freshness_complete_replayable_candidate_rows`, and replayable candidate
+examples with entry, block reason, forward return, `shouldHavePassedProxy`,
+and missing replay fields. `shouldHavePassedProxy` is only a 24h forward-return
+proxy and is not a live-policy pass verdict. A result such as
+`DATAFRESHNESS_FALSE_KILL_PROXY_HIGH_BUT_REPLAY_SNAPSHOTS_MISSING` means
+DataFreshnessGuard is the leading profit false-kill source, but complete
+liveSignal/replayCandidateId, entry/TP/SL, EV, OCO, and hard-gate snapshots are
+still required before any live relaxation review. It does not authorize live
+trading, scheduler changes, DataFreshnessGuard relaxation, DB writes, deploy,
+or order/OCO/grid/fund/Earn/Telegram/exchange mutations.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

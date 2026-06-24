@@ -1890,6 +1890,7 @@ For the issue #7 BTCUSDT 1h filter-block false-kill review, run:
 .\scripts\prepare_filter_block_false_kill_issue7_packet.ps1 -RequireBlocked
 .\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1 *> target\profit-review\issue7-df-replay-observation-latest.log
 .\scripts\prepare_filter_block_false_kill_issue7_close_readiness.ps1 -RequireBlocked
+.\scripts\prepare_filter_block_false_kill_issue7_operator_handoff.ps1 -RequireActionable
 ```
 
 Expected:
@@ -1974,6 +1975,15 @@ Expected:
   `replayCandidateId` rows, complete replayable candidate snapshots, and
   `missing_counterfactual_fields=[]` are present. `issue7_close_allowed=false`
   means the GitHub issue must stay open and live relaxation remains blocked.
+- The operator handoff step combines close-readiness with the DataFreshness
+  collector activation preflight packet and emits
+  `ISSUE7_OPERATOR_HANDOFF_PACKET`, `issue7_operator_handoff_status`, and
+  `issue7_operator_handoff_decision`. A
+  `READY_FOR_EVIDENCE_COLLECTOR_REVIEW_NOT_CLOSEABLE` status means the issue
+  remains open, while the next review packet can be attached to a separately
+  authorized evidence-only collector activation discussion. It keeps
+  `collector_activation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, and `issue7_live_relaxation_allowed=false`.
 - If sample-gap RCA reports no recent BUY-like candidates, run
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits

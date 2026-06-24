@@ -1348,6 +1348,17 @@
   `issue7_live_relaxation_allowed=false`. `scripts/test_filter_block_false_kill_issue7_close_readiness.ps1`
   covers both blocked and ready synthetic samples and is included in
   `scripts/verify_local.ps1`.
+- `scripts/prepare_filter_block_false_kill_issue7_operator_handoff.ps1`
+  combines issue #7 close-readiness with the DataFreshness collector activation
+  preflight packet into `ISSUE7_OPERATOR_HANDOFF_PACKET`,
+  `issue7_operator_handoff_status`, and `issue7_operator_handoff_decision`.
+  It distinguishes `READY_TO_CLOSE_NOT_LIVE_RELAXATION` from
+  `READY_FOR_EVIDENCE_COLLECTOR_REVIEW_NOT_CLOSEABLE`, so #7 can stay open
+  while the next separately authorized evidence-only collector activation
+  review is prepared. It keeps `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `issue7_live_relaxation_allowed=false`. `scripts/test_filter_block_false_kill_issue7_operator_handoff.ps1`
+  is included in `scripts/verify_local.ps1`.
 - `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
   read-only governance relaxation packet with the DataFreshness counterfactual
   replay-input smoke into `data_freshness_shadow_candidate_packet` and

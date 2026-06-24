@@ -195,6 +195,9 @@ if ($missedStatus -ne "PASS") {
 $packetStatus = "NO_EVIDENCE"
 $shadowReviewAllowed = $false
 $nextAction = "Fix read-only governance relaxation evidence collection before drafting a review packet."
+if ($dataFreshnessCurrentStatus -eq "NO_CURRENT_SAMPLE" -and $relaxationCandidates.Count -eq 0) {
+    $nextAction = "Run the DataFreshness profit blocker brief and no-buy attention flow review to classify whether recent BUY-style candidates are absent before any DataFreshness or governance policy review."
+}
 if ($smoke.ExitCode -eq 0 -and $relaxationCandidates.Count -gt 0) {
     if ($missingRequirements.Count -eq 0) {
         $packetStatus = "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE"

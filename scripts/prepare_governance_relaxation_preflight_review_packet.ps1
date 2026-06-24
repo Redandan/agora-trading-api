@@ -58,6 +58,8 @@ $relaxationCandidateCount = 0
 $sourceSignalPolicyClear = ""
 $sourceGovernanceMode = ""
 $sourceMissedOpportunityStatus = ""
+$sourceNextAction = ""
+$sourceMissingRequirements = @()
 if ($null -ne $sourcePacket) {
     $shadowReviewAllowed = [bool]$sourcePacket.shadowGovernanceReviewAllowed
     $livePolicyChangeAllowed = [bool]$sourcePacket.livePolicyChangeAllowed
@@ -66,6 +68,8 @@ if ($null -ne $sourcePacket) {
     $sourceSignalPolicyClear = [string]$sourcePacket.signalPolicyClear
     $sourceGovernanceMode = [string]$sourcePacket.governanceMode
     $sourceMissedOpportunityStatus = [string]$sourcePacket.missedOpportunityStatus
+    $sourceNextAction = [string]$sourcePacket.nextAction
+    $sourceMissingRequirements = @($sourcePacket.missingRequirements)
 }
 
 if ($sourceStatus -notin @("REVIEW_REQUIRED_NOT_POLICY_CHANGE", "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE")) {
@@ -86,7 +90,10 @@ if ($sourceStatus -eq "REVIEW_REQUIRED_NOT_POLICY_CHANGE" -and $shadowReviewAllo
 
 $ready = $missingRequirements.Count -eq 0
 $status = if ($ready) { "READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE" } else { "NOT_READY" }
-$preflightDecision = if (-not $ready) {
+$hasParsedSourcePacket = ($null -ne $sourcePacket -and -not [string]::IsNullOrWhiteSpace($sourceStatus))
+$preflightDecision = if (-not $ready -and $sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket) {
+    "BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"
+} elseif (-not $ready) {
     "REFRESH_SOURCE_GOVERNANCE_RELAXATION_PACKET"
 } elseif ($sourceStatus -eq "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE") {
     "PREPARE_REVIEW_ONLY_GOVERNANCE_SHADOW_REVIEW"
@@ -95,6 +102,10 @@ $preflightDecision = if (-not $ready) {
 }
 $nextAction = if ($ready) {
     "Attach this preflight packet to a governance relaxation operator review; require separate explicit authorization before any policy, live, order, deploy, or env change."
+} elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket -and -not [string]::IsNullOrWhiteSpace($sourceNextAction)) {
+    $sourceNextAction
+} elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket) {
+    "Resolve source governance relaxation evidence blockers before using this preflight review packet."
 } else {
     "Refresh the governance relaxation review packet before using this preflight review packet."
 }
@@ -112,6 +123,8 @@ $packet = [pscustomobject]@{
     sourceMissedOpportunityStatus = $sourceMissedOpportunityStatus
     sourceRelaxationCandidateCount = $relaxationCandidateCount
     sourceShadowGovernanceReviewAllowed = $shadowReviewAllowed
+    sourceMissingRequirements = @($sourceMissingRequirements)
+    sourceNextAction = $sourceNextAction
     preflightDecision = $preflightDecision
     reviewEnvelope = [pscustomobject]@{
         reviewOnly = $true
@@ -174,6 +187,8 @@ Write-Host "source_governance_mode=$sourceGovernanceMode"
 Write-Host "source_missed_opportunity_status=$sourceMissedOpportunityStatus"
 Write-Host "source_relaxation_candidate_count=$relaxationCandidateCount"
 Write-Host "source_shadow_governance_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
+Write-Host ("source_missing_requirements=" + (ConvertTo-Json -Compress @($sourceMissingRequirements)))
+Write-Host "source_next_action=$sourceNextAction"
 Write-Host "governance_relaxation_preflight_decision=$preflightDecision"
 Write-Host "governance_relaxation_review_allowed=true"
 Write-Host "live_policy_change_allowed=false"

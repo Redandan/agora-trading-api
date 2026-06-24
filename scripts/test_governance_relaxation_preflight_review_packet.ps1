@@ -31,8 +31,11 @@ foreach ($marker in @(
         "READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE",
         "PREPARE_BLOCKED_GOVERNANCE_RELAXATION_REVIEW",
         "PREPARE_REVIEW_ONLY_GOVERNANCE_SHADOW_REVIEW",
+        "BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
         "governance_relaxation_preflight_review_packet",
         "governance_relaxation_preflight_status",
+        "source_missing_requirements",
+        "source_next_action",
         "governance_relaxation_review_allowed=true",
         "live_policy_change_allowed=false",
         "tiny_live_order_allowed=false",
@@ -144,6 +147,83 @@ try {
     }
 } finally {
     if (Test-Path -LiteralPath $tempLogPath) { Remove-Item -LiteralPath $tempLogPath -Force }
+}
+
+$blockedLogPath = Join-Path ([System.IO.Path]::GetTempPath()) ("governance-relaxation-preflight-blocked-" + [guid]::NewGuid().ToString("N") + ".log")
+try {
+    $blockedSourcePacket = [pscustomobject]@{
+        packetType = "GOVERNANCE_RELAXATION_REVIEW"
+        status = "NO_EVIDENCE"
+        symbol = "BTCUSDT"
+        signalPolicyClear = "false"
+        governanceMode = "INSUFFICIENT_DATA"
+        missedOpportunityStatus = "PASS"
+        relaxationCandidateCount = 0
+        relaxationCandidates = @()
+        shadowGovernanceReviewAllowed = $false
+        livePolicyChangeAllowed = $false
+        tinyLiveOrderAllowed = $false
+        missingRequirements = @(
+            "DataFreshness current snapshot clean",
+            "governance relaxation candidates present"
+        )
+        nextAction = "Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review."
+    }
+    Set-Content -LiteralPath $blockedLogPath -Encoding UTF8 -Value @(
+        "[governance-relaxation-review-packet] read-only packet",
+        "scope=READ_ONLY; runs smoke_signal_correctness_ssh.ps1 only",
+        "governance_relaxation_review_packet_status=NO_EVIDENCE",
+        ("governance_relaxation_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $blockedSourcePacket)),
+        "live_policy_change_allowed=false",
+        "tiny_live_order_allowed=false",
+        "notAuthorization=read-only governance relaxation review packet only"
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $blockedOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewLogPath $blockedLogPath 2>&1
+        $blockedExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $blockedText = ($blockedOutput | Out-String)
+    if ($blockedExitCode -ne 0) {
+        throw "Governance relaxation preflight failed blocked temp-log reuse:`n$blockedText"
+    }
+    foreach ($marker in @(
+            "source_review_packet_status=NO_EVIDENCE",
+            "source_signal_policy_clear=false",
+            "source_governance_mode=INSUFFICIENT_DATA",
+            "source_missed_opportunity_status=PASS",
+            "source_relaxation_candidate_count=0",
+            "source_shadow_governance_review_allowed=false",
+            'source_missing_requirements=["DataFreshness current snapshot clean","governance relaxation candidates present"]',
+            "source_next_action=Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review.",
+            "governance_relaxation_preflight_decision=BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
+            "governance_relaxation_preflight_status=NOT_READY",
+            "governance_relaxation_preflight_next_action=Recent DataFreshnessGuard rows are absent because no BUY-style candidates appeared in the sample-gap review window; review signal generation and no-buy/attention progression before any DataFreshness policy review.",
+            '"sourceReviewPacketStatus":"NO_EVIDENCE"',
+            '"sourceMissingRequirements":["DataFreshness current snapshot clean","governance relaxation candidates present"]',
+            '"preflightDecision":"BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"',
+            '"livePolicyChangeAllowed":false',
+            '"tinyLiveOrderAllowed":false',
+            "live_policy_change_allowed=false",
+            "tiny_live_order_allowed=false",
+            "order_allowed=false",
+            "telegram_send_allowed=false",
+            "notAuthorization=read-only governance relaxation preflight review packet only"
+        )) {
+        Assert-Contains -Name "governance relaxation preflight blocked source routing" -Text $blockedText -Pattern ([regex]::Escape($marker))
+    }
+    if ($blockedText -match "governance_relaxation_preflight_next_action=Refresh the governance relaxation review packet") {
+        throw "Governance relaxation preflight incorrectly routed parsed NO_EVIDENCE packet to refresh-only action:`n$blockedText"
+    }
+    if ($blockedText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "Governance relaxation preflight unexpectedly invoked SSH or a fresh child run for blocked source path:`n$blockedText"
+    }
+} finally {
+    if (Test-Path -LiteralPath $blockedLogPath) { Remove-Item -LiteralPath $blockedLogPath -Force }
 }
 
 Write-Host "[governance-relaxation-preflight-review-packet-test] OK"

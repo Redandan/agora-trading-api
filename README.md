@@ -706,6 +706,10 @@ This wraps `smoke_signal_correctness_ssh.ps1` and the underlying
 `live_policy_change_allowed=false`. `REVIEW_REQUIRED_NOT_POLICY_CHANGE` means
 relaxation candidates are reviewable but blocked by signal-policy,
 governance-drift, or missed-opportunity evidence.
+When `NO_EVIDENCE` is caused by `NO_CURRENT_SAMPLE` and zero relaxation
+candidates, the packet routes the next read-only follow-up to the DataFreshness
+profit blocker brief and no-buy attention flow review before any
+DataFreshness/governance policy review.
 `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` is shadow-review-only evidence,
 not approval to relax live policy. The packet does not deploy, enable live
 trading, execute tiny-live orders, relax EntryDedup/DataFreshness/live policy,
@@ -723,7 +727,11 @@ This reads an existing governance relaxation review log, normally
 `governance_relaxation_preflight_status`. A
 `READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE` status means the
 blocked or shadow-only governance relaxation review can be attached to operator
-review; it does not permit any policy change. It keeps
+review; it does not permit any policy change. If the source review packet is
+valid but `NO_EVIDENCE`, the preflight emits
+`BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and carries the source
+`nextAction` instead of telling the operator to blindly refresh the same source
+log. It keeps
 `live_policy_change_allowed=false`, `tiny_live_order_allowed=false`,
 `entry_dedup_policy_change_allowed=false`,
 `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and

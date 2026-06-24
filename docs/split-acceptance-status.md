@@ -419,7 +419,9 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `governance_relaxation_preflight_status`. A
   `READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE` status means the
   blocked or shadow-only governance relaxation review can be attached to
-  operator review; it is not authorization to relax governance,
+  operator review. A valid source `NO_EVIDENCE` packet now routes to
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and carries the source
+  `nextAction` instead of forcing a blind refresh. It is not authorization to relax governance,
   EntryDedup/DataFreshness/live policy, enable staged-add/live execution, place
   orders, modify/cancel OCO, send Telegram, deploy, change production env, or
   mutate DB/grid/fund/Earn/Telegram/exchange state.
@@ -913,6 +915,26 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   thresholds/activation, enable live trading/scheduler, place orders, modify
   OCO, deploy, change production env, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
+  A 2026-06-24 read-only refresh updated the same route:
+  governance relaxation stayed `NO_EVIDENCE`, but its preflight now emits
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and carries the source
+  next action instead of telling operators to blindly refresh the same source
+  log. The DataFreshness/no-buy follow-up reported
+  `data_freshness_current_status=NO_CURRENT_SAMPLE`,
+  `data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES`,
+  `sample_gap_buy_like_rows_7d_review=0`,
+  `sample_gap_attention_hit_rows_7d_review=205`,
+  `sample_gap_data_freshness_rows_7d_review=0`, and
+  `no_buy_attention_flow_review_status=READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`.
+  Strategy 574 threshold-gap follow-up reported 206 near-threshold
+  `market_entropy_index` rows at avg 69 versus threshold 70, while the
+  forward/TP-SL proxy still returned
+  `false_positive_rate_pct=100.00`, `avg_net_return_pct=-0.4000`, and
+  `strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`.
+  The refreshed live blocker audit stayed
+  `profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT`
+  with lane count 10, ready review count 9, and zero missing/stale/incomplete
+  evidence; governance relaxation remains the only not-ready lane.
 - Profit live blocker audit packet is read-only. Run
   `.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady`
   after the local operator/preflight source logs are saved. It emits

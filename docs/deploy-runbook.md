@@ -630,6 +630,10 @@ Expected:
 - `governance_relaxation_review_packet_status=REVIEW_REQUIRED_NOT_POLICY_CHANGE`
   means candidates are reviewable but blocked by signal-policy,
   governance-drift, missed-opportunity, or no-buy evidence.
+- `NO_EVIDENCE` with `NO_CURRENT_SAMPLE` and zero relaxation candidates routes
+  the next read-only follow-up to the DataFreshness profit blocker brief and
+  no-buy attention flow review before any DataFreshness/governance policy
+  review.
 - `governance_relaxation_review_packet_status=READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE`
   means a separate shadow-only governance review can be drafted. It is not
   permission to relax EntryDedup/DataFreshness/live policy or execute orders.
@@ -660,6 +664,10 @@ Expected:
   `entry_dedup_policy_change_allowed=false`,
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`.
+- If the source review packet is valid but `NO_EVIDENCE`, the preflight emits
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and propagates the source
+  `nextAction` so operators route to no-buy/attention/DataFreshness evidence
+  instead of blindly refreshing the same source log.
 - `GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_PACKET` is review evidence only. It
   does not authorize governance/EntryDedup/DataFreshness/live policy
   relaxation, staged-add/tiny-live execution, scheduler enablement, orders,

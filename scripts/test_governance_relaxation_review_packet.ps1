@@ -74,6 +74,7 @@ foreach ($marker in @(
         "missedOpportunityStatus",
         "dataFreshnessCurrentStatus",
         'dataFreshnessCurrentClean = ($dataFreshnessCurrentStatus -eq "CLEAN")',
+        "Run the DataFreshness profit blocker brief and no-buy attention flow review",
         "notAuthorization=read-only governance relaxation review packet only",
         "does not deploy",
         "Assert-SshHostSafe",

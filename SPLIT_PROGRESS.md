@@ -270,6 +270,9 @@
   blocked by signal-policy, governance-drift, missed-opportunity, or no-buy
   evidence. `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` means a separate
   shadow-only governance review can be drafted; it is not live policy approval.
+  `NO_EVIDENCE` with `NO_CURRENT_SAMPLE` and zero relaxation candidates routes
+  its `nextAction` to the DataFreshness profit blocker brief and no-buy
+  attention flow review before any DataFreshness/governance policy review.
   The packet does not deploy, restart, reload nginx, change production env,
   enable live trading, execute tiny-live orders, place orders, modify OCO,
   close positions, mutate DB/grid/fund/Earn/Telegram/exchange state, run
@@ -280,8 +283,11 @@
   `governance_relaxation_preflight_status`, and
   `governance_relaxation_preflight_decision`. It accepts
   `REVIEW_REQUIRED_NOT_POLICY_CHANGE` as a blocked review packet and
-  `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` as shadow-only review evidence,
-  but keeps `live_policy_change_allowed=false`,
+  `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` as shadow-only review evidence.
+  Valid source `NO_EVIDENCE` packets route to
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and propagate the source
+  `nextAction` instead of forcing a blind source refresh. The packet keeps
+  `live_policy_change_allowed=false`,
   `tiny_live_order_allowed=false`, `entry_dedup_policy_change_allowed=false`,
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`. It is a local operator-review preflight only
@@ -400,6 +406,28 @@
   review, while preserving false markers for TinyLive orders, live policy,
   scheduler enablement, deploy/env change, orders, Telegram send, and
   position/OCO mutation.
+- 2026-06-24 read-only governance/DataFreshness/no-buy refresh tightened the
+  live blocker route without changing production state. Governance relaxation
+  remained `NO_EVIDENCE`, but
+  `prepare_governance_relaxation_preflight_review_packet.ps1` now emits
+  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` for valid source
+  `NO_EVIDENCE` packets and propagates the source `nextAction` instead of
+  forcing a blind refresh. The refreshed DataFreshness blocker brief showed
+  `data_freshness_current_status=NO_CURRENT_SAMPLE`,
+  `data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES`,
+  `sample_gap_buy_like_rows_7d_review=0`,
+  `sample_gap_attention_hit_rows_7d_review=205`, and
+  `sample_gap_data_freshness_rows_7d_review=0`. The no-buy attention packet
+  returned `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`, with
+  `NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW` and
+  `NO_RECENT_DATAFRESHNESS_ROWS` as blockers. Strategy 574 near-threshold
+  refresh found 206 `market_entropy_index` rows averaging 69 versus threshold
+  70, but shadow observation remained negative:
+  `false_positive_rate_pct=100.00`, `avg_net_return_pct=-0.4000`, and
+  `STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`. The refreshed final
+  live blocker audit stayed `BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT` with 10
+  lanes, 9 review-ready lanes, zero missing/stale/incomplete evidence, and
+  governance relaxation as the only not-ready lane.
 - `scripts/smoke_strategy485_position_risk_ssh.ps1` provides a focused
   read-only production RCA for SCORE_BUY strategy 485 open-position risk. It
   calls server-local `/api/mcp` to summarize open positions, OCO health,

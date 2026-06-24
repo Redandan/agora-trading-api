@@ -192,6 +192,25 @@ function New-ProfitValidationReviewPlanEntry {
     }
 }
 
+function Resolve-ProfitValidationPlanEvidence {
+    param(
+        [object[]]$RequiredEvidence,
+        [string]$GateStatus,
+        [string]$AllowedFlagName,
+        [string]$AllowedFlagValue
+    )
+
+    $items = @($RequiredEvidence | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+    if ($items.Count -gt 0) {
+        return @($items)
+    }
+
+    return @(
+        "child gate status evidence: $GateStatus",
+        "$AllowedFlagName=$AllowedFlagValue"
+    )
+}
+
 function Assert-ProfitValidationReviewPlanShape {
     param([object[]]$Plan)
 
@@ -230,7 +249,7 @@ function New-ProfitValidationBlockerSummary {
 
     $summary = [System.Collections.Generic.List[object]]::new()
     foreach ($item in @($Plan)) {
-        if ($item.status -notmatch "^BLOCKED|^NO_EVIDENCE" -and @($item.requiredEvidence).Count -eq 0) {
+        if ($item.status -notmatch "^BLOCKED|^NO_EVIDENCE") {
             continue
         }
         $summary.Add([pscustomobject]@{
@@ -575,7 +594,7 @@ $reviewPlan = @(
         -Recommendation $autoRecommendation `
         -AllowedFlagName "operator_review_packet_allowed" `
         -AllowedFlagValue $operatorReviewAllowed `
-        -RequiredEvidence @($autoMissing) `
+        -RequiredEvidence (Resolve-ProfitValidationPlanEvidence -RequiredEvidence @($autoMissing) -GateStatus $autoStatus -AllowedFlagName "operator_review_packet_allowed" -AllowedFlagValue $operatorReviewAllowed) `
         -NextAction $autoNextAction
     New-ProfitValidationReviewPlanEntry `
         -Gate "profit-loss-review" `
@@ -585,7 +604,7 @@ $reviewPlan = @(
         -Recommendation $profitRecommendation `
         -AllowedFlagName "loss_source_review_allowed" `
         -AllowedFlagValue $lossSourceReviewAllowed `
-        -RequiredEvidence @($profitLossMissing) `
+        -RequiredEvidence (Resolve-ProfitValidationPlanEvidence -RequiredEvidence @($profitLossMissing) -GateStatus $profitLossStatus -AllowedFlagName "loss_source_review_allowed" -AllowedFlagValue $lossSourceReviewAllowed) `
         -NextAction $profitLossNextAction
     New-ProfitValidationReviewPlanEntry `
         -Gate "profit-experiment-review" `
@@ -595,7 +614,7 @@ $reviewPlan = @(
         -Recommendation $topProfitCandidate `
         -AllowedFlagName "shadow_experiment_review_allowed" `
         -AllowedFlagValue $shadowReviewAllowed `
-        -RequiredEvidence @($profitExperimentMissing) `
+        -RequiredEvidence (Resolve-ProfitValidationPlanEvidence -RequiredEvidence @($profitExperimentMissing) -GateStatus $profitExperimentStatus -AllowedFlagName "shadow_experiment_review_allowed" -AllowedFlagValue $shadowReviewAllowed) `
         -NextAction $profitExperimentNextAction
 )
 Assert-ProfitValidationReviewPlanShape -Plan $reviewPlan

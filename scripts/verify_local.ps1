@@ -1624,6 +1624,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_counterfactual_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_filter_block_false_kill_issue7_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_filter_block_false_kill_issue7_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_filter_block_false_kill_issue7_close_readiness.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_candidate_id_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_observation_bundle.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_evidence_readiness.ps1"

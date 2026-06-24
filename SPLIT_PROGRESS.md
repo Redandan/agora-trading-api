@@ -1338,6 +1338,16 @@
   backfill/import. `scripts/test_filter_block_false_kill_issue7_packet.ps1`
   guards the marker contract, stale/missing-log handling, docs coverage, and
   blocked-status classification.
+- `scripts/prepare_filter_block_false_kill_issue7_close_readiness.ps1` combines
+  the issue #7 packet with the DataFreshness replay observation bundle into
+  `ISSUE7_CLOSE_READINESS_PACKET`, `issue7_close_readiness_status`,
+  `issue7_close_allowed`, and `issue7_close_missing_requirements`. It allows
+  issue closure only when stable `replayCandidateId` rows, complete replayable
+  candidate snapshots, and `missing_counterfactual_fields=[]` are present;
+  otherwise it emits `BLOCKED_NOT_CLOSABLE_REPLAY_EVIDENCE_MISSING` and keeps
+  `issue7_live_relaxation_allowed=false`. `scripts/test_filter_block_false_kill_issue7_close_readiness.ps1`
+  covers both blocked and ready synthetic samples and is included in
+  `scripts/verify_local.ps1`.
 - `scripts/prepare_data_freshness_shadow_candidate_packet_ssh.ps1` combines the
   read-only governance relaxation packet with the DataFreshness counterfactual
   replay-input smoke into `data_freshness_shadow_candidate_packet` and

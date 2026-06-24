@@ -1888,6 +1888,8 @@ For the issue #7 BTCUSDT 1h filter-block false-kill review, run:
 ```powershell
 .\scripts\smoke_filter_block_false_kill_issue7_ssh.ps1
 .\scripts\prepare_filter_block_false_kill_issue7_packet.ps1 -RequireBlocked
+.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1 *> target\profit-review\issue7-df-replay-observation-latest.log
+.\scripts\prepare_filter_block_false_kill_issue7_close_readiness.ps1 -RequireBlocked
 ```
 
 Expected:
@@ -1965,6 +1967,13 @@ Expected:
   `BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING`. Use `-RequireBlocked` until complete
   replayable DataFreshness rows exist, so missing snapshots fail closed instead
   of becoming live-relaxation evidence.
+- The close-readiness step combines the issue #7 packet with the DataFreshness
+  replay observation bundle and emits `ISSUE7_CLOSE_READINESS_PACKET`,
+  `issue7_close_readiness_status`, `issue7_close_allowed`, and
+  `issue7_close_missing_requirements`. Keep `-RequireBlocked` until stable
+  `replayCandidateId` rows, complete replayable candidate snapshots, and
+  `missing_counterfactual_fields=[]` are present. `issue7_close_allowed=false`
+  means the GitHub issue must stay open and live relaxation remains blocked.
 - If sample-gap RCA reports no recent BUY-like candidates, run
   `.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1`. It splits recent
   `SIGNAL_EVAL` rows into BUY-like and no-buy rows and emits

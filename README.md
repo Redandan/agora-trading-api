@@ -1449,6 +1449,8 @@ Focused issue #7 BTCUSDT 1h filter-block false-kill review:
 ```powershell
 .\scripts\smoke_filter_block_false_kill_issue7_ssh.ps1
 .\scripts\prepare_filter_block_false_kill_issue7_packet.ps1 -RequireBlocked
+.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1 *> target\profit-review\issue7-df-replay-observation-latest.log
+.\scripts\prepare_filter_block_false_kill_issue7_close_readiness.ps1 -RequireBlocked
 ```
 
 This read-only smoke uses production MySQL `SELECT` queries only to rank
@@ -1510,6 +1512,13 @@ The packet step reads the saved smoke log and emits
 `BLOCKED_DATAFRESHNESS_REPLAY_SNAPSHOTS_MISSING`. Use `-RequireBlocked` while complete
 DataFreshness replay snapshots are still missing so accidental review-ready
 classification fails closed.
+The close-readiness step combines the issue #7 packet with the DataFreshness
+replay observation bundle and emits `ISSUE7_CLOSE_READINESS_PACKET`,
+`issue7_close_readiness_status`, `issue7_close_allowed`, and
+`issue7_close_missing_requirements`. It allows closing issue #7 only when stable
+`replayCandidateId` rows, complete replayable candidate snapshots, and
+`missing_counterfactual_fields=[]` are present; otherwise it stays blocked with
+`issue7_live_relaxation_allowed=false`.
 New DataFreshness L0 audit rows carry a deterministic `replayCandidateId`
 (`dfsr1_...`) plus explicit no-order/no-intent/no-OCO markers; this improves
 future replay traceability but is still not executable evidence without

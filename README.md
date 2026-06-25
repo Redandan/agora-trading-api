@@ -444,6 +444,23 @@ only. The watcher does not deploy, restart, change production env, call
 `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
 Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid split-acceptance deploy handoff:
+
+```powershell
+.\scripts\prepare_grid_split_acceptance_deploy_handoff_ssh.ps1
+```
+
+This consumes the grid open readiness watch and the metadata-only origin-delta
+classifier, then emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
+`grid_split_acceptance_deploy_handoff_status`, the grid readiness score/top
+blocker, deployment metadata, runtime delta evidence, and the exact read-only
+post-deploy verification list. A status of
+`READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
+means only that an operator can separately consider deploying current
+`origin/main` and rerunning read-only grid verification. It does not deploy,
+change production env, call `createGrid`, enable grid/scheduler/recovery, place
+orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

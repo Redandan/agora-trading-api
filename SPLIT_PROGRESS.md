@@ -2905,6 +2905,20 @@ Trading deployment prep:
   watcher does not deploy, restart, change production env, call `createGrid`,
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
+- Grid split-acceptance deploy currentness now has a read-only operator
+  handoff packet: `scripts/prepare_grid_split_acceptance_deploy_handoff_ssh.ps1`.
+  It consumes the bounded grid readiness watch plus the metadata-only
+  origin-delta classifier, or replay logs passed with `-GridReadinessWatchLog`
+  and `-OriginDeltaLog`, then emits
+  `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
+  `grid_split_acceptance_deploy_handoff_status`, grid score/top blocker,
+  deployment metadata, runtime delta evidence, and the required post-deploy
+  read-only verification commands. A status of
+  `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
+  means the deploy-currentness blocker is evidence-ready for a separate
+  operator decision only; it is not authorization to deploy, change production
+  env, call `createGrid`, enable grid/scheduler/recovery, place orders, modify
+  OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

@@ -882,6 +882,33 @@ Expected:
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid split-acceptance deploy handoff:
+
+```powershell
+.\scripts\prepare_grid_split_acceptance_deploy_handoff_ssh.ps1
+```
+
+Expected:
+
+- Consumes `watch_grid_open_readiness_ssh.ps1` and
+  `smoke_live_origin_delta_local.ps1`, or replay logs passed with
+  `-GridReadinessWatchLog` and `-OriginDeltaLog`.
+- Emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
+  `grid_split_acceptance_deploy_handoff_status`,
+  `grid_split_acceptance_deploy_handoff_decision`, grid score/top blocker,
+  deployment metadata, origin-delta classification, and runtime delta paths.
+- `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
+  means only that the split-acceptance blocker has enough evidence for a
+  separate operator decision about deploying current `origin/main`; it is not
+  deployment approval.
+- Required post-deploy read-only verification is split acceptance, the grid
+  blocker priority board, the grid open readiness watch, and the post-env
+  read-only verification bundle.
+- The handoff does not deploy, restart, reload nginx, change production env,
+  approve a trend override, approve a capital override, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

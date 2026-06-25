@@ -564,6 +564,30 @@ Expected:
   place orders, modify OCO, send Telegram, mutate DB/grid/fund/Earn, or call
   exchange mutation paths.
 
+Read-only Grid MCP tool coverage packet:
+
+```powershell
+.\scripts\prepare_grid_mcp_tool_coverage_packet_ssh.ps1
+```
+
+Expected:
+
+- Calls server-local `/api/mcp` `tools/list` only. It must not call
+  `tools/call` or invoke `createGrid`, `pauseGrid`, `resumeGrid`, `closeGrid`,
+  `enableGridAutoRebalance`, OCO, Earn, fund, scheduler, or exchange mutation
+  tools.
+- Emits `GRID_MCP_TOOL_COVERAGE_PACKET`,
+  `grid_mcp_tool_coverage_packet`, `grid_mcp_tool_coverage_status`,
+  `readOnlyReviewTools`, `futureActionToolsPresentButNotInvoked`,
+  `boundaryContextTools`, and `missingRequiredTools`.
+- `READY_GRID_MCP_TOOL_COVERAGE_NOT_MUTATION` means the grid-related MCP
+  surfaces needed for review and future separately authorized action are
+  registered. It is not permission to invoke action tools, change env, deploy,
+  enable schedulers, or open a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  call grid/OCO/order/Earn/fund/scheduler mutation tools, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

@@ -237,6 +237,21 @@ trend gate, change env, call `createGrid`, enable grid/scheduler/recovery,
 place orders, modify OCO, send Telegram, deploy, restart, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid MCP tool coverage packet:
+
+```powershell
+.\scripts\prepare_grid_mcp_tool_coverage_packet_ssh.ps1
+```
+
+This calls server-local MCP `tools/list` only and emits
+`GRID_MCP_TOOL_COVERAGE_PACKET`, `grid_mcp_tool_coverage_status`,
+`readOnlyReviewTools`, `futureActionToolsPresentButNotInvoked`, and
+`boundaryContextTools`. It proves grid review, future grid action, OCO, Earn,
+fund, and scheduler boundary tools are registered before any separate grid-open
+review. Future action tools such as `createGrid`, `pauseGrid`, `resumeGrid`,
+`closeGrid`, and `enableGridAutoRebalance` are presence evidence only; the
+script does not invoke them and does not authorize their use.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

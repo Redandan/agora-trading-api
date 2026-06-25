@@ -2741,6 +2741,17 @@ Trading deployment prep:
   does not clear the trend gate, change production env, call `createGrid`,
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram,
   deploy, restart, or mutate DB/grid/fund/Earn/exchange state.
+- Grid MCP/tool coverage now has a read-only coverage packet:
+  `scripts/prepare_grid_mcp_tool_coverage_packet_ssh.ps1`. It calls
+  server-local `/api/mcp` `tools/list` only and emits
+  `GRID_MCP_TOOL_COVERAGE_PACKET`, `grid_mcp_tool_coverage_status`,
+  `readOnlyReviewTools`, `futureActionToolsPresentButNotInvoked`,
+  `boundaryContextTools`, and `missingRequiredTools`. This proves grid review,
+  future grid action, OCO, Earn, fund, and scheduler boundary tool registration
+  before separate operator review while explicitly not invoking `createGrid`,
+  `pauseGrid`, `resumeGrid`, `closeGrid`, `enableGridAutoRebalance`, OCO,
+  Earn, fund, scheduler, order, Telegram, deploy, env, or DB/exchange mutation
+  paths.
 
 ## Cleanup Priority
 

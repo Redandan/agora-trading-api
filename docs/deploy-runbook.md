@@ -418,6 +418,28 @@ cd /home/ubuntu/agora-trading-api
 bash scripts/verify_server.sh
 ```
 
+Read-only Grid trend adjustment review smoke:
+
+```powershell
+.\scripts\smoke_grid_trend_adjustment_review_ssh.ps1
+```
+
+Expected:
+
+- Uses server-local `/api/mcp` with `TRADING_MCP_KEY`; it must not call public
+  MCP or legacy `/api/trading/mcp`.
+- Calls `getGridTrendAdjustmentReview` and emits
+  `grid_trend_adjustment_review_packet`,
+  `grid_trend_adjustment_review_status`, and
+  `grid_trend_adjustment_recommendation`.
+- Verifies `boundary=READ_ONLY`, `mutationAllowed=false`,
+  `orderAllowed=false`, `gridMutationAllowed=false`,
+  `schedulerChangeAllowed=false`, and `telegramSendAllowed=false`.
+- Does not deploy, restart, change production env, create/pause/resume/close
+  grid, place orders, modify OCO, send Telegram, mutate DB/grid/fund/Earn, or
+  call exchange mutation paths. It is not authorization for scheduler
+  integration or grid adjustment execution.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

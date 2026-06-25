@@ -135,6 +135,22 @@ Both parity smokes print `required_tools=[...]` plus
 surface is complete. Missing either list, or a non-empty missing list, is not
 live-readiness evidence.
 
+Read-only Grid trend adjustment review smoke after a deploy that contains the
+`getGridTrendAdjustmentReview` MCP tool:
+
+```powershell
+.\scripts\smoke_grid_trend_adjustment_review_ssh.ps1
+```
+
+This calls server-local `/api/mcp` only and verifies the Grid trend review
+packet carries `boundary=READ_ONLY`, `mutationAllowed=false`,
+`orderAllowed=false`, `gridMutationAllowed=false`, trend/ATR evidence, and
+`recommendation=`. It is operator evidence only: it does not create, pause,
+resume, close, or rebuild a grid, does not place orders, does not send
+Telegram, and does not change scheduler, DB, fund, Earn, OCO, or exchange
+state. Any scheduler integration or `closeGrid`/`createGrid` action requires
+separate explicit approval.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

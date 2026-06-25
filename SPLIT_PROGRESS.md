@@ -2657,6 +2657,20 @@ Trading deployment prep:
   signal-correctness smoke, and hard trailing replay acceptance must all pass.
   This remains local readiness only until pushed, deployed, and verified on the
   server.
+- 2026-06-25 Grid trend adjustment review is covered by a reusable read-only
+  SSH smoke: `scripts/smoke_grid_trend_adjustment_review_ssh.ps1`. The smoke
+  calls server-local `/api/mcp` only, invokes `getGridTrendAdjustmentReview`,
+  and requires `boundary=READ_ONLY`, `mutationAllowed=false`,
+  `orderAllowed=false`, `gridMutationAllowed=false`,
+  `schedulerChangeAllowed=false`, `telegramSendAllowed=false`, trend/ATR
+  evidence, and `recommendation=` markers. It emits
+  `grid_trend_adjustment_review_packet`,
+  `grid_trend_adjustment_review_status`, and
+  `grid_trend_adjustment_recommendation` for operator review, but it does not
+  create, pause, resume, close, or rebuild grids; place orders; send Telegram;
+  deploy; change production env; or mutate scheduler, DB, OCO, fund, Earn, or
+  exchange state. Scheduler integration and any grid execution action remain a
+  separate explicitly authorized phase.
 
 ## Cleanup Priority
 

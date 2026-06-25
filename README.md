@@ -175,6 +175,10 @@ bounds, replay rows, inside/stop-break counts, and `replayScore`. A complete
 candidate plan can clear the "missing explicit plan" evidence gap, but it is
 not `createGrid` input authorization and does not override trend, event-risk,
 historical failure, OKX, scheduler, or live-trading blockers.
+Historical `SELL_FAILED` rows are classified as material vs dust-only. A
+dust-only stale sell failure is emitted as review evidence and does not block
+grid opening by itself; any material historical `SELL_FAILED` remains a blocker
+until reconciled.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

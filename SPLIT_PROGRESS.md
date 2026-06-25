@@ -2700,6 +2700,11 @@ Trading deployment prep:
   enablement, scheduler, or live-trading blockers.
   `scripts/test_grid_candidate_plan_packet.ps1` guards those markers and local
   unsafe-argument failures.
+- Grid open readiness now separates historical dust-only `SELL_FAILED` rows
+  from material sell failures. Dust-only stale rows are emitted as
+  `historical_dust_sell_failed_count` and the warning
+  `HISTORICAL_GRID_DUST_SELL_FAILED_REVIEW_NOT_BLOCKING`; material rows still
+  keep `HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED` until reconciled.
 
 ## Cleanup Priority
 

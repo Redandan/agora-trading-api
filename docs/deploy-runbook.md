@@ -474,6 +474,11 @@ Expected:
   replayable. It is not `createGrid` input authorization and it does not clear
   trend-regime, event-risk, historical `SELL_FAILED`, OKX enablement,
   scheduler, or live-trading blockers.
+- Historical `SELL_FAILED` rows are classified into
+  `historical_dust_sell_failed_count` and
+  `historical_material_sell_failed_count`. Dust-only stale sell failures are
+  review evidence, while material historical failures keep
+  `HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED`.
 - The wrapper does not deploy, restart, change production env,
   create/pause/resume/close/rebalance grid, place orders, modify OCO, send
   Telegram, mutate DB/grid/fund/Earn, or call exchange mutation paths.

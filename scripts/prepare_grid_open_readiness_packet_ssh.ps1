@@ -378,9 +378,23 @@ def count_unique_grid_status(text, status):
             ids.add(match.group(1))
     return len(ids)
 
+def classify_sell_failed_lines(text):
+    dust = []
+    material = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("SELL_FAILED L"):
+            continue
+        if "class=dust_failure" in stripped:
+            dust.append(stripped)
+        else:
+            material.append(stripped)
+    return dust, material
+
 active_grid_count = count_unique_grid_status(grid_list, "ACTIVE")
 paused_grid_count = count_unique_grid_status(grid_list, "PAUSED")
 closed_grid_count = count_unique_grid_status(grid_list, "CLOSED")
+dust_sell_failed_lines, material_sell_failed_lines = classify_sell_failed_lines(grid_list)
 
 grid_flags = {
     "TRADING_GRID_ENABLED": env_bool(env_values, "TRADING_GRID_ENABLED"),
@@ -406,8 +420,11 @@ if active_grid_count > 0:
     unique_append(blockers, "ACTIVE_GRID_EXISTS_REVIEW_BEFORE_OPENING_NEW_GRID")
 if paused_grid_count > 0:
     unique_append(warnings, "PAUSED_GRID_EXISTS_REVIEW_BEFORE_OPENING_NEW_GRID")
-if "SELL_FAILED" in grid_list:
+if material_sell_failed_lines:
     unique_append(blockers, "HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED")
+    unique_append(required_evidence, "material historical SELL_FAILED levels reconciled")
+elif dust_sell_failed_lines:
+    unique_append(warnings, "HISTORICAL_GRID_DUST_SELL_FAILED_REVIEW_NOT_BLOCKING")
 if recommendation == "NO_ACTION_NO_ACTIVE_GRID":
     if not candidate_plan.get("candidatePlanComplete", False):
         unique_append(blockers, "NO_REPLAYABLE_GRID_CANDIDATE_PLAN")
@@ -461,6 +478,8 @@ packet = {
     "atrPct": atr_pct,
     "eventRiskLevel": event_risk_level,
     "candidatePlan": candidate_plan,
+    "historicalDustSellFailedCount": len(dust_sell_failed_lines),
+    "historicalMaterialSellFailedCount": len(material_sell_failed_lines),
     "gridRuntimeFlags": grid_flags,
     "blockers": blockers,
     "requiredEvidence": required_evidence,
@@ -484,6 +503,8 @@ print(f"event_risk_level={event_risk_level}")
 print("grid_candidate_plan=" + json.dumps(candidate_plan, sort_keys=True, separators=(",", ":")))
 if candidate_plan_error:
     print("grid_candidate_plan_error=" + candidate_plan_error)
+print(f"historical_dust_sell_failed_count={len(dust_sell_failed_lines)}")
+print(f"historical_material_sell_failed_count={len(material_sell_failed_lines)}")
 print("grid_runtime_flags=" + json.dumps(grid_flags, sort_keys=True, separators=(",", ":")))
 print("grid_open_readiness_blockers=" + json.dumps(blockers, separators=(",", ":")))
 print("grid_open_readiness_required_evidence=" + json.dumps(required_evidence, separators=(",", ":")))

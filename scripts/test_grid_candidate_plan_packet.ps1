@@ -73,6 +73,11 @@ foreach ($marker in @(
         "not createGrid input authorization",
         'Grid 最大曝險(全 level 填滿): $0.00',
         "活躍 Grid: 0 個",
+        "classify_sell_failed_lines",
+        "historical_dust_sell_failed_count",
+        "historical_material_sell_failed_count",
+        "HISTORICAL_GRID_DUST_SELL_FAILED_REVIEW_NOT_BLOCKING",
+        "HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED",
         "NO_REPLAYABLE_GRID_CANDIDATE_PLAN"
     )) {
     Assert-Contains -Name "grid candidate plan packet markers" -Text $scriptText -Pattern ([regex]::Escape($marker))

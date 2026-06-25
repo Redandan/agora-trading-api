@@ -81,19 +81,79 @@ function Invoke-ReadOnlyScript {
     if ($null -eq $powerShell) { $powerShell = Get-Command powershell -ErrorAction SilentlyContinue }
     if ($null -eq $powerShell) { throw "Unable to find powershell or pwsh for grid split-acceptance deploy handoff." }
 
-    $previousErrorActionPreference = $ErrorActionPreference
+    Write-Host "[grid-split-acceptance-deploy-handoff] child_start script=$ScriptName timeoutSeconds=$ChildTimeoutSeconds"
+    $startedAt = Get-Date
+    $timedOut = $false
+    $output = ""
+    $exitCode = 1
+    $job = $null
     try {
-        $ErrorActionPreference = "Continue"
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath @Arguments 2>&1
-        $exitCode = $LASTEXITCODE
+        $job = Start-Job -ScriptBlock {
+            param(
+                [string]$PowerShellSource,
+                [string]$ChildScriptPath,
+                [string]$WorkingDirectory,
+                [object[]]$ChildArguments
+            )
+            $ErrorActionPreference = "Continue"
+            Set-Location -LiteralPath $WorkingDirectory
+            $childOutput = & $PowerShellSource -NoProfile -ExecutionPolicy Bypass -File $ChildScriptPath @ChildArguments 2>&1
+            $childSuccess = $?
+            $code = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($childSuccess) { 0 } else { 1 }
+            [pscustomobject]@{
+                Text = ($childOutput | Out-String -Width 8192)
+                ExitCode = $code
+            }
+        } -ArgumentList @($powerShell.Source, $scriptPath, (Get-Location).Path, (, @($Arguments)))
+
+        $lastHeartbeatSeconds = 0
+        while ($job.State -eq "Running") {
+            $elapsedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+            if ($elapsedSeconds -ge $ChildTimeoutSeconds) {
+                $timedOut = $true
+                Stop-Job -Job $job -ErrorAction SilentlyContinue
+                break
+            }
+            if ($elapsedSeconds -ge ($lastHeartbeatSeconds + 30)) {
+                $lastHeartbeatSeconds = $elapsedSeconds
+                Write-Host "[grid-split-acceptance-deploy-handoff] child_heartbeat script=$ScriptName elapsedSeconds=$elapsedSeconds"
+            }
+            Start-Sleep -Seconds 2
+        }
+
+        if ($timedOut) {
+            $output = "timed out after $ChildTimeoutSeconds second(s)"
+            $exitCode = 124
+        } else {
+            $result = Receive-Job -Job $job -ErrorAction SilentlyContinue
+            if ($null -ne $result) {
+                $output = [string]$result.Text
+                $exitCode = [int]$result.ExitCode
+            }
+        }
     } finally {
-        $ErrorActionPreference = $previousErrorActionPreference
+        if ($null -ne $job) {
+            Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+        }
     }
+    $elapsedTotal = [int]((Get-Date) - $startedAt).TotalSeconds
+    Write-Host "[grid-split-acceptance-deploy-handoff] child_complete script=$ScriptName exitCode=$exitCode timedOut=$($timedOut.ToString().ToLowerInvariant()) elapsedSeconds=$elapsedTotal"
 
     [pscustomobject]@{
-        Text = ($output | Out-String -Width 8192)
+        Text = $output
         ExitCode = $exitCode
     }
+}
+
+function Write-ChildFailureContext {
+    param([string]$ScriptName, [pscustomobject]$Result)
+    if ($Result.ExitCode -eq 0) { return }
+    $text = [string]$Result.Text
+    if ($text.Length -gt 4000) {
+        $text = $text.Substring(0, 4000) + "`n...[truncated]"
+    }
+    Write-Host "[grid-split-acceptance-deploy-handoff] child_failure script=$ScriptName exitCode=$($Result.ExitCode)"
+    Write-Host $text
 }
 
 function Read-LogOrInvoke {
@@ -116,6 +176,7 @@ function Read-LogOrInvoke {
     }
 
     $result = Invoke-ReadOnlyScript -ScriptName $ScriptName -Arguments $Arguments
+    Write-ChildFailureContext -ScriptName $ScriptName -Result $result
     $result | Add-Member -NotePropertyName Source -NotePropertyValue $ScriptName
     return $result
 }

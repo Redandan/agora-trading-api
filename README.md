@@ -453,8 +453,9 @@ Read-only Grid split-acceptance deploy handoff:
 This consumes the grid open readiness watch and the metadata-only origin-delta
 classifier, then emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
 `grid_split_acceptance_deploy_handoff_status`, the grid readiness score/top
-blocker, deployment metadata, runtime delta evidence, and the exact read-only
-post-deploy verification list. A status of
+blocker, deployment metadata, runtime delta evidence, child
+`child_start`/`child_heartbeat`/`child_complete` markers, and the exact
+read-only post-deploy verification list. A status of
 `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
 means only that an operator can separately consider deploying current
 `origin/main` and rerunning read-only grid verification. It does not deploy,

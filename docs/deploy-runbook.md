@@ -897,6 +897,8 @@ Expected:
   `grid_split_acceptance_deploy_handoff_status`,
   `grid_split_acceptance_deploy_handoff_decision`, grid score/top blocker,
   deployment metadata, origin-delta classification, and runtime delta paths.
+- Emits child `child_start`, `child_heartbeat`, and `child_complete` markers
+  with timeout handling while it refreshes the nested read-only evidence.
 - `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
   means only that the split-acceptance blocker has enough evidence for a
   separate operator decision about deploying current `origin/main`; it is not

@@ -2670,7 +2670,10 @@ Trading deployment prep:
   create, pause, resume, close, or rebuild grids; place orders; send Telegram;
   deploy; change production env; or mutate scheduler, DB, OCO, fund, Earn, or
   exchange state. Scheduler integration and any grid execution action remain a
-  separate explicitly authorized phase.
+  separate explicitly authorized phase. Smoke framework v1 keeps the SSH/env
+  wrapper in PowerShell while moving JSON-RPC calling, marker validation, and
+  packet rendering for this grid-trend case into the Java runner
+  `com.agora.smoke.McpSmokeCli`.
 
 ## Cleanup Priority
 

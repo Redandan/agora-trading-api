@@ -439,6 +439,9 @@ Expected:
   grid, place orders, modify OCO, send Telegram, mutate DB/grid/fund/Earn, or
   call exchange mutation paths. It is not authorization for scheduler
   integration or grid adjustment execution.
+- The PowerShell wrapper only handles SSH, `app.port`, and env-file lookup.
+  JSON-RPC calling, marker validation, and packet rendering live in the Java
+  smoke runner `com.agora.smoke.McpSmokeCli`.
 
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production

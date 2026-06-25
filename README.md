@@ -150,6 +150,9 @@ resume, close, or rebuild a grid, does not place orders, does not send
 Telegram, and does not change scheduler, DB, fund, Earn, OCO, or exchange
 state. Any scheduler integration or `closeGrid`/`createGrid` action requires
 separate explicit approval.
+The SSH wrapper owns only remote env/app-port handling; the JSON-RPC call,
+marker validation, and packet rendering are owned by the Java smoke runner
+`com.agora.smoke.McpSmokeCli` so the smoke logic is unit-testable.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

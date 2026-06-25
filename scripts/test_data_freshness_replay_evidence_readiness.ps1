@@ -105,6 +105,6 @@ Assert-FailsBeforeSsh `
 
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Symbol", "BTCUSDT';echo bad") `
-    -ExpectedPattern "Symbol contains unsupported characters for DataFreshness replay evidence readiness arguments"
+    -ExpectedPattern "Symbol contains unsupported characters"
 
 Write-Host "[data-freshness-replay-evidence-readiness-test] OK"

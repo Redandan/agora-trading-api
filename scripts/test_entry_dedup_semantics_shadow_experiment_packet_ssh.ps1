@@ -101,6 +101,6 @@ Assert-FailsBeforeSsh `
 
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-IntervalCode", "1h';echo bad") `
-    -ExpectedPattern "IntervalCode contains unsupported characters for EntryDedup shadow experiment SSH packet arguments"
+    -ExpectedPattern "IntervalCode contains unsupported characters"
 
 Write-Host "[entry-dedup-semantics-shadow-experiment-packet-ssh-test] OK"

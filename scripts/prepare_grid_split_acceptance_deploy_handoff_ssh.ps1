@@ -198,13 +198,16 @@ if ($watchTopBlocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING") { Add-Unique -List $mis
 if ($watchOpenable -ne "false") { Add-Unique -List $missingRequirements -Value "grid remains not openable before deploy handoff" }
 
 $deployCurrentRuntimeRequired = ($watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT", "CURRENT_ORIGIN_MAIN"))
-$runtimeDrift = ($originDeltaStatus -eq "RUNTIME_DRIFT" -or $deploymentMetadataStatus -eq "RUNTIME_DRIFT")
+$currentnessDrift = (
+    $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT") -or
+    $deploymentMetadataStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT")
+)
 $metadataCurrent = ($originDeltaStatus -eq "CURRENT_ORIGIN_MAIN" -and $deploymentMetadataStatus -in @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT"))
 
 $status = "NOT_READY_GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_NOT_MUTATION"
 $decision = "REFRESH_GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_EVIDENCE"
 $nextAction = "Refresh grid readiness watch and origin-delta metadata before requesting deploy authorization."
-if ($missingRequirements.Count -eq 0 -and $runtimeDrift) {
+if ($missingRequirements.Count -eq 0 -and $currentnessDrift) {
     $status = "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION"
     $decision = "REQUEST_SEPARATE_DEPLOY_CURRENT_MAIN_AND_READ_ONLY_GRID_VERIFICATION"
     $nextAction = "Request separate deploy/restart authorization for current origin/main only, then rerun split acceptance and grid open readiness watch."

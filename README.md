@@ -353,6 +353,23 @@ override, change env, deploy, restart, call `createGrid`, enable
 grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid open operator authorization request:
+
+```powershell
+.\scripts\prepare_grid_open_operator_authorization_request_ssh.ps1
+```
+
+This consumes the authorization bundle and emits
+`GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_PACKET`,
+`grid_open_operator_authorization_request_status`,
+`grid_open_operator_authorization_request_ready`, `grid_open_allowed=false`,
+and `create_grid_allowed=false`. It renders copyable, separate authorization
+request lines for trend override, capital-cap override, production env diff,
+deploy/restart plus post-env verification, and createGrid review. It does not
+approve any request, change env, deploy, restart, call `createGrid`, enable
+grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

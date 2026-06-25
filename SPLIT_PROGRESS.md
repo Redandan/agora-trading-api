@@ -2833,6 +2833,20 @@ Trading deployment prep:
   authorization to approve any override, change env, deploy, restart, call
   `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
   Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- Grid open operator authorization now has a read-only request packet:
+  `scripts/prepare_grid_open_operator_authorization_request_ssh.ps1`. It
+  consumes the authorization bundle and emits
+  `GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_PACKET`,
+  `grid_open_operator_authorization_request_status`,
+  `grid_open_operator_authorization_request_ready`,
+  `grid_open_allowed=false`, and `create_grid_allowed=false`. The packet
+  renders separate copyable request lines for trend-regime override,
+  capital-cap override, production env diff, deploy/restart plus post-env
+  verification, and createGrid review, while keeping every approval and
+  mutation flag false. It is not authorization to approve any request, change
+  env, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
+  place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

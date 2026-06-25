@@ -50,6 +50,7 @@ function Assert-FailsBeforeSsh {
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "prepare_strategy485_operator_review_packet_ssh.ps1"
 $gatePath = Join-Path $PSScriptRoot "prepare_strategy485_position_review_gate_ssh.ps1"
+$riskSmokePath = Join-Path $PSScriptRoot "smoke_strategy485_position_risk_ssh.ps1"
 $planPath = Join-Path $repoRoot "docs/strategy485-aged-position-review-plan.md"
 $readmePath = Join-Path $repoRoot "README.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
@@ -57,6 +58,7 @@ $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 $gateText = Get-Content -Raw -LiteralPath $gatePath
+$riskSmokeText = Get-Content -Raw -LiteralPath $riskSmokePath
 $planText = Get-Content -Raw -LiteralPath $planPath
 $docsText = @(
     Get-Content -Raw -LiteralPath $readmePath
@@ -103,6 +105,44 @@ foreach ($marker in @(
         "READY_FOR_OPERATOR_REVIEW_NOT_MUTATION"
     )) {
     Assert-Contains -Name "strategy485 gate supports packet" -Text $gateText -Pattern ([regex]::Escape($marker))
+}
+
+foreach ($marker in @(
+        "review_ready_by_risk",
+        "risk_triggers",
+        "paperPct<=-8",
+        "evUsdt<=-0.50",
+        "tpStretchWatchCount>0",
+        "close_or_modify and negative_ev and oco_ok",
+        "reviewRiskTriggerCount",
+        "reviewRiskTriggers",
+        "entryAgeDays",
+        "entryPrice",
+        "takeProfit",
+        "stopLoss",
+        "ocoAlgoId",
+        "closePositionAllowed",
+        "orderAllowed",
+        "telegramSendAllowed",
+        "schedulerEnablementAllowed",
+        "close_position_allowed=false",
+        "order_allowed=false",
+        "telegram_send_allowed=false",
+        'recommendation = "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY"'
+    )) {
+    Assert-Contains -Name "strategy485 risk smoke review gate marker" -Text $riskSmokeText -Pattern ([regex]::Escape($marker))
+}
+
+foreach ($marker in @(
+        "closePositionAllowed = `$false",
+        "orderAllowed = `$false",
+        "telegramSendAllowed = `$false",
+        "schedulerEnablementAllowed = `$false",
+        "close_position_allowed=false",
+        "order_allowed=false",
+        "telegram_send_allowed=false"
+    )) {
+    Assert-Contains -Name "strategy485 operator packet safety marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
 foreach ($marker in @(

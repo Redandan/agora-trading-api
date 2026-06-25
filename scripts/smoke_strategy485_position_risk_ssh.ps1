@@ -84,6 +84,7 @@ import os
 import re
 import sys
 import urllib.request
+from datetime import datetime
 
 url = f"http://127.0.0.1:{os.environ['PORT']}/api/mcp"
 headers = {
@@ -186,19 +187,59 @@ def extract_position_ids(open_positions):
         return all_ids
     return ids
 
-def ev_summary(position_id):
+def parse_position_details(open_positions):
+    now = datetime.now()
+    details = {}
+    pattern = re.compile(
+        r"ID:\s*(?P<id>\d+).*?"
+        r"入場價:\s*(?P<entry>[0-9.]+).*?"
+        r"數量:\s*(?P<quantity>[0-9.]+).*?"
+        r"TP:\s*(?P<tp>[0-9.]+)\s*\|\s*SL:\s*(?P<sl>[0-9.]+).*?"
+        r"algoId=(?P<algoId>\d+).*?"
+        r"開倉時間:\s*(?P<entryTime>[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2})",
+        re.S,
+    )
+    for match in pattern.finditer(open_positions):
+        entry_time = match.group("entryTime")
+        entry_age_days = "N/A"
+        try:
+            entry_dt = datetime.strptime(f"{now.year}-{entry_time}", "%Y-%m-%d %H:%M")
+            if entry_dt > now:
+                entry_dt = entry_dt.replace(year=now.year - 1)
+            entry_age_days = round((now - entry_dt).total_seconds() / 86400, 2)
+        except Exception:
+            pass
+        details[int(match.group("id"))] = {
+            "entryPrice": match.group("entry"),
+            "quantity": match.group("quantity"),
+            "takeProfit": match.group("tp"),
+            "stopLoss": match.group("sl"),
+            "ocoAlgoId": match.group("algoId"),
+            "entryTime": entry_time,
+            "entryAgeDays": entry_age_days,
+        }
+    return details
+
+def ev_summary(position_id, position_details):
     ev = call_tool("reassessActivePositionEv", {"positionId": position_id, "symbol": symbol, "horizonHours": 168})
     require("position EV read-only boundary", r"boundary:\s*READ_ONLY", ev)
     decision = re.search(r"Decision:\s*([A-Z_]+)", ev)
     suggestion = re.search(r"Suggestion:\s*([A-Z_]+)", ev)
     ev_value = re.search(r"EV:\s*([-+0-9.]+)\s*USDT", ev)
     current = re.search(r"Current:\s*[^0-9+-]*([0-9.]+)\s*\(([-+0-9.]+)%\)", ev)
+    details = position_details.get(position_id, {})
     return {
         "positionId": position_id,
         "decision": decision.group(1) if decision else "N/A",
         "suggestion": suggestion.group(1) if suggestion else "N/A",
         "evUsdt": ev_value.group(1) if ev_value else "N/A",
         "paperPct": current.group(2) if current else "N/A",
+        "entryTime": details.get("entryTime", "N/A"),
+        "entryAgeDays": details.get("entryAgeDays", "N/A"),
+        "entryPrice": details.get("entryPrice", "N/A"),
+        "takeProfit": details.get("takeProfit", "N/A"),
+        "stopLoss": details.get("stopLoss", "N/A"),
+        "ocoAlgoId": details.get("ocoAlgoId", "N/A"),
         "raw": ev,
     }
 
@@ -233,7 +274,8 @@ position_ids = extract_position_ids(open_positions)
 if not position_ids:
     position_ids = [int(x) for x in re.findall(r"Position #(\d+).*?\\[SB_ADD\\]", tp_stretch)]
 position_ids = sorted(set(position_ids))
-ev_rows = [ev_summary(pid) for pid in position_ids]
+position_details = parse_position_details(open_positions)
+ev_rows = [ev_summary(pid, position_details) for pid in position_ids]
 
 aged_events = len(re.findall(r"POSITION_TIMEOUT", events))
 tp_watch = len(re.findall(r"status=WATCH", tp_stretch))
@@ -241,6 +283,20 @@ tp_stretched = len(re.findall(r"status=STRETCHED|stretched=([1-9]\d*)", tp_stret
 oco_ok = oco_health_ok(oco)
 negative_ev = [row for row in ev_rows if row["evUsdt"] not in ("N/A", "") and float(row["evUsdt"]) < 0]
 close_or_modify = [row for row in ev_rows if row["suggestion"] in ("CLOSE", "MODIFY")]
+paper_loss_review = [row for row in ev_rows if row["paperPct"] not in ("N/A", "") and float(row["paperPct"]) <= -8.0]
+ev_loss_review = [row for row in ev_rows if row["evUsdt"] not in ("N/A", "") and float(row["evUsdt"]) <= -0.50]
+risk_triggers = []
+if aged_events > 0:
+    risk_triggers.append("positionTimeoutEvents>0")
+if tp_watch > 0:
+    risk_triggers.append("tpStretchWatchCount>0")
+if tp_stretched > 0:
+    risk_triggers.append("tpStretchStretchedCount>0")
+if paper_loss_review:
+    risk_triggers.append("paperPct<=-8")
+if ev_loss_review:
+    risk_triggers.append("evUsdt<=-0.50")
+review_ready_by_risk = bool(close_or_modify and negative_ev and oco_ok and risk_triggers)
 
 print("")
 print("Open Strategy 485 Positions:")
@@ -253,12 +309,13 @@ print("  ocoHealth=" + compact(oco, 700))
 print("")
 print("Position EV:")
 for row in ev_rows:
-    print(f"  position={row['positionId']} decision={row['decision']} suggestion={row['suggestion']} evUsdt={row['evUsdt']} paperPct={row['paperPct']}")
+    print(f"  position={row['positionId']} entryTime={row['entryTime']} entryAgeDays={row['entryAgeDays']} entry={row['entryPrice']} tp={row['takeProfit']} sl={row['stopLoss']} ocoAlgoId={row['ocoAlgoId']} decision={row['decision']} suggestion={row['suggestion']} evUsdt={row['evUsdt']} paperPct={row['paperPct']}")
 print("")
 print("TP Stretch / Aging:")
 print(f"  positionTimeoutEvents={aged_events}")
 print(f"  tpStretchWatchCount={tp_watch}")
 print(f"  tpStretchStretchedCount={tp_stretched}")
+print(f"  reviewRiskTriggers={risk_triggers}")
 print("  tpStretch=" + compact(tp_stretch, 900))
 print("")
 print("Recent Closed / PnL:")
@@ -272,7 +329,7 @@ if not position_ids:
     recommendation = "NO_OPEN_STRATEGY485_POSITION"
 elif not oco_ok:
     recommendation = "FIX_OCO_PROTECTION_FIRST"
-elif close_or_modify and aged_events > 0:
+elif review_ready_by_risk:
     recommendation = "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY"
 elif negative_ev:
     recommendation = "WATCH_NEGATIVE_EV_WITH_OCO_PROTECTED"
@@ -309,6 +366,10 @@ review_decision = {
     "strategyId": strategy_id,
     "canDraftOperatorReviewPacket": recommendation == "REVIEW_AGED_NEGATIVE_EV_POSITIONS_READ_ONLY",
     "positionOrOcoMutationAllowed": False,
+    "closePositionAllowed": False,
+    "orderAllowed": False,
+    "telegramSendAllowed": False,
+    "schedulerEnablementAllowed": False,
     "ocoHealthOk": oco_ok,
     "openPositionCount": len(position_ids),
     "negativeEvPositionCount": len(negative_ev),
@@ -316,6 +377,8 @@ review_decision = {
     "positionTimeoutEventCount": aged_events,
     "tpStretchWatchCount": tp_watch,
     "tpStretchStretchedCount": tp_stretched,
+    "reviewRiskTriggerCount": len(risk_triggers),
+    "reviewRiskTriggers": risk_triggers,
     "positions": [
         {
             "positionId": row["positionId"],
@@ -323,6 +386,12 @@ review_decision = {
             "suggestion": row["suggestion"],
             "evUsdt": row["evUsdt"],
             "paperPct": row["paperPct"],
+            "entryTime": row["entryTime"],
+            "entryAgeDays": row["entryAgeDays"],
+            "entryPrice": row["entryPrice"],
+            "takeProfit": row["takeProfit"],
+            "stopLoss": row["stopLoss"],
+            "ocoAlgoId": row["ocoAlgoId"],
         }
         for row in ev_rows
     ],
@@ -337,6 +406,13 @@ print(f"  openStrategy485Positions={len(position_ids)}")
 print(f"  negativeEvPositions={len(negative_ev)}")
 print(f"  closeOrModifySuggestions={len(close_or_modify)}")
 print(f"  positionTimeoutEvents={aged_events}")
+print(f"  reviewRiskTriggerCount={len(risk_triggers)}")
+print("  reviewRiskTriggers=" + json.dumps(risk_triggers, ensure_ascii=False, separators=(",", ":")))
+print("  close_position_allowed=false")
+print("  position_or_oco_mutation_allowed=false")
+print("  order_allowed=false")
+print("  telegram_send_allowed=false")
+print("  scheduler_enablement_allowed=false")
 print(f"  strategy485_position_risk_recommendation={recommendation}")
 print("  strategy485_position_review_decision=" + json.dumps(review_decision, ensure_ascii=False, separators=(",", ":")))
 print("  notAuthorization=read-only evidence only; does not authorize closing positions, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, or policy relaxation")

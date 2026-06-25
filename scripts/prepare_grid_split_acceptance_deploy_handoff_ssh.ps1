@@ -240,6 +240,8 @@ $watchOpenable = Get-LastPrefixedValue -Text $watchText -Prefix "grid_open_readi
 $watchScore = Get-LastPrefixedValue -Text $watchText -Prefix "grid_open_readiness_watch_score_pct=" -Default ""
 $watchPassedGates = Get-LastPrefixedValue -Text $watchText -Prefix "grid_open_readiness_watch_passed_gates=" -Default ""
 $watchTopBlocker = Get-LastPrefixedValue -Text $watchText -Prefix "grid_open_readiness_watch_top_blocker=" -Default ""
+$watchRankedBlockers = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $watchText -Prefix "grid_open_readiness_watch_ranked_blockers=" -Default "[]")
+$watchGateChecks = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $watchText -Prefix "grid_open_readiness_watch_gate_checks=" -Default "[]")
 $originDeltaStatus = Get-LastPrefixedValue -Text $originText -Prefix "origin_delta_status=" -Default "UNKNOWN"
 $originRuntimeDeltaFiles = Get-LastPrefixedValue -Text $originText -Prefix "origin_runtime_delta_files=" -Default ""
 $deploymentMetadataStatus = Get-LastPrefixedValue -Text $originText -Prefix "deployment_metadata_status=" -Default "UNKNOWN"
@@ -258,6 +260,11 @@ if ($originDeltaStatus -eq "UNKNOWN") { Add-Unique -List $missingRequirements -V
 if ($watchTopBlocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING") { Add-Unique -List $missingRequirements -Value "grid top blocker is SPLIT_ACCEPTANCE_NOT_PASSING" }
 if ($watchOpenable -ne "false") { Add-Unique -List $missingRequirements -Value "grid remains not openable before deploy handoff" }
 
+$expectedPostDeployNextBlockers = @(
+    @($watchRankedBlockers) |
+        Where-Object { $null -ne $_ -and [string]$_.blocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING" } |
+        Select-Object -First 6
+)
 $deployCurrentRuntimeRequired = ($watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT", "CURRENT_ORIGIN_MAIN"))
 $currentnessDrift = (
     $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT") -or
@@ -301,6 +308,9 @@ $packet = [ordered]@{
     gridOpenReadinessScorePct = $watchScore
     gridOpenReadinessPassedGates = $watchPassedGates
     gridOpenTopBlocker = $watchTopBlocker
+    gridOpenRankedBlockers = @($watchRankedBlockers)
+    gridOpenGateChecks = @($watchGateChecks)
+    expectedPostDeployNextBlockers = @($expectedPostDeployNextBlockers)
     deploymentMetadataStatus = $deploymentMetadataStatus
     originMetadataStatus = $originMetadataStatus
     originDeltaStatus = $originDeltaStatus
@@ -361,6 +371,8 @@ Write-Host "grid_open_readiness_watch_openable=false"
 Write-Host "grid_open_readiness_watch_score_pct=$watchScore"
 Write-Host "grid_open_readiness_watch_passed_gates=$watchPassedGates"
 Write-Host "grid_open_readiness_watch_top_blocker=$watchTopBlocker"
+Write-Host ("grid_open_readiness_watch_ranked_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($watchRankedBlockers)))
+Write-Host ("grid_expected_post_deploy_next_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($expectedPostDeployNextBlockers)))
 Write-Host "origin_delta_status=$originDeltaStatus"
 Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
 Write-Host "origin_runtime_delta_files=$originRuntimeDeltaFiles"

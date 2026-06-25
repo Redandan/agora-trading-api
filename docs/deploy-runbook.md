@@ -870,7 +870,8 @@ Expected:
 - Emits `grid_open_readiness_watch_status`,
   `grid_open_readiness_watch_score_pct`,
   `grid_open_readiness_watch_score_delta_pct`,
-  `grid_open_readiness_watch_top_blocker`, and
+  `grid_open_readiness_watch_top_blocker`,
+  `grid_open_readiness_watch_ranked_blockers`, and
   `grid_open_readiness_watch_next_action`.
 - `PENDING_GRID_DEPLOY_OR_SPLIT_ACCEPTANCE`, `PENDING_GRID_ENV_DIFF`,
   `PENDING_GRID_EVENT_RISK_R0`, or `PENDING_GRID_OPEN_BLOCKERS` means the
@@ -897,6 +898,8 @@ Expected:
   `grid_split_acceptance_deploy_handoff_status`,
   `grid_split_acceptance_deploy_handoff_decision`, grid score/top blocker,
   deployment metadata, origin-delta classification, and runtime delta paths.
+- Emits `grid_expected_post_deploy_next_blockers` so the operator can see which
+  blocker lanes are likely to remain after split/currentness is fixed.
 - Emits child `child_start`, `child_heartbeat`, and `child_complete` markers
   with timeout handling while it refreshes the nested read-only evidence.
 - `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`

@@ -435,7 +435,8 @@ Bounded read-only Grid open readiness watch:
 This invokes only `prepare_grid_open_blocker_priority_board_ssh.ps1`, adds
 child heartbeat/timeout handling, and emits `grid_open_readiness_watch_status`,
 `grid_open_readiness_watch_score_pct`, `grid_open_readiness_watch_top_blocker`,
-and `grid_open_readiness_watch_next_action`. Pending states include
+`grid_open_readiness_watch_ranked_blockers`, and
+`grid_open_readiness_watch_next_action`. Pending states include
 `PENDING_GRID_DEPLOY_OR_SPLIT_ACCEPTANCE`, `PENDING_GRID_ENV_DIFF`,
 `PENDING_GRID_EVENT_RISK_R0`, and `PENDING_GRID_OPEN_BLOCKERS`.
 `GRID_OPEN_READINESS_READY_FOR_SEPARATE_CREATEGRID_AUTHORIZATION_NOT_MUTATION`
@@ -454,8 +455,9 @@ This consumes the grid open readiness watch and the metadata-only origin-delta
 classifier, then emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
 `grid_split_acceptance_deploy_handoff_status`, the grid readiness score/top
 blocker, deployment metadata, runtime delta evidence, child
-`child_start`/`child_heartbeat`/`child_complete` markers, and the exact
-read-only post-deploy verification list. A status of
+`child_start`/`child_heartbeat`/`child_complete` markers, the expected
+post-deploy next blockers after the split/currentness blocker clears, and the
+exact read-only post-deploy verification list. A status of
 `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
 means only that an operator can separately consider deploying current
 `origin/main` and rerunning read-only grid verification. It does not deploy,

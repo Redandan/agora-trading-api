@@ -2913,7 +2913,9 @@ Trading deployment prep:
   `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
   `grid_split_acceptance_deploy_handoff_status`, grid score/top blocker,
   deployment metadata, runtime delta evidence, and the required post-deploy
-  read-only verification commands. The handoff now emits child
+  read-only verification commands. The handoff also emits
+  `grid_expected_post_deploy_next_blockers`, so split/currentness does not hide
+  the likely next env/event/capital/operator blocker lanes. The handoff now emits child
   `child_start`, `child_heartbeat`, and `child_complete` markers with timeout
   handling while refreshing nested read-only evidence. A status of
   `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`

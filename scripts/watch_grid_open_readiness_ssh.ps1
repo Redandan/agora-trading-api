@@ -186,6 +186,8 @@ $finalTopBlocker = ""
 $finalBoardStatus = ""
 $finalOpenable = "false"
 $finalPassedGates = ""
+$finalRankedBlockersJson = "[]"
+$finalGateChecksJson = "[]"
 $firstScore = $null
 $lastScore = $null
 
@@ -201,6 +203,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $score = Get-LastPrefixedValue -Text $boardResult.Text -Prefix "grid_open_readiness_score_pct="
     $passedGates = Get-LastPrefixedValue -Text $boardResult.Text -Prefix "grid_open_readiness_passed_gates="
     $topBlockerJson = Get-LastPrefixedValue -Text $boardResult.Text -Prefix "grid_open_blocker_priority_top_blocker="
+    $rankedBlockersJson = Get-LastPrefixedValue -Text $boardResult.Text -Prefix "grid_open_blocker_priority_ranked_blockers="
+    $gateChecksJson = Get-LastPrefixedValue -Text $boardResult.Text -Prefix "grid_open_blocker_priority_gate_checks="
     $boardPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $boardResult.Text -Prefix "grid_open_blocker_priority_board_packet=")
     $topBlocker = Convert-JsonObjectOrNull $topBlockerJson
     $topBlockerName = if ($null -ne $topBlocker) { [string]$topBlocker.blocker } else { "" }
@@ -217,6 +221,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $finalTopBlocker = $topBlockerName
     $finalOpenable = if ([string]::IsNullOrWhiteSpace($openable)) { "false" } else { $openable }
     $finalPassedGates = $passedGates
+    $finalRankedBlockersJson = if ([string]::IsNullOrWhiteSpace($rankedBlockersJson)) { "[]" } else { $rankedBlockersJson }
+    $finalGateChecksJson = if ([string]::IsNullOrWhiteSpace($gateChecksJson)) { "[]" } else { $gateChecksJson }
 
     $openReady = (
         $boardResult.ExitCode -eq 0 -and
@@ -255,6 +261,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     Write-Host "attempt_grid_open_readiness_score_pct=$score"
     Write-Host "attempt_grid_open_readiness_passed_gates=$passedGates"
     Write-Host "attempt_grid_open_top_blocker=$topBlockerName"
+    Write-Host "attempt_grid_open_ranked_blockers=$finalRankedBlockersJson"
+    Write-Host "attempt_grid_open_gate_checks=$finalGateChecksJson"
     Write-Host "attempt_grid_open_ready=$($openReady.ToString().ToLowerInvariant())"
 
     if ($openReady) { break }
@@ -278,6 +286,8 @@ Write-Host "grid_open_readiness_watch_score_pct=$finalScore"
 Write-Host "grid_open_readiness_watch_score_delta_pct=$scoreDelta"
 Write-Host "grid_open_readiness_watch_passed_gates=$finalPassedGates"
 Write-Host "grid_open_readiness_watch_top_blocker=$finalTopBlocker"
+Write-Host "grid_open_readiness_watch_ranked_blockers=$finalRankedBlockersJson"
+Write-Host "grid_open_readiness_watch_gate_checks=$finalGateChecksJson"
 Write-Host "grid_open_readiness_watch_next_action=If pending, resolve the top blocker named above, then rerun this bounded watcher; do not deploy, change env, call createGrid, or enable grid/scheduler/recovery from watcher output alone."
 Write-Host "notAuthorization=read-only grid open readiness watcher only; does not deploy, restart, reload nginx, change production env, enable live trading, call createGrid, enable grid/scheduler/recovery, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy changes"
 Write-Host "[grid-open-readiness-watch] read-only check complete"

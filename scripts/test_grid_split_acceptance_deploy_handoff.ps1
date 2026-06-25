@@ -32,6 +32,9 @@ foreach ($marker in @(
         "...[truncated]",
         "timedOut",
         "grid_open_readiness_watch_top_blocker",
+        "grid_open_readiness_watch_ranked_blockers",
+        "grid_expected_post_deploy_next_blockers",
+        "expectedPostDeployNextBlockers",
         "SPLIT_ACCEPTANCE_NOT_PASSING",
         "origin_delta_status",
         "RUNTIME_DRIFT",
@@ -93,6 +96,8 @@ grid_open_readiness_watch_openable=false
 grid_open_readiness_watch_score_pct=25.00
 grid_open_readiness_watch_passed_gates=3/12
 grid_open_readiness_watch_top_blocker=SPLIT_ACCEPTANCE_NOT_PASSING
+grid_open_readiness_watch_ranked_blockers=[{"rank":1,"family":"deployment/split-acceptance","priority":"P0","blocker":"SPLIT_ACCEPTANCE_NOT_PASSING"},{"rank":2,"family":"production-env","priority":"P0","blocker":"GRID_ENV_DIFF_NOT_APPLIED"},{"rank":3,"family":"event-risk","priority":"P0","blocker":"EVENT_RISK_NOT_R0"}]
+grid_open_readiness_watch_gate_checks=[{"gate":"splitAcceptance","pass":false},{"gate":"tradingOkxEnabled","pass":false}]
 "@ | Set-Content -LiteralPath $watchLog -Encoding UTF8
 
     $originLog = Join-Path $tempDir "origin-delta.log"
@@ -113,6 +118,8 @@ origin_runtime_delta_paths=["src/main/java/com/agora/mcp/GridMcpTools.java"]
     Assert-Contains -Name "grid deploy handoff status" -Text $text -Pattern "grid_split_acceptance_deploy_handoff_status="
     Assert-Contains -Name "grid deploy handoff decision" -Text $text -Pattern "grid_split_acceptance_deploy_handoff_decision="
     Assert-Contains -Name "grid deploy handoff blocker" -Text $text -Pattern "grid_open_readiness_watch_top_blocker=SPLIT_ACCEPTANCE_NOT_PASSING"
+    Assert-Contains -Name "grid deploy handoff ranked blockers" -Text $text -Pattern "grid_open_readiness_watch_ranked_blockers="
+    Assert-Contains -Name "grid deploy handoff expected next blocker" -Text $text -Pattern "grid_expected_post_deploy_next_blockers=.*GRID_ENV_DIFF_NOT_APPLIED"
     Assert-Contains -Name "grid deploy handoff origin drift" -Text $text -Pattern "origin_delta_status=RUNTIME_DRIFT"
     Assert-Contains -Name "grid deploy handoff env blocked" -Text $text -Pattern "production_env_change_allowed=false"
     Assert-Contains -Name "grid deploy handoff deploy blocked" -Text $text -Pattern "deploy_allowed=false"

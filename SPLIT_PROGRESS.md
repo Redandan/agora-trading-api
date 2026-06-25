@@ -2792,6 +2792,19 @@ Trading deployment prep:
   verification. It is not authorization to change env, deploy, restart, call
   `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
   Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- Grid createGrid authorization now has a separate read-only preflight packet:
+  `scripts/prepare_grid_create_authorization_preflight_packet_ssh.ps1`. It
+  consumes the grid open operator packet and env-diff preflight packet, then
+  emits `GRID_CREATE_AUTHORIZATION_PREFLIGHT_PACKET`,
+  `grid_create_authorization_preflight_status`,
+  `grid_create_authorization_review_ready`, `create_grid_allowed=false`, and
+  `grid_open_allowed=false`. The packet packages reviewed createGrid inputs,
+  replay score, trend/event/OKX gates, capital cap checks against
+  `effectiveReviewCapitalCapUsdt`, blockers, missing evidence, required
+  pre-create authorizations, and post-create read-only verification. It is not
+  authorization to change env, deploy, restart, call `createGrid`, enable
+  grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

@@ -666,6 +666,33 @@ Expected:
   call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
   send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid create authorization preflight packet:
+
+```powershell
+.\scripts\prepare_grid_create_authorization_preflight_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_open_operator_packet_ssh.ps1` and
+  `prepare_grid_env_diff_preflight_packet_ssh.ps1`.
+- Emits `GRID_CREATE_AUTHORIZATION_PREFLIGHT_PACKET`,
+  `grid_create_authorization_preflight_packet`,
+  `grid_create_authorization_preflight_status`,
+  `grid_create_authorization_review_ready`,
+  `create_grid_allowed=false`, and `grid_open_allowed=false`.
+- Packages `reviewedCreateGridInputs`, replay score, trend/event/OKX gate
+  state, `capitalCapCheck` against `effectiveReviewCapitalCapUsdt`, missing
+  evidence, blockers, required pre-create authorizations, and post-create
+  read-only verification.
+- `READY_FOR_GRID_CREATE_AUTHORIZATION_REVIEW_NOT_MUTATION` means the reviewed
+  createGrid inputs can be attached to a separate operator authorization
+  request after the env diff is separately authorized and verified. It is not
+  permission to change production env, deploy, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
+  send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

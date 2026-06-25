@@ -301,6 +301,23 @@ It does not change env, deploy, restart, call `createGrid`, enable grid,
 enable scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid create authorization preflight packet:
+
+```powershell
+.\scripts\prepare_grid_create_authorization_preflight_packet_ssh.ps1
+```
+
+This consumes the grid open operator and env-diff preflight packets and emits
+`GRID_CREATE_AUTHORIZATION_PREFLIGHT_PACKET`,
+`grid_create_authorization_preflight_status`,
+`grid_create_authorization_review_ready`, `create_grid_allowed=false`, and
+`grid_open_allowed=false`. It packages `reviewedCreateGridInputs`, replay
+score, trend/event/OKX gates, `capitalCapCheck`, missing evidence, blockers,
+required pre-create authorizations, and post-create read-only verification.
+It does not change env, deploy, restart, call `createGrid`, enable grid,
+enable scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

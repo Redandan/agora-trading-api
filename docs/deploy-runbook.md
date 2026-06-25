@@ -771,6 +771,32 @@ Expected:
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid post-env verification plan:
+
+```powershell
+.\scripts\prepare_grid_post_env_verification_plan_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_open_operator_authorization_request_ssh.ps1`.
+- Emits `GRID_POST_ENV_VERIFICATION_PLAN_PACKET`,
+  `grid_post_env_verification_plan_packet`,
+  `grid_post_env_verification_plan_status`,
+  `grid_post_env_verification_plan_ready`, `deploy_allowed=false`,
+  `grid_open_allowed=false`, and `create_grid_allowed=false`.
+- Packages the required post-env read-only commands, pass criteria, abort
+  criteria, and refreshed createGrid inputs that must still match after any
+  separately authorized env/deploy/restart.
+- `READY_FOR_GRID_POST_ENV_VERIFICATION_PLAN_NOT_MUTATION` means the read-only
+  post-env verification checklist is ready to run after separately authorized
+  env/deploy/restart. It is not permission to change production env, deploy,
+  restart, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  approve a trend override, approve a capital override, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

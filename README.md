@@ -370,6 +370,23 @@ approve any request, change env, deploy, restart, call `createGrid`, enable
 grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid post-env verification plan:
+
+```powershell
+.\scripts\prepare_grid_post_env_verification_plan_ssh.ps1
+```
+
+This consumes the operator authorization request and emits
+`GRID_POST_ENV_VERIFICATION_PLAN_PACKET`,
+`grid_post_env_verification_plan_status`,
+`grid_post_env_verification_plan_ready`, `deploy_allowed=false`,
+`grid_open_allowed=false`, and `create_grid_allowed=false`. It packages the
+required read-only verification commands, pass criteria, abort criteria, and
+refreshed createGrid inputs that must still match after any separately
+authorized env/deploy/restart. It does not approve env changes, deploy,
+restart, call `createGrid`, enable grid/scheduler/recovery, place orders,
+modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

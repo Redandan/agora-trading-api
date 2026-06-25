@@ -2847,6 +2847,19 @@ Trading deployment prep:
   env, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
   place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- Grid post-env verification now has a read-only plan packet:
+  `scripts/prepare_grid_post_env_verification_plan_ssh.ps1`. It consumes the
+  operator authorization request and emits
+  `GRID_POST_ENV_VERIFICATION_PLAN_PACKET`,
+  `grid_post_env_verification_plan_status`,
+  `grid_post_env_verification_plan_ready`, `deploy_allowed=false`,
+  `grid_open_allowed=false`, and `create_grid_allowed=false`. The packet
+  packages the required post-env read-only commands, pass criteria, abort
+  criteria, and refreshed createGrid inputs that must still match after any
+  separately authorized env/deploy/restart. It is not authorization to change
+  env, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
+  place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

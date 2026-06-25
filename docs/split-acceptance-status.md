@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-23
+Last refreshed: 2026-06-26
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -156,6 +156,25 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is only permission to
   review a separately authorized live-change plan; it does not enable live
   trading.
+- Grid open readiness is still read-only and not openable as of the
+  2026-06-26 refresh. `.\scripts\prepare_grid_split_acceptance_deploy_handoff_ssh.ps1`
+  returned
+  `grid_split_acceptance_deploy_handoff_status=READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
+  with `local_worktree_clean=true`, local `HEAD` and `origin/main` both at
+  `0180c20`, server worktree still at `423ab72`, readiness score `25.00`, and
+  passed gates `3/12`. The current top blocker remains
+  `SPLIT_ACCEPTANCE_NOT_PASSING`; expected post-deploy blockers are
+  `GRID_ENV_DIFF_NOT_APPLIED`, `EVENT_RISK_NOT_R0`,
+  `REPLAY_SCORE_BELOW_GRID_REVIEW_FLOOR`,
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`, and
+  `GRID_OPERATOR_AUTHORIZATION_CHAIN_NOT_READY`. The packet kept
+  `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `create_grid_allowed=false`, `grid_open_allowed=false`,
+  `grid_mutation_allowed=false`, `scheduler_enablement_allowed=false`,
+  `order_allowed=false`, `oco_mutation_allowed=false`, and
+  `telegram_send_allowed=false`; it is only evidence to request a separate
+  deploy/restart decision for current `origin/main` followed by read-only
+  verification.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

@@ -335,6 +335,24 @@ read-only verification. It does not approve a capital override, change env,
 deploy, restart, call `createGrid`, enable grid/scheduler/recovery, place
 orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid open authorization bundle:
+
+```powershell
+.\scripts\prepare_grid_open_authorization_bundle_ssh.ps1
+```
+
+This consumes the capital-override review packet and emits
+`GRID_OPEN_AUTHORIZATION_BUNDLE_PACKET`,
+`grid_open_authorization_bundle_status`,
+`grid_open_authorization_bundle_ready`, `grid_open_allowed=false`, and
+`create_grid_allowed=false`. It consolidates the trend override, capital cap
+override, production env diff, post-env read-only verification, and createGrid
+authorization lanes into one operator-review bundle with explicit remaining
+execution blockers and required authorization order. It does not approve any
+override, change env, deploy, restart, call `createGrid`, enable
+grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

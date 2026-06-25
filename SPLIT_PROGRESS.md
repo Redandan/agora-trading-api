@@ -2820,6 +2820,19 @@ Trading deployment prep:
   override, change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- Grid open authorization now has a consolidated read-only bundle:
+  `scripts/prepare_grid_open_authorization_bundle_ssh.ps1`. It consumes the
+  capital-cap override review packet and emits
+  `GRID_OPEN_AUTHORIZATION_BUNDLE_PACKET`,
+  `grid_open_authorization_bundle_status`,
+  `grid_open_authorization_bundle_ready`, `grid_open_allowed=false`, and
+  `create_grid_allowed=false`. The bundle consolidates trend-regime override,
+  capital-cap override, production env diff, post-env read-only verification,
+  and createGrid authorization lanes into one operator-review handoff with
+  remaining execution blockers and required authorization order. It is not
+  authorization to approve any override, change env, deploy, restart, call
+  `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
+  Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

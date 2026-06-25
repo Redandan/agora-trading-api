@@ -721,6 +721,31 @@ Expected:
   place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
 
+Read-only Grid open authorization bundle:
+
+```powershell
+.\scripts\prepare_grid_open_authorization_bundle_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_capital_override_review_packet_ssh.ps1`.
+- Emits `GRID_OPEN_AUTHORIZATION_BUNDLE_PACKET`,
+  `grid_open_authorization_bundle_packet`,
+  `grid_open_authorization_bundle_status`,
+  `grid_open_authorization_bundle_ready`, `grid_open_allowed=false`, and
+  `create_grid_allowed=false`.
+- Consolidates the trend override, capital-cap override, production env diff,
+  post-env read-only verification, and createGrid authorization lanes into one
+  operator-review bundle.
+- `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_BUNDLE_NOT_MUTATION` means the
+  separate approval lanes are reviewable together. It is not permission to
+  approve any override, change production env, deploy, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  approve a trend override, approve a capital override, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

@@ -13,9 +13,15 @@ $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 
 foreach ($marker in @(
         "REMAINING_OPEN_ISSUES_STATUS_PACKET",
+        "remainingIssueCount = 7",
         "remaining_open_issues_status",
         "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS",
         "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE",
+        "issue8_status",
+        "issue9_status",
+        "issue10_status",
+        "issue11_status",
+        "issue12_status",
         "profit_evidence_watch_status",
         "read-only remaining open issues status packet only",
         "does not run SSH"
@@ -43,6 +49,9 @@ try {
     $issue7Log = Join-Path $tempDir "issue7.log"
     $issue7PostActivationLog = Join-Path $tempDir "issue7-post-activation.log"
     $watchLog = Join-Path $tempDir "watch.log"
+    $buyLikeLossLog = Join-Path $tempDir "buy-like-loss.log"
+    $strategy485GateLog = Join-Path $tempDir "strategy485-gate.log"
+    $trailingStopLog = Join-Path $tempDir "trailing-stop.log"
 
     @"
 Profit Improvement Bundle Summary:
@@ -83,13 +92,51 @@ profit_evidence_watch_replay_recommendation=COLLECT_REPLAY_SNAPSHOTS_BEFORE_POLI
 notAuthorization=read-only evidence watcher only
 "@ | Set-Content -LiteralPath $watchLog -Encoding UTF8
 
-    $blocked = & $scriptPath -ProfitImprovementLog $profitLog -Issue7BundleLog $issue7Log -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -RequireBlocked *>&1
+    @"
+[buy-like-candidate-loss-review-packet] read-only packet
+buy_like_candidate_loss_review_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE
+buy_like_candidate_loss_dominant_blocker=ENTRY_SKIP:EntryDedup
+buy_like_candidate_loss_14d_rows=84
+buy_like_candidate_loss_30d_rows=738
+issue8_status=BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS
+issue8_recent_could_produce_data_freshness_terminal=false
+issue12_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE
+issue12_close_readiness=OPERATOR_REVIEW_READY_NOT_LIVE
+close_issue12_allowed=true
+close_issue6_or_7_allowed=false
+notAuthorization=read-only BUY-like candidate loss review packet only
+"@ | Set-Content -LiteralPath $buyLikeLossLog -Encoding UTF8
+
+    @"
+[strategy485-position-review-gate] read-only gate
+strategy485_position_risk_recommendation=WATCH_NEGATIVE_EV_WITH_OCO_PROTECTED
+position_or_oco_mutation_allowed=false
+strategy485_review_missing_requirements=[]
+strategy485_position_review_gate_status=WATCH_ONLY
+notAuthorization=read-only gate only
+"@ | Set-Content -LiteralPath $strategy485GateLog -Encoding UTF8
+
+    @"
+[trailing-stop-dry-run-operator-decision-packet] read-only packet
+trailing_stop_dry_run_primary_focus=trailing-stop-dry-run-operator-review
+trailing_stop_dry_run_operator_decision_status=NOT_READY
+position_or_oco_mutation_allowed=false
+order_allowed=false
+notAuthorization=read-only trailing-stop dry-run operator decision packet only
+"@ | Set-Content -LiteralPath $trailingStopLog -Encoding UTF8
+
+    $blocked = & $scriptPath -ProfitImprovementLog $profitLog -Issue7BundleLog $issue7Log -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -BuyLikeCandidateLossReviewLog $buyLikeLossLog -Strategy485PositionGateLog $strategy485GateLog -TrailingStopDryRunDecisionLog $trailingStopLog -RequireBlocked *>&1
     $blockedText = $blocked -join "`n"
 
     Assert-Contains -Name "remaining open issues blocked status" -Text $blockedText -Pattern "remaining_open_issues_status=BLOCKED_NOT_CLOSEABLE"
     Assert-Contains -Name "remaining open issues blocker" -Text $blockedText -Pattern "remaining_open_issues_global_blocker=NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
     Assert-Contains -Name "remaining open issues issue6" -Text $blockedText -Pattern "issue6_decision=BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE"
     Assert-Contains -Name "remaining open issues issue7" -Text $blockedText -Pattern "issue7_remaining_blocker=NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
+    Assert-Contains -Name "remaining open issues issue8" -Text $blockedText -Pattern "issue8_status=BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS"
+    Assert-Contains -Name "remaining open issues issue9" -Text $blockedText -Pattern "issue9_status=WATCH_ONLY"
+    Assert-Contains -Name "remaining open issues issue10" -Text $blockedText -Pattern "issue10_status=READY_STATUS_PACKET_UPDATED_FOR_ISSUES_6_TO_12_NOT_LIVE"
+    Assert-Contains -Name "remaining open issues issue11" -Text $blockedText -Pattern "issue11_status=NOT_READY"
+    Assert-Contains -Name "remaining open issues issue12" -Text $blockedText -Pattern "issue12_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE"
     Assert-Contains -Name "remaining open issues not live" -Text $blockedText -Pattern "live_relaxation_allowed=false"
 
     $packetJson = ($blockedText -split "`r?`n" | Where-Object { $_.StartsWith("remaining_open_issues_status_packet=") } | Select-Object -Last 1).Substring("remaining_open_issues_status_packet=".Length)
@@ -100,6 +147,12 @@ notAuthorization=read-only evidence watcher only
     if ($packet.globalBlocker -ne "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS") {
         throw "unexpected packet blocker: $($packet.globalBlocker)"
     }
+    if ($packet.remainingIssueCount -ne 7) {
+        throw "unexpected remaining issue count: $($packet.remainingIssueCount)"
+    }
+    if (@($packet.issues).Count -ne 7) {
+        throw "unexpected issue row count: $(@($packet.issues).Count)"
+    }
 
     $bundleWithoutSummaryLog = Join-Path $tempDir "issue7-bundle-without-summary.log"
     @"
@@ -109,13 +162,13 @@ notAuthorization=read-only evidence watcher only
 ===== END split-acceptance exitCode=1 =====
 "@ | Set-Content -LiteralPath $bundleWithoutSummaryLog -Encoding UTF8
 
-    $fallback = & $scriptPath -ProfitImprovementLog $profitLog -Issue7BundleLog $bundleWithoutSummaryLog -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -RequireBlocked *>&1
+    $fallback = & $scriptPath -ProfitImprovementLog $profitLog -Issue7BundleLog $bundleWithoutSummaryLog -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -BuyLikeCandidateLossReviewLog $buyLikeLossLog -Strategy485PositionGateLog $strategy485GateLog -TrailingStopDryRunDecisionLog $trailingStopLog -RequireBlocked *>&1
     $fallbackText = $fallback -join "`n"
     Assert-Contains -Name "remaining open issues fallback status" -Text $fallbackText -Pattern "remaining_open_issues_status=BLOCKED_NOT_CLOSEABLE"
     Assert-Contains -Name "remaining open issues fallback issue7" -Text $fallbackText -Pattern "issue7_remaining_blocker=NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
     Assert-Contains -Name "remaining open issues fallback source freshness" -Text $fallbackText -Pattern "issue7PostActivation"
 
-    $missing = & $scriptPath -ProfitImprovementLog (Join-Path $tempDir "missing-profit.log") -Issue7BundleLog $issue7Log -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -RequireBlocked *>&1
+    $missing = & $scriptPath -ProfitImprovementLog (Join-Path $tempDir "missing-profit.log") -Issue7BundleLog $issue7Log -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -BuyLikeCandidateLossReviewLog $buyLikeLossLog -Strategy485PositionGateLog $strategy485GateLog -TrailingStopDryRunDecisionLog $trailingStopLog -RequireBlocked *>&1
     $missingText = $missing -join "`n"
     Assert-Contains -Name "remaining open issues missing status" -Text $missingText -Pattern "remaining_open_issues_status=BLOCKED_REFRESH_LOCAL_EVIDENCE_LOGS"
     Assert-Contains -Name "remaining open issues missing blocker" -Text $missingText -Pattern "remaining_open_issues_global_blocker=LOCAL_STATUS_EVIDENCE_MISSING_OR_STALE"

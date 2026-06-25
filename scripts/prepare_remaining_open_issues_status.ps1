@@ -3,6 +3,9 @@ param(
     [string]$Issue7BundleLog = "target/profit-review/issue7-post-deploy-read-only-bundle-refresh.log",
     [string]$Issue7PostActivationLog = "target/profit-review/issue7-collector-post-activation-status-refresh-current.log",
     [string]$ProfitEvidenceWatchLog = "target/profit-review/profit-evidence-watch-remaining-issues.log",
+    [string]$BuyLikeCandidateLossReviewLog = "target/profit-review/buy-like-candidate-loss-review-latest.log",
+    [string]$Strategy485PositionGateLog = "target/profit-review/strategy485-position-review-gate-issue6-refresh.log",
+    [string]$TrailingStopDryRunDecisionLog = "target/profit-review/trailing-stop-dry-run-operator-decision-packet-latest.log",
     [int]$MaxAgeMinutes = 240,
     [switch]$RequireBlocked
 )
@@ -62,8 +65,11 @@ $profit = Read-Log -Path $ProfitImprovementLog
 $issue7 = Read-Log -Path $Issue7BundleLog
 $issue7PostActivation = Read-Log -Path $Issue7PostActivationLog
 $watch = Read-Log -Path $ProfitEvidenceWatchLog
+$buyLikeLoss = Read-Log -Path $BuyLikeCandidateLossReviewLog
+$strategy485Gate = Read-Log -Path $Strategy485PositionGateLog
+$trailingStop = Read-Log -Path $TrailingStopDryRunDecisionLog
 
-foreach ($log in @($profit, $issue7, $watch)) {
+foreach ($log in @($profit, $issue7, $watch, $buyLikeLoss, $strategy485Gate, $trailingStop)) {
     if ($log.Freshness -eq "MISSING") {
         Add-MissingRequirement -List $missing -Value "missing log: $($log.Path)"
     } elseif ($log.Freshness -eq "STALE") {
@@ -123,6 +129,29 @@ if ($issue6Decision -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Valu
 if ($issue7Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #7 post-deploy bundle or post-activation status marker" }
 if ($watchStatus -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "profit evidence watch status marker" }
 
+$issue8Status = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "issue8_status=" -Default "UNKNOWN"
+$issue8RecentCouldProduceDataFreshnessTerminal = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "issue8_recent_could_produce_data_freshness_terminal=" -Default "UNKNOWN"
+$issue12Status = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "issue12_status=" -Default "UNKNOWN"
+$issue12CloseReadiness = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "issue12_close_readiness=" -Default "UNKNOWN"
+$issue12DominantBlocker = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "buy_like_candidate_loss_dominant_blocker=" -Default "UNKNOWN"
+$issue12Rows14d = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "buy_like_candidate_loss_14d_rows=" -Default "UNKNOWN"
+$issue12Rows30d = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "buy_like_candidate_loss_30d_rows=" -Default "UNKNOWN"
+$issue12CloseAllowed = (Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "close_issue12_allowed=" -Default "false") -eq "true"
+if ($issue8Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #8 buy-like candidate loss status marker" }
+if ($issue12Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #12 buy-like candidate loss status marker" }
+
+$issue9GateStatus = Get-LastPrefixedValue -Text $strategy485Gate.Text -Prefix "strategy485_position_review_gate_status=" -Default "UNKNOWN"
+$issue9Recommendation = Get-LastPrefixedValue -Text $strategy485Gate.Text -Prefix "strategy485_position_risk_recommendation=" -Default "UNKNOWN"
+$issue9MutationAllowed = Get-LastPrefixedValue -Text $strategy485Gate.Text -Prefix "position_or_oco_mutation_allowed=" -Default "false"
+$issue9MissingRequirements = Get-LastPrefixedValue -Text $strategy485Gate.Text -Prefix "strategy485_review_missing_requirements=" -Default "UNKNOWN"
+if ($issue9GateStatus -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #9 Strategy485 position gate status marker" }
+
+$issue11Status = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "trailing_stop_dry_run_operator_decision_status=" -Default "UNKNOWN"
+$issue11PrimaryFocus = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "trailing_stop_dry_run_primary_focus=" -Default "UNKNOWN"
+$issue11MutationAllowed = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "position_or_oco_mutation_allowed=" -Default "false"
+$issue11OrderAllowed = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "order_allowed=" -Default "false"
+if ($issue11Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #11 trailing-stop dry-run decision status marker" }
+
 $issue6CloseAllowed = $false
 $issue6Status = if ($issue6Decision -eq "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE") {
     "BLOCKED_NOT_CLOSEABLE_REPLAY_EVIDENCE_MISSING"
@@ -134,6 +163,10 @@ $issue6Status = if ($issue6Decision -eq "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE
 
 $issue7CloseBool = ($issue7CloseAllowed -eq "true")
 $issue7LiveBool = ($issue7LiveRelaxationAllowed -eq "true")
+$issue8CloseAllowed = $false
+$issue9CloseAllowed = $false
+$issue10CloseAllowed = $false
+$issue11CloseAllowed = $false
 
 $globalBlocker = "UNKNOWN"
 if ($missing.Count -gt 0) {
@@ -144,6 +177,8 @@ if ($missing.Count -gt 0) {
     $globalBlocker = "COUNTERFACTUAL_REPLAY_EVIDENCE_MISSING"
 } elseif ($issue7CloseBool -and $issue6Status -eq "READY_FOR_REVIEW_NOT_LIVE") {
     $globalBlocker = "NONE"
+} elseif ($issue8Status -eq "BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS") {
+    $globalBlocker = "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
 } else {
     $globalBlocker = "REMAINING_ISSUES_STILL_BLOCKED"
 }
@@ -162,9 +197,14 @@ $nextAction = if ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS
     "Refresh the read-only logs for #6/#7 before using this consolidated packet."
 } elseif ($globalBlocker -eq "COUNTERFACTUAL_REPLAY_EVIDENCE_MISSING") {
     "Collect replayCandidateId, entry/TP/SL, EV, OCO, and hard-gate snapshots before any shadow/live review."
+} elseif ($issue12CloseAllowed -and $issue11Status -eq "NOT_READY") {
+    "Use the updated packet to close #12 after operator review comment, then refresh trailing-stop/Strategy485 evidence for #11/#9."
 } else {
     "Keep remaining issues open until read-only close criteria are explicitly satisfied."
 }
+
+$issue10Status = if ($missing.Count -eq 0) { "READY_STATUS_PACKET_UPDATED_FOR_ISSUES_6_TO_12_NOT_LIVE" } else { "BLOCKED_REFRESH_LOCAL_EVIDENCE_LOGS" }
+$issue10CloseAllowed = $missing.Count -eq 0
 
 $packet = [ordered]@{
     packetType = "REMAINING_OPEN_ISSUES_STATUS_PACKET"
@@ -174,7 +214,7 @@ $packet = [ordered]@{
     deployOrEnvChangeAllowed = $false
     orderAllowed = $false
     telegramSendAllowed = $false
-    remainingIssueCount = 2
+    remainingIssueCount = 7
     issues = @(
         [ordered]@{
             number = 6
@@ -196,6 +236,51 @@ $packet = [ordered]@{
             closeAllowed = $issue7CloseBool
             liveRelaxationAllowed = $issue7LiveBool
             remainingBlocker = $issue7RemainingBlocker
+        },
+        [ordered]@{
+            number = 8
+            title = "Investigate missing post-collector DataFreshness rows and BUY-like flow gap"
+            status = $issue8Status
+            closeAllowed = $issue8CloseAllowed
+            recentCouldProduceDataFreshnessTerminal = $issue8RecentCouldProduceDataFreshnessTerminal
+            upstreamEvidenceSource = $BuyLikeCandidateLossReviewLog
+            remainingBlocker = "NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS"
+        },
+        [ordered]@{
+            number = 9
+            title = "Strategy485 aged negative-EV positions operator review"
+            status = $issue9GateStatus
+            closeAllowed = $issue9CloseAllowed
+            recommendation = $issue9Recommendation
+            positionOrOcoMutationAllowed = $issue9MutationAllowed
+            missingRequirements = $issue9MissingRequirements
+        },
+        [ordered]@{
+            number = 10
+            title = "Update remaining-open-issues status packet for #8/#9"
+            status = $issue10Status
+            closeAllowed = $issue10CloseAllowed
+            coveredIssues = @(6, 7, 8, 9, 10, 11, 12)
+            packetSource = "scripts/prepare_remaining_open_issues_status.ps1"
+        },
+        [ordered]@{
+            number = 11
+            title = "Trailing-stop dry-run operator review before live rollout"
+            status = $issue11Status
+            closeAllowed = $issue11CloseAllowed
+            primaryFocus = $issue11PrimaryFocus
+            positionOrOcoMutationAllowed = $issue11MutationAllowed
+            orderAllowed = $issue11OrderAllowed
+        },
+        [ordered]@{
+            number = 12
+            title = "Investigate EntryDedup and no-terminal follow-up losses in BUY-like flow"
+            status = $issue12Status
+            closeAllowed = $issue12CloseAllowed
+            closeReadiness = $issue12CloseReadiness
+            dominantBlocker = $issue12DominantBlocker
+            buyLikeRows14d = $issue12Rows14d
+            buyLikeRows30d = $issue12Rows30d
         }
     )
     evidenceWatch = [ordered]@{
@@ -209,6 +294,9 @@ $packet = [ordered]@{
         issue7Bundle = $issue7.Freshness
         issue7PostActivation = $issue7PostActivation.Freshness
         profitEvidenceWatch = $watch.Freshness
+        buyLikeCandidateLossReview = $buyLikeLoss.Freshness
+        strategy485PositionGate = $strategy485Gate.Freshness
+        trailingStopDryRunDecision = $trailingStop.Freshness
     }
     globalBlocker = $globalBlocker
     missingRequirements = @($missing)
@@ -226,6 +314,12 @@ Write-Host "issue6_decision=$issue6Decision"
 Write-Host "issue6_complete_replayable_candidate_rows=$issue6CompleteRows"
 Write-Host "issue7_status=$issue7Status"
 Write-Host "issue7_remaining_blocker=$issue7RemainingBlocker"
+Write-Host "issue8_status=$issue8Status"
+Write-Host "issue9_status=$issue9GateStatus"
+Write-Host "issue10_status=$issue10Status"
+Write-Host "issue11_status=$issue11Status"
+Write-Host "issue12_status=$issue12Status"
+Write-Host "issue12_close_allowed=$($issue12CloseAllowed.ToString().ToLowerInvariant())"
 Write-Host "profit_evidence_watch_status=$watchStatus"
 Write-Host "close_issues_allowed=false"
 Write-Host "live_relaxation_allowed=false"

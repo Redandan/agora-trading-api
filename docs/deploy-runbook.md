@@ -1383,6 +1383,60 @@ Expected:
   max-loss budget evidence, exact-route OCO feasibility, and separate explicit
   authorization.
 
+For a local read-only BUY-like candidate loss packet for #8/#12 after refreshing
+14d/30d `smoke_buy_like_candidate_progression_ssh.ps1` logs, run:
+
+```powershell
+.\scripts\prepare_buy_like_candidate_loss_review_packet.ps1 -MaxAgeMinutes 1440 -RequireReady
+```
+
+Expected:
+
+- The packet reads saved local evidence logs only. It does not rerun SSH, call
+  GitHub, deploy, restart, reload nginx, change production env, write DB rows,
+  place orders, modify OCO, send Telegram, enable schedulers, or mutate
+  grid/fund/Earn/exchange/external backfill state.
+- Output includes `BUY_LIKE_CANDIDATE_LOSS_REVIEW_PACKET`,
+  `buy_like_candidate_loss_review_packet`,
+  `buy_like_candidate_loss_14d_ranking`,
+  `buy_like_candidate_loss_30d_ranking`, `issue8_status`, and
+  `issue12_close_readiness`.
+- `READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE` means the
+  14d/30d BUY-like candidate loss ranking is attached for operator review.
+  It is not approval to relax EntryDedup, DataFreshnessGuard, strategy
+  thresholds, scheduler, or live policy.
+- Current evidence should keep #8/#6/#7 blocked when fresh DataFreshness
+  terminal rows, replayCandidateId rows, entry/TP/SL plans, EV snapshots, OCO
+  snapshots, or complete replayable candidate rows remain missing.
+- The packet keeps `close_issue8_allowed=false`,
+  `close_issue6_or_7_allowed=false`, `live_policy_change_allowed=false`,
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `telegram_send_allowed=false`, and
+  `deploy_or_env_change_allowed=false`.
+
+For the consolidated read-only open-issue status packet covering #6 through
+#12, run:
+
+```powershell
+.\scripts\prepare_remaining_open_issues_status.ps1 -MaxAgeMinutes 1440 -RequireBlocked
+```
+
+Expected:
+
+- Output includes `REMAINING_OPEN_ISSUES_STATUS_PACKET`,
+  `remainingIssueCount=7` in the JSON packet, `issue8_status`,
+  `issue9_status`, `issue10_status`, `issue11_status`, and `issue12_status`.
+- The packet reads existing local evidence logs only. It does not run SSH, call
+  GitHub, close issues, deploy, restart, reload nginx, change production env,
+  enable live trading, relax EntryDedup/DataFreshness/live policy, place
+  orders, modify OCO, close positions, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange/external backfill state.
+- `READY_STATUS_PACKET_UPDATED_FOR_ISSUES_6_TO_12_NOT_LIVE` for #10 means the
+  local status packet now covers #6, #7, #8, #9, #10, #11, and #12. It does not
+  mean all issues can be closed.
+
 For a read-only profit operator review matrix, run:
 
 ```powershell

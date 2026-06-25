@@ -458,6 +458,11 @@ Expected:
 - Emits `GRID_OPEN_READINESS_PACKET`, `grid_open_readiness_status`,
   `grid_open_readiness_blockers`, and
   `grid_open_readiness_required_evidence`.
+- Emits `grid_candidate_plan` from read-only `md_kline` replay. Required
+  replay fields include `entryReferencePrice`, `candidateLower`,
+  `candidateUpper`, `gridCount`, `candidateCapitalUsdt`, `stopOutPct`,
+  `stopLow`, `stopHigh`, `replayRows`, `replayStart`, `replayEnd`,
+  `insidePct`, `stopBreakRows`, and `replayScore`.
 - Keeps the grid-trend MCP boundary markers:
   `boundary=READ_ONLY`, `mutationAllowed=false`, `orderAllowed=false`,
   `gridMutationAllowed=false`, `schedulerChangeAllowed=false`, and
@@ -465,6 +470,10 @@ Expected:
 - `BLOCKED_GRID_OPEN_READINESS_NOT_MUTATION` means the grid must not be opened.
   `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means only that a separate
   operator review can be prepared; it is not permission to enable grid trading.
+- A complete `grid_candidate_plan` only proves the range/capital/stop plan is
+  replayable. It is not `createGrid` input authorization and it does not clear
+  trend-regime, event-risk, historical `SELL_FAILED`, OKX enablement,
+  scheduler, or live-trading blockers.
 - The wrapper does not deploy, restart, change production env,
   create/pause/resume/close/rebalance grid, place orders, modify OCO, send
   Telegram, mutate DB/grid/fund/Earn, or call exchange mutation paths.

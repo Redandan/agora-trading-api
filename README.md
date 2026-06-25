@@ -169,6 +169,12 @@ evidence packet is ready for a separate operator review only; it does not enable
 grid, create/pause/resume/close/rebalance grids, place orders, send Telegram,
 change scheduler/env/deploy state, or mutate DB/OCO/grid/fund/Earn/exchange
 state.
+The packet also emits `grid_candidate_plan` from read-only `md_kline` replay:
+entry reference price, lower/upper range, grid count, per-level capital, stop
+bounds, replay rows, inside/stop-break counts, and `replayScore`. A complete
+candidate plan can clear the "missing explicit plan" evidence gap, but it is
+not `createGrid` input authorization and does not override trend, event-risk,
+historical failure, OKX, scheduler, or live-trading blockers.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

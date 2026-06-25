@@ -5,6 +5,10 @@ param(
     [string]$EnvFile = "/home/ubuntu/.env.trading.secrets",
     [string]$Symbol = "BTCUSDT",
     [int]$LookbackHours = 72,
+    [int]$CandidateLookbackHours = 168,
+    [int]$GridCount = 8,
+    [decimal]$PerLevelUsdt = 10,
+    [decimal]$StopOutPct = 3.0,
     [switch]$RequireReady
 )
 
@@ -47,6 +51,18 @@ if (-not (Get-Command ssh -ErrorAction SilentlyContinue)) {
 if ($LookbackHours -lt 24 -or $LookbackHours -gt 720) {
     throw "LookbackHours must be between 24 and 720."
 }
+if ($CandidateLookbackHours -lt 72 -or $CandidateLookbackHours -gt 720) {
+    throw "CandidateLookbackHours must be between 72 and 720."
+}
+if ($GridCount -lt 4 -or $GridCount -gt 24) {
+    throw "GridCount must be between 4 and 24."
+}
+if ($PerLevelUsdt -lt 5 -or $PerLevelUsdt -gt 1000) {
+    throw "PerLevelUsdt must be between 5 and 1000."
+}
+if ($StopOutPct -lt 1 -or $StopOutPct -gt 20) {
+    throw "StopOutPct must be between 1 and 20."
+}
 
 Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
@@ -65,12 +81,14 @@ if [ -z "$MCP_KEY" ]; then
   exit 1
 fi
 
-export MCP_URL MCP_KEY SYMBOL='__SYMBOL__' LOOKBACK_HOURS='__LOOKBACK_HOURS__' REQUIRE_READY='__REQUIRE_READY__' ENV_FILE='__ENVFILE__'
+export MCP_URL MCP_KEY SYMBOL='__SYMBOL__' LOOKBACK_HOURS='__LOOKBACK_HOURS__' CANDIDATE_LOOKBACK_HOURS='__CANDIDATE_LOOKBACK_HOURS__' GRID_COUNT='__GRID_COUNT__' PER_LEVEL_USDT='__PER_LEVEL_USDT__' STOP_OUT_PCT='__STOP_OUT_PCT__' REQUIRE_READY='__REQUIRE_READY__' ENV_FILE='__ENVFILE__'
 
 python3 - <<'PY'
+import csv
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -79,6 +97,10 @@ mcp_url = os.environ["MCP_URL"]
 mcp_key = os.environ["MCP_KEY"]
 symbol = os.environ["SYMBOL"]
 lookback_hours = int(os.environ["LOOKBACK_HOURS"])
+candidate_lookback_hours = int(os.environ["CANDIDATE_LOOKBACK_HOURS"])
+grid_count = int(os.environ["GRID_COUNT"])
+per_level_usdt = float(os.environ["PER_LEVEL_USDT"])
+stop_out_pct = float(os.environ["STOP_OUT_PCT"])
 require_ready = os.environ.get("REQUIRE_READY", "false").lower() == "true"
 env_file = os.environ["ENV_FILE"]
 
@@ -140,6 +162,47 @@ def read_env():
             values[key.strip()] = value
     return values
 
+def parse_mysql_jdbc(url):
+    if not url.startswith("jdbc:mysql://"):
+        raise RuntimeError("SPRING_DATASOURCE_URL must be a jdbc:mysql URL for read-only candidate replay")
+    without_prefix = url[len("jdbc:mysql://"):]
+    without_query = without_prefix.split("?", 1)[0]
+    host_port, database = without_query.split("/", 1)
+    if database != "agora_market":
+        raise RuntimeError("refusing to query unexpected database: " + database)
+    if ":" in host_port:
+        host, port = host_port.rsplit(":", 1)
+    else:
+        host, port = host_port, "3306"
+    if not port.isdigit():
+        raise RuntimeError("invalid database port in SPRING_DATASOURCE_URL: " + port)
+    return host, port, database
+
+def run_mysql(values, sql):
+    required = ["SPRING_DATASOURCE_URL", "SPRING_DATASOURCE_USERNAME", "SPRING_DATASOURCE_PASSWORD"]
+    missing = [key for key in required if not values.get(key)]
+    if missing:
+        raise RuntimeError("missing datasource keys for read-only candidate replay: " + ",".join(missing))
+    host, port, database = parse_mysql_jdbc(values["SPRING_DATASOURCE_URL"])
+    env = os.environ.copy()
+    env["MYSQL_PWD"] = values["SPRING_DATASOURCE_PASSWORD"]
+    cmd = [
+        "mysql",
+        "--batch",
+        "--raw",
+        "--skip-column-names",
+        "-h", host,
+        "-P", port,
+        "-u", values["SPRING_DATASOURCE_USERNAME"],
+        database,
+        "-e", sql,
+    ]
+    proc = subprocess.run(cmd, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    return list(csv.reader(proc.stdout.splitlines(), delimiter="\t"))
+
+def sql_escape(value):
+    return str(value).replace("\\", "\\\\").replace("'", "''")
+
 def env_bool(values, key):
     value = values.get(key, "")
     if value == "":
@@ -160,7 +223,128 @@ def unique_append(items, value):
     if value and value not in items:
         items.append(value)
 
+def to_float(value):
+    try:
+        return float(str(value))
+    except Exception:
+        return None
+
+def pct_change(first, last):
+    if first is None or last is None or first == 0:
+        return None
+    return (last - first) / first * 100.0
+
+def trend_direction(value):
+    if value is None:
+        return "INSUFFICIENT_DATA"
+    if value >= 3.0:
+        return "UP_STRONG"
+    if value >= 1.0:
+        return "UP"
+    if value <= -3.0:
+        return "DOWN_STRONG"
+    if value <= -1.0:
+        return "DOWN"
+    return "SIDEWAYS"
+
+def build_candidate_plan(values, sym):
+    sql = f"""
+SELECT DATE_FORMAT(open_time, '%Y-%m-%dT%H:%i:%s'), open_price, high_price, low_price, close_price
+FROM md_kline FORCE INDEX (idx_md_kline_sym_int_src_open)
+WHERE symbol = '{sql_escape(sym)}'
+  AND interval_code = '1h'
+  AND source = 'okx'
+ORDER BY open_time DESC
+LIMIT {candidate_lookback_hours}
+"""
+    rows = run_mysql(values, sql)
+    bars = []
+    for row in reversed(rows):
+        if len(row) < 5:
+            continue
+        close = to_float(row[4])
+        high = to_float(row[2])
+        low = to_float(row[3])
+        if close is None or high is None or low is None or close <= 0:
+            continue
+        bars.append({"time": row[0], "high": high, "low": low, "close": close})
+
+    if len(bars) < 72:
+        return {
+            "candidatePlanComplete": False,
+            "candidatePlanStatus": "INSUFFICIENT_KLINE_REPLAY_BARS",
+            "replayRows": len(bars),
+            "missingFields": ["at least 72 okx 1h md_kline rows"],
+        }
+
+    current = bars[-1]["close"]
+    trend_pct = pct_change(bars[0]["close"], bars[-1]["close"])
+    direction = trend_direction(trend_pct)
+    recent = bars[-24:]
+    atr_pct = sum(((bar["high"] - bar["low"]) / bar["close"] * 100.0) for bar in recent) / len(recent)
+    half_width_pct = max(2.5, min(8.0, atr_pct * 6.0))
+    if direction in ("UP_STRONG", "DOWN_STRONG"):
+        half_width_pct = max(half_width_pct, min(10.0, abs(trend_pct or 0.0) * 1.25))
+    lower = current * (1.0 - half_width_pct / 100.0)
+    upper = current * (1.0 + half_width_pct / 100.0)
+    step = (upper - lower) / max(1, grid_count - 1)
+    step_pct = step / current * 100.0
+    stop_low = lower * (1.0 - stop_out_pct / 100.0)
+    stop_high = upper * (1.0 + stop_out_pct / 100.0)
+    inside = sum(1 for bar in bars if bar["low"] >= lower and bar["high"] <= upper)
+    touched = sum(1 for bar in bars if bar["high"] >= lower and bar["low"] <= upper)
+    stop_breaks = sum(1 for bar in bars if bar["low"] < stop_low or bar["high"] > stop_high)
+    inside_pct = inside / len(bars) * 100.0
+    touched_pct = touched / len(bars) * 100.0
+    replay_score = max(0.0, min(100.0, inside_pct - stop_breaks * 2.0 - (20.0 if direction in ("UP_STRONG", "DOWN_STRONG") else 0.0)))
+    status = "GRID_CANDIDATE_PLAN_READY_NOT_OPEN_APPROVAL"
+    if direction in ("UP_STRONG", "DOWN_STRONG"):
+        status = "GRID_CANDIDATE_PLAN_BLOCKED_BY_TREND_REGIME"
+    if stop_breaks > 0:
+        status = "GRID_CANDIDATE_PLAN_REVIEW_STOP_BREAKS"
+
+    missing = []
+    if per_level_usdt < 5.0:
+        missing.append("perLevelUsdt >= exchange min notional")
+    return {
+        "candidatePlanComplete": len(missing) == 0,
+        "candidatePlanStatus": status,
+        "candidateSymbol": sym,
+        "replayRows": len(bars),
+        "replayStart": bars[0]["time"],
+        "replayEnd": bars[-1]["time"],
+        "entryReferencePrice": round(current, 2),
+        "candidateLower": round(lower, 2),
+        "candidateUpper": round(upper, 2),
+        "gridCount": grid_count,
+        "perLevelUsdt": round(per_level_usdt, 2),
+        "candidateCapitalUsdt": round(per_level_usdt * grid_count, 2),
+        "stepPct": round(step_pct, 4),
+        "stopOutPct": round(stop_out_pct, 4),
+        "stopLow": round(stop_low, 2),
+        "stopHigh": round(stop_high, 2),
+        "trend": direction,
+        "trendPct": round(trend_pct, 4) if trend_pct is not None else None,
+        "atrPct": round(atr_pct, 4),
+        "insidePct": round(inside_pct, 2),
+        "touchedPct": round(touched_pct, 2),
+        "stopBreakRows": stop_breaks,
+        "replayScore": round(replay_score, 2),
+        "missingFields": missing,
+        "notAuthorization": "read-only candidate plan only; not createGrid input authorization and not grid/live/order approval",
+    }
+
 env_values = read_env()
+candidate_plan_error = ""
+try:
+    candidate_plan = build_candidate_plan(env_values, symbol)
+except Exception as exc:
+    candidate_plan = {
+        "candidatePlanComplete": False,
+        "candidatePlanStatus": "GRID_CANDIDATE_PLAN_UNAVAILABLE",
+        "missingFields": ["read-only md_kline replay query completed"],
+    }
+    candidate_plan_error = str(exc)
 
 grid_trend = call_tool("getGridTrendAdjustmentReview", {"symbol": symbol, "lookbackHours": lookback_hours})
 grid_list = call_tool("listGrids", {})
@@ -225,8 +409,9 @@ if paused_grid_count > 0:
 if "SELL_FAILED" in grid_list:
     unique_append(blockers, "HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED")
 if recommendation == "NO_ACTION_NO_ACTIVE_GRID":
-    unique_append(blockers, "NO_REPLAYABLE_GRID_CANDIDATE_PLAN")
-    unique_append(required_evidence, "explicit grid candidate range, spacing, capital, stop, and trend-regime rationale")
+    if not candidate_plan.get("candidatePlanComplete", False):
+        unique_append(blockers, "NO_REPLAYABLE_GRID_CANDIDATE_PLAN")
+        unique_append(required_evidence, "explicit grid candidate range, spacing, capital, stop, and trend-regime rationale")
 if trend in ("DOWN", "DOWN_STRONG", "UP_STRONG"):
     unique_append(blockers, "GRID_UNFAVORABLE_TREND_REGIME_" + trend)
     unique_append(required_evidence, "sideways or explicitly reviewed trend-regime evidence")
@@ -250,7 +435,11 @@ if grid_flags["OKX_EARN_TOPUP_ENABLED"] == "true":
 if grid_flags["TELEGRAM_BOT_TOKEN"] != "SET":
     unique_append(warnings, "TELEGRAM_ALERTING_UNAVAILABLE")
 
-if "Grid: $0.00" not in exposure and "Grid $0.00" not in exposure and "active grid: 0" not in exposure.lower():
+if ("Grid: $0.00" not in exposure
+        and "Grid $0.00" not in exposure
+        and "Grid 最大曝險(全 level 填滿): $0.00" not in exposure
+        and "active grid: 0" not in exposure.lower()
+        and "活躍 Grid: 0 個" not in exposure):
     unique_append(warnings, "GRID_EXPOSURE_REVIEW_REQUIRED")
 if "無 ACTIVE Grid" not in alignment and "No ACTIVE Grid" not in alignment:
     unique_append(warnings, "GRID_ALIGNMENT_REVIEW_REQUIRED")
@@ -271,6 +460,7 @@ packet = {
     "trendPct": trend_pct,
     "atrPct": atr_pct,
     "eventRiskLevel": event_risk_level,
+    "candidatePlan": candidate_plan,
     "gridRuntimeFlags": grid_flags,
     "blockers": blockers,
     "requiredEvidence": required_evidence,
@@ -291,6 +481,9 @@ print(f"trend={trend}")
 print(f"trendPct={trend_pct}")
 print(f"atrPct={atr_pct}")
 print(f"event_risk_level={event_risk_level}")
+print("grid_candidate_plan=" + json.dumps(candidate_plan, sort_keys=True, separators=(",", ":")))
+if candidate_plan_error:
+    print("grid_candidate_plan_error=" + candidate_plan_error)
 print("grid_runtime_flags=" + json.dumps(grid_flags, sort_keys=True, separators=(",", ":")))
 print("grid_open_readiness_blockers=" + json.dumps(blockers, separators=(",", ":")))
 print("grid_open_readiness_required_evidence=" + json.dumps(required_evidence, separators=(",", ":")))
@@ -310,6 +503,10 @@ $remoteScript = $remoteScript.Replace("__APPDIR__", $AppDir)
 $remoteScript = $remoteScript.Replace("__ENVFILE__", $EnvFile)
 $remoteScript = $remoteScript.Replace("__SYMBOL__", $Symbol)
 $remoteScript = $remoteScript.Replace("__LOOKBACK_HOURS__", [string]$LookbackHours)
+$remoteScript = $remoteScript.Replace("__CANDIDATE_LOOKBACK_HOURS__", [string]$CandidateLookbackHours)
+$remoteScript = $remoteScript.Replace("__GRID_COUNT__", [string]$GridCount)
+$remoteScript = $remoteScript.Replace("__PER_LEVEL_USDT__", $PerLevelUsdt.ToString([System.Globalization.CultureInfo]::InvariantCulture))
+$remoteScript = $remoteScript.Replace("__STOP_OUT_PCT__", $StopOutPct.ToString([System.Globalization.CultureInfo]::InvariantCulture))
 $remoteScript = $remoteScript.Replace("__REQUIRE_READY__", $RequireReady.ToString().ToLowerInvariant())
 
 $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"

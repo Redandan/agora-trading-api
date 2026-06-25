@@ -2689,6 +2689,17 @@ Trading deployment prep:
   exchange state. `scripts/test_grid_open_readiness_packet.ps1` and
   `scripts/verify_local.ps1` guard the read-only route, markers, docs coverage,
   and local unsafe-argument failures.
+- 2026-06-25 Grid open readiness now includes `grid_candidate_plan` from a
+  read-only `md_kline` replay. The candidate fields include entry reference
+  price, candidate lower/upper range, grid count, per-level capital, total
+  candidate capital, stop-out bounds, replay row count/window, inside-range
+  rate, stop-break count, and replay score. This can satisfy the explicit
+  range/capital/stop plan evidence requirement when complete, but it remains
+  review evidence only: it is not `createGrid` input authorization and it does
+  not override trend-regime, event-risk, historical `SELL_FAILED`, OKX
+  enablement, scheduler, or live-trading blockers.
+  `scripts/test_grid_candidate_plan_packet.ps1` guards those markers and local
+  unsafe-argument failures.
 
 ## Cleanup Priority
 

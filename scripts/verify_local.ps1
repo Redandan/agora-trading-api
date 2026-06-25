@@ -1670,6 +1670,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_verified_recommendations.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_grid_trend_adjustment_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_grid_open_readiness_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_grid_candidate_plan_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy574_tiny_live_governance_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_candidate_flow_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_verified_experiment_readiness.ps1"

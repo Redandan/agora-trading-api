@@ -268,6 +268,22 @@ authorization. It does not change env, deploy, call `createGrid`, enable
 grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid trend-override review packet:
+
+```powershell
+.\scripts\prepare_grid_trend_override_review_packet_ssh.ps1
+```
+
+This consumes the decision snapshot and emits
+`GRID_TREND_OVERRIDE_REVIEW_PACKET`, `grid_trend_override_review_status`,
+`grid_trend_override_review_ready`, `trend_override_allowed=false`, and
+`grid_open_allowed=false`. It packages the current trend distance, replay
+score, stop-break rows, effective capital cap, event-risk gate, MCP coverage,
+hard blockers, abort criteria, and required separate operator authorization for
+a trend-regime override review. It does not approve the override and does not
+change env, deploy, call `createGrid`, enable grid/scheduler/recovery, place
+orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

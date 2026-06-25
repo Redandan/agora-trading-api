@@ -2766,6 +2766,19 @@ Trading deployment prep:
   it does not deploy, restart, change production env, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- Grid trend-regime override now has a separate read-only review packet:
+  `scripts/prepare_grid_trend_override_review_packet_ssh.ps1`. It consumes the
+  consolidated decision snapshot and emits
+  `GRID_TREND_OVERRIDE_REVIEW_PACKET`,
+  `grid_trend_override_review_status`,
+  `grid_trend_override_review_ready`, `trend_override_allowed=false`, and
+  `grid_open_allowed=false`. The packet packages trend percentage, distance to
+  sideways, replay score, stop-break rows, effective capital cap, event-risk
+  gate, MCP coverage, hard blockers, abort criteria, and required separate
+  trend/env/createGrid authorization for operator review. It is review evidence
+  only and does not approve the override, deploy, restart, change production
+  env, call `createGrid`, enable grid/scheduler/recovery, place orders, modify
+  OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

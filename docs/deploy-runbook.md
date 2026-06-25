@@ -612,6 +612,31 @@ Expected:
   call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
   send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid trend-override review packet:
+
+```powershell
+.\scripts\prepare_grid_trend_override_review_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_open_decision_snapshot_ssh.ps1`.
+- Emits `GRID_TREND_OVERRIDE_REVIEW_PACKET`,
+  `grid_trend_override_review_packet`,
+  `grid_trend_override_review_status`,
+  `grid_trend_override_review_ready`, `trend_override_allowed=false`, and
+  `grid_open_allowed=false`.
+- Packages quantitative override evidence: current trend, trend percentage,
+  distance to sideways, replay score, stop-break rows, effective capital cap,
+  event-risk gate, and MCP coverage.
+- `READY_FOR_GRID_TREND_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION` means the trend
+  blocker can be attached to a separate operator review. It is not permission
+  to approve the override, change env, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  approve a trend override, call `createGrid`, enable grid/scheduler/recovery,
+  place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

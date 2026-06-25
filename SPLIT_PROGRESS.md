@@ -2731,6 +2731,16 @@ Trading deployment prep:
   authorize production env changes, `createGrid`, scheduler/recovery
   enablement, orders, OCO, Telegram, deploy, restart, or DB/grid/fund/Earn/
   exchange mutation.
+- Grid trend clearance now has a read-only watch packet:
+  `scripts/prepare_grid_trend_clearance_watch_packet_ssh.ps1`. It consumes the
+  grid open operator packet and emits `GRID_TREND_CLEARANCE_WATCH_PACKET`,
+  `grid_trend_clearance_watch_status`, `trendDistanceToSidewaysPct`,
+  direction-to-clear, override capital caps, clearance criteria, abort
+  criteria, and next verification steps. This turns the trend blocker into
+  replayable watch evidence while keeping the same non-mutation boundary: it
+  does not clear the trend gate, change production env, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram,
+  deploy, restart, or mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

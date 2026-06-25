@@ -220,6 +220,23 @@ The combined envelope reports the effective review capital cap by taking the
 more conservative cap across trend and event-risk envelopes, plus the separate
 written override/env/createGrid documents still required.
 
+Read-only Grid trend-clearance watch packet:
+
+```powershell
+.\scripts\prepare_grid_trend_clearance_watch_packet_ssh.ps1
+```
+
+This consumes the grid open operator packet and emits
+`GRID_TREND_CLEARANCE_WATCH_PACKET`, `grid_trend_clearance_watch_status`,
+`trendDistanceToSidewaysPct`, the direction needed to reach the SIDEWAYS gate,
+override capital caps, clearance criteria, abort criteria, and the next
+verification steps. `WATCH_TREND_CLEARANCE_PENDING_NOT_MUTATION` keeps grid
+opening blocked until a fresh operator packet shows the trend gate clear or a
+separate written trend override exists. It is read-only and does not clear the
+trend gate, change env, call `createGrid`, enable grid/scheduler/recovery,
+place orders, modify OCO, send Telegram, deploy, restart, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

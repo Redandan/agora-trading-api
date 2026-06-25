@@ -540,6 +540,30 @@ Expected:
   modify OCO, send Telegram, mutate DB/grid/fund/Earn, or call exchange
   mutation paths.
 
+Read-only Grid trend-clearance watch packet:
+
+```powershell
+.\scripts\prepare_grid_trend_clearance_watch_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes `prepare_grid_open_operator_packet_ssh.ps1` and consumes its
+  `grid_open_operator_packet`; it must not bypass the operator/readiness gate.
+- Emits `GRID_TREND_CLEARANCE_WATCH_PACKET`,
+  `grid_trend_clearance_watch_packet`,
+  `grid_trend_clearance_watch_status`, `trendDistanceToSidewaysPct`,
+  `directionToClear`, override capital caps, `clearanceCriteria`,
+  `abortCriteria`, and `nextVerification`.
+- `WATCH_TREND_CLEARANCE_PENDING_NOT_MUTATION` means the trend blocker remains
+  active. `READY_TREND_GATE_CLEAR_NOT_OPEN_APPROVAL` only means the trend gate
+  is clear in the source operator packet; it is not env, grid, order, or
+  scheduler approval.
+- The packet does not clear the trend gate, deploy, restart, reload nginx,
+  change production env, call `createGrid`, enable grid/scheduler/recovery,
+  place orders, modify OCO, send Telegram, mutate DB/grid/fund/Earn, or call
+  exchange mutation paths.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

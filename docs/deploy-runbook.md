@@ -479,6 +479,12 @@ Expected:
   `historical_material_sell_failed_count`. Dust-only stale sell failures are
   review evidence, while material historical failures keep
   `HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED`.
+- Emits `grid_open_gate_review` with `trendGate`, `eventRiskGate`, and
+  `okxGate`, plus `grid_open_operator_authorization_required`. These fields
+  tell the operator whether the next action is to wait for `SIDEWAYS`, wait for
+  `R0`, request a written override, or prepare later env/action authorization.
+  They are review evidence only and must not be treated as permission to change
+  env, run `createGrid`, enable the grid scheduler, or place orders.
 - The wrapper does not deploy, restart, change production env,
   create/pause/resume/close/rebalance grid, place orders, modify OCO, send
   Telegram, mutate DB/grid/fund/Earn, or call exchange mutation paths.

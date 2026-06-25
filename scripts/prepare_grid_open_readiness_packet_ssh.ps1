@@ -247,6 +247,64 @@ def trend_direction(value):
         return "DOWN"
     return "SIDEWAYS"
 
+def trend_gate_review(trend_value, trend_pct_value, atr_pct_value, candidate):
+    status = "CLEAR_TREND_REGIME"
+    clear_condition = "trend=SIDEWAYS with complete candidate replay evidence"
+    required_evidence = []
+    if trend_value in ("DOWN_STRONG", "UP_STRONG", "DOWN", "UP"):
+        status = "BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE"
+        required_evidence = [
+            "trend=SIDEWAYS on the open-readiness lookback, or",
+            "separate written operator trend-regime override with capped capital and stop conditions",
+        ]
+    elif trend_value in ("UNKNOWN", "INSUFFICIENT_DATA") or candidate.get("candidatePlanStatus") == "INSUFFICIENT_KLINE_REPLAY_BARS":
+        status = "BLOCKED_TREND_EVIDENCE_INSUFFICIENT"
+        required_evidence = ["at least 72 replayable okx 1h md_kline rows and current grid-trend MCP evidence"]
+    return {
+        "status": status,
+        "trend": trend_value,
+        "trendPct": trend_pct_value,
+        "atrPct": atr_pct_value,
+        "clearCondition": clear_condition,
+        "requiredEvidence": required_evidence,
+        "operatorOverrideAllowed": status == "BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE",
+        "notAuthorization": "trend gate review is read-only; override evidence is not grid/live/order approval",
+    }
+
+def event_risk_gate_review(risk_level):
+    status = "CLEAR_EVENT_RISK_R0" if risk_level == "R0" else "BLOCKED_EVENT_RISK_NOT_R0"
+    return {
+        "status": status,
+        "riskLevel": risk_level,
+        "clearCondition": "riskLevel=R0 from getEventRiskControlStatus",
+        "requiredEvidence": [] if risk_level == "R0" else [
+            "event-risk returns R0 on deployed server-local MCP, or",
+            "separate written event-risk operating override for grid open review",
+        ],
+        "operatorOverrideAllowed": risk_level != "R0",
+        "notAuthorization": "event-risk gate review is read-only; override evidence is not grid/live/order approval",
+    }
+
+def okx_gate_review(flags):
+    enabled = flags.get("TRADING_OKX_ENABLED") == "true"
+    credentials_ready = all(flags.get(key) == "SET" for key in (
+        "TRADING_OKX_API_KEY", "TRADING_OKX_SECRET_KEY", "TRADING_OKX_PASSPHRASE"))
+    status = "CLEAR_OKX_ENABLED" if enabled and credentials_ready else "BLOCKED_OKX_ENV_AUTHORIZATION_REQUIRED"
+    required = []
+    if not enabled:
+        required.append("separate operator authorization for TRADING_OKX_ENABLED=true")
+    if not credentials_ready:
+        required.append("TRADING_OKX_API_KEY/SECRET_KEY/PASSPHRASE present")
+    return {
+        "status": status,
+        "tradingOkxEnabled": flags.get("TRADING_OKX_ENABLED"),
+        "credentialsReady": credentials_ready,
+        "clearCondition": "TRADING_OKX_ENABLED=true with OKX credentials present, after trend/event-risk gates are reviewable",
+        "requiredEvidence": required,
+        "operatorAuthorizationRequired": not enabled,
+        "notAuthorization": "OKX gate review is read-only; does not authorize changing production env or placing orders",
+    }
+
 def build_candidate_plan(values, sym):
     sql = f"""
 SELECT DATE_FORMAT(open_time, '%Y-%m-%dT%H:%i:%s'), open_price, high_price, low_price, close_price
@@ -461,6 +519,21 @@ if ("Grid: $0.00" not in exposure
 if "無 ACTIVE Grid" not in alignment and "No ACTIVE Grid" not in alignment:
     unique_append(warnings, "GRID_ALIGNMENT_REVIEW_REQUIRED")
 
+trend_gate = trend_gate_review(trend, trend_pct, atr_pct, candidate_plan)
+event_risk_gate = event_risk_gate_review(event_risk_level)
+okx_gate = okx_gate_review(grid_flags)
+operator_authorization_required = []
+if trend_gate["operatorOverrideAllowed"]:
+    operator_authorization_required.append("optional trend-regime override if not waiting for SIDEWAYS")
+if event_risk_gate["operatorOverrideAllowed"]:
+    operator_authorization_required.append("optional event-risk operating override if not waiting for R0")
+operator_authorization_required.extend([
+    "TRADING_OKX_ENABLED=true production env diff",
+    "TRADING_GRID_ENABLED=true production env diff",
+    "createGrid with reviewed candidate range/capital/stop",
+    "post-enable read-only health, runtime-log, exposure, grid alignment, and MCP verification",
+])
+
 status = "READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" if not blockers else "BLOCKED_GRID_OPEN_READINESS_NOT_MUTATION"
 next_action = "Prepare separate operator env/order authorization packet only after blockers are empty." if not blockers else "Resolve listed blockers with read-only evidence before any grid enablement request."
 packet = {
@@ -480,6 +553,12 @@ packet = {
     "candidatePlan": candidate_plan,
     "historicalDustSellFailedCount": len(dust_sell_failed_lines),
     "historicalMaterialSellFailedCount": len(material_sell_failed_lines),
+    "gateReview": {
+        "trendGate": trend_gate,
+        "eventRiskGate": event_risk_gate,
+        "okxGate": okx_gate,
+    },
+    "operatorAuthorizationRequired": operator_authorization_required,
     "gridRuntimeFlags": grid_flags,
     "blockers": blockers,
     "requiredEvidence": required_evidence,
@@ -505,6 +584,12 @@ if candidate_plan_error:
     print("grid_candidate_plan_error=" + candidate_plan_error)
 print(f"historical_dust_sell_failed_count={len(dust_sell_failed_lines)}")
 print(f"historical_material_sell_failed_count={len(material_sell_failed_lines)}")
+print("grid_open_gate_review=" + json.dumps({
+    "trendGate": trend_gate,
+    "eventRiskGate": event_risk_gate,
+    "okxGate": okx_gate,
+}, sort_keys=True, separators=(",", ":")))
+print("grid_open_operator_authorization_required=" + json.dumps(operator_authorization_required, separators=(",", ":")))
 print("grid_runtime_flags=" + json.dumps(grid_flags, sort_keys=True, separators=(",", ":")))
 print("grid_open_readiness_blockers=" + json.dumps(blockers, separators=(",", ":")))
 print("grid_open_readiness_required_evidence=" + json.dumps(required_evidence, separators=(",", ":")))

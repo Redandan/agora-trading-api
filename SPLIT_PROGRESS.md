@@ -2705,6 +2705,12 @@ Trading deployment prep:
   `historical_dust_sell_failed_count` and the warning
   `HISTORICAL_GRID_DUST_SELL_FAILED_REVIEW_NOT_BLOCKING`; material rows still
   keep `HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED` until reconciled.
+- Grid open readiness now also emits `grid_open_gate_review` and
+  `grid_open_operator_authorization_required`, so trend-regime, event-risk, and
+  OKX-env blockers have explicit clear conditions before any separate grid-open
+  operator packet. The fields remain read-only review evidence and do not
+  authorize production env changes, `createGrid`, scheduler enablement, orders,
+  Telegram sends, or DB/grid/fund/Earn/exchange mutation.
 
 ## Cleanup Priority
 

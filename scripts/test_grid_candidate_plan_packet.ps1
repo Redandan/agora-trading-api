@@ -78,6 +78,16 @@ foreach ($marker in @(
         "historical_material_sell_failed_count",
         "HISTORICAL_GRID_DUST_SELL_FAILED_REVIEW_NOT_BLOCKING",
         "HISTORICAL_GRID_SELL_FAILED_RECONCILIATION_REQUIRED",
+        "grid_open_gate_review",
+        "trendGate",
+        "eventRiskGate",
+        "okxGate",
+        "BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE",
+        "BLOCKED_EVENT_RISK_NOT_R0",
+        "BLOCKED_OKX_ENV_AUTHORIZATION_REQUIRED",
+        "grid_open_operator_authorization_required",
+        "TRADING_GRID_ENABLED=true production env diff",
+        "createGrid with reviewed candidate range/capital/stop",
         "NO_REPLAYABLE_GRID_CANDIDATE_PLAN"
     )) {
     Assert-Contains -Name "grid candidate plan packet markers" -Text $scriptText -Pattern ([regex]::Escape($marker))

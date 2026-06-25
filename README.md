@@ -179,6 +179,12 @@ Historical `SELL_FAILED` rows are classified as material vs dust-only. A
 dust-only stale sell failure is emitted as review evidence and does not block
 grid opening by itself; any material historical `SELL_FAILED` remains a blocker
 until reconciled.
+The packet also emits `grid_open_gate_review` and
+`grid_open_operator_authorization_required`, separating trend-regime,
+event-risk, and OKX-env gates from the later operator actions needed to open a
+grid. Override entries are review inputs only; they do not authorize env
+changes, `createGrid`, scheduler enablement, orders, Telegram sends, or DB
+mutation.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

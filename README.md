@@ -252,6 +252,22 @@ review. Future action tools such as `createGrid`, `pauseGrid`, `resumeGrid`,
 `closeGrid`, and `enableGridAutoRebalance` are presence evidence only; the
 script does not invoke them and does not authorize their use.
 
+Read-only Grid open decision snapshot:
+
+```powershell
+.\scripts\prepare_grid_open_decision_snapshot_ssh.ps1
+```
+
+This combines the trend-clearance watch and MCP tool coverage packets into one
+`GRID_OPEN_DECISION_SNAPSHOT`. It emits
+`grid_open_decision_snapshot_status`, `grid_open_ready_for_authorization`,
+`grid_open_decision_snapshot_remaining_blockers`, and
+`grid_open_allowed=false`. The snapshot is the consolidated operator handoff for
+whether the grid-open review is ready for separate env and `createGrid`
+authorization. It does not change env, deploy, call `createGrid`, enable
+grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

@@ -2752,6 +2752,20 @@ Trading deployment prep:
   `pauseGrid`, `resumeGrid`, `closeGrid`, `enableGridAutoRebalance`, OCO,
   Earn, fund, scheduler, order, Telegram, deploy, env, or DB/exchange mutation
   paths.
+- Grid open review now has a consolidated read-only decision snapshot:
+  `scripts/prepare_grid_open_decision_snapshot_ssh.ps1`. It combines the
+  trend-clearance watch and MCP tool coverage packets into
+  `GRID_OPEN_DECISION_SNAPSHOT`, emitting
+  `grid_open_decision_snapshot_status`, `grid_open_ready_for_authorization`,
+  `grid_open_decision_snapshot_remaining_blockers`,
+  `grid_open_decision_snapshot_operator_authorization_required`, and
+  `grid_open_allowed=false`. This gives the operator one quantitative handoff
+  for trend distance, replay score, stop-break rows, effective capital cap,
+  MCP coverage, gate statuses, remaining blockers, and required separate
+  env/createGrid authorization while preserving the same non-mutation boundary:
+  it does not deploy, restart, change production env, call `createGrid`, enable
+  grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

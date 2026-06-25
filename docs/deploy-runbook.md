@@ -588,6 +588,30 @@ Expected:
   call grid/OCO/order/Earn/fund/scheduler mutation tools, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid open decision snapshot:
+
+```powershell
+.\scripts\prepare_grid_open_decision_snapshot_ssh.ps1
+```
+
+Expected:
+
+- Invokes only the existing read-only trend-clearance watch and MCP tool
+  coverage packets.
+- Emits `GRID_OPEN_DECISION_SNAPSHOT`,
+  `grid_open_decision_snapshot_packet`,
+  `grid_open_decision_snapshot_status`,
+  `grid_open_ready_for_authorization`, and `grid_open_allowed=false`.
+- Consolidates quantitative readiness, gate statuses, remaining blockers,
+  missing evidence, and operator authorization requirements for the grid-open
+  review.
+- `READY_FOR_SEPARATE_GRID_OPEN_AUTHORIZATION_NOT_MUTATION` means the evidence
+  packet is ready to attach to a separate env/createGrid operator request. It
+  is not permission to change env or create a grid.
+- The snapshot does not deploy, restart, reload nginx, change production env,
+  call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
+  send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

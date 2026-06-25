@@ -830,6 +830,32 @@ Expected:
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid open blocker priority board:
+
+```powershell
+.\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`.
+- Emits `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
+  `grid_open_blocker_priority_board_packet`,
+  `grid_open_blocker_priority_board_status`,
+  `grid_open_readiness_score_pct`,
+  `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
+  and `create_grid_allowed=false`.
+- Ranks split/deploy, production env, event-risk, replay-score, capital-cap,
+  scheduler/recovery/Earn, and operator-authorization-chain blockers into
+  explicit next actions and authorization requirements.
+- `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, or
+  `EVENT_RISK_NOT_R0` means the board is evidence only and createGrid review
+  must remain blocked.
+- The board does not deploy, restart, reload nginx, change production env,
+  approve a trend override, approve a capital override, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

@@ -2876,6 +2876,21 @@ Trading deployment prep:
   bundle is rerun. It is not authorization to change env, deploy, restart, call
   `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
   Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- Grid open blockers now have a read-only priority board:
+  `scripts/prepare_grid_open_blocker_priority_board_ssh.ps1`. It consumes the
+  post-env verification bundle and emits
+  `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
+  `grid_open_blocker_priority_board_status`,
+  `grid_open_readiness_score_pct`,
+  `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
+  and `create_grid_allowed=false`. The board ranks split/deploy, env,
+  event-risk, replay-score, capital-cap, scheduler/recovery/Earn, and
+  operator-authorization-chain blockers into the next safest read-only action.
+  `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, and
+  `EVENT_RISK_NOT_R0` are hard blockers until fresh evidence clears them. It is
+  not authorization to change env, deploy, restart, call `createGrid`, enable
+  grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

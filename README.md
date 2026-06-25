@@ -407,6 +407,25 @@ It does not approve env changes, deploy, restart, call `createGrid`, enable
 grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid open blocker priority board:
+
+```powershell
+.\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1
+```
+
+This consumes the post-env verification bundle and emits
+`GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
+`grid_open_blocker_priority_board_status`,
+`grid_open_readiness_score_pct`,
+`grid_open_blocker_priority_ranked_blockers`, and `grid_open_allowed=false`.
+It ranks split/deploy, env, event-risk, replay-score, capital-cap,
+scheduler/recovery/Earn, and operator-authorization-chain blockers into the
+next safest read-only action. `SPLIT_ACCEPTANCE_NOT_PASSING` and
+`EVENT_RISK_NOT_R0` remain hard blockers; this board does not approve env
+changes, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
+place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange
+state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

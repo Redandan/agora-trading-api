@@ -518,6 +518,13 @@ Expected:
   `combinedOverrideRiskEnvelope` with `effectiveReviewCapitalCapUsdt`, the
   stricter risk grade, and the separate written trend/event-risk/env/createGrid
   documents still required before any later mutation request.
+- Emits `grid_open_operator_okx_grid_env_preflight_envelope` /
+  `okxGridEnvPreflightEnvelope` with masked credential readiness,
+  `TRADING_OKX_ENABLED`, `TRADING_GRID_ENABLED`,
+  `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED`, `GRID_RECOVERY_ENABLED`, and
+  `OKX_EARN_TOPUP_ENABLED` state. `ENV_AUTHORIZATION_REQUIRED_NOT_CLEARANCE`
+  means the production env diff is still missing; `ENV_PREFLIGHT_READY_NOT_GRID_APPROVAL`
+  is only preflight evidence and does not approve grid opening.
 - `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means no grid open action is
   review-ready yet. `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means
   only that a separate operator review packet can be attached; it is not a grid

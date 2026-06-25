@@ -244,6 +244,72 @@ function New-CombinedGridOverrideRiskEnvelope {
     }
 }
 
+function New-OkxGridEnvPreflightEnvelope {
+    param($GridRuntimeFlags, $CombinedOverrideEnvelope)
+
+    if ($null -eq $GridRuntimeFlags) {
+        return [pscustomobject]@{
+            status = "NOT_REVIEWABLE_GRID_RUNTIME_FLAGS_MISSING"
+            credentialsReady = $false
+            missingEvidence = @("gridRuntimeFlags from grid open readiness packet")
+            notAuthorization = "read-only OKX/grid env preflight only; does not change production env or authorize grid opening"
+        }
+    }
+
+    $okxEnabled = [string]$GridRuntimeFlags.TRADING_OKX_ENABLED
+    $gridEnabled = [string]$GridRuntimeFlags.TRADING_GRID_ENABLED
+    $schedulerEnabled = [string]$GridRuntimeFlags.TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED
+    $recoveryEnabled = [string]$GridRuntimeFlags.GRID_RECOVERY_ENABLED
+    $earnEnabled = [string]$GridRuntimeFlags.OKX_EARN_TOPUP_ENABLED
+    $apiKey = [string]$GridRuntimeFlags.TRADING_OKX_API_KEY
+    $secretKey = [string]$GridRuntimeFlags.TRADING_OKX_SECRET_KEY
+    $passphrase = [string]$GridRuntimeFlags.TRADING_OKX_PASSPHRASE
+
+    $credentialsReady = $apiKey -eq "SET" -and $secretKey -eq "SET" -and $passphrase -eq "SET"
+    $missingRequirements = [System.Collections.Generic.List[string]]::new()
+    if (-not $credentialsReady) { Add-MissingRequirement -List $missingRequirements -Value "TRADING_OKX_API_KEY/SECRET_KEY/PASSPHRASE present" }
+    if ($okxEnabled -ne "true") { Add-MissingRequirement -List $missingRequirements -Value "separate production env authorization for TRADING_OKX_ENABLED=true" }
+    if ($gridEnabled -ne "true") { Add-MissingRequirement -List $missingRequirements -Value "separate production env authorization for TRADING_GRID_ENABLED=true" }
+    if ($schedulerEnabled -ne "false") { Add-MissingRequirement -List $missingRequirements -Value "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false for initial open review" }
+    if ($recoveryEnabled -ne "false") { Add-MissingRequirement -List $missingRequirements -Value "GRID_RECOVERY_ENABLED=false for initial open review" }
+    if ($earnEnabled -ne "false") { Add-MissingRequirement -List $missingRequirements -Value "OKX_EARN_TOPUP_ENABLED=false for initial open review" }
+
+    $status = if ($missingRequirements.Count -eq 0) {
+        "ENV_PREFLIGHT_READY_NOT_GRID_APPROVAL"
+    } else {
+        "ENV_AUTHORIZATION_REQUIRED_NOT_CLEARANCE"
+    }
+
+    return [pscustomobject]@{
+        status = $status
+        credentialsReady = $credentialsReady
+        tradingOkxEnabled = $okxEnabled
+        tradingGridEnabled = $gridEnabled
+        gridAutoRebalanceSchedulerEnabled = $schedulerEnabled
+        gridRecoveryEnabled = $recoveryEnabled
+        okxEarnTopupEnabled = $earnEnabled
+        effectiveReviewCapitalCapUsdt = $CombinedOverrideEnvelope.effectiveReviewCapitalCapUsdt
+        requiredEnvDiff = @(
+            "TRADING_OKX_ENABLED=true",
+            "TRADING_GRID_ENABLED=true",
+            "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
+            "GRID_RECOVERY_ENABLED=false",
+            "OKX_EARN_TOPUP_ENABLED=false"
+        )
+        postEnvVerification = @(
+            "deploy/server verification if env diff is applied",
+            "verify split acceptance",
+            "refresh grid open operator packet",
+            "confirm OKX credentials remain masked and present",
+            "confirm scheduler/recovery/Earn remain disabled unless separately authorized",
+            "confirm runtime log has no unexpected order/OCO/grid/Earn/fund mutation lines"
+        )
+        missingRequirements = @($missingRequirements)
+        missingEvidence = @()
+        notAuthorization = "read-only OKX/grid env preflight only; does not change production env, enable OKX/grid, call createGrid, or authorize grid opening"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for grid open operator packet arguments."
 }
@@ -306,6 +372,7 @@ $blockers = @()
 $warnings = @()
 $operatorAuthorizationRequired = @()
 $candidatePlan = $null
+$gridRuntimeFlags = $null
 if ($null -ne $readinessPacket) {
     $readinessStatus = [string]$readinessPacket.status
     $blockers = @($readinessPacket.blockers)
@@ -322,6 +389,7 @@ if ($null -ne $readinessPacket) {
         $okxGateStatus = [string]$readinessPacket.gateReview.okxGate.status
     }
     $eventRiskLevel = [string]$readinessPacket.eventRiskLevel
+    $gridRuntimeFlags = $readinessPacket.gridRuntimeFlags
 }
 
 if (-not $candidatePlanComplete) {
@@ -343,6 +411,7 @@ if ($okxGateStatus -like "BLOCKED_*") {
 $trendOverrideRiskEnvelope = New-TrendOverrideRiskEnvelope -CandidatePlan $candidatePlan -TrendGateStatus $trendGateStatus -EventRiskGateStatus $eventRiskGateStatus
 $eventRiskOverrideRiskEnvelope = New-EventRiskOverrideRiskEnvelope -RiskLevel $eventRiskLevel -CandidatePlan $candidatePlan -TrendGateStatus $trendGateStatus
 $combinedOverrideRiskEnvelope = New-CombinedGridOverrideRiskEnvelope -TrendEnvelope $trendOverrideRiskEnvelope -EventRiskEnvelope $eventRiskOverrideRiskEnvelope
+$okxGridEnvPreflightEnvelope = New-OkxGridEnvPreflightEnvelope -GridRuntimeFlags $gridRuntimeFlags -CombinedOverrideEnvelope $combinedOverrideRiskEnvelope
 $reviewReady = $missingRequirements.Count -eq 0
 $status = if ($reviewReady) { "READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" } else { "BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" }
 $decision = if ($reviewReady) { "PREPARE_SEPARATE_GRID_OPEN_OPERATOR_REVIEW" } else { "WAIT_FOR_GATE_CLEARANCE_OR_SEPARATE_OPERATOR_OVERRIDES" }
@@ -371,6 +440,7 @@ $packet = [pscustomobject]@{
     trendOverrideRiskEnvelope = $trendOverrideRiskEnvelope
     eventRiskOverrideRiskEnvelope = $eventRiskOverrideRiskEnvelope
     combinedOverrideRiskEnvelope = $combinedOverrideRiskEnvelope
+    okxGridEnvPreflightEnvelope = $okxGridEnvPreflightEnvelope
     blockers = @($blockers)
     warnings = @($warnings)
     missingRequirements = @($missingRequirements)
@@ -437,6 +507,7 @@ Write-Host "grid_open_operator_okx_gate_status=$okxGateStatus"
 Write-Host ("grid_open_operator_trend_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $trendOverrideRiskEnvelope))
 Write-Host ("grid_open_operator_event_risk_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $eventRiskOverrideRiskEnvelope))
 Write-Host ("grid_open_operator_combined_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $combinedOverrideRiskEnvelope))
+Write-Host ("grid_open_operator_okx_grid_env_preflight_envelope=" + (ConvertTo-Json -Compress -Depth 8 $okxGridEnvPreflightEnvelope))
 Write-Host "production_env_change_allowed=false"
 Write-Host "grid_mutation_allowed=false"
 Write-Host "scheduler_enablement_allowed=false"

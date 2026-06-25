@@ -2717,11 +2717,15 @@ Trading deployment prep:
   `grid_open_operator_status`, gate statuses, missing requirements, proposed
   separate env diff, reviewed `createGrid` inputs from the candidate plan,
   `trendOverrideRiskEnvelope`, `eventRiskOverrideRiskEnvelope`,
-  `combinedOverrideRiskEnvelope`, and post-authorization verification steps. The
+  `combinedOverrideRiskEnvelope`, `okxGridEnvPreflightEnvelope`, and
+  post-authorization verification steps. The
   override envelopes report risk grade, risk points, replay score, stop-break
   rows, recommended capital cap, effective review capital cap, event
   `riskLevel`, and required override documents/conditions as decision support
-  only; `R3` is explicitly not recommended for override. A blocked status keeps grid opening
+  only; `R3` is explicitly not recommended for override. The OKX/grid env
+  preflight envelope reports masked credential readiness plus
+  `TRADING_OKX_ENABLED`, `TRADING_GRID_ENABLED`, scheduler, recovery, and Earn
+  flag state before any separate env-diff authorization. A blocked status keeps grid opening
   closed until trend/event-risk/OKX gates clear or receive separate written
   override/authorization; a ready status is still review-only and does not
   authorize production env changes, `createGrid`, scheduler/recovery

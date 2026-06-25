@@ -196,13 +196,19 @@ This wraps the readiness packet into `GRID_OPEN_OPERATOR_PACKET` and emits
 `grid_open_operator_packet`, `grid_open_operator_status`, gate statuses,
 missing requirements, proposed separate env diff, reviewed `createGrid` inputs,
 `trendOverrideRiskEnvelope`, `eventRiskOverrideRiskEnvelope`,
-`combinedOverrideRiskEnvelope`, and post-authorization verification steps.
+`combinedOverrideRiskEnvelope`, `okxGridEnvPreflightEnvelope`, and
+post-authorization verification steps.
 `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION`
 means the grid must remain closed until the trend/event-risk/OKX gates clear or
 receive separate written override/authorization. The packet is still read-only:
 it does not change production env, call `createGrid`, enable scheduler/recovery,
 place orders, modify OCO, send Telegram, deploy, restart, or mutate
 DB/grid/fund/Earn/exchange state.
+The OKX/grid env preflight envelope reports whether masked OKX credentials are
+present, whether `TRADING_OKX_ENABLED` and `TRADING_GRID_ENABLED` still need a
+separate production env diff, and whether scheduler/recovery/Earn flags remain
+off for the initial open review. `ENV_PREFLIGHT_READY_NOT_GRID_APPROVAL` is
+still only an env-review state, not permission to open a grid.
 The trend override envelope is decision support only: it reports risk grade,
 risk points, replay score, stop-break count, a recommended capital cap, and
 required override conditions, but it does not clear the trend gate by itself.

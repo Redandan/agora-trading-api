@@ -2715,8 +2715,11 @@ Trading deployment prep:
   `scripts/prepare_grid_open_operator_packet_ssh.ps1`. It consumes the
   readiness packet, emits `GRID_OPEN_OPERATOR_PACKET`,
   `grid_open_operator_status`, gate statuses, missing requirements, proposed
-  separate env diff, reviewed `createGrid` inputs from the candidate plan, and
-  post-authorization verification steps. A blocked status keeps grid opening
+  separate env diff, reviewed `createGrid` inputs from the candidate plan,
+  `trendOverrideRiskEnvelope`, and post-authorization verification steps. The
+  trend override envelope reports risk grade, risk points, replay score,
+  stop-break rows, recommended capital cap, and required override conditions as
+  decision support only. A blocked status keeps grid opening
   closed until trend/event-risk/OKX gates clear or receive separate written
   override/authorization; a ready status is still review-only and does not
   authorize production env changes, `createGrid`, scheduler/recovery

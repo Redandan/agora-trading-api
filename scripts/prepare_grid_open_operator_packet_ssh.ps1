@@ -28,6 +28,97 @@ function Add-MissingRequirement {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Convert-PlanNumber {
+    param($Value, [decimal]$Default = 0)
+    if ($null -eq $Value) { return $Default }
+    try {
+        return [decimal]::Parse([string]$Value, [System.Globalization.CultureInfo]::InvariantCulture)
+    } catch {
+        return $Default
+    }
+}
+
+function New-TrendOverrideRiskEnvelope {
+    param($CandidatePlan, [string]$TrendGateStatus, [string]$EventRiskGateStatus)
+
+    if ($null -eq $CandidatePlan) {
+        return [pscustomobject]@{
+            status = "NOT_REVIEWABLE_NO_CANDIDATE_PLAN"
+            riskGrade = "UNKNOWN"
+            missingEvidence = @("complete replayable grid candidate plan")
+            notAuthorization = "read-only trend override risk envelope only; does not clear trend gate or authorize grid opening"
+        }
+    }
+
+    $trend = [string]$CandidatePlan.trend
+    $trendPct = Convert-PlanNumber $CandidatePlan.trendPct
+    $atrPct = Convert-PlanNumber $CandidatePlan.atrPct
+    $replayScore = Convert-PlanNumber $CandidatePlan.replayScore
+    $stopBreakRows = [int](Convert-PlanNumber $CandidatePlan.stopBreakRows)
+    $insidePct = Convert-PlanNumber $CandidatePlan.insidePct
+    $capital = Convert-PlanNumber $CandidatePlan.candidateCapitalUsdt
+    $stepPct = Convert-PlanNumber $CandidatePlan.stepPct
+
+    $riskPoints = 0
+    if ($trend -in @("DOWN_STRONG", "UP_STRONG")) { $riskPoints += 3 }
+    elseif ($trend -in @("DOWN", "UP")) { $riskPoints += 2 }
+    if ([math]::Abs([double]$trendPct) -ge 4.0) { $riskPoints += 2 }
+    elseif ([math]::Abs([double]$trendPct) -ge 2.5) { $riskPoints += 1 }
+    if ($eventRiskGateStatus -ne "CLEAR_EVENT_RISK_R0") { $riskPoints += 2 }
+    if ($stopBreakRows -gt 0) { $riskPoints += 3 }
+    if ($replayScore -lt 70) { $riskPoints += 2 }
+    elseif ($replayScore -lt 80) { $riskPoints += 1 }
+    if ($insidePct -lt 90) { $riskPoints += 1 }
+    if ($stepPct -lt 0.5) { $riskPoints += 1 }
+
+    $riskGrade = if ($riskPoints -ge 7) {
+        "HIGH"
+    } elseif ($riskPoints -ge 4) {
+        "MEDIUM"
+    } else {
+        "LOW"
+    }
+
+    $capMultiplier = if ($riskGrade -eq "HIGH") {
+        0.25
+    } elseif ($riskGrade -eq "MEDIUM") {
+        0.50
+    } else {
+        1.00
+    }
+    $capitalCap = [math]::Round([double]($capital * [decimal]$capMultiplier), 2)
+
+    $overrideStatus = if ($TrendGateStatus -like "BLOCKED_*") {
+        "OVERRIDE_REVIEW_REQUIRED_NOT_CLEARANCE"
+    } else {
+        "TREND_GATE_ALREADY_CLEAR"
+    }
+
+    return [pscustomobject]@{
+        status = $overrideStatus
+        riskGrade = $riskGrade
+        riskPoints = $riskPoints
+        trend = $trend
+        trendPct = $trendPct
+        atrPct = $atrPct
+        replayScore = $replayScore
+        insidePct = $insidePct
+        stopBreakRows = $stopBreakRows
+        candidateCapitalUsdt = $capital
+        recommendedOverrideCapitalCapUsdt = $capitalCap
+        requiredOverrideConditions = @(
+            "separate written trend-regime override naming current trend and capital cap",
+            "event-risk R0 or separate written event-risk override",
+            "use candidate stopLow/stopHigh as hard review boundaries",
+            "keep scheduler/recovery disabled unless separately authorized",
+            "refresh readiness immediately before any createGrid request",
+            "abort review if replay stopBreakRows becomes greater than 0"
+        )
+        missingEvidence = @()
+        notAuthorization = "read-only trend override risk envelope only; does not clear trend gate or authorize grid opening"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for grid open operator packet arguments."
 }
@@ -122,6 +213,7 @@ if ($okxGateStatus -like "BLOCKED_*") {
     Add-MissingRequirement -List $missingRequirements -Value "separate operator authorization for TRADING_OKX_ENABLED=true"
 }
 
+$trendOverrideRiskEnvelope = New-TrendOverrideRiskEnvelope -CandidatePlan $candidatePlan -TrendGateStatus $trendGateStatus -EventRiskGateStatus $eventRiskGateStatus
 $reviewReady = $missingRequirements.Count -eq 0
 $status = if ($reviewReady) { "READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" } else { "BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" }
 $decision = if ($reviewReady) { "PREPARE_SEPARATE_GRID_OPEN_OPERATOR_REVIEW" } else { "WAIT_FOR_GATE_CLEARANCE_OR_SEPARATE_OPERATOR_OVERRIDES" }
@@ -147,6 +239,7 @@ $packet = [pscustomobject]@{
         eventRiskGate = $eventRiskGateStatus
         okxGate = $okxGateStatus
     }
+    trendOverrideRiskEnvelope = $trendOverrideRiskEnvelope
     blockers = @($blockers)
     warnings = @($warnings)
     missingRequirements = @($missingRequirements)
@@ -210,6 +303,7 @@ Write-Host "grid_open_operator_candidate_plan_status=$candidatePlanStatus"
 Write-Host "grid_open_operator_trend_gate_status=$trendGateStatus"
 Write-Host "grid_open_operator_event_risk_gate_status=$eventRiskGateStatus"
 Write-Host "grid_open_operator_okx_gate_status=$okxGateStatus"
+Write-Host ("grid_open_operator_trend_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $trendOverrideRiskEnvelope))
 Write-Host "production_env_change_allowed=false"
 Write-Host "grid_mutation_allowed=false"
 Write-Host "scheduler_enablement_allowed=false"

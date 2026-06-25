@@ -195,12 +195,16 @@ Read-only Grid open operator packet:
 This wraps the readiness packet into `GRID_OPEN_OPERATOR_PACKET` and emits
 `grid_open_operator_packet`, `grid_open_operator_status`, gate statuses,
 missing requirements, proposed separate env diff, reviewed `createGrid` inputs,
-and post-authorization verification steps. `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION`
+`trendOverrideRiskEnvelope`, and post-authorization verification steps.
+`BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION`
 means the grid must remain closed until the trend/event-risk/OKX gates clear or
 receive separate written override/authorization. The packet is still read-only:
 it does not change production env, call `createGrid`, enable scheduler/recovery,
 place orders, modify OCO, send Telegram, deploy, restart, or mutate
 DB/grid/fund/Earn/exchange state.
+The trend override envelope is decision support only: it reports risk grade,
+risk points, replay score, stop-break count, a recommended capital cap, and
+required override conditions, but it does not clear the trend gate by itself.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

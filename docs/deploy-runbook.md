@@ -503,6 +503,11 @@ Expected:
   `grid_open_operator_status`, `grid_open_operator_decision`,
   `grid_open_operator_missing_requirements`, and
   `grid_open_operator_authorization_required`.
+- Emits `grid_open_operator_trend_override_risk_envelope` /
+  `trendOverrideRiskEnvelope` with `riskGrade`, `riskPoints`,
+  `recommendedOverrideCapitalCapUsdt`, replay score, stop-break rows, and
+  required override conditions. This is decision support only and must not clear
+  the trend gate without separate written operator approval.
 - `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means no grid open action is
   review-ready yet. `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means
   only that a separate operator review packet can be attached; it is not a grid

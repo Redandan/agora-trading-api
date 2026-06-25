@@ -693,6 +693,34 @@ Expected:
   call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
   send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid capital-override review packet:
+
+```powershell
+.\scripts\prepare_grid_capital_override_review_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_create_authorization_preflight_packet_ssh.ps1`.
+- Emits `GRID_CAPITAL_OVERRIDE_REVIEW_PACKET`,
+  `grid_capital_override_review_packet`,
+  `grid_capital_override_review_status`,
+  `grid_capital_override_review_ready`,
+  `capital_override_allowed=false`, `create_grid_allowed=false`, and
+  `grid_open_allowed=false`.
+- Packages the reviewed createGrid inputs, requested cap raise, required cap
+  multiplier, replay score, stop-break rows, trend risk grade, event-risk gate,
+  hard blockers, approval conditions, abort criteria, and post-approval
+  read-only verification.
+- `READY_FOR_GRID_CAPITAL_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION` means the
+  capital-cap override can be attached to a separate operator authorization
+  request. It is not permission to approve the cap override, change production
+  env, deploy, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  approve a capital override, call `createGrid`, enable grid/scheduler/recovery,
+  place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

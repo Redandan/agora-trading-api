@@ -2805,6 +2805,21 @@ Trading deployment prep:
   authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- Grid capital-cap override review now has a separate read-only packet:
+  `scripts/prepare_grid_capital_override_review_packet_ssh.ps1`. It consumes
+  the create authorization preflight packet when the blocker is
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`, then emits
+  `GRID_CAPITAL_OVERRIDE_REVIEW_PACKET`,
+  `grid_capital_override_review_status`,
+  `grid_capital_override_review_ready`, `capital_override_allowed=false`,
+  `create_grid_allowed=false`, and `grid_open_allowed=false`. The packet
+  quantifies the requested cap raise, required multiplier, reviewed createGrid
+  inputs, replay score, stop-break rows, trend risk grade, event-risk gate,
+  hard blockers, approval conditions, abort criteria, and post-approval
+  read-only verification. It is not authorization to approve a capital
+  override, change env, deploy, restart, call `createGrid`, enable
+  grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

@@ -318,6 +318,23 @@ It does not change env, deploy, restart, call `createGrid`, enable grid,
 enable scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only Grid capital-override review packet:
+
+```powershell
+.\scripts\prepare_grid_capital_override_review_packet_ssh.ps1
+```
+
+This consumes the create authorization preflight packet when the current
+blocker is `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`. It emits
+`GRID_CAPITAL_OVERRIDE_REVIEW_PACKET`, `grid_capital_override_review_status`,
+`grid_capital_override_review_ready`, `capital_override_allowed=false`,
+`create_grid_allowed=false`, and `grid_open_allowed=false`. It quantifies the
+requested capital cap raise, required multiplier, replay/stop-break evidence,
+hard blockers, approval conditions, abort criteria, and post-approval
+read-only verification. It does not approve a capital override, change env,
+deploy, restart, call `createGrid`, enable grid/scheduler/recovery, place
+orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

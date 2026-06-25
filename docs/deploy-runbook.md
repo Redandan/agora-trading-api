@@ -1346,6 +1346,43 @@ Expected:
   mutation, scheduler enablement, production env changes, or DB/grid/fund/Earn/
   Telegram/exchange/external backfill/import mutation.
 
+For a local read-only EntryDedup / ShadowExecutionIntent operator packet after
+refreshing candidate-flow, EntryDedup, strategy574, and signal-correctness
+evidence logs, run:
+
+```powershell
+.\scripts\prepare_entry_dedup_shadow_operator_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- The packet reads saved local evidence logs only. It does not rerun SSH, call
+  GitHub, deploy, restart, reload nginx, change production env, write DB rows,
+  place orders, modify OCO, send Telegram, enable schedulers, or mutate
+  grid/fund/Earn/exchange/external backfill state.
+- Output includes `ENTRY_DEDUP_SHADOW_EXECUTION_INTENT_OPERATOR_PACKET`,
+  `entry_dedup_shadow_operator_packet`,
+  `entry_dedup_shadow_operator_packet_status`, and
+  `entry_skip_blocker_ranking`.
+- `READY_FOR_ENTRY_DEDUP_SHADOW_EXECUTION_INTENT_OPERATOR_REVIEW_NOT_LIVE`
+  means the 14d candidate-flow blocker ranking, Strategy 508/1h positive
+  EntryDedup skip evidence, Strategy 574 blocked gate, and current
+  DataFreshness sample state are attached for a separate operator review.
+- Strategy 574 remains context only while its gate is blocked. A blocked
+  Strategy 574 gate or `dataFreshnessCurrentStatus=NO_CURRENT_SAMPLE` is not
+  approval to relax DataFreshnessGuard, EntryDedup, strategy thresholds, or live
+  policy.
+- The packet keeps `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `order_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false`.
+- Before any future mutation proposal, require a fresh read-only rerun,
+  ExpectedValueGate pass-like evidence, EventRiskControl clearance or separate
+  approval, duplicate-hash and same-candidate replay protection, daily cap and
+  max-loss budget evidence, exact-route OCO feasibility, and separate explicit
+  authorization.
+
 For a read-only profit operator review matrix, run:
 
 ```powershell

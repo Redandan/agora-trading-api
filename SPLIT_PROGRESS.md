@@ -2779,6 +2779,19 @@ Trading deployment prep:
   only and does not approve the override, deploy, restart, change production
   env, call `createGrid`, enable grid/scheduler/recovery, place orders, modify
   OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- Grid OKX/env authorization now has a separate read-only preflight packet:
+  `scripts/prepare_grid_env_diff_preflight_packet_ssh.ps1`. It consumes the
+  grid open operator packet and trend-override review packet, then emits
+  `GRID_ENV_DIFF_PREFLIGHT_PACKET`, `grid_env_diff_preflight_status`,
+  `grid_env_diff_review_ready`,
+  `grid_env_diff_preflight_proposed_env_diff`,
+  `production_env_change_allowed=false`, and `grid_open_allowed=false`. The
+  packet isolates masked OKX credential readiness, `TRADING_OKX_ENABLED`,
+  `TRADING_GRID_ENABLED`, scheduler/recovery/Earn flag state, event-risk gate,
+  trend-override readiness, pre-apply requirements, and post-apply read-only
+  verification. It is not authorization to change env, deploy, restart, call
+  `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
+  Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

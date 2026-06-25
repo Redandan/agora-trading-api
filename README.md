@@ -284,6 +284,23 @@ a trend-regime override review. It does not approve the override and does not
 change env, deploy, call `createGrid`, enable grid/scheduler/recovery, place
 orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid env-diff preflight packet:
+
+```powershell
+.\scripts\prepare_grid_env_diff_preflight_packet_ssh.ps1
+```
+
+This consumes the grid open operator and trend-override review packets and
+emits `GRID_ENV_DIFF_PREFLIGHT_PACKET`, `grid_env_diff_preflight_status`,
+`grid_env_diff_review_ready`, `grid_env_diff_preflight_proposed_env_diff`,
+`production_env_change_allowed=false`, and `grid_open_allowed=false`. It
+isolates the proposed env diff (`TRADING_OKX_ENABLED=true`,
+`TRADING_GRID_ENABLED=true`, scheduler/recovery/Earn still false), credential
+readiness, pre-apply requirements, and post-apply read-only verification plan.
+It does not change env, deploy, restart, call `createGrid`, enable grid,
+enable scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

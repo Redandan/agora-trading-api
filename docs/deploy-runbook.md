@@ -637,6 +637,35 @@ Expected:
   place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
 
+Read-only Grid env-diff preflight packet:
+
+```powershell
+.\scripts\prepare_grid_env_diff_preflight_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_open_operator_packet_ssh.ps1` and
+  `prepare_grid_trend_override_review_packet_ssh.ps1`.
+- Emits `GRID_ENV_DIFF_PREFLIGHT_PACKET`,
+  `grid_env_diff_preflight_packet`,
+  `grid_env_diff_preflight_status`, `grid_env_diff_review_ready`,
+  `grid_env_diff_preflight_proposed_env_diff`,
+  `production_env_change_allowed=false`, and `grid_open_allowed=false`.
+- Packages masked OKX credential readiness, current OKX/grid env flag state,
+  scheduler/recovery/Earn disabled state, trend-override review readiness, and
+  event-risk gate state.
+- Proposed env diff is limited to `TRADING_OKX_ENABLED=true`,
+  `TRADING_GRID_ENABLED=true`,
+  `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,
+  `GRID_RECOVERY_ENABLED=false`, and `OKX_EARN_TOPUP_ENABLED=false`.
+- `READY_FOR_GRID_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION` means the env diff can
+  be attached to a separate operator authorization request. It is not
+  permission to change production env, deploy, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
+  send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

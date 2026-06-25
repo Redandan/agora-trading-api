@@ -2860,6 +2860,22 @@ Trading deployment prep:
   env, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
   place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- Grid post-env verification now also has a read-only execution bundle:
+  `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`. It
+  invokes split acceptance plus fresh grid plan, decision snapshot, trend
+  override, env diff, createGrid preflight, authorization bundle, and operator
+  authorization request packets, then emits
+  `GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE`,
+  `grid_post_env_read_only_verification_status`,
+  `grid_post_env_read_only_verification_ready`, `deploy_allowed=false`,
+  `grid_open_allowed=false`, and `create_grid_allowed=false`. Current env-not-
+  applied states are explicit blockers such as
+  `POST_ENV_TRADING_OKX_ENABLED_NOT_TRUE` and
+  `POST_ENV_TRADING_GRID_ENABLED_NOT_TRUE`; those keep createGrid review
+  blocked until a separately authorized env diff/deploy is completed and this
+  bundle is rerun. It is not authorization to change env, deploy, restart, call
+  `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
+  Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

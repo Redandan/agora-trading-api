@@ -387,6 +387,26 @@ authorized env/deploy/restart. It does not approve env changes, deploy,
 restart, call `createGrid`, enable grid/scheduler/recovery, place orders,
 modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid post-env verification bundle:
+
+```powershell
+.\scripts\prepare_grid_post_env_read_only_verification_bundle_ssh.ps1
+```
+
+This executes the post-env read-only verification lane by invoking split
+acceptance plus the fresh grid plan, decision snapshot, trend override, env
+diff, createGrid preflight, authorization bundle, and authorization request
+packets. It emits `GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE`,
+`grid_post_env_read_only_verification_status`,
+`grid_post_env_read_only_verification_ready`, `deploy_allowed=false`,
+`grid_open_allowed=false`, and `create_grid_allowed=false`.
+`POST_ENV_TRADING_OKX_ENABLED_NOT_TRUE` or
+`POST_ENV_TRADING_GRID_ENABLED_NOT_TRUE` means the separately authorized env
+diff/deploy has not been applied yet, so createGrid review must remain blocked.
+It does not approve env changes, deploy, restart, call `createGrid`, enable
+grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

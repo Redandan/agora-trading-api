@@ -797,6 +797,39 @@ Expected:
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid post-env verification bundle:
+
+```powershell
+.\scripts\prepare_grid_post_env_read_only_verification_bundle_ssh.ps1
+```
+
+Expected:
+
+- Invokes split acceptance plus the fresh grid plan, decision snapshot, trend
+  override, env diff, createGrid preflight, authorization bundle, and operator
+  authorization request packets.
+- Emits `GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE`,
+  `grid_post_env_read_only_verification_packet`,
+  `grid_post_env_read_only_verification_status`,
+  `grid_post_env_read_only_verification_ready`, `deploy_allowed=false`,
+  `grid_open_allowed=false`, and `create_grid_allowed=false`.
+- `POST_ENV_TRADING_OKX_ENABLED_NOT_TRUE` or
+  `POST_ENV_TRADING_GRID_ENABLED_NOT_TRUE` means the separately authorized env
+  diff/deploy has not been applied yet. Re-run only after that separate
+  authorization and deployment.
+- If split acceptance fails, inspect
+  `grid_post_env_read_only_verification_split_failure_summary`; a server
+  worktree or deployed commit behind `origin/main` remains a blocker until a
+  separately authorized deploy/restart is completed.
+- `READY_FOR_GRID_POST_ENV_READ_ONLY_VERIFICATION_NOT_MUTATION` means split
+  acceptance and the refreshed grid evidence pass the post-env read-only lane.
+  It is still not permission to call `createGrid`; a separate createGrid
+  authorization naming the refreshed inputs is required.
+- The packet does not deploy, restart, reload nginx, change production env,
+  approve a trend override, approve a capital override, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

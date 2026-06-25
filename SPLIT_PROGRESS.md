@@ -2674,6 +2674,21 @@ Trading deployment prep:
   wrapper in PowerShell while moving JSON-RPC calling, marker validation, and
   packet rendering for this grid-trend case into the Java runner
   `com.agora.trading.smoke.McpSmokeCli`.
+- 2026-06-25 Grid opening now has a repeatable read-only readiness packet:
+  `scripts/prepare_grid_open_readiness_packet_ssh.ps1`. It calls server-local
+  `/api/mcp` only, combines `getGridTrendAdjustmentReview`, `listGrids`,
+  `getGridPriceAlignment`, `getCurrentExposure`, and
+  `getEventRiskControlStatus`, and emits `GRID_OPEN_READINESS_PACKET`,
+  `grid_open_readiness_status`, `grid_open_readiness_blockers`, and
+  `grid_open_readiness_required_evidence`. The packet ranks blockers such as
+  missing replayable grid candidate plan, unfavorable trend regime, non-R0
+  event risk, historical `SELL_FAILED` reconciliation, and grid/OKX/Earn env
+  flag state before any separate operator review. It does not deploy, restart,
+  change production env, enable grid, create/pause/resume/close/rebalance
+  grids, place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/
+  exchange state. `scripts/test_grid_open_readiness_packet.ps1` and
+  `scripts/verify_local.ps1` guard the read-only route, markers, docs coverage,
+  and local unsafe-argument failures.
 
 ## Cleanup Priority
 

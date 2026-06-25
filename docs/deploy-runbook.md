@@ -443,6 +443,32 @@ Expected:
   JSON-RPC calling, marker validation, and packet rendering live in the Java
   smoke runner `com.agora.trading.smoke.McpSmokeCli`.
 
+Read-only Grid open readiness packet:
+
+```powershell
+.\scripts\prepare_grid_open_readiness_packet_ssh.ps1
+```
+
+Expected:
+
+- Uses server-local `/api/mcp` with `TRADING_MCP_KEY`; it must not call public
+  MCP or legacy `/api/trading/mcp`.
+- Calls `getGridTrendAdjustmentReview`, `listGrids`, `getGridPriceAlignment`,
+  `getCurrentExposure`, and `getEventRiskControlStatus`.
+- Emits `GRID_OPEN_READINESS_PACKET`, `grid_open_readiness_status`,
+  `grid_open_readiness_blockers`, and
+  `grid_open_readiness_required_evidence`.
+- Keeps the grid-trend MCP boundary markers:
+  `boundary=READ_ONLY`, `mutationAllowed=false`, `orderAllowed=false`,
+  `gridMutationAllowed=false`, `schedulerChangeAllowed=false`, and
+  `telegramSendAllowed=false`.
+- `BLOCKED_GRID_OPEN_READINESS_NOT_MUTATION` means the grid must not be opened.
+  `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means only that a separate
+  operator review can be prepared; it is not permission to enable grid trading.
+- The wrapper does not deploy, restart, change production env,
+  create/pause/resume/close/rebalance grid, place orders, modify OCO, send
+  Telegram, mutate DB/grid/fund/Earn, or call exchange mutation paths.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

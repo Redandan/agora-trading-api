@@ -154,6 +154,22 @@ The SSH wrapper owns only remote env/app-port handling; the JSON-RPC call,
 marker validation, and packet rendering are owned by the Java smoke runner
 `com.agora.trading.smoke.McpSmokeCli` so the smoke logic is unit-testable.
 
+Read-only Grid open readiness packet before any separate grid enablement review:
+
+```powershell
+.\scripts\prepare_grid_open_readiness_packet_ssh.ps1
+```
+
+This calls server-local `/api/mcp` only and emits `GRID_OPEN_READINESS_PACKET`,
+`grid_open_readiness_status`, blockers, required evidence, trend/ATR evidence,
+event-risk status, historical grid state, exposure/alignment context, and grid
+runtime env flags. `BLOCKED_GRID_OPEN_READINESS_NOT_MUTATION` means grid opening
+must stay blocked. `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means the
+evidence packet is ready for a separate operator review only; it does not enable
+grid, create/pause/resume/close/rebalance grids, place orders, send Telegram,
+change scheduler/env/deploy state, or mutate DB/OCO/grid/fund/Earn/exchange
+state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

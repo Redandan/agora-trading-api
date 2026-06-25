@@ -2891,6 +2891,20 @@ Trading deployment prep:
   not authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- Grid open readiness now has a bounded read-only watch wrapper:
+  `scripts/watch_grid_open_readiness_ssh.ps1`. It invokes only the blocker
+  priority board, adds child heartbeat/timeout handling, and emits
+  `grid_open_readiness_watch_status`, `grid_open_readiness_watch_score_pct`,
+  `grid_open_readiness_watch_score_delta_pct`,
+  `grid_open_readiness_watch_top_blocker`, and
+  `grid_open_readiness_watch_next_action`. Pending states such as
+  `PENDING_GRID_DEPLOY_OR_SPLIT_ACCEPTANCE`, `PENDING_GRID_ENV_DIFF`,
+  `PENDING_GRID_EVENT_RISK_R0`, and `PENDING_GRID_OPEN_BLOCKERS` keep grid
+  opening blocked; `GRID_OPEN_READINESS_READY_FOR_SEPARATE_CREATEGRID_AUTHORIZATION_NOT_MUTATION`
+  only means a separate createGrid authorization review may be prepared. The
+  watcher does not deploy, restart, change production env, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

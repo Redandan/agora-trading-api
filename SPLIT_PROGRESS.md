@@ -671,19 +671,24 @@
   relaxation, deploy, production env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
 - `scripts/prepare_remaining_open_issues_status.ps1` is a local-only
-  consolidated packet for the remaining open profit issues. It reads the saved
-  #6 profit-improvement bundle, #7 post-deploy bundle, and bounded profit
-  evidence watcher logs, then emits `REMAINING_OPEN_ISSUES_STATUS_PACKET`,
-  `remaining_open_issues_status`, `remaining_open_issues_global_blocker`,
-  `issue6_status`, `issue7_remaining_blocker`, and
-  `profit_evidence_watch_status`. If the full #7 bundle stops before its
-  summary marker because split-acceptance currentness fails on docs/tooling
-  drift, it can fall back to a fresh #7 collector post-activation status log
-  for blocker classification. It does not run SSH or GitHub calls. When it
-  reports `BLOCKED_NOT_CLOSEABLE` with
-  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS`, both #6 and #7 remain open and
-  the next safe action is to wait for fresh post-collector DataFreshnessGuard
-  terminal rows before rerunning read-only evidence. It does not authorize live
+  consolidated packet for the active remaining open profit issues #6/#7/#8. It
+  reads the saved #6 profit-improvement bundle, #7 post-deploy bundle, #8
+  BUY-like loss packet, and bounded profit evidence watcher logs, then emits
+  `REMAINING_OPEN_ISSUES_STATUS_PACKET`, `remaining_open_issues_status`,
+  `remaining_open_issues_global_blocker`, `issue6_status`,
+  `issue7_remaining_blocker`, `issue8_status`, `active_open_issue_numbers`,
+  `active_remaining_issue_count`, and `profit_evidence_watch_status`. Closed
+  #9/#10/#11/#12 lanes are preserved only as completed context and do not affect
+  `remainingIssueCount`, the global blocker, or the active next action. If the
+  full #7 bundle stops before its summary marker because split-acceptance
+  currentness fails on docs/tooling drift, it can fall back to a fresh #7
+  collector post-activation status log for blocker classification. It does not
+  run SSH or GitHub calls. When it reports `BLOCKED_NOT_CLOSEABLE` with
+  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS`, #6/#7 remain open for
+  replayable DataFreshness evidence and #8 remains open for the upstream
+  BUY-like/DataFreshness terminal-flow gap; the next safe action is to wait for
+  fresh post-collector DataFreshnessGuard terminal rows before rerunning
+  read-only evidence. It does not authorize live
   trading, policy relaxation, deploy, production env changes, orders, OCO,
   position closes, DB/grid/fund/Earn/Telegram/exchange mutation, issue closure,
   or external backfill/import.

@@ -1233,17 +1233,22 @@ Consolidated remaining open issue status from saved local evidence logs:
 .\scripts\prepare_remaining_open_issues_status.ps1 -RequireBlocked
 ```
 
-This local packet reads the latest #6 profit-improvement bundle, #7
-post-deploy bundle, and bounded profit evidence watcher logs, then emits
+This local packet tracks the active open set #6/#7/#8. It reads the latest #6
+profit-improvement bundle, #7 post-deploy bundle, #8 BUY-like loss packet, and
+bounded profit evidence watcher logs, then emits
 `REMAINING_OPEN_ISSUES_STATUS_PACKET`, `remaining_open_issues_status`,
 `remaining_open_issues_global_blocker`, `issue6_status`, `issue7_remaining_blocker`,
-and `profit_evidence_watch_status`. It does not run SSH or GitHub calls; refresh
-the underlying read-only evidence logs first when the packet reports stale or
+`issue8_status`, `active_open_issue_numbers`, `active_remaining_issue_count`,
+and `profit_evidence_watch_status`. Closed #9/#10/#11/#12 lanes may appear only
+under completed context and do not affect the active remaining count, global
+blocker, or next action. It does not run SSH or GitHub calls; refresh the
+underlying read-only evidence logs first when the packet reports stale or
 missing local evidence. If the full #7 bundle stops before its summary marker
 because split-acceptance currentness fails on docs/tooling drift, the packet can
 fall back to a fresh #7 collector post-activation status log for the blocker
 classification. `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` keeps #6/#7
-open until fresh post-collector replay rows appear. This packet does not close
+open until fresh post-collector replay rows appear, while #8 stays open until
+the upstream BUY-like/DataFreshness terminal-flow gap is resolved. This packet does not close
 issues, deploy, change production env, enable live trading, relax
 EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn/Telegram/exchange state.

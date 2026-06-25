@@ -1269,8 +1269,8 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
-For a local consolidated status packet across the remaining open profit issues,
-run after the underlying read-only logs have been refreshed:
+For a local consolidated status packet across the active remaining open profit
+issues, run after the underlying read-only logs have been refreshed:
 
 ```powershell
 .\scripts\prepare_remaining_open_issues_status.ps1 -RequireBlocked
@@ -1283,17 +1283,22 @@ Expected:
   grid, fund, Earn, Telegram, exchange calls, or external backfill/import.
 - Output includes `REMAINING_OPEN_ISSUES_STATUS_PACKET`,
   `remaining_open_issues_status`, `remaining_open_issues_global_blocker`,
-  `issue6_status`, `issue7_remaining_blocker`, and
+  `issue6_status`, `issue7_remaining_blocker`, `issue8_status`,
+  `active_open_issue_numbers=6,7,8`, `active_remaining_issue_count=3`, and
   `profit_evidence_watch_status`.
+- Closed lanes #9/#10/#11/#12 may appear only as completed context; they do not
+  affect `remainingIssueCount`, `remaining_open_issues_global_blocker`, or the
+  active next action.
 - If the full #7 bundle stops before its summary marker because
   split-acceptance currentness fails on docs/tooling drift, the packet can fall
   back to a fresh #7 collector post-activation status log for blocker
   classification.
 - `BLOCKED_NOT_CLOSEABLE` with
-  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` means both #6 and #7 remain open
-  and the safe next action is to wait for fresh post-collector
-  DataFreshnessGuard terminal rows before rerunning the bounded watcher and #7
-  post-deploy bundle.
+  `NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS` means #6/#7 remain open for
+  replayable DataFreshness evidence and #8 remains open for the upstream
+  BUY-like/DataFreshness terminal-flow gap. The safe next action is to wait for
+  fresh post-collector DataFreshnessGuard terminal rows before rerunning the
+  bounded watcher and #7 post-deploy bundle.
 
 For a read-only DataFreshness profit blocker brief, run:
 
@@ -1416,8 +1421,8 @@ Expected:
   `position_or_oco_mutation_allowed=false`, `telegram_send_allowed=false`, and
   `deploy_or_env_change_allowed=false`.
 
-For the consolidated read-only open-issue status packet covering #6 through
-#12, run:
+For the consolidated read-only open-issue status packet covering active open
+#6/#7/#8 plus closed #9/#10/#11/#12 context, run:
 
 ```powershell
 .\scripts\prepare_remaining_open_issues_status.ps1 -MaxAgeMinutes 1440 -RequireBlocked
@@ -1426,16 +1431,16 @@ For the consolidated read-only open-issue status packet covering #6 through
 Expected:
 
 - Output includes `REMAINING_OPEN_ISSUES_STATUS_PACKET`,
-  `remainingIssueCount=7` in the JSON packet, `issue8_status`,
-  `issue9_status`, `issue10_status`, `issue11_status`, and `issue12_status`.
+  `remainingIssueCount=3` in the JSON packet, `activeOpenIssueNumbers=[6,7,8]`,
+  `issue8_status`, and `completedIssueContext` for #9/#10/#11/#12.
 - The packet reads existing local evidence logs only. It does not run SSH, call
   GitHub, close issues, deploy, restart, reload nginx, change production env,
   enable live trading, relax EntryDedup/DataFreshness/live policy, place
   orders, modify OCO, close positions, send Telegram, or mutate
   DB/grid/fund/Earn/exchange/external backfill state.
-- `READY_STATUS_PACKET_UPDATED_FOR_ISSUES_6_TO_12_NOT_LIVE` for #10 means the
-  local status packet now covers #6, #7, #8, #9, #10, #11, and #12. It does not
-  mean all issues can be closed.
+- `COMPLETED_STATUS_PACKET_ARCHIVED_CONTEXT_NOT_ACTIVE` for #10 means the local
+  status packet can preserve closed-lane context without reopening or counting
+  #9/#10/#11/#12 as active remaining work.
 
 For a read-only profit operator review matrix, run:
 

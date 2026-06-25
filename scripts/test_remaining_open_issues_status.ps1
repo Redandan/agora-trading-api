@@ -13,15 +13,18 @@ $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 
 foreach ($marker in @(
         "REMAINING_OPEN_ISSUES_STATUS_PACKET",
-        "remainingIssueCount = 7",
+        "activeOpenIssueNumbers = @(6, 7, 8)",
+        "remainingIssueCount = 3",
+        "completedIssueContext",
+        "closed_issue_context_numbers=9,10,11,12",
         "remaining_open_issues_status",
         "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS",
         "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE",
         "issue8_status",
-        "issue9_status",
-        "issue10_status",
-        "issue11_status",
-        "issue12_status",
+        "closed_issue9_context_status",
+        "closed_issue10_context_status",
+        "closed_issue11_context_status",
+        "closed_issue12_context_status",
         "profit_evidence_watch_status",
         "read-only remaining open issues status packet only",
         "does not run SSH"
@@ -133,10 +136,13 @@ notAuthorization=read-only trailing-stop dry-run operator decision packet only
     Assert-Contains -Name "remaining open issues issue6" -Text $blockedText -Pattern "issue6_decision=BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE"
     Assert-Contains -Name "remaining open issues issue7" -Text $blockedText -Pattern "issue7_remaining_blocker=NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
     Assert-Contains -Name "remaining open issues issue8" -Text $blockedText -Pattern "issue8_status=BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS"
-    Assert-Contains -Name "remaining open issues issue9" -Text $blockedText -Pattern "issue9_status=WATCH_ONLY"
-    Assert-Contains -Name "remaining open issues issue10" -Text $blockedText -Pattern "issue10_status=READY_STATUS_PACKET_UPDATED_FOR_ISSUES_6_TO_12_NOT_LIVE"
-    Assert-Contains -Name "remaining open issues issue11" -Text $blockedText -Pattern "issue11_status=NOT_READY"
-    Assert-Contains -Name "remaining open issues issue12" -Text $blockedText -Pattern "issue12_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE"
+    Assert-Contains -Name "remaining open issues active issue numbers" -Text $blockedText -Pattern "active_open_issue_numbers=6,7,8"
+    Assert-Contains -Name "remaining open issues active count" -Text $blockedText -Pattern "active_remaining_issue_count=3"
+    Assert-Contains -Name "remaining open issues closed context numbers" -Text $blockedText -Pattern "closed_issue_context_numbers=9,10,11,12"
+    Assert-Contains -Name "remaining open issues issue9 context" -Text $blockedText -Pattern "closed_issue9_context_status=WATCH_ONLY"
+    Assert-Contains -Name "remaining open issues issue10 context" -Text $blockedText -Pattern "closed_issue10_context_status=COMPLETED_STATUS_PACKET_ARCHIVED_CONTEXT_NOT_ACTIVE"
+    Assert-Contains -Name "remaining open issues issue11 context" -Text $blockedText -Pattern "closed_issue11_context_status=NOT_READY"
+    Assert-Contains -Name "remaining open issues issue12 context" -Text $blockedText -Pattern "closed_issue12_context_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE"
     Assert-Contains -Name "remaining open issues not live" -Text $blockedText -Pattern "live_relaxation_allowed=false"
 
     $packetJson = ($blockedText -split "`r?`n" | Where-Object { $_.StartsWith("remaining_open_issues_status_packet=") } | Select-Object -Last 1).Substring("remaining_open_issues_status_packet=".Length)
@@ -147,11 +153,22 @@ notAuthorization=read-only trailing-stop dry-run operator decision packet only
     if ($packet.globalBlocker -ne "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS") {
         throw "unexpected packet blocker: $($packet.globalBlocker)"
     }
-    if ($packet.remainingIssueCount -ne 7) {
+    if ($packet.remainingIssueCount -ne 3) {
         throw "unexpected remaining issue count: $($packet.remainingIssueCount)"
     }
-    if (@($packet.issues).Count -ne 7) {
+    if (@($packet.issues).Count -ne 3) {
         throw "unexpected issue row count: $(@($packet.issues).Count)"
+    }
+    $activeNumbers = @($packet.issues | ForEach-Object { [int]$_.number })
+    if (($activeNumbers -join ",") -ne "6,7,8") {
+        throw "unexpected active issue numbers: $($activeNumbers -join ',')"
+    }
+    $completedNumbers = @($packet.completedIssueContext | ForEach-Object { [int]$_.number })
+    if (($completedNumbers -join ",") -ne "9,10,11,12") {
+        throw "unexpected completed context issue numbers: $($completedNumbers -join ',')"
+    }
+    if (@($packet.completedIssueContext | Where-Object { $_.state -ne "CLOSED" }).Count -ne 0) {
+        throw "completed context rows must be marked CLOSED"
     }
 
     $bundleWithoutSummaryLog = Join-Path $tempDir "issue7-bundle-without-summary.log"
@@ -172,6 +189,13 @@ notAuthorization=read-only trailing-stop dry-run operator decision packet only
     $missingText = $missing -join "`n"
     Assert-Contains -Name "remaining open issues missing status" -Text $missingText -Pattern "remaining_open_issues_status=BLOCKED_REFRESH_LOCAL_EVIDENCE_LOGS"
     Assert-Contains -Name "remaining open issues missing blocker" -Text $missingText -Pattern "remaining_open_issues_global_blocker=LOCAL_STATUS_EVIDENCE_MISSING_OR_STALE"
+
+    $missingClosedContext = & $scriptPath -ProfitImprovementLog $profitLog -Issue7BundleLog $issue7Log -Issue7PostActivationLog $issue7PostActivationLog -ProfitEvidenceWatchLog $watchLog -BuyLikeCandidateLossReviewLog $buyLikeLossLog -Strategy485PositionGateLog (Join-Path $tempDir "missing-strategy485.log") -TrailingStopDryRunDecisionLog (Join-Path $tempDir "missing-trailing.log") -RequireBlocked *>&1
+    $missingClosedContextText = $missingClosedContext -join "`n"
+    Assert-Contains -Name "closed context missing still blocked by active issues" -Text $missingClosedContextText -Pattern "remaining_open_issues_status=BLOCKED_NOT_CLOSEABLE"
+    Assert-Contains -Name "closed context missing does not refresh active evidence" -Text $missingClosedContextText -Pattern "remaining_open_issues_global_blocker=NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
+    Assert-Contains -Name "closed context unknown issue9" -Text $missingClosedContextText -Pattern "closed_issue9_context_status=UNKNOWN"
+    Assert-Contains -Name "closed context unknown issue11" -Text $missingClosedContextText -Pattern "closed_issue11_context_status=UNKNOWN"
 } finally {
     if (Test-Path -LiteralPath $tempDir) {
         Remove-Item -LiteralPath $tempDir -Recurse -Force

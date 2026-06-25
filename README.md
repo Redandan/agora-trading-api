@@ -152,7 +152,7 @@ state. Any scheduler integration or `closeGrid`/`createGrid` action requires
 separate explicit approval.
 The SSH wrapper owns only remote env/app-port handling; the JSON-RPC call,
 marker validation, and packet rendering are owned by the Java smoke runner
-`com.agora.smoke.McpSmokeCli` so the smoke logic is unit-testable.
+`com.agora.trading.smoke.McpSmokeCli` so the smoke logic is unit-testable.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

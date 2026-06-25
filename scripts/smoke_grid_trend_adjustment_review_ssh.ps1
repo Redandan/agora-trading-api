@@ -71,9 +71,14 @@ if [ -z "$MCP_KEY" ]; then
 fi
 export MCP_KEY
 
-mvn -q -DskipTests exec:java \
-  -Dexec.mainClass=com.agora.smoke.McpSmokeCli \
-  -Dexec.args="--suite grid-trend --mcp-url ${MCP_URL} --mcp-key-env MCP_KEY --symbol __SYMBOL__ --lookback-hours __LOOKBACK_HOURS__"
+mvn -q -DskipTests compile dependency:build-classpath -Dmdep.outputFile=target/smoke-runtime-classpath.txt
+SMOKE_CLASSPATH="target/classes:$(cat target/smoke-runtime-classpath.txt)"
+java -cp "$SMOKE_CLASSPATH" com.agora.trading.smoke.McpSmokeCli \
+  --suite grid-trend \
+  --mcp-url "$MCP_URL" \
+  --mcp-key-env MCP_KEY \
+  --symbol __SYMBOL__ \
+  --lookback-hours __LOOKBACK_HOURS__
 '@
 
 $remoteScript = $remoteScript.Replace("__APPDIR__", $AppDir)

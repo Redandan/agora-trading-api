@@ -1,4 +1,4 @@
-package com.agora.smoke;
+package com.agora.trading.smoke;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package com.agora.smoke;
+package com.agora.trading.smoke;
 
 import org.junit.jupiter.api.Test;
 

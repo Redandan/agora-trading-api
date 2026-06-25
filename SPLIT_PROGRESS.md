@@ -2673,7 +2673,7 @@ Trading deployment prep:
   separate explicitly authorized phase. Smoke framework v1 keeps the SSH/env
   wrapper in PowerShell while moving JSON-RPC calling, marker validation, and
   packet rendering for this grid-trend case into the Java runner
-  `com.agora.smoke.McpSmokeCli`.
+  `com.agora.trading.smoke.McpSmokeCli`.
 
 ## Cleanup Priority
 

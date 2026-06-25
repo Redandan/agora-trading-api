@@ -15,7 +15,7 @@ function Assert-Contains {
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "smoke_grid_trend_adjustment_review_ssh.ps1"
-$javaPath = Join-Path $repoRoot "src/main/java/com/agora/smoke/McpSmokeCli.java"
+$javaPath = Join-Path $repoRoot "src/main/java/com/agora/trading/smoke/McpSmokeCli.java"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $readmePath = Join-Path $repoRoot "README.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
@@ -52,8 +52,10 @@ foreach ($marker in @(
         'url = f"http://127.0.0.1:{os.environ[''PORT'']}/api/mcp"',
         'MCP_URL="http://127.0.0.1:${PORT}/api/mcp"',
         "TRADING_MCP_KEY",
+        "dependency:build-classpath",
+        "SMOKE_CLASSPATH",
+        'java -cp "$SMOKE_CLASSPATH" com.agora.trading.smoke.McpSmokeCli',
         "--mcp-key-env MCP_KEY",
-        "com.agora.smoke.McpSmokeCli",
         "Assert-RemotePathSafe",
         "Assert-SshHostSafe",
         "Assert-McpSmokeTokenSafe"

@@ -119,6 +119,131 @@ function New-TrendOverrideRiskEnvelope {
     }
 }
 
+function New-EventRiskOverrideRiskEnvelope {
+    param([string]$RiskLevel, $CandidatePlan, [string]$TrendGateStatus)
+
+    $normalizedRiskLevel = if ([string]::IsNullOrWhiteSpace($RiskLevel)) { "UNKNOWN" } else { $RiskLevel }
+    $capital = if ($null -ne $CandidatePlan) { Convert-PlanNumber $CandidatePlan.candidateCapitalUsdt } else { [decimal]0 }
+    $stopBreakRows = if ($null -ne $CandidatePlan) { [int](Convert-PlanNumber $CandidatePlan.stopBreakRows) } else { 0 }
+    $replayScore = if ($null -ne $CandidatePlan) { Convert-PlanNumber $CandidatePlan.replayScore } else { [decimal]0 }
+
+    $riskPoints = switch ($normalizedRiskLevel) {
+        "R0" { 0 }
+        "R1" { 2 }
+        "R2" { 5 }
+        "R3" { 8 }
+        default { 6 }
+    }
+    if ($TrendGateStatus -like "BLOCKED_*") { $riskPoints += 2 }
+    if ($stopBreakRows -gt 0) { $riskPoints += 3 }
+    if ($replayScore -lt 70 -and $replayScore -gt 0) { $riskPoints += 1 }
+
+    $riskGrade = if ($riskPoints -ge 8) {
+        "HIGH"
+    } elseif ($riskPoints -ge 4) {
+        "MEDIUM"
+    } else {
+        "LOW"
+    }
+
+    $capMultiplier = switch ($normalizedRiskLevel) {
+        "R0" { 1.00 }
+        "R1" { 0.50 }
+        "R2" { 0.25 }
+        "R3" { 0.00 }
+        default { 0.00 }
+    }
+    if ($riskGrade -eq "HIGH" -and $capMultiplier -gt 0.25) {
+        $capMultiplier = 0.25
+    }
+    $capitalCap = [math]::Round([double]($capital * [decimal]$capMultiplier), 2)
+
+    $status = if ($normalizedRiskLevel -eq "R0") {
+        "EVENT_RISK_GATE_ALREADY_CLEAR"
+    } elseif ($normalizedRiskLevel -eq "R3") {
+        "OVERRIDE_NOT_RECOMMENDED_R3"
+    } else {
+        "OVERRIDE_REVIEW_REQUIRED_NOT_CLEARANCE"
+    }
+
+    $missingEvidence = if ($normalizedRiskLevel -eq "UNKNOWN") {
+        @("fresh getEventRiskControlStatus output")
+    } else {
+        @()
+    }
+
+    return [pscustomobject]@{
+        status = $status
+        riskGrade = $riskGrade
+        riskPoints = $riskPoints
+        riskLevel = $normalizedRiskLevel
+        replayScore = $replayScore
+        stopBreakRows = $stopBreakRows
+        candidateCapitalUsdt = $capital
+        recommendedOverrideCapitalCapUsdt = $capitalCap
+        requiredOverrideConditions = @(
+            "separate written event-risk override naming current riskLevel and capital cap",
+            "R3 must not be overridden for grid open review",
+            "refresh getEventRiskControlStatus immediately before any createGrid request",
+            "keep TinyLive/live/scheduler/recovery disabled unless separately authorized",
+            "abort review if event-risk escalates above the approved level",
+            "abort review if replay stopBreakRows becomes greater than 0"
+        )
+        missingEvidence = @($missingEvidence)
+        notAuthorization = "read-only event-risk override risk envelope only; does not clear event-risk gate or authorize grid opening"
+    }
+}
+
+function Get-RiskGradeRank {
+    param([string]$RiskGrade)
+    switch ($RiskGrade) {
+        "LOW" { return 1 }
+        "MEDIUM" { return 2 }
+        "HIGH" { return 3 }
+        default { return 0 }
+    }
+}
+
+function New-CombinedGridOverrideRiskEnvelope {
+    param($TrendEnvelope, $EventRiskEnvelope)
+
+    $trendCap = Convert-PlanNumber $TrendEnvelope.recommendedOverrideCapitalCapUsdt
+    $eventCap = Convert-PlanNumber $EventRiskEnvelope.recommendedOverrideCapitalCapUsdt
+    $caps = @($trendCap, $eventCap) | Where-Object { $_ -ge 0 }
+    $effectiveCap = if ($caps.Count -gt 0) {
+        [math]::Round([double](@($caps | Sort-Object)[0]), 2)
+    } else {
+        0
+    }
+
+    $trendRank = Get-RiskGradeRank ([string]$TrendEnvelope.riskGrade)
+    $eventRank = Get-RiskGradeRank ([string]$EventRiskEnvelope.riskGrade)
+    $combinedGrade = if ([math]::Max($trendRank, $eventRank) -ge 3) {
+        "HIGH"
+    } elseif ([math]::Max($trendRank, $eventRank) -eq 2) {
+        "MEDIUM"
+    } elseif ([math]::Max($trendRank, $eventRank) -eq 1) {
+        "LOW"
+    } else {
+        "UNKNOWN"
+    }
+
+    return [pscustomobject]@{
+        status = "COMBINED_OVERRIDE_REVIEW_NOT_CLEARANCE"
+        riskGrade = $combinedGrade
+        effectiveReviewCapitalCapUsdt = $effectiveCap
+        trendRiskGrade = $TrendEnvelope.riskGrade
+        eventRiskGrade = $EventRiskEnvelope.riskGrade
+        requiredOverrideDocuments = @(
+            "separate written trend-regime override if trend gate is blocked",
+            "separate written event-risk override if event-risk gate is blocked",
+            "separate written production env diff authorization",
+            "separate written createGrid authorization using reviewed inputs"
+        )
+        notAuthorization = "read-only combined override risk envelope only; does not clear gates or authorize grid opening"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for grid open operator packet arguments."
 }
@@ -176,6 +301,7 @@ $candidatePlanComplete = $false
 $trendGateStatus = ""
 $eventRiskGateStatus = ""
 $okxGateStatus = ""
+$eventRiskLevel = ""
 $blockers = @()
 $warnings = @()
 $operatorAuthorizationRequired = @()
@@ -195,6 +321,7 @@ if ($null -ne $readinessPacket) {
         $eventRiskGateStatus = [string]$readinessPacket.gateReview.eventRiskGate.status
         $okxGateStatus = [string]$readinessPacket.gateReview.okxGate.status
     }
+    $eventRiskLevel = [string]$readinessPacket.eventRiskLevel
 }
 
 if (-not $candidatePlanComplete) {
@@ -214,6 +341,8 @@ if ($okxGateStatus -like "BLOCKED_*") {
 }
 
 $trendOverrideRiskEnvelope = New-TrendOverrideRiskEnvelope -CandidatePlan $candidatePlan -TrendGateStatus $trendGateStatus -EventRiskGateStatus $eventRiskGateStatus
+$eventRiskOverrideRiskEnvelope = New-EventRiskOverrideRiskEnvelope -RiskLevel $eventRiskLevel -CandidatePlan $candidatePlan -TrendGateStatus $trendGateStatus
+$combinedOverrideRiskEnvelope = New-CombinedGridOverrideRiskEnvelope -TrendEnvelope $trendOverrideRiskEnvelope -EventRiskEnvelope $eventRiskOverrideRiskEnvelope
 $reviewReady = $missingRequirements.Count -eq 0
 $status = if ($reviewReady) { "READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" } else { "BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION" }
 $decision = if ($reviewReady) { "PREPARE_SEPARATE_GRID_OPEN_OPERATOR_REVIEW" } else { "WAIT_FOR_GATE_CLEARANCE_OR_SEPARATE_OPERATOR_OVERRIDES" }
@@ -240,6 +369,8 @@ $packet = [pscustomobject]@{
         okxGate = $okxGateStatus
     }
     trendOverrideRiskEnvelope = $trendOverrideRiskEnvelope
+    eventRiskOverrideRiskEnvelope = $eventRiskOverrideRiskEnvelope
+    combinedOverrideRiskEnvelope = $combinedOverrideRiskEnvelope
     blockers = @($blockers)
     warnings = @($warnings)
     missingRequirements = @($missingRequirements)
@@ -304,6 +435,8 @@ Write-Host "grid_open_operator_trend_gate_status=$trendGateStatus"
 Write-Host "grid_open_operator_event_risk_gate_status=$eventRiskGateStatus"
 Write-Host "grid_open_operator_okx_gate_status=$okxGateStatus"
 Write-Host ("grid_open_operator_trend_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $trendOverrideRiskEnvelope))
+Write-Host ("grid_open_operator_event_risk_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $eventRiskOverrideRiskEnvelope))
+Write-Host ("grid_open_operator_combined_override_risk_envelope=" + (ConvertTo-Json -Compress -Depth 8 $combinedOverrideRiskEnvelope))
 Write-Host "production_env_change_allowed=false"
 Write-Host "grid_mutation_allowed=false"
 Write-Host "scheduler_enablement_allowed=false"

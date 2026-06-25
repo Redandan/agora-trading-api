@@ -2716,10 +2716,12 @@ Trading deployment prep:
   readiness packet, emits `GRID_OPEN_OPERATOR_PACKET`,
   `grid_open_operator_status`, gate statuses, missing requirements, proposed
   separate env diff, reviewed `createGrid` inputs from the candidate plan,
-  `trendOverrideRiskEnvelope`, and post-authorization verification steps. The
-  trend override envelope reports risk grade, risk points, replay score,
-  stop-break rows, recommended capital cap, and required override conditions as
-  decision support only. A blocked status keeps grid opening
+  `trendOverrideRiskEnvelope`, `eventRiskOverrideRiskEnvelope`,
+  `combinedOverrideRiskEnvelope`, and post-authorization verification steps. The
+  override envelopes report risk grade, risk points, replay score, stop-break
+  rows, recommended capital cap, effective review capital cap, event
+  `riskLevel`, and required override documents/conditions as decision support
+  only; `R3` is explicitly not recommended for override. A blocked status keeps grid opening
   closed until trend/event-risk/OKX gates clear or receive separate written
   override/authorization; a ready status is still review-only and does not
   authorize production env changes, `createGrid`, scheduler/recovery

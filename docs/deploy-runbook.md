@@ -508,6 +508,16 @@ Expected:
   `recommendedOverrideCapitalCapUsdt`, replay score, stop-break rows, and
   required override conditions. This is decision support only and must not clear
   the trend gate without separate written operator approval.
+- Emits `grid_open_operator_event_risk_override_risk_envelope` /
+  `eventRiskOverrideRiskEnvelope` with `riskLevel`, `riskGrade`, `riskPoints`,
+  recommended capital cap, and required override conditions. `R3` must not be
+  overridden for grid open review, and non-R0 review requires a fresh
+  `getEventRiskControlStatus` check immediately before any later `createGrid`
+  request.
+- Emits `grid_open_operator_combined_override_risk_envelope` /
+  `combinedOverrideRiskEnvelope` with `effectiveReviewCapitalCapUsdt`, the
+  stricter risk grade, and the separate written trend/event-risk/env/createGrid
+  documents still required before any later mutation request.
 - `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means no grid open action is
   review-ready yet. `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means
   only that a separate operator review packet can be attached; it is not a grid

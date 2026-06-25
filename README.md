@@ -186,6 +186,22 @@ grid. Override entries are review inputs only; they do not authorize env
 changes, `createGrid`, scheduler enablement, orders, Telegram sends, or DB
 mutation.
 
+Read-only Grid open operator packet:
+
+```powershell
+.\scripts\prepare_grid_open_operator_packet_ssh.ps1
+```
+
+This wraps the readiness packet into `GRID_OPEN_OPERATOR_PACKET` and emits
+`grid_open_operator_packet`, `grid_open_operator_status`, gate statuses,
+missing requirements, proposed separate env diff, reviewed `createGrid` inputs,
+and post-authorization verification steps. `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION`
+means the grid must remain closed until the trend/event-risk/OKX gates clear or
+receive separate written override/authorization. The packet is still read-only:
+it does not change production env, call `createGrid`, enable scheduler/recovery,
+place orders, modify OCO, send Telegram, deploy, restart, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:
 

@@ -489,6 +489,35 @@ Expected:
   create/pause/resume/close/rebalance grid, place orders, modify OCO, send
   Telegram, mutate DB/grid/fund/Earn, or call exchange mutation paths.
 
+Read-only Grid open operator packet:
+
+```powershell
+.\scripts\prepare_grid_open_operator_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes `prepare_grid_open_readiness_packet_ssh.ps1` and consumes its
+  `grid_open_readiness_packet`; it must not bypass the readiness gate.
+- Emits `GRID_OPEN_OPERATOR_PACKET`, `grid_open_operator_packet`,
+  `grid_open_operator_status`, `grid_open_operator_decision`,
+  `grid_open_operator_missing_requirements`, and
+  `grid_open_operator_authorization_required`.
+- `BLOCKED_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means no grid open action is
+  review-ready yet. `READY_FOR_GRID_OPEN_OPERATOR_REVIEW_NOT_MUTATION` means
+  only that a separate operator review packet can be attached; it is not a grid
+  or live-trading approval.
+- Includes proposed separate env diff entries such as
+  `TRADING_OKX_ENABLED=true`, `TRADING_GRID_ENABLED=true`, scheduler/recovery
+  remaining disabled unless separately authorized, and
+  `OKX_EARN_TOPUP_ENABLED=false`.
+- Includes reviewed `createGrid` inputs from the replayable candidate plan when
+  available, plus a post-authorization verification plan.
+- The wrapper does not deploy, restart, reload nginx, change production env,
+  call `createGrid`, enable grid, enable scheduler/recovery, place orders,
+  modify OCO, send Telegram, mutate DB/grid/fund/Earn, or call exchange
+  mutation paths.
+
 From Windows/Codex Desktop, run the server-side verifier over SSH so tool
 checks such as `lsof`, `systemctl`, and nginx inspection run on the production
 host:

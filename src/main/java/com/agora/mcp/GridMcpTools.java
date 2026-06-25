@@ -8,14 +8,17 @@ import com.agora.mcp.auth.McpCategory;
 import com.agora.model.BtGrid;
 import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
+import com.agora.model.MdKline;
 import com.agora.repository.trading.BtGridLevelRepository;
 import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
+import com.agora.repository.trading.MdKlineRepository;
 import com.agora.service.trading.CapitalAllocationPolicyPreviewService;
 import com.agora.service.trading.OkxTradingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -41,6 +44,7 @@ public class GridMcpTools {
     private final BtGridRepository gridRepository;
     private final BtGridLevelRepository gridLevelRepository;
     private final BtLiveSignalRepository liveSignalRepository;
+    private final MdKlineRepository klineRepository;
     private final OkxTradingService okxTradingService;
     private final TradingGridProperties gridProperties;
     private final CapitalAllocationPolicyPreviewService capitalAllocationPolicyPreviewService;
@@ -658,6 +662,64 @@ public class GridMcpTools {
         return renderGridRedesignPlan(grid);
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.ANALYTICS, Category.DIAGNOSTIC})
+    @Tool(description = "Read-only Grid trend adjustment review. Uses recent 1h md_kline trend/ATR, current price alignment, " +
+            "and grid efficiency evidence to recommend KEEP/PAUSE/REBUILD/WIDEN/NARROW/CLOSE_REVIEW. " +
+            "No DB write, no order action, no scheduler/grid state change. params: gridId optional, symbol optional default BTCUSDT, lookbackHours optional default 72.")
+    public String getGridTrendAdjustmentReview(Long gridId, String symbol, Integer lookbackHours) {
+        String sym = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.trim().toUpperCase();
+        int hours = lookbackHours == null ? 72 : Math.max(24, Math.min(336, lookbackHours));
+        List<BtGrid> grids = gridId == null
+                ? gridRepository.findByEnabledTrueAndClosedAtIsNull().stream()
+                        .filter(g -> sym.equalsIgnoreCase(g.getSymbol()))
+                        .toList()
+                : gridRepository.findById(gridId).stream().toList();
+
+        MarketTrendEvidence trend = loadGridTrendEvidence(sym, hours);
+        StringBuilder sb = new StringBuilder("=== Grid Trend Adjustment Review ===\n");
+        sb.append("boundary=READ_ONLY; mutationAllowed=false; orderAllowed=false; ")
+                .append("gridMutationAllowed=false; schedulerChangeAllowed=false; telegramSendAllowed=false\n");
+        sb.append("purpose=operator review only; actions ending in _REVIEW are not execution authorization.\n\n");
+        sb.append(String.format("market symbol=%s interval=1h lookbackHours=%d bars=%d source=%s trend=%s trendPct=%s atrPct=%s current=%s latestBar=%s%n%n",
+                sym, hours, trend.bars(), trend.source(), trend.direction(), fmtPctValue(trend.trendPct()),
+                fmtPctValue(trend.atrPct()), fmtUsd(trend.currentPrice()), trend.latestOpenTimeText()));
+
+        if (grids.isEmpty()) {
+            String action = classifyGridTrendAdjustment("NO_GRID", trend.direction(), trend.trendPct(),
+                    trend.atrPct(), null, null, 0, trend.bars(), 0, 0);
+            sb.append("activeGridCount=0\n");
+            sb.append("recommendation=").append(action).append('\n');
+            sb.append("reason=no active grid for symbol; trend review can only inform a future operator-created grid plan.\n");
+            sb.append("nextEvidence=operator must choose grid range/capital and run redesign/price-alignment review before any createGrid call.\n");
+            return sb.toString();
+        }
+
+        for (BtGrid grid : grids) {
+            List<BtGridLevel> levels = gridLevelRepository.findByGridId(grid.getId());
+            GridEfficiencySnapshot s = gridEfficiencySnapshot(grid, levels);
+            BigDecimal price = trend.currentPrice() != null ? trend.currentPrice() : s.currentPrice();
+            RangePlacement placement = rangePlacement(grid, price);
+            String action = classifyGridTrendAdjustment(
+                    s.range(), trend.direction(), trend.trendPct(), trend.atrPct(),
+                    placement.rangeWidthPct(), placement.pricePositionPct(),
+                    s.materialFailed(), trend.bars(), s.closedPairs(), s.ageDays());
+            sb.append(String.format("Grid #%d %s enabled=%s paused=%s closed=%s%n",
+                    grid.getId(), grid.getSymbol(), grid.getEnabled(), grid.getPausedAt() != null, grid.getClosedAt() != null));
+            sb.append(String.format("  range=%s lower=%s upper=%s pricePosition=%s rangeWidthPct=%s%n",
+                    s.range(), fmtBd(grid.getPriceLower()), fmtBd(grid.getPriceUpper()),
+                    fmtPctValue(placement.pricePositionPct()), fmtPctValue(placement.rangeWidthPct())));
+            sb.append(String.format("  efficiencyScore=%d/100 pairs=%d pairsPerDay=%.3f pnlPerDay=%+.4f bpPerDay=%.2f%n",
+                    s.score(), s.closedPairs(), s.pairsPerDay(), s.pnlPerDay(), s.capitalEfficiencyBpPerDay()));
+            sb.append(String.format("  levels pending=%d holding=%d sellFailed=%d dustStale=%d materialFailed=%d%n",
+                    s.pending(), s.holding(), s.sellFailed(), s.dustStale(), s.materialFailed()));
+            sb.append("  recommendation=").append(action).append('\n');
+            sb.append("  rationale=").append(gridTrendRationale(action, s, trend, placement)).append('\n');
+            sb.append("  safeNextStep=").append(gridTrendSafeNextStep(action)).append("\n\n");
+        }
+        return sb.toString().stripTrailing();
+    }
+
     private String renderGridEfficiency(BtGrid grid) {
         List<BtGridLevel> levels = gridLevelRepository.findByGridId(grid.getId());
         long ageDays = grid.getCreatedAt() == null
@@ -887,6 +949,138 @@ public class GridMcpTools {
                 gridCount, perLevel.toPlainString());
     }
 
+    private MarketTrendEvidence loadGridTrendEvidence(String symbol, int lookbackHours) {
+        List<MdKline> bars = klineRepository.findBySymbolAndIntervalCodeAndSourceOrderByOpenTimeDesc(
+                symbol, "1h", "okx", PageRequest.of(0, lookbackHours));
+        String source = "md_kline:okx";
+        if (bars == null || bars.size() < 24) {
+            bars = klineRepository.findBySymbolAndIntervalCodeOrderByOpenTimeDesc(
+                    symbol, "1h", PageRequest.of(0, lookbackHours));
+            source = "md_kline:any";
+        }
+        if (bars == null || bars.isEmpty()) {
+            BigDecimal current = lastPriceOrNull(symbol);
+            return new MarketTrendEvidence(0, source, "INSUFFICIENT_DATA", null, null, current, null);
+        }
+        Collections.reverse(bars);
+        MdKline first = bars.get(0);
+        MdKline last = bars.get(bars.size() - 1);
+        BigDecimal firstClose = first.getClosePrice();
+        BigDecimal lastClose = last.getClosePrice();
+        BigDecimal trendPct = pctChange(firstClose, lastClose);
+        BigDecimal atrPct = averageRangePct(bars, Math.min(24, bars.size()));
+        BigDecimal current = lastPriceOrNull(symbol);
+        if (current == null) current = lastClose;
+        String direction = trendDirection(trendPct);
+        return new MarketTrendEvidence(bars.size(), source, direction, trendPct, atrPct, current, last.getOpenTime());
+    }
+
+    private static BigDecimal pctChange(BigDecimal from, BigDecimal to) {
+        if (from == null || to == null || from.signum() == 0) return null;
+        return to.subtract(from).divide(from, 8, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+    }
+
+    private static BigDecimal averageRangePct(List<MdKline> bars, int count) {
+        if (bars == null || bars.isEmpty() || count <= 0) return null;
+        int start = Math.max(0, bars.size() - count);
+        BigDecimal sum = BigDecimal.ZERO;
+        int n = 0;
+        for (int i = start; i < bars.size(); i++) {
+            MdKline k = bars.get(i);
+            if (k.getHighPrice() == null || k.getLowPrice() == null
+                    || k.getClosePrice() == null || k.getClosePrice().signum() == 0) {
+                continue;
+            }
+            BigDecimal rangePct = k.getHighPrice().subtract(k.getLowPrice())
+                    .divide(k.getClosePrice(), 8, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+            sum = sum.add(rangePct);
+            n++;
+        }
+        return n == 0 ? null : sum.divide(BigDecimal.valueOf(n), 4, RoundingMode.HALF_UP);
+    }
+
+    static String trendDirection(BigDecimal trendPct) {
+        if (trendPct == null) return "INSUFFICIENT_DATA";
+        if (trendPct.compareTo(new BigDecimal("3.0")) >= 0) return "UP_STRONG";
+        if (trendPct.compareTo(new BigDecimal("1.0")) >= 0) return "UP";
+        if (trendPct.compareTo(new BigDecimal("-3.0")) <= 0) return "DOWN_STRONG";
+        if (trendPct.compareTo(new BigDecimal("-1.0")) <= 0) return "DOWN";
+        return "SIDEWAYS";
+    }
+
+    private RangePlacement rangePlacement(BtGrid grid, BigDecimal price) {
+        BigDecimal lower = grid.getPriceLower();
+        BigDecimal upper = grid.getPriceUpper();
+        if (price == null || lower == null || upper == null || price.signum() == 0
+                || upper.compareTo(lower) <= 0) {
+            return new RangePlacement(null, null);
+        }
+        BigDecimal width = upper.subtract(lower);
+        BigDecimal rangeWidthPct = width.divide(price, 8, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+        BigDecimal pricePositionPct = price.subtract(lower).divide(width, 8, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+        return new RangePlacement(rangeWidthPct, pricePositionPct);
+    }
+
+    static String classifyGridTrendAdjustment(String range, String trendDirection, BigDecimal trendPct,
+                                              BigDecimal atrPct, BigDecimal rangeWidthPct,
+                                              BigDecimal pricePositionPct, long materialFailed,
+                                              int bars, int closedPairs, long ageDays) {
+        if (materialFailed > 0) return "CLOSE_REVIEW_FAILURE_FIRST";
+        if ("NO_GRID".equals(range)) return "NO_ACTION_NO_ACTIVE_GRID";
+        if (bars < 24 || trendPct == null || atrPct == null) return "NO_ACTION_INSUFFICIENT_EVIDENCE";
+
+        boolean strongUp = "UP_STRONG".equals(trendDirection);
+        boolean strongDown = "DOWN_STRONG".equals(trendDirection);
+        boolean highVol = atrPct.compareTo(new BigDecimal("1.20")) >= 0;
+        boolean lowVol = atrPct.compareTo(new BigDecimal("0.35")) <= 0;
+        boolean narrowRange = rangeWidthPct != null
+                && rangeWidthPct.compareTo(atrPct.multiply(BigDecimal.valueOf(4))) < 0;
+        boolean wideRange = rangeWidthPct != null
+                && rangeWidthPct.compareTo(atrPct.multiply(BigDecimal.valueOf(18))) > 0;
+        boolean nearUpper = pricePositionPct != null && pricePositionPct.compareTo(new BigDecimal("85")) >= 0;
+        boolean nearLower = pricePositionPct != null && pricePositionPct.compareTo(new BigDecimal("15")) <= 0;
+
+        if ("OUT_ABOVE".equals(range)) return strongUp ? "REBUILD_HIGHER_REVIEW" : "PAUSE_OR_WAIT_REVIEW";
+        if ("OUT_BELOW".equals(range)) return strongDown ? "REBUILD_LOWER_REVIEW" : "PAUSE_OR_WAIT_REVIEW";
+        if ((strongUp && nearUpper) || (strongDown && nearLower)) return "PAUSE_TREND_BREAKOUT_REVIEW";
+        if (highVol || narrowRange) return "WIDEN_RANGE_REVIEW";
+        if (lowVol && wideRange && closedPairs == 0 && ageDays >= 3) return "NARROW_RANGE_REVIEW";
+        return "KEEP_MONITOR";
+    }
+
+    private String gridTrendRationale(String action, GridEfficiencySnapshot s, MarketTrendEvidence trend,
+                                      RangePlacement placement) {
+        return switch (action) {
+            case "CLOSE_REVIEW_FAILURE_FIRST" -> "materialFailed sell levels exist; fix execution/accounting risk before any trend-based adjustment.";
+            case "NO_ACTION_INSUFFICIENT_EVIDENCE" -> "fewer than 24 usable 1h bars or missing ATR/trend data; do not adjust range from weak evidence.";
+            case "REBUILD_HIGHER_REVIEW" -> "price is above range while trend is strongly up; current grid geometry is stale above upper bound.";
+            case "REBUILD_LOWER_REVIEW" -> "price is below range while trend is strongly down; current grid geometry is stale below lower bound.";
+            case "PAUSE_OR_WAIT_REVIEW" -> "price is outside range but trend confirmation is not strong enough for rebuild recommendation.";
+            case "PAUSE_TREND_BREAKOUT_REVIEW" -> "price is near range boundary with strong directional move; grid may be fighting a breakout.";
+            case "WIDEN_RANGE_REVIEW" -> "recent ATR is high or grid range is narrow relative to volatility; current range may overtrade/noise-fill.";
+            case "NARROW_RANGE_REVIEW" -> "volatility is low, range is wide, and pair activity is weak; capital may be spread too thin.";
+            default -> String.format("trend=%s atrPct=%s pricePosition=%s score=%d; no adjustment trigger exceeded.",
+                    trend.direction(), fmtPctValue(trend.atrPct()), fmtPctValue(placement.pricePositionPct()), s.score());
+        };
+    }
+
+    private String gridTrendSafeNextStep(String action) {
+        return switch (action) {
+            case "REBUILD_HIGHER_REVIEW", "REBUILD_LOWER_REVIEW", "WIDEN_RANGE_REVIEW", "NARROW_RANGE_REVIEW" ->
+                    "prepare operator packet with candidate range/capital; require separate approval before closeGrid/createGrid.";
+            case "PAUSE_OR_WAIT_REVIEW", "PAUSE_TREND_BREAKOUT_REVIEW" ->
+                    "continue read-only monitoring; require separate approval before pause/resume/close.";
+            case "CLOSE_REVIEW_FAILURE_FIRST" ->
+                    "run grid dust/failure review and reconcile holdings before any grid action.";
+            case "NO_ACTION_INSUFFICIENT_EVIDENCE" ->
+                    "refresh md_kline evidence and rerun this review after at least 24 fresh 1h bars.";
+            default -> "keep current grid policy unchanged and rerun after next completed pair window.";
+        };
+    }
+
     private String gridEfficiencyRecommendation(int score, int closedPairs, long ageDays,
                                                 long materialFailed, long dustStale, String range) {
         if (materialFailed > 0) return "REVIEW_FAILURE_BEFORE_CAPITAL";
@@ -970,6 +1164,11 @@ public class GridMcpTools {
         return (pct.signum() >= 0 ? "+" : "") + pct.setScale(2, RoundingMode.HALF_UP).toPlainString() + "%";
     }
 
+    private static String fmtPctValue(BigDecimal pct) {
+        if (pct == null) return "N/A";
+        return pct.setScale(2, RoundingMode.HALF_UP).toPlainString() + "%";
+    }
+
     private static BigDecimal safe(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
     }
@@ -995,6 +1194,26 @@ public class GridMcpTools {
         private String currentPriceText() {
             return currentPrice == null ? "UNKNOWN" : currentPrice.setScale(2, RoundingMode.HALF_UP).toPlainString();
         }
+    }
+
+    private record MarketTrendEvidence(
+            int bars,
+            String source,
+            String direction,
+            BigDecimal trendPct,
+            BigDecimal atrPct,
+            BigDecimal currentPrice,
+            LocalDateTime latestOpenTime
+    ) {
+        private String latestOpenTimeText() {
+            return latestOpenTime == null ? "N/A" : latestOpenTime.toString();
+        }
+    }
+
+    private record RangePlacement(
+            BigDecimal rangeWidthPct,
+            BigDecimal pricePositionPct
+    ) {
     }
 
     private static int nullToZero(Integer value) {

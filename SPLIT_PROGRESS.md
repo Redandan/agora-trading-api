@@ -112,6 +112,12 @@
 - EventRiskControl keeps protective new-entry blocking default-on, while state-change Telegram notifications now default off and require `EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED=true`.
 - Deploy/nginx scripts fail fast when `systemctl` is unavailable before attempting nginx reloads.
 - Local and server verification now prove the trading MCP context path through `/api/mcp`; `/api/trading/mcp` is not a standalone MCP endpoint and remains only a public shared-host block target.
+- Runtime-log smoke now classifies the narrow `ScoreBuyV2Strategy` HeatWave
+  `ML003011` feature-schema mismatch warning as
+  `scorebuy_ml_schema_mismatch`. The strategy catches the prediction failure
+  and returns `HOLD`, so this warning is not treated as a grid/order/OCO deploy
+  failure, but the category count remains visible for ScoreBuy model/schema
+  follow-up before any ScoreBuy live rollout.
 - Legacy AgoraMarketAPI trading HTTP/MCP/scheduler parity inventory is documented
   in `docs/legacy-trading-parity-inventory.md`; standalone carries the trading
   MCP/scheduler classes through `/api/mcp` while intentionally not

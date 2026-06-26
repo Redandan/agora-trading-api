@@ -172,6 +172,19 @@ Assert-SmokeCase `
     -Environment @{ ALLOW_UNKNOWN_WARN = "1" }
 
 Assert-SmokeCase `
+    -Name "scorebuy ml schema mismatch is classified warn baseline" `
+    -Lines @(
+        "2026-06-26T00:37:28.907Z  WARN 2299189 --- [agora-trading-api] [        async-1] c.a.service.backtest.ScoreBuyV2Strategy  : [ScoreBuyV2] predict failed v21: ML_PREDICT_ROW failed: PreparedStatementCallback; uncategorized SQLException for SQL [SELECT sys.ML_PREDICT_ROW(CAST(? AS JSON), ?, NULL)]; SQL state [HY000]; error code [3877]; `"ML003011: Columns of provided data need to match those used for training. Provided - ['adx14'] vs Trained - ['adx14', 'bb_width']`""
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "scorebuy_ml_schema_mismatch=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
     -Name "high risk allow flag is diagnostic only" `
     -Lines @(
         "2026-06-18T00:00:00.000Z  INFO 1 --- [agora-trading-api] Started TradingApplication",

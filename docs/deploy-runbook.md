@@ -2824,6 +2824,15 @@ Expected:
   `ENTRY_DEDUP_FEASIBILITY_AMBIGUOUS_REPLAY_REVIEW`,
   `ENTRY_DEDUP_FEASIBILITY_POSITIVE_TIMEOUT_REVIEW`, and
   `ENTRY_DEDUP_FEASIBILITY_NOT_PROVEN`.
+- Before treating a positive EntryDedup shadow lane as a future mutation
+  candidate, run
+  `.\scripts\smoke_entry_dedup_semantics_gate_preflight_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -McpDays 14`.
+  This read-only preflight combines direct MySQL SELECTs with server-local MCP
+  calls for `getEventRiskControlStatus` and `getExpectedValueGateStats`, then
+  classifies ExpectedValueGate, EventRiskControl, duplicate protection, daily
+  cap/max-loss, and OCO feasibility. It is evidence-only and keeps
+  `order_allowed=false`, EntryDedup/live policy changes false, and all
+  order/OCO/grid/fund/Earn/Telegram/exchange mutations disallowed.
 - After the consistency, forward-return, and feasibility evidence has been
   recorded, run
   `.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 -RequireReady`

@@ -1940,6 +1940,13 @@
   ambiguity is not treated as pass evidence. A positive classification such as
   `ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE` is still only
   input to a separate shadow experiment review with live mutation disabled.
+- `scripts/smoke_entry_dedup_semantics_gate_preflight_ssh.ps1` adds the
+  read-only blocker review layer for the strategy 508 / `BTCUSDT` / `1h`
+  EntryDedup shadow lane. It combines direct MySQL SELECTs with server-local
+  read-only MCP calls for EventRiskControl and ExpectedValueGate, then
+  classifies EV, EventRisk, duplicate protection, daily cap/max-loss, and OCO
+  feasibility without relaxing EntryDedup, placing orders, changing OCO, or
+  mutating production state.
 - 2026-06-22 production run of that feasibility review for `BTCUSDT` /
   strategy 508 / `1h`, using explicit assumptions `takeProfitPct=1.00`,
   `stopLossPct=1.00`, `roundTripFeePct=0.20`, and `forwardHours=24`, returned

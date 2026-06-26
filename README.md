@@ -2217,6 +2217,18 @@ and reports `entry_dedup_semantics_feasibility_recommendation`,
 `avg_net_return_pct`, and `net_win_rate_pct`. Same-bar TP/SL ambiguity is not
 treated as pass evidence, and a positive result is still shadow-review-only.
 
+Then check the remaining mutation blockers with read-only MCP/DB evidence:
+
+```powershell
+.\scripts\smoke_entry_dedup_semantics_gate_preflight_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -McpDays 14
+```
+
+This combines direct MySQL SELECTs with server-local read-only MCP calls for
+`getEventRiskControlStatus` and `getExpectedValueGateStats`. It classifies
+ExpectedValueGate, EventRiskControl, duplicate protection, daily cap/max-loss,
+and OCO feasibility as review evidence only; `order_allowed=false` and live
+policy relaxation remain false.
+
 Read-only EntryDedup semantics shadow experiment packet from the recorded
 production evidence:
 

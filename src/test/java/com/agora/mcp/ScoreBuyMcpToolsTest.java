@@ -10,6 +10,7 @@ import com.agora.service.trading.ScoreBuyConfirmedDeployAutoExecutionService;
 import com.agora.service.trading.ScoreBuyConfirmedDeployPreviewService;
 import com.agora.service.trading.ScoreBuyConvictionPreviewService;
 import com.agora.service.trading.ScoreBuyFormingDayObserverService;
+import com.agora.service.trading.ScoreBuyMlGateDiagnosticService;
 import com.agora.service.trading.ScoreBuyPostScoutAutoAddExecutionService;
 import com.agora.service.trading.ScoreBuyPostScoutManagementPolicyService;
 import com.agora.service.trading.ScoreBuyPrePositionApprovalPreviewService;
@@ -43,10 +44,25 @@ class ScoreBuyMcpToolsTest {
     }
 
     @Test
+    void diagnoseScoreBuyMlGateKeepsOpsReadOnlyMetadata() throws Exception {
+        Method method = ScoreBuyMcpTools.class.getDeclaredMethod("diagnoseScoreBuyMlGate", String.class, Long.class, String.class);
+
+        McpAuth auth = method.getAnnotation(McpAuth.class);
+        McpCategory category = method.getAnnotation(McpCategory.class);
+
+        assertThat(auth).isNotNull();
+        assertThat(auth.value()).isEqualTo(McpAuthLevel.OPS);
+        assertThat(category).isNotNull();
+        assertThat(Arrays.asList(category.value()))
+                .containsExactlyInAnyOrder(Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.MODEL_OPS);
+    }
+
+    @Test
     void previewScoreBuyConvictionDisplaysPanicBottomContextWithoutExecution() {
         ScoreBuyConvictionPreviewService conviction = mock(ScoreBuyConvictionPreviewService.class);
         PanicBottomContextPreviewService panic = mock(PanicBottomContextPreviewService.class);
         PositionMcpTools positionMcpTools = mock(PositionMcpTools.class);
+        ScoreBuyMlGateDiagnosticService mlGate = mock(ScoreBuyMlGateDiagnosticService.class);
         when(conviction.preview("BTCUSDT", 485L)).thenReturn("{\"tool\":\"previewScoreBuyConviction\",\"orderSent\":false}");
         when(positionMcpTools.getOcoHealth()).thenReturn("OCO Health: 3 OK | 0 abnormal");
         when(panic.preview(anyString(), anyString())).thenReturn("{\"tool\":\"previewPanicBottomContext\",\"boundary\":\"READ_ONLY\",\"orderAllowed\":false,\"gridMutationAllowed\":false}");
@@ -64,7 +80,8 @@ class ScoreBuyMcpToolsTest {
                 mock(ScoreBuyPostScoutManagementPolicyService.class),
                 mock(ScoreBuyPostScoutAutoAddExecutionService.class),
                 panic,
-                positionMcpTools);
+                positionMcpTools,
+                mlGate);
 
         String output = tools.previewScoreBuyConviction("BTCUSDT", 485L);
 
@@ -74,5 +91,39 @@ class ScoreBuyMcpToolsTest {
         assertThat(output).contains("\"boundary\":\"READ_ONLY\"");
         assertThat(output).contains("\"orderAllowed\":false");
         assertThat(output).contains("\"gridMutationAllowed\":false");
+    }
+
+    @Test
+    void diagnoseScoreBuyMlGateDelegatesWithoutExecutionSideEffects() {
+        ScoreBuyMlGateDiagnosticService mlGate = mock(ScoreBuyMlGateDiagnosticService.class);
+        when(mlGate.diagnose("BTCUSDT", 485L, "1d")).thenReturn("""
+                {"tool":"diagnoseScoreBuyMlGate","boundary":"READ_ONLY","scorebuy_ml_gate_status":"READY_ML_GATE_BLOCK_NOT_EXECUTION_AUTHORIZATION","orderSent":false,"ocoModified":false,"telegramSent":false,"writesRuntimeEvidence":false}
+                """);
+
+        ScoreBuyMcpTools tools = new ScoreBuyMcpTools(
+                mock(ScoreBuyConvictionPreviewService.class),
+                mock(ScoreBuyFormingDayObserverService.class),
+                mock(ScoreBuyPrePositionPreviewService.class),
+                mock(ScoreBuyPrePositionApprovalPreviewService.class),
+                mock(ScoreBuyPrePositionExecutionPolicyPreviewService.class),
+                mock(ScoreBuyPrePositionAutoExecutionService.class),
+                mock(CapitalAllocationPolicyPreviewService.class),
+                mock(ScoreBuyConfirmedDeployPreviewService.class),
+                mock(ScoreBuyConfirmedDeployAutoExecutionService.class),
+                mock(ScoreBuyPostScoutManagementPolicyService.class),
+                mock(ScoreBuyPostScoutAutoAddExecutionService.class),
+                mock(PanicBottomContextPreviewService.class),
+                mock(PositionMcpTools.class),
+                mlGate);
+
+        String output = tools.diagnoseScoreBuyMlGate("BTCUSDT", 485L, "1d");
+
+        assertThat(output).contains("diagnoseScoreBuyMlGate");
+        assertThat(output).contains("\"boundary\":\"READ_ONLY\"");
+        assertThat(output).contains("scorebuy_ml_gate_status");
+        assertThat(output).contains("\"orderSent\":false");
+        assertThat(output).contains("\"ocoModified\":false");
+        assertThat(output).contains("\"telegramSent\":false");
+        assertThat(output).contains("\"writesRuntimeEvidence\":false");
     }
 }

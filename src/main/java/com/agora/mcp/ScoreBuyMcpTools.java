@@ -10,6 +10,7 @@ import com.agora.service.trading.ScoreBuyConfirmedDeployAutoExecutionService;
 import com.agora.service.trading.ScoreBuyConfirmedDeployPreviewService;
 import com.agora.service.trading.ScoreBuyConvictionPreviewService;
 import com.agora.service.trading.ScoreBuyFormingDayObserverService;
+import com.agora.service.trading.ScoreBuyMlGateDiagnosticService;
 import com.agora.service.trading.ScoreBuyPrePositionAutoExecutionService;
 import com.agora.service.trading.ScoreBuyPrePositionApprovalPreviewService;
 import com.agora.service.trading.ScoreBuyPrePositionExecutionPolicyPreviewService;
@@ -38,6 +39,7 @@ public class ScoreBuyMcpTools {
     private final ScoreBuyPostScoutAutoAddExecutionService postScoutAutoAddExecutionService;
     private final PanicBottomContextPreviewService panicBottomContextPreviewService;
     private final PositionMcpTools positionMcpTools;
+    private final ScoreBuyMlGateDiagnosticService scoreBuyMlGateDiagnosticService;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.MARKET_DATA})
@@ -56,6 +58,16 @@ public class ScoreBuyMcpTools {
     public String previewPanicBottomContext(
             @ToolParam(required = false, description = "Symbol, default BTCUSDT") String symbol) {
         return panicBottomContextPreviewService.preview(symbol, safeOcoHealth());
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.MODEL_OPS})
+    @Tool(description = "Read-only SCORE_BUY ML gate diagnostic for issue #16. Builds the ScoreBuyV2 feature vector, checks the PROMOTED model, runs a no-write HeatWave preview, and reports p_win/schema mismatch/missing requirements without placing orders or changing strategy/OCO/grid/fund/Earn state. params: symbol default BTCUSDT, strategyId default 485, intervalCode default 1d.")
+    public String diagnoseScoreBuyMlGate(
+            @ToolParam(required = false, description = "Symbol, default BTCUSDT") String symbol,
+            @ToolParam(required = false, description = "SCORE_BUY strategy id, default 485") Long strategyId,
+            @ToolParam(required = false, description = "Kline interval, default 1d") String intervalCode) {
+        return scoreBuyMlGateDiagnosticService.diagnose(symbol, strategyId, intervalCode);
     }
 
     @McpAuth(McpAuthLevel.OPS)

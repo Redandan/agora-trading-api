@@ -97,6 +97,22 @@ function Get-DecimalOrNull {
     }
 }
 
+function Get-PropertyOrNull {
+    param($Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
+function Get-FirstPresentValue {
+    param([object[]]$Values)
+    foreach ($value in $Values) {
+        if ($null -ne $value) { return $value }
+    }
+    return $null
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -153,9 +169,24 @@ if ($null -eq $bundlePacket) { Add-Unique -List $missingEvidence -Value "grid_po
 $blockers = [System.Collections.Generic.List[object]]::new()
 $verificationBlockers = if ($null -ne $bundlePacket) { @($bundlePacket.verificationBlockers) } else { @() }
 $envReadiness = if ($null -ne $bundlePacket) { $bundlePacket.envReadiness } else { $null }
-$createInputs = if ($null -ne $bundlePacket) { $bundlePacket.refreshedCreateGridInputsMustMatch } else { $null }
-$createPreflight = if ($null -ne $bundlePacket) { $bundlePacket.sourceCreatePreflightPacketSummary } else { $null }
-$requestPacket = if ($null -ne $bundlePacket) { $bundlePacket.sourceAuthorizationRequestPacketSummary } else { $null }
+$requestPacket = if ($null -ne $bundlePacket) { Get-PropertyOrNull $bundlePacket "sourceAuthorizationRequestPacketSummary" } else { $null }
+$planPacket = if ($null -ne $bundlePacket) { Get-PropertyOrNull $bundlePacket "sourcePlanPacketSummary" } else { $null }
+$createPreflight = if ($null -ne $bundlePacket) { Get-PropertyOrNull $bundlePacket "sourceCreatePreflightPacketSummary" } else { $null }
+$bundleFromRequest = Get-PropertyOrNull $requestPacket "sourceAuthorizationBundlePacketSummary"
+$capitalPacket = Get-PropertyOrNull $bundleFromRequest "sourceCapitalOverridePacketSummary"
+$createPreflightFromCapital = Get-PropertyOrNull $capitalPacket "sourceCreateAuthorizationPreflightPacketSummary"
+$bundleCreateInputs = if ($null -ne $bundlePacket) { Get-PropertyOrNull $bundlePacket "refreshedCreateGridInputsMustMatch" } else { $null }
+$planCreateInputs = if ($null -ne $planPacket) { Get-PropertyOrNull $planPacket "refreshedCreateGridInputsMustMatch" } else { $null }
+$createInputs = Get-FirstPresentValue @(
+    $bundleCreateInputs,
+    (Get-PropertyOrNull $requestPacket "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $bundleFromRequest "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $capitalPacket "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $createPreflight "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $createPreflightFromCapital "reviewedCreateGridInputs"),
+    $planCreateInputs
+)
+$createPreflight = Get-FirstPresentValue @($createPreflight, $createPreflightFromCapital)
 $splitSummary = if ($null -ne $bundlePacket) { @($bundlePacket.splitAcceptanceFailureSummary) } else { @() }
 
 $splitOk = if ($null -ne $bundlePacket) { [bool]$bundlePacket.splitAcceptanceOk } else { $false }

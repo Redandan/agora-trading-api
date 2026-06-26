@@ -96,6 +96,19 @@ foreach ($marker in @(
     Assert-Contains -Name "grid open blocker priority board script marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
+foreach ($marker in @(
+        "Get-PropertyOrNull",
+        "Get-FirstPresentValue",
+        "sourceAuthorizationRequestPacketSummary",
+        "sourceAuthorizationBundlePacketSummary",
+        "sourceCapitalOverridePacketSummary",
+        "sourceCreateAuthorizationPreflightPacketSummary",
+        "refreshedCreateGridInputsMustMatch",
+        "reviewedCreateGridInputs"
+    )) {
+    Assert-Contains -Name "grid blocker board nested createGrid input fallback" -Text $scriptText -Pattern ([regex]::Escape($marker))
+}
+
 foreach ($marker in @("GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE", "grid_post_env_read_only_verification_packet", "verificationBlockers", "splitAcceptanceFailureSummary")) {
     Assert-Contains -Name "post-env verification bundle supports blocker board" -Text $bundleText -Pattern ([regex]::Escape($marker))
 }

@@ -2721,6 +2721,16 @@ Expected:
   follow-up within the extended window. This distinguishes a matching-window
   artifact from a real candidate-audit continuity gap before changing
   DataFreshnessGuard, EntryDedup, strategy activation, or live execution.
+- After the continuity RCA log is fresh, run
+  `.\scripts\prepare_buy_like_continuity_matcher_review_packet.ps1 -RequireReady`
+  to quantify how much of the 6h `NO_TERMINAL_FOLLOWUP` bucket is explained by
+  longer-window or interval-aware matching. The packet emits
+  `matcher_artifact_explained_rows`, `matcher_artifact_explained_pct`,
+  `residual_potential_true_gap_rows`, and a review-only
+  `matcher_review_recommendation`. It is an evidence packet for matcher
+  semantics only and does not authorize runtime matcher changes,
+  DataFreshnessGuard or EntryDedup relaxation, strategy activation, scheduler,
+  orders, deploy, or production env changes.
 - Use `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1` when the
   operator needs the BUY-like progression result and DataFreshness replay
   readiness blockers in one `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`.

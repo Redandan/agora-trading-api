@@ -10,6 +10,7 @@ param(
     [int]$GridCount = 8,
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
+    [int]$ChildTimeoutSeconds = 1200,
     [switch]$RequireVerificationReady
 )
 
@@ -73,25 +74,68 @@ function Get-DiagnosticLines {
 function Invoke-ReadOnlyScript {
     param([string]$ScriptPath, [string[]]$Arguments)
 
-    $previousErrorActionPreference = $ErrorActionPreference
-    $output = @()
-    $exitCode = 0
+    $scriptName = Split-Path -Leaf $ScriptPath
+    Write-Host "[grid-post-env-read-only-verification-bundle] child_start script=$scriptName timeoutSeconds=$ChildTimeoutSeconds"
+    $startedAt = Get-Date
+    $timedOut = $false
+    $output = ""
+    $exitCode = 1
+    $job = $null
     try {
-        $ErrorActionPreference = "Continue"
-        $output = & $script:PowerShell.Source -NoProfile -ExecutionPolicy Bypass -File $ScriptPath @Arguments 2>&1
-        if ($null -ne $LASTEXITCODE) {
-            $exitCode = $LASTEXITCODE
+        $job = Start-Job -ScriptBlock {
+            param(
+                [string]$PowerShellSource,
+                [string]$ChildScriptPath,
+                [string]$WorkingDirectory,
+                [object[]]$ChildArguments
+            )
+            $ErrorActionPreference = "Continue"
+            Set-Location -LiteralPath $WorkingDirectory
+            $childOutput = & $PowerShellSource -NoProfile -ExecutionPolicy Bypass -File $ChildScriptPath @ChildArguments 2>&1
+            $childSuccess = $?
+            $code = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($childSuccess) { 0 } else { 1 }
+            [pscustomobject]@{
+                Text = ($childOutput | Out-String -Width 8192)
+                ExitCode = $code
+            }
+        } -ArgumentList @($script:PowerShell.Source, $ScriptPath, (Get-Location).Path, (, @($Arguments)))
+
+        $lastHeartbeatSeconds = 0
+        while ($job.State -eq "Running") {
+            $elapsedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+            if ($elapsedSeconds -ge $ChildTimeoutSeconds) {
+                $timedOut = $true
+                Stop-Job -Job $job -ErrorAction SilentlyContinue
+                break
+            }
+            if ($elapsedSeconds -ge ($lastHeartbeatSeconds + 30)) {
+                $lastHeartbeatSeconds = $elapsedSeconds
+                Write-Host "[grid-post-env-read-only-verification-bundle] child_heartbeat script=$scriptName elapsedSeconds=$elapsedSeconds"
+            }
+            Start-Sleep -Seconds 2
         }
-    } catch {
-        $exitCode = 1
-        $output = @($output) + @($_)
+
+        if ($timedOut) {
+            $output = "timed out after $ChildTimeoutSeconds second(s)"
+            $exitCode = 124
+        } else {
+            $result = Receive-Job -Job $job -ErrorAction SilentlyContinue
+            if ($null -ne $result) {
+                $output = [string]$result.Text
+                $exitCode = [int]$result.ExitCode
+            }
+        }
     } finally {
-        $ErrorActionPreference = $previousErrorActionPreference
+        if ($null -ne $job) {
+            Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+        }
     }
+    $elapsedTotal = [int]((Get-Date) - $startedAt).TotalSeconds
+    Write-Host "[grid-post-env-read-only-verification-bundle] child_complete script=$scriptName exitCode=$exitCode timedOut=$($timedOut.ToString().ToLowerInvariant()) elapsedSeconds=$elapsedTotal"
 
     [pscustomobject]@{
         ExitCode = $exitCode
-        Text = ($output | Out-String -Width 8192)
+        Text = $output
     }
 }
 
@@ -103,6 +147,7 @@ if ($CandidateLookbackHours -lt 72 -or $CandidateLookbackHours -gt 720) { throw 
 if ($GridCount -lt 4 -or $GridCount -gt 24) { throw "GridCount must be between 4 and 24." }
 if ($PerLevelUsdt -lt 5 -or $PerLevelUsdt -gt 1000) { throw "PerLevelUsdt must be between 5 and 1000." }
 if ($StopOutPct -lt 1 -or $StopOutPct -gt 20) { throw "StopOutPct must be between 1 and 20." }
+if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) { throw "ChildTimeoutSeconds must be between 60 and 3600." }
 
 Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir

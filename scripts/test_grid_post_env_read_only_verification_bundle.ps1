@@ -63,6 +63,11 @@ foreach ($marker in @(
         "prepare_grid_create_authorization_preflight_packet_ssh.ps1",
         "prepare_grid_open_authorization_bundle_ssh.ps1",
         "prepare_grid_open_operator_authorization_request_ssh.ps1",
+        "ChildTimeoutSeconds",
+        "child_start",
+        "child_heartbeat",
+        "child_complete",
+        "timedOut",
         "READY_FOR_GRID_POST_ENV_READ_ONLY_VERIFICATION_NOT_MUTATION",
         "BLOCKED_GRID_POST_ENV_READ_ONLY_VERIFICATION_NOT_MUTATION",
         "AWAIT_SEPARATE_CREATEGRID_AUTHORIZATION",
@@ -142,6 +147,9 @@ try {
     }
     Assert-FailsWith -Name "bad stop out" -Pattern "StopOutPct must be between 1 and 20" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -StopOutPct 50
+    }
+    Assert-FailsWith -Name "bad child timeout" -Pattern "ChildTimeoutSeconds must be between 60 and 3600" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -ChildTimeoutSeconds 10
     }
 } finally {
     Remove-Item -LiteralPath $tempKey -Force -ErrorAction SilentlyContinue

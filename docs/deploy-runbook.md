@@ -808,6 +808,8 @@ Expected:
 - Invokes split acceptance plus the fresh grid plan, decision snapshot, trend
   override, env diff, createGrid preflight, authorization bundle, and operator
   authorization request packets.
+- Emits child `child_start`, `child_heartbeat`, and `child_complete` markers
+  with timeout handling for each nested read-only verification step.
 - Emits `GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE`,
   `grid_post_env_read_only_verification_packet`,
   `grid_post_env_read_only_verification_status`,

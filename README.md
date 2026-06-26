@@ -400,6 +400,8 @@ packets. It emits `GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE`,
 `grid_post_env_read_only_verification_status`,
 `grid_post_env_read_only_verification_ready`, `deploy_allowed=false`,
 `grid_open_allowed=false`, and `create_grid_allowed=false`.
+It also emits child `child_start`, `child_heartbeat`, and `child_complete`
+markers with timeout handling for each nested read-only verification step.
 `POST_ENV_TRADING_OKX_ENABLED_NOT_TRUE` or
 `POST_ENV_TRADING_GRID_ENABLED_NOT_TRUE` means the separately authorized env
 diff/deploy has not been applied yet, so createGrid review must remain blocked.

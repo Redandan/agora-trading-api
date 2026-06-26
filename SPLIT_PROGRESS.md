@@ -2864,7 +2864,7 @@ Trading deployment prep:
   `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`. It
   invokes split acceptance plus fresh grid plan, decision snapshot, trend
   override, env diff, createGrid preflight, authorization bundle, and operator
-  authorization request packets, then emits
+  authorization request packets with child heartbeat/timeout markers, then emits
   `GRID_POST_ENV_READ_ONLY_VERIFICATION_BUNDLE`,
   `grid_post_env_read_only_verification_status`,
   `grid_post_env_read_only_verification_ready`, `deploy_allowed=false`,

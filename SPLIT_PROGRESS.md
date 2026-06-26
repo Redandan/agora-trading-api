@@ -407,6 +407,18 @@
   deploy, production env, live/TinyLive/scheduler, orders, OCO, close-position,
   Telegram, policy relaxation, and DB/grid/fund/Earn/exchange mutation out of
   scope.
+- `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
+  production decomposition for recent `ENTRY_SKIP/EntryDedup` rows. It emits
+  `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,
+  `entry_dedup_blocker_decomposition_status=READY_FOR_ENTRY_DEDUP_BLOCKER_DECOMPOSITION_REVIEW_NOT_LIVE`,
+  `classification_ranking`, `reason_ranking`,
+  `possible_coarse_semantics_rows`, `protective_rows`, and
+  `order_allowed=false`, separating likely coarse non-auto/open-signal
+  semantics from true auto-traded exposure, duplicate/bar, and cap/budget
+  protection. It is evidence-only and does not deploy, change production env,
+  enable live trading/staged-add/scheduler, place orders, modify OCO, send
+  Telegram, mutate DB/grid/fund/Earn/exchange state, or relax
+  EntryDedup/DataFreshness/live policy.
 - 2026-06-23 local read-only profit operator next-action board refresh ran
   `scripts/prepare_profit_operator_next_action_board.ps1 -RequireReady` against
   the latest local priority packet and saved strategy574/TinyLive logs. It

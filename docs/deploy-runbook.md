@@ -2772,6 +2772,19 @@ Expected:
   include `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`,
   `ENTRY_DEDUP_EXPOSURE_CONSISTENT_AUTO_POSITION`,
   `ENTRY_DEDUP_NO_RECENT_SKIPS`, and `ENTRY_DEDUP_EXPOSURE_INCONCLUSIVE`.
+- To rank EntryDedup blocker families across all recent strategies, run
+  `.\scripts\smoke_entry_dedup_blocker_decomposition_ssh.ps1`. This read-only
+  DB smoke groups recent `ENTRY_SKIP/EntryDedup` rows by
+  strategy/interval/reason and correlates each group with currently open
+  `bt_live_signal` rows. It emits
+  `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,
+  `entry_dedup_blocker_decomposition_status=READY_FOR_ENTRY_DEDUP_BLOCKER_DECOMPOSITION_REVIEW_NOT_LIVE`,
+  `classification_ranking`, `reason_ranking`,
+  `possible_coarse_semantics_rows`, `protective_rows`, and
+  `order_allowed=false`. The packet is evidence-only; coarse non-auto/open
+  signal rows may scope a later review-only EntryDedup semantics experiment,
+  while true auto-traded exposure, duplicate/bar, cap, DataFreshness, EV, and
+  OCO gates stay unchanged.
 - If the consistency smoke returns
   `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`, run
   `.\scripts\smoke_entry_dedup_semantics_shadow_review_ssh.ps1`. This

@@ -1644,6 +1644,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy574_near_threshold_shadow_observation_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_entry_dedup_exposure_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_exposure_consistency_smoke.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_blocker_decomposition_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_shadow_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_feasibility_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_shadow_experiment_packet.ps1"

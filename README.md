@@ -751,6 +751,27 @@ EntryDedup semantics evidence. It keeps
 does not relax EntryDedup/DataFreshness/live policy, enable staged-add or live
 execution, place orders, modify OCO, deploy, or change production env.
 
+Read-only EntryDedup semantics direct operator packet:
+
+```powershell
+.\scripts\prepare_entry_dedup_semantics_direct_operator_packet.ps1 -RequireReady
+```
+
+This narrows only the EntryDedup semantics shadow experiment packet into
+`ENTRY_DEDUP_SEMANTICS_DIRECT_OPERATOR_PACKET` and emits
+`entry_dedup_semantics_direct_operator_packet` plus
+`entry_dedup_semantics_direct_operator_status`. It intentionally bypasses the
+full profit-priority matrix with
+`sourcePriorityDependency=NOT_REQUIRED_ENTRY_DEDUP_DIRECT_REVIEW`, so unrelated
+exit-side or DataFreshness lanes cannot block a separate EntryDedup-only
+read-only review. It keeps `entry_dedup_policy_change_allowed=false`,
+`data_freshness_policy_change_allowed=false`,
+`staged_add_execution_allowed=false`, `order_allowed=false`,
+`grid_mutation_allowed=false`, and `telegram_send_allowed=false`. This is not a
+full profit-priority decision and does not relax policy, enable staged-add/live
+execution, place orders, modify OCO, deploy, change env, send Telegram, or
+mutate DB/grid/fund/Earn/exchange state.
+
 Read-only EntryDedup semantics preflight review packet:
 
 ```powershell

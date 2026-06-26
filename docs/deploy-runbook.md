@@ -2354,6 +2354,25 @@ Expected:
   opportunities. It is shadow-only evidence review and does not relax
   EntryDedup/DataFreshness/live policy, enable staged-add or live execution,
   place orders, modify OCO, deploy/env changes, or authorize policy relaxation.
+- If the full profit-priority matrix is blocked by unrelated lanes but the
+  EntryDedup shadow packet is ready, prepare a separate EntryDedup-only
+  read-only review packet:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_semantics_direct_operator_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `entry_dedup_semantics_direct_operator_packet`,
+  `entry_dedup_semantics_direct_operator_decision=PREPARE_ENTRY_DEDUP_SHADOW_REVIEW_NOT_LIVE`,
+  `sourcePriorityDependency=NOT_REQUIRED_ENTRY_DEDUP_DIRECT_REVIEW`,
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `staged_add_execution_allowed=false`, `order_allowed=false`,
+  `grid_mutation_allowed=false`, and `telegram_send_allowed=false`. The packet
+  type is `ENTRY_DEDUP_SEMANTICS_DIRECT_OPERATOR_PACKET`; it is not a full
+  profit-priority decision and does not relax EntryDedup/DataFreshness/live
+  policy, enable staged-add/live execution, place orders, modify OCO, deploy,
+  change env, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

@@ -913,6 +913,19 @@
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`,
   `position_or_oco_mutation_allowed=false`, and the same no-live/no-OCO/no-
   deploy/no-policy-relaxation boundary.
+  `scripts/prepare_entry_dedup_semantics_direct_operator_packet.ps1` now also
+  provides an EntryDedup-only read-only review packet for cases where the full
+  profit-priority matrix is blocked by unrelated lanes. It emits
+  `ENTRY_DEDUP_SEMANTICS_DIRECT_OPERATOR_PACKET`,
+  `entry_dedup_semantics_direct_operator_packet`, and
+  `sourcePriorityDependency=NOT_REQUIRED_ENTRY_DEDUP_DIRECT_REVIEW`, carries
+  the exact-opportunity fields from the shadow packet, treats
+  `NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT` as a live-preflight warning, keeps
+  `OCO_ROUTE_NOT_PROVEN_OR_MISSING` as a hard mutation blocker, and preserves
+  `entry_dedup_policy_change_allowed=false`,
+  `data_freshness_policy_change_allowed=false`,
+  `staged_add_execution_allowed=false`, `order_allowed=false`,
+  `grid_mutation_allowed=false`, and `telegram_send_allowed=false`.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved

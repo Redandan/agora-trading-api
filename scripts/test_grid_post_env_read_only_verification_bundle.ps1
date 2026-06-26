@@ -91,6 +91,7 @@ foreach ($marker in @(
         "grid_post_env_read_only_verification_missing_evidence",
         "split_acceptance_ok",
         "postEnvVerificationReady",
+        "AcceptAlreadyAppliedEnvDiff",
         "productionEnvChangeAllowed = `$false",
         "deployAllowed = `$false",
         "createGridAllowed = `$false",

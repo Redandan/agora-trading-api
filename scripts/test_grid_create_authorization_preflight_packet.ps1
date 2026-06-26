@@ -72,6 +72,7 @@ foreach ($marker in @(
         "requiredBeforeCreateGrid",
         "postCreateReadOnlyVerification",
         "createAuthorizationReviewReady",
+        "AcceptAlreadyAppliedEnvDiff",
         "createGridAllowed = `$false",
         "gridOpenAllowed = `$false",
         "gridMutationAllowed = `$false",

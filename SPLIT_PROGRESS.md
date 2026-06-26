@@ -2955,6 +2955,13 @@ Trading deployment prep:
   diff, while actual order placement, OKX submit/fill/execute, `createGrid`,
   OCO, Earn, and fund operation-like lines remain strict blockers unless a
   diagnostic-only high-risk allow flag is used outside acceptance.
+- Grid post-env verification now uses explicit `AcceptAlreadyAppliedEnvDiff`
+  propagation through the plan/request/bundle/capital/create/env-diff packet
+  chain. This separates pre-apply env-diff review from post-env evidence:
+  `TRADING_OKX_ENABLED=true` and `TRADING_GRID_ENABLED=true` remain blockers
+  in the standalone pre-apply env-diff packet, but are accepted in the post-env
+  bundle only when scheduler/recovery/Earn remain disabled and split acceptance
+  has passed.
 
 ## Cleanup Priority
 

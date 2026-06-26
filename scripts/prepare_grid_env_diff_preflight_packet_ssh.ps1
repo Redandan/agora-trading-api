@@ -10,6 +10,7 @@ param(
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
     [decimal]$CandidateHalfWidthPct = 0,
+    [switch]$AcceptAlreadyAppliedEnvDiff,
     [switch]$RequireReviewReady
 )
 
@@ -155,12 +156,20 @@ if ($recoveryEnabled -ne "false") {
 if ($earnEnabled -ne "false") {
     Add-Unique -List $reviewBlockers -Value "OKX_EARN_TOPUP_NOT_FALSE"
 }
-if ($okxEnabled -eq "true") {
+if ($okxEnabled -eq "true" -and -not $AcceptAlreadyAppliedEnvDiff) {
     Add-Unique -List $reviewBlockers -Value "TRADING_OKX_ENABLED_ALREADY_TRUE"
 }
-if ($gridEnabled -eq "true") {
+if ($gridEnabled -eq "true" -and -not $AcceptAlreadyAppliedEnvDiff) {
     Add-Unique -List $reviewBlockers -Value "TRADING_GRID_ENABLED_ALREADY_TRUE"
 }
+
+$envDiffAlreadyApplied = (
+    $okxEnabled -eq "true" -and
+    $gridEnabled -eq "true" -and
+    $schedulerEnabled -eq "false" -and
+    $recoveryEnabled -eq "false" -and
+    $earnEnabled -eq "false"
+)
 
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written trend override approval or fresh trend gate clearance"
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written production env diff authorization"
@@ -172,7 +181,8 @@ $reviewReady = (
     $reviewBlockers.Count -eq 0 -and
     $credentialsReady -and
     $eventRiskGate -eq "CLEAR_EVENT_RISK_R0" -and
-    ($trendGate -notlike "BLOCKED_*" -or $trendOverrideReady)
+    ($trendGate -notlike "BLOCKED_*" -or $trendOverrideReady) -and
+    (-not $AcceptAlreadyAppliedEnvDiff -or $envDiffAlreadyApplied)
 )
 $status = if ($reviewReady) {
     "READY_FOR_GRID_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION"
@@ -208,6 +218,8 @@ $packet = [pscustomobject]@{
         trendGate = $trendGate
         trendOverrideReviewReady = $trendOverrideReady
     }
+    acceptAlreadyAppliedEnvDiff = [bool]$AcceptAlreadyAppliedEnvDiff
+    envDiffAlreadyApplied = $envDiffAlreadyApplied
     proposedSeparateEnvDiff = @(
         "TRADING_OKX_ENABLED=true",
         "TRADING_GRID_ENABLED=true",

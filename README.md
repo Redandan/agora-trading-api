@@ -2487,6 +2487,11 @@ The runtime log smoke treats the narrow `OkxTradingService` startup echo
 fails on actual order placement, OKX submit/fill/execute, `createGrid`, OCO,
 Earn, or fund operation-like lines unless the diagnostic-only high-risk allow
 flag is used outside acceptance.
+Grid post-env verification uses an explicit `AcceptAlreadyAppliedEnvDiff`
+packet mode so `TRADING_OKX_ENABLED=true` and `TRADING_GRID_ENABLED=true` are
+accepted only after an env diff has already been applied and split acceptance
+has passed; the normal pre-apply env-diff packet still treats already-true
+flags as review blockers.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.

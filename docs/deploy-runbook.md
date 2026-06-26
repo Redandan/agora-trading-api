@@ -3648,6 +3648,14 @@ Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
   public WS connection-reset warnings, plus ScoreBuy/HeatWave feature-schema
   mismatch warnings.
 
+For grid opening, `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`
+passes `AcceptAlreadyAppliedEnvDiff` through the post-env packet chain. That
+mode accepts the already-applied `TRADING_OKX_ENABLED=true` and
+`TRADING_GRID_ENABLED=true` state only after the separately authorized env diff
+has been deployed and split acceptance has passed. The standalone pre-apply
+`prepare_grid_env_diff_preflight_packet_ssh.ps1` path still treats already-true
+OKX/grid flags as blockers before env-diff authorization.
+
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 
 ```bash

@@ -186,6 +186,8 @@ $commonArgs = @(
     "-StopOutPct", "$StopOutPct",
     "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
 )
+$postEnvArgs = @($commonArgs)
+$postEnvArgs += "-AcceptAlreadyAppliedEnvDiff"
 
 $splitArgs = @(
     "-SshHost", $SshHost,
@@ -195,14 +197,14 @@ $splitArgs = @(
     "-AgoraMarketApiToolsDir", $AgoraMarketApiToolsDir
 )
 
-$planResult = Invoke-ReadOnlyScript -ScriptPath $planScript -Arguments $commonArgs
+$planResult = Invoke-ReadOnlyScript -ScriptPath $planScript -Arguments $postEnvArgs
 $splitResult = Invoke-ReadOnlyScript -ScriptPath $splitScript -Arguments $splitArgs
 $decisionResult = Invoke-ReadOnlyScript -ScriptPath $decisionScript -Arguments $commonArgs
 $trendResult = Invoke-ReadOnlyScript -ScriptPath $trendScript -Arguments $commonArgs
-$envDiffResult = Invoke-ReadOnlyScript -ScriptPath $envDiffScript -Arguments $commonArgs
-$createPreflightResult = Invoke-ReadOnlyScript -ScriptPath $createPreflightScript -Arguments $commonArgs
-$bundleResult = Invoke-ReadOnlyScript -ScriptPath $bundleScript -Arguments $commonArgs
-$requestResult = Invoke-ReadOnlyScript -ScriptPath $requestScript -Arguments $commonArgs
+$envDiffResult = Invoke-ReadOnlyScript -ScriptPath $envDiffScript -Arguments $postEnvArgs
+$createPreflightResult = Invoke-ReadOnlyScript -ScriptPath $createPreflightScript -Arguments $postEnvArgs
+$bundleResult = Invoke-ReadOnlyScript -ScriptPath $bundleScript -Arguments $postEnvArgs
+$requestResult = Invoke-ReadOnlyScript -ScriptPath $requestScript -Arguments $postEnvArgs
 
 $planPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $planResult.Text -Prefix "grid_post_env_verification_plan_packet=")
 $decisionPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $decisionResult.Text -Prefix "grid_open_decision_snapshot_packet=")

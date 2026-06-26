@@ -10,6 +10,7 @@ param(
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
     [decimal]$CandidateHalfWidthPct = 0,
+    [switch]$AcceptAlreadyAppliedEnvDiff,
     [switch]$RequireReviewReady
 )
 
@@ -107,13 +108,17 @@ $commonArgs = @(
     "-StopOutPct", "$StopOutPct",
     "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
 )
+$envDiffArgs = @($commonArgs)
+if ($AcceptAlreadyAppliedEnvDiff) {
+    $envDiffArgs += "-AcceptAlreadyAppliedEnvDiff"
+}
 
 $previousErrorActionPreference = $ErrorActionPreference
 try {
     $ErrorActionPreference = "Continue"
     $operatorOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $operatorScript @commonArgs 2>&1
     $operatorExitCode = $LASTEXITCODE
-    $envDiffOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $envDiffScript @commonArgs 2>&1
+    $envDiffOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $envDiffScript @envDiffArgs 2>&1
     $envDiffExitCode = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = $previousErrorActionPreference

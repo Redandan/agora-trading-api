@@ -10,6 +10,7 @@ param(
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
     [decimal]$CandidateHalfWidthPct = 0,
+    [switch]$AcceptAlreadyAppliedEnvDiff,
     [switch]$RequireReviewReady
 )
 
@@ -105,6 +106,9 @@ $commonArgs = @(
     "-StopOutPct", "$StopOutPct",
     "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
 )
+if ($AcceptAlreadyAppliedEnvDiff) {
+    $commonArgs += "-AcceptAlreadyAppliedEnvDiff"
+}
 
 $previousErrorActionPreference = $ErrorActionPreference
 try {

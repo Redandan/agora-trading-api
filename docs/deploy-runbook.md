@@ -2347,10 +2347,13 @@ Expected:
   `entry_dedup_semantics_operator_decision_status=READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE`.
   The packet type is `ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_PACKET`; it
   requires the priority brief to keep the EntryDedup item at rank 3 and the
-  EntryDedup semantics shadow packet to remain ready. It is shadow-only
-  evidence review and does not relax EntryDedup/DataFreshness/live policy,
-  enable staged-add or live execution, place orders, modify OCO, deploy/env
-  changes, or authorize policy relaxation.
+  EntryDedup semantics shadow packet to remain ready. The nested shadow packet
+  must carry both raw `entryDedupSkipRows` and de-duplicated
+  `exactOpportunityCount`; use the exact-opportunity count for opportunity
+  sizing because repeated same-bar audit rows are not separate alpha
+  opportunities. It is shadow-only evidence review and does not relax
+  EntryDedup/DataFreshness/live policy, enable staged-add or live execution,
+  place orders, modify OCO, deploy/env changes, or authorize policy relaxation.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

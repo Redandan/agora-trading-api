@@ -61,7 +61,10 @@ foreach ($marker in @(
 foreach ($marker in @(
         "ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET",
         "READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE",
-        "entry_dedup_semantics_shadow_experiment_packet"
+        "entry_dedup_semantics_shadow_experiment_packet",
+        "exactOpportunityCount",
+        "exactDuplicateSuppressedRows",
+        "stagedAddReviewCandidateOpportunities"
     )) {
     Assert-Contains -Name "EntryDedup shadow packet supports decision packet" -Text $entryDedupText -Pattern ([regex]::Escape($marker))
 }
@@ -153,6 +156,11 @@ try {
             '"reviewNotionalCapUsdt":9',
             '"observationHours":36',
             '"entryDedupSkipRows":11',
+            '"exactOpportunityCount":6',
+            '"exactDuplicateSuppressedRows":5',
+            '"stagedAddReviewCandidateOpportunities":6',
+            '"NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT"',
+            '"OCO_ROUTE_NOT_PROVEN_OR_MISSING"',
             '"tpHitRows":11',
             '"ambiguousSameBarRows":0',
             '"blockedPolicyLanes"',

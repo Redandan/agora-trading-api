@@ -1677,7 +1677,8 @@
 - `scripts/smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1`
   adds a narrower read-only EntryDedup opportunity review. It groups repeated
   same-bar `ENTRY_SKIP/EntryDedup` audit rows into synthetic exact opportunity
-  keys, reports `exact_opportunity_count`,
+  keys, emits `ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET`, reports
+  `exact_opportunity_count`,
   `exact_duplicate_suppressed_rows`,
   `staged_add_budget_proxy_allowed_opportunities`, and
   `staged_add_review_candidate_opportunities`, then keeps
@@ -1685,6 +1686,14 @@
   `entry_dedup_policy_change_allowed=false`. The packet is not runtime EV/OCO
   evidence and does not authorize EntryDedup relaxation, staged-add/live
   execution, deploy, or production mutation.
+- `scripts/prepare_entry_dedup_semantics_shadow_experiment_packet.ps1` now
+  carries the exact-opportunity grouping summary alongside the older raw
+  `entryDedupSkipRows` summary. The review surface should size the EntryDedup
+  alpha opportunity from `exactOpportunityCount` and
+  `exactDuplicateSuppressedRows`, not from repeated same-bar audit rows. This
+  keeps the blocker analysis quantitative without authorizing EntryDedup
+  relaxation, staged-add/live execution, orders, OCO changes, deploy, or
+  production mutation.
 - 2026-06-22 read-only production sample-gap RCA for `BTCUSDT`, after
   excluding watch-only `ATTENTION_HIT` and terminal `ENTRY_SKIP` rows from the
   pre-terminal BUY-like candidate definition, showed

@@ -2271,11 +2271,15 @@ production evidence:
 This emits `entry_dedup_semantics_shadow_experiment_packet` with
 `packetType=ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET` and
 `entry_dedup_semantics_shadow_packet_status=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE`
-when the consistency, forward-return, and TP/SL/fee feasibility evidence is
-documented. It is a local packaging check only; it does not rerun SSH, deploy,
-enable live trading, relax EntryDedup/DataFreshness/live policy, place orders,
-modify OCO, close positions, or mutate DB/grid/fund/Earn/Telegram/exchange
-state. Ready output still prints `order_allowed=false`.
+when the consistency, forward-return, TP/SL/fee feasibility, and exact
+opportunity grouping evidence is documented. The packet carries both raw
+`entryDedupSkipRows` and de-duplicated `exactOpportunityCount`; use the latter
+for opportunity sizing because repeated same-bar audit rows can otherwise
+overstate the alpha opportunity. It is a local packaging check only; it does
+not rerun SSH, deploy, enable live trading, relax EntryDedup/DataFreshness/live
+policy, place orders, modify OCO, close positions, or mutate
+DB/grid/fund/Earn/Telegram/exchange state. Ready output still prints
+`order_allowed=false`.
 
 For a fresh production rerun before operator review, use the SSH packet:
 

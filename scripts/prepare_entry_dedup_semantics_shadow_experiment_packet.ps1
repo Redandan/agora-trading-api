@@ -55,7 +55,8 @@ $runbookFullPath = Resolve-RepoPath -Path $RunbookPath
 $sourceScripts = @(
     "smoke_entry_dedup_exposure_consistency_ssh.ps1",
     "smoke_entry_dedup_semantics_shadow_review_ssh.ps1",
-    "smoke_entry_dedup_semantics_feasibility_review_ssh.ps1"
+    "smoke_entry_dedup_semantics_feasibility_review_ssh.ps1",
+    "smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1"
 )
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
@@ -87,7 +88,10 @@ foreach ($marker in @(
         "ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW",
         "ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE",
         "ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE",
+        "ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET",
         "entry_dedup_skip_rows=11",
+        "exact_opportunity_count",
+        "staged_add_review_candidate_opportunities",
         "tp_hit_rows=11",
         "avg_net_return_pct=0.8000",
         "ambiguous_same_bar_rows=0"
@@ -104,7 +108,8 @@ foreach ($docCheck in @(
     foreach ($marker in @(
             "smoke_entry_dedup_exposure_consistency_ssh.ps1",
             "smoke_entry_dedup_semantics_shadow_review_ssh.ps1",
-            "smoke_entry_dedup_semantics_feasibility_review_ssh.ps1"
+            "smoke_entry_dedup_semantics_feasibility_review_ssh.ps1",
+            "smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1"
         )) {
         if (-not (Test-TextContains -Text ([string]$docCheck.Text) -Needle $marker)) {
             Add-MissingRequirement -List $missingRequirements -Value "$($docCheck.Name) mentions source evidence: $marker"
@@ -129,6 +134,9 @@ $packet = [pscustomobject]@{
     sourceEvidenceScripts = @($sourceScripts)
     sourceEvidenceSummary = [pscustomobject]@{
         entryDedupExposureSemanticsMismatch = $true
+        rawAuditRows = 11
+        exactOpportunityCount = 6
+        exactDuplicateSuppressedRows = 5
         entryDedupSkipRows = 11
         openSignalRows = 1
         autoTradedOpenRows = 0
@@ -143,16 +151,26 @@ $packet = [pscustomobject]@{
         avgMfe24hPct = 2.3067
         avgMae24hPct = -0.3580
         replayReviewedRows = 11
+        exactOpportunityReviewedRows = 6
         takeProfitPct = $TakeProfitPct
         stopLossPct = $StopLossPct
         roundTripFeePct = $RoundTripFeePct
         tpHitRows = 11
+        tpHitOpportunities = 6
         slHitRows = 0
+        slHitOpportunities = 0
         timeoutRows = 0
         ambiguousSameBarRows = 0
+        ambiguousOpportunities = 0
         netPositiveRows = 11
         netWinRatePct = 100.00
         avgNetReturnPct = 0.8000
+        stagedAddBudgetProxyAllowedOpportunities = 6
+        stagedAddReviewCandidateOpportunities = 6
+        exactOpportunityReviewBlockers = @(
+            "NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT",
+            "OCO_ROUTE_NOT_PROVEN_OR_MISSING"
+        )
     }
     proposedEnvelope = [pscustomobject]@{
         reviewOnly = $true
@@ -166,6 +184,7 @@ $packet = [pscustomobject]@{
     }
     minimumEvidence = @(
         "production EntryDedup exposure semantics mismatch identified",
+        "repeated audit rows are grouped into exact opportunities before sizing the alpha opportunity",
         "forward K-line shadow review has reviewable rows and positive 24h skew",
         "fee-adjusted TP/SL feasibility has no SL hits and no same-bar ambiguity under explicit assumptions"
     )

@@ -2500,6 +2500,12 @@ counts have no failed/partial states, price alignment is in range,
 runtime log remains clean. It emits `grid_post_open_smoke_packet` and does not
 authorize auto-rebalance, recovery, close/pause/resume, order, OCO, Earn, fund,
 Telegram, env, deploy, or scheduler changes.
+`previewPanicBottomContext(symbol=BTCUSDT)` is a read-only ScoreBuy companion
+MCP for 200WMA/Fear&Greed/multi-wave BTC panic-bottom context. It emits
+`orderAllowed=false` and `gridMutationAllowed=false`; OCO abnormal evidence or
+1h/4h `TRENDING_BEARISH` forces `suggestedAction` to `SCOUT_PRE_POSITION` or
+`WATCH`, never confirmed deploy. `previewScoreBuyConviction` includes this
+context for operator visibility only and does not change live execution.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.

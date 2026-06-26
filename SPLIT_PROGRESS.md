@@ -2972,6 +2972,15 @@ Trading deployment prep:
   first-day observation evidence only and does not authorize auto-rebalance,
   recovery, close/pause/resume, order/OCO, Earn/fund, Telegram, env, deploy,
   scheduler, or exchange mutations.
+- BTC panic-bottom context now has a read-only ScoreBuy companion MCP:
+  `previewPanicBottomContext(symbol=BTCUSDT)`. It reads `md_kline`,
+  `market_indicator_history` `fear_greed`, a 200WMA reference, OCO health text,
+  and 1h/4h trend guards to emit down-wave/retest context,
+  `panicBottomScore`, `phase`, and `suggestedAction` with
+  `orderAllowed=false` and `gridMutationAllowed=false`. OCO abnormal evidence
+  or 1h/4h `TRENDING_BEARISH` downgrades suggestions to
+  `SCOUT_PRE_POSITION` or `WATCH`; `previewScoreBuyConviction` displays the
+  context for operator review only and does not change live execution.
 
 ## Cleanup Priority
 

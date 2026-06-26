@@ -5,6 +5,7 @@ import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
 import com.agora.service.trading.CapitalAllocationPolicyPreviewService;
+import com.agora.service.trading.PanicBottomContextPreviewService;
 import com.agora.service.trading.ScoreBuyConfirmedDeployAutoExecutionService;
 import com.agora.service.trading.ScoreBuyConfirmedDeployPreviewService;
 import com.agora.service.trading.ScoreBuyConvictionPreviewService;
@@ -35,6 +36,8 @@ public class ScoreBuyMcpTools {
     private final ScoreBuyConfirmedDeployAutoExecutionService confirmedDeployAutoExecutionService;
     private final ScoreBuyPostScoutManagementPolicyService postScoutManagementPolicyService;
     private final ScoreBuyPostScoutAutoAddExecutionService postScoutAutoAddExecutionService;
+    private final PanicBottomContextPreviewService panicBottomContextPreviewService;
+    private final PositionMcpTools positionMcpTools;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.MARKET_DATA})
@@ -42,7 +45,17 @@ public class ScoreBuyMcpTools {
     public String previewScoreBuyConviction(
             @ToolParam(required = false, description = "Symbol, default BTCUSDT") String symbol,
             @ToolParam(required = false, description = "SCORE_BUY strategy id, default 485") Long strategyId) {
-        return previewService.preview(symbol, strategyId);
+        return previewService.preview(symbol, strategyId)
+                + "\n\npanicBottomContext="
+                + panicBottomContextPreviewService.preview(symbol, safeOcoHealth());
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.MARKET_DATA})
+    @Tool(description = "Read-only BTC panic-bottom context preview. Uses md_kline, market_indicator_history fear_greed, 200WMA reference, OCO health text, and 1h/4h trend guards to label WATCH/SCOUT_PRE_POSITION/CONFIRMED_DEPLOY_REVIEW without placing orders or changing OCO/grid/strategy/fund/Earn state. params: symbol default BTCUSDT.")
+    public String previewPanicBottomContext(
+            @ToolParam(required = false, description = "Symbol, default BTCUSDT") String symbol) {
+        return panicBottomContextPreviewService.preview(symbol, safeOcoHealth());
     }
 
     @McpAuth(McpAuthLevel.OPS)
@@ -132,5 +145,13 @@ public class ScoreBuyMcpTools {
     public String previewCapitalAllocationPolicy(
             @ToolParam(required = false, description = "Symbol, default BTCUSDT") String symbol) {
         return capitalAllocationPolicyPreviewService.preview(symbol);
+    }
+
+    private String safeOcoHealth() {
+        try {
+            return positionMcpTools.getOcoHealth();
+        } catch (Exception e) {
+            return "OCO_HEALTH_READ_FAILED: " + e.getMessage();
+        }
     }
 }

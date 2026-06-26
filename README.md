@@ -2246,6 +2246,21 @@ This emits candidate entry/TP/SL, fee-adjusted replay outcome,
 `READ_ONLY_SYNTHETIC_REPLAY_PROXY_NOT_RUNTIME_EV`; it does not write
 RuntimeDecisionEvidence, place orders, modify OCO, or relax policy.
 
+To avoid counting repeated audit rows as separate alpha opportunities, run the
+exact-opportunity staged-add review:
+
+```powershell
+.\scripts\smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -ForwardHours 24
+```
+
+This read-only smoke groups same-bar EntryDedup skips into synthetic
+opportunity keys, reports `exact_opportunity_count`,
+`exact_duplicate_suppressed_rows`, staged-add budget proxy fields,
+`staged_add_budget_proxy_allowed_opportunities`, and
+`staged_add_review_candidate_opportunities`. It is not runtime EV/OCO evidence
+and keeps `staged_add_execution_allowed=false`, `order_allowed=false`, and
+`entry_dedup_policy_change_allowed=false`.
+
 Read-only EntryDedup semantics shadow experiment packet from the recorded
 production evidence:
 

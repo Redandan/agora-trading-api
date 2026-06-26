@@ -2843,6 +2843,17 @@ Expected:
   It is not runtime EV evidence, does not write RuntimeDecisionEvidence, and
   does not authorize EntryDedup relaxation, orders, OCO changes, deploy, or
   production env changes.
+- Before treating repeated EntryDedup audit rows as separate opportunities,
+  run
+  `.\scripts\smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -ForwardHours 24`.
+  This read-only DB smoke groups same-bar skips into exact synthetic
+  opportunity keys and emits
+  `ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET`,
+  `exact_opportunity_count`, `exact_duplicate_suppressed_rows`,
+  `staged_add_budget_proxy_allowed_opportunities`, and
+  `staged_add_review_candidate_opportunities`. It is a staged-add review
+  surface only: `staged_add_execution_allowed=false`,
+  `order_allowed=false`, and EntryDedup/live policy changes remain false.
 - After the consistency, forward-return, and feasibility evidence has been
   recorded, run
   `.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 -RequireReady`

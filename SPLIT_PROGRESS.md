@@ -1674,6 +1674,17 @@
   This is review-only shadow feasibility evidence; it does not authorize
   EntryDedup relaxation, staged-add execution, live trading, orders, OCO
   modification, deploy, or production env changes.
+- `scripts/smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1`
+  adds a narrower read-only EntryDedup opportunity review. It groups repeated
+  same-bar `ENTRY_SKIP/EntryDedup` audit rows into synthetic exact opportunity
+  keys, reports `exact_opportunity_count`,
+  `exact_duplicate_suppressed_rows`,
+  `staged_add_budget_proxy_allowed_opportunities`, and
+  `staged_add_review_candidate_opportunities`, then keeps
+  `staged_add_execution_allowed=false`, `order_allowed=false`, and
+  `entry_dedup_policy_change_allowed=false`. The packet is not runtime EV/OCO
+  evidence and does not authorize EntryDedup relaxation, staged-add/live
+  execution, deploy, or production mutation.
 - 2026-06-22 read-only production sample-gap RCA for `BTCUSDT`, after
   excluding watch-only `ATTENTION_HIT` and terminal `ENTRY_SKIP` rows from the
   pre-terminal BUY-like candidate definition, showed

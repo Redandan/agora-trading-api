@@ -2785,6 +2785,19 @@ Expected:
   signal rows may scope a later review-only EntryDedup semantics experiment,
   while true auto-traded exposure, duplicate/bar, cap, DataFreshness, EV, and
   OCO gates stay unchanged.
+- To replay the reviewable same-exposure family across strategies, run
+  `.\scripts\smoke_entry_dedup_coarse_semantics_shadow_review_ssh.ps1`. This
+  read-only DB smoke reviews only
+  `same strategy/symbol/interval LONG exposure already exists` rows, classifies
+  their current open-signal semantics, and computes 4h/24h forward returns plus
+  24h MFE/MAE from OKX `md_kline`. Expected output includes
+  `ENTRY_DEDUP_COARSE_SEMANTICS_SHADOW_REVIEW_PACKET`,
+  `entry_dedup_coarse_semantics_shadow_review_status=READY_FOR_ENTRY_DEDUP_COARSE_SEMANTICS_SHADOW_REVIEW_NOT_LIVE`,
+  `coarse_reviewable_forward_rows`, `coarse_positive_24h_rows`,
+  `coarse_avg_24h_return_pct`, `classification_summary`,
+  `strategy_interval_summary`, and `order_allowed=false`. The packet is
+  shadow-review evidence only and does not relax EntryDedup/DataFreshness/live
+  policy or authorize live/staged-add execution.
 - If the consistency smoke returns
   `ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW`, run
   `.\scripts\smoke_entry_dedup_semantics_shadow_review_ssh.ps1`. This

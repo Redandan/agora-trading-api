@@ -419,6 +419,19 @@
   enable live trading/staged-add/scheduler, place orders, modify OCO, send
   Telegram, mutate DB/grid/fund/Earn/exchange state, or relax
   EntryDedup/DataFreshness/live policy.
+- `scripts/smoke_entry_dedup_coarse_semantics_shadow_review_ssh.ps1` extends
+  that decomposition into a read-only shadow replay for the reviewable
+  `same strategy/symbol/interval LONG exposure already exists` family across
+  strategies. It emits
+  `ENTRY_DEDUP_COARSE_SEMANTICS_SHADOW_REVIEW_PACKET`,
+  `entry_dedup_coarse_semantics_shadow_review_status=READY_FOR_ENTRY_DEDUP_COARSE_SEMANTICS_SHADOW_REVIEW_NOT_LIVE`,
+  `coarse_reviewable_forward_rows`, `coarse_positive_24h_rows`,
+  `coarse_avg_24h_return_pct`, `classification_summary`,
+  `strategy_interval_summary`, and `order_allowed=false`. It computes forward
+  returns from OKX `md_kline` only and remains evidence-only: no deploy,
+  production env change, live/staged-add/scheduler enablement, order/OCO/grid/
+  fund/Earn/Telegram/exchange mutation, or EntryDedup/DataFreshness/live policy
+  relaxation is authorized.
 - 2026-06-23 local read-only profit operator next-action board refresh ran
   `scripts/prepare_profit_operator_next_action_board.ps1 -RequireReady` against
   the latest local priority packet and saved strategy574/TinyLive logs. It

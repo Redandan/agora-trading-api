@@ -1687,6 +1687,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_grid_open_readiness_watch.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_grid_candidate_parameter_sweep.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_grid_split_acceptance_deploy_handoff.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_grid_post_open_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy574_tiny_live_governance_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_candidate_flow_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_exit_side_verified_experiment_readiness.ps1"

@@ -2962,6 +2962,16 @@ Trading deployment prep:
   in the standalone pre-apply env-diff packet, but are accepted in the post-env
   bundle only when scheduler/recovery/Earn remain disabled and split acceptance
   has passed.
+- Grid #10 post-open observation now has a read-only smoke:
+  `scripts/smoke_grid_post_open_ssh.ps1`. It uses server-local OPS MCP read
+  tools plus `scripts/check_server_runtime_log.sh` to emit
+  `grid_post_open_smoke_packet`, verify Grid #10 remains ACTIVE, confirm no
+  failed/partial levels, confirm price is in range, and confirm
+  `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,
+  `GRID_RECOVERY_ENABLED=false`, and `OKX_EARN_TOPUP_ENABLED=false`. It is
+  first-day observation evidence only and does not authorize auto-rebalance,
+  recovery, close/pause/resume, order/OCO, Earn/fund, Telegram, env, deploy,
+  scheduler, or exchange mutations.
 
 ## Cleanup Priority
 

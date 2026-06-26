@@ -3656,6 +3656,22 @@ has been deployed and split acceptance has passed. The standalone pre-apply
 `prepare_grid_env_diff_preflight_packet_ssh.ps1` path still treats already-true
 OKX/grid flags as blockers before env-diff authorization.
 
+After a grid is opened, run the read-only post-open smoke before considering
+auto-rebalance or recovery:
+
+```powershell
+.\scripts\smoke_grid_post_open_ssh.ps1 -GridId 10
+```
+
+The smoke calls only server-local OPS MCP read tools (`gridStats`, `listGrids`,
+`getGridPriceAlignment`, `getCurrentExposure`, and `listSchedulerTasks`) plus
+`scripts/check_server_runtime_log.sh`. It fails if the grid is not ACTIVE, if
+failed/partial levels appear, if price alignment is not in range, if
+auto-rebalance/recovery/Earn env flags are not `false`, or if the runtime log
+is not clean. The emitted `grid_post_open_smoke_packet` is observation evidence
+only and is not approval to mutate grid, scheduler, OCO, Earn, fund, Telegram,
+env, deploy, or exchange state.
+
 Reviewable Flyway baseline generation after a clean shared-mode compare:
 
 ```bash

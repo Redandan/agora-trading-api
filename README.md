@@ -2492,6 +2492,14 @@ packet mode so `TRADING_OKX_ENABLED=true` and `TRADING_GRID_ENABLED=true` are
 accepted only after an env diff has already been applied and split acceptance
 has passed; the normal pre-apply env-diff packet still treats already-true
 flags as review blockers.
+After Grid #10 is opened, use `.\scripts\smoke_grid_post_open_ssh.ps1 -GridId 10`
+for read-only first-day observation. It verifies Grid #10 is ACTIVE, level
+counts have no failed/partial states, price alignment is in range,
+`TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,
+`GRID_RECOVERY_ENABLED=false`, `OKX_EARN_TOPUP_ENABLED=false`, and the active
+runtime log remains clean. It emits `grid_post_open_smoke_packet` and does not
+authorize auto-rebalance, recovery, close/pause/resume, order, OCO, Earn, fund,
+Telegram, env, deploy, or scheduler changes.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.

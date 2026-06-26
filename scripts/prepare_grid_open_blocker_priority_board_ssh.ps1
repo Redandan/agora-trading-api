@@ -108,7 +108,10 @@ function Get-PropertyOrNull {
 function Get-FirstPresentValue {
     param([object[]]$Values)
     foreach ($value in $Values) {
-        if ($null -ne $value) { return $value }
+        if ($null -eq $value) { continue }
+        if ($value -is [string] -and [string]::IsNullOrWhiteSpace($value)) { continue }
+        if ($value -is [System.Array] -and $value.Count -eq 0) { continue }
+        return $value
     }
     return $null
 }
@@ -177,7 +180,7 @@ $capitalPacket = Get-PropertyOrNull $bundleFromRequest "sourceCapitalOverridePac
 $createPreflightFromCapital = Get-PropertyOrNull $capitalPacket "sourceCreateAuthorizationPreflightPacketSummary"
 $bundleCreateInputs = if ($null -ne $bundlePacket) { Get-PropertyOrNull $bundlePacket "refreshedCreateGridInputsMustMatch" } else { $null }
 $planCreateInputs = if ($null -ne $planPacket) { Get-PropertyOrNull $planPacket "refreshedCreateGridInputsMustMatch" } else { $null }
-$createInputs = Get-FirstPresentValue @(
+$createInputs = Get-FirstPresentValue -Values @(
     $bundleCreateInputs,
     (Get-PropertyOrNull $requestPacket "reviewedCreateGridInputs"),
     (Get-PropertyOrNull $bundleFromRequest "reviewedCreateGridInputs"),

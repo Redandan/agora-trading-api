@@ -451,6 +451,10 @@ next safest read-only action. `SPLIT_ACCEPTANCE_NOT_PASSING` and
 changes, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
 place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange
 state.
+The board preserves candidate grid inputs from the freshest available
+read-only packet, falling back to the plan packet so `replayScore` and
+`candidateCapitalUsdt` stay visible even when env or operator authorization
+gates remain blocked.
 
 Bounded read-only Grid open readiness watch:
 

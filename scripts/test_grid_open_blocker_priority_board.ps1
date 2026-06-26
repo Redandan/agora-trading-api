@@ -99,6 +99,7 @@ foreach ($marker in @(
 foreach ($marker in @(
         "Get-PropertyOrNull",
         "Get-FirstPresentValue",
+        "Get-FirstPresentValue -Values",
         "sourceAuthorizationRequestPacketSummary",
         "sourceAuthorizationBundlePacketSummary",
         "sourceCapitalOverridePacketSummary",

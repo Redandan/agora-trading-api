@@ -62,6 +62,30 @@ function Add-Unique {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Get-PropertyOrNull {
+    param($Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
+function Test-PresentValue {
+    param($Value)
+    if ($null -eq $Value) { return $false }
+    if ($Value -is [string]) { return -not [string]::IsNullOrWhiteSpace($Value) }
+    if ($Value -is [System.Array]) { return $Value.Count -gt 0 }
+    return $true
+}
+
+function Get-FirstPresentValue {
+    param([object[]]$Values)
+    foreach ($value in $Values) {
+        if (Test-PresentValue $value) { return $value }
+    }
+    return $null
+}
+
 function Get-DiagnosticLines {
     param([string]$Text)
     if ([string]::IsNullOrWhiteSpace($Text)) { return @() }
@@ -245,6 +269,16 @@ $recoveryEnabled = if ($null -ne $envReadiness) { [string]$envReadiness.gridReco
 $earnEnabled = if ($null -ne $envReadiness) { [string]$envReadiness.okxEarnTopupEnabled } else { "UNKNOWN" }
 $eventRiskGate = if ($null -ne $envReadiness) { [string]$envReadiness.eventRiskGate } else { "UNKNOWN" }
 $createPreflightMissingEvidence = @($(if ($null -ne $createPreflightPacket) { $createPreflightPacket.missingEvidence } else { @() }))
+$capitalPacket = Get-PropertyOrNull $bundlePacket "sourceCapitalOverridePacketSummary"
+$createPreflightFromCapital = Get-PropertyOrNull $capitalPacket "sourceCreateAuthorizationPreflightPacketSummary"
+$refreshedCreateGridInputs = Get-FirstPresentValue -Values @(
+    (Get-PropertyOrNull $requestPacket "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $bundlePacket "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $capitalPacket "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $createPreflightPacket "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $createPreflightFromCapital "reviewedCreateGridInputs"),
+    (Get-PropertyOrNull $planPacket "refreshedCreateGridInputsMustMatch")
+)
 
 if (-not $planReady) { Add-Unique -List $verificationBlockers -Value "GRID_POST_ENV_VERIFICATION_PLAN_NOT_READY" }
 if (-not $requestReady) { Add-Unique -List $verificationBlockers -Value "GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_READY" }
@@ -317,7 +351,7 @@ $packet = [pscustomobject]@{
         okxEarnTopupEnabled = $earnEnabled
         eventRiskGate = $eventRiskGate
     }
-    refreshedCreateGridInputsMustMatch = if ($null -ne $requestPacket) { $requestPacket.reviewedCreateGridInputs } else { $null }
+    refreshedCreateGridInputsMustMatch = $refreshedCreateGridInputs
     freshDecisionSnapshotStatus = if ($null -ne $decisionPacket) { $decisionPacket.status } else { "UNKNOWN" }
     freshTrendOverrideStatus = if ($null -ne $trendPacket) { $trendPacket.status } else { "UNKNOWN" }
     freshEnvDiffStatus = if ($null -ne $envDiffPacket) { $envDiffPacket.status } else { "UNKNOWN" }

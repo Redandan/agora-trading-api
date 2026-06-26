@@ -2957,6 +2957,12 @@ Trading deployment prep:
   not authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- The grid post-env bundle and blocker board preserve candidate grid inputs
+  from the freshest available read-only packet, falling back from operator
+  authorization request/bundle to create preflight and then the plan packet.
+  This keeps `replayScore`, `candidateCapitalUsdt`, and reviewed
+  `refreshedCreateGridInputsMustMatch` visible even while env or operator
+  authorization gates remain blocked.
 - Grid open readiness now has a bounded read-only watch wrapper:
   `scripts/watch_grid_open_readiness_ssh.ps1`. It invokes only the blocker
   priority board, adds child heartbeat/timeout handling, and emits

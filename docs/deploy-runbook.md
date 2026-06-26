@@ -2713,6 +2713,14 @@ Expected:
   distribution, generic examples, and `NoTerminalFollowupExamples` so
   trading-candidate loss is not confused with macro/attention warning flow and
   no-terminal continuity gaps have concrete candidate audit rows to review.
+- When `NO_TERMINAL_FOLLOWUP` remains material, run
+  `.\scripts\smoke_no_terminal_followup_continuity_ssh.ps1`. It replays the
+  BUY-like candidate matching read-only, then classifies no-terminal rows as
+  pending windows, terminal-after-window, same-strategy/different-interval
+  terminal, other nearby terminal, non-terminal same-key continuation, or no
+  follow-up within the extended window. This distinguishes a matching-window
+  artifact from a real candidate-audit continuity gap before changing
+  DataFreshnessGuard, EntryDedup, strategy activation, or live execution.
 - Use `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1` when the
   operator needs the BUY-like progression result and DataFreshness replay
   readiness blockers in one `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`.

@@ -2981,6 +2981,18 @@ Trading deployment prep:
   or 1h/4h `TRENDING_BEARISH` downgrades suggestions to
   `SCOUT_PRE_POSITION` or `WATCH`; `previewScoreBuyConviction` displays the
   context for operator review only and does not change live execution.
+- Issue #15 OCO sync errors now have a read-only reconciliation packet:
+  `scripts/prepare_oco_sync_reconciliation_packet_ssh.ps1`. It either parses an
+  existing source log or calls server-local `/api/mcp` read tools
+  (`getOcoHealth`, `listOpenPositions`, `getExecutionRiskSnapshot`) and emits
+  `OCO_SYNC_RECONCILIATION_PACKET`, `positionsRequiringWrite`,
+  `requiredAuthorization`, `complete_reconciliation_rows`, and
+  `oco_sync_reconciliation_status`. The packet is intended to turn OKX
+  child-filled/DB-still-open evidence into an operator review artifact only; it
+  keeps force-close, position/OCO mutation, orders, scheduler, Telegram,
+  deploy/env changes, and DB/grid/fund/Earn/exchange mutation disabled until a
+  separate explicit authorization and post-change read-only verification plan
+  exist.
 
 ## Cleanup Priority
 

@@ -610,6 +610,24 @@ changing runtime or trading state. It keeps `close_position_allowed=false`,
 not authorization to place orders, close positions, modify/cancel OCO, send
 Telegram, deploy, change production env, or relax trading policy.
 
+Read-only OCO sync reconciliation packet for stale DB-open positions:
+
+```powershell
+.\scripts\prepare_oco_sync_reconciliation_packet_ssh.ps1 -RequireReviewReady
+```
+
+This calls server-local `/api/mcp` read tools only, or parses an existing
+`-SourceLogPath`, and emits `oco_sync_reconciliation_packet` plus
+`oco_sync_reconciliation_status`. An `OCO_SYNC_RECONCILIATION_PACKET` with
+`READY_FOR_OPERATOR_RECONCILIATION_REVIEW_NOT_MUTATION` lists affected
+positions, OKX child-fill evidence, proposed SL close price/reason, and
+`positionsRequiringWrite` for a separate operator decision. It keeps
+`force_close_position_allowed=false`, `close_position_allowed=false`,
+`position_or_oco_mutation_allowed=false`, and `order_allowed=false`; it is not
+authorization to call `forceClosePosition`, close positions, modify/cancel OCO,
+place orders, deploy, change production env, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
+
 Read-only profit operator priority decision brief:
 
 ```powershell

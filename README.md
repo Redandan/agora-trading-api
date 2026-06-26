@@ -2482,6 +2482,11 @@ checker, attach the `ERROR category ...` line and
 `ERROR rca=TELEGRAM_EXECUTION_EVENT_NOTIFICATION_PATH` marker before reviewing
 `EVENT_SCAN_NOTIFICATION_ENABLED`, `EXECUTION_EVENT_ENABLED`, Telegram send
 health, or background automation authorization.
+The runtime log smoke treats the narrow `OkxTradingService` startup echo
+`[OKX] Auto-trade enabled : true` as configuration evidence only. It still
+fails on actual order placement, OKX submit/fill/execute, `createGrid`, OCO,
+Earn, or fund operation-like lines unless the diagnostic-only high-risk allow
+flag is used outside acceptance.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.

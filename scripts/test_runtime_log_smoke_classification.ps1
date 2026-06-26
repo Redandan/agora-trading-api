@@ -146,6 +146,19 @@ Assert-SmokeCase `
     )
 
 Assert-SmokeCase `
+    -Name "okx auto-trade enabled config echo is not an operation" `
+    -Lines @(
+        "2026-06-26T01:58:16.105Z  INFO 2299189 --- [agora-trading-api] [main] c.a.service.impl.OkxTradingService      : [OKX] Auto-trade enabled   : true",
+        "2026-06-26T01:58:17.000Z  INFO 2299189 --- [agora-trading-api] [main] c.a.TradingApplication                  : Started TradingApplication"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "OKX auto-trade enabled startup config echo present: count=1",
+        "no high-risk trading/OCO/grid/Earn/fund operation-like lines",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
     -Name "runtime error allow flag is diagnostic only" `
     -Lines @(
         "2026-06-18T11:15:10.507Z ERROR 184643 --- [agora-trading-api] [trading-sched-1] c.a.service.impl.TelegramServiceImpl     : Failed to send Telegram keyboard message to channel -1003885932854: Unable to executesendmessagemethod"

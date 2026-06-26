@@ -3636,7 +3636,13 @@ validated.
 `scripts/check_server_runtime_log.sh` enforces this warning baseline for the
 active run log. It fails on runtime `ERROR` lines, WARN lines outside the known
 baseline above, and operation-like live trading/OCO/grid/Earn/fund lines in the
-recent log tail. On success, it also prints the known WARN category counts:
+recent log tail. A narrow `OkxTradingService` startup line such as
+`[OKX] Auto-trade enabled : true` is classified as an OKX auto-trade config
+echo, not as evidence of an order or grid mutation; actual order placement,
+OKX submit/fill/execute, `createGrid`, OCO, Earn, or fund operation-like lines
+still fail unless the diagnostic-only `ALLOW_HIGH_RISK_LOG=1` override is
+intentionally used outside acceptance. On success, it also prints the known WARN
+category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
   optional TheGraph key, autonomous digest severe-notification, and bounded OKX
   public WS connection-reset warnings, plus ScoreBuy/HeatWave feature-schema

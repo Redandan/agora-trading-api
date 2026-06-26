@@ -2948,6 +2948,13 @@ Trading deployment prep:
   operator decision only; it is not authorization to deploy, change production
   env, call `createGrid`, enable grid/scheduler/recovery, place orders, modify
   OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
+  `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence
+  instead of a high-risk operation line. This keeps post-env split acceptance
+  from failing on a config echo after an explicitly authorized OKX/grid env
+  diff, while actual order placement, OKX submit/fill/execute, `createGrid`,
+  OCO, Earn, and fund operation-like lines remain strict blockers unless a
+  diagnostic-only high-risk allow flag is used outside acceptance.
 
 ## Cleanup Priority
 

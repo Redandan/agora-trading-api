@@ -125,7 +125,14 @@ else
   ok "WARN baseline category flyway_mysql_version=$WARN_FLYWAY_MYSQL_COUNT startup_bean_timing=$WARN_STARTUP_TIMING_COUNT cglib_proxy=$WARN_CGLIB_PROXY_COUNT open_in_view=$WARN_OPEN_IN_VIEW_COUNT thegraph_optional_key=$WARN_THEGRAPH_COUNT autonomous_digest_severe=$WARN_AUTONOMOUS_DIGEST_SEVERE_COUNT okx_ws_connection_reset=$WARN_OKX_WS_CONNECTION_RESET_COUNT scorebuy_ml_schema_mismatch=$WARN_SCOREBUY_ML_SCHEMA_MISMATCH_COUNT unknown=0"
 fi
 
-HIGH_RISK_LINES="$(tail -n "$LOG_TAIL_LINES" "$RUN_LOG_FILE" | grep -nEi 'Auto-trade enabled[[:space:]]*:[[:space:]]*true|(order|okx).*(placed|submitted|filled|executed)|(modifyOco|createGrid|closeGrid|redeemEarn|subscribeEarn|forceClosePosition|cancelHardOco|retryOco).*(executed|success|submitted|placed|complete)' || true)"
+TAIL_LOG_LINES="$(tail -n "$LOG_TAIL_LINES" "$RUN_LOG_FILE")"
+OKX_AUTO_TRADE_CONFIG_ECHO_LINES="$(printf '%s\n' "$TAIL_LOG_LINES" | grep -nE 'OkxTradingService.*\[OKX\] Auto-trade enabled[[:space:]]*:[[:space:]]*true' || true)"
+OKX_AUTO_TRADE_CONFIG_ECHO_COUNT="$(printf '%s\n' "$OKX_AUTO_TRADE_CONFIG_ECHO_LINES" | sed '/^[[:space:]]*$/d' | wc -l | tr -d '[:space:]')"
+if [ "$OKX_AUTO_TRADE_CONFIG_ECHO_COUNT" -gt 0 ]; then
+  ok "OKX auto-trade enabled startup config echo present: count=$OKX_AUTO_TRADE_CONFIG_ECHO_COUNT"
+fi
+
+HIGH_RISK_LINES="$(printf '%s\n' "$TAIL_LOG_LINES" | grep -nEi '(order|okx).*(placed|submitted|filled|executed)|(modifyOco|createGrid|closeGrid|redeemEarn|subscribeEarn|forceClosePosition|cancelHardOco|retryOco).*(executed|success|submitted|placed|complete)' || true)"
 HIGH_RISK_COUNT="$(printf '%s\n' "$HIGH_RISK_LINES" | sed '/^[[:space:]]*$/d' | wc -l | tr -d '[:space:]')"
 if [ "$HIGH_RISK_COUNT" -gt 0 ]; then
   if [ "$ALLOW_HIGH_RISK_LOG" = "1" ]; then

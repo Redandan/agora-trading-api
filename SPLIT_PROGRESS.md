@@ -1948,6 +1948,14 @@
   feasibility plus candidate-level RuntimeDecisionEvidence EV/OCO coverage
   without relaxing EntryDedup, placing orders, changing OCO, or mutating
   production state.
+- `scripts/smoke_entry_dedup_semantics_synthetic_ev_oco_preview_ssh.ps1` adds
+  the next read-only fallback when candidate-level RuntimeDecisionEvidence is
+  absent. It builds a synthetic EV/OCO preview from existing K-lines for the
+  strategy 508 / `BTCUSDT` / `1h` EntryDedup candidates, including
+  entry/TP/SL, fee-adjusted replay result, `expectedRProxy`, OCO plan-shape
+  validity, and OCO route-not-proven status. The packet is explicitly
+  `READ_ONLY_SYNTHETIC_REPLAY_PROXY_NOT_RUNTIME_EV` and does not write runtime
+  evidence or authorize live/OCO/policy mutation.
 - 2026-06-22 production run of that feasibility review for `BTCUSDT` /
   strategy 508 / `1h`, using explicit assumptions `takeProfitPct=1.00`,
   `stopLossPct=1.00`, `roundTripFeePct=0.20`, and `forwardHours=24`, returned

@@ -1649,6 +1649,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_shadow_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_feasibility_review_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_gate_preflight_smoke.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_synthetic_ev_oco_preview_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_shadow_experiment_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_operator_decision_brief.ps1"

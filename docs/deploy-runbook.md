@@ -2834,6 +2834,15 @@ Expected:
   EV/OCO coverage. It is evidence-only and keeps `order_allowed=false`,
   EntryDedup/live policy changes false, and all order/OCO/grid/fund/Earn/
   Telegram/exchange mutations disallowed.
+- If that preflight reports missing candidate-level RuntimeDecisionEvidence,
+  run
+  `.\scripts\smoke_entry_dedup_semantics_synthetic_ev_oco_preview_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -ForwardHours 24`.
+  This direct-DB read-only smoke creates a synthetic EV/OCO preview from
+  existing K-lines: candidate entry/TP/SL, fee-adjusted replay outcome,
+  `expectedRProxy`, OCO plan-shape validity, and OCO route-not-proven status.
+  It is not runtime EV evidence, does not write RuntimeDecisionEvidence, and
+  does not authorize EntryDedup relaxation, orders, OCO changes, deploy, or
+  production env changes.
 - After the consistency, forward-return, and feasibility evidence has been
   recorded, run
   `.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet.ps1 -RequireReady`

@@ -2230,6 +2230,18 @@ OCO feasibility, and candidate-level RuntimeDecisionEvidence EV/OCO coverage as
 review evidence only; `order_allowed=false` and live policy relaxation remain
 false.
 
+If candidate-level runtime snapshots are missing, create a synthetic EV/OCO
+preview packet from existing K-lines:
+
+```powershell
+.\scripts\smoke_entry_dedup_semantics_synthetic_ev_oco_preview_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -ForwardHours 24
+```
+
+This emits candidate entry/TP/SL, fee-adjusted replay outcome,
+`expectedRProxy`, OCO plan-shape status, and OCO route-not-proven status. It is
+`READ_ONLY_SYNTHETIC_REPLAY_PROXY_NOT_RUNTIME_EV`; it does not write
+RuntimeDecisionEvidence, place orders, modify OCO, or relax policy.
+
 Read-only EntryDedup semantics shadow experiment packet from the recorded
 production evidence:
 

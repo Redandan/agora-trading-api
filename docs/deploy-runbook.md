@@ -2373,6 +2373,12 @@ Expected:
   profit-priority decision and does not relax EntryDedup/DataFreshness/live
   policy, enable staged-add/live execution, place orders, modify OCO, deploy,
   change env, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+  For fresh production evidence, generate the source log with
+  `.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -ForwardHours 24 -Limit 50 -RequireReady`
+  first, then pass it to the direct packet with `-SourceShadowLogPath`. The SSH
+  source packet includes exact-opportunity staged-add review fields so the
+  direct packet can carry de-duplicated opportunity counts without invoking the
+  full profit-priority matrix.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

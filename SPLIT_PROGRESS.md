@@ -926,6 +926,10 @@
   `data_freshness_policy_change_allowed=false`,
   `staged_add_execution_allowed=false`, `order_allowed=false`,
   `grid_mutation_allowed=false`, and `telegram_send_allowed=false`.
+  The SSH shadow packet now also invokes the exact-opportunity staged-add review
+  smoke, so fresh production reruns carry `exactOpportunityCount`,
+  `exactDuplicateSuppressedRows`, `tpHitOpportunities`, and
+  `stagedAddReviewCandidateOpportunities` into the direct operator packet.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved

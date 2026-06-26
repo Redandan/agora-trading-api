@@ -772,6 +772,14 @@ full profit-priority decision and does not relax policy, enable staged-add/live
 execution, place orders, modify OCO, deploy, change env, send Telegram, or
 mutate DB/grid/fund/Earn/exchange state.
 
+For a fresh production source, first run
+`.\scripts\prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1 -StrategyId 508 -IntervalCode 1h -Hours 720 -ForwardHours 24 -Limit 50 -RequireReady`.
+The SSH packet includes exact-opportunity staged-add review fields such as
+`exactOpportunityCount`, `exactDuplicateSuppressedRows`, and
+`stagedAddReviewCandidateOpportunities`, then the direct packet can consume the
+saved log through `-SourceShadowLogPath` without invoking the full
+profit-priority matrix.
+
 Read-only EntryDedup semantics preflight review packet:
 
 ```powershell

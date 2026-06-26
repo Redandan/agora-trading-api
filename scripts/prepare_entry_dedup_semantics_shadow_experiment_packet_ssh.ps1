@@ -145,6 +145,14 @@ $feasibility = Invoke-ReadOnlyScript -ScriptName "smoke_entry_dedup_semantics_fe
     "-StopLossPct", [string]$StopLossPct,
     "-RoundTripFeePct", [string]$RoundTripFeePct
 ))
+$exactOpportunity = Invoke-ReadOnlyScript -ScriptName "smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1" -Arguments ($commonArgs + @(
+    "-ForwardHours", [string]$ForwardHours,
+    "-TakeProfitPct", [string]$TakeProfitPct,
+    "-StopLossPct", [string]$StopLossPct,
+    "-RoundTripFeePct", [string]$RoundTripFeePct,
+    "-StagedAddBudgetUsdt", [string]($ReviewNotionalCapUsdt * 2),
+    "-CandidateAddUsdt", [string]$ReviewNotionalCapUsdt
+))
 
 $consistencyRecommendation = Get-LastPrefixedValue -Text $consistency.Text -Prefix "  entry_dedup_exposure_consistency_recommendation="
 $entryDedupSkipRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $consistency.Text -Prefix "  entry_dedup_skip_rows=")
@@ -176,13 +184,21 @@ $netPositiveRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $feasibility
 $netWinRatePct = Get-DecimalValue -Value (Get-LastPrefixedValue -Text $feasibility.Text -Prefix "  net_win_rate_pct=")
 $avgNetReturnPct = Get-DecimalValue -Value (Get-LastPrefixedValue -Text $feasibility.Text -Prefix "  avg_net_return_pct=")
 
+$exactOpportunityJson = Get-LastPrefixedValue -Text $exactOpportunity.Text -Prefix "entry_dedup_exact_opportunity_staged_add_review_packet="
+$exactOpportunityPacket = $null
+if (-not [string]::IsNullOrWhiteSpace($exactOpportunityJson)) {
+    $exactOpportunityPacket = $exactOpportunityJson | ConvertFrom-Json -ErrorAction Stop
+}
+
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ($consistency.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "entry-dedup exposure consistency exitCode=0" }
 if ($shadow.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "entry-dedup semantics shadow review exitCode=0" }
 if ($feasibility.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "entry-dedup semantics feasibility review exitCode=0" }
+if ($exactOpportunity.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "entry-dedup exact opportunity staged-add review exitCode=0" }
 if ($consistencyRecommendation -ne "ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW") { Add-MissingRequirement -List $missingRequirements -Value "ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW" }
 if ($shadowRecommendation -ne "ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE") { Add-MissingRequirement -List $missingRequirements -Value "ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE" }
 if ($feasibilityRecommendation -ne "ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE") { Add-MissingRequirement -List $missingRequirements -Value "ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE" }
+if ($null -eq $exactOpportunityPacket) { Add-MissingRequirement -List $missingRequirements -Value "ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET" }
 if ($entryDedupSkipRows -lt 3) { Add-MissingRequirement -List $missingRequirements -Value "entry_dedup_skip_rows >= 3" }
 if ($reviewableForwardRows -lt 3) { Add-MissingRequirement -List $missingRequirements -Value "reviewable_forward_rows >= 3" }
 if ($replayReviewedRows -lt 3) { Add-MissingRequirement -List $missingRequirements -Value "replay_reviewed_rows >= 3" }
@@ -191,6 +207,11 @@ if ($slHitRows -ne 0) { Add-MissingRequirement -List $missingRequirements -Value
 if ($ambiguousSameBarRows -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "ambiguous_same_bar_rows=0" }
 if ($missingKlineRows -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "missing_kline_rows=0" }
 if ($avgNetReturnPct -le 0) { Add-MissingRequirement -List $missingRequirements -Value "avg_net_return_pct > 0" }
+if ($null -ne $exactOpportunityPacket) {
+    if ([int]$exactOpportunityPacket.exactOpportunityCount -lt 1) { Add-MissingRequirement -List $missingRequirements -Value "exact_opportunity_count > 0" }
+    if ([int]$exactOpportunityPacket.stagedAddReviewCandidateOpportunities -lt 1) { Add-MissingRequirement -List $missingRequirements -Value "staged_add_review_candidate_opportunities > 0" }
+    if ([int]$exactOpportunityPacket.tpHitOpportunities -lt 1) { Add-MissingRequirement -List $missingRequirements -Value "tp_hit_opportunities > 0" }
+}
 
 $ready = $missingRequirements.Count -eq 0
 $status = if ($ready) { "READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE" } else { "NOT_READY" }
@@ -210,15 +231,20 @@ $packet = [pscustomobject]@{
     sourceEvidenceScripts = @(
         "smoke_entry_dedup_exposure_consistency_ssh.ps1",
         "smoke_entry_dedup_semantics_shadow_review_ssh.ps1",
-        "smoke_entry_dedup_semantics_feasibility_review_ssh.ps1"
+        "smoke_entry_dedup_semantics_feasibility_review_ssh.ps1",
+        "smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1"
     )
     childExitCodes = @{
         exposureConsistency = $consistency.ExitCode
         semanticsShadowReview = $shadow.ExitCode
         tpSlFeasibilityReview = $feasibility.ExitCode
+        exactOpportunityStagedAddReview = $exactOpportunity.ExitCode
     }
     sourceEvidenceSummary = [pscustomobject]@{
         entryDedupExposureRecommendation = $consistencyRecommendation
+        rawAuditRows = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.rawAuditRows } else { 0 }
+        exactOpportunityCount = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.exactOpportunityCount } else { 0 }
+        exactDuplicateSuppressedRows = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.exactDuplicateSuppressedRows } else { 0 }
         entryDedupSkipRows = $entryDedupSkipRows
         openSignalRows = $openSignalRows
         autoTradedOpenRows = $autoTradedOpenRows
@@ -241,14 +267,25 @@ $packet = [pscustomobject]@{
         roundTripFeePct = $RoundTripFeePct
         forwardHours = $ForwardHours
         replayReviewedRows = $replayReviewedRows
+        exactOpportunityReviewedRows = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.exactOpportunityCount } else { 0 }
         tpHitRows = $tpHitRows
+        tpHitOpportunities = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.tpHitOpportunities } else { 0 }
         slHitRows = $slHitRows
+        slHitOpportunities = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.slHitOpportunities } else { 0 }
         timeoutRows = $timeoutRows
         ambiguousSameBarRows = $ambiguousSameBarRows
+        ambiguousOpportunities = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.ambiguousOpportunities } else { 0 }
         missingKlineRows = $missingKlineRows
         netPositiveRows = $netPositiveRows
         netWinRatePct = $netWinRatePct
         avgNetReturnPct = $avgNetReturnPct
+        stagedAddBudgetProxyAllowedOpportunities = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.stagedAddBudgetProxyAllowedOpportunities } else { 0 }
+        stagedAddReviewCandidateOpportunities = if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.stagedAddReviewCandidateOpportunities } else { 0 }
+        exactOpportunityReviewBlockers = if ($null -ne $exactOpportunityPacket) {
+            @($exactOpportunityPacket.opportunities | ForEach-Object { @($_.reviewBlockers) } | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique)
+        } else {
+            @()
+        }
     }
     proposedEnvelope = [pscustomobject]@{
         reviewOnly = $true
@@ -286,14 +323,18 @@ $packet = [pscustomobject]@{
 }
 
 Write-Host "[entry-dedup-semantics-shadow-experiment-packet-ssh] read-only packet"
-Write-Host "scope=READ_ONLY; invokes EntryDedup exposure, shadow, and feasibility smokes only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes EntryDedup exposure, shadow, feasibility, and exact-opportunity staged-add review smokes only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_exposure_consistency=smoke_entry_dedup_exposure_consistency_ssh.ps1 exitCode=$($consistency.ExitCode)"
 Write-Host "source_semantics_shadow_review=smoke_entry_dedup_semantics_shadow_review_ssh.ps1 exitCode=$($shadow.ExitCode)"
 Write-Host "source_feasibility_review=smoke_entry_dedup_semantics_feasibility_review_ssh.ps1 exitCode=$($feasibility.ExitCode)"
+Write-Host "source_exact_opportunity_staged_add_review=smoke_entry_dedup_exact_opportunity_staged_add_review_ssh.ps1 exitCode=$($exactOpportunity.ExitCode)"
 Write-Host "entry_dedup_exposure_consistency_recommendation=$consistencyRecommendation"
 Write-Host "entry_dedup_semantics_shadow_recommendation=$shadowRecommendation"
 Write-Host "entry_dedup_semantics_feasibility_recommendation=$feasibilityRecommendation"
 Write-Host "entry_dedup_skip_rows=$entryDedupSkipRows"
+Write-Host "raw_audit_rows=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.rawAuditRows } else { 0 })"
+Write-Host "exact_opportunity_count=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.exactOpportunityCount } else { 0 })"
+Write-Host "exact_duplicate_suppressed_rows=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.exactDuplicateSuppressedRows } else { 0 })"
 Write-Host "open_signal_rows=$openSignalRows"
 Write-Host "auto_traded_open_rows=$autoTradedOpenRows"
 Write-Host "non_auto_zero_qty_rows=$nonAutoZeroQtyRows"
@@ -304,9 +345,13 @@ Write-Host "negative_24h_rows=$negative24hRows"
 Write-Host "avg_24h_return_pct=$avg24hReturnPct"
 Write-Host "replay_reviewed_rows=$replayReviewedRows"
 Write-Host "tp_hit_rows=$tpHitRows"
+Write-Host "tp_hit_opportunities=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.tpHitOpportunities } else { 0 })"
 Write-Host "sl_hit_rows=$slHitRows"
+Write-Host "sl_hit_opportunities=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.slHitOpportunities } else { 0 })"
 Write-Host "ambiguous_same_bar_rows=$ambiguousSameBarRows"
+Write-Host "ambiguous_opportunities=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.ambiguousOpportunities } else { 0 })"
 Write-Host "avg_net_return_pct=$avgNetReturnPct"
+Write-Host "staged_add_review_candidate_opportunities=$(if ($null -ne $exactOpportunityPacket) { [int]$exactOpportunityPacket.stagedAddReviewCandidateOpportunities } else { 0 })"
 Write-Host "entry_dedup_policy_change_allowed=false"
 Write-Host "live_policy_change_allowed=false"
 Write-Host "position_or_oco_mutation_allowed=false"

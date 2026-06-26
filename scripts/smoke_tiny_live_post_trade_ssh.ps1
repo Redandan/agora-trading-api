@@ -176,11 +176,11 @@ for name, text in [
     ("getTinyLiveAutoExecutionTriggerStatus", trigger),
     ("listTinyLiveExecutions", executions),
     ("getAutonomousExecutionAttribution", attribution),
-    ("getOcoHealth", oco),
     ("listExecutionEvents", events),
     ("getAutonomousReadinessDashboard", dashboard),
 ]:
     require(f"{name} read-only boundary", r"READ_ONLY|read-only|no order/OCO/strategy/grid/fund/Earn|OCO Health Check", text)
+require("getOcoHealth read-only boundary", r"READ_ONLY|read-only|no order/OCO/strategy/grid/fund/Earn|OCO Health Check|無開倉中的自動交易倉位", oco)
 
 require("trigger hard scope", r"hardScope=BTCUSDT/574/LONG/5USDT", trigger)
 require("trigger no-order marker", r"orderSent=false", trigger)

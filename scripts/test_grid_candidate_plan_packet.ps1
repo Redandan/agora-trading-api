@@ -58,6 +58,9 @@ foreach ($marker in @(
         "candidateLower",
         "candidateUpper",
         "candidateCapitalUsdt",
+        "candidateHalfWidthPct",
+        "candidateHalfWidthSource",
+        "CandidateHalfWidthPct must be 0 or between 2.5 and 30",
         "stopOutPct",
         "stopLow",
         "stopHigh",
@@ -112,6 +115,9 @@ try {
     }
     Assert-FailsWith -Name "bad stop-out pct" -Pattern "StopOutPct must be between 1 and 20" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -StopOutPct 0.5
+    }
+    Assert-FailsWith -Name "bad candidate half-width pct" -Pattern "CandidateHalfWidthPct must be 0 or between 2.5 and 30" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -CandidateHalfWidthPct 1
     }
 } finally {
     Remove-Item -LiteralPath $tempKey -Force -ErrorAction SilentlyContinue

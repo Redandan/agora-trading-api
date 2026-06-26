@@ -2737,6 +2737,25 @@ Trading deployment prep:
   authorize production env changes, `createGrid`, scheduler/recovery
   enablement, orders, OCO, Telegram, deploy, restart, or DB/grid/fund/Earn/
   exchange mutation.
+- Grid candidate selection now has a bounded read-only parameter sweep:
+  `scripts/prepare_grid_candidate_parameter_sweep_ssh.ps1`. It invokes only
+  `prepare_grid_open_operator_packet_ssh.ps1` across reviewed `GridCount`,
+  `PerLevelUsdt`, `StopOutPct`, and `CandidateHalfWidthPct` combinations, then emits
+  `GRID_CANDIDATE_PARAMETER_SWEEP_PACKET`,
+  `grid_candidate_parameter_sweep_rows`,
+  `grid_candidate_parameter_sweep_best_candidate`,
+  `grid_candidate_parameter_sweep_best_quality_candidate`,
+  `grid_candidate_parameter_sweep_remaining_blockers`, and
+  `grid_candidate_parameter_sweep_status`. A reviewable candidate requires a
+  complete plan, replay score >= 70, zero replay stop-break rows, and capital
+  within the effective review cap. `CandidateHalfWidthPct=0` keeps the existing
+  ATR/trend-derived range; explicit values are candidate range evidence only.
+  A quality candidate can clear replay quality while still leaving trend,
+  capital, env, or createGrid authorization blocked.
+  The sweep is evidence only: it does not
+  change env, deploy, restart, call `createGrid`, enable grid/scheduler or
+  recovery, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 - Grid trend clearance now has a read-only watch packet:
   `scripts/prepare_grid_trend_clearance_watch_packet_ssh.ps1`. It consumes the
   grid open operator packet and emits `GRID_TREND_CLEARANCE_WATCH_PACKET`,

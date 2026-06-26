@@ -9,6 +9,7 @@ param(
     [int]$GridCount = 8,
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
+    [decimal]$CandidateHalfWidthPct = 0,
     [switch]$RequireReady
 )
 
@@ -63,6 +64,9 @@ if ($PerLevelUsdt -lt 5 -or $PerLevelUsdt -gt 1000) {
 if ($StopOutPct -lt 1 -or $StopOutPct -gt 20) {
     throw "StopOutPct must be between 1 and 20."
 }
+if ($CandidateHalfWidthPct -ne 0 -and ($CandidateHalfWidthPct -lt 2.5 -or $CandidateHalfWidthPct -gt 30)) {
+    throw "CandidateHalfWidthPct must be 0 or between 2.5 and 30."
+}
 
 Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
@@ -81,7 +85,7 @@ if [ -z "$MCP_KEY" ]; then
   exit 1
 fi
 
-export MCP_URL MCP_KEY SYMBOL='__SYMBOL__' LOOKBACK_HOURS='__LOOKBACK_HOURS__' CANDIDATE_LOOKBACK_HOURS='__CANDIDATE_LOOKBACK_HOURS__' GRID_COUNT='__GRID_COUNT__' PER_LEVEL_USDT='__PER_LEVEL_USDT__' STOP_OUT_PCT='__STOP_OUT_PCT__' REQUIRE_READY='__REQUIRE_READY__' ENV_FILE='__ENVFILE__'
+export MCP_URL MCP_KEY SYMBOL='__SYMBOL__' LOOKBACK_HOURS='__LOOKBACK_HOURS__' CANDIDATE_LOOKBACK_HOURS='__CANDIDATE_LOOKBACK_HOURS__' GRID_COUNT='__GRID_COUNT__' PER_LEVEL_USDT='__PER_LEVEL_USDT__' STOP_OUT_PCT='__STOP_OUT_PCT__' CANDIDATE_HALF_WIDTH_PCT='__CANDIDATE_HALF_WIDTH_PCT__' REQUIRE_READY='__REQUIRE_READY__' ENV_FILE='__ENVFILE__'
 
 python3 - <<'PY'
 import csv
@@ -101,6 +105,7 @@ candidate_lookback_hours = int(os.environ["CANDIDATE_LOOKBACK_HOURS"])
 grid_count = int(os.environ["GRID_COUNT"])
 per_level_usdt = float(os.environ["PER_LEVEL_USDT"])
 stop_out_pct = float(os.environ["STOP_OUT_PCT"])
+candidate_half_width_pct = float(os.environ["CANDIDATE_HALF_WIDTH_PCT"])
 require_ready = os.environ.get("REQUIRE_READY", "false").lower() == "true"
 env_file = os.environ["ENV_FILE"]
 
@@ -343,6 +348,8 @@ LIMIT {candidate_lookback_hours}
     half_width_pct = max(2.5, min(8.0, atr_pct * 6.0))
     if direction in ("UP_STRONG", "DOWN_STRONG"):
         half_width_pct = max(half_width_pct, min(10.0, abs(trend_pct or 0.0) * 1.25))
+    if candidate_half_width_pct > 0:
+        half_width_pct = candidate_half_width_pct
     lower = current * (1.0 - half_width_pct / 100.0)
     upper = current * (1.0 + half_width_pct / 100.0)
     step = (upper - lower) / max(1, grid_count - 1)
@@ -377,6 +384,8 @@ LIMIT {candidate_lookback_hours}
         "gridCount": grid_count,
         "perLevelUsdt": round(per_level_usdt, 2),
         "candidateCapitalUsdt": round(per_level_usdt * grid_count, 2),
+        "candidateHalfWidthPct": round(half_width_pct, 4),
+        "candidateHalfWidthSource": "explicit" if candidate_half_width_pct > 0 else "auto_atr_trend",
         "stepPct": round(step_pct, 4),
         "stopOutPct": round(stop_out_pct, 4),
         "stopLow": round(stop_low, 2),
@@ -613,6 +622,7 @@ $remoteScript = $remoteScript.Replace("__CANDIDATE_LOOKBACK_HOURS__", [string]$C
 $remoteScript = $remoteScript.Replace("__GRID_COUNT__", [string]$GridCount)
 $remoteScript = $remoteScript.Replace("__PER_LEVEL_USDT__", $PerLevelUsdt.ToString([System.Globalization.CultureInfo]::InvariantCulture))
 $remoteScript = $remoteScript.Replace("__STOP_OUT_PCT__", $StopOutPct.ToString([System.Globalization.CultureInfo]::InvariantCulture))
+$remoteScript = $remoteScript.Replace("__CANDIDATE_HALF_WIDTH_PCT__", $CandidateHalfWidthPct.ToString([System.Globalization.CultureInfo]::InvariantCulture))
 $remoteScript = $remoteScript.Replace("__REQUIRE_READY__", $RequireReady.ToString().ToLowerInvariant())
 
 $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"

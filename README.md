@@ -220,6 +220,30 @@ The combined envelope reports the effective review capital cap by taking the
 more conservative cap across trend and event-risk envelopes, plus the separate
 written override/env/createGrid documents still required.
 
+Read-only Grid candidate parameter sweep:
+
+```powershell
+.\scripts\prepare_grid_candidate_parameter_sweep_ssh.ps1
+```
+
+This invokes only `prepare_grid_open_operator_packet_ssh.ps1` across bounded
+`GridCount`, `PerLevelUsdt`, `StopOutPct`, and `CandidateHalfWidthPct`
+combinations. It emits
+`GRID_CANDIDATE_PARAMETER_SWEEP_PACKET`,
+`grid_candidate_parameter_sweep_rows`,
+`grid_candidate_parameter_sweep_best_candidate`,
+`grid_candidate_parameter_sweep_best_quality_candidate`,
+`grid_candidate_parameter_sweep_remaining_blockers`, and
+`grid_candidate_parameter_sweep_status`. A best candidate requires replay score
+at least 70, zero replay stop-break rows, a complete candidate plan, and
+capital within the effective review cap. `CandidateHalfWidthPct=0` preserves
+the existing ATR/trend-derived width; explicit values are evidence-only
+candidate range tests. A best quality candidate means the replay blocker can
+clear, but trend override, capital cap, env, and createGrid authorization can
+still remain blocked. The sweep is read-only; it does not change env, deploy,
+call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
+send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only Grid trend-clearance watch packet:
 
 ```powershell

@@ -540,6 +540,40 @@ Expected:
   modify OCO, send Telegram, mutate DB/grid/fund/Earn, or call exchange
   mutation paths.
 
+Read-only Grid candidate parameter sweep:
+
+```powershell
+.\scripts\prepare_grid_candidate_parameter_sweep_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_open_operator_packet_ssh.ps1` for bounded
+  `GridCount`, `PerLevelUsdt`, `StopOutPct`, and `CandidateHalfWidthPct`
+  combinations.
+- Emits `GRID_CANDIDATE_PARAMETER_SWEEP_PACKET`,
+  `grid_candidate_parameter_sweep_rows`,
+  `grid_candidate_parameter_sweep_best_candidate`,
+  `grid_candidate_parameter_sweep_best_quality_candidate`,
+  `grid_candidate_parameter_sweep_remaining_blockers`,
+  `grid_candidate_parameter_sweep_quality_candidate_count`,
+  `grid_candidate_parameter_sweep_review_candidate_count`, and
+  `grid_candidate_parameter_sweep_status`.
+- Treats a candidate as reviewable only when the candidate plan is complete,
+  replay score is at least 70, replay stop-break rows are 0, and candidate
+  capital is within the effective review cap from the operator packet.
+- `CandidateHalfWidthPct=0` preserves the existing ATR/trend-derived candidate
+  width. Explicit values are evidence-only candidate range tests and are not
+  grid-create authorization.
+- `grid_candidate_parameter_sweep_best_quality_candidate` means replay quality
+  can clear for that parameter set, but trend override, capital cap, env, and
+  createGrid authorization can still remain blocked.
+- A ready sweep result is still only evidence for the next operator review. It
+  does not change production env, deploy, restart, approve a trend/capital
+  override, call `createGrid`, enable grid/scheduler/recovery, place orders,
+  modify OCO, send Telegram, mutate DB/grid/fund/Earn, or call exchange
+  mutation paths.
+
 Read-only Grid trend-clearance watch packet:
 
 ```powershell

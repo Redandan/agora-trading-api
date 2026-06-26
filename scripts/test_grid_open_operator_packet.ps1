@@ -102,6 +102,8 @@ foreach ($marker in @(
         "TRADING_GRID_ENABLED=true",
         "OKX_EARN_TOPUP_ENABLED=false",
         "createGridReviewInputs",
+        "candidateHalfWidthPct",
+        "candidateHalfWidthSource",
         "postAuthorizationVerificationPlan",
         "production_env_change_allowed=false",
         "grid_mutation_allowed=false",
@@ -142,6 +144,9 @@ try {
     }
     Assert-FailsWith -Name "bad lookback" -Pattern "LookbackHours must be between 24 and 720" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -LookbackHours 1
+    }
+    Assert-FailsWith -Name "bad candidate half-width pct" -Pattern "CandidateHalfWidthPct must be 0 or between 2.5 and 30" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -CandidateHalfWidthPct 1
     }
 } finally {
     Remove-Item -LiteralPath $tempKey -Force -ErrorAction SilentlyContinue

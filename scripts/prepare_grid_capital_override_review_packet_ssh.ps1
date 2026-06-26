@@ -9,6 +9,7 @@ param(
     [int]$GridCount = 8,
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
+    [decimal]$CandidateHalfWidthPct = 0,
     [switch]$RequireReviewReady
 )
 
@@ -77,6 +78,7 @@ if ($CandidateLookbackHours -lt 72 -or $CandidateLookbackHours -gt 720) { throw 
 if ($GridCount -lt 4 -or $GridCount -gt 24) { throw "GridCount must be between 4 and 24." }
 if ($PerLevelUsdt -lt 5 -or $PerLevelUsdt -gt 1000) { throw "PerLevelUsdt must be between 5 and 1000." }
 if ($StopOutPct -lt 1 -or $StopOutPct -gt 20) { throw "StopOutPct must be between 1 and 20." }
+if ($CandidateHalfWidthPct -ne 0 -and ($CandidateHalfWidthPct -lt 2.5 -or $CandidateHalfWidthPct -gt 30)) { throw "CandidateHalfWidthPct must be 0 or between 2.5 and 30." }
 
 Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
@@ -100,7 +102,8 @@ $commonArgs = @(
     "-CandidateLookbackHours", "$CandidateLookbackHours",
     "-GridCount", "$GridCount",
     "-PerLevelUsdt", "$PerLevelUsdt",
-    "-StopOutPct", "$StopOutPct"
+    "-StopOutPct", "$StopOutPct",
+    "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
 )
 
 $previousErrorActionPreference = $ErrorActionPreference

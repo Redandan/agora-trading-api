@@ -21,6 +21,11 @@ foreach ($marker in @(
         "buy_like_candidate_loss_14d_no_terminal_examples",
         "buy_like_candidate_loss_30d_no_terminal_examples",
         "noTerminalExamples",
+        "NoTerminalContinuityLogPath",
+        "no_terminal_continuity_status",
+        "no_terminal_continuity_terminal_after_primary_rows",
+        "noTerminalContinuity",
+        "Review longer-window and interval-aware BUY-like continuity matching",
         "issue8_status",
         "issue12_status",
         "close_issue8_allowed=false",
@@ -47,6 +52,7 @@ try {
     $buyLike30dLog = Join-Path $tempDir "buy-like-30d.log"
     $dfLog = Join-Path $tempDir "df-readiness.log"
     $signalLog = Join-Path $tempDir "signal.log"
+    $continuityLog = Join-Path $tempDir "no-terminal-continuity.log"
 
     Set-Content -LiteralPath $buyLike14dLog -Encoding UTF8 -Value @(
         "[buy-like-candidate-progression] read-only production DB evidence check",
@@ -110,19 +116,25 @@ try {
         "DataFreshnessGuard Current Snapshot:",
         "  dataFreshnessCurrentStatus=NO_CURRENT_SAMPLE acceptance=PASS_NO_CURRENT_SAMPLE"
     )
+    Set-Content -LiteralPath $continuityLog -Encoding UTF8 -Value @(
+        "[no-terminal-followup-continuity] read-only production DB evidence check",
+        "no_terminal_continuity_review_status=READY_FOR_NO_TERMINAL_CONTINUITY_REVIEW_NOT_LIVE",
+        "buy_like_candidate_rows_sampled=738",
+        "no_terminal_followup_rows=119",
+        'no_terminal_continuity_classification=[{"classification":"TERMINAL_AFTER_PRIMARY_WINDOW","rows":79},{"classification":"SAME_STRATEGY_DIFFERENT_INTERVAL_TERMINAL","rows":24},{"classification":"OTHER_TERMINAL_NEARBY","rows":15},{"classification":"PENDING_PRIMARY_FOLLOWUP_WINDOW","rows":1}]',
+        'terminal_after_primary_window_distribution=[{"terminal":"ENTRY_SKIP:EntryDedup","rows":26},{"terminal":"FILTER_BLOCK:ExpectedValueGate","rows":22}]',
+        "notAuthorization=read-only no-terminal continuity evidence only"
+    )
 
-    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
-    if ($null -eq $powerShell) { $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue }
-    if ($null -eq $powerShell) { throw "Unable to find powershell or pwsh for BUY-like candidate loss packet test." }
-
-    $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+    $output = & $scriptPath `
         -BuyLike14dLogPath $buyLike14dLog `
         -BuyLike30dLogPath $buyLike30dLog `
         -DataFreshnessReadinessLogPath $dfLog `
         -SignalCorrectnessLogPath $signalLog `
+        -NoTerminalContinuityLogPath $continuityLog `
         -MaxAgeMinutes 1440 `
-        -RequireReady 2>&1
-    $exitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+        -RequireReady 6>&1 2>&1
+    $exitCode = if ($?) { 0 } else { 1 }
     $text = ($output | Out-String -Width 4096)
     if ($exitCode -ne 0) {
         throw "BUY-like candidate loss packet failed temp evidence reuse:`n$text"
@@ -138,8 +150,15 @@ try {
             "buy_like_candidate_loss_30d_entry_dedup_rows=444",
             "buy_like_candidate_loss_30d_no_terminal_rows=119",
             "buy_like_candidate_loss_30d_filter_block_rows=37",
+            "no_terminal_continuity_status=READY_FOR_NO_TERMINAL_CONTINUITY_REVIEW_NOT_LIVE",
+            "no_terminal_continuity_terminal_after_primary_rows=79",
+            "no_terminal_continuity_different_interval_rows=24",
+            "no_terminal_continuity_other_nearby_terminal_rows=15",
             '"classification":"ENTRY_SKIP:EntryDedup","category":"ENTRY_SKIP","family":"EntryDedup","rows":444',
             '"classification":"NO_TERMINAL_FOLLOWUP","category":"NO_TERMINAL_FOLLOWUP","family":"NO_TERMINAL_FOLLOWUP","rows":119',
+            '"noTerminalContinuity":{"status":"READY_FOR_NO_TERMINAL_CONTINUITY_REVIEW_NOT_LIVE"',
+            '"terminalAfterPrimaryWindowDistribution":[{"terminal":"ENTRY_SKIP:EntryDedup","rows":26}',
+            "issue12_next_evidence_target=Review longer-window and interval-aware BUY-like continuity matching before treating NO_TERMINAL_FOLLOWUP as a real pipeline gap; keep EntryDedup/DataFreshness/live policy unchanged.",
             'buy_like_candidate_loss_14d_no_terminal_examples=[{"candidateAuditId":14001',
             'buy_like_candidate_loss_30d_no_terminal_examples=[{"candidateAuditId":30001',
             '"noTerminalExamples":[{"candidateAuditId":30001',

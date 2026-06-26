@@ -107,7 +107,7 @@ issue8_status=BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS
 issue8_recent_could_produce_data_freshness_terminal=false
 issue12_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE
 issue12_close_readiness=OPERATOR_REVIEW_READY_NOT_LIVE
-issue12_next_evidence_target=Use the EntryDedup/ShadowExecutionIntent operator packet; keep EntryDedup policy unchanged.
+issue12_next_evidence_target=Review longer-window and interval-aware BUY-like continuity matching before treating NO_TERMINAL_FOLLOWUP as a real pipeline gap; keep EntryDedup/DataFreshness/live policy unchanged.
 close_issue12_allowed=true
 close_issue6_or_7_allowed=false
 notAuthorization=read-only BUY-like candidate loss review packet only
@@ -140,7 +140,7 @@ notAuthorization=read-only trailing-stop dry-run operator decision packet only
     Assert-Contains -Name "remaining open issues issue7" -Text $blockedText -Pattern "issue7_remaining_blocker=NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS"
     Assert-Contains -Name "remaining open issues issue8" -Text $blockedText -Pattern "issue8_status=BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS"
     Assert-Contains -Name "remaining open issues issue8 upstream rca" -Text $blockedText -Pattern "issue8_upstream_rca=BUY_LIKE_FLOW_NOT_REACHING_DATAFRESHNESS_TERMINAL"
-    Assert-Contains -Name "remaining open issues next action uses upstream RCA" -Text $blockedText -Pattern "Do not only wait for DataFreshness rows"
+    Assert-Contains -Name "remaining open issues next action uses upstream RCA" -Text $blockedText -Pattern "Review longer-window and interval-aware BUY-like continuity matching"
     Assert-Contains -Name "remaining open issues active issue numbers" -Text $blockedText -Pattern "active_open_issue_numbers=6,7,8"
     Assert-Contains -Name "remaining open issues active count" -Text $blockedText -Pattern "active_remaining_issue_count=3"
     Assert-Contains -Name "remaining open issues closed context numbers" -Text $blockedText -Pattern "closed_issue_context_numbers=9,10,11,12"

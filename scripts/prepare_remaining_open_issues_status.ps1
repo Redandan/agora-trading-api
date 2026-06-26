@@ -197,7 +197,9 @@ $overallStatus = if ($globalBlocker -eq "NONE") {
     "BLOCKED_NOT_CLOSEABLE"
 }
 
-$nextAction = if ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS" -and $issue8UpstreamRca -eq "BUY_LIKE_FLOW_NOT_REACHING_DATAFRESHNESS_TERMINAL") {
+$nextAction = if ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS" -and $issue8UpstreamRca -eq "BUY_LIKE_FLOW_NOT_REACHING_DATAFRESHNESS_TERMINAL" -and $issue12NextEvidenceTarget -ne "UNKNOWN") {
+    $issue12NextEvidenceTarget
+} elseif ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS" -and $issue8UpstreamRca -eq "BUY_LIKE_FLOW_NOT_REACHING_DATAFRESHNESS_TERMINAL") {
     "Do not only wait for DataFreshness rows. Refresh profit candidate-flow RCA and inspect upstream BUY-like terminal blockers before any DataFreshnessGuard, EntryDedup, or live-policy change."
 } elseif ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS") {
     "Wait for fresh post-collector DataFreshnessGuard terminal rows, then rerun the bounded read-only watcher and #7 post-deploy bundle."

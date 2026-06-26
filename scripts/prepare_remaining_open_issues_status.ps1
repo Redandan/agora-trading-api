@@ -136,6 +136,7 @@ $issue12CloseReadiness = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "
 $issue12DominantBlocker = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "buy_like_candidate_loss_dominant_blocker=" -Default "UNKNOWN"
 $issue12Rows14d = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "buy_like_candidate_loss_14d_rows=" -Default "UNKNOWN"
 $issue12Rows30d = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "buy_like_candidate_loss_30d_rows=" -Default "UNKNOWN"
+$issue12NextEvidenceTarget = Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "issue12_next_evidence_target=" -Default "UNKNOWN"
 $issue12CloseAllowed = (Get-LastPrefixedValue -Text $buyLikeLoss.Text -Prefix "close_issue12_allowed=" -Default "false") -eq "true"
 if ($issue8Status -eq "UNKNOWN") { Add-MissingRequirement -List $missing -Value "issue #8 buy-like candidate loss status marker" }
 
@@ -148,6 +149,14 @@ $issue11Status = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "trailin
 $issue11PrimaryFocus = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "trailing_stop_dry_run_primary_focus=" -Default "UNKNOWN"
 $issue11MutationAllowed = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "position_or_oco_mutation_allowed=" -Default "false"
 $issue11OrderAllowed = Get-LastPrefixedValue -Text $trailingStop.Text -Prefix "order_allowed=" -Default "false"
+
+$issue8UpstreamRca = if ($issue8Status -eq "BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS" -and $issue8RecentCouldProduceDataFreshnessTerminal -eq "False") {
+    "BUY_LIKE_FLOW_NOT_REACHING_DATAFRESHNESS_TERMINAL"
+} elseif ($issue8Status -eq "BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS") {
+    "DATAFRESHNESS_TERMINAL_ROWS_MISSING"
+} else {
+    "UNKNOWN"
+}
 
 $issue6CloseAllowed = $false
 $issue6Status = if ($issue6Decision -eq "BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE") {
@@ -188,7 +197,9 @@ $overallStatus = if ($globalBlocker -eq "NONE") {
     "BLOCKED_NOT_CLOSEABLE"
 }
 
-$nextAction = if ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS") {
+$nextAction = if ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS" -and $issue8UpstreamRca -eq "BUY_LIKE_FLOW_NOT_REACHING_DATAFRESHNESS_TERMINAL") {
+    "Do not only wait for DataFreshness rows. Refresh profit candidate-flow RCA and inspect upstream BUY-like terminal blockers before any DataFreshnessGuard, EntryDedup, or live-policy change."
+} elseif ($globalBlocker -eq "NO_FRESH_POST_COLLECTOR_DATAFRESHNESS_ROWS") {
     "Wait for fresh post-collector DataFreshnessGuard terminal rows, then rerun the bounded read-only watcher and #7 post-deploy bundle."
 } elseif ($globalBlocker -eq "LOCAL_STATUS_EVIDENCE_MISSING_OR_STALE") {
     "Refresh the read-only logs for #6/#7 before using this consolidated packet."
@@ -239,6 +250,7 @@ $packet = [ordered]@{
             status = $issue8Status
             closeAllowed = $issue8CloseAllowed
             recentCouldProduceDataFreshnessTerminal = $issue8RecentCouldProduceDataFreshnessTerminal
+            upstreamRca = $issue8UpstreamRca
             upstreamEvidenceSource = $BuyLikeCandidateLossReviewLog
             remainingBlocker = "NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS"
         }
@@ -282,6 +294,7 @@ $packet = [ordered]@{
             closeAllowed = $issue12CloseAllowed
             closeReadiness = $issue12CloseReadiness
             dominantBlocker = $issue12DominantBlocker
+            nextEvidenceTarget = $issue12NextEvidenceTarget
             buyLikeRows14d = $issue12Rows14d
             buyLikeRows30d = $issue12Rows30d
         }
@@ -318,6 +331,7 @@ Write-Host "issue6_complete_replayable_candidate_rows=$issue6CompleteRows"
 Write-Host "issue7_status=$issue7Status"
 Write-Host "issue7_remaining_blocker=$issue7RemainingBlocker"
 Write-Host "issue8_status=$issue8Status"
+Write-Host "issue8_upstream_rca=$issue8UpstreamRca"
 Write-Host "active_open_issue_numbers=6,7,8"
 Write-Host "active_remaining_issue_count=3"
 Write-Host "closed_issue_context_numbers=9,10,11,12"

@@ -2226,8 +2226,9 @@ Then check the remaining mutation blockers with read-only MCP/DB evidence:
 This combines direct MySQL SELECTs with server-local read-only MCP calls for
 `getEventRiskControlStatus` and `getExpectedValueGateStats`. It classifies
 ExpectedValueGate, EventRiskControl, duplicate protection, daily cap/max-loss,
-and OCO feasibility as review evidence only; `order_allowed=false` and live
-policy relaxation remain false.
+OCO feasibility, and candidate-level RuntimeDecisionEvidence EV/OCO coverage as
+review evidence only; `order_allowed=false` and live policy relaxation remain
+false.
 
 Read-only EntryDedup semantics shadow experiment packet from the recorded
 production evidence:

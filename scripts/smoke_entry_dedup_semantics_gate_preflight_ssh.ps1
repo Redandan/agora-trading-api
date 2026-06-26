@@ -284,6 +284,20 @@ WHERE symbol = '{symbol_sql}'
   AND exit_time IS NULL
 """
 
+runtime_evidence_sql = f"""
+SELECT
+  COUNT(*) AS runtime_evidence_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(ev_result_json, '$.status')), '') <> 'NOT_EVALUATED' THEN 1 ELSE 0 END), 0) AS runtime_ev_evaluated_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> 'NOT_CREATED' THEN 1 ELSE 0 END), 0) AS runtime_entry_plan_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(oco_plan_created, 0) = 1 OR (COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> 'NOT_CREATED') THEN 1 ELSE 0 END), 0) AS runtime_oco_plan_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(order_sent, 0) = 1 THEN 1 ELSE 0 END), 0) AS runtime_order_sent_rows
+FROM bt_runtime_decision_evidence
+WHERE symbol = '{symbol_sql}'
+  AND strategy_id = {strategy_id}
+  AND COALESCE(interval_code, 'N/A') = '{interval_sql}'
+  AND evidence_time >= UTC_TIMESTAMP() - INTERVAL {hours} HOUR
+"""
+
 global_gate_sql = f"""
 SELECT
   COALESCE(SUM(CASE WHEN event_type = 'ATTENTION_HIT' AND (blocker = 'ExpectedValueGate' OR reason LIKE '%ExpectedValueGate%' OR context_json LIKE '%expected%') THEN 1 ELSE 0 END), 0) AS ev_pass_like_rows,
@@ -309,6 +323,14 @@ exposure_fields = [
     "missing_oco_rows",
 ]
 exposure = row_dict(exposure_fields, run_query(exposure_sql)[0])
+runtime_fields = [
+    "runtime_evidence_rows",
+    "runtime_ev_evaluated_rows",
+    "runtime_entry_plan_rows",
+    "runtime_oco_plan_rows",
+    "runtime_order_sent_rows",
+]
+runtime_evidence = row_dict(runtime_fields, run_query(runtime_evidence_sql)[0])
 gate_fields = ["ev_pass_like_rows", "ev_block_rows", "eventrisk_block_rows", "duplicate_bar_rows", "cap_or_loss_rows"]
 global_gates = row_dict(gate_fields, run_query(global_gate_sql)[0])
 
@@ -331,10 +353,32 @@ WHERE symbol = '{symbol_sql}'
     fields = ["ev_pass_like_rows", "ev_block_rows", "eventrisk_block_rows", "duplicate_bar_rows", "cap_or_loss_rows", "entry_dedup_rows"]
     return row_dict(fields, run_query(sql)[0])
 
+def nearby_runtime_counts(candidate):
+    anchor = esc(candidate["anchor_time"])
+    sql = f"""
+SELECT
+  COUNT(*) AS runtime_evidence_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(ev_result_json, '$.status')), '') <> 'NOT_EVALUATED' THEN 1 ELSE 0 END), 0) AS runtime_ev_evaluated_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> 'NOT_CREATED' THEN 1 ELSE 0 END), 0) AS runtime_entry_plan_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(oco_plan_created, 0) = 1 OR (COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> 'NOT_CREATED') THEN 1 ELSE 0 END), 0) AS runtime_oco_plan_rows,
+  COALESCE(SUM(CASE WHEN COALESCE(order_sent, 0) = 1 THEN 1 ELSE 0 END), 0) AS runtime_order_sent_rows
+FROM bt_runtime_decision_evidence
+WHERE symbol = '{symbol_sql}'
+  AND strategy_id = {strategy_id}
+  AND COALESCE(interval_code, 'N/A') = '{interval_sql}'
+  AND evidence_time BETWEEN DATE_SUB('{anchor}', INTERVAL 2 HOUR) AND DATE_ADD('{anchor}', INTERVAL 2 HOUR)
+"""
+    return row_dict(runtime_fields, run_query(sql)[0])
+
 candidate_previews = []
 for candidate in candidates:
     counts = nearby_counts(candidate)
-    candidate_previews.append({**candidate, **{k: as_int(v) for k, v in counts.items()}})
+    runtime_counts = nearby_runtime_counts(candidate)
+    candidate_previews.append({
+        **candidate,
+        **{k: as_int(v) for k, v in counts.items()},
+        **{k: as_int(v) for k, v in runtime_counts.items()},
+    })
 
 eventrisk_mcp = mcp_call("getEventRiskControlStatus", {"symbol": symbol})
 ev_mcp = mcp_call("getExpectedValueGateStats", {"symbol": symbol, "days": mcp_days})
@@ -352,6 +396,11 @@ ev_candidate_block_rows = sum(1 for item in candidate_previews if item["ev_block
 eventrisk_candidate_block_rows = sum(1 for item in candidate_previews if item["eventrisk_block_rows"] > 0)
 duplicate_candidate_rows = sum(1 for item in candidate_previews if item["duplicate_bar_rows"] > 0)
 cap_loss_candidate_rows = sum(1 for item in candidate_previews if item["cap_or_loss_rows"] > 0)
+runtime_candidate_rows = sum(1 for item in candidate_previews if item["runtime_evidence_rows"] > 0)
+runtime_ev_candidate_rows = sum(1 for item in candidate_previews if item["runtime_ev_evaluated_rows"] > 0)
+runtime_entry_plan_candidate_rows = sum(1 for item in candidate_previews if item["runtime_entry_plan_rows"] > 0)
+runtime_oco_plan_candidate_rows = sum(1 for item in candidate_previews if item["runtime_oco_plan_rows"] > 0)
+runtime_order_sent_candidate_rows = sum(1 for item in candidate_previews if item["runtime_order_sent_rows"] > 0)
 
 non_auto_eventrisk_rows = as_int(exposure.get("non_auto_eventrisk_rows"))
 missing_oco_rows = as_int(exposure.get("missing_oco_rows"))
@@ -359,7 +408,7 @@ auto_rows = as_int(exposure.get("auto_traded_open_rows"))
 non_auto_zero_rows = as_int(exposure.get("non_auto_zero_qty_rows"))
 
 if ev_mcp["ok"] and ev_acceptance.startswith("PASS"):
-    ev_gate_status = "PARTIAL_RUNTIME_PASS_CANDIDATE_SNAPSHOT_MISSING" if ev_candidate_pass_rows < len(candidates) else "CLEARED_RUNTIME_AND_CANDIDATE_ROWS"
+    ev_gate_status = "PARTIAL_RUNTIME_PASS_CANDIDATE_SNAPSHOT_MISSING" if runtime_ev_candidate_rows < len(candidates) else "CLEARED_RUNTIME_AND_CANDIDATE_ROWS"
 else:
     ev_gate_status = "MISSING_OR_FAILED_EXPECTED_VALUE_RUNTIME_EVIDENCE"
 
@@ -376,8 +425,15 @@ elif as_int(global_gates.get("cap_or_loss_rows")) > 0:
 else:
     budget_gate_status = "MISSING_BUDGET_SNAPSHOT_NO_CAP_LOSS_ROWS_OBSERVED"
 oco_gate_status = "BLOCKED_MISSING_OCO_ROUTE_OR_NON_AUTO_ZERO_QTY" if (missing_oco_rows > 0 or auto_rows == 0 or non_auto_zero_rows > 0) else "PARTIAL_OPEN_SIGNAL_OCO_PRESENT"
+runtime_coverage_status = "MISSING_CANDIDATE_RUNTIME_EVIDENCE_SNAPSHOTS"
+if candidates and runtime_candidate_rows == len(candidates):
+    runtime_coverage_status = "PARTIAL_RUNTIME_EVIDENCE_PRESENT_EV_OR_OCO_MISSING"
+    if runtime_ev_candidate_rows == len(candidates) and runtime_oco_plan_candidate_rows == len(candidates):
+        runtime_coverage_status = "CLEARED_CANDIDATE_RUNTIME_EVIDENCE_COVERAGE"
+elif runtime_candidate_rows > 0:
+    runtime_coverage_status = "PARTIAL_RUNTIME_EVIDENCE_CANDIDATE_COVERAGE"
 
-blocking_statuses = [ev_gate_status, eventrisk_gate_status, duplicate_gate_status, budget_gate_status, oco_gate_status]
+blocking_statuses = [ev_gate_status, eventrisk_gate_status, duplicate_gate_status, budget_gate_status, oco_gate_status, runtime_coverage_status]
 if not candidates:
     overall_status = "NO_RECENT_ENTRY_DEDUP_CANDIDATES_NOT_LIVE"
 elif all(status.startswith("CLEARED") for status in blocking_statuses):
@@ -399,6 +455,7 @@ packet = {
         "duplicateProtection": duplicate_gate_status,
         "dailyCapMaxLossBudget": budget_gate_status,
         "ocoFeasibility": oco_gate_status,
+        "runtimeEvidenceCoverage": runtime_coverage_status,
     },
     "runtimeMcpEvidence": {
         "eventRiskOk": eventrisk_mcp["ok"],
@@ -416,12 +473,18 @@ packet = {
         "nonAutoEventRiskRows": non_auto_eventrisk_rows,
         "missingOcoRows": missing_oco_rows,
         "globalGateRows": {k: as_int(v) for k, v in global_gates.items()},
+        "runtimeEvidenceRows": {k: as_int(v) for k, v in runtime_evidence.items()},
         "candidateGateRows": {
             "evPassLikeRows": ev_candidate_pass_rows,
             "evBlockRows": ev_candidate_block_rows,
             "eventRiskBlockRows": eventrisk_candidate_block_rows,
             "duplicateBarRows": duplicate_candidate_rows,
             "capOrLossRows": cap_loss_candidate_rows,
+            "runtimeEvidenceRows": runtime_candidate_rows,
+            "runtimeEvEvaluatedRows": runtime_ev_candidate_rows,
+            "runtimeEntryPlanRows": runtime_entry_plan_candidate_rows,
+            "runtimeOcoPlanRows": runtime_oco_plan_candidate_rows,
+            "runtimeOrderSentRows": runtime_order_sent_candidate_rows,
         },
     },
     "requiredBeforeAnyMutation": [
@@ -451,6 +514,7 @@ print(f"  event_risk_control_status={eventrisk_gate_status}")
 print(f"  duplicate_protection_status={duplicate_gate_status}")
 print(f"  daily_cap_max_loss_budget_status={budget_gate_status}")
 print(f"  oco_feasibility_status={oco_gate_status}")
+print(f"  runtime_evidence_coverage_status={runtime_coverage_status}")
 print("")
 print("Runtime MCP Evidence:")
 print(f"  event_risk_mcp_ok={str(eventrisk_mcp['ok']).lower()}")
@@ -466,11 +530,18 @@ for key in exposure_fields:
     print(f"  {key}={exposure.get(key, '0')}")
 for key in gate_fields:
     print(f"  global_{key}={global_gates.get(key, '0')}")
+for key in runtime_fields:
+    print(f"  global_{key}={runtime_evidence.get(key, '0')}")
 print(f"  candidate_ev_pass_like_rows={ev_candidate_pass_rows}")
 print(f"  candidate_ev_block_rows={ev_candidate_block_rows}")
 print(f"  candidate_eventrisk_block_rows={eventrisk_candidate_block_rows}")
 print(f"  candidate_duplicate_bar_rows={duplicate_candidate_rows}")
 print(f"  candidate_cap_or_loss_rows={cap_loss_candidate_rows}")
+print(f"  candidate_runtime_evidence_rows={runtime_candidate_rows}")
+print(f"  candidate_runtime_ev_evaluated_rows={runtime_ev_candidate_rows}")
+print(f"  candidate_runtime_entry_plan_rows={runtime_entry_plan_candidate_rows}")
+print(f"  candidate_runtime_oco_plan_rows={runtime_oco_plan_candidate_rows}")
+print(f"  candidate_runtime_order_sent_rows={runtime_order_sent_candidate_rows}")
 print("")
 print("Candidate Examples:")
 if not candidate_previews:
@@ -480,7 +551,9 @@ else:
         print(
             "  - auditId={audit_id} event={event_time} anchor={anchor_time} liveSignalId={live_signal_id} "
             "evPassLike={ev_pass_like_rows} evBlock={ev_block_rows} eventRiskBlock={eventrisk_block_rows} "
-            "duplicateBar={duplicate_bar_rows} capOrLoss={cap_or_loss_rows} entryDedupNearby={entry_dedup_rows} reason={reason}".format(
+            "duplicateBar={duplicate_bar_rows} capOrLoss={cap_or_loss_rows} runtimeRows={runtime_evidence_rows} "
+            "runtimeEv={runtime_ev_evaluated_rows} runtimeEntryPlan={runtime_entry_plan_rows} "
+            "runtimeOcoPlan={runtime_oco_plan_rows} entryDedupNearby={entry_dedup_rows} reason={reason}".format(
                 **{**item, "reason": (item.get("reason") or "NONE")[:120]}
             )
         )

@@ -1945,8 +1945,9 @@
   EntryDedup shadow lane. It combines direct MySQL SELECTs with server-local
   read-only MCP calls for EventRiskControl and ExpectedValueGate, then
   classifies EV, EventRisk, duplicate protection, daily cap/max-loss, and OCO
-  feasibility without relaxing EntryDedup, placing orders, changing OCO, or
-  mutating production state.
+  feasibility plus candidate-level RuntimeDecisionEvidence EV/OCO coverage
+  without relaxing EntryDedup, placing orders, changing OCO, or mutating
+  production state.
 - 2026-06-22 production run of that feasibility review for `BTCUSDT` /
   strategy 508 / `1h`, using explicit assumptions `takeProfitPct=1.00`,
   `stopLossPct=1.00`, `roundTripFeePct=0.20`, and `forwardHours=24`, returned

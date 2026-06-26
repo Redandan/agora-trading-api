@@ -158,9 +158,15 @@ def oco_health_ok(oco_text):
         return sync_count == 0 and "OCO active" in oco_text
     return sync_count == 0 and abnormal_count == 0
 
+def no_open_auto_trade_position(oco_text):
+    return ("無開倉中的自動交易倉位" in oco_text
+            or "no open auto" in oco_text.lower()
+            or "no open position" in oco_text.lower())
+
 assert oco_health_ok("✅ 3 OK | 🔴 0 SYNC_ERROR | ⚠️ 0 異常")
 assert oco_health_ok("3 OK | 0 SYNC_ERROR | 0 abnormal")
 assert oco_health_ok("Position #1 BTCUSDT — OCO active (live) | 0 SYNC_ERROR")
+assert no_open_auto_trade_position("✅ 無開倉中的自動交易倉位")
 
 def extract_position_ids(open_positions):
     ids = []
@@ -259,7 +265,9 @@ stop_sweep = call_tool("analyzeStopSweepRisk", {"symbol": symbol, "days": min(da
 monthly = call_tool("getMonthlyPnlOverview", {"symbol": symbol, "months": 3})
 
 require("manager digest", r"Trading Manager Digest", digest)
-require("OCO health OK marker", r"0 SYNC_ERROR", oco)
+if not (oco_health_ok(oco) or no_open_auto_trade_position(oco)):
+    print("FAIL: missing healthy OCO marker; expected 0 SYNC_ERROR or no open auto-trade position", file=sys.stderr)
+    sys.exit(1)
 require("execution events read-only boundary", r"boundary:\s*READ_ONLY", events)
 require("position defense read-only boundary", r'"boundary"\s*:\s*"READ_ONLY', defense)
 require("position defense no order marker", r'"orderSent"\s*:\s*false', defense)
@@ -280,7 +288,7 @@ ev_rows = [ev_summary(pid, position_details) for pid in position_ids]
 aged_events = len(re.findall(r"POSITION_TIMEOUT", events))
 tp_watch = len(re.findall(r"status=WATCH", tp_stretch))
 tp_stretched = len(re.findall(r"status=STRETCHED|stretched=([1-9]\d*)", tp_stretch))
-oco_ok = oco_health_ok(oco)
+oco_ok = oco_health_ok(oco) or no_open_auto_trade_position(oco)
 negative_ev = [row for row in ev_rows if row["evUsdt"] not in ("N/A", "") and float(row["evUsdt"]) < 0]
 close_or_modify = [row for row in ev_rows if row["suggestion"] in ("CLOSE", "MODIFY")]
 paper_loss_review = [row for row in ev_rows if row["paperPct"] not in ("N/A", "") and float(row["paperPct"]) <= -8.0]

@@ -71,7 +71,7 @@ foreach ($marker in @(
 
 foreach ($marker in @(
         "position EV read-only boundary",
-        "OCO health OK marker",
+        "healthy OCO marker",
         "execution events read-only boundary",
         "position defense no order marker",
         "position defense no OCO marker",
@@ -81,9 +81,12 @@ foreach ($marker in @(
         "stop sweep read-only boundary",
         "def count_before_marker",
         "def oco_health_ok",
+        "def no_open_auto_trade_position",
         "assert oco_health_ok",
+        "assert no_open_auto_trade_position",
         "SYNC_ERROR",
         "OCO active",
+        "無開倉中的自動交易倉位",
         "0 異常",
         "0 abnormal"
     )) {

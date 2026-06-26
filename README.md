@@ -780,6 +780,22 @@ The SSH packet includes exact-opportunity staged-add review fields such as
 saved log through `-SourceShadowLogPath` without invoking the full
 profit-priority matrix.
 
+Read-only EntryDedup runtime proof gap packet:
+
+```powershell
+.\scripts\prepare_entry_dedup_runtime_proof_gap_packet.ps1 -RequireReady
+```
+
+This reads the saved direct EntryDedup packet, gate preflight, and synthetic
+EV/OCO preview logs and emits `ENTRY_DEDUP_RUNTIME_PROOF_GAP_PACKET` plus
+`entry_dedup_runtime_proof_gap_packet`. It ranks the remaining proof blockers
+after the synthetic preview is ready: exact OCO route proof, candidate-level
+runtime EV/OCO snapshots, exact duplicate replay protection, and daily
+cap/max-loss snapshots. It keeps `entry_dedup_policy_change_allowed=false`,
+`data_freshness_policy_change_allowed=false`, `staged_add_execution_allowed=false`,
+`order_allowed=false`, `grid_mutation_allowed=false`, and
+`telegram_send_allowed=false`.
+
 Read-only EntryDedup semantics preflight review packet:
 
 ```powershell

@@ -930,6 +930,12 @@
   smoke, so fresh production reruns carry `exactOpportunityCount`,
   `exactDuplicateSuppressedRows`, `tpHitOpportunities`, and
   `stagedAddReviewCandidateOpportunities` into the direct operator packet.
+  `scripts/prepare_entry_dedup_runtime_proof_gap_packet.ps1` then combines the
+  direct packet, gate preflight, and synthetic EV/OCO preview into
+  `ENTRY_DEDUP_RUNTIME_PROOF_GAP_PACKET`, ranking the remaining blockers as
+  exact OCO route proof, candidate-level runtime EV/OCO snapshots, exact
+  duplicate replay protection, and daily cap/max-loss snapshots while keeping
+  all mutation flags false.
 - 2026-06-23 read-only production profit evidence refresh ran
   `scripts/prepare_profit_operator_action_brief_ssh.ps1 -RequireReady` through
   SSH/server-local MCP and saved

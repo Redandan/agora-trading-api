@@ -2379,6 +2379,20 @@ Expected:
   source packet includes exact-opportunity staged-add review fields so the
   direct packet can carry de-duplicated opportunity counts without invoking the
   full profit-priority matrix.
+- To summarize the remaining EntryDedup runtime-proof blockers after the direct
+  packet and synthetic EV/OCO preview are ready, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_runtime_proof_gap_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `entry_dedup_runtime_proof_gap_packet`,
+  `entry_dedup_runtime_proof_gap_status=READY_FOR_ENTRY_DEDUP_RUNTIME_PROOF_GAP_REVIEW_NOT_LIVE`,
+  top blocker `OCO_ROUTE_NOT_PROVEN_OR_MISSING`, second blocker
+  `CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING`, and all mutation flags false.
+  This is a read-only blocker review packet, not approval to relax policy,
+  enable staged-add/live execution, place orders, modify OCO, deploy, change
+  env, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

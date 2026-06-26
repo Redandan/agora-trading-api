@@ -63,7 +63,8 @@ function Invoke-Smoke {
     param(
         [string]$Name,
         [string]$ScriptName,
-        [string[]]$Arguments
+        [string[]]$Arguments,
+        [switch]$AllowFailure
     )
 
     $scriptPath = Join-Path $scriptDir $ScriptName
@@ -92,10 +93,50 @@ function Invoke-Smoke {
     }
     Write-Host "===== $Name exitCode=$exit ====="
 
-    if ($exit -ne 0) {
+    if ($exit -ne 0 -and -not $AllowFailure) {
         throw "$Name failed with exit code $exit"
     }
     return $text
+}
+
+function New-BlockedStrategy485SmokeText {
+    param(
+        [string]$SourceText,
+        [string]$Reason
+    )
+
+    $decision = [ordered]@{
+        decision = "FIX_OCO_PROTECTION_FIRST"
+        symbol = $Symbol
+        strategyId = 485
+        canDraftOperatorReviewPacket = $false
+        positionOrOcoMutationAllowed = $false
+        closePositionAllowed = $false
+        orderAllowed = $false
+        telegramSendAllowed = $false
+        schedulerEnablementAllowed = $false
+        ocoHealthOk = $false
+        openPositionCount = $null
+        negativeEvPositionCount = $null
+        closeOrModifySuggestionCount = $null
+        positionTimeoutEventCount = $null
+        tpStretchWatchCount = $null
+        tpStretchStretchedCount = $null
+        reviewRiskTriggerCount = 1
+        reviewRiskTriggers = @("OCO_HEALTH_READ_ONLY_SMOKE_FAILED")
+        positions = @()
+        requiredEvidence = @(
+            "fresh OCO health OK evidence",
+            "active-position EV reassessment",
+            "TP stretch and aging evidence",
+            "separate operator approval before any close-position or OCO mutation"
+        )
+        nextAction = "Refresh OCO health evidence first; do not close positions or modify OCO from this bundle."
+        sourceFailure = $Reason
+        notAuthorization = "read-only strategy 485 fallback routing decision only; does not authorize close-position, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutation, DB changes, deploy, restart, production env mutation, external backfill/import, or policy relaxation"
+    }
+
+    return ($SourceText.TrimEnd() + "`n`nConclusion:`n  strategy485_position_risk_recommendation=FIX_OCO_PROTECTION_FIRST`n  strategy485_position_review_decision=" + (ConvertTo-Json -Compress -Depth 8 $decision) + "`n  notAuthorization=read-only fallback evidence only; does not authorize closing positions, OCO modification, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, or policy relaxation")
 }
 
 function Get-Marker {
@@ -292,7 +333,11 @@ $profitCandidate = Invoke-Smoke -Name "profit-candidate-review" -ScriptName "smo
 $dataFreshnessFalseKill = Invoke-Smoke -Name "data-freshness-false-kill" -ScriptName "smoke_data_freshness_false_kill_review_ssh.ps1" -Arguments ($common + @("-LongDays", "14", "-ReviewDays", "7"))
 $dataFreshnessExecutability = Invoke-Smoke -Name "data-freshness-executability" -ScriptName "smoke_data_freshness_executability_review_ssh.ps1" -Arguments $common
 $dataFreshnessCounterfactual = Invoke-Smoke -Name "data-freshness-counterfactual" -ScriptName "smoke_data_freshness_counterfactual_review_ssh.ps1" -Arguments ($common + @("-ReviewDays", "$ReviewDays"))
-$strategy485 = Invoke-Smoke -Name "strategy485-position-risk" -ScriptName "smoke_strategy485_position_risk_ssh.ps1" -Arguments ($common + @("-Days", "$ReviewDays"))
+$strategy485Raw = Invoke-Smoke -Name "strategy485-position-risk" -ScriptName "smoke_strategy485_position_risk_ssh.ps1" -Arguments ($common + @("-Days", "$ReviewDays")) -AllowFailure
+$strategy485 = $strategy485Raw
+if ($strategy485Raw -match "strategy 485 position risk smoke failed" -or $strategy485Raw -match "missing OCO health OK marker") {
+    $strategy485 = New-BlockedStrategy485SmokeText -SourceText $strategy485Raw -Reason "strategy485-position-risk child smoke failed before conclusion"
+}
 $strategy574 = Invoke-Smoke -Name "strategy574-signal-governance" -ScriptName "smoke_strategy574_signal_governance_ssh.ps1" -Arguments $common
 $tinyLive = Invoke-Smoke -Name "tiny-live-post-trade" -ScriptName "smoke_tiny_live_post_trade_ssh.ps1" -Arguments ($common + @("-Hours", "$TinyLiveHours"))
 

@@ -281,6 +281,7 @@ window = dt.timedelta(hours=followup_hours)
 classification = Counter()
 event_classification = Counter()
 examples = []
+no_terminal_examples = []
 
 for candidate in candidates:
     if candidate.get("event_type") == "SIGNAL_BUY":
@@ -303,6 +304,8 @@ for candidate in candidates:
         event_classification["NO_TERMINAL_FOLLOWUP"] += 1
         if len(examples) < limit:
             examples.append((candidate, None, "NO_TERMINAL_FOLLOWUP"))
+        if len(no_terminal_examples) < limit:
+            no_terminal_examples.append(candidate)
     else:
         bucket = bucket_followup(matched)
         classification[bucket] += 1
@@ -376,6 +379,12 @@ for candidate, follow, bucket in examples:
     else:
         delta_minutes = int((follow["dt"] - candidate["dt"]).total_seconds() // 60)
         print(f"  - candidateAuditId={candidate['id']} time={candidate['event_time']} strategy={candidate['strategy_id']} interval={candidate['interval_code']} event={candidate['event_type']} classification={bucket} followupAuditId={follow['id']} followupEvent={follow['event_type']} followupMinutes={delta_minutes} blocker={follow['blocker'] or 'NONE'} reason={follow['reason'][:120]}")
+print("NoTerminalFollowupExamples:")
+if not no_terminal_examples:
+    print("  - NONE=0")
+else:
+    for candidate in no_terminal_examples:
+        print(f"  - candidateAuditId={candidate['id']} time={candidate['event_time']} strategy={candidate['strategy_id']} interval={candidate['interval_code']} event={candidate['event_type']} classification=NO_TERMINAL_FOLLOWUP reason={candidate['reason'][:120]}")
 print("")
 print("Conclusion:")
 print(f"  buy_like_candidate_progression_recommendation={recommendation}")

@@ -123,6 +123,30 @@ function Get-TypeDistribution {
     return @($items | Sort-Object -Property @{ Expression = "count"; Descending = $true }, strategy, interval)
 }
 
+function Get-NoTerminalExamples {
+    param([string]$Text)
+    $items = [System.Collections.Generic.List[object]]::new()
+    $sectionMatch = [regex]::Match(
+        $Text,
+        "NoTerminalFollowupExamples:\s*(?<section>(?:\r?\n\s*-\s+[^\r\n]+)+)",
+        [System.Text.RegularExpressions.RegexOptions]::Multiline
+    )
+    if (-not $sectionMatch.Success) { return @() }
+    $pattern = "^\s*-\s+candidateAuditId=(\d+)\s+time=([^ ]+)\s+strategy=([^ ]+)\s+interval=([^ ]+)\s+event=([^ ]+)\s+classification=NO_TERMINAL_FOLLOWUP\s+reason=(.*)$"
+    foreach ($match in [regex]::Matches($sectionMatch.Groups["section"].Value, $pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
+        $items.Add([pscustomobject]@{
+            candidateAuditId = [int64]$match.Groups[1].Value
+            time = $match.Groups[2].Value
+            strategy = $match.Groups[3].Value
+            interval = $match.Groups[4].Value
+            event = $match.Groups[5].Value
+            classification = "NO_TERMINAL_FOLLOWUP"
+            reason = $match.Groups[6].Value.Trim()
+        })
+    }
+    return @($items)
+}
+
 function Get-RankingRows {
     param([object[]]$Ranking, [string]$Classification)
     $item = @($Ranking | Where-Object { $_.classification -eq $Classification } | Select-Object -First 1)
@@ -146,6 +170,7 @@ function Get-ProgressionSummary {
         recommendation = Get-LastPrefixedValue -Text $Log.Text -Prefix "  buy_like_candidate_progression_recommendation=" -Default (Get-LastPrefixedValue -Text $Log.Text -Prefix "buy_like_candidate_progression_recommendation=")
         classificationRanking = @($ranking)
         typeDistribution = @(Get-TypeDistribution -Text $Log.Text)
+        noTerminalExamples = @(Get-NoTerminalExamples -Text $Log.Text)
         entryDedupRows = Get-RankingRows -Ranking $ranking -Classification "ENTRY_SKIP:EntryDedup"
         duplicateBarRows = Get-RankingRows -Ranking $ranking -Classification "ENTRY_SKIP:DuplicateBar"
         shadowExecutionIntentRows = Get-RankingRows -Ranking $ranking -Classification "ENTRY_SKIP:ShadowExecutionIntent"
@@ -285,6 +310,8 @@ Write-Host "issue12_close_readiness=$($packet.issue12.closeReadiness)"
 Write-Host "issue12_next_evidence_target=$nextEvidenceTarget"
 Write-Host ("buy_like_candidate_loss_14d_ranking=" + (ConvertTo-Json -Compress -Depth 6 @($summary14d.classificationRanking)))
 Write-Host ("buy_like_candidate_loss_30d_ranking=" + (ConvertTo-Json -Compress -Depth 6 @($summary30d.classificationRanking)))
+Write-Host ("buy_like_candidate_loss_14d_no_terminal_examples=" + (ConvertTo-Json -Compress -Depth 6 @($summary14d.noTerminalExamples)))
+Write-Host ("buy_like_candidate_loss_30d_no_terminal_examples=" + (ConvertTo-Json -Compress -Depth 6 @($summary30d.noTerminalExamples)))
 Write-Host ("buy_like_candidate_loss_review_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
 Write-Host ("buy_like_candidate_loss_review_packet=" + (ConvertTo-Json -Compress -Depth 14 $packet))
 Write-Host "close_issue8_allowed=false"

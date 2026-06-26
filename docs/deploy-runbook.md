@@ -2710,8 +2710,9 @@ Expected:
   `ATTENTION_HIT` rows and terminal `ENTRY_SKIP` rows. It emits
   `buy_like_candidate_progression_recommendation`,
   `buy_like_followup_classification`, terminal event counts, candidate type
-  distribution, and examples so trading-candidate loss is not confused with
-  macro/attention warning flow.
+  distribution, generic examples, and `NoTerminalFollowupExamples` so
+  trading-candidate loss is not confused with macro/attention warning flow and
+  no-terminal continuity gaps have concrete candidate audit rows to review.
 - Use `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1` when the
   operator needs the BUY-like progression result and DataFreshness replay
   readiness blockers in one `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`.

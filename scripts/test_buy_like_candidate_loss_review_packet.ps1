@@ -18,6 +18,9 @@ foreach ($marker in @(
         "buy_like_candidate_loss_review_packet",
         "buy_like_candidate_loss_14d_ranking",
         "buy_like_candidate_loss_30d_ranking",
+        "buy_like_candidate_loss_14d_no_terminal_examples",
+        "buy_like_candidate_loss_30d_no_terminal_examples",
+        "noTerminalExamples",
         "issue8_status",
         "issue12_status",
         "close_issue8_allowed=false",
@@ -64,6 +67,9 @@ try {
         "buy_like_candidate_type_distribution:",
         "  - event=SIGNAL_EVAL strategy=574 interval=1h count=46",
         "  - event=SIGNAL_EVAL strategy=508 interval=1h count=13",
+        "NoTerminalFollowupExamples:",
+        "  - candidateAuditId=14001 time=2026-06-20T01:00:00 strategy=508 interval=1h event=SIGNAL_EVAL classification=NO_TERMINAL_FOLLOWUP reason=BUY",
+        "  - candidateAuditId=14002 time=2026-06-20T02:00:00 strategy=574 interval=1h event=SIGNAL_EVAL classification=NO_TERMINAL_FOLLOWUP reason=BUY",
         "  buy_like_candidate_progression_recommendation=BUY_LIKE_TO_ENTRY_SKIP_REVIEW"
     )
     Set-Content -LiteralPath $buyLike30dLog -Encoding UTF8 -Value @(
@@ -89,6 +95,9 @@ try {
         "buy_like_candidate_type_distribution:",
         "  - event=SIGNAL_EVAL strategy=574 interval=1h count=213",
         "  - event=SIGNAL_EVAL strategy=575 interval=1d count=96",
+        "NoTerminalFollowupExamples:",
+        "  - candidateAuditId=30001 time=2026-06-19T01:00:00 strategy=575 interval=1d event=SIGNAL_EVAL classification=NO_TERMINAL_FOLLOWUP reason=BUY",
+        "  - candidateAuditId=30002 time=2026-06-19T02:00:00 strategy=576 interval=1h event=SIGNAL_EVAL classification=NO_TERMINAL_FOLLOWUP reason=BUY",
         "  buy_like_candidate_progression_recommendation=BUY_LIKE_TO_ENTRY_SKIP_REVIEW"
     )
     Set-Content -LiteralPath $dfLog -Encoding UTF8 -Value @(
@@ -131,6 +140,9 @@ try {
             "buy_like_candidate_loss_30d_filter_block_rows=37",
             '"classification":"ENTRY_SKIP:EntryDedup","category":"ENTRY_SKIP","family":"EntryDedup","rows":444',
             '"classification":"NO_TERMINAL_FOLLOWUP","category":"NO_TERMINAL_FOLLOWUP","family":"NO_TERMINAL_FOLLOWUP","rows":119',
+            'buy_like_candidate_loss_14d_no_terminal_examples=[{"candidateAuditId":14001',
+            'buy_like_candidate_loss_30d_no_terminal_examples=[{"candidateAuditId":30001',
+            '"noTerminalExamples":[{"candidateAuditId":30001',
             '"packetType":"BUY_LIKE_CANDIDATE_LOSS_REVIEW_PACKET"',
             '"status":"READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE"',
             '"status":"BLOCKED_NO_FRESH_DATAFRESHNESS_TERMINAL_ROWS"',

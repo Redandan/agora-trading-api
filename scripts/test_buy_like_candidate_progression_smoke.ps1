@@ -70,6 +70,8 @@ foreach ($marker in @(
         "buy_like_followup_classification",
         "buy_like_followup_event_types",
         "buy_like_candidate_type_distribution",
+        "NoTerminalFollowupExamples",
+        "classification=NO_TERMINAL_FOLLOWUP",
         "buy_like_candidate_progression_next_action",
         "notAuthorization",
         "Assert-SshHostSafe",

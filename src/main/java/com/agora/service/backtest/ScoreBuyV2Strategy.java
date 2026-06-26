@@ -2,6 +2,7 @@ package com.agora.service.backtest;
 
 import com.agora.model.MdKline;
 import com.agora.service.ml.MlTrainingOrchestrator;
+import com.agora.service.ml.ScoreBuyMlFeatureSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -191,8 +192,6 @@ public class ScoreBuyV2Strategy implements Strategy {
         }
 
         // 4. Build ML features (與 MlInferenceLogger/vw_signal_training_v5_dedup 對齊)
-        Map<String, Object> features = buildFeatures(context, config);
-
         // 5. Fetch PROMOTED model
         String modelName = (String) config.getOrDefault("mlModelName", "signal_scorer");
         PromotedRef ref = getPromotedRef(modelName);
@@ -201,6 +200,9 @@ public class ScoreBuyV2Strategy implements Strategy {
             LiveSignalContext.putDetail("hold_reason", "no_promoted_model");
             return StrategySignal.HOLD;
         }
+
+        Map<String, Object> features = ScoreBuyMlFeatureSupport.alignToTrainedFeatures(
+                buildFeatures(context, config), ref.trainedFeatures);
 
         // 6. Predict
         Double pWin;
@@ -268,6 +270,7 @@ public class ScoreBuyV2Strategy implements Strategy {
         // HW ML003011: must have all trained columns; backfill missing with null
         for (String k : EntryFeatureSnapshot.ALL_FEATURE_KEYS) f.putIfAbsent(k, null);
         for (String k : EntryFeatureSnapshot.STATIC_FEATURE_KEYS) f.putIfAbsent(k, null);
+        ScoreBuyMlFeatureSupport.appendPromotedModelMarketIndicatorAliases(jdbc, f, symbol);
         return f;
     }
 
@@ -280,26 +283,28 @@ public class ScoreBuyV2Strategy implements Strategy {
         }
         try {
             List<Map<String, Object>> rows = jdbc.queryForList(
-                    "SELECT id, heatwave_handle FROM ml_model_registry "
+                    "SELECT id, heatwave_handle, feature_importance_json FROM ml_model_registry "
                             + "WHERE model_name = ? AND status = 'PROMOTED' LIMIT 1",
                     modelName);
             if (rows.isEmpty()) {
-                cachedPromoted.set(new PromotedRef(modelName, 0, null, now));
+                cachedPromoted.set(new PromotedRef(modelName, 0, null, List.of(), now));
                 return null;
             }
             long id = ((Number) rows.get(0).get("id")).longValue();
             String handle = (String) rows.get(0).get("heatwave_handle");
             if (handle == null || handle.isBlank()) {
-                cachedPromoted.set(new PromotedRef(modelName, 0, null, now));
+                cachedPromoted.set(new PromotedRef(modelName, 0, null, List.of(), now));
                 return null;
             }
             try { orchestrator.loadModel(handle); } catch (Exception ignored) {}
-            PromotedRef fresh = new PromotedRef(modelName, id, handle, now);
+            List<String> trainedFeatures = ScoreBuyMlFeatureSupport.parseFeatureImportanceKeys(
+                    objectMapper, rows.get(0).get("feature_importance_json"));
+            PromotedRef fresh = new PromotedRef(modelName, id, handle, trainedFeatures, now);
             cachedPromoted.set(fresh);
             return fresh;
         } catch (Exception e) {
             log.warn("[ScoreBuyV2] PROMOTED lookup failed: {}", e.getMessage());
-            cachedPromoted.set(new PromotedRef(modelName, 0, null, now));
+            cachedPromoted.set(new PromotedRef(modelName, 0, null, List.of(), now));
             return null;
         }
     }
@@ -335,5 +340,5 @@ public class ScoreBuyV2Strategy implements Strategy {
     }
 
     private record PromotedRef(String modelName, long modelVersionId,
-                                String heatwaveHandle, long cachedAtMs) {}
+                                String heatwaveHandle, List<String> trainedFeatures, long cachedAtMs) {}
 }

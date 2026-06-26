@@ -6,6 +6,7 @@ import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.service.backtest.EntryFeatureSnapshot;
 import com.agora.service.ml.MlTrainingOrchestrator;
+import com.agora.service.ml.ScoreBuyMlFeatureSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -22,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -121,7 +121,13 @@ public class ScoreBuyMlGateDiagnosticService {
             return write(root);
         }
 
-        Map<String, Object> features = buildFeatures(sid, sym, interval, bars, bars.size() - 1);
+        Map<String, Object> rawFeatures = buildFeatures(sid, sym, interval, bars, bars.size() - 1);
+        List<String> rawProvidedFeatures = rawFeatures.keySet().stream().sorted().toList();
+        putArray(root, "rawProvidedFeatures", rawProvidedFeatures);
+        putArray(root, "rawMissingTrainedFeatures", diff(trainedFeatures, rawProvidedFeatures));
+        putArray(root, "rawExtraUntrainedFeatures", diff(rawProvidedFeatures, trainedFeatures));
+
+        Map<String, Object> features = ScoreBuyMlFeatureSupport.alignToTrainedFeatures(rawFeatures, trainedFeatures);
         List<String> providedFeatures = features.keySet().stream().sorted().toList();
         putArray(root, "providedFeatures", providedFeatures);
         putArray(root, "missingExpectedFeatures", diff(expectedFeatures, providedFeatures));
@@ -130,7 +136,10 @@ public class ScoreBuyMlGateDiagnosticService {
         ObjectNode featurePreview = root.putObject("featurePreview");
         for (String key : List.of("strategy_id", "is_short", "is_btc", "is_1h", "entry_price",
                 "hour_of_day", "day_of_week", "adx14", "rsi14", "atr_pct",
-                "volume_ratio_ma20", "bb_width_pct", "dd_50bar_pct", "dist_from_ema200_pct")) {
+                "volume_ratio_ma20", "bb_width_pct", "dd_50bar_pct", "dist_from_ema200_pct",
+                "mih_fear_greed", "mih_funding_rate", "mih_oi_change_pct_1h",
+                "mih_whale_buy_ratio", "mih_dex_wbtc_net_flow", "mih_us_10y_yield",
+                "mih_us_vix", "mih_btc_dvol")) {
             putFeature(featurePreview, key, features.get(key));
         }
 
@@ -174,10 +183,12 @@ public class ScoreBuyMlGateDiagnosticService {
             root.put("decision", "BLOCK");
             root.put("scorebuy_ml_gate_status", classifyPredictError(message));
             SchemaMismatch mismatch = parseSchemaMismatch(message);
-            putArray(root, "schemaMismatchProvided", mismatch.provided());
-            putArray(root, "schemaMismatchTrained", mismatch.trained());
-            putArray(root, "schemaMissingFromProvided", diff(mismatch.trained(), mismatch.provided()));
-            putArray(root, "schemaExtraProvided", diff(mismatch.provided(), mismatch.trained()));
+            List<String> mismatchProvided = mismatch.provided().isEmpty() ? providedFeatures : mismatch.provided();
+            List<String> mismatchTrained = mismatch.trained().isEmpty() ? trainedFeatures : mismatch.trained();
+            putArray(root, "schemaMismatchProvided", mismatchProvided);
+            putArray(root, "schemaMismatchTrained", mismatchTrained);
+            putArray(root, "schemaMissingFromProvided", diff(mismatchTrained, mismatchProvided));
+            putArray(root, "schemaExtraProvided", diff(mismatchProvided, mismatchTrained));
             root.put("failureOwner", classifyFailureOwner(message, expectedFeatures, mismatch));
             missingRequirements.add("HeatWave predictOne succeeds with ScoreBuy feature vector");
         }
@@ -205,6 +216,7 @@ public class ScoreBuyMlGateDiagnosticService {
         });
         for (String key : EntryFeatureSnapshot.ALL_FEATURE_KEYS) f.putIfAbsent(key, null);
         for (String key : EntryFeatureSnapshot.STATIC_FEATURE_KEYS) f.putIfAbsent(key, null);
+        ScoreBuyMlFeatureSupport.appendPromotedModelMarketIndicatorAliases(jdbcTemplate, f, symbol);
         return f;
     }
 
@@ -231,29 +243,10 @@ public class ScoreBuyMlGateDiagnosticService {
                     nullTo((String) row.get("status"), "UNKNOWN"),
                     (String) row.get("heatwave_handle"),
                     (String) row.get("training_view"),
-                    parseFeatureImportanceKeys(row.get("feature_importance_json")));
+                    ScoreBuyMlFeatureSupport.parseFeatureImportanceKeys(objectMapper, row.get("feature_importance_json")));
         } catch (Exception e) {
             log.warn("[ScoreBuyMlGateDiagnostic] promoted model lookup failed: {}", e.getMessage());
             return PromotedModel.none(modelName);
-        }
-    }
-
-    private List<String> parseFeatureImportanceKeys(Object raw) {
-        if (raw == null) return List.of();
-        try {
-            JsonNode node = objectMapper.readTree(String.valueOf(raw));
-            Set<String> keys = new LinkedHashSet<>();
-            if (node.isObject()) {
-                node.fieldNames().forEachRemaining(keys::add);
-            } else if (node.isArray()) {
-                for (JsonNode item : node) {
-                    String name = item.path("feature").asText(item.path("name").asText(""));
-                    if (!name.isBlank()) keys.add(name);
-                }
-            }
-            return keys.stream().sorted().toList();
-        } catch (Exception ignored) {
-            return List.of();
         }
     }
 

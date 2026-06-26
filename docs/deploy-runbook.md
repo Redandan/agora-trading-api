@@ -2388,11 +2388,15 @@ Expected:
 
   Expected output includes `entry_dedup_runtime_proof_gap_packet`,
   `entry_dedup_runtime_proof_gap_status=READY_FOR_ENTRY_DEDUP_RUNTIME_PROOF_GAP_REVIEW_NOT_LIVE`,
-  top blocker `OCO_ROUTE_NOT_PROVEN_OR_MISSING`, second blocker
-  `CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING`, and all mutation flags false.
-  This is a read-only blocker review packet, not approval to relax policy,
-  enable staged-add/live execution, place orders, modify OCO, deploy, change
-  env, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+  `entry_dedup_runtime_proof_gap_blocker_semantics=REVIEW_AND_MUTATION_SPLIT_V1`,
+  top review evidence gap
+  `CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING`, top mutation blocker
+  `OCO_ROUTE_NOT_PROVEN_OR_MISSING`, and all mutation flags false. The packet
+  treats OCO route proof as blocking orders, staged-add execution, OCO mutation,
+  and live policy relaxation, but not as a reason to stop read-only shadow
+  evidence review. This is a read-only blocker review packet, not approval to
+  relax policy, enable staged-add/live execution, place orders, modify OCO,
+  deploy, change env, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

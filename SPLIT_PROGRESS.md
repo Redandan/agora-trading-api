@@ -432,6 +432,16 @@
   production env change, live/staged-add/scheduler enablement, order/OCO/grid/
   fund/Earn/Telegram/exchange mutation, or EntryDedup/DataFreshness/live policy
   relaxation is authorized.
+- `scripts/prepare_entry_dedup_runtime_proof_gap_packet.ps1` now separates
+  EntryDedup proof gaps into review and mutation lanes with
+  `REVIEW_AND_MUTATION_SPLIT_V1`. The packet emits `reviewGapRanking`,
+  `mutationBlockerRanking`,
+  `topReviewEvidenceGap=CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING`, and
+  `topMutationBlocker=OCO_ROUTE_NOT_PROVEN_OR_MISSING`, so OCO route proof
+  remains a hard blocker for orders, staged-add execution, OCO mutation, and
+  live policy relaxation without stopping read-only shadow evidence review.
+  It keeps all policy, order, scheduler, OCO, grid, Telegram, deploy/env, DB,
+  fund, Earn, exchange, and external-backfill mutation flags false.
 - 2026-06-23 local read-only profit operator next-action board refresh ran
   `scripts/prepare_profit_operator_next_action_board.ps1 -RequireReady` against
   the latest local priority packet and saved strategy574/TinyLive logs. It

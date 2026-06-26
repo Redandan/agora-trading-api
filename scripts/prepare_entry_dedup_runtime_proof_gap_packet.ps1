@@ -133,10 +133,76 @@ $blockerRanking = @(
     }
 )
 
+$reviewGapRanking = @(
+    [pscustomobject]@{
+        rank = 1
+        gap = "CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.runtimeEvidenceCoverage } else { "UNKNOWN" }
+        evidence = "candidate_runtime_evidence_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.runtimeEvidenceRows } else { 'UNKNOWN' })); candidate_runtime_ev_evaluated_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.runtimeEvEvaluatedRows } else { 'UNKNOWN' })); candidate_runtime_oco_plan_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.runtimeOcoPlanRows } else { 'UNKNOWN' }))"
+        nextReadOnlyAction = "collect candidate-level runtime EV, entry plan, TP/SL plan, and OCO plan snapshots for exact opportunities"
+        reviewProgressAllowed = $true
+        mutationBlocker = $true
+    },
+    [pscustomobject]@{
+        rank = 2
+        gap = "EXACT_DUPLICATE_REPLAY_PROTECTION_NOT_PROVEN"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.duplicateProtection } else { "UNKNOWN" }
+        evidence = "exactOpportunityCount=$($(if ($null -ne $summary) { $summary.exactOpportunityCount } else { 'UNKNOWN' })); exactDuplicateSuppressedRows=$($(if ($null -ne $summary) { $summary.exactDuplicateSuppressedRows } else { 'UNKNOWN' }))"
+        nextReadOnlyAction = "prove exact candidate hash and same-candidate replay protection before any staged-add execution"
+        reviewProgressAllowed = $true
+        mutationBlocker = $true
+    },
+    [pscustomobject]@{
+        rank = 3
+        gap = "DAILY_CAP_MAX_LOSS_CANDIDATE_SNAPSHOT_PARTIAL"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.dailyCapMaxLossBudget } else { "UNKNOWN" }
+        evidence = "global_runtime_evidence_rows=$($(if ($null -ne $runtimeEvidenceRows) { $runtimeEvidenceRows.runtime_evidence_rows } else { 'UNKNOWN' })); candidate_cap_or_loss_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.capOrLossRows } else { 'UNKNOWN' }))"
+        nextReadOnlyAction = "attach candidate-level daily cap and max-loss budget snapshot to the exact opportunity packet"
+        reviewProgressAllowed = $true
+        mutationBlocker = $true
+    },
+    [pscustomobject]@{
+        rank = 4
+        gap = "OCO_ROUTE_NOT_PROVEN_OR_MISSING"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.ocoFeasibility } else { "UNKNOWN" }
+        evidence = "missing_oco_rows=$($(if ($null -ne $dbEvidence) { $dbEvidence.missingOcoRows } else { 'UNKNOWN' })); non_auto_zero_qty_rows=$($(if ($null -ne $dbEvidence) { $dbEvidence.nonAutoZeroQtyRows } else { 'UNKNOWN' }))"
+        nextReadOnlyAction = "keep OCO as a mutation-only blocker until exact route or dry-run proof exists"
+        reviewProgressAllowed = $true
+        mutationBlocker = $true
+    }
+)
+
+$mutationBlockerRanking = @(
+    [pscustomobject]@{
+        rank = 1
+        blocker = "OCO_ROUTE_NOT_PROVEN_OR_MISSING"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.ocoFeasibility } else { "UNKNOWN" }
+        evidence = "missing_oco_rows=$($(if ($null -ne $dbEvidence) { $dbEvidence.missingOcoRows } else { 'UNKNOWN' })); non_auto_zero_qty_rows=$($(if ($null -ne $dbEvidence) { $dbEvidence.nonAutoZeroQtyRows } else { 'UNKNOWN' }))"
+        blocks = @("orders", "staged-add execution", "OCO mutation", "live policy relaxation")
+        reviewProgressAllowed = $true
+    },
+    [pscustomobject]@{
+        rank = 2
+        blocker = "CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.runtimeEvidenceCoverage } else { "UNKNOWN" }
+        evidence = "candidate_runtime_evidence_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.runtimeEvidenceRows } else { 'UNKNOWN' })); candidate_runtime_ev_evaluated_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.runtimeEvEvaluatedRows } else { 'UNKNOWN' })); candidate_runtime_oco_plan_rows=$($(if ($null -ne $candidateGateRows) { $candidateGateRows.runtimeOcoPlanRows } else { 'UNKNOWN' }))"
+        blocks = @("live policy relaxation", "EntryDedup relaxation", "staged-add execution")
+        reviewProgressAllowed = $true
+    },
+    [pscustomobject]@{
+        rank = 3
+        blocker = "EXACT_DUPLICATE_REPLAY_PROTECTION_NOT_PROVEN"
+        status = if ($null -ne $gateStatuses) { [string]$gateStatuses.duplicateProtection } else { "UNKNOWN" }
+        evidence = "exactOpportunityCount=$($(if ($null -ne $summary) { $summary.exactOpportunityCount } else { 'UNKNOWN' })); exactDuplicateSuppressedRows=$($(if ($null -ne $summary) { $summary.exactDuplicateSuppressedRows } else { 'UNKNOWN' }))"
+        blocks = @("staged-add execution", "EntryDedup relaxation")
+        reviewProgressAllowed = $true
+    }
+)
+
 $readyForGapReview = $missing.Count -eq 0
 $status = if ($readyForGapReview) { "READY_FOR_ENTRY_DEDUP_RUNTIME_PROOF_GAP_REVIEW_NOT_LIVE" } else { "NOT_READY" }
 $nextAction = if ($readyForGapReview) {
-    "Review the ranked runtime-proof blockers before any EntryDedup staged-add or policy mutation; do not relax EntryDedup/DataFreshness/live policy from synthetic evidence."
+    "Review the ranked read-only evidence gaps first; treat OCO route as a mutation blocker, not as a blocker to shadow/evidence review."
 } else {
     "Refresh direct EntryDedup, gate preflight, and synthetic EV/OCO logs before runtime-proof gap review."
 }
@@ -161,7 +227,14 @@ $packet = [pscustomobject]@{
     syntheticPreview = if ($null -ne $syntheticPacket) { $syntheticPacket } else { $null }
     gateStatuses = $gateStatuses
     blockerRanking = @($blockerRanking)
-    allowedConclusion = "EntryDedup 508/1h remains a review-only shadow opportunity; runtime proof gaps are now ranked and must be resolved before mutation."
+    reviewGapRanking = @($reviewGapRanking)
+    mutationBlockerRanking = @($mutationBlockerRanking)
+    blockerSemanticsVersion = "REVIEW_AND_MUTATION_SPLIT_V1"
+    topReviewEvidenceGap = $reviewGapRanking[0].gap
+    topMutationBlocker = $mutationBlockerRanking[0].blocker
+    reviewProgressAllowed = $readyForGapReview
+    shadowEvidenceCollectorAllowed = $readyForGapReview
+    allowedConclusion = "EntryDedup 508/1h remains a review-only shadow opportunity; candidate runtime snapshots are the top read-only evidence gap, while OCO route proof remains a mutation-only blocker before orders or policy relaxation."
     requiredBeforeAnyMutation = @(
         "exact OCO route proof for each exact opportunity",
         "candidate-level runtime EV snapshot for each exact opportunity",
@@ -207,6 +280,11 @@ Write-Host "source_synthetic_ev_oco_status=$syntheticStatus"
 Write-Host "entry_dedup_runtime_proof_gap_missing_requirements=$(ConvertTo-Json -Compress @($missing))"
 Write-Host "entry_dedup_runtime_proof_gap_top_blocker=$($blockerRanking[0].blocker)"
 Write-Host "entry_dedup_runtime_proof_gap_second_blocker=$($blockerRanking[1].blocker)"
+Write-Host "entry_dedup_runtime_proof_gap_top_review_evidence_gap=$($reviewGapRanking[0].gap)"
+Write-Host "entry_dedup_runtime_proof_gap_top_mutation_blocker=$($mutationBlockerRanking[0].blocker)"
+Write-Host "entry_dedup_runtime_proof_gap_blocker_semantics=REVIEW_AND_MUTATION_SPLIT_V1"
+Write-Host "entry_dedup_runtime_proof_gap_review_progress_allowed=$($readyForGapReview.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_runtime_proof_gap_shadow_evidence_collector_allowed=$($readyForGapReview.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_runtime_proof_gap_status=$status"
 Write-Host "entry_dedup_runtime_proof_gap_next_action=$nextAction"
 Write-Host ("entry_dedup_runtime_proof_gap_packet=" + (ConvertTo-Json -Compress -Depth 14 $packet))

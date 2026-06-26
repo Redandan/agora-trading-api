@@ -788,13 +788,16 @@ Read-only EntryDedup runtime proof gap packet:
 
 This reads the saved direct EntryDedup packet, gate preflight, and synthetic
 EV/OCO preview logs and emits `ENTRY_DEDUP_RUNTIME_PROOF_GAP_PACKET` plus
-`entry_dedup_runtime_proof_gap_packet`. It ranks the remaining proof blockers
-after the synthetic preview is ready: exact OCO route proof, candidate-level
-runtime EV/OCO snapshots, exact duplicate replay protection, and daily
-cap/max-loss snapshots. It keeps `entry_dedup_policy_change_allowed=false`,
-`data_freshness_policy_change_allowed=false`, `staged_add_execution_allowed=false`,
-`order_allowed=false`, `grid_mutation_allowed=false`, and
-`telegram_send_allowed=false`.
+`entry_dedup_runtime_proof_gap_packet`. It now separates review evidence gaps
+from mutation blockers with
+`entry_dedup_runtime_proof_gap_blocker_semantics=REVIEW_AND_MUTATION_SPLIT_V1`.
+The top review evidence gap is candidate-level runtime EV/entry/TP/SL/OCO
+snapshot coverage; the top mutation blocker remains exact OCO route proof
+before any order, staged-add execution, or live policy relaxation. It keeps
+`entry_dedup_policy_change_allowed=false`,
+`data_freshness_policy_change_allowed=false`,
+`staged_add_execution_allowed=false`, `order_allowed=false`,
+`grid_mutation_allowed=false`, and `telegram_send_allowed=false`.
 
 Read-only EntryDedup semantics preflight review packet:
 

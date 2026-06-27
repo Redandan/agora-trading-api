@@ -2620,6 +2620,27 @@ MCP for 200WMA/Fear&Greed/multi-wave BTC panic-bottom context. It emits
 1h/4h `TRENDING_BEARISH` forces `suggestedAction` to `SCOUT_PRE_POSITION` or
 `WATCH`, never confirmed deploy. `previewScoreBuyConviction` includes this
 context for operator visibility only and does not change live execution.
+For issue #17 panic-bottom missed rebound RCA, refresh the read-only source
+logs and assemble the local packet:
+
+```powershell
+New-Item -ItemType Directory -Force target/profit-review | Out-Null
+.\scripts\smoke_profit_candidate_review_ssh.ps1 -ReviewDays 7 -BlockedDays 3 -MissedHours 24 -TrailingLimit 50 *> target/profit-review/panic-bottom-profit-candidate-review-latest.log
+.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1 -ReviewDays 1 -Limit 20 *> target/profit-review/panic-bottom-signal-eval-no-buy-latest.log
+.\scripts\smoke_buy_like_candidate_progression_ssh.ps1 -ReviewDays 1 -FollowupHours 6 -Limit 20 *> target/profit-review/panic-bottom-buy-like-progression-latest.log
+.\scripts\smoke_panic_bottom_context_ssh.ps1 *> target/profit-review/panic-bottom-context-latest.log
+.\scripts\prepare_panic_bottom_missed_rebound_rca_packet.ps1 -RequireReady
+```
+
+The packet emits `PANIC_BOTTOM_MISSED_REBOUND_RCA_PACKET`,
+`panic_bottom_missed_rebound_rca_status`, and a machine-readable
+blocker-layer classification covering signal/threshold, BUY-like continuity,
+EntryDedup/DataFreshness/filter, OCO preflight or trend guard, and
+execution/live boundary layers. `READY_FOR_PANIC_BOTTOM_MISSED_REBOUND_RCA_REVIEW_NOT_LIVE`
+is evidence readiness only and does not authorize live trading, strategy
+threshold changes, EntryDedup/DataFreshness/live policy relaxation, orders,
+OCO/grid/fund/Earn/Telegram/exchange mutations, scheduler enablement, deploy,
+production env changes, DB mutation, or external backfill/import.
 Use `docs/live-background-automation-env-diff-proposal.md` when reviewing the
 specific env diff that would clear `BACKGROUND_AUTOMATION_REVIEW`; it is a
 proposal only and must not be applied without separate authorization.

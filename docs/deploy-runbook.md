@@ -1301,6 +1301,41 @@ Expected:
   Telegram, scheduler, exchange, external backfill/import, deploy, restart, or
   nginx state.
 
+For issue #17 panic-bottom missed rebound RCA, first refresh the read-only
+source logs:
+
+```powershell
+New-Item -ItemType Directory -Force target/profit-review | Out-Null
+.\scripts\smoke_profit_candidate_review_ssh.ps1 -ReviewDays 7 -BlockedDays 3 -MissedHours 24 -TrailingLimit 50 *> target/profit-review/panic-bottom-profit-candidate-review-latest.log
+.\scripts\smoke_signal_eval_no_buy_generation_ssh.ps1 -ReviewDays 1 -Limit 20 *> target/profit-review/panic-bottom-signal-eval-no-buy-latest.log
+.\scripts\smoke_buy_like_candidate_progression_ssh.ps1 -ReviewDays 1 -FollowupHours 6 -Limit 20 *> target/profit-review/panic-bottom-buy-like-progression-latest.log
+.\scripts\smoke_panic_bottom_context_ssh.ps1 *> target/profit-review/panic-bottom-context-latest.log
+```
+
+Then assemble the local replayable packet:
+
+```powershell
+.\scripts\prepare_panic_bottom_missed_rebound_rca_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- `smoke_panic_bottom_context_ssh.ps1` calls only server-local `/api/mcp`
+  `previewPanicBottomContext` and emits `panic_bottom_context_status`,
+  `panic_bottom_context_score`, `panic_bottom_context_suggested_action`,
+  200WMA/Fear&Greed/wave/trend markers, and all mutation flags as false.
+- `prepare_panic_bottom_missed_rebound_rca_packet.ps1` reuses saved logs only
+  and emits `PANIC_BOTTOM_MISSED_REBOUND_RCA_PACKET`,
+  `panic_bottom_missed_rebound_rca_status`, `panic_bottom_missed_rebound_rca_packet`,
+  and blocker-layer classification for signal/threshold, BUY-like continuity,
+  EntryDedup/DataFreshness/filter, OCO preflight or trend guard, and
+  execution/live boundary layers.
+- A ready status is review evidence for #17 only. It does not authorize live
+  trading, strategy threshold changes, EntryDedup/DataFreshness/live policy
+  relaxation, pre-position execution, orders, OCO/grid/fund/Earn/Telegram/
+  exchange mutations, scheduler enablement, deploy, production env changes, DB
+  mutation, or external backfill/import.
+
 For the strategy574/TinyLive governance operator packet, first refresh and save
 the source logs:
 

@@ -3081,6 +3081,20 @@ Trading deployment prep:
   or 1h/4h `TRENDING_BEARISH` downgrades suggestions to
   `SCOUT_PRE_POSITION` or `WATCH`; `previewScoreBuyConviction` displays the
   context for operator review only and does not change live execution.
+- Issue #17 panic-bottom missed rebound RCA now has a replayable read-only
+  packet path. `scripts/smoke_panic_bottom_context_ssh.ps1` calls server-local
+  `/api/mcp` `previewPanicBottomContext` only, and
+  `scripts/prepare_panic_bottom_missed_rebound_rca_packet.ps1` combines saved
+  profit-candidate, SIGNAL_EVAL no-buy, BUY-like progression, panic-bottom
+  context, and optional strategy574 near-threshold shadow logs into
+  `PANIC_BOTTOM_MISSED_REBOUND_RCA_PACKET`. The packet emits
+  `panic_bottom_missed_rebound_rca_status`, `primaryRootCause`, and
+  blocker-layer classification across signal/threshold, BUY-like continuity,
+  EntryDedup/DataFreshness/filter, OCO preflight or trend guard, and
+  execution/live boundary layers. It keeps strategy threshold relaxation,
+  EntryDedup/DataFreshness/live policy changes, pre-position execution, orders,
+  OCO/grid/fund/Earn/Telegram/exchange mutations, scheduler enablement, deploy,
+  production env changes, DB mutation, and external backfill/import disabled.
 - Issue #15 OCO sync errors now have a read-only reconciliation packet:
   `scripts/prepare_oco_sync_reconciliation_packet_ssh.ps1`. It either parses an
   existing source log or calls server-local `/api/mcp` read tools

@@ -175,11 +175,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `telegram_send_allowed=false`; it is only evidence to request a separate
   deploy/restart decision for current `origin/main` followed by read-only
   verification.
-- Latest read-only grid split/currentness handoff evidence on 2026-06-28
-  refreshed the micro-grid candidate after commit `526bf9a`. Local `HEAD` and
-  `origin/main` were both `526bf9a`, the server worktree was still `3937f5d`,
-  deployment metadata was current, `origin_runtime_delta_files=0`, and the
-  handoff status remained
+- Latest read-only grid split/currentness handoff evidence on 2026-06-28 was
+  refreshed after commit `2d02712` and saved to
+  `target/grid-open/grid-split-acceptance-deploy-handoff-microgrid-after-2d02712.log`.
+  Local `HEAD` and `origin/main` were both `2d02712`, the server worktree was
+  still `3937f5d`, deployment metadata was current,
+  `origin_runtime_delta_files=0`, and the handoff status remained
   `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`.
   With `gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`, and
   `candidateHalfWidthPct=10`, readiness stayed `66.67` with passed gates

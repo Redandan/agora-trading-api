@@ -3089,9 +3089,9 @@ Trading deployment prep:
   values into the blocker board, readiness watch, and post-env bundle. Required
   post-env commands also preserve those values and pass
   `AcceptAlreadyAppliedEnvDiff` only to post-env-capable child packets. The
-  latest micro-grid handoff after `526bf9a` remained read-only with readiness
+  latest micro-grid handoff after `2d02712` remained read-only with readiness
   `66.67`, passed gates `8/12`, server worktree `3937f5d` behind `origin/main`
-  `526bf9a`, and ranked blockers `SPLIT_ACCEPTANCE_NOT_PASSING`,
+  `2d02712`, and ranked blockers `SPLIT_ACCEPTANCE_NOT_PASSING`,
   `GRID_ENV_DIFF_NOT_APPLIED`, and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`.
 - Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
   `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence

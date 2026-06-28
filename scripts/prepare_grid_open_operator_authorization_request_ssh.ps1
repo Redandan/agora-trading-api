@@ -61,6 +61,26 @@ function Add-Unique {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Add-UniqueValues {
+    param([System.Collections.Generic.List[string]]$List, $Values)
+    foreach ($value in @($Values)) {
+        Add-Unique -List $List -Value ([string]$value)
+    }
+}
+
+function Get-StringArray {
+    param($Values)
+    $list = [System.Collections.Generic.List[string]]::new()
+    if ($null -eq $Values) { return @() }
+    foreach ($value in @($Values)) {
+        if ($null -eq $value) { continue }
+        if ($value -is [pscustomobject] -and @($value.PSObject.Properties).Count -eq 0) { continue }
+        $text = [string]$value
+        if (-not [string]::IsNullOrWhiteSpace($text)) { $list.Add($text) }
+    }
+    return @($list)
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -122,8 +142,22 @@ $createInputs = if ($null -ne $bundlePacket) { $bundlePacket.reviewedCreateGridI
 $capitalRequest = if ($null -ne $bundlePacket) { $bundlePacket.capitalOverrideRequest } else { $null }
 $envDiff = if ($null -ne $bundlePacket) { @($bundlePacket.proposedSeparateEnvDiff) } else { @() }
 $executionBlockers = if ($null -ne $bundlePacket) { @($bundlePacket.remainingExecutionBlockers) } else { @() }
+$bundleBlockers = if ($null -ne $bundlePacket) { Get-StringArray $bundlePacket.bundleBlockers } else { @() }
+$capitalPacket = if ($null -ne $bundlePacket) { $bundlePacket.sourceCapitalOverridePacketSummary } else { $null }
+$capitalHardBlockers = if ($null -ne $capitalPacket) { Get-StringArray $capitalPacket.hardBlockers } else { @() }
+$createPacket = if ($null -ne $capitalPacket) { $capitalPacket.sourceCreateAuthorizationPreflightPacketSummary } else { $null }
+$createReviewBlockers = if ($null -ne $createPacket) { Get-StringArray $createPacket.reviewBlockers } else { @() }
+$envPacket = if ($null -ne $createPacket) { $createPacket.sourceEnvDiffPacketSummary } else { $null }
+$envReviewBlockers = if ($null -ne $envPacket) { Get-StringArray $envPacket.reviewBlockers } else { @() }
+$trendPacket = if ($null -ne $envPacket) { $envPacket.sourceTrendOverridePacketSummary } else { $null }
+$trendHardBlockers = if ($null -ne $trendPacket) { Get-StringArray $trendPacket.hardBlockers } else { @() }
 
 if (-not $bundleReady) { Add-Unique -List $requestBlockers -Value "GRID_OPEN_AUTHORIZATION_BUNDLE_NOT_READY" }
+Add-UniqueValues -List $requestBlockers -Values $bundleBlockers
+Add-UniqueValues -List $requestBlockers -Values $capitalHardBlockers
+Add-UniqueValues -List $requestBlockers -Values $envReviewBlockers
+Add-UniqueValues -List $requestBlockers -Values $createReviewBlockers
+Add-UniqueValues -List $requestBlockers -Values $trendHardBlockers
 if ($null -eq $createInputs) { Add-Unique -List $missingEvidence -Value "reviewedCreateGridInputs from grid open authorization bundle" }
 if ($null -eq $capitalRequest) { Add-Unique -List $missingEvidence -Value "capitalOverrideRequest from grid open authorization bundle" }
 if ($envDiff.Count -eq 0) { Add-Unique -List $missingEvidence -Value "proposedSeparateEnvDiff from grid open authorization bundle" }
@@ -185,6 +219,11 @@ $packet = [pscustomobject]@{
     proposedSeparateEnvDiff = $envDiff
     postEnvReadOnlyVerification = if ($null -ne $bundlePacket) { $bundlePacket.postEnvReadOnlyVerification } else { @() }
     requestBlockers = @($requestBlockers)
+    bundleBlockers = @($bundleBlockers)
+    capitalHardBlockers = @($capitalHardBlockers)
+    envReviewBlockers = @($envReviewBlockers)
+    createReviewBlockers = @($createReviewBlockers)
+    trendHardBlockers = @($trendHardBlockers)
     missingEvidence = @($missingEvidence)
     trendOverrideAllowed = $false
     capitalOverrideAllowed = $false

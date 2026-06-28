@@ -519,13 +519,18 @@ if grid_flags["OKX_EARN_TOPUP_ENABLED"] == "true":
 if grid_flags["TELEGRAM_BOT_TOKEN"] != "SET":
     unique_append(warnings, "TELEGRAM_ALERTING_UNAVAILABLE")
 
-if ("Grid: $0.00" not in exposure
-        and "Grid $0.00" not in exposure
-        and "Grid 最大曝險(全 level 填滿): $0.00" not in exposure
-        and "active grid: 0" not in exposure.lower()
-        and "活躍 Grid: 0 個" not in exposure):
+zero_grid_exposure_markers = (
+    "Grid: $0.00",
+    "Grid $0.00",
+    "Grid \u6700\u5927\u66dd\u96aa(\u5168 level \u586b\u6eff): $0.00",
+    "\u6d3b\u8e8d Grid: 0 \u500b",
+)
+alignment_clear_markers = ("\u7121 ACTIVE Grid", "No ACTIVE Grid")
+
+if (not any(marker in exposure for marker in zero_grid_exposure_markers)
+        and "active grid: 0" not in exposure.lower()):
     unique_append(warnings, "GRID_EXPOSURE_REVIEW_REQUIRED")
-if "無 ACTIVE Grid" not in alignment and "No ACTIVE Grid" not in alignment:
+if not any(marker in alignment for marker in alignment_clear_markers):
     unique_append(warnings, "GRID_ALIGNMENT_REVIEW_REQUIRED")
 
 trend_gate = trend_gate_review(trend, trend_pct, atr_pct, candidate_plan)

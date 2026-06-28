@@ -48,6 +48,10 @@ $docsText = @(
     Get-Content -Raw -LiteralPath $progressPath
 ) -join "`n"
 
+if ($scriptText -match '[^\x00-\x7F]') {
+    throw "grid post-open smoke script must keep remote Python source ASCII-only for Windows PowerShell SSH piping"
+}
+
 foreach ($marker in @(
         "[grid-post-open-smoke] read-only verification",
         "scope=READ_ONLY",
@@ -57,6 +61,10 @@ foreach ($marker in @(
         "getGridPriceAlignment",
         "getCurrentExposure",
         "listSchedulerTasks",
+        "active_state_marker",
+        "active_icon",
+        "\u72c0\u614b: ACTIVE",
+        "\u2705",
         "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED",
         "GRID_RECOVERY_ENABLED",
         "OKX_EARN_TOPUP_ENABLED",
@@ -67,6 +75,10 @@ foreach ($marker in @(
         "grid_post_open_exposure_excerpt",
         "check_server_runtime_log.sh",
         "ALLOW_HIGH_RISK_LOG=0",
+        "sed '1s/^\xEF\xBB\xBF//'",
+        "bash -s",
+        '$sshExitCode',
+        "grid post-open smoke failed with exit code",
         "notAuthorization=read-only grid post-open smoke only",
         "does not create, pause, resume, close, rebalance"
     )) {

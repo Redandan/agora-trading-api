@@ -797,6 +797,10 @@ Expected:
 - Renders copyable authorization request lines for the separate trend override,
   capital-cap override, production env diff, deploy/restart plus post-env
   verification, and createGrid review approvals.
+- Also emits flattened `requestBlockers` plus nested `bundleBlockers`,
+  `capitalHardBlockers`, `envReviewBlockers`, `createReviewBlockers`, and
+  `trendHardBlockers`, so a blocked authorization bundle cannot hide the
+  specific remaining lane that needs review.
 - `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` means the
   request text can be presented to the operator. It is not permission to
   approve any request, change production env, deploy, or create a grid.
@@ -3780,6 +3784,7 @@ Current warning classes:
 | `spring.jpa.open-in-view is enabled by default` | Do not flip to `false` as a drive-by cleanup; it can change lazy-loading behavior and should be handled through a focused API/DTO audit. |
 | `DailyAutonomousTradingDigest` severe notification sent | Known operator-alert warning only when production explicitly enables autonomous digest Telegram/severe-scan flags. It is not an order/OCO/grid/Earn/fund action, but the category count should still be reviewed after each deploy. |
 | `OkxWsKlineService` public WS `Connection reset` | Treated as transient only while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`) and followed by fresh persisted K-line rows. Exceeding the threshold is a runtime-log smoke failure and should be investigated as collector/network instability. |
+| `PythNetworkService` feed/network timeout, HTTP, empty response, or unparseable price WARN | Treated as transient only while below `MAX_PYTH_NETWORK_WARN` (default `3`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data provider instability before relying on Pyth-derived evidence. |
 | `ScoreBuyV2Strategy` `ML003011` feature-schema mismatch | Known ScoreBuy/HeatWave model schema drift warning. `ScoreBuyV2Strategy` catches the prediction failure and returns `HOLD`, so this is not a grid/order/OCO mutation, but the `scorebuy_ml_schema_mismatch` count should be reviewed before ScoreBuy live rollout or model promotion. |
 
 The warning baseline is intentionally separate from Trading split acceptance.
@@ -3800,9 +3805,9 @@ still fail unless the diagnostic-only `ALLOW_HIGH_RISK_LOG=1` override is
 intentionally used outside acceptance. On success, it also prints the known WARN
 category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
-  optional TheGraph key, autonomous digest severe-notification, and bounded OKX
-  public WS connection-reset warnings, plus ScoreBuy/HeatWave feature-schema
-  mismatch warnings.
+  optional TheGraph key, autonomous digest severe-notification, bounded OKX
+  public WS connection-reset warnings, ScoreBuy/HeatWave feature-schema
+  mismatch warnings, and bounded Pyth market-data network warnings.
 
 For grid opening, `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`
 passes `AcceptAlreadyAppliedEnvDiff` through the post-env packet chain. That

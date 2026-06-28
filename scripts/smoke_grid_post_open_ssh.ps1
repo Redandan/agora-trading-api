@@ -130,16 +130,18 @@ list_grids = call_tool("listGrids")
 alignment = call_tool("getGridPriceAlignment")
 exposure = call_tool("getCurrentExposure")
 scheduled = call_tool("listSchedulerTasks")
+active_state_marker = "\u72c0\u614b: ACTIVE"
+active_icon = "\u2705"
 
 if f"Grid #{grid_id} {symbol}" not in grid_stats:
     fail(f"gridStats missing Grid #{grid_id} {symbol}")
-if "狀態: ACTIVE" not in grid_stats:
+if active_state_marker not in grid_stats:
     fail(f"Grid #{grid_id} is not ACTIVE")
 if "Hint-gated: true" not in grid_stats:
     fail(f"Grid #{grid_id} hint gate is not true")
 
 block_match = re.search(
-    rf"#{grid_id}\s+{re.escape(symbol)}\s+✅ ACTIVE.*?Level:\s+PENDING=(\d+)\s+HOLDING=(\d+)\s+CLOSED=(\d+)\s+SELL_FAILED=(\d+)\s+SELL_PARTIAL=(\d+)\s+BUY_FAILED=(\d+)",
+    rf"#{grid_id}\s+{re.escape(symbol)}\s+{active_icon} ACTIVE.*?Level:\s+PENDING=(\d+)\s+HOLDING=(\d+)\s+CLOSED=(\d+)\s+SELL_FAILED=(\d+)\s+SELL_PARTIAL=(\d+)\s+BUY_FAILED=(\d+)",
     list_grids,
     re.S,
 )
@@ -193,8 +195,18 @@ echo "[grid-post-open-smoke] OK"
 Write-Host "[grid-post-open-smoke] read-only verification"
 Write-Host "scope=READ_ONLY; checks Grid #$GridId via server-local OPS MCP plus runtime log; no production env, DB, order, OCO, grid mutation, fund, Earn, Telegram, scheduler, exchange, deploy, restart, or nginx state changed."
 
-$output = ssh -i $SshKey $SshHost $remoteScript
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = "Continue"
+    $output = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s" 2>&1
+    $sshExitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
 $output | ForEach-Object { Write-Host $_ }
+if ($sshExitCode -ne 0) {
+    throw "grid post-open smoke failed with exit code $sshExitCode"
+}
 
 Write-Host "notAuthorization=read-only grid post-open smoke only; does not create, pause, resume, close, rebalance, place orders, modify OCO, send Telegram, change env, deploy, restart, or mutate DB/grid/fund/Earn/exchange state"
 Write-Host "[grid-post-open-smoke] complete"

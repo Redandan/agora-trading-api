@@ -46,6 +46,10 @@ $runbookText = Get-Content -Raw -LiteralPath $runbookPath
 $readmeText = Get-Content -Raw -LiteralPath $readmePath
 $progressText = Get-Content -Raw -LiteralPath $progressPath
 
+if ($scriptText -match '[^\x00-\x7F]') {
+    throw "grid open readiness script must keep remote Python source ASCII-only for Windows PowerShell SSH piping"
+}
+
 foreach ($marker in @(
         "[grid-open-readiness] read-only packet",
         "GRID_OPEN_READINESS_PACKET",
@@ -78,6 +82,10 @@ foreach ($marker in @(
         "TRADING_OKX_PASSPHRASE",
         "TRADING_OKX_ENABLED_FALSE",
         "OKX_EARN_TOPUP_ENABLED_MUST_REMAIN_FALSE_FOR_GRID_OPEN_REVIEW",
+        "zero_grid_exposure_markers",
+        "alignment_clear_markers",
+        "\u6d3b\u8e8d Grid: 0 \u500b",
+        "\u7121 ACTIVE Grid",
         "notAuthorization=read-only grid open readiness only",
         "does not create/pause/resume/close/rebalance grid",
         "Assert-SshHostSafe",

@@ -175,6 +175,30 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `telegram_send_allowed=false`; it is only evidence to request a separate
   deploy/restart decision for current `origin/main` followed by read-only
   verification.
+- Grid open readiness was refreshed again on 2026-06-28 with read-only
+  readiness, operator, post-open, parameter-sweep, and operator authorization
+  request packets. No deploy, production env change, scheduler change,
+  `createGrid`, order, OCO, grid, fund, Earn, Telegram, DB, or exchange
+  mutation was performed. Grid #10 remained ACTIVE with four pending levels,
+  price alignment `IN_RANGE`, zero grid holding exposure, scheduler registered,
+  and `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,
+  `GRID_RECOVERY_ENABLED=false`, and `OKX_EARN_TOPUP_ENABLED=false`. The best
+  replay-quality candidate was BTCUSDT `gridCount=4`, `perLevelUsdt=5`,
+  `candidateHalfWidthPct=10`, `stopOutPct=5`, `replayScore=80.0`,
+  `stopBreakRows=0`, and `candidateCapitalUsdt=20.0`, but the authorization
+  request remained
+  `BLOCKED_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` with
+  `grid_open_operator_authorization_request_ready=false`. Current blockers are
+  `GRID_OPEN_AUTHORIZATION_BUNDLE_NOT_READY`,
+  `CAPITAL_OVERRIDE_REVIEW_NOT_READY`, `GRID_ENV_DIFF_REVIEW_NOT_READY`,
+  `HIGH_TREND_OVERRIDE_RISK_NOT_CAP_OVERRIDE_REVIEWABLE`,
+  `GRID_ENV_DIFF_REVIEW_NOT_READY_FOR_CAPITAL_OVERRIDE`,
+  `TRADING_GRID_ENABLED_ALREADY_TRUE`,
+  `GRID_ENV_DIFF_REVIEW_NOT_READY_FOR_CREATEGRID`, and
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`. The local post-open smoke now fails
+  closed on remote failures and the local runtime-log classifier recognizes
+  bounded Pyth network WARN lines, but the server still needs deploy/currentness
+  before that classification can clear the active server log.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

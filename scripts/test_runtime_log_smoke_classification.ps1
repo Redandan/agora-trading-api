@@ -198,6 +198,30 @@ Assert-SmokeCase `
     )
 
 Assert-SmokeCase `
+    -Name "pyth transient timeout is classified warn baseline" `
+    -Lines @(
+        "2026-06-26T23:01:23.441Z  WARN 2516045 --- [agora-trading-api] [   indicator-io] c.a.service.market.PythNetworkService    : [Pyth] feed=e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43 error: timeout"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "pyth_network_transient=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "pyth transient timeout threshold is fail closed" `
+    -Lines @(
+        "2026-06-26T23:01:23.441Z  WARN 2516045 --- [agora-trading-api] [   indicator-io] c.a.service.market.PythNetworkService    : [Pyth] feed=e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43 error: timeout"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "Pyth network warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_PYTH_NETWORK_WARN = "0" }
+
+Assert-SmokeCase `
     -Name "high risk allow flag is diagnostic only" `
     -Lines @(
         "2026-06-18T00:00:00.000Z  INFO 1 --- [agora-trading-api] Started TradingApplication",

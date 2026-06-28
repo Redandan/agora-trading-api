@@ -3072,6 +3072,30 @@ Trading deployment prep:
   first-day observation evidence only and does not authorize auto-rebalance,
   recovery, close/pause/resume, order/OCO, Earn/fund, Telegram, env, deploy,
   scheduler, or exchange mutations.
+- 2026-06-28 read-only grid-open refresh repaired the tooling used to keep the
+  operator packet replayable before any opening decision. The readiness script
+  now keeps its embedded Python source ASCII-safe while still matching localized
+  no-grid markers, the post-open smoke pipes the remote script through
+  `bash -s` and fails closed on SSH/runtime-log failures, and the runtime-log
+  smoke classifies bounded `PythNetworkService` feed/network WARN lines under
+  `MAX_PYTH_NETWORK_WARN` instead of treating a single timeout as an unknown
+  warning. The operator authorization request packet now flattens nested
+  bundle, capital, env-diff, create-preflight, and trend blockers into
+  `grid_open_operator_authorization_request_blockers`.
+- The refreshed read-only production evidence still does not authorize opening
+  another grid. Grid #10 was ACTIVE, in range, with four pending levels, zero
+  holding exposure, scheduler registered, and scheduler/recovery/Earn flags
+  disabled. A parameter sweep found a best quality BTCUSDT candidate
+  `gridCount=4`, `perLevelUsdt=5`, `candidateHalfWidthPct=10`,
+  `stopOutPct=5`, `replayScore=80.0`, `stopBreakRows=0`, and
+  `candidateCapitalUsdt=20.0`, so the replay-quality blocker can clear with
+  that candidate. The remaining operator request blockers are trend/capital/env
+  chain blockers:
+  `HIGH_TREND_OVERRIDE_RISK_NOT_CAP_OVERRIDE_REVIEWABLE`,
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`, `GRID_ENV_DIFF_REVIEW_NOT_READY`,
+  `TRADING_GRID_ENABLED_ALREADY_TRUE`, and create-grid post-env readiness. No
+  deploy, env change, scheduler change, `createGrid`, order, OCO, grid, fund,
+  Earn, Telegram, DB, or exchange mutation was performed.
 - BTC panic-bottom context now has a read-only ScoreBuy companion MCP:
   `previewPanicBottomContext(symbol=BTCUSDT)`. It reads `md_kline`,
   `market_indicator_history` `fear_greed`, a 200WMA reference, OCO health text,

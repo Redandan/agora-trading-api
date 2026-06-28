@@ -223,6 +223,25 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`,
   with `SPLIT_ACCEPTANCE_NOT_PASSING` caused by server worktree currentness,
   and it kept all mutation flags false.
+- A follow-up read-only pre-env operator authorization request refresh fixed two
+  packet-level blockers without changing runtime policy: partially already
+  applied target env flags are now evidence (`TRADING_GRID_ENABLED=true`,
+  scheduler/recovery/Earn all false) instead of pre-env blockers, and trend
+  override review uses the operator envelope risk grade as canonical while
+  preserving the direct threshold grade as diagnostics. The best candidate
+  request now reaches
+  `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` with
+  `grid_open_operator_authorization_request_ready=true`,
+  `sourceAuthorizationBundleReady=true`, `requestBlockers=[]`, and
+  `coveredCreateReviewBlockers=["CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"]`.
+  It still keeps `production_env_change_allowed=false`,
+  `deploy_allowed=false`, `create_grid_allowed=false`,
+  `grid_open_allowed=false`, `grid_mutation_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `oco_mutation_allowed=false`, and `telegram_send_allowed=false`. This is only
+  a ready request packet for separate operator authorization; grid opening still
+  requires separate trend/capital/env/deploy authorization, split acceptance,
+  post-env read-only verification, and a separate createGrid authorization.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

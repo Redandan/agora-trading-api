@@ -131,6 +131,7 @@ if ($null -eq $snapshotPacket) { Add-Unique -List $missingEvidence -Value "grid_
 
 $quant = if ($null -ne $snapshotPacket) { $snapshotPacket.quantitativeReadiness } else { $null }
 $gates = if ($null -ne $snapshotPacket) { $snapshotPacket.gateStatuses } else { $null }
+$sourceTrendWatch = if ($null -ne $snapshotPacket) { $snapshotPacket.sourceTrendWatchPacket } else { $null }
 $trend = if ($null -ne $quant) { [string]$quant.trend } else { "UNKNOWN" }
 $trendPct = if ($null -ne $quant) { Convert-ReviewNumber $quant.trendPct } else { [decimal]0 }
 $distance = if ($null -ne $quant) { Convert-ReviewNumber $quant.trendDistanceToSidewaysPct } else { [decimal]0 }
@@ -165,12 +166,28 @@ $reviewReady = (
     $eventRiskGate -eq "CLEAR_EVENT_RISK_R0" -and
     $mcpCoverage -eq "READY_GRID_MCP_TOOL_COVERAGE_NOT_MUTATION"
 )
-$riskGrade = if ([math]::Abs([double]$trendPct) -ge 6.0 -or $replayScore -lt 70 -or $stopBreakRows -gt 0) {
+$directTrendPctRiskGrade = if ([math]::Abs([double]$trendPct) -ge 6.0 -or $replayScore -lt 70 -or $stopBreakRows -gt 0) {
     "HIGH"
 } elseif ([math]::Abs([double]$trendPct) -ge 3.0 -or $replayScore -lt 80) {
     "MEDIUM"
 } else {
     "LOW"
+}
+$sourceEnvelopeRiskGrade = if ($null -ne $sourceTrendWatch) { [string]$sourceTrendWatch.overrideRiskGrade } else { "" }
+$riskGrade = if (-not [string]::IsNullOrWhiteSpace($sourceEnvelopeRiskGrade) -and $sourceEnvelopeRiskGrade -ne "UNKNOWN") {
+    $sourceEnvelopeRiskGrade
+} else {
+    $directTrendPctRiskGrade
+}
+$riskGradeSource = if (-not [string]::IsNullOrWhiteSpace($sourceEnvelopeRiskGrade) -and $sourceEnvelopeRiskGrade -ne "UNKNOWN") {
+    "sourceTrendWatchPacket.overrideRiskGrade"
+} else {
+    "directTrendPctFallback"
+}
+$riskGradeConsistency = if (-not [string]::IsNullOrWhiteSpace($sourceEnvelopeRiskGrade) -and $sourceEnvelopeRiskGrade -ne "UNKNOWN" -and $sourceEnvelopeRiskGrade -ne $directTrendPctRiskGrade) {
+    "SOURCE_OPERATOR_ENVELOPE_DIFFERS_FROM_DIRECT_THRESHOLD"
+} else {
+    "CONSISTENT"
 }
 $status = if ($reviewReady) {
     "READY_FOR_GRID_TREND_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION"
@@ -194,9 +211,13 @@ $packet = [pscustomobject]@{
     sourceDecisionSnapshot = "prepare_grid_open_decision_snapshot_ssh.ps1"
     sourceDecisionSnapshotStatus = if ($null -ne $snapshotPacket) { $snapshotPacket.status } else { "UNKNOWN" }
     riskGrade = $riskGrade
+    riskGradeSource = $riskGradeSource
+    riskGradeConsistency = $riskGradeConsistency
     quantitativeOverrideEvidence = [pscustomobject]@{
         trend = $trend
         trendPct = $trendPct
+        sourceEnvelopeRiskGrade = $sourceEnvelopeRiskGrade
+        directTrendPctRiskGrade = $directTrendPctRiskGrade
         sidewaysTrendPctThreshold = $SidewaysTrendPctThreshold
         trendDistanceToSidewaysPct = $distance
         replayScore = $replayScore
@@ -249,6 +270,8 @@ Write-Host "source_decision_snapshot=prepare_grid_open_decision_snapshot_ssh.ps1
 Write-Host "grid_trend_override_review_status=$status"
 Write-Host "grid_trend_override_review_decision=$decision"
 Write-Host "grid_trend_override_review_risk_grade=$riskGrade"
+Write-Host "grid_trend_override_review_risk_grade_source=$riskGradeSource"
+Write-Host "grid_trend_override_review_risk_grade_consistency=$riskGradeConsistency"
 Write-Host "grid_trend_override_review_ready=$($reviewReady.ToString().ToLowerInvariant())"
 Write-Host "trend_override_allowed=false"
 Write-Host "grid_open_allowed=false"

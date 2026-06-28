@@ -144,9 +144,19 @@ $envDiff = if ($null -ne $bundlePacket) { @($bundlePacket.proposedSeparateEnvDif
 $executionBlockers = if ($null -ne $bundlePacket) { @($bundlePacket.remainingExecutionBlockers) } else { @() }
 $bundleBlockers = if ($null -ne $bundlePacket) { Get-StringArray $bundlePacket.bundleBlockers } else { @() }
 $capitalPacket = if ($null -ne $bundlePacket) { $bundlePacket.sourceCapitalOverridePacketSummary } else { $null }
+$capitalReviewReady = if ($null -ne $capitalPacket) { [bool]$capitalPacket.capitalOverrideReviewReady } else { $false }
 $capitalHardBlockers = if ($null -ne $capitalPacket) { Get-StringArray $capitalPacket.hardBlockers } else { @() }
 $createPacket = if ($null -ne $capitalPacket) { $capitalPacket.sourceCreateAuthorizationPreflightPacketSummary } else { $null }
 $createReviewBlockers = if ($null -ne $createPacket) { Get-StringArray $createPacket.reviewBlockers } else { @() }
+$coveredCreateReviewBlockers = [System.Collections.Generic.List[string]]::new()
+$uncoveredCreateReviewBlockers = [System.Collections.Generic.List[string]]::new()
+foreach ($blocker in @($createReviewBlockers)) {
+    if ($blocker -eq "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP" -and $capitalReviewReady) {
+        Add-Unique -List $coveredCreateReviewBlockers -Value $blocker
+    } else {
+        Add-Unique -List $uncoveredCreateReviewBlockers -Value $blocker
+    }
+}
 $envPacket = if ($null -ne $createPacket) { $createPacket.sourceEnvDiffPacketSummary } else { $null }
 $envReviewBlockers = if ($null -ne $envPacket) { Get-StringArray $envPacket.reviewBlockers } else { @() }
 $trendPacket = if ($null -ne $envPacket) { $envPacket.sourceTrendOverridePacketSummary } else { $null }
@@ -156,7 +166,7 @@ if (-not $bundleReady) { Add-Unique -List $requestBlockers -Value "GRID_OPEN_AUT
 Add-UniqueValues -List $requestBlockers -Values $bundleBlockers
 Add-UniqueValues -List $requestBlockers -Values $capitalHardBlockers
 Add-UniqueValues -List $requestBlockers -Values $envReviewBlockers
-Add-UniqueValues -List $requestBlockers -Values $createReviewBlockers
+Add-UniqueValues -List $requestBlockers -Values $uncoveredCreateReviewBlockers
 Add-UniqueValues -List $requestBlockers -Values $trendHardBlockers
 if ($null -eq $createInputs) { Add-Unique -List $missingEvidence -Value "reviewedCreateGridInputs from grid open authorization bundle" }
 if ($null -eq $capitalRequest) { Add-Unique -List $missingEvidence -Value "capitalOverrideRequest from grid open authorization bundle" }
@@ -223,6 +233,8 @@ $packet = [pscustomobject]@{
     capitalHardBlockers = @($capitalHardBlockers)
     envReviewBlockers = @($envReviewBlockers)
     createReviewBlockers = @($createReviewBlockers)
+    coveredCreateReviewBlockers = @($coveredCreateReviewBlockers)
+    uncoveredCreateReviewBlockers = @($uncoveredCreateReviewBlockers)
     trendHardBlockers = @($trendHardBlockers)
     missingEvidence = @($missingEvidence)
     trendOverrideAllowed = $false
@@ -259,6 +271,8 @@ Write-Host "oco_mutation_allowed=false"
 Write-Host "telegram_send_allowed=false"
 Write-Host ("grid_open_operator_authorization_request_lines=" + (ConvertTo-Json -Compress @($packet.authorizationRequestLines)))
 Write-Host ("grid_open_operator_authorization_request_blockers=" + (ConvertTo-Json -Compress @($requestBlockers)))
+Write-Host ("grid_open_operator_authorization_request_covered_create_review_blockers=" + (ConvertTo-Json -Compress @($coveredCreateReviewBlockers)))
+Write-Host ("grid_open_operator_authorization_request_uncovered_create_review_blockers=" + (ConvertTo-Json -Compress @($uncoveredCreateReviewBlockers)))
 Write-Host ("grid_open_operator_authorization_request_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("grid_open_operator_authorization_request_packet=" + (ConvertTo-Json -Compress -Depth 18 $packet))
 Write-Host "notAuthorization=read-only grid open operator authorization request only; does not approve trend override, approve capital override, change production env, deploy, restart, call createGrid, enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state"

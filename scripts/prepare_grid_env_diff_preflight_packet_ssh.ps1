@@ -119,6 +119,8 @@ $missingEvidence = [System.Collections.Generic.List[string]]::new()
 $reviewBlockers = [System.Collections.Generic.List[string]]::new()
 $postEnvDiffBlockers = [System.Collections.Generic.List[string]]::new()
 $operatorAuthorizationRequired = [System.Collections.Generic.List[string]]::new()
+$alreadyAppliedEnvDiffFlags = [System.Collections.Generic.List[string]]::new()
+$pendingSeparateEnvDiff = [System.Collections.Generic.List[string]]::new()
 if ($operatorExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "grid open operator packet completed" }
 if ($trendOverrideExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "grid trend override review packet completed" }
 if ($null -eq $operatorPacket) { Add-Unique -List $missingEvidence -Value "grid_open_operator_packet valid JSON" }
@@ -135,6 +137,30 @@ $earnEnabled = if ($null -ne $envEnvelope) { [string]$envEnvelope.okxEarnTopupEn
 $eventRiskGate = if ($null -ne $gateStatuses) { [string]$gateStatuses.eventRiskGate } else { "UNKNOWN" }
 $trendGate = if ($null -ne $gateStatuses) { [string]$gateStatuses.trendGate } else { "UNKNOWN" }
 $trendOverrideReady = if ($null -ne $trendOverridePacket) { [bool]$trendOverridePacket.trendOverrideReviewReady } else { $false }
+
+$targetEnvFlags = [ordered]@{
+    TRADING_OKX_ENABLED = "true"
+    TRADING_GRID_ENABLED = "true"
+    TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED = "false"
+    GRID_RECOVERY_ENABLED = "false"
+    OKX_EARN_TOPUP_ENABLED = "false"
+}
+$currentEnvFlags = [ordered]@{
+    TRADING_OKX_ENABLED = $okxEnabled
+    TRADING_GRID_ENABLED = $gridEnabled
+    TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED = $schedulerEnabled
+    GRID_RECOVERY_ENABLED = $recoveryEnabled
+    OKX_EARN_TOPUP_ENABLED = $earnEnabled
+}
+foreach ($flagName in $targetEnvFlags.Keys) {
+    $targetValue = [string]$targetEnvFlags[$flagName]
+    $currentValue = [string]$currentEnvFlags[$flagName]
+    if ($currentValue -eq $targetValue) {
+        Add-Unique -List $alreadyAppliedEnvDiffFlags -Value "$flagName=$targetValue"
+    } else {
+        Add-Unique -List $pendingSeparateEnvDiff -Value "$flagName=$targetValue"
+    }
+}
 
 if ($null -eq $envEnvelope) {
     Add-Unique -List $missingEvidence -Value "okxGridEnvPreflightEnvelope from grid open operator packet"
@@ -157,12 +183,6 @@ if ($recoveryEnabled -ne "false") {
 if ($earnEnabled -ne "false") {
     Add-Unique -List $reviewBlockers -Value "OKX_EARN_TOPUP_NOT_FALSE"
 }
-if ($okxEnabled -eq "true" -and -not $AcceptAlreadyAppliedEnvDiff) {
-    Add-Unique -List $reviewBlockers -Value "TRADING_OKX_ENABLED_ALREADY_TRUE"
-}
-if ($gridEnabled -eq "true" -and -not $AcceptAlreadyAppliedEnvDiff) {
-    Add-Unique -List $reviewBlockers -Value "TRADING_GRID_ENABLED_ALREADY_TRUE"
-}
 
 $envDiffAlreadyApplied = (
     $okxEnabled -eq "true" -and
@@ -171,6 +191,9 @@ $envDiffAlreadyApplied = (
     $recoveryEnabled -eq "false" -and
     $earnEnabled -eq "false"
 )
+if (-not $AcceptAlreadyAppliedEnvDiff -and $envDiffAlreadyApplied) {
+    Add-Unique -List $reviewBlockers -Value "GRID_ENV_DIFF_ALREADY_APPLIED_USE_POST_ENV_REVIEW"
+}
 if ($AcceptAlreadyAppliedEnvDiff) {
     if ($okxEnabled -ne "true") {
         Add-Unique -List $postEnvDiffBlockers -Value "TRADING_OKX_ENABLED_NOT_TRUE_FOR_POST_ENV_REVIEW"
@@ -241,6 +264,8 @@ $packet = [pscustomobject]@{
     }
     acceptAlreadyAppliedEnvDiff = [bool]$AcceptAlreadyAppliedEnvDiff
     envDiffAlreadyApplied = $envDiffAlreadyApplied
+    alreadyAppliedEnvDiffFlags = @($alreadyAppliedEnvDiffFlags)
+    pendingSeparateEnvDiff = @($pendingSeparateEnvDiff)
     proposedSeparateEnvDiff = @(
         "TRADING_OKX_ENABLED=true",
         "TRADING_GRID_ENABLED=true",
@@ -299,6 +324,8 @@ Write-Host "oco_mutation_allowed=false"
 Write-Host "telegram_send_allowed=false"
 Write-Host ("grid_env_diff_preflight_review_blockers=" + (ConvertTo-Json -Compress @($reviewBlockers)))
 Write-Host ("grid_env_diff_preflight_post_env_diff_blockers=" + (ConvertTo-Json -Compress @($postEnvDiffBlockers)))
+Write-Host ("grid_env_diff_preflight_already_applied_flags=" + (ConvertTo-Json -Compress @($alreadyAppliedEnvDiffFlags)))
+Write-Host ("grid_env_diff_preflight_pending_env_diff=" + (ConvertTo-Json -Compress @($pendingSeparateEnvDiff)))
 Write-Host ("grid_env_diff_preflight_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("grid_env_diff_preflight_operator_authorization_required=" + (ConvertTo-Json -Compress @($operatorAuthorizationRequired)))
 Write-Host ("grid_env_diff_preflight_proposed_env_diff=" + (ConvertTo-Json -Compress $packet.proposedSeparateEnvDiff))

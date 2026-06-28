@@ -2893,7 +2893,8 @@ Trading deployment prep:
   `grid_trend_override_review_ready`, `trend_override_allowed=false`, and
   `grid_open_allowed=false`. The packet packages trend percentage, distance to
   sideways, replay score, stop-break rows, effective capital cap, event-risk
-  gate, MCP coverage, hard blockers, abort criteria, and required separate
+  gate, MCP coverage, canonical risk grade source, direct-threshold mismatch
+  diagnostics, hard blockers, abort criteria, and required separate
   trend/env/createGrid authorization for operator review. It is review evidence
   only and does not approve the override, deploy, restart, change production
   env, call `createGrid`, enable grid/scheduler/recovery, place orders, modify
@@ -2907,8 +2908,11 @@ Trading deployment prep:
   `production_env_change_allowed=false`, and `grid_open_allowed=false`. The
   packet isolates masked OKX credential readiness, `TRADING_OKX_ENABLED`,
   `TRADING_GRID_ENABLED`, scheduler/recovery/Earn flag state, event-risk gate,
-  trend-override readiness, pre-apply requirements, and post-apply read-only
-  verification. It is not authorization to change env, deploy, restart, call
+  trend-override readiness, already-applied target flags, pending env diff
+  flags, pre-apply requirements, and post-apply read-only verification. Already
+  applied target flags are evidence, not blockers; the pre-apply path blocks
+  only when the whole env diff is already applied and post-env verification
+  should be used. It is not authorization to change env, deploy, restart, call
   `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
   Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - Grid createGrid authorization now has a separate read-only preflight packet:
@@ -2961,10 +2965,13 @@ Trading deployment prep:
   `grid_open_allowed=false`, and `create_grid_allowed=false`. The packet
   renders separate copyable request lines for trend-regime override,
   capital-cap override, production env diff, deploy/restart plus post-env
-  verification, and createGrid review, while keeping every approval and
-  mutation flag false. It is not authorization to approve any request, change
-  env, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
-  place orders, modify OCO, send Telegram, or mutate
+  verification, and createGrid review. The request packet now separates
+  `coveredCreateReviewBlockers` from `uncoveredCreateReviewBlockers`, so a
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` create preflight blocker can remain
+  visible while being covered by a ready capital-cap override authorization
+  line. Every approval and mutation flag remains false. It is not authorization
+  to approve any request, change env, deploy, restart, call `createGrid`, enable
+  grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
 - Grid post-env verification now has a read-only plan packet:
   `scripts/prepare_grid_post_env_verification_plan_ssh.ps1`. It consumes the
@@ -3089,13 +3096,19 @@ Trading deployment prep:
   `gridCount=4`, `perLevelUsdt=5`, `candidateHalfWidthPct=10`,
   `stopOutPct=5`, `replayScore=80.0`, `stopBreakRows=0`, and
   `candidateCapitalUsdt=20.0`, so the replay-quality blocker can clear with
-  that candidate. The remaining operator request blockers are trend/capital/env
-  chain blockers:
-  `HIGH_TREND_OVERRIDE_RISK_NOT_CAP_OVERRIDE_REVIEWABLE`,
-  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`, `GRID_ENV_DIFF_REVIEW_NOT_READY`,
-  `TRADING_GRID_ENABLED_ALREADY_TRUE`, and create-grid post-env readiness. No
-  deploy, env change, scheduler change, `createGrid`, order, OCO, grid, fund,
-  Earn, Telegram, DB, or exchange mutation was performed.
+  that candidate. A follow-up tooling refresh made partially already-applied
+  target env flags non-blocking evidence in pre-env mode and aligned trend
+  override review to the operator-envelope risk grade while preserving the
+  direct threshold grade as diagnostics. The best-candidate pre-env operator
+  authorization request now reaches
+  `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` with
+  `requestBlockers=[]` and
+  `coveredCreateReviewBlockers=["CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"]`. It is
+  still only a request packet: the remaining execution steps are separate
+  trend/capital/env/deploy authorization, split acceptance, post-env read-only
+  verification, and separate createGrid authorization. No deploy, env change,
+  scheduler change, `createGrid`, order, OCO, grid, fund, Earn, Telegram, DB,
+  or exchange mutation was performed.
 - The env-diff preflight now emits `postEnvDiffBlockers` when
   `AcceptAlreadyAppliedEnvDiff` is used before the complete env diff is
   actually live. The refreshed read-only accept-applied evidence showed

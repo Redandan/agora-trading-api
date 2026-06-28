@@ -662,7 +662,8 @@ Expected:
   `grid_open_allowed=false`.
 - Packages quantitative override evidence: current trend, trend percentage,
   distance to sideways, replay score, stop-break rows, effective capital cap,
-  event-risk gate, and MCP coverage.
+  event-risk gate, MCP coverage, canonical risk grade source, and any direct
+  threshold-vs-operator-envelope risk grade mismatch.
 - `READY_FOR_GRID_TREND_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION` means the trend
   blocker can be attached to a separate operator review. It is not permission
   to approve the override, change env, or create a grid.
@@ -689,6 +690,10 @@ Expected:
 - Packages masked OKX credential readiness, current OKX/grid env flag state,
   scheduler/recovery/Earn disabled state, trend-override review readiness, and
   event-risk gate state.
+- Emits `alreadyAppliedEnvDiffFlags` and `pendingSeparateEnvDiff`. A target
+  flag that is already at its desired value is evidence, not a blocker; the
+  pre-apply path blocks only when the full env diff is already applied and
+  the operator should switch to post-env verification mode.
 - Proposed env diff is limited to `TRADING_OKX_ENABLED=true`,
   `TRADING_GRID_ENABLED=true`,
   `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,
@@ -801,6 +806,10 @@ Expected:
   `capitalHardBlockers`, `envReviewBlockers`, `createReviewBlockers`, and
   `trendHardBlockers`, so a blocked authorization bundle cannot hide the
   specific remaining lane that needs review.
+- Emits `coveredCreateReviewBlockers` and `uncoveredCreateReviewBlockers`.
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` can be covered by a ready capital-cap
+  override request; covered blockers remain visible but do not prevent this
+  request packet from becoming ready for separate operator authorization.
 - `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` means the
   request text can be presented to the operator. It is not permission to
   approve any request, change production env, deploy, or create a grid.

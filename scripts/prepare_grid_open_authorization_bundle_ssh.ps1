@@ -61,6 +61,14 @@ function Add-Unique {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Get-PropertyOrNull {
+    param([object]$Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -122,6 +130,15 @@ $envPacket = if ($null -ne $createPacket) { $createPacket.sourceEnvDiffPacketSum
 $trendPacket = if ($null -ne $envPacket) { $envPacket.sourceTrendOverridePacketSummary } else { $null }
 
 $trendReviewReady = if ($null -ne $trendPacket) { [bool]$trendPacket.trendOverrideReviewReady } else { $false }
+$trendGateStatuses = Get-PropertyOrNull -Object $trendPacket -Name "gateStatuses"
+$trendGate = Get-PropertyOrNull -Object $trendGateStatuses -Name "trendGate"
+if ([string]::IsNullOrWhiteSpace($trendGate)) {
+    $createGateStatuses = Get-PropertyOrNull -Object $createPacket -Name "gateStatuses"
+    $trendGate = Get-PropertyOrNull -Object $createGateStatuses -Name "trendGate"
+}
+if ([string]::IsNullOrWhiteSpace($trendGate)) { $trendGate = "UNKNOWN" }
+$trendGateClear = $trendGate -ne "UNKNOWN" -and $trendGate -notlike "BLOCKED_*"
+$trendLaneReady = $trendReviewReady -or $trendGateClear
 $capitalReviewReady = if ($null -ne $capitalPacket) { [bool]$capitalPacket.capitalOverrideReviewReady } else { $false }
 $envDiffReviewReady = if ($null -ne $envPacket) { [bool]$envPacket.envDiffReviewReady } else { $false }
 $createEvidenceComplete = if ($null -ne $createPacket) { @($createPacket.missingEvidence).Count -eq 0 } else { $false }
@@ -130,7 +147,7 @@ $candidatePlanComplete = if ($null -ne $createPacket) { [bool]$createPacket.cand
 if ($null -eq $trendPacket) { Add-Unique -List $missingEvidence -Value "source trend override review packet summary" }
 if ($null -eq $envPacket) { Add-Unique -List $missingEvidence -Value "source env diff preflight packet summary" }
 if ($null -eq $createPacket) { Add-Unique -List $missingEvidence -Value "source create authorization preflight packet summary" }
-if (-not $trendReviewReady) { Add-Unique -List $bundleBlockers -Value "TREND_OVERRIDE_REVIEW_NOT_READY" }
+if (-not $trendLaneReady) { Add-Unique -List $bundleBlockers -Value "TREND_OVERRIDE_REVIEW_NOT_READY" }
 if (-not $capitalReviewReady) { Add-Unique -List $bundleBlockers -Value "CAPITAL_OVERRIDE_REVIEW_NOT_READY" }
 if (-not $envDiffReviewReady) { Add-Unique -List $bundleBlockers -Value "GRID_ENV_DIFF_REVIEW_NOT_READY" }
 if (-not $createEvidenceComplete) { Add-Unique -List $bundleBlockers -Value "CREATEGRID_PREFLIGHT_EVIDENCE_INCOMPLETE" }
@@ -139,7 +156,7 @@ if (-not $candidatePlanComplete) { Add-Unique -List $bundleBlockers -Value "CAND
 $bundleReady = (
     $missingEvidence.Count -eq 0 -and
     $bundleBlockers.Count -eq 0 -and
-    $trendReviewReady -and
+    $trendLaneReady -and
     $capitalReviewReady -and
     $envDiffReviewReady -and
     $createEvidenceComplete -and
@@ -177,6 +194,9 @@ $packet = [pscustomobject]@{
     sourceCapitalOverrideStatus = if ($null -ne $capitalPacket) { $capitalPacket.status } else { "UNKNOWN" }
     readinessSummary = [pscustomobject]@{
         trendOverrideReviewReady = $trendReviewReady
+        trendGate = $trendGate
+        trendGateClearanceAccepted = $trendGateClear
+        trendLaneReady = $trendLaneReady
         capitalOverrideReviewReady = $capitalReviewReady
         envDiffReviewReady = $envDiffReviewReady
         createGridPreflightEvidenceComplete = $createEvidenceComplete
@@ -186,8 +206,8 @@ $packet = [pscustomobject]@{
     authorizationLanes = @(
         [pscustomobject]@{
             lane = "trend-regime-override"
-            status = if ($trendReviewReady) { "READY_FOR_SEPARATE_OPERATOR_REVIEW_NOT_MUTATION" } else { "NOT_READY" }
-            requiredAuthorization = "separate written trend-regime override naming current trend and trendPct, or fresh trend gate clearance"
+            status = if ($trendReviewReady) { "READY_FOR_SEPARATE_OPERATOR_REVIEW_NOT_MUTATION" } elseif ($trendGateClear) { "CLEAR_BY_FRESH_TREND_GATE_NOT_MUTATION" } else { "NOT_READY" }
+            requiredAuthorization = if ($trendGateClear) { "fresh trend gate clearance accepted; separate trend override not required unless the gate becomes blocked" } else { "separate written trend-regime override naming current trend and trendPct, or fresh trend gate clearance" }
             sourceStatus = if ($null -ne $trendPacket) { $trendPacket.status } else { "UNKNOWN" }
         },
         [pscustomobject]@{

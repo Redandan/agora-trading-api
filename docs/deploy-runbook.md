@@ -780,6 +780,10 @@ Expected:
 - Consolidates the trend override, capital-cap override, production env diff,
   post-env read-only verification, and createGrid authorization lanes into one
   operator-review bundle.
+- Accepts a fresh `trendGate` clearance as
+  `CLEAR_BY_FRESH_TREND_GATE_NOT_MUTATION`, so a trend override packet whose
+  decision is `NO_TREND_OVERRIDE_NEEDED...` does not block the bundle by
+  itself.
 - `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_BUNDLE_NOT_MUTATION` means the
   separate approval lanes are reviewable together. It is not permission to
   approve any override, change production env, deploy, or create a grid.

@@ -2959,6 +2959,11 @@ Trading deployment prep:
   authorization to approve any override, change env, deploy, restart, call
   `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO, send
   Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- The grid open authorization bundle accepts a fresh `trendGate` clearance as
+  `CLEAR_BY_FRESH_TREND_GATE_NOT_MUTATION`. This prevents a
+  `NO_TREND_OVERRIDE_NEEDED...` trend packet from incorrectly blocking the
+  consolidated operator request while keeping trend override approval, env
+  changes, deploy, and `createGrid` separate.
 - Grid open operator authorization now has a read-only request packet:
   `scripts/prepare_grid_open_operator_authorization_request_ssh.ps1`. It
   consumes the authorization bundle and emits

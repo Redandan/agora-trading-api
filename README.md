@@ -375,7 +375,10 @@ This consumes the capital-override review packet and emits
 `create_grid_allowed=false`. It consolidates the trend override, capital cap
 override, production env diff, post-env read-only verification, and createGrid
 authorization lanes into one operator-review bundle with explicit remaining
-execution blockers and required authorization order. It does not approve any
+execution blockers and required authorization order. A fresh `trendGate`
+clearance is accepted as `CLEAR_BY_FRESH_TREND_GATE_NOT_MUTATION`, so a
+no-override-needed trend packet does not block the bundle by itself. It does
+not approve any
 override, change env, deploy, restart, call `createGrid`, enable
 grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.

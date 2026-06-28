@@ -222,6 +222,30 @@ Assert-SmokeCase `
     -Environment @{ MAX_PYTH_NETWORK_WARN = "0" }
 
 Assert-SmokeCase `
+    -Name "okx ws transient null is classified warn baseline" `
+    -Lines @(
+        "2026-06-27T09:09:16.576Z  WARN 2516045 --- [agora-trading-api] [kx.com:8443/...] c.a.service.market.OkxWsKlineService     : [OkxWS] WS failure BTCUSDT@1m: null"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "okx_ws_transient=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "okx ws transient threshold is fail closed" `
+    -Lines @(
+        "2026-06-27T09:09:16.576Z  WARN 2516045 --- [agora-trading-api] [kx.com:8443/...] c.a.service.market.OkxWsKlineService     : [OkxWS] WS failure BTCUSDT@1m: null"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "OKX WS transient warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_OKX_WS_TRANSIENT_WARN = "0" }
+
+Assert-SmokeCase `
     -Name "high risk allow flag is diagnostic only" `
     -Lines @(
         "2026-06-18T00:00:00.000Z  INFO 1 --- [agora-trading-api] Started TradingApplication",

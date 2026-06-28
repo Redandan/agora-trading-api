@@ -3855,6 +3855,7 @@ Current warning classes:
 | `spring.jpa.open-in-view is enabled by default` | Do not flip to `false` as a drive-by cleanup; it can change lazy-loading behavior and should be handled through a focused API/DTO audit. |
 | `DailyAutonomousTradingDigest` severe notification sent | Known operator-alert warning only when production explicitly enables autonomous digest Telegram/severe-scan flags. It is not an order/OCO/grid/Earn/fund action, but the category count should still be reviewed after each deploy. |
 | `OkxWsKlineService` public WS `Connection reset` | Treated as transient only while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`) and followed by fresh persisted K-line rows. Exceeding the threshold is a runtime-log smoke failure and should be investigated as collector/network instability. |
+| `OkxWsKlineService` public WS transient failure such as `: null`, timeout, EOF, or closed connection | Treated as transient only while below `MAX_OKX_WS_TRANSIENT_WARN` (default `10`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data collector/network instability before relying on grid-open or post-open evidence. |
 | `PythNetworkService` feed/network timeout, HTTP, empty response, or unparseable price WARN | Treated as transient only while below `MAX_PYTH_NETWORK_WARN` (default `3`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data provider instability before relying on Pyth-derived evidence. |
 | `ScoreBuyV2Strategy` `ML003011` feature-schema mismatch | Known ScoreBuy/HeatWave model schema drift warning. `ScoreBuyV2Strategy` catches the prediction failure and returns `HOLD`, so this is not a grid/order/OCO mutation, but the `scorebuy_ml_schema_mismatch` count should be reviewed before ScoreBuy live rollout or model promotion. |
 
@@ -3877,8 +3878,9 @@ intentionally used outside acceptance. On success, it also prints the known WARN
 category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
   optional TheGraph key, autonomous digest severe-notification, bounded OKX
-  public WS connection-reset warnings, ScoreBuy/HeatWave feature-schema
-  mismatch warnings, and bounded Pyth market-data network warnings.
+  public WS connection-reset and transient warnings, ScoreBuy/HeatWave
+  feature-schema mismatch warnings, and bounded Pyth market-data network
+  warnings.
 
 For grid opening, `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`
 passes `AcceptAlreadyAppliedEnvDiff` through the post-env packet chain. That

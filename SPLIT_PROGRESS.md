@@ -3164,9 +3164,12 @@ Trading deployment prep:
   `bash -s` and fails closed on SSH/runtime-log failures, and the runtime-log
   smoke classifies bounded `PythNetworkService` feed/network WARN lines under
   `MAX_PYTH_NETWORK_WARN` instead of treating a single timeout as an unknown
-  warning. The operator authorization request packet now flattens nested
-  bundle, capital, env-diff, create-preflight, and trend blockers into
-  `grid_open_operator_authorization_request_blockers`.
+  warning. The runtime-log smoke also classifies bounded `OkxWsKlineService`
+  public WS transient WARN lines such as `: null` under
+  `MAX_OKX_WS_TRANSIENT_WARN`; exceeding the threshold still fails closed as
+  collector/network instability evidence. The operator authorization request
+  packet now flattens nested bundle, capital, env-diff, create-preflight, and
+  trend blockers into `grid_open_operator_authorization_request_blockers`.
 - The refreshed read-only production evidence still does not authorize opening
   another grid. Grid #10 was ACTIVE, in range, with four pending levels, zero
   holding exposure, scheduler registered, and scheduler/recovery/Earn flags

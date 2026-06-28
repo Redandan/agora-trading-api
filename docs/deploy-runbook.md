@@ -806,9 +806,12 @@ Expected:
   `grid_open_operator_authorization_request_status`,
   `grid_open_operator_authorization_request_ready`,
   `grid_open_allowed=false`, and `create_grid_allowed=false`.
-- Renders copyable authorization request lines for the separate trend override,
-  capital-cap override, production env diff, deploy/restart plus post-env
-  verification, and createGrid review approvals.
+- Renders copyable authorization request lines for the separate trend override
+  only when the trend gate remains blocked; if a fresh `trendGate` clearance is
+  accepted, the first line records that no separate trend-regime override is
+  required unless the gate becomes blocked again. Capital-cap override,
+  production env diff, deploy/restart plus post-env verification, and
+  createGrid review remain separate approvals.
 - Also emits flattened `requestBlockers` plus nested `bundleBlockers`,
   `capitalHardBlockers`, `envReviewBlockers`, `createReviewBlockers`, and
   `trendHardBlockers`, so a blocked authorization bundle cannot hide the

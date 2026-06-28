@@ -2971,16 +2971,19 @@ Trading deployment prep:
   `grid_open_operator_authorization_request_status`,
   `grid_open_operator_authorization_request_ready`,
   `grid_open_allowed=false`, and `create_grid_allowed=false`. The packet
-  renders separate copyable request lines for trend-regime override,
-  capital-cap override, production env diff, deploy/restart plus post-env
-  verification, and createGrid review. The request packet now separates
-  `coveredCreateReviewBlockers` from `uncoveredCreateReviewBlockers`, so a
-  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` create preflight blocker can remain
-  visible while being covered by a ready capital-cap override authorization
-  line. Every approval and mutation flag remains false. It is not authorization
-  to approve any request, change env, deploy, restart, call `createGrid`, enable
-  grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
-  DB/grid/fund/Earn/exchange state.
+  renders separate copyable request lines for trend-regime override only when
+  the trend gate remains blocked; a fresh `trendGate` clearance is recorded as
+  no separate trend-regime override required unless the gate becomes blocked
+  again. Capital-cap override, production env diff, deploy/restart plus
+  post-env verification, and createGrid review remain separate approvals. The
+  request packet now separates `coveredCreateReviewBlockers` from
+  `uncoveredCreateReviewBlockers`, so a `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`
+  create preflight blocker can remain visible while being covered by a ready
+  capital-cap override authorization line. Every approval and mutation flag
+  remains false. It is not authorization to approve any request, change env,
+  deploy, restart, call `createGrid`, enable grid/scheduler/recovery, place
+  orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange
+  state.
 - Grid post-env verification now has a read-only plan packet:
   `scripts/prepare_grid_post_env_verification_plan_ssh.ps1`. It consumes the
   operator authorization request and emits

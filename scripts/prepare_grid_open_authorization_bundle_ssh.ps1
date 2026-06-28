@@ -163,13 +163,24 @@ $bundleReady = (
     $candidatePlanComplete
 )
 
-$executionBlockers = @(
-    "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE",
-    "OPERATOR_CAPITAL_CAP_OVERRIDE_REQUIRED",
-    "OPERATOR_PRODUCTION_ENV_DIFF_AUTHORIZATION_REQUIRED",
-    "DEPLOY_RESTART_AND_READ_ONLY_POST_ENV_VERIFICATION_REQUIRED",
-    "OPERATOR_CREATEGRID_AUTHORIZATION_REQUIRED"
-)
+$executionBlockers = [System.Collections.Generic.List[string]]::new()
+if (-not $trendGateClear) {
+    Add-Unique -List $executionBlockers -Value "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE"
+}
+Add-Unique -List $executionBlockers -Value "OPERATOR_CAPITAL_CAP_OVERRIDE_REQUIRED"
+Add-Unique -List $executionBlockers -Value "OPERATOR_PRODUCTION_ENV_DIFF_AUTHORIZATION_REQUIRED"
+Add-Unique -List $executionBlockers -Value "DEPLOY_RESTART_AND_READ_ONLY_POST_ENV_VERIFICATION_REQUIRED"
+Add-Unique -List $executionBlockers -Value "OPERATOR_CREATEGRID_AUTHORIZATION_REQUIRED"
+$authorizationSequence = [System.Collections.Generic.List[string]]::new()
+if ($trendGateClear) {
+    Add-Unique -List $authorizationSequence -Value "1. fresh trend gate clearance accepted; separate trend override not required unless the gate becomes blocked"
+} else {
+    Add-Unique -List $authorizationSequence -Value "1. trend-regime override or fresh trend clearance"
+}
+Add-Unique -List $authorizationSequence -Value "2. capital-cap override if candidateCapitalUsdt remains above effectiveReviewCapitalCapUsdt"
+Add-Unique -List $authorizationSequence -Value "3. production env diff authorization and deploy/restart"
+Add-Unique -List $authorizationSequence -Value "4. post-env read-only split acceptance plus refreshed grid open packets"
+Add-Unique -List $authorizationSequence -Value "5. createGrid authorization with freshly reviewed inputs"
 
 $status = if ($bundleReady) {
     "READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_BUNDLE_NOT_MUTATION"
@@ -235,19 +246,13 @@ $packet = [pscustomobject]@{
             sourceStatus = if ($null -ne $createPacket) { $createPacket.status } else { "UNKNOWN" }
         }
     )
-    remainingExecutionBlockers = $executionBlockers
+    remainingExecutionBlockers = @($executionBlockers)
     missingEvidence = @($missingEvidence)
     bundleBlockers = @($bundleBlockers)
     reviewedCreateGridInputs = if ($null -ne $createPacket) { $createPacket.reviewedCreateGridInputs } else { $null }
     capitalOverrideRequest = if ($null -ne $capitalPacket) { $capitalPacket.capitalOverrideRequest } else { $null }
     proposedSeparateEnvDiff = if ($null -ne $envPacket) { $envPacket.proposedSeparateEnvDiff } else { @() }
-    requiredOperatorAuthorizationSequence = @(
-        "1. trend-regime override or fresh trend clearance",
-        "2. capital-cap override if candidateCapitalUsdt remains above effectiveReviewCapitalCapUsdt",
-        "3. production env diff authorization and deploy/restart",
-        "4. post-env read-only split acceptance plus refreshed grid open packets",
-        "5. createGrid authorization with freshly reviewed inputs"
-    )
+    requiredOperatorAuthorizationSequence = @($authorizationSequence)
     postEnvReadOnlyVerification = @(
         "verify split acceptance",
         "refresh grid open decision snapshot",

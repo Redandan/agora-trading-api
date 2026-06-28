@@ -394,8 +394,11 @@ This consumes the authorization bundle and emits
 `grid_open_operator_authorization_request_status`,
 `grid_open_operator_authorization_request_ready`, `grid_open_allowed=false`,
 and `create_grid_allowed=false`. It renders copyable, separate authorization
-request lines for trend override, capital-cap override, production env diff,
-deploy/restart plus post-env verification, and createGrid review. It does not
+request lines for trend override only when the trend gate remains blocked; if a
+fresh `trendGate` clearance is accepted, it records that no separate
+trend-regime override is required unless the gate becomes blocked again.
+Capital-cap override, production env diff, deploy/restart plus post-env
+verification, and createGrid review remain separate approvals. It does not
 approve any request, change env, deploy, restart, call `createGrid`, enable
 grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.

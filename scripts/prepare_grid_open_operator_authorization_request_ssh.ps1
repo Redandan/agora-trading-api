@@ -81,6 +81,14 @@ function Get-StringArray {
     return @($list)
 }
 
+function Get-PropertyOrNull {
+    param([object]$Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -161,6 +169,10 @@ $envPacket = if ($null -ne $createPacket) { $createPacket.sourceEnvDiffPacketSum
 $envReviewBlockers = if ($null -ne $envPacket) { Get-StringArray $envPacket.reviewBlockers } else { @() }
 $trendPacket = if ($null -ne $envPacket) { $envPacket.sourceTrendOverridePacketSummary } else { $null }
 $trendHardBlockers = if ($null -ne $trendPacket) { Get-StringArray $trendPacket.hardBlockers } else { @() }
+$readinessSummary = if ($null -ne $bundlePacket) { Get-PropertyOrNull -Object $bundlePacket -Name "readinessSummary" } else { $null }
+$trendGate = Get-PropertyOrNull -Object $readinessSummary -Name "trendGate"
+if ([string]::IsNullOrWhiteSpace([string]$trendGate)) { $trendGate = "UNKNOWN" }
+$trendGateClearanceAccepted = if ($null -ne $readinessSummary) { [bool](Get-PropertyOrNull -Object $readinessSummary -Name "trendGateClearanceAccepted") } else { $false }
 
 if (-not $bundleReady) { Add-Unique -List $requestBlockers -Value "GRID_OPEN_AUTHORIZATION_BUNDLE_NOT_READY" }
 Add-UniqueValues -List $requestBlockers -Values $bundleBlockers
@@ -173,7 +185,11 @@ if ($null -eq $capitalRequest) { Add-Unique -List $missingEvidence -Value "capit
 if ($envDiff.Count -eq 0) { Add-Unique -List $missingEvidence -Value "proposedSeparateEnvDiff from grid open authorization bundle" }
 if ($executionBlockers.Count -eq 0) { Add-Unique -List $missingEvidence -Value "remainingExecutionBlockers from grid open authorization bundle" }
 
-$trendText = "I authorize a separate trend-regime override for $Symbol only if the fresh bundle remains review-ready, trend risk is not HIGH, event risk remains CLEAR_EVENT_RISK_R0, replay score remains >= 70, and stopBreakRows remains 0."
+$trendText = if ($trendGateClearanceAccepted) {
+    "Fresh trend gate clearance accepted for $Symbol (trendGate=$trendGate); separate trend-regime override is not required unless the gate becomes blocked before env/createGrid review."
+} else {
+    "I authorize a separate trend-regime override for $Symbol only if the fresh bundle remains review-ready, trend risk is not HIGH, event risk remains CLEAR_EVENT_RISK_R0, replay score remains >= 70, and stopBreakRows remains 0."
+}
 $capitalTextLine = if ($null -ne $capitalRequest) {
     "I authorize a separate capital-cap override for $Symbol from effectiveReviewCapitalCapUsdt=$($capitalRequest.effectiveReviewCapitalCapUsdt) to requestedMaximumReviewCapitalCapUsdt=$($capitalRequest.requestedMaximumReviewCapitalCapUsdt), requiredCapRaiseUsdt=$($capitalRequest.requiredCapRaiseUsdt), requiredCapMultiplier=$($capitalRequest.requiredCapMultiplier)."
 } else {
@@ -215,6 +231,8 @@ $packet = [pscustomobject]@{
     sourceAuthorizationBundleStatus = if ($null -ne $bundlePacket) { $bundlePacket.status } else { "UNKNOWN" }
     sourceAuthorizationBundleReady = $bundleReady
     authorizationRequestReady = $requestReady
+    trendGate = $trendGate
+    trendGateClearanceAccepted = $trendGateClearanceAccepted
     authorizationRequestLines = @(
         $trendText,
         $capitalTextLine,

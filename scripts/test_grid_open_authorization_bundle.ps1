@@ -64,6 +64,7 @@ foreach ($marker in @(
         "trendLaneReady",
         "CLEAR_BY_FRESH_TREND_GATE_NOT_MUTATION",
         "fresh trend gate clearance accepted",
+        "separate trend override not required",
         "remainingExecutionBlockers",
         "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE",
         "OPERATOR_CAPITAL_CAP_OVERRIDE_REQUIRED",

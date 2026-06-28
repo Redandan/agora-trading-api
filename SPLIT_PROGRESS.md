@@ -3106,6 +3106,28 @@ Trading deployment prep:
   child packets. These packets are still evidence only: trend override,
   capital-cap override, production env diff, deploy/restart, post-env
   verification, and createGrid each remain separate authorization steps.
+- Grid opening now has a read-only complete operator packet wrapper:
+  `scripts/prepare_grid_open_complete_operator_packet_ssh.ps1`. It aggregates
+  the split/currentness deploy handoff, pre-env operator authorization request,
+  and post-env verification plan into `GRID_OPEN_COMPLETE_OPERATOR_PACKET`, or
+  consumes those saved logs for deterministic replay. It emits the currentness
+  authorization line, operator authorization lines, post-deploy commands,
+  post-env commands, reviewed createGrid inputs, remaining execution blockers,
+  and all mutation flags as false. A ready complete packet is still evidence
+  only and does not approve trend/capital/env/deploy/createGrid or open a grid.
+- Replaying the complete packet from
+  `target/grid-open/grid-split-acceptance-deploy-handoff-microgrid-after-1054bc8.log`,
+  `target/grid-open/grid-open-operator-authorization-request-microgrid-after-15bc041.log`,
+  and
+  `target/grid-open/grid-post-env-verification-plan-microgrid-after-15bc041.log`
+  produced `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` with
+  `grid_open_complete_operator_packet_ready=true`, `missingEvidence=[]`,
+  currentness `3937f5d` versus `1054bc8`, readiness `66.67`, passed gates
+  `8/12`, and reviewed micro-grid inputs `gridCount=2`, `perLevelUsdt=5`,
+  `candidateCapitalUsdt=10`, and `replayScore=80`. Remaining execution blockers
+  still require separate split/currentness deploy, trend override or clearance,
+  capital-cap override, OKX/grid env authorization, deploy/restart,
+  post-env read-only verification, and createGrid authorization.
 - Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
   `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence
   instead of a high-risk operation line. This keeps post-env split acceptance

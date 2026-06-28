@@ -210,6 +210,27 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   requires separate trend/capital/env/deploy/post-env/createGrid authorization
   and keeps `production_env_change_allowed=false`, `deploy_allowed=false`,
   `create_grid_allowed=false`, and `grid_open_allowed=false`.
+- A read-only complete operator packet wrapper is available as
+  `.\scripts\prepare_grid_open_complete_operator_packet_ssh.ps1`. It combines
+  the split/currentness deploy handoff, pre-env operator authorization request,
+  and post-env verification plan into `GRID_OPEN_COMPLETE_OPERATOR_PACKET`, and
+  can replay saved logs with `-SplitHandoffLog`,
+  `-OperatorAuthorizationRequestLog`, and `-PostEnvPlanLog`. The wrapper is
+  for packaging separate operator decisions only; it keeps
+  `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `create_grid_allowed=false`, and `grid_open_allowed=false`.
+- The wrapper was replayed from the current read-only micro-grid logs and saved
+  to `target/grid-open/grid-open-complete-operator-packet-microgrid-after-1054bc8.log`.
+  It returned `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` with
+  `grid_open_complete_operator_packet_ready=true`, `missingEvidence=[]`,
+  currentness `serverWorktreeCommit=3937f5d` versus `originMainCommit=1054bc8`,
+  readiness score `66.67`, passed gates `8/12`, reviewed createGrid inputs
+  `gridCount=2`, `perLevelUsdt=5`, `candidateCapitalUsdt=10`, and remaining
+  execution blockers `SPLIT_ACCEPTANCE_NOT_PASSING`,
+  `GRID_ENV_DIFF_NOT_APPLIED`, `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`,
+  trend override, capital override, env authorization, deploy/post-env
+  verification, and createGrid authorization. It is complete evidence for
+  separate operator decisions, not approval to execute them.
 - Grid open readiness was refreshed again on 2026-06-28 with read-only
   readiness, operator, post-open, parameter-sweep, and operator authorization
   request packets. No deploy, production env change, scheduler change,

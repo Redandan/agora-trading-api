@@ -855,6 +855,35 @@ Expected:
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid complete operator packet:
+
+```powershell
+.\scripts\prepare_grid_open_complete_operator_packet_ssh.ps1
+```
+
+Expected:
+
+- Invokes only `prepare_grid_split_acceptance_deploy_handoff_ssh.ps1`,
+  `prepare_grid_open_operator_authorization_request_ssh.ps1`, and
+  `prepare_grid_post_env_verification_plan_ssh.ps1`, or consumes replay logs
+  passed with `-SplitHandoffLog`, `-OperatorAuthorizationRequestLog`, and
+  `-PostEnvPlanLog`.
+- Emits `GRID_OPEN_COMPLETE_OPERATOR_PACKET`,
+  `grid_open_complete_operator_packet_status`,
+  `grid_open_complete_operator_packet_ready`,
+  `grid_open_complete_operator_packet_currentness_authorization_line`,
+  `grid_open_complete_operator_packet_authorization_lines`,
+  `grid_open_complete_operator_packet_post_deploy_commands`, and
+  `grid_open_complete_operator_packet_post_env_commands`.
+- `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` means the
+  currentness, trend/capital/env, post-env verification, and future createGrid
+  review lanes are packaged for separate operator decisions. It is not
+  permission to approve any lane, change env, deploy, or create a grid.
+- The packet does not deploy, restart, reload nginx, change production env,
+  approve a trend override, approve a capital override, call `createGrid`,
+  enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
+
 Read-only Grid post-env verification bundle:
 
 ```powershell

@@ -418,6 +418,23 @@ not approve env changes, deploy,
 restart, call `createGrid`, enable grid/scheduler/recovery, place orders,
 modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only Grid complete operator packet:
+
+```powershell
+.\scripts\prepare_grid_open_complete_operator_packet_ssh.ps1
+```
+
+This aggregates the split/currentness deploy handoff, the pre-env operator
+authorization request, and the post-env verification plan into
+`GRID_OPEN_COMPLETE_OPERATOR_PACKET`. It emits
+`grid_open_complete_operator_packet_status`,
+`grid_open_complete_operator_packet_ready`, the currentness authorization line,
+operator authorization lines, remaining execution blockers, post-deploy
+commands, and post-env commands. A
+`READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` status means the
+complete evidence packet can be reviewed as separate operator decisions; it
+does not approve trend/capital/env/deploy/createGrid or open a grid.
+
 Read-only Grid post-env verification bundle:
 
 ```powershell

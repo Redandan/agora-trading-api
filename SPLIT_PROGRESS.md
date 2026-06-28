@@ -3096,6 +3096,18 @@ Trading deployment prep:
   `TRADING_GRID_ENABLED_ALREADY_TRUE`, and create-grid post-env readiness. No
   deploy, env change, scheduler change, `createGrid`, order, OCO, grid, fund,
   Earn, Telegram, DB, or exchange mutation was performed.
+- The env-diff preflight now emits `postEnvDiffBlockers` when
+  `AcceptAlreadyAppliedEnvDiff` is used before the complete env diff is
+  actually live. The refreshed read-only accept-applied evidence showed
+  `TRADING_GRID_ENABLED=true` was already present, while
+  `TRADING_OKX_ENABLED=false` produced
+  `TRADING_OKX_ENABLED_NOT_TRUE_FOR_POST_ENV_REVIEW`; the operator
+  authorization request surfaced that value through `envReviewBlockers`. This
+  makes the post-env/currentness lane replayable instead of reporting a blocked
+  env review with an empty blocker list. The post-env verification plan now
+  also flattens source request blockers into `authorizationRequestBlockers` and
+  top-level `planBlockers`, so the remaining env/trend/capital/createGrid lanes
+  are visible without manually drilling into nested packet JSON.
 - BTC panic-bottom context now has a read-only ScoreBuy companion MCP:
   `previewPanicBottomContext(symbol=BTCUSDT)`. It reads `md_kline`,
   `market_indicator_history` `fear_greed`, a 200WMA reference, OCO health text,

@@ -199,6 +199,19 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   closed on remote failures and the local runtime-log classifier recognizes
   bounded Pyth network WARN lines, but the server still needs deploy/currentness
   before that classification can clear the active server log.
+- A follow-up 2026-06-28 read-only post-env packet refresh proved
+  `AcceptAlreadyAppliedEnvDiff` now separates already-applied grid flags from
+  missing post-env state. In accept-applied mode the env preflight returns
+  `grid_env_diff_preflight_post_env_diff_blockers=["TRADING_OKX_ENABLED_NOT_TRUE_FOR_POST_ENV_REVIEW"]`
+  and the operator authorization request propagates that blocker through
+  `envReviewBlockers`. The post-env verification plan also lifts source
+  request blockers into `authorizationRequestBlockers` and top-level
+  `planBlockers`. This keeps post-env review replayable when
+  `TRADING_GRID_ENABLED=true` is already present but `TRADING_OKX_ENABLED=false`
+  still requires a separate env authorization, deploy/restart, and read-only
+  verification. It remains non-mutating and does not authorize env changes,
+  deploy, `createGrid`, scheduler/recovery/Earn, order, OCO, grid, fund,
+  Telegram, DB, or exchange actions.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

@@ -826,6 +826,9 @@ Expected:
 - Packages the required post-env read-only commands, pass criteria, abort
   criteria, and refreshed createGrid inputs that must still match after any
   separately authorized env/deploy/restart.
+- Flattens source operator authorization request blockers into
+  `authorizationRequestBlockers` and top-level `planBlockers`, so a blocked
+  post-env plan names the underlying env/trend/capital/createGrid lane.
 - `READY_FOR_GRID_POST_ENV_VERIFICATION_PLAN_NOT_MUTATION` means the read-only
   post-env verification checklist is ready to run after separately authorized
   env/deploy/restart. It is not permission to change production env, deploy,
@@ -3816,6 +3819,11 @@ mode accepts the already-applied `TRADING_OKX_ENABLED=true` and
 has been deployed and split acceptance has passed. The standalone pre-apply
 `prepare_grid_env_diff_preflight_packet_ssh.ps1` path still treats already-true
 OKX/grid flags as blockers before env-diff authorization.
+If post-env mode is requested before the diff is actually applied, the env
+preflight emits `postEnvDiffBlockers` such as
+`TRADING_OKX_ENABLED_NOT_TRUE_FOR_POST_ENV_REVIEW`; downstream operator request
+packets must surface those blockers instead of reporting a blocked env review
+with an empty blocker list.
 
 After a grid is opened, run the read-only post-open smoke before considering
 auto-rebalance or recovery:

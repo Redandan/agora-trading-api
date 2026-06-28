@@ -117,6 +117,7 @@ $trendOverridePacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $tr
 
 $missingEvidence = [System.Collections.Generic.List[string]]::new()
 $reviewBlockers = [System.Collections.Generic.List[string]]::new()
+$postEnvDiffBlockers = [System.Collections.Generic.List[string]]::new()
 $operatorAuthorizationRequired = [System.Collections.Generic.List[string]]::new()
 if ($operatorExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "grid open operator packet completed" }
 if ($trendOverrideExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "grid trend override review packet completed" }
@@ -170,6 +171,26 @@ $envDiffAlreadyApplied = (
     $recoveryEnabled -eq "false" -and
     $earnEnabled -eq "false"
 )
+if ($AcceptAlreadyAppliedEnvDiff) {
+    if ($okxEnabled -ne "true") {
+        Add-Unique -List $postEnvDiffBlockers -Value "TRADING_OKX_ENABLED_NOT_TRUE_FOR_POST_ENV_REVIEW"
+    }
+    if ($gridEnabled -ne "true") {
+        Add-Unique -List $postEnvDiffBlockers -Value "TRADING_GRID_ENABLED_NOT_TRUE_FOR_POST_ENV_REVIEW"
+    }
+    if ($schedulerEnabled -ne "false") {
+        Add-Unique -List $postEnvDiffBlockers -Value "GRID_AUTO_REBALANCE_SCHEDULER_NOT_FALSE_FOR_POST_ENV_REVIEW"
+    }
+    if ($recoveryEnabled -ne "false") {
+        Add-Unique -List $postEnvDiffBlockers -Value "GRID_RECOVERY_NOT_FALSE_FOR_POST_ENV_REVIEW"
+    }
+    if ($earnEnabled -ne "false") {
+        Add-Unique -List $postEnvDiffBlockers -Value "OKX_EARN_TOPUP_NOT_FALSE_FOR_POST_ENV_REVIEW"
+    }
+}
+foreach ($postEnvDiffBlocker in @($postEnvDiffBlockers)) {
+    Add-Unique -List $reviewBlockers -Value $postEnvDiffBlocker
+}
 
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written trend override approval or fresh trend gate clearance"
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written production env diff authorization"
@@ -244,6 +265,7 @@ $packet = [pscustomobject]@{
         "confirm grid_open_allowed=false until separate createGrid authorization"
     )
     reviewBlockers = @($reviewBlockers)
+    postEnvDiffBlockers = @($postEnvDiffBlockers)
     missingEvidence = @($missingEvidence)
     operatorAuthorizationRequired = @($operatorAuthorizationRequired)
     envDiffReviewReady = $reviewReady
@@ -276,6 +298,7 @@ Write-Host "order_allowed=false"
 Write-Host "oco_mutation_allowed=false"
 Write-Host "telegram_send_allowed=false"
 Write-Host ("grid_env_diff_preflight_review_blockers=" + (ConvertTo-Json -Compress @($reviewBlockers)))
+Write-Host ("grid_env_diff_preflight_post_env_diff_blockers=" + (ConvertTo-Json -Compress @($postEnvDiffBlockers)))
 Write-Host ("grid_env_diff_preflight_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("grid_env_diff_preflight_operator_authorization_required=" + (ConvertTo-Json -Compress @($operatorAuthorizationRequired)))
 Write-Host ("grid_env_diff_preflight_proposed_env_diff=" + (ConvertTo-Json -Compress $packet.proposedSeparateEnvDiff))

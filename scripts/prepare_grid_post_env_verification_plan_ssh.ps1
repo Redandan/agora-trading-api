@@ -61,6 +61,26 @@ function Add-Unique {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Add-UniqueValues {
+    param([System.Collections.Generic.List[string]]$List, $Values)
+    foreach ($value in @($Values)) {
+        Add-Unique -List $List -Value ([string]$value)
+    }
+}
+
+function Get-StringArray {
+    param($Values)
+    $list = [System.Collections.Generic.List[string]]::new()
+    if ($null -eq $Values) { return @() }
+    foreach ($value in @($Values)) {
+        if ($null -eq $value) { continue }
+        if ($value -is [pscustomobject] -and @($value.PSObject.Properties).Count -eq 0) { continue }
+        $text = [string]$value
+        if (-not [string]::IsNullOrWhiteSpace($text)) { $list.Add($text) }
+    }
+    return @($list)
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -121,8 +141,10 @@ $requestReady = if ($null -ne $requestPacket) { [bool]$requestPacket.authorizati
 $createInputs = if ($null -ne $requestPacket) { $requestPacket.reviewedCreateGridInputs } else { $null }
 $envDiff = if ($null -ne $requestPacket) { @($requestPacket.proposedSeparateEnvDiff) } else { @() }
 $postEnvChecks = if ($null -ne $requestPacket) { @($requestPacket.postEnvReadOnlyVerification) } else { @() }
+$authorizationRequestBlockers = if ($null -ne $requestPacket) { Get-StringArray $requestPacket.requestBlockers } else { @() }
 
 if (-not $requestReady) { Add-Unique -List $planBlockers -Value "GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_READY" }
+Add-UniqueValues -List $planBlockers -Values $authorizationRequestBlockers
 if ($null -eq $createInputs) { Add-Unique -List $missingEvidence -Value "reviewedCreateGridInputs from operator authorization request" }
 if ($envDiff.Count -eq 0) { Add-Unique -List $missingEvidence -Value "proposedSeparateEnvDiff from operator authorization request" }
 if ($postEnvChecks.Count -eq 0) { Add-Unique -List $missingEvidence -Value "postEnvReadOnlyVerification from operator authorization request" }
@@ -185,6 +207,7 @@ $packet = [pscustomobject]@{
         "scheduler/recovery/Earn become enabled without separate authorization"
     )
     planBlockers = @($planBlockers)
+    authorizationRequestBlockers = @($authorizationRequestBlockers)
     missingEvidence = @($missingEvidence)
     postEnvVerificationPlanReady = $planReady
     productionEnvChangeAllowed = $false

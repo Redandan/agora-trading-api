@@ -192,6 +192,24 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   those reviewed candidate parameters on the post-deploy blocker board,
   readiness watch, and post-env read-only bundle commands. It is still not
   authorization to deploy, change env, or call `createGrid`.
+- A follow-up read-only micro-grid authorization refresh saved
+  `target/grid-open/grid-open-operator-authorization-request-microgrid-after-15bc041.log`
+  and
+  `target/grid-open/grid-post-env-verification-plan-microgrid-after-15bc041.log`.
+  The operator request returned
+  `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` with
+  `grid_open_operator_authorization_request_ready=true`,
+  `requestBlockers=[]`, reviewed createGrid inputs
+  `gridCount=2`, `perLevelUsdt=5`, `candidateCapitalUsdt=10`,
+  `replayScore=80`, and
+  `coveredCreateReviewBlockers=["CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"]`. The
+  post-env plan returned `READY_FOR_GRID_POST_ENV_VERIFICATION_PLAN_NOT_MUTATION`
+  with `grid_post_env_verification_plan_ready=true`, `planBlockers=[]`, and
+  required post-env commands preserving the same micro-grid parameters plus
+  `AcceptAlreadyAppliedEnvDiff` for post-env-capable child packets. This still
+  requires separate trend/capital/env/deploy/post-env/createGrid authorization
+  and keeps `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `create_grid_allowed=false`, and `grid_open_allowed=false`.
 - Grid open readiness was refreshed again on 2026-06-28 with read-only
   readiness, operator, post-open, parameter-sweep, and operator authorization
   request packets. No deploy, production env change, scheduler change,

@@ -3093,6 +3093,19 @@ Trading deployment prep:
   `66.67`, passed gates `8/12`, server worktree `3937f5d` behind `origin/main`
   `2d02712`, and ranked blockers `SPLIT_ACCEPTANCE_NOT_PASSING`,
   `GRID_ENV_DIFF_NOT_APPLIED`, and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`.
+- The same 2026-06-28 refresh produced ready read-only micro-grid authorization
+  packets. `prepare_grid_open_operator_authorization_request_ssh.ps1` returned
+  `READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION` with
+  `requestBlockers=[]`, `gridCount=2`, `perLevelUsdt=5`,
+  `candidateCapitalUsdt=10`, `replayScore=80`, and
+  `coveredCreateReviewBlockers=["CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"]`.
+  `prepare_grid_post_env_verification_plan_ssh.ps1` returned
+  `READY_FOR_GRID_POST_ENV_VERIFICATION_PLAN_NOT_MUTATION` with
+  `planBlockers=[]` and replayable post-env commands carrying the same
+  micro-grid parameters plus `AcceptAlreadyAppliedEnvDiff` for post-env-capable
+  child packets. These packets are still evidence only: trend override,
+  capital-cap override, production env diff, deploy/restart, post-env
+  verification, and createGrid each remain separate authorization steps.
 - Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
   `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence
   instead of a high-risk operation line. This keeps post-env split acceptance

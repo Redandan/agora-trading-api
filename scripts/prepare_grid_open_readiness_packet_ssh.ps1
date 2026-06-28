@@ -55,8 +55,8 @@ if ($LookbackHours -lt 24 -or $LookbackHours -gt 720) {
 if ($CandidateLookbackHours -lt 72 -or $CandidateLookbackHours -gt 720) {
     throw "CandidateLookbackHours must be between 72 and 720."
 }
-if ($GridCount -lt 4 -or $GridCount -gt 24) {
-    throw "GridCount must be between 4 and 24."
+if ($GridCount -lt 2 -or $GridCount -gt 24) {
+    throw "GridCount must be between 2 and 24."
 }
 if ($PerLevelUsdt -lt 5 -or $PerLevelUsdt -gt 1000) {
     throw "PerLevelUsdt must be between 5 and 1000."

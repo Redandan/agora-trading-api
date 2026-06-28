@@ -256,6 +256,19 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `effectiveReviewCapitalCapUsdt=10.0`). The board kept every mutation flag
   false and is still not authorization to deploy, change env, or call
   `createGrid`.
+- A follow-up read-only micro-grid evidence pass aligned the grid review
+  validators with runtime `createGrid` support for `gridCount(2-50)`. The
+  `gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`,
+  `candidateHalfWidthPct=10` candidate replayed with `replayScore=80.0`,
+  `stopBreakRows=0`, and `candidateCapitalUsdt=10.0`. The latest board kept
+  `grid_pre_env_authorization_request_ready=true`, readiness score `66.67`,
+  and passed gates `8/12`; ranked blockers stayed
+  `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, and
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`, but the capital evidence is now
+  `candidateCapitalUsdt=10.0` versus `effectiveReviewCapitalCapUsdt=5.0`.
+  This is still not authorization to deploy, change env, or call `createGrid`;
+  it only lowers the absolute capital-cap override request for later operator
+  review.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

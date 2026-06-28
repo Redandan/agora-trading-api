@@ -565,6 +565,9 @@ Expected:
 - `CandidateHalfWidthPct=0` preserves the existing ATR/trend-derived candidate
   width. Explicit values are evidence-only candidate range tests and are not
   grid-create authorization.
+- `gridCount=2` is accepted only as a micro-grid review lane, matching runtime
+  `createGrid` support for `gridCount(2-50)`. It can reduce reviewed candidate
+  capital, but it is still evidence only and does not authorize a grid.
 - `grid_candidate_parameter_sweep_best_quality_candidate` means replay quality
   can clear for that parameter set, but trend override, capital cap, env, and
   createGrid authorization can still remain blocked.

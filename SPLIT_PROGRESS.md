@@ -2844,8 +2844,11 @@ Trading deployment prep:
   complete plan, replay score >= 70, zero replay stop-break rows, and capital
   within the effective review cap. `CandidateHalfWidthPct=0` keeps the existing
   ATR/trend-derived range; explicit values are candidate range evidence only.
-  A quality candidate can clear replay quality while still leaving trend,
-  capital, env, or createGrid authorization blocked.
+  `gridCount=2` is accepted only as a micro-grid review lane because runtime
+  `createGrid` supports `gridCount(2-50)`; it can reduce reviewed candidate
+  capital but remains evidence only. A quality candidate can clear replay
+  quality while still leaving trend, capital, env, or createGrid authorization
+  blocked.
   The sweep is evidence only: it does not
   change env, deploy, restart, call `createGrid`, enable grid/scheduler or
   recovery, place orders, modify OCO, send Telegram, or mutate
@@ -3032,6 +3035,15 @@ Trading deployment prep:
   ranked blockers are `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`,
   and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`; the former operator authorization
   chain blocker is now correctly cleared for the pre-env request phase.
+- A follow-up read-only micro-grid review aligned the packet validators with
+  runtime `createGrid` support for `gridCount(2-50)` while keeping every
+  mutation flag false. The `gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`,
+  `candidateHalfWidthPct=10` candidate replayed with `replayScore=80.0`,
+  `stopBreakRows=0`, and `candidateCapitalUsdt=10.0`. Because the current
+  trend-override risk remains `MEDIUM`, the effective review cap is
+  `5.0`, so capital is still blocked by `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`;
+  however the required capital-cap override amount drops from `10` USDT on the
+  4-level candidate to `5` USDT on the 2-level micro-grid candidate.
 - The grid post-env bundle and blocker board preserve candidate grid inputs
   from the freshest available read-only packet, falling back from operator
   authorization request/bundle to create preflight and then the plan packet.

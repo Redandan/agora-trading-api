@@ -107,8 +107,8 @@ try {
     Assert-FailsWith -Name "bad candidate lookback" -Pattern "CandidateLookbackHours must be between 72 and 720" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -CandidateLookbackHours 24
     }
-    Assert-FailsWith -Name "bad grid count" -Pattern "GridCount must be between 4 and 24" -Action {
-        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -GridCount 2
+    Assert-FailsWith -Name "bad grid count" -Pattern "GridCount must be between 2 and 24" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -GridCount 1
     }
     Assert-FailsWith -Name "bad per-level usdt" -Pattern "PerLevelUsdt must be between 5 and 1000" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -PerLevelUsdt 1

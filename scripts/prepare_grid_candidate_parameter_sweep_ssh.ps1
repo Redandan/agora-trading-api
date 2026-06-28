@@ -6,7 +6,7 @@ param(
     [string]$Symbol = "BTCUSDT",
     [int]$LookbackHours = 72,
     [int]$CandidateLookbackHours = 168,
-    [int[]]$GridCounts = @(4, 6, 8),
+    [int[]]$GridCounts = @(2, 4, 6, 8),
     [decimal[]]$PerLevelUsdtValues = @(5),
     [decimal[]]$StopOutPctValues = @(3.0, 5.0, 8.0),
     [decimal[]]$CandidateHalfWidthPctValues = @(0),
@@ -148,7 +148,7 @@ Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
 
 $combinations = [System.Collections.Generic.List[object]]::new()
 foreach ($gridCount in $GridCounts) {
-    if ($gridCount -lt 4 -or $gridCount -gt 24) { throw "GridCounts values must be between 4 and 24." }
+    if ($gridCount -lt 2 -or $gridCount -gt 24) { throw "GridCounts values must be between 2 and 24." }
     foreach ($perLevelUsdt in $PerLevelUsdtValues) {
         if ($perLevelUsdt -lt 5 -or $perLevelUsdt -gt 1000) { throw "PerLevelUsdtValues values must be between 5 and 1000." }
         foreach ($stopOutPct in $StopOutPctValues) {
@@ -311,6 +311,10 @@ $packet = [pscustomobject]@{
     symbol = $Symbol
     lookbackHours = $LookbackHours
     candidateLookbackHours = $CandidateLookbackHours
+    minimumReviewGridCount = 2
+    maximumReviewGridCount = 24
+    microGridReviewAllowed = $true
+    microGridReviewNote = "gridCount=2 is reviewable because runtime createGrid allows 2-50; it remains read-only evidence and still requires separate trend/env/capital/createGrid authorization."
     combinationCount = $combinations.Count
     qualityCandidateCount = @($rankedRows | Where-Object { $_.qualityCandidate }).Count
     reviewCandidateCount = @($rankedRows | Where-Object { $_.reviewCandidate }).Count
@@ -343,6 +347,7 @@ Write-Host "grid_candidate_parameter_sweep_status=$sweepStatus"
 Write-Host "grid_candidate_parameter_sweep_decision=$decision"
 Write-Host "grid_candidate_parameter_sweep_quality_candidate_count=$(@($rankedRows | Where-Object { $_.qualityCandidate }).Count)"
 Write-Host "grid_candidate_parameter_sweep_review_candidate_count=$(@($rankedRows | Where-Object { $_.reviewCandidate }).Count)"
+Write-Host "grid_candidate_parameter_sweep_micro_grid_review_allowed=true"
 Write-Host "production_env_change_allowed=false"
 Write-Host "grid_mutation_allowed=false"
 Write-Host "scheduler_enablement_allowed=false"

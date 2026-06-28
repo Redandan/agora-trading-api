@@ -238,9 +238,12 @@ combinations. It emits
 at least 70, zero replay stop-break rows, a complete candidate plan, and
 capital within the effective review cap. `CandidateHalfWidthPct=0` preserves
 the existing ATR/trend-derived width; explicit values are evidence-only
-candidate range tests. A best quality candidate means the replay blocker can
-clear, but trend override, capital cap, env, and createGrid authorization can
-still remain blocked. The sweep is read-only; it does not change env, deploy,
+candidate range tests. `gridCount=2` is allowed only as a micro-grid
+read-only review lane because runtime `createGrid` already supports
+`gridCount(2-50)`; it is not createGrid authorization. A best quality candidate
+means the replay blocker can clear, but trend override, capital cap, env, and
+createGrid authorization can still remain blocked. The sweep is read-only; it
+does not change env, deploy,
 call `createGrid`, enable grid/scheduler/recovery, place orders, modify OCO,
 send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 

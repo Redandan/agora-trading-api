@@ -56,6 +56,10 @@ foreach ($marker in @(
         "grid_candidate_parameter_sweep_packet",
         "grid_candidate_parameter_sweep_status",
         "grid_candidate_parameter_sweep_quality_candidate_count",
+        "grid_candidate_parameter_sweep_micro_grid_review_allowed=true",
+        "minimumReviewGridCount",
+        "microGridReviewAllowed",
+        "runtime createGrid allows 2-50",
         "CandidateHalfWidthPctValues",
         "candidateHalfWidthPct",
         "observedCandidateHalfWidthPct",
@@ -78,13 +82,15 @@ foreach ($marker in @(
 foreach ($pathText in @($runbookText, $readmeText, $progressText)) {
     Assert-Contains -Name "grid candidate sweep docs" -Text $pathText -Pattern "prepare_grid_candidate_parameter_sweep_ssh.ps1"
     Assert-Contains -Name "grid candidate sweep docs mention read-only" -Text $pathText -Pattern "read-only"
+    Assert-Contains -Name "grid candidate sweep docs mention micro-grid review" -Text $pathText -Pattern "micro-grid"
+    Assert-Contains -Name "grid candidate sweep docs mention runtime two-level support" -Text $pathText -Pattern "gridCount\(2-50\)"
 }
 
 $tempKey = Join-Path ([System.IO.Path]::GetTempPath()) ("agora-grid-sweep-key-" + [Guid]::NewGuid().ToString("N"))
 Set-Content -LiteralPath $tempKey -Value "dummy" -NoNewline
 try {
-    Assert-FailsWith -Name "bad grid count in sweep" -Pattern "GridCounts values must be between 4 and 24" -Action {
-        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -GridCounts 2
+    Assert-FailsWith -Name "bad grid count in sweep" -Pattern "GridCounts values must be between 2 and 24" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -GridCounts 1
     }
     Assert-FailsWith -Name "bad per-level in sweep" -Pattern "PerLevelUsdtValues values must be between 5 and 1000" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -PerLevelUsdtValues 1

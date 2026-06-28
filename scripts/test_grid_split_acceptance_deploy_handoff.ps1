@@ -38,6 +38,10 @@ foreach ($marker in @(
         "SPLIT_ACCEPTANCE_NOT_PASSING",
         "origin_delta_status",
         "RUNTIME_DRIFT",
+        "reviewedGridCandidateParameters",
+        "grid_split_acceptance_deploy_handoff_candidate_parameters",
+        "candidateLookbackHours",
+        "candidateHalfWidthPct",
         "requiredPostDeployReadOnlyVerification",
         "verify_split_acceptance_ssh.ps1",
         "prepare_grid_open_blocker_priority_board_ssh.ps1",
@@ -117,6 +121,7 @@ origin_runtime_delta_paths=["src/main/java/com/agora/mcp/GridMcpTools.java"]
     Assert-Contains -Name "grid deploy handoff packet type" -Text $text -Pattern '"packetType":"GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET"'
     Assert-Contains -Name "grid deploy handoff status" -Text $text -Pattern "grid_split_acceptance_deploy_handoff_status="
     Assert-Contains -Name "grid deploy handoff decision" -Text $text -Pattern "grid_split_acceptance_deploy_handoff_decision="
+    Assert-Contains -Name "grid deploy handoff candidate params" -Text $text -Pattern "grid_split_acceptance_deploy_handoff_candidate_parameters="
     Assert-Contains -Name "grid deploy handoff blocker" -Text $text -Pattern "grid_open_readiness_watch_top_blocker=SPLIT_ACCEPTANCE_NOT_PASSING"
     Assert-Contains -Name "grid deploy handoff ranked blockers" -Text $text -Pattern "grid_open_readiness_watch_ranked_blockers="
     Assert-Contains -Name "grid deploy handoff expected next blocker" -Text $text -Pattern "grid_expected_post_deploy_next_blockers=.*GRID_ENV_DIFF_NOT_APPLIED"

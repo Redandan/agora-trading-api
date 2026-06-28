@@ -940,7 +940,8 @@ Expected:
 - Emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
   `grid_split_acceptance_deploy_handoff_status`,
   `grid_split_acceptance_deploy_handoff_decision`, grid score/top blocker,
-  deployment metadata, origin-delta classification, and runtime delta paths.
+  deployment metadata, origin-delta classification, runtime delta paths, and
+  `reviewedGridCandidateParameters`.
 - Emits `grid_expected_post_deploy_next_blockers` so the operator can see which
   blocker lanes are likely to remain after split/currentness is fixed.
 - Emits child `child_start`, `child_heartbeat`, and `child_complete` markers

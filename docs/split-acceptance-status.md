@@ -212,6 +212,17 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   verification. It remains non-mutating and does not authorize env changes,
   deploy, `createGrid`, scheduler/recovery/Earn, order, OCO, grid, fund,
   Telegram, DB, or exchange actions.
+- The latest read-only split/currentness handoff was also rerun with the
+  reviewed best-quality candidate parameters
+  `gridCount=4`, `perLevelUsdt=5`, `stopOutPct=5`, and
+  `candidateHalfWidthPct=10`. The handoff now emits
+  `reviewedGridCandidateParameters`, so the expected post-deploy capital
+  blocker is tied to `candidateCapitalUsdt=20` and
+  `effectiveReviewCapitalCapUsdt=10` instead of the generic default candidate.
+  The handoff still remained
+  `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`,
+  with `SPLIT_ACCEPTANCE_NOT_PASSING` caused by server worktree currentness,
+  and it kept all mutation flags false.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

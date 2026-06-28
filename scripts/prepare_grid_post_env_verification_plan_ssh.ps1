@@ -81,6 +81,11 @@ function Get-StringArray {
     return @($list)
 }
 
+function Format-DecimalInvariant {
+    param([decimal]$Value)
+    return $Value.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -149,14 +154,16 @@ if ($null -eq $createInputs) { Add-Unique -List $missingEvidence -Value "reviewe
 if ($envDiff.Count -eq 0) { Add-Unique -List $missingEvidence -Value "proposedSeparateEnvDiff from operator authorization request" }
 if ($postEnvChecks.Count -eq 0) { Add-Unique -List $missingEvidence -Value "postEnvReadOnlyVerification from operator authorization request" }
 
+$reviewedCandidateCommandArgs = "-Symbol $Symbol -LookbackHours $LookbackHours -CandidateLookbackHours $CandidateLookbackHours -GridCount $GridCount -PerLevelUsdt $(Format-DecimalInvariant $PerLevelUsdt) -StopOutPct $(Format-DecimalInvariant $StopOutPct) -CandidateHalfWidthPct $(Format-DecimalInvariant $CandidateHalfWidthPct)"
+$postEnvCandidateCommandArgs = "$reviewedCandidateCommandArgs -AcceptAlreadyAppliedEnvDiff"
 $requiredPostEnvCommands = @(
     ".\scripts\verify_split_acceptance_ssh.ps1",
-    ".\scripts\prepare_grid_open_decision_snapshot_ssh.ps1",
-    ".\scripts\prepare_grid_trend_override_review_packet_ssh.ps1",
-    ".\scripts\prepare_grid_env_diff_preflight_packet_ssh.ps1",
-    ".\scripts\prepare_grid_create_authorization_preflight_packet_ssh.ps1",
-    ".\scripts\prepare_grid_open_authorization_bundle_ssh.ps1",
-    ".\scripts\prepare_grid_open_operator_authorization_request_ssh.ps1"
+    ".\scripts\prepare_grid_open_decision_snapshot_ssh.ps1 $reviewedCandidateCommandArgs",
+    ".\scripts\prepare_grid_trend_override_review_packet_ssh.ps1 $reviewedCandidateCommandArgs",
+    ".\scripts\prepare_grid_env_diff_preflight_packet_ssh.ps1 $postEnvCandidateCommandArgs",
+    ".\scripts\prepare_grid_create_authorization_preflight_packet_ssh.ps1 $postEnvCandidateCommandArgs",
+    ".\scripts\prepare_grid_open_authorization_bundle_ssh.ps1 $postEnvCandidateCommandArgs",
+    ".\scripts\prepare_grid_open_operator_authorization_request_ssh.ps1 $postEnvCandidateCommandArgs"
 )
 
 $planReady = (

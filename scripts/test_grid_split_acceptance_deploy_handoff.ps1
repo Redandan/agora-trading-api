@@ -39,8 +39,13 @@ foreach ($marker in @(
         "origin_delta_status",
         "RUNTIME_DRIFT",
         "reviewedGridCandidateParameters",
+        "reviewedCandidateCommandArgs",
         "grid_split_acceptance_deploy_handoff_candidate_parameters",
         "candidateLookbackHours",
+        "GridCount",
+        "PerLevelUsdt",
+        "StopOutPct",
+        "CandidateHalfWidthPct",
         "candidateHalfWidthPct",
         "requiredPostDeployReadOnlyVerification",
         "verify_split_acceptance_ssh.ps1",
@@ -125,6 +130,9 @@ origin_runtime_delta_paths=["src/main/java/com/agora/mcp/GridMcpTools.java"]
     Assert-Contains -Name "grid deploy handoff blocker" -Text $text -Pattern "grid_open_readiness_watch_top_blocker=SPLIT_ACCEPTANCE_NOT_PASSING"
     Assert-Contains -Name "grid deploy handoff ranked blockers" -Text $text -Pattern "grid_open_readiness_watch_ranked_blockers="
     Assert-Contains -Name "grid deploy handoff expected next blocker" -Text $text -Pattern "grid_expected_post_deploy_next_blockers=.*GRID_ENV_DIFF_NOT_APPLIED"
+    Assert-Contains -Name "grid deploy handoff replayable board command" -Text $text -Pattern "prepare_grid_open_blocker_priority_board_ssh\.ps1 -Symbol BTCUSDT -LookbackHours 72 -CandidateLookbackHours 168 -GridCount 8 -PerLevelUsdt 10 -StopOutPct 3 -CandidateHalfWidthPct 0"
+    Assert-Contains -Name "grid deploy handoff replayable watch command" -Text $text -Pattern "watch_grid_open_readiness_ssh\.ps1 -MaxAttempts 1 -SleepSeconds 0 -Symbol BTCUSDT -LookbackHours 72 -CandidateLookbackHours 168 -GridCount 8 -PerLevelUsdt 10 -StopOutPct 3 -CandidateHalfWidthPct 0"
+    Assert-Contains -Name "grid deploy handoff replayable bundle command" -Text $text -Pattern "prepare_grid_post_env_read_only_verification_bundle_ssh\.ps1 -Symbol BTCUSDT -LookbackHours 72 -CandidateLookbackHours 168 -GridCount 8 -PerLevelUsdt 10 -StopOutPct 3 -CandidateHalfWidthPct 0"
     Assert-Contains -Name "grid deploy handoff origin drift" -Text $text -Pattern "origin_delta_status=RUNTIME_DRIFT"
     Assert-Contains -Name "grid deploy handoff env blocked" -Text $text -Pattern "production_env_change_allowed=false"
     Assert-Contains -Name "grid deploy handoff deploy blocked" -Text $text -Pattern "deploy_allowed=false"

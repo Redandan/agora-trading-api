@@ -410,7 +410,11 @@ This consumes the operator authorization request and emits
 `grid_open_allowed=false`, and `create_grid_allowed=false`. It packages the
 required read-only verification commands, pass criteria, abort criteria, and
 refreshed createGrid inputs that must still match after any separately
-authorized env/deploy/restart. It does not approve env changes, deploy,
+authorized env/deploy/restart. The emitted command list preserves the reviewed
+`Symbol`, `LookbackHours`, `CandidateLookbackHours`, `GridCount`,
+`PerLevelUsdt`, `StopOutPct`, and `CandidateHalfWidthPct` values, and uses
+`AcceptAlreadyAppliedEnvDiff` only for post-env-capable child packets. It does
+not approve env changes, deploy,
 restart, call `createGrid`, enable grid/scheduler/recovery, place orders,
 modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
@@ -490,7 +494,10 @@ classifier, then emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
 blocker, deployment metadata, runtime delta evidence, child
 `child_start`/`child_heartbeat`/`child_complete` markers, the expected
 post-deploy next blockers after the split/currentness blocker clears, and the
-exact read-only post-deploy verification list. A status of
+exact read-only post-deploy verification list. The post-deploy checklist keeps
+the reviewed grid candidate parameters on the blocker board, readiness watch,
+and post-env bundle commands, so a micro-grid handoff cannot be replayed with
+default sizing by accident. A status of
 `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
 means only that an operator can separately consider deploying current
 `origin/main` and rerunning read-only grid verification. It does not deploy,

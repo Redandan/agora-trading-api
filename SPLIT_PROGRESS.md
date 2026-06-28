@@ -3082,6 +3082,17 @@ Trading deployment prep:
   operator decision only; it is not authorization to deploy, change production
   env, call `createGrid`, enable grid/scheduler/recovery, place orders, modify
   OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- A 2026-06-28 follow-up tightened the grid split/currentness handoff and
+  post-env verification plan replay commands. Required post-deploy commands now
+  carry the reviewed `Symbol`, `LookbackHours`, `CandidateLookbackHours`,
+  `GridCount`, `PerLevelUsdt`, `StopOutPct`, and `CandidateHalfWidthPct`
+  values into the blocker board, readiness watch, and post-env bundle. Required
+  post-env commands also preserve those values and pass
+  `AcceptAlreadyAppliedEnvDiff` only to post-env-capable child packets. The
+  latest micro-grid handoff after `526bf9a` remained read-only with readiness
+  `66.67`, passed gates `8/12`, server worktree `3937f5d` behind `origin/main`
+  `526bf9a`, and ranked blockers `SPLIT_ACCEPTANCE_NOT_PASSING`,
+  `GRID_ENV_DIFF_NOT_APPLIED`, and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`.
 - Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
   `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence
   instead of a high-risk operation line. This keeps post-env split acceptance

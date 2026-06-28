@@ -841,6 +841,11 @@ Expected:
 - Flattens source operator authorization request blockers into
   `authorizationRequestBlockers` and top-level `planBlockers`, so a blocked
   post-env plan names the underlying env/trend/capital/createGrid lane.
+- Required post-env commands preserve the reviewed `Symbol`, `LookbackHours`,
+  `CandidateLookbackHours`, `GridCount`, `PerLevelUsdt`, `StopOutPct`, and
+  `CandidateHalfWidthPct` values. Post-env-capable child packets receive
+  `AcceptAlreadyAppliedEnvDiff`; pre-env evidence packets stay in normal review
+  mode.
 - `READY_FOR_GRID_POST_ENV_VERIFICATION_PLAN_NOT_MUTATION` means the read-only
   post-env verification checklist is ready to run after separately authorized
   env/deploy/restart. It is not permission to change production env, deploy,
@@ -976,6 +981,12 @@ Expected:
 - Required post-deploy read-only verification is split acceptance, the grid
   blocker priority board, the grid open readiness watch, and the post-env
   read-only verification bundle.
+- The blocker board, readiness watch, and post-env bundle commands include the
+  same reviewed `Symbol`, `LookbackHours`, `CandidateLookbackHours`,
+  `GridCount`, `PerLevelUsdt`, `StopOutPct`, and `CandidateHalfWidthPct`
+  values used for the handoff packet. Do not rerun a micro-grid deploy handoff
+  with default candidate sizing unless that is the explicit reviewed
+  candidate.
 - The handoff does not deploy, restart, reload nginx, change production env,
   approve a trend override, approve a capital override, call `createGrid`,
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or

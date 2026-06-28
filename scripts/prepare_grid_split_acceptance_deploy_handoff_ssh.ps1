@@ -70,6 +70,11 @@ function Add-Unique {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Format-DecimalInvariant {
+    param([decimal]$Value)
+    return $Value.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+}
+
 function Invoke-ReadOnlyScript {
     param([string]$ScriptName, [string[]]$Arguments)
 
@@ -268,6 +273,7 @@ $expectedPostDeployNextBlockers = @(
         Where-Object { $null -ne $_ -and [string]$_.blocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING" } |
         Select-Object -First 6
 )
+$reviewedCandidateCommandArgs = "-Symbol $Symbol -LookbackHours $LookbackHours -CandidateLookbackHours $CandidateLookbackHours -GridCount $GridCount -PerLevelUsdt $(Format-DecimalInvariant $PerLevelUsdt) -StopOutPct $(Format-DecimalInvariant $StopOutPct) -CandidateHalfWidthPct $(Format-DecimalInvariant $CandidateHalfWidthPct)"
 $deployCurrentRuntimeRequired = ($watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT", "CURRENT_ORIGIN_MAIN"))
 $currentnessDrift = (
     $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT") -or
@@ -338,9 +344,9 @@ $packet = [ordered]@{
     )
     requiredPostDeployReadOnlyVerification = @(
         ".\scripts\verify_split_acceptance_ssh.ps1",
-        ".\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1",
-        ".\scripts\watch_grid_open_readiness_ssh.ps1 -MaxAttempts 1 -SleepSeconds 0",
-        ".\scripts\prepare_grid_post_env_read_only_verification_bundle_ssh.ps1"
+        ".\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1 $reviewedCandidateCommandArgs",
+        ".\scripts\watch_grid_open_readiness_ssh.ps1 -MaxAttempts 1 -SleepSeconds 0 $reviewedCandidateCommandArgs",
+        ".\scripts\prepare_grid_post_env_read_only_verification_bundle_ssh.ps1 $reviewedCandidateCommandArgs"
     )
     forbiddenActions = @(
         "change production env",

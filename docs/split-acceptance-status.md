@@ -242,6 +242,20 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   a ready request packet for separate operator authorization; grid opening still
   requires separate trend/capital/env/deploy authorization, split acceptance,
   post-env read-only verification, and a separate createGrid authorization.
+- The grid blocker priority board now separates pre-env operator authorization
+  readiness from post-env verification readiness. A fresh read-only board run
+  after commit `0660fae` returned
+  `grid_authorization_readiness_phase=PRE_ENV`,
+  `grid_pre_env_authorization_request_ready=true`,
+  `grid_post_env_authorization_request_ready=false`,
+  readiness score `66.67`, and passed gates `8/12`. The ranked blockers were
+  reduced to `SPLIT_ACCEPTANCE_NOT_PASSING` (server worktree `3937f5d` behind
+  `origin/main` `0660fae`), `GRID_ENV_DIFF_NOT_APPLIED`
+  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`), and
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` (`candidateCapitalUsdt=20.0`;
+  `effectiveReviewCapitalCapUsdt=10.0`). The board kept every mutation flag
+  false and is still not authorization to deploy, change env, or call
+  `createGrid`.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

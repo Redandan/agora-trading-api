@@ -890,13 +890,24 @@ Read-only Grid open blocker priority board:
 
 Expected:
 
-- Invokes only `prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`.
+- Invokes only `prepare_grid_open_operator_authorization_request_ssh.ps1` for
+  pre-env request readiness and
+  `prepare_grid_post_env_read_only_verification_bundle_ssh.ps1` for post-env
+  verification readiness.
 - Emits `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
   `grid_open_blocker_priority_board_packet`,
   `grid_open_blocker_priority_board_status`,
   `grid_open_readiness_score_pct`,
+  `grid_authorization_readiness_phase`,
+  `grid_pre_env_authorization_request_ready`,
+  `grid_post_env_authorization_request_ready`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
   and `create_grid_allowed=false`.
+- Uses pre-env authorization readiness before the env diff is applied, then
+  switches to post-env authorization readiness after `TRADING_OKX_ENABLED=true`,
+  `TRADING_GRID_ENABLED=true`, and scheduler/recovery/Earn remain false. This
+  prevents a ready pre-env operator request packet from being hidden by the
+  still-blocked post-env verification lane.
 - Ranks split/deploy, production env, event-risk, replay-score, capital-cap,
   scheduler/recovery/Earn, and operator-authorization-chain blockers into
   explicit next actions and authorization requirements.

@@ -137,6 +137,8 @@ if ($null -eq $powerShell) { throw "Unable to find powershell or pwsh for grid o
 
 $bundleScript = Join-Path $PSScriptRoot "prepare_grid_post_env_read_only_verification_bundle_ssh.ps1"
 if (-not (Test-Path -LiteralPath $bundleScript)) { throw "Missing grid post-env read-only verification bundle script: $bundleScript" }
+$preEnvRequestScript = Join-Path $PSScriptRoot "prepare_grid_open_operator_authorization_request_ssh.ps1"
+if (-not (Test-Path -LiteralPath $preEnvRequestScript)) { throw "Missing grid open operator authorization request script: $preEnvRequestScript" }
 
 $bundleArgs = @(
     "-SshHost", $SshHost,
@@ -152,20 +154,39 @@ $bundleArgs = @(
     "-StopOutPct", "$StopOutPct",
     "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
 )
+$preEnvRequestArgs = @(
+    "-SshHost", $SshHost,
+    "-SshKey", $SshKey,
+    "-AppDir", $AppDir,
+    "-EnvFile", $EnvFile,
+    "-Symbol", $Symbol,
+    "-LookbackHours", "$LookbackHours",
+    "-CandidateLookbackHours", "$CandidateLookbackHours",
+    "-GridCount", "$GridCount",
+    "-PerLevelUsdt", "$PerLevelUsdt",
+    "-StopOutPct", "$StopOutPct",
+    "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
+)
 
 $previousErrorActionPreference = $ErrorActionPreference
 try {
     $ErrorActionPreference = "Continue"
+    $preEnvRequestOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $preEnvRequestScript @preEnvRequestArgs 2>&1
+    $preEnvRequestExitCode = $LASTEXITCODE
     $bundleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $bundleScript @bundleArgs 2>&1
     $bundleExitCode = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = $previousErrorActionPreference
 }
 
+$preEnvRequestText = ($preEnvRequestOutput | Out-String -Width 8192)
+$preEnvRequestPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $preEnvRequestText -Prefix "grid_open_operator_authorization_request_packet=")
 $bundleText = ($bundleOutput | Out-String -Width 8192)
 $bundlePacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $bundleText -Prefix "grid_post_env_read_only_verification_packet=")
 
 $missingEvidence = [System.Collections.Generic.List[string]]::new()
+if ($preEnvRequestExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "pre-env grid open operator authorization request completed" }
+if ($null -eq $preEnvRequestPacket) { Add-Unique -List $missingEvidence -Value "pre-env grid_open_operator_authorization_request_packet valid JSON" }
 if ($bundleExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "grid post-env read-only verification bundle completed" }
 if ($null -eq $bundlePacket) { Add-Unique -List $missingEvidence -Value "grid_post_env_read_only_verification_packet valid JSON" }
 
@@ -204,8 +225,24 @@ $replayScore = if ($null -ne $createInputs) { Get-DecimalOrNull $createInputs.re
 $candidateCapital = if ($null -ne $createInputs) { Get-DecimalOrNull $createInputs.candidateCapitalUsdt } else { $null }
 $capitalCap = if ($null -ne $createPreflight -and $null -ne $createPreflight.capitalCapCheck) { Get-DecimalOrNull $createPreflight.capitalCapCheck.effectiveReviewCapitalCapUsdt } else { $null }
 $capitalStatus = if ($null -ne $createPreflight -and $null -ne $createPreflight.capitalCapCheck) { [string]$createPreflight.capitalCapCheck.status } else { "UNKNOWN" }
-$bundleReady = if ($null -ne $requestPacket) { [bool]$requestPacket.sourceAuthorizationBundleReady } else { $false }
-$requestReady = if ($null -ne $requestPacket) { [bool]$requestPacket.authorizationRequestReady } else { $false }
+$postEnvBundleReady = if ($null -ne $requestPacket) { [bool]$requestPacket.sourceAuthorizationBundleReady } else { $false }
+$postEnvRequestReady = if ($null -ne $requestPacket) { [bool]$requestPacket.authorizationRequestReady } else { $false }
+$preEnvBundleReady = if ($null -ne $preEnvRequestPacket) { [bool]$preEnvRequestPacket.sourceAuthorizationBundleReady } else { $false }
+$preEnvRequestReady = if ($null -ne $preEnvRequestPacket) { [bool]$preEnvRequestPacket.authorizationRequestReady } else { $false }
+$envDiffAppliedForPhase = (
+    $okxEnabled -eq "true" -and
+    $gridEnabled -eq "true" -and
+    $schedulerEnabled -eq "false" -and
+    $recoveryEnabled -eq "false" -and
+    $earnEnabled -eq "false"
+)
+$authorizationReadinessPhase = if ($envDiffAppliedForPhase) {
+    "POST_ENV"
+} else {
+    "PRE_ENV"
+}
+$bundleReady = if ($envDiffAppliedForPhase) { $postEnvBundleReady } else { $preEnvBundleReady }
+$requestReady = if ($envDiffAppliedForPhase) { $postEnvRequestReady } else { $preEnvRequestReady }
 
 if (-not $splitOk) {
     Add-Blocker -List $blockers -Rank 1 -Family "deployment/split-acceptance" -Priority "P0" -Blocker "SPLIT_ACCEPTANCE_NOT_PASSING" -Evidence ($splitSummary -join " | ") -Action "Deploy/restart only after separate authorization, then rerun split acceptance and this board." -Authorization "separate deploy/restart authorization"
@@ -226,7 +263,7 @@ if ($schedulerEnabled -ne "false" -or $recoveryEnabled -ne "false" -or $earnEnab
     Add-Blocker -List $blockers -Rank 6 -Family "scheduler/recovery/earn" -Priority "P0" -Blocker "GRID_BACKGROUND_MUTATION_FLAGS_NOT_DISABLED" -Evidence "scheduler=$schedulerEnabled; recovery=$recoveryEnabled; earn=$earnEnabled" -Action "Keep scheduler/recovery/Earn disabled for initial grid-open review." -Authorization "separate scheduler/recovery/Earn authorization if ever needed"
 }
 if (-not $bundleReady -or -not $requestReady) {
-    Add-Blocker -List $blockers -Rank 7 -Family "operator-authorization-chain" -Priority "P1" -Blocker "GRID_OPERATOR_AUTHORIZATION_CHAIN_NOT_READY" -Evidence "authorizationBundleReady=$bundleReady; authorizationRequestReady=$requestReady" -Action "Resolve upstream risk/env/capital blockers, then regenerate authorization bundle/request." -Authorization "none until upstream blockers clear"
+    Add-Blocker -List $blockers -Rank 7 -Family "operator-authorization-chain" -Priority "P1" -Blocker "GRID_OPERATOR_AUTHORIZATION_CHAIN_NOT_READY" -Evidence "phase=$authorizationReadinessPhase; authorizationBundleReady=$bundleReady; authorizationRequestReady=$requestReady" -Action "Resolve upstream risk/env/capital blockers, then regenerate authorization bundle/request." -Authorization "none until upstream blockers clear"
 }
 foreach ($rawBlocker in $verificationBlockers) {
     $value = [string]$rawBlocker
@@ -289,6 +326,14 @@ $board = [pscustomobject]@{
     sourceBundle = "prepare_grid_post_env_read_only_verification_bundle_ssh.ps1"
     sourceBundleExitCode = $bundleExitCode
     sourceBundleStatus = if ($null -ne $bundlePacket) { [string]$bundlePacket.status } else { "UNKNOWN" }
+    sourcePreEnvAuthorizationRequest = "prepare_grid_open_operator_authorization_request_ssh.ps1"
+    sourcePreEnvAuthorizationRequestExitCode = $preEnvRequestExitCode
+    sourcePreEnvAuthorizationRequestStatus = if ($null -ne $preEnvRequestPacket) { [string]$preEnvRequestPacket.status } else { "UNKNOWN" }
+    authorizationReadinessPhase = $authorizationReadinessPhase
+    preEnvAuthorizationBundleReady = $preEnvBundleReady
+    preEnvAuthorizationRequestReady = $preEnvRequestReady
+    postEnvAuthorizationBundleReady = $postEnvBundleReady
+    postEnvAuthorizationRequestReady = $postEnvRequestReady
     gridOpenableNow = $gridOpenableNow
     openReadinessScorePct = $openReadinessScorePct
     passedGateCount = $passedGateCount
@@ -322,17 +367,22 @@ $board = [pscustomobject]@{
     ocoMutationAllowed = $false
     telegramSendAllowed = $false
     sourceBundlePacketSummary = $bundlePacket
+    sourcePreEnvAuthorizationRequestPacketSummary = $preEnvRequestPacket
     notAuthorization = "read-only grid open blocker priority board only; does not authorize env changes, deploy, restart, createGrid, grid/scheduler/recovery enablement, orders, OCO, Telegram, or DB/grid/fund/Earn/exchange mutation"
 }
 
 Write-Host "[grid-open-blocker-priority-board] read-only board"
-Write-Host "scope=READ_ONLY; invokes grid post-env read-only verification bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes grid pre-env authorization request and post-env read-only verification bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "source_pre_env_authorization_request=prepare_grid_open_operator_authorization_request_ssh.ps1 exitCode=$preEnvRequestExitCode"
 Write-Host "source_bundle=prepare_grid_post_env_read_only_verification_bundle_ssh.ps1 exitCode=$bundleExitCode"
 Write-Host "grid_open_blocker_priority_board_status=$status"
 Write-Host "grid_open_blocker_priority_board_decision=$decision"
 Write-Host "grid_openable_now=$($gridOpenableNow.ToString().ToLowerInvariant())"
 Write-Host "grid_open_readiness_score_pct=$openReadinessScorePct"
 Write-Host "grid_open_readiness_passed_gates=$passedGateCount/$($gateChecks.Count)"
+Write-Host "grid_authorization_readiness_phase=$authorizationReadinessPhase"
+Write-Host "grid_pre_env_authorization_request_ready=$($preEnvRequestReady.ToString().ToLowerInvariant())"
+Write-Host "grid_post_env_authorization_request_ready=$($postEnvRequestReady.ToString().ToLowerInvariant())"
 Write-Host "production_env_change_allowed=false"
 Write-Host "deploy_allowed=false"
 Write-Host "create_grid_allowed=false"

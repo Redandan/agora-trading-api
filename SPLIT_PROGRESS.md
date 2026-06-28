@@ -3004,19 +3004,34 @@ Trading deployment prep:
   Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - Grid open blockers now have a read-only priority board:
   `scripts/prepare_grid_open_blocker_priority_board_ssh.ps1`. It consumes the
-  post-env verification bundle and emits
+  pre-env operator authorization request and the post-env verification bundle,
+  then emits
   `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
   `grid_open_blocker_priority_board_status`,
   `grid_open_readiness_score_pct`,
+  `grid_authorization_readiness_phase`,
+  `grid_pre_env_authorization_request_ready`,
+  `grid_post_env_authorization_request_ready`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
   and `create_grid_allowed=false`. The board ranks split/deploy, env,
   event-risk, replay-score, capital-cap, scheduler/recovery/Earn, and
   operator-authorization-chain blockers into the next safest read-only action.
+  It uses pre-env authorization readiness before the env diff is applied and
+  post-env authorization readiness after the env diff is live, so a ready
+  pre-env operator request is not hidden by a still-blocked post-env lane.
   `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, and
   `EVENT_RISK_NOT_R0` are hard blockers until fresh evidence clears them. It is
   not authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- A fresh best-candidate board run after the pre/post-env split reported
+  `grid_authorization_readiness_phase=PRE_ENV`,
+  `grid_pre_env_authorization_request_ready=true`,
+  `grid_post_env_authorization_request_ready=false`,
+  `grid_open_readiness_score_pct=66.67`, and passed gates `8/12`. The remaining
+  ranked blockers are `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`,
+  and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`; the former operator authorization
+  chain blocker is now correctly cleared for the pre-env request phase.
 - The grid post-env bundle and blocker board preserve candidate grid inputs
   from the freshest available read-only packet, falling back from operator
   authorization request/bundle to create preflight and then the plan packet.

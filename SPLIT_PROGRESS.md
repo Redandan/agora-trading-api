@@ -3277,6 +3277,24 @@ Trading deployment prep:
   `unknown=0`. No deploy, env change, `createGrid`, scheduler/recovery/Earn
   enablement, order, OCO, grid, fund, Telegram, DB, or exchange mutation was
   performed.
+- A follow-up read-only minimum-capital sweep after commit `c59e26a` proved the
+  remaining capital blocker cannot be cleared by lowering candidate parameters
+  further. Runtime and review tooling both enforce `gridCount >= 2` and
+  `perLevelUsdt >= 5`, so the smallest reviewable grid candidate is 10 USDT.
+  The one-combination sweep (`gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`,
+  `candidateHalfWidthPct=10`) produced `qualityCandidateCount=1`,
+  `reviewCandidateCount=0`, `replayScore=80.0`, `stopBreakRows=0`,
+  `candidateCapitalUsdt=10.0`, `effectiveReviewCapitalCapUsdt=5.0`, and
+  `capitalWithinCap=false`, with
+  `grid_candidate_parameter_sweep_remaining_blockers=["NO_PARAMETER_CAPITAL_WITHIN_EFFECTIVE_REVIEW_CAP"]`.
+  The independent capital override review returned
+  `READY_FOR_GRID_CAPITAL_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION`, requesting a
+  separate review-cap decision from 5 USDT to 10 USDT. The env preflight
+  remained ready for separate review with only
+  `grid_env_diff_preflight_pending_env_diff=["TRADING_OKX_ENABLED=true"]`.
+  Grid opening still requires separate capital-cap override, production env
+  diff, deploy/restart plus post-env read-only verification, and final
+  createGrid authorization; no mutation was performed.
 - BTC panic-bottom context now has a read-only ScoreBuy companion MCP:
   `previewPanicBottomContext(symbol=BTCUSDT)`. It reads `md_kline`,
   `market_indicator_history` `fear_greed`, a 200WMA reference, OCO health text,

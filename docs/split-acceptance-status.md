@@ -356,6 +356,25 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   No deploy, production env change, `createGrid`, scheduler/recovery/Earn
   enablement, order, OCO, grid, fund, Telegram, DB, or exchange mutation was
   performed.
+- A same-day minimum-capital sweep after commit `c59e26a` confirmed there is
+  no smaller valid BTCUSDT grid candidate that avoids the capital blocker.
+  Runtime `createGrid` and the review scripts require `gridCount >= 2` and
+  `perLevelUsdt >= 5`, so the minimum reviewable candidate is 10 USDT. The
+  read-only sweep saved at
+  `target/grid-open/grid-candidate-parameter-sweep-minimum-after-c59e26a-read-only.log`
+  returned `qualityCandidateCount=1`, `reviewCandidateCount=0`,
+  `candidateCapitalUsdt=10.0`, `effectiveReviewCapitalCapUsdt=5.0`,
+  `capitalWithinCap=false`, and
+  `NO_PARAMETER_CAPITAL_WITHIN_EFFECTIVE_REVIEW_CAP`. The independent capital
+  override packet saved at
+  `target/grid-open/grid-capital-override-review-minimum-after-c59e26a-read-only.log`
+  returned `READY_FOR_GRID_CAPITAL_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION` with
+  requested cap `10.0`; the independent env packet saved at
+  `target/grid-open/grid-env-diff-preflight-minimum-after-c59e26a-read-only.log`
+  stayed ready with pending diff `TRADING_OKX_ENABLED=true`. This makes the
+  next grid-open sequence explicit: separate capital-cap override, separate
+  env diff, deploy/restart plus post-env read-only verification, then separate
+  createGrid authorization.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

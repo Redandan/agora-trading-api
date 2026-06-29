@@ -83,6 +83,7 @@ foreach ($marker in @(
         "profit_loss_review_missing_requirements",
         "profit_loss_review_gate_status",
         "profit_loss_review_next_action",
+        '[int]$TrailingLimit = 500',
         "BLOCKED_DEPLOY_CURRENT_RUNTIME",
         "READY_FOR_LOSS_SOURCE_REVIEW_NOT_LIVE",
         "OBSERVE_CANDIDATES_NO_LOSS_PACKET",
@@ -105,7 +106,8 @@ foreach ($marker in @(
         "profit_candidate_items",
         "profit_candidate_review_recommendation",
         "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY",
-        "DO_NOT_ENABLE_TRAILING_STOP_OVERLAY"
+        "DO_NOT_ENABLE_TRAILING_STOP_OVERLAY",
+        '[int]$TrailingLimit = 500'
     )) {
     Assert-Contains -Name "profit candidate smoke supports loss gate" -Text $profitText -Pattern ([regex]::Escape($marker))
 }

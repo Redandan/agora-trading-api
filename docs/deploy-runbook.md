@@ -1774,6 +1774,9 @@ Expected:
   `smoke_profit_improvement_review_bundle_ssh.ps1` or
   `prepare_profit_experiment_gate_ssh.ps1` before treating the evidence as
   current-post-deploy profit review input.
+- The default trailing replay sample is `TrailingLimit=500`, matching issue
+  acceptance and trailing dry-run activation review. Smaller values are
+  diagnostic-only and must not be used to route loss-source decisions.
 - A recommendation such as
   `REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY` is review routing only;
   it is not permission to relax DataFreshness, enable live trading, activate
@@ -1797,6 +1800,9 @@ Expected:
   `live_policy_change_allowed=false`, `position_or_oco_mutation_allowed=false`,
   `tiny_live_order_allowed=false`, `profit_loss_review_missing_requirements`,
   and `profit_loss_review_gate_status`.
+- The gate passes `TrailingLimit=500` by default into
+  `smoke_profit_candidate_review_ssh.ps1`, so trailing acceptance is judged on
+  the hard sample rather than a narrow diagnostic sample.
 - `READY_FOR_LOSS_SOURCE_REVIEW_NOT_LIVE` means a separate read-only loss-source
   packet can be drafted. It is not permission to relax DataFreshness, close
   positions, modify OCO, pre-buy, execute TinyLive, deploy, restart, or change

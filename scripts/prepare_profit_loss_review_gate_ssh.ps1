@@ -7,7 +7,7 @@ param(
     [int]$ReviewDays = 30,
     [int]$BlockedDays = 14,
     [int]$MissedHours = 168,
-    [int]$TrailingLimit = 100,
+    [int]$TrailingLimit = 500,
     [switch]$RequireReady
 )
 

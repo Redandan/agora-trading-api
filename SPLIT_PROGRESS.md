@@ -586,7 +586,10 @@
   loss-source review packet after runtime currentness is proven, but it never
   authorizes DataFreshness relaxation, close-position, OCO modification,
   pre-buying, TinyLive order execution, deploy, restart, or live policy
-  changes.
+  changes. The profit-candidate smoke and loss gate now default
+  `TrailingLimit=500`, matching issue acceptance and trailing dry-run
+  activation review so loss-source routing does not depend on a narrow
+  diagnostic trailing replay sample.
 - `scripts/smoke_post_deploy_profit_validation_ssh.ps1` aggregates the
   auto-trading review gate, profit loss review gate, and profit experiment gate
   after a separately authorized deploy. It emits

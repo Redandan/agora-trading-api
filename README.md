@@ -1631,6 +1631,9 @@ origin-delta/currentness checks; use
 `smoke_profit_improvement_review_bundle_ssh.ps1` or
 `prepare_profit_experiment_gate_ssh.ps1` before treating the evidence as
 current-post-deploy profit review input.
+The default trailing replay sample for this smoke is `TrailingLimit=500`, so
+profit routing uses the same hard trailing sample size as issue acceptance and
+dry-run activation review.
 
 Read-only profit loss review gate:
 
@@ -1645,6 +1648,8 @@ This gate combines origin-delta and profit-candidate evidence into
 route a separate read-only loss-source review packet, but it never authorizes
 DataFreshness relaxation, close-position, OCO modification, TinyLive order
 execution, deploy, or live policy changes.
+The default child trailing replay sample is `TrailingLimit=500`; use a smaller
+limit only for diagnostics, not for loss-source routing.
 
 Read-only post-deploy profit validation:
 

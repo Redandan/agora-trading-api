@@ -137,6 +137,11 @@ try {
         originRuntimeDeltaFiles = "0"
         serverWorktreeCommit = "3937f5d"
         originMainCommitFromMetadata = "1054bc8"
+        runtimeCurrentForGridOpen = $true
+        splitAcceptanceBlockedByToolingOnlyCurrentness = $true
+        gridOpenRankedRuntimeBlockers = @(
+            [ordered]@{ rank = 2; family = "production-env"; priority = "P0"; blocker = "GRID_ENV_DIFF_NOT_APPLIED" }
+        )
         requiredPostDeployReadOnlyVerification = @(
             ".\scripts\verify_split_acceptance_ssh.ps1",
             ".\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1 -Symbol BTCUSDT -GridCount 2"
@@ -190,10 +195,13 @@ try {
     if ($packet.uncoveredCreateReviewBlockers -is [pscustomobject]) {
         throw "uncoveredCreateReviewBlockers must stay a JSON array, not an object"
     }
+    if (@($packet.remainingExecutionBlockers) -contains "SPLIT_ACCEPTANCE_NOT_PASSING") {
+        throw "SPLIT_ACCEPTANCE_NOT_PASSING must be omitted when split runtime currentness is proven by zero runtime delta"
+    }
     Assert-Contains -Name "grid complete packet status" -Text $text -Pattern "grid_open_complete_operator_packet_status=READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION"
     Assert-Contains -Name "grid complete packet ready" -Text $text -Pattern "grid_open_complete_operator_packet_ready=true"
-    Assert-Contains -Name "grid complete packet currentness line" -Text $text -Pattern "current origin/main 1054bc8"
-    Assert-Contains -Name "grid complete packet blockers" -Text $text -Pattern "SPLIT_ACCEPTANCE_NOT_PASSING"
+    Assert-Contains -Name "grid complete packet currentness line" -Text $text -Pattern "origin/main 1054bc8"
+    Assert-Contains -Name "grid complete packet runtime currentness" -Text $text -Pattern "zero runtime delta"
     Assert-Contains -Name "grid complete packet env diff" -Text $text -Pattern "TRADING_OKX_ENABLED=true"
     Assert-Contains -Name "grid complete packet trend clearance sequence" -Text $text -Pattern "separate trend-regime override not required"
     Assert-Contains -Name "grid complete packet post env command" -Text $text -Pattern "AcceptAlreadyAppliedEnvDiff"

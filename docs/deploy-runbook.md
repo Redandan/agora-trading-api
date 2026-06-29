@@ -955,9 +955,13 @@ Expected:
 - Ranks split/deploy, production env, event-risk, replay-score, capital-cap,
   scheduler/recovery/Earn, and operator-authorization-chain blockers into
   explicit next actions and authorization requirements.
-- `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, or
-  `EVENT_RISK_NOT_R0` means the board is evidence only and createGrid review
-  must remain blocked.
+- `SPLIT_ACCEPTANCE_NOT_PASSING` blocks createGrid review when runtime drift or
+  unknown runtime currentness is present. If the split handoff proves
+  `grid_split_runtime_current_for_grid_open=true`, treat the split lane as a
+  tooling-sync follow-up while env, capital, post-env verification, and
+  createGrid authorization remain separately blocked.
+- `GRID_ENV_DIFF_NOT_APPLIED` or `EVENT_RISK_NOT_R0` means the board is
+  evidence only and createGrid review must remain blocked.
 - The board does not deploy, restart, reload nginx, change production env,
   approve a trend override, approve a capital override, call `createGrid`,
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
@@ -1008,12 +1012,20 @@ Expected:
   `reviewedGridCandidateParameters`.
 - Emits `grid_expected_post_deploy_next_blockers` so the operator can see which
   blocker lanes are likely to remain after split/currentness is fixed.
+- Emits `grid_split_runtime_current_for_grid_open` and
+  `grid_split_tooling_only_currentness_follow_up`. If origin runtime delta is
+  zero and deployment metadata is current, a server worktree mismatch is a
+  tooling-sync follow-up for grid review, not a runtime deploy blocker.
 - Emits child `child_start`, `child_heartbeat`, and `child_complete` markers
   with timeout handling while it refreshes the nested read-only evidence.
 - `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
   means only that the split-acceptance blocker has enough evidence for a
   separate operator decision about deploying current `origin/main`; it is not
   deployment approval.
+- `READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION`
+  means no runtime deploy/restart is required for split currentness because the
+  origin-delta classifier found `origin_runtime_delta_files=0`; keep server
+  tooling sync separate from env and createGrid authorization.
 - Required post-deploy read-only verification is split acceptance, the grid
   blocker priority board, the grid open readiness watch, and the post-env
   read-only verification bundle.

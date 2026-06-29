@@ -14,6 +14,7 @@ param(
     [int]$ChildTimeoutSeconds = 1200,
     [string]$GridReadinessWatchLog = "",
     [string]$OriginDeltaLog = "",
+    [switch]$AllowDirtyLocalWorktreeForReplay,
     [switch]$RequireReady
 )
 
@@ -196,6 +197,9 @@ if ($StopOutPct -lt 1 -or $StopOutPct -gt 20) { throw "StopOutPct must be betwee
 if ($CandidateHalfWidthPct -ne 0 -and ($CandidateHalfWidthPct -lt 2.5 -or $CandidateHalfWidthPct -gt 30)) { throw "CandidateHalfWidthPct must be 0 or between 2.5 and 30." }
 
 $usesLiveRefresh = [string]::IsNullOrWhiteSpace($GridReadinessWatchLog) -or [string]::IsNullOrWhiteSpace($OriginDeltaLog)
+if ($usesLiveRefresh -and $AllowDirtyLocalWorktreeForReplay) {
+    throw "AllowDirtyLocalWorktreeForReplay is only allowed when replaying GridReadinessWatchLog and OriginDeltaLog."
+}
 if ($usesLiveRefresh) {
     if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
     if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
@@ -257,9 +261,25 @@ $originMetadataStatus = Get-LastPrefixedValue -Text $originText -Prefix "origin_
 $serverWorktreeCommit = Get-LastPrefixedValue -Text $originText -Prefix "server_worktree_commit=" -Default "UNKNOWN"
 $originMainCommitFromMetadata = Get-LastPrefixedValue -Text $originText -Prefix "origin_main_commit=" -Default "UNKNOWN"
 $runtimeDeltaPaths = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $originText -Prefix "origin_runtime_delta_paths=" -Default "[]")
+$originRuntimeDeltaFileCount = -1
+if (-not [int]::TryParse([string]$originRuntimeDeltaFiles, [ref]$originRuntimeDeltaFileCount)) {
+    $originRuntimeDeltaFileCount = -1
+}
+$runtimeCurrentForGridOpen = (
+    $originResult.ExitCode -eq 0 -and
+    $originRuntimeDeltaFileCount -eq 0 -and
+    $originDeltaStatus -in @("CURRENT_ORIGIN_MAIN", "DOCS_TOOLING_ONLY_DRIFT") -and
+    $deploymentMetadataStatus -in @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT")
+)
+$splitAcceptanceBlockedByToolingOnlyCurrentness = (
+    $watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and
+    $runtimeCurrentForGridOpen
+)
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if (-not $worktreeClean) { Add-Unique -List $missingRequirements -Value "local worktree clean before grid split-acceptance deploy handoff" }
+if (-not $worktreeClean -and -not ($AllowDirtyLocalWorktreeForReplay -and -not $usesLiveRefresh)) {
+    Add-Unique -List $missingRequirements -Value "local worktree clean before grid split-acceptance deploy handoff"
+}
 if ($behindCount -gt 0) { Add-Unique -List $missingRequirements -Value "local branch not behind origin/main" }
 if ($watchResult.ExitCode -ne 0) { Add-Unique -List $missingRequirements -Value "grid open readiness watch completed" }
 if ($originResult.ExitCode -ne 0) { Add-Unique -List $missingRequirements -Value "origin delta metadata classifier completed" }
@@ -273,8 +293,23 @@ $expectedPostDeployNextBlockers = @(
         Where-Object { $null -ne $_ -and [string]$_.blocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING" } |
         Select-Object -First 6
 )
+$gridOpenRankedRuntimeBlockers = if ($splitAcceptanceBlockedByToolingOnlyCurrentness) {
+    @($watchRankedBlockers) |
+        Where-Object { $null -ne $_ -and [string]$_.blocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING" } |
+        Select-Object -First 6
+} else {
+    @($watchRankedBlockers)
+}
 $reviewedCandidateCommandArgs = "-Symbol $Symbol -LookbackHours $LookbackHours -CandidateLookbackHours $CandidateLookbackHours -GridCount $GridCount -PerLevelUsdt $(Format-DecimalInvariant $PerLevelUsdt) -StopOutPct $(Format-DecimalInvariant $StopOutPct) -CandidateHalfWidthPct $(Format-DecimalInvariant $CandidateHalfWidthPct)"
-$deployCurrentRuntimeRequired = ($watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT", "CURRENT_ORIGIN_MAIN"))
+$deployCurrentRuntimeRequired = (
+    $watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and
+    -not $runtimeCurrentForGridOpen -and
+    (
+        $originDeltaStatus -eq "RUNTIME_DRIFT" -or
+        $deploymentMetadataStatus -eq "RUNTIME_DRIFT" -or
+        $originRuntimeDeltaFileCount -gt 0
+    )
+)
 $currentnessDrift = (
     $originDeltaStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT") -or
     $deploymentMetadataStatus -in @("RUNTIME_DRIFT", "DOCS_TOOLING_ONLY_DRIFT")
@@ -285,9 +320,15 @@ $status = "NOT_READY_GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_NOT_MUTATION"
 $decision = "REFRESH_GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_EVIDENCE"
 $nextAction = "Refresh grid readiness watch and origin-delta metadata before requesting deploy authorization."
 if ($missingRequirements.Count -eq 0 -and $currentnessDrift) {
-    $status = "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION"
-    $decision = "REQUEST_SEPARATE_DEPLOY_CURRENT_MAIN_AND_READ_ONLY_GRID_VERIFICATION"
-    $nextAction = "Request separate deploy/restart authorization for current origin/main only, then rerun split acceptance and grid open readiness watch."
+    if ($splitAcceptanceBlockedByToolingOnlyCurrentness) {
+        $status = "READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION"
+        $decision = "CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT"
+        $nextAction = "Runtime metadata is current and origin runtime delta is zero; continue grid-open review with split currentness as a tooling sync follow-up, then rerun read-only verification after any separately authorized env/deploy step."
+    } else {
+        $status = "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION"
+        $decision = "REQUEST_SEPARATE_DEPLOY_CURRENT_MAIN_AND_READ_ONLY_GRID_VERIFICATION"
+        $nextAction = "Request separate deploy/restart authorization for current origin/main only, then rerun split acceptance and grid open readiness watch."
+    }
 } elseif ($missingRequirements.Count -eq 0 -and $metadataCurrent) {
     $status = "DEPLOY_HANDOFF_NOT_NEEDED_RERUN_SPLIT_ACCEPTANCE_GRID_WATCH"
     $decision = "RERUN_SPLIT_ACCEPTANCE_AND_GRID_READINESS"
@@ -327,8 +368,10 @@ $packet = [ordered]@{
     gridOpenReadinessPassedGates = $watchPassedGates
     gridOpenTopBlocker = $watchTopBlocker
     gridOpenRankedBlockers = @($watchRankedBlockers)
+    gridOpenRankedRuntimeBlockers = @($gridOpenRankedRuntimeBlockers)
     gridOpenGateChecks = @($watchGateChecks)
     expectedPostDeployNextBlockers = @($expectedPostDeployNextBlockers)
+    expectedPostRuntimeCurrentNextBlockers = @($gridOpenRankedRuntimeBlockers)
     deploymentMetadataStatus = $deploymentMetadataStatus
     originMetadataStatus = $originMetadataStatus
     originDeltaStatus = $originDeltaStatus
@@ -336,6 +379,8 @@ $packet = [ordered]@{
     originRuntimeDeltaPaths = @($runtimeDeltaPaths)
     serverWorktreeCommit = $serverWorktreeCommit
     originMainCommitFromMetadata = $originMainCommitFromMetadata
+    runtimeCurrentForGridOpen = $runtimeCurrentForGridOpen
+    splitAcceptanceBlockedByToolingOnlyCurrentness = $splitAcceptanceBlockedByToolingOnlyCurrentness
     deployCurrentRuntimeRequired = $deployCurrentRuntimeRequired
     requiredSeparateAuthorization = @(
         "deploy/restart current origin/main only",
@@ -391,10 +436,14 @@ Write-Host "grid_open_readiness_watch_score_pct=$watchScore"
 Write-Host "grid_open_readiness_watch_passed_gates=$watchPassedGates"
 Write-Host "grid_open_readiness_watch_top_blocker=$watchTopBlocker"
 Write-Host ("grid_open_readiness_watch_ranked_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($watchRankedBlockers)))
+Write-Host ("grid_open_runtime_ranked_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($gridOpenRankedRuntimeBlockers)))
 Write-Host ("grid_expected_post_deploy_next_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($expectedPostDeployNextBlockers)))
+Write-Host ("grid_expected_post_runtime_current_next_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($gridOpenRankedRuntimeBlockers)))
 Write-Host "origin_delta_status=$originDeltaStatus"
 Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
 Write-Host "origin_runtime_delta_files=$originRuntimeDeltaFiles"
+Write-Host "grid_split_runtime_current_for_grid_open=$($runtimeCurrentForGridOpen.ToString().ToLowerInvariant())"
+Write-Host "grid_split_tooling_only_currentness_follow_up=$($splitAcceptanceBlockedByToolingOnlyCurrentness.ToString().ToLowerInvariant())"
 Write-Host "server_worktree_commit=$serverWorktreeCommit"
 Write-Host "origin_main_commit_from_metadata=$originMainCommitFromMetadata"
 Write-Host "production_env_change_allowed=false"
@@ -409,6 +458,10 @@ Write-Host "telegram_send_allowed=false"
 Write-Host ("grid_split_acceptance_deploy_handoff_missing_requirements=" + (@($missingRequirements) -join "; "))
 Write-Host "notAuthorization=$($packet.notAuthorization)"
 
-if ($RequireReady -and $status -ne "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION") {
+$readyStatuses = @(
+    "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION",
+    "READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION"
+)
+if ($RequireReady -and $status -notin $readyStatuses) {
     throw "Grid split-acceptance deploy handoff is not ready: $status; missing=$(@($missingRequirements) -join '; ')"
 }

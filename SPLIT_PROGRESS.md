@@ -3081,8 +3081,13 @@ Trading deployment prep:
   `grid_split_acceptance_deploy_handoff_status`, grid score/top blocker,
   deployment metadata, runtime delta evidence, `reviewedGridCandidateParameters`,
   and the required post-deploy read-only verification commands. The handoff also emits
-  `grid_expected_post_deploy_next_blockers`, so split/currentness does not hide
-  the likely next env/event/capital/operator blocker lanes. The handoff now emits child
+  `grid_expected_post_deploy_next_blockers`,
+  `grid_split_runtime_current_for_grid_open`, and
+  `grid_split_tooling_only_currentness_follow_up`, so split/currentness does not
+  hide the likely next env/event/capital/operator blocker lanes. If origin
+  runtime delta is zero and deployment metadata is current, a server worktree
+  mismatch is treated as a tooling-sync follow-up for grid review rather than a
+  runtime deploy blocker. The handoff now emits child
   `child_start`, `child_heartbeat`, and `child_complete` markers with timeout
   handling while refreshing nested read-only evidence. A status of
   `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
@@ -3136,6 +3141,14 @@ Trading deployment prep:
   still require separate split/currentness deploy, trend override or clearance,
   capital-cap override, OKX/grid env authorization, deploy/restart,
   post-env read-only verification, and createGrid authorization.
+- A later complete-packet refinement distinguishes split runtime currentness
+  from server tooling currentness. When the split handoff proves
+  `runtimeCurrentForGridOpen=true` from `origin_runtime_delta_files=0`, the
+  complete packet filters `SPLIT_ACCEPTANCE_NOT_PASSING` out of runtime
+  execution blockers and records that no split runtime deploy/restart is needed
+  for grid review. Server worktree/tooling sync remains a separate follow-up;
+  env diff, capital-cap override, post-env read-only verification, and
+  createGrid authorization remain separate blockers.
 - Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
   `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence
   instead of a high-risk operation line. This keeps post-env split acceptance

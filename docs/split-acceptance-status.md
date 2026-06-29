@@ -278,7 +278,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   The handoff still remained
   `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`,
   with `SPLIT_ACCEPTANCE_NOT_PASSING` caused by server worktree currentness,
-  and it kept all mutation flags false.
+  and it kept all mutation flags false. Newer grid handoff packets distinguish
+  runtime currentness from tooling currentness: when origin runtime delta is
+  zero and deployment metadata is current, this split lane is a tooling-sync
+  follow-up for grid review rather than a runtime deploy blocker.
 - A follow-up read-only pre-env operator authorization request refresh fixed two
   packet-level blockers without changing runtime policy: partially already
   applied target env flags are now evidence (`TRADING_GRID_ENABLED=true`,

@@ -476,9 +476,12 @@ This consumes the post-env verification bundle and emits
 `grid_open_blocker_priority_ranked_blockers`, and `grid_open_allowed=false`.
 It ranks split/deploy, env, event-risk, replay-score, capital-cap,
 scheduler/recovery/Earn, and operator-authorization-chain blockers into the
-next safest read-only action. `SPLIT_ACCEPTANCE_NOT_PASSING` and
-`EVENT_RISK_NOT_R0` remain hard blockers; this board does not approve env
-changes, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
+next safest read-only action. `SPLIT_ACCEPTANCE_NOT_PASSING` remains a hard
+runtime blocker only when origin-delta evidence shows runtime drift or unknown
+runtime currentness; when `origin_runtime_delta_files=0` and deployment
+metadata is current, it is a server tooling-sync follow-up for read-only grid
+review. `EVENT_RISK_NOT_R0` remains a hard blocker. This board does not approve
+env changes, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
 place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange
 state.
 The board preserves candidate grid inputs from the freshest available
@@ -516,16 +519,21 @@ classifier, then emits `GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_PACKET`,
 `grid_split_acceptance_deploy_handoff_status`, the grid readiness score/top
 blocker, deployment metadata, runtime delta evidence, child
 `child_start`/`child_heartbeat`/`child_complete` markers, the expected
-post-deploy next blockers after the split/currentness blocker clears, and the
-exact read-only post-deploy verification list. The post-deploy checklist keeps
+post-deploy or runtime-current next blockers after the split/currentness lane
+clears, and the exact read-only post-deploy verification list. The post-deploy
+checklist keeps
 the reviewed grid candidate parameters on the blocker board, readiness watch,
 and post-env bundle commands, so a micro-grid handoff cannot be replayed with
 default sizing by accident. A status of
 `READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION`
 means only that an operator can separately consider deploying current
-`origin/main` and rerunning read-only grid verification. It does not deploy,
-change production env, call `createGrid`, enable grid/scheduler/recovery, place
-orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+`origin/main` and rerunning read-only grid verification. A status of
+`READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION`
+means the deployed runtime is current for grid review because origin runtime
+delta is zero; server worktree/tooling sync remains a follow-up, not a runtime
+deploy blocker. It does not deploy, change production env, call `createGrid`,
+enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or
+mutate DB/grid/fund/Earn/exchange state.
 
 Read-only trailing-stop PnL replay smoke after a deploy that contains the
 `analyzeTrailingStopPnlReplay` MCP tool:

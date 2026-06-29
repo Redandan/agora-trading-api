@@ -258,7 +258,11 @@ if ($null -eq $splitPacket) { Add-Unique -List $missingEvidence -Value "grid_spl
 if ($null -eq $requestPacket) { Add-Unique -List $missingEvidence -Value "grid_open_operator_authorization_request_packet valid JSON" }
 if ($null -eq $planPacket) { Add-Unique -List $missingEvidence -Value "grid_post_env_verification_plan_packet valid JSON" }
 
-$splitReady = ($null -ne $splitPacket -and [string]$splitPacket.status -eq "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION")
+$splitReadyStatuses = @(
+    "READY_FOR_SEPARATE_GRID_SPLIT_ACCEPTANCE_DEPLOY_AUTHORIZATION_NOT_MUTATION",
+    "READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION"
+)
+$splitReady = ($null -ne $splitPacket -and [string]$splitPacket.status -in $splitReadyStatuses)
 $requestReady = ($null -ne $requestPacket -and [bool]$requestPacket.authorizationRequestReady)
 $planReady = ($null -ne $planPacket -and [bool]$planPacket.postEnvVerificationPlanReady)
 
@@ -275,7 +279,14 @@ Add-UniqueValues -List $missingEvidence -Values $planMissing
 
 $requestBlockers = if ($null -ne $requestPacket) { Get-StringArray $requestPacket.requestBlockers } else { @() }
 $planBlockers = if ($null -ne $planPacket) { Get-StringArray $planPacket.planBlockers } else { @() }
-$rankedBlockers = if ($null -ne $splitPacket) { @($splitPacket.gridOpenRankedBlockers) } else { @() }
+$splitRuntimeCurrentForGridOpen = if ($null -ne $splitPacket) { [bool](Get-PropertyOrNull $splitPacket "runtimeCurrentForGridOpen") } else { $false }
+$rankedBlockers = if ($null -ne $splitPacket -and $splitRuntimeCurrentForGridOpen -and $null -ne (Get-PropertyOrNull $splitPacket "gridOpenRankedRuntimeBlockers")) {
+    @($splitPacket.gridOpenRankedRuntimeBlockers)
+} elseif ($null -ne $splitPacket) {
+    @($splitPacket.gridOpenRankedBlockers)
+} else {
+    @()
+}
 $rankedBlockerNames = [System.Collections.Generic.List[string]]::new()
 foreach ($blockerRow in @($rankedBlockers)) {
     $blocker = Get-PropertyOrNull $blockerRow "blocker"
@@ -322,7 +333,9 @@ $decision = if ($completePacketReady) {
 
 $originCommit = if ($null -ne $splitPacket) { Get-PropertyOrNull $splitPacket "originMainCommitFromMetadata" } else { $null }
 $serverCommit = if ($null -ne $splitPacket) { Get-PropertyOrNull $splitPacket "serverWorktreeCommit" } else { $null }
-$currentnessLine = if (-not [string]::IsNullOrWhiteSpace([string]$originCommit)) {
+$currentnessLine = if ($splitRuntimeCurrentForGridOpen -and -not [string]::IsNullOrWhiteSpace([string]$originCommit)) {
+    "Runtime currentness is accepted for BTCUSDT grid-open review: origin/main $originCommit has zero runtime delta from the deployed runtime; no separate runtime deploy/restart is required for split currentness, but server worktree tooling sync remains a separate follow-up before relying on server-side scripts. No production env diff or createGrid is included unless separately named."
+} elseif (-not [string]::IsNullOrWhiteSpace([string]$originCommit)) {
     "I authorize a separate deploy/restart of current origin/main $originCommit for $Symbol split/currentness only, followed by read-only split acceptance and grid readiness verification; no production env diff or createGrid is included unless separately named."
 } else {
     "I authorize a separate deploy/restart of current origin/main for $Symbol split/currentness only, followed by read-only split acceptance and grid readiness verification; no production env diff or createGrid is included unless separately named."
@@ -334,8 +347,13 @@ $trendSequenceLine = if ($trendGateClearanceAccepted) {
 } else {
     "2. trend-regime override or fresh trend clearance"
 }
+$splitSequenceLine = if ($splitRuntimeCurrentForGridOpen) {
+    "1. split runtime currentness accepted by zero runtime delta; no runtime deploy authorization required, server tooling sync remains a follow-up"
+} else {
+    "1. split/currentness deploy authorization for current origin/main only"
+}
 $operatorSequence = @(
-    "1. split/currentness deploy authorization for current origin/main only",
+    $splitSequenceLine,
     $trendSequenceLine,
     "3. capital-cap override if candidateCapitalUsdt remains above effectiveReviewCapitalCapUsdt",
     "4. production env diff authorization for OKX/grid flags while scheduler/recovery/Earn remain disabled",
@@ -377,6 +395,8 @@ $packet = [ordered]@{
         originDeltaStatus = if ($null -ne $splitPacket) { $splitPacket.originDeltaStatus } else { "UNKNOWN" }
         deploymentMetadataStatus = if ($null -ne $splitPacket) { $splitPacket.deploymentMetadataStatus } else { "UNKNOWN" }
         originRuntimeDeltaFiles = if ($null -ne $splitPacket) { $splitPacket.originRuntimeDeltaFiles } else { "UNKNOWN" }
+        runtimeCurrentForGridOpen = $splitRuntimeCurrentForGridOpen
+        splitAcceptanceBlockedByToolingOnlyCurrentness = if ($null -ne $splitPacket) { [bool](Get-PropertyOrNull $splitPacket "splitAcceptanceBlockedByToolingOnlyCurrentness") } else { $false }
     }
     readiness = [ordered]@{
         gridOpenableNow = if ($null -ne $splitPacket) { [bool]$splitPacket.gridOpenableNow } else { $false }

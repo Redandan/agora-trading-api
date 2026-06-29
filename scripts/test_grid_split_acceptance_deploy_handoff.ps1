@@ -22,6 +22,8 @@ foreach ($marker in @(
         "REQUEST_SEPARATE_DEPLOY_CURRENT_MAIN_AND_READ_ONLY_GRID_VERIFICATION",
         "DEPLOY_HANDOFF_NOT_NEEDED_RERUN_SPLIT_ACCEPTANCE_GRID_WATCH",
         "GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_REVIEW_NEEDED_NOT_MUTATION",
+        "READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION",
+        "CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT",
         "watch_grid_open_readiness_ssh.ps1",
         "smoke_live_origin_delta_local.ps1",
         "child_start",
@@ -34,7 +36,12 @@ foreach ($marker in @(
         "grid_open_readiness_watch_top_blocker",
         "grid_open_readiness_watch_ranked_blockers",
         "grid_expected_post_deploy_next_blockers",
+        "grid_expected_post_runtime_current_next_blockers",
+        "grid_split_runtime_current_for_grid_open",
+        "grid_split_tooling_only_currentness_follow_up",
+        "AllowDirtyLocalWorktreeForReplay",
         "expectedPostDeployNextBlockers",
+        "expectedPostRuntimeCurrentNextBlockers",
         "SPLIT_ACCEPTANCE_NOT_PASSING",
         "origin_delta_status",
         "RUNTIME_DRIFT",
@@ -138,6 +145,25 @@ origin_runtime_delta_paths=["src/main/java/com/agora/mcp/GridMcpTools.java"]
     Assert-Contains -Name "grid deploy handoff deploy blocked" -Text $text -Pattern "deploy_allowed=false"
     Assert-Contains -Name "grid deploy handoff grid blocked" -Text $text -Pattern "grid_open_allowed=false"
     Assert-Contains -Name "grid deploy handoff not authorization" -Text $text -Pattern "notAuthorization=read-only grid split-acceptance deploy handoff packet only"
+
+    $originToolingLog = Join-Path $tempDir "origin-tooling-delta.log"
+    @"
+server_worktree_commit=1111111111111111111111111111111111111111
+origin_main_commit=2222222222222222222222222222222222222222
+deployment_metadata_status=CURRENT
+origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+origin_delta_status=DOCS_TOOLING_ONLY_DRIFT
+origin_runtime_delta_files=0
+origin_runtime_delta_paths=[]
+"@ | Set-Content -LiteralPath $originToolingLog -Encoding UTF8
+
+    $toolingOutput = & $scriptPath -GridReadinessWatchLog $watchLog -OriginDeltaLog $originToolingLog -AllowDirtyLocalWorktreeForReplay -RequireReady *>&1
+    $toolingText = $toolingOutput -join "`n"
+    Assert-Contains -Name "grid tooling drift handoff status" -Text $toolingText -Pattern "grid_split_acceptance_deploy_handoff_status=READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION"
+    Assert-Contains -Name "grid tooling drift handoff decision" -Text $toolingText -Pattern "grid_split_acceptance_deploy_handoff_decision=CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT"
+    Assert-Contains -Name "grid tooling drift runtime current" -Text $toolingText -Pattern "grid_split_runtime_current_for_grid_open=true"
+    Assert-Contains -Name "grid tooling drift follow up" -Text $toolingText -Pattern "grid_split_tooling_only_currentness_follow_up=true"
+    Assert-Contains -Name "grid tooling drift runtime blockers" -Text $toolingText -Pattern "grid_open_runtime_ranked_blockers=.*GRID_ENV_DIFF_NOT_APPLIED"
 } finally {
     if (Test-Path -LiteralPath $tempDir) {
         Remove-Item -LiteralPath $tempDir -Recurse -Force

@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-26
+Last refreshed: 2026-06-29
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
@@ -302,32 +302,33 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   requires separate trend/capital/env/deploy authorization, split acceptance,
   post-env read-only verification, and a separate createGrid authorization.
 - The grid blocker priority board now separates pre-env operator authorization
-  readiness from post-env verification readiness. A fresh read-only board run
-  after commit `0660fae` returned
+  readiness from post-env verification readiness and surfaces trend-gate state
+  before env-diff review. A fresh read-only board run after commit `283b94e`
+  was saved to
+  `target/grid-open/grid-open-blocker-priority-board-microgrid-after-283b94e-trend-surface.log`
+  and returned
+  `grid_open_blocker_priority_board_status=READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION`,
+  `grid_open_blocker_priority_board_decision=PREPARE_SEPARATE_GRID_ENV_DIFF_AUTHORIZATION`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `deployment_metadata_status=CURRENT`,
+  `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, and
+  `grid_split_tooling_only_currentness_follow_up=true`. It also returned
   `grid_authorization_readiness_phase=PRE_ENV`,
   `grid_pre_env_authorization_request_ready=true`,
   `grid_post_env_authorization_request_ready=false`,
-  readiness score `66.67`, and passed gates `8/12`. The ranked blockers were
-  reduced to `SPLIT_ACCEPTANCE_NOT_PASSING` (server worktree `3937f5d` behind
-  `origin/main` `0660fae`), `GRID_ENV_DIFF_NOT_APPLIED`
-  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`), and
-  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` (`candidateCapitalUsdt=20.0`;
-  `effectiveReviewCapitalCapUsdt=10.0`). The board kept every mutation flag
+  `grid_trend_gate=CLEAR_TREND_REGIME`,
+  `grid_trend_gate_clearance_accepted=true`,
+  `grid_trend_override_required=false`, readiness score `66.67`, and passed
+  gates `8/12`. The `gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`,
+  `candidateHalfWidthPct=10` candidate replayed with `replayScore=80.0` and
+  `candidateCapitalUsdt=10.0`. The ranked blockers are now
+  `GRID_ENV_DIFF_NOT_APPLIED`
+  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`) and
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` (`candidateCapitalUsdt=10.0`;
+  `effectiveReviewCapitalCapUsdt=5.0`). The board kept every mutation flag
   false and is still not authorization to deploy, change env, or call
   `createGrid`.
-- A follow-up read-only micro-grid evidence pass aligned the grid review
-  validators with runtime `createGrid` support for `gridCount(2-50)`. The
-  `gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`,
-  `candidateHalfWidthPct=10` candidate replayed with `replayScore=80.0`,
-  `stopBreakRows=0`, and `candidateCapitalUsdt=10.0`. The latest board kept
-  `grid_pre_env_authorization_request_ready=true`, readiness score `66.67`,
-  and passed gates `8/12`; ranked blockers stayed
-  `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, and
-  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`, but the capital evidence is now
-  `candidateCapitalUsdt=10.0` versus `effectiveReviewCapitalCapUsdt=5.0`.
-  This is still not authorization to deploy, change env, or call `createGrid`;
-  it only lowers the absolute capital-cap override request for later operator
-  review.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

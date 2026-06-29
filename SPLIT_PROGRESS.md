@@ -3045,14 +3045,28 @@ Trading deployment prep:
   authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
-- A fresh best-candidate board run after the pre/post-env split reported
+- A fresh micro-grid board run after commit `283b94e` reported
+  `grid_open_blocker_priority_board_decision=PREPARE_SEPARATE_GRID_ENV_DIFF_AUTHORIZATION`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `deployment_metadata_status=CURRENT`,
+  `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, and
+  `grid_split_tooling_only_currentness_follow_up=true`. It also reported
   `grid_authorization_readiness_phase=PRE_ENV`,
   `grid_pre_env_authorization_request_ready=true`,
   `grid_post_env_authorization_request_ready=false`,
+  `grid_trend_gate=CLEAR_TREND_REGIME`,
+  `grid_trend_gate_clearance_accepted=true`,
+  `grid_trend_override_required=false`,
   `grid_open_readiness_score_pct=66.67`, and passed gates `8/12`. The remaining
-  ranked blockers are `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`,
-  and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`; the former operator authorization
-  chain blocker is now correctly cleared for the pre-env request phase.
+  ranked blockers are `GRID_ENV_DIFF_NOT_APPLIED`
+  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`) and
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`
+  (`candidateCapitalUsdt=10.0; effectiveReviewCapitalCapUsdt=5.0`). Split
+  strict acceptance remains false due to server worktree tooling drift, but
+  zero runtime delta keeps `SPLIT_ACCEPTANCE_NOT_PASSING` out of current grid
+  execution blockers; the former operator authorization chain blocker is still
+  correctly cleared for the pre-env request phase.
 - A follow-up read-only micro-grid review aligned the packet validators with
   runtime `createGrid` support for `gridCount(2-50)` while keeping every
   mutation flag false. The `gridCount=2`, `perLevelUsdt=5`, `stopOutPct=5`,

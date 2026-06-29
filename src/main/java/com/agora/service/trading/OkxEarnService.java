@@ -52,6 +52,10 @@ public class OkxEarnService {
     @org.springframework.beans.factory.annotation.Value("${okx.earn-topup.threshold-usdt:300}")
     private BigDecimal topupThresholdUsdt;
 
+    /** Hard opt-in for any Earn redemption/transfer path used by topUpTradingBuffer. */
+    @org.springframework.beans.factory.annotation.Value("${okx.earn-topup.enabled:false}")
+    private boolean topupEnabled;
+
     private final OkxTradingProperties props;
     private final ObjectMapper objectMapper;
 
@@ -231,6 +235,11 @@ public class OkxEarnService {
      * @return true = 執行了補充；false = 餘額充足或 Earn 餘額不足
      */
     public synchronized boolean topUpTradingBuffer(BigDecimal currentTradingBalance) {
+        if (!topupEnabled) {
+            log.debug("[OKXEarn] TopUp skipped: okx.earn-topup.enabled=false");
+            return false;
+        }
+
         // 鎖內重查真實餘額：避免多個 caller 帶著舊讀值同時排隊，第一個補完後第二個再重複補
         BigDecimal actualBalance = queryTradingBalance("USDT");
         if (actualBalance.compareTo(BigDecimal.ZERO) > 0) {

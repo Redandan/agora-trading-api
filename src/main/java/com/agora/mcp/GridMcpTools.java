@@ -51,8 +51,8 @@ public class GridMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING})
-    @Tool(description = "建立網格交易(grid)。N 個 level 等距鋪在 [priceLower, priceUpper] 區間,每格" +
-            "perLevelUsdt 金額。價格觸某 level → market buy,之後漲到 pairedSellPrice(filled + step)→ market sell。" +
+    @Tool(description = "建立網格交易(grid)。N 條價格線等距鋪在 [priceLower, priceUpper] 區間,建立 N-1 個 buy level," +
+            "上界只作 paired sell boundary。每格 perLevelUsdt 金額。價格觸某 level → market buy,之後漲到 pairedSellPrice(filled + step)→ market sell。" +
             "stopOutPct 預設 0.03(3%,區間外 3% 觸發全平);hintGated=true(預設)受 Gemini advisor regime 白名單控管。" +
             "param: symbol, priceLower, priceUpper, gridCount(2-50), perLevelUsdt(≥5)," +
             "stopOutPct(選填,預設 0.03), regimeWhitelist(預設 'SIDEWAYS,VOLATILE,RECOVERY')")
@@ -91,37 +91,55 @@ public class GridMcpTools {
         grid.setUpdatedAt(now);
         BtGrid saved = gridRepository.save(grid);
 
-        // 建 N 個 level(等距)
-        BigDecimal step = priceUpper.subtract(priceLower)
-                .divide(BigDecimal.valueOf(gridCount - 1L), 8, RoundingMode.HALF_UP);
+        // 建 N-1 個 buy level；priceUpper 是最後一格的 paired-sell boundary，不是買入觸發點。
+        BigDecimal step = calcGridStep(priceLower, priceUpper, gridCount);
+        List<BigDecimal> buyPrices = buildBuyLevelPrices(priceLower, priceUpper, gridCount);
         List<BtGridLevel> levels = new ArrayList<>();
-        for (int i = 0; i < gridCount; i++) {
+        for (int i = 0; i < buyPrices.size(); i++) {
             BtGridLevel level = new BtGridLevel();
             level.setGridId(saved.getId());
             level.setLevelIndex(i);
-            level.setPrice(priceLower.add(step.multiply(BigDecimal.valueOf(i)))
-                    .setScale(8, RoundingMode.HALF_UP));
+            level.setPrice(buyPrices.get(i));
             level.setStatus("PENDING");
             level.setCreatedAt(now);
             levels.add(level);
         }
         gridLevelRepository.saveAll(levels);
 
-        log.info("[MCP] createGrid id={} {} range=[{}, {}] count={} perLevel={} step={}",
-                saved.getId(), symbol, priceLower, priceUpper, gridCount, perLevelUsdt, step);
+        log.info("[MCP] createGrid id={} {} range=[{}, {}] priceLines={} buyLevels={} perLevel={} step={}",
+                saved.getId(), symbol, priceLower, priceUpper, gridCount, buyPrices.size(), perLevelUsdt, step);
 
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("✅ Grid #%d 建立成功%n", saved.getId()));
-        sb.append(String.format("  %s 區間: %s ~ %s  格數: %d  每格: %s USDT  step: %s%n",
+        sb.append(String.format("  %s 區間: %s ~ %s  價格線: %d  buyLevels: %d  每格: %s USDT  step: %s%n",
                 symbol, priceLower.toPlainString(), priceUpper.toPlainString(),
-                gridCount, perLevelUsdt.toPlainString(), step.toPlainString()));
+                gridCount, buyPrices.size(), perLevelUsdt.toPlainString(), step.toPlainString()));
         sb.append(String.format("  Stop-out: %s%%  Hint-gated: ON (%s)%n",
                 grid.getStopOutPct().multiply(BigDecimal.valueOf(100)).toPlainString(),
                 grid.getRegimeWhitelist()));
-        sb.append(String.format("  總資金需求: ~%s USDT(所有 level 若全填 FILLED)%n",
-                perLevelUsdt.multiply(BigDecimal.valueOf(gridCount)).toPlainString()));
+        sb.append(String.format("  總資金需求: ~%s USDT(所有 buy level 若全填 FILLED)%n",
+                estimateCreateGridCapital(perLevelUsdt, gridCount).toPlainString()));
         sb.append("\n下一步:scheduler 每 5 分鐘自動檢查。用 listGrids 看狀態,closeGrid 手動停。");
         return sb.toString();
+    }
+
+    static BigDecimal calcGridStep(BigDecimal priceLower, BigDecimal priceUpper, int gridCount) {
+        return priceUpper.subtract(priceLower)
+                .divide(BigDecimal.valueOf(gridCount - 1L), 8, RoundingMode.HALF_UP);
+    }
+
+    static List<BigDecimal> buildBuyLevelPrices(BigDecimal priceLower, BigDecimal priceUpper, int gridCount) {
+        BigDecimal step = calcGridStep(priceLower, priceUpper, gridCount);
+        List<BigDecimal> buyPrices = new ArrayList<>();
+        for (int i = 0; i < gridCount - 1; i++) {
+            buyPrices.add(priceLower.add(step.multiply(BigDecimal.valueOf(i)))
+                    .setScale(8, RoundingMode.HALF_UP));
+        }
+        return buyPrices;
+    }
+
+    static BigDecimal estimateCreateGridCapital(BigDecimal perLevelUsdt, int priceLineCount) {
+        return perLevelUsdt.multiply(BigDecimal.valueOf(Math.max(0, priceLineCount - 1L)));
     }
 
     @McpAuth(McpAuthLevel.OPS)
@@ -242,10 +260,14 @@ public class GridMcpTools {
         BigDecimal gridActualExposure = BigDecimal.ZERO; // 已 HOLDING/SELL_FAILED/SELL_PARTIAL 的實際曝險
         sb.append(String.format("%n🔲 活躍 Grid: %d 個%n", activeGrids.size()));
         for (BtGrid g : activeGrids) {
-            BigDecimal gridCapacity = g.getPerLevelUsdt().multiply(BigDecimal.valueOf(g.getGridCount()));
+            List<BtGridLevel> levels = gridLevelRepository.findByGridId(g.getId());
+            BigDecimal gridCapacity = estimateConfiguredGridCapacity(g, levels);
             gridMaxExposure = gridMaxExposure.add(gridCapacity);
-            List<BtGridLevel> holdings_ = gridLevelRepository
-                    .findByGridIdAndStatusIn(g.getId(), List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"));
+            List<BtGridLevel> holdings_ = levels.stream()
+                    .filter(l -> "HOLDING".equals(l.getStatus())
+                            || "SELL_FAILED".equals(l.getStatus())
+                            || "SELL_PARTIAL".equals(l.getStatus()))
+                    .toList();
             BigDecimal holdingValue = BigDecimal.ZERO;
             for (BtGridLevel lv : holdings_) {
                 if (lv.getFilledPrice() != null && lv.getFilledQty() != null) {
@@ -257,8 +279,9 @@ public class GridMcpTools {
             sb.append(String.format("   Grid #%d %s [%s~%s]%n",
                     g.getId(), g.getSymbol(),
                     fmtBd(g.getPriceLower()), fmtBd(g.getPriceUpper())));
-            sb.append(String.format("     容量: $%.2f (%d 格×$%.2f)  持倉: $%.2f (%d level)%n",
-                    gridCapacity.doubleValue(), g.getGridCount(), g.getPerLevelUsdt().doubleValue(),
+            sb.append(String.format("     容量: $%.2f (%d buy levels×$%.2f; %d price lines)  持倉: $%.2f (%d level)%n",
+                    gridCapacity.doubleValue(), configuredBuyLevelCount(g, levels), g.getPerLevelUsdt().doubleValue(),
+                    g.getGridCount(),
                     holdingValue.doubleValue(), holdings_.size()));
             // stopOut 提示
             if (g.getStopOutPct() != null) {
@@ -727,7 +750,7 @@ public class GridMcpTools {
                 : Math.max(1, Duration.between(grid.getCreatedAt(), LocalDateTime.now(ZoneOffset.UTC)).toDays());
         int closedPairs = grid.getClosedPairCount() == null ? 0 : grid.getClosedPairCount();
         BigDecimal realizedPnl = grid.getTotalRealizedPnl() == null ? BigDecimal.ZERO : grid.getTotalRealizedPnl();
-        BigDecimal capacity = safe(grid.getPerLevelUsdt()).multiply(BigDecimal.valueOf(nullToZero(grid.getGridCount())));
+        BigDecimal capacity = estimateConfiguredGridCapacity(grid, levels);
         BigDecimal activeCapital = estimateActiveGridCapital(grid, levels);
         double pnlPerDay = realizedPnl.doubleValue() / ageDays;
         double pairsPerDay = (double) closedPairs / ageDays;
@@ -856,7 +879,7 @@ public class GridMcpTools {
                 : Math.max(1, Duration.between(grid.getCreatedAt(), LocalDateTime.now(ZoneOffset.UTC)).toDays());
         int closedPairs = grid.getClosedPairCount() == null ? 0 : grid.getClosedPairCount();
         BigDecimal realizedPnl = grid.getTotalRealizedPnl() == null ? BigDecimal.ZERO : grid.getTotalRealizedPnl();
-        BigDecimal capacity = safe(grid.getPerLevelUsdt()).multiply(BigDecimal.valueOf(nullToZero(grid.getGridCount())));
+        BigDecimal capacity = estimateConfiguredGridCapacity(grid, levels);
         BigDecimal activeCapital = estimateActiveGridCapital(grid, levels);
         double pnlPerDay = realizedPnl.doubleValue() / ageDays;
         double pairsPerDay = (double) closedPairs / ageDays;
@@ -903,6 +926,17 @@ public class GridMcpTools {
             }
         }
         return capital;
+    }
+
+    private BigDecimal estimateConfiguredGridCapacity(BtGrid grid, List<BtGridLevel> levels) {
+        return safe(grid.getPerLevelUsdt()).multiply(BigDecimal.valueOf(configuredBuyLevelCount(grid, levels)));
+    }
+
+    private int configuredBuyLevelCount(BtGrid grid, List<BtGridLevel> levels) {
+        if (levels != null && !levels.isEmpty()) {
+            return levels.size();
+        }
+        return Math.max(0, nullToZero(grid.getGridCount()) - 1);
     }
 
     private boolean isDustStaleSellFailure(BtGridLevel level) {

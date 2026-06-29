@@ -3,10 +3,41 @@ package com.agora.mcp;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GridMcpToolsTest {
+
+    @Test
+    void createGridUsesUpperPriceAsSellBoundaryNotBuyLevel() {
+        BigDecimal lower = new BigDecimal("54067.59");
+        BigDecimal upper = new BigDecimal("66082.61");
+
+        List<BigDecimal> buyPrices = GridMcpTools.buildBuyLevelPrices(lower, upper, 2);
+        BigDecimal step = GridMcpTools.calcGridStep(lower, upper, 2);
+
+        assertThat(buyPrices)
+                .extracting(BigDecimal::toPlainString)
+                .containsExactly("54067.59000000");
+        assertThat(buyPrices).noneMatch(price -> price.compareTo(upper) == 0);
+        assertThat(buyPrices.get(0).add(step)).isEqualByComparingTo(upper);
+        assertThat(GridMcpTools.estimateCreateGridCapital(new BigDecimal("5"), 2))
+                .isEqualByComparingTo("5");
+    }
+
+    @Test
+    void createGridBuildsOneFewerBuyLevelThanPriceLines() {
+        List<BigDecimal> buyPrices = GridMcpTools.buildBuyLevelPrices(
+                new BigDecimal("100"), new BigDecimal("140"), 5);
+
+        assertThat(buyPrices)
+                .extracting(BigDecimal::toPlainString)
+                .containsExactly("100.00000000", "110.00000000", "120.00000000", "130.00000000");
+        assertThat(buyPrices).noneMatch(price -> price.compareTo(new BigDecimal("140")) == 0);
+        assertThat(GridMcpTools.estimateCreateGridCapital(new BigDecimal("10"), 5))
+                .isEqualByComparingTo("40");
+    }
 
     @Test
     void trendAdjustmentReviewDoesNotRecommendActionWithoutActiveGrid() {

@@ -1119,6 +1119,24 @@
   it does not call `setTrailingStopOptIn`, change production env, deploy,
   restart, enable scheduler/live trading, place orders, modify OCO, close
   positions, relax policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- `scripts/prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1`
+  packages the next gate after a separately authorized strategy opt-in write.
+  It reruns or consumes the activation packet and emits
+  `TRAILING_STOP_POST_OPT_IN_READINESS_PACKET`,
+  `trailing_stop_post_opt_in_readiness_packet`, and
+  `trailing_stop_post_opt_in_readiness_status`. A status of
+  `READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION` means
+  the expected strategy, default `574`, has `trailingStopEnabled=true`, the
+  trailing replay acceptance still passes, global trailing remains disabled,
+  and dry-run remains true. The only next step is a separate operator decision
+  for `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`, followed by
+  deploy/restart and read-only verification. The packet keeps
+  `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, and `position_or_oco_mutation_allowed=false`;
+  it does not call `setTrailingStopOptIn`, change production env, deploy,
+  restart, enable scheduler/live trading, place orders, modify OCO, close
+  positions, relax policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

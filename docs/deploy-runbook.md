@@ -2553,6 +2553,29 @@ Expected:
   policy. After any separately authorized opt-in write, rerun the activation
   packet and the post-opt-in read-only verification before requesting the
   global dry-run env diff.
+- After the separate strategy opt-in write has been authorized and executed,
+  package the post-opt-in readiness evidence before requesting any global
+  env/deploy change:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -RequireReady
+  ```
+
+  Expected output includes `TRAILING_STOP_POST_OPT_IN_READINESS_PACKET`,
+  `trailing_stop_post_opt_in_readiness_packet`,
+  `trailing_stop_post_opt_in_readiness_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION`,
+  `trailing_stop_post_opt_in_readiness_decision=REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`,
+  `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. The packet proves the expected strategy,
+  default `574`, is opted in and only proposes a separate env review for
+  `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`. It does not
+  call `setTrailingStopOptIn`, change production env, deploy/restart, enable
+  scheduler/live trading, place orders, modify OCO, send Telegram, or relax
+  policy. Post-env verification remains read-only: split acceptance, hard
+  trailing replay smoke, live-readiness audit, server-local
+  `getTrailingStopStatus`, server-local `getStrategyConfig`, and runtime-log
+  smoke.
 - To convert the second-ranked strategy485 risk item into a review-only
   operator decision packet, run:
 

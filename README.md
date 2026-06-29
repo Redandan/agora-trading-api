@@ -820,6 +820,28 @@ orders, modify OCO, or relax live policy. After any separately authorized
 opt-in write, rerun the activation packet and use the post-opt-in read-only
 verification commands before requesting any global dry-run env diff.
 
+Read-only trailing-stop post-opt-in readiness packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -RequireReady
+```
+
+This reruns or consumes the activation packet after a separately authorized
+strategy opt-in write. It emits `TRAILING_STOP_POST_OPT_IN_READINESS_PACKET`,
+`trailing_stop_post_opt_in_readiness_packet`, and
+`trailing_stop_post_opt_in_readiness_status`.
+`READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION` means
+the expected strategy, default `574`, now has `trailingStopEnabled=true`, the
+trailing replay still passes, global trailing remains disabled, and dry-run is
+still true. The next step is only a separate operator review for
+`TRAILING_STOP_ENABLED=true` plus `TRAILING_STOP_DRY_RUN=true`, followed by
+deploy/restart and read-only verification. The packet keeps
+`production_env_change_allowed=false`, `deploy_allowed=false`,
+`scheduler_enablement_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, and `position_or_oco_mutation_allowed=false`;
+it does not call `setTrailingStopOptIn`, change env, deploy, restart, enable
+live trading, place orders, modify OCO, or relax live policy.
+
 Read-only strategy485 risk-reduction operator decision packet:
 
 ```powershell

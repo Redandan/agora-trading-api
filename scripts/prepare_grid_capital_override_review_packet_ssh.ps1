@@ -172,7 +172,11 @@ $requiredCapMultiplier = if ($null -ne $candidateCapitalUsdt -and $null -ne $eff
     $null
 }
 
-Add-Unique -List $operatorAuthorizationRequired -Value "separate written trend-regime override remains required while trendGate is blocked"
+if ($trendGate -like "BLOCKED_*") {
+    Add-Unique -List $operatorAuthorizationRequired -Value "separate written trend-regime override remains required while trendGate is blocked"
+} else {
+    Add-Unique -List $operatorAuthorizationRequired -Value "fresh trend gate clearance accepted; separate trend-regime override is not required unless the gate becomes blocked"
+}
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written capital-cap override naming candidateCapitalUsdt and effectiveReviewCapitalCapUsdt"
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written production env diff authorization and deploy/restart before createGrid"
 Add-Unique -List $operatorAuthorizationRequired -Value "fresh post-env read-only create authorization preflight packet"

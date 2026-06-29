@@ -71,6 +71,8 @@ foreach ($marker in @(
         "approvalConditions",
         "abortCriteria",
         "postApprovalReadOnlyVerification",
+        "fresh trend gate clearance accepted; separate trend-regime override is not required unless the gate becomes blocked",
+        "separate written trend-regime override remains required while trendGate is blocked",
         "capitalOverrideReviewReady",
         "capitalOverrideAllowed = `$false",
         "createGridAllowed = `$false",

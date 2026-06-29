@@ -2666,6 +2666,12 @@ packet mode so `TRADING_OKX_ENABLED=true` and `TRADING_GRID_ENABLED=true` are
 accepted only after an env diff has already been applied and split acceptance
 has passed; the normal pre-apply env-diff packet still treats already-true
 flags as review blockers.
+The env-diff packet also emits `existingActiveGridActivationReview`. When an
+ACTIVE grid already exists with `TRADING_GRID_ENABLED=true`, changing
+`TRADING_OKX_ENABLED=true` is existing active grid order-path activation: it
+can allow market buy/sell on grid price-cross events. Operator authorization
+must name that risk explicitly and cite fresh post-open smoke/runtime-log
+evidence.
 After Grid #10 is opened, use `.\scripts\smoke_grid_post_open_ssh.ps1 -GridId 10`
 for read-only first-day observation. It verifies Grid #10 is ACTIVE, level
 counts have no failed/partial states, price alignment is in range,

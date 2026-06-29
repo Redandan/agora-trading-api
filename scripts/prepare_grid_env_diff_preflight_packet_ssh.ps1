@@ -55,6 +55,24 @@ function Convert-JsonObjectOrNull {
     }
 }
 
+function Get-PropertyOrNull {
+    param([object]$Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+}
+
+function Get-IntOrZero {
+    param($Value)
+    if ($null -eq $Value) { return 0 }
+    try {
+        return [int]$Value
+    } catch {
+        return 0
+    }
+}
+
 function Add-Unique {
     param([System.Collections.Generic.List[string]]$List, [string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value)) { return }
@@ -137,6 +155,10 @@ $earnEnabled = if ($null -ne $envEnvelope) { [string]$envEnvelope.okxEarnTopupEn
 $eventRiskGate = if ($null -ne $gateStatuses) { [string]$gateStatuses.eventRiskGate } else { "UNKNOWN" }
 $trendGate = if ($null -ne $gateStatuses) { [string]$gateStatuses.trendGate } else { "UNKNOWN" }
 $trendOverrideReady = if ($null -ne $trendOverridePacket) { [bool]$trendOverridePacket.trendOverrideReviewReady } else { $false }
+$sourceReadinessPacket = if ($null -ne $operatorPacket) { Get-PropertyOrNull -Object $operatorPacket -Name "sourceReadinessPacketSummary" } else { $null }
+$activeGridCount = Get-IntOrZero (Get-PropertyOrNull -Object $sourceReadinessPacket -Name "activeGridCount")
+$pausedGridCount = Get-IntOrZero (Get-PropertyOrNull -Object $sourceReadinessPacket -Name "pausedGridCount")
+$closedGridCount = Get-IntOrZero (Get-PropertyOrNull -Object $sourceReadinessPacket -Name "closedGridCount")
 
 $targetEnvFlags = [ordered]@{
     TRADING_OKX_ENABLED = "true"
@@ -160,6 +182,28 @@ foreach ($flagName in $targetEnvFlags.Keys) {
     } else {
         Add-Unique -List $pendingSeparateEnvDiff -Value "$flagName=$targetValue"
     }
+}
+
+$pendingOkxEnablement = @($pendingSeparateEnvDiff) -contains "TRADING_OKX_ENABLED=true"
+$existingActiveGridOrderPathActivationRisk = (
+    $activeGridCount -gt 0 -and
+    $gridEnabled -eq "true" -and
+    $okxEnabled -ne "true" -and
+    $pendingOkxEnablement
+)
+$existingActiveGridOrderPathAlreadyActive = (
+    $activeGridCount -gt 0 -and
+    $gridEnabled -eq "true" -and
+    $okxEnabled -eq "true"
+)
+$existingActiveGridActivationStatus = if ($existingActiveGridOrderPathActivationRisk) {
+    "REQUIRES_SEPARATE_EXISTING_ACTIVE_GRID_OKX_ORDER_PATH_AUTHORIZATION"
+} elseif ($existingActiveGridOrderPathAlreadyActive) {
+    "POST_ENV_EXISTING_ACTIVE_GRID_ORDER_PATH_ACTIVE_VERIFY_READ_ONLY"
+} elseif ($activeGridCount -gt 0) {
+    "ACTIVE_GRID_PRESENT_BUT_ORDER_PATH_NOT_ACTIVATED_BY_THIS_PACKET"
+} else {
+    "NO_ACTIVE_GRID_ORDER_PATH_ACTIVATION"
 }
 
 if ($null -eq $envEnvelope) {
@@ -217,8 +261,25 @@ foreach ($postEnvDiffBlocker in @($postEnvDiffBlockers)) {
 
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written trend override approval or fresh trend gate clearance"
 Add-Unique -List $operatorAuthorizationRequired -Value "separate written production env diff authorization"
+if ($existingActiveGridOrderPathActivationRisk) {
+    Add-Unique -List $operatorAuthorizationRequired -Value "separate written existing-active-grid OKX order-path activation authorization naming activeGridCount=$activeGridCount and confirming post-open smoke/runtime-log evidence"
+}
 Add-Unique -List $operatorAuthorizationRequired -Value "separate deploy/restart authorization after env diff"
 Add-Unique -List $operatorAuthorizationRequired -Value "separate createGrid authorization after post-env verification"
+
+$preApplyRequirements = [System.Collections.Generic.List[string]]::new()
+foreach ($requirement in @(
+        "fresh GRID_ENV_DIFF_PREFLIGHT_PACKET with status READY_FOR_GRID_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION",
+        "separate written trend override approval or trend gate clearance",
+        "separate written production env diff authorization",
+        "confirm OKX credentials remain masked and present",
+        "keep scheduler/recovery/Earn disabled for initial grid-open review"
+    )) {
+    Add-Unique -List $preApplyRequirements -Value $requirement
+}
+if ($existingActiveGridOrderPathActivationRisk) {
+    Add-Unique -List $preApplyRequirements -Value "separate written existing-active-grid OKX order-path activation authorization; TRADING_OKX_ENABLED=true can allow the already-active grid scheduler to place market buy/sell orders on price crosses"
+}
 
 $reviewReady = (
     $missingEvidence.Count -eq 0 -and
@@ -261,6 +322,31 @@ $packet = [pscustomobject]@{
         eventRiskGate = $eventRiskGate
         trendGate = $trendGate
         trendOverrideReviewReady = $trendOverrideReady
+        activeGridCount = $activeGridCount
+        pausedGridCount = $pausedGridCount
+        closedGridCount = $closedGridCount
+    }
+    existingActiveGridActivationReview = [pscustomobject]@{
+        activeGridCount = $activeGridCount
+        pausedGridCount = $pausedGridCount
+        closedGridCount = $closedGridCount
+        tradingGridEnabled = $gridEnabled
+        tradingOkxEnabled = $okxEnabled
+        pendingOkxEnablement = $pendingOkxEnablement
+        orderPathWillBeActivatedByPendingOkxEnablement = $existingActiveGridOrderPathActivationRisk
+        orderPathAlreadyActive = $existingActiveGridOrderPathAlreadyActive
+        status = $existingActiveGridActivationStatus
+        requiredSeparateAuthorization = $existingActiveGridOrderPathActivationRisk
+        requiredEvidence = if ($existingActiveGridOrderPathActivationRisk) {
+            @(
+                "fresh smoke_grid_post_open_ssh.ps1 evidence for the active grid",
+                "active grid status/count, level pending/holding/failed counts, price alignment, and exposure reviewed",
+                "runtime log high-risk grid/order/OCO/Earn/fund lines clean before env diff",
+                "operator explicitly accepts that TRADING_OKX_ENABLED=true can enable market buy/sell for existing active grid price-cross events"
+            )
+        } else {
+            @()
+        }
     }
     acceptAlreadyAppliedEnvDiff = [bool]$AcceptAlreadyAppliedEnvDiff
     envDiffAlreadyApplied = $envDiffAlreadyApplied
@@ -273,13 +359,7 @@ $packet = [pscustomobject]@{
         "GRID_RECOVERY_ENABLED=false",
         "OKX_EARN_TOPUP_ENABLED=false"
     )
-    preApplyRequirements = @(
-        "fresh GRID_ENV_DIFF_PREFLIGHT_PACKET with status READY_FOR_GRID_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION",
-        "separate written trend override approval or trend gate clearance",
-        "separate written production env diff authorization",
-        "confirm OKX credentials remain masked and present",
-        "keep scheduler/recovery/Earn disabled for initial grid-open review"
-    )
+    preApplyRequirements = @($preApplyRequirements)
     postApplyReadOnlyVerification = @(
         "deploy/server verification after env diff if separately authorized",
         "verify split acceptance",
@@ -304,7 +384,7 @@ $packet = [pscustomobject]@{
     telegramSendAllowed = $false
     sourceEnvEnvelope = $envEnvelope
     sourceTrendOverridePacketSummary = $trendOverridePacket
-    notAuthorization = "read-only grid env diff preflight only; does not change production env, deploy, restart, call createGrid, enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state"
+    notAuthorization = "read-only grid env diff preflight only; does not change production env, deploy, restart, call createGrid, activate existing active grid order path, enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state"
 }
 
 Write-Host "[grid-env-diff-preflight] read-only packet"
@@ -326,11 +406,12 @@ Write-Host ("grid_env_diff_preflight_review_blockers=" + (ConvertTo-Json -Compre
 Write-Host ("grid_env_diff_preflight_post_env_diff_blockers=" + (ConvertTo-Json -Compress @($postEnvDiffBlockers)))
 Write-Host ("grid_env_diff_preflight_already_applied_flags=" + (ConvertTo-Json -Compress @($alreadyAppliedEnvDiffFlags)))
 Write-Host ("grid_env_diff_preflight_pending_env_diff=" + (ConvertTo-Json -Compress @($pendingSeparateEnvDiff)))
+Write-Host ("grid_env_diff_preflight_existing_active_grid_activation=" + (ConvertTo-Json -Compress $packet.existingActiveGridActivationReview))
 Write-Host ("grid_env_diff_preflight_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("grid_env_diff_preflight_operator_authorization_required=" + (ConvertTo-Json -Compress @($operatorAuthorizationRequired)))
 Write-Host ("grid_env_diff_preflight_proposed_env_diff=" + (ConvertTo-Json -Compress $packet.proposedSeparateEnvDiff))
 Write-Host ("grid_env_diff_preflight_packet=" + (ConvertTo-Json -Compress -Depth 18 $packet))
-Write-Host "notAuthorization=read-only grid env diff preflight only; does not change production env, deploy, restart, call createGrid, enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state"
+Write-Host "notAuthorization=read-only grid env diff preflight only; does not change production env, deploy, restart, call createGrid, activate existing active grid order path, enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state"
 Write-Host "[grid-env-diff-preflight] read-only check complete"
 
 if ($RequireReviewReady -and -not $reviewReady) {

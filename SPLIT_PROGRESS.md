@@ -3294,7 +3294,13 @@ Trading deployment prep:
   `grid_env_diff_preflight_pending_env_diff=["TRADING_OKX_ENABLED=true"]`.
   Grid opening still requires separate capital-cap override, production env
   diff, deploy/restart plus post-env read-only verification, and final
-  createGrid authorization; no mutation was performed.
+  createGrid authorization; no mutation was performed. Follow-up packet tooling
+  now surfaces `existingActiveGridActivationReview` because Grid #10 is already
+  ACTIVE while `TRADING_GRID_ENABLED=true`: applying `TRADING_OKX_ENABLED=true`
+  can activate the existing active grid order path for market buy/sell
+  price-cross events. That requires explicit existing-grid activation wording
+  and fresh post-open smoke/runtime-log evidence, not just generic createGrid
+  preparation.
 - BTC panic-bottom context now has a read-only ScoreBuy companion MCP:
   `previewPanicBottomContext(symbol=BTCUSDT)`. It reads `md_kline`,
   `market_indicator_history` `fear_greed`, a 200WMA reference, OCO health text,

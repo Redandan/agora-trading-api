@@ -127,6 +127,12 @@ if ($null -eq $capitalPacket) { Add-Unique -List $missingEvidence -Value "grid_c
 
 $createPacket = if ($null -ne $capitalPacket) { $capitalPacket.sourceCreateAuthorizationPreflightPacketSummary } else { $null }
 $envPacket = if ($null -ne $createPacket) { $createPacket.sourceEnvDiffPacketSummary } else { $null }
+$existingActiveGridActivationReview = if ($null -ne $envPacket) { Get-PropertyOrNull -Object $envPacket -Name "existingActiveGridActivationReview" } else { $null }
+$existingActiveGridOrderPathActivationRisk = if ($null -ne $existingActiveGridActivationReview) {
+    [bool](Get-PropertyOrNull -Object $existingActiveGridActivationReview -Name "orderPathWillBeActivatedByPendingOkxEnablement")
+} else {
+    $false
+}
 $trendPacket = if ($null -ne $envPacket) { $envPacket.sourceTrendOverridePacketSummary } else { $null }
 
 $trendReviewReady = if ($null -ne $trendPacket) { [bool]$trendPacket.trendOverrideReviewReady } else { $false }
@@ -169,6 +175,9 @@ if (-not $trendGateClear) {
 }
 Add-Unique -List $executionBlockers -Value "OPERATOR_CAPITAL_CAP_OVERRIDE_REQUIRED"
 Add-Unique -List $executionBlockers -Value "OPERATOR_PRODUCTION_ENV_DIFF_AUTHORIZATION_REQUIRED"
+if ($existingActiveGridOrderPathActivationRisk) {
+    Add-Unique -List $executionBlockers -Value "OPERATOR_EXISTING_ACTIVE_GRID_OKX_ORDER_PATH_ACTIVATION_AUTHORIZATION_REQUIRED"
+}
 Add-Unique -List $executionBlockers -Value "DEPLOY_RESTART_AND_READ_ONLY_POST_ENV_VERIFICATION_REQUIRED"
 Add-Unique -List $executionBlockers -Value "OPERATOR_CREATEGRID_AUTHORIZATION_REQUIRED"
 $authorizationSequence = [System.Collections.Generic.List[string]]::new()
@@ -178,7 +187,11 @@ if ($trendGateClear) {
     Add-Unique -List $authorizationSequence -Value "1. trend-regime override or fresh trend clearance"
 }
 Add-Unique -List $authorizationSequence -Value "2. capital-cap override if candidateCapitalUsdt remains above effectiveReviewCapitalCapUsdt"
-Add-Unique -List $authorizationSequence -Value "3. production env diff authorization and deploy/restart"
+if ($existingActiveGridOrderPathActivationRisk) {
+    Add-Unique -List $authorizationSequence -Value "3. production env diff authorization explicitly naming existing ACTIVE grid OKX order-path activation, then deploy/restart"
+} else {
+    Add-Unique -List $authorizationSequence -Value "3. production env diff authorization and deploy/restart"
+}
 Add-Unique -List $authorizationSequence -Value "4. post-env read-only split acceptance plus refreshed grid open packets"
 Add-Unique -List $authorizationSequence -Value "5. createGrid authorization with freshly reviewed inputs"
 
@@ -213,6 +226,7 @@ $packet = [pscustomobject]@{
         createGridPreflightEvidenceComplete = $createEvidenceComplete
         candidatePlanComplete = $candidatePlanComplete
         bundleReadyForOperatorReview = $bundleReady
+        existingActiveGridOrderPathActivationRisk = $existingActiveGridOrderPathActivationRisk
     }
     authorizationLanes = @(
         [pscustomobject]@{
@@ -252,6 +266,7 @@ $packet = [pscustomobject]@{
     reviewedCreateGridInputs = if ($null -ne $createPacket) { $createPacket.reviewedCreateGridInputs } else { $null }
     capitalOverrideRequest = if ($null -ne $capitalPacket) { $capitalPacket.capitalOverrideRequest } else { $null }
     proposedSeparateEnvDiff = if ($null -ne $envPacket) { $envPacket.proposedSeparateEnvDiff } else { @() }
+    existingActiveGridActivationReview = $existingActiveGridActivationReview
     requiredOperatorAuthorizationSequence = @($authorizationSequence)
     postEnvReadOnlyVerification = @(
         "verify split acceptance",

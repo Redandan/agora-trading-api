@@ -351,6 +351,12 @@ $currentnessLine = if ($splitRuntimeCurrentForGridOpen -and -not [string]::IsNul
 }
 
 $trendGateClearanceAccepted = if ($null -ne $requestPacket) { [bool](Get-PropertyOrNull $requestPacket "trendGateClearanceAccepted") } else { $false }
+$existingActiveGridActivationReview = if ($null -ne $requestPacket) { Get-PropertyOrNull $requestPacket "existingActiveGridActivationReview" } else { $null }
+$existingActiveGridOrderPathActivationRisk = if ($null -ne $existingActiveGridActivationReview) {
+    [bool](Get-PropertyOrNull $existingActiveGridActivationReview "orderPathWillBeActivatedByPendingOkxEnablement")
+} else {
+    $false
+}
 $trendSequenceLine = if ($trendGateClearanceAccepted) {
     "2. fresh trend gate clearance accepted; separate trend-regime override not required unless the gate becomes blocked"
 } else {
@@ -361,14 +367,24 @@ $splitSequenceLine = if ($splitRuntimeCurrentForGridOpen) {
 } else {
     "1. split/currentness deploy authorization for current origin/main only"
 }
+$envSequenceLine = if ($existingActiveGridOrderPathActivationRisk) {
+    "4. production env diff authorization for OKX/grid flags explicitly naming existing ACTIVE grid OKX order-path activation; scheduler/recovery/Earn remain disabled"
+} else {
+    "4. production env diff authorization for OKX/grid flags while scheduler/recovery/Earn remain disabled"
+}
+$createSequenceLine = if ($existingActiveGridOrderPathActivationRisk) {
+    "7. separate createGrid authorization only if opening an additional grid; existing active grid activation is governed by the env/post-env read-only verification lane"
+} else {
+    "7. separate createGrid authorization using freshly reviewed createGrid inputs"
+}
 $operatorSequence = @(
     $splitSequenceLine,
     $trendSequenceLine,
     "3. capital-cap override if candidateCapitalUsdt remains above effectiveReviewCapitalCapUsdt",
-    "4. production env diff authorization for OKX/grid flags while scheduler/recovery/Earn remain disabled",
+    $envSequenceLine,
     "5. deploy/restart after the separately authorized env diff",
     "6. post-env read-only verification with split acceptance, refreshed grid packets, and runtime-log smoke",
-    "7. separate createGrid authorization using freshly reviewed createGrid inputs"
+    $createSequenceLine
 )
 
 $packet = [ordered]@{
@@ -417,6 +433,7 @@ $packet = [ordered]@{
     reviewedGridCandidateParameters = $candidateParams
     reviewedCreateGridInputs = $createInputs
     capitalOverrideRequest = if ($null -ne $requestPacket) { Get-PropertyOrNull $requestPacket "capitalOverrideRequest" } else { $null }
+    existingActiveGridActivationReview = $existingActiveGridActivationReview
     proposedSeparateEnvDiff = if ($null -ne $requestPacket) { @($requestPacket.proposedSeparateEnvDiff) } else { @() }
     currentnessAuthorizationLine = $currentnessLine
     operatorAuthorizationLines = @($authorizationLines)

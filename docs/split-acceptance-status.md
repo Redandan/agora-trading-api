@@ -374,7 +374,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   stayed ready with pending diff `TRADING_OKX_ENABLED=true`. This makes the
   next grid-open sequence explicit: separate capital-cap override, separate
   env diff, deploy/restart plus post-env read-only verification, then separate
-  createGrid authorization.
+  createGrid authorization. Because Grid #10 is already ACTIVE and
+  `TRADING_GRID_ENABLED=true`, the next refreshed env-diff packet must also
+  surface `existingActiveGridActivationReview`: turning
+  `TRADING_OKX_ENABLED=true` on can activate the existing active grid order
+  path for market buy/sell price-cross events, so that authorization is not a
+  generic createGrid precondition.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

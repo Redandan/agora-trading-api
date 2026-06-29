@@ -166,6 +166,17 @@ foreach ($blocker in @($createReviewBlockers)) {
     }
 }
 $envPacket = if ($null -ne $createPacket) { $createPacket.sourceEnvDiffPacketSummary } else { $null }
+$existingActiveGridActivationReview = if ($null -ne $envPacket) { Get-PropertyOrNull -Object $envPacket -Name "existingActiveGridActivationReview" } else { $null }
+$existingActiveGridOrderPathActivationRisk = if ($null -ne $existingActiveGridActivationReview) {
+    [bool](Get-PropertyOrNull -Object $existingActiveGridActivationReview -Name "orderPathWillBeActivatedByPendingOkxEnablement")
+} else {
+    $false
+}
+$existingActiveGridCount = if ($null -ne $existingActiveGridActivationReview) {
+    Get-PropertyOrNull -Object $existingActiveGridActivationReview -Name "activeGridCount"
+} else {
+    0
+}
 $envReviewBlockers = if ($null -ne $envPacket) { Get-StringArray $envPacket.reviewBlockers } else { @() }
 $trendPacket = if ($null -ne $envPacket) { $envPacket.sourceTrendOverridePacketSummary } else { $null }
 $trendHardBlockers = if ($null -ne $trendPacket) { Get-StringArray $trendPacket.hardBlockers } else { @() }
@@ -195,7 +206,11 @@ $capitalTextLine = if ($null -ne $capitalRequest) {
 } else {
     "I authorize a separate capital-cap override for $Symbol using the refreshed capitalOverrideRequest values."
 }
-$envText = "I authorize a separate production env diff for $Symbol grid review only: $($envDiff -join '; '); scheduler/recovery/Earn remain disabled unless separately authorized."
+$envText = if ($existingActiveGridOrderPathActivationRisk) {
+    "I authorize a separate production env diff for $Symbol grid review only: $($envDiff -join '; '); I understand TRADING_OKX_ENABLED=true explicitly activates the existing ACTIVE grid order path for activeGridCount=$existingActiveGridCount, allowing market buy/sell on grid price-cross events; scheduler/recovery/Earn remain disabled unless separately authorized."
+} else {
+    "I authorize a separate production env diff for $Symbol grid review only: $($envDiff -join '; '); scheduler/recovery/Earn remain disabled unless separately authorized."
+}
 $deployText = "I authorize deploy/restart only after the env diff approval, followed by read-only split acceptance, refreshed grid packets, and runtime-log verification before any createGrid request."
 $createText = if ($null -ne $createInputs) {
     "I authorize a separate createGrid review only after post-env verification, using symbol=$($createInputs.symbol), priceLower=$($createInputs.priceLower), priceUpper=$($createInputs.priceUpper), gridCount=$($createInputs.gridCount), perLevelUsdt=$($createInputs.perLevelUsdt), candidateCapitalUsdt=$($createInputs.candidateCapitalUsdt), stopLow=$($createInputs.stopLow), stopHigh=$($createInputs.stopHigh), stopOutPct=$($createInputs.stopOutPct)."
@@ -245,6 +260,7 @@ $packet = [pscustomobject]@{
     reviewedCreateGridInputs = $createInputs
     capitalOverrideRequest = $capitalRequest
     proposedSeparateEnvDiff = $envDiff
+    existingActiveGridActivationReview = $existingActiveGridActivationReview
     postEnvReadOnlyVerification = if ($null -ne $bundlePacket) { $bundlePacket.postEnvReadOnlyVerification } else { @() }
     requestBlockers = @($requestBlockers)
     bundleBlockers = @($bundleBlockers)

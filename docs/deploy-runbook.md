@@ -697,6 +697,12 @@ Expected:
   flag that is already at its desired value is evidence, not a blocker; the
   pre-apply path blocks only when the full env diff is already applied and
   the operator should switch to post-env verification mode.
+- Emits `existingActiveGridActivationReview` and
+  `grid_env_diff_preflight_existing_active_grid_activation`. If an ACTIVE grid
+  already exists while `TRADING_GRID_ENABLED=true`, then a pending
+  `TRADING_OKX_ENABLED=true` diff is an existing active grid order-path
+  activation, not just createGrid preparation. The operator authorization must
+  explicitly name that risk and use fresh post-open smoke/runtime-log evidence.
 - Proposed env diff is limited to `TRADING_OKX_ENABLED=true`,
   `TRADING_GRID_ENABLED=true`,
   `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,

@@ -380,6 +380,35 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `TRADING_OKX_ENABLED=true` on can activate the existing active grid order
   path for market buy/sell price-cross events, so that authorization is not a
   generic createGrid precondition.
+- Latest read-only grid-open tooling/evidence refresh on 2026-06-29 after
+  commits `f09bdce` and `ef753ac` clarified packet wording without changing
+  runtime policy. `f09bdce` renamed the replay-local candidate status to
+  `GRID_CANDIDATE_PLAN_TREND_REVIEW_REQUIRED_NOT_OPEN_APPROVAL` and added
+  `candidateTrendRegimeReviewRequired`,
+  `candidateTrendRegimeSource=md_kline_replay`, and
+  `candidateTrendRegimeNote` so candidate replay context is not confused with
+  MCP `trendGate` clearance. `ef753ac` made the capital override packet
+  conditional: when `trendGate=CLEAR_TREND_REGIME`, it records fresh trend
+  clearance instead of requiring a trend override.
+  `target/grid-open/grid-open-complete-operator-packet-microgrid-after-ef753ac-current-read-only.log`
+  returned `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION`,
+  `grid_open_complete_operator_packet_ready=true`, `missingEvidence=[]`,
+  origin/main `ef753ac`, server worktree `3937f5d`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, readiness `66.67`, and
+  passed gates `8/12`. Remaining execution blockers are
+  `GRID_ENV_DIFF_NOT_APPLIED`, `OPERATOR_CAPITAL_CAP_OVERRIDE_REQUIRED`,
+  `OPERATOR_PRODUCTION_ENV_DIFF_AUTHORIZATION_REQUIRED`,
+  `OPERATOR_EXISTING_ACTIVE_GRID_OKX_ORDER_PATH_ACTIVATION_AUTHORIZATION_REQUIRED`,
+  `DEPLOY_RESTART_AND_READ_ONLY_POST_ENV_VERIFICATION_REQUIRED`, and
+  `OPERATOR_CREATEGRID_AUTHORIZATION_REQUIRED`. The current operator sequence
+  is separate capital-cap override, separate production env diff explicitly
+  naming existing Grid #10 OKX order-path activation, deploy/restart after that
+  env diff, post-env read-only verification, then separate createGrid review
+  only if an additional grid is still desired. The refresh made no deploy,
+  production env change, `createGrid`, scheduler/recovery/Earn enablement,
+  order, OCO, grid, fund, Telegram, DB, or exchange mutation.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

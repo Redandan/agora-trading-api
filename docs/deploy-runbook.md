@@ -462,7 +462,9 @@ Expected:
   replay fields include `entryReferencePrice`, `candidateLower`,
   `candidateUpper`, `gridCount`, `candidateCapitalUsdt`, `stopOutPct`,
   `stopLow`, `stopHigh`, `replayRows`, `replayStart`, `replayEnd`,
-  `insidePct`, `stopBreakRows`, and `replayScore`.
+  `insidePct`, `stopBreakRows`, `replayScore`,
+  `candidateTrendRegimeReviewRequired`, `candidateTrendRegimeSource`, and
+  `candidateTrendRegimeNote`.
 - Keeps the grid-trend MCP boundary markers:
   `boundary=READ_ONLY`, `mutationAllowed=false`, `orderAllowed=false`,
   `gridMutationAllowed=false`, `schedulerChangeAllowed=false`, and
@@ -474,6 +476,10 @@ Expected:
   replayable. It is not `createGrid` input authorization and it does not clear
   trend-regime, event-risk, historical `SELL_FAILED`, OKX enablement,
   scheduler, or live-trading blockers.
+- `GRID_CANDIDATE_PLAN_TREND_REVIEW_REQUIRED_NOT_OPEN_APPROVAL` is a
+  replay-local candidate status. It does not contradict a fresh MCP
+  `trendGate=CLEAR_TREND_REGIME`; the MCP gate decides whether a separate
+  trend-regime override is required before env/createGrid review.
 - Historical `SELL_FAILED` rows are classified into
   `historical_dust_sell_failed_count` and
   `historical_material_sell_failed_count`. Dust-only stale sell failures are
@@ -760,6 +766,9 @@ Expected:
   multiplier, replay score, stop-break rows, trend risk grade, event-risk gate,
   hard blockers, approval conditions, abort criteria, and post-approval
   read-only verification.
+- If `trendGate=CLEAR_TREND_REGIME`, the packet records fresh trend clearance
+  and does not require a separate trend-regime override. If the trend gate is
+  blocked, trend-regime override remains a separate authorization lane.
 - `READY_FOR_GRID_CAPITAL_OVERRIDE_OPERATOR_REVIEW_NOT_MUTATION` means the
   capital-cap override can be attached to a separate operator authorization
   request. It is not permission to approve the cap override, change production

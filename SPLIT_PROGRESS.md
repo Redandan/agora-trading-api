@@ -3336,6 +3336,27 @@ Trading deployment prep:
   deploy/env changes, and DB/grid/fund/Earn/exchange mutation disabled until a
   separate explicit authorization and post-change read-only verification plan
   exist.
+- 2026-06-29 read-only grid-open tooling refresh after commits `f09bdce` and
+  `ef753ac` clarified the operator evidence without relaxing any runtime gate.
+  Candidate replay trend context now uses
+  `GRID_CANDIDATE_PLAN_TREND_REVIEW_REQUIRED_NOT_OPEN_APPROVAL` plus
+  `candidateTrendRegimeReviewRequired`,
+  `candidateTrendRegimeSource=md_kline_replay`, and
+  `candidateTrendRegimeNote` to keep md_kline replay risk separate from MCP
+  `trendGate` clearance. Capital override wording is now conditional: a fresh
+  `trendGate=CLEAR_TREND_REGIME` records that no separate trend-regime override
+  is required unless the gate becomes blocked again. The latest complete
+  operator packet saved at
+  `target/grid-open/grid-open-complete-operator-packet-microgrid-after-ef753ac-current-read-only.log`
+  returned `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION`,
+  origin/main `ef753ac`, server worktree `3937f5d`,
+  `origin_runtime_delta_files=0`, readiness `66.67`, passed gates `8/12`,
+  and `missingEvidence=[]`. Remaining execution blockers are still the
+  separate env diff, capital-cap override, existing active Grid #10 OKX
+  order-path activation authorization, deploy/restart plus post-env read-only
+  verification, and separate createGrid authorization. No deploy, production
+  env change, scheduler/recovery/Earn enablement, `createGrid`, order, OCO,
+  grid, fund, Telegram, DB, or exchange mutation was performed.
 
 ## Cleanup Priority
 

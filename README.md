@@ -175,6 +175,12 @@ bounds, replay rows, inside/stop-break counts, and `replayScore`. A complete
 candidate plan can clear the "missing explicit plan" evidence gap, but it is
 not `createGrid` input authorization and does not override trend, event-risk,
 historical failure, OKX, scheduler, or live-trading blockers.
+Replay-local trend markers such as `candidateTrendRegimeReviewRequired`,
+`candidateTrendRegimeSource=md_kline_replay`, and
+`GRID_CANDIDATE_PLAN_TREND_REVIEW_REQUIRED_NOT_OPEN_APPROVAL` describe the
+candidate replay context only. They are intentionally separate from the MCP
+`trendGate`; a fresh `trendGate=CLEAR_TREND_REGIME` means a separate
+trend-regime override is not required unless the gate becomes blocked again.
 Historical `SELL_FAILED` rows are classified as material vs dust-only. A
 dust-only stale sell failure is emitted as review evidence and does not block
 grid opening by itself; any material historical `SELL_FAILED` remains a blocker
@@ -358,9 +364,12 @@ blocker is `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`. It emits
 `create_grid_allowed=false`, and `grid_open_allowed=false`. It quantifies the
 requested capital cap raise, required multiplier, replay/stop-break evidence,
 hard blockers, approval conditions, abort criteria, and post-approval
-read-only verification. It does not approve a capital override, change env,
-deploy, restart, call `createGrid`, enable grid/scheduler/recovery, place
-orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+read-only verification. When `trendGate=CLEAR_TREND_REGIME`, the capital packet
+records the fresh trend clearance instead of asking for a trend override; if the
+trend gate becomes blocked again, trend-regime override review remains a
+separate lane. It does not approve a capital override, change env, deploy,
+restart, call `createGrid`, enable grid/scheduler/recovery, place orders,
+modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
 Read-only Grid open authorization bundle:
 

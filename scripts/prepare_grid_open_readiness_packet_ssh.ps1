@@ -362,9 +362,10 @@ LIMIT {candidate_lookback_hours}
     inside_pct = inside / len(bars) * 100.0
     touched_pct = touched / len(bars) * 100.0
     replay_score = max(0.0, min(100.0, inside_pct - stop_breaks * 2.0 - (20.0 if direction in ("UP_STRONG", "DOWN_STRONG") else 0.0)))
+    candidate_trend_regime_review_required = direction in ("UP_STRONG", "DOWN_STRONG")
     status = "GRID_CANDIDATE_PLAN_READY_NOT_OPEN_APPROVAL"
     if direction in ("UP_STRONG", "DOWN_STRONG"):
-        status = "GRID_CANDIDATE_PLAN_BLOCKED_BY_TREND_REGIME"
+        status = "GRID_CANDIDATE_PLAN_TREND_REVIEW_REQUIRED_NOT_OPEN_APPROVAL"
     if stop_breaks > 0:
         status = "GRID_CANDIDATE_PLAN_REVIEW_STOP_BREAKS"
 
@@ -392,6 +393,9 @@ LIMIT {candidate_lookback_hours}
         "stopHigh": round(stop_high, 2),
         "trend": direction,
         "trendPct": round(trend_pct, 4) if trend_pct is not None else None,
+        "candidateTrendRegimeReviewRequired": candidate_trend_regime_review_required,
+        "candidateTrendRegimeSource": "md_kline_replay",
+        "candidateTrendRegimeNote": "candidate replay trend review is separate from MCP trendGate clearance",
         "atrPct": round(atr_pct, 4),
         "insidePct": round(inside_pct, 2),
         "touchedPct": round(touched_pct, 2),

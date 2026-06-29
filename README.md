@@ -867,6 +867,27 @@ grid/fund/Earn/exchange state. A successful execution must immediately reach
 still a separate operator authorization for `TRAILING_STOP_ENABLED=true` and
 `TRAILING_STOP_DRY_RUN=true`.
 
+Read-only profit next execution blocker packet:
+
+```powershell
+.\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
+```
+
+This emits `PROFIT_NEXT_EXECUTION_BLOCKER_PACKET`,
+`profit_next_execution_blocker_packet`,
+`profit_next_execution_goal_satisfied=false`, and
+`profit_next_execution_blocker_status`. It consolidates the trailing-stop
+strategy opt-in dry-run wrapper, Strategy574/TinyLive negative evidence,
+DataFreshness replay gaps, Strategy485 current-position risk, and signal-policy
+status into one machine-readable answer for why the make-money goal is not yet
+satisfied. When the trailing evidence is still the best route, the expected
+status is `BLOCKED_AWAIT_EXPLICIT_EXECUTE_CONFIRMATION` with
+`profit_next_execution_route=TRAILING_STOP_STRATEGY574_OPT_IN` and an exact
+unlock command for the separate guarded opt-in execution. The packet remains
+read-only: it does not call `setTrailingStopOptIn`, change env, deploy, restart,
+enable scheduler/live trading, place orders, modify OCO, send Telegram, or
+mutate DB/grid/fund/Earn/exchange state.
+
 The same wrapper also provides controlled rollback. First dry-run it:
 
 ```powershell

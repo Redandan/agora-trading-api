@@ -1155,6 +1155,24 @@
   `-Rollback -Execute -ConfirmText ROLLBACK_TRAILING_STOP_OPT_IN_574`, which
   only sets `trailingStopEnabled=false` after a dry-run check reaches
   `ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION`.
+- `scripts/prepare_profit_next_execution_blocker_packet.ps1` converts the
+  current make-money goal into a replayable next-execution blocker packet. It
+  emits `PROFIT_NEXT_EXECUTION_BLOCKER_PACKET`,
+  `profit_next_execution_blocker_packet`,
+  `profit_next_execution_goal_satisfied=false`,
+  `profit_next_execution_route=TRAILING_STOP_STRATEGY574_OPT_IN`,
+  `profit_next_execution_unique_blocker`, and
+  `profit_next_execution_exact_unlock_command`. A
+  `BLOCKED_AWAIT_EXPLICIT_EXECUTE_CONFIRMATION` status means the quantified
+  trailing-stop opt-in route is still the nearest profit-improvement path, but
+  the controlled `setTrailingStopOptIn` write still requires a separate explicit
+  confirmation. The packet also records why Strategy574/TinyLive relaxation,
+  DataFreshness entry-policy relaxation, Strategy485 position mutation, and
+  general live-policy relaxation are not the next recommended route. It is
+  read-only and does not execute the opt-in write, deploy, change production
+  env, enable scheduler/live trading, place orders, modify OCO, close
+  positions, send Telegram, relax policy, or mutate DB/grid/fund/Earn/exchange
+  state.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

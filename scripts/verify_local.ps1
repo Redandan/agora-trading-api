@@ -1716,6 +1716,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_strategy_opt_in_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_post_opt_in_readiness_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_strategy_opt_in_execution.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_profit_next_execution_blocker_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_reduction_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_reduction_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_escalation_brief.ps1"

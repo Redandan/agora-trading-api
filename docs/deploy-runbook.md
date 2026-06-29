@@ -2604,6 +2604,27 @@ Expected:
   orders, modify OCO, send Telegram, relax policy, or mutate grid/fund/Earn/
   exchange state. The subsequent `TRAILING_STOP_ENABLED=true` plus
   `TRAILING_STOP_DRY_RUN=true` env diff remains a separate authorization.
+  To summarize the current make-money objective blocker into one replayable
+  packet, run:
+
+  ```powershell
+  .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `PROFIT_NEXT_EXECUTION_BLOCKER_PACKET`,
+  `profit_next_execution_blocker_packet`,
+  `profit_next_execution_goal_satisfied=false`,
+  `profit_next_execution_route=TRAILING_STOP_STRATEGY574_OPT_IN`, and
+  `profit_next_execution_blocker_status`. When the reviewed trailing opt-in
+  write is the only remaining step on the highest-ROI route, the status is
+  `BLOCKED_AWAIT_EXPLICIT_EXECUTE_CONFIRMATION` and the packet prints the exact
+  guarded execution command. The packet also carries negative alternative
+  evidence for Strategy574/TinyLive relaxation, DataFreshness entry-policy
+  relaxation, Strategy485 position mutation, and general live-policy
+  relaxation. It is read-only and does not call `setTrailingStopOptIn`, change
+  production env, deploy/restart, enable scheduler/live trading, place orders,
+  modify OCO, close positions, send Telegram, relax policy, or mutate
+  DB/grid/fund/Earn/exchange state.
   The controlled rollback path uses the same wrapper and also starts with a
   dry-run:
 

@@ -440,6 +440,11 @@ commands, and post-env commands. A
 `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` status means the
 complete evidence packet can be reviewed as separate operator decisions; it
 does not approve trend/capital/env/deploy/createGrid or open a grid.
+The packet separates filtered `remainingExecutionBlockers` from
+`rawExecutionBlockers` and `coveredExecutionReviewBlockers`; for example,
+`CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` remains raw risk evidence but is not
+duplicated as an execution blocker when a ready capital-cap override request
+line already covers it.
 
 Read-only Grid post-env verification bundle:
 

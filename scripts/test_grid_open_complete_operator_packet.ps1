@@ -140,7 +140,8 @@ try {
         runtimeCurrentForGridOpen = $true
         splitAcceptanceBlockedByToolingOnlyCurrentness = $true
         gridOpenRankedRuntimeBlockers = @(
-            [ordered]@{ rank = 2; family = "production-env"; priority = "P0"; blocker = "GRID_ENV_DIFF_NOT_APPLIED" }
+            [ordered]@{ rank = 2; family = "production-env"; priority = "P0"; blocker = "GRID_ENV_DIFF_NOT_APPLIED" },
+            [ordered]@{ rank = 5; family = "capital"; priority = "P1"; blocker = "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP" }
         )
         requiredPostDeployReadOnlyVerification = @(
             ".\scripts\verify_split_acceptance_ssh.ps1",
@@ -198,11 +199,18 @@ try {
     if (@($packet.remainingExecutionBlockers) -contains "SPLIT_ACCEPTANCE_NOT_PASSING") {
         throw "SPLIT_ACCEPTANCE_NOT_PASSING must be omitted when split runtime currentness is proven by zero runtime delta"
     }
+    if (@($packet.remainingExecutionBlockers) -contains "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP") {
+        throw "covered CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP must not be duplicated as a remaining execution blocker"
+    }
+    if (@($packet.rawExecutionBlockers) -notcontains "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP") {
+        throw "rawExecutionBlockers must preserve the covered capital review blocker as evidence"
+    }
     Assert-Contains -Name "grid complete packet status" -Text $text -Pattern "grid_open_complete_operator_packet_status=READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION"
     Assert-Contains -Name "grid complete packet ready" -Text $text -Pattern "grid_open_complete_operator_packet_ready=true"
     Assert-Contains -Name "grid complete packet currentness line" -Text $text -Pattern "origin/main 1054bc8"
     Assert-Contains -Name "grid complete packet runtime currentness" -Text $text -Pattern "zero runtime delta"
     Assert-Contains -Name "grid complete packet env diff" -Text $text -Pattern "TRADING_OKX_ENABLED=true"
+    Assert-Contains -Name "grid complete packet covered execution blockers" -Text $text -Pattern "grid_open_complete_operator_packet_covered_execution_review_blockers="
     Assert-Contains -Name "grid complete packet trend clearance sequence" -Text $text -Pattern "separate trend-regime override not required"
     Assert-Contains -Name "grid complete packet post env command" -Text $text -Pattern "AcceptAlreadyAppliedEnvDiff"
     Assert-Contains -Name "grid complete packet deploy blocked" -Text $text -Pattern "deploy_allowed=false"

@@ -3149,6 +3149,12 @@ Trading deployment prep:
   for grid review. Server worktree/tooling sync remains a separate follow-up;
   env diff, capital-cap override, post-env read-only verification, and
   createGrid authorization remain separate blockers.
+- The complete packet now also separates filtered execution blockers from raw
+  review evidence. `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` remains in
+  `rawExecutionBlockers` and `coveredExecutionReviewBlockers` when a ready
+  capital-cap override request covers it, while `remainingExecutionBlockers`
+  keeps the actionable `OPERATOR_CAPITAL_CAP_OVERRIDE_REQUIRED` step instead of
+  duplicating the raw review blocker.
 - Runtime log smoke now classifies the narrow `OkxTradingService` startup echo
   `[OKX] Auto-trade enabled : true` as OKX auto-trade configuration evidence
   instead of a high-risk operation line. This keeps post-env split acceptance

@@ -880,8 +880,16 @@ Expected:
   `grid_open_complete_operator_packet_ready`,
   `grid_open_complete_operator_packet_currentness_authorization_line`,
   `grid_open_complete_operator_packet_authorization_lines`,
+  `grid_open_complete_operator_packet_remaining_execution_blockers`,
+  `grid_open_complete_operator_packet_raw_execution_blockers`,
+  `grid_open_complete_operator_packet_covered_execution_review_blockers`,
   `grid_open_complete_operator_packet_post_deploy_commands`, and
   `grid_open_complete_operator_packet_post_env_commands`.
+- `remainingExecutionBlockers` is the operator execution checklist after
+  covered review blockers are removed. `rawExecutionBlockers` preserves the
+  source evidence, and `coveredExecutionReviewBlockers` records review blockers
+  already covered by a ready authorization line such as the capital-cap override
+  request.
 - `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` means the
   currentness, trend/capital/env, post-env verification, and future createGrid
   review lanes are packaged for separate operator decisions. It is not

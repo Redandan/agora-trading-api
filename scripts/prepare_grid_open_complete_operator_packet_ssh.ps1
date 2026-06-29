@@ -307,6 +307,13 @@ if ($null -ne $requestPacket) {
     Add-UniqueValues -List $coveredCreateReviewBlockers -Values (Get-PropertyOrNull $requestPacket "coveredCreateReviewBlockers")
     Add-UniqueValues -List $uncoveredCreateReviewBlockers -Values (Get-PropertyOrNull $requestPacket "uncoveredCreateReviewBlockers")
 }
+$coveredExecutionReviewBlockers = [System.Collections.Generic.List[string]]::new()
+Add-UniqueValues -List $coveredExecutionReviewBlockers -Values $coveredCreateReviewBlockers
+$filteredExecutionBlockers = [System.Collections.Generic.List[string]]::new()
+foreach ($blocker in @($remainingExecutionBlockers)) {
+    if ($coveredExecutionReviewBlockers -contains $blocker) { continue }
+    Add-Unique -List $filteredExecutionBlockers -Value ([string]$blocker)
+}
 $createInputs = if ($null -ne $requestPacket) { Get-PropertyOrNull $requestPacket "reviewedCreateGridInputs" } else { $null }
 $candidateParams = if ($null -ne $splitPacket) { Get-PropertyOrNull $splitPacket "reviewedGridCandidateParameters" } else { $null }
 if ($authorizationLines.Count -eq 0) { Add-Unique -List $missingEvidence -Value "operator authorization request lines" }
@@ -412,7 +419,9 @@ $packet = [ordered]@{
     currentnessAuthorizationLine = $currentnessLine
     operatorAuthorizationLines = @($authorizationLines)
     requiredOperatorAuthorizationSequence = $operatorSequence
-    remainingExecutionBlockers = @($remainingExecutionBlockers)
+    remainingExecutionBlockers = @($filteredExecutionBlockers)
+    rawExecutionBlockers = @($remainingExecutionBlockers)
+    coveredExecutionReviewBlockers = @($coveredExecutionReviewBlockers)
     coveredCreateReviewBlockers = $coveredCreateReviewBlockers
     uncoveredCreateReviewBlockers = $uncoveredCreateReviewBlockers
     requiredPostDeployReadOnlyVerification = @($postDeployCommands)
@@ -439,7 +448,9 @@ Write-Host ("grid_open_complete_operator_packet_decision=" + $decision)
 Write-Host ("grid_open_complete_operator_packet_ready=" + $completePacketReady.ToString().ToLowerInvariant())
 Write-Host ("grid_open_complete_operator_packet_currentness_authorization_line=" + $currentnessLine)
 Write-Host ("grid_open_complete_operator_packet_authorization_lines=" + (ConvertTo-Json -Compress @($authorizationLines)))
-Write-Host ("grid_open_complete_operator_packet_remaining_execution_blockers=" + (ConvertTo-Json -Compress @($remainingExecutionBlockers)))
+Write-Host ("grid_open_complete_operator_packet_remaining_execution_blockers=" + (ConvertTo-Json -Compress @($filteredExecutionBlockers)))
+Write-Host ("grid_open_complete_operator_packet_raw_execution_blockers=" + (ConvertTo-Json -Compress @($remainingExecutionBlockers)))
+Write-Host ("grid_open_complete_operator_packet_covered_execution_review_blockers=" + (ConvertTo-Json -Compress @($coveredExecutionReviewBlockers)))
 Write-Host ("grid_open_complete_operator_packet_missing_evidence=" + (($missingEvidence.ToArray()) -join "; "))
 Write-Host ("grid_open_complete_operator_packet_post_deploy_commands=" + (ConvertTo-Json -Compress @($postDeployCommands)))
 Write-Host ("grid_open_complete_operator_packet_post_env_commands=" + (ConvertTo-Json -Compress @($postEnvCommands)))

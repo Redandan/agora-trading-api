@@ -842,6 +842,31 @@ deploy/restart and read-only verification. The packet keeps
 it does not call `setTrailingStopOptIn`, change env, deploy, restart, enable
 live trading, place orders, modify OCO, or relax live policy.
 
+Guarded trailing-stop strategy opt-in execution wrapper:
+
+```powershell
+.\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -RequireReady
+```
+
+The default run is non-mutating and emits
+`TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET`,
+`trailing_stop_strategy_opt_in_execution_packet`, and
+`trailing_stop_strategy_opt_in_execution_status=DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION`.
+It proves the reviewed `setTrailingStopOptIn(strategyId=574, enabled=true, ...)`
+write is still the only strategy-config blocker. The wrapper performs that
+single write only when rerun with:
+
+```powershell
+.\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -Execute -ConfirmText EXECUTE_TRAILING_STOP_OPT_IN_574 -RequireReady
+```
+
+Even in execute mode it does not change production env, deploy, restart, enable
+scheduler/live trading, place orders, modify OCO, send Telegram, or mutate
+grid/fund/Earn/exchange state. A successful execution must immediately reach
+`EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW`, after which the next step is
+still a separate operator authorization for `TRAILING_STOP_ENABLED=true` and
+`TRAILING_STOP_DRY_RUN=true`.
+
 Read-only strategy485 risk-reduction operator decision packet:
 
 ```powershell

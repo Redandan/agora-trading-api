@@ -2576,6 +2576,34 @@ Expected:
   trailing replay smoke, live-readiness audit, server-local
   `getTrailingStopStatus`, server-local `getStrategyConfig`, and runtime-log
   smoke.
+- To execute the reviewed strategy opt-in as a controlled strategy-config write,
+  first run the wrapper without `-Execute`:
+
+  ```powershell
+  .\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -RequireReady
+  ```
+
+  Expected dry-run output includes
+  `TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET`,
+  `trailing_stop_strategy_opt_in_execution_status=DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION`,
+  `trailing_stop_strategy_opt_in_execution_write_performed=false`, and
+  `trailing_stop_strategy_opt_in_execution_required_confirm_text=EXECUTE_TRAILING_STOP_OPT_IN_574`.
+  Only after operator approval for that exact write, rerun:
+
+  ```powershell
+  .\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -Execute -ConfirmText EXECUTE_TRAILING_STOP_OPT_IN_574 -RequireReady
+  ```
+
+  The wrapper calls only server-local `/api/mcp` `setTrailingStopOptIn` and then
+  reruns the post-opt-in readiness packet. A successful execution returns
+  `trailing_stop_strategy_opt_in_execution_status=EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW`
+  and still keeps `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, and `telegram_send_allowed=false`.
+  It does not change env, deploy/restart, enable scheduler/live trading, place
+  orders, modify OCO, send Telegram, relax policy, or mutate grid/fund/Earn/
+  exchange state. The subsequent `TRAILING_STOP_ENABLED=true` plus
+  `TRAILING_STOP_DRY_RUN=true` env diff remains a separate authorization.
 - To convert the second-ranked strategy485 risk item into a review-only
   operator decision packet, run:
 

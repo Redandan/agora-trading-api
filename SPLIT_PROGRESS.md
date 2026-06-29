@@ -1137,6 +1137,21 @@
   it does not call `setTrailingStopOptIn`, change production env, deploy,
   restart, enable scheduler/live trading, place orders, modify OCO, close
   positions, relax policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- `scripts/execute_trailing_stop_strategy_opt_in_ssh.ps1` provides the
+  controlled execution path for that blocker. Its default mode is non-mutating
+  and emits `TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET`,
+  `trailing_stop_strategy_opt_in_execution_packet`, and
+  `trailing_stop_strategy_opt_in_execution_status=DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION`.
+  The only write path requires `-Execute -ConfirmText
+  EXECUTE_TRAILING_STOP_OPT_IN_574`, calls server-local `/api/mcp`
+  `setTrailingStopOptIn(strategyId=574, enabled=true, ...)`, then reruns the
+  post-opt-in readiness packet. A successful execution reaches
+  `EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW`, which still only permits a
+  separate review for `TRAILING_STOP_ENABLED=true` and
+  `TRAILING_STOP_DRY_RUN=true`. The wrapper does not change production env,
+  deploy, restart, enable scheduler/live trading, place orders, modify OCO,
+  close positions, send Telegram, relax policy, or mutate grid/fund/Earn/
+  exchange state.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

@@ -2503,6 +2503,29 @@ Expected:
   clarifies operator inputs and future prerequisites only. It does not change
   production env, enable the scheduler, place orders, modify OCO, send
   Telegram, deploy, or relax trading policy.
+- To refresh production evidence and package the exact dry-run env diff for a
+  separate activation decision, run:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_dry_run_activation_review_packet_ssh.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `TRAILING_STOP_DRY_RUN_ACTIVATION_REVIEW_PACKET`,
+  `trailing_stop_dry_run_activation_review_packet`,
+  `trailing_stop_dry_run_activation_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_REVIEW_NOT_APPLIED`,
+  `trailing_stop_activation_allowed=false`, and
+  `deploy_or_env_change_allowed=false`. The packet proposes only the separate
+  env diff `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`; it is
+  not authorization to apply that diff. If the packet returns
+  `BLOCKED_STRATEGY_TRAILING_OPT_IN_NOT_APPLIED`, first request a separate
+  strategy opt-in authorization for at least one reviewed strategy; do not
+  apply the global dry-run env diff before that blocker is cleared. After a
+  separate operator approval and deploy/restart, verification remains read-only
+  only: split acceptance, hard trailing replay smoke, live-readiness audit,
+  server-local `getTrailingStopStatus`, server-local `getStrategyConfig`, and
+  runtime-log smoke proving no OCO/order/position mutation while dry-run is
+  true.
 - To convert the second-ranked strategy485 risk item into a review-only
   operator decision packet, run:
 

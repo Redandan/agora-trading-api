@@ -773,6 +773,30 @@ review dry-run-only scope, inputs, and future prerequisites. It keeps
 enable scheduler/live paths, place orders, modify OCO, send Telegram, or
 deploy.
 
+Read-only trailing-stop dry-run activation review packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_dry_run_activation_review_packet_ssh.ps1 -RequireReady
+```
+
+This refreshes the hard trailing replay packet, the live-readiness audit, and
+server-local `getTrailingStopStatus` / `getStrategyConfig` evidence through
+`/api/mcp`. It emits
+`TRAILING_STOP_DRY_RUN_ACTIVATION_REVIEW_PACKET`,
+`trailing_stop_dry_run_activation_review_packet`, and
+`trailing_stop_dry_run_activation_status`.
+`READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_REVIEW_NOT_APPLIED` means the next
+step is a separate operator decision for exactly `TRAILING_STOP_ENABLED=true`
+and `TRAILING_STOP_DRY_RUN=true`, followed by deploy/restart and read-only
+verification only. It keeps `order_allowed=false`,
+`position_or_oco_mutation_allowed=false`, `scheduler_enablement_allowed=false`,
+`telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false`; the
+packet itself does not change production env, deploy, place orders, modify OCO,
+or relax live policy. If production `getStrategyConfig` shows no reviewed
+strategy has `trailingStopEnabled=true`, the status is
+`BLOCKED_STRATEGY_TRAILING_OPT_IN_NOT_APPLIED`; the next step is a separate
+operator authorization for strategy opt-in before any global dry-run env diff.
+
 Read-only strategy485 risk-reduction operator decision packet:
 
 ```powershell

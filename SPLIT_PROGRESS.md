@@ -1075,6 +1075,28 @@
   positions, modify OCO, place orders, relax EntryDedup/DataFreshness/live
   policy, deploy, change production env, mutate DB/grid/fund/Earn/Telegram/
   exchange state, or run external backfill/import.
+- `scripts/prepare_trailing_stop_dry_run_activation_review_packet_ssh.ps1`
+  packages the current production replay and runtime state needed before a
+  separate trailing dry-run activation decision. It refreshes the hard trailing
+  replay packet, live-readiness audit, and server-local `/api/mcp`
+  `getTrailingStopStatus` / `getStrategyConfig` evidence, then emits
+  `TRAILING_STOP_DRY_RUN_ACTIVATION_REVIEW_PACKET`,
+  `trailing_stop_dry_run_activation_review_packet`, and
+  `trailing_stop_dry_run_activation_status`. A status of
+  `READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_REVIEW_NOT_APPLIED` means the only
+  next executable step is a separate operator authorization for
+  `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`, followed by
+  deploy/restart and read-only verification only. The packet keeps
+  `BLOCKED_STRATEGY_TRAILING_OPT_IN_NOT_APPLIED` separate from env-diff review:
+  if none of the reviewed strategies has `trailingStopEnabled=true`, the next
+  step is a separate strategy opt-in authorization before requesting the global
+  dry-run env diff. The packet keeps
+  `trailing_stop_activation_allowed=false`,
+  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `order_allowed=false`, `telegram_send_allowed=false`, and
+  `position_or_oco_mutation_allowed=false`; it does not change production env,
+  deploy, enable scheduler/live trading, place orders, modify OCO, close
+  positions, relax policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

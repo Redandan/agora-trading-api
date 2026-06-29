@@ -83,6 +83,16 @@ class DataFreshnessShadowReplayCollectorTest {
         assertTrue(context.containsKey("loss_budget"));
         assertEquals(DataFreshnessShadowReplayHardGatePreviewBuilder.PREVIEW_ONLY_NOT_REPLAYABLE,
                 context.get("shadowReplayHardGatePreviewStatus"));
+        assertEquals(DataFreshnessShadowReplayHardGatePreviewBuilder.SCOPE_REPLAY_INPUT_PROXY_NOT_RUNTIME_EV,
+                context.get("shadowReplayPreviewScope"));
+        assertEquals(new BigDecimal("2.0000"), context.get("expectedRProxy"));
+        assertEquals("INPUT_PLAN_PROXY_NOT_RUNTIME_EV", context.get("expectedRProxyStatus"));
+        assertEquals(DataFreshnessShadowReplayHardGatePreviewBuilder.PLAN_SHAPE_VALID,
+                context.get("ocoPlanShapeStatus"));
+        assertEquals("OCO_ROUTE_NOT_PROVEN_EXCHANGE_DRY_RUN_REQUIRED", context.get("ocoRouteStatus"));
+        assertEquals(false, context.get("orderAllowed"));
+        assertEquals(false, context.get("livePolicyRelaxationAllowed"));
+        assertEquals(false, context.get("gridMutationAllowed"));
         assertEquals(0, context.get("qualityScore"));
         assertEquals("BLOCK", context.get("tqsBand"));
         assertEquals("collect_ev_tqs_oco_and_hard_gate_snapshots_before_policy_review",

@@ -71,6 +71,11 @@ evidence fields when a candidate plan snapshot exists:
 marked `NOT_EVALUATED_REPLAY_INPUT_ONLY` or terminal-blocked by
 `DataFreshnessGuard`; this closes the hidden-field gap for downstream review
 while still requiring evaluated EV/OCO/risk evidence before any policy review.
+It also emits `shadowReplayPreviewScope=READ_ONLY_REPLAY_INPUT_PROXY_NOT_RUNTIME_EV`,
+`expectedRProxy`, `expectedRProxyStatus`, `ocoPlanShapeStatus`, and
+`ocoRouteStatus`. These fields only describe the fixed entry/TP/SL plan shape;
+they are not runtime EV, not exchange OCO preflight, and do not count toward
+`complete_replayable_candidate_rows`.
 
 ## Design Conclusion
 

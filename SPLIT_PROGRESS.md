@@ -3025,9 +3025,11 @@ Trading deployment prep:
   `grid_post_env_authorization_request_ready`,
   `grid_split_runtime_current_for_grid_open`,
   `grid_split_tooling_only_currentness_follow_up`,
+  `grid_trend_gate`, `grid_trend_gate_clearance_accepted`,
+  `grid_trend_override_required`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
-  and `create_grid_allowed=false`. The board ranks split/deploy, env,
-  event-risk, replay-score, capital-cap, scheduler/recovery/Earn, and
+  and `create_grid_allowed=false`. The board ranks split/deploy, event-risk,
+  trend-regime, env, replay-score, capital-cap, scheduler/recovery/Earn, and
   operator-authorization-chain blockers into the next safest read-only action.
   It uses pre-env authorization readiness before the env diff is applied and
   post-env authorization readiness after the env diff is live, so a ready
@@ -3036,8 +3038,10 @@ Trading deployment prep:
   evidence shows runtime drift or unknown runtime currentness. If
   `origin_runtime_delta_files=0` and deployment metadata is current, the board
   treats split acceptance as a server tooling-sync follow-up and ranks the next
-  runtime blocker instead. `GRID_ENV_DIFF_NOT_APPLIED` and `EVENT_RISK_NOT_R0`
-  remain hard blockers until fresh evidence clears them. It is not
+  runtime blocker instead. `EVENT_RISK_NOT_R0` and
+  `OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE` are ranked
+  before `GRID_ENV_DIFF_NOT_APPLIED`, so event/trend risk cannot be hidden by
+  a pending env diff. It is not
   authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.

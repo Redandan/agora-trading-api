@@ -961,6 +961,8 @@ Expected:
   `grid_post_env_authorization_request_ready`,
   `grid_split_runtime_current_for_grid_open`,
   `grid_split_tooling_only_currentness_follow_up`,
+  `grid_trend_gate`, `grid_trend_gate_clearance_accepted`,
+  `grid_trend_override_required`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
   and `create_grid_allowed=false`.
 - Uses pre-env authorization readiness before the env diff is applied, then
@@ -968,9 +970,9 @@ Expected:
   `TRADING_GRID_ENABLED=true`, and scheduler/recovery/Earn remain false. This
   prevents a ready pre-env operator request packet from being hidden by the
   still-blocked post-env verification lane.
-- Ranks split/deploy, production env, event-risk, replay-score, capital-cap,
-  scheduler/recovery/Earn, and operator-authorization-chain blockers into
-  explicit next actions and authorization requirements.
+- Ranks split/deploy, event-risk, trend-regime, production env, replay-score,
+  capital-cap, scheduler/recovery/Earn, and operator-authorization-chain
+  blockers into explicit next actions and authorization requirements.
 - `SPLIT_ACCEPTANCE_NOT_PASSING` blocks createGrid review when runtime drift or
   unknown runtime currentness is present. If the split handoff proves
   `grid_split_runtime_current_for_grid_open=true`, treat the split lane as a
@@ -979,8 +981,11 @@ Expected:
   omits `SPLIT_ACCEPTANCE_NOT_PASSING` from ranked execution blockers and emits
   `CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT` unless a
   stricter blocker such as event risk is present.
-- `GRID_ENV_DIFF_NOT_APPLIED` or `EVENT_RISK_NOT_R0` means the board is
-  evidence only and createGrid review must remain blocked.
+- `EVENT_RISK_NOT_R0` or
+  `OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE` is ranked
+  before `GRID_ENV_DIFF_NOT_APPLIED`, so event/trend risk cannot be hidden by a
+  pending env diff. Any of those blockers means the board is evidence only and
+  createGrid review must remain blocked.
 - The board does not deploy, restart, reload nginx, change production env,
   approve a trend override, approve a capital override, call `createGrid`,
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or

@@ -265,6 +265,20 @@ $authorizationReadinessPhase = if ($envDiffAppliedForPhase) {
 }
 $bundleReady = if ($envDiffAppliedForPhase) { $postEnvBundleReady } else { $preEnvBundleReady }
 $requestReady = if ($envDiffAppliedForPhase) { $postEnvRequestReady } else { $preEnvRequestReady }
+$phaseRequestPacket = if ($envDiffAppliedForPhase) { $requestPacket } else { $preEnvRequestPacket }
+$trendGate = if ($null -ne $phaseRequestPacket) { [string](Get-PropertyOrNull $phaseRequestPacket "trendGate") } else { "UNKNOWN" }
+if ([string]::IsNullOrWhiteSpace($trendGate)) { $trendGate = "UNKNOWN" }
+$trendGateClearanceAcceptedRaw = if ($null -ne $phaseRequestPacket) { Get-PropertyOrNull $phaseRequestPacket "trendGateClearanceAccepted" } else { $null }
+$trendGateClearanceAccepted = ([string]$trendGateClearanceAcceptedRaw -eq "true")
+$phaseExecutionBlockersRaw = if ($null -ne $phaseRequestPacket) { Get-PropertyOrNull $phaseRequestPacket "remainingExecutionBlockers" } else { $null }
+$phaseExecutionBlockers = if ($null -eq $phaseExecutionBlockersRaw) { @() } else { @($phaseExecutionBlockersRaw) }
+$trendOverrideRequired = (
+    -not $trendGateClearanceAccepted -and
+    (
+        $trendGate -like "BLOCKED*" -or
+        $phaseExecutionBlockers -contains "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE"
+    )
+)
 $runtimeCurrentForGridOpen = (
     $originDeltaExitCode -eq 0 -and
     $originRuntimeDeltaFileCount -eq 0 -and
@@ -276,23 +290,26 @@ $splitAcceptanceBlockedByToolingOnlyCurrentness = (-not $splitOk -and $runtimeCu
 if (-not $splitOk -and -not $splitAcceptanceBlockedByToolingOnlyCurrentness) {
     Add-Blocker -List $blockers -Rank 1 -Family "deployment/split-acceptance" -Priority "P0" -Blocker "SPLIT_ACCEPTANCE_NOT_PASSING" -Evidence ($splitSummary -join " | ") -Action "Deploy/restart only after separate authorization, then rerun split acceptance and this board." -Authorization "separate deploy/restart authorization"
 }
-if ($okxEnabled -ne "true" -or $gridEnabled -ne "true") {
-    Add-Blocker -List $blockers -Rank 2 -Family "production-env" -Priority "P0" -Blocker "GRID_ENV_DIFF_NOT_APPLIED" -Evidence "TRADING_OKX_ENABLED=$okxEnabled; TRADING_GRID_ENABLED=$gridEnabled" -Action "Apply only a separately authorized env diff, deploy/restart, then rerun post-env read-only verification." -Authorization "separate production env diff authorization"
-}
 if ($eventRiskGate -ne "CLEAR_EVENT_RISK_R0") {
-    Add-Blocker -List $blockers -Rank 3 -Family "event-risk" -Priority "P0" -Blocker "EVENT_RISK_NOT_R0" -Evidence "eventRiskGate=$eventRiskGate" -Action "Wait for fresh R0 event-risk evidence; do not override while this board is blocked." -Authorization "fresh R0 evidence or separate event-risk override review"
+    Add-Blocker -List $blockers -Rank 2 -Family "event-risk" -Priority "P0" -Blocker "EVENT_RISK_NOT_R0" -Evidence "eventRiskGate=$eventRiskGate" -Action "Wait for fresh R0 event-risk evidence; do not override while this board is blocked." -Authorization "fresh R0 evidence or separate event-risk override review"
+}
+if ($trendOverrideRequired) {
+    Add-Blocker -List $blockers -Rank 3 -Family "trend-regime" -Priority "P0" -Blocker "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE" -Evidence "trendGate=$trendGate; trendGateClearanceAccepted=$trendGateClearanceAccepted" -Action "Wait for fresh trend clearance or request a separate trend-regime override before env/createGrid review." -Authorization "separate trend-regime override authorization or fresh trend clearance evidence"
+}
+if ($okxEnabled -ne "true" -or $gridEnabled -ne "true") {
+    Add-Blocker -List $blockers -Rank 4 -Family "production-env" -Priority "P0" -Blocker "GRID_ENV_DIFF_NOT_APPLIED" -Evidence "TRADING_OKX_ENABLED=$okxEnabled; TRADING_GRID_ENABLED=$gridEnabled" -Action "Apply only a separately authorized env diff, deploy/restart, then rerun post-env read-only verification." -Authorization "separate production env diff authorization"
 }
 if ($null -eq $replayScore -or $replayScore -lt 70) {
-    Add-Blocker -List $blockers -Rank 4 -Family "candidate-quality" -Priority "P1" -Blocker "REPLAY_SCORE_BELOW_GRID_REVIEW_FLOOR" -Evidence "replayScore=$replayScore; required>=70" -Action "Refresh candidate plan when market regime changes; do not createGrid with this replay score." -Authorization "none until replay evidence recovers"
+    Add-Blocker -List $blockers -Rank 5 -Family "candidate-quality" -Priority "P1" -Blocker "REPLAY_SCORE_BELOW_GRID_REVIEW_FLOOR" -Evidence "replayScore=$replayScore; required>=70" -Action "Refresh candidate plan when market regime changes; do not createGrid with this replay score." -Authorization "none until replay evidence recovers"
 }
 if ($capitalStatus -eq "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP" -or ($null -ne $candidateCapital -and $null -ne $capitalCap -and $candidateCapital -gt $capitalCap)) {
-    Add-Blocker -List $blockers -Rank 5 -Family "capital" -Priority "P1" -Blocker "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP" -Evidence "candidateCapitalUsdt=$candidateCapital; effectiveReviewCapitalCapUsdt=$capitalCap" -Action "Either lower candidate capital or request separate capital-cap override only after risk gates recover." -Authorization "separate capital-cap override authorization"
+    Add-Blocker -List $blockers -Rank 6 -Family "capital" -Priority "P1" -Blocker "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP" -Evidence "candidateCapitalUsdt=$candidateCapital; effectiveReviewCapitalCapUsdt=$capitalCap" -Action "Either lower candidate capital or request separate capital-cap override only after risk gates recover." -Authorization "separate capital-cap override authorization"
 }
 if ($schedulerEnabled -ne "false" -or $recoveryEnabled -ne "false" -or $earnEnabled -ne "false") {
-    Add-Blocker -List $blockers -Rank 6 -Family "scheduler/recovery/earn" -Priority "P0" -Blocker "GRID_BACKGROUND_MUTATION_FLAGS_NOT_DISABLED" -Evidence "scheduler=$schedulerEnabled; recovery=$recoveryEnabled; earn=$earnEnabled" -Action "Keep scheduler/recovery/Earn disabled for initial grid-open review." -Authorization "separate scheduler/recovery/Earn authorization if ever needed"
+    Add-Blocker -List $blockers -Rank 7 -Family "scheduler/recovery/earn" -Priority "P0" -Blocker "GRID_BACKGROUND_MUTATION_FLAGS_NOT_DISABLED" -Evidence "scheduler=$schedulerEnabled; recovery=$recoveryEnabled; earn=$earnEnabled" -Action "Keep scheduler/recovery/Earn disabled for initial grid-open review." -Authorization "separate scheduler/recovery/Earn authorization if ever needed"
 }
 if (-not $bundleReady -or -not $requestReady) {
-    Add-Blocker -List $blockers -Rank 7 -Family "operator-authorization-chain" -Priority "P1" -Blocker "GRID_OPERATOR_AUTHORIZATION_CHAIN_NOT_READY" -Evidence "phase=$authorizationReadinessPhase; authorizationBundleReady=$bundleReady; authorizationRequestReady=$requestReady" -Action "Resolve upstream risk/env/capital blockers, then regenerate authorization bundle/request." -Authorization "none until upstream blockers clear"
+    Add-Blocker -List $blockers -Rank 8 -Family "operator-authorization-chain" -Priority "P1" -Blocker "GRID_OPERATOR_AUTHORIZATION_CHAIN_NOT_READY" -Evidence "phase=$authorizationReadinessPhase; authorizationBundleReady=$bundleReady; authorizationRequestReady=$requestReady" -Action "Resolve upstream risk/env/capital blockers, then regenerate authorization bundle/request." -Authorization "none until upstream blockers clear"
 }
 foreach ($rawBlocker in $verificationBlockers) {
     $value = [string]$rawBlocker
@@ -341,6 +358,10 @@ $decision = if ($gridOpenableNow) {
     "DEPLOY_CURRENT_MAIN_AND_RERUN_READ_ONLY_VERIFICATION_AFTER_SEPARATE_AUTHORIZATION"
 } elseif (@($blockers | Where-Object { $_.blocker -eq "EVENT_RISK_NOT_R0" }).Count -gt 0) {
     "WAIT_EVENT_RISK_R0_BEFORE_ENV_OR_CREATEGRID_REVIEW"
+} elseif (@($blockers | Where-Object { $_.blocker -eq "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE" }).Count -gt 0) {
+    "WAIT_TREND_CLEARANCE_OR_PREPARE_SEPARATE_TREND_OVERRIDE"
+} elseif (@($blockers | Where-Object { $_.blocker -eq "GRID_ENV_DIFF_NOT_APPLIED" }).Count -gt 0) {
+    "PREPARE_SEPARATE_GRID_ENV_DIFF_AUTHORIZATION"
 } elseif ($splitAcceptanceBlockedByToolingOnlyCurrentness) {
     "CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT"
 } else {
@@ -376,6 +397,9 @@ $board = [pscustomobject]@{
     preEnvAuthorizationRequestReady = $preEnvRequestReady
     postEnvAuthorizationBundleReady = $postEnvBundleReady
     postEnvAuthorizationRequestReady = $postEnvRequestReady
+    trendGate = $trendGate
+    trendGateClearanceAccepted = $trendGateClearanceAccepted
+    trendOverrideRequired = $trendOverrideRequired
     gridOpenableNow = $gridOpenableNow
     openReadinessScorePct = $openReadinessScorePct
     passedGateCount = $passedGateCount
@@ -431,6 +455,9 @@ Write-Host "grid_open_readiness_passed_gates=$passedGateCount/$($gateChecks.Coun
 Write-Host "grid_authorization_readiness_phase=$authorizationReadinessPhase"
 Write-Host "grid_pre_env_authorization_request_ready=$($preEnvRequestReady.ToString().ToLowerInvariant())"
 Write-Host "grid_post_env_authorization_request_ready=$($postEnvRequestReady.ToString().ToLowerInvariant())"
+Write-Host "grid_trend_gate=$trendGate"
+Write-Host "grid_trend_gate_clearance_accepted=$($trendGateClearanceAccepted.ToString().ToLowerInvariant())"
+Write-Host "grid_trend_override_required=$($trendOverrideRequired.ToString().ToLowerInvariant())"
 Write-Host "production_env_change_allowed=false"
 Write-Host "deploy_allowed=false"
 Write-Host "create_grid_allowed=false"

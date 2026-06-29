@@ -2604,6 +2604,26 @@ Expected:
   orders, modify OCO, send Telegram, relax policy, or mutate grid/fund/Earn/
   exchange state. The subsequent `TRAILING_STOP_ENABLED=true` plus
   `TRAILING_STOP_DRY_RUN=true` env diff remains a separate authorization.
+  The controlled rollback path uses the same wrapper and also starts with a
+  dry-run:
+
+  ```powershell
+  .\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -Rollback -RequireReady
+  ```
+
+  After a separate rollback approval, rerun:
+
+  ```powershell
+  .\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -Rollback -Execute -ConfirmText ROLLBACK_TRAILING_STOP_OPT_IN_574 -RequireReady
+  ```
+
+  Expected dry-run rollback output includes
+  `trailing_stop_strategy_opt_in_execution_status=ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION`,
+  `trailing_stop_strategy_opt_in_execution_target_enabled=false`, and
+  `trailing_stop_strategy_opt_in_execution_write_performed=false`. The rollback
+  write only sets `trailingStopEnabled=false`; it does not change env,
+  deploy/restart, enable scheduler/live trading, place orders, modify OCO, send
+  Telegram, relax policy, or mutate grid/fund/Earn/exchange state.
 - To convert the second-ranked strategy485 risk item into a review-only
   operator decision packet, run:
 

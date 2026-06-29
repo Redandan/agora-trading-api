@@ -867,6 +867,21 @@ grid/fund/Earn/exchange state. A successful execution must immediately reach
 still a separate operator authorization for `TRAILING_STOP_ENABLED=true` and
 `TRAILING_STOP_DRY_RUN=true`.
 
+The same wrapper also provides controlled rollback. First dry-run it:
+
+```powershell
+.\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -Rollback -RequireReady
+```
+
+Then, only with separate rollback approval:
+
+```powershell
+.\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -Rollback -Execute -ConfirmText ROLLBACK_TRAILING_STOP_OPT_IN_574 -RequireReady
+```
+
+Rollback only sets `trailingStopEnabled=false`; it is not an env/deploy,
+scheduler, order, OCO, grid, fund, Earn, Telegram, or live-policy action.
+
 Read-only strategy485 risk-reduction operator decision packet:
 
 ```powershell

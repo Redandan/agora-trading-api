@@ -60,9 +60,13 @@ foreach ($marker in @(
         "TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET",
         "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION",
         "EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW",
+        "ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION",
+        "ROLLBACK_EXECUTED_STRATEGY_OPT_IN_DISABLED",
         "AWAIT_EXPLICIT_EXECUTE_CONFIRMATION",
+        "AWAIT_EXPLICIT_ROLLBACK_CONFIRMATION",
         "REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
         "EXECUTE_TRAILING_STOP_OPT_IN_",
+        "ROLLBACK_TRAILING_STOP_OPT_IN_",
         "setTrailingStopOptIn",
         "prepare_trailing_stop_strategy_opt_in_review_packet_ssh.ps1",
         "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1",
@@ -70,6 +74,9 @@ foreach ($marker in @(
         "trailing_stop_strategy_opt_in_execution_status",
         "trailing_stop_strategy_opt_in_execution_decision",
         "trailing_stop_strategy_opt_in_execution_write_performed",
+        "trailing_stop_strategy_opt_in_execution_rollback_requested",
+        "trailing_stop_strategy_opt_in_execution_target_enabled",
+        "source_post_opt_in_status",
         "production_env_change_allowed=false",
         "deploy_allowed=false",
         "scheduler_enablement_allowed=false",
@@ -109,10 +116,12 @@ foreach ($marker in @(
         "trailing_stop_strategy_opt_in_execution_packet",
         "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION",
         "EXECUTE_TRAILING_STOP_OPT_IN_574",
+        "ROLLBACK_TRAILING_STOP_OPT_IN_574",
         "setTrailingStopOptIn",
         "controlled strategy-config write",
         "does not change production env",
-        "post-opt-in readiness"
+        "post-opt-in readiness",
+        "controlled rollback"
     )) {
     Assert-Contains -Name "docs mention trailing strategy opt-in execution wrapper" -Text $docsText -Pattern ([regex]::Escape($marker))
 }
@@ -189,14 +198,129 @@ try {
         throw "trailing strategy opt-in execution dry-run replay unexpectedly invoked remote write/SSH:`n$text"
     }
 
-    Assert-FailsBeforeSsh `
-        -Arguments @("-SourceReviewLog", $tempReviewLog, "-StrategyId", "574", "-Execute", "-ConfirmText", "WRONG") `
-        -ExpectedPattern "ConfirmText must equal EXECUTE_TRAILING_STOP_OPT_IN_574"
 } finally {
     if (Test-Path -LiteralPath $tempReviewLog) {
         Remove-Item -LiteralPath $tempReviewLog -Force
     }
 }
+
+$tempPostLog = Join-Path ([System.IO.Path]::GetTempPath()) ("trailing-opt-in-execution-post-" + [guid]::NewGuid().ToString("N") + ".log")
+try {
+    $postPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_POST_OPT_IN_READINESS_PACKET"
+        status = "READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION"
+        symbol = "BTCUSDT"
+        trailingAcceptance = "PASS"
+        trailingImprovementPct = "52.753%"
+        trailingDeltaPnl = "13391.79229093"
+        currentGlobalEnabled = "false"
+        currentGlobalDryRun = "true"
+        expectedOptInStrategyId = 574
+        expectedStrategyOptIn = $true
+        reviewedStrategyOptInCount = 1
+        reviewedStrategyOptIn = @(
+            [pscustomobject]@{ strategyId = 574; trailingStopEnabled = "true" }
+        )
+        decision = "REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
+        missingRequirements = @()
+    }
+    Set-Content -LiteralPath $tempPostLog -Encoding UTF8 -Value @(
+        "trailing_stop_post_opt_in_readiness_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION",
+        "trailing_stop_post_opt_in_readiness_decision=REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+        ("trailing_stop_post_opt_in_readiness_packet=" + (ConvertTo-Json -Compress -Depth 8 $postPacket))
+    )
+
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for trailing strategy opt-in rollback replay test"
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $rollbackOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -SourcePostOptInLog $tempPostLog -StrategyId 574 -Rollback -RequireReady 2>&1
+        $rollbackExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $rollbackText = ($rollbackOutput | Out-String)
+    if ($rollbackExitCode -ne 0) {
+        throw "trailing strategy opt-in rollback dry-run replay failed:`n$rollbackText"
+    }
+    foreach ($marker in @(
+            "source_post_opt_in_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION",
+            "source_post_opt_in_decision=REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+            "trailing_stop_strategy_opt_in_execution_strategy_id=574",
+            "trailing_stop_strategy_opt_in_execution_rollback_requested=true",
+            "trailing_stop_strategy_opt_in_execution_target_enabled=false",
+            "trailing_stop_strategy_opt_in_execution_required_confirm_text=ROLLBACK_TRAILING_STOP_OPT_IN_574",
+            "trailing_stop_strategy_opt_in_execution_execute_requested=false",
+            "trailing_stop_strategy_opt_in_execution_write_performed=false",
+            "trailing_stop_strategy_opt_in_execution_mcp_write_status=NOT_EXECUTED_DRY_RUN",
+            "trailing_stop_strategy_opt_in_execution_status=ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION",
+            "trailing_stop_strategy_opt_in_execution_decision=AWAIT_EXPLICIT_ROLLBACK_CONFIRMATION",
+            '"rollbackRequested":true',
+            '"targetEnabled":false',
+            '"strategyOptInWritePerformed":false'
+        )) {
+        Assert-Contains -Name "trailing strategy opt-in rollback dry-run replay" -Text $rollbackText -Pattern ([regex]::Escape($marker))
+    }
+    if ($rollbackText -match "mcp_write_status=OK|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "trailing strategy opt-in rollback dry-run replay unexpectedly invoked remote write/SSH:`n$rollbackText"
+    }
+
+    $postPacket.status = "TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY"
+    $postPacket.currentGlobalEnabled = "true"
+    $postPacket.decision = "VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY"
+    Set-Content -LiteralPath $tempPostLog -Encoding UTF8 -Value @(
+        "trailing_stop_post_opt_in_readiness_status=TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY",
+        "trailing_stop_post_opt_in_readiness_decision=VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
+        ("trailing_stop_post_opt_in_readiness_packet=" + (ConvertTo-Json -Compress -Depth 8 $postPacket))
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $activeRollbackOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -SourcePostOptInLog $tempPostLog -StrategyId 574 -Rollback -RequireReady 2>&1
+        $activeRollbackExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $activeRollbackText = ($activeRollbackOutput | Out-String)
+    if ($activeRollbackExitCode -ne 0) {
+        throw "trailing strategy opt-in active-dry-run rollback replay failed:`n$activeRollbackText"
+    }
+    foreach ($marker in @(
+            "source_post_opt_in_status=TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY",
+            "source_post_opt_in_decision=VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
+            "trailing_stop_strategy_opt_in_execution_rollback_requested=true",
+            "trailing_stop_strategy_opt_in_execution_target_enabled=false",
+            "trailing_stop_strategy_opt_in_execution_status=ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION",
+            "trailing_stop_strategy_opt_in_execution_decision=AWAIT_EXPLICIT_ROLLBACK_CONFIRMATION",
+            '"targetEnabled":false',
+            '"strategyOptInWritePerformed":false'
+        )) {
+        Assert-Contains -Name "trailing strategy opt-in active-dry-run rollback replay" -Text $activeRollbackText -Pattern ([regex]::Escape($marker))
+    }
+    if ($activeRollbackText -match "mcp_write_status=OK|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "trailing strategy opt-in active-dry-run rollback replay unexpectedly invoked remote write/SSH:`n$activeRollbackText"
+    }
+} finally {
+    if (Test-Path -LiteralPath $tempPostLog) {
+        Remove-Item -LiteralPath $tempPostLog -Force
+    }
+}
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SourceReviewLog", ".\README.md", "-StrategyId", "574", "-Execute", "-ConfirmText", "WRONG") `
+    -ExpectedPattern "ConfirmText must equal EXECUTE_TRAILING_STOP_OPT_IN_574"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SourcePostOptInLog", ".\README.md", "-StrategyId", "574", "-Rollback", "-Execute", "-ConfirmText", "WRONG") `
+    -ExpectedPattern "ConfirmText must equal ROLLBACK_TRAILING_STOP_OPT_IN_574"
 
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "-oProxyCommand=bad", "-SshKey", ".\README.md") `

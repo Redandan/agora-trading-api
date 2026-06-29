@@ -1151,7 +1151,10 @@
   `TRAILING_STOP_DRY_RUN=true`. The wrapper does not change production env,
   deploy, restart, enable scheduler/live trading, place orders, modify OCO,
   close positions, send Telegram, relax policy, or mutate grid/fund/Earn/
-  exchange state.
+  exchange state. The same wrapper also provides controlled rollback with
+  `-Rollback -Execute -ConfirmText ROLLBACK_TRAILING_STOP_OPT_IN_574`, which
+  only sets `trailingStopEnabled=false` after a dry-run check reaches
+  `ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION`.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

@@ -2526,6 +2526,27 @@ Expected:
   server-local `getTrailingStopStatus`, server-local `getStrategyConfig`, and
   runtime-log smoke proving no OCO/order/position mutation while dry-run is
   true.
+- If activation is blocked by strategy opt-in, package the exact operator
+  review before any write:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_strategy_opt_in_review_packet_ssh.ps1 -RequireReady
+  ```
+
+  Expected output includes `TRAILING_STOP_STRATEGY_OPT_IN_REVIEW_PACKET`,
+  `trailing_stop_strategy_opt_in_review_packet`,
+  `trailing_stop_strategy_opt_in_review_status=READY_FOR_STRATEGY_TRAILING_OPT_IN_OPERATOR_REVIEW_NOT_MUTATION`,
+  `trailing_stop_strategy_opt_in_review_decision=REQUEST_SEPARATE_SET_TRAILING_STOP_OPT_IN_AUTHORIZATION`,
+  `trailing_stop_strategy_opt_in_change_allowed=false`,
+  `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`. The packet may propose a
+  `setTrailingStopOptIn(...)` write and rollback write for separate operator
+  approval, but it does not call that write, change env, deploy/restart, enable
+  scheduler/live trading, place orders, modify OCO, send Telegram, or relax
+  policy. After any separately authorized opt-in write, rerun the activation
+  packet and the post-opt-in read-only verification before requesting the
+  global dry-run env diff.
 - To convert the second-ranked strategy485 risk item into a review-only
   operator decision packet, run:
 

@@ -797,6 +797,29 @@ strategy has `trailingStopEnabled=true`, the status is
 `BLOCKED_STRATEGY_TRAILING_OPT_IN_NOT_APPLIED`; the next step is a separate
 operator authorization for strategy opt-in before any global dry-run env diff.
 
+Read-only trailing-stop strategy opt-in review packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_strategy_opt_in_review_packet_ssh.ps1 -RequireReady
+```
+
+This consumes the activation packet output, or a saved activation `-SourceLog`,
+and emits `TRAILING_STOP_STRATEGY_OPT_IN_REVIEW_PACKET`,
+`trailing_stop_strategy_opt_in_review_packet`, and
+`trailing_stop_strategy_opt_in_review_status`.
+`READY_FOR_STRATEGY_TRAILING_OPT_IN_OPERATOR_REVIEW_NOT_MUTATION` means the
+current activation blocker is exactly missing strategy `trailingStopEnabled`
+opt-in and the packet has a proposed `setTrailingStopOptIn(...)` write plus a
+rollback write for separate operator authorization. The packet itself keeps
+`trailing_stop_strategy_opt_in_change_allowed=false`,
+`production_env_change_allowed=false`, `deploy_allowed=false`,
+`scheduler_enablement_allowed=false`, `order_allowed=false`,
+`telegram_send_allowed=false`, and `position_or_oco_mutation_allowed=false`;
+it does not call `setTrailingStopOptIn`, change env, deploy, restart, place
+orders, modify OCO, or relax live policy. After any separately authorized
+opt-in write, rerun the activation packet and use the post-opt-in read-only
+verification commands before requesting any global dry-run env diff.
+
 Read-only strategy485 risk-reduction operator decision packet:
 
 ```powershell

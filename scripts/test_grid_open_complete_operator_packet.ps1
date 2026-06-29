@@ -149,11 +149,13 @@ try {
         packetType = "GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_PACKET"
         status = "READY_FOR_GRID_OPEN_OPERATOR_AUTHORIZATION_REQUEST_NOT_MUTATION"
         authorizationRequestReady = $true
+        trendGate = "CLEAR_TREND_REGIME"
+        trendGateClearanceAccepted = $true
         authorizationRequestLines = @(
-            "I authorize a separate trend-regime override for BTCUSDT.",
+            "Fresh trend gate clearance accepted for BTCUSDT (trendGate=CLEAR_TREND_REGIME); separate trend-regime override is not required unless the gate becomes blocked before env/createGrid review.",
             "I authorize a separate production env diff for BTCUSDT grid review only: TRADING_OKX_ENABLED=true; TRADING_GRID_ENABLED=true."
         )
-        remainingExecutionBlockers = @("OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE", "OPERATOR_CREATEGRID_AUTHORIZATION_REQUIRED")
+        remainingExecutionBlockers = @("OPERATOR_CREATEGRID_AUTHORIZATION_REQUIRED")
         reviewedCreateGridInputs = [ordered]@{ symbol = "BTCUSDT"; priceLower = 54266.49; priceUpper = 66325.71; gridCount = 2; perLevelUsdt = 5; candidateCapitalUsdt = 10; stopLow = 51553.17; stopHigh = 69642.0; stopOutPct = 5; replayScore = 80 }
         capitalOverrideRequest = [ordered]@{ candidateCapitalUsdt = 10; effectiveReviewCapitalCapUsdt = 5; requiredCapRaiseUsdt = 5; requiredCapMultiplier = 2 }
         proposedSeparateEnvDiff = @("TRADING_OKX_ENABLED=true", "TRADING_GRID_ENABLED=true", "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false", "GRID_RECOVERY_ENABLED=false", "OKX_EARN_TOPUP_ENABLED=false")
@@ -193,6 +195,7 @@ try {
     Assert-Contains -Name "grid complete packet currentness line" -Text $text -Pattern "current origin/main 1054bc8"
     Assert-Contains -Name "grid complete packet blockers" -Text $text -Pattern "SPLIT_ACCEPTANCE_NOT_PASSING"
     Assert-Contains -Name "grid complete packet env diff" -Text $text -Pattern "TRADING_OKX_ENABLED=true"
+    Assert-Contains -Name "grid complete packet trend clearance sequence" -Text $text -Pattern "separate trend-regime override not required"
     Assert-Contains -Name "grid complete packet post env command" -Text $text -Pattern "AcceptAlreadyAppliedEnvDiff"
     Assert-Contains -Name "grid complete packet deploy blocked" -Text $text -Pattern "deploy_allowed=false"
     Assert-Contains -Name "grid complete packet grid blocked" -Text $text -Pattern "grid_open_allowed=false"

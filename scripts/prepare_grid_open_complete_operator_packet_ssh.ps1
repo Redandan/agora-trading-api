@@ -328,9 +328,15 @@ $currentnessLine = if (-not [string]::IsNullOrWhiteSpace([string]$originCommit))
     "I authorize a separate deploy/restart of current origin/main for $Symbol split/currentness only, followed by read-only split acceptance and grid readiness verification; no production env diff or createGrid is included unless separately named."
 }
 
+$trendGateClearanceAccepted = if ($null -ne $requestPacket) { [bool](Get-PropertyOrNull $requestPacket "trendGateClearanceAccepted") } else { $false }
+$trendSequenceLine = if ($trendGateClearanceAccepted) {
+    "2. fresh trend gate clearance accepted; separate trend-regime override not required unless the gate becomes blocked"
+} else {
+    "2. trend-regime override or fresh trend clearance"
+}
 $operatorSequence = @(
     "1. split/currentness deploy authorization for current origin/main only",
-    "2. trend-regime override or fresh trend clearance",
+    $trendSequenceLine,
     "3. capital-cap override if candidateCapitalUsdt remains above effectiveReviewCapitalCapUsdt",
     "4. production env diff authorization for OKX/grid flags while scheduler/recovery/Earn remain disabled",
     "5. deploy/restart after the separately authorized env diff",

@@ -959,6 +959,8 @@ Expected:
   `grid_authorization_readiness_phase`,
   `grid_pre_env_authorization_request_ready`,
   `grid_post_env_authorization_request_ready`,
+  `grid_split_runtime_current_for_grid_open`,
+  `grid_split_tooling_only_currentness_follow_up`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
   and `create_grid_allowed=false`.
 - Uses pre-env authorization readiness before the env diff is applied, then
@@ -973,7 +975,10 @@ Expected:
   unknown runtime currentness is present. If the split handoff proves
   `grid_split_runtime_current_for_grid_open=true`, treat the split lane as a
   tooling-sync follow-up while env, capital, post-env verification, and
-  createGrid authorization remain separately blocked.
+  createGrid authorization remain separately blocked. In that case the board
+  omits `SPLIT_ACCEPTANCE_NOT_PASSING` from ranked execution blockers and emits
+  `CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT` unless a
+  stricter blocker such as event risk is present.
 - `GRID_ENV_DIFF_NOT_APPLIED` or `EVENT_RISK_NOT_R0` means the board is
   evidence only and createGrid review must remain blocked.
 - The board does not deploy, restart, reload nginx, change production env,

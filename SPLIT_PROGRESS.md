@@ -3023,6 +3023,8 @@ Trading deployment prep:
   `grid_authorization_readiness_phase`,
   `grid_pre_env_authorization_request_ready`,
   `grid_post_env_authorization_request_ready`,
+  `grid_split_runtime_current_for_grid_open`,
+  `grid_split_tooling_only_currentness_follow_up`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
   and `create_grid_allowed=false`. The board ranks split/deploy, env,
   event-risk, replay-score, capital-cap, scheduler/recovery/Earn, and
@@ -3030,9 +3032,13 @@ Trading deployment prep:
   It uses pre-env authorization readiness before the env diff is applied and
   post-env authorization readiness after the env diff is live, so a ready
   pre-env operator request is not hidden by a still-blocked post-env lane.
-  `SPLIT_ACCEPTANCE_NOT_PASSING`, `GRID_ENV_DIFF_NOT_APPLIED`, and
-  `EVENT_RISK_NOT_R0` are hard blockers until fresh evidence clears them. It is
-  not authorization to change env, deploy, restart, call `createGrid`, enable
+  `SPLIT_ACCEPTANCE_NOT_PASSING` remains a hard blocker only when origin-delta
+  evidence shows runtime drift or unknown runtime currentness. If
+  `origin_runtime_delta_files=0` and deployment metadata is current, the board
+  treats split acceptance as a server tooling-sync follow-up and ranks the next
+  runtime blocker instead. `GRID_ENV_DIFF_NOT_APPLIED` and `EVENT_RISK_NOT_R0`
+  remain hard blockers until fresh evidence clears them. It is not
+  authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
 - A fresh best-candidate board run after the pre/post-env split reported

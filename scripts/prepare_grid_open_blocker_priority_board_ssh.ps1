@@ -139,6 +139,8 @@ $bundleScript = Join-Path $PSScriptRoot "prepare_grid_post_env_read_only_verific
 if (-not (Test-Path -LiteralPath $bundleScript)) { throw "Missing grid post-env read-only verification bundle script: $bundleScript" }
 $preEnvRequestScript = Join-Path $PSScriptRoot "prepare_grid_open_operator_authorization_request_ssh.ps1"
 if (-not (Test-Path -LiteralPath $preEnvRequestScript)) { throw "Missing grid open operator authorization request script: $preEnvRequestScript" }
+$originDeltaScript = Join-Path $PSScriptRoot "smoke_live_origin_delta_local.ps1"
+if (-not (Test-Path -LiteralPath $originDeltaScript)) { throw "Missing origin delta classifier script: $originDeltaScript" }
 
 $bundleArgs = @(
     "-SshHost", $SshHost,
@@ -167,6 +169,11 @@ $preEnvRequestArgs = @(
     "-StopOutPct", "$StopOutPct",
     "-CandidateHalfWidthPct", "$CandidateHalfWidthPct"
 )
+$originDeltaArgs = @(
+    "-SshHost", $SshHost,
+    "-SshKey", $SshKey,
+    "-AppDir", $AppDir
+)
 
 $previousErrorActionPreference = $ErrorActionPreference
 try {
@@ -175,6 +182,8 @@ try {
     $preEnvRequestExitCode = $LASTEXITCODE
     $bundleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $bundleScript @bundleArgs 2>&1
     $bundleExitCode = $LASTEXITCODE
+    $originDeltaOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $originDeltaScript @originDeltaArgs 2>&1
+    $originDeltaExitCode = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = $previousErrorActionPreference
 }
@@ -183,12 +192,25 @@ $preEnvRequestText = ($preEnvRequestOutput | Out-String -Width 8192)
 $preEnvRequestPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $preEnvRequestText -Prefix "grid_open_operator_authorization_request_packet=")
 $bundleText = ($bundleOutput | Out-String -Width 8192)
 $bundlePacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $bundleText -Prefix "grid_post_env_read_only_verification_packet=")
+$originDeltaText = ($originDeltaOutput | Out-String -Width 8192)
+$originDeltaStatus = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_delta_status="
+$originRuntimeDeltaFiles = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_runtime_delta_files="
+$deploymentMetadataStatus = Get-LastPrefixedValue -Text $originDeltaText -Prefix "deployment_metadata_status="
+$originMetadataStatus = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_metadata_status="
+$serverWorktreeCommit = Get-LastPrefixedValue -Text $originDeltaText -Prefix "server_worktree_commit="
+$originMainCommit = Get-LastPrefixedValue -Text $originDeltaText -Prefix "origin_main_commit="
+$originRuntimeDeltaFileCount = -1
+if (-not [int]::TryParse([string]$originRuntimeDeltaFiles, [ref]$originRuntimeDeltaFileCount)) {
+    $originRuntimeDeltaFileCount = -1
+}
 
 $missingEvidence = [System.Collections.Generic.List[string]]::new()
 if ($preEnvRequestExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "pre-env grid open operator authorization request completed" }
 if ($null -eq $preEnvRequestPacket) { Add-Unique -List $missingEvidence -Value "pre-env grid_open_operator_authorization_request_packet valid JSON" }
 if ($bundleExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "grid post-env read-only verification bundle completed" }
 if ($null -eq $bundlePacket) { Add-Unique -List $missingEvidence -Value "grid_post_env_read_only_verification_packet valid JSON" }
+if ($originDeltaExitCode -ne 0) { Add-Unique -List $missingEvidence -Value "origin delta metadata classifier completed" }
+if ([string]::IsNullOrWhiteSpace($originDeltaStatus)) { Add-Unique -List $missingEvidence -Value "origin_delta_status evidence" }
 
 $blockers = [System.Collections.Generic.List[object]]::new()
 $verificationBlockers = if ($null -ne $bundlePacket) { @($bundlePacket.verificationBlockers) } else { @() }
@@ -243,8 +265,15 @@ $authorizationReadinessPhase = if ($envDiffAppliedForPhase) {
 }
 $bundleReady = if ($envDiffAppliedForPhase) { $postEnvBundleReady } else { $preEnvBundleReady }
 $requestReady = if ($envDiffAppliedForPhase) { $postEnvRequestReady } else { $preEnvRequestReady }
+$runtimeCurrentForGridOpen = (
+    $originDeltaExitCode -eq 0 -and
+    $originRuntimeDeltaFileCount -eq 0 -and
+    $originDeltaStatus -in @("CURRENT_ORIGIN_MAIN", "DOCS_TOOLING_ONLY_DRIFT") -and
+    $deploymentMetadataStatus -in @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT")
+)
+$splitAcceptanceBlockedByToolingOnlyCurrentness = (-not $splitOk -and $runtimeCurrentForGridOpen)
 
-if (-not $splitOk) {
+if (-not $splitOk -and -not $splitAcceptanceBlockedByToolingOnlyCurrentness) {
     Add-Blocker -List $blockers -Rank 1 -Family "deployment/split-acceptance" -Priority "P0" -Blocker "SPLIT_ACCEPTANCE_NOT_PASSING" -Evidence ($splitSummary -join " | ") -Action "Deploy/restart only after separate authorization, then rerun split acceptance and this board." -Authorization "separate deploy/restart authorization"
 }
 if ($okxEnabled -ne "true" -or $gridEnabled -ne "true") {
@@ -312,6 +341,8 @@ $decision = if ($gridOpenableNow) {
     "DEPLOY_CURRENT_MAIN_AND_RERUN_READ_ONLY_VERIFICATION_AFTER_SEPARATE_AUTHORIZATION"
 } elseif (@($blockers | Where-Object { $_.blocker -eq "EVENT_RISK_NOT_R0" }).Count -gt 0) {
     "WAIT_EVENT_RISK_R0_BEFORE_ENV_OR_CREATEGRID_REVIEW"
+} elseif ($splitAcceptanceBlockedByToolingOnlyCurrentness) {
+    "CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT"
 } else {
     "RESOLVE_TOP_GRID_OPEN_BLOCKER_AND_RERUN"
 }
@@ -326,6 +357,17 @@ $board = [pscustomobject]@{
     sourceBundle = "prepare_grid_post_env_read_only_verification_bundle_ssh.ps1"
     sourceBundleExitCode = $bundleExitCode
     sourceBundleStatus = if ($null -ne $bundlePacket) { [string]$bundlePacket.status } else { "UNKNOWN" }
+    sourceOriginDelta = "smoke_live_origin_delta_local.ps1"
+    sourceOriginDeltaExitCode = $originDeltaExitCode
+    originDeltaStatus = $originDeltaStatus
+    deploymentMetadataStatus = $deploymentMetadataStatus
+    originMetadataStatus = $originMetadataStatus
+    originRuntimeDeltaFiles = $originRuntimeDeltaFiles
+    serverWorktreeCommit = $serverWorktreeCommit
+    originMainCommit = $originMainCommit
+    splitStrictAcceptanceOk = $splitOk
+    splitRuntimeCurrentForGridOpen = $runtimeCurrentForGridOpen
+    splitToolingOnlyCurrentnessFollowUp = $splitAcceptanceBlockedByToolingOnlyCurrentness
     sourcePreEnvAuthorizationRequest = "prepare_grid_open_operator_authorization_request_ssh.ps1"
     sourcePreEnvAuthorizationRequestExitCode = $preEnvRequestExitCode
     sourcePreEnvAuthorizationRequestStatus = if ($null -ne $preEnvRequestPacket) { [string]$preEnvRequestPacket.status } else { "UNKNOWN" }
@@ -346,7 +388,7 @@ $board = [pscustomobject]@{
     splitAcceptanceFailureSummary = @($splitSummary)
     missingEvidence = @($missingEvidence)
     requiredBeforeOpen = @(
-        "current main deployed and split acceptance passes",
+        $(if ($runtimeCurrentForGridOpen) { "split runtime currentness accepted by zero runtime delta; server tooling sync remains a follow-up before relying on server-side scripts" } else { "current main deployed and split acceptance passes" }),
         "TRADING_OKX_ENABLED=true and TRADING_GRID_ENABLED=true only after separate authorization",
         "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
         "GRID_RECOVERY_ENABLED=false",
@@ -375,8 +417,14 @@ Write-Host "[grid-open-blocker-priority-board] read-only board"
 Write-Host "scope=READ_ONLY; invokes grid pre-env authorization request and post-env read-only verification bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_pre_env_authorization_request=prepare_grid_open_operator_authorization_request_ssh.ps1 exitCode=$preEnvRequestExitCode"
 Write-Host "source_bundle=prepare_grid_post_env_read_only_verification_bundle_ssh.ps1 exitCode=$bundleExitCode"
+Write-Host "source_origin_delta=smoke_live_origin_delta_local.ps1 exitCode=$originDeltaExitCode"
 Write-Host "grid_open_blocker_priority_board_status=$status"
 Write-Host "grid_open_blocker_priority_board_decision=$decision"
+Write-Host "origin_delta_status=$originDeltaStatus"
+Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
+Write-Host "origin_runtime_delta_files=$originRuntimeDeltaFiles"
+Write-Host "grid_split_runtime_current_for_grid_open=$($runtimeCurrentForGridOpen.ToString().ToLowerInvariant())"
+Write-Host "grid_split_tooling_only_currentness_follow_up=$($splitAcceptanceBlockedByToolingOnlyCurrentness.ToString().ToLowerInvariant())"
 Write-Host "grid_openable_now=$($gridOpenableNow.ToString().ToLowerInvariant())"
 Write-Host "grid_open_readiness_score_pct=$openReadinessScorePct"
 Write-Host "grid_open_readiness_passed_gates=$passedGateCount/$($gateChecks.Count)"

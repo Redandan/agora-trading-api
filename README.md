@@ -483,6 +483,8 @@ This consumes the post-env verification bundle and emits
 `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
 `grid_open_blocker_priority_board_status`,
 `grid_open_readiness_score_pct`,
+`grid_split_runtime_current_for_grid_open`,
+`grid_split_tooling_only_currentness_follow_up`,
 `grid_open_blocker_priority_ranked_blockers`, and `grid_open_allowed=false`.
 It ranks split/deploy, env, event-risk, replay-score, capital-cap,
 scheduler/recovery/Earn, and operator-authorization-chain blockers into the
@@ -490,7 +492,9 @@ next safest read-only action. `SPLIT_ACCEPTANCE_NOT_PASSING` remains a hard
 runtime blocker only when origin-delta evidence shows runtime drift or unknown
 runtime currentness; when `origin_runtime_delta_files=0` and deployment
 metadata is current, it is a server tooling-sync follow-up for read-only grid
-review. `EVENT_RISK_NOT_R0` remains a hard blocker. This board does not approve
+review and the board decision becomes
+`CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT` if no stricter
+runtime blocker is present. `EVENT_RISK_NOT_R0` remains a hard blocker. This board does not approve
 env changes, deploy, restart, call `createGrid`, enable grid/scheduler/recovery,
 place orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange
 state.

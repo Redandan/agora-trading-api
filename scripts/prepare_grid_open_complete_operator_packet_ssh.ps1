@@ -332,7 +332,9 @@ $status = if ($completePacketReady) {
 } else {
     "BLOCKED_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION"
 }
-$decision = if ($completePacketReady) {
+$decision = if ($completePacketReady -and $splitRuntimeCurrentForGridOpen) {
+    "AWAIT_SEPARATE_ENV_CAPITAL_POST_ENV_AND_CREATEGRID_AUTHORIZATIONS"
+} elseif ($completePacketReady) {
     "AWAIT_SEPARATE_OPERATOR_AUTHORIZATIONS_AND_DEPLOY_CURRENTNESS"
 } else {
     "REFRESH_GRID_OPEN_COMPLETE_OPERATOR_PACKET_EVIDENCE"

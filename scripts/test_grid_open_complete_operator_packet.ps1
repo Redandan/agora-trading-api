@@ -43,6 +43,7 @@ foreach ($marker in @(
         "GRID_OPEN_COMPLETE_OPERATOR_PACKET",
         "READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION",
         "BLOCKED_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION",
+        "AWAIT_SEPARATE_ENV_CAPITAL_POST_ENV_AND_CREATEGRID_AUTHORIZATIONS",
         "AWAIT_SEPARATE_OPERATOR_AUTHORIZATIONS_AND_DEPLOY_CURRENTNESS",
         "prepare_grid_split_acceptance_deploy_handoff_ssh.ps1",
         "prepare_grid_open_operator_authorization_request_ssh.ps1",
@@ -206,6 +207,7 @@ try {
         throw "rawExecutionBlockers must preserve the covered capital review blocker as evidence"
     }
     Assert-Contains -Name "grid complete packet status" -Text $text -Pattern "grid_open_complete_operator_packet_status=READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION"
+    Assert-Contains -Name "grid complete packet runtime-current decision" -Text $text -Pattern "grid_open_complete_operator_packet_decision=AWAIT_SEPARATE_ENV_CAPITAL_POST_ENV_AND_CREATEGRID_AUTHORIZATIONS"
     Assert-Contains -Name "grid complete packet ready" -Text $text -Pattern "grid_open_complete_operator_packet_ready=true"
     Assert-Contains -Name "grid complete packet currentness line" -Text $text -Pattern "origin/main 1054bc8"
     Assert-Contains -Name "grid complete packet runtime currentness" -Text $text -Pattern "zero runtime delta"

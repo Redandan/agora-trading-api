@@ -3146,9 +3146,11 @@ Trading deployment prep:
   `runtimeCurrentForGridOpen=true` from `origin_runtime_delta_files=0`, the
   complete packet filters `SPLIT_ACCEPTANCE_NOT_PASSING` out of runtime
   execution blockers and records that no split runtime deploy/restart is needed
-  for grid review. Server worktree/tooling sync remains a separate follow-up;
-  env diff, capital-cap override, post-env read-only verification, and
-  createGrid authorization remain separate blockers.
+  for grid review. Its decision becomes
+  `AWAIT_SEPARATE_ENV_CAPITAL_POST_ENV_AND_CREATEGRID_AUTHORIZATIONS` instead
+  of asking for split currentness deploy. Server worktree/tooling sync remains
+  a separate follow-up; env diff, capital-cap override, post-env read-only
+  verification, and createGrid authorization remain separate blockers.
 - The complete packet now also separates filtered execution blockers from raw
   review evidence. `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` remains in
   `rawExecutionBlockers` and `coveredExecutionReviewBlockers` when a ready

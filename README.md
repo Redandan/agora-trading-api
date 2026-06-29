@@ -440,6 +440,11 @@ commands, and post-env commands. A
 `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` status means the
 complete evidence packet can be reviewed as separate operator decisions; it
 does not approve trend/capital/env/deploy/createGrid or open a grid.
+When the split handoff proves `runtimeCurrentForGridOpen=true`, the packet
+decision is
+`AWAIT_SEPARATE_ENV_CAPITAL_POST_ENV_AND_CREATEGRID_AUTHORIZATIONS`: split
+runtime currentness is accepted for review, while env, capital, post-env
+verification, and createGrid remain separate operator authorizations.
 The packet separates filtered `remainingExecutionBlockers` from
 `rawExecutionBlockers` and `coveredExecutionReviewBlockers`; for example,
 `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` remains raw risk evidence but is not

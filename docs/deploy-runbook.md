@@ -877,6 +877,7 @@ Expected:
   `-PostEnvPlanLog`.
 - Emits `GRID_OPEN_COMPLETE_OPERATOR_PACKET`,
   `grid_open_complete_operator_packet_status`,
+  `grid_open_complete_operator_packet_decision`,
   `grid_open_complete_operator_packet_ready`,
   `grid_open_complete_operator_packet_currentness_authorization_line`,
   `grid_open_complete_operator_packet_authorization_lines`,
@@ -894,6 +895,11 @@ Expected:
   currentness, trend/capital/env, post-env verification, and future createGrid
   review lanes are packaged for separate operator decisions. It is not
   permission to approve any lane, change env, deploy, or create a grid.
+- If `runtimeCurrentForGridOpen=true`, the decision is
+  `AWAIT_SEPARATE_ENV_CAPITAL_POST_ENV_AND_CREATEGRID_AUTHORIZATIONS`. That
+  means split runtime currentness no longer requires a deploy/restart for grid
+  review, but env, capital, post-env verification, and createGrid still require
+  separate authorization.
 - The packet does not deploy, restart, reload nginx, change production env,
   approve a trend override, approve a capital override, call `createGrid`,
   enable grid/scheduler/recovery, place orders, modify OCO, send Telegram, or

@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -41,6 +42,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -63,6 +65,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     /** Telegram Bot API text limit is 4096 chars; keep chunks below it with room for part markers. */
     static final int TELEGRAM_MESSAGE_LIMIT = 4096;
     private static final int TELEGRAM_CHUNK_BODY_LIMIT = 3800;
+    private static final int OPERATOR_LINE_LIMIT = 140;
+    private static final Pattern MARKET_RISK_HEADER_PATTERN =
+            Pattern.compile("\\[市場風險摘要]\\s*([^|\\n]+)(?:\\|\\s*([^\\n]+))?");
+    private static final Pattern BLOCKER_LIST_PATTERN =
+            Pattern.compile("(?s)(?:主要阻擋|primaryBlockers|triggerBlockingSignals|阻擋|異常)\\s*=\\s*\\[(.*?)]");
 
     private record QueuedMessage(String message, boolean useHtml) {}
     record ChannelPayload(String message, boolean useHtml) {}
@@ -329,6 +336,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         Bucket bucket = notificationClassifier.classify(message, source, level);
         if (bucket == Bucket.OTHER) return message;
 
+        String operatorSummary = compactOperatorSummary(message, bucket);
+        if (operatorSummary != null) {
+            return operatorSummary;
+        }
+
         String normalized = message.trim();
         if (!normalized.startsWith("【")) {
             normalized = "【" + bucketTitle(bucket) + "】\n" + normalized;
@@ -340,6 +352,171 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             normalized += "\n標籤：" + defaultTags(bucket);
         }
         return normalized;
+    }
+
+    private String compactOperatorSummary(String message, Bucket bucket) {
+        String plain = stripHtmlTags(message == null ? "" : message).trim();
+        if (plain.isBlank()) {
+            return null;
+        }
+        if (plain.contains("每日自動交易摘要失敗")) {
+            String error = firstNonBlank(lineValue(plain, "錯誤"), "摘要產生失敗");
+            return threeLines(
+                    "【交易保護】每日自動交易摘要失敗",
+                    "狀態=未送出摘要; 原因=" + shorten(error, 86),
+                    "用途=提醒檢查服務日誌/MCP；不是買賣指令。");
+        }
+        if (plain.contains("每日自動交易摘要") || plain.contains("Autonomous Trading Digest severe state change")) {
+            return compactDailyAutonomousDigest(plain);
+        }
+        if (bucket == Bucket.MARKET_SIGNAL && plain.contains("[市場風險摘要]")) {
+            return compactMarketRiskSummary(plain);
+        }
+        return null;
+    }
+
+    private String compactDailyAutonomousDigest(String plain) {
+        String symbol = firstNonBlank(tokenValue(plain, "標的"), "BTCUSDT");
+        String strategy = tokenValue(plain, "策略");
+        String side = tokenValue(plain, "方向");
+        String verdict = firstNonBlank(tokenValue(plain, "結論"), "REVIEW");
+        String human = firstNonBlank(tokenValue(plain, "需人工處理"), verdictNeedsHuman(verdict) ? "是" : "否");
+        String orderSent = firstNonBlank(tokenValue(plain, "已下單"), "否");
+        String primary = firstNonBlank(tokenValue(plain, "primaryNoBuyReason"),
+                tokenValue(plain, "primary"),
+                tokenValue(plain, "主要原因"),
+                firstBlockers(plain),
+                "無明確阻擋");
+        String title = ("【交易保護】" + symbol + strategySuffix(strategy) + sideSuffix(side) + ": " + verdict).trim();
+        String status = "狀態=" + ("是".equals(orderSent) ? "已下單" : "未下單")
+                + "; 人工=" + human
+                + "; 主因=" + humanizeReason(primary);
+        return threeLines(
+                title,
+                status,
+                "用途=只提醒 review，不是買賣指令；詳情=每日摘要 MCP。");
+    }
+
+    private String compactMarketRiskSummary(String plain) {
+        String symbol = "ALL";
+        String hours = "window";
+        Matcher header = MARKET_RISK_HEADER_PATTERN.matcher(plain);
+        if (header.find()) {
+            symbol = firstNonBlank(header.group(1), symbol).trim();
+            hours = firstNonBlank(header.group(2), hours).trim();
+        }
+        String status = firstNonBlank(lineValue(plain, "狀態"), "WATCH");
+        String counts = firstNonBlank(lineValue(plain, "摘要"), "MARKET_SIGNAL 0");
+        String reasons = firstNonBlank(lineValue(plain, "原因"), "無");
+        return threeLines(
+                "【市場背景】" + symbol + " " + hours + ": " + status,
+                "訊號=" + shorten(counts, 56) + "; 原因=" + shorten(reasons, 58),
+                "用途=風險背景，不是買賣指令；詳情=市場明細/MCP。");
+    }
+
+    private static String threeLines(String line1, String line2, String line3) {
+        return shorten(line1, OPERATOR_LINE_LIMIT)
+                + "\n" + shorten(line2, OPERATOR_LINE_LIMIT)
+                + "\n" + shorten(line3, OPERATOR_LINE_LIMIT);
+    }
+
+    private static String firstBlockers(String plain) {
+        Matcher matcher = BLOCKER_LIST_PATTERN.matcher(plain);
+        if (!matcher.find()) {
+            return null;
+        }
+        String[] items = matcher.group(1).split(",");
+        List<String> out = new ArrayList<>();
+        for (String item : items) {
+            String cleaned = cleanToken(item);
+            if (!cleaned.isBlank()) {
+                out.add(humanizeReason(cleaned));
+            }
+            if (out.size() >= 2) {
+                break;
+            }
+        }
+        return out.isEmpty() ? null : String.join("/", out);
+    }
+
+    private static String tokenValue(String text, String key) {
+        Matcher matcher = Pattern.compile("(?m)(?:^|\\s)" + Pattern.quote(key) + "\\s*=\\s*([^\\s\\n]+)")
+                .matcher(text);
+        return matcher.find() ? cleanToken(matcher.group(1)) : null;
+    }
+
+    private static String lineValue(String text, String key) {
+        Matcher matcher = Pattern.compile("(?m)^\\s*" + Pattern.quote(key) + "\\s*[:：=]\\s*([^\\n]+)")
+                .matcher(text);
+        return matcher.find() ? cleanToken(matcher.group(1)) : null;
+    }
+
+    private static String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return null;
+    }
+
+    private static String strategySuffix(String strategy) {
+        return strategy == null || strategy.isBlank() ? "" : " #" + strategy.trim();
+    }
+
+    private static String sideSuffix(String side) {
+        return side == null || side.isBlank() ? "" : " " + side.trim();
+    }
+
+    private static boolean verdictNeedsHuman(String verdict) {
+        if (verdict == null) {
+            return true;
+        }
+        String normalized = verdict.toUpperCase(Locale.ROOT);
+        return normalized.contains("REVIEW") || normalized.contains("ACTION") || normalized.contains("HALT");
+    }
+
+    private static String humanizeReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            return "無明確阻擋";
+        }
+        String normalized = cleanToken(reason).toUpperCase(Locale.ROOT);
+        if (normalized.contains("RUNTIME_EVIDENCE_NOT_AVAILABLE")) return "缺 runtime evidence";
+        if (normalized.contains("PRE_POSITION_NOT_READY")) return "預備倉未就緒";
+        if (normalized.contains("EXECUTION_POLICY_NOT_READY")) return "執行策略未就緒";
+        if (normalized.contains("NO_OPEN_SCOUT")) return "無 scout 倉";
+        if (normalized.contains("HARD_GATE_NOT_PASS")) return "硬門檻未過";
+        if (normalized.contains("DAILY_SCORE_BUY_NOT_CONFIRMED")) return "日線未確認";
+        if (normalized.contains("CONFIRMED_DEPLOY_NOT_READY")) return "日線部署未就緒";
+        if (normalized.contains("NOTIONAL_BELOW_EXCHANGE_MIN")) return "低於交易所最小額";
+        if (normalized.contains("WATCH_SIGNAL_NEAR_BUY_THRESHOLD")) return "接近買點但未過門檻";
+        if (normalized.contains("OCO_ABNORMAL")) return "OCO 異常";
+        if (normalized.contains("PRODUCTION_ENABLED")) return "生產模式已啟用";
+        return shorten(cleanToken(reason), 72);
+    }
+
+    private static String cleanToken(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim()
+                .replaceAll("^[\"'\\[]+", "")
+                .replaceAll("[\"'\\].,;。]+$", "")
+                .trim();
+    }
+
+    private static String shorten(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = value.replaceAll("\\s+", " ").trim();
+        if (normalized.length() <= maxLength) {
+            return normalized;
+        }
+        return normalized.substring(0, Math.max(0, maxLength - 3)).trim() + "...";
     }
 
     private String bucketTitle(Bucket bucket) {

@@ -3197,7 +3197,8 @@ Trading deployment prep:
   has passed.
 - Grid #10 post-open observation now has a read-only smoke:
   `scripts/smoke_grid_post_open_ssh.ps1`. It uses server-local OPS MCP read
-  tools plus `scripts/check_server_runtime_log.sh` to emit
+  tools plus the local `scripts/check_server_runtime_log.sh` streamed to a
+  remote temporary file to emit
   `grid_post_open_smoke_packet`, verify Grid #10 remains ACTIVE, confirm no
   failed/partial levels, confirm price is in range, and confirm
   `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`,
@@ -3209,7 +3210,9 @@ Trading deployment prep:
   operator packet replayable before any opening decision. The readiness script
   now keeps its embedded Python source ASCII-safe while still matching localized
   no-grid markers, the post-open smoke pipes the remote script through
-  `bash -s` and fails closed on SSH/runtime-log failures, and the runtime-log
+  `bash -s`, streams the current local runtime-log classifier instead of using
+  stale server worktree tooling, and fails closed on SSH/runtime-log failures.
+  The runtime-log
   smoke classifies bounded `PythNetworkService` feed/network WARN lines under
   `MAX_PYTH_NETWORK_WARN` instead of treating a single timeout as an unknown
   warning. The runtime-log smoke also classifies bounded `OkxWsKlineService`
@@ -3250,6 +3253,30 @@ Trading deployment prep:
   also flattens source request blockers into `authorizationRequestBlockers` and
   top-level `planBlockers`, so the remaining env/trend/capital/createGrid lanes
   are visible without manually drilling into nested packet JSON.
+- 2026-06-29 read-only grid-open refresh after commit `7c1db16` confirmed the
+  micro-grid evidence packet is complete but still not executable. Origin delta
+  remained `DOCS_TOOLING_ONLY_DRIFT` with server worktree `3937f5d`,
+  origin/main `7c1db16`, deployment metadata current, and
+  `origin_runtime_delta_files=0`. The blocker priority board returned
+  `READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION`, readiness
+  `66.67`, passed gates `8/12`, `grid_split_runtime_current_for_grid_open=true`,
+  `grid_trend_gate=CLEAR_TREND_REGIME`, and
+  `grid_pre_env_authorization_request_ready=true`; current blockers were
+  `GRID_ENV_DIFF_NOT_APPLIED` (`TRADING_OKX_ENABLED=false`;
+  `TRADING_GRID_ENABLED=true`) and `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`
+  (`candidateCapitalUsdt=10.0`; `effectiveReviewCapitalCapUsdt=5.0`). The
+  independent env preflight was ready for separate env review, the createGrid
+  preflight stayed blocked by capital cap, and the capital-cap override review
+  was ready for a separate operator decision. The post-env bundle remained
+  blocked until a separately authorized env diff/deploy makes
+  `TRADING_OKX_ENABLED=true` and split acceptance passes. A follow-up Grid #10
+  post-open smoke passed after streaming the local runtime-log checker: Grid
+  #10 was ACTIVE, IN_RANGE, had four pending levels, zero holding exposure,
+  scheduler registered, scheduler/recovery/Earn flags disabled, runtime
+  `ERROR` count 0, `okx_ws_transient=9`, `pyth_network_transient=1`, and
+  `unknown=0`. No deploy, env change, `createGrid`, scheduler/recovery/Earn
+  enablement, order, OCO, grid, fund, Telegram, DB, or exchange mutation was
+  performed.
 - BTC panic-bottom context now has a read-only ScoreBuy companion MCP:
   `previewPanicBottomContext(symbol=BTCUSDT)`. It reads `md_kline`,
   `market_indicator_history` `fear_greed`, a 200WMA reference, OCO health text,

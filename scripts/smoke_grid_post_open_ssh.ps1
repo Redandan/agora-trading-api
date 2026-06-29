@@ -42,6 +42,11 @@ Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
 
+$runtimeLogCheckerPath = Join-Path $PSScriptRoot "check_server_runtime_log.sh"
+if (-not (Test-Path -LiteralPath $runtimeLogCheckerPath)) { throw "runtime log checker not found: $runtimeLogCheckerPath" }
+$runtimeLogCheckerBytes = [System.Text.Encoding]::UTF8.GetBytes((Get-Content -Raw -LiteralPath $runtimeLogCheckerPath))
+$runtimeLogCheckerBase64 = [Convert]::ToBase64String($runtimeLogCheckerBytes)
+
 $remoteScript = @"
 set -euo pipefail
 cd '$AppDir'
@@ -188,7 +193,18 @@ print("grid_post_open_alignment_excerpt=" + alignment[:800].replace("\n", "\\n")
 print("grid_post_open_exposure_excerpt=" + exposure[:1200].replace("\n", "\\n"))
 PY
 
-ALLOW_UNKNOWN_WARN=0 ALLOW_RUNTIME_ERROR=0 ALLOW_HIGH_RISK_LOG=0 bash scripts/check_server_runtime_log.sh
+runtime_log_checker_b64='$runtimeLogCheckerBase64'
+runtime_log_checker=`$(mktemp)
+trap 'rm -f "`$runtime_log_checker"' EXIT
+python3 - "`$runtime_log_checker" "`$runtime_log_checker_b64" <<'PY'
+import base64
+import sys
+
+with open(sys.argv[1], "wb") as handle:
+    handle.write(base64.b64decode(sys.argv[2]))
+PY
+
+ALLOW_UNKNOWN_WARN=0 ALLOW_RUNTIME_ERROR=0 ALLOW_HIGH_RISK_LOG=0 bash "`$runtime_log_checker"
 echo "[grid-post-open-smoke] OK"
 "@
 

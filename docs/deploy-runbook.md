@@ -3943,7 +3943,8 @@ auto-rebalance or recovery:
 
 The smoke calls only server-local OPS MCP read tools (`gridStats`, `listGrids`,
 `getGridPriceAlignment`, `getCurrentExposure`, and `listSchedulerTasks`) plus
-`scripts/check_server_runtime_log.sh`. It fails if the grid is not ACTIVE, if
+the current local `scripts/check_server_runtime_log.sh` streamed to the server
+as a temporary read-only checker. It fails if the grid is not ACTIVE, if
 failed/partial levels appear, if price alignment is not in range, if
 auto-rebalance/recovery/Earn env flags are not `false`, or if the runtime log
 is not clean. The emitted `grid_post_open_smoke_packet` is observation evidence

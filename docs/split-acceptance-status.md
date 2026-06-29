@@ -329,6 +329,33 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `effectiveReviewCapitalCapUsdt=5.0`). The board kept every mutation flag
   false and is still not authorization to deploy, change env, or call
   `createGrid`.
+- Latest read-only grid refresh on 2026-06-29 after commit `7c1db16` kept the
+  grid-open lane evidence-ready but not executable. The refreshed
+  `target/grid-open/grid-open-complete-operator-packet-microgrid-after-7c1db16-clean-read-only.log`
+  returned `READY_FOR_GRID_OPEN_COMPLETE_OPERATOR_PACKET_NOT_MUTATION` with
+  `grid_open_complete_operator_packet_ready=true` and `missingEvidence=[]`.
+  The refreshed blocker board saved at
+  `target/grid-open/grid-open-blocker-priority-board-microgrid-after-7c1db16-read-only.log`
+  returned `READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, readiness `66.67`, passed
+  gates `8/12`, and top blocker `GRID_ENV_DIFF_NOT_APPLIED`
+  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`). The independent
+  env packet is ready for separate env review with pending diff
+  `TRADING_OKX_ENABLED=true`; createGrid preflight remains blocked by
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`; capital override review is ready for a
+  separate 5 USDT -> 10 USDT review-cap decision; post-env verification remains
+  blocked until the env diff is separately authorized, deployed, and read-only
+  verified. A Grid #10 post-open smoke saved at
+  `target/grid-open/grid-post-open-smoke-grid10-after-local-checker-fix-read-only.log`
+  passed after streaming the current local runtime-log checker to the server:
+  Grid #10 was ACTIVE, IN_RANGE, four levels pending, zero holding exposure,
+  scheduler registered, scheduler/recovery/Earn disabled, runtime `ERROR`
+  count 0, `okx_ws_transient=9`, `pyth_network_transient=1`, and `unknown=0`.
+  No deploy, production env change, `createGrid`, scheduler/recovery/Earn
+  enablement, order, OCO, grid, fund, Telegram, DB, or exchange mutation was
+  performed.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

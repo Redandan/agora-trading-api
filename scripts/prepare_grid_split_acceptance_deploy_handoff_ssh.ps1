@@ -272,8 +272,13 @@ $runtimeCurrentForGridOpen = (
     $deploymentMetadataStatus -in @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT")
 )
 $splitAcceptanceBlockedByToolingOnlyCurrentness = (
-    $watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -and
-    $runtimeCurrentForGridOpen
+    $runtimeCurrentForGridOpen -and
+    (
+        $watchTopBlocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" -or
+        $originDeltaStatus -eq "DOCS_TOOLING_ONLY_DRIFT" -or
+        $deploymentMetadataStatus -eq "DOCS_TOOLING_ONLY_DRIFT" -or
+        $originMetadataStatus -eq "WORKTREE_NOT_ORIGIN_MAIN"
+    )
 )
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
@@ -285,7 +290,9 @@ if ($watchResult.ExitCode -ne 0) { Add-Unique -List $missingRequirements -Value 
 if ($originResult.ExitCode -ne 0) { Add-Unique -List $missingRequirements -Value "origin delta metadata classifier completed" }
 if ($watchStatus -eq "UNKNOWN") { Add-Unique -List $missingRequirements -Value "grid_open_readiness_watch_status evidence" }
 if ($originDeltaStatus -eq "UNKNOWN") { Add-Unique -List $missingRequirements -Value "origin_delta_status evidence" }
-if ($watchTopBlocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING") { Add-Unique -List $missingRequirements -Value "grid top blocker is SPLIT_ACCEPTANCE_NOT_PASSING" }
+if (-not $runtimeCurrentForGridOpen -and $watchTopBlocker -ne "SPLIT_ACCEPTANCE_NOT_PASSING") {
+    Add-Unique -List $missingRequirements -Value "grid top blocker is SPLIT_ACCEPTANCE_NOT_PASSING"
+}
 if ($watchOpenable -ne "false") { Add-Unique -List $missingRequirements -Value "grid remains not openable before deploy handoff" }
 
 $expectedPostDeployNextBlockers = @(
@@ -320,7 +327,7 @@ $status = "NOT_READY_GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_NOT_MUTATION"
 $decision = "REFRESH_GRID_SPLIT_ACCEPTANCE_DEPLOY_HANDOFF_EVIDENCE"
 $nextAction = "Refresh grid readiness watch and origin-delta metadata before requesting deploy authorization."
 if ($missingRequirements.Count -eq 0 -and $currentnessDrift) {
-    if ($splitAcceptanceBlockedByToolingOnlyCurrentness) {
+    if ($runtimeCurrentForGridOpen) {
         $status = "READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION"
         $decision = "CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT"
         $nextAction = "Runtime metadata is current and origin runtime delta is zero; continue grid-open review with split currentness as a tooling sync follow-up, then rerun read-only verification after any separately authorized env/deploy step."

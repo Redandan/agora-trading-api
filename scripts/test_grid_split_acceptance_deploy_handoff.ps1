@@ -164,6 +164,28 @@ origin_runtime_delta_paths=[]
     Assert-Contains -Name "grid tooling drift runtime current" -Text $toolingText -Pattern "grid_split_runtime_current_for_grid_open=true"
     Assert-Contains -Name "grid tooling drift follow up" -Text $toolingText -Pattern "grid_split_tooling_only_currentness_follow_up=true"
     Assert-Contains -Name "grid tooling drift runtime blockers" -Text $toolingText -Pattern "grid_open_runtime_ranked_blockers=.*GRID_ENV_DIFF_NOT_APPLIED"
+
+    $runtimeCurrentWatchLog = Join-Path $tempDir "grid-runtime-current-watch.log"
+    @"
+grid_open_readiness_watch_status=PENDING_GRID_ENV_DIFF
+grid_open_readiness_watch_reason=GRID_ENV_DIFF_NOT_APPLIED
+grid_open_readiness_watch_openable=false
+grid_open_readiness_watch_score_pct=66.67
+grid_open_readiness_watch_passed_gates=8/12
+grid_open_readiness_watch_top_blocker=GRID_ENV_DIFF_NOT_APPLIED
+grid_open_readiness_watch_ranked_blockers=[{"rank":4,"family":"production-env","priority":"P0","blocker":"GRID_ENV_DIFF_NOT_APPLIED"},{"rank":6,"family":"capital","priority":"P1","blocker":"CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"}]
+grid_open_readiness_watch_gate_checks=[{"gate":"splitAcceptance","pass":false},{"gate":"tradingOkxEnabled","pass":false},{"gate":"eventRiskR0","pass":true}]
+"@ | Set-Content -LiteralPath $runtimeCurrentWatchLog -Encoding UTF8
+
+    $runtimeCurrentOutput = & $scriptPath -GridReadinessWatchLog $runtimeCurrentWatchLog -OriginDeltaLog $originToolingLog -AllowDirtyLocalWorktreeForReplay -RequireReady *>&1
+    $runtimeCurrentText = $runtimeCurrentOutput -join "`n"
+    Assert-Contains -Name "grid runtime-current env-top handoff status" -Text $runtimeCurrentText -Pattern "grid_split_acceptance_deploy_handoff_status=READY_FOR_GRID_SPLIT_RUNTIME_CURRENT_TOOLING_SYNC_FOLLOW_UP_NOT_MUTATION"
+    Assert-Contains -Name "grid runtime-current env-top handoff decision" -Text $runtimeCurrentText -Pattern "grid_split_acceptance_deploy_handoff_decision=CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT"
+    Assert-Contains -Name "grid runtime-current env top blocker preserved" -Text $runtimeCurrentText -Pattern "grid_open_readiness_watch_top_blocker=GRID_ENV_DIFF_NOT_APPLIED"
+    Assert-Contains -Name "grid runtime-current env runtime blockers" -Text $runtimeCurrentText -Pattern "grid_open_runtime_ranked_blockers=.*CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"
+    if ($runtimeCurrentText -match "grid_split_acceptance_deploy_handoff_missing_requirements=.*grid top blocker is SPLIT_ACCEPTANCE_NOT_PASSING") {
+        throw "runtime-current handoff must not require SPLIT_ACCEPTANCE_NOT_PASSING as the top blocker when zero runtime delta is proven"
+    }
 } finally {
     if (Test-Path -LiteralPath $tempDir) {
         Remove-Item -LiteralPath $tempDir -Recurse -Force

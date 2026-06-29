@@ -978,8 +978,17 @@ Expected:
   `grid_split_tooling_only_currentness_follow_up`,
   `grid_trend_gate`, `grid_trend_gate_clearance_accepted`,
   `grid_trend_override_required`,
+  `grid_open_blocker_priority_next_authorization_required`,
+  `grid_open_blocker_priority_existing_active_grid_order_path_activation_risk`,
+  `grid_open_blocker_priority_authorization_sequence`,
+  `grid_open_blocker_priority_compact_authorization_brief`,
   `grid_open_blocker_priority_ranked_blockers`, `grid_open_allowed=false`,
   and `create_grid_allowed=false`.
+- The compact authorization brief is a short operator handoff extracted from
+  the full board. It names the next required authorization, whether enabling
+  OKX would activate an existing ACTIVE grid order path, the remaining ranked
+  blockers, and the ordered authorization sequence. It is evidence only; it
+  does not approve the next authorization.
 - Uses pre-env authorization readiness before the env diff is applied, then
   switches to post-env authorization readiness after `TRADING_OKX_ENABLED=true`,
   `TRADING_GRID_ENABLED=true`, and scheduler/recovery/Earn remain false. This

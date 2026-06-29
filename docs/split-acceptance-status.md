@@ -409,6 +409,28 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   only if an additional grid is still desired. The refresh made no deploy,
   production env change, `createGrid`, scheduler/recovery/Earn enablement,
   order, OCO, grid, fund, Telegram, DB, or exchange mutation.
+- A follow-up read-only refresh after docs commit `ea1844d` saved
+  `target/grid-open/grid-open-blocker-priority-board-microgrid-after-compact-brief-read-only.log`
+  and
+  `target/grid-open/grid-post-open-smoke-grid10-after-ea1844d-continuation-read-only.log`.
+  The board stayed
+  `READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION` with
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `deployment_metadata_status=CURRENT`, `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, `grid_openable_now=false`,
+  readiness `66.67`, and passed gates `8/12`. The ranked blockers remain
+  `GRID_ENV_DIFF_NOT_APPLIED`
+  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`) and
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` (`candidateCapitalUsdt=10`;
+  `effectiveReviewCapitalCapUsdt=5`). The Grid #10 smoke passed with Grid #10
+  ACTIVE, IN_RANGE, four pending levels, zero holding/failed/partial levels,
+  scheduler registered, scheduler/recovery/Earn disabled, runtime `ERROR=0`,
+  and no high-risk operation-like log lines. The blocker board now emits compact
+  operator handoff fields for the next authorization, existing active grid
+  order-path activation risk, and ordered authorization sequence. This still
+  does not authorize deploy, production env change, `createGrid`,
+  scheduler/recovery/Earn enablement, order, OCO, grid, fund, Telegram, DB, or
+  exchange mutation.
 - Latest read-only profit operator evidence refresh on 2026-06-23T10:09+08:00
   ran `.\scripts\prepare_profit_operator_action_brief_ssh.ps1 -RequireReady`
   through SSH/server-local MCP and saved the fresh matrix to

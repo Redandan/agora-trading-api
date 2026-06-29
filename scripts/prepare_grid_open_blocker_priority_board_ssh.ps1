@@ -369,6 +369,33 @@ $decision = if ($gridOpenableNow) {
 }
 
 $rankedBlockers = @($blockers | Sort-Object -Property @{ Expression = "rank"; Ascending = $true }, @{ Expression = "blocker"; Ascending = $true })
+$topBlocker = if ($rankedBlockers.Count -gt 0) { $rankedBlockers[0] } else { $null }
+$nextAuthorizationRequired = if ($null -ne $topBlocker) { [string]$topBlocker.authorizationRequired } else { "separate createGrid authorization" }
+$existingActiveGridActivationReview = if ($null -ne $preEnvRequestPacket) {
+    Get-PropertyOrNull $preEnvRequestPacket "existingActiveGridActivationReview"
+} else {
+    $null
+}
+$existingActiveGridOrderPathActivationRisk = if ($null -ne $existingActiveGridActivationReview) {
+    [bool](Get-PropertyOrNull $existingActiveGridActivationReview "orderPathWillBeActivatedByPendingOkxEnablement")
+} else {
+    $false
+}
+$operatorAuthorizationSequence = @(
+    $(if ($runtimeCurrentForGridOpen) { "split runtime currentness accepted by zero runtime delta; server tooling sync remains a follow-up" } else { "separate split/currentness deploy authorization" }),
+    $(if ($trendGateClearanceAccepted) { "fresh trend gate clearance accepted; separate trend override not required unless the gate becomes blocked" } else { "separate trend-regime override or fresh trend clearance" }),
+    "separate capital-cap override if candidate capital remains above effective review cap",
+    $(if ($existingActiveGridOrderPathActivationRisk) { "separate production env diff authorization explicitly naming existing ACTIVE grid OKX order-path activation" } else { "separate production env diff authorization for OKX/grid flags" }),
+    "deploy/restart only after the separately authorized env diff",
+    "post-env read-only verification with split acceptance, refreshed grid packets, and runtime-log smoke",
+    "separate createGrid authorization naming refreshedCreateGridInputs only if an additional grid is still desired"
+)
+$compactAuthorizationBrief = [pscustomobject]@{
+    nextAuthorizationRequired = $nextAuthorizationRequired
+    existingActiveGridOrderPathActivationRisk = $existingActiveGridOrderPathActivationRisk
+    remainingRankedBlockers = @($rankedBlockers | ForEach-Object { $_.blocker })
+    operatorAuthorizationSequence = @($operatorAuthorizationSequence)
+}
 $board = [pscustomobject]@{
     packetType = "GRID_OPEN_BLOCKER_PRIORITY_BOARD"
     scope = "READ_ONLY"
@@ -406,7 +433,12 @@ $board = [pscustomobject]@{
     totalGateCount = $gateChecks.Count
     gateChecks = @($gateChecks)
     rankedBlockers = @($rankedBlockers)
-    topBlocker = if ($rankedBlockers.Count -gt 0) { $rankedBlockers[0] } else { $null }
+    topBlocker = $topBlocker
+    nextAuthorizationRequired = $nextAuthorizationRequired
+    existingActiveGridActivationReview = $existingActiveGridActivationReview
+    existingActiveGridOrderPathActivationRisk = $existingActiveGridOrderPathActivationRisk
+    operatorAuthorizationSequence = @($operatorAuthorizationSequence)
+    compactAuthorizationBrief = $compactAuthorizationBrief
     envReadiness = $envReadiness
     refreshedCreateGridInputs = $createInputs
     splitAcceptanceFailureSummary = @($splitSummary)
@@ -458,6 +490,8 @@ Write-Host "grid_post_env_authorization_request_ready=$($postEnvRequestReady.ToS
 Write-Host "grid_trend_gate=$trendGate"
 Write-Host "grid_trend_gate_clearance_accepted=$($trendGateClearanceAccepted.ToString().ToLowerInvariant())"
 Write-Host "grid_trend_override_required=$($trendOverrideRequired.ToString().ToLowerInvariant())"
+Write-Host "grid_open_blocker_priority_next_authorization_required=$nextAuthorizationRequired"
+Write-Host "grid_open_blocker_priority_existing_active_grid_order_path_activation_risk=$($existingActiveGridOrderPathActivationRisk.ToString().ToLowerInvariant())"
 Write-Host "production_env_change_allowed=false"
 Write-Host "deploy_allowed=false"
 Write-Host "create_grid_allowed=false"
@@ -469,6 +503,8 @@ Write-Host "oco_mutation_allowed=false"
 Write-Host "telegram_send_allowed=false"
 Write-Host ("grid_open_blocker_priority_top_blocker=" + (ConvertTo-Json -Compress -Depth 6 $board.topBlocker))
 Write-Host ("grid_open_blocker_priority_ranked_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($rankedBlockers)))
+Write-Host ("grid_open_blocker_priority_authorization_sequence=" + (ConvertTo-Json -Compress -Depth 6 @($operatorAuthorizationSequence)))
+Write-Host ("grid_open_blocker_priority_compact_authorization_brief=" + (ConvertTo-Json -Compress -Depth 8 $compactAuthorizationBrief))
 Write-Host ("grid_open_blocker_priority_gate_checks=" + (ConvertTo-Json -Compress -Depth 6 @($gateChecks)))
 Write-Host ("grid_open_blocker_priority_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("grid_open_blocker_priority_board_packet=" + (ConvertTo-Json -Compress -Depth 18 $board))

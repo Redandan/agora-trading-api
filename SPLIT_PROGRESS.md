@@ -3357,6 +3357,30 @@ Trading deployment prep:
   verification, and separate createGrid authorization. No deploy, production
   env change, scheduler/recovery/Earn enablement, `createGrid`, order, OCO,
   grid, fund, Telegram, DB, or exchange mutation was performed.
+- A follow-up read-only refresh after docs commit `ea1844d` kept the runtime
+  currentness lane accepted for grid review while preserving execution blockers.
+  `target/grid-open/grid-open-blocker-priority-board-microgrid-after-compact-brief-read-only.log`
+  returned `READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION`,
+  `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `deployment_metadata_status=CURRENT`, `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, readiness `66.67`, passed
+  gates `8/12`, top blocker `GRID_ENV_DIFF_NOT_APPLIED`
+  (`TRADING_OKX_ENABLED=false; TRADING_GRID_ENABLED=true`), and second blocker
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP` (`candidateCapitalUsdt=10`;
+  `effectiveReviewCapitalCapUsdt=5`). Grid #10 post-open smoke saved at
+  `target/grid-open/grid-post-open-smoke-grid10-after-ea1844d-continuation-read-only.log`
+  passed with Grid #10 ACTIVE, IN_RANGE, four pending levels, zero holding or
+  failed/partial levels, scheduler registered, scheduler/recovery/Earn disabled,
+  runtime `ERROR` count 0, `unknown=0`, and no high-risk operation-like log
+  lines. The blocker priority board now emits a compact authorization brief
+  (`grid_open_blocker_priority_next_authorization_required`,
+  `grid_open_blocker_priority_existing_active_grid_order_path_activation_risk`,
+  `grid_open_blocker_priority_authorization_sequence`, and
+  `grid_open_blocker_priority_compact_authorization_brief`) so the next
+  operator step is visible without parsing the full nested board packet. No
+  deploy, production env change, scheduler/recovery/Earn enablement,
+  `createGrid`, order, OCO, grid, fund, Telegram, DB, or exchange mutation was
+  performed.
 
 ## Cleanup Priority
 

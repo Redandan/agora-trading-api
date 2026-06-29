@@ -430,13 +430,22 @@ required_markers = [
     "gridMutationAllowed=false",
     "schedulerChangeAllowed=false",
     "telegramSendAllowed=false",
+    "trend1h=",
+    "trend4h=",
+    "trendAlignment=",
+    "decisionSet=KEEP,PAUSE,WATCH,REBUILD_REVIEW,RESIZE_REVIEW",
+    "automationAllowed=false",
 ]
 missing_markers = [marker for marker in required_markers if marker not in grid_trend]
 
 recommendation = extract_first(r"recommendation=([A-Z0-9_:-]+)", grid_trend, "UNKNOWN")
 trend = extract_first(r"trend=([A-Z0-9_:-]+)", grid_trend, "UNKNOWN")
+trend_1h = extract_first(r"trend1h=([A-Z0-9_:-]+)", grid_trend, "UNKNOWN")
+trend_4h = extract_first(r"trend4h=([A-Z0-9_:-]+)", grid_trend, "UNKNOWN")
+trend_alignment = extract_first(r"trendAlignment=([A-Z0-9_:-]+)", grid_trend, "UNKNOWN")
 trend_pct = extract_first(r"trendPct=([-+0-9.]+%?)", grid_trend, "UNKNOWN")
 atr_pct = extract_first(r"atrPct=([-+0-9.]+%?)", grid_trend, "UNKNOWN")
+trend_active_grid_count = extract_first(r"activeGridCount=([0-9]+)", grid_trend, "UNKNOWN")
 event_risk_level = extract_first(r"riskLevel=([A-Z0-9_:-]+)", event_risk, "UNKNOWN")
 
 def count_unique_grid_status(text, status):
@@ -496,10 +505,13 @@ if material_sell_failed_lines:
     unique_append(required_evidence, "material historical SELL_FAILED levels reconciled")
 elif dust_sell_failed_lines:
     unique_append(warnings, "HISTORICAL_GRID_DUST_SELL_FAILED_REVIEW_NOT_BLOCKING")
-if recommendation == "NO_ACTION_NO_ACTIVE_GRID":
+if recommendation == "NO_ACTION_NO_ACTIVE_GRID" or (recommendation == "WATCH" and trend_active_grid_count == "0"):
     if not candidate_plan.get("candidatePlanComplete", False):
         unique_append(blockers, "NO_REPLAYABLE_GRID_CANDIDATE_PLAN")
         unique_append(required_evidence, "explicit grid candidate range, spacing, capital, stop, and trend-regime rationale")
+if recommendation == "PAUSE":
+    unique_append(blockers, "GRID_TREND_REVIEW_RECOMMENDS_PAUSE")
+    unique_append(required_evidence, "trend review must return KEEP/WATCH/REBUILD_REVIEW/RESIZE_REVIEW or separate operator override before opening a new grid")
 if trend in ("DOWN", "DOWN_STRONG", "UP_STRONG"):
     unique_append(blockers, "GRID_UNFAVORABLE_TREND_REGIME_" + trend)
     unique_append(required_evidence, "sideways or explicitly reviewed trend-regime evidence")
@@ -565,6 +577,9 @@ packet = {
     "closedGridCount": closed_grid_count,
     "recommendation": recommendation,
     "trend": trend,
+    "trend1h": trend_1h,
+    "trend4h": trend_4h,
+    "trendAlignment": trend_alignment,
     "trendPct": trend_pct,
     "atrPct": atr_pct,
     "eventRiskLevel": event_risk_level,
@@ -594,6 +609,9 @@ print(f"paused_grid_count={paused_grid_count}")
 print(f"closed_grid_count={closed_grid_count}")
 print(f"grid_trend_recommendation={recommendation}")
 print(f"trend={trend}")
+print(f"trend1h={trend_1h}")
+print(f"trend4h={trend_4h}")
+print(f"trendAlignment={trend_alignment}")
 print(f"trendPct={trend_pct}")
 print(f"atrPct={atr_pct}")
 print(f"event_risk_level={event_risk_level}")

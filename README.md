@@ -144,12 +144,13 @@ Read-only Grid trend adjustment review smoke after a deploy that contains the
 
 This calls server-local `/api/mcp` only and verifies the Grid trend review
 packet carries `boundary=READ_ONLY`, `mutationAllowed=false`,
-`orderAllowed=false`, `gridMutationAllowed=false`, trend/ATR evidence, and
-`recommendation=`. It is operator evidence only: it does not create, pause,
-resume, close, or rebuild a grid, does not place orders, does not send
-Telegram, and does not change scheduler, DB, fund, Earn, OCO, or exchange
-state. Any scheduler integration or `closeGrid`/`createGrid` action requires
-separate explicit approval.
+`orderAllowed=false`, `gridMutationAllowed=false`, `trend1h=`, `trend4h=`,
+`trendAlignment=`, `decisionSet=KEEP,PAUSE,WATCH,REBUILD_REVIEW,RESIZE_REVIEW`,
+`automationAllowed=false`, and `recommendation=`. It is operator evidence only:
+it does not create, pause, resume, close, or rebuild a grid, does not place
+orders, does not send Telegram, and does not change scheduler, DB, fund, Earn,
+OCO, or exchange state. Any scheduler integration or `closeGrid`/`createGrid`
+action requires separate explicit approval.
 The SSH wrapper owns only remote env/app-port handling; the JSON-RPC call,
 marker validation, and packet rendering are owned by the Java smoke runner
 `com.agora.trading.smoke.McpSmokeCli` so the smoke logic is unit-testable.

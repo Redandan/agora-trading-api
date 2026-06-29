@@ -434,7 +434,10 @@ Expected:
   `grid_trend_adjustment_recommendation`.
 - Verifies `boundary=READ_ONLY`, `mutationAllowed=false`,
   `orderAllowed=false`, `gridMutationAllowed=false`,
-  `schedulerChangeAllowed=false`, and `telegramSendAllowed=false`.
+  `schedulerChangeAllowed=false`, `telegramSendAllowed=false`, `trend1h=`,
+  `trend4h=`, `trendAlignment=`,
+  `decisionSet=KEEP,PAUSE,WATCH,REBUILD_REVIEW,RESIZE_REVIEW`, and
+  `automationAllowed=false`.
 - Does not deploy, restart, change production env, create/pause/resume/close
   grid, place orders, modify OCO, send Telegram, mutate DB/grid/fund/Earn, or
   call exchange mutation paths. It is not authorization for scheduler

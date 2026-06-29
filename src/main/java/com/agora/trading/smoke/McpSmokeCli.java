@@ -27,7 +27,7 @@ public final class McpSmokeCli {
 
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final Pattern RECOMMENDATION_PATTERN = Pattern.compile(
-            "^(KEEP_MONITOR|NO_ACTION_[A-Z0-9_]+|PAUSE_[A-Z0-9_]+_REVIEW|PAUSE_OR_WAIT_REVIEW|"
+            "^(KEEP|PAUSE|WATCH|REBUILD_REVIEW|RESIZE_REVIEW|KEEP_MONITOR|NO_ACTION_[A-Z0-9_]+|PAUSE_[A-Z0-9_]+_REVIEW|PAUSE_OR_WAIT_REVIEW|"
                     + "REBUILD_[A-Z0-9_]+_REVIEW|WIDEN_RANGE_REVIEW|NARROW_RANGE_REVIEW|"
                     + "CLOSE_REVIEW_FAILURE_FIRST)$");
 
@@ -57,22 +57,34 @@ public final class McpSmokeCli {
         require("telegram disabled marker", "telegramSendAllowed=false", review);
         require("operator-review-only marker", "operator review only", review);
         require("market evidence line", "market symbol=", review);
+        require("1h trend evidence", "trend1h=", review);
+        require("4h trend evidence", "trend4h=", review);
+        require("trend alignment marker", "trendAlignment=", review);
+        require("decision set marker", "decisionSet=KEEP,PAUSE,WATCH,REBUILD_REVIEW,RESIZE_REVIEW", review);
+        require("automation disabled marker", "automationAllowed=false", review);
+        require("decision blockers marker", "decisionBlockers=", review);
         require("recommendation marker", "recommendation=", review);
 
         String recommendation = extract("recommendation=([A-Z0-9_]+)", review, "UNKNOWN");
         if (!RECOMMENDATION_PATTERN.matcher(recommendation).matches()) {
             throw new IllegalStateException("Unexpected recommendation=" + recommendation);
         }
+        String activeGridCount = extract("activeGridCount=([0-9]+)", review, "N/A");
         String status = switch (recommendation) {
             case "NO_ACTION_NO_ACTIVE_GRID" -> "NO_ACTIVE_GRID_NOT_MUTATION";
             case "NO_ACTION_INSUFFICIENT_EVIDENCE" -> "BLOCKED_INSUFFICIENT_GRID_TREND_EVIDENCE";
-            default -> "READY_GRID_TREND_REVIEW_NOT_MUTATION";
+            default -> "0".equals(activeGridCount)
+                    ? "NO_ACTIVE_GRID_NOT_MUTATION"
+                    : "READY_GRID_TREND_REVIEW_NOT_MUTATION";
         };
         return new GridTrendSmokeResult(
                 status,
                 recommendation,
-                extract("activeGridCount=([0-9]+)", review, "N/A"),
+                activeGridCount,
                 extract("trend=([A-Z_]+)", review, "UNKNOWN"),
+                extract("trend1h=([A-Z_]+)", review, "UNKNOWN"),
+                extract("trend4h=([A-Z_]+)", review, "UNKNOWN"),
+                extract("trendAlignment=([A-Z0-9_]+)", review, "UNKNOWN"),
                 extract("trendPct=([-+0-9.NA/%]+)", review, "N/A"),
                 extract("atrPct=([-+0-9.NA/%]+)", review, "N/A"));
     }
@@ -86,9 +98,12 @@ public final class McpSmokeCli {
         System.out.println("grid_trend_adjustment_recommendation=" + result.recommendation());
         System.out.println("active_grid_count=" + result.activeGridCount());
         System.out.println("trend=" + result.trend());
+        System.out.println("trend1h=" + result.trend1h());
+        System.out.println("trend4h=" + result.trend4h());
+        System.out.println("trendAlignment=" + result.trendAlignment());
         System.out.println("trendPct=" + result.trendPct());
         System.out.println("atrPct=" + result.atrPct());
-        System.out.println("requiredEvidence=market trend, ATR, current price alignment, grid level state, and read-only recommendation markers");
+        System.out.println("requiredEvidence=1h/4h market trend, ATR, current price alignment, grid efficiency, grid level state, and read-only recommendation markers");
         System.out.println("notAuthorization=true");
         System.out.println("nextAction=operator may review the packet; any closeGrid/createGrid/pause/resume or scheduler integration requires separate explicit approval.");
         System.out.println("OK read-only check complete");
@@ -110,6 +125,9 @@ public final class McpSmokeCli {
             String recommendation,
             String activeGridCount,
             String trend,
+            String trend1h,
+            String trend4h,
+            String trendAlignment,
             String trendPct,
             String atrPct
     ) {

@@ -2762,8 +2762,10 @@ Trading deployment prep:
   calls server-local `/api/mcp` only, invokes `getGridTrendAdjustmentReview`,
   and requires `boundary=READ_ONLY`, `mutationAllowed=false`,
   `orderAllowed=false`, `gridMutationAllowed=false`,
-  `schedulerChangeAllowed=false`, `telegramSendAllowed=false`, trend/ATR
-  evidence, and `recommendation=` markers. It emits
+  `schedulerChangeAllowed=false`, `telegramSendAllowed=false`, `trend1h=`,
+  `trend4h=`, `trendAlignment=`,
+  `decisionSet=KEEP,PAUSE,WATCH,REBUILD_REVIEW,RESIZE_REVIEW`,
+  `automationAllowed=false`, and `recommendation=` markers. It emits
   `grid_trend_adjustment_review_packet`,
   `grid_trend_adjustment_review_status`, and
   `grid_trend_adjustment_recommendation` for operator review, but it does not

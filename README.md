@@ -155,6 +155,26 @@ The SSH wrapper owns only remote env/app-port handling; the JSON-RPC call,
 marker validation, and packet rendering are owned by the Java smoke runner
 `com.agora.trading.smoke.McpSmokeCli` so the smoke logic is unit-testable.
 
+Read-only Grid resize/rebuild operator packet after the trend review recommends
+`RESIZE_REVIEW` or `REBUILD_REVIEW`:
+
+```powershell
+.\scripts\prepare_grid_resize_rebuild_operator_packet_ssh.ps1
+```
+
+This calls server-local `/api/mcp` only and combines
+`getGridTrendAdjustmentReview`, `listGrids`, `getGridPriceAlignment`,
+`getCurrentExposure`, and `getEventRiskControlStatus`. It emits
+`GRID_RESIZE_REBUILD_OPERATOR_PACKET`, `grid_resize_rebuild_operator_status`,
+`grid_resize_rebuild_candidate_grid_ids`, capital/range deltas, event-risk
+gate evidence, and per-grid candidate plans. `READY_FOR_GRID_RESIZE_REBUILD_OPERATOR_REVIEW_NOT_MUTATION`
+means the evidence is ready for a separate operator decision only; it keeps
+`production_env_change_allowed=false`, `deploy_allowed=false`,
+`close_grid_allowed=false`, `create_grid_allowed=false`,
+`grid_mutation_allowed=false`, `scheduler_enablement_allowed=false`,
+`order_allowed=false`, `oco_mutation_allowed=false`, and
+`telegram_send_allowed=false`.
+
 Read-only Grid open readiness packet before any separate grid enablement review:
 
 ```powershell

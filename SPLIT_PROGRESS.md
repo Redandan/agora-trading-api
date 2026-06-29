@@ -2776,6 +2776,30 @@ Trading deployment prep:
   wrapper in PowerShell while moving JSON-RPC calling, marker validation, and
   packet rendering for this grid-trend case into the Java runner
   `com.agora.trading.smoke.McpSmokeCli`.
+- 2026-06-29 Grid trend review now has a read-only resize/rebuild operator
+  packet wrapper: `scripts/prepare_grid_resize_rebuild_operator_packet_ssh.ps1`.
+  It calls server-local `/api/mcp` only, combines
+  `getGridTrendAdjustmentReview`, `listGrids`, `getGridPriceAlignment`,
+  `getCurrentExposure`, and `getEventRiskControlStatus`, and emits
+  `GRID_RESIZE_REBUILD_OPERATOR_PACKET`,
+  `grid_resize_rebuild_operator_status`,
+  `grid_resize_rebuild_operator_review_ready`,
+  `grid_resize_rebuild_candidate_grid_ids`, capital/range deltas, event-risk
+  gate evidence, and per-grid `PREVIEW_ONLY` candidate plans. The packet can
+  return `READY_FOR_GRID_RESIZE_REBUILD_OPERATOR_REVIEW_NOT_MUTATION`, but it
+  keeps `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `close_grid_allowed=false`, `create_grid_allowed=false`,
+  `grid_mutation_allowed=false`, `scheduler_enablement_allowed=false`,
+  `order_allowed=false`, `oco_mutation_allowed=false`, and
+  `telegram_send_allowed=false`; any actual close/recreate/resize/rebalance
+  remains a separate explicitly authorized mutation phase.
+  The first production read-only run after the wrapper was added returned
+  `READY_FOR_GRID_RESIZE_REBUILD_OPERATOR_REVIEW_NOT_MUTATION`: active grids
+  `#10` and `#11` both had `RESIZE_REVIEW`, `eventRiskGate=CLEAR_EVENT_RISK_R0`,
+  `missingEvidence=[]`, `remainingExecutionBlockersBeforeMutation=[]`, and
+  aggregate candidate capital `30.0` USDT under the reviewed 30 USDT cap. This
+  is resize/rebuild review evidence only and still does not authorize
+  closeGrid/createGrid/rebalance/order/OCO/env/deploy actions.
 - 2026-06-25 Grid opening now has a repeatable read-only readiness packet:
   `scripts/prepare_grid_open_readiness_packet_ssh.ps1`. It calls server-local
   `/api/mcp` only, combines `getGridTrendAdjustmentReview`, `listGrids`,

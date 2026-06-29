@@ -446,6 +446,35 @@ Expected:
   JSON-RPC calling, marker validation, and packet rendering live in the Java
   smoke runner `com.agora.trading.smoke.McpSmokeCli`.
 
+Read-only Grid resize/rebuild operator packet:
+
+```powershell
+.\scripts\prepare_grid_resize_rebuild_operator_packet_ssh.ps1
+```
+
+Expected:
+
+- Uses server-local `/api/mcp` with an OPS MCP key; it must not call public MCP
+  or legacy `/api/trading/mcp`.
+- Calls only read-only tools: `getGridTrendAdjustmentReview`, `listGrids`,
+  `getGridPriceAlignment`, `getCurrentExposure`, and
+  `getEventRiskControlStatus`.
+- Emits `GRID_RESIZE_REBUILD_OPERATOR_PACKET`,
+  `grid_resize_rebuild_operator_status`,
+  `grid_resize_rebuild_operator_review_ready`,
+  `grid_resize_rebuild_candidate_grid_ids`, and
+  `grid_resize_rebuild_candidate_capital_usdt`.
+- `READY_FOR_GRID_RESIZE_REBUILD_OPERATOR_REVIEW_NOT_MUTATION` means the
+  resize/rebuild evidence can be reviewed separately; it is not permission to
+  close, create, resize, rebalance, place orders, modify OCO, send Telegram,
+  change production env, deploy, restart, or mutate DB/grid/fund/Earn/exchange
+  state.
+- The packet keeps `production_env_change_allowed=false`,
+  `deploy_allowed=false`, `close_grid_allowed=false`,
+  `create_grid_allowed=false`, `grid_mutation_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `oco_mutation_allowed=false`, and `telegram_send_allowed=false`.
+
 Read-only Grid open readiness packet:
 
 ```powershell

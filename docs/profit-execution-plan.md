@@ -74,6 +74,10 @@ Known current facts:
   `LIVE_READINESS_NOT_READY`, `ORDER_CAPABLE_FLAGS_REVIEW`,
   `EXECUTION_ELIGIBILITY_NOT_READY`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
   `TINY_LIVE_ROLLOUT_NOT_READY`, and `SIGNAL_POLICY_REVIEW_GAPS`.
+- Latest micro-grid blocker board readiness is `91.67%` (`11/12` gates), but
+  `createGrid` remains blocked by trend-regime override or fresh sideways
+  clearance first, then capital cap override (`candidateCapitalUsdt=10` vs
+  `effectiveReviewCapitalCapUsdt=5`). Grid mutation remains disallowed.
 - Current next blocker is
   `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
 - Current observation status command:

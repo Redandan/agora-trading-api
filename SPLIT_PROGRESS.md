@@ -3248,6 +3248,30 @@ Trading deployment prep:
   authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- A fresh full micro-grid blocker board run after commit `e8e14df` reported
+  `grid_open_blocker_priority_board_status=READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION`,
+  `grid_open_blocker_priority_board_decision=WAIT_TREND_CLEARANCE_OR_PREPARE_SEPARATE_TREND_OVERRIDE`,
+  `grid_open_readiness_score_pct=91.67`, and passed gates `11/12`. Evidence
+  was complete: `source_pre_env_authorization_request exitCode=0`,
+  `source_bundle exitCode=0`, `source_origin_delta exitCode=0`,
+  `origin_delta_status=CURRENT_ORIGIN_MAIN`,
+  `deployment_metadata_status=DOCS_TOOLING_ONLY_DRIFT`,
+  `origin_runtime_delta_files=0`,
+  `grid_split_runtime_current_for_grid_open=true`, and
+  `grid_open_blocker_priority_missing_evidence=[]`. Post-env readiness is
+  active (`grid_authorization_readiness_phase=POST_ENV`,
+  `grid_post_env_authorization_request_ready=true`), and the reviewed
+  candidate remains the 2-level micro-grid:
+  `gridCount=2`, `perLevelUsdt=5`, `candidateCapitalUsdt=10`,
+  `stopOutPct=5`, `candidateHalfWidthPct=10`, and `replayScore=80`.
+  CreateGrid is still blocked: top blocker
+  `OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE`
+  (`trendGate=BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE`), followed by
+  `CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP`
+  (`candidateCapitalUsdt=10; effectiveReviewCapitalCapUsdt=5`). The packet
+  kept `create_grid_allowed=false`, `grid_open_allowed=false`,
+  `grid_mutation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
 - A fresh micro-grid board run after commit `283b94e` reported
   `grid_open_blocker_priority_board_decision=PREPARE_SEPARATE_GRID_ENV_DIFF_AUTHORIZATION`,
   `origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`,

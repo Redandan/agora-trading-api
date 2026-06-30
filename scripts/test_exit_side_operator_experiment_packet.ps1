@@ -161,4 +161,91 @@ try {
     }
 }
 
+$blockedMatrixPath = Join-Path ([System.IO.Path]::GetTempPath()) ("exit-side-blocked-matrix-" + [guid]::NewGuid().ToString("N") + ".log")
+$blockedReviewDir = Join-Path ([System.IO.Path]::GetTempPath()) ("exit-side-blocked-review-" + [guid]::NewGuid().ToString("N"))
+try {
+    $blockedMatrixPacket = [pscustomobject]@{
+        reviewItems = @(
+            [pscustomobject]@{
+                lane = "exit-side"
+                priority = "P1"
+                status = "NOT_READY"
+                readyForOperatorReview = $false
+                evidenceMarkers = @("trailing_stop_acceptance=PASS", "exit_side_profit_review_packet_status=NOT_READY")
+                missingRequirements = @("operator_review_packet_allowed true")
+                nextAction = "Keep collecting exit-side evidence."
+            },
+            [pscustomobject]@{
+                lane = "entry-filter"
+                priority = "P2"
+                status = "REVIEW_SIGNAL_POLICY"
+                readyForOperatorReview = $false
+                evidenceMarkers = @("signal_policy_clear=false")
+                missingRequirements = @("signal policy review clear")
+                nextAction = "Keep EntryDedup/DataFreshness/live policy unchanged."
+            },
+            [pscustomobject]@{
+                lane = "data-freshness-replay"
+                priority = "P2"
+                status = "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE"
+                readyForOperatorReview = $false
+                evidenceMarkers = @("complete_replayable_candidate_rows=0")
+                missingRequirements = @("complete DataFreshness replayable candidate rows")
+                nextAction = "Collect replay snapshots before policy review."
+            }
+        )
+    }
+    Set-Content -LiteralPath $blockedMatrixPath -Encoding UTF8 -Value @(
+        "profit_operator_review_matrix_status=NO_REVIEW_READY_ITEMS",
+        ("profit_operator_review_matrix_packet=" + (ConvertTo-Json -Compress -Depth 8 $blockedMatrixPacket)),
+        "profit_operator_review_matrix_next_action=Continue read-only evidence collection."
+    )
+    New-Item -ItemType Directory -Force -Path $blockedReviewDir | Out-Null
+    Set-Content -LiteralPath (Join-Path $blockedReviewDir "latest-profit-operator-matrix.path") -Encoding UTF8 -Value $blockedMatrixPath
+
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for blocked exit-side experiment packet test"
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $blockedOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $blockedReviewDir -RequireReady 2>&1
+        $blockedExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $blockedText = ($blockedOutput | Out-String)
+    if ($blockedExitCode -eq 0) {
+        throw "blocked exit-side operator experiment packet unexpectedly passed:`n$blockedText"
+    }
+    foreach ($marker in @(
+            "source_matrix_freshness_status=FRESH",
+            "profit_operator_review_summary_packet=",
+            "exit_side_operator_experiment_packet_status=NOT_READY",
+            '"sourceMatrixFreshness":{"AgeMinutes"',
+            '"packetType":"EXIT_SIDE_OPERATOR_EXPERIMENT_REVIEW"',
+            "notAuthorization=read-only exit-side experiment packet only"
+        )) {
+        Assert-Contains -Name "blocked exit-side experiment packet preserves partial summary" -Text $blockedText -Pattern ([regex]::Escape($marker))
+    }
+    if ($blockedText -match "profit_operator_review_summary_packet valid JSON") {
+        throw "blocked exit-side operator experiment packet lost the summary packet JSON:`n$blockedText"
+    }
+    if ($blockedText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "blocked exit-side operator experiment packet unexpectedly invoked SSH or a fresh child run:`n$blockedText"
+    }
+} finally {
+    if (Test-Path -LiteralPath $blockedMatrixPath) {
+        Remove-Item -LiteralPath $blockedMatrixPath -Force
+    }
+    if (Test-Path -LiteralPath $blockedReviewDir) {
+        Remove-Item -LiteralPath $blockedReviewDir -Recurse -Force
+    }
+}
+
 Write-Host "[exit-side-operator-experiment-packet-test] OK"

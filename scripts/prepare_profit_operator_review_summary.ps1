@@ -50,9 +50,6 @@ $latestArgs = @(
     "-Symbol", $Symbol,
     "-StrategyId", "$StrategyId"
 )
-if ($RequireReady) {
-    $latestArgs += "-RequireReady"
-}
 
 Write-Host "[profit-operator-review-summary] read-only summary"
 Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_latest_action_brief.ps1 only; no SSH fresh matrix, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."

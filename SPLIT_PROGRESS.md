@@ -460,6 +460,16 @@
   keeps a legacy fallback for older logs, so live-readiness can no longer be
   advanced by canned local EntryDedup shadow rows when production has no recent
   EntryDedup skip sample.
+- 2026-06-30 follow-up: `prepare_profit_operator_review_summary.ps1` now keeps
+  the latest action brief in non-`RequireReady` mode and emits its own summary
+  packet before enforcing its `-RequireReady` failure. This preserves
+  `source_matrix_freshness_status=FRESH` and the blocked-lane details for
+  downstream exit-side/trailing packets when the reused matrix is fresh but
+  `NO_REVIEW_READY_ITEMS`. The refreshed live blocker audit remains
+  `NOT_READY_FOR_LIVE_ENABLEMENT`: the matrix has no review-ready items,
+  EntryDedup fresh SSH evidence is `NO_EVIDENCE`, DataFreshness replay rows are
+  still missing, and Strategy574/TinyLive governance is review-only with
+  `tiny_live_order_allowed=false`.
 - `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
   production decomposition for recent `ENTRY_SKIP/EntryDedup` rows. It emits
   `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,

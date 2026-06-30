@@ -651,6 +651,10 @@ finish successfully when the final audit is live-blocked. The current refreshed
 audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
 10 lanes, 1 review-ready non-live lane (`strategy574-tiny-live-governance`),
 and 9 blocked lanes. This is valid evidence, not live approval.
+The exit-side review summary now emits a replayable `NOT_READY` summary packet
+before enforcing `-RequireReady`, so downstream trailing/strategy485 packets no
+longer lose `source_matrix_freshness_status=FRESH` when the latest matrix is
+fresh but has `NO_REVIEW_READY_ITEMS`.
 The refresh now sources the EntryDedup lane from the fresh production
 `prepare_entry_dedup_operator_decision_brief_ssh.ps1` packet; local static
 EntryDedup shadow rows are not allowed to make the live blocker audit look more
@@ -674,6 +678,13 @@ The continuity matcher packet further narrows the no-terminal concern:
 profit-improvement focus should therefore be EntryDedup/exposure semantics and
 protective duplicate handling, while DataFreshness, no-terminal matching, and
 live execution remain review-only.
+
+Latest read-only profit blocker refresh after the summary fix still shows live
+execution is not ready: profit matrix `NO_REVIEW_READY_ITEMS`, EntryDedup
+`NO_EVIDENCE` with `entry_dedup_skip_rows=0`, DataFreshness
+`replay_candidate_id_rows=0` and `complete_replayable_candidate_rows=0`, and
+Strategy574 near-threshold false-positive risk `86.67%` with
+`tiny_live_order_allowed=false`.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

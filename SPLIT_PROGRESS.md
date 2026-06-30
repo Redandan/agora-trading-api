@@ -754,7 +754,11 @@
   `deployRequired`, `allowedReviewTypes`, `runtimeDrift`, `blockedGates`, and
   blocker/missing counts. DataFreshness false-kill profit review stays blocked
   when complete replayable candidate rows or any counterfactual field is still
-  missing. `scripts/test_post_deploy_profit_validation.ps1` guards the child
+  missing. The 2026-06-30 refresh also keeps
+  `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` as a ranked
+  DataFreshness scorecard lane instead of an empty-scorecard `NO_EVIDENCE`
+  result, so downstream gates can preserve the replayable-candidate blockers.
+  `scripts/test_post_deploy_profit_validation.ps1` guards the child
   gate list, blocker summary shape, safety markers, docs coverage, and local
   input validation.
 - `scripts/prepare_profit_runtime_deploy_review_packet_ssh.ps1` packages the

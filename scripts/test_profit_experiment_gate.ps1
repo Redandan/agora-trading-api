@@ -91,6 +91,7 @@ foreach ($marker in @(
         "Assert-SmokeTokenSafe",
         "Convert-JsonArrayOrEmpty",
         "Convert-JsonObjectOrNull",
+        "scorecardItems = @(`$scorecard)",
         "Add-DecisionMissingRequirements",
         "Add-DataFreshnessCounterfactualMissingRequirements",
         "New-ProfitExperimentBlockerItems",

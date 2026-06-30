@@ -413,7 +413,14 @@ if ($reviewItems -contains "REVIEW_DATAFRESHNESS_COUNTERFACTUAL_REPLAY_CANDIDATE
 }
 
 $candidateScorecard = New-Object System.Collections.Generic.List[object]
-if ($profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY" -or $dataFreshnessFalseKillRecommendation -eq "REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE") {
+$dataFreshnessScorecardRequired = (
+    $profitCandidateRecommendation -eq "REVIEW_DATAFRESHNESS_FALSE_KILL_WITH_SHADOW_REPLAY" -or
+    $dataFreshnessFalseKillRecommendation -eq "REVIEW_COLLECTOR_CADENCE_SHADOW_REPLAY_KEEP_HARD_GATE" -or
+    $dataFreshnessExecutabilityRecommendation -eq "ALPHA_NOT_EXECUTABILITY_PROVEN_COLLECT_SHADOW_REPLAY" -or
+    $dataFreshnessCounterfactualRecommendation -eq "COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING" -or
+    $dataFreshnessCounterfactualRecommendation -eq "REVIEW_COUNTERFACTUAL_REPLAY_CANDIDATES"
+)
+if ($dataFreshnessScorecardRequired) {
     if ($originDelta -eq "RUNTIME_DRIFT") {
         $status = "BLOCKED_WAIT_DEPLOY_AND_REPLAY_EVIDENCE"
     } else {

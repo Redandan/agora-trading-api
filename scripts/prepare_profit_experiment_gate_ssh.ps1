@@ -291,12 +291,13 @@ $bundleRecommendation = Get-LastPrefixedValue -Text $bundleText -Prefix "  profi
 $scorecardJson = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_improvement_candidate_scorecard="
 $reviewDecisionJson = Get-LastPrefixedValue -Text $bundleText -Prefix "  profit_improvement_review_decision="
 $scorecard = Convert-JsonArrayOrEmpty -Value $scorecardJson
+$scorecardItems = @($scorecard)
 $reviewDecision = Convert-JsonObjectOrNull -Value $reviewDecisionJson
 $strategy485ReviewDecisionJson = "null"
 if ($null -ne $reviewDecision -and $null -ne $reviewDecision.PSObject.Properties["strategy485ReviewDecision"] -and $null -ne $reviewDecision.strategy485ReviewDecision) {
     $strategy485ReviewDecisionJson = ConvertTo-Json -Compress -Depth 8 -InputObject $reviewDecision.strategy485ReviewDecision
 }
-$top = @($scorecard | Select-Object -First 1)
+$top = @($scorecardItems | Select-Object -First 1)
 $topStatus = ""
 $topPriority = ""
 if ($top.Count -gt 0) {
@@ -312,7 +313,7 @@ $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ($bundleExitCode -ne 0) {
     Add-MissingRequirement -List $missingRequirements -Value "profit improvement bundle exited non-zero"
 }
-if ([string]::IsNullOrWhiteSpace($scorecardJson) -or $scorecard.Count -eq 0) {
+if ([string]::IsNullOrWhiteSpace($scorecardJson) -or $scorecardItems.Count -eq 0) {
     Add-MissingRequirement -List $missingRequirements -Value "profit_improvement_candidate_scorecard is missing or empty"
 }
 if ($null -eq $reviewDecision) {
@@ -336,7 +337,7 @@ if ($topStatus -eq "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES") {
     Add-MissingRequirement -List $missingRequirements -Value "current BUY candidate and hard-gate pass evidence"
 }
 Add-DecisionMissingRequirements -List $missingRequirements -Decision $reviewDecision
-Add-DataFreshnessCounterfactualMissingRequirements -List $missingRequirements -Scorecard @($scorecard)
+Add-DataFreshnessCounterfactualMissingRequirements -List $missingRequirements -Scorecard @($scorecardItems)
 
 $deployRequired = ($originDelta -eq "RUNTIME_DRIFT" -or @($missingRequirements) -contains "deployed runtime current")
 $shadowReviewAllowed = $false
@@ -348,7 +349,7 @@ if ($null -ne $reviewDecision) {
     $shadowReviewAllowed = [bool]$reviewDecision.canDraftShadowExperimentReview
 }
 
-if ($bundleExitCode -ne 0 -or $scorecard.Count -eq 0 -or $null -eq $reviewDecision) {
+if ($bundleExitCode -ne 0 -or $scorecardItems.Count -eq 0 -or $null -eq $reviewDecision) {
     $gateStatus = "NO_EVIDENCE"
     $nextAction = "Fix read-only profit bundle collection before drawing any experiment conclusion."
 } elseif ($deployRequired) {
@@ -367,7 +368,7 @@ if ($bundleExitCode -ne 0 -or $scorecard.Count -eq 0 -or $null -eq $reviewDecisi
 }
 
 $blockerItems = New-ProfitExperimentBlockerItems `
-    -Scorecard @($scorecard) `
+    -Scorecard @($scorecardItems) `
     -ReviewDecision $reviewDecision `
     -OriginDelta $originDelta `
     -TopCandidate $topCandidate `

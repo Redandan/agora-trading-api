@@ -67,6 +67,7 @@ foreach ($marker in @(
         "OPERATOR_REVIEW_REQUIRED_READ_ONLY",
         "WAIT_THRESHOLD_CROSS_KEEP_HARD_GATES",
         "dataFreshnessRequiredEvidence",
+        "dataFreshnessScorecardRequired",
         '$originDelta -eq "RUNTIME_DRIFT"',
         "deployed runtime current",
         "operator-approved risk-reducing action before any mutation",

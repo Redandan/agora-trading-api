@@ -3537,6 +3537,11 @@ Expected:
   required evidence, including deploy/replay evidence gaps, DataFreshness
   counterfactual replay-input coverage, aged negative-EV position review, and
   TinyLive near-BUY observation. It does not authorize live mutations.
+- A DataFreshness counterfactual result of
+  `COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING` must still produce
+  a ranked scorecard lane with `BLOCKED_WAIT_REPLAY_EVIDENCE`, not an empty
+  scorecard. This keeps replayCandidateId, entry/TP/SL, EV, OCO, and complete
+  replayable-row blockers visible to downstream gates.
 - `profit_improvement_review_decision` is the top-level routing object for
   shadow/small experiment review. It includes
   `canDraftShadowExperimentReview`, `deployRequired`, `allowedReviewTypes`,

@@ -718,6 +718,17 @@ shows live execution is not ready: EntryDedup is review-ready as a shadow-only
 operator lane, DataFreshness `replay_candidate_id_rows=0` and
 `complete_replayable_candidate_rows=0`, and governance relaxation remains
 `NOT_READY` with no reviewable relaxation candidates.
+The latest post-deploy profit validation refresh now has parseable blocker
+evidence instead of a tooling `NO_EVIDENCE` failure:
+`origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_runtime_delta_files=0`,
+`deploy_required_before_post_deploy_profit_validation=false`,
+`profit_loss_review_gate_status=READY_FOR_LOSS_SOURCE_REVIEW_NOT_LIVE`,
+`profit_experiment_gate_status=BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE`, and
+`post_deploy_profit_validation_status=BLOCKED_COLLECT_READ_ONLY_EVIDENCE`.
+The top profit-improvement lane is DataFreshness false-kill counterfactual, but
+it is still blocked by missing fresh replayCandidateId rows, entry/TP/SL
+candidate snapshots, EV/OCO preflight snapshots, and complete replayable
+candidate rows. This is read-only evidence, not live approval.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

@@ -1875,6 +1875,11 @@ profit review packets and does not deploy, restart, change production env, relax
 policy, place orders, or modify OCO/grid/fund/Earn state.
 DataFreshness false-kill candidates stay blocked until replayable candidate rows
 and all counterfactual fields are present.
+If the DataFreshness counterfactual smoke returns
+`COUNTERFACTUAL_NOT_REPLAYABLE_CANDIDATE_SNAPSHOT_MISSING`, the profit
+improvement bundle must still emit a ranked DataFreshness scorecard lane with
+`BLOCKED_WAIT_REPLAY_EVIDENCE`; an empty scorecard is a tooling regression, not
+proof that there is no candidate.
 The blocker summary is a machine-readable routing copy of the blocked child
 gate evidence; each entry preserves `requiredEvidenceCount`, `requiredEvidence`,
 `nextAction`, `runtimeDrift`, and no-live authorization text, and does not clear

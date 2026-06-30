@@ -1166,13 +1166,17 @@
   `BLOCKED_AWAIT_EXPLICIT_EXECUTE_CONFIRMATION` status means the quantified
   trailing-stop opt-in route is still the nearest profit-improvement path, but
   the controlled `setTrailingStopOptIn` write still requires a separate explicit
-  confirmation. The packet also records why Strategy574/TinyLive relaxation,
-  DataFreshness entry-policy relaxation, Strategy485 position mutation, and
-  general live-policy relaxation are not the next recommended route. It is
-  read-only and does not execute the opt-in write, deploy, change production
-  env, enable scheduler/live trading, place orders, modify OCO, close
-  positions, send Telegram, relax policy, or mutate DB/grid/fund/Earn/exchange
-  state.
+  confirmation. Once the strategy opt-in is applied, the packet advances to
+  `BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`,
+  preserving that the next step is only the separate
+  `TRAILING_STOP_ENABLED=true` plus `TRAILING_STOP_DRY_RUN=true` env/deploy
+  review with post-env read-only verification. The packet also records why
+  Strategy574/TinyLive relaxation, DataFreshness entry-policy relaxation,
+  Strategy485 position mutation, and general live-policy relaxation are not the
+  next recommended route. It is read-only and does not execute the opt-in write,
+  deploy, change production env, enable scheduler/live trading, place orders,
+  modify OCO, close positions, send Telegram, relax policy, or mutate
+  DB/grid/fund/Earn/exchange state.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

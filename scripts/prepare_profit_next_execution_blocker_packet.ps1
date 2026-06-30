@@ -231,6 +231,16 @@ if ($executionStatus -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT
     $uniqueBlocker = "AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
     $unlockCommand = "Request separate env/deploy authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification."
     $nextAction = "Do not enable live orders; request separate trailing dry-run env diff and deploy authorization."
+} elseif ($executionStatus -eq "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW" -and $missingRequirements.Count -eq 0) {
+    $status = "BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
+    $uniqueBlocker = "AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
+    $unlockCommand = "Request separate env/deploy authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification."
+    $nextAction = "Strategy opt-in is already applied; request separate trailing dry-run env diff and deploy authorization."
+} elseif ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY" -and $missingRequirements.Count -eq 0) {
+    $status = "TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION"
+    $uniqueBlocker = "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE"
+    $unlockCommand = "Continue read-only dry-run observation; do not enable live OCO mutation without a separate promotion packet."
+    $nextAction = "Collect dry-run observation evidence and runtime-log smoke before any later live trailing review."
 } else {
     $uniqueBlocker = "FIX_TRAILING_OPT_IN_EVIDENCE"
     $nextAction = "Refresh the non-mutating trailing opt-in execution dry-run and fix missing evidence before any execution request."

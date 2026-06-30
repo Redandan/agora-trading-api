@@ -301,6 +301,7 @@ $postSourceDecision = Get-PacketValue -Packet $postSourcePacket -Name "decision"
 if ([string]::IsNullOrWhiteSpace($postSourceDecision)) {
     $postSourceDecision = Get-LastPrefixedValue -Text $postSourceResult.Text -Prefix "trailing_stop_post_opt_in_readiness_decision="
 }
+$alreadyOptedIn = (-not $Rollback.IsPresent -and $reviewStatus -eq "NOT_NEEDED_STRATEGY_TRAILING_OPT_IN_ALREADY_PRESENT")
 if ($Rollback.IsPresent) {
     $trailingAcceptance = Get-PacketValue -Packet $postSourcePacket -Name "trailingAcceptance"
     $trailingImprovementPct = Get-PacketValue -Packet $postSourcePacket -Name "trailingImprovementPct"
@@ -321,10 +322,10 @@ if ($Rollback.IsPresent) {
 } else {
     if ($reviewResult.ExitCode -ne 0) { Add-MissingRequirement -List $preMissing -Value "strategy opt-in review packet completed" }
     if ($null -eq $reviewPacket) { Add-MissingRequirement -List $preMissing -Value "trailing_stop_strategy_opt_in_review_packet valid JSON" }
-    if ($reviewStatus -ne "READY_FOR_STRATEGY_TRAILING_OPT_IN_OPERATOR_REVIEW_NOT_MUTATION") {
+    if ($reviewStatus -ne "READY_FOR_STRATEGY_TRAILING_OPT_IN_OPERATOR_REVIEW_NOT_MUTATION" -and -not $alreadyOptedIn) {
         Add-MissingRequirement -List $preMissing -Value "strategy opt-in review status ready"
     }
-    if ($reviewDecision -ne "REQUEST_SEPARATE_SET_TRAILING_STOP_OPT_IN_AUTHORIZATION") {
+    if ($reviewDecision -ne "REQUEST_SEPARATE_SET_TRAILING_STOP_OPT_IN_AUTHORIZATION" -and -not $alreadyOptedIn) {
         Add-MissingRequirement -List $preMissing -Value "strategy opt-in review requests separate authorization"
     }
 }
@@ -340,9 +341,9 @@ if ($Rollback.IsPresent) {
 } elseif ($currentGlobalEnabled -ne "false") {
     Add-MissingRequirement -List $preMissing -Value "global trailing remains disabled before env diff"
 }
-if (-not $Rollback.IsPresent -and $recommendedStrategyId -ne $StrategyId) { Add-MissingRequirement -List $preMissing -Value "recommended strategy matches requested StrategyId" }
+if (-not $Rollback.IsPresent -and -not $alreadyOptedIn -and $recommendedStrategyId -ne $StrategyId) { Add-MissingRequirement -List $preMissing -Value "recommended strategy matches requested StrategyId" }
 $expectedWritePattern = if ($Rollback.IsPresent) { "setTrailingStopOptIn\(strategyId=$StrategyId, enabled=false" } else { "setTrailingStopOptIn\(strategyId=$StrategyId, enabled=true" }
-if ($proposedWrite -notmatch $expectedWritePattern) {
+if (-not $alreadyOptedIn -and $proposedWrite -notmatch $expectedWritePattern) {
     Add-MissingRequirement -List $preMissing -Value "proposed write is setTrailingStopOptIn for requested StrategyId and enabled value"
 }
 
@@ -363,7 +364,7 @@ $postResult = [pscustomobject]@{ Text = ""; ExitCode = 0 }
 $postPacket = $null
 $postStatus = ""
 $postDecision = ""
-if ($Execute.IsPresent -and $preReady -and $writeResult.ExitCode -eq 0 -and $writeStatus -eq "OK") {
+if (($Execute.IsPresent -and $preReady -and $writeResult.ExitCode -eq 0 -and $writeStatus -eq "OK") -or ($alreadyOptedIn -and $preReady)) {
     if ($usingPostLog) {
         $postResult = Read-SourceLog -Path $SourcePostOptInLog
     } else {
@@ -408,12 +409,23 @@ if ($Execute.IsPresent) {
         }
     }
 }
+if ($alreadyOptedIn -and -not $Execute.IsPresent) {
+    if ($postResult.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "post-opt-in readiness packet completed" }
+    if ($null -eq $postPacket) { Add-MissingRequirement -List $missingRequirements -Value "post-opt-in readiness packet valid JSON" }
+    if ($postStatus -ne "READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION" -and $postStatus -ne "TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY") {
+        Add-MissingRequirement -List $missingRequirements -Value "post-opt-in readiness reaches env-diff or active dry-run review"
+    }
+}
 
 $ready = $missingRequirements.Count -eq 0
 $status = if ($Rollback.IsPresent -and -not $Execute.IsPresent -and $preReady) {
     "ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION"
 } elseif ($Rollback.IsPresent -and $Execute.IsPresent -and $ready) {
     "ROLLBACK_EXECUTED_STRATEGY_OPT_IN_DISABLED"
+} elseif ($alreadyOptedIn -and -not $Execute.IsPresent -and $ready -and $postStatus -eq "READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION") {
+    "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW"
+} elseif ($alreadyOptedIn -and -not $Execute.IsPresent -and $ready -and $postStatus -eq "TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY") {
+    "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY"
 } elseif (-not $Execute.IsPresent -and $preReady) {
     "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION"
 } elseif ($Execute.IsPresent -and $ready) {
@@ -425,6 +437,10 @@ $decision = if ($status -eq "ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHO
     "AWAIT_EXPLICIT_ROLLBACK_CONFIRMATION"
 } elseif ($status -eq "ROLLBACK_EXECUTED_STRATEGY_OPT_IN_DISABLED") {
     "ROLLBACK_COMPLETE_REVIEW_TRAILING_BLOCKER_AGAIN"
+} elseif ($status -eq "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW") {
+    "REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
+} elseif ($status -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
+    "VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY"
 } elseif ($status -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION") {
     "AWAIT_EXPLICIT_EXECUTE_CONFIRMATION"
 } elseif ($status -eq "EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW") {
@@ -458,13 +474,17 @@ $packet = [pscustomobject]@{
     mcpWriteStatus = $writeStatus
     mcpWriteTrailingEnabledConfirmed = $writeTrailingEnabled
     mcpWriteOcoWritesPerformedFalse = $writeOcoFalse
-    sourcePostOptInLog = if ($Execute.IsPresent) { if ($usingPostLog) { $SourcePostOptInLog } else { "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1" } } else { "" }
+    sourcePostOptInLog = if ($Execute.IsPresent -or $alreadyOptedIn) { if ($usingPostLog) { $SourcePostOptInLog } else { "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1" } } else { "" }
     postOptInReadinessStatus = $postStatus
     postOptInReadinessDecision = $postDecision
     nextRequiredAuthorization = if ($status -eq "ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION") {
         "rerun with -Rollback -Execute -ConfirmText $expectedConfirmText to perform only the reviewed rollback setTrailingStopOptIn write"
     } elseif ($status -eq "ROLLBACK_EXECUTED_STRATEGY_OPT_IN_DISABLED") {
         "rollback complete; rerun strategy opt-in review before any future activation attempt"
+    } elseif ($status -eq "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW") {
+        "request separate authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification"
+    } elseif ($status -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
+        "dry-run is already active; continue read-only observation and runtime-log verification only"
     } elseif ($status -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION") {
         "rerun with -Execute -ConfirmText $expectedConfirmText to perform only the reviewed setTrailingStopOptIn write"
     } elseif ($status -eq "EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW") {

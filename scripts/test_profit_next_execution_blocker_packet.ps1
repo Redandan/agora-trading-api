@@ -32,6 +32,9 @@ foreach ($marker in @(
         "AWAIT_EXPLICIT_EXECUTE_CONFIRMATION",
         "EXECUTE_TRAILING_STOP_OPT_IN_",
         "BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+        "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
+        "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
+        "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
         "strategy574-threshold-or-tinylive-relaxation",
         "data-freshness-entry-policy-relaxation",
         "strategy485-position-risk-mutation",
@@ -232,6 +235,46 @@ try {
             "Request separate env/deploy authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true"
         )) {
         Assert-Contains -Name "profit next execution blocker post-opt-in replay" -Text $postOptInText -Pattern ([regex]::Escape($marker))
+    }
+
+    $executionPacket.status = "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW"
+    $executionPacket.strategyOptInWritePerformed = $false
+    Set-Content -LiteralPath $tempExecutionLog -Encoding UTF8 -Value @(
+        "trailing_stop_strategy_opt_in_execution_status=ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
+        "trailing_stop_strategy_opt_in_execution_decision=REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+        "trailing_stop_strategy_opt_in_execution_required_confirm_text=EXECUTE_TRAILING_STOP_OPT_IN_574",
+        "trailing_stop_acceptance=PASS",
+        "trailing_stop_improvement_pct=52.753%",
+        "trailing_stop_delta_pnl=13391.79229093",
+        ("trailing_stop_strategy_opt_in_execution_packet=" + (ConvertTo-Json -Compress -Depth 8 $executionPacket))
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $alreadyOptedInOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -ExecutionLogPath $tempExecutionLog `
+            -Strategy574GovernanceLogPath $tempStrategy574Log `
+            -DataFreshnessReadinessLogPath $tempDfLog `
+            -Strategy485RiskLogPath $tempStrategy485Log `
+            -SignalCorrectnessLogPath $tempSignalLog `
+            -NoRefresh `
+            -RequireReady 2>&1
+        $alreadyOptedInExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $alreadyOptedInText = ($alreadyOptedInOutput | Out-String -Width 4096)
+    if ($alreadyOptedInExitCode -ne 0) {
+        throw "profit next execution blocker already-opted-in replay failed:`n$alreadyOptedInText"
+    }
+    foreach ($marker in @(
+            "profit_next_execution_source_status=ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
+            "profit_next_execution_unique_blocker=AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+            "profit_next_execution_blocker_status=BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+            "Strategy opt-in is already applied; request separate trailing dry-run env diff and deploy authorization."
+        )) {
+        Assert-Contains -Name "profit next execution blocker already-opted-in replay" -Text $alreadyOptedInText -Pattern ([regex]::Escape($marker))
     }
 } finally {
     foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog)) {

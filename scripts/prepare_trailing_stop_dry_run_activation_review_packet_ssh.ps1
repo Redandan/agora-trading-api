@@ -114,7 +114,14 @@ def call_tool(name, arguments=None):
     if payload.get("error"):
         return "MCP_ERROR:" + json.dumps(payload["error"], sort_keys=True)
     content = payload.get("result", {}).get("content", [])
-    return "\n".join(item.get("text", "") for item in content if isinstance(item, dict))
+    text = "\n".join(item.get("text", "") for item in content if isinstance(item, dict))
+    try:
+        decoded = json.loads(text)
+        if isinstance(decoded, str):
+            return decoded
+    except Exception:
+        pass
+    return text
 
 status_text = call_tool("getTrailingStopStatus")
 enabled_match = re.search(r"global\.enabled:\s*(true|false)", status_text, re.I)

@@ -883,10 +883,15 @@ status into one machine-readable answer for why the make-money goal is not yet
 satisfied. When the trailing evidence is still the best route, the expected
 status is `BLOCKED_AWAIT_EXPLICIT_EXECUTE_CONFIRMATION` with
 `profit_next_execution_route=TRAILING_STOP_STRATEGY574_OPT_IN` and an exact
-unlock command for the separate guarded opt-in execution. The packet remains
-read-only: it does not call `setTrailingStopOptIn`, change env, deploy, restart,
-enable scheduler/live trading, place orders, modify OCO, send Telegram, or
-mutate DB/grid/fund/Earn/exchange state.
+unlock command for the separate guarded opt-in execution. After that opt-in is
+applied, the same packet should move to
+`BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`,
+meaning the next separate decision is only `TRAILING_STOP_ENABLED=true` plus
+`TRAILING_STOP_DRY_RUN=true`, followed by deploy/restart and read-only
+verification. The packet remains read-only: it does not call
+`setTrailingStopOptIn`, change env, deploy, restart, enable scheduler/live
+trading, place orders, modify OCO, send Telegram, or mutate
+DB/grid/fund/Earn/exchange state.
 
 The same wrapper also provides controlled rollback. First dry-run it:
 

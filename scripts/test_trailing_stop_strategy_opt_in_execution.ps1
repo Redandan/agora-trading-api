@@ -62,8 +62,11 @@ foreach ($marker in @(
         "EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW",
         "ROLLBACK_DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT_MUTATION",
         "ROLLBACK_EXECUTED_STRATEGY_OPT_IN_DISABLED",
+        "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
+        "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
         "AWAIT_EXPLICIT_EXECUTE_CONFIRMATION",
         "AWAIT_EXPLICIT_ROLLBACK_CONFIRMATION",
+        "VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
         "REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
         "EXECUTE_TRAILING_STOP_OPT_IN_",
         "ROLLBACK_TRAILING_STOP_OPT_IN_",
@@ -311,6 +314,99 @@ try {
 } finally {
     if (Test-Path -LiteralPath $tempPostLog) {
         Remove-Item -LiteralPath $tempPostLog -Force
+    }
+}
+
+$tempAlreadyReviewLog = Join-Path ([System.IO.Path]::GetTempPath()) ("trailing-opt-in-execution-already-review-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempAlreadyPostLog = Join-Path ([System.IO.Path]::GetTempPath()) ("trailing-opt-in-execution-already-post-" + [guid]::NewGuid().ToString("N") + ".log")
+try {
+    $alreadyReviewPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_STRATEGY_OPT_IN_REVIEW_PACKET"
+        status = "NOT_NEEDED_STRATEGY_TRAILING_OPT_IN_ALREADY_PRESENT"
+        symbol = "BTCUSDT"
+        trailingAcceptance = "PASS"
+        trailingImprovementPct = "52.753%"
+        trailingDeltaPnl = "13391.79229093"
+        currentGlobalEnabled = "false"
+        currentGlobalDryRun = "true"
+        recommendedStrategyId = 574
+        proposedSeparateMcpWrite = ""
+        rollbackMcpWrite = "setTrailingStopOptIn(strategyId=574, enabled=false, notes='rollback trailing dry-run opt-in observation')"
+        decision = "FOLLOW_ACTIVATION_PACKET_ENV_DIFF_REVIEW_OR_REFRESH"
+        missingRequirements = @()
+    }
+    Set-Content -LiteralPath $tempAlreadyReviewLog -Encoding UTF8 -Value @(
+        "trailing_stop_strategy_opt_in_review_status=NOT_NEEDED_STRATEGY_TRAILING_OPT_IN_ALREADY_PRESENT",
+        "trailing_stop_strategy_opt_in_review_decision=FOLLOW_ACTIVATION_PACKET_ENV_DIFF_REVIEW_OR_REFRESH",
+        ("trailing_stop_strategy_opt_in_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $alreadyReviewPacket))
+    )
+
+    $alreadyPostPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_POST_OPT_IN_READINESS_PACKET"
+        status = "READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION"
+        symbol = "BTCUSDT"
+        trailingAcceptance = "PASS"
+        trailingImprovementPct = "52.753%"
+        trailingDeltaPnl = "13391.79229093"
+        currentGlobalEnabled = "false"
+        currentGlobalDryRun = "true"
+        expectedOptInStrategyId = 574
+        expectedStrategyOptIn = $true
+        reviewedStrategyOptInCount = 1
+        reviewedStrategyOptIn = @(
+            [pscustomobject]@{ strategyId = 574; trailingStopEnabled = "true" }
+        )
+        decision = "REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
+        missingRequirements = @()
+    }
+    Set-Content -LiteralPath $tempAlreadyPostLog -Encoding UTF8 -Value @(
+        "trailing_stop_post_opt_in_readiness_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION",
+        "trailing_stop_post_opt_in_readiness_decision=REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+        ("trailing_stop_post_opt_in_readiness_packet=" + (ConvertTo-Json -Compress -Depth 8 $alreadyPostPacket))
+    )
+
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for trailing strategy already-opted-in replay test"
+    }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $alreadyOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -SourceReviewLog $tempAlreadyReviewLog -SourcePostOptInLog $tempAlreadyPostLog -StrategyId 574 -RequireReady 2>&1
+        $alreadyExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $alreadyText = ($alreadyOutput | Out-String)
+    if ($alreadyExitCode -ne 0) {
+        throw "trailing strategy already-opted-in replay failed:`n$alreadyText"
+    }
+    foreach ($marker in @(
+            "source_review_status=NOT_NEEDED_STRATEGY_TRAILING_OPT_IN_ALREADY_PRESENT",
+            "source_review_decision=FOLLOW_ACTIVATION_PACKET_ENV_DIFF_REVIEW_OR_REFRESH",
+            "trailing_stop_strategy_opt_in_execution_execute_requested=false",
+            "trailing_stop_strategy_opt_in_execution_write_performed=false",
+            "trailing_stop_post_opt_in_readiness_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION",
+            "trailing_stop_strategy_opt_in_execution_status=ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
+            "trailing_stop_strategy_opt_in_execution_decision=REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+            '"sourcePostOptInLog":"',
+            '"strategyOptInWritePerformed":false',
+            '"nextRequiredAuthorization":"request separate authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification"'
+        )) {
+        Assert-Contains -Name "trailing strategy already-opted-in replay" -Text $alreadyText -Pattern ([regex]::Escape($marker))
+    }
+    if ($alreadyText -match "mcp_write_status=OK|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "trailing strategy already-opted-in replay unexpectedly invoked remote write/SSH:`n$alreadyText"
+    }
+} finally {
+    foreach ($path in @($tempAlreadyReviewLog, $tempAlreadyPostLog)) {
+        if (Test-Path -LiteralPath $path) {
+            Remove-Item -LiteralPath $path -Force
+        }
     }
 }
 

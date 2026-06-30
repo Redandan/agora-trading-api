@@ -61,6 +61,8 @@ foreach ($marker in @(
         "getTrailingStopStatus",
         "getStrategyConfig",
         "http://127.0.0.1:{os.environ['PORT']}/api/mcp",
+        "decoded = json.loads(text)",
+        "if isinstance(decoded, str):",
         "TRAILING_STOP_DRY_RUN_ACTIVATION_REVIEW_PACKET",
         "READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_REVIEW_NOT_APPLIED",
         "BLOCKED_STRATEGY_TRAILING_OPT_IN_NOT_APPLIED",

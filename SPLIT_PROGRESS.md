@@ -1219,6 +1219,17 @@
   opt-in write, deploy, change production env, enable scheduler/live trading,
   place orders, modify OCO, close positions, send Telegram, relax policy, or mutate
   DB/grid/fund/Earn/exchange state.
+- `scripts/prepare_trailing_stop_dry_run_observation_status_ssh.ps1` turns the
+  active A0 dry-run state into a replayable read-only observation packet. It
+  emits `TRAILING_STOP_DRY_RUN_OBSERVATION_STATUS_PACKET`,
+  `trailing_stop_dry_run_observation_status`, and explicit sample readiness
+  fields. `ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE` with
+  `NO_OPEN_OCO_POSITIONS` means A0 is active and safe to observe, but no real
+  dry-run sample exists yet; it is not approval for live OCO mutation. A
+  2026-06-30 production read-only run reported
+  `trailing_stop_dry_run_observation_status=ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE`,
+  `trailing_stop_improvement_pct=56.299%`, and
+  `trailing_stop_dry_run_observation_current_open_oco_positions=0`.
 - 2026-06-23 local read-only strategy485 risk-reduction operator decision
   packet refresh ran
   `scripts/prepare_strategy485_risk_reduction_operator_decision_packet.ps1 -RequireReady`

@@ -61,9 +61,15 @@ Known current facts:
 - `getTrailingStopStatus` confirms `global.enabled=true`,
   `global.dryRun=true`, and `open_oco_positions=0`.
 - 30d BTCUSDT trailing replay remains `acceptance=PASS`, with
-  `improvementPct=52.753%` and `acceptanceDeltaPnl=13391.79229093`.
+  latest observation refresh `improvementPct=56.299%` and
+  `acceptanceDeltaPnl=13391.79229093`.
 - Current next blocker is
   `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
+- Current observation status command:
+  `.\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady`.
+- With `open_oco_positions=0`, the expected status is
+  `ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE` and the immediate blocker is
+  `NO_OPEN_OCO_POSITIONS`.
 - The next profitable path is evidence-first trailing-stop dry-run observation,
   not immediate live OCO mutation.
 
@@ -431,6 +437,8 @@ If the packet reports
 next step is dry-run observation evidence:
 
 - keep `TRAILING_STOP_DRY_RUN=true`;
+- run
+  `.\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady`;
 - verify runtime logs show no order/OCO modification/close-position/Telegram/
   grid/fund/Earn/exchange mutation;
 - collect dry-run trailing observation rows before any live OCO promotion.

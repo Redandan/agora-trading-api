@@ -926,6 +926,20 @@ and `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_S
 That state means A0 is complete and the next step is observation evidence only;
 it is not live OCO mutation approval.
 
+Read-only trailing-stop dry-run observation status packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady
+```
+
+This emits `TRAILING_STOP_DRY_RUN_OBSERVATION_STATUS_PACKET`,
+`trailing_stop_dry_run_observation_status_packet`, and
+`trailing_stop_dry_run_observation_status`. When A0 is active but there is no
+open OCO position, the expected status is
+`ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE` with
+`trailing_stop_dry_run_observation_sample_collection_blocked_by=NO_OPEN_OCO_POSITIONS`.
+That is a valid read-only observation status, not live promotion evidence.
+
 The same wrapper also provides controlled rollback. First dry-run it:
 
 ```powershell

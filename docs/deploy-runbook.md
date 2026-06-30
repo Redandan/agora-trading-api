@@ -2661,6 +2661,19 @@ Expected:
   scheduler/live trading, place orders, modify OCO, close positions, send
   Telegram, relax policy, or mutate
   DB/grid/fund/Earn/exchange state.
+  To turn the active dry-run state into a replayable observation-status packet,
+  run:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady
+  ```
+
+  This emits `TRAILING_STOP_DRY_RUN_OBSERVATION_STATUS_PACKET` and
+  `trailing_stop_dry_run_observation_status`. In the current A0 state, a valid
+  output can be `ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE` with
+  `NO_OPEN_OCO_POSITIONS`; that means the dry-run is active but no real OCO
+  sample exists yet. It remains read-only observation status and does not
+  authorize live OCO mutation.
   The controlled rollback path uses the same wrapper and also starts with a
   dry-run:
 

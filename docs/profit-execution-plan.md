@@ -135,6 +135,249 @@ Telegram, scheduler enablement, or unexpected mutation outside this scope,
 restore the previous trailing-stop env state and rerun the same read-only
 verification.
 
+## Standing Authorization Runway
+
+This section records the operator's standing authorization so Codex does not
+stop only to ask for already listed approval text. Codex may proceed under one
+of these lanes without another chat interruption only when the named preflight
+or operator packet is fresh, returns the required ready status, git/runtime
+currentness is proven, the exact diff or action matches this section or the
+packet output, and the rollback/verification commands are ready.
+
+If any lane reports stale evidence, missing fields, non-empty blockers, dirty
+worktree, runtime drift, abnormal OCO health, unclear order path, or a cap above
+the listed limit, Codex must keep working on evidence, code, tests, reports, or
+docs, but must not perform that production or trading mutation.
+
+Global execution caps for all future profit lanes unless a later document raises
+them with evidence:
+
+- maximum new live experiment notional: `10 USDT`;
+- maximum new live orders per day: `1`;
+- maximum grid candidate capital: `10 USDT`;
+- no live scaling until realized net PnL is positive after fees and slippage;
+- no policy relaxation without replayable counterfactual rows and bounded
+  downside evidence.
+
+Always authorized without another prompt:
+
+- read-only SSH/MCP/database inspection through existing safe scripts;
+- local code, test, script, and documentation edits inside this repo;
+- focused tests, `.\scripts\verify_local.ps1`, and `git diff --check`;
+- git commit and push for completed repo changes;
+- read-only issue/comment evidence updates;
+- deploy only when the lane below explicitly authorizes deploy/restart and the
+  preflight packet is ready.
+
+### A0: Trailing Dry-Run Env Deploy
+
+Status: current next target.
+
+Gate:
+
+```powershell
+.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady
+```
+
+Standing authorization when the gate is ready:
+
+```text
+I authorize production env diff TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, deploy/restart current origin/main, and post-env read-only verification only. I do not authorize TRAILING_STOP_DRY_RUN=false, live OCO mutation, order placement, position close, scheduler/live policy relaxation, Telegram send, DB/grid/fund/Earn/exchange mutation, or external backfill/import.
+```
+
+### A1: Evidence-Only Runtime Evidence Collection
+
+Purpose: clear runtime-evidence blind spots before any live relaxation.
+
+Gate:
+
+```powershell
+.\scripts\smoke_runtime_evidence_rca_ssh.ps1
+.\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear
+.\scripts\smoke_live_readiness_bundle_ssh.ps1
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
+```
+
+Standing authorization when the reviewed proposal still matches
+`docs/live-runtime-evidence-env-proposal.md`:
+
+```text
+I authorize evidence-only production env diff TRADING_RUNTIME_EVIDENCE_ENABLED=true, deploy/restart current origin/main, and post-env read-only verification only. I do not authorize TRADING_OKX_ENABLED=true, TinyLive/ScoreBuy execution, OCO/grid/fund/Earn actions, Telegram send, guardian live actions, external backfill/import, DB migration, policy relaxation, or order placement.
+```
+
+Required env diff:
+
+- `TRADING_RUNTIME_EVIDENCE_ENABLED=true`
+
+Must remain disabled:
+
+- `TRADING_OKX_ENABLED=false`
+- `TRADING_OCO_POLLER_ENABLED=false`
+- `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false`
+- `TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=false`
+- `TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=false`
+- `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=false`
+- `TRAILING_STOP_ENABLED=false` unless A0 has already been separately applied
+  in dry-run mode;
+- `POSITION_EXIT_MANAGER_ENABLED=false`
+- `TRADING_GRID_ENABLED=false`
+- `MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false`
+- `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false`
+- `EVENT_SCAN_NOTIFICATION_ENABLED=false`
+- `EXECUTION_EVENT_ENABLED=false`
+
+### A2: Background Automation Safety Diff
+
+Purpose: remove high-risk background side effects before live review.
+
+Gate:
+
+```powershell
+.\scripts\smoke_live_background_automation_ssh.ps1
+.\scripts\audit_live_readiness_ssh.ps1
+.\scripts\smoke_live_readiness_bundle_ssh.ps1
+```
+
+Standing authorization when the reviewed proposal still matches
+`docs/live-background-automation-env-diff-proposal.md`:
+
+```text
+I authorize production env diff to set reviewed background automation flags false, deploy/restart current origin/main, and post-env read-only verification only. I do not authorize runtime-evidence enablement, exchange credentials, order-capable flags, OCO/grid/fund/Earn flags, Telegram-send enablement, scheduler enablement, DB migration, Flyway baseline regeneration, extra-table cleanup, or table drops.
+```
+
+Required env diff:
+
+- `TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED=false`
+- `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=false`
+- `MARKET_WS_AUTO_SUBSCRIBE_ENABLED=false`
+- `EVENT_SCAN_NOTIFICATION_ENABLED=false`
+- `EXECUTION_EVENT_ENABLED=false`
+- `TRADING_DAILY_TG_REPORT_ENABLED=false`
+- `TRADING_AUTONOMOUS_DIGEST_ENABLED=false`
+- `TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED=false`
+- `TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED=false`
+
+### A3: DataFreshness Evidence-Only Collector
+
+Purpose: collect replayable false-kill rows for issue #7 without relaxing
+DataFreshnessGuard or trading live.
+
+Gate:
+
+```powershell
+.\scripts\prepare_data_freshness_replay_collector_activation_packet.ps1 -RequireDecisionReady
+.\scripts\prepare_data_freshness_collector_activation_preflight_review_packet.ps1 -RequireReady
+```
+
+Standing authorization when the preflight is ready:
+
+```text
+I authorize evidence-only production env diff TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true, deploy/restart current origin/main, and post-activation read-only verification only. I do not authorize DataFreshnessGuard relaxation, live trading, staged-add, TinyLive, scheduler mutation, order placement, OCO modification, Telegram send, DB/grid/fund/Earn/exchange mutation, or external backfill/import.
+```
+
+Required post-activation verification:
+
+```powershell
+.\scripts\verify_split_acceptance_ssh.ps1
+.\scripts\smoke_data_freshness_replay_candidate_id_ssh.ps1
+.\scripts\smoke_data_freshness_replay_observation_bundle_ssh.ps1
+.\scripts\prepare_data_freshness_replay_evidence_readiness_ssh.ps1
+.\scripts\prepare_filter_block_false_kill_issue7_close_readiness.ps1
+```
+
+### A4: Grid Env and Micro-Grid Open Review
+
+Purpose: enable only a 10 USDT BTCUSDT grid review lane after trend, event risk,
+capital, and currentness gates are ready.
+
+Gate:
+
+```powershell
+.\scripts\prepare_grid_open_complete_operator_packet_ssh.ps1 -GridCount 2 -PerLevelUsdt 5 -StopOutPct 5 -CandidateHalfWidthPct 10 -RequireCompletePacketReady
+```
+
+Standing authorization when the complete operator packet is ready:
+
+```text
+I authorize the grid-open authorization sequence printed by the fresh GRID_OPEN_COMPLETE_OPERATOR_PACKET for BTCUSDT only, with maximum candidateCapitalUsdt=10, GridCount=2, PerLevelUsdt=5, StopOutPct=5, and CandidateHalfWidthPct=10. I authorize the exact packet-listed trend/capital/env/deploy/post-env/createGrid sequence only when each prior step verifies cleanly. I understand TRADING_OKX_ENABLED=true may activate the existing ACTIVE grid order path. I do not authorize scheduler/recovery/Earn enablement, OCO mutation, Telegram send, extra grid capital, DB/fund/exchange mutation outside reviewed grid order path, or any createGrid input drift.
+```
+
+Required env diff, only if printed by the ready packet:
+
+- `TRADING_OKX_ENABLED=true`
+- `TRADING_GRID_ENABLED=true`
+
+Must remain disabled:
+
+- `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false`
+- `GRID_RECOVERY_ENABLED=false`
+- `OKX_EARN_TOPUP_ENABLED=false`
+- `EVENT_SCAN_NOTIFICATION_ENABLED=false`
+- `EXECUTION_EVENT_ENABLED=false`
+
+### A5: TinyLive or ScoreBuy Small Live
+
+Purpose: test one small execution lane only after full live-readiness evidence
+is clean.
+
+Gate:
+
+```powershell
+.\scripts\prepare_live_review_packet_ssh.ps1 -RequireReady
+.\scripts\prepare_strategy574_tiny_live_governance_operator_packet.ps1 -RequireReady
+.\scripts\audit_live_readiness_ssh.ps1 -Symbol BTCUSDT
+```
+
+Standing authorization when the live packet and governance packet are both
+ready and report no hard-stop or policy blockers:
+
+```text
+I authorize one BTCUSDT small-live execution lane with max new notional 10 USDT and max 1 new live order per day, using only the exact env diff and execution route printed by the fresh ready packets. I do not authorize multiple lanes at once, cap increase, DataFreshness/EntryDedup/live policy relaxation, OCO mutation beyond the packet-listed protective attachment, grid/fund/Earn actions, Telegram send unless the three-line alert format is verified, or any order when OCO health is abnormal.
+```
+
+If the packet does not print an exact env diff and route, this lane is not
+executable; continue evidence work instead.
+
+### A6: Exit-Side Live OCO or Position Risk Reduction
+
+Purpose: reduce loss on already reviewed positions or promote trailing from
+dry-run to live only after dry-run benefit is proven.
+
+Gate:
+
+```powershell
+.\scripts\prepare_tp_sl_oco_feasibility_operator_packet.ps1 -RequireReady
+.\scripts\prepare_oco_sync_reconciliation_packet_ssh.ps1 -RequireReviewReady
+.\scripts\audit_live_readiness_ssh.ps1 -Symbol BTCUSDT
+```
+
+Standing authorization when the packet identifies exact position ids, OCO
+routes, expected writes, and rollback verification:
+
+```text
+I authorize only the exact BTCUSDT exit-side risk-reduction write printed by the fresh ready packet, limited to the listed position ids and OCO routes, with post-change read-only verification. I do not authorize opening new positions, unrelated OCO changes, EntryDedup/DataFreshness/live policy relaxation, grid/fund/Earn actions, Telegram send, scheduler enablement, or DB/exchange mutation outside the exact packet-listed risk-reduction write.
+```
+
+If OCO health is abnormal and the packet is not a reconciliation packet for the
+same abnormality, this lane remains blocked.
+
+### A7: Telegram Notification Formatting
+
+Purpose: make operator messages readable without enabling new send paths.
+
+Standing authorization:
+
+```text
+I authorize code, template, and deploy changes that reduce existing trading Telegram/operator notifications to at most three lines, followed by read-only verification. I do not authorize enabling a new Telegram send path, changing recipients, enabling event/execution scan notifications, or sending test/live Telegram messages unless the specific notification lane is separately approved and already verified as three-line formatted.
+```
+
+Acceptance:
+
+- normal alert line 1: symbol, decision, action required;
+- normal alert line 2: primary blocker or reason;
+- normal alert line 3: next action or MCP/report reference;
+- raw arrays and long diagnostics move to MCP/report output.
+
 ## Execution Rules
 
 1. Evidence comes before exposure.

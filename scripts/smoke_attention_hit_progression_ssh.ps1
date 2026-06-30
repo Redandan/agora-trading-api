@@ -264,10 +264,19 @@ for row in followups:
 window = dt.timedelta(hours=followup_hours)
 classification = Counter()
 event_classification = Counter()
+strategy_scoped_classification = Counter()
+strategy_scoped_event_classification = Counter()
 examples = []
+macro_watch_only_attention = 0
+strategy_scoped_attention = 0
 
 for att in attentions:
     matched = None
+    is_macro_watch_only = att.get("strategy_id") == "-1" and att.get("interval_code") == "N/A"
+    if is_macro_watch_only:
+        macro_watch_only_attention += 1
+    else:
+        strategy_scoped_attention += 1
     for row in followups:
         if row["dt"] <= att["dt"]:
             continue
@@ -279,12 +288,18 @@ for att in attentions:
     if matched is None:
         classification["NO_TERMINAL_FOLLOWUP"] += 1
         event_classification["NO_TERMINAL_FOLLOWUP"] += 1
+        if not is_macro_watch_only:
+            strategy_scoped_classification["NO_TERMINAL_FOLLOWUP"] += 1
+            strategy_scoped_event_classification["NO_TERMINAL_FOLLOWUP"] += 1
         if len(examples) < limit:
             examples.append((att, None, "NO_TERMINAL_FOLLOWUP"))
     else:
         bucket = bucket_followup(matched)
         classification[bucket] += 1
         event_classification[matched.get("event_type", "UNKNOWN") or "UNKNOWN"] += 1
+        if not is_macro_watch_only:
+            strategy_scoped_classification[bucket] += 1
+            strategy_scoped_event_classification[matched.get("event_type", "UNKNOWN") or "UNKNOWN"] += 1
         if len(examples) < limit:
             examples.append((att, matched, bucket))
 
@@ -295,6 +310,12 @@ filter_followup = sum(v for k, v in classification.items() if k.startswith("FILT
 entry_skip_followup = sum(v for k, v in classification.items() if k.startswith("ENTRY_SKIP:"))
 autotrade_followup = classification["AUTOTRADE_OK"] + classification["AUTOTRADE_FAIL"]
 signal_buy_followup = classification["SIGNAL_BUY"]
+strategy_scoped_no_followup = strategy_scoped_classification["NO_TERMINAL_FOLLOWUP"]
+strategy_scoped_filter_followup = sum(v for k, v in strategy_scoped_classification.items() if k.startswith("FILTER_BLOCK:"))
+strategy_scoped_entry_skip_followup = sum(v for k, v in strategy_scoped_classification.items() if k.startswith("ENTRY_SKIP:"))
+strategy_scoped_autotrade_followup = strategy_scoped_classification["AUTOTRADE_OK"] + strategy_scoped_classification["AUTOTRADE_FAIL"]
+strategy_scoped_signal_buy_followup = strategy_scoped_classification["SIGNAL_BUY"]
+strategy_scoped_terminal_followup = strategy_scoped_filter_followup + strategy_scoped_entry_skip_followup + strategy_scoped_autotrade_followup + strategy_scoped_signal_buy_followup
 
 if attention_total == 0:
     recommendation = "NO_ATTENTION_HITS_IN_REVIEW_WINDOW"
@@ -309,6 +330,19 @@ elif signal_buy_followup + autotrade_followup > 0:
 else:
     recommendation = "ATTENTION_PIPELINE_MIXED_REVIEW"
 
+if strategy_scoped_attention == 0:
+    strategy_scoped_recommendation = "NO_STRATEGY_SCOPED_ATTENTION_HITS"
+elif strategy_scoped_no_followup * 100 >= max(1, strategy_scoped_attention) * 80:
+    strategy_scoped_recommendation = "STRATEGY_SCOPED_ATTENTION_NO_TERMINAL_FOLLOWUP_DOMINATES"
+elif strategy_scoped_entry_skip_followup >= max(strategy_scoped_filter_followup, strategy_scoped_autotrade_followup, strategy_scoped_signal_buy_followup, strategy_scoped_no_followup):
+    strategy_scoped_recommendation = "STRATEGY_SCOPED_ATTENTION_TO_ENTRY_SKIP_REVIEW"
+elif strategy_scoped_filter_followup >= max(strategy_scoped_entry_skip_followup, strategy_scoped_autotrade_followup, strategy_scoped_signal_buy_followup, strategy_scoped_no_followup):
+    strategy_scoped_recommendation = "STRATEGY_SCOPED_ATTENTION_TO_FILTER_BLOCK_REVIEW"
+elif strategy_scoped_signal_buy_followup + strategy_scoped_autotrade_followup > 0:
+    strategy_scoped_recommendation = "STRATEGY_SCOPED_ATTENTION_PIPELINE_HAS_TERMINAL_FOLLOWUP"
+else:
+    strategy_scoped_recommendation = "STRATEGY_SCOPED_ATTENTION_PIPELINE_MIXED_REVIEW"
+
 print("[attention-hit-progression] read-only production DB evidence check")
 print("scope=READ_ONLY; direct MySQL SELECTs only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed.")
 print(f"symbol={symbol} reviewDays={review_days} followupHours={followup_hours} limit={limit} maxAttentionRows={max_attention_rows}")
@@ -318,6 +352,14 @@ print(f"  attention_hit_rows={attention_total}")
 print(f"  sampled_attention_hit_rows={sampled_attention}")
 print(f"  followup_terminal_event_rows={len(followups)}")
 print(f"  no_terminal_followup_rows={no_followup}")
+print(f"  macro_watch_only_attention_rows={macro_watch_only_attention}")
+print(f"  strategy_scoped_attention_rows={strategy_scoped_attention}")
+print(f"  strategy_scoped_terminal_followup_rows={strategy_scoped_terminal_followup}")
+print(f"  strategy_scoped_no_terminal_followup_rows={strategy_scoped_no_followup}")
+print(f"  strategy_scoped_filter_block_followup_rows={strategy_scoped_filter_followup}")
+print(f"  strategy_scoped_entry_skip_followup_rows={strategy_scoped_entry_skip_followup}")
+print(f"  strategy_scoped_signal_buy_followup_rows={strategy_scoped_signal_buy_followup}")
+print(f"  strategy_scoped_autotrade_followup_rows={strategy_scoped_autotrade_followup}")
 print(f"  filter_block_followup_rows={filter_followup}")
 print(f"  entry_skip_followup_rows={entry_skip_followup}")
 print(f"  signal_buy_followup_rows={signal_buy_followup}")
@@ -334,6 +376,18 @@ if not event_classification:
     print("  - NONE=0")
 else:
     for name, count in event_classification.most_common(limit):
+        print(f"  - {name}={count}")
+print("strategy_scoped_followup_classification:")
+if not strategy_scoped_classification:
+    print("  - NONE=0")
+else:
+    for name, count in strategy_scoped_classification.most_common(limit):
+        print(f"  - {name}={count}")
+print("strategy_scoped_followup_event_types:")
+if not strategy_scoped_event_classification:
+    print("  - NONE=0")
+else:
+    for name, count in strategy_scoped_event_classification.most_common(limit):
         print(f"  - {name}={count}")
 print("attention_hit_strategy_distribution:")
 if not strategy_rows:
@@ -354,6 +408,7 @@ for att, follow, bucket in examples:
 print("")
 print("Conclusion:")
 print(f"  attention_hit_progression_recommendation={recommendation}")
+print(f"  strategy_scoped_attention_progression_recommendation={strategy_scoped_recommendation}")
 print("  attention_hit_progression_next_action=Use this classification to inspect the dominant ATTENTION_HIT follow-up path before changing entry filters, DataFreshnessGuard, EntryDedup, strategy activation, or live execution.")
 print("  notAuthorization=read-only evidence only; does not authorize live trading, strategy activation, DataFreshnessGuard or EntryDedup relaxation, closing positions, OCO modification, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, deploy, restart, or production env changes")
 print("")

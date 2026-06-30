@@ -2018,10 +2018,12 @@
   bounded follow-up window. It emits
   `attention_hit_progression_recommendation`,
   `attention_followup_classification`, terminal event counts, strategy
-  distribution, and examples. The smoke is evidence only and does not deploy,
-  change production env, relax EntryDedup/DataFreshness/live policy, enable
-  live trading, place orders, modify OCO, or mutate
-  DB/grid/fund/Earn/Telegram/exchange state.
+  distribution, strategy-scoped follow-up counts, macro/watch-only attention
+  counts, and examples. The strategy-scoped fields keep macro/watch-only
+  background alerts from dominating the real trading-candidate follow-up view.
+  The smoke is evidence only and does not deploy, change production env, relax
+  EntryDedup/DataFreshness/live policy, enable live trading, place orders,
+  modify OCO, or mutate DB/grid/fund/Earn/Telegram/exchange state.
 - 2026-06-22 read-only production attention progression for `BTCUSDT` showed
   `attention_hit_rows=122`, all sampled rows under `strategy=-1 interval=N/A`,
   `no_terminal_followup_rows=122`, and

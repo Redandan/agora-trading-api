@@ -3000,9 +3000,10 @@ Expected:
   within `-FollowupHours`, then emits
   `attention_hit_progression_recommendation`,
   `attention_followup_classification`, terminal event counts, strategy
-  distribution, and examples. Use this to locate whether candidate loss is no
-  terminal follow-up, `ENTRY_SKIP`, `FILTER_BLOCK`, or post-signal/autotrade
-  routing before changing any live policy.
+  distribution, strategy-scoped follow-up counts, macro/watch-only attention
+  counts, and examples. Use this to locate whether strategy-scoped candidate
+  loss is no terminal follow-up, `ENTRY_SKIP`, `FILTER_BLOCK`, or
+  post-signal/autotrade routing before changing any live policy.
 
 For the issue #7 BTCUSDT 1h filter-block false-kill review, run:
 
@@ -3215,7 +3216,10 @@ Expected:
   `signal_eval_near_threshold_gap_count`, and
   `signal_eval_closest_threshold_gap_*`; near-threshold rows add
   `SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW` as a review item. It also emits
-  `attention_candidate_interpretation`, `attention_macro_watch_only_rows`, and
+  `attention_candidate_interpretation`, `attention_macro_watch_only_rows`,
+  `attention_strategy_scoped_rows`,
+  `attention_strategy_scoped_no_terminal_followup_rows`,
+  `attention_strategy_scoped_recommendation`, and
   `attention_strategy_distribution` so macro/watch-only attention rows are not
   treated as trading candidates with missing terminal follow-up. The packet is review-only
   and does not authorize DataFreshnessGuard or EntryDedup relaxation, live

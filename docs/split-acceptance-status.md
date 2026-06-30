@@ -1277,6 +1277,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   routing evidence. This clears only the packet-routing false blocker; the
   governance-relaxation lane remains not ready when the source governance
   packet still has `NO_EVIDENCE` and no relaxation candidates.
+  Attention-hit progression tooling also emits strategy-scoped follow-up counts
+  separately from macro/watch-only attention rows, so operator review can focus
+  on real strategy candidates instead of treating background alerts as missing
+  terminal trading follow-up.
 - Profit live blocker audit packet is read-only. Run
   `.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady`
   after the local operator/preflight source logs are saved. It emits

@@ -189,6 +189,14 @@ $dataFreshnessLatestRowAgeHours = Get-LastPrefixedValue -Text $profitBlocker.Tex
 $attentionRecommendation = Get-LastPrefixedValue -Text $attention.Text -Prefix "  attention_hit_progression_recommendation="
 $attentionRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  attention_hit_rows=")
 $attentionNoTerminalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  no_terminal_followup_rows=")
+$attentionStrategyScopedRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_attention_rows=")
+$attentionStrategyScopedTerminalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_terminal_followup_rows=")
+$attentionStrategyScopedNoTerminalRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_no_terminal_followup_rows=")
+$attentionStrategyScopedFilterRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_filter_block_followup_rows=")
+$attentionStrategyScopedEntrySkipRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_entry_skip_followup_rows=")
+$attentionStrategyScopedSignalBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_signal_buy_followup_rows=")
+$attentionStrategyScopedAutotradeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_autotrade_followup_rows=")
+$attentionStrategyScopedRecommendation = Get-LastPrefixedValue -Text $attention.Text -Prefix "  strategy_scoped_attention_progression_recommendation="
 $attentionFilterRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  filter_block_followup_rows=")
 $attentionEntrySkipRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  entry_skip_followup_rows=")
 $attentionSignalBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $attention.Text -Prefix "  signal_buy_followup_rows=")
@@ -266,6 +274,13 @@ if ($attentionRows -gt 0 -and $attentionNoTerminalRows -eq $attentionRows) {
 if ($attentionMacroWatchOnlyDominates) {
     Add-Unique -List $reviewItems -Value "ATTENTION_HITS_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES"
 }
+if ($attentionRows -gt 0 -and $attentionMacroWatchOnlyRows -gt 0 -and $attentionStrategyScopedRows -gt 0) {
+    Add-Unique -List $reviewItems -Value "ATTENTION_HITS_MIXED_MACRO_AND_STRATEGY_ROWS"
+}
+if ($attentionStrategyScopedNoTerminalRows -gt 0) {
+    Add-Unique -List $reviewItems -Value "STRATEGY_SCOPED_ATTENTION_NO_TERMINAL_FOLLOWUP_REVIEW"
+    Add-Unique -List $requiredEvidence -Value "strategy-scoped attention-hit rows must be reviewed separately from macro/watch-only rows"
+}
 if ($sampleGapRcaRecommendation -eq "NO_RECENT_BUY_STYLE_CANDIDATES") {
     Add-Unique -List $reviewItems -Value "SIGNAL_GENERATION_OR_ATTENTION_PIPELINE_REVIEW"
 }
@@ -298,6 +313,8 @@ $nextAction = if ($signalEvalNoBuyRecommendation -eq "NO_BUY_LIKE_SIGNAL_EVAL_ST
     "Review why ATTENTION_HIT rows are macro/non-strategy rows with no terminal follow-up and why no BUY-like candidates were generated; do not relax DataFreshnessGuard, EntryDedup, or live policy from this packet."
 } elseif ($status -eq "PENDING_BUY_LIKE_CANDIDATES") {
     "Wait for fresh BUY-like candidates or inspect signal-generation thresholds before any entry/filter policy experiment."
+} elseif ($status -eq "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE" -and $attentionStrategyScopedRows -gt 0) {
+    "Review strategy-scoped attention follow-up distribution (strategyScopedRows=$attentionStrategyScopedRows, noTerminal=$attentionStrategyScopedNoTerminalRows, entrySkip=$attentionStrategyScopedEntrySkipRows) before routing to EntryDedup, filter-block, or strategy activation work."
 } elseif ($status -eq "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE") {
     "Review attention-hit terminal follow-up distribution before routing to EntryDedup, filter-block, or strategy activation work."
 } else {
@@ -321,6 +338,14 @@ $packet = [pscustomobject]@{
         recommendation = $attentionRecommendation
         attentionHitRows = $attentionRows
         noTerminalFollowupRows = $attentionNoTerminalRows
+        strategyScopedRows = $attentionStrategyScopedRows
+        strategyScopedTerminalFollowupRows = $attentionStrategyScopedTerminalRows
+        strategyScopedNoTerminalFollowupRows = $attentionStrategyScopedNoTerminalRows
+        strategyScopedFilterBlockFollowupRows = $attentionStrategyScopedFilterRows
+        strategyScopedEntrySkipFollowupRows = $attentionStrategyScopedEntrySkipRows
+        strategyScopedSignalBuyFollowupRows = $attentionStrategyScopedSignalBuyRows
+        strategyScopedAutotradeFollowupRows = $attentionStrategyScopedAutotradeRows
+        strategyScopedRecommendation = $attentionStrategyScopedRecommendation
         filterBlockFollowupRows = $attentionFilterRows
         entrySkipFollowupRows = $attentionEntrySkipRows
         signalBuyFollowupRows = $attentionSignalBuyRows
@@ -381,6 +406,14 @@ Write-Host "data_freshness_latest_row_age_hours=$dataFreshnessLatestRowAgeHours"
 Write-Host "attention_hit_progression_recommendation=$attentionRecommendation"
 Write-Host "attention_hit_rows=$attentionRows"
 Write-Host "attention_no_terminal_followup_rows=$attentionNoTerminalRows"
+Write-Host "attention_strategy_scoped_rows=$attentionStrategyScopedRows"
+Write-Host "attention_strategy_scoped_terminal_followup_rows=$attentionStrategyScopedTerminalRows"
+Write-Host "attention_strategy_scoped_no_terminal_followup_rows=$attentionStrategyScopedNoTerminalRows"
+Write-Host "attention_strategy_scoped_filter_block_followup_rows=$attentionStrategyScopedFilterRows"
+Write-Host "attention_strategy_scoped_entry_skip_followup_rows=$attentionStrategyScopedEntrySkipRows"
+Write-Host "attention_strategy_scoped_signal_buy_followup_rows=$attentionStrategyScopedSignalBuyRows"
+Write-Host "attention_strategy_scoped_autotrade_followup_rows=$attentionStrategyScopedAutotradeRows"
+Write-Host "attention_strategy_scoped_recommendation=$attentionStrategyScopedRecommendation"
 Write-Host "attention_filter_block_followup_rows=$attentionFilterRows"
 Write-Host "attention_entry_skip_followup_rows=$attentionEntrySkipRows"
 Write-Host "attention_signal_buy_followup_rows=$attentionSignalBuyRows"

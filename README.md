@@ -2425,8 +2425,11 @@ next same strategy/interval terminal event (`SIGNAL_BUY`, `FILTER_BLOCK`,
 `ENTRY_SKIP`, or `AUTOTRADE_*`) within a bounded follow-up window. It emits
 `attention_hit_progression_recommendation`,
 `attention_followup_classification`, event-type counts, strategy distribution,
-and examples. It does not authorize entry-filter, DataFreshness, EntryDedup, or
-live execution changes.
+strategy-scoped follow-up counts, macro/watch-only attention counts, and
+examples. Use `strategy_scoped_attention_rows` and
+`strategy_scoped_no_terminal_followup_rows` to separate real strategy review
+work from macro/watch-only background alerts. It does not authorize
+entry-filter, DataFreshness, EntryDedup, or live execution changes.
 When sample-gap RCA reports no recent BUY-like candidates, split recent
 `SIGNAL_EVAL` rows before changing policy:
 
@@ -2478,9 +2481,11 @@ threshold misses dominate. It carries `signal_eval_threshold_gap_distribution`,
 `signal_eval_near_threshold_gap_count`, and `signal_eval_closest_threshold_gap_*`
 so the operator can see which strategy/indicator thresholds are closest before
 opening any strategy-threshold review. It also emits
-`attention_candidate_interpretation` and `attention_macro_watch_only_rows` so
-macro/watch-only attention rows are not mistaken for trading candidates with
-missing terminal follow-up. It does not authorize
+`attention_candidate_interpretation`, `attention_macro_watch_only_rows`,
+`attention_strategy_scoped_rows`,
+`attention_strategy_scoped_no_terminal_followup_rows`, and
+`attention_strategy_scoped_recommendation` so macro/watch-only attention rows
+are not mistaken for trading candidates with missing terminal follow-up. It does not authorize
 DataFreshnessGuard or
 EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
 production env changes.

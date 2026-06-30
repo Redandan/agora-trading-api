@@ -114,7 +114,7 @@ if (-not [string]::IsNullOrWhiteSpace($readinessJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($readinessExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "exit-side verified experiment readiness completed" }
+if ($readinessExitCode -ne 0 -and $null -eq $readinessPacket) { Add-MissingRequirement -List $missingRequirements -Value "exit-side verified experiment readiness completed" }
 if ($null -eq $readinessPacket) { Add-MissingRequirement -List $missingRequirements -Value "exit_side_verified_experiment_readiness_packet valid JSON" }
 
 $readinessStatus = ""

@@ -79,7 +79,7 @@ if (-not [string]::IsNullOrWhiteSpace($summaryJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($summaryExitCode -ne 0) {
+if ($summaryExitCode -ne 0 -and $null -eq $summary) {
     Add-MissingRequirement -List $missingRequirements -Value "profit operator review summary completed"
 }
 if ($null -eq $summary) {

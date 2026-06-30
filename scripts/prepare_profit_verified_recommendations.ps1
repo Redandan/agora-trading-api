@@ -113,13 +113,13 @@ if (-not [string]::IsNullOrWhiteSpace($entryDedupJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($packetExitCode -ne 0) {
+if ($packetExitCode -ne 0 -and $null -eq $packet) {
     Add-MissingRequirement -List $missingRequirements -Value "exit-side operator experiment packet completed"
 }
 if ($null -eq $packet) {
     Add-MissingRequirement -List $missingRequirements -Value "exit_side_operator_experiment_packet valid JSON"
 }
-if ($entryDedupExitCode -ne 0) {
+if ($entryDedupExitCode -ne 0 -and $null -eq $entryDedupPacket) {
     Add-MissingRequirement -List $missingRequirements -Value "EntryDedup semantics shadow experiment packet completed"
 }
 if ($null -eq $entryDedupPacket) {
@@ -129,16 +129,22 @@ if ($null -eq $entryDedupPacket) {
 $readyRecommendations = @()
 $blockedItems = @()
 $freshnessStatus = ""
+$sourcePacketStatus = ""
 $expectedRecommendationIds = @(
     "trailing-stop-dry-run-experiment-review",
     "strategy485-risk-reduction-shadow-review",
     "entry-dedup-semantics-shadow-experiment-review"
 )
 if ($null -ne $packet) {
+    $sourcePacketStatus = [string]$packet.status
     if ($null -ne $packet.PSObject.Properties["sourceMatrixFreshness"] -and $null -ne $packet.sourceMatrixFreshness) {
         $freshnessStatus = [string]$packet.sourceMatrixFreshness.Status
     }
     foreach ($proposal in @($packet.experimentProposals)) {
+        $proposalStatus = [string]$proposal.status
+        if ($sourcePacketStatus -ne "READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE" -or $proposalStatus -notin @("READY_TO_REVIEW_NOT_LIVE", "READY_TO_REVIEW_NOT_MUTATION")) {
+            continue
+        }
         $readyRecommendations += [pscustomobject]@{
             recommendationId = [string]$proposal.proposalId
             sourceProposalId = [string]$proposal.sourceProposalId
@@ -192,6 +198,9 @@ if ($null -ne $entryDedupPacket) {
     }
 }
 
+if ($sourcePacketStatus -ne "READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE") {
+    Add-MissingRequirement -List $missingRequirements -Value "exit-side operator experiment packet ready"
+}
 if ($freshnessStatus -ne "FRESH") {
     Add-MissingRequirement -List $missingRequirements -Value "source matrix freshness is FRESH"
 }

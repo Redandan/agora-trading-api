@@ -1638,7 +1638,10 @@ audit lanes. Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
 blocker evidence instead of failing the source-refresh step early; the final
 `-RequireAuditReady` audit remains the readiness gate. The refresh includes the
 no-buy attention-flow packet before governance preflight so governance
-`NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing. The script only invokes
+`NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing. The script
+re-creates each step output parent directory before writing the step log, so a
+long-running refresh can continue even if an upstream step refreshes
+`target/profit-review`. The script only invokes
 existing read-only SSH/MCP/SELECT evidence
 scripts and local packet assembly; it does not deploy, restart, change
 production env, enable live/TinyLive/scheduler, place orders, send Telegram,
@@ -2398,7 +2401,9 @@ Expected:
   `profit_verified_ready_recommendations`,
   `profit_verified_blocked_items`, and
   `profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`.
-  The packet is review-only. It includes the exit-side recommendations plus
+  The packet is review-only. It includes exit-side recommendations only when
+  the source exit-side packet is `READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE`
+  and each exit-side proposal status is ready, plus
   `entry-dedup-semantics-shadow-experiment-review` from the recorded
   EntryDedup semantics shadow packet; EntryDedup remains shadow-review evidence,
   not policy approval. It does not rerun SSH, deploy, change production env,
@@ -3985,6 +3990,9 @@ Expected:
   `strategy485_negative_ev_position_count`.
 - `READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION` means exit-side evidence
   can be attached to a separate operator review.
+- Strategy485 `NO_POSITION_RISK_ACTION` and `WATCH_ONLY` are accepted as
+  no-action evidence for this packet. They do not authorize a close/OCO write,
+  and they do not block trailing-stop review by themselves.
 - The packet is read-only. It does not deploy, restart, reload nginx, change
   production env, enable live trading, enable the trailing scheduler, change
   strategy opt-in, place orders, modify OCO, close positions, mutate

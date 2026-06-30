@@ -105,9 +105,9 @@ if (-not [string]::IsNullOrWhiteSpace($entryDedupJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($exitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "exit-side experiment operator review packet completed" }
+if ($exitCode -ne 0 -and $null -eq $exitPacket) { Add-MissingRequirement -List $missingRequirements -Value "exit-side experiment operator review packet completed" }
 if ($null -eq $exitPacket) { Add-MissingRequirement -List $missingRequirements -Value "exit_side_experiment_operator_review_packet valid JSON" }
-if ($entryDedupExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "EntryDedup semantics shadow experiment packet completed" }
+if ($entryDedupExitCode -ne 0 -and $null -eq $entryDedupPacket) { Add-MissingRequirement -List $missingRequirements -Value "EntryDedup semantics shadow experiment packet completed" }
 if ($null -eq $entryDedupPacket) { Add-MissingRequirement -List $missingRequirements -Value "entry_dedup_semantics_shadow_experiment_packet valid JSON" }
 
 $exitStatus = ""

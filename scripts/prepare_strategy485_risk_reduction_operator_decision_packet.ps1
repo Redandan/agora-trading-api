@@ -86,8 +86,8 @@ if (-not [string]::IsNullOrWhiteSpace($exitSideJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($priorityExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "priority decision brief completed" }
-if ($exitSideExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "exit-side experiment operator review packet completed" }
+if ($priorityExitCode -ne 0 -and $null -eq $priorityPacket) { Add-MissingRequirement -List $missingRequirements -Value "priority decision brief completed" }
+if ($exitSideExitCode -ne 0 -and $null -eq $exitSidePacket) { Add-MissingRequirement -List $missingRequirements -Value "exit-side experiment operator review packet completed" }
 if ($null -eq $priorityPacket) { Add-MissingRequirement -List $missingRequirements -Value "profit_operator_priority_decision_brief_packet valid JSON" }
 if ($null -eq $exitSidePacket) { Add-MissingRequirement -List $missingRequirements -Value "exit_side_experiment_operator_review_packet valid JSON" }
 

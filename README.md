@@ -638,7 +638,9 @@ ready for a separate operator review; it does not enable live trailing, change
 strategy opt-in, place orders, modify OCO, close positions, or mutate
 DB/grid/fund/Earn state. It keeps `trailing_stop_acceptance` and
 `strategy485_operator_packet_status` in one packet while preserving all
-no-mutation guardrails.
+no-mutation guardrails. Strategy485 `NO_POSITION_RISK_ACTION` and `WATCH_ONLY`
+are treated as no-action evidence for this packet, not as missing aged
+negative-EV blockers.
 
 Read-only exit-side operator decision brief:
 
@@ -1124,7 +1126,9 @@ semantics shadow experiment packet into
 `profit_verified_recommendations_packet` with
 `packetType=PROFIT_VERIFIED_RECOMMENDATIONS` and
 `profit_verified_recommendations_status=READY_WITH_REVIEW_ONLY_RECOMMENDATIONS`.
-It lists the exit-side review-only ready recommendations, the
+It lists the exit-side review-only ready recommendations only when the source
+exit-side packet is `READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE` and each
+exit-side proposal status is ready. It also includes the
 `entry-dedup-semantics-shadow-experiment-review` candidate, and the
 still-blocked policy lanes in one packet. EntryDedup remains review-only shadow
 evidence, not policy approval. It does not rerun SSH, deploy, enable live

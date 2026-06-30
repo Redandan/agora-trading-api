@@ -470,6 +470,47 @@
   EntryDedup fresh SSH evidence is `NO_EVIDENCE`, DataFreshness replay rows are
   still missing, and Strategy574/TinyLive governance is review-only with
   `tiny_live_order_allowed=false`.
+- 2026-06-30 follow-up: the profit operator review chain now treats nonzero
+  child `-RequireReady` exits as evidence blockers only when the expected JSON
+  packet is missing. Parseable `NOT_READY` packets are preserved as readiness
+  evidence instead of being mislabeled as upstream `completed` failures. In the
+  same pass, `prepare_profit_verified_recommendations.ps1` now only promotes
+  exit-side proposals when the source exit-side packet is
+  `READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE` and each proposal status is
+  ready. `scripts/test_profit_review_chain_blocked_packet_preservation.ps1`
+  covers the blocked matrix chain through exit-side, verified recommendations,
+  consolidated/priority, trailing dry-run, and strategy 485 risk packets. This
+  improves blocker classification only; it does not authorize live trading,
+  policy relaxation, scheduler, orders, OCO, deploy/env changes, Telegram, or
+  DB/grid/fund/Earn/exchange mutation.
+- 2026-06-30 follow-up: `prepare_exit_side_profit_review_packet_ssh.ps1` now
+  treats Strategy485 `NO_POSITION_RISK_ACTION` and `WATCH_ONLY` as acceptable
+  no-action evidence for the exit-side packet. A no-open-position Strategy485
+  state no longer blocks a trailing-stop exit-side review by pretending an aged
+  negative-EV packet is missing. Direct read-only
+  `prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady`
+  returned `READY_FOR_OPERATOR_DECISION_NOT_MUTATION` with trailing acceptance
+  `PASS`, `trailing_stop_improvement_pct=56.299`, and zero Strategy485
+  negative-EV positions. `prepare_profit_live_blocker_source_refresh.ps1` also
+  re-creates each step log parent directory before writing output so read-only
+  source refresh evidence is not lost if an upstream step refreshes the review
+  directory. These are evidence/readiness fixes only; live/order/OCO/scheduler
+  permissions remain false until a separate fresh ready packet and explicit
+  authorization.
+- 2026-06-30 latest read-only source refresh completed with
+  `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`, 10 lanes,
+  5 review-ready non-live lanes, and 5 blocked lanes. Ready-for-review lanes are
+  `profit-priority`, `trailing-stop-dry-run`, `strategy485-risk-reduction`,
+  `data-freshness-replay-blocker`, and `strategy574-tiny-live-governance`.
+  Blocked lanes are `strategy485-risk-escalation` (no negative-EV position or
+  close/modify suggestion to review), `entry-dedup-semantics` (`NO_EVIDENCE` and
+  missing shadow replay/opportunity rows), `data-freshness-collector-activation`
+  (collector-evidence stage), `tp-sl-oco-feasibility` (no Strategy485
+  negative-EV position for review), and `governance-relaxation` (no reviewable
+  relaxation candidates). Final audit keeps `order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `telegram_send_allowed=false`.
 - `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
   production decomposition for recent `ENTRY_SKIP/EntryDedup` rows. It emits
   `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,

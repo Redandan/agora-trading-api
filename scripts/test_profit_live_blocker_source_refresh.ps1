@@ -34,6 +34,7 @@ foreach ($marker in @(
         "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=",
         "profit_live_blocker_source_refresh_allow_blocked_step_failures=",
         "profit_live_blocker_source_refresh_blocked_step_failures_allowed=",
+        "Test-Path -LiteralPath `$outputParent",
         "notAuthorization=read-only source refresh orchestration only"
     )) {
     Assert-Contains -Name "source refresh script marker" -Text $scriptText -Pattern ([regex]::Escape($marker))

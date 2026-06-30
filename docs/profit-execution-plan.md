@@ -649,12 +649,30 @@ git diff --check
 The latest source refresh can now reuse a fresh profit operator matrix and still
 finish successfully when the final audit is live-blocked. The current refreshed
 audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
-10 lanes, 1 review-ready non-live lane (`strategy574-tiny-live-governance`),
-and 9 blocked lanes. This is valid evidence, not live approval.
+10 lanes, 5 review-ready non-live lanes (`profit-priority`,
+`trailing-stop-dry-run`, `strategy485-risk-reduction`,
+`data-freshness-replay-blocker`, and `strategy574-tiny-live-governance`), and
+5 blocked lanes (`strategy485-risk-escalation`, `entry-dedup-semantics`,
+`data-freshness-collector-activation`, `tp-sl-oco-feasibility`, and
+`governance-relaxation`). This is valid evidence, not live approval.
 The exit-side review summary now emits a replayable `NOT_READY` summary packet
 before enforcing `-RequireReady`, so downstream trailing/strategy485 packets no
 longer lose `source_matrix_freshness_status=FRESH` when the latest matrix is
 fresh but has `NO_REVIEW_READY_ITEMS`.
+The profit operator review chain also preserves parseable blocked child packets:
+nonzero child `-RequireReady` exits are classified as `completed` failures only
+when the expected JSON packet is missing. `profit_verified_recommendations` now
+requires the source exit-side packet to be
+`READY_FOR_EXIT_SIDE_EXPERIMENT_REVIEW_NOT_LIVE` and the individual proposal
+status to be ready before emitting a ready recommendation. A blocked matrix can
+therefore stay replayable as `NOT_READY` without being upgraded into an
+operator-ready packet.
+For the exit-side packet, Strategy485 `NO_POSITION_RISK_ACTION` and `WATCH_ONLY`
+are no-action evidence, not missing-packet blockers. A trailing-stop review can
+therefore be ready while Strategy485 has no negative-EV position to close or
+modify. The source refresh also re-creates each step log parent directory before
+writing output so long-running read-only refreshes cannot lose a child packet
+when an upstream step refreshes `target/profit-review`.
 The refresh now sources the EntryDedup lane from the fresh production
 `prepare_entry_dedup_operator_decision_brief_ssh.ps1` packet; local static
 EntryDedup shadow rows are not allowed to make the live blocker audit look more

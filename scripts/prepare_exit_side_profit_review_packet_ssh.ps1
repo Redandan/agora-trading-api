@@ -153,22 +153,32 @@ $strategyStatus = Get-LastPrefixedValue -Text $strategy485.Text -Prefix "strateg
 $strategyPacketJson = Get-LastPrefixedValue -Text $strategy485.Text -Prefix "strategy485_operator_review_packet="
 $strategyPacket = Convert-JsonObjectOrNull -Value $strategyPacketJson
 $strategyMissing = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $strategy485.Text -Prefix "strategy485_operator_packet_missing_requirements=")
+$strategyStatusAcceptable = $strategyStatus -in @(
+    "READY_FOR_OPERATOR_PACKET_NOT_MUTATION",
+    "NO_POSITION_RISK_ACTION",
+    "WATCH_ONLY"
+)
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-foreach ($item in @($trailingMissing + $strategyMissing)) {
+foreach ($item in @($trailingMissing)) {
     Add-MissingRequirement -List $missingRequirements -Value ([string]$item)
 }
-if ($trailing.ExitCode -ne 0) {
+if (-not $strategyStatusAcceptable) {
+    foreach ($item in @($strategyMissing)) {
+        Add-MissingRequirement -List $missingRequirements -Value ([string]$item)
+    }
+}
+if ($trailing.ExitCode -ne 0 -and $null -eq $trailingPacket) {
     Add-MissingRequirement -List $missingRequirements -Value "trailing-stop operator packet completed"
 }
-if ($strategy485.ExitCode -ne 0) {
+if ($strategy485.ExitCode -ne 0 -and $null -eq $strategyPacket) {
     Add-MissingRequirement -List $missingRequirements -Value "strategy 485 operator packet completed"
 }
 if ($trailingStatus -ne "READY_FOR_OPERATOR_PACKET_NOT_LIVE") {
     Add-MissingRequirement -List $missingRequirements -Value "trailing stop PnL acceptance ready"
 }
-if ($strategyStatus -ne "READY_FOR_OPERATOR_PACKET_NOT_MUTATION") {
-    Add-MissingRequirement -List $missingRequirements -Value "strategy 485 aged negative-EV packet ready"
+if (-not $strategyStatusAcceptable) {
+    Add-MissingRequirement -List $missingRequirements -Value "strategy 485 aged negative-EV packet ready or no-action status"
 }
 
 $trailingAcceptance = if ($null -ne $trailingPacket) { [string]$trailingPacket.acceptance } else { "N/A" }

@@ -70,6 +70,9 @@ function Invoke-RefreshStep {
         $ErrorActionPreference = $previousErrorActionPreference
     }
     $text = ($output | Out-String -Width 4096)
+    if (-not [string]::IsNullOrWhiteSpace($outputParent) -and -not (Test-Path -LiteralPath $outputParent)) {
+        New-Item -ItemType Directory -Force -Path $outputParent | Out-Null
+    }
     Set-Content -LiteralPath $outputPath -Encoding UTF8 -Value $text
     if ($null -eq $exitCode) { $exitCode = 0 }
 

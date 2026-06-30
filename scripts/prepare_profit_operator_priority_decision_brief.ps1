@@ -85,7 +85,7 @@ if (-not [string]::IsNullOrWhiteSpace($consolidatedJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($consolidatedExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "consolidated review packet completed" }
+if ($consolidatedExitCode -ne 0 -and $null -eq $consolidatedPacket) { Add-MissingRequirement -List $missingRequirements -Value "consolidated review packet completed" }
 if ($null -eq $consolidatedPacket) { Add-MissingRequirement -List $missingRequirements -Value "profit_operator_consolidated_review_packet valid JSON" }
 
 $readyReviewItems = @()

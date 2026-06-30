@@ -115,7 +115,7 @@ if (-not [string]::IsNullOrWhiteSpace($recommendationJson)) {
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
-if ($recommendationExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "profit verified recommendations completed" }
+if ($recommendationExitCode -ne 0 -and $null -eq $recommendationPacket) { Add-MissingRequirement -List $missingRequirements -Value "profit verified recommendations completed" }
 if ($null -eq $recommendationPacket) { Add-MissingRequirement -List $missingRequirements -Value "profit_verified_recommendations_packet valid JSON" }
 
 $recommendationsStatus = ""

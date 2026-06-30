@@ -858,6 +858,22 @@
   does not authorize live trading, policy
   relaxation, deploy, production env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
+- `scripts/watch_profit_next_execution_readiness_ssh.ps1` is the bounded
+  read-only watcher for the current make-money next-execution lane. It reruns
+  `prepare_data_freshness_replay_evidence_readiness_ssh.ps1`, saves the attempt
+  log, feeds that log into `prepare_profit_next_execution_blocker_packet.ps1`,
+  and emits `profit_next_execution_watch_status`,
+  `profit_next_execution_watch_unique_blocker`,
+  `profit_next_execution_watch_observation_sample_ready`,
+  `profit_next_execution_watch_sample_collection_blocked_by`, and
+  `profit_next_execution_watch_data_freshness_replay_candidate_id_rows`.
+  `PENDING_OPEN_OCO_SAMPLE` means trailing dry-run is active but needs a
+  natural open OCO sample; `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay
+  candidate rows are still missing.
+  `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE` only starts a separate
+  read-only review. The watcher does not deploy, change production env, enable
+  live trading/scheduler, relax policy, place orders, modify OCO, close
+  positions, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - `scripts/prepare_remaining_open_issues_status.ps1` is a local-only
   consolidated packet for the active remaining open profit issues #6/#7/#8. It
   reads the saved #6 profit-improvement bundle, #7 post-deploy bundle, #8
@@ -1352,6 +1368,12 @@
   opt-in write, deploy, change production env, enable scheduler/live trading,
   place orders, modify OCO, close positions, send Telegram, relax policy, or mutate
   DB/grid/fund/Earn/exchange state.
+- `scripts/watch_profit_next_execution_readiness_ssh.ps1` automates the
+  read-only replay loop for the packet above. It records per-attempt
+  DataFreshness readiness and next-execution blocker logs under
+  `target/profit-review`, then reports whether the lane is
+  `PENDING_OPEN_OCO_SAMPLE`, `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE`, or
+  `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.
 - `scripts/prepare_trailing_stop_dry_run_observation_status_ssh.ps1` turns the
   active A0 dry-run state into a replayable read-only observation packet. It
   emits `TRAILING_STOP_DRY_RUN_OBSERVATION_STATUS_PACKET`,

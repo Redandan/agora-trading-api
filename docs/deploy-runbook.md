@@ -2045,6 +2045,29 @@ Expected:
   DB/grid/fund/Earn/Telegram/exchange state, run external backfill/import, or
   authorize strategy changes.
 
+For a bounded read-only profit next execution watch, run:
+
+```powershell
+.\scripts\watch_profit_next_execution_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+```
+
+Expected:
+
+- The watcher calls `prepare_data_freshness_replay_evidence_readiness_ssh.ps1`
+  and `prepare_profit_next_execution_blocker_packet.ps1` only.
+- Output includes `profit_next_execution_watch_status`,
+  `profit_next_execution_watch_unique_blocker`,
+  `profit_next_execution_watch_observation_sample_ready`,
+  `profit_next_execution_watch_sample_collection_blocked_by`, and
+  `profit_next_execution_watch_data_freshness_replay_candidate_id_rows`.
+- `PENDING_OPEN_OCO_SAMPLE` means trailing dry-run is active but no open OCO
+  sample exists yet; rerun after the next natural open OCO sample appears.
+- `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay candidate rows are still
+  missing; rerun after new DataFreshness rows are expected.
+- `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE` means a separate read-only
+  operator review can start. It is not permission to deploy, enable live
+  trading, mutate OCO/grid/fund/Earn state, or relax policy.
+
 For a local consolidated status packet across the active remaining open profit
 issues, run after the underlying read-only logs have been refreshed:
 
@@ -2697,6 +2720,20 @@ Expected:
   scheduler/live trading, place orders, modify OCO, close positions, send
   Telegram, relax policy, or mutate
   DB/grid/fund/Earn/exchange state.
+  To keep polling the post-env evidence lane without changing any live state,
+  run:
+
+  ```powershell
+  .\scripts\watch_profit_next_execution_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+  ```
+
+  The watcher saves each DataFreshness readiness and next-execution blocker
+  attempt under `target/profit-review`, then emits
+  `profit_next_execution_watch_status`. `PENDING_OPEN_OCO_SAMPLE` means the only
+  actionable wait is a natural open OCO sample for trailing dry-run observation;
+  `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay candidate rows are still
+  missing. It does not deploy, change env, enable scheduler/live trading, place
+  orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
   To turn the active dry-run state into a replayable observation-status packet,
   run:
 

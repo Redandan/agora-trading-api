@@ -936,6 +936,28 @@ and `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_S
 That state means A0 is complete and the next step is observation evidence only;
 it is not live OCO mutation approval.
 
+Bounded read-only profit next execution watch:
+
+```powershell
+.\scripts\watch_profit_next_execution_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+```
+
+This wrapper reruns the DataFreshness replay evidence readiness packet and the
+profit next-execution blocker packet, saving replayable attempt logs under
+`target/profit-review`. It emits `profit_next_execution_watch_status`,
+`profit_next_execution_watch_unique_blocker`,
+`profit_next_execution_watch_observation_sample_ready`,
+`profit_next_execution_watch_sample_collection_blocked_by`, and
+`profit_next_execution_watch_data_freshness_replay_candidate_id_rows`.
+`PENDING_OPEN_OCO_SAMPLE` means trailing dry-run is active but no open OCO
+sample is available yet. `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means the
+counterfactual replay rows are still missing.
+`EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE` only starts a separate read-only
+operator review; it is not authorization to relax policy, deploy, enable live
+trading, place orders, or mutate OCO/grid/fund/Earn state. Long child checks
+emit watcher-level `child_start`, `child_heartbeat`, and `child_complete`
+markers.
+
 Read-only trailing-stop dry-run observation status packet:
 
 ```powershell
@@ -2003,6 +2025,24 @@ EntryDedup/DataFreshness/live policy, place orders, modify OCO, close
 positions, or mutate DB/grid/fund/Earn state.
 Long child smokes emit `child_start`, periodic `child_heartbeat`, and
 `child_complete` markers from the watcher itself.
+
+Bounded read-only profit next execution watch:
+
+```powershell
+.\scripts\watch_profit_next_execution_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+```
+
+This watcher is narrower than the general profit evidence watcher: it tracks
+the current highest-ROI next-execution lane by chaining
+`prepare_data_freshness_replay_evidence_readiness_ssh.ps1` into
+`prepare_profit_next_execution_blocker_packet.ps1`. Output includes
+`profit_next_execution_watch_status`,
+`profit_next_execution_watch_unique_blocker`,
+`profit_next_execution_watch_observation_sample_ready`, and
+`profit_next_execution_watch_data_freshness_complete_replayable_candidate_rows`.
+It remains read-only and does not deploy, change production env, enable live
+trading, relax EntryDedup/DataFreshness/live policy, place orders, modify OCO,
+close positions, or mutate DB/grid/fund/Earn state.
 
 Consolidated remaining open issue status from saved local evidence logs:
 

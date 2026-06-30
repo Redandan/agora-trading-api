@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,22 @@ public class ExposureOptimizer {
                                     double expectedR,
                                     double candidateStopLossPct,
                                     boolean sameStrategyOpenLong) {
+        return evaluateLongEntry(strategy, config, symbol, intervalCode, expectedR, candidateStopLossPct,
+                sameStrategyOpenLong, null, null, null, null, null);
+    }
+
+    public Result evaluateLongEntry(BtStrategy strategy,
+                                    Map<String, Object> config,
+                                    String symbol,
+                                    String intervalCode,
+                                    double expectedR,
+                                    double candidateStopLossPct,
+                                    boolean sameStrategyOpenLong,
+                                    BigDecimal candidateEntry,
+                                    BigDecimal candidateTp,
+                                    BigDecimal candidateSl,
+                                    LocalDateTime candidateBarOpenTime,
+                                    Double minExpectedR) {
         List<BtLiveSignal> open = liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull();
         BigDecimal actualExposure = open.stream()
                 .map(this::notional)
@@ -133,19 +152,21 @@ public class ExposureOptimizer {
         ctx.put("open_max_loss_cap_usdt", maxLossCap);
         ctx.put("notify_only", notifyOnly);
         ctx.put("write_mode", false);
+        enrichCandidateRuntimeSnapshot(ctx, strategy, symbol, intervalCode, expectedR,
+                minExpectedR == null ? microAddMinExpectedR : minExpectedR,
+                candidateEntry, candidateTp, candidateSl, candidateBarOpenTime);
 
         if (notifyOnly && shadowDailyCap > 0 && shadowTodayEntries >= shadowDailyCap) {
-            return new Result(Decision.BLOCK_DUPLICATE,
-                    "shadow daily learning cap reached", ctx);
+            return result(Decision.BLOCK_DUPLICATE, "shadow daily learning cap reached", ctx);
         }
 
         if (notifyOnly && !sameStrategyOpenLong) {
-            return new Result(Decision.ALLOW_NEW_ENTRY,
+            return result(Decision.ALLOW_NEW_ENTRY,
                     "notifyOnly candidate remains observable; exposure caps protect auto-trade path", ctx);
         }
 
         if (blockSameSymbolLong && sameSymbolOpenLong && !sameStrategyOpenLong) {
-            return new Result(Decision.BLOCK_DUPLICATE,
+            return result(Decision.BLOCK_DUPLICATE,
                     "same-symbol LONG exposure already exists across strategy boundary", ctx);
         }
 
@@ -155,18 +176,18 @@ public class ExposureOptimizer {
                     .divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
             ctx.put("actual_exposure_cap_usdt", plain(cap));
             if (actualExposure.compareTo(cap) >= 0) {
-                return new Result(Decision.BLOCK_DUPLICATE,
+                return result(Decision.BLOCK_DUPLICATE,
                         "actual exposure is at or above configured cap", ctx);
             }
         }
 
         if (maxLossCap > 0 && openMaxLoss.compareTo(BigDecimal.valueOf(maxLossCap)) >= 0) {
-            return new Result(Decision.BLOCK_DUPLICATE,
+            return result(Decision.BLOCK_DUPLICATE,
                     "open max loss is at or above configured cap", ctx);
         }
 
         if (!notifyOnly && dailyCap > 0 && todayEntries >= dailyCap) {
-            return new Result(Decision.BLOCK_DUPLICATE,
+            return result(Decision.BLOCK_DUPLICATE,
                     "daily new auto-entry cap reached", ctx);
         }
 
@@ -175,30 +196,104 @@ public class ExposureOptimizer {
                     || "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE".equals(dedupMode);
             if (positiveEvMicroAddMode && expectedR > 0) {
                 if (microAddNotional <= 0) {
-                    return new Result(Decision.BLOCK_DUPLICATE,
+                    return result(Decision.BLOCK_DUPLICATE,
                             "micro-add notional cap is not positive", ctx);
                 }
                 if (sameStrategyExposure.compareTo(BigDecimal.valueOf(microAddMaxSameStrategyExposure)) >= 0) {
-                    return new Result(Decision.BLOCK_DUPLICATE,
+                    return result(Decision.BLOCK_DUPLICATE,
                             "same-strategy staged add exposure budget exhausted", ctx);
                 }
                 if (maxLossCap > 0 && openMaxLoss.add(BigDecimal.valueOf(candidateMaxLoss))
                         .compareTo(BigDecimal.valueOf(maxLossCap)) > 0) {
-                    return new Result(Decision.BLOCK_DUPLICATE,
+                    return result(Decision.BLOCK_DUPLICATE,
                             "micro-add would exceed open max loss cap", ctx);
                 }
                 if (!notifyOnly && microAddLiveEnabled) {
-                    return new Result(Decision.ALLOW_STAGED_MICRO_ADD_ENTRY,
+                    return result(Decision.ALLOW_STAGED_MICRO_ADD_ENTRY,
                             "same-strategy exposure exists; staged live micro-add is allowed because expectedR is positive and budgets pass", ctx);
                 }
-                return new Result(Decision.SHADOW_MICRO_ADD_CANDIDATE,
+                return result(Decision.SHADOW_MICRO_ADD_CANDIDATE,
                         "same-strategy exposure exists; candidate stays shadow-only because expectedR is positive but live micro-add is disabled", ctx);
             }
-            return new Result(Decision.BLOCK_DUPLICATE,
+            return result(Decision.BLOCK_DUPLICATE,
                     "same strategy/symbol/interval LONG exposure already exists", ctx);
         }
 
-        return new Result(Decision.ALLOW_NEW_ENTRY, "risk caps passed for new entry candidate", ctx);
+        return result(Decision.ALLOW_NEW_ENTRY, "risk caps passed for new entry candidate", ctx);
+    }
+
+    private Result result(Decision decision, String reason, Map<String, Object> ctx) {
+        ctx.put("exposureOptimizerDecision", decision.name());
+        ctx.put("exposureOptimizerReason", reason);
+        if (decision == Decision.BLOCK_DUPLICATE || decision == Decision.SHADOW_MICRO_ADD_CANDIDATE) {
+            ctx.put("candidateSnapshotCollectorStatus", "SHADOW_RUNTIME_SNAPSHOT_READY_NOT_LIVE");
+            ctx.put("candidateSnapshotCollectorBoundary", "EVIDENCE_ONLY_NO_ORDER_NO_POLICY_CHANGE");
+            ctx.put("executionMode", "SHADOW");
+            ctx.put("selectedAction", "ENTRY_DEDUP_SHADOW_CANDIDATE_SNAPSHOT");
+            ctx.put("decision", "SUPPRESS_ORDER");
+            ctx.put("intentCreated", true);
+            ctx.put("ocoPlanCreated", Boolean.TRUE.equals(ctx.get("ocoCapable")));
+            ctx.put("orderSent", false);
+            ctx.put("orderAllowed", false);
+            ctx.put("gridMutationAllowed", false);
+            ctx.put("schedulerEnablementAllowed", false);
+            ctx.put("telegramSendAllowed", false);
+            ctx.put("livePolicyRelaxationAllowed", false);
+            ctx.put("suppressionReason", "SHADOW_MODE");
+            ctx.put("runtimeEvidencePolicyMode", "BLOCK");
+            ctx.put("runtimeEvidencePolicyReason", "ExposureOptimizer/EntryDedup kept original block: " + reason);
+            ctx.put("candidateContinuedToEv", true);
+            ctx.put("candidateContinuedToTqs", true);
+            ctx.put("gate_enabled", true);
+            ctx.put("riskGateResult", "ENTRY_DEDUP_OR_EXPOSURE_BLOCK_WITH_CANDIDATE_SNAPSHOT");
+        }
+        return new Result(decision, reason, ctx);
+    }
+
+    private void enrichCandidateRuntimeSnapshot(Map<String, Object> ctx,
+                                                BtStrategy strategy,
+                                                String symbol,
+                                                String intervalCode,
+                                                double expectedR,
+                                                double minExpectedR,
+                                                BigDecimal entry,
+                                                BigDecimal tp,
+                                                BigDecimal sl,
+                                                LocalDateTime barOpenTime) {
+        ctx.put("min_expected_r", round(minExpectedR));
+        ctx.put("ev_reason", expectedR >= minExpectedR ? "pass" : "expectedR<minExpectedR");
+        ctx.put("side", "LONG");
+        ctx.put("candidate_side", "LONG");
+        ctx.put("signalSource", "LiveSignalEvaluator");
+        if (barOpenTime != null) {
+            ctx.put("candidateBarOpenTime", barOpenTime.toString());
+        }
+        putMoneyAliases(ctx, "entry", "entryPrice", "candidateEntry", entry);
+        putMoneyAliases(ctx, "tp", "tpPrice", "candidateTp", tp);
+        putMoneyAliases(ctx, "sl", "slPrice", "candidateSl", sl);
+        boolean ocoCapable = entry != null && tp != null && sl != null;
+        ctx.put("ocoCapable", ocoCapable);
+        String hash = shortHash("edsr1", strategy.getId(), symbol, intervalCode, barOpenTime,
+                plain(entry), plain(tp), plain(sl), round(expectedR), round(minExpectedR));
+        ctx.put("duplicateCandidateHash", hash);
+        ctx.put("replayCandidateId", "edsr1_" + hash);
+        ctx.put("replayCandidateVersion", "edsr1");
+        ctx.put("replayCandidateStatus", ocoCapable
+                ? "CANDIDATE_PLAN_AVAILABLE_NOT_LIVE"
+                : "CANDIDATE_PLAN_INCOMPLETE_NOT_LIVE");
+    }
+
+    private void putMoneyAliases(Map<String, Object> ctx,
+                                 String shortKey,
+                                 String priceKey,
+                                 String candidateKey,
+                                 BigDecimal value) {
+        if (value == null) {
+            return;
+        }
+        ctx.put(shortKey, value);
+        ctx.put(priceKey, value);
+        ctx.put(candidateKey, value);
     }
 
     private BigDecimal notional(BtLiveSignal p) {
@@ -290,5 +385,18 @@ public class ExposureOptimizer {
             return configured;
         }
         return Math.max(liveDailyCap, 2);
+    }
+
+    private static String shortHash(Object... parts) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            for (Object part : parts) {
+                digest.update(String.valueOf(part).getBytes(StandardCharsets.UTF_8));
+                digest.update((byte) '|');
+            }
+            return HexFormat.of().formatHex(digest.digest()).substring(0, 24);
+        } catch (Exception e) {
+            throw new IllegalStateException("sha256 failed", e);
+        }
     }
 }

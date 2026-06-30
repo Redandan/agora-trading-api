@@ -766,8 +766,10 @@ public class LiveSignalEvaluator {
         boolean dedupShadowOnlyOverride = false;
         boolean stagedMicroAddEntry = false;
         double stagedMicroAddMaxNotionalUsdt = 0.0;
+        double preTradeMinExpectedRForSnapshot = getDouble(config, "preTradeMinExpectedR", 0.20);
         ExposureOptimizer.Result exposureDecision = exposureOptimizer.evaluateLongEntry(
-                strategy, config, symbol, intervalCode, expectedR, stopLossPct, hasOpenLongExposure);
+                strategy, config, symbol, intervalCode, expectedR, stopLossPct, hasOpenLongExposure,
+                entry, tp, sl, lastBar.getOpenTime(), preTradeMinExpectedRForSnapshot);
         if (exposureDecision.shadowOnly()) {
                 dedupShadowOnlyOverride = true;
                 log.info("[LiveSignal] ExposureOptimizer shadow-only candidate: strategyId={} symbol={} expectedR={} reason={}",

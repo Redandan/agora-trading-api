@@ -1081,6 +1081,31 @@ before any order, staged-add execution, or live policy relaxation. It keeps
 `staged_add_execution_allowed=false`, `order_allowed=false`,
 `grid_mutation_allowed=false`, and `telegram_send_allowed=false`.
 
+Read-only EntryDedup candidate runtime snapshot collector review packet:
+
+```powershell
+.\scripts\prepare_entry_dedup_candidate_runtime_snapshot_collector_review_packet.ps1 -RequireReady
+```
+
+This wraps the EntryDedup runtime proof gap packet, BUY-like candidate loss
+review, BUY-like continuity matcher review, runtime-evidence RCA, and
+panic-bottom RCA into
+`ENTRY_DEDUP_CANDIDATE_RUNTIME_SNAPSHOT_COLLECTOR_REVIEW_PACKET`. It emits
+`entry_dedup_candidate_runtime_snapshot_collector_review_status` and
+`entry_dedup_candidate_runtime_snapshot_collector_local_implementation_status`,
+then checks the local `ExposureOptimizer` / `LiveSignalEvaluator` markers for
+candidate context keys needed to close the runtime snapshot gap, including
+entry/TP/SL, EV, OCO plan-shape, event-risk, daily-cap, max-loss, duplicate
+hash, `replayCandidateId`, and shadow suppression markers.
+`READY_FOR_ENTRY_DEDUP_CANDIDATE_RUNTIME_SNAPSHOT_COLLECTOR_REVIEW_NOT_LIVE`
+with `LOCAL_IMPLEMENTED_NOT_DEPLOYED_NOT_ACTIVE` means the local shadow snapshot
+context implementation is reviewable but not deployed or activated; it keeps
+`runtime_evidence_write_allowed=false`, `collector_activation_allowed=false`,
+`order_allowed=false`, and `strategy_threshold_change_allowed=false`. It is not
+authorization to activate a collector, deploy, relax EntryDedup/DataFreshness/
+live policy, change thresholds, stage-add, place orders, modify OCO, send
+Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only EntryDedup semantics preflight review packet:
 
 ```powershell

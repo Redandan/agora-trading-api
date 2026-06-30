@@ -2829,6 +2829,26 @@ Expected:
   evidence review. This is a read-only blocker review packet, not approval to
   relax policy, enable staged-add/live execution, place orders, modify OCO,
   deploy, change env, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- To prepare the next review-only collector design for the candidate runtime
+  snapshot gap, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_candidate_runtime_snapshot_collector_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_candidate_runtime_snapshot_collector_review_status=READY_FOR_ENTRY_DEDUP_CANDIDATE_RUNTIME_SNAPSHOT_COLLECTOR_REVIEW_NOT_LIVE`,
+  `entry_dedup_candidate_runtime_snapshot_collector_local_implementation_status=LOCAL_IMPLEMENTED_NOT_DEPLOYED_NOT_ACTIVE`,
+  `ENTRY_DEDUP_CANDIDATE_RUNTIME_SNAPSHOT_COLLECTOR_REVIEW_PACKET`,
+  and local `ExposureOptimizer` / `LiveSignalEvaluator` marker coverage for
+  entry/TP/SL, EV, OCO plan-shape, event-risk, daily-cap, max-loss, duplicate
+  hash, `replayCandidateId`, and shadow suppression. It keeps
+  `runtime_evidence_write_allowed=false`, `collector_activation_allowed=false`,
+  `order_allowed=false`, and `strategy_threshold_change_allowed=false`. This
+  packet is only a candidate runtime snapshot collector review; it does not
+  activate writes, deploy, change production env, relax EntryDedup/DataFreshness
+  or strategy thresholds, enable staged-add/live execution, place orders,
+  modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

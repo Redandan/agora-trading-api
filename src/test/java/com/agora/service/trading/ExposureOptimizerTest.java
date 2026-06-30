@@ -104,6 +104,58 @@ class ExposureOptimizerTest {
         assertThat(result.context().get("same_symbol_long_exposure_usdt")).isEqualTo("200");
     }
 
+    @Test
+    void duplicateBlockCarriesShadowRuntimeSnapshotWithoutAllowingMutation() {
+        BtStrategy strategy = strategy(508L);
+        BtLiveSignal open = openLong(508L, "BTCUSDT", "1h", "100000", "0.001");
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(open));
+        when(liveSignalRepository.countByAutoTradedIsTrueAndCreatedAtAfter(any(LocalDateTime.class))).thenReturn(0L);
+
+        var result = optimizer.evaluateLongEntry(
+                strategy,
+                Map.of(
+                        "entryDedupDecisionMode", "BLOCK",
+                        "exposureOptimizerOpenMaxLossCapUsdt", 1000.0),
+                "BTCUSDT",
+                "1h",
+                0.42,
+                0.05,
+                true,
+                new BigDecimal("101000.00"),
+                new BigDecimal("106050.00"),
+                new BigDecimal("95950.00"),
+                LocalDateTime.parse("2026-06-30T01:00:00"),
+                0.20);
+
+        assertThat(result.decision()).isEqualTo(ExposureOptimizer.Decision.BLOCK_DUPLICATE);
+        assertThat(result.context())
+                .containsEntry("candidateSnapshotCollectorStatus", "SHADOW_RUNTIME_SNAPSHOT_READY_NOT_LIVE")
+                .containsEntry("candidateSnapshotCollectorBoundary", "EVIDENCE_ONLY_NO_ORDER_NO_POLICY_CHANGE")
+                .containsEntry("entryPrice", new BigDecimal("101000.00"))
+                .containsEntry("tpPrice", new BigDecimal("106050.00"))
+                .containsEntry("slPrice", new BigDecimal("95950.00"))
+                .containsEntry("candidateEntry", new BigDecimal("101000.00"))
+                .containsEntry("candidateTp", new BigDecimal("106050.00"))
+                .containsEntry("candidateSl", new BigDecimal("95950.00"))
+                .containsEntry("min_expected_r", 0.2)
+                .containsEntry("ev_reason", "pass")
+                .containsEntry("candidateContinuedToEv", true)
+                .containsEntry("candidateContinuedToTqs", true)
+                .containsEntry("intentCreated", true)
+                .containsEntry("ocoPlanCreated", true)
+                .containsEntry("orderSent", false)
+                .containsEntry("orderAllowed", false)
+                .containsEntry("gridMutationAllowed", false)
+                .containsEntry("schedulerEnablementAllowed", false)
+                .containsEntry("telegramSendAllowed", false)
+                .containsEntry("livePolicyRelaxationAllowed", false)
+                .containsEntry("suppressionReason", "SHADOW_MODE")
+                .containsEntry("runtimeEvidencePolicyMode", "BLOCK")
+                .containsEntry("selectedAction", "ENTRY_DEDUP_SHADOW_CANDIDATE_SNAPSHOT");
+        assertThat(result.context().get("duplicateCandidateHash")).asString().hasSize(24);
+        assertThat(result.context().get("replayCandidateId")).asString().startsWith("edsr1_");
+    }
+
     private BtStrategy strategy(long id) {
         BtStrategy strategy = new BtStrategy();
         strategy.setId(id);

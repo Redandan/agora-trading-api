@@ -3767,6 +3767,33 @@ Trading deployment prep:
   `matcher_review_recommendation=EXTEND_PRIMARY_WINDOW_THEN_RECHECK_INTERVAL_LINKING`.
   This keeps the highest-ROI profit review pointed at EntryDedup/exposure
   semantics, not broad DataFreshness or no-terminal policy relaxation.
+- 2026-06-30 added a local read-only candidate runtime snapshot collector
+  review packet:
+  `scripts/prepare_entry_dedup_candidate_runtime_snapshot_collector_review_packet.ps1`.
+  It packages the EntryDedup runtime proof gap, BUY-like candidate loss,
+  continuity matcher, runtime-evidence RCA, and panic-bottom RCA into
+  `ENTRY_DEDUP_CANDIDATE_RUNTIME_SNAPSHOT_COLLECTOR_REVIEW_PACKET` and emits
+  `entry_dedup_candidate_runtime_snapshot_collector_review_status`. The packet
+  proposes the candidate context keys needed to close the runtime EV/OCO
+  snapshot gap, but keeps `runtime_evidence_write_allowed=false`,
+  `collector_activation_allowed=false`, `order_allowed=false`, and
+  `strategy_threshold_change_allowed=false`. It is review tooling only and does
+  not authorize collector activation, runtime evidence writes, deploy, env
+  changes, EntryDedup/DataFreshness or threshold relaxation, staged-add/live
+  execution, OCO/order/grid/fund/Earn/Telegram/exchange mutation, or DB changes.
+- 2026-06-30 follow-up: the EntryDedup candidate runtime snapshot gap now has
+  local shadow context support in `ExposureOptimizer` and `LiveSignalEvaluator`.
+  EntryDedup/exposure duplicate blocks keep the original block decision but add
+  replayable context fields (`entryPrice`, `tpPrice`, `slPrice`,
+  `duplicateCandidateHash`, `replayCandidateId`, EV/TQS continuation,
+  OCO plan-shape, `orderSent=false`, and mutation flags false) to the decision
+  audit context when runtime evidence sidecar writes are otherwise enabled. The
+  review packet now emits
+  `entry_dedup_candidate_runtime_snapshot_collector_local_implementation_status=LOCAL_IMPLEMENTED_NOT_DEPLOYED_NOT_ACTIVE`.
+  This is evidence-only instrumentation; it does not deploy, activate a
+  collector, relax EntryDedup/DataFreshness/live policy, enable staged-add/live
+  execution, place orders, modify OCO, send Telegram, or mutate
+  DB/grid/fund/Earn/exchange state.
 
 ## Cleanup Priority
 

@@ -2021,6 +2021,9 @@
   distribution, strategy-scoped follow-up counts, macro/watch-only attention
   counts, and examples. The strategy-scoped fields keep macro/watch-only
   background alerts from dominating the real trading-candidate follow-up view.
+  The no-buy attention operator packet also invokes the no-terminal continuity
+  RCA and carries `no_terminal_continuity_primary_classification` so
+  primary-window matcher gaps are not mistaken for a broken trading pipeline.
   The smoke is evidence only and does not deploy, change production env, relax
   EntryDedup/DataFreshness/live policy, enable live trading, place orders,
   modify OCO, or mutate DB/grid/fund/Earn/Telegram/exchange state.

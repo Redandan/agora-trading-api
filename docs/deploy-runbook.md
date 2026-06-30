@@ -3221,7 +3221,11 @@ Expected:
   `attention_strategy_scoped_no_terminal_followup_rows`,
   `attention_strategy_scoped_recommendation`, and
   `attention_strategy_distribution` so macro/watch-only attention rows are not
-  treated as trading candidates with missing terminal follow-up. The packet is review-only
+  treated as trading candidates with missing terminal follow-up. It also invokes
+  no-terminal continuity RCA and emits `no_terminal_continuity_status`,
+  `no_terminal_continuity_primary_classification`, and
+  `terminal_after_primary_window_distribution` so primary-window matcher gaps
+  are not mistaken for a broken trading pipeline. The packet is review-only
   and does not authorize DataFreshnessGuard or EntryDedup relaxation, live
   execution, scheduler enablement, orders, deploy, or production env changes.
 - If BUY-like progression routes to `ENTRY_SKIP:EntryDedup` for strategy 508,

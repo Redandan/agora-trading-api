@@ -2468,7 +2468,8 @@ exist, run the read-only no-buy attention-flow packet:
 ```
 
 It invokes the DataFreshness blocker brief, ATTENTION_HIT progression,
-SIGNAL_EVAL no-buy generation smoke, and BUY-like progression smoke, then emits
+SIGNAL_EVAL no-buy generation smoke, BUY-like progression smoke, and
+no-terminal continuity smoke, then emits
 `NO_BUY_ATTENTION_FLOW_REVIEW_PACKET` and
 `no_buy_attention_flow_review_status`. A
 `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` result means the operator can
@@ -2485,7 +2486,11 @@ opening any strategy-threshold review. It also emits
 `attention_strategy_scoped_rows`,
 `attention_strategy_scoped_no_terminal_followup_rows`, and
 `attention_strategy_scoped_recommendation` so macro/watch-only attention rows
-are not mistaken for trading candidates with missing terminal follow-up. It does not authorize
+are not mistaken for trading candidates with missing terminal follow-up. It also
+emits `no_terminal_continuity_status`,
+`no_terminal_continuity_primary_classification`, and
+`terminal_after_primary_window_distribution` so primary-window matcher gaps are
+not mistaken for a broken trading pipeline. It does not authorize
 DataFreshnessGuard or
 EntryDedup relaxation, live execution, orders, scheduler enablement, deploy, or
 production env changes.

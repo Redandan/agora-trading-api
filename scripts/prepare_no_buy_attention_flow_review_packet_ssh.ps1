@@ -6,6 +6,7 @@ param(
     [string]$Symbol = "BTCUSDT",
     [int]$ReviewDays = 7,
     [int]$FollowupHours = 6,
+    [int]$ExtendedFollowupHours = 48,
     [int]$Limit = 10,
     [int]$MaxRows = 500,
     [switch]$RequireReviewReady
@@ -47,6 +48,16 @@ function Get-IntValue {
     $parsed = 0
     if ([int]::TryParse($Value, [ref]$parsed)) { return $parsed }
     return 0
+}
+
+function Convert-JsonArrayValue {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return @() }
+    try {
+        return @($Value | ConvertFrom-Json -ErrorAction Stop)
+    } catch {
+        return @()
+    }
 }
 
 function Get-AttentionStrategyDistribution {
@@ -135,6 +146,7 @@ if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -Ss
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
 if ($ReviewDays -lt 1 -or $ReviewDays -gt 30) { throw "ReviewDays must be between 1 and 30." }
 if ($FollowupHours -lt 1 -or $FollowupHours -gt 48) { throw "FollowupHours must be between 1 and 48." }
+if ($ExtendedFollowupHours -lt $FollowupHours -or $ExtendedFollowupHours -gt 168) { throw "ExtendedFollowupHours must be between FollowupHours and 168." }
 if ($Limit -lt 1 -or $Limit -gt 50) { throw "Limit must be between 1 and 50." }
 if ($MaxRows -lt 1 -or $MaxRows -gt 2000) { throw "MaxRows must be between 1 and 2000." }
 
@@ -174,6 +186,14 @@ $signalEvalNoBuy = Invoke-ReadOnlyScript -ScriptName "smoke_signal_eval_no_buy_g
 $buyLike = Invoke-ReadOnlyScript -ScriptName "smoke_buy_like_candidate_progression_ssh.ps1" -Arguments ($commonArgs + @(
     "-ReviewDays", "$ReviewDays",
     "-FollowupHours", "$FollowupHours",
+    "-Limit", "$Limit",
+    "-MaxCandidateRows", "$MaxRows"
+))
+
+$noTerminalContinuity = Invoke-ReadOnlyScript -ScriptName "smoke_no_terminal_followup_continuity_ssh.ps1" -Arguments ($commonArgs + @(
+    "-ReviewDays", "$ReviewDays",
+    "-FollowupHours", "$FollowupHours",
+    "-ExtendedFollowupHours", "$ExtendedFollowupHours",
     "-Limit", "$Limit",
     "-MaxCandidateRows", "$MaxRows"
 ))
@@ -239,6 +259,19 @@ $buyLikeFilterRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.T
 $buyLikeEntrySkipRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  entry_skip_followup_rows=")
 $buyLikeSignalBuyRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  signal_buy_rows=")
 $buyLikeAutotradeRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $buyLike.Text -Prefix "  autotrade_followup_rows=")
+$noTerminalContinuityStatus = Get-LastPrefixedValue -Text $noTerminalContinuity.Text -Prefix "no_terminal_continuity_review_status="
+$noTerminalContinuityRows = Get-IntValue -Value (Get-LastPrefixedValue -Text $noTerminalContinuity.Text -Prefix "no_terminal_followup_rows=")
+$noTerminalContinuityClassificationJson = Get-LastPrefixedValue -Text $noTerminalContinuity.Text -Prefix "no_terminal_continuity_classification="
+$noTerminalContinuityClassification = @(Convert-JsonArrayValue -Value $noTerminalContinuityClassificationJson)
+$terminalAfterPrimaryWindowDistributionJson = Get-LastPrefixedValue -Text $noTerminalContinuity.Text -Prefix "terminal_after_primary_window_distribution="
+$terminalAfterPrimaryWindowDistribution = @(Convert-JsonArrayValue -Value $terminalAfterPrimaryWindowDistributionJson)
+$noTerminalContinuityPrimaryClassification = "NONE"
+if ($noTerminalContinuityClassification.Count -gt 0) {
+    $classificationProperty = $noTerminalContinuityClassification[0].PSObject.Properties["classification"]
+    if ($null -ne $classificationProperty -and -not [string]::IsNullOrWhiteSpace([string]$classificationProperty.Value)) {
+        $noTerminalContinuityPrimaryClassification = [string]$classificationProperty.Value
+    }
+}
 
 $blockers = [System.Collections.Generic.List[string]]::new()
 $reviewItems = [System.Collections.Generic.List[string]]::new()
@@ -248,6 +281,7 @@ if ($profitBlocker.ExitCode -ne 0) { Add-Unique -List $blockers -Value "DATAFRES
 if ($attention.ExitCode -ne 0) { Add-Unique -List $blockers -Value "ATTENTION_HIT_PROGRESSION_FAILED" }
 if ($signalEvalNoBuy.ExitCode -ne 0) { Add-Unique -List $blockers -Value "SIGNAL_EVAL_NO_BUY_GENERATION_FAILED" }
 if ($buyLike.ExitCode -ne 0) { Add-Unique -List $blockers -Value "BUY_LIKE_CANDIDATE_PROGRESSION_FAILED" }
+if ($noTerminalContinuity.ExitCode -ne 0) { Add-Unique -List $blockers -Value "NO_TERMINAL_CONTINUITY_REVIEW_FAILED" }
 
 if ($buyLikeRows -eq 0) {
     Add-Unique -List $blockers -Value "NO_BUY_LIKE_CANDIDATES_IN_REVIEW_WINDOW"
@@ -281,6 +315,9 @@ if ($attentionStrategyScopedNoTerminalRows -gt 0) {
     Add-Unique -List $reviewItems -Value "STRATEGY_SCOPED_ATTENTION_NO_TERMINAL_FOLLOWUP_REVIEW"
     Add-Unique -List $requiredEvidence -Value "strategy-scoped attention-hit rows must be reviewed separately from macro/watch-only rows"
 }
+if ($noTerminalContinuityRows -gt 0 -and $noTerminalContinuityStatus -eq "READY_FOR_NO_TERMINAL_CONTINUITY_REVIEW_NOT_LIVE") {
+    Add-Unique -List $reviewItems -Value "NO_TERMINAL_CONTINUITY_REVIEW_READY"
+}
 if ($sampleGapRcaRecommendation -eq "NO_RECENT_BUY_STYLE_CANDIDATES") {
     Add-Unique -List $reviewItems -Value "SIGNAL_GENERATION_OR_ATTENTION_PIPELINE_REVIEW"
 }
@@ -291,7 +328,7 @@ if ($attentionRows -gt 0 -and $attentionSignalBuyRows + $attentionAutotradeRows 
     Add-Unique -List $reviewItems -Value "NO_ATTENTION_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE"
 }
 
-$status = if ($profitBlocker.ExitCode -ne 0 -or $attention.ExitCode -ne 0 -or $signalEvalNoBuy.ExitCode -ne 0 -or $buyLike.ExitCode -ne 0) {
+$status = if ($profitBlocker.ExitCode -ne 0 -or $attention.ExitCode -ne 0 -or $signalEvalNoBuy.ExitCode -ne 0 -or $buyLike.ExitCode -ne 0 -or $noTerminalContinuity.ExitCode -ne 0) {
     "NO_EVIDENCE"
 } elseif ($buyLikeRows -eq 0 -and $attentionRows -gt 0 -and $attentionNoTerminalRows -eq $attentionRows) {
     "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE"
@@ -314,7 +351,11 @@ $nextAction = if ($signalEvalNoBuyRecommendation -eq "NO_BUY_LIKE_SIGNAL_EVAL_ST
 } elseif ($status -eq "PENDING_BUY_LIKE_CANDIDATES") {
     "Wait for fresh BUY-like candidates or inspect signal-generation thresholds before any entry/filter policy experiment."
 } elseif ($status -eq "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE" -and $attentionStrategyScopedRows -gt 0) {
-    "Review strategy-scoped attention follow-up distribution (strategyScopedRows=$attentionStrategyScopedRows, noTerminal=$attentionStrategyScopedNoTerminalRows, entrySkip=$attentionStrategyScopedEntrySkipRows) before routing to EntryDedup, filter-block, or strategy activation work."
+    if ($attentionStrategyScopedNoTerminalRows -gt 0 -and $noTerminalContinuityStatus -eq "READY_FOR_NO_TERMINAL_CONTINUITY_REVIEW_NOT_LIVE") {
+        "Review strategy-scoped attention continuity RCA (strategyScopedRows=$attentionStrategyScopedRows, noTerminal=$attentionStrategyScopedNoTerminalRows, continuityPrimary=$noTerminalContinuityPrimaryClassification, entrySkip=$attentionStrategyScopedEntrySkipRows) before routing to EntryDedup, matcher-window, filter-block, or strategy activation work."
+    } else {
+        "Review strategy-scoped attention follow-up distribution (strategyScopedRows=$attentionStrategyScopedRows, noTerminal=$attentionStrategyScopedNoTerminalRows, entrySkip=$attentionStrategyScopedEntrySkipRows) before routing to EntryDedup, filter-block, or strategy activation work."
+    }
 } elseif ($status -eq "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE") {
     "Review attention-hit terminal follow-up distribution before routing to EntryDedup, filter-block, or strategy activation work."
 } else {
@@ -377,6 +418,15 @@ $packet = [pscustomobject]@{
         signalBuyRows = $buyLikeSignalBuyRows
         autotradeFollowupRows = $buyLikeAutotradeRows
     }
+    noTerminalContinuity = [pscustomobject]@{
+        status = $noTerminalContinuityStatus
+        followupHours = $FollowupHours
+        extendedFollowupHours = $ExtendedFollowupHours
+        noTerminalFollowupRows = $noTerminalContinuityRows
+        primaryClassification = $noTerminalContinuityPrimaryClassification
+        classification = @($noTerminalContinuityClassification)
+        terminalAfterPrimaryWindowDistribution = @($terminalAfterPrimaryWindowDistribution)
+    }
     reviewItems = @($reviewItems)
     blockers = @($blockers)
     requiredEvidence = @($requiredEvidence)
@@ -385,17 +435,19 @@ $packet = [pscustomobject]@{
         attentionHitProgression = $attention.ExitCode
         signalEvalNoBuyGeneration = $signalEvalNoBuy.ExitCode
         buyLikeCandidateProgression = $buyLike.ExitCode
+        noTerminalContinuity = $noTerminalContinuity.ExitCode
     }
     nextAction = $nextAction
     notAuthorization = "read-only no-buy attention flow review packet only; does not deploy, restart, reload nginx, change production env, enable live trading, relax EntryDedup/DataFreshness/live policy, enable scheduler, place orders, modify OCO, close positions, mutate DB/grid/fund/Earn/Telegram/exchange/external backfill state, or authorize strategy/filter changes"
 }
 
 Write-Host "[no-buy-attention-flow-review-packet] read-only packet"
-Write-Host "scope=READ_ONLY; invokes DataFreshness profit blocker brief, ATTENTION_HIT progression, SIGNAL_EVAL no-buy generation, and BUY-like progression only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; invokes DataFreshness profit blocker brief, ATTENTION_HIT progression, SIGNAL_EVAL no-buy generation, BUY-like progression, and no-terminal continuity only; no production env, DB writes, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_data_freshness_profit_blocker_brief=prepare_data_freshness_profit_blocker_brief_ssh.ps1 exitCode=$($profitBlocker.ExitCode)"
 Write-Host "source_attention_hit_progression=smoke_attention_hit_progression_ssh.ps1 exitCode=$($attention.ExitCode)"
 Write-Host "source_signal_eval_no_buy_generation=smoke_signal_eval_no_buy_generation_ssh.ps1 exitCode=$($signalEvalNoBuy.ExitCode)"
 Write-Host "source_buy_like_candidate_progression=smoke_buy_like_candidate_progression_ssh.ps1 exitCode=$($buyLike.ExitCode)"
+Write-Host "source_no_terminal_followup_continuity=smoke_no_terminal_followup_continuity_ssh.ps1 exitCode=$($noTerminalContinuity.ExitCode)"
 Write-Host "data_freshness_profit_blocker_status=$profitBlockerStatus"
 Write-Host "data_freshness_sample_gap_rca_recommendation=$sampleGapRcaRecommendation"
 Write-Host "sample_gap_buy_like_rows_$($ReviewDays)d_review=$sampleGapBuyLikeRows"
@@ -446,6 +498,11 @@ Write-Host "buy_like_filter_block_followup_rows=$buyLikeFilterRows"
 Write-Host "buy_like_entry_skip_followup_rows=$buyLikeEntrySkipRows"
 Write-Host "buy_like_signal_buy_rows=$buyLikeSignalBuyRows"
 Write-Host "buy_like_autotrade_followup_rows=$buyLikeAutotradeRows"
+Write-Host "no_terminal_continuity_status=$noTerminalContinuityStatus"
+Write-Host "no_terminal_continuity_rows=$noTerminalContinuityRows"
+Write-Host "no_terminal_continuity_primary_classification=$noTerminalContinuityPrimaryClassification"
+Write-Host ("no_terminal_continuity_classification=" + (ConvertTo-Json -Compress -Depth 6 @($noTerminalContinuityClassification)))
+Write-Host ("terminal_after_primary_window_distribution=" + (ConvertTo-Json -Compress -Depth 6 @($terminalAfterPrimaryWindowDistribution)))
 Write-Host ("no_buy_attention_flow_review_items=" + (ConvertTo-Json -Compress @($reviewItems)))
 Write-Host ("no_buy_attention_flow_blockers=" + (ConvertTo-Json -Compress @($blockers)))
 Write-Host ("no_buy_attention_flow_required_evidence=" + (ConvertTo-Json -Compress @($requiredEvidence)))

@@ -60,6 +60,8 @@ foreach ($marker in @(
         "smoke_attention_hit_progression_ssh.ps1",
         "smoke_signal_eval_no_buy_generation_ssh.ps1",
         "smoke_buy_like_candidate_progression_ssh.ps1",
+        "smoke_no_terminal_followup_continuity_ssh.ps1",
+        "ExtendedFollowupHours",
         "NO_BUY_ATTENTION_FLOW_REVIEW_PACKET",
         "no_buy_attention_flow_review_packet",
         "no_buy_attention_flow_review_status",
@@ -87,6 +89,11 @@ foreach ($marker in @(
         "nearThresholdGapCount",
         "closestThresholdGap",
         "buy_like_candidate_progression_recommendation",
+        "no_terminal_continuity_status",
+        "no_terminal_continuity_primary_classification",
+        "noTerminalContinuity",
+        "NO_TERMINAL_CONTINUITY_REVIEW_READY",
+        "terminal_after_primary_window_distribution",
         "attention_no_terminal_followup_rows",
         "attention_macro_watch_only_rows",
         "attention_strategy_scoped_rows",
@@ -150,6 +157,10 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-FollowupHours", "49") `
     -ExpectedPattern "FollowupHours must be between 1 and 48"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-FollowupHours", "8", "-ExtendedFollowupHours", "7") `
+    -ExpectedPattern "ExtendedFollowupHours must be between FollowupHours and 168"
 
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-MaxRows", "0") `

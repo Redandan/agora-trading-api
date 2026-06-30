@@ -3214,7 +3214,9 @@ Trading deployment prep:
 - Grid open blockers now have a read-only priority board:
   `scripts/prepare_grid_open_blocker_priority_board_ssh.ps1`. It consumes the
   pre-env operator authorization request and the post-env verification bundle,
-  then emits
+  through bounded child execution with `ChildTimeoutSeconds` and
+  `ChildHeartbeatSeconds`, emits `child_start`, `child_heartbeat`, and
+  `child_complete` lines for each child packet, then emits
   `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
   `grid_open_blocker_priority_board_status`,
   `grid_open_readiness_score_pct`,
@@ -3239,7 +3241,10 @@ Trading deployment prep:
   runtime blocker instead. `EVENT_RISK_NOT_R0` and
   `OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE` are ranked
   before `GRID_ENV_DIFF_NOT_APPLIED`, so event/trend risk cannot be hidden by
-  a pending env diff. It is not
+  a pending env diff. If a child packet times out or cannot produce valid JSON,
+  the board returns `REFRESH_GRID_OPEN_BLOCKER_PRIORITY_BOARD_EVIDENCE` and
+  ranks `GRID_PRIORITY_BOARD_EVIDENCE_INCOMPLETE` first, so UNKNOWN market/env
+  fields from incomplete evidence are not misclassified as live blockers. It is not
   authorization to change env, deploy, restart, call `createGrid`, enable
   grid/scheduler/recovery, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
@@ -3282,7 +3287,8 @@ Trading deployment prep:
   authorization gates remain blocked.
 - Grid open readiness now has a bounded read-only watch wrapper:
   `scripts/watch_grid_open_readiness_ssh.ps1`. It invokes only the blocker
-  priority board, adds child heartbeat/timeout handling, and emits
+  priority board, adds a bounded watch loop around the board's own child
+  heartbeat/timeout handling, and emits
   `grid_open_readiness_watch_status`, `grid_open_readiness_watch_score_pct`,
   `grid_open_readiness_watch_score_delta_pct`,
   `grid_open_readiness_watch_top_blocker`, and

@@ -999,6 +999,10 @@ Expected:
   pre-env request readiness and
   `prepare_grid_post_env_read_only_verification_bundle_ssh.ps1` for post-env
   verification readiness.
+- Runs those child packets with `ChildTimeoutSeconds` and
+  `ChildHeartbeatSeconds`, emitting `child_start`, `child_heartbeat`, and
+  `child_complete` lines so grid review does not wait indefinitely on a stuck
+  SSH/MCP child check.
 - Emits `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
   `grid_open_blocker_priority_board_packet`,
   `grid_open_blocker_priority_board_status`,
@@ -1029,6 +1033,10 @@ Expected:
 - Ranks split/deploy, event-risk, trend-regime, production env, replay-score,
   capital-cap, scheduler/recovery/Earn, and operator-authorization-chain
   blockers into explicit next actions and authorization requirements.
+- If a child packet times out or cannot produce valid JSON, the board returns
+  `REFRESH_GRID_OPEN_BLOCKER_PRIORITY_BOARD_EVIDENCE` and ranks
+  `GRID_PRIORITY_BOARD_EVIDENCE_INCOMPLETE` first. Do not treat UNKNOWN
+  market/env fields from incomplete child evidence as live blockers.
 - `SPLIT_ACCEPTANCE_NOT_PASSING` blocks createGrid review when runtime drift or
   unknown runtime currentness is present. If the split handoff proves
   `grid_split_runtime_current_for_grid_open=true`, treat the split lane as a

@@ -58,6 +58,7 @@ foreach ($marker in @(
         "smoke_live_origin_delta_local.ps1",
         "READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION",
         "BLOCKED_GRID_OPEN_BLOCKER_PRIORITY_BOARD_NOT_MUTATION",
+        "REFRESH_GRID_OPEN_BLOCKER_PRIORITY_BOARD_EVIDENCE",
         "DEPLOY_CURRENT_MAIN_AND_RERUN_READ_ONLY_VERIFICATION_AFTER_SEPARATE_AUTHORIZATION",
         "CONTINUE_GRID_OPEN_REVIEW_WITH_RUNTIME_CURRENT_TOOLING_DRIFT",
         "WAIT_EVENT_RISK_R0_BEFORE_ENV_OR_CREATEGRID_REVIEW",
@@ -65,6 +66,7 @@ foreach ($marker in @(
         "PREPARE_SEPARATE_GRID_ENV_DIFF_AUTHORIZATION",
         "RESOLVE_TOP_GRID_OPEN_BLOCKER_AND_RERUN",
         "SPLIT_ACCEPTANCE_NOT_PASSING",
+        "GRID_PRIORITY_BOARD_EVIDENCE_INCOMPLETE",
         "GRID_ENV_DIFF_NOT_APPLIED",
         "EVENT_RISK_NOT_R0",
         "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE",
@@ -126,6 +128,19 @@ foreach ($marker in @(
         "oco_mutation_allowed=false",
         "telegram_send_allowed=false",
         "notAuthorization=read-only grid open blocker priority board only",
+        "ChildTimeoutSeconds",
+        "ChildHeartbeatSeconds",
+        "Invoke-ChildScript",
+        "TargetArgsJson",
+        "ConvertFrom-Json",
+        "Start-Job",
+        "Stop-Job",
+        "Remove-Job",
+        "child_start script=",
+        "child_heartbeat script=",
+        "child_complete script=",
+        "timedOut=",
+        "child_timeout script=",
         "RequireBoardReady"
     )) {
     Assert-Contains -Name "grid open blocker priority board script marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
@@ -178,6 +193,12 @@ try {
     }
     Assert-FailsWith -Name "bad stop out" -Pattern "StopOutPct must be between 1 and 20" -Action {
         & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -StopOutPct 50
+    }
+    Assert-FailsWith -Name "bad child timeout" -Pattern "ChildTimeoutSeconds must be between 30 and 1800" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -ChildTimeoutSeconds 1
+    }
+    Assert-FailsWith -Name "bad child heartbeat" -Pattern "ChildHeartbeatSeconds must be less than or equal to ChildTimeoutSeconds" -Action {
+        & $scriptPath -SshHost "ubuntu@example.com" -SshKey $tempKey -AppDir "/home/ubuntu/agora-trading-api" -EnvFile "/home/ubuntu/.env.trading.secrets" -ChildTimeoutSeconds 30 -ChildHeartbeatSeconds 31
     }
 } finally {
     Remove-Item -LiteralPath $tempKey -Force -ErrorAction SilentlyContinue

@@ -509,7 +509,8 @@ Read-only Grid open blocker priority board:
 .\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1
 ```
 
-This consumes the post-env verification bundle and emits
+This consumes the post-env verification bundle through bounded child execution
+with `ChildTimeoutSeconds` and `ChildHeartbeatSeconds`, then emits
 `GRID_OPEN_BLOCKER_PRIORITY_BOARD`,
 `grid_open_blocker_priority_board_status`,
 `grid_open_readiness_score_pct`,
@@ -520,7 +521,11 @@ This consumes the post-env verification bundle and emits
 `grid_open_blocker_priority_ranked_blockers`, and `grid_open_allowed=false`.
 It ranks split/deploy, event-risk, trend-regime, env, replay-score, capital-cap,
 scheduler/recovery/Earn, and operator-authorization-chain blockers into the
-next safest read-only action. `SPLIT_ACCEPTANCE_NOT_PASSING` remains a hard
+next safest read-only action. If a child packet times out or cannot produce
+valid JSON, the board returns
+`REFRESH_GRID_OPEN_BLOCKER_PRIORITY_BOARD_EVIDENCE` with
+`GRID_PRIORITY_BOARD_EVIDENCE_INCOMPLETE` before ranking market or env blockers.
+`SPLIT_ACCEPTANCE_NOT_PASSING` remains a hard
 runtime blocker only when origin-delta evidence shows runtime drift or unknown
 runtime currentness; when `origin_runtime_delta_files=0` and deployment
 metadata is current, it is a server tooling-sync follow-up for read-only grid
@@ -544,8 +549,9 @@ Bounded read-only Grid open readiness watch:
 .\scripts\watch_grid_open_readiness_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
 ```
 
-This invokes only `prepare_grid_open_blocker_priority_board_ssh.ps1`, adds
-child heartbeat/timeout handling, and emits `grid_open_readiness_watch_status`,
+This invokes only `prepare_grid_open_blocker_priority_board_ssh.ps1`, adds a
+bounded watch loop around the board's own child heartbeat/timeout handling, and
+emits `grid_open_readiness_watch_status`,
 `grid_open_readiness_watch_score_pct`, `grid_open_readiness_watch_top_blocker`,
 `grid_open_readiness_watch_ranked_blockers`, and
 `grid_open_readiness_watch_next_action`. Pending states include

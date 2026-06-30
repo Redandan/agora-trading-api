@@ -11,6 +11,8 @@ param(
     [decimal]$PerLevelUsdt = 10,
     [decimal]$StopOutPct = 3.0,
     [decimal]$CandidateHalfWidthPct = 0,
+    [int]$ChildTimeoutSeconds = 600,
+    [int]$ChildHeartbeatSeconds = 30,
     [switch]$RequireBoardReady
 )
 
@@ -116,6 +118,85 @@ function Get-FirstPresentValue {
     return $null
 }
 
+function Invoke-ChildScript {
+    param(
+        [string]$Name,
+        [string]$ScriptPath,
+        [string[]]$ChildArgs,
+        [int]$TimeoutSeconds,
+        [int]$HeartbeatSeconds
+    )
+
+    Write-Host "[grid-open-blocker-priority-board] child_start script=$Name timeoutSeconds=$TimeoutSeconds"
+    $childArgsJson = ConvertTo-Json -Compress @($ChildArgs)
+    $job = Start-Job -ScriptBlock {
+        param(
+            [string]$PowerShellPath,
+            [string]$TargetScript,
+            [string]$TargetArgsJson
+        )
+
+        $ErrorActionPreference = "Continue"
+        $TargetArgs = @($TargetArgsJson | ConvertFrom-Json | ForEach-Object { [string]$_ })
+        $childOutput = & $PowerShellPath -NoProfile -ExecutionPolicy Bypass -File $TargetScript @TargetArgs 2>&1
+        [pscustomobject]@{
+            ExitCode = $LASTEXITCODE
+            Output = @($childOutput | ForEach-Object { [string]$_ })
+        }
+    } -ArgumentList @($powerShell.Source, $ScriptPath, $childArgsJson)
+
+    $elapsedSeconds = 0
+    $timedOut = $false
+    try {
+        while ($job.State -eq "Running") {
+            $remainingSeconds = $TimeoutSeconds - $elapsedSeconds
+            if ($remainingSeconds -le 0) {
+                $timedOut = $true
+                break
+            }
+
+            $sleepSeconds = [Math]::Min($HeartbeatSeconds, $remainingSeconds)
+            Start-Sleep -Seconds $sleepSeconds
+            $elapsedSeconds += $sleepSeconds
+            if ($job.State -eq "Running") {
+                Write-Host "[grid-open-blocker-priority-board] child_heartbeat script=$Name elapsedSeconds=$elapsedSeconds"
+            }
+        }
+
+        if ($timedOut -or $job.State -eq "Running") {
+            Stop-Job -Job $job -ErrorAction SilentlyContinue
+            Write-Host "[grid-open-blocker-priority-board] child_complete script=$Name exitCode=124 timedOut=true elapsedSeconds=$elapsedSeconds"
+            return [pscustomobject]@{
+                ExitCode = 124
+                Output = @("child_timeout script=$Name timeoutSeconds=$TimeoutSeconds")
+                TimedOut = $true
+            }
+        }
+
+        $result = Receive-Job -Job $job -ErrorAction Continue
+        $childResult = @($result | Where-Object { $_ -is [pscustomobject] -and $_.PSObject.Properties["ExitCode"] } | Select-Object -Last 1)
+        if ($childResult.Count -eq 0) {
+            Write-Host "[grid-open-blocker-priority-board] child_complete script=$Name exitCode=1 timedOut=false elapsedSeconds=$elapsedSeconds"
+            return [pscustomobject]@{
+                ExitCode = 1
+                Output = @($result | ForEach-Object { [string]$_ })
+                TimedOut = $false
+            }
+        }
+
+        $exitCode = [int]$childResult[0].ExitCode
+        $output = @($childResult[0].Output | ForEach-Object { [string]$_ })
+        Write-Host "[grid-open-blocker-priority-board] child_complete script=$Name exitCode=$exitCode timedOut=false elapsedSeconds=$elapsedSeconds"
+        return [pscustomobject]@{
+            ExitCode = $exitCode
+            Output = $output
+            TimedOut = $false
+        }
+    } finally {
+        Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($SshHost)) { throw "SshHost is required. Pass -SshHost or set AGORA_SSH_HOST." }
 if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -SshKey or set AGORA_SSH_KEY." }
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
@@ -125,6 +206,9 @@ if ($GridCount -lt 2 -or $GridCount -gt 24) { throw "GridCount must be between 2
 if ($PerLevelUsdt -lt 5 -or $PerLevelUsdt -gt 1000) { throw "PerLevelUsdt must be between 5 and 1000." }
 if ($StopOutPct -lt 1 -or $StopOutPct -gt 20) { throw "StopOutPct must be between 1 and 20." }
 if ($CandidateHalfWidthPct -ne 0 -and ($CandidateHalfWidthPct -lt 2.5 -or $CandidateHalfWidthPct -gt 30)) { throw "CandidateHalfWidthPct must be 0 or between 2.5 and 30." }
+if ($ChildTimeoutSeconds -lt 30 -or $ChildTimeoutSeconds -gt 1800) { throw "ChildTimeoutSeconds must be between 30 and 1800." }
+if ($ChildHeartbeatSeconds -lt 5 -or $ChildHeartbeatSeconds -gt 300) { throw "ChildHeartbeatSeconds must be between 5 and 300." }
+if ($ChildHeartbeatSeconds -gt $ChildTimeoutSeconds) { throw "ChildHeartbeatSeconds must be less than or equal to ChildTimeoutSeconds." }
 
 Assert-SshHostSafe -Name "SshHost" -Value $SshHost
 Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
@@ -178,12 +262,15 @@ $originDeltaArgs = @(
 $previousErrorActionPreference = $ErrorActionPreference
 try {
     $ErrorActionPreference = "Continue"
-    $preEnvRequestOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $preEnvRequestScript @preEnvRequestArgs 2>&1
-    $preEnvRequestExitCode = $LASTEXITCODE
-    $bundleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $bundleScript @bundleArgs 2>&1
-    $bundleExitCode = $LASTEXITCODE
-    $originDeltaOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $originDeltaScript @originDeltaArgs 2>&1
-    $originDeltaExitCode = $LASTEXITCODE
+    $preEnvRequestResult = Invoke-ChildScript -Name "prepare_grid_open_operator_authorization_request_ssh.ps1" -ScriptPath $preEnvRequestScript -ChildArgs $preEnvRequestArgs -TimeoutSeconds $ChildTimeoutSeconds -HeartbeatSeconds $ChildHeartbeatSeconds
+    $preEnvRequestOutput = $preEnvRequestResult.Output
+    $preEnvRequestExitCode = $preEnvRequestResult.ExitCode
+    $bundleResult = Invoke-ChildScript -Name "prepare_grid_post_env_read_only_verification_bundle_ssh.ps1" -ScriptPath $bundleScript -ChildArgs $bundleArgs -TimeoutSeconds $ChildTimeoutSeconds -HeartbeatSeconds $ChildHeartbeatSeconds
+    $bundleOutput = $bundleResult.Output
+    $bundleExitCode = $bundleResult.ExitCode
+    $originDeltaResult = Invoke-ChildScript -Name "smoke_live_origin_delta_local.ps1" -ScriptPath $originDeltaScript -ChildArgs $originDeltaArgs -TimeoutSeconds $ChildTimeoutSeconds -HeartbeatSeconds $ChildHeartbeatSeconds
+    $originDeltaOutput = $originDeltaResult.Output
+    $originDeltaExitCode = $originDeltaResult.ExitCode
 } finally {
     $ErrorActionPreference = $previousErrorActionPreference
 }
@@ -287,6 +374,9 @@ $runtimeCurrentForGridOpen = (
 )
 $splitAcceptanceBlockedByToolingOnlyCurrentness = (-not $splitOk -and $runtimeCurrentForGridOpen)
 
+if ($missingEvidence.Count -gt 0) {
+    Add-Blocker -List $blockers -Rank 0 -Family "evidence-collection" -Priority "P0" -Blocker "GRID_PRIORITY_BOARD_EVIDENCE_INCOMPLETE" -Evidence (@($missingEvidence) -join " | ") -Action "Rerun this board with a larger ChildTimeoutSeconds value or run the timed-out child packet directly before ranking market or env blockers." -Authorization "none until priority board evidence is complete"
+}
 if (-not $splitOk -and -not $splitAcceptanceBlockedByToolingOnlyCurrentness) {
     Add-Blocker -List $blockers -Rank 1 -Family "deployment/split-acceptance" -Priority "P0" -Blocker "SPLIT_ACCEPTANCE_NOT_PASSING" -Evidence ($splitSummary -join " | ") -Action "Deploy/restart only after separate authorization, then rerun split acceptance and this board." -Authorization "separate deploy/restart authorization"
 }
@@ -354,6 +444,8 @@ $status = if ($missingEvidence.Count -eq 0) {
 }
 $decision = if ($gridOpenableNow) {
     "AWAIT_SEPARATE_CREATEGRID_AUTHORIZATION"
+} elseif ($missingEvidence.Count -gt 0) {
+    "REFRESH_GRID_OPEN_BLOCKER_PRIORITY_BOARD_EVIDENCE"
 } elseif (@($blockers | Where-Object { $_.blocker -eq "SPLIT_ACCEPTANCE_NOT_PASSING" }).Count -gt 0) {
     "DEPLOY_CURRENT_MAIN_AND_RERUN_READ_ONLY_VERIFICATION_AFTER_SEPARATE_AUTHORIZATION"
 } elseif (@($blockers | Where-Object { $_.blocker -eq "EVENT_RISK_NOT_R0" }).Count -gt 0) {

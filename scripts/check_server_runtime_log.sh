@@ -11,6 +11,7 @@ ALLOW_HIGH_RISK_LOG="${ALLOW_HIGH_RISK_LOG:-0}"
 MAX_OKX_WS_CONNECTION_RESET_WARN="${MAX_OKX_WS_CONNECTION_RESET_WARN:-3}"
 MAX_OKX_WS_TRANSIENT_WARN="${MAX_OKX_WS_TRANSIENT_WARN:-10}"
 MAX_PYTH_NETWORK_WARN="${MAX_PYTH_NETWORK_WARN:-3}"
+MAX_MCP_AUTH_DENIED_WARN="${MAX_MCP_AUTH_DENIED_WARN:-20}"
 
 fail() {
   echo "[runtime-log] FAIL: $*" >&2
@@ -90,7 +91,8 @@ WARN_OKX_WS_CONNECTION_RESET_PATTERN='OkxWsKlineService.*\[OkxWS\] WS failure .*
 WARN_OKX_WS_TRANSIENT_PATTERN='OkxWsKlineService.*\[OkxWS\] WS failure .*(: null|timeout|timed out|EOF|closed|reset by peer)'
 WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN='ScoreBuyV2Strategy.*\[ScoreBuyV2\] predict failed v[0-9]+: .*ML003011: Columns of provided data need to match those used for training'
 WARN_PYTH_NETWORK_TRANSIENT_PATTERN='PythNetworkService.*\[Pyth\] feed=.*(HTTP [0-9]+|empty response|unparseable price|error: .*)'
-KNOWN_WARN_PATTERN="${WARN_FLYWAY_MYSQL_PATTERN}|${WARN_STARTUP_TIMING_PATTERN}|${WARN_CGLIB_PROXY_PATTERN}|${WARN_OPEN_IN_VIEW_PATTERN}|${WARN_THEGRAPH_PATTERN}|${WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN}|${WARN_OKX_WS_CONNECTION_RESET_PATTERN}|${WARN_OKX_WS_TRANSIENT_PATTERN}|${WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN}|${WARN_PYTH_NETWORK_TRANSIENT_PATTERN}"
+WARN_MCP_AUTH_DENIED_PATTERN='McpApiKeyFilter.*\[McpAuth\] DENIED MCP method=.*reason=(metadata key missing|API key missing|invalid API key|metadata key invalid)'
+KNOWN_WARN_PATTERN="${WARN_FLYWAY_MYSQL_PATTERN}|${WARN_STARTUP_TIMING_PATTERN}|${WARN_CGLIB_PROXY_PATTERN}|${WARN_OPEN_IN_VIEW_PATTERN}|${WARN_THEGRAPH_PATTERN}|${WARN_AUTONOMOUS_DIGEST_SEVERE_PATTERN}|${WARN_OKX_WS_CONNECTION_RESET_PATTERN}|${WARN_OKX_WS_TRANSIENT_PATTERN}|${WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN}|${WARN_PYTH_NETWORK_TRANSIENT_PATTERN}|${WARN_MCP_AUTH_DENIED_PATTERN}"
 
 warn_category_count() {
   local pattern="$1"
@@ -107,6 +109,7 @@ WARN_OKX_WS_CONNECTION_RESET_COUNT="$(warn_category_count "$WARN_OKX_WS_CONNECTI
 WARN_OKX_WS_TRANSIENT_COUNT="$(warn_category_count "$WARN_OKX_WS_TRANSIENT_PATTERN")"
 WARN_SCOREBUY_ML_SCHEMA_MISMATCH_COUNT="$(warn_category_count "$WARN_SCOREBUY_ML_SCHEMA_MISMATCH_PATTERN")"
 WARN_PYTH_NETWORK_TRANSIENT_COUNT="$(warn_category_count "$WARN_PYTH_NETWORK_TRANSIENT_PATTERN")"
+WARN_MCP_AUTH_DENIED_COUNT="$(warn_category_count "$WARN_MCP_AUTH_DENIED_PATTERN")"
 
 case "$MAX_OKX_WS_CONNECTION_RESET_WARN" in
   ''|*[!0-9]*) fail "invalid MAX_OKX_WS_CONNECTION_RESET_WARN: $MAX_OKX_WS_CONNECTION_RESET_WARN" ;;
@@ -116,6 +119,9 @@ case "$MAX_OKX_WS_TRANSIENT_WARN" in
 esac
 case "$MAX_PYTH_NETWORK_WARN" in
   ''|*[!0-9]*) fail "invalid MAX_PYTH_NETWORK_WARN: $MAX_PYTH_NETWORK_WARN" ;;
+esac
+case "$MAX_MCP_AUTH_DENIED_WARN" in
+  ''|*[!0-9]*) fail "invalid MAX_MCP_AUTH_DENIED_WARN: $MAX_MCP_AUTH_DENIED_WARN" ;;
 esac
 
 if [ "$WARN_OKX_WS_CONNECTION_RESET_COUNT" -gt "$MAX_OKX_WS_CONNECTION_RESET_WARN" ]; then
@@ -130,6 +136,10 @@ if [ "$WARN_PYTH_NETWORK_TRANSIENT_COUNT" -gt "$MAX_PYTH_NETWORK_WARN" ]; then
   grep -nE " WARN .*(${WARN_PYTH_NETWORK_TRANSIENT_PATTERN})" "$RUN_LOG_FILE" | tail -n 40 >&2 || true
   fail "Pyth network warnings exceeded threshold: count=$WARN_PYTH_NETWORK_TRANSIENT_COUNT max=$MAX_PYTH_NETWORK_WARN"
 fi
+if [ "$WARN_MCP_AUTH_DENIED_COUNT" -gt "$MAX_MCP_AUTH_DENIED_WARN" ]; then
+  grep -nE " WARN .*(${WARN_MCP_AUTH_DENIED_PATTERN})" "$RUN_LOG_FILE" | tail -n 40 >&2 || true
+  fail "MCP auth denied warnings exceeded threshold: count=$WARN_MCP_AUTH_DENIED_COUNT max=$MAX_MCP_AUTH_DENIED_WARN"
+fi
 
 UNKNOWN_WARN_LINES="$(grep -nE ' WARN ' "$RUN_LOG_FILE" | grep -Ev "$KNOWN_WARN_PATTERN" || true)"
 UNKNOWN_WARN_COUNT="$(printf '%s\n' "$UNKNOWN_WARN_LINES" | sed '/^[[:space:]]*$/d' | wc -l | tr -d '[:space:]')"
@@ -142,7 +152,7 @@ if [ "$UNKNOWN_WARN_COUNT" -gt 0 ]; then
   fi
 else
   ok "runtime WARN lines match known baseline: total_warn=$WARN_COUNT"
-  ok "WARN baseline category flyway_mysql_version=$WARN_FLYWAY_MYSQL_COUNT startup_bean_timing=$WARN_STARTUP_TIMING_COUNT cglib_proxy=$WARN_CGLIB_PROXY_COUNT open_in_view=$WARN_OPEN_IN_VIEW_COUNT thegraph_optional_key=$WARN_THEGRAPH_COUNT autonomous_digest_severe=$WARN_AUTONOMOUS_DIGEST_SEVERE_COUNT okx_ws_connection_reset=$WARN_OKX_WS_CONNECTION_RESET_COUNT okx_ws_transient=$WARN_OKX_WS_TRANSIENT_COUNT scorebuy_ml_schema_mismatch=$WARN_SCOREBUY_ML_SCHEMA_MISMATCH_COUNT pyth_network_transient=$WARN_PYTH_NETWORK_TRANSIENT_COUNT unknown=0"
+  ok "WARN baseline category flyway_mysql_version=$WARN_FLYWAY_MYSQL_COUNT startup_bean_timing=$WARN_STARTUP_TIMING_COUNT cglib_proxy=$WARN_CGLIB_PROXY_COUNT open_in_view=$WARN_OPEN_IN_VIEW_COUNT thegraph_optional_key=$WARN_THEGRAPH_COUNT autonomous_digest_severe=$WARN_AUTONOMOUS_DIGEST_SEVERE_COUNT okx_ws_connection_reset=$WARN_OKX_WS_CONNECTION_RESET_COUNT okx_ws_transient=$WARN_OKX_WS_TRANSIENT_COUNT scorebuy_ml_schema_mismatch=$WARN_SCOREBUY_ML_SCHEMA_MISMATCH_COUNT pyth_network_transient=$WARN_PYTH_NETWORK_TRANSIENT_COUNT mcp_auth_denied=$WARN_MCP_AUTH_DENIED_COUNT unknown=0"
 fi
 
 TAIL_LOG_LINES="$(tail -n "$LOG_TAIL_LINES" "$RUN_LOG_FILE")"

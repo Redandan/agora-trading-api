@@ -4143,6 +4143,7 @@ Current warning classes:
 | `OkxWsKlineService` public WS `Connection reset` | Treated as transient only while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`) and followed by fresh persisted K-line rows. Exceeding the threshold is a runtime-log smoke failure and should be investigated as collector/network instability. |
 | `OkxWsKlineService` public WS transient failure such as `: null`, timeout, EOF, or closed connection | Treated as transient only while below `MAX_OKX_WS_TRANSIENT_WARN` (default `10`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data collector/network instability before relying on grid-open or post-open evidence. |
 | `PythNetworkService` feed/network timeout, HTTP, empty response, or unparseable price WARN | Treated as transient only while below `MAX_PYTH_NETWORK_WARN` (default `3`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data provider instability before relying on Pyth-derived evidence. |
+| `McpApiKeyFilter` denied MCP request because metadata/API key is missing or invalid | Bounded auth-denied noise from public/unauthenticated probes. Treated as known only while below `MAX_MCP_AUTH_DENIED_WARN` (default `20`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as MCP abuse, route drift, or broken verifier auth. |
 | `ScoreBuyV2Strategy` `ML003011` feature-schema mismatch | Known ScoreBuy/HeatWave model schema drift warning. `ScoreBuyV2Strategy` catches the prediction failure and returns `HOLD`, so this is not a grid/order/OCO mutation, but the `scorebuy_ml_schema_mismatch` count should be reviewed before ScoreBuy live rollout or model promotion. |
 
 The warning baseline is intentionally separate from Trading split acceptance.
@@ -4165,8 +4166,8 @@ category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
   optional TheGraph key, autonomous digest severe-notification, bounded OKX
   public WS connection-reset and transient warnings, ScoreBuy/HeatWave
-  feature-schema mismatch warnings, and bounded Pyth market-data network
-  warnings.
+  feature-schema mismatch warnings, bounded Pyth market-data network warnings,
+  and bounded MCP auth-denied probe warnings.
 
 For grid opening, `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`
 passes `AcceptAlreadyAppliedEnvDiff` through the post-env packet chain. That

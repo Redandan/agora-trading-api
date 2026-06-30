@@ -246,6 +246,30 @@ Assert-SmokeCase `
     -Environment @{ MAX_OKX_WS_TRANSIENT_WARN = "0" }
 
 Assert-SmokeCase `
+    -Name "mcp auth denied is classified warn baseline" `
+    -Lines @(
+        "2026-06-30T04:18:43.818Z  WARN 3396029 --- [agora-trading-api] [mcat-handler-99] com.agora.mcp.auth.McpApiKeyFilter       : [McpAuth] DENIED MCP method=tools/list ip=127.0.0.1 reason=metadata key missing"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "mcp_auth_denied=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "mcp auth denied threshold is fail closed" `
+    -Lines @(
+        "2026-06-30T04:18:43.818Z  WARN 3396029 --- [agora-trading-api] [mcat-handler-99] com.agora.mcp.auth.McpApiKeyFilter       : [McpAuth] DENIED MCP method=tools/list ip=127.0.0.1 reason=metadata key missing"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "MCP auth denied warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_MCP_AUTH_DENIED_WARN = "0" }
+
+Assert-SmokeCase `
     -Name "high risk allow flag is diagnostic only" `
     -Lines @(
         "2026-06-18T00:00:00.000Z  INFO 1 --- [agora-trading-api] Started TradingApplication",

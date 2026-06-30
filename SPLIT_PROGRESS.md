@@ -3399,7 +3399,11 @@ Trading deployment prep:
   warning. The runtime-log smoke also classifies bounded `OkxWsKlineService`
   public WS transient WARN lines such as `: null` under
   `MAX_OKX_WS_TRANSIENT_WARN`; exceeding the threshold still fails closed as
-  collector/network instability evidence. The operator authorization request
+  collector/network instability evidence. Runtime-log smoke now also
+  classifies bounded `McpApiKeyFilter` auth-denied WARN lines from
+  unauthenticated MCP probes under `MAX_MCP_AUTH_DENIED_WARN`; exceeding the
+  threshold still fails closed as MCP auth abuse, route drift, or verifier auth
+  evidence. The operator authorization request
   packet now flattens nested bundle, capital, env-diff, create-preflight, and
   trend blockers into `grid_open_operator_authorization_request_blockers`.
 - The refreshed read-only production evidence still does not authorize opening

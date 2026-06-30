@@ -4,8 +4,11 @@ param(
     [int]$StrategyId = 485,
     [int]$MatrixTimeoutSeconds = 3900,
     [int]$ChildTimeoutSeconds = 900,
+    [int]$MatrixMaxAgeMinutes = 180,
+    [switch]$ReuseLatestProfitOperatorMatrix,
     [switch]$PlanOnly,
-    [switch]$ContinueOnStepFailure
+    [switch]$ContinueOnStepFailure,
+    [switch]$AllowBlockedStepFailures
 )
 
 Set-StrictMode -Version Latest
@@ -78,18 +81,59 @@ function Invoke-RefreshStep {
     }
 }
 
+function Get-LastPrefixedValue {
+    param([string]$Text, [string]$Prefix)
+    $line = @($Text -split "`r?`n" | Where-Object { $_.StartsWith($Prefix) } | Select-Object -Last 1)
+    if (-not $line) {
+        return ""
+    }
+    return $line.Substring($Prefix.Length).Trim()
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) { throw "ReviewOutputDir is required." }
 Assert-TokenSafe -Name "Symbol" -Value $Symbol
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be between 1 and 1000000." }
 if ($MatrixTimeoutSeconds -lt 60 -or $MatrixTimeoutSeconds -gt 7200) { throw "MatrixTimeoutSeconds must be between 60 and 7200." }
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) { throw "ChildTimeoutSeconds must be between 60 and 3600." }
+if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) { throw "MatrixMaxAgeMinutes must be between 1 and 1440." }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $reviewDir = if ([System.IO.Path]::IsPathRooted($ReviewOutputDir)) { $ReviewOutputDir } else { Join-Path $repoRoot $ReviewOutputDir }
 $out = { param([string]$Name) (Join-Path $ReviewOutputDir $Name) }
 
+$profitOperatorActionArgs = @(
+    "-ReviewOutputDir", $ReviewOutputDir,
+    "-Symbol", $Symbol,
+    "-StrategyId", "$StrategyId",
+    "-MatrixTimeoutSeconds", "$MatrixTimeoutSeconds",
+    "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
+    "-RequireReady"
+)
+$reusedProfitOperatorMatrixPath = ""
+if ($ReuseLatestProfitOperatorMatrix) {
+    $latestMatrixPointerPath = Join-Path $reviewDir "latest-profit-operator-matrix.path"
+    if (-not (Test-Path -LiteralPath $latestMatrixPointerPath)) {
+        throw "ReuseLatestProfitOperatorMatrix requested but latest matrix pointer was not found: $latestMatrixPointerPath"
+    }
+    $pointerValue = (Get-Content -Raw -LiteralPath $latestMatrixPointerPath).Trim()
+    if ([string]::IsNullOrWhiteSpace($pointerValue)) {
+        throw "ReuseLatestProfitOperatorMatrix requested but latest matrix pointer is empty: $latestMatrixPointerPath"
+    }
+    $matrixPath = if ([System.IO.Path]::IsPathRooted($pointerValue)) { $pointerValue } else { Join-Path $repoRoot $pointerValue }
+    if (-not (Test-Path -LiteralPath $matrixPath)) {
+        throw "ReuseLatestProfitOperatorMatrix requested but latest matrix output was not found: $matrixPath"
+    }
+    $matrixItem = Get-Item -LiteralPath $matrixPath
+    $matrixAgeMinutes = [int]((Get-Date) - $matrixItem.LastWriteTime).TotalMinutes
+    if ($matrixAgeMinutes -gt $MatrixMaxAgeMinutes) {
+        throw "ReuseLatestProfitOperatorMatrix requested but latest matrix is stale: ageMinutes=$matrixAgeMinutes maxAgeMinutes=$MatrixMaxAgeMinutes path=$matrixPath"
+    }
+    $reusedProfitOperatorMatrixPath = $matrixPath
+    $profitOperatorActionArgs += @("-MatrixOutputPath", $matrixPath, "-MatrixMaxAgeMinutes", "$MatrixMaxAgeMinutes")
+}
+
 $steps = @(
-    New-Step -Name "profit-operator-action-brief" -ScriptName "prepare_profit_operator_action_brief_ssh.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-MatrixTimeoutSeconds", "$MatrixTimeoutSeconds", "-ChildTimeoutSeconds", "$ChildTimeoutSeconds", "-RequireReady") -OutputPath (& $out "profit-operator-action-brief-latest.log") -Ssh $true -Required $true
+    New-Step -Name "profit-operator-action-brief" -ScriptName "prepare_profit_operator_action_brief_ssh.ps1" -Arguments $profitOperatorActionArgs -OutputPath (& $out "profit-operator-action-brief-latest.log") -Ssh $true -Required $true
     New-Step -Name "profit-operator-priority-decision" -ScriptName "prepare_profit_operator_priority_decision_brief.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "profit-operator-priority-decision-brief-latest.log") -Ssh $false -Required $true
     New-Step -Name "trailing-stop-dry-run-decision" -ScriptName "prepare_trailing_stop_dry_run_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "trailing-stop-dry-run-operator-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "strategy485-risk-reduction-decision" -ScriptName "prepare_strategy485_risk_reduction_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "strategy485-risk-reduction-operator-decision-packet-latest.log") -Ssh $false -Required $true
@@ -116,6 +160,10 @@ $plan = [pscustomobject]@{
     reviewOutputDir = $ReviewOutputDir
     symbol = $Symbol
     strategyId = $StrategyId
+    reuseLatestProfitOperatorMatrix = [bool]$ReuseLatestProfitOperatorMatrix
+    reusedProfitOperatorMatrixPath = $reusedProfitOperatorMatrixPath
+    matrixMaxAgeMinutes = $MatrixMaxAgeMinutes
+    allowBlockedStepFailures = [bool]$AllowBlockedStepFailures
     stepCount = @($steps).Count
     sshStepCount = @($steps | Where-Object { $_.usesSsh }).Count
     localStepCount = @($steps | Where-Object { -not $_.usesSsh }).Count
@@ -130,6 +178,11 @@ Write-Host "scope=READ_ONLY; invokes existing read-only SSH/MCP/SELECT evidence 
 Write-Host "profit_live_blocker_source_refresh_step_count=$(@($steps).Count)"
 Write-Host "profit_live_blocker_source_refresh_ssh_step_count=$(@($steps | Where-Object { $_.usesSsh }).Count)"
 Write-Host "profit_live_blocker_source_refresh_local_step_count=$(@($steps | Where-Object { -not $_.usesSsh }).Count)"
+Write-Host "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=$([bool]$ReuseLatestProfitOperatorMatrix)"
+Write-Host "profit_live_blocker_source_refresh_allow_blocked_step_failures=$([bool]$AllowBlockedStepFailures)"
+if ($ReuseLatestProfitOperatorMatrix) {
+    Write-Host "profit_live_blocker_source_refresh_reused_profit_operator_matrix_path=$reusedProfitOperatorMatrixPath"
+}
 Write-Host ("profit_live_blocker_source_refresh_plan=" + (ConvertTo-Json -Compress -Depth 8 $plan))
 Write-Host "notAuthorization=read-only source refresh orchestration only; does not authorize live trading, TinyLive execution, scheduler enablement, orders, OCO modification, close-position, deploy, production env change, Telegram send, EntryDedup/DataFreshness/live policy relaxation, DB/grid/fund/Earn/exchange mutation, or external backfill/import"
 
@@ -166,11 +219,37 @@ foreach ($step in $steps) {
 }
 
 $failed = @($results | Where-Object { -not $_.success })
-$status = if ($failed.Count -eq 0) { "COMPLETE_REFRESHED_SOURCES_NOT_LIVE_READY" } else { "INCOMPLETE_REFRESH_FAILED_STEPS" }
+$auditStep = @($steps | Where-Object { $_.name -eq "profit-live-blocker-audit" } | Select-Object -Last 1)
+$auditResult = @($results | Where-Object { $_.name -eq "profit-live-blocker-audit" } | Select-Object -Last 1)
+$auditStatus = ""
+$auditConclusion = ""
+if ($auditStep) {
+    $auditOutputPath = if ([System.IO.Path]::IsPathRooted([string]$auditStep.outputPath)) {
+        [string]$auditStep.outputPath
+    } else {
+        Join-Path $repoRoot ([string]$auditStep.outputPath)
+    }
+    if (Test-Path -LiteralPath $auditOutputPath) {
+        $auditText = Get-Content -Raw -LiteralPath $auditOutputPath
+        $auditStatus = Get-LastPrefixedValue -Text $auditText -Prefix "profit_live_blocker_audit_status="
+        $auditConclusion = Get-LastPrefixedValue -Text $auditText -Prefix "profit_live_readiness_conclusion="
+    }
+}
+$blockedStepFailuresAllowed = $AllowBlockedStepFailures -and $ContinueOnStepFailure -and $auditResult -and $auditResult.success -and $auditStatus -eq "BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT"
+$status = if ($failed.Count -eq 0) {
+    "COMPLETE_REFRESHED_SOURCES_NOT_LIVE_READY"
+} elseif ($blockedStepFailuresAllowed) {
+    "COMPLETE_REFRESHED_SOURCES_WITH_BLOCKED_LANES_NOT_LIVE_READY"
+} else {
+    "INCOMPLETE_REFRESH_FAILED_STEPS"
+}
 Write-Host ("profit_live_blocker_source_refresh_results=" + (ConvertTo-Json -Compress -Depth 6 @($results)))
 Write-Host "profit_live_blocker_source_refresh_failed_count=$($failed.Count)"
+Write-Host "profit_live_blocker_source_refresh_audit_status=$auditStatus"
+Write-Host "profit_live_blocker_source_refresh_audit_conclusion=$auditConclusion"
+Write-Host "profit_live_blocker_source_refresh_blocked_step_failures_allowed=$blockedStepFailuresAllowed"
 Write-Host "profit_live_blocker_source_refresh_status=$status"
 
-if ($failed.Count -gt 0) {
+if ($failed.Count -gt 0 -and -not $blockedStepFailuresAllowed) {
     throw "Profit live blocker source refresh failed step count=$($failed.Count)"
 }

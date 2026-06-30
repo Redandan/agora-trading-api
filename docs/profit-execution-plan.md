@@ -631,13 +631,21 @@ Current immediate command board:
 git status --short --branch
 git diff --check
 .\scripts\verify_local.ps1
+.\scripts\prepare_profit_live_blocker_source_refresh.ps1 -ReuseLatestProfitOperatorMatrix -ContinueOnStepFailure -AllowBlockedStepFailures
 .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
-.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady
 ```
 
+The latest source refresh can now reuse a fresh profit operator matrix and still
+finish successfully when the final audit is live-blocked. The current refreshed
+audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
+10 lanes, 1 review-ready non-live lane (`strategy574-tiny-live-governance`),
+and 9 blocked lanes. This is valid evidence, not live approval.
+
 If verification passes, commit and push the readiness work. The next separate
-execution step is the trailing-stop dry-run env/deploy phase. The exact
-operator authorization must match the handoff packet:
+execution step remains evidence-gated: only promote a lane after the relevant
+packet is fresh, review-ready, and explicitly authorizes the narrow action. For
+the currently active trailing dry-run observation lane, any future operator
+authorization must still match the handoff packet:
 
 ```text
 TRAILING_STOP_ENABLED=true

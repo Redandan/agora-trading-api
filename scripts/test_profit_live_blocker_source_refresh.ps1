@@ -27,7 +27,13 @@ foreach ($marker in @(
         "prepare_profit_live_blocker_audit_packet.ps1",
         "profit-live-blocker-audit-packet-latest.log",
         "ContinueOnStepFailure",
+        "AllowBlockedStepFailures",
         "PlanOnly",
+        "ReuseLatestProfitOperatorMatrix",
+        "latest-profit-operator-matrix.path",
+        "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=",
+        "profit_live_blocker_source_refresh_allow_blocked_step_failures=",
+        "profit_live_blocker_source_refresh_blocked_step_failures_allowed=",
         "notAuthorization=read-only source refresh orchestration only"
     )) {
     Assert-Contains -Name "source refresh script marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
@@ -48,8 +54,11 @@ foreach ($marker in @(
         "profit_live_blocker_source_refresh_step_count=20",
         "profit_live_blocker_source_refresh_ssh_step_count=8",
         "profit_live_blocker_source_refresh_local_step_count=12",
+        "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=False",
+        "profit_live_blocker_source_refresh_allow_blocked_step_failures=False",
         "profit_live_blocker_source_refresh_status=PLAN_ONLY_NOT_EXECUTED",
         '"packetType":"PROFIT_LIVE_BLOCKER_SOURCE_REFRESH_PLAN"',
+        '"allowBlockedStepFailures":false',
         '"name":"profit-operator-action-brief"',
         '"name":"profit-live-blocker-audit"',
         '"name":"no-buy-attention-flow-review"',
@@ -68,6 +77,40 @@ foreach ($marker in @(
 
 if ($text -match "step_start|child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
     throw "PlanOnly unexpectedly executed refresh steps:`n$text"
+}
+
+$reuseReviewDir = Join-Path $repoRoot "target\profit-review-source-refresh-test"
+New-Item -ItemType Directory -Force -Path $reuseReviewDir | Out-Null
+$matrixPath = Join-Path $reuseReviewDir "profit-operator-matrix-test.log"
+Set-Content -LiteralPath $matrixPath -Encoding UTF8 -Value @"
+profit_operator_review_matrix_status=NO_REVIEW_READY_ITEMS
+profit_operator_review_matrix_next_action=Continue read-only evidence collection.
+"@
+$relativeMatrixPath = "target\profit-review-source-refresh-test\profit-operator-matrix-test.log"
+Set-Content -LiteralPath (Join-Path $reuseReviewDir "latest-profit-operator-matrix.path") -Encoding UTF8 -Value $relativeMatrixPath
+
+$reuseOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -ReviewOutputDir $reuseReviewDir -ReuseLatestProfitOperatorMatrix 2>&1
+$reuseExitCode = $LASTEXITCODE
+$reuseText = ($reuseOutput | Out-String -Width 4096)
+if ($reuseExitCode -ne 0) {
+    throw "source refresh reuse plan failed:`n$reuseText"
+}
+
+foreach ($marker in @(
+        "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=True",
+        "profit_live_blocker_source_refresh_reused_profit_operator_matrix_path=$matrixPath",
+        '"reuseLatestProfitOperatorMatrix":true',
+        '"reusedProfitOperatorMatrixPath":"',
+        '"-MatrixOutputPath"',
+        '"-MatrixMaxAgeMinutes"',
+        '"prepare_profit_operator_action_brief_ssh.ps1"',
+        "profit_live_blocker_source_refresh_status=PLAN_ONLY_NOT_EXECUTED"
+    )) {
+    Assert-Contains -Name "source refresh reuse plan output" -Text $reuseText -Pattern ([regex]::Escape($marker))
+}
+
+if ($reuseText -match "step_start|child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+    throw "Reuse PlanOnly unexpectedly executed refresh steps:`n$reuseText"
 }
 
 Write-Host "[profit-live-blocker-source-refresh-test] OK"

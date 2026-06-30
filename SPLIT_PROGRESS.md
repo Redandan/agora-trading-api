@@ -437,6 +437,20 @@
   deploy, production env, live/TinyLive/scheduler, orders, OCO, close-position,
   Telegram, policy relaxation, and DB/grid/fund/Earn/exchange mutation out of
   scope.
+- A later source-refresh tooling pass added
+  `-ReuseLatestProfitOperatorMatrix` and `-AllowBlockedStepFailures` for the
+  profit live blocker pipeline. When the latest profit operator matrix is still
+  fresh, source refresh can reuse it through `-MatrixOutputPath` instead of
+  rerunning the heavy SSH matrix chain. With `-ContinueOnStepFailure` plus
+  `-AllowBlockedStepFailures`, a successful final audit with
+  `profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT`
+  returns
+  `COMPLETE_REFRESHED_SOURCES_WITH_BLOCKED_LANES_NOT_LIVE_READY` rather than
+  treating expected NOT_READY lane packets as a failed refresh. The refreshed
+  audit remained live-blocked with 10 lanes, 1 review-ready non-live lane
+  (`strategy574-tiny-live-governance`), and 9 blocked lanes; it did not
+  authorize live/TinyLive/scheduler, orders, OCO, deploy/env changes,
+  Telegram, policy relaxation, or DB/grid/fund/Earn/exchange mutation.
 - `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
   production decomposition for recent `ENTRY_SKIP/EntryDedup` rows. It emits
   `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,

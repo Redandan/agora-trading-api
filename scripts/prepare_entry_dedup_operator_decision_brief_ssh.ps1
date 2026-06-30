@@ -6,6 +6,10 @@ param(
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 508,
     [string]$IntervalCode = "1h",
+    [int]$Hours = 720,
+    [int]$ForwardHours = 24,
+    [int]$ShortForwardHours = 4,
+    [int]$Limit = 50,
     [decimal]$TakeProfitPct = 1.00,
     [decimal]$StopLossPct = 1.00,
     [decimal]$RoundTripFeePct = 0.20,
@@ -103,6 +107,21 @@ if (-not (Test-Path -LiteralPath $SshKey)) {
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) {
     throw "StrategyId must be between 1 and 1000000."
 }
+if ($Hours -lt 1 -or $Hours -gt 720) {
+    throw "Hours must be between 1 and 720."
+}
+if ($ForwardHours -lt 1 -or $ForwardHours -gt 168) {
+    throw "ForwardHours must be between 1 and 168."
+}
+if ($ShortForwardHours -lt 1 -or $ShortForwardHours -gt 72) {
+    throw "ShortForwardHours must be between 1 and 72."
+}
+if ($ShortForwardHours -gt $ForwardHours) {
+    throw "ShortForwardHours must be less than or equal to ForwardHours."
+}
+if ($Limit -lt 1 -or $Limit -gt 100) {
+    throw "Limit must be between 1 and 100."
+}
 if ($TakeProfitPct -le 0 -or $TakeProfitPct -gt 20) {
     throw "TakeProfitPct must be greater than 0 and at most 20."
 }
@@ -133,6 +152,10 @@ $packetResult = Invoke-ReadOnlyScript -ScriptName "prepare_entry_dedup_semantics
     "-Symbol", $Symbol,
     "-StrategyId", "$StrategyId",
     "-IntervalCode", $IntervalCode,
+    "-Hours", "$Hours",
+    "-ForwardHours", "$ForwardHours",
+    "-ShortForwardHours", "$ShortForwardHours",
+    "-Limit", "$Limit",
     "-TakeProfitPct", "$TakeProfitPct",
     "-StopLossPct", "$StopLossPct",
     "-RoundTripFeePct", "$RoundTripFeePct",
@@ -327,6 +350,10 @@ $brief = [pscustomobject]@{
         slHitRows = $slHitRows
         ambiguousSameBarRows = $ambiguousSameBarRows
         avgNetReturnPct = $avgNetReturnPct
+        hours = $Hours
+        forwardHours = $ForwardHours
+        shortForwardHours = $ShortForwardHours
+        limit = $Limit
         reviewNotionalCapUsdt = $ReviewNotionalCapUsdt
         observationHours = $ObservationHours
     }
@@ -339,6 +366,9 @@ $brief = [pscustomobject]@{
 Write-Host "[entry-dedup-operator-decision-brief] read-only brief"
 Write-Host "scope=READ_ONLY; invokes prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1 only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_packet=prepare_entry_dedup_semantics_shadow_experiment_packet_ssh.ps1 exitCode=$($packetResult.ExitCode)"
+Write-Host "entry_dedup_review_hours=$Hours"
+Write-Host "entry_dedup_review_forward_hours=$ForwardHours"
+Write-Host "entry_dedup_review_limit=$Limit"
 Write-Host "entry_dedup_semantics_shadow_packet_status=$packetStatus"
 Write-Host "entry_dedup_operator_primary_recommendation=$primaryRecommendation"
 Write-Host "entry_dedup_skip_rows=$entryDedupSkipRows"

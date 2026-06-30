@@ -1629,6 +1629,9 @@ packet assembly, writes every source log consumed by
 `prepare_profit_live_blocker_audit_packet.ps1`, and then reruns the audit. It
 refreshes the no-buy attention-flow packet before governance preflight so
 governance `NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing.
+The EntryDedup semantics step uses the reviewed 720h / 24h forward / 50-row
+window so source refresh does not downgrade a 30-day EntryDedup opportunity set
+into a short-window `NO_EVIDENCE` blocker.
 It preserves governance relaxation `NO_EVIDENCE` or `NOT_READY` output as blocker
 evidence instead of forcing that source step to fail early; the final
 `-RequireAuditReady` audit still exits non-zero until all live-readiness lanes
@@ -2652,6 +2655,9 @@ Read-only EntryDedup operator decision brief from the fresh SSH packet:
 This emits `entry_dedup_operator_decision_brief_packet` with
 `packetType=ENTRY_DEDUP_OPERATOR_DECISION_BRIEF` and
 `entry_dedup_operator_decision_brief_status=READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE`.
+The default review window is 720 hours with a 24-hour forward return check and
+50-row cap, matching the source-refresh audit window for the current 30-day
+EntryDedup opportunity set.
 It turns the fresh EntryDedup shadow evidence into the
 `entry-dedup-semantics-shadow-operator-review` decision lane and keeps the
 entry-filter/DataFreshness policy lane blocked outside the shadow review. Its

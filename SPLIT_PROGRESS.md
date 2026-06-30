@@ -499,18 +499,23 @@
   authorization.
 - 2026-06-30 latest read-only source refresh completed with
   `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`, 10 lanes,
-  7 review-ready non-live lanes, 1 no-action lane, and 2 blocked lanes.
+  8 review-ready non-live lanes, 1 no-action lane, and 1 blocked lane.
   Ready-for-review lanes are `profit-priority`, `trailing-stop-dry-run`,
-  `strategy485-risk-reduction`, `data-freshness-replay-blocker`,
+  `strategy485-risk-reduction`, `entry-dedup-semantics`,
+  `data-freshness-replay-blocker`,
   `data-freshness-collector-activation`, `tp-sl-oco-feasibility`, and
   `strategy574-tiny-live-governance`.
   `strategy485-risk-escalation` is now `NO_POSITION_RISK_ACTION` when no
   negative-EV position or close/modify suggestion exists, so it is no longer a
-  blocker. Blocked lanes are `entry-dedup-semantics` (`NO_EVIDENCE` and missing
-  shadow replay/opportunity rows) and `governance-relaxation` (no reviewable
-  relaxation candidates). `NO_DATAFRESHNESS_SAMPLE` with 1d/3d rows at zero is
-  now treated as reviewable evidence-only collector activation routing, not as
-  collector activation or DataFreshness policy approval. Final audit keeps
+  blocker. The EntryDedup lane now uses the fresh 720h/50-row production packet
+  and returned `READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE` with
+  `entry_dedup_skip_rows=11`, `positive_24h_rows=10`, `tp_hit_rows=11`,
+  `sl_hit_rows=0`, and `avg_net_return_pct=0.8`; it is still shadow-review
+  evidence only. The sole blocked lane is `governance-relaxation` (no
+  reviewable relaxation candidates). `NO_DATAFRESHNESS_SAMPLE` with 1d/3d rows
+  at zero is now treated as reviewable evidence-only collector activation
+  routing, not as collector activation or DataFreshness policy approval. Final
+  audit keeps
   `order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,

@@ -649,13 +649,13 @@ git diff --check
 The latest source refresh can now reuse a fresh profit operator matrix and still
 finish successfully when the final audit is live-blocked. The current refreshed
 audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
-10 lanes, 7 review-ready non-live lanes (`profit-priority`,
+10 lanes, 8 review-ready non-live lanes (`profit-priority`,
 `trailing-stop-dry-run`, `strategy485-risk-reduction`,
-`data-freshness-replay-blocker`, `data-freshness-collector-activation`,
-`tp-sl-oco-feasibility`, and `strategy574-tiny-live-governance`), 1 no-action
-lane (`strategy485-risk-escalation` with `NO_POSITION_RISK_ACTION`), and 2
-blocked lanes (`entry-dedup-semantics` and `governance-relaxation`). This is
-valid evidence, not live approval.
+`entry-dedup-semantics`, `data-freshness-replay-blocker`,
+`data-freshness-collector-activation`, `tp-sl-oco-feasibility`, and
+`strategy574-tiny-live-governance`), 1 no-action lane
+(`strategy485-risk-escalation` with `NO_POSITION_RISK_ACTION`), and 1 blocked
+lane (`governance-relaxation`). This is valid evidence, not live approval.
 The exit-side review summary now emits a replayable `NOT_READY` summary packet
 before enforcing `-RequireReady`, so downstream trailing/strategy485 packets no
 longer lose `source_matrix_freshness_status=FRESH` when the latest matrix is
@@ -679,9 +679,14 @@ healthy Strategy485 OCO evidence can make the packet review-ready, while an
 empty Strategy485 risk set is recorded as `NO_POSITION_RISK_ACTION` instead of
 blocking the packet.
 The refresh now sources the EntryDedup lane from the fresh production
-`prepare_entry_dedup_operator_decision_brief_ssh.ps1` packet; local static
-EntryDedup shadow rows are not allowed to make the live blocker audit look more
-ready than current production evidence.
+`prepare_entry_dedup_operator_decision_brief_ssh.ps1` packet using the reviewed
+720h / 24h forward / 50-row window; local static EntryDedup shadow rows are not
+allowed to make the live blocker audit look more ready than current production
+evidence. The latest fresh EntryDedup packet reports
+`READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE`, `entry_dedup_skip_rows=11`,
+`positive_24h_rows=10`, `tp_hit_rows=11`, `sl_hit_rows=0`, and
+`avg_net_return_pct=0.8`, while keeping `entry_dedup_policy_change_allowed=false`,
+`live_policy_change_allowed=false`, and `order_allowed=false`.
 
 The latest DataFreshness replay evidence status is no longer a runtime deploy
 blocker: `deployment_runtime_current_for_replay_id=true`, zero recent replay
@@ -708,11 +713,11 @@ profit-improvement focus should therefore be EntryDedup/exposure semantics and
 protective duplicate handling, while DataFreshness, no-terminal matching, and
 live execution remain review-only.
 
-Latest read-only profit blocker refresh after the summary fix still shows live
-execution is not ready: profit matrix `NO_REVIEW_READY_ITEMS`, EntryDedup
-`NO_EVIDENCE` with missing shadow replay/opportunity rows, DataFreshness
-`replay_candidate_id_rows=0` and `complete_replayable_candidate_rows=0`, and
-governance relaxation `NOT_READY` with no reviewable relaxation candidates.
+Latest read-only profit blocker refresh after the EntryDedup window fix still
+shows live execution is not ready: EntryDedup is review-ready as a shadow-only
+operator lane, DataFreshness `replay_candidate_id_rows=0` and
+`complete_replayable_candidate_rows=0`, and governance relaxation remains
+`NOT_READY` with no reviewable relaxation candidates.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

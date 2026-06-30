@@ -4,6 +4,9 @@ param(
     [int]$StrategyId = 485,
     [int]$EntryDedupStrategyId = 508,
     [string]$EntryDedupIntervalCode = "1h",
+    [int]$EntryDedupHours = 720,
+    [int]$EntryDedupForwardHours = 24,
+    [int]$EntryDedupLimit = 50,
     [int]$MatrixTimeoutSeconds = 3900,
     [int]$ChildTimeoutSeconds = 900,
     [int]$MatrixMaxAgeMinutes = 180,
@@ -100,6 +103,9 @@ Assert-TokenSafe -Name "Symbol" -Value $Symbol
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be between 1 and 1000000." }
 if ($EntryDedupStrategyId -lt 1 -or $EntryDedupStrategyId -gt 1000000) { throw "EntryDedupStrategyId must be between 1 and 1000000." }
 Assert-TokenSafe -Name "EntryDedupIntervalCode" -Value $EntryDedupIntervalCode
+if ($EntryDedupHours -lt 1 -or $EntryDedupHours -gt 720) { throw "EntryDedupHours must be between 1 and 720." }
+if ($EntryDedupForwardHours -lt 1 -or $EntryDedupForwardHours -gt 168) { throw "EntryDedupForwardHours must be between 1 and 168." }
+if ($EntryDedupLimit -lt 1 -or $EntryDedupLimit -gt 100) { throw "EntryDedupLimit must be between 1 and 100." }
 if ($MatrixTimeoutSeconds -lt 60 -or $MatrixTimeoutSeconds -gt 7200) { throw "MatrixTimeoutSeconds must be between 60 and 7200." }
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) { throw "ChildTimeoutSeconds must be between 60 and 3600." }
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) { throw "MatrixMaxAgeMinutes must be between 1 and 1440." }
@@ -144,7 +150,7 @@ $steps = @(
     New-Step -Name "profit-operator-priority-decision" -ScriptName "prepare_profit_operator_priority_decision_brief.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "profit-operator-priority-decision-brief-latest.log") -Ssh $false -Required $true
     New-Step -Name "trailing-stop-dry-run-decision" -ScriptName "prepare_trailing_stop_dry_run_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "trailing-stop-dry-run-operator-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "strategy485-risk-reduction-decision" -ScriptName "prepare_strategy485_risk_reduction_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "strategy485-risk-reduction-operator-decision-packet-latest.log") -Ssh $false -Required $true
-    New-Step -Name "entry-dedup-semantics-decision" -ScriptName "prepare_entry_dedup_operator_decision_brief_ssh.ps1" -Arguments @("-Symbol", $Symbol, "-StrategyId", "$EntryDedupStrategyId", "-IntervalCode", $EntryDedupIntervalCode, "-RequireDecisionReady") -OutputPath (& $out "entry-dedup-semantics-operator-decision-packet-latest.log") -Ssh $true -Required $true
+    New-Step -Name "entry-dedup-semantics-decision" -ScriptName "prepare_entry_dedup_operator_decision_brief_ssh.ps1" -Arguments @("-Symbol", $Symbol, "-StrategyId", "$EntryDedupStrategyId", "-IntervalCode", $EntryDedupIntervalCode, "-Hours", "$EntryDedupHours", "-ForwardHours", "$EntryDedupForwardHours", "-Limit", "$EntryDedupLimit", "-RequireDecisionReady") -OutputPath (& $out "entry-dedup-semantics-operator-decision-packet-latest.log") -Ssh $true -Required $true
     New-Step -Name "data-freshness-replay-blocker-decision" -ScriptName "prepare_data_freshness_replay_blocker_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-RequireBlocked") -OutputPath (& $out "data-freshness-replay-blocker-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "data-freshness-replay-evidence-readiness" -ScriptName "prepare_data_freshness_replay_evidence_readiness_ssh.ps1" -Arguments @("-Symbol", $Symbol) -OutputPath (& $out "data-freshness-replay-evidence-readiness-refresh.log") -Ssh $true -Required $true
     New-Step -Name "data-freshness-collector-activation" -ScriptName "prepare_data_freshness_replay_collector_activation_packet.ps1" -Arguments @("-ReadinessLogPath", (& $out "data-freshness-replay-evidence-readiness-refresh.log"), "-Symbol", $Symbol, "-RequireDecisionReady") -OutputPath (& $out "data-freshness-replay-collector-activation-packet-latest.log") -Ssh $false -Required $true
@@ -167,6 +173,9 @@ $plan = [pscustomobject]@{
     reviewOutputDir = $ReviewOutputDir
     symbol = $Symbol
     strategyId = $StrategyId
+    entryDedupHours = $EntryDedupHours
+    entryDedupForwardHours = $EntryDedupForwardHours
+    entryDedupLimit = $EntryDedupLimit
     reuseLatestProfitOperatorMatrix = [bool]$ReuseLatestProfitOperatorMatrix
     reusedProfitOperatorMatrixPath = $reusedProfitOperatorMatrixPath
     matrixMaxAgeMinutes = $MatrixMaxAgeMinutes
@@ -187,6 +196,9 @@ Write-Host "profit_live_blocker_source_refresh_ssh_step_count=$(@($steps | Where
 Write-Host "profit_live_blocker_source_refresh_local_step_count=$(@($steps | Where-Object { -not $_.usesSsh }).Count)"
 Write-Host "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=$([bool]$ReuseLatestProfitOperatorMatrix)"
 Write-Host "profit_live_blocker_source_refresh_allow_blocked_step_failures=$([bool]$AllowBlockedStepFailures)"
+Write-Host "entry_dedup_refresh_hours=$EntryDedupHours"
+Write-Host "entry_dedup_refresh_forward_hours=$EntryDedupForwardHours"
+Write-Host "entry_dedup_refresh_limit=$EntryDedupLimit"
 if ($ReuseLatestProfitOperatorMatrix) {
     Write-Host "profit_live_blocker_source_refresh_reused_profit_operator_matrix_path=$reusedProfitOperatorMatrixPath"
 }

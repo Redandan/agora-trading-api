@@ -1646,6 +1646,10 @@ no-buy attention-flow packet before governance preflight so governance
 re-creates each step output parent directory before writing the step log, so a
 long-running refresh can continue even if an upstream step refreshes
 `target/profit-review`. The script only invokes
+the EntryDedup semantics decision step with the reviewed 720h / 24h forward /
+50-row window, so the audit consumes the same 30-day EntryDedup opportunity set
+as the dedicated EntryDedup review packet instead of a shorter diagnostic
+window.
 existing read-only SSH/MCP/SELECT evidence
 scripts and local packet assembly; it does not deploy, restart, change
 production env, enable live/TinyLive/scheduler, place orders, send Telegram,
@@ -3343,6 +3347,8 @@ Expected:
   `entry_dedup_operator_decision_lanes`,
   `entry_dedup_operator_decision_checklist`, and
   `entry_dedup_operator_decision_brief_status=READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE`.
+  The default review window is 720 hours with a 24-hour forward return check and
+  50-row cap.
   The packet type is `ENTRY_DEDUP_OPERATOR_DECISION_BRIEF`; it carries the
   `entry-dedup-semantics-shadow-operator-review` lane as review-only shadow
   evidence and keeps the entry-filter/DataFreshness policy lane blocked outside

@@ -73,6 +73,12 @@ foreach ($marker in @(
         "POLICY_BLOCKED_OUTSIDE_ENTRY_DEDUP_SHADOW_REVIEW",
         "READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE",
         "PREPARE_SEPARATE_ENTRY_DEDUP_SHADOW_REVIEW",
+        "entry_dedup_review_hours",
+        "entry_dedup_review_forward_hours",
+        "entry_dedup_review_limit",
+        '"-Hours", "$Hours"',
+        '"-ForwardHours", "$ForwardHours"',
+        '"-Limit", "$Limit"',
         "entry_dedup_policy_change_allowed=false",
         "live_policy_change_allowed=false",
         "position_or_oco_mutation_allowed=false",
@@ -133,5 +139,13 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-StrategyId", "0") `
     -ExpectedPattern "StrategyId must be between 1 and 1000000"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Hours", "721") `
+    -ExpectedPattern "Hours must be between 1 and 720"
+
+Assert-FailsBeforeSsh `
+    -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Limit", "101") `
+    -ExpectedPattern "Limit must be between 1 and 100"
 
 Write-Host "[entry-dedup-operator-decision-brief-test] OK"

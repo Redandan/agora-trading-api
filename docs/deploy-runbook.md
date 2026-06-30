@@ -2576,6 +2576,26 @@ Expected:
   trailing replay smoke, live-readiness audit, server-local
   `getTrailingStopStatus`, server-local `getStrategyConfig`, and runtime-log
   smoke.
+- To package the exact dry-run env/deploy authorization request after
+  post-opt-in readiness, run:
+
+  ```powershell
+  .\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady
+  ```
+
+  Expected output includes `TRAILING_STOP_DRY_RUN_ENV_DEPLOY_HANDOFF_PACKET`,
+  `trailing_stop_dry_run_env_deploy_handoff_packet`, and
+  `trailing_stop_dry_run_env_deploy_handoff_status=READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DEPLOY_HANDOFF_NOT_MUTATION`.
+  The packet prints the exact operator authorization text for only
+  `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`, the deploy
+  command, required post-deploy read-only verification, and rollback plan
+  (`TRAILING_STOP_ENABLED=false` while keeping `TRAILING_STOP_DRY_RUN=true`).
+  It keeps `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is an exact operator authorization packet,
+  not authorization by itself. It does not change production env, deploy,
+  restart, set dry-run false, enable live OCO mutation, place orders, close
+  positions, send Telegram, or relax policy.
 - To execute the reviewed strategy opt-in as a controlled strategy-config write,
   first run the wrapper without `-Execute`:
 

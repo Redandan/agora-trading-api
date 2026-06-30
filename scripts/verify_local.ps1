@@ -1715,6 +1715,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_activation_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_strategy_opt_in_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_post_opt_in_readiness_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_env_deploy_handoff.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_strategy_opt_in_execution.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_next_execution_blocker_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_risk_reduction_operator_decision_packet.ps1"

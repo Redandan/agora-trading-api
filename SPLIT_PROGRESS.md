@@ -1137,6 +1137,24 @@
   it does not call `setTrailingStopOptIn`, change production env, deploy,
   restart, enable scheduler/live trading, place orders, modify OCO, close
   positions, relax policy, or mutate DB/grid/fund/Earn/Telegram/exchange state.
+- `scripts/prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1` packages
+  the exact dry-run env/deploy authorization request after post-opt-in
+  readiness. It consumes the post-opt-in readiness packet and local git metadata
+  and emits `TRAILING_STOP_DRY_RUN_ENV_DEPLOY_HANDOFF_PACKET`,
+  `trailing_stop_dry_run_env_deploy_handoff_packet`, and
+  `trailing_stop_dry_run_env_deploy_handoff_status`. A status of
+  `READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DEPLOY_HANDOFF_NOT_MUTATION` means the
+  operator can be asked for the exact env diff `TRAILING_STOP_ENABLED=true` and
+  `TRAILING_STOP_DRY_RUN=true`, deploy/restart of current `origin/main`, and
+  post-env read-only verification only. The packet prints the exact operator
+  authorization text, deploy command, post-deploy verification list, and
+  rollback plan (`TRAILING_STOP_ENABLED=false` while keeping
+  `TRAILING_STOP_DRY_RUN=true`). It keeps `production_env_change_allowed=false`,
+  `deploy_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`; it does not change
+  production env, deploy, restart, set dry-run false, enable live OCO mutation,
+  place orders, close positions, send Telegram, relax policy, or mutate
+  DB/grid/fund/Earn/Telegram/exchange state.
 - `scripts/execute_trailing_stop_strategy_opt_in_ssh.ps1` provides the
   controlled execution path for that blocker. Its default mode is non-mutating
   and emits `TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET`,

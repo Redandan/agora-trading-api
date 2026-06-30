@@ -842,6 +842,28 @@ deploy/restart and read-only verification. The packet keeps
 it does not call `setTrailingStopOptIn`, change env, deploy, restart, enable
 live trading, place orders, modify OCO, or relax live policy.
 
+Read-only trailing-stop dry-run env/deploy handoff packet:
+
+```powershell
+.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady
+```
+
+This consumes the post-opt-in readiness packet and local git metadata, then
+emits `TRAILING_STOP_DRY_RUN_ENV_DEPLOY_HANDOFF_PACKET`,
+`trailing_stop_dry_run_env_deploy_handoff_packet`, and
+`trailing_stop_dry_run_env_deploy_handoff_status`.
+`READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DEPLOY_HANDOFF_NOT_MUTATION` means the
+exact operator authorization can be requested for only
+`TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`, followed by
+deploy/restart and read-only verification. The packet prints the exact operator
+authorization text, required env diff, flags that must remain disabled, deploy
+command, post-deploy read-only verification, and rollback plan. It keeps
+`production_env_change_allowed=false`, `deploy_allowed=false`,
+`position_or_oco_mutation_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`; it does not change production env, deploy,
+restart, set dry-run false, place orders, modify OCO, close positions, send
+Telegram, or relax live policy.
+
 Guarded trailing-stop strategy opt-in execution wrapper:
 
 ```powershell

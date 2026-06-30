@@ -203,6 +203,7 @@ git diff --check
 
 Deliverables:
 
+- produce the exact env/deploy handoff packet;
 - apply only the reviewed dry-run env diff;
 - deploy/restart;
 - verify health, split acceptance, MCP registry, runtime logs, and blocker
@@ -212,6 +213,7 @@ Deliverables:
 Acceptance:
 
 ```powershell
+.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady
 .\scripts\verify_split_acceptance_ssh.ps1
 .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
 ```
@@ -282,10 +284,12 @@ git status --short --branch
 git diff --check
 .\scripts\verify_local.ps1
 .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
+.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady
 ```
 
 If verification passes, commit and push the readiness work. The next separate
-execution step is the trailing-stop dry-run env/deploy phase:
+execution step is the trailing-stop dry-run env/deploy phase. The exact
+operator authorization must match the handoff packet:
 
 ```text
 TRAILING_STOP_ENABLED=true

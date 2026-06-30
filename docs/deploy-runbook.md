@@ -2658,10 +2658,11 @@ Expected:
   post-deploy verification list before any env/deploy action. After that
   dry-run env deploy is active, the expected status becomes
   `TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION` with
-  `profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION` and
-  `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
-  That status means collect dry-run observations; it is not live OCO mutation
-  approval. The packet also
+  `profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION`. The packet
+  consumes the observation-status packet when available and can refine
+  `profit_next_execution_unique_blocker` to `NO_OPEN_OCO_POSITIONS`. That status
+  means dry-run observation is active but still lacks an open OCO sample; it is
+  not live OCO mutation approval. The packet also
   carries negative alternative evidence for Strategy574/TinyLive relaxation,
   DataFreshness entry-policy relaxation, Strategy485 position mutation, and
   general live-policy relaxation. It is read-only and does not call

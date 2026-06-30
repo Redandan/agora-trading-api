@@ -78,8 +78,8 @@ Known current facts:
   `createGrid` remains blocked by trend-regime override or fresh sideways
   clearance first, then capital cap override (`candidateCapitalUsdt=10` vs
   `effectiveReviewCapitalCapUsdt=5`). Grid mutation remains disallowed.
-- Current next blocker is
-  `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
+- Current next blocker is `NO_OPEN_OCO_POSITIONS`: the trailing dry-run lane is
+  active and read-only, but there is no open OCO position to observe yet.
 - Current observation status command:
   `.\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady`.
 - With `open_oco_positions=0`, the expected status is
@@ -457,11 +457,15 @@ the next executable phase is:
 
 If the packet reports
 `TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`, A0 is complete and the only
-next step is dry-run observation evidence:
+next step is dry-run observation evidence. The packet now consumes the
+observation-status packet when available, so the expected current blocker is
+`NO_OPEN_OCO_POSITIONS`, not a strategy-relaxation or deploy blocker:
 
 - keep `TRAILING_STOP_DRY_RUN=true`;
 - run
   `.\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady`;
+- wait for a real open OCO position before interpreting dry-run trailing
+  behavior;
 - verify runtime logs show no order/OCO modification/close-position/Telegram/
   grid/fund/Earn/exchange mutation;
 - collect dry-run trailing observation rows before any live OCO promotion.

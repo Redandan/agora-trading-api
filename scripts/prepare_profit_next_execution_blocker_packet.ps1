@@ -4,6 +4,7 @@ param(
     [string]$DataFreshnessReadinessLogPath = "target/profit-review/data-freshness-replay-evidence-readiness-refresh.log",
     [string]$Strategy485RiskLogPath = "target/profit-review/strategy485-position-risk-current.log",
     [string]$SignalCorrectnessLogPath = "target/profit-review/signal-correctness-current-refresh.log",
+    [string]$TrailingObservationLogPath = "",
     [string]$SshHost = $env:AGORA_SSH_HOST,
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [string]$AppDir = "/home/ubuntu/agora-trading-api",
@@ -43,6 +44,7 @@ function Get-PacketValue {
     if ($null -eq $Packet) { return "" }
     $property = $Packet.PSObject.Properties[$Name]
     if ($null -eq $property -or $null -eq $property.Value) { return "" }
+    if ($property.Value -is [bool]) { return $property.Value.ToString().ToLowerInvariant() }
     return [string]$property.Value
 }
 
@@ -143,6 +145,56 @@ function Invoke-TrailingPostOptInReadinessForBlocker {
         Text = ($output | Out-String -Width 4096)
         ExitCode = $exitCode
         Source = "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1"
+    }
+}
+
+function Invoke-TrailingDryRunObservationForBlocker {
+    if (-not [string]::IsNullOrWhiteSpace($TrailingObservationLogPath)) {
+        $observationLog = Read-OptionalLog -PathValue $TrailingObservationLogPath
+        if (-not $observationLog.Exists) { throw "TrailingObservationLogPath not found: $($observationLog.Path)" }
+        return [pscustomobject]@{
+            Text = $observationLog.Text
+            ExitCode = 0
+            Source = $observationLog.Path
+        }
+    }
+
+    if ($NoRefresh.IsPresent) {
+        return $null
+    }
+
+    $scriptPath = Join-Path $PSScriptRoot "prepare_trailing_stop_dry_run_observation_status_ssh.ps1"
+    if (-not (Test-Path -LiteralPath $scriptPath)) {
+        throw "Missing trailing dry-run observation wrapper: $scriptPath"
+    }
+
+    $arguments = @{
+        SshHost = $SshHost
+        SshKey = $SshKey
+        AppDir = $AppDir
+        EnvFile = $EnvFile
+        Symbol = $Symbol
+        ExpectedOptInStrategyId = $StrategyId
+    }
+
+    $output = @()
+    $exitCode = 0
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $scriptPath @arguments *>&1
+        if (-not $?) { $exitCode = 1 }
+    } catch {
+        $output += $_
+        $exitCode = 1
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    return [pscustomobject]@{
+        Text = ($output | Out-String -Width 4096)
+        ExitCode = $exitCode
+        Source = "prepare_trailing_stop_dry_run_observation_status_ssh.ps1"
     }
 }
 
@@ -277,6 +329,50 @@ if ([string]::IsNullOrWhiteSpace($writePerformed)) {
 }
 $nextRequiredAuthorization = Get-PacketValue -Packet $executionPacket -Name "nextRequiredAuthorization"
 
+$observationResult = $null
+$observationPacket = $null
+$observationStatus = ""
+$observationSampleReady = ""
+$observationSampleCollectionBlockedBy = ""
+$observationUniqueBlocker = ""
+$observationOpenOcoPositions = ""
+$observationPreconditionsReady = ""
+$observationExactRefreshCommand = ""
+$observationNextAction = ""
+if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
+    $observationResult = Invoke-TrailingDryRunObservationForBlocker
+    if ($null -ne $observationResult) {
+        $observationJson = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_status_packet="
+        $observationPacket = ConvertFrom-JsonOrNull -Json $observationJson
+        $observationStatus = Get-PacketValue -Packet $observationPacket -Name "status"
+        if ([string]::IsNullOrWhiteSpace($observationStatus)) {
+            $observationStatus = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_status="
+        }
+        $observationSampleReady = Get-PacketValue -Packet $observationPacket -Name "observationSampleReady"
+        if ([string]::IsNullOrWhiteSpace($observationSampleReady)) {
+            $observationSampleReady = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_sample_ready="
+        }
+        $observationSampleCollectionBlockedBy = Get-PacketValue -Packet $observationPacket -Name "sampleCollectionBlockedBy"
+        if ([string]::IsNullOrWhiteSpace($observationSampleCollectionBlockedBy)) {
+            $observationSampleCollectionBlockedBy = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_sample_collection_blocked_by="
+        }
+        $observationUniqueBlocker = Get-PacketValue -Packet $observationPacket -Name "uniqueBlocker"
+        if ([string]::IsNullOrWhiteSpace($observationUniqueBlocker)) {
+            $observationUniqueBlocker = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_unique_blocker="
+        }
+        $observationOpenOcoPositions = Get-PacketValue -Packet $observationPacket -Name "currentOpenOcoPositions"
+        if ([string]::IsNullOrWhiteSpace($observationOpenOcoPositions)) {
+            $observationOpenOcoPositions = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_current_open_oco_positions="
+        }
+        $observationPreconditionsReady = Get-PacketValue -Packet $observationPacket -Name "observationPreconditionsReady"
+        if ([string]::IsNullOrWhiteSpace($observationPreconditionsReady)) {
+            $observationPreconditionsReady = Get-LastPrefixedValue -Text $observationResult.Text -Prefix "trailing_stop_dry_run_observation_preconditions_ready="
+        }
+        $observationExactRefreshCommand = Get-PacketValue -Packet $observationPacket -Name "exactRefreshCommand"
+        $observationNextAction = Get-PacketValue -Packet $observationPacket -Name "nextAction"
+    }
+}
+
 $strategy574Log = Read-OptionalLog -PathValue $Strategy574GovernanceLogPath
 $strategy574Packet = ConvertFrom-JsonOrNull -Json (Get-LastPrefixedValue -Text $strategy574Log.Text -Prefix "strategy574_tiny_live_governance_operator_packet=")
 $strategy574Status = Get-PacketValue -Packet $strategy574Packet -Name "status"
@@ -352,8 +448,22 @@ if ($executionStatus -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT
 } elseif ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY" -and $missingRequirements.Count -eq 0) {
     $status = "TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION"
     $uniqueBlocker = "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE"
-    $unlockCommand = ".\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId $StrategyId -RequireReady"
+    $unlockCommand = ".\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId $StrategyId -RequireReady"
     $nextAction = "Collect dry-run observation evidence and runtime-log smoke before any later live trailing review."
+    if (-not [string]::IsNullOrWhiteSpace($observationExactRefreshCommand)) {
+        $unlockCommand = $observationExactRefreshCommand
+    }
+    if (-not [string]::IsNullOrWhiteSpace($observationNextAction)) {
+        $nextAction = $observationNextAction
+    }
+    if (-not [string]::IsNullOrWhiteSpace($observationUniqueBlocker) -and $observationUniqueBlocker -ne "NONE") {
+        $uniqueBlocker = $observationUniqueBlocker
+    } elseif ($observationSampleReady -eq "true") {
+        $uniqueBlocker = "COLLECT_TRAILING_DRY_RUN_SUGGESTED_EXIT_AND_FORWARD_OUTCOME"
+    } elseif ($null -ne $observationResult -and ($observationResult.ExitCode -ne 0 -or $null -eq $observationPacket)) {
+        $uniqueBlocker = "FIX_TRAILING_DRY_RUN_OBSERVATION_EVIDENCE"
+        $nextAction = "Refresh the trailing dry-run observation status packet before any later live trailing review."
+    }
 } else {
     $uniqueBlocker = "FIX_TRAILING_OPT_IN_EVIDENCE"
     $nextAction = "Refresh the non-mutating trailing opt-in execution dry-run and fix missing evidence before any execution request."
@@ -432,10 +542,26 @@ $packet = [pscustomobject]@{
         trailingDeltaPnl = $trailingDeltaPnl
         nextRequiredAuthorization = $nextRequiredAuthorization
     }
+    sourceObservation = if ($null -eq $observationResult) {
+        $null
+    } else {
+        [pscustomobject]@{
+            source = $observationResult.Source
+            exitCode = $observationResult.ExitCode
+            status = $observationStatus
+            preconditionsReady = $observationPreconditionsReady
+            sampleReady = $observationSampleReady
+            sampleCollectionBlockedBy = $observationSampleCollectionBlockedBy
+            uniqueBlocker = $observationUniqueBlocker
+            currentOpenOcoPositions = $observationOpenOcoPositions
+            exactRefreshCommand = $observationExactRefreshCommand
+        }
+    }
     negativeAlternativeEvidence = @($alternativeEvidence)
     postUnlockReadOnlyVerification = @(
         ".\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady",
         ".\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId $StrategyId -RequireReady",
+        ".\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId $StrategyId -RequireReady",
         ".\scripts\audit_live_readiness_ssh.ps1 -Symbol $Symbol",
         "server-local MCP getStrategyConfig confirms strategy $StrategyId trailingStopEnabled=true",
         "runtime-log smoke confirms no order/OCO/grid/fund/Earn/Telegram/exchange mutation"
@@ -472,6 +598,12 @@ Write-Host "profit_next_execution_source_decision=$executionDecision"
 Write-Host "profit_next_execution_trailing_acceptance=$trailingAcceptance"
 Write-Host "profit_next_execution_trailing_improvement_pct=$trailingImprovementPct"
 Write-Host "profit_next_execution_trailing_delta_pnl=$trailingDeltaPnl"
+Write-Host "profit_next_execution_observation_status=$observationStatus"
+Write-Host "profit_next_execution_observation_preconditions_ready=$observationPreconditionsReady"
+Write-Host "profit_next_execution_observation_sample_ready=$observationSampleReady"
+Write-Host "profit_next_execution_sample_collection_blocked_by=$observationSampleCollectionBlockedBy"
+Write-Host "profit_next_execution_open_oco_positions=$observationOpenOcoPositions"
+Write-Host "profit_next_execution_observation_unique_blocker=$observationUniqueBlocker"
 Write-Host "profit_next_execution_unique_blocker=$uniqueBlocker"
 Write-Host "profit_next_execution_exact_unlock_command=$unlockCommand"
 Write-Host "strategy574_near_threshold_shadow_recommendation=$nearThresholdRecommendation"

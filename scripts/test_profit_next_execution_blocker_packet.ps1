@@ -38,6 +38,10 @@ foreach ($marker in @(
         "TRAILING_STOP_DRY_RUN_OBSERVATION",
         "post_opt_in_readiness",
         "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
+        "prepare_trailing_stop_dry_run_observation_status_ssh.ps1",
+        "profit_next_execution_observation_status",
+        "profit_next_execution_observation_sample_ready",
+        "profit_next_execution_sample_collection_blocked_by",
         "strategy574-threshold-or-tinylive-relaxation",
         "data-freshness-entry-policy-relaxation",
         "strategy485-position-risk-mutation",
@@ -70,6 +74,7 @@ $tempStrategy574Log = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-
 $tempDfLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-df-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempStrategy485Log = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-485-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempSignalLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-signal-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempObservationLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-observation-" + [guid]::NewGuid().ToString("N") + ".log")
 
 try {
     $executionPacket = [pscustomobject]@{
@@ -282,6 +287,22 @@ try {
     }
 
     $executionPacket.status = "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY"
+    $observationPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_DRY_RUN_OBSERVATION_STATUS_PACKET"
+        status = "ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE"
+        symbol = "BTCUSDT"
+        currentGlobalEnabled = "true"
+        currentGlobalDryRun = "true"
+        currentOpenOcoPositions = "0"
+        expectedOptInStrategyId = 574
+        expectedStrategyOptIn = "true"
+        observationPreconditionsReady = $true
+        observationSampleReady = $false
+        sampleCollectionBlockedBy = "NO_OPEN_OCO_POSITIONS"
+        uniqueBlocker = "NO_OPEN_OCO_POSITIONS"
+        exactRefreshCommand = ".\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady"
+        nextAction = "Keep dry-run active and wait for an open OCO position; do not promote to live trailing without a real dry-run sample."
+    }
     Set-Content -LiteralPath $tempExecutionLog -Encoding UTF8 -Value @(
         "trailing_stop_strategy_opt_in_execution_status=ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
         "trailing_stop_strategy_opt_in_execution_decision=VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
@@ -291,6 +312,15 @@ try {
         "trailing_stop_delta_pnl=13391.79229093",
         "trailing_stop_strategy_opt_in_execution_write_performed=false",
         ("trailing_stop_strategy_opt_in_execution_packet=" + (ConvertTo-Json -Compress -Depth 8 $executionPacket))
+    )
+    Set-Content -LiteralPath $tempObservationLog -Encoding UTF8 -Value @(
+        "trailing_stop_dry_run_observation_status=ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE",
+        "trailing_stop_dry_run_observation_current_open_oco_positions=0",
+        "trailing_stop_dry_run_observation_preconditions_ready=true",
+        "trailing_stop_dry_run_observation_sample_ready=false",
+        "trailing_stop_dry_run_observation_sample_collection_blocked_by=NO_OPEN_OCO_POSITIONS",
+        "trailing_stop_dry_run_observation_unique_blocker=NO_OPEN_OCO_POSITIONS",
+        ("trailing_stop_dry_run_observation_status_packet=" + (ConvertTo-Json -Compress -Depth 8 $observationPacket))
     )
 
     $previousErrorActionPreference = $ErrorActionPreference
@@ -302,6 +332,7 @@ try {
             -DataFreshnessReadinessLogPath $tempDfLog `
             -Strategy485RiskLogPath $tempStrategy485Log `
             -SignalCorrectnessLogPath $tempSignalLog `
+            -TrailingObservationLogPath $tempObservationLog `
             -NoRefresh `
             -RequireReady 2>&1
         $activeDryRunExitCode = $LASTEXITCODE
@@ -315,17 +346,23 @@ try {
     foreach ($marker in @(
             "profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION",
             "profit_next_execution_source_status=ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
-            "profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
+            "profit_next_execution_observation_status=ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE",
+            "profit_next_execution_observation_sample_ready=false",
+            "profit_next_execution_sample_collection_blocked_by=NO_OPEN_OCO_POSITIONS",
+            "profit_next_execution_open_oco_positions=0",
+            "profit_next_execution_observation_unique_blocker=NO_OPEN_OCO_POSITIONS",
+            "profit_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS",
             "profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION",
-            "profit_next_execution_exact_unlock_command=.\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady",
+            "profit_next_execution_exact_unlock_command=.\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady",
             '"profitRoute":"TRAILING_STOP_DRY_RUN_OBSERVATION"',
-            '"uniqueBlocker":"COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE"',
-            "Collect dry-run observation evidence and runtime-log smoke before any later live trailing review."
+            '"uniqueBlocker":"NO_OPEN_OCO_POSITIONS"',
+            '"sampleCollectionBlockedBy":"NO_OPEN_OCO_POSITIONS"',
+            "Keep dry-run active and wait for an open OCO position; do not promote to live trailing without a real dry-run sample."
         )) {
         Assert-Contains -Name "profit next execution blocker active dry-run replay" -Text $activeDryRunText -Pattern ([regex]::Escape($marker))
     }
 } finally {
-    foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog)) {
+    foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog, $tempObservationLog)) {
         if (Test-Path -LiteralPath $path) {
             Remove-Item -LiteralPath $path -Force
         }

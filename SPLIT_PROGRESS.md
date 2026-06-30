@@ -28,7 +28,8 @@
   - 30d BTCUSDT trailing replay remained `acceptance=PASS` with
     `improvementPct=56.299%`
   - profit blocker advanced to
-    `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`
+    `NO_OPEN_OCO_POSITIONS` once the active dry-run observation packet is
+    consumed by `prepare_profit_next_execution_blocker_packet.ps1`
   This is dry-run observation only, not live OCO mutation approval.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
@@ -1239,11 +1240,13 @@
   verification list are generated before any env/deploy action. The packet also
   handles the post-deploy active dry-run state: once
   `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true` are deployed,
-  it reports `profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION`,
-  `profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`,
+  it reports `profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION`
   and
-  `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
-  That is the observation phase, not live OCO mutation approval. The packet also
+  `profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`.
+  When the observation-status packet is available, it also surfaces
+  `profit_next_execution_observation_status` and can refine
+  `profit_next_execution_unique_blocker` to `NO_OPEN_OCO_POSITIONS`. That is the
+  observation phase, not live OCO mutation approval. The packet also
   records why Strategy574/TinyLive relaxation, DataFreshness entry-policy
   relaxation, Strategy485 position mutation, and general live-policy relaxation
   are not the next recommended route. It is read-only and does not execute the

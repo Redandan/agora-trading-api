@@ -718,9 +718,9 @@ shows live execution is not ready: EntryDedup is review-ready as a shadow-only
 operator lane, DataFreshness `replay_candidate_id_rows=0` and
 `complete_replayable_candidate_rows=0`, and governance relaxation remains
 `NOT_READY` with no reviewable relaxation candidates.
-The latest post-deploy profit validation refresh now has parseable blocker
-evidence instead of a tooling `NO_EVIDENCE` failure:
-`origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, `origin_runtime_delta_files=0`,
+The 2026-07-01 post-deploy profit validation refresh now has parseable blocker
+evidence on deployed `38b6480`: `origin_delta_status=CURRENT_ORIGIN_MAIN`,
+`origin_runtime_delta_files=0`,
 `deploy_required_before_post_deploy_profit_validation=false`,
 `profit_loss_review_gate_status=READY_FOR_LOSS_SOURCE_REVIEW_NOT_LIVE`,
 `profit_experiment_gate_status=BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE`, and
@@ -729,6 +729,15 @@ The top profit-improvement lane is DataFreshness false-kill counterfactual, but
 it is still blocked by missing fresh replayCandidateId rows, entry/TP/SL
 candidate snapshots, EV/OCO preflight snapshots, and complete replayable
 candidate rows. This is read-only evidence, not live approval.
+The runtime-evidence RCA is also still blocked by
+`CANONICAL_ROWS_NO_SHADOW_INTENT`: `TRADING_RUNTIME_EVIDENCE_ENABLED=true`,
+canonical rows exist, `shadowIntentCount=0`, `orderSentEvidence=0`, and
+`missing_runtime_evidence_fields=[]`. The next-execution blocker packet routes
+the highest-ROI execution lane to trailing dry-run observation with
+`profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`,
+`profit_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS`,
+`profit_next_execution_open_oco_positions=0`, `order_allowed=false`, and
+`live_policy_change_allowed=false`.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

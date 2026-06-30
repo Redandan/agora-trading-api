@@ -1105,6 +1105,10 @@ context implementation is reviewable but not deployed or activated; it keeps
 authorization to activate a collector, deploy, relax EntryDedup/DataFreshness/
 live policy, change thresholds, stage-add, place orders, modify OCO, send
 Telegram, or mutate DB/grid/fund/Earn/exchange state.
+After the 2026-07-01 deploy of `38b6480`, the runtime implementation is current
+on production, but close-readiness still requires fresh shadow/runtime evidence
+rows; `shadowIntentCount=0` and DataFreshness replay candidate rows remain
+blocked evidence, not live approval.
 
 Read-only EntryDedup semantics preflight review packet:
 

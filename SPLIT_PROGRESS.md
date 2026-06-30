@@ -3798,6 +3798,31 @@ Trading deployment prep:
   collector, relax EntryDedup/DataFreshness/live policy, enable staged-add/live
   execution, place orders, modify OCO, send Telegram, or mutate
   DB/grid/fund/Earn/exchange state.
+- 2026-07-01 deployed `origin/main` `38b6480` to production without production
+  env changes. The deploy advanced the active blue-green port to `8085`, strict
+  post-drain server verification passed, dedicated public `/api/mcp` passed,
+  shared-host `/api/trading/mcp` stayed blocked with 404, split acceptance
+  passed with shared-mode schema compare, runtime log smoke had zero ERRORs and
+  only known WARN categories, and MCP split ownership remained valid
+  (`trading_tools=308`). Post-deploy origin/currentness is clean:
+  `server_worktree_commit=38b6480`, `origin_main_commit=38b6480`,
+  `deployed_app_commit=38b6480`, `origin_delta_status=CURRENT_ORIGIN_MAIN`, and
+  `origin_runtime_delta_files=0`.
+- The post-deploy profit evidence remains blocked, not live-ready:
+  `post_deploy_profit_validation_status=BLOCKED_COLLECT_READ_ONLY_EVIDENCE`,
+  `profit_loss_review_gate_status=READY_FOR_LOSS_SOURCE_REVIEW_NOT_LIVE`,
+  `profit_experiment_gate_status=BLOCKED_COLLECT_COUNTERFACTUAL_EVIDENCE`,
+  DataFreshness `replay_candidate_id_rows=0`,
+  `complete_replayable_candidate_rows=0`, and
+  `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`.
+  Runtime evidence RCA is `CANONICAL_ROWS_NO_SHADOW_INTENT` with
+  `shadowIntentCount=0`, `orderSentEvidence=0`, and
+  `missing_runtime_evidence_fields=[]`. The next-execution blocker packet keeps
+  the active ROI lane at trailing dry-run observation:
+  `profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`
+  and `profit_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS`.
+  All live policy, scheduler, order, OCO/grid/fund/Earn/Telegram/exchange, DB,
+  and production env mutation flags remain false in these packets.
 
 ## Cleanup Priority
 

@@ -280,6 +280,7 @@ for row in followups:
 window = dt.timedelta(hours=followup_hours)
 classification = Counter()
 event_classification = Counter()
+classification_by_strategy_interval = Counter()
 examples = []
 no_terminal_examples = []
 
@@ -287,6 +288,7 @@ for candidate in candidates:
     if candidate.get("event_type") == "SIGNAL_BUY":
         classification["SIGNAL_BUY_CANDIDATE_ROW"] += 1
         event_classification["SIGNAL_BUY"] += 1
+        classification_by_strategy_interval[("SIGNAL_BUY_CANDIDATE_ROW", candidate.get("strategy_id", "-1"), candidate.get("interval_code", "N/A"))] += 1
         if len(examples) < limit:
             examples.append((candidate, None, "SIGNAL_BUY_CANDIDATE_ROW"))
         continue
@@ -302,6 +304,7 @@ for candidate in candidates:
     if matched is None:
         classification["NO_TERMINAL_FOLLOWUP"] += 1
         event_classification["NO_TERMINAL_FOLLOWUP"] += 1
+        classification_by_strategy_interval[("NO_TERMINAL_FOLLOWUP", candidate.get("strategy_id", "-1"), candidate.get("interval_code", "N/A"))] += 1
         if len(examples) < limit:
             examples.append((candidate, None, "NO_TERMINAL_FOLLOWUP"))
         if len(no_terminal_examples) < limit:
@@ -310,6 +313,7 @@ for candidate in candidates:
         bucket = bucket_followup(matched)
         classification[bucket] += 1
         event_classification[matched.get("event_type", "UNKNOWN") or "UNKNOWN"] += 1
+        classification_by_strategy_interval[(bucket, candidate.get("strategy_id", "-1"), candidate.get("interval_code", "N/A"))] += 1
         if len(examples) < limit:
             examples.append((candidate, matched, bucket))
 
@@ -372,6 +376,16 @@ else:
         interval = row[2] if len(row) > 2 else "N/A"
         count = row[3] if len(row) > 3 else "0"
         print(f"  - event={event_type} strategy={strategy} interval={interval} count={count}")
+print("buy_like_followup_classification_by_strategy_interval:")
+if not classification_by_strategy_interval:
+    print("  - NONE=0")
+else:
+    ranked = sorted(
+        classification_by_strategy_interval.items(),
+        key=lambda item: (-item[1], item[0][0], item[0][1], item[0][2])
+    )
+    for (classification_name, strategy, interval), count in ranked[:limit]:
+        print(f"  - classification={classification_name} strategy={strategy} interval={interval} count={count}")
 print("Examples:")
 for candidate, follow, bucket in examples:
     if follow is None:

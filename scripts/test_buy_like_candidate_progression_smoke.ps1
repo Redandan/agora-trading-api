@@ -68,6 +68,7 @@ foreach ($marker in @(
         "BUY_LIKE_PIPELINE_HAS_TERMINAL_FOLLOWUP",
         "buy_like_candidate_progression_recommendation",
         "buy_like_followup_classification",
+        "buy_like_followup_classification_by_strategy_interval",
         "buy_like_followup_event_types",
         "buy_like_candidate_type_distribution",
         "NoTerminalFollowupExamples",

@@ -654,9 +654,11 @@ candidate rows, and
 `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`.
 The highest-ROI current loss review is BUY-like candidate progression:
 `buy_like_candidate_loss_review_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE`,
-dominant blocker `ENTRY_SKIP:EntryDedup`, 30d BUY-like rows `705`, 30d
-EntryDedup rows `420`, 30d no-terminal rows `110`, and live/order/policy
-permissions all remain false.
+dominant blocker `ENTRY_SKIP:EntryDedup`, 30d BUY-like rows `703`, 30d
+EntryDedup rows `418`, 30d no-terminal rows `110`, and live/order/policy
+permissions all remain false. The fresh cross-tab ranks the largest EntryDedup
+sources as strategy574/1h `161`, strategy566/1h `50`, strategy579/1h `40`, and
+strategy485/1d `18`.
 
 The continuity matcher packet further narrows the no-terminal concern:
 `matcher_artifact_explained_rows=108` out of `no_terminal_followup_rows=110`

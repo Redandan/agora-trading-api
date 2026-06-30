@@ -3645,11 +3645,14 @@ Trading deployment prep:
   loss packet at `target/profit-review/buy-like-candidate-loss-review-packet-latest.log`.
   It returned `READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE`,
   dominant blocker `ENTRY_SKIP:EntryDedup`, 14d rows `3` (`NO_TERMINAL_FOLLOWUP=2`,
-  `ENTRY_SKIP:EntryDedup=1`), and 30d rows `705`
-  (`ENTRY_SKIP:EntryDedup=420`, `NO_TERMINAL_FOLLOWUP=110`,
+  `ENTRY_SKIP:EntryDedup=1`), and 30d rows `703`
+  (`ENTRY_SKIP:EntryDedup=418`, `NO_TERMINAL_FOLLOWUP=110`,
   `ENTRY_SKIP:DuplicateBar=98`, `ENTRY_SKIP:ShadowExecutionIntent=35`,
   filter-block rows `37`, DataFreshnessGuard rows `5`). No-terminal continuity
   was review-ready with 110 rows, mostly terminal-after-primary-window evidence.
+  The fresh progression cross-tab ranked the top EntryDedup sources as
+  strategy574/1h `161`, strategy566/1h `50`, strategy579/1h `40`, and
+  strategy485/1d `18`.
   The packet keeps live policy change, EntryDedup/DataFreshness relaxation,
   scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutation,
   deploy, and production env changes disabled.

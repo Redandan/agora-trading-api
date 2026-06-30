@@ -78,6 +78,63 @@ goal, including:
 Codex must still fail closed when evidence is missing. Full authority means
 Codex should not stop at suggestions, but it does not mean blind live risk.
 
+## Current Target Authorization
+
+The current executable target is trailing-stop dry-run activation only. The
+purpose is to observe exit-side decisions in production runtime without placing
+orders or mutating OCO state.
+
+The exact operator authorization required before Codex may change production
+env or deploy this phase is:
+
+```text
+I authorize production env diff TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, deploy/restart current origin/main, and post-env read-only verification only. I do not authorize TRAILING_STOP_DRY_RUN=false, live OCO mutation, order placement, position close, scheduler/live policy relaxation, Telegram send, DB/grid/fund/Earn/exchange mutation, or external backfill/import.
+```
+
+Authorized env diff:
+
+- `TRAILING_STOP_ENABLED=true`
+- `TRAILING_STOP_DRY_RUN=true`
+
+Flags and actions that must remain disabled or not performed:
+
+- `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false`
+- `TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=false`
+- `TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=false`
+- `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=false`
+- `POSITION_EXIT_MANAGER_ENABLED=false`
+- `TRADING_OCO_POLLER_ENABLED=false`
+- `MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false`
+- `EVENT_SCAN_NOTIFICATION_ENABLED=false`
+- `EXECUTION_EVENT_ENABLED=false`
+- no order placement;
+- no position close;
+- no live OCO mutation;
+- no scheduler or live policy relaxation;
+- no Telegram send;
+- no DB, grid, fund, Earn, exchange, backfill, or import mutation.
+
+Execution command after exact authorization:
+
+```powershell
+.\scripts\deploy_ssh.ps1 -Branch main
+```
+
+Post-deploy verification is read-only only:
+
+```powershell
+.\scripts\verify_split_acceptance_ssh.ps1
+.\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady
+.\scripts\smoke_trailing_stop_pnl_replay_ssh.ps1 -Symbol BTCUSDT -IntervalCode 1h -ReplayIntervalCode 1m -Days 30 -Limit 500 -RequireAcceptance
+.\scripts\audit_live_readiness_ssh.ps1 -Symbol BTCUSDT
+.\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
+```
+
+Rollback condition: if runtime logs show any order, OCO write, grid, fund, Earn,
+Telegram, scheduler enablement, or unexpected mutation outside this scope,
+restore the previous trailing-stop env state and rerun the same read-only
+verification.
+
 ## Execution Rules
 
 1. Evidence comes before exposure.

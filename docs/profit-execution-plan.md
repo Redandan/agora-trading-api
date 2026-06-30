@@ -638,6 +638,7 @@ git diff --check
 .\scripts\smoke_signal_correctness_ssh.ps1
 .\scripts\smoke_no_terminal_followup_continuity_ssh.ps1 -Symbol BTCUSDT -ReviewDays 30 -FollowupHours 6 -ExtendedFollowupHours 72 -Limit 20
 .\scripts\prepare_buy_like_candidate_loss_review_packet.ps1 -BuyLike14dLogPath target/profit-review/buy-like-candidate-progression-14d-latest.log -BuyLike30dLogPath target/profit-review/buy-like-candidate-progression-30d-latest.log -DataFreshnessReadinessLogPath target/profit-review/data-freshness-replay-evidence-readiness-refresh.log -SignalCorrectnessLogPath target/profit-review/signal-correctness-maintenance-latest.log -NoTerminalContinuityLogPath target/profit-review/no-terminal-followup-continuity-current.log -MaxAgeMinutes 60 -RequireReady
+.\scripts\prepare_buy_like_continuity_matcher_review_packet.ps1 -BuyLikeLossReviewLogPath target/profit-review/buy-like-candidate-loss-review-packet-latest.log -NoTerminalContinuityLogPath target/profit-review/no-terminal-followup-continuity-current.log -MaxAgeMinutes 60 -RequireReady
 .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
 ```
 
@@ -656,6 +657,13 @@ The highest-ROI current loss review is BUY-like candidate progression:
 dominant blocker `ENTRY_SKIP:EntryDedup`, 30d BUY-like rows `705`, 30d
 EntryDedup rows `420`, 30d no-terminal rows `110`, and live/order/policy
 permissions all remain false.
+
+The continuity matcher packet further narrows the no-terminal concern:
+`matcher_artifact_explained_rows=108` out of `no_terminal_followup_rows=110`
+(`98.18%`), leaving `residual_potential_true_gap_rows=2`. The current
+profit-improvement focus should therefore be EntryDedup/exposure semantics and
+protective duplicate handling, while DataFreshness, no-terminal matching, and
+live execution remain review-only.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

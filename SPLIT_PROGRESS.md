@@ -3653,6 +3653,14 @@ Trading deployment prep:
   The packet keeps live policy change, EntryDedup/DataFreshness relaxation,
   scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutation,
   deploy, and production env changes disabled.
+- `target/profit-review/buy-like-continuity-matcher-review-packet-latest.log`
+  then showed the apparent no-terminal gap is mostly a matcher-window artifact:
+  `buy_like_continuity_matcher_review_status=READY_FOR_BUY_LIKE_CONTINUITY_MATCHER_REVIEW_NOT_LIVE`,
+  `no_terminal_followup_rows=110`, `matcher_artifact_explained_rows=108`
+  (`98.18%`), `residual_potential_true_gap_rows=2` (`1.82%`), with
+  `matcher_review_recommendation=EXTEND_PRIMARY_WINDOW_THEN_RECHECK_INTERVAL_LINKING`.
+  This keeps the highest-ROI profit review pointed at EntryDedup/exposure
+  semantics, not broad DataFreshness or no-terminal policy relaxation.
 
 ## Cleanup Priority
 

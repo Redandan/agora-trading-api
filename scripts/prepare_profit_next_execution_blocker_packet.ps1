@@ -229,12 +229,12 @@ if ($executionStatus -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT
 } elseif ($executionStatus -eq "EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW" -and $missingRequirements.Count -eq 0) {
     $status = "BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
     $uniqueBlocker = "AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
-    $unlockCommand = "Request separate env/deploy authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification."
+    $unlockCommand = ".\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady"
     $nextAction = "Do not enable live orders; request separate trailing dry-run env diff and deploy authorization."
 } elseif ($executionStatus -eq "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW" -and $missingRequirements.Count -eq 0) {
     $status = "BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
     $uniqueBlocker = "AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
-    $unlockCommand = "Request separate env/deploy authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification."
+    $unlockCommand = ".\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady"
     $nextAction = "Strategy opt-in is already applied; request separate trailing dry-run env diff and deploy authorization."
 } elseif ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY" -and $missingRequirements.Count -eq 0) {
     $status = "TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION"
@@ -317,6 +317,7 @@ $packet = [pscustomobject]@{
     }
     negativeAlternativeEvidence = @($alternativeEvidence)
     postUnlockReadOnlyVerification = @(
+        ".\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady",
         ".\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId $StrategyId -RequireReady",
         ".\scripts\audit_live_readiness_ssh.ps1 -Symbol $Symbol",
         "server-local MCP getStrategyConfig confirms strategy $StrategyId trailingStopEnabled=true",

@@ -910,7 +910,12 @@ applied, the same packet should move to
 `BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`,
 meaning the next separate decision is only `TRAILING_STOP_ENABLED=true` plus
 `TRAILING_STOP_DRY_RUN=true`, followed by deploy/restart and read-only
-verification. The packet remains read-only: it does not call
+verification. Its `profit_next_execution_exact_unlock_command` should point to
+the read-only handoff command
+`.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady`
+so the exact operator authorization text, rollback plan, and verification list
+are generated before any env/deploy action. The packet remains read-only: it
+does not call
 `setTrailingStopOptIn`, change env, deploy, restart, enable scheduler/live
 trading, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.

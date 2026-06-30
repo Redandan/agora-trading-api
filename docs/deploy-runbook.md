@@ -2643,12 +2643,17 @@ Expected:
   `BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`,
   which means the remaining decision is the separate dry-run env/deploy step:
   `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true`, followed by
-  read-only verification. The packet also carries negative alternative evidence
-  for Strategy574/TinyLive relaxation, DataFreshness entry-policy relaxation,
-  Strategy485 position mutation, and general live-policy relaxation. It is
-  read-only and does not call `setTrailingStopOptIn`, change production env,
-  deploy/restart, enable scheduler/live trading, place orders, modify OCO,
-  close positions, send Telegram, relax policy, or mutate
+  read-only verification. Its `profit_next_execution_exact_unlock_command`
+  should point to
+  `.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady`,
+  which emits the exact operator authorization text, rollback plan, and
+  post-deploy verification list before any env/deploy action. The packet also
+  carries negative alternative evidence for Strategy574/TinyLive relaxation,
+  DataFreshness entry-policy relaxation, Strategy485 position mutation, and
+  general live-policy relaxation. It is read-only and does not call
+  `setTrailingStopOptIn`, change production env, deploy/restart, enable
+  scheduler/live trading, place orders, modify OCO, close positions, send
+  Telegram, relax policy, or mutate
   DB/grid/fund/Earn/exchange state.
   The controlled rollback path uses the same wrapper and also starts with a
   dry-run:

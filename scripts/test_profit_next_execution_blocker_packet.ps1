@@ -32,6 +32,7 @@ foreach ($marker in @(
         "AWAIT_EXPLICIT_EXECUTE_CONFIRMATION",
         "EXECUTE_TRAILING_STOP_OPT_IN_",
         "BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+        "prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1",
         "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
         "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
         "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
@@ -232,7 +233,7 @@ try {
             "profit_next_execution_source_status=EXECUTED_POST_OPT_IN_READY_FOR_ENV_DIFF_REVIEW",
             "profit_next_execution_unique_blocker=AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
             "profit_next_execution_blocker_status=BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
-            "Request separate env/deploy authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true"
+            "profit_next_execution_exact_unlock_command=.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady"
         )) {
         Assert-Contains -Name "profit next execution blocker post-opt-in replay" -Text $postOptInText -Pattern ([regex]::Escape($marker))
     }
@@ -272,6 +273,7 @@ try {
             "profit_next_execution_source_status=ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
             "profit_next_execution_unique_blocker=AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
             "profit_next_execution_blocker_status=BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION",
+            "profit_next_execution_exact_unlock_command=.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady",
             "Strategy opt-in is already applied; request separate trailing dry-run env diff and deploy authorization."
         )) {
         Assert-Contains -Name "profit next execution blocker already-opted-in replay" -Text $alreadyOptedInText -Pattern ([regex]::Escape($marker))

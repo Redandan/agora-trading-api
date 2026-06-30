@@ -46,20 +46,26 @@ Secondary success criteria:
 ## Current State
 
 The current profit path has advanced from "waiting for strategy 574 opt-in" to
-"waiting for separate trailing-stop dry-run env/deploy authorization".
+active trailing-stop dry-run observation.
 
 Known current facts:
 
 - Strategy 574 trailing-stop opt-in has been applied.
 - `trailingStopEnabled=true` is confirmed for strategy 574.
 - OCO writes were not performed by the opt-in action.
+- A0 env diff was applied on 2026-06-30:
+  - `TRAILING_STOP_ENABLED=true`
+  - `TRAILING_STOP_DRY_RUN=true`
+- Deploy/restart completed on current `origin/main` commit `dad910c`.
+- Post-deploy split acceptance passed on active port `8084`.
+- `getTrailingStopStatus` confirms `global.enabled=true`,
+  `global.dryRun=true`, and `open_oco_positions=0`.
+- 30d BTCUSDT trailing replay remains `acceptance=PASS`, with
+  `improvementPct=52.753%` and `acceptanceDeltaPnl=13391.79229093`.
 - Current next blocker is
-  `AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`.
-- Global `TRAILING_STOP_ENABLED` is still false, so trailing-stop is not yet
-  active in runtime observation.
-- `TRAILING_STOP_DRY_RUN` is expected to stay true for the next phase.
-- The next profitable path is evidence-first trailing-stop dry-run, not
-  immediate live OCO mutation.
+  `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
+- The next profitable path is evidence-first trailing-stop dry-run observation,
+  not immediate live OCO mutation.
 
 ## Authority Model
 
@@ -406,7 +412,9 @@ Current next step:
 .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
 ```
 
-If the packet still reports the same blocker, the next executable phase is:
+If the packet reports
+`BLOCKED_AWAIT_SEPARATE_TRAILING_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION`,
+the next executable phase is:
 
 - apply reviewed env diff:
   - `TRAILING_STOP_ENABLED=true`
@@ -417,6 +425,15 @@ If the packet still reports the same blocker, the next executable phase is:
 - compare dry-run exit decisions against actual forward outcome;
 - promote to live OCO mutation only after dry-run evidence proves benefit and
   no abnormal OCO health is present.
+
+If the packet reports
+`TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`, A0 is complete and the only
+next step is dry-run observation evidence:
+
+- keep `TRAILING_STOP_DRY_RUN=true`;
+- verify runtime logs show no order/OCO modification/close-position/Telegram/
+  grid/fund/Earn/exchange mutation;
+- collect dry-run trailing observation rows before any live OCO promotion.
 
 Promotion evidence required:
 

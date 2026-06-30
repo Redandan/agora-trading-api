@@ -919,6 +919,12 @@ does not call
 `setTrailingStopOptIn`, change env, deploy, restart, enable scheduler/live
 trading, place orders, modify OCO, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
+After the dry-run env deploy is active, the same packet should report
+`profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION`,
+`profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`,
+and `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
+That state means A0 is complete and the next step is observation evidence only;
+it is not live OCO mutation approval.
 
 The same wrapper also provides controlled rollback. First dry-run it:
 

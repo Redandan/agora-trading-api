@@ -35,6 +35,8 @@ foreach ($marker in @(
         "prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1",
         "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
         "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
+        "TRAILING_STOP_DRY_RUN_OBSERVATION",
+        "post_opt_in_readiness",
         "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
         "strategy574-threshold-or-tinylive-relaxation",
         "data-freshness-entry-policy-relaxation",
@@ -277,6 +279,50 @@ try {
             "Strategy opt-in is already applied; request separate trailing dry-run env diff and deploy authorization."
         )) {
         Assert-Contains -Name "profit next execution blocker already-opted-in replay" -Text $alreadyOptedInText -Pattern ([regex]::Escape($marker))
+    }
+
+    $executionPacket.status = "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY"
+    Set-Content -LiteralPath $tempExecutionLog -Encoding UTF8 -Value @(
+        "trailing_stop_strategy_opt_in_execution_status=ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
+        "trailing_stop_strategy_opt_in_execution_decision=VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
+        "trailing_stop_strategy_opt_in_execution_required_confirm_text=EXECUTE_TRAILING_STOP_OPT_IN_574",
+        "trailing_stop_acceptance=PASS",
+        "trailing_stop_improvement_pct=52.753%",
+        "trailing_stop_delta_pnl=13391.79229093",
+        "trailing_stop_strategy_opt_in_execution_write_performed=false",
+        ("trailing_stop_strategy_opt_in_execution_packet=" + (ConvertTo-Json -Compress -Depth 8 $executionPacket))
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $activeDryRunOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -ExecutionLogPath $tempExecutionLog `
+            -Strategy574GovernanceLogPath $tempStrategy574Log `
+            -DataFreshnessReadinessLogPath $tempDfLog `
+            -Strategy485RiskLogPath $tempStrategy485Log `
+            -SignalCorrectnessLogPath $tempSignalLog `
+            -NoRefresh `
+            -RequireReady 2>&1
+        $activeDryRunExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $activeDryRunText = ($activeDryRunOutput | Out-String -Width 4096)
+    if ($activeDryRunExitCode -ne 0) {
+        throw "profit next execution blocker active dry-run replay failed:`n$activeDryRunText"
+    }
+    foreach ($marker in @(
+            "profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION",
+            "profit_next_execution_source_status=ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
+            "profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
+            "profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION",
+            "profit_next_execution_exact_unlock_command=.\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady",
+            '"profitRoute":"TRAILING_STOP_DRY_RUN_OBSERVATION"',
+            '"uniqueBlocker":"COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE"',
+            "Collect dry-run observation evidence and runtime-log smoke before any later live trailing review."
+        )) {
+        Assert-Contains -Name "profit next execution blocker active dry-run replay" -Text $activeDryRunText -Pattern ([regex]::Escape($marker))
     }
 } finally {
     foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog)) {

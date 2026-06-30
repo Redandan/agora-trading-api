@@ -108,6 +108,113 @@ function Invoke-TrailingExecutionDryRun {
     }
 }
 
+function Invoke-TrailingPostOptInReadinessForBlocker {
+    $scriptPath = Join-Path $PSScriptRoot "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1"
+    if (-not (Test-Path -LiteralPath $scriptPath)) {
+        throw "Missing trailing post-opt-in readiness wrapper: $scriptPath"
+    }
+
+    $arguments = @{
+        SshHost = $SshHost
+        SshKey = $SshKey
+        AppDir = $AppDir
+        EnvFile = $EnvFile
+        Symbol = $Symbol
+        ExpectedOptInStrategyId = $StrategyId
+    }
+
+    $output = @()
+    $exitCode = 0
+    $scriptSucceeded = $true
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $scriptPath @arguments *>&1
+        $scriptSucceeded = $?
+        $exitCode = if ($scriptSucceeded) { 0 } else { 1 }
+    } catch {
+        $output += $_
+        $exitCode = 1
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    return [pscustomobject]@{
+        Text = ($output | Out-String -Width 4096)
+        ExitCode = $exitCode
+        Source = "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1"
+    }
+}
+
+function Convert-PostOptInReadinessToExecutionResult {
+    param([object]$PostResult)
+
+    $postJson = Get-LastPrefixedValue -Text $PostResult.Text -Prefix "trailing_stop_post_opt_in_readiness_packet="
+    $postPacket = ConvertFrom-JsonOrNull -Json $postJson
+    if ($PostResult.ExitCode -ne 0 -or $null -eq $postPacket) {
+        return $null
+    }
+
+    $postStatus = Get-PacketValue -Packet $postPacket -Name "status"
+    if ($postStatus -ne "READY_FOR_TRAILING_STOP_DRY_RUN_ENV_DIFF_OPERATOR_REVIEW_NOT_MUTATION" -and
+        $postStatus -ne "TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY") {
+        return $null
+    }
+
+    $executionStatus = if ($postStatus -eq "TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY") {
+        "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY"
+    } else {
+        "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW"
+    }
+    $executionDecision = if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
+        "VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY"
+    } else {
+        "REQUEST_SEPARATE_DRY_RUN_ENV_DIFF_AND_DEPLOY_AUTHORIZATION"
+    }
+    $nextRequiredAuthorization = if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
+        "dry-run is already active; continue read-only observation and runtime-log verification only"
+    } else {
+        "request separate authorization for TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY_RUN=true, then deploy/restart and run read-only verification"
+    }
+
+    $syntheticPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET"
+        status = $executionStatus
+        symbol = $Symbol
+        strategyId = $StrategyId
+        executeRequested = $false
+        requiredConfirmText = "EXECUTE_TRAILING_STOP_OPT_IN_$StrategyId"
+        trailingAcceptance = Get-PacketValue -Packet $postPacket -Name "trailingAcceptance"
+        trailingImprovementPct = Get-PacketValue -Packet $postPacket -Name "trailingImprovementPct"
+        trailingDeltaPnl = Get-PacketValue -Packet $postPacket -Name "trailingDeltaPnl"
+        strategyOptInWritePerformed = $false
+        sourcePostOptInStatus = $postStatus
+        postOptInReadinessStatus = $postStatus
+        postOptInReadinessDecision = Get-LastPrefixedValue -Text $PostResult.Text -Prefix "trailing_stop_post_opt_in_readiness_decision="
+        currentGlobalEnabled = Get-PacketValue -Packet $postPacket -Name "currentGlobalEnabled"
+        currentGlobalDryRun = Get-PacketValue -Packet $postPacket -Name "currentGlobalDryRun"
+        nextRequiredAuthorization = $nextRequiredAuthorization
+        missingRequirements = @()
+    }
+
+    $syntheticText = @(
+        "trailing_stop_strategy_opt_in_execution_status=$executionStatus",
+        "trailing_stop_strategy_opt_in_execution_decision=$executionDecision",
+        "trailing_stop_strategy_opt_in_execution_required_confirm_text=EXECUTE_TRAILING_STOP_OPT_IN_$StrategyId",
+        ("trailing_stop_acceptance=" + $syntheticPacket.trailingAcceptance),
+        ("trailing_stop_improvement_pct=" + $syntheticPacket.trailingImprovementPct),
+        ("trailing_stop_delta_pnl=" + $syntheticPacket.trailingDeltaPnl),
+        "trailing_stop_strategy_opt_in_execution_write_performed=false",
+        ("trailing_stop_strategy_opt_in_execution_packet=" + (ConvertTo-Json -Compress -Depth 8 $syntheticPacket))
+    ) -join "`n"
+
+    return [pscustomobject]@{
+        Text = $syntheticText
+        ExitCode = 0
+        Source = "prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1"
+    }
+}
+
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be between 1 and 1000000." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for profit next execution blocker packet arguments."
@@ -129,7 +236,13 @@ if (-not [string]::IsNullOrWhiteSpace($ExecutionLogPath)) {
 } elseif ($NoRefresh.IsPresent) {
     throw "ExecutionLogPath is required when -NoRefresh is used."
 } else {
-    $executionResult = Invoke-TrailingExecutionDryRun
+    $postProbeResult = Invoke-TrailingPostOptInReadinessForBlocker
+    $executionResult = Convert-PostOptInReadinessToExecutionResult -PostResult $postProbeResult
+    if ($null -ne $executionResult) {
+        $executionSource = "post_opt_in_readiness"
+    } else {
+        $executionResult = Invoke-TrailingExecutionDryRun
+    }
 }
 
 $executionJson = Get-LastPrefixedValue -Text $executionResult.Text -Prefix "trailing_stop_strategy_opt_in_execution_packet="
@@ -239,7 +352,7 @@ if ($executionStatus -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT
 } elseif ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY" -and $missingRequirements.Count -eq 0) {
     $status = "TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION"
     $uniqueBlocker = "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE"
-    $unlockCommand = "Continue read-only dry-run observation; do not enable live OCO mutation without a separate promotion packet."
+    $unlockCommand = ".\scripts\prepare_trailing_stop_post_opt_in_readiness_packet_ssh.ps1 -ExpectedOptInStrategyId $StrategyId -RequireReady"
     $nextAction = "Collect dry-run observation evidence and runtime-log smoke before any later live trailing review."
 } else {
     $uniqueBlocker = "FIX_TRAILING_OPT_IN_EVIDENCE"
@@ -298,8 +411,12 @@ $packet = [pscustomobject]@{
     symbol = $Symbol
     goal = "make-money"
     goalSatisfied = $goalSatisfied
-    profitRoute = "TRAILING_STOP_STRATEGY574_OPT_IN"
-    profitRouteReason = "highest-ROI route with quantified trailing replay PASS and no live order/OCO/scheduler/env mutation in the first step"
+    profitRoute = if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") { "TRAILING_STOP_DRY_RUN_OBSERVATION" } else { "TRAILING_STOP_STRATEGY574_OPT_IN" }
+    profitRouteReason = if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
+        "highest-ROI trailing lane is deployed in dry-run; next value is observation evidence before any live OCO mutation"
+    } else {
+        "highest-ROI route with quantified trailing replay PASS and no live order/OCO/scheduler/env mutation in the first step"
+    }
     uniqueBlocker = $uniqueBlocker
     exactUnlockCommand = $unlockCommand
     sourceExecution = [pscustomobject]@{
@@ -347,9 +464,9 @@ $packet = [pscustomobject]@{
 }
 
 Write-Host "[profit-next-execution-blocker-packet] read-only packet"
-Write-Host "scope=READ_ONLY; default refresh invokes only the non-mutating trailing opt-in dry-run wrapper; no -Execute, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; default refresh invokes post-opt-in readiness first, then the non-mutating trailing opt-in dry-run wrapper only when needed; no -Execute, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "profit_next_execution_goal_satisfied=false"
-Write-Host "profit_next_execution_route=TRAILING_STOP_STRATEGY574_OPT_IN"
+Write-Host ("profit_next_execution_route=" + $packet.profitRoute)
 Write-Host "profit_next_execution_source_status=$executionStatus"
 Write-Host "profit_next_execution_source_decision=$executionDecision"
 Write-Host "profit_next_execution_trailing_acceptance=$trailingAcceptance"

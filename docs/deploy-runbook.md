@@ -2647,7 +2647,13 @@ Expected:
   should point to
   `.\scripts\prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady`,
   which emits the exact operator authorization text, rollback plan, and
-  post-deploy verification list before any env/deploy action. The packet also
+  post-deploy verification list before any env/deploy action. After that
+  dry-run env deploy is active, the expected status becomes
+  `TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION` with
+  `profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION` and
+  `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
+  That status means collect dry-run observations; it is not live OCO mutation
+  approval. The packet also
   carries negative alternative evidence for Strategy574/TinyLive relaxation,
   DataFreshness entry-policy relaxation, Strategy485 position mutation, and
   general live-policy relaxation. It is read-only and does not call

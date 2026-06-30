@@ -17,6 +17,19 @@
   - `GET /api/trading/internal/reports/current`
   - `GET /api/trading/internal/reports/analysis`
   - `GET /api/trading/internal/reports/weekly`
+- 2026-06-30 A0 trailing-stop dry-run env/deploy was applied on the
+  production host from `origin/main` commit `dad910c`:
+  - `TRAILING_STOP_ENABLED=true`
+  - `TRAILING_STOP_DRY_RUN=true`
+  - active port `8084`
+  - split acceptance passed
+  - `getTrailingStopStatus` reported `global.enabled=true`,
+    `global.dryRun=true`, and `open_oco_positions=0`
+  - 30d BTCUSDT trailing replay remained `acceptance=PASS` with
+    `improvementPct=52.753%`
+  - profit blocker advanced to
+    `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`
+  This is dry-run observation only, not live OCO mutation approval.
 - Unused public exchange-rate provider chain leftovers were removed; exchange rates now use AgoraMarket internal SDK or static fallback only.
 - Flutter/AppVersion deployment leftovers were removed from trading.
 - UserSearchLog/SearchLogAspect leftovers were removed from trading.
@@ -1193,6 +1206,13 @@
   `prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1 -RequireReady`
   command so the exact operator authorization text, rollback plan, and
   verification list are generated before any env/deploy action. The packet also
+  handles the post-deploy active dry-run state: once
+  `TRAILING_STOP_ENABLED=true` and `TRAILING_STOP_DRY_RUN=true` are deployed,
+  it reports `profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION`,
+  `profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION`,
+  and
+  `profit_next_execution_unique_blocker=COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
+  That is the observation phase, not live OCO mutation approval. The packet also
   records why Strategy574/TinyLive relaxation, DataFreshness entry-policy
   relaxation, Strategy485 position mutation, and general live-policy relaxation
   are not the next recommended route. It is read-only and does not execute the

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
@@ -48,6 +49,21 @@ public class InternalTradingReportController {
             return unauthorizedResponse();
         }
         return ResponseEntity.ok(new TradingReportResponse("weekly", tradingReportFacade.weeklyReport()));
+    }
+
+    @GetMapping("/market-signal-risk/drilldown")
+    public ResponseEntity<?> marketSignalRiskDrillDown(
+            @RequestHeader(value = INTERNAL_API_KEY_HEADER, required = false) String apiKey,
+            @RequestParam(required = false) Integer hours,
+            @RequestParam(required = false) String symbol,
+            @RequestParam(required = false, defaultValue = "full_summary") String detailType,
+            @RequestParam(required = false) Integer limit) {
+        if (!isAuthorized(apiKey)) {
+            return unauthorizedResponse();
+        }
+        return ResponseEntity.ok(new TradingReportResponse(
+                "market_signal_risk_drilldown",
+                tradingReportFacade.marketSignalRiskDrillDown(hours, symbol, detailType, limit)));
     }
 
     private boolean isAuthorized(String apiKey) {

@@ -15,4 +15,7 @@ public interface TradingReportFacade {
 
     /** Past 7-day trade summary (used by /weekly). */
     String weeklyReport();
+
+    /** Read-only market-signal risk drill-down used by Telegram inline buttons. */
+    String marketSignalRiskDrillDown(Integer hours, String symbol, String detailType, Integer limit);
 }

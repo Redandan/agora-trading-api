@@ -44,6 +44,7 @@ function Read-Lane {
         [string]$StatusPrefix,
         [string]$PacketPrefix,
         [string[]]$ReadyStatuses,
+        [string[]]$NoActionStatuses = @(),
         [string[]]$BlockedStatusHints,
         [string]$FallbackNextAction
     )
@@ -100,6 +101,8 @@ function Read-Lane {
         $classification = "EVIDENCE_INCOMPLETE"
     } elseif ($sourceStatus -in $ReadyStatuses) {
         $classification = "READY_FOR_OPERATOR_REVIEW_NOT_LIVE"
+    } elseif ($sourceStatus -in $NoActionStatuses) {
+        $classification = "NO_ACTION_REQUIRED_NOT_LIVE"
     } else {
         foreach ($hint in $BlockedStatusHints) {
             if ($sourceStatus -like "*$hint*") {
@@ -122,6 +125,7 @@ function Read-Lane {
         sourceStatus = $sourceStatus
         classification = $classification
         readyForOperatorReview = ($classification -eq "READY_FOR_OPERATOR_REVIEW_NOT_LIVE")
+        noActionRequired = ($classification -eq "NO_ACTION_REQUIRED_NOT_LIVE")
         liveReady = $false
         missingRequirements = @($allMissing)
         nextAction = $nextAction
@@ -169,7 +173,7 @@ $lanes = @(
     Read-Lane -Lane "profit-priority" -PathValue $PriorityDecisionLogPath -StatusPrefix "profit_operator_priority_decision_brief_status=" -PacketPrefix "profit_operator_priority_decision_brief_packet=" -ReadyStatuses @("READY_FOR_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Refresh the profit priority decision brief."
     Read-Lane -Lane "trailing-stop-dry-run" -PathValue $TrailingDryRunLogPath -StatusPrefix "trailing_stop_dry_run_operator_decision_status=" -PacketPrefix "trailing_stop_dry_run_operator_decision_packet=" -ReadyStatuses @("READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep trailing as dry-run operator review only."
     Read-Lane -Lane "strategy485-risk-reduction" -PathValue $Strategy485RiskLogPath -StatusPrefix "strategy485_risk_reduction_operator_decision_status=" -PacketPrefix "strategy485_risk_reduction_operator_decision_packet=" -ReadyStatuses @("READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep strategy485 risk reduction as shadow/operator review only."
-    Read-Lane -Lane "strategy485-risk-escalation" -PathValue $Strategy485RiskEscalationLogPath -StatusPrefix "strategy485_risk_escalation_brief_status=" -PacketPrefix "strategy485_risk_escalation_brief_packet=" -ReadyStatuses @("READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh strategy485 risk escalation evidence after the exit-side decision brief."
+    Read-Lane -Lane "strategy485-risk-escalation" -PathValue $Strategy485RiskEscalationLogPath -StatusPrefix "strategy485_risk_escalation_brief_status=" -PacketPrefix "strategy485_risk_escalation_brief_packet=" -ReadyStatuses @("READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION") -NoActionStatuses @("NO_POSITION_RISK_ACTION", "WATCH_ONLY") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh strategy485 risk escalation evidence after the exit-side decision brief."
     Read-EntryDedupLane
     Read-Lane -Lane "data-freshness-replay-blocker" -PathValue $DataFreshnessReplayBlockerLogPath -StatusPrefix "data_freshness_replay_blocker_decision_status=" -PacketPrefix "data_freshness_replay_blocker_decision_packet=" -ReadyStatuses @("READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Collect replayable DataFreshness rows before policy review."
     Read-Lane -Lane "data-freshness-collector-activation" -PathValue $DataFreshnessCollectorLogPath -StatusPrefix "data_freshness_collector_activation_status=" -PacketPrefix "data_freshness_collector_activation_packet=" -ReadyStatuses @("READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Prepare separate evidence-only collector activation review before any env change."
@@ -179,6 +183,7 @@ $lanes = @(
 )
 
 $readyReviewCount = @($lanes | Where-Object { $_.classification -eq "READY_FOR_OPERATOR_REVIEW_NOT_LIVE" }).Count
+$noActionCount = @($lanes | Where-Object { $_.classification -eq "NO_ACTION_REQUIRED_NOT_LIVE" }).Count
 $blockedCount = @($lanes | Where-Object { $_.classification -in @("BLOCKED_REVIEW_ONLY", "BLOCKED_OR_NOT_READY") }).Count
 $missingCount = @($lanes | Where-Object { $_.classification -eq "EVIDENCE_MISSING" }).Count
 $staleCount = @($lanes | Where-Object { $_.classification -eq "STALE_EVIDENCE" }).Count
@@ -186,7 +191,7 @@ $incompleteCount = @($lanes | Where-Object { $_.classification -eq "EVIDENCE_INC
 
 $globalMissing = [System.Collections.Generic.List[string]]::new()
 foreach ($lane in $lanes) {
-    if ($lane.classification -ne "READY_FOR_OPERATOR_REVIEW_NOT_LIVE") {
+    if ($lane.classification -notin @("READY_FOR_OPERATOR_REVIEW_NOT_LIVE", "NO_ACTION_REQUIRED_NOT_LIVE")) {
         Add-Unique -List $globalMissing -Value ("{0}: {1}" -f $lane.lane, $lane.classification)
     }
 }
@@ -205,6 +210,7 @@ $packet = [pscustomobject]@{
     liveReadinessConclusion = "NOT_READY_FOR_LIVE_ENABLEMENT"
     laneCount = @($lanes).Count
     readyReviewCount = $readyReviewCount
+    noActionCount = $noActionCount
     blockedCount = $blockedCount
     missingEvidenceCount = $missingCount
     staleEvidenceCount = $staleCount
@@ -238,6 +244,7 @@ Write-Host "[profit-live-blocker-audit-packet] read-only audit"
 Write-Host "scope=READ_ONLY; reads existing local profit-review logs only; no SSH, MCP, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
 Write-Host "profit_live_blocker_audit_lane_count=$(@($lanes).Count)"
 Write-Host "profit_live_blocker_ready_review_count=$readyReviewCount"
+Write-Host "profit_live_blocker_no_action_count=$noActionCount"
 Write-Host "profit_live_blocker_missing_evidence_count=$missingCount"
 Write-Host "profit_live_blocker_stale_evidence_count=$staleCount"
 Write-Host "profit_live_blocker_incomplete_evidence_count=$incompleteCount"

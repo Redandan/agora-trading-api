@@ -29,6 +29,9 @@ foreach ($marker in @(
         "PREPARE_SEPARATE_TP_SL_OCO_FEASIBILITY_REVIEW",
         "TP_SL_RISK_REDUCTION_REVIEW_READY_NOT_LIVE",
         "OCO_PROTECTED_POSITION_RISK_REVIEW_READY_NOT_MUTATION",
+        "OCO_PROTECTED_POSITION_RISK_WATCH_ONLY_NOT_MUTATION",
+        "NO_POSITION_RISK_ACTION",
+        "strategy485_oco_feasibility_class",
         "tp_sl_oco_feasibility_operator_packet",
         "tp_sl_oco_feasibility_status",
         "close_position_allowed=false",
@@ -141,6 +144,76 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "TP/SL/OCO feasibility packet unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    $noPositionBriefPacket = [pscustomobject]@{
+        packetType = "EXIT_SIDE_OPERATOR_DECISION_BRIEF"
+        status = "READY_FOR_OPERATOR_DECISION_NOT_MUTATION"
+        symbol = "BTCUSDT"
+        strategyId = 485
+        decisionLanes = @(
+            [pscustomobject]@{
+                proposalId = "trailing-stop-rollout-review"
+                lane = "trailing-stop-rollout"
+                status = "READY_FOR_OPERATOR_REVIEW_NOT_LIVE"
+            },
+            [pscustomobject]@{
+                proposalId = "strategy485-risk-reduction-review"
+                lane = "strategy485-risk-reduction"
+                status = "WATCH_ONLY"
+            }
+        )
+        evidenceSummary = [pscustomobject]@{
+            trailingStopAcceptance = "PASS"
+            trailingStopImprovementPct = "56.299%"
+            strategy485OcoHealthOk = "True"
+            strategy485NegativeEvPositionCount = "0"
+            strategy485PositionSummaries = @()
+        }
+        missingRequirements = @()
+        notAuthorization = "read-only"
+    }
+    Set-Content -LiteralPath $tempLogPath -Encoding UTF8 -Value @(
+        "[exit-side-operator-decision-brief] read-only packet",
+        "scope=READ_ONLY",
+        "exit_side_profit_review_packet_status=READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION",
+        "trailing_stop_acceptance=PASS",
+        "trailing_stop_improvement_pct=56.299%",
+        "strategy485_oco_health_ok=True",
+        "strategy485_negative_ev_position_count=0",
+        "strategy485_position_summaries=[]",
+        ("exit_side_operator_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 8 $noPositionBriefPacket)),
+        "exit_side_operator_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_MUTATION"
+    )
+
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ExitSideDecisionLogPath $tempLogPath -RequireReady 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "TP/SL/OCO feasibility no-position packet failed temp-log reuse:`n$text"
+    }
+    foreach ($marker in @(
+            "strategy485_negative_ev_position_count=0",
+            "strategy485_oco_feasibility_class=NO_POSITION_RISK_ACTION",
+            "tp_sl_oco_feasibility_review_allowed=true",
+            "tp_sl_oco_feasibility_missing_requirements=[]",
+            "tp_sl_oco_feasibility_status=READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION",
+            '"feasibilityClass":"NO_POSITION_RISK_ACTION"',
+            '"negativeEvPositionCount":0',
+            '"positionSummaries":[]',
+            "close_position_allowed=false",
+            "position_or_oco_mutation_allowed=false",
+            "order_allowed=false"
+        )) {
+        Assert-Contains -Name "TP/SL/OCO feasibility no-position temp log reuse" -Text $text -Pattern ([regex]::Escape($marker))
+    }
+    if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "TP/SL/OCO feasibility no-position packet unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 } finally {
     if (Test-Path -LiteralPath $tempLogPath) {

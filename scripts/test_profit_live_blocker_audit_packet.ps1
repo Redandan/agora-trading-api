@@ -8,6 +8,13 @@ function Assert-Contains {
     }
 }
 
+function Assert-NotContains {
+    param([string]$Name, [string]$Text, [string]$Pattern)
+    if ($Text -match $Pattern) {
+        throw "$Name unexpectedly contained pattern: $Pattern"
+    }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "prepare_profit_live_blocker_audit_packet.ps1"
 $readmePath = Join-Path $repoRoot "README.md"
@@ -34,6 +41,9 @@ foreach ($marker in @(
         "strategy485-risk-escalation",
         "strategy485_risk_escalation_brief_status=",
         "strategy485_risk_escalation_brief_packet=",
+        "NoActionStatuses",
+        "NO_ACTION_REQUIRED_NOT_LIVE",
+        "profit_live_blocker_no_action_count",
         "Read-EntryDedupLane",
         "entry_dedup_operator_decision_brief_status=",
         "entry_dedup_operator_decision_brief_packet=",
@@ -126,6 +136,7 @@ try {
     foreach ($marker in @(
             "profit_live_blocker_audit_lane_count=10",
             "profit_live_blocker_ready_review_count=9",
+            "profit_live_blocker_no_action_count=0",
             "profit_live_blocker_missing_evidence_count=0",
             "profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
             "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
@@ -153,6 +164,52 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit live blocker audit unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    $strategy485EscalationNoAction = Write-PacketLog -Name "strategy485-escalation-noaction.log" -StatusPrefix "strategy485_risk_escalation_brief_status=" -Status "NO_POSITION_RISK_ACTION" -PacketPrefix "strategy485_risk_escalation_brief_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "No Strategy485 negative-EV position or close/modify suggestion exists." })
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -PriorityDecisionLogPath $priority `
+            -TrailingDryRunLogPath $trailing `
+            -Strategy485RiskLogPath $strategy485 `
+            -Strategy485RiskEscalationLogPath $strategy485EscalationNoAction `
+            -EntryDedupLogPath $entryDedup `
+            -DataFreshnessReplayBlockerLogPath $dfBlocker `
+            -DataFreshnessCollectorLogPath $dfCollector `
+            -TpSlOcoLogPath $tpSlOco `
+            -Strategy574TinyLivePreflightLogPath $strategy574 `
+            -GovernanceRelaxationPreflightLogPath $missingGovernancePreflight `
+            -GovernanceRelaxationReviewLogPath $governanceReview `
+            -RequireAuditReady 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "profit live blocker audit no-action case failed temp-log reuse:`n$text"
+    }
+    foreach ($marker in @(
+            "profit_live_blocker_audit_lane_count=10",
+            "profit_live_blocker_ready_review_count=8",
+            "profit_live_blocker_no_action_count=1",
+            "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
+            '"lane":"strategy485-risk-escalation"',
+            '"sourceStatus":"NO_POSITION_RISK_ACTION"',
+            '"classification":"NO_ACTION_REQUIRED_NOT_LIVE"',
+            '"noActionRequired":true',
+            '"readyReviewCount":8',
+            '"noActionCount":1',
+            '"blockedCount":1',
+            '"lane":"governance-relaxation"',
+            '"classification":"BLOCKED_REVIEW_ONLY"'
+        )) {
+        Assert-Contains -Name "profit live blocker audit no-action temp log reuse" -Text $text -Pattern ([regex]::Escape($marker))
+    }
+    Assert-NotContains -Name "profit live blocker audit no-action primary blockers" -Text $text -Pattern ([regex]::Escape("strategy485-risk-escalation: BLOCKED_REVIEW_ONLY"))
+    if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit live blocker audit no-action unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 } finally {
     if (Test-Path -LiteralPath $tempDir) { Remove-Item -LiteralPath $tempDir -Recurse -Force }

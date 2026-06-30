@@ -687,9 +687,11 @@ and emits `tp_sl_oco_feasibility_operator_packet` plus
 `tp_sl_oco_feasibility_status`. It does not rerun SSH. A
 `TP_SL_OCO_FEASIBILITY_OPERATOR_PACKET` with
 `READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION` means the
-latest trailing acceptance, strategy 485 OCO health, and aged negative-EV
-position evidence can be reviewed together for a separate TP/SL/OCO
-feasibility decision. It preserves `close_position_allowed=false`,
+latest trailing acceptance and strategy 485 OCO health can be reviewed together
+for a separate TP/SL/OCO feasibility decision. When there is no current aged
+negative-EV Strategy485 position, the packet records the Strategy485 sub-lane
+as `NO_POSITION_RISK_ACTION` instead of blocking the trailing/OCO review. It
+preserves `close_position_allowed=false`,
 `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
 and `order_allowed=false`; it is not authorization to enable live trading,
 enable scheduler mutation, place orders, close positions, modify/cancel OCO,
@@ -1598,7 +1600,10 @@ strategy574/TinyLive governance, and governance relaxation lanes. Missing or
 stale source logs are blockers, not passes. This
 falls back to the source governance relaxation review packet when the
 governance preflight packet is not saved, so `NO_EVIDENCE` remains blocker
-evidence instead of being treated as a pass or ignored missing input. This
+evidence instead of being treated as a pass or ignored missing input. It also
+emits `profit_live_blocker_no_action_count`; no-action statuses such as
+Strategy485 `NO_POSITION_RISK_ACTION` are neutral evidence, not primary
+blockers or live approval. This
 audit is for choosing the next read-only evidence refresh; it does not rerun
 SSH, call MCP, deploy, change production env, enable live/TinyLive/scheduler,
 place orders, send Telegram, modify OCO, or relax EntryDedup/DataFreshness/live

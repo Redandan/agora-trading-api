@@ -96,7 +96,6 @@ if ($briefStatus -ne "READY_FOR_OPERATOR_DECISION_NOT_MUTATION") { Add-MissingRe
 if ($exitPacketStatus -ne "READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION") { Add-MissingRequirement -List $missingRequirements -Value "exit-side profit review packet ready" }
 if ($trailingAcceptance -ne "PASS") { Add-MissingRequirement -List $missingRequirements -Value "trailing-stop acceptance PASS" }
 if ($strategy485OcoHealthOk -notin @("True", "true", "TRUE")) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 OCO health OK" }
-if ($negativeEvCount -le 0) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 negative-EV positions present for review" }
 if ($null -eq $briefPacket) { Add-MissingRequirement -List $missingRequirements -Value "exit_side_operator_decision_brief_packet valid JSON" }
 
 $ready = $missingRequirements.Count -eq 0
@@ -106,6 +105,13 @@ $nextAction = if ($ready) {
     "Attach this TP/SL/OCO feasibility packet to operator review; require separate explicit authorization before trailing enablement, close-position, or OCO mutation."
 } else {
     "Refresh the read-only exit-side decision brief before using this TP/SL/OCO feasibility packet."
+}
+$strategy485FeasibilityClass = if ($negativeEvCount -gt 0) {
+    "OCO_PROTECTED_POSITION_RISK_REVIEW_READY_NOT_MUTATION"
+} elseif (@($positionSummaries).Count -gt 0) {
+    "OCO_PROTECTED_POSITION_RISK_WATCH_ONLY_NOT_MUTATION"
+} else {
+    "NO_POSITION_RISK_ACTION"
 }
 
 $packet = [pscustomobject]@{
@@ -132,7 +138,7 @@ $packet = [pscustomobject]@{
         ocoHealthOk = $strategy485OcoHealthOk
         negativeEvPositionCount = $negativeEvCount
         positionSummaries = @($positionSummaries)
-        feasibilityClass = "OCO_PROTECTED_POSITION_RISK_REVIEW_READY_NOT_MUTATION"
+        feasibilityClass = $strategy485FeasibilityClass
         closePositionAllowed = $false
         ocoMutationAllowed = $false
     }
@@ -184,6 +190,7 @@ Write-Host "trailing_stop_acceptance=$trailingAcceptance"
 Write-Host "trailing_stop_improvement_pct=$trailingImprovementPct"
 Write-Host "strategy485_oco_health_ok=$strategy485OcoHealthOk"
 Write-Host "strategy485_negative_ev_position_count=$negativeEvCount"
+Write-Host "strategy485_oco_feasibility_class=$strategy485FeasibilityClass"
 Write-Host ("strategy485_position_summaries=" + (ConvertTo-Json -Compress -Depth 6 @($positionSummaries)))
 Write-Host "tp_sl_oco_feasibility_primary_decision=$primaryDecision"
 Write-Host "tp_sl_oco_feasibility_review_allowed=$($ready.ToString().ToLowerInvariant())"

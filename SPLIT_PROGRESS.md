@@ -499,14 +499,15 @@
   authorization.
 - 2026-06-30 latest read-only source refresh completed with
   `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`, 10 lanes,
-  5 review-ready non-live lanes, and 5 blocked lanes. Ready-for-review lanes are
-  `profit-priority`, `trailing-stop-dry-run`, `strategy485-risk-reduction`,
-  `data-freshness-replay-blocker`, and `strategy574-tiny-live-governance`.
-  Blocked lanes are `strategy485-risk-escalation` (no negative-EV position or
-  close/modify suggestion to review), `entry-dedup-semantics` (`NO_EVIDENCE` and
-  missing shadow replay/opportunity rows), `data-freshness-collector-activation`
-  (collector-evidence stage), `tp-sl-oco-feasibility` (no Strategy485
-  negative-EV position for review), and `governance-relaxation` (no reviewable
+  6 review-ready non-live lanes, 1 no-action lane, and 3 blocked lanes.
+  Ready-for-review lanes are `profit-priority`, `trailing-stop-dry-run`,
+  `strategy485-risk-reduction`, `data-freshness-replay-blocker`,
+  `tp-sl-oco-feasibility`, and `strategy574-tiny-live-governance`.
+  `strategy485-risk-escalation` is now `NO_POSITION_RISK_ACTION` when no
+  negative-EV position or close/modify suggestion exists, so it is no longer a
+  blocker. Blocked lanes are `entry-dedup-semantics` (`NO_EVIDENCE` and missing
+  shadow replay/opportunity rows), `data-freshness-collector-activation`
+  (collector-evidence stage), and `governance-relaxation` (no reviewable
   relaxation candidates). Final audit keeps `order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,

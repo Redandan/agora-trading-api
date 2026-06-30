@@ -76,6 +76,11 @@ if ($null -ne $packet -and $null -ne $packet.evidenceSummary -and $null -ne $pac
     $positions = @($packet.evidenceSummary.strategy485PositionSummaries)
 }
 
+$negativeEvCountInt = 0
+$negativeEvCountParsed = [int]::TryParse($negativeEvCount, [ref]$negativeEvCountInt)
+$closeOrModifyCountInt = 0
+$closeOrModifyCountParsed = [int]::TryParse($closeOrModifyCount, [ref]$closeOrModifyCountInt)
+
 $positionRiskRows = @()
 foreach ($position in $positions) {
     $ev = Convert-ToDecimalOrNull -Value $position.evUsdt
@@ -116,21 +121,44 @@ if ($freshness -ne "FRESH") { Add-MissingRequirement -List $missingRequirements 
 if ($briefStatus -ne "READY_FOR_OPERATOR_DECISION_NOT_MUTATION") { Add-MissingRequirement -List $missingRequirements -Value "exit-side operator decision brief ready" }
 if ($exitPacketStatus -ne "READY_FOR_EXIT_SIDE_OPERATOR_REVIEW_NOT_MUTATION") { Add-MissingRequirement -List $missingRequirements -Value "exit-side profit review packet ready" }
 if ($ocoHealthOk -ne "True" -and $ocoHealthOk -ne "true") { Add-MissingRequirement -List $missingRequirements -Value "strategy485 OCO health OK" }
-if ([string]::IsNullOrWhiteSpace($negativeEvCount) -or $negativeEvCount -eq "0") { Add-MissingRequirement -List $missingRequirements -Value "strategy485 negative-EV positions present" }
-if ([string]::IsNullOrWhiteSpace($closeOrModifyCount) -or $closeOrModifyCount -eq "0") { Add-MissingRequirement -List $missingRequirements -Value "strategy485 close-or-modify suggestions present" }
-if ($positions.Count -lt 1) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 position summaries present" }
+if ($null -eq $packet) { Add-MissingRequirement -List $missingRequirements -Value "exit_side_operator_decision_brief_packet valid JSON" }
+if (-not $negativeEvCountParsed) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 negative-EV position count present" }
+if (-not $closeOrModifyCountParsed) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 close-or-modify suggestion count present" }
 
-$ready = $missingRequirements.Count -eq 0
-$status = if ($ready) { "READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION" } else { "NOT_READY" }
+$hasActionableRisk = $negativeEvCountParsed -and $closeOrModifyCountParsed -and (($negativeEvCountInt -gt 0) -or ($closeOrModifyCountInt -gt 0))
+if ($hasActionableRisk) {
+    if ($negativeEvCountInt -le 0) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 negative-EV positions present" }
+    if ($closeOrModifyCountInt -le 0) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 close-or-modify suggestions present" }
+    if ($positions.Count -lt 1) { Add-MissingRequirement -List $missingRequirements -Value "strategy485 position summaries present" }
+}
+
+$ready = $missingRequirements.Count -eq 0 -and $hasActionableRisk
+$noPositionRiskAction = $missingRequirements.Count -eq 0 -and -not $hasActionableRisk -and $positions.Count -lt 1
+$watchOnly = $missingRequirements.Count -eq 0 -and -not $hasActionableRisk -and $positions.Count -ge 1
+$status = if ($ready) {
+    "READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION"
+} elseif ($noPositionRiskAction) {
+    "NO_POSITION_RISK_ACTION"
+} elseif ($watchOnly) {
+    "WATCH_ONLY"
+} else {
+    "NOT_READY"
+}
 $escalationClass = if ($severePaperLossCount -gt 0) {
     "CURRENT_POSITION_RISK_ESCALATED_SEVERE_PAPER_LOSS"
-} elseif ($positions.Count -gt 0) {
+} elseif ($ready) {
     "CURRENT_POSITION_RISK_REVIEW_NEGATIVE_EV"
+} elseif ($watchOnly) {
+    "CURRENT_POSITION_RISK_WATCH_ONLY"
 } else {
     "NO_POSITION_RISK_EVIDENCE"
 }
 $nextAction = if ($ready) {
     "Attach this escalation brief to strategy485 risk-reduction operator review; require separate explicit authorization before any close-position or OCO mutation."
+} elseif ($noPositionRiskAction) {
+    "No Strategy485 negative-EV position or close/modify suggestion exists; keep this lane as no-action evidence and continue other readiness work."
+} elseif ($watchOnly) {
+    "Strategy485 position summaries exist but do not currently require close/modify escalation; keep watch-only and continue other readiness work."
 } else {
     "Refresh exit-side read-only evidence before using the strategy485 escalation brief."
 }
@@ -149,6 +177,7 @@ $brief = [pscustomobject]@{
     strategy485OcoHealthOk = $ocoHealthOk
     negativeEvPositionCount = $negativeEvCount
     closeOrModifySuggestionCount = $closeOrModifyCount
+    noAction = ($noPositionRiskAction -or $watchOnly)
     severePaperLossThresholdPct = $SeverePaperLossPct
     severePaperLossCount = $severePaperLossCount
     totalEvUsdt = if ($null -ne $totalEvUsdt) { [string]$totalEvUsdt } else { "N/A" }
@@ -192,6 +221,7 @@ Write-Host "strategy485_total_ev_usdt=$($brief.totalEvUsdt)"
 Write-Host "strategy485_worst_paper_pct=$($brief.worstPaperPct)"
 Write-Host "strategy485_avg_paper_pct=$($brief.avgPaperPct)"
 Write-Host "strategy485_risk_escalation_class=$escalationClass"
+Write-Host "strategy485_risk_escalation_no_action=$($brief.noAction.ToString().ToLowerInvariant())"
 Write-Host "close_position_allowed=false"
 Write-Host "position_or_oco_mutation_allowed=false"
 Write-Host "order_allowed=false"
@@ -207,6 +237,6 @@ Write-Host "strategy485_risk_escalation_next_action=$nextAction"
 Write-Host "notAuthorization=read-only strategy485 risk escalation brief only; does not authorize close-position, OCO modification, live trading, scheduler enablement, orders, deploy, production env changes, Telegram send, EntryDedup/DataFreshness/live policy relaxation, DB/grid/fund/Earn/exchange mutation, or external backfill/import"
 Write-Host "[strategy485-risk-escalation-brief] read-only check complete"
 
-if ($RequireReady -and -not $ready) {
+if ($RequireReady -and -not ($ready -or $noPositionRiskAction -or $watchOnly)) {
     throw "Strategy485 risk escalation brief is not ready: $status; missing=$(@($missingRequirements) -join '; ')"
 }

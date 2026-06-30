@@ -1614,6 +1614,10 @@ Expected:
   the governance relaxation
   preflight packet is absent, the audit falls back to the source governance
   relaxation review packet and keeps `NO_EVIDENCE` as blocker evidence.
+- Output also includes `profit_live_blocker_no_action_count`. No-action
+  statuses such as Strategy485 `NO_POSITION_RISK_ACTION` are neutral evidence:
+  they are not primary blockers, not review-ready action packets, and not live
+  approval.
 - The audit keeps `tiny_live_order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
@@ -4048,7 +4052,9 @@ Expected:
   after a refreshed exit-side decision brief to produce a local
   `STRATEGY485_RISK_ESCALATION_BRIEF`. Expected output includes
   `strategy485_risk_escalation_brief_packet`,
-  `strategy485_risk_escalation_brief_status=READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION`,
+  `strategy485_risk_escalation_brief_status=READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION`
+  when actionable risk exists, or `NO_POSITION_RISK_ACTION` when no Strategy485
+  negative-EV position or close/modify suggestion exists,
   `strategy485_severe_paper_loss_count`, `strategy485_total_ev_usdt`,
   `strategy485_worst_paper_pct`, `strategy485_position_risk_rows`,
   `close_position_allowed=false`, `position_or_oco_mutation_allowed=false`,
@@ -4064,9 +4070,13 @@ Expected:
   `tp_sl_oco_feasibility_status=READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION`,
   `tp_sl_oco_feasibility_primary_decision=PREPARE_SEPARATE_TP_SL_OCO_FEASIBILITY_REVIEW`,
   `trailing_stop_acceptance`, `strategy485_oco_health_ok`,
-  `strategy485_negative_ev_position_count`, `close_position_allowed=false`,
+  `strategy485_negative_ev_position_count`, `strategy485_oco_feasibility_class`,
+  `close_position_allowed=false`,
   `position_or_oco_mutation_allowed=false`,
   `deploy_or_env_change_allowed=false`, and `order_allowed=false`. The packet
+  remains review-ready when trailing acceptance and OCO health are ready but the
+  Strategy485 sub-lane is `NO_POSITION_RISK_ACTION`.
+  It
   reuses the existing exit-side decision log only; it does not rerun SSH,
   deploy, change production env, enable live trading, enable scheduler
   mutation, place orders, close positions, modify/cancel OCO, or relax

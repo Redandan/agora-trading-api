@@ -791,6 +791,33 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   TinyLive execution, enable scheduler mutation, place orders, modify OCO,
   send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - Latest recorded current-at-observation read-only live-readiness bundle on
+  2026-06-30T12:43+08:00 followed the A2 background automation safety deploy of
+  `8fcf3c0f333fd3d184d817a486e65ecf1a1c358f`. The server worktree,
+  `origin/main`, and deployed `app.commit` all matched that commit, active port
+  switched to `8085`, `deployment_metadata_status=CURRENT`,
+  `origin_metadata_status=CURRENT_ORIGIN_MAIN`, and split acceptance passed in
+  shared-DB mode. Server-local and public dedicated Trading MCP `/api/mcp`
+  passed, shared-host `/api/trading/mcp` remained blocked with 404, runtime log
+  smoke passed with `ERROR=0`, WARN baseline total 14, unknown WARN 0, and MCP
+  parity reported `toolCount=308 required=35`. The background automation smoke
+  returned `backgroundAutomationClear=true`, `background_automation_true=[]`,
+  `high_risk_background_automation_true=[]`, and
+  `background_automation_blockers=[]` after setting the nine reviewed
+  background automation flags false. The trailing dry-run observation packet
+  still reported `ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE`,
+  `current_open_oco_positions=0`, `sample_ready=false`, and
+  `unique_blocker=NO_OPEN_OCO_POSITIONS`. The full live-readiness bundle
+  remained `bundle_verdict=NOT_READY` with blockers
+  `LIVE_READINESS_NOT_READY`, `ORDER_CAPABLE_FLAGS_REVIEW`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, and `SIGNAL_POLICY_REVIEW_GAPS`. Runtime
+  evidence is enabled with canonical rows available, but `shadowIntentCount=0`
+  and `orderSentEvidence=0`; signal correctness had no missed evaluation/order
+  bug, but policy clearance stayed false due insufficient DataFreshness current
+  sample and governance evidence. This is read-only evidence only and not
+  permission to enable live trading, relax policy, place orders, modify OCO, or
+  mutate grid/fund/Earn/Telegram/exchange state.
+- Previous recorded current-at-observation read-only live-readiness bundle on
   2026-06-20T20:28+08:00
   followed the explicitly authorized deploy of
   `ef6253a4ecff7c27a2e709f226e166389700a82d`. The server worktree,

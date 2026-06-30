@@ -46,7 +46,7 @@ Secondary success criteria:
 ## Current State
 
 The current profit path has advanced from "waiting for strategy 574 opt-in" to
-active trailing-stop dry-run observation.
+active trailing-stop dry-run observation with background automation cleared.
 
 Known current facts:
 
@@ -56,13 +56,24 @@ Known current facts:
 - A0 env diff was applied on 2026-06-30:
   - `TRAILING_STOP_ENABLED=true`
   - `TRAILING_STOP_DRY_RUN=true`
-- Deploy/restart completed on current `origin/main` commit `dad910c`.
-- Post-deploy split acceptance passed on active port `8084`.
+- Deploy/restart completed on current `origin/main` commit `8fcf3c0`.
+- Post-deploy split acceptance passed on active port `8085`.
+- A2 background automation safety diff was applied on 2026-06-30 and verified:
+  all nine reviewed background automation flags are `false`,
+  `backgroundAutomationClear=true`, and
+  `background_automation_blockers=[]`.
 - `getTrailingStopStatus` confirms `global.enabled=true`,
   `global.dryRun=true`, and `open_oco_positions=0`.
 - 30d BTCUSDT trailing replay remains `acceptance=PASS`, with
   latest observation refresh `improvementPct=56.299%` and
   `acceptanceDeltaPnl=13391.79229093`.
+- Runtime evidence is enabled and canonical rows are available, but
+  `shadowIntentCount=0`, so live review remains blocked by missing shadow
+  intent evidence.
+- The latest full live-readiness bundle remains `NOT_READY` with blockers:
+  `LIVE_READINESS_NOT_READY`, `ORDER_CAPABLE_FLAGS_REVIEW`,
+  `EXECUTION_ELIGIBILITY_NOT_READY`, `RUNTIME_EVIDENCE_NO_SHADOW_INTENT`,
+  `TINY_LIVE_ROLLOUT_NOT_READY`, and `SIGNAL_POLICY_REVIEW_GAPS`.
 - Current next blocker is
   `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`.
 - Current observation status command:
@@ -183,7 +194,7 @@ Always authorized without another prompt:
 
 ### A0: Trailing Dry-Run Env Deploy
 
-Status: current next target.
+Status: complete; keep dry-run active and collect observation evidence.
 
 Gate:
 
@@ -200,6 +211,10 @@ I authorize production env diff TRAILING_STOP_ENABLED=true and TRAILING_STOP_DRY
 ### A1: Evidence-Only Runtime Evidence Collection
 
 Purpose: clear runtime-evidence blind spots before any live relaxation.
+
+Status: runtime evidence is enabled and canonical rows exist, but this lane is
+not complete until `shadowIntentCount > 0` and `orderSentEvidence=0` are
+observed in a reviewed read-only window.
 
 Gate:
 
@@ -241,6 +256,10 @@ Must remain disabled:
 ### A2: Background Automation Safety Diff
 
 Purpose: remove high-risk background side effects before live review.
+
+Status: complete as of 2026-06-30 on commit `8fcf3c0` / active port `8085`.
+Post-env read-only verification returned `backgroundAutomationClear=true`,
+`background_automation_true=[]`, and `background_automation_blockers=[]`.
 
 Gate:
 

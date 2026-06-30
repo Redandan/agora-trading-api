@@ -18,18 +18,35 @@
   - `GET /api/trading/internal/reports/analysis`
   - `GET /api/trading/internal/reports/weekly`
 - 2026-06-30 A0 trailing-stop dry-run env/deploy was applied on the
-  production host from `origin/main` commit `dad910c`:
+  production host and remains active after the later `8fcf3c0` deploy:
   - `TRAILING_STOP_ENABLED=true`
   - `TRAILING_STOP_DRY_RUN=true`
-  - active port `8084`
+  - active port `8085`
   - split acceptance passed
   - `getTrailingStopStatus` reported `global.enabled=true`,
     `global.dryRun=true`, and `open_oco_positions=0`
   - 30d BTCUSDT trailing replay remained `acceptance=PASS` with
-    `improvementPct=52.753%`
+    `improvementPct=56.299%`
   - profit blocker advanced to
     `COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE`
   This is dry-run observation only, not live OCO mutation approval.
+- 2026-06-30 A2 background automation safety diff was applied and deployed
+  from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
+  background flags are now all false:
+  `TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED`,
+  `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED`,
+  `MARKET_WS_AUTO_SUBSCRIBE_ENABLED`, `EVENT_SCAN_NOTIFICATION_ENABLED`,
+  `EXECUTION_EVENT_ENABLED`, `TRADING_DAILY_TG_REPORT_ENABLED`,
+  `TRADING_AUTONOMOUS_DIGEST_ENABLED`,
+  `TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED`, and
+  `TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED`. Read-only verification
+  returned `backgroundAutomationClear=true`, `background_automation_true=[]`,
+  `background_automation_blockers=[]`, split acceptance `OK`, runtime log
+  `PASS`, and MCP parity `toolCount=308 required=35`. The full live-readiness
+  bundle remains `NOT_READY` because there is no current BUY/add candidate,
+  runtime evidence still lacks shadow intent, TinyLive rollout gates are not
+  ready, signal-policy review gaps remain, and trailing dry-run still needs a
+  real open-OCO observation sample.
 - Unused public exchange-rate provider chain leftovers were removed; exchange rates now use AgoraMarket internal SDK or static fallback only.
 - Flutter/AppVersion deployment leftovers were removed from trading.
 - UserSearchLog/SearchLogAspect leftovers were removed from trading.

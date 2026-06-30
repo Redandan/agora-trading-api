@@ -135,7 +135,7 @@ function Read-Lane {
 function Read-GovernanceRelaxationLane {
     $preflightPath = Resolve-RepoPath -PathValue $GovernanceRelaxationPreflightLogPath
     if (Test-Path -LiteralPath $preflightPath) {
-        return Read-Lane -Lane "governance-relaxation" -PathValue $GovernanceRelaxationPreflightLogPath -StatusPrefix "governance_relaxation_preflight_status=" -PacketPrefix "governance_relaxation_preflight_review_packet=" -ReadyStatuses @("READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh governance relaxation packet before considering policy review."
+        return Read-Lane -Lane "governance-relaxation" -PathValue $GovernanceRelaxationPreflightLogPath -StatusPrefix "governance_relaxation_preflight_status=" -PacketPrefix "governance_relaxation_preflight_review_packet=" -ReadyStatuses @("READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE") -NoActionStatuses @("NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh governance relaxation packet before considering policy review."
     }
 
     $reviewLane = Read-Lane -Lane "governance-relaxation" -PathValue $GovernanceRelaxationReviewLogPath -StatusPrefix "governance_relaxation_review_packet_status=" -PacketPrefix "governance_relaxation_review_packet=" -ReadyStatuses @("REVIEW_REQUIRED_NOT_POLICY_CHANGE", "READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh governance relaxation review evidence before considering policy review."

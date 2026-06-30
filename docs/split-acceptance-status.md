@@ -694,9 +694,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `governance_relaxation_preflight_status`. A
   `READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE` status means the
   blocked or shadow-only governance relaxation review can be attached to
-  operator review. A valid source `NO_EVIDENCE` packet now routes to
+  operator review. A valid source `NO_EVIDENCE` packet normally routes to
   `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE` and carries the source
-  `nextAction` instead of forcing a blind refresh. It is not authorization to relax governance,
+  `nextAction` instead of forcing a blind refresh. If the parsed source packet
+  has zero relaxation candidates, no missed eval/order bug,
+  `missedOpportunityStatus=PASS`, and zero suspicious/false-block/high-return
+  no-buy counts, it emits
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE`; that is neutral no-action
+  evidence for governance relaxation only, not review readiness or policy
+  approval. It is not authorization to relax governance,
   EntryDedup/DataFreshness/live policy, enable staged-add/live execution, place
   orders, modify/cancel OCO, send Telegram, deploy, change production env, or
   mutate DB/grid/fund/Earn/Telegram/exchange state.
@@ -1270,13 +1276,15 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   The refreshed live blocker audit stayed
   `profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT`
   with lane count 10, ready review count 9, and zero missing/stale/incomplete
-  evidence; governance relaxation remains the only not-ready lane.
+  evidence; governance relaxation remained the only not-ready lane at that
+  snapshot.
   A later governance preflight routing fix accepts both the legacy
   `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` status and the current
   `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as ready no-buy-attention
-  routing evidence. This clears only the packet-routing false blocker; the
-  governance-relaxation lane remains not ready when the source governance
-  packet still has `NO_EVIDENCE` and no relaxation candidates.
+  routing evidence. This clears only the packet-routing false blocker. A
+  follow-up preflight classification maps the no-candidate/no-false-block case
+  to `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` instead of keeping it as
+  the sole governance-relaxation blocker.
   Attention-hit progression tooling also emits strategy-scoped follow-up counts
   separately from macro/watch-only attention rows, so operator review can focus
   on real strategy candidates instead of treating background alerts as missing
@@ -1296,7 +1304,10 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   stale source logs remain blockers. If the
   governance relaxation preflight packet is absent, the audit falls back to the
   source governance relaxation review packet and keeps `NO_EVIDENCE` as
-  blocker evidence. This is not authorization to enable live trading, execute
+  blocker evidence. When preflight emits
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE`, the audit counts it as
+  no-action evidence, not a primary blocker or live approval. This is not
+  authorization to enable live trading, execute
   TinyLive, enable scheduler mutation, place orders, modify/cancel OCO, send
   Telegram, deploy, change production env, relax EntryDedup/DataFreshness/live
   policy, or mutate

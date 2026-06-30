@@ -21,6 +21,22 @@ function Add-MissingRequirement {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Get-OptionalPacketString {
+    param([object]$Packet, [string]$Name, [string]$Default = "")
+    if ($null -eq $Packet) { return $Default }
+    $property = $Packet.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) { return $Default }
+    return [string]$property.Value
+}
+
+function Get-OptionalPacketInt {
+    param([object]$Packet, [string]$Name, [int]$Default = -1)
+    if ($null -eq $Packet) { return $Default }
+    $property = $Packet.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) { return $Default }
+    return [int]$property.Value
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewLogPath)) { throw "ReviewLogPath is required." }
 if ([string]::IsNullOrWhiteSpace($NoBuyAttentionLogPath)) { throw "NoBuyAttentionLogPath is required." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
@@ -83,6 +99,11 @@ $sourceGovernanceMode = ""
 $sourceMissedOpportunityStatus = ""
 $sourceNextAction = ""
 $sourceMissingRequirements = @()
+$sourceMissingEvalOrOrderBug = ""
+$sourceSuspiciousNoBuyCount = -1
+$sourceFalseBlockRiskCount = -1
+$sourceHighForwardReturnNoBuyCount = -1
+$sourceDataFreshnessCurrentStatus = ""
 if ($null -ne $sourcePacket) {
     $shadowReviewAllowed = [bool]$sourcePacket.shadowGovernanceReviewAllowed
     $livePolicyChangeAllowed = [bool]$sourcePacket.livePolicyChangeAllowed
@@ -93,6 +114,11 @@ if ($null -ne $sourcePacket) {
     $sourceMissedOpportunityStatus = [string]$sourcePacket.missedOpportunityStatus
     $sourceNextAction = [string]$sourcePacket.nextAction
     $sourceMissingRequirements = @($sourcePacket.missingRequirements)
+    $sourceMissingEvalOrOrderBug = Get-OptionalPacketString -Packet $sourcePacket -Name "missingEvalOrOrderBug"
+    $sourceSuspiciousNoBuyCount = Get-OptionalPacketInt -Packet $sourcePacket -Name "suspiciousNoBuyCount"
+    $sourceFalseBlockRiskCount = Get-OptionalPacketInt -Packet $sourcePacket -Name "falseBlockRiskCount"
+    $sourceHighForwardReturnNoBuyCount = Get-OptionalPacketInt -Packet $sourcePacket -Name "highForwardReturnNoBuyCount"
+    $sourceDataFreshnessCurrentStatus = Get-OptionalPacketString -Packet $sourcePacket -Name "dataFreshnessCurrentStatus"
 }
 
 $readyNoBuyAttentionStatuses = @(
@@ -137,10 +163,32 @@ if ($sourceStatus -eq "REVIEW_REQUIRED_NOT_POLICY_CHANGE" -and $shadowReviewAllo
     Add-MissingRequirement -List $missingRequirements -Value "blocked review source does not allow shadow governance review"
 }
 
-$ready = $missingRequirements.Count -eq 0
-$status = if ($ready) { "READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE" } else { "NOT_READY" }
 $hasParsedSourcePacket = ($null -ne $sourcePacket -and -not [string]::IsNullOrWhiteSpace($sourceStatus))
-$preflightDecision = if (-not $ready -and $sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket) {
+$noGovernanceRelaxationActionRequired = (
+    $sourceStatus -eq "NO_EVIDENCE" -and
+    $hasParsedSourcePacket -and
+    $noBuyReady -and
+    $relaxationCandidateCount -eq 0 -and
+    $sourceMissingEvalOrOrderBug -eq "no" -and
+    $sourceMissedOpportunityStatus -eq "PASS" -and
+    $sourceSuspiciousNoBuyCount -eq 0 -and
+    $sourceFalseBlockRiskCount -eq 0 -and
+    $sourceHighForwardReturnNoBuyCount -eq 0 -and
+    -not $livePolicyChangeAllowed -and
+    -not $tinyLiveOrderAllowed
+)
+$effectiveMissingRequirements = if ($noGovernanceRelaxationActionRequired) { @() } else { @($missingRequirements) }
+$ready = $missingRequirements.Count -eq 0
+$status = if ($ready) {
+    "READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE"
+} elseif ($noGovernanceRelaxationActionRequired) {
+    "NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE"
+} else {
+    "NOT_READY"
+}
+$preflightDecision = if ($noGovernanceRelaxationActionRequired) {
+    "NO_GOVERNANCE_RELAXATION_ACTION_REQUIRED"
+} elseif (-not $ready -and $sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket) {
     "BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"
 } elseif (-not $ready) {
     "REFRESH_SOURCE_GOVERNANCE_RELAXATION_PACKET"
@@ -151,6 +199,10 @@ $preflightDecision = if (-not $ready -and $sourceStatus -eq "NO_EVIDENCE" -and $
 }
 $nextAction = if ($ready) {
     "Attach this preflight packet to a governance relaxation operator review; require separate explicit authorization before any policy, live, order, deploy, or env change."
+} elseif ($noGovernanceRelaxationActionRequired -and -not [string]::IsNullOrWhiteSpace($noBuyNextAction)) {
+    "No governance relaxation candidate is present; keep policy unchanged and continue this read-only no-buy attention follow-up: $noBuyNextAction"
+} elseif ($noGovernanceRelaxationActionRequired) {
+    "No governance relaxation candidate is present; keep policy unchanged and continue DataFreshness/no-buy evidence review before any live enablement."
 } elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket -and $noBuyReady -and -not [string]::IsNullOrWhiteSpace($noBuyNextAction)) {
     $noBuyNextAction
 } elseif ($sourceStatus -eq "NO_EVIDENCE" -and $hasParsedSourcePacket -and -not [string]::IsNullOrWhiteSpace($sourceNextAction)) {
@@ -177,6 +229,11 @@ $packet = [pscustomobject]@{
     sourceSignalPolicyClear = $sourceSignalPolicyClear
     sourceGovernanceMode = $sourceGovernanceMode
     sourceMissedOpportunityStatus = $sourceMissedOpportunityStatus
+    sourceMissingEvalOrOrderBug = $sourceMissingEvalOrOrderBug
+    sourceSuspiciousNoBuyCount = $sourceSuspiciousNoBuyCount
+    sourceFalseBlockRiskCount = $sourceFalseBlockRiskCount
+    sourceHighForwardReturnNoBuyCount = $sourceHighForwardReturnNoBuyCount
+    sourceDataFreshnessCurrentStatus = $sourceDataFreshnessCurrentStatus
     sourceRelaxationCandidateCount = $relaxationCandidateCount
     sourceShadowGovernanceReviewAllowed = $shadowReviewAllowed
     sourceMissingRequirements = @($sourceMissingRequirements)
@@ -189,9 +246,11 @@ $packet = [pscustomobject]@{
     noBuyClosestThresholdGap = $noBuyClosestThresholdGap
     noBuyAttentionCandidateInterpretation = $noBuyAttentionCandidateInterpretation
     preflightDecision = $preflightDecision
+    noGovernanceRelaxationActionRequired = $noGovernanceRelaxationActionRequired
     reviewEnvelope = [pscustomobject]@{
         reviewOnly = $true
         governanceRelaxationReviewAllowed = $true
+        governanceRelaxationActionRequired = (-not $noGovernanceRelaxationActionRequired)
         shadowGovernanceReviewAllowed = $shadowReviewAllowed
         livePolicyChangeAllowed = $false
         tinyLiveOrderAllowed = $false
@@ -235,7 +294,7 @@ $packet = [pscustomobject]@{
         "does not send Telegram"
     )
     sourceReviewPacketSummary = $sourcePacket
-    missingRequirements = @($missingRequirements)
+    missingRequirements = @($effectiveMissingRequirements)
     nextAction = $nextAction
     notAuthorization = "read-only governance relaxation preflight review packet only; does not authorize governance/EntryDedup/DataFreshness/live policy relaxation, live trading, staged-add/tiny-live execution, scheduler enablement, orders, OCO modification, close-position, deploy, production env change, Telegram send, DB/grid/fund/Earn/exchange mutation, or external backfill/import"
 }
@@ -253,6 +312,11 @@ Write-Host "source_review_packet_status=$sourceStatus"
 Write-Host "source_signal_policy_clear=$sourceSignalPolicyClear"
 Write-Host "source_governance_mode=$sourceGovernanceMode"
 Write-Host "source_missed_opportunity_status=$sourceMissedOpportunityStatus"
+Write-Host "source_missing_eval_or_order_bug=$sourceMissingEvalOrOrderBug"
+Write-Host "source_suspicious_no_buy_count=$sourceSuspiciousNoBuyCount"
+Write-Host "source_false_block_risk_count=$sourceFalseBlockRiskCount"
+Write-Host "source_high_forward_return_no_buy_count=$sourceHighForwardReturnNoBuyCount"
+Write-Host "source_data_freshness_current_status=$sourceDataFreshnessCurrentStatus"
 Write-Host "source_relaxation_candidate_count=$relaxationCandidateCount"
 Write-Host "source_shadow_governance_review_allowed=$($shadowReviewAllowed.ToString().ToLowerInvariant())"
 Write-Host ("source_missing_requirements=" + (ConvertTo-Json -Compress @($sourceMissingRequirements)))
@@ -267,6 +331,8 @@ if ($null -ne $noBuyClosestThresholdGap) {
 }
 Write-Host "no_buy_attention_candidate_interpretation=$noBuyAttentionCandidateInterpretation"
 Write-Host "governance_relaxation_preflight_decision=$preflightDecision"
+Write-Host "governance_relaxation_action_required=$(((-not $noGovernanceRelaxationActionRequired)).ToString().ToLowerInvariant())"
+Write-Host "governance_relaxation_no_action_required=$($noGovernanceRelaxationActionRequired.ToString().ToLowerInvariant())"
 Write-Host "governance_relaxation_review_allowed=true"
 Write-Host "live_policy_change_allowed=false"
 Write-Host "tiny_live_order_allowed=false"
@@ -278,13 +344,13 @@ Write-Host "position_or_oco_mutation_allowed=false"
 Write-Host "deploy_or_env_change_allowed=false"
 Write-Host "order_allowed=false"
 Write-Host "telegram_send_allowed=false"
-Write-Host ("governance_relaxation_preflight_missing_requirements=" + (ConvertTo-Json -Compress @($missingRequirements)))
+Write-Host ("governance_relaxation_preflight_missing_requirements=" + (ConvertTo-Json -Compress @($effectiveMissingRequirements)))
 Write-Host ("governance_relaxation_preflight_review_packet=" + (ConvertTo-Json -Compress -Depth 12 $packet))
 Write-Host "governance_relaxation_preflight_status=$status"
 Write-Host "governance_relaxation_preflight_next_action=$nextAction"
 Write-Host "notAuthorization=read-only governance relaxation preflight review packet only; does not authorize governance/EntryDedup/DataFreshness/live policy relaxation, live trading, staged-add/tiny-live execution, scheduler enablement, orders, OCO modification, close-position, deploy, production env changes, Telegram send, DB/grid/fund/Earn/exchange mutation, or external backfill/import"
 Write-Host "[governance-relaxation-preflight-review-packet] read-only check complete"
 
-if ($RequireReady -and -not $ready) {
+if ($RequireReady -and -not ($ready -or $noGovernanceRelaxationActionRequired)) {
     throw "Governance relaxation preflight review packet is not ready: $status; missing=$(@($missingRequirements) -join '; ')"
 }

@@ -32,8 +32,11 @@ foreach ($marker in @(
         "PREPARE_BLOCKED_GOVERNANCE_RELAXATION_REVIEW",
         "PREPARE_REVIEW_ONLY_GOVERNANCE_SHADOW_REVIEW",
         "BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
+        "NO_GOVERNANCE_RELAXATION_ACTION_REQUIRED",
+        "NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE",
         "governance_relaxation_preflight_review_packet",
         "governance_relaxation_preflight_status",
+        "governance_relaxation_no_action_required",
         "source_missing_requirements",
         "source_next_action",
         "NoBuyAttentionLogPath",
@@ -167,6 +170,11 @@ try {
         signalPolicyClear = "false"
         governanceMode = "INSUFFICIENT_DATA"
         missedOpportunityStatus = "PASS"
+        missingEvalOrOrderBug = "no"
+        suspiciousNoBuyCount = 0
+        falseBlockRiskCount = 0
+        highForwardReturnNoBuyCount = 0
+        dataFreshnessCurrentStatus = "NO_CURRENT_SAMPLE"
         relaxationCandidateCount = 0
         relaxationCandidates = @()
         shadowGovernanceReviewAllowed = $false
@@ -240,6 +248,11 @@ try {
             "source_signal_policy_clear=false",
             "source_governance_mode=INSUFFICIENT_DATA",
             "source_missed_opportunity_status=PASS",
+            "source_missing_eval_or_order_bug=no",
+            "source_suspicious_no_buy_count=0",
+            "source_false_block_risk_count=0",
+            "source_high_forward_return_no_buy_count=0",
+            "source_data_freshness_current_status=NO_CURRENT_SAMPLE",
             "source_relaxation_candidate_count=0",
             "source_shadow_governance_review_allowed=false",
             'source_missing_requirements=["DataFreshness current snapshot clean","governance relaxation candidates present"]',
@@ -253,16 +266,21 @@ try {
             "no_buy_signal_eval_near_threshold_gap_count=1",
             '"strategyId":"574"',
             "no_buy_attention_candidate_interpretation=ATTENTION_HITS_ARE_MACRO_WATCH_ONLY_NOT_TRADING_CANDIDATES",
-            "governance_relaxation_preflight_decision=BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
-            "governance_relaxation_preflight_status=NOT_READY",
-            "governance_relaxation_preflight_next_action=Treat current ATTENTION_HIT rows as macro/watch-only non-trading evidence, then review strategy threshold gap evidence before governance relaxation.",
+            "governance_relaxation_preflight_decision=NO_GOVERNANCE_RELAXATION_ACTION_REQUIRED",
+            "governance_relaxation_no_action_required=true",
+            "governance_relaxation_preflight_missing_requirements=[]",
+            "governance_relaxation_preflight_status=NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE",
+            "governance_relaxation_preflight_next_action=No governance relaxation candidate is present; keep policy unchanged and continue this read-only no-buy attention follow-up: Treat current ATTENTION_HIT rows as macro/watch-only non-trading evidence, then review strategy threshold gap evidence before governance relaxation.",
             '"sourceReviewPacketStatus":"NO_EVIDENCE"',
             '"noBuyAttentionStatus":"READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE"',
             '"noBuyAttentionReady":true',
             '"noBuySignalEvalRecommendation":"NO_BUY_LIKE_SIGNAL_EVAL_STRATEGY_THRESHOLDS_NOT_HIT"',
             '"noBuySignalEvalNearThresholdGapCount":1',
             '"sourceMissingRequirements":["DataFreshness current snapshot clean","governance relaxation candidates present"]',
-            '"preflightDecision":"BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"',
+            '"preflightDecision":"NO_GOVERNANCE_RELAXATION_ACTION_REQUIRED"',
+            '"noGovernanceRelaxationActionRequired":true',
+            '"governanceRelaxationActionRequired":false',
+            '"missingRequirements":[]',
             '"livePolicyChangeAllowed":false',
             '"tinyLiveOrderAllowed":false',
             "live_policy_change_allowed=false",
@@ -294,6 +312,11 @@ try {
         signalPolicyClear = "false"
         governanceMode = "INSUFFICIENT_DATA"
         missedOpportunityStatus = "PASS"
+        missingEvalOrOrderBug = "no"
+        suspiciousNoBuyCount = 0
+        falseBlockRiskCount = 0
+        highForwardReturnNoBuyCount = 0
+        dataFreshnessCurrentStatus = "NO_CURRENT_SAMPLE"
         relaxationCandidateCount = 0
         relaxationCandidates = @()
         shadowGovernanceReviewAllowed = $false
@@ -364,14 +387,17 @@ try {
             "no_buy_attention_status=READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE",
             "no_buy_attention_ready=true",
             "source_relaxation_candidate_count=0",
-            "governance_relaxation_preflight_decision=BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
-            "governance_relaxation_preflight_status=NOT_READY",
-            "governance_relaxation_preflight_next_action=Review attention-hit terminal follow-up distribution before routing to EntryDedup, filter-block, or strategy activation work.",
+            "governance_relaxation_preflight_decision=NO_GOVERNANCE_RELAXATION_ACTION_REQUIRED",
+            "governance_relaxation_no_action_required=true",
+            "governance_relaxation_preflight_status=NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE",
+            "governance_relaxation_preflight_next_action=No governance relaxation candidate is present; keep policy unchanged and continue this read-only no-buy attention follow-up: Review attention-hit terminal follow-up distribution before routing to EntryDedup, filter-block, or strategy activation work.",
             '"noBuyAttentionStatus":"READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE"',
             '"noBuyAttentionReady":true',
             '"sourceReviewPacketStatus":"NO_EVIDENCE"',
             '"sourceRelaxationCandidateCount":0',
-            '"preflightDecision":"BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"',
+            '"preflightDecision":"NO_GOVERNANCE_RELAXATION_ACTION_REQUIRED"',
+            '"noGovernanceRelaxationActionRequired":true',
+            '"missingRequirements":[]',
             '"livePolicyChangeAllowed":false',
             '"tinyLiveOrderAllowed":false',
             "order_allowed=false",

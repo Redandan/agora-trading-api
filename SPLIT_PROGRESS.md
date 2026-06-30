@@ -322,13 +322,19 @@
   `governance_relaxation_preflight_decision`. It accepts
   `REVIEW_REQUIRED_NOT_POLICY_CHANGE` as a blocked review packet and
   `READY_FOR_GOVERNANCE_SHADOW_REVIEW_NOT_LIVE` as shadow-only review evidence.
-  Valid source `NO_EVIDENCE` packets route to
+  Valid source `NO_EVIDENCE` packets normally route to
   `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE`; when
   `no-buy-attention-flow-review-packet-latest.log` is ready, the preflight emits
   `no_buy_attention_next_action`,
   `no_buy_signal_eval_near_threshold_gap_count`, and closest threshold-gap
   evidence so governance blockers point at the completed no-buy/threshold
-  review instead of forcing a blind source refresh. The packet keeps
+  review instead of forcing a blind source refresh. If the parsed source packet
+  has zero relaxation candidates, no missed eval/order bug,
+  `missedOpportunityStatus=PASS`, and zero suspicious/false-block/high-return
+  no-buy counts, the preflight emits
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE`; that is neutral no-action
+  evidence for governance relaxation only, not review readiness or policy
+  approval. The packet keeps
   `live_policy_change_allowed=false`,
   `tiny_live_order_allowed=false`, `entry_dedup_policy_change_allowed=false`,
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
@@ -418,7 +424,9 @@
   stale logs are blockers, not passes. If the
   governance relaxation preflight packet is absent, it falls back to the source
   governance relaxation review packet and keeps `NO_EVIDENCE` as blocker
-  evidence. The audit
+  evidence. When preflight emits
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE`, the audit counts it as
+  no-action evidence, not a primary blocker or live approval. The audit
   keeps `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
   `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
   `order_allowed=false`, and `telegram_send_allowed=false`; it does not rerun
@@ -431,9 +439,12 @@
   the existing read-only SSH/MCP/SELECT evidence scripts plus local packet
   assembly for every audit lane and reruns the final audit. It refreshes
   no-buy attention-flow evidence before governance preflight so governance
-  `NO_EVIDENCE` inherits the latest no-buy/threshold-gap routing. It preserves
+  `NO_EVIDENCE` inherits the latest no-buy/threshold-gap routing or becomes
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` when there are no relaxation
+  candidates and no false-block/high-return no-buy pressure. It preserves
   governance relaxation `NO_EVIDENCE` or `NOT_READY` as blocker evidence instead
-  of failing the source-refresh step early; the final `-RequireAuditReady`
+  of failing the source-refresh step early, except for that explicit no-action
+  status; the final `-RequireAuditReady`
   audit remains the readiness gate. The wrapper keeps
   deploy, production env, live/TinyLive/scheduler, orders, OCO, close-position,
   Telegram, policy relaxation, and DB/grid/fund/Earn/exchange mutation out of
@@ -526,10 +537,11 @@
   the legacy `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` status and the
   current `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as ready
   no-buy-attention routing evidence. This can set `no_buy_attention_ready=true`
-  for the current packet, but the governance-relaxation lane remains
-  `NOT_READY` when source candidates are absent
-  (`source_relaxation_candidate_count=0`) and source governance evidence is
-  `NO_EVIDENCE`. It does not authorize live policy relaxation, orders,
+  for the current packet. A follow-up preflight classification maps the
+  no-candidate/no-false-block case to
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` instead of keeping it as the
+  sole governance-relaxation blocker. It does not authorize live policy
+  relaxation, orders,
   scheduler enablement, OCO/grid/fund/Earn/Telegram/exchange mutation, deploy,
   or production env changes.
 - `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
@@ -600,7 +612,10 @@
   `STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH`. The refreshed final
   live blocker audit stayed `BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT` with 10
   lanes, 9 review-ready lanes, zero missing/stale/incomplete evidence, and
-  governance relaxation as the only not-ready lane.
+  governance relaxation as the only not-ready lane at that snapshot. Later
+  no-action classification keeps the same not-live conclusion while preventing
+  a zero-candidate governance-relaxation scan from being shown as the sole
+  blocker.
 - `scripts/prepare_no_buy_attention_flow_review_packet_ssh.ps1` now carries
   attention strategy distribution and SIGNAL_EVAL threshold-gap distribution
   into the consolidated packet. It emits `attention_macro_watch_only_rows`,

@@ -43,6 +43,7 @@ foreach ($marker in @(
         "strategy485_risk_escalation_brief_packet=",
         "NoActionStatuses",
         "NO_ACTION_REQUIRED_NOT_LIVE",
+        "NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE",
         "profit_live_blocker_no_action_count",
         "Read-EntryDedupLane",
         "entry_dedup_operator_decision_brief_status=",
@@ -164,6 +165,51 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit live blocker audit unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    $governancePreflightNoAction = Write-PacketLog -Name "governance-preflight-noaction.log" -StatusPrefix "governance_relaxation_preflight_status=" -Status "NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE" -PacketPrefix "governance_relaxation_preflight_review_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "No governance relaxation candidate is present; keep policy unchanged and continue no-buy attention review." })
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -PriorityDecisionLogPath $priority `
+            -TrailingDryRunLogPath $trailing `
+            -Strategy485RiskLogPath $strategy485 `
+            -Strategy485RiskEscalationLogPath $strategy485Escalation `
+            -EntryDedupLogPath $entryDedup `
+            -DataFreshnessReplayBlockerLogPath $dfBlocker `
+            -DataFreshnessCollectorLogPath $dfCollector `
+            -TpSlOcoLogPath $tpSlOco `
+            -Strategy574TinyLivePreflightLogPath $strategy574 `
+            -GovernanceRelaxationPreflightLogPath $governancePreflightNoAction `
+            -GovernanceRelaxationReviewLogPath $governanceReview `
+            -RequireAuditReady 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "profit live blocker audit governance no-action case failed temp-log reuse:`n$text"
+    }
+    foreach ($marker in @(
+            "profit_live_blocker_audit_lane_count=10",
+            "profit_live_blocker_ready_review_count=9",
+            "profit_live_blocker_no_action_count=1",
+            "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
+            '"lane":"governance-relaxation"',
+            '"sourceStatus":"NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE"',
+            '"classification":"NO_ACTION_REQUIRED_NOT_LIVE"',
+            '"noActionRequired":true',
+            '"readyReviewCount":9',
+            '"noActionCount":1',
+            '"blockedCount":0',
+            '"primaryBlockers":["separate explicit operator authorization is required before any live/order/scheduler/env/Telegram/policy mutation"]'
+        )) {
+        Assert-Contains -Name "profit live blocker audit governance no-action temp log reuse" -Text $text -Pattern ([regex]::Escape($marker))
+    }
+    Assert-NotContains -Name "profit live blocker audit governance no-action blocker" -Text $text -Pattern ([regex]::Escape("governance-relaxation: BLOCKED_REVIEW_ONLY"))
+    if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit live blocker audit governance no-action unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 
     $strategy485EscalationNoAction = Write-PacketLog -Name "strategy485-escalation-noaction.log" -StatusPrefix "strategy485_risk_escalation_brief_status=" -Status "NO_POSITION_RISK_ACTION" -PacketPrefix "strategy485_risk_escalation_brief_packet=" -Packet ([pscustomobject]@{ missingRequirements = @(); nextAction = "No Strategy485 negative-EV position or close/modify suggestion exists." })

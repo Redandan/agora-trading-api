@@ -1377,12 +1377,18 @@ Expected:
   `entry_dedup_policy_change_allowed=false`,
   `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`.
-- If the source review packet is valid but `NO_EVIDENCE`, the preflight emits
-  `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE`. If the no-buy attention
-  packet is ready, it emits `no_buy_attention_next_action`,
+- If the source review packet is valid but `NO_EVIDENCE`, the preflight
+  normally emits `BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE`. If the
+  no-buy attention packet is ready, it emits `no_buy_attention_next_action`,
   `no_buy_signal_eval_near_threshold_gap_count`, and closest threshold-gap
   evidence so operators route to the completed no-buy/attention/threshold
-  review instead of blindly refreshing the same source log. The preflight
+  review instead of blindly refreshing the same source log. If the parsed
+  source packet has zero relaxation candidates, no missed eval/order bug,
+  `missedOpportunityStatus=PASS`, and zero suspicious/false-block/high-return
+  no-buy counts, it emits
+  `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE`; that is neutral no-action
+  evidence for governance relaxation only, not review readiness or policy
+  approval. The preflight
   accepts both the legacy `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`
   status and the current `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as
   ready no-buy attention routing evidence.
@@ -1618,9 +1624,10 @@ Expected:
   preflight packet is absent, the audit falls back to the source governance
   relaxation review packet and keeps `NO_EVIDENCE` as blocker evidence.
 - Output also includes `profit_live_blocker_no_action_count`. No-action
-  statuses such as Strategy485 `NO_POSITION_RISK_ACTION` are neutral evidence:
-  they are not primary blockers, not review-ready action packets, and not live
-  approval.
+  statuses such as Strategy485 `NO_POSITION_RISK_ACTION` and governance
+  preflight `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` are neutral
+  evidence: they are not primary blockers, not review-ready action packets, and
+  not live approval.
 - The audit keeps `tiny_live_order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
@@ -1642,10 +1649,14 @@ strategy485 risk reduction/escalation, EntryDedup semantics, DataFreshness
 replay blocker/collector activation, TP/SL/OCO feasibility,
 strategy574/TinyLive governance, governance relaxation, and final live blocker
 audit lanes. Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
-blocker evidence instead of failing the source-refresh step early; the final
+blocker evidence instead of failing the source-refresh step early, except when
+the local preflight emits the explicit neutral
+`NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` no-action status; the final
 `-RequireAuditReady` audit remains the readiness gate. The refresh includes the
 no-buy attention-flow packet before governance preflight so governance
-`NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing. The script
+`NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing or become
+neutral no-action evidence when there are no relaxation candidates and no
+false-block/high-return no-buy pressure. The script
 re-creates each step output parent directory before writing the step log, so a
 long-running refresh can continue even if an upstream step refreshes
 `target/profit-review`. The script only invokes

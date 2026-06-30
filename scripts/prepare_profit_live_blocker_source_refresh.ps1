@@ -2,6 +2,8 @@ param(
     [string]$ReviewOutputDir = "target/profit-review",
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 485,
+    [int]$EntryDedupStrategyId = 508,
+    [string]$EntryDedupIntervalCode = "1h",
     [int]$MatrixTimeoutSeconds = 3900,
     [int]$ChildTimeoutSeconds = 900,
     [int]$MatrixMaxAgeMinutes = 180,
@@ -93,6 +95,8 @@ function Get-LastPrefixedValue {
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) { throw "ReviewOutputDir is required." }
 Assert-TokenSafe -Name "Symbol" -Value $Symbol
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be between 1 and 1000000." }
+if ($EntryDedupStrategyId -lt 1 -or $EntryDedupStrategyId -gt 1000000) { throw "EntryDedupStrategyId must be between 1 and 1000000." }
+Assert-TokenSafe -Name "EntryDedupIntervalCode" -Value $EntryDedupIntervalCode
 if ($MatrixTimeoutSeconds -lt 60 -or $MatrixTimeoutSeconds -gt 7200) { throw "MatrixTimeoutSeconds must be between 60 and 7200." }
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) { throw "ChildTimeoutSeconds must be between 60 and 3600." }
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) { throw "MatrixMaxAgeMinutes must be between 1 and 1440." }
@@ -137,7 +141,7 @@ $steps = @(
     New-Step -Name "profit-operator-priority-decision" -ScriptName "prepare_profit_operator_priority_decision_brief.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "profit-operator-priority-decision-brief-latest.log") -Ssh $false -Required $true
     New-Step -Name "trailing-stop-dry-run-decision" -ScriptName "prepare_trailing_stop_dry_run_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "trailing-stop-dry-run-operator-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "strategy485-risk-reduction-decision" -ScriptName "prepare_strategy485_risk_reduction_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "strategy485-risk-reduction-operator-decision-packet-latest.log") -Ssh $false -Required $true
-    New-Step -Name "entry-dedup-semantics-decision" -ScriptName "prepare_entry_dedup_semantics_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-PriorityStrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "entry-dedup-semantics-operator-decision-packet-latest.log") -Ssh $false -Required $true
+    New-Step -Name "entry-dedup-semantics-decision" -ScriptName "prepare_entry_dedup_operator_decision_brief_ssh.ps1" -Arguments @("-Symbol", $Symbol, "-StrategyId", "$EntryDedupStrategyId", "-IntervalCode", $EntryDedupIntervalCode, "-RequireDecisionReady") -OutputPath (& $out "entry-dedup-semantics-operator-decision-packet-latest.log") -Ssh $true -Required $true
     New-Step -Name "data-freshness-replay-blocker-decision" -ScriptName "prepare_data_freshness_replay_blocker_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-RequireBlocked") -OutputPath (& $out "data-freshness-replay-blocker-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "data-freshness-replay-evidence-readiness" -ScriptName "prepare_data_freshness_replay_evidence_readiness_ssh.ps1" -Arguments @("-Symbol", $Symbol) -OutputPath (& $out "data-freshness-replay-evidence-readiness-refresh.log") -Ssh $true -Required $true
     New-Step -Name "data-freshness-collector-activation" -ScriptName "prepare_data_freshness_replay_collector_activation_packet.ps1" -Arguments @("-ReadinessLogPath", (& $out "data-freshness-replay-evidence-readiness-refresh.log"), "-Symbol", $Symbol, "-RequireDecisionReady") -OutputPath (& $out "data-freshness-replay-collector-activation-packet-latest.log") -Ssh $false -Required $true

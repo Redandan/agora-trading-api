@@ -651,6 +651,10 @@ finish successfully when the final audit is live-blocked. The current refreshed
 audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
 10 lanes, 1 review-ready non-live lane (`strategy574-tiny-live-governance`),
 and 9 blocked lanes. This is valid evidence, not live approval.
+The refresh now sources the EntryDedup lane from the fresh production
+`prepare_entry_dedup_operator_decision_brief_ssh.ps1` packet; local static
+EntryDedup shadow rows are not allowed to make the live blocker audit look more
+ready than current production evidence.
 
 The latest DataFreshness replay evidence status is no longer a runtime deploy
 blocker: `deployment_runtime_current_for_replay_id=true`, zero recent replay

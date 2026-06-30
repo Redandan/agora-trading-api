@@ -143,6 +143,22 @@ function Read-GovernanceRelaxationLane {
     return $reviewLane
 }
 
+function Read-EntryDedupLane {
+    $resolved = Resolve-RepoPath -PathValue $EntryDedupLogPath
+    if (-not (Test-Path -LiteralPath $resolved)) {
+        return Read-Lane -Lane "entry-dedup-semantics" -PathValue $EntryDedupLogPath -StatusPrefix "entry_dedup_operator_decision_brief_status=" -PacketPrefix "entry_dedup_operator_decision_brief_packet=" -ReadyStatuses @("READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Keep EntryDedup semantics as fresh SSH shadow review only."
+    }
+
+    $text = Get-Content -Raw -LiteralPath $resolved
+    if (-not [string]::IsNullOrWhiteSpace((Get-LastPrefixedValue -Text $text -Prefix "entry_dedup_operator_decision_brief_status="))) {
+        return Read-Lane -Lane "entry-dedup-semantics" -PathValue $EntryDedupLogPath -StatusPrefix "entry_dedup_operator_decision_brief_status=" -PacketPrefix "entry_dedup_operator_decision_brief_packet=" -ReadyStatuses @("READY_FOR_ENTRY_DEDUP_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Keep EntryDedup semantics as fresh SSH shadow review only."
+    }
+
+    $lane = Read-Lane -Lane "entry-dedup-semantics" -PathValue $EntryDedupLogPath -StatusPrefix "entry_dedup_semantics_operator_decision_status=" -PacketPrefix "entry_dedup_semantics_operator_decision_packet=" -ReadyStatuses @("READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Keep EntryDedup semantics as shadow review only."
+    $lane | Add-Member -NotePropertyName sourceFallback -NotePropertyValue "legacy_entry_dedup_semantics_operator_decision_packet" -Force
+    return $lane
+}
+
 if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 1440) { throw "MaxAgeMinutes must be between 1 and 1440." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
     throw "Symbol contains unsupported characters for profit live blocker audit arguments."
@@ -154,7 +170,7 @@ $lanes = @(
     Read-Lane -Lane "trailing-stop-dry-run" -PathValue $TrailingDryRunLogPath -StatusPrefix "trailing_stop_dry_run_operator_decision_status=" -PacketPrefix "trailing_stop_dry_run_operator_decision_packet=" -ReadyStatuses @("READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep trailing as dry-run operator review only."
     Read-Lane -Lane "strategy485-risk-reduction" -PathValue $Strategy485RiskLogPath -StatusPrefix "strategy485_risk_reduction_operator_decision_status=" -PacketPrefix "strategy485_risk_reduction_operator_decision_packet=" -ReadyStatuses @("READY_FOR_STRATEGY485_RISK_REDUCTION_OPERATOR_DECISION_NOT_MUTATION") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep strategy485 risk reduction as shadow/operator review only."
     Read-Lane -Lane "strategy485-risk-escalation" -PathValue $Strategy485RiskEscalationLogPath -StatusPrefix "strategy485_risk_escalation_brief_status=" -PacketPrefix "strategy485_risk_escalation_brief_packet=" -ReadyStatuses @("READY_FOR_STRATEGY485_RISK_ESCALATION_REVIEW_NOT_MUTATION") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY", "NO_EVIDENCE") -FallbackNextAction "Refresh strategy485 risk escalation evidence after the exit-side decision brief."
-    Read-Lane -Lane "entry-dedup-semantics" -PathValue $EntryDedupLogPath -StatusPrefix "entry_dedup_semantics_operator_decision_status=" -PacketPrefix "entry_dedup_semantics_operator_decision_packet=" -ReadyStatuses @("READY_FOR_ENTRY_DEDUP_SEMANTICS_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep EntryDedup semantics as shadow review only."
+    Read-EntryDedupLane
     Read-Lane -Lane "data-freshness-replay-blocker" -PathValue $DataFreshnessReplayBlockerLogPath -StatusPrefix "data_freshness_replay_blocker_decision_status=" -PacketPrefix "data_freshness_replay_blocker_decision_packet=" -ReadyStatuses @("READY_FOR_DATAFRESHNESS_REPLAY_BLOCKER_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Collect replayable DataFreshness rows before policy review."
     Read-Lane -Lane "data-freshness-collector-activation" -PathValue $DataFreshnessCollectorLogPath -StatusPrefix "data_freshness_collector_activation_status=" -PacketPrefix "data_freshness_collector_activation_packet=" -ReadyStatuses @("READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Prepare separate evidence-only collector activation review before any env change."
     Read-Lane -Lane "tp-sl-oco-feasibility" -PathValue $TpSlOcoLogPath -StatusPrefix "tp_sl_oco_feasibility_status=" -PacketPrefix "tp_sl_oco_feasibility_operator_packet=" -ReadyStatuses @("READY_FOR_TP_SL_OCO_FEASIBILITY_OPERATOR_REVIEW_NOT_MUTATION") -BlockedStatusHints @("BLOCKED", "PENDING", "NOT_READY") -FallbackNextAction "Keep TP/SL/OCO feasibility as review-only."

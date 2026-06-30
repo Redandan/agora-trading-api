@@ -452,6 +452,14 @@
   (`strategy574-tiny-live-governance`), and 9 blocked lanes; it did not
   authorize live/TinyLive/scheduler, orders, OCO, deploy/env changes,
   Telegram, policy relaxation, or DB/grid/fund/Earn/exchange mutation.
+- 2026-06-30 follow-up: the same source refresh now uses the fresh production
+  `prepare_entry_dedup_operator_decision_brief_ssh.ps1` for the EntryDedup lane
+  instead of the local static
+  `prepare_entry_dedup_semantics_operator_decision_packet.ps1`. The audit
+  accepts the fresh `entry_dedup_operator_decision_brief_status` packet and
+  keeps a legacy fallback for older logs, so live-readiness can no longer be
+  advanced by canned local EntryDedup shadow rows when production has no recent
+  EntryDedup skip sample.
 - `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
   production decomposition for recent `ENTRY_SKIP/EntryDedup` rows. It emits
   `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,

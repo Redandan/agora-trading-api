@@ -3627,6 +3627,32 @@ Trading deployment prep:
   deploy, production env change, scheduler/recovery/Earn enablement,
   `createGrid`, order, OCO, grid, fund, Telegram, DB, or exchange mutation was
   performed.
+- 2026-06-30 read-only profit-readiness refresh fixed a stale-runtime false
+  blocker in the DataFreshness replay evidence path. `smoke_live_origin_delta_local.ps1`
+  now accepts the existing bundle `-EnvFile` argument and emits
+  `deployed_app_commit` plus `deployment_runtime_delta_files`; the replay
+  observation bundle now uses the deployed app commit when deployment metadata
+  is `CURRENT` or `DOCS_TOOLING_ONLY_DRIFT` with zero runtime delta. The latest
+  production read-only bundle reported
+  `deployment_runtime_current_for_replay_id=true`,
+  `data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS`,
+  `replay_candidate_id_rows=0`, latest DataFreshness row
+  `2026-06-14T15:38:16`, `data_freshness_rows_14d=0`, and
+  `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`.
+  The blocker is now correctly classified as missing fresh DataFreshness
+  terminal replay rows, not a required runtime deploy.
+- The same 2026-06-30 read-only refresh produced a fresh BUY-like candidate
+  loss packet at `target/profit-review/buy-like-candidate-loss-review-packet-latest.log`.
+  It returned `READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE`,
+  dominant blocker `ENTRY_SKIP:EntryDedup`, 14d rows `3` (`NO_TERMINAL_FOLLOWUP=2`,
+  `ENTRY_SKIP:EntryDedup=1`), and 30d rows `705`
+  (`ENTRY_SKIP:EntryDedup=420`, `NO_TERMINAL_FOLLOWUP=110`,
+  `ENTRY_SKIP:DuplicateBar=98`, `ENTRY_SKIP:ShadowExecutionIntent=35`,
+  filter-block rows `37`, DataFreshnessGuard rows `5`). No-terminal continuity
+  was review-ready with 110 rows, mostly terminal-after-primary-window evidence.
+  The packet keeps live policy change, EntryDedup/DataFreshness relaxation,
+  scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutation,
+  deploy, and production env changes disabled.
 
 ## Cleanup Priority
 

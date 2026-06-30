@@ -1,7 +1,8 @@
 param(
     [string]$SshHost = $env:AGORA_SSH_HOST,
     [string]$SshKey = $env:AGORA_SSH_KEY,
-    [string]$AppDir = "/home/ubuntu/agora-trading-api"
+    [string]$AppDir = "/home/ubuntu/agora-trading-api",
+    [string]$EnvFile = "/home/ubuntu/.env.trading.secrets"
 )
 
 Set-StrictMode -Version Latest
@@ -84,8 +85,10 @@ try {
 $metadataText = ($metadataOutput | Out-String)
 $serverWorktreeCommit = Get-LastPrefixedValue -Text $metadataText -Prefix "worktreeCommit="
 $originMainCommit = Get-LastPrefixedValue -Text $metadataText -Prefix "originMainCommit="
+$deployedCommit = Get-LastPrefixedValue -Text $metadataText -Prefix "deployedCommit="
 $originMetadataStatus = Get-LastPrefixedValue -Text $metadataText -Prefix "origin_metadata_status="
 $deploymentMetadataStatus = Get-LastPrefixedValue -Text $metadataText -Prefix "deployment_metadata_status="
+$deploymentRuntimeDeltaFiles = Get-LastPrefixedValue -Text $metadataText -Prefix "deploymentRuntimeDeltaFiles="
 
 Write-Host "[live-origin-delta-local] read-only origin delta classifier"
 Write-Host "scope=READ_ONLY; runs metadata-only SSH smoke and local git diff only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, fetch, restart, or nginx state changed."
@@ -93,7 +96,9 @@ Write-Host "source_smoke=smoke_live_deployment_metadata_ssh.ps1"
 Write-Host "source_smoke_exit_code=$metadataExitCode"
 Write-Host "server_worktree_commit=$serverWorktreeCommit"
 Write-Host "origin_main_commit=$originMainCommit"
+Write-Host "deployed_app_commit=$deployedCommit"
 Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
+Write-Host "deployment_runtime_delta_files=$deploymentRuntimeDeltaFiles"
 Write-Host "origin_metadata_status=$originMetadataStatus"
 
 $classification = "NO_LOCAL_EVIDENCE"

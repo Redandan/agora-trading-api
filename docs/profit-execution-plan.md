@@ -632,6 +632,12 @@ git status --short --branch
 git diff --check
 .\scripts\verify_local.ps1
 .\scripts\prepare_profit_live_blocker_source_refresh.ps1 -ReuseLatestProfitOperatorMatrix -ContinueOnStepFailure -AllowBlockedStepFailures
+.\scripts\prepare_data_freshness_replay_evidence_readiness_ssh.ps1 -Symbol BTCUSDT
+.\scripts\smoke_buy_like_candidate_progression_ssh.ps1 -ReviewDays 14 -FollowupHours 6 -Limit 20 -MaxCandidateRows 1000
+.\scripts\smoke_buy_like_candidate_progression_ssh.ps1 -ReviewDays 30 -FollowupHours 6 -Limit 20 -MaxCandidateRows 2000
+.\scripts\smoke_signal_correctness_ssh.ps1
+.\scripts\smoke_no_terminal_followup_continuity_ssh.ps1 -Symbol BTCUSDT -ReviewDays 30 -FollowupHours 6 -ExtendedFollowupHours 72 -Limit 20
+.\scripts\prepare_buy_like_candidate_loss_review_packet.ps1 -BuyLike14dLogPath target/profit-review/buy-like-candidate-progression-14d-latest.log -BuyLike30dLogPath target/profit-review/buy-like-candidate-progression-30d-latest.log -DataFreshnessReadinessLogPath target/profit-review/data-freshness-replay-evidence-readiness-refresh.log -SignalCorrectnessLogPath target/profit-review/signal-correctness-maintenance-latest.log -NoTerminalContinuityLogPath target/profit-review/no-terminal-followup-continuity-current.log -MaxAgeMinutes 60 -RequireReady
 .\scripts\prepare_profit_next_execution_blocker_packet.ps1 -RequireReady
 ```
 
@@ -640,6 +646,16 @@ finish successfully when the final audit is live-blocked. The current refreshed
 audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
 10 lanes, 1 review-ready non-live lane (`strategy574-tiny-live-governance`),
 and 9 blocked lanes. This is valid evidence, not live approval.
+
+The latest DataFreshness replay evidence status is no longer a runtime deploy
+blocker: `deployment_runtime_current_for_replay_id=true`, zero recent replay
+candidate rows, and
+`data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`.
+The highest-ROI current loss review is BUY-like candidate progression:
+`buy_like_candidate_loss_review_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE`,
+dominant blocker `ENTRY_SKIP:EntryDedup`, 30d BUY-like rows `705`, 30d
+EntryDedup rows `420`, 30d no-terminal rows `110`, and live/order/policy
+permissions all remain false.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

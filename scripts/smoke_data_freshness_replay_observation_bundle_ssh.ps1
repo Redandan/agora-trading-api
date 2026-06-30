@@ -139,10 +139,23 @@ $origin = Invoke-Smoke -Name "origin-delta" -ScriptName "smoke_live_origin_delta
 
 $originDelta = Get-Marker -Text $origin.Text -Prefix "origin_delta_status="
 $serverWorktreeCommit = Get-Marker -Text $origin.Text -Prefix "server_worktree_commit="
+$deploymentMetadataStatus = Get-Marker -Text $origin.Text -Prefix "deployment_metadata_status="
+$deploymentRuntimeDeltaFiles = Get-Marker -Text $origin.Text -Prefix "deployment_runtime_delta_files="
+$deployedCommit = Get-Marker -Text $origin.Text -Prefix "deployed_app_commit="
+
+$deploymentRuntimeCurrentForReplayId = (
+    $deploymentMetadataStatus -eq "CURRENT" -or
+    ($deploymentMetadataStatus -eq "DOCS_TOOLING_ONLY_DRIFT" -and $deploymentRuntimeDeltaFiles -eq "0")
+)
 
 $replayIdArgs = $common + @("-ReviewDays", "$ReplayIdDays", "-Limit", "$([Math]::Min($Limit, 500))")
-if ($originDelta -eq "DOCS_TOOLING_ONLY_DRIFT" -and -not [string]::IsNullOrWhiteSpace($serverWorktreeCommit)) {
+$replayExpectedCommitSource = "LOCAL_HEAD_DEFAULT"
+if ($deploymentRuntimeCurrentForReplayId -and -not [string]::IsNullOrWhiteSpace($deployedCommit) -and $deployedCommit -match "^[0-9a-fA-F]{7,40}$") {
+    $replayIdArgs += @("-ExpectedCommit", $deployedCommit)
+    $replayExpectedCommitSource = "DEPLOYED_APP_COMMIT_RUNTIME_CURRENT"
+} elseif ($originDelta -eq "DOCS_TOOLING_ONLY_DRIFT" -and -not [string]::IsNullOrWhiteSpace($serverWorktreeCommit)) {
     $replayIdArgs += @("-ExpectedCommit", $serverWorktreeCommit)
+    $replayExpectedCommitSource = "SERVER_WORKTREE_COMMIT_DOCS_TOOLING_ONLY_DRIFT"
 }
 if ($RequireObserved) {
     $replayIdArgs += "-RequireObserved"
@@ -209,6 +222,10 @@ if ($reviewItems -contains "DEPLOY_CURRENT_RUNTIME_BEFORE_REPLAY_OBSERVATION") {
 Write-Host ""
 Write-Host "Replay Observation Bundle Summary:"
 Write-Host "  origin_delta_status=$originDelta"
+Write-Host "  deployment_metadata_status=$deploymentMetadataStatus"
+Write-Host "  deployment_runtime_delta_files=$deploymentRuntimeDeltaFiles"
+Write-Host "  deployed_app_commit=$deployedCommit"
+Write-Host "  replay_expected_commit_source=$replayExpectedCommitSource"
 Write-Host "  deployment_runtime_current_for_replay_id=$runtimeCurrent"
 Write-Host "  data_freshness_replay_candidate_id_recommendation=$replayIdRecommendation"
 Write-Host "  replay_candidate_id_rows=$replayIdRows"

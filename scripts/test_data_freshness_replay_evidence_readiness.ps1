@@ -74,6 +74,8 @@ foreach ($marker in @(
         "collector_status_counts",
         "hard_gate_preview_status_counts",
         "data_freshness_sample_gap_rca_recommendation",
+        "data_freshness_sample_gap_rca_review_days",
+        "data_freshness_sample_gap_rca_long_days",
         "notAuthorization=read-only DataFreshness replay evidence readiness only",
         "does not deploy",
         "Assert-SshHostSafe",

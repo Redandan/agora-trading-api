@@ -145,6 +145,8 @@ $observationRecommendation = Get-LastPrefixedValue -Text $observation.Text -Pref
 $sampleGapRecommendation = "NOT_RUN"
 $sampleGapNextAction = "N/A"
 $sampleGapExitCode = $null
+$sampleGapReviewDays = [Math]::Min($ReplayIdDays, 30)
+$sampleGapLongDays = [Math]::Max($ReviewDays, $ReplayIdDays)
 $shouldRunSampleGapRca = (
     $dataFreshnessSampleGapStatus -eq "NO_ROWS_IN_REVIEW_WINDOW" -or
     $replayCandidateRecommendation -eq "PENDING_NO_NEW_DATAFRESHNESS_ROWS" -or
@@ -152,8 +154,8 @@ $shouldRunSampleGapRca = (
 )
 if ($shouldRunSampleGapRca) {
     $sampleGap = Invoke-ReadOnlyScript -ScriptName "smoke_data_freshness_sample_gap_rca_ssh.ps1" -Arguments ($commonArgs + @(
-        "-ReviewDays", [string][Math]::Min($ReplayIdDays, 30),
-        "-LongDays", [string][Math]::Max($ReviewDays, $ReplayIdDays),
+        "-ReviewDays", [string]$sampleGapReviewDays,
+        "-LongDays", [string]$sampleGapLongDays,
         "-Limit", "10"
     ))
     $sampleGapExitCode = $sampleGap.ExitCode
@@ -239,6 +241,8 @@ $packet = [pscustomobject]@{
     dataFreshnessRows30d = $dataFreshnessRows30d
     dataFreshnessSampleGapStatus = $dataFreshnessSampleGapStatus
     sampleGapRcaRecommendation = $sampleGapRecommendation
+    sampleGapRcaReviewDays = $sampleGapReviewDays
+    sampleGapRcaLongDays = $sampleGapLongDays
     counterfactualRecommendation = $counterfactualRecommendation
     replayInputStage = $replayInputStage
     replayInputNextAction = $replayInputNextAction
@@ -279,6 +283,8 @@ Write-Host "data_freshness_rows_14d=$dataFreshnessRows14d"
 Write-Host "data_freshness_rows_30d=$dataFreshnessRows30d"
 Write-Host "data_freshness_sample_gap_status=$dataFreshnessSampleGapStatus"
 Write-Host "data_freshness_sample_gap_rca_recommendation=$sampleGapRecommendation"
+Write-Host "data_freshness_sample_gap_rca_review_days=$sampleGapReviewDays"
+Write-Host "data_freshness_sample_gap_rca_long_days=$sampleGapLongDays"
 Write-Host "data_freshness_counterfactual_recommendation=$counterfactualRecommendation"
 Write-Host "replay_input_stage=$replayInputStage"
 Write-Host "replay_input_next_action=$replayInputNextAction"

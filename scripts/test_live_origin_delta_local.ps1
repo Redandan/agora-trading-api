@@ -34,6 +34,8 @@ foreach ($pattern in @(
         'src/test/*',
         'origin_delta_local_evidence=',
         'origin_delta_status=',
+        'deployed_app_commit=',
+        'deployment_runtime_delta_files=',
         'CURRENT_ORIGIN_MAIN',
         'DOCS_TOOLING_ONLY_DRIFT',
         'RUNTIME_DRIFT',

@@ -95,7 +95,11 @@ if ($null -ne $sourcePacket) {
     $sourceMissingRequirements = @($sourcePacket.missingRequirements)
 }
 
-$noBuyReady = ($noBuyStatus -eq "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE" -and $null -ne $noBuyPacket)
+$readyNoBuyAttentionStatuses = @(
+    "READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE",
+    "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE"
+)
+$noBuyReady = ($readyNoBuyAttentionStatuses -contains $noBuyStatus -and $null -ne $noBuyPacket)
 $noBuyNextAction = ""
 $noBuyReviewItems = @()
 $noBuyBlockers = @()

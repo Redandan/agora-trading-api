@@ -520,6 +520,18 @@
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
   and `telegram_send_allowed=false`.
+- A follow-up 2026-06-30 governance preflight routing fix keeps the same
+  readiness conclusion while removing a no-buy attention status false blocker:
+  `prepare_governance_relaxation_preflight_review_packet.ps1` now treats both
+  the legacy `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` status and the
+  current `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as ready
+  no-buy-attention routing evidence. This can set `no_buy_attention_ready=true`
+  for the current packet, but the governance-relaxation lane remains
+  `NOT_READY` when source candidates are absent
+  (`source_relaxation_candidate_count=0`) and source governance evidence is
+  `NO_EVIDENCE`. It does not authorize live policy relaxation, orders,
+  scheduler enablement, OCO/grid/fund/Earn/Telegram/exchange mutation, deploy,
+  or production env changes.
 - `scripts/smoke_entry_dedup_blocker_decomposition_ssh.ps1` adds a read-only
   production decomposition for recent `ENTRY_SKIP/EntryDedup` rows. It emits
   `ENTRY_DEDUP_BLOCKER_DECOMPOSITION_PACKET`,

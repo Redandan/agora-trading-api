@@ -1382,7 +1382,10 @@ Expected:
   packet is ready, it emits `no_buy_attention_next_action`,
   `no_buy_signal_eval_near_threshold_gap_count`, and closest threshold-gap
   evidence so operators route to the completed no-buy/attention/threshold
-  review instead of blindly refreshing the same source log.
+  review instead of blindly refreshing the same source log. The preflight
+  accepts both the legacy `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`
+  status and the current `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as
+  ready no-buy attention routing evidence.
 - `GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_PACKET` is review evidence only. It
   does not authorize governance/EntryDedup/DataFreshness/live policy
   relaxation, staged-add/tiny-live execution, scheduler enablement, orders,

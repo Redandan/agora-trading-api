@@ -39,6 +39,7 @@ foreach ($marker in @(
         "NoBuyAttentionLogPath",
         "no_buy_attention_status",
         "no_buy_attention_ready",
+        "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE",
         "no_buy_attention_next_action",
         "no_buy_signal_eval_near_threshold_gap_count",
         "noBuyAttentionReady",
@@ -281,6 +282,112 @@ try {
 } finally {
     if (Test-Path -LiteralPath $blockedLogPath) { Remove-Item -LiteralPath $blockedLogPath -Force }
     if (Test-Path -LiteralPath $blockedNoBuyPath) { Remove-Item -LiteralPath $blockedNoBuyPath -Force }
+}
+
+$currentStatusBlockedLogPath = Join-Path ([System.IO.Path]::GetTempPath()) ("governance-relaxation-preflight-current-status-blocked-" + [guid]::NewGuid().ToString("N") + ".log")
+$currentStatusNoBuyPath = Join-Path ([System.IO.Path]::GetTempPath()) ("governance-relaxation-preflight-current-status-no-buy-" + [guid]::NewGuid().ToString("N") + ".log")
+try {
+    $currentStatusSourcePacket = [pscustomobject]@{
+        packetType = "GOVERNANCE_RELAXATION_REVIEW"
+        status = "NO_EVIDENCE"
+        symbol = "BTCUSDT"
+        signalPolicyClear = "false"
+        governanceMode = "INSUFFICIENT_DATA"
+        missedOpportunityStatus = "PASS"
+        relaxationCandidateCount = 0
+        relaxationCandidates = @()
+        shadowGovernanceReviewAllowed = $false
+        livePolicyChangeAllowed = $false
+        tinyLiveOrderAllowed = $false
+        missingRequirements = @(
+            "DataFreshness current snapshot clean",
+            "governance relaxation candidates present",
+            "signalPolicyClear=true before governance relaxation review can be marked ready",
+            "governance drift resolved"
+        )
+        nextAction = "Recent DataFreshnessGuard rows are absent; review no-buy attention flow first."
+    }
+    $currentStatusNoBuyPacket = [pscustomobject]@{
+        packetType = "NO_BUY_ATTENTION_FLOW_REVIEW_PACKET"
+        status = "READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE"
+        symbol = "BTCUSDT"
+        attentionFlow = [pscustomobject]@{
+            candidateInterpretation = "ATTENTION_HITS_MIXED_MACRO_AND_STRATEGY_ROWS"
+        }
+        signalEvalNoBuyGeneration = [pscustomobject]@{
+            recommendation = "BUY_LIKE_SIGNAL_EVAL_PRESENT_REVIEW_PROGRESS_PATH"
+            nearThresholdGapCount = 1
+            closestThresholdGap = [pscustomobject]@{
+                strategyId = "574"
+                intervalCode = "1h"
+                indicator = "market_entropy_index"
+                minBuyGap = 1.0000
+            }
+        }
+        reviewItems = @(
+            "SIGNAL_EVAL_NEAR_THRESHOLD_GAP_REVIEW",
+            "NO_ATTENTION_ROWS_REACHED_SIGNAL_BUY_OR_AUTOTRADE"
+        )
+        blockers = @("NO_RECENT_DATAFRESHNESS_ROWS")
+        nextAction = "Review attention-hit terminal follow-up distribution before routing to EntryDedup, filter-block, or strategy activation work."
+    }
+    Set-Content -LiteralPath $currentStatusBlockedLogPath -Encoding UTF8 -Value @(
+        "[governance-relaxation-review-packet] read-only packet",
+        "scope=READ_ONLY; runs smoke_signal_correctness_ssh.ps1 only",
+        "governance_relaxation_review_packet_status=NO_EVIDENCE",
+        ("governance_relaxation_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $currentStatusSourcePacket)),
+        "live_policy_change_allowed=false",
+        "tiny_live_order_allowed=false",
+        "notAuthorization=read-only governance relaxation review packet only"
+    )
+    Set-Content -LiteralPath $currentStatusNoBuyPath -Encoding UTF8 -Value @(
+        "[no-buy-attention-flow-review-packet] read-only packet",
+        "scope=READ_ONLY; no mutation",
+        "no_buy_attention_flow_review_status=READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE",
+        ("no_buy_attention_flow_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $currentStatusNoBuyPacket)),
+        "notAuthorization=read-only no-buy attention flow review packet only"
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $currentStatusOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewLogPath $currentStatusBlockedLogPath -NoBuyAttentionLogPath $currentStatusNoBuyPath 2>&1
+        $currentStatusExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $currentStatusText = ($currentStatusOutput | Out-String)
+    if ($currentStatusExitCode -ne 0) {
+        throw "Governance relaxation preflight failed current no-buy status routing:`n$currentStatusText"
+    }
+    foreach ($marker in @(
+            "no_buy_attention_status=READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE",
+            "no_buy_attention_ready=true",
+            "source_relaxation_candidate_count=0",
+            "governance_relaxation_preflight_decision=BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE",
+            "governance_relaxation_preflight_status=NOT_READY",
+            "governance_relaxation_preflight_next_action=Review attention-hit terminal follow-up distribution before routing to EntryDedup, filter-block, or strategy activation work.",
+            '"noBuyAttentionStatus":"READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE"',
+            '"noBuyAttentionReady":true',
+            '"sourceReviewPacketStatus":"NO_EVIDENCE"',
+            '"sourceRelaxationCandidateCount":0',
+            '"preflightDecision":"BLOCKED_SOURCE_GOVERNANCE_RELAXATION_EVIDENCE"',
+            '"livePolicyChangeAllowed":false',
+            '"tinyLiveOrderAllowed":false',
+            "order_allowed=false",
+            "telegram_send_allowed=false"
+        )) {
+        Assert-Contains -Name "governance relaxation preflight current no-buy status routing" -Text $currentStatusText -Pattern ([regex]::Escape($marker))
+    }
+    if ($currentStatusText -match "governance_relaxation_preflight_status=READY_FOR_GOVERNANCE_RELAXATION_PREFLIGHT_REVIEW_NOT_LIVE") {
+        throw "Governance relaxation preflight incorrectly became ready when source candidates were absent:`n$currentStatusText"
+    }
+    if ($currentStatusText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "Governance relaxation preflight unexpectedly invoked SSH or a fresh child run for current no-buy status path:`n$currentStatusText"
+    }
+} finally {
+    if (Test-Path -LiteralPath $currentStatusBlockedLogPath) { Remove-Item -LiteralPath $currentStatusBlockedLogPath -Force }
+    if (Test-Path -LiteralPath $currentStatusNoBuyPath) { Remove-Item -LiteralPath $currentStatusNoBuyPath -Force }
 }
 
 Write-Host "[governance-relaxation-preflight-review-packet-test] OK"

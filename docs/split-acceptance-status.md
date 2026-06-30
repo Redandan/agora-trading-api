@@ -1271,6 +1271,12 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   `profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT`
   with lane count 10, ready review count 9, and zero missing/stale/incomplete
   evidence; governance relaxation remains the only not-ready lane.
+  A later governance preflight routing fix accepts both the legacy
+  `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE` status and the current
+  `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as ready no-buy-attention
+  routing evidence. This clears only the packet-routing false blocker; the
+  governance-relaxation lane remains not ready when the source governance
+  packet still has `NO_EVIDENCE` and no relaxation candidates.
 - Profit live blocker audit packet is read-only. Run
   `.\scripts\prepare_profit_live_blocker_audit_packet.ps1 -RequireAuditReady`
   after the local operator/preflight source logs are saved. It emits

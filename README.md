@@ -1445,7 +1445,10 @@ valid but `NO_EVIDENCE`, the preflight emits
 packet is ready it carries `no_buy_attention_next_action`,
 `no_buy_signal_eval_near_threshold_gap_count`, and the closest threshold-gap
 evidence so the next action points at the completed no-buy/threshold review
-instead of telling the operator to rerun the same source log. It keeps
+instead of telling the operator to rerun the same source log. The preflight
+accepts both the legacy `READY_FOR_ATTENTION_NO_BUY_FLOW_REVIEW_NOT_LIVE`
+status and the current `READY_FOR_ATTENTION_FLOW_REVIEW_NOT_LIVE` status as
+ready no-buy attention routing evidence. It keeps
 `live_policy_change_allowed=false`, `tiny_live_order_allowed=false`,
 `entry_dedup_policy_change_allowed=false`,
 `data_freshness_policy_change_allowed=false`, `order_allowed=false`, and

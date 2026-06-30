@@ -499,16 +499,19 @@
   authorization.
 - 2026-06-30 latest read-only source refresh completed with
   `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`, 10 lanes,
-  6 review-ready non-live lanes, 1 no-action lane, and 3 blocked lanes.
+  7 review-ready non-live lanes, 1 no-action lane, and 2 blocked lanes.
   Ready-for-review lanes are `profit-priority`, `trailing-stop-dry-run`,
   `strategy485-risk-reduction`, `data-freshness-replay-blocker`,
-  `tp-sl-oco-feasibility`, and `strategy574-tiny-live-governance`.
+  `data-freshness-collector-activation`, `tp-sl-oco-feasibility`, and
+  `strategy574-tiny-live-governance`.
   `strategy485-risk-escalation` is now `NO_POSITION_RISK_ACTION` when no
   negative-EV position or close/modify suggestion exists, so it is no longer a
   blocker. Blocked lanes are `entry-dedup-semantics` (`NO_EVIDENCE` and missing
-  shadow replay/opportunity rows), `data-freshness-collector-activation`
-  (collector-evidence stage), and `governance-relaxation` (no reviewable
-  relaxation candidates). Final audit keeps `order_allowed=false`,
+  shadow replay/opportunity rows) and `governance-relaxation` (no reviewable
+  relaxation candidates). `NO_DATAFRESHNESS_SAMPLE` with 1d/3d rows at zero is
+  now treated as reviewable evidence-only collector activation routing, not as
+  collector activation or DataFreshness policy approval. Final audit keeps
+  `order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
   and `telegram_send_allowed=false`.

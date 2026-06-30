@@ -54,6 +54,7 @@ foreach ($marker in @(
         "DATAFRESHNESS_REPLAY_COLLECTOR_ACTIVATION_DECISION_PACKET",
         "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE",
         "data_freshness_collector_activation_packet",
+        "NO_DATAFRESHNESS_SAMPLE",
         "PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW"
     )) {
     Assert-Contains -Name "DataFreshness collector activation decision supports preflight" -Text $decisionText -Pattern ([regex]::Escape($marker))
@@ -138,6 +139,62 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "DataFreshness collector activation preflight unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    Set-Content -LiteralPath $tempLogPath -Encoding UTF8 -Value @(
+        "[data-freshness-replay-evidence-readiness] read-only packet",
+        "scope=READ_ONLY; invokes smoke_data_freshness_replay_observation_bundle_ssh.ps1 and conditionally smoke_data_freshness_sample_gap_rca_ssh.ps1 only",
+        "data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS",
+        "latest_data_freshness_row_time=2026-06-14T15:38:16",
+        "latest_data_freshness_row_age_hours=378",
+        "data_freshness_rows_1d=0",
+        "data_freshness_rows_3d=0",
+        "data_freshness_rows_7d=0",
+        "data_freshness_sample_gap_status=NO_ROWS_IN_REVIEW_WINDOW",
+        "data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES",
+        "data_freshness_counterfactual_recommendation=NO_DATAFRESHNESS_COUNTERFACTUAL_SAMPLE",
+        "replay_input_stage=NO_DATAFRESHNESS_SAMPLE",
+        "replay_input_next_action=wait_for_or_collect_new_datafreshness_terminal_sample",
+        "collector_status_counts=none",
+        "hard_gate_preview_status_counts=none",
+        "complete_replayable_candidate_rows=0",
+        "missing_counterfactual_fields=[`"liveSignalId`",`"replayCandidateId`",`"explicit entry/TP/SL candidate plan`",`"EV snapshot`",`"OCO plan`",`"hard-gate snapshot`",`"complete replayable candidate rows`"]",
+        "data_freshness_replay_evidence_blockers=[`"FRESH_DATAFRESHNESS_REPLAY_ROWS_MISSING`"]",
+        "data_freshness_replay_evidence_required=[`"fresh DataFreshnessGuard terminal rows after replay-id runtime`"]",
+        "data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS"
+    )
+
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReadinessLogPath $tempLogPath -RequireReady 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "DataFreshness collector activation no-sample preflight failed temp-log reuse:`n$text"
+    }
+    foreach ($marker in @(
+            "source_decision_packet_status=READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE",
+            "source_collector_activation_operator_decision=PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW",
+            "source_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS",
+            "source_replay_input_stage=NO_DATAFRESHNESS_SAMPLE",
+            "source_complete_replayable_candidate_rows=0",
+            "data_freshness_collector_activation_preflight_decision=PREPARE_REVIEW_ONLY_EVIDENCE_COLLECTOR_ACTIVATION",
+            "data_freshness_collector_activation_preflight_status=READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_PREFLIGHT_REVIEW_NOT_LIVE",
+            '"sourceReplayInputStage":"NO_DATAFRESHNESS_SAMPLE"',
+            '"preflightDecision":"PREPARE_REVIEW_ONLY_EVIDENCE_COLLECTOR_ACTIVATION"',
+            "evidence_only_collector_review_allowed=true",
+            "collector_activation_allowed=false",
+            "deploy_or_env_change_allowed=false",
+            "order_allowed=false",
+            "telegram_send_allowed=false"
+        )) {
+        Assert-Contains -Name "DataFreshness collector activation no-sample preflight temp log reuse" -Text $text -Pattern ([regex]::Escape($marker))
+    }
+    if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "DataFreshness collector activation no-sample preflight unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 } finally {
     if (Test-Path -LiteralPath $tempLogPath) { Remove-Item -LiteralPath $tempLogPath -Force }

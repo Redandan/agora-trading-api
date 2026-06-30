@@ -82,7 +82,7 @@ if ($sourceDecision -notin @("PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW"
 if ($sourceReadinessStatus -notin @("PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS", "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "PENDING_COUNTERFACTUAL_REPLAY_SNAPSHOTS")) {
     Add-MissingRequirement -List $missingRequirements -Value "source readiness status is collector-evidence blocker"
 }
-if ($sourceReplayInputStage -notin @("PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "COLLECTOR_DISABLED_TRACE_ONLY", "PREVIEW_ONLY_NOT_REPLAYABLE")) {
+if ($sourceReplayInputStage -notin @("PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "NO_DATAFRESHNESS_SAMPLE", "COLLECTOR_DISABLED_TRACE_ONLY", "PREVIEW_ONLY_NOT_REPLAYABLE")) {
     Add-MissingRequirement -List $missingRequirements -Value "source replay input stage is collector-evidence stage"
 }
 if ($sourceCompleteReplayRows -ne 0) {

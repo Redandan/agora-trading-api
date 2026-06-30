@@ -649,13 +649,13 @@ git diff --check
 The latest source refresh can now reuse a fresh profit operator matrix and still
 finish successfully when the final audit is live-blocked. The current refreshed
 audit has `profit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT`,
-10 lanes, 6 review-ready non-live lanes (`profit-priority`,
+10 lanes, 7 review-ready non-live lanes (`profit-priority`,
 `trailing-stop-dry-run`, `strategy485-risk-reduction`,
-`data-freshness-replay-blocker`, `tp-sl-oco-feasibility`, and
-`strategy574-tiny-live-governance`), 1 no-action lane
-(`strategy485-risk-escalation` with `NO_POSITION_RISK_ACTION`), and 3 blocked
-lanes (`entry-dedup-semantics`, `data-freshness-collector-activation`, and
-`governance-relaxation`). This is valid evidence, not live approval.
+`data-freshness-replay-blocker`, `data-freshness-collector-activation`,
+`tp-sl-oco-feasibility`, and `strategy574-tiny-live-governance`), 1 no-action
+lane (`strategy485-risk-escalation` with `NO_POSITION_RISK_ACTION`), and 2
+blocked lanes (`entry-dedup-semantics` and `governance-relaxation`). This is
+valid evidence, not live approval.
 The exit-side review summary now emits a replayable `NOT_READY` summary packet
 before enforcing `-RequireReady`, so downstream trailing/strategy485 packets no
 longer lose `source_matrix_freshness_status=FRESH` when the latest matrix is
@@ -687,6 +687,12 @@ The latest DataFreshness replay evidence status is no longer a runtime deploy
 blocker: `deployment_runtime_current_for_replay_id=true`, zero recent replay
 candidate rows, and
 `data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS`.
+When the replay input stage is `NO_DATAFRESHNESS_SAMPLE` with 1d/3d
+DataFreshness rows still at zero, the collector activation lane is reviewable as
+an evidence-only collector activation question. It remains non-authorization:
+`collector_activation_allowed=false`, `deploy_or_env_change_allowed=false`,
+`live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`, and
+`order_allowed=false`.
 The highest-ROI current loss review is BUY-like candidate progression:
 `buy_like_candidate_loss_review_status=READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE`,
 dominant blocker `ENTRY_SKIP:EntryDedup`, 30d BUY-like rows `703`, 30d
@@ -704,10 +710,9 @@ live execution remain review-only.
 
 Latest read-only profit blocker refresh after the summary fix still shows live
 execution is not ready: profit matrix `NO_REVIEW_READY_ITEMS`, EntryDedup
-`NO_EVIDENCE` with `entry_dedup_skip_rows=0`, DataFreshness
+`NO_EVIDENCE` with missing shadow replay/opportunity rows, DataFreshness
 `replay_candidate_id_rows=0` and `complete_replayable_candidate_rows=0`, and
-Strategy574 near-threshold false-positive risk `86.67%` with
-`tiny_live_order_allowed=false`.
+governance relaxation `NOT_READY` with no reviewable relaxation candidates.
 
 If verification passes, commit and push the readiness work. The next separate
 execution step remains evidence-gated: only promote a lane after the relevant

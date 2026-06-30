@@ -1543,6 +1543,14 @@ DataFreshnessGuard, enable live/staged-add/tiny-live execution, enable
 scheduler mutation, send Telegram, place orders, modify OCO, or mutate
 DB/grid/fund/Earn/exchange state.
 
+When the source readiness log reports `replay_input_stage=NO_DATAFRESHNESS_SAMPLE`
+with `complete_replayable_candidate_rows=0` and no fresh 1d/3d
+DataFreshnessGuard terminal rows, this packet may still be
+`READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE`.
+That status only means the collector activation question is ready for separate
+evidence-only operator review; it is not collector activation, deploy
+authorization, DataFreshnessGuard relaxation, or live execution approval.
+
 Read-only DataFreshness collector activation preflight review packet:
 
 ```powershell

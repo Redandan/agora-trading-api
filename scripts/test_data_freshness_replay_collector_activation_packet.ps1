@@ -27,6 +27,7 @@ foreach ($marker in @(
         "DATAFRESHNESS_REPLAY_COLLECTOR_ACTIVATION_DECISION_PACKET",
         "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE",
         "PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW",
+        "NO_DATAFRESHNESS_SAMPLE",
         "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true",
         "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false",
         "collector_activation_allowed=false",
@@ -118,6 +119,60 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "DataFreshness collector activation packet unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    Set-Content -LiteralPath $tempLogPath -Encoding UTF8 -Value @(
+        "[data-freshness-replay-evidence-readiness] read-only packet",
+        "scope=READ_ONLY; invokes smoke_data_freshness_replay_observation_bundle_ssh.ps1 and conditionally smoke_data_freshness_sample_gap_rca_ssh.ps1 only",
+        "data_freshness_replay_candidate_id_recommendation=PENDING_NO_NEW_DATAFRESHNESS_ROWS",
+        "latest_data_freshness_row_time=2026-06-14T15:38:16",
+        "latest_data_freshness_row_age_hours=378",
+        "data_freshness_rows_1d=0",
+        "data_freshness_rows_3d=0",
+        "data_freshness_rows_7d=0",
+        "data_freshness_sample_gap_status=NO_ROWS_IN_REVIEW_WINDOW",
+        "data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES",
+        "data_freshness_counterfactual_recommendation=NO_DATAFRESHNESS_COUNTERFACTUAL_SAMPLE",
+        "replay_input_stage=NO_DATAFRESHNESS_SAMPLE",
+        "replay_input_next_action=wait_for_or_collect_new_datafreshness_terminal_sample",
+        "collector_status_counts=none",
+        "hard_gate_preview_status_counts=none",
+        "complete_replayable_candidate_rows=0",
+        "missing_counterfactual_fields=[`"liveSignalId`",`"replayCandidateId`",`"explicit entry/TP/SL candidate plan`",`"EV snapshot`",`"OCO plan`",`"hard-gate snapshot`",`"complete replayable candidate rows`"]",
+        "data_freshness_replay_evidence_blockers=[`"FRESH_DATAFRESHNESS_REPLAY_ROWS_MISSING`"]",
+        "data_freshness_replay_evidence_required=[`"fresh DataFreshnessGuard terminal rows after replay-id runtime`"]",
+        "data_freshness_replay_evidence_readiness_status=PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS"
+    )
+
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReadinessLogPath $tempLogPath -RequireDecisionReady 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $text = ($output | Out-String)
+    if ($exitCode -ne 0) {
+        throw "DataFreshness collector activation no-sample packet failed temp-log reuse:`n$text"
+    }
+    foreach ($marker in @(
+            "data_freshness_sample_gap_rca_recommendation=NO_RECENT_BUY_STYLE_CANDIDATES",
+            "replay_input_stage=NO_DATAFRESHNESS_SAMPLE",
+            "replay_input_next_action=wait_for_or_collect_new_datafreshness_terminal_sample",
+            "collector_activation_operator_decision=PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW",
+            "data_freshness_collector_activation_missing_requirements=[]",
+            "data_freshness_collector_activation_status=READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE",
+            '"status":"READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE"',
+            '"operatorDecision":"PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW"',
+            '"replayInputStage":"NO_DATAFRESHNESS_SAMPLE"',
+            "collector_activation_allowed=false",
+            "deploy_or_env_change_allowed=false",
+            "order_allowed=false"
+        )) {
+        Assert-Contains -Name "DataFreshness collector activation no-sample temp log reuse" -Text $text -Pattern ([regex]::Escape($marker))
+    }
+    if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "DataFreshness collector activation no-sample packet unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 } finally {
     if (Test-Path -LiteralPath $tempLogPath) {

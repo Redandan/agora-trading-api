@@ -3422,6 +3422,13 @@ Expected:
   scheduler mutation, send Telegram, place orders, modify OCO, mutate
   DB/grid/fund/Earn/exchange state, or treat preview rows as complete
   replayable evidence.
+- `replay_input_stage=NO_DATAFRESHNESS_SAMPLE` with
+  `complete_replayable_candidate_rows=0` and no fresh 1d/3d DataFreshnessGuard
+  terminal rows is accepted as a reviewable evidence-only collector activation
+  stage. This removes the circular "no rows, so cannot review the collector"
+  blocker; it still keeps `collector_activation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `live_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, and `order_allowed=false`.
 
 For the local read-only DataFreshness collector activation preflight review
 packet, run:

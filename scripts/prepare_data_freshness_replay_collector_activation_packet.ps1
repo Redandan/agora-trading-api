@@ -73,7 +73,7 @@ if ($completeReplayRows -gt 0) { Add-MissingRequirement -List $missingRequiremen
 if ($readinessStatus -notin @("PENDING_FRESH_DATAFRESHNESS_REPLAY_ROWS", "BLOCKED_PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "PENDING_COUNTERFACTUAL_REPLAY_SNAPSHOTS")) {
     Add-MissingRequirement -List $missingRequirements -Value "readiness status is a collector-evidence blocker"
 }
-if ($replayInputStage -notin @("PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "COLLECTOR_DISABLED_TRACE_ONLY", "PREVIEW_ONLY_NOT_REPLAYABLE")) {
+if ($replayInputStage -notin @("PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "NO_DATAFRESHNESS_SAMPLE", "COLLECTOR_DISABLED_TRACE_ONLY", "PREVIEW_ONLY_NOT_REPLAYABLE")) {
     Add-MissingRequirement -List $missingRequirements -Value "replay input stage is a collector-evidence stage"
 }
 
@@ -81,7 +81,7 @@ $decision = "NO_DECISION"
 $decisionStatus = "NOT_READY"
 $nextAction = "Refresh DataFreshness replay evidence readiness before preparing collector activation review."
 if ($missingRequirements.Count -eq 0) {
-    if ($replayInputStage -eq "PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE" -and $rows1dInt -eq 0 -and $rows3dInt -eq 0) {
+    if ($replayInputStage -in @("PRE_REPLAY_COLLECTOR_HISTORICAL_SAMPLE", "NO_DATAFRESHNESS_SAMPLE") -and $rows1dInt -eq 0 -and $rows3dInt -eq 0) {
         $decision = "PREPARE_EVIDENCE_ONLY_COLLECTOR_ACTIVATION_REVIEW"
         $decisionStatus = "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE"
         $nextAction = "Prepare a separate operator review for evidence-only collector activation; do not change production env or deploy without explicit authorization."
@@ -172,6 +172,7 @@ Write-Host "latest_data_freshness_row_age_hours=$latestDataFreshnessRowAgeHours"
 Write-Host "data_freshness_rows_1d=$rows1d"
 Write-Host "data_freshness_rows_3d=$rows3d"
 Write-Host "data_freshness_sample_gap_status=$sampleGapStatus"
+Write-Host "data_freshness_sample_gap_rca_recommendation=$sampleGapRcaRecommendation"
 Write-Host "data_freshness_counterfactual_recommendation=$counterfactualRecommendation"
 Write-Host "replay_input_stage=$replayInputStage"
 Write-Host "replay_input_next_action=$replayInputNextAction"

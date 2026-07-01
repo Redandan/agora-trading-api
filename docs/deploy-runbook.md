@@ -1581,10 +1581,11 @@ Expected:
   mutation, or external backfill/import.
 
 For the consolidated profit operator next-action board, run after refreshing the
-profit priority evidence and the strategy574/TinyLive source logs:
+profit priority evidence, the strategy574/TinyLive source logs, and the live
+blocker audit:
 
 ```powershell
-.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireReady
+.\scripts\prepare_profit_operator_next_action_board.ps1 -RequireAudit -RequireReady
 ```
 
 Expected:
@@ -1593,9 +1594,20 @@ Expected:
   `profit_operator_next_action_board_status`,
   `profit_operator_next_action_primary_focus`, and
   `strategy574_tiny_live_risk_posture`.
+- When source refresh already saved
+  `profit-operator-priority-decision-brief-latest.log`, pass it through
+  `-PriorityDecisionLogPath`; the board reuses the saved priority packet
+  instead of rebuilding the heavy matrix chain.
+- With a fresh audit log, output also includes
+  `profit_operator_next_action_audit_counts`,
+  `profit_operator_next_action_audit_review_queue`, and
+  `profit_operator_next_action_audit_operator_decision_order`, so all
+  audit-ready review lanes are visible in one board.
 - `READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` ranks the current
   review work as trailing-stop dry-run, strategy485 risk-reduction shadow,
-  EntryDedup semantics shadow, then strategy574/TinyLive governance blocker.
+  EntryDedup semantics shadow, DataFreshness collector/blocker review,
+  TP/SL/OCO feasibility, strategy574/TinyLive governance blocker, then
+  aggregate profit priority context.
 - The board keeps `tiny_live_order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
@@ -1648,7 +1660,10 @@ evidence. It saves fresh source logs for the profit priority, trailing dry-run,
 strategy485 risk reduction/escalation, EntryDedup semantics, DataFreshness
 replay blocker/collector activation, TP/SL/OCO feasibility,
 strategy574/TinyLive governance, governance relaxation, and final live blocker
-audit lanes. Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
+audit lanes. It then writes the audit-backed
+`profit-operator-next-action-board-latest.log` with `-RequireAudit`, so the
+refresh output includes the next operator review queue as well as the raw audit.
+Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
 blocker evidence instead of failing the source-refresh step early, except when
 the local preflight emits the explicit neutral
 `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` no-action status; the final

@@ -402,17 +402,23 @@
   TinyLive, enable scheduler mutation, place orders, modify OCO, send Telegram,
   or relax EntryDedup/DataFreshness/live policy.
 - `scripts/prepare_profit_operator_next_action_board.ps1` combines the profit
-  operator priority decision brief and the strategy574/TinyLive governance
-  packet into a `PROFIT_OPERATOR_NEXT_ACTION_BOARD`. It emits
+  operator priority decision brief, the strategy574/TinyLive governance packet,
+  and, with `-RequireAudit`, the latest live-blocker audit packet into a
+  `PROFIT_OPERATOR_NEXT_ACTION_BOARD`. It emits
   `profit_operator_next_action_board_packet`,
-  `profit_operator_next_action_board_status`, and
+  `profit_operator_next_action_board_status`,
+  `profit_operator_next_action_audit_counts`,
+  `profit_operator_next_action_audit_review_queue`, and
   `strategy574_tiny_live_risk_posture`, ranking trailing-stop dry-run,
-  strategy485 risk-reduction shadow, EntryDedup semantics shadow, and
-  strategy574/TinyLive governance blocker review in one read-only board. It
-  keeps `tiny_live_order_allowed=false`, `live_policy_change_allowed=false`,
-  `scheduler_enablement_allowed=false`, `deploy_or_env_change_allowed=false`,
-  `order_allowed=false`, and `telegram_send_allowed=false`; it is not live
-  approval.
+  strategy485 risk-reduction shadow, EntryDedup semantics shadow,
+  DataFreshness collector/blocker review, TP/SL/OCO feasibility,
+  strategy574/TinyLive governance blocker review, and aggregate profit priority
+  context in one read-only board. `-PriorityDecisionLogPath` lets the board
+  reuse the saved priority decision packet from source refresh instead of
+  rebuilding the heavy matrix chain. It keeps `tiny_live_order_allowed=false`,
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is not live approval.
 - `scripts/prepare_profit_live_blocker_audit_packet.ps1` reads existing local
   profit-review logs and emits `PROFIT_LIVE_BLOCKER_AUDIT_PACKET`,
   `profit_live_blocker_audit_packet`, `profit_live_blocker_audit_status`, and
@@ -435,9 +441,10 @@
   live policy.
 - `scripts/prepare_profit_live_blocker_source_refresh.ps1` orchestrates the
   read-only source refresh for the live blocker audit. `-PlanOnly` prints the
-  20-step plan without invoking SSH or child refreshes; normal execution runs
+  21-step plan without invoking SSH or child refreshes; normal execution runs
   the existing read-only SSH/MCP/SELECT evidence scripts plus local packet
-  assembly for every audit lane and reruns the final audit. It refreshes
+  assembly for every audit lane, reruns the final audit, and writes the
+  audit-backed `profit-operator-next-action-board-latest.log`. It refreshes
   no-buy attention-flow evidence before governance preflight so governance
   `NO_EVIDENCE` inherits the latest no-buy/threshold-gap routing or becomes
   `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` when there are no relaxation
@@ -536,6 +543,23 @@
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
   and `telegram_send_allowed=false`.
+- 2026-07-01 follow-up: `prepare_profit_operator_next_action_board.ps1` now
+  consumes the latest live-blocker audit with `-RequireAudit` and can reuse the
+  saved `profit-operator-priority-decision-brief-latest.log` through
+  `-PriorityDecisionLogPath` instead of rebuilding the matrix chain. The
+  current saved board returned
+  `READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` with
+  `source_priority_mode=REUSED_PRIORITY_DECISION_LOG`,
+  `source_audit_log_freshness_status=FRESH`,
+  `auditCounts.readyReviewCount=8`, `auditCounts.noActionCount=2`, and
+  `auditCounts.blockedCount=0`. The audit-backed decision order is
+  trailing-stop dry-run, strategy485 risk-reduction shadow, EntryDedup
+  semantics shadow, DataFreshness collector activation, DataFreshness replay
+  blocker, TP/SL/OCO feasibility, strategy574/TinyLive governance, and
+  aggregate profit-priority context. This is operator-review routing only:
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`.
 - A follow-up 2026-06-30 governance preflight routing fix keeps the same
   readiness conclusion while removing a no-buy attention status false blocker:
   `prepare_governance_relaxation_preflight_review_packet.ps1` now treats both

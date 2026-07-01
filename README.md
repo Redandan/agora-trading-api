@@ -1639,14 +1639,22 @@ Read-only profit operator next-action board:
 
 This board combines the profit priority decision brief with the
 strategy574/TinyLive governance operator packet, including any saved
-strategy574 near-threshold shadow observation evidence. It emits
-`profit_operator_next_action_board_packet` and
-`profit_operator_next_action_board_status`. A
+strategy574 near-threshold shadow observation evidence. When the latest
+`profit-live-blocker-audit-packet-latest.log` is present, add `-RequireAudit`
+to require a fresh audit-backed queue across all live-blocker lanes. Pass a
+fresh `-PriorityDecisionLogPath` when source refresh already saved
+`profit-operator-priority-decision-brief-latest.log`, so the board reuses that
+packet instead of rebuilding the heavy matrix chain. It emits
+`profit_operator_next_action_board_packet`,
+`profit_operator_next_action_board_status`,
+`profit_operator_next_action_audit_counts`, and
+`profit_operator_next_action_audit_review_queue`. A
 `PROFIT_OPERATOR_NEXT_ACTION_BOARD` with
-`READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` keeps the operator
-order as trailing-stop dry-run review, strategy485 risk-reduction shadow
-review, EntryDedup semantics shadow review, then strategy574/TinyLive
-governance blocker review. It keeps `tiny_live_order_allowed=false`,
+`READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE` keeps review work
+ordered from trailing-stop dry-run, strategy485 risk-reduction shadow,
+EntryDedup semantics shadow, DataFreshness evidence collector/blocker review,
+TP/SL/OCO feasibility, strategy574/TinyLive governance, and aggregate profit
+priority context. It keeps `tiny_live_order_allowed=false`,
 `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
 `deploy_or_env_change_allowed=false`, `order_allowed=false`,
 `telegram_send_allowed=false`, and `strategy574_threshold_relaxation_allowed=false`.
@@ -1687,7 +1695,8 @@ Read-only source refresh plan for the profit live blocker audit:
 To refresh the source logs, run the same script without `-PlanOnly`. It
 orchestrates existing read-only SSH/MCP/SELECT evidence scripts plus local
 packet assembly, writes every source log consumed by
-`prepare_profit_live_blocker_audit_packet.ps1`, and then reruns the audit. It
+`prepare_profit_live_blocker_audit_packet.ps1`, then reruns the audit and
+writes `profit-operator-next-action-board-latest.log` with `-RequireAudit`. It
 refreshes the no-buy attention-flow packet before governance preflight so
 governance `NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing
 or become `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` when the parsed source

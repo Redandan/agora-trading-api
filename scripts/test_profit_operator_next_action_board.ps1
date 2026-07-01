@@ -29,12 +29,20 @@ foreach ($marker in @(
         "[profit-operator-next-action-board] read-only board",
         "scope=READ_ONLY",
         "prepare_profit_operator_priority_decision_brief.ps1",
+        "PriorityDecisionLogPath",
+        "REUSED_PRIORITY_DECISION_LOG",
         "prepare_strategy574_tiny_live_governance_operator_packet.ps1",
         "NearThresholdShadowObservationLogPath",
+        "AuditLogPath",
+        "RequireAudit",
         "PROFIT_OPERATOR_NEXT_ACTION_BOARD",
         "READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE",
         "profit_operator_next_action_board_packet",
         "profit_operator_next_action_board_status",
+        "profit_operator_next_action_audit_counts",
+        "profit_operator_next_action_audit_review_queue",
+        "auditOperatorDecisionOrder",
+        "DATAFRESHNESS_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW",
         "strategy574-tiny-live-governance-review",
         "P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE",
         "strategy574/TinyLive governance blocker review",
@@ -73,6 +81,8 @@ $tempReviewDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-actio
 $tempStrategyLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-strategy574-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempTinyLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-tiny-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempNearThresholdLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-strategy574-near-threshold-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempAuditLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-audit-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempPriorityLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-action-priority-" + [guid]::NewGuid().ToString("N") + ".log")
 try {
     $matrixPacket = [pscustomobject]@{
         reviewItems = @(
@@ -112,6 +122,94 @@ try {
     )
     New-Item -ItemType Directory -Force -Path $tempReviewDir | Out-Null
     Set-Content -LiteralPath (Join-Path $tempReviewDir "latest-profit-operator-matrix.path") -Encoding UTF8 -Value $tempMatrixPath
+
+    $priorityPacket = [pscustomobject]@{
+        packetType = "PROFIT_OPERATOR_PRIORITY_DECISION_BRIEF"
+        status = "READY_FOR_OPERATOR_DECISION_NOT_LIVE"
+        primaryFocus = "trailing-stop-dry-run-operator-review"
+        rankedReviewItems = @(
+            [pscustomobject]@{
+                rank = 1
+                proposalId = "trailing-stop-dry-run-operator-review"
+                lane = "trailing-stop-dry-run"
+                decisionFocus = "TRAILING_STOP_DRY_RUN_REVIEW"
+                priorityClass = "P1_LOW_MUTATION_REVIEW_WITH_STRONG_EXIT_EVIDENCE"
+                recommendedNextPacket = "prepare_exit_side_operator_decision_brief_ssh.ps1 -RequireDecisionReady"
+                evidenceStrength = "strongest_quantified_exit_side_sample"
+                riskReason = "dry-run/operator review can proceed without mutation"
+                requiredBeforeDecision = @("confirm source matrix is still fresh")
+                forbiddenFromThisBrief = @("enable trailing scheduler", "enable live trading")
+                nextAction = "Use as the first operator decision focus."
+            }
+        )
+        blockedPolicyLanes = @()
+    }
+    Set-Content -LiteralPath $tempPriorityLog -Encoding UTF8 -Value @(
+        "[profit-operator-priority-decision-brief] read-only brief",
+        ("profit_operator_priority_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 8 $priorityPacket)),
+        "profit_operator_priority_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_LIVE"
+    )
+
+    $auditPacket = [pscustomobject]@{
+        packetType = "PROFIT_LIVE_BLOCKER_AUDIT_PACKET"
+        status = "BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT"
+        liveReadinessConclusion = "NOT_READY_FOR_LIVE_ENABLEMENT"
+        laneCount = 4
+        readyReviewCount = 3
+        noActionCount = 1
+        blockedCount = 0
+        missingEvidenceCount = 0
+        staleEvidenceCount = 0
+        incompleteEvidenceCount = 0
+        primaryBlockers = @("separate explicit operator authorization is required before any live/order/scheduler/env/Telegram/policy mutation")
+        lanes = @(
+            [pscustomobject]@{
+                lane = "trailing-stop-dry-run"
+                sourceStatus = "READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE"
+                classification = "READY_FOR_OPERATOR_REVIEW_NOT_LIVE"
+                readyForOperatorReview = $true
+                noActionRequired = $false
+                liveReady = $false
+                missingRequirements = @()
+                nextAction = "Attach trailing-stop dry-run decision packet to operator review."
+            },
+            [pscustomobject]@{
+                lane = "data-freshness-collector-activation"
+                sourceStatus = "READY_FOR_DATAFRESHNESS_COLLECTOR_ACTIVATION_OPERATOR_DECISION_NOT_LIVE"
+                classification = "READY_FOR_OPERATOR_REVIEW_NOT_LIVE"
+                readyForOperatorReview = $true
+                noActionRequired = $false
+                liveReady = $false
+                missingRequirements = @()
+                nextAction = "Prepare separate evidence-only collector activation review."
+            },
+            [pscustomobject]@{
+                lane = "strategy574-tiny-live-governance"
+                sourceStatus = "READY_FOR_STRATEGY574_TINY_LIVE_GOVERNANCE_PREFLIGHT_REVIEW_NOT_LIVE"
+                classification = "READY_FOR_OPERATOR_REVIEW_NOT_LIVE"
+                readyForOperatorReview = $true
+                noActionRequired = $false
+                liveReady = $false
+                missingRequirements = @()
+                nextAction = "Attach strategy574 governance preflight packet to operator review."
+            },
+            [pscustomobject]@{
+                lane = "governance-relaxation"
+                sourceStatus = "NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE"
+                classification = "NO_ACTION_REQUIRED_NOT_LIVE"
+                readyForOperatorReview = $false
+                noActionRequired = $true
+                liveReady = $false
+                missingRequirements = @()
+                nextAction = "No governance relaxation candidate is present."
+            }
+        )
+    }
+    Set-Content -LiteralPath $tempAuditLog -Encoding UTF8 -Value @(
+        "[profit-live-blocker-audit-packet] read-only audit",
+        ("profit_live_blocker_audit_packet=" + (ConvertTo-Json -Compress -Depth 8 $auditPacket)),
+        "profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT"
+    )
 
     Set-Content -LiteralPath $tempStrategyLog -Encoding UTF8 -Value @(
         "[strategy574-signal-review-gate] read-only evidence gate",
@@ -185,7 +283,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -Strategy574GateLogPath $tempStrategyLog -TinyLiveLossRcaLogPath $tempTinyLog -NearThresholdShadowObservationLogPath $tempNearThresholdLog -ReviewNotionalCapUsdt 15 -ObservationHours 48 -RequireReady 2>&1
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -PriorityDecisionLogPath $tempPriorityLog -Strategy574GateLogPath $tempStrategyLog -TinyLiveLossRcaLogPath $tempTinyLog -NearThresholdShadowObservationLogPath $tempNearThresholdLog -AuditLogPath $tempAuditLog -ReviewNotionalCapUsdt 15 -ObservationHours 48 -RequireAudit -RequireReady 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -200,8 +298,25 @@ try {
             "strategy574_near_threshold_shadow_recommendation=STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH",
             "strategy574_near_threshold_false_positive_rate_pct=93.33",
             "strategy574_threshold_relaxation_allowed=false",
+            "source_priority_mode=REUSED_PRIORITY_DECISION_LOG",
+            "source_priority_log_freshness_status=FRESH",
+            "source_audit_log_freshness_status=FRESH",
+            "source_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
+            "source_audit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
+            "profit_operator_next_action_audit_counts=",
+            '"readyReviewCount":3',
+            "profit_operator_next_action_audit_review_queue=",
+            '"lane":"trailing-stop-dry-run"',
+            '"decisionFocus":"TRAILING_STOP_DRY_RUN_REVIEW"',
+            '"lane":"data-freshness-collector-activation"',
+            '"priorityClass":"P2_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW_ONLY"',
+            "profit_operator_next_action_audit_no_action_lanes=",
+            '"lane":"governance-relaxation"',
+            "profit_operator_next_action_audit_operator_decision_order=",
             "profit_operator_next_action_board_status=READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE",
             '"packetType":"PROFIT_OPERATOR_NEXT_ACTION_BOARD"',
+            '"auditLiveReadinessConclusion":"NOT_READY_FOR_LIVE_ENABLEMENT"',
+            '"auditOperatorDecisionOrder":',
             '"proposalId":"strategy574-tiny-live-governance-review"',
             '"priorityClass":"P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE"',
             '"nearThresholdRecommendation":"STRATEGY574_NEAR_THRESHOLD_FALSE_POSITIVE_RISK_HIGH"',
@@ -222,7 +337,7 @@ try {
         throw "profit operator next action board unexpectedly invoked SSH or a fresh child run:`n$text"
     }
 } finally {
-    foreach ($path in @($tempMatrixPath, $tempStrategyLog, $tempTinyLog, $tempNearThresholdLog)) {
+    foreach ($path in @($tempMatrixPath, $tempStrategyLog, $tempTinyLog, $tempNearThresholdLog, $tempAuditLog, $tempPriorityLog)) {
         if (Test-Path -LiteralPath $path) {
             Remove-Item -LiteralPath $path -Force
         }

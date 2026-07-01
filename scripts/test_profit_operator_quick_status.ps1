@@ -26,9 +26,15 @@ foreach ($marker in @(
         "PROFIT_OPERATOR_QUICK_STATUS",
         "latest-profit-operator-matrix.path",
         "prepare_profit_operator_compact_status.ps1",
+        "NextExecutionLogPath",
+        "profit-next-execution blocker log",
         "profit_operator_quick_status_packet",
         "profit_operator_quick_status",
         "profit_operator_quick_refresh_required",
+        "profit_operator_quick_next_execution_status",
+        "profit_operator_quick_next_execution_unique_blocker",
+        "profit_operator_quick_next_execution_open_oco_positions",
+        "nextExecutionStatus",
         "REFRESH_REQUIRED_NO_MATRIX",
         "REFRESH_REQUIRED_STALE_MATRIX",
         "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
@@ -44,6 +50,7 @@ foreach ($marker in @(
 
 $tempReviewDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-quick-review-" + [guid]::NewGuid().ToString("N"))
 $tempMatrixPath = Join-Path $tempReviewDir "profit-operator-matrix.log"
+$tempNextExecutionPath = Join-Path $tempReviewDir "profit-next-execution.log"
 try {
     New-Item -ItemType Directory -Force -Path $tempReviewDir | Out-Null
     $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
@@ -54,7 +61,7 @@ try {
         throw "Unable to find powershell or pwsh for profit operator quick status test"
     }
 
-    $missingOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir 2>&1
+    $missingOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -NextExecutionLogPath $tempNextExecutionPath 2>&1
     $missingExitCode = $LASTEXITCODE
     $missingText = ($missingOutput | Out-String)
     if ($missingExitCode -ne 0) {
@@ -63,8 +70,10 @@ try {
     foreach ($marker in @(
             "profit_operator_quick_status=REFRESH_REQUIRED_NO_MATRIX",
             "profit_operator_quick_refresh_required=true",
+            "profit_operator_quick_next_execution_status=NEXT_EXECUTION_LOG_MISSING",
             '"packetType":"PROFIT_OPERATOR_QUICK_STATUS"',
-            '"refreshRequired":true'
+            '"refreshRequired":true',
+            '"nextExecutionStatus":'
         )) {
         Assert-Contains -Name "profit operator quick status missing matrix" -Text $missingText -Pattern ([regex]::Escape($marker))
     }
@@ -99,8 +108,30 @@ try {
         "profit_operator_review_matrix_next_action=Review ready read-only items separately."
     )
     Set-Content -LiteralPath (Join-Path $tempReviewDir "latest-profit-operator-matrix.path") -Encoding UTF8 -Value $tempMatrixPath
+    $nextExecutionPacket = [pscustomobject]@{
+        packetType = "PROFIT_NEXT_EXECUTION_BLOCKER_PACKET"
+        status = "TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION"
+        profitRoute = "TRAILING_STOP_DRY_RUN_OBSERVATION"
+        uniqueBlocker = "NO_OPEN_OCO_POSITIONS"
+        nextAction = "Keep dry-run active and wait for an open OCO position."
+    }
+    Set-Content -LiteralPath $tempNextExecutionPath -Encoding UTF8 -Value @(
+        "profit_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION",
+        "profit_next_execution_sample_collection_blocked_by=NO_OPEN_OCO_POSITIONS",
+        "profit_next_execution_open_oco_positions=0",
+        "profit_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS",
+        "data_freshness_replay_candidate_id_rows=0",
+        "data_freshness_complete_replayable_candidate_rows=0",
+        ("profit_next_execution_blocker_packet=" + (ConvertTo-Json -Compress -Depth 8 $nextExecutionPacket)),
+        "profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION",
+        "deploy_allowed=false",
+        "scheduler_enablement_allowed=false",
+        "live_policy_change_allowed=false",
+        "order_allowed=false",
+        "telegram_send_allowed=false"
+    )
 
-    $freshOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -RequireReady 2>&1
+    $freshOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -NextExecutionLogPath $tempNextExecutionPath -RequireReady 2>&1
     $freshExitCode = $LASTEXITCODE
     $freshText = ($freshOutput | Out-String)
     if ($freshExitCode -ne 0) {
@@ -110,8 +141,16 @@ try {
             "profit_operator_quick_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
             "profit_operator_quick_compact_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
             "profit_operator_quick_refresh_required=false",
+            "profit_operator_quick_next_execution_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION",
+            "profit_operator_quick_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION",
+            "profit_operator_quick_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS",
+            "profit_operator_quick_next_execution_open_oco_positions=0",
+            "profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows=0",
+            "Current execution blocker: TRAILING_STOP_DRY_RUN_OBSERVATION waits on NO_OPEN_OCO_POSITIONS.",
             '"compactStatus":"READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE"',
             '"refreshRequired":false',
+            '"nextExecutionStatus":',
+            '"uniqueBlocker":"NO_OPEN_OCO_POSITIONS"',
             "notAuthorization=read-only quick profit status only"
         )) {
         Assert-Contains -Name "profit operator quick status fresh matrix" -Text $freshText -Pattern ([regex]::Escape($marker))
@@ -121,7 +160,7 @@ try {
     }
 
     (Get-Item -LiteralPath $tempMatrixPath).LastWriteTime = (Get-Date).AddMinutes(-10)
-    $staleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -MatrixMaxAgeMinutes 1 2>&1
+    $staleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -NextExecutionLogPath $tempNextExecutionPath -MatrixMaxAgeMinutes 1 2>&1
     $staleExitCode = $LASTEXITCODE
     $staleText = ($staleOutput | Out-String)
     if ($staleExitCode -ne 0) {
@@ -138,7 +177,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $requireFreshOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -MatrixMaxAgeMinutes 1 -RequireFreshMatrix 2>&1
+        $requireFreshOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -NextExecutionLogPath $tempNextExecutionPath -MatrixMaxAgeMinutes 1 -RequireFreshMatrix 2>&1
         $requireFreshExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -157,6 +196,8 @@ try {
 foreach ($marker in @(
         "prepare_profit_operator_quick_status.ps1",
         "profit_operator_quick_status_packet",
+        "profit_operator_quick_next_execution_unique_blocker",
+        "profit-next-execution blocker log",
         "REFRESH_REQUIRED_NO_MATRIX",
         "REFRESH_REQUIRED_STALE_MATRIX",
         "does not rerun SSH",

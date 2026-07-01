@@ -1036,11 +1036,16 @@
   check: it reads the latest matrix pointer, emits
   `PROFIT_OPERATOR_QUICK_STATUS`, `profit_operator_quick_status_packet`,
   `profit_operator_quick_status`, and
-  `profit_operator_quick_refresh_required`, and returns
+  `profit_operator_quick_refresh_required`, and now also includes the saved
+  profit-next-execution blocker fields
+  `profit_operator_quick_next_execution_unique_blocker`,
+  `profit_operator_quick_next_execution_open_oco_positions`, and
+  `profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows`.
+  It returns
   `REFRESH_REQUIRED_NO_MATRIX` or `REFRESH_REQUIRED_STALE_MATRIX` when the
   operator should refresh the read-only matrix before using the status. It does
-  not rerun SSH or authorize live trading, policy relaxation, deploy,
-  production env changes, orders, OCO, position closes,
+  not rerun SSH, refresh the blocker log, or authorize live trading, policy
+  relaxation, deploy, production env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
   `scripts/prepare_profit_operator_review_summary.ps1` converts that latest
   action brief into `profit_operator_review_summary_packet`, ready lanes,

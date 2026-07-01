@@ -1,5 +1,6 @@
 param(
     [string]$ReviewOutputDir = "target/profit-review",
+    [string]$NextExecutionLogPath = "target/profit-review/profit-next-execution-blocker-packet-latest.log",
     [int]$MatrixMaxAgeMinutes = 180,
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 485,
@@ -31,6 +32,63 @@ function Convert-JsonObjectOrNull {
     }
 }
 
+function Resolve-RepoPath {
+    param([string]$PathValue)
+    if ([string]::IsNullOrWhiteSpace($PathValue)) { return "" }
+    if ([System.IO.Path]::IsPathRooted($PathValue)) { return $PathValue }
+    return Join-Path $repoRoot $PathValue
+}
+
+function Read-NextExecutionStatus {
+    param([string]$PathValue)
+
+    $resolved = Resolve-RepoPath -PathValue $PathValue
+    if ([string]::IsNullOrWhiteSpace($resolved) -or -not (Test-Path -LiteralPath $resolved)) {
+        return [pscustomobject]@{
+            exists = $false
+            path = $resolved
+            status = "NEXT_EXECUTION_LOG_MISSING"
+            route = ""
+            uniqueBlocker = ""
+            sampleCollectionBlockedBy = ""
+            openOcoPositions = ""
+            dataFreshnessReplayCandidateIdRows = ""
+            dataFreshnessCompleteReplayableCandidateRows = ""
+            orderAllowed = ""
+            livePolicyChangeAllowed = ""
+            deployAllowed = ""
+            schedulerEnablementAllowed = ""
+            telegramSendAllowed = ""
+            nextAction = "Run prepare_profit_next_execution_blocker_packet.ps1 from the source refresh before using execution blocker status."
+        }
+    }
+
+    $text = Get-Content -Raw -LiteralPath $resolved
+    $packet = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $text -Prefix "profit_next_execution_blocker_packet=")
+    $packetNextAction = ""
+    if ($null -ne $packet -and $null -ne $packet.PSObject.Properties["nextAction"]) {
+        $packetNextAction = [string]$packet.nextAction
+    }
+
+    return [pscustomobject]@{
+        exists = $true
+        path = $resolved
+        status = Get-LastPrefixedValue -Text $text -Prefix "profit_next_execution_blocker_status="
+        route = Get-LastPrefixedValue -Text $text -Prefix "profit_next_execution_route="
+        uniqueBlocker = Get-LastPrefixedValue -Text $text -Prefix "profit_next_execution_unique_blocker="
+        sampleCollectionBlockedBy = Get-LastPrefixedValue -Text $text -Prefix "profit_next_execution_sample_collection_blocked_by="
+        openOcoPositions = Get-LastPrefixedValue -Text $text -Prefix "profit_next_execution_open_oco_positions="
+        dataFreshnessReplayCandidateIdRows = Get-LastPrefixedValue -Text $text -Prefix "data_freshness_replay_candidate_id_rows="
+        dataFreshnessCompleteReplayableCandidateRows = Get-LastPrefixedValue -Text $text -Prefix "data_freshness_complete_replayable_candidate_rows="
+        orderAllowed = Get-LastPrefixedValue -Text $text -Prefix "order_allowed="
+        livePolicyChangeAllowed = Get-LastPrefixedValue -Text $text -Prefix "live_policy_change_allowed="
+        deployAllowed = Get-LastPrefixedValue -Text $text -Prefix "deploy_allowed="
+        schedulerEnablementAllowed = Get-LastPrefixedValue -Text $text -Prefix "scheduler_enablement_allowed="
+        telegramSendAllowed = Get-LastPrefixedValue -Text $text -Prefix "telegram_send_allowed="
+        nextAction = $packetNextAction
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) {
     throw "ReviewOutputDir is required."
 }
@@ -44,6 +102,7 @@ if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) {
     throw "StrategyId must be between 1 and 1000000."
 }
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
 $pointerPath = Join-Path $ReviewOutputDir "latest-profit-operator-matrix.path"
 $status = "REFRESH_REQUIRED_NO_MATRIX"
 $refreshRequired = $true
@@ -52,6 +111,7 @@ $compactPacket = $null
 $compactExitCode = $null
 $matrixOutputPath = ""
 $nextAction = "Run prepare_profit_operator_action_brief_ssh.ps1 to collect a fresh read-only matrix before using profit operator status."
+$nextExecutionStatus = Read-NextExecutionStatus -PathValue $NextExecutionLogPath
 
 if (Test-Path -LiteralPath $pointerPath) {
     $matrixOutputPath = (Get-Content -Raw -LiteralPath $pointerPath).Trim()
@@ -105,6 +165,13 @@ if (Test-Path -LiteralPath $pointerPath) {
     }
 }
 
+$operatorNextAction = $nextAction
+if ($nextExecutionStatus.exists -and -not [string]::IsNullOrWhiteSpace($nextExecutionStatus.uniqueBlocker)) {
+    $nextAction = "Current execution blocker: $($nextExecutionStatus.route) waits on $($nextExecutionStatus.uniqueBlocker). Operator matrix next action: $operatorNextAction"
+} elseif (-not $nextExecutionStatus.exists -and -not $refreshRequired) {
+    $nextAction = "Execution blocker log is missing; refresh source evidence. Operator matrix next action: $operatorNextAction"
+}
+
 $packet = [pscustomobject]@{
     packetType = "PROFIT_OPERATOR_QUICK_STATUS"
     status = $status
@@ -118,6 +185,7 @@ $packet = [pscustomobject]@{
     compactStatus = $compactStatus
     compactExitCode = $compactExitCode
     compactStatusPacket = $compactPacket
+    nextExecutionStatus = $nextExecutionStatus
     doNotActions = @(
         "do not enable live trading from this quick status",
         "do not enable trailing scheduler from this quick status",
@@ -130,12 +198,20 @@ $packet = [pscustomobject]@{
 }
 
 Write-Host "[profit-operator-quick-status] read-only quick status"
-Write-Host "scope=READ_ONLY; reads latest-profit-operator-matrix.path and may invoke prepare_profit_operator_compact_status.ps1 only; no SSH fresh matrix, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; reads latest-profit-operator-matrix.path, may invoke prepare_profit_operator_compact_status.ps1, and reads the latest saved profit-next-execution blocker log only; no SSH fresh matrix, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "profit_operator_quick_source_matrix_pointer=$pointerPath"
 Write-Host "profit_operator_quick_source_matrix_output_path=$matrixOutputPath"
 Write-Host "profit_operator_quick_compact_status=$compactStatus"
 Write-Host "profit_operator_quick_compact_exit_code=$compactExitCode"
 Write-Host "profit_operator_quick_refresh_required=$($refreshRequired.ToString().ToLowerInvariant())"
+Write-Host "profit_operator_quick_next_execution_log_path=$($nextExecutionStatus.path)"
+Write-Host "profit_operator_quick_next_execution_status=$($nextExecutionStatus.status)"
+Write-Host "profit_operator_quick_next_execution_route=$($nextExecutionStatus.route)"
+Write-Host "profit_operator_quick_next_execution_unique_blocker=$($nextExecutionStatus.uniqueBlocker)"
+Write-Host "profit_operator_quick_next_execution_sample_collection_blocked_by=$($nextExecutionStatus.sampleCollectionBlockedBy)"
+Write-Host "profit_operator_quick_next_execution_open_oco_positions=$($nextExecutionStatus.openOcoPositions)"
+Write-Host "profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows=$($nextExecutionStatus.dataFreshnessReplayCandidateIdRows)"
+Write-Host "profit_operator_quick_next_execution_data_freshness_complete_replayable_candidate_rows=$($nextExecutionStatus.dataFreshnessCompleteReplayableCandidateRows)"
 Write-Host ("profit_operator_quick_status_packet=" + (ConvertTo-Json -Compress -Depth 12 $packet))
 Write-Host "profit_operator_quick_status=$status"
 Write-Host "profit_operator_quick_next_action=$nextAction"

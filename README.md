@@ -2236,10 +2236,15 @@ rebuild from that latest pointer with the same freshness guard and without
 rerunning the long SSH matrix. Use
 `.\scripts\prepare_profit_operator_quick_status.ps1` as the fastest first check
 of the latest saved matrix. It prints `profit_operator_quick_status_packet`,
-`profit_operator_quick_status`, and `profit_operator_quick_refresh_required`;
+`profit_operator_quick_status`, `profit_operator_quick_refresh_required`, and
+the saved profit-next-execution blocker fields
+`profit_operator_quick_next_execution_unique_blocker`,
+`profit_operator_quick_next_execution_open_oco_positions`, and
+`profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows`;
 `REFRESH_REQUIRED_NO_MATRIX` or `REFRESH_REQUIRED_STALE_MATRIX` means a fresh
 read-only matrix should be collected before using the operator status. It does
-not rerun SSH and does not deploy. Use
+not rerun SSH, does not refresh the profit-next-execution blocker log, and does
+not deploy. Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints
 `profit_operator_compact_status_packet`, `profit_operator_compact_ready_lanes`,

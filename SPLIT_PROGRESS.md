@@ -1223,6 +1223,16 @@
   action and still keeps `grid10_same_session_execution_allowed=false`,
   `grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `create_grid_allowed=false`.
+  `scripts/prepare_profit_grid10_activation_source_refresh.ps1` now refreshes
+  the local grid10 chain in one read-only command, saving
+  `profit-grid10-order-path-handoff-latest.log`,
+  `profit-grid10-activation-authorization-bundle-latest.log`, and
+  `profit-grid10-same-session-activation-review-latest.log` before emitting
+  `PROFIT_GRID10_ACTIVATION_SOURCE_REFRESH_PACKET` and
+  `profit_grid10_activation_source_refresh_status`. A ready refresh only means
+  the local same-session checklist is replayable; it still keeps
+  `deploy_allowed=false`, `order_allowed=false`, and
+  `create_grid_allowed=false`.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

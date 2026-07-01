@@ -2332,6 +2332,16 @@ still a review checklist only: `grid10_same_session_execution_allowed=false`,
 `grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
 `order_allowed=false`, and `create_grid_allowed=false`.
 Use
+`.\scripts\prepare_profit_grid10_activation_source_refresh.ps1 -RequireReady`
+to regenerate the local grid10 evidence chain in one pass. It writes
+`profit-grid10-order-path-handoff-latest.log`,
+`profit-grid10-activation-authorization-bundle-latest.log`, and
+`profit-grid10-same-session-activation-review-latest.log`, then emits
+`PROFIT_GRID10_ACTIVATION_SOURCE_REFRESH_PACKET` and
+`profit_grid10_activation_source_refresh_status`. A ready refresh only means
+the same-session checklist evidence is current; it still keeps
+`deploy_allowed=false`, `order_allowed=false`, and `create_grid_allowed=false`.
+Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk
 operator review packet. It emits

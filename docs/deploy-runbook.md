@@ -2507,6 +2507,21 @@ Expected:
   approval: it keeps `grid10_same_session_execution_allowed=false`,
   `grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `create_grid_allowed=false`.
+- To regenerate the local grid10 evidence chain before a same-session review,
+  run:
+
+  ```powershell
+  .\scripts\prepare_profit_grid10_activation_source_refresh.ps1 -RequireReady
+  ```
+
+  The wrapper refreshes the local handoff, activation bundle, and same-session
+  checklist logs as `profit-grid10-order-path-handoff-latest.log`,
+  `profit-grid10-activation-authorization-bundle-latest.log`, and
+  `profit-grid10-same-session-activation-review-latest.log`, then emits
+  `PROFIT_GRID10_ACTIVATION_SOURCE_REFRESH_PACKET` and
+  `profit_grid10_activation_source_refresh_status`. It writes only local
+  evidence files and remains non-executing with `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
 - To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator
   review, run:
 

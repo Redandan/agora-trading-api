@@ -129,7 +129,15 @@ most aggressive viable sequence without reading the full JSON. The current
 packet still selects the non-order `EVIDENCE_ONLY_ACCELERATOR` first and keeps
 `order_capable_execution_now_allowed=false`; the order-capable follow-up
 candidate is `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` until a fresh grid bundle
-and exact authorization clear. The packet is not live approval: it keeps
+and exact authorization clear. If a fresh grid blocker board log is available
+through `-GridBlockerPriorityBoardLogPath`, the packet also emits
+`profit_aggressive_activation_grid10_evidence_status`,
+`profit_aggressive_activation_grid10_openable_now`,
+`profit_aggressive_activation_grid10_readiness_score_pct`,
+`profit_aggressive_activation_grid10_top_blocker`, and
+`profit_aggressive_activation_grid10_ranked_blockers`, so the grid candidate
+uses the current trend/capital blocker evidence instead of a generic
+post-env-bundle placeholder. The packet is not live approval: it keeps
 `order_allowed=false`, `deploy_or_env_change_allowed=false`, and
 `live_policy_change_allowed=false`. A later env/deploy/live action still
 requires separate exact operator authorization matching the selected lane.

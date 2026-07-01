@@ -1182,7 +1182,15 @@
   selects `EVIDENCE_ONLY_ACCELERATOR` first and keeps
   `order_capable_execution_now_allowed=false`, with
   `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` as the next order-capable candidate
-  only after fresh grid authorization and exact operator approval.
+  only after fresh grid authorization and exact operator approval. The packet
+  now also accepts a fresh `-GridBlockerPriorityBoardLogPath` and surfaces
+  `profit_aggressive_activation_grid10_evidence_status`,
+  `profit_aggressive_activation_grid10_openable_now`,
+  `profit_aggressive_activation_grid10_readiness_score_pct`,
+  `profit_aggressive_activation_grid10_top_blocker`, and
+  `profit_aggressive_activation_grid10_ranked_blockers`, so the grid10 lane can
+  carry current trend/capital blocker evidence instead of generic post-env
+  placeholders.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

@@ -2434,16 +2434,22 @@ Expected:
   `profit_aggressive_activation_order_capable_execution_now_allowed`,
   `profit_aggressive_activation_order_capable_blockers`,
   `profit_aggressive_activation_execution_queue`,
+  `profit_aggressive_activation_grid10_evidence_status`,
+  `profit_aggressive_activation_grid10_openable_now`,
+  `profit_aggressive_activation_grid10_readiness_score_pct`,
+  `profit_aggressive_activation_grid10_top_blocker`,
+  `profit_aggressive_activation_grid10_ranked_blockers`,
   `profit_aggressive_activation_proposed_env_diff_plan`,
   `profit_aggressive_activation_risk_acceptance_conditions`,
   `profit_aggressive_activation_post_env_read_only_verification_plan`,
   `profit_aggressive_activation_kill_switch_plan`, and
   `profit_aggressive_activation_rollback_commands`. Those fields list the
-  selected aggressive path, next order-capable candidate, current blockers,
-  candidate env diff, risk acceptance conditions, verification commands, and
-  rollback requirements that must be reviewed for a separate env/deploy
-  decision. `order_capable_execution_now_allowed=false` means this is not
-  deployment approval and does not enable
+  selected aggressive path, next order-capable candidate, current grid10
+  blocker evidence when a fresh grid blocker board log is supplied, current
+  blockers, candidate env diff, risk acceptance conditions, verification
+  commands, and rollback requirements that must be reviewed for a separate
+  env/deploy decision. `order_capable_execution_now_allowed=false` means this
+  is not deployment approval and does not enable
   live/TinyLive/scheduler, order, OCO, grid, fund, Earn, Telegram, exchange, or
   DB mutation.
 - To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator

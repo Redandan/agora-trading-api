@@ -2,6 +2,7 @@ param(
     [string]$AuthorizationRequestLogPath = "target/profit-review/profit-operator-authorization-request-latest.log",
     [string]$QuickStatusLogPath = "target/profit-review/profit-operator-quick-status-latest.log",
     [string]$NextExecutionLogPath = "target/profit-review/profit-next-execution-blocker-packet-latest.log",
+    [string]$GridBlockerPriorityBoardLogPath = "target/profit-review/grid-open-blocker-priority-board-latest.log",
     [int]$MaxAgeMinutes = 180,
     [string]$Symbol = "BTCUSDT",
     [decimal]$MaxProbeNotionalUsdt = 10,
@@ -87,6 +88,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $authSource = Read-PacketLog -PathValue $AuthorizationRequestLogPath -Prefix "profit_operator_authorization_request_packet=" -MaxAge $MaxAgeMinutes
 $quickSource = Read-PacketLog -PathValue $QuickStatusLogPath -Prefix "profit_operator_quick_status_packet=" -MaxAge $MaxAgeMinutes
 $nextSource = Read-PacketLog -PathValue $NextExecutionLogPath -Prefix "profit_next_execution_blocker_packet=" -MaxAge $MaxAgeMinutes
+$gridSource = Read-PacketLog -PathValue $GridBlockerPriorityBoardLogPath -Prefix "grid_open_blocker_priority_board_packet=" -MaxAge $MaxAgeMinutes
 
 $missingEvidence = [System.Collections.Generic.List[string]]::new()
 $riskBlockers = [System.Collections.Generic.List[string]]::new()
@@ -100,10 +102,13 @@ if ($quickSource.Freshness -ne "MISSING" -and $null -eq $quickSource.Packet) { A
 if ($nextSource.Freshness -eq "MISSING" -and $quickSource.Freshness -eq "MISSING") { Add-Unique -List $missingEvidence -Value "profit next-execution blocker evidence present" }
 if ($nextSource.Freshness -eq "STALE") { Add-Unique -List $missingEvidence -Value "profit next-execution blocker log fresh" }
 if ($nextSource.Freshness -ne "MISSING" -and $null -eq $nextSource.Packet) { Add-Unique -List $missingEvidence -Value "profit_next_execution_blocker_packet valid JSON" }
+if ($gridSource.Freshness -eq "STALE") { Add-Unique -List $riskBlockers -Value "GRID_BLOCKER_PRIORITY_BOARD_STALE" }
+if ($gridSource.Freshness -ne "MISSING" -and $null -eq $gridSource.Packet) { Add-Unique -List $riskBlockers -Value "GRID_BLOCKER_PRIORITY_BOARD_INVALID_JSON" }
 
 $authPacket = $authSource.Packet
 $quickPacket = $quickSource.Packet
 $nextPacket = $nextSource.Packet
+$gridPacket = $gridSource.Packet
 
 $authorizationReady = Convert-ToBool (Get-PropertyValue -Object $authPacket -Name "authorizationRequestReady")
 $liveReadinessConclusion = Get-PropertyValue -Object $authPacket -Name "liveReadinessConclusion"
@@ -140,6 +145,52 @@ if ([string]::IsNullOrWhiteSpace($completeReplayableRows)) { $completeReplayable
 if ([string]::IsNullOrWhiteSpace($nextExecutionBlocker)) { Add-Unique -List $missingEvidence -Value "current profit next-execution blocker identified" }
 if ($nextExecutionBlocker -eq "NO_OPEN_OCO_POSITIONS") { Add-Unique -List $riskBlockers -Value "NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE" }
 if ($replayCandidateRows -eq "0" -or $completeReplayableRows -eq "0") { Add-Unique -List $riskBlockers -Value "DATAFRESHNESS_REPLAY_ROWS_MISSING" }
+
+$gridBoardStatus = Get-PropertyValue -Object $gridPacket -Name "status"
+$gridBoardDecision = Get-PropertyValue -Object $gridPacket -Name "decision"
+$gridOpenableNow = Convert-ToBool (Get-PropertyValue -Object $gridPacket -Name "gridOpenableNow")
+$gridReadinessScorePct = Get-PropertyValue -Object $gridPacket -Name "openReadinessScorePct"
+$gridPassedGateCount = Get-PropertyValue -Object $gridPacket -Name "passedGateCount"
+$gridTotalGateCount = Get-PropertyValue -Object $gridPacket -Name "totalGateCount"
+$gridTrendGate = Get-PropertyValue -Object $gridPacket -Name "trendGate"
+$gridTrendOverrideRequired = Convert-ToBool (Get-PropertyValue -Object $gridPacket -Name "trendOverrideRequired")
+$gridNextAuthorizationRequired = Get-PropertyValue -Object $gridPacket -Name "nextAuthorizationRequired"
+$gridExistingActiveGridOrderPathActivationRisk = Convert-ToBool (Get-PropertyValue -Object $gridPacket -Name "existingActiveGridOrderPathActivationRisk")
+$gridTopBlocker = $null
+$gridRankedBlockers = @()
+$gridRefreshedCreateGridInputs = $null
+if ($null -ne $gridPacket) {
+    if ($null -ne $gridPacket.PSObject.Properties["topBlocker"]) { $gridTopBlocker = $gridPacket.topBlocker }
+    if ($null -ne $gridPacket.PSObject.Properties["rankedBlockers"]) { $gridRankedBlockers = @($gridPacket.rankedBlockers) }
+    if ($null -ne $gridPacket.PSObject.Properties["refreshedCreateGridInputs"]) { $gridRefreshedCreateGridInputs = $gridPacket.refreshedCreateGridInputs }
+}
+$gridRankedBlockerNames = @(
+    $gridRankedBlockers |
+        ForEach-Object { Get-PropertyValue -Object $_ -Name "blocker" } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+)
+$gridEvidenceStatus = if ($gridSource.Freshness -eq "FRESH" -and $null -ne $gridPacket) {
+    "FRESH_GRID_BLOCKER_PRIORITY_BOARD"
+} elseif ($gridSource.Freshness -eq "STALE") {
+    "STALE_GRID_BLOCKER_PRIORITY_BOARD"
+} elseif ($gridSource.Freshness -eq "MISSING") {
+    "MISSING_GRID_BLOCKER_PRIORITY_BOARD"
+} else {
+    "INVALID_GRID_BLOCKER_PRIORITY_BOARD"
+}
+$gridQueueBlockers = [System.Collections.Generic.List[string]]::new()
+if ($gridEvidenceStatus -eq "FRESH_GRID_BLOCKER_PRIORITY_BOARD") {
+    if (-not $gridOpenableNow) { Add-Unique -List $gridQueueBlockers -Value "GRID_OPENABLE_NOW_FALSE" }
+    foreach ($blocker in @($gridRankedBlockerNames)) { Add-Unique -List $gridQueueBlockers -Value $blocker }
+    if ([string]::IsNullOrWhiteSpace($gridNextAuthorizationRequired)) {
+        Add-Unique -List $gridQueueBlockers -Value "GRID_NEXT_AUTHORIZATION_NOT_IDENTIFIED"
+    }
+} else {
+    Add-Unique -List $gridQueueBlockers -Value $gridEvidenceStatus
+    Add-Unique -List $gridQueueBlockers -Value "GRID_AUTHORIZATION_BUNDLE_NOT_VERIFIED_IN_THIS_PACKET"
+    Add-Unique -List $gridQueueBlockers -Value "POST_ENV_GRID_VERIFICATION_NOT_CURRENT"
+}
+Add-Unique -List $gridQueueBlockers -Value "SEPARATE_EXACT_OPERATOR_AUTHORIZATION_REQUIRED"
 
 $microProbeRiskAcceptedText = "I explicitly authorize HIGH_RISK_MICRO_LIVE_PROBE for $Symbol with maxNotionalUsdt=$MaxProbeNotionalUsdt, maxOrders=1, no policy relaxation, no grid/fund/Earn actions, immediate rollback on any unexpected order/OCO/Telegram/exchange/DB mutation, and I accept that this can lose money."
 $gridRiskAcceptedText = "I explicitly authorize SEPARATE_GRID10_ORDER_PATH_REVIEW for $Symbol with existing-grid activation risk accepted, TRADING_OKX_ENABLED=true reviewed separately, and no createGrid/order execution until the grid authorization bundle and post-env verification are current."
@@ -317,6 +368,12 @@ $aggressiveOptions = @(
         recommendedNow = $false
         status = "SEPARATE_GRID_AUTHORIZATION_AND_POST_ENV_VERIFICATION_REQUIRED"
         maxCapitalUsdt = [math]::Max([decimal]10, $MaxProbeNotionalUsdt)
+        sourceGridEvidenceStatus = $gridEvidenceStatus
+        gridOpenableNow = $gridOpenableNow
+        gridReadinessScorePct = $gridReadinessScorePct
+        gridNextAuthorizationRequired = $gridNextAuthorizationRequired
+        gridTopBlocker = $gridTopBlocker
+        gridRankedBlockers = @($gridRankedBlockers)
         proposedEnvDiff = @($gridProposedEnvDiff)
         riskAcceptanceConditions = @($gridRiskAcceptanceConditions)
         requiredBeforeExecution = @(
@@ -364,6 +421,16 @@ $selectedAggressivePath = "EVIDENCE_ONLY_ACCELERATOR"
 $selectedAggressiveReason = "Orders remain blocked; this is the fastest aggressive step that improves live-readiness evidence without enabling exchange mutation."
 $mostAggressiveOrderCapableCandidate = "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH"
 $orderCapableExecutionNowAllowed = $false
+$gridWhyNotNow = if ($gridEvidenceStatus -eq "FRESH_GRID_BLOCKER_PRIORITY_BOARD") {
+    $topGridBlockerName = Get-PropertyValue -Object $gridTopBlocker -Name "blocker"
+    if ($gridOpenableNow) {
+        "Fresh grid board is openable, but this aggressive packet remains non-authorizing and still requires separate exact createGrid authorization."
+    } else {
+        "Fresh grid board is not openable: nextAuthorizationRequired=$gridNextAuthorizationRequired; topBlocker=$topGridBlockerName."
+    }
+} else {
+    "Needs a fresh grid blocker priority board, grid authorization bundle, post-env read-only verification, and separate exact authorization."
+}
 
 $aggressiveExecutionQueue = @(
     [pscustomobject]@{
@@ -385,8 +452,8 @@ $aggressiveExecutionQueue = @(
         recommendedNow = $false
         orderCapable = $true
         executionNowAllowed = $false
-        whyNotNow = "Needs fresh grid authorization bundle, post-env read-only verification, and separate acceptance of existing active Grid #10 order-path activation risk."
-        blockers = @("GRID_AUTHORIZATION_BUNDLE_NOT_VERIFIED_IN_THIS_PACKET", "POST_ENV_GRID_VERIFICATION_NOT_CURRENT", "SEPARATE_EXACT_OPERATOR_AUTHORIZATION_REQUIRED")
+        whyNotNow = $gridWhyNotNow
+        blockers = @($gridQueueBlockers)
         requiredAuthorizationText = $gridRiskAcceptedText
         postEnvReadOnlyVerificationCommands = @($gridPostEnvReadOnlyVerificationCommands)
         killSwitchEnvDiff = @($gridKillSwitchEnvDiff)
@@ -434,6 +501,21 @@ $packet = [pscustomobject]@{
     openOcoPositions = $openOcoPositions
     dataFreshnessReplayCandidateIdRows = $replayCandidateRows
     dataFreshnessCompleteReplayableCandidateRows = $completeReplayableRows
+    grid10EvidenceStatus = $gridEvidenceStatus
+    grid10SourceLogPath = $gridSource.Path
+    grid10BoardStatus = $gridBoardStatus
+    grid10BoardDecision = $gridBoardDecision
+    grid10OpenableNow = $gridOpenableNow
+    grid10ReadinessScorePct = $gridReadinessScorePct
+    grid10PassedGateCount = $gridPassedGateCount
+    grid10TotalGateCount = $gridTotalGateCount
+    grid10TrendGate = $gridTrendGate
+    grid10TrendOverrideRequired = $gridTrendOverrideRequired
+    grid10NextAuthorizationRequired = $gridNextAuthorizationRequired
+    grid10ExistingActiveGridOrderPathActivationRisk = $gridExistingActiveGridOrderPathActivationRisk
+    grid10TopBlocker = $gridTopBlocker
+    grid10RankedBlockers = @($gridRankedBlockers)
+    grid10RefreshedCreateGridInputs = $gridRefreshedCreateGridInputs
     aggressiveOptions = @($aggressiveOptions)
     selectedAggressivePath = $selectedAggressivePath
     selectedAggressiveReason = $selectedAggressiveReason
@@ -513,6 +595,17 @@ Write-Host "profit_aggressive_activation_next_execution_unique_blocker=$nextExec
 Write-Host "profit_aggressive_activation_open_oco_positions=$openOcoPositions"
 Write-Host "profit_aggressive_activation_data_freshness_replay_candidate_id_rows=$replayCandidateRows"
 Write-Host "profit_aggressive_activation_data_freshness_complete_replayable_candidate_rows=$completeReplayableRows"
+Write-Host "profit_aggressive_activation_grid10_evidence_status=$gridEvidenceStatus"
+Write-Host "profit_aggressive_activation_grid10_board_status=$gridBoardStatus"
+Write-Host "profit_aggressive_activation_grid10_board_decision=$gridBoardDecision"
+Write-Host "profit_aggressive_activation_grid10_openable_now=$(([string]$gridOpenableNow).ToLowerInvariant())"
+Write-Host "profit_aggressive_activation_grid10_readiness_score_pct=$gridReadinessScorePct"
+Write-Host "profit_aggressive_activation_grid10_passed_gates=$gridPassedGateCount/$gridTotalGateCount"
+Write-Host "profit_aggressive_activation_grid10_trend_gate=$gridTrendGate"
+Write-Host "profit_aggressive_activation_grid10_next_authorization_required=$gridNextAuthorizationRequired"
+Write-Host "profit_aggressive_activation_grid10_existing_active_grid_order_path_activation_risk=$(([string]$gridExistingActiveGridOrderPathActivationRisk).ToLowerInvariant())"
+Write-Host ("profit_aggressive_activation_grid10_top_blocker=" + (ConvertTo-Json -Compress -Depth 6 $gridTopBlocker))
+Write-Host ("profit_aggressive_activation_grid10_ranked_blockers=" + (ConvertTo-Json -Compress -Depth 8 @($gridRankedBlockers)))
 Write-Host ("profit_aggressive_activation_options=" + (ConvertTo-Json -Compress -Depth 10 @($aggressiveOptions)))
 Write-Host "profit_aggressive_activation_selected_path=$selectedAggressivePath"
 Write-Host "profit_aggressive_activation_order_capable_candidate=$mostAggressiveOrderCapableCandidate"

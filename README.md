@@ -2287,7 +2287,15 @@ aggressive sequence directly. The current ready packet keeps
 `order_capable_execution_now_allowed=false`, selects
 `EVIDENCE_ONLY_ACCELERATOR` first, and treats
 `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` as the next order-capable candidate
-only after a fresh grid bundle and exact authorization clear.
+only after a fresh grid bundle and exact authorization clear. When a fresh
+`grid_open_blocker_priority_board_packet` log is passed through
+`-GridBlockerPriorityBoardLogPath`, the packet also prints
+`profit_aggressive_activation_grid10_evidence_status`,
+`profit_aggressive_activation_grid10_openable_now`,
+`profit_aggressive_activation_grid10_readiness_score_pct`,
+`profit_aggressive_activation_grid10_top_blocker`, and
+`profit_aggressive_activation_grid10_ranked_blockers` so the grid10 lane uses
+current trend/capital blocker evidence.
 Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk

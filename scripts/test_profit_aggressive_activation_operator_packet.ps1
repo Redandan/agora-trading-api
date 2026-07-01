@@ -42,11 +42,21 @@ foreach ($marker in @(
         "NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE",
         "DATAFRESHNESS_REPLAY_ROWS_MISSING",
         "MaxProbeNotionalUsdt",
+        "GridBlockerPriorityBoardLogPath",
         "profit_aggressive_activation_status",
         "profit_aggressive_activation_options",
+        "grid10EvidenceStatus",
+        "grid10OpenableNow",
+        "grid10TopBlocker",
         "selectedAggressivePath",
         "orderCapableExecutionNowAllowed",
         "aggressiveExecutionQueue",
+        "profit_aggressive_activation_grid10_evidence_status",
+        "profit_aggressive_activation_grid10_board_status",
+        "profit_aggressive_activation_grid10_openable_now",
+        "profit_aggressive_activation_grid10_readiness_score_pct",
+        "profit_aggressive_activation_grid10_top_blocker",
+        "profit_aggressive_activation_grid10_ranked_blockers",
         "profit_aggressive_activation_selected_path",
         "profit_aggressive_activation_order_capable_candidate",
         "profit_aggressive_activation_order_capable_execution_now_allowed",
@@ -113,6 +123,7 @@ $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-aggressive-activ
 $authLog = Join-Path $tempDir "auth.log"
 $quickLog = Join-Path $tempDir "quick.log"
 $nextLog = Join-Path $tempDir "next.log"
+$gridLog = Join-Path $tempDir "grid.log"
 
 try {
     New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
@@ -142,6 +153,48 @@ try {
         profitRoute = "TRAILING_STOP_DRY_RUN_OBSERVATION"
         uniqueBlocker = "NO_OPEN_OCO_POSITIONS"
     }
+    $gridPacket = [pscustomobject]@{
+        packetType = "GRID_OPEN_BLOCKER_PRIORITY_BOARD"
+        scope = "READ_ONLY"
+        status = "READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION"
+        decision = "WAIT_TREND_CLEARANCE_OR_PREPARE_SEPARATE_TREND_OVERRIDE"
+        gridOpenableNow = $false
+        openReadinessScorePct = "91.67"
+        passedGateCount = "11"
+        totalGateCount = "12"
+        trendGate = "BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE"
+        trendOverrideRequired = $true
+        nextAuthorizationRequired = "separate trend-regime override authorization or fresh trend clearance evidence"
+        existingActiveGridOrderPathActivationRisk = $false
+        topBlocker = [pscustomobject]@{
+            rank = 3
+            family = "trend-regime"
+            priority = "P0"
+            blocker = "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE"
+            evidence = "trendGate=BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE; trendGateClearanceAccepted=False"
+        }
+        rankedBlockers = @(
+            [pscustomobject]@{
+                rank = 3
+                family = "trend-regime"
+                priority = "P0"
+                blocker = "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE"
+            },
+            [pscustomobject]@{
+                rank = 6
+                family = "capital"
+                priority = "P1"
+                blocker = "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP"
+            }
+        )
+        refreshedCreateGridInputs = [pscustomobject]@{
+            symbol = "BTCUSDT"
+            gridCount = 8
+            perLevelUsdt = 10
+            candidateCapitalUsdt = 80
+            replayScore = 80
+        }
+    }
 
     Set-Content -LiteralPath $authLog -Encoding UTF8 -Value @(
         ("profit_operator_authorization_request_packet=" + (ConvertTo-Json -Compress -Depth 8 $authPacket)),
@@ -155,11 +208,16 @@ try {
         ("profit_next_execution_blocker_packet=" + (ConvertTo-Json -Compress -Depth 8 $nextPacket)),
         "profit_next_execution_blocker_status=TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION"
     )
+    Set-Content -LiteralPath $gridLog -Encoding UTF8 -Value @(
+        ("grid_open_blocker_priority_board_packet=" + (ConvertTo-Json -Compress -Depth 8 $gridPacket)),
+        "grid_open_blocker_priority_board_status=READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION"
+    )
 
     $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
         -AuthorizationRequestLogPath $authLog `
         -QuickStatusLogPath $quickLog `
         -NextExecutionLogPath $nextLog `
+        -GridBlockerPriorityBoardLogPath $gridLog `
         -MaxProbeNotionalUsdt 10 `
         -RequireReady 2>&1
     $exitCode = $LASTEXITCODE
@@ -174,6 +232,13 @@ try {
             "profit_aggressive_activation_next_execution_route=TRAILING_STOP_DRY_RUN_OBSERVATION",
             "profit_aggressive_activation_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS",
             "profit_aggressive_activation_data_freshness_replay_candidate_id_rows=0",
+            "profit_aggressive_activation_grid10_evidence_status=FRESH_GRID_BLOCKER_PRIORITY_BOARD",
+            "profit_aggressive_activation_grid10_board_status=READY_FOR_GRID_OPEN_BLOCKER_PRIORITY_REVIEW_NOT_MUTATION",
+            "profit_aggressive_activation_grid10_openable_now=false",
+            "profit_aggressive_activation_grid10_readiness_score_pct=91.67",
+            "profit_aggressive_activation_grid10_trend_gate=BLOCKED_WAIT_SIDEWAYS_OR_OPERATOR_TREND_OVERRIDE",
+            "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE",
+            "CAPITAL_ABOVE_EFFECTIVE_REVIEW_CAP",
             "HIGH_RISK_MICRO_LIVE_PROBE",
             "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH",
             "EVIDENCE_ONLY_ACCELERATOR",
@@ -218,6 +283,18 @@ try {
     }
     if ([bool]$packet.orderCapableExecutionNowAllowed) {
         throw "aggressive activation packet must not allow order-capable execution from this packet"
+    }
+    if ([string]$packet.grid10EvidenceStatus -ne "FRESH_GRID_BLOCKER_PRIORITY_BOARD") {
+        throw "aggressive activation packet should consume fresh grid blocker priority board evidence"
+    }
+    if ([bool]$packet.grid10OpenableNow) {
+        throw "aggressive activation packet should preserve gridOpenableNow=false from source evidence"
+    }
+    if ([string]$packet.grid10TopBlocker.blocker -ne "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE") {
+        throw "aggressive activation packet should expose the current grid top blocker"
+    }
+    if (@($packet.aggressiveExecutionQueue[1].blockers) -notcontains "OPERATOR_TREND_REGIME_OVERRIDE_REQUIRED_OR_TREND_GATE_CLEARANCE") {
+        throw "grid10 execution queue should include the trend-regime blocker from grid evidence"
     }
     if (@($packet.aggressiveExecutionQueue).Count -ne 3) {
         throw "aggressive activation packet should include a three-step execution queue"

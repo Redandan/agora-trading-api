@@ -157,4 +157,58 @@ class TelegramServiceImplTest {
                 .doesNotContain("時間：")
                 .doesNotContain("標籤：");
     }
+
+    @Test
+    void compactsSingleAttentionMarketSignalIntoThreeChineseIntentLines() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                ⚠️ <b>Attention: 軋空扳機-1：空頭主動平倉 OI -1.5%/h</b>
+                觸發: -1.7110 (threshold < -1.5000, 1.14× 觸發)
+                symbol: BTCUSDT
+                ctx: oi_change_pct_1h=-1.7110
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "AttentionRuleEvaluator", "WARN");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【市場背景】BTCUSDT: 軋空觀察：空頭主動平倉 OI -1.5%/h")
+                .contains("觸發值=-1.7110; 門檻=小於 -1.5000, 1.14 倍 觸發")
+                .contains("指標=1 小時未平倉量變化=-1.7110%")
+                .contains("用途=觀察，不是買賣指令")
+                .doesNotContain("Attention:")
+                .doesNotContain("threshold <")
+                .doesNotContain("symbol:")
+                .doesNotContain("ctx:")
+                .doesNotContain("oi_change_pct_1h");
+    }
+
+    @Test
+    void compactsWhaleAttentionMarketSignalWithPercentIndicator() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                ⚠️ <b>Attention: 軋空扳機-3：鯨魚買單主導 whale_buy > 75%</b>
+                觸發: 0.7757 (threshold > 0.7500, 1.03× 超標)
+                symbol: BTCUSDT
+                ctx: whale_buy_ratio=0.7757
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "AttentionRuleEvaluator", "WARN");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【市場背景】BTCUSDT: 軋空觀察：鯨魚買單主導 whale_buy > 75%")
+                .contains("觸發值=0.7757; 門檻=大於 0.7500, 1.03 倍 超標")
+                .contains("指標=鯨魚買單占比=77.57%")
+                .contains("用途=觀察，不是買賣指令")
+                .doesNotContain("Attention:")
+                .doesNotContain("threshold >")
+                .doesNotContain("symbol:")
+                .doesNotContain("ctx:")
+                .doesNotContain("whale_buy_ratio");
+    }
 }

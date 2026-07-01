@@ -4,6 +4,7 @@ import com.agora.service.ServerStartupService;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.backtest.LiveSignalEvaluator;
 import com.agora.service.market.KlineStreamService;
+import com.agora.service.market.MarketDataTelegramAlertFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -77,8 +78,7 @@ public class MarketWsAutoSubscriber {
                 }
                 subscribed.add(item);
             } catch (Exception e) {
-                String message = String.format(
-                        "[MarketWS] 啟動自動訂閱失敗\nmarketType=%s\nsymbol=%s\ninterval=%s\nreason=%s",
+                String message = MarketDataTelegramAlertFormatter.wsStartupFailure(
                         item.getMarketType(),
                         item.getSymbol(),
                         item.getIntervalCode(),

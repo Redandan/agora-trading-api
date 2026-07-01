@@ -263,9 +263,8 @@ public class OkxWsKlineService implements DisposableBean, KlineStreamService {
         log.error("[OkxWS] Stopping {}@{}: {}", sub.symbol, sub.intervalCode, reason);
         if (notificationPort != null) {
             try {
-                notificationPort.broadcast(String.format(
-                        "🚫 <b>OKX WS kline stopped</b>\n%s@%s: %s",
-                        sub.symbol, sub.intervalCode, reason), true);
+                notificationPort.broadcast(MarketDataTelegramAlertFormatter.wsStopped(
+                        providerName(), sub.marketType, sub.symbol, sub.intervalCode, reason), true);
             } catch (Exception ignored) {}
         }
     }

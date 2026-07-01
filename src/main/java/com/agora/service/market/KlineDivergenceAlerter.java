@@ -95,7 +95,7 @@ public class KlineDivergenceAlerter {
     public String formatSample(String symbol, String intervalCode, LocalDateTime openTime,
                                BigDecimal binClose, BigDecimal okxClose, double diff,
                                BigDecimal binVol, BigDecimal okxVol) {
-        return String.format("%s@%s %s: bin=%.2f okx=%.2f 差=%.3f%% (binVol=%.2f okxVol=%.2f)",
+        return MarketDataTelegramAlertFormatter.klineDivergenceSample(
                 symbol, intervalCode, openTime, binClose, okxClose, diff, binVol, okxVol);
     }
 
@@ -122,10 +122,12 @@ public class KlineDivergenceAlerter {
         if (samples.isEmpty()) return;
         String icon = "CRITICAL".equals(level) ? "🚫" : "⚠️";
         double threshold = "CRITICAL".equals(level) ? props.criticalPct() : props.warnPct();
+        String severity = "CRITICAL".equals(level) ? "嚴重(CRITICAL)" : "警告(WARN)";
 
         StringBuilder msg = new StringBuilder();
-        msg.append(icon).append(" <b>K 線跨源偏差 ").append(level).append("</b>\n");
-        msg.append("檢測到 ").append(samples.size()).append(" 筆 Binance vs OKX close 差異 > ")
+        msg.append("【資料來源告警】\n");
+        msg.append(icon).append(" <b>K 線跨源偏差：").append(severity).append("</b>\n");
+        msg.append("檢測到 ").append(samples.size()).append(" 筆 Binance/OKX 收盤價差異大於 ")
            .append(threshold).append("%:\n\n");
         int show = Math.min(5, samples.size());
         for (int i = 0; i < show; i++) {
@@ -137,7 +139,8 @@ public class KlineDivergenceAlerter {
         if (extraWarnCount > 0) {
             msg.append("\n另含 ").append(extraWarnCount).append(" 筆 WARN 級別\n");
         }
-        msg.append("\n實盤執行於 OKX;若偏差持續擴大,考慮人工檢視 Binance.us 流動性或暫停交易。");
+        msg.append("\n處置：檢查資料來源與流動性，不是買賣指令\n");
+        msg.append("標籤：MARKET_DATA / WATCH");
         try {
             notificationPort.broadcast(msg.toString(), true);
         } catch (Exception e) {

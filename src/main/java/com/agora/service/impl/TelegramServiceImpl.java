@@ -68,6 +68,12 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private static final int OPERATOR_LINE_LIMIT = 140;
     private static final Pattern MARKET_RISK_HEADER_PATTERN =
             Pattern.compile("\\[市場風險摘要]\\s*([^|\\n]+)(?:\\|\\s*([^\\n]+))?");
+    private static final Pattern ATTENTION_HEADER_PATTERN =
+            Pattern.compile("(?m)^\\s*(?:[^A-Za-z0-9\\n]+\\s*)?Attention:\\s*(.+)$");
+    private static final Pattern ATTENTION_TRIGGER_PATTERN =
+            Pattern.compile("(?m)^\\s*觸發:\\s*([^\\(\\n]+)(?:\\(([^\\n]+)\\))?");
+    private static final Pattern CTX_PAIR_PATTERN =
+            Pattern.compile("([A-Za-z0-9_:-]+)=([^\\s]+)");
     private static final Pattern BLOCKER_LIST_PATTERN =
             Pattern.compile("(?s)(?:主要阻擋|primaryBlockers|triggerBlockingSignals|阻擋|異常)\\s*=\\s*\\[(.*?)]");
 
@@ -372,6 +378,9 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         if (bucket == Bucket.MARKET_SIGNAL && plain.contains("[市場風險摘要]")) {
             return compactMarketRiskSummary(plain);
         }
+        if (bucket == Bucket.MARKET_SIGNAL && plain.contains("Attention:")) {
+            return compactAttentionMarketSignal(plain);
+        }
         return null;
     }
 
@@ -412,6 +421,98 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                 "【市場背景】" + symbol + " " + hours + ": " + status,
                 "訊號=" + shorten(counts, 56) + "; 原因=" + shorten(reasons, 58),
                 "用途=風險背景，不是買賣指令；詳情=市場明細/MCP。");
+    }
+
+    private String compactAttentionMarketSignal(String plain) {
+        Matcher header = ATTENTION_HEADER_PATTERN.matcher(plain);
+        if (!header.find()) {
+            return null;
+        }
+        String rawTitle = cleanToken(header.group(1));
+        String symbol = firstNonBlank(lineValue(plain, "symbol"), "BTCUSDT");
+        String trigger = "N/A";
+        String threshold = "門檻=N/A";
+        Matcher triggerMatcher = ATTENTION_TRIGGER_PATTERN.matcher(plain);
+        if (triggerMatcher.find()) {
+            trigger = cleanToken(triggerMatcher.group(1));
+            threshold = humanizeThreshold(triggerMatcher.group(2));
+        }
+        String indicator = humanizeAttentionCtx(lineValue(plain, "ctx"));
+        return threeLines(
+                "【市場背景】" + symbol + ": " + humanizeAttentionTitle(rawTitle),
+                "觸發值=" + trigger + "; " + threshold + "; " + indicator,
+                "用途=觀察，不是買賣指令；詳情=市場背景/MCP。");
+    }
+
+    private static String humanizeAttentionTitle(String title) {
+        if (title == null || title.isBlank()) {
+            return "市場觀察";
+        }
+        String normalized = title.trim();
+        if (normalized.contains("：")) {
+            String detail = normalized.substring(normalized.indexOf("：") + 1).trim();
+            if (normalized.contains("軋空")) {
+                return "軋空觀察：" + detail;
+            }
+            return "市場觀察：" + detail;
+        }
+        if (normalized.contains(":")) {
+            String detail = normalized.substring(normalized.indexOf(":") + 1).trim();
+            if (normalized.contains("軋空")) {
+                return "軋空觀察：" + detail;
+            }
+            return "市場觀察：" + detail;
+        }
+        return normalized.replace("Attention", "市場觀察");
+    }
+
+    private static String humanizeThreshold(String rawThreshold) {
+        if (rawThreshold == null || rawThreshold.isBlank()) {
+            return "門檻=N/A";
+        }
+        String normalized = rawThreshold.trim()
+                .replace("threshold >", "大於")
+                .replace("threshold <", "小於")
+                .replace("×", " 倍");
+        return "門檻=" + normalized;
+    }
+
+    private static String humanizeAttentionCtx(String ctx) {
+        if (ctx == null || ctx.isBlank()) {
+            return "指標=N/A";
+        }
+        Matcher matcher = CTX_PAIR_PATTERN.matcher(ctx);
+        if (!matcher.find()) {
+            return "指標=" + shorten(ctx, 56);
+        }
+        String key = matcher.group(1);
+        String value = matcher.group(2);
+        return "指標=" + humanizeIndicatorKey(key) + "=" + formatIndicatorValue(key, value);
+    }
+
+    private static String humanizeIndicatorKey(String key) {
+        return switch (key) {
+            case "oi_change_pct_1h" -> "1 小時未平倉量變化";
+            case "whale_buy_ratio" -> "鯨魚買單占比";
+            case "long_short_ratio" -> "多空比";
+            case "volume_ratio" -> "成交量倍率";
+            default -> key.replace("mih:", "").replace('_', ' ');
+        };
+    }
+
+    private static String formatIndicatorValue(String key, String rawValue) {
+        try {
+            double value = Double.parseDouble(rawValue);
+            if (key.endsWith("_ratio") && Math.abs(value) <= 2.0) {
+                return String.format(Locale.ROOT, "%.2f%%", value * 100.0);
+            }
+            if (key.contains("_pct")) {
+                return String.format(Locale.ROOT, "%.4f%%", value);
+            }
+            return String.format(Locale.ROOT, "%.4f", value);
+        } catch (Exception ignored) {
+            return rawValue;
+        }
     }
 
     private static String threeLines(String line1, String line2, String line3) {

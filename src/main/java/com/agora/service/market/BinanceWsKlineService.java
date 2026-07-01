@@ -229,8 +229,8 @@ public class BinanceWsKlineService implements DisposableBean, KlineStreamService
             }
         }
 
-        String message = String.format(
-                "[BinanceWS] 訂閱已停止\nmarketType=%s\nsymbol=%s\ninterval=%s\nreason=%s",
+        String message = MarketDataTelegramAlertFormatter.wsStopped(
+                providerName(),
                 sub.marketType,
                 sub.symbol,
                 sub.intervalCode,

@@ -143,6 +143,21 @@ approval: `micro_probe_env_deploy_request_allowed=false`,
 event-risk, runtime evidence, kill-switch, and exact authorization evidence are
 refreshed in the same session.
 
+After collecting those hard-gate logs, aggregate them with:
+
+```powershell
+.\scripts\prepare_profit_high_risk_micro_live_probe_preflight_review_packet.ps1 -RequireReady
+```
+
+This emits `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_PREFLIGHT_REVIEW_PACKET`,
+`micro_probe_hard_gate_clear`, `micro_probe_exact_authorization_review_allowed`,
+and `runtime_order_sent_evidence`. The only ready status is
+`READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXACT_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+which means the exact authorization text can be reviewed. It still keeps
+`micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`; it does not
+authorize deployment or orders.
+
 For the current recommended non-order lane, generate the exact evidence-only
 handoff with:
 

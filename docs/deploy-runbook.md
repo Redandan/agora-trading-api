@@ -2460,6 +2460,25 @@ Expected:
   authorize deployment or orders; the current BUY/scout, OCO/EV, event-risk,
   runtime evidence, kill-switch, and exact operator authorization gates must be
   refreshed in the same session before any later env/deploy request.
+- After those hard-gate logs are available, aggregate them with:
+
+  ```powershell
+  .\scripts\prepare_profit_high_risk_micro_live_probe_preflight_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_PREFLIGHT_REVIEW_PACKET`,
+  `profit_high_risk_micro_live_probe_preflight_status`,
+  `micro_probe_hard_gate_clear`,
+  `micro_probe_exact_authorization_review_allowed`,
+  `runtime_order_sent_evidence`, and
+  `READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXACT_AUTHORIZATION_REVIEW_NOT_MUTATION`
+  only when the micro handoff, strategy574/TinyLive preflight, TP/SL/OCO
+  preflight, live-review packet, and runtime-evidence RCA all pass. The packet
+  remains non-mutating and keeps
+  `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`; it prepares an
+  exact-authorization review but does not authorize deployment or orders.
 - To turn the recommended non-order evidence lane into an exact authorization
   request, run:
 

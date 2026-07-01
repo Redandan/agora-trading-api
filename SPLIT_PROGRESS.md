@@ -60,6 +60,19 @@
   material only until current BUY/scout, OCO/EV, event-risk, runtime evidence,
   kill-switch, and exact operator authorization evidence are refreshed in the
   same session.
+- 2026-07-01 high-risk micro live probe now has a read-only hard-gate
+  preflight review packet. `prepare_profit_high_risk_micro_live_probe_preflight_review_packet.ps1`
+  aggregates the micro handoff, strategy574/TinyLive preflight, TP/SL/OCO
+  preflight, live-review packet, and runtime-evidence RCA into
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_PREFLIGHT_REVIEW_PACKET`. The ready state
+  is
+  `READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXACT_AUTHORIZATION_REVIEW_NOT_MUTATION`
+  and exposes `micro_probe_hard_gate_clear`,
+  `micro_probe_exact_authorization_review_allowed`, and
+  `runtime_order_sent_evidence`. It still keeps
+  `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`; it is exact
+  authorization review evidence only, not deployment or order approval.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

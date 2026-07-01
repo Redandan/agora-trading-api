@@ -2277,6 +2277,19 @@ material only until the current BUY/scout, OCO/EV, event-risk, runtime
 evidence, kill-switch, and exact operator authorization gates are refreshed in
 the same session.
 Use
+`.\scripts\prepare_profit_high_risk_micro_live_probe_preflight_review_packet.ps1 -RequireReady`
+after collecting those hard-gate logs to aggregate the micro handoff,
+strategy574/TinyLive preflight, TP/SL/OCO preflight, live-review packet, and
+runtime-evidence RCA. It emits
+`PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_PREFLIGHT_REVIEW_PACKET`,
+`micro_probe_hard_gate_clear`, and
+`micro_probe_exact_authorization_review_allowed`. The ready status is
+`READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXACT_AUTHORIZATION_REVIEW_NOT_MUTATION`.
+Even in that ready state it keeps `micro_probe_env_deploy_request_allowed=false`,
+`deploy_allowed=false`, `order_allowed=false`, and
+`live_policy_change_allowed=false`; a separate same-session env/deploy/order
+authorization is still required.
+Use
 `.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
 to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit
 `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`. That handoff

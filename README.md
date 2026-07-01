@@ -1729,7 +1729,10 @@ post-opt-in readiness, observation status, and
 evidence set, then reruns the audit, writes
 `profit-operator-next-action-board-latest.log` with `-RequireAudit`, and saves
 `profit-operator-authorization-request-latest.log` so the next exact operator
-review authorization is refreshed with the same evidence set. It
+review authorization is refreshed with the same evidence set. It finishes with
+`profit-operator-quick-status-latest.log`, which surfaces the saved
+profit-next-execution blocker fields without rerunning SSH or refreshing the
+blocker again. It
 refreshes the no-buy attention-flow packet before governance preflight so
 governance `NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing
 or become `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` when the parsed source

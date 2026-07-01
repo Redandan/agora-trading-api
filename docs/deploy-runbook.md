@@ -1700,7 +1700,10 @@ and final live blocker audit lanes. It then writes the audit-backed
 `profit-operator-next-action-board-latest.log` with `-RequireAudit` and
 `profit-operator-authorization-request-latest.log` with the next exact operator
 review authorization, so the refresh output includes the review queue,
-authorization request, and raw audit.
+authorization request, raw audit, and final
+`profit-operator-quick-status-latest.log` blocker summary. The quick-status
+step reads only the saved matrix pointer and saved next-execution blocker log;
+it does not rerun SSH or refresh the blocker again.
 Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
 blocker evidence instead of failing the source-refresh step early, except when
 the local preflight emits the explicit neutral

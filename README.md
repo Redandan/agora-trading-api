@@ -2342,6 +2342,17 @@ to regenerate the local grid10 evidence chain in one pass. It writes
 the same-session checklist evidence is current; it still keeps
 `deploy_allowed=false`, `order_allowed=false`, and `create_grid_allowed=false`.
 Use
+`.\scripts\prepare_profit_grid10_execution_preflight_packet.ps1 -RequireReady`
+after the source refresh is ready to produce the final execution-order review
+packet. It emits `PROFIT_GRID10_EXECUTION_PREFLIGHT_PACKET`,
+`READY_FOR_PROFIT_GRID10_ENV_DEPLOY_CREATEGRID_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+`grid10_execution_preflight_ready`,
+`grid10_execution_exact_authorization_text`, env diff, post-env verification,
+kill-switch, and rollback ordering. It still does not execute:
+`grid10_env_deploy_execution_allowed=false`,
+`grid10_create_grid_execution_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `create_grid_allowed=false`.
+Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk
 operator review packet. It emits

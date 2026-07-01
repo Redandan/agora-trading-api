@@ -2522,6 +2522,24 @@ Expected:
   `profit_grid10_activation_source_refresh_status`. It writes only local
   evidence files and remains non-executing with `deploy_allowed=false`,
   `order_allowed=false`, and `create_grid_allowed=false`.
+- To turn the refreshed local grid10 chain into the execution-order preflight
+  packet that can be shown to the operator before any later env/deploy/createGrid
+  action, run:
+
+  ```powershell
+  .\scripts\prepare_profit_grid10_execution_preflight_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `PROFIT_GRID10_EXECUTION_PREFLIGHT_PACKET`,
+  `profit_grid10_execution_preflight_status=READY_FOR_PROFIT_GRID10_ENV_DEPLOY_CREATEGRID_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+  `grid10_execution_preflight_ready=true`,
+  `grid10_execution_exact_authorization_text`,
+  `grid10_execution_env_diff`,
+  `grid10_execution_post_env_read_only_verification`, and
+  `grid10_execution_kill_switch_env_diff`. It is still a read-only preflight:
+  `grid10_env_deploy_execution_allowed=false`,
+  `grid10_create_grid_execution_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
 - To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator
   review, run:
 

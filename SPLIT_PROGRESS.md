@@ -1233,6 +1233,17 @@
   the local same-session checklist is replayable; it still keeps
   `deploy_allowed=false`, `order_allowed=false`, and
   `create_grid_allowed=false`.
+  `scripts/prepare_profit_grid10_execution_preflight_packet.ps1` consumes the
+  refreshed source packet plus the same-session review log and emits
+  `PROFIT_GRID10_EXECUTION_PREFLIGHT_PACKET` with
+  `READY_FOR_PROFIT_GRID10_ENV_DEPLOY_CREATEGRID_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+  `grid10_execution_preflight_ready`, the exact
+  `grid10_execution_exact_authorization_text`, ordered env/deploy/post-env/
+  createGrid review sequence, post-env verification commands, and kill-switch
+  plan. It remains a read-only preflight with
+  `grid10_env_deploy_execution_allowed=false`,
+  `grid10_create_grid_execution_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

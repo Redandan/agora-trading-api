@@ -212,6 +212,22 @@ This emits `PROFIT_GRID10_ACTIVATION_SOURCE_REFRESH_PACKET` and
 replayable; it is not execution approval and keeps `deploy_allowed=false`,
 `order_allowed=false`, and `create_grid_allowed=false`.
 
+After a ready source refresh, produce the final execution-order preflight with:
+
+```powershell
+.\scripts\prepare_profit_grid10_execution_preflight_packet.ps1 -RequireReady
+```
+
+This emits `PROFIT_GRID10_EXECUTION_PREFLIGHT_PACKET`,
+`READY_FOR_PROFIT_GRID10_ENV_DEPLOY_CREATEGRID_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+`grid10_execution_preflight_ready`,
+`grid10_execution_exact_authorization_text`, the ordered env/deploy/post-env/
+createGrid review sequence, post-env read-only verification commands, and
+kill-switch/rollback plan. It is still read-only and keeps
+`grid10_env_deploy_execution_allowed=false`,
+`grid10_create_grid_execution_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `create_grid_allowed=false`.
+
 For the high-risk lane that is closest to a real-money probe, package the
 review handoff with:
 

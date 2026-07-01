@@ -64,20 +64,15 @@ Assert-PublicHttpsUrlSafe -Name "PublicTradingContextMcpBlockedUrl" -Value $Publ
 
 $schemaFlag = if ($SchemaCompare) { "1" } else { "0" }
 $gitFlag = if ($SkipGitCurrent) { "0" } else { "1" }
+$localVerifier = Join-Path $PSScriptRoot "verify_server.sh"
+if (-not (Test-Path -LiteralPath $localVerifier)) {
+    throw "Local server verifier not found: $localVerifier"
+}
+$verifierBody = Get-Content -Raw -LiteralPath $localVerifier
 
-$remoteScript = @"
-set -euo pipefail
-cd '$AppDir'
-ENV_FILE='$EnvFile' \
-PUBLIC_TRADING_HEALTH_URL='$PublicTradingHealthUrl' \
-PUBLIC_TRADING_MCP_URL='$PublicTradingMcpUrl' \
-PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL='$PublicTradingContextMcpBlockedUrl' \
-RUN_SCHEMA_BASELINE_COMPARE='$schemaFlag' \
-VERIFY_GIT_CURRENT='$gitFlag' \
-bash scripts/verify_server.sh
-"@
+$remoteCommand = "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | APP_DIR='$AppDir' ENV_FILE='$EnvFile' PUBLIC_TRADING_HEALTH_URL='$PublicTradingHealthUrl' PUBLIC_TRADING_MCP_URL='$PublicTradingMcpUrl' PUBLIC_TRADING_CONTEXT_MCP_BLOCKED_URL='$PublicTradingContextMcpBlockedUrl' RUN_SCHEMA_BASELINE_COMPARE='$schemaFlag' VERIFY_GIT_CURRENT='$gitFlag' bash -s"
 
-$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
+$verifierBody | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost $remoteCommand
 
 if ($LASTEXITCODE -ne 0) {
     throw "server verification failed with exit code $LASTEXITCODE"

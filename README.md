@@ -1293,8 +1293,10 @@ scope packet from saved audit/runtime/grid/trailing logs:
 ```
 
 It emits `LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET`, per-flag coverage, current
-grid/trailing risk items, rollback env diff, and `order_allowed=false`; it is
-not live approval and does not change production state.
+grid/trailing risk items, exact accept/rollback authorization text, risk
+acceptance conditions, kill-switch plan, rollback env diff, and
+`order_allowed=false`; it is not live approval and does not change production
+state.
 
 Read-only tiny-live loss hard-stop RCA when live-readiness reports
 `risk_hard_stop` or `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`:

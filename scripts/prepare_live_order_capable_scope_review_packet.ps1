@@ -234,6 +234,8 @@ if ((Get-JsonPropertyString -Object $dryRunFlags -Name "TRADING_TINY_LIVE_AUTO_E
 
 $hasOrderFlags = @($orderFlags).Count -gt 0 -and -not ($orderFlags -contains "__JSON_PARSE_ERROR__")
 $reviewPacketReady = $hasOrderFlags -and $missingEvidence.Count -eq 0 -and $reviewBlockers.Count -eq 0
+$acceptScopeAuthorizationText = "I authorize READ-ONLY reconciliation of the current production order-capable scope for $($Symbol.ToUpperInvariant()): TRADING_OKX_ENABLED=true, TRADING_GRID_ENABLED=true, TRAILING_STOP_ENABLED=true, TRAILING_STOP_DRY_RUN=true, with grid scheduler/recovery/Earn disabled, no new live policy relaxation, no createGrid/resize/rebalance, no order placement, no OCO mutation, no scheduler enablement, no Telegram send, and I accept the existing active grid order-path activation risk only for continued observation and post-decision read-only verification."
+$rollbackScopeAuthorizationText = "I authorize rollback of the current Grid/OKX order-capable scope by applying TRADING_OKX_ENABLED=false, TRADING_GRID_ENABLED=false, TRAILING_STOP_ENABLED=false, TRAILING_STOP_DRY_RUN=true, keeping TinyLive/ScoreBuy/OCO/position-exit/funding/Earn/MCP guardian live actions disabled, followed only by deploy/restart if separately approved and post-rollback read-only verification."
 
 $status = if (-not $hasOrderFlags) {
     "NO_ORDER_CAPABLE_FLAGS_TRUE_NOT_MUTATION"
@@ -296,6 +298,28 @@ $packet = [pscustomobject]@{
     riskItems = @($riskItems)
     missingEvidence = @($missingEvidence)
     reviewBlockers = @($reviewBlockers)
+    operatorDecisionOptions = @(
+        "ACCEPT_EXISTING_GRID_OKX_TRAILING_SCOPE_READ_ONLY_REVIEW",
+        "ROLLBACK_GRID_OKX_SCOPE",
+        "KEEP_BLOCKED_NO_NEW_LIVE_RELAXATION"
+    )
+    exactAcceptScopeAuthorizationText = $acceptScopeAuthorizationText
+    exactRollbackScopeAuthorizationText = $rollbackScopeAuthorizationText
+    riskAcceptanceConditions = @(
+        "effectiveRuntimeLogStatus=PASS",
+        "gridPostEnvStatus=READY_FOR_GRID_POST_ENV_READ_ONLY_VERIFICATION_NOT_MUTATION",
+        "gridPostEnvReady=true",
+        "trailingGlobalDryRun=true",
+        "gridAutoRebalanceSchedulerEnabled=false",
+        "gridRecoveryEnabled=false",
+        "okxEarnTopupEnabled=false",
+        "eventRiskGate=CLEAR_EVENT_RISK_R0",
+        "reviewBlockers=[]",
+        "missingEvidence=[]",
+        "operator acknowledges EXISTING_GRID_ORDER_PATH_ACTIVATION_RISK",
+        "operator acknowledges TRAILING_STOP_DRY_RUN_OBSERVATION_ONLY_NOT_OCO_MUTATION_APPROVAL",
+        "operator acknowledges no live policy relaxation or new order/OCO/grid/scheduler permission is granted by this packet"
+    )
     requiredSeparateAuthorization = @(
         "operator explicitly reviews the existing order-capable scope before any additional live relaxation",
         "TRADING_OKX_ENABLED=true current state is accepted only for the named grid/trailing scope or rolled back",
@@ -328,6 +352,27 @@ $packet = [pscustomobject]@{
         "OKX_EARN_TOPUP_ENABLED=false",
         "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false"
     )
+    killSwitchPlan = [pscustomobject]@{
+        trigger = @(
+            "runtime log smoke fails",
+            "unexpected order/OCO/grid/fund/Earn/Telegram high-risk operation-like log line appears",
+            "grid post-env read-only verification stops being ready",
+            "trailing dry-run is false before separate OCO mutation approval",
+            "event risk is no longer CLEAR_EVENT_RISK_R0",
+            "operator does not accept existing active grid order-path activation risk"
+        )
+        envDiff = @(
+            "TRADING_OKX_ENABLED=false",
+            "TRADING_GRID_ENABLED=false",
+            "TRAILING_STOP_ENABLED=false",
+            "TRAILING_STOP_DRY_RUN=true"
+        )
+        verification = @(
+            ".\scripts\verify_split_acceptance_ssh.ps1",
+            ".\scripts\audit_live_readiness_ssh.ps1 -Symbol $($Symbol.ToUpperInvariant())",
+            ".\scripts\prepare_live_order_capable_scope_review_packet.ps1 -LiveAuditLog <audit.log> -RuntimeLogSmokeLog <runtime.log> -GridPostEnvBundleLog <grid.log> -TrailingPostOptInLog <trailing.log>"
+        )
+    }
     productionEnvChangeAllowed = $false
     deployAllowed = $false
     livePolicyChangeAllowed = $false
@@ -351,6 +396,8 @@ Write-Host ("live_order_capable_flags_true=" + (ConvertTo-Json -Compress @($orde
 Write-Host ("live_order_capable_scope_review_blockers=" + (ConvertTo-Json -Compress @($reviewBlockers)))
 Write-Host ("live_order_capable_scope_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("live_order_capable_scope_risk_items=" + (ConvertTo-Json -Compress @($riskItems)))
+Write-Host "live_order_capable_scope_exact_accept_authorization_text=$acceptScopeAuthorizationText"
+Write-Host "live_order_capable_scope_exact_rollback_authorization_text=$rollbackScopeAuthorizationText"
 Write-Host "production_env_change_allowed=false"
 Write-Host "deploy_allowed=false"
 Write-Host "live_policy_change_allowed=false"

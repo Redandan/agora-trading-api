@@ -87,6 +87,11 @@ trailing_stop_post_opt_in_readiness_status=TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_
     Assert-Contains -Name "grid activation risk" -Text $ready.Text -Pattern "EXISTING_GRID_ORDER_PATH_ACTIVATION_RISK"
     Assert-Contains -Name "read only boundary" -Text $ready.Text -Pattern "order_allowed=false"
     Assert-Contains -Name "rollback env diff" -Text $ready.Text -Pattern "TRADING_OKX_ENABLED=false"
+    Assert-Contains -Name "accept authorization text" -Text $ready.Text -Pattern "live_order_capable_scope_exact_accept_authorization_text=I authorize READ-ONLY reconciliation"
+    Assert-Contains -Name "rollback authorization text" -Text $ready.Text -Pattern "live_order_capable_scope_exact_rollback_authorization_text=I authorize rollback"
+    Assert-Contains -Name "decision option accept" -Text $ready.Text -Pattern "ACCEPT_EXISTING_GRID_OKX_TRAILING_SCOPE_READ_ONLY_REVIEW"
+    Assert-Contains -Name "risk acceptance condition" -Text $ready.Text -Pattern "operator acknowledges EXISTING_GRID_ORDER_PATH_ACTIVATION_RISK"
+    Assert-Contains -Name "kill switch" -Text $ready.Text -Pattern "killSwitchPlan"
 
     $missingGrid = Invoke-Packet -LiveAuditLog $auditPath -RuntimeLogSmokeLog $runtimePath -TrailingPostOptInLog $trailingPath
     Assert-Contains -Name "missing grid status" -Text $missingGrid.Text -Pattern "live_order_capable_scope_review_status=BLOCKED_ORDER_CAPABLE_SCOPE_REVIEW_NOT_MUTATION"

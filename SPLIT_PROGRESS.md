@@ -116,13 +116,27 @@
   saved live-readiness audit, runtime-log smoke, grid post-env, and trailing
   post-opt-in logs, then emits `LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET`,
   `live_order_capable_scope_review_status`, per-flag coverage, current grid /
-  trailing risk items, rollback env diff, and hard non-authorization markers
-  including `order_allowed=false`, `grid_mutation_allowed=false`, and
-  `exchange_mutation_allowed=false`. This is for deciding whether already-true
-  `TRADING_OKX_ENABLED`, `TRADING_GRID_ENABLED`, or `TRAILING_STOP_ENABLED`
-  should be accepted in a named scope or rolled back; it does not deploy,
+  trailing risk items, exact accept/rollback authorization text, risk
+  acceptance conditions, kill-switch plan, rollback env diff, and hard
+  non-authorization markers including `order_allowed=false`,
+  `grid_mutation_allowed=false`, and `exchange_mutation_allowed=false`. This is
+  for deciding whether already-true `TRADING_OKX_ENABLED`,
+  `TRADING_GRID_ENABLED`, or `TRAILING_STOP_ENABLED` should be accepted in a
+  named scope or rolled back; it does not deploy,
   change production env, enable live policy, place orders, mutate OCO/grid,
   enable schedulers, send Telegram, or mutate DB/fund/Earn/exchange state.
+- 2026-07-01 split/grid post-env verification now uses the same
+  docs/tooling-only currentness rule as live-readiness routing. `verify_server.sh`
+  still fails when the server worktree differs from `origin/main` by runtime
+  files, but a docs/tooling-only delta logs
+  `worktree commit differs from origin/main only by docs/tooling files` and can
+  pass server verification without a runtime deploy. `verify_server_ssh.ps1`
+  streams the local verifier to the server, and `verify_split_acceptance_ssh.ps1`
+  streams the local runtime-log checker, so stale server tooling does not
+  create false blockers while the deployed app commit remains runtime-current.
+  This is verification tooling only; it does not deploy, restart, change
+  production env, enable live/grid/OCO/scheduler behavior, place orders, or
+  mutate DB/fund/Earn/exchange state.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

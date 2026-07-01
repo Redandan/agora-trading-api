@@ -26,7 +26,8 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 - The trading service has a deployment directory on the production host under
   `/home/ubuntu/agora-trading-api`.
 - `scripts/verify_server.sh` proves:
-  - server worktree equals `origin/main`
+  - server worktree equals `origin/main`, or differs only by docs/tooling files
+    while runtime files remain unchanged from the deployed app commit
   - deployed `app.commit` equals the worktree commit, or differs only by
     docs/tooling files that do not require runtime deploy
   - active `app.pid` listens on `app.port`

@@ -279,9 +279,23 @@ if [ "$VERIFY_GIT_CURRENT" = "1" ]; then
   HEAD_COMMIT="$(git rev-parse HEAD)"
   ORIGIN_COMMIT="$(git rev-parse "origin/$BRANCH")"
   if [ "$HEAD_COMMIT" != "$ORIGIN_COMMIT" ]; then
-    fail "worktree commit $(git rev-parse --short HEAD) does not match origin/$BRANCH $(git rev-parse --short "origin/$BRANCH")"
+    git cat-file -e "${ORIGIN_COMMIT}^{commit}" 2>/dev/null || fail "origin/$BRANCH commit ${ORIGIN_COMMIT:-empty} is not a known git commit"
+    mapfile -t origin_delta < <(git diff --name-only "$HEAD_COMMIT".."$ORIGIN_COMMIT" || true)
+    origin_runtime_delta=0
+    origin_docs_tooling_delta=0
+    for delta_path in "${origin_delta[@]}"; do
+      case "$(classify_deployed_delta_path "$delta_path")" in
+        docs-tooling) origin_docs_tooling_delta=$((origin_docs_tooling_delta + 1)) ;;
+        *) origin_runtime_delta=$((origin_runtime_delta + 1)) ;;
+      esac
+    done
+    if [ "$origin_runtime_delta" -gt 0 ]; then
+      fail "runtime files differ from origin/$BRANCH; worktree=$(git rev-parse --short HEAD) origin=$(git rev-parse --short "origin/$BRANCH") runtime_files=$origin_runtime_delta docs_tooling_files=$origin_docs_tooling_delta"
+    fi
+    ok "worktree commit differs from origin/$BRANCH only by docs/tooling files: worktree=$(git rev-parse --short HEAD) origin=$(git rev-parse --short "origin/$BRANCH") docs_tooling_files=$origin_docs_tooling_delta"
+  else
+    ok "worktree commit matches origin/$BRANCH: $(git rev-parse --short HEAD)"
   fi
-  ok "worktree commit matches origin/$BRANCH: $(git rev-parse --short HEAD)"
 else
   ok "git currentness check skipped; VERIFY_GIT_CURRENT=$VERIFY_GIT_CURRENT"
 fi

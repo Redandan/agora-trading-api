@@ -3909,9 +3909,10 @@ Expected:
   The packet emits `LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET`,
   `live_order_capable_scope_review_status`, current true flags, per-flag
   coverage, existing grid order-path risk, rollback env diff, and
-  `order_allowed=false` / `grid_mutation_allowed=false` /
-  `exchange_mutation_allowed=false`. It is review material only; it does not
-  clear live-readiness blockers by itself.
+  `exactAcceptScopeAuthorizationText`, `exactRollbackScopeAuthorizationText`,
+  risk acceptance conditions, kill-switch plan, and `order_allowed=false` /
+  `grid_mutation_allowed=false` / `exchange_mutation_allowed=false`. It is
+  review material only; it does not clear live-readiness blockers by itself.
 - After a separately authorized TinyLive live launch, rerun the audit with
   `-LiveAuthorized`. In that mode, the expected live flags
   `TRADING_OKX_ENABLED=true` and
@@ -4460,8 +4461,8 @@ powershell -ExecutionPolicy Bypass -File C:\Users\Redan\IdeaProjects\AgoraMarket
 
 The Trading-side `scripts/verify_split_acceptance_ssh.ps1` wrapper calls that
 same AgoraMarketAPI smoke after `scripts/verify_server_ssh.ps1 -SchemaCompare`
-and `scripts/check_server_runtime_log.sh`; it does not deploy, reload nginx,
-mutate database schema, or call MCP write tools.
+and the local `scripts/check_server_runtime_log.sh` streamed to the server; it
+does not deploy, reload nginx, mutate database schema, or call MCP write tools.
 Windows SSH wrappers validate `SshHost` locally and reject unsupported SSH
 target syntax before invoking `ssh`; this keeps deploy and acceptance tooling
 from being redirected through option-like targets.
@@ -4624,13 +4625,20 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
   names outside `[A-Za-z0-9_]` before baseline generation can pass them to
   `mysqldump`.
 - shell syntax passes for `deploy.sh` and `scripts/*.sh` via `scripts/preflight_server.sh`.
-- server worktree commit matches `origin/main` by default; set `VERIFY_GIT_CURRENT=0` only for explicit rollback verification.
+- server worktree commit matches `origin/main` by default, or differs only by
+  docs/tooling files that do not require a runtime deploy; runtime-file drift
+  from `origin/main` still fails. Set `VERIFY_GIT_CURRENT=0` only for explicit
+  rollback verification.
 - deployed `app.commit`, `app.pid`, and `app.port` metadata must exist by default; set `REQUIRE_DEPLOY_METADATA=0` only for explicit non-deploy diagnostics.
 - deployed `app.commit` metadata matches the current worktree HEAD.
 - if deployed `app.commit` differs from worktree `HEAD`, server verification
   fails when runtime files differ from deployed `app.commit`; it may pass only
   when the delta is docs/tooling-only and logs
   `deployed app.commit differs from worktree HEAD only by docs/tooling files`.
+- if the server worktree `HEAD` differs from `origin/main`, server verification
+  fails when runtime files differ from `origin/main`; it may pass only when the
+  delta is docs/tooling-only and logs
+  `worktree commit differs from origin/main only by docs/tooling files`.
 - active blue-green `app.pid.<app.port>` metadata exists by default and matches `app.pid`.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
 - public HTTP allowlist stays minimal: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, favicon, and authenticated dedicated-host Trading MCP; shared-host `/api/trading/mcp` must not expose Trading MCP.

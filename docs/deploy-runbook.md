@@ -2439,6 +2439,27 @@ Expected:
   decision; they are not deployment approval and do not enable
   live/TinyLive/scheduler, order, OCO, grid, fund, Earn, Telegram, exchange, or
   DB mutation.
+- To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator
+  review, run:
+
+  ```powershell
+  .\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_HANDOFF_PACKET`,
+  `profit_high_risk_micro_live_probe_handoff_status=READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_OPERATOR_REVIEW_NOT_MUTATION`,
+  `micro_probe_exact_authorization_text`,
+  `micro_probe_required_env_diff`, `micro_probe_hard_gate_checklist`,
+  `micro_probe_post_env_read_only_verification`,
+  `micro_probe_kill_switch_env_diff`, and
+  `micro_probe_rollback_commands`. The packet preserves the max one-order /
+  10 USDT probe cap and keeps
+  `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`. It does not
+  authorize deployment or orders; the current BUY/scout, OCO/EV, event-risk,
+  runtime evidence, kill-switch, and exact operator authorization gates must be
+  refreshed in the same session before any later env/deploy request.
 - To turn the recommended non-order evidence lane into an exact authorization
   request, run:
 

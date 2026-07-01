@@ -2262,6 +2262,21 @@ also carries machine-readable `proposedEnvDiff`,
 support for a separately authorized env/deploy step, not permission to mutate
 runtime state from this packet.
 Use
+`.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
+to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk
+operator review packet. It emits
+`PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_HANDOFF_PACKET`,
+`micro_probe_exact_authorization_text`, the max 1-order / 10 USDT probe cap,
+the required env diff (`TRADING_RUNTIME_EVIDENCE_ENABLED=true`,
+`TRADING_OKX_ENABLED=true`, `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=true`),
+hard gates, post-env read-only verification commands, kill-switch env diff,
+and rollback commands. This packet deliberately keeps
+`micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`; it is review
+material only until the current BUY/scout, OCO/EV, event-risk, runtime
+evidence, kill-switch, and exact operator authorization gates are refreshed in
+the same session.
+Use
 `.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
 to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit
 `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`. That handoff

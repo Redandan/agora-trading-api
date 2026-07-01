@@ -124,6 +124,25 @@ it keeps `order_allowed=false`, `deploy_or_env_change_allowed=false`, and
 `live_policy_change_allowed=false`. A later env/deploy/live action still
 requires separate exact operator authorization matching the selected lane.
 
+For the high-risk lane that is closest to a real-money probe, package the
+review handoff with:
+
+```powershell
+.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady
+```
+
+This emits `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_HANDOFF_PACKET`,
+`micro_probe_exact_authorization_text`,
+`micro_probe_required_env_diff`, `micro_probe_hard_gate_checklist`,
+`micro_probe_post_env_read_only_verification`,
+`micro_probe_kill_switch_env_diff`, and `micro_probe_rollback_commands`. It
+preserves maxOrders=1 and maxNotionalUsdt=10, but it is still not execution
+approval: `micro_probe_env_deploy_request_allowed=false`,
+`deploy_allowed=false`, `order_allowed=false`, and
+`live_policy_change_allowed=false` until current BUY/scout, OCO/EV,
+event-risk, runtime evidence, kill-switch, and exact authorization evidence are
+refreshed in the same session.
+
 For the current recommended non-order lane, generate the exact evidence-only
 handoff with:
 

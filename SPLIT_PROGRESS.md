@@ -47,6 +47,19 @@
   bundle keeps `live_policy_change_allowed=false`, `order_allowed=false`,
   `deploy_allowed=false`, and `grid_mutation_allowed=false`, so it is evidence
   review only and not live relaxation or order approval.
+- 2026-07-01 aggressive profit activation review also has a standalone
+  high-risk micro live probe handoff packet.
+  `prepare_profit_high_risk_micro_live_probe_handoff.ps1` extracts the
+  `HIGH_RISK_MICRO_LIVE_PROBE` lane from the aggressive packet and emits
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_HANDOFF_PACKET`,
+  `micro_probe_exact_authorization_text`, the max one-order / 10 USDT probe
+  cap, required env diff, hard-gate checklist, post-env read-only
+  verification, kill-switch env diff, and rollback commands. The packet keeps
+  `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`; it is review
+  material only until current BUY/scout, OCO/EV, event-risk, runtime evidence,
+  kill-switch, and exact operator authorization evidence are refreshed in the
+  same session.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

@@ -2412,6 +2412,20 @@ not mix stale runtime RCA into the micro-probe preflight. The wrapper writes
 local evidence logs only and keeps `deploy_allowed=false`,
 `order_allowed=false`, and `live_policy_change_allowed=false`.
 Use
+`.\scripts\prepare_profit_high_risk_micro_live_probe_execution_preflight_packet.ps1 -RequireReady`
+after a ready source refresh to package the final execution-order preflight.
+It emits `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_PACKET`,
+`READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+`micro_probe_execution_preflight_ready`,
+`micro_probe_execution_exact_authorization_text`, the ordered
+env/deploy/post-env/order review sequence, post-env read-only verification,
+kill-switch env diff, and rollback commands. This packet is still read-only:
+`micro_probe_env_deploy_execution_allowed=false`,
+`micro_probe_order_execution_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`. It prepares the
+exact same-session operator checklist; it does not change production env,
+deploy, enable TinyLive, or place orders.
+Use
 `.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
 to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit
 `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`. That handoff

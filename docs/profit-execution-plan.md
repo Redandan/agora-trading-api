@@ -1,6 +1,6 @@
 # Profit Execution Plan
 
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 ## Purpose
 
@@ -300,6 +300,24 @@ not deploy or live approval. In replay mode, the wrapper prefers
 not mix stale runtime RCA into the micro-probe preflight. The wrapper keeps
 `deploy_allowed=false`, `order_allowed=false`, and
 `live_policy_change_allowed=false`.
+
+After the source refresh is ready, generate the final execution-order preflight
+with:
+
+```powershell
+.\scripts\prepare_profit_high_risk_micro_live_probe_execution_preflight_packet.ps1 -RequireReady
+```
+
+This emits `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_PACKET`,
+`READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+`micro_probe_execution_preflight_ready`,
+`micro_probe_execution_exact_authorization_text`, the same-session
+env/deploy/post-env/order review order, pre-deploy local review commands,
+post-env read-only verification commands, and kill-switch/rollback plan. It is
+still a read-only execution-prep packet and keeps
+`micro_probe_env_deploy_execution_allowed=false`,
+`micro_probe_order_execution_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`.
 
 For the current recommended non-order lane, generate the exact evidence-only
 handoff with:

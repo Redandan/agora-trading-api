@@ -104,6 +104,21 @@
   does not mix stale runtime RCA into the micro-probe preflight. The wrapper
   keeps `deploy_allowed=false`,
   `order_allowed=false`, and `live_policy_change_allowed=false`.
+- 2026-07-01 added a read-only execution-order preflight for the same lane:
+  `prepare_profit_high_risk_micro_live_probe_execution_preflight_packet.ps1`.
+  It consumes the source-refresh and activation-authorization bundle logs and
+  emits `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_PACKET` with
+  `micro_probe_execution_preflight_ready`,
+  `micro_probe_execution_exact_authorization_text`, the same-session
+  env/deploy/post-env/order review sequence, pre-deploy local review commands,
+  post-env read-only verification, kill-switch env diff, and rollback commands.
+  The ready state is
+  `READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_NOT_MUTATION`.
+  It still keeps `micro_probe_env_deploy_execution_allowed=false`,
+  `micro_probe_order_execution_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`; it is the
+  final execution-prep checklist only, not production env/deploy or order
+  approval.
 - 2026-07-01 live-readiness currentness routing now separates origin
   docs/tooling-only drift from runtime drift. `smoke_live_readiness_bundle_ssh.ps1`
   appends a read-only local origin-delta classifier and emits

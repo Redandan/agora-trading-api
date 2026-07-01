@@ -2619,6 +2619,26 @@ Expected:
   The wrapper keeps `deploy_allowed=false`, `order_allowed=false`, and
   `live_policy_change_allowed=false`; it does not change production env,
   deploy, enable TinyLive, or place orders.
+- After a ready source refresh, package the final execution-order preflight
+  with:
+
+  ```powershell
+  .\scripts\prepare_profit_high_risk_micro_live_probe_execution_preflight_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_PACKET`,
+  `profit_high_risk_micro_live_probe_execution_preflight_status=READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_EXECUTION_PREFLIGHT_NOT_MUTATION`,
+  `micro_probe_execution_preflight_ready=true`,
+  `micro_probe_execution_exact_authorization_text`,
+  `micro_probe_execution_order`,
+  `micro_probe_execution_post_env_read_only_verification`, and
+  `micro_probe_execution_kill_switch_env_diff`. This packet prepares the
+  same-session operator sequence only. It keeps
+  `micro_probe_env_deploy_execution_allowed=false`,
+  `micro_probe_order_execution_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`; it does not
+  change production env, deploy, enable TinyLive, or place orders.
 - To turn the recommended non-order evidence lane into an exact authorization
   request, run:
 

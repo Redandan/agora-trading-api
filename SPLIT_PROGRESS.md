@@ -1212,6 +1212,17 @@
   `grid10_activation_execution_allowed=false`,
   `grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `create_grid_allowed=false`.
+  `scripts/prepare_profit_grid10_same_session_activation_review_packet.ps1`
+  now consumes the saved activation bundle and emits
+  `PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_PACKET` with
+  `READY_FOR_PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_NOT_MUTATION`,
+  `grid10_same_session_operator_checklist_ready`, the exact
+  `grid10_same_session_exact_authorization_text`, env diff, post-env
+  read-only verification, and kill-switch env diff. It is the final
+  same-session operator checklist before any later env/deploy/createGrid
+  action and still keeps `grid10_same_session_execution_allowed=false`,
+  `grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

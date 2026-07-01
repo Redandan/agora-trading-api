@@ -178,6 +178,24 @@ keeps `grid10_activation_execution_allowed=false`,
 `grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
 `order_allowed=false`, and `create_grid_allowed=false`.
 
+After that activation bundle is saved and ready, generate the same-session
+operator checklist with:
+
+```powershell
+.\scripts\prepare_profit_grid10_same_session_activation_review_packet.ps1 -RequireReady
+```
+
+This emits `PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_PACKET`,
+`READY_FOR_PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_NOT_MUTATION`,
+`grid10_same_session_operator_checklist_ready`,
+`grid10_same_session_exact_authorization_text`, the exact env diff,
+post-env read-only verification commands, and kill-switch env diff. It makes
+the required same-session confirmation sequence explicit before any later
+env/deploy/createGrid action. It remains review-only:
+`grid10_same_session_execution_allowed=false`,
+`grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `create_grid_allowed=false`.
+
 For the high-risk lane that is closest to a real-money probe, package the
 review handoff with:
 

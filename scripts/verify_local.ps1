@@ -1721,6 +1721,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_aggressive_activation_operator_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_grid10_order_path_handoff.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_grid10_activation_authorization_bundle.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_profit_grid10_same_session_activation_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_handoff.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_activation_authorization_bundle.ps1"

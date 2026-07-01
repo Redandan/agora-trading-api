@@ -2488,6 +2488,25 @@ Expected:
   `grid10_activation_execution_allowed=false`,
   `grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `create_grid_allowed=false`.
+- To turn that ready activation bundle into the same-session operator
+  checklist that must be confirmed before any later env/deploy/createGrid
+  action, run:
+
+  ```powershell
+  .\scripts\prepare_profit_grid10_same_session_activation_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_PACKET`,
+  `profit_grid10_same_session_activation_review_status=READY_FOR_PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_NOT_MUTATION`,
+  `grid10_same_session_operator_checklist_ready=true`,
+  `grid10_same_session_exact_authorization_text`,
+  `grid10_same_session_env_diff`,
+  `grid10_same_session_post_env_read_only_verification`, and
+  `grid10_same_session_kill_switch_env_diff`. This is still not execution
+  approval: it keeps `grid10_same_session_execution_allowed=false`,
+  `grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
 - To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator
   review, run:
 

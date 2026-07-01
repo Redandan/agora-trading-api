@@ -2320,6 +2320,18 @@ env/deploy/createGrid prompt. It still keeps
 `grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
 `order_allowed=false`, and `create_grid_allowed=false`.
 Use
+`.\scripts\prepare_profit_grid10_same_session_activation_review_packet.ps1 -RequireReady`
+after the activation bundle log is saved and ready to produce the final
+same-session operator checklist. It emits
+`PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_PACKET`,
+`READY_FOR_PROFIT_GRID10_SAME_SESSION_ACTIVATION_REVIEW_NOT_MUTATION`,
+`grid10_same_session_operator_checklist_ready`,
+`grid10_same_session_exact_authorization_text`, the exact env diff, post-env
+read-only verification commands, and kill-switch env diff. This packet is
+still a review checklist only: `grid10_same_session_execution_allowed=false`,
+`grid10_same_session_env_deploy_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `create_grid_allowed=false`.
+Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk
 operator review packet. It emits

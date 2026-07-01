@@ -2331,9 +2331,12 @@ under `target/profit-review`, then emits
 `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PACKET` and
 `profit_micro_probe_activation_source_refresh_status`. Add
 `-RefreshLiveReviewFromSsh` or `-RefreshRuntimeEvidenceFromSsh` only when a
-fresh read-only SSH evidence refresh is intended. The wrapper writes local
-evidence logs only and keeps `deploy_allowed=false`, `order_allowed=false`, and
-`live_policy_change_allowed=false`.
+fresh read-only SSH evidence refresh is intended. In replay mode, it prefers
+`runtime-evidence-rca-latest.log` before falling back to
+`runtime-evidence-rca-post-deploy-current.log`, so a fresh source refresh does
+not mix stale runtime RCA into the micro-probe preflight. The wrapper writes
+local evidence logs only and keeps `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`.
 Use
 `.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
 to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit

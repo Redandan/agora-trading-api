@@ -47,7 +47,10 @@ foreach ($marker in @(
         "orderAllowed = `$false",
         "gridMutationAllowed = `$false",
         "telegramSendAllowed = `$false",
-        "read-only activation source refresh only"
+        "read-only activation source refresh only",
+        "runtime-evidence-rca-latest.log",
+        "runtime-evidence-rca-post-deploy-current.log",
+        "Resolve-RepoPath -PathValue `$latestRuntimeEvidenceLog"
     )) {
     Assert-Contains -Name "micro live probe activation source refresh script marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
@@ -76,6 +79,10 @@ foreach ($marker in @(
 }
 Assert-Contains -Name "verify local runs micro live probe activation source refresh test" -Text (Get-Content -Raw -LiteralPath $verifyPath) -Pattern "test_profit_high_risk_micro_live_probe_activation_source_refresh.ps1"
 
+$reviewTestDir = Join-Path $repoRoot "target/profit-review-test"
+New-Item -ItemType Directory -Force -Path $reviewTestDir | Out-Null
+Set-Content -LiteralPath (Join-Path $reviewTestDir "runtime-evidence-rca-latest.log") -Encoding UTF8 -Value "diagnosis=NO_CANONICAL_ROWS"
+
 $planOutput = & $scriptPath -PlanOnly -ReviewOutputDir "target/profit-review-test" *>&1
 $planText = $planOutput -join "`n"
 foreach ($marker in @(
@@ -84,7 +91,7 @@ foreach ($marker in @(
         "profit_micro_probe_activation_source_refresh_ssh_step_count=0",
         "profit_micro_probe_activation_source_refresh_local_step_count=6",
         "profit_micro_probe_activation_source_refresh_live_review_log=target\profit-review-test\live-review-packet-latest.log",
-        "profit_micro_probe_activation_source_refresh_runtime_evidence_log=target\profit-review-test\runtime-evidence-rca-post-deploy-current.log",
+        "profit_micro_probe_activation_source_refresh_runtime_evidence_log=target\profit-review-test\runtime-evidence-rca-latest.log",
         "profit_micro_probe_activation_source_refresh_activation_log=target\profit-review-test\profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log",
         "profit_micro_probe_activation_source_refresh_plan=",
         '"packetType":"PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PLAN"',

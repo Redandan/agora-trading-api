@@ -190,8 +190,12 @@ and `profit_micro_probe_activation_source_refresh_status`, saving
 `profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log`
 under `target/profit-review`. `-RefreshLiveReviewFromSsh` and
 `-RefreshRuntimeEvidenceFromSsh` are read-only SSH evidence refresh options,
-not deploy or live approval. The wrapper keeps `deploy_allowed=false`,
-`order_allowed=false`, and `live_policy_change_allowed=false`.
+not deploy or live approval. In replay mode, the wrapper prefers
+`runtime-evidence-rca-latest.log` before falling back to
+`runtime-evidence-rca-post-deploy-current.log`, so a fresh source refresh does
+not mix stale runtime RCA into the micro-probe preflight. The wrapper keeps
+`deploy_allowed=false`, `order_allowed=false`, and
+`live_policy_change_allowed=false`.
 
 For the current recommended non-order lane, generate the exact evidence-only
 handoff with:

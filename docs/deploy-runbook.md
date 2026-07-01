@@ -2512,8 +2512,11 @@ Expected:
   `profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log`
   under `target/profit-review`. Add `-RefreshLiveReviewFromSsh` or
   `-RefreshRuntimeEvidenceFromSsh` only for a fresh read-only SSH evidence
-  refresh. The wrapper keeps `deploy_allowed=false`, `order_allowed=false`,
-  and `live_policy_change_allowed=false`; it does not change production env,
+  refresh. In replay mode, it prefers `runtime-evidence-rca-latest.log` before
+  falling back to `runtime-evidence-rca-post-deploy-current.log`, so a fresh
+  source refresh does not mix stale runtime RCA into the micro-probe preflight.
+  The wrapper keeps `deploy_allowed=false`, `order_allowed=false`, and
+  `live_policy_change_allowed=false`; it does not change production env,
   deploy, enable TinyLive, or place orders.
 - To turn the recommended non-order evidence lane into an exact authorization
   request, run:

@@ -174,7 +174,15 @@ if ([string]::IsNullOrWhiteSpace($LiveReviewPacketLogPath)) {
     $LiveReviewPacketLogPath = & $out "live-review-packet-latest.log"
 }
 if ([string]::IsNullOrWhiteSpace($RuntimeEvidenceRcaLogPath)) {
-    $RuntimeEvidenceRcaLogPath = if ($RefreshRuntimeEvidenceFromSsh) { & $out "runtime-evidence-rca-latest.log" } else { & $out "runtime-evidence-rca-post-deploy-current.log" }
+    $latestRuntimeEvidenceLog = & $out "runtime-evidence-rca-latest.log"
+    $postDeployRuntimeEvidenceLog = & $out "runtime-evidence-rca-post-deploy-current.log"
+    $RuntimeEvidenceRcaLogPath = if ($RefreshRuntimeEvidenceFromSsh) {
+        $latestRuntimeEvidenceLog
+    } elseif (Test-Path -LiteralPath (Resolve-RepoPath -PathValue $latestRuntimeEvidenceLog)) {
+        $latestRuntimeEvidenceLog
+    } else {
+        $postDeployRuntimeEvidenceLog
+    }
 }
 
 $needsSsh = $RefreshLiveReviewFromSsh -or $RefreshRuntimeEvidenceFromSsh

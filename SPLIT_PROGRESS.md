@@ -98,7 +98,11 @@
   `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PACKET` and
   `profit_micro_probe_activation_source_refresh_status`. Optional
   `-RefreshLiveReviewFromSsh` and `-RefreshRuntimeEvidenceFromSsh` modes only
-  collect read-only evidence. The wrapper keeps `deploy_allowed=false`,
+  collect read-only evidence. Replay mode now prefers
+  `runtime-evidence-rca-latest.log` before
+  `runtime-evidence-rca-post-deploy-current.log`, so a fresh source refresh
+  does not mix stale runtime RCA into the micro-probe preflight. The wrapper
+  keeps `deploy_allowed=false`,
   `order_allowed=false`, and `live_policy_change_allowed=false`.
 - 2026-07-01 live-readiness currentness routing now separates origin
   docs/tooling-only drift from runtime drift. `smoke_live_readiness_bundle_ssh.ps1`

@@ -124,6 +124,22 @@ it keeps `order_allowed=false`, `deploy_or_env_change_allowed=false`, and
 `live_policy_change_allowed=false`. A later env/deploy/live action still
 requires separate exact operator authorization matching the selected lane.
 
+For the current recommended non-order lane, generate the exact evidence-only
+handoff with:
+
+```powershell
+.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady
+```
+
+This emits `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with
+the exact operator authorization text, proposed env diff
+`TRADING_RUNTIME_EVIDENCE_ENABLED=true` plus
+`TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`, required disabled
+flags, post-env read-only verification, kill-switch env diff, and rollback
+commands. It remains non-authorization and keeps
+`production_env_change_allowed=false`, `deploy_allowed=false`, and
+`order_allowed=false`.
+
 ## Current Target Authorization
 
 The current executable target is trailing-stop dry-run activation only. The

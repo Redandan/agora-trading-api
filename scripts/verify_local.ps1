@@ -1712,6 +1712,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_next_action_board.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_authorization_request_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_aggressive_activation_operator_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_only_accelerator_env_deploy_handoff.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_live_blocker_audit_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_live_blocker_source_refresh.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_operator_decision_packet.ps1"

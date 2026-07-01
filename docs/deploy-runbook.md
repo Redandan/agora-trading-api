@@ -2439,6 +2439,23 @@ Expected:
   decision; they are not deployment approval and do not enable
   live/TinyLive/scheduler, order, OCO, grid, fund, Earn, Telegram, exchange, or
   DB mutation.
+- To turn the recommended non-order evidence lane into an exact authorization
+  request, run:
+
+  ```powershell
+  .\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`,
+  `profit_evidence_only_accelerator_env_deploy_handoff_status=READY_FOR_PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_NOT_MUTATION`,
+  the exact operator authorization text, the required evidence-only env diff
+  `TRADING_RUNTIME_EVIDENCE_ENABLED=true` and
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`, post-env
+  read-only verification commands, kill-switch env diff, and rollback
+  commands. The handoff keeps `production_env_change_allowed=false`,
+  `deploy_allowed=false`, and `order_allowed=false`; it does not push, deploy,
+  restart, change production env, enable live trading, or place orders.
 - For the fastest local status check from the latest saved matrix without
   rerunning SSH or replaying the full action brief, run:
 

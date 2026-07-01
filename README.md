@@ -2262,6 +2262,16 @@ also carries machine-readable `proposedEnvDiff`,
 support for a separately authorized env/deploy step, not permission to mutate
 runtime state from this packet.
 Use
+`.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
+to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit
+`PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`. That handoff
+prints the exact operator authorization text, the required evidence-only env
+diff (`TRADING_RUNTIME_EVIDENCE_ENABLED=true` and
+`TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`), required disabled
+flags, post-env read-only verification commands, kill-switch env diff, and
+rollback commands. It keeps `production_env_change_allowed=false`,
+`deploy_allowed=false`, and `order_allowed=false`; it is not deploy approval.
+Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints
 `profit_operator_compact_status_packet`, `profit_operator_compact_ready_lanes`,

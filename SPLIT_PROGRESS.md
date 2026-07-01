@@ -1064,6 +1064,15 @@
   `killSwitchEnvDiff`, and `rollbackCommands`, plus top-level proposed env
   diff, risk-acceptance, post-env verification, kill-switch, and rollback plans
   for a separate operator env/deploy decision.
+  `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
+  selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
+  `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact
+  operator authorization text, evidence-only env diff
+  `TRADING_RUNTIME_EVIDENCE_ENABLED=true` plus
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true`, post-env
+  read-only verification, kill-switch env diff, and rollback commands. It keeps
+  `production_env_change_allowed=false`, `deploy_allowed=false`, and
+  `order_allowed=false`.
   `scripts/prepare_profit_operator_review_summary.ps1` converts that latest
   action brief into `profit_operator_review_summary_packet`, ready lanes,
   exit-side proposals, blocked lanes, and required evidence for operator review

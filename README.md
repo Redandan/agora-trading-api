@@ -1665,6 +1665,26 @@ priority context. It keeps `tiny_live_order_allowed=false`,
 `deploy_or_env_change_allowed=false`, `order_allowed=false`,
 `telegram_send_allowed=false`, and `strategy574_threshold_relaxation_allowed=false`.
 
+Read-only profit operator authorization request packet:
+
+```powershell
+.\scripts\prepare_profit_operator_authorization_request_packet.ps1 -RequireReady
+```
+
+This packet consumes the saved
+`profit-operator-next-action-board-latest.log` and
+`profit-live-blocker-audit-packet-latest.log` only. It emits
+`PROFIT_OPERATOR_AUTHORIZATION_REQUEST_PACKET`,
+`profit_operator_authorization_request_status`,
+`profit_operator_authorization_request_next_authorization_required`, and a
+review queue with exact per-lane authorization text. A ready packet means the
+operator can review the listed lanes separately; it is not live approval. It
+keeps `live_policy_change_allowed=false`,
+`scheduler_enablement_allowed=false`, `order_allowed=false`,
+`position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+`telegram_send_allowed=false`, and
+`db_grid_fund_earn_exchange_mutation_allowed=false`.
+
 Read-only profit live blocker audit packet:
 
 ```powershell

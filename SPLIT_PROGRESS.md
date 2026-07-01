@@ -423,6 +423,21 @@
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`; it is not live approval.
+- `scripts/prepare_profit_operator_authorization_request_packet.ps1` consumes
+  the saved next-action board and live-blocker audit logs and emits a
+  `PROFIT_OPERATOR_AUTHORIZATION_REQUEST_PACKET`,
+  `profit_operator_authorization_request_status`,
+  `profit_operator_authorization_request_review_queue`,
+  `profit_operator_authorization_request_authorization_sequence`, and
+  `profit_operator_authorization_request_next_authorization_required`. It is
+  fail-closed on missing/stale logs, invalid packet JSON, non-ready board
+  status, live-blocker audit evidence gaps, and any live readiness conclusion
+  other than `NOT_READY_FOR_LIVE_ENABLEMENT`. It converts the current read-only
+  review queue into exact per-lane operator authorization text while keeping
+  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
+  `order_allowed=false`, `position_or_oco_mutation_allowed=false`,
+  `deploy_or_env_change_allowed=false`, `telegram_send_allowed=false`, and
+  `db_grid_fund_earn_exchange_mutation_allowed=false`; it is not live approval.
 - `scripts/prepare_profit_live_blocker_audit_packet.ps1` reads existing local
   profit-review logs and emits `PROFIT_LIVE_BLOCKER_AUDIT_PACKET`,
   `profit_live_blocker_audit_packet`, `profit_live_blocker_audit_status`, and

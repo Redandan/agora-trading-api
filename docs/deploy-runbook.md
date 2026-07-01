@@ -1621,6 +1621,33 @@ Expected:
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`.
 
+For the local read-only profit operator authorization request packet, run after
+the next-action board and live blocker audit are both fresh:
+
+```powershell
+.\scripts\prepare_profit_operator_authorization_request_packet.ps1 -RequireReady
+```
+
+Expected:
+
+- Output includes `PROFIT_OPERATOR_AUTHORIZATION_REQUEST_PACKET`,
+  `profit_operator_authorization_request_status`,
+  `profit_operator_authorization_request_ready`, and
+  `profit_operator_authorization_request_next_authorization_required`.
+- `READY_FOR_PROFIT_OPERATOR_AUTHORIZATION_REQUEST_NOT_LIVE` means the current
+  review queue is fresh enough for separate operator review. It does not
+  approve live trading, scheduler enablement, TinyLive execution, orders, OCO
+  mutation, Telegram, deploy, production env changes, DB/grid/fund/Earn/exchange
+  mutation, external backfill/import, or policy relaxation.
+- Missing or stale board/audit logs, invalid packet JSON, non-ready board
+  status, audit source evidence gaps, or any live-ready conclusion outside
+  `NOT_READY_FOR_LIVE_ENABLEMENT` keep the request blocked.
+- The packet keeps `live_policy_change_allowed=false`,
+  `scheduler_enablement_allowed=false`, `order_allowed=false`,
+  `position_or_oco_mutation_allowed=false`, `deploy_or_env_change_allowed=false`,
+  `telegram_send_allowed=false`, and
+  `db_grid_fund_earn_exchange_mutation_allowed=false`.
+
 For the local read-only profit live blocker audit packet, run after source
 operator/preflight logs are saved:
 

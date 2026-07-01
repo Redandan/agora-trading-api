@@ -1721,8 +1721,10 @@ Read-only source refresh plan for the profit live blocker audit:
 To refresh the source logs, run the same script without `-PlanOnly`. It
 orchestrates existing read-only SSH/MCP/SELECT evidence scripts plus local
 packet assembly, writes every source log consumed by
-`prepare_profit_live_blocker_audit_packet.ps1`, then reruns the audit and
-writes `profit-operator-next-action-board-latest.log` with `-RequireAudit`. It
+`prepare_profit_live_blocker_audit_packet.ps1`, then reruns the audit, writes
+`profit-operator-next-action-board-latest.log` with `-RequireAudit`, and saves
+`profit-operator-authorization-request-latest.log` so the next exact operator
+review authorization is refreshed with the same evidence set. It
 refreshes the no-buy attention-flow packet before governance preflight so
 governance `NO_EVIDENCE` can inherit the latest no-buy/threshold-gap routing
 or become `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` when the parsed source

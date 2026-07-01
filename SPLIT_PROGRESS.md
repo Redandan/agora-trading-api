@@ -460,11 +460,13 @@
   live policy.
 - `scripts/prepare_profit_live_blocker_source_refresh.ps1` orchestrates the
   read-only source refresh for the live blocker audit. `-PlanOnly` prints the
-  21-step plan without invoking SSH or child refreshes; normal execution runs
+  22-step plan without invoking SSH or child refreshes; normal execution runs
   the existing read-only SSH/MCP/SELECT evidence scripts plus local packet
   assembly for every audit lane, reruns the final audit, and writes the
-  audit-backed `profit-operator-next-action-board-latest.log`. It refreshes
-  no-buy attention-flow evidence before governance preflight so governance
+  audit-backed `profit-operator-next-action-board-latest.log` plus
+  `profit-operator-authorization-request-latest.log`, so the exact next
+  operator review authorization stays in the same refreshed evidence set. It
+  refreshes no-buy attention-flow evidence before governance preflight so governance
   `NO_EVIDENCE` inherits the latest no-buy/threshold-gap routing or becomes
   `NO_GOVERNANCE_RELAXATION_CANDIDATES_NOT_LIVE` when there are no relaxation
   candidates and no false-block/high-return no-buy pressure. It preserves

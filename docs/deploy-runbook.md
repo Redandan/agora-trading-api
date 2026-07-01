@@ -1696,8 +1696,10 @@ strategy485 risk reduction/escalation, EntryDedup semantics, DataFreshness
 replay blocker/collector activation, TP/SL/OCO feasibility,
 strategy574/TinyLive governance, governance relaxation, and final live blocker
 audit lanes. It then writes the audit-backed
-`profit-operator-next-action-board-latest.log` with `-RequireAudit`, so the
-refresh output includes the next operator review queue as well as the raw audit.
+`profit-operator-next-action-board-latest.log` with `-RequireAudit` and
+`profit-operator-authorization-request-latest.log` with the next exact operator
+review authorization, so the refresh output includes the review queue,
+authorization request, and raw audit.
 Governance relaxation `NO_EVIDENCE` or `NOT_READY` is preserved as
 blocker evidence instead of failing the source-refresh step early, except when
 the local preflight emits the explicit neutral

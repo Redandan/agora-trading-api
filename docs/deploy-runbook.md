@@ -2417,6 +2417,19 @@ Expected:
   it does not rerun SSH, refresh the blocker, deploy, change production env,
   enable live trading, relax EntryDedup/DataFreshness policy, or authorize
   position/OCO changes.
+- For a more aggressive but still read-only operator review path, run:
+
+  ```powershell
+  .\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes `PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET`,
+  `profit_aggressive_activation_options`, and exact authorization text for
+  `HIGH_RISK_MICRO_LIVE_PROBE`, `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and
+  `EVIDENCE_ONLY_ACCELERATOR`. The packet keeps `order_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `live_policy_change_allowed=false`.
+  It is not deployment approval and does not enable live/TinyLive/scheduler,
+  order, OCO, grid, fund, Earn, Telegram, exchange, or DB mutation.
 - For the fastest local status check from the latest saved matrix without
   rerunning SSH or replaying the full action brief, run:
 

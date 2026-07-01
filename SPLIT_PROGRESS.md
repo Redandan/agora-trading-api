@@ -1049,6 +1049,16 @@
   not rerun SSH, refresh the blocker log, or authorize live trading, policy
   relaxation, deploy, production env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
+  `scripts/prepare_profit_aggressive_activation_operator_packet.ps1` packages a
+  more aggressive operator review path on top of the saved authorization request
+  and quick next-execution blocker. It emits
+  `PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET` with three separated options:
+  `HIGH_RISK_MICRO_LIVE_PROBE`,
+  `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and `EVIDENCE_ONLY_ACCELERATOR`.
+  The packet carries exact authorization text, rollback criteria, and current
+  blockers such as `NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE` and
+  `DATAFRESHNESS_REPLAY_ROWS_MISSING`, while keeping `order_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `live_policy_change_allowed=false`.
   `scripts/prepare_profit_operator_review_summary.ps1` converts that latest
   action brief into `profit_operator_review_summary_packet`, ready lanes,
   exit-side proposals, blocked lanes, and required evidence for operator review

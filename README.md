@@ -2248,6 +2248,15 @@ the saved profit-next-execution blocker fields
 read-only matrix should be collected before using the operator status. It does
 not rerun SSH, does not refresh the profit-next-execution blocker log, and does
 not deploy. Use
+`.\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady`
+to package a more aggressive review path. It emits
+`PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET`,
+`profit_aggressive_activation_options`, and exact authorization text for
+`HIGH_RISK_MICRO_LIVE_PROBE`, `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and
+`EVIDENCE_ONLY_ACCELERATOR`. The packet is read-only: it keeps
+`order_allowed=false`, does not deploy, does not change production env, and does
+not enable live/TinyLive/scheduler/OCO/grid mutations by itself.
+Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints
 `profit_operator_compact_status_packet`, `profit_operator_compact_ready_lanes`,

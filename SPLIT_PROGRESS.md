@@ -100,6 +100,17 @@
   `-RefreshLiveReviewFromSsh` and `-RefreshRuntimeEvidenceFromSsh` modes only
   collect read-only evidence. The wrapper keeps `deploy_allowed=false`,
   `order_allowed=false`, and `live_policy_change_allowed=false`.
+- 2026-07-01 live-readiness currentness routing now separates origin
+  docs/tooling-only drift from runtime drift. `smoke_live_readiness_bundle_ssh.ps1`
+  appends a read-only local origin-delta classifier and emits
+  `origin_delta_status`, `origin_runtime_delta_files`, and
+  `origin_docs_tooling_delta_files`. `prepare_live_review_packet_ssh.ps1`
+  accepts `WORKTREE_NOT_ORIGIN_MAIN` only when the classifier proves
+  `DOCS_TOOLING_ONLY_DRIFT`; `RUNTIME_DRIFT`, `NO_LOCAL_EVIDENCE`, bundle
+  blockers, and non-ready live-review evidence still block. This avoids a
+  false deploy requirement for scripts/docs-only changes without enabling live
+  trading, scheduler mutation, orders, OCO/grid/fund/Earn/Telegram/exchange
+  mutation, or policy relaxation.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

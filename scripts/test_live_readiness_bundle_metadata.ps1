@@ -7,6 +7,7 @@ function Get-LiveReadinessMetadataSummary {
     $blockers = [System.Collections.Generic.List[string]]::new()
     $deploymentStatus = "UNKNOWN"
     $originStatus = "UNKNOWN"
+    $originDeltaStatus = "UNKNOWN"
 
     if ($DeploymentMetadata -match "liveBundleDeployStatus=([A-Z_]+)") {
         $deploymentStatus = $Matches[1]
@@ -14,18 +15,23 @@ function Get-LiveReadinessMetadataSummary {
     if ($DeploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
         $originStatus = $Matches[1]
     }
+    if ($DeploymentMetadata -match "origin_delta_status=([A-Z_]+)") {
+        $originDeltaStatus = $Matches[1]
+    }
     if ($DeploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DEPLOY_METADATA)" `
             -or $DeploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
-    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
-            -or $DeploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+    } elseif ($DeploymentMetadata -match "liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" -and $originDeltaStatus -eq "DOCS_TOOLING_ONLY_DRIFT") {
+    } else {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
 
     [pscustomobject]@{
         DeploymentStatus = $deploymentStatus
         OriginStatus = $originStatus
+        OriginDeltaStatus = $originDeltaStatus
         Blockers = @($blockers | Select-Object -Unique)
     }
 }
@@ -93,6 +99,8 @@ function Assert-BundleFailureMarkers {
             'New-BlockerSummary -Blockers $partialBlockers',
             "deployment_metadata_status=",
             "origin_metadata_status=",
+            "origin_delta_status=",
+            "origin_runtime_delta_files=",
             "live_review_packet_allowed=false",
             "deploy_required_before_live_review=unknown",
             "bundle_verdict=NO_EVIDENCE",
@@ -215,6 +223,28 @@ Assert-MetadataCase `
     -DeploymentMetadata @"
 liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN
 liveBundleDeployStatus=CURRENT
+"@ `
+    -ExpectedDeploymentStatus "CURRENT" `
+    -ExpectedOriginStatus "WORKTREE_NOT_ORIGIN_MAIN" `
+    -ExpectRuntimeCurrentBlocker $true
+
+Assert-MetadataCase `
+    -Name "server worktree behind origin main docs tooling only" `
+    -DeploymentMetadata @"
+liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN
+liveBundleDeployStatus=CURRENT
+origin_delta_status=DOCS_TOOLING_ONLY_DRIFT
+"@ `
+    -ExpectedDeploymentStatus "CURRENT" `
+    -ExpectedOriginStatus "WORKTREE_NOT_ORIGIN_MAIN" `
+    -ExpectRuntimeCurrentBlocker $false
+
+Assert-MetadataCase `
+    -Name "server worktree behind origin main runtime delta" `
+    -DeploymentMetadata @"
+liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN
+liveBundleDeployStatus=CURRENT
+origin_delta_status=RUNTIME_DRIFT
 "@ `
     -ExpectedDeploymentStatus "CURRENT" `
     -ExpectedOriginStatus "WORKTREE_NOT_ORIGIN_MAIN" `

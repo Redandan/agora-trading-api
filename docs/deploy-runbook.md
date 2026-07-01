@@ -4085,10 +4085,12 @@ When `NO_EVIDENCE` includes `DEPLOYED_RUNTIME_NOT_CURRENT`, run the read-only
 origin-delta classifier before choosing the next action. If it prints
 `origin_delta_status=RUNTIME_DRIFT`, the next action is a separately authorized
 deploy and verification of current `origin/main`. If it prints
-`origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, review and attach the classifier
-evidence separately. If it prints `origin_delta_status=NO_LOCAL_EVIDENCE`,
-refresh local git evidence or rerun the metadata smoke. In all cases, rerun the
-full read-only bundle before drafting any live packet.
+`origin_delta_status=DOCS_TOOLING_ONLY_DRIFT`, the full bundle may continue
+collecting read-only runtime evidence without treating currentness as a runtime
+deploy blocker; all other `bundle_blockers` still remain hard blockers. If it
+prints `origin_delta_status=NO_LOCAL_EVIDENCE`, refresh local git evidence or
+rerun the metadata smoke. In all cases, rerun the full read-only bundle before
+drafting any live packet.
 
 To prepare a local review packet preflight for production-env review:
 
@@ -4164,13 +4166,14 @@ Expected:
   `SignalExecutionDays=5`, `SignalBlockedDays=7`, and
   `SignalAccuracyDays=14` by default. Override them only for a documented
   read-only diagnostic, not as live approval evidence.
-- Output includes deployment metadata status, `bundle_blockers`,
-  `bundle_blocker_summary`, `live_review_packet_allowed`,
-  `deploy_required_before_live_review`, and `bundle_verdict`. Treat
-  `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
-  evidence until a separate deploy and verification refresh the runtime and
-  server worktree to `origin/main`. By default the full bundle stops after
-  stale deployment metadata and prints `bundle_verdict=NO_EVIDENCE`; use
+- Output includes deployment metadata status, `origin_delta_status`,
+  `origin_runtime_delta_files`, `bundle_blockers`, `bundle_blocker_summary`,
+  `live_review_packet_allowed`, `deploy_required_before_live_review`, and
+  `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
+  evidence until origin delta proves `DOCS_TOOLING_ONLY_DRIFT` or a separate
+  deploy verifies current `origin/main`. By default the full bundle stops after
+  stale runtime metadata and prints `bundle_verdict=NO_EVIDENCE`;
+  docs/tooling-only origin drift is not a runtime deploy blocker. Use
   `-ContinueWhenRuntimeStale` only for diagnostic stale-runtime child-smoke
   output.
 - Do not draft a live review packet unless the latest full bundle prints

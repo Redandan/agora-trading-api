@@ -798,6 +798,15 @@ The TP/SL/OCO feasibility packet follows the same split: trailing PASS plus
 healthy Strategy485 OCO evidence can make the packet review-ready, while an
 empty Strategy485 risk set is recorded as `NO_POSITION_RISK_ACTION` instead of
 blocking the packet.
+The live-review source now separates docs/tooling-only origin drift from true
+runtime drift. `smoke_live_readiness_bundle_ssh.ps1` emits
+`origin_delta_status`, `origin_runtime_delta_files`, and
+`origin_docs_tooling_delta_files`; `prepare_live_review_packet_ssh.ps1` accepts
+`WORKTREE_NOT_ORIGIN_MAIN` only when the classifier proves
+`DOCS_TOOLING_ONLY_DRIFT`. `RUNTIME_DRIFT`, `NO_LOCAL_EVIDENCE`, non-empty
+`bundle_blockers`, and non-ready runtime/tiny-live/signal evidence remain hard
+blockers. This keeps aggressive micro-live review from stalling on
+scripts/docs-only commits while still blocking real runtime drift.
 The refresh now sources the EntryDedup lane from the fresh production
 `prepare_entry_dedup_operator_decision_brief_ssh.ps1` packet using the reviewed
 720h / 24h forward / 50-row window; local static EntryDedup shadow rows are not

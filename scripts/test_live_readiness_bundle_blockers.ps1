@@ -168,8 +168,10 @@ function Get-LiveReadinessBundleBlockers {
             -or $DeploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
-    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
-            -or $DeploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+    } elseif ($DeploymentMetadata -match "liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" `
+            -and $DeploymentMetadata -match "origin_delta_status=DOCS_TOOLING_ONLY_DRIFT") {
+    } else {
         $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
     }
 
@@ -672,6 +674,8 @@ Assert-BlockerCase -Name "missing mcp parity missing-tool list fails closed" -In
 Assert-BlockerCase -Name "mcp parity missing required tools fail closed" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "required_tools=[`"getMcpRegistryVersion`",`"verifyStrategyExecution`"]`nmissing_required_tools=[`"verifyStrategyExecution`"]`n[mcp-parity-ssh] OK toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "runtime drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=RUNTIME_DRIFT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "origin drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
+Assert-BlockerCase -Name "origin docs tooling drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN`norigin_delta_status=DOCS_TOOLING_ONLY_DRIFT" }) -ExpectedBlockers @()
+Assert-BlockerCase -Name "origin runtime drift metadata" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN`norigin_delta_status=RUNTIME_DRIFT" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 Assert-BlockerCase -Name "missing deployment metadata fails closed" -Inputs (Merge-Inputs $cleanInputs @{ DeploymentMetadata = "deployment probe skipped" }) -ExpectedBlockers @("DEPLOYED_RUNTIME_NOT_CURRENT")
 
 $currentObservedAudit = $readyAudit.

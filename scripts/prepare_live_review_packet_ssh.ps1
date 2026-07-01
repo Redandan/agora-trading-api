@@ -145,11 +145,15 @@ $bundleText = ($bundleOutput | Out-String)
 $blockers = Convert-JsonArrayOrEmpty -Value (Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_blockers=")
 $deploymentMetadataStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "deployment_metadata_status="
 $originMetadataStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "origin_metadata_status="
+$originDeltaStatus = Get-LastPrefixedValue -Text $bundleText -Prefix "origin_delta_status="
+$originRuntimeDeltaFiles = Get-LastPrefixedValue -Text $bundleText -Prefix "origin_runtime_delta_files="
+$originDocsToolingDeltaFiles = Get-LastPrefixedValue -Text $bundleText -Prefix "origin_docs_tooling_delta_files="
 $bundleBlockerSummary = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_blocker_summary="
 $bundleBlockerSummaryItems = Convert-JsonArrayOrNull -Value $bundleBlockerSummary
 $liveAllowed = Get-LastPrefixedValue -Text $bundleText -Prefix "live_review_packet_allowed="
 $deployRequired = Get-LastPrefixedValue -Text $bundleText -Prefix "deploy_required_before_live_review="
 $bundleVerdict = Get-LastPrefixedValue -Text $bundleText -Prefix "bundle_verdict="
+$originCurrentEnough = $originMetadataStatus -eq "CURRENT_ORIGIN_MAIN" -or ($originMetadataStatus -eq "WORKTREE_NOT_ORIGIN_MAIN" -and $originDeltaStatus -eq "DOCS_TOOLING_ONLY_DRIFT")
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ([string]::IsNullOrWhiteSpace($bundleBlockerSummary)) {
@@ -199,12 +203,12 @@ if ($bundleVerdict -ne "READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED") {
 if ($deploymentMetadataStatus -ne "CURRENT" -and $deploymentMetadataStatus -ne "DOCS_TOOLING_ONLY_DRIFT") {
     $missingRequirements.Add("deployment_metadata_status is not current")
 }
-if ($originMetadataStatus -ne "CURRENT_ORIGIN_MAIN") {
-    $missingRequirements.Add("origin_metadata_status is not CURRENT_ORIGIN_MAIN")
+if (-not $originCurrentEnough) {
+    $missingRequirements.Add("origin_metadata_status is not CURRENT_ORIGIN_MAIN or DOCS_TOOLING_ONLY_DRIFT")
 }
 
 $packetReady = $missingRequirements.Count -eq 0
-$runtimeStale = @($blockers) -contains "DEPLOYED_RUNTIME_NOT_CURRENT" -or $originMetadataStatus -ne "CURRENT_ORIGIN_MAIN" -or $deployRequired -eq "true"
+$runtimeStale = @($blockers) -contains "DEPLOYED_RUNTIME_NOT_CURRENT" -or (-not $originCurrentEnough) -or $deployRequired -eq "true"
 
 Write-Host "[live-review-packet-preflight] read-only evidence gate"
 Write-Host "scope=READ_ONLY; runs the full live-readiness bundle only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
@@ -213,6 +217,9 @@ Write-Host "origin_delta_classifier=smoke_live_origin_delta_local.ps1"
 Write-Host "source_smoke_exit_code=$bundleExitCode"
 Write-Host "deployment_metadata_status=$deploymentMetadataStatus"
 Write-Host "origin_metadata_status=$originMetadataStatus"
+Write-Host "origin_delta_status=$originDeltaStatus"
+Write-Host "origin_runtime_delta_files=$originRuntimeDeltaFiles"
+Write-Host "origin_docs_tooling_delta_files=$originDocsToolingDeltaFiles"
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress @($blockers)))
 Write-Host "packet_bundle_blocker_summary=$bundleBlockerSummary"
 Write-Host "live_review_packet_allowed=$liveAllowed"

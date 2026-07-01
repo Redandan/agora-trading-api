@@ -81,6 +81,161 @@ Assert-SmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 16
 $scriptDir = $PSScriptRoot
 $script:LiveReadinessDeploymentMetadataSnapshot = ""
 
+function Get-LastPrefixedValue {
+    param([string]$Text, [string]$Prefix)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return $null
+    }
+    $line = @($Text -split "`r?`n" | Where-Object { $_.StartsWith($Prefix) } | Select-Object -Last 1)
+    if (-not $line) {
+        return $null
+    }
+    return $line.Substring($Prefix.Length).Trim()
+}
+
+function Get-DeltaPathKind {
+    param([string]$Path)
+
+    if ($Path -eq ".gitattributes" `
+            -or $Path -eq ".gitignore" `
+            -or $Path -eq "AGENTS.md" `
+            -or $Path -eq "INTERNAL_API_TODO.md" `
+            -or $Path -eq "README.md" `
+            -or $Path -eq "SERVICE_BOUNDARY.md" `
+            -or $Path -eq "SPLIT_PROGRESS.md" `
+            -or $Path -like "src/test/*" `
+            -or $Path -like "docs/*" `
+            -or $Path -eq "deploy.sh" `
+            -or $Path -like "scripts/*.ps1" `
+            -or $Path -eq "scripts/install_nginx_path.sh" `
+            -or $Path -eq "scripts/rewrite_nginx_trading_routes.awk" `
+            -or $Path -eq "scripts/check_server_runtime_log.sh" `
+            -or $Path -eq "scripts/verify_server.sh") {
+        return "docs-tooling"
+    }
+    return "runtime"
+}
+
+function Test-GitCommitishSafe {
+    param([string]$Value)
+
+    return -not [string]::IsNullOrWhiteSpace($Value) -and $Value -match "^[a-fA-F0-9]{40}$"
+}
+
+function Get-OriginDeltaLocalClassification {
+    param([string]$DeploymentMetadata)
+
+    $serverWorktreeCommit = Get-LastPrefixedValue -Text $DeploymentMetadata -Prefix "worktreeCommit="
+    $originMainCommit = Get-LastPrefixedValue -Text $DeploymentMetadata -Prefix "originMainCommit="
+    $repoRoot = Split-Path -Parent $scriptDir
+    $classification = "NO_LOCAL_EVIDENCE"
+    $localEvidence = $false
+    $deltaFiles = @()
+    $docsToolingDeltaFiles = @()
+    $runtimeDeltaFiles = @()
+    $errorText = ""
+
+    if ($serverWorktreeCommit -eq $originMainCommit -and -not [string]::IsNullOrWhiteSpace($serverWorktreeCommit)) {
+        $classification = "CURRENT_ORIGIN_MAIN"
+        $localEvidence = $true
+    } else {
+        try {
+            if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+                throw "git is not available on PATH"
+            }
+            if (-not (Test-GitCommitishSafe -Value $serverWorktreeCommit)) {
+                throw "server worktree commit is not a full git commit hash"
+            }
+            if (-not (Test-GitCommitishSafe -Value $originMainCommit)) {
+                throw "origin main commit is not a full git commit hash"
+            }
+
+            & git -C $repoRoot cat-file -e "$serverWorktreeCommit^{commit}" 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                throw "server worktree commit is not available in local git object database"
+            }
+            & git -C $repoRoot cat-file -e "$originMainCommit^{commit}" 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                throw "origin main commit is not available in local git object database"
+            }
+
+            $deltaFiles = @(& git -C $repoRoot diff --name-only $serverWorktreeCommit $originMainCommit)
+            foreach ($path in @($deltaFiles)) {
+                if ([string]::IsNullOrWhiteSpace($path)) {
+                    continue
+                }
+                if ((Get-DeltaPathKind -Path $path) -eq "runtime") {
+                    $runtimeDeltaFiles += $path
+                } else {
+                    $docsToolingDeltaFiles += $path
+                }
+            }
+            $localEvidence = $true
+            if ($runtimeDeltaFiles.Count -gt 0) {
+                $classification = "RUNTIME_DRIFT"
+            } else {
+                $classification = "DOCS_TOOLING_ONLY_DRIFT"
+            }
+        } catch {
+            $classification = "NO_LOCAL_EVIDENCE"
+            $errorText = $_.Exception.Message
+        }
+    }
+
+    return [pscustomobject]@{
+        status = $classification
+        localEvidence = $localEvidence
+        deltaFiles = @($deltaFiles)
+        docsToolingDeltaFiles = @($docsToolingDeltaFiles)
+        runtimeDeltaFiles = @($runtimeDeltaFiles)
+        error = $errorText
+    }
+}
+
+function Add-OriginDeltaLocalClassification {
+    param([string]$DeploymentMetadata)
+
+    $classification = Get-OriginDeltaLocalClassification -DeploymentMetadata $DeploymentMetadata
+    Write-Host ""
+    Write-Host "[live-readiness-bundle] origin delta local classifier"
+    if (-not [string]::IsNullOrWhiteSpace($classification.error)) {
+        Write-Host "origin_delta_local_error=$($classification.error)"
+    }
+    Write-Host "origin_delta_local_evidence=$($classification.localEvidence.ToString().ToLowerInvariant())"
+    Write-Host "origin_delta_status=$($classification.status)"
+    Write-Host "origin_delta_files=$(@($classification.deltaFiles).Count)"
+    Write-Host "origin_docs_tooling_delta_files=$(@($classification.docsToolingDeltaFiles).Count)"
+    Write-Host "origin_runtime_delta_files=$(@($classification.runtimeDeltaFiles).Count)"
+    Write-Host ("origin_runtime_delta_paths=" + (ConvertTo-Json -Compress @($classification.runtimeDeltaFiles)))
+
+    $extra = @(
+        "origin_delta_local_evidence=$($classification.localEvidence.ToString().ToLowerInvariant())",
+        "origin_delta_status=$($classification.status)",
+        "origin_delta_files=$(@($classification.deltaFiles).Count)",
+        "origin_docs_tooling_delta_files=$(@($classification.docsToolingDeltaFiles).Count)",
+        "origin_runtime_delta_files=$(@($classification.runtimeDeltaFiles).Count)",
+        ("origin_runtime_delta_paths=" + (ConvertTo-Json -Compress @($classification.runtimeDeltaFiles)))
+    )
+    if (-not [string]::IsNullOrWhiteSpace($classification.error)) {
+        $extra = @("origin_delta_local_error=$($classification.error)") + $extra
+    }
+    return (($DeploymentMetadata, ($extra -join "`n")) -join "`n")
+}
+
+function Test-OriginDeltaRequiresDeploy {
+    param([string]$DeploymentMetadata)
+
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+        return $false
+    }
+    if ($DeploymentMetadata -match "liveBundleOriginStatus=WORKTREE_NOT_ORIGIN_MAIN" `
+            -and $DeploymentMetadata -match "origin_delta_status=DOCS_TOOLING_ONLY_DRIFT") {
+        return $false
+    }
+    return $true
+}
+
 function Get-ReadOnlySshFailureClassification {
     param(
         [int]$ExitCode,
@@ -109,8 +264,7 @@ function Get-LiveReadinessDeployRequirement {
             -or $DeploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
         return "true"
     }
-    if ($DeploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
-            -or $DeploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+    if (Test-OriginDeltaRequiresDeploy -DeploymentMetadata $DeploymentMetadata) {
         return "true"
     }
     return "false"
@@ -127,6 +281,12 @@ function Write-PartialDeploymentMetadata {
     }
     if ($DeploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
         Write-Host ("origin_metadata_status=" + $Matches[1])
+    }
+    if ($DeploymentMetadata -match "origin_delta_status=([A-Z_]+)") {
+        Write-Host ("origin_delta_status=" + $Matches[1])
+    }
+    if ($DeploymentMetadata -match "origin_runtime_delta_files=([0-9]+)") {
+        Write-Host ("origin_runtime_delta_files=" + $Matches[1])
     }
 }
 
@@ -484,9 +644,9 @@ function New-BlockerSummary {
             }
             "DEPLOYED_RUNTIME_NOT_CURRENT" {
                 $category = "deployment-metadata"
-                $requiredEvidence = ".\scripts\smoke_live_deployment_metadata_ssh.ps1; .\scripts\smoke_live_readiness_bundle_ssh.ps1"
-                $evidenceMarkers = @("liveBundleDeployStatus is not CURRENT/DOCS_TOOLING_ONLY_DRIFT", "liveBundleOriginStatus is not CURRENT_ORIGIN_MAIN")
-                $nextAction = "Deploy and verify current origin/main separately, then rerun the full read-only bundle."
+                $requiredEvidence = ".\scripts\smoke_live_deployment_metadata_ssh.ps1; .\scripts\smoke_live_origin_delta_local.ps1; .\scripts\smoke_live_readiness_bundle_ssh.ps1"
+                $evidenceMarkers = @("liveBundleDeployStatus is not CURRENT/DOCS_TOOLING_ONLY_DRIFT", "origin_delta_status is RUNTIME_DRIFT/NO_LOCAL_EVIDENCE", "liveBundleOriginStatus is UNKNOWN_ORIGIN_MAIN")
+                $nextAction = "If origin_delta_status=RUNTIME_DRIFT, deploy and verify current origin/main separately. If origin_delta_status=DOCS_TOOLING_ONLY_DRIFT, rerun/read the full bundle output instead of treating currentness as a runtime deploy blocker."
             }
             "LIVE_READINESS_EVIDENCE_UNAVAILABLE" {
                 $category = "evidence"
@@ -519,6 +679,7 @@ Write-Host "scope=READ_ONLY; invokes existing read-only SSH smokes only; no prod
 Write-Host "symbol=$Symbol strategyId=$StrategyId side=$Side interval=$IntervalCode"
 
 $deploymentMetadata = Invoke-ReadOnlyDeploymentMetadata
+$deploymentMetadata = Add-OriginDeltaLocalClassification -DeploymentMetadata $deploymentMetadata
 $script:LiveReadinessDeploymentMetadataSnapshot = $deploymentMetadata
 Assert-DeploymentMetadataCurrentOrStop -DeploymentMetadata $deploymentMetadata
 $audit = Invoke-ReadOnlySmoke -Name "live-readiness-audit" -ScriptName "audit_live_readiness_ssh.ps1" -Arguments ($common + @{
@@ -661,8 +822,7 @@ if ($deploymentMetadata -match "liveBundleDeployStatus=(RUNTIME_DRIFT|UNKNOWN_DE
         -or $deploymentMetadata -notmatch "liveBundleDeployStatus=(CURRENT|DOCS_TOOLING_ONLY_DRIFT)") {
     $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
 }
-if ($deploymentMetadata -match "liveBundleOriginStatus=(WORKTREE_NOT_ORIGIN_MAIN|UNKNOWN_ORIGIN_MAIN)" `
-        -or $deploymentMetadata -notmatch "liveBundleOriginStatus=CURRENT_ORIGIN_MAIN") {
+if (Test-OriginDeltaRequiresDeploy -DeploymentMetadata $deploymentMetadata) {
     $blockers.Add("DEPLOYED_RUNTIME_NOT_CURRENT")
 }
 
@@ -675,6 +835,15 @@ if ($deploymentMetadata -match "liveBundleDeployStatus=([A-Z_]+)") {
 }
 if ($deploymentMetadata -match "liveBundleOriginStatus=([A-Z_]+)") {
     Write-Host ("origin_metadata_status=" + $Matches[1])
+}
+if ($deploymentMetadata -match "origin_delta_status=([A-Z_]+)") {
+    Write-Host ("origin_delta_status=" + $Matches[1])
+}
+if ($deploymentMetadata -match "origin_runtime_delta_files=([0-9]+)") {
+    Write-Host ("origin_runtime_delta_files=" + $Matches[1])
+}
+if ($deploymentMetadata -match "origin_docs_tooling_delta_files=([0-9]+)") {
+    Write-Host ("origin_docs_tooling_delta_files=" + $Matches[1])
 }
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $uniqueBlockers))
 Write-Host ("bundle_blocker_summary=" + (ConvertTo-Json -Compress -Depth 4 $blockerSummary))

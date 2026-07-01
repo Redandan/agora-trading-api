@@ -2255,7 +2255,11 @@ to package a more aggressive review path. It emits
 `HIGH_RISK_MICRO_LIVE_PROBE`, `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and
 `EVIDENCE_ONLY_ACCELERATOR`. The packet is read-only: it keeps
 `order_allowed=false`, does not deploy, does not change production env, and does
-not enable live/TinyLive/scheduler/OCO/grid mutations by itself.
+not enable live/TinyLive/scheduler/OCO/grid mutations by itself. Each option
+also carries machine-readable `postEnvReadOnlyVerificationCommands`,
+`killSwitchEnvDiff`, and `rollbackCommands`; those entries are decision support
+for a separately authorized env/deploy step, not permission to mutate runtime
+state from this packet.
 Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints

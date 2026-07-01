@@ -42,7 +42,17 @@ foreach ($marker in @(
         "MaxProbeNotionalUsdt",
         "profit_aggressive_activation_status",
         "profit_aggressive_activation_options",
+        "postEnvReadOnlyVerificationCommands",
+        "killSwitchEnvDiff",
+        "rollbackCommands",
+        "profit_aggressive_activation_post_env_read_only_verification_plan",
+        "profit_aggressive_activation_kill_switch_plan",
+        "profit_aggressive_activation_rollback_commands",
         "profit_aggressive_activation_required_authorization_texts",
+        "TRADING_OKX_ENABLED=false",
+        "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false",
+        "verify_split_acceptance_ssh.ps1",
+        "smoke_live_readiness_bundle_ssh.ps1",
         "live_policy_change_allowed=false",
         "scheduler_enablement_allowed=false",
         "order_allowed=false",
@@ -65,6 +75,9 @@ foreach ($marker in @(
         "PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET",
         "HIGH_RISK_MICRO_LIVE_PROBE",
         "EVIDENCE_ONLY_ACCELERATOR",
+        "postEnvReadOnlyVerificationCommands",
+        "killSwitchEnvDiff",
+        "rollbackCommands",
         "order_allowed=false",
         "read-only"
     )) {
@@ -145,6 +158,12 @@ try {
             "HIGH_RISK_MICRO_LIVE_PROBE",
             "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH",
             "EVIDENCE_ONLY_ACCELERATOR",
+            "profit_aggressive_activation_post_env_read_only_verification_plan",
+            "profit_aggressive_activation_kill_switch_plan",
+            "profit_aggressive_activation_rollback_commands",
+            "verify_split_acceptance_ssh.ps1",
+            "smoke_live_readiness_bundle_ssh.ps1",
+            "TRADING_OKX_ENABLED=false",
             "NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE",
             "DATAFRESHNESS_REPLAY_ROWS_MISSING",
             "order_allowed=false",
@@ -160,6 +179,26 @@ try {
     }
     if (@($packet.aggressiveOptions).Count -ne 3) {
         throw "aggressive activation packet should include exactly three options"
+    }
+    foreach ($option in @($packet.aggressiveOptions)) {
+        if (@($option.postEnvReadOnlyVerificationCommands).Count -eq 0) {
+            throw "aggressive activation option $($option.optionId) should include post-env read-only verification commands"
+        }
+        if (@($option.killSwitchEnvDiff).Count -eq 0) {
+            throw "aggressive activation option $($option.optionId) should include kill-switch env diff"
+        }
+        if (@($option.rollbackCommands).Count -eq 0) {
+            throw "aggressive activation option $($option.optionId) should include rollback commands"
+        }
+    }
+    if (@($packet.postEnvReadOnlyVerificationPlan.evidenceOnlyAccelerator).Count -eq 0) {
+        throw "aggressive activation packet should expose top-level post-env read-only verification plan"
+    }
+    if (@($packet.killSwitchPlan.evidenceOnlyAccelerator).Count -eq 0) {
+        throw "aggressive activation packet should expose top-level kill-switch plan"
+    }
+    if (@($packet.rollbackCommands.evidenceOnlyAccelerator).Count -eq 0) {
+        throw "aggressive activation packet should expose top-level rollback commands"
     }
     if (@($packet.riskBlockers) -notcontains "NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE") {
         throw "aggressive activation packet should surface no-open-OCO risk blocker"

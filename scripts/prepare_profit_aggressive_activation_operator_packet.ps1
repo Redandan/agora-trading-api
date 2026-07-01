@@ -145,6 +145,83 @@ $microProbeRiskAcceptedText = "I explicitly authorize HIGH_RISK_MICRO_LIVE_PROBE
 $gridRiskAcceptedText = "I explicitly authorize SEPARATE_GRID10_ORDER_PATH_REVIEW for $Symbol with existing-grid activation risk accepted, TRADING_OKX_ENABLED=true reviewed separately, and no createGrid/order execution until the grid authorization bundle and post-env verification are current."
 $evidenceAcceleratorText = "I authorize EVIDENCE_ONLY_ACCELERATOR for ${Symbol}: runtime/DataFreshness shadow evidence collection may be reviewed, while TRADING_OKX_ENABLED=false and all live/order/OCO/grid/fund/Earn/Telegram mutations remain disabled."
 
+$microProbePostEnvReadOnlyVerificationCommands = @(
+    ".\scripts\verify_split_acceptance_ssh.ps1",
+    ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+    ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+    ".\scripts\audit_live_readiness_ssh.ps1 -Symbol $Symbol",
+    ".\scripts\smoke_live_readiness_bundle_ssh.ps1",
+    ".\scripts\smoke_tiny_live_loss_rca_ssh.ps1",
+    ".\scripts\smoke_tiny_live_post_trade_ssh.ps1 -Symbol $Symbol -StrategyId 574 -Side LONG",
+    ".\scripts\prepare_profit_live_blocker_source_refresh.ps1 -ReuseLatestProfitOperatorMatrix",
+    ".\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady"
+)
+$microProbeKillSwitchEnvDiff = @(
+    "TRADING_OKX_ENABLED=false",
+    "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false"
+)
+$microProbeRollbackCommands = @(
+    "apply the micro-probe killSwitchEnvDiff through the approved deploy runbook",
+    ".\scripts\verify_split_acceptance_ssh.ps1",
+    ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+    ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+    ".\scripts\smoke_live_readiness_bundle_ssh.ps1"
+)
+$gridPostEnvReadOnlyVerificationCommands = @(
+    ".\scripts\verify_split_acceptance_ssh.ps1",
+    ".\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1 -RequireBoardReady",
+    ".\scripts\watch_grid_open_readiness_ssh.ps1",
+    ".\scripts\prepare_grid_post_env_verification_plan_ssh.ps1 -AcceptAlreadyAppliedEnvDiff -RequirePlanReady",
+    ".\scripts\prepare_grid_post_env_read_only_verification_bundle_ssh.ps1 -RequireVerificationReady",
+    ".\scripts\smoke_grid_post_open_ssh.ps1 -GridId 10 -Symbol $Symbol",
+    ".\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady"
+)
+$gridKillSwitchEnvDiff = @(
+    "TRADING_OKX_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
+    "GRID_RECOVERY_ENABLED=false",
+    "OKX_EARN_TOPUP_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false"
+)
+$gridRollbackCommands = @(
+    "apply the grid killSwitchEnvDiff through the approved deploy runbook",
+    ".\scripts\verify_split_acceptance_ssh.ps1",
+    ".\scripts\prepare_grid_open_blocker_priority_board_ssh.ps1",
+    ".\scripts\smoke_grid_post_open_ssh.ps1 -GridId 10 -Symbol $Symbol"
+)
+$evidencePostEnvReadOnlyVerificationCommands = @(
+    ".\scripts\verify_split_acceptance_ssh.ps1",
+    ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+    ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady",
+    ".\scripts\smoke_live_readiness_bundle_ssh.ps1",
+    ".\scripts\prepare_profit_live_blocker_source_refresh.ps1 -ReuseLatestProfitOperatorMatrix",
+    ".\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady"
+)
+$evidenceKillSwitchEnvDiff = @(
+    "TRADING_RUNTIME_EVIDENCE_ENABLED=false",
+    "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=false",
+    "TRADING_OKX_ENABLED=false",
+    "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false"
+)
+$evidenceRollbackCommands = @(
+    "apply the evidence-only killSwitchEnvDiff through the approved deploy runbook",
+    ".\scripts\verify_split_acceptance_ssh.ps1",
+    ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
+    ".\scripts\smoke_runtime_evidence_rca_ssh.ps1",
+    ".\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady"
+)
+
 $aggressiveOptions = @(
     [pscustomobject]@{
         optionId = "HIGH_RISK_MICRO_LIVE_PROBE"
@@ -165,6 +242,9 @@ $aggressiveOptions = @(
             "runtime evidence enabled and orderSentEvidence=0 before probe",
             "kill switch and rollback env diff prepared"
         )
+        postEnvReadOnlyVerificationCommands = @($microProbePostEnvReadOnlyVerificationCommands)
+        killSwitchEnvDiff = @($microProbeKillSwitchEnvDiff)
+        rollbackCommands = @($microProbeRollbackCommands)
         confirmationText = $microProbeRiskAcceptedText
     },
     [pscustomobject]@{
@@ -181,6 +261,9 @@ $aggressiveOptions = @(
             "existing active grid order-path activation risk explicitly accepted",
             "post-env read-only verification plan ready"
         )
+        postEnvReadOnlyVerificationCommands = @($gridPostEnvReadOnlyVerificationCommands)
+        killSwitchEnvDiff = @($gridKillSwitchEnvDiff)
+        rollbackCommands = @($gridRollbackCommands)
         confirmationText = $gridRiskAcceptedText
     },
     [pscustomobject]@{
@@ -196,6 +279,9 @@ $aggressiveOptions = @(
             "scheduler/order/OCO/grid/fund/Earn/Telegram mutation disabled",
             "post-env read-only verification commands accepted"
         )
+        postEnvReadOnlyVerificationCommands = @($evidencePostEnvReadOnlyVerificationCommands)
+        killSwitchEnvDiff = @($evidenceKillSwitchEnvDiff)
+        rollbackCommands = @($evidenceRollbackCommands)
         confirmationText = $evidenceAcceleratorText
     }
 )
@@ -229,6 +315,21 @@ $packet = [pscustomobject]@{
     dataFreshnessReplayCandidateIdRows = $replayCandidateRows
     dataFreshnessCompleteReplayableCandidateRows = $completeReplayableRows
     aggressiveOptions = @($aggressiveOptions)
+    postEnvReadOnlyVerificationPlan = [pscustomobject]@{
+        highRiskMicroLiveProbe = @($microProbePostEnvReadOnlyVerificationCommands)
+        grid10ExistingActiveGridOrderPath = @($gridPostEnvReadOnlyVerificationCommands)
+        evidenceOnlyAccelerator = @($evidencePostEnvReadOnlyVerificationCommands)
+    }
+    killSwitchPlan = [pscustomobject]@{
+        highRiskMicroLiveProbe = @($microProbeKillSwitchEnvDiff)
+        grid10ExistingActiveGridOrderPath = @($gridKillSwitchEnvDiff)
+        evidenceOnlyAccelerator = @($evidenceKillSwitchEnvDiff)
+    }
+    rollbackCommands = [pscustomobject]@{
+        highRiskMicroLiveProbe = @($microProbeRollbackCommands)
+        grid10ExistingActiveGridOrderPath = @($gridRollbackCommands)
+        evidenceOnlyAccelerator = @($evidenceRollbackCommands)
+    }
     primaryRecommendation = "Prefer EVIDENCE_ONLY_ACCELERATOR now; use HIGH_RISK_MICRO_LIVE_PROBE only after a separate exact operator confirmation and current BUY/OCO/EV gates."
     riskBlockers = @($riskBlockers)
     missingEvidence = @($missingEvidence)
@@ -277,6 +378,9 @@ Write-Host "profit_aggressive_activation_open_oco_positions=$openOcoPositions"
 Write-Host "profit_aggressive_activation_data_freshness_replay_candidate_id_rows=$replayCandidateRows"
 Write-Host "profit_aggressive_activation_data_freshness_complete_replayable_candidate_rows=$completeReplayableRows"
 Write-Host ("profit_aggressive_activation_options=" + (ConvertTo-Json -Compress -Depth 10 @($aggressiveOptions)))
+Write-Host ("profit_aggressive_activation_post_env_read_only_verification_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.postEnvReadOnlyVerificationPlan))
+Write-Host ("profit_aggressive_activation_kill_switch_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.killSwitchPlan))
+Write-Host ("profit_aggressive_activation_rollback_commands=" + (ConvertTo-Json -Compress -Depth 10 $packet.rollbackCommands))
 Write-Host ("profit_aggressive_activation_risk_blockers=" + (ConvertTo-Json -Compress @($riskBlockers)))
 Write-Host ("profit_aggressive_activation_missing_evidence=" + (ConvertTo-Json -Compress @($missingEvidence)))
 Write-Host ("profit_aggressive_activation_required_authorization_texts=" + (ConvertTo-Json -Compress @($packet.requiredExplicitAuthorizationTexts)))

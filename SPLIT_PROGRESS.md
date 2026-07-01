@@ -1059,6 +1059,10 @@
   blockers such as `NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE` and
   `DATAFRESHNESS_REPLAY_ROWS_MISSING`, while keeping `order_allowed=false`,
   `deploy_or_env_change_allowed=false`, and `live_policy_change_allowed=false`.
+  Each option now also carries machine-readable
+  `postEnvReadOnlyVerificationCommands`, `killSwitchEnvDiff`, and
+  `rollbackCommands`, plus top-level post-env verification, kill-switch, and
+  rollback plans for a separate operator env/deploy decision.
   `scripts/prepare_profit_operator_review_summary.ps1` converts that latest
   action brief into `profit_operator_review_summary_packet`, ready lanes,
   exit-side proposals, blocked lanes, and required evidence for operator review

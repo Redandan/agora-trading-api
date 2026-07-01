@@ -2428,8 +2428,14 @@ Expected:
   `HIGH_RISK_MICRO_LIVE_PROBE`, `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and
   `EVIDENCE_ONLY_ACCELERATOR`. The packet keeps `order_allowed=false`,
   `deploy_or_env_change_allowed=false`, and `live_policy_change_allowed=false`.
-  It is not deployment approval and does not enable live/TinyLive/scheduler,
-  order, OCO, grid, fund, Earn, Telegram, exchange, or DB mutation.
+  It also emits machine-readable
+  `profit_aggressive_activation_post_env_read_only_verification_plan`,
+  `profit_aggressive_activation_kill_switch_plan`, and
+  `profit_aggressive_activation_rollback_commands`. Those fields list the
+  commands and env diff that must be reviewed for a separate env/deploy
+  decision; they are not deployment approval and do not enable
+  live/TinyLive/scheduler, order, OCO, grid, fund, Earn, Telegram, exchange, or
+  DB mutation.
 - For the fastest local status check from the latest saved matrix without
   rerunning SSH or replaying the full action brief, run:
 

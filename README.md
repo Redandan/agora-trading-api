@@ -2290,6 +2290,20 @@ Even in that ready state it keeps `micro_probe_env_deploy_request_allowed=false`
 `live_policy_change_allowed=false`; a separate same-session env/deploy/order
 authorization is still required.
 Use
+`.\scripts\prepare_profit_high_risk_micro_live_probe_activation_authorization_bundle.ps1 -RequireReady`
+after saving the handoff and preflight logs to package the final exact
+activation review prompt. It emits
+`PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_AUTHORIZATION_BUNDLE`,
+`micro_probe_activation_authorization_review_ready`,
+`micro_probe_activation_authorization_text`, the exact env diff, post-env
+read-only verification commands, kill-switch env diff, and rollback commands.
+The ready status is
+`READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`.
+It still keeps `micro_probe_activation_execution_allowed=false`,
+`micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`; it prepares an
+operator prompt but does not execute the env/deploy/order step.
+Use
 `.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
 to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit
 `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`. That handoff

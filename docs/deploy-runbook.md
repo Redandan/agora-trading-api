@@ -2479,6 +2479,24 @@ Expected:
   `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `live_policy_change_allowed=false`; it prepares an
   exact-authorization review but does not authorize deployment or orders.
+- To package the exact final activation prompt after a ready handoff and
+  preflight, run:
+
+  ```powershell
+  .\scripts\prepare_profit_high_risk_micro_live_probe_activation_authorization_bundle.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_AUTHORIZATION_BUNDLE`,
+  `profit_high_risk_micro_live_probe_activation_authorization_status=READY_FOR_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+  `micro_probe_activation_authorization_review_ready=true`,
+  `micro_probe_activation_authorization_text`, `micro_probe_activation_env_diff`,
+  `micro_probe_post_env_read_only_verification`, and
+  `micro_probe_kill_switch_env_diff`. This is still an operator prompt packet:
+  it keeps `micro_probe_activation_execution_allowed=false`,
+  `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`. It does not
+  change production env, deploy, enable TinyLive, or place orders.
 - To turn the recommended non-order evidence lane into an exact authorization
   request, run:
 

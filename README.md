@@ -2297,6 +2297,18 @@ only after a fresh grid bundle and exact authorization clear. When a fresh
 `profit_aggressive_activation_grid10_ranked_blockers` so the grid10 lane uses
 current trend/capital blocker evidence.
 Use
+`.\scripts\prepare_profit_grid10_order_path_handoff.ps1 -RequireReady` after a
+fresh 10 USDT micro-grid authorization bundle is saved locally. It emits
+`PROFIT_GRID10_ORDER_PATH_HANDOFF_PACKET`,
+`READY_FOR_PROFIT_GRID10_ORDER_PATH_OPERATOR_REVIEW_NOT_MUTATION`,
+`grid10_exact_authorization_texts`, `grid10_post_env_read_only_verification`,
+`grid10_kill_switch_env_diff`, and the reviewed 2 x 5 USDT createGrid inputs.
+The handoff packages the order-capable grid10 lane into separate trend-regime,
+capital-cap, env diff, deploy/post-env, and createGrid authorization texts, but
+still keeps `grid10_execution_now_allowed=false`,
+`grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
+`create_grid_allowed=false`.
+Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk
 operator review packet. It emits

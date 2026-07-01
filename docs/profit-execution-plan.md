@@ -142,6 +142,25 @@ post-env-bundle placeholder. The packet is not live approval: it keeps
 `live_policy_change_allowed=false`. A later env/deploy/live action still
 requires separate exact operator authorization matching the selected lane.
 
+When the operator wants to review the grid10 order-capable lane instead of the
+micro-live lane, first refresh the micro-grid authorization bundle with the
+reviewed 10 USDT parameters, then run:
+
+```powershell
+.\scripts\prepare_profit_grid10_order_path_handoff.ps1 -RequireReady
+```
+
+This emits `PROFIT_GRID10_ORDER_PATH_HANDOFF_PACKET`,
+`READY_FOR_PROFIT_GRID10_ORDER_PATH_OPERATOR_REVIEW_NOT_MUTATION`,
+`grid10_exact_authorization_texts`,
+`grid10_post_env_read_only_verification`, `grid10_kill_switch_env_diff`, and
+the reviewed 2 x 5 USDT createGrid inputs. It packages the separate
+trend-regime, capital-cap, production env diff, deploy/post-env verification,
+and createGrid authorization texts, but remains non-executing:
+`grid10_execution_now_allowed=false`,
+`grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
+`create_grid_allowed=false`.
+
 For the high-risk lane that is closest to a real-money probe, package the
 review handoff with:
 

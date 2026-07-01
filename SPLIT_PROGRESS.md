@@ -1191,6 +1191,17 @@
   `profit_aggressive_activation_grid10_ranked_blockers`, so the grid10 lane can
   carry current trend/capital blocker evidence instead of generic post-env
   placeholders.
+  `scripts/prepare_profit_grid10_order_path_handoff.ps1` now packages the
+  `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` lane after a fresh 10 USDT
+  micro-grid authorization bundle is saved locally. It emits
+  `PROFIT_GRID10_ORDER_PATH_HANDOFF_PACKET` with
+  `READY_FOR_PROFIT_GRID10_ORDER_PATH_OPERATOR_REVIEW_NOT_MUTATION`,
+  `grid10_exact_authorization_texts`,
+  `grid10_post_env_read_only_verification`, `grid10_kill_switch_env_diff`, and
+  reviewed 2 x 5 USDT inputs, while keeping
+  `grid10_execution_now_allowed=false`,
+  `grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
+  `create_grid_allowed=false`.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

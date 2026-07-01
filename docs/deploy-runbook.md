@@ -2452,6 +2452,24 @@ Expected:
   is not deployment approval and does not enable
   live/TinyLive/scheduler, order, OCO, grid, fund, Earn, Telegram, exchange, or
   DB mutation.
+- To package the `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` lane after a fresh
+  10 USDT micro-grid authorization bundle is saved locally, run:
+
+  ```powershell
+  .\scripts\prepare_profit_grid10_order_path_handoff.ps1 -RequireReady
+  ```
+
+  Expected output includes `PROFIT_GRID10_ORDER_PATH_HANDOFF_PACKET`,
+  `profit_grid10_order_path_handoff_status=READY_FOR_PROFIT_GRID10_ORDER_PATH_OPERATOR_REVIEW_NOT_MUTATION`,
+  `grid10_exact_authorization_texts`,
+  `grid10_post_env_read_only_verification`, `grid10_kill_switch_env_diff`, and
+  reviewed 2 x 5 USDT createGrid inputs. The packet separates trend-regime,
+  capital-cap, production env diff, deploy/post-env verification, and
+  createGrid authorization texts while keeping
+  `grid10_execution_now_allowed=false`,
+  `grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
+  `create_grid_allowed=false`; it is not permission to deploy or call
+  `createGrid`.
 - To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator
   review, run:
 

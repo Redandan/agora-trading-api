@@ -353,6 +353,59 @@ $aggressiveOptions = @(
     }
 )
 
+$orderCapableBlockers = [System.Collections.Generic.List[string]]::new()
+foreach ($blocker in @($riskBlockers)) { Add-Unique -List $orderCapableBlockers -Value $blocker }
+if ($liveReadinessConclusion -ne "READY_FOR_LIVE_ENABLEMENT") { Add-Unique -List $orderCapableBlockers -Value "LIVE_READINESS_NOT_READY" }
+if (-not $authorizationReady) { Add-Unique -List $orderCapableBlockers -Value "PROFIT_OPERATOR_AUTHORIZATION_REQUEST_NOT_READY" }
+Add-Unique -List $orderCapableBlockers -Value "CURRENT_BUY_OCO_EV_GATES_NOT_CONFIRMED"
+Add-Unique -List $orderCapableBlockers -Value "SEPARATE_EXACT_OPERATOR_AUTHORIZATION_REQUIRED"
+
+$selectedAggressivePath = "EVIDENCE_ONLY_ACCELERATOR"
+$selectedAggressiveReason = "Orders remain blocked; this is the fastest aggressive step that improves live-readiness evidence without enabling exchange mutation."
+$mostAggressiveOrderCapableCandidate = "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH"
+$orderCapableExecutionNowAllowed = $false
+
+$aggressiveExecutionQueue = @(
+    [pscustomobject]@{
+        rank = 1
+        optionId = "EVIDENCE_ONLY_ACCELERATOR"
+        actionClass = "EVIDENCE_ONLY_ENV_REVIEW"
+        recommendedNow = $true
+        orderCapable = $false
+        executionNowAllowed = $false
+        whyFirst = "Fastest aggressive path that can reduce live-readiness uncertainty while keeping TRADING_OKX_ENABLED=false."
+        requiredAuthorizationText = $evidenceAcceleratorText
+        postEnvReadOnlyVerificationCommands = @($evidencePostEnvReadOnlyVerificationCommands)
+        killSwitchEnvDiff = @($evidenceKillSwitchEnvDiff)
+    },
+    [pscustomobject]@{
+        rank = 2
+        optionId = "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH"
+        actionClass = "ORDER_CAPABLE_GRID_REVIEW"
+        recommendedNow = $false
+        orderCapable = $true
+        executionNowAllowed = $false
+        whyNotNow = "Needs fresh grid authorization bundle, post-env read-only verification, and separate acceptance of existing active Grid #10 order-path activation risk."
+        blockers = @("GRID_AUTHORIZATION_BUNDLE_NOT_VERIFIED_IN_THIS_PACKET", "POST_ENV_GRID_VERIFICATION_NOT_CURRENT", "SEPARATE_EXACT_OPERATOR_AUTHORIZATION_REQUIRED")
+        requiredAuthorizationText = $gridRiskAcceptedText
+        postEnvReadOnlyVerificationCommands = @($gridPostEnvReadOnlyVerificationCommands)
+        killSwitchEnvDiff = @($gridKillSwitchEnvDiff)
+    },
+    [pscustomobject]@{
+        rank = 3
+        optionId = "HIGH_RISK_MICRO_LIVE_PROBE"
+        actionClass = "ORDER_CAPABLE_MICRO_LIVE_PROBE"
+        recommendedNow = $false
+        orderCapable = $true
+        executionNowAllowed = $false
+        whyNotNow = "Live-readiness is not ready and current BUY/OCO/EV gates are not confirmed."
+        blockers = @($orderCapableBlockers)
+        requiredAuthorizationText = $microProbeRiskAcceptedText
+        postEnvReadOnlyVerificationCommands = @($microProbePostEnvReadOnlyVerificationCommands)
+        killSwitchEnvDiff = @($microProbeKillSwitchEnvDiff)
+    }
+)
+
 $packetReady = $missingEvidence.Count -eq 0
 $status = if ($packetReady) {
     "READY_FOR_AGGRESSIVE_ACTIVATION_OPERATOR_REVIEW_NOT_LIVE"
@@ -382,6 +435,12 @@ $packet = [pscustomobject]@{
     dataFreshnessReplayCandidateIdRows = $replayCandidateRows
     dataFreshnessCompleteReplayableCandidateRows = $completeReplayableRows
     aggressiveOptions = @($aggressiveOptions)
+    selectedAggressivePath = $selectedAggressivePath
+    selectedAggressiveReason = $selectedAggressiveReason
+    mostAggressiveOrderCapableCandidate = $mostAggressiveOrderCapableCandidate
+    orderCapableExecutionNowAllowed = $orderCapableExecutionNowAllowed
+    orderCapableBlockers = @($orderCapableBlockers)
+    aggressiveExecutionQueue = @($aggressiveExecutionQueue)
     proposedEnvDiffPlan = [pscustomobject]@{
         highRiskMicroLiveProbe = @($microProbeProposedEnvDiff)
         grid10ExistingActiveGridOrderPath = @($gridProposedEnvDiff)
@@ -407,7 +466,7 @@ $packet = [pscustomobject]@{
         grid10ExistingActiveGridOrderPath = @($gridRollbackCommands)
         evidenceOnlyAccelerator = @($evidenceRollbackCommands)
     }
-    primaryRecommendation = "Prefer EVIDENCE_ONLY_ACCELERATOR now; use HIGH_RISK_MICRO_LIVE_PROBE only after a separate exact operator confirmation and current BUY/OCO/EV gates."
+    primaryRecommendation = "Prefer $selectedAggressivePath now; review $mostAggressiveOrderCapableCandidate as the next order-capable candidate, but keep orderCapableExecutionNowAllowed=false until its fresh bundle and exact authorization clear."
     riskBlockers = @($riskBlockers)
     missingEvidence = @($missingEvidence)
     requiredExplicitAuthorizationTexts = @($microProbeRiskAcceptedText, $gridRiskAcceptedText, $evidenceAcceleratorText)
@@ -455,6 +514,11 @@ Write-Host "profit_aggressive_activation_open_oco_positions=$openOcoPositions"
 Write-Host "profit_aggressive_activation_data_freshness_replay_candidate_id_rows=$replayCandidateRows"
 Write-Host "profit_aggressive_activation_data_freshness_complete_replayable_candidate_rows=$completeReplayableRows"
 Write-Host ("profit_aggressive_activation_options=" + (ConvertTo-Json -Compress -Depth 10 @($aggressiveOptions)))
+Write-Host "profit_aggressive_activation_selected_path=$selectedAggressivePath"
+Write-Host "profit_aggressive_activation_order_capable_candidate=$mostAggressiveOrderCapableCandidate"
+Write-Host "profit_aggressive_activation_order_capable_execution_now_allowed=$(([string]$orderCapableExecutionNowAllowed).ToLowerInvariant())"
+Write-Host ("profit_aggressive_activation_order_capable_blockers=" + (ConvertTo-Json -Compress @($orderCapableBlockers)))
+Write-Host ("profit_aggressive_activation_execution_queue=" + (ConvertTo-Json -Compress -Depth 10 @($aggressiveExecutionQueue)))
 Write-Host ("profit_aggressive_activation_proposed_env_diff_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.proposedEnvDiffPlan))
 Write-Host ("profit_aggressive_activation_risk_acceptance_conditions=" + (ConvertTo-Json -Compress -Depth 10 $packet.riskAcceptanceConditions))
 Write-Host ("profit_aggressive_activation_post_env_read_only_verification_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.postEnvReadOnlyVerificationPlan))

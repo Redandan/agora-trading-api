@@ -44,6 +44,14 @@ foreach ($marker in @(
         "MaxProbeNotionalUsdt",
         "profit_aggressive_activation_status",
         "profit_aggressive_activation_options",
+        "selectedAggressivePath",
+        "orderCapableExecutionNowAllowed",
+        "aggressiveExecutionQueue",
+        "profit_aggressive_activation_selected_path",
+        "profit_aggressive_activation_order_capable_candidate",
+        "profit_aggressive_activation_order_capable_execution_now_allowed",
+        "profit_aggressive_activation_order_capable_blockers",
+        "profit_aggressive_activation_execution_queue",
         "proposedEnvDiff",
         "riskAcceptanceConditions",
         "profit_aggressive_activation_proposed_env_diff_plan",
@@ -169,6 +177,13 @@ try {
             "HIGH_RISK_MICRO_LIVE_PROBE",
             "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH",
             "EVIDENCE_ONLY_ACCELERATOR",
+            "profit_aggressive_activation_selected_path=EVIDENCE_ONLY_ACCELERATOR",
+            "profit_aggressive_activation_order_capable_candidate=GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH",
+            "profit_aggressive_activation_order_capable_execution_now_allowed=false",
+            "profit_aggressive_activation_execution_queue",
+            "LIVE_READINESS_NOT_READY",
+            "CURRENT_BUY_OCO_EV_GATES_NOT_CONFIRMED",
+            "SEPARATE_EXACT_OPERATOR_AUTHORIZATION_REQUIRED",
             "profit_aggressive_activation_proposed_env_diff_plan",
             "profit_aggressive_activation_risk_acceptance_conditions",
             "profit_aggressive_activation_post_env_read_only_verification_plan",
@@ -194,6 +209,24 @@ try {
     }
     if (@($packet.aggressiveOptions).Count -ne 3) {
         throw "aggressive activation packet should include exactly three options"
+    }
+    if ([string]$packet.selectedAggressivePath -ne "EVIDENCE_ONLY_ACCELERATOR") {
+        throw "aggressive activation packet should select the evidence-only accelerator first"
+    }
+    if ([string]$packet.mostAggressiveOrderCapableCandidate -ne "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH") {
+        throw "aggressive activation packet should identify grid10 as the next order-capable candidate"
+    }
+    if ([bool]$packet.orderCapableExecutionNowAllowed) {
+        throw "aggressive activation packet must not allow order-capable execution from this packet"
+    }
+    if (@($packet.aggressiveExecutionQueue).Count -ne 3) {
+        throw "aggressive activation packet should include a three-step execution queue"
+    }
+    if ([string]$packet.aggressiveExecutionQueue[0].optionId -ne "EVIDENCE_ONLY_ACCELERATOR") {
+        throw "aggressive activation execution queue should start with the evidence-only accelerator"
+    }
+    if (@($packet.orderCapableBlockers) -notcontains "SEPARATE_EXACT_OPERATOR_AUTHORIZATION_REQUIRED") {
+        throw "aggressive activation packet should surface exact-authorization as an order-capable blocker"
     }
     foreach ($option in @($packet.aggressiveOptions)) {
         if (@($option.proposedEnvDiff).Count -eq 0) {

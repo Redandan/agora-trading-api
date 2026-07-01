@@ -2277,7 +2277,17 @@ also carries machine-readable `proposedEnvDiff`,
 `riskAcceptanceConditions`, `postEnvReadOnlyVerificationCommands`,
 `killSwitchEnvDiff`, and `rollbackCommands`; those entries are decision
 support for a separately authorized env/deploy step, not permission to mutate
-runtime state from this packet.
+runtime state from this packet. The packet also prints
+`profit_aggressive_activation_selected_path`,
+`profit_aggressive_activation_order_capable_candidate`,
+`profit_aggressive_activation_order_capable_execution_now_allowed`,
+`profit_aggressive_activation_order_capable_blockers`, and
+`profit_aggressive_activation_execution_queue` so the operator can see the
+aggressive sequence directly. The current ready packet keeps
+`order_capable_execution_now_allowed=false`, selects
+`EVIDENCE_ONLY_ACCELERATOR` first, and treats
+`GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` as the next order-capable candidate
+only after a fresh grid bundle and exact authorization clear.
 Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk

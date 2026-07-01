@@ -1173,7 +1173,16 @@
   `riskAcceptanceConditions`, `postEnvReadOnlyVerificationCommands`,
   `killSwitchEnvDiff`, and `rollbackCommands`, plus top-level proposed env
   diff, risk-acceptance, post-env verification, kill-switch, and rollback plans
-  for a separate operator env/deploy decision.
+  for a separate operator env/deploy decision. It also emits
+  `profit_aggressive_activation_selected_path`,
+  `profit_aggressive_activation_order_capable_candidate`,
+  `profit_aggressive_activation_order_capable_execution_now_allowed`,
+  `profit_aggressive_activation_order_capable_blockers`, and
+  `profit_aggressive_activation_execution_queue`; the current ready packet
+  selects `EVIDENCE_ONLY_ACCELERATOR` first and keeps
+  `order_capable_execution_now_allowed=false`, with
+  `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` as the next order-capable candidate
+  only after fresh grid authorization and exact operator approval.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

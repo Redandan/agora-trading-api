@@ -119,8 +119,18 @@ separate lanes: `HIGH_RISK_MICRO_LIVE_PROBE`,
 `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and `EVIDENCE_ONLY_ACCELERATOR`.
 Each lane includes machine-readable `proposedEnvDiff`,
 `riskAcceptanceConditions`, `postEnvReadOnlyVerificationCommands`,
-`killSwitchEnvDiff`, and `rollbackCommands`. The packet is not live approval:
-it keeps `order_allowed=false`, `deploy_or_env_change_allowed=false`, and
+`killSwitchEnvDiff`, and `rollbackCommands`. The packet also emits
+`profit_aggressive_activation_selected_path`,
+`profit_aggressive_activation_order_capable_candidate`,
+`profit_aggressive_activation_order_capable_execution_now_allowed`,
+`profit_aggressive_activation_order_capable_blockers`, and
+`profit_aggressive_activation_execution_queue` so the operator can see the
+most aggressive viable sequence without reading the full JSON. The current
+packet still selects the non-order `EVIDENCE_ONLY_ACCELERATOR` first and keeps
+`order_capable_execution_now_allowed=false`; the order-capable follow-up
+candidate is `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH` until a fresh grid bundle
+and exact authorization clear. The packet is not live approval: it keeps
+`order_allowed=false`, `deploy_or_env_change_allowed=false`, and
 `live_policy_change_allowed=false`. A later env/deploy/live action still
 requires separate exact operator authorization matching the selected lane.
 

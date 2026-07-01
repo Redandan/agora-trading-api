@@ -3895,6 +3895,23 @@ Expected:
 - `verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED` is not live enablement.
   It only means the operator can review a separate, explicitly authorized env
   change plan.
+- If `order_capable_flags_true` is non-empty, stop the generic live review and
+  assemble the read-only order-capable scope packet from saved evidence logs:
+
+  ```powershell
+  .\scripts\prepare_live_order_capable_scope_review_packet.ps1 `
+    -LiveAuditLog target/profit-review/live-readiness-audit-latest.log `
+    -RuntimeLogSmokeLog target/profit-review/runtime-log-smoke-latest.log `
+    -GridPostEnvBundleLog target/grid-open/grid-post-env-read-only-bundle-latest.log `
+    -TrailingPostOptInLog target/profit-review/trailing-stop-post-opt-in-latest.log
+  ```
+
+  The packet emits `LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET`,
+  `live_order_capable_scope_review_status`, current true flags, per-flag
+  coverage, existing grid order-path risk, rollback env diff, and
+  `order_allowed=false` / `grid_mutation_allowed=false` /
+  `exchange_mutation_allowed=false`. It is review material only; it does not
+  clear live-readiness blockers by itself.
 - After a separately authorized TinyLive live launch, rerun the audit with
   `-LiveAuthorized`. In that mode, the expected live flags
   `TRADING_OKX_ENABLED=true` and
@@ -4471,6 +4488,7 @@ Current warning classes:
 | `OkxWsKlineService` public WS `Connection reset` | Treated as transient only while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`) and followed by fresh persisted K-line rows. Exceeding the threshold is a runtime-log smoke failure and should be investigated as collector/network instability. |
 | `OkxWsKlineService` public WS transient failure such as `: null`, timeout, EOF, or closed connection | Treated as transient only while below `MAX_OKX_WS_TRANSIENT_WARN` (default `10`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data collector/network instability before relying on grid-open or post-open evidence. |
 | `PythNetworkService` feed/network timeout, HTTP, empty response, or unparseable price WARN | Treated as transient only while below `MAX_PYTH_NETWORK_WARN` (default `3`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data provider instability before relying on Pyth-derived evidence. |
+| `EtherscanService` tokenSupply `Error retrieving value` WARN | Optional on-chain supply provider warning. Treated as transient only while below `MAX_ETHERSCAN_TOKEN_SUPPLY_WARN` (default `5`). Exceeding the threshold is a runtime-log smoke failure and should be investigated before relying on Etherscan-derived market context. |
 | `McpApiKeyFilter` denied MCP request because metadata/API key is missing or invalid | Bounded auth-denied noise from public/unauthenticated probes. Treated as known only while below `MAX_MCP_AUTH_DENIED_WARN` (default `20`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as MCP abuse, route drift, or broken verifier auth. |
 | `ScoreBuyV2Strategy` `ML003011` feature-schema mismatch | Known ScoreBuy/HeatWave model schema drift warning. `ScoreBuyV2Strategy` catches the prediction failure and returns `HOLD`, so this is not a grid/order/OCO mutation, but the `scorebuy_ml_schema_mismatch` count should be reviewed before ScoreBuy live rollout or model promotion. |
 
@@ -4495,7 +4513,8 @@ Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
   optional TheGraph key, autonomous digest severe-notification, bounded OKX
   public WS connection-reset and transient warnings, ScoreBuy/HeatWave
   feature-schema mismatch warnings, bounded Pyth market-data network warnings,
-  and bounded MCP auth-denied probe warnings.
+  bounded Etherscan token-supply provider warnings, and bounded MCP auth-denied
+  probe warnings.
 
 For grid opening, `scripts/prepare_grid_post_env_read_only_verification_bundle_ssh.ps1`
 passes `AcceptAlreadyAppliedEnvDiff` through the post-env packet chain. That

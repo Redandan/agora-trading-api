@@ -111,6 +111,18 @@
   false deploy requirement for scripts/docs-only changes without enabling live
   trading, scheduler mutation, orders, OCO/grid/fund/Earn/Telegram/exchange
   mutation, or policy relaxation.
+- 2026-07-01 aggressive live/order-capable review now has a local read-only
+  scope packet. `prepare_live_order_capable_scope_review_packet.ps1` consumes
+  saved live-readiness audit, runtime-log smoke, grid post-env, and trailing
+  post-opt-in logs, then emits `LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET`,
+  `live_order_capable_scope_review_status`, per-flag coverage, current grid /
+  trailing risk items, rollback env diff, and hard non-authorization markers
+  including `order_allowed=false`, `grid_mutation_allowed=false`, and
+  `exchange_mutation_allowed=false`. This is for deciding whether already-true
+  `TRADING_OKX_ENABLED`, `TRADING_GRID_ENABLED`, or `TRAILING_STOP_ENABLED`
+  should be accepted in a named scope or rolled back; it does not deploy,
+  change production env, enable live policy, place orders, mutate OCO/grid,
+  enable schedulers, send Telegram, or mutate DB/fund/Earn/exchange state.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

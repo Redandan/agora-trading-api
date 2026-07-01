@@ -222,6 +222,30 @@ Assert-SmokeCase `
     -Environment @{ MAX_PYTH_NETWORK_WARN = "0" }
 
 Assert-SmokeCase `
+    -Name "etherscan token supply transient is classified warn baseline" `
+    -Lines @(
+        "2026-07-01T09:01:09.642Z  WARN 3651509 --- [agora-trading-api] [   indicator-io] c.agora.service.market.EtherscanService  : [Etherscan] tokenSupply chainid=137 error for 0xc2132D05D31c914a87C6611C10748AEb04B58e8F: Error retrieving value"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "etherscan_token_supply=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "etherscan token supply threshold is fail closed" `
+    -Lines @(
+        "2026-07-01T09:01:09.642Z  WARN 3651509 --- [agora-trading-api] [   indicator-io] c.agora.service.market.EtherscanService  : [Etherscan] tokenSupply chainid=137 error for 0xc2132D05D31c914a87C6611C10748AEb04B58e8F: Error retrieving value"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "Etherscan tokenSupply warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_ETHERSCAN_TOKEN_SUPPLY_WARN = "0" }
+
+Assert-SmokeCase `
     -Name "okx ws transient null is classified warn baseline" `
     -Lines @(
         "2026-06-27T09:09:16.576Z  WARN 2516045 --- [agora-trading-api] [kx.com:8443/...] c.a.service.market.OkxWsKlineService     : [OkxWS] WS failure BTCUSDT@1m: null"

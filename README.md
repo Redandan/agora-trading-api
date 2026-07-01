@@ -1281,6 +1281,21 @@ readiness details can be used as complete live-review evidence.
 review a separately authorized live-change plan; the script never changes
 production env, DB, order, OCO, grid, Earn, fund, or Telegram state.
 
+When `order_capable_flags_true` is non-empty, assemble the local read-only
+scope packet from saved audit/runtime/grid/trailing logs:
+
+```powershell
+.\scripts\prepare_live_order_capable_scope_review_packet.ps1 `
+  -LiveAuditLog target/profit-review/live-readiness-audit-latest.log `
+  -RuntimeLogSmokeLog target/profit-review/runtime-log-smoke-latest.log `
+  -GridPostEnvBundleLog target/grid-open/grid-post-env-read-only-bundle-latest.log `
+  -TrailingPostOptInLog target/profit-review/trailing-stop-post-opt-in-latest.log
+```
+
+It emits `LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET`, per-flag coverage, current
+grid/trailing risk items, rollback env diff, and `order_allowed=false`; it is
+not live approval and does not change production state.
+
 Read-only tiny-live loss hard-stop RCA when live-readiness reports
 `risk_hard_stop` or `AUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`:
 
@@ -3160,6 +3175,9 @@ The runtime log smoke treats the narrow `OkxTradingService` startup echo
 fails on actual order placement, OKX submit/fill/execute, `createGrid`, OCO,
 Earn, or fund operation-like lines unless the diagnostic-only high-risk allow
 flag is used outside acceptance.
+Bounded `EtherscanService` tokenSupply `Error retrieving value` WARN lines are
+classified as optional provider transients under
+`MAX_ETHERSCAN_TOKEN_SUPPLY_WARN`; exceeding the threshold still fails closed.
 Grid post-env verification uses an explicit `AcceptAlreadyAppliedEnvDiff`
 packet mode so `TRADING_OKX_ENABLED=true` and `TRADING_GRID_ENABLED=true` are
 accepted only after an env diff has already been applied and split acceptance

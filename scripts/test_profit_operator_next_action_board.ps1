@@ -42,6 +42,8 @@ foreach ($marker in @(
         "profit_operator_next_action_audit_counts",
         "profit_operator_next_action_audit_review_queue",
         "auditOperatorDecisionOrder",
+        "source_priority_matrix_freshness_status",
+        "source_priority_matrix_fresh_for_board_max_age",
         "DATAFRESHNESS_EVIDENCE_COLLECTOR_ACTIVATION_REVIEW",
         "strategy574-tiny-live-governance-review",
         "P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE",
@@ -126,6 +128,12 @@ try {
     $priorityPacket = [pscustomobject]@{
         packetType = "PROFIT_OPERATOR_PRIORITY_DECISION_BRIEF"
         status = "READY_FOR_OPERATOR_DECISION_NOT_LIVE"
+        sourceMatrixFreshnessStatus = "FRESH"
+        sourceMatrixFreshness = [pscustomobject]@{
+            Status = "FRESH"
+            AgeMinutes = 30
+            MaxAgeMinutes = 180
+        }
         primaryFocus = "trailing-stop-dry-run-operator-review"
         rankedReviewItems = @(
             [pscustomobject]@{
@@ -146,6 +154,9 @@ try {
     }
     Set-Content -LiteralPath $tempPriorityLog -Encoding UTF8 -Value @(
         "[profit-operator-priority-decision-brief] read-only brief",
+        "source_matrix_freshness_status=FRESH",
+        "source_matrix_age_minutes=30",
+        "source_matrix_max_age_minutes=180",
         ("profit_operator_priority_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 8 $priorityPacket)),
         "profit_operator_priority_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_LIVE"
     )
@@ -300,6 +311,11 @@ try {
             "strategy574_threshold_relaxation_allowed=false",
             "source_priority_mode=REUSED_PRIORITY_DECISION_LOG",
             "source_priority_log_freshness_status=FRESH",
+            "source_priority_matrix_freshness_status=FRESH",
+            "source_priority_matrix_age_minutes=30",
+            "source_priority_matrix_max_age_minutes=180",
+            "source_priority_matrix_board_max_age_minutes=180",
+            "source_priority_matrix_fresh_for_board_max_age=true",
             "source_audit_log_freshness_status=FRESH",
             "source_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT",
             "source_audit_live_readiness_conclusion=NOT_READY_FOR_LIVE_ENABLEMENT",
@@ -316,6 +332,7 @@ try {
             "profit_operator_next_action_board_status=READY_FOR_PROFIT_OPERATOR_NEXT_ACTION_REVIEW_NOT_LIVE",
             '"packetType":"PROFIT_OPERATOR_NEXT_ACTION_BOARD"',
             '"auditLiveReadinessConclusion":"NOT_READY_FOR_LIVE_ENABLEMENT"',
+            '"sourcePriorityMatrixFreshForBoardMaxAge":true',
             '"auditOperatorDecisionOrder":',
             '"proposalId":"strategy574-tiny-live-governance-review"',
             '"priorityClass":"P2_GOVERNANCE_BLOCKER_REVIEW_NOT_LIVE"',
@@ -335,6 +352,44 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit operator next action board unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    $priorityPacket.sourceMatrixFreshnessStatus = "FRESH"
+    $priorityPacket.sourceMatrixFreshness = [pscustomobject]@{
+        Status = "FRESH"
+        AgeMinutes = 240
+        MaxAgeMinutes = 720
+    }
+    Set-Content -LiteralPath $tempPriorityLog -Encoding UTF8 -Value @(
+        "[profit-operator-priority-decision-brief] read-only brief",
+        "source_matrix_freshness_status=FRESH",
+        "source_matrix_age_minutes=240",
+        "source_matrix_max_age_minutes=720",
+        ("profit_operator_priority_decision_brief_packet=" + (ConvertTo-Json -Compress -Depth 8 $priorityPacket)),
+        "profit_operator_priority_decision_brief_status=READY_FOR_OPERATOR_DECISION_NOT_LIVE"
+    )
+    try {
+        $ErrorActionPreference = "Continue"
+        $staleOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -PriorityDecisionLogPath $tempPriorityLog -Strategy574GateLogPath $tempStrategyLog -TinyLiveLossRcaLogPath $tempTinyLog -NearThresholdShadowObservationLogPath $tempNearThresholdLog -AuditLogPath $tempAuditLog -MaxAgeMinutes 180 -ReviewNotionalCapUsdt 15 -ObservationHours 48 -RequireAudit -RequireReady 2>&1
+        $staleExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $staleText = ($staleOutput | Out-String)
+    if ($staleExitCode -eq 0) {
+        throw "profit operator next action board accepted stale reused priority source matrix:`n$staleText"
+    }
+    foreach ($marker in @(
+            "source_priority_mode=REUSED_PRIORITY_DECISION_LOG",
+            "source_priority_matrix_freshness_status=FRESH",
+            "source_priority_matrix_age_minutes=240",
+            "source_priority_matrix_max_age_minutes=720",
+            "source_priority_matrix_board_max_age_minutes=180",
+            "source_priority_matrix_fresh_for_board_max_age=false",
+            "profit_operator_next_action_board_status=NOT_READY",
+            "priority decision source matrix fresh for board max age"
+        )) {
+        Assert-Contains -Name "profit operator next action stale matrix rejection" -Text $staleText -Pattern ([regex]::Escape($marker))
     }
 } finally {
     foreach ($path in @($tempMatrixPath, $tempStrategyLog, $tempTinyLog, $tempNearThresholdLog, $tempAuditLog, $tempPriorityLog)) {

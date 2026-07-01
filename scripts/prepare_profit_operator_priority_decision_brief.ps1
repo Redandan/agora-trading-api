@@ -24,6 +24,16 @@ function Add-MissingRequirement {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Convert-ToNullableInt {
+    param([object]$Value)
+    if ($null -eq $Value) { return $null }
+    $text = ([string]$Value).Trim()
+    if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+    $parsed = 0
+    if ([int]::TryParse($text, [ref]$parsed)) { return $parsed }
+    return $null
+}
+
 function Get-ReviewItem {
     param([object[]]$Items, [string]$ProposalId)
     $match = @($Items | Where-Object { [string]$_.proposalId -eq $ProposalId } | Select-Object -First 1)
@@ -82,6 +92,34 @@ $consolidatedJson = Get-LastPrefixedValue -Text $consolidatedText -Prefix "profi
 $consolidatedPacket = $null
 if (-not [string]::IsNullOrWhiteSpace($consolidatedJson)) {
     $consolidatedPacket = $consolidatedJson | ConvertFrom-Json -ErrorAction Stop
+}
+
+$sourceMatrixFreshnessStatus = ""
+$sourceMatrixAgeMinutes = $null
+if ($null -ne $consolidatedPacket) {
+    if ($null -ne $consolidatedPacket.PSObject.Properties["sourceMatrixFreshnessStatus"]) {
+        $sourceMatrixFreshnessStatus = [string]$consolidatedPacket.sourceMatrixFreshnessStatus
+    }
+}
+if ([string]::IsNullOrWhiteSpace($sourceMatrixFreshnessStatus)) {
+    $sourceMatrixFreshnessStatus = Get-LastPrefixedValue -Text $consolidatedText -Prefix "profit_operator_review_summary_freshness_status="
+}
+if ([string]::IsNullOrWhiteSpace($sourceMatrixFreshnessStatus)) {
+    $sourceMatrixFreshnessStatus = Get-LastPrefixedValue -Text $consolidatedText -Prefix "source_matrix_freshness_status="
+}
+if ($null -eq $sourceMatrixAgeMinutes) {
+    $sourceMatrixAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $consolidatedText -Prefix "profit_operator_review_summary_matrix_age_minutes=")
+}
+if ($null -eq $sourceMatrixAgeMinutes) {
+    $sourceMatrixAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $consolidatedText -Prefix "source_matrix_age_minutes=")
+}
+if ($null -eq $sourceMatrixAgeMinutes) {
+    $sourceMatrixAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $consolidatedText -Prefix "matrix_age_minutes=")
+}
+$sourceMatrixFreshness = [pscustomobject]@{
+    Status = $sourceMatrixFreshnessStatus
+    AgeMinutes = $sourceMatrixAgeMinutes
+    MaxAgeMinutes = $MatrixMaxAgeMinutes
 }
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
@@ -211,7 +249,8 @@ $brief = [pscustomobject]@{
     strategyId = $StrategyId
     sourcePacket = "prepare_profit_operator_consolidated_review_packet.ps1"
     sourcePacketStatus = if ($null -ne $consolidatedPacket) { [string]$consolidatedPacket.status } else { "" }
-    sourceMatrixFreshnessStatus = if ($null -ne $consolidatedPacket) { [string]$consolidatedPacket.sourceMatrixFreshnessStatus } else { "" }
+    sourceMatrixFreshnessStatus = $sourceMatrixFreshnessStatus
+    sourceMatrixFreshness = $sourceMatrixFreshness
     primaryFocus = $primaryFocus
     rankedReviewItems = @($rankedItems)
     blockedPolicyLanes = @($blockedPolicyLanes)
@@ -250,6 +289,9 @@ Write-Host "[profit-operator-priority-decision-brief] read-only brief"
 Write-Host "scope=READ_ONLY; invokes prepare_profit_operator_consolidated_review_packet.ps1 only; no SSH fresh matrix, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
 Write-Host $consolidatedText
 Write-Host "source_packet=prepare_profit_operator_consolidated_review_packet.ps1 exitCode=$consolidatedExitCode"
+Write-Host "source_matrix_freshness_status=$sourceMatrixFreshnessStatus"
+Write-Host "source_matrix_age_minutes=$sourceMatrixAgeMinutes"
+Write-Host "source_matrix_max_age_minutes=$MatrixMaxAgeMinutes"
 Write-Host "profit_operator_priority_primary_focus=$primaryFocus"
 Write-Host ("profit_operator_priority_ranked_items=" + (ConvertTo-Json -Compress -Depth 10 @($rankedItems)))
 Write-Host ("profit_operator_priority_blocked_policy_lanes=" + (ConvertTo-Json -Compress -Depth 8 @($blockedPolicyLanes)))

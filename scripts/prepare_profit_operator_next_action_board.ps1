@@ -32,6 +32,16 @@ function Add-MissingRequirement {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Convert-ToNullableInt {
+    param([object]$Value)
+    if ($null -eq $Value) { return $null }
+    $text = ([string]$Value).Trim()
+    if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+    $parsed = 0
+    if ([int]::TryParse($text, [ref]$parsed)) { return $parsed }
+    return $null
+}
+
 function Invoke-LocalPacket {
     param(
         [string]$ScriptPath,
@@ -181,11 +191,75 @@ if (-not [string]::IsNullOrWhiteSpace($strategy574Json)) {
     $strategy574Packet = $strategy574Json | ConvertFrom-Json -ErrorAction Stop
 }
 
+$priorityMatrixFreshnessStatus = ""
+$priorityMatrixAgeMinutes = $null
+$priorityMatrixMaxAgeMinutes = $null
+if ($null -ne $priorityPacket) {
+    $priorityProperties = @($priorityPacket.PSObject.Properties.Name)
+    if ($priorityProperties -contains "sourceMatrixFreshness" -and $null -ne $priorityPacket.sourceMatrixFreshness) {
+        $freshnessProperties = @($priorityPacket.sourceMatrixFreshness.PSObject.Properties.Name)
+        if ($freshnessProperties -contains "Status") {
+            $priorityMatrixFreshnessStatus = [string]$priorityPacket.sourceMatrixFreshness.Status
+        } elseif ($freshnessProperties -contains "status") {
+            $priorityMatrixFreshnessStatus = [string]$priorityPacket.sourceMatrixFreshness.status
+        }
+        if ($freshnessProperties -contains "AgeMinutes") {
+            $priorityMatrixAgeMinutes = Convert-ToNullableInt -Value $priorityPacket.sourceMatrixFreshness.AgeMinutes
+        } elseif ($freshnessProperties -contains "ageMinutes") {
+            $priorityMatrixAgeMinutes = Convert-ToNullableInt -Value $priorityPacket.sourceMatrixFreshness.ageMinutes
+        }
+        if ($freshnessProperties -contains "MaxAgeMinutes") {
+            $priorityMatrixMaxAgeMinutes = Convert-ToNullableInt -Value $priorityPacket.sourceMatrixFreshness.MaxAgeMinutes
+        } elseif ($freshnessProperties -contains "maxAgeMinutes") {
+            $priorityMatrixMaxAgeMinutes = Convert-ToNullableInt -Value $priorityPacket.sourceMatrixFreshness.maxAgeMinutes
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($priorityMatrixFreshnessStatus) -and $priorityProperties -contains "sourceMatrixFreshnessStatus") {
+        $priorityMatrixFreshnessStatus = [string]$priorityPacket.sourceMatrixFreshnessStatus
+    }
+}
+if ([string]::IsNullOrWhiteSpace($priorityMatrixFreshnessStatus)) {
+    $priorityMatrixFreshnessStatus = Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "profit_operator_review_summary_freshness_status="
+}
+if ([string]::IsNullOrWhiteSpace($priorityMatrixFreshnessStatus)) {
+    $priorityMatrixFreshnessStatus = Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "source_matrix_freshness_status="
+}
+if ($null -eq $priorityMatrixAgeMinutes) {
+    $priorityMatrixAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "profit_operator_review_summary_matrix_age_minutes=")
+}
+if ($null -eq $priorityMatrixAgeMinutes) {
+    $priorityMatrixAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "source_matrix_age_minutes=")
+}
+if ($null -eq $priorityMatrixAgeMinutes) {
+    $priorityMatrixAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "matrix_age_minutes=")
+}
+if ($null -eq $priorityMatrixMaxAgeMinutes) {
+    $priorityMatrixMaxAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "source_matrix_max_age_minutes=")
+}
+if ($null -eq $priorityMatrixMaxAgeMinutes) {
+    $priorityMatrixMaxAgeMinutes = Convert-ToNullableInt -Value (Get-LastPrefixedValue -Text $priorityResult.Text -Prefix "matrix_max_age_minutes=")
+}
+$priorityMatrixFreshnessAttached = (-not [string]::IsNullOrWhiteSpace($priorityMatrixFreshnessStatus)) -or ($null -ne $priorityMatrixAgeMinutes)
+$priorityMatrixFreshForBoardMaxAge = $true
+if ($prioritySourceMode -eq "REUSED_PRIORITY_DECISION_LOG") {
+    $priorityMatrixFreshForBoardMaxAge = $false
+    if ($priorityMatrixFreshnessAttached -and $priorityMatrixFreshnessStatus -eq "FRESH" -and $null -ne $priorityMatrixAgeMinutes -and $priorityMatrixAgeMinutes -le $MaxAgeMinutes) {
+        $priorityMatrixFreshForBoardMaxAge = $true
+    }
+}
+
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ($priorityResult.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "profit priority decision brief completed" }
 if ($strategy574Result.ExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "strategy574 TinyLive governance packet completed" }
 if ($null -eq $priorityPacket) { Add-MissingRequirement -List $missingRequirements -Value "profit_operator_priority_decision_brief_packet valid JSON" }
 if ($null -eq $strategy574Packet) { Add-MissingRequirement -List $missingRequirements -Value "strategy574_tiny_live_governance_operator_packet valid JSON" }
+if ($prioritySourceMode -eq "REUSED_PRIORITY_DECISION_LOG") {
+    if (-not $priorityMatrixFreshnessAttached) { Add-MissingRequirement -List $missingRequirements -Value "priority decision source matrix freshness attached" }
+    if ([string]::IsNullOrWhiteSpace($priorityMatrixFreshnessStatus)) { Add-MissingRequirement -List $missingRequirements -Value "priority decision source matrix freshness status attached" }
+    if (-not [string]::IsNullOrWhiteSpace($priorityMatrixFreshnessStatus) -and $priorityMatrixFreshnessStatus -ne "FRESH") { Add-MissingRequirement -List $missingRequirements -Value "priority decision source matrix freshness is FRESH" }
+    if ($null -eq $priorityMatrixAgeMinutes) { Add-MissingRequirement -List $missingRequirements -Value "priority decision source matrix age attached" }
+    if (-not $priorityMatrixFreshForBoardMaxAge) { Add-MissingRequirement -List $missingRequirements -Value "priority decision source matrix fresh for board max age" }
+}
 if ($RequireAudit -and $auditLogFreshnessStatus -eq "MISSING") { Add-MissingRequirement -List $missingRequirements -Value "profit live blocker audit log present" }
 if ($auditLogFreshnessStatus -eq "STALE") { Add-MissingRequirement -List $missingRequirements -Value "profit live blocker audit log fresh" }
 if (($RequireAudit -or $auditLogFreshnessStatus -ne "MISSING") -and $null -eq $auditPacket) { Add-MissingRequirement -List $missingRequirements -Value "profit_live_blocker_audit_packet valid JSON" }
@@ -321,6 +395,11 @@ $board = [pscustomobject]@{
     sourceAuditLogAgeMinutes = $auditLogAgeMinutes
     sourceAuditStatus = if ($null -ne $auditPacket) { [string]$auditPacket.status } else { "" }
     auditLiveReadinessConclusion = if ($null -ne $auditPacket) { [string]$auditPacket.liveReadinessConclusion } else { "" }
+    sourcePriorityMatrixFreshnessStatus = $priorityMatrixFreshnessStatus
+    sourcePriorityMatrixAgeMinutes = $priorityMatrixAgeMinutes
+    sourcePriorityMatrixMaxAgeMinutes = $priorityMatrixMaxAgeMinutes
+    sourcePriorityBoardMaxAgeMinutes = $MaxAgeMinutes
+    sourcePriorityMatrixFreshForBoardMaxAge = $priorityMatrixFreshForBoardMaxAge
     auditCounts = $auditCounts
     primaryFocus = $primaryFocus
     rankedProfitReviewItems = @($rankedProfitItems)
@@ -374,6 +453,11 @@ Write-Host "source_priority_mode=$prioritySourceMode"
 Write-Host "source_priority_log_path=$PriorityDecisionLogPath"
 Write-Host "source_priority_log_freshness_status=$priorityLogFreshnessStatus"
 Write-Host "source_priority_log_age_minutes=$priorityLogAgeMinutes"
+Write-Host "source_priority_matrix_freshness_status=$priorityMatrixFreshnessStatus"
+Write-Host "source_priority_matrix_age_minutes=$priorityMatrixAgeMinutes"
+Write-Host "source_priority_matrix_max_age_minutes=$priorityMatrixMaxAgeMinutes"
+Write-Host "source_priority_matrix_board_max_age_minutes=$MaxAgeMinutes"
+Write-Host "source_priority_matrix_fresh_for_board_max_age=$(([string]$priorityMatrixFreshForBoardMaxAge).ToLowerInvariant())"
 Write-Host "source_strategy574_tiny_live_packet=prepare_strategy574_tiny_live_governance_operator_packet.ps1 exitCode=$($strategy574Result.ExitCode)"
 Write-Host "source_audit_log_path=$AuditLogPath"
 Write-Host "source_audit_log_freshness_status=$auditLogFreshnessStatus"

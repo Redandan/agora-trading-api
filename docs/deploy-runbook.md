@@ -1598,6 +1598,14 @@ Expected:
   `profit-operator-priority-decision-brief-latest.log`, pass it through
   `-PriorityDecisionLogPath`; the board reuses the saved priority packet
   instead of rebuilding the heavy matrix chain.
+- Reused priority packets must still prove the wrapped source matrix is fresh
+  for the board's `-MaxAgeMinutes`. Output includes
+  `source_priority_matrix_freshness_status`,
+  `source_priority_matrix_age_minutes`,
+  `source_priority_matrix_max_age_minutes`, and
+  `source_priority_matrix_fresh_for_board_max_age`; stale wrapped matrix
+  evidence keeps the board `NOT_READY` even when the priority log file mtime is
+  fresh.
 - With a fresh audit log, output also includes
   `profit_operator_next_action_audit_counts`,
   `profit_operator_next_action_audit_review_queue`, and

@@ -1644,7 +1644,13 @@ strategy574 near-threshold shadow observation evidence. When the latest
 to require a fresh audit-backed queue across all live-blocker lanes. Pass a
 fresh `-PriorityDecisionLogPath` when source refresh already saved
 `profit-operator-priority-decision-brief-latest.log`, so the board reuses that
-packet instead of rebuilding the heavy matrix chain. It emits
+packet instead of rebuilding the heavy matrix chain. Reused priority logs are
+still fail-closed against the underlying matrix evidence: the board emits
+`source_priority_matrix_freshness_status`,
+`source_priority_matrix_age_minutes`, and
+`source_priority_matrix_fresh_for_board_max_age`, and it rejects a saved
+priority packet when the wrapped matrix age exceeds the board `-MaxAgeMinutes`
+even if the priority log file itself is fresh. It emits
 `profit_operator_next_action_board_packet`,
 `profit_operator_next_action_board_status`,
 `profit_operator_next_action_audit_counts`, and

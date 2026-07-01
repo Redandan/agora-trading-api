@@ -415,7 +415,11 @@
   strategy574/TinyLive governance blocker review, and aggregate profit priority
   context in one read-only board. `-PriorityDecisionLogPath` lets the board
   reuse the saved priority decision packet from source refresh instead of
-  rebuilding the heavy matrix chain. It keeps `tiny_live_order_allowed=false`,
+  rebuilding the heavy matrix chain. Reused priority packets are now also
+  checked against the wrapped source matrix age with the board's
+  `-MaxAgeMinutes`; `source_priority_matrix_fresh_for_board_max_age=false`
+  keeps the board `NOT_READY` even when the saved priority log itself is fresh.
+  It keeps `tiny_live_order_allowed=false`,
   `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
   `deploy_or_env_change_allowed=false`, `order_allowed=false`, and
   `telegram_send_allowed=false`; it is not live approval.

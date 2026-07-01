@@ -1696,6 +1696,15 @@ no-buy pressure.
 The EntryDedup semantics step uses the reviewed 720h / 24h forward / 50-row
 window so source refresh does not downgrade a 30-day EntryDedup opportunity set
 into a short-window `NO_EVIDENCE` blocker.
+When `target/profit-review/latest-profit-operator-matrix.path` points at a
+fresh matrix within `-MatrixMaxAgeMinutes`, the source refresh automatically
+reuses it through `-MatrixOutputPath` so the live-blocker refresh does not
+rerun the heavy SSH matrix chain on every pass. Use
+`-ForceFreshProfitOperatorMatrix` only when a fresh matrix rebuild is explicitly
+needed.
+Long steps emit `step_heartbeat`, `step_timeout`, and `step_complete` markers
+from the source-refresh wrapper itself, so a fresh matrix rebuild is visible
+while it is still running.
 It preserves governance relaxation `NO_EVIDENCE` or `NOT_READY` output as
 blocker evidence instead of forcing that source step to fail early, except when
 the local preflight emits the explicit neutral

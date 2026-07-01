@@ -1659,7 +1659,13 @@ neutral no-action evidence when there are no relaxation candidates and no
 false-block/high-return no-buy pressure. The script
 re-creates each step output parent directory before writing the step log, so a
 long-running refresh can continue even if an upstream step refreshes
-`target/profit-review`. The script only invokes
+`target/profit-review`. If `latest-profit-operator-matrix.path` points at a
+fresh matrix within `-MatrixMaxAgeMinutes`, the script automatically reuses it
+instead of rerunning the heavy SSH matrix chain; pass
+`-ForceFreshProfitOperatorMatrix` only for an explicitly fresh matrix rebuild.
+Long steps emit source-refresh-level `step_heartbeat`, `step_timeout`, and
+`step_complete` markers.
+The script only invokes
 the EntryDedup semantics decision step with the reviewed 720h / 24h forward /
 50-row window, so the audit consumes the same 30-day EntryDedup opportunity set
 as the dedicated EntryDedup review packet instead of a shorter diagnostic

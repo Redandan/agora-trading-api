@@ -30,8 +30,15 @@ foreach ($marker in @(
         "AllowBlockedStepFailures",
         "PlanOnly",
         "ReuseLatestProfitOperatorMatrix",
+        "ForceFreshProfitOperatorMatrix",
+        "StepTimeoutSeconds",
         "latest-profit-operator-matrix.path",
+        "step_heartbeat",
+        "step_timeout",
+        "timedOut",
         "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=",
+        "profit_live_blocker_source_refresh_auto_reused_fresh_profit_operator_matrix=",
+        "profit_live_blocker_source_refresh_force_fresh_profit_operator_matrix=",
         "profit_live_blocker_source_refresh_allow_blocked_step_failures=",
         "profit_live_blocker_source_refresh_blocked_step_failures_allowed=",
         "entry_dedup_refresh_hours=",
@@ -47,7 +54,12 @@ $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
 if ($null -eq $powerShell) { $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue }
 if ($null -eq $powerShell) { throw "Unable to find powershell or pwsh for source refresh test" }
 
-$output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly 2>&1
+$emptyReviewDir = Join-Path $repoRoot "target\profit-review-source-refresh-empty-test"
+if (Test-Path -LiteralPath $emptyReviewDir) {
+    Remove-Item -LiteralPath $emptyReviewDir -Recurse -Force
+}
+
+$output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -ReviewOutputDir $emptyReviewDir 2>&1
 $exitCode = $LASTEXITCODE
 $text = ($output | Out-String -Width 4096)
 if ($exitCode -ne 0) {
@@ -59,9 +71,15 @@ foreach ($marker in @(
         "profit_live_blocker_source_refresh_ssh_step_count=9",
         "profit_live_blocker_source_refresh_local_step_count=11",
         "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=False",
+        "profit_live_blocker_source_refresh_auto_reused_fresh_profit_operator_matrix=False",
+        "profit_live_blocker_source_refresh_force_fresh_profit_operator_matrix=False",
         "profit_live_blocker_source_refresh_allow_blocked_step_failures=False",
+        "profit_live_blocker_source_refresh_step_timeout_seconds=5400",
         "profit_live_blocker_source_refresh_status=PLAN_ONLY_NOT_EXECUTED",
         '"packetType":"PROFIT_LIVE_BLOCKER_SOURCE_REFRESH_PLAN"',
+        '"stepTimeoutSeconds":5400',
+        '"autoReusedFreshProfitOperatorMatrix":false',
+        '"forceFreshProfitOperatorMatrix":false',
         '"allowBlockedStepFailures":false',
         '"name":"profit-operator-action-brief"',
         '"name":"profit-live-blocker-audit"',
@@ -78,7 +96,8 @@ foreach ($marker in @(
         '"script":"prepare_no_buy_attention_flow_review_packet_ssh.ps1","arguments":["-ReviewOutputDir"',
         '"script":"prepare_governance_relaxation_review_packet_ssh.ps1","arguments":[]',
         '"script":"prepare_governance_relaxation_preflight_review_packet.ps1","arguments":["-ReviewLogPath"',
-        '"-NoBuyAttentionLogPath","target\\profit-review\\no-buy-attention-flow-review-packet-latest.log"',
+        '"-NoBuyAttentionLogPath"',
+        'no-buy-attention-flow-review-packet-latest.log',
         '"usesSsh":true',
         '"usesSsh":false',
         '"forbiddenActions":["deploy"',
@@ -101,6 +120,32 @@ profit_operator_review_matrix_next_action=Continue read-only evidence collection
 $relativeMatrixPath = "target\profit-review-source-refresh-test\profit-operator-matrix-test.log"
 Set-Content -LiteralPath (Join-Path $reuseReviewDir "latest-profit-operator-matrix.path") -Encoding UTF8 -Value $relativeMatrixPath
 
+$autoReuseOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -ReviewOutputDir $reuseReviewDir 2>&1
+$autoReuseExitCode = $LASTEXITCODE
+$autoReuseText = ($autoReuseOutput | Out-String -Width 4096)
+if ($autoReuseExitCode -ne 0) {
+    throw "source refresh auto-reuse plan failed:`n$autoReuseText"
+}
+
+foreach ($marker in @(
+        "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=True",
+        "profit_live_blocker_source_refresh_auto_reused_fresh_profit_operator_matrix=True",
+        "profit_live_blocker_source_refresh_force_fresh_profit_operator_matrix=False",
+        "profit_live_blocker_source_refresh_reused_profit_operator_matrix_path=$matrixPath",
+        '"reuseLatestProfitOperatorMatrix":true',
+        '"autoReusedFreshProfitOperatorMatrix":true',
+        '"forceFreshProfitOperatorMatrix":false',
+        '"-MatrixOutputPath"',
+        '"-MatrixMaxAgeMinutes"',
+        "profit_live_blocker_source_refresh_status=PLAN_ONLY_NOT_EXECUTED"
+    )) {
+    Assert-Contains -Name "source refresh auto-reuse plan output" -Text $autoReuseText -Pattern ([regex]::Escape($marker))
+}
+
+if ($autoReuseText -match "step_start|child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+    throw "Auto-reuse PlanOnly unexpectedly executed refresh steps:`n$autoReuseText"
+}
+
 $reuseOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -PlanOnly -ReviewOutputDir $reuseReviewDir -ReuseLatestProfitOperatorMatrix 2>&1
 $reuseExitCode = $LASTEXITCODE
 $reuseText = ($reuseOutput | Out-String -Width 4096)
@@ -110,8 +155,12 @@ if ($reuseExitCode -ne 0) {
 
 foreach ($marker in @(
         "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=True",
+        "profit_live_blocker_source_refresh_auto_reused_fresh_profit_operator_matrix=False",
+        "profit_live_blocker_source_refresh_force_fresh_profit_operator_matrix=False",
         "profit_live_blocker_source_refresh_reused_profit_operator_matrix_path=$matrixPath",
         '"reuseLatestProfitOperatorMatrix":true',
+        '"autoReusedFreshProfitOperatorMatrix":false',
+        '"forceFreshProfitOperatorMatrix":false',
         '"reusedProfitOperatorMatrixPath":"',
         '"-MatrixOutputPath"',
         '"-MatrixMaxAgeMinutes"',

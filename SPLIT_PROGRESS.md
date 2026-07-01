@@ -453,7 +453,12 @@
   `-ReuseLatestProfitOperatorMatrix` and `-AllowBlockedStepFailures` for the
   profit live blocker pipeline. When the latest profit operator matrix is still
   fresh, source refresh can reuse it through `-MatrixOutputPath` instead of
-  rerunning the heavy SSH matrix chain. With `-ContinueOnStepFailure` plus
+  rerunning the heavy SSH matrix chain. Source refresh now auto-reuses that
+  fresh matrix by default and reserves `-ForceFreshProfitOperatorMatrix` for an
+  explicitly requested fresh matrix rebuild. The wrapper emits
+  source-refresh-level `step_heartbeat`, `step_timeout`, and `step_complete`
+  markers around each child script so long matrix refreshes are observable.
+  With `-ContinueOnStepFailure` plus
   `-AllowBlockedStepFailures`, a successful final audit with
   `profit_live_blocker_audit_status=BLOCKED_NOT_READY_FOR_LIVE_ENABLEMENT`
   returns

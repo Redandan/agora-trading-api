@@ -9,8 +9,10 @@ param(
     [int]$EntryDedupLimit = 50,
     [int]$MatrixTimeoutSeconds = 3900,
     [int]$ChildTimeoutSeconds = 900,
+    [int]$StepTimeoutSeconds = 5400,
     [int]$MatrixMaxAgeMinutes = 180,
     [switch]$ReuseLatestProfitOperatorMatrix,
+    [switch]$ForceFreshProfitOperatorMatrix,
     [switch]$PlanOnly,
     [switch]$ContinueOnStepFailure,
     [switch]$AllowBlockedStepFailures
@@ -46,7 +48,7 @@ function New-Step {
 }
 
 function Invoke-RefreshStep {
-    param([object]$Step, [object]$PowerShellCommand)
+    param([object]$Step, [object]$PowerShellCommand, [int]$TimeoutSeconds)
 
     $scriptPath = Join-Path $PSScriptRoot ([string]$Step.script)
     if (-not (Test-Path -LiteralPath $scriptPath)) {
@@ -64,27 +66,74 @@ function Invoke-RefreshStep {
     }
 
     Write-Host ("[profit-live-blocker-source-refresh] step_start name={0} script={1} output={2}" -f $Step.name, $Step.script, $Step.outputPath)
-    $previousErrorActionPreference = $ErrorActionPreference
+    $startedAt = Get-Date
+    $timedOut = $false
+    $text = ""
+    $exitCode = 1
+    $job = $null
     try {
-        $ErrorActionPreference = "Continue"
-        $output = & $PowerShellCommand.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath @($Step.arguments) 2>&1
-        $exitCode = $LASTEXITCODE
+        $job = Start-Job -ScriptBlock {
+            param(
+                [string]$PowerShellSource,
+                [string]$ChildScriptPath,
+                [string]$WorkingDirectory,
+                [object[]]$ChildArguments
+            )
+            $ErrorActionPreference = "Continue"
+            Set-Location -LiteralPath $WorkingDirectory
+            $childOutput = & $PowerShellSource -NoProfile -ExecutionPolicy Bypass -File $ChildScriptPath @ChildArguments 2>&1
+            $childSuccess = $?
+            $code = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($childSuccess) { 0 } else { 1 }
+            [pscustomobject]@{
+                Text = ($childOutput | Out-String -Width 4096)
+                ExitCode = $code
+            }
+        } -ArgumentList @($PowerShellCommand.Source, $scriptPath, (Get-Location).Path, (, @($Step.arguments)))
+
+        $lastHeartbeatSeconds = 0
+        while ($job.State -eq "Running") {
+            $elapsedSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+            if ($elapsedSeconds -ge $TimeoutSeconds) {
+                $timedOut = $true
+                Stop-Job -Job $job -ErrorAction SilentlyContinue
+                break
+            }
+            if ($elapsedSeconds -ge ($lastHeartbeatSeconds + 30)) {
+                $lastHeartbeatSeconds = $elapsedSeconds
+                Write-Host ("[profit-live-blocker-source-refresh] step_heartbeat name={0} elapsedSeconds={1}" -f $Step.name, $elapsedSeconds)
+            }
+            Start-Sleep -Seconds 2
+        }
+
+        if ($timedOut) {
+            $text = "timed out after $TimeoutSeconds second(s)"
+            $exitCode = 124
+            Write-Host ("[profit-live-blocker-source-refresh] step_timeout name={0} timeoutSeconds={1}" -f $Step.name, $TimeoutSeconds)
+        } else {
+            $result = Receive-Job -Job $job -ErrorAction SilentlyContinue
+            if ($null -ne $result) {
+                $text = [string]$result.Text
+                $exitCode = [int]$result.ExitCode
+            }
+        }
     } finally {
-        $ErrorActionPreference = $previousErrorActionPreference
+        if ($null -ne $job) {
+            Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+        }
     }
-    $text = ($output | Out-String -Width 4096)
     if (-not [string]::IsNullOrWhiteSpace($outputParent) -and -not (Test-Path -LiteralPath $outputParent)) {
         New-Item -ItemType Directory -Force -Path $outputParent | Out-Null
     }
     Set-Content -LiteralPath $outputPath -Encoding UTF8 -Value $text
-    if ($null -eq $exitCode) { $exitCode = 0 }
 
-    Write-Host ("[profit-live-blocker-source-refresh] step_complete name={0} exitCode={1} output={2}" -f $Step.name, $exitCode, $Step.outputPath)
+    $elapsedTotalSeconds = [int]((Get-Date) - $startedAt).TotalSeconds
+    Write-Host ("[profit-live-blocker-source-refresh] step_complete name={0} exitCode={1} timedOut={2} elapsedSeconds={3} output={4}" -f $Step.name, $exitCode, $timedOut.ToString().ToLowerInvariant(), $elapsedTotalSeconds, $Step.outputPath)
     return [pscustomobject]@{
         name = $Step.name
         script = $Step.script
         outputPath = $Step.outputPath
         exitCode = [int]$exitCode
+        timedOut = $timedOut
         success = ([int]$exitCode -eq 0)
     }
 }
@@ -108,6 +157,7 @@ if ($EntryDedupForwardHours -lt 1 -or $EntryDedupForwardHours -gt 168) { throw "
 if ($EntryDedupLimit -lt 1 -or $EntryDedupLimit -gt 100) { throw "EntryDedupLimit must be between 1 and 100." }
 if ($MatrixTimeoutSeconds -lt 60 -or $MatrixTimeoutSeconds -gt 7200) { throw "MatrixTimeoutSeconds must be between 60 and 7200." }
 if ($ChildTimeoutSeconds -lt 60 -or $ChildTimeoutSeconds -gt 3600) { throw "ChildTimeoutSeconds must be between 60 and 3600." }
+if ($StepTimeoutSeconds -lt 60 -or $StepTimeoutSeconds -gt 7200) { throw "StepTimeoutSeconds must be between 60 and 7200." }
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) { throw "MatrixMaxAgeMinutes must be between 1 and 1440." }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -123,8 +173,26 @@ $profitOperatorActionArgs = @(
     "-RequireReady"
 )
 $reusedProfitOperatorMatrixPath = ""
+$autoReusedFreshProfitOperatorMatrix = $false
+$latestMatrixPointerPath = Join-Path $reviewDir "latest-profit-operator-matrix.path"
+if ($ForceFreshProfitOperatorMatrix -and $ReuseLatestProfitOperatorMatrix) {
+    throw "ForceFreshProfitOperatorMatrix cannot be combined with ReuseLatestProfitOperatorMatrix."
+}
+if (-not $ForceFreshProfitOperatorMatrix -and -not $ReuseLatestProfitOperatorMatrix -and (Test-Path -LiteralPath $latestMatrixPointerPath)) {
+    $autoPointerValue = (Get-Content -Raw -LiteralPath $latestMatrixPointerPath).Trim()
+    if (-not [string]::IsNullOrWhiteSpace($autoPointerValue)) {
+        $autoMatrixPath = if ([System.IO.Path]::IsPathRooted($autoPointerValue)) { $autoPointerValue } else { Join-Path $repoRoot $autoPointerValue }
+        if (Test-Path -LiteralPath $autoMatrixPath) {
+            $autoMatrixItem = Get-Item -LiteralPath $autoMatrixPath
+            $autoMatrixAgeMinutes = [int]((Get-Date) - $autoMatrixItem.LastWriteTime).TotalMinutes
+            if ($autoMatrixAgeMinutes -le $MatrixMaxAgeMinutes) {
+                $ReuseLatestProfitOperatorMatrix = $true
+                $autoReusedFreshProfitOperatorMatrix = $true
+            }
+        }
+    }
+}
 if ($ReuseLatestProfitOperatorMatrix) {
-    $latestMatrixPointerPath = Join-Path $reviewDir "latest-profit-operator-matrix.path"
     if (-not (Test-Path -LiteralPath $latestMatrixPointerPath)) {
         throw "ReuseLatestProfitOperatorMatrix requested but latest matrix pointer was not found: $latestMatrixPointerPath"
     }
@@ -147,11 +215,11 @@ if ($ReuseLatestProfitOperatorMatrix) {
 
 $steps = @(
     New-Step -Name "profit-operator-action-brief" -ScriptName "prepare_profit_operator_action_brief_ssh.ps1" -Arguments $profitOperatorActionArgs -OutputPath (& $out "profit-operator-action-brief-latest.log") -Ssh $true -Required $true
-    New-Step -Name "profit-operator-priority-decision" -ScriptName "prepare_profit_operator_priority_decision_brief.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "profit-operator-priority-decision-brief-latest.log") -Ssh $false -Required $true
-    New-Step -Name "trailing-stop-dry-run-decision" -ScriptName "prepare_trailing_stop_dry_run_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "trailing-stop-dry-run-operator-decision-packet-latest.log") -Ssh $false -Required $true
-    New-Step -Name "strategy485-risk-reduction-decision" -ScriptName "prepare_strategy485_risk_reduction_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-RequireReady") -OutputPath (& $out "strategy485-risk-reduction-operator-decision-packet-latest.log") -Ssh $false -Required $true
+    New-Step -Name "profit-operator-priority-decision" -ScriptName "prepare_profit_operator_priority_decision_brief.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-MatrixMaxAgeMinutes", "$MatrixMaxAgeMinutes", "-RequireReady") -OutputPath (& $out "profit-operator-priority-decision-brief-latest.log") -Ssh $false -Required $true
+    New-Step -Name "trailing-stop-dry-run-decision" -ScriptName "prepare_trailing_stop_dry_run_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-MatrixMaxAgeMinutes", "$MatrixMaxAgeMinutes", "-RequireReady") -OutputPath (& $out "trailing-stop-dry-run-operator-decision-packet-latest.log") -Ssh $false -Required $true
+    New-Step -Name "strategy485-risk-reduction-decision" -ScriptName "prepare_strategy485_risk_reduction_operator_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-StrategyId", "$StrategyId", "-MatrixMaxAgeMinutes", "$MatrixMaxAgeMinutes", "-RequireReady") -OutputPath (& $out "strategy485-risk-reduction-operator-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "entry-dedup-semantics-decision" -ScriptName "prepare_entry_dedup_operator_decision_brief_ssh.ps1" -Arguments @("-Symbol", $Symbol, "-StrategyId", "$EntryDedupStrategyId", "-IntervalCode", $EntryDedupIntervalCode, "-Hours", "$EntryDedupHours", "-ForwardHours", "$EntryDedupForwardHours", "-Limit", "$EntryDedupLimit", "-RequireDecisionReady") -OutputPath (& $out "entry-dedup-semantics-operator-decision-packet-latest.log") -Ssh $true -Required $true
-    New-Step -Name "data-freshness-replay-blocker-decision" -ScriptName "prepare_data_freshness_replay_blocker_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-RequireBlocked") -OutputPath (& $out "data-freshness-replay-blocker-decision-packet-latest.log") -Ssh $false -Required $true
+    New-Step -Name "data-freshness-replay-blocker-decision" -ScriptName "prepare_data_freshness_replay_blocker_decision_packet.ps1" -Arguments @("-ReviewOutputDir", $ReviewOutputDir, "-Symbol", $Symbol, "-MatrixMaxAgeMinutes", "$MatrixMaxAgeMinutes", "-RequireBlocked") -OutputPath (& $out "data-freshness-replay-blocker-decision-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "data-freshness-replay-evidence-readiness" -ScriptName "prepare_data_freshness_replay_evidence_readiness_ssh.ps1" -Arguments @("-Symbol", $Symbol) -OutputPath (& $out "data-freshness-replay-evidence-readiness-refresh.log") -Ssh $true -Required $true
     New-Step -Name "data-freshness-collector-activation" -ScriptName "prepare_data_freshness_replay_collector_activation_packet.ps1" -Arguments @("-ReadinessLogPath", (& $out "data-freshness-replay-evidence-readiness-refresh.log"), "-Symbol", $Symbol, "-RequireDecisionReady") -OutputPath (& $out "data-freshness-replay-collector-activation-packet-latest.log") -Ssh $false -Required $true
     New-Step -Name "exit-side-operator-decision" -ScriptName "prepare_exit_side_operator_decision_brief_ssh.ps1" -Arguments @("-RequireDecisionReady") -OutputPath (& $out "exit-side-operator-decision-brief-refresh.log") -Ssh $true -Required $true
@@ -176,7 +244,10 @@ $plan = [pscustomobject]@{
     entryDedupHours = $EntryDedupHours
     entryDedupForwardHours = $EntryDedupForwardHours
     entryDedupLimit = $EntryDedupLimit
+    stepTimeoutSeconds = $StepTimeoutSeconds
     reuseLatestProfitOperatorMatrix = [bool]$ReuseLatestProfitOperatorMatrix
+    autoReusedFreshProfitOperatorMatrix = $autoReusedFreshProfitOperatorMatrix
+    forceFreshProfitOperatorMatrix = [bool]$ForceFreshProfitOperatorMatrix
     reusedProfitOperatorMatrixPath = $reusedProfitOperatorMatrixPath
     matrixMaxAgeMinutes = $MatrixMaxAgeMinutes
     allowBlockedStepFailures = [bool]$AllowBlockedStepFailures
@@ -195,10 +266,13 @@ Write-Host "profit_live_blocker_source_refresh_step_count=$(@($steps).Count)"
 Write-Host "profit_live_blocker_source_refresh_ssh_step_count=$(@($steps | Where-Object { $_.usesSsh }).Count)"
 Write-Host "profit_live_blocker_source_refresh_local_step_count=$(@($steps | Where-Object { -not $_.usesSsh }).Count)"
 Write-Host "profit_live_blocker_source_refresh_reuse_latest_profit_operator_matrix=$([bool]$ReuseLatestProfitOperatorMatrix)"
+Write-Host "profit_live_blocker_source_refresh_auto_reused_fresh_profit_operator_matrix=$autoReusedFreshProfitOperatorMatrix"
+Write-Host "profit_live_blocker_source_refresh_force_fresh_profit_operator_matrix=$([bool]$ForceFreshProfitOperatorMatrix)"
 Write-Host "profit_live_blocker_source_refresh_allow_blocked_step_failures=$([bool]$AllowBlockedStepFailures)"
 Write-Host "entry_dedup_refresh_hours=$EntryDedupHours"
 Write-Host "entry_dedup_refresh_forward_hours=$EntryDedupForwardHours"
 Write-Host "entry_dedup_refresh_limit=$EntryDedupLimit"
+Write-Host "profit_live_blocker_source_refresh_step_timeout_seconds=$StepTimeoutSeconds"
 if ($ReuseLatestProfitOperatorMatrix) {
     Write-Host "profit_live_blocker_source_refresh_reused_profit_operator_matrix_path=$reusedProfitOperatorMatrixPath"
 }
@@ -218,7 +292,7 @@ if ($null -eq $powerShell) { throw "Unable to find powershell or pwsh for profit
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($step in $steps) {
     try {
-        $result = Invoke-RefreshStep -Step $step -PowerShellCommand $powerShell
+        $result = Invoke-RefreshStep -Step $step -PowerShellCommand $powerShell -TimeoutSeconds $StepTimeoutSeconds
         $results.Add($result)
         if (-not $result.success -and -not $ContinueOnStepFailure) {
             throw "Refresh step failed: $($step.name)"

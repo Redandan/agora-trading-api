@@ -145,6 +145,67 @@ $microProbeRiskAcceptedText = "I explicitly authorize HIGH_RISK_MICRO_LIVE_PROBE
 $gridRiskAcceptedText = "I explicitly authorize SEPARATE_GRID10_ORDER_PATH_REVIEW for $Symbol with existing-grid activation risk accepted, TRADING_OKX_ENABLED=true reviewed separately, and no createGrid/order execution until the grid authorization bundle and post-env verification are current."
 $evidenceAcceleratorText = "I authorize EVIDENCE_ONLY_ACCELERATOR for ${Symbol}: runtime/DataFreshness shadow evidence collection may be reviewed, while TRADING_OKX_ENABLED=false and all live/order/OCO/grid/fund/Earn/Telegram mutations remain disabled."
 
+$microProbeProposedEnvDiff = @(
+    "TRADING_RUNTIME_EVIDENCE_ENABLED=true",
+    "TRADING_OKX_ENABLED=true",
+    "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=true",
+    "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false",
+    "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
+    "GRID_RECOVERY_ENABLED=false",
+    "OKX_EARN_TOPUP_ENABLED=false"
+)
+$microProbeRiskAcceptanceConditions = @(
+    "operator accepts real-money loss risk up to the full maxNotionalUsdt probe",
+    "single probe order only; maxOrders=1 and maxNotionalUsdt=$MaxProbeNotionalUsdt",
+    "current BUY/scout candidate, OCO/EV/event-risk gates, and live-readiness bundle must be fresh",
+    "no EntryDedup/DataFreshness/live policy relaxation is allowed for the probe",
+    "rollback starts immediately on unexpected order/OCO/grid/fund/Earn/Telegram/exchange/DB mutation"
+)
+$gridProposedEnvDiff = @(
+    "TRADING_OKX_ENABLED=true",
+    "TRADING_GRID_ENABLED=true",
+    "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
+    "GRID_RECOVERY_ENABLED=false",
+    "OKX_EARN_TOPUP_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false"
+)
+$gridRiskAcceptanceConditions = @(
+    "operator accepts existing active Grid #10 order-path activation risk",
+    "capital cap is limited to maxCapitalUsdt=10 unless a separate cap override is approved",
+    "createGrid/order execution is still blocked until current grid authorization bundle is ready",
+    "trend/event risk blockers remain hard blockers unless separately reviewed",
+    "rollback disables TRADING_OKX_ENABLED and grid background automation on any abnormal post-env smoke"
+)
+$evidenceProposedEnvDiff = @(
+    "TRADING_RUNTIME_EVIDENCE_ENABLED=true",
+    "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true",
+    "TRADING_OKX_ENABLED=false",
+    "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=false",
+    "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=false",
+    "MCP_GUARDIAN_LIVE_ACTIONS_ENABLED=false",
+    "EVENT_SCAN_NOTIFICATION_ENABLED=false",
+    "EXECUTION_EVENT_ENABLED=false",
+    "TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=false",
+    "GRID_RECOVERY_ENABLED=false",
+    "OKX_EARN_TOPUP_ENABLED=false"
+)
+$evidenceRiskAcceptanceConditions = @(
+    "operator accepts this path cannot generate profit directly because orders remain disabled",
+    "runtime/DataFreshness evidence collection is the only approved purpose",
+    "TRADING_OKX_ENABLED and all TinyLive/ScoreBuy/OCO/grid/fund/Earn/Telegram mutation paths must remain false",
+    "orderSentEvidence must stay 0; any non-zero order evidence triggers rollback review",
+    "collector output is evidence for a later live relaxation decision, not live relaxation itself"
+)
+
 $microProbePostEnvReadOnlyVerificationCommands = @(
     ".\scripts\verify_split_acceptance_ssh.ps1",
     ".\scripts\smoke_live_background_automation_ssh.ps1 -RequireClear",
@@ -232,6 +293,8 @@ $aggressiveOptions = @(
         maxNotionalUsdt = $MaxProbeNotionalUsdt
         maxOrders = 1
         acceptsKnownBlockers = @($riskBlockers)
+        proposedEnvDiff = @($microProbeProposedEnvDiff)
+        riskAcceptanceConditions = @($microProbeRiskAcceptanceConditions)
         requiredBeforeExecution = @(
             "exact operator confirmation text",
             "fresh live-readiness bundle",
@@ -254,6 +317,8 @@ $aggressiveOptions = @(
         recommendedNow = $false
         status = "SEPARATE_GRID_AUTHORIZATION_AND_POST_ENV_VERIFICATION_REQUIRED"
         maxCapitalUsdt = [math]::Max([decimal]10, $MaxProbeNotionalUsdt)
+        proposedEnvDiff = @($gridProposedEnvDiff)
+        riskAcceptanceConditions = @($gridRiskAcceptanceConditions)
         requiredBeforeExecution = @(
             "fresh grid open blocker priority board",
             "grid authorization bundle ready",
@@ -272,6 +337,8 @@ $aggressiveOptions = @(
         risk = "MEDIUM"
         recommendedNow = $true
         status = "RECOMMENDED_AGGRESSIVE_NON_ORDER_STEP"
+        proposedEnvDiff = @($evidenceProposedEnvDiff)
+        riskAcceptanceConditions = @($evidenceRiskAcceptanceConditions)
         requiredBeforeExecution = @(
             "separate runtime/DataFreshness evidence-only env review",
             "TRADING_OKX_ENABLED=false",
@@ -315,6 +382,16 @@ $packet = [pscustomobject]@{
     dataFreshnessReplayCandidateIdRows = $replayCandidateRows
     dataFreshnessCompleteReplayableCandidateRows = $completeReplayableRows
     aggressiveOptions = @($aggressiveOptions)
+    proposedEnvDiffPlan = [pscustomobject]@{
+        highRiskMicroLiveProbe = @($microProbeProposedEnvDiff)
+        grid10ExistingActiveGridOrderPath = @($gridProposedEnvDiff)
+        evidenceOnlyAccelerator = @($evidenceProposedEnvDiff)
+    }
+    riskAcceptanceConditions = [pscustomobject]@{
+        highRiskMicroLiveProbe = @($microProbeRiskAcceptanceConditions)
+        grid10ExistingActiveGridOrderPath = @($gridRiskAcceptanceConditions)
+        evidenceOnlyAccelerator = @($evidenceRiskAcceptanceConditions)
+    }
     postEnvReadOnlyVerificationPlan = [pscustomobject]@{
         highRiskMicroLiveProbe = @($microProbePostEnvReadOnlyVerificationCommands)
         grid10ExistingActiveGridOrderPath = @($gridPostEnvReadOnlyVerificationCommands)
@@ -378,6 +455,8 @@ Write-Host "profit_aggressive_activation_open_oco_positions=$openOcoPositions"
 Write-Host "profit_aggressive_activation_data_freshness_replay_candidate_id_rows=$replayCandidateRows"
 Write-Host "profit_aggressive_activation_data_freshness_complete_replayable_candidate_rows=$completeReplayableRows"
 Write-Host ("profit_aggressive_activation_options=" + (ConvertTo-Json -Compress -Depth 10 @($aggressiveOptions)))
+Write-Host ("profit_aggressive_activation_proposed_env_diff_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.proposedEnvDiffPlan))
+Write-Host ("profit_aggressive_activation_risk_acceptance_conditions=" + (ConvertTo-Json -Compress -Depth 10 $packet.riskAcceptanceConditions))
 Write-Host ("profit_aggressive_activation_post_env_read_only_verification_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.postEnvReadOnlyVerificationPlan))
 Write-Host ("profit_aggressive_activation_kill_switch_plan=" + (ConvertTo-Json -Compress -Depth 10 $packet.killSwitchPlan))
 Write-Host ("profit_aggressive_activation_rollback_commands=" + (ConvertTo-Json -Compress -Depth 10 $packet.rollbackCommands))

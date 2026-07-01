@@ -2256,10 +2256,11 @@ to package a more aggressive review path. It emits
 `EVIDENCE_ONLY_ACCELERATOR`. The packet is read-only: it keeps
 `order_allowed=false`, does not deploy, does not change production env, and does
 not enable live/TinyLive/scheduler/OCO/grid mutations by itself. Each option
-also carries machine-readable `postEnvReadOnlyVerificationCommands`,
-`killSwitchEnvDiff`, and `rollbackCommands`; those entries are decision support
-for a separately authorized env/deploy step, not permission to mutate runtime
-state from this packet.
+also carries machine-readable `proposedEnvDiff`,
+`riskAcceptanceConditions`, `postEnvReadOnlyVerificationCommands`,
+`killSwitchEnvDiff`, and `rollbackCommands`; those entries are decision
+support for a separately authorized env/deploy step, not permission to mutate
+runtime state from this packet.
 Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints

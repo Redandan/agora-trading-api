@@ -105,6 +105,25 @@ goal, including:
 Codex must still fail closed when evidence is missing. Full authority means
 Codex should not stop at suggestions, but it does not mean blind live risk.
 
+## Aggressive Activation Review
+
+Use the aggressive packet when the operator wants a faster route toward a small
+profit attempt while preserving auditability:
+
+```powershell
+.\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady
+```
+
+The packet emits `PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET` with three
+separate lanes: `HIGH_RISK_MICRO_LIVE_PROBE`,
+`GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`, and `EVIDENCE_ONLY_ACCELERATOR`.
+Each lane includes machine-readable `proposedEnvDiff`,
+`riskAcceptanceConditions`, `postEnvReadOnlyVerificationCommands`,
+`killSwitchEnvDiff`, and `rollbackCommands`. The packet is not live approval:
+it keeps `order_allowed=false`, `deploy_or_env_change_allowed=false`, and
+`live_policy_change_allowed=false`. A later env/deploy/live action still
+requires separate exact operator authorization matching the selected lane.
+
 ## Current Target Authorization
 
 The current executable target is trailing-stop dry-run activation only. The

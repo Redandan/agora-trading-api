@@ -21,12 +21,14 @@ $verifyPath = Join-Path $PSScriptRoot "verify_local.ps1"
 $readmePath = Join-Path $repoRoot "README.md"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
+$profitPlanPath = Join-Path $repoRoot "docs/profit-execution-plan.md"
 
 $scriptText = Get-Content -Raw -LiteralPath $scriptPath
 $docsText = @(
     Get-Content -Raw -LiteralPath $readmePath
     Get-Content -Raw -LiteralPath $runbookPath
     Get-Content -Raw -LiteralPath $progressPath
+    Get-Content -Raw -LiteralPath $profitPlanPath
 ) -join "`n"
 
 foreach ($marker in @(
@@ -42,6 +44,10 @@ foreach ($marker in @(
         "MaxProbeNotionalUsdt",
         "profit_aggressive_activation_status",
         "profit_aggressive_activation_options",
+        "proposedEnvDiff",
+        "riskAcceptanceConditions",
+        "profit_aggressive_activation_proposed_env_diff_plan",
+        "profit_aggressive_activation_risk_acceptance_conditions",
         "postEnvReadOnlyVerificationCommands",
         "killSwitchEnvDiff",
         "rollbackCommands",
@@ -49,7 +55,10 @@ foreach ($marker in @(
         "profit_aggressive_activation_kill_switch_plan",
         "profit_aggressive_activation_rollback_commands",
         "profit_aggressive_activation_required_authorization_texts",
+        "TRADING_RUNTIME_EVIDENCE_ENABLED=true",
+        "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true",
         "TRADING_OKX_ENABLED=false",
+        "TRADING_OKX_ENABLED=true",
         "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false",
         "verify_split_acceptance_ssh.ps1",
         "smoke_live_readiness_bundle_ssh.ps1",
@@ -75,6 +84,8 @@ foreach ($marker in @(
         "PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET",
         "HIGH_RISK_MICRO_LIVE_PROBE",
         "EVIDENCE_ONLY_ACCELERATOR",
+        "proposedEnvDiff",
+        "riskAcceptanceConditions",
         "postEnvReadOnlyVerificationCommands",
         "killSwitchEnvDiff",
         "rollbackCommands",
@@ -158,11 +169,15 @@ try {
             "HIGH_RISK_MICRO_LIVE_PROBE",
             "GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH",
             "EVIDENCE_ONLY_ACCELERATOR",
+            "profit_aggressive_activation_proposed_env_diff_plan",
+            "profit_aggressive_activation_risk_acceptance_conditions",
             "profit_aggressive_activation_post_env_read_only_verification_plan",
             "profit_aggressive_activation_kill_switch_plan",
             "profit_aggressive_activation_rollback_commands",
             "verify_split_acceptance_ssh.ps1",
             "smoke_live_readiness_bundle_ssh.ps1",
+            "TRADING_RUNTIME_EVIDENCE_ENABLED=true",
+            "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true",
             "TRADING_OKX_ENABLED=false",
             "NO_OPEN_OCO_POSITIONS_FOR_TRAILING_DRY_RUN_SAMPLE",
             "DATAFRESHNESS_REPLAY_ROWS_MISSING",
@@ -181,6 +196,12 @@ try {
         throw "aggressive activation packet should include exactly three options"
     }
     foreach ($option in @($packet.aggressiveOptions)) {
+        if (@($option.proposedEnvDiff).Count -eq 0) {
+            throw "aggressive activation option $($option.optionId) should include proposed env diff"
+        }
+        if (@($option.riskAcceptanceConditions).Count -eq 0) {
+            throw "aggressive activation option $($option.optionId) should include risk acceptance conditions"
+        }
         if (@($option.postEnvReadOnlyVerificationCommands).Count -eq 0) {
             throw "aggressive activation option $($option.optionId) should include post-env read-only verification commands"
         }
@@ -190,6 +211,15 @@ try {
         if (@($option.rollbackCommands).Count -eq 0) {
             throw "aggressive activation option $($option.optionId) should include rollback commands"
         }
+    }
+    if (@($packet.proposedEnvDiffPlan.evidenceOnlyAccelerator) -notcontains "TRADING_RUNTIME_EVIDENCE_ENABLED=true") {
+        throw "aggressive activation packet should expose evidence-only runtime proposed env diff"
+    }
+    if (@($packet.proposedEnvDiffPlan.evidenceOnlyAccelerator) -notcontains "TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true") {
+        throw "aggressive activation packet should expose evidence-only DataFreshness collector proposed env diff"
+    }
+    if (@($packet.riskAcceptanceConditions.evidenceOnlyAccelerator).Count -eq 0) {
+        throw "aggressive activation packet should expose top-level risk acceptance conditions"
     }
     if (@($packet.postEnvReadOnlyVerificationPlan.evidenceOnlyAccelerator).Count -eq 0) {
         throw "aggressive activation packet should expose top-level post-env read-only verification plan"

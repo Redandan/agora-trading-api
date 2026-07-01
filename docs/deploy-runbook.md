@@ -2456,6 +2456,25 @@ Expected:
   commands. The handoff keeps `production_env_change_allowed=false`,
   `deploy_allowed=false`, and `order_allowed=false`; it does not push, deploy,
   restart, change production env, enable live trading, or place orders.
+- After a separately authorized evidence-only env diff and deploy/restart, run
+  the post-env read-only bundle:
+
+  ```powershell
+  .\scripts\prepare_profit_evidence_only_accelerator_post_env_read_only_bundle_ssh.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_READ_ONLY_BUNDLE`,
+  `profit_evidence_only_post_env_bundle_status`,
+  `runtime_shadow_intent_count`, `runtime_order_sent_evidence`,
+  `live_readiness_bundle_verdict`, and
+  `READY_FOR_PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_REVIEW_NOT_LIVE` only
+  when split acceptance, background automation, runtime evidence, live
+  readiness bundle execution, source refresh, aggressive packet, and
+  env/deploy handoff evidence are all present. This bundle is read-only: it
+  keeps `live_policy_change_allowed=false`, `order_allowed=false`,
+  `deploy_allowed=false`, and `grid_mutation_allowed=false`. A ready bundle is
+  not live relaxation approval; it only supports a separate operator review.
 - For the fastest local status check from the latest saved matrix without
   rerunning SSH or replaying the full action brief, run:
 

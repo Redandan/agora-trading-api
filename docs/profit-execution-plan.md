@@ -140,6 +140,22 @@ commands. It remains non-authorization and keeps
 `production_env_change_allowed=false`, `deploy_allowed=false`, and
 `order_allowed=false`.
 
+After the operator separately authorizes and applies only that evidence-only
+env diff, the post-env evidence review must use:
+
+```powershell
+.\scripts\prepare_profit_evidence_only_accelerator_post_env_read_only_bundle_ssh.ps1 -RequireReady
+```
+
+This emits `PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_READ_ONLY_BUNDLE`,
+`profit_evidence_only_post_env_bundle_status`,
+`runtime_shadow_intent_count`, and `runtime_order_sent_evidence`. The only
+ready status is
+`READY_FOR_PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_REVIEW_NOT_LIVE`, which
+means the evidence-only path can continue to operator review. It still keeps
+`live_policy_change_allowed=false`, `order_allowed=false`, and
+`deploy_allowed=false`; it does not authorize live relaxation or execution.
+
 ## Current Target Authorization
 
 The current executable target is trailing-stop dry-run activation only. The

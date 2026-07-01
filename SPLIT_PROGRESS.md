@@ -24,13 +24,29 @@
   - active port `8085`
   - split acceptance passed
   - `getTrailingStopStatus` reported `global.enabled=true`,
-    `global.dryRun=true`, and `open_oco_positions=0`
+  `global.dryRun=true`, and `open_oco_positions=0`
   - 30d BTCUSDT trailing replay remained `acceptance=PASS` with
     `improvementPct=56.299%`
   - profit blocker advanced to
     `NO_OPEN_OCO_POSITIONS` once the active dry-run observation packet is
     consumed by `prepare_profit_next_execution_blocker_packet.ps1`
   This is dry-run observation only, not live OCO mutation approval.
+- 2026-07-01 aggressive profit activation review now has a full evidence-only
+  post-env verification packet. `prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
+  still emits the exact operator authorization text for
+  `TRADING_RUNTIME_EVIDENCE_ENABLED=true` and
+  `TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED=true` without
+  authorizing deploy by itself. After a separately authorized env diff and
+  deploy/restart,
+  `prepare_profit_evidence_only_accelerator_post_env_read_only_bundle_ssh.ps1`
+  emits `PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_READ_ONLY_BUNDLE`,
+  `profit_evidence_only_post_env_bundle_status`,
+  `runtime_shadow_intent_count`, and `runtime_order_sent_evidence`; its ready
+  state is
+  `READY_FOR_PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_REVIEW_NOT_LIVE`. The
+  bundle keeps `live_policy_change_allowed=false`, `order_allowed=false`,
+  `deploy_allowed=false`, and `grid_mutation_allowed=false`, so it is evidence
+  review only and not live relaxation or order approval.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

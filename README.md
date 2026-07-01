@@ -2271,6 +2271,18 @@ diff (`TRADING_RUNTIME_EVIDENCE_ENABLED=true` and
 flags, post-env read-only verification commands, kill-switch env diff, and
 rollback commands. It keeps `production_env_change_allowed=false`,
 `deploy_allowed=false`, and `order_allowed=false`; it is not deploy approval.
+After a separately authorized evidence-only env diff and deploy/restart, use
+`.\scripts\prepare_profit_evidence_only_accelerator_post_env_read_only_bundle_ssh.ps1 -RequireReady`
+to run or replay the post-env read-only checks as one packet. It emits
+`PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_READ_ONLY_BUNDLE`,
+`profit_evidence_only_post_env_bundle_status`, `runtime_shadow_intent_count`,
+and `runtime_order_sent_evidence`. The ready state is
+`READY_FOR_PROFIT_EVIDENCE_ONLY_ACCELERATOR_POST_ENV_REVIEW_NOT_LIVE`; it only
+means the evidence-only collector path produced reviewable evidence. It still
+keeps `live_policy_change_allowed=false`, `order_allowed=false`,
+`deploy_allowed=false`, and does not authorize TinyLive/ScoreBuy execution,
+OCO/grid/fund/Earn actions, scheduler enablement, Telegram send, or any
+production mutation.
 Use
 `.\scripts\prepare_profit_operator_compact_status.ps1 -RequireReady` for the
 fastest local check of the latest saved matrix; it prints

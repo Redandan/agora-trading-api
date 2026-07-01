@@ -1202,6 +1202,16 @@
   `grid10_execution_now_allowed=false`,
   `grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
   `create_grid_allowed=false`.
+  `scripts/prepare_profit_grid10_activation_authorization_bundle.ps1` then
+  turns a ready grid10 handoff log into
+  `PROFIT_GRID10_ACTIVATION_AUTHORIZATION_BUNDLE` with
+  `READY_FOR_PROFIT_GRID10_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+  `grid10_activation_authorization_review_ready`, and the exact
+  `grid10_activation_authorization_text` for the reviewed 2 x 5 USDT
+  env/deploy/createGrid prompt. It remains non-executing with
+  `grid10_activation_execution_allowed=false`,
+  `grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
   `scripts/prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1`
   selects the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emits
   `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET` with the exact

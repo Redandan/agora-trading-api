@@ -161,6 +161,23 @@ and createGrid authorization texts, but remains non-executing:
 `grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
 `create_grid_allowed=false`.
 
+Once the grid10 handoff log is saved and ready, package the exact final
+grid10 activation review prompt with:
+
+```powershell
+.\scripts\prepare_profit_grid10_activation_authorization_bundle.ps1 -RequireReady
+```
+
+This emits `PROFIT_GRID10_ACTIVATION_AUTHORIZATION_BUNDLE`,
+`READY_FOR_PROFIT_GRID10_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+`grid10_activation_authorization_review_ready`, and
+`grid10_activation_authorization_text`. The text combines the reviewed 2 x 5
+USDT candidate, capital-cap override, env diff, deploy/post-env verification,
+and createGrid review into one exact operator prompt, but the packet still
+keeps `grid10_activation_execution_allowed=false`,
+`grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `create_grid_allowed=false`.
+
 For the high-risk lane that is closest to a real-money probe, package the
 review handoff with:
 

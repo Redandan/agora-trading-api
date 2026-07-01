@@ -2309,6 +2309,17 @@ still keeps `grid10_execution_now_allowed=false`,
 `grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
 `create_grid_allowed=false`.
 Use
+`.\scripts\prepare_profit_grid10_activation_authorization_bundle.ps1 -RequireReady`
+after the grid10 handoff log is saved and ready. It emits
+`PROFIT_GRID10_ACTIVATION_AUTHORIZATION_BUNDLE`,
+`READY_FOR_PROFIT_GRID10_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+`grid10_activation_authorization_review_ready`, and
+`grid10_activation_authorization_text` for the reviewed 2 x 5 USDT grid10
+env/deploy/createGrid prompt. It still keeps
+`grid10_activation_execution_allowed=false`,
+`grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+`order_allowed=false`, and `create_grid_allowed=false`.
+Use
 `.\scripts\prepare_profit_high_risk_micro_live_probe_handoff.ps1 -RequireReady`
 to package the `HIGH_RISK_MICRO_LIVE_PROBE` lane as a standalone high-risk
 operator review packet. It emits

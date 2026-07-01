@@ -2470,6 +2470,24 @@ Expected:
   `grid10_env_deploy_request_allowed=false`, `order_allowed=false`, and
   `create_grid_allowed=false`; it is not permission to deploy or call
   `createGrid`.
+- To package the exact final `GRID10_EXISTING_ACTIVE_GRID_ORDER_PATH`
+  activation prompt after a ready handoff log, run:
+
+  ```powershell
+  .\scripts\prepare_profit_grid10_activation_authorization_bundle.ps1 -RequireReady
+  ```
+
+  Expected output includes `PROFIT_GRID10_ACTIVATION_AUTHORIZATION_BUNDLE`,
+  `profit_grid10_activation_authorization_status=READY_FOR_PROFIT_GRID10_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+  `grid10_activation_authorization_review_ready=true`,
+  `grid10_activation_authorization_text`,
+  `grid10_activation_env_diff`,
+  `grid10_post_env_read_only_verification`, and
+  `grid10_kill_switch_env_diff`. This packet presents exact operator text for
+  the 2 x 5 USDT grid10 env/deploy/createGrid activation review, but keeps
+  `grid10_activation_execution_allowed=false`,
+  `grid10_env_deploy_request_allowed=false`, `deploy_allowed=false`,
+  `order_allowed=false`, and `create_grid_allowed=false`.
 - To package the `HIGH_RISK_MICRO_LIVE_PROBE` lane for high-risk operator
   review, run:
 

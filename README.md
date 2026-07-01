@@ -1723,7 +1723,10 @@ orchestrates existing read-only SSH/MCP/SELECT evidence scripts plus local
 packet assembly, writes every source log consumed by
 `prepare_profit_live_blocker_audit_packet.ps1`, writes
 `trailing-stop-dry-run-preflight-review-packet-latest.log` from the freshly
-saved trailing decision log, then reruns the audit, writes
+saved trailing decision log, writes the trailing dry-run activation,
+post-opt-in readiness, observation status, and
+`profit-next-execution-blocker-packet-latest.log` chain from the same refreshed
+evidence set, then reruns the audit, writes
 `profit-operator-next-action-board-latest.log` with `-RequireAudit`, and saves
 `profit-operator-authorization-request-latest.log` so the next exact operator
 review authorization is refreshed with the same evidence set. It

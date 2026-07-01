@@ -35,6 +35,8 @@ foreach ($marker in @(
         "prepare_trailing_stop_dry_run_env_deploy_handoff_ssh.ps1",
         "ALREADY_OPTED_IN_READY_FOR_ENV_DIFF_REVIEW",
         "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
+        "PostOptInReadinessLogPath",
+        "post_opt_in_readiness_log",
         "TRAILING_STOP_DRY_RUN_OBSERVATION",
         "post_opt_in_readiness",
         "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
@@ -75,6 +77,7 @@ $tempDfLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-df-" + [g
 $tempStrategy485Log = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-485-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempSignalLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-signal-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempObservationLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-observation-" + [guid]::NewGuid().ToString("N") + ".log")
+$tempPostOptInLog = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-next-post-opt-in-" + [guid]::NewGuid().ToString("N") + ".log")
 
 try {
     $executionPacket = [pscustomobject]@{
@@ -286,7 +289,21 @@ try {
         Assert-Contains -Name "profit next execution blocker already-opted-in replay" -Text $alreadyOptedInText -Pattern ([regex]::Escape($marker))
     }
 
-    $executionPacket.status = "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY"
+    $postOptInPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_POST_OPT_IN_READINESS_PACKET"
+        status = "TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY"
+        symbol = "BTCUSDT"
+        trailingAcceptance = "PASS"
+        trailingImprovementPct = "52.753%"
+        trailingDeltaPnl = "13391.79229093"
+        currentGlobalEnabled = "true"
+        currentGlobalDryRun = "true"
+        currentOpenOcoPositions = "0"
+        expectedOptInStrategyId = 574
+        expectedStrategyOptIn = $true
+        alreadyActiveDryRun = $true
+        missingRequirements = @()
+    }
     $observationPacket = [pscustomobject]@{
         packetType = "TRAILING_STOP_DRY_RUN_OBSERVATION_STATUS_PACKET"
         status = "ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE"
@@ -303,15 +320,13 @@ try {
         exactRefreshCommand = ".\scripts\prepare_trailing_stop_dry_run_observation_status_ssh.ps1 -ExpectedOptInStrategyId 574 -RequireReady"
         nextAction = "Keep dry-run active and wait for an open OCO position; do not promote to live trailing without a real dry-run sample."
     }
-    Set-Content -LiteralPath $tempExecutionLog -Encoding UTF8 -Value @(
-        "trailing_stop_strategy_opt_in_execution_status=ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY",
-        "trailing_stop_strategy_opt_in_execution_decision=VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
-        "trailing_stop_strategy_opt_in_execution_required_confirm_text=EXECUTE_TRAILING_STOP_OPT_IN_574",
+    Set-Content -LiteralPath $tempPostOptInLog -Encoding UTF8 -Value @(
+        "trailing_stop_post_opt_in_readiness_status=TRAILING_STOP_DRY_RUN_ALREADY_ACTIVE_READ_ONLY_VERIFY",
+        "trailing_stop_post_opt_in_readiness_decision=VERIFY_ACTIVE_DRY_RUN_OBSERVATION_ONLY",
         "trailing_stop_acceptance=PASS",
         "trailing_stop_improvement_pct=52.753%",
         "trailing_stop_delta_pnl=13391.79229093",
-        "trailing_stop_strategy_opt_in_execution_write_performed=false",
-        ("trailing_stop_strategy_opt_in_execution_packet=" + (ConvertTo-Json -Compress -Depth 8 $executionPacket))
+        ("trailing_stop_post_opt_in_readiness_packet=" + (ConvertTo-Json -Compress -Depth 8 $postOptInPacket))
     )
     Set-Content -LiteralPath $tempObservationLog -Encoding UTF8 -Value @(
         "trailing_stop_dry_run_observation_status=ACTIVE_WAITING_FOR_OPEN_OCO_SAMPLE",
@@ -327,7 +342,7 @@ try {
     try {
         $ErrorActionPreference = "Continue"
         $activeDryRunOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
-            -ExecutionLogPath $tempExecutionLog `
+            -PostOptInReadinessLogPath $tempPostOptInLog `
             -Strategy574GovernanceLogPath $tempStrategy574Log `
             -DataFreshnessReadinessLogPath $tempDfLog `
             -Strategy485RiskLogPath $tempStrategy485Log `
@@ -362,7 +377,7 @@ try {
         Assert-Contains -Name "profit next execution blocker active dry-run replay" -Text $activeDryRunText -Pattern ([regex]::Escape($marker))
     }
 } finally {
-    foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog, $tempObservationLog)) {
+    foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog, $tempObservationLog, $tempPostOptInLog)) {
         if (Test-Path -LiteralPath $path) {
             Remove-Item -LiteralPath $path -Force
         }

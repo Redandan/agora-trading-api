@@ -1,5 +1,6 @@
 param(
     [string]$ExecutionLogPath = "",
+    [string]$PostOptInReadinessLogPath = "",
     [string]$Strategy574GovernanceLogPath = "target/profit-review/strategy574-tiny-live-governance-operator-packet-latest.log",
     [string]$DataFreshnessReadinessLogPath = "target/profit-review/data-freshness-replay-evidence-readiness-refresh.log",
     [string]$Strategy485RiskLogPath = "target/profit-review/strategy485-position-risk-current.log",
@@ -285,8 +286,21 @@ if (-not [string]::IsNullOrWhiteSpace($ExecutionLogPath)) {
         Source = $executionLog.Path
     }
     $executionSource = "source_log"
+} elseif (-not [string]::IsNullOrWhiteSpace($PostOptInReadinessLogPath)) {
+    $postOptInLog = Read-OptionalLog -PathValue $PostOptInReadinessLogPath
+    if (-not $postOptInLog.Exists) { throw "PostOptInReadinessLogPath not found: $($postOptInLog.Path)" }
+    $postProbeResult = [pscustomobject]@{
+        Text = $postOptInLog.Text
+        ExitCode = 0
+        Source = $postOptInLog.Path
+    }
+    $executionResult = Convert-PostOptInReadinessToExecutionResult -PostResult $postProbeResult
+    if ($null -eq $executionResult) {
+        throw "PostOptInReadinessLogPath did not contain a usable trailing_stop_post_opt_in_readiness_packet: $($postOptInLog.Path)"
+    }
+    $executionSource = "post_opt_in_readiness_log"
 } elseif ($NoRefresh.IsPresent) {
-    throw "ExecutionLogPath is required when -NoRefresh is used."
+    throw "ExecutionLogPath or PostOptInReadinessLogPath is required when -NoRefresh is used."
 } else {
     $postProbeResult = Invoke-TrailingPostOptInReadinessForBlocker
     $executionResult = Convert-PostOptInReadinessToExecutionResult -PostResult $postProbeResult

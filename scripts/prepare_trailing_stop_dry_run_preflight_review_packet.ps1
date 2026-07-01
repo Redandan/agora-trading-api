@@ -1,5 +1,6 @@
 param(
     [string]$ReviewOutputDir = "target/profit-review",
+    [string]$DecisionLogPath = "",
     [int]$MatrixMaxAgeMinutes = 180,
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 485,
@@ -24,6 +25,13 @@ function Add-MissingRequirement {
     if ($List -notcontains $Value) { $List.Add($Value) }
 }
 
+function Resolve-RepoPath {
+    param([string]$PathValue)
+    if ([string]::IsNullOrWhiteSpace($PathValue)) { return "" }
+    if ([System.IO.Path]::IsPathRooted($PathValue)) { return $PathValue }
+    return Join-Path $repoRoot $PathValue
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) { throw "ReviewOutputDir is required." }
 if ($MatrixMaxAgeMinutes -lt 1 -or $MatrixMaxAgeMinutes -gt 1440) { throw "MatrixMaxAgeMinutes must be between 1 and 1440." }
 if ([string]::IsNullOrWhiteSpace($Symbol) -or $Symbol.Length -gt 64 -or $Symbol -notmatch "^[A-Za-z0-9._:-]+$") {
@@ -33,6 +41,7 @@ if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be b
 if ($ReviewNotionalCapUsdt -lt 1 -or $ReviewNotionalCapUsdt -gt 100) { throw "ReviewNotionalCapUsdt must be between 1 and 100." }
 if ($ObservationHours -lt 1 -or $ObservationHours -gt 720) { throw "ObservationHours must be between 1 and 720." }
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
 $decisionScript = Join-Path $PSScriptRoot "prepare_trailing_stop_dry_run_operator_decision_packet.ps1"
 if (-not (Test-Path -LiteralPath $decisionScript)) {
     throw "Missing trailing-stop dry-run decision packet script: $decisionScript"
@@ -52,13 +61,34 @@ $decisionArgs = @(
     "-RequireReady"
 )
 
-$previousErrorActionPreference = $ErrorActionPreference
-try {
-    $ErrorActionPreference = "Continue"
-    $decisionOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $decisionScript @decisionArgs 2>&1
-    $decisionExitCode = $LASTEXITCODE
-} finally {
-    $ErrorActionPreference = $previousErrorActionPreference
+$decisionSourceMode = "FRESH_LOCAL_PACKET"
+$decisionLogFreshnessStatus = "NOT_REQUESTED"
+$decisionLogAgeMinutes = $null
+$decisionOutput = @()
+$decisionExitCode = 1
+if (-not [string]::IsNullOrWhiteSpace($DecisionLogPath)) {
+    $decisionSourceMode = "REUSED_DECISION_LOG"
+    $resolvedDecisionLogPath = Resolve-RepoPath -PathValue $DecisionLogPath
+    if (Test-Path -LiteralPath $resolvedDecisionLogPath) {
+        $decisionLogItem = Get-Item -LiteralPath $resolvedDecisionLogPath
+        $decisionLogAgeMinutes = [int]((Get-Date) - $decisionLogItem.LastWriteTime).TotalMinutes
+        $decisionLogFreshnessStatus = if ($decisionLogAgeMinutes -le $MatrixMaxAgeMinutes) { "FRESH" } else { "STALE" }
+        $decisionOutput = @(Get-Content -Raw -LiteralPath $resolvedDecisionLogPath)
+        $decisionExitCode = 0
+    } else {
+        $decisionLogFreshnessStatus = "MISSING"
+        $decisionOutput = @("trailing_stop_dry_run_decision_log_missing=$resolvedDecisionLogPath")
+        $decisionExitCode = 1
+    }
+} else {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $decisionOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $decisionScript @decisionArgs 2>&1
+        $decisionExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
 }
 
 $decisionText = ($decisionOutput | Out-String -Width 4096)
@@ -70,6 +100,12 @@ if (-not [string]::IsNullOrWhiteSpace($decisionJson)) {
 
 $missingRequirements = [System.Collections.Generic.List[string]]::new()
 if ($decisionExitCode -ne 0) { Add-MissingRequirement -List $missingRequirements -Value "trailing-stop dry-run operator decision packet completed" }
+if ($decisionSourceMode -eq "REUSED_DECISION_LOG" -and $decisionLogFreshnessStatus -eq "MISSING") {
+    Add-MissingRequirement -List $missingRequirements -Value "trailing-stop dry-run decision log present"
+}
+if ($decisionSourceMode -eq "REUSED_DECISION_LOG" -and $decisionLogFreshnessStatus -eq "STALE") {
+    Add-MissingRequirement -List $missingRequirements -Value "trailing-stop dry-run decision log fresh"
+}
 if ($null -eq $decisionPacket) { Add-MissingRequirement -List $missingRequirements -Value "trailing_stop_dry_run_operator_decision_packet valid JSON" }
 
 $sourceStatus = ""
@@ -154,9 +190,13 @@ $packet = [pscustomobject]@{
 }
 
 Write-Host "[trailing-stop-dry-run-preflight-review-packet] read-only packet"
-Write-Host "scope=READ_ONLY; invokes prepare_trailing_stop_dry_run_operator_decision_packet.ps1 only; no SSH fresh run, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
+Write-Host "scope=READ_ONLY; builds from prepare_trailing_stop_dry_run_operator_decision_packet.ps1 local output or a saved decision log only; no SSH fresh run, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed; does not deploy."
 Write-Host $decisionText
 Write-Host "source_decision_packet=prepare_trailing_stop_dry_run_operator_decision_packet.ps1 exitCode=$decisionExitCode"
+Write-Host "source_decision_packet_mode=$decisionSourceMode"
+Write-Host "source_decision_log_path=$DecisionLogPath"
+Write-Host "source_decision_log_freshness_status=$decisionLogFreshnessStatus"
+Write-Host "source_decision_log_age_minutes=$decisionLogAgeMinutes"
 Write-Host "source_decision_packet_status=$sourceStatus"
 Write-Host "source_matrix_freshness_status=$sourceMatrixFreshness"
 Write-Host "trailing_stop_dry_run_preflight_primary_focus=$sourcePrimaryFocus"

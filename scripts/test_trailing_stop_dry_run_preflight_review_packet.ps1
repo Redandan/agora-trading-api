@@ -8,6 +8,13 @@ function Assert-Contains {
     }
 }
 
+function Get-LastPrefixedValue {
+    param([string]$Text, [string]$Prefix)
+    $line = @($Text -split "`r?`n" | Where-Object { $_.StartsWith($Prefix) } | Select-Object -Last 1)
+    if (-not $line) { return "" }
+    return $line.Substring($Prefix.Length).Trim()
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $scriptPath = Join-Path $PSScriptRoot "prepare_trailing_stop_dry_run_preflight_review_packet.ps1"
 $decisionPath = Join-Path $PSScriptRoot "prepare_trailing_stop_dry_run_operator_decision_packet.ps1"
@@ -27,11 +34,14 @@ foreach ($marker in @(
         "[trailing-stop-dry-run-preflight-review-packet] read-only packet",
         "scope=READ_ONLY",
         "prepare_trailing_stop_dry_run_operator_decision_packet.ps1",
+        "DecisionLogPath",
+        "REUSED_DECISION_LOG",
         "TRAILING_STOP_DRY_RUN_PREFLIGHT_REVIEW_PACKET",
         "READY_FOR_TRAILING_DRY_RUN_PREFLIGHT_REVIEW_NOT_LIVE",
         "PREPARE_DRY_RUN_ONLY_OPERATOR_REVIEW",
         "trailing_stop_dry_run_preflight_review_packet",
         "trailing_stop_dry_run_preflight_status",
+        "source_decision_log_freshness_status",
         "scheduler_enablement_allowed=false",
         "live_policy_change_allowed=false",
         "position_or_oco_mutation_allowed=false",
@@ -146,6 +156,35 @@ try {
     }
     if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "trailing dry-run preflight unexpectedly invoked SSH or a fresh child run:`n$text"
+    }
+
+    $decisionLogPath = Join-Path $tempReviewDir "trailing-stop-dry-run-operator-decision-packet-latest.log"
+    $decisionJson = Get-LastPrefixedValue -Text $text -Prefix "trailing_stop_dry_run_operator_decision_packet="
+    if ([string]::IsNullOrWhiteSpace($decisionJson)) {
+        throw "trailing dry-run preflight latest pointer output did not expose decision packet JSON"
+    }
+    Set-Content -LiteralPath $decisionLogPath -Encoding UTF8 -Value @(
+        "[trailing-stop-dry-run-operator-decision-packet] read-only packet",
+        ("trailing_stop_dry_run_operator_decision_packet=" + $decisionJson),
+        "trailing_stop_dry_run_operator_decision_status=READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE"
+    )
+
+    $reuseOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -DecisionLogPath $decisionLogPath -ReviewNotionalCapUsdt 15 -ObservationHours 48 -RequireReady 2>&1
+    $reuseExitCode = $LASTEXITCODE
+    $reuseText = ($reuseOutput | Out-String)
+    if ($reuseExitCode -ne 0) {
+        throw "trailing dry-run preflight failed decision-log reuse:`n$reuseText"
+    }
+    foreach ($marker in @(
+            "source_decision_packet_mode=REUSED_DECISION_LOG",
+            "source_decision_log_freshness_status=FRESH",
+            "source_decision_packet_status=READY_FOR_TRAILING_DRY_RUN_OPERATOR_DECISION_NOT_LIVE",
+            "trailing_stop_dry_run_preflight_status=READY_FOR_TRAILING_DRY_RUN_PREFLIGHT_REVIEW_NOT_LIVE",
+            "scheduler_enablement_allowed=false",
+            "order_allowed=false",
+            "notAuthorization=read-only trailing-stop dry-run preflight review packet only"
+        )) {
+        Assert-Contains -Name "trailing dry-run preflight decision-log reuse" -Text $reuseText -Pattern ([regex]::Escape($marker))
     }
 } finally {
     if (Test-Path -LiteralPath $tempMatrixPath) {

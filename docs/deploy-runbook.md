@@ -1691,9 +1691,9 @@ plan:
 ```
 
 Then run the same script without `-PlanOnly` when the operator wants current
-evidence. It saves fresh source logs for the profit priority, trailing dry-run,
-strategy485 risk reduction/escalation, EntryDedup semantics, DataFreshness
-replay blocker/collector activation, TP/SL/OCO feasibility,
+evidence. It saves fresh source logs for the profit priority, trailing dry-run
+decision and preflight, strategy485 risk reduction/escalation, EntryDedup
+semantics, DataFreshness replay blocker/collector activation, TP/SL/OCO feasibility,
 strategy574/TinyLive governance, governance relaxation, and final live blocker
 audit lanes. It then writes the audit-backed
 `profit-operator-next-action-board-latest.log` with `-RequireAudit` and

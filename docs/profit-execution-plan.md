@@ -175,6 +175,24 @@ It remains a prompt packet only: `micro_probe_activation_execution_allowed=false
 `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
 `order_allowed=false`, and `live_policy_change_allowed=false`.
 
+To refresh the source logs consumed by that bundle and preserve the latest
+blocked/ready state, run:
+
+```powershell
+.\scripts\prepare_profit_high_risk_micro_live_probe_activation_source_refresh.ps1 -ContinueOnStepFailure
+```
+
+This emits `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PACKET`
+and `profit_micro_probe_activation_source_refresh_status`, saving
+`profit-aggressive-activation-operator-packet-latest.log`,
+`profit-high-risk-micro-live-probe-handoff-latest.log`,
+`profit-high-risk-micro-live-probe-preflight-review-latest.log`, and
+`profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log`
+under `target/profit-review`. `-RefreshLiveReviewFromSsh` and
+`-RefreshRuntimeEvidenceFromSsh` are read-only SSH evidence refresh options,
+not deploy or live approval. The wrapper keeps `deploy_allowed=false`,
+`order_allowed=false`, and `live_policy_change_allowed=false`.
+
 For the current recommended non-order lane, generate the exact evidence-only
 handoff with:
 

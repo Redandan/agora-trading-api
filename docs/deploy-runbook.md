@@ -2497,6 +2497,24 @@ Expected:
   `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `live_policy_change_allowed=false`. It does not
   change production env, deploy, enable TinyLive, or place orders.
+- To refresh the saved local source logs consumed by that bundle, run:
+
+  ```powershell
+  .\scripts\prepare_profit_high_risk_micro_live_probe_activation_source_refresh.ps1 -ContinueOnStepFailure
+  ```
+
+  The wrapper emits
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PACKET` and
+  `profit_micro_probe_activation_source_refresh_status`, and saves
+  `profit-aggressive-activation-operator-packet-latest.log`,
+  `profit-high-risk-micro-live-probe-handoff-latest.log`,
+  `profit-high-risk-micro-live-probe-preflight-review-latest.log`, and
+  `profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log`
+  under `target/profit-review`. Add `-RefreshLiveReviewFromSsh` or
+  `-RefreshRuntimeEvidenceFromSsh` only for a fresh read-only SSH evidence
+  refresh. The wrapper keeps `deploy_allowed=false`, `order_allowed=false`,
+  and `live_policy_change_allowed=false`; it does not change production env,
+  deploy, enable TinyLive, or place orders.
 - To turn the recommended non-order evidence lane into an exact authorization
   request, run:
 

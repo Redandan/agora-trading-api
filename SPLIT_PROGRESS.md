@@ -86,6 +86,20 @@
   `micro_probe_env_deploy_request_allowed=false`, `deploy_allowed=false`,
   `order_allowed=false`, and `live_policy_change_allowed=false`; it is an
   operator prompt packet only, not production env/deploy or order approval.
+- 2026-07-01 added a read-only source refresh wrapper for that lane:
+  `prepare_profit_high_risk_micro_live_probe_activation_source_refresh.ps1`.
+  It saves the current aggressive activation, handoff, preflight, and
+  activation bundle logs as
+  `profit-aggressive-activation-operator-packet-latest.log`,
+  `profit-high-risk-micro-live-probe-handoff-latest.log`,
+  `profit-high-risk-micro-live-probe-preflight-review-latest.log`, and
+  `profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log`
+  under `target/profit-review`, then emits
+  `PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PACKET` and
+  `profit_micro_probe_activation_source_refresh_status`. Optional
+  `-RefreshLiveReviewFromSsh` and `-RefreshRuntimeEvidenceFromSsh` modes only
+  collect read-only evidence. The wrapper keeps `deploy_allowed=false`,
+  `order_allowed=false`, and `live_policy_change_allowed=false`.
 - 2026-06-30 A2 background automation safety diff was applied and deployed
   from `origin/main` commit `8fcf3c0` on active port `8085`. The reviewed
   background flags are now all false:

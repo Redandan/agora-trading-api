@@ -75,6 +75,7 @@ $sourceFreshness = ""
 $sourceDecision = ""
 $trailingAcceptance = ""
 $strategy485OcoHealthOk = ""
+$strategy485OcoFeasibilityClass = ""
 $strategy485NegativeEvCount = 0
 if ($null -ne $sourcePacket) {
     $sourceStatus = [string]$sourcePacket.status
@@ -85,6 +86,7 @@ if ($null -ne $sourcePacket) {
     }
     if ($null -ne $sourcePacket.strategy485OcoFeasibility) {
         $strategy485OcoHealthOk = [string]$sourcePacket.strategy485OcoFeasibility.ocoHealthOk
+        $strategy485OcoFeasibilityClass = [string]$sourcePacket.strategy485OcoFeasibility.feasibilityClass
         $strategy485NegativeEvCount = [int]$sourcePacket.strategy485OcoFeasibility.negativeEvPositionCount
     }
 }
@@ -103,7 +105,8 @@ if ($trailingAcceptance -ne "PASS") {
 if ($strategy485OcoHealthOk -notin @("True", "true", "TRUE")) {
     Add-MissingRequirement -List $missingRequirements -Value "source strategy485 OCO health OK"
 }
-if ($strategy485NegativeEvCount -le 0) {
+$strategy485NoPositionRiskAction = $strategy485NegativeEvCount -le 0 -and $strategy485OcoFeasibilityClass -eq "NO_POSITION_RISK_ACTION"
+if ($strategy485NegativeEvCount -le 0 -and -not $strategy485NoPositionRiskAction) {
     Add-MissingRequirement -List $missingRequirements -Value "source strategy485 negative-EV positions present for review"
 }
 
@@ -126,7 +129,9 @@ $packet = [pscustomobject]@{
     sourcePrimaryDecision = $sourceDecision
     trailingStopAcceptance = $trailingAcceptance
     strategy485OcoHealthOk = $strategy485OcoHealthOk
+    strategy485OcoFeasibilityClass = $strategy485OcoFeasibilityClass
     strategy485NegativeEvPositionCount = $strategy485NegativeEvCount
+    strategy485NoPositionRiskAction = $strategy485NoPositionRiskAction
     preflightDecision = if ($ready) { "PREPARE_REVIEW_ONLY_TP_SL_OCO_FEASIBILITY_REVIEW" } else { "REFRESH_SOURCE_FEASIBILITY_PACKET" }
     reviewEnvelope = [pscustomobject]@{
         reviewOnly = $true
@@ -146,7 +151,7 @@ $packet = [pscustomobject]@{
         "source exit-side decision log freshness is FRESH",
         "trailing acceptance remains PASS",
         "strategy 485 OCO health remains OK",
-        "strategy 485 negative-EV positions remain present for review",
+        "strategy 485 negative-EV positions remain present for review or no position risk action is required",
         "operator separately approves any future order, close-position, OCO, scheduler, deploy, or env change"
     )
     requiredBeforeAnyFutureMutation = @(
@@ -183,7 +188,9 @@ Write-Host "source_exit_side_decision_log_freshness=$sourceFreshness"
 Write-Host "source_tp_sl_oco_feasibility_decision=$sourceDecision"
 Write-Host "trailing_stop_acceptance=$trailingAcceptance"
 Write-Host "strategy485_oco_health_ok=$strategy485OcoHealthOk"
+Write-Host "strategy485_oco_feasibility_class=$strategy485OcoFeasibilityClass"
 Write-Host "strategy485_negative_ev_position_count=$strategy485NegativeEvCount"
+Write-Host "strategy485_no_position_risk_action=$($strategy485NoPositionRiskAction.ToString().ToLowerInvariant())"
 Write-Host "tp_sl_oco_feasibility_preflight_decision=$($packet.preflightDecision)"
 Write-Host "close_position_allowed=false"
 Write-Host "position_or_oco_mutation_allowed=false"

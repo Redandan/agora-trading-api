@@ -1715,6 +1715,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_handoff.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_activation_authorization_bundle.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_activation_source_refresh.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_only_accelerator_env_deploy_handoff.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_only_accelerator_post_env_read_only_bundle.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_live_blocker_audit_packet.ps1"

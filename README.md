@@ -2304,6 +2304,20 @@ It still keeps `micro_probe_activation_execution_allowed=false`,
 `order_allowed=false`, and `live_policy_change_allowed=false`; it prepares an
 operator prompt but does not execute the env/deploy/order step.
 Use
+`.\scripts\prepare_profit_high_risk_micro_live_probe_activation_source_refresh.ps1 -ContinueOnStepFailure`
+to refresh the local source logs used by that activation bundle. It saves
+`profit-aggressive-activation-operator-packet-latest.log`,
+`profit-high-risk-micro-live-probe-handoff-latest.log`,
+`profit-high-risk-micro-live-probe-preflight-review-latest.log`, and
+`profit-high-risk-micro-live-probe-activation-authorization-bundle-latest.log`
+under `target/profit-review`, then emits
+`PROFIT_HIGH_RISK_MICRO_LIVE_PROBE_ACTIVATION_SOURCE_REFRESH_PACKET` and
+`profit_micro_probe_activation_source_refresh_status`. Add
+`-RefreshLiveReviewFromSsh` or `-RefreshRuntimeEvidenceFromSsh` only when a
+fresh read-only SSH evidence refresh is intended. The wrapper writes local
+evidence logs only and keeps `deploy_allowed=false`, `order_allowed=false`, and
+`live_policy_change_allowed=false`.
+Use
 `.\scripts\prepare_profit_evidence_only_accelerator_env_deploy_handoff.ps1 -RequireReady`
 to select the recommended non-order `EVIDENCE_ONLY_ACCELERATOR` lane and emit
 `PROFIT_EVIDENCE_ONLY_ACCELERATOR_ENV_DEPLOY_HANDOFF_PACKET`. That handoff

@@ -4125,6 +4125,12 @@ Trading deployment prep:
   and `profit_next_execution_unique_blocker=NO_OPEN_OCO_POSITIONS`.
   All live policy, scheduler, order, OCO/grid/fund/Earn/Telegram/exchange, DB,
   and production env mutation flags remain false in these packets.
+- TradingView-primary signal-source policy is now the local default:
+  `TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW` and
+  `TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false`. K-line close events keep market
+  data collection intact but do not invoke the legacy `LiveSignalEvaluator`
+  unless a deliberate rollback sets primary `LEGACY` and explicitly enables the
+  legacy live evaluator.
 
 ## Cleanup Priority
 

@@ -6,7 +6,9 @@ import org.springframework.context.ApplicationEvent;
 
 /**
  * 每當 BinanceWsKlineService 收到一根已收盤的 K 線並存入 DB 後，發佈此事件。
- * LiveSignalEvaluator 監聽此事件以即時評估策略訊號。
+ * Market-data collectors publish this event when a K-line closes. The legacy
+ * LiveSignalEvaluator consumes it only when the signal-source policy explicitly
+ * enables the legacy live evaluator; TradingView-primary mode skips it.
  */
 @Getter
 public class KlineClosedEvent extends ApplicationEvent {

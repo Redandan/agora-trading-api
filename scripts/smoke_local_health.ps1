@@ -277,6 +277,8 @@ $envOverrides = @{
     TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_DRY_RUN = "true"
     TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED = "false"
     TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED = "false"
+    TRADING_SIGNAL_SOURCE_PRIMARY = "TRADINGVIEW"
+    TRADING_LEGACY_LIVE_EVALUATOR_ENABLED = "false"
     TRADINGVIEW_WEBHOOK_ENABLED = "false"
     TRADINGVIEW_WEBHOOK_DRY_RUN = "true"
     TRADINGVIEW_WEBHOOK_SECRET = ""
@@ -426,6 +428,8 @@ try {
         "--trading.score-buy.post-scout-add.execution.dry-run=true",
         "--trading.score-buy.post-scout-add.notification.enabled=false",
         "--trading.score-buy.post-scout-add.notification.telegram-enabled=false",
+        "--trading.signal-source.primary=TRADINGVIEW",
+        "--trading.signal-source.legacy-live-evaluator-enabled=false",
         "--trading.tradingview.webhook.enabled=false",
         "--trading.tradingview.webhook.dry-run=true",
         "--trading.tradingview.webhook.secret=",

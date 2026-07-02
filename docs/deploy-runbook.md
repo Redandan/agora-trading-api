@@ -48,6 +48,8 @@ TRADINGVIEW_WEBHOOK_ALLOWED_SYMBOLS=BTCUSDT
 TRADINGVIEW_WEBHOOK_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_WEBHOOK_MAX_NOTIONAL_USDT=10.0
 TRADINGVIEW_WEBHOOK_IDEMPOTENCY_TTL_HOURS=24
+TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW
+TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
 # Hardened schema mode. Flyway uses a Trading-owned history table so it does not
 # mix with AgoraMarketAPI's shared flyway_schema_history rows.
 SPRING_JPA_HIBERNATE_DDL_AUTO=validate
@@ -261,6 +263,7 @@ Expected:
 - OKX Earn trading-buffer top-up and trailing-stop scheduling default off in code and the tracked template; enable `OKX_EARN_TOPUP_ENABLED=true` only when this service should redeem/transfer Earn funds automatically, and enable `TRAILING_STOP_ENABLED=true` only when it should write trailing state or manage OCO updates.
 - ScoreBuy pre-position, confirmed-deploy, post-scout add execution, and near-trigger notifications default off and dry-run in code and the tracked template; the execution schedulers are bean-level explicit opt-in. Enable `TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED=true`, and `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED=true` only after those dry-run/execution and Telegram alert paths belong to trading production.
 - TradingView webhook ingress defaults off and dry-run in code and the tracked template. Enable `TRADINGVIEW_WEBHOOK_ENABLED=true` with `TRADINGVIEW_WEBHOOK_DRY_RUN=true` and a secret only to collect TradingView alert evidence; this release still blocks live order execution until a tracked `bt_live_signal`/OCO accounting path is separately implemented and authorized.
+- Trading signal source policy defaults to TradingView primary. Keep `TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW` and `TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false` so K-line close events do not run the legacy `LiveSignalEvaluator`; use `LEGACY` plus explicit evaluator enablement only for rollback or a deliberate shadow investigation.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

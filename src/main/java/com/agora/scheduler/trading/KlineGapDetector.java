@@ -182,8 +182,8 @@ public class KlineGapDetector {
         log.info("[KlineGap] {}@{} backfilled {} bars from OKX (candidates={} duplicatesOrFailed={})",
                 symbol, intervalCode, inserted.size(), toSave.size(), toSave.size() - inserted.size());
 
-        // 2026-04-18: 補齊的 bar 也必須觸發 LiveSignalEvaluator.evaluate()，否則 WS 漏接的
-        // bar 只進 DB 卻不產生 live signal，策略會靜默跳過該 bar（backtest 反映不到實盤）。
+        // 2026-04-18: 補齊的 bar 也必須發布 KlineClosedEvent。是否補跑 legacy
+        // LiveSignalEvaluator 由 signal-source policy 決定；TradingView-primary 模式只保留資料事件。
         // OkxWsKlineService.persistIfClosed 亦是 save 後 publishEvent，此處保持語義一致。
         for (MdKline k : inserted) {
             try {

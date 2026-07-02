@@ -5,6 +5,7 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.backtest.LiveSignalEvaluator;
 import com.agora.service.market.KlineStreamService;
 import com.agora.service.market.MarketDataTelegramAlertFormatter;
+import com.agora.service.trading.TradingSignalSourcePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,7 +20,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 應用啟動後自動建立 Binance WS 訂閱，並從 DB 補跑最新評估以暖機快取。
+ * 應用啟動後自動建立 Binance WS 訂閱，並在 legacy signal-source rollback
+ * 明確啟用時從 DB 補跑最新評估以暖機快取。
  */
 @Slf4j
 @Component
@@ -32,6 +34,7 @@ public class MarketWsAutoSubscriber {
     private final NotificationPort notificationPort;
     private final MarketWsAutoSubscribeProperties properties;
     private final LiveSignalEvaluator liveSignalEvaluator;
+    private final TradingSignalSourcePolicy signalSourcePolicy;
     private final ServerStartupService serverStartupService;
     private final WsSubscriptionResolver subscriptionResolver;
 
@@ -96,9 +99,12 @@ public class MarketWsAutoSubscriber {
         waitForWsRunning(subscribed, activeServices);
         serverStartupService.recordWsReady(startupLogId);
 
-        // 暖機快取：從 DB 讀取最新 K 線補跑評估，避免重啟後等待下一根 K 線才有數據
+        // 暖機快取：只在 legacy live evaluator 明確啟用時補跑評估。
         if (!properties.isWarmUpEnabled()) {
             log.info("[MarketWS] Cache warm-up disabled");
+        } else if (!signalSourcePolicy.shouldRunLegacyLiveEvaluator()) {
+            log.info("[MarketWS] Legacy evaluator warm-up skipped by signal-source policy: {}",
+                    signalSourcePolicy.status());
         } else if (!subscribed.isEmpty()) {
             log.info("[MarketWS] Warming up MarketSignalCache for {} pairs...", subscribed.size());
             for (MarketWsAutoSubscribeProperties.Item item : subscribed) {

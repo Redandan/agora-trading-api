@@ -49,6 +49,9 @@ trading:
     api-key: ${TRADING_MCP_KEY:}
   internal:
     api-key: ${TRADING_INTERNAL_API_KEY:${AGORA_MARKET_INTERNAL_API_KEY:}}
+  signal-source:
+    primary: ${TRADING_SIGNAL_SOURCE_PRIMARY:TRADINGVIEW}
+    legacy-live-evaluator-enabled: ${TRADING_LEGACY_LIVE_EVALUATOR_ENABLED:false}
   tradingview:
     webhook:
       enabled: ${TRADINGVIEW_WEBHOOK_ENABLED:false}

@@ -19,6 +19,8 @@ class BacktestValidationMcpToolsTest {
 
         String line = BacktestValidationMcpTools.buildTradingViewDataCoverageLine(
                 klines, visibleStart, LocalDateTime.of(2026, 1, 13, 12, 0));
+        BacktestValidationMcpTools.DataCoverage coverage = BacktestValidationMcpTools.inspectTradingViewDataCoverage(
+                klines, visibleStart, LocalDateTime.of(2026, 1, 13, 12, 0));
 
         assertThat(line)
                 .contains("dataStart=2026-01-11T00:00")
@@ -27,6 +29,7 @@ class BacktestValidationMcpToolsTest {
                 .contains("coverage=PARTIAL")
                 .contains("trailingGapHours=36")
                 .contains("coverageWarning=REQUESTED_WINDOW_PARTIAL missingLeadDays=10");
+        assertThat(coverage.qualityGatePassed()).isFalse();
     }
 
     @Test
@@ -38,11 +41,14 @@ class BacktestValidationMcpToolsTest {
 
         String line = BacktestValidationMcpTools.buildTradingViewDataCoverageLine(
                 klines, visibleStart, LocalDateTime.of(2026, 1, 10, 12, 0));
+        BacktestValidationMcpTools.DataCoverage coverage = BacktestValidationMcpTools.inspectTradingViewDataCoverage(
+                klines, visibleStart, LocalDateTime.of(2026, 1, 10, 12, 0));
 
         assertThat(line)
                 .contains("visibleBars=1")
                 .contains("coverage=OK")
                 .contains("coverageWarning=NONE");
+        assertThat(coverage.qualityGatePassed()).isTrue();
     }
 
     private static MdKline kline(LocalDateTime openTime) {

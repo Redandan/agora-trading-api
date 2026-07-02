@@ -76,13 +76,24 @@ public class BacktestValidationMcpTools {
         int daysVal = (days != null) ? days : 365;
         boolean applyF = Boolean.TRUE.equals(applyFilters);
         String src = (source == null || source.isBlank()) ? null : source.toLowerCase();
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase();
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase();
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime startTime = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        String strategyType = strategyEntity.getStrategyType();
+        String resolvedSource = resolvePreviewSource(src, strategyEntity.getKlineSource());
+        LocalDateTime coverageQueryStart = isScoreBuy(strategyType)
+                ? startTime.minusDays(warmupDays(intervalVal))
+                : startTime;
+        List<MdKline> coverageKlines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                symbolVal, intervalVal, resolvedSource, coverageQueryStart, endTime);
+        DataCoverage coverage = inspectTradingViewDataCoverage(coverageKlines, startTime, endTime);
 
         BacktestRunRequest req = new BacktestRunRequest();
         req.setStrategyId(strategyId);
-        req.setSymbol(symbol.toUpperCase());
-        req.setIntervalCode(intervalCode.toLowerCase());
+        req.setSymbol(symbolVal);
+        req.setIntervalCode(intervalVal);
         req.setStartTime(startTime);
         req.setEndTime(endTime);
         req.setInitialCapital(new BigDecimal("10000"));
@@ -113,7 +124,7 @@ public class BacktestValidationMcpTools {
         }
 
         log.info("[MCP] run_backtest strategyId={} symbol={} interval={} days={} applyFilters={} source={}",
-                strategyId, symbol, intervalCode, daysVal, applyF, src == null ? "<strategy>" : src);
+                strategyId, symbolVal, intervalVal, daysVal, applyF, src == null ? "<strategy>" : src);
 
         BacktestResultResponse r = backtestService.runForExploration(req);
 
@@ -122,14 +133,16 @@ public class BacktestValidationMcpTools {
         double dd  = r.getMaxDrawdown() != null ? r.getMaxDrawdown().doubleValue() : 1.0;
 
         // #306 按策略類型分級門檻
-        String strategyType = null;
-        try { strategyType = btStrategyService.getStrategy(strategyId).getStrategyType(); } catch (Exception ignored) {}
         int minTc = BacktestQualityValidator.minTradeCount(strategyType);
         String qTc  = tc  >= minTc                                       ? "✅" : "❌";
         String qRet = ret >  0                                           ? "✅" : "❌";
         String qDd  = dd  <= BtStrategyService.QUALITY_MAX_DRAWDOWN     ? "✅" : "❌";
-        boolean passAll = BacktestQualityValidator.passes(tc, ret, dd, strategyType);
-        String verdict = passAll
+        String qCoverage = coverage.qualityGatePassed() ? "✅" : "❌";
+        boolean metricPass = BacktestQualityValidator.passes(tc, ret, dd, strategyType);
+        boolean passAll = metricPass && coverage.qualityGatePassed();
+        String verdict = !coverage.qualityGatePassed()
+                ? "❌ 資料覆蓋不完整，請先補齊 K 線或縮短 days 後再判讀品質門檻"
+                : passAll
                 ? "✅ 品質門檻全部通過，可執行 enableStrategy(strategyId=" + strategyId + ")"
                 : "❌ 尚未通過品質門檻，請調整參數或延長回測期間後重新執行";
 
@@ -146,6 +159,9 @@ public class BacktestValidationMcpTools {
                 "策略: %s (ID=%d)\n" +
                 "幣種: %s  週期: %s  天數: %d 天\n" +
                 "期間: %s ~ %s\n\n" +
+                "📚 資料覆蓋:\n" +
+                "  source: %s\n" +
+                "  %s\n\n" +
                 "📊 績效指標:\n" +
                 "  勝率:     %.1f%%\n" +
                 "  總報酬率: %.2f%%\n" +
@@ -161,6 +177,7 @@ public class BacktestValidationMcpTools {
                 "%s" +
                 "%s\n" +
                 "🔒 啟用品質門檻:\n" +
+                "  %s 資料覆蓋: %s（需 coverage=OK）\n" +
                 "  %s 交易筆數: %d 筆（需 ≥ %d）\n" +
                 "  %s 總報酬:   %.2f%%（需 > 0%%）\n" +
                 "  %s 最大回撤: %.1f%%（需 ≤ %.0f%%）\n\n" +
@@ -168,6 +185,8 @@ public class BacktestValidationMcpTools {
                 r.getStrategyName(), r.getStrategyId(),
                 r.getSymbol(), r.getIntervalCode(), daysVal,
                 r.getStartTime(), r.getEndTime(),
+                resolvedSource,
+                coverage.formatLine(),
                 pct(r.getWinRate()), pct(r.getTotalReturn()),
                 pct(r.getMaxDrawdown()),
                 r.getSharpeRatio() != null ? String.format("%.3f", r.getSharpeRatio()) : "N/A",
@@ -177,7 +196,8 @@ public class BacktestValidationMcpTools {
                 pct(r.getMarketPriceChangePct()),
                 tradeSamples,
                 filterLine,
-                qTc, tc, BtStrategyService.QUALITY_MIN_TRADE_COUNT,
+                qCoverage, coverage.coverage(),
+                qTc, tc, minTc,
                 qRet, ret * 100,
                 qDd, dd * 100, BtStrategyService.QUALITY_MAX_DRAWDOWN * 100,
                 verdict
@@ -478,8 +498,13 @@ public class BacktestValidationMcpTools {
 
     static String buildTradingViewDataCoverageLine(List<MdKline> klines, LocalDateTime visibleStart,
                                                    LocalDateTime requestedEnd) {
+        return inspectTradingViewDataCoverage(klines, visibleStart, requestedEnd).formatLine();
+    }
+
+    static DataCoverage inspectTradingViewDataCoverage(List<MdKline> klines, LocalDateTime visibleStart,
+                                                       LocalDateTime requestedEnd) {
         if (klines == null || klines.isEmpty()) {
-            return "dataStart=null dataEnd=null visibleBars=0 coverage=NO_DATA coverageWarning=NO_KLINES";
+            return new DataCoverage(null, null, 0L, "NO_DATA", 0L, "NO_KLINES");
         }
         LocalDateTime dataStart = klines.get(0).getOpenTime();
         LocalDateTime dataEnd = klines.get(klines.size() - 1).getOpenTime();
@@ -492,9 +517,20 @@ public class BacktestValidationMcpTools {
         String warning = partial
                 ? String.format(Locale.ROOT, "REQUESTED_WINDOW_PARTIAL missingLeadDays=%d", missingLeadDays)
                 : "NONE";
-        return String.format(Locale.ROOT,
-                "dataStart=%s dataEnd=%s visibleBars=%d coverage=%s trailingGapHours=%d coverageWarning=%s",
-                dataStart, dataEnd, visibleBars, partial ? "PARTIAL" : "OK", trailingGapHours, warning);
+        return new DataCoverage(dataStart, dataEnd, visibleBars, partial ? "PARTIAL" : "OK", trailingGapHours, warning);
+    }
+
+    static record DataCoverage(LocalDateTime dataStart, LocalDateTime dataEnd, long visibleBars,
+                               String coverage, long trailingGapHours, String coverageWarning) {
+        boolean qualityGatePassed() {
+            return "OK".equals(coverage);
+        }
+
+        String formatLine() {
+            return String.format(Locale.ROOT,
+                    "dataStart=%s dataEnd=%s visibleBars=%d coverage=%s trailingGapHours=%d coverageWarning=%s",
+                    dataStart, dataEnd, visibleBars, coverage, trailingGapHours, coverageWarning);
+        }
     }
 
     private double computeTvMaxDrawdown(List<TvLot> lots, List<MdKline> visibleKlines, double fee) {

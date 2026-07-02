@@ -307,12 +307,15 @@ public class BacktestValidationMcpTools {
 
         int fromIndex = Math.max(0, rows.size() - limitVal);
         List<String> tailRows = rows.subList(fromIndex, rows.size());
+        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime);
         return String.format(
                 "=== SCORE_BUY TradingView order-intent preview ===\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                "%s\n" +
                 "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
                 "note=此工具只比對 TradingView 買點/訂單意圖；不落庫、不下單、不套用資金/倉位/SLTP 模型。\n\n%s",
                 strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                coverageLine,
                 orderBarCount, orderCount, firstOrderAt, lastOrderAt,
                 String.join("\n", tailRows));
     }
@@ -410,12 +413,15 @@ public class BacktestValidationMcpTools {
         }
 
         if (lots.isEmpty()) {
+            String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime);
             return String.format(
                     "=== SCORE_BUY TradingView parity backtest ===\n" +
                     "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                    "%s\n" +
                     "orderBars=0 orderIntents=0\n" +
                     "note=未產生 TradingView order intent；不寫庫、不下單。",
-                    strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart);
+                    strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                    coverageLine);
         }
 
         List<MdKline> visibleKlines = klines.stream()
@@ -444,10 +450,12 @@ public class BacktestValidationMcpTools {
         double totalReturn = capitalUsed > 0.0 ? netPnl / capitalUsed : 0.0;
         double winRate = lots.isEmpty() ? 0.0 : (double) winningLots / (double) lots.size();
         List<String> tailRows = orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size());
+        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime);
 
         return String.format(Locale.ROOT,
                 "=== SCORE_BUY TradingView parity backtest ===\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                "%s\n" +
                 "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
                 "execution=TradingView parity: pyramiding=true, exit=mark_to_market_at_end, qtyAsNotionalUsdt=true, localSLTP=false, singlePosition=false\n" +
                 "finalMark=%s finalClose=%s feeRate=%.4f\n\n" +
@@ -460,11 +468,33 @@ public class BacktestValidationMcpTools {
                 "  winningLots: %d/%d (%.1f%%)\n\n" +
                 "note=此工具只比對 TradingView 交易語義；不寫 bt_backtest_result、不下單、不套用本地風控/品質門檻。\n\n%s",
                 strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                coverageLine,
                 orderBarCount, lots.size(), firstOrderAt, lastOrderAt,
                 finalBar.getOpenTime(), fmt(finalClose), fee,
                 capitalUsed, finalValue, netPnl, totalReturn * 100.0,
                 maxDrawdown * 100.0, winningLots, lots.size(), winRate * 100.0,
                 String.join("\n", tailRows));
+    }
+
+    static String buildTradingViewDataCoverageLine(List<MdKline> klines, LocalDateTime visibleStart,
+                                                   LocalDateTime requestedEnd) {
+        if (klines == null || klines.isEmpty()) {
+            return "dataStart=null dataEnd=null visibleBars=0 coverage=NO_DATA coverageWarning=NO_KLINES";
+        }
+        LocalDateTime dataStart = klines.get(0).getOpenTime();
+        LocalDateTime dataEnd = klines.get(klines.size() - 1).getOpenTime();
+        long visibleBars = klines.stream()
+                .filter(k -> !k.getOpenTime().isBefore(visibleStart))
+                .count();
+        boolean partial = dataStart.isAfter(visibleStart);
+        long missingLeadDays = partial ? ChronoUnit.DAYS.between(visibleStart, dataStart) : 0L;
+        long trailingGapHours = requestedEnd != null ? Math.max(0L, ChronoUnit.HOURS.between(dataEnd, requestedEnd)) : 0L;
+        String warning = partial
+                ? String.format(Locale.ROOT, "REQUESTED_WINDOW_PARTIAL missingLeadDays=%d", missingLeadDays)
+                : "NONE";
+        return String.format(Locale.ROOT,
+                "dataStart=%s dataEnd=%s visibleBars=%d coverage=%s trailingGapHours=%d coverageWarning=%s",
+                dataStart, dataEnd, visibleBars, partial ? "PARTIAL" : "OK", trailingGapHours, warning);
     }
 
     private double computeTvMaxDrawdown(List<TvLot> lots, List<MdKline> visibleKlines, double fee) {

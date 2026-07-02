@@ -283,7 +283,7 @@ public class BacktestValidationMcpTools {
     }
 
     private boolean isScoreBuy(String strategyType) {
-        return "SCORE_BUY".equalsIgnoreCase(strategyType);
+        return strategyType != null && strategyType.toUpperCase(Locale.ROOT).startsWith("SCORE_BUY");
     }
 
     private String resolvePreviewSource(String requestedSource, String strategySource) {

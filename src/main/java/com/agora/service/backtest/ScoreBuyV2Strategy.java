@@ -21,6 +21,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * by the currently PROMOTED HeatWave ML model (e.g. signal_scorer v13 with
  * validated +31.4pp 90-day holdout edge).
  *
+ * <p>2026-07 TradingView parity mode: strategy #485 is the production SCORE_BUY
+ * path, but TradingView's Pine script does not include the HeatWave ML gate.
+ * By default this class now delegates to {@link ScoreBuyStrategy} with the
+ * TradingView indicator parameters. Set {@code tradingViewParityMode=false}
+ * only for explicit legacy ML-gated experiments.
+ *
  * <p>PineScript 原版有 online-learning NN(gradient descent 持續更新權重);
  * V1 Java port 卻用**寫死權重**的 sigmoid,導致 nnOutput 幾乎無法 &gt; 0.7。
  * 5y BTC 1d backtest 0-3 筆且全 SL。 V2 用 MlTrainingOrchestrator.predictOne
@@ -63,16 +69,19 @@ public class ScoreBuyV2Strategy implements Strategy {
     private final JdbcTemplate jdbc;
     private final MlTrainingOrchestrator orchestrator;
     private final ObjectMapper objectMapper;
+    private final ScoreBuyStrategy tradingViewStrategy;
 
     private final AtomicReference<PromotedRef> cachedPromoted = new AtomicReference<>(null);
 
     @Autowired
     public ScoreBuyV2Strategy(JdbcTemplate jdbc,
                                MlTrainingOrchestrator orchestrator,
-                               ObjectMapper objectMapper) {
+                               ObjectMapper objectMapper,
+                               ScoreBuyStrategy tradingViewStrategy) {
         this.jdbc = jdbc;
         this.orchestrator = orchestrator;
         this.objectMapper = objectMapper;
+        this.tradingViewStrategy = tradingViewStrategy;
     }
 
     @Override
@@ -144,6 +153,10 @@ public class ScoreBuyV2Strategy implements Strategy {
 
     @Override
     public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+        if (getBoolean(config, "tradingViewParityMode", true)) {
+            return tradingViewStrategy.evaluate(context, tradingViewParityConfig(config));
+        }
+
         int index = context.getIndex();
         List<MdKline> klines = context.getKlines();
 
@@ -240,6 +253,22 @@ public class ScoreBuyV2Strategy implements Strategy {
 
     // ─── helpers ────────────────────────────────────────────
 
+    private Map<String, Object> tradingViewParityConfig(Map<String, Object> config) {
+        Map<String, Object> tv = new HashMap<>(config);
+        tv.put("shortLookbackBars", 20);
+        tv.put("medLookbackBars", 63);
+        tv.put("yearLookbackBars", 252);
+        tv.put("rsiOversold", 40.0);
+        tv.put("rsiOverbought", 70.0);
+        tv.put("buyThreshold", 0.8);
+        tv.put("volumeBreakoutMultiplier", 1.5);
+        tv.put("scoreScale", 8.0);
+        tv.put("scoreShift", 4.0);
+        tv.put("allowMacdAsLowProxy", false);
+        tv.put("requireAboveSma200", false);
+        return tv;
+    }
+
     private Map<String, Object> buildFeatures(StrategyContext context, Map<String, Object> config) {
         Map<String, Object> f = new HashMap<>();
         int index = context.getIndex();
@@ -333,6 +362,13 @@ public class ScoreBuyV2Strategy implements Strategy {
     private double getDouble(Map<String, Object> config, String key, double def) {
         Object v = config.get(key);
         return v instanceof Number ? ((Number) v).doubleValue() : def;
+    }
+    private boolean getBoolean(Map<String, Object> config, String key, boolean def) {
+        Object v = config.get(key);
+        if (v instanceof Boolean b) return b;
+        if (v instanceof Number n) return n.intValue() != 0;
+        if (v instanceof String s && !s.isBlank()) return Boolean.parseBoolean(s);
+        return def;
     }
     private long longFromConfig(Map<String, Object> config, String key, long def) {
         Object v = config.get(key);

@@ -151,11 +151,17 @@ class TelegramServiceImplTest {
         assertThat(normalized).isNotNull();
         assertThat(normalized.split("\\R")).hasSize(3);
         assertThat(normalized)
-                .contains("【市場背景】BTCUSDT 24h: REVIEW_POSITION")
-                .contains("訊號=MARKET_SIGNAL 4 / ACTIONABLE_TRADE 1 / routes 2")
+                .contains("【市場背景】BTCUSDT 24h: 檢查倉位")
+                .contains("訊號=市場訊號 4；交易提醒 1；來源路由 2")
+                .contains("原因=風險摘要 3；宏觀/MEI 1")
                 .contains("用途=風險背景，不是買賣指令")
                 .doesNotContain("時間：")
-                .doesNotContain("標籤：");
+                .doesNotContain("標籤：")
+                .doesNotContain("REVIEW_POSITION")
+                .doesNotContain("MARKET_SIGNAL")
+                .doesNotContain("ACTIONABLE_TRADE")
+                .doesNotContain("market-signal:risk-summary")
+                .doesNotContain("routes");
     }
 
     @Test
@@ -174,7 +180,7 @@ class TelegramServiceImplTest {
         assertThat(normalized).isNotNull();
         assertThat(normalized.split("\\R")).hasSize(3);
         assertThat(normalized)
-                .contains("【市場背景】BTCUSDT: 軋空觀察：空頭主動平倉 OI -1.5%/h")
+                .contains("【市場背景】BTCUSDT: 軋空觀察：空頭主動平倉 未平倉量 -1.5%/h")
                 .contains("觸發值=-1.7110; 門檻=小於 -1.5000, 1.14 倍 觸發")
                 .contains("指標=1 小時未平倉量變化=-1.7110%")
                 .contains("用途=觀察，不是買賣指令")
@@ -183,6 +189,37 @@ class TelegramServiceImplTest {
                 .doesNotContain("symbol:")
                 .doesNotContain("ctx:")
                 .doesNotContain("oi_change_pct_1h");
+    }
+
+    @Test
+    void compactsAlreadyWrappedAttentionMarketSignalWithoutRawTags() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                【市場背景】
+                ⚠️ Attention: 軋空扳機-1：空頭主動平倉 OI -1.5%/h
+                觸發: -1.7211 (threshold < -1.5000, 1.15× 觸發)
+                symbol: BTCUSDT
+                ctx: oi_change_pct_1h=-1.7211
+                處置：觀察
+                標籤：MARKET_SIGNAL / WATCH
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "AttentionRuleEvaluator", "WARN");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【市場背景】BTCUSDT: 軋空觀察：空頭主動平倉 未平倉量 -1.5%/h")
+                .contains("觸發值=-1.7211; 門檻=小於 -1.5000, 1.15 倍 觸發")
+                .contains("指標=1 小時未平倉量變化=-1.7211%")
+                .doesNotContain("Attention:")
+                .doesNotContain("threshold <")
+                .doesNotContain("symbol:")
+                .doesNotContain("ctx:")
+                .doesNotContain("標籤：")
+                .doesNotContain("MARKET_SIGNAL")
+                .doesNotContain("WATCH");
     }
 
     @Test
@@ -201,7 +238,7 @@ class TelegramServiceImplTest {
         assertThat(normalized).isNotNull();
         assertThat(normalized.split("\\R")).hasSize(3);
         assertThat(normalized)
-                .contains("【市場背景】BTCUSDT: 軋空觀察：鯨魚買單主導 whale_buy > 75%")
+                .contains("【市場背景】BTCUSDT: 軋空觀察：鯨魚買單主導 鯨魚買單占比 > 75%")
                 .contains("觸發值=0.7757; 門檻=大於 0.7500, 1.03 倍 超標")
                 .contains("指標=鯨魚買單占比=77.57%")
                 .contains("用途=觀察，不是買賣指令")

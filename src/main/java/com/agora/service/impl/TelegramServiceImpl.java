@@ -375,11 +375,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         if (plain.contains("每日自動交易摘要") || plain.contains("Autonomous Trading Digest severe state change")) {
             return compactDailyAutonomousDigest(plain);
         }
+        if (bucket == Bucket.MARKET_SIGNAL && containsAttentionMarker(plain)) {
+            return compactAttentionMarketSignal(plain);
+        }
         if (bucket == Bucket.MARKET_SIGNAL && plain.contains("[市場風險摘要]")) {
             return compactMarketRiskSummary(plain);
-        }
-        if (bucket == Bucket.MARKET_SIGNAL && plain.contains("Attention:")) {
-            return compactAttentionMarketSignal(plain);
         }
         return null;
     }
@@ -414,9 +414,9 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             symbol = firstNonBlank(header.group(1), symbol).trim();
             hours = firstNonBlank(header.group(2), hours).trim();
         }
-        String status = firstNonBlank(lineValue(plain, "狀態"), "WATCH");
-        String counts = firstNonBlank(lineValue(plain, "摘要"), "MARKET_SIGNAL 0");
-        String reasons = firstNonBlank(lineValue(plain, "原因"), "無");
+        String status = humanizeMarketStatus(firstNonBlank(lineValue(plain, "狀態"), "WATCH"));
+        String counts = humanizeMarketCounts(firstNonBlank(lineValue(plain, "摘要"), "MARKET_SIGNAL 0"));
+        String reasons = humanizeMarketReasons(firstNonBlank(lineValue(plain, "原因"), "無"));
         return threeLines(
                 "【市場背景】" + symbol + " " + hours + ": " + status,
                 "訊號=" + shorten(counts, 56) + "; 原因=" + shorten(reasons, 58),
@@ -452,18 +452,18 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         if (normalized.contains("：")) {
             String detail = normalized.substring(normalized.indexOf("：") + 1).trim();
             if (normalized.contains("軋空")) {
-                return "軋空觀察：" + detail;
+                return "軋空觀察：" + humanizeInlineMarketTokens(detail);
             }
-            return "市場觀察：" + detail;
+            return "市場觀察：" + humanizeInlineMarketTokens(detail);
         }
         if (normalized.contains(":")) {
             String detail = normalized.substring(normalized.indexOf(":") + 1).trim();
             if (normalized.contains("軋空")) {
-                return "軋空觀察：" + detail;
+                return "軋空觀察：" + humanizeInlineMarketTokens(detail);
             }
-            return "市場觀察：" + detail;
+            return "市場觀察：" + humanizeInlineMarketTokens(detail);
         }
-        return normalized.replace("Attention", "市場觀察");
+        return humanizeInlineMarketTokens(normalized.replace("Attention", "市場觀察"));
     }
 
     private static String humanizeThreshold(String rawThreshold) {
@@ -475,6 +475,62 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                 .replace("threshold <", "小於")
                 .replace("×", " 倍");
         return "門檻=" + normalized;
+    }
+
+    private static boolean containsAttentionMarker(String plain) {
+        return plain != null && plain.toLowerCase(Locale.ROOT).contains("attention:");
+    }
+
+    private static String humanizeMarketStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "觀察";
+        }
+        return switch (status.trim().toUpperCase(Locale.ROOT)) {
+            case "WATCH" -> "觀察";
+            case "REVIEW", "REVIEW_POSITION" -> "檢查倉位";
+            case "ACTIONABLE", "ACTIONABLE_TRADE" -> "有交易提醒";
+            case "NO_ACTION" -> "無需操作";
+            default -> humanizeInlineMarketTokens(status);
+        };
+    }
+
+    private static String humanizeMarketCounts(String counts) {
+        if (counts == null || counts.isBlank()) {
+            return "市場訊號 0";
+        }
+        return humanizeInlineMarketTokens(counts)
+                .replace(" / ", "；");
+    }
+
+    private static String humanizeMarketReasons(String reasons) {
+        if (reasons == null || reasons.isBlank()) {
+            return "無";
+        }
+        return humanizeInlineMarketTokens(reasons)
+                .replace(" / ", "；");
+    }
+
+    private static String humanizeInlineMarketTokens(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        return value
+                .replace("market-signal:risk-summary", "風險摘要")
+                .replace("market-signal:market-flip", "市場翻轉")
+                .replace("market-signal:polymarket", "Polymarket 背景")
+                .replace("market-signal:put-call", "Put/Call")
+                .replace("market-signal:macro", "宏觀/MEI")
+                .replace("market-signal:whale", "鯨魚資金")
+                .replace("market-signal:gemini-advisor", "AI 市場觀點")
+                .replace("MARKET_SIGNAL", "市場訊號")
+                .replace("ACTIONABLE_TRADE", "交易提醒")
+                .replace("routes", "來源路由")
+                .replace("PutCall", "Put/Call")
+                .replace("Macro/MEI", "宏觀/MEI")
+                .replace("REVIEW_POSITION", "檢查倉位")
+                .replace("WATCH", "觀察")
+                .replace("whale_buy", "鯨魚買單占比")
+                .replace("OI", "未平倉量");
     }
 
     private static String humanizeAttentionCtx(String ctx) {
@@ -641,11 +697,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
 
     private String defaultTags(Bucket bucket) {
         return switch (bucket) {
-            case ACTIONABLE_TRADE -> "ACTIONABLE_TRADE / REVIEW";
-            case GRID_INCIDENT -> "GRID_INCIDENT / MANUAL_CHECK";
-            case MARKET_SIGNAL -> "MARKET_SIGNAL / WATCH";
-            case OPS_AUDIT -> "OPS_AUDIT / NO_ACTION";
-            case SYSTEM_NOISE -> "SYSTEM_NOISE / NO_ACTION";
+            case ACTIONABLE_TRADE -> "交易提醒 / 需檢查";
+            case GRID_INCIDENT -> "網格異常 / 人工檢查";
+            case MARKET_SIGNAL -> "市場背景 / 觀察";
+            case OPS_AUDIT -> "系統稽核 / 無需操作";
+            case SYSTEM_NOISE -> "系統雜訊 / 無需操作";
             default -> "OTHER";
         };
     }

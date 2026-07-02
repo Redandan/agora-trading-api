@@ -68,14 +68,14 @@ public class BacktestValidationMcpTools {
             "params: strategyId=策略ID, symbol=交易對(BTCUSDT/ETHUSDT), " +
             "intervalCode=K線週期(15m/1h/4h/1d), days=回測天數(例如180), " +
             "applyFilters=true 時套用歷史 F&G / 事件日曆 / 資金費率過濾層（預設 false）, " +
-            "source=K 線資料源 binance 或 okx（預設 binance，覆蓋全歷史；okx 目前累積中）," +
+            "source=K 線資料源 binance 或 okx（留白時使用策略 klineSource；僅研究對照時覆寫）," +
             "configOverrideJson=臨時覆蓋 config 參數（不改 DB！），JSON 字串，例如 " +
             "{\"buyThreshold\":25,\"requireFundingImprovingBars\":48}。可帶 {\"skipPersist\":true} 避免寫入回測結果表。")
     public String runBacktest(Long strategyId, String symbol, String intervalCode, Integer days,
                               Boolean applyFilters, String source, String configOverrideJson) {
         int daysVal = (days != null) ? days : 365;
         boolean applyF = Boolean.TRUE.equals(applyFilters);
-        String src = (source == null || source.isBlank()) ? "binance" : source.toLowerCase();
+        String src = (source == null || source.isBlank()) ? null : source.toLowerCase();
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime startTime = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
 
@@ -113,7 +113,7 @@ public class BacktestValidationMcpTools {
         }
 
         log.info("[MCP] run_backtest strategyId={} symbol={} interval={} days={} applyFilters={} source={}",
-                strategyId, symbol, intervalCode, daysVal, applyF, src);
+                strategyId, symbol, intervalCode, daysVal, applyF, src == null ? "<strategy>" : src);
 
         BacktestResultResponse r = backtestService.runForExploration(req);
 

@@ -317,6 +317,194 @@ public class BacktestValidationMcpTools {
                 String.join("\n", tailRows));
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.ANALYTICS})
+    @Tool(description = "只讀執行 SCORE_BUY 的 TradingView parity mark-to-market 回測。" +
+            "按 Pine order intent 逐筆建倉、允許 pyramiding、持有到回測期末，不套用本地單倉/SL/TP/資金模型。" +
+            "qty 以 USDT notional 解讀，用於修正 TradingView 報表 INVALID DATA 下的可比績效。")
+    public String runScoreBuyTradingViewParityBacktest(Long strategyId, String symbol, String intervalCode,
+                                                       Integer days, String source, String configOverrideJson,
+                                                       Double feeRate, Integer limit) {
+        int daysVal = days != null ? days : 365;
+        int limitVal = Math.max(1, Math.min(limit != null ? limit : 50, 500));
+        double fee = feeRate != null ? Math.max(0.0, feeRate) : 0.001;
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase();
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase();
+
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        if (!isScoreBuy(strategyEntity.getStrategyType())) {
+            return "❌ strategyId=" + strategyId + " 不是 SCORE_BUY 類型，實際類型=" + strategyEntity.getStrategyType();
+        }
+
+        String src = resolvePreviewSource(source, strategyEntity.getKlineSource());
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+
+        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                symbolVal, intervalVal, src, queryStart, endTime);
+        if (klines.isEmpty()) {
+            return String.format("❌ 查無 K 線: symbol=%s interval=%s source=%s range=%s~%s",
+                    symbolVal, intervalVal, src, queryStart, endTime);
+        }
+
+        Map<String, Object> config = new HashMap<String, Object>(btStrategyService.parseConfig(strategyEntity.getConfigJson()));
+        if (configOverrideJson != null && !configOverrideJson.isBlank()) {
+            try {
+                Map<String, Object> override = objectMapper.readValue(configOverrideJson,
+                        new TypeReference<Map<String, Object>>() {});
+                override.remove("initialCapital");
+                override.remove("feeRate");
+                override.remove("skipPersist");
+                config.putAll(override);
+            } catch (Exception e) {
+                return "❌ configOverrideJson 格式錯誤: " + e.getMessage();
+            }
+        }
+        config.put("runIntervalCode", intervalVal);
+
+        Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
+        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+
+        List<TvLot> lots = new ArrayList<TvLot>();
+        List<String> orderRows = new ArrayList<String>();
+        int orderBarCount = 0;
+        LocalDateTime firstOrderAt = null;
+        LocalDateTime lastOrderAt = null;
+
+        for (int i = 0; i < klines.size(); i++) {
+            MdKline current = klines.get(i);
+            MdKline previous = i > 0 ? klines.get(i - 1) : null;
+            StrategyContext context = new StrategyContext(i, current, previous, klines, indicators);
+
+            LiveSignalContext.clear();
+            StrategySignal signal = strategy.evaluate(context, config);
+            List<LiveSignalContext.OrderIntent> intents = LiveSignalContext.getOrderIntents();
+            if (current.getOpenTime().isBefore(visibleStart) || intents.isEmpty()) {
+                continue;
+            }
+
+            orderBarCount++;
+            if (firstOrderAt == null) {
+                firstOrderAt = current.getOpenTime();
+            }
+            lastOrderAt = current.getOpenTime();
+            double entryPrice = current.getClosePrice().doubleValue();
+            Map<String, Object> details = LiveSignalContext.getDetails();
+            for (LiveSignalContext.OrderIntent intent : intents) {
+                double notional = Math.max(0.0, intent.quantity());
+                if (notional <= 0.0 || entryPrice <= 0.0) {
+                    continue;
+                }
+                TvLot lot = new TvLot(current.getOpenTime(), entryPrice, notional,
+                        intent.reason(), intent.label(), signal.name(),
+                        detail(details, "tradingview_nn_output"),
+                        detail(details, "tradingview_rsi"));
+                lots.add(lot);
+                orderRows.add(String.format(Locale.ROOT,
+                        "%s entry=%s notional=%.2f reason=%s label=%s signal=%s nn=%s rsi=%s",
+                        lot.entryTime(), fmt(entryPrice), notional,
+                        lot.reason(), lot.label(), lot.signal(), lot.nn(), lot.rsi()));
+            }
+        }
+
+        if (lots.isEmpty()) {
+            return String.format(
+                    "=== SCORE_BUY TradingView parity backtest ===\n" +
+                    "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                    "orderBars=0 orderIntents=0\n" +
+                    "note=未產生 TradingView order intent；不寫庫、不下單。",
+                    strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart);
+        }
+
+        List<MdKline> visibleKlines = klines.stream()
+                .filter(k -> !k.getOpenTime().isBefore(visibleStart))
+                .toList();
+        MdKline finalBar = visibleKlines.isEmpty() ? klines.get(klines.size() - 1) : visibleKlines.get(visibleKlines.size() - 1);
+        double finalClose = finalBar.getClosePrice().doubleValue();
+        double capitalUsed = lots.stream().mapToDouble(TvLot::notional).sum();
+        double finalValue = 0.0;
+        double netPnl = 0.0;
+        int winningLots = 0;
+        for (TvLot lot : lots) {
+            double quantity = lot.notional() / lot.entryPrice();
+            double exitValue = quantity * finalClose;
+            double entryFee = lot.notional() * fee;
+            double exitFee = exitValue * fee;
+            double lotNet = exitValue - lot.notional() - entryFee - exitFee;
+            finalValue += exitValue - exitFee;
+            netPnl += lotNet;
+            if (lotNet > 0) {
+                winningLots++;
+            }
+        }
+
+        double maxDrawdown = computeTvMaxDrawdown(lots, visibleKlines, fee);
+        double totalReturn = capitalUsed > 0.0 ? netPnl / capitalUsed : 0.0;
+        double winRate = lots.isEmpty() ? 0.0 : (double) winningLots / (double) lots.size();
+        List<String> tailRows = orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size());
+
+        return String.format(Locale.ROOT,
+                "=== SCORE_BUY TradingView parity backtest ===\n" +
+                "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
+                "execution=TradingView parity: pyramiding=true, exit=mark_to_market_at_end, qtyAsNotionalUsdt=true, localSLTP=false, singlePosition=false\n" +
+                "finalMark=%s finalClose=%s feeRate=%.4f\n\n" +
+                "績效:\n" +
+                "  deployedNotional: %.2f USDT\n" +
+                "  finalValueAfterExitFee: %.2f USDT\n" +
+                "  netPnl: %.2f USDT\n" +
+                "  totalReturn: %.2f%%\n" +
+                "  maxDrawdown: %.2f%%\n" +
+                "  winningLots: %d/%d (%.1f%%)\n\n" +
+                "note=此工具只比對 TradingView 交易語義；不寫 bt_backtest_result、不下單、不套用本地風控/品質門檻。\n\n%s",
+                strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                orderBarCount, lots.size(), firstOrderAt, lastOrderAt,
+                finalBar.getOpenTime(), fmt(finalClose), fee,
+                capitalUsed, finalValue, netPnl, totalReturn * 100.0,
+                maxDrawdown * 100.0, winningLots, lots.size(), winRate * 100.0,
+                String.join("\n", tailRows));
+    }
+
+    private double computeTvMaxDrawdown(List<TvLot> lots, List<MdKline> visibleKlines, double fee) {
+        if (lots.isEmpty() || visibleKlines == null || visibleKlines.isEmpty()) {
+            return 0.0;
+        }
+        double maxEquity = 0.0;
+        double maxDrawdown = 0.0;
+        for (MdKline bar : visibleKlines) {
+            double close = bar.getClosePrice().doubleValue();
+            double deployed = 0.0;
+            double equity = 0.0;
+            for (TvLot lot : lots) {
+                if (lot.entryTime().isAfter(bar.getOpenTime())) {
+                    continue;
+                }
+                double quantity = lot.notional() / lot.entryPrice();
+                double exitValue = quantity * close;
+                deployed += lot.notional();
+                equity += exitValue - exitValue * fee - lot.notional() * fee;
+            }
+            if (deployed <= 0.0) {
+                continue;
+            }
+            maxEquity = Math.max(maxEquity, equity);
+            if (maxEquity > 0.0) {
+                maxDrawdown = Math.max(maxDrawdown, (maxEquity - equity) / maxEquity);
+            }
+        }
+        return maxDrawdown;
+    }
+
+    private String fmt(double value) {
+        return String.format(Locale.ROOT, "%.4f", value);
+    }
+
+    private record TvLot(LocalDateTime entryTime, double entryPrice, double notional,
+                         String reason, String label, String signal, String nn, String rsi) {
+    }
+
     private boolean isScoreBuy(String strategyType) {
         return strategyType != null && strategyType.toUpperCase(Locale.ROOT).startsWith("SCORE_BUY");
     }

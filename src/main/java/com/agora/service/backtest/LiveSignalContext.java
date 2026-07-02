@@ -1,6 +1,9 @@
 package com.agora.service.backtest;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,9 +38,17 @@ public final class LiveSignalContext {
         }
     }
 
+    /**
+     * Optional per-bar order intent emitted by strategies that need more detail
+     * than the legacy BUY/HOLD/SELL enum can carry.
+     */
+    public record OrderIntent(String reason, String label, double quantity) {
+    }
+
     private static final ThreadLocal<Snapshot> HOLDER = new ThreadLocal<>();
     /** #398 — per-strategy trigger-condition snapshot (mih_indicator value, gate pass/fail, etc.). */
     private static final ThreadLocal<Map<String, Object>> DETAILS = new ThreadLocal<>();
+    private static final ThreadLocal<List<OrderIntent>> ORDER_INTENTS = new ThreadLocal<>();
 
     private LiveSignalContext() {}
 
@@ -79,6 +90,23 @@ public final class LiveSignalContext {
         map.put(key, value);
     }
 
+    public static void addOrderIntent(String reason, String label, double quantity) {
+        List<OrderIntent> list = ORDER_INTENTS.get();
+        if (list == null) {
+            list = new ArrayList<>();
+            ORDER_INTENTS.set(list);
+        }
+        list.add(new OrderIntent(reason, label, quantity));
+    }
+
+    public static List<OrderIntent> getOrderIntents() {
+        List<OrderIntent> list = ORDER_INTENTS.get();
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(list);
+    }
+
     /** #398 — returns the detail map (never null after first putDetail; null if untouched). */
     public static Map<String, Object> getDetails() {
         return DETAILS.get();
@@ -88,5 +116,6 @@ public final class LiveSignalContext {
     public static void clear() {
         HOLDER.remove();
         DETAILS.remove();
+        ORDER_INTENTS.remove();
     }
 }

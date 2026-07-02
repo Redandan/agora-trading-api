@@ -19,6 +19,11 @@ public class TradeRecord {
     private String side;
     private double borrowingCost;
     private double releasedNotional;
+    private String entryReason;
+    private String entryLabel;
+    private Double entryRequestedQuantity;
+    private Integer entryOrderCount;
+    private String entryOrderReasons;
 
     // ─── V047 (2026-04-17) — indicator snapshot at ENTRY time ───────────────
     // Purpose: feed ML signal_scorer with actual market state, not just

@@ -147,7 +147,9 @@ public class BacktestEngine {
                         openPosition.entryIndicatorSnapshot));
             }
 
+            LiveSignalContext.clear();
             StrategySignal signal = strategy.evaluate(context, config);
+            List<LiveSignalContext.OrderIntent> orderIntents = LiveSignalContext.getOrderIntents();
             double close = current.getClosePrice().doubleValue();
             double high = current.getHighPrice().doubleValue();
             double low = current.getLowPrice().doubleValue();
@@ -362,12 +364,14 @@ public class BacktestEngine {
                 }
 
                 if (isBuy) {
-                    openPosition = openPosition(PositionSide.LONG, current, close, cash, fee, baseKlines, i, config);
+                    openPosition = openPosition(PositionSide.LONG, current, close, cash, fee,
+                            baseKlines, i, config, orderIntents);
                     if (openPosition != null) {
                         cash = 0.0;
                     }
                 } else if (isSell) {
-                    openPosition = openPosition(PositionSide.SHORT, current, close, cash, fee, baseKlines, i, config);
+                    openPosition = openPosition(PositionSide.SHORT, current, close, cash, fee,
+                            baseKlines, i, config, orderIntents);
                     if (openPosition != null) {
                         cash = 0.0;
                     }
@@ -482,6 +486,11 @@ public class BacktestEngine {
         trade.setExitReason(reason);
         trade.setSide(side.name());
         trade.setBorrowingCost(borrowingCost);
+        trade.setEntryReason(pos.entryReason);
+        trade.setEntryLabel(pos.entryLabel);
+        trade.setEntryRequestedQuantity(pos.entryRequestedQuantity);
+        trade.setEntryOrderCount(pos.entryOrderCount);
+        trade.setEntryOrderReasons(pos.entryOrderReasons);
 
         pos.quantity -= closeQty;
         pos.notional -= releasedNotional;
@@ -524,7 +533,8 @@ public class BacktestEngine {
                                   double fee,
                                   List<MdKline> baseKlines,
                                   int index,
-                                  Map<String, Object> config) {
+                                  Map<String, Object> config,
+                                  List<LiveSignalContext.OrderIntent> orderIntents) {
         double openFee = cash * fee;
         double investable = cash - openFee;
         if (investable <= 0.0) {
@@ -538,6 +548,7 @@ public class BacktestEngine {
         pos.notional = investable;
         pos.initialQuantity = investable / entryPrice;
         pos.quantity = pos.initialQuantity;
+        attachEntryOrderIntent(pos, orderIntents);
 
         EntryPlan plan = buildEntryPlan(side, baseKlines, index, entryPrice, config);
         pos.stopLossPrice = plan.stopLossPrice;
@@ -556,6 +567,20 @@ public class BacktestEngine {
             // never fail a trade just because snapshot broke
         }
         return pos;
+    }
+
+    private void attachEntryOrderIntent(Position pos, List<LiveSignalContext.OrderIntent> orderIntents) {
+        if (orderIntents == null || orderIntents.isEmpty()) {
+            return;
+        }
+        LiveSignalContext.OrderIntent primary = orderIntents.get(0);
+        pos.entryReason = primary.reason();
+        pos.entryLabel = primary.label();
+        pos.entryRequestedQuantity = primary.quantity();
+        pos.entryOrderCount = orderIntents.size();
+        pos.entryOrderReasons = orderIntents.stream()
+                .map(LiveSignalContext.OrderIntent::reason)
+                .collect(java.util.stream.Collectors.joining(","));
     }
 
     /** Delegates to {@link EntryFeatureSnapshot#compute} so backfill uses identical logic. */
@@ -760,8 +785,8 @@ public class BacktestEngine {
         return ans;
     }
 
-    /** Package-private：供 LiveSignalEvaluator 在 backtest 執行週期外建立指標使用。 */
-    Map<String, double[]> buildIndicators(List<MdKline> klines, Map<String, Object> config) {
+    /** Shared by backtest, live evaluation, and read-only MCP signal previews. */
+    public Map<String, double[]> buildIndicators(List<MdKline> klines, Map<String, Object> config) {
         double[] closePrices = klines.stream()
                 .map(MdKline::getClosePrice)
                 .mapToDouble(BigDecimal::doubleValue)
@@ -950,6 +975,11 @@ public class BacktestEngine {
         private double takeProfit1Price;
         private double takeProfit2Price;
         private boolean tp1Taken;
+        private String entryReason;
+        private String entryLabel;
+        private Double entryRequestedQuantity;
+        private Integer entryOrderCount;
+        private String entryOrderReasons;
 
         // ─── V047 indicator snapshot at entry time ────────────────────────
         // Copied onto TradeRecord in closePartial(); used by ML signal_scorer

@@ -146,6 +146,21 @@ public class BacktestResultResponse {
 
         @Schema(description = "借貨利息（僅做空時有值，幣安小時計息模型）", example = "1.23450000", nullable = true)
         private BigDecimal borrowingCost;
+
+        @Schema(description = "進場原因／TradingView 訂單類型", example = "TRADINGVIEW_RELATIVE_LOW", nullable = true)
+        private String entryReason;
+
+        @Schema(description = "進場標籤", example = "相对低点买入", nullable = true)
+        private String entryLabel;
+
+        @Schema(description = "TradingView 原始 qty 參數（僅作訊號對照，不等於本地實際下單數量）", example = "1000.0", nullable = true)
+        private BigDecimal entryRequestedQuantity;
+
+        @Schema(description = "同一根 K 觸發的 TradingView order intent 數量", example = "2", nullable = true)
+        private Integer entryOrderCount;
+
+        @Schema(description = "同一根 K 觸發的 TradingView order intent 清單", example = "TRADINGVIEW_AI_BUY_SIGNAL,TRADINGVIEW_RELATIVE_LOW", nullable = true)
+        private String entryOrderReasons;
     }
 
     @Data

@@ -8,12 +8,20 @@ import com.agora.dto.backtest.AiStrategyDiscoveryRequest;
 import com.agora.dto.backtest.AiStrategyDiscoveryResponse;
 import com.agora.dto.backtest.BacktestResultResponse;
 import com.agora.dto.backtest.BacktestRunRequest;
+import com.agora.model.BtStrategy;
+import com.agora.model.MdKline;
 import com.agora.repository.trading.GeminiMarketHintRepository;
 import com.agora.service.BacktestService;
 import com.agora.service.BtStrategyService;
 import com.agora.service.ai.AiStrategyDiscoveryService;
+import com.agora.service.backtest.BacktestEngine;
 import com.agora.service.backtest.BacktestQualityValidator;
 import com.agora.service.backtest.BacktestTradeValidator;
+import com.agora.service.backtest.LiveSignalContext;
+import com.agora.service.backtest.Strategy;
+import com.agora.service.backtest.StrategyContext;
+import com.agora.service.backtest.StrategyRegistry;
+import com.agora.service.backtest.StrategySignal;
 import com.agora.service.backtest.TradeRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,16 +59,18 @@ public class BacktestValidationMcpTools {
     private final com.agora.repository.trading.BtBacktestTradeRepository btBacktestTradeRepo;
     private final com.agora.repository.trading.BtDecisionAuditRepository decisionAuditRepo;
     private final com.agora.repository.trading.MdKlineRepository klineRepo;
+    private final StrategyRegistry strategyRegistry;
+    private final BacktestEngine backtestEngine;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS})
     @Tool(description = "對指定策略執行回測（即使策略停用也可執行）。" +
             "params: strategyId=策略ID, symbol=交易對(BTCUSDT/ETHUSDT), " +
-            "intervalCode=K線週期(15m/1h/4h), days=回測天數(例如180), " +
+            "intervalCode=K線週期(15m/1h/4h/1d), days=回測天數(例如180), " +
             "applyFilters=true 時套用歷史 F&G / 事件日曆 / 資金費率過濾層（預設 false）, " +
             "source=K 線資料源 binance 或 okx（預設 binance，覆蓋全歷史；okx 目前累積中）," +
             "configOverrideJson=臨時覆蓋 config 參數（不改 DB！），JSON 字串，例如 " +
-            "{\"buyThreshold\":25,\"requireFundingImprovingBars\":48}。適合快速探索參數效果。")
+            "{\"buyThreshold\":25,\"requireFundingImprovingBars\":48}。可帶 {\"skipPersist\":true} 避免寫入回測結果表。")
     public String runBacktest(Long strategyId, String symbol, String intervalCode, Integer days,
                               Boolean applyFilters, String source, String configOverrideJson) {
         int daysVal = (days != null) ? days : 365;
@@ -91,6 +101,10 @@ public class BacktestValidationMcpTools {
                 Object feeOverride = override.remove("feeRate");
                 if (feeOverride != null) {
                     req.setFeeRate(new BigDecimal(String.valueOf(feeOverride)));
+                }
+                Object skipPersistOverride = override.remove("skipPersist");
+                if (skipPersistOverride != null) {
+                    req.setSkipPersist(Boolean.parseBoolean(String.valueOf(skipPersistOverride)));
                 }
                 req.setConfigOverride(override);
             } catch (Exception e) {
@@ -164,6 +178,145 @@ public class BacktestValidationMcpTools {
                 qDd, dd * 100, BtStrategyService.QUALITY_MAX_DRAWDOWN * 100,
                 verdict
         );
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.ANALYTICS})
+    @Tool(description = "只讀預覽 SCORE_BUY 的 TradingView 買點/訂單意圖。" +
+            "逐根 K 線執行策略並列出 Pine 等價 order intent，不寫 bt_backtest_result、不下單。" +
+            "params: strategyId, symbol, intervalCode(建議 1d), days, source(binance/okx), " +
+            "configOverrideJson(不改 DB), limit(回傳最後 N 筆 order intent，預設 50)。")
+    public String previewScoreBuyTradingViewOrders(Long strategyId, String symbol, String intervalCode,
+                                                   Integer days, String source, String configOverrideJson,
+                                                   Integer limit) {
+        int daysVal = days != null ? days : 365;
+        int limitVal = Math.max(1, Math.min(limit != null ? limit : 50, 500));
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase();
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase();
+
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        if (!isScoreBuy(strategyEntity.getStrategyType())) {
+            return "❌ strategyId=" + strategyId + " 不是 SCORE_BUY 類型，實際類型=" + strategyEntity.getStrategyType();
+        }
+
+        String src = resolvePreviewSource(source, strategyEntity.getKlineSource());
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+
+        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                symbolVal, intervalVal, src, queryStart, endTime);
+        if (klines.isEmpty()) {
+            return String.format("❌ 查無 K 線: symbol=%s interval=%s source=%s range=%s~%s",
+                    symbolVal, intervalVal, src, queryStart, endTime);
+        }
+
+        Map<String, Object> config = new HashMap<String, Object>(btStrategyService.parseConfig(strategyEntity.getConfigJson()));
+        if (configOverrideJson != null && !configOverrideJson.isBlank()) {
+            try {
+                Map<String, Object> override = objectMapper.readValue(configOverrideJson,
+                        new TypeReference<Map<String, Object>>() {});
+                override.remove("initialCapital");
+                override.remove("feeRate");
+                override.remove("skipPersist");
+                config.putAll(override);
+            } catch (Exception e) {
+                return "❌ configOverrideJson 格式錯誤: " + e.getMessage();
+            }
+        }
+        config.put("runIntervalCode", intervalVal);
+
+        Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
+        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+
+        List<String> rows = new ArrayList<String>();
+        int orderCount = 0;
+        int orderBarCount = 0;
+        LocalDateTime firstOrderAt = null;
+        LocalDateTime lastOrderAt = null;
+
+        for (int i = 0; i < klines.size(); i++) {
+            MdKline current = klines.get(i);
+            MdKline previous = i > 0 ? klines.get(i - 1) : null;
+            StrategyContext context = new StrategyContext(i, current, previous, klines, indicators);
+
+            LiveSignalContext.clear();
+            StrategySignal signal = strategy.evaluate(context, config);
+            List<LiveSignalContext.OrderIntent> intents = LiveSignalContext.getOrderIntents();
+            if (current.getOpenTime().isBefore(visibleStart) || intents.isEmpty()) {
+                continue;
+            }
+
+            orderBarCount++;
+            if (firstOrderAt == null) {
+                firstOrderAt = current.getOpenTime();
+            }
+            lastOrderAt = current.getOpenTime();
+            Map<String, Object> details = LiveSignalContext.getDetails();
+            for (LiveSignalContext.OrderIntent intent : intents) {
+                orderCount++;
+                rows.add(String.format(
+                        "%s close=%s signal=%s reason=%s qty=%.0f label=%s nn=%s rsi=%s buySignal=%s",
+                        current.getOpenTime(),
+                        current.getClosePrice(),
+                        signal,
+                        intent.reason(),
+                        intent.quantity(),
+                        intent.label(),
+                        detail(details, "tradingview_nn_output"),
+                        detail(details, "tradingview_rsi"),
+                        detail(details, "tradingview_buy_signal")));
+            }
+        }
+
+        int fromIndex = Math.max(0, rows.size() - limitVal);
+        List<String> tailRows = rows.subList(fromIndex, rows.size());
+        return String.format(
+                "=== SCORE_BUY TradingView order-intent preview ===\n" +
+                "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
+                "note=此工具只比對 TradingView 買點/訂單意圖；不落庫、不下單、不套用資金/倉位/SLTP 模型。\n\n%s",
+                strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                orderBarCount, orderCount, firstOrderAt, lastOrderAt,
+                String.join("\n", tailRows));
+    }
+
+    private boolean isScoreBuy(String strategyType) {
+        return "SCORE_BUY".equalsIgnoreCase(strategyType);
+    }
+
+    private String resolvePreviewSource(String requestedSource, String strategySource) {
+        if (requestedSource != null && !requestedSource.isBlank()) {
+            return requestedSource.toLowerCase();
+        }
+        if (strategySource != null && !strategySource.isBlank()) {
+            return strategySource.toLowerCase();
+        }
+        return "okx";
+    }
+
+    private long warmupDays(String intervalCode) {
+        return switch (intervalCode.toLowerCase()) {
+            case "1m", "5m", "15m" -> 30L;
+            case "1h" -> 90L;
+            case "4h" -> 180L;
+            default -> 365L;
+        };
+    }
+
+    private String detail(Map<String, Object> details, String key) {
+        if (details == null) {
+            return "N/A";
+        }
+        Object value = details.get(key);
+        if (value == null) {
+            return "N/A";
+        }
+        if (value instanceof Number number) {
+            return String.format("%.4f", number.doubleValue());
+        }
+        return String.valueOf(value);
     }
 
     // ─── runBacktestSweep ────────────────────────────────────────────────────────

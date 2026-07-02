@@ -3,8 +3,10 @@ package com.agora.service.backtest;
 import com.agora.model.MdKline;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Score-based buy point detection strategy.
@@ -13,8 +15,8 @@ import java.util.Map;
  *   rsi, bollMid, bollUp, bollLow, macdLine, macdSignal, sma200, volumeMa20
  *
  * Step 1 — derived features:
- *   isRelativeLow   : wicked below prevShortLow(10) but closed above it
- *   isPotentialLow  : wicked below prevMedLowest(63) but closed above it
+ *   isRelativeLow   : wicked below prior shortTermLow(20) but closed above it
+ *   isPotentialLow  : wicked below prior potential-low window(63) but closed above it
  *   nearLowerBB     : close < bollLow + (bollMid - bollLow) * 0.3
  *   volumeBreakout  : volume > volumeMa20 * 1.5
  *   macdReverse     : hist > prevHist && prevHist <= prevPrevHist
@@ -26,12 +28,15 @@ import java.util.Map;
  * Step 3 — sigmoid(score × scoreScale - scoreShift)
  *   default: scale=8, shift=4  →  need score ≥ 0.67 to produce nnOutput > 0.8
  *
- * Step 4 — buy gate:
- *   nnOutput > buyThreshold(0.8)
- *   && (isRelativeLow || isPotentialLow || (allowMacdAsLowProxy && macdReverse))
- *   && nearLowerBB
- *   && rsi < rsiOversold(40)
- *   && volumeBreakout
+ * Step 4 — TradingView-compatible buy paths:
+ *   1. buySignal      -> strategy.order("AI买点买入", qty=5000), where:
+ *      nnOutput > buyThreshold(0.8)
+ *      && (isRelativeLow || isPotentialLow || (allowMacdAsLowProxy && macdReverse))
+ *      && nearLowerBB
+ *      && rsi < rsiOversold(40)
+ *      && volumeBreakout
+ *   2. isRelativeLow  -> strategy.order("相对低点买入", qty=1000)
+ *   3. isPotentialLow -> strategy.order("潜在低点买入", qty=2000)
  *
  *   allowMacdAsLowProxy (default false): set true for assets like ETH that
  *   rarely show a clean wick-based low pattern but do exhibit MACD reversals.
@@ -64,6 +69,10 @@ public class ScoreBuyStrategy implements Strategy {
     private static final String D_RSI_HIGH       = "SCORE_BUY_RSI_HIGH";
     private static final String D_NO_VOL_BREAK   = "SCORE_BUY_NO_VOL_BREAKOUT";
     private static final String D_BELOW_SMA200   = "SCORE_BUY_BELOW_SMA200";
+
+    static final String ORDER_RELATIVE_LOW = "TRADINGVIEW_RELATIVE_LOW";
+    static final String ORDER_POTENTIAL_LOW = "TRADINGVIEW_POTENTIAL_LOW";
+    static final String ORDER_AI_BUY = "TRADINGVIEW_AI_BUY_SIGNAL";
 
     @Override
     public String getType() {
@@ -108,7 +117,7 @@ public class ScoreBuyStrategy implements Strategy {
         double volumePrev = klines.get(index - 1).getVolume().doubleValue();
 
         // --- Lookback windows ---
-        int shortLookback = getInt(config, "shortLookbackBars",  10);
+        int shortLookback = getInt(config, "shortLookbackBars",  20);
         int medLookback   = getInt(config, "medLookbackBars",    63);
         // 252 trading days = 1 year, correct for 1d bars.
         int yearLookback  = getInt(config, "yearLookbackBars", 252);
@@ -195,9 +204,24 @@ public class ScoreBuyStrategy implements Strategy {
         boolean volOk     = volumeBreakout;
         boolean sma200Ok  = !requireAboveSma200 || close > sma200[index];
 
-        boolean buySignal = scoreOk && lowOk && bbOk && rsiOk && volOk && sma200Ok;
+        boolean buySignal = scoreOk && lowOk && bbOk && rsiOk && volOk;
 
+        putTradingViewDetails(isRelativeLow, isPotentialLow, nearLowerBB, volumeBreakout,
+                scoreOk, lowOk, bbOk, rsiOk, sma200Ok, buySignal, rsi[index], rsiOversold,
+                nnOutput, buyThreshold, volume, avgVol20, volBreakMult);
+
+        List<LiveSignalContext.OrderIntent> tradingViewOrders = new ArrayList<>();
         if (buySignal) {
+            tradingViewOrders.add(new LiveSignalContext.OrderIntent(ORDER_AI_BUY, "AI买点买入", 5000));
+        }
+        if (isRelativeLow) {
+            tradingViewOrders.add(new LiveSignalContext.OrderIntent(ORDER_RELATIVE_LOW, "相对低点买入", 1000));
+        }
+        if (isPotentialLow) {
+            tradingViewOrders.add(new LiveSignalContext.OrderIntent(ORDER_POTENTIAL_LOW, "潜在低点买入", 2000));
+        }
+        if (!tradingViewOrders.isEmpty()) {
+            putTradingViewOrders(tradingViewOrders);
             return StrategySignal.BUY;
         }
 
@@ -236,7 +260,7 @@ public class ScoreBuyStrategy implements Strategy {
                         scoreInfo + String.format(" vol=%.2f avgVol20=%.2f mult=%.1f",
                                 volume, avgVol20, volBreakMult));
             }
-            if (!sma200Ok) {
+            if (requireAboveSma200 && !sma200Ok) {
                 record(diag, D_BELOW_SMA200, context,
                         scoreInfo + String.format(" close=%.2f sma200=%.2f",
                                 close, sma200[index]));
@@ -253,6 +277,59 @@ public class ScoreBuyStrategy implements Strategy {
     }
 
     // ---- Helpers ----
+
+    private void putTradingViewDetails(boolean isRelativeLow,
+                                       boolean isPotentialLow,
+                                       boolean nearLowerBB,
+                                       boolean volumeBreakout,
+                                       boolean scoreOk,
+                                       boolean lowOk,
+                                       boolean bbOk,
+                                       boolean rsiOk,
+                                       boolean sma200Ok,
+                                       boolean buySignal,
+                                       double rsi,
+                                       double rsiOversold,
+                                       double nnOutput,
+                                       double buyThreshold,
+                                       double volume,
+                                       double avgVol20,
+                                       double volBreakMult) {
+        LiveSignalContext.putDetail("tradingview_is_relative_low", isRelativeLow);
+        LiveSignalContext.putDetail("tradingview_is_potential_low", isPotentialLow);
+        LiveSignalContext.putDetail("tradingview_near_lower_bb", nearLowerBB);
+        LiveSignalContext.putDetail("tradingview_volume_breakout", volumeBreakout);
+        LiveSignalContext.putDetail("tradingview_score_ok", scoreOk);
+        LiveSignalContext.putDetail("tradingview_low_ok", lowOk);
+        LiveSignalContext.putDetail("tradingview_bb_ok", bbOk);
+        LiveSignalContext.putDetail("tradingview_rsi_ok", rsiOk);
+        LiveSignalContext.putDetail("tradingview_sma200_ok_legacy_only", sma200Ok);
+        LiveSignalContext.putDetail("tradingview_buy_signal", buySignal);
+        LiveSignalContext.putDetail("tradingview_rsi", rsi);
+        LiveSignalContext.putDetail("tradingview_rsi_oversold", rsiOversold);
+        LiveSignalContext.putDetail("tradingview_nn_output", nnOutput);
+        LiveSignalContext.putDetail("tradingview_buy_threshold", buyThreshold);
+        LiveSignalContext.putDetail("tradingview_volume", volume);
+        LiveSignalContext.putDetail("tradingview_average_volume_20", avgVol20);
+        LiveSignalContext.putDetail("tradingview_volume_threshold", volBreakMult);
+    }
+
+    private void putTradingViewOrders(List<LiveSignalContext.OrderIntent> orders) {
+        for (LiveSignalContext.OrderIntent order : orders) {
+            LiveSignalContext.addOrderIntent(order.reason(), order.label(), order.quantity());
+        }
+        LiveSignalContext.OrderIntent primary = orders.get(0);
+        LiveSignalContext.putDetail("tradingview_order_reason", primary.reason());
+        LiveSignalContext.putDetail("tradingview_order_label", primary.label());
+        LiveSignalContext.putDetail("tradingview_order_qty", primary.quantity());
+        LiveSignalContext.putDetail("tradingview_order_count", orders.size());
+        LiveSignalContext.putDetail("tradingview_order_reasons", orders.stream()
+                .map(LiveSignalContext.OrderIntent::reason)
+                .collect(Collectors.joining(",")));
+        LiveSignalContext.putDetail("tradingview_order_qtys", orders.stream()
+                .map(o -> String.valueOf(o.quantity()))
+                .collect(Collectors.joining(",")));
+    }
 
     private void record(BacktestDiagnosticCollector diag, String code,
                         StrategyContext context, String detail) {

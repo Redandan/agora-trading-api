@@ -458,6 +458,12 @@ public class BacktestService {
                 dto.setExitReason(record.getExitReason());
                 dto.setSide(record.getSide());
                 dto.setBorrowingCost(record.getBorrowingCost() > 0.0 ? scale(record.getBorrowingCost(), 8) : null);
+                dto.setEntryReason(record.getEntryReason());
+                dto.setEntryLabel(record.getEntryLabel());
+                dto.setEntryRequestedQuantity(record.getEntryRequestedQuantity() == null
+                        ? null : scale(record.getEntryRequestedQuantity(), 8));
+                dto.setEntryOrderCount(record.getEntryOrderCount());
+                dto.setEntryOrderReasons(record.getEntryOrderReasons());
                 dtos.add(dto);
             }
             return dtos;

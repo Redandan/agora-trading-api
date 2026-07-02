@@ -20,6 +20,7 @@ public class SecurityPaths {
             "/mcp",                    // MCP Streamable HTTP endpoint; tool auth is enforced by McpApiKeyFilter
             "/mcp/**",                 // MCP AI 工具探索端點
             "/trading/internal/reports/**", // Internal API key is enforced by InternalTradingReportController
+            "/tradingview/webhook",    // TradingView alert ingress; payload secret and dry-run gate are enforced by controller/service
             "/ratelimit",              // nginx error_page 429 internal redirect target（結構化 JSON + Retry-After）
             "/actuator/health",        // 匿名健康探針（liveness/readiness），details 走 when_authorized 機制
             "/actuator/health/**",

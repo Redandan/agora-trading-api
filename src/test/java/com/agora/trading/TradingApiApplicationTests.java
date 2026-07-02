@@ -55,6 +55,16 @@ class TradingApiApplicationTests {
     }
 
     @Test
+    void tradingViewWebhookFailsClosedByDefault() throws Exception {
+        mockMvc.perform(post("/tradingview/webhook")
+                        .contentType("application/json")
+                        .content("{\"secret\":\"test\",\"action\":\"BUY\",\"symbol\":\"BTCUSDT\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value("DISABLED"))
+                .andExpect(jsonPath("$.orderSent").value(false));
+    }
+
+    @Test
     void actuatorMetricsRequireLocalhostOrMcpKey() throws Exception {
         mockMvc.perform(get("/actuator/metrics").with(request -> {
             request.setRemoteAddr("203.0.113.10");

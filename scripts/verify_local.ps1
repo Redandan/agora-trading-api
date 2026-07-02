@@ -316,7 +316,8 @@ function Assert-OnlyAllowedDefaultValueTrueProperties {
         'MarketSignalRiskCardProperties.java|@DefaultValue("true") boolean sendOnStatusChangeOnly',
         'MemoryMonitorProperties.java|@DefaultValue("true") boolean enabled',
         'StartupWatcherProperties.java|@DefaultValue("true") boolean enabled',
-        'TradingGridProperties.java|@DefaultValue("true") boolean recycleClosedLevels'
+        'TradingGridProperties.java|@DefaultValue("true") boolean recycleClosedLevels',
+        'TradingViewWebhookProperties.java|@DefaultValue("true") boolean dryRun'
     )
 
     $defaultTrueLines = @()
@@ -505,6 +506,7 @@ function Assert-SecurityPathsAllowedListExact {
         "/mcp",
         "/mcp/**",
         "/trading/internal/reports/**",
+        "/tradingview/webhook",
         "/ratelimit",
         "/actuator/health",
         "/actuator/health/**",

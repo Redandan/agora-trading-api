@@ -49,6 +49,15 @@ trading:
     api-key: ${TRADING_MCP_KEY:}
   internal:
     api-key: ${TRADING_INTERNAL_API_KEY:${AGORA_MARKET_INTERNAL_API_KEY:}}
+  tradingview:
+    webhook:
+      enabled: ${TRADINGVIEW_WEBHOOK_ENABLED:false}
+      dry-run: ${TRADINGVIEW_WEBHOOK_DRY_RUN:true}
+      secret: ${TRADINGVIEW_WEBHOOK_SECRET:}
+      allowed-symbols: ${TRADINGVIEW_WEBHOOK_ALLOWED_SYMBOLS:BTCUSDT}
+      default-notional-usdt: ${TRADINGVIEW_WEBHOOK_DEFAULT_NOTIONAL_USDT:10.0}
+      max-notional-usdt: ${TRADINGVIEW_WEBHOOK_MAX_NOTIONAL_USDT:10.0}
+      idempotency-ttl-hours: ${TRADINGVIEW_WEBHOOK_IDEMPOTENCY_TTL_HOURS:24}
   data-freshness:
     shadow-replay:
       collector:

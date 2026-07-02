@@ -41,6 +41,13 @@ META_CONTROL_ML_SQL_SCHEMA=agora_market
 META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE=bt_signal_training_v8_mat
 META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW=vw_signal_training_v2
 TRADING_CORS_ALLOWED_ORIGINS=http://localhost:*,http://127.0.0.1:*
+TRADINGVIEW_WEBHOOK_ENABLED=false
+TRADINGVIEW_WEBHOOK_DRY_RUN=true
+TRADINGVIEW_WEBHOOK_SECRET=<set only when accepting TradingView alerts>
+TRADINGVIEW_WEBHOOK_ALLOWED_SYMBOLS=BTCUSDT
+TRADINGVIEW_WEBHOOK_DEFAULT_NOTIONAL_USDT=10.0
+TRADINGVIEW_WEBHOOK_MAX_NOTIONAL_USDT=10.0
+TRADINGVIEW_WEBHOOK_IDEMPOTENCY_TTL_HOURS=24
 # Hardened schema mode. Flyway uses a Trading-owned history table so it does not
 # mix with AgoraMarketAPI's shared flyway_schema_history rows.
 SPRING_JPA_HIBERNATE_DDL_AUTO=validate
@@ -253,6 +260,7 @@ Expected:
 - OCO poller and OKX private WS OCO handling default off in code and the tracked template; enable `TRADING_OCO_POLLER_ENABLED=true` only when the deployed trading service should own OCO close detection, auto retry, reconciliation writes, and related Telegram alerts.
 - OKX Earn trading-buffer top-up and trailing-stop scheduling default off in code and the tracked template; enable `OKX_EARN_TOPUP_ENABLED=true` only when this service should redeem/transfer Earn funds automatically, and enable `TRAILING_STOP_ENABLED=true` only when it should write trailing state or manage OCO updates.
 - ScoreBuy pre-position, confirmed-deploy, post-scout add execution, and near-trigger notifications default off and dry-run in code and the tracked template; the execution schedulers are bean-level explicit opt-in. Enable `TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED=true`, and `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED=true` only after those dry-run/execution and Telegram alert paths belong to trading production.
+- TradingView webhook ingress defaults off and dry-run in code and the tracked template. Enable `TRADINGVIEW_WEBHOOK_ENABLED=true` with `TRADINGVIEW_WEBHOOK_DRY_RUN=true` and a secret only to collect TradingView alert evidence; this release still blocks live order execution until a tracked `bt_live_signal`/OCO accounting path is separately implemented and authorized.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.
@@ -4773,7 +4781,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
   `worktree commit differs from origin/main only by docs/tooling files`.
 - active blue-green `app.pid.<app.port>` metadata exists by default and matches `app.pid`.
 - deployed `app.pid` metadata points to a running process that is listening on the active `app.port`.
-- public HTTP allowlist stays minimal: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, favicon, and authenticated dedicated-host Trading MCP; shared-host `/api/trading/mcp` must not expose Trading MCP.
+- public HTTP allowlist stays minimal: OpenAPI docs, actuator probes/metrics, rate-limit JSON redirect, favicon, authenticated dedicated-host Trading MCP, the API-key internal report gateway, and the TradingView webhook ingress that fails closed unless its feature flag and payload secret are configured; shared-host `/api/trading/mcp` must not expose Trading MCP.
 - `AGORA_MARKET_BASE_URL` must point at stable AgoraMarketAPI nginx vhost dependency `https://agoramarketapi.purrtechllc.com`; deploy, preflight, and server verification fail on stale values.
 - `SPRING_DATASOURCE_URL` must point at expected shared database `agora_market`; deploy, preflight, and server verification fail on unexpected datasource targets.
 - `deploy.sh` checks AgoraMarket exchange-rate dependency health before starting the blue-green switch, so dependency failure stops the deploy before a new instance or nginx change is attempted.

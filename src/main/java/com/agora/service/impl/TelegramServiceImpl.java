@@ -340,12 +340,12 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private String normalizeTradingMessage(String message, String source, String level) {
         if (message == null || message.isBlank()) return message;
         Bucket bucket = notificationClassifier.classify(message, source, level);
-        if (bucket == Bucket.OTHER) return message;
 
         String operatorSummary = compactOperatorSummary(message, bucket);
         if (operatorSummary != null) {
             return operatorSummary;
         }
+        if (bucket == Bucket.OTHER) return message;
 
         String normalized = message.trim();
         if (!normalized.startsWith("【")) {
@@ -374,6 +374,20 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         }
         if (plain.contains("每日自動交易摘要") || plain.contains("Autonomous Trading Digest severe state change")) {
             return compactDailyAutonomousDigest(plain);
+        }
+        if (plain.contains("CRITICAL_UNPROTECTED_")
+                || plain.contains("SCORE_BUY ")
+                || plain.contains("Tiny-live ")) {
+            String execution = compactExecutionAlert(plain);
+            if (execution != null) {
+                return execution;
+            }
+        }
+        if (plain.contains("Auto Exploration Rollout transition")) {
+            return compactExplorationRollout(plain);
+        }
+        if (plain.contains("Autonomous Exploration Loop state changed")) {
+            return compactExplorationLoop(plain);
         }
         if (bucket == Bucket.MARKET_SIGNAL && containsAttentionMarker(plain)) {
             return compactAttentionMarketSignal(plain);
@@ -404,6 +418,88 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                 title,
                 status,
                 "用途=只提醒 review，不是買賣指令；詳情=每日摘要 MCP。");
+    }
+
+    private String compactExecutionAlert(String plain) {
+        if (plain.contains("CRITICAL_UNPROTECTED_")) {
+            String symbol = symbolFromText(plain);
+            String orderId = firstNonBlank(tokenValue(plain, "orderId"), "N/A");
+            String qty = tokenValue(plain, "qty");
+            String error = firstNonBlank(tailValue(plain, "error"), "OCO 掛載或稽核失敗");
+            String detail = "訂單=" + orderId
+                    + (qty == null ? "" : "; 數量=" + qty)
+                    + "; 錯誤=" + shorten(error, 62);
+            return threeLines(
+                    "【交易保護】" + symbol + ": 已成交但 OCO 未掛上",
+                    "狀態=高風險; " + detail,
+                    "用途=立即檢查倉位/OCO；不是新買入建議。");
+        }
+        if (plain.contains("SCORE_BUY") && plain.contains(" executed.")) {
+            String symbol = firstNonBlank(tokenValue(plain, "symbol"), "BTCUSDT");
+            String strategy = tokenValue(plain, "strategyId");
+            String notional = tokenValue(plain, "notional");
+            String orderId = firstNonBlank(tokenValue(plain, "orderId"), "N/A");
+            String ocoAlgoId = firstNonBlank(tokenValue(plain, "ocoAlgoId"), "N/A");
+            return threeLines(
+                    "【交易保護】" + symbol + ": 分批買入策略已成交並掛 OCO",
+                    "策略=" + strategyLabel(strategy) + "; 金額=" + firstNonBlank(notional, "N/A")
+                            + "; 訂單=" + orderId + "; OCO=" + ocoAlgoId,
+                    "用途=成交回報；檢查 OCO/倉位，不是追加買入建議。");
+        }
+        if (plain.contains("Tiny-live") && plain.contains(" executed with ")) {
+            String symbol = symbolFromText(plain);
+            String mode = between(plain, "executed with ", ". orderId=");
+            String orderId = firstNonBlank(tokenValue(plain, "orderId"), "N/A");
+            String ocoAlgoId = firstNonBlank(tokenValue(plain, "ocoAlgoId"), "N/A");
+            String notional = firstNonBlank(tokenValue(plain, "notional"), "N/A");
+            return threeLines(
+                    "【交易保護】" + symbol + ": Tiny-live 已成交並掛 OCO",
+                    "模式=" + humanizeExecutionToken(mode) + "; 金額=" + notional
+                            + "; 訂單=" + orderId + "; OCO=" + ocoAlgoId,
+                    "用途=小額實盤成交回報；檢查 OCO/倉位，不是追加買入建議。");
+        }
+        if (plain.contains("Tiny-live event-risk override token created")) {
+            String symbol = firstNonBlank(tokenValue(plain, "symbol"), "BTCUSDT");
+            String strategy = tokenValue(plain, "strategyId");
+            String reason = firstNonBlank(tailValue(plain, "reason"), "事件風險覆蓋 token 已建立");
+            return threeLines(
+                    "【交易保護】" + symbol + strategySuffix(strategy) + ": 事件風險覆蓋 token 已建立",
+                    "狀態=等待人工使用; 原因=" + shorten(humanizeExecutionToken(reason), 82),
+                    "用途=授權前置提醒；不代表已下單。");
+        }
+        if (plain.contains("Tiny-live event-risk override token consumed")) {
+            String symbol = firstNonBlank(tokenValue(plain, "symbol"), "BTCUSDT");
+            String strategy = tokenValue(plain, "strategyId");
+            return threeLines(
+                    "【交易保護】" + symbol + strategySuffix(strategy) + ": 事件風險覆蓋 token 已使用",
+                    "狀態=授權已消耗; 預覽=" + firstNonBlank(tokenValue(plain, "previewHash"), "N/A"),
+                    "用途=審計提醒；不代表新的買入建議。");
+        }
+        return null;
+    }
+
+    private String compactExplorationRollout(String plain) {
+        String previous = firstNonBlank(lineValue(plain, "previousStage"), tokenValue(plain, "previousStage"), "N/A");
+        String current = firstNonBlank(lineValue(plain, "currentStage"), tokenValue(plain, "currentStage"), "N/A");
+        String reason = firstNonBlank(lineValue(plain, "reason"), tailValue(plain, "reason"), "階段狀態變更");
+        String blockers = firstNonBlank(lineValue(plain, "blockers"), "[]");
+        return threeLines(
+                "【交易觀察】自動探索 Rollout: " + humanizeExecutionToken(previous)
+                        + " -> " + humanizeExecutionToken(current),
+                "原因=" + shorten(humanizeExecutionToken(reason), 92),
+                "阻擋=" + shorten(humanizeBlockerList(blockers), 82) + "; 不是買賣指令。");
+    }
+
+    private String compactExplorationLoop(String plain) {
+        String state = firstNonBlank(lineValue(plain, "state"), tokenValue(plain, "state"), "N/A");
+        String previous = firstNonBlank(lineValue(plain, "previousState"), tokenValue(plain, "previousState"), "N/A");
+        String wouldExecute = humanizeBoolean(firstNonBlank(lineValue(plain, "wouldExecuteNow"), tokenValue(plain, "wouldExecuteNow")));
+        String production = humanizeBoolean(firstNonBlank(lineValue(plain, "productionEnabled"), tokenValue(plain, "productionEnabled")));
+        String blockers = firstNonBlank(lineValue(plain, "blockers"), "[]");
+        return threeLines(
+                "【交易觀察】自動探索 Loop: " + humanizeExecutionToken(state),
+                "前狀態=" + humanizeExecutionToken(previous) + "; 目前會下單=" + wouldExecute + "; 生產模式=" + production,
+                "阻擋=" + shorten(humanizeBlockerList(blockers), 82) + "; 不是買賣指令。");
     }
 
     private String compactMarketRiskSummary(String plain) {
@@ -608,6 +704,37 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         return matcher.find() ? cleanToken(matcher.group(1)) : null;
     }
 
+    private static String tailValue(String text, String key) {
+        Matcher matcher = Pattern.compile("(?is)(?:^|\\s)" + Pattern.quote(key) + "\\s*=\\s*(.+)$")
+                .matcher(text);
+        return matcher.find() ? cleanToken(matcher.group(1)) : null;
+    }
+
+    private static String symbolFromText(String text) {
+        String explicit = tokenValue(text, "symbol");
+        if (explicit != null && !explicit.isBlank()) {
+            return explicit;
+        }
+        Matcher matcher = Pattern.compile("\\b[A-Z0-9]{2,20}USDT\\b").matcher(text == null ? "" : text);
+        return matcher.find() ? matcher.group() : "UNKNOWN";
+    }
+
+    private static String between(String text, String start, String end) {
+        if (text == null || start == null || end == null) {
+            return null;
+        }
+        int startIndex = text.indexOf(start);
+        if (startIndex < 0) {
+            return null;
+        }
+        int valueStart = startIndex + start.length();
+        int endIndex = text.indexOf(end, valueStart);
+        if (endIndex < 0) {
+            return null;
+        }
+        return cleanToken(text.substring(valueStart, endIndex));
+    }
+
     private static String firstNonBlank(String... values) {
         if (values == null) {
             return null;
@@ -620,8 +747,103 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         return null;
     }
 
+    private static String humanizeBoolean(String value) {
+        if (value == null || value.isBlank()) {
+            return "未知";
+        }
+        return switch (value.trim().toLowerCase(Locale.ROOT)) {
+            case "true", "yes", "是" -> "是";
+            case "false", "no", "否" -> "否";
+            default -> value.trim();
+        };
+    }
+
+    private static String humanizeBlockerList(String blockers) {
+        if (blockers == null || blockers.isBlank()) {
+            return "無";
+        }
+        String cleaned = blockers.trim();
+        if ("[]".equals(cleaned) || "N/A".equalsIgnoreCase(cleaned)) {
+            return "無";
+        }
+        cleaned = cleaned.replace("[", "").replace("]", "");
+        String[] parts = cleaned.split(",");
+        List<String> out = new ArrayList<>();
+        for (String part : parts) {
+            String item = cleanToken(part);
+            if (!item.isBlank()) {
+                out.add(humanizeExecutionToken(humanizeReason(item)));
+            }
+            if (out.size() >= 3) {
+                break;
+            }
+        }
+        return out.isEmpty() ? "無" : String.join(" / ", out);
+    }
+
+    private static String humanizeExecutionToken(String value) {
+        if (value == null || value.isBlank()) {
+            return "未知";
+        }
+        String cleaned = cleanToken(value);
+        String upper = cleaned.toUpperCase(Locale.ROOT);
+        return switch (upper) {
+            case "AUTO_APPROVED", "AUTO_APPROVED_SCORE_BUY_PRE_POSITION",
+                    "AUTO_APPROVED_SCORE_BUY_CONFIRMED_DEPLOY",
+                    "AUTO_APPROVED_SCORE_BUY_POST_SCOUT_ADD",
+                    "AUTO_APPROVED_EVENT_RISK_OVERRIDE" -> "自動核准";
+            case "HUMAN_APPROVAL_REQUIRED" -> "需要人工核准";
+            case "READY_TO_EXPLORE" -> "可探索";
+            case "AUTO_EXECUTE_TINY_LIVE" -> "準備執行 Tiny-live";
+            case "WAIT_EVENT_RISK_OVERRIDE" -> "等待事件風險覆蓋";
+            case "HALT_AND_NOTIFY" -> "暫停並通知";
+            case "WAIT_SIGNAL_BUY" -> "等待買入訊號";
+            case "WATCH_SIGNAL_NEAR_BUY_THRESHOLD" -> "接近買點但未過門檻";
+            case "WAIT_OPEN_POSITION" -> "等待現有倉位結束";
+            case "WAIT_DAILY_CAP_RESET" -> "等待每日額度重置";
+            case "WAIT_EV_PASS" -> "等待 EV 通過";
+            case "WAIT_OCO_HEALTH" -> "等待 OCO 健康檢查";
+            case "WAIT_OUTCOME_MATURITY" -> "等待結果成熟";
+            case "WATCH_GOVERNANCE_TOO_STRICT" -> "治理可能過嚴";
+            case "WATCH_GOVERNANCE_TOO_LOOSE" -> "治理可能過鬆";
+            case "ERROR_NEEDS_OPERATOR" -> "需要人工處理";
+            case "WAIT FOR NEXT CANDIDATE WITH EV PASS" -> "等待下一個 EV 通過的候選";
+            case "WAIT FOR A CURRENT BUY CANDIDATE BEFORE EVALUATING TINY-LIVE EXECUTION" -> "等待目前買入候選出現";
+            case "WAIT FOR DAILY EXPLORATION CAP RESET" -> "等待每日探索額度重置";
+            case "OPERATOR REVIEW REQUIRED" -> "需要人工檢查";
+            case "NO AUTOMATIC TRADING/OCO/STRATEGY/GRID/FUND ACTION IS PERFORMED BY THIS MONITOR" -> "此監控不會自動改交易、OCO、策略、Grid 或資金";
+            case "STAGE_HALTED", "HALTED" -> "已暫停";
+            case "PRODUCTION_TINY_LIVE_1_PER_DAY" -> "生產 Tiny-live 每日 1 單";
+            case "DISABLED" -> "已停用";
+            default -> cleaned
+                    .replace("CRITICAL_UNPROTECTED", "無保護成交高風險")
+                    .replace("OCO_ATTACH_FAILED", "OCO 掛載失敗")
+                    .replace("OCO_HEALTH_ABNORMAL", "OCO 健康異常")
+                    .replace("OCO_PREFLIGHT_FAIL", "OCO 預檢失敗")
+                    .replace("SYSTEM_HEALTH_CRITICAL", "系統健康異常")
+                    .replace("MAX_TINY_LIVE_ORDERS_TODAY_REACHED", "今日 Tiny-live 額度已滿")
+                    .replace("DUPLICATE_BAR", "同一根 K 線重複")
+                    .replace("PREVIEW_NOT_READY", "預覽未就緒")
+                    .replace("EVENT_RISK_OVERRIDE_TOKEN_INVALID", "事件風險覆蓋 token 無效")
+                    .replace("APPROVAL_TOKEN_INVALID", "核准 token 無效")
+                    .replace("APPROVAL_TOKEN_ALREADY_USED", "核准 token 已使用")
+                    .replace("MAX_NOTIONAL_EXCEEDED", "金額超過上限")
+                    .replace("SCOPE_NOT_ALLOWLISTED", "範圍不在允許清單")
+                    .replace("SCORE_BUY", "SCORE_BUY")
+                    .replace("TINY_LIVE", "Tiny-live")
+                    .replace("ORDER_FAILED", "下單失敗")
+                    .replace("EXECUTED_OCO_ATTACHED", "已成交並掛 OCO")
+                    .replace("ORDER_PLACEMENT_STARTED", "開始下單")
+                    .replace('_', ' ');
+        };
+    }
+
     private static String strategySuffix(String strategy) {
         return strategy == null || strategy.isBlank() ? "" : " #" + strategy.trim();
+    }
+
+    private static String strategyLabel(String strategy) {
+        return strategy == null || strategy.isBlank() ? "N/A" : "#" + strategy.trim();
     }
 
     private static String sideSuffix(String side) {

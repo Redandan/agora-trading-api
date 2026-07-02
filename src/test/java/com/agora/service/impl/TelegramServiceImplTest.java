@@ -248,4 +248,152 @@ class TelegramServiceImplTest {
                 .doesNotContain("ctx:")
                 .doesNotContain("whale_buy_ratio");
     }
+
+    @Test
+    void compactsTinyLiveCriticalExecutionAlertIntoChineseIntentLines() {
+        TelegramServiceImpl service = newService();
+        String raw = "CRITICAL_UNPROTECTED_TINY_LIVE BTCUSDT tiny-live order placed but OCO attach failed. "
+                + "orderId=12345 qty=0.0001 error=exchange rejected algo order";
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "TinyLiveExecution", "CRITICAL");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【交易保護】BTCUSDT: 已成交但 OCO 未掛上")
+                .contains("狀態=高風險; 訂單=12345; 數量=0.0001; 錯誤=exchange rejected algo order")
+                .contains("立即檢查倉位/OCO")
+                .doesNotContain("CRITICAL_UNPROTECTED")
+                .doesNotContain("orderId=")
+                .doesNotContain("order placed but")
+                .doesNotContain("OCO attach failed");
+    }
+
+    @Test
+    void compactsScoreBuyExecutionAlertIntoChineseIntentLines() {
+        TelegramServiceImpl service = newService();
+        String raw = "SCORE_BUY post-scout add executed. symbol=BTCUSDT strategyId=485 addType=PULLBACK "
+                + "notional=25 orderId=67890 ocoAlgoId=888";
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "ScoreBuyPostScoutAdd", "INFO");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【交易保護】BTCUSDT: 分批買入策略已成交並掛 OCO")
+                .contains("策略=#485; 金額=25; 訂單=67890; OCO=888")
+                .contains("成交回報")
+                .doesNotContain("SCORE_BUY")
+                .doesNotContain("post-scout add executed")
+                .doesNotContain("symbol=")
+                .doesNotContain("strategyId=")
+                .doesNotContain("orderId=")
+                .doesNotContain("ocoAlgoId=");
+    }
+
+    @Test
+    void compactsTinyLiveExecutionAlertWithApprovalModeIntoChineseIntentLines() {
+        TelegramServiceImpl service = newService();
+        String raw = "Tiny-live BTCUSDT executed with AUTO_APPROVED_EVENT_RISK_OVERRIDE. "
+                + "orderId=777 ocoAlgoId=999 notional=5.001";
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "TinyLiveExecution", "INFO");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【交易保護】BTCUSDT: Tiny-live 已成交並掛 OCO")
+                .contains("模式=自動核准; 金額=5.001; 訂單=777; OCO=999")
+                .contains("小額實盤成交回報")
+                .doesNotContain("AUTO_APPROVED_EVENT_RISK_OVERRIDE")
+                .doesNotContain("orderId=");
+    }
+
+    @Test
+    void compactsTinyLiveEventRiskOverrideTokenCreated() {
+        TelegramServiceImpl service = newService();
+        String raw = "Tiny-live event-risk override token created. tokenId=tero_123 "
+                + "symbol=BTCUSDT strategyId=574 previewHash=abc123 reason=Wait event risk override";
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "TinyLiveEventRiskOverride", "WARN");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【交易保護】BTCUSDT #574: 事件風險覆蓋 token 已建立")
+                .contains("狀態=等待人工使用")
+                .contains("用途=授權前置提醒")
+                .doesNotContain("tokenId=")
+                .doesNotContain("previewHash=");
+    }
+
+    @Test
+    void leavesNonExecutionScoreBuyTextUncompacted() {
+        TelegramServiceImpl service = newService();
+        String raw = "SCORE_BUY observer status. scoreBuyTriggerStatus=NOT_TRIGGERED_DAILY_DIP_GATE_FAILED";
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "ScoreBuyObserver", "INFO");
+
+        assertThat(normalized).isEqualTo(raw);
+    }
+
+    @Test
+    void compactsExplorationRolloutTransitionEvenWhenClassifierWouldBeOther() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                Auto Exploration Rollout transition
+                previousStage=DISABLED
+                currentStage=PRODUCTION_TINY_LIVE_1_PER_DAY
+                reason=Wait for next candidate with EV pass.
+                blockers=[OCO_HEALTH_ABNORMAL, MAX_TINY_LIVE_ORDERS_TODAY_REACHED]
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "AutoExplorationRollout:DISABLED->PROD", "INFO");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【交易觀察】自動探索 Rollout: 已停用 -> 生產 Tiny-live 每日 1 單")
+                .contains("原因=等待下一個 EV 通過的候選")
+                .contains("阻擋=OCO 健康異常 / 今日 Tiny-live 額度已滿")
+                .doesNotContain("Auto Exploration Rollout transition")
+                .doesNotContain("Wait for next candidate")
+                .doesNotContain("previousStage=")
+                .doesNotContain("currentStage=")
+                .doesNotContain("OCO_HEALTH_ABNORMAL");
+    }
+
+    @Test
+    void compactsExplorationLoopStateChangeIntoChineseIntentLines() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                Autonomous Exploration Loop state changed
+                state=WAIT_SIGNAL_BUY
+                previousState=READY_TO_EXPLORE
+                blockers=[DUPLICATE_BAR]
+                warnings=[WATCH_SIGNAL_NEAR_BUY_THRESHOLD]
+                wouldExecuteNow=false
+                productionEnabled=false
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "AutonomousExplorationLoop:WAIT_SIGNAL_BUY", "INFO");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized.split("\\R")).hasSize(3);
+        assertThat(normalized)
+                .contains("【交易觀察】自動探索 Loop: 等待買入訊號")
+                .contains("前狀態=可探索; 目前會下單=否; 生產模式=否")
+                .contains("阻擋=同一根 K 線重複")
+                .doesNotContain("Autonomous Exploration Loop state changed")
+                .doesNotContain("state=")
+                .doesNotContain("WAIT_SIGNAL_BUY")
+                .doesNotContain("DUPLICATE_BAR");
+    }
 }

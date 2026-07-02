@@ -50,6 +50,7 @@ import com.agora.service.ExchangeRateService;
 import com.agora.mcp.util.McpParamValidator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -61,6 +62,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -78,6 +80,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MarketDataMcpTools {
     private static final LocalDateTime REGIME_FILTER_FIX_UTC = LocalDateTime.of(2026, 5, 6, 7, 21, 41);
+    private static final int OKX_BACKFILL_PAGE_LIMIT = 300;
+    private static final int OKX_BACKFILL_MAX_PAGES = 60;
+    private static final int OKX_BACKFILL_MAX_RANGE_DAYS = 730;
 
 
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
@@ -2158,6 +2163,192 @@ public class MarketDataMcpTools {
                 symbol, intervalCode, d,
                 resp.getImportedCount(), resp.getSkippedCount(), resp.getDurationMs() / 1000.0);
     }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.MARKET_DATA})
+    @Tool(description = "READ_ONLY: 檢查 OKX K 線覆蓋並產生安全 range backfill 計畫。" +
+            "不讀外部 API、不寫 DB、不回填。param: symbol=交易對(預設BTCUSDT), intervalCode=週期(預設1d), days=目標天數(預設730)")
+    public String previewOkxKlineBackfillPlan(String symbol, String intervalCode, Integer days) {
+        String sym = normalizeSymbol(symbol);
+        String interval = normalizeInterval(intervalCode);
+        int daysVal = days == null || days <= 0 ? 730 : Math.min(days, 1500);
+        LocalDateTime requestedEnd = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime visibleStart = requestedEnd.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
+
+        Map<String, Object> stats = jdbc.queryForMap("""
+                SELECT COUNT(*) AS visible_bars, MIN(open_time) AS data_start, MAX(open_time) AS data_end
+                FROM md_kline
+                WHERE symbol = ? AND interval_code = ? AND source = 'okx'
+                  AND open_time BETWEEN ? AND ?
+                """, sym, interval, visibleStart, requestedEnd);
+
+        long visibleBars = ((Number) stats.get("visible_bars")).longValue();
+        LocalDateTime dataStart = toLocalDateTime(stats.get("data_start"));
+        LocalDateTime dataEnd = toLocalDateTime(stats.get("data_end"));
+        return buildOkxKlineBackfillPlan(sym, interval, daysVal, visibleStart, requestedEnd,
+                dataStart, dataEnd, visibleBars);
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.MARKET_DATA})
+    @Tool(description = "從 OKX REST API 回填指定 UTC range 的 K 線至 md_kline（source='okx'）。" +
+            "endUtc 為 exclusive；此工具受 trading.market-data-mcp.external-backfills-enabled=false 保護。" +
+            "param: symbol=交易對, intervalCode=週期, startUtc=ISO UTC, endUtc=ISO UTC")
+    public String backfillOkxKlinesRange(String symbol, String intervalCode, String startUtc, String endUtc) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillOkxKlinesRange",
+                    "read OKX REST and write md_kline for an explicit UTC range");
+        }
+        String sym = normalizeSymbol(symbol);
+        String interval = normalizeInterval(intervalCode);
+        LocalDateTime start = parseUtcDateTime(startUtc, "startUtc");
+        LocalDateTime end = parseUtcDateTime(endUtc, "endUtc");
+        if (!start.isBefore(end)) {
+            return "❌ startUtc 必須早於 endUtc";
+        }
+        long requestedDays = Math.max(1L, ChronoUnit.DAYS.between(start, end));
+        int maxDays = maxOkxRangeBackfillDays(interval);
+        if (requestedDays > maxDays) {
+            return String.format(Locale.ROOT,
+                    "❌ range 太大：%s@%s requestedDays=%d maxDays=%d。請先執行 previewOkxKlineBackfillPlan 取得分段命令。",
+                    sym, interval, requestedDays, maxDays);
+        }
+
+        log.info("[MCP] backfillOkxKlinesRange {}@{} {} ~ {}", sym, interval, start, end);
+        KlineImportResponse resp = okxKlineImportService.importHistorical(sym, interval, start, end);
+        return String.format(Locale.ROOT,
+                "=== OKX range K 線回填 ===%n%s@%s source=okx%nrangeUtc: %s ~ %s (end exclusive)%n%n" +
+                "✅ 匯入: %d 根新 bar%n" +
+                "⏭  略過: %d 根（已存在）%n" +
+                "⏱  耗時: %.1f 秒%n%n" +
+                "下一步：執行 previewOkxKlineBackfillPlan 或 runBacktest(..., source=\"okx\") 重新驗證 coverage。",
+                sym, interval, formatUtc(start), formatUtc(end),
+                resp.getImportedCount(), resp.getSkippedCount(), resp.getDurationMs() / 1000.0);
+    }
+
+    static String buildOkxKlineBackfillPlan(String symbol, String intervalCode, int days,
+                                            LocalDateTime visibleStart, LocalDateTime requestedEnd,
+                                            LocalDateTime dataStart, LocalDateTime dataEnd,
+                                            long visibleBars) {
+        boolean partial = dataStart == null || dataStart.isAfter(visibleStart);
+        String coverage = partial ? "PARTIAL" : "OK";
+        long missingLeadDays = partial
+                ? ChronoUnit.DAYS.between(visibleStart, dataStart != null ? dataStart : requestedEnd)
+                : 0L;
+        long trailingGapHours = dataEnd != null
+                ? Math.max(0L, ChronoUnit.HOURS.between(dataEnd, requestedEnd))
+                : 0L;
+        String warning = partial
+                ? String.format(Locale.ROOT, "REQUESTED_WINDOW_PARTIAL missingLeadDays=%d", missingLeadDays)
+                : "NONE";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== OKX K 線 backfill 計畫 ===\n");
+        sb.append("boundary: READ_ONLY; no external API read, DB write, backfill/import, order, OCO, grid, fund, Earn, Telegram, strategy, or scheduler behavior changed.\n");
+        sb.append(String.format(Locale.ROOT,
+                "target=%s@%s source=okx days=%d windowUtc=%s ~ %s%n",
+                symbol, intervalCode, days, formatUtc(visibleStart), formatUtc(requestedEnd)));
+        sb.append(String.format(Locale.ROOT,
+                "currentCoverage: dataStart=%s dataEnd=%s visibleBars=%d coverage=%s trailingGapHours=%d coverageWarning=%s%n",
+                formatNullableUtc(dataStart), formatNullableUtc(dataEnd), visibleBars, coverage, trailingGapHours, warning));
+
+        if (!partial) {
+            sb.append("recommendedAction: NO_LEAD_BACKFILL_NEEDED\n");
+            sb.append("next: runBacktest(..., source=\"okx\") 或 previewScoreBuyTradingViewOrders 重新對帳。\n");
+            sb.append("notAuthorization: this read-only plan does not approve external backfill/import.\n");
+            return sb.toString();
+        }
+
+        LocalDateTime missingEnd = dataStart != null ? dataStart : requestedEnd;
+        List<BackfillBatch> batches = buildOkxBackfillBatches(visibleStart, missingEnd, intervalCode);
+        sb.append(String.format(Locale.ROOT,
+                "recommendedAction: BACKFILL_MISSING_LEAD_RANGE missingStartUtc=%s missingEndUtc=%s missingLeadDays=%d maxDaysPerCall=%d batchCount=%d%n",
+                formatUtc(visibleStart), formatUtc(missingEnd), missingLeadDays,
+                maxOkxRangeBackfillDays(intervalCode), batches.size()));
+        for (int i = 0; i < batches.size(); i++) {
+            BackfillBatch batch = batches.get(i);
+            sb.append(String.format(Locale.ROOT,
+                    "batch[%d]: backfillOkxKlinesRange(symbol=\"%s\", intervalCode=\"%s\", startUtc=\"%s\", endUtc=\"%s\")%n",
+                    i + 1, symbol, intervalCode, formatUtc(batch.start()), formatUtc(batch.end())));
+        }
+        sb.append("requiresAuthorization: TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true and explicit operator approval before invoking any batch.\n");
+        sb.append("notAuthorization: this plan does not execute external backfill/import and is not approval to mutate production DB.\n");
+        return sb.toString();
+    }
+
+    static List<BackfillBatch> buildOkxBackfillBatches(LocalDateTime start, LocalDateTime end, String intervalCode) {
+        if (start == null || end == null || !start.isBefore(end)) {
+            return List.of();
+        }
+        int maxDays = maxOkxRangeBackfillDays(intervalCode);
+        List<BackfillBatch> batches = new ArrayList<>();
+        LocalDateTime cursor = start;
+        while (cursor.isBefore(end)) {
+            LocalDateTime batchEnd = cursor.plusDays(maxDays);
+            if (batchEnd.isAfter(end)) {
+                batchEnd = end;
+            }
+            batches.add(new BackfillBatch(cursor, batchEnd));
+            cursor = batchEnd;
+        }
+        return batches;
+    }
+
+    static int maxOkxRangeBackfillDays(String intervalCode) {
+        Duration interval = parseIntervalDuration(intervalCode);
+        long maxMinutes = interval.toMinutes() * OKX_BACKFILL_PAGE_LIMIT * OKX_BACKFILL_MAX_PAGES;
+        long maxDays = Math.max(1L, maxMinutes / (24L * 60L));
+        return (int) Math.min(OKX_BACKFILL_MAX_RANGE_DAYS, maxDays);
+    }
+
+    static Duration parseIntervalDuration(String intervalCode) {
+        String code = normalizeInterval(intervalCode);
+        long amount = Long.parseLong(code.substring(0, code.length() - 1));
+        if (code.endsWith("m")) return Duration.ofMinutes(amount);
+        if (code.endsWith("h")) return Duration.ofHours(amount);
+        if (code.endsWith("d")) return Duration.ofDays(amount);
+        throw new IllegalArgumentException("Unsupported interval: " + intervalCode);
+    }
+
+    static LocalDateTime parseUtcDateTime(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        String trimmed = value.trim();
+        if (trimmed.endsWith("Z")) {
+            return Instant.parse(trimmed).atZone(ZoneOffset.UTC).toLocalDateTime();
+        }
+        if (trimmed.length() == 10) {
+            return LocalDate.parse(trimmed).atStartOfDay();
+        }
+        return LocalDateTime.parse(trimmed.replace(" ", "T"));
+    }
+
+    static String normalizeSymbol(String symbol) {
+        return symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.trim().toUpperCase(Locale.ROOT);
+    }
+
+    static String normalizeInterval(String intervalCode) {
+        return intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String formatNullableUtc(LocalDateTime time) {
+        return time == null ? "null" : formatUtc(time);
+    }
+
+    private static String formatUtc(LocalDateTime time) {
+        return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(time.truncatedTo(ChronoUnit.SECONDS));
+    }
+
+    private static LocalDateTime toLocalDateTime(Object value) {
+        if (value == null) return null;
+        if (value instanceof LocalDateTime localDateTime) return localDateTime;
+        if (value instanceof java.sql.Timestamp timestamp) return timestamp.toLocalDateTime();
+        if (value instanceof java.sql.Date date) return date.toLocalDate().atStartOfDay();
+        throw new IllegalArgumentException("Unsupported timestamp value: " + value.getClass());
+    }
+
+    static record BackfillBatch(LocalDateTime start, LocalDateTime end) {}
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.MARKET_DATA})

@@ -60,6 +60,47 @@ class BacktestEngineTradingViewOrderIntentTest {
                 .isEqualTo("TRADINGVIEW_AI_BUY_SIGNAL,TRADINGVIEW_RELATIVE_LOW");
     }
 
+    @Test
+    void backtestTradeStartTimeBlocksWarmupEntriesOnly() {
+        BacktestEngine engine = new BacktestEngine();
+        Strategy strategy = new Strategy() {
+            @Override
+            public String getType() {
+                return "TEST";
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                if (context.getIndex() == 0 || context.getIndex() == 2) {
+                    LiveSignalContext.addOrderIntent(
+                            ScoreBuyStrategy.ORDER_RELATIVE_LOW, "相对低点买入", 1000);
+                    return StrategySignal.BUY;
+                }
+                return StrategySignal.HOLD;
+            }
+        };
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("backtestTradeStartTime", LocalDateTime.of(2026, 1, 3, 0, 0).toString());
+
+        BacktestRunSummary summary = engine.run(
+                List.of(
+                        bar(0, 100, 101, 99, 100),
+                        bar(1, 100, 101, 99, 100),
+                        bar(2, 100, 102, 99, 101),
+                        bar(3, 101, 103, 100, 102)),
+                strategy,
+                config,
+                new BigDecimal("10000"),
+                BigDecimal.ZERO);
+
+        assertThat(summary.getTrades()).hasSize(1);
+        assertThat(summary.getTrades().get(0).getEntryTime())
+                .isEqualTo(LocalDateTime.of(2026, 1, 3, 0, 0));
+        assertThat(summary.getTrades().get(0).getEntryReason())
+                .isEqualTo(ScoreBuyStrategy.ORDER_RELATIVE_LOW);
+    }
+
     private MdKline bar(int offset, double open, double high, double low, double close) {
         MdKline bar = new MdKline();
         bar.setSymbol("BTCUSDT");

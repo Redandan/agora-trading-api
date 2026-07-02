@@ -73,26 +73,14 @@ public class BacktestService {
             throw new IllegalArgumentException("endTime 必須大於 startTime");
         }
 
-        // V041 source resolution: request 明確覆寫 > strategy.klineSource > 全域預設
-        // strategy.klineSource 是 source of truth；request.source 僅 MCP / 研究工具用來暫時切源。
-        String source = resolveKlineSource(request.getSource(), strategy.getKlineSource());
-        List<MdKline> klines = klineRepository
-                .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                        request.getSymbol().toUpperCase(),
-                        request.getIntervalCode().toLowerCase(),
-                        source,
-                        request.getStartTime(),
-                        request.getEndTime());
-
-        validateKlineIntegrity(klines, request.getIntervalCode());
-
         Map<String, Object> config = strategyService.parseConfig(strategy.getConfigJson());
         Map<String, Object> executionConfig = new HashMap<String, Object>(config);
         // 臨時 config 覆蓋（不寫 DB），優先級高於 DB config
         if (request.getConfigOverride() != null && !request.getConfigOverride().isEmpty()) {
             executionConfig.putAll(request.getConfigOverride());
         }
-        executionConfig.put("runIntervalCode", request.getIntervalCode().toLowerCase());
+        String intervalCode = request.getIntervalCode().toLowerCase();
+        executionConfig.put("runIntervalCode", intervalCode);
         if (Boolean.TRUE.equals(request.getApplyFilters())) {
             executionConfig.put("applyFilters", true);
         }
@@ -100,13 +88,40 @@ public class BacktestService {
         Strategy strategyBean = strategyRegistry.getRequiredStrategy(strategy.getStrategyType());
         strategyBean.defaultExecutionConfig().forEach(executionConfig::putIfAbsent);
 
+        // TradingView/Pine always evaluates with enough pre-visible chart history.
+        // SCORE_BUY needs this for 252-bar lows/SMA200; without it, short MCP
+        // backtests such as days=90 stay in warmup and produce 0 trades.
+        LocalDateTime visibleStartTime = request.getStartTime();
+        LocalDateTime queryStartTime = backtestQueryStart(strategy.getStrategyType(), intervalCode, visibleStartTime);
+        if (queryStartTime.isBefore(visibleStartTime)) {
+            executionConfig.put("backtestTradeStartTime", visibleStartTime.toString());
+            executionConfig.put("backtestWarmupStartTime", queryStartTime.toString());
+        }
+
+        // V041 source resolution: request 明確覆寫 > strategy.klineSource > 全域預設
+        // strategy.klineSource 是 source of truth；request.source 僅 MCP / 研究工具用來暫時切源。
+        String source = resolveKlineSource(request.getSource(), strategy.getKlineSource());
+        List<MdKline> klines = klineRepository
+                .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        request.getSymbol().toUpperCase(),
+                        intervalCode,
+                        source,
+                        queryStartTime,
+                        request.getEndTime());
+
+        validateKlineIntegrity(klines, request.getIntervalCode());
+        List<MdKline> visibleKlines = visibleKlines(klines, visibleStartTime);
+        if (visibleKlines.isEmpty()) {
+            throw new IllegalArgumentException("指定回測期間查無 K 線資料");
+        }
+
         executionConfig.put(BacktestDiagnosticCollector.CONFIG_KEY, new BacktestDiagnosticCollector(parseDiagnosticsConfig(executionConfig)));
 
         Map<String, List<MdKline>> timeframeKlines = new HashMap<String, List<MdKline>>();
-        timeframeKlines.put(request.getIntervalCode().toLowerCase(), klines);
+        timeframeKlines.put(intervalCode, klines);
         if (Boolean.TRUE.equals(executionConfig.get("enableMtf"))) {
             String symbol = request.getSymbol().toUpperCase();
-            LocalDateTime mtfStart = request.getStartTime().minusDays(120);
+            LocalDateTime mtfStart = queryStartTime.minusDays(120);
             // MTF 同步使用解析後的 source，避免 1h 走 okx、4h 走 binance 的跨源混用
             for (String mtfInterval : new String[]{"1h", "4h", "1d"}) {
                 List<MdKline> mtfKlines = klineRepository
@@ -128,7 +143,7 @@ public class BacktestService {
                 request.getFeeRate()
         );
 
-        MarketContext marketContext = buildMarketContext(klines);
+        MarketContext marketContext = buildMarketContext(visibleKlines);
 
         BtBacktestResult entity = new BtBacktestResult();
         entity.setStrategy(strategy);
@@ -277,6 +292,33 @@ public class BacktestService {
             return strategySource.toLowerCase();
         }
         return DEFAULT_KLINE_SOURCE;
+    }
+
+    private LocalDateTime backtestQueryStart(String strategyType, String intervalCode, LocalDateTime visibleStartTime) {
+        if (strategyType == null || !strategyType.toUpperCase().startsWith("SCORE_BUY")) {
+            return visibleStartTime;
+        }
+        return visibleStartTime.minusDays(warmupDays(intervalCode));
+    }
+
+    private long warmupDays(String intervalCode) {
+        String code = intervalCode == null ? "" : intervalCode.toLowerCase();
+        return switch (code) {
+            case "1m", "5m", "15m" -> 30L;
+            case "1h" -> 90L;
+            case "4h" -> 180L;
+            default -> 365L;
+        };
+    }
+
+    private List<MdKline> visibleKlines(List<MdKline> klines, LocalDateTime visibleStartTime) {
+        List<MdKline> visible = new ArrayList<MdKline>();
+        for (MdKline kline : klines) {
+            if (!kline.getOpenTime().isBefore(visibleStartTime)) {
+                visible.add(kline);
+            }
+        }
+        return visible;
     }
 
     private int parseIntervalMinutes(String intervalCode) {

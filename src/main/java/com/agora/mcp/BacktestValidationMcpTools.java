@@ -139,6 +139,8 @@ public class BacktestValidationMcpTools {
             filterLine = String.format("\n🛡 歷史過濾層 (applyFilters=true):\n  被過濾進場次數: %d\n", fc);
         }
 
+        String tradeSamples = formatTradeSamples(r.getTrades());
+
         return String.format(
                 "=== 回測結果 ===\n" +
                 "策略: %s (ID=%d)\n" +
@@ -156,6 +158,7 @@ public class BacktestValidationMcpTools {
                 "📈 市場背景:\n" +
                 "  市場趨勢: %s\n" +
                 "  市場漲跌: %.2f%%\n" +
+                "%s" +
                 "%s\n" +
                 "🔒 啟用品質門檻:\n" +
                 "  %s 交易筆數: %d 筆（需 ≥ %d）\n" +
@@ -172,12 +175,44 @@ public class BacktestValidationMcpTools {
                 r.getInitialCapital(), r.getFinalCapital(),
                 r.getMarketTrend(),
                 pct(r.getMarketPriceChangePct()),
+                tradeSamples,
                 filterLine,
                 qTc, tc, BtStrategyService.QUALITY_MIN_TRADE_COUNT,
                 qRet, ret * 100,
                 qDd, dd * 100, BtStrategyService.QUALITY_MAX_DRAWDOWN * 100,
                 verdict
         );
+    }
+
+    private String formatTradeSamples(List<BacktestResultResponse.TradeRecordDto> trades) {
+        if (trades == null || trades.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n🧾 交易樣本:\n");
+        int limit = Math.min(trades.size(), 5);
+        for (int i = 0; i < limit; i++) {
+            BacktestResultResponse.TradeRecordDto t = trades.get(i);
+            sb.append(String.format(
+                    "  %d. entry=%s exit=%s side=%s ret=%.2f%% reason=%s label=%s tvQty=%s orderCount=%s\n",
+                    i + 1,
+                    t.getEntryTime(),
+                    t.getExitTime(),
+                    t.getSide(),
+                    pct(t.getReturnPct()),
+                    emptyToDash(t.getEntryReason()),
+                    emptyToDash(t.getEntryLabel()),
+                    t.getEntryRequestedQuantity() == null ? "-" : t.getEntryRequestedQuantity().toPlainString(),
+                    t.getEntryOrderCount() == null ? "-" : t.getEntryOrderCount().toString()));
+        }
+        if (trades.size() > limit) {
+            sb.append("  ... +").append(trades.size() - limit).append(" 筆\n");
+        }
+        return sb.toString();
+    }
+
+    private String emptyToDash(String value) {
+        return value == null || value.isBlank() ? "-" : value;
     }
 
     @McpAuth(McpAuthLevel.OPS)

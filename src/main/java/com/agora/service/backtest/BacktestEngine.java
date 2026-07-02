@@ -112,6 +112,7 @@ public class BacktestEngine {
         // suppressed because the deterministic regime classifier voted TRENDING_DOWN.
         int regimeBlockedCount = 0;
         boolean applyRegimeFilter = getBoolean(config, "applyRegimeFilter", false);
+        LocalDateTime tradeStartTime = getLocalDateTime(config, "backtestTradeStartTime");
 
         // 每次 run() 開始前清除 HistoricalFilterEvaluator thread-local 快取
         if (filterEvaluator != null && getBoolean(config, "applyFilters", false)) {
@@ -317,7 +318,8 @@ public class BacktestEngine {
                 }
             }
 
-            if (openPosition == null && cash > 0.0 && i < baseKlines.size() - 1) {
+            boolean entryWindowOpen = tradeStartTime == null || !current.getOpenTime().isBefore(tradeStartTime);
+            if (entryWindowOpen && openPosition == null && cash > 0.0 && i < baseKlines.size() - 1) {
                 boolean isBuy  = signal == StrategySignal.BUY;
                 boolean isSell = allowShort && signal == StrategySignal.SELL;
 
@@ -901,6 +903,21 @@ public class BacktestEngine {
     private String getString(Map<String, Object> config, String key, String defaultValue) {
         Object value = config.get(key);
         return value == null ? defaultValue : String.valueOf(value);
+    }
+
+    private LocalDateTime getLocalDateTime(Map<String, Object> config, String key) {
+        Object value = config.get(key);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof LocalDateTime) {
+            return (LocalDateTime) value;
+        }
+        try {
+            return LocalDateTime.parse(String.valueOf(value));
+        } catch (RuntimeException ex) {
+            return null;
+        }
     }
 
     private boolean getBoolean(Map<String, Object> config, String key, boolean defaultValue) {

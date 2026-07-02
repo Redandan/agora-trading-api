@@ -1,6 +1,7 @@
 package com.agora.scheduler.trading;
 
 import com.agora.config.MarketWsAutoSubscribeProperties;
+import com.agora.config.WsSubscriptionResolver;
 import com.agora.model.MdKline;
 import com.agora.event.KlineClosedEvent;
 import com.agora.repository.trading.MdKlineRepository;
@@ -34,8 +35,8 @@ import java.util.concurrent.TimeUnit;
  * <p>背景：Binance WS 偶發斷線會導致 1-2 根 K 線遺失（2026-04-14 發生過）。
  * 遺失的 bar 會讓策略信號評估跳過，但系統無自動偵測，需手動排查。
  *
- * <p>運作：每小時 :30 掃描 auto-subscribe 清單中每個 (symbol, interval) 過去 25 小時
- * 的 K 線，對比預期 bar 時間，若有缺口則呼叫 OKX candles API 補齊。
+ * <p>運作：每小時掃描 DB-derived auto-subscribe 清單中每個 (symbol, interval)
+ * 過去 25 小時的 K 線，對比預期 bar 時間，若有缺口則呼叫 OKX candles API 補齊。
  *
  * <p>資料源選擇 OKX 而非 Binance：過往經驗顯示 Binance.us 在美國受限場景下偶有斷連
  * 或 API 失效，OKX 穩定度較佳。SPOT 收盤價差異通常 < 0.05%，對信號評估無實質影響。
@@ -52,6 +53,7 @@ public class KlineGapDetector {
     private final NotificationPort notificationPort;
     private final ApplicationEventPublisher eventPublisher;
     private final MdKlineInsertHelper insertHelper;
+    private final WsSubscriptionResolver subscriptionResolver;
     private final String okxBaseUrl;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -65,8 +67,10 @@ public class KlineGapDetector {
                             MarketWsAutoSubscribeProperties wsProps,
                             NotificationPort notificationPort,
                             ApplicationEventPublisher eventPublisher,
-                            MdKlineInsertHelper insertHelper) {
-        this(klineRepository, objectMapper, wsProps, notificationPort, eventPublisher, insertHelper, OKX_BASE);
+                            MdKlineInsertHelper insertHelper,
+                            WsSubscriptionResolver subscriptionResolver) {
+        this(klineRepository, objectMapper, wsProps, notificationPort, eventPublisher,
+                insertHelper, subscriptionResolver, OKX_BASE);
     }
 
     KlineGapDetector(MdKlineRepository klineRepository,
@@ -75,6 +79,7 @@ public class KlineGapDetector {
                      NotificationPort notificationPort,
                      ApplicationEventPublisher eventPublisher,
                      MdKlineInsertHelper insertHelper,
+                     WsSubscriptionResolver subscriptionResolver,
                      String okxBaseUrl) {
         this.klineRepository = klineRepository;
         this.objectMapper = objectMapper;
@@ -82,6 +87,7 @@ public class KlineGapDetector {
         this.notificationPort = notificationPort;
         this.eventPublisher = eventPublisher;
         this.insertHelper = insertHelper;
+        this.subscriptionResolver = subscriptionResolver;
         this.okxBaseUrl = okxBaseUrl;
     }
 
@@ -90,7 +96,10 @@ public class KlineGapDetector {
      * @Scheduled 已移至 HourlyOrchestrator（UTC :00 串行執行，step 2）
      */
     public void detectAndBackfill() {
-        if (!wsProps.isEnabled() || wsProps.getItems().isEmpty()) return;
+        if (!wsProps.isEnabled()) return;
+
+        List<MarketWsAutoSubscribeProperties.Item> itemsToCheck = resolveItemsToCheck();
+        if (itemsToCheck.isEmpty()) return;
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         // 從 25 小時前 → 1 小時前（避開正在進行的當前 bar）
@@ -99,7 +108,7 @@ public class KlineGapDetector {
 
         int totalFilled = 0;
         List<String> alerts = new ArrayList<>();
-        for (MarketWsAutoSubscribeProperties.Item item : wsProps.getItems()) {
+        for (MarketWsAutoSubscribeProperties.Item item : itemsToCheck) {
             int filled = checkGaps(item.getSymbol(), item.getIntervalCode(), start, end);
             if (filled > 0) {
                 totalFilled += filled;
@@ -121,6 +130,18 @@ public class KlineGapDetector {
                                 + String.join("\n", alerts), true);
             } catch (Exception ignored) {}
         }
+    }
+
+    private List<MarketWsAutoSubscribeProperties.Item> resolveItemsToCheck() {
+        try {
+            List<MarketWsAutoSubscribeProperties.Item> resolved = subscriptionResolver.resolve();
+            if (resolved != null && !resolved.isEmpty()) {
+                return resolved;
+            }
+        } catch (Exception e) {
+            log.warn("[KlineGap] subscription resolver failed, falling back to yaml items: {}", e.getMessage());
+        }
+        return wsProps.getItems() != null ? wsProps.getItems() : List.of();
     }
 
     private int checkGaps(String symbol, String intervalCode, LocalDateTime start, LocalDateTime end) {

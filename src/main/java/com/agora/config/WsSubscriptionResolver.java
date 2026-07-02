@@ -30,9 +30,9 @@ import java.util.Set;
  * reconciler picks it up within 5 minutes.
  *
  * <h3>Interval choice</h3>
- * For every (symbol) we subscribe 1h AND 4h. Rationale: most MTF strategies
- * need both, and the marginal cost of one extra WS stream per symbol is
- * trivial ({@code < 1 msg/sec} per pair). Finer-grained per-strategy interval
+ * For every symbol we subscribe 1m, 1h, 4h, and 1d. 1m supports real-time price
+ * and synthetic 15m ScoreBuy views, 1h/4h cover MTF strategies, and 1d covers
+ * daily strategies such as SCORE_BUY_V2. Finer-grained per-strategy interval
  * derivation would require parsing {@code bt_strategy.config_json} which is
  * free-form and brittle.
  *

@@ -80,6 +80,11 @@ public class ScoreBuyStrategy implements Strategy {
     }
 
     @Override
+    public Map<String, Object> defaultExecutionConfig() {
+        return Map.of("tradingViewOrderIntentExecution", true);
+    }
+
+    @Override
     public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
         int index = context.getIndex();
         List<MdKline> klines = context.getKlines();

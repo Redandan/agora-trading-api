@@ -114,6 +114,11 @@ public class BacktestEngine {
         boolean applyRegimeFilter = getBoolean(config, "applyRegimeFilter", false);
         LocalDateTime tradeStartTime = getLocalDateTime(config, "backtestTradeStartTime");
 
+        if (getBoolean(config, "tradingViewOrderIntentExecution", false)) {
+            return runTradingViewOrderIntentExecution(baseKlines, tfMap, baseInterval,
+                    baseIndicators, indicatorsByTf, strategy, config, fee, tradeStartTime);
+        }
+
         // 每次 run() 開始前清除 HistoricalFilterEvaluator thread-local 快取
         if (filterEvaluator != null && getBoolean(config, "applyFilters", false)) {
             filterEvaluator.reset();
@@ -426,6 +431,154 @@ public class BacktestEngine {
         summary.setShortWinRate(shortTradeCount == 0 ? 0.0 : (double) shortWinCount / shortTradeCount);
         summary.setFilteredEntryCount(filteredEntryCount);
         summary.setRegimeBlockedCount(regimeBlockedCount);
+        summary.setTrades(trades);
+        BacktestDiagnosticCollector collector = BacktestDiagnosticCollector.fromConfig(config);
+        if (trades.isEmpty()) {
+            List<BacktestResultResponse.DiagnosticLogDto> logs = collector == null
+                    ? new ArrayList<BacktestResultResponse.DiagnosticLogDto>()
+                    : collector.snapshotLogs();
+            if (logs.isEmpty()) {
+                logs.add(DiagnosticMessages.noTradeFallback());
+            }
+            summary.setDiagnosticLogs(logs);
+        } else if (collector != null) {
+            List<BacktestResultResponse.DiagnosticLogDto> logs = collector.snapshotLogs();
+            if (!logs.isEmpty()) {
+                summary.setDiagnosticLogs(logs);
+            }
+        }
+        return summary;
+    }
+
+    private BacktestRunSummary runTradingViewOrderIntentExecution(
+            List<MdKline> baseKlines,
+            Map<String, List<MdKline>> tfMap,
+            String baseInterval,
+            Map<String, double[]> baseIndicators,
+            Map<String, Map<String, double[]>> indicatorsByTf,
+            Strategy strategy,
+            Map<String, Object> config,
+            double fee,
+            LocalDateTime tradeStartTime) {
+        List<TradingViewLot> lots = new ArrayList<TradingViewLot>();
+        double maxEquity = 0.0;
+        double maxDrawdown = 0.0;
+
+        for (int i = 0; i < baseKlines.size(); i++) {
+            MdKline current = baseKlines.get(i);
+            MdKline previous = i > 0 ? baseKlines.get(i - 1) : null;
+            Map<String, Integer> tfIndices = alignIndices(current.getOpenTime(), tfMap, baseInterval, i);
+            StrategyContext context = new StrategyContext(
+                    i,
+                    current,
+                    previous,
+                    baseKlines,
+                    baseIndicators,
+                    tfMap,
+                    tfIndices,
+                    indicatorsByTf
+            );
+
+            LiveSignalContext.clear();
+            StrategySignal signal = strategy.evaluate(context, config);
+            List<LiveSignalContext.OrderIntent> orderIntents = LiveSignalContext.getOrderIntents();
+            boolean entryWindowOpen = tradeStartTime == null || !current.getOpenTime().isBefore(tradeStartTime);
+            if (entryWindowOpen && signal == StrategySignal.BUY && !orderIntents.isEmpty()) {
+                double entryPrice = current.getClosePrice().doubleValue();
+                int orderCount = orderIntents.size();
+                String orderReasons = orderIntents.stream()
+                        .map(LiveSignalContext.OrderIntent::reason)
+                        .collect(java.util.stream.Collectors.joining(","));
+                for (LiveSignalContext.OrderIntent intent : orderIntents) {
+                    double notional = Math.max(0.0, intent.quantity());
+                    if (notional <= EPS || entryPrice <= EPS) {
+                        continue;
+                    }
+                    lots.add(new TradingViewLot(
+                            current.getOpenTime(),
+                            entryPrice,
+                            notional,
+                            notional / entryPrice,
+                            intent.reason(),
+                            intent.label(),
+                            intent.quantity(),
+                            orderCount,
+                            orderReasons));
+                }
+            }
+
+            double close = current.getClosePrice().doubleValue();
+            double equity = 0.0;
+            for (TradingViewLot lot : lots) {
+                if (lot.entryTime().isAfter(current.getOpenTime())) {
+                    continue;
+                }
+                double markValue = lot.quantity() * close;
+                equity += markValue - (lot.notional() * fee) - (markValue * fee);
+            }
+            if (equity > maxEquity) {
+                maxEquity = equity;
+            }
+            if (maxEquity > 0.0) {
+                maxDrawdown = Math.max(maxDrawdown, (maxEquity - equity) / maxEquity);
+            }
+        }
+
+        MdKline finalBar = baseKlines.get(baseKlines.size() - 1);
+        double finalClose = finalBar.getClosePrice().doubleValue();
+        List<TradeRecord> trades = new ArrayList<TradeRecord>();
+        int winTrades = 0;
+        double deployedNotional = 0.0;
+        double netPnl = 0.0;
+        for (TradingViewLot lot : lots) {
+            double grossPnl = (finalClose - lot.entryPrice()) * lot.quantity();
+            double exitValue = finalClose * lot.quantity();
+            double entryFee = lot.notional() * fee;
+            double exitFee = exitValue * fee;
+            double lotNetPnl = grossPnl - entryFee - exitFee;
+
+            TradeRecord trade = new TradeRecord();
+            trade.setEntryTime(lot.entryTime());
+            trade.setExitTime(finalBar.getOpenTime());
+            trade.setEntryPrice(lot.entryPrice());
+            trade.setExitPrice(finalClose);
+            trade.setQuantity(lot.quantity());
+            trade.setGrossPnl(grossPnl);
+            trade.setNetPnl(lotNetPnl);
+            trade.setReturnPct(lot.entryPrice() > 0.0 ? (finalClose - lot.entryPrice()) / lot.entryPrice() : 0.0);
+            trade.setExitReason("TRADINGVIEW_MARK_TO_MARKET_END");
+            trade.setSide(PositionSide.LONG.name());
+            trade.setBorrowingCost(0.0);
+            trade.setReleasedNotional(lot.notional());
+            trade.setEntryReason(lot.reason());
+            trade.setEntryLabel(lot.label());
+            trade.setEntryRequestedQuantity(lot.requestedQuantity());
+            trade.setEntryOrderCount(lot.orderCount());
+            trade.setEntryOrderReasons(lot.orderReasons());
+            trades.add(trade);
+
+            deployedNotional += lot.notional();
+            netPnl += lotNetPnl;
+            if (lotNetPnl > 0.0) {
+                winTrades++;
+            }
+        }
+
+        double initial = deployedNotional > 0.0 ? deployedNotional : 0.0;
+        BacktestRunSummary summary = new BacktestRunSummary();
+        summary.setInitialCapital(initial);
+        summary.setFinalCapital(initial + netPnl);
+        summary.setTotalReturn(initial > 0.0 ? netPnl / initial : 0.0);
+        summary.setMaxDrawdown(maxDrawdown);
+        summary.setTradeCount(trades.size());
+        summary.setWinRate(trades.isEmpty() ? 0.0 : (double) winTrades / (double) trades.size());
+        summary.setSharpeRatio(calculateSharpeRatio(trades));
+        summary.setLongTradeCount(trades.size());
+        summary.setShortTradeCount(0);
+        summary.setLongWinRate(trades.isEmpty() ? 0.0 : (double) winTrades / (double) trades.size());
+        summary.setShortWinRate(0.0);
+        summary.setFilteredEntryCount(0);
+        summary.setRegimeBlockedCount(0);
         summary.setTrades(trades);
         BacktestDiagnosticCollector collector = BacktestDiagnosticCollector.fromConfig(config);
         if (trades.isEmpty()) {
@@ -1026,6 +1179,17 @@ public class BacktestEngine {
         private double stopLossPrice;
         private double takeProfit1Price;
         private double takeProfit2Price;
+    }
+
+    private record TradingViewLot(LocalDateTime entryTime,
+                                  double entryPrice,
+                                  double notional,
+                                  double quantity,
+                                  String reason,
+                                  String label,
+                                  double requestedQuantity,
+                                  int orderCount,
+                                  String orderReasons) {
     }
 
     private static final double EPS = 1e-12;

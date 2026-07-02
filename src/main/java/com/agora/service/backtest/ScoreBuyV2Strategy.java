@@ -87,6 +87,11 @@ public class ScoreBuyV2Strategy implements Strategy {
     @Override
     public String getType() { return TYPE; }
 
+    @Override
+    public Map<String, Object> defaultExecutionConfig() {
+        return Map.of("tradingViewOrderIntentExecution", true);
+    }
+
     /**
      * #450 Phase 3 — SCORE_BUY_V2 adjustExit: panic-bottom recovery exit logic.
      *

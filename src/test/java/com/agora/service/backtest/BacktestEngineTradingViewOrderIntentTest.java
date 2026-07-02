@@ -101,6 +101,64 @@ class BacktestEngineTradingViewOrderIntentTest {
                 .isEqualTo(ScoreBuyStrategy.ORDER_RELATIVE_LOW);
     }
 
+    @Test
+    void tradingViewExecutionModePyramidsOrderIntentsAndMarksAtEnd() {
+        BacktestEngine engine = new BacktestEngine();
+        Strategy strategy = new Strategy() {
+            @Override
+            public String getType() {
+                return "TEST";
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                if (context.getIndex() == 0) {
+                    LiveSignalContext.addOrderIntent(
+                            ScoreBuyStrategy.ORDER_RELATIVE_LOW, "相对低点买入", 1000);
+                    LiveSignalContext.addOrderIntent(
+                            ScoreBuyStrategy.ORDER_POTENTIAL_LOW, "潜在低点买入", 2000);
+                    return StrategySignal.BUY;
+                }
+                if (context.getIndex() == 1) {
+                    LiveSignalContext.addOrderIntent(
+                            ScoreBuyStrategy.ORDER_RELATIVE_LOW, "相对低点买入", 1000);
+                    return StrategySignal.BUY;
+                }
+                return StrategySignal.HOLD;
+            }
+        };
+
+        Map<String, Object> config = new HashMap<>();
+        config.put("tradingViewOrderIntentExecution", true);
+
+        BacktestRunSummary summary = engine.run(
+                List.of(
+                        bar(0, 100, 101, 99, 100),
+                        bar(1, 100, 101, 99, 100),
+                        bar(2, 125, 126, 124, 125)),
+                strategy,
+                config,
+                new BigDecimal("10000"),
+                BigDecimal.ZERO);
+
+        assertThat(summary.getTrades()).hasSize(3);
+        assertThat(summary.getInitialCapital()).isEqualTo(4000.0);
+        assertThat(summary.getFinalCapital()).isEqualTo(5000.0);
+        assertThat(summary.getTotalReturn()).isEqualTo(0.25);
+        assertThat(summary.getTrades())
+                .extracting(TradeRecord::getExitReason)
+                .containsOnly("TRADINGVIEW_MARK_TO_MARKET_END");
+        assertThat(summary.getTrades())
+                .extracting(TradeRecord::getEntryReason)
+                .containsExactly(
+                        ScoreBuyStrategy.ORDER_RELATIVE_LOW,
+                        ScoreBuyStrategy.ORDER_POTENTIAL_LOW,
+                        ScoreBuyStrategy.ORDER_RELATIVE_LOW);
+        assertThat(summary.getTrades().get(0).getEntryOrderCount()).isEqualTo(2);
+        assertThat(summary.getTrades().get(0).getEntryOrderReasons())
+                .isEqualTo("TRADINGVIEW_RELATIVE_LOW,TRADINGVIEW_POTENTIAL_LOW");
+    }
+
     private MdKline bar(int offset, double open, double high, double low, double close) {
         MdKline bar = new MdKline();
         bar.setSymbol("BTCUSDT");

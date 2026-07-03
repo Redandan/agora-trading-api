@@ -108,6 +108,15 @@ TRADINGVIEW_LOCAL_ALLOWED_SOURCES=
 TRADINGVIEW_LOCAL_HISTORY_BARS=320
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
+TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
+TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
+TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
+TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED=false
+TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR=3
+TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY=1
+TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS=1
+TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
+TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
 ```
 
 Local parity mode writes one `SIGNAL_EVAL` plus one
@@ -115,6 +124,30 @@ Local parity mode writes one `SIGNAL_EVAL` plus one
 intent. It does not call the legacy `LiveSignalEvaluator`, create
 `bt_live_signal`, place exchange orders, mutate OCO/grid/fund/Earn state, or
 send Telegram.
+
+When `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN`, the service also writes a
+dedicated LOCAL_TRADINGVIEW execution receipt for each local parity order
+intent. This proves that the TradingView-equivalent buy point reached the
+LOCAL_TRADINGVIEW execution lane without enabling the separate ScoreBuy
+pre-position, confirmed-deploy, or post-scout schedulers.
+`TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY` preserves the previous three-flag
+behavior for rollback.
+
+The same lane is order-capable only when all hard gates pass:
+`TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`, `TRADINGVIEW_LOCAL_ENABLED=true`,
+`TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO`, OKX auto-trade enabled with
+private credentials, the configured symbol/interval allowlist, per-bar / daily
+/ open-position caps, valid TP/SL, and no duplicate live signal for the bar. A
+successful real execution places a market buy, immediately attaches OKX OCO,
+then writes `bt_live_signal`, `bt_decision_audit`, and
+`bt_runtime_decision_evidence` with `signalSource=LOCAL_TRADINGVIEW`. Grid,
+fund, Earn, Telegram, and ScoreBuy scheduler state are not changed by this
+lane. In `LIVE_MICRO`, the legacy `TRADINGVIEW_LOCAL_EXECUTION_ENABLED`,
+`TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN`, and
+`TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED` values are ignored for the
+effective execution state. If a market buy is filled but the protection/audit
+step fails, runtime evidence records `CRITICAL_UNPROTECTED_LOCAL_TRADINGVIEW`
+and the service sends a `LocalTradingViewExecution` CRITICAL Telegram alert.
 
 Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
 distinguished from real TradingView webhook deliveries.

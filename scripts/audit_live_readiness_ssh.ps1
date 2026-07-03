@@ -347,6 +347,24 @@ print(f"health={health}")
 if '"UP"' not in health:
     blockers.append("HEALTH_NOT_UP")
 
+local_tv_execution_mode = (read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MODE") or "LEGACY").strip().upper().replace("-", "_")
+if local_tv_execution_mode not in ("LEGACY", "OFF", "DRY_RUN", "LIVE_MICRO"):
+    blockers.append("LOCAL_TRADINGVIEW_EXECUTION_MODE_INVALID")
+
+local_tv_execution_enabled = (
+    local_tv_execution_mode in ("DRY_RUN", "LIVE_MICRO")
+    or (local_tv_execution_mode == "LEGACY" and bool_env("TRADINGVIEW_LOCAL_EXECUTION_ENABLED", False))
+)
+local_tv_execution_dry_run = (
+    False if local_tv_execution_mode == "LIVE_MICRO"
+    else True if local_tv_execution_mode in ("OFF", "DRY_RUN")
+    else bool_env("TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN", True)
+)
+local_tv_live_order_enabled = (
+    local_tv_execution_mode == "LIVE_MICRO"
+    or (local_tv_execution_mode == "LEGACY" and bool_env("TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED", False))
+)
+
 order_flags = {
     "TRADING_OKX_ENABLED": bool_env("TRADING_OKX_ENABLED", False),
     "TRADING_OCO_POLLER_ENABLED": bool_env("TRADING_OCO_POLLER_ENABLED", False),
@@ -354,6 +372,8 @@ order_flags = {
     "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED": bool_env("TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED", False),
     "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED": bool_env("TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED", False),
     "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED": bool_env("TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED", False),
+    "TRADINGVIEW_LOCAL_EXECUTION_ENABLED": local_tv_execution_enabled,
+    "TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED": local_tv_live_order_enabled,
     "TRAILING_STOP_ENABLED": bool_env("TRAILING_STOP_ENABLED", False),
     "POSITION_EXIT_MANAGER_ENABLED": bool_env("POSITION_EXIT_MANAGER_ENABLED", False),
     "TRADING_GRID_ENABLED": bool_env("TRADING_GRID_ENABLED", False),
@@ -366,8 +386,20 @@ dry_run_flags = {
     "TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_DRY_RUN": bool_env("TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_DRY_RUN", True),
     "TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_DRY_RUN": bool_env("TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_DRY_RUN", True),
     "TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_DRY_RUN": bool_env("TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_DRY_RUN", True),
+    "TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN": local_tv_execution_dry_run,
     "TRAILING_STOP_DRY_RUN": bool_env("TRAILING_STOP_DRY_RUN", True),
     "POSITION_EXIT_MANAGER_DRY_RUN": bool_env("POSITION_EXIT_MANAGER_DRY_RUN", True),
+}
+local_tradingview_flags = {
+    "TRADING_SIGNAL_SOURCE_PRIMARY": read_env_key("TRADING_SIGNAL_SOURCE_PRIMARY") or "TRADINGVIEW",
+    "TRADINGVIEW_LOCAL_ENABLED": bool_env("TRADINGVIEW_LOCAL_ENABLED", False),
+    "TRADINGVIEW_LOCAL_EXECUTION_MODE": local_tv_execution_mode,
+    "TRADINGVIEW_LOCAL_EXECUTION_ENABLED": local_tv_execution_enabled,
+    "TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN": local_tv_execution_dry_run,
+    "TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED": local_tv_live_order_enabled,
+    "TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR": read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR") or "3",
+    "TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY": read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY") or "1",
+    "TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS": read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS") or "1",
 }
 background_flags = [
     "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
@@ -394,6 +426,7 @@ live_authorized_order_flags = ["TRADING_OKX_ENABLED", "TRADING_TINY_LIVE_AUTO_EX
 print("order_capable_flags=" + json.dumps(order_flags, sort_keys=True))
 print("order_capable_flags_true=" + json.dumps(true_order_flags))
 print("dry_run_flags=" + json.dumps(dry_run_flags, sort_keys=True))
+print("local_tradingview_flags=" + json.dumps(local_tradingview_flags, sort_keys=True))
 print("background_automation_true=" + json.dumps(background_true))
 print("missing_background_automation_flags=" + json.dumps(background_missing))
 print("secret_presence=" + json.dumps({

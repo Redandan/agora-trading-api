@@ -1,9 +1,13 @@
 package com.agora.service.tradingview;
 
 import com.agora.config.properties.TradingViewLocalSignalProperties;
+import com.agora.config.properties.TradingViewLocalSignalProperties.ExecutionMode;
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
+import com.agora.repository.trading.BtDecisionAuditRepository;
+import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.MdKlineRepository;
+import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.service.BtStrategyService;
 import com.agora.service.backtest.BacktestEngine;
 import com.agora.service.backtest.LiveSignalContext;
@@ -12,6 +16,9 @@ import com.agora.service.backtest.StrategyContext;
 import com.agora.service.backtest.StrategyRegistry;
 import com.agora.service.backtest.StrategySignal;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.trading.TradingService;
+import com.agora.service.trading.TradingSignalSourcePolicy;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -54,7 +61,7 @@ class LocalTradingViewSignalEvaluatorTest {
     @Test
     void enabledEvaluatorWritesDryRunAuditForEachTradingViewOrderIntent() {
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
-        LocalTradingViewSignalEvaluator evaluator = evaluator(true, auditWriter);
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, false, auditWriter);
 
         evaluator.evaluate(kline(2));
 
@@ -77,13 +84,50 @@ class LocalTradingViewSignalEvaluatorTest {
                 .containsEntry("signalSource", "LOCAL_TRADINGVIEW")
                 .containsEntry("dryRun", true)
                 .containsEntry("orderSent", false)
+                .containsEntry("executionEnabled", false)
                 .containsEntry("strategyDecision.tradingview_buy_signal", true);
     }
 
+    @Test
+    void executionEnabledAddsDedicatedDryRunReceiptForEachIntent() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, true, auditWriter);
+
+        evaluator.evaluate(kline(2));
+
+        ArgumentCaptor<String> blockerCaptor = ArgumentCaptor.forClass(String.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter, times(6)).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)), blockerCaptor.capture(),
+                any(), contextCaptor.capture());
+
+        assertThat(blockerCaptor.getAllValues())
+                .contains("LocalTradingViewDryRun")
+                .contains("LocalTradingViewExecutionDryRun");
+        assertThat(contextCaptor.getAllValues())
+                .anySatisfy(ctx -> assertThat(ctx)
+                        .containsEntry("executionMode", "LOCAL_TRADINGVIEW_PARITY_EXECUTION")
+                        .containsEntry("executionEnabled", true)
+                        .containsEntry("executionDryRun", true)
+                        .containsEntry("executionLiveOrderEnabled", false)
+                        .containsEntry("executionStatus", "WOULD_EXECUTE_DRY_RUN")
+                        .containsEntry("wouldExecute", true)
+                        .containsEntry("orderSent", false));
+    }
+
     private LocalTradingViewSignalEvaluator evaluator(boolean enabled, DecisionAuditWriter auditWriter) {
+        return evaluator(enabled, false, auditWriter);
+    }
+
+    private LocalTradingViewSignalEvaluator evaluator(boolean enabled, boolean executionEnabled, DecisionAuditWriter auditWriter) {
+        ExecutionMode executionMode = executionEnabled ? ExecutionMode.DRY_RUN : ExecutionMode.LEGACY;
         TradingViewLocalSignalProperties props = new TradingViewLocalSignalProperties(
                 enabled, 485L, "BTCUSDT", "1d", "", 10,
-                new BigDecimal("10.0"), new BigDecimal("10.0"));
+                new BigDecimal("10.0"), new BigDecimal("10.0"),
+                executionMode,
+                executionEnabled, true, false, 3, 1, 1,
+                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
         BtStrategyService strategyService = mock(BtStrategyService.class);
         MdKlineRepository klineRepository = mock(MdKlineRepository.class);
         BacktestEngine backtestEngine = mock(BacktestEngine.class);
@@ -121,7 +165,25 @@ class LocalTradingViewSignalEvaluatorTest {
                 new StrategyRegistry(List.of(strategy)),
                 backtestEngine,
                 klineRepository,
-                auditWriter);
+                auditWriter,
+                executionService(props, auditWriter));
+    }
+
+    private LocalTradingViewExecutionService executionService(TradingViewLocalSignalProperties props,
+                                                              DecisionAuditWriter auditWriter) {
+        TradingSignalSourcePolicy signalSourcePolicy = mock(TradingSignalSourcePolicy.class);
+        when(signalSourcePolicy.primary()).thenReturn("LOCAL_TRADINGVIEW");
+        return new LocalTradingViewExecutionService(
+                props,
+                auditWriter,
+                mock(BtLiveSignalRepository.class),
+                mock(BtDecisionAuditRepository.class),
+                mock(RuntimeDecisionEvidenceRepository.class),
+                mock(TradingService.class),
+                new com.agora.config.OkxTradingProperties(),
+                signalSourcePolicy,
+                new ObjectMapper(),
+                mock(com.agora.service.TelegramService.class));
     }
 
     private MdKline kline(int offset) {

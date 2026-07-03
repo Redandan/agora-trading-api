@@ -317,6 +317,7 @@ function Assert-OnlyAllowedDefaultValueTrueProperties {
         'MemoryMonitorProperties.java|@DefaultValue("true") boolean enabled',
         'StartupWatcherProperties.java|@DefaultValue("true") boolean enabled',
         'TradingGridProperties.java|@DefaultValue("true") boolean recycleClosedLevels',
+        'TradingViewLocalSignalProperties.java|@DefaultValue("true") boolean executionDryRun',
         'TradingViewWebhookProperties.java|@DefaultValue("true") boolean dryRun'
     )
 

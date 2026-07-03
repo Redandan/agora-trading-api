@@ -70,6 +70,15 @@ trading:
       history-bars: ${TRADINGVIEW_LOCAL_HISTORY_BARS:320}
       default-notional-usdt: ${TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT:10.0}
       max-notional-usdt: ${TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT:10.0}
+      execution-mode: ${TRADINGVIEW_LOCAL_EXECUTION_MODE:LEGACY}
+      execution-enabled: ${TRADINGVIEW_LOCAL_EXECUTION_ENABLED:false}
+      execution-dry-run: ${TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN:true}
+      execution-live-order-enabled: ${TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED:false}
+      execution-max-orders-per-bar: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR:3}
+      execution-max-orders-per-day: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY:1}
+      execution-max-open-positions: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS:1}
+      execution-take-profit-pct: ${TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT:0.0300}
+      execution-stop-loss-pct: ${TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT:0.1200}
   data-freshness:
     shadow-replay:
       collector:

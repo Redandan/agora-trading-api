@@ -17,6 +17,45 @@ public record TradingViewLocalSignalProperties(
         @DefaultValue("") String allowedSources,
         @DefaultValue("320") @Positive int historyBars,
         @DefaultValue("10.0") @Positive BigDecimal defaultNotionalUsdt,
-        @DefaultValue("10.0") @Positive BigDecimal maxNotionalUsdt
+        @DefaultValue("10.0") @Positive BigDecimal maxNotionalUsdt,
+        @DefaultValue("LEGACY") ExecutionMode executionMode,
+        @DefaultValue("false") boolean executionEnabled,
+        @DefaultValue("true") boolean executionDryRun,
+        @DefaultValue("false") boolean executionLiveOrderEnabled,
+        @DefaultValue("3") @Positive int executionMaxOrdersPerBar,
+        @DefaultValue("1") @Positive int executionMaxOrdersPerDay,
+        @DefaultValue("1") @Positive int executionMaxOpenPositions,
+        @DefaultValue("0.0300") @Positive BigDecimal executionTakeProfitPct,
+        @DefaultValue("0.1200") @Positive BigDecimal executionStopLossPct
 ) {
+    public boolean effectiveExecutionEnabled() {
+        return switch (executionMode) {
+            case OFF -> false;
+            case DRY_RUN, LIVE_MICRO -> true;
+            case LEGACY -> executionEnabled;
+        };
+    }
+
+    public boolean effectiveExecutionDryRun() {
+        return switch (executionMode) {
+            case LIVE_MICRO -> false;
+            case OFF, DRY_RUN -> true;
+            case LEGACY -> executionDryRun;
+        };
+    }
+
+    public boolean effectiveExecutionLiveOrderEnabled() {
+        return switch (executionMode) {
+            case LIVE_MICRO -> true;
+            case OFF, DRY_RUN -> false;
+            case LEGACY -> executionLiveOrderEnabled;
+        };
+    }
+
+    public enum ExecutionMode {
+        LEGACY,
+        OFF,
+        DRY_RUN,
+        LIVE_MICRO
+    }
 }

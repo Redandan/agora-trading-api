@@ -34,8 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Free TradingView replacement lane.
  *
  * <p>This service evaluates the local TradingView-parity ScoreBuy strategy on
- * closed K-lines and writes dry-run decision audit rows for each Pine-equivalent
- * order intent. It never creates live signals and never sends exchange orders.
+ * closed K-lines and writes decision audit rows for each Pine-equivalent order
+ * intent. Exchange orders are delegated to {@link LocalTradingViewExecutionService}
+ * and remain disabled unless that service's execution mode and hard gates allow
+ * the local TradingView lane to trade.</p>
  */
 @Slf4j
 @Service
@@ -51,6 +53,7 @@ public class LocalTradingViewSignalEvaluator {
     private final BacktestEngine backtestEngine;
     private final MdKlineRepository klineRepository;
     private final DecisionAuditWriter auditWriter;
+    private final LocalTradingViewExecutionService executionService;
     private final Map<String, Instant> seenKeys = new ConcurrentHashMap<>();
 
     public boolean isEnabled() {
@@ -99,8 +102,10 @@ public class LocalTradingViewSignalEvaluator {
                     return;
                 }
                 Map<String, Object> details = LiveSignalContext.getDetails();
+                int intentIndex = 0;
                 for (LiveSignalContext.OrderIntent intent : intents) {
-                    auditIntent(strategyEntity, klines.get(index), interval, source, intent, details);
+                    intentIndex++;
+                    auditIntent(strategyEntity, klines.get(index), interval, source, intent, details, intentIndex);
                 }
             } finally {
                 LiveSignalContext.clear();
@@ -128,7 +133,7 @@ public class LocalTradingViewSignalEvaluator {
     }
 
     private void auditIntent(BtStrategy strategy, MdKline kline, String interval, String source,
-                             LiveSignalContext.OrderIntent intent, Map<String, Object> details) {
+                             LiveSignalContext.OrderIntent intent, Map<String, Object> details, int intentIndex) {
         String key = String.join("|",
                 String.valueOf(strategy.getId()),
                 normalizeSymbol(kline.getSymbol()),
@@ -165,6 +170,10 @@ public class LocalTradingViewSignalEvaluator {
         context.put("orderSent", false);
         context.put("duplicate", false);
         context.put("blockers", "LOCAL_TRADINGVIEW_DRY_RUN");
+        context.put("executionModeSetting", props.executionMode().name());
+        context.put("executionEnabled", props.effectiveExecutionEnabled());
+        context.put("executionDryRun", props.effectiveExecutionDryRun());
+        context.put("executionLiveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
         if (details != null) {
             details.forEach((name, value) -> context.put("strategyDecision." + name, value));
         }
@@ -173,6 +182,7 @@ public class LocalTradingViewSignalEvaluator {
                 kline.getOpenTime(), "BUY", context);
         auditWriter.logEntrySkip(strategy.getId(), normalizeSymbol(kline.getSymbol()), interval,
                 kline.getOpenTime(), BLOCKER, "Local TradingView parity dry-run; no order sent", context);
+        executionService.preview(strategy, kline, interval, source, intent, context, intentIndex);
     }
 
     private void evictOldKeys() {

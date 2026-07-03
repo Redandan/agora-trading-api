@@ -56,6 +56,15 @@ TRADINGVIEW_LOCAL_ALLOWED_SOURCES=
 TRADINGVIEW_LOCAL_HISTORY_BARS=320
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
+TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
+TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
+TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
+TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED=false
+TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR=3
+TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY=1
+TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS=1
+TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
+TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
 TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW
 TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
 # Hardened schema mode. Flyway uses a Trading-owned history table so it does not
@@ -271,7 +280,7 @@ Expected:
 - OKX Earn trading-buffer top-up and trailing-stop scheduling default off in code and the tracked template; enable `OKX_EARN_TOPUP_ENABLED=true` only when this service should redeem/transfer Earn funds automatically, and enable `TRAILING_STOP_ENABLED=true` only when it should write trailing state or manage OCO updates.
 - ScoreBuy pre-position, confirmed-deploy, post-scout add execution, and near-trigger notifications default off and dry-run in code and the tracked template; the execution schedulers are bean-level explicit opt-in. Enable `TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED=true`, and `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED=true` only after those dry-run/execution and Telegram alert paths belong to trading production.
 - TradingView webhook ingress defaults off and dry-run in code and the tracked template. Enable `TRADINGVIEW_WEBHOOK_ENABLED=true` with `TRADINGVIEW_WEBHOOK_DRY_RUN=true` and a secret only to collect TradingView alert evidence; this release still blocks live order execution until a tracked `bt_live_signal`/OCO accounting path is separately implemented and authorized.
-- Trading signal source policy defaults to TradingView primary. Keep `TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW` and `TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false` so K-line close events do not run the legacy `LiveSignalEvaluator`; use `LEGACY` plus explicit evaluator enablement only for rollback or a deliberate shadow investigation. For a no-paid-TradingView replacement, `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW` plus `TRADINGVIEW_LOCAL_ENABLED=true` evaluates local ScoreBuy TradingView parity order intents and writes dry-run audit only; it still does not create `bt_live_signal`, place orders, modify OCO/grid/fund/Earn, or send Telegram.
+- Trading signal source policy defaults to TradingView primary. Keep `TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW` and `TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false` so K-line close events do not run the legacy `LiveSignalEvaluator`; use `LEGACY` plus explicit evaluator enablement only for rollback or a deliberate shadow investigation. For a no-paid-TradingView replacement, `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW` plus `TRADINGVIEW_LOCAL_ENABLED=true` evaluates local ScoreBuy TradingView parity order intents and writes dry-run audit only by default. `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN` adds a dedicated LOCAL_TRADINGVIEW execution receipt for each parity order intent. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO` is the simplified live lane: when local TradingView parity BUY conditions pass, the service may buy without also setting the legacy `TRADINGVIEW_LOCAL_EXECUTION_ENABLED`, `TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN`, and `TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED` flags. Real LOCAL_TRADINGVIEW buying still requires OKX auto-trade enabled with private credentials, daily/open-position caps clear, valid TP/SL, and immediate OCO attachment; successful execution writes `bt_live_signal`, `bt_decision_audit`, and `bt_runtime_decision_evidence` with `signalSource=LOCAL_TRADINGVIEW`. This path must not be confused with the separate ScoreBuy execution schedulers and still must not modify grid/fund/Earn state. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY` preserves the old three-flag behavior.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

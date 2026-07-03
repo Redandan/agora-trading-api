@@ -92,6 +92,10 @@ $expectedEvidencePhaseExtraDisabled = @(
     "TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED"
 )
 
+$expectedLocalTradingViewModeGuards = @(
+    "TRADINGVIEW_LOCAL_EXECUTION_MODE"
+)
+
 Assert-SameSet -Name "runtime evidence only proposed env diff" -Actual $proposalOnlyDiff -Expected @("TRADING_RUNTIME_EVIDENCE_ENABLED")
 
 foreach ($flag in $auditOrderFlags) {
@@ -105,7 +109,8 @@ foreach ($flag in $auditOrderFlags) {
 
 $expectedProposalDisabled = @(
     $auditOrderFlags +
-    $expectedBackgroundFlags
+    $expectedBackgroundFlags +
+    $expectedLocalTradingViewModeGuards
 )
 Assert-SameSet -Name "runtime evidence proposal disabled env keys" -Actual $proposalDisabled -Expected $expectedProposalDisabled
 
@@ -113,9 +118,19 @@ $expectedDryRunDisabled = @(
     $auditOrderFlags +
     $expectedDryRunGuardFlags +
     $expectedBackgroundFlags +
-    $expectedEvidencePhaseExtraDisabled
+    $expectedEvidencePhaseExtraDisabled +
+    $expectedLocalTradingViewModeGuards
 )
 Assert-SameSet -Name "dry-run evidence plan disabled env keys" -Actual $dryRunDisabled -Expected $expectedDryRunDisabled
+
+foreach ($flag in $expectedLocalTradingViewModeGuards) {
+    if ($proposalText -notmatch [regex]::Escape("$flag=LEGACY")) {
+        throw "Runtime evidence proposal must keep Local TradingView mode legacy: $flag"
+    }
+    if ($dryRunPlanText -notmatch [regex]::Escape("$flag=LEGACY")) {
+        throw "Dry-run evidence plan must keep Local TradingView mode legacy: $flag"
+    }
+}
 
 foreach ($flag in $expectedBackgroundFlags) {
     if ($dryRunPlanText -notmatch [regex]::Escape("$flag=false")) {

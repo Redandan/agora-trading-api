@@ -51,6 +51,7 @@ function Get-LiveReadinessBundleBlockers {
         [string]$RuntimeEvidence = "",
         [string]$TinyLive = "",
         [string]$Signal = "",
+        [string]$LocalTradingView = "",
         [string]$McpParity = "",
         [string]$DeploymentMetadata = ""
     )
@@ -157,6 +158,33 @@ function Get-LiveReadinessBundleBlockers {
             -or $Signal -notmatch "7d Governance Drift:\s*`r?`n\s*governanceMode=" `
             -or $Signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
         $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
+    }
+    if ($LocalTradingView -match "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE" `
+            -or $LocalTradingView -notmatch "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE") {
+        $blockers.Add("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+    }
+    if ($LocalTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
+            -or $LocalTradingView -notmatch "localTradingViewExecutionDryRunArmed=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+    }
+    if ($LocalTradingView -match "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE" `
+            -or $LocalTradingView -notmatch "localTradingViewEvaluatorActive=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
+    }
+    if ($LocalTradingView -match "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK") {
+        $blockers.Add("LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK")
+    }
+    if ($LocalTradingView -match "orderSentAllowed=true|liveOrderMutationAllowed=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
+    }
+    if ($RuntimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
+        $blockers.Add("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
+    }
+    if (($Audit -match "OCO_PREFLIGHT_FAILED" -or $TinyLive -match "OCO_PREFLIGHT_FAILED" -or $Signal -match "OCO_PREFLIGHT_FAILED") `
+            -and $Audit -notmatch "ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL" `
+            -and $TinyLive -notmatch "ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL" `
+            -and $Signal -notmatch "ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL") {
+        $blockers.Add("LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED")
     }
     if ($McpParity -notmatch "\[mcp-parity-ssh\] OK" `
             -or $McpParity -notmatch "required_tools=\[[^\]]+\]" `
@@ -390,8 +418,13 @@ function Assert-BundleEvidenceWindowsCovered {
             '\[int\]\$SignalExecutionDays = 5',
             '\[int\]\$SignalBlockedDays = 7',
             '\[int\]\$SignalAccuracyDays = 14',
+            '\[long\]\$LocalTradingViewStrategyId = 485',
+            '\[string\]\$LocalTradingViewIntervalCode = "1d"',
+            '\[int\]\$LocalTradingViewDays = 90',
+            '\[string\]\$LocalTradingViewSource = "okx"',
             '\$RuntimeEvidenceMinutes -lt 60 -or \$RuntimeEvidenceMinutes -gt 43200',
             '\$TinyLiveDays -lt 1 -or \$TinyLiveDays -gt 90',
+            '\$LocalTradingViewDays -lt 7 -or \$LocalTradingViewDays -gt 730',
             '\$SignalExecutionDays -lt 1 -or \$SignalExecutionDays -gt 90',
             '\$SignalBlockedDays -lt 1 -or \$SignalBlockedDays -gt 90',
             '\$SignalAccuracyDays -lt 1 -or \$SignalAccuracyDays -gt 90',
@@ -399,7 +432,11 @@ function Assert-BundleEvidenceWindowsCovered {
             'Days = \$TinyLiveDays',
             'ExecutionDays = \$SignalExecutionDays',
             'BlockedDays = \$SignalBlockedDays',
-            'AccuracyDays = \$SignalAccuracyDays'
+            'AccuracyDays = \$SignalAccuracyDays',
+            'StrategyId = \$LocalTradingViewStrategyId',
+            'IntervalCode = \$LocalTradingViewIntervalCode',
+            'Days = \$LocalTradingViewDays',
+            'Source = \$LocalTradingViewSource'
         )) {
         if ($bundleText -notmatch $pattern) {
             throw "live readiness bundle missing bounded evidence-window marker: $pattern"
@@ -412,11 +449,16 @@ function Assert-BundleEvidenceWindowsCovered {
             'signal execution defaults to\s+5 days',
             'blocked-signal/governance review\s+defaults to\s+7 days',
             'signal accuracy defaults to\s+14 days',
+            'LOCAL_TRADINGVIEW\s+candidate parity defaults to strategy 485',
             'RuntimeEvidenceMinutes=43200',
             'TinyLiveDays=30',
             'SignalExecutionDays=5',
             'SignalBlockedDays=7',
             'SignalAccuracyDays=14',
+            'LocalTradingViewStrategyId=485',
+            'LocalTradingViewIntervalCode=1d',
+            'LocalTradingViewSource=okx',
+            'LocalTradingViewDays=90',
             'Override them only for a documented\s+read-only diagnostic'
         )) {
         if ($docsText -notmatch $pattern) {
@@ -451,6 +493,9 @@ function Assert-BundleBlockerSummaryCovered {
             'runtime-evidence',
             'tiny-live',
             'signal-policy',
+            'local-tradingview',
+            'local-tradingview-oco',
+            'local-tradingview-runtime-evidence',
             'deployment-metadata',
             'LIVE_READINESS_EVIDENCE_UNAVAILABLE',
             'ConvertTo-Json -Compress -Depth 4 \$blockerSummary'
@@ -559,6 +604,12 @@ $allExpectedBlockers = @(
     "EXECUTION_ELIGIBILITY_NOT_READY",
     "LIVE_READINESS_EVIDENCE_UNAVAILABLE",
     "LIVE_READINESS_NOT_READY",
+    "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK",
+    "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED",
+    "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE",
+    "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
+    "LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED",
+    "LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE",
     "MCP_AUDIT_TOOL_ERROR",
     "MCP_PARITY_NOT_PROVEN",
     "ORDER_CAPABLE_FLAGS_REVIEW",
@@ -595,6 +646,7 @@ orderSentEvidence=0
 runtime_evidence_review_plan=[{"state":"READY_FOR_OTHER_BLOCKER_REVIEW"}]'
     TinyLive = "hardStopDetected=false`nRollout Gates:`n  canEnableProduction=true"
     Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=PASS`n  signalPolicyClear=true`n  signal_policy_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]"
+    LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`ncoverage=OK"
     McpParity = "required_tools=[`"getMcpRegistryVersion`",`"verifyStrategyExecution`"]`nmissing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
@@ -639,7 +691,7 @@ Assert-BlockerCase -Name "runtime review required" -Inputs (Merge-Inputs $cleanI
 Assert-BlockerCase -Name "runtime missing core field list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY missing_runtime_evidence_fields=["runtimeEvidenceStatus"] shadowIntentCount=3 orderSentEvidence=0 runtime_evidence_review_plan=[{"state":"READY_FOR_OTHER_BLOCKER_REVIEW"}]' }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
 Assert-BlockerCase -Name "runtime canonical rows no shadow intent" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
-Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1`nruntime_evidence_review_plan=[{`"state`":`"HARD_BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_ORDER_SENT", "RUNTIME_EVIDENCE_REVIEW_REQUIRED")
+Assert-BlockerCase -Name "runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1`nruntime_evidence_review_plan=[{`"state`":`"HARD_BLOCKED`"}]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE", "RUNTIME_EVIDENCE_ORDER_SENT", "RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime missing diagnosis fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "shadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime missing review plan fails closed" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 Assert-BlockerCase -Name "runtime blocked review plan fails closed when otherwise ready" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]" }) -ExpectedBlockers @("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
@@ -668,6 +720,16 @@ Assert-BlockerCase -Name "non-missed warning does not block signal policy" -Inpu
 Assert-BlockerCase -Name "signal missing governance mode fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "Missed Opportunity Regression:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missing missed opportunity status fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "signal missed opportunity pass in later section fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=N/A`nOther Section:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
+Assert-BlockerCase -Name "local tradingview no current buy candidate" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+Assert-BlockerCase -Name "local tradingview dry-run receipt not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+Assert-BlockerCase -Name "local tradingview evaluator not active" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=false`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
+Assert-BlockerCase -Name "local tradingview missing candidate marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "localTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+Assert-BlockerCase -Name "local tradingview missing dry-run armed marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`norderSentAllowed=false`nliveOrderMutationAllowed=false" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+Assert-BlockerCase -Name "local tradingview data coverage blocker" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK")
+Assert-BlockerCase -Name "local tradingview order markers must stay false" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=true`nliveOrderMutationAllowed=false" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
+Assert-BlockerCase -Name "local tradingview runtime order sent evidence" -Inputs (Merge-Inputs $cleanInputs @{ RuntimeEvidence = "diagnosis=CANONICAL_SHADOW_READY`nshadowIntentCount=3`norderSentEvidence=1`nruntime_evidence_review_plan=[{`"state`":`"READY_FOR_OTHER_BLOCKER_REVIEW`"}]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE", "RUNTIME_EVIDENCE_ORDER_SENT")
+Assert-BlockerCase -Name "local tradingview oco preflight failed" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nOCO_PREFLIGHT_FAILED`nRollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED")
+Assert-BlockerCase -Name "local tradingview oco pending until buy candidate is not oco fail" -Inputs (Merge-Inputs $cleanInputs @{ TinyLive = "hardStopDetected=false`nOCO_PREFLIGHT_FAILED`nwarnings=[ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL]`nRollout Gates:`n  canEnableProduction=true" }) -ExpectedBlockers @()
 Assert-BlockerCase -Name "missing mcp parity ok marker" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "toolCount=304 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "missing mcp parity required tool list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "missing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
 Assert-BlockerCase -Name "missing mcp parity missing-tool list fails closed" -Inputs (Merge-Inputs $cleanInputs @{ McpParity = "required_tools=[`"getMcpRegistryVersion`"]`n[mcp-parity-ssh] OK toolCount=305 required=35" }) -ExpectedBlockers @("MCP_PARITY_NOT_PROVEN")
@@ -691,11 +753,14 @@ Assert-BlockerCase `
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=WARN"
+        LocalTradingView = "currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE`",`"LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED`"]"
         McpParity = "required_tools=[`"getMcpRegistryVersion`",`"verifyStrategyExecution`"]`nmissing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
         DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
     } `
     -ExpectedBlockers @(
         "LIVE_READINESS_NOT_READY",
+        "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED",
+        "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
         "MCP_AUDIT_TOOL_ERROR",
         "EXECUTION_ELIGIBILITY_NOT_READY",
         "BACKGROUND_AUTOMATION_REVIEW",

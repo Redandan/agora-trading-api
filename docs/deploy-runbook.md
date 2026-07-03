@@ -4338,15 +4338,20 @@ Expected:
 Expected:
 
 - The wrapper runs the live-readiness audit, background automation smoke,
-  runtime-evidence RCA, tiny-live loss RCA, signal-correctness smoke, and MCP
-  parity smoke.
+  runtime-evidence RCA, tiny-live loss RCA, signal-correctness smoke,
+  LOCAL_TRADINGVIEW candidate smoke, and MCP parity smoke.
 - Evidence windows stay bounded and are passed to child smokes:
   `RuntimeEvidenceMinutes=43200`, `TinyLiveDays=30`,
   `SignalExecutionDays=5`, `SignalBlockedDays=7`, and
-  `SignalAccuracyDays=14` by default. Override them only for a documented
-  read-only diagnostic, not as live approval evidence.
+  `SignalAccuracyDays=14` by default. LOCAL_TRADINGVIEW candidate parity
+  defaults to `LocalTradingViewStrategyId=485`,
+  `LocalTradingViewIntervalCode=1d`, `LocalTradingViewSource=okx`, and
+  `LocalTradingViewDays=90`. Override them only for a documented read-only diagnostic,
+  not as live approval evidence.
 - Output includes deployment metadata status, `origin_delta_status`,
-  `origin_runtime_delta_files`, `bundle_blockers`, `bundle_blocker_summary`,
+  `origin_runtime_delta_files`, `local_tradingview_current_candidate_status`,
+  `local_tradingview_dry_run_receipt_armed`, `runtime_order_sent_evidence`,
+  `bundle_blockers`, `bundle_blocker_summary`,
   `live_review_packet_allowed`, `deploy_required_before_live_review`, and
   `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review
   evidence until origin delta proves `DOCS_TOOLING_ONLY_DRIFT` or a separate

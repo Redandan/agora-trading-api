@@ -59,31 +59,33 @@ rerun `.\scripts\smoke_live_deployment_metadata_ssh.ps1` and the full
 
 ```text
 snapshotType=ATTACHED_READ_ONLY_EVIDENCE
-observedAt=2026-06-20T20:28+08:00
-serverCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
-deployedCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
+observedAt=2026-07-03T17:35+08:00
+serverCommit=a8253e2b058e1a696b65ba9769b00458ab47aedc
+deployedCommit=a8253e2b058e1a696b65ba9769b00458ab47aedc
 deployment_metadata_status=CURRENT
-origin_metadata_status=CURRENT_ORIGIN_MAIN
-originMainCommit=ef6253a4ecff7c27a2e709f226e166389700a82d
+origin_metadata_status=WORKTREE_NOT_ORIGIN_MAIN
+origin_delta_status=DOCS_TOOLING_ONLY_DRIFT
+originMainCommit=8aff0bce8fcca9c46c025869ea970aa919c347ec
 health=UP
 eventRisk=riskLevel=R0
 mcpParityRequiredTools=required_tools=[...]
 mcpParityMissingTools=missing_required_tools=[]
-mcpParityOk=[mcp-parity-ssh] OK toolCount=305 required=35
+mcpParityOk=[mcp-parity-ssh] OK toolCount=312 required=35
 runtimeLog=PASS
 runtimeLogErrors=0
-runtimeLogWarnBaselineTotal=13
+runtimeLogWarnBaselineTotal=17
 missing_readiness_detail_fields=[]
-orderCapableFlags=false
+orderCapableFlags=["TRADING_OKX_ENABLED","TRAILING_STOP_ENABLED","TRADING_GRID_ENABLED"]
 dryRunFlags=true
-backgroundHighRiskFlags=["TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED","EVENT_SCAN_NOTIFICATION_ENABLED","EXECUTION_EVENT_ENABLED","TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED","TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED"]
+backgroundHighRiskFlags=[]
 backgroundAutomationClear=false
-backgroundAutomationBlockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"]
-runtimeEvidence=CONFIG_DISABLED shadowIntentCount=0 orderSentEvidence=0
-tinyLive=hardStopDetected=true canEnableProduction=false completedTinyLiveSamples=2 falsePositiveCount=2
-signalPolicy=governanceMode=TOO_STRICT missedOpportunityOverallStatus=WARN
+backgroundAutomationBlockers=["BACKGROUND_AUTOMATION_TRUE"]
+runtimeEvidence=NO_CANONICAL_ROWS shadowIntentCount=2 orderSentEvidence=0
+tinyLive=hardStopDetected=false canEnableProduction=false completedTinyLiveSamples=1 falsePositiveCount=1
+signalPolicy=governanceMode=INSUFFICIENT_DATA missedOpportunityOverallStatus=WARN
+localTradingView=currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS dryRunReceiptArmed=false executionMode=LEGACY
 bundle_blocker_summary=present
-bundle_blockers=["LIVE_READINESS_NOT_READY","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_CONFIG_DISABLED","RUNTIME_EVIDENCE_NO_SHADOW_INTENT","TINY_LIVE_LOSS_HARD_STOP","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS"]
+bundle_blockers=["LIVE_READINESS_NOT_READY","ORDER_CAPABLE_FLAGS_REVIEW","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_NO_CANONICAL_ROWS","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE","LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED"]
 live_review_packet_allowed=false
 deploy_required_before_live_review=false
 bundle_verdict=NOT_READY

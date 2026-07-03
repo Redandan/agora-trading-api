@@ -12,6 +12,10 @@ param(
     [int]$SignalExecutionDays = 5,
     [int]$SignalBlockedDays = 7,
     [int]$SignalAccuracyDays = 14,
+    [long]$LocalTradingViewStrategyId = 485,
+    [string]$LocalTradingViewIntervalCode = "1d",
+    [int]$LocalTradingViewDays = 90,
+    [string]$LocalTradingViewSource = "okx",
     [switch]$ContinueWhenRuntimeStale,
     [switch]$RequireReady
 )
@@ -39,15 +43,20 @@ if ($StrategyId -lt 1 -or $StrategyId -gt 999999999) {
     throw "StrategyId must be between 1 and 999999999."
 }
 
+if ($LocalTradingViewStrategyId -lt 1 -or $LocalTradingViewStrategyId -gt 999999999) {
+    throw "LocalTradingViewStrategyId must be between 1 and 999999999."
+}
+
 if ($RuntimeEvidenceMinutes -lt 60 -or $RuntimeEvidenceMinutes -gt 43200) {
     throw "RuntimeEvidenceMinutes must be between 60 and 43200."
 }
 
 if ($TinyLiveDays -lt 1 -or $TinyLiveDays -gt 90 `
+        -or $LocalTradingViewDays -lt 7 -or $LocalTradingViewDays -gt 730 `
         -or $SignalExecutionDays -lt 1 -or $SignalExecutionDays -gt 90 `
         -or $SignalBlockedDays -lt 1 -or $SignalBlockedDays -gt 90 `
         -or $SignalAccuracyDays -lt 1 -or $SignalAccuracyDays -gt 90) {
-    throw "TinyLiveDays and signal day windows must be between 1 and 90."
+    throw "TinyLiveDays/signal day windows must be between 1 and 90; LocalTradingViewDays must be between 7 and 730."
 }
 
 function Assert-RemotePathSafe {
@@ -77,6 +86,8 @@ Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 Assert-SmokeTokenSafe -Name "Side" -Value $Side -MaxLength 16
 Assert-SmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode -MaxLength 16
+Assert-SmokeTokenSafe -Name "LocalTradingViewIntervalCode" -Value $LocalTradingViewIntervalCode -MaxLength 16
+Assert-SmokeTokenSafe -Name "LocalTradingViewSource" -Value $LocalTradingViewSource -MaxLength 32
 
 $scriptDir = $PSScriptRoot
 $script:LiveReadinessDeploymentMetadataSnapshot = ""
@@ -636,6 +647,42 @@ function New-BlockerSummary {
                 $evidenceMarkers = @("REVIEW_POLICY_GAPS", "governanceMode=TOO_STRICT/TOO_LOOSE/INSUFFICIENT_DATA", "missed opportunity overallStatus is WARN or FAIL", "signalPolicyClear is not true", "signal_policy_review_plan missing or still has BLOCKED/REVIEW entries")
                 $nextAction = "Resolve signal governance and missed-opportunity gaps in shadow/tiny-live caps only."
             }
+            "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE" {
+                $category = "local-tradingview"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireCurrentCandidate"
+                $evidenceMarkers = @("currentCandidateStatus is not HAS_CURRENT_BUY_CANDIDATE", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+                $nextAction = "Wait for the latest closed bar to emit a LOCAL_TRADINGVIEW parity BUY before any live plan."
+            }
+            "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED" {
+                $category = "local-tradingview"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireDryRunArmed"
+                $evidenceMarkers = @("localTradingViewExecutionDryRunArmed=false", "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED")
+                $nextAction = "Use the read-only dry-run receipt env handoff packet and obtain separate exact env/deploy authorization before changing production env."
+            }
+            "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE" {
+                $category = "local-tradingview"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1"
+                $evidenceMarkers = @("primary is not LOCAL_TRADINGVIEW", "localEnabled=false", "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
+                $nextAction = "Keep live disabled and fix LOCAL_TRADINGVIEW source/evaluator env through a separately authorized env plan."
+            }
+            "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK" {
+                $category = "local-tradingview"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1"
+                $evidenceMarkers = @("coverage is not OK/WARN", "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK")
+                $nextAction = "Fix local TradingView parity data coverage before treating candidate evidence as valid."
+            }
+            "LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED" {
+                $category = "local-tradingview-oco"
+                $requiredEvidence = ".\scripts\smoke_live_readiness_bundle_ssh.ps1; .\scripts\smoke_local_tradingview_candidate_ssh.ps1"
+                $evidenceMarkers = @("OCO_PREFLIGHT_FAILED is present without the pending-until-buy-candidate marker")
+                $nextAction = "Stop live review and inspect TP/SL/OCO feasibility before any live order path."
+            }
+            "LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE" {
+                $category = "local-tradingview-runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("orderSentEvidence is greater than 0")
+                $nextAction = "Stop live review and investigate why order-sent evidence exists in the evidence-only window."
+            }
             "MCP_PARITY_NOT_PROVEN" {
                 $category = "mcp"
                 $requiredEvidence = ".\scripts\smoke_mcp_parity_ssh.ps1"
@@ -703,6 +750,13 @@ $signal = Invoke-ReadOnlySmoke -Name "signal-correctness" -ScriptName "smoke_sig
         ExecutionDays = $SignalExecutionDays
         BlockedDays = $SignalBlockedDays
         AccuracyDays = $SignalAccuracyDays
+    })
+$localTradingView = Invoke-ReadOnlySmoke -Name "local-tradingview-candidate" -ScriptName "smoke_local_tradingview_candidate_ssh.ps1" -Arguments ($common + @{
+        StrategyId = $LocalTradingViewStrategyId
+        Symbol = $Symbol
+        IntervalCode = $LocalTradingViewIntervalCode
+        Days = $LocalTradingViewDays
+        Source = $LocalTradingViewSource
     })
 $mcpParity = Invoke-ReadOnlySmoke -Name "mcp-parity" -ScriptName "smoke_mcp_parity_ssh.ps1" -Arguments ($common + @{
         Symbol = $Symbol
@@ -812,6 +866,33 @@ if ($signal -match "REVIEW_POLICY_GAPS" `
         -or $signal -notmatch "Missed Opportunity Regression:\s*`r?`n\s*overallStatus=PASS") {
     $blockers.Add("SIGNAL_POLICY_REVIEW_GAPS")
 }
+if ($localTradingView -match "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE" `
+        -or $localTradingView -notmatch "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE") {
+    $blockers.Add("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+}
+if ($localTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
+        -or $localTradingView -notmatch "localTradingViewExecutionDryRunArmed=true") {
+    $blockers.Add("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+}
+if ($localTradingView -match "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE" `
+        -or $localTradingView -notmatch "localTradingViewEvaluatorActive=true") {
+    $blockers.Add("LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
+}
+if ($localTradingView -match "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK") {
+    $blockers.Add("LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK")
+}
+if ($localTradingView -match "orderSentAllowed=true|liveOrderMutationAllowed=true") {
+    $blockers.Add("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
+}
+if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
+    $blockers.Add("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
+}
+if (($audit -match "OCO_PREFLIGHT_FAILED" -or $tinyLive -match "OCO_PREFLIGHT_FAILED" -or $signal -match "OCO_PREFLIGHT_FAILED") `
+        -and $audit -notmatch "ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL" `
+        -and $tinyLive -notmatch "ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL" `
+        -and $signal -notmatch "ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL") {
+    $blockers.Add("LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED")
+}
 if ($mcpParity -notmatch "\[mcp-parity-ssh\] OK" `
         -or $mcpParity -notmatch "required_tools=\[[^\]]+\]" `
         -or $mcpParity -match "missing_required_tools=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
@@ -844,6 +925,23 @@ if ($deploymentMetadata -match "origin_runtime_delta_files=([0-9]+)") {
 }
 if ($deploymentMetadata -match "origin_docs_tooling_delta_files=([0-9]+)") {
     Write-Host ("origin_docs_tooling_delta_files=" + $Matches[1])
+}
+if ($localTradingView -match "currentCandidateStatus=([A-Z0-9_]+)") {
+    Write-Host ("local_tradingview_current_candidate_status=" + $Matches[1])
+}
+if ($localTradingView -match "localTradingViewExecutionDryRunArmed=(true|false)") {
+    Write-Host ("local_tradingview_dry_run_receipt_armed=" + $Matches[1])
+}
+if ($localTradingView -match "executionMode=([A-Z0-9_]+)") {
+    Write-Host ("local_tradingview_execution_mode=" + $Matches[1])
+}
+if ($runtimeEvidence -match "orderSentEvidence=([0-9]+)") {
+    Write-Host ("runtime_order_sent_evidence=" + $Matches[1])
+}
+if ($audit -match "ocoPreflightPendingUntilBuyCandidate=([^`"'\]\s,]+)" `
+        -or $tinyLive -match "ocoPreflightPendingUntilBuyCandidate=([^`"'\]\s,]+)" `
+        -or $signal -match "ocoPreflightPendingUntilBuyCandidate=([^`"'\]\s,]+)") {
+    Write-Host ("oco_preflight_pending_until_buy_candidate=" + $Matches[1])
 }
 Write-Host ("bundle_blockers=" + (ConvertTo-Json -Compress $uniqueBlockers))
 Write-Host ("bundle_blocker_summary=" + (ConvertTo-Json -Compress -Depth 4 $blockerSummary))

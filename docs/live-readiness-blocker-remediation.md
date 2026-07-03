@@ -61,6 +61,12 @@ also fails closed.
 | `TINY_LIVE_LOSS_HARD_STOP` | `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear` | The smoke exits 0 only when it explicitly prints `hardStopDetected=false`, `missing_tiny_live_hard_stop_fields=[]`, consecutive tiny-live losses are below policy limit, a current BUY/add candidate exists, runtime evidence is available, and the rollout gate is clear. Missing or `N/A` hard-stop evidence stays blocked. | Prepare a live review packet only after other blockers clear. |
 | `TINY_LIVE_ROLLOUT_NOT_READY` | `.\scripts\smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear` | The smoke exits 0 only when it explicitly prints `canEnableProduction=true`, `missing_tiny_live_rollout_fields=[]`, and `missing_tiny_live_fields=[]` for the reviewed rollout gate, with completed tiny-live samples and false-positive counts documented. Missing or `N/A` rollout evidence stays blocked. | Keep live disabled; continue dry-run/tiny-live evidence collection before any production enablement review. |
 | `SIGNAL_POLICY_REVIEW_GAPS` | `.\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear` | The smoke exits 0 only when it prints `signalPolicyClear=true`, no `REVIEW_POLICY_GAPS`, `missing_signal_policy_fields=[]`, explicit 7d `governanceMode` is present and not `governanceMode=TOO_STRICT`, `governanceMode=TOO_LOOSE`, or `governanceMode=INSUFFICIENT_DATA`, missed-opportunity `overallStatus=PASS`, and `signal_policy_review_plan` is present without `BLOCKED` or `REVIEW` state when signal policy is otherwise clear; Missing signal-policy fields, missing `signalPolicyClear=true`, missing review-plan evidence, and missing or `N/A` governance/missed-opportunity evidence stay blocked. The smoke also prints `signal_policy_review_plan` with `riskCategory`, `evidenceMarkers`, `requiredEvidence`, `nextAction`, and `notAuthorization` for each blocked/review gate. | Keep hard safety gates; review relaxation candidates in shadow/tiny-live caps only. |
+| `LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireCurrentCandidate` | The smoke explicitly prints `currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`. Missing current-candidate evidence, stale latest-bar evidence, or `LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE` stays blocked. | Wait for the latest closed bar to emit a LOCAL_TRADINGVIEW parity BUY before any live plan. |
+| `LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireDryRunArmed` and `.\scripts\prepare_local_tradingview_dry_run_receipt_env_handoff.ps1 -RequireReady` before any env request | The smoke explicitly prints `localTradingViewExecutionDryRunArmed=true`, `effectiveExecutionDryRun=true`, and `effectiveLiveOrderEnabled=false`. Missing dry-run receipt evidence or `LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED` stays blocked. | Use the read-only dry-run receipt env handoff packet and obtain separate exact env/deploy authorization before changing production env. |
+| `LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke explicitly prints `primary=LOCAL_TRADINGVIEW`, `localEnabled=true`, and `localTradingViewEvaluatorActive=true`. Missing evaluator evidence stays blocked. | Keep live disabled and fix LOCAL_TRADINGVIEW source/evaluator env through a separately authorized env plan. |
+| `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke prints `coverage=OK` or a reviewed `coverage=WARN` with bounded trailing gap. `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` stays blocked. | Fix local TradingView parity data coverage before treating candidate evidence as valid. |
+| `LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` and TP/SL/OCO feasibility smokes | No `OCO_PREFLIGHT_FAILED` marker appears unless it is explicitly paired with `ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL`. A pending-until-buy-candidate warning is not a primary OCO failure; a real OCO preflight failure stays blocked. | Stop live review and inspect TP/SL/OCO feasibility before any live order path. |
+| `LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` and `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | Runtime evidence prints `orderSentEvidence=0`, and the local TradingView smoke keeps `orderSentAllowed=false` and `liveOrderMutationAllowed=false`. Any positive order-sent evidence or true mutation marker stays blocked. | Stop live review and investigate why order-sent evidence exists in the evidence-only window. |
 
 Signal policy clear evidence requires no `REVIEW_POLICY_GAPS`, a signal
 correctness and governance drift summary, and explicit review-plan evidence.
@@ -108,24 +114,25 @@ it remains incomplete evidence and does not clear blockers.
 
 ## Latest Attached Expected Blockers
 
-The attached read-only server bundle on 2026-06-20T20:28+08:00 observed server,
-deployed runtime, and `origin/main` all at
-`ef6253a4ecff7c27a2e709f226e166389700a82d`, with
-`deployment_metadata_status=CURRENT`, `origin_metadata_status=CURRENT_ORIGIN_MAIN`,
-`runtime_log_status=PASS`, `missing_readiness_detail_fields=[]`,
-`deploy_required_before_live_review=false`, and `live_review_packet_allowed=false`.
+The attached read-only server bundle on 2026-07-03T17:35+08:00 observed
+deployed runtime `a8253e2b058e1a696b65ba9769b00458ab47aedc` and
+`origin/main` at `8aff0bce8fcca9c46c025869ea970aa919c347ec`. The origin delta
+was docs/tooling-only, so `deploy_required_before_live_review=false`;
+`runtime_log_status=PASS`, `missing_readiness_detail_fields=[]`, and
+`live_review_packet_allowed=false`.
 
 That attached full-bundle evidence may legitimately report:
 
 ```text
 LIVE_READINESS_NOT_READY
+ORDER_CAPABLE_FLAGS_REVIEW
 EXECUTION_ELIGIBILITY_NOT_READY
 BACKGROUND_AUTOMATION_REVIEW
-RUNTIME_EVIDENCE_CONFIG_DISABLED
-RUNTIME_EVIDENCE_NO_SHADOW_INTENT
+RUNTIME_EVIDENCE_NO_CANONICAL_ROWS
 SIGNAL_POLICY_REVIEW_GAPS
-TINY_LIVE_LOSS_HARD_STOP
 TINY_LIVE_ROLLOUT_NOT_READY
+LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE
+LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED
 ```
 
 Those are live-blocking until the clear conditions above are proven by fresh
@@ -141,11 +148,13 @@ document.
 The attached MCP audit details were complete enough for this gate
 (`missing_readiness_detail_fields=[]`), so `MCP_AUDIT_TOOL_ERROR` is no longer
 part of the attached blocker set. The attached runtime blocker is not a
-runtime-log failure; strict runtime-log evidence is clean, but runtime evidence
-collection is disabled and has no canonical shadow intent evidence.
+runtime-log failure; strict runtime-log evidence is clean, runtime evidence is
+enabled, and the current gap is `diagnosis=NO_CANONICAL_ROWS` with
+`shadowIntentCount=2` and `orderSentEvidence=0`.
 The attached background automation evidence also printed
 `backgroundAutomationClear=false` and
-`background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE", "BACKGROUND_AUTOMATION_TRUE"]`.
+`background_automation_blockers=["BACKGROUND_AUTOMATION_TRUE"]` with
+`high_risk_background_automation_true=[]`.
 The attached bundle also printed `bundle_blocker_summary` with categories and
 required read-only follow-up evidence plus evidence markers for every listed
 blocker.

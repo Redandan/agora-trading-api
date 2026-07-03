@@ -1,6 +1,7 @@
 package com.agora.service.impl;
 
 import com.agora.config.TelegramBotConfig;
+import com.agora.model.TgNotificationLog;
 import com.agora.repository.system.TgNotificationLogRepository;
 import com.agora.service.TgTradingNotificationClassifier;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class TelegramServiceImplTest {
@@ -162,6 +164,38 @@ class TelegramServiceImplTest {
                 .doesNotContain("ACTIONABLE_TRADE")
                 .doesNotContain("market-signal:risk-summary")
                 .doesNotContain("routes");
+    }
+
+    @Test
+    void mutesMarketRiskSummaryBeforeTelegramSend() throws Exception {
+        TelegramBotConfig config = new TelegramBotConfig();
+        config.setChannelId("-100test");
+        TgNotificationLogRepository notificationLogRepo = mock(TgNotificationLogRepository.class);
+        TelegramClient telegramClient = mock(TelegramClient.class);
+        TelegramServiceImpl service = new TelegramServiceImpl(
+                config,
+                notificationLogRepo,
+                new TgTradingNotificationClassifier(),
+                telegramClient
+        );
+        String raw = """
+                [市場風險摘要] BTCUSDT | 24h
+                狀態：REVIEW_POSITION
+                摘要：MARKET_SIGNAL 6 / ACTIONABLE_TRADE 1 / routes 1
+                原因：market-signal:risk-summary 6
+                非交易指令：這張卡不是 BUY/SELL；Polymarket、MEI、Market Flip 只當風險背景。
+                """;
+
+        service.sendChannelMessageWithKeyboard(raw, false, null, "MarketSignalRiskSummary", "INFO");
+
+        verify(telegramClient, never()).execute(any(SendMessage.class));
+        ArgumentCaptor<TgNotificationLog> logCaptor = ArgumentCaptor.forClass(TgNotificationLog.class);
+        verify(notificationLogRepo).save(logCaptor.capture());
+        assertThat(logCaptor.getValue().getLevel()).isEqualTo("MUTED_MARKET");
+        assertThat(logCaptor.getValue().getSource()).isEqualTo("MarketSignalRiskSummary");
+        assertThat(logCaptor.getValue().getMessage())
+                .contains("【市場背景】BTCUSDT 24h: 檢查倉位")
+                .contains("用途=風險背景，不是買賣指令");
     }
 
     @Test

@@ -197,6 +197,19 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         return p != null && message != null && p.matcher(message).find();
     }
 
+    private boolean shouldMuteMarketRiskSummary(String message, String source) {
+        if ("MarketSignalRiskSummary".equalsIgnoreCase(source)) {
+            return true;
+        }
+        if (message == null) {
+            return false;
+        }
+        return message.contains("[市場風險摘要]")
+                || (message.contains("【市場背景】")
+                && message.contains("用途=風險背景，不是買賣指令")
+                && message.contains("詳情=市場明細/MCP"));
+    }
+
     private void loadPinnedStore() {
         if (!Files.exists(pinnedFile)) return;
         Properties p = new Properties();
@@ -247,6 +260,12 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             log.warn("Telegram channel ID not configured, skipping message send");
             return;
         }
+        if (shouldMuteMarketRiskSummary(normalizedMessage, "system")) {
+            log.debug("[TgMarketRiskSummaryMute] muted channel message: {}",
+                    normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
+            logAsync(normalizedMessage, useHtml, "system", "MUTED_MARKET");
+            return;
+        }
         // #449 vacation mute — 仍寫 audit log,但不 enqueue 送 TG
         if (shouldMute(normalizedMessage)) {
             log.debug("[TgVacationMute] muted: {}",
@@ -273,6 +292,12 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             log.warn("Telegram channel ID not configured, skipping alert send");
             return;
         }
+        if (shouldMuteMarketRiskSummary(normalizedMessage, source)) {
+            log.debug("[TgMarketRiskSummaryMute] muted alert (source={}): {}",
+                    source, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
+            logAsync(normalizedMessage, useHtml, source, "MUTED_MARKET");
+            return;
+        }
         // #449 vacation mute — 同 sendMessage path
         if (shouldMute(normalizedMessage)) {
             log.debug("[TgVacationMute] muted alert (source={}): {}",
@@ -297,6 +322,12 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
         String channelId = telegramBotConfig.getChannelId();
         if (channelId == null || channelId.isEmpty()) {
             log.warn("Telegram channel ID not configured, skipping keyboard message send");
+            return;
+        }
+        if (shouldMuteMarketRiskSummary(normalizedMessage, source)) {
+            log.debug("[TgMarketRiskSummaryMute] muted keyboard message (source={}): {}",
+                    source, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
+            logAsync(normalizedMessage, useHtml, source, "MUTED_MARKET");
             return;
         }
         if (shouldMute(normalizedMessage)) {

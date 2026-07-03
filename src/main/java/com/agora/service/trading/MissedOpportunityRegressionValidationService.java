@@ -428,6 +428,15 @@ public class MissedOpportunityRegressionValidationService {
         if (preview.ocoPreflightStatus() != null && preview.ocoPreflightStatus().startsWith("PASS")) {
             blockers.removeIf(v -> contains(v, "OCO_PREFLIGHT_FAIL") || contains(v, "OCO_PREFLIGHT_FAILED"));
         }
+        boolean noCurrentBuyCandidate = containsAny(blockers, "NO_CURRENT_BUY_CANDIDATE");
+        if (noCurrentBuyCandidate
+                && "NOT_READY_MISSING_ENTRY_TP_SL".equalsIgnoreCase(preview.ocoPreflightStatus())) {
+            blockers.removeIf(v -> contains(v, "OCO_PREFLIGHT_FAIL") || contains(v, "OCO_PREFLIGHT_FAILED"));
+            String warning = "ocoPreflightPendingUntilBuyCandidate=" + preview.ocoPreflightStatus();
+            if (!warnings.contains(warning)) {
+                warnings.add(warning);
+            }
+        }
         if (preview.runtimeEvidenceStatus() != null
                 && preview.runtimeEvidenceStatus().toUpperCase(Locale.ROOT).startsWith("AVAILABLE_CANONICAL")) {
             blockers.removeIf(v -> contains(v, "RUNTIME_EVIDENCE"));

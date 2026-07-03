@@ -101,9 +101,13 @@ public class RuntimeDecisionEvidenceService {
                 Boolean.TRUE.equals(r.getIntentCreated())
                         || "SHADOW_MODE".equalsIgnoreCase(r.getSuppressionReason())).count();
         long ocoPlans = rows.stream().filter(r -> Boolean.TRUE.equals(r.getOcoPlanCreated())).count();
-        long orderSent = rows.stream().filter(r -> Boolean.TRUE.equals(r.getOrderSent())).count();
+        long orderSent = rows.stream().filter(this::isAutonomousOrderSentEvidence).count();
+        long nonAutonomousOrders = rows.stream()
+                .filter(r -> Boolean.TRUE.equals(r.getOrderSent()))
+                .filter(r -> !isAutonomousOrderSentEvidence(r))
+                .count();
         long shadowOrders = rows.stream().filter(r ->
-                Boolean.TRUE.equals(r.getOrderSent())
+                isAutonomousOrderSentEvidence(r)
                         && "SHADOW_MODE".equalsIgnoreCase(r.getSuppressionReason())).count();
         long freshnessBlocks = rows.stream().filter(r ->
                 "DataFreshnessGuard".equalsIgnoreCase(r.getTerminalBlocker())
@@ -157,6 +161,7 @@ public class RuntimeDecisionEvidenceService {
                 shadowIntentCount=%d
                 ocoPlansCreated=%d
                 orderSentEvidence=%d
+                nonAutonomousOrderEvidence=%d
                 suppressedOrderCount=%d
                 shadowOrderViolations=%d
                 freshnessTerminalBlocks=%d
@@ -165,7 +170,7 @@ public class RuntimeDecisionEvidenceService {
                 OCO health summary: read-only evidence view; ocoPlanCreated=%d, actual OCO modification is not performed here.
                 exposure cap summary: risk/exposure terminal blocks=%d; detailed exposure remains in evidence exposure_snapshot_json/risk_gate_result_json.
                 freshness summary: freshness terminal blocks=%d; current kline quality should still be validated with getCollectionFreshness/validateKlineQuality.
-                unexpected trades: orderSentEvidence=%d, shadowOrderViolations=%d.
+                unexpected trades: orderSentEvidence=%d, shadowOrderViolations=%d, nonAutonomousOrderEvidence=%d.
 
                 finalReadinessVerdict=%s
                 """.formatted(sym, mins, enabled, snapshot.evidenceMode, snapshot.readinessLevel,
@@ -174,9 +179,10 @@ public class RuntimeDecisionEvidenceService {
                 snapshot.missingSignals, snapshot.degradedReasons, total, snapshot.candidateCount,
                 snapshot.evSamples, snapshot.tqsSamples,
                 snapshot.fearGreedWarnOnlyEvidence, snapshot.fearGreedTerminalBlocks, shadowIntents,
-                snapshot.shadowIntentCount, ocoPlans, snapshot.orderSentEvidence,
+                snapshot.shadowIntentCount, ocoPlans, snapshot.orderSentEvidence, nonAutonomousOrders,
                 snapshot.suppressedOrderCount, snapshot.shadowOrderViolations, freshnessBlocks, riskBlocks,
-                ocoPlans, riskBlocks, freshnessBlocks, snapshot.orderSentEvidence, snapshot.shadowOrderViolations, verdict);
+                ocoPlans, riskBlocks, freshnessBlocks, snapshot.orderSentEvidence, snapshot.shadowOrderViolations,
+                nonAutonomousOrders, verdict);
     }
 
     private ReadinessSnapshot buildCanonicalReadiness(List<RuntimeDecisionEvidence> rows) {
@@ -197,9 +203,9 @@ public class RuntimeDecisionEvidenceService {
                 Boolean.FALSE.equals(r.getOrderSent())
                         && ("SHADOW_MODE".equalsIgnoreCase(r.getSuppressionReason())
                         || contains(r.getSuppressionReason(), "DRY_RUN"))).count();
-        snapshot.orderSentEvidence = rows.stream().filter(r -> Boolean.TRUE.equals(r.getOrderSent())).count();
+        snapshot.orderSentEvidence = rows.stream().filter(this::isAutonomousOrderSentEvidence).count();
         snapshot.shadowOrderViolations = rows.stream().filter(r ->
-                Boolean.TRUE.equals(r.getOrderSent())
+                isAutonomousOrderSentEvidence(r)
                         && "SHADOW_MODE".equalsIgnoreCase(r.getSuppressionReason())).count();
 
         finalizeProgressiveReadiness(snapshot, true, snapshot.fearGreedTerminalBlocks > 0);
@@ -446,6 +452,9 @@ public class RuntimeDecisionEvidenceService {
     }
 
     private boolean isOrderSentAudit(BtDecisionAudit audit, JsonNode context) {
+        if (isNonAutonomousGridOrder(context)) {
+            return false;
+        }
         return "AUTOTRADE_OK".equalsIgnoreCase(defaultText(audit.getEventType(), ""))
                 || Boolean.TRUE.equals(firstBooleanOrNull(context, "orderSent", "order_sent"));
     }
@@ -453,6 +462,30 @@ public class RuntimeDecisionEvidenceService {
     private boolean isShadowOrderViolation(BtDecisionAudit audit, JsonNode context) {
         String suppression = firstText(context, "suppressionReason", "suppression_reason");
         return isOrderSentAudit(audit, context) && "SHADOW_MODE".equalsIgnoreCase(suppression);
+    }
+
+    private boolean isAutonomousOrderSentEvidence(RuntimeDecisionEvidence row) {
+        return row != null
+                && Boolean.TRUE.equals(row.getOrderSent())
+                && !isNonAutonomousGridEvidence(row);
+    }
+
+    private boolean isNonAutonomousGridEvidence(RuntimeDecisionEvidence row) {
+        if (row == null) {
+            return false;
+        }
+        return row.getStrategyId() == null
+                && row.getLiveSignalId() == null
+                && (contains(row.getFeaturesSnapshotJson(), "\"source\":\"GRID_")
+                || contains(row.getFeaturesSnapshotJson(), "\"source\": \"GRID_")
+                || contains(row.getFeaturesSnapshotJson(), "\"grid_id\"")
+                || contains(row.getSignalSource(), "GRID_"));
+    }
+
+    private boolean isNonAutonomousGridOrder(JsonNode context) {
+        return context != null
+                && !context.isMissingNode()
+                && (contains(firstText(context, "source"), "GRID_") || context.has("grid_id"));
     }
 
     private LocalDateTime latest(LocalDateTime current, LocalDateTime candidate) {

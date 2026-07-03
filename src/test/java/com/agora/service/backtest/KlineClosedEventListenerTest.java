@@ -178,6 +178,58 @@ class KlineClosedEventListenerTest {
     }
 
     @Test
+    void localTradingViewPrimaryDryRunFromClosedKlineProducesWouldExecuteWithoutOrder() {
+        LiveSignalEvaluator legacyEvaluator = mock(LiveSignalEvaluator.class);
+        TradingSignalSourcePolicy policy = new TradingSignalSourcePolicy(
+                new TradingSignalSourceProperties("LOCAL_TRADINGVIEW", false));
+        TradingService tradingService = mock(TradingService.class);
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
+        BtDecisionAuditRepository decisionAuditRepository = mock(BtDecisionAuditRepository.class);
+        RuntimeDecisionEvidenceRepository evidenceRepository = mock(RuntimeDecisionEvidenceRepository.class);
+        TelegramService telegramService = mock(TelegramService.class);
+
+        LocalTradingViewExecutionService executionService = new LocalTradingViewExecutionService(
+                localProps(ExecutionMode.DRY_RUN),
+                auditWriter,
+                liveSignalRepository,
+                decisionAuditRepository,
+                evidenceRepository,
+                tradingService,
+                okxProps(),
+                policy,
+                new ObjectMapper(),
+                telegramService);
+        LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
+                localProps(ExecutionMode.DRY_RUN), auditWriter, executionService);
+        KlineClosedEventListener listener = new KlineClosedEventListener(legacyEvaluator, policy, localEvaluator);
+
+        MdKline event = kline("BTCUSDT", "1D");
+        event.setClosePrice(new BigDecimal("100.00"));
+        listener.onKlineClosed(new KlineClosedEvent(this, event));
+
+        verify(legacyEvaluator, never()).evaluate("BTCUSDT", "1D");
+        verify(tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(tradingService, never()).placeOco(any(), any(), any(), any());
+        verify(liveSignalRepository, never()).save(any(BtLiveSignal.class));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 7, 2, 0, 0)),
+                eq("LocalTradingViewExecutionDryRun"),
+                eq("Local TradingView parity execution dry-run; no order sent"),
+                contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("executionStatus", "WOULD_EXECUTE_DRY_RUN")
+                .containsEntry("executionModeSetting", "DRY_RUN")
+                .containsEntry("wouldExecute", true)
+                .containsEntry("orderSent", false)
+                .containsEntry("ocoAttached", false)
+                .containsEntry("signalSource", "LOCAL_TRADINGVIEW");
+    }
+
+    @Test
     void oneMinuteBarsRemainIgnoredEvenWhenLegacyEnabled() {
         LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);

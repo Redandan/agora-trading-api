@@ -157,6 +157,12 @@ def field(pattern, text, default="N/A"):
     match = re.search(pattern, text, re.MULTILINE)
     return match.group(1).strip() if match else default
 
+def int_or_none(value):
+    try:
+        return int(str(value).strip())
+    except Exception:
+        return None
+
 def compact(text, limit=320):
     value = str(text or "N/A").replace("\n", " ").strip()
     return value if len(value) <= limit else value[:limit - 3] + "..."
@@ -200,6 +206,7 @@ shadow_intents = field(r"shadowExecutionIntents=(\d+)", dashboard)
 shadow_intent_count = field(r"shadowIntentCount=(\d+)", dashboard)
 order_sent_evidence = field(r"orderSentEvidence=(\d+)", dashboard)
 freshness_blocks = field(r"freshnessTerminalBlocks=(\d+)", dashboard)
+shadow_intent_number = int_or_none(shadow_intent_count)
 evidence_row_lines = count_lines(r"^\d+\. #", evidence)
 shadow_line_count = count_lines(r"SHADOW_MODE|intentCreated=True|intentCreated=true|fearGreedWarning", evidence)
 required_fields = {
@@ -225,7 +232,7 @@ elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS" or runtime_rows == "0":
     diagnosis = "NO_CANONICAL_ROWS"
 elif runtime_status == "AVAILABLE_CANONICAL_ROWS" and shadow_intent_count == "0":
     diagnosis = "CANONICAL_ROWS_NO_SHADOW_INTENT"
-elif runtime_status == "AVAILABLE_CANONICAL_SHADOW_EVIDENCE":
+elif runtime_status.startswith("AVAILABLE_CANONICAL") and shadow_intent_number is not None and shadow_intent_number > 0:
     diagnosis = "CANONICAL_SHADOW_READY"
 else:
     diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"

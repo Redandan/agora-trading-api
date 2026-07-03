@@ -67,7 +67,33 @@ class MissedOpportunityRegressionValidationServiceTest {
         assertThat(root.path("readinessClassification").asText()).isEqualTo("MISSED_OPPORTUNITY_RISK");
     }
 
+    @Test
+    void autonomousOpportunityTreatsMissingOcoInputsAsWarningUntilBuyCandidateExists() throws Exception {
+        when(tinyLivePreviewService.preview("BTCUSDT", 574L, "LONG")).thenReturn(preview(
+                List.of("NO_CURRENT_BUY_CANDIDATE", "OCO_PREFLIGHT_FAILED"),
+                List.of("signalProximityState=NEAR_BUY_THRESHOLD"),
+                "NOT_READY_MISSING_ENTRY_TP_SL"));
+        when(explorationPolicyService.getExplorationReadiness("BTCUSDT", 574L, "LONG"))
+                .thenReturn("eligible=false blockers=[NO_CURRENT_BUY_CANDIDATE, OCO_PREFLIGHT_FAILED]");
+        when(loopService.getAutonomousExplorationLoopStatus("BTCUSDT", 574L, "LONG"))
+                .thenReturn("currentState=HALT_AND_NOTIFY blockers=[NO_CURRENT_BUY_CANDIDATE, OCO_PREFLIGHT_FAILED]");
+
+        JsonNode root = objectMapper.readTree(
+                service.validateAutonomousOpportunityReadiness("BTCUSDT", 574L, "LONG"));
+
+        assertThat(root.path("blockers").toString()).doesNotContain("OCO_PREFLIGHT_FAILED");
+        assertThat(root.path("warnings").toString())
+                .contains("ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL");
+        assertThat(root.path("readinessClassification").asText()).isEqualTo("WATCH_SIGNAL_NEAR_BUY_THRESHOLD");
+    }
+
     private TinyLiveMinimumOrderPreviewService.PreviewResult preview(List<String> denialReasons, List<String> warnings) {
+        return preview(denialReasons, warnings, "PASS");
+    }
+
+    private TinyLiveMinimumOrderPreviewService.PreviewResult preview(List<String> denialReasons,
+                                                                    List<String> warnings,
+                                                                    String ocoPreflightStatus) {
         return new TinyLiveMinimumOrderPreviewService.PreviewResult(
                 "BTCUSDT",
                 574L,
@@ -104,7 +130,7 @@ class MissedOpportunityRegressionValidationServiceTest {
                 true,
                 "PASS",
                 "R0",
-                "PASS",
+                ocoPreflightStatus,
                 "AVAILABLE_CANONICAL_SHADOW_EVIDENCE",
                 BigDecimal.valueOf(100),
                 0,

@@ -294,6 +294,30 @@ Assert-SmokeCase `
     -Environment @{ MAX_MCP_AUTH_DENIED_WARN = "0" }
 
 Assert-SmokeCase `
+    -Name "http method not supported probe is classified warn baseline" `
+    -Lines @(
+        "2026-07-03T08:07:54.673Z  WARN 79264 --- [agora-trading-api] [mcat-handler-96] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'GET' is not supported]"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "http_method_not_supported=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "http method not supported threshold is fail closed" `
+    -Lines @(
+        "2026-07-03T08:07:54.673Z  WARN 79264 --- [agora-trading-api] [mcat-handler-96] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.HttpRequestMethodNotSupportedException: Request method 'GET' is not supported]"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "HTTP method-not-supported warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_HTTP_METHOD_NOT_SUPPORTED_WARN = "0" }
+
+Assert-SmokeCase `
     -Name "high risk allow flag is diagnostic only" `
     -Lines @(
         "2026-06-18T00:00:00.000Z  INFO 1 --- [agora-trading-api] Started TradingApplication",

@@ -4651,6 +4651,7 @@ Current warning classes:
 | `PythNetworkService` feed/network timeout, HTTP, empty response, or unparseable price WARN | Treated as transient only while below `MAX_PYTH_NETWORK_WARN` (default `3`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data provider instability before relying on Pyth-derived evidence. |
 | `EtherscanService` tokenSupply `Error retrieving value` WARN | Optional on-chain supply provider warning. Treated as transient only while below `MAX_ETHERSCAN_TOKEN_SUPPLY_WARN` (default `5`). Exceeding the threshold is a runtime-log smoke failure and should be investigated before relying on Etherscan-derived market context. |
 | `McpApiKeyFilter` denied MCP request because metadata/API key is missing or invalid | Bounded auth-denied noise from public/unauthenticated probes. Treated as known only while below `MAX_MCP_AUTH_DENIED_WARN` (default `20`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as MCP abuse, route drift, or broken verifier auth. |
+| `DefaultHandlerExceptionResolver` `HttpRequestMethodNotSupportedException` for `GET` | Bounded method-probe noise when an external probe hits a POST-only endpoint such as MCP. Treated as known only while below `MAX_HTTP_METHOD_NOT_SUPPORTED_WARN` (default `10`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as route drift, crawler noise, or a broken verifier. |
 | `ScoreBuyV2Strategy` `ML003011` feature-schema mismatch | Known ScoreBuy/HeatWave model schema drift warning. `ScoreBuyV2Strategy` catches the prediction failure and returns `HOLD`, so this is not a grid/order/OCO mutation, but the `scorebuy_ml_schema_mismatch` count should be reviewed before ScoreBuy live rollout or model promotion. |
 
 The warning baseline is intentionally separate from Trading split acceptance.
@@ -4671,7 +4672,8 @@ still fail unless the diagnostic-only `ALLOW_HIGH_RISK_LOG=1` override is
 intentionally used outside acceptance. On success, it also prints the known WARN
 category counts:
 Flyway/MySQL version, startup bean timing, CGLIB proxy, open-in-view, and
-  optional TheGraph key, autonomous digest severe-notification, bounded OKX
+  optional TheGraph key, autonomous digest severe-notification, bounded HTTP
+  method-not-supported probes, bounded OKX
   public WS connection-reset and transient warnings, ScoreBuy/HeatWave
   feature-schema mismatch warnings, bounded Pyth market-data network warnings,
   bounded Etherscan token-supply provider warnings, and bounded MCP auth-denied

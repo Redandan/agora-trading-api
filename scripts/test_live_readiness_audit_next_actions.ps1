@@ -56,6 +56,9 @@ Assert-Contains -Name "audit live authorized tiny trigger enabled proof" -Text $
 Assert-Contains -Name "audit live authorized tiny hard scope proof" -Text $auditText -Pattern 'hardScope=BTCUSDT/574/LONG/5USDT'
 Assert-Contains -Name "audit default still blocks enabled tiny trigger" -Text $auditText -Pattern 'TINY_TRIGGER_ALREADY_ENABLED_OR_MARKER_MISSING'
 Assert-Contains -Name "audit live authorized high risk log allow" -Text $auditText -Pattern 'ALLOW_HIGH_RISK_LOG"\] = "1" if live_authorized else "0"'
+Assert-Contains -Name "audit streams local runtime log checker guard" -Text $auditText -Pattern 'Runtime log checker not found'
+Assert-Contains -Name "audit streams local runtime log checker payload" -Text $auditText -Pattern 'RUNTIME_LOG_CHECKER_B64'
+Assert-Contains -Name "audit executes streamed runtime log checker temp file" -Text $auditText -Pattern 'NamedTemporaryFile'
 
 Assert-Contains -Name "remediation precise runtime gap guidance" -Text $remediationText -Pattern 'Fix the specific health, runtime log, and/or event-risk evidence named in the audit'
 Assert-Contains -Name "remediation readiness detail missing guidance" -Text $remediationText -Pattern 'missing_readiness_detail_fields=\[\]'

@@ -52,11 +52,19 @@ Assert-RemotePathSafe -Name "AppDir" -Value $AppDir
 Assert-RemotePathSafe -Name "EnvFile" -Value $EnvFile
 Assert-McpSmokeTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 
+$runtimeLogScript = Join-Path $PSScriptRoot "check_server_runtime_log.sh"
+if (-not (Test-Path -LiteralPath $runtimeLogScript)) {
+    throw "Runtime log checker not found: $runtimeLogScript"
+}
+$runtimeLogBody = Get-Content -Raw -LiteralPath $runtimeLogScript
+$runtimeLogBodyB64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($runtimeLogBody))
+
 $remoteScript = @"
 set -euo pipefail
 APP_DIR='$AppDir'
 ENV_FILE='$EnvFile'
 SYMBOL='$Symbol'
+RUNTIME_LOG_CHECKER_B64='$runtimeLogBodyB64'
 cd "`$APP_DIR"
 
 PORT=`$(tr -d '[:space:]' < app.port)
@@ -67,12 +75,14 @@ if [ -z "`$MCP_KEY" ]; then
   exit 0
 fi
 
-export PORT MCP_KEY SYMBOL ENV_FILE APP_DIR LIVE_AUTHORIZED='$($LiveAuthorized.IsPresent)'
+export PORT MCP_KEY SYMBOL ENV_FILE APP_DIR RUNTIME_LOG_CHECKER_B64 LIVE_AUTHORIZED='$($LiveAuthorized.IsPresent)'
 python3 - <<'PY'
+import base64
 import json
 import os
 import re
 import subprocess
+import tempfile
 import urllib.error
 import urllib.request
 
@@ -508,7 +518,19 @@ try:
     strict_log_env["ALLOW_UNKNOWN_WARN"] = "0"
     strict_log_env["ALLOW_RUNTIME_ERROR"] = "0"
     strict_log_env["ALLOW_HIGH_RISK_LOG"] = "1" if live_authorized else "0"
-    log = subprocess.run(["bash", "scripts/check_server_runtime_log.sh"], cwd=os.environ["APP_DIR"], env=strict_log_env, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
+    checker_body = base64.b64decode(os.environ["RUNTIME_LOG_CHECKER_B64"]).decode("utf-8")
+    checker_path = ""
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False, prefix="runtime-log-checker-", suffix=".sh") as handle:
+            handle.write(checker_body)
+            checker_path = handle.name
+        log = subprocess.run(["bash", checker_path], cwd=os.environ["APP_DIR"], env=strict_log_env, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
+    finally:
+        if checker_path:
+            try:
+                os.unlink(checker_path)
+            except OSError:
+                pass
     print("runtime_log_status=PASS" if log.returncode == 0 else "runtime_log_status=FAIL")
     for line in log.stdout.splitlines()[-12:]:
         print("runtime_log: " + line)

@@ -116,21 +116,79 @@ class LocalTradingViewSignalEvaluatorTest {
                         .containsEntry("orderSent", false));
     }
 
+    @Test
+    void catchUpEvaluatesRecentClosedBarsSoMissedCloseEventsDoNotDropBuyIntents() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, false, 2, auditWriter);
+
+        evaluator.evaluate(kline(2));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter, times(6)).logSignalEval(eq(485L), eq("BTCUSDT"), eq("1d"),
+                any(), eq("BUY"), contextCaptor.capture());
+
+        assertThat(contextCaptor.getAllValues())
+                .extracting(ctx -> ctx.get("barTime"))
+                .containsExactly(
+                        "2026-01-02T00:00",
+                        "2026-01-02T00:00",
+                        "2026-01-02T00:00",
+                        "2026-01-03T00:00",
+                        "2026-01-03T00:00",
+                        "2026-01-03T00:00");
+        assertThat(contextCaptor.getAllValues().get(0))
+                .containsEntry("catchUpEvaluation", true)
+                .containsEntry("triggerBarTime", "2026-01-03T00:00")
+                .containsEntry("catchUpBars", 2)
+                .containsEntry("orderIntentIndex", 1);
+        assertThat(contextCaptor.getAllValues().get(3))
+                .containsEntry("catchUpEvaluation", false)
+                .containsEntry("orderIntentIndex", 1);
+    }
+
+    @Test
+    void catchUpContinuesWhenOlderBarEvaluationFails() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        Strategy strategy = new Strategy() {
+            @Override
+            public String getType() {
+                return "TEST_TV";
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                if (context.getCurrent().getOpenTime().equals(LocalDateTime.of(2026, 1, 2, 0, 0))) {
+                    throw new IllegalStateException("previous bar failed");
+                }
+                LiveSignalContext.putDetail("tradingview_buy_signal", true);
+                LiveSignalContext.addOrderIntent("TRADINGVIEW_AI_BUY_SIGNAL", "AI买点买入", 5000);
+                return StrategySignal.BUY;
+            }
+        };
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, false, 2, auditWriter, strategy);
+
+        evaluator.evaluate(kline(2));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter, times(1)).logSignalEval(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)), eq("BUY"), contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("catchUpEvaluation", false)
+                .containsEntry("orderIntentIndex", 1)
+                .containsEntry("orderReason", "TRADINGVIEW_AI_BUY_SIGNAL");
+    }
+
     private LocalTradingViewSignalEvaluator evaluator(boolean enabled, DecisionAuditWriter auditWriter) {
         return evaluator(enabled, false, auditWriter);
     }
 
     private LocalTradingViewSignalEvaluator evaluator(boolean enabled, boolean executionEnabled, DecisionAuditWriter auditWriter) {
-        ExecutionMode executionMode = executionEnabled ? ExecutionMode.DRY_RUN : ExecutionMode.LEGACY;
-        TradingViewLocalSignalProperties props = new TradingViewLocalSignalProperties(
-                enabled, 485L, "BTCUSDT", "1d", "", 10,
-                new BigDecimal("10.0"), new BigDecimal("10.0"),
-                executionMode,
-                executionEnabled, true, false, 3, 1, 1,
-                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
-        BtStrategyService strategyService = mock(BtStrategyService.class);
-        MdKlineRepository klineRepository = mock(MdKlineRepository.class);
-        BacktestEngine backtestEngine = mock(BacktestEngine.class);
+        return evaluator(enabled, executionEnabled, 1, auditWriter);
+    }
+
+    private LocalTradingViewSignalEvaluator evaluator(boolean enabled, boolean executionEnabled, int catchUpBars, DecisionAuditWriter auditWriter) {
         Strategy strategy = new Strategy() {
             @Override
             public String getType() {
@@ -146,6 +204,21 @@ class LocalTradingViewSignalEvaluatorTest {
                 return StrategySignal.BUY;
             }
         };
+        return evaluator(enabled, executionEnabled, catchUpBars, auditWriter, strategy);
+    }
+
+    private LocalTradingViewSignalEvaluator evaluator(boolean enabled, boolean executionEnabled, int catchUpBars,
+                                                     DecisionAuditWriter auditWriter, Strategy strategy) {
+        ExecutionMode executionMode = executionEnabled ? ExecutionMode.DRY_RUN : ExecutionMode.LEGACY;
+        TradingViewLocalSignalProperties props = new TradingViewLocalSignalProperties(
+                enabled, 485L, "BTCUSDT", "1d", "", 10, catchUpBars,
+                new BigDecimal("10.0"), new BigDecimal("10.0"),
+                executionMode,
+                executionEnabled, true, false, 3, 1, 1,
+                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
+        BtStrategyService strategyService = mock(BtStrategyService.class);
+        MdKlineRepository klineRepository = mock(MdKlineRepository.class);
+        BacktestEngine backtestEngine = mock(BacktestEngine.class);
 
         BtStrategy btStrategy = new BtStrategy();
         btStrategy.setId(485L);

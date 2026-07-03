@@ -215,10 +215,18 @@ public class LocalTradingViewExecutionService {
         context.put("orderId", buy.getOrderId());
         context.put("filledQty", buy.getQty());
         context.put("actualEntryPrice", buy.getAvgPrice());
+        BigDecimal protectedEntry = positive(buy.getAvgPrice()) ? buy.getAvgPrice() : entry;
+        BigDecimal protectedTp = takeProfit(protectedEntry);
+        BigDecimal protectedSl = stopLoss(protectedEntry);
+        context.put("executionEntryPrice", protectedEntry);
+        context.put("executionTpPrice", protectedTp);
+        context.put("executionSlPrice", protectedSl);
+        context.put("executionOcoBasedOnActualFill", positive(buy.getAvgPrice()));
 
         BtLiveSignal signal;
         try {
-            signal = createLiveSignal(strategy, symbol, interval, kline, intent, entry, tp, sl, buy);
+            signal = createLiveSignal(strategy, symbol, interval, kline, intent, context,
+                    protectedEntry, protectedTp, protectedSl, buy);
         } catch (Exception e) {
             context.put("executionStatus", "CRITICAL_ORDER_SENT_LIVE_SIGNAL_SAVE_FAILED");
             context.put("executionBlocker", "LocalTradingViewLiveSignalSaveFailed");
@@ -236,7 +244,7 @@ public class LocalTradingViewExecutionService {
 
         Long ocoAlgoId;
         try {
-            ocoAlgoId = tradingService.placeOco(symbol, buy.getQty(), tp, sl);
+            ocoAlgoId = tradingService.placeOco(symbol, buy.getQty(), protectedTp, protectedSl);
             signal.setOcoOrderListId(ocoAlgoId);
             signal.setOcoQty(buy.getQty());
             liveSignalRepository.save(signal);
@@ -288,6 +296,7 @@ public class LocalTradingViewExecutionService {
                                           String interval,
                                           MdKline kline,
                                           LiveSignalContext.OrderIntent intent,
+                                          Map<String, Object> context,
                                           BigDecimal entry,
                                           BigDecimal tp,
                                           BigDecimal sl,
@@ -309,7 +318,10 @@ public class LocalTradingViewExecutionService {
         signal.setTradedQty(buy.getQty());
         signal.setOcoQty(buy.getQty());
         signal.setSide(SIDE);
-        signal.setFilterReason("LOCAL_TRADINGVIEW_PARITY:" + truncate(intent.reason(), 220));
+        signal.setFilterReason("LOCAL_TRADINGVIEW_PARITY:"
+                + safe(context == null ? null : context.get("executionIntentIndex"))
+                + ":"
+                + truncate(intent.reason(), 220));
         return liveSignalRepository.save(signal);
     }
 

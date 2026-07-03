@@ -74,14 +74,14 @@ class LocalTradingViewExecutionServiceTest {
         buy.setQty(new BigDecimal("0.09975062"));
         when(fixture.tradingService.placeMarketBuy(eq("BTCUSDT"), eq(10.0))).thenReturn(buy);
         when(fixture.tradingService.placeOco(eq("BTCUSDT"), eq(new BigDecimal("0.09975062")),
-                eq(new BigDecimal("103.00")), eq(new BigDecimal("88.00")))).thenReturn(999L);
+                eq(new BigDecimal("103.26")), eq(new BigDecimal("88.22")))).thenReturn(999L);
 
         fixture.service.preview(strategy(), kline(), "1d", "okx",
                 intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
 
         verify(fixture.tradingService).placeMarketBuy("BTCUSDT", 10.0);
         verify(fixture.tradingService).placeOco("BTCUSDT", new BigDecimal("0.09975062"),
-                new BigDecimal("103.00"), new BigDecimal("88.00"));
+                new BigDecimal("103.26"), new BigDecimal("88.22"));
 
         ArgumentCaptor<BtLiveSignal> signalCaptor = ArgumentCaptor.forClass(BtLiveSignal.class);
         verify(fixture.liveSignalRepository, org.mockito.Mockito.atLeastOnce()).save(signalCaptor.capture());
@@ -92,7 +92,10 @@ class LocalTradingViewExecutionServiceTest {
         assertThat(savedSignal.getBarOpenTime()).isEqualTo(LocalDateTime.of(2026, 1, 3, 0, 0));
         assertThat(savedSignal.getExchangeOrderId()).isEqualTo("LOCAL_TV:ord-123");
         assertThat(savedSignal.getOcoOrderListId()).isEqualTo(999L);
-        assertThat(savedSignal.getFilterReason()).isEqualTo("LOCAL_TRADINGVIEW_PARITY:TRADINGVIEW_RELATIVE_LOW");
+        assertThat(savedSignal.getEntryPrice()).isEqualByComparingTo("100.25");
+        assertThat(savedSignal.getSuggestedTp()).isEqualByComparingTo("103.26");
+        assertThat(savedSignal.getSuggestedSl()).isEqualByComparingTo("88.22");
+        assertThat(savedSignal.getFilterReason()).isEqualTo("LOCAL_TRADINGVIEW_PARITY:1:TRADINGVIEW_RELATIVE_LOW");
 
         ArgumentCaptor<BtDecisionAudit> auditCaptor = ArgumentCaptor.forClass(BtDecisionAudit.class);
         verify(fixture.decisionAuditRepository, org.mockito.Mockito.atLeast(2)).save(auditCaptor.capture());
@@ -121,7 +124,7 @@ class LocalTradingViewExecutionServiceTest {
         buy.setQty(new BigDecimal("0.09975062"));
         when(fixture.tradingService.placeMarketBuy(eq("BTCUSDT"), eq(10.0))).thenReturn(buy);
         when(fixture.tradingService.placeOco(eq("BTCUSDT"), eq(new BigDecimal("0.09975062")),
-                eq(new BigDecimal("103.00")), eq(new BigDecimal("88.00"))))
+                eq(new BigDecimal("103.26")), eq(new BigDecimal("88.22"))))
                 .thenThrow(new RuntimeException("oco-down"));
 
         fixture.service.preview(strategy(), kline(), "1d", "okx",
@@ -129,7 +132,7 @@ class LocalTradingViewExecutionServiceTest {
 
         verify(fixture.tradingService).placeMarketBuy("BTCUSDT", 10.0);
         verify(fixture.tradingService).placeOco("BTCUSDT", new BigDecimal("0.09975062"),
-                new BigDecimal("103.00"), new BigDecimal("88.00"));
+                new BigDecimal("103.26"), new BigDecimal("88.22"));
         verify(fixture.telegramService).sendAlert(
                 org.mockito.ArgumentMatchers.contains("CRITICAL_UNPROTECTED_LOCAL_TRADINGVIEW"),
                 eq(false),
@@ -153,7 +156,7 @@ class LocalTradingViewExecutionServiceTest {
         buy.setQty(new BigDecimal("0.09975062"));
         when(fixture.tradingService.placeMarketBuy(eq("BTCUSDT"), eq(10.0))).thenReturn(buy);
         when(fixture.tradingService.placeOco(eq("BTCUSDT"), eq(new BigDecimal("0.09975062")),
-                eq(new BigDecimal("103.00")), eq(new BigDecimal("88.00"))))
+                eq(new BigDecimal("103.26")), eq(new BigDecimal("88.22"))))
                 .thenThrow(new RuntimeException("oco-down"));
         doThrow(new RuntimeException("telegram-down")).when(fixture.telegramService)
                 .sendAlert(any(), eq(false), eq("LocalTradingViewExecution"), eq("CRITICAL"));
@@ -218,7 +221,7 @@ class LocalTradingViewExecutionServiceTest {
 
     private TradingViewLocalSignalProperties props(ExecutionMode mode) {
         return new TradingViewLocalSignalProperties(
-                true, 485L, "BTCUSDT", "1d", "", 320,
+                true, 485L, "BTCUSDT", "1d", "", 320, 1,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 mode, false, true, false, 3, 1, 1,
                 new BigDecimal("0.0300"), new BigDecimal("0.1200"));

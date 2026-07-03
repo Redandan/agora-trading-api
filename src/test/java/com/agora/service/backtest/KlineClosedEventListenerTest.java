@@ -115,7 +115,7 @@ class KlineClosedEventListenerTest {
         buy.setQty(new BigDecimal("0.09950249"));
         when(tradingService.placeMarketBuy(eq("BTCUSDT"), eq(10.0))).thenReturn(buy);
         when(tradingService.placeOco(eq("BTCUSDT"), eq(new BigDecimal("0.09950249")),
-                eq(new BigDecimal("103.00")), eq(new BigDecimal("88.00")))).thenReturn(777L);
+                eq(new BigDecimal("103.52")), eq(new BigDecimal("88.44")))).thenReturn(777L);
 
         when(liveSignalRepository.countByStrategyIdAndAutoTradedIsTrueAndCreatedAtAfter(eq(485L), any()))
                 .thenReturn(0L);
@@ -162,7 +162,7 @@ class KlineClosedEventListenerTest {
         verify(legacyEvaluator, never()).evaluate("BTCUSDT", "1D");
         verify(tradingService).placeMarketBuy("BTCUSDT", 10.0);
         verify(tradingService).placeOco("BTCUSDT", new BigDecimal("0.09950249"),
-                new BigDecimal("103.00"), new BigDecimal("88.00"));
+                new BigDecimal("103.52"), new BigDecimal("88.44"));
 
         ArgumentCaptor<BtLiveSignal> signalCaptor = ArgumentCaptor.forClass(BtLiveSignal.class);
         verify(liveSignalRepository, org.mockito.Mockito.atLeastOnce()).save(signalCaptor.capture());
@@ -170,6 +170,9 @@ class KlineClosedEventListenerTest {
         assertThat(savedSignal.getExchangeOrderId()).isEqualTo("LOCAL_TV:event-buy-1");
         assertThat(savedSignal.getOcoOrderListId()).isEqualTo(777L);
         assertThat(savedSignal.getBarOpenTime()).isEqualTo(LocalDateTime.of(2026, 7, 2, 0, 0));
+        assertThat(savedSignal.getEntryPrice()).isEqualByComparingTo("100.50");
+        assertThat(savedSignal.getSuggestedTp()).isEqualByComparingTo("103.52");
+        assertThat(savedSignal.getSuggestedSl()).isEqualByComparingTo("88.44");
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
         verify(evidenceRepository).save(evidenceCaptor.capture());
@@ -302,7 +305,7 @@ class KlineClosedEventListenerTest {
 
     private TradingViewLocalSignalProperties localProps(ExecutionMode mode) {
         return new TradingViewLocalSignalProperties(
-                true, 485L, "BTCUSDT", "1d", "okx", 320,
+                true, 485L, "BTCUSDT", "1d", "okx", 320, 1,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 mode, false, true, false, 3, 1, 1,
                 new BigDecimal("0.0300"), new BigDecimal("0.1200"));

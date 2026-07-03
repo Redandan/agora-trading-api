@@ -16,6 +16,7 @@ public record TradingViewLocalSignalProperties(
         @DefaultValue("1d") String allowedIntervals,
         @DefaultValue("") String allowedSources,
         @DefaultValue("320") @Positive int historyBars,
+        @DefaultValue("3") @Positive int catchUpBars,
         @DefaultValue("10.0") @Positive BigDecimal defaultNotionalUsdt,
         @DefaultValue("10.0") @Positive BigDecimal maxNotionalUsdt,
         @DefaultValue("LEGACY") ExecutionMode executionMode,

@@ -889,7 +889,10 @@ the exact operator authorization can be requested for only
 `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`,
 `TRADINGVIEW_LOCAL_ENABLED=true`, and
 `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN` with dry-run true and live-order
-false. A current BUY candidate is not required for this env handoff; after the
+false. `TRADINGVIEW_LOCAL_CATCH_UP_BARS=3` is the default bounded catch-up
+window for rechecking recent closed K-lines when a close event arrives, reducing
+missed BUY-intent risk after restarts or dropped events. A current BUY
+candidate is not required for this env handoff; after the
 env change, run `.\scripts\smoke_local_tradingview_candidate_ssh.ps1
 -RequireDryRunArmed`, then rerun with `-RequireCurrentCandidate
 -RequireDryRunArmed` only when the latest closed bar has a TradingView parity

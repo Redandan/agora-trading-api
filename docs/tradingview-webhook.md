@@ -106,6 +106,7 @@ TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS=BTCUSDT
 TRADINGVIEW_LOCAL_ALLOWED_INTERVALS=1d
 TRADINGVIEW_LOCAL_ALLOWED_SOURCES=
 TRADINGVIEW_LOCAL_HISTORY_BARS=320
+TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
@@ -119,9 +120,11 @@ TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
 TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
 ```
 
-Local parity mode writes one `SIGNAL_EVAL` plus one
-`ENTRY_SKIP/LocalTradingViewDryRun` audit pair for each Pine-equivalent order
-intent. It does not call the legacy `LiveSignalEvaluator`, create
+Local parity mode re-evaluates the latest bounded closed bars on each closed-K
+event using `TRADINGVIEW_LOCAL_CATCH_UP_BARS`, then writes one `SIGNAL_EVAL`
+plus one `ENTRY_SKIP/LocalTradingViewDryRun` audit pair for each
+Pine-equivalent order intent that has not already been seen by its idempotency
+key. It does not call the legacy `LiveSignalEvaluator`, create
 `bt_live_signal`, place exchange orders, mutate OCO/grid/fund/Earn state, or
 send Telegram.
 

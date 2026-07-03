@@ -168,7 +168,11 @@ public class TinyLiveMinimumOrderPreviewService {
 
         String ocoPreflightStatus = ocoPreflightStatus(entry, tp, sl, exposure.openAutoPositions);
         if (!ocoPreflightStatus.startsWith("PASS")) {
-            denialReasons.add("OCO_PREFLIGHT_FAILED");
+            if (currentBuyCandidate) {
+                denialReasons.add("OCO_PREFLIGHT_FAILED");
+            } else {
+                warnings.add("ocoPreflightPendingUntilBuyCandidate=" + ocoPreflightStatus);
+            }
         }
 
         DuplicateBarDecision duplicateBar = duplicateBarDecision(

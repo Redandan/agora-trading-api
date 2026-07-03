@@ -38,6 +38,7 @@ class AutoApprovalPolicyServiceTest {
 
         assertThat(decision.blockers()).contains("NO_CURRENT_BUY_CANDIDATE");
         assertThat(decision.blockers()).doesNotContain("OCO_PREFLIGHT_FAIL");
+        assertThat(decision.blockers().toString()).doesNotContain("OCO_PREFLIGHT_FAILED");
         assertThat(decision.warnings()).contains("ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL");
     }
 

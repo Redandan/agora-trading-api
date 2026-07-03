@@ -77,6 +77,7 @@ public class AutoApprovalPolicyService {
                            boolean eventRiskOverrideAllowed) {
         List<String> blockers = new ArrayList<>();
         List<String> warnings = new ArrayList<>(preview.warnings() == null ? List.of() : preview.warnings());
+        List<String> previewDenialReasons = effectivePreviewDenialReasons(preview);
         BudgetSnapshot budget = budgetSnapshot(preview);
 
         if (!SYMBOL.equals(preview.symbol()) || preview.strategyId() != STRATEGY_ID || !SIDE.equals(preview.side())) {
@@ -92,13 +93,13 @@ public class AutoApprovalPolicyService {
                 && isEventRiskOnlyPreviewBlock(preview);
         if ((!"READY_FOR_MANUAL_APPROVAL".equals(preview.status()) || !preview.allowedAfterManualApproval())
                 && !r3OverrideCandidate) {
-            blockers.add("PREVIEW_NOT_READY:" + preview.denialReasons());
+            blockers.add("PREVIEW_NOT_READY:" + previewDenialReasons);
         }
         if ("DUPLICATE_BAR_ACTIVE".equals(preview.duplicateBarStatus())
-                || contains(preview.denialReasons(), "DUPLICATE_BAR_SUPPRESSED")) {
+                || contains(previewDenialReasons, "DUPLICATE_BAR_SUPPRESSED")) {
             blockers.add("DUPLICATE_BAR");
         }
-        boolean noCurrentBuyCandidate = contains(preview.denialReasons(), "NO_CURRENT_BUY_CANDIDATE");
+        boolean noCurrentBuyCandidate = contains(previewDenialReasons, "NO_CURRENT_BUY_CANDIDATE");
         if (noCurrentBuyCandidate) {
             blockers.add("NO_CURRENT_BUY_CANDIDATE");
         } else if (preview.evStatus().startsWith("NOT_READY")) {
@@ -109,7 +110,7 @@ public class AutoApprovalPolicyService {
         if (!preview.ocoPreflightStatus().startsWith("PASS") && !noCurrentBuyCandidate) {
             blockers.add("OCO_PREFLIGHT_FAIL");
         } else if (!preview.ocoPreflightStatus().startsWith("PASS")) {
-            warnings.add("ocoPreflightPendingUntilBuyCandidate=" + preview.ocoPreflightStatus());
+            addWarningIfAbsent(warnings, "ocoPreflightPendingUntilBuyCandidate=" + preview.ocoPreflightStatus());
         }
         if (!runtimeEvidenceAvailable(preview.runtimeEvidenceStatus())) {
             blockers.add("RUNTIME_EVIDENCE_MISSING");
@@ -392,6 +393,24 @@ public class AutoApprovalPolicyService {
         boolean onlyEventRiskReason = !reasons.isEmpty()
                 && reasons.stream().allMatch("EVENT_RISK_HIGH"::equals);
         return onlyEventRiskReason && "NOT_READY_EVENT_RISK".equals(preview.status());
+    }
+
+    private List<String> effectivePreviewDenialReasons(TinyLiveMinimumOrderPreviewService.PreviewResult preview) {
+        List<String> reasons = preview.denialReasons() == null ? List.of() : preview.denialReasons();
+        if (!contains(reasons, "NO_CURRENT_BUY_CANDIDATE")
+                || preview.ocoPreflightStatus() == null
+                || preview.ocoPreflightStatus().startsWith("PASS")) {
+            return reasons;
+        }
+        return reasons.stream()
+                .filter(reason -> !"OCO_PREFLIGHT_FAILED".equals(reason))
+                .toList();
+    }
+
+    private void addWarningIfAbsent(List<String> warnings, String warning) {
+        if (!warnings.contains(warning)) {
+            warnings.add(warning);
+        }
     }
 
     private boolean r3OverrideUsedInLast24h() {

@@ -12,12 +12,17 @@ import java.util.Map;
 public class TradingSignalSourcePolicy {
 
     private static final String TRADINGVIEW = "TRADINGVIEW";
+    private static final String LOCAL_TRADINGVIEW = "LOCAL_TRADINGVIEW";
     private static final String LEGACY = "LEGACY";
 
     private final TradingSignalSourceProperties props;
 
     public boolean shouldRunLegacyLiveEvaluator() {
         return LEGACY.equals(primary()) && props.legacyLiveEvaluatorEnabled();
+    }
+
+    public boolean shouldRunLocalTradingViewEvaluator() {
+        return LOCAL_TRADINGVIEW.equals(primary());
     }
 
     public String primary() {
@@ -30,8 +35,13 @@ public class TradingSignalSourcePolicy {
 
     public Map<String, Object> status() {
         boolean legacyAllowed = shouldRunLegacyLiveEvaluator();
+        boolean localTradingViewAllowed = shouldRunLocalTradingViewEvaluator();
         return Map.of(
                 "primary", primary(),
+                "localTradingViewEvaluatorAllowed", localTradingViewAllowed,
+                "localTradingViewEvaluatorReason", localTradingViewAllowed
+                        ? "LOCAL_TRADINGVIEW_PRIMARY"
+                        : "PRIMARY_IS_NOT_LOCAL_TRADINGVIEW",
                 "legacyLiveEvaluatorEnabled", props.legacyLiveEvaluatorEnabled(),
                 "legacyLiveEvaluatorAllowed", legacyAllowed,
                 "legacyLiveEvaluatorReason", legacyAllowed

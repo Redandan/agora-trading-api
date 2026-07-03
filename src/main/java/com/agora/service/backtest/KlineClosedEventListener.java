@@ -3,6 +3,7 @@ package com.agora.service.backtest;
 import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
 import com.agora.service.trading.TradingSignalSourcePolicy;
+import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +21,7 @@ public class KlineClosedEventListener {
 
     private final LiveSignalEvaluator liveSignalEvaluator;
     private final TradingSignalSourcePolicy signalSourcePolicy;
+    private final LocalTradingViewSignalEvaluator localTradingViewSignalEvaluator;
 
     @Async
     @EventListener
@@ -32,6 +34,13 @@ public class KlineClosedEventListener {
 
         String intervalCode = kline.getIntervalCode();
         if ("1m".equalsIgnoreCase(intervalCode)) {
+            return;
+        }
+        if (signalSourcePolicy.shouldRunLocalTradingViewEvaluator()) {
+            log.debug("[KlineClosedEventListener] evaluate local TradingView parity {}@{} openTime={} source={} enabled={}",
+                    kline.getSymbol(), intervalCode, kline.getOpenTime(), kline.getSource(),
+                    localTradingViewSignalEvaluator.isEnabled());
+            localTradingViewSignalEvaluator.evaluate(kline);
             return;
         }
         if (!signalSourcePolicy.shouldRunLegacyLiveEvaluator()) {

@@ -91,6 +91,34 @@ Current behavior:
 This lets TradingView become the source-of-truth signal stream without creating
 untracked exchange positions.
 
+## Free Local Parity Mode
+
+TradingView Basic accounts cannot fill the alert `Webhook URL` field. For that
+case the service has a local, audit-only parity mode that evaluates the same
+ScoreBuy TradingView order-intent logic on closed K-lines:
+
+```bash
+TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW
+TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
+TRADINGVIEW_LOCAL_ENABLED=true
+TRADINGVIEW_LOCAL_STRATEGY_ID=485
+TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS=BTCUSDT
+TRADINGVIEW_LOCAL_ALLOWED_INTERVALS=1d
+TRADINGVIEW_LOCAL_ALLOWED_SOURCES=
+TRADINGVIEW_LOCAL_HISTORY_BARS=320
+TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
+TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
+```
+
+Local parity mode writes one `SIGNAL_EVAL` plus one
+`ENTRY_SKIP/LocalTradingViewDryRun` audit pair for each Pine-equivalent order
+intent. It does not call the legacy `LiveSignalEvaluator`, create
+`bt_live_signal`, place exchange orders, mutate OCO/grid/fund/Earn state, or
+send Telegram.
+
+Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
+distinguished from real TradingView webhook deliveries.
+
 Legacy restore switch:
 
 ```bash

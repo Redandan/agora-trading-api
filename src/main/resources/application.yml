@@ -61,6 +61,15 @@ trading:
       default-notional-usdt: ${TRADINGVIEW_WEBHOOK_DEFAULT_NOTIONAL_USDT:10.0}
       max-notional-usdt: ${TRADINGVIEW_WEBHOOK_MAX_NOTIONAL_USDT:10.0}
       idempotency-ttl-hours: ${TRADINGVIEW_WEBHOOK_IDEMPOTENCY_TTL_HOURS:24}
+    local:
+      enabled: ${TRADINGVIEW_LOCAL_ENABLED:false}
+      strategy-id: ${TRADINGVIEW_LOCAL_STRATEGY_ID:485}
+      allowed-symbols: ${TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS:BTCUSDT}
+      allowed-intervals: ${TRADINGVIEW_LOCAL_ALLOWED_INTERVALS:1d}
+      allowed-sources: ${TRADINGVIEW_LOCAL_ALLOWED_SOURCES:}
+      history-bars: ${TRADINGVIEW_LOCAL_HISTORY_BARS:320}
+      default-notional-usdt: ${TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT:10.0}
+      max-notional-usdt: ${TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT:10.0}
   data-freshness:
     shadow-replay:
       collector:

@@ -31,4 +31,17 @@ class TradingSignalSourcePolicyTest {
                 new TradingSignalSourceProperties("LEGACY", true))
                 .shouldRunLegacyLiveEvaluator()).isTrue();
     }
+
+    @Test
+    void localTradingViewPrimaryRunsLocalEvaluatorOnly() {
+        TradingSignalSourcePolicy policy = new TradingSignalSourcePolicy(
+                new TradingSignalSourceProperties("local-tradingview", true));
+
+        assertThat(policy.primary()).isEqualTo("LOCAL_TRADINGVIEW");
+        assertThat(policy.shouldRunLocalTradingViewEvaluator()).isTrue();
+        assertThat(policy.shouldRunLegacyLiveEvaluator()).isFalse();
+        assertThat(policy.status())
+                .containsEntry("localTradingViewEvaluatorAllowed", true)
+                .containsEntry("localTradingViewEvaluatorReason", "LOCAL_TRADINGVIEW_PRIMARY");
+    }
 }

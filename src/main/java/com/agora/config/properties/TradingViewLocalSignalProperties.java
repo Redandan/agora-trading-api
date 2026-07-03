@@ -1,6 +1,7 @@
 package com.agora.config.properties;
 
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +18,7 @@ public record TradingViewLocalSignalProperties(
         @DefaultValue("") String allowedSources,
         @DefaultValue("320") @Positive int historyBars,
         @DefaultValue("3") @Positive int catchUpBars,
+        @DefaultValue("72") @PositiveOrZero long maxSignalAgeHours,
         @DefaultValue("10.0") @Positive BigDecimal defaultNotionalUsdt,
         @DefaultValue("10.0") @Positive BigDecimal maxNotionalUsdt,
         @DefaultValue("LEGACY") ExecutionMode executionMode,

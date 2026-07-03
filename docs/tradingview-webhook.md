@@ -107,6 +107,7 @@ TRADINGVIEW_LOCAL_ALLOWED_INTERVALS=1d
 TRADINGVIEW_LOCAL_ALLOWED_SOURCES=
 TRADINGVIEW_LOCAL_HISTORY_BARS=320
 TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
+TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
@@ -139,8 +140,9 @@ behavior for rollback.
 The same lane is order-capable only when all hard gates pass:
 `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`, `TRADINGVIEW_LOCAL_ENABLED=true`,
 `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO`, OKX auto-trade enabled with
-private credentials, the configured symbol/interval allowlist, per-bar / daily
-/ open-position caps, valid TP/SL, and no duplicate live signal for the bar. A
+private credentials, the configured symbol/interval allowlist, per-bar, daily,
+and open-position caps, `TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS`, valid TP/SL,
+and no duplicate live signal for the bar. A
 successful real execution places a market buy, immediately attaches OKX OCO,
 then writes `bt_live_signal`, `bt_decision_audit`, and
 `bt_runtime_decision_evidence` with `signalSource=LOCAL_TRADINGVIEW`. Grid,

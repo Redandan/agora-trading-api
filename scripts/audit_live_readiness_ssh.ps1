@@ -405,6 +405,7 @@ local_tradingview_flags = {
     "TRADINGVIEW_LOCAL_ENABLED": bool_env("TRADINGVIEW_LOCAL_ENABLED", False),
     "TRADINGVIEW_LOCAL_EXECUTION_MODE": local_tv_execution_mode,
     "TRADINGVIEW_LOCAL_CATCH_UP_BARS": read_env_key("TRADINGVIEW_LOCAL_CATCH_UP_BARS") or "3",
+    "TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS": read_env_key("TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS") or "72",
     "TRADINGVIEW_LOCAL_EXECUTION_ENABLED": local_tv_execution_enabled,
     "TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN": local_tv_execution_dry_run,
     "TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED": local_tv_live_order_enabled,

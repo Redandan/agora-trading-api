@@ -211,7 +211,7 @@ class LocalTradingViewSignalEvaluatorTest {
                                                      DecisionAuditWriter auditWriter, Strategy strategy) {
         ExecutionMode executionMode = executionEnabled ? ExecutionMode.DRY_RUN : ExecutionMode.LEGACY;
         TradingViewLocalSignalProperties props = new TradingViewLocalSignalProperties(
-                enabled, 485L, "BTCUSDT", "1d", "", 10, catchUpBars,
+                enabled, 485L, "BTCUSDT", "1d", "", 10, catchUpBars, 0,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 executionMode,
                 executionEnabled, true, false, 3, 1, 1,

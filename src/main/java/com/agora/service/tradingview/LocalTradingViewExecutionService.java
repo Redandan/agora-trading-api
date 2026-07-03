@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -86,7 +87,8 @@ public class LocalTradingViewExecutionService {
                 strategy, kline, normalizedInterval, source, intent, baseContext, intentIndex,
                 entry, tp, sl, notional);
 
-        String blocker = preExecutionBlocker(strategy, symbol, normalizedInterval, kline, intentIndex, entry, tp, sl, notional);
+        String blocker = preExecutionBlocker(strategy, symbol, normalizedInterval, kline, intentIndex, entry, tp, sl,
+                notional, context);
         if (blocker != null) {
             logBlocked(strategy, symbol, normalizedInterval, kline.getOpenTime(), blocker, context);
             return;
@@ -103,9 +105,13 @@ public class LocalTradingViewExecutionService {
                                        BigDecimal entry,
                                        BigDecimal tp,
                                        BigDecimal sl,
-                                       BigDecimal notional) {
+                                       BigDecimal notional,
+                                       Map<String, Object> context) {
         if (intentIndex > props.executionMaxOrdersPerBar()) {
             return "LocalTradingViewExecutionBarCap";
+        }
+        if (Boolean.TRUE.equals(context.get("executionSignalStale"))) {
+            return "LocalTradingViewSignalStale";
         }
         if (props.effectiveExecutionDryRun()) {
             return "LocalTradingViewExecutionDryRun";
@@ -409,6 +415,7 @@ public class LocalTradingViewExecutionService {
         context.put("executionMaxOrdersPerBar", props.executionMaxOrdersPerBar());
         context.put("executionMaxOrdersPerDay", props.executionMaxOrdersPerDay());
         context.put("executionMaxOpenPositions", props.executionMaxOpenPositions());
+        putSignalAgeContext(context, kline);
         context.put("executionWouldUseScoreBuySchedulers", false);
         context.put("signalSourcePolicyPrimary", signalSourcePolicy.primary());
         context.put("okxAutoTradeEnabled", okxTradingProperties.isEnabled());
@@ -430,6 +437,36 @@ public class LocalTradingViewExecutionService {
         context.put("orderSent", false);
         context.put("ocoAttached", false);
         return context;
+    }
+
+    private void putSignalAgeContext(Map<String, Object> context, MdKline kline) {
+        long maxAgeHours = props.maxSignalAgeHours();
+        LocalDateTime reference = signalAgeReferenceTime(kline);
+        Long ageHours = signalAgeHours(reference, LocalDateTime.now(ZoneOffset.UTC));
+        boolean enabled = maxAgeHours > 0;
+        boolean stale = enabled && ageHours != null && ageHours > maxAgeHours;
+        context.put("executionMaxSignalAgeHours", maxAgeHours);
+        context.put("executionSignalAgeCheckEnabled", enabled);
+        context.put("executionSignalAgeReferenceTime", reference == null ? "" : reference.toString());
+        context.put("executionSignalAgeHours", ageHours == null ? "" : ageHours);
+        context.put("executionSignalStale", stale);
+    }
+
+    private LocalDateTime signalAgeReferenceTime(MdKline kline) {
+        if (kline == null) {
+            return null;
+        }
+        if (kline.getCloseTime() != null) {
+            return kline.getCloseTime();
+        }
+        return kline.getOpenTime();
+    }
+
+    private Long signalAgeHours(LocalDateTime reference, LocalDateTime now) {
+        if (reference == null || now == null) {
+            return null;
+        }
+        return Math.max(0L, Duration.between(reference, now).toHours());
     }
 
     private BigDecimal takeProfit(BigDecimal entry) {
@@ -482,6 +519,8 @@ public class LocalTradingViewExecutionService {
                     "Local TradingView parity execution dry-run; no order sent";
             case "LocalTradingViewLiveOrderNotEnabled" ->
                     "Local TradingView live order flag is disabled; no order sent";
+            case "LocalTradingViewSignalStale" ->
+                    "Local TradingView signal is older than the configured max signal age; no order sent";
             case "LocalTradingViewPrimaryNotActive" ->
                     "TRADING_SIGNAL_SOURCE_PRIMARY is not LOCAL_TRADINGVIEW";
             case "LocalTradingViewScopeNotAllowlisted" ->

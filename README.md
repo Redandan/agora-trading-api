@@ -891,7 +891,10 @@ the exact operator authorization can be requested for only
 `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN` with dry-run true and live-order
 false. `TRADINGVIEW_LOCAL_CATCH_UP_BARS=3` is the default bounded catch-up
 window for rechecking recent closed K-lines when a close event arrives, reducing
-missed BUY-intent risk after restarts or dropped events. A current BUY
+missed BUY-intent risk after restarts or dropped events.
+`TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72` keeps that catch-up window from
+turning stale BUY intents into live orders after a long outage or delayed data
+event; use `0` only for a reviewed diagnostic. A current BUY
 candidate is not required for this env handoff; after the
 env change, run `.\scripts\smoke_local_tradingview_candidate_ssh.ps1
 -RequireDryRunArmed`, then rerun with `-RequireCurrentCandidate

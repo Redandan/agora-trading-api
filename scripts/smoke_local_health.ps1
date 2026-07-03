@@ -293,6 +293,7 @@ $envOverrides = @{
     TRADINGVIEW_LOCAL_ALLOWED_SOURCES = ""
     TRADINGVIEW_LOCAL_HISTORY_BARS = "320"
     TRADINGVIEW_LOCAL_CATCH_UP_BARS = "3"
+    TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS = "72"
     TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT = "10.0"
     TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT = "10.0"
     TRADINGVIEW_LOCAL_EXECUTION_MODE = "LEGACY"
@@ -455,6 +456,7 @@ try {
         "--trading.tradingview.webhook.default-notional-usdt=10.0",
         "--trading.tradingview.webhook.max-notional-usdt=10.0",
         "--trading.tradingview.webhook.idempotency-ttl-hours=24",
+        "--trading.tradingview.local.max-signal-age-hours=72",
         "--event-scan.notification.enabled=false",
         "--event-scan.notification.dry-run=true",
         "--execution-event.enabled=false",

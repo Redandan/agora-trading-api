@@ -23,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -172,6 +173,34 @@ class LocalTradingViewExecutionServiceTest {
         assertThat(evidenceCaptor.getValue().getOrderSent()).isTrue();
     }
 
+    @Test
+    void staleSignalAgeBlocksLiveOrderBeforeMarketBuy() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO, 1));
+        MdKline staleKline = kline();
+        staleKline.setCloseTime(LocalDateTime.now(ZoneOffset.UTC).minusHours(2));
+
+        fixture.service.preview(strategy(), staleKline, "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)),
+                eq("LocalTradingViewSignalStale"),
+                eq("Local TradingView signal is older than the configured max signal age; no order sent"),
+                contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("executionStatus", "BLOCKED_HARD_GATE")
+                .containsEntry("executionBlocker", "LocalTradingViewSignalStale")
+                .containsEntry("executionSignalAgeCheckEnabled", true)
+                .containsEntry("executionMaxSignalAgeHours", 1L)
+                .containsEntry("executionSignalStale", true)
+                .containsEntry("orderSent", false)
+                .containsEntry("ocoAttached", false);
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.liveSignalRepository, never()).save(any());
+    }
+
     private Fixture fixture(TradingViewLocalSignalProperties props) {
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
         BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
@@ -220,8 +249,12 @@ class LocalTradingViewExecutionServiceTest {
     }
 
     private TradingViewLocalSignalProperties props(ExecutionMode mode) {
+        return props(mode, 0);
+    }
+
+    private TradingViewLocalSignalProperties props(ExecutionMode mode, long maxSignalAgeHours) {
         return new TradingViewLocalSignalProperties(
-                true, 485L, "BTCUSDT", "1d", "", 320, 1,
+                true, 485L, "BTCUSDT", "1d", "", 320, 1, maxSignalAgeHours,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 mode, false, true, false, 3, 1, 1,
                 new BigDecimal("0.0300"), new BigDecimal("0.1200"));

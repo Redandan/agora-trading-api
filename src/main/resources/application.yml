@@ -69,6 +69,7 @@ trading:
       allowed-sources: ${TRADINGVIEW_LOCAL_ALLOWED_SOURCES:}
       history-bars: ${TRADINGVIEW_LOCAL_HISTORY_BARS:320}
       catch-up-bars: ${TRADINGVIEW_LOCAL_CATCH_UP_BARS:3}
+      max-signal-age-hours: ${TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS:72}
       default-notional-usdt: ${TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT:10.0}
       max-notional-usdt: ${TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT:10.0}
       execution-mode: ${TRADINGVIEW_LOCAL_EXECUTION_MODE:LEGACY}

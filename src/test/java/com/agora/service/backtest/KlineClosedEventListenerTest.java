@@ -305,7 +305,7 @@ class KlineClosedEventListenerTest {
 
     private TradingViewLocalSignalProperties localProps(ExecutionMode mode) {
         return new TradingViewLocalSignalProperties(
-                true, 485L, "BTCUSDT", "1d", "okx", 320, 1,
+                true, 485L, "BTCUSDT", "1d", "okx", 320, 1, 0,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 mode, false, true, false, 3, 1, 1,
                 new BigDecimal("0.0300"), new BigDecimal("0.1200"));

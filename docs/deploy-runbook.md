@@ -55,6 +55,7 @@ TRADINGVIEW_LOCAL_ALLOWED_INTERVALS=1d
 TRADINGVIEW_LOCAL_ALLOWED_SOURCES=
 TRADINGVIEW_LOCAL_HISTORY_BARS=320
 TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
+TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
@@ -292,7 +293,10 @@ Expected:
   order intents and writes dry-run audit only by default.
   `TRADINGVIEW_LOCAL_CATCH_UP_BARS=3` makes each closed-K event re-evaluate
   the latest bounded closed bars so a missed event or restart does not silently
-  drop a recent parity BUY intent. `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN`
+  drop a recent parity BUY intent. `TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72`
+  prevents stale catch-up BUY intents from becoming live orders after a long
+  outage or delayed data event; set it to `0` only for an explicitly reviewed
+  diagnostic. `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN`
   adds a dedicated LOCAL_TRADINGVIEW execution receipt for each parity order
   intent. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO` is the simplified live
   lane: when local TradingView parity BUY conditions pass, the service may buy

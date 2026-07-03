@@ -874,6 +874,34 @@ command, post-deploy read-only verification, and rollback plan. It keeps
 restart, set dry-run false, place orders, modify OCO, close positions, send
 Telegram, or relax live policy.
 
+Read-only LOCAL_TRADINGVIEW dry-run receipt env handoff packet:
+
+```powershell
+.\scripts\prepare_local_tradingview_dry_run_receipt_env_handoff.ps1 -RequireReady
+```
+
+This consumes `smoke_local_tradingview_candidate_ssh.ps1` and local git
+metadata, then emits `LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_ENV_HANDOFF_PACKET`,
+`local_tradingview_dry_run_receipt_env_handoff_packet`, and
+`local_tradingview_dry_run_receipt_env_handoff_status`.
+`READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_ENV_HANDOFF_NOT_MUTATION` means
+the exact operator authorization can be requested for only
+`TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`,
+`TRADINGVIEW_LOCAL_ENABLED=true`, and
+`TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN` with dry-run true and live-order
+false. A current BUY candidate is not required for this env handoff; after the
+env change, run `.\scripts\smoke_local_tradingview_candidate_ssh.ps1
+-RequireDryRunArmed`, then rerun with `-RequireCurrentCandidate
+-RequireDryRunArmed` only when the latest closed bar has a TradingView parity
+BUY. The packet prints the exact operator authorization text, required env
+state, post-env read-only verification, and rollback plan. It keeps
+`production_env_change_allowed=false`, `deploy_allowed=false`,
+`live_order_mutation_allowed=false`, `oco_mutation_allowed=false`,
+`grid_mutation_allowed=false`, `exchange_mutation_allowed=false`,
+`order_allowed=false`, and `telegram_send_allowed=false`; it does not change
+production env, deploy, restart, switch to `LIVE_MICRO`, place orders, modify
+OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Guarded trailing-stop strategy opt-in execution wrapper:
 
 ```powershell

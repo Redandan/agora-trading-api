@@ -1595,6 +1595,31 @@
   production env, deploy, restart, set dry-run false, enable live OCO mutation,
   place orders, close positions, send Telegram, relax policy, or mutate
   DB/grid/fund/Earn/Telegram/exchange state.
+- `scripts/prepare_local_tradingview_dry_run_receipt_env_handoff.ps1` packages
+  the exact LOCAL_TRADINGVIEW dry-run receipt env/deploy authorization request.
+  It consumes `smoke_local_tradingview_candidate_ssh.ps1` plus local git
+  metadata and emits `LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_ENV_HANDOFF_PACKET`,
+  `local_tradingview_dry_run_receipt_env_handoff_packet`, and
+  `local_tradingview_dry_run_receipt_env_handoff_status`. A status of
+  `READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_ENV_HANDOFF_NOT_MUTATION` means
+  the operator can be asked for the exact env state
+  `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`,
+  `TRADINGVIEW_LOCAL_ENABLED=true`, and
+  `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN` while keeping dry-run true and
+  live-order false, followed by deploy/restart of current `origin/main` and
+  post-env read-only verification. A current BUY candidate is not required for
+  the env handoff; the post-env verifier is
+  `smoke_local_tradingview_candidate_ssh.ps1 -RequireDryRunArmed`, with
+  `-RequireCurrentCandidate -RequireDryRunArmed` reserved for a latest closed
+  bar that actually has a parity BUY. The packet prints the exact operator
+  authorization text, deploy command, verification list, and rollback plan. It
+  keeps `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `live_order_mutation_allowed=false`, `oco_mutation_allowed=false`,
+  `grid_mutation_allowed=false`, `db_mutation_allowed=false`,
+  `exchange_mutation_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it does not change production env, deploy,
+  restart, switch to `LIVE_MICRO`, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
 - `scripts/execute_trailing_stop_strategy_opt_in_ssh.ps1` provides the
   controlled execution path for that blocker. Its default mode is non-mutating
   and emits `TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET`,

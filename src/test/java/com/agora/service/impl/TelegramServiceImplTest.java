@@ -199,6 +199,95 @@ class TelegramServiceImplTest {
     }
 
     @Test
+    void mutesNonActionableSystemMarketContextBeforeTelegramSend() throws Exception {
+        TelegramBotConfig config = new TelegramBotConfig();
+        config.setChannelId("-100test");
+        TgNotificationLogRepository notificationLogRepo = mock(TgNotificationLogRepository.class);
+        TelegramClient telegramClient = mock(TelegramClient.class);
+        TelegramServiceImpl service = new TelegramServiceImpl(
+                config,
+                notificationLogRepo,
+                new TgTradingNotificationClassifier(),
+                telegramClient
+        );
+        String raw = """
+                ⚠️ <b>Attention: 軋空扳機-1：空頭主動平倉 OI -1.5%/h</b>
+                觸發: -1.7110 (threshold < -1.5000, 1.14× 觸發)
+                symbol: BTCUSDT
+                ctx: oi_change_pct_1h=-1.7110
+                """;
+
+        service.sendMessage(raw, true);
+        ReflectionTestUtils.invokeMethod(service, "drainChannelQueue");
+
+        verify(telegramClient, never()).execute(any(SendMessage.class));
+        ArgumentCaptor<TgNotificationLog> logCaptor = ArgumentCaptor.forClass(TgNotificationLog.class);
+        verify(notificationLogRepo).save(logCaptor.capture());
+        assertThat(logCaptor.getValue().getLevel()).isEqualTo("MUTED_MARKET_CONTEXT");
+        assertThat(logCaptor.getValue().getSource()).isEqualTo("system");
+        assertThat(logCaptor.getValue().getMessage())
+                .contains("【市場背景】BTCUSDT: 軋空觀察：空頭主動平倉 未平倉量 -1.5%/h")
+                .contains("用途=觀察，不是買賣指令");
+    }
+
+    @Test
+    void keepsScoreBuyExecutionTelegramSend() throws Exception {
+        TelegramBotConfig config = new TelegramBotConfig();
+        config.setChannelId("-100test");
+        TgNotificationLogRepository notificationLogRepo = mock(TgNotificationLogRepository.class);
+        TelegramClient telegramClient = mock(TelegramClient.class);
+        TelegramServiceImpl service = new TelegramServiceImpl(
+                config,
+                notificationLogRepo,
+                new TgTradingNotificationClassifier(),
+                telegramClient
+        );
+        String raw = "SCORE_BUY post-scout add executed. symbol=BTCUSDT strategyId=485 addType=PULLBACK "
+                + "notional=25 orderId=67890 ocoAlgoId=888";
+
+        service.sendAlert(raw, false, "ScoreBuyPostScoutAdd", "INFO");
+        ReflectionTestUtils.invokeMethod(service, "drainChannelQueue");
+
+        ArgumentCaptor<SendMessage> sendCaptor = ArgumentCaptor.forClass(SendMessage.class);
+        verify(telegramClient).execute(sendCaptor.capture());
+        assertThat(sendCaptor.getValue().getText())
+                .contains("【交易保護】BTCUSDT: 分批買入策略已成交並掛 OCO")
+                .contains("用途=成交回報");
+        ArgumentCaptor<TgNotificationLog> logCaptor = ArgumentCaptor.forClass(TgNotificationLog.class);
+        verify(notificationLogRepo).save(logCaptor.capture());
+        assertThat(logCaptor.getValue().getLevel()).isEqualTo("INFO");
+        assertThat(logCaptor.getValue().getSource()).isEqualTo("ScoreBuyPostScoutAdd");
+    }
+
+    @Test
+    void keepsMcpMasterApprovalTelegramSend() throws Exception {
+        TelegramBotConfig config = new TelegramBotConfig();
+        config.setChannelId("-100test");
+        TgNotificationLogRepository notificationLogRepo = mock(TgNotificationLogRepository.class);
+        TelegramClient telegramClient = mock(TelegramClient.class);
+        TelegramServiceImpl service = new TelegramServiceImpl(
+                config,
+                notificationLogRepo,
+                new TgTradingNotificationClassifier(),
+                telegramClient
+        );
+        String message = """
+                MCP 外部 AI 授權請求
+
+                狀態: 等待人工批准
+                工具: createProduct
+                """;
+
+        service.sendChannelMessageWithKeyboard(message, false, null, "mcp-master-approval", "WARN");
+
+        verify(telegramClient).execute(any(SendMessage.class));
+        ArgumentCaptor<TgNotificationLog> logCaptor = ArgumentCaptor.forClass(TgNotificationLog.class);
+        verify(notificationLogRepo).save(logCaptor.capture());
+        assertThat(logCaptor.getValue().getLevel()).isEqualTo("WARN");
+        assertThat(logCaptor.getValue().getSource()).isEqualTo("mcp-master-approval");
+    }
+
+    @Test
     void compactsSingleAttentionMarketSignalIntoThreeChineseIntentLines() {
         TelegramServiceImpl service = newService();
         String raw = """

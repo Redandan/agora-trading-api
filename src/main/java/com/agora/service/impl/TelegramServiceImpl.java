@@ -210,6 +210,54 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                 && message.contains("詳情=市場明細/MCP"));
     }
 
+    private String marketMuteLevel(String message, String source, String level) {
+        if (shouldMuteMarketRiskSummary(message, source)) {
+            return "MUTED_MARKET";
+        }
+        if (shouldMuteNonActionableMarketContext(message, source, level)) {
+            return "MUTED_MARKET_CONTEXT";
+        }
+        return null;
+    }
+
+    private boolean shouldMuteNonActionableMarketContext(String message, String source, String level) {
+        if (message == null || !isSystemSource(source) || !message.contains("【市場背景】")) {
+            return false;
+        }
+        if (containsTradeOrAuthorizationMarker(message)) {
+            return false;
+        }
+        String text = message.toLowerCase(Locale.ROOT);
+        if ("CRITICAL".equalsIgnoreCase(level) || "WARN".equalsIgnoreCase(level)) {
+            return text.contains("不是買賣指令") || text.contains("不是 buy/sell");
+        }
+        return text.contains("用途=觀察")
+                || text.contains("不是買賣指令")
+                || text.contains("不是 buy/sell")
+                || text.contains("f&g extreme fear alert")
+                || text.contains("strategy discovery");
+    }
+
+    private boolean isSystemSource(String source) {
+        return source == null || source.isBlank() || "system".equalsIgnoreCase(source);
+    }
+
+    private boolean containsTradeOrAuthorizationMarker(String message) {
+        String text = message.toLowerCase(Locale.ROOT);
+        return message.contains("【交易保護】")
+                || message.contains("MCP 外部 AI 授權請求")
+                || text.contains("mcp-master-approval")
+                || text.contains("已成交")
+                || text.contains("下單")
+                || text.contains("oco")
+                || text.contains("grid #")
+                || text.contains("grid#")
+                || text.contains("tiny-live")
+                || text.contains("score_buy")
+                || text.contains("daily loss")
+                || text.contains("熔斷");
+    }
+
     private void loadPinnedStore() {
         if (!Files.exists(pinnedFile)) return;
         Properties p = new Properties();
@@ -260,10 +308,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             log.warn("Telegram channel ID not configured, skipping message send");
             return;
         }
-        if (shouldMuteMarketRiskSummary(normalizedMessage, "system")) {
-            log.debug("[TgMarketRiskSummaryMute] muted channel message: {}",
-                    normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
-            logAsync(normalizedMessage, useHtml, "system", "MUTED_MARKET");
+        String marketMuteLevel = marketMuteLevel(normalizedMessage, "system", "INFO");
+        if (marketMuteLevel != null) {
+            log.debug("[TgMarketMute] muted channel message level={}: {}",
+                    marketMuteLevel, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
+            logAsync(normalizedMessage, useHtml, "system", marketMuteLevel);
             return;
         }
         // #449 vacation mute — 仍寫 audit log,但不 enqueue 送 TG
@@ -292,10 +341,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             log.warn("Telegram channel ID not configured, skipping alert send");
             return;
         }
-        if (shouldMuteMarketRiskSummary(normalizedMessage, source)) {
-            log.debug("[TgMarketRiskSummaryMute] muted alert (source={}): {}",
-                    source, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
-            logAsync(normalizedMessage, useHtml, source, "MUTED_MARKET");
+        String marketMuteLevel = marketMuteLevel(normalizedMessage, source, level);
+        if (marketMuteLevel != null) {
+            log.debug("[TgMarketMute] muted alert (source={} level={}): {}",
+                    source, marketMuteLevel, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
+            logAsync(normalizedMessage, useHtml, source, marketMuteLevel);
             return;
         }
         // #449 vacation mute — 同 sendMessage path
@@ -324,10 +374,11 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             log.warn("Telegram channel ID not configured, skipping keyboard message send");
             return;
         }
-        if (shouldMuteMarketRiskSummary(normalizedMessage, source)) {
-            log.debug("[TgMarketRiskSummaryMute] muted keyboard message (source={}): {}",
-                    source, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
-            logAsync(normalizedMessage, useHtml, source, "MUTED_MARKET");
+        String marketMuteLevel = marketMuteLevel(normalizedMessage, source, level);
+        if (marketMuteLevel != null) {
+            log.debug("[TgMarketMute] muted keyboard message (source={} level={}): {}",
+                    source, marketMuteLevel, normalizedMessage.substring(0, Math.min(80, normalizedMessage.length())));
+            logAsync(normalizedMessage, useHtml, source, marketMuteLevel);
             return;
         }
         if (shouldMute(normalizedMessage)) {

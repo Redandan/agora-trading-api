@@ -67,6 +67,9 @@ public class OcoPositionPollerScheduler {
     @Value("${trading.oco-poller.enabled:false}")
     private boolean ocoPollerEnabled;
 
+    @Value("${trading.oco-poller.untracked-min-notional-usdt:10.0}")
+    private BigDecimal untrackedMinNotionalUsdt;
+
     /** OCO 補掛重試計數（in-memory；服務重啟後歸零，重新評估是正確行為）。
      *  value ≥ 5 = 已放棄重試；value = 6 = 放棄 TG 已發送，保持靜默。 */
     private final ConcurrentHashMap<Long, Integer> ocoRetryCount = new ConcurrentHashMap<>();
@@ -548,6 +551,13 @@ public class OcoPositionPollerScheduler {
             BigDecimal dbQty = dbQtyByBase.getOrDefault(h.ccy, BigDecimal.ZERO);
             BigDecimal diff = h.cashBal.subtract(dbQty);
             if (diff.compareTo(RECONCILE_THRESHOLD) > 0) {
+                BigDecimal diffNotionalUsdt = estimateDiffNotionalUsdt(h, diff);
+                if (isBelowUntrackedNotionalThreshold(diffNotionalUsdt)) {
+                    untrackedHoldingTracker.clear(h.ccy);
+                    log.info("[Reconcile] ignore small untracked holding {}: diff={} estimatedNotionalUsdt={} thresholdUsdt={}",
+                            h.ccy, diff, diffNotionalUsdt, untrackedMinNotionalUsdt);
+                    continue;
+                }
                 LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
                 boolean confirmed = untrackedHoldingTracker.confirmOrSeed(h.ccy, diff, now);
                 if (!confirmed) {
@@ -648,6 +658,36 @@ public class OcoPositionPollerScheduler {
             }
         } catch (Exception e) {
             log.warn("[OcoPoll] Earn top-up check failed (non-blocking): {}", e.getMessage());
+        }
+    }
+
+
+    private boolean isBelowUntrackedNotionalThreshold(BigDecimal diffNotionalUsdt) {
+        if (untrackedMinNotionalUsdt == null || untrackedMinNotionalUsdt.compareTo(BigDecimal.ZERO) <= 0) {
+            return false;
+        }
+        if (diffNotionalUsdt == null || diffNotionalUsdt.compareTo(BigDecimal.ZERO) <= 0) {
+            return false;
+        }
+        return diffNotionalUsdt.compareTo(untrackedMinNotionalUsdt) < 0;
+    }
+
+    private BigDecimal estimateDiffNotionalUsdt(OkxTradingService.SpotHolding holding, BigDecimal diff) {
+        if (holding == null || diff == null || diff.compareTo(BigDecimal.ZERO) <= 0) {
+            return null;
+        }
+        if (holding.eqUsd != null && holding.eqUsd.compareTo(BigDecimal.ZERO) > 0
+                && holding.cashBal != null && holding.cashBal.compareTo(BigDecimal.ZERO) > 0) {
+            return holding.eqUsd.multiply(diff).divide(holding.cashBal, 8, RoundingMode.HALF_UP);
+        }
+        try {
+            BigDecimal price = okxTradingService.getLastPrice(holding.ccy + "USDT");
+            if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+                return null;
+            }
+            return diff.multiply(price).setScale(8, RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            return null;
         }
     }
 

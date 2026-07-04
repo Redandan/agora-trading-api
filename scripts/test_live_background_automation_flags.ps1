@@ -125,6 +125,8 @@ foreach ($pattern in @(
 
 foreach ($pattern in @(
         "background_automation_true=",
+        "background_automation_accepted_true=",
+        "background_automation_unreviewed_true=",
         "high_risk_background_automation_true=",
         "missing_background_automation_flags=",
         "background_automation_review_plan=",
@@ -137,6 +139,7 @@ foreach ($pattern in @(
         "nextAction",
         "notAuthorization",
         "review_plan.append",
+        "ACCEPTED_TRUE_LOCAL_TRADINGVIEW_MARKET_DATA",
         "background_clear",
         "if not background_clear:",
         "if high_risk_true:",
@@ -144,6 +147,7 @@ foreach ($pattern in @(
         "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE",
         "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
         "verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW",
+        "verdict=OK_BACKGROUND_AUTOMATION_REVIEWED",
         "[switch]`$RequireClear",
         "REQUIRE_CLEAR",
         "require_clear",
@@ -158,6 +162,8 @@ foreach ($pattern in @(
         "background_flags = [",
         "background_missing = []",
         "missing_background_automation_flags=",
+        "background_automation_accepted_true=",
+        "background_automation_unreviewed_true=",
         "BACKGROUND_AUTOMATION_MISSING_FLAG_REVIEW_BEFORE_LIVE",
         "MISSING:{key}",
         "BACKGROUND_AUTOMATION_MISSING_FLAG"
@@ -179,6 +185,8 @@ foreach ($pattern in @(
         "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG",
         "classification=BACKGROUND_AUTOMATION_CLEARED",
         "verdict=OK_BACKGROUND_AUTOMATION_DISABLED",
+        "classification=BACKGROUND_AUTOMATION_REVIEWED_FOR_LOCAL_TRADINGVIEW",
+        "verdict=OK_BACKGROUND_AUTOMATION_REVIEWED",
         "classification=BACKGROUND_AUTOMATION_REVIEW_BEFORE_LIVE",
         "recommendation=KEEP_LIVE_DISABLED_UNTIL_FLAGS_ARE_REVIEWED_OR_SEPARATELY_AUTHORIZED"
     )) {

@@ -63,8 +63,8 @@ function Get-LiveReadinessBundleBlockers {
         $blockers.Add("LIVE_READINESS_NOT_READY")
     }
     if ($Audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" `
-            -or $Audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
-            -or $Audit -notmatch "order_capable_flags_true=\[\]") {
+            -or $Audit -match "order_capable_flags_unexpected=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
+            -or $Audit -notmatch "order_capable_flags_unexpected=\[\]") {
         $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
     }
     if ($Audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING" `
@@ -104,13 +104,14 @@ function Get-LiveReadinessBundleBlockers {
             -or $Background -match "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG" `
             -or $Background -match "backgroundAutomationClear=false" `
             -or $Background -match "background_automation_blockers=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
+            -or $Background -match "background_automation_unreviewed_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
             -or $Background -match "missing_background_automation_flags=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
             -or $Background -match "high_risk_background_automation_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
             -or $Background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
             -or $Background -notmatch "background_automation_review_plan=" `
             -or ($Background -match "backgroundAutomationClear=true" -and $Background -match '"state"\s*:\s*"TRUE"') `
             -or ($Background -match "backgroundAutomationClear=true" -and $Background -match '"state"\s*:\s*"MISSING"') `
-            -or $Background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" `
+            -or $Background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_(DISABLED|REVIEWED)" `
             -or $Background -notmatch "backgroundAutomationClear=true" `
             -or $Background -notmatch "high_risk_background_automation_true=\[\]") {
         $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")
@@ -652,8 +653,8 @@ Assert-OperatorDocsReadyBoundary
 $mcpAuditEvidence = 'readiness_details={"autonomousOpportunity":{"eligible":true,"orderSent":false,"reason":"READY"},"scoreBuyConfirmedDeploy":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false},"scoreBuyPostScoutAdd":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false},"scoreBuyPrePosition":{"dryRun":true,"enabled":false,"executionEligible":true,"orderSent":false},"tinyLive":{"executionEligible":"true","previewStatus":"READY","runtimeEvidenceStatus":"AVAILABLE_CANONICAL_SHADOW_EVIDENCE","wouldExecute":"false"}}'
 $mcpAuditEvidenceReordered = 'readiness_details={"tinyLive":{"wouldExecute":"false","runtimeEvidenceStatus":"AVAILABLE_CANONICAL_SHADOW_EVIDENCE","executionEligible":true,"previewStatus":"READY"},"autonomousOpportunity":{"reason":"READY","orderSent":false,"eligible":true},"scoreBuyPrePosition":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true},"scoreBuyConfirmedDeploy":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true},"scoreBuyPostScoutAdd":{"orderSent":false,"executionEligible":true,"enabled":false,"dryRun":true}}'
 $cleanInputs = @{
-    Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
-        Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nhigh_risk_background_automation_true=[]`nbackground_automation_review_plan=[]"
+    Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`norder_capable_flags_unexpected=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
+        Background = "verdict=OK_BACKGROUND_AUTOMATION_DISABLED`nbackgroundAutomationClear=true`nbackground_automation_blockers=[]`nbackground_automation_unreviewed_true=[]`nhigh_risk_background_automation_true=[]`nbackground_automation_review_plan=[]"
     RuntimeEvidence = 'diagnosis=CANONICAL_SHADOW_READY
 shadowIntentCount=3
 orderSentEvidence=0
@@ -664,17 +665,18 @@ runtime_evidence_review_plan=[{"state":"READY_FOR_OTHER_BLOCKER_REVIEW"}]'
     McpParity = "required_tools=[`"getMcpRegistryVersion`",`"verifyStrategyExecution`"]`nmissing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
     DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
 }
-$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
+$readyAudit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`norder_capable_flags_unexpected=[]`nsecret_presence={`"TRADING_OKX_API_KEY`": `"SET`", `"TRADING_OKX_SECRET_KEY`": `"SET`", `"TRADING_OKX_PASSPHRASE`": `"SET`"}`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence"
 
 Assert-BlockerCase -Name "clean ready-for-review mapping" -Inputs $cleanInputs -ExpectedBlockers @()
 Assert-BlockerCase -Name "clean readiness details json field order drift" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace($mcpAuditEvidence, $mcpAuditEvidenceReordered) }) -ExpectedBlockers @()
 
 Assert-BlockerCase -Name "audit not ready" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED", "verdict=NOT_READY") }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
 Assert-BlockerCase -Name "audit missing ready verdict fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`n", "") }) -ExpectedBlockers @("LIVE_READINESS_NOT_READY")
-Assert-BlockerCase -Name "audit missing order-capable marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("order_capable_flags_true=[]`n", "") }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
-Assert-BlockerCase -Name "audit order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`norder_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_OKX_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
+Assert-BlockerCase -Name "audit missing order-capable unexpected marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("order_capable_flags_unexpected=[]`n", "") }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
+Assert-BlockerCase -Name "audit accepted order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("order_capable_flags_true=[]", "order_capable_flags_true=[`"TRADING_OKX_ENABLED`"]`norder_capable_flags_accepted=[`"TRADING_OKX_ENABLED`"]") }) -ExpectedBlockers @()
+Assert-BlockerCase -Name "audit unexpected order flags already true" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`norder_capable_flags_unexpected=[`"TRADING_GRID_ENABLED`"]`nblockers=[`"ORDER_CAPABLE_FLAGS_ALREADY_TRUE:TRADING_GRID_ENABLED`"]" }) -ExpectedBlockers @("ORDER_CAPABLE_FLAGS_REVIEW")
 Assert-BlockerCase -Name "audit secret prerequisites missing" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nblockers=[`"OKX_CREDENTIALS_NOT_SET`"]" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
-Assert-BlockerCase -Name "audit missing secret presence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
+Assert-BlockerCase -Name "audit missing secret presence fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "verdict=READY_FOR_OPERATOR_REVIEW_NOT_LIVE_ENABLED`nhealth={`"status`":`"UP`"}`nruntime_log_status=PASS`norder_capable_flags_true=[]`norder_capable_flags_unexpected=[]`nriskLevel=R0`nmissing_readiness_detail_fields=[]`n$mcpAuditEvidence" }) -ExpectedBlockers @("SECRET_PREREQUISITES_MISSING")
 Assert-BlockerCase -Name "audit runtime log failed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nruntime_log_status=FAIL`nblockers=[`"RUNTIME_LOG_SMOKE_FAILED`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 Assert-BlockerCase -Name "audit health not up" -Inputs (Merge-Inputs $cleanInputs @{ Audit = "$readyAudit`nhealth={`"status`":`"DOWN`"}`nblockers=[`"HEALTH_NOT_UP`"]" }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")
 Assert-BlockerCase -Name "audit missing health up marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Audit = $readyAudit.Replace("`nhealth={`"status`":`"UP`"}", "") }) -ExpectedBlockers @("RUNTIME_HEALTH_OR_LOG_NOT_CLEAN")

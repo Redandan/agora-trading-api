@@ -67,6 +67,7 @@ TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY=1
 TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS=1
 TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
 TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
+TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT=10.0
 TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW
 TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
 # Hardened schema mode. Flyway uses a Trading-owned history table so it does not
@@ -278,7 +279,7 @@ Expected:
 - Market WebSocket side effects default off in code and the tracked template; set `MARKET_LIQUIDATION_WS_ENABLED=true` only after the trading runtime is ready to connect to OKX public liquidation streams.
 - K-line divergence alerting defaults off in code and the tracked template; set `TRADING_KLINE_DIVERGENCE_ENABLED=true` only after manual/snapshot divergence scans should be allowed to send Telegram alerts.
 - Grid runtime scheduling, auto-rebalance scheduling, and grid orphan recovery default off in code and the tracked template; grid runtime and orphan recovery are bean-level explicit opt-in. Enable `TRADING_GRID_ENABLED=true`, `TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED=true`, and `GRID_RECOVERY_ENABLED=true` only after the deployed trading service should own grid order placement and recovery.
-- OCO poller and OKX private WS OCO handling default off in code and the tracked template; enable `TRADING_OCO_POLLER_ENABLED=true` only when the deployed trading service should own OCO close detection, auto retry, reconciliation writes, and related Telegram alerts.
+- OCO poller and OKX private WS OCO handling default off in code and the tracked template; enable `TRADING_OCO_POLLER_ENABLED=true` only when the deployed trading service should own OCO close detection, auto retry, reconciliation writes, and related Telegram alerts. `TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT=10.0` keeps small spot dust/residual differences from escalating to untracked-position WARN/TG noise while preserving the normal confirmed alert path for larger orphan holdings.
 - OKX Earn trading-buffer top-up and trailing-stop scheduling default off in code and the tracked template; enable `OKX_EARN_TOPUP_ENABLED=true` only when this service should redeem/transfer Earn funds automatically, and enable `TRAILING_STOP_ENABLED=true` only when it should write trailing state or manage OCO updates.
 - ScoreBuy pre-position, confirmed-deploy, post-scout add execution, and near-trigger notifications default off and dry-run in code and the tracked template; the execution schedulers are bean-level explicit opt-in. Enable `TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED=true`, `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED=true`, and `TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED=true` only after those dry-run/execution and Telegram alert paths belong to trading production.
 - TradingView webhook ingress defaults off and dry-run in code and the tracked template. Enable `TRADINGVIEW_WEBHOOK_ENABLED=true` with `TRADINGVIEW_WEBHOOK_DRY_RUN=true` and a secret only to collect TradingView alert evidence; this release still blocks live order execution until a tracked `bt_live_signal`/OCO accounting path is separately implemented and authorized.

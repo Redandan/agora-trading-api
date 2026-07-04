@@ -77,6 +77,9 @@ def bool_value(values, key):
 def has_key(values, key):
     return key in values and str(values.get(key, "")).strip() != ""
 
+def csv_values(value):
+    return [item.strip().lower() for item in str(value or "").split(",") if item.strip()]
+
 def text_file(path, default="UNKNOWN"):
     try:
         with open(os.path.join(app_dir, path), "r", encoding="utf-8") as handle:
@@ -182,8 +185,30 @@ true_flags = [key for key in background_flags if bool_value(values, key)]
 high_risk_true = [key for key in high_risk_flags if bool_value(values, key)]
 missing_flags = [key for key in background_flags if not has_key(values, key)]
 false_flags = [key for key in background_flags if has_key(values, key) and not bool_value(values, key)]
+market_ws_providers = csv_values(values.get("MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS", ""))
+local_tradingview_market_ws_accepted = (
+    bool_value(values, "MARKET_WS_AUTO_SUBSCRIBE_ENABLED")
+    and str(values.get("TRADING_SIGNAL_SOURCE_PRIMARY", "")).upper() == "LOCAL_TRADINGVIEW"
+    and bool_value(values, "TRADINGVIEW_LOCAL_ENABLED")
+    and not bool_value(values, "MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED")
+    and market_ws_providers == ["okx"]
+)
+accepted_true_flags = ["MARKET_WS_AUTO_SUBSCRIBE_ENABLED"] if local_tradingview_market_ws_accepted else []
+unreviewed_true_flags = [key for key in true_flags if key not in accepted_true_flags]
+accepted_review_plan = []
+if local_tradingview_market_ws_accepted:
+    accepted_review_plan.append({
+        "flag": "MARKET_WS_AUTO_SUBSCRIBE_ENABLED",
+        "state": "ACCEPTED_TRUE_LOCAL_TRADINGVIEW_MARKET_DATA",
+        "highRisk": False,
+        "riskCategory": "market-data-runtime",
+        "acceptedScope": "LOCAL_TRADINGVIEW_KLINE_CLOSE_EVENTS_OKX_ONLY",
+        "requiredEvidence": "TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW, TRADINGVIEW_LOCAL_ENABLED=true, MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=okx, and MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED=false.",
+        "nextAction": "Keep as the reviewed kline-close ingestion path for LOCAL_TRADINGVIEW; rerun candidate smoke after each latest closed bar.",
+        "notAuthorization": "does not authorize external backfills, Telegram sends, scheduler mutation beyond market-data WebSocket subscription, order/OCO/grid/fund/Earn/exchange mutation, or keeping unrelated background flags true",
+    })
 review_plan = []
-for key in true_flags + missing_flags:
+for key in unreviewed_true_flags + missing_flags:
     item = dict(flag_reviews.get(key, {}))
     item["flag"] = key
     item["state"] = "MISSING" if key in missing_flags else "TRUE"
@@ -200,14 +225,15 @@ for key in true_flags + missing_flags:
         item["nextAction"] = "Classify and clear this background automation flag before live review."
     item["notAuthorization"] = "read-only review evidence only; does not authorize production env mutation, live trading, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, or keeping a flag true"
     review_plan.append(item)
+review_plan = accepted_review_plan + review_plan
 background_blockers = []
 if high_risk_true:
     background_blockers.append("HIGH_RISK_BACKGROUND_AUTOMATION_TRUE")
-if [key for key in true_flags if key not in high_risk_flags]:
+if [key for key in unreviewed_true_flags if key not in high_risk_flags]:
     background_blockers.append("BACKGROUND_AUTOMATION_TRUE")
 if missing_flags:
     background_blockers.append("MISSING_BACKGROUND_AUTOMATION_FLAG")
-background_clear = not true_flags and not missing_flags
+background_clear = not unreviewed_true_flags and not missing_flags
 
 print("[live-background-automation] read-only server env smoke")
 print(f"commit={git_commit()}")
@@ -215,6 +241,8 @@ print(f"port={text_file('app.port')}")
 print("scope=READ_ONLY; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, or external backfill/import state changed.")
 print("background_automation_flags=" + json.dumps({key: bool_value(values, key) for key in background_flags}, sort_keys=True))
 print("background_automation_true=" + json.dumps(true_flags))
+print("background_automation_accepted_true=" + json.dumps(accepted_true_flags))
+print("background_automation_unreviewed_true=" + json.dumps(unreviewed_true_flags))
 print("high_risk_background_automation_true=" + json.dumps(high_risk_true))
 print("background_automation_false=" + json.dumps(false_flags))
 print("missing_background_automation_flags=" + json.dumps(missing_flags))
@@ -231,8 +259,12 @@ if not background_clear:
         print("blocker=MISSING_BACKGROUND_AUTOMATION_FLAG")
     print("verdict=NOT_READY_BACKGROUND_AUTOMATION_REVIEW")
 else:
-    print("classification=BACKGROUND_AUTOMATION_CLEARED")
-    print("verdict=OK_BACKGROUND_AUTOMATION_DISABLED")
+    if accepted_true_flags:
+        print("classification=BACKGROUND_AUTOMATION_REVIEWED_FOR_LOCAL_TRADINGVIEW")
+        print("verdict=OK_BACKGROUND_AUTOMATION_REVIEWED")
+    else:
+        print("classification=BACKGROUND_AUTOMATION_CLEARED")
+        print("verdict=OK_BACKGROUND_AUTOMATION_DISABLED")
 
 print("[live-background-automation] read-only check complete")
 if require_clear and not background_clear:

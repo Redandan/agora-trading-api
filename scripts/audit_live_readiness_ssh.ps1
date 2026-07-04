@@ -120,6 +120,9 @@ def bool_env(key, default=None):
         return default
     return value.lower() == "true"
 
+def csv_values(value):
+    return [item.strip().lower() for item in str(value or "").split(",") if item.strip()]
+
 def secret_presence(key):
     return "SET" if read_env_key(key) else "EMPTY"
 
@@ -434,12 +437,50 @@ for key in background_flags:
 
 true_order_flags = [key for key, value in order_flags.items() if value]
 live_authorized_order_flags = ["TRADING_OKX_ENABLED", "TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED"]
+local_tradingview_live_micro_authorized = (
+    str(local_tradingview_flags["TRADING_SIGNAL_SOURCE_PRIMARY"]).upper() == "LOCAL_TRADINGVIEW"
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_ENABLED"])
+    and local_tv_execution_mode == "LIVE_MICRO"
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_EXECUTION_ENABLED"])
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED"])
+    and not bool(local_tradingview_flags["TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN"])
+    and order_flags["TRADING_OKX_ENABLED"]
+    and order_flags["TRADING_OCO_POLLER_ENABLED"]
+)
+local_tradingview_order_flags = [
+    "TRADING_OKX_ENABLED",
+    "TRADING_OCO_POLLER_ENABLED",
+    "TRADINGVIEW_LOCAL_EXECUTION_ENABLED",
+    "TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED",
+]
+accepted_order_flags = []
+if live_authorized:
+    accepted_order_flags.extend([key for key in true_order_flags if key in live_authorized_order_flags])
+if local_tradingview_live_micro_authorized:
+    accepted_order_flags.extend([key for key in true_order_flags if key in local_tradingview_order_flags])
+accepted_order_flags = sorted(set(accepted_order_flags))
+unexpected_order_flags = [key for key in true_order_flags if key not in accepted_order_flags]
+market_ws_providers = csv_values(read_env_key("MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS") or "")
+local_tradingview_market_ws_accepted = (
+    bool_env("MARKET_WS_AUTO_SUBSCRIBE_ENABLED", False)
+    and str(local_tradingview_flags["TRADING_SIGNAL_SOURCE_PRIMARY"]).upper() == "LOCAL_TRADINGVIEW"
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_ENABLED"])
+    and not bool_env("MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED", False)
+    and market_ws_providers == ["okx"]
+)
+accepted_background_flags = ["MARKET_WS_AUTO_SUBSCRIBE_ENABLED"] if local_tradingview_market_ws_accepted else []
+unreviewed_background_flags = [key for key in background_true if key not in accepted_background_flags]
 
 print("order_capable_flags=" + json.dumps(order_flags, sort_keys=True))
 print("order_capable_flags_true=" + json.dumps(true_order_flags))
+print("order_capable_flags_accepted=" + json.dumps(accepted_order_flags))
+print("order_capable_flags_unexpected=" + json.dumps(unexpected_order_flags))
 print("dry_run_flags=" + json.dumps(dry_run_flags, sort_keys=True))
 print("local_tradingview_flags=" + json.dumps(local_tradingview_flags, sort_keys=True))
+print(f"local_tradingview_live_micro_authorized={str(local_tradingview_live_micro_authorized).lower()}")
 print("background_automation_true=" + json.dumps(background_true))
+print("background_automation_accepted_true=" + json.dumps(accepted_background_flags))
+print("background_automation_unreviewed_true=" + json.dumps(unreviewed_background_flags))
 print("missing_background_automation_flags=" + json.dumps(background_missing))
 print("secret_presence=" + json.dumps({
     "TRADING_OKX_API_KEY": secret_presence("TRADING_OKX_API_KEY"),
@@ -453,17 +494,13 @@ if secret_presence("TRADING_OKX_API_KEY") != "SET" or secret_presence("TRADING_O
     blockers.append("OKX_CREDENTIALS_NOT_SET")
 
 if true_order_flags:
-    unexpected_order_flags = true_order_flags
-    if live_authorized:
-        unexpected_order_flags = [key for key in true_order_flags if key not in live_authorized_order_flags]
-        authorized_true = [key for key in true_order_flags if key in live_authorized_order_flags]
-        if authorized_true:
-            warnings.append("LIVE_AUTHORIZED_ORDER_FLAGS_TRUE:" + ",".join(authorized_true))
+    if accepted_order_flags:
+        warnings.append("ACCEPTED_ORDER_FLAGS_TRUE:" + ",".join(accepted_order_flags))
     if unexpected_order_flags:
         blockers.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE:" + ",".join(unexpected_order_flags))
         warnings.append("ORDER_CAPABLE_FLAGS_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
 
-if background_true:
+if unreviewed_background_flags:
     warnings.append("BACKGROUND_AUTOMATION_ALREADY_TRUE_REVIEW_BEFORE_LIVE")
 if background_missing:
     warnings.append("BACKGROUND_AUTOMATION_MISSING_FLAG_REVIEW_BEFORE_LIVE:" + ",".join(background_missing))
@@ -545,7 +582,7 @@ except Exception as exc:
 missing_readiness_fields = missing_readiness_detail_fields(readiness_details)
 if missing_readiness_fields:
     blockers.append("READINESS_DETAILS_MISSING_FIELDS")
-background_review_flags = background_true + [f"MISSING:{key}" for key in background_missing]
+background_review_flags = unreviewed_background_flags + [f"MISSING:{key}" for key in background_missing]
 blocker_classification = classify_live_readiness(readiness_details, blockers, warnings, background_review_flags)
 next_actions = live_readiness_next_actions(blocker_classification)
 print("missing_readiness_detail_fields=" + json.dumps(missing_readiness_fields))

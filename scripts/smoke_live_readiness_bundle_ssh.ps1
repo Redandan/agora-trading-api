@@ -560,8 +560,8 @@ function New-BlockerSummary {
             "ORDER_CAPABLE_FLAGS_REVIEW" {
                 $category = "safety"
                 $requiredEvidence = ".\scripts\audit_live_readiness_ssh.ps1"
-                $evidenceMarkers = @("order_capable_flags_true is non-empty", "missing order_capable_flags_true=[]")
-                $nextAction = "Reconcile order-capable flags before any live proposal."
+                $evidenceMarkers = @("order_capable_flags_unexpected is non-empty", "missing order_capable_flags_unexpected=[]")
+                $nextAction = "Reconcile unexpected order-capable flags before any live proposal; accepted LOCAL_TRADINGVIEW LIVE_MICRO flags are reported separately."
             }
             "SECRET_PREREQUISITES_MISSING" {
                 $category = "ops"
@@ -782,8 +782,8 @@ if ($audit -match "verdict=NOT_READY" `
     $blockers.Add("LIVE_READINESS_NOT_READY")
 }
 if ($audit -match "ORDER_CAPABLE_FLAGS_ALREADY_TRUE" `
-        -or $audit -match "order_capable_flags_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
-        -or $audit -notmatch "order_capable_flags_true=\[\]") {
+        -or $audit -match "order_capable_flags_unexpected=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
+        -or $audit -notmatch "order_capable_flags_unexpected=\[\]") {
     $blockers.Add("ORDER_CAPABLE_FLAGS_REVIEW")
 }
 if ($audit -match "OKX_CREDENTIALS_NOT_SET|MCP_KEY_MISSING|ENV_FILE_MISSING" `
@@ -823,13 +823,14 @@ if ($background -match "blocker=HIGH_RISK_BACKGROUND_AUTOMATION_TRUE" `
         -or $background -match "blocker=MISSING_BACKGROUND_AUTOMATION_FLAG" `
         -or $background -match "backgroundAutomationClear=false" `
         -or $background -match "background_automation_blockers=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
+        -or $background -match "background_automation_unreviewed_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "missing_background_automation_flags=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "high_risk_background_automation_true=\[[^\]]*[A-Z0-9_]+[^\]]*\]" `
         -or $background -match "NOT_READY_BACKGROUND_AUTOMATION_REVIEW" `
         -or $background -notmatch "background_automation_review_plan=" `
         -or ($background -match "backgroundAutomationClear=true" -and $background -match '"state"\s*:\s*"TRUE"') `
         -or ($background -match "backgroundAutomationClear=true" -and $background -match '"state"\s*:\s*"MISSING"') `
-        -or $background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_DISABLED" `
+        -or $background -notmatch "verdict=OK_BACKGROUND_AUTOMATION_(DISABLED|REVIEWED)" `
         -or $background -notmatch "backgroundAutomationClear=true" `
         -or $background -notmatch "high_risk_background_automation_true=\[\]") {
     $blockers.Add("BACKGROUND_AUTOMATION_REVIEW")

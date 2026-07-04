@@ -46,7 +46,7 @@ Assert-Contains -Name "audit readiness detail required scorebuy" -Text $auditTex
 Assert-Contains -Name "audit live authorized switch" -Text $auditText -Pattern '\[switch\]\$LiveAuthorized'
 Assert-Contains -Name "audit live authorized output" -Text $auditText -Pattern 'live_authorized='
 Assert-Contains -Name "audit live authorized verdict" -Text $auditText -Pattern 'verdict=LIVE_AUTHORIZED_MONITORING'
-Assert-Contains -Name "audit live authorized order flag warning" -Text $auditText -Pattern 'LIVE_AUTHORIZED_ORDER_FLAGS_TRUE'
+Assert-Contains -Name "audit accepted order flag warning" -Text $auditText -Pattern 'ACCEPTED_ORDER_FLAGS_TRUE'
 Assert-Contains -Name "audit local tradingview flags output" -Text $auditText -Pattern 'local_tradingview_flags='
 Assert-Contains -Name "audit local tradingview execution mode flag" -Text $auditText -Pattern 'TRADINGVIEW_LOCAL_EXECUTION_MODE'
 Assert-Contains -Name "audit local tradingview execution enabled flag" -Text $auditText -Pattern 'TRADINGVIEW_LOCAL_EXECUTION_ENABLED'

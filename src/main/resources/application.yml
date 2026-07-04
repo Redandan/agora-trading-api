@@ -85,6 +85,8 @@ trading:
     shadow-replay:
       collector:
         enabled: ${TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED:false}
+  oco-poller:
+    untracked-min-notional-usdt: ${TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT:10.0}
 
 mcp:
   api-key: ${MCP_API_KEY:${TRADING_MCP_KEY:}}

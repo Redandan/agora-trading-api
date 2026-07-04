@@ -36,9 +36,10 @@ signal-policy blockers and prints
 `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness evidence`.
 Use `WAIT_BUY`, `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED`, or `BLOCKED` as
 the focused LOCAL_TRADINGVIEW status. Runtime-log findings such as
-`RUNTIME_LOG_NOT_CLEAN` stay in `local_tradingview_only_health_warnings`; use
-the full bundle when a complete live-readiness review is needed. Origin/main
-drift that contains only docs or local tooling is reported as
+`RUNTIME_LOG_NOT_CLEAN`, and event-risk audit findings such as
+`EVENT_RISK_NOT_BASELINE`, stay in `local_tradingview_only_health_warnings`;
+use the full bundle when a complete live-readiness review is needed.
+Origin/main drift that contains only docs or local tooling is reported as
 `deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT` plus
 `DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED`, not as a LOCAL_TRADINGVIEW blocker.
 

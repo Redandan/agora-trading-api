@@ -285,7 +285,7 @@ $healthWarnings = [System.Collections.Generic.List[string]]::new()
 Add-If -List $blockers -Condition ($metadataEffectiveStatus -notin @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT") -or $metadataEffectiveCurrent -ne "true") -Value "DEPLOYED_RUNTIME_NOT_CURRENT"
 Add-If -List $healthWarnings -Condition $docsToolingOnlyOriginDrift -Value "DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED"
 Add-If -List $healthWarnings -Condition ($runtimeLogStatus -ne "PASS") -Value "RUNTIME_LOG_NOT_CLEAN"
-Add-If -List $blockers -Condition ($riskLevel -ne "R0") -Value "EVENT_RISK_NOT_BASELINE"
+Add-If -List $healthWarnings -Condition ($riskLevel -ne "R0") -Value "EVENT_RISK_NOT_BASELINE"
 Add-If -List $blockers -Condition (-not (Test-JsonArrayTextEmpty -Value $unexpectedOrderFlagsText)) -Value "ORDER_CAPABLE_FLAGS_REVIEW"
 Add-If -List $blockers -Condition ($backgroundClear -ne "true" -or $backgroundVerdict -notin @("OK_BACKGROUND_AUTOMATION_DISABLED", "OK_BACKGROUND_AUTOMATION_REVIEWED")) -Value "BACKGROUND_AUTOMATION_REVIEW"
 Add-If -List $blockers -Condition (-not (Test-JsonArrayTextEmpty -Value $backgroundUnreviewedText)) -Value "BACKGROUND_AUTOMATION_REVIEW"

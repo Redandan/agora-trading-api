@@ -347,8 +347,10 @@ Expected:
   `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`, must be fixed before trusting
   the next parity BUY. Runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` are
   printed under `local_tradingview_only_health_warnings` so this focused smoke
-  stays scoped to the LOCAL_TRADINGVIEW parity path. If origin/main is ahead
-  only by docs or local tooling, the wrapper prints
+  stays scoped to the LOCAL_TRADINGVIEW parity path. Event-risk audit findings
+  such as `EVENT_RISK_NOT_BASELINE` are also health warnings here because the
+  LOCAL_TRADINGVIEW execution service does not use that gate directly. If
+  origin/main is ahead only by docs or local tooling, the wrapper prints
   `deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT` and
   `DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED` as a health warning instead of blocking
   the deployed runtime. Use the full live-readiness bundle for complete

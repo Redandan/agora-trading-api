@@ -109,6 +109,12 @@ public class GridManagerService {
     }
 
     private void checkGrid(BtGrid grid) {
+        if (isManuallyPaused(grid)) {
+            log.debug("[Grid] id={} {} skipped: manually paused ({})",
+                    grid.getId(), grid.getSymbol(), grid.getPausedReason());
+            return;
+        }
+
         BigDecimal price;
         try {
             price = okxTradingService.getLastPrice(grid.getSymbol());
@@ -292,6 +298,12 @@ public class GridManagerService {
         }
 
         return whitelist.contains(regime);
+    }
+
+    private boolean isManuallyPaused(BtGrid grid) {
+        if (grid.getPausedAt() == null) return false;
+        String reason = grid.getPausedReason();
+        return reason == null || !reason.startsWith("hint regime not in whitelist");
     }
 
     private void tryBuy(BtGrid grid, BtGridLevel level, BigDecimal gridStep, BigDecimal currentPrice) {

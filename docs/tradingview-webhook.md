@@ -177,6 +177,10 @@ Its `local_tradingview_only_status` is `WAIT_BUY`,
 `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED`, or `BLOCKED`, and it keeps
 `RUNTIME_LOG_NOT_CLEAN` and similar audit health findings in
 `local_tradingview_only_health_warnings` instead of the focused blocker list.
+Docs/tooling-only origin drift is also reported as
+`deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT` with
+`DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED`, so the daily LOCAL_TRADINGVIEW check does
+not require a runtime deploy for read-only script or documentation changes.
 It also keeps `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness
 evidence`.
 

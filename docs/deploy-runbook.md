@@ -347,11 +347,14 @@ Expected:
   `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`, must be fixed before trusting
   the next parity BUY. Runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` are
   printed under `local_tradingview_only_health_warnings` so this focused smoke
-  stays scoped to the LOCAL_TRADINGVIEW parity path; use the full
-  live-readiness bundle for complete operator review. The script does not
-  change production env, deploy, restart, place orders, modify OCO, change
-  grid/fund/Earn/Telegram state, mutate DB, change schedulers, or run external
-  backfill/import.
+  stays scoped to the LOCAL_TRADINGVIEW parity path. If origin/main is ahead
+  only by docs or local tooling, the wrapper prints
+  `deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT` and
+  `DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED` as a health warning instead of blocking
+  the deployed runtime. Use the full live-readiness bundle for complete
+  operator review. The script does not change production env, deploy, restart,
+  place orders, modify OCO, change grid/fund/Earn/Telegram state, mutate DB,
+  change schedulers, or run external backfill/import.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

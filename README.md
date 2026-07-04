@@ -963,10 +963,13 @@ focused prerequisite such as `ORDER_CAPABLE_FLAGS_REVIEW`,
 `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` must be fixed first. This smoke is
 read-only and prints runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` under
 `local_tradingview_only_health_warnings` instead of mixing them into the focused
-LOCAL_TRADINGVIEW blocker list; use the full live-readiness bundle for complete
-operator review. It does not change production env, deploy, restart, place
-orders, modify OCO, change grid/fund/Earn/Telegram state, mutate DB, change
-schedulers, or run external backfill/import.
+LOCAL_TRADINGVIEW blocker list. If origin/main is ahead only by docs or local
+tooling, it prints `deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT`
+and `DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED` as a health warning instead of
+claiming the deployed runtime is stale. Use the full live-readiness bundle for
+complete operator review. It does not change production env, deploy, restart,
+place orders, modify OCO, change grid/fund/Earn/Telegram state, mutate DB,
+change schedulers, or run external backfill/import.
 
 Guarded trailing-stop strategy opt-in execution wrapper:
 

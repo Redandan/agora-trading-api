@@ -99,6 +99,38 @@ function Test-JsonArrayTextEmpty {
     return -not [string]::IsNullOrWhiteSpace($Value) -and $Value.Trim() -eq "[]"
 }
 
+function Get-LocalGitDiffFiles {
+    param([string]$BaseCommit, [string]$HeadCommit)
+
+    if ([string]::IsNullOrWhiteSpace($BaseCommit) -or [string]::IsNullOrWhiteSpace($HeadCommit)) {
+        return @()
+    }
+    if ($BaseCommit -notmatch "^[0-9a-f]{7,40}$" -or $HeadCommit -notmatch "^[0-9a-f]{7,40}$") {
+        return @()
+    }
+
+    $safeDirectory = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path.Replace("\", "/")
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $files = & git -c "safe.directory=$safeDirectory" diff --name-only $BaseCommit $HeadCommit 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            return @()
+        }
+        return @($files | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    } catch {
+        return @()
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
+function Test-DocsToolingOnlyPath {
+    param([string]$Path)
+
+    return $Path -eq "README.md" -or $Path -like "docs/*" -or $Path -like "scripts/*"
+}
+
 function Get-ReadOnlyFailureClassification {
     param(
         [int]$ExitCode,
@@ -207,6 +239,21 @@ $candidateText = Invoke-ReadOnlySmoke -Name "local-tradingview-candidate" -Scrip
 $metadataStatus = Get-LastPrefixedValue -Text $metadataText -Prefix "deployment_metadata_status="
 $originStatus = Get-LastPrefixedValue -Text $metadataText -Prefix "origin_metadata_status="
 $metadataCurrent = Get-LastPrefixedValue -Text $metadataText -Prefix "metadata_current="
+$worktreeCommit = Get-LastPrefixedValue -Text $metadataText -Prefix "worktreeCommit="
+$originMainCommit = Get-LastPrefixedValue -Text $metadataText -Prefix "originMainCommit="
+$originDeltaFiles = @()
+$metadataEffectiveStatus = $metadataStatus
+$metadataEffectiveCurrent = $metadataCurrent
+$docsToolingOnlyOriginDrift = $false
+if ($metadataStatus -eq "CURRENT" -and $originStatus -ne "CURRENT_ORIGIN_MAIN" -and $metadataCurrent -ne "true") {
+    $originDeltaFiles = @(Get-LocalGitDiffFiles -BaseCommit $worktreeCommit -HeadCommit $originMainCommit)
+    $runtimeDeltaFiles = @($originDeltaFiles | Where-Object { -not (Test-DocsToolingOnlyPath -Path $_) })
+    if ($originDeltaFiles.Count -gt 0 -and $runtimeDeltaFiles.Count -eq 0) {
+        $metadataEffectiveStatus = "DOCS_TOOLING_ONLY_DRIFT"
+        $metadataEffectiveCurrent = "true"
+        $docsToolingOnlyOriginDrift = $true
+    }
+}
 $auditVerdict = Get-LastPrefixedValue -Text $auditText -Prefix "verdict="
 $riskLevel = Get-LastPrefixedValue -Text $auditText -Prefix "riskLevel="
 $runtimeLogStatus = Get-LastPrefixedValue -Text $auditText -Prefix "runtime_log_status="
@@ -235,7 +282,8 @@ $candidateBlockersText = Get-JsonArrayText -Text $candidateText -Prefix "  local
 
 $blockers = [System.Collections.Generic.List[string]]::new()
 $healthWarnings = [System.Collections.Generic.List[string]]::new()
-Add-If -List $blockers -Condition ($metadataStatus -notin @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT") -or $originStatus -ne "CURRENT_ORIGIN_MAIN" -or $metadataCurrent -ne "true") -Value "DEPLOYED_RUNTIME_NOT_CURRENT"
+Add-If -List $blockers -Condition ($metadataEffectiveStatus -notin @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT") -or $metadataEffectiveCurrent -ne "true") -Value "DEPLOYED_RUNTIME_NOT_CURRENT"
+Add-If -List $healthWarnings -Condition $docsToolingOnlyOriginDrift -Value "DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED"
 Add-If -List $healthWarnings -Condition ($runtimeLogStatus -ne "PASS") -Value "RUNTIME_LOG_NOT_CLEAN"
 Add-If -List $blockers -Condition ($riskLevel -ne "R0") -Value "EVENT_RISK_NOT_BASELINE"
 Add-If -List $blockers -Condition (-not (Test-JsonArrayTextEmpty -Value $unexpectedOrderFlagsText)) -Value "ORDER_CAPABLE_FLAGS_REVIEW"
@@ -274,6 +322,9 @@ Write-Host "[local-tradingview-only-readiness] summary"
 Write-Host "deployment_metadata_status=$metadataStatus"
 Write-Host "origin_metadata_status=$originStatus"
 Write-Host "metadata_current=$metadataCurrent"
+Write-Host "deployment_metadata_effective_status=$metadataEffectiveStatus"
+Write-Host "metadata_effective_current=$metadataEffectiveCurrent"
+Write-Host ("origin_delta_files=" + (ConvertTo-Json -Compress @($originDeltaFiles)))
 Write-Host "audit_verdict=$auditVerdict"
 Write-Host "riskLevel=$riskLevel"
 Write-Host "runtime_log_status=$runtimeLogStatus"

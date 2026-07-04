@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -88,7 +89,7 @@ public class BacktestValidationMcpTools {
                 : startTime;
         List<MdKline> coverageKlines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
                 symbolVal, intervalVal, resolvedSource, coverageQueryStart, endTime);
-        DataCoverage coverage = inspectTradingViewDataCoverage(coverageKlines, startTime, endTime);
+        DataCoverage coverage = inspectTradingViewDataCoverage(coverageKlines, startTime, endTime, intervalVal);
 
         BacktestRunRequest req = new BacktestRunRequest();
         req.setStrategyId(strategyId);
@@ -327,7 +328,7 @@ public class BacktestValidationMcpTools {
 
         int fromIndex = Math.max(0, rows.size() - limitVal);
         List<String> tailRows = rows.subList(fromIndex, rows.size());
-        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime);
+        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
         return String.format(
                 "=== SCORE_BUY TradingView order-intent preview ===\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
@@ -433,7 +434,7 @@ public class BacktestValidationMcpTools {
         }
 
         if (lots.isEmpty()) {
-            String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime);
+            String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
             return String.format(
                     "=== SCORE_BUY TradingView parity backtest ===\n" +
                     "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
@@ -470,7 +471,7 @@ public class BacktestValidationMcpTools {
         double totalReturn = capitalUsed > 0.0 ? netPnl / capitalUsed : 0.0;
         double winRate = lots.isEmpty() ? 0.0 : (double) winningLots / (double) lots.size();
         List<String> tailRows = orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size());
-        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime);
+        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
 
         return String.format(Locale.ROOT,
                 "=== SCORE_BUY TradingView parity backtest ===\n" +
@@ -501,35 +502,91 @@ public class BacktestValidationMcpTools {
         return inspectTradingViewDataCoverage(klines, visibleStart, requestedEnd).formatLine();
     }
 
+    static String buildTradingViewDataCoverageLine(List<MdKline> klines, LocalDateTime visibleStart,
+                                                   LocalDateTime requestedEnd, String intervalCode) {
+        return inspectTradingViewDataCoverage(klines, visibleStart, requestedEnd, intervalCode).formatLine();
+    }
+
     static DataCoverage inspectTradingViewDataCoverage(List<MdKline> klines, LocalDateTime visibleStart,
                                                        LocalDateTime requestedEnd) {
+        return inspectTradingViewDataCoverage(klines, visibleStart, requestedEnd, "1d");
+    }
+
+    static DataCoverage inspectTradingViewDataCoverage(List<MdKline> klines, LocalDateTime visibleStart,
+                                                       LocalDateTime requestedEnd, String intervalCode) {
         if (klines == null || klines.isEmpty()) {
-            return new DataCoverage(null, null, 0L, "NO_DATA", 0L, "NO_KLINES");
+            return new DataCoverage(null, null, null, 0L, "NO_DATA", 0L, 0L,
+                    "NO_DATA", "NO_KLINES");
         }
         LocalDateTime dataStart = klines.get(0).getOpenTime();
         LocalDateTime dataEnd = klines.get(klines.size() - 1).getOpenTime();
+        Duration interval = intervalDuration(intervalCode);
+        LocalDateTime dataClose = dataEnd.plus(interval);
         long visibleBars = klines.stream()
                 .filter(k -> !k.getOpenTime().isBefore(visibleStart))
                 .count();
         boolean partial = dataStart.isAfter(visibleStart);
         long missingLeadDays = partial ? ChronoUnit.DAYS.between(visibleStart, dataStart) : 0L;
         long trailingGapHours = requestedEnd != null ? Math.max(0L, ChronoUnit.HOURS.between(dataEnd, requestedEnd)) : 0L;
+        long trailingCloseGapHours = requestedEnd != null ? Math.max(0L, ChronoUnit.HOURS.between(dataClose, requestedEnd)) : 0L;
+        String freshnessStatus = classifyClosedBarFreshness(dataEnd, dataClose, requestedEnd, interval);
         String warning = partial
                 ? String.format(Locale.ROOT, "REQUESTED_WINDOW_PARTIAL missingLeadDays=%d", missingLeadDays)
                 : "NONE";
-        return new DataCoverage(dataStart, dataEnd, visibleBars, partial ? "PARTIAL" : "OK", trailingGapHours, warning);
+        return new DataCoverage(dataStart, dataEnd, dataClose, visibleBars, partial ? "PARTIAL" : "OK",
+                trailingGapHours, trailingCloseGapHours, freshnessStatus, warning);
     }
 
-    static record DataCoverage(LocalDateTime dataStart, LocalDateTime dataEnd, long visibleBars,
-                               String coverage, long trailingGapHours, String coverageWarning) {
+    private static String classifyClosedBarFreshness(LocalDateTime dataEnd, LocalDateTime dataClose,
+                                                     LocalDateTime requestedEnd, Duration interval) {
+        if (dataEnd == null) {
+            return "NO_DATA";
+        }
+        if (requestedEnd == null || dataClose == null || interval == null || interval.isZero() || interval.isNegative()) {
+            return "UNKNOWN";
+        }
+        if (dataClose.isAfter(requestedEnd)) {
+            return "CURRENT_OR_FUTURE_BAR";
+        }
+        return dataClose.plus(interval).isBefore(requestedEnd)
+                ? "STALE_CLOSED_BAR"
+                : "CURRENT_CLOSED_BAR";
+    }
+
+    private static Duration intervalDuration(String intervalCode) {
+        if (intervalCode == null || intervalCode.isBlank()) {
+            return Duration.ofDays(1);
+        }
+        String code = intervalCode.trim().toLowerCase(Locale.ROOT);
+        try {
+            if (code.endsWith("m")) {
+                return Duration.ofMinutes(Long.parseLong(code.substring(0, code.length() - 1)));
+            }
+            if (code.endsWith("h")) {
+                return Duration.ofHours(Long.parseLong(code.substring(0, code.length() - 1)));
+            }
+            if (code.endsWith("d")) {
+                return Duration.ofDays(Long.parseLong(code.substring(0, code.length() - 1)));
+            }
+        } catch (NumberFormatException ignored) {
+            return Duration.ZERO;
+        }
+        return Duration.ZERO;
+    }
+
+    static record DataCoverage(LocalDateTime dataStart, LocalDateTime dataEnd, LocalDateTime dataClose,
+                               long visibleBars, String coverage, long trailingGapHours,
+                               long trailingCloseGapHours, String freshnessStatus, String coverageWarning) {
         boolean qualityGatePassed() {
             return "OK".equals(coverage);
         }
 
         String formatLine() {
             return String.format(Locale.ROOT,
-                    "dataStart=%s dataEnd=%s visibleBars=%d coverage=%s trailingGapHours=%d coverageWarning=%s",
-                    dataStart, dataEnd, visibleBars, coverage, trailingGapHours, coverageWarning);
+                    "dataStart=%s dataEnd=%s dataClose=%s visibleBars=%d coverage=%s " +
+                    "trailingGapHours=%d trailingCloseGapHours=%d freshnessStatus=%s coverageWarning=%s",
+                    dataStart, dataEnd, dataClose, visibleBars, coverage,
+                    trailingGapHours, trailingCloseGapHours, freshnessStatus, coverageWarning);
         }
     }
 

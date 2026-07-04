@@ -123,6 +123,8 @@ class KlineClosedEventListenerTest {
                 .thenReturn(List.of());
         when(liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
                 eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(false);
+        when(liveSignalRepository.existsOpenAutoTradedPosition(
+                eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(false);
         when(liveSignalRepository.existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndNotifiedAtIsNotNull(
                 eq(485L), eq("BTCUSDT"), eq("1d"), eq(LocalDateTime.of(2026, 7, 2, 0, 0)))).thenReturn(false);
         when(liveSignalRepository.save(any(BtLiveSignal.class))).thenAnswer(inv -> {

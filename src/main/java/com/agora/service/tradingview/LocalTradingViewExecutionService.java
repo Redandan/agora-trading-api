@@ -149,8 +149,7 @@ public class LocalTradingViewExecutionService {
         if (openSameStrategySymbol >= props.executionMaxOpenPositions()) {
             return "LocalTradingViewOpenPositionCapReached";
         }
-        if (liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
-                strategy.getId(), symbol, SIDE, interval)) {
+        if (liveSignalRepository.existsOpenAutoTradedPosition(strategy.getId(), symbol, SIDE, interval)) {
             return "LocalTradingViewOpenPositionExists";
         }
         if (liveSignalRepository.existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndNotifiedAtIsNotNull(

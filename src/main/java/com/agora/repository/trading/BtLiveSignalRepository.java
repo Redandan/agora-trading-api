@@ -71,6 +71,19 @@ public interface BtLiveSignalRepository extends JpaRepository<BtLiveSignal, Long
     boolean existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
             Long strategyId, String symbol, String side, String intervalCode);
 
+    /** 同 strategy + symbol + side + interval 是否已有真實自動交易未出場倉位。 */
+    @Query("SELECT CASE WHEN COUNT(ls) > 0 THEN true ELSE false END FROM BtLiveSignal ls " +
+           "WHERE ls.strategyId = :strategyId " +
+           "  AND ls.symbol = :symbol " +
+           "  AND (ls.side IS NULL OR UPPER(ls.side) = UPPER(:side)) " +
+           "  AND ls.intervalCode = :intervalCode " +
+           "  AND ls.autoTraded = true " +
+           "  AND ls.exitTime IS NULL")
+    boolean existsOpenAutoTradedPosition(@Param("strategyId") Long strategyId,
+                                         @Param("symbol") String symbol,
+                                         @Param("side") String side,
+                                         @Param("intervalCode") String intervalCode);
+
     /** 所有自動交易中、尚未出場、且有 OCO 掛單的倉位（供 OcoPositionPollerScheduler 輪詢使用）。 */
     List<BtLiveSignal> findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull();
 

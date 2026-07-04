@@ -201,6 +201,57 @@ class LocalTradingViewExecutionServiceTest {
         verify(fixture.liveSignalRepository, never()).save(any());
     }
 
+    @Test
+    void liveEnabledIgnoresNonAutoTradedOpenSignalWhenCheckingOpenPositionGate() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        TradeResult buy = new TradeResult();
+        buy.setOrderId("ord-after-shadow");
+        buy.setAvgPrice(new BigDecimal("100.25"));
+        buy.setQty(new BigDecimal("0.09975062"));
+        when(fixture.tradingService.placeMarketBuy(eq("BTCUSDT"), eq(10.0))).thenReturn(buy);
+        when(fixture.tradingService.placeOco(eq("BTCUSDT"), eq(new BigDecimal("0.09975062")),
+                eq(new BigDecimal("103.26")), eq(new BigDecimal("88.22")))).thenReturn(1001L);
+        when(fixture.liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
+                eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(true);
+        when(fixture.liveSignalRepository.existsOpenAutoTradedPosition(
+                eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(false);
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        verify(fixture.tradingService).placeMarketBuy("BTCUSDT", 10.0);
+        verify(fixture.tradingService).placeOco("BTCUSDT", new BigDecimal("0.09975062"),
+                new BigDecimal("103.26"), new BigDecimal("88.22"));
+        verify(fixture.liveSignalRepository, never())
+                .existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
+                        eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"));
+    }
+
+    @Test
+    void liveEnabledBlocksWhenAutoTradedOpenPositionExists() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        when(fixture.liveSignalRepository.existsOpenAutoTradedPosition(
+                eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(true);
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)),
+                eq("LocalTradingViewOpenPositionExists"),
+                eq("Local TradingView same strategy/symbol/interval position already open"),
+                contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("executionStatus", "BLOCKED_HARD_GATE")
+                .containsEntry("executionBlocker", "LocalTradingViewOpenPositionExists")
+                .containsEntry("orderSent", false)
+                .containsEntry("ocoAttached", false);
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.liveSignalRepository, never()).save(any());
+    }
+
     private Fixture fixture(TradingViewLocalSignalProperties props) {
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
         BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
@@ -223,6 +274,8 @@ class LocalTradingViewExecutionServiceTest {
         when(liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(485L))
                 .thenReturn(List.of());
         when(liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
+                eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(false);
+        when(liveSignalRepository.existsOpenAutoTradedPosition(
                 eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(false);
         when(liveSignalRepository.existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndNotifiedAtIsNotNull(
                 eq(485L), eq("BTCUSDT"), eq("1d"), eq(LocalDateTime.of(2026, 1, 3, 0, 0)))).thenReturn(false);

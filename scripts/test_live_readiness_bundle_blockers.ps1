@@ -163,9 +163,21 @@ function Get-LiveReadinessBundleBlockers {
             -or $LocalTradingView -notmatch "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE") {
         $blockers.Add("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
     }
-    if ($LocalTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
-            -or $LocalTradingView -notmatch "localTradingViewExecutionDryRunArmed=true") {
-        $blockers.Add("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+    $localTradingViewLiveMicroMode = $LocalTradingView -match "executionMode=LIVE_MICRO"
+    if ($localTradingViewLiveMicroMode) {
+        if ($LocalTradingView -match "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED" `
+                -or $LocalTradingView -notmatch "localTradingViewLiveMicroArmed=true") {
+            $blockers.Add("LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED")
+        }
+        if ($LocalTradingView -match "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED" `
+                -or $LocalTradingView -notmatch "localTradingViewOcoLifecycleTracked=true") {
+            $blockers.Add("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
+        }
+    } else {
+        if ($LocalTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
+                -or $LocalTradingView -notmatch "localTradingViewExecutionDryRunArmed=true") {
+            $blockers.Add("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+        }
     }
     if ($LocalTradingView -match "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE" `
             -or $LocalTradingView -notmatch "localTradingViewEvaluatorActive=true") {
@@ -607,7 +619,9 @@ $allExpectedBlockers = @(
     "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK",
     "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED",
     "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE",
+    "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED",
     "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
+    "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED",
     "LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED",
     "LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE",
     "MCP_AUDIT_TOOL_ERROR",
@@ -722,6 +736,10 @@ Assert-BlockerCase -Name "signal missing missed opportunity status fails closed"
 Assert-BlockerCase -Name "signal missed opportunity pass in later section fails closed" -Inputs (Merge-Inputs $cleanInputs @{ Signal = "7d Governance Drift:`n  governanceMode=PASS`nMissed Opportunity Regression:`n  overallStatus=N/A`nOther Section:`n  overallStatus=PASS" }) -ExpectedBlockers @("SIGNAL_POLICY_REVIEW_GAPS")
 Assert-BlockerCase -Name "local tradingview no current buy candidate" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 Assert-BlockerCase -Name "local tradingview dry-run receipt not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+Assert-BlockerCase -Name "local tradingview live micro armed does not require dry run" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`nlocalTradingViewOcoLifecycleTracked=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[]" }) -ExpectedBlockers @()
+Assert-BlockerCase -Name "local tradingview live micro not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=false`nlocalTradingViewOcoLifecycleTracked=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED")
+Assert-BlockerCase -Name "local tradingview live micro oco lifecycle not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`nlocalTradingViewOcoLifecycleTracked=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
+Assert-BlockerCase -Name "local tradingview live micro missing oco lifecycle marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
 Assert-BlockerCase -Name "local tradingview evaluator not active" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=false`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
 Assert-BlockerCase -Name "local tradingview missing candidate marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "localTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 Assert-BlockerCase -Name "local tradingview missing dry-run armed marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`norderSentAllowed=false`nliveOrderMutationAllowed=false" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
@@ -753,13 +771,13 @@ Assert-BlockerCase `
         RuntimeEvidence = "diagnosis=CONFIG_DISABLED`nshadowIntentCount=0`norderSentEvidence=0`nruntime_evidence_review_plan=[{`"state`":`"BLOCKED`"}]"
         TinyLive = "hardStopDetected=true`nAUTO_APPROVAL_DISABLED_CONSECUTIVE_TINY_LIVE_LOSSES`nRollout Gates:`n  canEnableProduction=false"
         Signal = "7d Governance Drift:`n  governanceMode=TOO_STRICT`nMissed Opportunity Regression:`n  overallStatus=WARN"
-        LocalTradingView = "currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE`",`"LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED`"]"
+        LocalTradingView = "currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`nlocalTradingViewOcoLifecycleTracked=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE`",`"LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`"]"
         McpParity = "required_tools=[`"getMcpRegistryVersion`",`"verifyStrategyExecution`"]`nmissing_required_tools=[]`n[mcp-parity-ssh] OK toolCount=305 required=35"
         DeploymentMetadata = "liveBundleDeployStatus=CURRENT`nliveBundleOriginStatus=CURRENT_ORIGIN_MAIN"
     } `
     -ExpectedBlockers @(
         "LIVE_READINESS_NOT_READY",
-        "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED",
+        "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED",
         "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
         "MCP_AUDIT_TOOL_ERROR",
         "EXECUTION_ELIGIBILITY_NOT_READY",

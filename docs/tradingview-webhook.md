@@ -153,6 +153,22 @@ lane. In `LIVE_MICRO`, the legacy `TRADINGVIEW_LOCAL_EXECUTION_ENABLED`,
 effective execution state. If a market buy is filled but the protection/audit
 step fails, runtime evidence records `CRITICAL_UNPROTECTED_LOCAL_TRADINGVIEW`
 and the service sends a `LocalTradingViewExecution` CRITICAL Telegram alert.
+The read-only LOCAL_TRADINGVIEW candidate smoke treats `LIVE_MICRO` separately
+from the dry-run receipt lane: `localTradingViewLiveMicroArmed=true` is the
+live-micro armed marker, and `localTradingViewExecutionDryRunArmed=false` is
+expected in that mode. Because the real order path attaches OCO immediately,
+LIVE_MICRO review also requires a tracked OCO lifecycle marker; if
+`TRADING_OCO_POLLER_ENABLED=false`, the smoke emits
+`LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` so TP/SL fills are not silently left
+without `bt_live_signal.exit_time` reconciliation. Before requesting that
+handoff, run
+`.\scripts\prepare_local_tradingview_oco_lifecycle_env_handoff.ps1 -RequireReady`.
+It emits `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_PACKET`,
+`local_tradingview_oco_lifecycle_env_handoff_status=READY_FOR_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_NOT_MUTATION`,
+and the exact OCO lifecycle authorization for `TRADING_OCO_POLLER_ENABLED=true`
+while keeping `POSITION_EXIT_MANAGER_ENABLED=false`. Post-env verification must
+include
+`.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`.
 
 Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
 distinguished from real TradingView webhook deliveries.

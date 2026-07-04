@@ -1620,6 +1620,33 @@
   `telegram_send_allowed=false`; it does not change production env, deploy,
   restart, switch to `LIVE_MICRO`, place orders, modify OCO, send Telegram, or
   mutate DB/grid/fund/Earn/exchange state.
+- `scripts/prepare_local_tradingview_oco_lifecycle_env_handoff.ps1` packages
+  the exact LOCAL_TRADINGVIEW LIVE_MICRO OCO lifecycle env/deploy authorization
+  request. It consumes `smoke_local_tradingview_candidate_ssh.ps1` plus local
+  git metadata and emits `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_PACKET`,
+  `local_tradingview_oco_lifecycle_env_handoff_packet`, and
+  `local_tradingview_oco_lifecycle_env_handoff_status`. A status of
+  `READY_FOR_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_NOT_MUTATION` means
+  the operator can be asked for the exact OCO lifecycle authorization to set
+  `TRADING_OCO_POLLER_ENABLED=true` while keeping
+  `POSITION_EXIT_MANAGER_ENABLED=false`, followed by deploy/restart of current
+  `origin/main` and post-env read-only verification. A current BUY candidate is
+  not required for the env handoff; the post-env verifier is
+  `smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`,
+  plus strategy485 position-risk, live-readiness audit, and live-readiness
+  bundle read-only checks. If OCO health reports `SYNC_ERROR`, use
+  `prepare_oco_sync_reconciliation_packet_ssh.ps1` before any separate
+  reconciliation write request. The packet prints the exact OCO lifecycle
+  authorization text, deploy command, verification list, and rollback plan. It
+  keeps `local_tradingview_oco_lifecycle_env_request_allowed=false`,
+  `production_env_change_allowed=false`, `deploy_allowed=false`,
+  `live_order_mutation_allowed=false`, `oco_mutation_allowed=false`,
+  `position_mutation_allowed=false`, `grid_mutation_allowed=false`,
+  `db_mutation_allowed=false`, `exchange_mutation_allowed=false`,
+  `order_allowed=false`, and `telegram_send_allowed=false`; it does not change
+  production env, deploy, restart, enable position-exit manager, place orders,
+  create/rebalance grid, send Telegram, or mutate DB/grid/fund/Earn/exchange
+  state.
 - `scripts/execute_trailing_stop_strategy_opt_in_ssh.ps1` provides the
   controlled execution path for that blocker. Its default mode is non-mutating
   and emits `TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET`,

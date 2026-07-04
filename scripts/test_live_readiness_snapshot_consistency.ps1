@@ -53,7 +53,7 @@ $expectedAttachedCurrentBlockers = @(
     "TINY_LIVE_ROLLOUT_NOT_READY",
     "SIGNAL_POLICY_REVIEW_GAPS",
     "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
-    "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED"
+    "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED"
 )
 
 function Read-RepoText {
@@ -194,7 +194,7 @@ Assert-ContainsLiteral -Name "live production env review proposal current snapsh
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "runtimeEvidence=NO_CANONICAL_ROWS shadowIntentCount=2 orderSentEvidence=0"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "tinyLive=hardStopDetected=false canEnableProduction=false completedTinyLiveSamples=1 falsePositiveCount=1"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "signalPolicy=governanceMode=INSUFFICIENT_DATA missedOpportunityOverallStatus=WARN"
-Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "localTradingView=currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS dryRunReceiptArmed=false executionMode=LEGACY"
+Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "localTradingView=currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS dryRunReceiptArmed=false liveMicroArmed=true ocoLifecycleTracked=false executionMode=LIVE_MICRO"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "bundle_blocker_summary=present"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=false"
 Assert-ContainsLiteral -Name "live production env review proposal current snapshot" -Text $productionProposal -Needle "whether there is a deploy/currentness blocker"
@@ -276,7 +276,7 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "read-only RCA evidence only"
 }
 
-Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","ORDER_CAPABLE_FLAGS_REVIEW","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_NO_CANONICAL_ROWS","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE","LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED"]'
+Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","ORDER_CAPABLE_FLAGS_REVIEW","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_NO_CANONICAL_ROWS","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE","LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED"]'
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "attached snapshot superseded earlier stale"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "server worktree, or deployed"
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "deploy_required_before_live_review=false"

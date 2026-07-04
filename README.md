@@ -908,6 +908,36 @@ state, post-env read-only verification, and rollback plan. It keeps
 production env, deploy, restart, switch to `LIVE_MICRO`, place orders, modify
 OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only LOCAL_TRADINGVIEW OCO lifecycle env handoff packet:
+
+```powershell
+.\scripts\prepare_local_tradingview_oco_lifecycle_env_handoff.ps1 -RequireReady
+```
+
+This consumes the same LOCAL_TRADINGVIEW candidate smoke and local git
+metadata, then emits `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_PACKET`,
+`local_tradingview_oco_lifecycle_env_handoff_packet`, and
+`local_tradingview_oco_lifecycle_env_handoff_status`.
+`READY_FOR_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_NOT_MUTATION` means the
+exact OCO lifecycle authorization can be requested for only
+`TRADING_OCO_POLLER_ENABLED=true` while keeping
+`POSITION_EXIT_MANAGER_ENABLED=false`. A current BUY candidate is not required
+for this env handoff; the required post-env check is
+`.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`,
+followed by strategy485 position-risk, live-readiness audit, and live-readiness
+bundle read-only verification. If OCO health later reports `SYNC_ERROR`, use
+`.\scripts\prepare_oco_sync_reconciliation_packet_ssh.ps1` before any separate
+reconciliation write request. The packet prints the exact OCO lifecycle
+authorization text, required env diff, post-env read-only verification, and
+rollback plan. It keeps `local_tradingview_oco_lifecycle_env_request_allowed=false`,
+`production_env_change_allowed=false`, `deploy_allowed=false`,
+`live_order_mutation_allowed=false`, `oco_mutation_allowed=false`,
+`position_mutation_allowed=false`, `grid_mutation_allowed=false`,
+`exchange_mutation_allowed=false`, `order_allowed=false`, and
+`telegram_send_allowed=false`; it does not change production env, deploy,
+restart, enable position-exit manager, place orders, create/rebalance grid,
+send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Guarded trailing-stop strategy opt-in execution wrapper:
 
 ```powershell

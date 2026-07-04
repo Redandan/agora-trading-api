@@ -659,6 +659,18 @@ function New-BlockerSummary {
                 $evidenceMarkers = @("localTradingViewExecutionDryRunArmed=false", "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED")
                 $nextAction = "Use the read-only dry-run receipt env handoff packet and obtain separate exact env/deploy authorization before changing production env."
             }
+            "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED" {
+                $category = "local-tradingview"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed"
+                $evidenceMarkers = @("executionMode=LIVE_MICRO", "localTradingViewLiveMicroArmed=true")
+                $nextAction = "Fix LOCAL_TRADINGVIEW LIVE_MICRO source/execution env through a separately authorized env plan."
+            }
+            "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED" {
+                $category = "local-tradingview-oco"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireOcoLifecycleTracked"
+                $evidenceMarkers = @("localTradingViewOcoLifecycleTracked=false", "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED", "TRADING_OCO_POLLER_ENABLED=false")
+                $nextAction = "Do not rely on LIVE_MICRO buys until OCO close detection is reviewed and separately authorized."
+            }
             "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE" {
                 $category = "local-tradingview"
                 $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1"
@@ -870,9 +882,21 @@ if ($localTradingView -match "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE" `
         -or $localTradingView -notmatch "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE") {
     $blockers.Add("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 }
-if ($localTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
-        -or $localTradingView -notmatch "localTradingViewExecutionDryRunArmed=true") {
-    $blockers.Add("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+$localTradingViewLiveMicroMode = $localTradingView -match "executionMode=LIVE_MICRO"
+if ($localTradingViewLiveMicroMode) {
+    if ($localTradingView -match "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED" `
+            -or $localTradingView -notmatch "localTradingViewLiveMicroArmed=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED")
+    }
+    if ($localTradingView -match "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED" `
+            -or $localTradingView -notmatch "localTradingViewOcoLifecycleTracked=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
+    }
+} else {
+    if ($localTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
+            -or $localTradingView -notmatch "localTradingViewExecutionDryRunArmed=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
+    }
 }
 if ($localTradingView -match "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE" `
         -or $localTradingView -notmatch "localTradingViewEvaluatorActive=true") {
@@ -931,6 +955,18 @@ if ($localTradingView -match "currentCandidateStatus=([A-Z0-9_]+)") {
 }
 if ($localTradingView -match "localTradingViewExecutionDryRunArmed=(true|false)") {
     Write-Host ("local_tradingview_dry_run_receipt_armed=" + $Matches[1])
+}
+if ($localTradingView -match "localTradingViewLiveMicroArmed=(true|false)") {
+    Write-Host ("local_tradingview_live_micro_armed=" + $Matches[1])
+}
+if ($localTradingView -match "localTradingViewExecutionPathArmed=(true|false)") {
+    Write-Host ("local_tradingview_execution_path_armed=" + $Matches[1])
+}
+if ($localTradingView -match "localTradingViewOcoLifecycleTracked=(true|false)") {
+    Write-Host ("local_tradingview_oco_lifecycle_tracked=" + $Matches[1])
+}
+if ($localTradingView -match "localTradingViewOcoLifecycleStatus=([A-Z0-9_]+)") {
+    Write-Host ("local_tradingview_oco_lifecycle_status=" + $Matches[1])
 }
 if ($localTradingView -match "executionMode=([A-Z0-9_]+)") {
     Write-Host ("local_tradingview_execution_mode=" + $Matches[1])

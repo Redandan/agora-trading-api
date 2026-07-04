@@ -63,6 +63,8 @@ also fails closed.
 | `SIGNAL_POLICY_REVIEW_GAPS` | `.\scripts\smoke_signal_correctness_ssh.ps1 -RequireClear` | The smoke exits 0 only when it prints `signalPolicyClear=true`, no `REVIEW_POLICY_GAPS`, `missing_signal_policy_fields=[]`, explicit 7d `governanceMode` is present and not `governanceMode=TOO_STRICT`, `governanceMode=TOO_LOOSE`, or `governanceMode=INSUFFICIENT_DATA`, missed-opportunity `overallStatus=PASS`, and `signal_policy_review_plan` is present without `BLOCKED` or `REVIEW` state when signal policy is otherwise clear; Missing signal-policy fields, missing `signalPolicyClear=true`, missing review-plan evidence, and missing or `N/A` governance/missed-opportunity evidence stay blocked. The smoke also prints `signal_policy_review_plan` with `riskCategory`, `evidenceMarkers`, `requiredEvidence`, `nextAction`, and `notAuthorization` for each blocked/review gate. | Keep hard safety gates; review relaxation candidates in shadow/tiny-live caps only. |
 | `LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireCurrentCandidate` | The smoke explicitly prints `currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`. Missing current-candidate evidence, stale latest-bar evidence, or `LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE` stays blocked. | Wait for the latest closed bar to emit a LOCAL_TRADINGVIEW parity BUY before any live plan. |
 | `LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireDryRunArmed` and `.\scripts\prepare_local_tradingview_dry_run_receipt_env_handoff.ps1 -RequireReady` before any env request | The smoke explicitly prints `localTradingViewExecutionDryRunArmed=true`, `effectiveExecutionDryRun=true`, and `effectiveLiveOrderEnabled=false`. Missing dry-run receipt evidence or `LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED` stays blocked. | Use the read-only dry-run receipt env handoff packet and obtain separate exact env/deploy authorization before changing production env. |
+| `LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed` | When `executionMode=LIVE_MICRO`, the smoke must explicitly print `localTradingViewLiveMicroArmed=true`. Missing live-micro armed evidence, wrong source/evaluator env, or `LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED` stays blocked. This does not authorize an order. | Fix LOCAL_TRADINGVIEW LIVE_MICRO source/execution env through a separately authorized env plan, then rerun read-only evidence. |
+| `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireOcoLifecycleTracked` and `.\scripts\prepare_local_tradingview_oco_lifecycle_env_handoff.ps1 -RequireReady` before any env request | When `executionMode=LIVE_MICRO` is armed, the smoke must explicitly print `localTradingViewOcoLifecycleTracked=true` and `localTradingViewOcoLifecycleStatus=TRACKED_BY_OCO_POLLER`. Missing close-detection evidence, `TRADING_OCO_POLLER_ENABLED=false`, or `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` stays blocked. The handoff packet must emit `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_PACKET`, `READY_FOR_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_NOT_MUTATION`, exact OCO lifecycle authorization for `TRADING_OCO_POLLER_ENABLED=true`, and `POSITION_EXIT_MANAGER_ENABLED=false`. | Use the read-only OCO lifecycle env handoff packet and obtain separate exact env/deploy authorization before changing production env. Post-env verify with `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`. |
 | `LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke explicitly prints `primary=LOCAL_TRADINGVIEW`, `localEnabled=true`, and `localTradingViewEvaluatorActive=true`. Missing evaluator evidence stays blocked. | Keep live disabled and fix LOCAL_TRADINGVIEW source/evaluator env through a separately authorized env plan. |
 | `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke prints `coverage=OK` or a reviewed `coverage=WARN` with bounded trailing gap. `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` stays blocked. | Fix local TradingView parity data coverage before treating candidate evidence as valid. |
 | `LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` and TP/SL/OCO feasibility smokes | No `OCO_PREFLIGHT_FAILED` marker appears unless it is explicitly paired with `ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL`. A pending-until-buy-candidate warning is not a primary OCO failure; a real OCO preflight failure stays blocked. | Stop live review and inspect TP/SL/OCO feasibility before any live order path. |
@@ -132,7 +134,7 @@ RUNTIME_EVIDENCE_NO_CANONICAL_ROWS
 SIGNAL_POLICY_REVIEW_GAPS
 TINY_LIVE_ROLLOUT_NOT_READY
 LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE
-LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED
+LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED
 ```
 
 Those are live-blocking until the clear conditions above are proven by fresh
@@ -155,6 +157,11 @@ The attached background automation evidence also printed
 `backgroundAutomationClear=false` and
 `background_automation_blockers=["BACKGROUND_AUTOMATION_TRUE"]` with
 `high_risk_background_automation_true=[]`.
+After the LOCAL_TRADINGVIEW LIVE_MICRO readiness split, a fresh bundle that sees
+`executionMode=LIVE_MICRO` must not require the dry-run receipt marker; it
+instead reports `LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED` or
+`LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` when the live-micro path or its OCO
+close-detection lifecycle is not proven.
 The attached bundle also printed `bundle_blocker_summary` with categories and
 required read-only follow-up evidence plus evidence markers for every listed
 blocker.

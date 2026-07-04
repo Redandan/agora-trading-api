@@ -171,9 +171,9 @@ $latestSnapshotMarkers = @(
     'runtimeEvidence=NO_CANONICAL_ROWS shadowIntentCount=2 orderSentEvidence=0',
     'tinyLive=hardStopDetected=false canEnableProduction=false completedTinyLiveSamples=1 falsePositiveCount=1',
     'signalPolicy=governanceMode=INSUFFICIENT_DATA missedOpportunityOverallStatus=WARN',
-    'localTradingView=currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS dryRunReceiptArmed=false executionMode=LEGACY',
+    'localTradingView=currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS dryRunReceiptArmed=false liveMicroArmed=true ocoLifecycleTracked=false executionMode=LIVE_MICRO',
     'LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE',
-    'LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED',
+    'LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED',
     'LIVE_READINESS_NOT_READY'
 )
 

@@ -23,14 +23,24 @@ foreach ($pattern in @(
         "HAS_CURRENT_BUY_CANDIDATE",
         "NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS",
         "localTradingViewExecutionDryRunArmed",
+        "localTradingViewLiveMicroArmed",
+        "localTradingViewExecutionPathArmed",
+        "localTradingViewOcoLifecycleTracked",
+        "localTradingViewOcoLifecycleStatus",
         "orderSentAllowed=false",
         "liveOrderMutationAllowed=false",
         "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
         "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED",
+        "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED",
+        "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED",
         "READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_OBSERVATION_NOT_LIVE",
+        "READY_FOR_LOCAL_TRADINGVIEW_LIVE_MICRO_ARMED_REVIEW_NOT_MUTATION",
+        "BLOCKED_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED",
         "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE",
         "RequireCurrentCandidate",
         "RequireDryRunArmed",
+        "RequireLiveMicroArmed",
+        "RequireOcoLifecycleTracked",
         "Assert-RemotePathSafe",
         "Assert-SshHostSafe",
         "Assert-McpSmokeTokenSafe",
@@ -39,7 +49,8 @@ foreach ($pattern in @(
         "http://127\.0\.0\.1:\{os\.environ\['PORT'\]\}/api/mcp",
         "TRADING_MCP_KEY",
         "TRADING_SIGNAL_SOURCE_PRIMARY",
-        "TRADINGVIEW_LOCAL_EXECUTION_MODE")) {
+        "TRADINGVIEW_LOCAL_EXECUTION_MODE",
+        "TRADING_OCO_POLLER_ENABLED")) {
     Assert-Contains -Name "local TradingView candidate smoke" -Pattern $pattern
 }
 

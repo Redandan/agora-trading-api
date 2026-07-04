@@ -20,6 +20,25 @@ same blockers with category, required read-only evidence, evidence markers, and
 next action. That summary is for automation and review-packet drafting only; it
 does not clear `bundle_blockers` and does not authorize production env changes.
 
+When the question is narrower - whether the LOCAL_TRADINGVIEW parity path alone
+would act on a TradingView-style BUY - run the focused smoke instead:
+
+```powershell
+.\scripts\smoke_local_tradingview_only_readiness_ssh.ps1
+```
+
+It deliberately excludes TinyLive, ScoreBuy, runtime-evidence, and
+signal-policy blockers and prints
+`legacy_tiny_scorebuy_runtime_evidence_not_evaluated=true`,
+`local_tradingview_only_status`, `local_tradingview_only_blockers`,
+`local_tradingview_only_health_warnings`,
+`local_tradingview_only_legacy_blockers_excluded=true`, and
+`notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness evidence`.
+Use `WAIT_BUY`, `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED`, or `BLOCKED` as
+the focused LOCAL_TRADINGVIEW status. Runtime-log findings such as
+`RUNTIME_LOG_NOT_CLEAN` stay in `local_tradingview_only_health_warnings`; use
+the full bundle when a complete live-readiness review is needed.
+
 ## Blocker Matrix
 
 | Bundle blocker | Required read-only evidence | Clear condition | Allowed next action |

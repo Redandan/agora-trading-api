@@ -938,6 +938,36 @@ rollback plan. It keeps `local_tradingview_oco_lifecycle_env_request_allowed=fal
 restart, enable position-exit manager, place orders, create/rebalance grid,
 send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Read-only LOCAL_TRADINGVIEW-only readiness smoke:
+
+```powershell
+.\scripts\smoke_local_tradingview_only_readiness_ssh.ps1
+```
+
+This is the focused daily check for whether the local TradingView parity path
+is ready, without mixing in TinyLive, ScoreBuy, runtime-evidence, or
+signal-policy blockers. It invokes only deployment metadata,
+`audit_live_readiness_ssh.ps1`, `smoke_live_background_automation_ssh.ps1`, and
+`smoke_local_tradingview_candidate_ssh.ps1`, then prints
+`legacy_tiny_scorebuy_runtime_evidence_not_evaluated=true`,
+`local_tradingview_only_status`, `local_tradingview_only_blockers`,
+`local_tradingview_only_health_warnings`,
+`local_tradingview_only_legacy_blockers_excluded=true`, and
+`notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness evidence`.
+`WAIT_BUY` means the path is otherwise clean but there is no current parity BUY.
+`READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means a current parity BUY exists
+and the LOCAL_TRADINGVIEW live-micro path is armed for review. `BLOCKED` means a
+focused prerequisite such as `ORDER_CAPABLE_FLAGS_REVIEW`,
+`BACKGROUND_AUTOMATION_REVIEW`, `DEPLOYED_RUNTIME_NOT_CURRENT`,
+`LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`, or
+`LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` must be fixed first. This smoke is
+read-only and prints runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` under
+`local_tradingview_only_health_warnings` instead of mixing them into the focused
+LOCAL_TRADINGVIEW blocker list; use the full live-readiness bundle for complete
+operator review. It does not change production env, deploy, restart, place
+orders, modify OCO, change grid/fund/Earn/Telegram state, mutate DB, change
+schedulers, or run external backfill/import.
+
 Guarded trailing-stop strategy opt-in execution wrapper:
 
 ```powershell

@@ -169,6 +169,16 @@ and the exact OCO lifecycle authorization for `TRADING_OCO_POLLER_ENABLED=true`
 while keeping `POSITION_EXIT_MANAGER_ENABLED=false`. Post-env verification must
 include
 `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`.
+For day-to-day LOCAL_TRADINGVIEW-only monitoring, use
+`.\scripts\smoke_local_tradingview_only_readiness_ssh.ps1`; it wraps deployment
+metadata, live-readiness audit, background automation, and the candidate smoke
+without running TinyLive, ScoreBuy, runtime-evidence, or signal-policy checks.
+Its `local_tradingview_only_status` is `WAIT_BUY`,
+`READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED`, or `BLOCKED`, and it keeps
+`RUNTIME_LOG_NOT_CLEAN` and similar audit health findings in
+`local_tradingview_only_health_warnings` instead of the focused blocker list.
+It also keeps `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness
+evidence`.
 
 Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
 distinguished from real TradingView webhook deliveries.

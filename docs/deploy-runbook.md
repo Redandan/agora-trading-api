@@ -321,6 +321,37 @@ Expected:
   preserves the old three-flag behavior.
 - Before requesting the LOCAL_TRADINGVIEW dry-run receipt env change, run `.\scripts\prepare_local_tradingview_dry_run_receipt_env_handoff.ps1 -RequireReady`. It emits `LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_ENV_HANDOFF_PACKET`, `local_tradingview_dry_run_receipt_env_handoff_packet`, and `local_tradingview_dry_run_receipt_env_handoff_status=READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_ENV_HANDOFF_NOT_MUTATION` when the exact operator authorization can be requested for `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`, `TRADINGVIEW_LOCAL_ENABLED=true`, and `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN` with dry-run true and live-order false. A current BUY candidate is not required for the env handoff; after a separately authorized env deploy, verify with `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireDryRunArmed`, and use `-RequireCurrentCandidate -RequireDryRunArmed` only when the latest closed bar has a parity BUY. The packet remains read-only and keeps live/order/OCO/grid/fund/Earn/Telegram/DB/exchange mutation authorization false.
 - Before requesting the LOCAL_TRADINGVIEW LIVE_MICRO OCO lifecycle env change, run `.\scripts\prepare_local_tradingview_oco_lifecycle_env_handoff.ps1 -RequireReady`. It emits `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_PACKET`, `local_tradingview_oco_lifecycle_env_handoff_packet`, and `local_tradingview_oco_lifecycle_env_handoff_status=READY_FOR_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_NOT_MUTATION` when the exact OCO lifecycle authorization can be requested for `TRADING_OCO_POLLER_ENABLED=true` while keeping `POSITION_EXIT_MANAGER_ENABLED=false`. A current BUY candidate is not required for the env handoff; after a separately authorized env deploy, verify with `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`, `.\scripts\smoke_strategy485_position_risk_ssh.ps1`, `.\scripts\audit_live_readiness_ssh.ps1`, and `.\scripts\smoke_live_readiness_bundle_ssh.ps1`. If post-env OCO health reports `SYNC_ERROR`, package it with `.\scripts\prepare_oco_sync_reconciliation_packet_ssh.ps1` before any separate reconciliation write request. The packet remains read-only and keeps `local_tradingview_oco_lifecycle_env_request_allowed=false`, production env, deploy, order, OCO, position, grid, fund, Earn, Telegram, DB, and exchange mutation authorization false.
+- For the narrow "will LOCAL_TRADINGVIEW buy on the TradingView parity path?"
+  check, run:
+
+  ```powershell
+  .\scripts\smoke_local_tradingview_only_readiness_ssh.ps1
+  ```
+
+  This is a read-only focused wrapper over deployment metadata,
+  `audit_live_readiness_ssh.ps1`, `smoke_live_background_automation_ssh.ps1`,
+  and `smoke_local_tradingview_candidate_ssh.ps1`. It deliberately skips
+  TinyLive, ScoreBuy, runtime-evidence, and signal-policy smokes and prints
+  `legacy_tiny_scorebuy_runtime_evidence_not_evaluated=true`,
+  `local_tradingview_only_status`, `local_tradingview_only_blockers`,
+  `local_tradingview_only_health_warnings`,
+  `local_tradingview_only_legacy_blockers_excluded=true`, and
+  `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness evidence`.
+  `WAIT_BUY` means the LOCAL_TRADINGVIEW path is otherwise clean but the latest
+  closed bar has no TradingView parity BUY.
+  `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means a current parity BUY is
+  present and the LOCAL_TRADINGVIEW live-micro path is armed for review.
+  `BLOCKED` means one of the focused prerequisites, such as
+  `ORDER_CAPABLE_FLAGS_REVIEW`, `BACKGROUND_AUTOMATION_REVIEW`,
+  `DEPLOYED_RUNTIME_NOT_CURRENT`, `LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`, or
+  `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`, must be fixed before trusting
+  the next parity BUY. Runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` are
+  printed under `local_tradingview_only_health_warnings` so this focused smoke
+  stays scoped to the LOCAL_TRADINGVIEW parity path; use the full
+  live-readiness bundle for complete operator review. The script does not
+  change production env, deploy, restart, place orders, modify OCO, change
+  grid/fund/Earn/Telegram state, mutate DB, change schedulers, or run external
+  backfill/import.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

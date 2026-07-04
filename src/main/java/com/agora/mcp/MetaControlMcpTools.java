@@ -77,6 +77,7 @@ public class MetaControlMcpTools {
     private static final ZoneId TAIPEI_ZONE = ZoneId.of("Asia/Taipei");
     private static final int RECENT_DECISIONS_DEFAULT_LIMIT = 30;
     private static final int RECENT_DECISIONS_MAX_LIMIT = 200;
+    private static final String MARKET_SIGNAL_RISK_SUMMARY_SOURCE = "MarketSignalRiskSummary";
 
     private final StrategyOverrideService strategyOverrideService;
     private final StrategyOverrideRepository strategyOverrideRepository;
@@ -1702,9 +1703,12 @@ public class MetaControlMcpTools {
                 card.message(),
                 false,
                 MarketSignalRiskTelegramButtons.buildKeyboard(card.symbol(), card.hours()),
-                "MarketSignalRiskSummary",
+                MARKET_SIGNAL_RISK_SUMMARY_SOURCE,
                 "INFO");
-        return "SENT: market-signal risk card sent with Telegram drill-down buttons\n\n" + card.message();
+        return "AUDIT_ONLY: market-signal risk card is intentionally muted by Telegram policy "
+                + "(source=" + MARKET_SIGNAL_RISK_SUMMARY_SOURCE + "); "
+                + "check tg_notification_log level=MUTED_MARKET.\n\n"
+                + card.message();
     }
 
     public String sendScheduledMarketSignalRiskCard(Integer hours, String symbol,
@@ -1732,12 +1736,12 @@ public class MetaControlMcpTools {
                 card.message(),
                 false,
                 MarketSignalRiskTelegramButtons.buildKeyboard(card.symbol(), card.hours()),
-                "MarketSignalRiskSummary",
+                MARKET_SIGNAL_RISK_SUMMARY_SOURCE,
                 "INFO");
         lastScheduledMarketSignalRiskFingerprint = card.fingerprint();
-        log.info("[MarketSignalRiskCard] Telegram keyboard message sent fingerprint={} chars={}",
+        log.info("[MarketSignalRiskCard] audit-only summary muted by Telegram policy fingerprint={} chars={}",
                 card.fingerprint(), card.message().length());
-        return "SENT";
+        return "AUDIT_ONLY";
     }
 
     @McpAuth(McpAuthLevel.OPS)
@@ -2601,7 +2605,7 @@ public class MetaControlMcpTools {
         }
 
         // 統計摘要
-        var stats = tgNotificationLogRepo.countBySourceAndLevel(from);
+        var stats = tgNotificationLogRepo.countBySourceAndLevel(from, null, lvl, sourceLike, effectiveRuleId);
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("=== TG 通知歷史（近 %dh，共 %d 筆）===\n\n", h, logs.size()));
 

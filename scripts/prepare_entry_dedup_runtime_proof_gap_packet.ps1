@@ -2,6 +2,7 @@ param(
     [string]$DirectOperatorLogPath = "target/profit-review/entry-dedup-semantics-direct-operator-packet-fresh.log",
     [string]$GatePreflightLogPath = "target/profit-review/entry-dedup-semantics-gate-preflight-fresh.log",
     [string]$SyntheticPreviewLogPath = "target/profit-review/entry-dedup-synthetic-ev-oco-preview-fresh.log",
+    [string]$ExactOpportunityLogPath = "",
     [int]$MaxAgeMinutes = 240,
     [switch]$RequireReady
 )
@@ -53,9 +54,13 @@ if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 10080) {
 $direct = Read-Log -Path $DirectOperatorLogPath
 $gate = Read-Log -Path $GatePreflightLogPath
 $synthetic = Read-Log -Path $SyntheticPreviewLogPath
+$hasExactOpportunityLog = -not [string]::IsNullOrWhiteSpace($ExactOpportunityLogPath)
+$exactOpportunity = if ($hasExactOpportunityLog) { Read-Log -Path $ExactOpportunityLogPath } else { $null }
 $missing = [System.Collections.Generic.List[string]]::new()
 
-foreach ($log in @($direct, $gate, $synthetic)) {
+$requiredLogs = @($direct, $gate, $synthetic)
+if ($hasExactOpportunityLog) { $requiredLogs += $exactOpportunity }
+foreach ($log in $requiredLogs) {
     if ($log.Freshness -eq "MISSING") {
         Add-MissingRequirement -List $missing -Value "missing log: $($log.Path)"
     } elseif ($log.Freshness -eq "STALE") {
@@ -66,21 +71,32 @@ foreach ($log in @($direct, $gate, $synthetic)) {
 $directJson = Get-LastPrefixedValue -Text $direct.Text -Prefix "entry_dedup_semantics_direct_operator_packet="
 $gateJson = Get-LastPrefixedValue -Text $gate.Text -Prefix "entry_dedup_semantics_gate_preflight_packet="
 $syntheticJson = Get-LastPrefixedValue -Text $synthetic.Text -Prefix "entry_dedup_synthetic_ev_oco_preview_packet="
+$exactOpportunityJson = if ($hasExactOpportunityLog) {
+    Get-LastPrefixedValue -Text $exactOpportunity.Text -Prefix "entry_dedup_exact_opportunity_staged_add_review_packet="
+} else {
+    ""
+}
 
 $directPacket = $null
 $gatePacket = $null
 $syntheticPacket = $null
+$exactOpportunityPacket = $null
 if (-not [string]::IsNullOrWhiteSpace($directJson)) { $directPacket = $directJson | ConvertFrom-Json -ErrorAction Stop }
 if (-not [string]::IsNullOrWhiteSpace($gateJson)) { $gatePacket = $gateJson | ConvertFrom-Json -ErrorAction Stop }
 if (-not [string]::IsNullOrWhiteSpace($syntheticJson)) { $syntheticPacket = $syntheticJson | ConvertFrom-Json -ErrorAction Stop }
+if (-not [string]::IsNullOrWhiteSpace($exactOpportunityJson)) { $exactOpportunityPacket = $exactOpportunityJson | ConvertFrom-Json -ErrorAction Stop }
 
 if ($null -eq $directPacket) { Add-MissingRequirement -List $missing -Value "direct operator packet JSON present" }
 if ($null -eq $gatePacket) { Add-MissingRequirement -List $missing -Value "gate preflight packet JSON present" }
 if ($null -eq $syntheticPacket) { Add-MissingRequirement -List $missing -Value "synthetic EV/OCO preview packet JSON present" }
+if ($hasExactOpportunityLog -and $null -eq $exactOpportunityPacket) {
+    Add-MissingRequirement -List $missing -Value "exact opportunity staged-add packet JSON present"
+}
 
 $directStatus = if ($null -ne $directPacket) { [string]$directPacket.status } else { "UNKNOWN" }
 $gateStatus = if ($null -ne $gatePacket) { [string]$gatePacket.status } else { "UNKNOWN" }
 $syntheticStatus = if ($null -ne $syntheticPacket) { [string]$syntheticPacket.status } else { "UNKNOWN" }
+$exactOpportunityStatus = if ($null -ne $exactOpportunityPacket) { [string]$exactOpportunityPacket.status } elseif ($hasExactOpportunityLog) { "UNKNOWN" } else { "NOT_PROVIDED" }
 
 if ($directStatus -ne "READY_FOR_ENTRY_DEDUP_SEMANTICS_DIRECT_OPERATOR_REVIEW_NOT_LIVE") {
     Add-MissingRequirement -List $missing -Value "direct EntryDedup operator packet ready"
@@ -91,12 +107,41 @@ if ($syntheticStatus -ne "SYNTHETIC_EV_OCO_PREVIEW_READY_FOR_REVIEW_NOT_LIVE") {
 if ($gateStatus -ne "BLOCKED_GATE_EVIDENCE_INCOMPLETE_NOT_LIVE") {
     Add-MissingRequirement -List $missing -Value "gate preflight blocker packet present"
 }
+if ($hasExactOpportunityLog -and $exactOpportunityStatus -ne "READY_FOR_ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_NOT_LIVE") {
+    Add-MissingRequirement -List $missing -Value "exact EntryDedup staged-add review packet ready"
+}
 
-$summary = if ($null -ne $directPacket) { $directPacket.sourceEvidenceSummary } else { $null }
+$directSummary = if ($null -ne $directPacket) { $directPacket.sourceEvidenceSummary } else { $null }
+$summary = if ($null -ne $exactOpportunityPacket) {
+    [pscustomobject]@{
+        source = "exactOpportunityStagedAddReview"
+        status = $exactOpportunityStatus
+        rawAuditRows = $exactOpportunityPacket.rawAuditRows
+        exactOpportunityCount = $exactOpportunityPacket.exactOpportunityCount
+        exactDuplicateSuppressedRows = $exactOpportunityPacket.exactDuplicateSuppressedRows
+        stagedAddBudgetProxyAllowedOpportunities = $exactOpportunityPacket.stagedAddBudgetProxyAllowedOpportunities
+        stagedAddReviewCandidateOpportunities = $exactOpportunityPacket.stagedAddReviewCandidateOpportunities
+        tpHitOpportunities = $exactOpportunityPacket.tpHitOpportunities
+        slHitOpportunities = $exactOpportunityPacket.slHitOpportunities
+        ambiguousOpportunities = $exactOpportunityPacket.ambiguousOpportunities
+        missingForwardRows = $exactOpportunityPacket.missingForwardRows
+        avgExpectedRProxy = $exactOpportunityPacket.avgExpectedRProxy
+        avgNetReturnPct = $exactOpportunityPacket.avgNetReturnPct
+        openExposure = $exactOpportunityPacket.openExposure
+    }
+} elseif ($null -ne $directSummary) {
+    $directSummary
+} else {
+    $null
+}
 $gateStatuses = if ($null -ne $gatePacket) { $gatePacket.gateStatuses } else { $null }
 $dbEvidence = if ($null -ne $gatePacket) { $gatePacket.dbEvidence } else { $null }
 $candidateGateRows = if ($null -ne $dbEvidence) { $dbEvidence.candidateGateRows } else { $null }
 $runtimeEvidenceRows = if ($null -ne $dbEvidence) { $dbEvidence.runtimeEvidenceRows } else { $null }
+$exactOpportunityCountEvidence = if ($null -ne $summary) { [string]$summary.exactOpportunityCount } else { "UNKNOWN" }
+$exactDuplicateSuppressedEvidence = if ($null -ne $summary) { [string]$summary.exactDuplicateSuppressedRows } else { "UNKNOWN" }
+$stagedAddReviewCandidatesEvidence = if ($null -ne $summary) { [string]$summary.stagedAddReviewCandidateOpportunities } else { "UNKNOWN" }
+$exactOpportunityEvidenceSource = if ($null -ne $exactOpportunityPacket) { "exactOpportunityStagedAddReview" } elseif ($null -ne $directSummary) { "directOperatorSourceEvidenceSummary" } else { "UNKNOWN" }
 
 $blockerRanking = @(
     [pscustomobject]@{
@@ -119,7 +164,7 @@ $blockerRanking = @(
         rank = 3
         blocker = "EXACT_DUPLICATE_REPLAY_PROTECTION_NOT_PROVEN"
         status = if ($null -ne $gateStatuses) { [string]$gateStatuses.duplicateProtection } else { "UNKNOWN" }
-        evidence = "exactOpportunityCount=$($(if ($null -ne $summary) { $summary.exactOpportunityCount } else { 'UNKNOWN' })); exactDuplicateSuppressedRows=$($(if ($null -ne $summary) { $summary.exactDuplicateSuppressedRows } else { 'UNKNOWN' }))"
+        evidence = "source=$exactOpportunityEvidenceSource; exactOpportunityCount=$exactOpportunityCountEvidence; exactDuplicateSuppressedRows=$exactDuplicateSuppressedEvidence; stagedAddReviewCandidateOpportunities=$stagedAddReviewCandidatesEvidence"
         nextEvidence = "exact candidate hash and same-candidate replay protection proof"
         mutationBlocker = $true
     },
@@ -147,7 +192,7 @@ $reviewGapRanking = @(
         rank = 2
         gap = "EXACT_DUPLICATE_REPLAY_PROTECTION_NOT_PROVEN"
         status = if ($null -ne $gateStatuses) { [string]$gateStatuses.duplicateProtection } else { "UNKNOWN" }
-        evidence = "exactOpportunityCount=$($(if ($null -ne $summary) { $summary.exactOpportunityCount } else { 'UNKNOWN' })); exactDuplicateSuppressedRows=$($(if ($null -ne $summary) { $summary.exactDuplicateSuppressedRows } else { 'UNKNOWN' }))"
+        evidence = "source=$exactOpportunityEvidenceSource; exactOpportunityCount=$exactOpportunityCountEvidence; exactDuplicateSuppressedRows=$exactDuplicateSuppressedEvidence; stagedAddReviewCandidateOpportunities=$stagedAddReviewCandidatesEvidence"
         nextReadOnlyAction = "prove exact candidate hash and same-candidate replay protection before any staged-add execution"
         reviewProgressAllowed = $true
         mutationBlocker = $true
@@ -193,7 +238,7 @@ $mutationBlockerRanking = @(
         rank = 3
         blocker = "EXACT_DUPLICATE_REPLAY_PROTECTION_NOT_PROVEN"
         status = if ($null -ne $gateStatuses) { [string]$gateStatuses.duplicateProtection } else { "UNKNOWN" }
-        evidence = "exactOpportunityCount=$($(if ($null -ne $summary) { $summary.exactOpportunityCount } else { 'UNKNOWN' })); exactDuplicateSuppressedRows=$($(if ($null -ne $summary) { $summary.exactDuplicateSuppressedRows } else { 'UNKNOWN' }))"
+        evidence = "source=$exactOpportunityEvidenceSource; exactOpportunityCount=$exactOpportunityCountEvidence; exactDuplicateSuppressedRows=$exactDuplicateSuppressedEvidence; stagedAddReviewCandidateOpportunities=$stagedAddReviewCandidatesEvidence"
         blocks = @("staged-add execution", "EntryDedup relaxation")
         reviewProgressAllowed = $true
     }
@@ -217,13 +262,16 @@ $packet = [pscustomobject]@{
         directOperator = $DirectOperatorLogPath
         gatePreflight = $GatePreflightLogPath
         syntheticEvOcoPreview = $SyntheticPreviewLogPath
+        exactOpportunityStagedAddReview = if ($hasExactOpportunityLog) { $ExactOpportunityLogPath } else { $null }
     }
     sourceStatuses = [pscustomobject]@{
         directOperator = $directStatus
         gatePreflight = $gateStatus
         syntheticEvOcoPreview = $syntheticStatus
+        exactOpportunityStagedAddReview = $exactOpportunityStatus
     }
     exactOpportunityEvidence = $summary
+    exactOpportunityStagedAddReview = if ($null -ne $exactOpportunityPacket) { $exactOpportunityPacket } else { $null }
     syntheticPreview = if ($null -ne $syntheticPacket) { $syntheticPacket } else { $null }
     gateStatuses = $gateStatuses
     blockerRanking = @($blockerRanking)
@@ -273,11 +321,15 @@ $packet = [pscustomobject]@{
 }
 
 Write-Host "[entry-dedup-runtime-proof-gap-packet] read-only packet"
-Write-Host "scope=READ_ONLY; reads saved direct EntryDedup, gate preflight, and synthetic EV/OCO logs only; no SSH, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "scope=READ_ONLY; reads saved direct EntryDedup, gate preflight, synthetic EV/OCO, and optional exact opportunity staged-add logs only; no SSH, production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
 Write-Host "source_direct_operator_status=$directStatus"
 Write-Host "source_gate_preflight_status=$gateStatus"
 Write-Host "source_synthetic_ev_oco_status=$syntheticStatus"
+Write-Host "source_exact_opportunity_status=$exactOpportunityStatus"
 Write-Host "entry_dedup_runtime_proof_gap_missing_requirements=$(ConvertTo-Json -Compress @($missing))"
+Write-Host "entry_dedup_runtime_proof_gap_exact_opportunity_count=$exactOpportunityCountEvidence"
+Write-Host "entry_dedup_runtime_proof_gap_exact_duplicate_suppressed_rows=$exactDuplicateSuppressedEvidence"
+Write-Host "entry_dedup_runtime_proof_gap_staged_add_review_candidates=$stagedAddReviewCandidatesEvidence"
 Write-Host "entry_dedup_runtime_proof_gap_top_blocker=$($blockerRanking[0].blocker)"
 Write-Host "entry_dedup_runtime_proof_gap_second_blocker=$($blockerRanking[1].blocker)"
 Write-Host "entry_dedup_runtime_proof_gap_top_review_evidence_gap=$($reviewGapRanking[0].gap)"

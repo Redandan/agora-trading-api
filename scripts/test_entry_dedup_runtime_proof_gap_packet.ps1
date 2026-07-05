@@ -30,7 +30,12 @@ foreach ($marker in @(
         "entry_dedup_runtime_proof_gap_top_review_evidence_gap",
         "entry_dedup_runtime_proof_gap_top_mutation_blocker",
         "entry_dedup_runtime_proof_gap_blocker_semantics",
+        "entry_dedup_runtime_proof_gap_exact_opportunity_count",
+        "entry_dedup_runtime_proof_gap_exact_duplicate_suppressed_rows",
+        "entry_dedup_runtime_proof_gap_staged_add_review_candidates",
         "entry_dedup_runtime_proof_gap_review_progress_allowed",
+        "source_exact_opportunity_status",
+        "ExactOpportunityLogPath",
         "OCO_ROUTE_NOT_PROVEN_OR_MISSING",
         "CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING",
         "EXACT_DUPLICATE_REPLAY_PROTECTION_NOT_PROVEN",
@@ -67,6 +72,7 @@ try {
     $directPath = Join-Path $tempDir "direct.log"
     $gatePath = Join-Path $tempDir "gate.log"
     $syntheticPath = Join-Path $tempDir "synthetic.log"
+    $exactOpportunityPath = Join-Path $tempDir "exact-opportunity.log"
 
     $directPacket = [pscustomobject]@{
         packetType = "ENTRY_DEDUP_SEMANTICS_DIRECT_OPERATOR_PACKET"
@@ -116,10 +122,37 @@ try {
         avgExpectedRProxy = 0.8
         orderAllowed = $false
     }
+    $exactOpportunityPacket = [pscustomobject]@{
+        packetType = "ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET"
+        status = "READY_FOR_ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_NOT_LIVE"
+        scope = "READ_ONLY_SYNTHETIC_REPLAY_PROXY_NOT_RUNTIME_EV"
+        symbol = "BTCUSDT"
+        strategyId = 508
+        intervalCode = "1h"
+        rawAuditRows = 13
+        exactOpportunityCount = 8
+        exactDuplicateSuppressedRows = 5
+        stagedAddBudgetProxyAllowedOpportunities = 8
+        stagedAddReviewCandidateOpportunities = 8
+        tpHitOpportunities = 8
+        slHitOpportunities = 0
+        ambiguousOpportunities = 0
+        missingForwardRows = 0
+        avgExpectedRProxy = 0.8
+        avgNetReturnPct = 0.8
+        openExposure = [pscustomobject]@{
+            open_signal_rows = 1
+            non_auto_zero_qty_rows = 1
+            missing_oco_rows = 1
+        }
+        orderAllowed = $false
+        stagedAddExecutionAllowed = $false
+    }
 
     Set-Content -LiteralPath $directPath -Encoding UTF8 -Value ("entry_dedup_semantics_direct_operator_packet=" + (ConvertTo-Json -Compress -Depth 8 $directPacket))
     Set-Content -LiteralPath $gatePath -Encoding UTF8 -Value ("  entry_dedup_semantics_gate_preflight_packet=" + (ConvertTo-Json -Compress -Depth 8 $gatePacket))
     Set-Content -LiteralPath $syntheticPath -Encoding UTF8 -Value ("  entry_dedup_synthetic_ev_oco_preview_packet=" + (ConvertTo-Json -Compress -Depth 8 $syntheticPacket))
+    Set-Content -LiteralPath $exactOpportunityPath -Encoding UTF8 -Value ("  entry_dedup_exact_opportunity_staged_add_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $exactOpportunityPacket))
 
     $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
     if ($null -eq $powerShell) {
@@ -132,7 +165,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -DirectOperatorLogPath $directPath -GatePreflightLogPath $gatePath -SyntheticPreviewLogPath $syntheticPath -RequireReady 2>&1
+        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -DirectOperatorLogPath $directPath -GatePreflightLogPath $gatePath -SyntheticPreviewLogPath $syntheticPath -ExactOpportunityLogPath $exactOpportunityPath -RequireReady 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -148,10 +181,17 @@ try {
             "entry_dedup_runtime_proof_gap_top_review_evidence_gap=CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING",
             "entry_dedup_runtime_proof_gap_top_mutation_blocker=OCO_ROUTE_NOT_PROVEN_OR_MISSING",
             "entry_dedup_runtime_proof_gap_blocker_semantics=REVIEW_AND_MUTATION_SPLIT_V1",
+            "source_exact_opportunity_status=READY_FOR_ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_NOT_LIVE",
+            "entry_dedup_runtime_proof_gap_exact_opportunity_count=8",
+            "entry_dedup_runtime_proof_gap_exact_duplicate_suppressed_rows=5",
+            "entry_dedup_runtime_proof_gap_staged_add_review_candidates=8",
             "entry_dedup_runtime_proof_gap_review_progress_allowed=true",
             "entry_dedup_runtime_proof_gap_shadow_evidence_collector_allowed=true",
             '"packetType":"ENTRY_DEDUP_RUNTIME_PROOF_GAP_PACKET"',
-            '"exactOpportunityCount":6',
+            '"exactOpportunityCount":8',
+            '"rawAuditRows":13',
+            '"source":"exactOpportunityStagedAddReview"',
+            '"exactOpportunityStagedAddReview"',
             '"candidateRows":11',
             '"blocker":"OCO_ROUTE_NOT_PROVEN_OR_MISSING"',
             '"blocker":"CANDIDATE_RUNTIME_EV_OCO_SNAPSHOTS_MISSING"',

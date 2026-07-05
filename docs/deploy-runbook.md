@@ -3506,6 +3506,25 @@ Expected:
   change runtime behavior, clear exposure, deploy, change production env, place
   orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run
   external backfill/import.
+- To package the current zero-qty non-auto open-exposure blocker into a narrow
+  operator choice review without clearing exposure or implementing behavior,
+  run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_open_exposure_operator_choice_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_open_exposure_operator_choice_status=READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE`,
+  `entry_dedup_open_exposure_operator_choice_next_blocker=OPEN_EXPOSURE_ZERO_QTY_NON_AUTO_SEMANTICS`,
+  `entry_dedup_open_exposure_operator_choice_confirm_text=AUTHORIZE_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_AUTO_TRADED_ONLY_REVIEW`,
+  `choice_review_ready=true`, `open_exposure_clearance_allowed=false`,
+  `implementation_allowed=false`, `behavior_change_allowed=false`,
+  `live_gate_change_allowed=false`, and `order_allowed=false`. This operator
+  choice review is not authorization to clear exposure, implement Java
+  behavior, change live gate semantics, deploy, change production env, place
+  orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run
+  external backfill/import.
 - To package the runtime snapshot gap as a shadow collector activation review
   request only, run:
 

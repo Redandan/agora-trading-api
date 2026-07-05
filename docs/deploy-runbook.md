@@ -3487,6 +3487,25 @@ Expected:
   semantics diff is not a behavior change and does not clear exposure, change
   Java gate semantics, deploy, change production env, place orders, modify OCO,
   or mutate DB/exchange state.
+- To package the LiveSignalEvaluator gate-scope fix as a default-off operator
+  request without implementing behavior, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_live_gate_default_off_change_request_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_live_gate_default_off_change_request_status=READY_FOR_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_CHANGE_REQUEST_NOT_LIVE`,
+  `entry_dedup_live_gate_default_off_change_request_config_key=entryDedupOpenExposureScope`,
+  `entry_dedup_live_gate_default_off_change_request_default_scope=ALL_OPEN_ROWS`,
+  `entry_dedup_live_gate_default_off_change_request_requested_optional_scope=AUTO_TRADED_OPEN_ROWS`,
+  `entry_dedup_live_gate_default_off_change_request_confirm_text=AUTHORIZE_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_AUTO_TRADED_ONLY_REVIEW`,
+  `request_ready=true`, `implementation_allowed=false`,
+  `behavior_change_allowed=false`, `live_gate_change_allowed=false`, and
+  `order_allowed=false`. This default-off request is not authorization to
+  change runtime behavior, clear exposure, deploy, change production env, place
+  orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run
+  external backfill/import.
 - To package the runtime snapshot gap as a shadow collector activation review
   request only, run:
 

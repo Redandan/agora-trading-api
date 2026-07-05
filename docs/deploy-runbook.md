@@ -3372,8 +3372,25 @@ Expected:
   or strategy thresholds, enable staged-add/live execution, place orders,
   modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - After the runtime proof gap, collector review, duplicate-hash, OCO preflight,
-  exact EV/OCO coverage, and EventRiskControl packets are refreshed, summarize
-  the EntryDedup review-only shadow lane in one bundle:
+  exact EV/OCO coverage, and EventRiskControl packets are refreshed, isolate
+  the historical/non-auto EventRisk row blocker before any mutation request:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_historical_event_risk_row_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_historical_event_risk_row_review_status=READY_FOR_ENTRY_DEDUP_HISTORICAL_EVENT_RISK_ROW_REVIEW_NOT_LIVE`,
+  `entry_dedup_historical_event_risk_row_review_classification=HISTORICAL_EVENT_RISK_REVIEW_REQUIRED_BEFORE_MUTATION`,
+  `historical_event_risk_review_ready=true`,
+  `event_risk_override_allowed=false`,
+  `historical_row_mutation_allowed=false`, and `order_allowed=false`. The
+  packet is review-only; it does not clear or mutate historical rows, override
+  EventRiskControl, activate collectors, write runtime evidence, relax policy,
+  deploy, change production env, place orders, or modify OCO.
+- After the runtime proof gap, collector review, duplicate-hash, OCO preflight,
+  exact EV/OCO coverage, EventRiskControl, and historical EventRisk row packets
+  are refreshed, summarize the EntryDedup review-only shadow lane in one bundle:
 
   ```powershell
   .\scripts\prepare_entry_dedup_review_only_shadow_bundle_packet.ps1 -RequireReady

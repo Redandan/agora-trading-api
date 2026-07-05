@@ -1771,6 +1771,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_event_risk_control_evidence_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_review_only_shadow_bundle_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_mutation_blocker_handoff_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_oco_route_dry_run_request_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_blocker_decision_packet.ps1"

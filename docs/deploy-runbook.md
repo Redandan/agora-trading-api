@@ -3420,6 +3420,22 @@ Expected:
   `order_allowed=false`. The packet reviews evidence only; it does not classify
   or resolve rows, change exposure semantics, deploy, write runtime evidence,
   place orders, modify OCO, or mutate DB/exchange state.
+- To package the runtime snapshot gap as a shadow collector activation review
+  request only, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_runtime_snapshot_collector_activation_request_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_runtime_snapshot_collector_activation_request_status=READY_FOR_ENTRY_DEDUP_RUNTIME_SNAPSHOT_COLLECTOR_ACTIVATION_REQUEST_NOT_LIVE`,
+  `entry_dedup_runtime_snapshot_collector_activation_request_confirm_text=AUTHORIZE_ENTRY_DEDUP_RUNTIME_SNAPSHOT_COLLECTOR_REVIEW_ONLY`,
+  `request_ready=true`, `collector_activation_allowed=false`,
+  `runtime_evidence_write_allowed=false`, `deploy_or_env_change_allowed=false`,
+  and `order_allowed=false`. This is only a request template for later operator
+  review; it does not activate collectors, write runtime evidence, call SSH/MCP,
+  deploy, change production env, relax policy, place orders, modify OCO, or
+  mutate DB/exchange state.
 - To package an exact OCO route dry-run as an operator review request only, run:
 
   ```powershell

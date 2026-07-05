@@ -1765,6 +1765,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_direct_operator_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_runtime_proof_gap_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_candidate_runtime_snapshot_collector_review_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_duplicate_hash_replay_protection_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_blocker_decision_packet.ps1"

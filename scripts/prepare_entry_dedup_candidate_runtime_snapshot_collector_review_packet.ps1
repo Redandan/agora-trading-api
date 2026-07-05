@@ -235,7 +235,9 @@ $serviceRequiredMarkers = @(
     'firstBoolean(context, "intentCreated")',
     'firstDecimal(context, "entryPrice", "entry", "signalPrice", "currentPrice")',
     'firstDecimal(context, "tpPrice", "takeProfitPrice", "takeProfit", "tp")',
-    'firstDecimal(context, "slPrice", "stopLossPrice", "stopLoss", "sl")'
+    'firstDecimal(context, "slPrice", "stopLossPrice", "stopLoss", "sl")',
+    'copyIfPresent(context, exposure, "dailyCapSnapshot")',
+    'copyIfPresent(context, exposure, "maxLossSnapshot")'
 )
 $optimizerRequiredMarkers = @(
     "candidateSnapshotCollectorStatus",
@@ -247,6 +249,8 @@ $optimizerRequiredMarkers = @(
     "entryPrice",
     "tpPrice",
     "slPrice",
+    "dailyCapSnapshot",
+    "maxLossSnapshot",
     "candidateContinuedToEv",
     "candidateContinuedToTqs",
     "runtimeEvidencePolicyMode",

@@ -731,12 +731,31 @@ public class RuntimeDecisionEvidenceService {
     private String resolveExposureSnapshotJson(JsonNode context) {
         ObjectNode exposure = objectMapper.createObjectNode();
         copyIfPresent(context, exposure, "capital");
+        copyIfPresent(context, exposure, "capitalUsdt");
         copyIfPresent(context, exposure, "actualExposure");
+        copyIfPresent(context, exposure, "actualExposureUsdt");
         copyIfPresent(context, exposure, "actualExposurePct");
+        copyIfPresent(context, exposure, "actualExposureCapPct");
         copyIfPresent(context, exposure, "openMaxLoss");
+        copyIfPresent(context, exposure, "openMaxLossUsdt");
+        copyIfPresent(context, exposure, "openMaxLossCapUsdt");
+        copyIfPresent(context, exposure, "candidateMaxLossUsdt");
+        copyIfPresent(context, exposure, "maxLossIfWrongUsdt");
+        copyIfPresent(context, exposure, "projectedOpenMaxLossUsdt");
+        copyIfPresent(context, exposure, "maxLossCapRemainingUsdt");
+        copyIfPresent(context, exposure, "maxLossSnapshot");
         copyIfPresent(context, exposure, "freeUsdt");
         copyIfPresent(context, exposure, "exposureBefore");
         copyIfPresent(context, exposure, "exposureAfter");
+        copyIfPresent(context, exposure, "dailyCapScope");
+        copyIfPresent(context, exposure, "dailyCapUsed");
+        copyIfPresent(context, exposure, "dailyCapLimit");
+        copyIfPresent(context, exposure, "dailyCapRemaining");
+        copyIfPresent(context, exposure, "dailyCapCountSinceUtc");
+        copyIfPresent(context, exposure, "shadowDailyCapUsed");
+        copyIfPresent(context, exposure, "shadowDailyCapLimit");
+        copyIfPresent(context, exposure, "shadowDailyCapRemaining");
+        copyIfPresent(context, exposure, "dailyCapSnapshot");
         if (exposure.isEmpty()) {
             exposure.put("status", "NOT_CAPTURED");
         }

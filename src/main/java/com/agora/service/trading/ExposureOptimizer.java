@@ -111,6 +111,8 @@ public class ExposureOptimizer {
         double microAddNotional = getDouble(config, "microAddNotionalUsdt", 5.0);
         double microAddMaxSameStrategyExposure = getDouble(config, "microAddMaxSameStrategyExposureUsdt", 75.0);
         double candidateMaxLoss = Math.max(0.0, microAddNotional) * Math.max(0.0, candidateStopLossPct);
+        BigDecimal candidateMaxLossMoney = BigDecimal.valueOf(candidateMaxLoss);
+        BigDecimal projectedOpenMaxLoss = openMaxLoss.add(candidateMaxLossMoney);
         boolean blockSameSymbolLong = getBoolean(config, "exposureOptimizerBlockSameSymbolLong", true);
         boolean microAddLiveEnabled = getBoolean(config, "microAddLiveEnabled", false)
                 || "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE".equals(dedupMode);
@@ -141,15 +143,37 @@ public class ExposureOptimizer {
         ctx.put("entry_dedup_decision_mode", dedupMode);
         ctx.put("open_auto_position_count", open.size());
         ctx.put("actual_exposure_usdt", plain(actualExposure));
+        ctx.put("actualExposureUsdt", plain(actualExposure));
         ctx.put("open_max_loss_usdt", plain(openMaxLoss));
+        ctx.put("openMaxLoss", plain(openMaxLoss));
+        ctx.put("openMaxLossUsdt", plain(openMaxLoss));
         ctx.put("daily_new_auto_entries", todayEntries);
         ctx.put("daily_new_entry_cap", dailyCap);
+        ctx.put("dailyCapUsed", todayEntries);
+        ctx.put("dailyCapLimit", dailyCap);
+        ctx.put("dailyCapRemaining", remainingCount(dailyCap, todayEntries));
         ctx.put("shadow_daily_new_entries", shadowTodayEntries);
         ctx.put("shadow_daily_new_entry_cap", shadowDailyCap);
+        ctx.put("shadowDailyCapUsed", shadowTodayEntries);
+        ctx.put("shadowDailyCapLimit", shadowDailyCap);
+        ctx.put("shadowDailyCapRemaining", remainingCount(shadowDailyCap, shadowTodayEntries));
         ctx.put("daily_cap_scope", notifyOnly ? "SHADOW_NOTIFY_ONLY" : "LIVE_AUTO_TRADE");
+        ctx.put("dailyCapScope", notifyOnly ? "SHADOW_NOTIFY_ONLY" : "LIVE_AUTO_TRADE");
+        ctx.put("dailyCapCountSinceUtc", dayStart.toString());
+        ctx.put("dailyCapSnapshot", dailyCapSnapshot(notifyOnly, dailyCap, todayEntries,
+                shadowDailyCap, shadowTodayEntries, dayStart));
         ctx.put("capital_usdt", capitalUsdt > 0 ? capitalUsdt : "unconfigured");
+        ctx.put("capitalUsdt", capitalUsdt > 0 ? capitalUsdt : "unconfigured");
         ctx.put("actual_exposure_cap_pct", exposureCapPct);
+        ctx.put("actualExposureCapPct", exposureCapPct);
         ctx.put("open_max_loss_cap_usdt", maxLossCap);
+        ctx.put("openMaxLossCapUsdt", maxLossCap);
+        ctx.put("candidateMaxLossUsdt", round(candidateMaxLoss));
+        ctx.put("maxLossIfWrongUsdt", round(candidateMaxLoss));
+        ctx.put("projectedOpenMaxLossUsdt", plain(projectedOpenMaxLoss));
+        ctx.put("maxLossCapRemainingUsdt", maxLossCapRemaining(maxLossCap, openMaxLoss));
+        ctx.put("maxLossSnapshot", maxLossSnapshot(maxLossCap, openMaxLoss, candidateMaxLossMoney,
+                projectedOpenMaxLoss));
         ctx.put("notify_only", notifyOnly);
         ctx.put("write_mode", false);
         enrichCandidateRuntimeSnapshot(ctx, strategy, symbol, intervalCode, expectedR,
@@ -385,6 +409,47 @@ public class ExposureOptimizer {
             return configured;
         }
         return Math.max(liveDailyCap, 2);
+    }
+
+    private static long remainingCount(int limit, long used) {
+        if (limit <= 0) {
+            return -1L;
+        }
+        return Math.max(0L, (long) limit - used);
+    }
+
+    private static String dailyCapSnapshot(boolean notifyOnly,
+                                           int liveLimit,
+                                           long liveUsed,
+                                           int shadowLimit,
+                                           long shadowUsed,
+                                           LocalDateTime countSinceUtc) {
+        return "scope=" + (notifyOnly ? "SHADOW_NOTIFY_ONLY" : "LIVE_AUTO_TRADE")
+                + ";liveUsed=" + liveUsed
+                + ";liveLimit=" + liveLimit
+                + ";liveRemaining=" + remainingCount(liveLimit, liveUsed)
+                + ";shadowUsed=" + shadowUsed
+                + ";shadowLimit=" + shadowLimit
+                + ";shadowRemaining=" + remainingCount(shadowLimit, shadowUsed)
+                + ";countSinceUtc=" + countSinceUtc;
+    }
+
+    private static String maxLossCapRemaining(double maxLossCap, BigDecimal openMaxLoss) {
+        if (maxLossCap <= 0) {
+            return "unlimited";
+        }
+        return plain(BigDecimal.valueOf(maxLossCap).subtract(openMaxLoss).max(BigDecimal.ZERO));
+    }
+
+    private static String maxLossSnapshot(double maxLossCap,
+                                          BigDecimal openMaxLoss,
+                                          BigDecimal candidateMaxLoss,
+                                          BigDecimal projectedOpenMaxLoss) {
+        return "open=" + plain(openMaxLoss)
+                + ";cap=" + (maxLossCap > 0 ? BigDecimal.valueOf(maxLossCap).stripTrailingZeros().toPlainString() : "unlimited")
+                + ";candidate=" + plain(candidateMaxLoss)
+                + ";projected=" + plain(projectedOpenMaxLoss)
+                + ";remaining=" + maxLossCapRemaining(maxLossCap, openMaxLoss);
     }
 
     private static String shortHash(Object... parts) {

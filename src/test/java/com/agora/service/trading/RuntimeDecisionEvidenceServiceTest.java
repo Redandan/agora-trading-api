@@ -1,5 +1,6 @@
 package com.agora.service.trading;
 
+import com.agora.model.BtDecisionAudit;
 import com.agora.model.RuntimeDecisionEvidence;
 import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
@@ -10,9 +11,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -91,6 +94,69 @@ class RuntimeDecisionEvidenceServiceTest {
                 .contains("nonAutonomousOrderEvidence=0")
                 .contains("no-unintended-order-proof")
                 .contains("riskScalingMode=BLOCKED_SAFETY");
+    }
+
+    @Test
+    void writeFromDecisionAuditCopiesBudgetSnapshotsToExposureSnapshot() {
+        ReflectionTestUtils.setField(service, "enabled", true);
+        BtDecisionAudit audit = new BtDecisionAudit();
+        audit.setId(99L);
+        audit.setEventTime(LocalDateTime.parse("2026-07-05T06:00:00"));
+        audit.setStrategyId(508L);
+        audit.setSymbol("BTCUSDT");
+        audit.setIntervalCode("1h");
+        audit.setEventType("ENTRY_SKIP");
+        audit.setOutcome("BLOCKED");
+        audit.setBlocker("EntryDedup");
+        audit.setReason("same strategy/symbol/interval LONG exposure already exists");
+        audit.setContextJson("{"
+                + "\"side\":\"LONG\","
+                + "\"selectedAction\":\"ENTRY_DEDUP_SHADOW_CANDIDATE_SNAPSHOT\","
+                + "\"executionMode\":\"SHADOW\","
+                + "\"expected_r\":0.42,"
+                + "\"min_expected_r\":0.2,"
+                + "\"riskGateResult\":\"ENTRY_DEDUP_OR_EXPOSURE_BLOCK_WITH_CANDIDATE_SNAPSHOT\","
+                + "\"entryPrice\":\"101000\","
+                + "\"tpPrice\":\"106050\","
+                + "\"slPrice\":\"95950\","
+                + "\"dailyCapScope\":\"LIVE_AUTO_TRADE\","
+                + "\"dailyCapUsed\":0,"
+                + "\"dailyCapLimit\":1,"
+                + "\"dailyCapRemaining\":1,"
+                + "\"dailyCapSnapshot\":\"scope=LIVE_AUTO_TRADE;liveUsed=0;liveLimit=1;liveRemaining=1\","
+                + "\"openMaxLoss\":\"12\","
+                + "\"openMaxLossUsdt\":\"12\","
+                + "\"openMaxLossCapUsdt\":1000.0,"
+                + "\"candidateMaxLossUsdt\":0.25,"
+                + "\"maxLossIfWrongUsdt\":0.25,"
+                + "\"projectedOpenMaxLossUsdt\":\"12.25\","
+                + "\"maxLossCapRemainingUsdt\":\"988\","
+                + "\"maxLossSnapshot\":\"open=12;cap=1000;candidate=0.25;projected=12.25;remaining=988\","
+                + "\"orderSent\":false,"
+                + "\"intentCreated\":true,"
+                + "\"ocoPlanCreated\":true,"
+                + "\"suppressionReason\":\"SHADOW_MODE\","
+                + "\"runtimeEvidencePolicyMode\":\"BLOCK\","
+                + "\"runtimeEvidencePolicyReason\":\"ExposureOptimizer/EntryDedup kept original block\""
+                + "}");
+
+        when(repository.findByDecisionId(99L)).thenReturn(Optional.empty());
+        when(repository.save(any(RuntimeDecisionEvidence.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(autopilotPolicyService.decide(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AutopilotPolicyService.Decision("BLOCK", "test policy", "{}"));
+        when(probePositionExecutorDryRunService.previewJson(any())).thenReturn("{}");
+
+        Optional<RuntimeDecisionEvidence> written = service.writeFromDecisionAudit(audit);
+
+        assertThat(written).isPresent();
+        assertThat(written.get().getExposureSnapshotJson())
+                .contains("\"dailyCapSnapshot\":\"scope=LIVE_AUTO_TRADE;liveUsed=0;liveLimit=1;liveRemaining=1\"")
+                .contains("\"maxLossSnapshot\":\"open=12;cap=1000;candidate=0.25;projected=12.25;remaining=988\"")
+                .contains("\"dailyCapLimit\":1")
+                .contains("\"candidateMaxLossUsdt\":0.25")
+                .contains("\"maxLossIfWrongUsdt\":0.25");
+        assertThat(written.get().getOrderSent()).isFalse();
+        assertThat(written.get().getSuppressionReason()).isEqualTo("SHADOW_MODE");
     }
 
     private RuntimeDecisionEvidence evidence(String symbol) {

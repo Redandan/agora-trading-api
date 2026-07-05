@@ -37,6 +37,8 @@ foreach ($marker in @(
         "EVIDENCE_ONLY_NO_ORDER_NO_POLICY_CHANGE",
         "duplicateCandidateHash",
         "replayCandidateId",
+        "dailyCapSnapshot",
+        "maxLossSnapshot",
         "edsr1_",
         "collectorActivationAllowed = `$false",
         "runtimeEvidenceWriteAllowed = `$false",
@@ -150,7 +152,9 @@ try {
         'firstBoolean(context, "intentCreated");',
         'firstDecimal(context, "entryPrice", "entry", "signalPrice", "currentPrice");',
         'firstDecimal(context, "tpPrice", "takeProfitPrice", "takeProfit", "tp");',
-        'firstDecimal(context, "slPrice", "stopLossPrice", "stopLoss", "sl");'
+        'firstDecimal(context, "slPrice", "stopLossPrice", "stopLoss", "sl");',
+        'copyIfPresent(context, exposure, "dailyCapSnapshot");',
+        'copyIfPresent(context, exposure, "maxLossSnapshot");'
     )
     Set-Content -LiteralPath $optimizerPath -Encoding UTF8 -Value @(
         "candidateSnapshotCollectorStatus",
@@ -158,6 +162,8 @@ try {
         "EVIDENCE_ONLY_NO_ORDER_NO_POLICY_CHANGE",
         "duplicateCandidateHash",
         "replayCandidateId",
+        "dailyCapSnapshot",
+        "maxLossSnapshot",
         "edsr1_",
         "entryPrice",
         "tpPrice",

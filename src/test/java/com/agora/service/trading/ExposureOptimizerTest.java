@@ -141,6 +141,17 @@ class ExposureOptimizerTest {
                 .containsEntry("ev_reason", "pass")
                 .containsEntry("candidateContinuedToEv", true)
                 .containsEntry("candidateContinuedToTqs", true)
+                .containsEntry("dailyCapUsed", 0L)
+                .containsEntry("dailyCapLimit", 1)
+                .containsEntry("dailyCapRemaining", 1L)
+                .containsEntry("dailyCapScope", "LIVE_AUTO_TRADE")
+                .containsEntry("openMaxLoss", "12")
+                .containsEntry("openMaxLossUsdt", "12")
+                .containsEntry("openMaxLossCapUsdt", 1000.0)
+                .containsEntry("candidateMaxLossUsdt", 0.25)
+                .containsEntry("maxLossIfWrongUsdt", 0.25)
+                .containsEntry("projectedOpenMaxLossUsdt", "12.25")
+                .containsEntry("maxLossCapRemainingUsdt", "988")
                 .containsEntry("intentCreated", true)
                 .containsEntry("ocoPlanCreated", true)
                 .containsEntry("orderSent", false)
@@ -152,6 +163,17 @@ class ExposureOptimizerTest {
                 .containsEntry("suppressionReason", "SHADOW_MODE")
                 .containsEntry("runtimeEvidencePolicyMode", "BLOCK")
                 .containsEntry("selectedAction", "ENTRY_DEDUP_SHADOW_CANDIDATE_SNAPSHOT");
+        assertThat(result.context().get("dailyCapSnapshot")).asString()
+                .contains("scope=LIVE_AUTO_TRADE")
+                .contains("liveUsed=0")
+                .contains("liveLimit=1")
+                .contains("liveRemaining=1");
+        assertThat(result.context().get("maxLossSnapshot")).asString()
+                .contains("open=12")
+                .contains("cap=1000")
+                .contains("candidate=0.25")
+                .contains("projected=12.25")
+                .contains("remaining=988");
         assertThat(result.context().get("duplicateCandidateHash")).asString().hasSize(24);
         assertThat(result.context().get("replayCandidateId")).asString().startsWith("edsr1_");
     }

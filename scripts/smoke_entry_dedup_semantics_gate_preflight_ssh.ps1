@@ -290,7 +290,8 @@ SELECT
   COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(ev_result_json, '$.status')), '') <> 'NOT_EVALUATED' THEN 1 ELSE 0 END), 0) AS runtime_ev_evaluated_rows,
   COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> 'NOT_CREATED' THEN 1 ELSE 0 END), 0) AS runtime_entry_plan_rows,
   COALESCE(SUM(CASE WHEN COALESCE(oco_plan_created, 0) = 1 OR (COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> 'NOT_CREATED') THEN 1 ELSE 0 END), 0) AS runtime_oco_plan_rows,
-  COALESCE(SUM(CASE WHEN COALESCE(order_sent, 0) = 1 THEN 1 ELSE 0 END), 0) AS runtime_order_sent_rows
+  COALESCE(SUM(CASE WHEN COALESCE(order_sent, 0) = 1 THEN 1 ELSE 0 END), 0) AS runtime_order_sent_rows,
+  COALESCE(SUM(CASE WHEN (COALESCE(exposure_snapshot_json, '') LIKE '%dailyCapSnapshot%' OR COALESCE(exposure_snapshot_json, '') LIKE '%maxLossSnapshot%' OR COALESCE(exposure_snapshot_json, '') LIKE '%dailyCapLimit%' OR COALESCE(exposure_snapshot_json, '') LIKE '%candidateMaxLossUsdt%') THEN 1 ELSE 0 END), 0) AS runtime_budget_snapshot_rows
 FROM bt_runtime_decision_evidence
 WHERE symbol = '{symbol_sql}'
   AND strategy_id = {strategy_id}
@@ -304,7 +305,8 @@ SELECT
   COALESCE(SUM(CASE WHEN event_type = 'FILTER_BLOCK' AND blocker = 'ExpectedValueGate' THEN 1 ELSE 0 END), 0) AS ev_block_rows,
   COALESCE(SUM(CASE WHEN event_type = 'FILTER_BLOCK' AND blocker = 'EventRiskControl' THEN 1 ELSE 0 END), 0) AS eventrisk_block_rows,
   COALESCE(SUM(CASE WHEN event_type = 'ENTRY_SKIP' AND blocker = 'DuplicateBar' THEN 1 ELSE 0 END), 0) AS duplicate_bar_rows,
-  COALESCE(SUM(CASE WHEN (blocker LIKE '%Daily%' OR blocker LIKE '%Loss%' OR reason LIKE '%daily learning cap%' OR reason LIKE '%cap reached%' OR reason LIKE '%max loss%') THEN 1 ELSE 0 END), 0) AS cap_or_loss_rows
+  COALESCE(SUM(CASE WHEN (blocker LIKE '%Daily%' OR blocker LIKE '%Loss%' OR reason LIKE '%daily learning cap%' OR reason LIKE '%cap reached%' OR reason LIKE '%max loss%') THEN 1 ELSE 0 END), 0) AS cap_or_loss_rows,
+  COALESCE(SUM(CASE WHEN (context_json LIKE '%dailyCapSnapshot%' OR context_json LIKE '%maxLossSnapshot%' OR context_json LIKE '%dailyCapLimit%' OR context_json LIKE '%candidateMaxLossUsdt%') THEN 1 ELSE 0 END), 0) AS budget_snapshot_rows
 FROM bt_decision_audit FORCE INDEX (idx_audit_symbol_time)
 WHERE symbol = '{symbol_sql}'
   AND strategy_id = {strategy_id}
@@ -329,9 +331,10 @@ runtime_fields = [
     "runtime_entry_plan_rows",
     "runtime_oco_plan_rows",
     "runtime_order_sent_rows",
+    "runtime_budget_snapshot_rows",
 ]
 runtime_evidence = row_dict(runtime_fields, run_query(runtime_evidence_sql)[0])
-gate_fields = ["ev_pass_like_rows", "ev_block_rows", "eventrisk_block_rows", "duplicate_bar_rows", "cap_or_loss_rows"]
+gate_fields = ["ev_pass_like_rows", "ev_block_rows", "eventrisk_block_rows", "duplicate_bar_rows", "cap_or_loss_rows", "budget_snapshot_rows"]
 global_gates = row_dict(gate_fields, run_query(global_gate_sql)[0])
 
 def nearby_counts(candidate):
@@ -343,6 +346,7 @@ SELECT
   COALESCE(SUM(CASE WHEN event_type = 'FILTER_BLOCK' AND blocker = 'EventRiskControl' THEN 1 ELSE 0 END), 0) AS eventrisk_block_rows,
   COALESCE(SUM(CASE WHEN event_type = 'ENTRY_SKIP' AND blocker = 'DuplicateBar' THEN 1 ELSE 0 END), 0) AS duplicate_bar_rows,
   COALESCE(SUM(CASE WHEN (blocker LIKE '%Daily%' OR blocker LIKE '%Loss%' OR reason LIKE '%daily learning cap%' OR reason LIKE '%cap reached%' OR reason LIKE '%max loss%') THEN 1 ELSE 0 END), 0) AS cap_or_loss_rows,
+  COALESCE(SUM(CASE WHEN (context_json LIKE '%dailyCapSnapshot%' OR context_json LIKE '%maxLossSnapshot%' OR context_json LIKE '%dailyCapLimit%' OR context_json LIKE '%candidateMaxLossUsdt%') THEN 1 ELSE 0 END), 0) AS budget_snapshot_rows,
   COALESCE(SUM(CASE WHEN event_type = 'ENTRY_SKIP' AND blocker = 'EntryDedup' THEN 1 ELSE 0 END), 0) AS entry_dedup_rows
 FROM bt_decision_audit FORCE INDEX (idx_audit_symbol_time)
 WHERE symbol = '{symbol_sql}'
@@ -350,7 +354,7 @@ WHERE symbol = '{symbol_sql}'
   AND COALESCE(interval_code, 'N/A') = '{interval_sql}'
   AND event_time BETWEEN DATE_SUB('{anchor}', INTERVAL 2 HOUR) AND DATE_ADD('{anchor}', INTERVAL 2 HOUR)
 """
-    fields = ["ev_pass_like_rows", "ev_block_rows", "eventrisk_block_rows", "duplicate_bar_rows", "cap_or_loss_rows", "entry_dedup_rows"]
+    fields = ["ev_pass_like_rows", "ev_block_rows", "eventrisk_block_rows", "duplicate_bar_rows", "cap_or_loss_rows", "budget_snapshot_rows", "entry_dedup_rows"]
     return row_dict(fields, run_query(sql)[0])
 
 def nearby_runtime_counts(candidate):
@@ -361,7 +365,8 @@ SELECT
   COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(ev_result_json, '$.status')), '') <> 'NOT_EVALUATED' THEN 1 ELSE 0 END), 0) AS runtime_ev_evaluated_rows,
   COALESCE(SUM(CASE WHEN COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.entryPlan.status')), '') <> 'NOT_CREATED' THEN 1 ELSE 0 END), 0) AS runtime_entry_plan_rows,
   COALESCE(SUM(CASE WHEN COALESCE(oco_plan_created, 0) = 1 OR (COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.ocoPlan.status')), '') <> 'NOT_CREATED') THEN 1 ELSE 0 END), 0) AS runtime_oco_plan_rows,
-  COALESCE(SUM(CASE WHEN COALESCE(order_sent, 0) = 1 THEN 1 ELSE 0 END), 0) AS runtime_order_sent_rows
+  COALESCE(SUM(CASE WHEN COALESCE(order_sent, 0) = 1 THEN 1 ELSE 0 END), 0) AS runtime_order_sent_rows,
+  COALESCE(SUM(CASE WHEN (COALESCE(exposure_snapshot_json, '') LIKE '%dailyCapSnapshot%' OR COALESCE(exposure_snapshot_json, '') LIKE '%maxLossSnapshot%' OR COALESCE(exposure_snapshot_json, '') LIKE '%dailyCapLimit%' OR COALESCE(exposure_snapshot_json, '') LIKE '%candidateMaxLossUsdt%') THEN 1 ELSE 0 END), 0) AS runtime_budget_snapshot_rows
 FROM bt_runtime_decision_evidence
 WHERE symbol = '{symbol_sql}'
   AND strategy_id = {strategy_id}
@@ -396,6 +401,7 @@ ev_candidate_block_rows = sum(1 for item in candidate_previews if item["ev_block
 eventrisk_candidate_block_rows = sum(1 for item in candidate_previews if item["eventrisk_block_rows"] > 0)
 duplicate_candidate_rows = sum(1 for item in candidate_previews if item["duplicate_bar_rows"] > 0)
 cap_loss_candidate_rows = sum(1 for item in candidate_previews if item["cap_or_loss_rows"] > 0)
+budget_snapshot_candidate_rows = sum(1 for item in candidate_previews if item["budget_snapshot_rows"] > 0 or item["runtime_budget_snapshot_rows"] > 0)
 runtime_candidate_rows = sum(1 for item in candidate_previews if item["runtime_evidence_rows"] > 0)
 runtime_ev_candidate_rows = sum(1 for item in candidate_previews if item["runtime_ev_evaluated_rows"] > 0)
 runtime_entry_plan_candidate_rows = sum(1 for item in candidate_previews if item["runtime_entry_plan_rows"] > 0)
@@ -420,6 +426,10 @@ else:
 duplicate_gate_status = "PARTIAL_ENTRY_DEDUP_CANDIDATES_SEEN_EXACT_HASH_NOT_PROVEN" if candidates else "NO_RECENT_ENTRY_DEDUP_CANDIDATES"
 if cap_loss_candidate_rows > 0:
     budget_gate_status = "BLOCKED_CANDIDATE_CAP_OR_LOSS_ROWS_PRESENT"
+elif budget_snapshot_candidate_rows > 0:
+    budget_gate_status = "CLEARED_CANDIDATE_BUDGET_SNAPSHOT_PRESENT"
+elif as_int(global_gates.get("budget_snapshot_rows")) > 0 or as_int(runtime_evidence.get("runtime_budget_snapshot_rows")) > 0:
+    budget_gate_status = "PARTIAL_GLOBAL_BUDGET_SNAPSHOT_NOT_CANDIDATE"
 elif as_int(global_gates.get("cap_or_loss_rows")) > 0:
     budget_gate_status = "PARTIAL_GLOBAL_CAP_OR_LOSS_ROWS_NOT_CANDIDATE_BLOCKER"
 else:
@@ -480,6 +490,7 @@ packet = {
             "eventRiskBlockRows": eventrisk_candidate_block_rows,
             "duplicateBarRows": duplicate_candidate_rows,
             "capOrLossRows": cap_loss_candidate_rows,
+            "budgetSnapshotRows": budget_snapshot_candidate_rows,
             "runtimeEvidenceRows": runtime_candidate_rows,
             "runtimeEvEvaluatedRows": runtime_ev_candidate_rows,
             "runtimeEntryPlanRows": runtime_entry_plan_candidate_rows,
@@ -537,6 +548,7 @@ print(f"  candidate_ev_block_rows={ev_candidate_block_rows}")
 print(f"  candidate_eventrisk_block_rows={eventrisk_candidate_block_rows}")
 print(f"  candidate_duplicate_bar_rows={duplicate_candidate_rows}")
 print(f"  candidate_cap_or_loss_rows={cap_loss_candidate_rows}")
+print(f"  candidate_budget_snapshot_rows={budget_snapshot_candidate_rows}")
 print(f"  candidate_runtime_evidence_rows={runtime_candidate_rows}")
 print(f"  candidate_runtime_ev_evaluated_rows={runtime_ev_candidate_rows}")
 print(f"  candidate_runtime_entry_plan_rows={runtime_entry_plan_candidate_rows}")
@@ -551,7 +563,7 @@ else:
         print(
             "  - auditId={audit_id} event={event_time} anchor={anchor_time} liveSignalId={live_signal_id} "
             "evPassLike={ev_pass_like_rows} evBlock={ev_block_rows} eventRiskBlock={eventrisk_block_rows} "
-            "duplicateBar={duplicate_bar_rows} capOrLoss={cap_or_loss_rows} runtimeRows={runtime_evidence_rows} "
+            "duplicateBar={duplicate_bar_rows} capOrLoss={cap_or_loss_rows} budgetSnapshot={budget_snapshot_rows}/{runtime_budget_snapshot_rows} runtimeRows={runtime_evidence_rows} "
             "runtimeEv={runtime_ev_evaluated_rows} runtimeEntryPlan={runtime_entry_plan_rows} "
             "runtimeOcoPlan={runtime_oco_plan_rows} entryDedupNearby={entry_dedup_rows} reason={reason}".format(
                 **{**item, "reason": (item.get("reason") or "NONE")[:120]}

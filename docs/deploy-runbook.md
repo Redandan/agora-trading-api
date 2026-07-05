@@ -3371,6 +3371,68 @@ Expected:
   activate writes, deploy, change production env, relax EntryDedup/DataFreshness
   or strategy thresholds, enable staged-add/live execution, place orders,
   modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+- After the runtime proof gap, collector review, duplicate-hash, OCO preflight,
+  exact EV/OCO coverage, and EventRiskControl packets are refreshed, summarize
+  the EntryDedup review-only shadow lane in one bundle:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_review_only_shadow_bundle_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_review_only_shadow_bundle_status=READY_FOR_ENTRY_DEDUP_REVIEW_ONLY_SHADOW_BUNDLE_NOT_LIVE`,
+  `entry_dedup_review_only_shadow_bundle_shadow_review_ready=true`,
+  `entry_dedup_review_only_shadow_bundle_mutation_ready=false`,
+  `entry_dedup_review_only_shadow_bundle_remaining_mutation_blockers`,
+  and `order_allowed=false`. This packet is a review-only summary; it does not
+  activate collectors, write runtime evidence, relax EntryDedup/DataFreshness/
+  live policy, enable staged-add/live execution, place orders, modify OCO, send
+  Telegram, deploy, change production env, or mutate DB/grid/fund/Earn/exchange
+  state.
+- To turn the remaining mutation blockers into an operator handoff without
+  clearing them, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_mutation_blocker_handoff_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_mutation_blocker_handoff_status=READY_FOR_ENTRY_DEDUP_MUTATION_BLOCKER_HANDOFF_NOT_LIVE`,
+  `entry_dedup_mutation_blocker_handoff_blocker_count`,
+  `entry_dedup_mutation_blocker_handoff_next_review_actions`,
+  `mutation_ready=false`, and `order_allowed=false`. Typical next review
+  actions are open-exposure review, exact OCO route dry-run review, candidate
+  runtime snapshots, production daily-cap/max-loss snapshots, and historical
+  EventRisk row review. This packet is not an approval to execute any of those
+  actions.
+- To isolate non-auto or missing-OCO open exposure before any future mutation
+  request, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_open_exposure_review_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_open_exposure_review_status=READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_REVIEW_NOT_LIVE`,
+  `entry_dedup_open_exposure_review_classification`,
+  `entry_dedup_open_exposure_review_required_before_mutation=true` when
+  non-auto/missing-OCO rows remain, `open_exposure_mutation_allowed=false`, and
+  `order_allowed=false`. The packet reviews evidence only; it does not classify
+  or resolve rows, change exposure semantics, deploy, write runtime evidence,
+  place orders, modify OCO, or mutate DB/exchange state.
+- To package an exact OCO route dry-run as an operator review request only, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_oco_route_dry_run_request_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_oco_route_dry_run_request_status=READY_FOR_ENTRY_DEDUP_OCO_ROUTE_DRY_RUN_REQUEST_REVIEW_NOT_LIVE`,
+  `entry_dedup_oco_route_dry_run_request_confirm_text=AUTHORIZE_ENTRY_DEDUP_OCO_ROUTE_DRY_RUN_REVIEW_ONLY`,
+  `request_ready=true`, `exchange_dry_run_execution_allowed=false`, and
+  `order_allowed=false`. This is only a request template for later operator
+  review; it does not run an exchange dry-run, call SSH/MCP, relax policy,
+  place orders, modify OCO, deploy, or change production env.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

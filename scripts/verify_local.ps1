@@ -1774,6 +1774,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_mutation_blocker_handoff_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_open_exposure_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_runtime_snapshot_collector_activation_request_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_budget_snapshot_review_request_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_oco_route_dry_run_request_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_preflight_review_packet.ps1"

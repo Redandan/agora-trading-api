@@ -3453,6 +3453,22 @@ Expected:
   review; it does not activate collectors, write runtime evidence, call SSH/MCP,
   deploy, change production env, relax policy, place orders, modify OCO, or
   mutate DB/exchange state.
+- To isolate the daily-cap/max-loss runtime snapshot gap as a review request
+  only, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_budget_snapshot_review_request_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_budget_snapshot_review_request_status=READY_FOR_ENTRY_DEDUP_DAILY_CAP_MAX_LOSS_SNAPSHOT_REVIEW_REQUEST_NOT_LIVE`,
+  `entry_dedup_budget_snapshot_review_request_classification=PRODUCTION_DAILY_CAP_MAX_LOSS_RUNTIME_SNAPSHOT_REQUIRED`,
+  `entry_dedup_budget_snapshot_review_request_confirm_text=AUTHORIZE_ENTRY_DEDUP_DAILY_CAP_MAX_LOSS_SNAPSHOT_REVIEW_ONLY`,
+  `budget_snapshot_review_request_ready=true`,
+  `runtime_evidence_write_allowed=false`,
+  `deploy_or_env_change_allowed=false`, and `order_allowed=false`. This request
+  does not activate collectors, write runtime evidence, deploy, change env,
+  relax policy, place orders, modify OCO, or mutate DB/exchange state.
 - To package an exact OCO route dry-run as an operator review request only, run:
 
   ```powershell

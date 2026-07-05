@@ -377,6 +377,34 @@ Expected:
   operator review. The script does not change production env, deploy, restart,
   place orders, modify OCO, change grid/fund/Earn/Telegram state, mutate DB,
   change schedulers, or run external backfill/import.
+- To watch for the next LOCAL_TRADINGVIEW parity BUY without repeatedly running
+  the full readiness wrapper, run:
+
+  ```powershell
+  .\scripts\watch_local_tradingview_buy_candidate_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+  ```
+
+  The watcher invokes `smoke_local_tradingview_candidate_ssh.ps1` on every
+  attempt and invokes `smoke_local_tradingview_only_readiness_ssh.ps1` only
+  after `HAS_CURRENT_BUY_CANDIDATE` appears, unless
+  `-RunFullReadinessEveryAttempt` is passed. It emits
+  `local_tradingview_buy_candidate_watch_status`,
+  `local_tradingview_buy_candidate_watch_current_candidate_status`,
+  `local_tradingview_buy_candidate_watch_pre_execution_blockers`,
+  `local_tradingview_buy_candidate_watch_only_status`,
+  `local_tradingview_buy_candidate_watch_only_blockers`,
+  `local_tradingview_buy_candidate_watch_effective_notional_usdt`, and
+  `local_tradingview_buy_candidate_watch_next_action`. `WAIT_BUY` means the
+  latest closed bar still has no parity BUY.
+  `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means the current BUY exists
+  and the LocalTradingView-only live-micro/pre-execution gates are clear.
+  `BLOCKED_CURRENT_BUY_CANDIDATE` means the current BUY exists but is not yet
+  executable. Use `-RequireReady` only for fail-fast monitoring. The watcher is
+  read-only and prints
+  `notAuthorization=read-only LOCAL_TRADINGVIEW BUY candidate watcher only`; it
+  does not change production env, deploy, restart, place orders, modify OCO,
+  send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
+  run external backfill/import.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

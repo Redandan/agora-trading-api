@@ -995,6 +995,38 @@ operator review. It does not change production env, deploy, restart, place
 orders, modify OCO, change grid/fund/Earn/Telegram state, mutate DB, change
 schedulers, or run external backfill/import.
 
+Bounded read-only LOCAL_TRADINGVIEW BUY candidate watch:
+
+```powershell
+.\scripts\watch_local_tradingview_buy_candidate_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+```
+
+This watcher is the day-to-day check for not missing the next TradingView parity
+BUY. Each attempt invokes `smoke_local_tradingview_candidate_ssh.ps1`; only when
+the latest closed bar reports `HAS_CURRENT_BUY_CANDIDATE` does it invoke
+`smoke_local_tradingview_only_readiness_ssh.ps1` to verify the full live-micro
+and pre-execution gate path. It emits
+`local_tradingview_buy_candidate_watch_status`,
+`local_tradingview_buy_candidate_watch_current_candidate_status`,
+`local_tradingview_buy_candidate_watch_pre_execution_blockers`,
+`local_tradingview_buy_candidate_watch_only_status`,
+`local_tradingview_buy_candidate_watch_only_blockers`,
+`local_tradingview_buy_candidate_watch_effective_notional_usdt`, and
+`local_tradingview_buy_candidate_watch_next_action`. `WAIT_BUY` means no
+current TradingView parity BUY has appeared yet.
+`READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means a current BUY exists and
+the LocalTradingView-only readiness wrapper found the live-micro path and
+pre-execution gates clear. `BLOCKED_CURRENT_BUY_CANDIDATE` means a current BUY
+exists but a LocalTradingView-only blocker must be fixed before treating it as
+executable. Use `-RequireReady` only for a fail-fast check that should exit
+non-zero unless the current BUY is ready. Use `-RunFullReadinessEveryAttempt`
+when you also want the full readiness wrapper on WAIT_BUY attempts. The watcher
+is read-only and keeps
+`notAuthorization=read-only LOCAL_TRADINGVIEW BUY candidate watcher only`; it
+does not deploy, restart, change production env, place orders, modify OCO,
+send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
+run external backfill/import.
+
 Guarded trailing-stop strategy opt-in execution wrapper:
 
 ```powershell

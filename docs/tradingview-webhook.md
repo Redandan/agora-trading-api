@@ -198,6 +198,21 @@ Docs/tooling-only origin drift is also reported as
 not require a runtime deploy for read-only script or documentation changes.
 It also keeps `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness
 evidence`.
+For bounded monitoring, use
+`.\scripts\watch_local_tradingview_buy_candidate_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300`.
+It emits `local_tradingview_buy_candidate_watch_status`,
+`local_tradingview_buy_candidate_watch_pre_execution_blockers`,
+`local_tradingview_buy_candidate_watch_only_status`, and
+`local_tradingview_buy_candidate_watch_next_action`. The watcher stays
+read-only: `WAIT_BUY` means no current parity BUY yet,
+`READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means a current BUY exists and
+the LocalTradingView-only readiness gates are clear, and
+`BLOCKED_CURRENT_BUY_CANDIDATE` means the current BUY exists but one focused
+blocker still prevents treating it as executable. It keeps
+`notAuthorization=read-only LOCAL_TRADINGVIEW BUY candidate watcher only` and
+does not deploy, change production env, place orders, modify OCO, send
+Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or run
+external backfill/import.
 
 Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
 distinguished from real TradingView webhook deliveries.

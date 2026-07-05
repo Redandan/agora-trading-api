@@ -3437,6 +3437,23 @@ Expected:
   `order_allowed=false`. The packet reviews evidence only; it does not classify
   or resolve rows, change exposure semantics, deploy, write runtime evidence,
   place orders, modify OCO, or mutate DB/exchange state.
+- To narrow the open-exposure blocker to a zero-qty non-auto semantics decision
+  without clearing it, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_open_exposure_semantic_resolution_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_open_exposure_semantic_resolution_status=READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_SEMANTIC_RESOLUTION_REVIEW_NOT_LIVE`,
+  `entry_dedup_open_exposure_semantic_resolution_decision=KEEP_OPEN_EXPOSURE_BLOCKED_PENDING_ZERO_QTY_NON_AUTO_SEMANTICS_REVIEW`,
+  `entry_dedup_open_exposure_semantic_resolution_zero_qty_missing_oco_semantics_review_required=true`,
+  `semantic_resolution_review_ready=true`,
+  `open_exposure_clearance_allowed=false`, `auto_clear_allowed=false`, and
+  `order_allowed=false`. The zero-qty non-auto row is a semantic blocker, not
+  order readiness; this packet does not resolve rows, clear exposure, change
+  code semantics, deploy, write runtime evidence, place orders, modify OCO, or
+  mutate DB/exchange state.
 - To package the runtime snapshot gap as a shadow collector activation review
   request only, run:
 

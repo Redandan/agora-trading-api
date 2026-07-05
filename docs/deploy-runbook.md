@@ -3454,6 +3454,22 @@ Expected:
   order readiness; this packet does not resolve rows, clear exposure, change
   code semantics, deploy, write runtime evidence, place orders, modify OCO, or
   mutate DB/exchange state.
+- To consolidate the post-semantic blocker order while keeping every mutation
+  blocked, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_post_semantic_blocker_priority_board.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_post_semantic_blocker_priority_board_status=READY_FOR_ENTRY_DEDUP_POST_SEMANTIC_BLOCKER_PRIORITY_BOARD_NOT_LIVE`,
+  `entry_dedup_post_semantic_blocker_priority_board_remaining_blocker_count=5`,
+  `entry_dedup_post_semantic_blocker_priority_board_next_blocker=OPEN_EXPOSURE_ZERO_QTY_NON_AUTO_SEMANTICS`,
+  `priority_board_ready=true`, `live_execution_ready=false`, and
+  `order_allowed=false`. This priority board is not order readiness and does
+  not clear blockers, activate collectors, write runtime evidence, change
+  semantics/policy, deploy, change production env, place orders, modify OCO, or
+  mutate DB/exchange state.
 - To package the runtime snapshot gap as a shadow collector activation review
   request only, run:
 

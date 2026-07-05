@@ -3498,6 +3498,25 @@ Expected:
   not order readiness and do not authorize collector activation, runtime
   evidence writes, policy relaxation, deploy/env changes, orders, OCO, DB, or
   exchange mutations.
+- To trace the EntryDedup review-only objective against its packaged evidence
+  packets, report marker, and runbook marker while keeping live execution
+  fail-closed, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_review_only_objective_traceability_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_review_only_objective_traceability_status=READY_FOR_ENTRY_DEDUP_REVIEW_ONLY_OBJECTIVE_TRACEABILITY_NOT_LIVE`,
+  `entry_dedup_review_only_objective_traceability_review_scope_status=REVIEW_ONLY_EVIDENCE_PACKAGED_LIVE_CLEARANCE_BLOCKED`,
+  `entry_dedup_review_only_objective_traceability_order_readiness=BLOCKED_REVIEW_REQUESTS_PACKAGED_NOT_LIVE`,
+  `traceability_ready=true`, `review_only_tooling_ready=true`,
+  `live_execution_ready=false`, and `order_allowed=false`. This packet is
+  review-only and does not authorize collector activation, runtime evidence
+  writes, EntryDedup/DataFreshness/live policy relaxation, staged-add/live
+  execution, scheduler enablement, orders, OCO/grid/fund/Earn/Telegram/exchange
+  mutations, DB changes, deploy, production env changes, or external
+  backfill/import.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

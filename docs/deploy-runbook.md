@@ -3470,6 +3470,23 @@ Expected:
   not clear blockers, activate collectors, write runtime evidence, change
   semantics/policy, deploy, change production env, place orders, modify OCO, or
   mutate DB/exchange state.
+- To explain the source-level gate mismatch behind the post-semantic no-buy
+  blocker without changing behavior, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_live_gate_semantics_diff_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_live_gate_semantics_diff_status=READY_FOR_ENTRY_DEDUP_LIVE_GATE_SEMANTICS_DIFF_REVIEW_NOT_LIVE`,
+  `entry_dedup_live_gate_semantics_diff_live_signal_gate_scope=ALL_EXIT_TIME_NULL_ROWS`,
+  `entry_dedup_live_gate_semantics_diff_staged_add_gate_scope=AUTO_TRADED_EXIT_TIME_NULL_ROWS`,
+  `entry_dedup_live_gate_semantics_diff_explains_current_no_buy=true`,
+  `source_review_ready=true`, `behavior_change_allowed=false`,
+  `live_gate_change_allowed=false`, and `order_allowed=false`. This gate
+  semantics diff is not a behavior change and does not clear exposure, change
+  Java gate semantics, deploy, change production env, place orders, modify OCO,
+  or mutate DB/exchange state.
 - To package the runtime snapshot gap as a shadow collector activation review
   request only, run:
 

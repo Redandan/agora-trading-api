@@ -1780,6 +1780,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_mutation_blocker_clearance_board_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_review_only_objective_traceability_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_post_semantic_blocker_priority_board.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_live_gate_semantics_diff_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_operator_decision_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_semantics_preflight_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_data_freshness_replay_blocker_decision_packet.ps1"

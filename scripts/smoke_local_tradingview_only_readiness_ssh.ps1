@@ -279,9 +279,38 @@ $liveMicroArmed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTra
 $ocoTracked = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOcoLifecycleTracked="
 $ocoStatus = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOcoLifecycleStatus="
 $candidateBlockersText = Get-JsonArrayText -Text $candidateText -Prefix "  local_tradingview_blockers="
+$preExecutionEvidenceStatus = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewPreExecutionEvidenceStatus="
+$preExecutionReadiness = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewPreExecutionReadiness="
+$preExecutionBlockersText = Get-JsonArrayText -Text $candidateText -Prefix "  local_tradingview_pre_execution_blockers="
+$scopeAllowed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewScopeAllowed="
+$sourceAllowed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewSourceAllowed="
+$okxAutoTradeEnabled = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOkxAutoTradeEnabled="
+$okxPrivateCredentialsConfigured = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOkxPrivateCredentialsConfigured="
+$notionalAccepted = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewNotionalAccepted="
+$effectiveNotionalUsdt = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewEffectiveNotionalUsdt="
+$exchangeMinNotionalUsdt = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewExchangeMinNotionalUsdt="
+$ocoPlanValid = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOcoPlanValid="
+$signalStale = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewSignalStale="
+$ordersToday = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOrdersToday="
+$maxOrdersPerDay = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewMaxOrdersPerDay="
+$dailyCapAvailable = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewDailyCapAvailable="
+$openSameStrategySymbol = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOpenSameStrategySymbol="
+$maxOpenPositions = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewMaxOpenPositions="
+$openPositionCapAvailable = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOpenPositionCapAvailable="
+$openExactPositionExists = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOpenExactPositionExists="
+$duplicateBarExists = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewDuplicateBarExists="
+$barCapAllowsAtLeastOne = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBarCapAllowsAtLeastOne="
 
 $blockers = [System.Collections.Generic.List[string]]::new()
 $healthWarnings = [System.Collections.Generic.List[string]]::new()
+$localTradingViewPreExecutionKnownBlockers = @(
+    "LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE",
+    "LOCAL_TRADINGVIEW_DAILY_CAP_REACHED",
+    "LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED",
+    "LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS",
+    "LOCAL_TRADINGVIEW_DUPLICATE_BAR",
+    "LOCAL_TRADINGVIEW_SIGNAL_STALE"
+)
 Add-If -List $blockers -Condition ($metadataEffectiveStatus -notin @("CURRENT", "DOCS_TOOLING_ONLY_DRIFT") -or $metadataEffectiveCurrent -ne "true") -Value "DEPLOYED_RUNTIME_NOT_CURRENT"
 Add-If -List $healthWarnings -Condition $docsToolingOnlyOriginDrift -Value "DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED"
 Add-If -List $healthWarnings -Condition ($runtimeLogStatus -ne "PASS") -Value "RUNTIME_LOG_NOT_CLEAN"
@@ -301,6 +330,13 @@ if ([string]::IsNullOrWhiteSpace($candidateBlockersText)) {
 } elseif (-not (Test-JsonArrayTextEmpty -Value $candidateBlockersText)) {
     foreach ($candidateBlocker in @($candidateBlockersText | ConvertFrom-Json -ErrorAction Stop)) {
         Add-If -List $blockers -Condition ($candidateBlocker -ne "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE") -Value ([string]$candidateBlocker)
+    }
+}
+if ([string]::IsNullOrWhiteSpace($preExecutionBlockersText)) {
+    Add-If -List $blockers -Condition $true -Value "LOCAL_TRADINGVIEW_PRE_EXECUTION_BLOCKERS_MISSING"
+} elseif (-not (Test-JsonArrayTextEmpty -Value $preExecutionBlockersText)) {
+    foreach ($preExecutionBlocker in @($preExecutionBlockersText | ConvertFrom-Json -ErrorAction Stop)) {
+        Add-If -List $blockers -Condition ($preExecutionBlocker -ne "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE") -Value ([string]$preExecutionBlocker)
     }
 }
 Add-If -List $blockers -Condition ($currentCandidateStatus -ne "HAS_CURRENT_BUY_CANDIDATE") -Value "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE"
@@ -347,6 +383,27 @@ Write-Host "local_tradingview_live_micro_armed=$liveMicroArmed"
 Write-Host "local_tradingview_execution_path_armed=$executionPathArmed"
 Write-Host "local_tradingview_oco_lifecycle_tracked=$ocoTracked"
 Write-Host "local_tradingview_oco_lifecycle_status=$ocoStatus"
+Write-Host "local_tradingview_pre_execution_evidence_status=$preExecutionEvidenceStatus"
+Write-Host "local_tradingview_pre_execution_readiness=$preExecutionReadiness"
+Write-Host "local_tradingview_pre_execution_blockers=$preExecutionBlockersText"
+Write-Host "local_tradingview_scope_allowed=$scopeAllowed"
+Write-Host "local_tradingview_source_allowed=$sourceAllowed"
+Write-Host "local_tradingview_okx_auto_trade_enabled=$okxAutoTradeEnabled"
+Write-Host "local_tradingview_okx_private_credentials_configured=$okxPrivateCredentialsConfigured"
+Write-Host "local_tradingview_notional_accepted=$notionalAccepted"
+Write-Host "local_tradingview_effective_notional_usdt=$effectiveNotionalUsdt"
+Write-Host "local_tradingview_exchange_min_notional_usdt=$exchangeMinNotionalUsdt"
+Write-Host "local_tradingview_oco_plan_valid=$ocoPlanValid"
+Write-Host "local_tradingview_signal_stale=$signalStale"
+Write-Host "local_tradingview_orders_today=$ordersToday"
+Write-Host "local_tradingview_max_orders_per_day=$maxOrdersPerDay"
+Write-Host "local_tradingview_daily_cap_available=$dailyCapAvailable"
+Write-Host "local_tradingview_open_same_strategy_symbol=$openSameStrategySymbol"
+Write-Host "local_tradingview_max_open_positions=$maxOpenPositions"
+Write-Host "local_tradingview_open_position_cap_available=$openPositionCapAvailable"
+Write-Host "local_tradingview_open_exact_position_exists=$openExactPositionExists"
+Write-Host "local_tradingview_duplicate_bar_exists=$duplicateBarExists"
+Write-Host "local_tradingview_bar_cap_allows_at_least_one=$barCapAllowsAtLeastOne"
 Write-Host "local_tradingview_only_status=$status"
 Write-Host ("local_tradingview_only_blockers=" + (ConvertTo-Json -Compress @($blockers)))
 Write-Host ("local_tradingview_only_health_warnings=" + (ConvertTo-Json -Compress @($healthWarnings)))

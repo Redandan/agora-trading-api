@@ -954,13 +954,34 @@ signal-policy blockers. It invokes only deployment metadata,
 `local_tradingview_only_health_warnings`,
 `local_tradingview_only_legacy_blockers_excluded=true`, and
 `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness evidence`.
+It also surfaces the actual LOCAL_TRADINGVIEW pre-execution gates through
+`local_tradingview_pre_execution_evidence_status`,
+`local_tradingview_pre_execution_readiness`,
+`local_tradingview_pre_execution_blockers`,
+`local_tradingview_okx_auto_trade_enabled`,
+`local_tradingview_okx_private_credentials_configured`,
+`local_tradingview_notional_accepted`,
+`local_tradingview_daily_cap_available`,
+`local_tradingview_open_position_cap_available`,
+`local_tradingview_open_exact_position_exists`, and
+`local_tradingview_duplicate_bar_exists`. These checks are read-only but
+fail closed when DB evidence is unavailable, OKX private prerequisites are
+missing, the notional is below the exchange minimum, the daily/open-position
+caps are exhausted, a same-bar live signal already exists, the current signal
+is stale, or the TP/SL plan is invalid.
 `WAIT_BUY` means the path is otherwise clean but there is no current parity BUY.
 `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means a current parity BUY exists
 and the LOCAL_TRADINGVIEW live-micro path is armed for review. `BLOCKED` means a
 focused prerequisite such as `ORDER_CAPABLE_FLAGS_REVIEW`,
 `BACKGROUND_AUTOMATION_REVIEW`, `DEPLOYED_RUNTIME_NOT_CURRENT`,
-`LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`, or
-`LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` must be fixed first. This smoke is
+`LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`,
+`LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`,
+`LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE`,
+`LOCAL_TRADINGVIEW_DAILY_CAP_REACHED`,
+`LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED`,
+`LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS`,
+`LOCAL_TRADINGVIEW_DUPLICATE_BAR`, or `LOCAL_TRADINGVIEW_SIGNAL_STALE` must be
+fixed first. This smoke is
 read-only and prints runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` under
 `local_tradingview_only_health_warnings` instead of mixing them into the focused
 LOCAL_TRADINGVIEW blocker list. Event-risk audit findings such as

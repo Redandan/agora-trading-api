@@ -39,6 +39,17 @@ the focused LOCAL_TRADINGVIEW status. Runtime-log findings such as
 `RUNTIME_LOG_NOT_CLEAN`, and event-risk audit findings such as
 `EVENT_RISK_NOT_BASELINE`, stay in `local_tradingview_only_health_warnings`;
 use the full bundle when a complete live-readiness review is needed.
+The focused smoke also prints `local_tradingview_pre_execution_evidence_status`,
+`local_tradingview_pre_execution_readiness`,
+`local_tradingview_pre_execution_blockers`,
+`local_tradingview_okx_auto_trade_enabled`,
+`local_tradingview_okx_private_credentials_configured`,
+`local_tradingview_notional_accepted`,
+`local_tradingview_daily_cap_available`,
+`local_tradingview_open_position_cap_available`,
+`local_tradingview_open_exact_position_exists`, and
+`local_tradingview_duplicate_bar_exists` so the daily check can fail closed on
+the same DB/env gates that would stop a real LOCAL_TRADINGVIEW order.
 Origin/main drift that contains only docs or local tooling is reported as
 `deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT` plus
 `DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED`, not as a LOCAL_TRADINGVIEW blocker.
@@ -93,6 +104,18 @@ also fails closed.
 | `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke prints `coverage=OK` or a reviewed `coverage=WARN` with bounded trailing gap. `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` stays blocked. | Fix local TradingView parity data coverage before treating candidate evidence as valid. |
 | `LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` and TP/SL/OCO feasibility smokes | No `OCO_PREFLIGHT_FAILED` marker appears unless it is explicitly paired with `ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL`. A pending-until-buy-candidate warning is not a primary OCO failure; a real OCO preflight failure stays blocked. | Stop live review and inspect TP/SL/OCO feasibility before any live order path. |
 | `LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` and `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | Runtime evidence prints `orderSentEvidence=0`, and the local TradingView smoke keeps `orderSentAllowed=false` and `liveOrderMutationAllowed=false`. Any positive order-sent evidence or true mutation marker stays blocked. | Stop live review and investigate why order-sent evidence exists in the evidence-only window. |
+
+Focused LOCAL_TRADINGVIEW-only pre-execution blockers are emitted by
+`.\scripts\smoke_local_tradingview_candidate_ssh.ps1` and folded into
+`.\scripts\smoke_local_tradingview_only_readiness_ssh.ps1`, but they are not
+full-bundle blocker rows:
+
+- `LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE`: clear only when the smoke prints `localTradingViewPreExecutionEvidenceStatus=OK`, `local_tradingview_pre_execution_evidence_status=OK`, and a parseable `local_tradingview_pre_execution_blockers` array.
+- `LOCAL_TRADINGVIEW_DAILY_CAP_REACHED`: clear only when `localTradingViewDailyCapAvailable=true` and `localTradingViewOrdersToday` is below `localTradingViewMaxOrdersPerDay`.
+- `LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED`: clear only when `localTradingViewOpenPositionCapAvailable=true`.
+- `LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS`: clear only when `localTradingViewOpenExactPositionExists=false` for the same strategy, symbol, side, and interval.
+- `LOCAL_TRADINGVIEW_DUPLICATE_BAR`: clear only when a current BUY candidate exists and `localTradingViewDuplicateBarExists=false`.
+- `LOCAL_TRADINGVIEW_SIGNAL_STALE`: clear only when a current BUY candidate exists, `localTradingViewSignalStale=false`, and signal age is within `TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS`.
 
 Signal policy clear evidence requires no `REVIEW_POLICY_GAPS`, a signal
 correctness and governance drift summary, and explicit review-plan evidence.

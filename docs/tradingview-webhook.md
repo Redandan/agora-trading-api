@@ -178,6 +178,20 @@ Its `local_tradingview_only_status` is `WAIT_BUY`,
 `RUNTIME_LOG_NOT_CLEAN`, `EVENT_RISK_NOT_BASELINE`, and similar audit health
 findings in `local_tradingview_only_health_warnings` instead of the focused
 blocker list.
+The same smoke surfaces the real pre-order gates as
+`local_tradingview_pre_execution_evidence_status`,
+`local_tradingview_pre_execution_readiness`,
+`local_tradingview_pre_execution_blockers`,
+`local_tradingview_okx_auto_trade_enabled`,
+`local_tradingview_okx_private_credentials_configured`,
+`local_tradingview_notional_accepted`,
+`local_tradingview_daily_cap_available`,
+`local_tradingview_open_position_cap_available`,
+`local_tradingview_open_exact_position_exists`, and
+`local_tradingview_duplicate_bar_exists`. It stays read-only but fails closed
+on missing DB evidence, OKX credential gaps, below-minimum notional,
+daily/open-position caps, duplicate-bar rows, stale current signals, or invalid
+TP/SL plans before claiming a parity BUY is executable.
 Docs/tooling-only origin drift is also reported as
 `deployment_metadata_effective_status=DOCS_TOOLING_ONLY_DRIFT` with
 `DOCS_TOOLING_ONLY_DRIFT_NOT_DEPLOYED`, so the daily LOCAL_TRADINGVIEW check does

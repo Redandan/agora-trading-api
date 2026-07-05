@@ -85,7 +85,10 @@ python3 - <<'PY'
 import json
 import os
 import re
+import subprocess
 import sys
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import urllib.error
 import urllib.request
 
@@ -122,6 +125,134 @@ def read_env_key(key, default=""):
 def bool_env(key, default=False):
     value = read_env_key(key, "true" if default else "false").strip().lower()
     return value in ("1", "true", "yes", "y", "on")
+
+def int_env(key, default):
+    try:
+        return int(str(read_env_key(key, str(default))).strip())
+    except Exception:
+        return default
+
+def float_env(key, default):
+    try:
+        return float(str(read_env_key(key, str(default))).strip())
+    except Exception:
+        return default
+
+def csv_tokens(value, normalize_as_symbol=False):
+    if value is None or str(value).strip() == "":
+        return []
+    tokens = []
+    for token in str(value).split(","):
+        normalized = normalize_symbol(token) if normalize_as_symbol else token.strip().lower()
+        if normalized:
+            tokens.append(normalized)
+    return tokens
+
+def normalize_symbol(raw):
+    if raw is None or str(raw).strip() == "":
+        return ""
+    value = str(raw).strip().upper()
+    colon = value.rfind(":")
+    if colon >= 0 and colon + 1 < len(value):
+        value = value[colon + 1:]
+    return value.replace("-", "").replace("/", "").replace("_", "")
+
+def is_allowed(value, csv_value, normalize_as_symbol=False):
+    allowed = csv_tokens(csv_value, normalize_as_symbol=normalize_as_symbol)
+    if not allowed:
+        return True
+    normalized = normalize_symbol(value) if normalize_as_symbol else str(value or "").strip().lower()
+    return bool(normalized) and normalized in allowed
+
+def format_bool(value):
+    return str(bool(value)).lower()
+
+def parse_iso_datetime(value):
+    if value is None or value == "N/A":
+        return None
+    text = str(value).strip()
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            return datetime.strptime(text, fmt).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+    return None
+
+def mysql_datetime(value):
+    dt = parse_iso_datetime(value)
+    return None if dt is None else dt.strftime("%Y-%m-%d %H:%M:%S")
+
+def sql_quote(value):
+    return "'" + str(value).replace("\\", "\\\\").replace("'", "''") + "'"
+
+def parse_mysql_jdbc(url):
+    if not url or url == "MISSING_ENV_FILE":
+        return None
+    match = re.match(r"^jdbc:mysql://([^:/?]+)(?::([0-9]+))?/([^?;]+)", url.strip())
+    if not match:
+        return None
+    return {
+        "host": match.group(1),
+        "port": match.group(2) or "3306",
+        "database": match.group(3).split("/", 1)[0],
+    }
+
+def mysql_scalar(query):
+    jdbc = parse_mysql_jdbc(read_env_key("SPRING_DATASOURCE_URL", ""))
+    user = read_env_key("SPRING_DATASOURCE_USERNAME", "")
+    password = read_env_key("SPRING_DATASOURCE_PASSWORD", "")
+    if not jdbc or not user:
+        raise RuntimeError("datasource env is incomplete or unsupported")
+    command = [
+        "mysql",
+        "--batch",
+        "--raw",
+        "--skip-column-names",
+        "-h",
+        jdbc["host"],
+        "-P",
+        str(jdbc["port"]),
+        "-u",
+        user,
+        jdbc["database"],
+        "-e",
+        query,
+    ]
+    child_env = os.environ.copy()
+    child_env["MYSQL_PWD"] = password
+    result = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=child_env, timeout=20)
+    if result.returncode != 0:
+        raise RuntimeError((result.stderr or result.stdout or "mysql exited non-zero").strip())
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return lines[0] if lines else "0"
+
+def mysql_count(query):
+    return int(mysql_scalar(query))
+
+def extract_order_rows(preview_text):
+    rows = []
+    pattern = re.compile(r"^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+)\s+close=([0-9.]+)\s+signal=([A-Z_]+)\s+reason=([^ ]+)\s+qty=([0-9.]+)\s+label=([^ ]+)", re.MULTILINE)
+    for match in pattern.finditer(preview_text or ""):
+        rows.append({
+            "bar": match.group(1),
+            "close": match.group(2),
+            "signal": match.group(3),
+            "reason": match.group(4),
+            "qty": match.group(5),
+            "label": match.group(6),
+        })
+    return rows
+
+def to_decimal(value):
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return None
+
+def decimal_text(value):
+    if value is None:
+        return "N/A"
+    return format(value, "f")
 
 def call_tool(name, arguments=None, timeout=180):
     body = {
@@ -276,6 +407,142 @@ elif live_micro_armed:
 else:
     oco_lifecycle_status = "NOT_REQUIRED_UNLESS_LIVE_MICRO_ARMED"
 
+allowed_symbols = read_env_key("TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS", "BTCUSDT")
+allowed_intervals = read_env_key("TRADINGVIEW_LOCAL_ALLOWED_INTERVALS", "1d")
+allowed_sources = read_env_key("TRADINGVIEW_LOCAL_ALLOWED_SOURCES", "")
+scope_allowed = is_allowed(symbol, allowed_symbols, normalize_as_symbol=True) and is_allowed(interval_code, allowed_intervals)
+source_allowed = is_allowed(source, allowed_sources)
+okx_auto_trade_enabled = bool_env("TRADING_OKX_ENABLED", False)
+okx_private_credentials_configured = (
+    read_env_key("TRADING_OKX_API_KEY", "").strip() != ""
+    and read_env_key("TRADING_OKX_SECRET_KEY", "").strip() != ""
+    and read_env_key("TRADING_OKX_PASSPHRASE", "").strip() != ""
+)
+execution_max_orders_per_bar = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR", 3)
+execution_max_orders_per_day = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY", 1)
+execution_max_open_positions = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS", 1)
+default_notional = to_decimal(read_env_key("TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT", "10.0")) or Decimal("10.0")
+max_notional = to_decimal(read_env_key("TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT", "10.0")) or Decimal("10.0")
+effective_notional = min(default_notional, max_notional)
+exchange_min_notional = Decimal("10.0")
+notional_accepted = effective_notional > 0 and effective_notional <= max_notional and effective_notional >= exchange_min_notional
+take_profit_pct = to_decimal(read_env_key("TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT", "0.0300")) or Decimal("0.0300")
+stop_loss_pct = to_decimal(read_env_key("TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT", "0.1200")) or Decimal("0.1200")
+max_signal_age_hours_value = int_env("TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS", 72)
+
+order_rows = extract_order_rows(preview)
+current_order_rows = [row for row in order_rows if row["bar"] == data_end]
+current_bar_order_intent_count = len(current_order_rows)
+bar_cap_allows_at_least_one = execution_max_orders_per_bar >= 1 and (
+    current_status != "HAS_CURRENT_BUY_CANDIDATE" or current_bar_order_intent_count >= 1
+)
+current_row = current_order_rows[0] if current_order_rows else None
+entry_price = to_decimal(current_row["close"]) if current_row else None
+tp_price = None
+sl_price = None
+if entry_price is not None:
+    tp_price = (entry_price * (Decimal("1") + take_profit_pct)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    sl_price = (entry_price * (Decimal("1") - stop_loss_pct)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+oco_plan_valid = (
+    entry_price is not None
+    and tp_price is not None
+    and sl_price is not None
+    and entry_price > 0
+    and tp_price > entry_price
+    and sl_price > 0
+    and sl_price < entry_price
+)
+
+signal_reference = parse_iso_datetime(data_close if data_close != "N/A" else data_end)
+signal_age_hours = None
+if signal_reference is not None:
+    signal_age_hours = max(0, int((datetime.now(timezone.utc) - signal_reference).total_seconds() // 3600))
+signal_age_check_enabled = max_signal_age_hours_value > 0
+signal_stale = signal_age_check_enabled and signal_age_hours is not None and signal_age_hours > max_signal_age_hours_value
+
+pre_execution_evidence_status = "OK"
+pre_execution_db_error = ""
+orders_today = "N/A"
+open_same_strategy_symbol = "N/A"
+open_exact_position_count = "N/A"
+duplicate_bar_live_signal_count = "N/A"
+try:
+    normalized_symbol = normalize_symbol(symbol)
+    symbol_expr = "UPPER(REPLACE(REPLACE(REPLACE(SUBSTRING_INDEX(symbol, ':', -1), '-', ''), '/', ''), '_', ''))"
+    orders_today = mysql_count(
+        "SELECT COUNT(*) FROM bt_live_signal "
+        f"WHERE strategy_id = {strategy_id} AND auto_traded = 1 AND created_at >= UTC_DATE()"
+    )
+    open_same_strategy_symbol = mysql_count(
+        "SELECT COUNT(*) FROM bt_live_signal "
+        f"WHERE strategy_id = {strategy_id} AND auto_traded = 1 AND exit_time IS NULL "
+        f"AND {symbol_expr} = {sql_quote(normalized_symbol)}"
+    )
+    open_exact_position_count = mysql_count(
+        "SELECT COUNT(*) FROM bt_live_signal "
+        f"WHERE strategy_id = {strategy_id} AND auto_traded = 1 AND exit_time IS NULL "
+        f"AND {symbol_expr} = {sql_quote(normalized_symbol)} "
+        f"AND interval_code = {sql_quote(interval_code)} "
+        "AND (side IS NULL OR UPPER(side) = 'LONG')"
+    )
+    duplicate_reference = mysql_datetime(data_end)
+    if duplicate_reference is not None:
+        duplicate_bar_live_signal_count = mysql_count(
+            "SELECT COUNT(*) FROM bt_live_signal "
+            f"WHERE strategy_id = {strategy_id} "
+            f"AND symbol = {sql_quote(symbol)} "
+            f"AND interval_code = {sql_quote(interval_code)} "
+            f"AND bar_open_time = {sql_quote(duplicate_reference)} "
+            "AND notified_at IS NOT NULL"
+        )
+except Exception as exc:
+    pre_execution_evidence_status = "DB_EVIDENCE_UNAVAILABLE"
+    pre_execution_db_error = str(exc)
+
+daily_cap_available = isinstance(orders_today, int) and orders_today < execution_max_orders_per_day
+open_position_cap_available = isinstance(open_same_strategy_symbol, int) and open_same_strategy_symbol < execution_max_open_positions
+open_exact_position_exists = isinstance(open_exact_position_count, int) and open_exact_position_count > 0
+duplicate_bar_exists = isinstance(duplicate_bar_live_signal_count, int) and duplicate_bar_live_signal_count > 0
+
+pre_execution_blockers = []
+if pre_execution_evidence_status != "OK":
+    pre_execution_blockers.append("LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE")
+if not scope_allowed:
+    pre_execution_blockers.append("LOCAL_TRADINGVIEW_SCOPE_NOT_ALLOWLISTED")
+if not source_allowed:
+    pre_execution_blockers.append("LOCAL_TRADINGVIEW_SOURCE_NOT_ALLOWLISTED")
+if not okx_auto_trade_enabled:
+    pre_execution_blockers.append("LOCAL_TRADINGVIEW_OKX_DISABLED")
+if not okx_private_credentials_configured:
+    pre_execution_blockers.append("LOCAL_TRADINGVIEW_OKX_PRIVATE_CREDENTIALS_MISSING")
+if not notional_accepted:
+    pre_execution_blockers.append("LOCAL_TRADINGVIEW_NOTIONAL_BELOW_MINIMUM")
+if pre_execution_evidence_status == "OK":
+    if not daily_cap_available:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_DAILY_CAP_REACHED")
+    if not open_position_cap_available:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED")
+    if open_exact_position_exists:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS")
+if current_status == "HAS_CURRENT_BUY_CANDIDATE":
+    if not bar_cap_allows_at_least_one:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_BAR_CAP_REACHED")
+    if current_row is None:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_PRE_EXECUTION_CANDIDATE_PRICE_MISSING")
+    if signal_stale:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_SIGNAL_STALE")
+    if not oco_plan_valid:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_INVALID_OCO_PLAN")
+    if duplicate_bar_exists:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_DUPLICATE_BAR")
+
+if pre_execution_blockers:
+    pre_execution_readiness = "BLOCKED_PRE_EXECUTION_GATES"
+elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
+    pre_execution_readiness = "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE"
+else:
+    pre_execution_readiness = "READY_PRE_EXECUTION_GATES"
+
 blockers = []
 if current_status != "HAS_CURRENT_BUY_CANDIDATE":
     blockers.append("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
@@ -295,6 +562,9 @@ if require_dry_run_armed and not dry_run_armed and "LOCAL_TRADINGVIEW_DRY_RUN_NO
     blockers.append("LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED")
 if coverage not in ("OK", "WARN"):
     blockers.append("LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK")
+for blocker in pre_execution_blockers:
+    if blocker not in blockers:
+        blockers.append(blocker)
 
 print("")
 print("Current Candidate:")
@@ -332,6 +602,47 @@ print("  orderSentAllowed=false")
 print("  liveOrderMutationAllowed=false")
 
 print("")
+print("Local TradingView Pre-Execution Gates:")
+print(f"  localTradingViewPreExecutionEvidenceStatus={pre_execution_evidence_status}")
+print(f"  localTradingViewPreExecutionDbError={compact(pre_execution_db_error, 240)}")
+print(f"  localTradingViewAllowedSymbols={allowed_symbols}")
+print(f"  localTradingViewAllowedIntervals={allowed_intervals}")
+print(f"  localTradingViewAllowedSources={allowed_sources}")
+print(f"  localTradingViewScopeAllowed={format_bool(scope_allowed)}")
+print(f"  localTradingViewSourceAllowed={format_bool(source_allowed)}")
+print(f"  localTradingViewOkxAutoTradeEnabled={format_bool(okx_auto_trade_enabled)}")
+print(f"  localTradingViewOkxPrivateCredentialsConfigured={format_bool(okx_private_credentials_configured)}")
+print(f"  localTradingViewDefaultNotionalUsdt={decimal_text(default_notional)}")
+print(f"  localTradingViewMaxNotionalUsdt={decimal_text(max_notional)}")
+print(f"  localTradingViewEffectiveNotionalUsdt={decimal_text(effective_notional)}")
+print(f"  localTradingViewExchangeMinNotionalUsdt={decimal_text(exchange_min_notional)}")
+print(f"  localTradingViewNotionalAccepted={format_bool(notional_accepted)}")
+print(f"  localTradingViewTakeProfitPct={decimal_text(take_profit_pct)}")
+print(f"  localTradingViewStopLossPct={decimal_text(stop_loss_pct)}")
+print(f"  localTradingViewExecutionEntryPrice={decimal_text(entry_price)}")
+print(f"  localTradingViewExecutionTpPrice={decimal_text(tp_price)}")
+print(f"  localTradingViewExecutionSlPrice={decimal_text(sl_price)}")
+print(f"  localTradingViewOcoPlanValid={format_bool(oco_plan_valid) if current_status == 'HAS_CURRENT_BUY_CANDIDATE' else 'N/A'}")
+print(f"  localTradingViewSignalAgeCheckEnabled={format_bool(signal_age_check_enabled)}")
+print(f"  localTradingViewSignalAgeHours={signal_age_hours if signal_age_hours is not None else 'N/A'}")
+print(f"  localTradingViewSignalStale={format_bool(signal_stale)}")
+print(f"  localTradingViewOrdersToday={orders_today}")
+print(f"  localTradingViewMaxOrdersPerDay={execution_max_orders_per_day}")
+print(f"  localTradingViewDailyCapAvailable={format_bool(daily_cap_available)}")
+print(f"  localTradingViewOpenSameStrategySymbol={open_same_strategy_symbol}")
+print(f"  localTradingViewMaxOpenPositions={execution_max_open_positions}")
+print(f"  localTradingViewOpenPositionCapAvailable={format_bool(open_position_cap_available)}")
+print(f"  localTradingViewOpenSameStrategySymbolIntervalLong={open_exact_position_count}")
+print(f"  localTradingViewOpenExactPositionExists={format_bool(open_exact_position_exists)}")
+print(f"  localTradingViewDuplicateBarLiveSignalCount={duplicate_bar_live_signal_count}")
+print(f"  localTradingViewDuplicateBarExists={format_bool(duplicate_bar_exists)}")
+print(f"  localTradingViewCurrentBarOrderIntentCount={current_bar_order_intent_count}")
+print(f"  localTradingViewMaxOrdersPerBar={execution_max_orders_per_bar}")
+print(f"  localTradingViewBarCapAllowsAtLeastOne={format_bool(bar_cap_allows_at_least_one)}")
+print(f"  localTradingViewPreExecutionReadiness={pre_execution_readiness}")
+print("  local_tradingview_pre_execution_blockers=" + json.dumps(pre_execution_blockers))
+
+print("")
 print("Parity Backtest Summary:")
 print(f"  finalMark={final_mark}")
 print(f"  netPnlUsdt={net_pnl}")
@@ -340,7 +651,9 @@ print(f"  totalReturn={total_return}")
 print("")
 print("Blocker Classification:")
 print("  local_tradingview_blockers=" + json.dumps(blockers))
-if current_status != "HAS_CURRENT_BUY_CANDIDATE":
+if pre_execution_blockers:
+    readiness = "BLOCKED_LOCAL_TRADINGVIEW_PRE_EXECUTION_GATES"
+elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     readiness = "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE"
 elif dry_run_armed:
     readiness = "READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_OBSERVATION_NOT_LIVE"
@@ -351,7 +664,9 @@ elif live_micro_armed:
 else:
     readiness = "BLOCKED_LOCAL_TRADINGVIEW_EXECUTION_NOT_ARMED"
 print(f"  localTradingViewReadiness={readiness}")
-if current_status != "HAS_CURRENT_BUY_CANDIDATE":
+if pre_execution_blockers:
+    next_action = "Fix LOCAL_TRADINGVIEW pre-execution blockers before treating the next parity BUY as executable."
+elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     next_action = "Wait for the latest closed bar to emit a TradingView parity BUY intent, then rerun this smoke before any live plan."
 elif dry_run_armed:
     next_action = "Review DRY_RUN evidence only; this smoke is not live approval."

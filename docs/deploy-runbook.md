@@ -337,14 +337,34 @@ Expected:
   `local_tradingview_only_health_warnings`,
   `local_tradingview_only_legacy_blockers_excluded=true`, and
   `notAuthorization=read-only LOCAL_TRADINGVIEW-only readiness evidence`.
+  It also prints the real LOCAL_TRADINGVIEW pre-execution gate summary:
+  `local_tradingview_pre_execution_evidence_status`,
+  `local_tradingview_pre_execution_readiness`,
+  `local_tradingview_pre_execution_blockers`,
+  `local_tradingview_okx_auto_trade_enabled`,
+  `local_tradingview_okx_private_credentials_configured`,
+  `local_tradingview_notional_accepted`,
+  `local_tradingview_daily_cap_available`,
+  `local_tradingview_open_position_cap_available`,
+  `local_tradingview_open_exact_position_exists`, and
+  `local_tradingview_duplicate_bar_exists`. These are read-only env/DB checks
+  against the same hard blockers used before an order is placed, including OKX
+  private prerequisites, notional minimum, daily/open-position caps, duplicate
+  bar live-signal rows, stale current signals, and invalid TP/SL plans.
   `WAIT_BUY` means the LOCAL_TRADINGVIEW path is otherwise clean but the latest
   closed bar has no TradingView parity BUY.
   `READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED` means a current parity BUY is
   present and the LOCAL_TRADINGVIEW live-micro path is armed for review.
   `BLOCKED` means one of the focused prerequisites, such as
   `ORDER_CAPABLE_FLAGS_REVIEW`, `BACKGROUND_AUTOMATION_REVIEW`,
-  `DEPLOYED_RUNTIME_NOT_CURRENT`, `LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`, or
-  `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`, must be fixed before trusting
+  `DEPLOYED_RUNTIME_NOT_CURRENT`, `LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`,
+  `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`,
+  `LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE`,
+  `LOCAL_TRADINGVIEW_DAILY_CAP_REACHED`,
+  `LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED`,
+  `LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS`,
+  `LOCAL_TRADINGVIEW_DUPLICATE_BAR`, or `LOCAL_TRADINGVIEW_SIGNAL_STALE`, must
+  be fixed before trusting
   the next parity BUY. Runtime-log findings such as `RUNTIME_LOG_NOT_CLEAN` are
   printed under `local_tradingview_only_health_warnings` so this focused smoke
   stays scoped to the LOCAL_TRADINGVIEW parity path. Event-risk audit findings

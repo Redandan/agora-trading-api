@@ -1,5 +1,6 @@
 param(
     [string]$OpenExposureSemanticResolutionLogPath = "target/profit-review/entry-dedup-open-exposure-semantic-resolution-latest.log",
+    [string]$OpenExposureOperatorChoiceLogPath = "target/profit-review/entry-dedup-open-exposure-operator-choice-latest.log",
     [string]$RuntimeSnapshotCollectorRequestLogPath = "target/profit-review/entry-dedup-runtime-snapshot-collector-activation-request-latest.log",
     [string]$BudgetSnapshotReviewRequestLogPath = "target/profit-review/entry-dedup-budget-snapshot-review-request-latest.log",
     [string]$OcoRouteDryRunRequestLogPath = "target/profit-review/entry-dedup-oco-route-dry-run-request-latest.log",
@@ -141,6 +142,7 @@ if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 10080) {
 
 foreach ($path in @(
         $OpenExposureSemanticResolutionLogPath,
+        $OpenExposureOperatorChoiceLogPath,
         $RuntimeSnapshotCollectorRequestLogPath,
         $BudgetSnapshotReviewRequestLogPath,
         $OcoRouteDryRunRequestLogPath,
@@ -153,6 +155,10 @@ foreach ($path in @(
 }
 
 $semanticLog = Read-FreshLog -Name "entry-dedup-open-exposure-semantic-resolution" -PathValue $OpenExposureSemanticResolutionLogPath -MaxAge $MaxAgeMinutes
+$operatorChoiceLog = $null
+if (Test-Path -LiteralPath (Resolve-RepoPath -PathValue $OpenExposureOperatorChoiceLogPath)) {
+    $operatorChoiceLog = Read-FreshLog -Name "entry-dedup-open-exposure-operator-choice" -PathValue $OpenExposureOperatorChoiceLogPath -MaxAge $MaxAgeMinutes
+}
 $runtimeLog = Read-FreshLog -Name "entry-dedup-runtime-snapshot-collector-request" -PathValue $RuntimeSnapshotCollectorRequestLogPath -MaxAge $MaxAgeMinutes
 $budgetLog = Read-FreshLog -Name "entry-dedup-budget-snapshot-review-request" -PathValue $BudgetSnapshotReviewRequestLogPath -MaxAge $MaxAgeMinutes
 $ocoLog = Read-FreshLog -Name "entry-dedup-oco-route-dry-run-request" -PathValue $OcoRouteDryRunRequestLogPath -MaxAge $MaxAgeMinutes
@@ -165,14 +171,23 @@ foreach ($log in @($semanticLog, $runtimeLog, $budgetLog, $ocoLog, $historicalLo
         Add-Missing -List $missing -Value "$($log.Name) log fresh within $MaxAgeMinutes minutes"
     }
 }
+if ($null -ne $operatorChoiceLog -and -not $operatorChoiceLog.Fresh) {
+    Add-Missing -List $missing -Value "$($operatorChoiceLog.Name) log fresh within $MaxAgeMinutes minutes"
+}
 
 $semanticPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $semanticLog.Text -Prefix "entry_dedup_open_exposure_semantic_resolution_packet=")
+$operatorChoicePacket = if ($null -ne $operatorChoiceLog) {
+    Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $operatorChoiceLog.Text -Prefix "entry_dedup_open_exposure_operator_choice_packet=")
+} else {
+    $null
+}
 $runtimePacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $runtimeLog.Text -Prefix "entry_dedup_runtime_snapshot_collector_activation_request_packet=")
 $budgetPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $budgetLog.Text -Prefix "entry_dedup_budget_snapshot_review_request_packet=")
 $ocoPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $ocoLog.Text -Prefix "entry_dedup_oco_route_dry_run_request_packet=")
 $historicalPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $historicalLog.Text -Prefix "entry_dedup_historical_event_risk_row_review_packet=")
 $traceabilityPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $traceabilityLog.Text -Prefix "entry_dedup_review_only_objective_traceability_packet=")
 if ($null -eq $semanticPacket) { Add-Missing -List $missing -Value "open exposure semantic resolution packet JSON present" }
+if ($null -ne $operatorChoiceLog -and $null -eq $operatorChoicePacket) { Add-Missing -List $missing -Value "open exposure operator choice packet JSON present" }
 if ($null -eq $runtimePacket) { Add-Missing -List $missing -Value "runtime snapshot collector request packet JSON present" }
 if ($null -eq $budgetPacket) { Add-Missing -List $missing -Value "budget snapshot review request packet JSON present" }
 if ($null -eq $ocoPacket) { Add-Missing -List $missing -Value "OCO route dry-run request packet JSON present" }
@@ -181,6 +196,7 @@ if ($null -eq $traceabilityPacket) { Add-Missing -List $missing -Value "objectiv
 
 $expectedStatuses = [ordered]@{
     semanticResolution = "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_SEMANTIC_RESOLUTION_REVIEW_NOT_LIVE"
+    openExposureOperatorChoice = "OPTIONAL_NOT_PROVIDED"
     runtimeSnapshotRequest = "READY_FOR_ENTRY_DEDUP_RUNTIME_SNAPSHOT_COLLECTOR_ACTIVATION_REQUEST_NOT_LIVE"
     budgetSnapshotRequest = "READY_FOR_ENTRY_DEDUP_DAILY_CAP_MAX_LOSS_SNAPSHOT_REVIEW_REQUEST_NOT_LIVE"
     ocoRouteRequest = "READY_FOR_ENTRY_DEDUP_OCO_ROUTE_DRY_RUN_REQUEST_REVIEW_NOT_LIVE"
@@ -189,6 +205,7 @@ $expectedStatuses = [ordered]@{
 }
 $actualStatuses = [ordered]@{
     semanticResolution = [string](Get-Prop -Object $semanticPacket -Name "status" -Default "UNKNOWN")
+    openExposureOperatorChoice = if ($null -ne $operatorChoicePacket) { [string](Get-Prop -Object $operatorChoicePacket -Name "status" -Default "UNKNOWN") } else { "OPTIONAL_NOT_PROVIDED" }
     runtimeSnapshotRequest = [string](Get-Prop -Object $runtimePacket -Name "status" -Default "UNKNOWN")
     budgetSnapshotRequest = [string](Get-Prop -Object $budgetPacket -Name "status" -Default "UNKNOWN")
     ocoRouteRequest = [string](Get-Prop -Object $ocoPacket -Name "status" -Default "UNKNOWN")
@@ -196,6 +213,11 @@ $actualStatuses = [ordered]@{
     objectiveTraceability = [string](Get-Prop -Object $traceabilityPacket -Name "status" -Default "UNKNOWN")
 }
 foreach ($key in $expectedStatuses.Keys) {
+    if ($key -eq "openExposureOperatorChoice") {
+        if ($actualStatuses[$key] -eq "OPTIONAL_NOT_PROVIDED" -or $actualStatuses[$key] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE") {
+            continue
+        }
+    }
     if ($actualStatuses[$key] -ne $expectedStatuses[$key]) {
         Add-Missing -List $missing -Value "$key packet ready"
     }
@@ -207,6 +229,17 @@ $intervalCode = [string](Get-Prop -Object $semanticPacket -Name "intervalCode" -
 $exactOpportunityCount = Get-IntValue (Get-NestedProp -Object $semanticPacket -Path @("semanticEvidence", "exactOpportunityCount") -Default 0)
 $semanticOperatorChoiceRequired = Get-BoolValue (Get-NestedProp -Object $semanticPacket -Path @("semanticEvidence", "operatorSemanticsChoiceRequired") -Default $false)
 $actualAutoExposureClear = Get-BoolValue (Get-NestedProp -Object $semanticPacket -Path @("semanticEvidence", "actualAutoExposureClear") -Default $false)
+$openExposureOperatorChoiceReady = $actualStatuses["openExposureOperatorChoice"] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE"
+$openExposureOperatorChoiceConfirmText = if ($openExposureOperatorChoiceReady) {
+    [string](Get-NestedProp -Object $operatorChoicePacket -Path @("proposedChange", "confirmText") -Default "")
+} else {
+    ""
+}
+$openExposureOperatorChoiceRecommendedReviewChoice = if ($openExposureOperatorChoiceReady) {
+    [string](Get-NestedProp -Object $operatorChoicePacket -Path @("proposedChange", "recommendedReviewChoice") -Default "")
+} else {
+    ""
+}
 $runtimeSnapshotCleared = Get-BoolValue (Get-NestedProp -Object $runtimePacket -Path @("requestEvidence", "runtimeSnapshotCoverageCleared") -Default $true)
 $candidateEntryPlanRows = Get-IntValue (Get-NestedProp -Object $runtimePacket -Path @("requestEvidence", "candidateRuntimeEntryPlanRows") -Default 0)
 $budgetRuntimeCleared = Get-BoolValue (Get-NestedProp -Object $budgetPacket -Path @("budgetSnapshotEvidence", "budgetSnapshotRuntimeCleared") -Default $true)
@@ -226,7 +259,14 @@ $openExposureSemanticBlocked = $semanticOperatorChoiceRequired
 
 $priorityItems = [System.Collections.Generic.List[object]]::new()
 if ($openExposureSemanticBlocked) {
-    Add-PriorityItem -List $priorityItems -Rank 1 -Blocker "OPEN_EXPOSURE_ZERO_QTY_NON_AUTO_SEMANTICS" -Status "BLOCKED_OPERATOR_CHOICE_REQUIRED" -Evidence $OpenExposureSemanticResolutionLogPath -RequiredNextAction "Review whether the zero-qty non-auto missing-OCO row remains a blocker, is resolved outside this packet, or needs a separately authorized semantics change."
+    $openExposureEvidencePath = if ($openExposureOperatorChoiceReady) { $OpenExposureOperatorChoiceLogPath } else { $OpenExposureSemanticResolutionLogPath }
+    $openExposureStatus = if ($openExposureOperatorChoiceReady) { "BLOCKED_OPERATOR_CHOICE_READY_NOT_AUTHORIZED" } else { "BLOCKED_OPERATOR_CHOICE_REQUIRED" }
+    $openExposureRequiredNextAction = if ($openExposureOperatorChoiceReady) {
+        "Review the open-exposure operator choice packet; exact authorization text for the default-off implementation review is $openExposureOperatorChoiceConfirmText."
+    } else {
+        "Review whether the zero-qty non-auto missing-OCO row remains a blocker, is resolved outside this packet, or needs a separately authorized semantics change."
+    }
+    Add-PriorityItem -List $priorityItems -Rank 1 -Blocker "OPEN_EXPOSURE_ZERO_QTY_NON_AUTO_SEMANTICS" -Status $openExposureStatus -Evidence $openExposureEvidencePath -RequiredNextAction $openExposureRequiredNextAction
 }
 if ($runtimeSnapshotBlocked) {
     Add-PriorityItem -List $priorityItems -Rank 2 -Blocker "CANDIDATE_RUNTIME_ENTRY_PLAN_SNAPSHOT" -Status "BLOCKED_COLLECTOR_ACTIVATION_NOT_AUTHORIZED" -Evidence $RuntimeSnapshotCollectorRequestLogPath -RequiredNextAction "Separately authorize and verify shadow runtime snapshot collection before any mutation request."
@@ -293,6 +333,9 @@ $packet = [ordered]@{
         exactOpportunityCount = $exactOpportunityCount
         actualAutoExposureClear = $actualAutoExposureClear
         openExposureSemanticBlocked = $openExposureSemanticBlocked
+        openExposureOperatorChoiceReady = $openExposureOperatorChoiceReady
+        openExposureOperatorChoiceConfirmText = $openExposureOperatorChoiceConfirmText
+        openExposureOperatorChoiceRecommendedReviewChoice = $openExposureOperatorChoiceRecommendedReviewChoice
         runtimeSnapshotBlocked = $runtimeSnapshotBlocked
         budgetRuntimeBlocked = $budgetRuntimeBlocked
         budgetContractReady = $budgetContractReady
@@ -334,6 +377,9 @@ Write-Host "entry_dedup_post_semantic_blocker_priority_board_next_blocker=$nextB
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_exact_opportunity_count=$exactOpportunityCount"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_actual_auto_exposure_clear=$($actualAutoExposureClear.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_semantic_blocked=$($openExposureSemanticBlocked.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_ready=$($openExposureOperatorChoiceReady.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_confirm_text=$openExposureOperatorChoiceConfirmText"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_recommended_review_choice=$openExposureOperatorChoiceRecommendedReviewChoice"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_runtime_snapshot_blocked=$($runtimeSnapshotBlocked.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_budget_runtime_blocked=$($budgetRuntimeBlocked.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_oco_route_blocked=$($ocoRouteBlocked.ToString().ToLowerInvariant())"

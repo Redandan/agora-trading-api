@@ -3482,6 +3482,22 @@ Expected:
   `order_allowed=false`. This is only a request template for later operator
   review; it does not run an exchange dry-run, call SSH/MCP, relax policy,
   place orders, modify OCO, deploy, or change production env.
+- To consolidate the packaged blocker review requests and keep order readiness
+  fail-closed, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_mutation_blocker_clearance_board_packet.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_mutation_blocker_clearance_board_status=READY_FOR_ENTRY_DEDUP_MUTATION_BLOCKER_CLEARANCE_BOARD_NOT_LIVE`,
+  `entry_dedup_mutation_blocker_clearance_board_order_readiness=BLOCKED_REVIEW_REQUESTS_PACKAGED_NOT_LIVE`,
+  `entry_dedup_mutation_blocker_clearance_board_any_blocker_remaining=true`,
+  `clearance_board_ready=true`, `mutation_ready=false`, and
+  `order_allowed=false`. This board is review-only; request-ready packets are
+  not order readiness and do not authorize collector activation, runtime
+  evidence writes, policy relaxation, deploy/env changes, orders, OCO, DB, or
+  exchange mutations.
 - To wrap the EntryDedup semantics operator decision into a final review-only
   preflight, run:
 

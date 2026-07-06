@@ -1638,6 +1638,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy574_tiny_live_governance_operator_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_position_risk_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_oco_sync_reconciliation_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_closed_grid_residual_disposition_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_aged_position_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_position_review_gate.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_operator_review_packet.ps1"

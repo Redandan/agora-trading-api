@@ -732,6 +732,28 @@ authorization to call `forceClosePosition`, close positions, modify/cancel OCO,
 place orders, deploy, change production env, send Telegram, or mutate
 DB/grid/fund/Earn/exchange state.
 
+Read-only closed Grid residual disposition packet:
+
+```powershell
+.\scripts\prepare_closed_grid_residual_disposition_packet_ssh.ps1 -RequireReady
+```
+
+This collects production read-only evidence for closed `bt_grid` rows that
+still have `HOLDING`/`SELL_FAILED`/`SELL_PARTIAL` residual `bt_grid_level`
+inventory. It emits `closed_grid_residual_disposition_packet` plus
+`closed_grid_residual_disposition_status`. A
+`CLOSED_GRID_RESIDUAL_DISPOSITION_PACKET` with
+`READY_FOR_CLOSED_GRID_RESIDUAL_OPERATOR_DECISION_NOT_MUTATION` lists affected
+grid/level ids, residual qty/notional, runtime reconcile-log markers, and
+server-local MCP read evidence. It keeps
+`closed_grid_residual_cleanup_allowed=false`, `exchange_sell_allowed=false`,
+`db_write_allowed=false`, `order_allowed=false`, `grid_mutation_allowed=false`,
+`telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false`; it is
+not authorization to clean DB rows, sell residual inventory, place orders,
+modify OCO/grid/fund/Earn state, send Telegram, deploy, or change production
+env. Use `exactAuthorizationTextForNextPlan` only to request a separate cleanup
+execution plan; the execution still requires its own explicit approval.
+
 Read-only profit operator priority decision brief:
 
 ```powershell

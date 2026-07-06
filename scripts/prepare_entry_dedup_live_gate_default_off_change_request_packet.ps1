@@ -1,5 +1,7 @@
 param(
     [string]$LiveGateSemanticsDiffLogPath = "target/profit-review/entry-dedup-live-gate-semantics-diff-latest.log",
+    [string]$LiveSignalEvaluatorPath = "src/main/java/com/agora/service/backtest/LiveSignalEvaluator.java",
+    [string]$LiveSignalEvaluatorScopeTestPath = "src/test/java/com/agora/service/backtest/LiveSignalEvaluatorEntryDedupOpenExposureScopeTest.java",
     [string]$BtLiveSignalRepositoryPath = "src/main/java/com/agora/repository/trading/BtLiveSignalRepository.java",
     [string]$LocalTradingViewExecutionServiceTestPath = "src/test/java/com/agora/service/tradingview/LocalTradingViewExecutionServiceTest.java",
     [string]$ReportPath = "target/profit-review/profit-optimization-report-20260705.md",
@@ -120,6 +122,8 @@ if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 10080) {
 
 foreach ($path in @(
         $LiveGateSemanticsDiffLogPath,
+        $LiveSignalEvaluatorPath,
+        $LiveSignalEvaluatorScopeTestPath,
         $BtLiveSignalRepositoryPath,
         $LocalTradingViewExecutionServiceTestPath,
         $ReportPath,
@@ -129,6 +133,8 @@ foreach ($path in @(
 }
 
 $diffLog = Read-FreshLog -Name "entry-dedup-live-gate-semantics-diff" -PathValue $LiveGateSemanticsDiffLogPath -MaxAge $MaxAgeMinutes
+$liveSignalEvaluatorSource = Read-TextFile -Name "LiveSignalEvaluator source" -PathValue $LiveSignalEvaluatorPath
+$liveSignalEvaluatorScopeTestSource = Read-TextFile -Name "LiveSignalEvaluator scope test source" -PathValue $LiveSignalEvaluatorScopeTestPath
 $repoSource = Read-TextFile -Name "BtLiveSignalRepository source" -PathValue $BtLiveSignalRepositoryPath
 $localTvTestSource = Read-TextFile -Name "LocalTradingViewExecutionServiceTest source" -PathValue $LocalTradingViewExecutionServiceTestPath
 
@@ -156,6 +162,22 @@ $orderAlreadyAllowed = Get-BoolValue (Get-NestedProp -Object $diffPacket -Path @
 $repositoryHasAutoTradedGateMethod = $repoSource.Contains("existsOpenAutoTradedPosition")
 $localTvHasNonAutoIgnoredTest = $localTvTestSource.Contains("liveEnabledIgnoresNonAutoTradedOpenSignalWhenCheckingOpenPositionGate") `
     -and $localTvTestSource.Contains("existsOpenAutoTradedPosition")
+$liveSignalEvaluatorHasDefaultOffScope = $liveSignalEvaluatorSource.Contains("ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY") `
+    -and $liveSignalEvaluatorSource.Contains("ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS") `
+    -and $liveSignalEvaluatorSource.Contains("ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS") `
+    -and $liveSignalEvaluatorSource.Contains("hasOpenLongExposureForEntryDedup") `
+    -and $liveSignalEvaluatorSource.Contains("existsOpenAutoTradedPosition") `
+    -and $liveSignalEvaluatorSource.Contains("existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull") `
+    -and $liveSignalEvaluatorSource.Contains("entryDedupOpenExposureScopeBehaviorChange")
+$liveSignalEvaluatorScopeTestPresent = $liveSignalEvaluatorScopeTestSource.Contains("LiveSignalEvaluatorEntryDedupOpenExposureScopeTest") `
+    -and $liveSignalEvaluatorScopeTestSource.Contains("defaultsToAllOpenRows") `
+    -and $liveSignalEvaluatorScopeTestSource.Contains("acceptsExplicitAutoTradedOpenRowsScope") `
+    -and $liveSignalEvaluatorScopeTestSource.Contains("invalidScopeFallsBackToAllOpenRows")
+$localImplementationStatus = if ($liveSignalEvaluatorHasDefaultOffScope -and $liveSignalEvaluatorScopeTestPresent) {
+    "LOCAL_DEFAULT_OFF_IMPLEMENTED_NOT_ACTIVE"
+} else {
+    "LOCAL_DEFAULT_OFF_IMPLEMENTATION_INCOMPLETE"
+}
 
 $proposedConfigKey = "entryDedupOpenExposureScope"
 $defaultScope = "ALL_OPEN_ROWS"
@@ -166,7 +188,7 @@ $reportText = Read-TextFile -Name "profit optimization report" -PathValue $Repor
 $runbookText = Read-TextFile -Name "deploy runbook" -PathValue $RunbookPath
 $runbookNormalizedText = [regex]::Replace($runbookText, "\s+", " ")
 $reportUpdated = $reportText.Contains("EntryDedup Live Gate Default-Off Change Request") -and $reportText.Contains($confirmText)
-$runbookUpdated = $runbookText.Contains("prepare_entry_dedup_live_gate_default_off_change_request_packet.ps1") -and $runbookNormalizedText.Contains("default-off request is not authorization to change runtime behavior")
+$runbookUpdated = $runbookText.Contains("prepare_entry_dedup_live_gate_default_off_change_request_packet.ps1") -and $runbookNormalizedText.Contains("default-off implementation review is not authorization to activate the optional scope")
 
 if ($liveSignalGateScope -ne "ALL_EXIT_TIME_NULL_ROWS") { Add-Missing -List $missing -Value "current live signal gate scope is all open rows" }
 if ($stagedAddGateScope -ne "AUTO_TRADED_EXIT_TIME_NULL_ROWS") { Add-Missing -List $missing -Value "staged-add gate scope is auto-traded rows" }
@@ -177,6 +199,8 @@ if ($behaviorChangeAlreadyAllowed) { Add-Missing -List $missing -Value "diff pac
 if ($orderAlreadyAllowed) { Add-Missing -List $missing -Value "diff packet keeps orders disallowed" }
 if (-not $repositoryHasAutoTradedGateMethod) { Add-Missing -List $missing -Value "repository has auto-traded gate method" }
 if (-not $localTvHasNonAutoIgnoredTest) { Add-Missing -List $missing -Value "LocalTradingView already proves non-auto rows are ignored by auto-traded gate" }
+if (-not $liveSignalEvaluatorHasDefaultOffScope) { Add-Missing -List $missing -Value "LiveSignalEvaluator has default-off gate scope implementation" }
+if (-not $liveSignalEvaluatorScopeTestPresent) { Add-Missing -List $missing -Value "LiveSignalEvaluator default-off gate scope unit test present" }
 if (-not $reportUpdated) { Add-Missing -List $missing -Value "profit optimization report includes default-off change request" }
 if (-not $runbookUpdated) { Add-Missing -List $missing -Value "deploy runbook includes default-off change request instructions" }
 
@@ -187,7 +211,7 @@ $status = if ($ready) {
     "BLOCKED_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_CHANGE_REQUEST_INCOMPLETE_NOT_LIVE"
 }
 $decision = if ($ready) {
-    "PREPARE_OPERATOR_REVIEW_FOR_DEFAULT_OFF_AUTO_TRADED_GATE_SCOPE_NOT_IMPLEMENTATION"
+    "REVIEW_LOCAL_DEFAULT_OFF_AUTO_TRADED_GATE_SCOPE_IMPLEMENTATION_NOT_ACTIVE"
 } else {
     "REFRESH_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_CHANGE_REQUEST_EVIDENCE"
 }
@@ -217,11 +241,17 @@ $packet = [ordered]@{
         explainsCurrentNoBuy = $explainsCurrentNoBuy
         repositoryHasAutoTradedGateMethod = $repositoryHasAutoTradedGateMethod
         localTradingViewHasNonAutoIgnoredTest = $localTvHasNonAutoIgnoredTest
+        liveSignalEvaluatorHasDefaultOffScope = $liveSignalEvaluatorHasDefaultOffScope
+        liveSignalEvaluatorScopeTestPresent = $liveSignalEvaluatorScopeTestPresent
+        localImplementationStatus = $localImplementationStatus
     }
     reviewEnvelope = [ordered]@{
         reviewOnly = $true
         requestReady = $ready
+        implementationReviewReady = $ready
         implementationAllowed = $false
+        activationAllowed = $false
+        configurationChangeAllowed = $false
         behaviorChangeAllowed = $false
         liveGateChangeAllowed = $false
         liveExecutionReady = $false
@@ -241,8 +271,8 @@ $packet = [ordered]@{
         exchangeMutationAllowed = $false
     }
     missingRequirements = @($missing)
-    nextAction = "Use this packet as an operator request only. A separate implementation authorization is required before adding the default-off LiveSignalEvaluator gate-scope option."
-    notAuthorization = "read-only EntryDedup live gate default-off change request only; does not implement Java behavior, clear exposure, activate collectors, write runtime evidence, relax policy, deploy, change production env, enable live execution, place orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run external backfill/import"
+    nextAction = "Use this packet to review the local default-off implementation; a separate configuration/activation authorization is required before using AUTO_TRADED_OPEN_ROWS in runtime."
+    notAuthorization = "read-only EntryDedup live gate default-off implementation review only; does not clear exposure, activate the optional scope, change runtime configuration, activate collectors, write runtime evidence, relax policy, deploy, change production env, enable live execution, place orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run external backfill/import"
 }
 
 Write-Host "[entry-dedup-live-gate-default-off-change-request-packet] read-only packet"
@@ -257,12 +287,18 @@ Write-Host "entry_dedup_live_gate_default_off_change_request_scope_mismatch_pres
 Write-Host "entry_dedup_live_gate_default_off_change_request_explains_current_no_buy=$($explainsCurrentNoBuy.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_live_gate_default_off_change_request_repository_has_auto_traded_gate_method=$($repositoryHasAutoTradedGateMethod.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_live_gate_default_off_change_request_local_tv_has_non_auto_ignored_test=$($localTvHasNonAutoIgnoredTest.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_live_gate_default_off_change_request_live_signal_evaluator_has_default_off_scope=$($liveSignalEvaluatorHasDefaultOffScope.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_live_gate_default_off_change_request_live_signal_evaluator_scope_test_present=$($liveSignalEvaluatorScopeTestPresent.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_live_gate_default_off_change_request_local_implementation_status=$localImplementationStatus"
 Write-Host "entry_dedup_live_gate_default_off_change_request_report_updated=$($reportUpdated.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_live_gate_default_off_change_request_runbook_updated=$($runbookUpdated.ToString().ToLowerInvariant())"
 Write-Host ("entry_dedup_live_gate_default_off_change_request_missing_requirements=" + (ConvertTo-Json -Compress @($missing)))
 Write-Host ("entry_dedup_live_gate_default_off_change_request_packet=" + (ConvertTo-Json -Compress -Depth 12 $packet))
 Write-Host "request_ready=$($ready.ToString().ToLowerInvariant())"
+Write-Host "implementation_review_ready=$($ready.ToString().ToLowerInvariant())"
 Write-Host "implementation_allowed=false"
+Write-Host "activation_allowed=false"
+Write-Host "configuration_change_allowed=false"
 Write-Host "behavior_change_allowed=false"
 Write-Host "live_gate_change_allowed=false"
 Write-Host "live_execution_ready=false"
@@ -278,7 +314,7 @@ Write-Host "position_or_oco_mutation_allowed=false"
 Write-Host "deploy_or_env_change_allowed=false"
 Write-Host "order_allowed=false"
 Write-Host "telegram_send_allowed=false"
-Write-Host "notAuthorization=read-only EntryDedup live gate default-off change request only; does not implement Java behavior, clear exposure, activate collectors, write runtime evidence, relax policy, deploy, change production env, enable live execution, place orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run external backfill/import"
+Write-Host "notAuthorization=read-only EntryDedup live gate default-off implementation review only; does not clear exposure, activate the optional scope, change runtime configuration, activate collectors, write runtime evidence, relax policy, deploy, change production env, enable live execution, place orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run external backfill/import"
 Write-Host "[entry-dedup-live-gate-default-off-change-request-packet] read-only check complete"
 
 if ($RequireReady -and -not $ready) {

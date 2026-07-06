@@ -41,6 +41,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -66,6 +67,9 @@ public class LiveSignalEvaluator {
 
     /** SMA200 warmup 需要 200 根，再加 10 根緩衝 */
     private static final int WARMUP_BARS = 210;
+    static final String ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY = "entryDedupOpenExposureScope";
+    static final String ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS = "ALL_OPEN_ROWS";
+    static final String ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS = "AUTO_TRADED_OPEN_ROWS";
 
     private final MdKlineRepository klineRepository;
     private final BtLiveSignalRepository liveSignalRepository;
@@ -758,11 +762,12 @@ public class LiveSignalEvaluator {
         double yearDrop = calcYearDrop(klines, lastIndex, yearLookback, entry.doubleValue());
         double expectedR = computeExpectedR(config, snap, stopLossPct, takeProfitPct);
 
-        // #332 dedup gate — 同 strategy/symbol/side/interval 已有未出場 entry 則跳過
-        // 此 check 涵蓋 shadow path (notifyOnly=true, autoTraded=null)，補齊 autoTrade 已有的 dedup gate
-        // 從而避免同 K 線重複生 5 筆 entry 污染 ML 訓練樣本（issue #332）
-        boolean hasOpenLongExposure = liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
-                strategy.getId(), symbol, "LONG", intervalCode);
+        // #332 dedup gate. Default remains all open rows, including shadow rows,
+        // to preserve legacy behavior. A strategy may explicitly request the
+        // auto-traded-only scope after operator review.
+        String entryDedupOpenExposureScope = resolveEntryDedupOpenExposureScope(config);
+        boolean hasOpenLongExposure = hasOpenLongExposureForEntryDedup(
+                strategy.getId(), symbol, "LONG", intervalCode, entryDedupOpenExposureScope);
         boolean dedupShadowOnlyOverride = false;
         boolean stagedMicroAddEntry = false;
         double stagedMicroAddMaxNotionalUsdt = 0.0;
@@ -770,13 +775,26 @@ public class LiveSignalEvaluator {
         ExposureOptimizer.Result exposureDecision = exposureOptimizer.evaluateLongEntry(
                 strategy, config, symbol, intervalCode, expectedR, stopLossPct, hasOpenLongExposure,
                 entry, tp, sl, lastBar.getOpenTime(), preTradeMinExpectedRForSnapshot);
+        Map<String, Object> exposureDecisionContext = exposureDecision.context() == null
+                ? new LinkedHashMap<>()
+                : new LinkedHashMap<>(exposureDecision.context());
+        exposureDecisionContext.put("entryDedupOpenExposureScope", entryDedupOpenExposureScope);
+        exposureDecisionContext.put("entryDedupOpenExposureScopeKey", ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY);
+        exposureDecisionContext.put("entryDedupOpenExposureScopeDefault", ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS);
+        exposureDecisionContext.put("entryDedupOpenExposureScopeQuery",
+                usesAutoTradedOpenRowsForEntryDedup(entryDedupOpenExposureScope)
+                        ? "AUTO_TRADED_EXIT_TIME_NULL_ROWS"
+                        : "ALL_EXIT_TIME_NULL_ROWS");
+        exposureDecisionContext.put("entryDedupOpenExposureScopeBehaviorChange",
+                usesAutoTradedOpenRowsForEntryDedup(entryDedupOpenExposureScope));
+        exposureDecisionContext.put("entryDedupOpenExposureDetected", hasOpenLongExposure);
         if (exposureDecision.shadowOnly()) {
                 dedupShadowOnlyOverride = true;
                 log.info("[LiveSignal] ExposureOptimizer shadow-only candidate: strategyId={} symbol={} expectedR={} reason={}",
                         strategy.getId(), symbol, String.format("%.3f", expectedR), exposureDecision.reason());
                 auditWriter.logAttentionHit(strategy.getId(), symbol, intervalCode,
                         "EntryDedupSoftened", "INFO",
-                        exposureDecision.context());
+                        exposureDecisionContext);
         } else if (exposureDecision.stagedMicroAddEntry()) {
                 stagedMicroAddEntry = true;
                 stagedMicroAddMaxNotionalUsdt = exposureDecision.microAddNotionalCapUsdt();
@@ -785,13 +803,13 @@ public class LiveSignalEvaluator {
                         String.format("%.2f", stagedMicroAddMaxNotionalUsdt), exposureDecision.reason());
                 auditWriter.logAttentionHit(strategy.getId(), symbol, intervalCode,
                         "EntryDedupStagedMicroAddAllowed", "INFO",
-                        exposureDecision.context());
+                        exposureDecisionContext);
         } else if (exposureDecision.blocksEntry()) {
                 String blocker = hasOpenLongExposure ? "EntryDedup" : "ExposureOptimizer";
                 log.info("[LiveSignal] LONG entry blocked by {}: strategyId={} symbol={} interval={} reason={}",
                         blocker, strategy.getId(), symbol, intervalCode, exposureDecision.reason());
                 logEntrySkip(strategy, symbol, intervalCode, lastBar, blocker,
-                        exposureDecision.reason(), exposureDecision.context());
+                        exposureDecision.reason(), exposureDecisionContext);
                 return;
         }
 
@@ -2510,6 +2528,38 @@ public class LiveSignalEvaluator {
         Object v = config.get(key);
         if (v == null) return def;
         return String.valueOf(v);
+    }
+
+    static String resolveEntryDedupOpenExposureScope(Map<String, Object> config) {
+        Object raw = config != null ? config.get(ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY) : null;
+        if (raw == null) {
+            return ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS;
+        }
+        String normalized = String.valueOf(raw).trim().toUpperCase(Locale.ROOT);
+        if (ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS.equals(normalized)) {
+            return ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS;
+        }
+        if (ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS.equals(normalized)) {
+            return ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS;
+        }
+        return ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS;
+    }
+
+    static boolean usesAutoTradedOpenRowsForEntryDedup(String scope) {
+        return ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS.equals(resolveEntryDedupOpenExposureScope(
+                Map.of(ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY, scope == null ? "" : scope)));
+    }
+
+    private boolean hasOpenLongExposureForEntryDedup(Long strategyId,
+                                                     String symbol,
+                                                     String side,
+                                                     String intervalCode,
+                                                     String scope) {
+        if (usesAutoTradedOpenRowsForEntryDedup(scope)) {
+            return liveSignalRepository.existsOpenAutoTradedPosition(strategyId, symbol, side, intervalCode);
+        }
+        return liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
+                strategyId, symbol, side, intervalCode);
     }
 
     private boolean isTqsStrategyAllowlisted(BtStrategy strategy) {

@@ -3500,12 +3500,15 @@ Expected:
   `entry_dedup_live_gate_default_off_change_request_default_scope=ALL_OPEN_ROWS`,
   `entry_dedup_live_gate_default_off_change_request_requested_optional_scope=AUTO_TRADED_OPEN_ROWS`,
   `entry_dedup_live_gate_default_off_change_request_confirm_text=AUTHORIZE_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_AUTO_TRADED_ONLY_REVIEW`,
-  `request_ready=true`, `implementation_allowed=false`,
-  `behavior_change_allowed=false`, `live_gate_change_allowed=false`, and
-  `order_allowed=false`. This default-off request is not authorization to
-  change runtime behavior, clear exposure, deploy, change production env, place
-  orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run
-  external backfill/import.
+  `entry_dedup_live_gate_default_off_change_request_local_implementation_status=LOCAL_DEFAULT_OFF_IMPLEMENTED_NOT_ACTIVE`,
+  `request_ready=true`, `implementation_review_ready=true`,
+  `implementation_allowed=false`, `activation_allowed=false`,
+  `configuration_change_allowed=false`, `behavior_change_allowed=false`,
+  `live_gate_change_allowed=false`, and `order_allowed=false`. This default-off
+  implementation review is not authorization to activate the optional scope,
+  clear exposure, deploy, change production env, place orders, modify
+  OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run external
+  backfill/import.
 - To package the current zero-qty non-auto open-exposure blocker into a narrow
   operator choice review without clearing exposure or implementing behavior,
   run:

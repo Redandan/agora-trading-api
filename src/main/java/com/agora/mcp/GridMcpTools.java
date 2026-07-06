@@ -15,6 +15,7 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.service.trading.CapitalAllocationPolicyPreviewService;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.TradeResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -29,8 +30,10 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * MCP Grid 交易工具集。
@@ -648,6 +651,299 @@ public class GridMcpTools {
         sb.append(String.format("%nSummary: risks=%d checked=%d%n", riskCount, checkedCount));
         sb.append("Note: read-only report. No DB write, no order action.");
         return sb.toString();
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
+    @Tool(description = "Protected write: sell and close exact residual BTC inventory from an already-closed Grid. " +
+            "Dry-run by default. Requires symbol, closed gridId, comma-separated levelIds, exact expectedQty, " +
+            "optional maxNotionalUsdt, execute=true, and exact confirmText. The tool blocks if active positions exist, " +
+            "if post-sell BTC would not cover active-grid inventory, or if current notional is below min sell amount.")
+    public String cleanupClosedGridResidual(String symbol, Long gridId, String levelIdsCsv,
+                                            BigDecimal expectedQty, BigDecimal maxNotionalUsdt,
+                                            Boolean execute, String confirmText) {
+        String sym = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.trim().toUpperCase();
+        boolean executeRequested = Boolean.TRUE.equals(execute);
+        List<String> blockers = new ArrayList<>();
+
+        List<Long> levelIds = parseLevelIds(levelIdsCsv);
+        if (gridId == null || gridId <= 0) blockers.add("GRID_ID_REQUIRED");
+        if (levelIds.isEmpty()) blockers.add("LEVEL_IDS_REQUIRED");
+        if (expectedQty == null || expectedQty.signum() <= 0) blockers.add("EXPECTED_QTY_REQUIRED");
+
+        BtGrid grid = null;
+        List<BtGridLevel> levels = new ArrayList<>();
+        if (blockers.isEmpty()) {
+            grid = gridRepository.findById(gridId).orElse(null);
+            if (grid == null) {
+                blockers.add("GRID_NOT_FOUND");
+            } else {
+                if (!sym.equalsIgnoreCase(grid.getSymbol())) blockers.add("SYMBOL_GRID_MISMATCH");
+                if (grid.getClosedAt() == null) blockers.add("GRID_NOT_CLOSED");
+                for (Long id : levelIds) {
+                    BtGridLevel level = gridLevelRepository.findById(id).orElse(null);
+                    if (level == null) {
+                        blockers.add("LEVEL_NOT_FOUND_" + id);
+                        continue;
+                    }
+                    if (!gridId.equals(level.getGridId())) blockers.add("LEVEL_GRID_MISMATCH_" + id);
+                    if (!List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL").contains(level.getStatus())) {
+                        blockers.add("LEVEL_STATUS_NOT_RESIDUAL_" + id + "_" + level.getStatus());
+                    }
+                    if (level.getFilledQty() == null || level.getFilledQty().signum() <= 0) {
+                        blockers.add("LEVEL_FILLED_QTY_MISSING_" + id);
+                    }
+                    if (level.getFilledPrice() == null || level.getFilledPrice().signum() <= 0) {
+                        blockers.add("LEVEL_FILLED_PRICE_MISSING_" + id);
+                    }
+                    levels.add(level);
+                }
+            }
+        }
+
+        BigDecimal residualQty = levels.stream()
+                .map(l -> l.getFilledQty() == null ? BigDecimal.ZERO : l.getFilledQty())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (expectedQty != null && residualQty.compareTo(expectedQty) != 0) {
+            blockers.add("EXPECTED_QTY_MISMATCH actual=" + residualQty.toPlainString());
+        }
+
+        BigDecimal currentPrice = null;
+        BigDecimal currentNotional = null;
+        try {
+            currentPrice = okxTradingService.getLastPrice(sym);
+            if (currentPrice != null) {
+                currentNotional = residualQty.multiply(currentPrice).setScale(8, RoundingMode.HALF_UP);
+            }
+        } catch (Exception e) {
+            currentPrice = null;
+        }
+        if (currentPrice == null || currentPrice.signum() <= 0) {
+            blockers.add("LAST_PRICE_UNAVAILABLE");
+        }
+        if (currentNotional != null
+                && currentNotional.compareTo(gridProperties.minSellNotionalUsdt()) < 0) {
+            blockers.add("CURRENT_NOTIONAL_BELOW_MIN_SELL " + currentNotional.toPlainString()
+                    + "<" + gridProperties.minSellNotionalUsdt().toPlainString());
+        }
+        if (maxNotionalUsdt != null && currentNotional != null
+                && currentNotional.compareTo(maxNotionalUsdt) > 0) {
+            blockers.add("CURRENT_NOTIONAL_ABOVE_OPERATOR_CAP " + currentNotional.toPlainString()
+                    + ">" + maxNotionalUsdt.toPlainString());
+        }
+
+        BigDecimal availableBase = BigDecimal.ZERO;
+        BigDecimal cashBase = BigDecimal.ZERO;
+        try {
+            String base = sym.replace("USDT", "");
+            for (OkxTradingService.SpotHolding holding : okxTradingService.getSpotHoldings()) {
+                if (base.equalsIgnoreCase(holding.ccy)) {
+                    availableBase = holding.availBal == null ? BigDecimal.ZERO : holding.availBal;
+                    cashBase = holding.cashBal == null ? BigDecimal.ZERO : holding.cashBal;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            blockers.add("SPOT_BALANCE_UNAVAILABLE");
+        }
+        if (availableBase.compareTo(residualQty) < 0) {
+            blockers.add("AVAILABLE_BASE_BELOW_RESIDUAL_QTY available=" + availableBase.toPlainString());
+        }
+
+        BigDecimal activeGridQty = BigDecimal.ZERO;
+        try {
+            activeGridQty = sumActiveGridQtyForSymbol(sym);
+        } catch (Exception e) {
+            blockers.add("ACTIVE_GRID_QTY_UNAVAILABLE");
+        }
+        BigDecimal postSellAvailable = availableBase.subtract(residualQty);
+        if (postSellAvailable.compareTo(activeGridQty) < 0) {
+            blockers.add("POST_SELL_AVAILABLE_BELOW_ACTIVE_GRID_QTY postSell="
+                    + postSellAvailable.toPlainString() + " activeGrid=" + activeGridQty.toPlainString());
+        }
+
+        long openPositions = 0;
+        try {
+            openPositions = liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull().stream()
+                    .filter(p -> sym.equalsIgnoreCase(p.getSymbol()))
+                    .count();
+        } catch (Exception e) {
+            blockers.add("OPEN_POSITION_LOOKUP_UNAVAILABLE");
+        }
+        if (openPositions > 0) {
+            blockers.add("OPEN_AUTO_POSITION_EXISTS count=" + openPositions);
+        }
+
+        String requiredConfirmText = cleanupClosedGridResidualConfirmText(sym, gridId, levelIds, expectedQty);
+        if (executeRequested && !requiredConfirmText.equals(confirmText)) {
+            blockers.add("CONFIRM_TEXT_MISMATCH");
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[closed-grid-residual-cleanup] protected execution path\n");
+        sb.append("packetType=CLOSED_GRID_RESIDUAL_CLEANUP_EXECUTION\n");
+        sb.append("boundary=PROTECTED_WRITE_REQUIRES_EXACT_CONFIRMATION\n");
+        sb.append("symbol=").append(sym).append('\n');
+        sb.append("gridId=").append(gridId).append('\n');
+        sb.append("levelIds=").append(levelIds).append('\n');
+        sb.append("expectedQty=").append(expectedQty != null ? expectedQty.toPlainString() : "null").append('\n');
+        sb.append("residualQty=").append(residualQty.toPlainString()).append('\n');
+        sb.append("currentPrice=").append(currentPrice != null ? currentPrice.toPlainString() : "UNKNOWN").append('\n');
+        sb.append("currentNotionalUsdt=").append(currentNotional != null ? currentNotional.toPlainString() : "UNKNOWN").append('\n');
+        sb.append("minSellNotionalUsdt=").append(gridProperties.minSellNotionalUsdt().toPlainString()).append('\n');
+        sb.append("maxNotionalUsdt=").append(maxNotionalUsdt != null ? maxNotionalUsdt.toPlainString() : "null").append('\n');
+        sb.append("cashBase=").append(cashBase.toPlainString()).append('\n');
+        sb.append("availableBase=").append(availableBase.toPlainString()).append('\n');
+        sb.append("activeGridQty=").append(activeGridQty.toPlainString()).append('\n');
+        sb.append("postSellAvailableBase=").append(postSellAvailable.toPlainString()).append('\n');
+        sb.append("openAutoPositions=").append(openPositions).append('\n');
+        sb.append("executeRequested=").append(executeRequested).append('\n');
+        sb.append("requiredConfirmText=").append(requiredConfirmText).append('\n');
+        sb.append("cleanupBlockers=").append(blockers).append('\n');
+
+        if (!blockers.isEmpty()) {
+            sb.append("order_attempted=false\n");
+            sb.append("db_write_attempted=false\n");
+            sb.append("telegram_send_allowed=false\n");
+            sb.append("deploy_or_env_change_allowed=false\n");
+            sb.append("closed_grid_residual_cleanup_status=BLOCKED_PRECHECK\n");
+            return sb.toString();
+        }
+        if (!executeRequested) {
+            sb.append("order_attempted=false\n");
+            sb.append("db_write_attempted=false\n");
+            sb.append("telegram_send_allowed=false\n");
+            sb.append("deploy_or_env_change_allowed=false\n");
+            sb.append("closed_grid_residual_cleanup_status=READY_NOT_EXECUTED\n");
+            return sb.toString();
+        }
+
+        TradeResult result = okxTradingService.placeMarketSellWithFill(sym, residualQty);
+        BigDecimal soldQty = result.getQty() == null ? residualQty : result.getQty();
+        BigDecimal avgPrice = result.getAvgPrice() == null ? currentPrice : result.getAvgPrice();
+        BigDecimal totalPnl = applyClosedGridResidualSellResult(grid, levels, soldQty, avgPrice, result.getOrderId());
+        BigDecimal leftoverQty = residualQty.subtract(soldQty).max(BigDecimal.ZERO);
+        String status = leftoverQty.compareTo(residualQty.multiply(new BigDecimal("0.01"))) > 0
+                ? "EXECUTED_PARTIAL_FILL_REVIEW_REQUIRED"
+                : "EXECUTED";
+
+        sb.append("order_attempted=true\n");
+        sb.append("db_write_attempted=true\n");
+        sb.append("orderId=").append(result.getOrderId()).append('\n');
+        sb.append("soldQty=").append(soldQty.toPlainString()).append('\n');
+        sb.append("avgPrice=").append(avgPrice != null ? avgPrice.toPlainString() : "UNKNOWN").append('\n');
+        sb.append("leftoverQty=").append(leftoverQty.toPlainString()).append('\n');
+        sb.append("realizedPnlApplied=").append(totalPnl.toPlainString()).append('\n');
+        sb.append("telegram_send_allowed=false\n");
+        sb.append("deploy_or_env_change_allowed=false\n");
+        sb.append("closed_grid_residual_cleanup_status=").append(status).append('\n');
+        return sb.toString();
+    }
+
+    static List<Long> parseLevelIds(String levelIdsCsv) {
+        if (levelIdsCsv == null || levelIdsCsv.isBlank()) {
+            return List.of();
+        }
+        Set<Long> ids = new LinkedHashSet<>();
+        for (String raw : levelIdsCsv.split(",")) {
+            String token = raw.trim();
+            if (token.isEmpty() || !token.matches("\\d+")) {
+                return List.of();
+            }
+            try {
+                long id = Long.parseLong(token);
+                if (id <= 0) {
+                    return List.of();
+                }
+                ids.add(id);
+            } catch (NumberFormatException e) {
+                return List.of();
+            }
+        }
+        return new ArrayList<>(ids);
+    }
+
+    static String cleanupClosedGridResidualConfirmText(String symbol, Long gridId,
+                                                       List<Long> levelIds, BigDecimal expectedQty) {
+        String sym = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.trim().toUpperCase();
+        List<Long> sorted = new ArrayList<>(levelIds == null ? List.of() : levelIds);
+        Collections.sort(sorted);
+        String levels = sorted.stream()
+                .map(String::valueOf)
+                .reduce((a, b) -> a + "_" + b)
+                .orElse("NONE");
+        String qty = expectedQty == null ? "NULL" : expectedQty.stripTrailingZeros().toPlainString();
+        return "EXECUTE_CLOSED_GRID_RESIDUAL_CLEANUP_"
+                + sym + "_GRID" + gridId + "_LEVELS" + levels + "_QTY" + qty;
+    }
+
+    private BigDecimal sumActiveGridQtyForSymbol(String symbol) {
+        String sym = symbol == null ? "" : symbol.trim().toUpperCase();
+        for (Object[] row : gridLevelRepository.sumFilledQtyBySymbolForActiveGrids()) {
+            if (row == null || row.length < 2 || row[0] == null || row[1] == null) {
+                continue;
+            }
+            if (sym.equalsIgnoreCase(String.valueOf(row[0]))) {
+                Object qty = row[1];
+                if (qty instanceof BigDecimal bd) {
+                    return bd;
+                }
+                if (qty instanceof Number n) {
+                    return BigDecimal.valueOf(n.doubleValue());
+                }
+                return new BigDecimal(String.valueOf(qty));
+            }
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private BigDecimal applyClosedGridResidualSellResult(BtGrid grid, List<BtGridLevel> levels,
+                                                         BigDecimal soldQty, BigDecimal avgPrice, String orderId) {
+        BigDecimal remainingSold = soldQty == null ? BigDecimal.ZERO : soldQty.max(BigDecimal.ZERO);
+        BigDecimal totalAppliedPnl = BigDecimal.ZERO;
+        int closedCount = 0;
+
+        List<BtGridLevel> sorted = new ArrayList<>(levels);
+        sorted.sort(java.util.Comparator.comparing(BtGridLevel::getId));
+        for (BtGridLevel level : sorted) {
+            BigDecimal levelQty = safe(level.getFilledQty());
+            if (levelQty.signum() <= 0) {
+                continue;
+            }
+            BigDecimal soldFromLevel = remainingSold.min(levelQty);
+            BigDecimal pnl = BigDecimal.ZERO;
+            if (avgPrice != null && level.getFilledPrice() != null && soldFromLevel.signum() > 0) {
+                pnl = avgPrice.subtract(level.getFilledPrice())
+                        .multiply(soldFromLevel)
+                        .setScale(8, RoundingMode.HALF_UP);
+            }
+            totalAppliedPnl = totalAppliedPnl.add(pnl);
+            level.setRealizedPnl(safe(level.getRealizedPnl()).add(pnl).setScale(8, RoundingMode.HALF_UP));
+            level.setSellOrderId(orderId);
+            level.setRetryCount(0);
+
+            BigDecimal leftover = levelQty.subtract(soldFromLevel).max(BigDecimal.ZERO);
+            BigDecimal dustTolerance = levelQty.multiply(new BigDecimal("0.01"));
+            if (leftover.compareTo(dustTolerance) <= 0) {
+                level.setStatus("CLOSED");
+                level.setFilledQty(BigDecimal.ZERO);
+                level.setClosedAt(LocalDateTime.now(ZoneOffset.UTC));
+                level.setErrorMessage("CLOSED_GRID_RESIDUAL_CLEANUP orderId=" + orderId);
+                closedCount++;
+            } else {
+                level.setStatus("SELL_PARTIAL");
+                level.setFilledQty(leftover.setScale(8, RoundingMode.HALF_UP));
+                level.setErrorMessage("CLOSED_GRID_RESIDUAL_CLEANUP_PARTIAL orderId=" + orderId);
+            }
+            gridLevelRepository.save(level);
+            remainingSold = remainingSold.subtract(soldFromLevel).max(BigDecimal.ZERO);
+        }
+
+        grid.setTotalRealizedPnl(safe(grid.getTotalRealizedPnl()).add(totalAppliedPnl).setScale(8, RoundingMode.HALF_UP));
+        grid.setClosedPairCount(nullToZero(grid.getClosedPairCount()) + closedCount);
+        grid.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
+        gridRepository.save(grid);
+        return totalAppliedPnl.setScale(8, RoundingMode.HALF_UP);
     }
 
     @McpAuth(McpAuthLevel.OPS)

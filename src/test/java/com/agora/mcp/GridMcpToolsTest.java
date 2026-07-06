@@ -143,6 +143,80 @@ class GridMcpToolsTest {
     }
 
     @Test
+    void closeGridClosesOnlyWhenEveryHoldingSellsFully() {
+        Fixture fixture = closeGridFixture();
+        TradeResult tradeResult = new TradeResult();
+        tradeResult.setOrderId("ord-close-grid");
+        tradeResult.setAvgPrice(new BigDecimal("110"));
+        tradeResult.setQty(new BigDecimal("0.001"));
+        when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"),
+                argThat(q -> q.compareTo(new BigDecimal("0.001")) == 0))).thenReturn(tradeResult);
+
+        String output = fixture.tools.closeGrid(7L);
+
+        assertThat(output).contains(
+                "close_grid_status=CLOSED_NO_RESIDUAL",
+                "grid_closed=true",
+                "partial 0 / failed 0");
+        assertThat(fixture.grid.getClosedAt()).isNotNull();
+        assertThat(fixture.grid.getEnabled()).isFalse();
+        assertThat(fixture.grid.getPausedAt()).isNull();
+        assertThat(fixture.level46.getStatus()).isEqualTo("CLOSED");
+        assertThat(fixture.level46.getSellOrderId()).isEqualTo("ord-close-grid");
+        assertThat(fixture.level46.getRetryCount()).isZero();
+        assertThat(fixture.grid.getClosedPairCount()).isEqualTo(1);
+        assertThat(fixture.grid.getTotalRealizedPnl()).isEqualByComparingTo("0.01000000");
+        verify(fixture.okxTradingService).placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class));
+    }
+
+    @Test
+    void closeGridDoesNotSetClosedAtWhenSellThrows() {
+        Fixture fixture = closeGridFixture();
+        when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class)))
+                .thenThrow(new RuntimeException("okx timeout"));
+
+        String output = fixture.tools.closeGrid(7L);
+
+        assertThat(output).contains(
+                "close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED",
+                "grid_closed=false",
+                "failed: 1");
+        assertThat(fixture.grid.getClosedAt()).isNull();
+        assertThat(fixture.grid.getEnabled()).isTrue();
+        assertThat(fixture.grid.getPausedAt()).isNotNull();
+        assertThat(fixture.grid.getPausedReason()).contains("closeGrid blocked");
+        assertThat(fixture.level46.getStatus()).isEqualTo("SELLING_OKX");
+        assertThat(fixture.level46.getIntentAt()).isNotNull();
+        assertThat(fixture.level46.getErrorMessage()).contains("okx timeout");
+    }
+
+    @Test
+    void closeGridDoesNotSetClosedAtWhenSellPartiallyFills() {
+        Fixture fixture = closeGridFixture();
+        TradeResult tradeResult = new TradeResult();
+        tradeResult.setOrderId("ord-partial-close-grid");
+        tradeResult.setAvgPrice(new BigDecimal("110"));
+        tradeResult.setQty(new BigDecimal("0.0004"));
+        when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class)))
+                .thenReturn(tradeResult);
+
+        String output = fixture.tools.closeGrid(7L);
+
+        assertThat(output).contains(
+                "close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED",
+                "grid_closed=false",
+                "partial: 1");
+        assertThat(fixture.grid.getClosedAt()).isNull();
+        assertThat(fixture.grid.getEnabled()).isTrue();
+        assertThat(fixture.grid.getPausedAt()).isNotNull();
+        assertThat(fixture.level46.getStatus()).isEqualTo("SELL_PARTIAL");
+        assertThat(fixture.level46.getFilledQty()).isEqualByComparingTo("0.0006");
+        assertThat(fixture.level46.getSellOrderId()).isEqualTo("ord-partial-close-grid");
+        assertThat(fixture.level46.getErrorMessage()).contains("closeGrid partial fill");
+        assertThat(fixture.grid.getTotalRealizedPnl()).isEqualByComparingTo("0.00400000");
+    }
+
+    @Test
     void closedGridResidualCleanupDryRunRequiresExactConfirmBeforeSelling() {
         Fixture fixture = closedGridResidualFixture();
 
@@ -252,6 +326,41 @@ class GridMcpToolsTest {
         when(levelRepository.sumFilledQtyBySymbolForActiveGrids())
                 .thenReturn(List.<Object[]>of(new Object[] {"BTCUSDT", new BigDecimal("0.00008096")}));
         when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of());
+        return new Fixture(tools, gridRepository, levelRepository, okxTradingService, grid, level46, level47);
+    }
+
+    private static Fixture closeGridFixture() {
+        BtGridRepository gridRepository = mock(BtGridRepository.class);
+        BtGridLevelRepository levelRepository = mock(BtGridLevelRepository.class);
+        BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
+        MdKlineRepository klineRepository = mock(MdKlineRepository.class);
+        OkxTradingService okxTradingService = mock(OkxTradingService.class);
+        GridMcpTools tools = new GridMcpTools(
+                gridRepository,
+                levelRepository,
+                liveSignalRepository,
+                klineRepository,
+                okxTradingService,
+                new TradingGridProperties(false, 24, 300000, true, new BigDecimal("5.0")),
+                mock(CapitalAllocationPolicyPreviewService.class));
+
+        BtGrid grid = new BtGrid();
+        grid.setId(7L);
+        grid.setSymbol("BTCUSDT");
+        grid.setEnabled(true);
+        grid.setTotalRealizedPnl(BigDecimal.ZERO);
+        grid.setClosedPairCount(0);
+
+        BtGridLevel level46 = closedResidualLevel(46L, new BigDecimal("0.001"), new BigDecimal("100"), "HOLDING");
+        level46.setLevelIndex(2);
+        level46.setRetryCount(1);
+        level46.setPairedSellPrice(new BigDecimal("110"));
+        BtGridLevel level47 = closedResidualLevel(47L, BigDecimal.ZERO, new BigDecimal("100"), "PENDING");
+
+        when(gridRepository.findById(7L)).thenReturn(Optional.of(grid));
+        when(levelRepository.findByGridIdAndStatusIn(eq(7L), eq(List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"))))
+                .thenReturn(List.of(level46));
+        when(okxTradingService.getLastPrice("BTCUSDT")).thenReturn(new BigDecimal("110"));
         return new Fixture(tools, gridRepository, levelRepository, okxTradingService, grid, level46, level47);
     }
 

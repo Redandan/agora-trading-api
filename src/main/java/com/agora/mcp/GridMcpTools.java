@@ -432,8 +432,8 @@ public class GridMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
-    @Tool(description = "關閉 grid:平掉所有 HOLDING + SELL_FAILED + SELL_PARTIAL 倉位 + 設 enabled=false + 記 closed_at。" +
-            "不可逆;若只是暫時停請用 pauseGrid。回傳總 PnL 摘要。")
+    @Tool(description = "關閉 grid:平掉所有 HOLDING + SELL_FAILED + SELL_PARTIAL 倉位；只有全部賣出才設 enabled=false + closed_at。" +
+            "若任何 level sell 失敗或 partial fill，Grid 只會暫停並回報 residual，不會 closed_at。不可逆;若只是暫時停請用 pauseGrid。")
     public String closeGrid(Long gridId) {
         if (gridId == null) return "❌ gridId 不可為空";
         BtGrid g = gridRepository.findById(gridId).orElse(null);
@@ -443,6 +443,7 @@ public class GridMcpTools {
         List<BtGridLevel> filled = gridLevelRepository.findByGridIdAndStatusIn(
                 gridId, List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"));
         int closedCount = 0;
+        int partialCount = 0;
         int failCount = 0;
         BigDecimal totalClose = BigDecimal.ZERO;
         BigDecimal mark;
@@ -451,37 +452,120 @@ public class GridMcpTools {
         } catch (Exception e) {
             mark = null;
         }
+        LocalDateTime attemptAt = LocalDateTime.now();
         for (BtGridLevel level : filled) {
             try {
-                okxTradingService.placeMarketSell(g.getSymbol(), level.getFilledQty());
-                BigDecimal pnl = (mark != null)
-                        ? mark.subtract(level.getFilledPrice()).multiply(level.getFilledQty())
-                              .setScale(8, RoundingMode.HALF_UP)
-                        : BigDecimal.ZERO;
-                level.setStatus("CLOSED");
-                level.setRealizedPnl(pnl);
-                level.setClosedAt(LocalDateTime.now());
+                BigDecimal requestedQty = level.getFilledQty();
+                if (requestedQty == null || requestedQty.signum() <= 0) {
+                    level.setErrorMessage("closeGrid blocked: non-positive filledQty");
+                    gridLevelRepository.save(level);
+                    failCount++;
+                    continue;
+                }
+
+                level.setStatus("SELLING_OKX");
+                level.setIntentAt(attemptAt);
+                level.setErrorMessage(null);
                 gridLevelRepository.save(level);
-                g.setTotalRealizedPnl(g.getTotalRealizedPnl().add(pnl));
+
+                TradeResult sellResult = okxTradingService.placeMarketSellWithFill(g.getSymbol(), requestedQty);
+                if (sellResult == null) {
+                    throw new IllegalStateException("OKX sell returned null TradeResult");
+                }
+                BigDecimal soldQty = sellResult.getQty() == null ? requestedQty : sellResult.getQty();
+                if (soldQty.signum() < 0) soldQty = BigDecimal.ZERO;
+                BigDecimal leftover = requestedQty.subtract(soldQty).max(BigDecimal.ZERO);
+                BigDecimal sellPx = closeGridSellPrice(sellResult, mark, level);
+                BigDecimal buyPx = level.getFilledPrice() != null ? level.getFilledPrice() : sellPx;
+                BigDecimal pnl = sellPx.subtract(buyPx)
+                        .multiply(soldQty)
+                        .setScale(8, RoundingMode.HALF_UP);
+                BigDecimal prevRealized = level.getRealizedPnl() != null
+                        ? level.getRealizedPnl() : BigDecimal.ZERO;
+
+                if (leftover.compareTo(requestedQty.multiply(new BigDecimal("0.01"))) > 0) {
+                    level.setStatus("SELL_PARTIAL");
+                    level.setFilledQty(leftover);
+                    level.setRealizedPnl(prevRealized.add(pnl));
+                    level.setSellOrderId(sellResult.getOrderId());
+                    level.setErrorMessage(String.format(
+                            "closeGrid partial fill: requested=%s sold=%s leftover=%s",
+                            requestedQty.toPlainString(), soldQty.toPlainString(), leftover.toPlainString()));
+                    level.setIntentAt(null);
+                    gridLevelRepository.save(level);
+                    g.setTotalRealizedPnl(nullToZero(g.getTotalRealizedPnl()).add(pnl));
+                    g.setUpdatedAt(LocalDateTime.now());
+                    gridRepository.save(g);
+                    totalClose = totalClose.add(pnl);
+                    partialCount++;
+                    continue;
+                }
+
+                level.setStatus("CLOSED");
+                level.setRetryCount(0);
+                level.setRealizedPnl(prevRealized.add(pnl));
+                level.setSellOrderId(sellResult.getOrderId());
+                level.setClosedAt(LocalDateTime.now());
+                level.setIntentAt(null);
+                level.setErrorMessage(null);
+                gridLevelRepository.save(level);
+                g.setTotalRealizedPnl(nullToZero(g.getTotalRealizedPnl()).add(pnl));
+                g.setClosedPairCount((g.getClosedPairCount() == null ? 0 : g.getClosedPairCount()) + 1);
+                g.setUpdatedAt(LocalDateTime.now());
+                gridRepository.save(g);
                 totalClose = totalClose.add(pnl);
                 closedCount++;
             } catch (Exception e) {
                 log.error("[MCP closeGrid] level={} sell failed: {}", level.getLevelIndex(), e.getMessage());
+                level.setStatus("SELLING_OKX");
+                level.setIntentAt(attemptAt);
+                level.setErrorMessage(closeGridError("closeGrid SELLING_OKX exception: ", e));
+                gridLevelRepository.save(level);
                 failCount++;
             }
         }
+        if (partialCount > 0 || failCount > 0) {
+            g.setPausedAt(LocalDateTime.now());
+            g.setPausedReason(String.format("closeGrid blocked: partial=%d failed=%d; resolve residual before final close",
+                    partialCount, failCount));
+            g.setUpdatedAt(LocalDateTime.now());
+            gridRepository.save(g);
+            log.warn("[MCP] closeGrid id={} blocked: closed {} levels, partial {}, failed {}, pnl {}",
+                    gridId, closedCount, partialCount, failCount, totalClose);
+            return String.format(
+                    "⚠️ Grid #%d %s close blocked%n  close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED%n  grid_closed=false%n  平倉 level: %d%n  partial: %d%n  failed: %d%n  此次已實現 PnL: %+.4f USDT%n  處置: Grid 已手動暫停但未 closed_at；先處理 SELLING_OKX/SELL_PARTIAL/SELL_FAILED residual，再重試 closeGrid 或 cleanup。",
+                    gridId, g.getSymbol(), closedCount, partialCount, failCount, totalClose.doubleValue());
+        }
         g.setEnabled(false);
+        g.setPausedAt(null);
+        g.setPausedReason(null);
         g.setClosedAt(LocalDateTime.now());
         g.setUpdatedAt(LocalDateTime.now());
         gridRepository.save(g);
-        log.info("[MCP] closeGrid id={} closed {} levels, failed {}, pnl {}",
-                gridId, closedCount, failCount, totalClose);
+        log.info("[MCP] closeGrid id={} closed {} levels, partial {}, failed {}, pnl {}",
+                gridId, closedCount, partialCount, failCount, totalClose);
 
         return String.format(
-                "🔴 Grid #%d %s 已關閉%n  平倉 level: %d(失敗 %d)%n  此次 PnL: %+.4f%n  總累計 PnL: %+.4f USDT%n  完成對數: %d",
-                gridId, g.getSymbol(), closedCount, failCount,
-                totalClose.doubleValue(), g.getTotalRealizedPnl().doubleValue(),
+                "🔴 Grid #%d %s 已關閉%n  close_grid_status=CLOSED_NO_RESIDUAL%n  grid_closed=true%n  平倉 level: %d(partial %d / failed %d)%n  此次 PnL: %+.4f%n  總累計 PnL: %+.4f USDT%n  完成對數: %d",
+                gridId, g.getSymbol(), closedCount, partialCount, failCount,
+                totalClose.doubleValue(), nullToZero(g.getTotalRealizedPnl()).doubleValue(),
                 g.getClosedPairCount());
+    }
+
+    private static BigDecimal closeGridSellPrice(TradeResult sellResult, BigDecimal mark, BtGridLevel level) {
+        if (sellResult.getAvgPrice() != null) return sellResult.getAvgPrice();
+        if (mark != null) return mark;
+        if (level.getPairedSellPrice() != null) return level.getPairedSellPrice();
+        return level.getFilledPrice() != null ? level.getFilledPrice() : BigDecimal.ZERO;
+    }
+
+    private static BigDecimal nullToZero(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private static String closeGridError(String prefix, Exception e) {
+        String message = prefix + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+        return message.length() <= 500 ? message : message.substring(0, 500);
     }
 
     @McpAuth(McpAuthLevel.OPS)

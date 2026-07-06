@@ -44,4 +44,18 @@ public interface BtGridLevelRepository extends JpaRepository<BtGridLevel, Long> 
            "  AND g.closedAt IS NULL " +
            "GROUP BY g.symbol")
     List<Object[]> sumFilledQtyBySymbolForActiveGrids();
+
+    /**
+     * 彙總已關閉 grid 中仍留在 DB 的現貨 residual。
+     * 這些 row 已不是 active grid automation 的一部分,但仍是已知 DB
+     * inventory; OCO poller 現貨對帳不能把它們誤報成手動/未追蹤倉位。
+     */
+    @Query("SELECT g.symbol, COALESCE(SUM(l.filledQty), 0) " +
+           "FROM BtGridLevel l, BtGrid g " +
+           "WHERE l.gridId = g.id " +
+           "  AND l.status IN ('HOLDING', 'SELL_FAILED', 'SELL_PARTIAL') " +
+           "  AND l.filledQty IS NOT NULL " +
+           "  AND g.closedAt IS NOT NULL " +
+           "GROUP BY g.symbol")
+    List<Object[]> sumResidualFilledQtyBySymbolForClosedGrids();
 }

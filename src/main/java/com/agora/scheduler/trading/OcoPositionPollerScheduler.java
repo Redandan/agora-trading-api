@@ -503,6 +503,20 @@ public class OcoPositionPollerScheduler {
             dbQtyByBase.merge(base, qty, BigDecimal::add);
         }
 
+        // 1b-2. Closed grid residuals are no longer automation-owned, but they
+        // are still DB-known inventory. Counting them here prevents a retired
+        // grid dust/leftover row from being mislabeled as an untracked manual
+        // holding. Actual cleanup still requires a separate operator decision.
+        for (Object[] row : gridLevelRepository.sumResidualFilledQtyBySymbolForClosedGrids()) {
+            String symbol = (String) row[0];
+            BigDecimal qty = (BigDecimal) row[1];
+            if (qty == null || qty.signum() <= 0) continue;
+            String base = symbol.replace("USDT", "");
+            dbQtyByBase.merge(base, qty, BigDecimal::add);
+            log.info("[Reconcile] include known closed-grid residual {} qty={} in expected spot inventory",
+                    base, qty);
+        }
+
         // 1c. OKX 上 pending 的 OCO algo 訂單(side=sell)鎖住的 base qty 也算 managed,
         //     涵蓋兩種場景:
         //     (a) /admin/oco/market-buy 手動買入 + OCO 但沒寫 bt_live_signal

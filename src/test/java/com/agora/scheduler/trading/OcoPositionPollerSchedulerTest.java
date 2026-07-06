@@ -89,9 +89,32 @@ class OcoPositionPollerSchedulerTest {
         verify(fixture.notificationPort).alert(contains("發現未追蹤持倉"), eq(true), eq("Reconcile:Untracked:BTC"), eq("WARN"));
     }
 
+    @Test
+    void closedGridResidualCountsAsKnownInventoryAndDoesNotTriggerUntrackedAlert() {
+        UntrackedHoldingTracker tracker = mock(UntrackedHoldingTracker.class);
+        Fixture fixture = newFixture(tracker);
+        stubReconcileInputs(fixture,
+                new OkxTradingService.SpotHolding(
+                        "BTC",
+                        new BigDecimal("0.00024333292"),
+                        new BigDecimal("0.00024333292"),
+                        new BigDecimal("15.40")));
+        when(fixture.gridLevelRepository.sumFilledQtyBySymbolForActiveGrids())
+                .thenReturn(List.<Object[]>of(new Object[] {"BTCUSDT", new BigDecimal("0.00008096")}));
+        when(fixture.gridLevelRepository.sumResidualFilledQtyBySymbolForClosedGrids())
+                .thenReturn(List.<Object[]>of(new Object[] {"BTCUSDT", new BigDecimal("0.00012479")}));
+
+        invokeReconcile(fixture.scheduler);
+
+        verify(tracker).clear("BTC");
+        verify(tracker, never()).confirmOrSeed(anyString(), any(BigDecimal.class), any(LocalDateTime.class));
+        verifyNoInteractions(fixture.tgDeduper, fixture.notificationPort, fixture.orphanReconciler);
+    }
+
     private static void stubReconcileInputs(Fixture fixture, OkxTradingService.SpotHolding holding) {
         when(fixture.liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of());
         when(fixture.gridLevelRepository.sumFilledQtyBySymbolForActiveGrids()).thenReturn(List.of());
+        when(fixture.gridLevelRepository.sumResidualFilledQtyBySymbolForClosedGrids()).thenReturn(List.of());
         when(fixture.okxTradingService.getPendingOcoAlgos()).thenReturn(MAPPER.createArrayNode());
         when(fixture.okxTradingService.getSpotHoldings()).thenReturn(List.of(holding));
         when(fixture.okxTradingService.getUsdtBalance()).thenReturn("N/A");

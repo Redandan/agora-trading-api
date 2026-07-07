@@ -67,6 +67,11 @@ foreach ($marker in @(
         "MACHINE_STATUS",
         "executionMachineStatus",
         "executionMachineStatusMarkerFound",
+        "executionSignalSourcePolicyAware",
+        "executionSignalSourcePolicyPrimary",
+        "executionPolicySuppressedNotMissedCount",
+        "DEPLOY REQUIRED: deployed verifyStrategyExecution does not expose signal-source-policy markers",
+        "deployed verifier lacks signal-source-policy awareness",
         "staleNowKeys",
         "noDataNowKeys",
         "queryFailedNowKeys",
@@ -107,8 +112,14 @@ foreach ($marker in @(
 }
 
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'execution_ok = re\.search\(r"MACHINE_STATUS\\s\+no missing evaluation;\\s\*no missed order", execution\) is not None'
+Assert-Contains -Name "signal policy smoke policy-aware verifier summary" -Text $scriptText -Pattern 'execution_signal_policy_primary = find\(r"signal_source_policy_primary=\(\[\^\\r\\n\]\+\)", execution\)'
+Assert-Contains -Name "signal policy smoke policy-aware verifier summary" -Text $scriptText -Pattern 'execution_signal_policy_aware = execution_signal_policy_primary != "N/A"'
+Assert-Contains -Name "signal policy smoke policy-aware verifier summary" -Text $scriptText -Pattern 'execution_policy_suppressed_not_missed_count = len\(re\.findall\(r"POLICY_SUPPRESSED_NOT_MISSED_EVALUATION", execution\)\)'
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'execution_status_fail_reason = "none" if execution_ok else'
 Assert-Contains -Name "signal policy smoke execution summary" -Text $scriptText -Pattern 'missingEvalOrOrderBug=\{''no'' if execution_ok else execution_status_fail_reason\}'
+Assert-Contains -Name "signal policy smoke policy-aware verifier summary" -Text $scriptText -Pattern 'executionSignalSourcePolicyAware=\{str\(execution_signal_policy_aware\)\.lower\(\)\}'
+Assert-Contains -Name "signal policy smoke policy-aware verifier summary" -Text $scriptText -Pattern 'executionSignalSourcePolicyPrimary=\{execution_signal_policy_primary\}'
+Assert-Contains -Name "signal policy smoke policy-aware verifier summary" -Text $scriptText -Pattern 'executionPolicySuppressedNotMissedCount=\{execution_policy_suppressed_not_missed_count\}'
 Assert-Contains -Name "signal policy smoke missing-field summary" -Text $scriptText -Pattern 'missing_signal_policy_fields=\{json\.dumps\(missing_signal_policy_fields\)\}'
 Assert-Contains -Name "signal policy smoke clear summary" -Text $scriptText -Pattern 'signalPolicyClear=\{str\(signal_policy_clear\)\.lower\(\)\}'
 Assert-Contains -Name "signal policy smoke review plan summary" -Text $scriptText -Pattern 'signal_policy_review_plan=\{json\.dumps\(signal_policy_review_plan, separators=\('','', '':''\)\)\}'

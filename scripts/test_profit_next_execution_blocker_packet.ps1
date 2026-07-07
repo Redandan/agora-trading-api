@@ -376,6 +376,43 @@ try {
         )) {
         Assert-Contains -Name "profit next execution blocker active dry-run replay" -Text $activeDryRunText -Pattern ([regex]::Escape($marker))
     }
+
+    Set-Content -LiteralPath $tempExecutionLog -Encoding UTF8 -Value @(
+        "trailing_stop_strategy_opt_in_execution_status=",
+        "trailing_stop_strategy_opt_in_execution_decision=",
+        "trailing_stop_strategy_opt_in_execution_required_confirm_text=",
+        "trailing_stop_acceptance="
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $missingEvidenceOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -ExecutionLogPath $tempExecutionLog `
+            -Strategy574GovernanceLogPath $tempStrategy574Log `
+            -DataFreshnessReadinessLogPath $tempDfLog `
+            -Strategy485RiskLogPath $tempStrategy485Log `
+            -SignalCorrectnessLogPath $tempSignalLog `
+            -NoRefresh 2>&1
+        $missingEvidenceExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $missingEvidenceText = ($missingEvidenceOutput | Out-String -Width 4096)
+    if ($missingEvidenceExitCode -ne 0) {
+        throw "profit next execution blocker missing-evidence replay failed:`n$missingEvidenceText"
+    }
+    foreach ($marker in @(
+            "profit_next_execution_unique_blocker=FIX_TRAILING_OPT_IN_EVIDENCE",
+            "profit_next_execution_blocker_status=NOT_READY",
+            "profit_next_execution_exact_unlock_command=.\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -RequireReady",
+            "required confirm text present"
+        )) {
+        Assert-Contains -Name "profit next execution blocker missing-evidence replay" -Text $missingEvidenceText -Pattern ([regex]::Escape($marker))
+    }
+    if ($missingEvidenceText -match "-Execute\s+-ConfirmText\s+-RequireReady|-Execute\s+-ConfirmText\s{2,}-RequireReady") {
+        throw "profit next execution blocker missing-evidence replay emitted an executable command with blank ConfirmText:`n$missingEvidenceText"
+    }
 } finally {
     foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog, $tempObservationLog, $tempPostOptInLog)) {
         if (Test-Path -LiteralPath $path) {

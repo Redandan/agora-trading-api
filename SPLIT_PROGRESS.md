@@ -1049,7 +1049,9 @@
   `profit_next_execution_watch_sample_collection_blocked_by`, and
   `profit_next_execution_watch_data_freshness_replay_candidate_id_rows`.
   `PENDING_OPEN_OCO_SAMPLE` means trailing dry-run is active but needs a
-  natural open OCO sample; `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay
+  natural open OCO sample; `PENDING_TRAILING_OPT_IN_EVIDENCE` means the
+  non-mutating trailing opt-in dry-run evidence must be refreshed before any
+  execution request; `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay
   candidate rows are still missing.
   `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE` only starts a separate
   read-only review. The watcher does not deploy, change production env, enable
@@ -1707,7 +1709,8 @@
   read-only replay loop for the packet above. It records per-attempt
   DataFreshness readiness and next-execution blocker logs under
   `target/profit-review`, then reports whether the lane is
-  `PENDING_OPEN_OCO_SAMPLE`, `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE`, or
+  `PENDING_OPEN_OCO_SAMPLE`, `PENDING_TRAILING_OPT_IN_EVIDENCE`,
+  `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE`, or
   `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.
 - `scripts/prepare_trailing_stop_dry_run_observation_status_ssh.ps1` turns the
   active A0 dry-run state into a replayable read-only observation packet. It

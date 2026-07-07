@@ -72,6 +72,7 @@ foreach ($marker in @(
         "attempt_profit_next_execution_sample_collection_blocked_by",
         "attempt_profit_next_execution_replay_candidate_id_rows",
         "PENDING_OPEN_OCO_SAMPLE",
+        "PENDING_TRAILING_OPT_IN_EVIDENCE",
         "PENDING_DATAFRESHNESS_REPLAY_EVIDENCE",
         "EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE",
         "RequireSampleReady",

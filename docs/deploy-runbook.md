@@ -2289,6 +2289,8 @@ Expected:
   `profit_next_execution_watch_data_freshness_replay_candidate_id_rows`.
 - `PENDING_OPEN_OCO_SAMPLE` means trailing dry-run is active but no open OCO
   sample exists yet; rerun after the next natural open OCO sample appears.
+- `PENDING_TRAILING_OPT_IN_EVIDENCE` means the non-mutating trailing opt-in
+  dry-run evidence must be refreshed before any execution request.
 - `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay candidate rows are still
   missing; rerun after new DataFreshness rows are expected.
 - `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE` means a separate read-only
@@ -3225,9 +3227,11 @@ Expected:
   attempt under `target/profit-review`, then emits
   `profit_next_execution_watch_status`. `PENDING_OPEN_OCO_SAMPLE` means the only
   actionable wait is a natural open OCO sample for trailing dry-run observation;
-  `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means replay candidate rows are still
-  missing. It does not deploy, change env, enable scheduler/live trading, place
-  orders, modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+  `PENDING_TRAILING_OPT_IN_EVIDENCE` means first refresh the non-mutating
+  trailing opt-in dry-run evidence; `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE`
+  means replay candidate rows are still missing. It does not deploy, change env,
+  enable scheduler/live trading, place orders, modify OCO, send Telegram, or
+  mutate DB/grid/fund/Earn/exchange state.
   To turn the active dry-run state into a replayable observation-status packet,
   run:
 

@@ -238,6 +238,9 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     } elseif ($blockerStatus -eq "TRAILING_DRY_RUN_ACTIVE_READ_ONLY_OBSERVATION" -and ($uniqueBlocker -eq "NO_OPEN_OCO_POSITIONS" -or $sampleCollectionBlockedBy -eq "NO_OPEN_OCO_POSITIONS")) {
         $finalStatus = "PENDING_OPEN_OCO_SAMPLE"
         $finalReason = "NO_OPEN_OCO_POSITIONS"
+    } elseif ($uniqueBlocker -eq "FIX_TRAILING_OPT_IN_EVIDENCE") {
+        $finalStatus = "PENDING_TRAILING_OPT_IN_EVIDENCE"
+        $finalReason = "FIX_TRAILING_OPT_IN_EVIDENCE"
     } elseif ($replayRowsMissing) {
         $finalStatus = "PENDING_DATAFRESHNESS_REPLAY_EVIDENCE"
         $finalReason = "REPLAY_CANDIDATE_ROWS_MISSING"

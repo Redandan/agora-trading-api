@@ -440,7 +440,12 @@ if (-not [string]::IsNullOrWhiteSpace($requiredConfirmText) -and $requiredConfir
     Add-Unique -List $missingRequirements -Value "required confirm text matches EXECUTE_TRAILING_STOP_OPT_IN_$StrategyId"
 }
 
-$unlockCommand = ".\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId $StrategyId -Execute -ConfirmText $requiredConfirmText -RequireReady"
+$executionEvidenceRefreshCommand = ".\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId $StrategyId -RequireReady"
+$unlockCommand = if ([string]::IsNullOrWhiteSpace($requiredConfirmText)) {
+    $executionEvidenceRefreshCommand
+} else {
+    ".\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId $StrategyId -Execute -ConfirmText $requiredConfirmText -RequireReady"
+}
 $uniqueBlocker = ""
 $status = "NOT_READY"
 $goalSatisfied = $false
@@ -480,6 +485,7 @@ if ($executionStatus -eq "DRY_RUN_READY_FOR_SEPARATE_EXECUTION_AUTHORIZATION_NOT
     }
 } else {
     $uniqueBlocker = "FIX_TRAILING_OPT_IN_EVIDENCE"
+    $unlockCommand = $executionEvidenceRefreshCommand
     $nextAction = "Refresh the non-mutating trailing opt-in execution dry-run and fix missing evidence before any execution request."
 }
 

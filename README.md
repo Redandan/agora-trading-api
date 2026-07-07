@@ -1125,7 +1125,9 @@ profit next-execution blocker packet, saving replayable attempt logs under
 `profit_next_execution_watch_sample_collection_blocked_by`, and
 `profit_next_execution_watch_data_freshness_replay_candidate_id_rows`.
 `PENDING_OPEN_OCO_SAMPLE` means trailing dry-run is active but no open OCO
-sample is available yet. `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means the
+sample is available yet. `PENDING_TRAILING_OPT_IN_EVIDENCE` means the
+non-mutating trailing opt-in dry-run evidence must be refreshed before any
+execution request. `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE` means the
 counterfactual replay rows are still missing.
 `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE` only starts a separate read-only
 operator review; it is not authorization to relax policy, deploy, enable live
@@ -2286,6 +2288,8 @@ the current highest-ROI next-execution lane by chaining
 `profit_next_execution_watch_unique_blocker`,
 `profit_next_execution_watch_observation_sample_ready`, and
 `profit_next_execution_watch_data_freshness_complete_replayable_candidate_rows`.
+`PENDING_TRAILING_OPT_IN_EVIDENCE` means the immediate next step is a read-only
+trailing opt-in dry-run evidence refresh, not execution.
 It remains read-only and does not deploy, change production env, enable live
 trading, relax EntryDedup/DataFreshness/live policy, place orders, modify OCO,
 close positions, or mutate DB/grid/fund/Earn state.

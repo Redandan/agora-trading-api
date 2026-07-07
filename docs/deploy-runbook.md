@@ -4815,6 +4815,32 @@ Expected:
 - The script must not change order/OCO/strategy/grid/fund/Earn/Telegram/DB
   state.
 
+For a read-only trailing-stop parameter sweep after deploying a runtime that
+contains `analyzeTrailingStopParameterSweep`, run:
+
+```powershell
+.\scripts\smoke_trailing_stop_parameter_sweep_ssh.ps1
+```
+
+Expected:
+
+- The script calls server-local `/api/mcp`, not public Trading MCP.
+- Output includes `boundary: READ_ONLY`.
+- Output includes the current policy marker
+  `currentPolicy=breakevenAtr=0.5 trailingTriggerAtr=1.0 trailingDistanceAtr=1.0`.
+- Output includes `parameterGrid=breakevenAtr`, `currentPolicySummary`,
+  `bestPolicySummary`, `bestVsCurrentDeltaPnl`, and `topCandidates` when the
+  deployed DB has replayable rows.
+- `REVIEW_PARAMETER_CANDIDATE_NOT_LIVE` means a bounded read-only sweep found
+  a better candidate than the current hardcoded policy. Treat this as evidence
+  for separate design review only; do not apply it without explicit design,
+  deploy, and live/OCO approval.
+- The script does not change scheduler constants, deploy, restart, reload
+  nginx, change production env, enable live trading, enable the trailing
+  scheduler, change strategy opt-in, place orders, modify OCO, close
+  positions, mutate DB/grid/fund/Earn/Telegram/exchange state, or run external
+  backfill/import.
+
 For a read-only trailing-stop operator review packet, run:
 
 ```powershell

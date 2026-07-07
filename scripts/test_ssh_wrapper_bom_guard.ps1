@@ -9,6 +9,7 @@ $expectedWrappers = @(
     "smoke_guardrail_acceptance_ssh.ps1",
     "smoke_signal_correctness_ssh.ps1",
     "smoke_trailing_stop_pnl_replay_ssh.ps1",
+    "smoke_trailing_stop_parameter_sweep_ssh.ps1",
     "audit_live_readiness_ssh.ps1",
     "smoke_live_background_automation_ssh.ps1",
     "smoke_runtime_evidence_rca_ssh.ps1",

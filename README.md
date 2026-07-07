@@ -609,6 +609,21 @@ Add `-RequireAcceptance` only when the deployed DB sample is expected to prove
 the 30d PnL target (`acceptance=PASS`). Ambiguous same-bar replay rows are
 reported but excluded from PnL acceptance totals.
 
+Read-only trailing-stop parameter sweep after a deploy that contains the
+`analyzeTrailingStopParameterSweep` MCP tool:
+
+```powershell
+.\scripts\smoke_trailing_stop_parameter_sweep_ssh.ps1
+```
+
+This calls server-local `/api/mcp`, compares the current +0.5/+1.0/+1.0 ATR
+policy against a bounded parameter grid, and prints `currentPolicySummary`,
+`bestPolicySummary`, `bestVsCurrentDeltaPnl`, and `topCandidates`. A
+`REVIEW_PARAMETER_CANDIDATE_NOT_LIVE` result means only that a read-only
+candidate exists for separate design review; it does not change scheduler
+constants, deploy, enable trailing, change strategy opt-in, place orders,
+modify OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
+
 Read-only trailing-stop operator review packet:
 
 ```powershell

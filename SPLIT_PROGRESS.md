@@ -3412,6 +3412,16 @@ Trading deployment prep:
   signal-correctness smoke, and hard trailing replay acceptance must all pass.
   This remains local readiness only until pushed, deployed, and verified on the
   server.
+- 2026-07-07 trailing-stop PnL review now has a read-only parameter sweep MCP
+  and SSH smoke: `analyzeTrailingStopParameterSweep` plus
+  `scripts/smoke_trailing_stop_parameter_sweep_ssh.ps1`. The sweep compares
+  the current +0.5/+1.0/+1.0 ATR policy against a bounded grid and emits
+  `currentPolicySummary`, `bestPolicySummary`, `bestVsCurrentDeltaPnl`,
+  `topCandidates`, and `REVIEW_PARAMETER_CANDIDATE_NOT_LIVE` when a better
+  candidate exists. This is evidence for separate design review only; it does
+  not change scheduler constants, deploy, change production env, enable
+  trailing/live trading, change strategy opt-in, place orders, modify OCO, send
+  Telegram, or mutate DB/grid/fund/Earn/exchange state.
 - 2026-06-25 Grid trend adjustment review is covered by a reusable read-only
   SSH smoke: `scripts/smoke_grid_trend_adjustment_review_ssh.ps1`. The smoke
   calls server-local `/api/mcp` only, invokes `getGridTrendAdjustmentReview`,

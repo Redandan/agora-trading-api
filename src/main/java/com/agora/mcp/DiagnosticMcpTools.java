@@ -1,5 +1,6 @@
 package com.agora.mcp;
 
+import com.agora.config.properties.TradingViewLocalSignalProperties;
 import com.agora.dto.backtest.BacktestResultResponse;
 import com.agora.dto.backtest.BacktestRunRequest;
 import com.agora.mcp.auth.Category;
@@ -14,6 +15,7 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.system.ServerStartupLogRepository;
 import com.agora.service.BacktestService;
+import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +74,8 @@ public class DiagnosticMcpTools {
     private final McpApiKeyFilter mcpApiKeyFilter;
     private final com.agora.service.trading.EventRiskLevelEngine eventRiskLevelEngine;
     private final McpRegistryVersionService mcpRegistryVersionService;
+    private final TradingSignalSourcePolicy signalSourcePolicy;
+    private final TradingViewLocalSignalProperties localTradingViewProps;
 
     @Value("${meta-control.migration-drift-check.table:trading_flyway_schema_history}")
     private String migrationHistoryTable;
@@ -287,6 +291,14 @@ public class DiagnosticMcpTools {
         sb.append("🔍 策略執行驗證報告\n");
         sb.append(String.format("驗證起點：%s\n", sinceLabel));
         sb.append(String.format("驗證區間：%s → %s\n\n", since.format(FMT), now.format(FMT)));
+        sb.append(String.format("signal_source_policy_primary=%s\n", signalSourcePolicy.primary()));
+        sb.append(String.format("signal_source_policy_status=%s\n", signalSourcePolicy.status()));
+        sb.append(String.format("local_tradingview_config=enabled=%s strategyId=%d allowedSymbols=%s allowedIntervals=%s allowedSources=%s\n\n",
+                localTradingViewProps.enabled(),
+                localTradingViewProps.strategyId(),
+                localTradingViewProps.allowedSymbols(),
+                localTradingViewProps.allowedIntervals(),
+                localTradingViewProps.allowedSources()));
 
         // 2. 取所有啟用策略，解析 symbol + intervalCode
         List<BtStrategy> strategies = strategyRepo.findAll().stream()
@@ -322,6 +334,7 @@ public class DiagnosticMcpTools {
         // 4. 逐策略回測 + 比對
         int bugCount = 0;
         int warnCount = 0;
+        int policySuppressedCount = 0;
 
         for (BtStrategy strategy : strategies) {
             sb.append(String.format("─── 策略 %d｜%s ───\n", strategy.getId(), strategy.getName()));
@@ -330,6 +343,8 @@ public class DiagnosticMcpTools {
             String intervalCode = resolveInterval(strategy);
             String klineSource = resolveStrategyKlineSource(strategy);
             boolean notifyOnly = resolveNotifyOnly(strategy);
+            LiveEvaluationExpectation liveExpectation = resolveLiveEvaluationExpectation(
+                    strategy, symbol, intervalCode, klineSource);
 
             if (symbol == null) {
                 sb.append("  ⚠️ 無法取得 symbol，跳過\n\n");
@@ -339,6 +354,9 @@ public class DiagnosticMcpTools {
             sb.append(String.format("  幣種：%s｜週期：%s｜模式：%s\n",
                     symbol, intervalCode, notifyOnly ? "通知Only" : "自動下單"));
             sb.append(String.format("  K線源：%s\n", klineSource));
+            sb.append(String.format("  Live 評估預期：%s｜%s\n",
+                    liveExpectation.expected() ? "EXPECTED" : "POLICY_SUPPRESSED",
+                    liveExpectation.reason()));
 
             // 回測（資料已補齊）
             int backtestBuyCount = 0;
@@ -404,8 +422,14 @@ public class DiagnosticMcpTools {
             }
 
             if (backtestBuyCount > 0 && liveCount == 0 && entrySkipCount == 0 && signalEvalStats.total() == 0) {
-                sb.append("  ❌ 回測有信號但 Live 無記錄 → 疑似漏評估 Bug\n");
-                bugCount++;
+                if (!liveExpectation.expected()) {
+                    sb.append("  ℹ️ POLICY_SUPPRESSED_NOT_MISSED_EVALUATION：回測有信號但目前 signal-source policy 不會由此服務評估此策略；")
+                            .append(liveExpectation.reason()).append("\n");
+                    policySuppressedCount++;
+                } else {
+                    sb.append("  ❌ 回測有信號但 Live 無記錄 → 疑似漏評估 Bug\n");
+                    bugCount++;
+                }
             } else if (backtestBuyCount > 0 && liveCount == 0 && signalEvalStats.total() > 0 && signalEvalStats.buyLike() == 0) {
                 sb.append("  ℹ️ 回測有信號但 Live 僅見 HOLD 型 SIGNAL_EVAL；較像口徑/時間窗差異，非漏評估\n");
             } else if (backtestBuyCount > 0 && liveCount == 0) {
@@ -434,6 +458,10 @@ public class DiagnosticMcpTools {
             if (warnCount > 0) {
                 sb.append(String.format("；另有 %d 個策略存在舊式未標記 skip，需觀察新資料", warnCount));
             }
+            if (policySuppressedCount > 0) {
+                sb.append(String.format("；%d 個回測 BUY 策略因 signal-source policy 停用 legacy 評估而未列為漏評估",
+                        policySuppressedCount));
+            }
         } else {
             sb.append(String.format("⚠️ 發現 %d 個策略有潛在問題，請確認 app.log 是否有 ERROR", bugCount));
             sb.append("\nMACHINE_STATUS missing evaluation or missed order suspected");
@@ -441,6 +469,112 @@ public class DiagnosticMcpTools {
 
         return sb.toString();
     }
+
+    private LiveEvaluationExpectation resolveLiveEvaluationExpectation(
+            BtStrategy strategy, String symbol, String intervalCode, String klineSource) {
+        if (signalSourcePolicy.shouldRunLegacyLiveEvaluator()) {
+            return new LiveEvaluationExpectation(true,
+                    "legacy LiveSignalEvaluator is enabled by signal-source policy");
+        }
+
+        if (signalSourcePolicy.shouldRunLocalTradingViewEvaluator()) {
+            if (!localTradingViewProps.enabled()) {
+                return new LiveEvaluationExpectation(false,
+                        "LOCAL_TRADINGVIEW primary but TRADINGVIEW_LOCAL_ENABLED=false");
+            }
+            if (strategy == null || strategy.getId() == null
+                    || strategy.getId().longValue() != localTradingViewProps.strategyId()) {
+                return new LiveEvaluationExpectation(false,
+                        "LOCAL_TRADINGVIEW only evaluates strategyId=" + localTradingViewProps.strategyId());
+            }
+            if (!localTradingViewAllowed(symbol, localTradingViewProps.allowedSymbols(), true)) {
+                return new LiveEvaluationExpectation(false,
+                        "LOCAL_TRADINGVIEW strategy symbol not in TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS");
+            }
+            if (!localTradingViewAllowed(intervalCode, localTradingViewProps.allowedIntervals(), false)) {
+                return new LiveEvaluationExpectation(false,
+                        "LOCAL_TRADINGVIEW strategy interval not in TRADINGVIEW_LOCAL_ALLOWED_INTERVALS");
+            }
+            if (!localTradingViewAllowed(klineSource, localTradingViewProps.allowedSources(), false)) {
+                return new LiveEvaluationExpectation(false,
+                        "LOCAL_TRADINGVIEW strategy kline source not in TRADINGVIEW_LOCAL_ALLOWED_SOURCES");
+            }
+            return new LiveEvaluationExpectation(true,
+                    "LOCAL_TRADINGVIEW parity evaluator active for configured strategyId="
+                            + localTradingViewProps.strategyId());
+        }
+
+        String primary = signalSourcePolicy.primary();
+        if ("TRADINGVIEW".equals(primary)) {
+            return new LiveEvaluationExpectation(false,
+                    "TRADINGVIEW primary expects external TradingView alerts; legacy LiveSignalEvaluator 已由 signal-source policy 停用");
+        }
+        return new LiveEvaluationExpectation(false,
+                "signal-source primary=" + primary + " disables legacy LiveSignalEvaluator");
+    }
+
+    private boolean localTradingViewAllowed(String value, String csv, boolean normalizeAsSymbol) {
+        if (!hasText(csv)) {
+            return true;
+        }
+        if (!hasText(value)) {
+            return false;
+        }
+        Set<String> allowed = new HashSet<>();
+        for (String token : csv.split(",")) {
+            String normalized = normalizeAsSymbol
+                    ? normalizeTradingViewSymbol(token)
+                    : normalizeTradingViewValue(token);
+            if (hasText(normalized)) {
+                allowed.add(normalized);
+            }
+        }
+        String normalizedValue = normalizeAsSymbol
+                ? normalizeTradingViewSymbol(value)
+                : normalizeTradingViewValue(value);
+        return allowed.contains(normalizedValue);
+    }
+
+    private String normalizeTradingViewSymbol(String raw) {
+        if (!hasText(raw)) {
+            return "";
+        }
+        String value = raw.trim().toUpperCase(java.util.Locale.ROOT);
+        int colon = value.lastIndexOf(':');
+        if (colon >= 0 && colon + 1 < value.length()) {
+            value = value.substring(colon + 1);
+        }
+        return value.replace("-", "").replace("/", "").replace("_", "");
+    }
+
+    private String normalizeTradingViewValue(String raw) {
+        if (!hasText(raw)) {
+            return "";
+        }
+        String value = raw.trim().toUpperCase(java.util.Locale.ROOT);
+        if ("D".equals(value)) {
+            return "1d";
+        }
+        if (value.endsWith("D") && value.length() > 1) {
+            return value.substring(0, value.length() - 1).toLowerCase(java.util.Locale.ROOT) + "d";
+        }
+        if (value.endsWith("H") && value.length() > 1) {
+            return value.substring(0, value.length() - 1).toLowerCase(java.util.Locale.ROOT) + "h";
+        }
+        if (value.matches("\\d+")) {
+            long minutes = Long.parseLong(value);
+            if (minutes >= 1440 && minutes % 1440 == 0) {
+                return (minutes / 1440) + "d";
+            }
+            if (minutes >= 60 && minutes % 60 == 0) {
+                return (minutes / 60) + "h";
+            }
+            return minutes + "m";
+        }
+        return value.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private record LiveEvaluationExpectation(boolean expected, String reason) {}
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.READ_TRADING, Category.META})

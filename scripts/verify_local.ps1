@@ -750,6 +750,9 @@ function Assert-StrategyExecutionVerifierReadOnly {
         "no external import/backfill",
         "MACHINE_STATUS no missing evaluation; no missed order",
         "MACHINE_STATUS missing evaluation or missed order suspected",
+        "signal_source_policy_primary",
+        "POLICY_SUPPRESSED_NOT_MISSED_EVALUATION",
+        "legacy LiveSignalEvaluator 已由 signal-source policy 停用",
         "loadKlineReadinessLine",
         "req\.setSource\(klineSource\)",
         "req\.setSkipPersist\(true\)"

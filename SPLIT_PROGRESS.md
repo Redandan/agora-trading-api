@@ -4202,6 +4202,12 @@ Trading deployment prep:
   data collection intact but do not invoke the legacy `LiveSignalEvaluator`
   unless a deliberate rollback sets primary `LEGACY` and explicitly enables the
   legacy live evaluator.
+- `verifyStrategyExecution` is now signal-source-policy aware. When
+  `TRADINGVIEW` or `LOCAL_TRADINGVIEW` primary disables the legacy
+  `LiveSignalEvaluator`, backtest BUY rows from non-active legacy strategies are
+  reported as `POLICY_SUPPRESSED_NOT_MISSED_EVALUATION` instead of a missed
+  evaluation bug. The configured `LOCAL_TRADINGVIEW` strategy still remains
+  expected to emit live/audit evidence when its evaluator is active.
 
 ## Cleanup Priority
 

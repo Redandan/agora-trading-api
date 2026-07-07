@@ -1364,6 +1364,10 @@ Expected:
 
 - `verifyStrategyExecution` reports no missed evaluation/order bug; the smoke
   must fail if that no-missed-evaluation/no-missed-order marker is missing.
+  The verifier is signal-source-policy aware: legacy-only backtest BUY rows are
+  not missed-evaluation bugs when the legacy evaluator is intentionally disabled
+  by `TRADINGVIEW` or `LOCAL_TRADINGVIEW` primary, but the configured
+  `LOCAL_TRADINGVIEW` strategy must still emit live/audit evidence when active.
 - `analyzeBlockedSignalOutcomes` prints blocked-signal outcome counts and
   false-kill rate for recent governance review.
 - `getSignalAccuracyReport` prints PASS/BLOCK finalized sample counts; treat

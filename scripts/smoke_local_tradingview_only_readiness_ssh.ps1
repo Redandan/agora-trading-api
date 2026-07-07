@@ -218,6 +218,21 @@ function Add-If {
     }
 }
 
+function Convert-JsonArrayTextToStrings {
+    param([string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return @()
+    }
+
+    $parsed = $Value | ConvertFrom-Json -ErrorAction Stop
+    if ($null -eq $parsed) {
+        return @()
+    }
+
+    return @($parsed) | ForEach-Object { [string]$_ }
+}
+
 Write-Host "[local-tradingview-only-readiness] read-only SSH smoke"
 Write-Host "scope=READ_ONLY; invokes metadata, audit, background automation, and LOCAL_TRADINGVIEW candidate smokes only; no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, deploy, restart, or external backfill/import state changed."
 Write-Host "legacy_tiny_scorebuy_runtime_evidence_not_evaluated=true"
@@ -328,14 +343,14 @@ Add-If -List $blockers -Condition ($coverage -notin @("OK", "WARN")) -Value "LOC
 if ([string]::IsNullOrWhiteSpace($candidateBlockersText)) {
     Add-If -List $blockers -Condition $true -Value "LOCAL_TRADINGVIEW_CANDIDATE_BLOCKERS_MISSING"
 } elseif (-not (Test-JsonArrayTextEmpty -Value $candidateBlockersText)) {
-    foreach ($candidateBlocker in @($candidateBlockersText | ConvertFrom-Json -ErrorAction Stop)) {
+    foreach ($candidateBlocker in (Convert-JsonArrayTextToStrings -Value $candidateBlockersText)) {
         Add-If -List $blockers -Condition ($candidateBlocker -ne "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE") -Value ([string]$candidateBlocker)
     }
 }
 if ([string]::IsNullOrWhiteSpace($preExecutionBlockersText)) {
     Add-If -List $blockers -Condition $true -Value "LOCAL_TRADINGVIEW_PRE_EXECUTION_BLOCKERS_MISSING"
 } elseif (-not (Test-JsonArrayTextEmpty -Value $preExecutionBlockersText)) {
-    foreach ($preExecutionBlocker in @($preExecutionBlockersText | ConvertFrom-Json -ErrorAction Stop)) {
+    foreach ($preExecutionBlocker in (Convert-JsonArrayTextToStrings -Value $preExecutionBlockersText)) {
         Add-If -List $blockers -Condition ($preExecutionBlocker -ne "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE") -Value ([string]$preExecutionBlocker)
     }
 }

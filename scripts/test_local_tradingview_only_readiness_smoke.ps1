@@ -57,6 +57,7 @@ foreach ($pattern in @(
         "local_tradingview_only_blockers",
         "local_tradingview_only_health_warnings",
         "local_tradingview_only_legacy_blockers_excluded=true",
+        "Convert-JsonArrayTextToStrings",
         "WAIT_BUY",
         "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED",
         "BLOCKED",

@@ -62,6 +62,8 @@ foreach ($marker in @(
         "...[truncated]",
         "executionMachineStatus",
         "missingEvalOrOrderBug",
+        "Investigate verifyStrategyExecution suspected missing evaluation/order",
+        "Fix verifyStrategyExecution MACHINE_STATUS marker collection",
         "signalPolicyClear",
         "governanceMode",
         "missedOpportunityStatus",

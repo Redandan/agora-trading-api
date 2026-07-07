@@ -80,14 +80,22 @@ foreach ($marker in @(
         "Get-MatrixFreshness",
         "Get-DefaultMatrixOutputPath",
         "Save-MatrixOutput",
+        "UpdateLatestPointer",
+        "Get-MatrixRejectReason",
         "target/profit-review",
         "latest-profit-operator-matrix.path",
         "matrix_reuse",
         "matrix_saved",
         "matrix_latest_pointer",
+        "matrix_output_rejected",
+        "matrix_failed_output_saved",
+        "matrix_latest_pointer_skipped",
         "matrix_freshness_status",
         "source_matrix_freshness_status",
         "source_matrix_mode",
+        "sourceMatrixSavedOutputPath",
+        "sourceMatrixLatestPointerUpdated",
+        "sourceMatrixRejectReason",
         "REUSED_OUTPUT_FILE",
         "FRESH_CHILD_RUN",
         "NOT_COLLECTED_REUSED_MATRIX",
@@ -134,6 +142,8 @@ foreach ($marker in @(
         "latest-profit-operator-matrix.path",
         "latest_matrix_pointer",
         "latest_matrix_output_path",
+        "Latest matrix output is not reusable",
+        "profit_operator_review_matrix_packet.reviewItems",
         "prepare_profit_operator_action_brief_ssh.ps1",
         "-MatrixOutputPath",
         "profit_operator_latest_action_brief_exit_code",
@@ -172,6 +182,7 @@ foreach ($marker in @(
 
 $tempMatrixPath = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-operator-matrix-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempReviewDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-review-" + [guid]::NewGuid().ToString("N"))
+$tempActionDir = Join-Path ([System.IO.Path]::GetTempPath()) ("profit-action-brief-shadow-" + [guid]::NewGuid().ToString("N"))
 try {
     $matrixPacket = [pscustomobject]@{
         reviewItems = @(
@@ -341,12 +352,156 @@ try {
     if ($summaryText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
         throw "profit operator review summary unexpectedly invoked a child or SSH:`n$summaryText"
     }
+
+    $invalidMatrixPath = Join-Path $tempReviewDir "invalid-profit-operator-matrix.log"
+    Set-Content -LiteralPath $invalidMatrixPath -Encoding UTF8 -Value "partial matrix output without packet"
+    Set-Content -LiteralPath $latestPointerPath -Encoding UTF8 -Value $invalidMatrixPath
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $invalidLatestOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $latestScriptPath -ReviewOutputDir $tempReviewDir 2>&1
+        $invalidLatestExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $invalidLatestText = ($invalidLatestOutput | Out-String)
+    if ($invalidLatestExitCode -eq 0) {
+        throw "profit operator latest action brief accepted invalid matrix pointer:`n$invalidLatestText"
+    }
+    Assert-Contains -Name "profit operator latest action brief invalid matrix guard" -Text $invalidLatestText -Pattern "Latest matrix output is not reusable"
+    if ($invalidLatestText -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "profit operator latest action brief invalid matrix guard unexpectedly invoked child/SSH:`n$invalidLatestText"
+    }
+
+    New-Item -ItemType Directory -Force -Path $tempActionDir | Out-Null
+    $shadowActionScript = Join-Path $tempActionDir "prepare_profit_operator_action_brief_ssh.ps1"
+    $shadowMatrixScript = Join-Path $tempActionDir "prepare_profit_operator_review_matrix_ssh.ps1"
+    $shadowSignalScript = Join-Path $tempActionDir "prepare_signal_missed_blocker_decision_brief_ssh.ps1"
+    $shadowKeyPath = Join-Path $tempActionDir "fake-key"
+    $shadowReviewDir = Join-Path $tempActionDir "review"
+    $shadowMatrixOutputPath = Join-Path $shadowReviewDir "failed-matrix.log"
+    Copy-Item -LiteralPath $scriptPath -Destination $shadowActionScript -Force
+    Set-Content -LiteralPath $shadowMatrixScript -Encoding UTF8 -Value @'
+Write-Host "partial matrix output without packet"
+exit 1
+'@
+    Set-Content -LiteralPath $shadowSignalScript -Encoding UTF8 -Value @'
+Write-Host "signal_missed_blocker_decision_brief_status=NO_EVIDENCE"
+exit 0
+'@
+    Set-Content -LiteralPath $shadowKeyPath -Encoding UTF8 -Value "fake-key"
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $failedMatrixOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $shadowActionScript `
+            -SshHost "example.invalid" `
+            -SshKey $shadowKeyPath `
+            -AppDir "/tmp/agora-trading-api" `
+            -EnvFile "/tmp/env.trading" `
+            -ChildTimeoutSeconds 60 `
+            -MatrixTimeoutSeconds 60 `
+            -SaveMatrixOutputPath $shadowMatrixOutputPath `
+            -ReviewOutputDir $shadowReviewDir 2>&1
+        $failedMatrixExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $failedMatrixText = ($failedMatrixOutput | Out-String)
+    if ($failedMatrixExitCode -ne 0) {
+        throw "profit operator action brief failed instead of producing fail-closed no-evidence packet:`n$failedMatrixText"
+    }
+    foreach ($marker in @(
+            "matrix_output_rejected reason=exitCode=1,missingStatus,missingPacket",
+            "matrix_failed_output_saved path=$shadowMatrixOutputPath",
+            "matrix_latest_pointer_skipped reason=exitCode=1,missingStatus,missingPacket",
+            '"sourceMatrixSavedOutputPath"',
+            '"sourceMatrixLatestPointerUpdated":false',
+            '"sourceMatrixRejectReason":"exitCode=1,missingStatus,missingPacket"',
+            "profit_operator_action_brief_status=NO_EVIDENCE",
+            "profit_operator_action_primary_recommendation=FIX_PROFIT_MATRIX_COLLECTION"
+        )) {
+        Assert-Contains -Name "profit operator action brief failed matrix guard" -Text $failedMatrixText -Pattern ([regex]::Escape($marker))
+    }
+    if (-not (Test-Path -LiteralPath $shadowMatrixOutputPath)) {
+        throw "profit operator action brief did not save failed matrix output for diagnosis"
+    }
+    $shadowPointerPath = Join-Path $shadowReviewDir "latest-profit-operator-matrix.path"
+    if (Test-Path -LiteralPath $shadowPointerPath) {
+        throw "profit operator action brief updated latest pointer for failed matrix output: $shadowPointerPath"
+    }
+
+    $shadowNoReadyReviewDir = Join-Path $tempActionDir "review-no-ready"
+    $shadowNoReadyMatrixOutputPath = Join-Path $shadowNoReadyReviewDir "no-ready-matrix.log"
+    Set-Content -LiteralPath $shadowMatrixScript -Encoding UTF8 -Value @'
+$packet = [pscustomobject]@{
+    packetType = "PROFIT_OPERATOR_REVIEW_MATRIX"
+    status = "NO_REVIEW_READY_ITEMS"
+    reviewItems = @(
+        [pscustomobject]@{
+            lane = "entry-filter"
+            priority = "P2"
+            status = "BLOCKED_GOVERNANCE_MISSED_OPPORTUNITY_REVIEW"
+            readyForOperatorReview = $false
+            evidenceMarkers = @("signal_policy_clear=false")
+            missingRequirements = @("signal policy review clear")
+            nextAction = "Keep EntryDedup/DataFreshness/live policy unchanged."
+        }
+    )
+}
+Write-Host "profit_operator_review_matrix_status=NO_REVIEW_READY_ITEMS"
+Write-Host ("profit_operator_review_matrix_packet=" + (ConvertTo-Json -Compress -Depth 8 $packet))
+Write-Host "profit_operator_review_matrix_next_action=Continue read-only evidence collection."
+exit 0
+'@
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $noReadyMatrixOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $shadowActionScript `
+            -SshHost "example.invalid" `
+            -SshKey $shadowKeyPath `
+            -AppDir "/tmp/agora-trading-api" `
+            -EnvFile "/tmp/env.trading" `
+            -ChildTimeoutSeconds 60 `
+            -MatrixTimeoutSeconds 60 `
+            -SaveMatrixOutputPath $shadowNoReadyMatrixOutputPath `
+            -ReviewOutputDir $shadowNoReadyReviewDir 2>&1
+        $noReadyMatrixExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $noReadyMatrixText = ($noReadyMatrixOutput | Out-String)
+    if ($noReadyMatrixExitCode -ne 0) {
+        throw "profit operator action brief failed on valid no-ready matrix packet:`n$noReadyMatrixText"
+    }
+    foreach ($marker in @(
+            "matrix_saved path=$shadowNoReadyMatrixOutputPath",
+            "matrix_latest_pointer path=",
+            '"sourceMatrixLatestPointerUpdated":true',
+            '"sourceMatrixRejectReason":"none"',
+            "profit_operator_review_matrix_status=NO_REVIEW_READY_ITEMS",
+            "profit_operator_action_primary_recommendation=CONTINUE_READ_ONLY_EVIDENCE_COLLECTION",
+            "profit_operator_action_brief_status=NO_REVIEW_READY_ITEMS"
+        )) {
+        Assert-Contains -Name "profit operator action brief valid no-ready matrix" -Text $noReadyMatrixText -Pattern ([regex]::Escape($marker))
+    }
+    $shadowNoReadyPointerPath = Join-Path $shadowNoReadyReviewDir "latest-profit-operator-matrix.path"
+    if (-not (Test-Path -LiteralPath $shadowNoReadyPointerPath)) {
+        throw "profit operator action brief did not update latest pointer for valid no-ready matrix"
+    }
+    $shadowNoReadyPointerValue = (Get-Content -Raw -LiteralPath $shadowNoReadyPointerPath).Trim()
+    if ($shadowNoReadyPointerValue -ne $shadowNoReadyMatrixOutputPath) {
+        throw "profit operator action brief latest pointer did not reference valid no-ready matrix: $shadowNoReadyPointerValue"
+    }
 } finally {
     if (Test-Path -LiteralPath $tempMatrixPath) {
         Remove-Item -LiteralPath $tempMatrixPath -Force
     }
     if (Test-Path -LiteralPath $tempReviewDir) {
         Remove-Item -LiteralPath $tempReviewDir -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $tempActionDir) {
+        Remove-Item -LiteralPath $tempActionDir -Recurse -Force
     }
 }
 

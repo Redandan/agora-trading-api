@@ -1147,9 +1147,11 @@
   `MATRIX_COLLECTION_INCOMPLETE_SIGNAL_MISSED_BLOCKER_COLLECTED`. Matrix reuse mode emits
   `signal_missed_blocker_decision_brief_status=NOT_COLLECTED_REUSED_MATRIX`
   because it deliberately avoids fresh SSH evidence collection. Fresh runs default the saved matrix log to
-  `target/profit-review/` and update
-  `target/profit-review/latest-profit-operator-matrix.path` for the next
-  operator review. `scripts/prepare_profit_operator_latest_action_brief.ps1`
+  `target/profit-review/`, but only successful matrix output with a parsable
+  review packet updates `target/profit-review/latest-profit-operator-matrix.path`
+  for the next operator review. Failed or timed-out matrix output is saved for
+  diagnosis without becoming the latest reusable evidence pointer.
+  `scripts/prepare_profit_operator_latest_action_brief.ps1`
   reads that pointer and rebuilds the action brief through the same
   `-MatrixOutputPath` freshness guard without rerunning the long SSH matrix.
   `scripts/prepare_profit_operator_compact_status.ps1` reads the same pointer
@@ -1168,11 +1170,12 @@
   `profit_operator_quick_next_execution_unique_blocker`,
   `profit_operator_quick_next_execution_open_oco_positions`, and
   `profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows`.
-  It returns
-  `REFRESH_REQUIRED_NO_MATRIX` or `REFRESH_REQUIRED_STALE_MATRIX` when the
-  operator should refresh the read-only matrix before using the status. It does
-  not rerun SSH, refresh the blocker log, or authorize live trading, policy
-  relaxation, deploy, production env changes, orders, OCO, position closes,
+  It returns `REFRESH_REQUIRED_NO_MATRIX`,
+  `REFRESH_REQUIRED_STALE_MATRIX`, or
+  `REFRESH_REQUIRED_INVALID_MATRIX_PACKET` when the operator should refresh the
+  read-only matrix before using the status. It does not rerun SSH, refresh the
+  blocker log, or authorize live trading, policy relaxation, deploy, production
+  env changes, orders, OCO, position closes,
   DB/grid/fund/Earn/Telegram/exchange mutation, or external backfill/import.
   `scripts/prepare_profit_aggressive_activation_operator_packet.ps1` packages a
   more aggressive operator review path on top of the saved authorization request

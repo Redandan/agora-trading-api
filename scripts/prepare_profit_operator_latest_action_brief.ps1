@@ -9,6 +9,27 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+function Get-LastPrefixedValue {
+    param([string]$Text, [string]$Prefix)
+    $line = @($Text -split "`r?`n" | Where-Object { $_.StartsWith($Prefix) } | Select-Object -Last 1)
+    if (-not $line) {
+        return ""
+    }
+    return $line.Substring($Prefix.Length).Trim()
+}
+
+function Convert-JsonObjectOrNull {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -eq "null") {
+        return $null
+    }
+    try {
+        return ($Value | ConvertFrom-Json -ErrorAction Stop)
+    } catch {
+        return $null
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ReviewOutputDir)) {
     throw "ReviewOutputDir is required."
 }
@@ -33,6 +54,11 @@ if ([string]::IsNullOrWhiteSpace($matrixOutputPath)) {
 }
 if (-not (Test-Path -LiteralPath $matrixOutputPath)) {
     throw "Latest matrix output not found: $matrixOutputPath"
+}
+$matrixText = Get-Content -Raw -LiteralPath $matrixOutputPath
+$matrixPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $matrixText -Prefix "profit_operator_review_matrix_packet=")
+if ($null -eq $matrixPacket -or $null -eq $matrixPacket.PSObject.Properties["reviewItems"] -or @($matrixPacket.reviewItems).Count -eq 0) {
+    throw "Latest matrix output is not reusable: missing or invalid profit_operator_review_matrix_packet.reviewItems in $matrixOutputPath. Refresh with prepare_profit_operator_action_brief_ssh.ps1 before using latest action brief."
 }
 
 $actionScript = Join-Path $PSScriptRoot "prepare_profit_operator_action_brief_ssh.ps1"

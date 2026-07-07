@@ -64,6 +64,10 @@ foreach ($marker in @(
         "governance_mode",
         "missed_opportunity_status",
         "data_freshness_current_status",
+        "signal_missed_blocker_child_failure",
+        "signal_missed_blocker_source_evidence_missing",
+        "signal_missed_blocker_source_evidence_missing_reasons",
+        "Collect or refresh the missing entry-filter/no-buy read-only evidence",
         "entry_filter_operator_lane_status",
         "no_buy_row_review_lane_status",
         "missed_opportunity_shadow_lane_status",
@@ -133,5 +137,96 @@ Assert-FailsBeforeSsh `
 Assert-FailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-ChildTimeoutSeconds", "1") `
     -ExpectedPattern "ChildTimeoutSeconds must be between 60 and 3600"
+
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("signal-missed-brief-shadow-" + [guid]::NewGuid().ToString("N"))
+try {
+    New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+    $shadowScript = Join-Path $tempDir "prepare_signal_missed_blocker_decision_brief_ssh.ps1"
+    $shadowKey = Join-Path $tempDir "fake-key"
+    Copy-Item -LiteralPath $scriptPath -Destination $shadowScript -Force
+    Set-Content -LiteralPath $shadowKey -Encoding UTF8 -Value "fake-key"
+
+    Set-Content -LiteralPath (Join-Path $tempDir "prepare_entry_filter_operator_review_packet_ssh.ps1") -Encoding UTF8 -Value @'
+$packet = [pscustomobject]@{
+    signalPolicyClear = "false"
+    governanceMode = "INSUFFICIENT_DATA"
+    missedOpportunityStatus = "WARN"
+    suspiciousNoBuyCount = "3"
+    falseBlockRiskCount = "3"
+    highForwardReturnNoBuyCount = "3"
+    dataFreshnessCurrentStatus = "NO_CURRENT_SAMPLE"
+}
+Write-Host "entry_filter_operator_packet_status=NO_EVIDENCE"
+Write-Host ("entry_filter_operator_review_packet=" + (ConvertTo-Json -Compress -Depth 6 $packet))
+Write-Host 'entry_filter_operator_packet_missing_requirements=["signal correctness smoke completed"]'
+exit 0
+'@
+    Set-Content -LiteralPath (Join-Path $tempDir "prepare_no_buy_row_review_packet_ssh.ps1") -Encoding UTF8 -Value @'
+Write-Host "no_buy_row_review_packet_status=NO_EVIDENCE"
+Write-Host "no_buy_row_review_packet={}"
+Write-Host "no_buy_row_review_packet_missing_requirements=[]"
+Write-Host "no_buy_row_action_family_counts=[]"
+exit 0
+'@
+    Set-Content -LiteralPath (Join-Path $tempDir "prepare_missed_opportunity_shadow_design_packet_ssh.ps1") -Encoding UTF8 -Value @'
+$packet = [pscustomobject]@{
+    candidateMissedOpportunityRows = @()
+    waitForSignalConfirmationRows = @("row-1")
+    hardSafetyRows = @()
+}
+Write-Host "missed_opportunity_shadow_design_packet_status=NO_EVIDENCE"
+Write-Host ("missed_opportunity_shadow_design_packet=" + (ConvertTo-Json -Compress -Depth 6 $packet))
+Write-Host "missed_opportunity_shadow_design_missing_requirements=[]"
+exit 0
+'@
+    Set-Content -LiteralPath (Join-Path $tempDir "prepare_governance_relaxation_review_packet_ssh.ps1") -Encoding UTF8 -Value @'
+$packet = [pscustomobject]@{
+    relaxationCandidateCount = 0
+}
+Write-Host "governance_relaxation_review_packet_status=NO_EVIDENCE"
+Write-Host ("governance_relaxation_review_packet=" + (ConvertTo-Json -Compress -Depth 6 $packet))
+Write-Host "governance_relaxation_missing_requirements=[]"
+exit 0
+'@
+
+    $powerShell = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($null -eq $powerShell) {
+        $powerShell = Get-Command pwsh -ErrorAction SilentlyContinue
+    }
+    if ($null -eq $powerShell) {
+        throw "Unable to find powershell or pwsh for signal/missed blocker shadow test"
+    }
+
+    $shadowOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $shadowScript `
+        -SshHost "example.invalid" `
+        -SshKey $shadowKey `
+        -AppDir "/tmp/agora-trading-api" `
+        -EnvFile "/tmp/env.trading" `
+        -ChildTimeoutSeconds 60 2>&1
+    $shadowExitCode = $LASTEXITCODE
+    $shadowText = ($shadowOutput | Out-String)
+    if ($shadowExitCode -ne 0) {
+        throw "signal/missed blocker decision brief shadow no-evidence case failed:`n$shadowText"
+    }
+    foreach ($marker in @(
+            "signal_missed_blocker_decision_brief_status=NO_EVIDENCE",
+            "signal_missed_blocker_child_failure=false",
+            "signal_missed_blocker_source_evidence_missing=true",
+            "entry-filter evidence missing",
+            "no-buy row evidence missing",
+            "signal_missed_blocker_decision_next_action=Collect or refresh the missing entry-filter/no-buy read-only evidence before using this brief.",
+            '"childFailure":false',
+            '"sourceEvidenceMissing":true'
+        )) {
+        Assert-Contains -Name "signal/missed blocker no-evidence next action" -Text $shadowText -Pattern ([regex]::Escape($marker))
+    }
+    if ($shadowText -match "signal_missed_blocker_decision_next_action=Fix the child read-only packet failure") {
+        throw "signal/missed blocker no-evidence case still reports child failure:`n$shadowText"
+    }
+} finally {
+    if (Test-Path -LiteralPath $tempDir) {
+        Remove-Item -LiteralPath $tempDir -Recurse -Force
+    }
+}
 
 Write-Host "[signal-missed-blocker-decision-brief-test] OK"

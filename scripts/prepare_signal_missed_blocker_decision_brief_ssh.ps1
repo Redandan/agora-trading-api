@@ -251,7 +251,17 @@ $entryFilterLaneStatus = if ($entryStatus -eq "READY_FOR_OPERATOR_PACKET_NOT_LIV
     "ENTRY_FILTER_EVIDENCE_NOT_READY"
 }
 
-$briefStatus = if ($entryFilter.ExitCode -ne 0 -or $noBuy.ExitCode -ne 0 -or $missed.ExitCode -ne 0 -or $governance.ExitCode -ne 0 -or $entryStatus -eq "NO_EVIDENCE" -or $noBuyStatus -eq "NO_EVIDENCE") {
+$childFailure = ($entryFilter.ExitCode -ne 0 -or $noBuy.ExitCode -ne 0 -or $missed.ExitCode -ne 0 -or $governance.ExitCode -ne 0)
+$sourceEvidenceMissingReasons = [System.Collections.Generic.List[string]]::new()
+if ([string]::IsNullOrWhiteSpace($entryStatus) -or $entryStatus -eq "NO_EVIDENCE") {
+    Add-UniqueString -List $sourceEvidenceMissingReasons -Value "entry-filter evidence missing"
+}
+if ([string]::IsNullOrWhiteSpace($noBuyStatus) -or $noBuyStatus -eq "NO_EVIDENCE") {
+    Add-UniqueString -List $sourceEvidenceMissingReasons -Value "no-buy row evidence missing"
+}
+$sourceEvidenceMissing = ($sourceEvidenceMissingReasons.Count -gt 0)
+
+$briefStatus = if ($childFailure -or $sourceEvidenceMissing) {
     "NO_EVIDENCE"
 } elseif ($signalPolicyClear -ne "true" -or $missedOpportunityStatus -ne "PASS" -or $governanceMode -eq "INSUFFICIENT_DATA" -or $governanceMode -eq "TOO_STRICT" -or $governanceMode -eq "TOO_LOOSE" -or $dataFreshnessCurrentStatus -ne "CLEAN") {
     "BLOCKED_SIGNAL_MISSED_GOVERNANCE_REVIEW"
@@ -261,8 +271,10 @@ $briefStatus = if ($entryFilter.ExitCode -ne 0 -or $noBuy.ExitCode -ne 0 -or $mi
     "REVIEW_REQUIRED_NOT_POLICY_CHANGE"
 }
 
-$nextAction = if ($briefStatus -eq "NO_EVIDENCE") {
+$nextAction = if ($briefStatus -eq "NO_EVIDENCE" -and $childFailure) {
     "Fix the child read-only packet failure before using this brief."
+} elseif ($briefStatus -eq "NO_EVIDENCE") {
+    "Collect or refresh the missing entry-filter/no-buy read-only evidence before using this brief."
 } elseif ($briefStatus -eq "BLOCKED_SIGNAL_MISSED_GOVERNANCE_REVIEW") {
     "Review signal policy, governance drift, missed-opportunity rows, no-buy families, and DataFreshness current sample before any shadow or tiny-live experiment design."
 } elseif ($briefStatus -eq "READY_FOR_SIGNAL_MISSED_OPERATOR_REVIEW_NOT_LIVE") {
@@ -293,6 +305,9 @@ $brief = [pscustomobject]@{
     falseBlockRiskCount = $falseBlockRiskCount
     highForwardReturnNoBuyCount = $highForwardReturnNoBuyCount
     dataFreshnessCurrentStatus = $dataFreshnessCurrentStatus
+    childFailure = $childFailure
+    sourceEvidenceMissing = $sourceEvidenceMissing
+    sourceEvidenceMissingReasons = @($sourceEvidenceMissingReasons)
     lanes = [pscustomobject]@{
         entryFilterOperator = [pscustomobject]@{ status = $entryFilterLaneStatus; sourceStatus = $entryStatus }
         noBuyRowReview = [pscustomobject]@{ status = $noBuyLaneStatus; sourceStatus = $noBuyStatus; rowActionFamilyCounts = @($noBuyFamilyCounts) }
@@ -319,6 +334,9 @@ Write-Host "suspicious_no_buy_count=$suspiciousNoBuyCount"
 Write-Host "false_block_risk_count=$falseBlockRiskCount"
 Write-Host "high_forward_return_no_buy_count=$highForwardReturnNoBuyCount"
 Write-Host "data_freshness_current_status=$dataFreshnessCurrentStatus"
+Write-Host "signal_missed_blocker_child_failure=$($childFailure.ToString().ToLowerInvariant())"
+Write-Host "signal_missed_blocker_source_evidence_missing=$($sourceEvidenceMissing.ToString().ToLowerInvariant())"
+Write-Host ("signal_missed_blocker_source_evidence_missing_reasons=" + (ConvertTo-Json -Compress @($sourceEvidenceMissingReasons)))
 Write-Host "entry_filter_operator_lane_status=$entryFilterLaneStatus"
 Write-Host "no_buy_row_review_lane_status=$noBuyLaneStatus"
 Write-Host "missed_opportunity_shadow_lane_status=$missedLaneStatus"

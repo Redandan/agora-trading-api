@@ -192,7 +192,13 @@ if ($entryDedupWouldAllow -ne "0" -or $dedupTooCoarseSuspects -ne "0") {
 }
 
 $packetStatus = "NO_EVIDENCE"
-$nextAction = "Fix read-only signal-policy evidence collection before drafting any entry/filter operator packet."
+$nextAction = if ($missingEvalOrOrderBug -eq "suspected_missing_evaluation_or_order") {
+    "Investigate verifyStrategyExecution suspected missing evaluation/order against strategy, live signal, and audit rows before drafting any entry/filter operator packet."
+} elseif ($missingEvalOrOrderBug -eq "machine_status_marker_missing") {
+    "Fix verifyStrategyExecution MACHINE_STATUS marker collection before drafting any entry/filter operator packet."
+} else {
+    "Fix read-only signal-policy evidence collection before drafting any entry/filter operator packet."
+}
 if ($smoke.ExitCode -eq 0) {
     if ($signalPolicyClear -eq "true" -and $missingRequirements.Count -eq 0) {
         $packetStatus = "READY_FOR_OPERATOR_PACKET_NOT_LIVE"

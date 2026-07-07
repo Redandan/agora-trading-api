@@ -25,14 +25,18 @@ foreach ($marker in @(
         "[profit-operator-compact-status] read-only compact status",
         "latest-profit-operator-matrix.path",
         "PROFIT_OPERATOR_COMPACT_STATUS",
+        "Convert-JsonObjectOrNull",
         "profit_operator_compact_ready_lanes",
         "profit_operator_compact_blocked_lanes",
         "profit_operator_compact_exit_side_proposals",
         "profit_operator_compact_status_packet",
         "profit_operator_compact_status",
+        "profit_operator_compact_matrix_invalid_reason",
         "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
         "HAS_REVIEW_READY_ITEMS_NOT_LIVE",
         "STALE_MATRIX",
+        "INVALID_MATRIX_PACKET",
+        "matrixInvalidReason",
         "trailing-stop-rollout-review",
         "strategy485-risk-reduction-review",
         "do not relax EntryDedup/DataFreshness/live policy",
@@ -145,6 +149,23 @@ try {
             "Profit operator compact status is not ready: STALE_MATRIX"
         )) {
         Assert-Contains -Name "profit operator compact status stale output" -Text $staleText -Pattern ([regex]::Escape($marker))
+    }
+
+    Set-Content -LiteralPath $tempMatrixPath -Encoding UTF8 -Value "partial matrix output without packet"
+    (Get-Item -LiteralPath $tempMatrixPath).LastWriteTime = Get-Date
+    $invalidOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir 2>&1
+    $invalidExitCode = $LASTEXITCODE
+    $invalidText = ($invalidOutput | Out-String)
+    if ($invalidExitCode -ne 0) {
+        throw "profit operator compact status should emit structured invalid matrix status without -RequireReady:`n$invalidText"
+    }
+    foreach ($marker in @(
+            "profit_operator_compact_matrix_invalid_reason=missingPacket",
+            "profit_operator_compact_status=INVALID_MATRIX_PACKET",
+            '"matrixInvalidReason":"missingPacket"',
+            "latest matrix output is not a reusable review matrix"
+        )) {
+        Assert-Contains -Name "profit operator compact status invalid output" -Text $invalidText -Pattern ([regex]::Escape($marker))
     }
 } finally {
     if (Test-Path -LiteralPath $tempReviewDir) {

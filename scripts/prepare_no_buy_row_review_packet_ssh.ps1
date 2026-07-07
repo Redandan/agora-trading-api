@@ -228,7 +228,13 @@ if ($missedStatus -ne "PASS") {
 }
 
 $packetStatus = "NO_EVIDENCE"
-$nextAction = "Fix read-only signal/no-buy row evidence collection before drafting a no-buy row review packet."
+$nextAction = if ($missingEvalOrOrderBug -eq "suspected_missing_evaluation_or_order") {
+    "Investigate verifyStrategyExecution suspected missing evaluation/order against strategy, live signal, and audit rows before drafting a no-buy row review packet."
+} elseif ($missingEvalOrOrderBug -eq "machine_status_marker_missing") {
+    "Fix verifyStrategyExecution MACHINE_STATUS marker collection before drafting a no-buy row review packet."
+} else {
+    "Fix read-only signal/no-buy row evidence collection before drafting a no-buy row review packet."
+}
 if ($smoke.ExitCode -eq 0 -and $rows.Count -gt 0) {
     if ($signalPolicyClear -eq "true" -and $missingRequirements.Count -eq 0) {
         $packetStatus = "READY_FOR_SHADOW_DESIGN_NOT_LIVE"

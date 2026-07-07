@@ -2423,9 +2423,11 @@ brief stays fail-closed with
 claiming review readiness. Matrix reuse mode prints
 `signal_missed_blocker_decision_brief_status=NOT_COLLECTED_REUSED_MATRIX`,
 because it intentionally avoids fresh SSH evidence collection.
-Fresh runs default the saved matrix log to `target/profit-review/` and update
+Fresh runs default the saved matrix log to `target/profit-review/`. Only a
+successful matrix with a parsable review packet updates
 `target/profit-review/latest-profit-operator-matrix.path` so the next review can
-find the latest evidence file. Use
+reuse the latest evidence file; failed or timed-out matrix output is saved for
+diagnosis but is not promoted to the latest pointer. Use
 `.\scripts\prepare_profit_operator_latest_action_brief.ps1 -RequireReady` to
 rebuild from that latest pointer with the same freshness guard and without
 rerunning the long SSH matrix. Use
@@ -2436,10 +2438,10 @@ the saved profit-next-execution blocker fields
 `profit_operator_quick_next_execution_unique_blocker`,
 `profit_operator_quick_next_execution_open_oco_positions`, and
 `profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows`;
-`REFRESH_REQUIRED_NO_MATRIX` or `REFRESH_REQUIRED_STALE_MATRIX` means a fresh
-read-only matrix should be collected before using the operator status. It does
-not rerun SSH, does not refresh the profit-next-execution blocker log, and does
-not deploy. Use
+`REFRESH_REQUIRED_NO_MATRIX`, `REFRESH_REQUIRED_STALE_MATRIX`, or
+`REFRESH_REQUIRED_INVALID_MATRIX_PACKET` means a fresh read-only matrix should
+be collected before using the operator status. It does not rerun SSH, does not
+refresh the profit-next-execution blocker log, and does not deploy. Use
 `.\scripts\prepare_profit_aggressive_activation_operator_packet.ps1 -RequireReady`
 to package a more aggressive review path. It emits
 `PROFIT_AGGRESSIVE_ACTIVATION_OPERATOR_PACKET`,
@@ -2629,7 +2631,8 @@ fastest local check of the latest saved matrix; it prints
 `profit_operator_compact_blocked_lanes`, and
 `profit_operator_compact_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` when the
 fresh matrix still supports exit-side review. It does not rerun SSH and does
-not deploy. Use
+not deploy. `profit_operator_compact_status=INVALID_MATRIX_PACKET` means the
+latest pointer should be refreshed before reuse. Use
 `.\scripts\prepare_profit_operator_review_summary.ps1 -RequireReady` to convert
 the latest action brief into `profit_operator_review_summary_packet`, ready
 lanes, exit-side proposals, blocked lanes, and required evidence for operator

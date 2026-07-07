@@ -109,6 +109,7 @@ $refreshRequired = $true
 $compactStatus = ""
 $compactPacket = $null
 $compactExitCode = $null
+$compactFailureSummary = ""
 $matrixOutputPath = ""
 $nextAction = "Run prepare_profit_operator_action_brief_ssh.ps1 to collect a fresh read-only matrix before using profit operator status."
 $nextExecutionStatus = Read-NextExecutionStatus -PathValue $NextExecutionLogPath
@@ -134,19 +135,37 @@ if (Test-Path -LiteralPath $pointerPath) {
             throw "Unable to find powershell or pwsh for profit operator quick status."
         }
 
-        $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $compactScript `
-            -ReviewOutputDir $ReviewOutputDir `
-            -MatrixMaxAgeMinutes $MatrixMaxAgeMinutes `
-            -Symbol $Symbol `
-            -StrategyId $StrategyId 2>&1
-        $compactExitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+        $previousErrorActionPreference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = "Continue"
+            $output = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $compactScript `
+                -ReviewOutputDir $ReviewOutputDir `
+                -MatrixMaxAgeMinutes $MatrixMaxAgeMinutes `
+                -Symbol $Symbol `
+                -StrategyId $StrategyId 2>&1
+            $compactExitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+        } catch {
+            $output = @($_)
+            $compactExitCode = 1
+        } finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+        }
         $compactText = ($output | Out-String -Width 4096)
+        if ($compactExitCode -ne 0) {
+            $compactFailureSummary = ($compactText.Trim() -replace "`r?`n", " | ")
+            if ($compactFailureSummary.Length -gt 500) {
+                $compactFailureSummary = $compactFailureSummary.Substring(0, 500)
+            }
+        }
         $compactStatus = Get-LastPrefixedValue -Text $compactText -Prefix "profit_operator_compact_status="
         $compactPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $compactText -Prefix "profit_operator_compact_status_packet=")
 
         if ($compactExitCode -ne 0) {
             $status = "REFRESH_REQUIRED_COMPACT_STATUS_FAILED"
             $nextAction = "Refresh the read-only profit operator matrix or inspect compact status failure before using profit operator status."
+        } elseif ($compactStatus -eq "INVALID_MATRIX_PACKET") {
+            $status = "REFRESH_REQUIRED_INVALID_MATRIX_PACKET"
+            $nextAction = "Refresh the read-only profit operator matrix because latest-profit-operator-matrix.path points at an invalid matrix packet."
         } elseif ($compactStatus -eq "STALE_MATRIX") {
             $status = "REFRESH_REQUIRED_STALE_MATRIX"
             $nextAction = "Refresh the read-only profit operator matrix before using this quick status."
@@ -184,6 +203,7 @@ $packet = [pscustomobject]@{
     refreshRequired = $refreshRequired
     compactStatus = $compactStatus
     compactExitCode = $compactExitCode
+    compactFailureSummary = $compactFailureSummary
     compactStatusPacket = $compactPacket
     nextExecutionStatus = $nextExecutionStatus
     doNotActions = @(
@@ -203,6 +223,7 @@ Write-Host "profit_operator_quick_source_matrix_pointer=$pointerPath"
 Write-Host "profit_operator_quick_source_matrix_output_path=$matrixOutputPath"
 Write-Host "profit_operator_quick_compact_status=$compactStatus"
 Write-Host "profit_operator_quick_compact_exit_code=$compactExitCode"
+Write-Host "profit_operator_quick_compact_failure_summary=$compactFailureSummary"
 Write-Host "profit_operator_quick_refresh_required=$($refreshRequired.ToString().ToLowerInvariant())"
 Write-Host "profit_operator_quick_next_execution_log_path=$($nextExecutionStatus.path)"
 Write-Host "profit_operator_quick_next_execution_status=$($nextExecutionStatus.status)"

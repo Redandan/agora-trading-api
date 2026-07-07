@@ -247,7 +247,11 @@ missed_json = parse_json_object(missed_opportunities)
 truth_json = parse_json_object(truth_table)
 
 execution_machine_status = find(r"MACHINE_STATUS\s+([^\r\n]+)", execution)
+execution_machine_status_marker_found = execution_machine_status != "N/A"
 execution_ok = re.search(r"MACHINE_STATUS\s+no missing evaluation;\s*no missed order", execution) is not None
+execution_status_fail_reason = "none" if execution_ok else (
+    "suspected_missing_evaluation_or_order" if execution_machine_status_marker_found else "machine_status_marker_missing"
+)
 blocked_total = find(r"(?:total|analyzed|sampleCount)[^0-9]*(\d+)", blocked)
 blocked_correct = find(r"(?:correct|trueBlock)[^0-9]*(\d+)", blocked)
 blocked_wrong = find(r"(?:wrong|falseBlock|falseKill)[^0-9]*(\d+)", blocked)
@@ -500,7 +504,8 @@ if not signal_policy_review_plan:
 print("")
 print("Execution:")
 print(f"  executionMachineStatus={execution_machine_status}")
-print(f"  missingEvalOrOrderBug={'no' if execution_ok else 'unknown_or_present'}")
+print(f"  executionMachineStatusMarkerFound={str(execution_machine_status_marker_found).lower()}")
+print(f"  missingEvalOrOrderBug={'no' if execution_ok else execution_status_fail_reason}")
 print("")
 print("Blocked Signal Outcomes:")
 print(f"  total={blocked_total} correct={blocked_correct} wrong={blocked_wrong} correctRate={blocked_correct_rate} wrongRate={blocked_wrong_rate} avg24hIfAllowed={avg_24h}")
@@ -574,7 +579,10 @@ else:
 print("")
 print("Recommendations:")
 if not execution_ok:
-    print("  - FAIL: verifyStrategyExecution did not provide the expected no-missing-evaluation/no-missed-order marker.")
+    if execution_machine_status_marker_found:
+        print(f"  - FAIL: verifyStrategyExecution reported {execution_machine_status}; inspect strategy/live signal/audit rows before any live review.")
+    else:
+        print("  - FAIL: verifyStrategyExecution did not provide a MACHINE_STATUS marker.")
 else:
     print("  - KEEP: strategy scheduler/evaluation path appears to be running; no missed-evaluation/order marker found.")
 
@@ -614,7 +622,10 @@ else:
 
 print("")
 if not execution_ok:
-    print("[signal-correctness] FAIL: missing no-missed-evaluation/no-missed-order marker from verifyStrategyExecution.", file=sys.stderr)
+    if execution_machine_status_marker_found:
+        print("[signal-correctness] FAIL: verifyStrategyExecution reported suspected missing evaluation or missed order.", file=sys.stderr)
+    else:
+        print("[signal-correctness] FAIL: missing MACHINE_STATUS marker from verifyStrategyExecution.", file=sys.stderr)
     sys.exit(1)
 if require_clear and not signal_policy_clear:
     raise SystemExit(2)

@@ -2546,9 +2546,11 @@ Expected:
   `signal_missed_blocker_decision_brief_status=NOT_COLLECTED_REUSED_MATRIX`
   because no fresh signal/missed blocker SSH evidence was collected.
 - When `-SaveMatrixOutputPath` is omitted, fresh action-brief runs save the
-  matrix log under `target/profit-review/` and update
-  `target/profit-review/latest-profit-operator-matrix.path` with the newest
-  matrix path.
+  matrix log under `target/profit-review/`. Only a successful matrix with a
+  parsable `profit_operator_review_matrix_packet` updates
+  `target/profit-review/latest-profit-operator-matrix.path`; timeout or failed
+  matrix output is saved for diagnosis but is not promoted to the latest
+  reusable evidence pointer.
 - To rebuild from the latest saved matrix without rerunning the long SSH matrix,
   run:
 
@@ -2572,12 +2574,12 @@ Expected:
   blocker fields `profit_operator_quick_next_execution_unique_blocker`,
   `profit_operator_quick_next_execution_open_oco_positions`, and
   `profit_operator_quick_next_execution_data_freshness_replay_candidate_id_rows`.
-  `REFRESH_REQUIRED_NO_MATRIX` or
-  `REFRESH_REQUIRED_STALE_MATRIX` means refresh the read-only matrix before
-  using the operator status. This quick status reads only the saved blocker log;
-  it does not rerun SSH, refresh the blocker, deploy, change production env,
-  enable live trading, relax EntryDedup/DataFreshness policy, or authorize
-  position/OCO changes.
+  `REFRESH_REQUIRED_NO_MATRIX`, `REFRESH_REQUIRED_STALE_MATRIX`, or
+  `REFRESH_REQUIRED_INVALID_MATRIX_PACKET` means refresh the read-only matrix
+  before using the operator status. This quick status reads only the saved
+  blocker log; it does not rerun SSH, refresh the blocker, deploy, change
+  production env, enable live trading, relax EntryDedup/DataFreshness policy,
+  or authorize position/OCO changes.
 - For a more aggressive but still read-only operator review path, run:
 
   ```powershell
@@ -2847,9 +2849,11 @@ Expected:
   `profit_operator_compact_ready_lanes`,
   `profit_operator_compact_blocked_lanes`, and
   `profit_operator_compact_status=READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE` when
-  the fresh matrix still supports exit-side review. The compact status does
-  not rerun SSH, deploy, enable live trading, relax EntryDedup/DataFreshness
-  policy, or authorize position/OCO changes.
+  the fresh matrix still supports exit-side review.
+  `profit_operator_compact_status=INVALID_MATRIX_PACKET` means the latest
+  pointer should be refreshed before reuse. The compact status does not rerun
+  SSH, deploy, enable live trading, relax EntryDedup/DataFreshness policy, or
+  authorize position/OCO changes.
 - To turn the still-blocked DataFreshness replay lane in the latest saved
   matrix into a local operator blocker decision packet, run:
 

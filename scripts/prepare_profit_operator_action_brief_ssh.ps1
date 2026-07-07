@@ -85,7 +85,12 @@ function Get-DefaultMatrixOutputPath {
 }
 
 function Save-MatrixOutput {
-    param([string]$Path, [string]$Text, [string]$OutputDir)
+    param(
+        [string]$Path,
+        [string]$Text,
+        [string]$OutputDir,
+        [bool]$UpdateLatestPointer = $true
+    )
 
     $parent = Split-Path -Parent $Path
     if ([string]::IsNullOrWhiteSpace($parent)) {
@@ -94,10 +99,36 @@ function Save-MatrixOutput {
     New-Item -ItemType Directory -Force -Path $parent | Out-Null
     Set-Content -LiteralPath $Path -Value $Text -Encoding UTF8
 
+    if (-not $UpdateLatestPointer) {
+        return $null
+    }
+
     New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
     $pointerPath = Join-Path $OutputDir "latest-profit-operator-matrix.path"
     Set-Content -LiteralPath $pointerPath -Value $Path -Encoding UTF8
     return $pointerPath
+}
+
+function Get-MatrixRejectReason {
+    param([object]$Matrix, [string]$MatrixStatus, [object]$MatrixPacket)
+
+    $reasons = [System.Collections.Generic.List[string]]::new()
+    if ($Matrix.ExitCode -ne 0) {
+        $reasons.Add("exitCode=$($Matrix.ExitCode)")
+    }
+    if ($Matrix.TimedOut) {
+        $reasons.Add("timedOut=true")
+    }
+    if ([string]::IsNullOrWhiteSpace($MatrixStatus)) {
+        $reasons.Add("missingStatus")
+    }
+    if ($null -eq $MatrixPacket) {
+        $reasons.Add("missingPacket")
+    }
+    if ($reasons.Count -eq 0) {
+        return "none"
+    }
+    return ($reasons -join ",")
 }
 
 function Invoke-ReadOnlyScript {
@@ -226,6 +257,11 @@ $effectiveMatrixTimeoutSeconds = if ($MatrixTimeoutSeconds -gt 0) {
 }
 
 $sourceMatrixMode = "FRESH_CHILD_RUN"
+$matrixSavePath = ""
+$matrixSavedOutputPath = $null
+$matrixLatestPointerPath = $null
+$matrixLatestPointerUpdated = $false
+$matrixRejectReason = $null
 $matrixFreshness = [pscustomobject]@{
     AgeMinutes = $null
     MaxAgeMinutes = $MatrixMaxAgeMinutes
@@ -271,8 +307,7 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
         "-StrategyId", "$StrategyId",
         "-ReplayDays", "$ReplayDays",
         "-ReplayLimit", "$ReplayLimit",
-        "-ChildTimeoutSeconds", "$ChildTimeoutSeconds",
-        "-RequireReviewItems"
+        "-ChildTimeoutSeconds", "$ChildTimeoutSeconds"
     ) -TimeoutSeconds $effectiveMatrixTimeoutSeconds
 
     if (-not [string]::IsNullOrWhiteSpace($SaveMatrixOutputPath)) {
@@ -280,9 +315,27 @@ if (-not [string]::IsNullOrWhiteSpace($MatrixOutputPath)) {
     } else {
         $matrixSavePath = Get-DefaultMatrixOutputPath -OutputDir $ReviewOutputDir -SymbolValue $Symbol -StrategyValue $StrategyId
     }
-    $matrixLatestPointerPath = Save-MatrixOutput -Path $matrixSavePath -Text $matrix.Text -OutputDir $ReviewOutputDir
-    Write-Host "[profit-operator-action-brief] matrix_saved path=$matrixSavePath"
-    Write-Host "[profit-operator-action-brief] matrix_latest_pointer path=$matrixLatestPointerPath"
+}
+
+$matrixStatus = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_status="
+$matrixPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_packet=")
+$matrixNextAction = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_next_action="
+
+if ($sourceMatrixMode -eq "FRESH_CHILD_RUN") {
+    $matrixRejectReason = Get-MatrixRejectReason -Matrix $matrix -MatrixStatus $matrixStatus -MatrixPacket $matrixPacket
+    if ($matrixRejectReason -eq "none") {
+        $matrixLatestPointerPath = Save-MatrixOutput -Path $matrixSavePath -Text $matrix.Text -OutputDir $ReviewOutputDir -UpdateLatestPointer $true
+        $matrixSavedOutputPath = $matrixSavePath
+        $matrixLatestPointerUpdated = $true
+        Write-Host "[profit-operator-action-brief] matrix_saved path=$matrixSavePath"
+        Write-Host "[profit-operator-action-brief] matrix_latest_pointer path=$matrixLatestPointerPath"
+    } else {
+        $null = Save-MatrixOutput -Path $matrixSavePath -Text $matrix.Text -OutputDir $ReviewOutputDir -UpdateLatestPointer $false
+        $matrixSavedOutputPath = $matrixSavePath
+        Write-Host "[profit-operator-action-brief] matrix_output_rejected reason=$matrixRejectReason"
+        Write-Host "[profit-operator-action-brief] matrix_failed_output_saved path=$matrixSavePath"
+        Write-Host "[profit-operator-action-brief] matrix_latest_pointer_skipped reason=$matrixRejectReason"
+    }
 }
 
 $signalMissedMode = "NOT_COLLECTED_REUSED_MATRIX"
@@ -304,9 +357,6 @@ if ($sourceMatrixMode -eq "FRESH_CHILD_RUN") {
     ) -TimeoutSeconds $ChildTimeoutSeconds
 }
 
-$matrixStatus = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_status="
-$matrixPacket = Convert-JsonObjectOrNull -Value (Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_packet=")
-$matrixNextAction = Get-LastPrefixedValue -Text $matrix.Text -Prefix "profit_operator_review_matrix_next_action="
 $signalMissedStatus = if ($signalMissedMode -eq "FRESH_CHILD_RUN") {
     Get-LastPrefixedValue -Text $signalMissed.Text -Prefix "signal_missed_blocker_decision_brief_status="
 } else {
@@ -512,6 +562,9 @@ $brief = [pscustomobject]@{
     sourceMatrix = "prepare_profit_operator_review_matrix_ssh.ps1"
     sourceMatrixMode = $sourceMatrixMode
     sourceMatrixOutputPath = if ([string]::IsNullOrWhiteSpace($MatrixOutputPath)) { $null } else { $MatrixOutputPath }
+    sourceMatrixSavedOutputPath = $matrixSavedOutputPath
+    sourceMatrixLatestPointerUpdated = $matrixLatestPointerUpdated
+    sourceMatrixRejectReason = $matrixRejectReason
     sourceMatrixFreshness = $matrixFreshness
     sourceMatrixExitCode = $matrix.ExitCode
     sourceMatrixTimeoutSeconds = $effectiveMatrixTimeoutSeconds

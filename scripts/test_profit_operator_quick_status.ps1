@@ -34,9 +34,12 @@ foreach ($marker in @(
         "profit_operator_quick_next_execution_status",
         "profit_operator_quick_next_execution_unique_blocker",
         "profit_operator_quick_next_execution_open_oco_positions",
+        "profit_operator_quick_compact_failure_summary",
         "nextExecutionStatus",
+        "compactFailureSummary",
         "REFRESH_REQUIRED_NO_MATRIX",
         "REFRESH_REQUIRED_STALE_MATRIX",
+        "REFRESH_REQUIRED_INVALID_MATRIX_PACKET",
         "READY_FOR_EXIT_SIDE_REVIEW_NOT_LIVE",
         "HAS_REVIEW_READY_ITEMS_NOT_LIVE",
         "do not relax EntryDedup/DataFreshness/live policy",
@@ -174,6 +177,24 @@ try {
         Assert-Contains -Name "profit operator quick status stale matrix" -Text $staleText -Pattern ([regex]::Escape($marker))
     }
 
+    Set-Content -LiteralPath $tempMatrixPath -Encoding UTF8 -Value "partial matrix output without packet"
+    (Get-Item -LiteralPath $tempMatrixPath).LastWriteTime = Get-Date
+    $invalidOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ReviewOutputDir $tempReviewDir -NextExecutionLogPath $tempNextExecutionPath 2>&1
+    $invalidExitCode = $LASTEXITCODE
+    $invalidText = ($invalidOutput | Out-String)
+    if ($invalidExitCode -ne 0) {
+        throw "profit operator quick status should not fail on invalid matrix without -RequireFreshMatrix:`n$invalidText"
+    }
+    foreach ($marker in @(
+            "profit_operator_quick_compact_status=INVALID_MATRIX_PACKET",
+            "profit_operator_quick_status=REFRESH_REQUIRED_INVALID_MATRIX_PACKET",
+            "profit_operator_quick_refresh_required=true",
+            '"compactStatus":"INVALID_MATRIX_PACKET"',
+            '"status":"REFRESH_REQUIRED_INVALID_MATRIX_PACKET"'
+        )) {
+        Assert-Contains -Name "profit operator quick status invalid matrix" -Text $invalidText -Pattern ([regex]::Escape($marker))
+    }
+
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
@@ -200,6 +221,7 @@ foreach ($marker in @(
         "profit-next-execution blocker log",
         "REFRESH_REQUIRED_NO_MATRIX",
         "REFRESH_REQUIRED_STALE_MATRIX",
+        "REFRESH_REQUIRED_INVALID_MATRIX_PACKET",
         "does not rerun SSH",
         "does not deploy"
     )) {

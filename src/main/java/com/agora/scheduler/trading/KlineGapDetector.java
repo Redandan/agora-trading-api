@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 public class KlineGapDetector {
 
     private static final String OKX_BASE = "https://www.okx.com";
+    private static final int OKX_DAILY_OPEN_HOUR_UTC = 16;
 
     private final MdKlineRepository klineRepository;
     private final ObjectMapper objectMapper;
@@ -207,7 +208,7 @@ public class KlineGapDetector {
     }
 
     /** 對齊到 interval 的起點（例如 12:37 → 1h 對齊為 12:00）。 */
-    private LocalDateTime alignToInterval(LocalDateTime t, String intervalCode) {
+    LocalDateTime alignToInterval(LocalDateTime t, String intervalCode) {
         Duration d = intervalDuration(intervalCode);
         long minutes = d.toMinutes();
         int minute = t.getMinute();
@@ -218,6 +219,18 @@ public class KlineGapDetector {
             return t.withMinute(aligned).withSecond(0).withNano(0);
         } else if (minutes == 60) {
             return t.withMinute(0).withSecond(0).withNano(0);
+        } else if (minutes % (24 * 60) == 0) {
+            // OKX candle1D is UTC+8 anchored, so the UTC open time is 16:00.
+            // Using 00:00 here creates false "missing 1d bar" gaps.
+            int daysInInterval = (int) (minutes / (24 * 60));
+            LocalDateTime aligned = t.withHour(OKX_DAILY_OPEN_HOUR_UTC).withMinute(0).withSecond(0).withNano(0);
+            while (aligned.isAfter(t)) {
+                aligned = aligned.minusDays(daysInInterval);
+            }
+            while (!aligned.plusDays(daysInInterval).isAfter(t)) {
+                aligned = aligned.plusDays(daysInInterval);
+            }
+            return aligned;
         } else {
             // e.g. 4h → hour aligned to multiples of 4
             int hoursInInterval = (int) (minutes / 60);

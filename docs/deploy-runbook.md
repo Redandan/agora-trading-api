@@ -5013,8 +5013,9 @@ Current warning classes:
 | `external.thegraph.api-key not configured` | Optional external data-provider warning; acceptable only while The Graph-backed reads/backfills remain disabled by split guards. |
 | `spring.jpa.open-in-view is enabled by default` | Do not flip to `false` as a drive-by cleanup; it can change lazy-loading behavior and should be handled through a focused API/DTO audit. |
 | `DailyAutonomousTradingDigest` severe notification sent | Known operator-alert warning only when production explicitly enables autonomous digest Telegram/severe-scan flags. It is not an order/OCO/grid/Earn/fund action, but the category count should still be reviewed after each deploy. |
-| `OkxWsKlineService` public WS `Connection reset` | Treated as transient only while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`) and followed by fresh persisted K-line rows. Exceeding the threshold is a runtime-log smoke failure and should be investigated as collector/network instability. |
-| `OkxWsKlineService` public WS transient failure such as `: null`, timeout, EOF, or closed connection | Treated as transient only while below `MAX_OKX_WS_TRANSIENT_WARN` (default `10`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data collector/network instability before relying on grid-open or post-open evidence. |
+| `OkxWsKlineService` public WS `Connection reset` | Treated as transient while below `MAX_OKX_WS_CONNECTION_RESET_WARN` (default `3`). If the threshold is exceeded, runtime-log smoke fails closed unless a later `OkxWS Persisted` row proves K-line recovery after the latest warning; recovered threshold breaches still print a smoke warning and should be reviewed as collector/network instability. |
+| `OkxWsKlineService` public WS transient failure such as `: null`, timeout, EOF, or closed connection | Treated as transient while below `MAX_OKX_WS_TRANSIENT_WARN` (default `10`). If the threshold is exceeded, runtime-log smoke fails closed unless a later `OkxWS Persisted` row proves K-line recovery after the latest warning; recovered threshold breaches still print a smoke warning and should be reviewed before relying on grid-open or post-open evidence. |
+| `OkxPrivateWsService` private WS transient failure such as `Connection failure: null`, timeout, EOF, or closed connection | Treated as transient while below `MAX_OKX_PRIVATE_WS_TRANSIENT_WARN` (default `10`). If the threshold is exceeded, runtime-log smoke fails closed unless a later `OkxPrivateWs Subscription confirmed` row proves private-WS recovery after the latest warning; recovered threshold breaches still print a smoke warning and should be reviewed because REST OCO polling is the fallback during private-WS gaps. |
 | `PythNetworkService` feed/network timeout, HTTP, empty response, or unparseable price WARN | Treated as transient only while below `MAX_PYTH_NETWORK_WARN` (default `3`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as market-data provider instability before relying on Pyth-derived evidence. |
 | `EtherscanService` tokenSupply `Error retrieving value` WARN | Optional on-chain supply provider warning. Treated as transient only while below `MAX_ETHERSCAN_TOKEN_SUPPLY_WARN` (default `5`). Exceeding the threshold is a runtime-log smoke failure and should be investigated before relying on Etherscan-derived market context. |
 | `McpApiKeyFilter` denied MCP request because metadata/API key is missing or invalid | Bounded auth-denied noise from public/unauthenticated probes. Treated as known only while below `MAX_MCP_AUTH_DENIED_WARN` (default `20`). Exceeding the threshold is a runtime-log smoke failure and should be investigated as MCP abuse, route drift, or broken verifier auth. |
@@ -5029,9 +5030,12 @@ cross-service live MCP ownership smoke when live ownership boundaries are being
 validated.
 
 `scripts/check_server_runtime_log.sh` enforces this warning baseline for the
-active run log. It fails on runtime `ERROR` lines, WARN lines outside the known
-baseline above, and operation-like live trading/OCO/grid/Earn/fund lines in the
-recent log tail. A narrow `OkxTradingService` startup line such as
+active run log. It matches the Spring log level column for runtime `ERROR` and
+`WARN`, so an `INFO` message whose text contains words like `WARN` is not
+counted as a runtime warning. It fails on runtime `ERROR` lines, WARN lines
+outside the known baseline above, and operation-like live
+trading/OCO/grid/Earn/fund lines in the recent log tail. A narrow
+`OkxTradingService` startup line such as
 `[OKX] Auto-trade enabled : true` is classified as an OKX auto-trade config
 echo, not as evidence of an order or grid mutation; actual order placement,
 OKX submit/fill/execute, `createGrid`, OCO, Earn, or fund operation-like lines

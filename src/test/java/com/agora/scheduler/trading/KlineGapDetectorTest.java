@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -21,6 +22,16 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class KlineGapDetectorTest {
+
+    @Test
+    void alignsOkxDailyBarsToExchangeUtcOpenHour() {
+        KlineGapDetector detector = detectorWithDefaults(new MarketWsAutoSubscribeProperties(), mock(WsSubscriptionResolver.class));
+
+        assertThat(detector.alignToInterval(LocalDateTime.of(2026, 7, 7, 1, 0), "1d"))
+                .isEqualTo(LocalDateTime.of(2026, 7, 6, 16, 0));
+        assertThat(detector.alignToInterval(LocalDateTime.of(2026, 7, 7, 17, 0), "1d"))
+                .isEqualTo(LocalDateTime.of(2026, 7, 7, 16, 0));
+    }
 
     @Test
     void detectsGapsFromResolvedSubscriptionsWhenYamlItemsAreEmpty() {
@@ -45,15 +56,7 @@ class KlineGapDetectorTest {
 
         MdKlineInsertHelper insertHelper = mock(MdKlineInsertHelper.class);
         ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
-        KlineGapDetector detector = new KlineGapDetector(
-                klineRepository,
-                new ObjectMapper(),
-                properties,
-                mock(NotificationPort.class),
-                eventPublisher,
-                insertHelper,
-                resolver,
-                "http://127.0.0.1.invalid");
+        KlineGapDetector detector = detectorWithDefaults(klineRepository, properties, resolver, insertHelper, eventPublisher);
 
         detector.detectAndBackfill();
 
@@ -71,15 +74,8 @@ class KlineGapDetectorTest {
         properties.setEnabled(false);
 
         WsSubscriptionResolver resolver = mock(WsSubscriptionResolver.class);
-        KlineGapDetector detector = new KlineGapDetector(
-                klineRepository,
-                new ObjectMapper(),
-                properties,
-                mock(NotificationPort.class),
-                mock(ApplicationEventPublisher.class),
-                mock(MdKlineInsertHelper.class),
-                resolver,
-                "http://127.0.0.1.invalid");
+        KlineGapDetector detector = detectorWithDefaults(klineRepository, properties, resolver,
+                mock(MdKlineInsertHelper.class), mock(ApplicationEventPublisher.class));
 
         detector.detectAndBackfill();
 
@@ -94,5 +90,27 @@ class KlineGapDetectorTest {
             cursor = cursor.plusHours(1);
         }
         return bars;
+    }
+
+    private static KlineGapDetector detectorWithDefaults(MarketWsAutoSubscribeProperties properties,
+                                                         WsSubscriptionResolver resolver) {
+        return detectorWithDefaults(mock(MdKlineRepository.class), properties, resolver,
+                mock(MdKlineInsertHelper.class), mock(ApplicationEventPublisher.class));
+    }
+
+    private static KlineGapDetector detectorWithDefaults(MdKlineRepository klineRepository,
+                                                         MarketWsAutoSubscribeProperties properties,
+                                                         WsSubscriptionResolver resolver,
+                                                         MdKlineInsertHelper insertHelper,
+                                                         ApplicationEventPublisher eventPublisher) {
+        return new KlineGapDetector(
+                klineRepository,
+                new ObjectMapper(),
+                properties,
+                mock(NotificationPort.class),
+                eventPublisher,
+                insertHelper,
+                resolver,
+                "http://127.0.0.1.invalid");
     }
 }

@@ -185,6 +185,18 @@ Assert-SmokeCase `
     -Environment @{ ALLOW_UNKNOWN_WARN = "1" }
 
 Assert-SmokeCase `
+    -Name "info line containing warn word is not runtime warn" `
+    -Lines @(
+        "2026-07-06T16:10:00.058Z  INFO 705276 --- [agora-trading-api] [trading-sched-4] c.a.s.t.BtcPriceMoveAlertScheduler       : [BtcPriceMoveAlert] sent 1h WARN change=+2.41% atr_units=3.0"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline: total_warn=0",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
     -Name "scorebuy ml schema mismatch is classified warn baseline" `
     -Lines @(
         "2026-06-26T00:37:28.907Z  WARN 2299189 --- [agora-trading-api] [        async-1] c.a.service.backtest.ScoreBuyV2Strategy  : [ScoreBuyV2] predict failed v21: ML_PREDICT_ROW failed: PreparedStatementCallback; uncategorized SQLException for SQL [SELECT sys.ML_PREDICT_ROW(CAST(? AS JSON), ?, NULL)]; SQL state [HY000]; error code [3877]; `"ML003011: Columns of provided data need to match those used for training. Provided - ['adx14'] vs Trained - ['adx14', 'bb_width']`""
@@ -265,9 +277,49 @@ Assert-SmokeCase `
     ) `
     -ExpectedExitCode 1 `
     -ExpectedPatterns @(
-        "OKX WS transient warnings exceeded threshold: count=1 max=0"
+        "OKX WS transient warnings exceeded threshold without persisted K-line recovery: count=1 max=0"
     ) `
     -Environment @{ MAX_OKX_WS_TRANSIENT_WARN = "0" }
+
+Assert-SmokeCase `
+    -Name "okx ws transient threshold recovers with persisted kline" `
+    -Lines @(
+        "2026-06-27T09:09:16.576Z  WARN 2516045 --- [agora-trading-api] [kx.com:8443/...] c.a.service.market.OkxWsKlineService     : [OkxWS] WS failure BTCUSDT@1m: null",
+        "2026-06-27T09:10:00.991Z  INFO 2516045 --- [agora-trading-api] [kx.com:8443/...] c.a.service.market.OkxWsKlineService     : [OkxWS] Persisted BTCUSDT 1m@2026-06-27T09:09 close=107100.0"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "OKX WS transient warnings exceeded threshold but recovered",
+        "runtime WARN lines match known baseline",
+        "okx_ws_transient=1",
+        "runtime log smoke complete"
+    ) `
+    -Environment @{ MAX_OKX_WS_TRANSIENT_WARN = "0" }
+
+Assert-SmokeCase `
+    -Name "okx private ws transient is classified warn baseline" `
+    -Lines @(
+        "2026-07-06T15:03:32.018Z  WARN 705276 --- [agora-trading-api] [kx.com:8443/...] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Connection failure: null",
+        "2026-07-06T15:03:37.974Z  INFO 705276 --- [agora-trading-api] [kx.com:8443/...] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Subscription confirmed: {`"channel`":`"orders-algo`",`"instType`":`"ANY`"}"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "okx_private_ws_transient=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "okx private ws transient threshold is fail closed without subscription recovery" `
+    -Lines @(
+        "2026-07-06T15:03:32.018Z  WARN 705276 --- [agora-trading-api] [kx.com:8443/...] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Connection failure: null"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "OKX private WS warnings exceeded threshold without subscription recovery: count=1 max=0"
+    ) `
+    -Environment @{ MAX_OKX_PRIVATE_WS_TRANSIENT_WARN = "0" }
 
 Assert-SmokeCase `
     -Name "mcp auth denied is classified warn baseline" `

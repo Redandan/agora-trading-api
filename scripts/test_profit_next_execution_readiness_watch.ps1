@@ -65,6 +65,8 @@ foreach ($marker in @(
         "timedOut",
         "profit-next-execution-watch-data-freshness-attempt-",
         "profit-next-execution-watch-next-blocker-attempt-",
+        "profit-next-execution-blocker-packet-latest.log",
+        "attempt_profit_next_execution_latest_log_path",
         "attempt_profit_next_execution_route",
         "attempt_profit_next_execution_blocker_status",
         "attempt_profit_next_execution_unique_blocker",

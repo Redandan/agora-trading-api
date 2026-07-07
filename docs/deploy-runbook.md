@@ -3224,7 +3224,8 @@ Expected:
   ```
 
   The watcher saves each DataFreshness readiness and next-execution blocker
-  attempt under `target/profit-review`, then emits
+  attempt under `target/profit-review`, refreshes
+  `profit-next-execution-blocker-packet-latest.log`, then emits
   `profit_next_execution_watch_status`. `PENDING_OPEN_OCO_SAMPLE` means the only
   actionable wait is a natural open OCO sample for trailing dry-run observation;
   `PENDING_TRAILING_OPT_IN_EVIDENCE` means first refresh the non-mutating

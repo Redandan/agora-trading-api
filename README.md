@@ -2283,7 +2283,9 @@ Bounded read-only profit next execution watch:
 This watcher is narrower than the general profit evidence watcher: it tracks
 the current highest-ROI next-execution lane by chaining
 `prepare_data_freshness_replay_evidence_readiness_ssh.ps1` into
-`prepare_profit_next_execution_blocker_packet.ps1`. Output includes
+`prepare_profit_next_execution_blocker_packet.ps1`. It saves per-attempt logs
+and refreshes `profit-next-execution-blocker-packet-latest.log` for quick
+status. Output includes
 `profit_next_execution_watch_status`,
 `profit_next_execution_watch_unique_blocker`,
 `profit_next_execution_watch_observation_sample_ready`, and

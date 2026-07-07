@@ -1708,7 +1708,9 @@
 - `scripts/watch_profit_next_execution_readiness_ssh.ps1` automates the
   read-only replay loop for the packet above. It records per-attempt
   DataFreshness readiness and next-execution blocker logs under
-  `target/profit-review`, then reports whether the lane is
+  `target/profit-review`, refreshes
+  `profit-next-execution-blocker-packet-latest.log`, then reports whether the
+  lane is
   `PENDING_OPEN_OCO_SAMPLE`, `PENDING_TRAILING_OPT_IN_EVIDENCE`,
   `PENDING_DATAFRESHNESS_REPLAY_EVIDENCE`, or
   `EVIDENCE_READY_FOR_OPERATOR_REVIEW_NOT_LIVE`.

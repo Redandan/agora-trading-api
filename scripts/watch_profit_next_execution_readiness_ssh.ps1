@@ -205,6 +205,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     ))
     Write-ChildFailureContext -ScriptName "prepare_profit_next_execution_blocker_packet.ps1" -Result $nextBlocker
     $nextBlockerLogPath = Save-ChildLog -Name "profit-next-execution-watch-next-blocker-attempt-$attempt.log" -Text $nextBlocker.Text
+    $nextBlockerLatestPath = Save-ChildLog -Name "profit-next-execution-blocker-packet-latest.log" -Text $nextBlocker.Text
 
     $route = Get-LastPrefixedValue -Text $nextBlocker.Text -Prefix "profit_next_execution_route="
     $blockerStatus = Get-LastPrefixedValue -Text $nextBlocker.Text -Prefix "profit_next_execution_blocker_status="
@@ -254,6 +255,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
 
     Write-Host "attempt_data_freshness_log_path=$dataFreshnessLogPath"
     Write-Host "attempt_profit_next_execution_log_path=$nextBlockerLogPath"
+    Write-Host "attempt_profit_next_execution_latest_log_path=$nextBlockerLatestPath"
     Write-Host "attempt_profit_next_execution_route=$route"
     Write-Host "attempt_profit_next_execution_blocker_status=$blockerStatus"
     Write-Host "attempt_profit_next_execution_unique_blocker=$uniqueBlocker"

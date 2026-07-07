@@ -85,7 +85,6 @@ function Invoke-TrailingExecutionDryRun {
         EnvFile = $EnvFile
         Symbol = $Symbol
         StrategyId = $StrategyId
-        RequireReady = $true
     }
 
     $output = @()
@@ -544,6 +543,8 @@ $packet = [pscustomobject]@{
     profitRoute = if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") { "TRAILING_STOP_DRY_RUN_OBSERVATION" } else { "TRAILING_STOP_STRATEGY574_OPT_IN" }
     profitRouteReason = if ($executionStatus -eq "ALREADY_OPTED_IN_DRY_RUN_ACTIVE_READ_ONLY_VERIFY") {
         "highest-ROI trailing lane is deployed in dry-run; next value is observation evidence before any live OCO mutation"
+    } elseif ($trailingAcceptance -ne "PASS") {
+        "trailing opt-in evidence is not ready; refresh replay and post-opt-in readiness before treating this lane as executable"
     } else {
         "highest-ROI route with quantified trailing replay PASS and no live order/OCO/scheduler/env mutation in the first step"
     }

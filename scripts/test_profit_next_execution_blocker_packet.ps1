@@ -41,6 +41,7 @@ foreach ($marker in @(
         "post_opt_in_readiness",
         "COLLECT_TRAILING_DRY_RUN_OBSERVATION_SAMPLE",
         "prepare_trailing_stop_dry_run_observation_status_ssh.ps1",
+        "trailing opt-in evidence is not ready; refresh replay and post-opt-in readiness before treating this lane as executable",
         "profit_next_execution_observation_status",
         "profit_next_execution_observation_sample_ready",
         "profit_next_execution_sample_collection_blocked_by",
@@ -412,6 +413,59 @@ try {
     }
     if ($missingEvidenceText -match "-Execute\s+-ConfirmText\s+-RequireReady|-Execute\s+-ConfirmText\s{2,}-RequireReady") {
         throw "profit next execution blocker missing-evidence replay emitted an executable command with blank ConfirmText:`n$missingEvidenceText"
+    }
+
+    $notReadyPacket = [pscustomobject]@{
+        packetType = "TRAILING_STOP_STRATEGY_OPT_IN_EXECUTION_PACKET"
+        status = "NOT_READY"
+        symbol = "BTCUSDT"
+        strategyId = 574
+        executeRequested = $false
+        requiredConfirmText = "EXECUTE_TRAILING_STOP_OPT_IN_574"
+        trailingAcceptance = "NOT_PROVEN"
+        trailingImprovementPct = "-362.748%"
+        trailingDeltaPnl = "-5624.99866990"
+        strategyOptInWritePerformed = $false
+        nextRequiredAuthorization = "fix missing execution evidence before any further action"
+        missingRequirements = @("trailing replay acceptance=PASS")
+    }
+    Set-Content -LiteralPath $tempExecutionLog -Encoding UTF8 -Value @(
+        "trailing_stop_strategy_opt_in_execution_status=NOT_READY",
+        "trailing_stop_strategy_opt_in_execution_decision=FIX_TRAILING_STRATEGY_OPT_IN_EXECUTION_EVIDENCE",
+        "trailing_stop_strategy_opt_in_execution_required_confirm_text=EXECUTE_TRAILING_STOP_OPT_IN_574",
+        "trailing_stop_acceptance=NOT_PROVEN",
+        "trailing_stop_improvement_pct=-362.748%",
+        "trailing_stop_delta_pnl=-5624.99866990",
+        ("trailing_stop_strategy_opt_in_execution_packet=" + (ConvertTo-Json -Compress -Depth 8 $notReadyPacket))
+    )
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $notReadyOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
+            -ExecutionLogPath $tempExecutionLog `
+            -Strategy574GovernanceLogPath $tempStrategy574Log `
+            -DataFreshnessReadinessLogPath $tempDfLog `
+            -Strategy485RiskLogPath $tempStrategy485Log `
+            -SignalCorrectnessLogPath $tempSignalLog `
+            -NoRefresh 2>&1
+        $notReadyExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $notReadyText = ($notReadyOutput | Out-String -Width 4096)
+    if ($notReadyExitCode -ne 0) {
+        throw "profit next execution blocker not-ready replay failed:`n$notReadyText"
+    }
+    foreach ($marker in @(
+            "profit_next_execution_source_status=NOT_READY",
+            "profit_next_execution_trailing_acceptance=NOT_PROVEN",
+            "profit_next_execution_trailing_improvement_pct=-362.748%",
+            "profit_next_execution_unique_blocker=FIX_TRAILING_OPT_IN_EVIDENCE",
+            "profit_next_execution_exact_unlock_command=.\scripts\execute_trailing_stop_strategy_opt_in_ssh.ps1 -StrategyId 574 -RequireReady",
+            '"profitRouteReason":"trailing opt-in evidence is not ready; refresh replay and post-opt-in readiness before treating this lane as executable"'
+        )) {
+        Assert-Contains -Name "profit next execution blocker not-ready replay" -Text $notReadyText -Pattern ([regex]::Escape($marker))
     }
 } finally {
     foreach ($path in @($tempExecutionLog, $tempStrategy574Log, $tempDfLog, $tempStrategy485Log, $tempSignalLog, $tempObservationLog, $tempPostOptInLog)) {

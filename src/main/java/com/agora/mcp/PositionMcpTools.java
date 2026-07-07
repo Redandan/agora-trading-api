@@ -111,6 +111,24 @@ public class PositionMcpTools {
     private record ReplayOutcome(String reason, BigDecimal exitPrice, LocalDateTime exitTime,
                                  BigDecimal netPnlUsdt, boolean ambiguousSameBar) {}
 
+    private record TrailingReplayInput(BtBacktestTrade trade, List<MdKline> bars) {}
+
+    private record TrailingPnlSummary(
+            TrailingStopReplayService.ReplayPolicy policy,
+            int replayed,
+            int acceptanceRows,
+            int skipped,
+            int trailingExited,
+            int improved,
+            int worsened,
+            int ambiguousSameBar,
+            BigDecimal totalOriginal,
+            BigDecimal totalTrailing,
+            BigDecimal totalDelta,
+            BigDecimal improvementPct,
+            boolean acceptancePass,
+            String acceptanceBlocker) {}
+
     private record TrailingReplayResult(String state,
                                         BigDecimal extreme,
                                         BigDecimal theoreticalStop,
@@ -768,6 +786,150 @@ public class PositionMcpTools {
         return sb.toString();
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
+    @Transactional(readOnly = true)
+    @Tool(description = "#439 read-only trailing-stop parameter sweep over normalized backtest trades. " +
+            "Compares theoretical ATR breakeven/trailing parameter sets and the current +0.5/+1.0/+1.0 policy. " +
+            "READ_ONLY only; does not change scheduler constants, strategies, OCO, orders, grid, funds, Telegram, or DB state.")
+    public String analyzeTrailingStopParameterSweep(
+            @ToolParam(required = false, description = "Symbol filter, default BTCUSDT") String symbol,
+            @ToolParam(required = false, description = "Strategy/backtest interval, default 1h") String intervalCode,
+            @ToolParam(required = false, description = "Lookback days, default 30, max 90") Integer days,
+            @ToolParam(required = false, description = "Max trades to replay, default 100, max 500") Integer limit,
+            @ToolParam(required = false, description = "Replay K-line interval, default 1m") String replayIntervalCode,
+            @ToolParam(required = false, description = "Rows to print, default 8, max 20") Integer topN,
+            @ToolParam(required = false, description = "Comma-separated breakeven ATR multiples, default 0.25,0.5,0.75,1.0") String breakevenMultiples,
+            @ToolParam(required = false, description = "Comma-separated trailing trigger ATR multiples, default 0.5,0.75,1.0,1.25,1.5") String trailingTriggerMultiples,
+            @ToolParam(required = false, description = "Comma-separated trailing distance ATR multiples, default 0.5,0.75,1.0,1.25,1.5") String trailingDistanceMultiples) {
+
+        String sym = (symbol == null || symbol.isBlank()) ? "BTCUSDT" : symbol.trim().toUpperCase();
+        String interval = (intervalCode == null || intervalCode.isBlank()) ? "1h" : intervalCode.trim();
+        String replayInterval = (replayIntervalCode == null || replayIntervalCode.isBlank()) ? "1m" : replayIntervalCode.trim();
+        int lookbackDays = days == null || days <= 0 ? 30 : Math.min(days, 90);
+        int max = limit == null || limit <= 0 ? 100 : Math.min(limit, 500);
+        int rowsToPrint = topN == null || topN <= 0 ? 8 : Math.min(topN, 20);
+        LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusDays(lookbackDays);
+
+        List<BigDecimal> breakevens = parseTrailingSweepMultiples(breakevenMultiples,
+                List.of(new BigDecimal("0.25"), new BigDecimal("0.5"), new BigDecimal("0.75"), new BigDecimal("1.0")),
+                8);
+        List<BigDecimal> triggers = parseTrailingSweepMultiples(trailingTriggerMultiples,
+                List.of(new BigDecimal("0.5"), new BigDecimal("0.75"), new BigDecimal("1.0"), new BigDecimal("1.25"), new BigDecimal("1.5")),
+                10);
+        List<BigDecimal> distances = parseTrailingSweepMultiples(trailingDistanceMultiples,
+                List.of(new BigDecimal("0.5"), new BigDecimal("0.75"), new BigDecimal("1.0"), new BigDecimal("1.25"), new BigDecimal("1.5")),
+                10);
+
+        List<BtBacktestTrade> trades = backtestTradeRepository.findReplayableRecentTrades(
+                sym, interval, since, PageRequest.of(0, max));
+
+        StringBuilder sb = new StringBuilder("=== Trailing Stop Parameter Sweep (#439) ===\n\n");
+        sb.append("boundary: READ_ONLY; no order/OCO/strategy/scheduler/grid/fund/Earn/Telegram/DB behavior changed\n");
+        sb.append("symbol: ").append(sym).append("\n");
+        sb.append("backtestInterval: ").append(interval).append("\n");
+        sb.append("replayInterval: ").append(replayInterval).append("\n");
+        sb.append("lookbackDays: ").append(lookbackDays).append("\n");
+        sb.append("sampleLimit: ").append(max).append("\n");
+        sb.append("acceptanceTarget: total trailing PnL improvement >= 5% over non-ambiguous original normalized backtest trades\n");
+        sb.append("acceptanceNote=ambiguousSameBar rows are excluded from PnL acceptance totals\n");
+        sb.append("currentPolicy=breakevenAtr=0.5 trailingTriggerAtr=1.0 trailingDistanceAtr=1.0 feeBuffer=0.001\n");
+        sb.append("parameterGrid=breakevenAtr").append(breakevens)
+                .append(" trailingTriggerAtr").append(triggers)
+                .append(" trailingDistanceAtr").append(distances)
+                .append("\n\n");
+
+        if (trades.isEmpty()) {
+            sb.append("sampleStatus=NO_REPLAYABLE_TRADES\n");
+            sb.append("acceptanceBlocker=NO_REPLAYABLE_TRADES\n");
+            sb.append("operatorAction: run or locate recent normalized backtests before sweeping trailing parameters.\n");
+            return sb.toString();
+        }
+
+        List<TrailingReplayInput> inputs = new ArrayList<>();
+        for (BtBacktestTrade trade : trades) {
+            String source = trade.getBacktest() != null && trade.getBacktest().getKlineSource() != null
+                    && !trade.getBacktest().getKlineSource().isBlank()
+                    ? trade.getBacktest().getKlineSource()
+                    : "okx";
+            List<MdKline> bars = mdKlineRepository
+                    .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                            sym, replayInterval, source, trade.getEntryTime().minusMinutes(1), trade.getExitTime());
+            inputs.add(new TrailingReplayInput(trade, bars));
+        }
+
+        List<TrailingPnlSummary> summaries = new ArrayList<>();
+        for (BigDecimal breakeven : breakevens) {
+            for (BigDecimal trigger : triggers) {
+                if (trigger.compareTo(breakeven) < 0) {
+                    continue;
+                }
+                for (BigDecimal distance : distances) {
+                    TrailingStopReplayService.ReplayPolicy policy = new TrailingStopReplayService.ReplayPolicy(
+                            breakeven,
+                            trigger,
+                            distance,
+                            new BigDecimal("0.001"));
+                    summaries.add(summarizeTrailingPolicy(inputs, policy, trades.size()));
+                }
+            }
+        }
+
+        TrailingStopReplayService.ReplayPolicy currentPolicy = TrailingStopReplayService.ReplayPolicy.defaults();
+        boolean currentIncluded = summaries.stream().anyMatch(s -> sameTrailingPolicy(s.policy(), currentPolicy));
+        if (!currentIncluded) {
+            summaries.add(summarizeTrailingPolicy(inputs, currentPolicy, trades.size()));
+        }
+
+        summaries.sort(Comparator
+                .comparing((TrailingPnlSummary s) -> comparablePct(s.improvementPct())).reversed()
+                .thenComparing((TrailingPnlSummary s) -> s.totalDelta() != null ? s.totalDelta() : BigDecimal.ZERO, Comparator.reverseOrder()));
+
+        TrailingPnlSummary best = summaries.isEmpty() ? null : summaries.get(0);
+        TrailingPnlSummary current = summaries.stream()
+                .filter(s -> sameTrailingPolicy(s.policy(), currentPolicy))
+                .findFirst()
+                .orElse(null);
+
+        sb.append("sampleStatus=").append(best != null && best.replayed() > 0 ? "REPLAYED" : "NO_REPLAYED_ROWS").append("\n");
+        sb.append("tradesFound=").append(trades.size())
+                .append(" candidatesTested=").append(summaries.size())
+                .append(" topN=").append(Math.min(rowsToPrint, summaries.size()))
+                .append("\n");
+        if (current != null) {
+            sb.append("currentPolicySummary=").append(formatTrailingSweepSummary(current, true)).append("\n");
+        }
+        if (best != null) {
+            sb.append("bestPolicySummary=").append(formatTrailingSweepSummary(best, sameTrailingPolicy(best.policy(), currentPolicy))).append("\n");
+            sb.append("bestVsCurrentDeltaPnl=")
+                    .append(current != null ? fmt(best.totalDelta().subtract(current.totalDelta())) : "N/A")
+                    .append(" bestVsCurrentImprovementPctDelta=")
+                    .append(current != null && best.improvementPct() != null && current.improvementPct() != null
+                            ? fmtPct(best.improvementPct().subtract(current.improvementPct()))
+                            : "N/A")
+                    .append("\n");
+        }
+
+        sb.append("\ntopCandidates:\n");
+        for (int i = 0; i < Math.min(rowsToPrint, summaries.size()); i++) {
+            TrailingPnlSummary row = summaries.get(i);
+            sb.append("rank=").append(i + 1)
+                    .append(" ")
+                    .append(formatTrailingSweepSummary(row, sameTrailingPolicy(row.policy(), currentPolicy)))
+                    .append("\n");
+        }
+
+        sb.append("\noperatorAction: ");
+        if (best != null && current != null && !sameTrailingPolicy(best.policy(), currentPolicy)
+                && best.improvementPct() != null && best.improvementPct().compareTo(current.improvementPct() != null ? current.improvementPct() : BigDecimal.ZERO) > 0) {
+            sb.append("REVIEW_PARAMETER_CANDIDATE_NOT_LIVE; implement only after separate design review, local verify, explicit deploy authorization, and post-deploy read-only acceptance.");
+        } else {
+            sb.append("NO_BETTER_PARAMETER_FOUND_IN_SWEEP; keep trailing disabled/dry-run and continue collecting evidence.");
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
     private String trailingPnlAcceptanceBlocker(boolean pass, int tradesFound, int replayed,
                                                 int acceptanceRows, int ambiguous,
                                                 BigDecimal totalDelta,
@@ -805,6 +967,114 @@ public class PositionMcpTools {
                     acceptanceRows, fmt(totalDelta), fmtPct(improvementPct));
             default -> "unknown blocker";
         };
+    }
+
+    private List<BigDecimal> parseTrailingSweepMultiples(String raw, List<BigDecimal> defaults, int maxCount) {
+        if (raw == null || raw.isBlank()) {
+            return defaults;
+        }
+        List<BigDecimal> values = new ArrayList<>();
+        for (String part : raw.split(",")) {
+            String token = part.trim();
+            if (token.isEmpty()) {
+                continue;
+            }
+            BigDecimal value = new BigDecimal(token);
+            if (value.signum() <= 0 || value.compareTo(new BigDecimal("5.0")) > 0) {
+                throw new IllegalArgumentException("trailing sweep multiples must be > 0 and <= 5.0");
+            }
+            values.add(value.stripTrailingZeros());
+            if (values.size() > maxCount) {
+                throw new IllegalArgumentException("too many trailing sweep multiples; max=" + maxCount);
+            }
+        }
+        return values.isEmpty() ? defaults : values;
+    }
+
+    private TrailingPnlSummary summarizeTrailingPolicy(
+            List<TrailingReplayInput> inputs,
+            TrailingStopReplayService.ReplayPolicy policy,
+            int tradesFound) {
+        BigDecimal totalOriginal = BigDecimal.ZERO;
+        BigDecimal totalTrailing = BigDecimal.ZERO;
+        BigDecimal totalDelta = BigDecimal.ZERO;
+        int replayed = 0;
+        int acceptanceRows = 0;
+        int skipped = 0;
+        int trailingExited = 0;
+        int improved = 0;
+        int worsened = 0;
+        int ambiguous = 0;
+
+        for (TrailingReplayInput input : inputs) {
+            TrailingStopReplayService.ReplayResult replay = trailingStopReplayService
+                    .replayBacktestTrade(input.trade(), input.bars(), policy);
+            if (!replay.replayed()) {
+                skipped++;
+                continue;
+            }
+            replayed++;
+            if (replay.exitedByTrailing()) trailingExited++;
+            if (replay.ambiguousSameBar()) ambiguous++;
+            if (replay.deltaPnl().signum() > 0) improved++;
+            if (replay.deltaPnl().signum() < 0) worsened++;
+            if (!replay.ambiguousSameBar()) {
+                acceptanceRows++;
+                totalOriginal = totalOriginal.add(replay.originalNetPnl());
+                totalTrailing = totalTrailing.add(replay.trailingNetPnl());
+                totalDelta = totalDelta.add(replay.deltaPnl());
+            }
+        }
+
+        BigDecimal improvementPct = totalOriginal.signum() == 0
+                ? null
+                : totalDelta.divide(totalOriginal.abs(), 6, RoundingMode.HALF_UP);
+        boolean pass = acceptanceRows > 0
+                && improvementPct != null
+                && improvementPct.compareTo(new BigDecimal("0.05")) >= 0;
+        String blocker = trailingPnlAcceptanceBlocker(pass, tradesFound, replayed,
+                acceptanceRows, ambiguous, totalDelta, improvementPct);
+        return new TrailingPnlSummary(policy, replayed, acceptanceRows, skipped, trailingExited,
+                improved, worsened, ambiguous, totalOriginal, totalTrailing, totalDelta,
+                improvementPct, pass, blocker);
+    }
+
+    private BigDecimal comparablePct(BigDecimal value) {
+        return value != null ? value : new BigDecimal("-999999");
+    }
+
+    private boolean sameTrailingPolicy(TrailingStopReplayService.ReplayPolicy left,
+                                       TrailingStopReplayService.ReplayPolicy right) {
+        return left != null && right != null
+                && left.breakevenTriggerAtrMult().compareTo(right.breakevenTriggerAtrMult()) == 0
+                && left.trailingTriggerAtrMult().compareTo(right.trailingTriggerAtrMult()) == 0
+                && left.trailingDistanceAtrMult().compareTo(right.trailingDistanceAtrMult()) == 0
+                && left.breakevenFeeBuffer().compareTo(right.breakevenFeeBuffer()) == 0;
+    }
+
+    private String formatTrailingSweepSummary(TrailingPnlSummary summary, boolean currentPolicy) {
+        TrailingStopReplayService.ReplayPolicy p = summary.policy();
+        return "policy=be=" + fmtPlain(p.breakevenTriggerAtrMult())
+                + ",trigger=" + fmtPlain(p.trailingTriggerAtrMult())
+                + ",distance=" + fmtPlain(p.trailingDistanceAtrMult())
+                + " currentPolicy=" + currentPolicy
+                + " acceptance=" + (summary.acceptancePass() ? "PASS" : "NOT_PROVEN")
+                + " improvementPct=" + fmtPct(summary.improvementPct())
+                + " deltaPnl=" + fmt(summary.totalDelta())
+                + " originalPnl=" + fmt(summary.totalOriginal())
+                + " trailingPnl=" + fmt(summary.totalTrailing())
+                + " replayed=" + summary.replayed()
+                + " acceptanceRows=" + summary.acceptanceRows()
+                + " skipped=" + summary.skipped()
+                + " trailingExited=" + summary.trailingExited()
+                + " improved=" + summary.improved()
+                + " worsened=" + summary.worsened()
+                + " ambiguousSameBar=" + summary.ambiguousSameBar()
+                + " acceptanceBlocker=" + summary.acceptanceBlocker();
+    }
+
+    private String fmtPlain(BigDecimal value) {
+        return value == null ? "N/A" : value.stripTrailingZeros().toPlainString();
     }
 
     @McpAuth(McpAuthLevel.LOCAL_ONLY)

@@ -62,6 +62,30 @@ class PositionMcpToolsTest {
     }
 
     @Test
+    void analyzeTrailingStopParameterSweepKeepsOpsAuthAndReadOnlyCategory() throws Exception {
+        Method method = PositionMcpTools.class.getDeclaredMethod(
+                "analyzeTrailingStopParameterSweep",
+                String.class,
+                String.class,
+                Integer.class,
+                Integer.class,
+                String.class,
+                Integer.class,
+                String.class,
+                String.class,
+                String.class);
+
+        McpAuth auth = method.getAnnotation(McpAuth.class);
+        McpCategory category = method.getAnnotation(McpCategory.class);
+
+        assertThat(auth).isNotNull();
+        assertThat(auth.value()).isEqualTo(McpAuthLevel.OPS);
+        assertThat(category).isNotNull();
+        assertThat(Arrays.asList(category.value()))
+                .containsExactlyInAnyOrder(Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS);
+    }
+
+    @Test
     void analyzeTrailingStopPnlReplayAlwaysDocumentsAmbiguousRowExclusion() {
         PositionMcpTools tools = tools();
         when(backtestTradeRepository.findReplayableRecentTrades(
@@ -165,6 +189,45 @@ class PositionMcpToolsTest {
         assertThat(output).contains("backtestInterval: 1h");
         assertThat(output).contains("replayInterval: 5m");
         assertThat(output).contains("acceptance=PASS");
+    }
+
+    @Test
+    void analyzeTrailingStopParameterSweepReportsCurrentAndBestReadOnlyCandidate() {
+        PositionMcpTools tools = tools();
+
+        BtBacktestTrade trade = trade(1L);
+        List<MdKline> bars = List.of(new MdKline());
+
+        when(backtestTradeRepository.findReplayableRecentTrades(
+                eq("BTCUSDT"), eq("1h"), any(LocalDateTime.class), any(Pageable.class)))
+                .thenReturn(List.of(trade));
+        when(mdKlineRepository.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                eq("BTCUSDT"), eq("1m"), eq("okx"), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(bars);
+        when(trailingStopReplayService.replayBacktestTrade(
+                eq(trade),
+                eq(bars),
+                any(TrailingStopReplayService.ReplayPolicy.class)))
+                .thenAnswer(invocation -> {
+                    TrailingStopReplayService.ReplayPolicy policy = invocation.getArgument(2);
+                    if (policy.trailingDistanceAtrMult().compareTo(new BigDecimal("0.5")) == 0) {
+                        return replay(new BigDecimal("-10.00000000"), new BigDecimal("5.00000000"), false);
+                    }
+                    return replay(new BigDecimal("-10.00000000"), new BigDecimal("-20.00000000"), false);
+                });
+
+        String output = tools.analyzeTrailingStopParameterSweep(
+                "BTCUSDT", "1h", 30, 10, "1m", 3,
+                "0.5", "1.0", "0.5,1.0");
+
+        assertThat(output).contains("boundary: READ_ONLY");
+        assertThat(output).contains("currentPolicy=breakevenAtr=0.5 trailingTriggerAtr=1.0 trailingDistanceAtr=1.0");
+        assertThat(output).contains("sampleStatus=REPLAYED");
+        assertThat(output).contains("candidatesTested=2");
+        assertThat(output).contains("currentPolicySummary=policy=be=0.5,trigger=1,distance=1 currentPolicy=true");
+        assertThat(output).contains("bestPolicySummary=policy=be=0.5,trigger=1,distance=0.5 currentPolicy=false acceptance=PASS");
+        assertThat(output).contains("bestVsCurrentDeltaPnl=25.00000000");
+        assertThat(output).contains("operatorAction: REVIEW_PARAMETER_CANDIDATE_NOT_LIVE");
     }
 
     @Test

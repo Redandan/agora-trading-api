@@ -14,12 +14,19 @@ public class TrailingStopReplayService {
 
     private static final BigDecimal BREAKEVEN_TRIGGER_ATR_MULT = new BigDecimal("0.5");
     private static final BigDecimal TRAILING_TRIGGER_ATR_MULT = new BigDecimal("1.0");
+    private static final BigDecimal TRAILING_DISTANCE_ATR_MULT = new BigDecimal("1.0");
+    private static final BigDecimal BREAKEVEN_FEE_BUFFER = new BigDecimal("0.001");
     private static final BigDecimal DEFAULT_FEE_RATE = new BigDecimal("0.001");
 
     public ReplayResult replayBacktestTrade(BtBacktestTrade trade, List<MdKline> bars) {
+        return replayBacktestTrade(trade, bars, ReplayPolicy.defaults());
+    }
+
+    public ReplayResult replayBacktestTrade(BtBacktestTrade trade, List<MdKline> bars, ReplayPolicy policy) {
         if (trade == null || bars == null || bars.isEmpty()) {
             return ReplayResult.unreplayable("missing_trade_or_bars");
         }
+        ReplayPolicy replayPolicy = policy != null ? policy.normalized() : ReplayPolicy.defaults();
         BigDecimal entry = trade.getEntryPrice();
         BigDecimal qty = trade.getQuantity();
         BigDecimal atr = normalizeAtrFraction(trade.getAtrPct());
@@ -38,8 +45,8 @@ public class TrailingStopReplayService {
         String state = "ENTERED";
         BigDecimal extreme = null;
         BigDecimal stop = null;
-        BigDecimal breakevenTrigger = trigger(entry, atr, BREAKEVEN_TRIGGER_ATR_MULT, isLong);
-        BigDecimal trailingTrigger = trigger(entry, atr, TRAILING_TRIGGER_ATR_MULT, isLong);
+        BigDecimal breakevenTrigger = trigger(entry, atr, replayPolicy.breakevenTriggerAtrMult(), isLong);
+        BigDecimal trailingTrigger = trigger(entry, atr, replayPolicy.trailingTriggerAtrMult(), isLong);
         int usedBars = 0;
         boolean sameBarTransition = false;
 
@@ -68,16 +75,16 @@ public class TrailingStopReplayService {
 
             if ("ENTERED".equals(state) && touchedBreakeven) {
                 state = "BREAKEVEN_LOCKED";
-                stop = protectiveStop(stop, feeAdjustedBreakeven(entry, isLong), isLong);
+                stop = protectiveStop(stop, feeAdjustedBreakeven(entry, replayPolicy.breakevenFeeBuffer(), isLong), isLong);
                 transitionedThisBar = true;
             }
             if ("BREAKEVEN_LOCKED".equals(state) && touchedTrailing) {
                 state = "TRAILING";
-                stop = protectiveStop(stop, trailingStop(extreme, atr, isLong), isLong);
+                stop = protectiveStop(stop, trailingStop(extreme, atr, replayPolicy.trailingDistanceAtrMult(), isLong), isLong);
                 sameBarTransition = transitionedThisBar;
             } else if ("TRAILING".equals(state)) {
                 BigDecimal previousStop = stop;
-                stop = protectiveStop(stop, trailingStop(extreme, atr, isLong), isLong);
+                stop = protectiveStop(stop, trailingStop(extreme, atr, replayPolicy.trailingDistanceAtrMult(), isLong), isLong);
                 ratchetedThisBar = newExtreme && previousStop != null && stop != null
                         && stop.compareTo(previousStop) != 0;
             }
@@ -141,15 +148,15 @@ public class TrailingStopReplayService {
         return isLong ? current.max(candidate) : current.min(candidate);
     }
 
-    private BigDecimal feeAdjustedBreakeven(BigDecimal entry, boolean isLong) {
+    private BigDecimal feeAdjustedBreakeven(BigDecimal entry, BigDecimal feeBuffer, boolean isLong) {
         return isLong
-                ? entry.multiply(new BigDecimal("1.001"))
-                : entry.multiply(new BigDecimal("0.999"));
+                ? entry.multiply(BigDecimal.ONE.add(feeBuffer))
+                : entry.multiply(BigDecimal.ONE.subtract(feeBuffer));
     }
 
-    private BigDecimal trailingStop(BigDecimal extreme, BigDecimal atr, boolean isLong) {
+    private BigDecimal trailingStop(BigDecimal extreme, BigDecimal atr, BigDecimal distanceMult, boolean isLong) {
         if (extreme == null || atr == null) return null;
-        BigDecimal distance = extreme.multiply(atr);
+        BigDecimal distance = extreme.multiply(atr.multiply(distanceMult));
         return isLong ? extreme.subtract(distance) : extreme.add(distance);
     }
 
@@ -177,6 +184,37 @@ public class TrailingStopReplayService {
     private BigDecimal improvementPct(BigDecimal delta, BigDecimal originalNet) {
         if (originalNet == null || originalNet.signum() == 0) return null;
         return delta.divide(originalNet.abs(), 6, RoundingMode.HALF_UP);
+    }
+
+    public record ReplayPolicy(
+            BigDecimal breakevenTriggerAtrMult,
+            BigDecimal trailingTriggerAtrMult,
+            BigDecimal trailingDistanceAtrMult,
+            BigDecimal breakevenFeeBuffer) {
+
+        public static ReplayPolicy defaults() {
+            return new ReplayPolicy(
+                    BREAKEVEN_TRIGGER_ATR_MULT,
+                    TRAILING_TRIGGER_ATR_MULT,
+                    TRAILING_DISTANCE_ATR_MULT,
+                    BREAKEVEN_FEE_BUFFER);
+        }
+
+        private ReplayPolicy normalized() {
+            return new ReplayPolicy(
+                    positiveOrDefault(breakevenTriggerAtrMult, BREAKEVEN_TRIGGER_ATR_MULT),
+                    positiveOrDefault(trailingTriggerAtrMult, TRAILING_TRIGGER_ATR_MULT),
+                    positiveOrDefault(trailingDistanceAtrMult, TRAILING_DISTANCE_ATR_MULT),
+                    nonNegativeOrDefault(breakevenFeeBuffer, BREAKEVEN_FEE_BUFFER));
+        }
+
+        private static BigDecimal positiveOrDefault(BigDecimal value, BigDecimal defaultValue) {
+            return value != null && value.signum() > 0 ? value : defaultValue;
+        }
+
+        private static BigDecimal nonNegativeOrDefault(BigDecimal value, BigDecimal defaultValue) {
+            return value != null && value.signum() >= 0 ? value : defaultValue;
+        }
     }
 
     public record ReplayResult(

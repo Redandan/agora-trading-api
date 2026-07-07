@@ -55,6 +55,52 @@ class TrailingStopReplayServiceTest {
     }
 
     @Test
+    void defaultPolicyMatchesLegacyReplayPath() {
+        LocalDateTime entryTime = LocalDateTime.parse("2026-06-01T00:00:00");
+        BtBacktestTrade trade = trade(entryTime, entryTime.plusMinutes(3), new BigDecimal("-10.00000000"));
+        trade.setExitPrice(new BigDecimal("90"));
+        List<MdKline> bars = List.of(
+                bar(entryTime, "100", "100.5", "99.8", "100"),
+                bar(entryTime.plusMinutes(1), "100", "103", "101", "102"),
+                bar(entryTime.plusMinutes(2), "102", "103", "100.9", "101")
+        );
+
+        var legacy = service.replayBacktestTrade(trade, bars);
+        var explicitDefault = service.replayBacktestTrade(trade, bars,
+                TrailingStopReplayService.ReplayPolicy.defaults());
+
+        assertThat(explicitDefault.exitPrice()).isEqualByComparingTo(legacy.exitPrice());
+        assertThat(explicitDefault.trailingNetPnl()).isEqualByComparingTo(legacy.trailingNetPnl());
+        assertThat(explicitDefault.deltaPnl()).isEqualByComparingTo(legacy.deltaPnl());
+        assertThat(explicitDefault.ambiguousSameBar()).isEqualTo(legacy.ambiguousSameBar());
+    }
+
+    @Test
+    void customTrailingDistanceCanBeReplayedWithoutChangingDefaultPolicy() {
+        LocalDateTime entryTime = LocalDateTime.parse("2026-06-01T00:00:00");
+        BtBacktestTrade trade = trade(entryTime, entryTime.plusMinutes(3), new BigDecimal("-10.00000000"));
+        trade.setExitPrice(new BigDecimal("90"));
+        List<MdKline> bars = List.of(
+                bar(entryTime, "100", "100.5", "99.8", "100"),
+                bar(entryTime.plusMinutes(1), "100", "103", "101", "102"),
+                bar(entryTime.plusMinutes(2), "102", "103", "100.9", "101")
+        );
+
+        var defaultResult = service.replayBacktestTrade(trade, bars);
+        var widerDistance = service.replayBacktestTrade(trade, bars,
+                new TrailingStopReplayService.ReplayPolicy(
+                        new BigDecimal("0.5"),
+                        new BigDecimal("1.0"),
+                        new BigDecimal("1.5"),
+                        new BigDecimal("0.001")));
+
+        assertThat(defaultResult.exitedByTrailing()).isTrue();
+        assertThat(widerDistance.exitedByTrailing()).isFalse();
+        assertThat(widerDistance.exitReason()).isEqualTo("ORIGINAL_EXIT");
+        assertThat(widerDistance.trailingNetPnl()).isEqualByComparingTo("-10.00000000");
+    }
+
+    @Test
     void trailingReplayCanImproveLosingShortTrade() {
         LocalDateTime entryTime = LocalDateTime.parse("2026-06-01T00:00:00");
         BtBacktestTrade trade = trade(entryTime, entryTime.plusMinutes(3), new BigDecimal("-10.00000000"));

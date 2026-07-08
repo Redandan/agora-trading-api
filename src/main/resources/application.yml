@@ -84,6 +84,7 @@ trading:
       execution-max-open-positions: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS:1}
       execution-take-profit-pct: ${TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT:0.0300}
       execution-stop-loss-pct: ${TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT:0.1200}
+      btc-base-max-exposure-usdt: ${TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT:250.0}
   data-freshness:
     shadow-replay:
       collector:

@@ -41,9 +41,11 @@ import java.util.Set;
  *
  * <p>Default rollout remains dry-run/fail-closed. Real orders require the local
  * TradingView signal source, live execution mode or equivalent legacy flags,
- * OKX trading enabled, private credentials configured, a scoped BTCUSDT/1d/long
- * opportunity, daily/open-position caps, and immediate OCO attachment after the
- * market buy.</p>
+ * OKX trading enabled, private credentials configured, and a scoped
+ * BTCUSDT/1d/long opportunity. {@code LIVE_MICRO} attaches OCO immediately
+ * after the market buy; {@code BTC_BASE_LIVE_MICRO} records an accumulating BTC
+ * spot buy without OCO and uses an exposure cap instead of the open-position
+ * cap.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -52,8 +54,11 @@ public class LocalTradingViewExecutionService {
 
     private static final String EXECUTION_MODE = "LOCAL_TRADINGVIEW_PARITY_EXECUTION";
     private static final String EVIDENCE_EXECUTION_MODE = "LOCAL_TV_PARITY_EXEC";
+    private static final String EVIDENCE_BTC_BASE_EXECUTION_MODE = "LOCAL_TV_BTC_BASE_EXEC";
     private static final String EVENT_TYPE = "LOCAL_TV_EXECUTION";
     private static final String SIDE = "LONG";
+    private static final String OCO_FILTER_REASON_PREFIX = "LOCAL_TRADINGVIEW_PARITY:";
+    private static final String BTC_BASE_FILTER_REASON_PREFIX = "LOCAL_TRADINGVIEW_BTC_BASE:";
 
     private final TradingViewLocalSignalProperties props;
     private final DecisionAuditWriter auditWriter;
@@ -95,6 +100,11 @@ public class LocalTradingViewExecutionService {
             return;
         }
 
+        if (isBtcBaseLiveMicro()) {
+            placeBtcBaseOrder(strategy, symbol, normalizedInterval, kline, intent, context, entry, tp, sl, notional);
+            return;
+        }
+
         placeOrderAndAttachOco(strategy, symbol, normalizedInterval, kline, intent, context, entry, tp, sl, notional);
     }
 
@@ -129,7 +139,11 @@ public class LocalTradingViewExecutionService {
         if (!allowed(symbol, props.allowedSymbols(), true) || !allowed(interval, props.allowedIntervals(), false)) {
             return "LocalTradingViewScopeNotAllowlisted";
         }
-        if (!positive(entry) || !positive(tp) || !positive(sl) || tp.compareTo(entry) <= 0 || sl.compareTo(entry) >= 0) {
+        if (isBtcBaseLiveMicro()) {
+            if (!positive(entry)) {
+                return "LocalTradingViewInvalidEntryPrice";
+            }
+        } else if (!positive(entry) || !positive(tp) || !positive(sl) || tp.compareTo(entry) <= 0 || sl.compareTo(entry) >= 0) {
             return "LocalTradingViewInvalidOcoPlan";
         }
         if (!positive(notional) || notional.compareTo(props.maxNotionalUsdt()) > 0) {
@@ -146,15 +160,28 @@ public class LocalTradingViewExecutionService {
                 >= props.executionMaxOrdersPerDay()) {
             return "LocalTradingViewDailyCapReached";
         }
-        long openSameStrategySymbol = liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(strategy.getId())
-                .stream()
-                .filter(row -> symbol.equalsIgnoreCase(row.getSymbol()))
-                .count();
-        if (openSameStrategySymbol >= props.executionMaxOpenPositions()) {
-            return "LocalTradingViewOpenPositionCapReached";
-        }
-        if (liveSignalRepository.existsOpenAutoTradedPosition(strategy.getId(), symbol, SIDE, interval)) {
-            return "LocalTradingViewOpenPositionExists";
+        if (isBtcBaseLiveMicro()) {
+            BigDecimal openExposure = btcBaseOpenExposureUsdt(strategy.getId(), symbol);
+            BigDecimal exposureAfterOrder = openExposure.add(notional);
+            context.put("btcBaseOpenExposureUsdt", openExposure);
+            context.put("btcBaseMaxExposureUsdt", props.btcBaseMaxExposureUsdt());
+            context.put("btcBaseExposureAfterOrderUsdt", exposureAfterOrder);
+            context.put("btcBaseExposureCapAvailable",
+                    exposureAfterOrder.compareTo(props.btcBaseMaxExposureUsdt()) <= 0);
+            if (exposureAfterOrder.compareTo(props.btcBaseMaxExposureUsdt()) > 0) {
+                return "LocalTradingViewBtcBaseExposureCapReached";
+            }
+        } else {
+            long openSameStrategySymbol = liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(strategy.getId())
+                    .stream()
+                    .filter(row -> symbol.equalsIgnoreCase(row.getSymbol()))
+                    .count();
+            if (openSameStrategySymbol >= props.executionMaxOpenPositions()) {
+                return "LocalTradingViewOpenPositionCapReached";
+            }
+            if (liveSignalRepository.existsOpenAutoTradedPosition(strategy.getId(), symbol, SIDE, interval)) {
+                return "LocalTradingViewOpenPositionExists";
+            }
         }
         if (liveSignalRepository.existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndNotifiedAtIsNotNull(
                 strategy.getId(), symbol, interval, kline.getOpenTime())) {
@@ -286,6 +313,79 @@ public class LocalTradingViewExecutionService {
         writeEvidence(audit, signal, context, "EXECUTED_OCO_ATTACHED", true, true, ocoAlgoId);
     }
 
+    private void placeBtcBaseOrder(BtStrategy strategy,
+                                   String symbol,
+                                   String interval,
+                                   MdKline kline,
+                                   LiveSignalContext.OrderIntent intent,
+                                   Map<String, Object> context,
+                                   BigDecimal entry,
+                                   BigDecimal tp,
+                                   BigDecimal sl,
+                                   BigDecimal notional) {
+        context.put("executionStatus", "BTC_BASE_ORDER_PLACEMENT_STARTED");
+        context.put("orderAttempted", true);
+        context.put("wouldExecute", true);
+        context.put("orderSent", false);
+        context.put("ocoAttached", false);
+        saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "INFO",
+                "LocalTradingViewBtcBaseOrderPlacementStarted",
+                "Local TradingView BTC_BASE market buy placement started", context, null);
+
+        TradeResult buy;
+        try {
+            buy = tradingService.placeMarketBuy(symbol, notional.setScale(2, RoundingMode.HALF_UP).doubleValue());
+        } catch (Exception e) {
+            context.put("executionStatus", "BTC_BASE_ORDER_FAILED");
+            context.put("executionBlocker", "LocalTradingViewBtcBaseOrderFailed");
+            context.put("executionReason", truncate(e.getMessage(), 420));
+            BtDecisionAudit audit = saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "ERROR",
+                    "LocalTradingViewBtcBaseOrderFailed",
+                    "OKX BTC_BASE market buy failed: " + truncate(e.getMessage(), 420), context, null);
+            writeEvidence(audit, null, context, "BTC_BASE_ORDER_FAILED", false, false, null);
+            return;
+        }
+
+        context.put("orderSent", true);
+        context.put("orderId", buy.getOrderId());
+        context.put("filledQty", buy.getQty());
+        context.put("actualEntryPrice", buy.getAvgPrice());
+        BigDecimal actualEntry = positive(buy.getAvgPrice()) ? buy.getAvgPrice() : entry;
+        context.put("executionEntryPrice", actualEntry);
+        context.put("executionTpPrice", tp);
+        context.put("executionSlPrice", sl);
+        context.put("executionOcoBasedOnActualFill", false);
+
+        BtLiveSignal signal;
+        try {
+            signal = createLiveSignal(strategy, symbol, interval, kline, intent, context,
+                    actualEntry, tp, sl, buy, true);
+        } catch (Exception e) {
+            context.put("executionStatus", "CRITICAL_BTC_BASE_ORDER_SENT_LIVE_SIGNAL_SAVE_FAILED");
+            context.put("executionBlocker", "LocalTradingViewBtcBaseLiveSignalSaveFailed");
+            context.put("executionReason", truncate(e.getMessage(), 420));
+            BtDecisionAudit audit = saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "ERROR",
+                    "LocalTradingViewBtcBaseLiveSignalSaveFailed",
+                    "BTC_BASE market buy filled but bt_live_signal save failed: " + truncate(e.getMessage(), 420),
+                    context, null);
+            writeEvidence(audit, null, context,
+                    "CRITICAL_BTC_BASE_ORDER_SENT_LIVE_SIGNAL_SAVE_FAILED", true, false, null);
+            sendCriticalAlert("CRITICAL_BTC_BASE_ORDER_SENT_LIVE_SIGNAL_SAVE_FAILED", symbol, buy, null, e);
+            return;
+        }
+
+        context.put("liveSignalId", signal.getId());
+        context.put("executionStatus", "EXECUTED_BTC_BASE_BUY");
+        context.put("executionBlocker", "");
+        context.put("executionReason", "Local TradingView BTC_BASE market buy executed without OCO by mode design");
+        context.put("ocoAttached", false);
+        BtDecisionAudit audit = saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "PASS",
+                "LocalTradingViewBtcBaseExecuted",
+                "Local TradingView BTC_BASE market buy executed without OCO by mode design",
+                context, signal.getId());
+        writeEvidence(audit, signal, context, "EXECUTED_BTC_BASE_BUY", true, false, null);
+    }
+
     private void sendCriticalAlert(String status, String symbol, TradeResult buy, Long liveSignalId, Exception error) {
         String message = status + " order placed but LOCAL_TRADINGVIEW protection/audit failed. symbol="
                 + symbol
@@ -311,6 +411,20 @@ public class LocalTradingViewExecutionService {
                                           BigDecimal tp,
                                           BigDecimal sl,
                                           TradeResult buy) {
+        return createLiveSignal(strategy, symbol, interval, kline, intent, context, entry, tp, sl, buy, false);
+    }
+
+    private BtLiveSignal createLiveSignal(BtStrategy strategy,
+                                          String symbol,
+                                          String interval,
+                                          MdKline kline,
+                                          LiveSignalContext.OrderIntent intent,
+                                          Map<String, Object> context,
+                                          BigDecimal entry,
+                                          BigDecimal tp,
+                                          BigDecimal sl,
+                                          TradeResult buy,
+                                          boolean btcBase) {
         BtLiveSignal signal = new BtLiveSignal();
         signal.setStrategyId(strategy.getId());
         signal.setSymbol(symbol);
@@ -323,12 +437,12 @@ public class LocalTradingViewExecutionService {
         signal.setNnOutput(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP));
         signal.setNotifiedAt(LocalDateTime.now(ZoneOffset.UTC));
         signal.setAutoTraded(true);
-        signal.setExchangeOrderId("LOCAL_TV:" + buy.getOrderId());
+        signal.setExchangeOrderId(truncate((btcBase ? "LOCAL_TV_BTC_BASE:" : "LOCAL_TV:") + buy.getOrderId(), 50));
         signal.setActualEntryPrice(buy.getAvgPrice());
         signal.setTradedQty(buy.getQty());
-        signal.setOcoQty(buy.getQty());
+        signal.setOcoQty(btcBase ? null : buy.getQty());
         signal.setSide(SIDE);
-        signal.setFilterReason("LOCAL_TRADINGVIEW_PARITY:"
+        signal.setFilterReason((btcBase ? BTC_BASE_FILTER_REASON_PREFIX : OCO_FILTER_REASON_PREFIX)
                 + safe(context == null ? null : context.get("executionIntentIndex"))
                 + ":"
                 + truncate(intent.reason(), 220));
@@ -380,12 +494,15 @@ public class LocalTradingViewExecutionService {
         evidence.setSignalSource("LOCAL_TRADINGVIEW");
         evidence.setFeaturesSnapshotJson(toJson(context));
         evidence.setFreshnessState("PASS_LOCAL_TRADINGVIEW_PARITY_RECHECK");
-        evidence.setSelectedAction("LOCAL_TRADINGVIEW_EXECUTE");
+        boolean btcBase = Boolean.TRUE.equals(context.get("btcBaseMode"));
+        evidence.setSelectedAction(btcBase ? "LOCAL_TRADINGVIEW_BTC_BASE_BUY" : "LOCAL_TRADINGVIEW_EXECUTE");
         evidence.setReason(finalOutcome);
-        evidence.setPolicyMode("LOCAL_TRADINGVIEW_PARITY_MICRO_LIVE");
+        evidence.setPolicyMode(btcBase
+                ? "LOCAL_TRADINGVIEW_BTC_BASE_MICRO_LIVE"
+                : "LOCAL_TRADINGVIEW_PARITY_MICRO_LIVE");
         evidence.setFinalOutcome(finalOutcome);
         evidence.setOrderSent(orderSent);
-        evidence.setExecutionMode(EVIDENCE_EXECUTION_MODE);
+        evidence.setExecutionMode(btcBase ? EVIDENCE_BTC_BASE_EXECUTION_MODE : EVIDENCE_EXECUTION_MODE);
         evidence.setSuppressionReason(orderSent ? null : String.valueOf(context.get("executionBlocker")));
         evidence.setOcoOrderListId(ocoAlgoId == null ? null : String.valueOf(ocoAlgoId));
         evidence.setExecutionPreviewJson(receipt(context, finalOutcome, orderSent, ocoAttached, ocoAlgoId));
@@ -408,13 +525,16 @@ public class LocalTradingViewExecutionService {
             context.putAll(baseContext);
         }
         context.put("executionMode", EXECUTION_MODE);
-        context.put("executionStrategy", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN
+        boolean btcBaseMode = isBtcBaseMode();
+        context.put("executionStrategy", btcBaseMode
                 ? "BTC_BASE"
                 : "LOCAL_TRADINGVIEW_OCO_PARITY");
-        context.put("btcBaseMode", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN);
-        context.put("btcBaseOcoRequired", props.executionMode() != ExecutionMode.BTC_BASE_DRY_RUN);
+        context.put("btcBaseMode", btcBaseMode);
+        context.put("btcBaseLiveMicro", isBtcBaseLiveMicro());
+        context.put("btcBaseOcoRequired", !btcBaseMode);
         context.put("btcBaseShadowOnly", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN);
         context.put("btcBaseBuyPointSource", "TradingViewParityOrderIntent");
+        context.put("btcBaseMaxExposureUsdt", props.btcBaseMaxExposureUsdt());
         context.put("executionEnabled", true);
         context.put("executionModeSetting", props.executionMode().name());
         context.put("executionDryRun", props.effectiveExecutionDryRun());
@@ -520,7 +640,9 @@ public class LocalTradingViewExecutionService {
         node.put("mode", props.executionMode().name());
         node.put("dryRun", props.effectiveExecutionDryRun());
         node.put("liveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
-        node.put("btcBaseMode", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN);
+        node.put("btcBaseMode", isBtcBaseMode());
+        node.put("btcBaseLiveMicro", isBtcBaseLiveMicro());
+        node.put("btcBaseOcoRequired", !isBtcBaseMode());
         return node.toString();
     }
 
@@ -540,6 +662,8 @@ public class LocalTradingViewExecutionService {
                     "TRADING_SIGNAL_SOURCE_PRIMARY is not LOCAL_TRADINGVIEW";
             case "LocalTradingViewScopeNotAllowlisted" ->
                     "Local TradingView execution scope is not allowlisted";
+            case "LocalTradingViewInvalidEntryPrice" ->
+                    "Local TradingView execution has invalid entry price";
             case "LocalTradingViewInvalidOcoPlan" ->
                     "Local TradingView execution has invalid entry/tp/sl plan";
             case "LocalTradingViewInvalidNotional" ->
@@ -550,6 +674,8 @@ public class LocalTradingViewExecutionService {
                     "OKX private credentials are missing; no order sent";
             case "LocalTradingViewDailyCapReached" ->
                     "Local TradingView daily order cap reached";
+            case "LocalTradingViewBtcBaseExposureCapReached" ->
+                    "Local TradingView BTC_BASE exposure cap reached";
             case "LocalTradingViewOpenPositionCapReached" ->
                     "Local TradingView open-position cap reached";
             case "LocalTradingViewOpenPositionExists" ->
@@ -558,6 +684,47 @@ public class LocalTradingViewExecutionService {
                     "Local TradingView duplicate bar already has a live signal";
             default -> blocker;
         };
+    }
+
+    private BigDecimal btcBaseOpenExposureUsdt(Long strategyId, String symbol) {
+        if (strategyId == null || symbol == null || symbol.isBlank()) {
+            return BigDecimal.ZERO;
+        }
+        return liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(strategyId)
+                .stream()
+                .filter(row -> symbol.equalsIgnoreCase(row.getSymbol()))
+                .filter(this::isBtcBaseSignal)
+                .map(this::openCostUsdt)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal openCostUsdt(BtLiveSignal signal) {
+        if (signal == null || !positive(signal.getTradedQty())) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal price = positive(signal.getActualEntryPrice())
+                ? signal.getActualEntryPrice()
+                : signal.getEntryPrice();
+        if (!positive(price)) {
+            return BigDecimal.ZERO;
+        }
+        return price.multiply(signal.getTradedQty());
+    }
+
+    private boolean isBtcBaseSignal(BtLiveSignal signal) {
+        return signal != null
+                && signal.getFilterReason() != null
+                && signal.getFilterReason().startsWith(BTC_BASE_FILTER_REASON_PREFIX);
+    }
+
+    private boolean isBtcBaseMode() {
+        return props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN
+                || props.executionMode() == ExecutionMode.BTC_BASE_LIVE_MICRO;
+    }
+
+    private boolean isBtcBaseLiveMicro() {
+        return props.executionMode() == ExecutionMode.BTC_BASE_LIVE_MICRO;
     }
 
     private boolean allowed(String value, String csv, boolean normalizeAsSymbol) {

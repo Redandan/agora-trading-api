@@ -58,8 +58,9 @@ TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
 TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
-# Allowed: LEGACY, OFF, DRY_RUN, BTC_BASE_DRY_RUN, LIVE_MICRO.
+# Allowed: LEGACY, OFF, DRY_RUN, BTC_BASE_DRY_RUN, BTC_BASE_LIVE_MICRO, LIVE_MICRO.
 # BTC_BASE_DRY_RUN is a read-only/shadow BTC base accumulation receipt path.
+# BTC_BASE_LIVE_MICRO places small BTC base buys without OCO and uses exposure cap.
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
 TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
 TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
@@ -69,6 +70,7 @@ TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY=1
 TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS=1
 TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
 TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
+TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT=250.0
 TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT=10.0
 TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW
 TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
@@ -307,11 +309,23 @@ Expected:
   OCO, or require the OCO lifecycle lane. Use
   `runScoreBuyTradingViewBtcBaseBacktest` for the read-only bottom-accumulation
   backtest with per-buy notional, max base exposure, profit reductions, and
-  emergency drawdown markers. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO` is the simplified live
-  lane: when local TradingView parity BUY conditions pass, the service may buy
+  emergency drawdown markers.
+  `TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_LIVE_MICRO` is the live BTC-base
+  variant: when the same local TradingView parity BUY conditions pass, the
+  service places the configured small market buy and records a BTC_BASE live
+  signal without attaching OCO. This mode still requires OKX auto-trade enabled
+  with private credentials, scope/source allowlists, signal-age, per-bar, daily,
+  duplicate-bar, notional, and
+  `TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT` gates. It intentionally skips
+  the open-position/OCO lifecycle cap because BTC_BASE is an accumulating spot
+  base position; OCO poller/missing-OCO detectors and OCO health reports
+  classify these rows as intentional BTC_BASE no-OCO positions instead of
+  unprotected OCO failures.
+  `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO` is the simplified OCO live lane:
+  when local TradingView parity BUY conditions pass, the service may buy
   without also setting the legacy `TRADINGVIEW_LOCAL_EXECUTION_ENABLED`,
   `TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN`, and
-  `TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED` flags. Real
+  `TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED` flags. Real OCO-mode
   LOCAL_TRADINGVIEW buying still requires OKX auto-trade enabled with private
   credentials, daily/open-position caps clear, valid TP/SL, and immediate OCO
   attachment; successful execution writes `bt_live_signal`,
@@ -319,10 +333,13 @@ Expected:
   `signalSource=LOCAL_TRADINGVIEW`. This path must not be confused with the
   separate ScoreBuy execution schedulers and still must not modify
   grid/fund/Earn state. The read-only LOCAL_TRADINGVIEW candidate smoke
-  separates dry-run receipt readiness from `LIVE_MICRO` readiness: in
-  `LIVE_MICRO`, missing `localTradingViewExecutionDryRunArmed=true` is not a
-  blocker, but `localTradingViewLiveMicroArmed=true` and tracked OCO lifecycle
-  evidence are required. If `TRADING_OCO_POLLER_ENABLED=false`, the smoke emits
+  separates dry-run receipt readiness from live readiness: in `LIVE_MICRO`,
+  missing `localTradingViewExecutionDryRunArmed=true` is not a blocker, but
+  `localTradingViewLiveMicroArmed=true` and tracked OCO lifecycle evidence are
+  required. In `BTC_BASE_LIVE_MICRO`,
+  `localTradingViewBtcBaseLiveMicroArmed=true` is the armed marker and OCO
+  lifecycle evidence is intentionally not required. If
+  `TRADING_OCO_POLLER_ENABLED=false` in `LIVE_MICRO`, the smoke emits
   `LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED` because a TP/SL fill may not be
   written back to `bt_live_signal.exit_time`; enabling OCO close detection still
   needs separate operator authorization. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY`

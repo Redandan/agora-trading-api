@@ -215,7 +215,8 @@ class LocalTradingViewSignalEvaluatorTest {
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 executionMode,
                 executionEnabled, true, false, 3, 1, 1,
-                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
+                new BigDecimal("0.0300"), new BigDecimal("0.1200"),
+                new BigDecimal("250.0"));
         BtStrategyService strategyService = mock(BtStrategyService.class);
         MdKlineRepository klineRepository = mock(MdKlineRepository.class);
         BacktestEngine backtestEngine = mock(BacktestEngine.class);

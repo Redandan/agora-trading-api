@@ -78,6 +78,7 @@ foreach ($marker in @(
         "attempt_local_tradingview_only_blockers",
         "WAIT_BUY",
         "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED",
+        "READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED",
         "BLOCKED_CURRENT_BUY_CANDIDATE",
         "EVIDENCE_UNAVAILABLE",
         "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
@@ -134,6 +135,7 @@ foreach ($marker in @(
         "local_tradingview_pre_execution_blockers",
         "localTradingViewNotionalAccepted",
         "localTradingViewDailyCapAvailable",
+        "localTradingViewBtcBaseExposureCapAvailable",
         "localTradingViewDuplicateBarExists"
     )) {
     Assert-Contains -Name "candidate smoke keeps pre-execution markers for watcher" -Text $candidateText -Pattern ([regex]::Escape($marker))
@@ -152,6 +154,7 @@ foreach ($marker in @(
         "LOCAL_TRADINGVIEW BUY candidate watch",
         "local_tradingview_buy_candidate_watch_status",
         "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED",
+        "READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED",
         "BLOCKED_CURRENT_BUY_CANDIDATE",
         "WAIT_BUY",
         "does not deploy"

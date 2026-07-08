@@ -361,20 +361,20 @@ if '"UP"' not in health:
     blockers.append("HEALTH_NOT_UP")
 
 local_tv_execution_mode = (read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MODE") or "LEGACY").strip().upper().replace("-", "_")
-if local_tv_execution_mode not in ("LEGACY", "OFF", "DRY_RUN", "BTC_BASE_DRY_RUN", "LIVE_MICRO"):
+if local_tv_execution_mode not in ("LEGACY", "OFF", "DRY_RUN", "BTC_BASE_DRY_RUN", "BTC_BASE_LIVE_MICRO", "LIVE_MICRO"):
     blockers.append("LOCAL_TRADINGVIEW_EXECUTION_MODE_INVALID")
 
 local_tv_execution_enabled = (
-    local_tv_execution_mode in ("DRY_RUN", "BTC_BASE_DRY_RUN", "LIVE_MICRO")
+    local_tv_execution_mode in ("DRY_RUN", "BTC_BASE_DRY_RUN", "BTC_BASE_LIVE_MICRO", "LIVE_MICRO")
     or (local_tv_execution_mode == "LEGACY" and bool_env("TRADINGVIEW_LOCAL_EXECUTION_ENABLED", False))
 )
 local_tv_execution_dry_run = (
-    False if local_tv_execution_mode == "LIVE_MICRO"
+    False if local_tv_execution_mode in ("LIVE_MICRO", "BTC_BASE_LIVE_MICRO")
     else True if local_tv_execution_mode in ("OFF", "DRY_RUN", "BTC_BASE_DRY_RUN")
     else bool_env("TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN", True)
 )
 local_tv_live_order_enabled = (
-    local_tv_execution_mode == "LIVE_MICRO"
+    local_tv_execution_mode in ("LIVE_MICRO", "BTC_BASE_LIVE_MICRO")
     or (local_tv_execution_mode == "LEGACY" and bool_env("TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED", False))
 )
 
@@ -415,6 +415,7 @@ local_tradingview_flags = {
     "TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR": read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR") or "3",
     "TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY": read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY") or "1",
     "TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS": read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS") or "1",
+    "TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT": read_env_key("TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT") or "250.0",
 }
 background_flags = [
     "TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED",
@@ -447,7 +448,22 @@ local_tradingview_live_micro_authorized = (
     and order_flags["TRADING_OKX_ENABLED"]
     and order_flags["TRADING_OCO_POLLER_ENABLED"]
 )
+local_tradingview_btc_base_live_micro_authorized = (
+    str(local_tradingview_flags["TRADING_SIGNAL_SOURCE_PRIMARY"]).upper() == "LOCAL_TRADINGVIEW"
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_ENABLED"])
+    and local_tv_execution_mode == "BTC_BASE_LIVE_MICRO"
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_EXECUTION_ENABLED"])
+    and bool(local_tradingview_flags["TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED"])
+    and not bool(local_tradingview_flags["TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN"])
+    and order_flags["TRADING_OKX_ENABLED"]
+)
 local_tradingview_order_flags = [
+    "TRADING_OKX_ENABLED",
+    "TRADING_OCO_POLLER_ENABLED",
+    "TRADINGVIEW_LOCAL_EXECUTION_ENABLED",
+    "TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED",
+]
+local_tradingview_btc_base_order_flags = [
     "TRADING_OKX_ENABLED",
     "TRADING_OCO_POLLER_ENABLED",
     "TRADINGVIEW_LOCAL_EXECUTION_ENABLED",
@@ -458,6 +474,8 @@ if live_authorized:
     accepted_order_flags.extend([key for key in true_order_flags if key in live_authorized_order_flags])
 if local_tradingview_live_micro_authorized:
     accepted_order_flags.extend([key for key in true_order_flags if key in local_tradingview_order_flags])
+if local_tradingview_btc_base_live_micro_authorized:
+    accepted_order_flags.extend([key for key in true_order_flags if key in local_tradingview_btc_base_order_flags])
 accepted_order_flags = sorted(set(accepted_order_flags))
 unexpected_order_flags = [key for key in true_order_flags if key not in accepted_order_flags]
 market_ws_providers = csv_values(read_env_key("MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS") or "")
@@ -478,6 +496,7 @@ print("order_capable_flags_unexpected=" + json.dumps(unexpected_order_flags))
 print("dry_run_flags=" + json.dumps(dry_run_flags, sort_keys=True))
 print("local_tradingview_flags=" + json.dumps(local_tradingview_flags, sort_keys=True))
 print(f"local_tradingview_live_micro_authorized={str(local_tradingview_live_micro_authorized).lower()}")
+print(f"local_tradingview_btc_base_live_micro_authorized={str(local_tradingview_btc_base_live_micro_authorized).lower()}")
 print("background_automation_true=" + json.dumps(background_true))
 print("background_automation_accepted_true=" + json.dumps(accepted_background_flags))
 print("background_automation_unreviewed_true=" + json.dumps(unreviewed_background_flags))

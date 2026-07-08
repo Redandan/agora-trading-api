@@ -231,6 +231,12 @@ public class PositionMcpTools {
                     ok++;
                     continue;
                 }
+                if (pos.getOcoOrderListId() == null && isBtcBaseNoOco(pos)) {
+                    sb.append(String.format("🟡 [BTC_BASE_NO_OCO] Position #%d %s entry=%.2f — BTC base accumulation intentionally has no OCO\n",
+                            pos.getId(), pos.getSymbol(), entryPrice(pos).doubleValue()));
+                    ok++;
+                    continue;
+                }
                 if (pos.getOcoOrderListId() == null) {
                     sb.append(String.format("⚠️ [UNPROTECTED] Position #%d %s entry=%.2f — 無 OCO 保護\n  → retryOco(positionId=%d)\n",
                             pos.getId(), pos.getSymbol(), entryPrice(pos).doubleValue(), pos.getId()));
@@ -340,8 +346,8 @@ public class PositionMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING})
-    @Tool(description = "列出所有開倉中的自動交易倉位，含 OCO 保護狀態、入場價、TP/SL、持倉時間。" +
-            "protected=false 表示無止損保護，需立即用 retryOco 補掛。")
+    @Tool(description = "列出所有開倉中的自動交易倉位，含 OCO/BTC_BASE no-OCO 狀態、入場價、TP/SL、持倉時間。" +
+            "protected=false 且非 BTC_BASE/SoftExit 表示無止損保護，需立即用 retryOco 補掛。")
     public String getOpenPositions() {
 
         List<BtLiveSignal> positions = liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull();
@@ -356,7 +362,8 @@ public class PositionMcpTools {
         for (BtLiveSignal pos : positions) {
             boolean protected_ = pos.getOcoOrderListId() != null;
             boolean softExit = isSoftExitNoHardSl(pos);
-            sb.append(protected_ ? "🟢 " : softExit ? "🟡 " : "🔴 ").append(pos.getSymbol()).append("\n");
+            boolean btcBaseNoOco = isBtcBaseNoOco(pos);
+            sb.append(protected_ ? "🟢 " : (softExit || btcBaseNoOco) ? "🟡 " : "🔴 ").append(pos.getSymbol()).append("\n");
             sb.append("  ID: ").append(pos.getId()).append("\n");
             sb.append("  入場價: ").append(fmt(pos.getActualEntryPrice() != null
                     ? pos.getActualEntryPrice() : pos.getEntryPrice())).append("\n");
@@ -365,7 +372,9 @@ public class PositionMcpTools {
               .append(" | SL: ").append(fmt(pos.getSuggestedSl())).append("\n");
             sb.append("  OCO 保護: ").append(protected_
                     ? "✅ algoId=" + pos.getOcoOrderListId()
-                    : softExit ? "🟡 Soft Exit / 無 hard SL（不會被插針 SL 自動賣出）" : "❌ 無保護！").append("\n");
+                    : softExit ? "🟡 Soft Exit / 無 hard SL（不會被插針 SL 自動賣出）"
+                    : btcBaseNoOco ? "🟡 BTC_BASE 底倉模式 / 故意不掛 OCO"
+                    : "❌ 無保護！").append("\n");
             sb.append("  開倉時間: ").append(pos.getCreatedAt() != null ? pos.getCreatedAt().format(FMT) : "N/A").append("\n");
             sb.append("---\n");
         }
@@ -373,6 +382,7 @@ public class PositionMcpTools {
         long unprotected = positions.stream()
                 .filter(p -> p.getOcoOrderListId() == null)
                 .filter(p -> !isSoftExitNoHardSl(p))
+                .filter(p -> !isBtcBaseNoOco(p))
                 .count();
         if (unprotected > 0) {
             sb.append("\n⚠️ 有 ").append(unprotected).append(" 筆倉位無 OCO 保護！\n");
@@ -2478,6 +2488,12 @@ public class PositionMcpTools {
         return pos != null
                 && pos.getFilterReason() != null
                 && pos.getFilterReason().startsWith(OcoManagementService.SOFT_EXIT_NO_HARD_SL_MARKER);
+    }
+
+    private boolean isBtcBaseNoOco(BtLiveSignal pos) {
+        return pos != null
+                && pos.getFilterReason() != null
+                && pos.getFilterReason().startsWith("LOCAL_TRADINGVIEW_BTC_BASE:");
     }
 
     private BigDecimal latestPriceOrNull(String symbol) {

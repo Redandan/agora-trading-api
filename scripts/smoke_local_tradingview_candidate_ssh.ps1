@@ -10,6 +10,7 @@ param(
     [string]$Source = "okx",
     [switch]$RequireCurrentCandidate,
     [switch]$RequireDryRunArmed,
+    [switch]$RequireBtcBaseLiveMicroArmed,
     [switch]$RequireLiveMicroArmed,
     [switch]$RequireOcoLifecycleTracked
 )
@@ -80,7 +81,7 @@ if [ -z "$MCP_KEY" ]; then
   exit 1
 fi
 
-export PORT MCP_KEY ENV_FILE='__ENV_FILE__' STRATEGY_ID='__STRATEGY_ID__' SYMBOL='__SYMBOL__' INTERVAL_CODE='__INTERVAL_CODE__' DAYS='__DAYS__' SOURCE='__SOURCE__' REQUIRE_CURRENT='__REQUIRE_CURRENT__' REQUIRE_DRY_RUN_ARMED='__REQUIRE_DRY_RUN_ARMED__' REQUIRE_LIVE_MICRO_ARMED='__REQUIRE_LIVE_MICRO_ARMED__' REQUIRE_OCO_LIFECYCLE_TRACKED='__REQUIRE_OCO_LIFECYCLE_TRACKED__'
+export PORT MCP_KEY ENV_FILE='__ENV_FILE__' STRATEGY_ID='__STRATEGY_ID__' SYMBOL='__SYMBOL__' INTERVAL_CODE='__INTERVAL_CODE__' DAYS='__DAYS__' SOURCE='__SOURCE__' REQUIRE_CURRENT='__REQUIRE_CURRENT__' REQUIRE_DRY_RUN_ARMED='__REQUIRE_DRY_RUN_ARMED__' REQUIRE_BTC_BASE_LIVE_MICRO_ARMED='__REQUIRE_BTC_BASE_LIVE_MICRO_ARMED__' REQUIRE_LIVE_MICRO_ARMED='__REQUIRE_LIVE_MICRO_ARMED__' REQUIRE_OCO_LIFECYCLE_TRACKED='__REQUIRE_OCO_LIFECYCLE_TRACKED__'
 python3 - <<'PY'
 import json
 import os
@@ -105,6 +106,7 @@ days = int(os.environ["DAYS"])
 source = os.environ["SOURCE"].lower()
 require_current = os.environ.get("REQUIRE_CURRENT", "").lower() == "true"
 require_dry_run_armed = os.environ.get("REQUIRE_DRY_RUN_ARMED", "").lower() == "true"
+require_btc_base_live_micro_armed = os.environ.get("REQUIRE_BTC_BASE_LIVE_MICRO_ARMED", "").lower() == "true"
 require_live_micro_armed = os.environ.get("REQUIRE_LIVE_MICRO_ARMED", "").lower() == "true"
 require_oco_lifecycle_tracked = os.environ.get("REQUIRE_OCO_LIFECYCLE_TRACKED", "").lower() == "true"
 
@@ -402,6 +404,10 @@ elif mode == "BTC_BASE_DRY_RUN":
     effective_execution_enabled = True
     effective_execution_dry_run = True
     effective_live_order_enabled = False
+elif mode == "BTC_BASE_LIVE_MICRO":
+    effective_execution_enabled = True
+    effective_execution_dry_run = False
+    effective_live_order_enabled = True
 elif mode == "LIVE_MICRO":
     effective_execution_enabled = True
     effective_execution_dry_run = False
@@ -415,13 +421,16 @@ else:
 local_evaluator_active = primary == "LOCAL_TRADINGVIEW" and local_enabled
 dry_run_armed = local_evaluator_active and effective_execution_enabled and effective_execution_dry_run and not effective_live_order_enabled
 btc_base_dry_run_armed = local_evaluator_active and mode == "BTC_BASE_DRY_RUN" and dry_run_armed
+btc_base_live_micro_armed = local_evaluator_active and mode == "BTC_BASE_LIVE_MICRO" and effective_execution_enabled and not effective_execution_dry_run and effective_live_order_enabled
 live_micro_armed = local_evaluator_active and mode == "LIVE_MICRO" and effective_execution_enabled and not effective_execution_dry_run and effective_live_order_enabled
-execution_path_armed = dry_run_armed or live_micro_armed
+execution_path_armed = dry_run_armed or btc_base_live_micro_armed or live_micro_armed
 oco_lifecycle_tracked = (not live_micro_armed) or oco_poller_enabled
 if live_micro_armed and oco_poller_enabled:
     oco_lifecycle_status = "TRACKED_BY_OCO_POLLER"
 elif live_micro_armed:
     oco_lifecycle_status = "NOT_TRACKED_OCO_POLLER_DISABLED"
+elif btc_base_live_micro_armed:
+    oco_lifecycle_status = "NOT_REQUIRED_BTC_BASE_LIVE_MICRO_NO_OCO"
 else:
     oco_lifecycle_status = "NOT_REQUIRED_UNLESS_LIVE_MICRO_ARMED"
 
@@ -447,6 +456,7 @@ notional_accepted = effective_notional > 0 and effective_notional <= max_notiona
 take_profit_pct = to_decimal(read_env_key("TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT", "0.0300")) or Decimal("0.0300")
 stop_loss_pct = to_decimal(read_env_key("TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT", "0.1200")) or Decimal("0.1200")
 max_signal_age_hours_value = int_env("TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS", 72)
+btc_base_max_exposure = to_decimal(read_env_key("TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT", "250.0")) or Decimal("250.0")
 
 order_rows = extract_order_rows(preview)
 current_order_rows = [row for row in order_rows if row["bar"] == data_end]
@@ -484,6 +494,7 @@ orders_today = "N/A"
 open_same_strategy_symbol = "N/A"
 open_exact_position_count = "N/A"
 duplicate_bar_live_signal_count = "N/A"
+btc_base_open_exposure = "N/A"
 try:
     normalized_symbol = normalize_symbol(symbol)
     symbol_expr = "UPPER(REPLACE(REPLACE(REPLACE(SUBSTRING_INDEX(symbol, ':', -1), '-', ''), '/', ''), '_', ''))"
@@ -503,6 +514,13 @@ try:
         f"AND interval_code = {sql_quote(interval_code)} "
         "AND (side IS NULL OR UPPER(side) = 'LONG')"
     )
+    btc_base_open_exposure = mysql_scalar(
+        "SELECT COALESCE(SUM(COALESCE(actual_entry_price, entry_price) * traded_qty), 0) "
+        "FROM bt_live_signal "
+        f"WHERE strategy_id = {strategy_id} AND auto_traded = 1 AND exit_time IS NULL "
+        f"AND {symbol_expr} = {sql_quote(normalized_symbol)} "
+        "AND COALESCE(filter_reason, '') LIKE 'LOCAL_TRADINGVIEW_BTC_BASE:%'"
+    )
     duplicate_reference = mysql_datetime(data_end)
     if duplicate_reference is not None:
         duplicate_bar_live_signal_count = mysql_count(
@@ -521,9 +539,21 @@ daily_cap_available = isinstance(orders_today, int) and orders_today < execution
 open_position_cap_available = isinstance(open_same_strategy_symbol, int) and open_same_strategy_symbol < execution_max_open_positions
 open_exact_position_exists = isinstance(open_exact_position_count, int) and open_exact_position_count > 0
 duplicate_bar_exists = isinstance(duplicate_bar_live_signal_count, int) and duplicate_bar_live_signal_count > 0
+btc_base_open_exposure_value = to_decimal(btc_base_open_exposure) if btc_base_open_exposure != "N/A" else None
+btc_base_exposure_after_order = (
+    btc_base_open_exposure_value + effective_notional
+    if btc_base_open_exposure_value is not None and effective_notional is not None
+    else None
+)
+btc_base_exposure_cap_available = (
+    btc_base_exposure_after_order is not None
+    and btc_base_exposure_after_order <= btc_base_max_exposure
+)
 
 pre_execution_blockers = []
 btc_base_shadow_mode = mode == "BTC_BASE_DRY_RUN"
+btc_base_live_mode = mode == "BTC_BASE_LIVE_MICRO"
+btc_base_no_oco_mode = btc_base_shadow_mode or btc_base_live_mode
 if pre_execution_evidence_status != "OK":
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE")
 if not scope_allowed:
@@ -539,9 +569,11 @@ if not btc_base_shadow_mode and not notional_accepted:
 if pre_execution_evidence_status == "OK" and not btc_base_shadow_mode:
     if not daily_cap_available:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_DAILY_CAP_REACHED")
-    if not open_position_cap_available:
+    if btc_base_live_mode and not btc_base_exposure_cap_available:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_BTC_BASE_EXPOSURE_CAP_REACHED")
+    if not btc_base_live_mode and not open_position_cap_available:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED")
-    if open_exact_position_exists:
+    if not btc_base_live_mode and open_exact_position_exists:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS")
 if current_status == "HAS_CURRENT_BUY_CANDIDATE":
     if not bar_cap_allows_at_least_one:
@@ -550,7 +582,9 @@ if current_status == "HAS_CURRENT_BUY_CANDIDATE":
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_PRE_EXECUTION_CANDIDATE_PRICE_MISSING")
     if signal_stale:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_SIGNAL_STALE")
-    if not btc_base_shadow_mode and not oco_plan_valid:
+    if btc_base_live_mode and entry_price is not None and entry_price <= 0:
+        pre_execution_blockers.append("LOCAL_TRADINGVIEW_INVALID_ENTRY_PRICE")
+    if not btc_base_no_oco_mode and not oco_plan_valid:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_INVALID_OCO_PLAN")
     if not btc_base_shadow_mode and duplicate_bar_exists:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_DUPLICATE_BAR")
@@ -567,7 +601,10 @@ if current_status != "HAS_CURRENT_BUY_CANDIDATE":
     blockers.append("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 if not local_evaluator_active:
     blockers.append("LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
-if mode == "LIVE_MICRO":
+if mode == "BTC_BASE_LIVE_MICRO":
+    if not btc_base_live_micro_armed:
+        blockers.append("LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED")
+elif mode == "LIVE_MICRO":
     if not live_micro_armed:
         blockers.append("LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED")
     elif not oco_poller_enabled:
@@ -579,6 +616,8 @@ elif not execution_path_armed:
     blockers.append("LOCAL_TRADINGVIEW_EXECUTION_NOT_ARMED")
 if require_dry_run_armed and not dry_run_armed and "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" not in blockers:
     blockers.append("LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED")
+if require_btc_base_live_micro_armed and not btc_base_live_micro_armed and "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED" not in blockers:
+    blockers.append("LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED")
 if coverage not in ("OK", "WARN"):
     blockers.append("LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK")
 for blocker in pre_execution_blockers:
@@ -612,6 +651,7 @@ print(f"  effectiveLiveOrderEnabled={str(effective_live_order_enabled).lower()}"
 print(f"  localTradingViewEvaluatorActive={str(local_evaluator_active).lower()}")
 print(f"  localTradingViewExecutionDryRunArmed={str(dry_run_armed).lower()}")
 print(f"  localTradingViewBtcBaseDryRunArmed={str(btc_base_dry_run_armed).lower()}")
+print(f"  localTradingViewBtcBaseLiveMicroArmed={str(btc_base_live_micro_armed).lower()}")
 print(f"  localTradingViewLiveMicroArmed={str(live_micro_armed).lower()}")
 print(f"  localTradingViewExecutionPathArmed={str(execution_path_armed).lower()}")
 print(f"  tradingOcoPollerEnabled={str(oco_poller_enabled).lower()}")
@@ -654,6 +694,10 @@ print(f"  localTradingViewMaxOpenPositions={execution_max_open_positions}")
 print(f"  localTradingViewOpenPositionCapAvailable={format_bool(open_position_cap_available)}")
 print(f"  localTradingViewOpenSameStrategySymbolIntervalLong={open_exact_position_count}")
 print(f"  localTradingViewOpenExactPositionExists={format_bool(open_exact_position_exists)}")
+print(f"  localTradingViewBtcBaseMaxExposureUsdt={decimal_text(btc_base_max_exposure)}")
+print(f"  localTradingViewBtcBaseOpenExposureUsdt={decimal_text(btc_base_open_exposure_value)}")
+print(f"  localTradingViewBtcBaseExposureAfterOrderUsdt={decimal_text(btc_base_exposure_after_order)}")
+print(f"  localTradingViewBtcBaseExposureCapAvailable={format_bool(btc_base_exposure_cap_available)}")
 print(f"  localTradingViewDuplicateBarLiveSignalCount={duplicate_bar_live_signal_count}")
 print(f"  localTradingViewDuplicateBarExists={format_bool(duplicate_bar_exists)}")
 print(f"  localTradingViewCurrentBarOrderIntentCount={current_bar_order_intent_count}")
@@ -683,6 +727,8 @@ elif btc_base_dry_run_armed:
     readiness = "READY_FOR_LOCAL_TRADINGVIEW_BTC_BASE_DRY_RUN_OBSERVATION_NOT_LIVE"
 elif dry_run_armed:
     readiness = "READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_OBSERVATION_NOT_LIVE"
+elif btc_base_live_micro_armed:
+    readiness = "READY_FOR_LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_ARMED_REVIEW_NOT_MUTATION"
 elif live_micro_armed and not oco_poller_enabled:
     readiness = "BLOCKED_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED"
 elif live_micro_armed:
@@ -698,6 +744,8 @@ elif btc_base_dry_run_armed:
     next_action = "Review BTC_BASE_DRY_RUN shadow accumulation evidence only; this smoke is not live approval."
 elif dry_run_armed:
     next_action = "Review DRY_RUN evidence only; this smoke is not live approval."
+elif btc_base_live_micro_armed:
+    next_action = "Review BTC_BASE_LIVE_MICRO armed evidence; OCO is intentionally not required for this mode."
 elif live_micro_armed and not oco_poller_enabled:
     next_action = "Do not rely on LIVE_MICRO buys until OCO close detection is reviewed and separately authorized."
 elif live_micro_armed:
@@ -716,6 +764,9 @@ if require_current and current_status != "HAS_CURRENT_BUY_CANDIDATE":
 if require_dry_run_armed and not dry_run_armed:
     print("FAIL: Local TradingView dry-run execution receipt path is required but not armed.", file=sys.stderr)
     sys.exit(3)
+if require_btc_base_live_micro_armed and not btc_base_live_micro_armed:
+    print("FAIL: Local TradingView BTC_BASE_LIVE_MICRO execution path is required but not armed.", file=sys.stderr)
+    sys.exit(6)
 if require_live_micro_armed and not live_micro_armed:
     print("FAIL: Local TradingView LIVE_MICRO execution path is required but not armed.", file=sys.stderr)
     sys.exit(4)
@@ -737,6 +788,7 @@ $remoteScript = $remoteScript.Replace("__DAYS__", [string]$Days)
 $remoteScript = $remoteScript.Replace("__SOURCE__", $Source)
 $remoteScript = $remoteScript.Replace("__REQUIRE_CURRENT__", $RequireCurrentCandidate.IsPresent.ToString())
 $remoteScript = $remoteScript.Replace("__REQUIRE_DRY_RUN_ARMED__", $RequireDryRunArmed.IsPresent.ToString())
+$remoteScript = $remoteScript.Replace("__REQUIRE_BTC_BASE_LIVE_MICRO_ARMED__", $RequireBtcBaseLiveMicroArmed.IsPresent.ToString())
 $remoteScript = $remoteScript.Replace("__REQUIRE_LIVE_MICRO_ARMED__", $RequireLiveMicroArmed.IsPresent.ToString())
 $remoteScript = $remoteScript.Replace("__REQUIRE_OCO_LIFECYCLE_TRACKED__", $RequireOcoLifecycleTracked.IsPresent.ToString())
 

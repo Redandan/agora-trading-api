@@ -181,7 +181,8 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 TradingViewLocalSignalProperties.ExecutionMode.DRY_RUN,
                 false, true, false, 3, 1, 1,
-                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
+                new BigDecimal("0.0300"), new BigDecimal("0.1200"),
+                new BigDecimal("250.0"));
     }
 
     private static class FakeDiagnosticJdbcTemplate extends JdbcTemplate {

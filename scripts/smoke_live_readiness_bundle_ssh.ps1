@@ -665,6 +665,12 @@ function New-BlockerSummary {
                 $evidenceMarkers = @("executionMode=LIVE_MICRO", "localTradingViewLiveMicroArmed=true")
                 $nextAction = "Fix LOCAL_TRADINGVIEW LIVE_MICRO source/execution env through a separately authorized env plan."
             }
+            "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED" {
+                $category = "local-tradingview"
+                $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireBtcBaseLiveMicroArmed"
+                $evidenceMarkers = @("executionMode=BTC_BASE_LIVE_MICRO", "localTradingViewBtcBaseLiveMicroArmed=true")
+                $nextAction = "Fix LOCAL_TRADINGVIEW BTC_BASE_LIVE_MICRO source/execution env through a separately authorized env plan."
+            }
             "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED" {
                 $category = "local-tradingview-oco"
                 $requiredEvidence = ".\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireOcoLifecycleTracked"
@@ -883,6 +889,7 @@ if ($localTradingView -match "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE" `
         -or $localTradingView -notmatch "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE") {
     $blockers.Add("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 }
+$localTradingViewBtcBaseLiveMicroMode = $localTradingView -match "executionMode=BTC_BASE_LIVE_MICRO"
 $localTradingViewLiveMicroMode = $localTradingView -match "executionMode=LIVE_MICRO"
 if ($localTradingViewLiveMicroMode) {
     if ($localTradingView -match "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED" `
@@ -892,6 +899,11 @@ if ($localTradingViewLiveMicroMode) {
     if ($localTradingView -match "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED" `
             -or $localTradingView -notmatch "localTradingViewOcoLifecycleTracked=true") {
         $blockers.Add("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
+    }
+} elseif ($localTradingViewBtcBaseLiveMicroMode) {
+    if ($localTradingView -match "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED" `
+            -or $localTradingView -notmatch "localTradingViewBtcBaseLiveMicroArmed=true") {
+        $blockers.Add("LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED")
     }
 } else {
     if ($localTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `

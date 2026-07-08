@@ -273,6 +273,7 @@ $auditVerdict = Get-LastPrefixedValue -Text $auditText -Prefix "verdict="
 $riskLevel = Get-LastPrefixedValue -Text $auditText -Prefix "riskLevel="
 $runtimeLogStatus = Get-LastPrefixedValue -Text $auditText -Prefix "runtime_log_status="
 $liveMicroAuthorized = Get-LastPrefixedValue -Text $auditText -Prefix "local_tradingview_live_micro_authorized="
+$btcBaseLiveMicroAuthorized = Get-LastPrefixedValue -Text $auditText -Prefix "local_tradingview_btc_base_live_micro_authorized="
 $unexpectedOrderFlagsText = Get-JsonArrayText -Text $auditText -Prefix "order_capable_flags_unexpected="
 $acceptedOrderFlagsText = Get-JsonArrayText -Text $auditText -Prefix "order_capable_flags_accepted="
 $backgroundClear = Get-LastPrefixedValue -Text $backgroundText -Prefix "backgroundAutomationClear="
@@ -290,6 +291,7 @@ $executionMode = Get-LastPrefixedValue -Text $candidateText -Prefix "  execution
 $evaluatorActive = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewEvaluatorActive="
 $executionPathArmed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewExecutionPathArmed="
 $dryRunArmed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewExecutionDryRunArmed="
+$btcBaseLiveMicroArmed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBtcBaseLiveMicroArmed="
 $liveMicroArmed = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewLiveMicroArmed="
 $ocoTracked = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOcoLifecycleTracked="
 $ocoStatus = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOcoLifecycleStatus="
@@ -313,6 +315,10 @@ $openSameStrategySymbol = Get-LastPrefixedValue -Text $candidateText -Prefix "  
 $maxOpenPositions = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewMaxOpenPositions="
 $openPositionCapAvailable = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOpenPositionCapAvailable="
 $openExactPositionExists = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewOpenExactPositionExists="
+$btcBaseMaxExposureUsdt = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBtcBaseMaxExposureUsdt="
+$btcBaseOpenExposureUsdt = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBtcBaseOpenExposureUsdt="
+$btcBaseExposureAfterOrderUsdt = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBtcBaseExposureAfterOrderUsdt="
+$btcBaseExposureCapAvailable = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBtcBaseExposureCapAvailable="
 $duplicateBarExists = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewDuplicateBarExists="
 $barCapAllowsAtLeastOne = Get-LastPrefixedValue -Text $candidateText -Prefix "  localTradingViewBarCapAllowsAtLeastOne="
 
@@ -321,6 +327,7 @@ $healthWarnings = [System.Collections.Generic.List[string]]::new()
 $localTradingViewPreExecutionKnownBlockers = @(
     "LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE",
     "LOCAL_TRADINGVIEW_DAILY_CAP_REACHED",
+    "LOCAL_TRADINGVIEW_BTC_BASE_EXPOSURE_CAP_REACHED",
     "LOCAL_TRADINGVIEW_OPEN_POSITION_CAP_REACHED",
     "LOCAL_TRADINGVIEW_OPEN_POSITION_EXISTS",
     "LOCAL_TRADINGVIEW_DUPLICATE_BAR",
@@ -336,9 +343,11 @@ Add-If -List $blockers -Condition (-not (Test-JsonArrayTextEmpty -Value $backgro
 Add-If -List $blockers -Condition (-not (Test-JsonArrayTextEmpty -Value $backgroundHighRiskText)) -Value "BACKGROUND_AUTOMATION_REVIEW"
 Add-If -List $blockers -Condition ($evaluatorActive -ne "true") -Value "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE"
 Add-If -List $blockers -Condition ($executionPathArmed -ne "true") -Value "LOCAL_TRADINGVIEW_EXECUTION_NOT_ARMED"
+Add-If -List $blockers -Condition ($executionMode -eq "BTC_BASE_LIVE_MICRO" -and $btcBaseLiveMicroAuthorized -ne "true") -Value "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ACCEPTED"
+Add-If -List $blockers -Condition ($executionMode -eq "BTC_BASE_LIVE_MICRO" -and $btcBaseLiveMicroArmed -ne "true") -Value "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED"
 Add-If -List $blockers -Condition ($executionMode -eq "LIVE_MICRO" -and $liveMicroAuthorized -ne "true") -Value "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ACCEPTED"
 Add-If -List $blockers -Condition ($executionMode -eq "LIVE_MICRO" -and $liveMicroArmed -ne "true") -Value "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED"
-Add-If -List $blockers -Condition ($ocoTracked -ne "true") -Value "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED"
+Add-If -List $blockers -Condition ($executionMode -eq "LIVE_MICRO" -and $ocoTracked -ne "true") -Value "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED"
 Add-If -List $blockers -Condition ($coverage -notin @("OK", "WARN")) -Value "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK"
 if ([string]::IsNullOrWhiteSpace($candidateBlockersText)) {
     Add-If -List $blockers -Condition $true -Value "LOCAL_TRADINGVIEW_CANDIDATE_BLOCKERS_MISSING"
@@ -361,8 +370,13 @@ if ($blockingWithoutCandidate.Count -gt 0) {
     $status = "BLOCKED"
     $nextAction = "Fix LOCAL_TRADINGVIEW-only blockers before treating the next TradingView parity BUY as executable."
 } elseif ($currentCandidateStatus -eq "HAS_CURRENT_BUY_CANDIDATE") {
-    $status = "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED"
-    $nextAction = "A current LOCAL_TRADINGVIEW parity BUY candidate is present and the LOCAL_TRADINGVIEW live-micro path is armed; inspect execution/audit rows immediately after the live evaluator tick. This smoke itself remains read-only."
+    if ($executionMode -eq "BTC_BASE_LIVE_MICRO") {
+        $status = "READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED"
+        $nextAction = "A current LOCAL_TRADINGVIEW parity BUY candidate is present and the BTC_BASE live-micro path is armed; inspect execution/audit rows immediately after the live evaluator tick. This smoke itself remains read-only."
+    } else {
+        $status = "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED"
+        $nextAction = "A current LOCAL_TRADINGVIEW parity BUY candidate is present and the LOCAL_TRADINGVIEW live-micro path is armed; inspect execution/audit rows immediately after the live evaluator tick. This smoke itself remains read-only."
+    }
 } else {
     $status = "WAIT_BUY"
     $nextAction = "Wait for the latest closed bar to emit a LOCAL_TRADINGVIEW parity BUY, then rerun this LOCAL_TRADINGVIEW-only smoke."
@@ -394,6 +408,8 @@ Write-Host "local_tradingview_readiness=$readiness"
 Write-Host "local_tradingview_execution_mode=$executionMode"
 Write-Host "local_tradingview_evaluator_active=$evaluatorActive"
 Write-Host "local_tradingview_dry_run_armed=$dryRunArmed"
+Write-Host "local_tradingview_btc_base_live_micro_authorized=$btcBaseLiveMicroAuthorized"
+Write-Host "local_tradingview_btc_base_live_micro_armed=$btcBaseLiveMicroArmed"
 Write-Host "local_tradingview_live_micro_armed=$liveMicroArmed"
 Write-Host "local_tradingview_execution_path_armed=$executionPathArmed"
 Write-Host "local_tradingview_oco_lifecycle_tracked=$ocoTracked"
@@ -417,6 +433,10 @@ Write-Host "local_tradingview_open_same_strategy_symbol=$openSameStrategySymbol"
 Write-Host "local_tradingview_max_open_positions=$maxOpenPositions"
 Write-Host "local_tradingview_open_position_cap_available=$openPositionCapAvailable"
 Write-Host "local_tradingview_open_exact_position_exists=$openExactPositionExists"
+Write-Host "local_tradingview_btc_base_max_exposure_usdt=$btcBaseMaxExposureUsdt"
+Write-Host "local_tradingview_btc_base_open_exposure_usdt=$btcBaseOpenExposureUsdt"
+Write-Host "local_tradingview_btc_base_exposure_after_order_usdt=$btcBaseExposureAfterOrderUsdt"
+Write-Host "local_tradingview_btc_base_exposure_cap_available=$btcBaseExposureCapAvailable"
 Write-Host "local_tradingview_duplicate_bar_exists=$duplicateBarExists"
 Write-Host "local_tradingview_bar_cap_allows_at_least_one=$barCapAllowsAtLeastOne"
 Write-Host "local_tradingview_only_status=$status"
@@ -431,6 +451,6 @@ Write-Host "[local-tradingview-only-readiness] read-only check complete"
 if ($RequireCurrentCandidate -and $currentCandidateStatus -ne "HAS_CURRENT_BUY_CANDIDATE") {
     throw "LOCAL_TRADINGVIEW current BUY candidate is required but not present."
 }
-if ($RequireReady -and $status -ne "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED") {
+if ($RequireReady -and $status -notin @("READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED", "READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED")) {
     throw "LOCAL_TRADINGVIEW-only readiness is not ready: status=$status blockers=$((ConvertTo-Json -Compress @($blockers)))"
 }

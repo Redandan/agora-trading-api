@@ -164,6 +164,7 @@ function Get-LiveReadinessBundleBlockers {
             -or $LocalTradingView -notmatch "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE") {
         $blockers.Add("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
     }
+    $localTradingViewBtcBaseLiveMicroMode = $LocalTradingView -match "executionMode=BTC_BASE_LIVE_MICRO"
     $localTradingViewLiveMicroMode = $LocalTradingView -match "executionMode=LIVE_MICRO"
     if ($localTradingViewLiveMicroMode) {
         if ($LocalTradingView -match "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED" `
@@ -173,6 +174,11 @@ function Get-LiveReadinessBundleBlockers {
         if ($LocalTradingView -match "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED" `
                 -or $LocalTradingView -notmatch "localTradingViewOcoLifecycleTracked=true") {
             $blockers.Add("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
+        }
+    } elseif ($localTradingViewBtcBaseLiveMicroMode) {
+        if ($LocalTradingView -match "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED" `
+                -or $LocalTradingView -notmatch "localTradingViewBtcBaseLiveMicroArmed=true") {
+            $blockers.Add("LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED")
         }
     } else {
         if ($LocalTradingView -match "LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED" `
@@ -620,6 +626,7 @@ $allExpectedBlockers = @(
     "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK",
     "LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED",
     "LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE",
+    "LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED",
     "LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED",
     "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
     "LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED",
@@ -739,6 +746,8 @@ Assert-BlockerCase -Name "signal missed opportunity pass in later section fails 
 Assert-BlockerCase -Name "local tradingview no current buy candidate" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 Assert-BlockerCase -Name "local tradingview dry-run receipt not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_DRY_RUN_RECEIPT_NOT_ARMED")
 Assert-BlockerCase -Name "local tradingview live micro armed does not require dry run" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`nlocalTradingViewOcoLifecycleTracked=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[]" }) -ExpectedBlockers @()
+Assert-BlockerCase -Name "local tradingview btc base live micro armed does not require dry run or oco" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=BTC_BASE_LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewBtcBaseLiveMicroArmed=true`nlocalTradingViewOcoLifecycleTracked=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[]" }) -ExpectedBlockers @()
+Assert-BlockerCase -Name "local tradingview btc base live micro not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=BTC_BASE_LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewBtcBaseLiveMicroArmed=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_BTC_BASE_LIVE_MICRO_NOT_ARMED")
 Assert-BlockerCase -Name "local tradingview live micro not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=false`nlocalTradingViewOcoLifecycleTracked=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED")
 Assert-BlockerCase -Name "local tradingview live micro oco lifecycle not armed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`nlocalTradingViewOcoLifecycleTracked=false`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[`"LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED`"]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
 Assert-BlockerCase -Name "local tradingview live micro missing oco lifecycle marker fails closed" -Inputs (Merge-Inputs $cleanInputs @{ LocalTradingView = "currentCandidateStatus=HAS_CURRENT_BUY_CANDIDATE`nexecutionMode=LIVE_MICRO`nlocalTradingViewEvaluatorActive=true`nlocalTradingViewExecutionDryRunArmed=false`nlocalTradingViewLiveMicroArmed=true`norderSentAllowed=false`nliveOrderMutationAllowed=false`nlocal_tradingview_blockers=[]" }) -ExpectedBlockers @("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")

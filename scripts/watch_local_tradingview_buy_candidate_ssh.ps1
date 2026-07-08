@@ -284,8 +284,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
             $finalReason = "LOCAL_TRADINGVIEW_ONLY_READINESS_SMOKE_FAILED"
             break
         }
-        if ($onlyStatus -eq "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED") {
-            $finalStatus = "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED"
+        if ($onlyStatus -in @("READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED", "READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED")) {
+            $finalStatus = $onlyStatus
             $finalReason = "CURRENT_BUY_CANDIDATE_AND_PRE_EXECUTION_GATES_CLEAR"
             $finalNextAction = "Inspect live evaluator execution/audit rows immediately after the next LOCAL_TRADINGVIEW evaluator tick; this watcher itself remains read-only and does not authorize manual order/OCO actions."
             break
@@ -351,6 +351,6 @@ Write-Host "[local-tradingview-buy-candidate-watch] read-only check complete"
 if ($RequireCurrentCandidate -and $finalCandidateStatus -ne "HAS_CURRENT_BUY_CANDIDATE") {
     throw "LOCAL_TRADINGVIEW current BUY candidate is not present: status=$finalStatus reason=$finalReason"
 }
-if ($RequireReady -and $finalStatus -ne "READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED") {
+if ($RequireReady -and $finalStatus -notin @("READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED", "READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED")) {
     throw "LOCAL_TRADINGVIEW BUY candidate is not ready: status=$finalStatus reason=$finalReason blockers=$finalOnlyBlockers preExecutionBlockers=$finalPreExecutionBlockers"
 }

@@ -97,6 +97,81 @@ class LocalTradingViewExecutionServiceTest {
     }
 
     @Test
+    void btcBaseLiveMicroPlacesMarketBuyWithoutOcoAndWritesEvidence() {
+        Fixture fixture = fixture(props(ExecutionMode.BTC_BASE_LIVE_MICRO));
+        TradeResult buy = new TradeResult();
+        buy.setOrderId("ord-btc-base");
+        buy.setAvgPrice(new BigDecimal("100.25"));
+        buy.setQty(new BigDecimal("0.09975062"));
+        when(fixture.tradingService.placeMarketBuy(eq("BTCUSDT"), eq(10.0))).thenReturn(buy);
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        verify(fixture.tradingService).placeMarketBuy("BTCUSDT", 10.0);
+        verify(fixture.tradingService, never()).placeOco(any(), any(), any(), any());
+
+        ArgumentCaptor<BtLiveSignal> signalCaptor = ArgumentCaptor.forClass(BtLiveSignal.class);
+        verify(fixture.liveSignalRepository).save(signalCaptor.capture());
+        BtLiveSignal savedSignal = signalCaptor.getValue();
+        assertThat(savedSignal.getStrategyId()).isEqualTo(485L);
+        assertThat(savedSignal.getSymbol()).isEqualTo("BTCUSDT");
+        assertThat(savedSignal.getExchangeOrderId()).isEqualTo("LOCAL_TV_BTC_BASE:ord-btc-base");
+        assertThat(savedSignal.getOcoOrderListId()).isNull();
+        assertThat(savedSignal.getOcoQty()).isNull();
+        assertThat(savedSignal.getEntryPrice()).isEqualByComparingTo("100.25");
+        assertThat(savedSignal.getFilterReason()).isEqualTo("LOCAL_TRADINGVIEW_BTC_BASE:1:TRADINGVIEW_RELATIVE_LOW");
+
+        ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
+        verify(fixture.evidenceRepository).save(evidenceCaptor.capture());
+        RuntimeDecisionEvidence evidence = evidenceCaptor.getValue();
+        assertThat(evidence.getSelectedAction()).isEqualTo("LOCAL_TRADINGVIEW_BTC_BASE_BUY");
+        assertThat(evidence.getPolicyMode()).isEqualTo("LOCAL_TRADINGVIEW_BTC_BASE_MICRO_LIVE");
+        assertThat(evidence.getFinalOutcome()).isEqualTo("EXECUTED_BTC_BASE_BUY");
+        assertThat(evidence.getOrderSent()).isTrue();
+        assertThat(evidence.getExecutionMode()).isEqualTo("LOCAL_TV_BTC_BASE_EXEC");
+        assertThat(evidence.getOcoOrderListId()).isNull();
+        assertThat(evidence.getExecutionPreviewJson())
+                .contains("\"btcBaseMode\":true")
+                .contains("\"btcBaseLiveMicro\":true")
+                .contains("\"ocoAttached\":false");
+    }
+
+    @Test
+    void btcBaseLiveMicroBlocksWhenExposureCapWouldBeExceeded() {
+        Fixture fixture = fixture(props(ExecutionMode.BTC_BASE_LIVE_MICRO, 0, new BigDecimal("15.0")));
+        BtLiveSignal openSlice = new BtLiveSignal();
+        openSlice.setStrategyId(485L);
+        openSlice.setSymbol("BTCUSDT");
+        openSlice.setActualEntryPrice(new BigDecimal("100.00"));
+        openSlice.setEntryPrice(new BigDecimal("100.00"));
+        openSlice.setTradedQty(new BigDecimal("0.10"));
+        openSlice.setFilterReason("LOCAL_TRADINGVIEW_BTC_BASE:1:TRADINGVIEW_RELATIVE_LOW");
+        when(fixture.liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(485L))
+                .thenReturn(List.of(openSlice));
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)),
+                eq("LocalTradingViewBtcBaseExposureCapReached"),
+                eq("Local TradingView BTC_BASE exposure cap reached"),
+                contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("executionStatus", "BLOCKED_HARD_GATE")
+                .containsEntry("executionBlocker", "LocalTradingViewBtcBaseExposureCapReached")
+                .containsEntry("btcBaseOpenExposureUsdt", new BigDecimal("10.00"))
+                .containsEntry("btcBaseMaxExposureUsdt", new BigDecimal("15.0"))
+                .containsEntry("btcBaseExposureAfterOrderUsdt", new BigDecimal("20.00"))
+                .containsEntry("btcBaseExposureCapAvailable", false);
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.tradingService, never()).placeOco(any(), any(), any(), any());
+    }
+
+    @Test
     void liveEnabledPlacesMarketBuyAttachesOcoAndWritesEvidence() {
         Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
         TradeResult buy = new TradeResult();
@@ -336,11 +411,16 @@ class LocalTradingViewExecutionServiceTest {
     }
 
     private TradingViewLocalSignalProperties props(ExecutionMode mode, long maxSignalAgeHours) {
+        return props(mode, maxSignalAgeHours, new BigDecimal("250.0"));
+    }
+
+    private TradingViewLocalSignalProperties props(ExecutionMode mode, long maxSignalAgeHours, BigDecimal btcBaseMaxExposureUsdt) {
         return new TradingViewLocalSignalProperties(
                 true, 485L, "BTCUSDT", "1d", "", 320, 1, maxSignalAgeHours,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 mode, false, true, false, 3, 1, 1,
-                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
+                new BigDecimal("0.0300"), new BigDecimal("0.1200"),
+                btcBaseMaxExposureUsdt);
     }
 
     private BtStrategy strategy() {

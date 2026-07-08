@@ -331,7 +331,8 @@ class KlineClosedEventListenerTest {
                 true, 485L, "BTCUSDT", "1d", "okx", 320, 1, 0,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 mode, false, true, false, 3, 1, 1,
-                new BigDecimal("0.0300"), new BigDecimal("0.1200"));
+                new BigDecimal("0.0300"), new BigDecimal("0.1200"),
+                new BigDecimal("250.0"));
     }
 
     private OkxTradingProperties okxProps() {

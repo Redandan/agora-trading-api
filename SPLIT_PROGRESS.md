@@ -4225,6 +4225,17 @@ Trading deployment prep:
   reported as `POLICY_SUPPRESSED_NOT_MISSED_EVALUATION` instead of a missed
   evaluation bug. The configured `LOCAL_TRADINGVIEW` strategy still remains
   expected to emit live/audit evidence when its evaluator is active.
+- 2026-07-08 BTC_BASE follow-up: `LOCAL_TRADINGVIEW` now has a
+  `BTC_BASE_LIVE_MICRO` execution mode in addition to `BTC_BASE_DRY_RUN`.
+  It uses the same TradingView parity order intents, places the configured
+  small BTC spot market buy, writes live-signal/audit/runtime-evidence rows,
+  deliberately skips OCO, and enforces
+  `TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT` plus signal-age, scope,
+  per-bar, daily, duplicate-bar, notional, OKX credential, and data gates. The
+  OCO poller, OCO-missing detector, and open-position/OCO health output now
+  treat `LOCAL_TRADINGVIEW_BTC_BASE:*` open rows as intentional BTC_BASE no-OCO
+  positions rather than unprotected OCO failures. The existing `LIVE_MICRO`
+  mode remains the OCO-attached live path and rollback fallback.
 
 ## Cleanup Priority
 

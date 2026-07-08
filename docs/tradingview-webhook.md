@@ -113,7 +113,7 @@ TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
 TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
-# Allowed: LEGACY, OFF, DRY_RUN, BTC_BASE_DRY_RUN, LIVE_MICRO.
+# Allowed: LEGACY, OFF, DRY_RUN, BTC_BASE_DRY_RUN, BTC_BASE_LIVE_MICRO, LIVE_MICRO.
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
 TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
 TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
@@ -123,6 +123,7 @@ TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY=1
 TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS=1
 TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
 TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
+TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT=250.0
 ```
 
 Local parity mode re-evaluates the latest bounded closed bars on each closed-K
@@ -146,10 +147,19 @@ requirement for this mode. For historical comparison, call
 `runScoreBuyTradingViewBtcBaseBacktest`; it reports TradingView order intents,
 executed base buys, exposure-cap skips, profit-reduction events, emergency
 drawdown markers, and PnL without writing DB rows.
+`TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_LIVE_MICRO` uses the same
+TradingView-equivalent buy points, places the configured small market buy,
+records `bt_live_signal`, `bt_decision_audit`, and
+`bt_runtime_decision_evidence`, and deliberately does not attach OCO. It still
+requires OKX private credentials, allowlisted symbol/interval/source,
+signal-age, per-bar, daily, duplicate-bar, notional, and
+`TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT` gates. Open-position/OCO caps do
+not block BTC_BASE accumulation; OCO poller/missing-OCO detectors and OCO health
+classify these rows as intentional BTC_BASE no-OCO positions.
 `TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY` preserves the previous three-flag
 behavior for rollback.
 
-The same lane is order-capable only when all hard gates pass:
+The OCO lane is order-capable only when all hard gates pass:
 `TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW`, `TRADINGVIEW_LOCAL_ENABLED=true`,
 `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO`, OKX auto-trade enabled with
 private credentials, the configured symbol/interval allowlist, per-bar, daily,
@@ -181,6 +191,10 @@ and the exact OCO lifecycle authorization for `TRADING_OCO_POLLER_ENABLED=true`
 while keeping `POSITION_EXIT_MANAGER_ENABLED=false`. Post-env verification must
 include
 `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`.
+For BTC_BASE live review, use
+`.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireBtcBaseLiveMicroArmed`;
+the ready marker is `localTradingViewBtcBaseLiveMicroArmed=true`, and OCO
+lifecycle tracking is intentionally not required for that mode.
 In `BTC_BASE_DRY_RUN`, the same candidate smoke prints
 `localTradingViewBtcBaseDryRunArmed=true` when the local evaluator and dry-run
 receipt path are armed. That mode can still be used to audit missed buy points,
@@ -190,7 +204,8 @@ For day-to-day LOCAL_TRADINGVIEW-only monitoring, use
 metadata, live-readiness audit, background automation, and the candidate smoke
 without running TinyLive, ScoreBuy, runtime-evidence, or signal-policy checks.
 Its `local_tradingview_only_status` is `WAIT_BUY`,
-`READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED`, or `BLOCKED`, and it keeps
+`READY_CURRENT_BUY_CANDIDATE_LIVE_MICRO_ARMED`,
+`READY_CURRENT_BUY_CANDIDATE_BTC_BASE_LIVE_MICRO_ARMED`, or `BLOCKED`, and it keeps
 `RUNTIME_LOG_NOT_CLEAN`, `EVENT_RISK_NOT_BASELINE`, and similar audit health
 findings in `local_tradingview_only_health_warnings` instead of the focused
 blocker list.

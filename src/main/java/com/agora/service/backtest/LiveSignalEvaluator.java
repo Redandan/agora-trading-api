@@ -71,6 +71,8 @@ public class LiveSignalEvaluator {
     static final String ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY = "entryDedupOpenExposureScope";
     static final String ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS = "ALL_OPEN_ROWS";
     static final String ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS = "AUTO_TRADED_OPEN_ROWS";
+    static final String ENSEMBLE_SHADOW_PRE_EXECUTION_DISCLAIMER =
+            "Phase 1 - Ensemble 不擋；仍需通過下單前風控";
 
     private final MdKlineRepository klineRepository;
     private final BtLiveSignalRepository liveSignalRepository;
@@ -1631,7 +1633,7 @@ public class LiveSignalEvaluator {
             }
         }
         if (shouldSkipRiskSizedAutoTrade(sizingDecision, forceRiskSizingForWickAwareSl)) {
-            markAutoTradeSkipped(record, riskSizingSkipReason(sizingDecision));
+            markRiskSizedAutoTradeSkipped(record, symbol, sizingDecision);
             return;
         }
         if (stagedMicroAddEntry && stagedMicroAddMaxNotionalUsdt > 0 && tradeAmount > stagedMicroAddMaxNotionalUsdt) {
@@ -1682,7 +1684,7 @@ public class LiveSignalEvaluator {
                         }
                     }
                     if (shouldSkipRiskSizedAutoTrade(sizingDecision, forceRiskSizingForWickAwareSl)) {
-                        markAutoTradeSkipped(record, riskSizingSkipReason(sizingDecision));
+                        markRiskSizedAutoTradeSkipped(record, symbol, sizingDecision);
                         return;
                     }
                 }
@@ -1876,6 +1878,76 @@ public class LiveSignalEvaluator {
                 sizingDecision.minNotionalUsdt());
         log.info("[AutoTrade] Skip: {}", reason);
         return reason;
+    }
+
+    private void markRiskSizedAutoTradeSkipped(BtLiveSignal record,
+                                               String symbol,
+                                               PositionSizingService.PositionSizingDecision sizingDecision) {
+        String reason = riskSizingSkipReason(sizingDecision);
+        markAutoTradeSkipped(record, reason);
+        Map<String, Object> context = riskSizingSkipContext(sizingDecision);
+        context.put("side", "LONG");
+        context.put("orderSent", false);
+        context.put("selectedAction", "SKIP_RISK_SIZED_BELOW_MIN_NOTIONAL");
+        try {
+            auditWriter.logEntrySkip(record.getStrategyId(), symbol, record.getIntervalCode(),
+                    record.getBarOpenTime(), "PositionSizing", reason, context, record.getId());
+        } catch (Exception e) {
+            log.debug("[AutoTrade] risk-sizing ENTRY_SKIP audit failed liveSignalId={}: {}",
+                    record.getId(), e.getMessage());
+        }
+        try {
+            notificationPort.broadcast(buildRiskSizingSkipNotification(
+                    symbol, record.getIntervalCode(), record.getStrategyId(), record.getId(), sizingDecision), true);
+        } catch (Exception e) {
+            log.warn("[AutoTrade] risk-sizing skip notification failed liveSignalId={}: {}",
+                    record.getId(), e.getMessage());
+        }
+    }
+
+    private static Map<String, Object> riskSizingSkipContext(PositionSizingService.PositionSizingDecision sizingDecision) {
+        Map<String, Object> context = new LinkedHashMap<>();
+        context.put("mode", sizingDecision.liveEnabled() ? "LIVE" : "FORCED_LIVE_RISK_SIZING");
+        context.put("legacyAmountUsdt", sizingDecision.legacyAmountUsdt());
+        context.put("recommendedAmountUsdt", sizingDecision.recommendedAmountUsdt());
+        context.put("finalAmountUsdt", sizingDecision.finalAmountUsdt());
+        context.put("slDistancePct", sizingDecision.slDistancePct());
+        context.put("tpDistancePct", sizingDecision.tpDistancePct());
+        context.put("riskReward", sizingDecision.riskReward());
+        context.put("riskBudgetUsdt", sizingDecision.riskBudgetUsdt());
+        context.put("minNotionalUsdt", sizingDecision.minNotionalUsdt());
+        context.put("belowMinNotional", sizingDecision.belowMinNotional());
+        context.put("liveEntryAllowed", sizingDecision.liveEntryAllowed());
+        context.put("availableUsdt", sizingDecision.availableUsdt() != null ? sizingDecision.availableUsdt() : "N/A");
+        context.put("reason", sizingDecision.reason());
+        context.put("explain", sizingDecision.explain());
+        return context;
+    }
+
+    static String buildRiskSizingSkipNotification(String symbol,
+                                                  String intervalCode,
+                                                  Long strategyId,
+                                                  Long liveSignalId,
+                                                  PositionSizingService.PositionSizingDecision sizingDecision) {
+        String normalizedInterval = intervalCode == null ? "N/A" : intervalCode.toUpperCase(Locale.ROOT);
+        String strategyText = strategyId != null ? String.valueOf(strategyId) : "N/A";
+        String signalText = liveSignalId != null ? String.valueOf(liveSignalId) : "N/A";
+        return String.format(Locale.ROOT,
+                "🟡 <b>AutoTrade 未買入 %s (%s)</b>\n\n" +
+                "原因: risk-sized notional <b>$%.2f</b> &lt; min <b>$%.2f</b>\n" +
+                "SL 距離: <b>%.2f%%</b> | 風險預算: <b>$%.2f</b>\n" +
+                "Legacy 金額: <b>$%.2f</b> | 最終下單: <b>$%.2f</b>\n" +
+                "策略: <b>#%s</b> | live_signal_id <b>%s</b>\n\n" +
+                "處置: 訊號已記錄但未下單；不是 Ensemble shadow 攔截，也不是漏單。",
+                symbol, normalizedInterval,
+                sizingDecision.recommendedAmountUsdt(),
+                sizingDecision.minNotionalUsdt(),
+                sizingDecision.slDistancePct() * 100.0,
+                sizingDecision.riskBudgetUsdt(),
+                sizingDecision.legacyAmountUsdt(),
+                sizingDecision.finalAmountUsdt(),
+                strategyText,
+                signalText);
     }
 
     private void markAutoTradeSkipped(BtLiveSignal record, String reason) {
@@ -2434,7 +2506,7 @@ public class LiveSignalEvaluator {
         StringBuilder sb = new StringBuilder("\n\n");
         // #437 sub-task 1 — shadow mode 顯示 🚫 但實際未擋,造成 UX 矛盾。
         // VETO 永遠是真擋。BLOCK 只在 ensembleGateEnabled=true (Phase 2) 才真擋。
-        // Phase 1 shadow:用 🟡 + "WOULD BLOCK" + "Phase 1 — 仍 trade,僅記錄" disclaimer。
+        // Phase 1 shadow:用 🟡 + "WOULD BLOCK" + 下單前風控 disclaimer。
         boolean blockEnforced = ensembleGateEnabled;
         String headerEmoji = switch (dec.outcome()) {
             case "PASS"  -> "🎯";
@@ -2450,7 +2522,7 @@ public class LiveSignalEvaluator {
         if ("BLOCK".equals(dec.outcome()) && !blockEnforced) {
             sb.append(headerEmoji).append(" <b>Ensemble shadow: WOULD BLOCK</b> ")
               .append(String.format("%.1f/%.0f", dec.score(), dec.threshold()))
-              .append("\n   <i>Phase 1 — 此次仍 trade,僅記錄供日後 audit</i>");
+              .append("\n   <i>").append(ENSEMBLE_SHADOW_PRE_EXECUTION_DISCLAIMER).append("</i>");
         } else {
             sb.append(headerEmoji).append(" <b>Ensemble: ").append(dec.outcome())
               .append(String.format(" %.1f/%.0f</b>", dec.score(), dec.threshold()));

@@ -87,6 +87,7 @@ required_tools = [
     "listSchedulerTasks",
     "listStrategies",
     "runBacktest",
+    "runScoreBuyTradingViewBtcBaseBacktest",
     "listGrids",
     "getOpenPositions",
     "getSystemHealth",

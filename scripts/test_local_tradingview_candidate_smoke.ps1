@@ -19,10 +19,14 @@ foreach ($pattern in @(
         "scope=READ_ONLY",
         "previewScoreBuyTradingViewOrders",
         "runScoreBuyTradingViewParityBacktest",
+        "runScoreBuyTradingViewBtcBaseBacktest",
+        "SCORE_BUY TradingView BTC_BASE shadow backtest",
+        "notAuthorization=read-only BTC_BASE shadow report only",
         "currentCandidateStatus",
         "HAS_CURRENT_BUY_CANDIDATE",
         "NO_CURRENT_BUY_CANDIDATE_RECENT_INTENTS",
         "localTradingViewExecutionDryRunArmed",
+        "localTradingViewBtcBaseDryRunArmed",
         "localTradingViewLiveMicroArmed",
         "localTradingViewExecutionPathArmed",
         "localTradingViewOcoLifecycleTracked",
@@ -68,6 +72,7 @@ foreach ($pattern in @(
         "BLOCKED_LOCAL_TRADINGVIEW_PRE_EXECUTION_GATES",
         "READY_PRE_EXECUTION_GATES",
         "READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_OBSERVATION_NOT_LIVE",
+        "READY_FOR_LOCAL_TRADINGVIEW_BTC_BASE_DRY_RUN_OBSERVATION_NOT_LIVE",
         "READY_FOR_LOCAL_TRADINGVIEW_LIVE_MICRO_ARMED_REVIEW_NOT_MUTATION",
         "BLOCKED_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED",
         "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE",
@@ -84,6 +89,7 @@ foreach ($pattern in @(
         "TRADING_MCP_KEY",
         "TRADING_SIGNAL_SOURCE_PRIMARY",
         "TRADINGVIEW_LOCAL_EXECUTION_MODE",
+        "BTC_BASE_DRY_RUN",
         "TRADING_OCO_POLLER_ENABLED")) {
     Assert-Contains -Name "local TradingView candidate smoke" -Pattern $pattern
 }

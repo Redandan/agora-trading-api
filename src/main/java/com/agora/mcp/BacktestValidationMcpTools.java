@@ -17,6 +17,7 @@ import com.agora.service.ai.AiStrategyDiscoveryService;
 import com.agora.service.backtest.BacktestEngine;
 import com.agora.service.backtest.BacktestQualityValidator;
 import com.agora.service.backtest.BacktestTradeValidator;
+import com.agora.service.backtest.BtcBaseShadowBacktestSimulator;
 import com.agora.service.backtest.LiveSignalContext;
 import com.agora.service.backtest.Strategy;
 import com.agora.service.backtest.StrategyContext;
@@ -495,6 +496,200 @@ public class BacktestValidationMcpTools {
                 capitalUsed, finalValue, netPnl, totalReturn * 100.0,
                 maxDrawdown * 100.0, winningLots, lots.size(), winRate * 100.0,
                 String.join("\n", tailRows));
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.ANALYTICS})
+    @Tool(description = "只讀執行 SCORE_BUY 的 TradingView BTC_BASE 影子回測。" +
+            "買點來源完全沿用 TradingView parity order intents；BTC_BASE 只改倉位語義：" +
+            "按每次買點固定 notional 累積 BTC 底倉、套用底倉曝光上限、可選獲利分批減倉與回撤風險標記。" +
+            "不寫庫、不下單、不掛 OCO，用於評估用 BTC base 取代固定 OCO 進出場前的買點與底倉行為。")
+    public String runScoreBuyTradingViewBtcBaseBacktest(Long strategyId, String symbol, String intervalCode,
+                                                        Integer days, String source, String configOverrideJson,
+                                                        Double baseBuyNotionalUsdt, Double maxBaseExposureUsdt,
+                                                        Double takeProfitReducePct, Double takeProfitReduceFraction,
+                                                        Double emergencyDrawdownPct, Double emergencyReduceFraction,
+                                                        Double feeRate, Integer limit) {
+        int daysVal = days != null ? days : 365;
+        int limitVal = Math.max(1, Math.min(limit != null ? limit : 50, 500));
+        double fee = feeRate != null ? Math.max(0.0, feeRate) : 0.001;
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase();
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase();
+
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        if (!isScoreBuy(strategyEntity.getStrategyType())) {
+            return "❌ strategyId=" + strategyId + " 不是 SCORE_BUY 類型，實際類型=" + strategyEntity.getStrategyType();
+        }
+
+        String src = resolvePreviewSource(source, strategyEntity.getKlineSource());
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+
+        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                symbolVal, intervalVal, src, queryStart, endTime);
+        if (klines.isEmpty()) {
+            return String.format("❌ 查無 K 線: symbol=%s interval=%s source=%s range=%s~%s",
+                    symbolVal, intervalVal, src, queryStart, endTime);
+        }
+
+        Map<String, Object> config = new HashMap<String, Object>(btStrategyService.parseConfig(strategyEntity.getConfigJson()));
+        if (configOverrideJson != null && !configOverrideJson.isBlank()) {
+            try {
+                Map<String, Object> override = objectMapper.readValue(configOverrideJson,
+                        new TypeReference<Map<String, Object>>() {});
+                override.remove("initialCapital");
+                override.remove("feeRate");
+                override.remove("skipPersist");
+                config.putAll(override);
+            } catch (Exception e) {
+                return "❌ configOverrideJson 格式錯誤: " + e.getMessage();
+            }
+        }
+        config.put("runIntervalCode", intervalVal);
+
+        Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
+        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> buyIntents =
+                new ArrayList<BtcBaseShadowBacktestSimulator.BuyIntent>();
+        List<String> orderRows = new ArrayList<String>();
+        LocalDateTime firstOrderAt = null;
+        LocalDateTime lastOrderAt = null;
+
+        for (int i = 0; i < klines.size(); i++) {
+            MdKline current = klines.get(i);
+            MdKline previous = i > 0 ? klines.get(i - 1) : null;
+            StrategyContext context = new StrategyContext(i, current, previous, klines, indicators);
+
+            LiveSignalContext.clear();
+            StrategySignal signal = strategy.evaluate(context, config);
+            List<LiveSignalContext.OrderIntent> intents = LiveSignalContext.getOrderIntents();
+            if (current.getOpenTime().isBefore(visibleStart) || intents.isEmpty()) {
+                continue;
+            }
+
+            if (firstOrderAt == null) {
+                firstOrderAt = current.getOpenTime();
+            }
+            lastOrderAt = current.getOpenTime();
+            double entryPrice = current.getClosePrice().doubleValue();
+            Map<String, Object> details = LiveSignalContext.getDetails();
+            for (LiveSignalContext.OrderIntent intent : intents) {
+                double tvQuantity = Math.max(0.0, intent.quantity());
+                if (tvQuantity <= 0.0 || entryPrice <= 0.0) {
+                    continue;
+                }
+                BtcBaseShadowBacktestSimulator.BuyIntent buyIntent =
+                        new BtcBaseShadowBacktestSimulator.BuyIntent(
+                                current.getOpenTime(), tvQuantity, intent.reason(), intent.label(), signal.name());
+                buyIntents.add(buyIntent);
+                orderRows.add(String.format(Locale.ROOT,
+                        "%s sourceBuyPoint=TradingViewParity entry=%s tvQty=%.2f reason=%s label=%s signal=%s nn=%s rsi=%s",
+                        current.getOpenTime(), fmt(entryPrice), tvQuantity,
+                        intent.reason(), intent.label(), signal.name(),
+                        detail(details, "tradingview_nn_output"),
+                        detail(details, "tradingview_rsi")));
+            }
+        }
+
+        String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
+        if (buyIntents.isEmpty()) {
+            return String.format(
+                    "=== SCORE_BUY TradingView BTC_BASE shadow backtest ===\n" +
+                    "boundary=READ_ONLY\n" +
+                    "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                    "%s\n" +
+                    "orderBars=0 orderIntents=0\n" +
+                    "buyPointParity=TradingView parity order intents are the only buy source.\n" +
+                    "note=未產生 TradingView order intent；不寫庫、不下單、不掛 OCO。",
+                    strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                    coverageLine);
+        }
+
+        List<MdKline> visibleKlines = klines.stream()
+                .filter(k -> !k.getOpenTime().isBefore(visibleStart))
+                .toList();
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = visibleKlines.stream()
+                .map(k -> new BtcBaseShadowBacktestSimulator.Bar(k.getOpenTime(), k.getClosePrice().doubleValue()))
+                .toList();
+        BtcBaseShadowBacktestSimulator.Config btcBaseConfig =
+                new BtcBaseShadowBacktestSimulator.Config(
+                        baseBuyNotionalUsdt != null ? baseBuyNotionalUsdt : 10.0,
+                        maxBaseExposureUsdt != null ? maxBaseExposureUsdt : 250.0,
+                        1.0,
+                        fee,
+                        takeProfitReducePct != null ? takeProfitReducePct : 0.06,
+                        takeProfitReduceFraction != null ? takeProfitReduceFraction : 0.25,
+                        emergencyDrawdownPct != null ? emergencyDrawdownPct : 0.12,
+                        emergencyReduceFraction != null ? emergencyReduceFraction : 0.0);
+        BtcBaseShadowBacktestSimulator.Result result =
+                BtcBaseShadowBacktestSimulator.run(bars, buyIntents, btcBaseConfig);
+
+        List<BtcBaseShadowBacktestSimulator.Event> events = result.events();
+        List<String> tailRows = events.stream()
+                .skip(Math.max(0, events.size() - limitVal))
+                .map(event -> String.format(Locale.ROOT,
+                        "%s type=%s price=%s notional=%.2f qty=%.8f costBasis=%.2f inventoryQty=%.8f avgCost=%s realizedPnl=%.2f reason=%s label=%s signal=%s tvQty=%.2f",
+                        event.time(), event.type(), fmt(event.price()), event.notional(), event.quantity(),
+                        event.costBasisUsdt(), event.inventoryQty(), fmt(event.avgCost()),
+                        event.realizedPnl(), event.reason(), event.label(), event.signal(),
+                        event.tradingViewQuantity()))
+                .toList();
+
+        return String.format(Locale.ROOT,
+                "=== SCORE_BUY TradingView BTC_BASE shadow backtest ===\n" +
+                "boundary=READ_ONLY\n" +
+                "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                "%s\n" +
+                "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
+                "buyPointParity=TradingView parity order intents are the only buy source; BTC_BASE changes sizing/cap/reduction only.\n" +
+                "execution=BTC_BASE shadow: oco=false, fixedSLTP=false, baseBuyNotionalUsdt=%.2f, maxBaseExposureUsdt=%.2f, feeRate=%.4f, takeProfitReducePct=%.2f%%, takeProfitReduceFraction=%.2f%%, emergencyDrawdownPct=%.2f%%, emergencyReduceFraction=%.2f%%\n" +
+                "finalMark=%s finalClose=%s\n\n" +
+                "買點/倉位:\n" +
+                "  tradingViewOrderIntents: %d\n" +
+                "  executedBaseBuys: %d\n" +
+                "  cappedBuys: %d\n" +
+                "  skippedByExposureCap: %d\n" +
+                "  totalGrossBuys: %.2f USDT\n" +
+                "  maxBaseCost: %.2f USDT\n" +
+                "  remainingCostBasis: %.2f USDT\n" +
+                "  inventoryQty: %.8f BTC\n" +
+                "  avgCost: %s\n\n" +
+                "績效:\n" +
+                "  finalInventoryValueBeforeExitFee: %.2f USDT\n" +
+                "  finalExitFeeEstimate: %.2f USDT\n" +
+                "  realizedPnl: %.2f USDT\n" +
+                "  unrealizedPnlAfterExitFee: %.2f USDT\n" +
+                "  totalPnl: %.2f USDT\n" +
+                "  returnOnGrossBuys: %.2f%%\n\n" +
+                "風控/減倉:\n" +
+                "  takeProfitReductions: %d\n" +
+                "  emergencyDrawdownWarnings: %d\n" +
+                "  emergencyReductions: %d\n" +
+                "  maxInventoryDrawdown: %.2f%%\n\n" +
+                "notAuthorization=read-only BTC_BASE shadow report only; no DB write, no production env change, no deploy, no order, no OCO/grid/fund/Earn/Telegram/scheduler/exchange mutation.\n\n" +
+                "最新 BTC_BASE events:\n%s\n\n" +
+                "最新 TradingView buy intents:\n%s",
+                strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
+                coverageLine,
+                result.orderBarCount(), result.orderIntentCount(), firstOrderAt, lastOrderAt,
+                result.config().buyNotionalUsdt(), result.config().maxBaseExposureUsdt(), result.config().feeRate(),
+                result.config().takeProfitReducePct() * 100.0,
+                result.config().takeProfitReduceFraction() * 100.0,
+                result.config().emergencyDrawdownPct() * 100.0,
+                result.config().emergencyReduceFraction() * 100.0,
+                result.finalTime(), fmt(result.finalClose()),
+                result.orderIntentCount(), result.executedBuys(), result.cappedBuys(), result.skippedByCap(),
+                result.totalGrossBuys(), result.maxCostBasis(), result.remainingCostBasis(),
+                result.inventoryQty(), fmt(result.avgCost()),
+                result.finalInventoryValue(), result.finalExitFee(), result.realizedPnl(), result.unrealizedPnl(),
+                result.totalPnl(), result.deployedReturn() * 100.0,
+                result.takeProfitReductions(), result.emergencyWarnings(), result.emergencyReductions(),
+                result.maxInventoryDrawdownPct() * 100.0,
+                String.join("\n", tailRows),
+                String.join("\n", orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size())));
     }
 
     static String buildTradingViewDataCoverageLine(List<MdKline> klines, LocalDateTime visibleStart,

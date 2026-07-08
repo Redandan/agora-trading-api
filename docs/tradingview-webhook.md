@@ -113,6 +113,7 @@ TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
 TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
+# Allowed: LEGACY, OFF, DRY_RUN, BTC_BASE_DRY_RUN, LIVE_MICRO.
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
 TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
 TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
@@ -137,6 +138,14 @@ dedicated LOCAL_TRADINGVIEW execution receipt for each local parity order
 intent. This proves that the TradingView-equivalent buy point reached the
 LOCAL_TRADINGVIEW execution lane without enabling the separate ScoreBuy
 pre-position, confirmed-deploy, or post-scout schedulers.
+`TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_DRY_RUN` uses the same
+TradingView-equivalent buy points but records BTC-base accumulation/shadow
+semantics instead of the OCO execution semantics. It is read-only/dry-run: no
+market order is sent, no OCO is attached, and the OCO lifecycle smoke is not a
+requirement for this mode. For historical comparison, call
+`runScoreBuyTradingViewBtcBaseBacktest`; it reports TradingView order intents,
+executed base buys, exposure-cap skips, profit-reduction events, emergency
+drawdown markers, and PnL without writing DB rows.
 `TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY` preserves the previous three-flag
 behavior for rollback.
 
@@ -172,6 +181,10 @@ and the exact OCO lifecycle authorization for `TRADING_OCO_POLLER_ENABLED=true`
 while keeping `POSITION_EXIT_MANAGER_ENABLED=false`. Post-env verification must
 include
 `.\scripts\smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked`.
+In `BTC_BASE_DRY_RUN`, the same candidate smoke prints
+`localTradingViewBtcBaseDryRunArmed=true` when the local evaluator and dry-run
+receipt path are armed. That mode can still be used to audit missed buy points,
+but it is not live approval and does not exercise the OKX/OCO write path.
 For day-to-day LOCAL_TRADINGVIEW-only monitoring, use
 `.\scripts\smoke_local_tradingview_only_readiness_ssh.ps1`; it wraps deployment
 metadata, live-readiness audit, background automation, and the candidate smoke

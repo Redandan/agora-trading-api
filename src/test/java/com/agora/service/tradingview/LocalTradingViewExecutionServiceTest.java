@@ -67,6 +67,36 @@ class LocalTradingViewExecutionServiceTest {
     }
 
     @Test
+    void btcBaseDryRunWritesDedicatedReceiptWithoutOcoOrder() {
+        Fixture fixture = fixture(props(ExecutionMode.BTC_BASE_DRY_RUN));
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)),
+                eq("LocalTradingViewBtcBaseDryRun"),
+                eq("Local TradingView BTC_BASE dry-run; buy point would accumulate BTC base without OCO order"),
+                contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("executionStatus", "WOULD_EXECUTE_DRY_RUN")
+                .containsEntry("executionModeSetting", "BTC_BASE_DRY_RUN")
+                .containsEntry("executionStrategy", "BTC_BASE")
+                .containsEntry("btcBaseMode", true)
+                .containsEntry("btcBaseOcoRequired", false)
+                .containsEntry("btcBaseShadowOnly", true)
+                .containsEntry("btcBaseBuyPointSource", "TradingViewParityOrderIntent")
+                .containsEntry("wouldExecute", true)
+                .containsEntry("orderSent", false)
+                .containsEntry("ocoAttached", false);
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.tradingService, never()).placeOco(any(), any(), any(), any());
+        verify(fixture.liveSignalRepository, never()).save(any());
+    }
+
+    @Test
     void liveEnabledPlacesMarketBuyAttachesOcoAndWritesEvidence() {
         Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
         TradeResult buy = new TradeResult();

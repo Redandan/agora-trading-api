@@ -34,7 +34,7 @@ public record TradingViewLocalSignalProperties(
     public boolean effectiveExecutionEnabled() {
         return switch (executionMode) {
             case OFF -> false;
-            case DRY_RUN, LIVE_MICRO -> true;
+            case DRY_RUN, BTC_BASE_DRY_RUN, LIVE_MICRO -> true;
             case LEGACY -> executionEnabled;
         };
     }
@@ -42,7 +42,7 @@ public record TradingViewLocalSignalProperties(
     public boolean effectiveExecutionDryRun() {
         return switch (executionMode) {
             case LIVE_MICRO -> false;
-            case OFF, DRY_RUN -> true;
+            case OFF, DRY_RUN, BTC_BASE_DRY_RUN -> true;
             case LEGACY -> executionDryRun;
         };
     }
@@ -50,7 +50,7 @@ public record TradingViewLocalSignalProperties(
     public boolean effectiveExecutionLiveOrderEnabled() {
         return switch (executionMode) {
             case LIVE_MICRO -> true;
-            case OFF, DRY_RUN -> false;
+            case OFF, DRY_RUN, BTC_BASE_DRY_RUN -> false;
             case LEGACY -> executionLiveOrderEnabled;
         };
     }
@@ -59,6 +59,7 @@ public record TradingViewLocalSignalProperties(
         LEGACY,
         OFF,
         DRY_RUN,
+        BTC_BASE_DRY_RUN,
         LIVE_MICRO
     }
 }

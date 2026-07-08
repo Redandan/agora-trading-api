@@ -99,7 +99,7 @@ covers registration plus safe executable diagnostics while deployed acceptance
 covers the production-only governance SQL paths.
 
 The current local parity batch registers 305 MCP tools in the local-smoke Spring
-context. The reusable parity list requires 35 representative tools and is kept
+context. The reusable parity list requires 36 representative tools and is kept
 in sync across local smoke and server-local SSH smoke by
 `scripts/verify_local.ps1`, which parses `scripts/smoke_mcp_parity.ps1`,
 `scripts/smoke_local_health.ps1`, and `scripts/smoke_mcp_parity_ssh.ps1`.
@@ -163,7 +163,7 @@ schedulers and the internal exchange-rate API available.
    `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`. Re-run shared-mode
    schema compare before any future baseline regeneration or `V2__...`
    migration review.
-4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion`, the 35-tool
+4. Smoke server-local `/api/mcp` with `getMcpRegistryVersion`, the 36-tool
    representative parity list in `scripts/smoke_mcp_parity.ps1` or
    `scripts/smoke_mcp_parity_ssh.ps1`, and the current read-only acceptance
    surfaces: DataFreshnessGuard RCA, anti-wick guardrail coverage, event-risk

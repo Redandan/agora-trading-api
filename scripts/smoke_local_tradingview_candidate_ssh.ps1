@@ -323,7 +323,7 @@ def compact(text, limit=900):
     return value if len(value) <= limit else value[:limit - 3] + "..."
 
 print("[local-tradingview-candidate] read-only server-local MCP smoke")
-print("scope=READ_ONLY; calls previewScoreBuyTradingViewOrders and runScoreBuyTradingViewParityBacktest only; no DB write, env change, order, OCO, grid, fund, Earn, Telegram, scheduler, or exchange mutation.")
+print("scope=READ_ONLY; calls previewScoreBuyTradingViewOrders, runScoreBuyTradingViewParityBacktest, and runScoreBuyTradingViewBtcBaseBacktest only; no DB write, env change, order, OCO, grid, fund, Earn, Telegram, scheduler, or exchange mutation.")
 print(f"url={url} strategyId={strategy_id} symbol={symbol} intervalCode={interval_code} days={days} source={source}")
 
 args = {
@@ -339,10 +339,23 @@ backtest_args = dict(args)
 backtest_args["feeRate"] = 0.001
 backtest_args["limit"] = 10
 backtest = call_tool("runScoreBuyTradingViewParityBacktest", backtest_args)
+btc_base_args = dict(args)
+btc_base_args["baseBuyNotionalUsdt"] = 10.0
+btc_base_args["maxBaseExposureUsdt"] = 250.0
+btc_base_args["takeProfitReducePct"] = 0.06
+btc_base_args["takeProfitReduceFraction"] = 0.25
+btc_base_args["emergencyDrawdownPct"] = 0.12
+btc_base_args["emergencyReduceFraction"] = 0.0
+btc_base_args["feeRate"] = 0.001
+btc_base_args["limit"] = 10
+btc_base = call_tool("runScoreBuyTradingViewBtcBaseBacktest", btc_base_args)
 
 require("preview heading", r"SCORE_BUY TradingView order-intent preview", preview)
 require("backtest heading", r"SCORE_BUY TradingView parity backtest", backtest)
 require("backtest non-persistence marker", r"bt_backtest_result", backtest)
+require("BTC_BASE shadow heading", r"SCORE_BUY TradingView BTC_BASE shadow backtest", btc_base)
+require("BTC_BASE read-only boundary", r"boundary=READ_ONLY", btc_base)
+require("BTC_BASE non-authorization marker", r"notAuthorization=read-only BTC_BASE shadow report only", btc_base)
 
 data_end = field(r"dataEnd=([0-9T:\-]+)", preview)
 data_close = field(r"dataClose=([0-9T:\-]+)", preview)
@@ -385,6 +398,10 @@ elif mode == "DRY_RUN":
     effective_execution_enabled = True
     effective_execution_dry_run = True
     effective_live_order_enabled = False
+elif mode == "BTC_BASE_DRY_RUN":
+    effective_execution_enabled = True
+    effective_execution_dry_run = True
+    effective_live_order_enabled = False
 elif mode == "LIVE_MICRO":
     effective_execution_enabled = True
     effective_execution_dry_run = False
@@ -397,6 +414,7 @@ else:
 
 local_evaluator_active = primary == "LOCAL_TRADINGVIEW" and local_enabled
 dry_run_armed = local_evaluator_active and effective_execution_enabled and effective_execution_dry_run and not effective_live_order_enabled
+btc_base_dry_run_armed = local_evaluator_active and mode == "BTC_BASE_DRY_RUN" and dry_run_armed
 live_micro_armed = local_evaluator_active and mode == "LIVE_MICRO" and effective_execution_enabled and not effective_execution_dry_run and effective_live_order_enabled
 execution_path_armed = dry_run_armed or live_micro_armed
 oco_lifecycle_tracked = (not live_micro_armed) or oco_poller_enabled
@@ -505,19 +523,20 @@ open_exact_position_exists = isinstance(open_exact_position_count, int) and open
 duplicate_bar_exists = isinstance(duplicate_bar_live_signal_count, int) and duplicate_bar_live_signal_count > 0
 
 pre_execution_blockers = []
+btc_base_shadow_mode = mode == "BTC_BASE_DRY_RUN"
 if pre_execution_evidence_status != "OK":
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_PRE_EXECUTION_DB_EVIDENCE_UNAVAILABLE")
 if not scope_allowed:
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_SCOPE_NOT_ALLOWLISTED")
 if not source_allowed:
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_SOURCE_NOT_ALLOWLISTED")
-if not okx_auto_trade_enabled:
+if not btc_base_shadow_mode and not okx_auto_trade_enabled:
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_OKX_DISABLED")
-if not okx_private_credentials_configured:
+if not btc_base_shadow_mode and not okx_private_credentials_configured:
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_OKX_PRIVATE_CREDENTIALS_MISSING")
-if not notional_accepted:
+if not btc_base_shadow_mode and not notional_accepted:
     pre_execution_blockers.append("LOCAL_TRADINGVIEW_NOTIONAL_BELOW_MINIMUM")
-if pre_execution_evidence_status == "OK":
+if pre_execution_evidence_status == "OK" and not btc_base_shadow_mode:
     if not daily_cap_available:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_DAILY_CAP_REACHED")
     if not open_position_cap_available:
@@ -531,9 +550,9 @@ if current_status == "HAS_CURRENT_BUY_CANDIDATE":
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_PRE_EXECUTION_CANDIDATE_PRICE_MISSING")
     if signal_stale:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_SIGNAL_STALE")
-    if not oco_plan_valid:
+    if not btc_base_shadow_mode and not oco_plan_valid:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_INVALID_OCO_PLAN")
-    if duplicate_bar_exists:
+    if not btc_base_shadow_mode and duplicate_bar_exists:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_DUPLICATE_BAR")
 
 if pre_execution_blockers:
@@ -553,7 +572,7 @@ if mode == "LIVE_MICRO":
         blockers.append("LOCAL_TRADINGVIEW_LIVE_MICRO_NOT_ARMED")
     elif not oco_poller_enabled:
         blockers.append("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED")
-elif mode == "DRY_RUN" or require_dry_run_armed:
+elif mode in ("DRY_RUN", "BTC_BASE_DRY_RUN") or require_dry_run_armed:
     if not dry_run_armed:
         blockers.append("LOCAL_TRADINGVIEW_DRY_RUN_NOT_ARMED")
 elif not execution_path_armed:
@@ -592,6 +611,7 @@ print(f"  effectiveExecutionDryRun={str(effective_execution_dry_run).lower()}")
 print(f"  effectiveLiveOrderEnabled={str(effective_live_order_enabled).lower()}")
 print(f"  localTradingViewEvaluatorActive={str(local_evaluator_active).lower()}")
 print(f"  localTradingViewExecutionDryRunArmed={str(dry_run_armed).lower()}")
+print(f"  localTradingViewBtcBaseDryRunArmed={str(btc_base_dry_run_armed).lower()}")
 print(f"  localTradingViewLiveMicroArmed={str(live_micro_armed).lower()}")
 print(f"  localTradingViewExecutionPathArmed={str(execution_path_armed).lower()}")
 print(f"  tradingOcoPollerEnabled={str(oco_poller_enabled).lower()}")
@@ -649,12 +669,18 @@ print(f"  netPnlUsdt={net_pnl}")
 print(f"  totalReturn={total_return}")
 
 print("")
+print("BTC_BASE Shadow Summary:")
+print("  " + compact(btc_base))
+
+print("")
 print("Blocker Classification:")
 print("  local_tradingview_blockers=" + json.dumps(blockers))
 if pre_execution_blockers:
     readiness = "BLOCKED_LOCAL_TRADINGVIEW_PRE_EXECUTION_GATES"
 elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     readiness = "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE"
+elif btc_base_dry_run_armed:
+    readiness = "READY_FOR_LOCAL_TRADINGVIEW_BTC_BASE_DRY_RUN_OBSERVATION_NOT_LIVE"
 elif dry_run_armed:
     readiness = "READY_FOR_LOCAL_TRADINGVIEW_DRY_RUN_OBSERVATION_NOT_LIVE"
 elif live_micro_armed and not oco_poller_enabled:
@@ -668,6 +694,8 @@ if pre_execution_blockers:
     next_action = "Fix LOCAL_TRADINGVIEW pre-execution blockers before treating the next parity BUY as executable."
 elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     next_action = "Wait for the latest closed bar to emit a TradingView parity BUY intent, then rerun this smoke before any live plan."
+elif btc_base_dry_run_armed:
+    next_action = "Review BTC_BASE_DRY_RUN shadow accumulation evidence only; this smoke is not live approval."
 elif dry_run_armed:
     next_action = "Review DRY_RUN evidence only; this smoke is not live approval."
 elif live_micro_armed and not oco_poller_enabled:

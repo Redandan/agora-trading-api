@@ -58,6 +58,8 @@ TRADINGVIEW_LOCAL_CATCH_UP_BARS=3
 TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS=72
 TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
 TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=10.0
+# Allowed: LEGACY, OFF, DRY_RUN, BTC_BASE_DRY_RUN, LIVE_MICRO.
+# BTC_BASE_DRY_RUN is a read-only/shadow BTC base accumulation receipt path.
 TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
 TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
 TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
@@ -299,7 +301,13 @@ Expected:
   outage or delayed data event; set it to `0` only for an explicitly reviewed
   diagnostic. `TRADINGVIEW_LOCAL_EXECUTION_MODE=DRY_RUN`
   adds a dedicated LOCAL_TRADINGVIEW execution receipt for each parity order
-  intent. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO` is the simplified live
+  intent. `TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_DRY_RUN` keeps the same
+  TradingView parity buy points but records a BTC-base accumulation dry-run
+  receipt and BTC_BASE shadow report semantics; it does not place orders, attach
+  OCO, or require the OCO lifecycle lane. Use
+  `runScoreBuyTradingViewBtcBaseBacktest` for the read-only bottom-accumulation
+  backtest with per-buy notional, max base exposure, profit reductions, and
+  emergency drawdown markers. `TRADINGVIEW_LOCAL_EXECUTION_MODE=LIVE_MICRO` is the simplified live
   lane: when local TradingView parity BUY conditions pass, the service may buy
   without also setting the legacy `TRADINGVIEW_LOCAL_EXECUTION_ENABLED`,
   `TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN`, and

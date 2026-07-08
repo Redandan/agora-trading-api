@@ -126,6 +126,7 @@ $requiredTools = @(
     "listSchedulerTasks",
     "listStrategies",
     "runBacktest",
+    "runScoreBuyTradingViewBtcBaseBacktest",
     "listGrids",
     "getOpenPositions",
     "getSystemHealth",

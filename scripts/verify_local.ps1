@@ -729,7 +729,7 @@ function Assert-McpParityToolCoverage {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_mcp_parity_ssh.ps1", "scripts/smoke_signal_correctness_ssh.ps1") -Description "MySQL-backed governance parity smoke is executable on server-local SSH marker $marker"
     }
     Assert-RgNoMatch -Pattern "MCP parity smoke must not require WRITE_TRADING|MCP parity smoke must stay read-only/ops-callable" -Paths @("README.md", "docs", "SPLIT_PROGRESS.md") -Description "MCP parity write-tool guard should live in verifier, not operator docs"
-    Assert-RgMatch -Pattern "requires 35 representative tools|35 required|required=35" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "MCP parity required-tool count is documented as 35"
+    Assert-RgMatch -Pattern "requires 36 representative tools|36 required|required=36" -Paths @("docs/legacy-trading-parity-inventory.md", "docs/split-acceptance-status.md", "SPLIT_PROGRESS.md") -Description "MCP parity required-tool count is documented as 36"
     Assert-RgNoMatch -Pattern "26 required|requires 26|30 required|requires 30 representative tools|required=30|32 required|requires 32 representative tools|required=32" -Paths @("README.md", "SPLIT_PROGRESS.md", "docs") -Description "stale MCP parity required-tool count"
     foreach ($marker in @("smoke_mcp_parity.ps1", "-BaseUrl", "-McpKey", "Reusable MCP parity smoke failed")) {
         Assert-RgMatch -Pattern $marker -Paths @("scripts/smoke_local_health.ps1") -Description "local smoke invokes reusable MCP parity smoke marker $marker"
@@ -752,7 +752,8 @@ function Assert-StrategyExecutionVerifierReadOnly {
         "MACHINE_STATUS missing evaluation or missed order suspected",
         "signal_source_policy_primary",
         "POLICY_SUPPRESSED_NOT_MISSED_EVALUATION",
-        "legacy LiveSignalEvaluator 已由 signal-source policy 停用",
+        "TRADINGVIEW primary expects external TradingView alerts",
+        "disables legacy LiveSignalEvaluator",
         "loadKlineReadinessLine",
         "req\.setSource\(klineSource\)",
         "req\.setSkipPersist\(true\)"
@@ -1182,7 +1183,7 @@ try {
     Assert-RgMatch -Pattern "Covered through .*McpTools|MCP-first" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy HTTP parity inventory records MCP-first replacement boundary"
     Assert-RgMatch -Pattern "Do not remove AgoraMarketAPI marketplace HTTP or internal exchange-rate APIs" -Paths @("docs/legacy-trading-parity-inventory.md") -Description "legacy parity inventory preserves marketplace/internal API boundary"
     foreach ($pattern in @(
-        "35-tool",
+        "36-tool",
         "smoke_mcp_parity_ssh\.ps1",
         "anti-wick guardrail coverage",
         "event-risk status",

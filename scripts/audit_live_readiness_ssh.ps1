@@ -361,16 +361,16 @@ if '"UP"' not in health:
     blockers.append("HEALTH_NOT_UP")
 
 local_tv_execution_mode = (read_env_key("TRADINGVIEW_LOCAL_EXECUTION_MODE") or "LEGACY").strip().upper().replace("-", "_")
-if local_tv_execution_mode not in ("LEGACY", "OFF", "DRY_RUN", "LIVE_MICRO"):
+if local_tv_execution_mode not in ("LEGACY", "OFF", "DRY_RUN", "BTC_BASE_DRY_RUN", "LIVE_MICRO"):
     blockers.append("LOCAL_TRADINGVIEW_EXECUTION_MODE_INVALID")
 
 local_tv_execution_enabled = (
-    local_tv_execution_mode in ("DRY_RUN", "LIVE_MICRO")
+    local_tv_execution_mode in ("DRY_RUN", "BTC_BASE_DRY_RUN", "LIVE_MICRO")
     or (local_tv_execution_mode == "LEGACY" and bool_env("TRADINGVIEW_LOCAL_EXECUTION_ENABLED", False))
 )
 local_tv_execution_dry_run = (
     False if local_tv_execution_mode == "LIVE_MICRO"
-    else True if local_tv_execution_mode in ("OFF", "DRY_RUN")
+    else True if local_tv_execution_mode in ("OFF", "DRY_RUN", "BTC_BASE_DRY_RUN")
     else bool_env("TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN", True)
 )
 local_tv_live_order_enabled = (

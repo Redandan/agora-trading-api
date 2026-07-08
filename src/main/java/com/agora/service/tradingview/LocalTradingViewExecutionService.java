@@ -2,6 +2,7 @@ package com.agora.service.tradingview;
 
 import com.agora.config.OkxTradingProperties;
 import com.agora.config.properties.TradingViewLocalSignalProperties;
+import com.agora.config.properties.TradingViewLocalSignalProperties.ExecutionMode;
 import com.agora.model.BtDecisionAudit;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
@@ -113,6 +114,9 @@ public class LocalTradingViewExecutionService {
         if (Boolean.TRUE.equals(context.get("executionSignalStale"))) {
             return "LocalTradingViewSignalStale";
         }
+        if (props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN) {
+            return "LocalTradingViewBtcBaseDryRun";
+        }
         if (props.effectiveExecutionDryRun()) {
             return "LocalTradingViewExecutionDryRun";
         }
@@ -166,12 +170,13 @@ public class LocalTradingViewExecutionService {
                             String blocker,
                             Map<String, Object> context) {
         String status = switch (blocker) {
-            case "LocalTradingViewExecutionDryRun" -> "WOULD_EXECUTE_DRY_RUN";
+            case "LocalTradingViewExecutionDryRun", "LocalTradingViewBtcBaseDryRun" -> "WOULD_EXECUTE_DRY_RUN";
             case "LocalTradingViewExecutionBarCap" -> "BLOCKED_BAR_CAP";
             case "LocalTradingViewLiveOrderNotEnabled" -> "BLOCKED_LIVE_ORDER_FLAG";
             default -> "BLOCKED_HARD_GATE";
         };
-        boolean wouldExecute = "LocalTradingViewExecutionDryRun".equals(blocker);
+        boolean wouldExecute = "LocalTradingViewExecutionDryRun".equals(blocker)
+                || "LocalTradingViewBtcBaseDryRun".equals(blocker);
         String reason = reason(blocker);
         context.put("executionStatus", status);
         context.put("wouldExecute", wouldExecute);
@@ -403,6 +408,13 @@ public class LocalTradingViewExecutionService {
             context.putAll(baseContext);
         }
         context.put("executionMode", EXECUTION_MODE);
+        context.put("executionStrategy", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN
+                ? "BTC_BASE"
+                : "LOCAL_TRADINGVIEW_OCO_PARITY");
+        context.put("btcBaseMode", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN);
+        context.put("btcBaseOcoRequired", props.executionMode() != ExecutionMode.BTC_BASE_DRY_RUN);
+        context.put("btcBaseShadowOnly", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN);
+        context.put("btcBaseBuyPointSource", "TradingViewParityOrderIntent");
         context.put("executionEnabled", true);
         context.put("executionModeSetting", props.executionMode().name());
         context.put("executionDryRun", props.effectiveExecutionDryRun());
@@ -489,6 +501,7 @@ public class LocalTradingViewExecutionService {
         node.put("version", "local-tradingview-execution-v1");
         node.put("status", status);
         node.put("executionMode", EXECUTION_MODE);
+        node.put("executionStrategy", String.valueOf(context.get("executionStrategy")));
         node.put("signalSource", "LOCAL_TRADINGVIEW");
         node.put("strategyId", String.valueOf(context.get("strategyId")));
         node.put("symbol", String.valueOf(context.get("symbol")));
@@ -507,6 +520,7 @@ public class LocalTradingViewExecutionService {
         node.put("mode", props.executionMode().name());
         node.put("dryRun", props.effectiveExecutionDryRun());
         node.put("liveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
+        node.put("btcBaseMode", props.executionMode() == ExecutionMode.BTC_BASE_DRY_RUN);
         return node.toString();
     }
 
@@ -516,6 +530,8 @@ public class LocalTradingViewExecutionService {
                     "Local TradingView parity execution skipped by per-bar intent cap";
             case "LocalTradingViewExecutionDryRun" ->
                     "Local TradingView parity execution dry-run; no order sent";
+            case "LocalTradingViewBtcBaseDryRun" ->
+                    "Local TradingView BTC_BASE dry-run; buy point would accumulate BTC base without OCO order";
             case "LocalTradingViewLiveOrderNotEnabled" ->
                     "Local TradingView live order flag is disabled; no order sent";
             case "LocalTradingViewSignalStale" ->

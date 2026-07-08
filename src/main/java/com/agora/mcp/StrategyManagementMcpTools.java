@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -420,7 +421,8 @@ public class StrategyManagementMcpTools {
             "regimeBypassRsiThreshold(Double,通用 #335: RSI 極端 oversold bypass 門檻,搭配 allowRsiBypassRegime=true 使用,預設 20.0), " +
             "allowRsiBypassRegime(Boolean,通用 #335: 啟用 panic-bottom RSI bypass。當 RSI < regimeBypassRsiThreshold (預設 20) 時，跳過 TRENDING_DOWN→LONG hard-block。建議僅 mean-reversion / panic-bottom 策略 (#485 SCORE_BUY_V2, #508 OIF) opt-in), " +
             "requireFearGreedBelow(Double,通用 #419: F&G 必須低於此值才允許 LONG 入場 (panic-bottom 策略真實場景過濾)。預設 0=停用。推薦 25 (EXTREME_FEAR 閾值)。RSI<35 必要但不充分,F&G 也低於 25 才算真 panic-bottom), " +
-            "requireFearGreedAbove(Double,通用 #425: F&G 必須高於此值才允許 SHORT 入場 (fade-rally 策略真實場景過濾,#419 對稱版)。預設 0=停用。推薦 75 (GREED 閾值)。同時擋 LONG 與 SHORT entry,因 SHORT-only 策略用 SELL signal 開倉)")
+            "requireFearGreedAbove(Double,通用 #425: F&G 必須高於此值才允許 SHORT 入場 (fade-rally 策略真實場景過濾,#419 對稱版)。預設 0=停用。推薦 75 (GREED 閾值)。同時擋 LONG 與 SHORT entry,因 SHORT-only 策略用 SELL signal 開倉), " +
+            "entryDedupOpenExposureScope(String,通用 EntryDedup scope: ALL_OPEN_ROWS=預設保守; AUTO_TRADED_OPEN_ROWS=只把 auto-traded open rows 視為真實曝險,用於避免 zero-qty shadow rows 擋實單)")
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
     public String setStrategyFlags(
@@ -442,16 +444,21 @@ public class StrategyManagementMcpTools {
             @ToolParam(required = false, description = "通用 #335 — RSI 極端 oversold bypass 門檻 (預設 20)") Double regimeBypassRsiThreshold,
             @ToolParam(required = false, description = "通用 #335 — 啟用 panic-bottom RSI bypass (RSI < regimeBypassRsiThreshold 時跳過 TRENDING_DOWN→LONG hard-block)") Boolean allowRsiBypassRegime,
             @ToolParam(required = false, description = "通用 #419 — F&G 必須低於此值才允許 LONG 入場 (預設 0=停用,推薦 25 for panic-bottom 策略)") Double requireFearGreedBelow,
-            @ToolParam(required = false, description = "通用 #425 — F&G 必須高於此值才允許 SHORT 入場 (預設 0=停用,推薦 75 for fade-rally 策略,#419 對稱版)") Double requireFearGreedAbove) {
+            @ToolParam(required = false, description = "通用 #425 — F&G 必須高於此值才允許 SHORT 入場 (預設 0=停用,推薦 75 for fade-rally 策略,#419 對稱版)") Double requireFearGreedAbove,
+            @ToolParam(required = false, description = "EntryDedup open exposure scope: ALL_OPEN_ROWS / AUTO_TRADED_OPEN_ROWS") String entryDedupOpenExposureScope) {
         if (strategyId == null) return "❌ strategyId 必填";
         if (notes == null || notes.trim().isEmpty()) return "❌ notes 必填(說明為何改此 flag)";
+        String normalizedEntryDedupOpenExposureScope = normalizeEntryDedupOpenExposureScope(entryDedupOpenExposureScope);
+        if (entryDedupOpenExposureScope != null && normalizedEntryDedupOpenExposureScope == null) {
+            return "❌ entryDedupOpenExposureScope 只能是 ALL_OPEN_ROWS 或 AUTO_TRADED_OPEN_ROWS";
+        }
         if (notifyOnly == null && allowShort == null && requireAboveSma200 == null
                 && allowMacdAsLowProxy == null && buyThreshold == null && rsiOversold == null
                 && volumeBreakoutMultiplier == null && yearLookbackBars == null
                 && requireFundingImprovingBars == null && requireNoNewLowBars == null
                 && regimeFilterMinConfidence == null && regimeBypassRsiThreshold == null
                 && allowRsiBypassRegime == null && requireFearGreedBelow == null
-                && requireFearGreedAbove == null) {
+                && requireFearGreedAbove == null && normalizedEntryDedupOpenExposureScope == null) {
             return "❌ 至少要指定一個 flag / 參數";
         }
         StrategyResponse strategy;
@@ -484,6 +491,7 @@ public class StrategyManagementMcpTools {
         appendFlag(setClause, params, changed, "allowRsiBypassRegime", allowRsiBypassRegime);
         appendFlag(setClause, params, changed, "requireFearGreedBelow", requireFearGreedBelow);
         appendFlag(setClause, params, changed, "requireFearGreedAbove", requireFearGreedAbove);
+        appendFlag(setClause, params, changed, "entryDedupOpenExposureScope", normalizedEntryDedupOpenExposureScope);
         // SCORE_BUY / EMA_RSI 專屬 flags — 非此類型時忽略，防止覆蓋 CMI 等指標閾值
         if (isScoreBuyType) {
             appendFlag(setClause, params, changed, "allowMacdAsLowProxy", allowMacdAsLowProxy);
@@ -515,6 +523,7 @@ public class StrategyManagementMcpTools {
             return "❌ 更新失敗: " + e.getMessage();
         }
         if (rows != 1) return "❌ 更新失敗,rows=" + rows;
+        strategyService.evictEnabledStrategiesCache();
 
         log.info("[MCP:setStrategyFlags] strategyId={} changed={} notes={}",
                 strategyId, changed, notes.trim());
@@ -528,6 +537,16 @@ public class StrategyManagementMcpTools {
             sb.append(String.format("%n⚠️ 注意：buyThreshold / rsiOversold / allowMacdAsLowProxy / volumeBreakoutMultiplier / yearLookbackBars 僅適用於 SCORE_BUY/EMA_RSI 類型策略，此策略類型為 %s，上述參數已忽略（未寫入 config）", strategyType));
         }
         return sb.toString();
+    }
+
+    static String normalizeEntryDedupOpenExposureScope(String scope) {
+        if (scope == null) return null;
+        String normalized = scope.trim().toUpperCase(Locale.ROOT);
+        if (normalized.isEmpty()) return null;
+        if ("ALL_OPEN_ROWS".equals(normalized) || "AUTO_TRADED_OPEN_ROWS".equals(normalized)) {
+            return normalized;
+        }
+        return null;
     }
 
     /**

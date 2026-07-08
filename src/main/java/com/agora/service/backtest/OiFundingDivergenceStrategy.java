@@ -88,6 +88,9 @@ public class OiFundingDivergenceStrategy implements Strategy {
                 Map.entry("rsiExtremeThreshold", 20.0),   // RSI below this = extreme oversold bypass
                 Map.entry("stopLossPct", 0.03),
                 Map.entry("fixedTakeProfitPct", 0.06),
+                Map.entry("bottomCatchQualityGateEnabled", true),
+                Map.entry("bottomCatchMinRiskReward", 1.0),
+                Map.entry("bottomCatchMaxStopLossPct", 0.08),
                 Map.entry("allowShort", false),
                 Map.entry("runIntervalCode", "1h")
         );

@@ -79,4 +79,56 @@ class LiveSignalEvaluatorEntryDedupOpenExposureScopeTest {
                 .contains("不是 Ensemble shadow 攔截")
                 .contains("不是漏單");
     }
+
+    @Test
+    void bottomCatchQualityGateBlocksWideDisasterStopWithPoorRiskReward() {
+        LiveSignalEvaluator.BottomCatchQualityDecision decision =
+                LiveSignalEvaluator.evaluateBottomCatchQualityGate(
+                        OiFundingDivergenceStrategy.TYPE,
+                        Map.of(),
+                        0.12,
+                        0.06,
+                        true,
+                        "ULTRA_LOW_DISASTER");
+
+        assertThat(decision.allowed()).isFalse();
+        assertThat(decision.reasonCode())
+                .contains("risk_reward_below_min")
+                .contains("stop_loss_above_max");
+        assertThat(decision.riskReward()).isCloseTo(0.50, org.assertj.core.data.Offset.offset(0.0001));
+        assertThat(decision.reason())
+                .contains("riskReward=0.50")
+                .contains("stopLoss=12.00%");
+    }
+
+    @Test
+    void bottomCatchQualityGateAllowsNormalTwoRPlan() {
+        LiveSignalEvaluator.BottomCatchQualityDecision decision =
+                LiveSignalEvaluator.evaluateBottomCatchQualityGate(
+                        OiFundingDivergenceStrategy.TYPE,
+                        Map.of(),
+                        0.03,
+                        0.06,
+                        false,
+                        "DISABLED");
+
+        assertThat(decision.allowed()).isTrue();
+        assertThat(decision.reasonCode()).isEqualTo("PASS");
+        assertThat(decision.riskReward()).isCloseTo(2.0, org.assertj.core.data.Offset.offset(0.0001));
+    }
+
+    @Test
+    void bottomCatchQualityGateCanBeDisabledByStrategyConfig() {
+        LiveSignalEvaluator.BottomCatchQualityDecision decision =
+                LiveSignalEvaluator.evaluateBottomCatchQualityGate(
+                        OiFundingDivergenceStrategy.TYPE,
+                        Map.of("bottomCatchQualityGateEnabled", false),
+                        0.12,
+                        0.06,
+                        true,
+                        "ULTRA_LOW_DISASTER");
+
+        assertThat(decision.allowed()).isTrue();
+        assertThat(decision.reasonCode()).isEqualTo("DISABLED");
+    }
 }

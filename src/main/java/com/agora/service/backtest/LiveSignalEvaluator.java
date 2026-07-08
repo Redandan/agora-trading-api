@@ -134,6 +134,17 @@ public class LiveSignalEvaluator {
             String policyMode,
             String reason) {}
 
+    record BottomCatchQualityDecision(
+            boolean allowed,
+            String reasonCode,
+            String reason,
+            double riskReward,
+            double minRiskReward,
+            double stopLossPct,
+            double maxStopLossPct,
+            boolean wickAwareSlApplied,
+            String wickAwareSlMode) {}
+
     record FearGreedGateDecision(
             boolean active,
             boolean hardBlock,
@@ -770,6 +781,32 @@ public class LiveSignalEvaluator {
         // 計算年度高點跌幅
         double yearDrop = calcYearDrop(klines, lastIndex, yearLookback, entry.doubleValue());
         double expectedR = computeExpectedR(config, snap, stopLossPct, takeProfitPct);
+        BottomCatchQualityDecision bottomCatchQuality = evaluateBottomCatchQualityGate(
+                strategy.getStrategyType(), config, stopLossPct, takeProfitPct,
+                wickAwareSl.applied(), wickAwareSl.policyMode());
+        if (!bottomCatchQuality.allowed()) {
+            log.info("[LiveSignal] bottom catch quality blocked: strategyId={} symbol={} interval={} reason={}",
+                    strategy.getId(), symbol, intervalCode, bottomCatchQuality.reason());
+            tradingMetrics.signalFiltered("BottomCatchQualityGate", bottomCatchQuality.reasonCode());
+            Map<String, Object> qualityContext = candidateTradePlanContext(
+                    expectedR, getDouble(config, "preTradeMinExpectedR", 0.20),
+                    stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+            qualityContext.put("gate_enabled", true);
+            qualityContext.put("selectedAction", "BLOCK_BOTTOM_CATCH_LOW_QUALITY");
+            qualityContext.put("riskGateResult", "BLOCKED_BOTTOM_CATCH_QUALITY");
+            qualityContext.put("orderSent", false);
+            qualityContext.put("reasonCode", bottomCatchQuality.reasonCode());
+            qualityContext.put("reason", bottomCatchQuality.reason());
+            qualityContext.put("riskReward", bottomCatchQuality.riskReward());
+            qualityContext.put("minRiskReward", bottomCatchQuality.minRiskReward());
+            qualityContext.put("maxStopLossPct", bottomCatchQuality.maxStopLossPct());
+            qualityContext.put("wickAwareSlApplied", bottomCatchQuality.wickAwareSlApplied());
+            qualityContext.put("wickAwareSlMode", bottomCatchQuality.wickAwareSlMode());
+            tradeQualityEngine.applyV0(qualityContext, "BottomCatchQualityGate");
+            logEntrySkip(strategy, symbol, intervalCode, lastBar,
+                    "BottomCatchQualityGate", bottomCatchQuality.reason(), qualityContext);
+            return;
+        }
 
         // #332 dedup gate. Default remains all open rows, including shadow rows,
         // to preserve legacy behavior. A strategy may explicitly request the
@@ -2641,6 +2678,70 @@ public class LiveSignalEvaluator {
     static boolean usesAutoTradedOpenRowsForEntryDedup(String scope) {
         return ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS.equals(resolveEntryDedupOpenExposureScope(
                 Map.of(ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY, scope == null ? "" : scope)));
+    }
+
+    static BottomCatchQualityDecision evaluateBottomCatchQualityGate(String strategyType,
+                                                                     Map<String, Object> config,
+                                                                     double stopLossPct,
+                                                                     double takeProfitPct,
+                                                                     boolean wickAwareSlApplied,
+                                                                     String wickAwareSlMode) {
+        boolean defaultEnabled = OiFundingDivergenceStrategy.TYPE.equalsIgnoreCase(
+                strategyType == null ? "" : strategyType.trim());
+        boolean enabled = configBoolean(config, "bottomCatchQualityGateEnabled", defaultEnabled);
+        double riskReward = stopLossPct > 0 ? takeProfitPct / stopLossPct : 0.0;
+        double minRiskReward = Math.max(0.0, configDouble(config, "bottomCatchMinRiskReward", 1.0));
+        double maxStopLossPct = Math.max(0.0, configDouble(config, "bottomCatchMaxStopLossPct", 0.08));
+        String mode = wickAwareSlMode == null || wickAwareSlMode.isBlank()
+                ? "UNKNOWN"
+                : wickAwareSlMode.trim().toUpperCase(Locale.ROOT);
+        if (!enabled) {
+            return new BottomCatchQualityDecision(true, "DISABLED", "bottom catch quality gate disabled",
+                    riskReward, minRiskReward, stopLossPct, maxStopLossPct, wickAwareSlApplied, mode);
+        }
+
+        java.util.List<String> reasons = new java.util.ArrayList<>();
+        if (stopLossPct <= 0 || takeProfitPct <= 0) {
+            reasons.add("invalid_tp_sl_plan");
+        }
+        if (riskReward < minRiskReward) {
+            reasons.add("risk_reward_below_min");
+        }
+        if (maxStopLossPct > 0 && stopLossPct > maxStopLossPct) {
+            reasons.add("stop_loss_above_max");
+        }
+        if (reasons.isEmpty()) {
+            return new BottomCatchQualityDecision(true, "PASS",
+                    String.format(Locale.ROOT,
+                            "pass riskReward=%.2f stopLoss=%.2f%% wickAware=%s/%s",
+                            riskReward, stopLossPct * 100.0, wickAwareSlApplied, mode),
+                    riskReward, minRiskReward, stopLossPct, maxStopLossPct, wickAwareSlApplied, mode);
+        }
+        String reasonCode = String.join("+", reasons);
+        String reason = String.format(Locale.ROOT,
+                "%s: riskReward=%.2f < min %.2f or stopLoss=%.2f%% > max %.2f%%; wickAware=%s/%s",
+                reasonCode, riskReward, minRiskReward, stopLossPct * 100.0, maxStopLossPct * 100.0,
+                wickAwareSlApplied, mode);
+        return new BottomCatchQualityDecision(false, reasonCode, reason,
+                riskReward, minRiskReward, stopLossPct, maxStopLossPct, wickAwareSlApplied, mode);
+    }
+
+    private static double configDouble(Map<String, Object> config, String key, double def) {
+        Object v = config != null ? config.get(key) : null;
+        if (v == null) return def;
+        if (v instanceof Number n) return n.doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(v));
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    private static boolean configBoolean(Map<String, Object> config, String key, boolean def) {
+        Object v = config != null ? config.get(key) : null;
+        if (v == null) return def;
+        if (v instanceof Boolean b) return b;
+        return Boolean.parseBoolean(String.valueOf(v));
     }
 
     private boolean hasOpenLongExposureForEntryDedup(Long strategyId,

@@ -2228,11 +2228,11 @@ public class LiveSignalEvaluator {
         // Phase 2: TG 通知
         try {
             String msg = String.format(
-                    "📉 <b>SHORT 訊號 %s</b> [%s]\n" +
+                    "%s <b>%s</b> [%s]\n" +
                     "🏷 進場: <b>$%s</b>\n" +
                     "🎯 止盈: $%s  🛡 止損: $%s\n" +
                     "NN=%.3f",
-                    symbol, intervalCode,
+                    resolveShortSignalTelegramHeader(), symbol, intervalCode,
                     formatPrice(entry), formatPrice(tp), formatPrice(sl),
                     snap != null ? snap.nnOutput : 0.0)
                     + formatEnsembleForTg(ensembleDecision);
@@ -2544,6 +2544,10 @@ public class LiveSignalEvaluator {
 
     static String resolveLongSignalTelegramHeader(boolean notifyOnly) {
         return notifyOnly ? "👁 <b>觀察候選</b>" : "🟡 <b>買入候選</b>";
+    }
+
+    static String resolveShortSignalTelegramHeader() {
+        return "📉 <b>做空候選</b>";
     }
 
     /**

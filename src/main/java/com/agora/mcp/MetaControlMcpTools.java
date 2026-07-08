@@ -2649,6 +2649,7 @@ public class MetaControlMcpTools {
     private void appendTgActionabilitySummary(StringBuilder sb, List<TgNotificationLog> logs) {
         Map<String, Long> counts = new LinkedHashMap<>();
         counts.put("ACTIONABLE_TRADE", 0L);
+        counts.put("TRADE_CANDIDATE", 0L);
         counts.put("MARKET_SIGNAL", 0L);
         counts.put("SYSTEM_NOISE", 0L);
         counts.put("OPS_AUDIT", 0L);

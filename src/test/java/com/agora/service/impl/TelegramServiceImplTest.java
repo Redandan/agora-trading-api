@@ -373,6 +373,55 @@ class TelegramServiceImplTest {
     }
 
     @Test
+    void normalizesBuyCandidateAsTradeCandidateNotActionableTrade() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                🟡 <b>買入候選 BTCUSDT (1H)</b>
+
+                💰 收盤價: <b>$62014.50</b>
+                🛡 建議止損: $54572.76 (-12.0%)
+                🎯 建議止盈: $65735.37 (+6.0%)
+                ⚡ 策略: OI_FUNDING_DIVERGENCE
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "LiveSignalEvaluator", "WARN");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized)
+                .contains("【交易候選】")
+                .contains("買入候選 BTCUSDT")
+                .contains("處置：等待風控確認；未下單")
+                .contains("標籤：交易候選 / 未下單")
+                .doesNotContain("【交易保護】")
+                .doesNotContain("交易提醒 / 需檢查");
+    }
+
+    @Test
+    void normalizesAutoTradeNotBoughtAsTradeCandidateNotActionableTrade() {
+        TelegramServiceImpl service = newService();
+        String raw = """
+                🟡 <b>AutoTrade 未買入 BTCUSDT (1H)</b>
+
+                原因: risk-sized notional <b>$20.83</b> &lt; min <b>$50.00</b>
+                策略: <b>#508</b> | live_signal_id <b>258</b>
+
+                處置: 訊號已記錄但未下單；不是 Ensemble shadow 攔截，也不是漏單。
+                """;
+
+        String normalized = ReflectionTestUtils.invokeMethod(
+                service, "normalizeTradingMessage", raw, "LiveSignalEvaluator", "WARN");
+
+        assertThat(normalized).isNotNull();
+        assertThat(normalized)
+                .contains("【交易候選】")
+                .contains("AutoTrade 未買入 BTCUSDT")
+                .contains("標籤：交易候選 / 未下單")
+                .doesNotContain("【交易保護】")
+                .doesNotContain("交易提醒 / 需檢查");
+    }
+
+    @Test
     void compactsTinyLiveCriticalExecutionAlertIntoChineseIntentLines() {
         TelegramServiceImpl service = newService();
         String raw = "CRITICAL_UNPROTECTED_TINY_LIVE BTCUSDT tiny-live order placed but OCO attach failed. "

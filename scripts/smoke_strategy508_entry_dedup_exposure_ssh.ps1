@@ -264,6 +264,10 @@ open_position_sql = f"""
 SELECT
   COUNT(*) AS open_same_strategy_positions,
   COALESCE(SUM(CASE WHEN auto_traded = 1 THEN 1 ELSE 0 END), 0) AS open_same_strategy_auto_positions,
+  COALESCE(SUM(CASE WHEN COALESCE(auto_traded, 0) <> 1 THEN 1 ELSE 0 END), 0) AS open_same_strategy_shadow_positions,
+  COALESCE(SUM(CASE WHEN COALESCE(auto_traded, 0) <> 1
+    AND COALESCE(traded_qty, 0) = 0
+    AND COALESCE(oco_qty, 0) = 0 THEN 1 ELSE 0 END), 0) AS open_same_strategy_shadow_zero_notional_positions,
   COALESCE(SUM(CASE WHEN oco_order_list_id IS NULL THEN 1 ELSE 0 END), 0) AS open_same_strategy_missing_oco,
   COALESCE(SUM(COALESCE(actual_entry_price, entry_price, 0) * COALESCE(oco_qty, traded_qty, 0)), 0) AS open_same_strategy_notional,
   COALESCE(SUM(CASE WHEN suggested_sl IS NOT NULL THEN ABS(COALESCE(actual_entry_price, entry_price, 0) - suggested_sl) * COALESCE(oco_qty, traded_qty, 0) ELSE 0 END), 0) AS open_same_strategy_max_loss
@@ -302,7 +306,15 @@ open_rows = run_query(open_position_sql)
 open_examples = run_query(open_examples_sql)
 
 audit_fields = ["buy_eval_rows", "entry_dedup_skip_rows", "filter_block_rows", "autotrade_rows", "latest_entry_dedup_skip_time"]
-open_fields = ["open_same_strategy_positions", "open_same_strategy_auto_positions", "open_same_strategy_missing_oco", "open_same_strategy_notional", "open_same_strategy_max_loss"]
+open_fields = [
+    "open_same_strategy_positions",
+    "open_same_strategy_auto_positions",
+    "open_same_strategy_shadow_positions",
+    "open_same_strategy_shadow_zero_notional_positions",
+    "open_same_strategy_missing_oco",
+    "open_same_strategy_notional",
+    "open_same_strategy_max_loss",
+]
 audit = row_dict(audit_fields, audit_rows[0]) if audit_rows else {}
 open_summary = row_dict(open_fields, open_rows[0]) if open_rows else {}
 
@@ -332,6 +344,18 @@ exact_duplicate = val(readiness, "exactDuplicate", "false").lower() == "true"
 remaining = val(readiness, "remainingAddBudget", "N/A")
 same_used = val(readiness, "sameStrategyExposureUsed", "N/A")
 same_limit = val(readiness, "sameStrategyExposureLimit", "N/A")
+auto_open_rows = int(open_summary.get("open_same_strategy_auto_positions", "0") or "0")
+shadow_open_rows = int(open_summary.get("open_same_strategy_shadow_positions", "0") or "0")
+shadow_zero_rows = int(open_summary.get("open_same_strategy_shadow_zero_notional_positions", "0") or "0")
+open_notional = float(open_summary.get("open_same_strategy_notional", "0") or "0")
+if auto_open_rows > 0:
+    open_semantic_status = "REAL_AUTO_TRADED_EXPOSURE_PRESENT"
+elif shadow_open_rows > 0 and shadow_zero_rows == shadow_open_rows and open_notional == 0.0:
+    open_semantic_status = "SHADOW_ZERO_NOTIONAL_ROWS_ONLY_NOT_REAL_EXPOSURE"
+elif shadow_open_rows > 0:
+    open_semantic_status = "NON_AUTO_OPEN_ROWS_REQUIRE_REVIEW"
+else:
+    open_semantic_status = "NO_OPEN_ROWS"
 
 if would_allow:
     recommendation = "STAGED_ADD_SHADOW_CANDIDATE_REVIEW_NOT_LIVE"
@@ -364,6 +388,7 @@ print("")
 print("Open Exposure:")
 for key in open_fields:
     print(f"  {key}={open_summary.get(key, '0')}")
+print(f"  open_same_strategy_real_exposure_status={open_semantic_status}")
 print("Open same-strategy examples:")
 if not open_examples:
     print("  - NONE")

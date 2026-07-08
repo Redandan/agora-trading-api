@@ -195,5 +195,8 @@ class LiveSignalEvaluatorEntryDedupOpenExposureScopeTest {
         assertThat(LiveSignalEvaluator.resolveLongSignalTelegramHeader(true))
                 .contains("觀察候選")
                 .doesNotContain("買入訊號");
+        assertThat(LiveSignalEvaluator.resolveShortSignalTelegramHeader())
+                .contains("做空候選")
+                .doesNotContain("SHORT 訊號");
     }
 }

@@ -702,6 +702,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
                 .replace("market-signal:gemini-advisor", "AI 市場觀點")
                 .replace("MARKET_SIGNAL", "市場訊號")
                 .replace("ACTIONABLE_TRADE", "交易提醒")
+                .replace("TRADE_CANDIDATE", "交易候選")
                 .replace("routes", "來源路由")
                 .replace("PutCall", "Put/Call")
                 .replace("Macro/MEI", "宏觀/MEI")
@@ -983,6 +984,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private String bucketTitle(Bucket bucket) {
         return switch (bucket) {
             case ACTIONABLE_TRADE, GRID_INCIDENT -> "交易保護";
+            case TRADE_CANDIDATE -> "交易候選";
             case MARKET_SIGNAL -> "市場背景";
             case OPS_AUDIT, SYSTEM_NOISE -> "系統雜訊";
             default -> "通知";
@@ -992,6 +994,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private String defaultAction(Bucket bucket) {
         return switch (bucket) {
             case ACTIONABLE_TRADE -> "需要檢查";
+            case TRADE_CANDIDATE -> "等待風控確認；未下單";
             case GRID_INCIDENT -> "人工檢查";
             case MARKET_SIGNAL -> "觀察";
             case OPS_AUDIT, SYSTEM_NOISE -> "無需操作";
@@ -1002,6 +1005,7 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private String defaultTags(Bucket bucket) {
         return switch (bucket) {
             case ACTIONABLE_TRADE -> "交易提醒 / 需檢查";
+            case TRADE_CANDIDATE -> "交易候選 / 未下單";
             case GRID_INCIDENT -> "網格異常 / 人工檢查";
             case MARKET_SIGNAL -> "市場背景 / 觀察";
             case OPS_AUDIT -> "系統稽核 / 無需操作";

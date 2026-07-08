@@ -21,6 +21,7 @@ public class TgTradingNotificationClassifier {
 
     public enum Bucket {
         ACTIONABLE_TRADE,
+        TRADE_CANDIDATE,
         MARKET_SIGNAL,
         SYSTEM_NOISE,
         OPS_AUDIT,
@@ -45,6 +46,9 @@ public class TgTradingNotificationClassifier {
         if (isGridIncident(text)) {
             return Bucket.GRID_INCIDENT;
         }
+        if (isTradeCandidateOrNoOrder(text)) {
+            return Bucket.TRADE_CANDIDATE;
+        }
         if (isActionableTrade(text)) {
             return Bucket.ACTIONABLE_TRADE;
         }
@@ -61,7 +65,9 @@ public class TgTradingNotificationClassifier {
     }
 
     public boolean isSuppressible(Bucket bucket) {
-        return bucket != Bucket.ACTIONABLE_TRADE && bucket != Bucket.OTHER;
+        return bucket != Bucket.ACTIONABLE_TRADE
+                && bucket != Bucket.TRADE_CANDIDATE
+                && bucket != Bucket.OTHER;
     }
 
     public String routingKey(String message, String source, String level) {
@@ -84,6 +90,9 @@ public class TgTradingNotificationClassifier {
         }
         if (bucket == Bucket.SYSTEM_NOISE) {
             return systemNoiseKey(text, source);
+        }
+        if (bucket == Bucket.TRADE_CANDIDATE) {
+            return tradeCandidateKey(text, source);
         }
         if (bucket == Bucket.ACTIONABLE_TRADE) {
             return actionableTradeKey(text, source);
@@ -145,6 +154,20 @@ public class TgTradingNotificationClassifier {
                 || text.contains("oco") || text.contains("daily loss")
                 || text.contains("熔斷") || text.contains("止盈") || text.contains("止損")
                 || text.contains("grid #") || text.contains("grid#");
+    }
+
+    private boolean isTradeCandidateOrNoOrder(String text) {
+        return text.contains("買入候選")
+                || text.contains("觀察候選")
+                || text.contains("做空候選")
+                || text.contains("buy candidate")
+                || text.contains("entry candidate")
+                || text.contains("short candidate")
+                || text.contains("autotrade 未買入")
+                || text.contains("auto trade not bought")
+                || text.contains("訊號已記錄但未下單")
+                || text.contains("信號已記錄但未下單")
+                || text.contains("未自動下單");
     }
 
     private boolean isOpsAudit(String text) {
@@ -231,6 +254,27 @@ public class TgTradingNotificationClassifier {
             return "trade-safety:oco";
         }
         return "trade-action:" + sourceKey(source);
+    }
+
+    private String tradeCandidateKey(String text, String source) {
+        if (text.contains("autotrade 未買入")
+                || text.contains("auto trade not bought")
+                || text.contains("訊號已記錄但未下單")
+                || text.contains("信號已記錄但未下單")) {
+            return "trade-candidate:not-bought";
+        }
+        if (text.contains("做空候選") || text.contains("short candidate")) {
+            return "trade-candidate:short";
+        }
+        if (text.contains("觀察候選")) {
+            return "trade-candidate:observe";
+        }
+        if (text.contains("買入候選")
+                || text.contains("buy candidate")
+                || text.contains("entry candidate")) {
+            return "trade-candidate:buy";
+        }
+        return "trade-candidate:" + sourceKey(source);
     }
 
     private String normalized(String message, String source, String level) {

@@ -1064,6 +1064,37 @@ does not deploy, restart, change production env, place orders, modify OCO,
 send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
 run external backfill/import.
 
+Read-only 485/508 post-fix strategy monitoring packet:
+
+```powershell
+.\scripts\prepare_post_fix_strategy_monitoring_packet_ssh.ps1
+```
+
+Use this after the LocalTradingView / strategy 508 fixes are deployed to keep a
+single BUY-to-blocker-to-order review surface. The packet wraps
+`watch_local_tradingview_buy_candidate_ssh.ps1`,
+`smoke_strategy508_entry_dedup_exposure_ssh.ps1`, and
+`smoke_signal_correctness_ssh.ps1`, then emits
+`post_fix_strategy_monitoring_status`,
+`post_fix_strategy_monitoring_local_tradingview_watch_status`,
+`post_fix_strategy_monitoring_strategy508_recommendation`,
+`post_fix_strategy_monitoring_verify_machine_status`,
+`post_fix_strategy_monitoring_signal_source_policy_primary`,
+`post_fix_strategy_monitoring_suspicious_no_buy_count`,
+`post_fix_strategy_monitoring_false_block_count`, and
+`post_fix_strategy_monitoring_next_action`.
+`CURRENT_BUY_READY_MONITOR_ORDER_AND_OCO` means a current LocalTradingView BUY
+is ready and the normal evaluator/order/OCO evidence should be watched.
+`CURRENT_BUY_BLOCKED_REVIEW_REQUIRED` means the current BUY still has a
+LocalTradingView-only blocker. `MISSED_ORDER_REVIEW_REQUIRED` means
+`verifyStrategyExecution` found a missing-evaluation/order marker. The packet
+is read-only and prints
+`notAuthorization=read-only post-fix strategy monitoring packet only`; it does
+not deploy, restart, change production env, enable live trading, relax
+EntryDedup/DataFreshness/live policy, place orders, modify OCO, send Telegram,
+mutate DB/grid/fund/Earn/exchange state, change schedulers, or run external
+backfill/import.
+
 Guarded trailing-stop strategy opt-in execution wrapper:
 
 ```powershell

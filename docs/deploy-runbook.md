@@ -415,6 +415,32 @@ Expected:
   does not change production env, deploy, restart, place orders, modify OCO,
   send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
   run external backfill/import.
+- To monitor the deployed 485/508 post-fix path with one read-only packet, run:
+
+  ```powershell
+  .\scripts\prepare_post_fix_strategy_monitoring_packet_ssh.ps1
+  ```
+
+  The packet wraps `watch_local_tradingview_buy_candidate_ssh.ps1`,
+  `smoke_strategy508_entry_dedup_exposure_ssh.ps1`, and
+  `smoke_signal_correctness_ssh.ps1`. It emits
+  `post_fix_strategy_monitoring_status`,
+  `post_fix_strategy_monitoring_local_tradingview_watch_status`,
+  `post_fix_strategy_monitoring_strategy508_recommendation`,
+  `post_fix_strategy_monitoring_verify_machine_status`,
+  `post_fix_strategy_monitoring_signal_source_policy_primary`,
+  `post_fix_strategy_monitoring_suspicious_no_buy_count`,
+  `post_fix_strategy_monitoring_false_block_count`, and
+  `post_fix_strategy_monitoring_next_action`. Treat
+  `CURRENT_BUY_READY_MONITOR_ORDER_AND_OCO` as a signal to watch the next normal
+  evaluator/order/OCO evidence, `CURRENT_BUY_BLOCKED_REVIEW_REQUIRED` as a
+  LocalTradingView-only blocker, and `MISSED_ORDER_REVIEW_REQUIRED` as a
+  verifyStrategyExecution review blocker. It prints
+  `notAuthorization=read-only post-fix strategy monitoring packet only` and
+  does not change production env, deploy, restart, enable live trading, relax
+  EntryDedup/DataFreshness/live policy, place orders, modify OCO, send
+  Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or run
+  external backfill/import.
 - TinyLive auto-execution scheduling is bean-level explicit opt-in, disabled, and dry-run by default in the tracked template; keep `TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED=false` and `TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN=true` until that order-capable sweep belongs to trading production.
 - schema baseline compare tooling is syntax-checked but is not run automatically by preflight.
 - required secret keys are present and non-empty without printing values.

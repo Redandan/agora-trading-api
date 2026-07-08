@@ -57,7 +57,7 @@ class KlineClosedEventListenerTest {
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
-                new TradingSignalSourcePolicy(new TradingSignalSourceProperties("TRADINGVIEW", false)),
+                new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
                 local);
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1D")));
@@ -72,7 +72,7 @@ class KlineClosedEventListenerTest {
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
-                new TradingSignalSourcePolicy(new TradingSignalSourceProperties("LEGACY", true)),
+                new TradingSignalSourcePolicy(signalSourceProps("LEGACY", true)),
                 local);
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1D")));
@@ -87,7 +87,7 @@ class KlineClosedEventListenerTest {
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
-                new TradingSignalSourcePolicy(new TradingSignalSourceProperties("LOCAL_TRADINGVIEW", false)),
+                new TradingSignalSourcePolicy(signalSourceProps("LOCAL_TRADINGVIEW", false)),
                 local);
 
         MdKline kline = kline("BTCUSDT", "1D");
@@ -98,10 +98,27 @@ class KlineClosedEventListenerTest {
     }
 
     @Test
+    void localTradingViewPrimaryCanAlsoRunSecondaryLegacyEvaluatorAfterLocalParity() {
+        LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
+        LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
+        KlineClosedEventListener listener = new KlineClosedEventListener(
+                evaluator,
+                new TradingSignalSourcePolicy(new TradingSignalSourceProperties(
+                        "LOCAL_TRADINGVIEW", false, true, "508", new BigDecimal("10.0"))),
+                local);
+
+        MdKline kline = kline("BTCUSDT", "1h");
+        listener.onKlineClosed(new KlineClosedEvent(this, kline));
+
+        verify(local).evaluate(kline);
+        verify(evaluator).evaluate("BTCUSDT", "1h");
+    }
+
+    @Test
     void localTradingViewPrimaryLiveMicroBuysAndAttachesOcoFromClosedKlineEvent() {
         LiveSignalEvaluator legacyEvaluator = mock(LiveSignalEvaluator.class);
         TradingSignalSourcePolicy policy = new TradingSignalSourcePolicy(
-                new TradingSignalSourceProperties("LOCAL_TRADINGVIEW", false));
+                signalSourceProps("LOCAL_TRADINGVIEW", false));
         TradingService tradingService = mock(TradingService.class);
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
         BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
@@ -186,7 +203,7 @@ class KlineClosedEventListenerTest {
     void localTradingViewPrimaryDryRunFromClosedKlineProducesWouldExecuteWithoutOrder() {
         LiveSignalEvaluator legacyEvaluator = mock(LiveSignalEvaluator.class);
         TradingSignalSourcePolicy policy = new TradingSignalSourcePolicy(
-                new TradingSignalSourceProperties("LOCAL_TRADINGVIEW", false));
+                signalSourceProps("LOCAL_TRADINGVIEW", false));
         TradingService tradingService = mock(TradingService.class);
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
         BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
@@ -240,7 +257,7 @@ class KlineClosedEventListenerTest {
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
-                new TradingSignalSourcePolicy(new TradingSignalSourceProperties("LEGACY", true)),
+                new TradingSignalSourcePolicy(signalSourceProps("LEGACY", true)),
                 local);
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1m")));
@@ -257,6 +274,10 @@ class KlineClosedEventListenerTest {
         kline.setSource("okx");
         kline.setClosePrice(new BigDecimal("100.00"));
         return kline;
+    }
+
+    private TradingSignalSourceProperties signalSourceProps(String primary, boolean legacyLiveEvaluatorEnabled) {
+        return new TradingSignalSourceProperties(primary, legacyLiveEvaluatorEnabled, false, "", BigDecimal.ZERO);
     }
 
     private LocalTradingViewSignalEvaluator localEvaluator(TradingViewLocalSignalProperties props,

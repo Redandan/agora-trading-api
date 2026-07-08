@@ -472,9 +472,11 @@ public class DiagnosticMcpTools {
 
     private LiveEvaluationExpectation resolveLiveEvaluationExpectation(
             BtStrategy strategy, String symbol, String intervalCode, String klineSource) {
-        if (signalSourcePolicy.shouldRunLegacyLiveEvaluator()) {
+        if (strategy != null && signalSourcePolicy.shouldRunLegacyLiveEvaluatorForStrategy(strategy.getId())) {
             return new LiveEvaluationExpectation(true,
-                    "legacy LiveSignalEvaluator is enabled by signal-source policy");
+                    signalSourcePolicy.shouldRunLegacyLiveEvaluator()
+                            ? "legacy LiveSignalEvaluator is enabled by signal-source policy"
+                            : "legacy secondary LiveSignalEvaluator allowlist includes strategyId=" + strategy.getId());
         }
 
         if (signalSourcePolicy.shouldRunLocalTradingViewEvaluator()) {

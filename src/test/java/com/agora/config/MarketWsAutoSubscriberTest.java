@@ -9,6 +9,7 @@ import com.agora.service.market.KlineStreamService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -20,7 +21,7 @@ class MarketWsAutoSubscriberTest {
 
     @Test
     void tradingViewPrimarySkipsLegacyWarmUpEvaluation() {
-        Fixture fixture = fixture(new TradingSignalSourceProperties("TRADINGVIEW", false));
+        Fixture fixture = fixture(props("TRADINGVIEW", false));
 
         fixture.subscriber.subscribeOnStartup();
 
@@ -30,7 +31,18 @@ class MarketWsAutoSubscriberTest {
 
     @Test
     void legacyPrimaryWithExplicitEnableRunsWarmUpEvaluation() {
-        Fixture fixture = fixture(new TradingSignalSourceProperties("LEGACY", true));
+        Fixture fixture = fixture(props("LEGACY", true));
+
+        fixture.subscriber.subscribeOnStartup();
+
+        verify(fixture.liveSignalEvaluator).evaluate("BTCUSDT", "1D");
+        verify(fixture.serverStartupService).recordFirstEval(1L);
+    }
+
+    @Test
+    void secondaryLegacyAllowlistRunsWarmUpThroughFilteredEvaluator() {
+        Fixture fixture = fixture(new TradingSignalSourceProperties(
+                "LOCAL_TRADINGVIEW", false, true, "508", new BigDecimal("10.0")));
 
         fixture.subscriber.subscribeOnStartup();
 
@@ -70,6 +82,10 @@ class MarketWsAutoSubscriberTest {
                 resolver);
 
         return new Fixture(subscriber, liveSignalEvaluator, serverStartupService);
+    }
+
+    private TradingSignalSourceProperties props(String primary, boolean legacyLiveEvaluatorEnabled) {
+        return new TradingSignalSourceProperties(primary, legacyLiveEvaluatorEnabled, false, "", BigDecimal.ZERO);
     }
 
     private KlineSubscriptionInfo subscription(String symbol, String intervalCode) {

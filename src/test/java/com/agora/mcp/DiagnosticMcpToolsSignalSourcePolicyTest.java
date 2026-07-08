@@ -49,7 +49,7 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
         when(backtestService.runForExploration(any())).thenReturn(backtestWithBuy());
 
         DiagnosticMcpTools tools = tools(
-                new TradingSignalSourcePolicy(new TradingSignalSourceProperties("TRADINGVIEW", false)),
+                new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
                 localProps(true, 485L),
                 strategyRepo,
                 liveSignalRepo,
@@ -78,7 +78,7 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
         when(backtestService.runForExploration(any())).thenReturn(backtestWithBuy());
 
         DiagnosticMcpTools tools = tools(
-                new TradingSignalSourcePolicy(new TradingSignalSourceProperties("LOCAL_TRADINGVIEW", false)),
+                new TradingSignalSourcePolicy(signalSourceProps("LOCAL_TRADINGVIEW", false)),
                 localProps(true, 485L),
                 strategyRepo,
                 liveSignalRepo,
@@ -89,6 +89,36 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
         assertThat(report)
                 .contains("signal_source_policy_primary=LOCAL_TRADINGVIEW")
                 .contains("LOCAL_TRADINGVIEW parity evaluator active for configured strategyId=485")
+                .contains("疑似漏評估 Bug")
+                .contains("MACHINE_STATUS missing evaluation or missed order suspected")
+                .doesNotContain("POLICY_SUPPRESSED_NOT_MISSED_EVALUATION");
+    }
+
+    @Test
+    void secondaryLegacyAllowlistMakesStrategy508ExpectedInsteadOfPolicySuppressed() {
+        BtStrategyRepository strategyRepo = mock(BtStrategyRepository.class);
+        BtLiveSignalRepository liveSignalRepo = mock(BtLiveSignalRepository.class);
+        BacktestService backtestService = mock(BacktestService.class);
+        BtStrategy strategy = strategy(508L, "OI-Funding-Divergence-BTC-1h-v1", "OI_FUNDING_DIVERGENCE",
+                "{\"symbol\":\"BTCUSDT\",\"runIntervalCode\":\"1h\",\"notifyOnly\":false}");
+
+        when(strategyRepo.findAll()).thenReturn(List.of(strategy));
+        when(liveSignalRepo.findByStrategyIdAndCreatedAtAfter(eq(508L), any())).thenReturn(List.of());
+        when(backtestService.runForExploration(any())).thenReturn(backtestWithBuy());
+
+        DiagnosticMcpTools tools = tools(
+                new TradingSignalSourcePolicy(new TradingSignalSourceProperties(
+                        "LOCAL_TRADINGVIEW", false, true, "508", new BigDecimal("10.0"))),
+                localProps(true, 485L),
+                strategyRepo,
+                liveSignalRepo,
+                backtestService);
+
+        String report = tools.verifyStrategyExecution(5);
+
+        assertThat(report)
+                .contains("signal_source_policy_primary=LOCAL_TRADINGVIEW")
+                .contains("legacy secondary LiveSignalEvaluator allowlist includes strategyId=508")
                 .contains("疑似漏評估 Bug")
                 .contains("MACHINE_STATUS missing evaluation or missed order suspected")
                 .doesNotContain("POLICY_SUPPRESSED_NOT_MISSED_EVALUATION");
@@ -118,6 +148,10 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
                 mock(McpRegistryVersionService.class),
                 policy,
                 localProps);
+    }
+
+    private TradingSignalSourceProperties signalSourceProps(String primary, boolean legacyLiveEvaluatorEnabled) {
+        return new TradingSignalSourceProperties(primary, legacyLiveEvaluatorEnabled, false, "", BigDecimal.ZERO);
     }
 
     private BtStrategy strategy(Long id, String name, String strategyType, String configJson) {

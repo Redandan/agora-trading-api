@@ -21,6 +21,7 @@ import com.agora.service.trading.TradeQualityEngine;
 import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.ExposureOptimizer;
+import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -114,6 +115,7 @@ public class LiveSignalEvaluator {
     private final ExposureOptimizer exposureOptimizer;
     private final TradeQualityEngine tradeQualityEngine;
     private final DataFreshnessShadowReplayCollector dataFreshnessShadowReplayCollector;
+    private final TradingSignalSourcePolicy signalSourcePolicy;
 
     /** Self-injection for @Cacheable proxy（必須透過 Spring proxy 才能讓 @Cacheable 生效）*/
     @Autowired @Lazy
@@ -203,6 +205,11 @@ public class LiveSignalEvaluator {
         }
 
         for (BtStrategy strategy : strategies) {
+            if (!signalSourcePolicy.shouldRunLegacyLiveEvaluatorForStrategy(strategy.getId())) {
+                log.debug("[LiveSignal] Skip strategyId={} by signal-source policy: {}",
+                        strategy.getId(), signalSourcePolicy.status());
+                continue;
+            }
             try {
                 evaluateStrategy(strategy, symbol, intervalCode);
             } catch (Exception e) {
@@ -1632,6 +1639,7 @@ public class LiveSignalEvaluator {
                     record.getStrategyId(), symbol, tradeAmount, stagedMicroAddMaxNotionalUsdt);
             tradeAmount = stagedMicroAddMaxNotionalUsdt;
         }
+        tradeAmount = applyLegacySecondaryNotionalCap(record, symbol, tradeAmount, "initial");
 
         // 上限檢查（synchronized 確保此處的計數與下方下單是原子的）
         long openCount = liveSignalRepository.countByAutoTradedIsTrueAndExitTimeIsNull();
@@ -1683,6 +1691,7 @@ public class LiveSignalEvaluator {
                             record.getStrategyId(), symbol, tradeAmount, stagedMicroAddMaxNotionalUsdt);
                     tradeAmount = stagedMicroAddMaxNotionalUsdt;
                 }
+                tradeAmount = applyLegacySecondaryNotionalCap(record, symbol, tradeAmount, "balance");
                 if (avail < tradeAmount) {
                     boolean topped = false;
                     try {
@@ -1775,6 +1784,8 @@ public class LiveSignalEvaluator {
             tradeCtx.put("ocoOk", ocoListId != null);
             tradeCtx.put("staged_micro_add_entry", stagedMicroAddEntry);
             tradeCtx.put("staged_micro_add_notional_cap_usdt", stagedMicroAddMaxNotionalUsdt);
+            tradeCtx.put("legacy_secondary_notional_cap_usdt",
+                    signalSourcePolicy.legacySecondaryMaxNotionalUsdtForStrategy(record.getStrategyId()));
             tradeCtx.put("estimated_slippage_pct", estimatedSlippagePct);
             java.util.Map<String, Object> sizingCtx = new java.util.LinkedHashMap<>();
             sizingCtx.put("mode", sizingDecision.liveEnabled() ? "LIVE" : "SHADOW");
@@ -1839,6 +1850,16 @@ public class LiveSignalEvaluator {
                         java.util.Map.of("side", "LONG", "buySucceeded", false));
             }
         }
+    }
+
+    private double applyLegacySecondaryNotionalCap(BtLiveSignal record, String symbol, double tradeAmount, String stage) {
+        double cap = signalSourcePolicy.legacySecondaryMaxNotionalUsdtForStrategy(record.getStrategyId());
+        if (cap > 0 && tradeAmount > cap) {
+            log.info("[AutoTrade] legacy secondary notional cap applied: strategyId={} symbol={} stage={} amount={} cap={}",
+                    record.getStrategyId(), symbol, stage, tradeAmount, cap);
+            return cap;
+        }
+        return tradeAmount;
     }
 
     private boolean shouldSkipRiskSizedAutoTrade(PositionSizingService.PositionSizingDecision sizingDecision,

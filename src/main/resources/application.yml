@@ -52,6 +52,9 @@ trading:
   signal-source:
     primary: ${TRADING_SIGNAL_SOURCE_PRIMARY:TRADINGVIEW}
     legacy-live-evaluator-enabled: ${TRADING_LEGACY_LIVE_EVALUATOR_ENABLED:false}
+    legacy-secondary-evaluator-enabled: ${TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED:false}
+    legacy-secondary-allowed-strategy-ids: ${TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS:}
+    legacy-secondary-max-notional-usdt: ${TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT:0}
   tradingview:
     webhook:
       enabled: ${TRADINGVIEW_WEBHOOK_ENABLED:false}

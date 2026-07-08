@@ -100,6 +100,9 @@ ScoreBuy TradingView order-intent logic on closed K-lines:
 ```bash
 TRADING_SIGNAL_SOURCE_PRIMARY=LOCAL_TRADINGVIEW
 TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
+TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED=false
+TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS=
+TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT=0
 TRADINGVIEW_LOCAL_ENABLED=true
 TRADINGVIEW_LOCAL_STRATEGY_ID=485
 TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS=BTCUSDT
@@ -226,3 +229,15 @@ TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=true
 
 Use that only for a deliberate rollback or shadow investigation. It restores
 K-line close events into `LiveSignalEvaluator`.
+
+To run one reviewed legacy strategy beside `LOCAL_TRADINGVIEW`, keep primary on
+`LOCAL_TRADINGVIEW` and use the secondary allowlist instead:
+
+```bash
+TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED=true
+TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS=508
+TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT=10.0
+```
+
+The allowlist path filters `LiveSignalEvaluator` by strategy id and caps the
+secondary live notional. It does not enable all legacy strategies.

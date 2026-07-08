@@ -41,9 +41,8 @@ public class KlineClosedEventListener {
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), kline.getSource(),
                     localTradingViewSignalEvaluator.isEnabled());
             localTradingViewSignalEvaluator.evaluate(kline);
-            return;
         }
-        if (!signalSourcePolicy.shouldRunLegacyLiveEvaluator()) {
+        if (!signalSourcePolicy.shouldRunAnyLegacyLiveEvaluator()) {
             log.debug("[KlineClosedEventListener] skip legacy evaluator {}@{} openTime={} source={} policy={}",
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), kline.getSource(),
                     signalSourcePolicy.status());

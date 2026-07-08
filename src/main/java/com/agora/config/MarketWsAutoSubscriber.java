@@ -99,10 +99,10 @@ public class MarketWsAutoSubscriber {
         waitForWsRunning(subscribed, activeServices);
         serverStartupService.recordWsReady(startupLogId);
 
-        // 暖機快取：只在 legacy live evaluator 明確啟用時補跑評估。
+        // 暖機快取：只在 legacy live evaluator 或明確 allowlist 的 secondary legacy lane 啟用時補跑評估。
         if (!properties.isWarmUpEnabled()) {
             log.info("[MarketWS] Cache warm-up disabled");
-        } else if (!signalSourcePolicy.shouldRunLegacyLiveEvaluator()) {
+        } else if (!signalSourcePolicy.shouldRunAnyLegacyLiveEvaluator()) {
             log.info("[MarketWS] Legacy evaluator warm-up skipped by signal-source policy: {}",
                     signalSourcePolicy.status());
         } else if (!subscribed.isEmpty()) {

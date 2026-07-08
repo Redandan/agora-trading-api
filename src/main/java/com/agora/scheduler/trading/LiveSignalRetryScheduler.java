@@ -80,7 +80,7 @@ public class LiveSignalRetryScheduler {
                         s.getScore().doubleValue(), s.getNnOutput().doubleValue())
                 : "";
 
-        String header = isShort ? "📉 做空訊號" : "🚨 買入訊號";
+        String header = isShort ? "📉 做空候選" : "🟡 買入候選";
         String slDir  = isShort ? "+" : "-";
         String tpDir  = isShort ? "-" : "+";
 

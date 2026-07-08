@@ -102,6 +102,24 @@ class LiveSignalEvaluatorEntryDedupOpenExposureScopeTest {
     }
 
     @Test
+    void tradePlanQualityGateBlocksLowQualityReversalPlansByDefault() {
+        LiveSignalEvaluator.BottomCatchQualityDecision decision =
+                LiveSignalEvaluator.evaluateBottomCatchQualityGate(
+                        "CMI_MIH_THRESHOLD",
+                        Map.of(),
+                        0.12,
+                        0.05,
+                        true,
+                        "ULTRA_LOW_DISASTER");
+
+        assertThat(decision.allowed()).isFalse();
+        assertThat(decision.reasonCode())
+                .contains("risk_reward_below_min")
+                .contains("stop_loss_above_max");
+        assertThat(decision.riskReward()).isCloseTo(0.4167, org.assertj.core.data.Offset.offset(0.0001));
+    }
+
+    @Test
     void bottomCatchQualityGateAllowsNormalTwoRPlan() {
         LiveSignalEvaluator.BottomCatchQualityDecision decision =
                 LiveSignalEvaluator.evaluateBottomCatchQualityGate(
@@ -130,5 +148,52 @@ class LiveSignalEvaluatorEntryDedupOpenExposureScopeTest {
 
         assertThat(decision.allowed()).isTrue();
         assertThat(decision.reasonCode()).isEqualTo("DISABLED");
+    }
+
+    @Test
+    void tradePlanQualityGateCanBeDisabledByNewGenericConfig() {
+        LiveSignalEvaluator.BottomCatchQualityDecision decision =
+                LiveSignalEvaluator.evaluateBottomCatchQualityGate(
+                        "CMI_MIH_THRESHOLD",
+                        Map.of(LiveSignalEvaluator.TRADE_PLAN_QUALITY_GATE_ENABLED_KEY, false),
+                        0.12,
+                        0.05,
+                        true,
+                        "ULTRA_LOW_DISASTER");
+
+        assertThat(decision.allowed()).isTrue();
+        assertThat(decision.reasonCode()).isEqualTo("DISABLED");
+    }
+
+    @Test
+    void noSlAndPocStrategiesAreForcedOutOfLiveExecution() {
+        com.agora.model.BtStrategy strategy = new com.agora.model.BtStrategy();
+        strategy.setName("SQI-NoSL-LONG-BTC-1h-POC");
+
+        assertThat(LiveSignalEvaluator.noLiveExecutionOnlyStrategy(strategy, Map.of(
+                "fixedStopLossPct", 0.99,
+                "fixedTakeProfitPct", 0.005)))
+                .isTrue();
+    }
+
+    @Test
+    void extremeNoSlPlanIsForcedOutOfLiveExecutionEvenWithoutNameMarker() {
+        com.agora.model.BtStrategy strategy = new com.agora.model.BtStrategy();
+        strategy.setName("Experimental BTC long");
+
+        assertThat(LiveSignalEvaluator.noLiveExecutionOnlyStrategy(strategy, Map.of(
+                "fixedStopLossPct", 0.99,
+                "fixedTakeProfitPct", 0.005)))
+                .isTrue();
+    }
+
+    @Test
+    void preExecutionTelegramHeadersUseCandidateSemantics() {
+        assertThat(LiveSignalEvaluator.resolveLongSignalTelegramHeader(false))
+                .contains("買入候選")
+                .doesNotContain("買入訊號");
+        assertThat(LiveSignalEvaluator.resolveLongSignalTelegramHeader(true))
+                .contains("觀察候選")
+                .doesNotContain("買入訊號");
     }
 }

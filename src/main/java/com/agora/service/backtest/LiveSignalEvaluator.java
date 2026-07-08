@@ -71,6 +71,9 @@ public class LiveSignalEvaluator {
     static final String ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_KEY = "entryDedupOpenExposureScope";
     static final String ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS = "ALL_OPEN_ROWS";
     static final String ENTRY_DEDUP_SCOPE_AUTO_TRADED_OPEN_ROWS = "AUTO_TRADED_OPEN_ROWS";
+    static final String TRADE_PLAN_QUALITY_GATE_ENABLED_KEY = "tradePlanQualityGateEnabled";
+    static final String TRADE_PLAN_MIN_RISK_REWARD_KEY = "tradePlanMinRiskReward";
+    static final String TRADE_PLAN_MAX_STOP_LOSS_PCT_KEY = "tradePlanMaxStopLossPct";
     static final String ENSEMBLE_SHADOW_PRE_EXECUTION_DISCLAIMER =
             "Phase 1 - Ensemble 不擋；仍需通過下單前風控";
 
@@ -785,15 +788,15 @@ public class LiveSignalEvaluator {
                 strategy.getStrategyType(), config, stopLossPct, takeProfitPct,
                 wickAwareSl.applied(), wickAwareSl.policyMode());
         if (!bottomCatchQuality.allowed()) {
-            log.info("[LiveSignal] bottom catch quality blocked: strategyId={} symbol={} interval={} reason={}",
+            log.info("[LiveSignal] trade plan quality blocked: strategyId={} symbol={} interval={} reason={}",
                     strategy.getId(), symbol, intervalCode, bottomCatchQuality.reason());
-            tradingMetrics.signalFiltered("BottomCatchQualityGate", bottomCatchQuality.reasonCode());
+            tradingMetrics.signalFiltered("TradePlanQualityGate", bottomCatchQuality.reasonCode());
             Map<String, Object> qualityContext = candidateTradePlanContext(
                     expectedR, getDouble(config, "preTradeMinExpectedR", 0.20),
                     stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
             qualityContext.put("gate_enabled", true);
-            qualityContext.put("selectedAction", "BLOCK_BOTTOM_CATCH_LOW_QUALITY");
-            qualityContext.put("riskGateResult", "BLOCKED_BOTTOM_CATCH_QUALITY");
+            qualityContext.put("selectedAction", "BLOCK_LOW_QUALITY_TRADE_PLAN");
+            qualityContext.put("riskGateResult", "BLOCKED_TRADE_PLAN_QUALITY");
             qualityContext.put("orderSent", false);
             qualityContext.put("reasonCode", bottomCatchQuality.reasonCode());
             qualityContext.put("reason", bottomCatchQuality.reason());
@@ -802,9 +805,9 @@ public class LiveSignalEvaluator {
             qualityContext.put("maxStopLossPct", bottomCatchQuality.maxStopLossPct());
             qualityContext.put("wickAwareSlApplied", bottomCatchQuality.wickAwareSlApplied());
             qualityContext.put("wickAwareSlMode", bottomCatchQuality.wickAwareSlMode());
-            tradeQualityEngine.applyV0(qualityContext, "BottomCatchQualityGate");
+            tradeQualityEngine.applyV0(qualityContext, "TradePlanQualityGate");
             logEntrySkip(strategy, symbol, intervalCode, lastBar,
-                    "BottomCatchQualityGate", bottomCatchQuality.reason(), qualityContext);
+                    "TradePlanQualityGate", bottomCatchQuality.reason(), qualityContext);
             return;
         }
 
@@ -859,6 +862,14 @@ public class LiveSignalEvaluator {
                 return;
         }
 
+        boolean configNotifyOnly = getBoolean(config, "notifyOnly", false);
+        boolean noLiveExecutionOnly = isNoLiveExecutionOnlyStrategy(strategy, config);
+        boolean notifyOnly = configNotifyOnly || dedupShadowOnlyOverride || softenDowntrendBlock || noLiveExecutionOnly;
+        if (noLiveExecutionOnly && !configNotifyOnly) {
+            log.info("[LiveSignal] strategy forced to notifyOnly by no-live-execution guard: strategyId={} name={}",
+                    strategy.getId(), strategy.getName());
+        }
+
         // Phase 1：先存 DB（notifiedAt = null），佔住唯一索引防止並發重複
         BtLiveSignal record = new BtLiveSignal();
         record.setStrategyId(strategy.getId());
@@ -884,8 +895,6 @@ public class LiveSignalEvaluator {
         mlInferenceLogger.linkLiveSignal(record.getId(), strategy.getId());
 
         // Phase 2：發 TG，成功後再更新 notifiedAt
-        // notifyOnly 在此先讀，傳給 buildTelegramMessage 以便標記 Shadow 模式
-        boolean notifyOnly = getBoolean(config, "notifyOnly", false) || dedupShadowOnlyOverride || softenDowntrendBlock;
         try {
             String msg = buildTelegramMessage(symbol, intervalCode, lastBar, entry, sl, tp,
                     stopLossPct, takeProfitPct, snap, yearDrop,
@@ -912,7 +921,7 @@ public class LiveSignalEvaluator {
                     notifyOnly ? "shadow candidate suppressed before real order"
                             : "tradingProperties.enabled=false",
                     shadowExecutionIntentContext(strategy, expectedR, stopLossPct, takeProfitPct, entry, tp, sl,
-                            notifyOnly, fearGreedGate, snap),
+                            notifyOnly, noLiveExecutionOnly, fearGreedGate, snap),
                     record.getId());
             return;
         }
@@ -1293,6 +1302,7 @@ public class LiveSignalEvaluator {
                                                              BigDecimal tp,
                                                              BigDecimal sl,
                                                              boolean notifyOnly,
+                                                             boolean noLiveExecutionOnly,
                                                              FearGreedGateDecision fearGreedGate,
                                                              LiveSignalContext.Snapshot snap) {
         Map<String, Object> ctx = autonomousIntentBaseContext(expectedR, stopLossPct, takeProfitPct,
@@ -1304,7 +1314,9 @@ public class LiveSignalEvaluator {
         ctx.put("intentCreated", true);
         ctx.put("ocoPlanCreated", true);
         ctx.put("orderSent", false);
-        ctx.put("suppressionReason", notifyOnly ? "SHADOW_MODE" : "TRADING_DISABLED");
+        ctx.put("suppressionReason", noLiveExecutionOnly
+                ? "NO_LIVE_EXECUTION_ONLY_STRATEGY"
+                : (notifyOnly ? "SHADOW_MODE" : "TRADING_DISABLED"));
         ctx.put("candidateContinuedToEv", true);
         ctx.put("candidateContinuedToTqs", true);
         ctx.put("riskGateResult", "NOT_EVALUATED_SHADOW");
@@ -2513,14 +2525,14 @@ public class LiveSignalEvaluator {
         String ensembleSection = formatEnsembleForTg(ensembleDecision);
 
         return String.format(
-            "🚨 <b>買入訊號 %s (%s)</b>\n\n" +
+            "%s <b>%s (%s)</b>\n\n" +
             "📅 K線: %s (UTC+8)\n" +
             "💰 收盤價: <b>$%s</b>\n\n" +
             "%s" +
             "🛡 建議止損: $%s (-%.1f%%)\n" +
             "🎯 建議止盈: $%s (+%.1f%%)\n\n" +
             "⚡ 策略: %s%s%s",
-            symbol, intervalCode.toUpperCase(),
+            resolveLongSignalTelegramHeader(notifyOnly), symbol, intervalCode.toUpperCase(),
             barTime,
             formatPrice(entry),
             scoreLine,
@@ -2528,6 +2540,10 @@ public class LiveSignalEvaluator {
             formatPrice(tp), takeProfitPct * 100,
             strategyType, ensembleSection, shadowLine
         );
+    }
+
+    static String resolveLongSignalTelegramHeader(boolean notifyOnly) {
+        return notifyOnly ? "👁 <b>觀察候選</b>" : "🟡 <b>買入候選</b>";
     }
 
     /**
@@ -2686,17 +2702,18 @@ public class LiveSignalEvaluator {
                                                                      double takeProfitPct,
                                                                      boolean wickAwareSlApplied,
                                                                      String wickAwareSlMode) {
-        boolean defaultEnabled = OiFundingDivergenceStrategy.TYPE.equalsIgnoreCase(
-                strategyType == null ? "" : strategyType.trim());
-        boolean enabled = configBoolean(config, "bottomCatchQualityGateEnabled", defaultEnabled);
+        boolean enabled = configBoolean(config, TRADE_PLAN_QUALITY_GATE_ENABLED_KEY,
+                configBoolean(config, "bottomCatchQualityGateEnabled", true));
         double riskReward = stopLossPct > 0 ? takeProfitPct / stopLossPct : 0.0;
-        double minRiskReward = Math.max(0.0, configDouble(config, "bottomCatchMinRiskReward", 1.0));
-        double maxStopLossPct = Math.max(0.0, configDouble(config, "bottomCatchMaxStopLossPct", 0.08));
+        double minRiskReward = Math.max(0.0, configDouble(config, TRADE_PLAN_MIN_RISK_REWARD_KEY,
+                configDouble(config, "bottomCatchMinRiskReward", 1.0)));
+        double maxStopLossPct = Math.max(0.0, configDouble(config, TRADE_PLAN_MAX_STOP_LOSS_PCT_KEY,
+                configDouble(config, "bottomCatchMaxStopLossPct", 0.08)));
         String mode = wickAwareSlMode == null || wickAwareSlMode.isBlank()
                 ? "UNKNOWN"
                 : wickAwareSlMode.trim().toUpperCase(Locale.ROOT);
         if (!enabled) {
-            return new BottomCatchQualityDecision(true, "DISABLED", "bottom catch quality gate disabled",
+            return new BottomCatchQualityDecision(true, "DISABLED", "trade plan quality gate disabled",
                     riskReward, minRiskReward, stopLossPct, maxStopLossPct, wickAwareSlApplied, mode);
         }
 
@@ -2758,6 +2775,22 @@ public class LiveSignalEvaluator {
 
     private boolean isTqsStrategyAllowlisted(BtStrategy strategy) {
         return strategy != null && Long.valueOf(574L).equals(strategy.getId());
+    }
+
+    private static boolean isNoLiveExecutionOnlyStrategy(BtStrategy strategy, Map<String, Object> config) {
+        return noLiveExecutionOnlyStrategy(strategy, config);
+    }
+
+    static boolean noLiveExecutionOnlyStrategy(BtStrategy strategy, Map<String, Object> config) {
+        String name = strategy != null && strategy.getName() != null
+                ? strategy.getName().toUpperCase(Locale.ROOT)
+                : "";
+        if (name.contains("NOSL") || name.contains("NO-SL") || name.contains("POC")) {
+            return true;
+        }
+        double fixedStopLossPct = configDouble(config, "fixedStopLossPct", -1.0);
+        double fixedTakeProfitPct = configDouble(config, "fixedTakeProfitPct", -1.0);
+        return fixedStopLossPct >= 0.50 && fixedTakeProfitPct > 0 && fixedTakeProfitPct <= 0.01;
     }
 
     static FearGreedGateDecision evaluateFearGreedGate(String side,

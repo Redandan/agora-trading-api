@@ -24,11 +24,13 @@ function Assert-FailsBeforeSsh {
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
     }
-    $text = ($output | Out-String)
+    $text = ($output | Out-String -Width 8192)
     if ($exitCode -eq 0) {
         throw "post-fix strategy monitoring packet accepted invalid input"
     }
-    if ($text -notmatch $ExpectedPattern) {
+    $compactText = $text -replace "\s+", ""
+    $compactExpected = $ExpectedPattern -replace "\s+", ""
+    if ($text -notmatch $ExpectedPattern -and $compactText -notmatch [regex]::Escape($compactExpected)) {
         throw "post-fix strategy monitoring packet did not fail with expected pattern $ExpectedPattern`n$text"
     }
     if ($text -match "Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {

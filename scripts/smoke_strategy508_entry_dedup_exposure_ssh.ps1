@@ -232,6 +232,13 @@ def row_dict(fields, row):
 symbol_sql = esc(symbol)
 interval_sql = esc(interval_code)
 
+strategy_scope_sql = f"""
+SELECT COALESCE(JSON_UNQUOTE(JSON_EXTRACT(config_json, '$.entryDedupOpenExposureScope')), 'ALL_OPEN_ROWS') AS entry_dedup_open_exposure_scope
+FROM bt_strategy
+WHERE id = {strategy_id}
+LIMIT 1
+"""
+
 audit_sql = f"""
 SELECT
   COALESCE(SUM(a.event_type = 'SIGNAL_EVAL' AND UPPER(COALESCE(a.reason,'')) LIKE '%BUY%'), 0) AS buy_eval_rows,
@@ -304,6 +311,7 @@ audit_rows = run_query(audit_sql)
 reason_rows = run_query(skip_reason_sql)
 open_rows = run_query(open_position_sql)
 open_examples = run_query(open_examples_sql)
+strategy_scope_rows = run_query(strategy_scope_sql)
 
 audit_fields = ["buy_eval_rows", "entry_dedup_skip_rows", "filter_block_rows", "autotrade_rows", "latest_entry_dedup_skip_time"]
 open_fields = [
@@ -317,6 +325,7 @@ open_fields = [
 ]
 audit = row_dict(audit_fields, audit_rows[0]) if audit_rows else {}
 open_summary = row_dict(open_fields, open_rows[0]) if open_rows else {}
+entry_dedup_scope = (strategy_scope_rows[0][0] if strategy_scope_rows and strategy_scope_rows[0] else "ALL_OPEN_ROWS").upper()
 
 governance_text = call_tool("getEntryDedupGovernanceDashboard", {"symbol": symbol, "hours": hours}, timeout=120)
 readiness_text = call_tool("getStagedAddReadiness", {
@@ -348,6 +357,7 @@ auto_open_rows = int(open_summary.get("open_same_strategy_auto_positions", "0") 
 shadow_open_rows = int(open_summary.get("open_same_strategy_shadow_positions", "0") or "0")
 shadow_zero_rows = int(open_summary.get("open_same_strategy_shadow_zero_notional_positions", "0") or "0")
 open_notional = float(open_summary.get("open_same_strategy_notional", "0") or "0")
+scope_auto_traded_only = entry_dedup_scope == "AUTO_TRADED_OPEN_ROWS"
 if auto_open_rows > 0:
     open_semantic_status = "REAL_AUTO_TRADED_EXPOSURE_PRESENT"
 elif shadow_open_rows > 0 and shadow_zero_rows == shadow_open_rows and open_notional == 0.0:
@@ -357,12 +367,20 @@ elif shadow_open_rows > 0:
 else:
     open_semantic_status = "NO_OPEN_ROWS"
 
+shadow_zero_ignored_by_scope = (
+    scope_auto_traded_only
+    and open_semantic_status == "SHADOW_ZERO_NOTIONAL_ROWS_ONLY_NOT_REAL_EXPOSURE"
+)
+live_entry_dedup_shadow_zero_blocker = not shadow_zero_ignored_by_scope
+
 if would_allow:
     recommendation = "STAGED_ADD_SHADOW_CANDIDATE_REVIEW_NOT_LIVE"
 elif exact_duplicate:
     recommendation = "KEEP_ENTRY_DEDUP_EXACT_DUPLICATE_BLOCK"
 elif any("BUDGET" in str(v) or "NOTIONAL" in str(v) for v in blockers):
     recommendation = "ENTRY_DEDUP_BUDGET_CAP_BLOCKED"
+elif shadow_zero_ignored_by_scope:
+    recommendation = "ENTRY_DEDUP_SCOPE_ALREADY_AUTO_TRADED_REVIEW_NON_DEDUP_GATES"
 elif blockers:
     recommendation = "ENTRY_DEDUP_HARD_SAFETY_BLOCKED"
 else:
@@ -386,9 +404,13 @@ else:
         print(f"  - {reason}={count}")
 print("")
 print("Open Exposure:")
+print(f"  strategy_entry_dedup_open_exposure_scope={entry_dedup_scope}")
+print(f"  entry_dedup_scope_auto_traded_only={str(scope_auto_traded_only).lower()}")
 for key in open_fields:
     print(f"  {key}={open_summary.get(key, '0')}")
 print(f"  open_same_strategy_real_exposure_status={open_semantic_status}")
+print(f"  shadow_zero_open_rows_ignored_by_entry_dedup_scope={str(shadow_zero_ignored_by_scope).lower()}")
+print(f"  live_entry_dedup_shadow_zero_blocker={str(live_entry_dedup_shadow_zero_blocker).lower()}")
 print("Open same-strategy examples:")
 if not open_examples:
     print("  - NONE")

@@ -72,6 +72,8 @@ TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
 TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT=0.1200
 TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT=250.0
 TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT=10.0
+TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED=false
+TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT=6.25
 TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW
 TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
 # Hardened schema mode. Flyway uses a Trading-owned history table so it does not
@@ -3602,6 +3604,27 @@ Expected:
   behavior, change live gate semantics, deploy, change production env, place
   orders, modify OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run
   external backfill/import.
+- To package the same scope change into an exact config-only authorization
+  bundle without executing it, run:
+
+  ```powershell
+  .\scripts\prepare_entry_dedup_open_exposure_scope_activation_authorization_bundle.ps1 -RequireReady
+  ```
+
+  Expected output includes
+  `entry_dedup_open_exposure_scope_activation_authorization_status=READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION`,
+  `entry_dedup_open_exposure_scope_activation_authorization_review_ready=true`,
+  `entry_dedup_open_exposure_scope_activation_authorization_text=...AUTHORIZE_ENTRY_DEDUP_LIVE_GATE_DEFAULT_OFF_AUTO_TRADED_ONLY_REVIEW...`,
+  `entry_dedup_open_exposure_scope_activation_mcp_tool=setStrategyFlags`,
+  `entry_dedup_open_exposure_scope_activation_requested_scope=AUTO_TRADED_OPEN_ROWS`,
+  `entry_dedup_open_exposure_scope_activation_rollback_scope=ALL_OPEN_ROWS`,
+  `scope_activation_execution_allowed=false`,
+  `strategy_config_mutation_allowed=false`, and `order_allowed=false`. This
+  authorization bundle only prepares exact operator text and post-apply
+  read-only checks; it does not execute `setStrategyFlags`, change strategy
+  config, clear blockers, deploy, change production env, place orders, modify
+  OCO/grid/fund/Earn/Telegram/exchange state, mutate DB, or run external
+  backfill/import.
 - To package the runtime snapshot gap as a shadow collector activation review
   request only, run:
 
@@ -4101,6 +4124,43 @@ Expected:
   `strategy508_entry_dedup_exposure_recommendation`,
   `wouldAllowStagedAdd`, `remainingAddBudget`, `open_same_strategy_positions`,
   and `target_group_blockers`.
+- If the strategy 508 staged-add preview says
+  `NO_EXISTING_POSITION_FOR_STAGED_ADD`, use
+  `.\scripts\smoke_strategy508_first_entry_readiness_ssh.ps1` for the actual
+  first-entry path. The read-only smoke checks signal-source policy, strategy
+  config, EntryDedup first-entry semantics, open-position guards, recent
+  live_signal/audit rows, ExpectedValueGate context, and
+  `previewPositionSizing`. It emits `strategy508_signal_source_gate`,
+  `entry_dedup_first_entry_pass`, `auto_trade_open_position_gate`,
+  `latest_ev_gate_status`, `first_entry_position_sizing_status`,
+  `strategy508_first_entry_blockers`, and
+  `strategy508_first_entry_conclusion`. It does not deploy, change production
+  env, place orders, send Telegram, relax EntryDedup/DataFreshness/live policy,
+  or mutate DB/OCO/grid/fund/Earn/exchange state.
+  If the blocker is `BLOCK_RISK_SIZED_BELOW_MIN_NOTIONAL`, the controlled
+  mitigation is `TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED=true`
+  with `TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT` set high
+  enough for the floor-sized SL loss. For the July 2026 strategy 508 sample,
+  the raw risk-sized notional was about `20.83`, the min notional was `50.00`,
+  and a 12% SL implies about `6.00` USDT floor risk, so the documented `6.25`
+  review cap covers that case. This env change is a live sizing policy change
+  and requires explicit deploy/env authorization.
+  Before requesting that authorization, save fresh first-entry evidence and run
+  the read-only activation packet:
+
+  ```powershell
+  .\scripts\smoke_strategy508_first_entry_readiness_ssh.ps1 |
+    Tee-Object target/profit-review/strategy508-first-entry-readiness-current.log
+  .\scripts\prepare_strategy508_min_notional_floor_activation_packet.ps1 -RequireReady
+  ```
+
+  The packet emits
+  `strategy508_min_notional_floor_activation_authorization_text`, the exact
+  env diff, rollback env diff, estimated floor risk, and hard
+  `*_allowed=false` markers. It only becomes ready when signal-source,
+  EntryDedup, open-position, and active EV gates are clear and the latest
+  Strategy 508 blocker is min-notional sizing. It does not deploy, change
+  production env, restart, send Telegram, or place orders.
 - If the strategy 508 RCA shows EntryDedup skips but no auto-traded open
   position, run `.\scripts\smoke_entry_dedup_exposure_consistency_ssh.ps1`.
   This narrower read-only DB smoke compares the EntryDedup open-signal

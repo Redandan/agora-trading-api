@@ -221,6 +221,8 @@ if (-not $reportUpdated) { Add-Missing -List $missing -Value "profit optimizatio
 if (-not $runbookUpdated) { Add-Missing -List $missing -Value "deploy runbook includes open exposure operator choice instructions" }
 
 $ready = $missing.Count -eq 0
+$activationOperatorNote = "Strategy 508 EntryDedup open exposure scope review: $confirmText; apply AUTO_TRADED_OPEN_ROWS only after confirming current blocker is zero-qty non-auto rows and auto-traded open rows remain zero."
+$activationCommandPreview = "setStrategyFlags(strategyId=$strategyId, entryDedupOpenExposureScope=$requestedOptionalScope, note=<operator-note>)"
 $status = if ($ready) {
     "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE"
 } else {
@@ -283,11 +285,34 @@ $packet = [ordered]@{
         confirmText = $confirmText
         recommendedReviewChoice = "REVIEW_DEFAULT_OFF_AUTO_TRADED_SCOPE_IMPLEMENTATION"
     }
+    activationPreflight = [ordered]@{
+        preflightReady = $ready
+        exactMcpTool = "setStrategyFlags"
+        exactMcpArguments = [ordered]@{
+            strategyId = $strategyId
+            entryDedupOpenExposureScope = $requestedOptionalScope
+            note = $activationOperatorNote
+        }
+        commandPreview = $activationCommandPreview
+        expectedRuntimeEffect = "Only auto_traded=1 open rows count as same strategy/symbol/interval open exposure for EntryDedup after the strategy config is applied."
+        rollbackConfigValue = $defaultScope
+        preApplyChecks = @(
+            "Confirm autoTradedOpenRows is 0 and nonAutoZeroQtyRows is greater than 0 in this packet.",
+            "Confirm post-semantic priority board still names OPEN_EXPOSURE_ZERO_QTY_NON_AUTO_SEMANTICS as the next blocker.",
+            "Confirm default-off implementation packet is ready and no order/live/env/deploy mutation has been performed."
+        )
+        postApplyReadOnlyChecks = @(
+            "Read strategy config and verify entryDedupOpenExposureScope=AUTO_TRADED_OPEN_ROWS.",
+            "Rerun smoke_strategy508_entry_dedup_exposure_ssh.ps1 and confirm shadow zero rows are ignored by EntryDedup scope.",
+            "Rerun post-fix strategy monitoring packet and verify any remaining no-buy blocker is not zero-qty non-auto open exposure."
+        )
+    }
     reviewEnvelope = [ordered]@{
         reviewOnly = $true
         choiceReviewReady = $ready
         openExposureClearanceAllowed = $false
         implementationAllowed = $false
+        strategyConfigMutationAllowed = $false
         behaviorChangeAllowed = $false
         liveGateChangeAllowed = $false
         liveExecutionReady = $false
@@ -327,6 +352,11 @@ Write-Host "entry_dedup_open_exposure_operator_choice_default_scope=$defaultScop
 Write-Host "entry_dedup_open_exposure_operator_choice_requested_optional_scope=$requestedOptionalScope"
 Write-Host "entry_dedup_open_exposure_operator_choice_confirm_text=$confirmText"
 Write-Host "entry_dedup_open_exposure_operator_choice_recommended_review_choice=REVIEW_DEFAULT_OFF_AUTO_TRADED_SCOPE_IMPLEMENTATION"
+Write-Host "entry_dedup_open_exposure_operator_choice_activation_preflight_ready=$($ready.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_open_exposure_operator_choice_activation_mcp_tool=setStrategyFlags"
+Write-Host "entry_dedup_open_exposure_operator_choice_activation_command_preview=$activationCommandPreview"
+Write-Host "entry_dedup_open_exposure_operator_choice_activation_requested_scope=$requestedOptionalScope"
+Write-Host "entry_dedup_open_exposure_operator_choice_activation_rollback_scope=$defaultScope"
 Write-Host "entry_dedup_open_exposure_operator_choice_report_updated=$($reportUpdated.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_open_exposure_operator_choice_runbook_updated=$($runbookUpdated.ToString().ToLowerInvariant())"
 Write-Host ("entry_dedup_open_exposure_operator_choice_missing_requirements=" + (ConvertTo-Json -Compress @($missing)))
@@ -334,6 +364,7 @@ Write-Host ("entry_dedup_open_exposure_operator_choice_packet=" + (ConvertTo-Jso
 Write-Host "choice_review_ready=$($ready.ToString().ToLowerInvariant())"
 Write-Host "open_exposure_clearance_allowed=false"
 Write-Host "implementation_allowed=false"
+Write-Host "strategy_config_mutation_allowed=false"
 Write-Host "behavior_change_allowed=false"
 Write-Host "live_gate_change_allowed=false"
 Write-Host "live_execution_ready=false"

@@ -2582,6 +2582,41 @@
   only and does not relax EntryDedup/DataFreshness/live policy, execute
   staged-add/live orders, modify OCO, close positions, deploy, or mutate
   production state.
+- `scripts/smoke_strategy508_first_entry_readiness_ssh.ps1` is the companion
+  read-only first-entry path smoke for Strategy 508 / BTCUSDT / 1h. Use it
+  when staged-add preview emits `NO_EXISTING_POSITION_FOR_STAGED_ADD`, because
+  staged-add readiness is not first-entry evidence. It checks signal-source
+  policy, strategy config, EntryDedup first-entry semantics, AutoTrade
+  open-position guards, recent live_signal/audit rows, ExpectedValueGate
+  context, and `previewPositionSizing`. It emits
+  `strategy508_signal_source_gate`, `entry_dedup_first_entry_pass`,
+  `auto_trade_open_position_gate`, `latest_ev_gate_status`,
+  `first_entry_position_sizing_status`, `strategy508_first_entry_blockers`, and
+  `strategy508_first_entry_conclusion`. It is evidence only and does not
+  deploy, change production env, place orders, send Telegram, relax
+  EntryDedup/DataFreshness/live policy, or mutate DB/OCO/grid/fund/Earn/exchange
+  state.
+- Strategy 508 first-entry sizing now has an explicit min-notional floor policy
+  path. `TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED=false` remains
+  the safe default. When enabled with
+  `TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT`, the sizing
+  engine may bridge a raw risk-sized notional below the minimum up to the min
+  notional only when available USDT can fund the floor and the floor-sized SL
+  loss stays within the configured cap. This is intended for cases like the
+  July 2026 strategy 508 sample (`20.83` raw, `50.00` floor, ~`6.00` USDT SL
+  risk), and remains a live sizing policy change requiring explicit deploy/env
+  authorization.
+- `scripts/prepare_strategy508_min_notional_floor_activation_packet.ps1` is the
+  read-only activation authorization packet for that Strategy 508 floor path.
+  It consumes the saved first-entry readiness log, requires signal-source,
+  EntryDedup, open-position, and active EV gates to be clear, verifies that the
+  latest blocker is only min-notional sizing, estimates the floor-sized SL risk
+  against `TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT`, and
+  emits exact env diff, rollback env diff, and
+  `strategy508_min_notional_floor_activation_authorization_text`. The packet
+  keeps deploy/env/restart/order/Telegram/DB/exchange mutation flags false; it
+  is review material only until a separate production authorization and
+  post-deploy read-only verification are completed.
 - 2026-06-22 read-only production strategy 508 EntryDedup/exposure RCA for
   `BTCUSDT` / `1h` showed `buy_eval_rows=11`, `entry_dedup_skip_rows=11`,
   `filter_block_rows=0`, `autotrade_rows=0`, and all skip reasons as

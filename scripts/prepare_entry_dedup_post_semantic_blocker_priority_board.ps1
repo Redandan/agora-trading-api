@@ -1,6 +1,7 @@
 param(
     [string]$OpenExposureSemanticResolutionLogPath = "target/profit-review/entry-dedup-open-exposure-semantic-resolution-latest.log",
     [string]$OpenExposureOperatorChoiceLogPath = "target/profit-review/entry-dedup-open-exposure-operator-choice-latest.log",
+    [string]$OpenExposureScopeActivationAuthorizationBundleLogPath = "target/profit-review/entry-dedup-open-exposure-scope-activation-authorization-bundle-latest.log",
     [string]$RuntimeSnapshotCollectorRequestLogPath = "target/profit-review/entry-dedup-runtime-snapshot-collector-activation-request-latest.log",
     [string]$BudgetSnapshotReviewRequestLogPath = "target/profit-review/entry-dedup-budget-snapshot-review-request-latest.log",
     [string]$OcoRouteDryRunRequestLogPath = "target/profit-review/entry-dedup-oco-route-dry-run-request-latest.log",
@@ -143,6 +144,7 @@ if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 10080) {
 foreach ($path in @(
         $OpenExposureSemanticResolutionLogPath,
         $OpenExposureOperatorChoiceLogPath,
+        $OpenExposureScopeActivationAuthorizationBundleLogPath,
         $RuntimeSnapshotCollectorRequestLogPath,
         $BudgetSnapshotReviewRequestLogPath,
         $OcoRouteDryRunRequestLogPath,
@@ -156,8 +158,24 @@ foreach ($path in @(
 
 $semanticLog = Read-FreshLog -Name "entry-dedup-open-exposure-semantic-resolution" -PathValue $OpenExposureSemanticResolutionLogPath -MaxAge $MaxAgeMinutes
 $operatorChoiceLog = $null
+$operatorChoiceIgnoredStatus = "OPTIONAL_NOT_PROVIDED"
 if (Test-Path -LiteralPath (Resolve-RepoPath -PathValue $OpenExposureOperatorChoiceLogPath)) {
-    $operatorChoiceLog = Read-FreshLog -Name "entry-dedup-open-exposure-operator-choice" -PathValue $OpenExposureOperatorChoiceLogPath -MaxAge $MaxAgeMinutes
+    $candidateOperatorChoiceLog = Read-FreshLog -Name "entry-dedup-open-exposure-operator-choice" -PathValue $OpenExposureOperatorChoiceLogPath -MaxAge $MaxAgeMinutes
+    if ($candidateOperatorChoiceLog.Fresh) {
+        $operatorChoiceLog = $candidateOperatorChoiceLog
+    } else {
+        $operatorChoiceIgnoredStatus = "OPTIONAL_STALE_IGNORED"
+    }
+}
+$scopeActivationBundleLog = $null
+$scopeActivationBundleIgnoredStatus = "OPTIONAL_NOT_PROVIDED"
+if (Test-Path -LiteralPath (Resolve-RepoPath -PathValue $OpenExposureScopeActivationAuthorizationBundleLogPath)) {
+    $candidateScopeActivationBundleLog = Read-FreshLog -Name "entry-dedup-open-exposure-scope-activation-authorization-bundle" -PathValue $OpenExposureScopeActivationAuthorizationBundleLogPath -MaxAge $MaxAgeMinutes
+    if ($candidateScopeActivationBundleLog.Fresh) {
+        $scopeActivationBundleLog = $candidateScopeActivationBundleLog
+    } else {
+        $scopeActivationBundleIgnoredStatus = "OPTIONAL_STALE_IGNORED"
+    }
 }
 $runtimeLog = Read-FreshLog -Name "entry-dedup-runtime-snapshot-collector-request" -PathValue $RuntimeSnapshotCollectorRequestLogPath -MaxAge $MaxAgeMinutes
 $budgetLog = Read-FreshLog -Name "entry-dedup-budget-snapshot-review-request" -PathValue $BudgetSnapshotReviewRequestLogPath -MaxAge $MaxAgeMinutes
@@ -171,13 +189,15 @@ foreach ($log in @($semanticLog, $runtimeLog, $budgetLog, $ocoLog, $historicalLo
         Add-Missing -List $missing -Value "$($log.Name) log fresh within $MaxAgeMinutes minutes"
     }
 }
-if ($null -ne $operatorChoiceLog -and -not $operatorChoiceLog.Fresh) {
-    Add-Missing -List $missing -Value "$($operatorChoiceLog.Name) log fresh within $MaxAgeMinutes minutes"
-}
 
 $semanticPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $semanticLog.Text -Prefix "entry_dedup_open_exposure_semantic_resolution_packet=")
 $operatorChoicePacket = if ($null -ne $operatorChoiceLog) {
     Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $operatorChoiceLog.Text -Prefix "entry_dedup_open_exposure_operator_choice_packet=")
+} else {
+    $null
+}
+$scopeActivationBundlePacket = if ($null -ne $scopeActivationBundleLog) {
+    Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $scopeActivationBundleLog.Text -Prefix "entry_dedup_open_exposure_scope_activation_authorization_bundle=")
 } else {
     $null
 }
@@ -188,6 +208,7 @@ $historicalPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $histo
 $traceabilityPacket = Convert-JsonObjectOrNull (Get-LastPrefixedValue -Text $traceabilityLog.Text -Prefix "entry_dedup_review_only_objective_traceability_packet=")
 if ($null -eq $semanticPacket) { Add-Missing -List $missing -Value "open exposure semantic resolution packet JSON present" }
 if ($null -ne $operatorChoiceLog -and $null -eq $operatorChoicePacket) { Add-Missing -List $missing -Value "open exposure operator choice packet JSON present" }
+if ($null -ne $scopeActivationBundleLog -and $null -eq $scopeActivationBundlePacket) { Add-Missing -List $missing -Value "open exposure scope activation authorization bundle JSON present" }
 if ($null -eq $runtimePacket) { Add-Missing -List $missing -Value "runtime snapshot collector request packet JSON present" }
 if ($null -eq $budgetPacket) { Add-Missing -List $missing -Value "budget snapshot review request packet JSON present" }
 if ($null -eq $ocoPacket) { Add-Missing -List $missing -Value "OCO route dry-run request packet JSON present" }
@@ -197,6 +218,7 @@ if ($null -eq $traceabilityPacket) { Add-Missing -List $missing -Value "objectiv
 $expectedStatuses = [ordered]@{
     semanticResolution = "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_SEMANTIC_RESOLUTION_REVIEW_NOT_LIVE"
     openExposureOperatorChoice = "OPTIONAL_NOT_PROVIDED"
+    openExposureScopeActivationAuthorization = "OPTIONAL_NOT_PROVIDED"
     runtimeSnapshotRequest = "READY_FOR_ENTRY_DEDUP_RUNTIME_SNAPSHOT_COLLECTOR_ACTIVATION_REQUEST_NOT_LIVE"
     budgetSnapshotRequest = "READY_FOR_ENTRY_DEDUP_DAILY_CAP_MAX_LOSS_SNAPSHOT_REVIEW_REQUEST_NOT_LIVE"
     ocoRouteRequest = "READY_FOR_ENTRY_DEDUP_OCO_ROUTE_DRY_RUN_REQUEST_REVIEW_NOT_LIVE"
@@ -205,7 +227,8 @@ $expectedStatuses = [ordered]@{
 }
 $actualStatuses = [ordered]@{
     semanticResolution = [string](Get-Prop -Object $semanticPacket -Name "status" -Default "UNKNOWN")
-    openExposureOperatorChoice = if ($null -ne $operatorChoicePacket) { [string](Get-Prop -Object $operatorChoicePacket -Name "status" -Default "UNKNOWN") } else { "OPTIONAL_NOT_PROVIDED" }
+    openExposureOperatorChoice = if ($null -ne $operatorChoicePacket) { [string](Get-Prop -Object $operatorChoicePacket -Name "status" -Default "UNKNOWN") } else { $operatorChoiceIgnoredStatus }
+    openExposureScopeActivationAuthorization = if ($null -ne $scopeActivationBundlePacket) { [string](Get-Prop -Object $scopeActivationBundlePacket -Name "status" -Default "UNKNOWN") } else { $scopeActivationBundleIgnoredStatus }
     runtimeSnapshotRequest = [string](Get-Prop -Object $runtimePacket -Name "status" -Default "UNKNOWN")
     budgetSnapshotRequest = [string](Get-Prop -Object $budgetPacket -Name "status" -Default "UNKNOWN")
     ocoRouteRequest = [string](Get-Prop -Object $ocoPacket -Name "status" -Default "UNKNOWN")
@@ -214,7 +237,16 @@ $actualStatuses = [ordered]@{
 }
 foreach ($key in $expectedStatuses.Keys) {
     if ($key -eq "openExposureOperatorChoice") {
-        if ($actualStatuses[$key] -eq "OPTIONAL_NOT_PROVIDED" -or $actualStatuses[$key] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE") {
+        if ($actualStatuses[$key] -eq "OPTIONAL_NOT_PROVIDED" `
+                -or $actualStatuses[$key] -eq "OPTIONAL_STALE_IGNORED" `
+                -or $actualStatuses[$key] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE") {
+            continue
+        }
+    }
+    if ($key -eq "openExposureScopeActivationAuthorization") {
+        if ($actualStatuses[$key] -eq "OPTIONAL_NOT_PROVIDED" `
+                -or $actualStatuses[$key] -eq "OPTIONAL_STALE_IGNORED" `
+                -or $actualStatuses[$key] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION") {
             continue
         }
     }
@@ -230,6 +262,16 @@ $exactOpportunityCount = Get-IntValue (Get-NestedProp -Object $semanticPacket -P
 $semanticOperatorChoiceRequired = Get-BoolValue (Get-NestedProp -Object $semanticPacket -Path @("semanticEvidence", "operatorSemanticsChoiceRequired") -Default $false)
 $actualAutoExposureClear = Get-BoolValue (Get-NestedProp -Object $semanticPacket -Path @("semanticEvidence", "actualAutoExposureClear") -Default $false)
 $openExposureOperatorChoiceReady = $actualStatuses["openExposureOperatorChoice"] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_OPERATOR_CHOICE_REVIEW_NOT_LIVE"
+$openExposureActivationPreflightReady = if ($openExposureOperatorChoiceReady) {
+    Get-BoolValue (Get-NestedProp -Object $operatorChoicePacket -Path @("activationPreflight", "preflightReady") -Default $false)
+} else {
+    $false
+}
+$openExposureActivationCommandPreview = if ($openExposureActivationPreflightReady) {
+    [string](Get-NestedProp -Object $operatorChoicePacket -Path @("activationPreflight", "commandPreview") -Default "")
+} else {
+    ""
+}
 $openExposureOperatorChoiceConfirmText = if ($openExposureOperatorChoiceReady) {
     [string](Get-NestedProp -Object $operatorChoicePacket -Path @("proposedChange", "confirmText") -Default "")
 } else {
@@ -237,6 +279,19 @@ $openExposureOperatorChoiceConfirmText = if ($openExposureOperatorChoiceReady) {
 }
 $openExposureOperatorChoiceRecommendedReviewChoice = if ($openExposureOperatorChoiceReady) {
     [string](Get-NestedProp -Object $operatorChoicePacket -Path @("proposedChange", "recommendedReviewChoice") -Default "")
+} else {
+    ""
+}
+$openExposureScopeActivationBundleReady = $openExposureOperatorChoiceReady `
+    -and $openExposureActivationPreflightReady `
+    -and ($actualStatuses["openExposureScopeActivationAuthorization"] -eq "READY_FOR_ENTRY_DEDUP_OPEN_EXPOSURE_SCOPE_ACTIVATION_AUTHORIZATION_REVIEW_NOT_MUTATION")
+$openExposureScopeActivationAuthorizationText = if ($openExposureScopeActivationBundleReady) {
+    [string](Get-Prop -Object $scopeActivationBundlePacket -Name "exactAuthorizationText" -Default "")
+} else {
+    ""
+}
+$openExposureScopeActivationBundleCommandPreview = if ($openExposureScopeActivationBundleReady) {
+    [string](Get-Prop -Object $scopeActivationBundlePacket -Name "commandPreview" -Default "")
 } else {
     ""
 }
@@ -259,10 +314,30 @@ $openExposureSemanticBlocked = $semanticOperatorChoiceRequired
 
 $priorityItems = [System.Collections.Generic.List[object]]::new()
 if ($openExposureSemanticBlocked) {
-    $openExposureEvidencePath = if ($openExposureOperatorChoiceReady) { $OpenExposureOperatorChoiceLogPath } else { $OpenExposureSemanticResolutionLogPath }
-    $openExposureStatus = if ($openExposureOperatorChoiceReady) { "BLOCKED_OPERATOR_CHOICE_READY_NOT_AUTHORIZED" } else { "BLOCKED_OPERATOR_CHOICE_REQUIRED" }
-    $openExposureRequiredNextAction = if ($openExposureOperatorChoiceReady) {
-        "Review the open-exposure operator choice packet; exact authorization text for the default-off implementation review is $openExposureOperatorChoiceConfirmText."
+    $openExposureEvidencePath = if ($openExposureScopeActivationBundleReady) {
+        $OpenExposureScopeActivationAuthorizationBundleLogPath
+    } elseif ($openExposureOperatorChoiceReady) {
+        $OpenExposureOperatorChoiceLogPath
+    } else {
+        $OpenExposureSemanticResolutionLogPath
+    }
+    $openExposureStatus = if ($openExposureScopeActivationBundleReady) {
+        "BLOCKED_SCOPE_ACTIVATION_AUTHORIZATION_BUNDLE_READY_NOT_EXECUTED"
+    } elseif ($openExposureActivationPreflightReady) {
+        "BLOCKED_SCOPE_ACTIVATION_PREFLIGHT_READY_NOT_AUTHORIZED"
+    } elseif ($openExposureOperatorChoiceReady) {
+        "BLOCKED_OPERATOR_CHOICE_READY_NOT_AUTHORIZED"
+    } else {
+        "BLOCKED_OPERATOR_CHOICE_REQUIRED"
+    }
+    $openExposureRequiredNextAction = if ($openExposureScopeActivationBundleReady) {
+        "If accepted, confirm the exact activation authorization text from the bundle, then separately execute the config-only setStrategyFlags step and post-apply read-only checks; preview: $openExposureScopeActivationBundleCommandPreview."
+    } elseif ($openExposureOperatorChoiceReady) {
+        if ($openExposureActivationPreflightReady) {
+            "If accepted, separately authorize the config-only scope change with $openExposureOperatorChoiceConfirmText; preview: $openExposureActivationCommandPreview."
+        } else {
+            "Review the open-exposure operator choice packet; exact authorization text for the default-off implementation review is $openExposureOperatorChoiceConfirmText."
+        }
     } else {
         "Review whether the zero-qty non-auto missing-OCO row remains a blocker, is resolved outside this packet, or needs a separately authorized semantics change."
     }
@@ -333,7 +408,14 @@ $packet = [ordered]@{
         exactOpportunityCount = $exactOpportunityCount
         actualAutoExposureClear = $actualAutoExposureClear
         openExposureSemanticBlocked = $openExposureSemanticBlocked
+        openExposureOperatorChoiceStatus = $actualStatuses["openExposureOperatorChoice"]
         openExposureOperatorChoiceReady = $openExposureOperatorChoiceReady
+        openExposureScopeActivationAuthorizationStatus = $actualStatuses["openExposureScopeActivationAuthorization"]
+        openExposureScopeActivationBundleReady = $openExposureScopeActivationBundleReady
+        openExposureScopeActivationAuthorizationText = $openExposureScopeActivationAuthorizationText
+        openExposureScopeActivationBundleCommandPreview = $openExposureScopeActivationBundleCommandPreview
+        openExposureActivationPreflightReady = $openExposureActivationPreflightReady
+        openExposureActivationCommandPreview = $openExposureActivationCommandPreview
         openExposureOperatorChoiceConfirmText = $openExposureOperatorChoiceConfirmText
         openExposureOperatorChoiceRecommendedReviewChoice = $openExposureOperatorChoiceRecommendedReviewChoice
         runtimeSnapshotBlocked = $runtimeSnapshotBlocked
@@ -377,7 +459,14 @@ Write-Host "entry_dedup_post_semantic_blocker_priority_board_next_blocker=$nextB
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_exact_opportunity_count=$exactOpportunityCount"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_actual_auto_exposure_clear=$($actualAutoExposureClear.ToString().ToLowerInvariant())"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_semantic_blocked=$($openExposureSemanticBlocked.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_status=$($actualStatuses["openExposureOperatorChoice"])"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_ready=$($openExposureOperatorChoiceReady.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_scope_activation_authorization_status=$($actualStatuses["openExposureScopeActivationAuthorization"])"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_scope_activation_bundle_ready=$($openExposureScopeActivationBundleReady.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_scope_activation_authorization_text=$openExposureScopeActivationAuthorizationText"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_scope_activation_bundle_command_preview=$openExposureScopeActivationBundleCommandPreview"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_activation_preflight_ready=$($openExposureActivationPreflightReady.ToString().ToLowerInvariant())"
+Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_activation_command_preview=$openExposureActivationCommandPreview"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_confirm_text=$openExposureOperatorChoiceConfirmText"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_open_exposure_operator_choice_recommended_review_choice=$openExposureOperatorChoiceRecommendedReviewChoice"
 Write-Host "entry_dedup_post_semantic_blocker_priority_board_runtime_snapshot_blocked=$($runtimeSnapshotBlocked.ToString().ToLowerInvariant())"

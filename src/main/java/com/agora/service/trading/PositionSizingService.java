@@ -29,6 +29,7 @@ public class PositionSizingService {
         double min = sanePositive(props.getPositionSizingMinNotionalUsdt(), 50.0);
         double max = Math.max(min, sanePositive(props.getPositionSizingMaxNotionalUsdt(), 150.0));
         double hardRisk = sanePositive(props.getPositionSizingHardMaxRiskUsdt(), 5.0);
+        double floorMaxRisk = sanePositive(props.getPositionSizingMinNotionalFloorMaxRiskUsdt(), hardRisk);
         double freeBuffer = Math.max(0.0, props.getPositionSizingFreeUsdtBuffer());
 
         double entryPx = positive(entry);
@@ -49,22 +50,38 @@ public class PositionSizingService {
         double raw = riskBudget / slDistancePct;
         double recommended = raw;
         boolean belowMinNotional = recommended < min;
+        boolean floorApplied = false;
 
         if (recommended > max) {
             recommended = max;
             reasons.add("max_notional_cap");
         }
+        Double spendableUsdt = null;
         if (availableUsdt != null) {
-            double spendable = Math.max(0.0, availableUsdt - freeBuffer);
-            if (recommended > spendable) {
-                recommended = spendable;
+            spendableUsdt = Math.max(0.0, availableUsdt - freeBuffer);
+            if (recommended > spendableUsdt) {
+                recommended = spendableUsdt;
                 reasons.add("free_usdt_buffer_cap");
             }
         }
         recommended = Math.max(0.0, round2(recommended));
         if (recommended < min) {
-            belowMinNotional = true;
-            reasons.add("below_min_notional_skip");
+            double floorRisk = min * slDistancePct;
+            boolean hasSpendableFloor = spendableUsdt == null || spendableUsdt >= min;
+            if (props.isPositionSizingMinNotionalFloorEnabled() && hasSpendableFloor && floorRisk <= floorMaxRisk) {
+                recommended = min;
+                belowMinNotional = false;
+                floorApplied = true;
+                reasons.add("min_notional_floor_applied");
+            } else {
+                belowMinNotional = true;
+                if (props.isPositionSizingMinNotionalFloorEnabled() && !hasSpendableFloor) {
+                    reasons.add("min_notional_floor_insufficient_spendable_usdt");
+                } else if (props.isPositionSizingMinNotionalFloorEnabled() && floorRisk > floorMaxRisk) {
+                    reasons.add("min_notional_floor_risk_too_high");
+                }
+                reasons.add("below_min_notional_skip");
+            }
         }
 
         boolean live = props.isPositionSizingLiveEnabled();
@@ -80,13 +97,14 @@ public class PositionSizingService {
         return new PositionSizingDecision(symbol, strategyId, legacyAmountUsdt, recommended, finalAmount,
                 slDistancePct, tpDistancePct, rr, riskBudget, availableUsdt, min,
                 belowMinNotional, liveEntryAllowed, live,
-                String.join(",", reasons), buildExplain(legacyAmountUsdt, recommended, slDistancePct, riskBudget, rr, live));
+                String.join(",", reasons),
+                buildExplain(legacyAmountUsdt, raw, recommended, slDistancePct, riskBudget, rr, live, floorApplied));
     }
 
-    private static String buildExplain(double legacy, double recommended, double slDistancePct,
-                                       double riskBudget, double rr, boolean live) {
-        return String.format("legacy=%.2f recommended=%.2f slDistance=%.2f%% riskBudget=%.2fUSDT rr=%.2f mode=%s",
-                legacy, recommended, slDistancePct * 100.0, riskBudget, rr, live ? "LIVE" : "SHADOW");
+    private static String buildExplain(double legacy, double raw, double recommended, double slDistancePct,
+                                       double riskBudget, double rr, boolean live, boolean floorApplied) {
+        return String.format("legacy=%.2f rawRiskSized=%.2f recommended=%.2f slDistance=%.2f%% riskBudget=%.2fUSDT rr=%.2f mode=%s floorApplied=%s",
+                legacy, raw, recommended, slDistancePct * 100.0, riskBudget, rr, live ? "LIVE" : "SHADOW", floorApplied);
     }
 
     private static double qualityMultiplier(double nnOutput, double rr) {

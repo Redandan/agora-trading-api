@@ -2,6 +2,8 @@ param(
     [string]$ProgressPath = "SPLIT_PROGRESS.md",
     [string]$ReadmePath = "README.md",
     [string]$RunbookPath = "docs/deploy-runbook.md",
+    [string]$ExactOpportunityLogPath = "",
+    [int]$MaxAgeMinutes = 240,
     [string]$Symbol = "BTCUSDT",
     [int]$StrategyId = 508,
     [string]$IntervalCode = "1h",
@@ -35,13 +37,50 @@ function Resolve-RepoPath {
     return (Join-Path (Split-Path -Parent $PSScriptRoot) $Path)
 }
 
+function Assert-PathTokenSafe {
+    param([string]$Name, [string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return }
+    if ($Value -notmatch "^[A-Za-z0-9._:/\\-]+$") {
+        throw "$Name contains unsupported characters."
+    }
+}
+
 function Test-TextContains {
     param([string]$Text, [string]$Needle)
     return $Text.Contains($Needle)
 }
 
+function Get-LastPrefixedValue {
+    param([string]$Text, [string]$Prefix)
+    $line = @($Text -split "`r?`n" | Where-Object { $_.TrimStart().StartsWith($Prefix) } | Select-Object -Last 1)
+    if (-not $line) { return "" }
+    $trimmed = $line.TrimStart()
+    return $trimmed.Substring($Prefix.Length).Trim()
+}
+
+function Get-IntValue {
+    param([object]$Value)
+    $parsed = 0
+    if ($null -eq $Value) { return 0 }
+    if ($Value -is [int]) { return $Value }
+    if ($Value -is [long]) { return [int]$Value }
+    if ([int]::TryParse(([string]$Value).Trim(), [ref]$parsed)) { return $parsed }
+    return 0
+}
+
+function Get-DecimalValue {
+    param([object]$Value)
+    $parsed = [decimal]0
+    if ($null -eq $Value) { return [decimal]0 }
+    if ($Value -is [decimal]) { return $Value }
+    if ([decimal]::TryParse(([string]$Value).Trim(), [ref]$parsed)) { return $parsed }
+    return [decimal]0
+}
+
 Assert-SmokeTokenSafe -Name "Symbol" -Value $Symbol
 Assert-SmokeTokenSafe -Name "IntervalCode" -Value $IntervalCode
+Assert-PathTokenSafe -Name "ExactOpportunityLogPath" -Value $ExactOpportunityLogPath
+if ($MaxAgeMinutes -lt 1 -or $MaxAgeMinutes -gt 10080) { throw "MaxAgeMinutes must be between 1 and 10080." }
 if ($StrategyId -lt 1 -or $StrategyId -gt 1000000) { throw "StrategyId must be between 1 and 1000000." }
 if ($TakeProfitPct -le 0 -or $TakeProfitPct -gt 20) { throw "TakeProfitPct must be greater than 0 and at most 20." }
 if ($StopLossPct -le 0 -or $StopLossPct -gt 20) { throw "StopLossPct must be greater than 0 and at most 20." }
@@ -83,6 +122,33 @@ foreach ($path in @($progressFullPath, $readmeFullPath, $runbookFullPath)) {
 $progressText = if (Test-Path -LiteralPath $progressFullPath) { Get-Content -Raw -LiteralPath $progressFullPath } else { "" }
 $readmeText = if (Test-Path -LiteralPath $readmeFullPath) { Get-Content -Raw -LiteralPath $readmeFullPath } else { "" }
 $runbookText = if (Test-Path -LiteralPath $runbookFullPath) { Get-Content -Raw -LiteralPath $runbookFullPath } else { "" }
+$sourceEvidenceMode = "RECORDED_DOC_EVIDENCE"
+$exactOpportunityPacket = $null
+$exactOpportunityLogFresh = $false
+if (-not [string]::IsNullOrWhiteSpace($ExactOpportunityLogPath)) {
+    $exactOpportunityFullPath = Resolve-RepoPath -Path $ExactOpportunityLogPath
+    if (-not (Test-Path -LiteralPath $exactOpportunityFullPath)) {
+        Add-MissingRequirement -List $missingRequirements -Value "ExactOpportunityLogPath exists: $ExactOpportunityLogPath"
+    } else {
+        $exactOpportunityItem = Get-Item -LiteralPath $exactOpportunityFullPath
+        $exactOpportunityAgeMinutes = [math]::Round(((Get-Date) - $exactOpportunityItem.LastWriteTime).TotalMinutes, 2)
+        $exactOpportunityLogFresh = $exactOpportunityAgeMinutes -le $MaxAgeMinutes
+        if (-not $exactOpportunityLogFresh) {
+            Add-MissingRequirement -List $missingRequirements -Value "ExactOpportunityLogPath fresh within $MaxAgeMinutes minutes"
+        }
+        $exactOpportunityText = Get-Content -Raw -LiteralPath $exactOpportunityFullPath
+        $exactOpportunityJson = Get-LastPrefixedValue -Text $exactOpportunityText -Prefix "entry_dedup_exact_opportunity_staged_add_review_packet="
+        if ([string]::IsNullOrWhiteSpace($exactOpportunityJson)) {
+            Add-MissingRequirement -List $missingRequirements -Value "ExactOpportunityLogPath contains exact opportunity packet JSON"
+        } else {
+            $exactOpportunityPacket = $exactOpportunityJson | ConvertFrom-Json -ErrorAction Stop
+            $sourceEvidenceMode = "FRESH_EXACT_OPPORTUNITY_LOG"
+            if ([string]$exactOpportunityPacket.status -ne "READY_FOR_ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_NOT_LIVE") {
+                Add-MissingRequirement -List $missingRequirements -Value "ExactOpportunityLogPath exact opportunity packet ready"
+            }
+        }
+    }
+}
 
 foreach ($marker in @(
         "ENTRY_DEDUP_EXPOSURE_SEMANTICS_MISMATCH_REVIEW",
@@ -117,6 +183,108 @@ foreach ($docCheck in @(
     }
 }
 
+$defaultSummary = [pscustomobject]@{
+    entryDedupExposureSemanticsMismatch = $true
+    rawAuditRows = 11
+    exactOpportunityCount = 6
+    exactDuplicateSuppressedRows = 5
+    entryDedupSkipRows = 11
+    openSignalRows = 1
+    autoTradedOpenRows = 0
+    nonAutoZeroQtyRows = 1
+    nonAutoEventRiskRows = 1
+    positive24hRows = 10
+    negative24hRows = 1
+    positive24hRatePct = 90.91
+    avg4hReturnPct = 0.8950
+    avg24hReturnPct = 1.0173
+    median24hReturnPct = 1.0572
+    avgMfe24hPct = 2.3067
+    avgMae24hPct = -0.3580
+    replayReviewedRows = 11
+    exactOpportunityReviewedRows = 6
+    takeProfitPct = $TakeProfitPct
+    stopLossPct = $StopLossPct
+    roundTripFeePct = $RoundTripFeePct
+    tpHitRows = 11
+    tpHitOpportunities = 6
+    slHitRows = 0
+    slHitOpportunities = 0
+    timeoutRows = 0
+    ambiguousSameBarRows = 0
+    ambiguousOpportunities = 0
+    netPositiveRows = 11
+    netWinRatePct = 100.00
+    avgNetReturnPct = 0.8000
+    stagedAddBudgetProxyAllowedOpportunities = 6
+    stagedAddReviewCandidateOpportunities = 6
+    exactOpportunityReviewBlockers = @(
+        "NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT",
+        "OCO_ROUTE_NOT_PROVEN_OR_MISSING"
+    )
+}
+
+$sourceEvidenceSummary = $defaultSummary
+if ($null -ne $exactOpportunityPacket -and $exactOpportunityLogFresh) {
+    $openExposure = $exactOpportunityPacket.openExposure
+    $rawAuditRows = Get-IntValue $exactOpportunityPacket.rawAuditRows
+    $exactOpportunityCount = Get-IntValue $exactOpportunityPacket.exactOpportunityCount
+    $exactDuplicateSuppressedRows = Get-IntValue $exactOpportunityPacket.exactDuplicateSuppressedRows
+    $tpHitOpportunities = Get-IntValue $exactOpportunityPacket.tpHitOpportunities
+    $slHitOpportunities = Get-IntValue $exactOpportunityPacket.slHitOpportunities
+    $ambiguousOpportunities = Get-IntValue $exactOpportunityPacket.ambiguousOpportunities
+    $positiveRate = if ($exactOpportunityCount -gt 0) { [math]::Round(($tpHitOpportunities * 100.0) / $exactOpportunityCount, 2) } else { 0 }
+    $blockers = [System.Collections.Generic.List[string]]::new()
+    foreach ($opportunity in @($exactOpportunityPacket.opportunities)) {
+        foreach ($blocker in @($opportunity.reviewBlockers)) {
+            if (-not [string]::IsNullOrWhiteSpace($blocker) -and $blockers -notcontains [string]$blocker) {
+                $blockers.Add([string]$blocker)
+            }
+        }
+    }
+    if ($blockers.Count -eq 0) {
+        $blockers.Add("OCO_ROUTE_NOT_PROVEN_OR_MISSING")
+    }
+
+    $sourceEvidenceSummary = [pscustomobject]@{
+        entryDedupExposureSemanticsMismatch = $true
+        rawAuditRows = $rawAuditRows
+        exactOpportunityCount = $exactOpportunityCount
+        exactDuplicateSuppressedRows = $exactDuplicateSuppressedRows
+        entryDedupSkipRows = $rawAuditRows
+        openSignalRows = Get-IntValue $openExposure.open_signal_rows
+        autoTradedOpenRows = Get-IntValue $openExposure.auto_traded_open_rows
+        nonAutoZeroQtyRows = Get-IntValue $openExposure.non_auto_zero_qty_rows
+        nonAutoEventRiskRows = Get-IntValue $openExposure.non_auto_eventrisk_rows
+        positive24hRows = $tpHitOpportunities
+        negative24hRows = $slHitOpportunities
+        positive24hRatePct = $positiveRate
+        avg4hReturnPct = Get-DecimalValue $exactOpportunityPacket.avgExpectedRProxy
+        avg24hReturnPct = Get-DecimalValue $exactOpportunityPacket.avgNetReturnPct
+        median24hReturnPct = Get-DecimalValue $exactOpportunityPacket.avgNetReturnPct
+        avgMfe24hPct = 0
+        avgMae24hPct = 0
+        replayReviewedRows = $rawAuditRows
+        exactOpportunityReviewedRows = $exactOpportunityCount
+        takeProfitPct = $TakeProfitPct
+        stopLossPct = $StopLossPct
+        roundTripFeePct = $RoundTripFeePct
+        tpHitRows = $rawAuditRows
+        tpHitOpportunities = $tpHitOpportunities
+        slHitRows = $slHitOpportunities
+        slHitOpportunities = $slHitOpportunities
+        timeoutRows = 0
+        ambiguousSameBarRows = $ambiguousOpportunities
+        ambiguousOpportunities = $ambiguousOpportunities
+        netPositiveRows = $tpHitOpportunities
+        netWinRatePct = $positiveRate
+        avgNetReturnPct = Get-DecimalValue $exactOpportunityPacket.avgNetReturnPct
+        stagedAddBudgetProxyAllowedOpportunities = Get-IntValue $exactOpportunityPacket.stagedAddBudgetProxyAllowedOpportunities
+        stagedAddReviewCandidateOpportunities = Get-IntValue $exactOpportunityPacket.stagedAddReviewCandidateOpportunities
+        exactOpportunityReviewBlockers = @($blockers)
+    }
+}
+
 $ready = $missingRequirements.Count -eq 0
 $status = if ($ready) { "READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE" } else { "NOT_READY" }
 $nextAction = if ($ready) {
@@ -131,47 +299,10 @@ $packet = [pscustomobject]@{
     symbol = $Symbol
     strategyId = $StrategyId
     intervalCode = $IntervalCode
+    sourceEvidenceMode = $sourceEvidenceMode
+    exactOpportunityLogPath = $ExactOpportunityLogPath
     sourceEvidenceScripts = @($sourceScripts)
-    sourceEvidenceSummary = [pscustomobject]@{
-        entryDedupExposureSemanticsMismatch = $true
-        rawAuditRows = 11
-        exactOpportunityCount = 6
-        exactDuplicateSuppressedRows = 5
-        entryDedupSkipRows = 11
-        openSignalRows = 1
-        autoTradedOpenRows = 0
-        nonAutoZeroQtyRows = 1
-        nonAutoEventRiskRows = 1
-        positive24hRows = 10
-        negative24hRows = 1
-        positive24hRatePct = 90.91
-        avg4hReturnPct = 0.8950
-        avg24hReturnPct = 1.0173
-        median24hReturnPct = 1.0572
-        avgMfe24hPct = 2.3067
-        avgMae24hPct = -0.3580
-        replayReviewedRows = 11
-        exactOpportunityReviewedRows = 6
-        takeProfitPct = $TakeProfitPct
-        stopLossPct = $StopLossPct
-        roundTripFeePct = $RoundTripFeePct
-        tpHitRows = 11
-        tpHitOpportunities = 6
-        slHitRows = 0
-        slHitOpportunities = 0
-        timeoutRows = 0
-        ambiguousSameBarRows = 0
-        ambiguousOpportunities = 0
-        netPositiveRows = 11
-        netWinRatePct = 100.00
-        avgNetReturnPct = 0.8000
-        stagedAddBudgetProxyAllowedOpportunities = 6
-        stagedAddReviewCandidateOpportunities = 6
-        exactOpportunityReviewBlockers = @(
-            "NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT",
-            "OCO_ROUTE_NOT_PROVEN_OR_MISSING"
-        )
-    }
+    sourceEvidenceSummary = $sourceEvidenceSummary
     proposedEnvelope = [pscustomobject]@{
         reviewOnly = $true
         reviewNotionalCapUsdt = $ReviewNotionalCapUsdt
@@ -216,6 +347,8 @@ Write-Host "interval_code=$IntervalCode"
 Write-Host "take_profit_pct=$TakeProfitPct"
 Write-Host "stop_loss_pct=$StopLossPct"
 Write-Host "round_trip_fee_pct=$RoundTripFeePct"
+Write-Host "entry_dedup_semantics_shadow_source_mode=$sourceEvidenceMode"
+Write-Host "entry_dedup_semantics_shadow_exact_opportunity_log_path=$ExactOpportunityLogPath"
 Write-Host "entry_dedup_policy_change_allowed=false"
 Write-Host "live_policy_change_allowed=false"
 Write-Host "position_or_oco_mutation_allowed=false"

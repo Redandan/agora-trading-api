@@ -40,6 +40,12 @@ public class OkxTradingProperties {
     /** Minimum spot order notional considered by the sizing engine. */
     private double positionSizingMinNotionalUsdt = 50.0;
 
+    /** Allow the sizing engine to bridge a risk-sized amount up to min notional when risk remains bounded. */
+    private boolean positionSizingMinNotionalFloorEnabled = false;
+
+    /** Maximum SL loss allowed when applying the min-notional floor. */
+    private double positionSizingMinNotionalFloorMaxRiskUsdt = 6.25;
+
     /** Hard cap for a single auto-trade notional. */
     private double positionSizingMaxNotionalUsdt = 150.0;
 

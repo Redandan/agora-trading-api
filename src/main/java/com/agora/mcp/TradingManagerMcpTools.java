@@ -580,7 +580,9 @@ public class TradingManagerMcpTools {
                 + "% rr=" + fmt(d.riskReward()) + "\n"
                 + "riskBudgetUsdt=" + fmt(d.riskBudgetUsdt()) + " availableUsdt="
                 + (d.availableUsdt() != null ? fmt(d.availableUsdt()) : "N/A") + "\n"
+                + "recommendedSlRiskUsdt=" + fmt(d.recommendedAmountUsdt() * d.slDistancePct()) + "\n"
                 + "reason=" + d.reason() + "\n"
+                + "explain=" + d.explain() + "\n"
                 + "operatorAction=" + (d.liveEnabled()
                     ? "LIVE sizing enabled; verify caps before allowing new exposure."
                     : "Shadow only; compare recommended vs actual over several trades before enabling live sizing.");

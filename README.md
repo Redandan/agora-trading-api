@@ -3122,6 +3122,46 @@ same-strategy exposure. It emits
 `strategy508_entry_dedup_exposure_recommendation`, staged-add blockers,
 remaining add budget, OCO/exposure counts, and example open positions. It does
 not relax EntryDedup or authorize staged-add/live execution.
+If that smoke shows `NO_EXISTING_POSITION_FOR_STAGED_ADD`, do not treat it as
+first-entry evidence. Run the first-entry readiness smoke:
+
+```powershell
+.\scripts\smoke_strategy508_first_entry_readiness_ssh.ps1
+```
+
+This read-only smoke checks the actual Strategy 508 first-entry path: signal
+source policy, strategy config, EntryDedup first-entry semantics, open-position
+guards, recent live_signal/audit rows, ExpectedValueGate context, and
+`previewPositionSizing`. It emits `strategy508_signal_source_gate`,
+`entry_dedup_first_entry_pass`, `auto_trade_open_position_gate`,
+`latest_ev_gate_status`, `first_entry_position_sizing_status`,
+`strategy508_first_entry_blockers`, and
+`strategy508_first_entry_conclusion`. It does not deploy, change production
+env, place orders, send Telegram, relax EntryDedup/DataFreshness/live policy,
+or mutate DB/OCO/grid/fund/Earn/exchange state.
+When the blocker is `BLOCK_RISK_SIZED_BELOW_MIN_NOTIONAL`, the controlled
+mitigation is the min-notional floor:
+`TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED=true` plus a bounded
+`TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT`. For the July
+2026 strategy 508 sample, `20.83` USDT raw risk sizing floored to `50.00` USDT
+at a 12% SL implies about `6.00` USDT risk, so the documented `6.25` cap covers
+that sample. This is a live sizing policy change and still needs explicit
+deploy/env authorization.
+Before requesting that live sizing policy change, save a fresh first-entry
+evidence log and package the exact env diff/rollback prompt:
+
+```powershell
+.\scripts\smoke_strategy508_first_entry_readiness_ssh.ps1 |
+  Tee-Object target/profit-review/strategy508-first-entry-readiness-current.log
+.\scripts\prepare_strategy508_min_notional_floor_activation_packet.ps1 -RequireReady
+```
+
+The packet is read-only. It requires signal source, EntryDedup, open-position,
+and active EV gates to be clear, verifies that the latest blocker is only
+min-notional sizing, estimates the floor-sized SL risk against the `6.25` cap,
+and emits `strategy508_min_notional_floor_activation_authorization_text` plus
+rollback env diff. It does not deploy, edit production env, restart, send
+Telegram, or place orders.
 If that smoke shows recent EntryDedup skips but no auto-traded same-strategy
 open position, run the narrower consistency check:
 

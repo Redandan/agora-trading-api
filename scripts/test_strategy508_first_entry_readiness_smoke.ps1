@@ -20,7 +20,7 @@ function Assert-ScriptFailsBeforeSsh {
         [string]$Description
     )
 
-    $scriptPath = Join-Path $PSScriptRoot "smoke_strategy508_entry_dedup_exposure_ssh.ps1"
+    $scriptPath = Join-Path $PSScriptRoot "smoke_strategy508_first_entry_readiness_ssh.ps1"
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
@@ -36,10 +36,13 @@ function Assert-ScriptFailsBeforeSsh {
     if ($text -notmatch $ExpectedPattern) {
         throw "$Description did not fail with expected pattern '$ExpectedPattern'. Output: $text"
     }
+    if ($text -match "Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
+        throw "$Description reached SSH before local input guard:`n$text"
+    }
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$scriptPath = Join-Path $PSScriptRoot "smoke_strategy508_entry_dedup_exposure_ssh.ps1"
+$scriptPath = Join-Path $PSScriptRoot "smoke_strategy508_first_entry_readiness_ssh.ps1"
 $runbookPath = Join-Path $repoRoot "docs/deploy-runbook.md"
 $readmePath = Join-Path $repoRoot "README.md"
 $progressPath = Join-Path $repoRoot "SPLIT_PROGRESS.md"
@@ -52,59 +55,66 @@ $progressText = Get-Content -Raw -LiteralPath $progressPath
 foreach ($marker in @(
         "scope=READ_ONLY",
         "server-local MCP read-only tools plus direct MySQL SELECTs only",
+        "TRADING_SIGNAL_SOURCE_PRIMARY",
+        "TRADING_LEGACY_LIVE_EVALUATOR_ENABLED",
+        "TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS",
+        "TRADINGVIEW_LOCAL_STRATEGY_ID",
+        "TRADING_OKX_ENABLED",
+        "TRADING_OKX_MAX_OPEN_POSITIONS",
+        "TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED",
+        "TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT",
+        "previewPositionSizing",
         "bt_decision_audit",
         "bt_live_signal",
-        "getEntryDedupGovernanceDashboard",
-        "getStagedAddReadiness",
-        "ENTRY_SKIP",
-        "EntryDedup",
-        "same strategy/symbol/interval LONG exposure already exists",
-        "STAGED_ADD_SHADOW_CANDIDATE_REVIEW_NOT_LIVE",
-        "KEEP_ENTRY_DEDUP_EXACT_DUPLICATE_BLOCK",
-        "ENTRY_DEDUP_BUDGET_CAP_BLOCKED",
-        "ENTRY_DEDUP_SCOPE_ALREADY_AUTO_TRADED_REVIEW_NON_DEDUP_GATES",
-        "ENTRY_DEDUP_HARD_SAFETY_BLOCKED",
-        "strategy508_entry_dedup_exposure_recommendation",
-        "strategy508_entry_dedup_next_action",
-        "wouldAllowStagedAdd",
-        "remainingAddBudget",
-        "open_same_strategy_positions",
-        "strategy_entry_dedup_open_exposure_scope",
-        "entry_dedup_scope_auto_traded_only",
-        "open_same_strategy_auto_positions",
-        "open_same_strategy_shadow_positions",
-        "open_same_strategy_shadow_zero_notional_positions",
-        "open_same_strategy_real_exposure_status",
-        "SHADOW_ZERO_NOTIONAL_ROWS_ONLY_NOT_REAL_EXPOSURE",
-        "shadow_zero_open_rows_ignored_by_entry_dedup_scope",
-        "live_entry_dedup_shadow_zero_blocker",
-        "target_group_blockers",
+        "strategy508_signal_source_gate",
+        "strategy508_first_entry_blockers",
+        "strategy508_first_entry_conclusion",
+        "first_entry_semantics",
+        "staged_add_preview_applicable",
+        "entry_dedup_first_entry_pass",
+        "auto_trade_open_position_gate",
+        "latest_ev_gate_applies_to_latest_signal",
+        "latest_ev_gate_status",
+        "first_entry_position_sizing_status",
+        "recommendedSlRiskUsdt",
+        "NO_RECENT_EV_CONTEXT",
+        "STALE_",
+        "BLOCK_RISK_SIZED_BELOW_MIN_NOTIONAL",
+        "PASS_MIN_NOTIONAL_FLOOR_APPLIED",
+        "LATEST_SIGNAL_BLOCKED_POSITION_SIZING",
+        "below_min_notional_skip",
+        "min_notional_floor_applied",
+        "EXTERNAL_TRADINGVIEW_PRIMARY_LEGACY_508_SUPPRESSED",
+        "LOCAL_TRADINGVIEW_ACTIVE_FOR_STRATEGY",
+        "LEGACY_LIVE_EVALUATOR_ACTIVE_FOR_STRATEGY",
+        "FIRST_ENTRY_BLOCKED_REVIEW_REQUIRED",
+        "FIRST_ENTRY_GATES_CLEAR_BUT_NO_RECENT_SIGNAL",
         "notAuthorization",
         "Assert-SshHostSafe",
         "refusing to query unexpected database",
         "OK read-only check complete"
     )) {
-    Assert-Contains -Name "strategy 508 EntryDedup exposure smoke marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
+    Assert-Contains -Name "strategy 508 first-entry readiness smoke marker" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }
 
 foreach ($doc in @($runbookText, $readmeText, $progressText)) {
-    Assert-Contains -Name "operator docs mention strategy 508 EntryDedup smoke" -Text $doc -Pattern "smoke_strategy508_entry_dedup_exposure_ssh\.ps1"
-    Assert-Contains -Name "operator docs mention strategy 508 EntryDedup read-only" -Text $doc -Pattern "read-only"
+    Assert-Contains -Name "operator docs mention strategy 508 first-entry smoke" -Text $doc -Pattern "smoke_strategy508_first_entry_readiness_ssh\.ps1"
+    Assert-Contains -Name "operator docs mention strategy 508 first-entry read-only" -Text $doc -Pattern "read-only"
 }
 
 Assert-ScriptFailsBeforeSsh `
     -Arguments @("-SshHost", "-oProxyCommand=bad", "-SshKey", ".\README.md") `
     -ExpectedPattern "SshHost contains unsupported characters for ssh target" `
-    -Description "strategy 508 EntryDedup SSH target input guard"
+    -Description "strategy 508 first-entry SSH target input guard"
 
 Assert-ScriptFailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-Hours", "0") `
     -ExpectedPattern "Hours must be between 1 and 720" `
-    -Description "strategy 508 EntryDedup hours input guard"
+    -Description "strategy 508 first-entry hours input guard"
 
 Assert-ScriptFailsBeforeSsh `
     -Arguments @("-SshHost", "example.invalid", "-SshKey", ".\README.md", "-IntervalCode", "1h';echo bad") `
     -ExpectedPattern "IntervalCode contains unsupported characters for smoke invocation" `
-    -Description "strategy 508 EntryDedup interval input guard"
+    -Description "strategy 508 first-entry interval input guard"
 
-Write-Host "[strategy508-entry-dedup-exposure-smoke-test] OK"
+Write-Host "[strategy508-first-entry-readiness-smoke-test] OK"

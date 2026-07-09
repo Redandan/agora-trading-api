@@ -34,6 +34,9 @@ foreach ($marker in @(
         "ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_CANDIDATE_NOT_LIVE",
         "ENTRY_DEDUP_FEASIBILITY_SHADOW_EXPERIMENT_READY_NOT_LIVE",
         "ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET",
+        "ExactOpportunityLogPath",
+        "FRESH_EXACT_OPPORTUNITY_LOG",
+        "entry_dedup_semantics_shadow_source_mode",
         "entry_dedup_skip_rows=11",
         "exact_opportunity_count",
         "staged_add_review_candidate_opportunities",
@@ -86,7 +89,9 @@ if ($exitCode -ne 0) {
 }
 foreach ($marker in @(
         "entry_dedup_semantics_shadow_packet_status=READY_FOR_ENTRY_DEDUP_SHADOW_EXPERIMENT_REVIEW_NOT_LIVE",
+        "entry_dedup_semantics_shadow_source_mode=RECORDED_DOC_EVIDENCE",
         '"packetType":"ENTRY_DEDUP_SEMANTICS_SHADOW_EXPERIMENT_REVIEW_PACKET"',
+        '"sourceEvidenceMode":"RECORDED_DOC_EVIDENCE"',
         '"rawAuditRows":11',
         '"exactOpportunityCount":6',
         '"exactDuplicateSuppressedRows":5',
@@ -108,6 +113,68 @@ foreach ($marker in @(
 }
 if ($text -match "child_start|Could not resolve hostname|Connection timed out|Permission denied|remote command failed") {
     throw "EntryDedup semantics shadow experiment packet unexpectedly invoked SSH or a fresh child run:`n$text"
+}
+
+$tempExactOpportunityLog = Join-Path ([System.IO.Path]::GetTempPath()) ("entry-dedup-shadow-exact-" + [guid]::NewGuid().ToString("N") + ".log")
+try {
+    $exactPacket = [pscustomobject]@{
+        packetType = "ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_PACKET"
+        status = "READY_FOR_ENTRY_DEDUP_EXACT_OPPORTUNITY_STAGED_ADD_REVIEW_NOT_LIVE"
+        rawAuditRows = 13
+        exactOpportunityCount = 8
+        exactDuplicateSuppressedRows = 5
+        stagedAddBudgetProxyAllowedOpportunities = 8
+        stagedAddReviewCandidateOpportunities = 8
+        tpHitOpportunities = 8
+        slHitOpportunities = 0
+        ambiguousOpportunities = 0
+        avgExpectedRProxy = 0.8
+        avgNetReturnPct = 0.8
+        openExposure = [pscustomobject]@{
+            open_signal_rows = 5
+            auto_traded_open_rows = 0
+            non_auto_zero_qty_rows = 5
+            non_auto_eventrisk_rows = 1
+        }
+        opportunities = @(
+            [pscustomobject]@{
+                reviewBlockers = @("NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT", "OCO_ROUTE_NOT_PROVEN_OR_MISSING")
+            }
+        )
+    }
+    Set-Content -LiteralPath $tempExactOpportunityLog -Encoding UTF8 -Value ("entry_dedup_exact_opportunity_staged_add_review_packet=" + (ConvertTo-Json -Compress -Depth 8 $exactPacket))
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $freshOutput = & $powerShell.Source -NoProfile -ExecutionPolicy Bypass -File $scriptPath -ExactOpportunityLogPath $tempExactOpportunityLog -RequireReady 2>&1
+        $freshExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    $freshText = ($freshOutput | Out-String)
+    if ($freshExitCode -ne 0) {
+        throw "EntryDedup semantics shadow experiment packet failed fresh exact opportunity mode:`n$freshText"
+    }
+    foreach ($marker in @(
+            "entry_dedup_semantics_shadow_source_mode=FRESH_EXACT_OPPORTUNITY_LOG",
+            '"sourceEvidenceMode":"FRESH_EXACT_OPPORTUNITY_LOG"',
+            '"rawAuditRows":13',
+            '"exactOpportunityCount":8',
+            '"exactDuplicateSuppressedRows":5',
+            '"entryDedupSkipRows":13',
+            '"exactOpportunityReviewedRows":8',
+            '"tpHitRows":13',
+            '"tpHitOpportunities":8',
+            '"stagedAddReviewCandidateOpportunities":8',
+            '"NON_AUTO_ZERO_QTY_OPEN_SIGNAL_PRESENT"',
+            '"OCO_ROUTE_NOT_PROVEN_OR_MISSING"'
+        )) {
+        Assert-Contains -Name "EntryDedup semantics shadow fresh exact output" -Text $freshText -Pattern ([regex]::Escape($marker))
+    }
+} finally {
+    if (Test-Path -LiteralPath $tempExactOpportunityLog) {
+        Remove-Item -LiteralPath $tempExactOpportunityLog -Force
+    }
 }
 
 $tempProgress = Join-Path ([System.IO.Path]::GetTempPath()) ("entry-dedup-shadow-packet-progress-" + [guid]::NewGuid().ToString("N") + ".md")

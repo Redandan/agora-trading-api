@@ -63,6 +63,90 @@ class PositionSizingServiceTest {
     }
 
     @Test
+    void minNotionalFloorCanBridgeRiskSizedAmountWhenRiskIsBounded() {
+        props.setPositionSizingLiveEnabled(true);
+        props.setPositionSizingMinNotionalUsdt(50.0);
+        props.setPositionSizingMinNotionalFloorEnabled(true);
+        props.setPositionSizingMinNotionalFloorMaxRiskUsdt(6.25);
+        props.setPositionSizingMaxNotionalUsdt(150.0);
+        props.setPositionSizingHardMaxRiskUsdt(5.0);
+
+        var decision = service.calculate(
+                "BTCUSDT",
+                508L,
+                new BigDecimal("62056.20"),
+                new BigDecimal("65779.57"),
+                new BigDecimal("54609.46"),
+                0.0,
+                100.0,
+                null);
+
+        assertThat(decision.slDistancePct()).isCloseTo(0.12, withinPct(0.0001));
+        assertThat(decision.riskBudgetUsdt()).isCloseTo(2.5, withinPct(0.0001));
+        assertThat(decision.recommendedAmountUsdt()).isEqualTo(50.0);
+        assertThat(decision.finalAmountUsdt()).isEqualTo(50.0);
+        assertThat(decision.belowMinNotional()).isFalse();
+        assertThat(decision.liveEntryAllowed()).isTrue();
+        assertThat(decision.reason()).contains("min_notional_floor_applied");
+        assertThat(decision.reason()).doesNotContain("below_min_notional_skip");
+        assertThat(decision.explain()).contains("rawRiskSized=20.83").contains("floorApplied=true");
+    }
+
+    @Test
+    void minNotionalFloorKeepsSkipWhenFloorRiskExceedsCap() {
+        props.setPositionSizingLiveEnabled(true);
+        props.setPositionSizingMinNotionalUsdt(50.0);
+        props.setPositionSizingMinNotionalFloorEnabled(true);
+        props.setPositionSizingMinNotionalFloorMaxRiskUsdt(5.0);
+        props.setPositionSizingMaxNotionalUsdt(150.0);
+        props.setPositionSizingHardMaxRiskUsdt(5.0);
+
+        var decision = service.calculate(
+                "BTCUSDT",
+                508L,
+                new BigDecimal("62056.20"),
+                new BigDecimal("65779.57"),
+                new BigDecimal("54609.46"),
+                0.0,
+                100.0,
+                null);
+
+        assertThat(decision.recommendedAmountUsdt()).isLessThan(50.0);
+        assertThat(decision.finalAmountUsdt()).isZero();
+        assertThat(decision.liveEntryAllowed()).isFalse();
+        assertThat(decision.reason()).contains("min_notional_floor_risk_too_high");
+        assertThat(decision.reason()).contains("below_min_notional_skip");
+    }
+
+    @Test
+    void minNotionalFloorKeepsSkipWhenSpendableUsdtCannotFundMinimum() {
+        props.setPositionSizingLiveEnabled(true);
+        props.setPositionSizingMinNotionalUsdt(50.0);
+        props.setPositionSizingMinNotionalFloorEnabled(true);
+        props.setPositionSizingMinNotionalFloorMaxRiskUsdt(6.25);
+        props.setPositionSizingFreeUsdtBuffer(20.0);
+        props.setPositionSizingMaxNotionalUsdt(150.0);
+        props.setPositionSizingHardMaxRiskUsdt(5.0);
+
+        var decision = service.calculate(
+                "BTCUSDT",
+                508L,
+                new BigDecimal("62056.20"),
+                new BigDecimal("65779.57"),
+                new BigDecimal("54609.46"),
+                0.0,
+                100.0,
+                30.0);
+
+        assertThat(decision.recommendedAmountUsdt()).isLessThan(50.0);
+        assertThat(decision.finalAmountUsdt()).isZero();
+        assertThat(decision.liveEntryAllowed()).isFalse();
+        assertThat(decision.reason()).contains("free_usdt_buffer_cap");
+        assertThat(decision.reason()).contains("min_notional_floor_insufficient_spendable_usdt");
+        assertThat(decision.reason()).contains("below_min_notional_skip");
+    }
+
+    @Test
     void usesActualStopDistanceInsteadOfTakeProfitDistance() {
         props.setPositionSizingLiveEnabled(true);
         props.setPositionSizingMinNotionalUsdt(10.0);

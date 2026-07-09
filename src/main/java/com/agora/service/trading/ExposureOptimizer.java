@@ -94,13 +94,20 @@ public class ExposureOptimizer {
                 .filter(p -> sameStrategyPosition(p, strategy, symbol, intervalCode))
                 .map(this::notional)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sameStrategyAnyIntervalExposure = open.stream()
+                .filter(p -> sameStrategySymbolLongPosition(p, strategy, symbol))
+                .map(this::notional)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal sameSymbolLongExposure = open.stream()
                 .filter(p -> sameSymbolLongPosition(p, symbol))
                 .map(this::notional)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         boolean sameSymbolOpenLong = sameSymbolLongExposure.signum() > 0;
+        boolean sameStrategyAnyIntervalOpenLong = sameStrategyAnyIntervalExposure.signum() > 0;
 
         int dailyCap = getInt(config, "exposureOptimizerDailyNewEntryCap", 1);
+        int stagedAddMaxOrdersPerDay = getInt(config, "stagedAddMaxOrdersPerDay",
+                getInt(config, "microAddMaxOrdersPerDay", dailyCap));
         LocalDateTime dayStart = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
         long todayEntries = liveSignalRepository.countByAutoTradedIsTrueAndCreatedAtAfter(dayStart);
         double capitalUsdt = getDouble(config, "exposureOptimizerCapitalUsdt", 0.0);
@@ -114,6 +121,15 @@ public class ExposureOptimizer {
         BigDecimal candidateMaxLossMoney = BigDecimal.valueOf(candidateMaxLoss);
         BigDecimal projectedOpenMaxLoss = openMaxLoss.add(candidateMaxLossMoney);
         boolean blockSameSymbolLong = getBoolean(config, "exposureOptimizerBlockSameSymbolLong", true);
+        boolean allowSameStrategyCrossIntervalStagedAdd = getBoolean(config,
+                "stagedAddAllowSameStrategyCrossInterval",
+                getBoolean(config, "microAddAllowSameStrategyCrossInterval", false));
+        boolean sameStrategyCrossIntervalOpenLong = sameStrategyAnyIntervalOpenLong && !sameStrategyOpenLong;
+        boolean effectiveSameStrategyOpenLong = sameStrategyOpenLong
+                || (allowSameStrategyCrossIntervalStagedAdd && sameStrategyAnyIntervalOpenLong);
+        BigDecimal effectiveSameStrategyExposure = allowSameStrategyCrossIntervalStagedAdd
+                ? sameStrategyAnyIntervalExposure
+                : sameStrategyExposure;
         boolean microAddLiveEnabled = getBoolean(config, "microAddLiveEnabled", false)
                 || "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE".equals(dedupMode);
         boolean notifyOnly = getBoolean(config, "notifyOnly", false);
@@ -128,6 +144,11 @@ public class ExposureOptimizer {
         ctx.put("symbol", symbol);
         ctx.put("interval", intervalCode);
         ctx.put("same_strategy_open_long", sameStrategyOpenLong);
+        ctx.put("same_strategy_interval_open_long", sameStrategyOpenLong);
+        ctx.put("same_strategy_any_interval_open_long", sameStrategyAnyIntervalOpenLong);
+        ctx.put("same_strategy_cross_interval_open_long", sameStrategyCrossIntervalOpenLong);
+        ctx.put("same_strategy_staged_add_open_long", effectiveSameStrategyOpenLong);
+        ctx.put("staged_add_allow_same_strategy_cross_interval", allowSameStrategyCrossIntervalStagedAdd);
         ctx.put("expected_r", round(expectedR));
         ctx.put("micro_add_min_expected_r", microAddMinExpectedR);
         ctx.put("micro_add_notional_cap_usdt", microAddNotional);
@@ -135,7 +156,12 @@ public class ExposureOptimizer {
         ctx.put("micro_add_expected_r_positive", expectedR > 0);
         ctx.put("micro_add_expected_r_threshold_passed", expectedR >= microAddMinExpectedR);
         ctx.put("micro_add_candidate_max_loss_usdt", round(candidateMaxLoss));
-        ctx.put("same_strategy_exposure_usdt", plain(sameStrategyExposure));
+        ctx.put("same_strategy_interval_exposure_usdt", plain(sameStrategyExposure));
+        ctx.put("same_strategy_any_interval_exposure_usdt", plain(sameStrategyAnyIntervalExposure));
+        ctx.put("same_strategy_exposure_usdt", plain(effectiveSameStrategyExposure));
+        ctx.put("same_strategy_exposure_scope", allowSameStrategyCrossIntervalStagedAdd
+                ? "ANY_INTERVAL"
+                : "CURRENT_INTERVAL");
         ctx.put("same_strategy_exposure_cap_usdt", microAddMaxSameStrategyExposure);
         ctx.put("same_symbol_open_long", sameSymbolOpenLong);
         ctx.put("same_symbol_long_exposure_usdt", plain(sameSymbolLongExposure));
@@ -152,6 +178,11 @@ public class ExposureOptimizer {
         ctx.put("dailyCapUsed", todayEntries);
         ctx.put("dailyCapLimit", dailyCap);
         ctx.put("dailyCapRemaining", remainingCount(dailyCap, todayEntries));
+        ctx.put("staged_add_orders_today", todayEntries);
+        ctx.put("staged_add_max_orders_per_day", stagedAddMaxOrdersPerDay);
+        ctx.put("stagedAddOrdersToday", todayEntries);
+        ctx.put("stagedAddMaxOrdersPerDay", stagedAddMaxOrdersPerDay);
+        ctx.put("stagedAddDailyRemaining", remainingCount(stagedAddMaxOrdersPerDay, todayEntries));
         ctx.put("shadow_daily_new_entries", shadowTodayEntries);
         ctx.put("shadow_daily_new_entry_cap", shadowDailyCap);
         ctx.put("shadowDailyCapUsed", shadowTodayEntries);
@@ -184,12 +215,12 @@ public class ExposureOptimizer {
             return result(Decision.BLOCK_DUPLICATE, "shadow daily learning cap reached", ctx);
         }
 
-        if (notifyOnly && !sameStrategyOpenLong) {
+        if (notifyOnly && !effectiveSameStrategyOpenLong) {
             return result(Decision.ALLOW_NEW_ENTRY,
                     "notifyOnly candidate remains observable; exposure caps protect auto-trade path", ctx);
         }
 
-        if (blockSameSymbolLong && sameSymbolOpenLong && !sameStrategyOpenLong) {
+        if (blockSameSymbolLong && sameSymbolOpenLong && !effectiveSameStrategyOpenLong) {
             return result(Decision.BLOCK_DUPLICATE,
                     "same-symbol LONG exposure already exists across strategy boundary", ctx);
         }
@@ -210,12 +241,12 @@ public class ExposureOptimizer {
                     "open max loss is at or above configured cap", ctx);
         }
 
-        if (!notifyOnly && dailyCap > 0 && todayEntries >= dailyCap) {
+        if (!notifyOnly && dailyCap > 0 && todayEntries >= dailyCap && !effectiveSameStrategyOpenLong) {
             return result(Decision.BLOCK_DUPLICATE,
                     "daily new auto-entry cap reached", ctx);
         }
 
-        if (sameStrategyOpenLong) {
+        if (effectiveSameStrategyOpenLong) {
             boolean positiveEvMicroAddMode = "ALLOW_MICRO_ADD_IF_EV_POSITIVE".equals(dedupMode)
                     || "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE".equals(dedupMode);
             if (positiveEvMicroAddMode && expectedR > 0) {
@@ -223,7 +254,11 @@ public class ExposureOptimizer {
                     return result(Decision.BLOCK_DUPLICATE,
                             "micro-add notional cap is not positive", ctx);
                 }
-                if (sameStrategyExposure.compareTo(BigDecimal.valueOf(microAddMaxSameStrategyExposure)) >= 0) {
+                if (!notifyOnly && stagedAddMaxOrdersPerDay > 0 && todayEntries >= stagedAddMaxOrdersPerDay) {
+                    return result(Decision.BLOCK_DUPLICATE,
+                            "staged micro-add daily cap reached", ctx);
+                }
+                if (effectiveSameStrategyExposure.compareTo(BigDecimal.valueOf(microAddMaxSameStrategyExposure)) >= 0) {
                     return result(Decision.BLOCK_DUPLICATE,
                             "same-strategy staged add exposure budget exhausted", ctx);
                 }
@@ -232,12 +267,15 @@ public class ExposureOptimizer {
                     return result(Decision.BLOCK_DUPLICATE,
                             "micro-add would exceed open max loss cap", ctx);
                 }
+                String exposureReason = sameStrategyCrossIntervalOpenLong && allowSameStrategyCrossIntervalStagedAdd
+                        ? "same-strategy cross-interval exposure exists"
+                        : "same-strategy exposure exists";
                 if (!notifyOnly && microAddLiveEnabled) {
                     return result(Decision.ALLOW_STAGED_MICRO_ADD_ENTRY,
-                            "same-strategy exposure exists; staged live micro-add is allowed because expectedR is positive and budgets pass", ctx);
+                            exposureReason + "; staged live micro-add is allowed because expectedR is positive and budgets pass", ctx);
                 }
                 return result(Decision.SHADOW_MICRO_ADD_CANDIDATE,
-                        "same-strategy exposure exists; candidate stays shadow-only because expectedR is positive but live micro-add is disabled", ctx);
+                        exposureReason + "; candidate stays shadow-only because expectedR is positive but live micro-add is disabled", ctx);
             }
             return result(Decision.BLOCK_DUPLICATE,
                     "same strategy/symbol/interval LONG exposure already exists", ctx);
@@ -352,6 +390,14 @@ public class ExposureOptimizer {
                 && p.getStrategyId().equals(strategy.getId())
                 && symbol.equalsIgnoreCase(p.getSymbol())
                 && intervalCode.equalsIgnoreCase(p.getIntervalCode())
+                && "LONG".equalsIgnoreCase(p.getSide());
+    }
+
+    private boolean sameStrategySymbolLongPosition(BtLiveSignal p, BtStrategy strategy, String symbol) {
+        return p.getStrategyId() != null
+                && strategy.getId() != null
+                && p.getStrategyId().equals(strategy.getId())
+                && symbol.equalsIgnoreCase(p.getSymbol())
                 && "LONG".equalsIgnoreCase(p.getSide());
     }
 

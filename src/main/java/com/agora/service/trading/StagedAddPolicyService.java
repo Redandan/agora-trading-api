@@ -154,6 +154,8 @@ public class StagedAddPolicyService {
         long sid = strategyId == null ? 0L : strategyId;
         Optional<BtStrategy> strategy = sid > 0 ? strategyRepository.findById(sid) : Optional.empty();
         JsonNode config = strategy.map(BtStrategy::getConfigJson).map(this::readJson).orElse(objectMapper.createObjectNode());
+        boolean allowSameStrategyCrossInterval = bool(config, "stagedAddAllowSameStrategyCrossInterval",
+                bool(config, "microAddAllowSameStrategyCrossInterval", false));
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         BtDecisionAudit candidateAudit = latestCandidateAudit(sym, sid, interval);
@@ -171,7 +173,8 @@ public class StagedAddPolicyService {
                 .stream()
                 .filter(p -> sym.equalsIgnoreCase(p.getSymbol()))
                 .filter(p -> normalizedSide.equalsIgnoreCase(nullToDefault(p.getSide(), DEFAULT_SIDE)))
-                .filter(p -> interval.equalsIgnoreCase(nullToDefault(p.getIntervalCode(), interval)))
+                .filter(p -> allowSameStrategyCrossInterval
+                        || interval.equalsIgnoreCase(nullToDefault(p.getIntervalCode(), interval)))
                 .toList();
         List<BtLiveSignal> openAll = liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull();
 

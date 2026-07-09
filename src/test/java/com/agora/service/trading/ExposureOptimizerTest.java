@@ -105,6 +105,79 @@ class ExposureOptimizerTest {
     }
 
     @Test
+    void sameStrategyCrossIntervalLongExposureStillBlocksByDefault() {
+        BtStrategy strategy = strategy(508L);
+        BtLiveSignal open = openLong(508L, "BTCUSDT", "4h", "100000", "0.0001");
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(open));
+        when(liveSignalRepository.countByAutoTradedIsTrueAndCreatedAtAfter(any(LocalDateTime.class))).thenReturn(0L);
+
+        var result = optimizer.evaluateLongEntry(
+                strategy,
+                Map.of(
+                        "entryDedupDecisionMode", "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE",
+                        "microAddLiveEnabled", true,
+                        "microAddMaxSameStrategyExposureUsdt", 20.0,
+                        "microAddNotionalUsdt", 10.0,
+                        "exposureOptimizerOpenMaxLossCapUsdt", 1000.0),
+                "BTCUSDT",
+                "1h",
+                0.42,
+                0.12,
+                false);
+
+        assertThat(result.decision()).isEqualTo(ExposureOptimizer.Decision.BLOCK_DUPLICATE);
+        assertThat(result.reason()).contains("same-symbol LONG exposure already exists");
+        assertThat(result.context())
+                .containsEntry("same_strategy_open_long", false)
+                .containsEntry("same_strategy_any_interval_open_long", true)
+                .containsEntry("same_strategy_cross_interval_open_long", true)
+                .containsEntry("same_strategy_staged_add_open_long", false)
+                .containsEntry("staged_add_allow_same_strategy_cross_interval", false);
+    }
+
+    @Test
+    void sameStrategyCrossIntervalLongExposureCanBecomeScopedStagedMicroAdd() {
+        BtStrategy strategy = strategy(508L);
+        BtLiveSignal open = openLong(508L, "BTCUSDT", "4h", "100000", "0.0001");
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(open));
+        when(liveSignalRepository.countByAutoTradedIsTrueAndCreatedAtAfter(any(LocalDateTime.class))).thenReturn(1L);
+
+        var result = optimizer.evaluateLongEntry(
+                strategy,
+                Map.of(
+                        "entryDedupDecisionMode", "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE",
+                        "microAddLiveEnabled", true,
+                        "microAddMaxSameStrategyExposureUsdt", 20.0,
+                        "microAddNotionalUsdt", 10.0,
+                        "stagedAddMaxOrdersPerDay", 2,
+                        "stagedAddAllowSameStrategyCrossInterval", true,
+                        "exposureOptimizerOpenMaxLossCapUsdt", 1000.0),
+                "BTCUSDT",
+                "1h",
+                0.42,
+                0.12,
+                false);
+
+        assertThat(result.decision()).isEqualTo(ExposureOptimizer.Decision.ALLOW_STAGED_MICRO_ADD_ENTRY);
+        assertThat(result.stagedMicroAddEntry()).isTrue();
+        assertThat(result.reason()).contains("same-strategy cross-interval exposure exists");
+        assertThat(result.microAddNotionalCapUsdt()).isEqualTo(10.0);
+        assertThat(result.context())
+                .containsEntry("same_strategy_open_long", false)
+                .containsEntry("same_strategy_any_interval_open_long", true)
+                .containsEntry("same_strategy_cross_interval_open_long", true)
+                .containsEntry("same_strategy_staged_add_open_long", true)
+                .containsEntry("staged_add_allow_same_strategy_cross_interval", true)
+                .containsEntry("same_strategy_exposure_scope", "ANY_INTERVAL")
+                .containsEntry("same_strategy_exposure_usdt", "10")
+                .containsEntry("same_strategy_exposure_cap_usdt", 20.0)
+                .containsEntry("dailyCapLimit", 1)
+                .containsEntry("stagedAddOrdersToday", 1L)
+                .containsEntry("stagedAddMaxOrdersPerDay", 2)
+                .containsEntry("stagedAddDailyRemaining", 1L);
+    }
+
+    @Test
     void duplicateBlockCarriesShadowRuntimeSnapshotWithoutAllowingMutation() {
         BtStrategy strategy = strategy(508L);
         BtLiveSignal open = openLong(508L, "BTCUSDT", "1h", "100000", "0.001");

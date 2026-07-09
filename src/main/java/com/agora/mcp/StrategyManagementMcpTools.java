@@ -425,7 +425,13 @@ public class StrategyManagementMcpTools {
             "entryDedupOpenExposureScope(String,通用 EntryDedup scope: ALL_OPEN_ROWS=預設保守; AUTO_TRADED_OPEN_ROWS=只把 auto-traded open rows 視為真實曝險,用於避免 zero-qty shadow rows 擋實單), " +
             "tradePlanQualityGateEnabled(Boolean,通用 TP/SL 品質閘門；false 會讓低 RR / 寬 SL 計畫不被此 gate 擋，需策略專屬審查), " +
             "tradePlanMinRiskReward(Double,通用 TP/SL 品質閘門最低 R:R；策略 508 TradingView parity 窄放寬建議 0.49), " +
-            "tradePlanMaxStopLossPct(Double,通用 TP/SL 品質閘門最大 SL 百分比，小數格式；策略 508 12% disaster SL 窄放寬建議 0.121)")
+            "tradePlanMaxStopLossPct(Double,通用 TP/SL 品質閘門最大 SL 百分比，小數格式；策略 508 12% disaster SL 窄放寬建議 0.121), " +
+            "entryDedupDecisionMode(String,通用 staged add 模式: BLOCK / ALLOW_MICRO_ADD_IF_EV_POSITIVE / ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE), " +
+            "microAddLiveEnabled(Boolean,通用 staged micro-add 是否允許實單), " +
+            "microAddNotionalUsdt(Double,通用 staged micro-add 單次名目金額), " +
+            "microAddMaxSameStrategyExposureUsdt(Double,通用 staged micro-add 同策略曝險上限), " +
+            "stagedAddMaxOrdersPerDay(Integer,通用 staged add 每日策略訂單上限), " +
+            "stagedAddAllowSameStrategyCrossInterval(Boolean,通用 staged add 是否允許同策略同幣種跨週期持倉作為加倉基礎)")
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
     public String setStrategyFlags(
@@ -451,17 +457,32 @@ public class StrategyManagementMcpTools {
             @ToolParam(required = false, description = "EntryDedup open exposure scope: ALL_OPEN_ROWS / AUTO_TRADED_OPEN_ROWS") String entryDedupOpenExposureScope,
             @ToolParam(required = false, description = "Trade-plan quality gate enabled flag") Boolean tradePlanQualityGateEnabled,
             @ToolParam(required = false, description = "Trade-plan quality gate minimum R:R, e.g. 0.49 for Strategy 508 +6/-12 parity") Double tradePlanMinRiskReward,
-            @ToolParam(required = false, description = "Trade-plan quality gate maximum SL pct in decimal, e.g. 0.121 for Strategy 508 12% disaster SL") Double tradePlanMaxStopLossPct) {
+            @ToolParam(required = false, description = "Trade-plan quality gate maximum SL pct in decimal, e.g. 0.121 for Strategy 508 12% disaster SL") Double tradePlanMaxStopLossPct,
+            @ToolParam(required = false, description = "EntryDedup/staged-add decision mode: BLOCK / ALLOW_MICRO_ADD_IF_EV_POSITIVE / ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE") String entryDedupDecisionMode,
+            @ToolParam(required = false, description = "Enable live staged micro-add for this strategy config") Boolean microAddLiveEnabled,
+            @ToolParam(required = false, description = "Staged micro-add notional cap in USDT") Double microAddNotionalUsdt,
+            @ToolParam(required = false, description = "Maximum same-strategy exposure budget in USDT for staged micro-add") Double microAddMaxSameStrategyExposureUsdt,
+            @ToolParam(required = false, description = "Maximum staged-add strategy orders per UTC day") Integer stagedAddMaxOrdersPerDay,
+            @ToolParam(required = false, description = "Allow same strategy + same symbol positions from another interval to be treated as staged-add base exposure") Boolean stagedAddAllowSameStrategyCrossInterval) {
         if (strategyId == null) return "❌ strategyId 必填";
         if (notes == null || notes.trim().isEmpty()) return "❌ notes 必填(說明為何改此 flag)";
         String normalizedEntryDedupOpenExposureScope = normalizeEntryDedupOpenExposureScope(entryDedupOpenExposureScope);
         if (entryDedupOpenExposureScope != null && normalizedEntryDedupOpenExposureScope == null) {
             return "❌ entryDedupOpenExposureScope 只能是 ALL_OPEN_ROWS 或 AUTO_TRADED_OPEN_ROWS";
         }
+        String normalizedEntryDedupDecisionMode = normalizeEntryDedupDecisionMode(entryDedupDecisionMode);
+        if (entryDedupDecisionMode != null && normalizedEntryDedupDecisionMode == null) {
+            return "❌ entryDedupDecisionMode 只能是 BLOCK / ALLOW_MICRO_ADD_IF_EV_POSITIVE / ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE";
+        }
         String tradePlanValidationError = validateTradePlanQualityGateParams(
                 tradePlanMinRiskReward, tradePlanMaxStopLossPct);
         if (tradePlanValidationError != null) {
             return tradePlanValidationError;
+        }
+        String stagedAddValidationError = validateStagedAddParams(
+                microAddNotionalUsdt, microAddMaxSameStrategyExposureUsdt, stagedAddMaxOrdersPerDay);
+        if (stagedAddValidationError != null) {
+            return stagedAddValidationError;
         }
         if (notifyOnly == null && allowShort == null && requireAboveSma200 == null
                 && allowMacdAsLowProxy == null && buyThreshold == null && rsiOversold == null
@@ -471,7 +492,10 @@ public class StrategyManagementMcpTools {
                 && allowRsiBypassRegime == null && requireFearGreedBelow == null
                 && requireFearGreedAbove == null && normalizedEntryDedupOpenExposureScope == null
                 && tradePlanQualityGateEnabled == null && tradePlanMinRiskReward == null
-                && tradePlanMaxStopLossPct == null) {
+                && tradePlanMaxStopLossPct == null && normalizedEntryDedupDecisionMode == null
+                && microAddLiveEnabled == null && microAddNotionalUsdt == null
+                && microAddMaxSameStrategyExposureUsdt == null && stagedAddMaxOrdersPerDay == null
+                && stagedAddAllowSameStrategyCrossInterval == null) {
             return "❌ 至少要指定一個 flag / 參數";
         }
         StrategyResponse strategy;
@@ -508,6 +532,12 @@ public class StrategyManagementMcpTools {
         appendFlag(setClause, params, changed, "tradePlanQualityGateEnabled", tradePlanQualityGateEnabled);
         appendFlag(setClause, params, changed, "tradePlanMinRiskReward", tradePlanMinRiskReward);
         appendFlag(setClause, params, changed, "tradePlanMaxStopLossPct", tradePlanMaxStopLossPct);
+        appendFlag(setClause, params, changed, "entryDedupDecisionMode", normalizedEntryDedupDecisionMode);
+        appendFlag(setClause, params, changed, "microAddLiveEnabled", microAddLiveEnabled);
+        appendFlag(setClause, params, changed, "microAddNotionalUsdt", microAddNotionalUsdt);
+        appendFlag(setClause, params, changed, "microAddMaxSameStrategyExposureUsdt", microAddMaxSameStrategyExposureUsdt);
+        appendFlag(setClause, params, changed, "stagedAddMaxOrdersPerDay", stagedAddMaxOrdersPerDay);
+        appendFlag(setClause, params, changed, "stagedAddAllowSameStrategyCrossInterval", stagedAddAllowSameStrategyCrossInterval);
         // SCORE_BUY / EMA_RSI 專屬 flags — 非此類型時忽略，防止覆蓋 CMI 等指標閾值
         if (isScoreBuyType) {
             appendFlag(setClause, params, changed, "allowMacdAsLowProxy", allowMacdAsLowProxy);
@@ -565,12 +595,40 @@ public class StrategyManagementMcpTools {
         return null;
     }
 
+    static String normalizeEntryDedupDecisionMode(String mode) {
+        if (mode == null) return null;
+        String normalized = mode.trim().toUpperCase(Locale.ROOT);
+        if (normalized.isEmpty()) return null;
+        if ("BLOCK".equals(normalized)
+                || "ALLOW_MICRO_ADD_IF_EV_POSITIVE".equals(normalized)
+                || "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE".equals(normalized)) {
+            return normalized;
+        }
+        return null;
+    }
+
     static String validateTradePlanQualityGateParams(Double minRiskReward, Double maxStopLossPct) {
         if (minRiskReward != null && (minRiskReward < 0.05 || minRiskReward > 5.0)) {
             return "❌ tradePlanMinRiskReward 必須介於 0.05 和 5.0 之間";
         }
         if (maxStopLossPct != null && (maxStopLossPct < 0.005 || maxStopLossPct > 0.50)) {
             return "❌ tradePlanMaxStopLossPct 必須介於 0.005 和 0.50 之間";
+        }
+        return null;
+    }
+
+    static String validateStagedAddParams(Double microAddNotionalUsdt,
+                                          Double microAddMaxSameStrategyExposureUsdt,
+                                          Integer stagedAddMaxOrdersPerDay) {
+        if (microAddNotionalUsdt != null && (microAddNotionalUsdt < 5.0 || microAddNotionalUsdt > 1000.0)) {
+            return "❌ microAddNotionalUsdt 必須介於 5 和 1000 USDT 之間";
+        }
+        if (microAddMaxSameStrategyExposureUsdt != null
+                && (microAddMaxSameStrategyExposureUsdt < 5.0 || microAddMaxSameStrategyExposureUsdt > 10000.0)) {
+            return "❌ microAddMaxSameStrategyExposureUsdt 必須介於 5 和 10000 USDT 之間";
+        }
+        if (stagedAddMaxOrdersPerDay != null && (stagedAddMaxOrdersPerDay < 1 || stagedAddMaxOrdersPerDay > 20)) {
+            return "❌ stagedAddMaxOrdersPerDay 必須介於 1 和 20 之間";
         }
         return null;
     }

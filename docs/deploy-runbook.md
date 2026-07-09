@@ -4161,6 +4161,22 @@ Expected:
   EntryDedup, open-position, and active EV gates are clear and the latest
   Strategy 508 blocker is min-notional sizing. It does not deploy, change
   production env, restart, send Telegram, or place orders.
+- If the next Strategy 508 BUY is no longer blocked by min-notional sizing but
+  `TradePlanQualityGate` blocks the +6% TP / -12% disaster-SL plan, keep the
+  change scoped to strategy 508 instead of disabling global quality checks.
+  Package the reviewed forward TSV evidence with:
+
+  ```powershell
+  .\scripts\prepare_strategy508_trade_plan_quality_gate_review_packet.ps1 -RequireReady
+  ```
+
+  The packet emits `strategy508_trade_plan_quality_gate_authorization_text`,
+  the exact `setStrategyFlags(...)` call, and rollback call for
+  `tradePlanQualityGateEnabled=true`, `tradePlanMinRiskReward=0.49`, and
+  `tradePlanMaxStopLossPct=0.121`. It keeps
+  `strategy_config_mutation_allowed=false`, `mcp_write_allowed=false`,
+  `live_policy_change_allowed=false`, `order_allowed=false`, and
+  `telegram_send_allowed=false`; it is review material only.
 - If the strategy 508 RCA shows EntryDedup skips but no auto-traded open
   position, run `.\scripts\smoke_entry_dedup_exposure_consistency_ssh.ps1`.
   This narrower read-only DB smoke compares the EntryDedup open-signal

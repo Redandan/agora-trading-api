@@ -2617,6 +2617,19 @@
   keeps deploy/env/restart/order/Telegram/DB/exchange mutation flags false; it
   is review material only until a separate production authorization and
   post-deploy read-only verification are completed.
+- Strategy 508 now also has a read-only TradePlanQualityGate review packet for
+  the post-min-notional blocker. `scripts/prepare_strategy508_trade_plan_quality_gate_review_packet.ps1`
+  consumes saved forward TSV evidence for `ENTRY_SKIP/TradePlanQualityGate`
+  rows and emits the exact strategy-scoped `setStrategyFlags(...)` call plus
+  rollback call for a narrow +6% TP / -12% disaster-SL allowance
+  (`tradePlanQualityGateEnabled=true`, `tradePlanMinRiskReward=0.49`,
+  `tradePlanMaxStopLossPct=0.121`). It deliberately keeps
+  `strategy_config_mutation_allowed=false`, `mcp_write_allowed=false`,
+  `live_policy_change_allowed=false`, `entry_dedup_policy_change_allowed=false`,
+  `ev_policy_change_allowed=false`, `order_allowed=false`,
+  `telegram_send_allowed=false`, and DB/exchange mutation flags false. The
+  runtime now also sends an explicit AutoTrade-not-bought notification when
+  `TradePlanQualityGate` blocks a BUY, so those skips are no longer silent.
 - 2026-06-22 read-only production strategy 508 EntryDedup/exposure RCA for
   `BTCUSDT` / `1h` showed `buy_eval_rows=11`, `entry_dedup_skip_rows=11`,
   `filter_block_rows=0`, `autotrade_rows=0`, and all skip reasons as

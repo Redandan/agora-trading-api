@@ -3,6 +3,7 @@ package com.agora.service.backtest;
 import com.agora.service.trading.PositionSizingService;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,6 +100,38 @@ class LiveSignalEvaluatorEntryDedupOpenExposureScopeTest {
         assertThat(decision.reason())
                 .contains("riskReward=0.50")
                 .contains("stopLoss=12.00%");
+    }
+
+    @Test
+    void tradePlanQualitySkipNotificationExplainsNoOrderAndQualityGate() {
+        LiveSignalEvaluator.BottomCatchQualityDecision decision =
+                LiveSignalEvaluator.evaluateBottomCatchQualityGate(
+                        OiFundingDivergenceStrategy.TYPE,
+                        Map.of(),
+                        0.12000006,
+                        0.06,
+                        true,
+                        "ULTRA_LOW_DISASTER");
+
+        String message = LiveSignalEvaluator.buildTradePlanQualitySkipNotification(
+                "BTCUSDT",
+                "1h",
+                508L,
+                new BigDecimal("62897.80"),
+                new BigDecimal("55350.06"),
+                new BigDecimal("66671.67"),
+                decision);
+
+        assertThat(message)
+                .contains("AutoTrade 未買入 BTCUSDT (1H)")
+                .contains("TradePlanQualityGate")
+                .contains("risk_reward_below_min")
+                .contains("stop_loss_above_max")
+                .contains("RR: <b>0.50</b> / min <b>1.00</b>")
+                .contains("SL: <b>12.00%</b> / max <b>8.00%</b>")
+                .contains("策略: <b>#508</b>")
+                .contains("不是 Ensemble shadow 攔截")
+                .contains("不是漏單");
     }
 
     @Test

@@ -57,6 +57,91 @@ class StrategyManagementMcpToolsSetFlagsTest {
         verifyNoInteractions(jdbc);
     }
 
+    @Test
+    void setStrategyFlagsAllowsTradePlanQualityGateOverrides() {
+        BtStrategyService strategyService = mock(BtStrategyService.class);
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        StrategyManagementMcpTools tools = newTools(strategyService, jdbc);
+        when(strategyService.getStrategy(508L)).thenReturn(strategy());
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+
+        String result = tools.setStrategyFlags(
+                508L,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "Strategy 508 TradingView parity +6/-12 narrow trade-plan override",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                0.49,
+                0.121);
+
+        assertThat(result)
+                .contains("更新成功")
+                .contains("tradePlanQualityGateEnabled: true")
+                .contains("tradePlanMinRiskReward: 0.49")
+                .contains("tradePlanMaxStopLossPct: 0.121");
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
+        verify(jdbc).update(sqlCaptor.capture(), argsCaptor.capture());
+        assertThat(sqlCaptor.getValue())
+                .contains("$.tradePlanQualityGateEnabled")
+                .contains("$.tradePlanMinRiskReward")
+                .contains("$.tradePlanMaxStopLossPct");
+        assertThat(argsCaptor.getValue())
+                .contains(true, 0.49, 0.121,
+                        "Strategy 508 TradingView parity +6/-12 narrow trade-plan override", 508L);
+        verify(strategyService).evictEnabledStrategiesCache();
+    }
+
+    @Test
+    void setStrategyFlagsRejectsOutOfRangeTradePlanQualityGateOverrides() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        StrategyManagementMcpTools tools = newTools(mock(BtStrategyService.class), jdbc);
+
+        String result = tools.setStrategyFlags(
+                508L,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "bad trade-plan override",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                0.49,
+                0.80);
+
+        assertThat(result).contains("tradePlanMaxStopLossPct 必須介於");
+        verifyNoInteractions(jdbc);
+    }
+
     private static String setScope(StrategyManagementMcpTools tools, String scope) {
         return tools.setStrategyFlags(
                 508L,
@@ -78,7 +163,10 @@ class StrategyManagementMcpToolsSetFlagsTest {
                 null,
                 null,
                 null,
-                scope);
+                scope,
+                null,
+                null,
+                null);
     }
 
     private static StrategyResponse strategy() {

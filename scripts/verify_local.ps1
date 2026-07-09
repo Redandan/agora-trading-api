@@ -1680,6 +1680,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_entry_dedup_exposure_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_first_entry_readiness_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_min_notional_floor_activation_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_trade_plan_quality_gate_review_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_exposure_consistency_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_blocker_decomposition_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_entry_dedup_coarse_semantics_shadow_review_smoke.ps1"

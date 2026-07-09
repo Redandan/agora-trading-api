@@ -808,6 +808,13 @@ public class LiveSignalEvaluator {
             tradeQualityEngine.applyV0(qualityContext, "TradePlanQualityGate");
             logEntrySkip(strategy, symbol, intervalCode, lastBar,
                     "TradePlanQualityGate", bottomCatchQuality.reason(), qualityContext);
+            try {
+                notificationPort.broadcast(buildTradePlanQualitySkipNotification(
+                        symbol, intervalCode, strategy.getId(), entry, sl, tp, bottomCatchQuality), true);
+            } catch (Exception e) {
+                log.warn("[LiveSignal] trade-plan quality skip notification failed: strategyId={} symbol={} err={}",
+                        strategy.getId(), symbol, e.getMessage());
+            }
             return;
         }
 
@@ -1997,6 +2004,43 @@ public class LiveSignalEvaluator {
                 sizingDecision.finalAmountUsdt(),
                 strategyText,
                 signalText);
+    }
+
+    static String buildTradePlanQualitySkipNotification(String symbol,
+                                                        String intervalCode,
+                                                        Long strategyId,
+                                                        BigDecimal entry,
+                                                        BigDecimal sl,
+                                                        BigDecimal tp,
+                                                        BottomCatchQualityDecision decision) {
+        String normalizedInterval = intervalCode == null ? "N/A" : intervalCode.toUpperCase(Locale.ROOT);
+        String strategyText = strategyId != null ? String.valueOf(strategyId) : "N/A";
+        double rr = decision != null ? decision.riskReward() : 0.0;
+        double minRr = decision != null ? decision.minRiskReward() : 0.0;
+        double slPct = decision != null ? decision.stopLossPct() * 100.0 : 0.0;
+        double maxSlPct = decision != null ? decision.maxStopLossPct() * 100.0 : 0.0;
+        String reason = decision != null ? decision.reasonCode() : "trade_plan_quality_block";
+        return String.format(Locale.ROOT,
+                "🟡 <b>AutoTrade 未買入 %s (%s)</b>\n\n" +
+                "原因: <b>TradePlanQualityGate</b> %s\n" +
+                "RR: <b>%.2f</b> / min <b>%.2f</b> | SL: <b>%.2f%%</b> / max <b>%.2f%%</b>\n" +
+                "入場: <b>$%s</b> | TP: <b>$%s</b> | SL: <b>$%s</b>\n" +
+                "策略: <b>#%s</b>\n\n" +
+                "處置: BUY 訊號已被交易計畫品質閘門攔截；不是 Ensemble shadow 攔截，也不是漏單。",
+                symbol, normalizedInterval,
+                reason,
+                rr, minRr, slPct, maxSlPct,
+                formatNotificationPrice(entry),
+                formatNotificationPrice(tp),
+                formatNotificationPrice(sl),
+                strategyText);
+    }
+
+    private static String formatNotificationPrice(BigDecimal value) {
+        if (value == null) {
+            return "N/A";
+        }
+        return value.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private void markAutoTradeSkipped(BtLiveSignal record, String reason) {

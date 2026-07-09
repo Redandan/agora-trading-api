@@ -3162,6 +3162,21 @@ min-notional sizing, estimates the floor-sized SL risk against the `6.25` cap,
 and emits `strategy508_min_notional_floor_activation_authorization_text` plus
 rollback env diff. It does not deploy, edit production env, restart, send
 Telegram, or place orders.
+If the next Strategy 508 BUY is no longer blocked by min-notional sizing but is
+blocked by `TradePlanQualityGate`, keep the change strategy-scoped. Save the
+forward evidence TSV, then package the exact MCP config diff:
+
+```powershell
+.\scripts\prepare_strategy508_trade_plan_quality_gate_review_packet.ps1 -RequireReady
+```
+
+The packet proposes a narrow Strategy 508 override such as
+`tradePlanQualityGateEnabled=true`, `tradePlanMinRiskReward=0.49`, and
+`tradePlanMaxStopLossPct=0.121`, which covers the reviewed +6% TP / -12%
+disaster-SL samples while keeping a quality gate enabled. It emits the exact
+`setStrategyFlags(...)` call and rollback call, but keeps
+`strategy_config_mutation_allowed=false`, `mcp_write_allowed=false`, and
+`order_allowed=false`.
 If that smoke shows recent EntryDedup skips but no auto-traded same-strategy
 open position, run the narrower consistency check:
 

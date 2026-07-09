@@ -422,7 +422,10 @@ public class StrategyManagementMcpTools {
             "allowRsiBypassRegime(Boolean,通用 #335: 啟用 panic-bottom RSI bypass。當 RSI < regimeBypassRsiThreshold (預設 20) 時，跳過 TRENDING_DOWN→LONG hard-block。建議僅 mean-reversion / panic-bottom 策略 (#485 SCORE_BUY_V2, #508 OIF) opt-in), " +
             "requireFearGreedBelow(Double,通用 #419: F&G 必須低於此值才允許 LONG 入場 (panic-bottom 策略真實場景過濾)。預設 0=停用。推薦 25 (EXTREME_FEAR 閾值)。RSI<35 必要但不充分,F&G 也低於 25 才算真 panic-bottom), " +
             "requireFearGreedAbove(Double,通用 #425: F&G 必須高於此值才允許 SHORT 入場 (fade-rally 策略真實場景過濾,#419 對稱版)。預設 0=停用。推薦 75 (GREED 閾值)。同時擋 LONG 與 SHORT entry,因 SHORT-only 策略用 SELL signal 開倉), " +
-            "entryDedupOpenExposureScope(String,通用 EntryDedup scope: ALL_OPEN_ROWS=預設保守; AUTO_TRADED_OPEN_ROWS=只把 auto-traded open rows 視為真實曝險,用於避免 zero-qty shadow rows 擋實單)")
+            "entryDedupOpenExposureScope(String,通用 EntryDedup scope: ALL_OPEN_ROWS=預設保守; AUTO_TRADED_OPEN_ROWS=只把 auto-traded open rows 視為真實曝險,用於避免 zero-qty shadow rows 擋實單), " +
+            "tradePlanQualityGateEnabled(Boolean,通用 TP/SL 品質閘門；false 會讓低 RR / 寬 SL 計畫不被此 gate 擋，需策略專屬審查), " +
+            "tradePlanMinRiskReward(Double,通用 TP/SL 品質閘門最低 R:R；策略 508 TradingView parity 窄放寬建議 0.49), " +
+            "tradePlanMaxStopLossPct(Double,通用 TP/SL 品質閘門最大 SL 百分比，小數格式；策略 508 12% disaster SL 窄放寬建議 0.121)")
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
     public String setStrategyFlags(
@@ -445,12 +448,20 @@ public class StrategyManagementMcpTools {
             @ToolParam(required = false, description = "通用 #335 — 啟用 panic-bottom RSI bypass (RSI < regimeBypassRsiThreshold 時跳過 TRENDING_DOWN→LONG hard-block)") Boolean allowRsiBypassRegime,
             @ToolParam(required = false, description = "通用 #419 — F&G 必須低於此值才允許 LONG 入場 (預設 0=停用,推薦 25 for panic-bottom 策略)") Double requireFearGreedBelow,
             @ToolParam(required = false, description = "通用 #425 — F&G 必須高於此值才允許 SHORT 入場 (預設 0=停用,推薦 75 for fade-rally 策略,#419 對稱版)") Double requireFearGreedAbove,
-            @ToolParam(required = false, description = "EntryDedup open exposure scope: ALL_OPEN_ROWS / AUTO_TRADED_OPEN_ROWS") String entryDedupOpenExposureScope) {
+            @ToolParam(required = false, description = "EntryDedup open exposure scope: ALL_OPEN_ROWS / AUTO_TRADED_OPEN_ROWS") String entryDedupOpenExposureScope,
+            @ToolParam(required = false, description = "Trade-plan quality gate enabled flag") Boolean tradePlanQualityGateEnabled,
+            @ToolParam(required = false, description = "Trade-plan quality gate minimum R:R, e.g. 0.49 for Strategy 508 +6/-12 parity") Double tradePlanMinRiskReward,
+            @ToolParam(required = false, description = "Trade-plan quality gate maximum SL pct in decimal, e.g. 0.121 for Strategy 508 12% disaster SL") Double tradePlanMaxStopLossPct) {
         if (strategyId == null) return "❌ strategyId 必填";
         if (notes == null || notes.trim().isEmpty()) return "❌ notes 必填(說明為何改此 flag)";
         String normalizedEntryDedupOpenExposureScope = normalizeEntryDedupOpenExposureScope(entryDedupOpenExposureScope);
         if (entryDedupOpenExposureScope != null && normalizedEntryDedupOpenExposureScope == null) {
             return "❌ entryDedupOpenExposureScope 只能是 ALL_OPEN_ROWS 或 AUTO_TRADED_OPEN_ROWS";
+        }
+        String tradePlanValidationError = validateTradePlanQualityGateParams(
+                tradePlanMinRiskReward, tradePlanMaxStopLossPct);
+        if (tradePlanValidationError != null) {
+            return tradePlanValidationError;
         }
         if (notifyOnly == null && allowShort == null && requireAboveSma200 == null
                 && allowMacdAsLowProxy == null && buyThreshold == null && rsiOversold == null
@@ -458,7 +469,9 @@ public class StrategyManagementMcpTools {
                 && requireFundingImprovingBars == null && requireNoNewLowBars == null
                 && regimeFilterMinConfidence == null && regimeBypassRsiThreshold == null
                 && allowRsiBypassRegime == null && requireFearGreedBelow == null
-                && requireFearGreedAbove == null && normalizedEntryDedupOpenExposureScope == null) {
+                && requireFearGreedAbove == null && normalizedEntryDedupOpenExposureScope == null
+                && tradePlanQualityGateEnabled == null && tradePlanMinRiskReward == null
+                && tradePlanMaxStopLossPct == null) {
             return "❌ 至少要指定一個 flag / 參數";
         }
         StrategyResponse strategy;
@@ -492,6 +505,9 @@ public class StrategyManagementMcpTools {
         appendFlag(setClause, params, changed, "requireFearGreedBelow", requireFearGreedBelow);
         appendFlag(setClause, params, changed, "requireFearGreedAbove", requireFearGreedAbove);
         appendFlag(setClause, params, changed, "entryDedupOpenExposureScope", normalizedEntryDedupOpenExposureScope);
+        appendFlag(setClause, params, changed, "tradePlanQualityGateEnabled", tradePlanQualityGateEnabled);
+        appendFlag(setClause, params, changed, "tradePlanMinRiskReward", tradePlanMinRiskReward);
+        appendFlag(setClause, params, changed, "tradePlanMaxStopLossPct", tradePlanMaxStopLossPct);
         // SCORE_BUY / EMA_RSI 專屬 flags — 非此類型時忽略，防止覆蓋 CMI 等指標閾值
         if (isScoreBuyType) {
             appendFlag(setClause, params, changed, "allowMacdAsLowProxy", allowMacdAsLowProxy);
@@ -545,6 +561,16 @@ public class StrategyManagementMcpTools {
         if (normalized.isEmpty()) return null;
         if ("ALL_OPEN_ROWS".equals(normalized) || "AUTO_TRADED_OPEN_ROWS".equals(normalized)) {
             return normalized;
+        }
+        return null;
+    }
+
+    static String validateTradePlanQualityGateParams(Double minRiskReward, Double maxStopLossPct) {
+        if (minRiskReward != null && (minRiskReward < 0.05 || minRiskReward > 5.0)) {
+            return "❌ tradePlanMinRiskReward 必須介於 0.05 和 5.0 之間";
+        }
+        if (maxStopLossPct != null && (maxStopLossPct < 0.005 || maxStopLossPct > 0.50)) {
+            return "❌ tradePlanMaxStopLossPct 必須介於 0.005 和 0.50 之間";
         }
         return null;
     }

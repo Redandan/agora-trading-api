@@ -638,6 +638,12 @@ function New-BlockerSummary {
                 $evidenceMarkers = @("diagnosis=NO_CANONICAL_ROWS")
                 $nextAction = "Continue evidence collection until canonical runtime rows exist."
             }
+            "RUNTIME_EVIDENCE_NO_TARGET_STRATEGY_CANONICAL_ROWS" {
+                $category = "runtime-evidence"
+                $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
+                $evidenceMarkers = @("diagnosis=NO_TARGET_STRATEGY_CANONICAL_ROWS", "targetStrategyEvidenceRows=0")
+                $nextAction = "Collect canonical runtime rows for the reviewed target strategy; do not treat symbol-level rows as strategy-specific approval."
+            }
             "RUNTIME_EVIDENCE_NO_SHADOW_INTENT" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
@@ -875,12 +881,15 @@ if ($runtimeEvidence -match "diagnosis=CONFIG_DISABLED") {
 if ($runtimeEvidence -match "diagnosis=NO_CANONICAL_ROWS") {
     $blockers.Add("RUNTIME_EVIDENCE_NO_CANONICAL_ROWS")
 }
+if ($runtimeEvidence -match "diagnosis=NO_TARGET_STRATEGY_CANONICAL_ROWS") {
+    $blockers.Add("RUNTIME_EVIDENCE_NO_TARGET_STRATEGY_CANONICAL_ROWS")
+}
 if ($runtimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
         -or $runtimeEvidence -match "missing_runtime_evidence_fields=\[[^\]]*[A-Za-z0-9_]+[^\]]*\]" `
         -or $runtimeEvidence -notmatch "runtime_evidence_review_plan=" `
         -or ($runtimeEvidence -match "diagnosis=CANONICAL_SHADOW_READY" -and $runtimeEvidence -match '"state"\s*:\s*"HARD_BLOCKED"') `
         -or ($runtimeEvidence -match "diagnosis=CANONICAL_SHADOW_READY" -and $runtimeEvidence -match '"state"\s*:\s*"BLOCKED"') `
-        -or $runtimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
+        -or $runtimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=NO_TARGET_STRATEGY_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
     $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 }
 if ($runtimeEvidence -notmatch "shadowIntentCount=([1-9][0-9]*)") {

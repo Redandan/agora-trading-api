@@ -34,8 +34,8 @@ Treat live as blocked while any of these are true:
   `missing_tiny_live_fields`, `missing_tiny_live_hard_stop_fields`, or
   `missing_tiny_live_rollout_fields`.
 - `smoke_runtime_evidence_rca_ssh.ps1` reports `diagnosis=CONFIG_DISABLED`,
-  `NO_CANONICAL_ROWS`, `CANONICAL_ROWS_NO_SHADOW_INTENT`, or
-  `runtimeEvidenceStatus=NOT_READY_*`.
+  `NO_CANONICAL_ROWS`, `NO_TARGET_STRATEGY_CANONICAL_ROWS`,
+  `CANONICAL_ROWS_NO_SHADOW_INTENT`, or `runtimeEvidenceStatus=NOT_READY_*`.
 - `shadowIntentCount` is 0 for the reviewed window.
 - `orderSentEvidence` is not 0 during the evidence-only phase.
 - Signal correctness is unresolved: `smoke_signal_correctness_ssh.ps1` reports

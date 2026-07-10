@@ -4680,8 +4680,12 @@ Expected:
   `requiredEvidence`, `nextAction`, and `notAuthorization`; this is not
   authorization to mutate production env or enable live behavior.
 - It classifies the gap as `CONFIG_DISABLED`, `NO_CANONICAL_ROWS`,
+  `NO_TARGET_STRATEGY_CANONICAL_ROWS`,
   `CANONICAL_ROWS_NO_SHADOW_INTENT`, `CANONICAL_SHADOW_READY`, or
-  `REVIEW_RUNTIME_EVIDENCE_STATUS`.
+  `REVIEW_RUNTIME_EVIDENCE_STATUS`. `NO_CANONICAL_ROWS` means the bounded
+  symbol-level canonical window is empty; `NO_TARGET_STRATEGY_CANONICAL_ROWS`
+  means symbol-level canonical rows exist but the reviewed strategy id has no
+  canonical rows in that window.
 - `missing_runtime_evidence_fields` must be empty before
   `CANONICAL_SHADOW_READY` can clear the runtime-evidence review gate.
 - The full bundle also requires `runtime_evidence_review_plan` to be present;

@@ -233,6 +233,8 @@ print(f"url={url} symbol={symbol} strategyId={strategy_id} side={side} minutes={
 
 dashboard = call_tool("getAutonomousReadinessDashboard", {"symbol": symbol, "minutes": minutes})
 evidence = call_tool("listRuntimeDecisionEvidence", {"symbol": symbol, "minutes": minutes, "limit": 50})
+target_strategy_evidence_minutes = 1440
+target_strategy_evidence = call_tool("listRuntimeDecisionEvidence", {"symbol": symbol, "minutes": target_strategy_evidence_minutes, "limit": 200})
 preview = call_tool("previewTinyLiveMinimumOrder", {"symbol": symbol, "strategyId": strategy_id, "side": side})
 auto_execution = call_tool("previewTinyLiveAutoExecution", {"symbol": symbol, "strategyId": strategy_id, "side": side})
 opportunity = call_tool("validateAutonomousOpportunityReadiness", {"symbol": symbol, "strategyId": strategy_id, "side": side})
@@ -241,6 +243,7 @@ truth = call_tool("getNoBuyReasonTruthTable", {"symbol": symbol, "hours": min(72
 for name, text in [
     ("getAutonomousReadinessDashboard", dashboard),
     ("listRuntimeDecisionEvidence", evidence),
+    ("listRuntimeDecisionEvidence target-strategy window", target_strategy_evidence),
     ("previewTinyLiveMinimumOrder", preview),
     ("previewTinyLiveAutoExecution", auto_execution),
     ("validateAutonomousOpportunityReadiness", opportunity),
@@ -267,6 +270,9 @@ freshness_blocks = field(r"freshnessTerminalBlocks=(\d+)", dashboard)
 shadow_intent_number = int_or_none(shadow_intent_count)
 evidence_row_lines = count_lines(r"^\d+\. #", evidence)
 shadow_line_count = count_lines(r"SHADOW_MODE|intentCreated=True|intentCreated=true|fearGreedWarning", evidence)
+target_strategy_pattern = re.escape(str(strategy_id))
+target_strategy_review_window_rows = count_lines(r"^\d+\. #.*\bstrategy=" + target_strategy_pattern + r"\b", evidence)
+target_strategy_evidence_rows = count_lines(r"^\d+\. #.*\bstrategy=" + target_strategy_pattern + r"\b", target_strategy_evidence)
 order_sent_rows, target_order_sent_count, other_strategy_order_sent_count, non_autonomous_grid_order_sent_count, unknown_order_sent_count, order_sent_blocker_count = parse_order_sent_rows(
     evidence, strategy_id, order_sent_evidence)
 required_fields = {
@@ -288,8 +294,12 @@ if missing_fields:
     diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"
 elif runtime_status == "NOT_READY_ENABLED_FALSE" or dashboard_enabled.lower() == "false":
     diagnosis = "CONFIG_DISABLED"
-elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS" or runtime_rows == "0":
+elif runtime_rows == "0":
     diagnosis = "NO_CANONICAL_ROWS"
+elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS" and target_strategy_evidence_rows == 0:
+    diagnosis = "NO_TARGET_STRATEGY_CANONICAL_ROWS"
+elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS":
+    diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"
 elif runtime_status == "AVAILABLE_CANONICAL_ROWS" and shadow_intent_count == "0":
     diagnosis = "CANONICAL_ROWS_NO_SHADOW_INTENT"
 elif runtime_status.startswith("AVAILABLE_CANONICAL") and shadow_intent_number is not None and shadow_intent_number > 0:
@@ -327,6 +337,16 @@ elif diagnosis == "NO_CANONICAL_ROWS":
         "requiredEvidence": "Canonical runtime evidence rows exist in the bounded review window.",
         "nextAction": "Keep collection enabled only if separately authorized and rerun this RCA after enough dry-run/shadow candidates exist.",
         "notAuthorization": "Do not bypass this by enabling live execution.",
+    })
+elif diagnosis == "NO_TARGET_STRATEGY_CANONICAL_ROWS":
+    review_plan.append({
+        "gate": "target-strategy-canonical-rows",
+        "state": "BLOCKED",
+        "riskCategory": "target-strategy-no-evidence-sample",
+        "evidenceMarkers": [f"targetStrategyId={strategy_id}", f"targetStrategyEvidenceWindowMinutes={target_strategy_evidence_minutes}", f"targetStrategyEvidenceRows={target_strategy_evidence_rows}", f"runtimeEvidenceRows={runtime_rows}", f"runtimeEvidenceStatus={runtime_status}"],
+        "requiredEvidence": "Canonical runtime evidence rows exist for the reviewed target strategy in the same recent window used by the preview gate.",
+        "nextAction": "Rerun this RCA with the intended strategy id after a dry-run/shadow candidate is observed; do not treat symbol-level rows as target-strategy approval.",
+        "notAuthorization": "Target-strategy evidence gaps do not authorize live execution, env relaxation, or bypassing strategy-specific blockers.",
     })
 elif diagnosis == "CANONICAL_ROWS_NO_SHADOW_INTENT":
     review_plan.append({
@@ -385,6 +405,7 @@ print(f"  diagnosis={diagnosis}")
 print(f"  env.TRADING_RUNTIME_EVIDENCE_ENABLED={runtime_flag}")
 print(f"  dashboardEnabled={dashboard_enabled}")
 print(f"  runtimeEvidenceStatus={runtime_status}")
+print(f"  targetStrategyId={strategy_id}")
 print(f"  previewStatus={preview_status}")
 print(f"  evidenceMode={evidence_mode}")
 print(f"  readinessLevel={readiness_level}")
@@ -396,6 +417,9 @@ print(f"  minutes={minutes}")
 print(f"  runtimeEvidenceRows={runtime_rows}")
 print(f"  sampleCount={sample_count}")
 print(f"  listedRows={evidence_row_lines}")
+print(f"  targetStrategyEvidenceWindowMinutes={target_strategy_evidence_minutes}")
+print(f"  targetStrategyEvidenceRows={target_strategy_evidence_rows}")
+print(f"  targetStrategyReviewWindowRows={target_strategy_review_window_rows}")
 print(f"  shadowExecutionIntents={shadow_intents}")
 print(f"  shadowIntentCount={shadow_intent_count}")
 print(f"  shadowLikeListedRows={shadow_line_count}")
@@ -426,6 +450,8 @@ if diagnosis == "CONFIG_DISABLED":
     print("  - PLAN: if authorized later, enable runtime-evidence collection before any live execution flag, then rerun this RCA for canonical shadow rows.")
 elif diagnosis == "NO_CANONICAL_ROWS":
     print("  - COLLECT_EVIDENCE_FIRST: runtime evidence is enabled but no canonical rows were found in the selected window.")
+elif diagnosis == "NO_TARGET_STRATEGY_CANONICAL_ROWS":
+    print("  - COLLECT_TARGET_STRATEGY_EVIDENCE_FIRST: symbol-level canonical rows exist, but the reviewed target strategy has no canonical rows in the selected window.")
 elif diagnosis == "CANONICAL_ROWS_NO_SHADOW_INTENT":
     print("  - REQUIRE_SHADOW_INTENT: canonical rows exist but do not yet prove shadow/tiny-live intent coverage.")
 elif diagnosis == "CANONICAL_SHADOW_READY":

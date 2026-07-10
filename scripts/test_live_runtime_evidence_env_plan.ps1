@@ -243,6 +243,7 @@ foreach ($marker in @(
         'review_plan = []',
         'runtime_evidence_review_plan=',
         '"gate": "config"',
+        '"gate": "target-strategy-canonical-rows"',
         '"gate": "shadow-intent"',
         '"gate": "order-sent"',
         '"state": "HARD_BLOCKED"',
@@ -250,7 +251,7 @@ foreach ($marker in @(
         'diagnosis == "CANONICAL_SHADOW_READY"',
         'not missing_fields',
         'shadow_ready',
-        'no_order_sent',
+        'no_blocking_order_sent',
         'raise SystemExit(2)',
         '$RequireReady.IsPresent -and $LASTEXITCODE -eq 2',
         'exit 2'

@@ -83,4 +83,35 @@ class BinanceKlineImportServiceTest {
                     .containsExactly(LocalDateTime.parse("2026-07-09T00:00:00"));
         }
     }
+
+    @Test
+    void reimportDeletesOnlyTheExactExclusiveSourceRangeBeforeVisionImport() throws Exception {
+        LocalDateTime start = LocalDateTime.parse("2026-07-09T00:00:00");
+        LocalDateTime end = LocalDateTime.parse("2026-07-10T00:00:00");
+        long openMs = Instant.parse("2026-07-09T00:00:00Z").toEpochMilli();
+        long closeMs = Instant.parse("2026-07-09T23:59:59.999Z").toEpochMilli();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json")
+                    .setBody("[[" + openMs + ",\"62000\",\"64000\",\"61000\",\"63500\",\"100\"," +
+                            closeMs + ",\"0\",1,\"0\",\"0\",\"0\"]]"));
+
+            MdKlineRepository repository = mock(MdKlineRepository.class);
+            MdKlineInsertHelper insertHelper = mock(MdKlineInsertHelper.class);
+            when(repository.deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
+                    "BTCUSDT", "1d", "binance", start, end)).thenReturn(1);
+            when(repository.findOpenTimesBetweenBySource(eq("BTCUSDT"), eq("1d"), eq("binance"),
+                    any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
+            when(insertHelper.insertIgnore(any(MdKline.class))).thenReturn(true);
+            BinanceKlineImportService service = new BinanceKlineImportService(
+                    repository, insertHelper, new ObjectMapper(),
+                    server.url("/api/v3/klines").toString(), new OkHttpClient());
+
+            KlineImportResponse response = service.reimportHistorical(
+                    "BTCUSDT", "1d", "SPOT", start, end, "binance");
+
+            assertThat(response.getImportedCount()).isEqualTo(1);
+            verify(repository).deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
+                    "BTCUSDT", "1d", "binance", start, end);
+        }
+    }
 }

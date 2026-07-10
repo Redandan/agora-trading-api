@@ -161,12 +161,13 @@ public interface MdKlineRepository extends JpaRepository<MdKline, Long> {
     @Query("DELETE FROM MdKline k " +
            "WHERE k.symbol = :symbol AND k.intervalCode = :intervalCode " +
            "AND k.source = :source " +
-           "AND k.openTime BETWEEN :start AND :end")
-    int deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeBetween(@Param("symbol") String symbol,
-                                                                  @Param("intervalCode") String intervalCode,
-                                                                  @Param("source") String source,
-                                                                  @Param("start") LocalDateTime start,
-                                                                  @Param("end") LocalDateTime end);
+           "AND k.openTime >= :start AND k.openTime < :end")
+    int deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
+            @Param("symbol") String symbol,
+            @Param("intervalCode") String intervalCode,
+            @Param("source") String source,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 
     /**
      * 查詢指定 symbol+interval 在時間範圍內的量能統計（用於驗證資料質量）。

@@ -2197,8 +2197,10 @@ public class MarketDataMcpTools {
     @McpCategory({Category.MARKET_DATA})
     @Tool(description = "從 Binance SPOT REST API 回填指定 UTC range 的 K 線至 md_kline（source='binance'）。" +
             "endUtc 為 exclusive；受 trading.market-data-mcp.external-backfills-enabled=false 保護。" +
-            "param: symbol, intervalCode, startUtc=ISO UTC, endUtc=ISO UTC")
-    public String backfillBinanceKlinesRange(String symbol, String intervalCode, String startUtc, String endUtc) {
+            "replaceExisting=true 時只替換指定 [startUtc,endUtc) range，用於移除舊 provider 混源資料；預設 false。" +
+            "param: symbol, intervalCode, startUtc=ISO UTC, endUtc=ISO UTC, replaceExisting optional")
+    public String backfillBinanceKlinesRange(String symbol, String intervalCode, String startUtc, String endUtc,
+                                              Boolean replaceExisting) {
         if (!externalBackfillsEnabled) {
             return disabledExternalBackfillMessage("backfillBinanceKlinesRange",
                     "read Binance SPOT REST and write md_kline source=binance for an explicit UTC range");
@@ -2217,9 +2219,13 @@ public class MarketDataMcpTools {
                     "❌ Binance range 太大：%s@%s requestedDays=%d maxDays=%d。請分段執行。",
                     sym, interval, requestedDays, maxDays);
         }
-        log.info("[MCP] backfillBinanceKlinesRange {}@{} {} ~ {}", sym, interval, start, end);
-        KlineImportResponse resp = binanceKlineImportService.importHistorical(sym, interval, start, end);
-        return formatBinanceBackfillResult(sym, interval, start, end, resp);
+        boolean replace = Boolean.TRUE.equals(replaceExisting);
+        log.info("[MCP] backfillBinanceKlinesRange {}@{} {} ~ {} replaceExisting={}",
+                sym, interval, start, end, replace);
+        KlineImportResponse resp = replace
+                ? binanceKlineImportService.reimportHistorical(sym, interval, "SPOT", start, end, "binance")
+                : binanceKlineImportService.importHistorical(sym, interval, start, end);
+        return formatBinanceBackfillResult(sym, interval, start, end, resp, replace);
     }
 
     static int maxBinanceRangeBackfillDays(String intervalCode) {
@@ -2236,12 +2242,19 @@ public class MarketDataMcpTools {
 
     private String formatBinanceBackfillResult(String symbol, String interval, LocalDateTime start,
                                                LocalDateTime end, KlineImportResponse resp) {
+        return formatBinanceBackfillResult(symbol, interval, start, end, resp, false);
+    }
+
+    private String formatBinanceBackfillResult(String symbol, String interval, LocalDateTime start,
+                                               LocalDateTime end, KlineImportResponse resp,
+                                               boolean replaceExisting) {
         return String.format(Locale.ROOT,
                 "=== Binance UTC K 線回填 ===%n%s@%s source=binance%nrangeUtc: %s ~ %s (end exclusive)%n%n" +
-                "imported=%d skipped=%d durationSeconds=%.1f%n" +
+                "writeMode=%s imported=%d skipped=%d durationSeconds=%.1f%n" +
                 "utcDailyAnchor=%s%n" +
                 "nextAction=validateKlineQuality(source=binance) then run golden parity; this result does not authorize live trading.",
                 symbol, interval, formatUtc(start), formatUtc(end),
+                replaceExisting ? "REPLACE_EXACT_RANGE" : "INSERT_MISSING_ONLY",
                 resp.getImportedCount(), resp.getSkippedCount(), resp.getDurationMs() / 1000.0,
                 "1d".equals(interval) ? "00:00:00Z" : "INTERVAL_DEFINED");
     }

@@ -202,7 +202,7 @@ public class BinanceKlineImportService {
                                                    LocalDateTime startTime, LocalDateTime endTime,
                                                    String source) {
         String normalizedSource = (source == null || source.isBlank()) ? "binance" : source.toLowerCase().trim();
-        int deleted = klineRepository.deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeBetween(
+        int deleted = klineRepository.deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
                 symbol, intervalCode, normalizedSource, startTime, endTime);
         log.info("[BinanceImport] Deleted {} existing klines for {} {}@{} source={} before re-import",
                 deleted, marketType, symbol, intervalCode, normalizedSource);

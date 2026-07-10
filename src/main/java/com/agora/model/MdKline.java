@@ -48,7 +48,7 @@ public class MdKline {
     private BigDecimal volume;
 
     /**
-     * K 線資料源：{@code binance}（Binance.us）或 {@code okx}（OKX v5）。
+     * K 線資料源：{@code binance}（configured Binance spot provider）或 {@code okx}（OKX v5）。
      * 同 (symbol, interval, openTime) 可同時存在兩個源的紀錄；回測與信號評估可選源。
      * 歷史資料預設 {@code binance}（V026 migration）。
      */

@@ -470,6 +470,36 @@ Expected:
   it does not change production env, deploy, restart, place orders, modify OCO,
   send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
   run external backfill/import.
+- To start the verification before the next `BTCUSDT@1d` close and have it
+  automatically run the runtime evidence watcher only after a fresh closed-K
+  persist appears, run:
+
+  ```powershell
+  .\scripts\watch_local_tradingview_post_close_evidence_ssh.ps1 -MaxWaitMinutes 1800 -PollSeconds 300
+  ```
+
+  The post-close watcher records the initial
+  `local_tradingview_post_close_evidence_watch_baseline_target_interval_persisted_count`,
+  waits until `local_tradingview_post_close_evidence_watch_target_interval_persisted_count`
+  increases, then invokes `watch_local_tradingview_runtime_evidence_ssh.ps1`
+  with evidence required by default. It emits
+  `local_tradingview_post_close_evidence_watch_status`,
+  `local_tradingview_post_close_evidence_watch_runtime_evidence_watch_status`,
+  `local_tradingview_post_close_evidence_watch_target_strategy_evidence_rows`,
+  and `local_tradingview_post_close_evidence_watch_next_action`.
+  `CLOSED_K_OBSERVED_EVIDENCE_CONFIRMED` means the target interval closed-K and
+  target-strategy evidence were both observed.
+  `CLOSED_K_OBSERVED_EVIDENCE_MISSING` means the closed-K appeared but
+  strategy-specific evidence did not. `WAIT_1D_CLOSED_K_EVENT_TIMEOUT` means no
+  fresh target closed-K appeared before the wait deadline. Use
+  `-AcceptExistingClosedK` only when the current persisted event should be
+  accepted instead of waiting for a new one, `-AllowMissingEvidenceAfterClosedK`
+  only for non-failing observation, and `-AllowWaitTimeout` only for
+  non-failing wait observation. The watcher is read-only and prints
+  `notAuthorization=read-only LOCAL_TRADINGVIEW post-close evidence watcher only`;
+  it does not change production env, deploy, restart, place orders, modify OCO,
+  send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
+  run external backfill/import.
 - To monitor the deployed 485/508 post-fix path with one read-only packet, run:
 
   ```powershell

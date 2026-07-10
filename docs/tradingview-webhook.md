@@ -259,6 +259,21 @@ means the target strategy produced buy/shadow-like evidence. The watcher keeps
 does not deploy, change production env, place orders, modify OCO, send
 Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or run
 external backfill/import.
+To start before the next configured close and let the tool run evidence
+verification after the next `BTCUSDT@1d` persist, use
+`.\scripts\watch_local_tradingview_post_close_evidence_ssh.ps1 -MaxWaitMinutes 1800 -PollSeconds 300`.
+It emits `local_tradingview_post_close_evidence_watch_status`,
+`local_tradingview_post_close_evidence_watch_runtime_evidence_watch_status`,
+and `local_tradingview_post_close_evidence_watch_target_strategy_evidence_rows`.
+`CLOSED_K_OBSERVED_EVIDENCE_CONFIRMED` means the closed-K event and target
+strategy evidence both exist. `CLOSED_K_OBSERVED_EVIDENCE_MISSING` means the
+closed-K event occurred but strategy-specific evidence is absent.
+`WAIT_1D_CLOSED_K_EVENT_TIMEOUT` means no fresh target closed-K appeared before
+the wait deadline. The post-close watcher keeps
+`notAuthorization=read-only LOCAL_TRADINGVIEW post-close evidence watcher only`
+and does not deploy, change production env, place orders, modify OCO, send
+Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or run
+external backfill/import.
 
 Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
 distinguished from real TradingView webhook deliveries.

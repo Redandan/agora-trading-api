@@ -15,9 +15,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -99,9 +101,6 @@ class BinanceKlineImportServiceTest {
             MdKlineInsertHelper insertHelper = mock(MdKlineInsertHelper.class);
             when(repository.deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
                     "BTCUSDT", "1d", "binance", start, end)).thenReturn(1);
-            when(repository.findOpenTimesBetweenBySource(eq("BTCUSDT"), eq("1d"), eq("binance"),
-                    any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of());
-            when(insertHelper.insertIgnore(any(MdKline.class))).thenReturn(true);
             BinanceKlineImportService service = new BinanceKlineImportService(
                     repository, insertHelper, new ObjectMapper(),
                     server.url("/api/v3/klines").toString(), new OkHttpClient());
@@ -112,6 +111,44 @@ class BinanceKlineImportServiceTest {
             assertThat(response.getImportedCount()).isEqualTo(1);
             verify(repository).deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
                     "BTCUSDT", "1d", "binance", start, end);
+            verify(repository).saveAll(org.mockito.ArgumentMatchers.<MdKline>anyList());
+            verify(repository).flush();
         }
+    }
+
+    @Test
+    void reimportRejectsIncompleteProviderCoverageBeforeDelete() throws Exception {
+        LocalDateTime start = LocalDateTime.parse("2026-07-09T00:00:00");
+        LocalDateTime end = LocalDateTime.parse("2026-07-10T00:00:00");
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setResponseCode(200)
+                    .setHeader("Content-Type", "application/json").setBody("[]"));
+            MdKlineRepository repository = mock(MdKlineRepository.class);
+            BinanceKlineImportService service = new BinanceKlineImportService(
+                    repository, mock(MdKlineInsertHelper.class), new ObjectMapper(),
+                    server.url("/api/v3/klines").toString(), new OkHttpClient());
+
+            assertThatThrownBy(() -> service.reimportHistorical(
+                    "BTCUSDT", "1d", "SPOT", start, end, "binance"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("expected=1 fetched=0");
+
+            verify(repository, never()).deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
+                    any(), any(), any(), any(), any());
+            verify(repository, never()).saveAll(org.mockito.ArgumentMatchers.<MdKline>anyList());
+        }
+    }
+
+    @Test
+    void expectedBarCountRequiresAlignedExclusiveRange() {
+        assertThat(BinanceKlineImportService.expectedBarCount(
+                LocalDateTime.parse("2024-07-10T00:00:00"),
+                LocalDateTime.parse("2026-07-10T00:00:00"), "1d"))
+                .isEqualTo(730L);
+        assertThatThrownBy(() -> BinanceKlineImportService.expectedBarCount(
+                LocalDateTime.parse("2026-07-09T00:00:00"),
+                LocalDateTime.parse("2026-07-09T12:00:00"), "1d"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("align exactly");
     }
 }

@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -162,6 +163,11 @@ public class BinanceKlineImportService {
      */
     public List<MdKline> fetchHistorical(String symbol, String intervalCode,
                                          LocalDateTime startTime, LocalDateTime endTime) {
+        return fetchHistorical(spotBaseUrl, symbol, intervalCode, startTime, endTime);
+    }
+
+    private List<MdKline> fetchHistorical(String apiBaseUrl, String symbol, String intervalCode,
+                                          LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
             return List.of();
         }
@@ -169,7 +175,7 @@ public class BinanceKlineImportService {
         long cursor = startTime.toInstant(ZoneOffset.UTC).toEpochMilli();
         List<MdKline> result = new ArrayList<>();
         while (cursor < endMs) {
-            List<MdKline> batch = fetchBatch(spotBaseUrl, symbol, intervalCode, cursor, endMs);
+            List<MdKline> batch = fetchBatch(apiBaseUrl, symbol, intervalCode, cursor, endMs);
             if (batch.isEmpty()) {
                 break;
             }
@@ -202,11 +208,62 @@ public class BinanceKlineImportService {
                                                    LocalDateTime startTime, LocalDateTime endTime,
                                                    String source) {
         String normalizedSource = (source == null || source.isBlank()) ? "binance" : source.toLowerCase().trim();
+        String normalizedMarketType = normalizeMarketType(marketType);
+        String apiBaseUrl = "FUTURES".equals(normalizedMarketType) ? futuresBaseUrl : spotBaseUrl;
+        long began = System.currentTimeMillis();
+        List<MdKline> replacement = fetchHistorical(
+                apiBaseUrl, symbol, intervalCode, startTime, endTime);
+        long expectedBars = expectedBarCount(startTime, endTime, intervalCode);
+        if (replacement.size() != expectedBars) {
+            throw new IllegalStateException(String.format(
+                    "Binance replacement coverage mismatch for %s@%s: expected=%d fetched=%d range=%s..%s",
+                    symbol, intervalCode, expectedBars, replacement.size(), startTime, endTime));
+        }
+        replacement.forEach(kline -> kline.setSource(normalizedSource));
+
         int deleted = klineRepository.deleteBySymbolAndIntervalCodeAndSourceAndOpenTimeRangeExclusive(
                 symbol, intervalCode, normalizedSource, startTime, endTime);
         log.info("[BinanceImport] Deleted {} existing klines for {} {}@{} source={} before re-import",
                 deleted, marketType, symbol, intervalCode, normalizedSource);
-        return importHistorical(symbol, intervalCode, marketType, startTime, endTime, normalizedSource);
+        klineRepository.saveAll(replacement);
+        klineRepository.flush();
+        long duration = System.currentTimeMillis() - began;
+        log.info("[BinanceImport] Replaced {} {}@{} source={} deleted={} inserted={} duration={}ms",
+                normalizedMarketType, symbol, intervalCode, normalizedSource,
+                deleted, replacement.size(), duration);
+        return new KlineImportResponse(replacement.size(), 0, duration);
+    }
+
+    static long expectedBarCount(LocalDateTime startTime, LocalDateTime endTime, String intervalCode) {
+        long rangeMs = endTime.toInstant(ZoneOffset.UTC).toEpochMilli()
+                - startTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+        long intervalMs = intervalMillis(intervalCode);
+        if (rangeMs <= 0L || rangeMs % intervalMs != 0L) {
+            throw new IllegalArgumentException("replacement range must align exactly to interval " + intervalCode);
+        }
+        return rangeMs / intervalMs;
+    }
+
+    private static long intervalMillis(String intervalCode) {
+        String code = intervalCode == null ? "" : intervalCode.trim().toLowerCase(Locale.ROOT);
+        if (code.length() < 2) {
+            throw new IllegalArgumentException("unsupported interval: " + intervalCode);
+        }
+        long amount;
+        try {
+            amount = Long.parseLong(code.substring(0, code.length() - 1));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("unsupported interval: " + intervalCode, e);
+        }
+        if (amount <= 0L) {
+            throw new IllegalArgumentException("unsupported interval: " + intervalCode);
+        }
+        return switch (code.charAt(code.length() - 1)) {
+            case 'm' -> amount * 60_000L;
+            case 'h' -> amount * 3_600_000L;
+            case 'd' -> amount * 86_400_000L;
+            default -> throw new IllegalArgumentException("unsupported interval: " + intervalCode);
+        };
     }
 
     /**

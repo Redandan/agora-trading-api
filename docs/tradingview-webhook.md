@@ -244,6 +244,21 @@ blocker still prevents treating it as executable. It keeps
 does not deploy, change production env, place orders, modify OCO, send
 Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or run
 external backfill/import.
+To verify that the deployed evaluator has actually produced strategy-specific
+runtime evidence after the next configured closed-K event, use
+`.\scripts\watch_local_tradingview_runtime_evidence_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300`.
+It emits `local_tradingview_runtime_evidence_watch_status`,
+`local_tradingview_runtime_evidence_watch_target_strategy_evidence_rows`, and
+`local_tradingview_runtime_evidence_watch_target_interval_persisted_count`.
+`WAIT_1D_CLOSED_K_EVENT` means the active runtime log has not yet seen the
+configured closed-K persist after deploy.
+`WAIT_NO_BUY_RUNTIME_EVIDENCE_OBSERVED` means the strategy 485 canonical
+WAIT/no-buy runtime evidence exists. `BUY_OR_SHADOW_RUNTIME_EVIDENCE_OBSERVED`
+means the target strategy produced buy/shadow-like evidence. The watcher keeps
+`notAuthorization=read-only LOCAL_TRADINGVIEW runtime evidence watcher only` and
+does not deploy, change production env, place orders, modify OCO, send
+Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or run
+external backfill/import.
 
 Audit rows use `context_json.source=LOCAL_TRADINGVIEW_PARITY` so they can be
 distinguished from real TradingView webhook deliveries.

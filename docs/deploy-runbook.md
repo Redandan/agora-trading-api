@@ -442,6 +442,34 @@ Expected:
   does not change production env, deploy, restart, place orders, modify OCO,
   send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
   run external backfill/import.
+- To watch whether the deployed LOCAL_TRADINGVIEW evaluator has produced
+  strategy-specific runtime evidence after the next configured closed-K event,
+  run:
+
+  ```powershell
+  .\scripts\watch_local_tradingview_runtime_evidence_ssh.ps1 -MaxAttempts 3 -SleepSeconds 300
+  ```
+
+  The watcher polls the active runtime log for the configured
+  `BTCUSDT@1d` closed-K persist marker, then invokes
+  `smoke_runtime_evidence_rca_ssh.ps1` for strategy 485 and, when useful,
+  `smoke_local_tradingview_only_readiness_ssh.ps1`. It emits
+  `local_tradingview_runtime_evidence_watch_status`,
+  `local_tradingview_runtime_evidence_watch_target_interval_persisted_count`,
+  `local_tradingview_runtime_evidence_watch_runtime_diagnosis`,
+  `local_tradingview_runtime_evidence_watch_target_strategy_evidence_rows`,
+  `local_tradingview_runtime_evidence_watch_target_strategy_shadow_like_rows`,
+  and `local_tradingview_runtime_evidence_watch_next_action`.
+  `WAIT_1D_CLOSED_K_EVENT` means the deployed runtime has not yet observed the
+  next configured closed-K. `WAIT_NO_BUY_RUNTIME_EVIDENCE_OBSERVED` means the
+  target strategy produced canonical WAIT/no-buy evidence.
+  `BUY_OR_SHADOW_RUNTIME_EVIDENCE_OBSERVED` means a target-strategy buy/shadow
+  evidence row is present. Use `-RequireEvidence` only after the closed-K event
+  is expected. The watcher is read-only and prints
+  `notAuthorization=read-only LOCAL_TRADINGVIEW runtime evidence watcher only`;
+  it does not change production env, deploy, restart, place orders, modify OCO,
+  send Telegram, mutate DB/grid/fund/Earn/exchange state, change schedulers, or
+  run external backfill/import.
 - To monitor the deployed 485/508 post-fix path with one read-only packet, run:
 
   ```powershell

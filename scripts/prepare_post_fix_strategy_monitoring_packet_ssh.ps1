@@ -7,7 +7,7 @@ param(
     [long]$LocalTradingViewStrategyId = 485,
     [string]$LocalTradingViewIntervalCode = "1d",
     [int]$LocalTradingViewDays = 90,
-    [string]$LocalTradingViewSource = "okx",
+    [string]$LocalTradingViewSource = "binance",
     [int]$LocalTradingViewWatchMaxAttempts = 1,
     [int]$LocalTradingViewWatchSleepSeconds = 0,
     [long]$Strategy508Id = 508,

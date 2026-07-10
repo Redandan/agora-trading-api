@@ -451,7 +451,7 @@ function Assert-BundleEvidenceWindowsCovered {
             '\[long\]\$LocalTradingViewStrategyId = 485',
             '\[string\]\$LocalTradingViewIntervalCode = "1d"',
             '\[int\]\$LocalTradingViewDays = 90',
-            '\[string\]\$LocalTradingViewSource = "okx"',
+            '\[string\]\$LocalTradingViewSource = "binance"',
             '\$RuntimeEvidenceMinutes -lt 60 -or \$RuntimeEvidenceMinutes -gt 43200',
             '\$TinyLiveDays -lt 1 -or \$TinyLiveDays -gt 90',
             '\$LocalTradingViewDays -lt 7 -or \$LocalTradingViewDays -gt 730',
@@ -487,7 +487,7 @@ function Assert-BundleEvidenceWindowsCovered {
             'SignalAccuracyDays=14',
             'LocalTradingViewStrategyId=485',
             'LocalTradingViewIntervalCode=1d',
-            'LocalTradingViewSource=okx',
+            'LocalTradingViewSource=binance',
             'LocalTradingViewDays=90',
             'Override them only for a documented\s+read-only diagnostic'
         )) {

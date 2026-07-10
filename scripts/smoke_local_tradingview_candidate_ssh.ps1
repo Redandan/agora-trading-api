@@ -7,7 +7,7 @@ param(
     [string]$Symbol = "BTCUSDT",
     [string]$IntervalCode = "1d",
     [int]$Days = 90,
-    [string]$Source = "okx",
+    [string]$Source = "binance",
     [switch]$RequireCurrentCandidate,
     [switch]$RequireDryRunArmed,
     [switch]$RequireBtcBaseLiveMicroArmed,

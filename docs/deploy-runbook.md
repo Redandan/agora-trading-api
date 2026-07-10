@@ -4947,7 +4947,7 @@ Expected:
   `SignalExecutionDays=5`, `SignalBlockedDays=7`, and
   `SignalAccuracyDays=14` by default. LOCAL_TRADINGVIEW candidate parity
   defaults to `LocalTradingViewStrategyId=485`,
-  `LocalTradingViewIntervalCode=1d`, `LocalTradingViewSource=okx`, and
+  `LocalTradingViewIntervalCode=1d`, `LocalTradingViewSource=binance`, and
   `LocalTradingViewDays=90`. Override them only for a documented read-only diagnostic,
   not as live approval evidence.
 - Output includes deployment metadata status, `origin_delta_status`,

@@ -15,7 +15,7 @@ param(
     [long]$LocalTradingViewStrategyId = 485,
     [string]$LocalTradingViewIntervalCode = "1d",
     [int]$LocalTradingViewDays = 90,
-    [string]$LocalTradingViewSource = "okx",
+    [string]$LocalTradingViewSource = "binance",
     [switch]$ContinueWhenRuntimeStale,
     [switch]$RequireReady
 )

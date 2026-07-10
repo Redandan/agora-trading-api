@@ -7,7 +7,7 @@ param(
     [string]$Symbol = "BTCUSDT",
     [string]$LocalTradingViewIntervalCode = "1d",
     [int]$LocalTradingViewDays = 90,
-    [string]$LocalTradingViewSource = "okx",
+    [string]$LocalTradingViewSource = "binance",
     [int]$MaxAttempts = 3,
     [int]$SleepSeconds = 300,
     [int]$ChildTimeoutSeconds = 900,

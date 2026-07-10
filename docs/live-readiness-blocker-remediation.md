@@ -84,8 +84,8 @@ background automation is otherwise clear but the plan still has `state=TRUE` or
 `state=MISSING` entries.
 | `RUNTIME_EVIDENCE_CONFIG_DISABLED` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `CONFIG_DISABLED` after a separately authorized evidence-only env change. | Continue evidence collection; do not enable execution flags. |
 | `RUNTIME_EVIDENCE_NO_CANONICAL_ROWS` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is no longer `NO_CANONICAL_ROWS`; canonical evidence rows exist in the bounded window. | Keep collecting evidence; do not enable execution flags. |
-| `RUNTIME_EVIDENCE_NO_SHADOW_INTENT` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | The smoke explicitly prints `diagnosis=CANONICAL_SHADOW_READY`, `shadowIntentCount` greater than 0, and `orderSentEvidence=0` for the reviewed window. Missing or `N/A` shadow-intent evidence stays blocked. | Keep collecting dry-run/shadow evidence and re-run the bundle. |
-| `RUNTIME_EVIDENCE_ORDER_SENT` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | The smoke explicitly prints `orderSentEvidence=0` for the reviewed evidence-only window. Any positive value remains blocked. | Stop live review; investigate why order-sent evidence exists before any new env plan. |
+| `RUNTIME_EVIDENCE_NO_SHADOW_INTENT` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | The smoke explicitly prints `diagnosis=CANONICAL_SHADOW_READY`, `shadowIntentCount` greater than 0, and `orderSentEvidenceBlockerCount=0` for the reviewed target-strategy window. Missing or `N/A` shadow-intent evidence stays blocked. | Keep collecting dry-run/shadow evidence and re-run the bundle. |
+| `RUNTIME_EVIDENCE_ORDER_SENT` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | The smoke explicitly prints `orderSentEvidenceBlockerCount=0` for the reviewed target-strategy window. The raw `orderSentEvidence` count may be positive when the script also lists known non-target order rows such as Strategy 508 or non-autonomous grid evidence; target-strategy or unclassified order evidence remains blocked. | Stop live review; investigate target-strategy or unclassified order-sent evidence before any new env plan. |
 | `RUNTIME_EVIDENCE_REVIEW_REQUIRED` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1` | Diagnosis is `CANONICAL_SHADOW_READY`, not `REVIEW_RUNTIME_EVIDENCE_STATUS`; `missing_runtime_evidence_fields=[]`; diagnosis/order-sent markers are present and documented; and `runtime_evidence_review_plan` is present with no `BLOCKED` or `HARD_BLOCKED` state when the diagnosis is otherwise ready. Missing runtime-evidence fields, a missing review plan, an unrecognized diagnosis, or a blocked review-plan entry stays blocked. | Require operator review of runtime evidence before any live proposal. |
 
 Missing or unrecognized runtime-evidence diagnosis stays blocked. Missing
@@ -104,7 +104,7 @@ also fails closed.
 | `LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke explicitly prints `primary=LOCAL_TRADINGVIEW`, `localEnabled=true`, and `localTradingViewEvaluatorActive=true`. Missing evaluator evidence stays blocked. | Keep live disabled and fix LOCAL_TRADINGVIEW source/evaluator env through a separately authorized env plan. |
 | `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` | `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | The smoke prints `coverage=OK` or a reviewed `coverage=WARN` with bounded trailing gap. `LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK` stays blocked. | Fix local TradingView parity data coverage before treating candidate evidence as valid. |
 | `LOCAL_TRADINGVIEW_OCO_PREFLIGHT_FAILED` | `.\scripts\smoke_live_readiness_bundle_ssh.ps1` and TP/SL/OCO feasibility smokes | No `OCO_PREFLIGHT_FAILED` marker appears unless it is explicitly paired with `ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL`. A pending-until-buy-candidate warning is not a primary OCO failure; a real OCO preflight failure stays blocked. | Stop live review and inspect TP/SL/OCO feasibility before any live order path. |
-| `LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` and `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | Runtime evidence prints `orderSentEvidence=0`, and the local TradingView smoke keeps `orderSentAllowed=false` and `liveOrderMutationAllowed=false`. Any positive order-sent evidence or true mutation marker stays blocked. | Stop live review and investigate why order-sent evidence exists in the evidence-only window. |
+| `LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE` | `.\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` and `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` | Runtime evidence prints `orderSentEvidenceBlockerCount=0`, and the local TradingView smoke keeps `orderSentAllowed=false` and `liveOrderMutationAllowed=false`. Known non-target order rows must be listed under `order_sent_evidence_rows`; target/unclassified order evidence or true mutation markers stay blocked. | Stop live review and investigate target/unclassified order evidence or LOCAL_TRADINGVIEW mutation markers. |
 
 Focused LOCAL_TRADINGVIEW-only pre-execution blockers are emitted by
 `.\scripts\smoke_local_tradingview_candidate_ssh.ps1` and folded into
@@ -200,7 +200,7 @@ The attached MCP audit details were complete enough for this gate
 part of the attached blocker set. The attached runtime blocker is not a
 runtime-log failure; strict runtime-log evidence is clean, runtime evidence is
 enabled, and the current gap is `diagnosis=NO_CANONICAL_ROWS` with
-`shadowIntentCount=2` and `orderSentEvidence=0`.
+`shadowIntentCount=2` and no scoped order-sent blocker.
 The attached background automation evidence also printed
 `backgroundAutomationClear=false` and
 `background_automation_blockers=["BACKGROUND_AUTOMATION_TRUE"]` with
@@ -351,7 +351,7 @@ permission to enable live trading.
   `background_automation_blockers=["HIGH_RISK_BACKGROUND_AUTOMATION_TRUE","BACKGROUND_AUTOMATION_TRUE"]`.
 - Runtime evidence remained `diagnosis=CONFIG_DISABLED` with
   `runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE`, `shadowIntentCount=0`, and
-  `orderSentEvidence=0`.
+  no scoped order-sent blocker.
 - Tiny-live stayed blocked with `hardStopDetected=true`,
   `autoApprovalMode=BLOCKED`, `completedTinyLiveSamples=2`,
   `falsePositiveCount=2`, and `canEnableProduction=false`.
@@ -470,7 +470,7 @@ A future live review packet must include:
 - runtime evidence status and shadow-intent counts
 - tiny-live loss hard-stop status
 - signal correctness and governance drift summary
-- confirmation that `orderSentEvidence=0` during the evidence-only phase
+- confirmation that `orderSentEvidenceBlockerCount=0` during the reviewed target-strategy phase
 - confirmation that `shadowIntentCount` is greater than 0 for the reviewed
   evidence-only window
 - confirmation that `hardStopDetected=false` and `canEnableProduction=true`

@@ -16,6 +16,9 @@ param(
     [int]$ExecutionDays = 7,
     [int]$BlockedDays = 7,
     [int]$AccuracyDays = 30,
+    [long]$RuntimeEvidenceTargetStrategyId = 574,
+    [string]$RuntimeEvidenceSide = "LONG",
+    [int]$RuntimeEvidenceMinutes = 43200,
     [int]$Strategy508Limit = 10,
     [int]$ChildTimeoutSeconds = 1200,
     [switch]$RunFullReadinessEveryAttempt,
@@ -163,10 +166,12 @@ if ([string]::IsNullOrWhiteSpace($SshKey)) { throw "SshKey is required. Pass -Ss
 if (-not (Test-Path -LiteralPath $SshKey)) { throw "SSH key not found: $SshKey" }
 if ($LocalTradingViewStrategyId -lt 1 -or $LocalTradingViewStrategyId -gt 999999999) { throw "LocalTradingViewStrategyId must be between 1 and 999999999." }
 if ($Strategy508Id -lt 1 -or $Strategy508Id -gt 999999999) { throw "Strategy508Id must be between 1 and 999999999." }
+if ($RuntimeEvidenceTargetStrategyId -lt 1 -or $RuntimeEvidenceTargetStrategyId -gt 999999999) { throw "RuntimeEvidenceTargetStrategyId must be between 1 and 999999999." }
 if ($LocalTradingViewDays -lt 7 -or $LocalTradingViewDays -gt 730) { throw "LocalTradingViewDays must be between 7 and 730." }
 if ($LocalTradingViewWatchMaxAttempts -lt 1 -or $LocalTradingViewWatchMaxAttempts -gt 96) { throw "LocalTradingViewWatchMaxAttempts must be between 1 and 96." }
 if ($LocalTradingViewWatchSleepSeconds -lt 0 -or $LocalTradingViewWatchSleepSeconds -gt 3600) { throw "LocalTradingViewWatchSleepSeconds must be between 0 and 3600." }
 if ($Hours -lt 1 -or $Hours -gt 720) { throw "Hours must be between 1 and 720." }
+if ($RuntimeEvidenceMinutes -lt 60 -or $RuntimeEvidenceMinutes -gt 43200) { throw "RuntimeEvidenceMinutes must be between 60 and 43200." }
 if ($ExecutionDays -lt 1 -or $ExecutionDays -gt 90 -or $BlockedDays -lt 1 -or $BlockedDays -gt 90 -or $AccuracyDays -lt 1 -or $AccuracyDays -gt 90) {
     throw "ExecutionDays, BlockedDays, and AccuracyDays must be between 1 and 90."
 }
@@ -180,10 +185,11 @@ Assert-MonitorTokenSafe -Name "Symbol" -Value $Symbol -MaxLength 31
 Assert-MonitorTokenSafe -Name "LocalTradingViewIntervalCode" -Value $LocalTradingViewIntervalCode -MaxLength 16
 Assert-MonitorTokenSafe -Name "LocalTradingViewSource" -Value $LocalTradingViewSource -MaxLength 32
 Assert-MonitorTokenSafe -Name "Strategy508IntervalCode" -Value $Strategy508IntervalCode -MaxLength 16
+Assert-MonitorTokenSafe -Name "RuntimeEvidenceSide" -Value $RuntimeEvidenceSide -MaxLength 16
 
 Write-Host "[post-fix-strategy-monitoring] read-only 485/508 post-fix monitoring packet"
-Write-Host "scope=READ_ONLY; wraps watch_local_tradingview_buy_candidate_ssh.ps1, smoke_strategy508_entry_dedup_exposure_ssh.ps1, and smoke_signal_correctness_ssh.ps1; no production env, DB write, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
-Write-Host "symbol=$Symbol localTradingViewStrategyId=$LocalTradingViewStrategyId localTradingViewInterval=$LocalTradingViewIntervalCode strategy508Id=$Strategy508Id strategy508Interval=$Strategy508IntervalCode hours=$Hours executionDays=$ExecutionDays blockedDays=$BlockedDays accuracyDays=$AccuracyDays"
+Write-Host "scope=READ_ONLY; wraps watch_local_tradingview_buy_candidate_ssh.ps1, smoke_strategy508_entry_dedup_exposure_ssh.ps1, smoke_signal_correctness_ssh.ps1, and smoke_runtime_evidence_rca_ssh.ps1; no production env, DB write, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, external backfill/import, deploy, restart, or nginx state changed."
+Write-Host "symbol=$Symbol localTradingViewStrategyId=$LocalTradingViewStrategyId localTradingViewInterval=$LocalTradingViewIntervalCode strategy508Id=$Strategy508Id strategy508Interval=$Strategy508IntervalCode runtimeEvidenceTargetStrategyId=$RuntimeEvidenceTargetStrategyId hours=$Hours executionDays=$ExecutionDays blockedDays=$BlockedDays accuracyDays=$AccuracyDays"
 
 $ltvArgs = @(
     "-SshHost", $SshHost,
@@ -226,6 +232,17 @@ $signalArgs = @(
     "-AccuracyDays", [string]$AccuracyDays
 )
 
+$runtimeArgs = @(
+    "-SshHost", $SshHost,
+    "-SshKey", $SshKey,
+    "-AppDir", $AppDir,
+    "-EnvFile", $EnvFile,
+    "-Symbol", $Symbol,
+    "-StrategyId", [string]$RuntimeEvidenceTargetStrategyId,
+    "-Side", $RuntimeEvidenceSide,
+    "-Minutes", [string]$RuntimeEvidenceMinutes
+)
+
 $ltv = Invoke-ReadOnlyScript -ScriptName "watch_local_tradingview_buy_candidate_ssh.ps1" -Arguments $ltvArgs
 Write-ChildFailureContext -ScriptName "watch_local_tradingview_buy_candidate_ssh.ps1" -Result $ltv
 
@@ -234,6 +251,9 @@ Write-ChildFailureContext -ScriptName "smoke_strategy508_entry_dedup_exposure_ss
 
 $signal = Invoke-ReadOnlyScript -ScriptName "smoke_signal_correctness_ssh.ps1" -Arguments $signalArgs
 Write-ChildFailureContext -ScriptName "smoke_signal_correctness_ssh.ps1" -Result $signal
+
+$runtime = Invoke-ReadOnlyScript -ScriptName "smoke_runtime_evidence_rca_ssh.ps1" -Arguments $runtimeArgs
+Write-ChildFailureContext -ScriptName "smoke_runtime_evidence_rca_ssh.ps1" -Result $runtime
 
 $ltvStatus = Get-LastPrefixedValue -Text $ltv.Text -Prefix "local_tradingview_buy_candidate_watch_status="
 $ltvReason = Get-LastPrefixedValue -Text $ltv.Text -Prefix "local_tradingview_buy_candidate_watch_reason="
@@ -258,6 +278,15 @@ $suspiciousNoBuyCount = Get-RegexValue -Text $signal.Text -Pattern "suspiciousNo
 $falseBlockRiskCount = Get-RegexValue -Text $signal.Text -Pattern "falseBlockRiskCount=([0-9]+)" -Default "0"
 $entryDedupSkipCount = Get-RegexValue -Text $signal.Text -Pattern "entryDedupSkipCount=([0-9]+)" -Default "0"
 
+$runtimeDiagnosis = Get-RegexValue -Text $runtime.Text -Pattern "^\s*diagnosis=([^\r\n]+)" -Default ""
+$runtimeOrderSentEvidence = Get-RegexValue -Text $runtime.Text -Pattern "^\s*orderSentEvidence=([0-9]+)" -Default "UNKNOWN"
+$runtimeTargetOrderSentEvidence = Get-RegexValue -Text $runtime.Text -Pattern "^\s*orderSentEvidenceTargetStrategy=([0-9]+)" -Default "UNKNOWN"
+$runtimeOtherOrderSentEvidence = Get-RegexValue -Text $runtime.Text -Pattern "^\s*orderSentEvidenceOtherStrategy=([0-9]+)" -Default "UNKNOWN"
+$runtimeGridOrderSentEvidence = Get-RegexValue -Text $runtime.Text -Pattern "^\s*orderSentEvidenceNonAutonomousGrid=([0-9]+)" -Default "UNKNOWN"
+$runtimeUnknownOrderSentEvidence = Get-RegexValue -Text $runtime.Text -Pattern "^\s*orderSentEvidenceUnknown=([0-9]+)" -Default "UNKNOWN"
+$runtimeOrderSentBlockerCount = Get-RegexValue -Text $runtime.Text -Pattern "^\s*orderSentEvidenceBlockerCount=([0-9]+)" -Default "UNKNOWN"
+$runtimeOrderSentRows = Get-RegexValue -Text $runtime.Text -Pattern "^\s*order_sent_evidence_rows=([^\r\n]+)" -Default "[]"
+
 $executionOk = (
     $executionMarkerFound -eq "true" -and
     $missingEvalOrOrderBug -eq "no" -and
@@ -274,12 +303,18 @@ if ($dedup.ExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($dedupRecommendation)
 if ([string]::IsNullOrWhiteSpace($executionMachineStatus) -or $executionMarkerFound -ne "true") {
     $evidenceProblems.Add("SIGNAL_CORRECTNESS_MACHINE_STATUS_EVIDENCE_UNAVAILABLE")
 }
+if ($runtime.ExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($runtimeDiagnosis) -or $runtimeOrderSentBlockerCount -eq "UNKNOWN") {
+    $evidenceProblems.Add("RUNTIME_EVIDENCE_RCA_UNAVAILABLE")
+}
 
 $status = "WATCHING_NO_CURRENT_ACTION"
 $nextAction = "Rerun this read-only packet after the next closed TradingView bar or strategy 508 evaluation cycle; no manual order action is authorized by this packet."
 if ($evidenceProblems.Count -gt 0) {
     $status = "EVIDENCE_UNAVAILABLE"
     $nextAction = "Fix the listed evidence collection failure before deciding whether a BUY was missed."
+} elseif ((Convert-ToIntOrZero -Value $runtimeOrderSentBlockerCount) -gt 0) {
+    $status = "RUNTIME_TARGET_ORDER_SENT_REVIEW_REQUIRED"
+    $nextAction = "Investigate target-strategy or unclassified runtime order-sent evidence before treating live-readiness blockers as clear."
 } elseif (-not $executionOk) {
     $status = "MISSED_ORDER_REVIEW_REQUIRED"
     $nextAction = "Inspect verifyStrategyExecution and recent audit/order rows before enabling or relaxing any buy path."
@@ -304,6 +339,9 @@ $summary = [ordered]@{
     strategy508EntryDedupRecommendation = $dedupRecommendation
     executionMachineStatus = $executionMachineStatus
     executionSignalSourcePolicyPrimary = $policyPrimary
+    runtimeEvidenceDiagnosis = $runtimeDiagnosis
+    runtimeOrderSentEvidence = $runtimeOrderSentEvidence
+    runtimeOrderSentBlockerCount = $runtimeOrderSentBlockerCount
     suspiciousNoBuyCount = $suspiciousNoBuyCount
     falseBlockRiskCount = $falseBlockRiskCount
     evidenceProblems = @($evidenceProblems)
@@ -332,7 +370,15 @@ Write-Host "post_fix_strategy_monitoring_suspicious_no_buy_count=$suspiciousNoBu
 Write-Host "post_fix_strategy_monitoring_false_block_count=$falseBlockRiskCount"
 Write-Host "post_fix_strategy_monitoring_false_block_risk_count=$falseBlockRiskCount"
 Write-Host "post_fix_strategy_monitoring_entry_dedup_skip_count=$entryDedupSkipCount"
-Write-Host "post_fix_strategy_monitoring_child_exit_codes=localTradingView=$($ltv.ExitCode);strategy508=$($dedup.ExitCode);signalCorrectness=$($signal.ExitCode)"
+Write-Host "post_fix_strategy_monitoring_runtime_evidence_diagnosis=$runtimeDiagnosis"
+Write-Host "post_fix_strategy_monitoring_runtime_order_sent_evidence=$runtimeOrderSentEvidence"
+Write-Host "post_fix_strategy_monitoring_runtime_target_order_sent_evidence=$runtimeTargetOrderSentEvidence"
+Write-Host "post_fix_strategy_monitoring_runtime_other_strategy_order_sent_evidence=$runtimeOtherOrderSentEvidence"
+Write-Host "post_fix_strategy_monitoring_runtime_grid_order_sent_evidence=$runtimeGridOrderSentEvidence"
+Write-Host "post_fix_strategy_monitoring_runtime_unknown_order_sent_evidence=$runtimeUnknownOrderSentEvidence"
+Write-Host "post_fix_strategy_monitoring_runtime_order_sent_blocker_count=$runtimeOrderSentBlockerCount"
+Write-Host "post_fix_strategy_monitoring_runtime_order_sent_rows=$runtimeOrderSentRows"
+Write-Host "post_fix_strategy_monitoring_child_exit_codes=localTradingView=$($ltv.ExitCode);strategy508=$($dedup.ExitCode);signalCorrectness=$($signal.ExitCode);runtimeEvidence=$($runtime.ExitCode)"
 Write-Host "post_fix_strategy_monitoring_evidence_problems=$(@($evidenceProblems) -join ',')"
 Write-Host "post_fix_strategy_monitoring_summary_json=$summaryJson"
 Write-Host "post_fix_strategy_monitoring_next_action=$nextAction"

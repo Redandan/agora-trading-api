@@ -170,6 +170,64 @@ def compact(text, limit=320):
 def count_lines(pattern, text):
     return sum(1 for line in text.splitlines() if re.search(pattern, line))
 
+def parse_order_sent_rows(text, target_strategy_id, raw_order_sent_count):
+    rows = []
+    matches = list(re.finditer(r"(?m)^(\d+)\. #([0-9]+)\s+(.*)$", text or ""))
+    for index, match in enumerate(matches):
+        start = match.start()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        chunk = text[start:end]
+        header = match.group(0)
+        if not re.search(r"\borderSent=(true|True)\b", header):
+            continue
+
+        def hfield(pattern, default="N/A"):
+            m = re.search(pattern, header)
+            return m.group(1).strip() if m else default
+
+        strategy = hfield(r"\bstrategy=([^\s]+)")
+        action = hfield(r"\baction=([^\s]+)")
+        decision = hfield(r"\bdecision=([^\s]+)")
+        source = "N/A"
+        source_match = re.search(r'"source"\s*:\s*"([^"]+)"', chunk)
+        if source_match:
+            source = source_match.group(1)
+        elif "GRID_" in chunk:
+            source = "GRID"
+        time_match = re.search(r"#\d+\s+decisionId=\S+\s+(\d\d-\d\d\s+\d\d:\d\d:\d\d\s+Taipei)", header)
+        row = {
+            "id": match.group(2),
+            "decisionId": hfield(r"\bdecisionId=([^\s]+)"),
+            "time": time_match.group(1) if time_match else "N/A",
+            "symbol": hfield(r"\bTaipei\s+([^\s]+)"),
+            "side": hfield(r"\bside=([^\s]+)"),
+            "strategyId": strategy,
+            "action": action,
+            "decision": decision,
+            "source": source,
+        }
+        if strategy == str(target_strategy_id):
+            category = "TARGET_STRATEGY"
+        elif source.startswith("GRID_") or source == "GRID" or "GRID_" in chunk:
+            category = "NON_AUTONOMOUS_GRID"
+        elif strategy not in ("N/A", "NULL", "None", ""):
+            category = "OTHER_STRATEGY"
+        else:
+            category = "UNKNOWN_ORDER_SENT"
+        row["category"] = category
+        rows.append(row)
+
+    raw_count = int_or_none(raw_order_sent_count)
+    if raw_count is None:
+        raw_count = 0
+    unknown_unlisted = max(0, raw_count - len(rows))
+    target_count = sum(1 for row in rows if row["category"] == "TARGET_STRATEGY")
+    other_count = sum(1 for row in rows if row["category"] == "OTHER_STRATEGY")
+    grid_count = sum(1 for row in rows if row["category"] == "NON_AUTONOMOUS_GRID")
+    unknown_count = sum(1 for row in rows if row["category"] == "UNKNOWN_ORDER_SENT") + unknown_unlisted
+    blocker_count = target_count + unknown_count
+    return rows, target_count, other_count, grid_count, unknown_count, blocker_count
+
 print("[runtime-evidence-rca] read-only server-local MCP smoke")
 print(f"url={url} symbol={symbol} strategyId={strategy_id} side={side} minutes={minutes}")
 
@@ -209,6 +267,8 @@ freshness_blocks = field(r"freshnessTerminalBlocks=(\d+)", dashboard)
 shadow_intent_number = int_or_none(shadow_intent_count)
 evidence_row_lines = count_lines(r"^\d+\. #", evidence)
 shadow_line_count = count_lines(r"SHADOW_MODE|intentCreated=True|intentCreated=true|fearGreedWarning", evidence)
+order_sent_rows, target_order_sent_count, other_strategy_order_sent_count, non_autonomous_grid_order_sent_count, unknown_order_sent_count, order_sent_blocker_count = parse_order_sent_rows(
+    evidence, strategy_id, order_sent_evidence)
 required_fields = {
     "dashboardEnabled": dashboard_enabled,
     "runtimeEvidenceStatus": runtime_status,
@@ -274,7 +334,7 @@ elif diagnosis == "CANONICAL_ROWS_NO_SHADOW_INTENT":
         "state": "BLOCKED",
         "riskCategory": "missing-shadow-intent",
         "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"shadowExecutionIntents={shadow_intents}"],
-        "requiredEvidence": "shadowIntentCount > 0 and orderSentEvidence=0 for the reviewed evidence-only window.",
+        "requiredEvidence": "shadowIntentCount > 0 and orderSentEvidenceBlockerCount=0 for the reviewed target-strategy window.",
         "nextAction": "Continue dry-run/shadow evidence collection; keep execution disabled.",
         "notAuthorization": "Canonical rows without shadow intent do not authorize live trading.",
     })
@@ -283,7 +343,7 @@ elif diagnosis == "CANONICAL_SHADOW_READY":
         "gate": "canonical-shadow",
         "state": "READY_FOR_OTHER_BLOCKER_REVIEW",
         "riskCategory": "runtime-evidence-ready",
-        "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"orderSentEvidence={order_sent_evidence}"],
+        "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"orderSentEvidenceBlockerCount={order_sent_blocker_count}"],
         "requiredEvidence": "Full live-readiness bundle clears all other blockers.",
         "nextAction": "Use full bundle, tiny-live hard-stop, signal policy, background automation, and audit evidence before drafting any live review packet.",
         "notAuthorization": "Runtime evidence readiness alone is not live approval.",
@@ -294,19 +354,29 @@ else:
         "state": "BLOCKED",
         "riskCategory": "unclassified-runtime-evidence-status",
         "evidenceMarkers": [f"diagnosis={diagnosis}", f"runtimeEvidenceStatus={runtime_status}"],
-        "requiredEvidence": "diagnosis=CANONICAL_SHADOW_READY, missing_runtime_evidence_fields=[], shadowIntentCount > 0, orderSentEvidence=0.",
+        "requiredEvidence": "diagnosis=CANONICAL_SHADOW_READY, missing_runtime_evidence_fields=[], shadowIntentCount > 0, orderSentEvidenceBlockerCount=0.",
         "nextAction": "Review and classify the runtime-evidence status before any env plan.",
         "notAuthorization": "Unclassified runtime-evidence status cannot be used for live review.",
     })
-if order_sent_evidence != "0":
+if order_sent_blocker_count > 0:
     review_plan.append({
         "gate": "order-sent",
         "state": "HARD_BLOCKED",
         "riskCategory": "unexpected-order-evidence",
-        "evidenceMarkers": [f"orderSentEvidence={order_sent_evidence}"],
-        "requiredEvidence": "orderSentEvidence=0 in the evidence-only window.",
-        "nextAction": "Stop live review and investigate why order-sent evidence exists.",
-        "notAuthorization": "Any positive order-sent evidence blocks live review.",
+        "evidenceMarkers": [f"orderSentEvidenceBlockerCount={order_sent_blocker_count}", f"orderSentEvidenceTargetStrategy={target_order_sent_count}", f"orderSentEvidenceUnknown={unknown_order_sent_count}"],
+        "requiredEvidence": "orderSentEvidenceBlockerCount=0 in the reviewed target-strategy window.",
+        "nextAction": "Stop live review and investigate target-strategy or unclassified order-sent evidence.",
+        "notAuthorization": "Target-strategy or unclassified order-sent evidence blocks live review.",
+    })
+elif int_or_none(order_sent_evidence) not in (None, 0):
+    review_plan.append({
+        "gate": "order-sent-non-target",
+        "state": "REVIEWED_NON_TARGET_ORDER_EVIDENCE",
+        "riskCategory": "known-order-evidence-scoped-out",
+        "evidenceMarkers": [f"orderSentEvidence={order_sent_evidence}", f"orderSentEvidenceOtherStrategy={other_strategy_order_sent_count}", f"orderSentEvidenceNonAutonomousGrid={non_autonomous_grid_order_sent_count}"],
+        "requiredEvidence": "Known non-target order-sent rows are listed and orderSentEvidenceBlockerCount=0.",
+        "nextAction": "Keep this as related order evidence; do not use it as target-strategy live approval or as a reason to bypass other blockers.",
+        "notAuthorization": "Known non-target order evidence does not authorize new orders or live policy relaxation.",
     })
 
 print("")
@@ -330,6 +400,12 @@ print(f"  shadowExecutionIntents={shadow_intents}")
 print(f"  shadowIntentCount={shadow_intent_count}")
 print(f"  shadowLikeListedRows={shadow_line_count}")
 print(f"  orderSentEvidence={order_sent_evidence}")
+print(f"  orderSentEvidenceTargetStrategy={target_order_sent_count}")
+print(f"  orderSentEvidenceOtherStrategy={other_strategy_order_sent_count}")
+print(f"  orderSentEvidenceNonAutonomousGrid={non_autonomous_grid_order_sent_count}")
+print(f"  orderSentEvidenceUnknown={unknown_order_sent_count}")
+print(f"  orderSentEvidenceBlockerCount={order_sent_blocker_count}")
+print(f"  order_sent_evidence_rows={json.dumps(order_sent_rows[:8], sort_keys=True)}")
 print(f"  freshnessTerminalBlocks={freshness_blocks}")
 print(f"  missing_runtime_evidence_fields={json.dumps(missing_fields)}")
 print(f"  runtime_evidence_review_plan={json.dumps(review_plan, sort_keys=True)}")
@@ -362,11 +438,8 @@ try:
     shadow_ready = int(shadow_intent_count) > 0
 except Exception:
     shadow_ready = False
-try:
-    no_order_sent = int(order_sent_evidence) == 0
-except Exception:
-    no_order_sent = False
-if require_ready and not (diagnosis == "CANONICAL_SHADOW_READY" and not missing_fields and shadow_ready and no_order_sent):
+no_blocking_order_sent = order_sent_blocker_count == 0
+if require_ready and not (diagnosis == "CANONICAL_SHADOW_READY" and not missing_fields and shadow_ready and no_blocking_order_sent):
     raise SystemExit(2)
 PY
 "@

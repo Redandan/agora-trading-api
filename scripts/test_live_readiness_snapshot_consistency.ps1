@@ -221,7 +221,7 @@ Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle "backgroundAutomationClear=false"
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'diagnosis=NO_CANONICAL_ROWS'
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'shadowIntentCount=2'
-Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'orderSentEvidence=0'
+Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'no scoped order-sent blocker'
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'background_automation_blockers=["BACKGROUND_AUTOMATION_TRUE"]'
 Assert-ContainsLiteral -Name "live readiness remediation current snapshot" -Text $remediation -Needle 'high_risk_background_automation_true=[]'
 Assert-ContainsLiteral -Name "live readiness remediation docs-only snapshot boundary" -Text $remediation -Needle "Do not chase docs-only deploy commits"
@@ -251,8 +251,7 @@ Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refre
 Assert-ContainsLiteral -Name "live readiness remediation latest diagnostic refresh" -Text $remediation -Needle "overallStatus=WARN"
 foreach ($doc in @(
         @{ Name = "split acceptance status"; Text = $splitStatus },
-        @{ Name = "split progress"; Text = $splitProgress },
-        @{ Name = "live readiness remediation"; Text = $remediation }
+        @{ Name = "split progress"; Text = $splitProgress }
     )) {
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle $expectedLatestRcaObservedAt
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "runtime_log_status=PASS"
@@ -275,6 +274,27 @@ foreach ($doc in @(
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "executionEligible=true"
     Assert-ContainsLiteral -Name "$($doc.Name) latest RCA refresh" -Text $doc.Text -Needle "read-only RCA evidence only"
 }
+
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle $expectedLatestRcaObservedAt
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "runtime_log_status=PASS"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "WARN baseline total 18"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "order_capable_flags_true=[]"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "riskLevel=R0"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "diagnosis=CONFIG_DISABLED"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "runtimeEvidenceStatus=NOT_READY_ENABLED_FALSE"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "shadowIntentCount=0"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "no scoped order-sent blocker"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "hardStopDetected=true"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "autoApprovalMode=BLOCKED"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "canEnableProduction=false"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "signalPolicyClear=false"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "governanceMode=TOO_STRICT"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "overallStatus=WARN"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "suspiciousNoBuyCount=10"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "falseBlockRiskCount=10"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "scoreBuyPostScoutAdd"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "executionEligible=true"
+Assert-ContainsLiteral -Name "live readiness remediation latest RCA refresh" -Text $remediation -Needle "read-only RCA evidence only"
 
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle 'bundle_blockers=["LIVE_READINESS_NOT_READY","ORDER_CAPABLE_FLAGS_REVIEW","EXECUTION_ELIGIBILITY_NOT_READY","BACKGROUND_AUTOMATION_REVIEW","RUNTIME_EVIDENCE_NO_CANONICAL_ROWS","TINY_LIVE_ROLLOUT_NOT_READY","SIGNAL_POLICY_REVIEW_GAPS","LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE","LOCAL_TRADINGVIEW_OCO_LIFECYCLE_NOT_ARMED"]'
 Assert-ContainsLiteral -Name "live production env review proposal refreshed snapshot" -Text $productionProposal -Needle "attached snapshot superseded earlier stale"

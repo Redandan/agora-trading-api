@@ -105,6 +105,33 @@ function Get-LastPrefixedValue {
     return $line.Substring($Prefix.Length).Trim()
 }
 
+function Get-IntPrefixedValue {
+    param([string]$Text, [string]$Prefix)
+
+    $value = Get-LastPrefixedValue -Text $Text -Prefix $Prefix
+    $number = 0
+    if ($null -ne $value -and [int]::TryParse($value, [ref]$number)) {
+        return $number
+    }
+    return $null
+}
+
+function Get-RuntimeOrderSentBlockerCount {
+    param([string]$RuntimeEvidence)
+
+    $scoped = Get-IntPrefixedValue -Text $RuntimeEvidence -Prefix "  orderSentEvidenceBlockerCount="
+    if ($null -ne $scoped) {
+        return $scoped
+    }
+
+    $raw = Get-IntPrefixedValue -Text $RuntimeEvidence -Prefix "  orderSentEvidence="
+    if ($null -ne $raw) {
+        return $raw
+    }
+
+    return -1
+}
+
 function Get-DeltaPathKind {
     param([string]$Path)
 
@@ -615,18 +642,18 @@ function New-BlockerSummary {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
                 $evidenceMarkers = @("shadowIntentCount is 0 or missing", "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT")
-                $nextAction = "Require canonical shadow intent evidence with orderSentEvidence=0."
+                $nextAction = "Require canonical shadow intent evidence with orderSentEvidenceBlockerCount=0."
             }
             "RUNTIME_EVIDENCE_ORDER_SENT" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
-                $evidenceMarkers = @("orderSentEvidence is greater than 0")
-                $nextAction = "Stop live review and investigate why order-sent evidence exists."
+                $evidenceMarkers = @("orderSentEvidenceBlockerCount is greater than 0", "fallback: orderSentEvidence is greater than 0 when scoped count is missing")
+                $nextAction = "Stop live review and investigate target-strategy or unclassified order-sent evidence."
             }
             "RUNTIME_EVIDENCE_REVIEW_REQUIRED" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
-                $evidenceMarkers = @("diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS", "missing_runtime_evidence_fields is non-empty", "missing orderSentEvidence=0", "runtime_evidence_review_plan has BLOCKED/HARD_BLOCKED entries")
+                $evidenceMarkers = @("diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS", "missing_runtime_evidence_fields is non-empty", "missing orderSentEvidenceBlockerCount=0", "runtime_evidence_review_plan has BLOCKED/HARD_BLOCKED entries")
                 $nextAction = "Review unrecognized or incomplete runtime-evidence status before any live proposal."
             }
             "TINY_LIVE_LOSS_HARD_STOP" {
@@ -698,8 +725,8 @@ function New-BlockerSummary {
             "LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE" {
                 $category = "local-tradingview-runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
-                $evidenceMarkers = @("orderSentEvidence is greater than 0")
-                $nextAction = "Stop live review and investigate why order-sent evidence exists in the evidence-only window."
+                $evidenceMarkers = @("orderSentAllowed=true", "liveOrderMutationAllowed=true", "orderSentEvidenceBlockerCount is greater than 0")
+                $nextAction = "Stop live review and investigate target-strategy/unclassified order evidence or LOCAL_TRADINGVIEW mutation markers."
             }
             "MCP_PARITY_NOT_PROVEN" {
                 $category = "mcp"
@@ -757,6 +784,7 @@ $runtimeEvidence = Invoke-ReadOnlySmoke -Name "runtime-evidence-rca" -ScriptName
         Side = $Side
         Minutes = $RuntimeEvidenceMinutes
     })
+$runtimeOrderSentBlockerCount = Get-RuntimeOrderSentBlockerCount -RuntimeEvidence $runtimeEvidence
 $tinyLive = Invoke-ReadOnlySmoke -Name "tiny-live-loss-rca" -ScriptName "smoke_tiny_live_loss_rca_ssh.ps1" -Arguments ($common + @{
         Symbol = $Symbol
         StrategyId = $StrategyId
@@ -858,9 +886,9 @@ if ($runtimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
 if ($runtimeEvidence -notmatch "shadowIntentCount=([1-9][0-9]*)") {
     $blockers.Add("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
 }
-if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
+if ($runtimeOrderSentBlockerCount -gt 0) {
     $blockers.Add("RUNTIME_EVIDENCE_ORDER_SENT")
-} elseif ($runtimeEvidence -notmatch "orderSentEvidence=0") {
+} elseif ($runtimeOrderSentBlockerCount -lt 0) {
     $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 }
 if ($tinyLive -notmatch "hardStopDetected=false" `
@@ -921,7 +949,7 @@ if ($localTradingView -match "LOCAL_TRADINGVIEW_DATA_COVERAGE_NOT_OK") {
 if ($localTradingView -match "orderSentAllowed=true|liveOrderMutationAllowed=true") {
     $blockers.Add("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
 }
-if ($runtimeEvidence -match "orderSentEvidence=([1-9][0-9]*)") {
+if ($runtimeOrderSentBlockerCount -gt 0) {
     $blockers.Add("LOCAL_TRADINGVIEW_ORDER_SENT_EVIDENCE")
 }
 if (($audit -match "OCO_PREFLIGHT_FAILED" -or $tinyLive -match "OCO_PREFLIGHT_FAILED" -or $signal -match "OCO_PREFLIGHT_FAILED") `
@@ -987,6 +1015,7 @@ if ($localTradingView -match "executionMode=([A-Z0-9_]+)") {
 if ($runtimeEvidence -match "orderSentEvidence=([0-9]+)") {
     Write-Host ("runtime_order_sent_evidence=" + $Matches[1])
 }
+Write-Host "runtime_order_sent_blocker_count=$runtimeOrderSentBlockerCount"
 if ($audit -match "ocoPreflightPendingUntilBuyCandidate=([^`"'\]\s,]+)" `
         -or $tinyLive -match "ocoPreflightPendingUntilBuyCandidate=([^`"'\]\s,]+)" `
         -or $signal -match "ocoPreflightPendingUntilBuyCandidate=([^`"'\]\s,]+)") {

@@ -4671,7 +4671,9 @@ Expected:
 - The script calls server-local `/api/mcp`, not public Trading MCP.
 - It prints the masked `TRADING_RUNTIME_EVIDENCE_ENABLED` state, dashboard
   `enabled` flag, preview `runtimeEvidenceStatus`, recent evidence row count,
-  shadow-intent counts, `orderSentEvidence`,
+  shadow-intent counts, raw `orderSentEvidence`, scoped
+  `orderSentEvidenceBlockerCount`, target/other/grid/unknown order-sent
+  breakdown, `order_sent_evidence_rows`,
   `missing_runtime_evidence_fields`, candidate context, and no-buy context.
 - It prints `runtime_evidence_review_plan`, a machine-readable review-routing
   list with `gate`, `state`, `riskCategory`, `evidenceMarkers`,
@@ -4688,8 +4690,10 @@ Expected:
   `RUNTIME_EVIDENCE_REVIEW_REQUIRED`.
 - With `-RequireReady`, the smoke exits 0 only when
   `diagnosis=CANONICAL_SHADOW_READY`, `missing_runtime_evidence_fields=[]`,
-  `shadowIntentCount > 0`, and `orderSentEvidence=0`; otherwise it prints the
-  RCA details and exits non-zero.
+  `shadowIntentCount > 0`, and `orderSentEvidenceBlockerCount=0`; otherwise it
+  prints the RCA details and exits non-zero. Raw `orderSentEvidence` may be
+  positive only when the listed rows are known non-target evidence for the
+  selected `StrategyId`.
 - `CANONICAL_SHADOW_READY` is not live approval; it only means this one gate
   should be rechecked by the full live-readiness audit.
 - The script must not write RuntimeDecisionEvidence, place orders, change OCO,
@@ -4861,6 +4865,7 @@ Expected:
 - Output includes deployment metadata status, `origin_delta_status`,
   `origin_runtime_delta_files`, `local_tradingview_current_candidate_status`,
   `local_tradingview_dry_run_receipt_armed`, `runtime_order_sent_evidence`,
+  `runtime_order_sent_blocker_count`,
   `bundle_blockers`, `bundle_blocker_summary`,
   `live_review_packet_allowed`, `deploy_required_before_live_review`, and
   `bundle_verdict`. Treat `DEPLOYED_RUNTIME_NOT_CURRENT` as stale live-review

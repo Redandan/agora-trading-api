@@ -2088,11 +2088,12 @@ public class MarketDataMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.MARKET_DATA})
-    @Tool(description = "比對本地 DB K 線與 OKX API 歷史 K 線，檢測資料品質。" +
-            "檢查：DB 是否有缺口、OHLCV 是否與 OKX 一致、是否有幽靈 bar。" +
-            "容差：價格 0.3%、成交量 300%（跨所量綱差異）。" +
-            "param: symbol=交易對, intervalCode=週期(1h/4h), days=回溯天數（最多 180），" +
-            "source=binance 或 okx（預設 market.signal.source，檢查哪個源的 DB 資料）")
+    @Tool(description = "比對本地 DB K 線與同資料源 REST API 歷史 K 線，檢測資料品質。" +
+            "Binance source 對 Binance REST，OKX source 對 OKX REST；只比對完整收線 bar。" +
+            "檢查：DB 是否有缺口、OHLCV 是否一致、是否有幽靈 bar。" +
+            "容差：價格 0.3%、成交量 300%。" +
+            "param: symbol=交易對, intervalCode=週期, days=回溯天數（最多 180），" +
+            "source=binance 或 okx（預設 market.signal.source）")
     public String validateKlineQuality(String symbol, String intervalCode, Integer days, String source) {
         int d = (days == null || days <= 0 || days > 180) ? 60 : days;
         String src = (source == null || source.isBlank())
@@ -2104,8 +2105,9 @@ public class MarketDataMcpTools {
         StringBuilder sb = new StringBuilder();
         sb.append("=== K 線資料品質驗證 ===\n");
         sb.append(String.format("%s@%s 過去 %d 天（source=%s）\n\n", symbol, intervalCode, d, src));
-        sb.append(String.format("📊 覆蓋率\n  DB bars: %d\n  OKX bars: %d\n\n",
-                r.dbBarCount(), r.okxBarCount()));
+        String referenceLabel = r.referenceSource().toUpperCase(Locale.ROOT);
+        sb.append(String.format("📊 覆蓋率\n  DB bars: %d\n  %s REST bars: %d\n\n",
+                r.dbBarCount(), referenceLabel, r.referenceBarCount()));
 
         String missingIcon = r.missingInDb() == 0 ? "✅" : "🚫";
         String phantomIcon = r.phantomInDb() == 0 ? "✅" : "⚠️";
@@ -2113,22 +2115,24 @@ public class MarketDataMcpTools {
         String volIcon     = r.volumeDivergences() == 0 ? "✅" : "⚠️";
 
         sb.append("🔍 差異檢查\n");
-        sb.append(String.format("  %s DB 缺口: %d 筆（OKX 有但 DB 無）\n", missingIcon, r.missingInDb()));
-        sb.append(String.format("  %s 幽靈 bar: %d 筆（DB 有但 OKX 無）\n", phantomIcon, r.phantomInDb()));
-        sb.append(String.format("  %s 價格差異: %d 筆（容差 0.05%%）\n", priceIcon, r.priceDivergences()));
-        sb.append(String.format("  %s 成交量差異: %d 筆（容差 5%%）\n", volIcon, r.volumeDivergences()));
+        sb.append(String.format("  %s DB 缺口: %d 筆（%s REST 有但 DB 無）\n",
+                missingIcon, r.missingInDb(), referenceLabel));
+        sb.append(String.format("  %s 幽靈 bar: %d 筆（DB 有但 %s REST 無）\n",
+                phantomIcon, r.phantomInDb(), referenceLabel));
+        sb.append(String.format("  %s 價格差異: %d 筆（容差 0.3%%）\n", priceIcon, r.priceDivergences()));
+        sb.append(String.format("  %s 成交量差異: %d 筆（容差 300%%）\n", volIcon, r.volumeDivergences()));
 
         if (!r.samples().isEmpty()) {
             sb.append("\n📋 差異樣本（最多 10 筆）\n");
             for (KlineQualityValidator.Divergence div : r.samples()) {
                 if ("MISSING".equals(div.field()) || "PHANTOM".equals(div.field())) {
                     sb.append(String.format("  %s %s at %s\n", div.field(),
-                            div.field().equals("MISSING") ? "OKX_only" : "DB_only",
+                            div.field().equals("MISSING") ? referenceLabel + "_only" : "DB_only",
                             div.openTime()));
                 } else {
-                    sb.append(String.format("  %s %s  db=%.4f okx=%.4f diff=%.3f%%\n",
+                    sb.append(String.format("  %s %s  db=%.4f reference=%.4f diff=%.3f%%\n",
                             div.openTime(), div.field(),
-                            div.dbValue(), div.okxValue(), div.diffPct() * 100));
+                            div.dbValue(), div.referenceValue(), div.diffPct() * 100));
                 }
             }
         }
@@ -2136,7 +2140,7 @@ public class MarketDataMcpTools {
         boolean allGood = r.missingInDb() == 0 && r.phantomInDb() == 0
                 && r.priceDivergences() == 0;  // volume 差異可忽略
         sb.append("\n").append(allGood
-                ? "✅ 資料品質通過：DB 與 OKX 在容差內一致，回測結果可信"
+                ? "✅ 資料品質通過：DB 與同資料源 REST 在容差內一致，回測底層資料可用"
                 : "⚠️ 發現差異：建議人工檢視或用 KlineGapDetector / reimportHistorical 修復");
         return sb.toString();
     }

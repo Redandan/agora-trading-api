@@ -78,6 +78,20 @@ class BacktestValidationMcpToolsTest {
         assertThat(coverage.qualityGatePassed()).isTrue();
     }
 
+    @Test
+    void productionSemanticsExcludeFormingBars() {
+        LocalDateTime now = LocalDateTime.of(2026, 7, 10, 13, 0);
+        MdKline closed = kline(LocalDateTime.of(2026, 7, 9, 0, 0));
+        closed.setCloseTime(LocalDateTime.of(2026, 7, 9, 23, 59, 59));
+        MdKline forming = kline(LocalDateTime.of(2026, 7, 10, 0, 0));
+        forming.setCloseTime(LocalDateTime.of(2026, 7, 10, 23, 59, 59));
+
+        List<MdKline> result = BacktestValidationMcpTools.closedKlinesOnly(
+                List.of(closed, forming), now, "1d");
+
+        assertThat(result).containsExactly(closed);
+    }
+
     private static MdKline kline(LocalDateTime openTime) {
         MdKline kline = new MdKline();
         kline.setOpenTime(openTime);

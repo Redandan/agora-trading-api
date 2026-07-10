@@ -95,8 +95,10 @@ public class BacktestValidationMcpTools {
         LocalDateTime coverageQueryStart = isScoreBuy(strategyType)
                 ? startTime.minusDays(warmupDays(intervalVal))
                 : startTime;
-        List<MdKline> coverageKlines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                symbolVal, intervalVal, resolvedSource, coverageQueryStart, endTime);
+        List<MdKline> coverageKlines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, resolvedSource, coverageQueryStart, endTime),
+                endTime, intervalVal);
         DataCoverage coverage = inspectTradingViewDataCoverage(coverageKlines, startTime, endTime, intervalVal);
 
         BacktestRunRequest req = new BacktestRunRequest();
@@ -268,8 +270,10 @@ public class BacktestValidationMcpTools {
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
         LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
 
-        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                symbolVal, intervalVal, src, queryStart, endTime);
+        List<MdKline> klines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, src, queryStart, endTime),
+                endTime, intervalVal);
         if (klines.isEmpty()) {
             return String.format("❌ 查無 K 線: symbol=%s interval=%s source=%s range=%s~%s",
                     symbolVal, intervalVal, src, queryStart, endTime);
@@ -380,8 +384,10 @@ public class BacktestValidationMcpTools {
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
         LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
-        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                symbolVal, intervalVal, src, queryStart, endTime);
+        List<MdKline> klines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, src, queryStart, endTime),
+                endTime, intervalVal);
         DataCoverage coverage = inspectTradingViewDataCoverage(klines, visibleStart, endTime, intervalVal);
         if (!coverage.qualityGatePassed()) {
             return goldenTruthUnavailable("BINANCE_DATA_COVERAGE_NOT_READY:" + coverage.coverageWarning(), src, daysVal);
@@ -482,8 +488,10 @@ public class BacktestValidationMcpTools {
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(365).truncatedTo(ChronoUnit.DAYS);
         LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
-        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                symbolVal, intervalVal, src, queryStart, endTime);
+        List<MdKline> klines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, src, queryStart, endTime),
+                endTime, intervalVal);
         DataCoverage coverage = inspectTradingViewDataCoverage(klines, visibleStart, endTime, intervalVal);
         if (!coverage.qualityGatePassed()) {
             return "status=DATA_COVERAGE_NOT_READY source=" + src + " " + coverage.formatLine()
@@ -559,8 +567,10 @@ public class BacktestValidationMcpTools {
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
         LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
 
-        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                symbolVal, intervalVal, src, queryStart, endTime);
+        List<MdKline> klines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, src, queryStart, endTime),
+                endTime, intervalVal);
         if (klines.isEmpty()) {
             return String.format("❌ 查無 K 線: symbol=%s interval=%s source=%s range=%s~%s",
                     symbolVal, intervalVal, src, queryStart, endTime);
@@ -729,8 +739,10 @@ public class BacktestValidationMcpTools {
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
         LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
 
-        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                symbolVal, intervalVal, src, queryStart, endTime);
+        List<MdKline> klines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, src, queryStart, endTime),
+                endTime, intervalVal);
         if (klines.isEmpty()) {
             return String.format("❌ 查無 K 線: symbol=%s interval=%s source=%s range=%s~%s",
                     symbolVal, intervalVal, src, queryStart, endTime);
@@ -899,6 +911,28 @@ public class BacktestValidationMcpTools {
                 result.maxInventoryDrawdownPct() * 100.0,
                 String.join("\n", tailRows),
                 String.join("\n", orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size())));
+    }
+
+    static List<MdKline> closedKlinesOnly(List<MdKline> klines, LocalDateTime requestedEnd,
+                                           String intervalCode) {
+        if (klines == null || klines.isEmpty()) {
+            return List.of();
+        }
+        if (requestedEnd == null) {
+            return List.copyOf(klines);
+        }
+        Duration interval = intervalDuration(intervalCode);
+        return klines.stream()
+                .filter(Objects::nonNull)
+                .filter(kline -> {
+                    LocalDateTime closeTime = kline.getCloseTime();
+                    if (closeTime != null) {
+                        return !closeTime.isAfter(requestedEnd);
+                    }
+                    return interval != null && !interval.isZero() && !interval.isNegative()
+                            && !kline.getOpenTime().plus(interval).isAfter(requestedEnd);
+                })
+                .toList();
     }
 
     static String buildTradingViewDataCoverageLine(List<MdKline> klines, LocalDateTime visibleStart,

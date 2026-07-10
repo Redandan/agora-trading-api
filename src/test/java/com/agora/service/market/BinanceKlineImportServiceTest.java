@@ -52,6 +52,35 @@ class BinanceKlineImportServiceTest {
             assertThat(captor.getValue().getSource()).isEqualTo("binance");
             assertThat(captor.getValue().getOpenTime()).isEqualTo(LocalDateTime.parse("2026-07-09T00:00:00"));
             assertThat(captor.getValue().getCloseTime()).isEqualTo(LocalDateTime.parse("2026-07-09T23:59:59.999"));
+            assertThat(server.takeRequest().getRequestUrl().queryParameter("endTime"))
+                    .isEqualTo(String.valueOf(Instant.parse("2026-07-10T00:00:00Z").toEpochMilli() - 1L));
+        }
+    }
+
+    @Test
+    void fetchHistoricalExcludesFormingBarOutsideClosedExclusiveRange() throws Exception {
+        long closedOpenMs = Instant.parse("2026-07-09T00:00:00Z").toEpochMilli();
+        long closedCloseMs = Instant.parse("2026-07-09T23:59:59.999Z").toEpochMilli();
+        long formingOpenMs = Instant.parse("2026-07-10T00:00:00Z").toEpochMilli();
+        long formingCloseMs = Instant.parse("2026-07-10T23:59:59.999Z").toEpochMilli();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json")
+                    .setBody("[[" + closedOpenMs + ",\"62000\",\"64000\",\"61000\",\"63500\",\"100\"," +
+                            closedCloseMs + ",\"0\",1,\"0\",\"0\",\"0\"],[" +
+                            formingOpenMs + ",\"63500\",\"65000\",\"63000\",\"64300\",\"50\"," +
+                            formingCloseMs + ",\"0\",1,\"0\",\"0\",\"0\"]]"));
+
+            BinanceKlineImportService service = new BinanceKlineImportService(
+                    mock(MdKlineRepository.class), mock(MdKlineInsertHelper.class), new ObjectMapper(),
+                    server.url("/api/v3/klines").toString(), new OkHttpClient());
+
+            List<MdKline> bars = service.fetchHistorical(
+                    "BTCUSDT", "1d",
+                    LocalDateTime.parse("2026-07-09T00:00:00"),
+                    LocalDateTime.parse("2026-07-10T00:00:00"));
+
+            assertThat(bars).extracting(MdKline::getOpenTime)
+                    .containsExactly(LocalDateTime.parse("2026-07-09T00:00:00"));
         }
     }
 }

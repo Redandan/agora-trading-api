@@ -157,6 +157,33 @@ public class BinanceKlineImportService {
     }
 
     /**
+     * Fetch fully closed Binance bars in {@code [startTime, endTime)} without
+     * writing to the database. Used by source-aware quality validation.
+     */
+    public List<MdKline> fetchHistorical(String symbol, String intervalCode,
+                                         LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
+            return List.of();
+        }
+        long endMs = endTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+        long cursor = startTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+        List<MdKline> result = new ArrayList<>();
+        while (cursor < endMs) {
+            List<MdKline> batch = fetchBatch(spotBaseUrl, symbol, intervalCode, cursor, endMs);
+            if (batch.isEmpty()) {
+                break;
+            }
+            result.addAll(batch);
+            cursor = batch.get(batch.size() - 1).getOpenTime()
+                    .toInstant(ZoneOffset.UTC).toEpochMilli() + 1L;
+            if (batch.size() < BATCH_SIZE) {
+                break;
+            }
+        }
+        return result;
+    }
+
+    /**
      * 刪除 DB 中指定時間範圍的 K 線並重新從 Binance 匯入（用於修復錯誤資料）。
      *
      * @return 重新匯入統計
@@ -217,11 +244,16 @@ public class BinanceKlineImportService {
 
     private List<MdKline> fetchBatch(String apiBaseUrl, String symbol, String intervalCode,
                                      long startMs, long endMs) {
+        if (startMs >= endMs) {
+            return List.of();
+        }
         HttpUrl url = Objects.requireNonNull(HttpUrl.parse(apiBaseUrl)).newBuilder()
                 .addQueryParameter("symbol",    symbol)
                 .addQueryParameter("interval",  intervalCode)
                 .addQueryParameter("startTime", String.valueOf(startMs))
-                .addQueryParameter("endTime",   String.valueOf(Math.min(endMs, Long.MAX_VALUE)))
+                // Binance endTime is inclusive; subtract 1ms to preserve this
+                // service's documented [startTime, endTime) contract.
+                .addQueryParameter("endTime",   String.valueOf(endMs - 1L))
                 .addQueryParameter("limit",     String.valueOf(BATCH_SIZE))
                 .build();
 
@@ -235,6 +267,11 @@ public class BinanceKlineImportService {
             JsonNode arr = objectMapper.readTree(body);
             List<MdKline> list = new ArrayList<>();
             for (JsonNode row : arr) {
+                long openMs = row.get(0).asLong();
+                long closeMs = row.get(6).asLong();
+                if (openMs < startMs || openMs >= endMs || closeMs >= endMs) {
+                    continue;
+                }
                 list.add(parseRow(symbol, intervalCode, row));
             }
             return list;

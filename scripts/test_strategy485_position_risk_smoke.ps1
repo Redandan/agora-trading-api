@@ -45,6 +45,7 @@ foreach ($marker in @(
         "server-local /api/mcp only",
         "no production env, DB, order, OCO, grid, fund, Earn, Telegram, scheduler, exchange, or external backfill/import state changed",
         "Open Strategy 485 Positions",
+        "missing Strategy ID marker",
         "Position EV",
         "TP Stretch / Aging",
         "Recent Closed / PnL",

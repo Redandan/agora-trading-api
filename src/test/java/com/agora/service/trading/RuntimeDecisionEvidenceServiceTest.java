@@ -66,12 +66,12 @@ class RuntimeDecisionEvidenceServiceTest {
         when(repository.findRecent(any(LocalDateTime.class), eq("BTCUSDT"), any(Pageable.class)))
                 .thenReturn(List.of(gridOrder, shadow));
 
-        String dashboard = service.autonomousReadinessDashboard("BTCUSDT", 43200);
+        String dashboard = service.autonomousReadinessDashboard("BTCUSDT", 43200, null, null);
 
         assertThat(dashboard)
                 .contains("orderSentEvidence=0")
                 .contains("nonAutonomousOrderEvidence=1")
-                .contains("unexpected trades: orderSentEvidence=0, shadowOrderViolations=0, nonAutonomousOrderEvidence=1")
+                .contains("unexpected trades: targetOrderSentEvidence=0, otherStrategyOrderSentEvidence=0, shadowOrderViolations=0, nonAutonomousOrderEvidence=1")
                 .doesNotContain("no-unintended-order-proof");
     }
 
@@ -87,13 +87,43 @@ class RuntimeDecisionEvidenceServiceTest {
         when(repository.findRecent(any(LocalDateTime.class), eq("BTCUSDT"), any(Pageable.class)))
                 .thenReturn(List.of(strategyOrder));
 
-        String dashboard = service.autonomousReadinessDashboard("BTCUSDT", 43200);
+        String dashboard = service.autonomousReadinessDashboard("BTCUSDT", 43200, null, null);
 
         assertThat(dashboard)
                 .contains("orderSentEvidence=1")
                 .contains("nonAutonomousOrderEvidence=0")
                 .contains("no-unintended-order-proof")
                 .contains("riskScalingMode=BLOCKED_SAFETY");
+    }
+
+    @Test
+    void autonomousDashboardSeparatesTargetAndOtherStrategyOrderEvidence() {
+        RuntimeDecisionEvidence strategy508Order = evidence("BTCUSDT");
+        strategy508Order.setStrategyId(508L);
+        strategy508Order.setSide("LONG");
+        strategy508Order.setLiveSignalId(260L);
+        strategy508Order.setSelectedAction("EXECUTED_EXISTING_AUTOTRADE");
+        strategy508Order.setOrderSent(true);
+
+        RuntimeDecisionEvidence strategy574Shadow = evidence("BTCUSDT");
+        strategy574Shadow.setStrategyId(574L);
+        strategy574Shadow.setSide("BUY");
+        strategy574Shadow.setSelectedAction("SHADOW_EXECUTION_INTENT");
+        strategy574Shadow.setOrderSent(false);
+        strategy574Shadow.setIntentCreated(true);
+        strategy574Shadow.setSuppressionReason("SHADOW_MODE");
+
+        when(repository.findRecent(any(LocalDateTime.class), eq("BTCUSDT"), any(Pageable.class)))
+                .thenReturn(List.of(strategy508Order, strategy574Shadow));
+
+        String dashboard = service.autonomousReadinessDashboard("BTCUSDT", 43200, 574L, "LONG");
+
+        assertThat(dashboard)
+                .contains("strategyId=574 side=LONG")
+                .contains("orderSentEvidence=0")
+                .contains("targetOrderSentEvidence=0")
+                .contains("otherStrategyOrderSentEvidence=1")
+                .doesNotContain("no-unintended-order-proof");
     }
 
     @Test

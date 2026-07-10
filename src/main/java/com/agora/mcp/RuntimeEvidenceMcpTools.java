@@ -147,11 +147,11 @@ public class RuntimeEvidenceMcpTools {
     @Tool(description = "Read-only autonomous trading readiness dashboard. Summarizes Runtime Evidence, EV/TQS samples, " +
             "FearGreed WARN_ONLY visibility, shadow execution intent, order suppression, OCO plan evidence, exposure/freshness " +
             "signals, unexpected order evidence, and final readiness verdict. Does not place orders or change OCO/strategy/grid/funds. " +
-            "params: symbol optional, minutes default 1440.")
+            "params: symbol optional, minutes default 1440, strategyId optional, side optional LONG/SHORT.")
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
-    public String getAutonomousReadinessDashboard(String symbol, Integer minutes) {
-        return evidenceService.autonomousReadinessDashboard(symbol, minutes);
+    public String getAutonomousReadinessDashboard(String symbol, Integer minutes, Long strategyId, String side) {
+        return evidenceService.autonomousReadinessDashboard(symbol, minutes, strategyId, side);
     }
 
     @Tool(description = "Read-only tiny-live minimum-order manual approval preflight preview for controlled autonomous trading. " +

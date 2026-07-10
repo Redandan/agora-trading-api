@@ -445,7 +445,7 @@ okx_private_credentials_configured = (
     and read_env_key("TRADING_OKX_SECRET_KEY", "").strip() != ""
     and read_env_key("TRADING_OKX_PASSPHRASE", "").strip() != ""
 )
-execution_max_orders_per_bar = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR", 3)
+execution_max_orders_per_bar = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR", 1)
 execution_max_orders_per_day = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY", 1)
 execution_max_open_positions = int_env("TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS", 1)
 default_notional = to_decimal(read_env_key("TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT", "10.0")) or Decimal("10.0")

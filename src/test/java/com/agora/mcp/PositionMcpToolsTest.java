@@ -7,9 +7,12 @@ import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
 import com.agora.model.BtBacktestResult;
 import com.agora.model.BtBacktestTrade;
+import com.agora.model.BtDecisionAudit;
+import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
 import com.agora.repository.trading.BtBacktestTradeRepository;
+import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.MdKlineRepository;
@@ -36,10 +39,40 @@ import static org.mockito.Mockito.when;
 
 class PositionMcpToolsTest {
 
+    private final BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
+    private final BtDecisionAuditRepository decisionAuditRepository = mock(BtDecisionAuditRepository.class);
     private final BtBacktestTradeRepository backtestTradeRepository = mock(BtBacktestTradeRepository.class);
     private final BtStrategyRepository strategyRepository = mock(BtStrategyRepository.class);
     private final MdKlineRepository mdKlineRepository = mock(MdKlineRepository.class);
     private final TrailingStopReplayService trailingStopReplayService = mock(TrailingStopReplayService.class);
+
+    @Test
+    void getOpenPositionsIncludesStrategyIntervalAndAuditedSignalSource() {
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setStrategyId(508L);
+        position.setSymbol("BTCUSDT");
+        position.setIntervalCode("4h");
+        position.setEntryPrice(new BigDecimal("62762"));
+        position.setTradedQty(new BigDecimal("0.00015"));
+        position.setSuggestedTp(new BigDecimal("66527.72"));
+        position.setSuggestedSl(new BigDecimal("55230.56"));
+        position.setOcoOrderListId(123L);
+        position.setCreatedAt(LocalDateTime.parse("2026-07-09T12:00:03"));
+
+        BtDecisionAudit audit = new BtDecisionAudit();
+        audit.setContextJson("{\"signalSource\":\"LEGACY_SECONDARY\"}");
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(position));
+        when(decisionAuditRepository.findByLiveSignalIdOrderByEventTimeAsc(260L)).thenReturn(List.of(audit));
+
+        String output = tools().getOpenPositions();
+
+        assertThat(output)
+                .contains("ID: 260")
+                .contains("Strategy ID: 508")
+                .contains("Interval: 4h")
+                .contains("Signal source: LEGACY_SECONDARY");
+    }
 
     @Test
     void analyzeTrailingStopPnlReplayKeepsOpsAuthAndReadOnlyAcceptanceCategories() throws Exception {
@@ -294,7 +327,8 @@ class PositionMcpToolsTest {
 
     private PositionMcpTools tools() {
         return new PositionMcpTools(
-                mock(BtLiveSignalRepository.class),
+                liveSignalRepository,
+                decisionAuditRepository,
                 backtestTradeRepository,
                 strategyRepository,
                 mdKlineRepository,

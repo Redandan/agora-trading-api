@@ -303,7 +303,7 @@ $envOverrides = @{
     TRADINGVIEW_LOCAL_EXECUTION_ENABLED = "false"
     TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN = "true"
     TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED = "false"
-    TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR = "3"
+    TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR = "1"
     TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY = "1"
     TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS = "1"
     TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT = "0.0300"
@@ -571,6 +571,10 @@ try {
         "listStrategies",
         "runBacktest",
         "runScoreBuyTradingViewBtcBaseBacktest",
+        "runScoreBuyTradingViewProfitOptimizationReport",
+        "verifyScoreBuyTradingViewGoldenTruth",
+        "backfillBinanceKlines",
+        "backfillBinanceKlinesRange",
         "listGrids",
         "getOpenPositions",
         "getSystemHealth",
@@ -617,6 +621,10 @@ try {
     Assert-McpContentContains -Content $backfillGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true" -Description "external MCP backfills are disabled by default"
     $rangeBackfillGuard = Invoke-McpTool -Url $mcpUrl -ToolName "backfillOkxKlinesRange" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1d"; startUtc = "2026-01-01T00:00:00"; endUtc = "2026-01-02T00:00:00" }
     Assert-McpContentContains -Content $rangeBackfillGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true" -Description "range external MCP backfills are disabled by default"
+    $binanceBackfillGuard = Invoke-McpTool -Url $mcpUrl -ToolName "backfillBinanceKlines" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1d"; days = 1 }
+    Assert-McpContentContains -Content $binanceBackfillGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true" -Description "Binance external MCP backfills are disabled by default"
+    $binanceRangeBackfillGuard = Invoke-McpTool -Url $mcpUrl -ToolName "backfillBinanceKlinesRange" -Arguments @{ symbol = "BTCUSDT"; intervalCode = "1d"; startUtc = "2026-01-01T00:00:00"; endUtc = "2026-01-02T00:00:00" }
+    Assert-McpContentContains -Content $binanceRangeBackfillGuard -Pattern "TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED=true" -Description "Binance range external MCP backfills are disabled by default"
 
     $dataFreshnessRca = Invoke-McpTool -Url $mcpUrl -ToolName "diagnoseDataFreshnessGuardBlocks" -Arguments @{ days = 1; symbol = "BTCUSDT"; limit = 5 }
     Assert-McpContentContains -Content $dataFreshnessRca -Pattern "boundary: READ_ONLY" -Description "DataFreshnessGuard RCA stays read-only in local smoke"

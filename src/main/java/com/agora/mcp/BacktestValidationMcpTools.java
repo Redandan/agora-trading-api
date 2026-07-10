@@ -24,6 +24,8 @@ import com.agora.service.backtest.StrategyContext;
 import com.agora.service.backtest.StrategyRegistry;
 import com.agora.service.backtest.StrategySignal;
 import com.agora.service.backtest.TradeRecord;
+import com.agora.service.backtest.TradingViewGoldenTruthVerifier;
+import com.agora.service.backtest.TradingViewProfitOptimizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -63,6 +65,11 @@ public class BacktestValidationMcpTools {
     private final com.agora.repository.trading.MdKlineRepository klineRepo;
     private final StrategyRegistry strategyRegistry;
     private final BacktestEngine backtestEngine;
+    private final TradingViewGoldenTruthVerifier tradingViewGoldenTruthVerifier;
+    private final TradingViewProfitOptimizationService tradingViewProfitOptimizationService;
+
+    @org.springframework.beans.factory.annotation.Value("${trading.tradingview.local.golden-truth-csv-path:}")
+    private String tradingViewGoldenTruthCsvPath;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS})
@@ -343,6 +350,192 @@ public class BacktestValidationMcpTools {
     }
 
     @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
+    @Tool(description = "只讀比對 Binance SCORE_BUY 買點與設定的 TradingView Strategy Tester golden CSV。" +
+            "CSV 必須含 time/reason/label/qty，可選 nn_output；缺少 golden 時 fail closed。" +
+            "至少驗證 365 天，不寫 DB、不下單，也不會自動解鎖 live。")
+    public String verifyScoreBuyTradingViewGoldenTruth(Long strategyId, String symbol, String intervalCode,
+                                                       Integer days, String source, String configOverrideJson) {
+        int daysVal = days == null ? 365 : days;
+        if (daysVal < 365) {
+            return goldenTruthUnavailable("INSUFFICIENT_WINDOW_MIN_365_DAYS", source, daysVal);
+        }
+        String src = source == null || source.isBlank() ? "binance" : source.trim().toLowerCase(Locale.ROOT);
+        if (!"binance".equals(src)) {
+            return goldenTruthUnavailable("BINANCE_SOURCE_REQUIRED", src, daysVal);
+        }
+        TradingViewGoldenTruthVerifier.VerificationResult availability =
+                tradingViewGoldenTruthVerifier.verify(tradingViewGoldenTruthCsvPath, List.of());
+        if ("GOLDEN_TRUTH_UNAVAILABLE".equals(availability.status())) {
+            return formatGoldenTruthResult(src, daysVal, null, availability);
+        }
+
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase(Locale.ROOT);
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase(Locale.ROOT);
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        if (!isScoreBuy(strategyEntity.getStrategyType())) {
+            return goldenTruthUnavailable("STRATEGY_NOT_SCORE_BUY", src, daysVal);
+        }
+
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                symbolVal, intervalVal, src, queryStart, endTime);
+        DataCoverage coverage = inspectTradingViewDataCoverage(klines, visibleStart, endTime, intervalVal);
+        if (!coverage.qualityGatePassed()) {
+            return goldenTruthUnavailable("BINANCE_DATA_COVERAGE_NOT_READY:" + coverage.coverageWarning(), src, daysVal);
+        }
+
+        Map<String, Object> config = new HashMap<>(btStrategyService.parseConfig(strategyEntity.getConfigJson()));
+        if (configOverrideJson != null && !configOverrideJson.isBlank()) {
+            try {
+                Map<String, Object> override = objectMapper.readValue(configOverrideJson,
+                        new TypeReference<Map<String, Object>>() {});
+                override.remove("initialCapital");
+                override.remove("feeRate");
+                override.remove("skipPersist");
+                config.putAll(override);
+            } catch (Exception e) {
+                return goldenTruthUnavailable("CONFIG_OVERRIDE_INVALID:" + e.getMessage(), src, daysVal);
+            }
+        }
+        config.put("runIntervalCode", intervalVal);
+        Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
+        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+        List<TradingViewGoldenTruthVerifier.Intent> actual = new ArrayList<>();
+        for (int i = 0; i < klines.size(); i++) {
+            MdKline current = klines.get(i);
+            if (current.getOpenTime().isBefore(visibleStart)) continue;
+            MdKline previous = i > 0 ? klines.get(i - 1) : null;
+            LiveSignalContext.clear();
+            StrategySignal signal = strategy.evaluate(new StrategyContext(i, current, previous, klines, indicators), config);
+            Map<String, Object> details = new LinkedHashMap<>(LiveSignalContext.getDetails());
+            Double nn = numberOrNull(details.get("tradingview_nn_output"));
+            if (signal == StrategySignal.BUY) {
+                for (LiveSignalContext.OrderIntent intent : LiveSignalContext.getOrderIntents()) {
+                    actual.add(new TradingViewGoldenTruthVerifier.Intent(
+                            current.getOpenTime(), intent.reason(), intent.label(),
+                            BigDecimal.valueOf(intent.quantity()), nn));
+                }
+            }
+        }
+        LiveSignalContext.clear();
+        TradingViewGoldenTruthVerifier.VerificationResult result =
+                tradingViewGoldenTruthVerifier.verify(tradingViewGoldenTruthCsvPath, actual);
+        return formatGoldenTruthResult(src, daysVal, coverage, result);
+    }
+
+    private String goldenTruthUnavailable(String blocker, String source, int days) {
+        TradingViewGoldenTruthVerifier.VerificationResult result =
+                new TradingViewGoldenTruthVerifier.VerificationResult(
+                        "GOLDEN_TRUTH_UNAVAILABLE", false, 0, 0, 0, 0,
+                        false, Double.NaN, "N/A", "N/A", blocker);
+        return formatGoldenTruthResult(source == null ? "N/A" : source, days, null, result);
+    }
+
+    private String formatGoldenTruthResult(String source, int days, DataCoverage coverage,
+                                           TradingViewGoldenTruthVerifier.VerificationResult result) {
+        return String.format(Locale.ROOT,
+                "=== TradingView Golden Truth Verification ===%n" +
+                "boundary=READ_ONLY%nstatus=%s%nsource=%s days=%d coverage=%s%n" +
+                "exactParity=%s expectedIntents=%d actualIntents=%d missingIntents=%d extraIntents=%d%n" +
+                "nnCompared=%s maxNnError=%s nnTolerance=1e-6%n" +
+                "goldenSha256=%s goldenPath=%s%nblocker=%s%n" +
+                "parityReadyForAuthorizationReview=%s%n" +
+                "livePromotionAllowed=false%n" +
+                "note=Pine source or Strategy Tester CSV is required; current fixed-weight sigmoid must not be claimed as original online-learning NN parity.",
+                result.status(), source, days, coverage == null ? "NOT_PROVEN" : coverage.coverage(),
+                result.exactParity(), result.expectedIntentCount(), result.actualIntentCount(),
+                result.missingIntentCount(), result.extraIntentCount(), result.nnCompared(),
+                Double.isFinite(result.maxNnError()) ? String.format(Locale.ROOT, "%.9f", result.maxNnError()) : "N/A",
+                result.goldenSha256(), result.goldenPath(), result.blocker(), result.exactParity());
+    }
+
+    private Double numberOrNull(Object value) {
+        if (value instanceof Number number) return number.doubleValue();
+        if (value == null) return null;
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
+    @Tool(description = "只讀執行 TradingView BTC_BASE 固定 90/180/270/365 天 production-semantics 收益報告。" +
+            "baseline=LIVE_ONE_ORDER_PER_BAR，本輪候選=SHADOW_AGGREGATE_PER_BAR；保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
+    public String runScoreBuyTradingViewProfitOptimizationReport(Long strategyId, String symbol,
+                                                                 String intervalCode, String source,
+                                                                 String configOverrideJson, Double feeRate) {
+        String src = source == null || source.isBlank() ? "binance" : source.trim().toLowerCase(Locale.ROOT);
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase(Locale.ROOT);
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase(Locale.ROOT);
+        double fee = feeRate == null ? 0.001 : Math.max(0.0, feeRate);
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        if (!isScoreBuy(strategyEntity.getStrategyType())) {
+            return "status=STRATEGY_NOT_SCORE_BUY candidatePromotionAllowed=false";
+        }
+
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime visibleStart = endTime.minusDays(365).truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        List<MdKline> klines = klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                symbolVal, intervalVal, src, queryStart, endTime);
+        DataCoverage coverage = inspectTradingViewDataCoverage(klines, visibleStart, endTime, intervalVal);
+        if (!coverage.qualityGatePassed()) {
+            return "status=DATA_COVERAGE_NOT_READY source=" + src + " " + coverage.formatLine()
+                    + " candidatePromotionAllowed=false";
+        }
+
+        Map<String, Object> config = new HashMap<>(btStrategyService.parseConfig(strategyEntity.getConfigJson()));
+        if (configOverrideJson != null && !configOverrideJson.isBlank()) {
+            try {
+                Map<String, Object> override = objectMapper.readValue(configOverrideJson,
+                        new TypeReference<Map<String, Object>>() {});
+                override.remove("initialCapital");
+                override.remove("feeRate");
+                override.remove("skipPersist");
+                config.putAll(override);
+            } catch (Exception e) {
+                return "status=CONFIG_OVERRIDE_INVALID blocker=" + e.getMessage()
+                        + " candidatePromotionAllowed=false";
+            }
+        }
+        config.put("runIntervalCode", intervalVal);
+        Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
+        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = new ArrayList<>();
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = new ArrayList<>();
+        for (int i = 0; i < klines.size(); i++) {
+            MdKline current = klines.get(i);
+            if (current.getOpenTime().isBefore(visibleStart)) continue;
+            bars.add(new BtcBaseShadowBacktestSimulator.Bar(
+                    current.getOpenTime(), current.getClosePrice().doubleValue()));
+            MdKline previous = i > 0 ? klines.get(i - 1) : null;
+            LiveSignalContext.clear();
+            StrategySignal signal = strategy.evaluate(new StrategyContext(i, current, previous, klines, indicators), config);
+            if (signal == StrategySignal.BUY) {
+                for (LiveSignalContext.OrderIntent intent : LiveSignalContext.getOrderIntents()) {
+                    intents.add(new BtcBaseShadowBacktestSimulator.BuyIntent(
+                            current.getOpenTime(), intent.quantity(), intent.reason(), intent.label(), signal.name()));
+                }
+            }
+        }
+        LiveSignalContext.clear();
+        TradingViewGoldenTruthVerifier.VerificationResult golden =
+                tradingViewGoldenTruthVerifier.verify(tradingViewGoldenTruthCsvPath, List.of());
+        String goldenStatus = "GOLDEN_TRUTH_UNAVAILABLE".equals(golden.status())
+                ? "GOLDEN_TRUTH_UNAVAILABLE" : "GOLDEN_CONFIGURED_VERIFY_SEPARATELY";
+        return "goldenTruthStatus=" + goldenStatus + "\n"
+                + tradingViewProfitOptimizationService.compareAggregateCandidate(
+                        symbolVal, src, fee, bars, intents);
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS})
     @Tool(description = "只讀執行 SCORE_BUY 的 TradingView parity mark-to-market 回測。" +
             "按 Pine order intent 逐筆建倉、允許 pyramiding、持有到回測期末，不套用本地單倉/SL/TP/資金模型。" +
@@ -503,18 +696,28 @@ public class BacktestValidationMcpTools {
     @Tool(description = "只讀執行 SCORE_BUY 的 TradingView BTC_BASE 影子回測。" +
             "買點來源完全沿用 TradingView parity order intents；BTC_BASE 只改倉位語義：" +
             "按每次買點固定 notional 累積 BTC 底倉、套用底倉曝光上限、可選獲利分批減倉與回撤風險標記。" +
+            "executionSemantics 可選 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、SHADOW_AGGREGATE_PER_BAR。" +
             "不寫庫、不下單、不掛 OCO，用於評估用 BTC base 取代固定 OCO 進出場前的買點與底倉行為。")
     public String runScoreBuyTradingViewBtcBaseBacktest(Long strategyId, String symbol, String intervalCode,
                                                         Integer days, String source, String configOverrideJson,
                                                         Double baseBuyNotionalUsdt, Double maxBaseExposureUsdt,
                                                         Double takeProfitReducePct, Double takeProfitReduceFraction,
                                                         Double emergencyDrawdownPct, Double emergencyReduceFraction,
-                                                        Double feeRate, Integer limit) {
+                                                        Double feeRate, Integer limit, String executionSemantics) {
         int daysVal = days != null ? days : 365;
         int limitVal = Math.max(1, Math.min(limit != null ? limit : 50, 500));
         double fee = feeRate != null ? Math.max(0.0, feeRate) : 0.001;
         String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase();
         String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase();
+        BtcBaseShadowBacktestSimulator.ExecutionSemantics semantics;
+        try {
+            semantics = executionSemantics == null || executionSemantics.isBlank()
+                    ? BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_ALL_INTENTS
+                    : BtcBaseShadowBacktestSimulator.ExecutionSemantics.valueOf(
+                            executionSemantics.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return "❌ executionSemantics 必須是 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR 或 SHADOW_AGGREGATE_PER_BAR";
+        }
 
         BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
         if (!isScoreBuy(strategyEntity.getStrategyType())) {
@@ -601,11 +804,12 @@ public class BacktestValidationMcpTools {
                     "boundary=READ_ONLY\n" +
                     "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
                     "%s\n" +
+                    "executionSemantics=%s\n" +
                     "orderBars=0 orderIntents=0\n" +
                     "buyPointParity=TradingView parity order intents are the only buy source.\n" +
                     "note=未產生 TradingView order intent；不寫庫、不下單、不掛 OCO。",
                     strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
-                    coverageLine);
+                    coverageLine, semantics);
         }
 
         List<MdKline> visibleKlines = klines.stream()
@@ -625,7 +829,7 @@ public class BacktestValidationMcpTools {
                         emergencyDrawdownPct != null ? emergencyDrawdownPct : 0.12,
                         emergencyReduceFraction != null ? emergencyReduceFraction : 0.0);
         BtcBaseShadowBacktestSimulator.Result result =
-                BtcBaseShadowBacktestSimulator.run(bars, buyIntents, btcBaseConfig);
+                BtcBaseShadowBacktestSimulator.run(bars, buyIntents, btcBaseConfig, semantics);
 
         List<BtcBaseShadowBacktestSimulator.Event> events = result.events();
         List<String> tailRows = events.stream()
@@ -643,6 +847,7 @@ public class BacktestValidationMcpTools {
                 "boundary=READ_ONLY\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
                 "%s\n" +
+                "executionSemantics=%s\n" +
                 "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
                 "buyPointParity=TradingView parity order intents are the only buy source; BTC_BASE changes sizing/cap/reduction only.\n" +
                 "execution=BTC_BASE shadow: oco=false, fixedSLTP=false, baseBuyNotionalUsdt=%.2f, maxBaseExposureUsdt=%.2f, feeRate=%.4f, takeProfitReducePct=%.2f%%, takeProfitReduceFraction=%.2f%%, emergencyDrawdownPct=%.2f%%, emergencyReduceFraction=%.2f%%\n" +
@@ -650,6 +855,8 @@ public class BacktestValidationMcpTools {
                 "買點/倉位:\n" +
                 "  tradingViewOrderIntents: %d\n" +
                 "  executedBaseBuys: %d\n" +
+                "  shadowOnlyIntents: %d\n" +
+                "  aggregatedOrderBars: %d\n" +
                 "  cappedBuys: %d\n" +
                 "  skippedByExposureCap: %d\n" +
                 "  totalGrossBuys: %.2f USDT\n" +
@@ -674,6 +881,7 @@ public class BacktestValidationMcpTools {
                 "最新 TradingView buy intents:\n%s",
                 strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
                 coverageLine,
+                result.executionSemantics(),
                 result.orderBarCount(), result.orderIntentCount(), firstOrderAt, lastOrderAt,
                 result.config().buyNotionalUsdt(), result.config().maxBaseExposureUsdt(), result.config().feeRate(),
                 result.config().takeProfitReducePct() * 100.0,
@@ -681,7 +889,8 @@ public class BacktestValidationMcpTools {
                 result.config().emergencyDrawdownPct() * 100.0,
                 result.config().emergencyReduceFraction() * 100.0,
                 result.finalTime(), fmt(result.finalClose()),
-                result.orderIntentCount(), result.executedBuys(), result.cappedBuys(), result.skippedByCap(),
+                result.orderIntentCount(), result.executedBuys(), result.shadowOnlyIntentCount(),
+                result.aggregatedOrderBars(), result.cappedBuys(), result.skippedByCap(),
                 result.totalGrossBuys(), result.maxCostBasis(), result.remainingCostBasis(),
                 result.inventoryQty(), fmt(result.avgCost()),
                 result.finalInventoryValue(), result.finalExitFee(), result.realizedPnl(), result.unrealizedPnl(),

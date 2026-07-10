@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -95,9 +96,46 @@ public class LocalTradingViewSignalEvaluator {
             Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
             int catchUpBars = Math.max(1, props.catchUpBars());
             int startIndex = Math.max(0, index - catchUpBars + 1);
+            List<BarEvaluation> evaluations = new ArrayList<>();
             for (int evalIndex = startIndex; evalIndex <= index; evalIndex++) {
-                evaluateBar(strategyEntity, strategy, config, klines, indicators, evalIndex,
-                        interval, source, eventKline.getOpenTime(), catchUpBars);
+                BarEvaluation evaluation = evaluateBar(strategy, config, klines, indicators, evalIndex,
+                        interval, source, eventKline.getOpenTime());
+                if (evaluation != null) {
+                    evaluations.add(evaluation);
+                }
+            }
+
+            LocalDateTime selectedExecutionBar = null;
+            for (int i = evaluations.size() - 1; i >= 0; i--) {
+                BarEvaluation evaluation = evaluations.get(i);
+                if (evaluation.signal() == StrategySignal.BUY
+                        && !evaluation.intents().isEmpty()
+                        && isFreshEnoughForExecution(evaluation.kline())) {
+                    selectedExecutionBar = evaluation.kline().getOpenTime();
+                    break;
+                }
+            }
+
+            for (BarEvaluation evaluation : evaluations) {
+                if (evaluation.signal() != StrategySignal.BUY || evaluation.intents().isEmpty()) {
+                    auditNoBuy(strategyEntity, evaluation.kline(), interval, source, evaluation.signal(),
+                            evaluation.details(), eventKline.getOpenTime(), catchUpBars);
+                    continue;
+                }
+                int intentIndex = 0;
+                for (LiveSignalContext.OrderIntent intent : evaluation.intents()) {
+                    intentIndex++;
+                    boolean executionSelected = Objects.equals(
+                            evaluation.kline().getOpenTime(), selectedExecutionBar) && intentIndex == 1;
+                    String executionSelection = executionSelected
+                            ? "LATEST_ELIGIBLE_FIRST_INTENT"
+                            : Objects.equals(evaluation.kline().getOpenTime(), selectedExecutionBar)
+                            ? "SHADOW_ONLY_ADDITIONAL_INTENT"
+                            : "SHADOW_ONLY_CATCH_UP_INTENT";
+                    auditIntent(strategyEntity, evaluation.kline(), interval, source, intent,
+                            evaluation.details(), intentIndex, eventKline.getOpenTime(), catchUpBars,
+                            executionSelected, executionSelection);
+                }
             }
         } catch (Exception e) {
             log.warn("[LocalTradingView] evaluate failed symbol={} interval={} source={} openTime={} err={}",
@@ -105,38 +143,27 @@ public class LocalTradingViewSignalEvaluator {
         }
     }
 
-    private void evaluateBar(BtStrategy strategyEntity,
-                             Strategy strategy,
+    private BarEvaluation evaluateBar(Strategy strategy,
                              Map<String, Object> config,
                              List<MdKline> klines,
                              Map<String, double[]> indicators,
                              int index,
                              String interval,
                              String source,
-                             LocalDateTime triggerOpenTime,
-                             int catchUpBars) {
+                             LocalDateTime triggerOpenTime) {
         LiveSignalContext.clear();
         try {
             MdKline previous = index > 0 ? klines.get(index - 1) : null;
             StrategyContext context = new StrategyContext(index, klines.get(index), previous, klines, indicators);
             StrategySignal signal = strategy.evaluate(context, config);
-            List<LiveSignalContext.OrderIntent> intents = LiveSignalContext.getOrderIntents();
-            Map<String, Object> details = LiveSignalContext.getDetails();
-            if (signal != StrategySignal.BUY || intents.isEmpty()) {
-                auditNoBuy(strategyEntity, klines.get(index), interval, source, signal, details,
-                        triggerOpenTime, catchUpBars);
-                return;
-            }
-            int intentIndex = 0;
-            for (LiveSignalContext.OrderIntent intent : intents) {
-                intentIndex++;
-                auditIntent(strategyEntity, klines.get(index), interval, source, intent, details, intentIndex,
-                        triggerOpenTime, catchUpBars);
-            }
+            List<LiveSignalContext.OrderIntent> intents = List.copyOf(LiveSignalContext.getOrderIntents());
+            Map<String, Object> details = new LinkedHashMap<>(LiveSignalContext.getDetails());
+            return new BarEvaluation(klines.get(index), signal, intents, details);
         } catch (Exception e) {
             MdKline kline = klines.get(index);
             log.warn("[LocalTradingView] evaluate bar failed symbol={} interval={} source={} barTime={} triggerBar={} err={}",
                     kline.getSymbol(), interval, source, kline.getOpenTime(), triggerOpenTime, e.toString());
+            return null;
         } finally {
             LiveSignalContext.clear();
         }
@@ -221,7 +248,8 @@ public class LocalTradingViewSignalEvaluator {
 
     private void auditIntent(BtStrategy strategy, MdKline kline, String interval, String source,
                              LiveSignalContext.OrderIntent intent, Map<String, Object> details, int intentIndex,
-                             LocalDateTime triggerOpenTime, int catchUpBars) {
+                             LocalDateTime triggerOpenTime, int catchUpBars,
+                             boolean executionSelected, String executionSelection) {
         String key = String.join("|",
                 String.valueOf(strategy.getId()),
                 normalizeSymbol(kline.getSymbol()),
@@ -260,6 +288,8 @@ public class LocalTradingViewSignalEvaluator {
         context.put("requestedNotionalUsdt", requested);
         context.put("effectiveNotionalUsdt", effective);
         context.put("dryRun", true);
+        context.put("selectedAction", "SHADOW_EXECUTION_INTENT");
+        context.put("intentCreated", true);
         context.put("orderSent", false);
         context.put("duplicate", false);
         context.put("blockers", "LOCAL_TRADINGVIEW_DRY_RUN");
@@ -267,6 +297,9 @@ public class LocalTradingViewSignalEvaluator {
         context.put("executionEnabled", props.effectiveExecutionEnabled());
         context.put("executionDryRun", props.effectiveExecutionDryRun());
         context.put("executionLiveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
+        context.put("liveExecutionSelected", executionSelected);
+        context.put("executionSelection", executionSelection);
+        context.put("suppressionReason", "SHADOW_MODE");
         if (details != null) {
             details.forEach((name, value) -> context.put("strategyDecision." + name, value));
         }
@@ -275,7 +308,24 @@ public class LocalTradingViewSignalEvaluator {
                 kline.getOpenTime(), "BUY", context);
         auditWriter.logEntrySkip(strategy.getId(), normalizeSymbol(kline.getSymbol()), interval,
                 kline.getOpenTime(), BLOCKER, "Local TradingView parity dry-run; no order sent", context);
-        executionService.preview(strategy, kline, interval, source, intent, context, intentIndex);
+        if (executionSelected) {
+            executionService.preview(strategy, kline, interval, source, intent, context, intentIndex);
+        }
+    }
+
+    private boolean isFreshEnoughForExecution(MdKline kline) {
+        if (props.maxSignalAgeHours() <= 0) {
+            return true;
+        }
+        LocalDateTime closeTime = kline.getCloseTime() != null ? kline.getCloseTime() : kline.getOpenTime();
+        return closeTime != null
+                && !closeTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).minusHours(props.maxSignalAgeHours()));
+    }
+
+    private record BarEvaluation(MdKline kline,
+                                 StrategySignal signal,
+                                 List<LiveSignalContext.OrderIntent> intents,
+                                 Map<String, Object> details) {
     }
 
     private void evictOldKeys() {

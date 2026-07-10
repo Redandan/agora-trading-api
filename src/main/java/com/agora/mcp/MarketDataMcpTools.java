@@ -27,6 +27,7 @@ import com.agora.service.market.EventCalendarService;
 import com.agora.service.market.FearGreedService;
 import com.agora.service.market.FredEconomicService;
 import com.agora.service.market.MempoolSpaceService;
+import com.agora.service.market.BinanceKlineImportService;
 import com.agora.service.market.OkxKlineImportService;
 import com.agora.service.market.OrderbookImbalanceService;
 import com.agora.service.market.PolymarketHistoricalImportService;
@@ -83,6 +84,8 @@ public class MarketDataMcpTools {
     private static final int OKX_BACKFILL_PAGE_LIMIT = 300;
     private static final int OKX_BACKFILL_MAX_PAGES = 60;
     private static final int OKX_BACKFILL_MAX_RANGE_DAYS = 730;
+    private static final int BINANCE_BACKFILL_MAX_BARS = 60_000;
+    private static final int BINANCE_BACKFILL_MAX_RANGE_DAYS = 730;
 
 
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
@@ -99,6 +102,7 @@ public class MarketDataMcpTools {
     private final EventCalendarService eventCalendarService;
     private final OrderbookImbalanceService orderbookImbalanceService;
     private final KlineQualityValidator klineQualityValidator;
+    private final BinanceKlineImportService binanceKlineImportService;
     private final OkxKlineImportService okxKlineImportService;
     private final KlineDivergenceMonitor klineDivergenceMonitor;
     private final GeminiMarketAdvisor geminiMarketAdvisor;
@@ -2162,6 +2166,80 @@ public class MarketDataMcpTools {
                 "DB 現在可用 runBacktest(strategyId=..., source=\"okx\") 跑 OKX 源的回測。",
                 symbol, intervalCode, d,
                 resp.getImportedCount(), resp.getSkippedCount(), resp.getDurationMs() / 1000.0);
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.MARKET_DATA})
+    @Tool(description = "從 Binance SPOT REST API 批次回填歷史 K 線至 md_kline（source='binance'）。" +
+            "受 trading.market-data-mcp.external-backfills-enabled=false 保護；可搭配 Binance Vision 免費端點。" +
+            "param: symbol=交易對, intervalCode=週期, days=回填天數（最多 730）")
+    public String backfillBinanceKlines(String symbol, String intervalCode, Integer days) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillBinanceKlines",
+                    "read Binance SPOT REST and write md_kline source=binance");
+        }
+        String sym = normalizeSymbol(symbol);
+        String interval = normalizeInterval(intervalCode);
+        int maxDays = maxBinanceRangeBackfillDays(interval);
+        int d = days == null || days <= 0 ? Math.min(365, maxDays) : Math.min(days, maxDays);
+        LocalDateTime end = LocalDateTime.now(ZoneOffset.UTC);
+        LocalDateTime start = end.minusDays(d);
+        log.info("[MCP] backfillBinanceKlines {}@{} {}d", sym, interval, d);
+        KlineImportResponse resp = binanceKlineImportService.importHistorical(sym, interval, start, end);
+        return formatBinanceBackfillResult(sym, interval, start, end, resp);
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.MARKET_DATA})
+    @Tool(description = "從 Binance SPOT REST API 回填指定 UTC range 的 K 線至 md_kline（source='binance'）。" +
+            "endUtc 為 exclusive；受 trading.market-data-mcp.external-backfills-enabled=false 保護。" +
+            "param: symbol, intervalCode, startUtc=ISO UTC, endUtc=ISO UTC")
+    public String backfillBinanceKlinesRange(String symbol, String intervalCode, String startUtc, String endUtc) {
+        if (!externalBackfillsEnabled) {
+            return disabledExternalBackfillMessage("backfillBinanceKlinesRange",
+                    "read Binance SPOT REST and write md_kline source=binance for an explicit UTC range");
+        }
+        String sym = normalizeSymbol(symbol);
+        String interval = normalizeInterval(intervalCode);
+        LocalDateTime start = parseUtcDateTime(startUtc, "startUtc");
+        LocalDateTime end = parseUtcDateTime(endUtc, "endUtc");
+        if (!start.isBefore(end)) {
+            return "❌ startUtc 必須早於 endUtc";
+        }
+        long requestedDays = Math.max(1L, ChronoUnit.DAYS.between(start, end));
+        int maxDays = maxBinanceRangeBackfillDays(interval);
+        if (requestedDays > maxDays) {
+            return String.format(Locale.ROOT,
+                    "❌ Binance range 太大：%s@%s requestedDays=%d maxDays=%d。請分段執行。",
+                    sym, interval, requestedDays, maxDays);
+        }
+        log.info("[MCP] backfillBinanceKlinesRange {}@{} {} ~ {}", sym, interval, start, end);
+        KlineImportResponse resp = binanceKlineImportService.importHistorical(sym, interval, start, end);
+        return formatBinanceBackfillResult(sym, interval, start, end, resp);
+    }
+
+    static int maxBinanceRangeBackfillDays(String intervalCode) {
+        String interval = normalizeInterval(intervalCode);
+        long unit = Long.parseLong(interval.substring(0, interval.length() - 1));
+        long minutes = switch (interval.charAt(interval.length() - 1)) {
+            case 'd' -> unit * 24L * 60L;
+            case 'h' -> unit * 60L;
+            default -> unit;
+        };
+        long days = Math.max(1L, (BINANCE_BACKFILL_MAX_BARS * minutes) / (24L * 60L));
+        return (int) Math.min(BINANCE_BACKFILL_MAX_RANGE_DAYS, days);
+    }
+
+    private String formatBinanceBackfillResult(String symbol, String interval, LocalDateTime start,
+                                               LocalDateTime end, KlineImportResponse resp) {
+        return String.format(Locale.ROOT,
+                "=== Binance UTC K 線回填 ===%n%s@%s source=binance%nrangeUtc: %s ~ %s (end exclusive)%n%n" +
+                "imported=%d skipped=%d durationSeconds=%.1f%n" +
+                "utcDailyAnchor=%s%n" +
+                "nextAction=validateKlineQuality(source=binance) then run golden parity; this result does not authorize live trading.",
+                symbol, interval, formatUtc(start), formatUtc(end),
+                resp.getImportedCount(), resp.getSkippedCount(), resp.getDurationMs() / 1000.0,
+                "1d".equals(interval) ? "00:00:00Z" : "INTERVAL_DEFINED");
     }
 
     @McpAuth(McpAuthLevel.OPS)

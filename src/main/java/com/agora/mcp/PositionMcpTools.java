@@ -5,10 +5,12 @@ import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
 import com.agora.model.BtBacktestTrade;
+import com.agora.model.BtDecisionAudit;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
 import com.agora.repository.trading.BtBacktestTradeRepository;
+import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtOcoAdjustmentAuditRepository;
 import com.agora.repository.trading.BtStrategyRepository;
@@ -61,6 +63,7 @@ public class PositionMcpTools {
     private static final BigDecimal BTC_SPOT_POLICY_SL_TOLERANCE_PCT = new BigDecimal("0.005");
 
     private final BtLiveSignalRepository liveSignalRepository;
+    private final BtDecisionAuditRepository decisionAuditRepository;
     private final BtBacktestTradeRepository backtestTradeRepository;
     private final BtStrategyRepository strategyRepository;
     private final MdKlineRepository mdKlineRepository;
@@ -365,6 +368,9 @@ public class PositionMcpTools {
             boolean btcBaseNoOco = isBtcBaseNoOco(pos);
             sb.append(protected_ ? "🟢 " : (softExit || btcBaseNoOco) ? "🟡 " : "🔴 ").append(pos.getSymbol()).append("\n");
             sb.append("  ID: ").append(pos.getId()).append("\n");
+            sb.append("  Strategy ID: ").append(pos.getStrategyId() != null ? pos.getStrategyId() : "UNKNOWN").append("\n");
+            sb.append("  Interval: ").append(pos.getIntervalCode() != null ? pos.getIntervalCode() : "UNKNOWN").append("\n");
+            sb.append("  Signal source: ").append(resolvePositionSignalSource(pos)).append("\n");
             sb.append("  入場價: ").append(fmt(pos.getActualEntryPrice() != null
                     ? pos.getActualEntryPrice() : pos.getEntryPrice())).append("\n");
             sb.append("  數量: ").append(fmt(pos.getTradedQty())).append("\n");
@@ -500,6 +506,44 @@ public class PositionMcpTools {
         sb.append(String.format("\nsummary: optIn=%d/%d initialized=%d/%d dryRun=%s",
                 optIn, positions.size(), initialized, positions.size(), trailingStopDryRun));
         return sb.toString();
+    }
+
+    private String resolvePositionSignalSource(BtLiveSignal position) {
+        if (position == null || position.getId() == null) {
+            return "UNKNOWN";
+        }
+        List<BtDecisionAudit> audits = decisionAuditRepository.findByLiveSignalIdOrderByEventTimeAsc(position.getId());
+        for (int i = audits.size() - 1; i >= 0; i--) {
+            String source = sourceFromJson(audits.get(i).getContextJson());
+            if (source != null) {
+                return source;
+            }
+        }
+        if (position.getStrategyId() != null) {
+            return strategyRepository.findById(position.getStrategyId())
+                    .map(BtStrategy::getConfigJson)
+                    .map(this::sourceFromJson)
+                    .orElse("UNKNOWN");
+        }
+        return "UNKNOWN";
+    }
+
+    private String sourceFromJson(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            JsonNode node = objectMapper.readTree(json);
+            for (String key : List.of("signalSource", "source", "evaluatorSource", "klineSource")) {
+                String value = node.path(key).asText("").trim();
+                if (!value.isEmpty()) {
+                    return value;
+                }
+            }
+        } catch (Exception ignored) {
+            // Diagnostics must stay fail-closed when legacy context is not valid JSON.
+        }
+        return null;
     }
 
     @McpAuth(McpAuthLevel.OPS)

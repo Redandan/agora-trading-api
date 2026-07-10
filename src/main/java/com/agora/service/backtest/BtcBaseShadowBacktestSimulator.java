@@ -13,9 +13,17 @@ public final class BtcBaseShadowBacktestSimulator {
     }
 
     public static Result run(List<Bar> bars, List<BuyIntent> buyIntents, Config config) {
+        return run(bars, buyIntents, config, ExecutionSemantics.SHADOW_ALL_INTENTS);
+    }
+
+    public static Result run(List<Bar> bars, List<BuyIntent> buyIntents, Config config,
+                             ExecutionSemantics executionSemantics) {
         Config cfg = config == null ? Config.defaults() : config.normalized();
+        ExecutionSemantics semantics = executionSemantics == null
+                ? ExecutionSemantics.SHADOW_ALL_INTENTS
+                : executionSemantics;
         if (bars == null || bars.isEmpty()) {
-            return Result.empty(cfg);
+            return Result.empty(cfg, semantics);
         }
 
         Map<LocalDateTime, List<BuyIntent>> intentsByTime = new LinkedHashMap<>();
@@ -38,9 +46,9 @@ public final class BtcBaseShadowBacktestSimulator {
             }
 
             List<BuyIntent> barIntents = intentsByTime.getOrDefault(bar.time(), List.of());
-            for (BuyIntent intent : barIntents) {
+            if (!barIntents.isEmpty()) {
                 state.orderBars.putIfAbsent(bar.time(), Boolean.TRUE);
-                executeBuy(bar, intent, cfg, state, events);
+                executeBarIntents(bar, barIntents, cfg, semantics, state, events);
             }
 
             evaluateReductions(bar, cfg, state, events);
@@ -58,11 +66,14 @@ public final class BtcBaseShadowBacktestSimulator {
 
         return new Result(
                 cfg,
+                semantics,
                 finalBar == null ? null : finalBar.time(),
                 finalClose,
                 orderIntentCount,
                 state.orderBars.size(),
                 state.executedBuys,
+                state.shadowOnlyIntents,
+                state.aggregatedOrderBars,
                 state.cappedBuys,
                 state.skippedByCap,
                 state.takeProfitReductions,
@@ -84,9 +95,35 @@ public final class BtcBaseShadowBacktestSimulator {
                 List.copyOf(events));
     }
 
-    private static void executeBuy(Bar bar, BuyIntent intent, Config cfg, State state, List<Event> events) {
+    private static void executeBarIntents(Bar bar, List<BuyIntent> intents, Config cfg,
+                                          ExecutionSemantics semantics, State state, List<Event> events) {
+        switch (semantics) {
+            case SHADOW_ALL_INTENTS -> intents.forEach(intent ->
+                    executeBuy(bar, intent, cfg.buyNotionalUsdt(), cfg, state, events));
+            case LIVE_ONE_ORDER_PER_BAR -> {
+                executeBuy(bar, intents.get(0), cfg.buyNotionalUsdt(), cfg, state, events);
+                for (int i = 1; i < intents.size(); i++) {
+                    state.shadowOnlyIntents++;
+                    events.add(event(bar.time(), "SHADOW_ONLY_INTENT", bar.closePrice(), 0.0, 0.0, state,
+                            "same bar intent retained but not executed under LIVE_ONE_ORDER_PER_BAR", intents.get(i)));
+                }
+            }
+            case SHADOW_AGGREGATE_PER_BAR -> {
+                double requestedNotional = cfg.buyNotionalUsdt() * intents.size();
+                BuyIntent first = intents.get(0);
+                double tvQuantity = intents.stream().mapToDouble(BuyIntent::tradingViewQuantity).sum();
+                BuyIntent aggregate = new BuyIntent(first.time(), tvQuantity,
+                        "AGGREGATED_INTENTS(" + intents.size() + ")", first.label(), first.signal());
+                executeBuy(bar, aggregate, requestedNotional, cfg, state, events);
+                state.aggregatedOrderBars++;
+                state.shadowOnlyIntents += Math.max(0, intents.size() - 1);
+            }
+        }
+    }
+
+    private static void executeBuy(Bar bar, BuyIntent intent, double requestedNotional,
+                                   Config cfg, State state, List<Event> events) {
         double remainingCapacity = cfg.maxBaseExposureUsdt() - state.costBasis;
-        double requestedNotional = cfg.buyNotionalUsdt();
         double buyNotional = Math.min(requestedNotional, remainingCapacity);
         if (buyNotional <= 0.0 || buyNotional < cfg.minBuyNotionalUsdt()) {
             state.skippedByCap++;
@@ -255,6 +292,12 @@ public final class BtcBaseShadowBacktestSimulator {
                             String label, String signal) {
     }
 
+    public enum ExecutionSemantics {
+        SHADOW_ALL_INTENTS,
+        LIVE_ONE_ORDER_PER_BAR,
+        SHADOW_AGGREGATE_PER_BAR
+    }
+
     public record Event(LocalDateTime time,
                         String type,
                         double price,
@@ -271,11 +314,14 @@ public final class BtcBaseShadowBacktestSimulator {
     }
 
     public record Result(Config config,
+                         ExecutionSemantics executionSemantics,
                          LocalDateTime finalTime,
                          double finalClose,
                          int orderIntentCount,
                          int orderBarCount,
                          int executedBuys,
+                         int shadowOnlyIntentCount,
+                         int aggregatedOrderBars,
                          int cappedBuys,
                          int skippedByCap,
                          int takeProfitReductions,
@@ -295,9 +341,9 @@ public final class BtcBaseShadowBacktestSimulator {
                          double finalInventoryValue,
                          double finalExitFee,
                          List<Event> events) {
-        static Result empty(Config config) {
-            return new Result(config == null ? Config.defaults() : config.normalized(), null, 0.0,
-                    0, 0, 0, 0, 0, 0, 0, 0,
+        static Result empty(Config config, ExecutionSemantics executionSemantics) {
+            return new Result(config == null ? Config.defaults() : config.normalized(), executionSemantics, null, 0.0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0, 0.0, 0.0, List.of());
         }
@@ -306,6 +352,8 @@ public final class BtcBaseShadowBacktestSimulator {
     private static final class State {
         private final Map<LocalDateTime, Boolean> orderBars = new LinkedHashMap<>();
         private int executedBuys;
+        private int shadowOnlyIntents;
+        private int aggregatedOrderBars;
         private int cappedBuys;
         private int skippedByCap;
         private int takeProfitReductions;

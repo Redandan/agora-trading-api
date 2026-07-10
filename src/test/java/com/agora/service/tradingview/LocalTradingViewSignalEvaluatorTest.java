@@ -168,7 +168,7 @@ class LocalTradingViewSignalEvaluatorTest {
     }
 
     @Test
-    void executionEnabledAddsDedicatedDryRunReceiptForEachIntent() {
+    void executionEnabledAddsOneDedicatedDryRunReceiptPerBarAndKeepsOtherIntentsShadowOnly() {
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
         LocalTradingViewSignalEvaluator evaluator = evaluator(true, true, auditWriter);
 
@@ -177,7 +177,7 @@ class LocalTradingViewSignalEvaluatorTest {
         ArgumentCaptor<String> blockerCaptor = ArgumentCaptor.forClass(String.class);
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(auditWriter, times(6)).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+        verify(auditWriter, times(4)).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
                 eq(LocalDateTime.of(2026, 1, 3, 0, 0)), blockerCaptor.capture(),
                 any(), contextCaptor.capture());
 
@@ -191,8 +191,16 @@ class LocalTradingViewSignalEvaluatorTest {
                         .containsEntry("executionDryRun", true)
                         .containsEntry("executionLiveOrderEnabled", false)
                         .containsEntry("executionStatus", "WOULD_EXECUTE_DRY_RUN")
+                        .containsEntry("executionSelection", "LATEST_ELIGIBLE_FIRST_INTENT")
                         .containsEntry("wouldExecute", true)
                         .containsEntry("orderSent", false));
+
+        assertThat(contextCaptor.getAllValues())
+                .filteredOn(ctx -> "LocalTradingViewDryRun".equals(ctx.get("blocker"))
+                        || ctx.containsKey("orderIntentIndex"))
+                .anySatisfy(ctx -> assertThat(ctx)
+                        .containsEntry("executionSelection", "SHADOW_ONLY_ADDITIONAL_INTENT")
+                        .containsEntry("liveExecutionSelected", false));
     }
 
     @Test
@@ -224,6 +232,34 @@ class LocalTradingViewSignalEvaluatorTest {
         assertThat(contextCaptor.getAllValues().get(3))
                 .containsEntry("catchUpEvaluation", false)
                 .containsEntry("orderIntentIndex", 1);
+    }
+
+    @Test
+    void catchUpExecutesOnlyNewestEligibleBarsFirstIntent() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, true, 2, auditWriter);
+
+        evaluator.evaluate(kline(2));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter, times(7)).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                any(), any(), any(), contextCaptor.capture());
+
+        List<Map<String, Object>> selected = contextCaptor.getAllValues().stream()
+                .filter(ctx -> Boolean.TRUE.equals(ctx.get("liveExecutionSelected")))
+                .toList();
+        assertThat(selected).hasSize(2);
+        assertThat(selected)
+                .allSatisfy(ctx -> assertThat(ctx)
+                        .containsEntry("barTime", "2026-01-03T00:00")
+                        .containsEntry("orderIntentIndex", 1)
+                        .containsEntry("executionSelection", "LATEST_ELIGIBLE_FIRST_INTENT"));
+        assertThat(contextCaptor.getAllValues())
+                .anySatisfy(ctx -> assertThat(ctx)
+                        .containsEntry("barTime", "2026-01-02T00:00")
+                        .containsEntry("executionSelection", "SHADOW_ONLY_CATCH_UP_INTENT")
+                        .containsEntry("liveExecutionSelected", false));
     }
 
     @Test

@@ -25,7 +25,7 @@ public record TradingViewLocalSignalProperties(
         @DefaultValue("false") boolean executionEnabled,
         @DefaultValue("true") boolean executionDryRun,
         @DefaultValue("false") boolean executionLiveOrderEnabled,
-        @DefaultValue("3") @Positive int executionMaxOrdersPerBar,
+        @DefaultValue("1") @Positive int executionMaxOrdersPerBar,
         @DefaultValue("1") @Positive int executionMaxOrdersPerDay,
         @DefaultValue("1") @Positive int executionMaxOpenPositions,
         @DefaultValue("0.0300") @Positive BigDecimal executionTakeProfitPct,

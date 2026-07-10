@@ -945,6 +945,16 @@ state, post-env read-only verification, and rollback plan. It keeps
 production env, deploy, restart, switch to `LIVE_MICRO`, place orders, modify
 OCO, send Telegram, or mutate DB/grid/fund/Earn/exchange state.
 
+Binance-source parity uses the free Binance Vision REST/WS endpoints documented
+in `docs/deploy-runbook.md`. Production comparison must keep
+`TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_DRY_RUN`, execute at most the newest
+eligible first intent per bar, and preserve additional same-bar intents as
+shadow evidence. `verifyScoreBuyTradingViewGoldenTruth` fails closed with
+`GOLDEN_TRUTH_UNAVAILABLE` until a Pine-derived Strategy Tester CSV is
+configured. `runScoreBuyTradingViewProfitOptimizationReport` reports fixed
+90/180/270/365-day production-semantics baseline and one shadow candidate; it
+never authorizes live promotion.
+
 Read-only LOCAL_TRADINGVIEW OCO lifecycle env handoff packet:
 
 ```powershell

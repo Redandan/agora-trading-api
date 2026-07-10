@@ -52,6 +52,8 @@ foreach ($marker in @(
         "governance_too_strict_7d_or_14d",
         "short_window_insufficient_data",
         "data_freshness_current_clean",
+        "targetOrderSentEvidence=0",
+        "otherStrategyOrderSentEvidence",
         "policy_change_recommendation",
         "notAuthorization",
         "OK read-only check complete"
@@ -66,7 +68,8 @@ foreach ($marker in @(
         "missed opportunity no order marker",
         "no-buy truth table no order marker",
         "TinyLive trigger no order marker",
-        "autonomous readiness no order marker"
+        "autonomous readiness target no order marker",
+        "autonomous readiness other strategy order marker"
     )) {
     Assert-Contains -Name "strategy574 smoke hard-fail markers" -Text $scriptText -Pattern ([regex]::Escape($marker))
 }

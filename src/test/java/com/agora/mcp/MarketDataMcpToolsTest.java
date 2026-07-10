@@ -58,4 +58,11 @@ class MarketDataMcpToolsTest {
         assertThat(MarketDataMcpTools.maxOkxRangeBackfillDays("1h")).isEqualTo(730);
         assertThat(MarketDataMcpTools.maxOkxRangeBackfillDays("15m")).isEqualTo(187);
     }
+
+    @Test
+    void binanceBackfillRangeCapacitySupportsGoldenDailyWindowButCapsDenseIntervals() {
+        assertThat(MarketDataMcpTools.maxBinanceRangeBackfillDays("1d")).isEqualTo(730);
+        assertThat(MarketDataMcpTools.maxBinanceRangeBackfillDays("1h")).isEqualTo(730);
+        assertThat(MarketDataMcpTools.maxBinanceRangeBackfillDays("1m")).isEqualTo(41);
+    }
 }

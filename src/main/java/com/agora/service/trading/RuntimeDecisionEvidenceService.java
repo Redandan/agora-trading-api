@@ -81,12 +81,16 @@ public class RuntimeDecisionEvidenceService {
     }
 
     @Transactional(readOnly = true)
-    public String autonomousReadinessDashboard(String symbol, Integer minutes) {
+    public String autonomousReadinessDashboard(String symbol, Integer minutes, Long strategyId, String side) {
         int mins = minutes == null ? 1440 : Math.max(1, Math.min(minutes, 30 * 24 * 60));
-        List<RuntimeDecisionEvidence> rows = listRecent(symbol, mins, 200);
+        String normalizedSide = normalizeSide(side);
+        List<RuntimeDecisionEvidence> allRows = listRecent(symbol, mins, 200);
+        List<RuntimeDecisionEvidence> rows = allRows.stream()
+                .filter(row -> matchesScope(row.getStrategyId(), row.getSide(), strategyId, normalizedSide))
+                .toList();
         ReadinessSnapshot snapshot = rows.isEmpty()
-                ? buildFallbackReadiness(symbol, mins)
-                : supplementCanonicalReadiness(symbol, mins, buildCanonicalReadiness(rows));
+                ? buildFallbackReadiness(symbol, mins, strategyId, normalizedSide)
+                : supplementCanonicalReadiness(symbol, mins, strategyId, normalizedSide, buildCanonicalReadiness(rows));
 
         long total = rows.size();
         long evSamples = rows.stream().filter(r -> jsonHasMeaningfulStatus(r.getEvResultJson())).count();
@@ -102,7 +106,11 @@ public class RuntimeDecisionEvidenceService {
                         || "SHADOW_MODE".equalsIgnoreCase(r.getSuppressionReason())).count();
         long ocoPlans = rows.stream().filter(r -> Boolean.TRUE.equals(r.getOcoPlanCreated())).count();
         long orderSent = rows.stream().filter(this::isAutonomousOrderSentEvidence).count();
-        long nonAutonomousOrders = rows.stream()
+        long otherStrategyOrderSent = allRows.stream()
+                .filter(row -> !matchesScope(row.getStrategyId(), row.getSide(), strategyId, normalizedSide))
+                .filter(this::isAutonomousOrderSentEvidence)
+                .count();
+        long nonAutonomousOrders = allRows.stream()
                 .filter(r -> Boolean.TRUE.equals(r.getOrderSent()))
                 .filter(r -> !isAutonomousOrderSentEvidence(r))
                 .count();
@@ -140,7 +148,7 @@ public class RuntimeDecisionEvidenceService {
         return """
                 === Autonomous Readiness Dashboard ===
                 boundary: READ_ONLY diagnostic; no order/OCO/strategy/grid/fund/Earn behavior changed.
-                symbol=%s minutes=%d enabled=%s
+                symbol=%s minutes=%d enabled=%s strategyId=%s side=%s
                 evidenceMode=%s
                 readinessLevel=%s
                 sampleQuality=%s
@@ -161,6 +169,8 @@ public class RuntimeDecisionEvidenceService {
                 shadowIntentCount=%d
                 ocoPlansCreated=%d
                 orderSentEvidence=%d
+                targetOrderSentEvidence=%d
+                otherStrategyOrderSentEvidence=%d
                 nonAutonomousOrderEvidence=%d
                 suppressedOrderCount=%d
                 shadowOrderViolations=%d
@@ -170,18 +180,19 @@ public class RuntimeDecisionEvidenceService {
                 OCO health summary: read-only evidence view; ocoPlanCreated=%d, actual OCO modification is not performed here.
                 exposure cap summary: risk/exposure terminal blocks=%d; detailed exposure remains in evidence exposure_snapshot_json/risk_gate_result_json.
                 freshness summary: freshness terminal blocks=%d; current kline quality should still be validated with getCollectionFreshness/validateKlineQuality.
-                unexpected trades: orderSentEvidence=%d, shadowOrderViolations=%d, nonAutonomousOrderEvidence=%d.
+                unexpected trades: targetOrderSentEvidence=%d, otherStrategyOrderSentEvidence=%d, shadowOrderViolations=%d, nonAutonomousOrderEvidence=%d.
 
                 finalReadinessVerdict=%s
-                """.formatted(sym, mins, enabled, snapshot.evidenceMode, snapshot.readinessLevel,
+                """.formatted(sym, mins, enabled, strategyId == null ? "ALL" : strategyId,
+                normalizedSide == null ? "ALL" : normalizedSide, snapshot.evidenceMode, snapshot.readinessLevel,
                 snapshot.sampleQuality, snapshot.sampleCount, snapshot.riskScalingMode,
                 snapshot.recommendedMaxNotional, snapshot.recommendedExecutionMode,
                 snapshot.missingSignals, snapshot.degradedReasons, total, snapshot.candidateCount,
                 snapshot.evSamples, snapshot.tqsSamples,
                 snapshot.fearGreedWarnOnlyEvidence, snapshot.fearGreedTerminalBlocks, shadowIntents,
-                snapshot.shadowIntentCount, ocoPlans, snapshot.orderSentEvidence, nonAutonomousOrders,
+                snapshot.shadowIntentCount, ocoPlans, snapshot.orderSentEvidence, orderSent, otherStrategyOrderSent, nonAutonomousOrders,
                 snapshot.suppressedOrderCount, snapshot.shadowOrderViolations, freshnessBlocks, riskBlocks,
-                ocoPlans, riskBlocks, freshnessBlocks, snapshot.orderSentEvidence, snapshot.shadowOrderViolations,
+                ocoPlans, riskBlocks, freshnessBlocks, orderSent, otherStrategyOrderSent, snapshot.shadowOrderViolations,
                 nonAutonomousOrders, verdict);
     }
 
@@ -214,6 +225,8 @@ public class RuntimeDecisionEvidenceService {
 
     private ReadinessSnapshot supplementCanonicalReadiness(String symbol,
                                                            int minutes,
+                                                           Long strategyId,
+                                                           String side,
                                                            ReadinessSnapshot canonical) {
         if (canonical.readinessLevel != ReadinessLevel.NOT_READY
                 || canonical.shadowOrderViolations > 0
@@ -222,7 +235,7 @@ public class RuntimeDecisionEvidenceService {
             return canonical;
         }
 
-        ReadinessSnapshot fallback = buildFallbackReadiness(symbol, minutes);
+        ReadinessSnapshot fallback = buildFallbackReadiness(symbol, minutes, strategyId, side);
         if (readinessRank(fallback.readinessLevel) <= readinessRank(canonical.readinessLevel)
                 || fallback.shadowOrderViolations > 0
                 || fallback.orderSentEvidence > 0) {
@@ -330,7 +343,7 @@ public class RuntimeDecisionEvidenceService {
         }
     }
 
-    private ReadinessSnapshot buildFallbackReadiness(String symbol, int minutes) {
+    private ReadinessSnapshot buildFallbackReadiness(String symbol, int minutes, Long strategyId, String side) {
         ReadinessSnapshot snapshot = new ReadinessSnapshot(EvidenceMode.FALLBACK);
         String sym = symbol == null || symbol.isBlank() ? null : symbol.trim().toUpperCase(Locale.ROOT);
         List<BtDecisionAudit> audits = decisionAuditRepository.findRecent(
@@ -338,6 +351,9 @@ public class RuntimeDecisionEvidenceService {
 
         for (BtDecisionAudit audit : audits) {
             JsonNode context = readContextSafely(audit.getContextJson());
+            if (!matchesScope(audit.getStrategyId(), firstText(context, "side", "direction", "signalSide"), strategyId, side)) {
+                continue;
+            }
             if (isAutonomousCandidateAudit(audit, context)) {
                 snapshot.candidateCount++;
             }
@@ -397,6 +413,27 @@ public class RuntimeDecisionEvidenceService {
             snapshot.evidenceMode = EvidenceMode.INSUFFICIENT;
         }
         return snapshot;
+    }
+
+    private boolean matchesScope(Long rowStrategyId, String rowSide, Long strategyId, String side) {
+        if (strategyId != null && !strategyId.equals(rowStrategyId)) {
+            return false;
+        }
+        if (side == null) {
+            return true;
+        }
+        return side.equals(normalizeSide(rowSide));
+    }
+
+    private String normalizeSide(String side) {
+        if (side == null || side.isBlank()) {
+            return null;
+        }
+        return switch (side.trim().toUpperCase(Locale.ROOT)) {
+            case "BUY", "LONG" -> "LONG";
+            case "SELL", "SHORT" -> "SHORT";
+            default -> side.trim().toUpperCase(Locale.ROOT);
+        };
     }
 
     private boolean isAutonomousCandidateAudit(BtDecisionAudit audit, JsonNode context) {

@@ -5,8 +5,9 @@
 - `agora-trading-api` is extracted and compiles as a standalone Spring Boot app.
 - Current test baseline: `mvn test` should load the full Spring context with `com.agora` component scanning.
 - The repo keeps trading/system runtime code needed for the Spring context. Marketplace auth/frontend remnants are treated as forbidden cleanup regressions by `scripts/verify_local.ps1`.
-- Current reusable MCP parity contract requires 36 representative tools, including
-  the read-only `runScoreBuyTradingViewBtcBaseBacktest` BTC_BASE shadow report.
+- Current reusable MCP parity contract requires 40 representative tools,
+  including BTC_BASE semantics/profit, Binance backfill, and golden-truth
+  verification surfaces.
 
 ## Completed
 
@@ -4284,6 +4285,20 @@ Trading deployment prep:
   treat `LOCAL_TRADINGVIEW_BTC_BASE:*` open rows as intentional BTC_BASE no-OCO
   positions rather than unprotected OCO failures. The existing `LIVE_MICRO`
   mode remains the OCO-attached live path and rollback fallback.
+- 2026-07-10 TradingView parity/profit hardening is implemented locally:
+  open-position diagnostics now expose strategy id, interval, and audited
+  signal source; strategy485 fails closed when strategy ownership is missing;
+  autonomous readiness separates target from other-strategy order evidence.
+  BTC_BASE backtests now support `SHADOW_ALL_INTENTS`,
+  `LIVE_ONE_ORDER_PER_BAR`, and `SHADOW_AGGREGATE_PER_BAR`; catch-up audits all
+  bounded bars but only sends the newest eligible first intent to execution.
+  Guarded Binance range backfill supports Binance Vision UTC daily data, while
+  golden CSV parity remains fail closed without external Pine/Strategy Tester
+  truth. The fixed 90/180/270/365-day profit report compares the production
+  one-order baseline with one aggregate shadow candidate and keeps candidate
+  promotion false pending all long-window gates and new explicit authorization.
+  Local acceptance passed `verify_local.ps1` with 236 tests and startup smoke
+  with 319 registered tools, 40 required tools, zero missing tools, and health OK.
 
 ## Cleanup Priority
 

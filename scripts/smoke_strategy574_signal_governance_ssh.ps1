@@ -174,7 +174,8 @@ require("no-buy truth table no order marker", r'"orderSent"\s*:\s*false', json.d
 require("TinyLive trigger read-only boundary", r"boundary:\s*READ_ONLY", trigger)
 require("TinyLive trigger no order marker", r"orderSent=false", trigger)
 require("autonomous readiness read-only boundary", r"boundary:\s*READ_ONLY", readiness)
-require("autonomous readiness no order marker", r"orderSentEvidence=0", readiness)
+require("autonomous readiness target no order marker", r"targetOrderSentEvidence=0", readiness)
+require("autonomous readiness other strategy order marker", r"otherStrategyOrderSentEvidence=\d+", readiness)
 
 strategy_rows = []
 strategy_rows += find_strategy_rows(missed.get("rows") or [], "missed.rows")

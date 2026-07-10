@@ -170,27 +170,16 @@ assert no_open_auto_trade_position("✅ 無開倉中的自動交易倉位")
 
 def extract_position_ids(open_positions):
     ids = []
-    all_ids = []
-    saw_strategy_marker = False
-    current_id = None
-    current_strategy = None
-    for line in open_positions.splitlines():
-        match_id = re.search(r"\bID:\s*(\d+)", line)
-        if match_id:
-            if current_id is not None and current_strategy == strategy_id:
-                ids.append(current_id)
-            current_id = int(match_id.group(1))
-            all_ids.append(current_id)
-            current_strategy = None
+    for block in open_positions.split("---"):
+        match_id = re.search(r"\bID:\s*(\d+)", block)
+        if not match_id:
             continue
-        match_strategy = re.search(r"strat(?:egy)?[=#:\s]+(\d+)", line, re.IGNORECASE)
-        if match_strategy:
-            saw_strategy_marker = True
-            current_strategy = int(match_strategy.group(1))
-    if current_id is not None and (current_strategy == strategy_id or current_strategy is None):
-        ids.append(current_id)
-    if not saw_strategy_marker:
-        return all_ids
+        match_strategy = re.search(r"Strategy\s+ID:\s*(\d+)", block, re.IGNORECASE)
+        if not match_strategy:
+            print(f"FAIL: open position {match_id.group(1)} missing Strategy ID marker", file=sys.stderr)
+            sys.exit(1)
+        if int(match_strategy.group(1)) == strategy_id:
+            ids.append(int(match_id.group(1)))
     return ids
 
 def parse_position_details(open_positions):

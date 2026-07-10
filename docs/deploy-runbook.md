@@ -65,7 +65,7 @@ TRADINGVIEW_LOCAL_EXECUTION_MODE=LEGACY
 TRADINGVIEW_LOCAL_EXECUTION_ENABLED=false
 TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN=true
 TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED=false
-TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR=3
+TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR=1
 TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY=1
 TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS=1
 TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT=0.0300
@@ -199,6 +199,26 @@ Expected:
   send live-signal Telegram notifications if a BUY path is reached. Treat it as
   a separate production market-data/notification authorization, not as a
   read-only setting.
+- Binance TradingView parity dry-run uses the free official Vision endpoints
+  when the production host cannot access `api.binance.com`:
+  `MARKET_BINANCE_SPOT_REST_BASE_URL=https://data-api.binance.vision/api/v3/klines`
+  and `MARKET_BINANCE_SPOT_WS_BASE_URL=wss://data-stream.binance.vision/ws/`.
+  Use `MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=okx,binance` with
+  `TRADINGVIEW_LOCAL_ALLOWED_SOURCES=binance`; Binance supplies signal/golden
+  bars while OKX remains the execution venue. Keep
+  `TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_DRY_RUN`, live-order false,
+  `TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED=false`, allowed secondary IDs
+  empty, and secondary max notional `0` until golden parity and the long-window
+  profit gate pass. `backfillBinanceKlinesRange` is protected by
+  `TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED`; restore that flag to
+  `false` immediately after the authorized import.
+- `verifyScoreBuyTradingViewGoldenTruth` requires at least 365 days and a
+  configured `TRADINGVIEW_LOCAL_GOLDEN_TRUTH_CSV_PATH`. Missing Pine/Strategy
+  Tester truth returns `GOLDEN_TRUTH_UNAVAILABLE`; it must not be presented as
+  exact parity. `runScoreBuyTradingViewProfitOptimizationReport` uses
+  `LIVE_ONE_ORDER_PER_BAR` as the production baseline and tests one shadow
+  candidate per round across 90/180/270/365-day, drawdown, walk-forward, and
+  stress gates. Neither tool authorizes live promotion.
 - Smoke logs prove OKX liquidation WebSocket is disabled with `[OkxLiqWS] disabled by market.liquidation-ws.enabled=false`.
 - Local smoke forces `okx.earn-topup.enabled=false`; the OKX Earn top-up scheduler bean is explicit opt-in and smoke logs must not show Earn redemption or transfer side effects.
 - Local smoke forces `polymarket.monitor.enabled=false`; the Polymarket monitor scheduler bean is explicit opt-in and smoke logs must not show Polymarket snapshot, backfill, or digest side effects.

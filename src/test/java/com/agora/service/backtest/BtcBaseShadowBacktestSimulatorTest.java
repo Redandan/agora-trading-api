@@ -61,6 +61,55 @@ class BtcBaseShadowBacktestSimulatorTest {
         assertThat(result.maxInventoryDrawdownPct()).isGreaterThan(0.12);
     }
 
+    @Test
+    void liveSemanticsExecutesOneOrderPerBarAndKeepsAdditionalIntentsAsShadow() {
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = List.of(
+                bar("2026-01-01T00:00", 100.0),
+                bar("2026-01-02T00:00", 110.0));
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = List.of(
+                intent("2026-01-01T00:00", "AI_BUY"),
+                intent("2026-01-01T00:00", "RELATIVE_LOW"),
+                intent("2026-01-01T00:00", "POTENTIAL_LOW"));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, intents, new BtcBaseShadowBacktestSimulator.Config(
+                        10.0, 250.0, 1.0, 0.001, 0.0, 0.0, 0.12, 0.0),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
+
+        assertThat(result.executionSemantics())
+                .isEqualTo(BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
+        assertThat(result.orderIntentCount()).isEqualTo(3);
+        assertThat(result.orderBarCount()).isEqualTo(1);
+        assertThat(result.executedBuys()).isEqualTo(1);
+        assertThat(result.shadowOnlyIntentCount()).isEqualTo(2);
+        assertThat(result.totalGrossBuys()).isEqualTo(10.0);
+        assertThat(result.events()).extracting(BtcBaseShadowBacktestSimulator.Event::type)
+                .containsExactly("BUY", "SHADOW_ONLY_INTENT", "SHADOW_ONLY_INTENT");
+    }
+
+    @Test
+    void aggregateSemanticsExecutesOneAggregatedShadowOrderPerBar() {
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = List.of(
+                bar("2026-01-01T00:00", 100.0));
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = List.of(
+                intent("2026-01-01T00:00", "AI_BUY"),
+                intent("2026-01-01T00:00", "RELATIVE_LOW"),
+                intent("2026-01-01T00:00", "POTENTIAL_LOW"));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, intents, BtcBaseShadowBacktestSimulator.Config.defaults(),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_AGGREGATE_PER_BAR);
+
+        assertThat(result.executionSemantics())
+                .isEqualTo(BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_AGGREGATE_PER_BAR);
+        assertThat(result.orderIntentCount()).isEqualTo(3);
+        assertThat(result.executedBuys()).isEqualTo(1);
+        assertThat(result.aggregatedOrderBars()).isEqualTo(1);
+        assertThat(result.shadowOnlyIntentCount()).isEqualTo(2);
+        assertThat(result.totalGrossBuys()).isEqualTo(30.0);
+        assertThat(result.events().get(0).reason()).isEqualTo("AGGREGATED_INTENTS(3)");
+    }
+
     private static BtcBaseShadowBacktestSimulator.Bar bar(String time, double close) {
         return new BtcBaseShadowBacktestSimulator.Bar(LocalDateTime.parse(time), close);
     }

@@ -7,7 +7,8 @@ param(
     [long]$StrategyId = 508,
     [string]$IntervalCode = "1h",
     [int]$Hours = 168,
-    [int]$Limit = 10
+    [int]$Limit = 10,
+    [switch]$RequireNoEvUnknown
 )
 
 Set-StrictMode -Version Latest
@@ -78,6 +79,7 @@ STRATEGY_ID='__STRATEGY_ID__'
 INTERVAL_CODE='__INTERVAL_CODE__'
 HOURS='__HOURS__'
 LIMIT='__LIMIT__'
+REQUIRE_NO_EV_UNKNOWN='__REQUIRE_NO_EV_UNKNOWN__'
 
 fail() {
   echo "[strategy508-entry-dedup-exposure] FAIL: $*" >&2
@@ -133,7 +135,7 @@ case "$port" in
 esac
 
 export MYSQL_PWD="$SPRING_DATASOURCE_PASSWORD"
-export PORT MCP_KEY SYMBOL STRATEGY_ID INTERVAL_CODE HOURS LIMIT MYSQL_HOST="$host" MYSQL_PORT="$port" MYSQL_USER="$SPRING_DATASOURCE_USERNAME" MYSQL_DATABASE="$database"
+export PORT MCP_KEY SYMBOL STRATEGY_ID INTERVAL_CODE HOURS LIMIT REQUIRE_NO_EV_UNKNOWN MYSQL_HOST="$host" MYSQL_PORT="$port" MYSQL_USER="$SPRING_DATASOURCE_USERNAME" MYSQL_DATABASE="$database"
 
 python3 - <<'PY'
 import csv
@@ -149,6 +151,7 @@ strategy_id = int(os.environ["STRATEGY_ID"])
 interval_code = os.environ["INTERVAL_CODE"]
 hours = int(os.environ["HOURS"])
 limit = int(os.environ["LIMIT"])
+require_no_ev_unknown = os.environ.get("REQUIRE_NO_EV_UNKNOWN", "false").lower() == "true"
 url = f"http://127.0.0.1:{os.environ['PORT']}/api/mcp"
 headers = {
     "Content-Type": "application/json",
@@ -447,6 +450,12 @@ print("")
 print("Conclusion:")
 print(f"  strategy508_entry_dedup_exposure_recommendation={recommendation}")
 print(f"  strategy508_entry_dedup_blocker_count={sum(blocker_counts.values())}")
+if require_no_ev_unknown and "EV_UNKNOWN" in blocker_counts:
+    print("  post_deploy_acceptance=FAIL_EV_UNKNOWN_STILL_PRESENT")
+    print("  post_deploy_acceptance_detail=RequireNoEvUnknown was set but getStagedAddReadiness still returned EV_UNKNOWN.")
+    sys.exit(2)
+if require_no_ev_unknown:
+    print("  post_deploy_acceptance=PASS_NO_EV_UNKNOWN")
 print("  strategy508_entry_dedup_next_action=Use this evidence to decide whether strategy 508 needs an EntryDedup/staged-add shadow review or should keep exact-duplicate/exposure protection unchanged; do not relax EntryDedup or place/add orders from this smoke.")
 print("  notAuthorization=read-only evidence only; does not authorize live trading, strategy activation, DataFreshnessGuard or EntryDedup relaxation, staged-add execution, closing positions, OCO modification, scheduler enablement, order/OCO/grid/fund/Earn/Telegram/exchange mutations, DB changes, external backfill/import, deploy, restart, or production env changes")
 print("")
@@ -460,9 +469,14 @@ $remoteScript = $remoteScript.Replace("__APPDIR__", $AppDir).
     Replace("__STRATEGY_ID__", [string]$StrategyId).
     Replace("__INTERVAL_CODE__", $IntervalCode).
     Replace("__HOURS__", [string]$Hours).
-    Replace("__LIMIT__", [string]$Limit)
+    Replace("__LIMIT__", [string]$Limit).
+    Replace("__REQUIRE_NO_EV_UNKNOWN__", $RequireNoEvUnknown.IsPresent.ToString().ToLowerInvariant())
 
-$remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s"
-if ($LASTEXITCODE -ne 0) {
-    throw "Strategy 508 EntryDedup exposure smoke failed with exit code $LASTEXITCODE"
+$remoteOutput = $remoteScript | ssh -i $SshKey -o BatchMode=yes -o ConnectTimeout=10 $SshHost "sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | bash -s" 2>&1
+$remoteExitCode = $LASTEXITCODE
+if ($remoteOutput) {
+    $remoteOutput | ForEach-Object { Write-Output $_ }
+}
+if ($remoteExitCode -ne 0) {
+    throw "Strategy 508 EntryDedup exposure smoke failed with exit code $remoteExitCode"
 }

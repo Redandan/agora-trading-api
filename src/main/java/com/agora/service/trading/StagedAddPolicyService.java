@@ -182,12 +182,21 @@ public class StagedAddPolicyService {
         BigDecimal totalExposure = openAll.stream().map(this::notional).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal openMaxLoss = openAll.stream().map(this::maxLoss).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal entry = firstNonNull(entryOverride, moneyFromAudit(candidateAudit, "entry"), moneyFromEvidence(latestEvidence, "entryPrice"));
-        BigDecimal tp = firstNonNull(tpOverride, moneyFromAudit(candidateAudit, "tp"), moneyFromEvidence(latestEvidence, "tpPrice"));
-        BigDecimal sl = firstNonNull(slOverride, moneyFromAudit(candidateAudit, "sl"), moneyFromEvidence(latestEvidence, "slPrice"));
+        BigDecimal entry = firstNonNull(entryOverride,
+                moneyFromAudit(candidateAudit, "entry", "candidateEntry", "candidate_entry", "entryPrice"),
+                moneyFromEvidence(latestEvidence, "entryPrice"));
+        BigDecimal tp = firstNonNull(tpOverride,
+                moneyFromAudit(candidateAudit, "tp", "candidateTp", "candidate_tp", "tpPrice"),
+                moneyFromEvidence(latestEvidence, "tpPrice"));
+        BigDecimal sl = firstNonNull(slOverride,
+                moneyFromAudit(candidateAudit, "sl", "candidateSl", "candidate_sl", "slPrice"),
+                moneyFromEvidence(latestEvidence, "slPrice"));
         Double expectedR = firstNonNull(expectedROverride, doubleFromAudit(candidateAudit, "expected_r"), doubleFromEvidence(latestEvidence, "expectedR"));
-        String tqsBand = firstText(tqsBandOverride, tqsBandFromEvidence(latestEvidence));
-        String eventRisk = firstText(textFromAudit(candidateAudit, "event_risk"), textFromEvidence(latestEvidence, "eventRiskLevel"), "UNKNOWN");
+        String tqsBand = firstText(tqsBandOverride,
+                textFromAudit(candidateAudit, "tqsBand", "tqs_band"),
+                tqsBandFromEvidence(latestEvidence));
+        String eventRisk = firstText(textFromAudit(candidateAudit, "event_risk", "eventRiskLevel"),
+                textFromEvidence(latestEvidence, "eventRiskLevel"), "UNKNOWN");
 
         BigDecimal exposureLimit = configuredMoney(config, "stagedAddSameStrategyExposureLimitUsdt",
                 configuredMoney(config, "microAddMaxSameStrategyExposureUsdt", defaultExposureLimit(sid)));
@@ -278,16 +287,59 @@ public class StagedAddPolicyService {
                 .stream()
                 .filter(a -> intervalCode.equalsIgnoreCase(nullToDefault(a.getIntervalCode(), intervalCode)))
                 .filter(a -> isBuyLike(a) || isEntryDedup(a))
-                .max(Comparator.comparing(BtDecisionAudit::getEventTime,
-                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .max(Comparator
+                        .comparing(this::candidateBarTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparingInt(this::candidateDetailRank)
+                        .thenComparing(BtDecisionAudit::getEventTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(BtDecisionAudit::getId, Comparator.nullsLast(Comparator.naturalOrder())))
                 .orElse(null);
     }
 
+    private LocalDateTime candidateBarTime(BtDecisionAudit audit) {
+        if (audit == null) {
+            return null;
+        }
+        return audit.getBarOpenTime() != null ? audit.getBarOpenTime() : audit.getEventTime();
+    }
+
+    private int candidateDetailRank(BtDecisionAudit audit) {
+        if (audit == null) {
+            return 0;
+        }
+        JsonNode context = readJson(audit.getContextJson());
+        int rank = 0;
+        if (isBuyLike(audit)) rank += 10;
+        if (isEntryDedup(audit)) rank += 20;
+        if (number(context, "expected_r") != null) rank += 40;
+        if (money(context, "entry") != null || money(context, "candidateEntry") != null
+                || money(context, "candidate_entry") != null || money(context, "entryPrice") != null) rank += 10;
+        if (money(context, "tp") != null || money(context, "candidateTp") != null
+                || money(context, "candidate_tp") != null || money(context, "tpPrice") != null) rank += 5;
+        if (money(context, "sl") != null || money(context, "candidateSl") != null
+                || money(context, "candidate_sl") != null || money(context, "slPrice") != null) rank += 5;
+        if (text(context, "tqsBand", null) != null || text(context, "tqs_band", null) != null) rank += 5;
+        return rank;
+    }
+
     private boolean isBuyLike(BtDecisionAudit audit) {
-        return contains(audit.getEventType(), "BUY")
-                || contains(audit.getReason(), "BUY")
-                || contains(audit.getContextJson(), "LONG")
-                || contains(audit.getContextJson(), "BUY");
+        if (audit == null) {
+            return false;
+        }
+        if ("SIGNAL_BUY".equalsIgnoreCase(nullToDefault(audit.getEventType(), ""))) {
+            return true;
+        }
+        if (isLongIntentToken(audit.getReason())) {
+            return true;
+        }
+        JsonNode context = readJson(audit.getContextJson());
+        return isLongIntentToken(firstJsonText(context,
+                "side",
+                "candidate_side",
+                "direction",
+                "signalSide",
+                "selectedAction",
+                "selected_action",
+                "decision"));
     }
 
     private boolean isEntryDedup(BtDecisionAudit audit) {
@@ -315,8 +367,8 @@ public class StagedAddPolicyService {
                                            Double expectedR,
                                            String tqsBand,
                                            String eventRisk) {
-        LocalDateTime bar = audit != null && audit.getBarOpenTime() != null
-                ? audit.getBarOpenTime()
+        LocalDateTime bar = audit != null
+                ? candidateBarTime(audit)
                 : LocalDateTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
         Long auditId = audit == null ? null : audit.getId();
         Long evidenceId = evidence == null ? null : evidence.getId();
@@ -460,9 +512,14 @@ public class StagedAddPolicyService {
         }
     }
 
-    private BigDecimal moneyFromAudit(BtDecisionAudit audit, String field) {
+    private BigDecimal moneyFromAudit(BtDecisionAudit audit, String... fields) {
         if (audit == null) return null;
-        return money(readJson(audit.getContextJson()), field);
+        JsonNode ctx = readJson(audit.getContextJson());
+        for (String field : fields) {
+            BigDecimal value = money(ctx, field);
+            if (value != null) return value;
+        }
+        return null;
     }
 
     private Double doubleFromAudit(BtDecisionAudit audit, String field) {
@@ -471,9 +528,14 @@ public class StagedAddPolicyService {
         return number(ctx, field);
     }
 
-    private String textFromAudit(BtDecisionAudit audit, String field) {
+    private String textFromAudit(BtDecisionAudit audit, String... fields) {
         if (audit == null) return null;
-        return text(readJson(audit.getContextJson()), field, null);
+        JsonNode ctx = readJson(audit.getContextJson());
+        for (String field : fields) {
+            String value = text(ctx, field, null);
+            if (value != null) return value;
+        }
+        return null;
     }
 
     private BigDecimal moneyFromEvidence(RuntimeDecisionEvidence evidence, String field) {
@@ -550,6 +612,29 @@ public class StagedAddPolicyService {
         if (node == null || node.isMissingNode() || !node.has(field)) return def;
         String value = node.path(field).asText(null);
         return value == null || value.isBlank() ? def : value;
+    }
+
+    private String firstJsonText(JsonNode node, String... fields) {
+        for (String field : fields) {
+            String value = text(node, field, null);
+            if (value != null) return value;
+        }
+        return null;
+    }
+
+    private boolean isLongIntentToken(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String token = value.trim().toUpperCase(Locale.ROOT);
+        return "BUY".equals(token)
+                || "LONG".equals(token)
+                || "SIGNAL_BUY".equals(token)
+                || "SIGNAL_EVAL_BUY".equals(token)
+                || token.startsWith("BUY ")
+                || token.startsWith("BUY:")
+                || token.startsWith("LONG ")
+                || token.startsWith("LONG:");
     }
 
     private String firstText(String... values) {

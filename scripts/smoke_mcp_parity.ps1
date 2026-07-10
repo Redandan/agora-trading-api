@@ -128,6 +128,7 @@ $requiredTools = @(
     "runBacktest",
     "runScoreBuyTradingViewBtcBaseBacktest",
     "runScoreBuyTradingViewProfitOptimizationReport",
+    "runTimeframeAwareStrategyValidation",
     "verifyScoreBuyTradingViewGoldenTruth",
     "backfillBinanceKlines",
     "backfillBinanceKlinesRange",

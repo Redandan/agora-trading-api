@@ -5,9 +5,9 @@
 - `agora-trading-api` is extracted and compiles as a standalone Spring Boot app.
 - Current test baseline: `mvn test` should load the full Spring context with `com.agora` component scanning.
 - The repo keeps trading/system runtime code needed for the Spring context. Marketplace auth/frontend remnants are treated as forbidden cleanup regressions by `scripts/verify_local.ps1`.
-- Current reusable MCP parity contract requires 40 representative tools,
-  including BTC_BASE semantics/profit, Binance backfill, and golden-truth
-  verification surfaces.
+- Current reusable MCP parity contract requires 41 representative tools,
+  including BTC_BASE semantics/profit, Binance backfill, golden-truth
+  verification, and timeframe-aware strategy validation surfaces.
 
 ## Completed
 

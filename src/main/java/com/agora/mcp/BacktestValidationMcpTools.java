@@ -26,6 +26,7 @@ import com.agora.service.backtest.StrategySignal;
 import com.agora.service.backtest.TradeRecord;
 import com.agora.service.backtest.TradingViewGoldenTruthVerifier;
 import com.agora.service.backtest.TradingViewProfitOptimizationService;
+import com.agora.service.backtest.TimeframeAwareStrategyValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -67,6 +68,7 @@ public class BacktestValidationMcpTools {
     private final BacktestEngine backtestEngine;
     private final TradingViewGoldenTruthVerifier tradingViewGoldenTruthVerifier;
     private final TradingViewProfitOptimizationService tradingViewProfitOptimizationService;
+    private final TimeframeAwareStrategyValidationService timeframeAwareStrategyValidationService;
 
     @org.springframework.beans.factory.annotation.Value("${trading.tradingview.local.golden-truth-csv-path:}")
     private String tradingViewGoldenTruthCsvPath;
@@ -541,6 +543,165 @@ public class BacktestValidationMcpTools {
         return "goldenTruthStatus=" + goldenStatus + "\n"
                 + tradingViewProfitOptimizationService.compareAggregateCandidate(
                         symbolVal, src, fee, bars, intents);
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
+    @Tool(description = "READ_ONLY timeframe-aware BTC strategy validation. Separates ENTRY_PARITY, RECENT_EDGE, and LONG_STRESS. " +
+            "1d uses independent entry bars with 1/3/7/14d outcomes; intraday uses 4/24/72h outcomes. " +
+            "The long window is a drawdown/relative-DCA veto and does not require absolute positive return. " +
+            "Backtests use skipPersist and this tool never authorizes live trading. params: strategyId, symbol, intervalCode, " +
+            "recentDays default 90, stressDays default 365, source optional, configOverrideJson optional, feeRate default 0.001")
+    public String runTimeframeAwareStrategyValidation(Long strategyId, String symbol, String intervalCode,
+                                                       Integer recentDays, Integer stressDays, String source,
+                                                       String configOverrideJson, Double feeRate) {
+        int recent = recentDays == null ? 90 : Math.max(1, Math.min(recentDays, 365));
+        int stress = stressDays == null ? 365 : Math.max(recent, Math.min(stressDays, 1500));
+        double fee = feeRate == null ? 0.001 : Math.max(0.0, feeRate);
+        String symbolVal = symbol == null || symbol.isBlank() ? "BTCUSDT" : symbol.toUpperCase(Locale.ROOT);
+        String intervalVal = intervalCode == null || intervalCode.isBlank() ? "1d" : intervalCode.toLowerCase(Locale.ROOT);
+        if (!Set.of("1h", "4h", "1d").contains(intervalVal)) {
+            return "status=UNSUPPORTED_INTERVAL allowed=1h,4h,1d livePromotionAllowed=false";
+        }
+        BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
+        boolean tradingViewParityStrategy = isScoreBuy(strategyEntity.getStrategyType());
+        String src = source == null || source.isBlank()
+                ? tradingViewParityStrategy ? "binance" : resolvePreviewSource(null, strategyEntity.getKlineSource())
+                : source.trim().toLowerCase(Locale.ROOT);
+
+        LocalDateTime endTime = LocalDateTime.now();
+        LocalDateTime stressStart = intervalVal.endsWith("d")
+                ? endTime.minusDays(stress).truncatedTo(ChronoUnit.DAYS)
+                : endTime.minusDays(stress);
+        LocalDateTime queryStart = stressStart.minusDays(warmupDays(intervalVal));
+        List<MdKline> klines = closedKlinesOnly(
+                klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        symbolVal, intervalVal, src, queryStart, endTime),
+                endTime, intervalVal);
+        List<MdKline> visibleKlines = klines.stream()
+                .filter(kline -> !kline.getOpenTime().isBefore(stressStart))
+                .toList();
+        List<TimeframeAwareStrategyValidationService.Bar> bars = visibleKlines.stream()
+                .map(kline -> new TimeframeAwareStrategyValidationService.Bar(
+                        kline.getOpenTime(),
+                        kline.getHighPrice().doubleValue(),
+                        kline.getLowPrice().doubleValue(),
+                        kline.getClosePrice().doubleValue()))
+                .toList();
+
+        Map<String, Object> config;
+        try {
+            config = validationConfig(strategyEntity, intervalVal, configOverrideJson, tradingViewParityStrategy);
+        } catch (IllegalArgumentException e) {
+            return "status=CONFIG_OVERRIDE_INVALID blocker=" + e.getMessage()
+                    + " livePromotionAllowed=false";
+        }
+
+        List<TimeframeAwareStrategyValidationService.EntryEvent> events = new ArrayList<>();
+        TimeframeAwareStrategyValidationService.ParityEvidence parityEvidence;
+        if (tradingViewParityStrategy) {
+            Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
+            strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+            Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+            List<TradingViewGoldenTruthVerifier.Intent> actualIntents = new ArrayList<>();
+            try {
+                for (int i = 0; i < klines.size(); i++) {
+                    MdKline current = klines.get(i);
+                    if (current.getOpenTime().isBefore(stressStart)) continue;
+                    MdKline previous = i > 0 ? klines.get(i - 1) : null;
+                    LiveSignalContext.clear();
+                    StrategySignal signal = strategy.evaluate(
+                            new StrategyContext(i, current, previous, klines, indicators), config);
+                    Map<String, Object> details = new LinkedHashMap<>(LiveSignalContext.getDetails());
+                    Double nn = numberOrNull(details.get("tradingview_nn_output"));
+                    if (signal != StrategySignal.BUY) continue;
+                    for (LiveSignalContext.OrderIntent intent : LiveSignalContext.getOrderIntents()) {
+                        events.add(new TimeframeAwareStrategyValidationService.EntryEvent(
+                                current.getOpenTime(), current.getClosePrice().doubleValue(), intent.reason(), 1));
+                        actualIntents.add(new TradingViewGoldenTruthVerifier.Intent(
+                                current.getOpenTime(), intent.reason(), intent.label(),
+                                BigDecimal.valueOf(intent.quantity()), nn));
+                    }
+                }
+            } finally {
+                LiveSignalContext.clear();
+            }
+            TradingViewGoldenTruthVerifier.VerificationResult parity =
+                    tradingViewGoldenTruthVerifier.verify(tradingViewGoldenTruthCsvPath, actualIntents);
+            parityEvidence = new TimeframeAwareStrategyValidationService.ParityEvidence(
+                    parity.status(), parity.exactParity(), parity.expectedIntentCount(), parity.actualIntentCount(),
+                    parity.missingIntentCount(), parity.extraIntentCount(), parity.blocker());
+        } else {
+            BacktestRunRequest request = new BacktestRunRequest();
+            request.setStrategyId(strategyId);
+            request.setSymbol(symbolVal);
+            request.setIntervalCode(intervalVal);
+            request.setStartTime(queryStart);
+            request.setEndTime(endTime);
+            request.setInitialCapital(new BigDecimal("10000"));
+            request.setFeeRate(BigDecimal.valueOf(fee));
+            request.setSource(src);
+            request.setSkipPersist(true);
+            request.setConfigOverride(config);
+            BacktestResultResponse result = backtestService.runForExploration(request);
+            if (result.getTrades() != null) {
+                Map<LocalDateTime, MdKline> barsByTime = visibleKlines.stream().collect(Collectors.toMap(
+                        MdKline::getOpenTime, kline -> kline, (left, right) -> left, LinkedHashMap::new));
+                for (BacktestResultResponse.TradeRecordDto trade : result.getTrades()) {
+                    if (trade.getEntryTime() == null || trade.getEntryTime().isBefore(stressStart)
+                            || (trade.getSide() != null && !"LONG".equalsIgnoreCase(trade.getSide()))) {
+                        continue;
+                    }
+                    MdKline entryBar = barsByTime.get(trade.getEntryTime());
+                    if (entryBar == null) continue;
+                    double entryPrice = trade.getEntryPrice() != null
+                            ? trade.getEntryPrice().doubleValue()
+                            : entryBar.getClosePrice().doubleValue();
+                    if (entryPrice <= 0.0) continue;
+                    events.add(new TimeframeAwareStrategyValidationService.EntryEvent(
+                            trade.getEntryTime(), entryPrice,
+                            trade.getEntryReason() == null ? "BACKTEST_LONG_ENTRY" : trade.getEntryReason(),
+                            Math.max(1, trade.getEntryOrderCount() == null ? 1 : trade.getEntryOrderCount())));
+                }
+            }
+            parityEvidence = TimeframeAwareStrategyValidationService.ParityEvidence.notApplicable();
+        }
+
+        TimeframeAwareStrategyValidationService.Request request =
+                new TimeframeAwareStrategyValidationService.Request(
+                        strategyId,
+                        strategyEntity.getName(),
+                        symbolVal,
+                        intervalVal,
+                        src,
+                        recent,
+                        stress,
+                        fee,
+                        tradingViewParityStrategy);
+        return timeframeAwareStrategyValidationService.render(request, bars, events, parityEvidence);
+    }
+
+    private Map<String, Object> validationConfig(BtStrategy strategyEntity, String intervalCode,
+                                                  String configOverrideJson,
+                                                  boolean tradingViewParityStrategy) {
+        Map<String, Object> config = new HashMap<>(btStrategyService.parseConfig(strategyEntity.getConfigJson()));
+        if (configOverrideJson != null && !configOverrideJson.isBlank()) {
+            try {
+                Map<String, Object> override = objectMapper.readValue(configOverrideJson,
+                        new TypeReference<Map<String, Object>>() {});
+                override.remove("initialCapital");
+                override.remove("feeRate");
+                override.remove("skipPersist");
+                config.putAll(override);
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
+            }
+        }
+        config.put("runIntervalCode", intervalCode);
+        if (tradingViewParityStrategy) {
+            config.put("tradingViewParityMode", true);
+        }
+        return config;
     }
 
     @McpAuth(McpAuthLevel.OPS)

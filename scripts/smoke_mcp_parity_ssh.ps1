@@ -89,6 +89,7 @@ required_tools = [
     "runBacktest",
     "runScoreBuyTradingViewBtcBaseBacktest",
     "runScoreBuyTradingViewProfitOptimizationReport",
+    "runTimeframeAwareStrategyValidation",
     "verifyScoreBuyTradingViewGoldenTruth",
     "backfillBinanceKlines",
     "backfillBinanceKlinesRange",

@@ -285,8 +285,6 @@ public class DiagnosticMcpTools {
             sinceLabel = String.format("本次啟動（%s）", since.format(FMT));
         }
 
-        LocalDateTime backtestStart = since.minusDays(30); // 暖機資料起點
-
         StringBuilder sb = new StringBuilder();
         sb.append("🔍 策略執行驗證報告\n");
         sb.append(String.format("驗證起點：%s\n", sinceLabel));
@@ -316,19 +314,22 @@ public class DiagnosticMcpTools {
         for (BtStrategy strategy : strategies) {
             String symbol = resolveSymbol(strategy);
             if (symbol == null) continue;
-            String klineSource = resolveStrategyKlineSource(strategy);
 
             // MTF 策略需同時補齊主週期與 4h 資料
             Set<String> intervals = resolveAllIntervals(strategy);
             for (String intervalCode : intervals) {
+                KlineSourceResolution sourceResolution = resolveEffectiveKlineSource(
+                        strategy, symbol, intervalCode);
+                String klineSource = sourceResolution.effectiveSource();
+                LocalDateTime readinessStart = since.minusDays(validationWarmupDays(intervalCode));
                 String key = symbol + ":" + intervalCode + ":" + klineSource;
                 if (checked.contains(key)) continue;
                 checked.add(key);
                 sb.append("  ").append(loadKlineReadinessLine(
-                        symbol.toUpperCase(), intervalCode, klineSource, backtestStart, now)).append("\n");
+                        symbol.toUpperCase(), intervalCode, klineSource, readinessStart, now)).append("\n");
             }
         }
-        sb.append("  note: Binance REST 451 不再影響此驗證；若 source=okx 的 DB bars 足夠且 fresh，策略驗證可繼續。\n");
+        sb.append("  note: readiness/backtest 使用每個策略在目前 signal-source policy 下的 effective source；不呼叫外部回填。\n");
         sb.append("\n");
 
         // 4. 逐策略回測 + 比對
@@ -341,7 +342,9 @@ public class DiagnosticMcpTools {
 
             String symbol = resolveSymbol(strategy);
             String intervalCode = resolveInterval(strategy);
-            String klineSource = resolveStrategyKlineSource(strategy);
+            KlineSourceResolution sourceResolution = resolveEffectiveKlineSource(
+                    strategy, symbol, intervalCode);
+            String klineSource = sourceResolution.effectiveSource();
             boolean notifyOnly = resolveNotifyOnly(strategy);
             LiveEvaluationExpectation liveExpectation = resolveLiveEvaluationExpectation(
                     strategy, symbol, intervalCode, klineSource);
@@ -353,29 +356,42 @@ public class DiagnosticMcpTools {
 
             sb.append(String.format("  幣種：%s｜週期：%s｜模式：%s\n",
                     symbol, intervalCode, notifyOnly ? "通知Only" : "自動下單"));
-            sb.append(String.format("  K線源：%s\n", klineSource));
+            sb.append(String.format("  K線源：%s｜configured=%s｜resolution=%s\n",
+                    klineSource, sourceResolution.configuredSource(), sourceResolution.reason()));
             sb.append(String.format("  Live 評估預期：%s｜%s\n",
                     liveExpectation.expected() ? "EXPECTED" : "POLICY_SUPPRESSED",
                     liveExpectation.reason()));
 
             // 回測（資料已補齊）
             int backtestBuyCount = 0;
+            long backtestBuyBarCount = 0;
             try {
                 BacktestRunRequest req = new BacktestRunRequest();
                 req.setStrategyId(strategy.getId());
                 req.setSymbol(symbol.toUpperCase());
                 req.setIntervalCode(intervalCode);
-                req.setStartTime(backtestStart);
+                req.setStartTime(since.minusDays(validationWarmupDays(intervalCode)));
                 req.setEndTime(now);
                 req.setInitialCapital(new BigDecimal("10000"));
                 req.setFeeRate(new BigDecimal("0.001"));
                 req.setSource(klineSource);
                 req.setSkipPersist(true);
+                if (localTradingViewAuditScope(strategy, symbol, intervalCode, klineSource)) {
+                    Map<String, Object> parityConfig = new LinkedHashMap<>();
+                    parityConfig.put("runIntervalCode", intervalCode);
+                    parityConfig.put("tradingViewParityMode", true);
+                    req.setConfigOverride(parityConfig);
+                }
 
                 BacktestResultResponse result = backtestService.runForExploration(req);
                 if (result.getTrades() != null) {
-                    backtestBuyCount = (int) result.getTrades().stream()
+                    List<BacktestResultResponse.TradeRecordDto> recentBacktestTrades = result.getTrades().stream()
                             .filter(t -> t.getEntryTime() != null && t.getEntryTime().isAfter(since))
+                            .toList();
+                    backtestBuyCount = recentBacktestTrades.size();
+                    backtestBuyBarCount = recentBacktestTrades.stream()
+                            .map(BacktestResultResponse.TradeRecordDto::getEntryTime)
+                            .distinct()
                             .count();
                 }
             } catch (Exception e) {
@@ -402,15 +418,24 @@ public class DiagnosticMcpTools {
                     ? Map.of()
                     : countEntrySkipAudits(strategy.getId(), since);
             int entrySkipCount = entrySkipAudits.values().stream().mapToInt(Integer::intValue).sum();
-            SignalEvalAuditStats signalEvalStats = countSignalEvalAudits(strategy.getId(), since);
+            boolean localTradingViewAuditScope = liveExpectation.expected()
+                    && localTradingViewAuditScope(strategy, symbol, intervalCode, klineSource);
+            SignalEvalAuditStats signalEvalStats = countSignalEvalAudits(
+                    strategy.getId(), since, localTradingViewAuditScope ? klineSource : null);
 
-            sb.append(String.format("  回測 BUY 信號：%d 次\n", backtestBuyCount));
+            sb.append(String.format("  回測 BUY 信號：%d 次（獨立K=%d）\n",
+                    backtestBuyCount, backtestBuyBarCount));
             sb.append(String.format("  Live 實際信號：%d 次\n", liveCount));
             if (signalEvalStats.total() > 0) {
-                sb.append(String.format("  SIGNAL_EVAL audit：%d 次（BUY/LONG=%d，HOLD/其他=%d）\n",
+                sb.append(String.format("  SIGNAL_EVAL audit：%d 次（BUY/LONG=%d，BUY獨立K=%d，HOLD/其他=%d，scope=%s，latestBar=%s）\n",
                         signalEvalStats.total(),
                         signalEvalStats.buyLike(),
-                        Math.max(0, signalEvalStats.total() - signalEvalStats.buyLike())));
+                        signalEvalStats.buyBars(),
+                        Math.max(0, signalEvalStats.total() - signalEvalStats.buyLike()),
+                        localTradingViewAuditScope
+                                ? "LOCAL_TRADINGVIEW_PARITY/" + klineSource
+                                : "ALL_SOURCES",
+                        signalEvalStats.latestBar() == null ? "N/A" : signalEvalStats.latestBar()));
             }
             if (!notifyOnly && entrySkipCount > 0) {
                 sb.append(String.format("  ENTRY_SKIP audit：%d 次（%s）\n",
@@ -2974,6 +2999,72 @@ public class DiagnosticMcpTools {
         return "okx";
     }
 
+    private KlineSourceResolution resolveEffectiveKlineSource(
+            BtStrategy strategy, String symbol, String intervalCode) {
+        String configured = resolveStrategyKlineSource(strategy);
+        if (!signalSourcePolicy.shouldRunLocalTradingViewEvaluator()
+                || !localTradingViewProps.enabled()
+                || strategy == null
+                || strategy.getId() == null
+                || strategy.getId().longValue() != localTradingViewProps.strategyId()
+                || !localTradingViewAllowed(symbol, localTradingViewProps.allowedSymbols(), true)
+                || !localTradingViewAllowed(intervalCode, localTradingViewProps.allowedIntervals(), false)) {
+            return new KlineSourceResolution(configured, configured, "STRATEGY_CONFIG");
+        }
+
+        List<String> allowedSources = normalizedTradingViewCsv(localTradingViewProps.allowedSources(), false);
+        if (allowedSources.isEmpty() || allowedSources.contains(configured)) {
+            return new KlineSourceResolution(configured, configured,
+                    allowedSources.isEmpty()
+                            ? "LOCAL_TRADINGVIEW_ALLOWLIST_OPEN"
+                            : "LOCAL_TRADINGVIEW_CONFIGURED_SOURCE_ALLOWED");
+        }
+        return new KlineSourceResolution(configured, allowedSources.get(0),
+                "LOCAL_TRADINGVIEW_ALLOWED_SOURCE_OVERRIDE");
+    }
+
+    private List<String> normalizedTradingViewCsv(String csv, boolean normalizeAsSymbol) {
+        if (!hasText(csv)) {
+            return List.of();
+        }
+        List<String> values = new ArrayList<>();
+        for (String token : csv.split(",")) {
+            String normalized = normalizeAsSymbol
+                    ? normalizeTradingViewSymbol(token)
+                    : normalizeTradingViewValue(token);
+            if (hasText(normalized) && !values.contains(normalized)) {
+                values.add(normalized);
+            }
+        }
+        return List.copyOf(values);
+    }
+
+    private record KlineSourceResolution(String configuredSource, String effectiveSource, String reason) {}
+
+    private boolean localTradingViewAuditScope(BtStrategy strategy, String symbol,
+                                                String intervalCode, String source) {
+        return signalSourcePolicy.shouldRunLocalTradingViewEvaluator()
+                && localTradingViewProps.enabled()
+                && strategy != null
+                && strategy.getId() != null
+                && strategy.getId().longValue() == localTradingViewProps.strategyId()
+                && localTradingViewAllowed(symbol, localTradingViewProps.allowedSymbols(), true)
+                && localTradingViewAllowed(intervalCode, localTradingViewProps.allowedIntervals(), false)
+                && localTradingViewAllowed(source, localTradingViewProps.allowedSources(), false);
+    }
+
+    private long validationWarmupDays(String intervalCode) {
+        if (!hasText(intervalCode)) {
+            return 365L;
+        }
+        return switch (intervalCode.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "1m", "5m", "15m" -> 30L;
+            case "1h" -> 90L;
+            case "4h" -> 180L;
+            default -> 365L;
+        };
+    }
+
     private String loadKlineReadinessLine(String symbol, String intervalCode, String source,
                                           LocalDateTime start, LocalDateTime end) {
         String src = hasText(source) ? source.trim().toLowerCase() : "okx";
@@ -3109,8 +3200,20 @@ public class DiagnosticMcpTools {
         }
     }
 
-    private SignalEvalAuditStats countSignalEvalAudits(Long strategyId, LocalDateTime since) {
+    private SignalEvalAuditStats countSignalEvalAudits(Long strategyId, LocalDateTime since,
+                                                       String localTradingViewKlineSource) {
         try {
+            boolean localTradingViewOnly = hasText(localTradingViewKlineSource);
+            String sourceClause = localTradingViewOnly
+                    ? "  AND JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.source')) = 'LOCAL_TRADINGVIEW_PARITY' " +
+                      "  AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.klineSource'))) = ? "
+                    : "";
+            List<Object> args = new ArrayList<>();
+            args.add(strategyId);
+            args.add(since);
+            if (localTradingViewOnly) {
+                args.add(localTradingViewKlineSource.trim().toLowerCase(java.util.Locale.ROOT));
+            }
             Map<String, Object> row = jdbc.queryForMap(
                     "SELECT COUNT(*) AS total, " +
                     "SUM(CASE " +
@@ -3119,19 +3222,29 @@ public class DiagnosticMcpTools {
                     "           UPPER(COALESCE(reason, '')) LIKE '%BUY%' OR UPPER(COALESCE(reason, '')) LIKE '%LONG%'" +
                     "      ) THEN 1 " +
                     "      ELSE 0 " +
-                    "    END) AS buy_like " +
+                    "    END) AS buy_like, " +
+                    "COUNT(DISTINCT CASE " +
+                    "      WHEN event_type = 'SIGNAL_BUY' THEN bar_open_time " +
+                    "      WHEN event_type = 'SIGNAL_EVAL' AND (" +
+                    "           UPPER(COALESCE(reason, '')) LIKE '%BUY%' OR UPPER(COALESCE(reason, '')) LIKE '%LONG%'" +
+                    "      ) THEN bar_open_time " +
+                    "      ELSE NULL " +
+                    "    END) AS buy_bars, " +
+                    "MAX(bar_open_time) AS latest_bar " +
                     "FROM bt_decision_audit " +
                     "WHERE strategy_id = ? " +
                     "  AND event_time >= ? " +
-                    "  AND event_type IN ('SIGNAL_EVAL', 'SIGNAL_BUY')",
-                    strategyId, since);
+                    "  AND event_type IN ('SIGNAL_EVAL', 'SIGNAL_BUY') " + sourceClause,
+                    args.toArray());
             int total = asInt(row.get("total"));
             int buyLike = asInt(row.get("buy_like"));
-            return new SignalEvalAuditStats(total, buyLike);
+            int buyBars = asInt(row.get("buy_bars"));
+            LocalDateTime latestBar = asDateTime(row.get("latest_bar"));
+            return new SignalEvalAuditStats(total, buyLike, buyBars, latestBar);
         } catch (Exception e) {
             log.warn("[verifyStrategyExecution] SIGNAL_EVAL audit count failed for strategy {}: {}",
                     strategyId, e.getMessage());
-            return new SignalEvalAuditStats(0, 0);
+            return new SignalEvalAuditStats(0, 0, 0, null);
         }
     }
 
@@ -3145,7 +3258,7 @@ public class DiagnosticMcpTools {
         }
     }
 
-    private record SignalEvalAuditStats(int total, int buyLike) {}
+    private record SignalEvalAuditStats(int total, int buyLike, int buyBars, LocalDateTime latestBar) {}
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.DIAGNOSTIC, Category.REPORTING})

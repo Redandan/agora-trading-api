@@ -19,6 +19,7 @@ import com.agora.service.trading.PositionSizingService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
@@ -50,7 +51,7 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
 
         DiagnosticMcpTools tools = tools(
                 new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
-                localProps(true, 485L),
+                localProps(true, 485L, "okx"),
                 strategyRepo,
                 liveSignalRepo,
                 backtestService);
@@ -79,7 +80,7 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
 
         DiagnosticMcpTools tools = tools(
                 new TradingSignalSourcePolicy(signalSourceProps("LOCAL_TRADINGVIEW", false)),
-                localProps(true, 485L),
+                localProps(true, 485L, "binance"),
                 strategyRepo,
                 liveSignalRepo,
                 backtestService);
@@ -88,10 +89,23 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
 
         assertThat(report)
                 .contains("signal_source_policy_primary=LOCAL_TRADINGVIEW")
+                .contains("BTCUSDT@1d source=binance")
+                .contains("K線源：binance｜configured=okx｜resolution=LOCAL_TRADINGVIEW_ALLOWED_SOURCE_OVERRIDE")
                 .contains("LOCAL_TRADINGVIEW parity evaluator active for configured strategyId=485")
                 .contains("疑似漏評估 Bug")
                 .contains("MACHINE_STATUS missing evaluation or missed order suspected")
                 .doesNotContain("POLICY_SUPPRESSED_NOT_MISSED_EVALUATION");
+
+        ArgumentCaptor<com.agora.dto.backtest.BacktestRunRequest> requestCaptor =
+                ArgumentCaptor.forClass(com.agora.dto.backtest.BacktestRunRequest.class);
+        org.mockito.Mockito.verify(backtestService).runForExploration(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().getSource()).isEqualTo("binance");
+        assertThat(requestCaptor.getValue().getConfigOverride())
+                .containsEntry("runIntervalCode", "1d")
+                .containsEntry("tradingViewParityMode", true);
+        assertThat(java.time.Duration.between(
+                requestCaptor.getValue().getStartTime(),
+                requestCaptor.getValue().getEndTime()).toDays()).isGreaterThanOrEqualTo(365L);
     }
 
     @Test
@@ -109,7 +123,7 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
         DiagnosticMcpTools tools = tools(
                 new TradingSignalSourcePolicy(new TradingSignalSourceProperties(
                         "LOCAL_TRADINGVIEW", false, true, "508", new BigDecimal("10.0"))),
-                localProps(true, 485L),
+                localProps(true, 485L, "okx"),
                 strategyRepo,
                 liveSignalRepo,
                 backtestService);
@@ -175,9 +189,9 @@ class DiagnosticMcpToolsSignalSourcePolicyTest {
         return result;
     }
 
-    private TradingViewLocalSignalProperties localProps(boolean enabled, long strategyId) {
+    private TradingViewLocalSignalProperties localProps(boolean enabled, long strategyId, String allowedSources) {
         return new TradingViewLocalSignalProperties(
-                enabled, strategyId, "BTCUSDT", "1d", "okx", 320, 3, 72,
+                enabled, strategyId, "BTCUSDT", "1d", allowedSources, 320, 3, 72,
                 new BigDecimal("10.0"), new BigDecimal("10.0"),
                 TradingViewLocalSignalProperties.ExecutionMode.DRY_RUN,
                 false, true, false, 3, 1, 1,

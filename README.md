@@ -953,7 +953,12 @@ shadow evidence. `verifyScoreBuyTradingViewGoldenTruth` fails closed with
 `GOLDEN_TRUTH_UNAVAILABLE` until a Pine-derived Strategy Tester CSV is
 configured. `runScoreBuyTradingViewProfitOptimizationReport` reports fixed
 90/180/270/365-day production-semantics baseline and one shadow candidate; it
-never authorizes live promotion.
+never authorizes live promotion. `runTimeframeAwareStrategyValidation`
+separates `ENTRY_PARITY`, `RECENT_EDGE`, and `LONG_STRESS`: daily strategies
+use independent buy bars with 1/3/7/14-day outcomes, intraday strategies use
+4/24/72-hour outcomes, and the long window is only a drawdown/relative-DCA
+risk veto rather than an absolute-positive-return requirement. It is read-only
+and can only route a result to forward shadow review.
 
 Read-only LOCAL_TRADINGVIEW OCO lifecycle env handoff packet:
 

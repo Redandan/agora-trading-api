@@ -99,7 +99,7 @@ covers registration plus safe executable diagnostics while deployed acceptance
 covers the production-only governance SQL paths.
 
 The current local parity batch registers 305 MCP tools in the local-smoke Spring
-context. The reusable parity list requires 40 representative tools and is kept
+context. The reusable parity list requires 41 representative tools and is kept
 in sync across local smoke and server-local SSH smoke by
 `scripts/verify_local.ps1`, which parses `scripts/smoke_mcp_parity.ps1`,
 `scripts/smoke_local_health.ps1`, and `scripts/smoke_mcp_parity_ssh.ps1`.

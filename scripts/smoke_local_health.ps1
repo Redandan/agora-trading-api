@@ -572,6 +572,7 @@ try {
         "runBacktest",
         "runScoreBuyTradingViewBtcBaseBacktest",
         "runScoreBuyTradingViewProfitOptimizationReport",
+        "runTimeframeAwareStrategyValidation",
         "verifyScoreBuyTradingViewGoldenTruth",
         "backfillBinanceKlines",
         "backfillBinanceKlinesRange",

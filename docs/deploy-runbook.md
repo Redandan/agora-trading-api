@@ -219,6 +219,12 @@ Expected:
   `LIVE_ONE_ORDER_PER_BAR` as the production baseline and tests one shadow
   candidate per round across 90/180/270/365-day, drawdown, walk-forward, and
   stress gates. Neither tool authorizes live promotion.
+- `runTimeframeAwareStrategyValidation` is the timeframe-specific companion
+  report. It keeps TradingView entry parity separate from profitability,
+  evaluates 1d entries over 1/3/7/14-day outcomes or 1h/4h entries over
+  4/24/72-hour outcomes, counts unique entry bars rather than same-bar intents,
+  and uses the 365-day window only as a max-drawdown/relative-DCA veto. The
+  report uses `skipPersist`, is read-only, and never authorizes live promotion.
 - Smoke logs prove OKX liquidation WebSocket is disabled with `[OkxLiqWS] disabled by market.liquidation-ws.enabled=false`.
 - Local smoke forces `okx.earn-topup.enabled=false`; the OKX Earn top-up scheduler bean is explicit opt-in and smoke logs must not show Earn redemption or transfer side effects.
 - Local smoke forces `polymarket.monitor.enabled=false`; the Polymarket monitor scheduler bean is explicit opt-in and smoke logs must not show Polymarket snapshot, backfill, or digest side effects.

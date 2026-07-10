@@ -647,8 +647,8 @@ function New-BlockerSummary {
             "RUNTIME_EVIDENCE_NO_SHADOW_INTENT" {
                 $category = "runtime-evidence"
                 $requiredEvidence = ".\scripts\smoke_runtime_evidence_rca_ssh.ps1 -RequireReady"
-                $evidenceMarkers = @("shadowIntentCount is 0 or missing", "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT")
-                $nextAction = "Require canonical shadow intent evidence with orderSentEvidenceBlockerCount=0."
+                $evidenceMarkers = @("targetStrategyShadowLikeRows is 0 or missing", "diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT")
+                $nextAction = "Require target-strategy canonical shadow intent evidence with orderSentEvidenceBlockerCount=0."
             }
             "RUNTIME_EVIDENCE_ORDER_SENT" {
                 $category = "runtime-evidence"
@@ -892,7 +892,7 @@ if ($runtimeEvidence -match "diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS" `
         -or $runtimeEvidence -notmatch "diagnosis=CANONICAL_SHADOW_READY|diagnosis=CONFIG_DISABLED|diagnosis=NO_CANONICAL_ROWS|diagnosis=NO_TARGET_STRATEGY_CANONICAL_ROWS|diagnosis=CANONICAL_ROWS_NO_SHADOW_INTENT|diagnosis=REVIEW_RUNTIME_EVIDENCE_STATUS") {
     $blockers.Add("RUNTIME_EVIDENCE_REVIEW_REQUIRED")
 }
-if ($runtimeEvidence -notmatch "shadowIntentCount=([1-9][0-9]*)") {
+if ($runtimeEvidence -notmatch "targetStrategyShadowLikeRows=([1-9][0-9]*)") {
     $blockers.Add("RUNTIME_EVIDENCE_NO_SHADOW_INTENT")
 }
 if ($runtimeOrderSentBlockerCount -gt 0) {

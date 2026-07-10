@@ -159,7 +159,7 @@ Expected:
 - `env.TRADING_RUNTIME_EVIDENCE_ENABLED=SET` or an equivalent non-empty masked
   state is printed
 - `orderSentEvidence=0`
-- `shadowIntentCount > 0`
+- `targetStrategyShadowLikeRows > 0`
 - `missing_runtime_evidence_fields=[]`
 - `runtime_evidence_review_plan` contains no `state=BLOCKED` or
   `state=HARD_BLOCKED` entries. If entries remain, review `riskCategory`,
@@ -171,9 +171,9 @@ Expected:
 - Machine marker: runtime_evidence_review_plan is missing.
 - The `-RequireReady` check exits non-zero after printing RCA details when the
   diagnosis is not `CANONICAL_SHADOW_READY`, when required fields are missing,
-  when `shadowIntentCount` is not greater than 0, or when
+  when `targetStrategyShadowLikeRows` is not greater than 0, or when
   `orderSentEvidence` is not 0.
-- Missing or `N/A` shadow-intent evidence stays blocked
+- Missing or `N/A` target-strategy shadow-intent evidence stays blocked
 - Missing or unrecognized runtime-evidence diagnosis stays blocked
 - Missing runtime-evidence fields stay blocked and must not be interpreted as
   `CANONICAL_SHADOW_READY`.

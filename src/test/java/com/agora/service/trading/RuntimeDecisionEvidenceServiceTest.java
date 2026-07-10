@@ -159,6 +159,54 @@ class RuntimeDecisionEvidenceServiceTest {
         assertThat(written.get().getSuppressionReason()).isEqualTo("SHADOW_MODE");
     }
 
+    @Test
+    void writeFromDecisionAuditKeepsLocalTradingViewNoBuyAsWaitEvidenceOnly() {
+        ReflectionTestUtils.setField(service, "enabled", true);
+        BtDecisionAudit audit = new BtDecisionAudit();
+        audit.setId(100L);
+        audit.setEventTime(LocalDateTime.parse("2026-07-10T08:00:00"));
+        audit.setStrategyId(508L);
+        audit.setSymbol("BTCUSDT");
+        audit.setIntervalCode("1h");
+        audit.setEventType("SIGNAL_EVAL");
+        audit.setOutcome("INFO");
+        audit.setBarOpenTime(LocalDateTime.parse("2026-07-10T07:00:00"));
+        audit.setContextJson("{"
+                + "\"source\":\"LOCAL_TRADINGVIEW_PARITY\","
+                + "\"signalSource\":\"LOCAL_TRADINGVIEW\","
+                + "\"side\":\"HOLD\","
+                + "\"action\":\"WAIT\","
+                + "\"selectedAction\":\"WAIT\","
+                + "\"decision\":\"LOCAL_TRADINGVIEW_NO_BUY\","
+                + "\"currentSignalDecision\":\"HOLD\","
+                + "\"noCurrentBuyCandidateReason\":\"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE\","
+                + "\"executionMode\":\"LOCAL_TRADINGVIEW_PARITY_EVALUATION\","
+                + "\"orderSent\":false,"
+                + "\"intentCreated\":false,"
+                + "\"suppressionReason\":\"LOCAL_TRADINGVIEW_NO_BUY\""
+                + "}");
+
+        when(repository.findByDecisionId(100L)).thenReturn(Optional.empty());
+        when(repository.save(any(RuntimeDecisionEvidence.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(autopilotPolicyService.decide(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(new AutopilotPolicyService.Decision("BLOCK", "wait evidence only", "{}"));
+        when(probePositionExecutorDryRunService.previewJson(any())).thenReturn("{}");
+
+        Optional<RuntimeDecisionEvidence> written = service.writeFromDecisionAudit(audit);
+
+        assertThat(written).isPresent();
+        assertThat(written.get().getStrategyId()).isEqualTo(508L);
+        assertThat(written.get().getSignalSource()).isEqualTo("LOCAL_TRADINGVIEW");
+        assertThat(written.get().getSelectedAction()).isEqualTo("WAIT");
+        assertThat(written.get().getDecision()).isEqualTo("LOCAL_TRADINGVIEW_NO_BUY");
+        assertThat(written.get().getExecutionMode()).isEqualTo("LOCAL_TRADINGVIEW_PARITY_EVALUATION");
+        assertThat(written.get().getOrderSent()).isFalse();
+        assertThat(written.get().getIntentCreated()).isFalse();
+        assertThat(written.get().getSuppressionReason()).isEqualTo("LOCAL_TRADINGVIEW_NO_BUY");
+        assertThat(written.get().getFeaturesSnapshotJson())
+                .contains("\"noCurrentBuyCandidateReason\":\"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE\"");
+    }
+
     private RuntimeDecisionEvidence evidence(String symbol) {
         RuntimeDecisionEvidence evidence = new RuntimeDecisionEvidence();
         evidence.setEvidenceTime(LocalDateTime.now());

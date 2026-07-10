@@ -170,6 +170,34 @@ def compact(text, limit=320):
 def count_lines(pattern, text):
     return sum(1 for line in text.splitlines() if re.search(pattern, line))
 
+def evidence_row_chunks(text):
+    matches = list(re.finditer(r"(?m)^(\d+)\. #([0-9]+)\s+(.*)$", text or ""))
+    for index, match in enumerate(matches):
+        start = match.start()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text or "")
+        yield match.group(0), (text or "")[start:end]
+
+def is_target_strategy_row(header, strategy_id):
+    return re.search(r"\bstrategy=" + re.escape(str(strategy_id)) + r"\b", header or "") is not None
+
+def count_target_strategy_rows(text, strategy_id):
+    return sum(1 for header, _chunk in evidence_row_chunks(text) if is_target_strategy_row(header, strategy_id))
+
+def is_shadow_like_row(header, chunk):
+    combined = f"{header}\n{chunk}"
+    return re.search(
+        r"SHADOW_MODE|intentCreated\s*=\s*True|intentCreated\s*=\s*true|\"intentCreated\"\s*:\s*true",
+        combined,
+        re.IGNORECASE,
+    ) is not None
+
+def count_target_strategy_shadow_like_rows(text, strategy_id):
+    return sum(
+        1
+        for header, chunk in evidence_row_chunks(text)
+        if is_target_strategy_row(header, strategy_id) and is_shadow_like_row(header, chunk)
+    )
+
 def parse_order_sent_rows(text, target_strategy_id, raw_order_sent_count):
     rows = []
     matches = list(re.finditer(r"(?m)^(\d+)\. #([0-9]+)\s+(.*)$", text or ""))
@@ -267,12 +295,12 @@ shadow_intents = field(r"shadowExecutionIntents=(\d+)", dashboard)
 shadow_intent_count = field(r"shadowIntentCount=(\d+)", dashboard)
 order_sent_evidence = field(r"orderSentEvidence=(\d+)", dashboard)
 freshness_blocks = field(r"freshnessTerminalBlocks=(\d+)", dashboard)
-shadow_intent_number = int_or_none(shadow_intent_count)
 evidence_row_lines = count_lines(r"^\d+\. #", evidence)
 shadow_line_count = count_lines(r"SHADOW_MODE|intentCreated=True|intentCreated=true|fearGreedWarning", evidence)
-target_strategy_pattern = re.escape(str(strategy_id))
-target_strategy_review_window_rows = count_lines(r"^\d+\. #.*\bstrategy=" + target_strategy_pattern + r"\b", evidence)
-target_strategy_evidence_rows = count_lines(r"^\d+\. #.*\bstrategy=" + target_strategy_pattern + r"\b", target_strategy_evidence)
+target_strategy_review_window_rows = count_target_strategy_rows(evidence, strategy_id)
+target_strategy_evidence_rows = count_target_strategy_rows(target_strategy_evidence, strategy_id)
+target_strategy_shadow_like_rows = count_target_strategy_shadow_like_rows(target_strategy_evidence, strategy_id)
+target_strategy_review_shadow_like_rows = count_target_strategy_shadow_like_rows(evidence, strategy_id)
 order_sent_rows, target_order_sent_count, other_strategy_order_sent_count, non_autonomous_grid_order_sent_count, unknown_order_sent_count, order_sent_blocker_count = parse_order_sent_rows(
     evidence, strategy_id, order_sent_evidence)
 required_fields = {
@@ -300,10 +328,12 @@ elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS" and target_strategy_evidenc
     diagnosis = "NO_TARGET_STRATEGY_CANONICAL_ROWS"
 elif runtime_status == "NOT_READY_NO_CANONICAL_ROWS":
     diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"
-elif runtime_status == "AVAILABLE_CANONICAL_ROWS" and shadow_intent_count == "0":
+elif runtime_status == "AVAILABLE_CANONICAL_ROWS":
     diagnosis = "CANONICAL_ROWS_NO_SHADOW_INTENT"
-elif runtime_status.startswith("AVAILABLE_CANONICAL") and shadow_intent_number is not None and shadow_intent_number > 0:
+elif runtime_status.startswith("AVAILABLE_CANONICAL") and target_strategy_shadow_like_rows > 0:
     diagnosis = "CANONICAL_SHADOW_READY"
+elif runtime_status.startswith("AVAILABLE_CANONICAL"):
+    diagnosis = "CANONICAL_ROWS_NO_SHADOW_INTENT"
 else:
     diagnosis = "REVIEW_RUNTIME_EVIDENCE_STATUS"
 
@@ -353,8 +383,8 @@ elif diagnosis == "CANONICAL_ROWS_NO_SHADOW_INTENT":
         "gate": "shadow-intent",
         "state": "BLOCKED",
         "riskCategory": "missing-shadow-intent",
-        "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"shadowExecutionIntents={shadow_intents}"],
-        "requiredEvidence": "shadowIntentCount > 0 and orderSentEvidenceBlockerCount=0 for the reviewed target-strategy window.",
+        "evidenceMarkers": [f"targetStrategyShadowLikeRows={target_strategy_shadow_like_rows}", f"targetStrategyReviewShadowLikeRows={target_strategy_review_shadow_like_rows}", f"shadowIntentCount={shadow_intent_count}", f"shadowExecutionIntents={shadow_intents}"],
+        "requiredEvidence": "targetStrategyShadowLikeRows > 0 and orderSentEvidenceBlockerCount=0 for the reviewed target-strategy window.",
         "nextAction": "Continue dry-run/shadow evidence collection; keep execution disabled.",
         "notAuthorization": "Canonical rows without shadow intent do not authorize live trading.",
     })
@@ -363,7 +393,7 @@ elif diagnosis == "CANONICAL_SHADOW_READY":
         "gate": "canonical-shadow",
         "state": "READY_FOR_OTHER_BLOCKER_REVIEW",
         "riskCategory": "runtime-evidence-ready",
-        "evidenceMarkers": [f"shadowIntentCount={shadow_intent_count}", f"orderSentEvidenceBlockerCount={order_sent_blocker_count}"],
+        "evidenceMarkers": [f"targetStrategyShadowLikeRows={target_strategy_shadow_like_rows}", f"shadowIntentCount={shadow_intent_count}", f"orderSentEvidenceBlockerCount={order_sent_blocker_count}"],
         "requiredEvidence": "Full live-readiness bundle clears all other blockers.",
         "nextAction": "Use full bundle, tiny-live hard-stop, signal policy, background automation, and audit evidence before drafting any live review packet.",
         "notAuthorization": "Runtime evidence readiness alone is not live approval.",
@@ -374,7 +404,7 @@ else:
         "state": "BLOCKED",
         "riskCategory": "unclassified-runtime-evidence-status",
         "evidenceMarkers": [f"diagnosis={diagnosis}", f"runtimeEvidenceStatus={runtime_status}"],
-        "requiredEvidence": "diagnosis=CANONICAL_SHADOW_READY, missing_runtime_evidence_fields=[], shadowIntentCount > 0, orderSentEvidenceBlockerCount=0.",
+        "requiredEvidence": "diagnosis=CANONICAL_SHADOW_READY, missing_runtime_evidence_fields=[], targetStrategyShadowLikeRows > 0, orderSentEvidenceBlockerCount=0.",
         "nextAction": "Review and classify the runtime-evidence status before any env plan.",
         "notAuthorization": "Unclassified runtime-evidence status cannot be used for live review.",
     })
@@ -420,6 +450,8 @@ print(f"  listedRows={evidence_row_lines}")
 print(f"  targetStrategyEvidenceWindowMinutes={target_strategy_evidence_minutes}")
 print(f"  targetStrategyEvidenceRows={target_strategy_evidence_rows}")
 print(f"  targetStrategyReviewWindowRows={target_strategy_review_window_rows}")
+print(f"  targetStrategyShadowLikeRows={target_strategy_shadow_like_rows}")
+print(f"  targetStrategyReviewShadowLikeRows={target_strategy_review_shadow_like_rows}")
 print(f"  shadowExecutionIntents={shadow_intents}")
 print(f"  shadowIntentCount={shadow_intent_count}")
 print(f"  shadowLikeListedRows={shadow_line_count}")
@@ -453,7 +485,7 @@ elif diagnosis == "NO_CANONICAL_ROWS":
 elif diagnosis == "NO_TARGET_STRATEGY_CANONICAL_ROWS":
     print("  - COLLECT_TARGET_STRATEGY_EVIDENCE_FIRST: symbol-level canonical rows exist, but the reviewed target strategy has no canonical rows in the selected window.")
 elif diagnosis == "CANONICAL_ROWS_NO_SHADOW_INTENT":
-    print("  - REQUIRE_SHADOW_INTENT: canonical rows exist but do not yet prove shadow/tiny-live intent coverage.")
+    print("  - REQUIRE_TARGET_STRATEGY_SHADOW_INTENT: target-strategy canonical rows exist but do not yet prove shadow/tiny-live intent coverage.")
 elif diagnosis == "CANONICAL_SHADOW_READY":
     print("  - REVIEW_WITH_FULL_AUDIT: runtime evidence gate appears satisfied; live-readiness still requires all other blockers to clear.")
 else:
@@ -461,7 +493,7 @@ else:
 print("  - SCOPE: this smoke is read-only and must not write RuntimeDecisionEvidence, place orders, send Telegram, or enable flags.")
 print("[runtime-evidence-rca] OK read-only check complete")
 try:
-    shadow_ready = int(shadow_intent_count) > 0
+    shadow_ready = int(target_strategy_shadow_like_rows) > 0
 except Exception:
     shadow_ready = False
 no_blocking_order_sent = order_sent_blocker_count == 0

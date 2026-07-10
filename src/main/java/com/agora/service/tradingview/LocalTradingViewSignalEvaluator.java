@@ -47,6 +47,7 @@ public class LocalTradingViewSignalEvaluator {
 
     private static final String SOURCE = "LOCAL_TRADINGVIEW_PARITY";
     private static final String BLOCKER = "LocalTradingViewDryRun";
+    private static final String NO_BUY_REASON = "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE";
 
     private final TradingViewLocalSignalProperties props;
     private final BtStrategyService strategyService;
@@ -120,10 +121,12 @@ public class LocalTradingViewSignalEvaluator {
             StrategyContext context = new StrategyContext(index, klines.get(index), previous, klines, indicators);
             StrategySignal signal = strategy.evaluate(context, config);
             List<LiveSignalContext.OrderIntent> intents = LiveSignalContext.getOrderIntents();
+            Map<String, Object> details = LiveSignalContext.getDetails();
             if (signal != StrategySignal.BUY || intents.isEmpty()) {
+                auditNoBuy(strategyEntity, klines.get(index), interval, source, signal, details,
+                        triggerOpenTime, catchUpBars);
                 return;
             }
-            Map<String, Object> details = LiveSignalContext.getDetails();
             int intentIndex = 0;
             for (LiveSignalContext.OrderIntent intent : intents) {
                 intentIndex++;
@@ -153,6 +156,67 @@ public class LocalTradingViewSignalEvaluator {
             klines.sort(Comparator.comparing(MdKline::getOpenTime));
         }
         return klines;
+    }
+
+    private void auditNoBuy(BtStrategy strategy, MdKline kline, String interval, String source,
+                            StrategySignal signal, Map<String, Object> details,
+                            LocalDateTime triggerOpenTime, int catchUpBars) {
+        String signalName = signal == null ? StrategySignal.HOLD.name() : signal.name();
+        String auditSide = StrategySignal.HOLD.name();
+        String reason = signal == StrategySignal.BUY
+                ? "LOCAL_TRADINGVIEW_BUY_WITHOUT_ORDER_INTENT"
+                : NO_BUY_REASON;
+        String key = String.join("|",
+                String.valueOf(strategy.getId()),
+                normalizeSymbol(kline.getSymbol()),
+                interval,
+                String.valueOf(kline.getOpenTime()),
+                source == null ? "" : source,
+                "NO_BUY",
+                signalName);
+        if (seenKeys.putIfAbsent(key, Instant.now()) != null) {
+            return;
+        }
+        evictOldKeys();
+
+        Map<String, Object> context = new LinkedHashMap<>();
+        context.put("source", SOURCE);
+        context.put("signalSource", "LOCAL_TRADINGVIEW");
+        context.put("strategyId", strategy.getId());
+        context.put("strategy", strategy.getName());
+        context.put("strategyType", strategy.getStrategyType());
+        context.put("klineSource", source == null ? "" : source);
+        context.put("action", "WAIT");
+        context.put("selectedAction", "WAIT");
+        context.put("decision", "LOCAL_TRADINGVIEW_NO_BUY");
+        context.put("side", auditSide);
+        context.put("symbol", normalizeSymbol(kline.getSymbol()));
+        context.put("timeframe", interval);
+        context.put("barTime", kline.getOpenTime() == null ? "" : kline.getOpenTime().toString());
+        context.put("price", kline.getClosePrice());
+        context.put("idempotencyKey", key);
+        context.put("triggerBarTime", triggerOpenTime == null ? "" : triggerOpenTime.toString());
+        context.put("catchUpBars", catchUpBars);
+        context.put("catchUpEvaluation", !Objects.equals(kline.getOpenTime(), triggerOpenTime));
+        context.put("currentSignalDecision", signalName);
+        context.put("currentSignalSource", "LOCAL_TRADINGVIEW");
+        context.put("noBuyReason", reason);
+        context.put("noCurrentBuyCandidateReason", reason);
+        context.put("intentCreated", false);
+        context.put("orderSent", false);
+        context.put("blockers", reason);
+        context.put("executionMode", "LOCAL_TRADINGVIEW_PARITY_EVALUATION");
+        context.put("executionModeSetting", props.executionMode().name());
+        context.put("executionEnabled", props.effectiveExecutionEnabled());
+        context.put("executionDryRun", props.effectiveExecutionDryRun());
+        context.put("executionLiveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
+        context.put("suppressionReason", "LOCAL_TRADINGVIEW_NO_BUY");
+        if (details != null) {
+            details.forEach((name, value) -> context.put("strategyDecision." + name, value));
+        }
+
+        auditWriter.logSignalEval(strategy.getId(), normalizeSymbol(kline.getSymbol()), interval,
+                kline.getOpenTime(), auditSide, context);
     }
 
     private void auditIntent(BtStrategy strategy, MdKline kline, String interval, String source,

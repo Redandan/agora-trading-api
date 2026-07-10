@@ -286,7 +286,7 @@ Expected evidence-only result:
 - `backgroundAutomationClear=true`.
 - `smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` exits 0.
 - `diagnosis=CANONICAL_SHADOW_READY`.
-- `shadowIntentCount > 0` before live is discussed.
+- `targetStrategyShadowLikeRows > 0` before live is discussed.
 - `orderSentEvidence=0`.
 - `smoke_tiny_live_loss_rca_ssh.ps1 -RequireClear` exits 0.
 - `hardStopDetected=false`.

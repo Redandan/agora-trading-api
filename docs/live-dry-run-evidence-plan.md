@@ -136,7 +136,7 @@ Expected evidence-only outcome:
 
 - `smoke_runtime_evidence_rca_ssh.ps1 -RequireReady` exits 0.
 - `diagnosis=CANONICAL_SHADOW_READY`.
-- `shadowIntentCount > 0` for the reviewed window.
+- `targetStrategyShadowLikeRows > 0` for the reviewed target-strategy window.
 - `orderSentEvidence=0`.
 - The runtime-evidence smoke exits non-zero after printing RCA details if the
   diagnosis is not canonical shadow-ready, required fields are missing, shadow

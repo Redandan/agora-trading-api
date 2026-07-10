@@ -4671,7 +4671,7 @@ Expected:
 - The script calls server-local `/api/mcp`, not public Trading MCP.
 - It prints the masked `TRADING_RUNTIME_EVIDENCE_ENABLED` state, dashboard
   `enabled` flag, preview `runtimeEvidenceStatus`, recent evidence row count,
-  shadow-intent counts, raw `orderSentEvidence`, scoped
+  target-strategy shadow-intent count, raw `orderSentEvidence`, scoped
   `orderSentEvidenceBlockerCount`, target/other/grid/unknown order-sent
   breakdown, `order_sent_evidence_rows`,
   `missing_runtime_evidence_fields`, candidate context, and no-buy context.
@@ -4694,10 +4694,10 @@ Expected:
   `RUNTIME_EVIDENCE_REVIEW_REQUIRED`.
 - With `-RequireReady`, the smoke exits 0 only when
   `diagnosis=CANONICAL_SHADOW_READY`, `missing_runtime_evidence_fields=[]`,
-  `shadowIntentCount > 0`, and `orderSentEvidenceBlockerCount=0`; otherwise it
-  prints the RCA details and exits non-zero. Raw `orderSentEvidence` may be
-  positive only when the listed rows are known non-target evidence for the
-  selected `StrategyId`.
+  `targetStrategyShadowLikeRows > 0`, and
+  `orderSentEvidenceBlockerCount=0`; otherwise it prints the RCA details and
+  exits non-zero. Raw `orderSentEvidence` may be positive only when the listed
+  rows are known non-target evidence for the selected `StrategyId`.
 - `CANONICAL_SHADOW_READY` is not live approval; it only means this one gate
   should be rechecked by the full live-readiness audit.
 - The script must not write RuntimeDecisionEvidence, place orders, change OCO,

@@ -89,6 +89,85 @@ class LocalTradingViewSignalEvaluatorTest {
     }
 
     @Test
+    void enabledEvaluatorWritesNoBuyAuditWhenTradingViewHasNoOrderIntent() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        Strategy strategy = new Strategy() {
+            @Override
+            public String getType() {
+                return "TEST_TV";
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                LiveSignalContext.putDetail("tradingview_buy_signal", false);
+                LiveSignalContext.putDetail("trend_filter", "WAIT");
+                return StrategySignal.HOLD;
+            }
+        };
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, false, 1, auditWriter, strategy);
+
+        evaluator.evaluate(kline(2));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter).logSignalEval(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)), eq("HOLD"), contextCaptor.capture());
+        verify(auditWriter, never()).logEntrySkip(any(), any(), any(), any(), any(), any(), anyMap());
+
+        assertThat(contextCaptor.getValue())
+                .containsEntry("source", "LOCAL_TRADINGVIEW_PARITY")
+                .containsEntry("signalSource", "LOCAL_TRADINGVIEW")
+                .containsEntry("action", "WAIT")
+                .containsEntry("selectedAction", "WAIT")
+                .containsEntry("decision", "LOCAL_TRADINGVIEW_NO_BUY")
+                .containsEntry("currentSignalDecision", "HOLD")
+                .containsEntry("currentSignalSource", "LOCAL_TRADINGVIEW")
+                .containsEntry("noBuyReason", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+                .containsEntry("noCurrentBuyCandidateReason", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
+                .containsEntry("intentCreated", false)
+                .containsEntry("orderSent", false)
+                .containsEntry("suppressionReason", "LOCAL_TRADINGVIEW_NO_BUY")
+                .containsEntry("executionMode", "LOCAL_TRADINGVIEW_PARITY_EVALUATION")
+                .containsEntry("strategyDecision.tradingview_buy_signal", false)
+                .containsEntry("strategyDecision.trend_filter", "WAIT");
+    }
+
+    @Test
+    void buySignalWithoutOrderIntentIsAuditedAsWaitNotBuyCandidate() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        Strategy strategy = new Strategy() {
+            @Override
+            public String getType() {
+                return "TEST_TV";
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                LiveSignalContext.putDetail("tradingview_buy_signal", true);
+                return StrategySignal.BUY;
+            }
+        };
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, false, 1, auditWriter, strategy);
+
+        evaluator.evaluate(kline(2));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter).logSignalEval(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)), eq("HOLD"), contextCaptor.capture());
+        verify(auditWriter, never()).logEntrySkip(any(), any(), any(), any(), any(), any(), anyMap());
+
+        assertThat(contextCaptor.getValue())
+                .containsEntry("side", "HOLD")
+                .containsEntry("selectedAction", "WAIT")
+                .containsEntry("currentSignalDecision", "BUY")
+                .containsEntry("noBuyReason", "LOCAL_TRADINGVIEW_BUY_WITHOUT_ORDER_INTENT")
+                .containsEntry("intentCreated", false)
+                .containsEntry("orderSent", false)
+                .containsEntry("strategyDecision.tradingview_buy_signal", true);
+    }
+
+    @Test
     void executionEnabledAddsDedicatedDryRunReceiptForEachIntent() {
         DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
         LocalTradingViewSignalEvaluator evaluator = evaluator(true, true, auditWriter);

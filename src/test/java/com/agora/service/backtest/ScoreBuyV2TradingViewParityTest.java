@@ -41,6 +41,7 @@ class ScoreBuyV2TradingViewParityTest {
         legacyV2Config.put("buyThreshold", 0.33);
         legacyV2Config.put("yearLookbackBars", 8760);
         legacyV2Config.put("volumeBreakoutMultiplier", 1.3);
+        legacyV2Config.put("tradingViewAllowIncompleteHistoryShadowIntents", true);
 
         StrategySignal signal = strategy.evaluate(
                 context(bars, indicators(30, 38, 140, 100, 1000), 25),

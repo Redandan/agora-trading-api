@@ -16,6 +16,7 @@ import com.agora.service.backtest.BacktestRunSummary;
 import com.agora.service.backtest.Strategy;
 import com.agora.service.backtest.StrategyRegistry;
 import com.agora.service.backtest.TradeRecord;
+import com.agora.service.backtest.TradingViewScoreBuyModel;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -88,19 +89,22 @@ public class BacktestService {
         Strategy strategyBean = strategyRegistry.getRequiredStrategy(strategy.getStrategyType());
         strategyBean.defaultExecutionConfig().forEach(executionConfig::putIfAbsent);
 
+        // V041 source resolution: request 明確覆寫 > strategy.klineSource > 全域預設
+        // strategy.klineSource 是 source of truth；request.source 僅 MCP / 研究工具用來暫時切源。
+        String source = resolveKlineSource(request.getSource(), strategy.getKlineSource());
+
         // TradingView/Pine always evaluates with enough pre-visible chart history.
         // SCORE_BUY needs this for 252-bar lows/SMA200; without it, short MCP
         // backtests such as days=90 stay in warmup and produce 0 trades.
         LocalDateTime visibleStartTime = request.getStartTime();
-        LocalDateTime queryStartTime = backtestQueryStart(strategy.getStrategyType(), intervalCode, visibleStartTime);
+        LocalDateTime queryStartTime = backtestQueryStart(
+                strategy.getStrategyType(), request.getSymbol(), intervalCode, source,
+                visibleStartTime, executionConfig);
         if (queryStartTime.isBefore(visibleStartTime)) {
             executionConfig.put("backtestTradeStartTime", visibleStartTime.toString());
             executionConfig.put("backtestWarmupStartTime", queryStartTime.toString());
         }
 
-        // V041 source resolution: request 明確覆寫 > strategy.klineSource > 全域預設
-        // strategy.klineSource 是 source of truth；request.source 僅 MCP / 研究工具用來暫時切源。
-        String source = resolveKlineSource(request.getSource(), strategy.getKlineSource());
         List<MdKline> klines = klineRepository
                 .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
                         request.getSymbol().toUpperCase(),
@@ -294,9 +298,24 @@ public class BacktestService {
         return DEFAULT_KLINE_SOURCE;
     }
 
-    private LocalDateTime backtestQueryStart(String strategyType, String intervalCode, LocalDateTime visibleStartTime) {
+    private LocalDateTime backtestQueryStart(String strategyType,
+                                             String symbol,
+                                             String intervalCode,
+                                             String source,
+                                             LocalDateTime visibleStartTime,
+                                             Map<String, Object> executionConfig) {
         if (strategyType == null || !strategyType.toUpperCase().startsWith("SCORE_BUY")) {
             return visibleStartTime;
+        }
+        boolean tradingViewParity = Boolean.parseBoolean(String.valueOf(
+                executionConfig.getOrDefault("tradingViewParityMode", true)));
+        if (tradingViewParity
+                && "BTCUSDT".equalsIgnoreCase(symbol)
+                && "1d".equalsIgnoreCase(intervalCode)
+                && "binance".equalsIgnoreCase(source)) {
+            return visibleStartTime.isAfter(TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC)
+                    ? TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC
+                    : visibleStartTime;
         }
         return visibleStartTime.minusDays(warmupDays(intervalCode));
     }

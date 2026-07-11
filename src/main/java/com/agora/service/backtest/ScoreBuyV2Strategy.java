@@ -89,7 +89,7 @@ public class ScoreBuyV2Strategy implements Strategy {
 
     @Override
     public Map<String, Object> defaultExecutionConfig() {
-        return Map.of("tradingViewOrderIntentExecution", true);
+        return tradingViewStrategy.defaultExecutionConfig();
     }
 
     /**
@@ -267,10 +267,13 @@ public class ScoreBuyV2Strategy implements Strategy {
         tv.put("rsiOverbought", 70.0);
         tv.put("buyThreshold", 0.8);
         tv.put("volumeBreakoutMultiplier", 1.5);
-        tv.put("scoreScale", 8.0);
-        tv.put("scoreShift", 4.0);
+        tv.put("learningRate", 0.01);
         tv.put("allowMacdAsLowProxy", false);
         tv.put("requireAboveSma200", false);
+        tv.put("tradingViewParityMode", true);
+        tv.put(TradingViewScoreBuyModel.REPLAY_START_CONFIG,
+                TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC.toString());
+        tv.put(TradingViewScoreBuyModel.REQUIRE_FULL_HISTORY_CONFIG, true);
         return tv;
     }
 

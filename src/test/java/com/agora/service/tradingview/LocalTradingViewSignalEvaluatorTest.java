@@ -295,6 +295,37 @@ class LocalTradingViewSignalEvaluatorTest {
                 .containsEntry("orderReason", "TRADINGVIEW_AI_BUY_SIGNAL");
     }
 
+    @Test
+    void incompletePineReplayHistoryKeepsIntentShadowOnly() {
+        DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
+        Strategy strategy = new Strategy() {
+            @Override
+            public String getType() {
+                return "TEST_TV";
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                LiveSignalContext.putDetail("tradingview_history_complete", false);
+                LiveSignalContext.addOrderIntent("TRADINGVIEW_RELATIVE_LOW", "相对低点买入", 1000);
+                return StrategySignal.BUY;
+            }
+        };
+        LocalTradingViewSignalEvaluator evaluator = evaluator(true, true, 1, auditWriter, strategy);
+
+        evaluator.evaluate(kline(2));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(auditWriter, times(1)).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)), eq("LocalTradingViewDryRun"),
+                any(), contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("liveExecutionSelected", false)
+                .containsEntry("executionSelection", "SHADOW_ONLY_INCOMPLETE_REPLAY_HISTORY")
+                .containsEntry("strategyDecision.tradingview_history_complete", false);
+    }
+
     private LocalTradingViewSignalEvaluator evaluator(boolean enabled, DecisionAuditWriter auditWriter) {
         return evaluator(enabled, false, auditWriter);
     }

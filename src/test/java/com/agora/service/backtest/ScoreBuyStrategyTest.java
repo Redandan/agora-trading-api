@@ -82,20 +82,42 @@ class ScoreBuyStrategyTest {
 
         assertThat(signal).isEqualTo(StrategySignal.BUY);
         assertThat(LiveSignalContext.getDetails())
-                .containsEntry("tradingview_order_reason", ScoreBuyStrategy.ORDER_AI_BUY)
-                .containsEntry("tradingview_order_qty", 5000.0)
+                .containsEntry("tradingview_order_reason", ScoreBuyStrategy.ORDER_RELATIVE_LOW)
+                .containsEntry("tradingview_order_qty", 1000.0)
                 .containsEntry("tradingview_order_count", 3)
                 .containsEntry("tradingview_order_reasons",
-                        "TRADINGVIEW_AI_BUY_SIGNAL,TRADINGVIEW_RELATIVE_LOW,TRADINGVIEW_POTENTIAL_LOW")
+                        "TRADINGVIEW_RELATIVE_LOW,TRADINGVIEW_POTENTIAL_LOW,TRADINGVIEW_AI_BUY_SIGNAL")
                 .containsEntry("tradingview_buy_signal", true)
                 .containsEntry("tradingview_near_lower_bb", true)
                 .containsEntry("tradingview_volume_breakout", true);
         assertThat(LiveSignalContext.getOrderIntents())
                 .extracting(LiveSignalContext.OrderIntent::reason)
                 .containsExactly(
-                        ScoreBuyStrategy.ORDER_AI_BUY,
                         ScoreBuyStrategy.ORDER_RELATIVE_LOW,
-                        ScoreBuyStrategy.ORDER_POTENTIAL_LOW);
+                        ScoreBuyStrategy.ORDER_POTENTIAL_LOW,
+                        ScoreBuyStrategy.ORDER_AI_BUY);
+    }
+
+    @Test
+    void incompleteRequiredReplayHistoryCannotReturnExecutableBuy() {
+        List<MdKline> bars = bars(30, 100, 102, 100, 101, 1000);
+        bars.get(0).setLowPrice(bd(90));
+        bars.set(25, bar(25, 101, 102, 99, 101, 1000));
+        Map<String, Object> config = config();
+        config.put("tradingViewParityMode", true);
+        config.put(TradingViewScoreBuyModel.REQUIRE_FULL_HISTORY_CONFIG, true);
+        config.put(TradingViewScoreBuyModel.REPLAY_START_CONFIG,
+                TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC.toString());
+
+        StrategySignal signal = strategy.evaluate(
+                context(bars, indicators(30, 80, 200, 100, 1000), 25), config);
+
+        assertThat(signal).isEqualTo(StrategySignal.HOLD);
+        assertThat(LiveSignalContext.getOrderIntents()).isEmpty();
+        assertThat(LiveSignalContext.getDetails())
+                .containsEntry("tradingview_is_relative_low", true)
+                .containsEntry("tradingview_history_complete", false)
+                .containsEntry("tradingview_nn_evidence_status", "INCOMPLETE_REPLAY_HISTORY");
     }
 
     private StrategyContext context(List<MdKline> bars, Map<String, double[]> indicators, int index) {

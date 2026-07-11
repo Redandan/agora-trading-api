@@ -26,6 +26,7 @@ import com.agora.service.backtest.StrategySignal;
 import com.agora.service.backtest.TradeRecord;
 import com.agora.service.backtest.TradingViewGoldenTruthVerifier;
 import com.agora.service.backtest.TradingViewProfitOptimizationService;
+import com.agora.service.backtest.TradingViewScoreBuyModel;
 import com.agora.service.backtest.TimeframeAwareStrategyValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +96,7 @@ public class BacktestValidationMcpTools {
         String strategyType = strategyEntity.getStrategyType();
         String resolvedSource = resolvePreviewSource(src, strategyEntity.getKlineSource());
         LocalDateTime coverageQueryStart = isScoreBuy(strategyType)
-                ? startTime.minusDays(warmupDays(intervalVal))
+                ? scoreBuyReplayQueryStart(symbolVal, intervalVal, resolvedSource, startTime)
                 : startTime;
         List<MdKline> coverageKlines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
@@ -270,7 +271,7 @@ public class BacktestValidationMcpTools {
         String src = resolvePreviewSource(source, strategyEntity.getKlineSource());
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        LocalDateTime queryStart = scoreBuyReplayQueryStart(symbolVal, intervalVal, src, visibleStart);
 
         List<MdKline> klines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
@@ -385,7 +386,7 @@ public class BacktestValidationMcpTools {
 
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        LocalDateTime queryStart = scoreBuyReplayQueryStart(symbolVal, intervalVal, src, visibleStart);
         List<MdKline> klines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
                         symbolVal, intervalVal, src, queryStart, endTime),
@@ -490,7 +491,7 @@ public class BacktestValidationMcpTools {
 
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(365).truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        LocalDateTime queryStart = scoreBuyReplayQueryStart(symbolVal, intervalVal, src, visibleStart);
         List<MdKline> klines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
                         symbolVal, intervalVal, src, queryStart, endTime),
@@ -574,7 +575,9 @@ public class BacktestValidationMcpTools {
         LocalDateTime stressStart = intervalVal.endsWith("d")
                 ? endTime.minusDays(stress).truncatedTo(ChronoUnit.DAYS)
                 : endTime.minusDays(stress);
-        LocalDateTime queryStart = stressStart.minusDays(warmupDays(intervalVal));
+        LocalDateTime queryStart = tradingViewParityStrategy
+                ? scoreBuyReplayQueryStart(symbolVal, intervalVal, src, stressStart)
+                : stressStart.minusDays(warmupDays(intervalVal));
         List<MdKline> klines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
                         symbolVal, intervalVal, src, queryStart, endTime),
@@ -727,7 +730,7 @@ public class BacktestValidationMcpTools {
         String src = resolvePreviewSource(source, strategyEntity.getKlineSource());
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        LocalDateTime queryStart = scoreBuyReplayQueryStart(symbolVal, intervalVal, src, visibleStart);
 
         List<MdKline> klines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
@@ -899,7 +902,7 @@ public class BacktestValidationMcpTools {
         String src = resolvePreviewSource(source, strategyEntity.getKlineSource());
         LocalDateTime endTime = LocalDateTime.now();
         LocalDateTime visibleStart = endTime.minusDays(daysVal).truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime queryStart = visibleStart.minusDays(warmupDays(intervalVal));
+        LocalDateTime queryStart = scoreBuyReplayQueryStart(symbolVal, intervalVal, src, visibleStart);
 
         List<MdKline> klines = closedKlinesOnly(
                 klineRepo.findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
@@ -1249,6 +1252,20 @@ public class BacktestValidationMcpTools {
             case "4h" -> 180L;
             default -> 365L;
         };
+    }
+
+    private LocalDateTime scoreBuyReplayQueryStart(String symbol,
+                                                   String intervalCode,
+                                                   String source,
+                                                   LocalDateTime visibleStart) {
+        if ("BTCUSDT".equalsIgnoreCase(symbol)
+                && "1d".equalsIgnoreCase(intervalCode)
+                && "binance".equalsIgnoreCase(source)) {
+            return visibleStart.isAfter(TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC)
+                    ? TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC
+                    : visibleStart;
+        }
+        return visibleStart.minusDays(warmupDays(intervalCode));
     }
 
     private String detail(Map<String, Object> details, String key) {

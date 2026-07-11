@@ -11,6 +11,7 @@ import com.agora.service.backtest.Strategy;
 import com.agora.service.backtest.StrategyContext;
 import com.agora.service.backtest.StrategyRegistry;
 import com.agora.service.backtest.StrategySignal;
+import com.agora.service.backtest.TradingViewScoreBuyModel;
 import com.agora.service.meta.DecisionAuditWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +85,7 @@ public class LocalTradingViewSignalEvaluator {
             strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
             config.put("runIntervalCode", interval);
             config.put("tradingViewParityMode", true);
+            config.put("tradingViewAllowIncompleteHistoryShadowIntents", true);
 
             List<MdKline> klines = loadKlines(eventKline, symbol, interval, source);
             int index = indexOf(klines, eventKline.getOpenTime());
@@ -110,6 +112,7 @@ public class LocalTradingViewSignalEvaluator {
                 BarEvaluation evaluation = evaluations.get(i);
                 if (evaluation.signal() == StrategySignal.BUY
                         && !evaluation.intents().isEmpty()
+                        && hasCompleteReplayHistory(evaluation.details())
                         && isFreshEnoughForExecution(evaluation.kline())) {
                     selectedExecutionBar = evaluation.kline().getOpenTime();
                     break;
@@ -127,7 +130,10 @@ public class LocalTradingViewSignalEvaluator {
                     intentIndex++;
                     boolean executionSelected = Objects.equals(
                             evaluation.kline().getOpenTime(), selectedExecutionBar) && intentIndex == 1;
-                    String executionSelection = executionSelected
+                    boolean historyComplete = hasCompleteReplayHistory(evaluation.details());
+                    String executionSelection = !historyComplete
+                            ? "SHADOW_ONLY_INCOMPLETE_REPLAY_HISTORY"
+                            : executionSelected
                             ? "LATEST_ELIGIBLE_FIRST_INTENT"
                             : Objects.equals(evaluation.kline().getOpenTime(), selectedExecutionBar)
                             ? "SHADOW_ONLY_ADDITIONAL_INTENT"
@@ -170,6 +176,24 @@ public class LocalTradingViewSignalEvaluator {
     }
 
     private List<MdKline> loadKlines(MdKline eventKline, String symbol, String interval, String source) {
+        if ("BTCUSDT".equals(symbol) && "1d".equals(interval) && "binance".equals(source)) {
+            List<MdKline> anchored = klineRepository
+                    .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                            symbol,
+                            interval,
+                            source,
+                            TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC,
+                            eventKline.getOpenTime());
+            List<MdKline> klines = anchored == null
+                    ? new ArrayList<>()
+                    : new ArrayList<>(anchored);
+            klines.sort(Comparator.comparing(MdKline::getOpenTime));
+            if (indexOf(klines, eventKline.getOpenTime()) < 0) {
+                klines.add(eventKline);
+                klines.sort(Comparator.comparing(MdKline::getOpenTime));
+            }
+            return klines;
+        }
         int limit = Math.max(10, props.historyBars());
         List<MdKline> descending = hasText(source)
                 ? klineRepository.findBySymbolAndIntervalCodeAndSourceOrderByOpenTimeDesc(
@@ -320,6 +344,13 @@ public class LocalTradingViewSignalEvaluator {
         LocalDateTime closeTime = kline.getCloseTime() != null ? kline.getCloseTime() : kline.getOpenTime();
         return closeTime != null
                 && !closeTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).minusHours(props.maxSignalAgeHours()));
+    }
+
+    private boolean hasCompleteReplayHistory(Map<String, Object> details) {
+        if (details == null || !details.containsKey("tradingview_history_complete")) {
+            return true;
+        }
+        return Boolean.TRUE.equals(details.get("tradingview_history_complete"));
     }
 
     private record BarEvaluation(MdKline kline,

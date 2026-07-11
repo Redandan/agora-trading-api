@@ -959,18 +959,19 @@ public class BacktestEngine {
                 .mapToDouble(BigDecimal::doubleValue)
                 .toArray();
 
+        boolean tradingViewParity = getBoolean(config, "tradingViewParityMode", false);
         int emaFastPeriod = getInt(config, "emaFast", 12);
         int emaSlowPeriod = getInt(config, "emaSlow", 26);
         int ema20Period = getInt(config, "ema20Period", 20);
-        int rsiPeriod = getInt(config, "rsiPeriod", 14);
+        int rsiPeriod = tradingViewParity ? 14 : getInt(config, "rsiPeriod", 14);
         int adxPeriod = getInt(config, "adxPeriod", 14);
         int atrPeriod = getInt(config, "atrPeriod", 14);
-        int bollPeriod = getInt(config, "bollPeriod", 20);
-        double bollStd = getDouble(config, "bollStd", 2.0);
+        int bollPeriod = tradingViewParity ? 20 : getInt(config, "bollPeriod", 20);
+        double bollStd = tradingViewParity ? 2.0 : getDouble(config, "bollStd", 2.0);
         int volumeMaPeriod = getInt(config, "volumeMaPeriod", 5);
-        int macdFast = getInt(config, "macdFast", 12);
-        int macdSlow = getInt(config, "macdSlow", 26);
-        int macdSignal = getInt(config, "macdSignal", 9);
+        int macdFast = tradingViewParity ? 12 : getInt(config, "macdFast", 12);
+        int macdSlow = tradingViewParity ? 26 : getInt(config, "macdSlow", 26);
+        int macdSignal = tradingViewParity ? 9 : getInt(config, "macdSignal", 9);
 
         Map<String, double[]> indicators = new HashMap<String, double[]>();
         indicators.put("emaFast", IndicatorUtils.ema(closePrices, emaFastPeriod));
@@ -989,6 +990,14 @@ public class BacktestEngine {
         indicators.put("sma200", IndicatorUtils.sma(closePrices, 200));
         indicators.put("sma720", IndicatorUtils.sma(closePrices, 720));   // 720h = 30d，用於 CMI regime 過濾
         indicators.put("volumeMa20", IndicatorUtils.sma(volumes, 20));
+        TradingViewScoreBuyModel.Series tradingViewSeries =
+                TradingViewScoreBuyModel.replay(klines, indicators, config);
+        indicators.put(TradingViewScoreBuyModel.NN_OUTPUT_KEY, tradingViewSeries.nnOutput());
+        indicators.put(TradingViewScoreBuyModel.NN_SUM_KEY, tradingViewSeries.inputSum());
+        indicators.put(TradingViewScoreBuyModel.NN_WEIGHT_KEY, tradingViewSeries.weight());
+        indicators.put(TradingViewScoreBuyModel.NN_BIAS_KEY, tradingViewSeries.bias());
+        indicators.put(TradingViewScoreBuyModel.HISTORY_COMPLETE_KEY,
+                tradingViewSeries.historyComplete());
         return indicators;
     }
 

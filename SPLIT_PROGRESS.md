@@ -1,5 +1,19 @@
 # Split Progress
 
+- 2026-07-11: recovered strategy 485's signed-in TradingView Pine source and
+  replaced the fixed handcrafted ScoreBuy sigmoid with the source's exact
+  eight-input online-learning replay. Pine indicator parameters, learning rate,
+  2017-08-17 Binance replay anchor, relative/potential/AI statement order, and
+  closed-bar semantics are now explicit. Incomplete anchored history cannot
+  reach a non-LocalTradingView execution path; the local lane may retain shadow
+  intents but cannot select them for execution. Read-only Chrome evidence found
+  203 historical intents (141 relative-low, 62 potential-low, 0 AI-buy). The
+  committed 365-day report has 42 intents and a free Binance Vision replay over
+  3,250 daily bars produced 42 actual intents with zero missing and zero extra.
+  The raw Pine source is not stored because its alert payload contains a secret;
+  only its SHA-256 and redacted semantics are recorded. Exact NN error <=1e-6
+  remains blocked until a separately authorized TradingView NN series export is
+  available, so this evidence does not promote live trading or relax dry-run.
 - 2026-07-11: tightened TradingView golden-truth parity so matching buy-point
   keys cannot pass without complete per-intent NN evidence. Added
   `scripts/normalize_tradingview_golden_truth.ps1` plus a local test to map

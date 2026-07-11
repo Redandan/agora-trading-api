@@ -1624,6 +1624,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_live_readiness_bundle_metadata.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_local_tradingview_candidate_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_normalize_tradingview_golden_truth.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_join_tradingview_nn_chart_export.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_local_tradingview_only_readiness_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_local_tradingview_buy_candidate_watch.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_local_tradingview_runtime_evidence_watch.ps1"

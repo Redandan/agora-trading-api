@@ -6,7 +6,7 @@
 - The raw source is not stored because its alert payload contains a webhook secret.
 - Strategy report range: 2017-08-17 through 2026-07-11.
 - Full report count: 203 intents: 141 relative-low, 62 potential-low, 0 AI-buy intents.
-- Basic-plan CSV download was unavailable. The visible report table was read without changing the script or chart.
+- Basic-plan Strategy Report XLSX download was unavailable. The visible report table was read without changing the script or chart.
 
 ## 365-day intent evidence
 
@@ -33,3 +33,39 @@ an AI-buy order. Exact per-intent NN error at `1e-6` therefore still requires a
 separately authorized, instrumented Pine copy or another TradingView series
 export. The evidence above proves entry parity for the two order paths that
 actually fired, but it must not be presented as completed NN parity.
+
+## Free NN export handoff
+
+Read-only Chrome inspection on 2026-07-11 confirmed all of the following:
+
+- The Basic-plan Strategy Report `Download data as XLSX` action opens an upgrade
+  prompt, so it is not a free evidence path.
+- Data Window and chart Table view expose only plotted Pine series. The original
+  `AI` strategy columns are Bollinger bands, long MA, relative-low,
+  potential-low, and AI-buy signal. They do not include `nnOutput`.
+- Chart Table view offers `Download data` as CSV. TradingView documents that
+  chart CSV includes script plots, including plots restricted to
+  `display.data_window`: https://www.tradingview.com/pine-script-docs/faq/indicators/#is-it-possible-to-export-indicator-data-to-a-file
+
+Do not edit the original strategy. After separate authorization to create an
+instrumented TradingView copy, add the line from
+`strategy485-nn-export-snippet.pine` immediately after `nnOutput` is calculated:
+
+```pine
+plot(nnOutput, title = "NN Output Export", display = display.data_window, format = format.price, precision = 10)
+```
+
+Then open chart `Table view`, choose `Download data`, keep UTC/UNIX time, and
+join the exported NN series to the already verified intent report:
+
+```powershell
+.\scripts\join_tradingview_nn_chart_export.ps1 `
+  -ChartCsvPath 'C:\path\to\BINANCE_BTCUSDT_1D.csv' `
+  -IntentCsvPath '.\docs\tradingview\strategy485-report-365.csv' `
+  -OutputPath '.\docs\tradingview\strategy485-golden-365.csv'
+```
+
+The join fails closed for a missing intent timestamp, duplicate chart timestamp,
+invalid NN value, or ambiguous NN column. Its output is canonical
+`time,reason,label,qty,nn_output` plus a SHA-256 manifest. It does not authorize
+a production import, production env change, or live promotion.

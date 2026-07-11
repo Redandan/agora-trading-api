@@ -108,6 +108,7 @@ public final class BtcBaseShadowBacktestSimulator {
                 totalPnl,
                 deployedReturn,
                 state.maxInventoryDrawdownPct,
+                state.maxCapitalLossPct,
                 finalValue,
                 finalExitFee,
                 List.copyOf(events));
@@ -275,12 +276,20 @@ public final class BtcBaseShadowBacktestSimulator {
     }
 
     private static void updateDrawdown(Bar bar, Config cfg, State state) {
-        if (state.quantity <= 0.0 || state.costBasis <= 0.0) {
-            return;
+        if (state.totalGrossBuys > 0.0) {
+            double inventoryValue = state.quantity * bar.closePrice();
+            double estimatedExitFee = inventoryValue * cfg.feeRate();
+            double totalPnl = state.realizedPnl + inventoryValue - estimatedExitFee - state.costBasis;
+            if (totalPnl < 0.0) {
+                state.maxCapitalLossPct = Math.max(
+                        state.maxCapitalLossPct, -totalPnl / state.totalGrossBuys);
+            }
         }
-        double returnPct = inventoryReturnPct(bar.closePrice(), cfg.feeRate(), state);
-        if (returnPct < 0.0) {
-            state.maxInventoryDrawdownPct = Math.max(state.maxInventoryDrawdownPct, -returnPct);
+        if (state.quantity > 0.0 && state.costBasis > 0.0) {
+            double returnPct = inventoryReturnPct(bar.closePrice(), cfg.feeRate(), state);
+            if (returnPct < 0.0) {
+                state.maxInventoryDrawdownPct = Math.max(state.maxInventoryDrawdownPct, -returnPct);
+            }
         }
     }
 
@@ -413,6 +422,7 @@ public final class BtcBaseShadowBacktestSimulator {
                          double totalPnl,
                          double deployedReturn,
                          double maxInventoryDrawdownPct,
+                         double maxCapitalLossPct,
                          double finalInventoryValue,
                          double finalExitFee,
                          List<Event> events) {
@@ -420,7 +430,7 @@ public final class BtcBaseShadowBacktestSimulator {
             return new Result(config == null ? Config.defaults() : config.normalized(), executionSemantics, null, 0.0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    0.0, 0.0, 0.0, 0.0, 0.0, List.of());
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, List.of());
         }
     }
 
@@ -441,6 +451,7 @@ public final class BtcBaseShadowBacktestSimulator {
         private double totalFees;
         private double realizedPnl;
         private double maxInventoryDrawdownPct;
+        private double maxCapitalLossPct;
         private double nextTakeProfitReducePct;
         private boolean emergencyReductionArmed = true;
 

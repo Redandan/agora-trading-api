@@ -1,5 +1,18 @@
 # Split Progress
 
+- 2026-07-12: evaluated the final predeclared strategy 485 exit candidate with
+  unchanged 42/42 TradingView intents and fixed 10 USDT one-order-per-bar buys.
+  The candidate reduces 25% when inventory net return first reaches `-12%` and
+  rearms only after a later BUY. The risk report now includes realized losses
+  through `maxCapitalLossPct`; the 15% gate conservatively uses the maximum of
+  inventory drawdown and capital loss on cumulative gross buys. The candidate
+  improved 365-day return from `-26.85%` to `-13.43%` and PnL from `-67.13` to
+  `-37.60 USDT`, but remained negative at 180 days (`-11.74%`) and 365 days,
+  retained `24.10%` risk drawdown, produced only `2/5` positive walk-forward
+  folds, and remained `-13.11%` under doubled-fee stress. It was rejected and
+  the report now emits `NONE_NO_PROVEN_EDGE_STOP_TUNING`. This was local
+  read-only evidence; no production env, deploy, DB, strategy, live order, OCO,
+  grid, fund, Earn, Telegram, scheduler, or exchange mutation was made.
 - 2026-07-11: evaluated the next predeclared strategy 485 sizing candidate
   without changing any buy point. `SHADOW_252D_DRAWDOWN_TIERED_PER_BAR` uses
   only the maximum close from the previous 252 closed bars, excludes the

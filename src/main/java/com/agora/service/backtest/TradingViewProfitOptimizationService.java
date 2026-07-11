@@ -15,6 +15,7 @@ public class TradingViewProfitOptimizationService {
     private static final double MAX_BASE_EXPOSURE_USDT = 250.0;
     private static final double MIN_ORDER_NOTIONAL_USDT = 10.0;
     private static final double EMERGENCY_DRAWDOWN_WARNING_PCT = 0.12;
+    private static final double DRAWDOWN_REDUCE_FRACTION = 0.25;
 
     public String compareCurrentCandidate(String symbol, String source, double feeRate,
                                           List<BtcBaseShadowBacktestSimulator.Bar> allBars,
@@ -28,12 +29,13 @@ public class TradingViewProfitOptimizationService {
         report.append("boundary=READ_ONLY\n");
         report.append("symbol=").append(symbol).append(" source=").append(source)
                 .append(" feeRate=").append(String.format(Locale.ROOT, "%.4f", feeRate)).append("\n");
-        report.append("baseline=LIVE_ONE_ORDER_PER_BAR candidate=SHADOW_252D_DRAWDOWN_TIERED_PER_BAR\n");
+        report.append("baseline=LIVE_ONE_ORDER_PER_BAR candidate=LIVE_ONE_ORDER_PER_BAR_WITH_DRAWDOWN_REDUCTION_SHADOW\n");
         report.append("buyPointPolicy=PRESERVE_ALL_TRADINGVIEW_INTENTS\n");
         report.append("productionOrderPolicy=FIXED_10_USDT_FULL_SLICE maxBaseExposureUsdt=250.00\n");
         report.append("baselineExitPolicy=HOLD_BTC_BASE_NO_OCO_NO_AUTO_SELL\n");
-        report.append("candidatePolicy=PRIOR_252_CLOSE_HIGH_DRAWDOWN_LT20_10_LT40_20_GTE40_30_USDT_ONE_ORDER_PER_BAR_NO_AUTO_SELL\n");
-        report.append("candidateReference=MAX_PREVIOUS_252_CLOSED_BAR_CLOSES_EXCLUDES_CURRENT_BAR\n");
+        report.append("candidatePolicy=FIXED_10_USDT_ONE_ORDER_PER_BAR_NET_RETURN_LTE_MINUS12_REDUCE_25PCT_REARM_ON_NEW_BUY\n");
+        report.append("candidateExposurePolicy=MAX_CONCURRENT_COST_BASIS_250_REDEPLOY_AFTER_REDUCTION\n");
+        report.append("drawdownGateMetric=MAX_OF_INVENTORY_DRAWDOWN_AND_CAPITAL_LOSS_ON_CUMULATIVE_GROSS_BUYS\n");
         report.append("candidateLookahead=false candidateAddsBuyPoints=false candidateDeletesBuyPoints=false\n");
 
         SimulationPair horizon365 = null;
@@ -64,7 +66,7 @@ public class TradingViewProfitOptimizationService {
         boolean positive180 = horizon180 != null && horizon180.candidate().totalPnl() > 0.0;
         boolean positive365 = horizon365 != null && horizon365.candidate().totalPnl() > 0.0;
         boolean improvementGate = improvementPp >= 5.0;
-        boolean drawdownGate = horizon365 != null && horizon365.candidate().maxInventoryDrawdownPct() <= 0.15;
+        boolean drawdownGate = horizon365 != null && riskDrawdownPct(horizon365.candidate()) <= 0.15;
         boolean walkForwardGate = walkForward.candidatePositiveFolds() >= 4;
         boolean stressGate = stress.candidate().totalPnl() >= 0.0;
         boolean accepted = positive180 && positive365 && improvementGate && drawdownGate
@@ -84,7 +86,7 @@ public class TradingViewProfitOptimizationService {
         report.append("candidateVerdict=").append(accepted ? "PASS_FOR_NEW_LIVE_AUTHORIZATION_REVIEW" : "REJECTED").append("\n");
         report.append("candidatePromotionAllowed=false\n");
         report.append("nextCandidate=").append(accepted ? "NONE_AWAIT_EXPLICIT_AUTHORIZATION"
-                : "DRAWDOWN_12PCT_REDUCE_25PCT_SHADOW_ONLY").append("\n");
+                : "NONE_NO_PROVEN_EDGE_STOP_TUNING").append("\n");
         report.append("notAuthorization=no order, OCO, strategy, env, DB, scheduler, grid, fund, Earn, Telegram, or exchange mutation");
         return report.toString();
     }
@@ -95,12 +97,13 @@ public class TradingViewProfitOptimizationService {
                                           double feeRate) {
         List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = allIntents.stream()
                 .filter(intent -> !intent.time().isBefore(start)).toList();
-        BtcBaseShadowBacktestSimulator.Config config = productionConfig(feeRate);
+        BtcBaseShadowBacktestSimulator.Config baselineConfig = productionConfig(feeRate);
+        BtcBaseShadowBacktestSimulator.Config candidateConfig = drawdownReductionConfig(feeRate);
         return new SimulationPair(
-                BtcBaseShadowBacktestSimulator.run(allBars, intents, config,
+                BtcBaseShadowBacktestSimulator.run(allBars, intents, baselineConfig,
                         BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR),
-                BtcBaseShadowBacktestSimulator.run(allBars, intents, config,
-                        BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_252D_DRAWDOWN_TIERED_PER_BAR));
+                BtcBaseShadowBacktestSimulator.run(allBars, intents, candidateConfig,
+                        BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR));
     }
 
     private WalkForwardResult walkForward(LocalDateTime end,
@@ -118,13 +121,14 @@ public class TradingViewProfitOptimizationService {
                     .filter(bar -> bar.time().isBefore(foldEnd)).toList();
             List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = allIntents.stream()
                     .filter(intent -> !intent.time().isBefore(foldStart) && intent.time().isBefore(foldEnd)).toList();
-            BtcBaseShadowBacktestSimulator.Config config = productionConfig(feeRate);
+            BtcBaseShadowBacktestSimulator.Config baselineConfig = productionConfig(feeRate);
+            BtcBaseShadowBacktestSimulator.Config candidateConfig = drawdownReductionConfig(feeRate);
             BtcBaseShadowBacktestSimulator.Result baseline = BtcBaseShadowBacktestSimulator.run(
-                    bars, intents, config,
+                    bars, intents, baselineConfig,
                     BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
             BtcBaseShadowBacktestSimulator.Result candidate = BtcBaseShadowBacktestSimulator.run(
-                    bars, intents, config,
-                    BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_252D_DRAWDOWN_TIERED_PER_BAR);
+                    bars, intents, candidateConfig,
+                    BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
             if (baseline.totalPnl() > 0.0) baselinePositive++;
             if (candidate.totalPnl() > 0.0) candidatePositive++;
             folds.add(new FoldComparison(
@@ -141,33 +145,50 @@ public class TradingViewProfitOptimizationService {
         BtcBaseShadowBacktestSimulator.Result candidate = pair.candidate();
         return String.format(Locale.ROOT,
                 "window=%dd intents=%d bars=%d baselineInvested=%.2f baselinePnl=%.2f baselineReturn=%.2f%% " +
-                        "baselineMaxDrawdown=%.2f%% baselineExecuted=%d baselineShadowOnly=%d baselineSkipped=%d " +
+                        "baselineMaxDrawdown=%.2f%% baselineMaxInventoryDrawdown=%.2f%% baselineMaxCapitalLoss=%.2f%% " +
+                        "baselineExecuted=%d baselineShadowOnly=%d baselineSkipped=%d " +
+                        "baselineMaxCostBasis=%.2f baselineRemainingCostBasis=%.2f " +
                         "baselineFeesPaid=%.2f baselineFinalExitFee=%.2f baselineTotalFeesEstimate=%.2f " +
                         "baselineRealized=%.2f baselineUnrealized=%.2f baselineTakeProfitReductions=%d " +
+                        "baselineEmergencyWarnings=%d baselineEmergencyReductions=%d " +
                         "candidateInvested=%.2f candidatePnl=%.2f candidateReturn=%.2f%% " +
-                        "candidateMaxDrawdown=%.2f%% candidateExecuted=%d candidateShadowOnly=%d candidateSkipped=%d " +
-                        "candidateUpsizedBars=%d " +
+                        "candidateMaxDrawdown=%.2f%% candidateMaxInventoryDrawdown=%.2f%% candidateMaxCapitalLoss=%.2f%% " +
+                        "candidateExecuted=%d candidateShadowOnly=%d candidateSkipped=%d " +
+                        "candidateMaxCostBasis=%.2f candidateRemainingCostBasis=%.2f candidateUpsizedBars=%d " +
                         "candidateFeesPaid=%.2f candidateFinalExitFee=%.2f candidateTotalFeesEstimate=%.2f " +
                         "candidateRealized=%.2f candidateUnrealized=%.2f candidateTakeProfitReductions=%d " +
+                        "candidateEmergencyWarnings=%d candidateEmergencyReductions=%d " +
                         "diffPnl=%.2f diffReturnPp=%.2f%n",
                 days, baseline.orderIntentCount(), baseline.orderBarCount(), baseline.totalGrossBuys(),
                 baseline.totalPnl(), baseline.deployedReturn() * 100.0,
+                riskDrawdownPct(baseline) * 100.0,
                 baseline.maxInventoryDrawdownPct() * 100.0,
+                baseline.maxCapitalLossPct() * 100.0,
                 baseline.executedBuys(), baseline.shadowOnlyIntentCount(), baseline.skippedByCap(),
+                baseline.maxCostBasis(), baseline.remainingCostBasis(),
                 baseline.totalFees(), baseline.finalExitFee(), baseline.totalFees() + baseline.finalExitFee(),
                 baseline.realizedPnl(), baseline.unrealizedPnl(), baseline.takeProfitReductions(),
+                baseline.emergencyWarnings(), baseline.emergencyReductions(),
                 candidate.totalGrossBuys(),
                 candidate.totalPnl(), candidate.deployedReturn() * 100.0,
+                riskDrawdownPct(candidate) * 100.0,
                 candidate.maxInventoryDrawdownPct() * 100.0,
+                candidate.maxCapitalLossPct() * 100.0,
                 candidate.executedBuys(), candidate.shadowOnlyIntentCount(), candidate.skippedByCap(),
+                candidate.maxCostBasis(), candidate.remainingCostBasis(),
                 candidate.events().stream()
                         .filter(event -> "BUY".equals(event.type()))
                         .filter(event -> event.notional() > BUY_NOTIONAL_USDT + 0.0000001)
                         .count(),
                 candidate.totalFees(), candidate.finalExitFee(), candidate.totalFees() + candidate.finalExitFee(),
                 candidate.realizedPnl(), candidate.unrealizedPnl(), candidate.takeProfitReductions(),
+                candidate.emergencyWarnings(), candidate.emergencyReductions(),
                 candidate.totalPnl() - baseline.totalPnl(),
                 (candidate.deployedReturn() - baseline.deployedReturn()) * 100.0);
+    }
+
+    private double riskDrawdownPct(BtcBaseShadowBacktestSimulator.Result result) {
+        return Math.max(result.maxInventoryDrawdownPct(), result.maxCapitalLossPct());
     }
 
     private BtcBaseShadowBacktestSimulator.Config productionConfig(double feeRate) {
@@ -180,6 +201,18 @@ public class TradingViewProfitOptimizationService {
                 0.0,
                 EMERGENCY_DRAWDOWN_WARNING_PCT,
                 0.0);
+    }
+
+    private BtcBaseShadowBacktestSimulator.Config drawdownReductionConfig(double feeRate) {
+        return new BtcBaseShadowBacktestSimulator.Config(
+                BUY_NOTIONAL_USDT,
+                MAX_BASE_EXPOSURE_USDT,
+                MIN_ORDER_NOTIONAL_USDT,
+                feeRate,
+                0.0,
+                0.0,
+                EMERGENCY_DRAWDOWN_WARNING_PCT,
+                DRAWDOWN_REDUCE_FRACTION);
     }
 
     private record SimulationPair(BtcBaseShadowBacktestSimulator.Result baseline,

@@ -220,6 +220,31 @@ class BtcBaseShadowBacktestSimulatorTest {
                 .contains("multiplier=1");
     }
 
+    @Test
+    void drawdownReductionTriggersOnceUntilALaterBuyRearmsIt() {
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = List.of(
+                bar("2026-01-01T00:00", 100.0),
+                bar("2026-01-02T00:00", 80.0),
+                bar("2026-01-03T00:00", 70.0),
+                bar("2026-01-04T00:00", 70.0));
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = List.of(
+                intent("2026-01-01T00:00", "INITIAL_BUY"),
+                intent("2026-01-04T00:00", "REARMING_BUY"));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, intents, new BtcBaseShadowBacktestSimulator.Config(
+                        10.0, 100.0, 10.0, 0.0, 0.0, 0.0, 0.12, 0.25),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
+
+        assertThat(result.totalGrossBuys()).isEqualTo(20.0);
+        assertThat(result.emergencyWarnings()).isEqualTo(3);
+        assertThat(result.emergencyReductions()).isEqualTo(2);
+        assertThat(result.realizedPnl()).isNegative();
+        assertThat(result.maxCapitalLossPct()).isBetween(0.27, 0.28);
+        assertThat(result.events()).extracting(BtcBaseShadowBacktestSimulator.Event::type)
+                .containsExactly("BUY", "REDUCE_DRAWDOWN", "BUY", "REDUCE_DRAWDOWN");
+    }
+
     private static BtcBaseShadowBacktestSimulator.Bar bar(String time, double close) {
         return new BtcBaseShadowBacktestSimulator.Bar(LocalDateTime.parse(time), close);
     }

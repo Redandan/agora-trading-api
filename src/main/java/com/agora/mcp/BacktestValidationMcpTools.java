@@ -482,8 +482,9 @@ public class BacktestValidationMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
     @Tool(description = "只讀執行 TradingView BTC_BASE 固定 90/180/270/365 天 production-semantics 收益報告。" +
-            "baseline=LIVE_ONE_ORDER_PER_BAR，本輪候選=SHADOW_252D_DRAWDOWN_TIERED_PER_BAR；" +
-            "以前 252 根已收線 close 的最高價分級為 10/20/30 USDT，保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
+            "baseline 與候選皆為每根固定 10 USDT 的 LIVE_ONE_ORDER_PER_BAR；" +
+            "候選只在 inventory 淨報酬 <= -12% 時 shadow 減倉 25%，新 BUY 才重新 armed，" +
+            "保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
     public String runScoreBuyTradingViewProfitOptimizationReport(Long strategyId, String symbol,
                                                                  String intervalCode, String source,
                                                                  String configOverrideJson, Double feeRate) {
@@ -1076,7 +1077,8 @@ public class BacktestValidationMcpTools {
                 "  takeProfitReductions: %d\n" +
                 "  emergencyDrawdownWarnings: %d\n" +
                 "  emergencyReductions: %d\n" +
-                "  maxInventoryDrawdown: %.2f%%\n\n" +
+                "  maxInventoryDrawdown: %.2f%%\n" +
+                "  maxCapitalLossOnGrossBuys: %.2f%%\n\n" +
                 "notAuthorization=read-only BTC_BASE shadow report only; no DB write, no production env change, no deploy, no order, no OCO/grid/fund/Earn/Telegram/scheduler/exchange mutation.\n\n" +
                 "最新 BTC_BASE events:\n%s\n\n" +
                 "最新 TradingView buy intents:\n%s",
@@ -1100,6 +1102,7 @@ public class BacktestValidationMcpTools {
                 result.totalPnl(), result.deployedReturn() * 100.0,
                 result.takeProfitReductions(), result.emergencyWarnings(), result.emergencyReductions(),
                 result.maxInventoryDrawdownPct() * 100.0,
+                result.maxCapitalLossPct() * 100.0,
                 String.join("\n", tailRows),
                 String.join("\n", orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size())));
     }

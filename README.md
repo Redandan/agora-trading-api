@@ -951,7 +951,32 @@ in `docs/deploy-runbook.md`. Production comparison must keep
 eligible first intent per bar, and preserve additional same-bar intents as
 shadow evidence. `verifyScoreBuyTradingViewGoldenTruth` fails closed with
 `GOLDEN_TRUTH_UNAVAILABLE` until a Pine-derived Strategy Tester CSV is
-configured. `runScoreBuyTradingViewProfitOptimizationReport` reports fixed
+configured. Exact parity requires non-empty `nn_output` on every expected and
+actual intent; matching buy points without complete NN evidence returns
+`NN_EVIDENCE_REQUIRED` instead of passing. Normalize a TradingView List of
+Trades/chart export locally before any production import:
+
+```powershell
+.\scripts\normalize_tradingview_golden_truth.ps1 `
+  -InputPath C:\path\tradingview-export.csv `
+  -OutputPath C:\path\strategy485-golden.csv `
+  -WindowStartUtc 2025-07-01T00:00:00Z `
+  -WindowEndUtc 2026-07-01T00:00:00Z `
+  -TimeColumn "Entry Time" `
+  -ReasonColumn "Entry ID" `
+  -LabelColumn "Entry Comment" `
+  -QuantityColumn "Contracts" `
+  -NnOutputColumn "Neural network output"
+```
+
+The normalizer converts timestamps to UTC, preserves same-bar intent
+multiplicity, requires at least 365 days, and writes a SHA-256 manifest. Use
+`-ReasonMapPath` / `-LabelMapPath` when Pine order IDs must be translated to
+the exact strategy reason and label. The output is local evidence only; it does
+not authorize copying the file to production or changing
+`TRADINGVIEW_LOCAL_GOLDEN_TRUTH_CSV_PATH`.
+
+`runScoreBuyTradingViewProfitOptimizationReport` reports fixed
 90/180/270/365-day production-semantics baseline and one shadow candidate; it
 never authorizes live promotion. `runTimeframeAwareStrategyValidation`
 separates `ENTRY_PARITY`, `RECENT_EDGE`, and `LONG_STRESS`: daily strategies

@@ -1,5 +1,13 @@
 # Split Progress
 
+- 2026-07-11: tightened TradingView golden-truth parity so matching buy-point
+  keys cannot pass without complete per-intent NN evidence. Added
+  `scripts/normalize_tradingview_golden_truth.ps1` plus a local test to map
+  TradingView export columns, normalize timestamps to UTC, require a declared
+  365-day window, preserve same-bar intent multiplicity, and emit source/golden
+  SHA-256 evidence. The tool is local-only and explicitly denies production
+  import, env change, and live promotion authorization.
+
 ## Current Baseline
 
 - `agora-trading-api` is extracted and compiles as a standalone Spring Boot app.

@@ -65,6 +65,53 @@ class TradingViewGoldenTruthVerifierTest {
         assertThat(result.maxNnError()).isNotFinite();
     }
 
+    @Test
+    void buyPointMatchWithoutNnEvidenceFailsClosed() throws Exception {
+        Path csv = tempDir.resolve("golden-without-nn.csv");
+        Files.writeString(csv, "time,reason,label,qty\n"
+                + "2026-01-01T00:00:00,TRADINGVIEW_AI_BUY_SIGNAL,AI buy,5000\n");
+        List<TradingViewGoldenTruthVerifier.Intent> actual = List.of(
+                intent("2026-01-01T00:00:00", "TRADINGVIEW_AI_BUY_SIGNAL", "AI buy", "5000", null));
+
+        TradingViewGoldenTruthVerifier.VerificationResult result = verifier.verify(csv.toString(), actual);
+
+        assertThat(result.status()).isEqualTo("FAIL_PARITY_MISMATCH");
+        assertThat(result.exactParity()).isFalse();
+        assertThat(result.missingIntentCount()).isZero();
+        assertThat(result.extraIntentCount()).isZero();
+        assertThat(result.nnCompared()).isFalse();
+        assertThat(result.maxNnError()).isNotFinite();
+        assertThat(result.blocker()).isEqualTo("NN_EVIDENCE_REQUIRED");
+    }
+
+    @Test
+    void partialNnEvidenceFailsClosed() throws Exception {
+        Path csv = tempDir.resolve("golden-partial-nn.csv");
+        Files.writeString(csv, "time,reason,label,qty,nn_output\n"
+                + "2026-01-01T00:00:00,TRADINGVIEW_AI_BUY_SIGNAL,AI buy,5000,0.381\n"
+                + "2026-01-02T00:00:00,TRADINGVIEW_RELATIVE_LOW,Relative low,1000,\n");
+        List<TradingViewGoldenTruthVerifier.Intent> actual = List.of(
+                intent("2026-01-01T00:00:00", "TRADINGVIEW_AI_BUY_SIGNAL", "AI buy", "5000", 0.381),
+                intent("2026-01-02T00:00:00", "TRADINGVIEW_RELATIVE_LOW", "Relative low", "1000", null));
+
+        TradingViewGoldenTruthVerifier.VerificationResult result = verifier.verify(csv.toString(), actual);
+
+        assertThat(result.status()).isEqualTo("FAIL_PARITY_MISMATCH");
+        assertThat(result.blocker()).isEqualTo("NN_EVIDENCE_REQUIRED");
+    }
+
+    @Test
+    void emptyGoldenTruthCannotPassExactParity() throws Exception {
+        Path csv = tempDir.resolve("golden-empty.csv");
+        Files.writeString(csv, "time,reason,label,qty,nn_output\n");
+
+        TradingViewGoldenTruthVerifier.VerificationResult result = verifier.verify(csv.toString(), List.of());
+
+        assertThat(result.status()).isEqualTo("FAIL_PARITY_MISMATCH");
+        assertThat(result.exactParity()).isFalse();
+        assertThat(result.blocker()).isEqualTo("GOLDEN_TRUTH_NO_INTENTS");
+    }
+
     private TradingViewGoldenTruthVerifier.Intent intent(String time, String reason, String label,
                                                          String quantity, Double nn) {
         return new TradingViewGoldenTruthVerifier.Intent(

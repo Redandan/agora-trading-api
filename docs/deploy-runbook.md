@@ -215,7 +215,20 @@ Expected:
 - `verifyScoreBuyTradingViewGoldenTruth` requires at least 365 days and a
   configured `TRADINGVIEW_LOCAL_GOLDEN_TRUTH_CSV_PATH`. Missing Pine/Strategy
   Tester truth returns `GOLDEN_TRUTH_UNAVAILABLE`; it must not be presented as
-  exact parity. `runScoreBuyTradingViewProfitOptimizationReport` uses
+  exact parity. Matching buy-point keys without a non-empty `nn_output` for
+  every expected and actual intent fails with `NN_EVIDENCE_REQUIRED`; exact
+  parity requires maximum NN error `<= 1e-6`.
+- Normalize the TradingView export locally with
+  `scripts/normalize_tradingview_golden_truth.ps1`. Supply the declared UTC
+  export window plus explicit source columns when auto-detection cannot resolve
+  localized headers. The script requires a window of at least 365 days,
+  converts intent times to UTC, preserves duplicate/same-bar intent counts,
+  requires complete NN values, and writes `<golden>.manifest.json` with source
+  and normalized SHA-256 hashes. Its readiness marker is
+  `READY_FOR_LOCAL_PARITY_VERIFICATION_NOT_PRODUCTION_IMPORT`; copying the file
+  to the server or setting `TRADINGVIEW_LOCAL_GOLDEN_TRUTH_CSV_PATH` remains a
+  separate production import/env authorization.
+- `runScoreBuyTradingViewProfitOptimizationReport` uses
   `LIVE_ONE_ORDER_PER_BAR` as the production baseline and tests one shadow
   candidate per round across 90/180/270/365-day, drawdown, walk-forward, and
   stress gates. Neither tool authorizes live promotion.

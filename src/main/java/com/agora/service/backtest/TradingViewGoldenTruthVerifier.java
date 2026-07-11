@@ -42,10 +42,13 @@ public class TradingViewGoldenTruthVerifier {
             Map<IntentKey, Integer> actualCounts = counts(actual);
             int missing = differenceCount(expectedCounts, actualCounts);
             int extra = differenceCount(actualCounts, expectedCounts);
-            double maxNnError = nnError(expected, actual, missing == 0 && extra == 0);
-            boolean nnCompared = expected.stream().anyMatch(intent -> intent.nnOutput() != null);
-            boolean nnWithinTolerance = !nnCompared || (Double.isFinite(maxNnError) && maxNnError <= NN_TOLERANCE);
-            boolean exact = missing == 0 && extra == 0 && nnWithinTolerance;
+            boolean keysMatch = missing == 0 && extra == 0;
+            boolean nnCompared = hasCompleteNnEvidence(expected, actual, keysMatch);
+            double maxNnError = nnError(expected, actual, nnCompared);
+            boolean nnWithinTolerance = nnCompared
+                    && Double.isFinite(maxNnError)
+                    && maxNnError <= NN_TOLERANCE;
+            boolean exact = !expected.isEmpty() && keysMatch && nnWithinTolerance;
             return new VerificationResult(
                     exact ? "PASS_EXACT_PARITY" : "FAIL_PARITY_MISMATCH",
                     exact,
@@ -57,7 +60,7 @@ public class TradingViewGoldenTruthVerifier {
                     maxNnError,
                     sha256(path),
                     path.toString(),
-                    exact ? "NONE" : "BUY_POINT_OR_NN_MISMATCH");
+                    exact ? "NONE" : mismatchBlocker(expected, missing, extra, nnCompared, maxNnError));
         } catch (Exception e) {
             return VerificationResult.unavailable("GOLDEN_TRUTH_PARSE_FAILED:" + e.getMessage());
         }
@@ -145,9 +148,16 @@ public class TradingViewGoldenTruthVerifier {
                 .sum();
     }
 
-    private double nnError(List<Intent> expected, List<Intent> actual, boolean keysMatch) {
-        if (!keysMatch || expected.stream().noneMatch(intent -> intent.nnOutput() != null)) {
-            return expected.stream().anyMatch(intent -> intent.nnOutput() != null) ? Double.POSITIVE_INFINITY : 0.0;
+    private boolean hasCompleteNnEvidence(List<Intent> expected, List<Intent> actual, boolean keysMatch) {
+        return keysMatch
+                && !expected.isEmpty()
+                && expected.stream().allMatch(intent -> intent.nnOutput() != null)
+                && actual.stream().allMatch(intent -> intent.nnOutput() != null);
+    }
+
+    private double nnError(List<Intent> expected, List<Intent> actual, boolean nnCompared) {
+        if (!nnCompared) {
+            return Double.POSITIVE_INFINITY;
         }
         Comparator<Intent> comparator = Comparator.comparing(intent -> key(intent).toString());
         List<Intent> expectedSorted = expected.stream().sorted(comparator).toList();
@@ -161,6 +171,15 @@ public class TradingViewGoldenTruthVerifier {
             max = Math.max(max, Math.abs(expectedNn - actualNn));
         }
         return max;
+    }
+
+    private String mismatchBlocker(List<Intent> expected, int missing, int extra,
+                                   boolean nnCompared, double maxNnError) {
+        if (expected.isEmpty()) return "GOLDEN_TRUTH_NO_INTENTS";
+        if (missing > 0 || extra > 0) return "BUY_POINT_MISMATCH";
+        if (!nnCompared) return "NN_EVIDENCE_REQUIRED";
+        if (!Double.isFinite(maxNnError) || maxNnError > NN_TOLERANCE) return "NN_MISMATCH";
+        return "UNKNOWN_PARITY_MISMATCH";
     }
 
     private IntentKey key(Intent intent) {

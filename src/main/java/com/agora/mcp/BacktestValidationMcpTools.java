@@ -358,7 +358,7 @@ public class BacktestValidationMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
     @Tool(description = "只讀比對 Binance SCORE_BUY 買點與設定的 TradingView Strategy Tester golden CSV。" +
-            "CSV 必須含 time/reason/label/qty，可選 nn_output；缺少 golden 時 fail closed。" +
+            "CSV 必須含 time/reason/label/qty/nn_output；NN 缺列或缺值時 fail closed。" +
             "至少驗證 365 天，不寫 DB、不下單，也不會自動解鎖 live。")
     public String verifyScoreBuyTradingViewGoldenTruth(Long strategyId, String symbol, String intervalCode,
                                                        Integer days, String source, String configOverrideJson) {
@@ -450,6 +450,7 @@ public class BacktestValidationMcpTools {
                 "boundary=READ_ONLY%nstatus=%s%nsource=%s days=%d coverage=%s%n" +
                 "exactParity=%s expectedIntents=%d actualIntents=%d missingIntents=%d extraIntents=%d%n" +
                 "nnCompared=%s maxNnError=%s nnTolerance=1e-6%n" +
+                "nnEvidenceRule=COMPLETE_PER_INTENT_REQUIRED%n" +
                 "goldenSha256=%s goldenPath=%s%nblocker=%s%n" +
                 "parityReadyForAuthorizationReview=%s%n" +
                 "livePromotionAllowed=false%n" +

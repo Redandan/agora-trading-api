@@ -112,11 +112,11 @@ class TradingViewScoreBuyGoldenDatasetIT {
         try {
             for (int i = 0; i < klines.size(); i++) {
                 MdKline current = klines.get(i);
+                profitBars.add(new BtcBaseShadowBacktestSimulator.Bar(
+                        current.getOpenTime(), current.getClosePrice().doubleValue()));
                 if (!expectedNn.containsKey(current.getOpenTime())) {
                     continue;
                 }
-                profitBars.add(new BtcBaseShadowBacktestSimulator.Bar(
-                        current.getOpenTime(), current.getClosePrice().doubleValue()));
                 MdKline previous = i == 0 ? null : klines.get(i - 1);
                 LiveSignalContext.clear();
                 StrategySignal signal = strategy.evaluate(
@@ -152,8 +152,16 @@ class TradingViewScoreBuyGoldenDatasetIT {
                 .contains("baselineExecuted=25")
                 .contains("baselineSkipped=3")
                 .contains("baselineTakeProfitReductions=0")
-                .contains("candidatePolicy=PINE_QUANTITY_1000_2000_5000_TO_1X_2X_5X_ONE_ORDER_PER_BAR_NO_AUTO_SELL")
+                .contains("candidatePolicy=PRIOR_252_CLOSE_HIGH_DRAWDOWN_LT20_10_LT40_20_GTE40_30_USDT_ONE_ORDER_PER_BAR_NO_AUTO_SELL")
+                .contains("candidateReference=MAX_PREVIOUS_252_CLOSED_BAR_CLOSES_EXCLUDES_CURRENT_BAR")
+                .contains("candidateInvested=170.00 candidatePnl=-5.78 candidateReturn=-3.40%")
+                .contains("candidateInvested=250.00 candidatePnl=-35.71 candidateReturn=-14.28%")
+                .contains("candidateInvested=250.00 candidatePnl=-56.95 candidateReturn=-22.78%")
+                .contains("candidateInvested=250.00 candidatePnl=-80.67 candidateReturn=-32.27%")
+                .contains("candidateMaxDrawdown=38.11% candidateExecuted=17 candidateShadowOnly=14 candidateSkipped=11 candidateUpsizedBars=8")
                 .contains("walkForwardFold=5")
+                .contains("walkForwardSummary=baselinePositiveFolds=2/5 candidatePositiveFolds=2/5")
+                .contains("stressCandidatePnl=-81.01 stressCandidateReturn=-32.40%")
                 .contains("candidateVerdict=REJECTED")
                 .contains("candidatePromotionAllowed=false");
         boolean fullDailyNnParity = rawNnMismatchCount == 0

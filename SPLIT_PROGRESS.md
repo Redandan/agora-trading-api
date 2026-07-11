@@ -1,5 +1,17 @@
 # Split Progress
 
+- 2026-07-11: evaluated the next predeclared strategy 485 sizing candidate
+  without changing any buy point. `SHADOW_252D_DRAWDOWN_TIERED_PER_BAR` uses
+  only the maximum close from the previous 252 closed bars, excludes the
+  current bar, and maps drawdown `<20%`, `20%-<40%`, and `>=40%` to one
+  `10/20/30 USDT` shadow order per bar. Every horizon and walk-forward fold now
+  retains prior-price warmup instead of truncating the 252-bar reference at the
+  measurement boundary. The signed 3,250-bar replay retained 42/42 intents with
+  zero missing/extra. The candidate was rejected: 180-day return `-14.28%`,
+  365-day return `-32.27%`, 365-day maximum drawdown `38.11%`, walk-forward
+  `2/5` positive folds, and doubled-fee stress return `-32.40%`. This was local
+  read-only evidence; no production env, deploy, DB, strategy, live order, OCO,
+  grid, fund, Earn, Telegram, scheduler, or exchange mutation was made.
 - 2026-07-11: advanced the read-only strategy 485 profit experiment from the
   rejected same-bar aggregate candidate to one predeclared Pine quantity-tier
   candidate. `SHADOW_PINE_QUANTITY_TIERED_PER_BAR` maps the source's

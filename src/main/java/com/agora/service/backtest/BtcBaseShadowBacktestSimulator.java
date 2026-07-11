@@ -1,7 +1,9 @@
 package com.agora.service.backtest;
 
 import java.time.LocalDateTime;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +14,9 @@ public final class BtcBaseShadowBacktestSimulator {
     private static final double PINE_BASE_QUANTITY = 1000.0;
     private static final double PINE_POTENTIAL_LOW_QUANTITY = 2000.0;
     private static final double PINE_AI_BUY_QUANTITY = 5000.0;
+    private static final int DRAWDOWN_LOOKBACK_BARS = 252;
+    private static final double DRAWDOWN_TIER_TWO_THRESHOLD = 0.20;
+    private static final double DRAWDOWN_TIER_THREE_THRESHOLD = 0.40;
 
     private BtcBaseShadowBacktestSimulator() {
     }
@@ -42,6 +47,7 @@ public final class BtcBaseShadowBacktestSimulator {
 
         State state = new State(cfg.takeProfitReducePct());
         List<Event> events = new ArrayList<>();
+        Deque<Double> priorCloses = new ArrayDeque<>(DRAWDOWN_LOOKBACK_BARS);
         int orderIntentCount = buyIntents == null ? 0 : buyIntents.size();
 
         for (Bar bar : bars) {
@@ -52,11 +58,19 @@ public final class BtcBaseShadowBacktestSimulator {
             List<BuyIntent> barIntents = intentsByTime.getOrDefault(bar.time(), List.of());
             if (!barIntents.isEmpty()) {
                 state.orderBars.putIfAbsent(bar.time(), Boolean.TRUE);
-                executeBarIntents(bar, barIntents, cfg, semantics, state, events);
+                double priorCloseHigh = priorCloses.stream()
+                        .mapToDouble(Double::doubleValue)
+                        .max()
+                        .orElse(Double.NaN);
+                executeBarIntents(bar, barIntents, cfg, semantics, priorCloseHigh, state, events);
             }
 
             evaluateReductions(bar, cfg, state, events);
             updateDrawdown(bar, cfg, state);
+            priorCloses.addLast(bar.closePrice());
+            if (priorCloses.size() > DRAWDOWN_LOOKBACK_BARS) {
+                priorCloses.removeFirst();
+            }
         }
 
         Bar finalBar = lastValidBar(bars);
@@ -100,7 +114,8 @@ public final class BtcBaseShadowBacktestSimulator {
     }
 
     private static void executeBarIntents(Bar bar, List<BuyIntent> intents, Config cfg,
-                                          ExecutionSemantics semantics, State state, List<Event> events) {
+                                          ExecutionSemantics semantics, double priorCloseHigh,
+                                          State state, List<Event> events) {
         switch (semantics) {
             case SHADOW_ALL_INTENTS -> intents.forEach(intent ->
                     executeBuy(bar, intent, cfg.buyNotionalUsdt(), cfg, state, events));
@@ -140,6 +155,25 @@ public final class BtcBaseShadowBacktestSimulator {
                         tierIntent.label(),
                         tierIntent.signal());
                 executeBuy(bar, tiered, requestedNotional, cfg, state, events);
+                state.shadowOnlyIntents += Math.max(0, intents.size() - 1);
+            }
+            case SHADOW_252D_DRAWDOWN_TIERED_PER_BAR -> {
+                BuyIntent first = intents.get(0);
+                double drawdown = Double.isFinite(priorCloseHigh) && priorCloseHigh > 0.0
+                        ? Math.max(0.0, 1.0 - bar.closePrice() / priorCloseHigh)
+                        : 0.0;
+                double multiplier = drawdown >= DRAWDOWN_TIER_THREE_THRESHOLD
+                        ? 3.0
+                        : drawdown >= DRAWDOWN_TIER_TWO_THRESHOLD ? 2.0 : 1.0;
+                BuyIntent tiered = new BuyIntent(
+                        first.time(),
+                        first.tradingViewQuantity(),
+                        String.format(Locale.ROOT,
+                                "PRIOR_252_CLOSE_DRAWDOWN_TIER(priorHigh=%.8f drawdown=%.4f multiplier=%.0f original=%s)",
+                                priorCloseHigh, drawdown, multiplier, first.reason()),
+                        first.label(),
+                        first.signal());
+                executeBuy(bar, tiered, cfg.buyNotionalUsdt() * multiplier, cfg, state, events);
                 state.shadowOnlyIntents += Math.max(0, intents.size() - 1);
             }
         }
@@ -335,7 +369,8 @@ public final class BtcBaseShadowBacktestSimulator {
         SHADOW_ALL_INTENTS,
         LIVE_ONE_ORDER_PER_BAR,
         SHADOW_AGGREGATE_PER_BAR,
-        SHADOW_PINE_QUANTITY_TIERED_PER_BAR
+        SHADOW_PINE_QUANTITY_TIERED_PER_BAR,
+        SHADOW_252D_DRAWDOWN_TIERED_PER_BAR
     }
 
     public record Event(LocalDateTime time,

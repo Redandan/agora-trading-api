@@ -482,8 +482,8 @@ public class BacktestValidationMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
     @Tool(description = "只讀執行 TradingView BTC_BASE 固定 90/180/270/365 天 production-semantics 收益報告。" +
-            "baseline=LIVE_ONE_ORDER_PER_BAR，本輪候選=SHADOW_PINE_QUANTITY_TIERED_PER_BAR；" +
-            "以 Pine 原始 quantity 套用 1x/2x/5x sizing，保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
+            "baseline=LIVE_ONE_ORDER_PER_BAR，本輪候選=SHADOW_252D_DRAWDOWN_TIERED_PER_BAR；" +
+            "以前 252 根已收線 close 的最高價分級為 10/20/30 USDT，保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
     public String runScoreBuyTradingViewProfitOptimizationReport(Long strategyId, String symbol,
                                                                  String intervalCode, String source,
                                                                  String configOverrideJson, Double feeRate) {
@@ -535,9 +535,9 @@ public class BacktestValidationMcpTools {
         List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = new ArrayList<>();
         for (int i = 0; i < klines.size(); i++) {
             MdKline current = klines.get(i);
-            if (current.getOpenTime().isBefore(visibleStart)) continue;
             bars.add(new BtcBaseShadowBacktestSimulator.Bar(
                     current.getOpenTime(), current.getClosePrice().doubleValue()));
+            if (current.getOpenTime().isBefore(visibleStart)) continue;
             MdKline previous = i > 0 ? klines.get(i - 1) : null;
             LiveSignalContext.clear();
             StrategySignal signal = strategy.evaluate(new StrategyContext(i, current, previous, klines, indicators), config);
@@ -891,8 +891,7 @@ public class BacktestValidationMcpTools {
             "按每次買點固定 notional 累積 BTC 底倉、套用底倉曝光上限；預設無自動賣出，" +
             "獲利分批減倉必須以參數明確啟用，回撤預設只標記不賣出。" +
             "executionSemantics 可選 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、SHADOW_AGGREGATE_PER_BAR、" +
-            "SHADOW_PINE_QUANTITY_TIERED_PER_BAR；最後一項以 Pine 1000/2000/5000 quantity 對應 1x/2x/5x，" +
-            "同一根 K 線仍只模擬一筆訂單。" +
+            "SHADOW_PINE_QUANTITY_TIERED_PER_BAR、SHADOW_252D_DRAWDOWN_TIERED_PER_BAR；後兩項同一根 K 線仍只模擬一筆訂單。" +
             "不寫庫、不下單、不掛 OCO，用於評估用 BTC base 取代固定 OCO 進出場前的買點與底倉行為。")
     public String runScoreBuyTradingViewBtcBaseBacktest(Long strategyId, String symbol, String intervalCode,
                                                         Integer days, String source, String configOverrideJson,
@@ -913,7 +912,8 @@ public class BacktestValidationMcpTools {
                             executionSemantics.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             return "❌ executionSemantics 必須是 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、" +
-                    "SHADOW_AGGREGATE_PER_BAR 或 SHADOW_PINE_QUANTITY_TIERED_PER_BAR";
+                    "SHADOW_AGGREGATE_PER_BAR、SHADOW_PINE_QUANTITY_TIERED_PER_BAR 或 " +
+                    "SHADOW_252D_DRAWDOWN_TIERED_PER_BAR";
         }
 
         BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);
@@ -1012,10 +1012,7 @@ public class BacktestValidationMcpTools {
                     coverageLine, replayHistoryLine, semantics);
         }
 
-        List<MdKline> visibleKlines = klines.stream()
-                .filter(k -> !k.getOpenTime().isBefore(visibleStart))
-                .toList();
-        List<BtcBaseShadowBacktestSimulator.Bar> bars = visibleKlines.stream()
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = klines.stream()
                 .map(k -> new BtcBaseShadowBacktestSimulator.Bar(k.getOpenTime(), k.getClosePrice().doubleValue()))
                 .toList();
         double configuredBaseBuyNotional = baseBuyNotionalUsdt != null ? baseBuyNotionalUsdt : 10.0;

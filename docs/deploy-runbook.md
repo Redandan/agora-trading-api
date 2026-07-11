@@ -232,10 +232,12 @@ Expected:
   `LIVE_ONE_ORDER_PER_BAR` as the production baseline and tests one shadow
   candidate per round across 90/180/270/365-day, drawdown, walk-forward, and
   stress gates. The current candidate is
-  `SHADOW_PINE_QUANTITY_TIERED_PER_BAR`: Pine quantities
-  `1000/2000/5000` become `1x/2x/5x` of the 10 USDT base slice while the
-  original buy intents, one-order-per-bar shape, 250 USDT cap, no-lookahead,
-  and no-auto-sell policy remain fixed. Neither tool authorizes live promotion.
+  `SHADOW_252D_DRAWDOWN_TIERED_PER_BAR`: the maximum close from the previous
+  252 closed bars maps drawdown `<20%`, `20%-<40%`, and `>=40%` to one
+  `10/20/30 USDT` order per bar. Short horizons and walk-forward folds retain
+  prior-price warmup, but only in-window intents may buy. The original buy
+  intents, 250 USDT cap, no-lookahead, and no-auto-sell policy remain fixed.
+  Neither tool authorizes live promotion.
 - `runTimeframeAwareStrategyValidation` is the timeframe-specific companion
   report. It keeps TradingView entry parity separate from profitability,
   evaluates 1d entries over 1/3/7/14-day outcomes or 1h/4h entries over

@@ -3,6 +3,7 @@ package com.agora.service.backtest;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -159,6 +160,64 @@ class BtcBaseShadowBacktestSimulatorTest {
                 .extracting(BtcBaseShadowBacktestSimulator.Event::notional)
                 .containsExactly(10.0, 20.0, 50.0);
         assertThat(result.events().get(1).reason()).contains("tvQty=2000").contains("multiplier=2.00");
+    }
+
+    @Test
+    void drawdownTierUsesOnlyPriorClosesAndKeepsOneOrderPerBar() {
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = List.of(
+                bar("2026-01-01T00:00", 100.0),
+                bar("2026-01-02T00:00", 90.0),
+                bar("2026-01-03T00:00", 79.0),
+                bar("2026-01-04T00:00", 59.0),
+                bar("2026-01-05T00:00", 1000.0));
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = List.of(
+                intent("2026-01-01T00:00", "NO_HISTORY"),
+                intent("2026-01-02T00:00", "LT_20"),
+                intent("2026-01-03T00:00", "GTE_20"),
+                intent("2026-01-04T00:00", "GTE_40"),
+                intent("2026-01-04T00:00", "SAME_BAR_SHADOW"));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, intents, new BtcBaseShadowBacktestSimulator.Config(
+                        10.0, 100.0, 10.0, 0.001, 0.0, 0.0, 0.12, 0.0),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_252D_DRAWDOWN_TIERED_PER_BAR);
+
+        assertThat(result.orderIntentCount()).isEqualTo(5);
+        assertThat(result.orderBarCount()).isEqualTo(4);
+        assertThat(result.executedBuys()).isEqualTo(4);
+        assertThat(result.shadowOnlyIntentCount()).isEqualTo(1);
+        assertThat(result.totalGrossBuys()).isEqualTo(70.0);
+        assertThat(result.events()).filteredOn(event -> "BUY".equals(event.type()))
+                .extracting(BtcBaseShadowBacktestSimulator.Event::notional)
+                .containsExactly(10.0, 10.0, 20.0, 30.0);
+        assertThat(result.events().get(3).reason())
+                .contains("priorHigh=100.00000000")
+                .contains("drawdown=0.4100")
+                .contains("multiplier=3");
+    }
+
+    @Test
+    void drawdownTierExpiresCloseHighOutsidePrior252Bars() {
+        LocalDateTime start = LocalDateTime.parse("2025-01-01T00:00:00");
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = new ArrayList<>();
+        bars.add(new BtcBaseShadowBacktestSimulator.Bar(start, 100.0));
+        for (int day = 1; day <= 252; day++) {
+            bars.add(new BtcBaseShadowBacktestSimulator.Bar(start.plusDays(day), 80.0));
+        }
+        LocalDateTime intentTime = start.plusDays(253);
+        bars.add(new BtcBaseShadowBacktestSimulator.Bar(intentTime, 70.0));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, List.of(new BtcBaseShadowBacktestSimulator.BuyIntent(
+                        intentTime, 1000.0, "WINDOW_BOUNDARY", "WINDOW_BOUNDARY", "BUY")),
+                BtcBaseShadowBacktestSimulator.Config.defaults(),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_252D_DRAWDOWN_TIERED_PER_BAR);
+
+        assertThat(result.totalGrossBuys()).isEqualTo(10.0);
+        assertThat(result.events().get(0).reason())
+                .contains("priorHigh=80.00000000")
+                .contains("drawdown=0.1250")
+                .contains("multiplier=1");
     }
 
     private static BtcBaseShadowBacktestSimulator.Bar bar(String time, double close) {

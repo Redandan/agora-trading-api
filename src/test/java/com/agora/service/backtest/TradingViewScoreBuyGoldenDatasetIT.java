@@ -107,12 +107,16 @@ class TradingViewScoreBuyGoldenDatasetIT {
         StateFit stateFit = fitTradingViewState(expectedNn, klines, indexByTime, indicators);
 
         List<TradingViewGoldenTruthVerifier.Intent> actualIntents = new ArrayList<>();
+        List<BtcBaseShadowBacktestSimulator.Bar> profitBars = new ArrayList<>();
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> profitIntents = new ArrayList<>();
         try {
             for (int i = 0; i < klines.size(); i++) {
                 MdKline current = klines.get(i);
                 if (!expectedNn.containsKey(current.getOpenTime())) {
                     continue;
                 }
+                profitBars.add(new BtcBaseShadowBacktestSimulator.Bar(
+                        current.getOpenTime(), current.getClosePrice().doubleValue()));
                 MdKline previous = i == 0 ? null : klines.get(i - 1);
                 LiveSignalContext.clear();
                 StrategySignal signal = strategy.evaluate(
@@ -124,6 +128,9 @@ class TradingViewScoreBuyGoldenDatasetIT {
                         actualIntents.add(new TradingViewGoldenTruthVerifier.Intent(
                                 current.getOpenTime(), intent.reason(), intent.label(),
                                 BigDecimal.valueOf(intent.quantity()), nn));
+                        profitIntents.add(new BtcBaseShadowBacktestSimulator.BuyIntent(
+                                current.getOpenTime(), intent.quantity(), intent.reason(), intent.label(),
+                                signal.name()));
                     }
                 }
             }
@@ -133,6 +140,22 @@ class TradingViewScoreBuyGoldenDatasetIT {
 
         TradingViewGoldenTruthVerifier.VerificationResult intentResult =
                 new TradingViewGoldenTruthVerifier().verify(goldenPath.toString(), actualIntents);
+        String profitOptimizationReport = new TradingViewProfitOptimizationService()
+                .compareAggregateCandidate("BTCUSDT", "binance", 0.001, profitBars, profitIntents);
+        assertThat(profitOptimizationReport)
+                .contains("buyPointPolicy=PRESERVE_ALL_TRADINGVIEW_INTENTS")
+                .contains("baselineExitPolicy=HOLD_BTC_BASE_NO_OCO_NO_AUTO_SELL")
+                .contains("window=90d intents=9 bars=6 baselineInvested=60.00 baselinePnl=-2.48")
+                .contains("window=180d intents=25 bars=16 baselineInvested=160.00 baselinePnl=-18.09")
+                .contains("window=270d intents=33 bars=20 baselineInvested=200.00 baselinePnl=-30.99")
+                .contains("window=365d intents=42 bars=28 baselineInvested=250.00 baselinePnl=-67.13")
+                .contains("baselineExecuted=25")
+                .contains("baselineSkipped=3")
+                .contains("baselineTakeProfitReductions=0")
+                .contains("candidateInvested=250.00 candidatePnl=-81.58")
+                .contains("walkForwardFold=5")
+                .contains("candidateVerdict=REJECTED")
+                .contains("candidatePromotionAllowed=false");
         boolean fullDailyNnParity = rawNnMismatchCount == 0
                 && Double.isFinite(maxRawNnError)
                 && maxRawNnError <= NN_TOLERANCE;
@@ -175,6 +198,7 @@ class TradingViewScoreBuyGoldenDatasetIT {
         evidence.put("maxIntentNnError", Double.isFinite(intentResult.maxNnError())
                 ? intentResult.maxNnError() : null);
         evidence.put("intentBlocker", intentResult.blocker());
+        evidence.put("profitOptimizationReport", profitOptimizationReport);
         evidence.put("replayCsvSha256", sha256(replayPath));
         evidence.put("nnCsvSha256", sha256(nnPath));
         evidence.put("goldenCsvSha256", sha256(goldenPath));

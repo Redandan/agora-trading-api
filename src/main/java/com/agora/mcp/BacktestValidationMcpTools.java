@@ -887,7 +887,8 @@ public class BacktestValidationMcpTools {
     @McpCategory({Category.ANALYTICS})
     @Tool(description = "只讀執行 SCORE_BUY 的 TradingView BTC_BASE 影子回測。" +
             "買點來源完全沿用 TradingView parity order intents；BTC_BASE 只改倉位語義：" +
-            "按每次買點固定 notional 累積 BTC 底倉、套用底倉曝光上限、可選獲利分批減倉與回撤風險標記。" +
+            "按每次買點固定 notional 累積 BTC 底倉、套用底倉曝光上限；預設無自動賣出，" +
+            "獲利分批減倉必須以參數明確啟用，回撤預設只標記不賣出。" +
             "executionSemantics 可選 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、SHADOW_AGGREGATE_PER_BAR。" +
             "不寫庫、不下單、不掛 OCO，用於評估用 BTC base 取代固定 OCO 進出場前的買點與底倉行為。")
     public String runScoreBuyTradingViewBtcBaseBacktest(Long strategyId, String symbol, String intervalCode,
@@ -1013,14 +1014,15 @@ public class BacktestValidationMcpTools {
         List<BtcBaseShadowBacktestSimulator.Bar> bars = visibleKlines.stream()
                 .map(k -> new BtcBaseShadowBacktestSimulator.Bar(k.getOpenTime(), k.getClosePrice().doubleValue()))
                 .toList();
+        double configuredBaseBuyNotional = baseBuyNotionalUsdt != null ? baseBuyNotionalUsdt : 10.0;
         BtcBaseShadowBacktestSimulator.Config btcBaseConfig =
                 new BtcBaseShadowBacktestSimulator.Config(
-                        baseBuyNotionalUsdt != null ? baseBuyNotionalUsdt : 10.0,
+                        configuredBaseBuyNotional,
                         maxBaseExposureUsdt != null ? maxBaseExposureUsdt : 250.0,
-                        1.0,
+                        configuredBaseBuyNotional,
                         fee,
-                        takeProfitReducePct != null ? takeProfitReducePct : 0.06,
-                        takeProfitReduceFraction != null ? takeProfitReduceFraction : 0.25,
+                        takeProfitReducePct != null ? takeProfitReducePct : 0.0,
+                        takeProfitReduceFraction != null ? takeProfitReduceFraction : 0.0,
                         emergencyDrawdownPct != null ? emergencyDrawdownPct : 0.12,
                         emergencyReduceFraction != null ? emergencyReduceFraction : 0.0);
         BtcBaseShadowBacktestSimulator.Result result =
@@ -1062,7 +1064,9 @@ public class BacktestValidationMcpTools {
                 "  avgCost: %s\n\n" +
                 "績效:\n" +
                 "  finalInventoryValueBeforeExitFee: %.2f USDT\n" +
+                "  feesPaidBeforeFinalExit: %.2f USDT\n" +
                 "  finalExitFeeEstimate: %.2f USDT\n" +
+                "  totalFeesIncludingFinalExitEstimate: %.2f USDT\n" +
                 "  realizedPnl: %.2f USDT\n" +
                 "  unrealizedPnlAfterExitFee: %.2f USDT\n" +
                 "  totalPnl: %.2f USDT\n" +
@@ -1090,7 +1094,8 @@ public class BacktestValidationMcpTools {
                 result.aggregatedOrderBars(), result.cappedBuys(), result.skippedByCap(),
                 result.totalGrossBuys(), result.maxCostBasis(), result.remainingCostBasis(),
                 result.inventoryQty(), fmt(result.avgCost()),
-                result.finalInventoryValue(), result.finalExitFee(), result.realizedPnl(), result.unrealizedPnl(),
+                result.finalInventoryValue(), result.totalFees(), result.finalExitFee(),
+                result.totalFees() + result.finalExitFee(), result.realizedPnl(), result.unrealizedPnl(),
                 result.totalPnl(), result.deployedReturn() * 100.0,
                 result.takeProfitReductions(), result.emergencyWarnings(), result.emergencyReductions(),
                 result.maxInventoryDrawdownPct() * 100.0,

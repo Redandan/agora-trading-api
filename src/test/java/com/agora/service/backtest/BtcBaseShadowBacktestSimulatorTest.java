@@ -110,6 +110,29 @@ class BtcBaseShadowBacktestSimulatorTest {
         assertThat(result.events().get(0).reason()).isEqualTo("AGGREGATED_INTENTS(3)");
     }
 
+    @Test
+    void fixedTenUsdtSliceSkipsCapacityRemainderBelowOneFullOrder() {
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = List.of(
+                bar("2026-01-01T00:00", 100.0),
+                bar("2026-01-02T00:00", 100.0),
+                bar("2026-01-03T00:00", 100.0));
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = List.of(
+                intent("2026-01-01T00:00", "FIRST"),
+                intent("2026-01-02T00:00", "SECOND"),
+                intent("2026-01-03T00:00", "CAP_REMAINDER"));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, intents, new BtcBaseShadowBacktestSimulator.Config(
+                        10.0, 25.0, 10.0, 0.001, 0.0, 0.0, 0.12, 0.0),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
+
+        assertThat(result.executedBuys()).isEqualTo(2);
+        assertThat(result.skippedByCap()).isEqualTo(1);
+        assertThat(result.cappedBuys()).isZero();
+        assertThat(result.totalGrossBuys()).isEqualTo(20.0);
+        assertThat(result.maxCostBasis()).isEqualTo(20.0);
+    }
+
     private static BtcBaseShadowBacktestSimulator.Bar bar(String time, double close) {
         return new BtcBaseShadowBacktestSimulator.Bar(LocalDateTime.parse(time), close);
     }

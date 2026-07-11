@@ -258,7 +258,7 @@ public final class BtcBaseShadowBacktestSimulator {
                          double emergencyDrawdownPct,
                          double emergencyReduceFraction) {
         public static Config defaults() {
-            return new Config(10.0, 250.0, 1.0, 0.001, 0.06, 0.25, 0.12, 0.0);
+            return new Config(10.0, 250.0, 10.0, 0.001, 0.0, 0.0, 0.12, 0.0);
         }
 
         Config normalized() {

@@ -217,7 +217,7 @@ public class TimeframeAwareStrategyValidationService {
                 intent(bars.get(0).time(), "HODL_BENCHMARK"));
         double maxExposure = Math.max(10.0, events.size() * 10.0 + 10.0);
         BtcBaseShadowBacktestSimulator.Config config = new BtcBaseShadowBacktestSimulator.Config(
-                10.0, maxExposure, 1.0, feeRate, 0.0, 0.0, 0.0, 0.0);
+                10.0, maxExposure, 10.0, feeRate, 0.0, 0.0, 0.0, 0.0);
         BtcBaseShadowBacktestSimulator.Result strategy = BtcBaseShadowBacktestSimulator.run(
                 simulationBars, strategyIntents, config,
                 BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);

@@ -295,10 +295,8 @@ public class BacktestValidationMcpTools {
                 return "❌ configOverrideJson 格式錯誤: " + e.getMessage();
             }
         }
-        config.put("runIntervalCode", intervalVal);
-
         Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
-        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        applyTradingViewParityConfig(config, strategy, intervalVal);
         Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
 
         List<String> rows = new ArrayList<String>();
@@ -344,14 +342,17 @@ public class BacktestValidationMcpTools {
         int fromIndex = Math.max(0, rows.size() - limitVal);
         List<String> tailRows = rows.subList(fromIndex, rows.size());
         String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
+        String replayHistoryLine = buildTradingViewReplayHistoryLine(klines, config);
         return String.format(
                 "=== SCORE_BUY TradingView order-intent preview ===\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
                 "%s\n" +
+                "%s\n" +
                 "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
-                "note=此工具只比對 TradingView 買點/訂單意圖；不落庫、不下單、不套用資金/倉位/SLTP 模型。\n\n%s",
+                "note=此工具只比對 TradingView 買點/訂單意圖；不寫 bt_backtest_result、不下單、不套用資金/倉位/SLTP 模型。\n\n%s",
                 strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
                 coverageLine,
+                replayHistoryLine,
                 orderBarCount, orderCount, firstOrderAt, lastOrderAt,
                 String.join("\n", tailRows));
     }
@@ -409,9 +410,14 @@ public class BacktestValidationMcpTools {
                 return goldenTruthUnavailable("CONFIG_OVERRIDE_INVALID:" + e.getMessage(), src, daysVal);
             }
         }
-        config.put("runIntervalCode", intervalVal);
         Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
-        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        applyTradingViewParityConfig(config, strategy, intervalVal);
+        if (!TradingViewScoreBuyModel.hasCompleteReplayHistory(klines, config)) {
+            return goldenTruthUnavailable(
+                    "BINANCE_REPLAY_HISTORY_NOT_READY:" + buildTradingViewReplayHistoryLine(klines, config),
+                    src,
+                    daysVal);
+        }
         Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
         List<TradingViewGoldenTruthVerifier.Intent> actual = new ArrayList<>();
         for (int i = 0; i < klines.size(); i++) {
@@ -516,9 +522,13 @@ public class BacktestValidationMcpTools {
                         + " candidatePromotionAllowed=false";
             }
         }
-        config.put("runIntervalCode", intervalVal);
         Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
-        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        applyTradingViewParityConfig(config, strategy, intervalVal);
+        if (!TradingViewScoreBuyModel.hasCompleteReplayHistory(klines, config)) {
+            return "status=REPLAY_HISTORY_NOT_READY source=" + src + " "
+                    + buildTradingViewReplayHistoryLine(klines, config)
+                    + " candidatePromotionAllowed=false";
+        }
         Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
         List<BtcBaseShadowBacktestSimulator.Bar> bars = new ArrayList<>();
         List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = new ArrayList<>();
@@ -704,6 +714,10 @@ public class BacktestValidationMcpTools {
         config.put("runIntervalCode", intervalCode);
         if (tradingViewParityStrategy) {
             config.put("tradingViewParityMode", true);
+            config.put(TradingViewScoreBuyModel.REPLAY_START_CONFIG,
+                    TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC.toString());
+            config.put(TradingViewScoreBuyModel.REQUIRE_FULL_HISTORY_CONFIG, true);
+            config.put("tradingViewAllowIncompleteHistoryShadowIntents", false);
         }
         return config;
     }
@@ -754,10 +768,8 @@ public class BacktestValidationMcpTools {
                 return "❌ configOverrideJson 格式錯誤: " + e.getMessage();
             }
         }
-        config.put("runIntervalCode", intervalVal);
-
         Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
-        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        applyTradingViewParityConfig(config, strategy, intervalVal);
         Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
 
         List<TvLot> lots = new ArrayList<TvLot>();
@@ -804,14 +816,16 @@ public class BacktestValidationMcpTools {
 
         if (lots.isEmpty()) {
             String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
+            String replayHistoryLine = buildTradingViewReplayHistoryLine(klines, config);
             return String.format(
                     "=== SCORE_BUY TradingView parity backtest ===\n" +
                     "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
                     "%s\n" +
+                    "%s\n" +
                     "orderBars=0 orderIntents=0\n" +
-                    "note=未產生 TradingView order intent；不寫庫、不下單。",
+                    "note=未產生 TradingView order intent；不寫 bt_backtest_result、不下單。",
                     strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
-                    coverageLine);
+                    coverageLine, replayHistoryLine);
         }
 
         List<MdKline> visibleKlines = klines.stream()
@@ -841,10 +855,12 @@ public class BacktestValidationMcpTools {
         double winRate = lots.isEmpty() ? 0.0 : (double) winningLots / (double) lots.size();
         List<String> tailRows = orderRows.subList(Math.max(0, orderRows.size() - limitVal), orderRows.size());
         String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
+        String replayHistoryLine = buildTradingViewReplayHistoryLine(klines, config);
 
         return String.format(Locale.ROOT,
                 "=== SCORE_BUY TradingView parity backtest ===\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
+                "%s\n" +
                 "%s\n" +
                 "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
                 "execution=TradingView parity: pyramiding=true, exit=mark_to_market_at_end, qtyAsNotionalUsdt=true, localSLTP=false, singlePosition=false\n" +
@@ -859,6 +875,7 @@ public class BacktestValidationMcpTools {
                 "note=此工具只比對 TradingView 交易語義；不寫 bt_backtest_result、不下單、不套用本地風控/品質門檻。\n\n%s",
                 strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
                 coverageLine,
+                replayHistoryLine,
                 orderBarCount, lots.size(), firstOrderAt, lastOrderAt,
                 finalBar.getOpenTime(), fmt(finalClose), fee,
                 capitalUsed, finalValue, netPnl, totalReturn * 100.0,
@@ -926,10 +943,8 @@ public class BacktestValidationMcpTools {
                 return "❌ configOverrideJson 格式錯誤: " + e.getMessage();
             }
         }
-        config.put("runIntervalCode", intervalVal);
-
         Strategy strategy = strategyRegistry.getRequiredStrategy(strategyEntity.getStrategyType());
-        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        applyTradingViewParityConfig(config, strategy, intervalVal);
         Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
 
         List<BtcBaseShadowBacktestSimulator.BuyIntent> buyIntents =
@@ -975,18 +990,21 @@ public class BacktestValidationMcpTools {
         }
 
         String coverageLine = buildTradingViewDataCoverageLine(klines, visibleStart, endTime, intervalVal);
+        String replayHistoryLine = buildTradingViewReplayHistoryLine(klines, config);
         if (buyIntents.isEmpty()) {
             return String.format(
                     "=== SCORE_BUY TradingView BTC_BASE shadow backtest ===\n" +
                     "boundary=READ_ONLY\n" +
                     "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
                     "%s\n" +
+                    "%s\n" +
                     "executionSemantics=%s\n" +
                     "orderBars=0 orderIntents=0\n" +
                     "buyPointParity=TradingView parity order intents are the only buy source.\n" +
-                    "note=未產生 TradingView order intent；不寫庫、不下單、不掛 OCO。",
+                    "note=未產生 TradingView order intent；不寫 bt_backtest_result、不下單、不掛 OCO。\n" +
+                    "notAuthorization=read-only BTC_BASE shadow report only; no DB write, no production env change, no deploy, no order, no OCO/grid/fund/Earn/Telegram/scheduler/exchange mutation.",
                     strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
-                    coverageLine, semantics);
+                    coverageLine, replayHistoryLine, semantics);
         }
 
         List<MdKline> visibleKlines = klines.stream()
@@ -1024,6 +1042,7 @@ public class BacktestValidationMcpTools {
                 "boundary=READ_ONLY\n" +
                 "strategyId=%d symbol=%s interval=%s source=%s days=%d queryBars=%d visibleStart=%s\n" +
                 "%s\n" +
+                "%s\n" +
                 "executionSemantics=%s\n" +
                 "orderBars=%d orderIntents=%d firstOrderAt=%s lastOrderAt=%s\n" +
                 "buyPointParity=TradingView parity order intents are the only buy source; BTC_BASE changes sizing/cap/reduction only.\n" +
@@ -1058,6 +1077,7 @@ public class BacktestValidationMcpTools {
                 "最新 TradingView buy intents:\n%s",
                 strategyId, symbolVal, intervalVal, src, daysVal, klines.size(), visibleStart,
                 coverageLine,
+                replayHistoryLine,
                 result.executionSemantics(),
                 result.orderBarCount(), result.orderIntentCount(), firstOrderAt, lastOrderAt,
                 result.config().buyNotionalUsdt(), result.config().maxBaseExposureUsdt(), result.config().feeRate(),
@@ -1243,6 +1263,41 @@ public class BacktestValidationMcpTools {
             return strategySource.toLowerCase();
         }
         return "okx";
+    }
+
+    private void applyTradingViewParityConfig(Map<String, Object> config,
+                                              Strategy strategy,
+                                              String intervalCode) {
+        strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
+        config.put("runIntervalCode", intervalCode);
+        config.put("tradingViewParityMode", true);
+        config.put(TradingViewScoreBuyModel.REPLAY_START_CONFIG,
+                TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC.toString());
+        config.put(TradingViewScoreBuyModel.REQUIRE_FULL_HISTORY_CONFIG, true);
+        config.put("tradingViewAllowIncompleteHistoryShadowIntents", false);
+    }
+
+    static String buildTradingViewReplayHistoryLine(List<MdKline> klines,
+                                                    Map<String, Object> config) {
+        boolean required = Boolean.parseBoolean(String.valueOf(
+                config == null
+                        ? false
+                        : config.getOrDefault(TradingViewScoreBuyModel.REQUIRE_FULL_HISTORY_CONFIG, false)));
+        boolean complete = TradingViewScoreBuyModel.hasCompleteReplayHistory(klines, config);
+        Object replayStart = config == null
+                ? null
+                : config.get(TradingViewScoreBuyModel.REPLAY_START_CONFIG);
+        LocalDateTime dataStart = klines == null || klines.isEmpty()
+                ? null
+                : klines.get(0).getOpenTime();
+        LocalDateTime dataEnd = klines == null || klines.isEmpty()
+                ? null
+                : klines.get(klines.size() - 1).getOpenTime();
+        return String.format(Locale.ROOT,
+                "replayHistoryRequired=%s replayHistoryComplete=%s replayStart=%s replayDataStart=%s replayDataEnd=%s",
+                required, complete, replayStart == null ? "N/A" : replayStart,
+                dataStart == null ? "N/A" : dataStart,
+                dataEnd == null ? "N/A" : dataEnd);
     }
 
     private long warmupDays(String intervalCode) {

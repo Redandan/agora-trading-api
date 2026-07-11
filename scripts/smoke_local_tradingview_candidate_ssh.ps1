@@ -308,6 +308,7 @@ def safe_search(description, pattern, text):
 def require(description, pattern, text):
     if not safe_search(description, pattern, text):
         print(f"FAIL: missing {description}; pattern={pattern}", file=sys.stderr)
+        print(f"FAIL_PAYLOAD: {compact(text, 1200)}", file=sys.stderr)
         sys.exit(1)
 
 def field(pattern, text, default="N/A"):
@@ -353,6 +354,7 @@ btc_base_args["limit"] = 10
 btc_base = call_tool("runScoreBuyTradingViewBtcBaseBacktest", btc_base_args)
 
 require("preview heading", r"SCORE_BUY TradingView order-intent preview", preview)
+require("preview replay history marker", r"replayHistoryComplete=(?:true|false)", preview)
 require("backtest heading", r"SCORE_BUY TradingView parity backtest", backtest)
 require("backtest non-persistence marker", r"bt_backtest_result", backtest)
 require("BTC_BASE shadow heading", r"SCORE_BUY TradingView BTC_BASE shadow backtest", btc_base)
@@ -366,6 +368,11 @@ coverage_warning = field(r"coverageWarning=([^ \r\n]+)", preview)
 trailing_gap_hours = field(r"trailingGapHours=([0-9]+)", preview)
 trailing_close_gap_hours = field(r"trailingCloseGapHours=([0-9]+)", preview)
 freshness_status = field(r"freshnessStatus=([^ \r\n]+)", preview)
+replay_history_required = field(r"replayHistoryRequired=([^ \r\n]+)", preview)
+replay_history_complete = field(r"replayHistoryComplete=([^ \r\n]+)", preview)
+replay_start = field(r"replayStart=([^ \r\n]+)", preview)
+replay_data_start = field(r"replayDataStart=([^ \r\n]+)", preview)
+replay_data_end = field(r"replayDataEnd=([^ \r\n]+)", preview)
 order_bars = field(r"orderBars=([0-9]+)", preview)
 order_intents = field(r"orderIntents=([0-9]+)", preview)
 first_order_at = field(r"firstOrderAt=([^ \r\n]+)", preview)
@@ -375,7 +382,9 @@ net_pnl = field(r"netPnl:\s*([-+0-9.]+) USDT", backtest)
 total_return = field(r"totalReturn:\s*([-+0-9.]+%)", backtest)
 
 order_intent_count = to_int(order_intents) or 0
-if order_intent_count <= 0:
+if replay_history_complete != "true":
+    current_status = "INCOMPLETE_REPLAY_HISTORY"
+elif order_intent_count <= 0:
     current_status = "NO_TRADINGVIEW_ORDER_INTENTS"
 elif last_order_at == data_end and data_end != "N/A":
     current_status = "HAS_CURRENT_BUY_CANDIDATE"
@@ -589,7 +598,9 @@ if current_status == "HAS_CURRENT_BUY_CANDIDATE":
     if not btc_base_shadow_mode and duplicate_bar_exists:
         pre_execution_blockers.append("LOCAL_TRADINGVIEW_DUPLICATE_BAR")
 
-if pre_execution_blockers:
+if replay_history_complete != "true":
+    pre_execution_readiness = "BLOCKED_INCOMPLETE_REPLAY_HISTORY"
+elif pre_execution_blockers:
     pre_execution_readiness = "BLOCKED_PRE_EXECUTION_GATES"
 elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     pre_execution_readiness = "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE"
@@ -597,7 +608,9 @@ else:
     pre_execution_readiness = "READY_PRE_EXECUTION_GATES"
 
 blockers = []
-if current_status != "HAS_CURRENT_BUY_CANDIDATE":
+if replay_history_complete != "true":
+    blockers.append("LOCAL_TRADINGVIEW_REPLAY_HISTORY_INCOMPLETE")
+elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     blockers.append("LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE")
 if not local_evaluator_active:
     blockers.append("LOCAL_TRADINGVIEW_EVALUATOR_NOT_ACTIVE")
@@ -638,6 +651,11 @@ print(f"  trailingGapHours={trailing_gap_hours}")
 print(f"  trailingCloseGapHours={trailing_close_gap_hours}")
 print(f"  freshnessStatus={freshness_status}")
 print(f"  coverageWarning={coverage_warning}")
+print(f"  replayHistoryRequired={replay_history_required}")
+print(f"  replayHistoryComplete={replay_history_complete}")
+print(f"  replayStart={replay_start}")
+print(f"  replayDataStart={replay_data_start}")
+print(f"  replayDataEnd={replay_data_end}")
 
 print("")
 print("Local TradingView Execution Guards:")
@@ -719,7 +737,9 @@ print("  " + compact(btc_base))
 print("")
 print("Blocker Classification:")
 print("  local_tradingview_blockers=" + json.dumps(blockers))
-if pre_execution_blockers:
+if replay_history_complete != "true":
+    readiness = "BLOCKED_LOCAL_TRADINGVIEW_REPLAY_HISTORY_INCOMPLETE"
+elif pre_execution_blockers:
     readiness = "BLOCKED_LOCAL_TRADINGVIEW_PRE_EXECUTION_GATES"
 elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     readiness = "WAIT_CURRENT_LOCAL_TRADINGVIEW_BUY_CANDIDATE"
@@ -736,7 +756,9 @@ elif live_micro_armed:
 else:
     readiness = "BLOCKED_LOCAL_TRADINGVIEW_EXECUTION_NOT_ARMED"
 print(f"  localTradingViewReadiness={readiness}")
-if pre_execution_blockers:
+if replay_history_complete != "true":
+    next_action = "Keep live disabled; complete the authorized Binance replay-history import before using parity BUY evidence."
+elif pre_execution_blockers:
     next_action = "Fix LOCAL_TRADINGVIEW pre-execution blockers before treating the next parity BUY as executable."
 elif current_status != "HAS_CURRENT_BUY_CANDIDATE":
     next_action = "Wait for the latest closed bar to emit a TradingView parity BUY intent, then rerun this smoke before any live plan."

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,6 +91,32 @@ class BacktestValidationMcpToolsTest {
                 List.of(closed, forming), now, "1d");
 
         assertThat(result).containsExactly(closed);
+    }
+
+    @Test
+    void tradingViewReplayHistoryLineMakesMissingAnchorExplicit() {
+        Map<String, Object> config = Map.of(
+                "runIntervalCode", "1d",
+                "tradingViewRequireFullHistory", true,
+                "tradingViewReplayStartTime", "2017-08-17T00:00");
+
+        String incomplete = BacktestValidationMcpTools.buildTradingViewReplayHistoryLine(
+                List.of(
+                        kline(LocalDateTime.of(2026, 7, 9, 0, 0)),
+                        kline(LocalDateTime.of(2026, 7, 10, 0, 0))),
+                config);
+        String complete = BacktestValidationMcpTools.buildTradingViewReplayHistoryLine(
+                List.of(
+                        kline(LocalDateTime.of(2017, 8, 17, 0, 0)),
+                        kline(LocalDateTime.of(2017, 8, 18, 0, 0))),
+                config);
+
+        assertThat(incomplete)
+                .contains("replayHistoryRequired=true")
+                .contains("replayHistoryComplete=false")
+                .contains("replayStart=2017-08-17T00:00")
+                .contains("replayDataStart=2026-07-09T00:00");
+        assertThat(complete).contains("replayHistoryComplete=true");
     }
 
     private static MdKline kline(LocalDateTime openTime) {

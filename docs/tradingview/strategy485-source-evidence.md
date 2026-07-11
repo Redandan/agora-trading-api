@@ -26,46 +26,103 @@ Re-run the read-only comparison with:
 .\scripts\verify_strategy485_tradingview_report.ps1
 ```
 
-## Remaining evidence boundary
+## Authorized private NN export
 
-The Pine source does not plot `nnOutput`, and none of the 203 report entries is
-an AI-buy order. Exact per-intent NN error at `1e-6` therefore still requires a
-separately authorized, instrumented Pine copy or another TradingView series
-export. The evidence above proves entry parity for the two order paths that
-actually fired, but it must not be presented as completed NN parity.
-
-## Free NN export handoff
-
-Read-only Chrome inspection on 2026-07-11 confirmed all of the following:
-
-- The Basic-plan Strategy Report `Download data as XLSX` action opens an upgrade
-  prompt, so it is not a free evidence path.
-- Data Window and chart Table view expose only plotted Pine series. The original
-  `AI` strategy columns are Bollinger bands, long MA, relative-low,
-  potential-low, and AI-buy signal. They do not include `nnOutput`.
-- Chart Table view offers `Download data` as CSV. TradingView documents that
-  chart CSV includes script plots, including plots restricted to
-  `display.data_window`: https://www.tradingview.com/pine-script-docs/faq/indicators/#is-it-possible-to-export-indicator-data-to-a-file
-
-Do not edit the original strategy. After separate authorization to create an
-instrumented TradingView copy, add the line from
-`strategy485-nn-export-snippet.pine` immediately after `nnOutput` is calculated:
+On 2026-07-11, the authorized Chrome workflow created the private copy
+`AI - Strategy 485 NN Export Audit`. The original `AI` strategy was not edited.
+The copy added only this data-window plot immediately after `nnOutput` was
+calculated:
 
 ```pine
 plot(nnOutput, title = "NN Output Export", display = display.data_window, format = format.price, precision = 10)
 ```
 
-Then open chart `Table view`, choose `Download data`, keep UTC/UNIX time, and
-join the exported NN series to the already verified intent report:
+- The copy was saved and applied to `BINANCE:BTCUSDT`, interval `1D`.
+- Data Window showed 10-decimal NN values.
+- TradingView Basic blocked the official Strategy Report download, so the
+  signed-in chart Table view was read directly and normalized to CSV.
+- `strategy485-nn-chart-export-365.csv` has 365 continuous closed daily rows,
+  from 2025-07-11 through 2026-07-10, with SHA-256
+  `35e87a1a773a1d9653fea88fcc7e4e935c348e054020da1a0e7e4d4896d1a225`.
+- No alert was created and no order was placed.
+
+The NN series was joined to the already verified intent report with:
 
 ```powershell
 .\scripts\join_tradingview_nn_chart_export.ps1 `
-  -ChartCsvPath 'C:\path\to\BINANCE_BTCUSDT_1D.csv' `
+  -ChartCsvPath '.\docs\tradingview\strategy485-nn-chart-export-365.csv' `
   -IntentCsvPath '.\docs\tradingview\strategy485-report-365.csv' `
   -OutputPath '.\docs\tradingview\strategy485-golden-365.csv'
 ```
 
-The join fails closed for a missing intent timestamp, duplicate chart timestamp,
-invalid NN value, or ambiguous NN column. Its output is canonical
-`time,reason,label,qty,nn_output` plus a SHA-256 manifest. It does not authorize
-a production import, production env change, or live promotion.
+The canonical `strategy485-golden-365.csv` has SHA-256
+`cef8fcdb95014998e6ced612f6aa767addeee23584515cd9825d8cd4938a6bc5`.
+It contains all 42 TradingView order intents with complete `nn_output` evidence.
+
+## Exact buy-point verification
+
+Run the external-data integration check with:
+
+```powershell
+.\scripts\verify_strategy485_tradingview_exact_parity.ps1
+```
+
+The check downloads 3,250 Binance Vision daily bars into local `target`, then
+executes the production `SCORE_BUY_V2` strategy and online model. The verified
+result after fixing the Pine 252-bar year-high warmup is:
+
+- expected intents 42, actual intents 42, missing 0, extra 0;
+- intent parity status `PASS_EXACT_PARITY`;
+- maximum NN error on the 42 actual buy intents: `2.946044341811671E-08`,
+  below the required `1E-06`;
+- fitted TradingView and Java NN state at the second export row agree within
+  `1.4E-07` for weight and `1.0E-07` for bias.
+
+The stricter all-bars comparison still reports four non-intent rows above
+`1E-06`: 2025-10-21, 2025-10-22, 2026-02-19, and 2026-07-10. Its maximum raw
+daily error is `2.3942303786439467E-05`. This is retained as
+`PASS_EXACT_BUY_POINT_PARITY_WITH_RAW_NN_DRIFT`, not presented as zero-drift
+full-series parity. Use `-RequireFullDailyNnParity` to fail closed on those four
+rows when a TradingView OHLCV/state export becomes available.
+
+The export, join, and verification do not authorize a production import,
+production env change, live promotion, alert, or order.
+
+## Production Binance replay preflight
+
+Before requesting authorization for the missing production replay history, run:
+
+```powershell
+.\scripts\prepare_strategy485_binance_replay_backfill_preflight_ssh.ps1
+```
+
+The preflight performs production `md_kline` `SELECT` queries and Binance Vision
+HTTPS `GET` requests only. It compares exact OHLCV on every overlapping UTC day,
+writes canonical SHA-256 evidence, and splits missing contiguous history into
+planned `backfillBinanceKlinesRange` calls of at most 730 days. Every planned
+call uses `replaceExisting=false`, so the proposal is insert-missing-only.
+
+The 2026-07-11 production run found:
+
+- 3,250 complete Binance Vision bars and 770 production rows marked `binance`;
+- 731 exact overlap matches;
+- 39 five-field OHLCV mismatches from 2024-06-01 through 2024-07-09;
+- all 39 mismatched production rows exactly match the official Binance.US
+  endpoint, with zero missing, duplicate, or mismatched rows;
+- the `source` column length is 10, `binance_us` fits, and no target rows exist;
+- preserving and relabeling those 39 rows would leave 2,519 global Binance bars
+  to insert in four bounded `replaceExisting=false` calls.
+
+The disposition is
+`READY_FOR_SEPARATE_SOURCE_RELABEL_AND_BACKFILL_AUTHORIZATION_NOT_MUTATION`.
+The preflight does not emit update SQL and keeps both source relabel and external
+backfill permissions false. Insert-missing-only must not run before the proven
+Binance.US rows are separately authorized for preservation under `binance_us`;
+otherwise the global Binance gaps for those 39 days remain hidden by the old
+source label.
+
+`READY_FOR_SEPARATE_EXTERNAL_BACKFILL_AUTHORIZATION` is an evidence state, not
+authorization. Enabling the external-backfill guard, executing any planned
+call, relabeling the 39 legacy rows, restarting production, or importing the
+normalized golden CSV still requires separate exact authorization. Keep
+`BTC_BASE_DRY_RUN` and live-order false throughout that workflow.

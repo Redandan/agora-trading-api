@@ -1,5 +1,28 @@
 # Split Progress
 
+- 2026-07-11: the read-only strategy 485 production replay preflight proved
+  that the 39 `BTCUSDT` `1d` rows from 2024-06-01 through 2024-07-09 currently
+  labeled `binance` are exact Binance.US candles, not corrupted global Binance
+  rows. All five OHLCV fields match Binance.US for 39/39 rows; 731 later rows
+  match Binance Vision, and no `binance_us` target rows exist. The safe
+  disposition preserves and relabels the 39 legacy rows, then inserts 2,519
+  missing global Binance bars in four bounded `replaceExisting=false` chunks.
+  This is only
+  `READY_FOR_SEPARATE_SOURCE_RELABEL_AND_BACKFILL_AUTHORIZATION_NOT_MUTATION`;
+  no SQL, backfill, env change, restart, or live mutation was performed.
+- 2026-07-11: created the authorized private TradingView copy
+  `AI - Strategy 485 NN Export Audit`, added a data-window-only 10-decimal
+  `NN Output Export` plot, applied it to `BINANCE:BTCUSDT` `1D`, and extracted
+  365 continuous closed-bar NN rows without creating an alert or order. The
+  production Java replay exposed and fixed one real mismatch: parity mode had
+  started online training before Pine's 252-bar year-high warmup completed.
+  After the fix, the canonical 365-day golden set passed 42/42 intent parity
+  with zero missing/extra and maximum per-intent NN error
+  `2.946044341811671E-08` (required `<=1E-06`). A stricter all-365-bar check
+  retains four non-intent raw NN drift rows, maximum `2.3942303786439467E-05`,
+  so the result is explicitly
+  `PASS_EXACT_BUY_POINT_PARITY_WITH_RAW_NN_DRIFT`, not full-series zero drift.
+  No production import/env/live/order/OCO/grid/fund/Earn mutation was made.
 - 2026-07-11: recovered strategy 485's signed-in TradingView Pine source and
   replaced the fixed handcrafted ScoreBuy sigmoid with the source's exact
   eight-input online-learning replay. Pine indicator parameters, learning rate,
@@ -11,9 +34,10 @@
   committed 365-day report has 42 intents and a free Binance Vision replay over
   3,250 daily bars produced 42 actual intents with zero missing and zero extra.
   The raw Pine source is not stored because its alert payload contains a secret;
-  only its SHA-256 and redacted semantics are recorded. Exact NN error <=1e-6
-  remains blocked until a separately authorized TradingView NN series export is
-  available, so this evidence does not promote live trading or relax dry-run.
+  only its SHA-256 and redacted semantics are recorded. The later authorized
+  private-copy export above closes exact per-intent NN verification while
+  preserving the separate full-daily-series drift boundary. Neither evidence
+  promotes live trading or relaxes dry-run.
 - 2026-07-11: tightened TradingView golden-truth parity so matching buy-point
   keys cannot pass without complete per-intent NN evidence. Added
   `scripts/normalize_tradingview_golden_truth.ps1` plus a local test to map

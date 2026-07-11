@@ -52,7 +52,8 @@ public final class TradingViewScoreBuyModel {
         double[] macdLine = indicator(indicators, "macdLine");
         double[] macdSignal = indicator(indicators, "macdSignal");
 
-        double learningRate = getBoolean(config, "tradingViewParityMode", false)
+        boolean parityMode = getBoolean(config, "tradingViewParityMode", false);
+        double learningRate = parityMode
                 ? 0.01
                 : getDouble(config, "learningRate", 0.01);
         double[] weights = new double[INPUT_COUNT];
@@ -88,7 +89,8 @@ public final class TradingViewScoreBuyModel {
             weight[i] = weights[0];
             biasSeries[i] = bias;
 
-            if (i > 0 && valuesAvailable(i, rsi, bollUpper, bollLower,
+            boolean yearHighWarmupComplete = !parityMode || i >= YEAR_LOOKBACK;
+            if (i > 0 && yearHighWarmupComplete && valuesAvailable(i, rsi, bollUpper, bollLower,
                     volumeAverage, macdLine, macdSignal)) {
                 double previousBarClose = klines.get(i - 1).getClosePrice().doubleValue();
                 double previousVolume = klines.get(i - 1).getVolume().doubleValue();

@@ -106,6 +106,20 @@ class TradingViewScoreBuyModelTest {
         assertThat(withOverride.nnOutput()).containsExactly(withCapturedRate.nnOutput());
     }
 
+    @Test
+    void parityModeWaitsForComplete252BarYearHighWarmup() {
+        List<MdKline> bars = new ArrayList<>();
+        for (int i = 0; i <= 252; i++) {
+            bars.add(barAt(LocalDateTime.of(2025, 1, 1, 0, 0).plusDays(i)));
+        }
+
+        TradingViewScoreBuyModel.Series result = TradingViewScoreBuyModel.replay(
+                bars, indicators(bars.size()), Map.of("tradingViewParityMode", true));
+
+        assertThat(result.nnOutput()[251]).isNaN();
+        assertThat(result.nnOutput()[252]).isFinite();
+    }
+
     private Map<String, double[]> indicators(int size) {
         Map<String, double[]> values = new HashMap<>();
         values.put("rsi", fill(size, 50));

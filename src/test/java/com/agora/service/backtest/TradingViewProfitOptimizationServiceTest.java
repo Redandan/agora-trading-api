@@ -13,7 +13,7 @@ class TradingViewProfitOptimizationServiceTest {
     private final TradingViewProfitOptimizationService service = new TradingViewProfitOptimizationService();
 
     @Test
-    void reportUsesProductionBaselineFixedWindowsAndRejectsUnprofitableAggregateCandidate() {
+    void reportUsesProductionBaselineFixedWindowsAndRejectsUnprofitablePineTierCandidate() {
         LocalDateTime start = LocalDateTime.parse("2025-01-01T00:00:00");
         List<BtcBaseShadowBacktestSimulator.Bar> bars = new ArrayList<>();
         List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = new ArrayList<>();
@@ -21,19 +21,22 @@ class TradingViewProfitOptimizationServiceTest {
             LocalDateTime time = start.plusDays(day);
             bars.add(new BtcBaseShadowBacktestSimulator.Bar(time, 200.0 - day * 0.25));
             if (day % 30 == 0) {
-                intents.add(intent(time, "AI_BUY"));
+                intents.add(intent(time, "AI_BUY", 5000.0));
                 intents.add(intent(time, "RELATIVE_LOW"));
             }
         }
 
-        String report = service.compareAggregateCandidate("BTCUSDT", "binance", 0.001, bars, intents);
+        String report = service.compareCurrentCandidate(
+                "BTCUSDT", "binance", 0.001, bars, intents);
 
         assertThat(report)
                 .contains("boundary=READ_ONLY")
-                .contains("baseline=LIVE_ONE_ORDER_PER_BAR candidate=SHADOW_AGGREGATE_PER_BAR")
+                .contains("baseline=LIVE_ONE_ORDER_PER_BAR candidate=SHADOW_PINE_QUANTITY_TIERED_PER_BAR")
                 .contains("buyPointPolicy=PRESERVE_ALL_TRADINGVIEW_INTENTS")
                 .contains("productionOrderPolicy=FIXED_10_USDT_FULL_SLICE")
                 .contains("baselineExitPolicy=HOLD_BTC_BASE_NO_OCO_NO_AUTO_SELL")
+                .contains("candidatePolicy=PINE_QUANTITY_1000_2000_5000_TO_1X_2X_5X_ONE_ORDER_PER_BAR_NO_AUTO_SELL")
+                .contains("candidateLookahead=false candidateAddsBuyPoints=false candidateDeletesBuyPoints=false")
                 .contains("window=90d")
                 .contains("window=180d")
                 .contains("window=270d")
@@ -41,6 +44,7 @@ class TradingViewProfitOptimizationServiceTest {
                 .contains("baselineFeesPaid=")
                 .contains("baselineRealized=")
                 .contains("baselineUnrealized=")
+                .contains("candidateUpsizedBars=")
                 .contains("walkForwardFold=1")
                 .contains("walkForwardSummary=baselinePositiveFolds=")
                 .contains("stressBaselinePnl=")
@@ -48,7 +52,7 @@ class TradingViewProfitOptimizationServiceTest {
                 .contains("walkForwardPositiveFolds=")
                 .contains("candidateVerdict=REJECTED")
                 .contains("candidatePromotionAllowed=false")
-                .contains("nextCandidate=DEEP_DROP_TIERED_ADD_SHADOW_ONLY");
+                .contains("nextCandidate=DEEP_DROP_252D_DRAWDOWN_TIERED_ADD_SHADOW_ONLY");
     }
 
     @Test
@@ -64,7 +68,8 @@ class TradingViewProfitOptimizationServiceTest {
             }
         }
 
-        String report = service.compareAggregateCandidate("BTCUSDT", "binance", 0.001, bars, intents);
+        String report = service.compareCurrentCandidate(
+                "BTCUSDT", "binance", 0.001, bars, intents);
 
         assertThat(report)
                 .contains("window=365d intents=28 bars=28 baselineInvested=250.00")
@@ -75,6 +80,11 @@ class TradingViewProfitOptimizationServiceTest {
     }
 
     private BtcBaseShadowBacktestSimulator.BuyIntent intent(LocalDateTime time, String reason) {
-        return new BtcBaseShadowBacktestSimulator.BuyIntent(time, 1000.0, reason, reason, "BUY");
+        return intent(time, reason, 1000.0);
+    }
+
+    private BtcBaseShadowBacktestSimulator.BuyIntent intent(
+            LocalDateTime time, String reason, double quantity) {
+        return new BtcBaseShadowBacktestSimulator.BuyIntent(time, quantity, reason, reason, "BUY");
     }
 }

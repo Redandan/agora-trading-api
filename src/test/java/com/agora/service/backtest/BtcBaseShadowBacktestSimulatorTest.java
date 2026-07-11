@@ -133,6 +133,34 @@ class BtcBaseShadowBacktestSimulatorTest {
         assertThat(result.maxCostBasis()).isEqualTo(20.0);
     }
 
+    @Test
+    void pineQuantityTierKeepsOneOrderPerBarAndUsesOriginalOneTwoFiveRatios() {
+        List<BtcBaseShadowBacktestSimulator.Bar> bars = List.of(
+                bar("2026-01-01T00:00", 100.0),
+                bar("2026-01-02T00:00", 100.0),
+                bar("2026-01-03T00:00", 100.0));
+        List<BtcBaseShadowBacktestSimulator.BuyIntent> intents = List.of(
+                intentWithQuantity("2026-01-01T00:00", "RELATIVE_LOW", 1000.0),
+                intentWithQuantity("2026-01-02T00:00", "RELATIVE_LOW", 1000.0),
+                intentWithQuantity("2026-01-02T00:00", "POTENTIAL_LOW", 2000.0),
+                intentWithQuantity("2026-01-03T00:00", "AI_BUY", 5000.0));
+
+        BtcBaseShadowBacktestSimulator.Result result = BtcBaseShadowBacktestSimulator.run(
+                bars, intents, new BtcBaseShadowBacktestSimulator.Config(
+                        10.0, 100.0, 10.0, 0.001, 0.0, 0.0, 0.12, 0.0),
+                BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_PINE_QUANTITY_TIERED_PER_BAR);
+
+        assertThat(result.orderIntentCount()).isEqualTo(4);
+        assertThat(result.orderBarCount()).isEqualTo(3);
+        assertThat(result.executedBuys()).isEqualTo(3);
+        assertThat(result.shadowOnlyIntentCount()).isEqualTo(1);
+        assertThat(result.totalGrossBuys()).isEqualTo(80.0);
+        assertThat(result.events()).filteredOn(event -> "BUY".equals(event.type()))
+                .extracting(BtcBaseShadowBacktestSimulator.Event::notional)
+                .containsExactly(10.0, 20.0, 50.0);
+        assertThat(result.events().get(1).reason()).contains("tvQty=2000").contains("multiplier=2.00");
+    }
+
     private static BtcBaseShadowBacktestSimulator.Bar bar(String time, double close) {
         return new BtcBaseShadowBacktestSimulator.Bar(LocalDateTime.parse(time), close);
     }
@@ -140,5 +168,11 @@ class BtcBaseShadowBacktestSimulatorTest {
     private static BtcBaseShadowBacktestSimulator.BuyIntent intent(String time, String reason) {
         return new BtcBaseShadowBacktestSimulator.BuyIntent(
                 LocalDateTime.parse(time), 1000.0, reason, reason + "_LABEL", "BUY");
+    }
+
+    private static BtcBaseShadowBacktestSimulator.BuyIntent intentWithQuantity(
+            String time, String reason, double quantity) {
+        return new BtcBaseShadowBacktestSimulator.BuyIntent(
+                LocalDateTime.parse(time), quantity, reason, reason + "_LABEL", "BUY");
     }
 }

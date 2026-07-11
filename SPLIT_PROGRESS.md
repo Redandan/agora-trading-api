@@ -1,5 +1,17 @@
 # Split Progress
 
+- 2026-07-11: advanced the read-only strategy 485 profit experiment from the
+  rejected same-bar aggregate candidate to one predeclared Pine quantity-tier
+  candidate. `SHADOW_PINE_QUANTITY_TIERED_PER_BAR` maps the source's
+  `1000/2000/5000` quantities to `1x/2x/5x` of the 10 USDT base slice while
+  retaining one shadow order per bar, every original intent, the 250 USDT cap,
+  no automatic sell, and no lookahead. The signed 3,250-bar Binance replay
+  retained 42/42 buy-point parity with zero missing/extra. The candidate was
+  rejected: 180-day return `-11.60%`, 365-day return `-32.86%`, 365-day maximum
+  drawdown `38.65%`, walk-forward `2/5` positive folds, and doubled-fee stress
+  return `-32.99%`. This is local read-only evidence only; no production env,
+  deploy, DB, strategy, live order, OCO, grid, fund, Earn, Telegram, scheduler,
+  or exchange mutation was made.
 - 2026-07-11: the read-only strategy 485 production replay preflight proved
   that the 39 `BTCUSDT` `1d` rows from 2024-06-01 through 2024-07-09 currently
   labeled `binance` are exact Binance.US candles, not corrupted global Binance

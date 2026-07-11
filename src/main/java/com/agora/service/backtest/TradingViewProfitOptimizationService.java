@@ -16,9 +16,9 @@ public class TradingViewProfitOptimizationService {
     private static final double MIN_ORDER_NOTIONAL_USDT = 10.0;
     private static final double EMERGENCY_DRAWDOWN_WARNING_PCT = 0.12;
 
-    public String compareAggregateCandidate(String symbol, String source, double feeRate,
-                                            List<BtcBaseShadowBacktestSimulator.Bar> allBars,
-                                            List<BtcBaseShadowBacktestSimulator.BuyIntent> allIntents) {
+    public String compareCurrentCandidate(String symbol, String source, double feeRate,
+                                          List<BtcBaseShadowBacktestSimulator.Bar> allBars,
+                                          List<BtcBaseShadowBacktestSimulator.BuyIntent> allIntents) {
         if (allBars == null || allBars.isEmpty()) {
             return "status=NO_BARS candidatePromotionAllowed=false";
         }
@@ -28,11 +28,12 @@ public class TradingViewProfitOptimizationService {
         report.append("boundary=READ_ONLY\n");
         report.append("symbol=").append(symbol).append(" source=").append(source)
                 .append(" feeRate=").append(String.format(Locale.ROOT, "%.4f", feeRate)).append("\n");
-        report.append("baseline=LIVE_ONE_ORDER_PER_BAR candidate=SHADOW_AGGREGATE_PER_BAR\n");
+        report.append("baseline=LIVE_ONE_ORDER_PER_BAR candidate=SHADOW_PINE_QUANTITY_TIERED_PER_BAR\n");
         report.append("buyPointPolicy=PRESERVE_ALL_TRADINGVIEW_INTENTS\n");
         report.append("productionOrderPolicy=FIXED_10_USDT_FULL_SLICE maxBaseExposureUsdt=250.00\n");
         report.append("baselineExitPolicy=HOLD_BTC_BASE_NO_OCO_NO_AUTO_SELL\n");
-        report.append("candidatePolicy=AGGREGATE_SAME_BAR_INTENTS_SIZING_ONLY_NO_AUTO_SELL\n");
+        report.append("candidatePolicy=PINE_QUANTITY_1000_2000_5000_TO_1X_2X_5X_ONE_ORDER_PER_BAR_NO_AUTO_SELL\n");
+        report.append("candidateLookahead=false candidateAddsBuyPoints=false candidateDeletesBuyPoints=false\n");
 
         SimulationPair horizon365 = null;
         SimulationPair horizon180 = null;
@@ -82,7 +83,7 @@ public class TradingViewProfitOptimizationService {
         report.append("candidateVerdict=").append(accepted ? "PASS_FOR_NEW_LIVE_AUTHORIZATION_REVIEW" : "REJECTED").append("\n");
         report.append("candidatePromotionAllowed=false\n");
         report.append("nextCandidate=").append(accepted ? "NONE_AWAIT_EXPLICIT_AUTHORIZATION"
-                : "DEEP_DROP_TIERED_ADD_SHADOW_ONLY").append("\n");
+                : "DEEP_DROP_252D_DRAWDOWN_TIERED_ADD_SHADOW_ONLY").append("\n");
         report.append("notAuthorization=no order, OCO, strategy, env, DB, scheduler, grid, fund, Earn, Telegram, or exchange mutation");
         return report.toString();
     }
@@ -100,7 +101,7 @@ public class TradingViewProfitOptimizationService {
                 BtcBaseShadowBacktestSimulator.run(bars, intents, config,
                         BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR),
                 BtcBaseShadowBacktestSimulator.run(bars, intents, config,
-                        BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_AGGREGATE_PER_BAR));
+                        BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_PINE_QUANTITY_TIERED_PER_BAR));
     }
 
     private WalkForwardResult walkForward(LocalDateTime end,
@@ -124,7 +125,7 @@ public class TradingViewProfitOptimizationService {
                     BtcBaseShadowBacktestSimulator.ExecutionSemantics.LIVE_ONE_ORDER_PER_BAR);
             BtcBaseShadowBacktestSimulator.Result candidate = BtcBaseShadowBacktestSimulator.run(
                     bars, intents, config,
-                    BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_AGGREGATE_PER_BAR);
+                    BtcBaseShadowBacktestSimulator.ExecutionSemantics.SHADOW_PINE_QUANTITY_TIERED_PER_BAR);
             if (baseline.totalPnl() > 0.0) baselinePositive++;
             if (candidate.totalPnl() > 0.0) candidatePositive++;
             folds.add(new FoldComparison(
@@ -146,6 +147,7 @@ public class TradingViewProfitOptimizationService {
                         "baselineRealized=%.2f baselineUnrealized=%.2f baselineTakeProfitReductions=%d " +
                         "candidateInvested=%.2f candidatePnl=%.2f candidateReturn=%.2f%% " +
                         "candidateMaxDrawdown=%.2f%% candidateExecuted=%d candidateShadowOnly=%d candidateSkipped=%d " +
+                        "candidateUpsizedBars=%d " +
                         "candidateFeesPaid=%.2f candidateFinalExitFee=%.2f candidateTotalFeesEstimate=%.2f " +
                         "candidateRealized=%.2f candidateUnrealized=%.2f candidateTakeProfitReductions=%d " +
                         "diffPnl=%.2f diffReturnPp=%.2f%n",
@@ -159,6 +161,10 @@ public class TradingViewProfitOptimizationService {
                 candidate.totalPnl(), candidate.deployedReturn() * 100.0,
                 candidate.maxInventoryDrawdownPct() * 100.0,
                 candidate.executedBuys(), candidate.shadowOnlyIntentCount(), candidate.skippedByCap(),
+                candidate.events().stream()
+                        .filter(event -> "BUY".equals(event.type()))
+                        .filter(event -> event.notional() > BUY_NOTIONAL_USDT + 0.0000001)
+                        .count(),
                 candidate.totalFees(), candidate.finalExitFee(), candidate.totalFees() + candidate.finalExitFee(),
                 candidate.realizedPnl(), candidate.unrealizedPnl(), candidate.takeProfitReductions(),
                 candidate.totalPnl() - baseline.totalPnl(),

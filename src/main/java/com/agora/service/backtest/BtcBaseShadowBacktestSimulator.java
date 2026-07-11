@@ -9,6 +9,10 @@ import java.util.Map;
 
 public final class BtcBaseShadowBacktestSimulator {
 
+    private static final double PINE_BASE_QUANTITY = 1000.0;
+    private static final double PINE_POTENTIAL_LOW_QUANTITY = 2000.0;
+    private static final double PINE_AI_BUY_QUANTITY = 5000.0;
+
     private BtcBaseShadowBacktestSimulator() {
     }
 
@@ -118,7 +122,42 @@ public final class BtcBaseShadowBacktestSimulator {
                 state.aggregatedOrderBars++;
                 state.shadowOnlyIntents += Math.max(0, intents.size() - 1);
             }
+            case SHADOW_PINE_QUANTITY_TIERED_PER_BAR -> {
+                BuyIntent tierIntent = intents.stream()
+                        .max((left, right) -> Double.compare(
+                                pineQuantityMultiplier(left.tradingViewQuantity()),
+                                pineQuantityMultiplier(right.tradingViewQuantity())))
+                        .orElse(intents.get(0));
+                double pineQuantity = normalizedPineQuantity(tierIntent.tradingViewQuantity());
+                double multiplier = pineQuantityMultiplier(pineQuantity);
+                double requestedNotional = cfg.buyNotionalUsdt() * multiplier;
+                BuyIntent tiered = new BuyIntent(
+                        tierIntent.time(),
+                        tierIntent.tradingViewQuantity(),
+                        String.format(Locale.ROOT,
+                                "PINE_QUANTITY_TIER(tvQty=%.0f multiplier=%.2f original=%s)",
+                                pineQuantity, multiplier, tierIntent.reason()),
+                        tierIntent.label(),
+                        tierIntent.signal());
+                executeBuy(bar, tiered, requestedNotional, cfg, state, events);
+                state.shadowOnlyIntents += Math.max(0, intents.size() - 1);
+            }
         }
+    }
+
+    private static double normalizedPineQuantity(double quantity) {
+        return Double.isFinite(quantity) && quantity > 0.0 ? quantity : PINE_BASE_QUANTITY;
+    }
+
+    private static double pineQuantityMultiplier(double quantity) {
+        double normalized = normalizedPineQuantity(quantity);
+        if (normalized >= PINE_AI_BUY_QUANTITY) {
+            return 5.0;
+        }
+        if (normalized >= PINE_POTENTIAL_LOW_QUANTITY) {
+            return 2.0;
+        }
+        return 1.0;
     }
 
     private static void executeBuy(Bar bar, BuyIntent intent, double requestedNotional,
@@ -295,7 +334,8 @@ public final class BtcBaseShadowBacktestSimulator {
     public enum ExecutionSemantics {
         SHADOW_ALL_INTENTS,
         LIVE_ONE_ORDER_PER_BAR,
-        SHADOW_AGGREGATE_PER_BAR
+        SHADOW_AGGREGATE_PER_BAR,
+        SHADOW_PINE_QUANTITY_TIERED_PER_BAR
     }
 
     public record Event(LocalDateTime time,

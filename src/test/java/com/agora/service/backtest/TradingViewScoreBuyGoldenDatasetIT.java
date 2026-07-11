@@ -141,7 +141,7 @@ class TradingViewScoreBuyGoldenDatasetIT {
         TradingViewGoldenTruthVerifier.VerificationResult intentResult =
                 new TradingViewGoldenTruthVerifier().verify(goldenPath.toString(), actualIntents);
         String profitOptimizationReport = new TradingViewProfitOptimizationService()
-                .compareAggregateCandidate("BTCUSDT", "binance", 0.001, profitBars, profitIntents);
+                .compareCurrentCandidate("BTCUSDT", "binance", 0.001, profitBars, profitIntents);
         assertThat(profitOptimizationReport)
                 .contains("buyPointPolicy=PRESERVE_ALL_TRADINGVIEW_INTENTS")
                 .contains("baselineExitPolicy=HOLD_BTC_BASE_NO_OCO_NO_AUTO_SELL")
@@ -152,7 +152,7 @@ class TradingViewScoreBuyGoldenDatasetIT {
                 .contains("baselineExecuted=25")
                 .contains("baselineSkipped=3")
                 .contains("baselineTakeProfitReductions=0")
-                .contains("candidateInvested=250.00 candidatePnl=-81.58")
+                .contains("candidatePolicy=PINE_QUANTITY_1000_2000_5000_TO_1X_2X_5X_ONE_ORDER_PER_BAR_NO_AUTO_SELL")
                 .contains("walkForwardFold=5")
                 .contains("candidateVerdict=REJECTED")
                 .contains("candidatePromotionAllowed=false");

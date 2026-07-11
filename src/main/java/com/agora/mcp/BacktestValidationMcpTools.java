@@ -482,7 +482,8 @@ public class BacktestValidationMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.ANALYTICS, Category.DIAGNOSTIC})
     @Tool(description = "只讀執行 TradingView BTC_BASE 固定 90/180/270/365 天 production-semantics 收益報告。" +
-            "baseline=LIVE_ONE_ORDER_PER_BAR，本輪候選=SHADOW_AGGREGATE_PER_BAR；保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
+            "baseline=LIVE_ONE_ORDER_PER_BAR，本輪候選=SHADOW_PINE_QUANTITY_TIERED_PER_BAR；" +
+            "以 Pine 原始 quantity 套用 1x/2x/5x sizing，保留全部買點並套長期/回撤/walk-forward/壓力 gate。")
     public String runScoreBuyTradingViewProfitOptimizationReport(Long strategyId, String symbol,
                                                                  String intervalCode, String source,
                                                                  String configOverrideJson, Double feeRate) {
@@ -553,7 +554,7 @@ public class BacktestValidationMcpTools {
         String goldenStatus = "GOLDEN_TRUTH_UNAVAILABLE".equals(golden.status())
                 ? "GOLDEN_TRUTH_UNAVAILABLE" : "GOLDEN_CONFIGURED_VERIFY_SEPARATELY";
         return "goldenTruthStatus=" + goldenStatus + "\n"
-                + tradingViewProfitOptimizationService.compareAggregateCandidate(
+                + tradingViewProfitOptimizationService.compareCurrentCandidate(
                         symbolVal, src, fee, bars, intents);
     }
 
@@ -889,7 +890,9 @@ public class BacktestValidationMcpTools {
             "買點來源完全沿用 TradingView parity order intents；BTC_BASE 只改倉位語義：" +
             "按每次買點固定 notional 累積 BTC 底倉、套用底倉曝光上限；預設無自動賣出，" +
             "獲利分批減倉必須以參數明確啟用，回撤預設只標記不賣出。" +
-            "executionSemantics 可選 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、SHADOW_AGGREGATE_PER_BAR。" +
+            "executionSemantics 可選 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、SHADOW_AGGREGATE_PER_BAR、" +
+            "SHADOW_PINE_QUANTITY_TIERED_PER_BAR；最後一項以 Pine 1000/2000/5000 quantity 對應 1x/2x/5x，" +
+            "同一根 K 線仍只模擬一筆訂單。" +
             "不寫庫、不下單、不掛 OCO，用於評估用 BTC base 取代固定 OCO 進出場前的買點與底倉行為。")
     public String runScoreBuyTradingViewBtcBaseBacktest(Long strategyId, String symbol, String intervalCode,
                                                         Integer days, String source, String configOverrideJson,
@@ -909,7 +912,8 @@ public class BacktestValidationMcpTools {
                     : BtcBaseShadowBacktestSimulator.ExecutionSemantics.valueOf(
                             executionSemantics.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            return "❌ executionSemantics 必須是 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR 或 SHADOW_AGGREGATE_PER_BAR";
+            return "❌ executionSemantics 必須是 SHADOW_ALL_INTENTS、LIVE_ONE_ORDER_PER_BAR、" +
+                    "SHADOW_AGGREGATE_PER_BAR 或 SHADOW_PINE_QUANTITY_TIERED_PER_BAR";
         }
 
         BtStrategy strategyEntity = btStrategyService.getRequired(strategyId);

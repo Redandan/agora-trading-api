@@ -717,6 +717,8 @@ public class TradingManagerMcpTools {
                                                 List<String> actions, List<String> watch) {
         int missed = extractMetric(text, "missedOpportunityCount");
         int filterReview = extractMetric(text, "filterBlockReviewCount");
+        int entrySkipReview = extractMetric(text, "entrySkipReviewCount");
+        int executionFailureReview = extractMetric(text, "executionFailureReviewCount");
         int blockedCorrect = extractMetric(text, "blockedButCorrectCount");
         if (missed > 0) {
             warn.add("Missed opportunity checker found " + missed + " BUY row(s) with forward upside and no correlated execution/blocker.");
@@ -726,6 +728,13 @@ public class TradingManagerMcpTools {
         }
         if (filterReview > 0) {
             watch.add("Missed opportunity checker found " + filterReview + " FILTER_BLOCK row(s) with forward upside; use blocked-signal outcome analysis before relaxing filters.");
+        }
+        if (entrySkipReview > 0) {
+            watch.add("Missed opportunity checker found " + entrySkipReview + " ENTRY_SKIP row(s) with forward upside; review the named terminal gate instead of treating them as uncorrelated missed trades.");
+        }
+        if (executionFailureReview > 0) {
+            warn.add("Missed opportunity checker found " + executionFailureReview + " AUTOTRADE_FAIL row(s); inspect exchange/order failure evidence.");
+            actions.add("Review executionFailure candidates before changing strategy gates or retrying an order path.");
         }
         if (blockedCorrect > 0) {
             info.add("EntryDedup/existing exposure explained " + blockedCorrect + " BUY row(s); counted as risk control, not missed trades.");

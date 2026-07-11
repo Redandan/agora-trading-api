@@ -11,6 +11,14 @@
 
 ## Completed
 
+- 2026-07-11 missed-opportunity diagnostics now correlate terminal execution
+  evidence by resolved `live_signal_id`, then by the exact
+  strategy/symbol/interval/bar key. This fixes false `MISSED_CANDIDATE` rows
+  when `AUTOTRADE_OK` intentionally has no interval, and separates
+  `ENTRY_SKIP_REVIEW` / `EXECUTION_FAILURE_REVIEW` from genuinely uncorrelated
+  missed BUY evaluations. Trading Manager summaries consume the separated
+  counts. The reports remain read-only and do not change signals, orders, OCO,
+  strategies, grids, funds, Earn, Telegram, or exchange state.
 - Trading app entry point uses full `com.agora` component scan.
 - JPA repository scan is limited to trading/system repositories.
 - Obvious marketplace product/order/cart/delivery/game/webpush/notification code was removed from trading.

@@ -796,6 +796,9 @@ public class DiagnosticMcpTools {
         long blockedCorrect = rows.stream().filter(r -> "BLOCKED_BUT_CORRECT".equals(r.classification())).count();
         long lateOrLowEdge = rows.stream().filter(r -> "LATE_OR_LOW_EDGE".equals(r.classification())).count();
         long filterReview = rows.stream().filter(r -> "FILTER_BLOCK_REVIEW".equals(r.classification())).count();
+        long entrySkipReview = rows.stream().filter(r -> "ENTRY_SKIP_REVIEW".equals(r.classification())).count();
+        long executionFailureReview = rows.stream().filter(r -> "EXECUTION_FAILURE_REVIEW".equals(r.classification())).count();
+        long unscorable = rows.stream().filter(r -> "UNSCORABLE".equals(r.classification())).count();
         long executed = rows.stream().filter(r -> "EXECUTED".equals(r.classification())).count();
 
         StringBuilder sb = new StringBuilder();
@@ -804,6 +807,7 @@ public class DiagnosticMcpTools {
                 .append(" | window: ").append(h).append("h")
                 .append(" | minForwardMovePct=").append(fmtPct(threshold)).append("\n");
         sb.append("boundary: READ_ONLY; no trading, OCO, strategy, grid, or fund behavior changed.\n");
+        sb.append("correlationPolicy: LIVE_SIGNAL_ID_THEN_EXACT_STRATEGY_SYMBOL_INTERVAL_BAR\n");
         sb.append("capitalPolicy: availableUsdt=").append(availableUsdt != null ? fmtMoney(availableUsdt) : "N/A")
                 .append(" reservedUsdt=").append(reservedUsdt != null ? fmtMoney(reservedUsdt) : "N/A")
                 .append(" sizingAvailableUsdt=").append(adjustedAvailable != null ? fmtMoney(adjustedAvailable) : "N/A")
@@ -815,6 +819,9 @@ public class DiagnosticMcpTools {
         sb.append("  blockedButCorrectCount=").append(blockedCorrect).append("\n");
         sb.append("  lateOrLowEdgeCount=").append(lateOrLowEdge).append("\n");
         sb.append("  filterBlockReviewCount=").append(filterReview).append("\n");
+        sb.append("  entrySkipReviewCount=").append(entrySkipReview).append("\n");
+        sb.append("  executionFailureReviewCount=").append(executionFailureReview).append("\n");
+        sb.append("  unscorableCount=").append(unscorable).append("\n");
         sb.append("  executedCount=").append(executed).append("\n");
 
         if (rows.isEmpty()) {
@@ -824,7 +831,7 @@ public class DiagnosticMcpTools {
         }
 
         rows.stream()
-                .filter(r -> "MISSED_CANDIDATE".equals(r.classification()) || "FILTER_BLOCK_REVIEW".equals(r.classification()))
+                .filter(r -> isReviewClassification(r.classification()))
                 .findFirst()
                 .ifPresent(r -> sb.append("  firstReviewCandidateSizing=").append(r.sizingLine()).append("\n"));
 
@@ -835,11 +842,19 @@ public class DiagnosticMcpTools {
                 .forEach(r -> sb.append("  - ").append(r.oneLine()).append("\n"));
 
         sb.append("\nOperator Conclusion:\n");
+        if (executionFailureReview > 0) {
+            sb.append("- ACTION: execution failures exist; inspect exchange/order evidence before changing strategy gates.\n");
+        }
         if (missed > 0) {
             sb.append("- ACTION: review missed candidates before changing strategy gates; do not chase current price from this report alone.\n");
-        } else if (filterReview > 0) {
+        }
+        if (filterReview > 0) {
             sb.append("- WATCH: FILTER_BLOCK rows had forward upside; use blocked-signal outcome analysis before relaxing filters.\n");
-        } else {
+        }
+        if (entrySkipReview > 0) {
+            sb.append("- WATCH: ENTRY_SKIP rows had forward upside; review the named terminal gate instead of treating them as uncorrelated missed trades.\n");
+        }
+        if (missed == 0 && filterReview == 0 && entrySkipReview == 0 && executionFailureReview == 0) {
             sb.append("- OK: no true missed trading opportunity detected in this window.\n");
         }
         if (blockedCorrect > 0) {
@@ -881,7 +896,10 @@ public class DiagnosticMcpTools {
         RuntimeEvidenceAttributionSummary evidence = loadRuntimeEvidenceAttributionSummary(sym, start);
 
         long missed = rows.stream().filter(r -> "MISSED_CANDIDATE".equals(attributionClassification(r))).count();
-        long review = rows.stream().filter(r -> "FILTER_BLOCK_REVIEW".equals(attributionClassification(r))).count();
+        long filterReview = rows.stream().filter(r -> "FILTER_BLOCK_REVIEW".equals(attributionClassification(r))).count();
+        long entrySkipReview = rows.stream().filter(r -> "ENTRY_SKIP_REVIEW".equals(attributionClassification(r))).count();
+        long executionFailureReview = rows.stream().filter(r -> "EXECUTION_FAILURE_REVIEW".equals(attributionClassification(r))).count();
+        long review = filterReview + entrySkipReview + executionFailureReview;
         long correct = rows.stream().filter(r -> "BLOCKED_BUT_CORRECT".equals(attributionClassification(r))).count();
         long lowEdge = rows.stream().filter(r -> "LATE_OR_LOW_EDGE".equals(attributionClassification(r))).count();
         long executed = rows.stream().filter(r -> "EXECUTED".equals(attributionClassification(r))).count();
@@ -901,6 +919,7 @@ public class DiagnosticMcpTools {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Missed Alpha Attribution MVP ===\n")
                 .append("boundary: READ_ONLY diagnostic; no signal/order/OCO/strategy/grid/fund/Earn behavior changed.\n")
+                .append("correlationPolicy: LIVE_SIGNAL_ID_THEN_EXACT_STRATEGY_SYMBOL_INTERVAL_BAR\n")
                 .append("symbol=").append(sym)
                 .append(" hours=").append(h)
                 .append(" minForwardMovePct=").append(fmtPct(threshold))
@@ -909,7 +928,9 @@ public class DiagnosticMcpTools {
         sb.append("Summary:\n")
                 .append("  buyEvaluations=").append(rows.size()).append("\n")
                 .append("  missedCandidates=").append(missed).append("\n")
-                .append("  filterBlockReview=").append(review).append("\n")
+                .append("  filterBlockReview=").append(filterReview).append("\n")
+                .append("  entrySkipReview=").append(entrySkipReview).append("\n")
+                .append("  executionFailureReview=").append(executionFailureReview).append("\n")
                 .append("  blockedButCorrect=").append(correct).append("\n")
                 .append("  lateOrLowEdge=").append(lowEdge).append("\n")
                 .append("  unscorable=").append(unscorable).append("\n")
@@ -939,6 +960,8 @@ public class DiagnosticMcpTools {
         List<MissedOpportunityRow> reviewRows = rows.stream()
                 .filter(r -> "MISSED_CANDIDATE".equals(r.classification())
                         || "FILTER_BLOCK_REVIEW".equals(r.classification())
+                        || "ENTRY_SKIP_REVIEW".equals(r.classification())
+                        || "EXECUTION_FAILURE_REVIEW".equals(r.classification())
                         || isUnscorableAttributionRow(r))
                 .sorted((a, b) -> b.buy().eventTime().compareTo(a.buy().eventTime()))
                 .limit(10)
@@ -963,6 +986,8 @@ public class DiagnosticMcpTools {
         sb.append("\nInterpretation:\n");
         sb.append("- UNSCORABLE means missing trade plan or forward kline evidence; do not treat it as alpha or protection.\n");
         sb.append("- FILTER_BLOCK_REVIEW means forward upside exists, but blocker contribution must be judged with TP/SL and risk context.\n");
+        sb.append("- ENTRY_SKIP_REVIEW means a named execution/risk gate ended the path; it is gate-cost evidence, not an uncorrelated missed trade.\n");
+        sb.append("- EXECUTION_FAILURE_REVIEW means an order path failed and needs operational evidence review.\n");
         sb.append("- Runtime Evidence is joined as observability context only; this report does not write evidence or alter execution.\n");
         return sb.toString();
     }
@@ -1606,9 +1631,13 @@ public class DiagnosticMcpTools {
         try {
             List<Map<String, Object>> rows = jdbc.queryForList("""
                     SELECT a.id, a.strategy_id, a.symbol, a.interval_code, a.bar_open_time, a.event_time,
-                           a.outcome, a.reason, a.context_json, a.live_signal_id,
-                           COALESCE(s.actual_entry_price, s.entry_price) AS entry_price,
-                           s.suggested_tp, s.suggested_sl, s.nn_output
+                           a.outcome, a.reason, a.context_json,
+                           COALESCE(a.live_signal_id, s_bar.id) AS live_signal_id,
+                           COALESCE(s_direct.actual_entry_price, s_direct.entry_price,
+                                    s_bar.actual_entry_price, s_bar.entry_price) AS entry_price,
+                           COALESCE(s_direct.suggested_tp, s_bar.suggested_tp) AS suggested_tp,
+                           COALESCE(s_direct.suggested_sl, s_bar.suggested_sl) AS suggested_sl,
+                           COALESCE(s_direct.nn_output, s_bar.nn_output) AS nn_output
                     FROM (
                         SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(5000) */
                                id, strategy_id, symbol, interval_code, bar_open_time, event_time,
@@ -1623,7 +1652,13 @@ public class DiagnosticMcpTools {
                         ORDER BY event_time ASC
                         LIMIT 200
                     ) a
-                    LEFT JOIN bt_live_signal s ON s.id = a.live_signal_id
+                    LEFT JOIN bt_live_signal s_direct ON s_direct.id = a.live_signal_id
+                    LEFT JOIN bt_live_signal s_bar
+                      ON a.live_signal_id IS NULL
+                     AND s_bar.strategy_id = a.strategy_id
+                     AND s_bar.symbol = a.symbol
+                     AND s_bar.interval_code = a.interval_code
+                     AND s_bar.bar_open_time = a.bar_open_time
                     """, symbol, start, end);
             List<BuyAuditCandidate> out = new ArrayList<>();
             for (Map<String, Object> row : rows) {
@@ -1659,16 +1694,25 @@ public class DiagnosticMcpTools {
                     FROM bt_decision_audit
                     WHERE strategy_id = ?
                       AND symbol = ?
-                      AND interval_code = ?
                       AND event_time BETWEEN ? AND ?
                       AND event_type IN ('ENTRY_SKIP','FILTER_BLOCK','AUTOTRADE_OK','AUTOTRADE_FAIL')
+                      AND (
+                        (? IS NOT NULL AND live_signal_id = ?)
+                        OR (bar_open_time <=> ? AND interval_code = ?)
+                      )
                     ORDER BY
-                      CASE WHEN bar_open_time <=> ? THEN 0 ELSE 1 END,
+                      CASE
+                        WHEN ? IS NOT NULL AND live_signal_id = ? THEN 0
+                        WHEN bar_open_time <=> ? THEN 1
+                        ELSE 2
+                      END,
                       distance_seconds ASC
                     LIMIT 5
                     """,
-                    buy.eventTime(), buy.strategyId(), buy.symbol(), buy.interval(),
-                    buy.eventTime().minusMinutes(5), buy.eventTime().plusMinutes(minutesAfter), buy.barOpenTime());
+                    buy.eventTime(), buy.strategyId(), buy.symbol(),
+                    buy.eventTime().minusMinutes(5), buy.eventTime().plusMinutes(minutesAfter),
+                    buy.liveSignalId(), buy.liveSignalId(), buy.barOpenTime(), buy.interval(),
+                    buy.liveSignalId(), buy.liveSignalId(), buy.barOpenTime());
             List<AuditEvent> out = new ArrayList<>();
             for (Map<String, Object> row : rows) {
                 out.add(new AuditEvent(
@@ -2041,8 +2085,11 @@ public class DiagnosticMcpTools {
                                                            ForwardWindow forward, double threshold,
                                                            Double adjustedAvailable) {
         boolean executed = related.stream().anyMatch(e -> "AUTOTRADE_OK".equals(e.eventType()));
+        boolean executionFailed = related.stream().anyMatch(e -> "AUTOTRADE_FAIL".equals(e.eventType()));
         boolean dedup = related.stream().anyMatch(AuditEvent::isDedupSkip);
+        boolean entrySkip = related.stream().anyMatch(e -> "ENTRY_SKIP".equals(e.eventType()));
         boolean filterBlock = related.stream().anyMatch(e -> "FILTER_BLOCK".equals(e.eventType()));
+        boolean auditQueryError = related.stream().anyMatch(e -> "AUDIT_QUERY_ERROR".equals(e.eventType()));
         boolean hasUpside = forward.maxUpPct() != null && forward.maxUpPct() >= threshold;
 
         String classification;
@@ -2050,15 +2097,27 @@ public class DiagnosticMcpTools {
         if (executed) {
             classification = "EXECUTED";
             reason = "AUTOTRADE_OK correlated; not missed.";
+        } else if (executionFailed) {
+            classification = "EXECUTION_FAILURE_REVIEW";
+            reason = "AUTOTRADE_FAIL correlated; inspect operational order failure evidence.";
         } else if (dedup) {
             classification = "BLOCKED_BUT_CORRECT";
             reason = "EntryDedup/existing exposure guard blocked additional risk.";
         } else if (filterBlock && hasUpside) {
             classification = "FILTER_BLOCK_REVIEW";
             reason = "Filter blocked a BUY row with forward upside; needs blocked-signal outcome review.";
+        } else if (entrySkip && hasUpside) {
+            classification = "ENTRY_SKIP_REVIEW";
+            reason = "A named ENTRY_SKIP gate ended the order path before forward upside; review that gate's opportunity cost.";
+        } else if (auditQueryError) {
+            classification = "UNSCORABLE";
+            reason = "Related execution audit lookup failed; do not infer a missed trade.";
         } else if (hasUpside) {
             classification = "MISSED_CANDIDATE";
             reason = "BUY row had forward upside and no correlated execution/blocker.";
+        } else if (entrySkip || filterBlock) {
+            classification = "LATE_OR_LOW_EDGE";
+            reason = "A terminal blocker exists and forward upside did not clear threshold.";
         } else {
             classification = "LATE_OR_LOW_EDGE";
             reason = "Forward upside did not clear threshold.";
@@ -2559,8 +2618,8 @@ public class DiagnosticMcpTools {
     }
 
     private String normalizeAttributionBlocker(MissedOpportunityRow row) {
-        if ("MISSED_CANDIDATE".equals(row.classification())) {
-            return "NO_TERMINAL_BLOCKER";
+        if ("EXECUTED".equals(row.classification())) {
+            return "AUTOTRADE_OK";
         }
         return row.related().stream()
                 .filter(e -> e.eventType() != null && !"AUTOTRADE_OK".equals(e.eventType()))
@@ -2575,6 +2634,13 @@ public class DiagnosticMcpTools {
                     return blocker;
                 })
                 .orElse("NO_TERMINAL_BLOCKER");
+    }
+
+    private static boolean isReviewClassification(String classification) {
+        return "MISSED_CANDIDATE".equals(classification)
+                || "FILTER_BLOCK_REVIEW".equals(classification)
+                || "ENTRY_SKIP_REVIEW".equals(classification)
+                || "EXECUTION_FAILURE_REVIEW".equals(classification);
     }
 
     private String attributionClassification(MissedOpportunityRow row) {
@@ -2765,7 +2831,7 @@ public class DiagnosticMcpTools {
             }
             switch (row.classification()) {
                 case "MISSED_CANDIDATE" -> missed++;
-                case "FILTER_BLOCK_REVIEW" -> review++;
+                case "FILTER_BLOCK_REVIEW", "ENTRY_SKIP_REVIEW", "EXECUTION_FAILURE_REVIEW" -> review++;
                 case "BLOCKED_BUT_CORRECT" -> correct++;
                 case "LATE_OR_LOW_EDGE" -> lowEdge++;
                 case "EXECUTED" -> executed++;

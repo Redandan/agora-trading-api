@@ -16,6 +16,7 @@ import com.agora.service.trading.ExplorationPolicyService;
 import com.agora.service.trading.MissedOpportunityRegressionValidationService;
 import com.agora.service.trading.ProbePositionExecutorDryRunService;
 import com.agora.service.trading.RuntimeDecisionEvidenceService;
+import com.agora.service.trading.Strategy508HoldCounterfactualService;
 import com.agora.service.trading.TinyLiveExecutionService;
 import com.agora.service.trading.TinyLiveMinimumOrderPreviewService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,6 +50,7 @@ public class RuntimeEvidenceMcpTools {
     private final AutoExplorationRolloutControllerService autoExplorationRolloutControllerService;
     private final DailyAutonomousTradingDigestService dailyAutonomousTradingDigestService;
     private final MissedOpportunityRegressionValidationService missedOpportunityRegressionValidationService;
+    private final Strategy508HoldCounterfactualService strategy508HoldCounterfactualService;
     private final ObjectMapper objectMapper;
 
     @Tool(description = "List recent Runtime Evidence Store rows for controlled autonomous-trading validation. " +
@@ -314,6 +316,19 @@ public class RuntimeEvidenceMcpTools {
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.REPORTING})
     public String getNoBuyReasonTruthTable(String symbol, Integer hours, Integer limit) {
         return missedOpportunityRegressionValidationService.getNoBuyReasonTruthTable(symbol, hours, limit);
+    }
+
+    @Tool(description = "Read-only strategy 508 HOLD/EVALUATED_ONLY counterfactual shadow report. " +
+            "Deduplicates by strategy/symbol/side/interval/bar, requires proven all-gates-passed BUY evidence, " +
+            "excludes the whole event when any hard-safety blocker or order evidence exists, and simulates one fixed 10 USDT order " +
+            "with +6% TP, -12% disaster SL, and both entry/exit fees on OKX 1m bars. " +
+            "Fewer than 30 unique finalized events is always INSUFFICIENT_DATA and never authorizes live relaxation. " +
+            "No order/OCO/strategy/grid/fund/Earn/Telegram/RuntimeEvidence behavior is changed. " +
+            "params: symbol default BTCUSDT, hours default 720 max 2160, detailLimit default 50 max 200.")
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.REPORTING})
+    public String analyzeStrategy508HoldCounterfactual(String symbol, Integer hours, Integer detailLimit) {
+        return strategy508HoldCounterfactualService.analyze(symbol, hours, detailLimit);
     }
 
     @Tool(description = "LOCAL_ONLY control: create a one-time event-risk-only override token for controlled BTCUSDT strategy 574 LONG $5 tiny-live. " +

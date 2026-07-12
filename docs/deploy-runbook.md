@@ -157,6 +157,21 @@ HTTP startup smoke with an in-memory local database:
 .\scripts\smoke_local_health.ps1
 ```
 
+Strategy 508 HOLD/EVALUATED_ONLY counterfactual acceptance is read-only:
+
+```powershell
+.\scripts\smoke_strategy508_hold_counterfactual_ssh.ps1 -Hours 720 -RequireInsufficientData
+```
+
+The report deduplicates a complete decision chain by strategy, symbol, side,
+interval, and bar-open time. It only simulates a fixed 10 USDT order when the
+strategy 508 BUY and all-gates-passed evidence are present and an allowlisted
+soft research gate is the sole blocker. Existing orders, ordinary HOLD rows,
+unknown blockers, and any hard-safety evidence fail closed. Fewer than 30
+unique finalized events must remain `INSUFFICIENT_DATA`; the report is never
+live authorization and cannot change an order, OCO, strategy flag, or runtime
+state.
+
 Expected:
 
 - Spring Boot starts with profile `local-smoke`.

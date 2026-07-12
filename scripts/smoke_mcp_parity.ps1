@@ -151,6 +151,7 @@ $requiredTools = @(
     "getSignalAccuracyReport",
     "getEntryDedupGovernanceDashboard",
     "getMissedOpportunityRegressionReport",
+    "analyzeStrategy508HoldCounterfactual",
     "getGovernanceDriftDashboard",
     "findGovernanceRelaxationCandidates",
     "findGovernanceTighteningCandidates",
@@ -219,6 +220,18 @@ Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "ov
 Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "orderSent" -Description "Missed-opportunity regression report reports no order send"
 Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "ocoModified" -Description "Missed-opportunity regression report reports no OCO modification"
 Assert-McpResultTextContains -Response $missedOpportunityRegression -Pattern "writesRuntimeEvidence" -Description "Missed-opportunity regression report reports no runtime evidence writes"
+
+$strategy508Counterfactual = Invoke-McpTool -Url $mcpUrl -Name "analyzeStrategy508HoldCounterfactual" -Arguments @{
+    symbol = "BTCUSDT"
+    hours = 24
+    detailLimit = 5
+} -TimeoutSec 120
+Assert-McpResultTextContains -Response $strategy508Counterfactual -Pattern "analyzeStrategy508HoldCounterfactual" -Description "Strategy 508 counterfactual returns its tool marker"
+Assert-McpResultTextContains -Response $strategy508Counterfactual -Pattern '"boundary"\s*:\s*"READ_ONLY"' -Description "Strategy 508 counterfactual stays read-only"
+Assert-McpResultTextContains -Response $strategy508Counterfactual -Pattern '"sampleStatus"\s*:\s*"(INSUFFICIENT_DATA|SHADOW_SAMPLE_READY_FOR_REVIEW_NOT_LIVE)"' -Description "Strategy 508 counterfactual returns an explicit sample status"
+Assert-McpResultTextContains -Response $strategy508Counterfactual -Pattern '"sampleGateMinFinalizedEvents"\s*:\s*30' -Description "Strategy 508 counterfactual preserves the 30-event gate"
+Assert-McpResultTextContains -Response $strategy508Counterfactual -Pattern '"liveRelaxationAllowed"\s*:\s*false' -Description "Strategy 508 counterfactual never authorizes live relaxation"
+Assert-McpResultTextContains -Response $strategy508Counterfactual -Pattern '"hardSafetyEventsEligible"\s*:\s*0' -Description "Strategy 508 counterfactual excludes all hard-safety events"
 
 $trailingPnlReplay = Invoke-McpTool -Url $mcpUrl -Name "analyzeTrailingStopPnlReplay" -Arguments @{
     symbol = "BTCUSDT"

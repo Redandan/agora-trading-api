@@ -595,6 +595,7 @@ try {
         "getSignalAccuracyReport",
         "getEntryDedupGovernanceDashboard",
         "getMissedOpportunityRegressionReport",
+        "analyzeStrategy508HoldCounterfactual",
         "getGovernanceDriftDashboard",
         "findGovernanceRelaxationCandidates",
         "findGovernanceTighteningCandidates",

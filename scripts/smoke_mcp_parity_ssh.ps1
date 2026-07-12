@@ -112,6 +112,7 @@ required_tools = [
     "getSignalAccuracyReport",
     "getEntryDedupGovernanceDashboard",
     "getMissedOpportunityRegressionReport",
+    "analyzeStrategy508HoldCounterfactual",
     "getGovernanceDriftDashboard",
     "findGovernanceRelaxationCandidates",
     "findGovernanceTighteningCandidates",
@@ -235,6 +236,18 @@ require("missed-opportunity regression overall status", r"overallStatus", missed
 require("missed-opportunity regression no order send marker", r"orderSent", missed_opportunity)
 require("missed-opportunity regression no OCO modification marker", r"ocoModified", missed_opportunity)
 require("missed-opportunity regression no runtime evidence writes marker", r"writesRuntimeEvidence", missed_opportunity)
+
+strategy508_counterfactual = call_tool("analyzeStrategy508HoldCounterfactual", {
+    "symbol": symbol,
+    "hours": 24,
+    "detailLimit": 5,
+}, timeout=180)
+require("strategy 508 counterfactual tool marker", r"analyzeStrategy508HoldCounterfactual", strategy508_counterfactual)
+require("strategy 508 counterfactual read-only boundary", r'"boundary"\s*:\s*"READ_ONLY"', strategy508_counterfactual)
+require("strategy 508 counterfactual sample status", r'"sampleStatus"\s*:\s*"(?:INSUFFICIENT_DATA|SHADOW_SAMPLE_READY_FOR_REVIEW_NOT_LIVE)"', strategy508_counterfactual)
+require("strategy 508 counterfactual 30-event gate", r'"sampleGateMinFinalizedEvents"\s*:\s*30', strategy508_counterfactual)
+require("strategy 508 counterfactual no live relaxation", r'"liveRelaxationAllowed"\s*:\s*false', strategy508_counterfactual)
+require("strategy 508 counterfactual hard-safety exclusion", r'"hardSafetyEventsEligible"\s*:\s*0', strategy508_counterfactual)
 
 governance_drift = call_tool("getGovernanceDriftDashboard", {
     "symbol": symbol,

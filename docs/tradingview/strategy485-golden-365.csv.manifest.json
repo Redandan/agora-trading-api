@@ -7,7 +7,7 @@
   "intentCsvPath": "docs/tradingview/strategy485-report-365.csv",
   "intentCsvSha256": "e5b64e0eef687cca3b3a2efe1675dd47105ddceb994d7acfad76eb805f81269b",
   "goldenCsvPath": "docs/tradingview/strategy485-golden-365.csv",
-  "goldenCsvSha256": "cef8fcdb95014998e6ced612f6aa767addeee23584515cd9825d8cd4938a6bc5",
+  "goldenCsvSha256": "5d3d4eaff619d4e85afec3e7a6efef208668c7b20759c472a4a3e5f2a865bf78",
   "chartTimeColumn": "time",
   "nnOutputColumn": "NN Output Export",
   "intentCount": 42,

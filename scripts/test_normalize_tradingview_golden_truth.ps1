@@ -72,10 +72,14 @@ Entry Time,Entry ID,Entry Comment,Contracts,Neural network output,Order Type
     Assert-True ($golden[1].time -eq "2026-07-01T00:00:00") "same-window end intent was not retained"
 
     $manifest = Get-Content -Raw -LiteralPath "$output.manifest.json" | ConvertFrom-Json
+    $goldenBytes = [System.IO.File]::ReadAllBytes($output)
+    Assert-True (-not ($goldenBytes -contains 13)) "golden CSV must use deterministic LF line endings"
+    $actualGoldenSha256 = (Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant()
     Assert-True ($manifest.intentCount -eq 2) "manifest intent count is wrong"
     Assert-True ($manifest.windowDays -eq 365) "manifest must prove the 365-day export window"
     Assert-True ($manifest.nnEvidenceComplete -eq $true) "manifest must require complete NN evidence"
     Assert-True ($manifest.goldenCsvSha256 -match '^[0-9a-f]{64}$') "manifest golden SHA-256 is invalid"
+    Assert-True ($manifest.goldenCsvSha256 -eq $actualGoldenSha256) "manifest golden SHA-256 must match the portable CSV bytes"
     Assert-True ($manifest.productionEnvChangeAllowed -eq $false) "manifest must deny production env change"
     Assert-True ($manifest.livePromotionAllowed -eq $false) "manifest must deny live promotion"
 

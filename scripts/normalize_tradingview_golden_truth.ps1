@@ -280,7 +280,8 @@ if ($normalizedRows.Count -eq 0) { throw "No rows remain after applying the entr
 
 $orderedRows = @($normalizedRows | Sort-Object time, ordinal)
 $csvRows = @($orderedRows | Select-Object time, reason, label, qty, nn_output | ConvertTo-Csv -NoTypeInformation)
-[System.IO.File]::WriteAllLines($outputFullPath, $csvRows, $utf8NoBom)
+$csvText = [string]::Join("`n", $csvRows) + "`n"
+[System.IO.File]::WriteAllText($outputFullPath, $csvText, $utf8NoBom)
 
 $sourceSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $inputFullPath).Hash.ToLowerInvariant()
 $goldenSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $outputFullPath).Hash.ToLowerInvariant()

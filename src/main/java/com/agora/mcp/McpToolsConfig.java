@@ -119,6 +119,13 @@ public class McpToolsConfig {
     }
 
     @Bean
+    public ToolCallbackProvider strategy508TimeExitMcpToolCallbacks(Strategy508TimeExitMcpTools tools) {
+        return MethodToolCallbackProvider.builder()
+                .toolObjects(tools)
+                .build();
+    }
+
+    @Bean
     public ToolCallbackProvider signalCorrectnessMcpToolCallbacks(SignalCorrectnessMcpTools tools) {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(tools)

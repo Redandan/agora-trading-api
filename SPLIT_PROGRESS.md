@@ -4390,6 +4390,20 @@ Trading deployment prep:
   promotion false pending all long-window gates and new explicit authorization.
   Local acceptance passed `verify_local.ps1` with 236 tests and startup smoke
   with 319 registered tools, 40 required tools, zero missing tools, and health OK.
+- 2026-07-12 strategy 508 fixed 4H/24H experiment is implemented locally:
+  `STRATEGY_508_4H_24H_V1` adds exact next-1m entry, +6%/-12% OCO and 24H
+  time-exit analysis, 99% coverage and ambiguous-minute fail-closed rules,
+  fixed multi-window/walk-forward promotion gates, an isolated OFF/SHADOW/
+  LIVE_MICRO lane, fee-aware PnL attribution, and a per-position locked spot
+  close service. Existing strategy 508 positions are isolated by policy tag;
+  strategy 485 remains BTC_BASE_DRY_RUN. The reviewed rollout target is SHADOW
+  with live-order false; no live probe is authorized. Production trailing is
+  rejected after the latest replay worsened 19/19 positions. Final safety
+  review added incremental indicator-cache refresh, paired 24H/72H comparison,
+  a one-probe-before-pilot gate, fresh post-cancel balance reads, OCO
+  reprotection on failed market close, and fail-closed partial-fee attribution.
+  Final local acceptance passed 316 Java tests and startup smoke with 324 MCP
+  tools, 45 required tools, zero missing tools, and health OK.
 
 ## Cleanup Priority
 

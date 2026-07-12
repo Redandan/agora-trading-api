@@ -16,6 +16,7 @@ import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.PositionAgingMonitor;
 import com.agora.service.trading.PostTradeReviewService;
 import com.agora.service.trading.SwapRiskMonitorService;
+import com.agora.service.trading.SpotPositionCloseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -146,7 +147,8 @@ class OcoPositionPollerSchedulerTest {
                 mock(PositionAgingMonitor.class),
                 tracker,
                 orphanReconciler,
-                tgDeduper);
+                tgDeduper,
+                mock(SpotPositionCloseService.class));
         ReflectionTestUtils.setField(scheduler, "untrackedMinNotionalUsdt", new BigDecimal("10.0"));
         return new Fixture(scheduler, liveSignalRepository, gridLevelRepository, okxTradingService,
                 notificationPort, tgDeduper, orphanReconciler);

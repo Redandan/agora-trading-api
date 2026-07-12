@@ -32,6 +32,9 @@ foreach ($marker in @(
     )) {
     Assert-Contains -Name "strategy 508 smoke" -Text $smoke -Pattern ([regex]::Escape($marker))
 }
+if ($smoke -match "s/\^'''//|s/'''\$//") {
+    throw "strategy 508 smoke contains shell-breaking single-quote sed expressions"
+}
 
 foreach ($marker in @(
         'MIN_FINALIZED_EVENTS = 30',

@@ -3,6 +3,7 @@ package com.agora.service.market;
 import com.agora.config.properties.FredProperties;
 import com.agora.model.MarketIndicatorHistory;
 import com.agora.repository.trading.MarketIndicatorHistoryRepository;
+import com.agora.service.backtest.OiFundingDivergenceStrategy;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.market.HyperliquidService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,6 +47,7 @@ public class IndicatorHistoryBackfillService {
     private final HyperliquidService hyperliquidService;
     private final ObjectMapper objectMapper;
     private final FredProperties fredProps;
+    private final OiFundingDivergenceStrategy oiFundingDivergenceStrategy;
 
     private static final String FRED_BASE = "https://api.stlouisfed.org/fred/series/observations";
     private static final OkHttpClient HTTP = new OkHttpClient.Builder()
@@ -96,6 +98,7 @@ public class IndicatorHistoryBackfillService {
             log.warn("[BackfillSvc] funding_rate failed: {}", e.getMessage());
             return "❌ " + e.getMessage();
         }
+        if (imported > 0) oiFundingDivergenceStrategy.invalidateCache();
         return fmt("funding_rate", imported, skipped);
     }
 
@@ -222,6 +225,7 @@ public class IndicatorHistoryBackfillService {
             log.warn("[BackfillSvc] btc_open_interest failed: {}", e.getMessage());
             return "❌ " + e.getMessage();
         }
+        if (imported > 0) oiFundingDivergenceStrategy.invalidateCache();
         return fmt("btc_open_interest + oi_change_pct_1h", imported, skipped);
     }
 

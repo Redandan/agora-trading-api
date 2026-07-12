@@ -282,6 +282,8 @@ $envOverrides = @{
     TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED = "false"
     TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS = ""
     TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT = "0"
+    TRADING_508_TIME_EXIT_MODE = "OFF"
+    TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED = "false"
     TRADINGVIEW_WEBHOOK_ENABLED = "false"
     TRADINGVIEW_WEBHOOK_DRY_RUN = "true"
     TRADINGVIEW_WEBHOOK_SECRET = ""
@@ -596,6 +598,9 @@ try {
         "getEntryDedupGovernanceDashboard",
         "getMissedOpportunityRegressionReport",
         "analyzeStrategy508HoldCounterfactual",
+        "analyzeStrategy508TimeExitCandidate",
+        "getStrategy508TimeExitReadiness",
+        "getStrategyNetPnlAttribution",
         "getGovernanceDriftDashboard",
         "findGovernanceRelaxationCandidates",
         "findGovernanceTighteningCandidates",

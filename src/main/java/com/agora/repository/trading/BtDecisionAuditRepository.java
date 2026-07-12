@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface BtDecisionAuditRepository extends JpaRepository<BtDecisionAudit, Long> {
 
+    boolean existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndEventType(
+            Long strategyId, String symbol, String intervalCode, LocalDateTime barOpenTime, String eventType);
+
     /** 最近 N 分鐘決策(供 listRecentDecisions MCP tool)。 */
     @Query("SELECT a FROM BtDecisionAudit a " +
            "WHERE a.eventTime > :since " +

@@ -51,10 +51,11 @@ public class OiFundingDivergenceStrategy implements Strategy {
 
     private final MarketIndicatorHistoryRepository indicatorRepo;
 
-    // Cache: "indicator|yyyy-MM-ddTHH" -> value (Optional.empty = no data for that hour)
-    // Historical data is immutable; safe to cache across all backtest runs.
+    // Cache: "indicator|yyyy-MM-ddTHH" -> value. Only positive lookups are cached because
+    // the hourly collector may insert a previously missing row after the initial load.
     private final ConcurrentHashMap<String, Optional<Double>> cache = new ConcurrentHashMap<>();
     private volatile boolean cacheLoaded = false;
+    private volatile LocalDateTime cacheSnapshotAt;
 
     /**
      * Invalidates the indicator cache so the next evaluation reloads from DB.
@@ -64,6 +65,7 @@ public class OiFundingDivergenceStrategy implements Strategy {
     public void invalidateCache() {
         cache.clear();
         cacheLoaded = false;
+        cacheSnapshotAt = null;
         log.info("[OiFundingDivergence] cache invalidated — will reload on next evaluate()");
     }
 
@@ -216,7 +218,8 @@ public class OiFundingDivergenceStrategy implements Strategy {
         if (cacheLoaded) return;
         synchronized (this) {
             if (cacheLoaded) return;
-            LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusYears(3);
+            LocalDateTime snapshotAt = LocalDateTime.now(ZoneOffset.UTC);
+            LocalDateTime since = snapshotAt.minusYears(3);
             List<MarketIndicatorHistory> funding =
                     indicatorRepo.findCleanBySymbolAndIndicatorAndCapturedAtAfter(
                             SYMBOL, IND_FUNDING, since);
@@ -247,15 +250,41 @@ public class OiFundingDivergenceStrategy implements Strategy {
             }
             log.info("[OiFundingDivergence] Cache loaded: {} funding, {} oi_change, {} dex_flow, {} spread rows",
                     funding.size(), oiChange.size(), dexFlow.size(), spread.size());
+            cacheSnapshotAt = snapshotAt;
             cacheLoaded = true;
         }
     }
 
     private Double getIndicatorValue(String indicator, LocalDateTime hourKey) {
-        // Try exact hour, then previous hour (collector runs at :01, bar opens at :00)
-        Optional<Double> v = cache.get(cacheKey(indicator, hourKey));
-        if (v == null) v = cache.get(cacheKey(indicator, hourKey.minusHours(1)));
-        return v != null ? v.orElse(null) : null;
+        LocalDateTime exactHour = hourKey.truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime previousHour = exactHour.minusHours(1);
+
+        Optional<Double> exact = cache.get(cacheKey(indicator, exactHour));
+        if (exact != null) {
+            return exact.orElse(null);
+        }
+
+        // The bulk snapshot already proves old missing hours are absent. Query only hours
+        // that can have been written after that snapshot, then fall back one hour.
+        LocalDateTime snapshot = cacheSnapshotAt;
+        boolean mayHaveArrivedAfterSnapshot = snapshot == null
+                || !exactHour.isBefore(snapshot.truncatedTo(ChronoUnit.HOURS));
+        if (mayHaveArrivedAfterSnapshot) {
+            Optional<MarketIndicatorHistory> refreshed = indicatorRepo.findTopCleanInCapturedAtWindow(
+                    SYMBOL, indicator, previousHour, exactHour.plusHours(1));
+            if (refreshed.isPresent()) {
+                MarketIndicatorHistory row = refreshed.get();
+                LocalDateTime capturedHour = row.getCapturedAt().truncatedTo(ChronoUnit.HOURS);
+                Optional<Double> value = Optional.of(row.getValue().doubleValue());
+                cache.put(cacheKey(indicator, capturedHour), value);
+                if (capturedHour.equals(exactHour)) {
+                    return value.get();
+                }
+            }
+        }
+
+        Optional<Double> previous = cache.get(cacheKey(indicator, previousHour));
+        return previous != null ? previous.orElse(null) : null;
     }
 
     private static String cacheKey(String indicator, LocalDateTime hour) {

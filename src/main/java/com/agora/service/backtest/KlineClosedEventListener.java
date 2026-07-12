@@ -2,6 +2,7 @@ package com.agora.service.backtest;
 
 import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
+import com.agora.service.trading.Strategy508TimeExitLaneService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class KlineClosedEventListener {
     private final LiveSignalEvaluator liveSignalEvaluator;
     private final TradingSignalSourcePolicy signalSourcePolicy;
     private final LocalTradingViewSignalEvaluator localTradingViewSignalEvaluator;
+    private final Strategy508TimeExitLaneService strategy508TimeExitLaneService;
 
     @Async
     @EventListener
@@ -35,6 +37,12 @@ public class KlineClosedEventListener {
         String intervalCode = kline.getIntervalCode();
         if ("1m".equalsIgnoreCase(intervalCode)) {
             return;
+        }
+        try {
+            strategy508TimeExitLaneService.evaluate(kline);
+        } catch (Exception e) {
+            log.error("[KlineClosedEventListener] strategy 508 time-exit lane failed {}@{} openTime={}: {}",
+                    kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
         if (signalSourcePolicy.shouldRunLocalTradingViewEvaluator()) {
             log.debug("[KlineClosedEventListener] evaluate local TradingView parity {}@{} openTime={} source={} enabled={}",

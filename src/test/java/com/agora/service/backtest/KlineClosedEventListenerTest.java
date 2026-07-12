@@ -19,6 +19,7 @@ import com.agora.service.TelegramService;
 import com.agora.service.meta.DecisionAuditWriter;
 import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
+import com.agora.service.trading.Strategy508TimeExitLaneService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.agora.service.tradingview.LocalTradingViewExecutionService;
 import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
@@ -58,7 +59,8 @@ class KlineClosedEventListenerTest {
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
-                local);
+                local,
+                mock(Strategy508TimeExitLaneService.class));
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1D")));
 
@@ -73,7 +75,8 @@ class KlineClosedEventListenerTest {
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("LEGACY", true)),
-                local);
+                local,
+                mock(Strategy508TimeExitLaneService.class));
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1D")));
 
@@ -88,7 +91,8 @@ class KlineClosedEventListenerTest {
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("LOCAL_TRADINGVIEW", false)),
-                local);
+                local,
+                mock(Strategy508TimeExitLaneService.class));
 
         MdKline kline = kline("BTCUSDT", "1D");
         listener.onKlineClosed(new KlineClosedEvent(this, kline));
@@ -105,7 +109,8 @@ class KlineClosedEventListenerTest {
                 evaluator,
                 new TradingSignalSourcePolicy(new TradingSignalSourceProperties(
                         "LOCAL_TRADINGVIEW", false, true, "508", new BigDecimal("10.0"))),
-                local);
+                local,
+                mock(Strategy508TimeExitLaneService.class));
 
         MdKline kline = kline("BTCUSDT", "1h");
         listener.onKlineClosed(new KlineClosedEvent(this, kline));
@@ -172,7 +177,8 @@ class KlineClosedEventListenerTest {
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
                 localProps(ExecutionMode.LIVE_MICRO), auditWriter, executionService);
-        KlineClosedEventListener listener = new KlineClosedEventListener(legacyEvaluator, policy, localEvaluator);
+        KlineClosedEventListener listener = new KlineClosedEventListener(
+                legacyEvaluator, policy, localEvaluator, mock(Strategy508TimeExitLaneService.class));
 
         MdKline event = kline("BTCUSDT", "1D");
         event.setClosePrice(new BigDecimal("100.00"));
@@ -224,7 +230,8 @@ class KlineClosedEventListenerTest {
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
                 localProps(ExecutionMode.DRY_RUN), auditWriter, executionService);
-        KlineClosedEventListener listener = new KlineClosedEventListener(legacyEvaluator, policy, localEvaluator);
+        KlineClosedEventListener listener = new KlineClosedEventListener(
+                legacyEvaluator, policy, localEvaluator, mock(Strategy508TimeExitLaneService.class));
 
         MdKline event = kline("BTCUSDT", "1D");
         event.setClosePrice(new BigDecimal("100.00"));
@@ -255,15 +262,36 @@ class KlineClosedEventListenerTest {
     void oneMinuteBarsRemainIgnoredEvenWhenLegacyEnabled() {
         LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
+        Strategy508TimeExitLaneService timeExitLane = mock(Strategy508TimeExitLaneService.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("LEGACY", true)),
-                local);
+                local,
+                timeExitLane);
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1m")));
 
         verify(evaluator, never()).evaluate("BTCUSDT", "1m");
         verify(local, never()).evaluate(org.mockito.ArgumentMatchers.any());
+        verify(timeExitLane, never()).evaluate(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void strategy508TimeExitLaneReceivesFourHourEventWhenLegacyIsDisabled() {
+        LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
+        LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
+        Strategy508TimeExitLaneService timeExitLane = mock(Strategy508TimeExitLaneService.class);
+        KlineClosedEventListener listener = new KlineClosedEventListener(
+                evaluator,
+                new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
+                local,
+                timeExitLane);
+
+        MdKline event = kline("BTCUSDT", "4h");
+        listener.onKlineClosed(new KlineClosedEvent(this, event));
+
+        verify(timeExitLane).evaluate(event);
+        verify(evaluator, never()).evaluate("BTCUSDT", "4h");
     }
 
     private MdKline kline(String symbol, String intervalCode) {

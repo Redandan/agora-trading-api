@@ -12,6 +12,7 @@ import com.agora.service.ml.MlInferenceLogger;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.PostTradeReviewService;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.SpotPositionCloseService;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,8 @@ public class OcoPositionPollerScheduler {
     private final com.agora.service.diagnostic.OrphanTradeReconcilerService orphanReconciler;
     /** #380 — dedup 舊 orphan alert（24h TTL，每天最多 1 條）via #362 framework */
     private final TgNotificationDeduper tgDeduper;
+    /** Prevent OCO auto-retry from racing a scoped cancel-and-market-close flow. */
+    private final SpotPositionCloseService spotPositionCloseService;
 
     @Value("${trading.oco-poller.enabled:false}")
     private boolean ocoPollerEnabled;
@@ -139,6 +142,10 @@ public class OcoPositionPollerScheduler {
         log.info("[OcoPoll] Found {} unprotected position(s), attempting auto OCO retry", unprotected.size());
 
         for (BtLiveSignal pos : unprotected) {
+            if (spotPositionCloseService.isClosing(pos.getId())) {
+                log.debug("[OcoPoll] skip OCO retry while scoped market close is in progress: id={}", pos.getId());
+                continue;
+            }
             if (isSoftExitNoHardSl(pos)) {
                 log.info("[OcoPoll] Soft-exit position id={} intentionally has no hard OCO; auto retry suppressed",
                         pos.getId());

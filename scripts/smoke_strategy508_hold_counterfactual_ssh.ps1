@@ -61,7 +61,7 @@ set -euo pipefail
 cd '__APPDIR__'
 
 PORT=$(cat app.port)
-MCP_KEY=$(grep -E '^TRADING_MCP_KEY=' '__ENVFILE__' | tail -n 1 | sed 's/^[^=]*=//' | sed 's/^"//; s/"$//; s/^'''//; s/'''$//')
+MCP_KEY=$(grep -E '^TRADING_MCP_KEY=' '__ENVFILE__' | tail -n 1 | sed 's/^[^=]*=//' | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
 if [ -z "$MCP_KEY" ]; then
   echo "FAIL: TRADING_MCP_KEY missing in env file" >&2
   exit 1

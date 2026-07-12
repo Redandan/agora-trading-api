@@ -76,6 +76,10 @@ TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED=false
 TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT=6.25
 TRADING_SIGNAL_SOURCE_PRIMARY=TRADINGVIEW
 TRADING_LEGACY_LIVE_EVALUATOR_ENABLED=false
+# Fixed strategy 508 4h/24h experiment. OFF is the default; SHADOW writes
+# evidence only. LIVE_MICRO plus live-order=true requires separate approval.
+TRADING_508_TIME_EXIT_MODE=OFF
+TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED=false
 # Hardened schema mode. Flyway uses a Trading-owned history table so it does not
 # mix with AgoraMarketAPI's shared flyway_schema_history rows.
 SPRING_JPA_HIBERNATE_DDL_AUTO=validate
@@ -109,6 +113,68 @@ cleaning shared tables.
 `scripts/verify_server.sh` can run that comparison with
 `RUN_SCHEMA_BASELINE_COMPARE=1`; the default remains skipped for normal deploy
 health checks.
+
+## Strategy 508 4H/24H Shadow Rollout
+
+The versioned `STRATEGY_508_4H_24H_V1` lane accepts only closed
+`BTCUSDT/4h/okx` events. It keeps the raw strategy 508 BUY decision, executes
+the historical candidate at the first following 1m open, preserves the fixed
+`+6%` TP and `-12%` disaster SL, and otherwise exits at 24 hours. Historical
+results are not finalized when 1m coverage is below 99% or TP and SL touch in
+the same minute.
+
+Approved evidence-only production state for the first rollout:
+
+```bash
+TRADING_508_TIME_EXIT_MODE=SHADOW
+TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED=false
+TRADING_RUNTIME_EVIDENCE_ENABLED=true
+TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED=false
+TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS=
+TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT=0
+TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_DRY_RUN
+TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED=false
+```
+
+`SHADOW` may write decision/runtime evidence and resolve mature shadow outcomes,
+but it cannot place an order, attach/cancel OCO, close a position, or send a
+Telegram alert. Existing strategy 508 positions, including `#260/#261/#262`,
+are excluded unless their `filter_reason` is exactly
+`STRATEGY_508_4H_24H_V1`; their existing OCO lifecycle remains owned by the
+normal OCO poller. Strategy 485 remains `BTC_BASE_DRY_RUN`.
+
+After deployment, run:
+
+```powershell
+.\scripts\verify_server_ssh.ps1
+.\scripts\smoke_mcp_parity_ssh.ps1
+.\scripts\smoke_signal_correctness_ssh.ps1
+.\scripts\smoke_strategy508_hold_counterfactual_ssh.ps1
+.\scripts\smoke_strategy508_time_exit_ssh.ps1
+```
+
+The last smoke verifies the env state and calls the read-only
+`analyzeStrategy508TimeExitCandidate`, `getStrategy508TimeExitReadiness`, and
+`getStrategyNetPnlAttribution` tools. `INSUFFICIENT_EXACT_1M_SAMPLE` is a valid
+fail-closed result and must not be converted to an approximate 4h backtest.
+
+Rollback only the experimental entry lane while preserving all existing exits:
+
+```bash
+TRADING_508_TIME_EXIT_MODE=OFF
+TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED=false
+```
+
+Do not set `LIVE_MICRO` or enable the live-order flag from this rollout. A
+future single 10 USDT probe requires a fresh historical pass, at least 30 days
+and five finalized forward shadow signals, exact fee coverage, no parity/OCO
+gap, and separate explicit authorization.
+
+Even after that authorization, the lane admits only the first 10 USDT probe.
+It blocks a second entry until the first position is closed, runtime evidence
+contains complete entry and exit fees, and both parity flags remain clear.
+The 24H close flow bypasses cached OKX balances after OCO cancellation and
+attempts immediate OCO reprotection whenever a market close cannot proceed.
 
 ## Local Acceptance
 

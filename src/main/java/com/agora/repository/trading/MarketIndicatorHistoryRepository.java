@@ -141,6 +141,20 @@ public interface MarketIndicatorHistoryRepository
             @Param("at") LocalDateTime at);
 
     /**
+     * 取限定時間窗內最新的乾淨指標。策略的長生命週期 cache miss 會使用此查詢，
+     * 讓 collector 在 cache 初次載入後新增的資料不必等到服務重啟才可見。
+     */
+    @Query(value = "SELECT /*+ SET_VAR(use_secondary_engine=OFF) */ * FROM market_indicator_history " +
+           "WHERE symbol = :symbol AND indicator = :indicator " +
+           "AND captured_at >= :fromInclusive AND captured_at < :toExclusive " +
+           "AND error_flag = 0 ORDER BY captured_at DESC LIMIT 1", nativeQuery = true)
+    Optional<MarketIndicatorHistory> findTopCleanInCapturedAtWindow(
+            @Param("symbol") String symbol,
+            @Param("indicator") String indicator,
+            @Param("fromInclusive") LocalDateTime fromInclusive,
+            @Param("toExclusive") LocalDateTime toExclusive);
+
+    /**
      * #429 — count clean (non-error) rows since a cutoff for zombie audit.
      * Returns 0 when an indicator stops being collected (e.g. VDI freeze),
      * letting WeeklyScorecardDigest flag attention rules pointing at it.

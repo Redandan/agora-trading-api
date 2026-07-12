@@ -66,6 +66,7 @@ public class OkxTradingService implements TradingService {
     private static final long ACCOUNT_HOLDINGS_SUCCESS_CACHE_TTL_MS = 15_000L;
     private static final long ACCOUNT_HOLDINGS_STALE_CACHE_TTL_MS = 180_000L;
     private static final long ACCOUNT_HOLDINGS_LOOKUP_MIN_INTERVAL_MS = 500L;
+    private static final BigDecimal UNKNOWN_BUY_FEE_QTY_BUFFER_RATE = new BigDecimal("0.002");
     private static final List<String> ALGO_ORDER_HISTORY_STATES = List.of("effective", "canceled", "order_failed");
 
     private final OkxTradingProperties props;
@@ -687,10 +688,25 @@ public class OkxTradingService implements TradingService {
      * 使用無 ccy 篩選的 /api/v5/account/balance 端點取得完整帳戶餘額。
      */
     public List<SpotHolding> getSpotHoldings() {
+        return loadSpotHoldings(false);
+    }
+
+    /**
+     * Bypasses both success and stale caches. Cancel-and-close flows use this after
+     * releasing OCO-frozen quantity so they never decide from a pre-cancel balance.
+     */
+    public List<SpotHolding> getFreshSpotHoldings() {
+        return loadSpotHoldings(true);
+    }
+
+    private List<SpotHolding> loadSpotHoldings(boolean forceRefresh) {
         long nowMs = System.currentTimeMillis();
-        List<SpotHolding> cached = cachedHoldings(spotHoldingsCache, nowMs, ACCOUNT_HOLDINGS_SUCCESS_CACHE_TTL_MS);
-        if (cached != null) {
-            return cached;
+        if (!forceRefresh) {
+            List<SpotHolding> cached = cachedHoldings(
+                    spotHoldingsCache, nowMs, ACCOUNT_HOLDINGS_SUCCESS_CACHE_TTL_MS);
+            if (cached != null) {
+                return cached;
+            }
         }
         try {
             String path = "/api/v5/account/balance";
@@ -715,12 +731,15 @@ public class OkxTradingService implements TradingService {
             spotHoldingsCache = new HoldingsCacheEntry(List.copyOf(result), System.currentTimeMillis());
             return List.copyOf(result);
         } catch (Exception e) {
-            List<SpotHolding> stale = cachedHoldings(spotHoldingsCache, nowMs, ACCOUNT_HOLDINGS_STALE_CACHE_TTL_MS);
-            if (stale != null) {
-                log.info("[OKX] getSpotHoldings failed; using recent cached holdings snapshot: {}", e.getMessage());
-                return stale;
+            if (!forceRefresh) {
+                List<SpotHolding> stale = cachedHoldings(
+                        spotHoldingsCache, nowMs, ACCOUNT_HOLDINGS_STALE_CACHE_TTL_MS);
+                if (stale != null) {
+                    log.info("[OKX] getSpotHoldings failed; using recent cached holdings snapshot: {}", e.getMessage());
+                    return stale;
+                }
             }
-            log.warn("[OKX] getSpotHoldings failed: {}", e.getMessage());
+            log.warn("[OKX] getSpotHoldings failed forceRefresh={}: {}", forceRefresh, e.getMessage());
             return Collections.emptyList();
         }
     }
@@ -846,7 +865,7 @@ public class OkxTradingService implements TradingService {
 
         String ordId = resp.path("data").path(0).path("ordId").asText();
         log.info("[OKX] Market buy placed: instId={} ordId={}", instId, ordId);
-        return pollForFill(instId, ordId);
+        return pollForFill(instId, ordId, SpotOrderSide.BUY);
     }
 
     /**
@@ -868,6 +887,7 @@ public class OkxTradingService implements TradingService {
 
         String algoId = resp.path("data").path(0).path("algoId").asText();
         Long parsedAlgoId = Long.parseLong(algoId);
+        spotHoldingsCache = null;
         cacheAlgoOrder(algoOrderCacheKey(instId, parsedAlgoId), syntheticLiveAlgoOrder(instId, parsedAlgoId));
         log.info("[OKX] OCO algo placed: instId={} algoId={} tp={} sl={}", instId, algoId, tp, sl);
         return parsedAlgoId;
@@ -893,6 +913,7 @@ public class OkxTradingService implements TradingService {
             String sMsg = item.path("sMsg").asText();
             throw new RuntimeException("OKX cancel algo [sCode=" + sCode + "]: " + sMsg);
         }
+        spotHoldingsCache = null;
         log.info("[OKX] OCO cancelled: instId={} algoId={}", instId, ocoId);
     }
 
@@ -927,7 +948,7 @@ public class OkxTradingService implements TradingService {
 
         String ordId = resp.path("data").path(0).path("ordId").asText();
         log.info("[OKX] Market sell placed: instId={} ordId={}", instId, ordId);
-        return pollForFill(instId, ordId);
+        return pollForFill(instId, ordId, SpotOrderSide.SELL);
     }
 
     // ──────────────────────────────────────────────
@@ -1026,7 +1047,7 @@ public class OkxTradingService implements TradingService {
      * 輪詢訂單直到 filled，最多 MAX_FILL_RETRIES 次，每次間隔 FILL_RETRY_MS。
      * 市價單通常 500ms 內成交；若超時拋出 RuntimeException。
      */
-    private TradeResult pollForFill(String instId, String ordId) {
+    private TradeResult pollForFill(String instId, String ordId, SpotOrderSide side) {
         for (int i = 0; i < MAX_FILL_RETRIES; i++) {
             try { Thread.sleep(FILL_RETRY_MS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
@@ -1057,31 +1078,41 @@ public class OkxTradingService implements TradingService {
                 }
 
                 String instBase  = instId.split("-")[0]; // "ETH-USDT" → "ETH"
+                BigDecimal feeAmount;
+                try {
+                    feeAmount = new BigDecimal(feeStr);
+                } catch (NumberFormatException ignored) {
+                    feeAmount = BigDecimal.ZERO;
+                }
                 BigDecimal netQty;
-                if (instBase.equals(feeCcyStr) && !feeCcyStr.isEmpty()) {
+                if (side == SpotOrderSide.SELL) {
+                    // accFillSz is the base quantity sold. Quote-currency fees do not
+                    // reduce that filled quantity and must not trigger the buy-side
+                    // spot-balance fallback after the position has already been sold.
+                    netQty = gross;
+                } else if (instBase.equals(feeCcyStr) && !feeCcyStr.isEmpty()) {
                     // 費用以基幣扣收（最常見）：淨量 = gross + fee（fee 為負）
                     // 使用 gross.scale() 截尾以對齊 OKX lot size 精度，避免小數位過多被拒絕。
-                    BigDecimal fee = new BigDecimal(feeStr);
-                    netQty = gross.add(fee).setScale(gross.scale(), java.math.RoundingMode.DOWN);
+                    netQty = gross.add(feeAmount).setScale(gross.scale(), java.math.RoundingMode.DOWN);
+                } else if (!feeCcyStr.isEmpty()) {
+                    // Quote/discount-token fees do not reduce the base quantity received.
+                    netQty = gross;
                 } else {
-                    // 費用資訊不可用 — 查 OKX 帳戶實際餘額作為 netQty 上限,
-                    // 避免舊 fallback(grossQty)導致後續 sell 超過實際可用量(51008)。
-                    try {
-                        final String base = instBase;
-                        BigDecimal actualBal = getSpotHoldings().stream()
-                                .filter(h -> base.equals(h.ccy))
-                                .map(h -> h.availBal)
-                                .findFirst().orElse(gross);
-                        netQty = actualBal.min(gross).setScale(gross.scale(), java.math.RoundingMode.DOWN);
-                        log.info("[OKX] Fee unavailable, using spot balance: ordId={} gross={} actualBal={} netQty={}",
-                                ordId, gross, actualBal, netQty);
-                    } catch (Exception ex) {
-                        log.warn("[OKX] Spot balance fallback failed, using gross as last resort: ordId={} err={}",
-                                ordId, ex.getMessage());
-                        netQty = gross.setScale(gross.scale(), java.math.RoundingMode.DOWN);
-                    }
+                    // An account balance cannot identify which BTC belongs to this fill when
+                    // other holdings exist. Reserve a conservative fee buffer instead of
+                    // risking an oversized OCO that consumes pre-existing BTC.
+                    netQty = gross.multiply(BigDecimal.ONE.subtract(UNKNOWN_BUY_FEE_QTY_BUFFER_RATE))
+                            .setScale(gross.scale(), java.math.RoundingMode.DOWN);
+                    log.warn("[OKX] Buy fee unavailable; using conservative net quantity: ordId={} gross={} netQty={}",
+                            ordId, gross, netQty);
                 }
                 r.setQty(netQty);
+                r.setGrossQty(gross);
+                r.setNetQty(netQty);
+                r.setFeeAmount(feeAmount);
+                r.setFeeCurrency(feeCcyStr.isBlank() ? null : feeCcyStr);
+                r.setFeeUsdt(normalizeSpotFeeUsdt(instBase, r.getAvgPrice(), feeAmount, feeCcyStr));
+                spotHoldingsCache = null;
                 log.info("[OKX] Order filled: ordId={} avgPx={} grossQty={} fee={} feeCcy={} netQty={}",
                         ordId, r.getAvgPrice(), gross, feeStr, feeCcyStr, netQty);
                 return r;
@@ -1089,6 +1120,28 @@ public class OkxTradingService implements TradingService {
             log.debug("[OKX] Order not filled yet: ordId={} state={} attempt={}", ordId, state, i + 1);
         }
         throw new RuntimeException("OKX order not filled after " + MAX_FILL_RETRIES + " retries: ordId=" + ordId);
+    }
+
+    private BigDecimal normalizeSpotFeeUsdt(String baseCurrency,
+                                            BigDecimal avgPrice,
+                                            BigDecimal signedFee,
+                                            String feeCurrency) {
+        if (signedFee == null || feeCurrency == null || feeCurrency.isBlank()) {
+            return null;
+        }
+        BigDecimal absolute = signedFee.abs();
+        if ("USDT".equalsIgnoreCase(feeCurrency)) {
+            return absolute;
+        }
+        if (baseCurrency.equalsIgnoreCase(feeCurrency) && avgPrice != null) {
+            return absolute.multiply(avgPrice).setScale(8, java.math.RoundingMode.HALF_UP);
+        }
+        return null;
+    }
+
+    private enum SpotOrderSide {
+        BUY,
+        SELL
     }
 
     private JsonNode queryOrder(String instId, String ordId) {

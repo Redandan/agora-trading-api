@@ -4,15 +4,23 @@ import com.agora.model.BtLiveSignal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
+import jakarta.persistence.LockModeType;
 
 @Repository
 public interface BtLiveSignalRepository extends JpaRepository<BtLiveSignal, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT ls FROM BtLiveSignal ls WHERE ls.id = :id")
+    Optional<BtLiveSignal> findByIdForUpdate(@Param("id") Long id);
 
     /**
      * 去重判斷：同一根 bar 是否已成功通知（notifiedAt != null）。

@@ -55,6 +55,9 @@ trading:
     legacy-secondary-evaluator-enabled: ${TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED:false}
     legacy-secondary-allowed-strategy-ids: ${TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS:}
     legacy-secondary-max-notional-usdt: ${TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT:0}
+  strategy508-time-exit:
+    mode: ${TRADING_508_TIME_EXIT_MODE:OFF}
+    live-order-enabled: ${TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED:false}
   tradingview:
     webhook:
       enabled: ${TRADINGVIEW_WEBHOOK_ENABLED:false}

@@ -1,5 +1,24 @@
 # Split Progress
 
+- 2026-07-13: deployed strategy 508 market-feature freshness/provenance commit
+  `cf1f4df` with an explicitly authorized blue-green rollout. Production moved
+  from port `8084` to `8085`, the old listener drained, and strict server verify
+  passed with server worktree/app metadata at `cf1f4df`, local/public health,
+  dedicated-host MCP, nginx routing, and shared-host MCP `404` protection all
+  healthy. Server-local MCP parity passed with 324 tools / 45 required tools;
+  signal correctness, strategy 508 hold-counterfactual, and strategy 508
+  time-exit SHADOW smokes also passed. Runtime remains `SHADOW` with
+  `TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED=false`, `orderAllowed=false`, and
+  historical status `INSUFFICIENT_EXACT_1M_SAMPLE`; the stricter causal replay
+  reduced finalized events from 8 to 7 rather than retaining an untrusted row.
+  A separate read-only side-effect audit confirmed the unchanged open positions
+  `#260/#261/#262`, OCO health `3 OK / 0 SYNC_ERROR / 0 anomaly`, no runtime
+  evidence in the first 60 minutes, and no TG notification in the preceding two
+  hours. No live order, OCO mutation, position change, Telegram send, env change,
+  strategy flag change, grid/fund/Earn action, backfill, or DB migration was
+  performed by post-deploy acceptance. Exact new provenance fields still require
+  the next naturally closed 4H event before they can be claimed as production
+  runtime evidence.
 - 2026-07-13: strategy 508 4H/24H market-feature freshness provenance is
   implemented locally after the first production close audit exposed a real
   timing defect. Audit `#77413` decided at `2026-07-12T12:00Z` but selected

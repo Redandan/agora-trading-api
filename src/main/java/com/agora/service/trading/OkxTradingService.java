@@ -435,15 +435,38 @@ public class OkxTradingService implements TradingService {
      */
     @Cacheable(value = "fundingRate", key = "#symbol")
     public double getCurrentFundingRate(String symbol) {
+        FundingRateObservation observation = getCurrentFundingRateObservation(symbol);
+        return observation == null ? 0 : observation.value();
+    }
+
+    /** Funding-rate observation with source metadata; returns {@code null} on provider failure. */
+    public FundingRateObservation getCurrentFundingRateObservation(String symbol) {
         String instId = toSwapInstId(symbol);
         String path = "/api/v5/public/funding-rate?instId=" + instId;
         try {
             JsonNode resp = get(path);
             assertOkxCode(resp);
-            return resp.path("data").path(0).path("fundingRate").asDouble(0);
+            JsonNode row = resp.path("data").path(0);
+            JsonNode rate = row.get("fundingRate");
+            if (row.isMissingNode() || rate == null || rate.isNull() || rate.asText("").isBlank()) return null;
+            long sourceTimestampMs = row.path("ts").asLong(0L);
+            return new FundingRateObservation(rate.asDouble(),
+                    "OKX_PUBLIC_FUNDING_RATE", Instant.now(),
+                    sourceTimestampMs > 0 ? sourceTimestampMs : null);
         } catch (Exception e) {
             log.warn("[OKX] getCurrentFundingRate failed for {}: {}", symbol, e.getMessage());
-            return 0;
+            return null;
+        }
+    }
+
+    public record FundingRateObservation(double value,
+                                         String provider,
+                                         Instant observedAt,
+                                         Long sourceTimestampMs) {
+        public Instant effectiveCapturedAt() {
+            return sourceTimestampMs != null && sourceTimestampMs > 0
+                    ? Instant.ofEpochMilli(sourceTimestampMs)
+                    : observedAt;
         }
     }
 

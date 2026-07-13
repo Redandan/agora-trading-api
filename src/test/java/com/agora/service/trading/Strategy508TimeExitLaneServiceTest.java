@@ -46,6 +46,23 @@ import static org.mockito.Mockito.when;
 class Strategy508TimeExitLaneServiceTest {
 
     @Test
+    void policyForcesCloseTimeFreshnessFailClosedAtNinetyMinutes() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("marketFeatureFreshnessFailClosed", false);
+        config.put("fundingMaxAgeMinutes", 999);
+
+        Strategy508TimeExitPolicy.applyMarketFeatureFreshnessPolicy(config);
+
+        assertThat(config)
+                .containsEntry("marketFeatureFreshnessFailClosed", true)
+                .containsEntry("marketFeatureReferenceTimeMode", "BAR_CLOSE")
+                .containsEntry("fundingMaxAgeMinutes", 90)
+                .containsEntry("oiMaxAgeMinutes", 90)
+                .containsEntry("dexFlowMaxAgeMinutes", 90)
+                .containsEntry("spreadMaxAgeMinutes", 90);
+    }
+
+    @Test
     void offModeDoesNothing() {
         Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.OFF, false);
 

@@ -25,6 +25,7 @@ import com.agora.service.market.PythNetworkService;
 import com.agora.service.market.WhaleFlowService;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.config.properties.IndicatorHistoryProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -108,6 +112,7 @@ public class MarketIndicatorHistoryCollector {
     private final CoinalyzeService coinalyzeService;
     private final MdKlineRepository klineRepository;
     private final IndicatorHistoryProperties props;
+    private final ObjectMapper objectMapper;
 
     // @Scheduled 已移至 HourlyOrchestrator（UTC :00 串行執行，step 1）
     public void collect() {
@@ -168,9 +173,24 @@ public class MarketIndicatorHistoryCollector {
             }, IO_POOL));
 
             futures.add(CompletableFuture.runAsync(() -> {
-                Double v = safeDouble(() -> okxTradingService.getCurrentFundingRate(s), "funding_rate");
-                if (v != null) written.addAndGet(
-                        write(capturedAt, s, "funding_rate", BigDecimal.valueOf(v), null));
+                OkxTradingService.FundingRateObservation observation =
+                        okxTradingService.getCurrentFundingRateObservation(s);
+                if (observation != null) {
+                    LocalDateTime effectiveCapturedAt = LocalDateTime.ofInstant(
+                            observation.effectiveCapturedAt(), ZoneOffset.UTC);
+                    Map<String, Object> metadata = new LinkedHashMap<>();
+                    metadata.put("providerPath", observation.provider());
+                    metadata.put("observedAt", observation.observedAt().toString());
+                    metadata.put("effectiveCapturedAt", effectiveCapturedAt.toString());
+                    metadata.put("availableAt", LocalDateTime.ofInstant(
+                            observation.observedAt(), ZoneOffset.UTC).toString());
+                    metadata.put("collectorCapturedAt", capturedAt.toString());
+                    if (observation.sourceTimestampMs() != null) {
+                        metadata.put("sourceTimestampMs", observation.sourceTimestampMs());
+                    }
+                    written.addAndGet(write(capturedAt, s, "funding_rate",
+                            BigDecimal.valueOf(observation.value()), metadata(metadata)));
+                }
             }, IO_POOL));
 
             futures.add(CompletableFuture.runAsync(() -> {
@@ -195,30 +215,64 @@ public class MarketIndicatorHistoryCollector {
         boolean collectBtcGlobal = symbols.stream()
                 .anyMatch(s -> "BTCUSDT".equalsIgnoreCase(s == null ? "" : s.trim()));
         if (collectBtcGlobal) {
-            final Double prevOiValue = historyRepo
-                    .findTopCleanBySymbolAndIndicator("BTCUSDT", "btc_open_interest")
+            final Optional<MarketIndicatorHistory> prevOiRow = historyRepo
+                    .findTopCleanBySymbolAndIndicator("BTCUSDT", "btc_open_interest");
+            final Double prevOiValue = prevOiRow
                     .map(h -> h.getValue() != null ? h.getValue().doubleValue() : null)
                     .orElse(null);
 
             // Binance Futures OI + 1h delta
             futures.add(CompletableFuture.runAsync(() -> {
-                Double oi = safeDouble(
-                        () -> binanceFuturesService.getOpenInterest("BTCUSDT"), "btc_open_interest");
-                if (oi != null) {
+                BinanceFuturesService.OpenInterestObservation observation =
+                        binanceFuturesService.getOpenInterestObservation("BTCUSDT");
+                if (observation != null) {
+                    double oi = observation.value();
+                    LocalDateTime effectiveCapturedAt = observation.effectiveCapturedAt();
+                    Map<String, Object> oiMetadata = new LinkedHashMap<>();
+                    oiMetadata.put("providerPath", observation.provider());
+                    oiMetadata.put("observedAt", observation.observedAt().toString());
+                    oiMetadata.put("effectiveCapturedAt", effectiveCapturedAt.toString());
+                    oiMetadata.put("availableAt", observation.observedAt().toString());
+                    oiMetadata.put("collectorCapturedAt", capturedAt.toString());
+                    if (observation.sourceTimestampMs() != null) {
+                        oiMetadata.put("sourceTimestampMs", observation.sourceTimestampMs());
+                    }
                     written.addAndGet(write(capturedAt, "BTCUSDT", "btc_open_interest",
-                            BigDecimal.valueOf(oi), null));
+                            BigDecimal.valueOf(oi), metadata(oiMetadata)));
                     // Compute 1-hour OI change % using the previous snapshot.
                     // Guard: skip if delta > 50% — likely a source-unit boundary jump
                     // (e.g. switching from OKX-rubik USD-millions to Binance BTC-contracts
                     // would produce a false +1300% spike). Real 1h OI changes are < 10%.
                     if (prevOiValue != null && prevOiValue > 0) {
+                        String previousProvider = prevOiRow
+                                .map(this::rowProviderPath)
+                                .orElse("LEGACY_OR_UNKNOWN_PROVIDER");
                         double changePct = (oi - prevOiValue) / prevOiValue * 100.0;
-                        if (Math.abs(changePct) > 50.0) {
+                        if (!sameOiProvider(previousProvider, observation.provider())) {
+                            log.warn("[IndicatorHistory] BTC OI provider changed or is unknown — skipping delta. previousProvider={} currentProvider={}",
+                                    previousProvider, observation.provider());
+                        } else if (Math.abs(changePct) > 50.0) {
                             log.warn("[IndicatorHistory] BTC OI change {}% > 50% threshold — skipping (possible source-unit boundary). prevOi={} newOi={}",
                                     String.format("%.1f", changePct), prevOiValue, oi);
                         } else {
+                            Map<String, Object> deltaMetadata = new LinkedHashMap<>();
+                            deltaMetadata.put("providerPath", "DERIVED_OI_CHANGE:"
+                                    + previousProvider + "->" + observation.provider());
+                            deltaMetadata.put("currentOiProvider", observation.provider());
+                            deltaMetadata.put("currentOiObservedAt", observation.observedAt().toString());
+                            deltaMetadata.put("effectiveCapturedAt", effectiveCapturedAt.toString());
+                            deltaMetadata.put("availableAt", observation.observedAt().toString());
+                            deltaMetadata.put("collectorCapturedAt", capturedAt.toString());
+                            prevOiRow.ifPresent(row -> {
+                                deltaMetadata.put("previousOiCapturedAt", row.getCapturedAt().toString());
+                                deltaMetadata.put("previousOiEffectiveCapturedAt",
+                                        rowEffectiveCapturedAt(row).toString());
+                                deltaMetadata.put("previousOiProvider", rowProviderPath(row));
+                                deltaMetadata.put("previousOiSourceEvidence",
+                                        row.getMetadataJson() == null ? "LEGACY_ROW_METADATA_MISSING" : "ROW_METADATA");
+                            });
                             written.addAndGet(write(capturedAt, "BTCUSDT", "oi_change_pct_1h",
-                                    BigDecimal.valueOf(changePct), null));
+                                    BigDecimal.valueOf(changePct), metadata(deltaMetadata)));
                             log.debug("[IndicatorHistory] BTC OI prevOi={} newOi={} changePct={}%",
                                     prevOiValue, oi, String.format("%.2f", changePct));
                         }
@@ -400,8 +454,15 @@ public class MarketIndicatorHistoryCollector {
             futures.add(CompletableFuture.runAsync(() -> {
                 Double v = safeDouble(hyperliquidService::getBtcFundingHrPct,
                         "hyperliquid_btc_funding_hr_pct");
-                if (v != null) written.addAndGet(write(capturedAt, "BTCUSDT",
-                        "hyperliquid_btc_funding_hr_pct", BigDecimal.valueOf(v), null));
+                if (v != null) {
+                    Map<String, Object> metadata = new LinkedHashMap<>();
+                    metadata.put("providerPath", "HYPERLIQUID_PUBLIC_META_AND_ASSET_CTXS");
+                    metadata.put("effectiveCapturedAt", capturedAt.toString());
+                    metadata.put("availableAt", LocalDateTime.now(ZoneOffset.UTC).toString());
+                    metadata.put("collectorCapturedAt", capturedAt.toString());
+                    written.addAndGet(write(capturedAt, "BTCUSDT",
+                            "hyperliquid_btc_funding_hr_pct", BigDecimal.valueOf(v), metadata(metadata)));
+                }
             }, IO_POOL));
             futures.add(CompletableFuture.runAsync(() -> {
                 Double v = safeDouble(dydxService::getBtcOi, "dydx_btc_oi");
@@ -520,8 +581,17 @@ public class MarketIndicatorHistoryCollector {
             futures.add(CompletableFuture.runAsync(() -> {
                 Double v = safeDouble(uniswapDexFlowService::getWbtcNetFlowUsd,
                         "dex_wbtc_net_flow_usd_1h");
-                if (v != null) written.addAndGet(write(capturedAt, "BTCUSDT",
-                        "dex_wbtc_net_flow_usd_1h", BigDecimal.valueOf(v), null));
+                if (v != null) {
+                    Map<String, Object> metadata = new LinkedHashMap<>();
+                    metadata.put("providerPath", "THE_GRAPH_UNISWAP_V3_WBTC_USDC");
+                    metadata.put("windowStart", capturedAt.minusHours(1).toString());
+                    metadata.put("windowEnd", capturedAt.toString());
+                    metadata.put("effectiveCapturedAt", capturedAt.toString());
+                    metadata.put("availableAt", LocalDateTime.now(ZoneOffset.UTC).toString());
+                    metadata.put("collectorCapturedAt", capturedAt.toString());
+                    written.addAndGet(write(capturedAt, "BTCUSDT",
+                            "dex_wbtc_net_flow_usd_1h", BigDecimal.valueOf(v), metadata(metadata)));
+                }
             }, IO_POOL));
 
             // ── V083: Coinalyze — 清算歷史（多交易所聚合，免費 40req/min）──────────
@@ -612,22 +682,33 @@ public class MarketIndicatorHistoryCollector {
             // Hyperliquid fundingHrPct is already per-hour
             // Positive spread = OKX longs paying more (CEX more bullish than DEX)
             try {
-                historyRepo.findTopCleanBySymbolAndIndicator("BTCUSDT", "funding_rate")
-                    .flatMap(okxRow -> historyRepo
-                        .findTopCleanBySymbolAndIndicator("BTCUSDT", "hyperliquid_btc_funding_hr_pct")
-                        .map(hlRow -> {
-                            double okxHr = okxRow.getValue().doubleValue() / 8.0;
-                            double hlHr  = hlRow.getValue().doubleValue();
-                            return okxHr - hlHr;
-                        }))
-                    .ifPresent(spread -> {
-                        if (!historyRepo.existsBySymbolAndIndicatorAndCapturedAt(
-                                "BTCUSDT", "funding_rate_cex_dex_spread", capturedAt)) {
-                            written.addAndGet(write(capturedAt, "BTCUSDT",
-                                    "funding_rate_cex_dex_spread", BigDecimal.valueOf(spread), null));
-                            log.debug("[IndicatorHistory] funding_rate_cex_dex_spread={}", spread);
-                        }
-                    });
+                Optional<MarketIndicatorHistory> okxFunding = historyRepo
+                        .findTopCleanBySymbolAndIndicator("BTCUSDT", "funding_rate");
+                Optional<MarketIndicatorHistory> hyperliquidFunding = historyRepo
+                        .findTopCleanBySymbolAndIndicator("BTCUSDT", "hyperliquid_btc_funding_hr_pct");
+                if (okxFunding.isPresent() && hyperliquidFunding.isPresent()) {
+                    MarketIndicatorHistory okxRow = okxFunding.get();
+                    MarketIndicatorHistory hlRow = hyperliquidFunding.get();
+                    double okxHr = okxRow.getValue().doubleValue() / 8.0;
+                    double hlHr = hlRow.getValue().doubleValue();
+                    double spread = okxHr - hlHr;
+                    Map<String, Object> metadata = new LinkedHashMap<>();
+                    metadata.put("providerPath", "DERIVED_OKX_HYPERLIQUID_FUNDING_SPREAD");
+                    metadata.put("okxFundingCapturedAt", okxRow.getCapturedAt().toString());
+                    metadata.put("hyperliquidFundingCapturedAt", hlRow.getCapturedAt().toString());
+                    metadata.put("okxFundingProviderPath", rowProviderPath(okxRow));
+                    metadata.put("hyperliquidFundingProviderPath", rowProviderPath(hlRow));
+                    LocalDateTime okxEffectiveCapturedAt = rowEffectiveCapturedAt(okxRow);
+                    LocalDateTime hyperliquidEffectiveCapturedAt = rowEffectiveCapturedAt(hlRow);
+                    metadata.put("effectiveCapturedAt",
+                            (okxEffectiveCapturedAt.isBefore(hyperliquidEffectiveCapturedAt)
+                                    ? okxEffectiveCapturedAt : hyperliquidEffectiveCapturedAt).toString());
+                    metadata.put("availableAt", LocalDateTime.now(ZoneOffset.UTC).toString());
+                    metadata.put("collectorCapturedAt", capturedAt.toString());
+                    written.addAndGet(write(capturedAt, "BTCUSDT",
+                            "funding_rate_cex_dex_spread", BigDecimal.valueOf(spread), metadata(metadata)));
+                    log.debug("[IndicatorHistory] funding_rate_cex_dex_spread={}", spread);
+                }
             } catch (Exception e) {
                 log.warn("[IndicatorHistory] cex_dex_spread compute failed: {}", e.getMessage());
             }
@@ -671,21 +752,66 @@ public class MarketIndicatorHistoryCollector {
             return historyRepo.insertIgnore(symbol, indicator, capturedAt, value);
         }
         try {
-            if (historyRepo.existsBySymbolAndIndicatorAndCapturedAt(symbol, indicator, capturedAt)) {
-                return 0;
-            }
-            MarketIndicatorHistory row = new MarketIndicatorHistory();
-            row.setCapturedAt(capturedAt);
-            row.setSymbol(symbol);
-            row.setIndicator(indicator);
-            row.setValue(value);
-            row.setMetadataJson(metadataJson);
-            historyRepo.save(row);
-            return 1;
+            return historyRepo.insertIgnoreWithMetadata(
+                    symbol, indicator, capturedAt, value, metadataJson);
         } catch (Exception e) {
             log.warn("[IndicatorHistory] save failed symbol={} indicator={}: {}",
                     symbol, indicator, e.getMessage());
             return 0;
+        }
+    }
+
+    private String metadata(Map<String, Object> values) {
+        try {
+            return objectMapper.writeValueAsString(values);
+        } catch (Exception e) {
+            log.warn("[IndicatorHistory] metadata serialization failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private LocalDateTime rowEffectiveCapturedAt(MarketIndicatorHistory row) {
+        String declared = rowMetadataText(row, "effectiveCapturedAt");
+        if (declared != null) {
+            LocalDateTime parsed = parseMetadataTime(declared);
+            if (parsed != null) return parsed;
+            log.debug("[IndicatorHistory] invalid effectiveCapturedAt metadata row={}: {}",
+                    row.getId(), declared);
+        }
+        return row.getCapturedAt();
+    }
+
+    private LocalDateTime parseMetadataTime(String value) {
+        try {
+            return LocalDateTime.parse(value);
+        } catch (Exception ignored) {
+            try {
+                return LocalDateTime.ofInstant(java.time.Instant.parse(value), ZoneOffset.UTC);
+            } catch (Exception ignoredAgain) {
+                return null;
+            }
+        }
+    }
+
+    private String rowProviderPath(MarketIndicatorHistory row) {
+        String declared = rowMetadataText(row, "providerPath");
+        return declared != null ? declared : "LEGACY_OR_UNKNOWN_PROVIDER";
+    }
+
+    static boolean sameOiProvider(String previousProvider, String currentProvider) {
+        return previousProvider != null
+                && currentProvider != null
+                && !previousProvider.startsWith("LEGACY_OR_UNKNOWN")
+                && previousProvider.equals(currentProvider);
+    }
+
+    private String rowMetadataText(MarketIndicatorHistory row, String key) {
+        if (row == null || row.getMetadataJson() == null || row.getMetadataJson().isBlank()) return null;
+        try {
+            String value = objectMapper.readTree(row.getMetadataJson()).path(key).asText("").trim();
+            return value.isEmpty() ? null : value;
+        } catch (Exception e) {
+            return null;
         }
     }
 

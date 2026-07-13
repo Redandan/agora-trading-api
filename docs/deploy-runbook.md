@@ -143,6 +143,28 @@ are excluded unless their `filter_reason` is exactly
 `STRATEGY_508_4H_24H_V1`; their existing OCO lifecycle remains owned by the
 normal OCO poller. Strategy 485 remains `BTC_BASE_DRY_RUN`.
 
+The versioned lane also fixes market-feature timing independently of legacy
+strategy execution. Funding and `oi_change_pct_1h` are selected from the latest
+clean `market_indicator_history` row whose `captured_at` is at or before the 4H
+bar close; future rows are never eligible and the maximum age is fixed at 90
+minutes. Both core features are required. DEX WBTC flow and CEX/DEX funding
+spread become required only if their respective filters are enabled. Closed-bar
+volume/MA and SMA200 include their OKX K-line provenance in the audit. Missing or
+stale required inputs produce `hold_reason=feature_freshness_blocked`, never a
+BUY intent. New collector rows include provider metadata, while legacy rows are
+explicitly marked `LEGACY_ROW_METADATA_MISSING` instead of claiming an exact
+upstream provider. Source `effectiveCapturedAt` and runtime `availableAt` are
+both recorded; a row must have been available by the bar close, while age is
+measured from the source time. OI change collection skips one interval whenever
+the previous provider is unknown or differs from the current provider.
+
+The pre-deploy root-cause sample is decision audit `#77413`: decision time
+`2026-07-12T12:00Z`, old selected MIH rows `08:01Z` (age 239 minutes), latest
+causal rows `11:01Z` (age 59 minutes). Replaying the latest causal funding
+`0.00006548`, OI change `0.18792503%`, volume `817.98692816` versus MA5
+`415.83168664`, and close `64025` versus SMA200 `62705.4065` retains the BUY.
+This evidence is read-only and is not deployment or live authorization.
+
 After deployment, run:
 
 ```powershell
@@ -157,6 +179,12 @@ The last smoke verifies the env state and calls the read-only
 `analyzeStrategy508TimeExitCandidate`, `getStrategy508TimeExitReadiness`, and
 `getStrategyNetPnlAttribution` tools. `INSUFFICIENT_EXACT_1M_SAMPLE` is a valid
 fail-closed result and must not be converted to an approximate 4h backtest.
+After a separately authorized deployment of feature provenance, inspect the
+next `STRATEGY_508_TIME_EXIT` or `STRATEGY_508_TIME_EXIT_EVAL` decision with
+`getDecisionContext`. Require `feature_reference_time_mode=BAR_CLOSE`, funding
+and OI `freshness=FRESH`, age `<=90`, explicit provider/source evidence,
+`feature_freshness_clear=true`, and `orderSent=false` while mode remains
+`SHADOW`. `bar_open_time` is printed directly by `getDecisionContext`.
 
 Rollback only the experimental entry lane while preserving all existing exits:
 

@@ -82,6 +82,20 @@ public interface MarketIndicatorHistoryRepository
                      @Param("capturedAt") LocalDateTime capturedAt,
                      @Param("value") java.math.BigDecimal value);
 
+    /** Atomic idempotent collector write that also preserves provider provenance metadata. */
+    @Modifying
+    @Transactional
+    @Query(value = """
+            INSERT IGNORE INTO market_indicator_history
+            (captured_at, symbol, indicator, value, metadata_json, error_flag)
+            VALUES (:capturedAt, :symbol, :indicator, :value, :metadataJson, 0)
+            """, nativeQuery = true)
+    int insertIgnoreWithMetadata(@Param("symbol") String symbol,
+                                 @Param("indicator") String indicator,
+                                 @Param("capturedAt") LocalDateTime capturedAt,
+                                 @Param("value") java.math.BigDecimal value,
+                                 @Param("metadataJson") String metadataJson);
+
     /** 刪除指定 symbol+indicator 在某時間點之後的所有記錄（SQI 重算用）。 */
     @Modifying
     @Transactional

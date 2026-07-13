@@ -11,10 +11,14 @@ $paths = @{
     Policy = Join-Path $repoRoot "src/main/java/com/agora/service/trading/Strategy508TimeExitPolicy.java"
     Candidate = Join-Path $repoRoot "src/main/java/com/agora/service/trading/Strategy508TimeExitCandidateService.java"
     Lane = Join-Path $repoRoot "src/main/java/com/agora/service/trading/Strategy508TimeExitLaneService.java"
+    Strategy = Join-Path $repoRoot "src/main/java/com/agora/service/backtest/OiFundingDivergenceStrategy.java"
+    Collector = Join-Path $repoRoot "src/main/java/com/agora/scheduler/trading/MarketIndicatorHistoryCollector.java"
+    IndicatorRepository = Join-Path $repoRoot "src/main/java/com/agora/repository/trading/MarketIndicatorHistoryRepository.java"
     Outcome = Join-Path $repoRoot "src/main/java/com/agora/service/trading/Strategy508TimeExitOutcomeService.java"
     Readiness = Join-Path $repoRoot "src/main/java/com/agora/service/trading/Strategy508TimeExitReadinessService.java"
     Close = Join-Path $repoRoot "src/main/java/com/agora/service/trading/SpotPositionCloseService.java"
     Mcp = Join-Path $repoRoot "src/main/java/com/agora/mcp/Strategy508TimeExitMcpTools.java"
+    MetaMcp = Join-Path $repoRoot "src/main/java/com/agora/mcp/MetaControlMcpTools.java"
     App = Join-Path $repoRoot "src/main/resources/application.yml"
     Env = Join-Path $repoRoot ".env.trading.secrets.example"
     SshSmoke = Join-Path $PSScriptRoot "smoke_strategy508_time_exit_ssh.ps1"
@@ -36,7 +40,9 @@ foreach ($marker in @(
         'STOP_LOSS_PCT = new BigDecimal("0.12")',
         'MAX_CUMULATIVE_LOSS_USDT = new BigDecimal("3.00")',
         'MAX_ORDERS_PER_DAY = 1',
-        'MAX_PILOT_ORDERS = 5')) {
+        'MAX_PILOT_ORDERS = 5',
+        'MARKET_FEATURE_MAX_AGE_MINUTES = 90',
+        'applyMarketFeatureFreshnessPolicy')) {
     Assert-Contains -Name "fixed policy" -Text $text.Policy -Pattern ([regex]::Escape($marker))
 }
 foreach ($marker in @(
@@ -59,6 +65,37 @@ foreach ($marker in @(
         'CRITICAL_ORDER_SENT_FILL_UNCONFIRMED')) {
     Assert-Contains -Name "isolated lane" -Text $text.Lane -Pattern ([regex]::Escape($marker))
 }
+Assert-Contains -Name "lane freshness policy" -Text $text.Lane -Pattern 'applyMarketFeatureFreshnessPolicy'
+Assert-Contains -Name "candidate freshness policy" -Text $text.Candidate -Pattern 'applyMarketFeatureFreshnessPolicy'
+foreach ($marker in @(
+        'marketFeatureFreshnessFailClosed',
+        'marketFeatureReferenceTimeMode',
+        'feature_freshness_blockers',
+        'publishMarketFeature("funding_rate"',
+        'publishMarketFeature("oi_change_pct_1h"',
+        '"_captured_at"',
+        '"_available_at"',
+        '"_age_minutes"',
+        '"_age_seconds"',
+        'feature_volume_freshness',
+        'feature_sma200_freshness')) {
+    Assert-Contains -Name "strategy feature provenance" -Text $text.Strategy -Pattern ([regex]::Escape($marker))
+}
+foreach ($marker in @(
+        'getCurrentFundingRateObservation',
+        'getOpenInterestObservation',
+        'effectiveCapturedAt()',
+        'availableAt',
+        'sourceTimestampMs',
+        'sameOiProvider',
+        'DERIVED_OI_CHANGE:',
+        'THE_GRAPH_UNISWAP_V3_WBTC_USDC',
+        'DERIVED_OKX_HYPERLIQUID_FUNDING_SPREAD')) {
+    Assert-Contains -Name "collector provider metadata" -Text $text.Collector -Pattern ([regex]::Escape($marker))
+}
+Assert-Contains -Name "atomic provider metadata insert" -Text $text.IndicatorRepository -Pattern 'insertIgnoreWithMetadata'
+Assert-Contains -Name "decision context bar identity" -Text $text.MetaMcp -Pattern 'bar_open_time:'
+Assert-Contains -Name "hold audit decision time" -Text $text.Lane -Pattern 'context\.put\("decisionTime"'
 Assert-Contains -Name "position isolation" -Text $text.Outcome -Pattern 'POLICY_POSITION_TAG_MISMATCH'
 Assert-Contains -Name "database position lock" -Text $text.Close -Pattern 'findByIdForUpdate'
 Assert-Contains -Name "per-position in-process lock" -Text $text.Close -Pattern 'closingPositionIds'

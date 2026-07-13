@@ -1998,6 +1998,8 @@ public class MetaControlMcpTools {
         sb.append("strategy_id  : ").append(a.getStrategyId()).append("\n");
         sb.append("symbol       : ").append(a.getSymbol()).append("\n");
         sb.append("interval     : ").append(a.getIntervalCode()).append("\n");
+        sb.append("bar_open_time: ").append(a.getBarOpenTime() != null
+                ? a.getBarOpenTime().format(FMT) + " UTC" : "-").append("\n");
         sb.append("blocker      : ").append(a.getBlocker() != null ? a.getBlocker() : "-").append("\n");
         sb.append("reason       : ").append(a.getReason() != null ? a.getReason() : "-").append("\n");
         renderContextJson(sb, a.getContextJson());

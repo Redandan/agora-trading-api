@@ -99,6 +99,7 @@ public class Strategy508TimeExitLaneService {
             Map<String, Object> config = new LinkedHashMap<>(strategyService.parseConfig(strategyEntity.getConfigJson()));
             strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
             config.put("runIntervalCode", INTERVAL);
+            Strategy508TimeExitPolicy.applyMarketFeatureFreshnessPolicy(config);
 
             List<MdKline> bars = loadBars(eventKline);
             int index = indexOf(bars, eventKline.getOpenTime());
@@ -545,6 +546,12 @@ public class Strategy508TimeExitLaneService {
         context.put("policyMode", POLICY_MODE);
         context.put("decision", decision);
         context.put("reason", reason);
+        context.put("symbol", SYMBOL);
+        context.put("intervalCode", INTERVAL);
+        context.put("source", KLINE_SOURCE);
+        context.put("barOpenTime", kline.getOpenTime().toString());
+        context.put("decisionTime", (kline.getCloseTime() != null
+                ? kline.getCloseTime() : kline.getOpenTime().plusHours(4)).toString());
         context.put("orderSent", false);
         if (details != null) details.forEach((key, value) -> context.put("strategyDecision." + key, value));
         BtDecisionAudit audit = new BtDecisionAudit();

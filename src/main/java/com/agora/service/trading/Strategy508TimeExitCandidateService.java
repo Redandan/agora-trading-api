@@ -84,6 +84,7 @@ public class Strategy508TimeExitCandidateService {
         Map<String, Object> config = new LinkedHashMap<>(strategyService.parseConfig(strategyEntity.getConfigJson()));
         strategy.defaultExecutionConfig().forEach(config::putIfAbsent);
         config.put("runIntervalCode", INTERVAL);
+        Strategy508TimeExitPolicy.applyMarketFeatureFreshnessPolicy(config);
 
         List<MdKline> strategyBars = closedBars(klineRepository
                 .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(

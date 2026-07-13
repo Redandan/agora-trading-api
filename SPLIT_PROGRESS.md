@@ -1,5 +1,23 @@
 # Split Progress
 
+- 2026-07-13: strategy 508 4H/24H market-feature freshness provenance is
+  implemented locally after the first production close audit exposed a real
+  timing defect. Audit `#77413` decided at `2026-07-12T12:00Z` but selected
+  funding/OI/spread rows captured at `08:01Z` because the strategy keyed hourly
+  features by the 4H bar open. The versioned lane now uses the latest clean
+  observation at or before bar close, never a future row, with a fixed 90-minute
+  maximum age. Funding and OI are always required; DEX flow and CEX/DEX spread
+  are required only when their filters are enabled. Missing/stale required
+  inputs fail closed to HOLD, while closed-bar volume and SMA200 provenance is
+  emitted alongside provider, captured-at, age, and freshness fields. New
+  collector rows preserve funding/OI/DEX/spread provider metadata through an
+  atomic `INSERT IGNORE`; OI delta collection skips unknown or cross-provider
+  transitions instead of subtracting incomparable snapshots. A production read-only reconstruction showed the
+  latest causal `11:01Z` funding/OI values still produce the same BUY for
+  `#77413`; no production deploy, env change, live enablement, order, OCO,
+  Telegram, position, DB, scheduler, grid, fund, Earn, or exchange mutation was
+  performed. Local acceptance passed `scripts/verify_local.ps1` with 332 Java
+  tests and the independent startup smoke with 324 MCP tools / 45 required tools.
 - 2026-07-12: evaluated the final predeclared strategy 485 exit candidate with
   unchanged 42/42 TradingView intents and fixed 10 USDT one-order-per-bar buys.
   The candidate reduces 25% when inventory net return first reaches `-12%` and

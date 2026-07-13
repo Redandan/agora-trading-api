@@ -8,6 +8,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -70,6 +73,12 @@ public class BinanceFuturesService {
      * </ol>
      */
     public Double getOpenInterest(String symbol) {
+        OpenInterestObservation observation = getOpenInterestObservation(symbol);
+        return observation == null ? null : observation.value();
+    }
+
+    /** Same provider chain as {@link #getOpenInterest(String)}, with auditable source metadata. */
+    public OpenInterestObservation getOpenInterestObservation(String symbol) {
         // ── 1. Try Binance ──────────────────────────────────────────────────
         String binanceUrl = BINANCE_URL + "/openInterest?symbol=" + symbol;
         try (Response resp = HTTP.newCall(new Request.Builder().url(binanceUrl).get().build()).execute()) {
@@ -80,7 +89,10 @@ public class BinanceFuturesService {
                 if (oi != null && !oi.isNull()) {
                     double value = Double.parseDouble(oi.asText());
                     log.debug("[BinanceFutures] OI {} = {} (Binance)", symbol, value);
-                    return value;
+                    long sourceTimestampMs = root.path("time").asLong(0L);
+                    return new OpenInterestObservation(value, "BINANCE_FUTURES",
+                            LocalDateTime.now(ZoneOffset.UTC),
+                            sourceTimestampMs > 0 ? sourceTimestampMs : null);
                 }
             } else {
                 log.debug("[BinanceFutures] Binance OI HTTP {} for {} — trying OKX fallback",
@@ -100,7 +112,7 @@ public class BinanceFuturesService {
      * {@code oiCcy} field = OI in base currency (BTC), equivalent to Binance's
      * {@code openInterest} field.
      */
-    private Double getOpenInterestFromOkx(String symbol) {
+    private OpenInterestObservation getOpenInterestFromOkx(String symbol) {
         String instId = toOkxInstId(symbol);
         if (instId == null) {
             log.warn("[BinanceFutures] unknown symbol {} — cannot map to OKX instId", symbol);
@@ -127,7 +139,10 @@ public class BinanceFuturesService {
             }
             double value = Double.parseDouble(oiCcy.asText());
             log.debug("[BinanceFutures] OI {} = {} (OKX fallback)", symbol, value);
-            return value;
+            long sourceTimestampMs = data.get(0).path("ts").asLong(0L);
+            return new OpenInterestObservation(value, "OKX_PUBLIC_SWAP_FALLBACK",
+                    LocalDateTime.now(ZoneOffset.UTC),
+                    sourceTimestampMs > 0 ? sourceTimestampMs : null);
         } catch (Exception e) {
             log.warn("[BinanceFutures] OKX OI error for {}: {}", symbol, e.getMessage());
             return null;
@@ -172,6 +187,19 @@ public class BinanceFuturesService {
     }
 
     public record OiSnapshot(long timestampMs, double openInterest) {}
+
+    public record OpenInterestObservation(double value,
+                                          String provider,
+                                          LocalDateTime observedAt,
+                                          Long sourceTimestampMs) {
+        public LocalDateTime effectiveCapturedAt() {
+            if (sourceTimestampMs != null && sourceTimestampMs > 0) {
+                return LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(sourceTimestampMs), ZoneOffset.UTC);
+            }
+            return observedAt;
+        }
+    }
 
     /**
      * Map a Binance-style symbol to OKX's perpetual-swap instId.

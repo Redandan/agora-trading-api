@@ -332,30 +332,33 @@ public class OiFundingDivergenceStrategy implements Strategy {
     private IndicatorObservation getStrictObservation(String indicator, LocalDateTime referenceTime) {
         LocalDateTime referenceHour = referenceTime.truncatedTo(ChronoUnit.HOURS);
         IndicatorObservation futureSourceCandidate = null;
+
+        LocalDateTime snapshot = cacheSnapshotAt;
+        boolean mayHaveArrivedAfterSnapshot = snapshot == null
+                || !referenceHour.isBefore(snapshot.truncatedTo(ChronoUnit.HOURS));
+        if (mayHaveArrivedAfterSnapshot) {
+            IndicatorObservation refreshed = indicatorRepo
+                    .findTopCleanBySymbolAndIndicatorAndCapturedAtLessThanEqual(
+                            SYMBOL, indicator, referenceTime)
+                    .filter(row -> row.getCapturedAt() != null
+                            && !row.getCapturedAt().isAfter(referenceTime))
+                    .map(row -> {
+                        cacheRow(indicator, row);
+                        return toObservation(indicator, row);
+                    })
+                    .orElse(null);
+            if (refreshed != null && !refreshed.availableAt().isAfter(referenceTime)) {
+                if (!refreshed.capturedAt().isAfter(referenceTime)) return refreshed;
+                futureSourceCandidate = refreshed;
+            }
+        }
+
         for (int offset = 0; offset <= MAX_PROVENANCE_LOOKBACK_HOURS; offset++) {
             IndicatorObservation observation = cache.get(cacheKey(indicator, referenceHour.minusHours(offset)));
             if (observation != null && !observation.availableAt().isAfter(referenceTime)) {
                 if (!observation.capturedAt().isAfter(referenceTime)) return observation;
                 if (futureSourceCandidate == null) futureSourceCandidate = observation;
             }
-        }
-
-        LocalDateTime snapshot = cacheSnapshotAt;
-        boolean mayHaveArrivedAfterSnapshot = snapshot == null
-                || !referenceHour.isBefore(snapshot.truncatedTo(ChronoUnit.HOURS));
-        if (!mayHaveArrivedAfterSnapshot) return futureSourceCandidate;
-
-        IndicatorObservation refreshed = indicatorRepo.findTopCleanBySymbolAndIndicatorAndCapturedAtLessThanEqual(
-                        SYMBOL, indicator, referenceTime)
-                .filter(row -> row.getCapturedAt() != null && !row.getCapturedAt().isAfter(referenceTime))
-                .map(row -> {
-                    cacheRow(indicator, row);
-                    return toObservation(indicator, row);
-                })
-                .orElse(null);
-        if (refreshed != null && !refreshed.availableAt().isAfter(referenceTime)) {
-            if (!refreshed.capturedAt().isAfter(referenceTime)) return refreshed;
-            if (futureSourceCandidate == null) futureSourceCandidate = refreshed;
         }
         return futureSourceCandidate;
     }

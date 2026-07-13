@@ -297,6 +297,48 @@ class OiFundingDivergenceStrategyTest {
     }
 
     @Test
+    void strictFreshnessRefreshesNewerRowsEvenWhenOlderCacheEntryExists() {
+        LocalDateTime barOpen = LocalDateTime.now(ZoneOffset.UTC)
+                .minusHours(4).truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime decisionTime = barOpen.plusHours(4);
+        MarketIndicatorHistory oldFunding = indicator(
+                "funding_rate", decisionTime.minusMinutes(179), 0.00005);
+        MarketIndicatorHistory oldOi = indicator(
+                "oi_change_pct_1h", decisionTime.minusMinutes(179), 0.2);
+        MarketIndicatorHistory newFunding = indicator(
+                "funding_rate", decisionTime.minusMinutes(59), 0.00004);
+        MarketIndicatorHistory newOi = indicator(
+                "oi_change_pct_1h", decisionTime.minusMinutes(58), 0.3);
+
+        when(indicatorRepository.findCleanBySymbolAndIndicatorAndCapturedAtAfter(
+                eq("BTCUSDT"), any(), any())).thenAnswer(invocation -> {
+            String name = invocation.getArgument(1);
+            if ("funding_rate".equals(name)) return List.of(oldFunding);
+            if ("oi_change_pct_1h".equals(name)) return List.of(oldOi);
+            return List.of();
+        });
+        when(indicatorRepository.findTopCleanBySymbolAndIndicatorAndCapturedAtLessThanEqual(
+                eq("BTCUSDT"), any(), eq(decisionTime))).thenAnswer(invocation -> {
+            String name = invocation.getArgument(1);
+            if ("funding_rate".equals(name)) return Optional.of(newFunding);
+            if ("oi_change_pct_1h".equals(name)) return Optional.of(newOi);
+            return Optional.empty();
+        });
+
+        assertThat(strategy.evaluate(context(barOpen), strictConfig())).isEqualTo(StrategySignal.BUY);
+        assertThat(LiveSignalContext.getDetails())
+                .containsEntry("feature_funding_rate_captured_at",
+                        decisionTime.minusMinutes(59).toString())
+                .containsEntry("feature_funding_rate_age_seconds", 59L * 60L)
+                .containsEntry("feature_funding_rate_freshness", "FRESH")
+                .containsEntry("feature_oi_change_pct_1h_captured_at",
+                        decisionTime.minusMinutes(58).toString())
+                .containsEntry("feature_oi_change_pct_1h_age_seconds", 58L * 60L)
+                .containsEntry("feature_oi_change_pct_1h_freshness", "FRESH")
+                .containsEntry("feature_freshness_clear", true);
+    }
+
+    @Test
     void strictFreshnessRejectsProviderTimestampAfterDecisionEvenWhenRowWasStoredEarlier() {
         LocalDateTime barOpen = LocalDateTime.now(ZoneOffset.UTC)
                 .minusHours(4).truncatedTo(ChronoUnit.HOURS);

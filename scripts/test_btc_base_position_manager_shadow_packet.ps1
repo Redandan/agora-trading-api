@@ -50,7 +50,7 @@ ID: 262 Strategy ID: 508 Interval: 1h Signal source: LiveSignalEvaluator 入場�
     $text = $output | Out-String
     foreach ($marker in @(
             "requested_position_ids=[260,261,262]",
-            "simulation_recommendation=RETIRE_CLOSE_REVIEW",
+            "simulation_recommendation=ADOPT_KEEP_BTC_HIGH_RISK_REVIEW",
             "adoption_eligible=false",
             "EXACT_TRADED_QTY_OCO_QTY_PARITY_REQUIRES_POST_DEPLOY_MANAGER_TOOL",
             '"displayedOwnedQty":0.00047090',

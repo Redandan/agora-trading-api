@@ -7,6 +7,7 @@ import com.agora.enums.trading.ExecutionEventType;
 import com.agora.enums.trading.ExecutionRecommendation;
 import com.agora.model.BtLiveSignal;
 import com.agora.repository.trading.BtLiveSignalRepository;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoManagementService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class OcoMissingExecutionEventDetector implements ExecutionEventDetector 
         LocalDateTime detectedAt = now == null ? LocalDateTime.now() : now;
         List<ExecutionEventService.Draft> events = new ArrayList<>();
         for (BtLiveSignal pos : liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNull()) {
-            if (isSoftExitNoHardSl(pos)) {
+            if (BtcBasePositionStatePolicy.isIntentionalNoOco(pos) || isSoftExitNoHardSl(pos)) {
                 continue;
             }
             try {

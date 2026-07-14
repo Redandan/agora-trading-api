@@ -28,7 +28,7 @@ class BtcBasePositionManagerServiceTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
-    void explicitProductionCohortProducesExactAggregateAndRetirementReviewWithoutMutation() throws Exception {
+    void explicitProductionCohortProducesExactAggregateAndKeepBtcRiskReviewWithoutMutation() throws Exception {
         Fixture fixture = fixture();
         BtLiveSignal p260 = position(260L, "62762", "0.00015933", "66551.68", "55250.45", 1260L);
         BtLiveSignal p261 = position(261L, "63979.3", "0.00015630", "67811.8", "56296.59", 1261L);
@@ -45,8 +45,9 @@ class BtcBasePositionManagerServiceTest {
         assertThat(output.path("requestedPositionIds").size()).isEqualTo(3);
         assertThat(output.path("positions").size()).isEqualTo(3);
         assertThat(output.at("/decision/adoptionEligible").asBoolean()).isTrue();
-        assertThat(output.at("/decision/recommendedDisposition").asText()).isEqualTo("RETIRE_CLOSE_REVIEW");
-        assertThat(output.path("verdict").asText()).isEqualTo("RETIRE_CLOSE_REVIEW");
+        assertThat(output.at("/decision/recommendedDisposition").asText()).isEqualTo("ADOPT_KEEP_BTC_RISK_REVIEW");
+        assertThat(output.path("verdict").asText()).isEqualTo("ADOPT_KEEP_BTC_RISK_REVIEW");
+        assertThat(output.at("/decision/executionWouldSellBtc").asBoolean()).isFalse();
         assertThat(output.path("blockers").isEmpty()).isTrue();
         assertThat(output.at("/aggregate/ownedQty").decimalValue()).isEqualByComparingTo("0.00047090");
         assertThat(output.at("/aggregate/costUsdt").decimalValue())
@@ -80,6 +81,21 @@ class BtcBasePositionManagerServiceTest {
         assertThat(output.at("/aggregate/ownedQty").isNull()).isTrue();
         assertThat(output.at("/aggregate/ownershipComplete").asBoolean()).isFalse();
         verify(fixture.outcomes, never()).analyze(anyLong(), any(Integer.class));
+        assertNoMutation(fixture);
+    }
+
+    @Test
+    void oneSatoshiQuantityDifferenceStillFailsExactOwnership() throws Exception {
+        Fixture fixture = fixture();
+        BtLiveSignal position = position(260L, "62762", "0.00015933", "66551.68", "55250.45", 1260L);
+        position.setOcoQty(bd("0.00015932"));
+        when(fixture.repository.findById(260L)).thenReturn(Optional.of(position));
+        stubHealthyOco(fixture, position, "effective", "child-260");
+
+        JsonNode output = MAPPER.readTree(fixture.service.previewAdoption("260", null));
+
+        assertThat(output.at("/decision/adoptionEligible").asBoolean()).isFalse();
+        assertThat(output.path("blockers").toString()).contains("TRADED_QTY_OCO_QTY_MISMATCH");
         assertNoMutation(fixture);
     }
 
@@ -139,7 +155,8 @@ class BtcBasePositionManagerServiceTest {
         assertThat(output.at("/inventory/recordedOcoCandidateIds/0").asLong()).isEqualTo(260L);
         assertThat(output.at("/inventory/existingBtcBaseSliceIds/0").asLong()).isEqualTo(900L);
         assertThat(output.at("/inventory/walletBalanceUsed").asBoolean()).isFalse();
-        assertThat(output.path("liveActionsImplemented").asBoolean()).isFalse();
+        assertThat(output.path("liveActionsImplemented").asBoolean()).isTrue();
+        assertThat(output.path("adoptionExecutionArmed").asBoolean()).isFalse();
         verify(fixture.okx, never()).getLastPrice(anyString());
         assertNoMutation(fixture);
     }
@@ -149,10 +166,12 @@ class BtcBasePositionManagerServiceTest {
         OkxTradingService okx = mock(OkxTradingService.class);
         OcoOutcomeAnalysisService outcomes = mock(OcoOutcomeAnalysisService.class);
         SpotPositionCloseService closeService = mock(SpotPositionCloseService.class);
+        BtcBasePositionAdoptionService adoptionService = mock(BtcBasePositionAdoptionService.class);
         when(okx.getLastPrice("BTCUSDT")).thenReturn(bd("62700"));
         when(closeService.isClosing(anyLong())).thenReturn(false);
         BtcBasePositionManagerService service = new BtcBasePositionManagerService(
-                repository, okx, outcomes, closeService, new OcoOrderStateInspector(okx), MAPPER);
+                repository, okx, outcomes, closeService, new OcoOrderStateInspector(okx),
+                adoptionService, MAPPER);
         return new Fixture(service, repository, okx, outcomes, closeService);
     }
 

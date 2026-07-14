@@ -258,6 +258,7 @@ class TrailingStopSchedulerTest {
         pos.setTrailingAtr(new BigDecimal("0.02"));
         pos.setTrailingHigh(new BigDecimal("100000"));
         pos.setTrailingState("ENTERED");
+        when(liveSignalRepository.findById(7L)).thenReturn(Optional.of(pos));
         return pos;
     }
 
@@ -267,6 +268,7 @@ class TrailingStopSchedulerTest {
         pos.setSide("SHORT");
         pos.setSuggestedSl(new BigDecimal("110000"));
         pos.setSuggestedTp(new BigDecimal("97000"));
+        when(liveSignalRepository.findById(8L)).thenReturn(Optional.of(pos));
         return pos;
     }
 

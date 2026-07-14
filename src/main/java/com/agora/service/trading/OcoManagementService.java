@@ -45,7 +45,11 @@ public class OcoManagementService {
         if (retryInProgress.putIfAbsent(positionId, Boolean.TRUE) != null) {
             throw new IllegalStateException("OCO retry already in progress for position " + positionId + ", please wait.");
         }
-        try {
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                positionId, "OCO_RETRY")) {
+            if (!lease.acquired()) {
+                throw new IllegalStateException("Position mutation already in progress: " + lease.activeOperation());
+            }
             return doRetryOco(positionId);
         } finally {
             retryInProgress.remove(positionId);
@@ -63,6 +67,8 @@ public class OcoManagementService {
             throw new IllegalArgumentException("Not an auto-traded position.");
         if (pos.getExitTime() != null)
             throw new IllegalArgumentException("Position already closed at " + pos.getExitTime().format(FMT));
+        if (BtcBasePositionStatePolicy.isBtcBase(pos))
+            throw new IllegalArgumentException("BTC_BASE managed position must not receive an OCO retry.");
         if (pos.getTradedQty() == null || pos.getTradedQty().compareTo(BigDecimal.ZERO) <= 0)
             throw new IllegalArgumentException("Invalid tradedQty.");
         if (pos.getSuggestedTp() == null || pos.getSuggestedSl() == null)
@@ -242,7 +248,11 @@ public class OcoManagementService {
         if (retryInProgress.putIfAbsent(positionId, Boolean.TRUE) != null) {
             throw new IllegalStateException("OCO operation already in progress for position " + positionId);
         }
-        try {
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                positionId, "OCO_MODIFY")) {
+            if (!lease.acquired()) {
+                throw new IllegalStateException("Position mutation already in progress: " + lease.activeOperation());
+            }
             return doModifyOco(positionId, newSl, newTp);
         } finally {
             retryInProgress.remove(positionId);
@@ -260,6 +270,8 @@ public class OcoManagementService {
             throw new IllegalArgumentException("Not an auto-traded position.");
         if (pos.getExitTime() != null)
             throw new IllegalArgumentException("Position already closed at " + pos.getExitTime().format(FMT));
+        if (BtcBasePositionStatePolicy.isBtcBase(pos))
+            throw new IllegalArgumentException("BTC_BASE managed position must not receive an OCO modification.");
         if (pos.getTradedQty() == null || pos.getTradedQty().compareTo(BigDecimal.ZERO) <= 0)
             throw new IllegalArgumentException("Invalid tradedQty.");
 
@@ -397,7 +409,11 @@ public class OcoManagementService {
         if (retryInProgress.putIfAbsent(positionId, Boolean.TRUE) != null) {
             throw new IllegalStateException("OCO operation already in progress for position " + positionId);
         }
-        try {
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                positionId, "OCO_CANCEL_KEEP_POSITION")) {
+            if (!lease.acquired()) {
+                throw new IllegalStateException("Position mutation already in progress: " + lease.activeOperation());
+            }
             return doCancelHardOcoKeepPosition(positionId, reason);
         } finally {
             retryInProgress.remove(positionId);
@@ -415,6 +431,8 @@ public class OcoManagementService {
             throw new IllegalArgumentException("Not an auto-traded position.");
         if (pos.getExitTime() != null)
             throw new IllegalArgumentException("Position already closed at " + pos.getExitTime().format(FMT));
+        if (BtcBasePositionStatePolicy.isBtcBase(pos))
+            throw new IllegalArgumentException("BTC_BASE managed position must use the dedicated adoption/management path.");
         if ("SHORT".equals(pos.getSide()))
             throw new IllegalArgumentException("Soft no-hard-SL mode is only supported for spot LONG positions.");
 

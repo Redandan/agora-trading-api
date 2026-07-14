@@ -16,6 +16,7 @@ import com.agora.repository.trading.BtOcoAdjustmentAuditRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.infra.notification.NotificationPort;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxEarnService;
@@ -237,8 +238,9 @@ public class PositionMcpTools {
                     continue;
                 }
                 if (pos.getOcoOrderListId() == null && isBtcBaseNoOco(pos)) {
-                    sb.append(String.format("🟡 [BTC_BASE_NO_OCO] Position #%d %s entry=%.2f — BTC base accumulation intentionally has no OCO\n",
-                            pos.getId(), pos.getSymbol(), entryPrice(pos).doubleValue()));
+                    String state = BtcBasePositionStatePolicy.managementState(pos);
+                    sb.append(String.format("🟡 [BTC_BASE_%s] Position #%d %s entry=%.2f — intentional no-OCO BTC management; auto-retry suppressed\n",
+                            state, pos.getId(), pos.getSymbol(), entryPrice(pos).doubleValue()));
                     ok++;
                     continue;
                 }
@@ -1341,7 +1343,9 @@ public class PositionMcpTools {
             BigDecimal pnl = unrealizedPnl(pos, current);
             if (maxLoss != null) totalMaxLoss = totalMaxLoss.add(maxLoss);
             if (pnl != null) totalPnl = totalPnl.add(pnl);
-            if (pos.getOcoOrderListId() == null) unprotected++;
+            boolean intentionalNoOco = isSoftExitNoHardSl(pos)
+                    || BtcBasePositionStatePolicy.isIntentionalNoOco(pos);
+            if (pos.getOcoOrderListId() == null && !intentionalNoOco) unprotected++;
 
             ObjectNode node = positions.addObject();
             node.put("positionId", pos.getId());
@@ -1358,6 +1362,10 @@ public class PositionMcpTools {
             putDecimal(node, "unrealizedPnlUsdt", pnl);
             putDecimal(node, "unrealizedPnlPct", pnlPct(pos, current));
             node.put("ocoProtected", pos.getOcoOrderListId() != null);
+            node.put("protectionMode", pos.getOcoOrderListId() != null ? "OCO"
+                    : BtcBasePositionStatePolicy.isIntentionalNoOco(pos)
+                    ? "BTC_BASE_MANAGED_NO_OCO"
+                    : isSoftExitNoHardSl(pos) ? "SOFT_EXIT_NO_HARD_SL" : "UNPROTECTED");
             if (pos.getOcoOrderListId() != null) node.put("ocoAlgoId", pos.getOcoOrderListId());
             node.put("trailingState", nullSafe(pos.getTrailingState()));
             node.put("strategyTrailingOptIn", strategyTrailingEnabled(pos.getStrategyId()));
@@ -2464,6 +2472,7 @@ public class PositionMcpTools {
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING})
     @Tool(description = "強制關閉 DB 倉位記錄（不操作 OKX）。用於 OCO 已在交易所成交但 DB 未同步的情況（DB sync error）。" +
+            "BTC_BASE 管理倉位禁止使用此通用修復路徑，避免 BTC 留在錢包但脫離管理與曝險計算。" +
             "params: positionId=倉位ID, exitPrice=實際成交價, exitReason=原因(SL/TP/MANUAL/FORCE), " +
             "exitQty=實際成交量（可選，省略則用 ocoQty/tradedQty）")
     public String forceClosePosition(Long positionId, BigDecimal exitPrice,
@@ -2475,6 +2484,9 @@ public class PositionMcpTools {
         if (pos == null) return "❌ 找不到倉位 id=" + positionId;
         if (pos.getExitTime() != null) {
             return "⚠️ 倉位已於 " + pos.getExitTime().format(FMT) + " 關閉，無需重複操作";
+        }
+        if (BtcBasePositionStatePolicy.isBtcBase(pos)) {
+            return "❌ BTC_BASE 管理倉位不得使用 forceClosePosition；請使用專用管理/成交對帳流程，避免 BTC 脫離管理";
         }
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC);
@@ -2531,9 +2543,7 @@ public class PositionMcpTools {
     }
 
     private boolean isBtcBaseNoOco(BtLiveSignal pos) {
-        return pos != null
-                && pos.getFilterReason() != null
-                && pos.getFilterReason().startsWith("LOCAL_TRADINGVIEW_BTC_BASE:");
+        return BtcBasePositionStatePolicy.isIntentionalNoOco(pos);
     }
 
     private BigDecimal latestPriceOrNull(String symbol) {

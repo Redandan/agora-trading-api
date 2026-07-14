@@ -24,9 +24,10 @@ import java.util.Set;
 /**
  * Read-only BTC base position manager preview for explicitly selected OCO positions.
  *
- * <p>V1 does not persist adoption and never cancels or modifies an OCO. Position
- * ownership comes only from {@link BtLiveSignal}; wallet BTC, Grid inventory,
- * manual holdings, and unrelated positions are deliberately excluded.</p>
+ * <p>The separate protected adoption lane may persist an explicit transition and
+ * cancel an OCO when independently armed. These preview methods remain read-only.
+ * Position ownership comes only from {@link BtLiveSignal}; wallet BTC, Grid
+ * inventory, manual holdings, and unrelated positions are deliberately excluded.</p>
  */
 @Service
 @RequiredArgsConstructor
@@ -34,12 +35,10 @@ import java.util.Set;
 public class BtcBasePositionManagerService {
 
     public static final String POLICY_MODE = "BTC_BASE_POSITION_MANAGER_V1";
-    public static final String STAGE = "READ_ONLY_SHADOW_PREVIEW";
+    public static final String STAGE = "READ_ONLY_PREVIEW_WITH_GUARDED_ADOPTION_LANE";
 
     private static final String BTCUSDT = "BTCUSDT";
-    private static final String BTC_BASE_PREFIX = "LOCAL_TRADINGVIEW_BTC_BASE:";
     private static final BigDecimal FEE_RATE_PER_SIDE = new BigDecimal("0.001");
-    private static final BigDecimal QTY_TOLERANCE = new BigDecimal("0.00000001");
     private static final int DEFAULT_HORIZON_HOURS = 168;
     private static final int MAX_POSITION_IDS = 20;
     private static final long STALE_NEGATIVE_HOURS = 72;
@@ -50,6 +49,7 @@ public class BtcBasePositionManagerService {
     private final OcoOutcomeAnalysisService ocoOutcomeAnalysisService;
     private final SpotPositionCloseService spotPositionCloseService;
     private final OcoOrderStateInspector ocoOrderStateInspector;
+    private final BtcBasePositionAdoptionService adoptionService;
     private final ObjectMapper objectMapper;
 
     public String status(String symbol) {
@@ -67,6 +67,12 @@ public class BtcBasePositionManagerService {
                 .filter(p -> normalized.equalsIgnoreCase(p.getSymbol()))
                 .toList();
         List<BtLiveSignal> btcBase = open.stream().filter(this::isExistingBtcBaseSlice).toList();
+        List<BtLiveSignal> btcBaseNoOco = btcBase.stream()
+                .filter(BtcBasePositionStatePolicy::isIntentionalNoOco).toList();
+        List<BtLiveSignal> pending = btcBase.stream()
+                .filter(BtcBasePositionStatePolicy::isAdoptionPending).toList();
+        List<BtLiveSignal> adopted = btcBase.stream()
+                .filter(BtcBasePositionStatePolicy::isAdoptedFromOco).toList();
         List<BtLiveSignal> ocoCandidates = open.stream()
                 .filter(p -> !isExistingBtcBaseSlice(p))
                 .filter(this::isOpenSpotLong)
@@ -75,7 +81,9 @@ public class BtcBasePositionManagerService {
 
         ObjectNode inventory = root.putObject("inventory");
         inventory.put("openAutoTradedPositionCount", open.size());
-        inventory.put("existingBtcBaseNoOcoSliceCount", btcBase.size());
+        inventory.put("existingBtcBaseNoOcoSliceCount", btcBaseNoOco.size());
+        inventory.put("adoptionPendingCount", pending.size());
+        inventory.put("adoptedFromOcoCount", adopted.size());
         inventory.put("recordedOcoCandidateCount", ocoCandidates.size());
         inventory.put("walletBalanceUsed", false);
         inventory.put("gridInventoryIncluded", false);
@@ -83,16 +91,23 @@ public class BtcBasePositionManagerService {
         inventory.put("ownershipSource", "explicit bt_live_signal rows only");
 
         ArrayNode existingIds = inventory.putArray("existingBtcBaseSliceIds");
-        btcBase.stream().map(BtLiveSignal::getId).forEach(existingIds::add);
+        btcBaseNoOco.stream().map(BtLiveSignal::getId).forEach(existingIds::add);
+        ArrayNode pendingIds = inventory.putArray("adoptionPendingIds");
+        pending.stream().map(BtLiveSignal::getId).forEach(pendingIds::add);
+        ArrayNode adoptedIds = inventory.putArray("adoptedFromOcoIds");
+        adopted.stream().map(BtLiveSignal::getId).forEach(adoptedIds::add);
         ArrayNode candidateIds = inventory.putArray("recordedOcoCandidateIds");
         ocoCandidates.stream().map(BtLiveSignal::getId).forEach(candidateIds::add);
 
-        root.put("persistedAdoptionImplemented", false);
-        root.put("persistedManagedPositionCount", 0);
+        root.put("persistedAdoptionImplemented", true);
+        root.put("persistedManagedPositionCount", adopted.size());
         root.put("explicitPositionIdsRequiredForPreview", true);
-        root.put("liveActionsImplemented", false);
+        root.put("liveActionsImplemented", true);
+        root.put("adoptionFeatureEnabled", adoptionService.isFeatureEnabled());
+        root.put("adoptionLiveActionEnabled", adoptionService.isLiveActionEnabled());
+        root.put("adoptionExecutionArmed", adoptionService.isExecutionArmed());
         root.put("operatorAction", blockers.isEmpty()
-                ? "Use previewBtcBasePositionAdoption with explicit positionIds; no position is adopted by this status call."
+                ? "Preview explicit position IDs first. Execution requires both disabled-by-default gates, exact quantity, exact confirmation text, and separate production authorization."
                 : "Do not use V1 outside BTCUSDT.");
         addSafety(root);
         return pretty(root);
@@ -180,9 +195,11 @@ public class BtcBasePositionManagerService {
         decision.put("recoveryTtlIsProfitEdge", false);
         decision.put("requiresOperatorApproval", true);
         decision.put("wouldCancelOco", false);
+        decision.put("executionWouldCancelOco", eligible);
         decision.put("wouldPlaceOrder", false);
         decision.put("wouldClosePosition", false);
-        decision.put("futureExecutionPath", "SpotPositionCloseService.closeAtMarket after a separate protected live authorization");
+        decision.put("executionWouldSellBtc", false);
+        decision.put("futureExecutionPath", "BtcBasePositionAdoptionService: persist pending, cancel and confirm OCO, retain BTC, then finalize managed state");
         decision.put("reason", recommendationReason(recommendation));
 
         ArrayNode blockers = root.putArray("blockers");
@@ -190,7 +207,8 @@ public class BtcBasePositionManagerService {
         ArrayNode warnings = root.putArray("warnings");
         warnings.add("HEURISTIC_EV_NOT_STATISTICALLY_CALIBRATED");
         warnings.add("OCO_REMAINS_ACTIVE_DURING_PREVIEW");
-        warnings.add("BTC_BASE_MANAGER_MUST_NOT_HIDE_OR_INDEFINITELY_HOLD_FAILED_TRADES");
+        warnings.add("ADOPTION_REMOVES_EXCHANGE_SIDE_TP_AND_SL");
+        warnings.add("ADOPTION_EXECUTION_NEVER_SELLS_BTC");
         warnings.add("RECOVERY_REVIEW_TTL_IS_RISK_GOVERNANCE_NOT_A_PROVEN_PROFIT_EDGE");
 
         root.put("verdict", eligible ? recommendation : "BLOCKED_FAIL_CLOSED");
@@ -209,7 +227,7 @@ public class BtcBasePositionManagerService {
         }
 
         String symbol = normalizeSymbol(position.getSymbol());
-        String side = position.getSide() == null ? "LONG" : position.getSide().toUpperCase(Locale.ROOT);
+        String side = position.getSide() == null ? "UNKNOWN" : position.getSide().toUpperCase(Locale.ROOT);
         if (!Boolean.TRUE.equals(position.getAutoTraded())) blockers.add("NOT_AUTO_TRADED");
         if (position.getExitTime() != null) blockers.add("POSITION_ALREADY_CLOSED");
         if (!"LONG".equals(side)) blockers.add("SPOT_LONG_ONLY");
@@ -230,7 +248,7 @@ public class BtcBasePositionManagerService {
         if (position.getOcoOrderListId() == null) blockers.add("ACTIVE_OCO_REQUIRED");
 
         boolean ownershipExact = positive(tradedQty) && positive(ocoQty)
-                && tradedQty.subtract(ocoQty).abs().compareTo(QTY_TOLERANCE) <= 0;
+                && tradedQty.compareTo(ocoQty) == 0;
         if (!ownershipExact) blockers.add("TRADED_QTY_OCO_QTY_MISMATCH");
         BigDecimal ownedQty = ownershipExact ? ocoQty : null;
 
@@ -395,32 +413,27 @@ public class BtcBasePositionManagerService {
                                   List<PositionAssessment> assessments,
                                   Aggregate aggregate) {
         if (!eligible) return "DO_NOT_ADOPT";
-        boolean anyRetire = assessments.stream()
-                .anyMatch(p -> "RETIRE_CLOSE_REVIEW".equals(p.disposition()));
-        if (anyRetire) return "RETIRE_CLOSE_REVIEW";
         if (aggregate.combinedEvUsdt() != null && aggregate.combinedEvUsdt().signum() < 0) {
-            return "RECOVERY_EXIT_REVIEW";
+            return "ADOPT_KEEP_BTC_RISK_REVIEW";
         }
-        return "KEEP_OCO_UNDER_MANAGER_REVIEW";
+        return "ADOPT_KEEP_BTC";
     }
 
     private String perPositionDisposition(BigDecimal evUsdt, String suggestion, long ageHours) {
-        if ("CLOSE".equalsIgnoreCase(suggestion)) return "RETIRE_CLOSE_REVIEW";
-        if (evUsdt != null && evUsdt.signum() < 0 && ageHours >= STALE_NEGATIVE_HOURS) {
-            return "RETIRE_CLOSE_REVIEW";
+        if ("CLOSE".equalsIgnoreCase(suggestion)
+                || (evUsdt != null && evUsdt.signum() < 0 && ageHours >= STALE_NEGATIVE_HOURS)) {
+            return "ADOPT_KEEP_BTC_HIGH_RISK_REVIEW";
         }
-        if (evUsdt != null && evUsdt.signum() < 0) return "RECOVERY_EXIT_REVIEW";
-        return "KEEP_OCO";
+        if (evUsdt != null && evUsdt.signum() < 0) return "ADOPT_KEEP_BTC_RISK_REVIEW";
+        return "ADOPT_KEEP_BTC";
     }
 
     private String recommendationReason(String recommendation) {
         return switch (recommendation) {
-            case "RETIRE_CLOSE_REVIEW" ->
-                    "At least one selected position is stale with negative heuristic EV or has a CLOSE signal; review controlled retirement, not indefinite BTC accumulation.";
-            case "RECOVERY_EXIT_REVIEW" ->
-                    "Selected positions remain OCO-protected, but combined heuristic EV is negative; use only a bounded recovery exit review.";
-            case "KEEP_OCO_UNDER_MANAGER_REVIEW" ->
-                    "No selected position currently has negative heuristic EV; keep the recorded OCO while monitoring.";
+            case "ADOPT_KEEP_BTC_RISK_REVIEW" ->
+                    "Ownership and OCO state are eligible for adoption, while heuristic EV is negative. Adoption retains BTC and removes OCO; the risk label does not authorize a sell.";
+            case "ADOPT_KEEP_BTC" ->
+                    "Ownership and OCO state are eligible for the explicit keep-BTC adoption path. Execution remains separately gated and disabled by default.";
             default ->
                     "One or more ownership, position, price, or live OCO checks failed; fail closed and keep existing exchange protection unchanged.";
         };
@@ -515,15 +528,13 @@ public class BtcBasePositionManagerService {
     }
 
     private boolean isExistingBtcBaseSlice(BtLiveSignal position) {
-        return position != null
-                && position.getFilterReason() != null
-                && position.getFilterReason().startsWith(BTC_BASE_PREFIX);
+        return BtcBasePositionStatePolicy.isBtcBase(position);
     }
 
     private String signalSource(BtLiveSignal position) {
         String filter = position.getFilterReason() == null ? "" : position.getFilterReason();
         String order = position.getExchangeOrderId() == null ? "" : position.getExchangeOrderId();
-        if (filter.startsWith(BTC_BASE_PREFIX) || order.startsWith("LOCAL_TV_BTC_BASE:")) {
+        if (BtcBasePositionStatePolicy.isBtcBaseReason(filter) || order.startsWith("LOCAL_TV_BTC_BASE:")) {
             return "LOCAL_TRADINGVIEW_BTC_BASE";
         }
         if (filter.startsWith("LOCAL_TRADINGVIEW_PARITY:") || order.startsWith("LOCAL_TV:")) {

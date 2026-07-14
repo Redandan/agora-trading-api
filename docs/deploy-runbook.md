@@ -5500,9 +5500,11 @@ reserved for baseline drift review or schema-change acceptance.
 
 ## BTC Base Position Manager V1
 
-`BTC_BASE_POSITION_MANAGER_V1` is a read-only/shadow review lane and is not the
-existing Local TradingView BTC_BASE entry mode. Refresh the production
-predeploy evidence for explicit positions without changing OCO or orders:
+`BTC_BASE_POSITION_MANAGER_V1` provides read-only review. Its separately gated
+`BTC_BASE_ADOPTION_V1` lane can cancel an exact position's OCO and retain the
+BTC under intentional no-OCO management; it never sells or closes the row.
+Refresh production evidence for explicit positions without changing OCO or
+orders:
 
 ```powershell
 .\scripts\prepare_btc_base_position_manager_shadow_packet_ssh.ps1 `
@@ -5518,11 +5520,14 @@ runtime deploy, run server verification and MCP parity, then call:
 - `previewBtcBasePositionAdoption(positionIds=260,261,262,horizonHours=168)`
 - `previewBtcBasePositionDisposition(positionIds=260,261,262,horizonHours=168)`
 
-Every safety flag must remain false. Keep all existing OCO active. A
-`RETIRE_CLOSE_REVIEW` result is a review outcome, not close authorization;
-adoption persistence, OCO changes, and a close each require a later explicit
-authorization. See `docs/btc-base-position-manager-v1.md` for the exact
-ownership and rollout contract.
+Every preview safety flag must remain false and all existing OCOs must remain
+active. The current keep-BTC risk labels never authorize a close. Deployment
+must leave both `TRADING_BTC_BASE_ADOPTION_ENABLED` and
+`TRADING_BTC_BASE_ADOPTION_LIVE_ACTION_ENABLED` false. A later live adoption
+requires a fully drained predecessor runtime, one active Trading runtime, a
+fresh dry-run, exact aggregate quantity, exact dynamic confirmation text, and
+a separate explicit authorization. See `docs/btc-base-position-manager-v1.md`
+for the state machine, recovery, and post-action acceptance contract.
 
 ## AgoraMarketAPI Trading Cutover Plan
 

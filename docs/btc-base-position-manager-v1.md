@@ -2,120 +2,122 @@
 
 ## Purpose
 
-`BTC_BASE_POSITION_MANAGER_V1` is a fail-closed, read-only/shadow review lane
-for explicitly selected open BTCUSDT OCO positions. It is separate from the
-existing Local TradingView `BTC_BASE` entry mode.
+`BTC_BASE_POSITION_MANAGER_V1` owns read-only review of explicitly selected
+open BTCUSDT positions. `BTC_BASE_ADOPTION_V1` is its separately gated write
+lane. Adoption means exactly one thing: cancel the selected position's OCO,
+keep the purchased BTC open, and move the row into intentional no-OCO BTC Base
+management.
 
-V1 answers two questions without taking an exchange action:
-
-1. Can the selected `bt_live_signal` rows be attributed exactly to their
-   recorded OCO quantities?
-2. Should the current OCO be kept, reviewed for a bounded recovery exit, or
-   reviewed for controlled retirement?
-
-It is not a loss-hiding or indefinite bag-holding bucket.
+Negative heuristic EV changes only the risk label. It never authorizes a
+market sell, position close, Grid/Earn action, fund movement, or Telegram send.
+The write lane has no market-sell call and does not use wallet BTC to infer row
+ownership.
 
 ## Ownership Boundary
 
-- Every preview requires explicit comma-separated `bt_live_signal` IDs.
-- V1 accepts only open auto-traded BTCUSDT spot LONG rows.
-- `tradedQty` and `ocoQty` must both be positive and equal within one satoshi.
-- The recorded OCO parent must still be active, every visible child lookup must
-  complete, and no child order may already be filled.
-- Existing Local TradingView no-OCO BTC_BASE slices are not adoptable.
-- Wallet BTC, Grid inventory, manual BTC, and unrelated holdings are never used
-  to infer ownership.
-- One failed ownership, price, position, or OCO check blocks the whole selected
-  cohort. Existing OCO protection remains unchanged.
+- Every preview and execution requires explicit comma-separated
+  `bt_live_signal` IDs.
+- V1 accepts only open, auto-traded, exact `LONG` BTCUSDT spot rows.
+- `tradedQty` and `ocoQty` must both be positive and exactly equal.
+- The exchange OCO `sz` must exactly match the database OCO quantity.
+- The OCO parent and every visible child lookup must complete; any confirmed
+  fill, missing quantity, incomplete query, or unexpected state fails closed.
+- Native Local TradingView BTC Base slices are not adoptable.
+- Wallet BTC, Grid inventory, manual BTC, and unrelated positions are excluded
+  from ownership.
+- A final database row lock repeats the position, OCO reference, and exact
+  quantity checks before adoption is completed.
 
-## Dispositions
+## Persisted State Machine
 
-- `KEEP_OCO_UNDER_MANAGER_REVIEW`: no selected position has negative heuristic
-  EV at the time of the preview.
-- `RECOVERY_EXIT_REVIEW`: combined heuristic EV is negative, but the position is
-  not yet stale under the fixed 72-hour review rule.
-- `RETIRE_CLOSE_REVIEW`: a selected position is at least 72 hours old with
-  negative heuristic EV, or the existing heuristic explicitly suggests close.
-- `DO_NOT_ADOPT` / `BLOCKED_FAIL_CLOSED`: exact attribution or health checks did
-  not pass.
+The external OCO cancellation and database transition form a recoverable saga:
 
-The EV input is directional and not statistically calibrated. The 24-hour
-recovery review TTL is risk governance, not evidence of a profitable recovery
-edge. None of these dispositions authorizes a close or OCO change.
+1. `OCO_ACTIVE`: the row has its original OCO and is not BTC Base managed.
+2. `ADOPTION_PENDING`: a `REQUIRES_NEW` transaction persists the original OCO
+   ID, timestamp, and prior filter reason before any exchange mutation.
+3. The service invalidates cached OCO state, rechecks every visible child, and
+   requests cancellation only while the parent is still active.
+4. `ADOPTED_FROM_OCO`: only a fresh, complete, canceled-with-no-fill exchange
+   result permits the locked final transition. `ocoOrderListId` and `ocoQty`
+   are cleared; `tradedQty`, entry data, strategy attribution, and the open
+   position remain unchanged.
+
+If cancellation, confirmation, or child inspection is uncertain, the row stays
+`ADOPTION_PENDING`. Repeating the same guarded call resumes it. A confirmed
+child fill wins over cancellation and requires normal OCO reconciliation; the
+adoption path never submits a compensating sell. Repeating a completed call is
+idempotent and performs no exchange action.
+
+## Runtime Guards
+
+Both settings default to `false` and must be true for execution:
+
+```text
+TRADING_BTC_BASE_ADOPTION_ENABLED=false
+TRADING_BTC_BASE_ADOPTION_LIVE_ACTION_ENABLED=false
+```
+
+`execute=true` also requires:
+
+- exact aggregate `expectedTotalQty`;
+- the exact dynamic confirmation text returned by the current dry-run;
+- no in-process position mutation lease held by OCO polling, trailing, legacy
+  SELL, time exit, generic spot close, or OCO management;
+- exactly one active Trading runtime. The mutation lease is in-process, so a
+  blue-green predecessor must be fully drained before live adoption is armed.
+
+Deployment, production flag changes, and the actual adoption call are separate
+authorizations. The implementation does not add a background recovery writer
+or a database migration.
+
+## Managed Position Behavior
+
+Pending and adopted rows use the shared `LOCAL_TRADINGVIEW_BTC_BASE:` state
+prefix. Existing runtime paths then apply the same intentional BTC Base rules:
+
+- OCO auto-retry and trailing OCO changes are suppressed;
+- generic market close, strategy 508 24-hour close, and legacy SELL signals
+  cannot sell the row;
+- missing-OCO execution events and reports identify it as managed rather than
+  unprotected;
+- adopted legacy positions consume the same symbol-level BTC Base exposure cap
+  as native Local TradingView BTC Base positions, regardless of strategy ID;
+- OCO cancellation observed during `ADOPTION_PENDING` does not emit the false
+  manual-cancel Telegram warning.
+
+`ADOPT_KEEP_BTC`, `ADOPT_KEEP_BTC_RISK_REVIEW`, and
+`ADOPT_KEEP_BTC_HIGH_RISK_REVIEW` are management labels only. None is a sell or
+close recommendation.
 
 ## MCP Surface
 
 - `getBtcBasePositionManagerStatus`
 - `previewBtcBasePositionAdoption`
 - `previewBtcBasePositionDisposition`
+- `adoptBtcBasePositionsKeepBtc`
 
-All three tools are OPS read-only tools. V1 has no scheduler, persistence,
-order, close, OCO modification, Telegram, fund, Grid, Earn, or production-env
-mutation path. A future authorized close must use
-`SpotPositionCloseService.closeAtMarket`, not the DB-only
-`forceClosePosition` compatibility tool.
+The first three tools remain read-only. The fourth is an OPS protected write,
+but dry-run is the default and the two server gates keep execution disabled.
+Its safety evidence distinguishes requested execution from authorization and
+only reports cohort-level cancellation/retention confirmation when every
+selected row is adopted or already adopted.
 
-## Current Predeploy Evidence
+## Production Evidence Before This Change
 
-The 2026-07-14 server-local production read-only packet for explicit IDs
-`260,261,262` confirmed:
+Read-only production evidence on 2026-07-14 for explicit positions
+`260,261,262` established the intended cohort:
 
-- all three rows belong to strategy 508;
-- intervals are `4h`, `4h`, and `1h` respectively;
-- all three recorded OCOs are active, with `0 SYNC_ERROR` and `0` anomalies;
-- displayed quantity is `0.00047090 BTC` in total;
-- recorded cost is `29.999253104 USDT` and weighted entry is approximately
-  `63706.20748`;
-- all three heuristic suggestions were `MODIFY`, all EV values were negative,
-  and the cohort disposition simulation was `RETIRE_CLOSE_REVIEW`.
+- all three are strategy 508 BTCUSDT LONG rows with intervals `4h`, `4h`, and
+  `1h`;
+- `tradedQty == ocoQty == ownedQty` on every row;
+- all three OCO parents were live and healthy, with no sync anomaly;
+- aggregate quantity was `0.00047090 BTC`, recorded cost was
+  `29.99925310 USDT`, and weighted entry was `63706.20748354`.
 
-The predeploy packet intentionally keeps `adoptionEligible=false`, because the
-old deployed tools do not expose `tradedQty` and `ocoQty` together. Exact
-adoption can only be claimed by the new manager after deployment.
-
-## Deployment Acceptance
-
-Runtime commit `c75814f` was deployed on 2026-07-14 from blue-green port `8084`
-to `8085`. Shared-schema split acceptance, MCP parity, cross-service ownership,
-and post-call runtime log smoke passed. The deployed manager returned the
-following exact read-only evidence for `260,261,262`:
-
-- `tradedQty`, `ocoQty`, and `ownedQty` match for every row;
-- all rows are strategy 508 BTCUSDT LONG positions with intervals `4h`, `4h`,
-  and `1h`;
-- all three exchange OCO parents are `live`, healthy, and have no blockers;
-- aggregate quantity is `0.00047090 BTC`, recorded cost is
-  `29.99925310 USDT`, and weighted entry is `63706.20748354`;
-- adoption preview is eligible for review but not persisted, and both previews
-  return `RETIRE_CLOSE_REVIEW`;
-- every safety marker is false and OCO sync health reports zero current errors.
-
-The production environment SHA-256 was unchanged across deployment. This
-acceptance does not authorize adoption persistence, OCO cancellation or
-modification, position close, order placement, or any other live action.
-
-### OCO All-Child State Hardening
-
-Runtime commit `4f11774` was deployed on 2026-07-14 from blue-green port
-`8085` to `8084`. OCO state is now resolved by one shared read-only inspector
-across BTC Base previews, the OCO poller, market-close protection, preflight
-gates, reports, fee attribution, swap reconciliation, and backtest fill-price
-resolution.
-
-- The inspector queries the parent and every visible child order.
-- Any confirmed child fill takes precedence over a stale active parent state.
-- A child-query failure is incomplete evidence and fails closed; it cannot be
-  treated as active, canceled, or safe for a replacement market sell.
-- A later confirmed fill still wins if an earlier child lookup failed, because
-  that is sufficient evidence to prevent a duplicate sell.
-
-The post-deploy production assertions confirmed all three selected OCOs remain
-`live`, exact quantity ownership still holds, OCO health is
-`3 OK / 0 SYNC_ERROR / 0 anomaly`, and every preview safety flag remains
-false. Shared-schema split acceptance, MCP parity, signal correctness,
-strategy 508 SHADOW checks, Local TradingView `BTC_BASE_DRY_RUN` checks, and a
-final runtime-log smoke passed. This deployment did not change strategy modes,
-environment settings, orders, positions, existing OCOs, or database state.
+The then-deployed read-only manager returned the historical
+`RETIRE_CLOSE_REVIEW` label. That label was not close authorization. The local
+adoption implementation replaces that decision language with keep-BTC risk
+labels, remains default-off, and has not canceled those production OCOs.
 
 ## Verification And Rollout
 
@@ -128,15 +130,24 @@ Local acceptance:
 .\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180
 ```
 
-Refresh predeploy production evidence without mutation:
+Safe rollout sequence:
 
-```powershell
-.\scripts\prepare_btc_base_position_manager_shadow_packet_ssh.ps1 `
-  -PositionIds "260,261,262"
-```
+1. Deploy with both adoption flags still `false` and run normal server, MCP,
+   OCO-health, and runtime-log verification.
+2. Call the manager previews and adoption dry-run for the exact IDs. Confirm
+   quantities, OCO IDs, child-state completeness, and dynamic confirmation
+   text. This step does not cancel anything.
+3. Under a new explicit authorization, fully drain the predecessor runtime,
+   enable both flags on the single active runtime, and re-run the dry-run.
+4. Under the exact live-action authorization, call
+   `adoptBtcBasePositionsKeepBtc` with `execute=true`, exact quantity, and the
+   newly returned confirmation text.
+5. Verify every row is `ADOPTED_FROM_OCO`, remains open with unchanged
+   `tradedQty`, has no OCO reference, consumes BTC Base exposure, produces no
+   OCO-missing alert, and has no market-sell/order evidence.
+6. Return both flags to `false` after the scoped action unless another explicit
+   authorization says otherwise.
 
-Deployment is a separate authorization. After an authorized deploy, first run
-server verification and MCP parity, then call both preview tools for the exact
-IDs. Do not persist adoption or execute a disposition in the same authorization.
-Any later persistence, OCO change, or controlled close requires its own exact
-scope, preflight, and post-action OCO/position verification.
+Any `ADOPTION_PENDING`, child fill, quantity drift, exchange-query failure, or
+partial cohort result stops acceptance. Keep the flags off and resume only
+after read-only OCO and position reconciliation.

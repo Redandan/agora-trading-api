@@ -4,6 +4,7 @@ import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
+import com.agora.service.trading.BtcBasePositionAdoptionService;
 import com.agora.service.trading.BtcBasePositionManagerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -21,17 +22,22 @@ class BtcBasePositionManagerMcpToolsTest {
     @Test
     void toolsDelegateToReadOnlyManagerAndKeepOpsAnalyticsAuth() throws Exception {
         BtcBasePositionManagerService manager = mock(BtcBasePositionManagerService.class);
-        BtcBasePositionManagerMcpTools tools = new BtcBasePositionManagerMcpTools(manager);
+        BtcBasePositionAdoptionService adoption = mock(BtcBasePositionAdoptionService.class);
+        BtcBasePositionManagerMcpTools tools = new BtcBasePositionManagerMcpTools(manager, adoption);
         when(manager.status("BTCUSDT")).thenReturn("status");
         when(manager.previewAdoption("260,261,262", 168)).thenReturn("adoption");
         when(manager.previewDisposition("260,261,262", 168)).thenReturn("disposition");
+        when(adoption.previewOrExecute("260,261,262", null, false, null)).thenReturn("adoption-write-preview");
 
         assertThat(tools.getBtcBasePositionManagerStatus("BTCUSDT")).isEqualTo("status");
         assertThat(tools.previewBtcBasePositionAdoption("260,261,262", 168)).isEqualTo("adoption");
         assertThat(tools.previewBtcBasePositionDisposition("260,261,262", 168)).isEqualTo("disposition");
+        assertThat(tools.adoptBtcBasePositionsKeepBtc("260,261,262", null, false, null))
+                .isEqualTo("adoption-write-preview");
         verify(manager).status("BTCUSDT");
         verify(manager).previewAdoption("260,261,262", 168);
         verify(manager).previewDisposition("260,261,262", 168);
+        verify(adoption).previewOrExecute("260,261,262", null, false, null);
 
         Method method = BtcBasePositionManagerMcpTools.class.getDeclaredMethod(
                 "previewBtcBasePositionDisposition", String.class, Integer.class);
@@ -40,6 +46,13 @@ class BtcBasePositionManagerMcpToolsTest {
         assertThat(auth.value()).isEqualTo(McpAuthLevel.OPS);
         assertThat(Arrays.asList(category.value()))
                 .containsExactlyInAnyOrder(Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS);
+
+        Method writeMethod = BtcBasePositionManagerMcpTools.class.getDeclaredMethod(
+                "adoptBtcBasePositionsKeepBtc", String.class, java.math.BigDecimal.class,
+                Boolean.class, String.class);
+        assertThat(writeMethod.getAnnotation(McpAuth.class).value()).isEqualTo(McpAuthLevel.OPS);
+        assertThat(Arrays.asList(writeMethod.getAnnotation(McpCategory.class).value()))
+                .containsExactlyInAnyOrder(Category.WRITE_TRADING, Category.GOVERNANCE);
     }
 
     @Test

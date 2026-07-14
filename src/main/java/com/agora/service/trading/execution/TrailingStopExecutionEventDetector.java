@@ -10,6 +10,7 @@ import com.agora.model.BtStrategy;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class TrailingStopExecutionEventDetector implements ExecutionEventDetecto
         LocalDateTime detectedAt = now == null ? LocalDateTime.now() : now;
         List<ExecutionEventService.Draft> events = new ArrayList<>();
         for (BtLiveSignal pos : liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull()) {
+            if (BtcBasePositionStatePolicy.isBtcBase(pos)) continue;
             try {
                 detectPosition(pos, detectedAt).forEach(events::add);
             } catch (Exception e) {

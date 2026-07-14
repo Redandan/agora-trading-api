@@ -884,9 +884,11 @@ public class TinyLiveMinimumOrderPreviewService {
         }
         if (openAutoPositions > 0) {
             for (BtLiveSignal pos : liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()) {
-                if (pos.getOcoOrderListId() == null) {
+                if (pos.getOcoOrderListId() == null
+                        && !BtcBasePositionStatePolicy.isIntentionalNoOco(pos)) {
                     return "NOT_READY_EXISTING_OCO_MISSING";
                 }
+                if (BtcBasePositionStatePolicy.isIntentionalNoOco(pos)) continue;
                 boolean isShort = "SHORT".equalsIgnoreCase(pos.getSide());
                 OcoOrderStateInspector.Inspection inspection = isShort
                         ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())

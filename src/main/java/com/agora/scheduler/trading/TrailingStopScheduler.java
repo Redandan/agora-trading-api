@@ -7,6 +7,8 @@ import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.ai.AiStrategyDiscoveryService;
 import com.agora.service.trading.OcoManagementService;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
+import com.agora.service.trading.PositionMutationGuard;
 import com.agora.service.trading.OkxTradingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -90,7 +92,7 @@ public class TrailingStopScheduler {
             if (open.isEmpty()) return;
             for (BtLiveSignal pos : open) {
                 try {
-                    processPosition(pos);
+                    processPositionGuarded(pos);
                 } catch (Exception e) {
                     log.warn("[TrailingStop] position id={} processing failed: {}",
                             pos.getId(), e.getMessage());
@@ -101,7 +103,19 @@ public class TrailingStopScheduler {
         }
     }
 
+    private void processPositionGuarded(BtLiveSignal candidate) {
+        if (candidate == null || candidate.getId() == null) return;
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                candidate.getId(), "TRAILING_STOP")) {
+            if (!lease.acquired()) return;
+            BtLiveSignal fresh = liveSignalRepository.findById(candidate.getId()).orElse(null);
+            if (fresh == null || fresh.getExitTime() != null || fresh.getOcoOrderListId() == null) return;
+            processPosition(fresh);
+        }
+    }
+
     private void processPosition(BtLiveSignal pos) {
+        if (BtcBasePositionStatePolicy.isBtcBase(pos)) return;
         if (!isTrailingEnabled(pos.getStrategyId())) return;
         if (pos.getActualEntryPrice() == null) return;
         BigDecimal entry = pos.getActualEntryPrice();

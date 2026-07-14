@@ -14,6 +14,7 @@ import com.agora.service.ai.router.AiTask;
 import com.agora.service.ai.router.AiTaskRouter;
 import com.agora.service.market.FearGreedService;
 import com.agora.service.market.WhaleFlowService;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -164,7 +165,10 @@ public class TradingAnalysisService {
                             p.getEntryPrice() != null ? p.getEntryPrice().toPlainString() : "?",
                             p.getSuggestedSl() != null ? p.getSuggestedSl().toPlainString() : "?",
                             p.getSuggestedTp() != null ? p.getSuggestedTp().toPlainString() : "?",
-                            hasOco ? "OCO已掛勿重複建議" : "⚠️無OCO需補掛"));
+                            hasOco ? "OCO已掛勿重複建議"
+                                    : BtcBasePositionStatePolicy.isIntentionalNoOco(p)
+                                    ? "BTC_BASE管理模式故意無OCO，不得補掛或自動賣出"
+                                    : "⚠️無OCO需補掛"));
                 }
             }
             List<BtGrid> grids = gridRepository.findByEnabledTrueAndClosedAtIsNull();

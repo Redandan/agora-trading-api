@@ -262,8 +262,7 @@ public class Strategy508TimeExitLaneService {
 
     private boolean ocoHealthOk(Map<String, Object> context) {
         for (BtLiveSignal position : liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()) {
-            if (position.getFilterReason() != null
-                    && position.getFilterReason().startsWith("LOCAL_TRADINGVIEW_BTC_BASE:")) {
+            if (BtcBasePositionStatePolicy.isBtcBase(position)) {
                 continue;
             }
             if (position.getOcoOrderListId() == null) {

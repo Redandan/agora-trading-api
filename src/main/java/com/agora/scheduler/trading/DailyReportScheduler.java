@@ -10,6 +10,8 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.SignalOutcomeVerificationRepository;
 import com.agora.infra.notification.NotificationPort;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
+import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OkxTradingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -226,13 +228,29 @@ public class DailyReportScheduler {
                 sb.append("\n<b>🛡 OCO 保護</b> ✅ 目前無開倉\n");
                 return;
             }
-            long unprotected = openPos.stream().filter(p -> p.getOcoOrderListId() == null).count();
+            long managedNoOco = openPos.stream()
+                    .filter(BtcBasePositionStatePolicy::isIntentionalNoOco).count();
+            long softExitNoHardSl = openPos.stream()
+                    .filter(p -> p.getOcoOrderListId() == null)
+                    .filter(p -> p.getFilterReason() != null
+                            && p.getFilterReason().startsWith(OcoManagementService.SOFT_EXIT_NO_HARD_SL_MARKER))
+                    .count();
+            long unprotected = openPos.stream()
+                    .filter(p -> p.getOcoOrderListId() == null)
+                    .filter(p -> !BtcBasePositionStatePolicy.isIntentionalNoOco(p))
+                    .filter(p -> p.getFilterReason() == null
+                            || !p.getFilterReason().startsWith(OcoManagementService.SOFT_EXIT_NO_HARD_SL_MARKER))
+                    .count();
             sb.append("\n<b>🛡 OCO 保護</b>\n");
+            if (managedNoOco > 0)
+                sb.append(String.format("  🟡 %d 筆 BTC_BASE 管理倉位故意不掛 OCO\n", managedNoOco));
+            if (softExitNoHardSl > 0)
+                sb.append(String.format("  🟡 %d 筆 Soft Exit 倉位故意不掛 hard OCO\n", softExitNoHardSl));
             if (unprotected > 0)
                 sb.append(String.format("  ⚠️ %d/%d 筆倉位無保護！請立即補掛\n",
                         unprotected, openPos.size()));
             else
-                sb.append(String.format("  ✅ %d/%d 均有保護\n", openPos.size(), openPos.size()));
+                sb.append(String.format("  ✅ %d/%d 無意外漏掛 OCO\n", openPos.size(), openPos.size()));
         } catch (Exception e) {
             log.warn("[DailyReport] appendOcoProtectionSection failed: {}", e.getMessage());
         }

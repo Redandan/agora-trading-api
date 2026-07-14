@@ -141,13 +141,14 @@ class LocalTradingViewExecutionServiceTest {
     void btcBaseLiveMicroBlocksWhenExposureCapWouldBeExceeded() {
         Fixture fixture = fixture(props(ExecutionMode.BTC_BASE_LIVE_MICRO, 0, new BigDecimal("15.0")));
         BtLiveSignal openSlice = new BtLiveSignal();
-        openSlice.setStrategyId(485L);
+        openSlice.setStrategyId(508L);
         openSlice.setSymbol("BTCUSDT");
         openSlice.setActualEntryPrice(new BigDecimal("100.00"));
         openSlice.setEntryPrice(new BigDecimal("100.00"));
         openSlice.setTradedQty(new BigDecimal("0.10"));
-        openSlice.setFilterReason("LOCAL_TRADINGVIEW_BTC_BASE:1:TRADINGVIEW_RELATIVE_LOW");
-        when(fixture.liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(485L))
+        openSlice.setFilterReason(com.agora.service.trading.BtcBasePositionStatePolicy.adoptedMarkerFromPending(
+                com.agora.service.trading.BtcBasePositionStatePolicy.pendingMarker(1260L, "legacy-508")));
+        when(fixture.liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull())
                 .thenReturn(List.of(openSlice));
 
         fixture.service.preview(strategy(), kline(), "1d", "okx",
@@ -378,6 +379,7 @@ class LocalTradingViewExecutionServiceTest {
                 .thenReturn(0L);
         when(liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(485L))
                 .thenReturn(List.of());
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of());
         when(liveSignalRepository.existsByStrategyIdAndSymbolAndSideAndIntervalCodeAndExitTimeIsNull(
                 eq(485L), eq("BTCUSDT"), eq("LONG"), eq("1d"))).thenReturn(false);
         when(liveSignalRepository.existsOpenAutoTradedPosition(

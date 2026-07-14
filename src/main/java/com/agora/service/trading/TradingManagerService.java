@@ -238,13 +238,13 @@ public class TradingManagerService {
                 String nnStr  = v.signal.nnOutput > 0.0 ? String.format("%.2f", v.signal.nnOutput) : "N/A";
                 String rsiStr = v.signal.rsi > 0.0     ? String.format("%.1f", v.signal.rsi)       : "N/A";
                 // OCO 保護狀態
-                String ocoStr = v.pos.getOcoOrderListId() != null ? "🛡有OCO" : "❌無OCO";
+                String ocoStr = positionProtectionLabel(v.pos);
                 sb.append(String.format("\n   %s%s 信號: %s  NN: %s  RSI: %s  %s",
                         riskFlag, sigEmoji,
                         v.signal.signal.name(), nnStr, rsiStr, ocoStr));
             } else {
                 // cache 無資料時仍顯示 OCO 狀態
-                String ocoStr = v.pos.getOcoOrderListId() != null ? "🛡有OCO" : "❌無OCO";
+                String ocoStr = positionProtectionLabel(v.pos);
                 sb.append(String.format("\n   🟡 信號: 待更新  %s", ocoStr));
             }
 
@@ -274,7 +274,10 @@ public class TradingManagerService {
         for (PositionView v : views) {
             boolean hasOco = v.pos.getOcoOrderListId() != null;
             promptSb.append("倉位 ").append(v.pos.getSymbol()).append("：");
-            promptSb.append(hasOco ? "已有OCO保護" : "⚠️無OCO保護（需手動掛單）");
+            promptSb.append(hasOco ? "已有OCO保護"
+                    : BtcBasePositionStatePolicy.isIntentionalNoOco(v.pos)
+                    ? "BTC_BASE管理模式，故意無OCO且不得自動補掛或賣出"
+                    : "⚠️無OCO保護（需手動掛單）");
             if (v.lastPrice != null && v.pos.getSuggestedTp() != null && v.entryRef != null
                     && v.entryRef.compareTo(BigDecimal.ZERO) > 0) {
                 double tpDistPct = v.pos.getSuggestedTp().subtract(v.lastPrice)
@@ -496,6 +499,12 @@ public class TradingManagerService {
      */
     public String reportWeekly() {
         return reportWeekly(true);
+    }
+
+    private String positionProtectionLabel(BtLiveSignal position) {
+        if (position.getOcoOrderListId() != null) return "🛡有OCO";
+        if (BtcBasePositionStatePolicy.isIntentionalNoOco(position)) return "🟡BTC_BASE管理";
+        return "❌無OCO";
     }
 
     /**

@@ -332,6 +332,8 @@ $envOverrides = @{
     TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT = "0.0300"
     TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT = "0.1200"
     TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT = "250.0"
+    TRADING_BTC_BASE_ADOPTION_ENABLED = "false"
+    TRADING_BTC_BASE_ADOPTION_LIVE_ACTION_ENABLED = "false"
     EVENT_SCAN_NOTIFICATION_ENABLED = "false"
     EVENT_SCAN_NOTIFICATION_DRY_RUN = "true"
     EXECUTION_EVENT_ENABLED = "false"
@@ -648,12 +650,19 @@ try {
     $btcBaseManagerStatus = Invoke-McpTool -Url $mcpUrl -ToolName "getBtcBasePositionManagerStatus" -Arguments @{ symbol = "BTCUSDT" }
     $btcBaseManagerStatusText = Get-McpDecodedText -Content $btcBaseManagerStatus
     Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern "BTC_BASE_POSITION_MANAGER_V1" -Description "BTC_BASE position manager status is registered"
-    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"liveActionsImplemented"\s*:\s*false' -Description "BTC_BASE manager status remains read-only"
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"liveActionsImplemented"\s*:\s*true' -Description "BTC_BASE guarded adoption lane is implemented"
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"adoptionExecutionArmed"\s*:\s*false' -Description "BTC_BASE guarded adoption lane remains disabled by default"
     $btcBaseInvalidPreview = Invoke-McpTool -Url $mcpUrl -ToolName "previewBtcBasePositionAdoption" -Arguments @{ positionIds = "not-an-id"; horizonHours = 168 }
     $btcBaseInvalidPreviewText = Get-McpDecodedText -Content $btcBaseInvalidPreview
     Assert-McpContentContains -Content $btcBaseInvalidPreviewText -Pattern "BLOCKED_FAIL_CLOSED" -Description "BTC_BASE manager invalid IDs fail closed"
     Assert-McpContentContains -Content $btcBaseInvalidPreviewText -Pattern '"orderSent"\s*:\s*false' -Description "BTC_BASE manager fail-closed preview sends no order"
     Assert-McpContentContains -Content $btcBaseInvalidPreviewText -Pattern '"ocoModified"\s*:\s*false' -Description "BTC_BASE manager fail-closed preview does not modify OCO"
+    $btcBaseWriteGuard = Invoke-McpTool -Url $mcpUrl -ToolName "adoptBtcBasePositionsKeepBtc" -Arguments @{ positionIds = "not-an-id"; expectedTotalQty = 0.0001; execute = $true; confirmText = "invalid" }
+    $btcBaseWriteGuardText = Get-McpDecodedText -Content $btcBaseWriteGuard
+    Assert-McpContentContains -Content $btcBaseWriteGuardText -Pattern "FEATURE_DISABLED" -Description "BTC_BASE adoption feature gate defaults off"
+    Assert-McpContentContains -Content $btcBaseWriteGuardText -Pattern "LIVE_ACTION_DISABLED" -Description "BTC_BASE adoption live-action gate defaults off"
+    Assert-McpContentContains -Content $btcBaseWriteGuardText -Pattern "EXECUTION_BLOCKED_NOT_AUTHORIZED" -Description "BTC_BASE disabled execution is not reported as ready"
+    Assert-McpContentContains -Content $btcBaseWriteGuardText -Pattern '"marketSellAttempted"\s*:\s*false' -Description "BTC_BASE adoption guard never attempts a market sell"
 
     $sentimentGuard = Invoke-McpTool -Url $mcpUrl -ToolName "getMarketSentiment" -Arguments @{ symbol = "BTCUSDT" }
     Assert-McpContentContains -Content $sentimentGuard -Pattern "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true" -Description "live sentiment MCP tools are disabled by default"

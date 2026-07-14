@@ -9,9 +9,11 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.TgNotificationDeduper;
 import com.agora.service.TgNotificationDeduper.Severity;
 import com.agora.service.ml.MlInferenceLogger;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.PostTradeReviewService;
+import com.agora.service.trading.PositionMutationGuard;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.SpotPositionCloseService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -147,6 +149,11 @@ public class OcoPositionPollerScheduler {
         for (BtLiveSignal pos : unprotected) {
             if (spotPositionCloseService.isClosing(pos.getId())) {
                 log.debug("[OcoPoll] skip OCO retry while scoped market close is in progress: id={}", pos.getId());
+                continue;
+            }
+            if (BtcBasePositionStatePolicy.isBtcBase(pos)) {
+                log.info("[OcoPoll] BTC_BASE position id={} state={} intentionally suppresses auto OCO retry",
+                        pos.getId(), BtcBasePositionStatePolicy.managementState(pos));
                 continue;
             }
             if (isSoftExitNoHardSl(pos)) {
@@ -297,7 +304,22 @@ public class OcoPositionPollerScheduler {
                 }, () -> log.debug("[WsPush] No open position for algoId={}", algoId));
     }
 
-    void checkAndClose(BtLiveSignal pos) {
+    void checkAndClose(BtLiveSignal candidate) {
+        if (candidate == null || candidate.getId() == null) return;
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                candidate.getId(), "OCO_POLLER_RECONCILIATION")) {
+            if (!lease.acquired()) {
+                log.debug("[OcoPoll] skip position={} while mutation={} is active",
+                        candidate.getId(), lease.activeOperation());
+                return;
+            }
+            BtLiveSignal fresh = liveSignalRepository.findById(candidate.getId()).orElse(null);
+            if (fresh == null || fresh.getExitTime() != null || fresh.getOcoOrderListId() == null) return;
+            checkAndCloseLocked(fresh);
+        }
+    }
+
+    private void checkAndCloseLocked(BtLiveSignal pos) {
         boolean isShort = "SHORT".equals(pos.getSide());
         OcoOrderStateInspector.Inspection inspection = isShort
                 ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
@@ -345,6 +367,12 @@ public class OcoPositionPollerScheduler {
             }
             freshPos.setOcoOrderListId(null);
             liveSignalRepository.save(freshPos);
+            if (BtcBasePositionStatePolicy.isAdoptionPending(freshPos)) {
+                log.info("[OcoPoll] BTC_BASE adoption cancellation observed: id={} algoId={}; " +
+                                "leaving position open and suppressing manual-cancel alert",
+                        pos.getId(), cancelledAlgoId);
+                return;
+            }
             try {
                 notificationPort.broadcast(String.format(
                         "⚠️ <b>OCO 已取消（無成交）</b>\n%s 倉位 #%d [%s] 的 OCO 訂單已被取消且無成交。\n倉位仍開倉中，請手動處理。",

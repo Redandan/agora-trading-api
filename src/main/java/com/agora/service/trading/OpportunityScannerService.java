@@ -223,7 +223,9 @@ public class OpportunityScannerService {
 
         // ── 2. OCO opportunities (one per open position) ─────────────────
         List<BtLiveSignal> openOcoPositions = liveSignalRepo
-                .findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull();
+                .findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull().stream()
+                .filter(position -> !BtcBasePositionStatePolicy.isBtcBase(position))
+                .toList();
 
         // Phase 4 — per-symbol LONG exposure (BTCUSDT, ETHUSDT, …)
         Map<String, Double> longExposureBySymbol = new HashMap<>();

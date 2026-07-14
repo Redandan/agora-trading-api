@@ -285,6 +285,12 @@ public class OkxTradingService implements TradingService {
         return String.valueOf(instId) + "|" + String.valueOf(algoId);
     }
 
+    /** Evicts one spot algo-order snapshot so a state transition can be confirmed against OKX. */
+    public void invalidateAlgoOrderCache(String symbol, Long algoId) {
+        if (symbol == null || symbol.isBlank() || algoId == null) return;
+        algoOrderCache.remove(algoOrderCacheKey(toInstId(symbol), algoId));
+    }
+
     static boolean isOkxRateLimit(Throwable error) {
         Throwable cursor = error;
         while (cursor != null) {
@@ -925,18 +931,24 @@ public class OkxTradingService implements TradingService {
         checkEnabled();
         String instId = toInstId(symbol);
         String body = String.format("[{\"algoId\":\"%d\",\"instId\":\"%s\"}]", ocoId, instId);
+        String cacheKey = algoOrderCacheKey(instId, ocoId);
+        algoOrderCache.remove(cacheKey);
+        try {
+            JsonNode resp = post("/api/v5/trade/cancel-algos", body);
+            assertOkxCode(resp);
 
-        JsonNode resp = post("/api/v5/trade/cancel-algos", body);
-        assertOkxCode(resp);
-
-        // cancel-algos 的個別錯誤在 data[0].sCode
-        JsonNode item = resp.path("data").path(0);
-        String sCode = item.path("sCode").asText("0");
-        if (!"0".equals(sCode)) {
-            String sMsg = item.path("sMsg").asText();
-            throw new RuntimeException("OKX cancel algo [sCode=" + sCode + "]: " + sMsg);
+            // cancel-algos 的個別錯誤在 data[0].sCode
+            JsonNode item = resp.path("data").path(0);
+            String sCode = item.path("sCode").asText("0");
+            if (!"0".equals(sCode)) {
+                String sMsg = item.path("sMsg").asText();
+                throw new RuntimeException("OKX cancel algo [sCode=" + sCode + "]: " + sMsg);
+            }
+        } finally {
+            // A cached pre-cancel live state must never be used as cancel confirmation.
+            algoOrderCache.remove(cacheKey);
+            spotHoldingsCache = null;
         }
-        spotHoldingsCache = null;
         log.info("[OKX] OCO cancelled: instId={} algoId={}", instId, ocoId);
     }
 

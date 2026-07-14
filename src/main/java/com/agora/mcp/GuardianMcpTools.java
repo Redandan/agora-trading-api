@@ -9,6 +9,7 @@ import com.agora.mcp.auth.McpCategory;
 import com.agora.mcp.auth.McpApiKeyFilter;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.EventRiskLevelEngine;
 import com.agora.service.trading.OkxTradingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -179,6 +180,8 @@ public class GuardianMcpTools {
             putDecimal(item, "unrealizedPnlUsdt", defense.unrealizedPnl());
             putDecimal(item, "paperLossPct", defense.paperLossPct());
             item.put("ocoProtected", p.getOcoOrderListId() != null);
+            item.put("protectionMode", BtcBasePositionStatePolicy.isIntentionalNoOco(p)
+                    ? "BTC_BASE_MANAGED_NO_OCO" : p.getOcoOrderListId() != null ? "OCO" : "UNPROTECTED");
             item.put("defenseMode", defense.mode());
             item.put("recommendedAction", defense.recommendedAction());
             item.put("suggestedReducePct", defense.suggestedReducePct());
@@ -291,7 +294,8 @@ public class GuardianMcpTools {
         for (BtLiveSignal p : positions) {
             PositionDefense defense = assessPositionDefense(p, risk, now);
             RiskReductionGate gate = assessBreakevenRiskReduction(p, defense.current());
-            boolean needsDefense = !"WATCH".equals(defense.mode());
+            boolean needsDefense = !"WATCH".equals(defense.mode())
+                    && !"BTC_BASE_MANAGER_REVIEW".equals(defense.mode());
             String actionType = phaseBActionType(defense);
             if (needsDefense) positionsNeedingDefense++;
             if ("CRITICAL".equals(defense.notificationLevel())) criticalCount++;
@@ -326,6 +330,8 @@ public class GuardianMcpTools {
             putDecimal(item, "previewNewMaxLossUsdt", gate.previewNewMaxLossUsdt());
             putDecimal(item, "previewRiskReducedUsdt", gate.previewRiskReducedUsdt());
             item.put("ocoProtected", p.getOcoOrderListId() != null);
+            item.put("protectionMode", BtcBasePositionStatePolicy.isIntentionalNoOco(p)
+                    ? "BTC_BASE_MANAGED_NO_OCO" : p.getOcoOrderListId() != null ? "OCO" : "UNPROTECTED");
             item.put("defenseMode", defense.mode());
             item.put("phaseBActionType", actionType);
             item.put("recommendedAction", defense.recommendedAction());
@@ -343,7 +349,11 @@ public class GuardianMcpTools {
             blockers.add("READ_ONLY_PREVIEW");
             blockers.add("EXPLICIT_OPERATOR_APPROVAL_REQUIRED");
             if (!isOcoHealthHealthy(ocoHealthRaw)) blockers.add("OCO_HEALTH_NOT_CONFIRMED");
-            if (p.getOcoOrderListId() == null) blockers.add("POSITION_HAS_NO_ACTIVE_OCO");
+            if (p.getOcoOrderListId() == null && BtcBasePositionStatePolicy.isIntentionalNoOco(p)) {
+                blockers.add("BTC_BASE_MANAGER_OWNS_EXIT_POLICY_NO_OCO_ACTION");
+            } else if (p.getOcoOrderListId() == null) {
+                blockers.add("POSITION_HAS_NO_ACTIVE_OCO");
+            }
             if (needsDefense && !gate.allowed()) blockers.add("RISK_REDUCING_SL_NOT_AVAILABLE:" + gate.reason());
 
             if (needsDefense) {
@@ -602,6 +612,15 @@ public class GuardianMcpTools {
         boolean r2 = risk.level().atLeast(EventRiskLevelEngine.RiskLevel.R2);
         boolean severeLoss = paperLossPct.compareTo(DEFAULT_AGED_LOSS_PCT) >= 0;
         boolean agedLoss = ageDays > 5 && severeLoss;
+
+        if (BtcBasePositionStatePolicy.isBtcBase(p)) {
+            return new PositionDefense(entry, current, pnl, paperLossPct, ageDays,
+                    "BTC_BASE_MANAGER_REVIEW",
+                    "BTC_BASE manager retains the position; no generic reduce, market sell, or OCO action is recommended.",
+                    0,
+                    "NONE",
+                    "INFO");
+        }
 
         if (r3 && severeLoss) {
             return new PositionDefense(entry, current, pnl, paperLossPct, ageDays,

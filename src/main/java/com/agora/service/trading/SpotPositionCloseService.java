@@ -37,12 +37,17 @@ public class SpotPositionCloseService {
         if (positionId == null || !closingPositionIds.add(positionId)) {
             return CloseResult.busy(positionId);
         }
-        try {
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                positionId, "SPOT_POSITION_CLOSE")) {
+            if (!lease.acquired()) return CloseResult.busy(positionId);
             BtLiveSignal position = liveSignalRepository.findByIdForUpdate(positionId).orElse(null);
             if (position == null) return CloseResult.failed(positionId, "POSITION_NOT_FOUND");
             if (position.getExitTime() != null) return CloseResult.alreadyClosed(position);
             if (!Boolean.TRUE.equals(position.getAutoTraded()) || "SHORT".equalsIgnoreCase(position.getSide())) {
                 return CloseResult.failed(positionId, "NOT_OPEN_AUTO_TRADED_SPOT_LONG");
+            }
+            if (BtcBasePositionStatePolicy.isBtcBase(position)) {
+                return CloseResult.failed(positionId, "BTC_BASE_MANAGED_MARKET_SELL_BLOCKED");
             }
 
             OcoCancelResult cancel = cancelOcoFailClosed(position);

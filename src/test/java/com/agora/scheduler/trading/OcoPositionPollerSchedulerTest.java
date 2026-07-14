@@ -12,6 +12,7 @@ import com.agora.service.diagnostic.OrphanTradeReconcilerService;
 import com.agora.service.ml.MlInferenceLogger;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OcoOrderStateInspector;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OkxEarnService;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.PositionAgingMonitor;
@@ -162,6 +163,52 @@ class OcoPositionPollerSchedulerTest {
         Boolean guarded = ReflectionTestUtils.invokeMethod(fixture.scheduler, "isOcoStillActive", position);
 
         assertThat(guarded).isTrue();
+    }
+
+    @Test
+    void btcBasePendingPositionNeverReceivesAutomaticOcoRetry() {
+        Fixture fixture = newFixture(mock(UntrackedHoldingTracker.class));
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setAutoTraded(true);
+        position.setTradedQty(new BigDecimal("0.00015933"));
+        position.setSuggestedTp(new BigDecimal("66551"));
+        position.setSuggestedSl(new BigDecimal("55250"));
+        position.setFilterReason(BtcBasePositionStatePolicy.pendingMarker(1260L, null));
+        when(fixture.liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNull())
+                .thenReturn(List.of(position));
+
+        ReflectionTestUtils.invokeMethod(fixture.scheduler, "retryUnprotectedPositions");
+
+        verify(fixture.okxTradingService, never()).placeOco(
+                anyString(), any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class));
+        verifyNoInteractions(fixture.notificationPort);
+    }
+
+    @Test
+    void canceledPendingAdoptionClearsReferenceWithoutFalseTelegramAlert() throws Exception {
+        Fixture fixture = newFixture(mock(UntrackedHoldingTracker.class));
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setAutoTraded(true);
+        position.setTradedQty(new BigDecimal("0.00015933"));
+        position.setOcoQty(new BigDecimal("0.00015933"));
+        position.setOcoOrderListId(1260L);
+        position.setFilterReason(BtcBasePositionStatePolicy.pendingMarker(1260L, null));
+        when(fixture.liveSignalRepository.findById(260L)).thenReturn(Optional.of(position));
+        when(fixture.okxTradingService.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(MAPPER.readTree(
+                "{\"state\":\"canceled\",\"sz\":\"0.00015933\",\"ordIdList\":[]}"));
+
+        fixture.scheduler.checkAndClose(position);
+
+        assertThat(position.getOcoOrderListId()).isNull();
+        assertThat(BtcBasePositionStatePolicy.isAdoptionPending(position)).isTrue();
+        verify(fixture.liveSignalRepository).save(position);
+        verify(fixture.notificationPort, never()).broadcast(anyString(), eq(true));
     }
 
     private static void stubReconcileInputs(Fixture fixture, OkxTradingService.SpotHolding holding) {

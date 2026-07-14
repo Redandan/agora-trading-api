@@ -17,6 +17,7 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxEarnService;
@@ -31,11 +32,14 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PositionMcpToolsTest {
@@ -101,6 +105,57 @@ class PositionMcpToolsTest {
                 .contains("child sl-260 filled @ 88")
                 .contains("0 OK")
                 .contains("1 SYNC_ERROR");
+    }
+
+    @Test
+    void adoptedBtcBasePositionIsIntentionalNoOcoInsteadOfUnprotectedNoise() {
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setStrategyId(508L);
+        position.setSymbol("BTCUSDT");
+        position.setIntervalCode("4h");
+        position.setSide("LONG");
+        position.setEntryPrice(new BigDecimal("62762"));
+        position.setTradedQty(new BigDecimal("0.00015933"));
+        position.setFilterReason(BtcBasePositionStatePolicy.adoptedMarkerFromPending(
+                BtcBasePositionStatePolicy.pendingMarker(1260L, null)));
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(position));
+
+        String health = tools().getOcoHealth();
+        String positions = tools().getOpenPositions();
+
+        assertThat(health)
+                .contains("BTC_BASE_ADOPTED_FROM_OCO")
+                .contains("auto-retry suppressed")
+                .contains("1 OK")
+                .contains("0 SYNC_ERROR")
+                .doesNotContain("[UNPROTECTED]");
+        assertThat(positions)
+                .contains("BTC_BASE 底倉模式 / 故意不掛 OCO")
+                .doesNotContain("請用 retryOco");
+    }
+
+    @Test
+    void forceClosePositionCannotRemoveBtcBaseHoldingFromManagement() {
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setAutoTraded(true);
+        position.setTradedQty(new BigDecimal("0.00015933"));
+        position.setFilterReason(BtcBasePositionStatePolicy.adoptedMarkerFromPending(
+                BtcBasePositionStatePolicy.pendingMarker(1260L, null)));
+        when(liveSignalRepository.findById(260L)).thenReturn(Optional.of(position));
+
+        String output = tools().forceClosePosition(
+                260L, new BigDecimal("62000"), "MANUAL", null);
+
+        assertThat(output)
+                .contains("BTC_BASE")
+                .contains("不得使用 forceClosePosition")
+                .contains("避免 BTC 脫離管理");
+        assertThat(position.getExitTime()).isNull();
+        verify(liveSignalRepository, never()).save(any(BtLiveSignal.class));
     }
 
     @Test

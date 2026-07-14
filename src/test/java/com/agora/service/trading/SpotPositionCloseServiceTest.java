@@ -168,6 +168,23 @@ class SpotPositionCloseServiceTest {
         verify(fixture.okx, times(1)).placeMarketSellWithFill("BTCUSDT", bd("1"));
     }
 
+    @Test
+    void btcBaseManagedPositionCannotUseGenericMarketClosePath() {
+        BtLiveSignal position = position(9L);
+        position.setFilterReason(BtcBasePositionStatePolicy.adoptedMarkerFromPending(
+                BtcBasePositionStatePolicy.pendingMarker(900L, null)));
+        position.setOcoOrderListId(null);
+        position.setOcoQty(null);
+        Fixture fixture = fixture(position);
+
+        SpotPositionCloseService.CloseResult result = fixture.service.closeAtMarket(9L, "TIME_EXIT_24H");
+
+        assertThat(result.status()).isEqualTo("FAILED");
+        assertThat(result.reason()).isEqualTo("BTC_BASE_MANAGED_MARKET_SELL_BLOCKED");
+        verify(fixture.okx, never()).cancelOco(any(), any());
+        verify(fixture.okx, never()).placeMarketSellWithFill(any(), any());
+    }
+
     private Fixture fixture(BtLiveSignal position) {
         BtLiveSignalRepository repository = mock(BtLiveSignalRepository.class);
         OkxTradingService okx = mock(OkxTradingService.class);

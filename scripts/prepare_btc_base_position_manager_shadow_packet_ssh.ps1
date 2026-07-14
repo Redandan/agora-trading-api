@@ -149,7 +149,7 @@ if (-not [bool]$decision.ocoHealthOk) { $blockers.Add("COHORT_OCO_HEALTH_NOT_CON
 if ($positions.Count -ne $requestedIds.Count) { $blockers.Add("REQUESTED_POSITION_COHORT_INCOMPLETE") }
 $blockers.Add("EXACT_TRADED_QTY_OCO_QTY_PARITY_REQUIRES_POST_DEPLOY_MANAGER_TOOL")
 
-$recommendation = "KEEP_OCO"
+$recommendation = "ADOPT_KEEP_BTC"
 $hasAgedNegativeEv = @($positions | Where-Object {
         $_.heuristicEvUsdt -ne $null -and [decimal]$_.heuristicEvUsdt -lt 0 -and
         $_.ageDays -ne "N/A" -and [decimal]$_.ageDays -ge 3
@@ -157,9 +157,9 @@ $hasAgedNegativeEv = @($positions | Where-Object {
 $hasNegativeEv = $allEvPresent -and $combinedEv -lt 0
 $hasClose = @($positions | Where-Object { $_.heuristicSuggestion -eq "CLOSE" }).Count -gt 0
 if ($hasClose -or $hasAgedNegativeEv) {
-    $recommendation = "RETIRE_CLOSE_REVIEW"
+    $recommendation = "ADOPT_KEEP_BTC_HIGH_RISK_REVIEW"
 } elseif ($hasNegativeEv) {
-    $recommendation = "RECOVERY_EXIT_REVIEW"
+    $recommendation = "ADOPT_KEEP_BTC_RISK_REVIEW"
 }
 
 $weightedEntry = if ($totalQty -gt 0) { $totalCost / $totalQty } else { $null }
@@ -201,7 +201,7 @@ $packet = [ordered]@{
         telegramSent = $false
         fundsMoved = $false
     }
-    notAuthorization = "Read-only predeploy simulation only; does not authorize adoption persistence, close, OCO/order change, deploy, production env change, scheduler, Telegram, DB, grid, fund, Earn, or exchange mutation."
+    notAuthorization = "Read-only predeploy simulation only; risk labels never authorize selling BTC. Does not authorize adoption persistence, close, OCO/order change, deploy, production env change, scheduler, Telegram, DB, grid, fund, Earn, or exchange mutation."
 }
 
 Write-Host "[btc-base-position-manager-shadow-packet] production read-only predeploy simulation"

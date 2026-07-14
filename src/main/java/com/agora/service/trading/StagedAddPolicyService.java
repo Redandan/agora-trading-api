@@ -239,7 +239,10 @@ public class StagedAddPolicyService {
         if (!tqsAtLeastProbe(tqsBand)) blockers.add(tqsBand == null ? "TQS_UNKNOWN" : "TQS_BELOW_PROBE_DRY_RUN");
         if (evidenceRows.isEmpty()) blockers.add("RUNTIME_EVIDENCE_MISSING");
         if (latestEvidence != null && contains(latestEvidence.getFreshnessState(), "BLOCK")) blockers.add("DATA_FRESHNESS_HARD_FAIL");
-        if (openSameStrategy.stream().anyMatch(p -> p.getOcoOrderListId() == null)) blockers.add("EXISTING_POSITION_OCO_MISSING");
+        if (openSameStrategy.stream().anyMatch(p -> p.getOcoOrderListId() == null
+                && !BtcBasePositionStatePolicy.isIntentionalNoOco(p))) {
+            blockers.add("EXISTING_POSITION_OCO_MISSING");
+        }
         if (maxLossCap.compareTo(BigDecimal.ZERO) > 0
                 && openMaxLoss.add(candidateMaxLoss).compareTo(maxLossCap) > 0) {
             blockers.add("OPEN_MAX_LOSS_CAP_EXCEEDED");

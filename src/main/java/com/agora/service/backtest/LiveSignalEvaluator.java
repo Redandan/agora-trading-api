@@ -12,6 +12,8 @@ import com.agora.infra.notification.NotificationPort;
 import com.agora.service.market.FearGreedService;
 import com.agora.service.market.WhaleFlowService;
 import com.agora.service.trading.PostTradeReviewService;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
+import com.agora.service.trading.PositionMutationGuard;
 import com.agora.service.ai.AiStrategyDiscoveryService;
 import com.agora.service.trading.DailyLossGuard;
 import com.agora.service.trading.LongAiFilter;
@@ -1536,7 +1538,17 @@ public class LiveSignalEvaluator {
 
         // 只處理 LONG（或 side 未設定的舊資料）
         List<BtLiveSignal> openLongs = openPositions.stream()
-                .filter(p -> !"SHORT".equals(p.getSide())).toList();
+                .filter(p -> !"SHORT".equals(p.getSide()))
+                .filter(p -> !BtcBasePositionStatePolicy.isBtcBase(p))
+                .toList();
+        long managedBtcBaseSkipped = openPositions.stream()
+                .filter(p -> !"SHORT".equals(p.getSide()))
+                .filter(BtcBasePositionStatePolicy::isBtcBase)
+                .count();
+        if (managedBtcBaseSkipped > 0) {
+            log.info("[LiveSignal] SELL signal preserves {} BTC_BASE managed position(s): strategy={} symbol={} interval={}",
+                    managedBtcBaseSkipped, strategy.getId(), symbol, intervalCode);
+        }
         boolean hasOpenShort = openPositions.stream().anyMatch(p -> "SHORT".equals(p.getSide()));
         boolean allowShort   = getBoolean(config, "allowShort", false)
                             || getBoolean(config, "shortOnly", false);
@@ -2146,7 +2158,26 @@ public class LiveSignalEvaluator {
      * @param symbol           交易對
      * @param fallbackExitPrice 當 OCO 已先觸發、市價賣出無法執行時，用來記錄出場價的 fallback
      */
-    private synchronized void autoSell(BtLiveSignal pos, String symbol, BigDecimal fallbackExitPrice) {
+    private synchronized void autoSell(BtLiveSignal candidate, String symbol, BigDecimal fallbackExitPrice) {
+        if (candidate == null || candidate.getId() == null) return;
+        try (PositionMutationGuard.Lease lease = PositionMutationGuard.tryAcquire(
+                candidate.getId(), "LEGACY_SELL_SIGNAL")) {
+            if (!lease.acquired()) {
+                log.info("[AutoTrade] skip SELL for position={} while mutation={} is active",
+                        candidate.getId(), lease.activeOperation());
+                return;
+            }
+            BtLiveSignal fresh = liveSignalRepository.findById(candidate.getId()).orElse(null);
+            if (fresh == null || fresh.getExitTime() != null) return;
+            if (BtcBasePositionStatePolicy.isBtcBase(fresh)) {
+                log.info("[AutoTrade] preserve BTC_BASE managed position={} on SELL signal", fresh.getId());
+                return;
+            }
+            autoSellLocked(fresh, symbol, fallbackExitPrice);
+        }
+    }
+
+    private void autoSellLocked(BtLiveSignal pos, String symbol, BigDecimal fallbackExitPrice) {
         LocalDateTime exitTime = LocalDateTime.now(ZoneOffset.UTC);
 
         // 嘗試取消 OCO

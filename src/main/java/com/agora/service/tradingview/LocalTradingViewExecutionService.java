@@ -14,6 +14,7 @@ import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.service.TelegramService;
 import com.agora.service.backtest.LiveSignalContext;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
@@ -690,10 +691,12 @@ public class LocalTradingViewExecutionService {
         if (strategyId == null || symbol == null || symbol.isBlank()) {
             return BigDecimal.ZERO;
         }
-        return liveSignalRepository.findByStrategyIdAndAutoTradedIsTrueAndExitTimeIsNull(strategyId)
+        // BTC_BASE is symbol inventory, not strategy-local inventory. Adopted legacy
+        // positions consume the same cap as native LocalTradingView slices.
+        return liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()
                 .stream()
                 .filter(row -> symbol.equalsIgnoreCase(row.getSymbol()))
-                .filter(this::isBtcBaseSignal)
+                .filter(BtcBasePositionStatePolicy::isBtcBase)
                 .map(this::openCostUsdt)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -713,9 +716,7 @@ public class LocalTradingViewExecutionService {
     }
 
     private boolean isBtcBaseSignal(BtLiveSignal signal) {
-        return signal != null
-                && signal.getFilterReason() != null
-                && signal.getFilterReason().startsWith(BTC_BASE_FILTER_REASON_PREFIX);
+        return BtcBasePositionStatePolicy.isBtcBase(signal);
     }
 
     private boolean isBtcBaseMode() {

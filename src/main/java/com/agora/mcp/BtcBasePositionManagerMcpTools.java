@@ -22,7 +22,9 @@ public class BtcBasePositionManagerMcpTools {
     private final BtcBasePositionAdoptionService adoptionService;
 
     @Tool(description = "Read-only BTC_BASE position-manager status. Lists recorded open BTCUSDT OCO candidates " +
-            "and existing BTC_BASE no-OCO slices without using wallet BTC as position ownership. " +
+            "and existing BTC_BASE no-OCO slices, including managed quantity, cost, weighted average entry, " +
+            "estimated fee-adjusted break-even, mark-to-market value, and PnL. Managed cost uses explicit open " +
+            "bt_live_signal actualEntryPrice/entryPrice and tradedQty; it does not require OCO or use wallet BTC. " +
             "V1 does not persist adoption, cancel/modify OCO, place/close orders, or send Telegram. " +
             "params: symbol optional, default BTCUSDT.")
     @McpAuth(McpAuthLevel.OPS)

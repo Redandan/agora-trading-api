@@ -89,6 +89,18 @@ prefix. Existing runtime paths then apply the same intentional BTC Base rules:
 `ADOPT_KEEP_BTC_HIGH_RISK_REVIEW` are management labels only. None is a sell or
 close recommendation.
 
+`getBtcBasePositionManagerStatus` also returns a `managedCostBasis` object for
+native and finalized `ADOPTED_FROM_OCO` no-OCO holdings. It calculates each
+row's cost from `actual_entry_price` (falling back to `entry_price`) multiplied
+by `traded_qty`, then reports managed quantity, managed cost, weighted average
+entry, estimated fee-adjusted break-even, current value, and unrealized PnL.
+This calculation does not use `oco_qty`, OCO state, wallet BTC, Grid inventory,
+or manual holdings. A pending adoption, missing entry price, or missing traded
+quantity makes aggregate cost coverage incomplete instead of silently
+returning a partial average. A mark-price failure leaves the cost basis intact
+but returns mark-to-market fields as unavailable. Fee-adjusted values use the
+explicit estimated per-side rate and are labeled non-exact.
+
 ## MCP Surface
 
 - `getBtcBasePositionManagerStatus`

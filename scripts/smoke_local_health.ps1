@@ -650,6 +650,9 @@ try {
     $btcBaseManagerStatus = Invoke-McpTool -Url $mcpUrl -ToolName "getBtcBasePositionManagerStatus" -Arguments @{ symbol = "BTCUSDT" }
     $btcBaseManagerStatusText = Get-McpDecodedText -Content $btcBaseManagerStatus
     Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern "BTC_BASE_POSITION_MANAGER_V1" -Description "BTC_BASE position manager status is registered"
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"managedCostBasis"\s*:' -Description "BTC_BASE manager exposes managed cost basis"
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"weightedAverageEntry"\s*:' -Description "BTC_BASE manager exposes weighted average entry"
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"ocoQuantityUsed"\s*:\s*false' -Description "BTC_BASE managed cost does not depend on OCO quantity"
     Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"liveActionsImplemented"\s*:\s*true' -Description "BTC_BASE guarded adoption lane is implemented"
     Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"adoptionExecutionArmed"\s*:\s*false' -Description "BTC_BASE guarded adoption lane remains disabled by default"
     $btcBaseInvalidPreview = Invoke-McpTool -Url $mcpUrl -ToolName "previewBtcBasePositionAdoption" -Arguments @{ positionIds = "not-an-id"; horizonHours = 168 }

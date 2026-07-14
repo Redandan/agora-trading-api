@@ -99,6 +99,7 @@ public class BtcBasePositionManagerService {
         ArrayNode candidateIds = inventory.putArray("recordedOcoCandidateIds");
         ocoCandidates.stream().map(BtLiveSignal::getId).forEach(candidateIds::add);
 
+        root.set("managedCostBasis", managedCostBasisJson(managedCostBasis(btcBaseNoOco, normalized)));
         root.put("persistedAdoptionImplemented", true);
         root.put("persistedManagedPositionCount", adopted.size());
         root.put("explicitPositionIdsRequiredForPreview", true);
@@ -111,6 +112,179 @@ public class BtcBasePositionManagerService {
                 : "Do not use V1 outside BTCUSDT.");
         addSafety(root);
         return pretty(root);
+    }
+
+    private ManagedCostBasis managedCostBasis(List<BtLiveSignal> managedPositions, String symbol) {
+        List<ManagedCostPosition> rows = new ArrayList<>();
+        List<String> costBasisBlockers = new ArrayList<>();
+        List<String> markToMarketBlockers = new ArrayList<>();
+        BigDecimal totalQty = BigDecimal.ZERO.setScale(8);
+        BigDecimal totalCost = BigDecimal.ZERO.setScale(8);
+
+        for (BtLiveSignal position : managedPositions) {
+            List<String> rowBlockers = new ArrayList<>();
+            if (BtcBasePositionStatePolicy.isAdoptionPending(position)) {
+                rowBlockers.add("ADOPTION_PENDING_NOT_FINALIZED");
+            }
+            if (!isOpenSpotLong(position)) {
+                rowBlockers.add("OPEN_SPOT_LONG_REQUIRED");
+            }
+            BigDecimal entry = positive(position.getActualEntryPrice())
+                    ? position.getActualEntryPrice() : position.getEntryPrice();
+            String entryPriceSource = positive(position.getActualEntryPrice())
+                    ? "actual_entry_price"
+                    : positive(position.getEntryPrice()) ? "entry_price_fallback" : "MISSING";
+            BigDecimal qty = position.getTradedQty();
+            if (!positive(entry)) rowBlockers.add("ENTRY_PRICE_MISSING");
+            if (!positive(qty)) rowBlockers.add("TRADED_QTY_MISSING");
+
+            BigDecimal rowCost = rowBlockers.isEmpty() ? entry.multiply(qty) : null;
+            boolean included = rowBlockers.isEmpty();
+            if (included) {
+                totalQty = totalQty.add(qty);
+                totalCost = totalCost.add(rowCost);
+            }
+            String positionKey = position.getId() == null ? "UNKNOWN" : position.getId().toString();
+            rowBlockers.stream()
+                    .map(blocker -> "POSITION_" + positionKey + ":" + blocker)
+                    .forEach(costBasisBlockers::add);
+            rows.add(new ManagedCostPosition(
+                    position.getId(),
+                    position.getStrategyId(),
+                    position.getIntervalCode(),
+                    BtcBasePositionStatePolicy.managementState(position),
+                    entryPriceSource,
+                    entry,
+                    qty,
+                    rowCost,
+                    included,
+                    List.copyOf(rowBlockers)));
+        }
+
+        boolean hasManagedPositions = !managedPositions.isEmpty();
+        boolean costBasisComplete = costBasisBlockers.isEmpty();
+        BigDecimal managedQty = costBasisComplete ? totalQty : null;
+        BigDecimal managedCost = costBasisComplete ? totalCost : null;
+        BigDecimal weightedAverageEntry = costBasisComplete && positive(totalQty)
+                ? totalCost.divide(totalQty, 8, RoundingMode.HALF_UP) : null;
+        BigDecimal feeAdjustedBreakEven = costBasisComplete && positive(totalQty)
+                ? totalCost.multiply(BigDecimal.ONE.add(FEE_RATE_PER_SIDE))
+                .divide(totalQty.multiply(BigDecimal.ONE.subtract(FEE_RATE_PER_SIDE)),
+                        8, RoundingMode.HALF_UP)
+                : null;
+
+        BigDecimal markPrice = null;
+        boolean markToMarketComplete = !hasManagedPositions;
+        if (hasManagedPositions && costBasisComplete && positive(totalQty)) {
+            try {
+                markPrice = okxTradingService.getLastPrice(symbol);
+                if (!positive(markPrice)) {
+                    markPrice = null;
+                    markToMarketBlockers.add("CURRENT_PRICE_INVALID");
+                }
+            } catch (Exception ignored) {
+                markToMarketBlockers.add("CURRENT_PRICE_QUERY_FAILED");
+            }
+            markToMarketComplete = positive(markPrice);
+        }
+
+        BigDecimal currentValue = !hasManagedPositions
+                ? BigDecimal.ZERO.setScale(8)
+                : markToMarketComplete ? markPrice.multiply(totalQty) : null;
+        BigDecimal grossUnrealizedPnl = currentValue != null && managedCost != null
+                ? currentValue.subtract(managedCost) : null;
+        BigDecimal grossUnrealizedPnlPct = grossUnrealizedPnl != null && positive(managedCost)
+                ? grossUnrealizedPnl.multiply(new BigDecimal("100"))
+                .divide(managedCost, 8, RoundingMode.HALF_UP)
+                : null;
+        BigDecimal estimatedEntryFee = managedCost == null
+                ? null : managedCost.multiply(FEE_RATE_PER_SIDE);
+        BigDecimal estimatedExitFee = currentValue == null
+                ? null : currentValue.multiply(FEE_RATE_PER_SIDE);
+        BigDecimal estimatedExitNowNetPnl = grossUnrealizedPnl != null
+                ? grossUnrealizedPnl.subtract(estimatedEntryFee).subtract(estimatedExitFee)
+                : null;
+
+        return new ManagedCostBasis(
+                List.copyOf(rows),
+                managedQty,
+                managedCost,
+                weightedAverageEntry,
+                feeAdjustedBreakEven,
+                markPrice,
+                currentValue,
+                grossUnrealizedPnl,
+                grossUnrealizedPnlPct,
+                estimatedEntryFee,
+                estimatedExitFee,
+                estimatedExitNowNetPnl,
+                costBasisComplete,
+                markToMarketComplete,
+                List.copyOf(costBasisBlockers),
+                List.copyOf(markToMarketBlockers));
+    }
+
+    private ObjectNode managedCostBasisJson(ManagedCostBasis basis) {
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("positionCount", basis.positions().size());
+        node.put("hasManagedPositions", !basis.positions().isEmpty());
+        node.put("costBasisComplete", basis.costBasisComplete());
+        node.put("markToMarketComplete", basis.markToMarketComplete());
+        node.put("positionScope", "finalized native or ADOPTED_FROM_OCO intentional no-OCO rows");
+        node.put("ownershipSource", "explicit open BTC_BASE bt_live_signal rows only");
+        node.put("quantitySource", "bt_live_signal.traded_qty");
+        node.put("entryPriceSource", "actual_entry_price fallback entry_price");
+        node.put("ocoQuantityUsed", false);
+        node.put("ocoStateRequired", false);
+        node.put("walletBalanceUsed", false);
+        node.put("gridInventoryIncluded", false);
+        node.put("manualBtcIncluded", false);
+        node.put("estimatedFeeRatePerSide", FEE_RATE_PER_SIDE);
+        node.put("feeEvidenceExact", false);
+        put(node, "managedQty", basis.managedQty());
+        put(node, "managedCostUsdt", basis.managedCostUsdt());
+        put(node, "weightedAverageEntry", basis.weightedAverageEntry());
+        put(node, "estimatedFeeAdjustedBreakEven", basis.estimatedFeeAdjustedBreakEven());
+        put(node, "markPrice", basis.markPrice());
+        put(node, "currentValueUsdt", basis.currentValueUsdt());
+        put(node, "grossUnrealizedPnlUsdt", basis.grossUnrealizedPnlUsdt());
+        put(node, "grossUnrealizedPnlPct", basis.grossUnrealizedPnlPct());
+        put(node, "estimatedEntryFeeUsdt", basis.estimatedEntryFeeUsdt());
+        put(node, "estimatedExitFeeUsdt", basis.estimatedExitFeeUsdt());
+        put(node, "estimatedExitNowNetPnlUsdt", basis.estimatedExitNowNetPnlUsdt());
+
+        ArrayNode positionIds = node.putArray("positionIds");
+        for (ManagedCostPosition position : basis.positions()) {
+            if (position.positionId() == null) positionIds.addNull();
+            else positionIds.add(position.positionId());
+        }
+        ArrayNode positions = node.putArray("positions");
+        for (ManagedCostPosition position : basis.positions()) {
+            ObjectNode row = positions.addObject();
+            if (position.positionId() == null) row.putNull("positionId");
+            else row.put("positionId", position.positionId());
+            if (position.strategyId() == null) row.putNull("strategyId");
+            else row.put("strategyId", position.strategyId());
+            putText(row, "intervalCode", position.intervalCode());
+            putText(row, "managementState", position.managementState());
+            putText(row, "entryPriceSource", position.entryPriceSource());
+            put(row, "entryPrice", position.entryPrice());
+            put(row, "recordedTradedQty", position.recordedTradedQty());
+            put(row, "managedQty", position.includedInAggregate()
+                    ? position.recordedTradedQty() : null);
+            put(row, "costUsdt", position.costUsdt());
+            row.put("includedInAggregate", position.includedInAggregate());
+            ArrayNode rowBlockers = row.putArray("blockers");
+            position.blockers().forEach(rowBlockers::add);
+        }
+        ArrayNode costBasisBlockers = node.putArray("costBasisBlockers");
+        basis.costBasisBlockers().forEach(costBasisBlockers::add);
+        ArrayNode markToMarketBlockers = node.putArray("markToMarketBlockers");
+        basis.markToMarketBlockers().forEach(markToMarketBlockers::add);
+        ArrayNode blockers = node.putArray("blockers");
+        basis.costBasisBlockers().forEach(blockers::add);
+        basis.markToMarketBlockers().forEach(blockers::add);
+        return node;
     }
 
     public String previewAdoption(String positionIds, Integer horizonHours) {
@@ -596,6 +770,40 @@ public class BtcBasePositionManagerService {
             boolean currentPriceComplete,
             boolean bracketComplete,
             boolean heuristicEvComplete
+    ) {
+    }
+
+    private record ManagedCostBasis(
+            List<ManagedCostPosition> positions,
+            BigDecimal managedQty,
+            BigDecimal managedCostUsdt,
+            BigDecimal weightedAverageEntry,
+            BigDecimal estimatedFeeAdjustedBreakEven,
+            BigDecimal markPrice,
+            BigDecimal currentValueUsdt,
+            BigDecimal grossUnrealizedPnlUsdt,
+            BigDecimal grossUnrealizedPnlPct,
+            BigDecimal estimatedEntryFeeUsdt,
+            BigDecimal estimatedExitFeeUsdt,
+            BigDecimal estimatedExitNowNetPnlUsdt,
+            boolean costBasisComplete,
+            boolean markToMarketComplete,
+            List<String> costBasisBlockers,
+            List<String> markToMarketBlockers
+    ) {
+    }
+
+    private record ManagedCostPosition(
+            Long positionId,
+            Long strategyId,
+            String intervalCode,
+            String managementState,
+            String entryPriceSource,
+            BigDecimal entryPrice,
+            BigDecimal recordedTradedQty,
+            BigDecimal costUsdt,
+            boolean includedInAggregate,
+            List<String> blockers
     ) {
     }
 

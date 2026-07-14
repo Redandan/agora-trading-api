@@ -42,6 +42,11 @@ foreach ($marker in @(
         'HEURISTIC_EV_NOT_STATISTICALLY_CALIBRATED',
         'RECOVERY_REVIEW_TTL_IS_RISK_GOVERNANCE_NOT_A_PROVEN_PROFIT_EDGE',
         'BtcBasePositionAdoptionService: persist pending, cancel and confirm OCO, retain BTC',
+        'managedCostBasis',
+        'weightedAverageEntry',
+        'estimatedFeeAdjustedBreakEven',
+        'ocoQuantityUsed", false',
+        'ocoStateRequired", false',
         'databaseMutated", false',
         'orderSent", false',
         'ocoCancelled", false',
@@ -103,6 +108,10 @@ foreach ($marker in @(
         "ADOPT_KEEP_BTC_RISK_REVIEW",
         "TRADED_QTY_OCO_QTY_MISMATCH",
         "filledSecondOcoChildFailsClosed",
+        "statusCalculatesAdoptedManagedCostBasisWithoutOcoDependency",
+        "statusFailsClosedOnIncompleteManagedCostBasis",
+        "statusExcludesPendingAdoptionFromManagedAggregate",
+        "statusKeepsCostBasisWhenMarkPriceUnavailable",
         "assertNoMutation")) {
     Assert-Contains -Name "focused Java coverage" -Text $text.JavaTest -Pattern ([regex]::Escape($marker))
 }

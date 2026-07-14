@@ -1,5 +1,22 @@
 # Split Progress
 
+- 2026-07-14: deployed OCO all-child state hardening runtime commit `4f11774`
+  with an explicitly authorized blue-green rollout from port `8085` to
+  `8084`. A shared `OcoOrderStateInspector` now checks the OCO parent and every
+  visible child for spot and swap paths; a confirmed child fill takes
+  precedence over a stale active parent, while incomplete child lookup fails
+  closed. Polling, market-close protection, ScoreBuy/strategy 508 preflight,
+  BTC Base previews, position reports, fee attribution, swap reconciliation,
+  and backtest fill-price resolution use the same state semantics. Full
+  shared-schema split acceptance passed with 329 Trading MCP tools, 50 required
+  tools / zero missing, zero runtime errors, zero unknown warnings, and no
+  high-risk operation log lines. Post-deploy assertions for `#260/#261/#262`
+  confirmed strategy 508 ownership, exact `tradedQty == ocoQty == ownedQty`,
+  three live OCOs, `3 OK / 0 SYNC_ERROR / 0 anomaly`, zero preview blockers,
+  aggregate quantity `0.00047090 BTC`, and cost `29.99925310 USDT`. Both BTC
+  Base previews remained read-only with `RETIRE_CLOSE_REVIEW`; every safety
+  marker was false. No production env, DB, order, position, OCO, Telegram,
+  scheduler, Grid, fund, Earn, backfill, or exchange mutation was performed.
 - 2026-07-14: deployed `BTC_BASE_POSITION_MANAGER_V1` runtime commit
   `c75814f` with an explicitly authorized blue-green rollout from port `8084`
   to `8085`. Full shared-schema split acceptance and post-call runtime smoke

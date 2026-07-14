@@ -20,8 +20,8 @@ It is not a loss-hiding or indefinite bag-holding bucket.
 - Every preview requires explicit comma-separated `bt_live_signal` IDs.
 - V1 accepts only open auto-traded BTCUSDT spot LONG rows.
 - `tradedQty` and `ocoQty` must both be positive and equal within one satoshi.
-- The recorded OCO parent must still be active, and no visible child order may
-  already be filled.
+- The recorded OCO parent must still be active, every visible child lookup must
+  complete, and no child order may already be filled.
 - Existing Local TradingView no-OCO BTC_BASE slices are not adoptable.
 - Wallet BTC, Grid inventory, manual BTC, and unrelated holdings are never used
   to infer ownership.
@@ -93,6 +93,29 @@ following exact read-only evidence for `260,261,262`:
 The production environment SHA-256 was unchanged across deployment. This
 acceptance does not authorize adoption persistence, OCO cancellation or
 modification, position close, order placement, or any other live action.
+
+### OCO All-Child State Hardening
+
+Runtime commit `4f11774` was deployed on 2026-07-14 from blue-green port
+`8085` to `8084`. OCO state is now resolved by one shared read-only inspector
+across BTC Base previews, the OCO poller, market-close protection, preflight
+gates, reports, fee attribution, swap reconciliation, and backtest fill-price
+resolution.
+
+- The inspector queries the parent and every visible child order.
+- Any confirmed child fill takes precedence over a stale active parent state.
+- A child-query failure is incomplete evidence and fails closed; it cannot be
+  treated as active, canceled, or safe for a replacement market sell.
+- A later confirmed fill still wins if an earlier child lookup failed, because
+  that is sufficient evidence to prevent a duplicate sell.
+
+The post-deploy production assertions confirmed all three selected OCOs remain
+`live`, exact quantity ownership still holds, OCO health is
+`3 OK / 0 SYNC_ERROR / 0 anomaly`, and every preview safety flag remains
+false. Shared-schema split acceptance, MCP parity, signal correctness,
+strategy 508 SHADOW checks, Local TradingView `BTC_BASE_DRY_RUN` checks, and a
+final runtime-log smoke passed. This deployment did not change strategy modes,
+environment settings, orders, positions, existing OCOs, or database state.
 
 ## Verification And Rollout
 

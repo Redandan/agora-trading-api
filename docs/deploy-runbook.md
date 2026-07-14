@@ -123,6 +123,15 @@ the historical candidate at the first following 1m open, preserves the fixed
 results are not finalized when 1m coverage is below 99% or TP and SL touch in
 the same minute.
 
+The separate `BTC_DONCHIAN_20D_10D_V1` result has an evidence-only runtime
+implementation. Its only configuration is
+`TRADING_BTC_DONCHIAN_SHADOW_MODE=OFF|SHADOW`, defaulting to `OFF`; no live
+value or order/OCO/Telegram dependency exists. The first deployment must keep
+the effective value `OFF`. A later production SHADOW activation requires a
+separate explicit authorization. See
+`docs/btc-donchian-shadow-runtime-rollout-2026-07-13.md` and use the read-only
+`scripts/smoke_btc_donchian_shadow_ssh.ps1` after either authorized step.
+
 Approved evidence-only production state for the first rollout:
 
 ```bash

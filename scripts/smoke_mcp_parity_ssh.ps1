@@ -116,6 +116,8 @@ required_tools = [
     "analyzeStrategy508TimeExitCandidate",
     "getStrategy508TimeExitReadiness",
     "getStrategyNetPnlAttribution",
+    "analyzeBtcDonchianShadowGoldenParity",
+    "getBtcDonchianShadowReadiness",
     "getGovernanceDriftDashboard",
     "findGovernanceRelaxationCandidates",
     "findGovernanceTighteningCandidates",

@@ -18,6 +18,9 @@ public interface BtDecisionAuditRepository extends JpaRepository<BtDecisionAudit
     boolean existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndEventType(
             Long strategyId, String symbol, String intervalCode, LocalDateTime barOpenTime, String eventType);
 
+    boolean existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
+            String symbol, String intervalCode, LocalDateTime barOpenTime, String eventType);
+
     /** 最近 N 分鐘決策(供 listRecentDecisions MCP tool)。 */
     @Query("SELECT a FROM BtDecisionAudit a " +
            "WHERE a.eventTime > :since " +

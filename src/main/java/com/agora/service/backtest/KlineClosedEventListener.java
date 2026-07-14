@@ -2,6 +2,7 @@ package com.agora.service.backtest;
 
 import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
+import com.agora.service.trading.BtcDonchianShadowLaneService;
 import com.agora.service.trading.Strategy508TimeExitLaneService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
@@ -24,6 +25,7 @@ public class KlineClosedEventListener {
     private final TradingSignalSourcePolicy signalSourcePolicy;
     private final LocalTradingViewSignalEvaluator localTradingViewSignalEvaluator;
     private final Strategy508TimeExitLaneService strategy508TimeExitLaneService;
+    private final BtcDonchianShadowLaneService btcDonchianShadowLaneService;
 
     @Async
     @EventListener
@@ -42,6 +44,12 @@ public class KlineClosedEventListener {
             strategy508TimeExitLaneService.evaluate(kline);
         } catch (Exception e) {
             log.error("[KlineClosedEventListener] strategy 508 time-exit lane failed {}@{} openTime={}: {}",
+                    kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
+        }
+        try {
+            btcDonchianShadowLaneService.evaluate(kline);
+        } catch (Exception e) {
+            log.error("[KlineClosedEventListener] BTC Donchian shadow lane failed {}@{} openTime={}: {}",
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
         if (signalSourcePolicy.shouldRunLocalTradingViewEvaluator()) {

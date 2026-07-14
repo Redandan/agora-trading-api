@@ -126,6 +126,13 @@ public class McpToolsConfig {
     }
 
     @Bean
+    public ToolCallbackProvider btcDonchianShadowMcpToolCallbacks(BtcDonchianShadowMcpTools tools) {
+        return MethodToolCallbackProvider.builder()
+                .toolObjects(tools)
+                .build();
+    }
+
+    @Bean
     public ToolCallbackProvider signalCorrectnessMcpToolCallbacks(SignalCorrectnessMcpTools tools) {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(tools)

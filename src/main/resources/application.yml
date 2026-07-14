@@ -58,6 +58,8 @@ trading:
   strategy508-time-exit:
     mode: ${TRADING_508_TIME_EXIT_MODE:OFF}
     live-order-enabled: ${TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED:false}
+  btc-donchian-shadow:
+    mode: ${TRADING_BTC_DONCHIAN_SHADOW_MODE:OFF}
   tradingview:
     webhook:
       enabled: ${TRADINGVIEW_WEBHOOK_ENABLED:false}

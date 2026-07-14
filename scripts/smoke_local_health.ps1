@@ -284,6 +284,7 @@ $envOverrides = @{
     TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT = "0"
     TRADING_508_TIME_EXIT_MODE = "OFF"
     TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED = "false"
+    TRADING_BTC_DONCHIAN_SHADOW_MODE = "OFF"
     TRADINGVIEW_WEBHOOK_ENABLED = "false"
     TRADINGVIEW_WEBHOOK_DRY_RUN = "true"
     TRADINGVIEW_WEBHOOK_SECRET = ""
@@ -495,6 +496,7 @@ try {
         "--trading.tiny-live.auto-execution.dry-run=true",
         "--mcp.guardian-live-actions-enabled=false",
         "--trading.runtime-evidence.enabled=false",
+        "--trading.btc-donchian-shadow.mode=OFF",
         "--trading.data-freshness.shadow-replay.collector.enabled=false",
         "--trading.discovery.ai-suggestions.enabled=false",
         "--position-exit-manager.enabled=false",
@@ -601,6 +603,8 @@ try {
         "analyzeStrategy508TimeExitCandidate",
         "getStrategy508TimeExitReadiness",
         "getStrategyNetPnlAttribution",
+        "analyzeBtcDonchianShadowGoldenParity",
+        "getBtcDonchianShadowReadiness",
         "getGovernanceDriftDashboard",
         "findGovernanceRelaxationCandidates",
         "findGovernanceTighteningCandidates",

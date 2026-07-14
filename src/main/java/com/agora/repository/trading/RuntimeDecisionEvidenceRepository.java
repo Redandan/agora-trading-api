@@ -24,6 +24,9 @@ public interface RuntimeDecisionEvidenceRepository extends JpaRepository<Runtime
     Optional<RuntimeDecisionEvidence> findFirstByLiveSignalIdAndPolicyModeOrderByEvidenceTimeDesc(
             Long liveSignalId, String policyMode);
 
+    List<RuntimeDecisionEvidence> findByPolicyModeAndSymbolAndIntervalCodeOrderByIdDesc(
+            String policyMode, String symbol, String intervalCode, Pageable pageable);
+
     @Query("SELECT e FROM RuntimeDecisionEvidence e " +
            "WHERE e.evidenceTime >= :since " +
            "  AND (:symbol IS NULL OR e.symbol = :symbol) " +

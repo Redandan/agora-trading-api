@@ -17,6 +17,7 @@ import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.service.BtStrategyService;
 import com.agora.service.TelegramService;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.trading.BtcDonchianShadowLaneService;
 import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.Strategy508TimeExitLaneService;
@@ -60,7 +61,8 @@ class KlineClosedEventListenerTest {
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
                 local,
-                mock(Strategy508TimeExitLaneService.class));
+                mock(Strategy508TimeExitLaneService.class),
+                mock(BtcDonchianShadowLaneService.class));
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1D")));
 
@@ -76,7 +78,8 @@ class KlineClosedEventListenerTest {
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("LEGACY", true)),
                 local,
-                mock(Strategy508TimeExitLaneService.class));
+                mock(Strategy508TimeExitLaneService.class),
+                mock(BtcDonchianShadowLaneService.class));
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1D")));
 
@@ -92,7 +95,8 @@ class KlineClosedEventListenerTest {
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("LOCAL_TRADINGVIEW", false)),
                 local,
-                mock(Strategy508TimeExitLaneService.class));
+                mock(Strategy508TimeExitLaneService.class),
+                mock(BtcDonchianShadowLaneService.class));
 
         MdKline kline = kline("BTCUSDT", "1D");
         listener.onKlineClosed(new KlineClosedEvent(this, kline));
@@ -110,7 +114,8 @@ class KlineClosedEventListenerTest {
                 new TradingSignalSourcePolicy(new TradingSignalSourceProperties(
                         "LOCAL_TRADINGVIEW", false, true, "508", new BigDecimal("10.0"))),
                 local,
-                mock(Strategy508TimeExitLaneService.class));
+                mock(Strategy508TimeExitLaneService.class),
+                mock(BtcDonchianShadowLaneService.class));
 
         MdKline kline = kline("BTCUSDT", "1h");
         listener.onKlineClosed(new KlineClosedEvent(this, kline));
@@ -178,7 +183,8 @@ class KlineClosedEventListenerTest {
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
                 localProps(ExecutionMode.LIVE_MICRO), auditWriter, executionService);
         KlineClosedEventListener listener = new KlineClosedEventListener(
-                legacyEvaluator, policy, localEvaluator, mock(Strategy508TimeExitLaneService.class));
+                legacyEvaluator, policy, localEvaluator, mock(Strategy508TimeExitLaneService.class),
+                mock(BtcDonchianShadowLaneService.class));
 
         MdKline event = kline("BTCUSDT", "1D");
         event.setClosePrice(new BigDecimal("100.00"));
@@ -231,7 +237,8 @@ class KlineClosedEventListenerTest {
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
                 localProps(ExecutionMode.DRY_RUN), auditWriter, executionService);
         KlineClosedEventListener listener = new KlineClosedEventListener(
-                legacyEvaluator, policy, localEvaluator, mock(Strategy508TimeExitLaneService.class));
+                legacyEvaluator, policy, localEvaluator, mock(Strategy508TimeExitLaneService.class),
+                mock(BtcDonchianShadowLaneService.class));
 
         MdKline event = kline("BTCUSDT", "1D");
         event.setClosePrice(new BigDecimal("100.00"));
@@ -263,17 +270,20 @@ class KlineClosedEventListenerTest {
         LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
         Strategy508TimeExitLaneService timeExitLane = mock(Strategy508TimeExitLaneService.class);
+        BtcDonchianShadowLaneService donchianLane = mock(BtcDonchianShadowLaneService.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("LEGACY", true)),
                 local,
-                timeExitLane);
+                timeExitLane,
+                donchianLane);
 
         listener.onKlineClosed(new KlineClosedEvent(this, kline("BTCUSDT", "1m")));
 
         verify(evaluator, never()).evaluate("BTCUSDT", "1m");
         verify(local, never()).evaluate(org.mockito.ArgumentMatchers.any());
         verify(timeExitLane, never()).evaluate(org.mockito.ArgumentMatchers.any());
+        verify(donchianLane, never()).evaluate(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -281,17 +291,41 @@ class KlineClosedEventListenerTest {
         LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
         LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
         Strategy508TimeExitLaneService timeExitLane = mock(Strategy508TimeExitLaneService.class);
+        BtcDonchianShadowLaneService donchianLane = mock(BtcDonchianShadowLaneService.class);
         KlineClosedEventListener listener = new KlineClosedEventListener(
                 evaluator,
                 new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
                 local,
-                timeExitLane);
+                timeExitLane,
+                donchianLane);
 
         MdKline event = kline("BTCUSDT", "4h");
         listener.onKlineClosed(new KlineClosedEvent(this, event));
 
         verify(timeExitLane).evaluate(event);
+        verify(donchianLane).evaluate(event);
         verify(evaluator, never()).evaluate("BTCUSDT", "4h");
+    }
+
+    @Test
+    void btcDonchianLaneReceivesOneHourEventWhenLegacyIsDisabled() {
+        LiveSignalEvaluator evaluator = mock(LiveSignalEvaluator.class);
+        LocalTradingViewSignalEvaluator local = mock(LocalTradingViewSignalEvaluator.class);
+        Strategy508TimeExitLaneService timeExitLane = mock(Strategy508TimeExitLaneService.class);
+        BtcDonchianShadowLaneService donchianLane = mock(BtcDonchianShadowLaneService.class);
+        KlineClosedEventListener listener = new KlineClosedEventListener(
+                evaluator,
+                new TradingSignalSourcePolicy(signalSourceProps("TRADINGVIEW", false)),
+                local,
+                timeExitLane,
+                donchianLane);
+
+        MdKline event = kline("BTCUSDT", "1h");
+        listener.onKlineClosed(new KlineClosedEvent(this, event));
+
+        verify(donchianLane).evaluate(event);
+        verify(timeExitLane).evaluate(event);
+        verify(evaluator, never()).evaluate("BTCUSDT", "1h");
     }
 
     private MdKline kline(String symbol, String intervalCode) {

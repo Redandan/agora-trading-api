@@ -1,5 +1,38 @@
 # Split Progress
 
+- 2026-07-14: the operator explicitly authorized
+  `BTC_DONCHIAN_20D_10D_V1` OFF-code staging, commit, push, and deployment only.
+  Production environment changes and SHADOW activation remain outside this
+  authorization and require a later separate decision.
+- 2026-07-13: completed the separately authorized BTC Donchian production data
+  repair while effective mode remained `OFF`. The transaction-gated importer
+  verified immutable local CSV SHA-256, exact production pre-state, inserted
+  55,405 missing OKX `BTCUSDT/1h` rows, and corrected one close time. It
+  committed only after all 66,009 rows produced canonical price-bar hash
+  `361ab6910872079db4e58c45897828b3399c5d9cb8346afcd1970536d1ee6a6d`.
+  An independent post-commit predeploy packet reproduced the hash with zero
+  duplicates, lattice gaps, close-time errors, OHLC failures, or blockers and
+  returned `READY_FOR_OFF_DEPLOY_AUTHORIZATION`. No commit, push, deploy,
+  restart, env change, order, OCO, Telegram, external download/backfill,
+  strategy, grid, fund, or Earn mutation was performed. That data-repair
+  authorization did not include OFF code deployment or SHADOW activation.
+- 2026-07-13: implemented the local-only `BTC_DONCHIAN_20D_10D_V1`
+  SHADOW evidence runtime. One deterministic engine now owns historical replay,
+  closed-bar stepping, restart/catch-up state, and exact golden verification.
+  The full 66,009-row official OKX dataset matches every normal/stress
+  signal/order/trade row and all six frozen ledger hashes. Runtime mode is
+  limited to `OFF|SHADOW` and defaults `OFF`; there is no live implementation,
+  scheduler, order/OCO/Telegram dependency, or external-backfill path. This
+  work is local only: no deploy, production env/restart, order, OCO, Telegram,
+  DB, backfill, strategy, grid, fund, or Earn mutation was performed. Full
+  local verification passed 383 Java tests and all PowerShell/split checks;
+  startup smoke passed with 326 MCP tools, 47 required, and zero missing.
+- 2026-07-13: local-only BTC price research now has a tamper-evident official
+  OKX `BTC-USDT/1H` dataset (66,009 confirmed contiguous UTC rows), frozen cost
+  policy, isolated five-fold simulation, per-signal/order/trade ledgers, and an
+  independent report verifier. `BTC_DONCHIAN_20D_10D_V1` is the only historical
+  pass and is routed to SHADOW design review only; no deploy, environment,
+  order, OCO, Telegram, backfill, or production DB mutation was performed.
 - 2026-07-13: deployed strategy 508 market-feature freshness/provenance commit
   `cf1f4df` with an explicitly authorized blue-green rollout. Production moved
   from port `8084` to `8085`, the old listener drained, and strict server verify
@@ -125,9 +158,10 @@
 - `agora-trading-api` is extracted and compiles as a standalone Spring Boot app.
 - Current test baseline: `mvn test` should load the full Spring context with `com.agora` component scanning.
 - The repo keeps trading/system runtime code needed for the Spring context. Marketplace auth/frontend remnants are treated as forbidden cleanup regressions by `scripts/verify_local.ps1`.
-- Current reusable MCP parity contract requires 41 representative tools,
+- Current reusable MCP parity contract requires 47 representative tools,
   including BTC_BASE semantics/profit, Binance backfill, golden-truth
-  verification, and timeframe-aware strategy validation surfaces.
+  verification, timeframe-aware strategy validation, and BTC Donchian golden
+  parity/readiness surfaces.
 
 ## Completed
 

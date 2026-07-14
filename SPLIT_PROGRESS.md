@@ -1,13 +1,25 @@
 # Split Progress
 
+- 2026-07-14: deployed strategy 508 entry-diagnostic hardening commit
+  `502ff4d` with an explicitly authorized blue-green rollout from port `8085`
+  to `8084`. The production env SHA-256 was unchanged across deployment.
+  Pre-drain and strict post-drain server verification, shared-mode schema
+  comparison, split acceptance, MCP parity (`326` tools / `47` required),
+  signal correctness, strategy 508 hold/time-exit, EntryDedup/exposure,
+  first-entry, Donchian SHADOW isolation, OCO health, and final runtime-log
+  smokes passed. Strategy 508 remains `SHADOW` with live-order false and
+  `orderAllowed=false`; its historical sample remains fail-closed at seven
+  finalized events. Generic PnL attribution now reports all four matching
+  positions, including three open legacy positions, without claiming exact net
+  PnL when fee evidence is incomplete. OCO remained `SYNC_ERROR=0`; runtime
+  logs had zero errors, only the known WARN baseline, and no high-risk operation
+  lines. No production env, order, OCO, position, strategy flag, Telegram,
+  grid, fund, Earn, external backfill, or database mutation was performed.
 - 2026-07-14: a read-only runtime audit confirmed
   `BTC_DONCHIAN_20D_10D_V1` is now deployed in production `SHADOW` at
   `cb2c31c` with exact golden parity. Evidence contained two runtime rows and
   one non-bootstrap forward bar, with zero entries and zero completed trades.
-  The lane still has no live implementation, order, OCO, or Telegram path. The
-  current local repair batch performs no deployment or production mutation.
-  Its local acceptance passed 391 Java tests and all PowerShell/split checks;
-  startup smoke passed with 326 MCP tools, 47 required, and zero missing.
+  The lane still has no live implementation, order, OCO, or Telegram path.
 - 2026-07-14: the operator explicitly authorized
   `BTC_DONCHIAN_20D_10D_V1` OFF-code staging, commit, push, and deployment only.
   Production environment changes and SHADOW activation remain outside this

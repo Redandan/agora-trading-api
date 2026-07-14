@@ -1,23 +1,34 @@
 # Split Progress
 
-- 2026-07-14: implemented local-only `BTC_BASE_ADOPTION_V1` for explicitly
-  selected BTCUSDT spot positions. The guarded saga requires exact recorded
-  ownership and exchange OCO quantity, two default-OFF runtime gates, exact
-  aggregate quantity, and a dynamic confirmation string. It persists a
-  recoverable `ADOPTION_PENDING` marker, cancels and freshly confirms the OCO,
-  then records `ADOPTED_FROM_OCO` while keeping the position open and retaining
-  its BTC. It is idempotent, fail-closed on fill/query/cancel races, and never
-  submits a sell, closes the position, sends Telegram, moves funds, or changes
-  Grid/Earn. Shared BTC_BASE state now suppresses generic OCO retry/modify,
-  trailing-stop, legacy SELL, time-exit market close, missing-OCO noise, and
-  generic DB force-close paths; adopted holdings count toward cross-strategy
-  BTC_BASE exposure. Full local verification passed 441 Java tests and all
-  PowerShell/split checks. Startup smoke passed with 330 MCP tools, 50 required
-  tools / zero missing, and explicit default-OFF write-gate assertions. This
-  batch remains uncommitted and undeployed. It did not change production env,
-  DB, orders, positions, OCO, Telegram, scheduler state, Grid, fund, Earn,
-  backfill, or exchange state; live adoption still requires separate explicit
-  authorization and a single active runtime.
+- 2026-07-14: deployed `BTC_BASE_ADOPTION_V1` runtime commit `1136379` with an
+  explicitly authorized blue-green rollout from port `8084` to `8085`. The
+  guarded saga requires exact recorded ownership and exchange OCO quantity, two
+  default-OFF runtime gates, exact aggregate quantity, and a dynamic
+  confirmation string. It persists a recoverable `ADOPTION_PENDING` marker,
+  cancels and freshly confirms the OCO, then records `ADOPTED_FROM_OCO` while
+  keeping the position open and retaining its BTC. It is idempotent,
+  fail-closed on fill/query/cancel races, and never submits a sell, closes the
+  position, sends Telegram, moves funds, or changes Grid/Earn. Shared BTC_BASE
+  state suppresses generic OCO retry/modify, trailing-stop, legacy SELL,
+  time-exit market close, missing-OCO noise, and generic DB force-close paths;
+  adopted holdings count toward cross-strategy BTC_BASE exposure. Full local
+  verification passed 441 Java tests and all PowerShell/split checks. Startup
+  smoke passed with 330 MCP tools, 50 required tools / zero missing, and
+  explicit default-OFF write-gate assertions. Full post-deploy shared-schema
+  split acceptance passed with a clean deployed worktree, zero runtime errors,
+  zero unknown warnings, no high-risk operation lines, correct dedicated-host
+  routing, and the shared-host MCP block intact. Server-local manager status,
+  both exact previews, and the protected dry-run for `#260/#261/#262` proved
+  strategy 508 ownership, intervals `4h/4h/1h`, exact per-row
+  `tradedQty == ocoQty`, aggregate quantity `0.00047090 BTC`, zero blockers,
+  and three eligible live OCOs. The dry-run returned
+  `READY_FOR_EXPLICIT_EXECUTION_NOT_AUTHORIZED`; both adoption gates and
+  `executionArmed` remained false. OCO health before and after stayed
+  `3 OK / 0 SYNC_ERROR / 0 anomaly`. Every safety marker remained false: no
+  production env, DB/runtime-evidence write, order, close, OCO change,
+  Telegram, scheduler, Grid, fund, Earn, backfill, or exchange mutation was
+  performed. Live adoption still requires separate exact authorization and a
+  fully drained predecessor runtime.
 - 2026-07-14: deployed OCO all-child state hardening runtime commit `4f11774`
   with an explicitly authorized blue-green rollout from port `8085` to
   `8084`. A shared `OcoOrderStateInspector` now checks the OCO parent and every

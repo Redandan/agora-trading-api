@@ -1,10 +1,32 @@
 # Split Acceptance Status
 
-Last refreshed: 2026-06-29
+Last refreshed: 2026-07-14
 
 This file is the current handoff for deciding whether the extracted
 `agora-trading-api` service is accepted enough to run as the Trading owner while
 AgoraMarketAPI keeps the shared database and internal exchange-rate API.
+
+## Latest Runtime Acceptance
+
+- Runtime commit `1136379` is deployed on active port `8085`; the predecessor
+  port `8084` was drained and has no listener. Full shared-schema split
+  acceptance passed with a clean deployed worktree, correct dedicated/shared
+  host routing, zero runtime errors, zero unknown warnings, and no high-risk
+  operation log lines.
+- `BTC_BASE_ADOPTION_V1` is implemented but not armed. Production reports
+  `adoptionFeatureEnabled=false`, `adoptionLiveActionEnabled=false`, and
+  `adoptionExecutionArmed=false`.
+- Server-local exact previews and the protected `execute=false` dry-run for
+  positions `#260/#261/#262` proved strategy 508 ownership, intervals
+  `4h/4h/1h`, exact per-row recorded/OCO quantity parity, aggregate quantity
+  `0.00047090 BTC`, zero blockers, and three eligible live OCOs. The dry-run
+  status is `READY_FOR_EXPLICIT_EXECUTION_NOT_AUTHORIZED`.
+- OCO health was unchanged before and after acceptance at
+  `3 OK / 0 SYNC_ERROR / 0 anomaly`. No environment, DB/runtime-evidence,
+  order, close, OCO, Telegram, scheduler, Grid, fund, Earn, backfill, or
+  exchange mutation occurred. Actual adoption remains a separate production
+  action requiring exact authorization, both gates, exact quantity, dynamic
+  confirmation text, and one active runtime.
 
 ## Current Architecture
 

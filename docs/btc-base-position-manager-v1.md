@@ -148,6 +148,39 @@ Safe rollout sequence:
 6. Return both flags to `false` after the scoped action unless another explicit
    authorization says otherwise.
 
+The guarded operator wrapper implements steps 2-6 with a default read-only
+mode, exact local confirmation, single-runtime restart, dynamic MCP
+confirmation, and automatic restoration of the original environment file and
+gates-off runtime:
+
+```powershell
+.\scripts\execute_btc_base_position_adoption_ssh.ps1 `
+  -PositionIds "260,261,262" `
+  -ExpectedTotalQty 0.00047090
+```
+
+Only after the exact live authorization, repeat with `-Execute` and the
+`required_local_confirm_text` emitted by the read-only run. The wrapper stores
+sanitized execution evidence but does not persist the dynamic MCP confirmation
+text.
+
+## Production Adoption Evidence
+
+The explicitly authorized production action completed on 2026-07-14 for
+strategy 508 positions `#260/#261/#262`, aggregate quantity `0.00047090 BTC`.
+The three exact exchange OCO algo IDs were canceled and independently confirmed
+unfilled. All three database rows remain open with unchanged quantities and
+state `ADOPTED_FROM_OCO`; the manager reports zero pending rows, zero active OCO
+candidates, and three adopted holdings.
+
+No BTC sell or position close occurred. The trading-wallet BTC cash balance was
+`0.00058897202`, covering the managed cohort without being treated as proof of
+row-level ownership. The original production environment was restored
+byte-for-byte, both adoption gates and `executionArmed` are false, and the
+gates-off runtime passed post-action split acceptance. Sanitized evidence is at
+`/home/ubuntu/agora-trading-api/target/btc-base-adoption/adoption-20260714T142520Z.json`;
+the dynamic MCP confirmation is intentionally absent.
+
 Any `ADOPTION_PENDING`, child fill, quantity drift, exchange-query failure, or
 partial cohort result stops acceptance. Keep the flags off and resume only
 after read-only OCO and position reconciliation.

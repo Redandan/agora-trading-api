@@ -5526,8 +5526,22 @@ must leave both `TRADING_BTC_BASE_ADOPTION_ENABLED` and
 `TRADING_BTC_BASE_ADOPTION_LIVE_ACTION_ENABLED` false. A later live adoption
 requires a fully drained predecessor runtime, one active Trading runtime, a
 fresh dry-run, exact aggregate quantity, exact dynamic confirmation text, and
-a separate explicit authorization. See `docs/btc-base-position-manager-v1.md`
-for the state machine, recovery, and post-action acceptance contract.
+a separate explicit authorization. Use the fail-closed operator in read-only
+mode first:
+
+```powershell
+.\scripts\execute_btc_base_position_adoption_ssh.ps1 `
+  -PositionIds "260,261,262" `
+  -ExpectedTotalQty 0.00047090
+```
+
+Only the exact emitted local confirmation may be supplied with `-Execute` and
+`-ConfirmText`. The operator temporarily arms both gates, executes the exact
+cohort, restores the original environment byte-for-byte, and restarts the
+gates-off runtime. Its restart log name must end in `-port8084.log` or
+`-port8085.log` so standard runtime-log acceptance inspects the new process.
+See `docs/btc-base-position-manager-v1.md` for the state machine, recovery, and
+post-action acceptance contract.
 
 ## AgoraMarketAPI Trading Cutover Plan
 

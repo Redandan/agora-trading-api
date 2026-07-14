@@ -1,5 +1,26 @@
 # Split Progress
 
+- 2026-07-14: completed the explicitly authorized production adoption of
+  strategy 508 positions `#260/#261/#262` into intentional BTC Base
+  management. The exact cohort quantity was `0.00047090 BTC`; all three rows
+  remain open with their original quantities and now report
+  `ADOPTED_FROM_OCO`. Exchange OCO algo IDs `3727763466544136192`,
+  `3730179375279816704`, and `3730420950782099456` were independently
+  confirmed canceled and unfilled. No market sell, position close, Telegram
+  send, fund transfer, Grid, or Earn action occurred. The trading-wallet BTC
+  cash balance was `0.00058897202`, which covers the managed cohort but is not
+  used as proof of row-level ownership. The operator restored the original
+  production environment byte-for-byte, restarted the single active runtime,
+  and left both adoption gates plus `executionArmed` false. Independent MCP,
+  idempotency, OCO-health, open-position, wallet, fill-history, process, and
+  runtime-log checks passed; OCO health remained `3 OK / 0 SYNC_ERROR / 0
+  anomaly`, now intentionally classified as managed no-OCO holdings. Runtime
+  commit `1136379` remains active on port `8085`, port `8084` has no listener,
+  and post-action split acceptance passed with 330 Trading MCP tools, zero
+  runtime errors, zero unknown warnings, and no high-risk operation lines.
+  Sanitized evidence is stored at
+  `/home/ubuntu/agora-trading-api/target/btc-base-adoption/adoption-20260714T142520Z.json`;
+  the dynamic MCP confirmation was not persisted.
 - 2026-07-14: deployed `BTC_BASE_ADOPTION_V1` runtime commit `1136379` with an
   explicitly authorized blue-green rollout from port `8084` to `8085`. The
   guarded saga requires exact recorded ownership and exchange OCO quantity, two
@@ -27,8 +48,8 @@
   `3 OK / 0 SYNC_ERROR / 0 anomaly`. Every safety marker remained false: no
   production env, DB/runtime-evidence write, order, close, OCO change,
   Telegram, scheduler, Grid, fund, Earn, backfill, or exchange mutation was
-  performed. Live adoption still requires separate exact authorization and a
-  fully drained predecessor runtime.
+  performed. At that acceptance checkpoint, live adoption still required
+  separate exact authorization and a fully drained predecessor runtime.
 - 2026-07-14: deployed OCO all-child state hardening runtime commit `4f11774`
   with an explicitly authorized blue-green rollout from port `8085` to
   `8084`. A shared `OcoOrderStateInspector` now checks the OCO parent and every

@@ -1702,6 +1702,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_time_exit_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_btc_base_position_manager_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_btc_base_position_manager_shadow_packet.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_btc_base_position_adoption_execution.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_btc_price_only_research.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_btc_donchian_shadow_smoke.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy508_min_notional_floor_activation_packet.ps1"

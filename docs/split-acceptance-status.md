@@ -10,23 +10,24 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
 
 - Runtime commit `1136379` is deployed on active port `8085`; the predecessor
   port `8084` was drained and has no listener. Full shared-schema split
-  acceptance passed with a clean deployed worktree, correct dedicated/shared
-  host routing, zero runtime errors, zero unknown warnings, and no high-risk
-  operation log lines.
-- `BTC_BASE_ADOPTION_V1` is implemented but not armed. Production reports
-  `adoptionFeatureEnabled=false`, `adoptionLiveActionEnabled=false`, and
-  `adoptionExecutionArmed=false`.
-- Server-local exact previews and the protected `execute=false` dry-run for
-  positions `#260/#261/#262` proved strategy 508 ownership, intervals
-  `4h/4h/1h`, exact per-row recorded/OCO quantity parity, aggregate quantity
-  `0.00047090 BTC`, zero blockers, and three eligible live OCOs. The dry-run
-  status is `READY_FOR_EXPLICIT_EXECUTION_NOT_AUTHORIZED`.
-- OCO health was unchanged before and after acceptance at
-  `3 OK / 0 SYNC_ERROR / 0 anomaly`. No environment, DB/runtime-evidence,
-  order, close, OCO, Telegram, scheduler, Grid, fund, Earn, backfill, or
-  exchange mutation occurred. Actual adoption remains a separate production
-  action requiring exact authorization, both gates, exact quantity, dynamic
-  confirmation text, and one active runtime.
+  acceptance passed against the current post-action log
+  `app-20260714T142625Z-btc-base-adoption-port8085.log`, with correct
+  dedicated/shared host routing, 330 Trading MCP tools, zero runtime errors,
+  zero unknown warnings, and no high-risk operation log lines.
+- The explicitly authorized `BTC_BASE_ADOPTION_V1` action completed for
+  positions `#260/#261/#262`, aggregate quantity `0.00047090 BTC`. All three
+  rows remain open with unchanged quantities, state `ADOPTED_FROM_OCO`, and no
+  pending adoption. Their exact exchange OCO algo IDs are canceled and
+  independently confirmed unfilled; active OCO count is zero.
+- Production now reports `adoptionFeatureEnabled=false`,
+  `adoptionLiveActionEnabled=false`, and `adoptionExecutionArmed=false`. The
+  operator restored the original environment file byte-for-byte and restarted
+  the single active gates-off runtime.
+- OCO health remains `3 OK / 0 SYNC_ERROR / 0 anomaly`, with the three rows
+  intentionally classified as managed no-OCO holdings. Independent exchange
+  history found no action-time BTC sell, and trading-wallet BTC cash balance
+  `0.00058897202` covers the managed quantity. No position close, Telegram,
+  scheduler, Grid, fund, Earn, or unrelated production action occurred.
 
 ## Current Architecture
 

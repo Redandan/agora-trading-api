@@ -11,6 +11,79 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LiveSignalEvaluatorEntryDedupOpenExposureScopeTest {
 
     @Test
+    void liveIntervalGuardUsesStrategyDefaultWhenDatabaseConfigOmitsIt() {
+        Strategy oneHourStrategy = new Strategy() {
+            @Override
+            public String getType() {
+                return OiFundingDivergenceStrategy.TYPE;
+            }
+
+            @Override
+            public StrategySignal evaluate(StrategyContext context, Map<String, Object> config) {
+                return StrategySignal.HOLD;
+            }
+
+            @Override
+            public Map<String, Object> defaultExecutionConfig() {
+                return Map.of("runIntervalCode", "1h");
+            }
+        };
+
+        assertThat(LiveSignalEvaluator.resolveConfiguredRunInterval(Map.of(), oneHourStrategy))
+                .isEqualTo("1h");
+        assertThat(LiveSignalEvaluator.resolveConfiguredRunInterval(
+                Map.of("runIntervalCode", "4h"), oneHourStrategy))
+                .isEqualTo("4h");
+    }
+
+    @Test
+    void oiFundingBuyThresholdCannotMasqueradeAsCalibratedWinProbability() {
+        LiveSignalContext.clear();
+        try {
+            LiveSignalContext.set(0.80, 0.80, 39.0);
+
+            LiveSignalEvaluator.ExpectedRDecision decision =
+                    LiveSignalEvaluator.computeExpectedRDecision(
+                            OiFundingDivergenceStrategy.TYPE,
+                            LiveSignalContext.get(),
+                            0.12,
+                            0.06);
+
+            assertThat(decision.trusted()).isFalse();
+            assertThat(decision.expectedR()).isEqualTo(-1.0);
+            assertThat(decision.pWin()).isNull();
+            assertThat(decision.provenance())
+                    .isEqualTo("UNAVAILABLE_STRATEGY_HAS_NO_CALIBRATED_WIN_PROBABILITY");
+        } finally {
+            LiveSignalContext.clear();
+        }
+    }
+
+    @Test
+    void scoreBuyNnOutputRetainsExplicitExpectedRProvenance() {
+        LiveSignalContext.clear();
+        try {
+            LiveSignalContext.set(0.80, 0.80, 39.0);
+
+            LiveSignalEvaluator.ExpectedRDecision decision =
+                    LiveSignalEvaluator.computeExpectedRDecision(
+                            ScoreBuyStrategy.TYPE,
+                            LiveSignalContext.get(),
+                            0.12,
+                            0.06);
+
+            assertThat(decision.trusted()).isTrue();
+            assertThat(decision.expectedR()).isCloseTo(0.20,
+                    org.assertj.core.data.Offset.offset(0.0000001));
+            assertThat(decision.pWin()).isEqualTo(0.80);
+            assertThat(decision.provenance())
+                    .isEqualTo("LIVE_SIGNAL_CONTEXT_NN_OUTPUT:SCORE_BUY");
+        } finally {
+            LiveSignalContext.clear();
+        }
+    }
+
+    @Test
     void defaultsToAllOpenRows() {
         assertThat(LiveSignalEvaluator.resolveEntryDedupOpenExposureScope(Map.of()))
                 .isEqualTo(LiveSignalEvaluator.ENTRY_DEDUP_SCOPE_ALL_OPEN_ROWS);

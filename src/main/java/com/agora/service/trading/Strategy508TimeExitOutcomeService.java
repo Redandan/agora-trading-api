@@ -87,6 +87,10 @@ public class Strategy508TimeExitOutcomeService {
         context.put("resolvedAtUtc", now.toString());
         context.put("outcome", result.outcome());
         context.put("finalized", result.finalized());
+        context.put("rawCounterfactualOutcome", true);
+        context.put("counterfactualOutcomeTracked", true);
+        context.put("entryTime", result.entryTime() == null ? null : result.entryTime().toString());
+        context.put("exitTime", result.exitTime() == null ? null : result.exitTime().toString());
         context.put("oneMinuteCoverage", result.coverage());
         put(context, "entryPrice", result.entryPrice());
         put(context, "exitPrice", result.exitPrice());
@@ -97,10 +101,29 @@ public class Strategy508TimeExitOutcomeService {
         put(context, "mfePct", result.mfePct());
         put(context, "maePct", result.maePct());
         put(context, "benchmark72hReturnPct", result.benchmark72hReturnPct());
-        context.put("feeCoverageComplete", result.finalized());
-        context.put("exitParityGap", !result.finalized());
+        boolean exactMinuteLattice = result.finalized()
+                && Double.compare(result.coverage(), 1.0d) == 0;
+        boolean modeledFeeFieldsComplete = result.feesUsdt() != null
+                && result.pnlUsdt() != null && result.returnPct() != null;
+        context.put("minuteLatticeExact", exactMinuteLattice);
+        context.put("feeEvidenceSemantics",
+                "DETERMINISTIC_MODELED_FEE_AND_SLIPPAGE_NOT_EXCHANGE_FILL");
+        context.put("modeledFeeFieldsComplete", modeledFeeFieldsComplete);
+        context.put("feeCoverageComplete",
+                result.finalized() && exactMinuteLattice && modeledFeeFieldsComplete);
+        context.put("exitParityGap", !result.finalized() || !exactMinuteLattice);
+        boolean executionHardBlocked = "HARD_BLOCKED".equals(
+                context.path("executionGateOutcome").asText()) || hasHardBlockers(context);
+        context.put("eligibleForLivePromotion",
+                !executionHardBlocked && context.path("executableCohortEligible").asBoolean(false));
         evidence.setFinalOutcome(result.outcome());
-        evidence.setReason(result.finalized() ? "SHADOW_OUTCOME_FINALIZED" : "SHADOW_OUTCOME_NOT_FINALIZED");
+        evidence.setReason(result.finalized()
+                ? executionHardBlocked
+                ? "SHADOW_COUNTERFACTUAL_OUTCOME_FINALIZED_HARD_BLOCKED"
+                : "SHADOW_OUTCOME_FINALIZED_EXECUTABLE_COHORT"
+                : executionHardBlocked
+                ? "SHADOW_COUNTERFACTUAL_OUTCOME_NOT_FINALIZED_HARD_BLOCKED"
+                : "SHADOW_OUTCOME_NOT_FINALIZED_EXECUTABLE_COHORT");
         evidence.setPolicyInputsJson(context.toString());
         evidence.setFeaturesSnapshotJson(context.toString());
         evidenceRepository.save(evidence);
@@ -168,8 +191,11 @@ public class Strategy508TimeExitOutcomeService {
         BigDecimal totalExitFee = partialFee.add(zero(exitFee));
         boolean partialFeeComplete = !context.has("partialExitFeeCoverageComplete")
                 || context.path("partialExitFeeCoverageComplete").asBoolean(false);
-        boolean feeComplete = entryFee != null && exitFee != null && partialFeeComplete;
-        BigDecimal net = feeComplete ? gross.subtract(entryFee).subtract(totalExitFee) : null;
+        boolean reportedFeeFieldsComplete = entryFee != null && exitFee != null && partialFeeComplete;
+        boolean exactFeeCoverage = reportedFeeFieldsComplete
+                && Strategy508TimeExitPolicy.EXACT_LIVE_FILL_EVIDENCE_IMPLEMENTED;
+        BigDecimal net = reportedFeeFieldsComplete
+                ? gross.subtract(entryFee).subtract(totalExitFee) : null;
         String outcome = switch (signal.getExitReason() == null ? "" : signal.getExitReason()) {
             case "TP" -> "OCO_TP";
             case "SL" -> "OCO_SL";
@@ -179,15 +205,29 @@ public class Strategy508TimeExitOutcomeService {
         context.put("resolvedAtUtc", LocalDateTime.now(ZoneOffset.UTC).toString());
         context.put("outcome", outcome);
         context.put("finalized", true);
+        context.put("entryTime", signal.getCreatedAt() == null ? null : signal.getCreatedAt().toString());
+        context.put("exitTime", signal.getExitTime() == null ? null : signal.getExitTime().toString());
         put(context, "exitPrice", signal.getExitPrice());
         put(context, "grossPnlUsdt", gross);
         put(context, "exitFeeUsdt", exitFee);
         put(context, "totalExitFeeUsdt", totalExitFee);
         put(context, "netPnlUsdt", net);
-        context.put("feeCoverageComplete", feeComplete);
-        context.put("exitParityGap", !feeComplete);
+        context.put("reportedFeeFieldsComplete", reportedFeeFieldsComplete);
+        context.put("fillAggregationComplete", false);
+        context.put("feeSignPreserved", false);
+        context.put("feeCoverageComplete", exactFeeCoverage);
+        context.put("netPnlEvidenceStatus", exactFeeCoverage
+                ? "IMMUTABLE_ALL_FILL_SIGNED_FEE_PROVENANCE"
+                : reportedFeeFieldsComplete
+                ? "NUMERIC_FEES_PRESENT_PROVENANCE_NOT_IMPLEMENTED"
+                : "FEE_FIELDS_INCOMPLETE");
+        context.put("exitParityGap", !exactFeeCoverage);
         evidence.setFinalOutcome(outcome);
-        evidence.setReason(feeComplete ? "LIVE_OUTCOME_FINALIZED_EXACT_FEES" : "LIVE_OUTCOME_FINALIZED_FEE_GAP");
+        evidence.setReason(exactFeeCoverage
+                ? "LIVE_OUTCOME_FINALIZED_EXACT_FEES"
+                : reportedFeeFieldsComplete
+                ? "LIVE_OUTCOME_FINALIZED_FEE_PROVENANCE_GAP"
+                : "LIVE_OUTCOME_FINALIZED_FEE_GAP");
         evidence.setPolicyInputsJson(context.toString());
         evidence.setFeaturesSnapshotJson(context.toString());
         evidenceRepository.save(evidence);
@@ -240,6 +280,11 @@ public class Strategy508TimeExitOutcomeService {
     private BigDecimal decimal(ObjectNode node, String field) {
         BigDecimal value = decimalOrNull(node, field);
         return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private boolean hasHardBlockers(ObjectNode context) {
+        JsonNode blockers = context == null ? null : context.path("hardBlockers");
+        return blockers != null && blockers.isArray() && !blockers.isEmpty();
     }
 
     private BigDecimal decimalOrNull(ObjectNode node, String field) {

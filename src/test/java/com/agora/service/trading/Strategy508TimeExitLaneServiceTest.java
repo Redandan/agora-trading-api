@@ -97,15 +97,23 @@ class Strategy508TimeExitLaneServiceTest {
         assertThat(evidence.getOrderSent()).isFalse();
         assertThat(evidence.getEvResultJson()).contains("OBSERVE_ONLY")
                 .contains("\"wouldBlock\":true")
+                .contains("\"pWinTrusted\":false")
+                .contains("UNAVAILABLE_STRATEGY_508_HAS_NO_CALIBRATED_WIN_PROBABILITY")
                 .contains("\"blocksEntry\":false");
         assertThat(evidence.getTqsResultJson()).contains("OBSERVE_ONLY").contains("false");
         assertThat(evidence.getWarningsJson()).contains("OBSERVE_ONLY").contains("false");
+        assertThat(evidence.getPolicyInputsJson())
+                .contains("\"effectivePolicyConfigSha256\":\"")
+                .contains("CURRENT_DB_CONFIG_PLUS_FIXED_VERSIONED_POLICY_AT_DECISION_TIME")
+                .contains("\"cohortSchemaVersion\":\"STRATEGY_508_TIME_EXIT_COHORT_V1\"")
+                .contains("\"executableCohortEligible\":true")
+                .contains("\"promotionCohort\":\"EXECUTABLE_SHADOW\"");
         verify(fixture.okx, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
         verifyNoInteractions(fixture.telegram);
     }
 
     @Test
-    void hardBlockedShadowIsNotRecordedAsPendingTradableOutcome() {
+    void hardBlockedShadowTracksRawCounterfactualButCannotEnterExecutableCohort() {
         Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.SHADOW, false);
         MdKline stale = eventNow();
         stale.setOpenTime(LocalDateTime.now(ZoneOffset.UTC).minusHours(6));
@@ -116,8 +124,15 @@ class Strategy508TimeExitLaneServiceTest {
 
         RuntimeDecisionEvidence evidence = finalEvidence(fixture);
         assertThat(evidence.getSelectedAction()).isEqualTo("STRATEGY_508_TIME_EXIT_SHADOW_BLOCKED");
-        assertThat(evidence.getFinalOutcome()).isEqualTo("HARD_BLOCKED");
+        assertThat(evidence.getFinalOutcome()).isEqualTo("PENDING_24H");
+        assertThat(evidence.getReason()).isEqualTo("SHADOW_HARD_GATE_BLOCKED_COUNTERFACTUAL_PENDING");
         assertThat(evidence.getBlockerReason()).contains("DATA_FRESHNESS_STALE");
+        assertThat(evidence.getPolicyInputsJson())
+                .contains("\"rawSignalCounterfactualEligible\":true")
+                .contains("\"counterfactualOutcomeTracked\":true")
+                .contains("\"executableCohortEligible\":false")
+                .contains("\"promotionCohort\":\"RAW_SIGNAL_COUNTERFACTUAL\"")
+                .contains("\"executionGateOutcome\":\"HARD_BLOCKED\"");
         verify(fixture.okx, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
     }
 
@@ -148,6 +163,27 @@ class Strategy508TimeExitLaneServiceTest {
         assertThat(evidence.getPolicyInputsJson()).contains("\"experimentOrdersToday\":0");
         assertThat(evidence.getPolicyInputsJson()).doesNotContain("EXPERIMENT_OPEN_POSITION_CAP");
         assertThat(evidence.getPolicyInputsJson()).doesNotContain("EXPERIMENT_DAILY_ORDER_CAP");
+    }
+
+    @Test
+    void liveReadinessBlockerIsBoundBeforeAuditAndEvidenceCohortMetadata() {
+        Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.LIVE_MICRO, true);
+        when(fixture.readinessService.snapshot("BTCUSDT", true))
+                .thenReturn(blockedSnapshot("FORWARD_SHADOW_GATE_NOT_READY"));
+
+        fixture.service.evaluate(eventNow());
+
+        RuntimeDecisionEvidence evidence = finalEvidence(fixture);
+        assertThat(evidence.getSelectedAction()).isEqualTo("STRATEGY_508_TIME_EXIT_LIVE_BLOCKED");
+        assertThat(evidence.getExecutionMode()).isEqualTo("LIVE_MICRO_BLOCKED");
+        assertThat(evidence.getTerminalBlocker()).isEqualTo("FORWARD_SHADOW_GATE_NOT_READY");
+        assertThat(evidence.getPolicyInputsJson())
+                .contains("FORWARD_SHADOW_GATE_NOT_READY")
+                .contains("\"hardGateClear\":false")
+                .contains("\"executableCohortEligible\":false")
+                .contains("\"promotionCohort\":\"RAW_SIGNAL_COUNTERFACTUAL\"")
+                .contains("\"executionGateOutcome\":\"HARD_BLOCKED\"");
+        verify(fixture.okx, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
     }
 
     @Test
@@ -292,6 +328,12 @@ class Strategy508TimeExitLaneServiceTest {
     private Strategy508TimeExitReadinessService.ReadinessSnapshot readySnapshot() {
         return new Strategy508TimeExitReadinessService.ReadinessSnapshot(
                 new ObjectMapper().createObjectNode(), true, List.of(), BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    private Strategy508TimeExitReadinessService.ReadinessSnapshot blockedSnapshot(String blocker) {
+        return new Strategy508TimeExitReadinessService.ReadinessSnapshot(
+                new ObjectMapper().createObjectNode(), false, List.of(blocker),
+                BigDecimal.ZERO, BigDecimal.ZERO);
     }
 
     private TradeResult buyFill() {

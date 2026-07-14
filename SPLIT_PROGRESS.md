@@ -1,5 +1,13 @@
 # Split Progress
 
+- 2026-07-14: a read-only runtime audit confirmed
+  `BTC_DONCHIAN_20D_10D_V1` is now deployed in production `SHADOW` at
+  `cb2c31c` with exact golden parity. Evidence contained two runtime rows and
+  one non-bootstrap forward bar, with zero entries and zero completed trades.
+  The lane still has no live implementation, order, OCO, or Telegram path. The
+  current local repair batch performs no deployment or production mutation.
+  Its local acceptance passed 391 Java tests and all PowerShell/split checks;
+  startup smoke passed with 326 MCP tools, 47 required, and zero missing.
 - 2026-07-14: the operator explicitly authorized
   `BTC_DONCHIAN_20D_10D_V1` OFF-code staging, commit, push, and deployment only.
   Production environment changes and SHADOW activation remain outside this
@@ -33,6 +41,11 @@
   independent report verifier. `BTC_DONCHIAN_20D_10D_V1` is the only historical
   pass and is routed to SHADOW design review only; no deploy, environment,
   order, OCO, Telegram, backfill, or production DB mutation was performed.
+- 2026-07-13: strategy 508 forward evidence now separates
+  `RAW_SIGNAL_COUNTERFACTUAL` from configuration-bound `EXECUTABLE_SHADOW`.
+  Hard-gate-blocked raw events mature for signal-quality analysis but never
+  count toward promotion; legacy unbound clear rows fail closed.
+
 - 2026-07-13: deployed strategy 508 market-feature freshness/provenance commit
   `cf1f4df` with an explicitly authorized blue-green rollout. Production moved
   from port `8084` to `8085`, the old listener drained, and strict server verify

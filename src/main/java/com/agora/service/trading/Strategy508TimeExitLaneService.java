@@ -47,6 +47,9 @@ import static com.agora.service.trading.Strategy508TimeExitPolicy.KLINE_SOURCE;
 import static com.agora.service.trading.Strategy508TimeExitPolicy.MAX_ORDERS_PER_DAY;
 import static com.agora.service.trading.Strategy508TimeExitPolicy.NOTIONAL_USDT;
 import static com.agora.service.trading.Strategy508TimeExitPolicy.POLICY_MODE;
+import static com.agora.service.trading.Strategy508TimeExitPolicy.COHORT_SCHEMA_VERSION;
+import static com.agora.service.trading.Strategy508TimeExitPolicy.EXECUTABLE_SHADOW_COHORT;
+import static com.agora.service.trading.Strategy508TimeExitPolicy.RAW_COUNTERFACTUAL_COHORT;
 import static com.agora.service.trading.Strategy508TimeExitPolicy.STOP_LOSS_PCT;
 import static com.agora.service.trading.Strategy508TimeExitPolicy.STRATEGY_ID;
 import static com.agora.service.trading.Strategy508TimeExitPolicy.SYMBOL;
@@ -134,8 +137,17 @@ public class Strategy508TimeExitLaneService {
 
             Map<String, Object> context = baseContext(eventKline, details, config, signalSnapshot);
             List<String> hardBlockers = hardBlockers(strategyEntity, config, eventKline, context);
+            if (properties.liveMicroArmed()) {
+                Strategy508TimeExitReadinessService.ReadinessSnapshot readiness =
+                        readinessService.snapshot(SYMBOL, true);
+                if (!readiness.liveEntryReady()) {
+                    hardBlockers.addAll(readiness.blockers());
+                }
+            }
+            hardBlockers = hardBlockers.stream().distinct().toList();
             context.put("hardBlockers", hardBlockers);
             context.put("hardGateClear", hardBlockers.isEmpty());
+            bindCohortContext(context, hardBlockers);
             addSoftGateObservations(context, hardBlockers);
 
             BtDecisionAudit audit = saveDecisionAudit(strategyEntity, eventKline, context,
@@ -154,20 +166,14 @@ public class Strategy508TimeExitLaneService {
                 evidence.setOrderSent(false);
                 evidence.setSuppressionReason(properties.mode().name());
                 if (!hardBlockers.isEmpty()) {
-                    evidence.setFinalOutcome("HARD_BLOCKED");
-                    evidence.setReason("SHADOW_HARD_GATE_BLOCKED");
+                    evidence.setFinalOutcome("PENDING_24H");
+                    evidence.setReason("SHADOW_HARD_GATE_BLOCKED_COUNTERFACTUAL_PENDING");
                 }
                 evidenceRepository.save(evidence);
                 return;
             }
 
-            Strategy508TimeExitReadinessService.ReadinessSnapshot readiness = readinessService.snapshot(SYMBOL, true);
-            if (!readiness.liveEntryReady()) {
-                hardBlockers.addAll(readiness.blockers());
-            }
             if (!hardBlockers.isEmpty()) {
-                context.put("hardBlockers", hardBlockers.stream().distinct().toList());
-                context.put("hardGateClear", false);
                 evidence.setSelectedAction("STRATEGY_508_TIME_EXIT_LIVE_BLOCKED");
                 evidence.setExecutionMode("LIVE_MICRO_BLOCKED");
                 evidence.setTerminalBlocker(hardBlockers.get(0));
@@ -239,6 +245,18 @@ public class Strategy508TimeExitLaneService {
         if (!okxTradingProperties.isEnabled()) blockers.add("OKX_TRADING_DISABLED");
         if (!okxTradingProperties.hasPrivateCredentials()) blockers.add("OKX_PRIVATE_CREDENTIALS_MISSING");
         return blockers;
+    }
+
+    private void bindCohortContext(Map<String, Object> context, List<String> hardBlockers) {
+        boolean executable = hardBlockers == null || hardBlockers.isEmpty();
+        context.put("cohortSchemaVersion", COHORT_SCHEMA_VERSION);
+        context.put("rawSignalCounterfactualEligible", true);
+        context.put("counterfactualOutcomeTracked", true);
+        context.put("executableCohortEligible", executable);
+        context.put("promotionCohort", executable
+                ? EXECUTABLE_SHADOW_COHORT : RAW_COUNTERFACTUAL_COHORT);
+        context.put("executionGateOutcome", executable ? "PASSED" : "HARD_BLOCKED");
+        context.put("hardBlockedOutcomeAffectsPromotion", false);
     }
 
     private boolean ocoHealthOk(Map<String, Object> context) {
@@ -450,27 +468,36 @@ public class Strategy508TimeExitLaneService {
         context.put("takeProfitPct", TAKE_PROFIT_PCT);
         context.put("stopLossPct", STOP_LOSS_PCT);
         context.put("holdHours", HOLD_HOURS);
+        context.put("effectivePolicyConfigSha256",
+                Strategy508TimeExitPolicy.effectiveConfigSha256(objectMapper, config));
+        context.put("effectivePolicyConfigSemantics",
+                "CURRENT_DB_CONFIG_PLUS_FIXED_VERSIONED_POLICY_AT_DECISION_TIME");
         context.put("mode", properties.mode().name());
         context.put("liveOrderFlag", properties.liveOrderEnabled());
         context.put("expectedValueGateMode", "OBSERVE_ONLY");
         context.put("tradePlanQualityGateMode", "OBSERVE_ONLY");
         context.put("ensembleMode", "OBSERVE_ONLY");
-        double pWin = signalSnapshot != null
-                ? signalSnapshot.nnOutput : configDouble(config, "buyThreshold", 0.55);
-        pWin = Math.max(0.0, Math.min(1.0, pWin));
         double riskReward = TAKE_PROFIT_PCT.divide(STOP_LOSS_PCT, 8, RoundingMode.HALF_UP).doubleValue();
-        double expectedR = pWin * riskReward - (1.0 - pWin);
         double minimumExpectedR = configDouble(config, "preTradeMinExpectedR", 0.20);
         boolean gateEnabled = configBoolean(config, "preTradeExpectedValueGateEnabled", true);
-        boolean wouldBlock = gateEnabled && (expectedR <= 0 || expectedR < minimumExpectedR);
         Map<String, Object> ev = new LinkedHashMap<>();
         ev.put("mode", "OBSERVE_ONLY");
         ev.put("gateEnabled", gateEnabled);
-        ev.put("pWin", pWin);
+        ev.put("pWin", null);
+        ev.put("pWinTrusted", false);
+        ev.put("pWinProvenance", "UNAVAILABLE_STRATEGY_508_HAS_NO_CALIBRATED_WIN_PROBABILITY");
+        ev.put("strategySnapshotAvailable", signalSnapshot != null);
+        if (signalSnapshot != null) {
+            ev.put("strategySnapshotNnOutput", signalSnapshot.nnOutput);
+        }
         ev.put("riskReward", riskReward);
-        ev.put("expectedR", expectedR);
+        ev.put("expectedR", null);
+        ev.put("expectedRTrusted", false);
         ev.put("minimumExpectedR", minimumExpectedR);
-        ev.put("wouldBlock", wouldBlock);
+        ev.put("wouldBlock", gateEnabled);
+        ev.put("reason", gateEnabled
+                ? "EXPECTED_R_PROVENANCE_UNAVAILABLE"
+                : "GATE_DISABLED_OBSERVER_ONLY");
         ev.put("blocksEntry", false);
         context.put("expectedValueGateObservation", ev);
         context.put("entryParityGap", false);

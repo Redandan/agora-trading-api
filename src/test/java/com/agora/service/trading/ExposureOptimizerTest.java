@@ -68,12 +68,79 @@ class ExposureOptimizerTest {
                 true);
 
         assertThat(result.decision()).isEqualTo(ExposureOptimizer.Decision.BLOCK_DUPLICATE);
-        assertThat(result.reason()).contains("same-strategy staged add exposure budget exhausted");
+        assertThat(result.reason()).contains("would exceed same-strategy exposure budget");
         assertThat(result.context())
                 .containsEntry("entry_dedup_decision_mode", "ALLOW_MICRO_ADD_IF_EV_POSITIVE")
                 .containsEntry("micro_add_expected_r_positive", true);
         assertThat(result.context().get("same_strategy_exposure_usdt")).isEqualTo("100");
+        assertThat(result.context().get("same_strategy_projected_exposure_usdt")).isEqualTo("105");
         assertThat(result.context().get("same_strategy_exposure_cap_usdt")).isEqualTo(100.0);
+    }
+
+    @Test
+    void untrustedExpectedRCanNeverAuthorizePositiveEvStagedAdd() {
+        BtStrategy strategy = strategy(508L);
+        BtLiveSignal open = openLong(508L, "BTCUSDT", "1h", "100000", "0.0001");
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(open));
+        when(liveSignalRepository.countByAutoTradedIsTrueAndCreatedAtAfter(any(LocalDateTime.class))).thenReturn(0L);
+
+        var result = optimizer.evaluateLongEntry(
+                strategy,
+                Map.of(
+                        "entryDedupDecisionMode", "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE",
+                        "microAddLiveEnabled", true,
+                        "microAddMaxSameStrategyExposureUsdt", 20.0,
+                        "microAddNotionalUsdt", 10.0,
+                        "exposureOptimizerOpenMaxLossCapUsdt", 1000.0),
+                "BTCUSDT",
+                "1h",
+                0.42,
+                0.12,
+                true,
+                null,
+                null,
+                null,
+                null,
+                0.20,
+                false,
+                "UNAVAILABLE_NO_CALIBRATED_WIN_PROBABILITY");
+
+        assertThat(result.decision()).isEqualTo(ExposureOptimizer.Decision.BLOCK_DUPLICATE);
+        assertThat(result.reason()).contains("requires trusted strategy win-probability provenance");
+        assertThat(result.context())
+                .containsEntry("expected_r_trusted", false)
+                .containsEntry("expected_r_provenance", "UNAVAILABLE_NO_CALIBRATED_WIN_PROBABILITY")
+                .containsEntry("micro_add_expected_r_positive", true)
+                .containsEntry("micro_add_expected_r_eligible", false);
+    }
+
+    @Test
+    void projectedExposureBlocksResidualCapOvershootBeforeOrder() {
+        BtStrategy strategy = strategy(508L);
+        BtLiveSignal open = openLong(508L, "BTCUSDT", "1h", "99999", "0.0002");
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(open));
+        when(liveSignalRepository.countByAutoTradedIsTrueAndCreatedAtAfter(any(LocalDateTime.class))).thenReturn(0L);
+
+        var result = optimizer.evaluateLongEntry(
+                strategy,
+                Map.of(
+                        "entryDedupDecisionMode", "ALLOW_STAGED_MICRO_ADD_LIVE_IF_EV_POSITIVE",
+                        "microAddLiveEnabled", true,
+                        "microAddMaxSameStrategyExposureUsdt", 20.0,
+                        "microAddNotionalUsdt", 10.0,
+                        "exposureOptimizerOpenMaxLossCapUsdt", 1000.0),
+                "BTCUSDT",
+                "1h",
+                0.42,
+                0.12,
+                true);
+
+        assertThat(result.decision()).isEqualTo(ExposureOptimizer.Decision.BLOCK_DUPLICATE);
+        assertThat(result.reason()).contains("would exceed same-strategy exposure budget");
+        assertThat(result.context())
+                .containsEntry("same_strategy_exposure_usdt", "19.9998")
+                .containsEntry("same_strategy_projected_exposure_usdt", "29.9998")
+                .containsEntry("same_strategy_exposure_cap_remaining_usdt", "0.0002");
     }
 
     @Test

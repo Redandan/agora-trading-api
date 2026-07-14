@@ -277,7 +277,7 @@ public class LiveSignalEvaluator {
         // Interval guard: if the strategy config declares a runIntervalCode, only evaluate on
         // matching bar closures. Prevents 1d strategies (e.g. SCORE_BUY_V2) from triggering on
         // 1h/4h bars and generating false sub-daily shadow signals.
-        String configuredInterval = getString(config, "runIntervalCode", "");
+        String configuredInterval = resolveConfiguredRunInterval(config, impl);
         if (!configuredInterval.isEmpty() && !configuredInterval.equalsIgnoreCase(intervalCode)) {
             log.debug("[LiveSignal] Skip strategyId={} type={} — interval mismatch (configured={}, incoming={})",
                     strategy.getId(), strategy.getStrategyType(), configuredInterval, intervalCode);
@@ -783,7 +783,9 @@ public class LiveSignalEvaluator {
 
         // 計算年度高點跌幅
         double yearDrop = calcYearDrop(klines, lastIndex, yearLookback, entry.doubleValue());
-        double expectedR = computeExpectedR(config, snap, stopLossPct, takeProfitPct);
+        ExpectedRDecision expectedRDecision = computeExpectedRDecision(
+                strategy.getStrategyType(), snap, stopLossPct, takeProfitPct);
+        double expectedR = expectedRDecision.expectedR();
         BottomCatchQualityDecision bottomCatchQuality = evaluateBottomCatchQualityGate(
                 strategy.getStrategyType(), config, stopLossPct, takeProfitPct,
                 wickAwareSl.applied(), wickAwareSl.policyMode());
@@ -792,7 +794,7 @@ public class LiveSignalEvaluator {
                     strategy.getId(), symbol, intervalCode, bottomCatchQuality.reason());
             tradingMetrics.signalFiltered("TradePlanQualityGate", bottomCatchQuality.reasonCode());
             Map<String, Object> qualityContext = candidateTradePlanContext(
-                    expectedR, getDouble(config, "preTradeMinExpectedR", 0.20),
+                    expectedRDecision, getDouble(config, "preTradeMinExpectedR", 0.20),
                     stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
             qualityContext.put("gate_enabled", true);
             qualityContext.put("selectedAction", "BLOCK_LOW_QUALITY_TRADE_PLAN");
@@ -830,7 +832,8 @@ public class LiveSignalEvaluator {
         double preTradeMinExpectedRForSnapshot = getDouble(config, "preTradeMinExpectedR", 0.20);
         ExposureOptimizer.Result exposureDecision = exposureOptimizer.evaluateLongEntry(
                 strategy, config, symbol, intervalCode, expectedR, stopLossPct, hasOpenLongExposure,
-                entry, tp, sl, lastBar.getOpenTime(), preTradeMinExpectedRForSnapshot);
+                entry, tp, sl, lastBar.getOpenTime(), preTradeMinExpectedRForSnapshot,
+                expectedRDecision.trusted(), expectedRDecision.provenance());
         Map<String, Object> exposureDecisionContext = exposureDecision.context() == null
                 ? new LinkedHashMap<>()
                 : new LinkedHashMap<>(exposureDecision.context());
@@ -920,14 +923,14 @@ public class LiveSignalEvaluator {
         // Phase 3：自動下單（enabled=true 且策略未標記 notifyOnly 才執行）
         // notifyOnly=true：只發 TG，不自動下單（適用於預警/備用策略）
         if (notifyOnly || !tradingProperties.isEnabled()) {
-            auditExpectedValueGateDryRun(strategy, symbol, intervalCode, expectedR,
+            auditExpectedValueGateDryRun(strategy, symbol, intervalCode, expectedRDecision,
                     config, notifyOnly, fearGreedGate, entry, tp, sl,
                     stopLossPct, takeProfitPct, snap, record.getId());
             logEntrySkip(strategy, symbol, intervalCode, lastBar,
                     notifyOnly ? "ShadowExecutionIntent" : "TradingDisabled",
                     notifyOnly ? "shadow candidate suppressed before real order"
                             : "tradingProperties.enabled=false",
-                    shadowExecutionIntentContext(strategy, expectedR, stopLossPct, takeProfitPct, entry, tp, sl,
+                    shadowExecutionIntentContext(strategy, expectedRDecision, stopLossPct, takeProfitPct, entry, tp, sl,
                             notifyOnly, noLiveExecutionOnly, fearGreedGate, snap),
                     record.getId());
             return;
@@ -955,6 +958,24 @@ public class LiveSignalEvaluator {
             if (stagedMicroAddEntry) {
                 minExpectedR = Math.min(minExpectedR, getDouble(config, "microAddLiveMinExpectedR", 0.0));
             }
+            if (evGateEnabled && !expectedRDecision.trusted()) {
+                log.info("[LiveSignal] LONG blocked by preTradeExpectedValueGate (untrusted probability): strategyId={} symbol={} provenance={}",
+                        strategy.getId(), symbol, expectedRDecision.provenance());
+                tradingMetrics.signalFiltered("ExpectedValueGate", "expected_r_provenance_unavailable");
+                record.setAutoTraded(false);
+                record.setFilterReason("ExpectedValueGate: calibrated win probability unavailable");
+                liveSignalRepository.save(record);
+                Map<String, Object> evBlockContext = candidateTradePlanContext(
+                        expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                evBlockContext.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
+                evBlockContext.put("ev_reason", "EXPECTED_R_PROVENANCE_UNAVAILABLE");
+                evBlockContext.put("abort_reason", "AUTO_TRADE_ABORTED");
+                evBlockContext.put("gate_enabled", true);
+                tradeQualityEngine.applyV0(evBlockContext, "ExpectedValueGate");
+                auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
+                        "ExpectedValueGate", "calibrated win probability unavailable", evBlockContext, record.getId());
+                return;
+            }
             if (evGateEnabled && expectedR <= 0) {
                 log.info("[LiveSignal] LONG blocked by preTradeExpectedValueGate (EV<=0): strategyId={} symbol={} expectedR={}",
                         strategy.getId(), symbol, String.format("%.4f", expectedR));
@@ -963,7 +984,7 @@ public class LiveSignalEvaluator {
                 record.setFilterReason(String.format("ExpectedValueGate: expectedR=%.4f <= 0", expectedR));
                 liveSignalRepository.save(record);
                 Map<String, Object> evBlockContext = candidateTradePlanContext(
-                        expectedR, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                        expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
                 evBlockContext.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
                 evBlockContext.put("ev_reason", "expectedR<=0");
                 evBlockContext.put("abort_reason", "AUTO_TRADE_ABORTED");
@@ -981,7 +1002,7 @@ public class LiveSignalEvaluator {
                 record.setFilterReason(String.format("ExpectedValueGate: expectedR=%.4f < %.4f", expectedR, minExpectedR));
                 liveSignalRepository.save(record);
                 Map<String, Object> evBlockContext = candidateTradePlanContext(
-                        expectedR, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                        expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
                 evBlockContext.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
                 evBlockContext.put("ev_reason", "expectedR<minExpectedR");
                 evBlockContext.put("abort_reason", "AUTO_TRADE_ABORTED");
@@ -993,7 +1014,7 @@ public class LiveSignalEvaluator {
             }
             if (evGateEnabled) {
                 Map<String, Object> evPassContext = candidateTradePlanContext(
-                        expectedR, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                        expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
                 evPassContext.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
                 evPassContext.put("ev_reason", "pass");
                 evPassContext.put("gate_enabled", true);
@@ -1009,7 +1030,7 @@ public class LiveSignalEvaluator {
                 logEntrySkip(strategy, symbol, intervalCode, lastBar,
                         "FearGreedWarnOnlyDryRun",
                         "FearGreed WARN_ONLY/TQS penalty candidate stopped before live execution",
-                        fearGreedWarnOnlyDryRunContext(strategy, expectedR, minExpectedR,
+                        fearGreedWarnOnlyDryRunContext(strategy, expectedRDecision, minExpectedR,
                                 stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate),
                         record.getId());
                 return;
@@ -1214,10 +1235,10 @@ public class LiveSignalEvaluator {
                     return;
                 }
             }
-            double nnOut = snap != null ? snap.nnOutput : 0.80;
+            double nnOut = snap != null ? snap.nnOutput : 0.50;
             if (!auditWriter.logAutonomousExecutionIntentSync(strategy.getId(), symbol, intervalCode,
                     record.getId(),
-                    liveAutonomousExecutionIntentContext(strategy, expectedR, stopLossPct, takeProfitPct, entry, tp, sl,
+                    liveAutonomousExecutionIntentContext(strategy, expectedRDecision, stopLossPct, takeProfitPct, entry, tp, sl,
                             nnOut, fearGreedGate, snap))) {
                 markAutoTradeSkipped(record, "RuntimeEvidence: no-evidence-no-trade");
                 logEntrySkip(strategy, symbol, intervalCode, lastBar,
@@ -1249,7 +1270,7 @@ public class LiveSignalEvaluator {
     private void auditExpectedValueGateDryRun(BtStrategy strategy,
                                               String symbol,
                                               String intervalCode,
-                                              double expectedR,
+                                              ExpectedRDecision expectedRDecision,
                                               Map<String, Object> config,
                                               boolean notifyOnly,
                                               FearGreedGateDecision fearGreedGate,
@@ -1264,9 +1285,10 @@ public class LiveSignalEvaluator {
         if (!evGateEnabled) {
             return;
         }
+        double expectedR = expectedRDecision.expectedR();
         double minExpectedR = getDouble(config, "preTradeMinExpectedR", 0.20);
         Map<String, Object> evContext = candidateTradePlanContext(
-                expectedR, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
         evContext.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
         evContext.put("gate_enabled", true);
         evContext.put("dry_run", true);
@@ -1281,6 +1303,13 @@ public class LiveSignalEvaluator {
         evContext.put("ocoPlanCreated", true);
         evContext.put("riskGateResult", "NOT_EVALUATED_SHADOW");
         evContext.put("selectedAction", "SHADOW_EV_DRY_RUN");
+        if (!expectedRDecision.trusted()) {
+            evContext.put("ev_reason", "EXPECTED_R_PROVENANCE_UNAVAILABLE");
+            tradeQualityEngine.applyV0(evContext, "ExpectedValueGate");
+            auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
+                    "ExpectedValueGate", "calibrated win probability unavailable", evContext, liveSignalId);
+            return;
+        }
         if (expectedR <= 0) {
             evContext.put("ev_reason", "expectedR<=0");
             tradeQualityEngine.applyV0(evContext, "ExpectedValueGate");
@@ -1302,7 +1331,7 @@ public class LiveSignalEvaluator {
     }
 
     private Map<String, Object> shadowExecutionIntentContext(BtStrategy strategy,
-                                                             double expectedR,
+                                                             ExpectedRDecision expectedRDecision,
                                                              double stopLossPct,
                                                              double takeProfitPct,
                                                              BigDecimal entry,
@@ -1312,7 +1341,7 @@ public class LiveSignalEvaluator {
                                                              boolean noLiveExecutionOnly,
                                                              FearGreedGateDecision fearGreedGate,
                                                              LiveSignalContext.Snapshot snap) {
-        Map<String, Object> ctx = autonomousIntentBaseContext(expectedR, stopLossPct, takeProfitPct,
+        Map<String, Object> ctx = autonomousIntentBaseContext(expectedRDecision, stopLossPct, takeProfitPct,
                 entry, tp, sl, snap, fearGreedGate);
         ctx.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
         ctx.put("executionMode", notifyOnly ? "SHADOW" : "DRY_RUN");
@@ -1333,7 +1362,7 @@ public class LiveSignalEvaluator {
     }
 
     private Map<String, Object> fearGreedWarnOnlyDryRunContext(BtStrategy strategy,
-                                                               double expectedR,
+                                                               ExpectedRDecision expectedRDecision,
                                                                double minExpectedR,
                                                                double stopLossPct,
                                                                double takeProfitPct,
@@ -1343,12 +1372,14 @@ public class LiveSignalEvaluator {
                                                                LiveSignalContext.Snapshot snap,
                                                                FearGreedGateDecision fearGreedGate) {
         Map<String, Object> ctx = candidateTradePlanContext(
-                expectedR, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
         ctx.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
         ctx.put("executionMode", "DRY_RUN");
         ctx.put("selectedAction", "FEAR_GREED_WARN_ONLY_SUPPRESS");
         ctx.put("decision", "SUPPRESS_ORDER");
-        ctx.put("ev_reason", expectedR > 0 ? "pass_or_pending_threshold" : "expectedR<=0");
+        ctx.put("ev_reason", expectedRDecision.trusted()
+                ? (expectedRDecision.expectedR() > 0 ? "pass_or_pending_threshold" : "expectedR<=0")
+                : "EXPECTED_R_PROVENANCE_UNAVAILABLE");
         ctx.put("gate_enabled", true);
         ctx.put("dry_run", true);
         ctx.put("candidateContinuedToEv", true);
@@ -1363,7 +1394,7 @@ public class LiveSignalEvaluator {
         return ctx;
     }
 
-    private Map<String, Object> candidateTradePlanContext(double expectedR,
+    private Map<String, Object> candidateTradePlanContext(ExpectedRDecision expectedRDecision,
                                                           double minExpectedR,
                                                           double stopLossPct,
                                                           double takeProfitPct,
@@ -1373,7 +1404,7 @@ public class LiveSignalEvaluator {
                                                           LiveSignalContext.Snapshot snap,
                                                           FearGreedGateDecision fearGreedGate) {
         Map<String, Object> ctx = autonomousIntentBaseContext(
-                expectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                expectedRDecision, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
         ctx.put("min_expected_r", minExpectedR);
         ctx.put("candidateEntry", entry);
         ctx.put("candidateTp", tp);
@@ -1384,7 +1415,7 @@ public class LiveSignalEvaluator {
     }
 
     private Map<String, Object> liveAutonomousExecutionIntentContext(BtStrategy strategy,
-                                                                     double expectedR,
+                                                                     ExpectedRDecision expectedRDecision,
                                                                      double stopLossPct,
                                                                      double takeProfitPct,
                                                                      BigDecimal entry,
@@ -1393,7 +1424,7 @@ public class LiveSignalEvaluator {
                                                                      double nnOut,
                                                                      FearGreedGateDecision fearGreedGate,
                                                                      LiveSignalContext.Snapshot snap) {
-        Map<String, Object> ctx = autonomousIntentBaseContext(expectedR, stopLossPct, takeProfitPct,
+        Map<String, Object> ctx = autonomousIntentBaseContext(expectedRDecision, stopLossPct, takeProfitPct,
                 entry, tp, sl, snap, fearGreedGate);
         ctx.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
         ctx.put("executionMode", "LIVE_AUTONOMOUS");
@@ -1411,7 +1442,7 @@ public class LiveSignalEvaluator {
         return ctx;
     }
 
-    private Map<String, Object> autonomousIntentBaseContext(double expectedR,
+    private Map<String, Object> autonomousIntentBaseContext(ExpectedRDecision expectedRDecision,
                                                            double stopLossPct,
                                                            double takeProfitPct,
                                                            BigDecimal entry,
@@ -1423,8 +1454,15 @@ public class LiveSignalEvaluator {
         ctx.put("side", "LONG");
         ctx.put("candidate_side", "LONG");
         ctx.put("signalSource", "LiveSignalEvaluator");
-        ctx.put("expected_r", expectedR);
-        ctx.put("ev_reason", expectedR > 0 ? "pass_or_pending_threshold" : "expectedR<=0");
+        ctx.put("expected_r", expectedRDecision.expectedR());
+        ctx.put("expected_r_trusted", expectedRDecision.trusted());
+        ctx.put("expected_r_provenance", expectedRDecision.provenance());
+        if (expectedRDecision.pWin() == null) ctx.put("p_win", null);
+        else ctx.put("p_win", expectedRDecision.pWin());
+        ctx.put("p_win_provenance", expectedRDecision.provenance());
+        ctx.put("ev_reason", expectedRDecision.trusted()
+                ? (expectedRDecision.expectedR() > 0 ? "pass_or_pending_threshold" : "expectedR<=0")
+                : "EXPECTED_R_PROVENANCE_UNAVAILABLE");
         ctx.put("score", snap != null ? snap.score : null);
         ctx.put("mlFeatureAvailable", snap != null);
         ctx.put("entry", entry);
@@ -2913,14 +2951,47 @@ public class LiveSignalEvaluator {
                 || hay.contains("RECOVERY");
     }
 
-    private double computeExpectedR(Map<String, Object> config,
-                                    LiveSignalContext.Snapshot snap,
-                                    double stopLossPct,
-                                    double takeProfitPct) {
-        double pWin = snap != null ? snap.nnOutput : getDouble(config, "buyThreshold", 0.55);
-        pWin = Math.max(0.0, Math.min(1.0, pWin));
-        if (stopLossPct <= 0 || takeProfitPct <= 0) return -1.0;
-        return pWin * (takeProfitPct / stopLossPct) - (1.0 - pWin);
+    static String resolveConfiguredRunInterval(Map<String, Object> config, Strategy strategy) {
+        Object configured = config == null ? null : config.get("runIntervalCode");
+        String interval = configured == null ? "" : String.valueOf(configured).trim();
+        if (!interval.isBlank() || strategy == null) {
+            return interval;
+        }
+        Map<String, Object> defaults = strategy.defaultExecutionConfig();
+        Object defaultInterval = defaults == null ? null : defaults.get("runIntervalCode");
+        return defaultInterval == null ? "" : String.valueOf(defaultInterval).trim();
+    }
+
+    static ExpectedRDecision computeExpectedRDecision(String strategyType,
+                                                      LiveSignalContext.Snapshot snap,
+                                                      double stopLossPct,
+                                                      double takeProfitPct) {
+        if (!Double.isFinite(stopLossPct) || !Double.isFinite(takeProfitPct)
+                || stopLossPct <= 0 || takeProfitPct <= 0) {
+            return ExpectedRDecision.untrusted("INVALID_TRADE_PLAN");
+        }
+        boolean calibratedStrategy = ScoreBuyStrategy.TYPE.equalsIgnoreCase(strategyType)
+                || ScoreBuyV2Strategy.TYPE.equalsIgnoreCase(strategyType);
+        if (!calibratedStrategy) {
+            return ExpectedRDecision.untrusted("UNAVAILABLE_STRATEGY_HAS_NO_CALIBRATED_WIN_PROBABILITY");
+        }
+        if (snap == null || !Double.isFinite(snap.nnOutput)
+                || snap.nnOutput < 0.0 || snap.nnOutput > 1.0) {
+            return ExpectedRDecision.untrusted("UNAVAILABLE_INVALID_OR_MISSING_STRATEGY_NN_OUTPUT");
+        }
+        double pWin = snap.nnOutput;
+        double expectedR = pWin * (takeProfitPct / stopLossPct) - (1.0 - pWin);
+        return new ExpectedRDecision(expectedR, pWin,
+                "LIVE_SIGNAL_CONTEXT_NN_OUTPUT:" + strategyType.toUpperCase(Locale.ROOT), true);
+    }
+
+    static record ExpectedRDecision(double expectedR,
+                                    Double pWin,
+                                    String provenance,
+                                    boolean trusted) {
+        static ExpectedRDecision untrusted(String provenance) {
+            return new ExpectedRDecision(-1.0, null, provenance, false);
+        }
     }
 
     /** Serialize engine decision into map form suitable for context_json v2 extras. */

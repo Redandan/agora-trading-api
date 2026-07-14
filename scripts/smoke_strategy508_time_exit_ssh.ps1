@@ -135,10 +135,20 @@ require_equal("candidate.boundary", candidate.get("boundary"), "READ_ONLY")
 require_equal("candidate.policyMode", candidate.get("policyMode"), "STRATEGY_508_4H_24H_V1")
 require_equal("candidate.strategyId", candidate.get("strategyId"), 508)
 require_equal("candidate.livePromotionAllowed", candidate.get("livePromotionAllowed"), False)
+require_equal("candidate.outcomeReconciled", candidate.get("outcomeReconciled"), True)
+require_equal("candidate.minuteReplaySemantics", candidate.get("minuteReplaySemantics"),
+              "DETERMINISTIC_1M_OHLC_NOT_EXACT_EXCHANGE_FILL")
+require_equal("candidate.minuteLatticeValidation", candidate.get("minuteLatticeValidation"),
+              "EXACT_UTC_MINUTE_GRID_DISTINCT_TIMESTAMP_AND_OHLC_INVARIANTS")
+if not candidate.get("effectivePolicyConfigSha256"):
+    print("FAIL: candidate effectivePolicyConfigSha256 missing", file=sys.stderr)
+    sys.exit(1)
 require_equal("candidate.safety.orderSent", (candidate.get("safety") or {}).get("orderSent"), False)
 require_equal("candidate.safety.ocoModified", (candidate.get("safety") or {}).get("ocoModified"), False)
 require_equal("candidate.safety.databaseMutated", (candidate.get("safety") or {}).get("databaseMutated"), False)
-if candidate.get("sampleStatus") not in ("INSUFFICIENT_EXACT_1M_SAMPLE", "HISTORICAL_SAMPLE_READY"):
+if candidate.get("sampleStatus") not in (
+        "INSUFFICIENT_EXACT_1M_SAMPLE",
+        "HISTORICAL_SAMPLE_READY"):
     print(f"FAIL: unexpected candidate sampleStatus={candidate.get('sampleStatus')}", file=sys.stderr)
     sys.exit(1)
 
@@ -149,6 +159,26 @@ require_equal("readiness.configuredMode", readiness.get("configuredMode"), os.en
 require_equal("readiness.liveOrderFlag", readiness.get("liveOrderFlag"), False)
 require_equal("readiness.liveMicroArmed", readiness.get("liveMicroArmed"), False)
 require_equal("readiness.liveOrderAllowed", readiness.get("liveOrderAllowed"), False)
+require_equal("readiness.exactLiveFillEvidenceImplemented",
+              readiness.get("exactLiveFillEvidenceImplemented"), False)
+require_equal("readiness.effectivePolicyConfigSha256",
+              readiness.get("effectivePolicyConfigSha256"),
+              candidate.get("effectivePolicyConfigSha256"))
+require_equal("readiness.forwardShadow.cohortSemantics",
+              (readiness.get("forwardShadow") or {}).get("cohortSemantics"),
+              "EXPLICIT_EXECUTABLE_SHADOW_ONLY_UNIQUE_EVENT_CONFIG_BOUND_FAIL_CLOSED")
+require_equal("readiness.forwardShadow.promotionCohort",
+              (readiness.get("forwardShadow") or {}).get("promotionCohort"),
+              "EXECUTABLE_SHADOW")
+require_equal("readiness.forwardShadow.hardGateBlockedEventsAffectPromotion",
+              (readiness.get("forwardShadow") or {}).get("hardGateBlockedEventsAffectPromotion"),
+              False)
+require_equal("readiness.rawSignalCounterfactual.livePromotionEligible",
+              (readiness.get("rawSignalCounterfactual") or {}).get("livePromotionEligible"),
+              False)
+require_equal("readiness.rawSignalCounterfactual.cohortSchemaVersion",
+              (readiness.get("rawSignalCounterfactual") or {}).get("cohortSchemaVersion"),
+              "STRATEGY_508_TIME_EXIT_COHORT_V1")
 require_equal("readiness.safety.orderSent", (readiness.get("safety") or {}).get("orderSent"), False)
 require_equal("readiness.safety.ocoModified", (readiness.get("safety") or {}).get("ocoModified"), False)
 
@@ -157,6 +187,13 @@ require_equal("pnl.tool", pnl.get("tool"), "getStrategyNetPnlAttribution")
 require_equal("pnl.boundary", pnl.get("boundary"), "READ_ONLY")
 require_equal("pnl.strategyId", pnl.get("strategyId"), 508)
 require_equal("pnl.livePromotionAllowed", pnl.get("livePromotionAllowed"), False)
+require_equal("pnl.cohortScope", pnl.get("cohortScope"), "ALL_AUTO_TRADED_STRATEGY_POSITIONS")
+require_equal("pnl.cohortFiltering", pnl.get("cohortFiltering"),
+              "NONE_GENERIC_TOOL_NEVER_HIDES_MATCHING_POSITIONS")
+require_equal("pnl.feeAmountSemantics", pnl.get("feeAmountSemantics"),
+              "POSITIVE_COST_NEGATIVE_REBATE")
+require_equal("pnl.exactFillEvidenceProducerStatus", pnl.get("exactFillEvidenceProducerStatus"),
+              "BLOCKED_NO_IMMUTABLE_ALL_FILL_SIGNED_FEE_LEDGER")
 
 print("[strategy508-time-exit] production SHADOW read-only smoke")
 print(f"activePort={os.environ['PORT']} mode={readiness.get('configuredMode')} liveOrderFlag={readiness.get('liveOrderFlag')}")

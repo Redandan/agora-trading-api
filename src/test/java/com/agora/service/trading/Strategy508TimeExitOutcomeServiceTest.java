@@ -56,15 +56,59 @@ class Strategy508TimeExitOutcomeServiceTest {
         fixture.service.processPending();
 
         assertThat(evidence.getFinalOutcome()).isEqualTo("TIME_EXIT_24H");
-        assertThat(evidence.getReason()).isEqualTo("SHADOW_OUTCOME_FINALIZED");
+        assertThat(evidence.getReason()).isEqualTo("SHADOW_OUTCOME_FINALIZED_EXECUTABLE_COHORT");
         JsonNode context = fixture.mapper.readTree(evidence.getPolicyInputsJson());
         assertThat(context.path("netPnlUsdt").asText()).isEqualTo("0.08000000");
         assertThat(context.path("feeCoverageComplete").asBoolean()).isTrue();
+        assertThat(context.path("minuteLatticeExact").asBoolean()).isTrue();
+        assertThat(context.path("modeledFeeFieldsComplete").asBoolean()).isTrue();
+        assertThat(context.path("entryTime").asText()).isEqualTo(decision.toString());
+        assertThat(context.path("exitTime").asText()).isEqualTo(decision.plusHours(24).toString());
         verifyNoInteractions(fixture.telegram);
     }
 
     @Test
-    void live24HourCloseStoresExactNetPnlAndNotifiesRealExit() throws Exception {
+    void hardBlockedShadowStillFinalizesRawCounterfactualWithoutBecomingPromotionEvidence() throws Exception {
+        Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.SHADOW);
+        LocalDateTime decision = LocalDateTime.now(ZoneOffset.UTC).minusHours(25);
+        RuntimeDecisionEvidence evidence = evidence(null, decision);
+        evidence.setSelectedAction("STRATEGY_508_TIME_EXIT_SHADOW_BLOCKED");
+        evidence.setTerminalBlocker("GLOBAL_SAME_SYMBOL_EXPOSURE");
+        evidence.setBlockerReason("GLOBAL_SAME_SYMBOL_EXPOSURE");
+        evidence.setPolicyInputsJson("{\"barOpenTime\":\"" + decision.minusHours(4)
+                + "\",\"decisionTime\":\"" + decision + "\","
+                + "\"hardBlockers\":[\"GLOBAL_SAME_SYMBOL_EXPOSURE\"],"
+                + "\"cohortSchemaVersion\":\"STRATEGY_508_TIME_EXIT_COHORT_V1\","
+                + "\"rawSignalCounterfactualEligible\":true,"
+                + "\"counterfactualOutcomeTracked\":true,"
+                + "\"executableCohortEligible\":false,"
+                + "\"promotionCohort\":\"RAW_SIGNAL_COUNTERFACTUAL\","
+                + "\"executionGateOutcome\":\"HARD_BLOCKED\"}");
+        when(fixture.evidenceRepository.findByPolicyModeAndEvidenceTimeAfterOrderByEvidenceTimeAsc(eq(
+                Strategy508TimeExitPolicy.POLICY_MODE), any())).thenReturn(List.of(evidence));
+        Strategy508TimeExitCandidateService.EntryIntent entry =
+                new Strategy508TimeExitCandidateService.EntryIntent(
+                        decision.minusHours(4), decision, "RAW_BUY_4H");
+        when(fixture.candidateService.simulateSingle(any(), any(), any())).thenReturn(
+                Strategy508TimeExitCandidateService.EventResult.finalized(
+                        entry, "TIME_EXIT_24H", decision, decision.plusHours(24),
+                        bd("100.05"), bd("100.95"), bd("0.08"), bd("0.06"),
+                        bd("0.02"), bd("0.8"), bd("1.0"), bd("-0.5"), bd("-0.3"), 1.0));
+
+        fixture.service.processPending();
+
+        JsonNode context = fixture.mapper.readTree(evidence.getPolicyInputsJson());
+        assertThat(evidence.getFinalOutcome()).isEqualTo("TIME_EXIT_24H");
+        assertThat(evidence.getReason())
+                .isEqualTo("SHADOW_COUNTERFACTUAL_OUTCOME_FINALIZED_HARD_BLOCKED");
+        assertThat(context.path("rawCounterfactualOutcome").asBoolean()).isTrue();
+        assertThat(context.path("eligibleForLivePromotion").asBoolean()).isFalse();
+        assertThat(context.path("netPnlUsdt").asText()).isEqualTo("0.08000000");
+        verifyNoInteractions(fixture.telegram);
+    }
+
+    @Test
+    void live24HourCloseStoresNumericNetButFailsClosedWithoutImmutableFillProvenance() throws Exception {
         Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.LIVE_MICRO);
         LocalDateTime decision = LocalDateTime.now(ZoneOffset.UTC).minusHours(25);
         RuntimeDecisionEvidence evidence = evidence(901L, decision);
@@ -92,8 +136,41 @@ class Strategy508TimeExitOutcomeServiceTest {
         assertThat(context.path("entryFeeUsdt").asText()).isEqualTo("0.01");
         assertThat(context.path("totalExitFeeUsdt").asText()).isEqualTo("0.01000000");
         assertThat(context.path("netPnlUsdt").asText()).isEqualTo("0.08000000");
-        assertThat(context.path("feeCoverageComplete").asBoolean()).isTrue();
+        assertThat(context.path("reportedFeeFieldsComplete").asBoolean()).isTrue();
+        assertThat(context.path("feeCoverageComplete").asBoolean()).isFalse();
+        assertThat(context.path("fillAggregationComplete").asBoolean()).isFalse();
+        assertThat(context.path("feeSignPreserved").asBoolean()).isFalse();
+        assertThat(context.path("netPnlEvidenceStatus").asText())
+                .isEqualTo("NUMERIC_FEES_PRESENT_PROVENANCE_NOT_IMPLEMENTED");
+        assertThat(evidence.getReason()).isEqualTo("LIVE_OUTCOME_FINALIZED_FEE_PROVENANCE_GAP");
+        assertThat(context.path("entryTime").asText()).isEqualTo(decision.toString());
+        assertThat(context.path("exitTime").asText()).isEqualTo(closed.getExitTime().toString());
         verify(fixture.telegram).sendAlert(any(), eq(false), eq("Strategy508TimeExit"), eq("INFO"));
+    }
+
+    @Test
+    void shadowFinalizedOutcomeWithIncompleteMinuteLatticeCannotDeclareCompleteFees() throws Exception {
+        Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.SHADOW);
+        LocalDateTime decision = LocalDateTime.now(ZoneOffset.UTC).minusHours(25);
+        RuntimeDecisionEvidence evidence = evidence(null, decision);
+        when(fixture.evidenceRepository.findByPolicyModeAndEvidenceTimeAfterOrderByEvidenceTimeAsc(eq(
+                Strategy508TimeExitPolicy.POLICY_MODE), any())).thenReturn(List.of(evidence));
+        Strategy508TimeExitCandidateService.EntryIntent entry =
+                new Strategy508TimeExitCandidateService.EntryIntent(
+                        decision.minusHours(4), decision, "RAW_BUY_4H");
+        when(fixture.candidateService.simulateSingle(any(), any(), any())).thenReturn(
+                Strategy508TimeExitCandidateService.EventResult.finalized(
+                        entry, "TIME_EXIT_24H", decision, decision.plusHours(24),
+                        bd("100.05"), bd("100.95"), bd("0.08"), bd("0.06"),
+                        bd("0.02"), bd("0.8"), bd("1.0"), bd("-0.5"), bd("-0.3"),
+                        0.9993));
+
+        fixture.service.processPending();
+
+        JsonNode context = fixture.mapper.readTree(evidence.getPolicyInputsJson());
+        assertThat(context.path("minuteLatticeExact").asBoolean()).isFalse();
+        assertThat(context.path("feeCoverageComplete").asBoolean()).isFalse();
+        assertThat(context.path("exitParityGap").asBoolean()).isTrue();
     }
 
     @Test
@@ -183,7 +260,14 @@ class Strategy508TimeExitOutcomeServiceTest {
         evidence.setFinalOutcome("PENDING_24H");
         evidence.setLiveSignalId(liveSignalId);
         evidence.setPolicyInputsJson("{\"barOpenTime\":\"" + decision.minusHours(4)
-                + "\",\"decisionTime\":\"" + decision + "\"}");
+                + "\",\"decisionTime\":\"" + decision + "\","
+                + "\"hardBlockers\":[],"
+                + "\"cohortSchemaVersion\":\"STRATEGY_508_TIME_EXIT_COHORT_V1\","
+                + "\"rawSignalCounterfactualEligible\":true,"
+                + "\"counterfactualOutcomeTracked\":true,"
+                + "\"executableCohortEligible\":true,"
+                + "\"promotionCohort\":\"EXECUTABLE_SHADOW\","
+                + "\"executionGateOutcome\":\"PASSED\"}");
         return evidence;
     }
 

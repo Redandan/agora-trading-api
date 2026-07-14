@@ -1,5 +1,19 @@
 # Split Progress
 
+- 2026-07-14: deployed `BTC_BASE_POSITION_MANAGER_V1` runtime commit
+  `c75814f` with an explicitly authorized blue-green rollout from port `8084`
+  to `8085`. Full shared-schema split acceptance and post-call runtime smoke
+  passed with 329 Trading MCP tools, 50 required tools / zero missing, zero
+  runtime errors, zero unknown warnings, and no high-risk operation log lines.
+  Deployed previews for `#260/#261/#262` proved exact
+  `tradedQty == ocoQty == ownedQty`, strategy 508 ownership, intervals
+  `4h/4h/1h`, three live healthy OCOs, zero blockers, aggregate quantity
+  `0.00047090 BTC`, and cost `29.99925310 USDT`. Both previews returned
+  `RETIRE_CLOSE_REVIEW`; this remained a recommendation only. OCO sync health
+  remained at zero errors and the production env SHA-256 was unchanged. All
+  safety markers remained false: no adoption persistence, DB/runtime-evidence
+  write, order, close, OCO change, Telegram send, fund move, Grid/Earn action,
+  scheduler change, backfill, or exchange mutation occurred.
 - 2026-07-14: implemented local-only `BTC_BASE_POSITION_MANAGER_V1` as a
   fail-closed read-only/shadow review surface for explicit open BTCUSDT OCO
   position IDs. It requires exact `tradedQty == ocoQty` ownership, confirms the

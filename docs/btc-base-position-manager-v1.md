@@ -73,6 +73,27 @@ The predeploy packet intentionally keeps `adoptionEligible=false`, because the
 old deployed tools do not expose `tradedQty` and `ocoQty` together. Exact
 adoption can only be claimed by the new manager after deployment.
 
+## Deployment Acceptance
+
+Runtime commit `c75814f` was deployed on 2026-07-14 from blue-green port `8084`
+to `8085`. Shared-schema split acceptance, MCP parity, cross-service ownership,
+and post-call runtime log smoke passed. The deployed manager returned the
+following exact read-only evidence for `260,261,262`:
+
+- `tradedQty`, `ocoQty`, and `ownedQty` match for every row;
+- all rows are strategy 508 BTCUSDT LONG positions with intervals `4h`, `4h`,
+  and `1h`;
+- all three exchange OCO parents are `live`, healthy, and have no blockers;
+- aggregate quantity is `0.00047090 BTC`, recorded cost is
+  `29.99925310 USDT`, and weighted entry is `63706.20748354`;
+- adoption preview is eligible for review but not persisted, and both previews
+  return `RETIRE_CLOSE_REVIEW`;
+- every safety marker is false and OCO sync health reports zero current errors.
+
+The production environment SHA-256 was unchanged across deployment. This
+acceptance does not authorize adoption persistence, OCO cancellation or
+modification, position close, order placement, or any other live action.
+
 ## Verification And Rollout
 
 Local acceptance:

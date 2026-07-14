@@ -39,6 +39,7 @@ public class Strategy508TimeExitOutcomeService {
     private final Strategy508TimeExitCandidateService candidateService;
     private final SpotPositionCloseService closeService;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final ObjectMapper objectMapper;
     private final TelegramService telegramService;
 
@@ -236,9 +237,10 @@ public class Strategy508TimeExitOutcomeService {
     private BigDecimal ocoExitFeeUsdt(BtLiveSignal signal) {
         if (signal.getOcoOrderListId() == null) return null;
         try {
-            JsonNode algo = okxTradingService.getAlgoOrder(signal.getSymbol(), signal.getOcoOrderListId());
-            String childOrderId = algo.path("ordIdList").path(0).asText("");
-            if (childOrderId.isBlank()) return null;
+            OcoOrderStateInspector.Inspection inspection = ocoOrderStateInspector.inspectSpot(
+                    signal.getSymbol(), signal.getOcoOrderListId());
+            String childOrderId = inspection.filledChildOrderId();
+            if (childOrderId == null || childOrderId.isBlank()) return null;
             JsonNode child = okxTradingService.querySpotOrderDetail(signal.getSymbol(), childOrderId);
             String feeCurrency = child.path("fillFeeCcy").asText("");
             BigDecimal fee = new BigDecimal(child.path("fillFee").asText("0")).abs();

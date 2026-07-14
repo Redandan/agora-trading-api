@@ -49,6 +49,7 @@ public class BtcBasePositionManagerService {
     private final OkxTradingService okxTradingService;
     private final OcoOutcomeAnalysisService ocoOutcomeAnalysisService;
     private final SpotPositionCloseService spotPositionCloseService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final ObjectMapper objectMapper;
 
     public String status(String symbol) {
@@ -304,30 +305,23 @@ public class BtcBasePositionManagerService {
     }
 
     private OcoState inspectOco(BtLiveSignal position) {
-        try {
-            JsonNode algo = okxTradingService.getAlgoOrder(position.getSymbol(), position.getOcoOrderListId());
-            String state = algo.path("state").asText("").toLowerCase(Locale.ROOT);
-            if ("filled".equals(state)) {
-                return new OcoState(state, false, "OCO_ALREADY_FILLED_RECONCILIATION_REQUIRED");
-            }
-            if (!("live".equals(state) || "effective".equals(state)
-                    || "partially_effective".equals(state) || "pause".equals(state))) {
-                return new OcoState(state.isBlank() ? "UNKNOWN" : state, false, "OCO_STATE_NOT_ACTIVE");
-            }
-            for (JsonNode childOrderIdNode : algo.path("ordIdList")) {
-                String childOrderId = childOrderIdNode.asText("");
-                if (childOrderId.isBlank()) continue;
-                JsonNode child = okxTradingService.querySpotOrderDetail(position.getSymbol(), childOrderId);
-                if ("filled".equalsIgnoreCase(child.path("state").asText())) {
-                    return new OcoState(state, false, "OCO_CHILD_FILLED_RECONCILIATION_REQUIRED");
-                }
-            }
-            return new OcoState(state, true, "");
-        } catch (Exception e) {
-            log.warn("[BtcBasePositionManager] OCO query failed position={} algoId={} error={}",
-                    position.getId(), position.getOcoOrderListId(), e.getMessage());
-            return new OcoState("QUERY_FAILED", false, "OCO_HEALTH_QUERY_FAILED");
+        OcoOrderStateInspector.Inspection inspection = ocoOrderStateInspector.inspectSpot(
+                position.getSymbol(), position.getOcoOrderListId());
+        if (inspection.filled()) {
+            String blocker = inspection.filledChildOrderId() == null
+                    ? "OCO_ALREADY_FILLED_RECONCILIATION_REQUIRED"
+                    : "OCO_CHILD_FILLED_RECONCILIATION_REQUIRED";
+            return new OcoState(inspection.parentState(), false, blocker);
         }
+        if (!inspection.queryComplete()) {
+            log.warn("[BtcBasePositionManager] OCO query incomplete position={} algoId={} errors={}",
+                    position.getId(), position.getOcoOrderListId(), inspection.errors());
+            return new OcoState(inspection.parentState(), false, "OCO_HEALTH_QUERY_FAILED");
+        }
+        if (!inspection.active()) {
+            return new OcoState(inspection.parentState(), false, "OCO_STATE_NOT_ACTIVE");
+        }
+        return new OcoState(inspection.parentState(), true, "");
     }
 
     private Aggregate aggregate(List<PositionAssessment> assessments) {

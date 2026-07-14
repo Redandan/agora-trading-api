@@ -54,6 +54,7 @@ public class TinyLiveMinimumOrderPreviewService {
     private final BtGridLevelRepository gridLevelRepository;
     private final EventRiskLevelEngine eventRiskLevelEngine;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final TradingGridProperties gridProperties;
     private final AutoExplorationRolloutStateService rolloutStateService;
     private final ObjectMapper objectMapper;
@@ -886,17 +887,18 @@ public class TinyLiveMinimumOrderPreviewService {
                 if (pos.getOcoOrderListId() == null) {
                     return "NOT_READY_EXISTING_OCO_MISSING";
                 }
-                try {
-                    JsonNode algo = okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
-                    String state = algo == null ? "unknown" : algo.path("state").asText("unknown");
-                    if ("filled".equalsIgnoreCase(state)
-                            || "order_failed".equalsIgnoreCase(state)
-                            || "unknown".equalsIgnoreCase(state)
-                            || algo == null || algo.isMissingNode() || algo.isNull()) {
-                        return "NOT_READY_EXISTING_OCO_SYNC_ERROR";
-                    }
-                } catch (Exception e) {
+                boolean isShort = "SHORT".equalsIgnoreCase(pos.getSide());
+                OcoOrderStateInspector.Inspection inspection = isShort
+                        ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
+                        : ocoOrderStateInspector.inspectSpot(pos.getSymbol(), pos.getOcoOrderListId());
+                if (inspection.filled()) {
+                    return "NOT_READY_EXISTING_OCO_SYNC_ERROR";
+                }
+                if (!inspection.queryComplete()) {
                     return "NOT_READY_EXISTING_OCO_READ_FAILED";
+                }
+                if (!inspection.active()) {
+                    return "NOT_READY_EXISTING_OCO_SYNC_ERROR";
                 }
             }
         }

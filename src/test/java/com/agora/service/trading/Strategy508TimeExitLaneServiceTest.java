@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -163,6 +164,30 @@ class Strategy508TimeExitLaneServiceTest {
         assertThat(evidence.getPolicyInputsJson()).contains("\"experimentOrdersToday\":0");
         assertThat(evidence.getPolicyInputsJson()).doesNotContain("EXPERIMENT_OPEN_POSITION_CAP");
         assertThat(evidence.getPolicyInputsJson()).doesNotContain("EXPERIMENT_DAILY_ORDER_CAP");
+    }
+
+    @Test
+    void ocoHealthBlocksWhenSecondChildIsFilled() throws Exception {
+        Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.SHADOW, false);
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setOcoOrderListId(1260L);
+        when(fixture.liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull())
+                .thenReturn(List.of(position));
+        when(fixture.okx.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(new ObjectMapper().readTree(
+                "{\"state\":\"effective\",\"ordIdList\":[\"tp-260\",\"sl-260\"]}"));
+        when(fixture.okx.querySpotOrderDetail("BTCUSDT", "tp-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"live\"}"));
+        when(fixture.okx.querySpotOrderDetail("BTCUSDT", "sl-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"filled\",\"avgPx\":\"88\"}"));
+        Map<String, Object> context = new HashMap<>();
+
+        Boolean healthy = ReflectionTestUtils.invokeMethod(fixture.service, "ocoHealthOk", context);
+
+        assertThat(healthy).isFalse();
+        assertThat(context.get("ocoHealthReason")).isEqualTo("OCO_CHILD_FILLED_DB_OPEN:260");
     }
 
     @Test
@@ -311,7 +336,8 @@ class Strategy508TimeExitLaneServiceTest {
         Strategy508TimeExitLaneService service = new Strategy508TimeExitLaneService(
                 properties, strategyService, new StrategyRegistry(List.of(strategy)), backtestEngine,
                 klineRepository, auditRepository, evidenceRepository, runtimeEvidenceService,
-                liveSignalRepository, okx, okxProperties, dailyLossGuard, eventRisk, readinessService,
+                liveSignalRepository, okx, new OcoOrderStateInspector(okx), okxProperties,
+                dailyLossGuard, eventRisk, readinessService,
                 closeService, mapper, telegram);
         Fixture fixture = new Fixture(service, strategyService, klineRepository, evidenceRepository,
                 liveSignalRepository, okx, readinessService, closeService, telegram);

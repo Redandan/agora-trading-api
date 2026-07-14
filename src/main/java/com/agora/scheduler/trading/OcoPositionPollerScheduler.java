@@ -10,6 +10,7 @@ import com.agora.service.TgNotificationDeduper;
 import com.agora.service.TgNotificationDeduper.Severity;
 import com.agora.service.ml.MlInferenceLogger;
 import com.agora.service.trading.OcoManagementService;
+import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.PostTradeReviewService;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.SpotPositionCloseService;
@@ -66,6 +67,8 @@ public class OcoPositionPollerScheduler {
     private final TgNotificationDeduper tgDeduper;
     /** Prevent OCO auto-retry from racing a scoped cancel-and-market-close flow. */
     private final SpotPositionCloseService spotPositionCloseService;
+    /** Single read-only source of truth for OCO parent and all child order states. */
+    private final OcoOrderStateInspector ocoOrderStateInspector;
 
     @Value("${trading.oco-poller.enabled:false}")
     private boolean ocoPollerEnabled;
@@ -296,59 +299,32 @@ public class OcoPositionPollerScheduler {
 
     void checkAndClose(BtLiveSignal pos) {
         boolean isShort = "SHORT".equals(pos.getSide());
-
-        // SHORT 倉位用 SWAP instId 查詢；LONG 用現貨 instId
-        JsonNode algo = isShort
-                ? okxTradingService.getSwapAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId())
-                : okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
-
-        if (algo.isMissingNode() || algo.isNull()) {
-            log.warn("[OcoPoll] Algo order not found: id={} algoId={} isShort={}",
-                    pos.getId(), pos.getOcoOrderListId(), isShort);
+        OcoOrderStateInspector.Inspection inspection = isShort
+                ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
+                : ocoOrderStateInspector.inspectSpot(pos.getSymbol(), pos.getOcoOrderListId());
+        if (!inspection.queryComplete() && !inspection.filled()) {
+            log.warn("[OcoPoll] OCO inspection incomplete: id={} algoId={} side={} errors={}",
+                    pos.getId(), pos.getOcoOrderListId(), isShort ? "SHORT" : "LONG", inspection.errors());
             return;
         }
 
-        String state = algo.path("state").asText("live");
-        // effectiveAvgPx 可能被下方子單偵測覆寫
-        String effectiveAvgPx = algo.path("avgPx").asText("");
-
-        if ("live".equals(state) || "effective".equals(state) || "pause".equals(state)) {
-            // OKX OCO Bug: parent algoId 的 state 在子單成交後仍回傳 "effective"，
-            // 需額外查子單（ordIdList[0]）的成交狀態來確認是否已出場。
-            // 此 bug 同時影響 SWAP 和 SPOT（#285 root-cause）。
-            String childOrdId = algo.path("ordIdList").path(0).asText("");
-            if (!childOrdId.isEmpty()) {
-                try {
-                    JsonNode child = isShort
-                            ? okxTradingService.querySwapOrderDetail(pos.getSymbol(), childOrdId)
-                            : okxTradingService.querySpotOrderDetail(pos.getSymbol(), childOrdId);
-                    String childState = child.path("state").asText("");
-                    if ("filled".equals(childState)) {
-                        String childAvgPx = child.path("avgPx").asText("");
-                        if (!childAvgPx.isEmpty() && !"0".equals(childAvgPx)) {
-                            state = "filled";
-                            effectiveAvgPx = childAvgPx;
-                            log.info("[OcoPoll] {} OCO parent=effective but child filled: id={} childOrdId={} avgPx={}",
-                                    isShort ? "SWAP" : "SPOT", pos.getId(), childOrdId, childAvgPx);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("[OcoPoll] Child order check failed: id={} side={} err={}",
-                            pos.getId(), isShort ? "SHORT" : "LONG", e.getMessage());
-                }
-            }
-            if (!"filled".equals(state)) {
-                log.debug("[OcoPoll] Still live: id={} algoId={} state={}", pos.getId(), pos.getOcoOrderListId(), state);
-                return;
-            }
+        String state = inspection.effectiveState();
+        if (inspection.active()) {
+            log.debug("[OcoPoll] Still live: id={} algoId={} state={}",
+                    pos.getId(), pos.getOcoOrderListId(), inspection.parentState());
+            return;
         }
-
-        if (!"filled".equals(state) && !"canceled".equals(state)) {
+        if (inspection.filledChildOrderId() != null) {
+            log.info("[OcoPoll] {} OCO child filled: id={} parentState={} childOrdId={} avgPx={}",
+                    isShort ? "SWAP" : "SPOT", pos.getId(), inspection.parentState(),
+                    inspection.filledChildOrderId(), inspection.fillPrice());
+        }
+        if (!inspection.filled() && !inspection.canceled()) {
             log.warn("[OcoPoll] Unexpected algo state: id={} algoId={} state={}", pos.getId(), pos.getOcoOrderListId(), state);
             return;
         }
 
-        String avgPxStr = effectiveAvgPx;
+        String avgPxStr = inspection.fillPrice() == null ? "" : inspection.fillPrice().toPlainString();
         if (avgPxStr.isEmpty() || "0".equals(avgPxStr)) {
             if ("filled".equals(state)) {
                 log.warn("[OcoPoll] state=filled but avgPx empty, will retry next cycle: id={} algoId={}",
@@ -716,22 +692,19 @@ public class OcoPositionPollerScheduler {
     /**
      * 查詢 OCO algo 訂單是否仍處於活躍狀態（live/effective/pause）。
      * 用於 reconcile 前的保護：cashBal=0 可能只是 ETH 被鎖在活躍掛單中，並非已售出。
-     * 查詢失敗時保守回傳 false（允許繼續 auto-close）。
+     * 查詢失敗時保守回傳 true，避免在 OCO 狀態未知時自動關閉 DB 記錄。
      */
     private boolean isOcoStillActive(BtLiveSignal pos) {
         if (pos.getOcoOrderListId() == null) return false;
-        try {
-            boolean isShort = "SHORT".equals(pos.getSide());
-            JsonNode algo = isShort
-                    ? okxTradingService.getSwapAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId())
-                    : okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
-            if (algo.isMissingNode() || algo.isNull()) return false;
-            String state = algo.path("state").asText("");
-            return "live".equals(state) || "effective".equals(state) || "pause".equals(state);
-        } catch (Exception e) {
-            log.warn("[Reconcile] Cannot check OCO state for id={}: {}", pos.getId(), e.getMessage());
-            return false;
+        boolean isShort = "SHORT".equals(pos.getSide());
+        OcoOrderStateInspector.Inspection inspection = isShort
+                ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
+                : ocoOrderStateInspector.inspectSpot(pos.getSymbol(), pos.getOcoOrderListId());
+        if (!inspection.queryComplete() && !inspection.filled()) {
+            log.warn("[Reconcile] Cannot confirm OCO state for id={}: {}", pos.getId(), inspection.errors());
+            return true;
         }
+        return inspection.active();
     }
 
 

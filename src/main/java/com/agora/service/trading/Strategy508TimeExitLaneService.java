@@ -75,6 +75,7 @@ public class Strategy508TimeExitLaneService {
     private final RuntimeDecisionEvidenceService runtimeEvidenceService;
     private final BtLiveSignalRepository liveSignalRepository;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final OkxTradingProperties okxTradingProperties;
     private final DailyLossGuard dailyLossGuard;
     private final EventRiskLevelEngine eventRiskLevelEngine;
@@ -269,23 +270,19 @@ public class Strategy508TimeExitLaneService {
                 context.put("ocoHealthReason", "OPEN_POSITION_WITHOUT_OCO:" + position.getId());
                 return false;
             }
-            try {
-                JsonNode algo = okxTradingService.getAlgoOrder(position.getSymbol(), position.getOcoOrderListId());
-                String state = algo.path("state").asText("");
-                if (!("live".equals(state) || "effective".equals(state) || "pause".equals(state))) {
-                    context.put("ocoHealthReason", "OCO_STATE_" + state + ":" + position.getId());
-                    return false;
-                }
-                String childOrderId = algo.path("ordIdList").path(0).asText("");
-                if (!childOrderId.isBlank()) {
-                    JsonNode child = okxTradingService.querySpotOrderDetail(position.getSymbol(), childOrderId);
-                    if ("filled".equalsIgnoreCase(child.path("state").asText())) {
-                        context.put("ocoHealthReason", "OCO_CHILD_FILLED_DB_OPEN:" + position.getId());
-                        return false;
-                    }
-                }
-            } catch (Exception e) {
+            OcoOrderStateInspector.Inspection inspection = ocoOrderStateInspector.inspectSpot(
+                    position.getSymbol(), position.getOcoOrderListId());
+            if (inspection.filled()) {
+                context.put("ocoHealthReason", "OCO_CHILD_FILLED_DB_OPEN:" + position.getId());
+                return false;
+            }
+            if (!inspection.queryComplete()) {
                 context.put("ocoHealthReason", "OCO_QUERY_FAILED:" + position.getId());
+                return false;
+            }
+            if (!inspection.active()) {
+                context.put("ocoHealthReason", "OCO_STATE_" + inspection.parentState()
+                        + ":" + position.getId());
                 return false;
             }
         }

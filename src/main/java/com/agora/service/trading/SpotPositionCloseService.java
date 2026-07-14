@@ -2,7 +2,6 @@ package com.agora.service.trading;
 
 import com.agora.model.BtLiveSignal;
 import com.agora.repository.trading.BtLiveSignalRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +25,7 @@ public class SpotPositionCloseService {
 
     private final BtLiveSignalRepository liveSignalRepository;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final Set<Long> closingPositionIds = ConcurrentHashMap.newKeySet();
 
     public boolean isClosing(Long positionId) {
@@ -115,33 +115,28 @@ public class SpotPositionCloseService {
 
     private OcoCancelResult cancelOcoFailClosed(BtLiveSignal position) {
         if (position.getOcoOrderListId() == null) return OcoCancelResult.NOT_PRESENT;
-        if (ocoFilled(position)) return OcoCancelResult.ALREADY_FILLED;
+        OcoOrderStateInspector.Inspection beforeCancel = inspectOco(position);
+        if (beforeCancel.filled()) return OcoCancelResult.ALREADY_FILLED;
+        if (!beforeCancel.queryComplete()) {
+            log.warn("[SpotClose] OCO pre-cancel inspection incomplete position={} algoId={} errors={}",
+                    position.getId(), position.getOcoOrderListId(), beforeCancel.errors());
+        }
         try {
             okxTradingService.cancelOco(position.getSymbol(), position.getOcoOrderListId());
             position.setOcoOrderListId(null);
             liveSignalRepository.save(position);
             return OcoCancelResult.CANCELLED;
         } catch (Exception e) {
-            if (ocoFilled(position)) return OcoCancelResult.ALREADY_FILLED;
+            OcoOrderStateInspector.Inspection afterFailure = inspectOco(position);
+            if (afterFailure.filled()) return OcoCancelResult.ALREADY_FILLED;
             log.error("[SpotClose] OCO cancel not confirmed position={} algoId={} error={}",
                     position.getId(), position.getOcoOrderListId(), e.getMessage());
             return OcoCancelResult.FAILED;
         }
     }
 
-    private boolean ocoFilled(BtLiveSignal position) {
-        try {
-            JsonNode algo = okxTradingService.getAlgoOrder(position.getSymbol(), position.getOcoOrderListId());
-            if ("filled".equalsIgnoreCase(algo.path("state").asText())) return true;
-            String childOrderId = algo.path("ordIdList").path(0).asText("");
-            if (childOrderId.isBlank()) return false;
-            JsonNode child = okxTradingService.querySpotOrderDetail(position.getSymbol(), childOrderId);
-            return "filled".equalsIgnoreCase(child.path("state").asText());
-        } catch (Exception e) {
-            log.warn("[SpotClose] OCO state check failed position={} algoId={} error={}",
-                    position.getId(), position.getOcoOrderListId(), e.getMessage());
-            return false;
-        }
+    private OcoOrderStateInspector.Inspection inspectOco(BtLiveSignal position) {
+        return ocoOrderStateInspector.inspectSpot(position.getSymbol(), position.getOcoOrderListId());
     }
 
     private Long reattachOco(BtLiveSignal position, BigDecimal remainingQty) {

@@ -11,6 +11,7 @@ import com.agora.service.TgNotificationDeduper.Severity;
 import com.agora.service.diagnostic.OrphanTradeReconcilerService;
 import com.agora.service.ml.MlInferenceLogger;
 import com.agora.service.trading.OcoManagementService;
+import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxEarnService;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.PositionAgingMonitor;
@@ -25,7 +26,9 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -112,6 +115,55 @@ class OcoPositionPollerSchedulerTest {
         verifyNoInteractions(fixture.tgDeduper, fixture.notificationPort, fixture.orphanReconciler);
     }
 
+    @Test
+    void secondOcoChildFillClosesPositionAtThatChildPrice() throws Exception {
+        Fixture fixture = newFixture(mock(UntrackedHoldingTracker.class));
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setAutoTraded(true);
+        position.setActualEntryPrice(new BigDecimal("100"));
+        position.setTradedQty(BigDecimal.ONE);
+        position.setOcoQty(BigDecimal.ONE);
+        position.setSuggestedTp(new BigDecimal("106"));
+        position.setSuggestedSl(new BigDecimal("88"));
+        position.setOcoOrderListId(1260L);
+        when(fixture.liveSignalRepository.findById(260L)).thenReturn(Optional.of(position));
+        when(fixture.okxTradingService.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(MAPPER.readTree(
+                "{\"state\":\"effective\",\"ordIdList\":[\"tp-260\",\"sl-260\"]}"));
+        when(fixture.okxTradingService.querySpotOrderDetail("BTCUSDT", "tp-260"))
+                .thenReturn(MAPPER.readTree("{\"state\":\"live\"}"));
+        when(fixture.okxTradingService.querySpotOrderDetail("BTCUSDT", "sl-260"))
+                .thenReturn(MAPPER.readTree("{\"state\":\"filled\",\"avgPx\":\"88\"}"));
+
+        fixture.scheduler.checkAndClose(position);
+
+        assertThat(position.getExitPrice()).isEqualByComparingTo("88");
+        assertThat(position.getExitReason()).isEqualTo("SL");
+        assertThat(position.getRealizedPnl()).isEqualByComparingTo("-12");
+        assertThat(position.getExitTime()).isNotNull();
+        verify(fixture.okxTradingService).querySpotOrderDetail("BTCUSDT", "tp-260");
+        verify(fixture.okxTradingService).querySpotOrderDetail("BTCUSDT", "sl-260");
+        verify(fixture.liveSignalRepository).save(position);
+    }
+
+    @Test
+    void reconcileTreatsOcoQueryFailureAsProtectedUntilStateIsKnown() {
+        Fixture fixture = newFixture(mock(UntrackedHoldingTracker.class));
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(261L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setOcoOrderListId(1261L);
+        when(fixture.okxTradingService.getAlgoOrder("BTCUSDT", 1261L))
+                .thenThrow(new RuntimeException("timeout"));
+
+        Boolean guarded = ReflectionTestUtils.invokeMethod(fixture.scheduler, "isOcoStillActive", position);
+
+        assertThat(guarded).isTrue();
+    }
+
     private static void stubReconcileInputs(Fixture fixture, OkxTradingService.SpotHolding holding) {
         when(fixture.liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of());
         when(fixture.gridLevelRepository.sumFilledQtyBySymbolForActiveGrids()).thenReturn(List.of());
@@ -148,7 +200,8 @@ class OcoPositionPollerSchedulerTest {
                 tracker,
                 orphanReconciler,
                 tgDeduper,
-                mock(SpotPositionCloseService.class));
+                mock(SpotPositionCloseService.class),
+                new OcoOrderStateInspector(okxTradingService));
         ReflectionTestUtils.setField(scheduler, "untrackedMinNotionalUsdt", new BigDecimal("10.0"));
         return new Fixture(scheduler, liveSignalRepository, gridLevelRepository, okxTradingService,
                 notificationPort, tgDeduper, orphanReconciler);

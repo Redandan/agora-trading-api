@@ -32,6 +32,7 @@ public class SwapRiskMonitorService {
 
     private final BtLiveSignalRepository liveSignalRepository;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final NotificationPort notificationPort;
     private final PostTradeReviewService postTradeReviewService;
     private final BtStrategyRepository strategyRepository;
@@ -141,28 +142,25 @@ public class SwapRiskMonitorService {
         String exitReason = "ORPHAN_CLOSED";
 
         if (pos.getOcoOrderListId() != null) {
-            try {
-                JsonNode algo = isShort
-                        ? okxTradingService.getSwapAlgoOrder(symbol, pos.getOcoOrderListId())
-                        : okxTradingService.getAlgoOrder(symbol, pos.getOcoOrderListId());
-                String state = algo.path("state").asText("");
-                String avgPxStr = algo.path("avgPx").asText("");
-                if ("filled".equals(state) && !avgPxStr.isEmpty() && !"0".equals(avgPxStr)) {
-                    exitPrice = new BigDecimal(avgPxStr);
-                    BigDecimal refEntry = pos.getActualEntryPrice() != null
-                            ? pos.getActualEntryPrice() : pos.getEntryPrice();
-                    if (pos.getSuggestedTp() != null && pos.getSuggestedSl() != null) {
-                        BigDecimal mid = pos.getSuggestedTp().add(pos.getSuggestedSl())
-                                .divide(BigDecimal.valueOf(2), 8, RoundingMode.HALF_UP);
-                        exitReason = isShort
-                                ? (exitPrice.compareTo(mid) <= 0 ? "TP" : "SL")
-                                : (exitPrice.compareTo(mid) >= 0 ? "TP" : "SL");
-                    } else {
-                        exitReason = exitPrice.compareTo(refEntry) >= 0 ? "TP" : "SL";
-                    }
+            OcoOrderStateInspector.Inspection inspection = isShort
+                    ? ocoOrderStateInspector.inspectSwap(symbol, pos.getOcoOrderListId())
+                    : ocoOrderStateInspector.inspectSpot(symbol, pos.getOcoOrderListId());
+            if (inspection.filled() && inspection.fillPrice() != null) {
+                exitPrice = inspection.fillPrice();
+                BigDecimal refEntry = pos.getActualEntryPrice() != null
+                        ? pos.getActualEntryPrice() : pos.getEntryPrice();
+                if (pos.getSuggestedTp() != null && pos.getSuggestedSl() != null) {
+                    BigDecimal mid = pos.getSuggestedTp().add(pos.getSuggestedSl())
+                            .divide(BigDecimal.valueOf(2), 8, RoundingMode.HALF_UP);
+                    exitReason = isShort
+                            ? (exitPrice.compareTo(mid) <= 0 ? "TP" : "SL")
+                            : (exitPrice.compareTo(mid) >= 0 ? "TP" : "SL");
+                } else if (refEntry != null) {
+                    exitReason = exitPrice.compareTo(refEntry) >= 0 ? "TP" : "SL";
                 }
-            } catch (Exception e) {
-                log.warn("[Reconcile] Cannot query algo order for id={}: {}", pos.getId(), e.getMessage());
+            } else if (!inspection.queryComplete()) {
+                log.warn("[Reconcile] Cannot confirm algo order for id={}: {}",
+                        pos.getId(), inspection.errors());
             }
         }
 

@@ -149,6 +149,37 @@ class Strategy508TimeExitOutcomeServiceTest {
     }
 
     @Test
+    void alreadyClosedOcoUsesFeeFromFilledSecondChild() throws Exception {
+        Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.LIVE_MICRO);
+        LocalDateTime decision = LocalDateTime.now(ZoneOffset.UTC).minusHours(25);
+        RuntimeDecisionEvidence evidence = evidence(902L, decision);
+        evidence.setPolicyInputsJson("{\"entryFeeUsdt\":\"0.01\"}");
+        BtLiveSignal closed = policySignal(902L, decision);
+        closed.setExitTime(LocalDateTime.now(ZoneOffset.UTC));
+        closed.setExitPrice(bd("101"));
+        closed.setExitReason("TP");
+        closed.setRealizedPnl(bd("0.10"));
+        closed.setOcoOrderListId(1260L);
+        when(fixture.evidenceRepository.findByPolicyModeAndEvidenceTimeAfterOrderByEvidenceTimeAsc(eq(
+                Strategy508TimeExitPolicy.POLICY_MODE), any())).thenReturn(List.of(evidence));
+        when(fixture.liveSignalRepository.findById(902L)).thenReturn(Optional.of(closed));
+        when(fixture.okx.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(new ObjectMapper().readTree(
+                "{\"state\":\"effective\",\"ordIdList\":[\"sl-902\",\"tp-902\"]}"));
+        when(fixture.okx.querySpotOrderDetail("BTCUSDT", "sl-902"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"canceled\"}"));
+        when(fixture.okx.querySpotOrderDetail("BTCUSDT", "tp-902"))
+                .thenReturn(new ObjectMapper().readTree(
+                        "{\"state\":\"filled\",\"avgPx\":\"101\",\"fillFeeCcy\":\"USDT\",\"fillFee\":\"-0.01\"}"));
+
+        fixture.service.processPending();
+
+        JsonNode context = fixture.mapper.readTree(evidence.getPolicyInputsJson());
+        assertThat(context.path("totalExitFeeUsdt").asText()).isEqualTo("0.01000000");
+        assertThat(context.path("netPnlUsdt").asText()).isEqualTo("0.08000000");
+        verify(fixture.closeService, never()).closeAtMarket(any(), any());
+    }
+
+    @Test
     void shadowFinalizedOutcomeWithIncompleteMinuteLatticeCannotDeclareCompleteFees() throws Exception {
         Fixture fixture = fixture(Strategy508TimeExitProperties.Mode.SHADOW);
         LocalDateTime decision = LocalDateTime.now(ZoneOffset.UTC).minusHours(25);
@@ -242,9 +273,9 @@ class Strategy508TimeExitOutcomeServiceTest {
         Strategy508TimeExitOutcomeService service = new Strategy508TimeExitOutcomeService(
                 new Strategy508TimeExitProperties(mode, mode == Strategy508TimeExitProperties.Mode.LIVE_MICRO),
                 evidenceRepository, liveSignalRepository, klineRepository, candidateService,
-                closeService, okx, mapper, telegram);
+                closeService, okx, new OcoOrderStateInspector(okx), mapper, telegram);
         return new Fixture(service, evidenceRepository, liveSignalRepository, candidateService,
-                closeService, telegram, mapper);
+                closeService, okx, telegram, mapper);
     }
 
     private RuntimeDecisionEvidence evidence(Long liveSignalId, LocalDateTime decision) {
@@ -296,6 +327,7 @@ class Strategy508TimeExitOutcomeServiceTest {
                            BtLiveSignalRepository liveSignalRepository,
                            Strategy508TimeExitCandidateService candidateService,
                            SpotPositionCloseService closeService,
+                           OkxTradingService okx,
                            TelegramService telegram,
                            ObjectMapper mapper) {
     }

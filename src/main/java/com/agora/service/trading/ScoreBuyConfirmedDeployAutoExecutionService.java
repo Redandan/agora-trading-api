@@ -40,6 +40,7 @@ public class ScoreBuyConfirmedDeployAutoExecutionService {
     private final ScoreBuyConfirmedDeployPreviewService previewService;
     private final RuntimeDecisionEvidenceService runtimeDecisionEvidenceService;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final BtLiveSignalRepository liveSignalRepository;
     private final BtDecisionAuditRepository decisionAuditRepository;
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
@@ -359,16 +360,18 @@ public class ScoreBuyConfirmedDeployAutoExecutionService {
             if (row.getOcoOrderListId() == null) {
                 return new OcoHealth(false, "OPEN_POSITION_WITHOUT_OCO:" + row.getId());
             }
-            try {
-                JsonNode algo = okxTradingService.getAlgoOrder(row.getSymbol(), row.getOcoOrderListId());
-                String state = algo == null ? "unknown" : algo.path("state").asText("unknown");
-                if (!"live".equalsIgnoreCase(state)
-                        && !"partially_effective".equalsIgnoreCase(state)
-                        && !"effective".equalsIgnoreCase(state)) {
-                    return new OcoHealth(false, "OCO_STATE_" + state + ":position=" + row.getId());
-                }
-            } catch (Exception e) {
-                return new OcoHealth(false, "OCO_READ_FAILED:" + truncate(e.getMessage(), 120));
+            OcoOrderStateInspector.Inspection inspection = ocoOrderStateInspector.inspectSpot(
+                    row.getSymbol(), row.getOcoOrderListId());
+            if (inspection.filled()) {
+                return new OcoHealth(false, "OCO_FILLED_DB_OPEN:position=" + row.getId());
+            }
+            if (!inspection.queryComplete()) {
+                return new OcoHealth(false, "OCO_READ_FAILED:"
+                        + truncate(String.join(",", inspection.errors()), 120));
+            }
+            if (!inspection.active()) {
+                return new OcoHealth(false, "OCO_STATE_" + inspection.parentState()
+                        + ":position=" + row.getId());
             }
         }
         return new OcoHealth(true, "OK");

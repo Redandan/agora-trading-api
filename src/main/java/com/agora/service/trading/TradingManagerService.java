@@ -49,6 +49,7 @@ public class TradingManagerService {
     private final BtGridRepository btGridRepository;
     private final BtGridLevelRepository btGridLevelRepository;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final OkxEarnService okxEarnService;
     private final GeminiApiClient geminiApiClient;
     private final GroqApiClient groqApiClient;
@@ -167,18 +168,14 @@ public class TradingManagerService {
 
             // 即時確認 OCO 狀態（有 OCO 才查）
             if (okxPrivateReady && pos.getOcoOrderListId() != null) {
-                try {
-                    JsonNode algo = okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
-                    String state = algo.path("state").asText("live");
-                    if ("filled".equals(state)) {
-                        v.ocoAlreadyFilled = true;
-                    } else if ("canceled".equals(state)) {
-                        // canceled 但 avgPx != "0" 表示有實際成交（某腿觸發後另一腿被取消）
-                        String avgPx = algo.path("avgPx").asText("0");
-                        v.ocoAlreadyFilled = !"0".equals(avgPx) && !avgPx.isEmpty();
-                    }
-                } catch (Exception e) {
-                    log.warn("[TradingManager] getAlgoOrder failed for id={}: {}", pos.getId(), e.getMessage());
+                boolean isShort = "SHORT".equalsIgnoreCase(pos.getSide());
+                OcoOrderStateInspector.Inspection inspection = isShort
+                        ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
+                        : ocoOrderStateInspector.inspectSpot(pos.getSymbol(), pos.getOcoOrderListId());
+                v.ocoAlreadyFilled = inspection.filled();
+                if (!inspection.queryComplete() && !inspection.filled()) {
+                    log.warn("[TradingManager] OCO inspection incomplete for id={}: {}",
+                            pos.getId(), inspection.errors());
                 }
             }
 

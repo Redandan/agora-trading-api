@@ -15,6 +15,7 @@ import com.agora.service.trading.PostTradeReviewService;
 import com.agora.service.ai.AiStrategyDiscoveryService;
 import com.agora.service.trading.DailyLossGuard;
 import com.agora.service.trading.LongAiFilter;
+import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.ShortAiFilter;
 import com.agora.service.trading.PositionSizingService;
 import com.agora.service.trading.TradeQualityEngine;
@@ -90,6 +91,7 @@ public class LiveSignalEvaluator {
     private final OkxTradingProperties tradingProperties;
     private final TradingService tradingService;
     private final com.agora.service.trading.OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final PostTradeReviewService postTradeReviewService;
     private final ShortAiFilter shortAiFilter;
     private final LongAiFilter longAiFilter;
@@ -2480,16 +2482,10 @@ public class LiveSignalEvaluator {
     /** 嘗試從 OKX algo order 取得實際成交均價（state=filled 且 avgPx 有效）；失敗或未成交回傳 null。 */
     private BigDecimal resolveOcoFillPrice(String symbol, Long algoId, boolean isShort) {
         if (algoId == null) return null;
-        try {
-            JsonNode algo = isShort
-                    ? okxTradingService.getSwapAlgoOrder(symbol, algoId)
-                    : okxTradingService.getAlgoOrder(symbol, algoId);
-            String avgPxStr = algo.path("avgPx").asText("");
-            if (!avgPxStr.isEmpty() && !"0".equals(avgPxStr)) {
-                return new BigDecimal(avgPxStr);
-            }
-        } catch (Exception ignored) {}
-        return null;
+        OcoOrderStateInspector.Inspection inspection = isShort
+                ? ocoOrderStateInspector.inspectSwap(symbol, algoId)
+                : ocoOrderStateInspector.inspectSpot(symbol, algoId);
+        return inspection.filled() ? inspection.fillPrice() : null;
     }
 
     /** 根據出場價與 TP/SL 中點判斷出場原因（TP 或 SL），無法判斷時回傳 "OCO_FILLED"。 */

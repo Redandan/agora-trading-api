@@ -42,6 +42,26 @@ class SpotPositionCloseServiceTest {
     }
 
     @Test
+    void secondOcoChildFilledNeverCancelsOrSendsAnotherSell() throws Exception {
+        Fixture fixture = fixture(position(8L));
+        fixture.position.setOcoOrderListId(800L);
+        when(fixture.okx.getAlgoOrder("BTCUSDT", 800L)).thenReturn(MAPPER.readTree(
+                "{\"state\":\"effective\",\"ordIdList\":[\"tp-8\",\"sl-8\"]}"));
+        when(fixture.okx.querySpotOrderDetail("BTCUSDT", "tp-8"))
+                .thenReturn(MAPPER.readTree("{\"state\":\"live\"}"));
+        when(fixture.okx.querySpotOrderDetail("BTCUSDT", "sl-8"))
+                .thenReturn(MAPPER.readTree("{\"state\":\"filled\",\"avgPx\":\"88\"}"));
+
+        SpotPositionCloseService.CloseResult result = fixture.service.closeAtMarket(8L, "TIME_EXIT_24H");
+
+        assertThat(result.status()).isEqualTo("OCO_ALREADY_FILLED");
+        verify(fixture.okx, never()).cancelOco(any(), any());
+        verify(fixture.okx, never()).placeMarketSellWithFill(any(), any());
+        verify(fixture.okx).querySpotOrderDetail("BTCUSDT", "tp-8");
+        verify(fixture.okx).querySpotOrderDetail("BTCUSDT", "sl-8");
+    }
+
+    @Test
     void unconfirmedOcoCancellationFailsClosedWithoutSelling() throws Exception {
         Fixture fixture = fixture(position(2L));
         fixture.position.setOcoOrderListId(456L);
@@ -140,7 +160,8 @@ class SpotPositionCloseServiceTest {
         when(fixture.okx.placeMarketSellWithFill("BTCUSDT", bd("1"))).thenReturn(fill("sell-6", "110", "1", "0.11"));
 
         assertThat(fixture.service.closeAtMarket(6L, "TIME_EXIT_24H").status()).isEqualTo("CLOSED");
-        SpotPositionCloseService restarted = new SpotPositionCloseService(fixture.repository, fixture.okx);
+        SpotPositionCloseService restarted = new SpotPositionCloseService(
+                fixture.repository, fixture.okx, new OcoOrderStateInspector(fixture.okx));
         SpotPositionCloseService.CloseResult second = restarted.closeAtMarket(6L, "TIME_EXIT_24H");
 
         assertThat(second.status()).isEqualTo("ALREADY_CLOSED");
@@ -155,7 +176,8 @@ class SpotPositionCloseServiceTest {
         when(repository.save(any(BtLiveSignal.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(okx.getFreshSpotHoldings()).thenReturn(List.of(
                 new OkxTradingService.SpotHolding("BTC", bd("1"), bd("1"), bd("100"))));
-        return new Fixture(new SpotPositionCloseService(repository, okx), repository, okx, position);
+        return new Fixture(new SpotPositionCloseService(
+                repository, okx, new OcoOrderStateInspector(okx)), repository, okx, position);
     }
 
     private BtLiveSignal position(Long id) {

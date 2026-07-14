@@ -17,6 +17,7 @@ import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.trading.OcoManagementService;
+import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxEarnService;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.TrailingStopReplayService;
@@ -68,6 +69,7 @@ public class PositionMcpTools {
     private final BtStrategyRepository strategyRepository;
     private final MdKlineRepository mdKlineRepository;
     private final OkxTradingService okxTradingService;
+    private final OcoOrderStateInspector ocoOrderStateInspector;
     private final OcoManagementService ocoManagementService;
     private final com.agora.service.trading.OcoOutcomeAnalysisService ocoOutcomeAnalysisService;
     private final com.agora.service.trading.PriceScenarioSimulationService priceScenarioSimulationService;
@@ -246,59 +248,43 @@ public class PositionMcpTools {
                     unprotected++;
                     continue;
                 }
-                // getAlgoOrder() already returns data[0] — do NOT double-navigate (#284 bug 1)
-                JsonNode algo = okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
-                String state = (algo != null && !algo.isMissingNode() && !algo.isNull())
-                        ? algo.path("state").asText("unknown")
-                        : "unknown";
+                boolean isShort = "SHORT".equals(pos.getSide());
+                OcoOrderStateInspector.Inspection inspection = isShort
+                        ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
+                        : ocoOrderStateInspector.inspectSpot(pos.getSymbol(), pos.getOcoOrderListId());
+                String state = inspection.parentState();
 
-                if ("live".equalsIgnoreCase(state) || "partially_effective".equalsIgnoreCase(state)) {
+                if (inspection.filled() && inspection.filledChildOrderId() != null) {
+                    String childAvgPx = inspection.fillPrice() == null
+                            ? "?" : inspection.fillPrice().toPlainString();
+                    String exitReason = inferOcoExitReason(pos, childAvgPx);
+                    sb.append(String.format(
+                            "🔴 [SYNC_ERROR] Position #%d %s — child %s filled @ %s but parent=%s & DB still OPEN\n" +
+                            "  → forceClosePosition(positionId=%d, exitPrice=%s, exitReason=%s)\n",
+                            pos.getId(), pos.getSymbol(), inspection.filledChildOrderId(), childAvgPx,
+                            state, pos.getId(), childAvgPx, exitReason));
+                    syncErr++;
+
+                } else if (inspection.filled()) {
+                    String exitPrice = inspection.fillPrice() == null
+                            ? "?" : inspection.fillPrice().toPlainString();
+                    sb.append(String.format(
+                            "🔴 [SYNC_ERROR_FULL_FILLED] Position #%d %s — OCO state=filled but DB still OPEN\n" +
+                            "  → forceClosePosition(positionId=%d, exitPrice=%s, exitReason=SL/TP)\n",
+                            pos.getId(), pos.getSymbol(), pos.getId(), exitPrice));
+                    syncErr++;
+
+                } else if (!inspection.queryComplete()) {
+                    sb.append(String.format("⚠️ Position #%d — OCO 查詢不完整: %s\n",
+                            pos.getId(), String.join(",", inspection.errors())));
+                    unprotected++;
+
+                } else if (inspection.active()) {
                     sb.append(String.format("✅ Position #%d %s entry=%.2f — OCO active (%s)\n",
                             pos.getId(), pos.getSymbol(), entryPrice(pos).doubleValue(), state));
                     ok++;
 
-                } else if ("filled".equalsIgnoreCase(state)) {
-                    // Parent clearly filled — definite SYNC_ERROR
-                    sb.append(String.format(
-                            "🔴 [SYNC_ERROR_FULL_FILLED] Position #%d %s — OCO state=filled but DB still OPEN\n" +
-                            "  → forceClosePosition(positionId=%d, exitPrice=?, exitReason=SL/TP)\n",
-                            pos.getId(), pos.getSymbol(), pos.getId()));
-                    syncErr++;
-
-                } else if ("effective".equalsIgnoreCase(state)) {
-                    // OKX bug: parent may stay "effective" after child fills (#284 bug 2 + #285 root-cause)
-                    // Cross-check child order to distinguish "still active" vs "silently filled"
-                    boolean isShort = "SHORT".equals(pos.getSide());
-                    String childOrdId = algo.path("ordIdList").path(0).asText("");
-                    boolean childFilled = false;
-                    String childAvgPx = "";
-                    if (!childOrdId.isEmpty()) {
-                        try {
-                            JsonNode child = isShort
-                                    ? okxTradingService.querySwapOrderDetail(pos.getSymbol(), childOrdId)
-                                    : okxTradingService.querySpotOrderDetail(pos.getSymbol(), childOrdId);
-                            String childState = child.path("state").asText("");
-                            if ("filled".equals(childState)) {
-                                childFilled = true;
-                                childAvgPx = child.path("avgPx").asText("?");
-                            }
-                        } catch (Exception ignored) {}
-                    }
-                    if (childFilled) {
-                        String exitReason = inferOcoExitReason(pos, childAvgPx);
-                        sb.append(String.format(
-                                "🔴 [SYNC_ERROR] Position #%d %s — child %s filled @ %s but parent=effective & DB still OPEN\n" +
-                                "  (OKX bug: parent algoId stays effective after fill)\n" +
-                                "  → forceClosePosition(positionId=%d, exitPrice=%s, exitReason=%s)\n",
-                                pos.getId(), pos.getSymbol(), childOrdId, childAvgPx, pos.getId(), childAvgPx, exitReason));
-                        syncErr++;
-                    } else {
-                        sb.append(String.format("✅ Position #%d %s entry=%.2f — OCO active (effective, child not yet filled)\n",
-                                pos.getId(), pos.getSymbol(), entryPrice(pos).doubleValue()));
-                        ok++;
-                    }
-
-                } else if ("unknown".equals(state) || algo == null || algo.isMissingNode() || algo.isNull()) {
+                } else if ("unknown".equals(state) || "missing".equals(state)) {
                     sb.append(String.format("⚠️ Position #%d %s — algoId=%d not found on OKX (algo may have expired or been cancelled)\n" +
                             "  → check getOkxTradeHistory; if already sold use forceClosePosition\n",
                             pos.getId(), pos.getSymbol(), pos.getOcoOrderListId()));
@@ -2271,34 +2257,44 @@ public class PositionMcpTools {
             sb.append(pos.getSymbol()).append(" #").append(pos.getId())
               .append(" (").append(isShort ? "SHORT/SWAP" : "LONG/SPOT").append(")\n");
             sb.append("  algoId: ").append(pos.getOcoOrderListId()).append("\n");
-            try {
-                JsonNode o = isShort
-                        ? okxTradingService.getSwapAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId())
-                        : okxTradingService.getAlgoOrder(pos.getSymbol(), pos.getOcoOrderListId());
-
-                if (o.isMissingNode() || o.isNull()) {
-                    sb.append("  ⚠️ OKX 查無此單（已觸發或已取消）\n");
-                } else {
-                    String state = o.path("state").asText("?");
-                    String stateEmoji = switch (state) {
-                        case "live", "effective" -> "✅";
-                        case "filled"   -> "🎯 已成交";
-                        case "canceled" -> "❌ 已取消";
-                        default -> "⚠️";
-                    };
-                    String cTimeRaw = o.path("cTime").asText("");
-                    String cTime = cTimeRaw.isEmpty() ? "N/A" : Instant
-                            .ofEpochMilli(Long.parseLong(cTimeRaw))
-                            .atZone(ZoneId.of("Asia/Taipei"))
-                            .format(DateTimeFormatter.ofPattern("MM-dd HH:mm"));
-                    sb.append("  state: ").append(stateEmoji).append(" ").append(state).append("\n");
-                    sb.append("  TP: ").append(o.path("tpTriggerPx").asText("N/A"))
-                      .append("  SL: ").append(o.path("slTriggerPx").asText("N/A")).append("\n");
-                    sb.append("  sz: ").append(o.path("sz").asText("N/A"))
-                      .append("  建立: ").append(cTime).append("\n");
+            OcoOrderStateInspector.Inspection inspection = isShort
+                    ? ocoOrderStateInspector.inspectSwap(pos.getSymbol(), pos.getOcoOrderListId())
+                    : ocoOrderStateInspector.inspectSpot(pos.getSymbol(), pos.getOcoOrderListId());
+            if ("missing".equals(inspection.parentState())) {
+                sb.append("  ⚠️ OKX 查無此單（已觸發或已取消）\n");
+            } else if (!inspection.queryComplete() && !inspection.filled()) {
+                sb.append("  ❌ 查詢不完整: ").append(String.join(",", inspection.errors())).append("\n");
+            } else {
+                String state = inspection.effectiveState();
+                String stateEmoji = inspection.filled() ? "🎯 已成交"
+                        : inspection.active() ? "✅"
+                        : inspection.canceled() ? "❌ 已取消" : "⚠️";
+                String cTime = "N/A";
+                try {
+                    if (inspection.parentCreatedTimeMillis() != null) {
+                        cTime = Instant.ofEpochMilli(Long.parseLong(inspection.parentCreatedTimeMillis()))
+                                .atZone(ZoneId.of("Asia/Taipei"))
+                                .format(DateTimeFormatter.ofPattern("MM-dd HH:mm"));
+                    }
+                } catch (NumberFormatException ignored) {
+                    cTime = "N/A";
                 }
-            } catch (Exception e) {
-                sb.append("  ❌ 查詢失敗: ").append(e.getMessage()).append("\n");
+                sb.append("  state: ").append(stateEmoji).append(" ").append(state);
+                if (inspection.filledChildOrderId() != null) {
+                    sb.append(" (parent=").append(inspection.parentState())
+                            .append(", child=").append(inspection.filledChildOrderId()).append(")");
+                }
+                sb.append("\n");
+                sb.append("  TP: ").append(inspection.takeProfitTriggerPrice() == null
+                                ? "N/A" : inspection.takeProfitTriggerPrice())
+                        .append("  SL: ").append(inspection.stopLossTriggerPrice() == null
+                                ? "N/A" : inspection.stopLossTriggerPrice()).append("\n");
+                sb.append("  sz: ").append(inspection.size() == null ? "N/A" : inspection.size())
+                        .append("  建立: ").append(cTime).append("\n");
+                if (!inspection.queryComplete()) {
+                    sb.append("  ⚠️ 其他子單查詢不完整: ")
+                            .append(String.join(",", inspection.errors())).append("\n");
+                }
             }
             sb.append("---\n");
         }

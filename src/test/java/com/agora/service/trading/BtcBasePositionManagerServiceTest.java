@@ -152,7 +152,7 @@ class BtcBasePositionManagerServiceTest {
         when(okx.getLastPrice("BTCUSDT")).thenReturn(bd("62700"));
         when(closeService.isClosing(anyLong())).thenReturn(false);
         BtcBasePositionManagerService service = new BtcBasePositionManagerService(
-                repository, okx, outcomes, closeService, MAPPER);
+                repository, okx, outcomes, closeService, new OcoOrderStateInspector(okx), MAPPER);
         return new Fixture(service, repository, okx, outcomes, closeService);
     }
 

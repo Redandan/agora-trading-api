@@ -1,6 +1,7 @@
 package com.agora.service.trading;
 
 import com.agora.config.properties.TradingGridProperties;
+import com.agora.model.BtLiveSignal;
 import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.BtGridLevelRepository;
 import com.agora.repository.trading.BtGridRepository;
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -53,6 +55,28 @@ class TinyLiveMinimumOrderPreviewServiceTest {
                 .contains("ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL");
     }
 
+    @Test
+    void ocoPreflightBlocksFilledSecondChild() throws Exception {
+        TinyLiveMinimumOrderPreviewService service = service();
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setOcoOrderListId(1260L);
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(position));
+        when(okxTradingService.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(new ObjectMapper().readTree(
+                "{\"state\":\"effective\",\"ordIdList\":[\"tp-260\",\"sl-260\"]}"));
+        when(okxTradingService.querySpotOrderDetail("BTCUSDT", "tp-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"live\"}"));
+        when(okxTradingService.querySpotOrderDetail("BTCUSDT", "sl-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"filled\",\"avgPx\":\"88\"}"));
+
+        String status = ReflectionTestUtils.invokeMethod(service, "ocoPreflightStatus",
+                new BigDecimal("100"), new BigDecimal("106"), new BigDecimal("88"), 1L);
+
+        assertThat(status).isEqualTo("NOT_READY_EXISTING_OCO_SYNC_ERROR");
+    }
+
     private TinyLiveMinimumOrderPreviewService service() {
         when(evidenceService.isEnabled()).thenReturn(true);
         when(evidenceService.listRecent(eq("BTCUSDT"), eq(1440), eq(100))).thenReturn(List.of());
@@ -82,6 +106,7 @@ class TinyLiveMinimumOrderPreviewServiceTest {
                 gridLevelRepository,
                 eventRiskLevelEngine,
                 okxTradingService,
+                new OcoOrderStateInspector(okxTradingService),
                 gridProperties,
                 rolloutStateService,
                 new ObjectMapper(),

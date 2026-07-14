@@ -18,6 +18,7 @@ import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.service.meta.DecisionAuditWriter;
 import com.agora.service.trading.OcoManagementService;
+import com.agora.service.trading.OcoOrderStateInspector;
 import com.agora.service.trading.OkxEarnService;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.TrailingStopReplayService;
@@ -72,6 +73,60 @@ class PositionMcpToolsTest {
                 .contains("Strategy ID: 508")
                 .contains("Interval: 4h")
                 .contains("Signal source: LEGACY_SECONDARY");
+    }
+
+    @Test
+    void getOcoHealthDetectsFilledSecondChild() throws Exception {
+        OkxTradingService okx = mock(OkxTradingService.class);
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setEntryPrice(new BigDecimal("100"));
+        position.setSuggestedTp(new BigDecimal("106"));
+        position.setSuggestedSl(new BigDecimal("88"));
+        position.setOcoOrderListId(1260L);
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of(position));
+        when(okx.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(new ObjectMapper().readTree(
+                "{\"state\":\"effective\",\"ordIdList\":[\"tp-260\",\"sl-260\"]}"));
+        when(okx.querySpotOrderDetail("BTCUSDT", "tp-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"live\"}"));
+        when(okx.querySpotOrderDetail("BTCUSDT", "sl-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"filled\",\"avgPx\":\"88\"}"));
+
+        String output = tools(okx).getOcoHealth();
+
+        assertThat(output)
+                .contains("[SYNC_ERROR]")
+                .contains("child sl-260 filled @ 88")
+                .contains("0 OK")
+                .contains("1 SYNC_ERROR");
+    }
+
+    @Test
+    void getOkxPositionsReportsFilledSecondChildInsteadOfEffectiveParent() throws Exception {
+        OkxTradingService okx = mock(OkxTradingService.class);
+        BtLiveSignal position = new BtLiveSignal();
+        position.setId(260L);
+        position.setSymbol("BTCUSDT");
+        position.setSide("LONG");
+        position.setOcoOrderListId(1260L);
+        when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull())
+                .thenReturn(List.of(position));
+        when(okx.getAlgoOrder("BTCUSDT", 1260L)).thenReturn(new ObjectMapper().readTree(
+                "{\"state\":\"effective\",\"cTime\":\"1783958400000\",\"tpTriggerPx\":\"106\"," +
+                        "\"slTriggerPx\":\"88\",\"sz\":\"1\",\"ordIdList\":[\"tp-260\",\"sl-260\"]}"));
+        when(okx.querySpotOrderDetail("BTCUSDT", "tp-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"live\"}"));
+        when(okx.querySpotOrderDetail("BTCUSDT", "sl-260"))
+                .thenReturn(new ObjectMapper().readTree("{\"state\":\"filled\",\"avgPx\":\"88\"}"));
+
+        String output = tools(okx).getOkxPositions();
+
+        assertThat(output)
+                .contains("state: 🎯 已成交 filled (parent=effective, child=sl-260)")
+                .contains("TP: 106  SL: 88")
+                .contains("sz: 1");
     }
 
     @Test
@@ -326,13 +381,18 @@ class PositionMcpToolsTest {
     }
 
     private PositionMcpTools tools() {
+        return tools(mock(OkxTradingService.class));
+    }
+
+    private PositionMcpTools tools(OkxTradingService okxTradingService) {
         return new PositionMcpTools(
                 liveSignalRepository,
                 decisionAuditRepository,
                 backtestTradeRepository,
                 strategyRepository,
                 mdKlineRepository,
-                mock(OkxTradingService.class),
+                okxTradingService,
+                new OcoOrderStateInspector(okxTradingService),
                 mock(OcoManagementService.class),
                 mock(com.agora.service.trading.OcoOutcomeAnalysisService.class),
                 mock(com.agora.service.trading.PriceScenarioSimulationService.class),

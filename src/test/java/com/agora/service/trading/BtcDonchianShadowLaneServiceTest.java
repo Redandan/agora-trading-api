@@ -1,5 +1,6 @@
 package com.agora.service.trading;
 
+import com.agora.config.JacksonConfig;
 import com.agora.config.properties.BtcDonchianShadowProperties;
 import com.agora.model.BtDecisionAudit;
 import com.agora.model.MdKline;
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -128,6 +130,40 @@ class BtcDonchianShadowLaneServiceTest {
     }
 
     @Test
+    void productionMapperRestoresLegacyOffsetTimeAndWritesCanonicalEvidenceTime() throws Exception {
+        Fixture fixture = fixture(BtcDonchianShadowProperties.Mode.SHADOW, true,
+                new JacksonConfig().objectMapper(Jackson2ObjectMapperBuilder.json()));
+        List<MdKline> firstDay = bars(GOLDEN_FIRST_OPEN_TIME, 24);
+        BtcDonchianShadowEngine.State state = fixture.engine.initialState();
+        for (MdKline row : firstDay) fixture.engine.step(state, row);
+        RuntimeDecisionEvidence prior = evidenceForState(fixture, state, firstDay.get(firstDay.size() - 1));
+        assertThat(prior.getFeaturesSnapshotJson()).contains("+08:00");
+        when(fixture.evidenceRepository.findByPolicyModeAndSymbolAndIntervalCodeOrderByIdDesc(
+                eq(POLICY_MODE), eq(SYMBOL), eq(INTERVAL), any(Pageable.class)))
+                .thenReturn(List.of(prior));
+
+        MdKline event = bar(GOLDEN_FIRST_OPEN_TIME.plusDays(1));
+        when(fixture.klineRepository
+                .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
+                        SYMBOL, INTERVAL, SOURCE, event.getOpenTime(), event.getOpenTime()))
+                .thenReturn(List.of(event));
+
+        fixture.service.evaluate(event);
+
+        ArgumentCaptor<RuntimeDecisionEvidence> captor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
+        verify(fixture.evidenceRepository).save(captor.capture());
+        RuntimeDecisionEvidence saved = captor.getValue();
+        assertThat(saved.getFinalOutcome()).isEqualTo("SHADOW_OBSERVED");
+        JsonNode snapshot = fixture.objectMapper.readTree(saved.getFeaturesSnapshotJson());
+        assertThat(snapshot.path("bootstrap").asBoolean()).isFalse();
+        assertThat(snapshot.path("catchUp").asBoolean()).isFalse();
+        assertThat(snapshot.path("invalidStateRowsScanned").asInt()).isZero();
+        assertThat(snapshot.path("barOpenTime").asText()).doesNotContain("+");
+        assertThat(LocalDateTime.parse(snapshot.path("barOpenTime").asText()))
+                .isEqualTo(event.getOpenTime());
+    }
+
+    @Test
     void missingCatchUpBarWritesRecoverableBlockerWithoutAdvancingState() throws Exception {
         Fixture fixture = fixture(BtcDonchianShadowProperties.Mode.SHADOW, true);
         List<MdKline> firstDay = bars(GOLDEN_FIRST_OPEN_TIME, 24);
@@ -195,6 +231,14 @@ class BtcDonchianShadowLaneServiceTest {
     }
 
     private Fixture fixture(BtcDonchianShadowProperties.Mode mode, boolean evidenceEnabled) {
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return fixture(mode, evidenceEnabled, objectMapper);
+    }
+
+    private Fixture fixture(BtcDonchianShadowProperties.Mode mode,
+                            boolean evidenceEnabled,
+                            ObjectMapper objectMapper) {
         MdKlineRepository klineRepository = mock(MdKlineRepository.class);
         BtDecisionAuditRepository auditRepository = mock(BtDecisionAuditRepository.class);
         RuntimeDecisionEvidenceRepository evidenceRepository = mock(RuntimeDecisionEvidenceRepository.class);
@@ -211,8 +255,6 @@ class BtcDonchianShadowLaneServiceTest {
         });
         when(evidenceRepository.save(any(RuntimeDecisionEvidence.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         BtcDonchianShadowEngine engine = new BtcDonchianShadowEngine(objectMapper);
         BtcDonchianShadowLaneService service = new BtcDonchianShadowLaneService(
                 new BtcDonchianShadowProperties(mode), klineRepository, auditRepository,

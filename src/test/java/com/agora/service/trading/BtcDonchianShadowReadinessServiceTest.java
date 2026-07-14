@@ -1,5 +1,6 @@
 package com.agora.service.trading;
 
+import com.agora.config.JacksonConfig;
 import com.agora.config.properties.BtcDonchianShadowProperties;
 import com.agora.model.RuntimeDecisionEvidence;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -83,6 +85,28 @@ class BtcDonchianShadowReadinessServiceTest {
         assertThat(report.path("status").asText()).isEqualTo("FAIL_CLOSED_RUNTIME_EVIDENCE_INVALID");
         assertThat(report.path("stateHashMismatchRows").asLong()).isEqualTo(1);
         assertThat(report.path("blockers").toString()).contains("STATE_HASH_MISMATCH");
+    }
+
+    @Test
+    void productionOffsetEvidenceTimesRemainValidDuringCompatibilityWindow() {
+        ObjectMapper productionMapper = new JacksonConfig().objectMapper(Jackson2ObjectMapperBuilder.json());
+        Fixture fixture = fixture(BtcDonchianShadowProperties.Mode.SHADOW, true, true, productionMapper);
+        LocalDateTime open = LocalDateTime.now(ZoneOffset.UTC)
+                .truncatedTo(ChronoUnit.HOURS).minusHours(1);
+        RuntimeDecisionEvidence row = evidence(fixture, 1L, open, List.of(), false, false);
+        assertThat(row.getFeaturesSnapshotJson()).contains("+08:00");
+        when(fixture.repository.findByPolicyModeAndEvidenceTimeAfterOrderByEvidenceTimeAsc(
+                eq(POLICY_MODE), any(LocalDateTime.class))).thenReturn(List.of(row));
+
+        JsonNode report = fixture.service.snapshot(SYMBOL);
+
+        assertThat(report.path("status").asText()).isEqualTo("PENDING_FORWARD_SHADOW_SAMPLE");
+        assertThat(report.path("malformedEvidenceRows").asLong()).isZero();
+        assertThat(report.path("validObservedBars").asLong()).isEqualTo(1);
+        assertThat(report.path("forwardNonBootstrapBars").asLong()).isEqualTo(1);
+        assertThat(report.path("latestForwardBarCurrent").asBoolean()).isTrue();
+        assertThat(report.path("runtimeIntegrityClear").asBoolean()).isTrue();
+        assertThat(report.path("blockers").toString()).doesNotContain("MALFORMED_RUNTIME_EVIDENCE");
     }
 
     @Test
@@ -245,12 +269,19 @@ class BtcDonchianShadowReadinessServiceTest {
     private Fixture fixture(BtcDonchianShadowProperties.Mode mode,
                             boolean evidenceEnabled,
                             boolean goldenPassed) {
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return fixture(mode, evidenceEnabled, goldenPassed, objectMapper);
+    }
+
+    private Fixture fixture(BtcDonchianShadowProperties.Mode mode,
+                            boolean evidenceEnabled,
+                            boolean goldenPassed,
+                            ObjectMapper objectMapper) {
         RuntimeDecisionEvidenceRepository repository = mock(RuntimeDecisionEvidenceRepository.class);
         RuntimeDecisionEvidenceService runtimeEvidenceService = mock(RuntimeDecisionEvidenceService.class);
         when(runtimeEvidenceService.isEnabled()).thenReturn(evidenceEnabled);
         BtcDonchianShadowGoldenParityService golden = mock(BtcDonchianShadowGoldenParityService.class);
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         ObjectNode goldenNode = objectMapper.createObjectNode();
         goldenNode.put("goldenParityPassed", goldenPassed);
         goldenNode.put("status", goldenPassed

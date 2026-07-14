@@ -202,9 +202,10 @@ public class BtcDonchianShadowReadinessService {
                     root.path("evidenceSchemaVersion").asText())
                     && POLICY_MODE.equals(root.path("policyMode").asText())
                     && !root.path("barOpenTime").asText("").isBlank();
-            LocalDateTime open = valid ? LocalDateTime.parse(root.path("barOpenTime").asText()) : null;
+            LocalDateTime open = valid ? BtcDonchianEvidenceTime.parse(
+                    root.path("barOpenTime").asText("")) : null;
             LocalDateTime close = valid && !root.path("barCloseTime").asText("").isBlank()
-                    ? LocalDateTime.parse(root.path("barCloseTime").asText()) : null;
+                    ? BtcDonchianEvidenceTime.parse(root.path("barCloseTime").asText("")) : null;
             return new EvidenceView(row, root, valid, open, close,
                     valid && root.path("bootstrap").asBoolean(false),
                     valid && root.path("catchUp").asBoolean(false));

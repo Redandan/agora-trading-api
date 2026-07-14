@@ -210,7 +210,7 @@ public class BtcDonchianShadowLaneService {
         auditContext.put("policyMode", POLICY_MODE);
         auditContext.put("evidenceSchemaVersion", EVIDENCE_SCHEMA_VERSION);
         auditContext.put("source", SOURCE);
-        auditContext.put("barCloseTime", bar.getCloseTime());
+        auditContext.put("barCloseTime", BtcDonchianEvidenceTime.format(bar.getCloseTime()));
         auditContext.put("bootstrap", bootstrap);
         auditContext.put("catchUp", catchUp);
         auditContext.put("batchBars", batchBars);
@@ -228,8 +228,8 @@ public class BtcDonchianShadowLaneService {
         snapshot.put("symbol", SYMBOL);
         snapshot.put("intervalCode", INTERVAL);
         snapshot.put("source", SOURCE);
-        snapshot.put("barOpenTime", bar.getOpenTime());
-        snapshot.put("barCloseTime", bar.getCloseTime());
+        snapshot.put("barOpenTime", BtcDonchianEvidenceTime.format(bar.getOpenTime()));
+        snapshot.put("barCloseTime", BtcDonchianEvidenceTime.format(bar.getCloseTime()));
         snapshot.put("bootstrap", bootstrap);
         snapshot.put("catchUp", catchUp);
         snapshot.put("batchBars", batchBars);
@@ -290,8 +290,8 @@ public class BtcDonchianShadowLaneService {
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("evidenceSchemaVersion", EVIDENCE_SCHEMA_VERSION);
         snapshot.put("policyMode", POLICY_MODE);
-        snapshot.put("barOpenTime", bar.getOpenTime());
-        snapshot.put("barCloseTime", bar.getCloseTime());
+        snapshot.put("barOpenTime", BtcDonchianEvidenceTime.format(bar.getOpenTime()));
+        snapshot.put("barCloseTime", BtcDonchianEvidenceTime.format(bar.getCloseTime()));
         snapshot.put("bootstrap", bootstrap);
         snapshot.put("catchUp", catchUp);
         snapshot.put("invalidStateRowsScanned", invalidStateRows);
@@ -391,7 +391,8 @@ public class BtcDonchianShadowLaneService {
                     continue;
                 }
                 if ("SHADOW_OBSERVED".equals(row.getFinalOutcome())) {
-                    LocalDateTime evidenceBar = LocalDateTime.parse(root.path("barOpenTime").asText());
+                    LocalDateTime evidenceBar = BtcDonchianEvidenceTime.parse(
+                            root.path("barOpenTime").asText(""));
                     if (!evidenceBar.equals(state.getLastProcessedBarOpenTime())) {
                         invalid++;
                         continue;

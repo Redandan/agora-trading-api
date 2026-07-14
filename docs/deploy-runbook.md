@@ -5498,6 +5498,32 @@ passes that flag into post-deploy `scripts/verify_server.sh`; the default remain
 `0` for normal deploy acceptance because the heavier shared-DB schema compare is
 reserved for baseline drift review or schema-change acceptance.
 
+## BTC Base Position Manager V1
+
+`BTC_BASE_POSITION_MANAGER_V1` is a read-only/shadow review lane and is not the
+existing Local TradingView BTC_BASE entry mode. Refresh the production
+predeploy evidence for explicit positions without changing OCO or orders:
+
+```powershell
+.\scripts\prepare_btc_base_position_manager_shadow_packet_ssh.ps1 `
+  -PositionIds "260,261,262"
+```
+
+The predeploy packet must keep `adoption_eligible=false` with
+`EXACT_TRADED_QTY_OCO_QTY_PARITY_REQUIRES_POST_DEPLOY_MANAGER_TOOL`; legacy
+read tools cannot prove both quantities together. After a separately authorized
+runtime deploy, run server verification and MCP parity, then call:
+
+- `getBtcBasePositionManagerStatus(symbol=BTCUSDT)`
+- `previewBtcBasePositionAdoption(positionIds=260,261,262,horizonHours=168)`
+- `previewBtcBasePositionDisposition(positionIds=260,261,262,horizonHours=168)`
+
+Every safety flag must remain false. Keep all existing OCO active. A
+`RETIRE_CLOSE_REVIEW` result is a review outcome, not close authorization;
+adoption persistence, OCO changes, and a close each require a later explicit
+authorization. See `docs/btc-base-position-manager-v1.md` for the exact
+ownership and rollout contract.
+
 ## AgoraMarketAPI Trading Cutover Plan
 
 This is a plan only. Do not stop or disable the legacy AgoraMarketAPI trading

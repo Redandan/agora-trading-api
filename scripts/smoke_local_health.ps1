@@ -92,6 +92,26 @@ function Assert-McpContentContains {
     }
 }
 
+function Get-McpDecodedText {
+    param([string]$Content)
+
+    $response = $Content | ConvertFrom-Json -Depth 30
+    $current = [string]$response.result.content[0].text
+    for ($i = 0; $i -lt 3; $i++) {
+        try {
+            $decoded = $current | ConvertFrom-Json -Depth 30 -ErrorAction Stop
+            if ($decoded -is [string]) {
+                $current = $decoded
+                continue
+            }
+            return ($decoded | ConvertTo-Json -Depth 30 -Compress)
+        } catch {
+            return $current
+        }
+    }
+    return $current
+}
+
 function Assert-McpToolsPresent {
     param(
         [string]$Url,
@@ -603,6 +623,9 @@ try {
         "analyzeStrategy508TimeExitCandidate",
         "getStrategy508TimeExitReadiness",
         "getStrategyNetPnlAttribution",
+        "getBtcBasePositionManagerStatus",
+        "previewBtcBasePositionAdoption",
+        "previewBtcBasePositionDisposition",
         "analyzeBtcDonchianShadowGoldenParity",
         "getBtcDonchianShadowReadiness",
         "getGovernanceDriftDashboard",
@@ -621,6 +644,16 @@ try {
     if (-not $?) {
         throw "Reusable MCP parity smoke failed"
     }
+
+    $btcBaseManagerStatus = Invoke-McpTool -Url $mcpUrl -ToolName "getBtcBasePositionManagerStatus" -Arguments @{ symbol = "BTCUSDT" }
+    $btcBaseManagerStatusText = Get-McpDecodedText -Content $btcBaseManagerStatus
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern "BTC_BASE_POSITION_MANAGER_V1" -Description "BTC_BASE position manager status is registered"
+    Assert-McpContentContains -Content $btcBaseManagerStatusText -Pattern '"liveActionsImplemented"\s*:\s*false' -Description "BTC_BASE manager status remains read-only"
+    $btcBaseInvalidPreview = Invoke-McpTool -Url $mcpUrl -ToolName "previewBtcBasePositionAdoption" -Arguments @{ positionIds = "not-an-id"; horizonHours = 168 }
+    $btcBaseInvalidPreviewText = Get-McpDecodedText -Content $btcBaseInvalidPreview
+    Assert-McpContentContains -Content $btcBaseInvalidPreviewText -Pattern "BLOCKED_FAIL_CLOSED" -Description "BTC_BASE manager invalid IDs fail closed"
+    Assert-McpContentContains -Content $btcBaseInvalidPreviewText -Pattern '"orderSent"\s*:\s*false' -Description "BTC_BASE manager fail-closed preview sends no order"
+    Assert-McpContentContains -Content $btcBaseInvalidPreviewText -Pattern '"ocoModified"\s*:\s*false' -Description "BTC_BASE manager fail-closed preview does not modify OCO"
 
     $sentimentGuard = Invoke-McpTool -Url $mcpUrl -ToolName "getMarketSentiment" -Arguments @{ symbol = "BTCUSDT" }
     Assert-McpContentContains -Content $sentimentGuard -Pattern "TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED=true" -Description "live sentiment MCP tools are disabled by default"

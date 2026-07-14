@@ -1,5 +1,22 @@
 # Split Progress
 
+- 2026-07-14: implemented local-only `BTC_BASE_POSITION_MANAGER_V1` as a
+  fail-closed read-only/shadow review surface for explicit open BTCUSDT OCO
+  position IDs. It requires exact `tradedQty == ocoQty` ownership, confirms the
+  live OCO parent and visible child state, excludes wallet/Grid/manual BTC, and
+  returns bounded keep/recovery/retirement review dispositions without
+  persistence or execution. Production predeploy read-only evidence for
+  `#260/#261/#262` confirmed strategy 508 ownership, intervals `4h/4h/1h`,
+  three active OCOs with `0 SYNC_ERROR / 0 anomaly`, total displayed quantity
+  `0.00047090 BTC`, cost `29.999253104 USDT`, weighted entry `63706.20748`, and
+  negative heuristic EV on all three. The simulated disposition was
+  `RETIRE_CLOSE_REVIEW`, but adoption remains blocked until the new deployed
+  tool proves exact quantity parity. Local acceptance passed 398 Java tests,
+  all PowerShell/split checks, and startup smoke with 329 MCP tools / 50
+  required / zero missing. At that local-acceptance checkpoint the batch had
+  not yet been committed or deployed; it did not
+  change production env, DB, orders, positions, OCO, Telegram, scheduler, Grid,
+  fund, Earn, or exchange state.
 - 2026-07-14: deployed strategy 508 entry-diagnostic hardening commit
   `502ff4d` with an explicitly authorized blue-green rollout from port `8085`
   to `8084`. The production env SHA-256 was unchanged across deployment.

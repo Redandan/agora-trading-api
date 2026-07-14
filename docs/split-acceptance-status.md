@@ -73,10 +73,11 @@ AgoraMarketAPI keeps the shared database and internal exchange-rate API.
   as local readiness only;
   #1/#2/#3 closure still requires deployed server-local read-only acceptance
   after an explicitly authorized deploy.
-  Current source now requires 47 representative MCP parity tools after adding
+  Current source now requires 50 representative MCP parity tools after adding
   the read-only BTC_BASE semantics/profit report, Binance range backfill,
   golden-truth verification, timeframe-aware validation, strategy 508
-  time-exit diagnostics, and BTC Donchian golden/readiness surfaces;
+  time-exit diagnostics, BTC Donchian golden/readiness surfaces, and the three
+  BTC_BASE position-manager status/adoption/disposition preview tools;
   old `required=35` lines above remain historical evidence.
 
 - Full read-only live acceptance from Windows/Codex Desktop is expected to pass

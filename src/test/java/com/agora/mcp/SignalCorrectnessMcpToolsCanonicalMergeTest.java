@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,61 @@ class SignalCorrectnessMcpToolsCanonicalMergeTest {
         assertThat(truth)
                 .contains("rawObservationCount=2", "uniqueMergedEventCount=2",
                         "duplicateRepresentationCount=0", "rawCountConserved=true");
+    }
+
+    @Test
+    void diagnosticsMarkRequestedWindowIncompleteWhenEitherSourceLimitIsHit() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
+                .truncatedTo(ChronoUnit.MINUTES);
+        List<Map<String, Object>> runtimeRows = new ArrayList<>();
+        for (int i = 0; i < 250; i++) {
+            Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 90000L + i, eventTime.minusSeconds(i));
+            runtime.put("runtime_evidence_id", 190000L + i);
+            runtime.put("selected_action", "HOLD");
+            runtime.put("decision", "HOLD");
+            runtimeRows.add(runtime);
+        }
+        stubQueries(runtimeRows, List.of(), eventTime);
+
+        String truth = tools.getSignalTruthTable("LIMITUSDT", 24, 508L, 1, "1h", true);
+
+        assertThat(truth).contains(
+                "runtimeRowsFetched=250",
+                "auditRowsFetched=0",
+                "sourceLimit=250",
+                "queryTruncated=true",
+                "requestedWindowComplete=false",
+                "fetchedRawObservationCount=250",
+                "fetchedRawCountConserved=true");
+    }
+
+    @Test
+    void sameLiveSignalWithDifferentDecisionIdsIsOneNonActionableConflictEvent() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
+                .truncatedTo(ChronoUnit.MINUTES);
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 93001L, eventTime);
+        runtime.put("runtime_evidence_id", 193001L);
+        runtime.put("live_signal_id", 55001L);
+        runtime.put("selected_action", "HOLD");
+        runtime.put("decision", "HOLD");
+        Map<String, Object> audit = row("DECISION_AUDIT", 93002L, eventTime);
+        audit.put("audit_id", 93002L);
+        audit.put("live_signal_id", 55001L);
+        audit.put("selected_action", "BLOCK");
+        audit.put("decision", "BUY");
+        audit.put("signal_source", "ENTRY_SKIP");
+        audit.put("terminal_blocker", "TradePlanQualityGate");
+        audit.put("policy_inputs_json", "{\"intentCreated\":true,\"candidateEntry\":100,\"candidateTp\":106,\"candidateSl\":88}");
+        stubQueries(List.of(runtime), List.of(audit), eventTime);
+
+        String truth = tools.getSignalTruthTable("CONFLICTUSDT", 24, 508L, 50, "1h", true);
+
+        assertThat(truth).contains(
+                "rawObservationCount=2",
+                "uniqueMergedEventCount=1",
+                "duplicateRepresentationCount=1",
+                "identityConflictCount=1",
+                "actionable=false");
     }
 
     private void stubQueries(List<Map<String, Object>> runtimeRows,

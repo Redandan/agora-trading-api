@@ -172,6 +172,10 @@ public class SignalCorrectnessMcpTools {
                     .append(",runtimeEvidenceId:").append(value(row, "runtime_evidence_id"))
                     .append(",liveSignalId:").append(value(row, "live_signal_id"))
                     .append(",allSources:").append(value(row, "source_ids")).append("\n")
+                    .append("   canonicalMergeEligible=").append(value(row, "canonical_merge_eligible"))
+                    .append(" identityConflict=").append(value(row, "identity_conflict"))
+                    .append(" semanticConflict=").append(value(row, "semantic_conflict"))
+                    .append(" semanticConflictReasons=").append(value(row, "semantic_conflict_reasons")).append("\n")
                     .append("   evSnapshot=").append(shortJson(row.get("ev_result_json"))).append("\n")
                     .append("   tqsSnapshot=").append(shortJson(row.get("tqs_result_json"))).append("\n")
                     .append("   ensembleSnapshot=").append(shortJson(row.get("policy_inputs_json"))).append("\n")
@@ -931,6 +935,7 @@ public class SignalCorrectnessMcpTools {
                 ) e
                 LEFT JOIN bt_live_signal s ON s.id = e.live_signal_id
                 """, evidenceParams.toArray()));
+        int runtimeRowsFetched = rows.size();
 
         List<Object> auditParams = new ArrayList<>();
         auditParams.add(symbol);
@@ -969,6 +974,7 @@ public class SignalCorrectnessMcpTools {
                 ) a
                 LEFT JOIN bt_live_signal s ON s.id = a.live_signal_id
                 """, auditParams.toArray());
+        int auditRowsFetched = auditRows.size();
         rows.addAll(auditRows);
         EvidenceEventCanonicalizer.MergeResult merge = EvidenceEventCanonicalizer.merge(rows);
         rows = new ArrayList<>(merge.rows());
@@ -987,7 +993,7 @@ public class SignalCorrectnessMcpTools {
             return Long.compare(asLong(right.get("decision_id")), asLong(left.get("decision_id")));
         });
         List<Map<String, Object>> limited = rows.size() <= limit ? rows : new ArrayList<>(rows.subList(0, limit));
-        return new CanonicalLabelRows(List.copyOf(limited), merge);
+        return new CanonicalLabelRows(List.copyOf(limited), merge, runtimeRowsFetched, auditRowsFetched, sourceLimit);
     }
 
     private LocalDateTime latestKlineTime(String symbol) {
@@ -1823,13 +1829,26 @@ public class SignalCorrectnessMcpTools {
     }
 
     private record CanonicalLabelRows(List<Map<String, Object>> rows,
-                                      EvidenceEventCanonicalizer.MergeResult merge) {
+                                      EvidenceEventCanonicalizer.MergeResult merge,
+                                      int runtimeRowsFetched,
+                                      int auditRowsFetched,
+                                      int sourceLimit) {
         String diagnostics() {
-            return "rawObservationCount=" + merge.rawObservationCount() + "\n"
+            boolean queryTruncated = runtimeRowsFetched >= sourceLimit || auditRowsFetched >= sourceLimit;
+            return "runtimeRowsFetched=" + runtimeRowsFetched + "\n"
+                    + "auditRowsFetched=" + auditRowsFetched + "\n"
+                    + "sourceLimit=" + sourceLimit + "\n"
+                    + "queryTruncated=" + queryTruncated + "\n"
+                    + "requestedWindowComplete=" + !queryTruncated + "\n"
+                    + "fetchedRawObservationCount=" + merge.rawObservationCount() + "\n"
+                    + "rawObservationCount=" + merge.rawObservationCount() + "\n"
                     + "uniqueMergedEventCount=" + merge.uniqueMergedEventCount() + "\n"
+                    + "returnedEventCount=" + rows.size() + "\n"
                     + "duplicateRepresentationCount=" + merge.duplicateRepresentationCount() + "\n"
                     + "identityConflictCount=" + merge.identityConflictCount() + "\n"
+                    + "semanticConflictCount=" + merge.semanticConflictCount() + "\n"
                     + "duplicateSuspectCount=" + merge.duplicateSuspectCount() + "\n"
+                    + "fetchedRawCountConserved=" + merge.conservesRawCount() + "\n"
                     + "rawCountConserved=" + merge.conservesRawCount() + "\n";
         }
     }

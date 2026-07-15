@@ -33,6 +33,7 @@ public class MissedOpportunityRegressionValidationService {
     private static final long TINY_LIVE_STRATEGY_ID = 574L;
     private static final long SCORE_BUY_STRATEGY_ID = 485L;
     private static final BigDecimal HIGH_FORWARD_RETURN_NO_BUY_THRESHOLD_PCT = new BigDecimal("1.0");
+    private static final int NO_BUY_SOURCE_LIMIT = 500;
 
     private final TinyLiveMinimumOrderPreviewService tinyLivePreviewService;
     private final ExplorationPolicyService explorationPolicyService;
@@ -94,6 +95,12 @@ public class MissedOpportunityRegressionValidationService {
         root.put("highForwardReturnNoBuyCount", highForwardReturnNoBuy.count());
         root.set("highForwardReturnNoBuyExamples", highForwardReturnNoBuy.examples());
         ObjectNode highForwardDiagnostics = root.putObject("highForwardReturnNoBuyDiagnostics");
+        highForwardDiagnostics.put("runtimeRowsFetched", highForwardReturnNoBuy.runtimeRowsFetched());
+        highForwardDiagnostics.put("auditRowsFetched", highForwardReturnNoBuy.auditRowsFetched());
+        highForwardDiagnostics.put("sourceLimit", highForwardReturnNoBuy.sourceLimit());
+        highForwardDiagnostics.put("queryTruncated", highForwardReturnNoBuy.queryTruncated());
+        highForwardDiagnostics.put("requestedWindowComplete", highForwardReturnNoBuy.requestedWindowComplete());
+        highForwardDiagnostics.put("fetchedRawObservationCount", highForwardReturnNoBuy.rawObservationCount());
         highForwardDiagnostics.put("rawObservationCount", highForwardReturnNoBuy.rawObservationCount());
         highForwardDiagnostics.put("uniqueObservationCount", highForwardReturnNoBuy.uniqueObservationCount());
         highForwardDiagnostics.put("duplicateRepresentationCount", highForwardReturnNoBuy.duplicateRepresentationCount());
@@ -101,7 +108,9 @@ public class MissedOpportunityRegressionValidationService {
         highForwardDiagnostics.put("eligibleBlockedBuyIntentCount", highForwardReturnNoBuy.eligibleBlockedBuyIntentCount());
         highForwardDiagnostics.put("otherObservationCount", highForwardReturnNoBuy.otherObservationCount());
         highForwardDiagnostics.put("identityConflictCount", highForwardReturnNoBuy.identityConflictCount());
+        highForwardDiagnostics.put("semanticConflictCount", highForwardReturnNoBuy.semanticConflictCount());
         highForwardDiagnostics.put("duplicateSuspectCount", highForwardReturnNoBuy.duplicateSuspectCount());
+        highForwardDiagnostics.put("fetchedRawCountConserved", highForwardReturnNoBuy.rawCountConserved());
         highForwardDiagnostics.put("rawCountConserved", highForwardReturnNoBuy.rawCountConserved());
         highForwardDiagnostics.put("classificationCountConserved", highForwardReturnNoBuy.classificationCountConserved());
         root.put("recommendedFix", recommendedFix(rows, genericWouldAllowGroups, highForwardReturnNoBuy.count()));
@@ -643,11 +652,14 @@ public class MissedOpportunityRegressionValidationService {
                 return HighForwardReturnNoBuyScan.empty(examples);
             }
 
-            List<Map<String, Object>> candidates = new ArrayList<>();
-            candidates.addAll(queryNoBuyRuntimeEvidence(symbol, since, matureUntil));
-            candidates.addAll(queryNoBuyDecisionAudit(symbol, since, matureUntil));
+            List<Map<String, Object>> runtimeRows = queryNoBuyRuntimeEvidence(symbol, since, matureUntil);
+            List<Map<String, Object>> auditRows = queryNoBuyDecisionAudit(symbol, since, matureUntil);
+            int runtimeRowsFetched = runtimeRows.size();
+            int auditRowsFetched = auditRows.size();
+            List<Map<String, Object>> candidates = new ArrayList<>(runtimeRows);
+            candidates.addAll(auditRows);
             if (candidates.isEmpty()) {
-                return HighForwardReturnNoBuyScan.empty(examples);
+                return HighForwardReturnNoBuyScan.empty(examples, runtimeRowsFetched, auditRowsFetched);
             }
 
             EvidenceEventCanonicalizer.MergeResult merge = EvidenceEventCanonicalizer.merge(candidates);
@@ -680,7 +692,9 @@ public class MissedOpportunityRegressionValidationService {
                 return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
                         uniqueObservationCount, duplicateRepresentationCount,
                         excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
-                        otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
+                        otherObservationCount, merge.identityConflictCount(), merge.semanticConflictCount(),
+                        merge.duplicateSuspectCount(),
+                        runtimeRowsFetched, auditRowsFetched, NO_BUY_SOURCE_LIMIT);
             }
 
             LocalDateTime minTime = eligibleCandidates.stream()
@@ -697,7 +711,9 @@ public class MissedOpportunityRegressionValidationService {
                 return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
                         uniqueObservationCount, duplicateRepresentationCount,
                         excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
-                        otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
+                        otherObservationCount, merge.identityConflictCount(), merge.semanticConflictCount(),
+                        merge.duplicateSuspectCount(),
+                        runtimeRowsFetched, auditRowsFetched, NO_BUY_SOURCE_LIMIT);
             }
 
             NavigableMap<LocalDateTime, BigDecimal> closes = loadOneMinuteCloses(
@@ -706,7 +722,9 @@ public class MissedOpportunityRegressionValidationService {
                 return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
                         uniqueObservationCount, duplicateRepresentationCount,
                         excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
-                        otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
+                        otherObservationCount, merge.identityConflictCount(), merge.semanticConflictCount(),
+                        merge.duplicateSuspectCount(),
+                        runtimeRowsFetched, auditRowsFetched, NO_BUY_SOURCE_LIMIT);
             }
 
             int count = 0;
@@ -748,7 +766,9 @@ public class MissedOpportunityRegressionValidationService {
             return new HighForwardReturnNoBuyScan(count, examples, rawObservationCount,
                     uniqueObservationCount, duplicateRepresentationCount,
                     excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
-                    otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
+                    otherObservationCount, merge.identityConflictCount(), merge.semanticConflictCount(),
+                    merge.duplicateSuspectCount(),
+                    runtimeRowsFetched, auditRowsFetched, NO_BUY_SOURCE_LIMIT);
         } catch (Exception e) {
             ObjectNode example = examples.addObject();
             example.put("scanError", truncate(e.getMessage(), 240));
@@ -1309,9 +1329,20 @@ public class MissedOpportunityRegressionValidationService {
                                       int eligibleBlockedBuyIntentCount,
                                       int otherObservationCount,
                                       int identityConflictCount,
-                                      int duplicateSuspectCount) {
+                                      int semanticConflictCount,
+                                      int duplicateSuspectCount,
+                                      int runtimeRowsFetched,
+                                      int auditRowsFetched,
+                                      int sourceLimit) {
         static HighForwardReturnNoBuyScan empty(ArrayNode examples) {
-            return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0, 0, 0, 0);
+            return empty(examples, 0, 0);
+        }
+
+        static HighForwardReturnNoBuyScan empty(ArrayNode examples,
+                                                int runtimeRowsFetched,
+                                                int auditRowsFetched) {
+            return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    runtimeRowsFetched, auditRowsFetched, NO_BUY_SOURCE_LIMIT);
         }
 
         boolean rawCountConserved() {
@@ -1321,6 +1352,14 @@ public class MissedOpportunityRegressionValidationService {
         boolean classificationCountConserved() {
             return uniqueObservationCount == excludedNonBuyObservationCount
                     + eligibleBlockedBuyIntentCount + otherObservationCount;
+        }
+
+        boolean queryTruncated() {
+            return runtimeRowsFetched >= sourceLimit || auditRowsFetched >= sourceLimit;
+        }
+
+        boolean requestedWindowComplete() {
+            return !queryTruncated();
         }
     }
 }

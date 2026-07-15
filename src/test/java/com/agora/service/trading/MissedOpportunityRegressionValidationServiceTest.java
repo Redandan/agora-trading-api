@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -281,6 +282,58 @@ class MissedOpportunityRegressionValidationServiceTest {
         assertThat(scan.eligibleBlockedBuyIntentCount()).isEqualTo(1);
         assertThat(scan.count()).isEqualTo(1);
         assertThat(scan.examples().path(0).path("candidatePlanPresent").asBoolean()).isTrue();
+    }
+
+    @Test
+    void highForwardScanMarksRequestedWindowIncompleteWhenSourceLimitIsHit() {
+        LocalDateTime eventTime = matureEventTime();
+        List<Map<String, Object>> runtimeRows = new ArrayList<>();
+        for (int i = 0; i < 500; i++) {
+            Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 100000L + i, eventTime.minusSeconds(i));
+            runtime.put("selected_action", "HOLD");
+            runtime.put("decision", "HOLD");
+            runtime.put("signal_source", "SIGNAL_EVAL");
+            runtimeRows.add(runtime);
+        }
+        stubNoBuyQueries(runtimeRows, List.of(), List.of());
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.runtimeRowsFetched()).isEqualTo(500);
+        assertThat(scan.auditRowsFetched()).isZero();
+        assertThat(scan.sourceLimit()).isEqualTo(500);
+        assertThat(scan.queryTruncated()).isTrue();
+        assertThat(scan.requestedWindowComplete()).isFalse();
+        assertThat(scan.rawCountConserved()).isTrue();
+        assertThat(scan.classificationCountConserved()).isTrue();
+    }
+
+    @Test
+    void highForwardScanFailsClosedForSameLiveSignalWithDifferentDecisionIds() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 120001L, eventTime);
+        runtime.put("live_signal_id", 44001L);
+        runtime.put("selected_action", "HOLD");
+        runtime.put("decision", "HOLD");
+        Map<String, Object> audit = row("DECISION_AUDIT", 120002L, eventTime);
+        audit.put("live_signal_id", 44001L);
+        audit.put("selected_action", "BLOCK");
+        audit.put("decision", "BUY");
+        audit.put("signal_source", "ENTRY_SKIP");
+        audit.put("terminal_blocker", "TradePlanQualityGate");
+        audit.put("policy_inputs_json", candidatePlanJson(true));
+        stubNoBuyQueries(List.of(runtime), List.of(audit), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.identityConflictCount()).isEqualTo(1);
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.otherObservationCount()).isEqualTo(1);
+        assertThat(scan.rawCountConserved()).isTrue();
+        assertThat(scan.classificationCountConserved()).isTrue();
     }
 
     private TinyLiveMinimumOrderPreviewService.PreviewResult preview(List<String> denialReasons, List<String> warnings) {

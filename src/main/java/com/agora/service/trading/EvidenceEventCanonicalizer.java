@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Pure read-model canonicalization for decision-audit/runtime-evidence representations.
@@ -38,9 +39,10 @@ public final class EvidenceEventCanonicalizer {
                 ? List.of()
                 : inputRows.stream().filter(Objects::nonNull).toList();
         if (rows.isEmpty()) {
-            return new MergeResult(List.of(), 0, 0, 0, 0, 0);
+            return new MergeResult(List.of(), 0, 0, 0, 0, 0, 0);
         }
 
+        int rawRepresentationCount = rows.stream().mapToInt(EvidenceEventCanonicalizer::representationCount).sum();
         List<Identity> identities = rows.stream().map(EvidenceEventCanonicalizer::identity).toList();
         int[] parents = new int[rows.size()];
         for (int i = 0; i < parents.length; i++) parents[i] = i;
@@ -59,10 +61,12 @@ public final class EvidenceEventCanonicalizer {
 
         List<Map<String, Object>> merged = new ArrayList<>();
         int identityConflicts = 0;
+        int semanticConflicts = 0;
         int duplicateSuspects = 0;
         for (List<Map<String, Object>> group : groups.values()) {
             Map<String, Object> canonical = mergeGroup(group);
             if (bool(canonical.get("identity_conflict"))) identityConflicts++;
+            if (bool(canonical.get("semantic_conflict"))) semanticConflicts++;
             if (bool(canonical.get("duplicate_suspect"))) duplicateSuspects++;
             merged.add(canonical);
         }
@@ -70,8 +74,8 @@ public final class EvidenceEventCanonicalizer {
                 .comparing((Map<String, Object> row) -> time(row.get("evidence_time")),
                         Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(row -> text(row.get("canonical_event_identity"))));
-        return new MergeResult(List.copyOf(merged), rows.size(), merged.size(),
-                rows.size() - merged.size(), identityConflicts, duplicateSuspects);
+        return new MergeResult(List.copyOf(merged), rawRepresentationCount, merged.size(),
+                rawRepresentationCount - merged.size(), identityConflicts, semanticConflicts, duplicateSuspects);
     }
 
     private static Map<String, Object> mergeGroup(List<Map<String, Object>> group) {
@@ -84,8 +88,8 @@ public final class EvidenceEventCanonicalizer {
         Map<String, Object> result = new LinkedHashMap<>();
         ordered.forEach(row -> row.forEach(result::putIfAbsent));
 
-        Set<String> decisionIds = values(group, "decision_id");
-        Set<String> liveSignalIds = values(group, "live_signal_id");
+        Set<String> decisionIds = identifiers(group, "decision_id", "decision_ids");
+        Set<String> liveSignalIds = identifiers(group, "live_signal_id", "live_signal_ids");
         Set<String> symbols = normalizedValues(group, "symbol");
         Set<String> strategies = values(group, "strategy_id");
         Set<String> intervals = normalizedValues(group, "interval_code");
@@ -93,16 +97,23 @@ public final class EvidenceEventCanonicalizer {
         Set<String> bars = group.stream().map(EvidenceEventCanonicalizer::barIdentity)
                 .filter(Objects::nonNull).collect(java.util.stream.Collectors.toCollection(TreeSet::new));
 
-        Identity representative = identity(ordered.get(0));
-        String canonicalIdentity = canonicalIdentity(decisionIds, liveSignalIds, group, representative);
+        Set<String> composites = group.stream().map(EvidenceEventCanonicalizer::identity)
+                .flatMap(value -> value.composites().stream()).collect(Collectors.toCollection(TreeSet::new));
+        String canonicalIdentity = canonicalIdentity(decisionIds, liveSignalIds, composites, ordered.get(0));
         boolean completeIdentity = canonicalIdentity != null;
-        boolean identityConflict = decisionIds.size() > 1 || liveSignalIds.size() > 1
+        boolean identityConflict = group.stream().anyMatch(row -> bool(row.get("identity_conflict")))
+                || decisionIds.size() > 1 || liveSignalIds.size() > 1
                 || symbols.size() > 1 || strategies.size() > 1
                 || intervals.size() > 1 || sides.size() > 1 || bars.size() > 1;
 
         PlanUnion plan = planUnion(group);
-        boolean fieldConflict = plan.conflict();
-        boolean duplicateSuspect = !completeIdentity;
+        boolean fieldConflict = plan.conflict()
+                || group.stream().anyMatch(row -> bool(row.get("field_union_conflict")));
+        SemanticUnion semantics = semanticUnion(group);
+        boolean semanticConflict = semantics.conflict()
+                || group.stream().anyMatch(row -> bool(row.get("semantic_conflict")));
+        boolean duplicateSuspect = !completeIdentity
+                || group.stream().anyMatch(row -> bool(row.get("duplicate_suspect")));
 
         result.put("canonical_event_identity", completeIdentity
                 ? canonicalIdentity
@@ -110,15 +121,23 @@ public final class EvidenceEventCanonicalizer {
         result.put("canonical_identity_complete", completeIdentity);
         result.put("identity_conflict", identityConflict);
         result.put("field_union_conflict", fieldConflict);
+        result.put("semantic_conflict", semanticConflict);
+        result.put("semantic_conflict_reasons", semantics.conflictReasons());
         result.put("duplicate_suspect", duplicateSuspect);
-        result.put("canonical_merge_eligible", completeIdentity && !identityConflict && !fieldConflict);
-        result.put("representation_count", group.size());
-        result.put("duplicate_representation_count", group.size() - 1);
+        result.put("canonical_merge_eligible", completeIdentity && !identityConflict && !fieldConflict && !semanticConflict);
+        int representationCount = group.stream().mapToInt(EvidenceEventCanonicalizer::representationCount).sum();
+        result.put("representation_count", representationCount);
+        result.put("duplicate_representation_count", representationCount - 1);
         result.put("source_ids", sourceIds(group));
         result.put("decision_ids", List.copyOf(decisionIds));
         result.put("live_signal_ids", List.copyOf(liveSignalIds));
-        result.put("runtime_evidence_ids", sourceValues(group, "RUNTIME_EVIDENCE", "runtime_evidence_id", "row_id"));
-        result.put("audit_ids", sourceValues(group, "DECISION_AUDIT", "audit_id", "row_id"));
+        result.put("runtime_evidence_ids", sourceValues(group, "RUNTIME_EVIDENCE",
+                "runtime_evidence_id", "runtime_evidence_ids", "row_id"));
+        result.put("audit_ids", sourceValues(group, "DECISION_AUDIT", "audit_id", "audit_ids", "row_id"));
+        result.put("event_families", semantics.eventFamilies());
+        result.put("selected_actions", semantics.selectedActions());
+        result.put("decisions", semantics.decisions());
+        result.put("final_outcomes", semantics.finalOutcomes());
 
         result.put("order_sent", group.stream().anyMatch(row -> bool(row.get("order_sent"))));
         result.put("intent_created", group.stream().anyMatch(EvidenceEventCanonicalizer::explicitIntent));
@@ -127,9 +146,14 @@ public final class EvidenceEventCanonicalizer {
         putIfPresent(result, "candidate_tp", plan.tp());
         putIfPresent(result, "candidate_sl", plan.sl());
 
-        result.put("selected_action", strongest(group, "selected_action"));
-        result.put("decision", strongest(group, "decision"));
-        result.put("final_outcome", authoritativeRuntimeOutcome(group));
+        result.put("event_family", semanticConflict && semantics.eventFamilies().size() > 1
+                ? "CONFLICT" : singleText(semantics.eventFamilies()));
+        result.put("selected_action", semantics.actionConflict()
+                ? "CONFLICT" : strongest(group, "selected_action"));
+        result.put("decision", semantics.actionConflict()
+                ? "CONFLICT" : strongest(group, "decision"));
+        result.put("final_outcome", semantics.outcomeConflict()
+                ? "CONFLICT" : authoritativeRuntimeOutcome(group));
         result.put("signal_source", preferredAuditValue(group, "signal_source"));
         result.put("execution_mode", preferredRuntimeValue(group, "execution_mode"));
         result.put("policy_mode", strongest(group, "policy_mode"));
@@ -147,54 +171,165 @@ public final class EvidenceEventCanonicalizer {
 
     private static String canonicalIdentity(Set<String> decisionIds,
                                             Set<String> liveSignalIds,
-                                            List<Map<String, Object>> group,
-                                            Identity representative) {
+                                            Set<String> composites,
+                                            Map<String, Object> representative) {
         if (decisionIds.size() == 1) return "DECISION:" + decisionIds.iterator().next();
-        if (decisionIds.isEmpty() && liveSignalIds.size() == 1) return "LIVE_SIGNAL:" + liveSignalIds.iterator().next();
-        if (decisionIds.size() <= 1 && liveSignalIds.size() == 1) return "LIVE_SIGNAL:" + liveSignalIds.iterator().next();
-        Set<String> composites = group.stream().map(EvidenceEventCanonicalizer::identity)
-                .map(Identity::composite).filter(Objects::nonNull)
-                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
-        return composites.size() == 1 ? "MARKET_EVENT:" + composites.iterator().next()
-                : representative.composite() == null ? null : "MARKET_EVENT:" + representative.composite();
+        if (liveSignalIds.size() == 1) return "LIVE_SIGNAL:" + liveSignalIds.iterator().next();
+        if (composites.size() == 1) return "MARKET_EVENT:" + composites.iterator().next();
+        String existing = identifier(representative.get("canonical_event_identity"));
+        return existing == null || existing.startsWith("UNRESOLVED:") ? null : existing;
     }
 
     private static boolean matches(Identity left, Identity right) {
-        if (left.decisionId() != null && right.decisionId() != null) {
-            return left.decisionId().equals(right.decisionId());
-        }
-        if (left.liveSignalId() != null && right.liveSignalId() != null) {
-            return left.liveSignalId().equals(right.liveSignalId());
-        }
-        return left.composite() != null && left.composite().equals(right.composite());
+        if (intersects(left.decisionIds(), right.decisionIds())) return true;
+        if (intersects(left.liveSignalIds(), right.liveSignalIds())) return true;
+        if (!left.decisionIds().isEmpty() && !right.decisionIds().isEmpty()) return false;
+        if (!left.liveSignalIds().isEmpty() && !right.liveSignalIds().isEmpty()) return false;
+        return intersects(left.composites(), right.composites());
     }
 
     private static Identity identity(Map<String, Object> row) {
-        String decisionId = identifier(row.get("decision_id"));
-        String liveSignalId = identifier(row.get("live_signal_id"));
+        Set<String> decisionIds = identifiers(row, "decision_id", "decision_ids");
+        Set<String> liveSignalIds = identifiers(row, "live_signal_id", "live_signal_ids");
         String symbol = normalized(row.get("symbol"));
         String strategy = identifier(row.get("strategy_id"));
         String interval = normalized(row.get("interval_code"));
         String side = normalized(row.get("side"));
         String bar = barIdentity(row);
-        String family = eventFamily(row);
-        String composite = symbol == null || strategy == null || interval == null || side == null
-                || bar == null || family == null
-                ? null : String.join("|", symbol, strategy, interval, side, bar, family);
-        return new Identity(decisionId, liveSignalId, composite);
+        Set<String> families = eventFamilies(row);
+        Set<String> composites = new TreeSet<>();
+        if (symbol != null && strategy != null && interval != null && side != null && bar != null) {
+            for (String family : families) {
+                if (!"CONFLICT".equals(family)) {
+                    composites.add(String.join("|", symbol, strategy, interval, side, bar, family));
+                }
+            }
+        }
+        String existing = identifier(row.get("canonical_event_identity"));
+        if (existing != null && existing.startsWith("MARKET_EVENT:")) {
+            composites.add(existing.substring("MARKET_EVENT:".length()));
+        }
+        return new Identity(decisionIds, liveSignalIds, composites);
     }
 
-    private static String eventFamily(Map<String, Object> row) {
-        String combined = normalized(first(row, "event_family", "signal_source", "selected_action", "decision"));
-        String all = normalized(text(row.get("signal_source")) + " " + text(row.get("selected_action"))
-                + " " + text(row.get("decision")));
-        if (all == null) return null;
-        if (all.contains("DONCHIAN")) return "DONCHIAN_STATE";
-        if (all.contains("SIGNAL_SELL") || all.contains("EXIT") || all.contains("SELL")) return "SELL_EXIT";
-        if (all.contains("ENTRY") || all.contains("AUTOTRADE") || all.contains("SIGNAL_BUY")
-                || all.contains("FILTER_BLOCK") || all.contains("BUY")) return "BUY_ENTRY";
-        if (all.contains("SIGNAL_EVAL") || all.contains("EVALUATED") || all.contains("HOLD")) return "SIGNAL_EVAL";
-        return combined;
+    private static Set<String> eventFamilies(Map<String, Object> row) {
+        Set<String> existing = identifiers(row, "event_family", "event_families").stream()
+                .map(value -> value.toUpperCase(Locale.ROOT))
+                .filter(value -> !"CONFLICT".equals(value))
+                .collect(Collectors.toCollection(TreeSet::new));
+        if (!existing.isEmpty()) return existing;
+
+        Set<ActionClass> actions = actionClasses(row);
+        Set<String> families = actions.stream().map(ActionClass::family)
+                .collect(Collectors.toCollection(TreeSet::new));
+        if (!families.isEmpty()) return families;
+        String source = normalized(row.get("signal_source"));
+        return source == null ? Set.of() : Set.of(source);
+    }
+
+    private static SemanticUnion semanticUnion(List<Map<String, Object>> group) {
+        Set<ActionClass> actionClasses = group.stream().flatMap(row -> actionClasses(row).stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+        Set<OutcomeClass> outcomeClasses = group.stream().flatMap(row -> outcomeClasses(row).stream())
+                .filter(value -> value != OutcomeClass.NEUTRAL)
+                .collect(Collectors.toCollection(TreeSet::new));
+        Set<String> families = group.stream().flatMap(row -> eventFamilies(row).stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+        Set<String> selectedActions = textValues(group, "selected_action", "selected_actions");
+        Set<String> decisions = textValues(group, "decision", "decisions");
+        Set<String> finalOutcomes = textValues(group, "final_outcome", "final_outcomes");
+
+        boolean actionConflict = incompatibleActions(actionClasses);
+        boolean outcomeConflict = incompatibleOutcomes(outcomeClasses);
+        Set<String> reasons = group.stream().flatMap(row -> identifiers(row, "semantic_conflict_reasons").stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+        if (actionClasses.contains(ActionClass.BUY_ENTRY) && actionClasses.contains(ActionClass.SELL_EXIT)) {
+            reasons.add("BUY_ENTRY_VS_SELL_EXIT");
+        }
+        if (actionClasses.contains(ActionClass.STATE_ADVANCE) && actionClasses.stream()
+                .anyMatch(value -> value == ActionClass.BUY_ENTRY || value == ActionClass.SELL_EXIT)) {
+            reasons.add("STATE_ADVANCE_VS_ACTION");
+        }
+        if (outcomeConflict) reasons.add("INCOMPATIBLE_OUTCOME");
+        return new SemanticUnion(List.copyOf(families), List.copyOf(selectedActions), List.copyOf(decisions),
+                List.copyOf(finalOutcomes), actionConflict, outcomeConflict, List.copyOf(reasons));
+    }
+
+    private static Set<ActionClass> actionClasses(Map<String, Object> row) {
+        String selected = normalized(row.get("selected_action"));
+        String decision = normalized(row.get("decision"));
+        String source = normalized(row.get("signal_source"));
+        String explicitFamily = normalized(row.get("event_family"));
+        Set<ActionClass> classes = new TreeSet<>();
+
+        boolean state = containsAny(selected, "STATE_ADVANCE", "DONCHIAN_SHADOW_STATE_ADVANCE")
+                || "DONCHIAN_STATE_ADVANCE".equals(explicitFamily);
+        boolean buy = containsAny(selected, "BUY", "ENTRY", "BLOCK", "REJECT", "SKIP")
+                || containsAny(decision, "BUY", "ENTRY")
+                || containsAny(source, "SIGNAL_BUY", "ENTRY_SKIP", "FILTER_BLOCK", "AUTOTRADE_FAIL")
+                || "BUY_ENTRY_BLOCK".equals(explicitFamily)
+                || explicitIntent(row) || hasAnyPlanValue(row);
+        boolean sell = containsAny(selected, "SELL", "EXIT")
+                || containsAny(decision, "SELL", "EXIT")
+                || containsAny(source, "SIGNAL_SELL", "SELL", "EXIT")
+                || "SELL_EXIT".equals(explicitFamily);
+        if (state) classes.add(ActionClass.STATE_ADVANCE);
+        if (buy) classes.add(ActionClass.BUY_ENTRY);
+        if (sell) classes.add(ActionClass.SELL_EXIT);
+        if (classes.isEmpty() && (containsAny(selected, "HOLD", "EVALUATED", "INFO", "PASS")
+                || containsAny(decision, "HOLD", "INFO", "PASS")
+                || containsAny(source, "SIGNAL_EVAL", "INFO"))) {
+            classes.add(ActionClass.OBSERVATION);
+        }
+        return classes;
+    }
+
+    private static Set<OutcomeClass> outcomeClasses(Map<String, Object> row) {
+        Set<String> outcomes = textValues(row, "final_outcome", "final_outcomes");
+        Set<OutcomeClass> classes = new TreeSet<>();
+        if (bool(row.get("order_sent"))) classes.add(OutcomeClass.EXECUTED);
+        for (String outcome : outcomes) {
+            String value = outcome.toUpperCase(Locale.ROOT);
+            if (containsAny(value, "EXECUT", "FILLED", "ORDER_SENT", "AUTOTRADE_OK")) {
+                classes.add(OutcomeClass.EXECUTED);
+            } else if (containsAny(value, "BLOCK", "REJECT", "SKIP", "FAIL")) {
+                classes.add(OutcomeClass.BLOCKED);
+            } else if ("PASS".equals(value) || value.contains("SUCCES")) {
+                classes.add(OutcomeClass.PASSED);
+            } else {
+                classes.add(OutcomeClass.NEUTRAL);
+            }
+        }
+        return classes;
+    }
+
+    private static boolean incompatibleActions(Set<ActionClass> classes) {
+        return classes.contains(ActionClass.BUY_ENTRY) && classes.contains(ActionClass.SELL_EXIT)
+                || classes.contains(ActionClass.STATE_ADVANCE)
+                && (classes.contains(ActionClass.BUY_ENTRY) || classes.contains(ActionClass.SELL_EXIT));
+    }
+
+    private static boolean incompatibleOutcomes(Set<OutcomeClass> classes) {
+        return classes.contains(OutcomeClass.EXECUTED) && classes.contains(OutcomeClass.BLOCKED)
+                || classes.contains(OutcomeClass.PASSED) && classes.contains(OutcomeClass.BLOCKED);
+    }
+
+    private static boolean hasAnyPlanValue(Map<String, Object> row) {
+        if (first(row, "candidate_entry", "candidate_tp", "candidate_sl") != null) return true;
+        for (String field : JSON_FIELDS) {
+            JsonNode json = json(row.get(field));
+            if (json == null) continue;
+            for (String key : List.of("candidateEntry", "candidateTp", "candidateSl", "entryPrice", "tpPrice", "slPrice")) {
+                if (!json.path(key).isMissingNode() && !json.path(key).isNull()) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsAny(String value, String... tokens) {
+        if (value == null) return false;
+        for (String token : tokens) if (value.contains(token)) return true;
+        return false;
     }
 
     private static PlanUnion planUnion(List<Map<String, Object>> group) {
@@ -325,11 +460,12 @@ public final class EvidenceEventCanonicalizer {
     private static List<String> sourceIds(List<Map<String, Object>> group) {
         Set<String> ids = new TreeSet<>();
         for (Map<String, Object> row : group) {
+            ids.addAll(identifiers(row, "source_ids"));
             String source = text(row.get("row_source"));
             String id = "RUNTIME_EVIDENCE".equalsIgnoreCase(source)
                     ? identifier(first(row, "runtime_evidence_id", "row_id", "decision_id"))
                     : identifier(first(row, "audit_id", "row_id", "decision_id"));
-            ids.add(source + ":" + (id == null ? "UNRESOLVED" : id));
+            if (!source.isBlank()) ids.add(source + ":" + (id == null ? "UNRESOLVED" : id));
         }
         return List.copyOf(ids);
     }
@@ -339,21 +475,61 @@ public final class EvidenceEventCanonicalizer {
                                              String... fields) {
         Set<String> values = new TreeSet<>();
         for (Map<String, Object> row : group) {
-            if (!source.equalsIgnoreCase(text(row.get("row_source")))) continue;
-            String value = identifier(first(row, fields));
-            if (value != null) values.add(value);
+            Set<String> rowValues = new TreeSet<>();
+            for (String field : fields) {
+                if (!"row_id".equals(field)) rowValues.addAll(identifiers(row, field));
+            }
+            if (rowValues.isEmpty() && source.equalsIgnoreCase(text(row.get("row_source")))) {
+                String rowId = identifier(row.get("row_id"));
+                if (rowId != null) rowValues.add(rowId);
+            }
+            values.addAll(rowValues);
         }
         return List.copyOf(values);
     }
 
     private static Set<String> values(List<Map<String, Object>> group, String field) {
-        return group.stream().map(row -> identifier(row.get(field))).filter(Objects::nonNull)
-                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        return group.stream().flatMap(row -> identifiers(row, field).stream())
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     private static Set<String> normalizedValues(List<Map<String, Object>> group, String field) {
-        return group.stream().map(row -> normalized(row.get(field))).filter(Objects::nonNull)
-                .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
+        return group.stream().flatMap(row -> identifiers(row, field).stream())
+                .map(value -> value.toUpperCase(Locale.ROOT)).collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    private static Set<String> identifiers(List<Map<String, Object>> group, String... fields) {
+        return group.stream().flatMap(row -> identifiers(row, fields).stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    private static Set<String> identifiers(Map<String, Object> row, String... fields) {
+        Set<String> values = new TreeSet<>();
+        for (String field : fields) addIdentifiers(row.get(field), values);
+        return values;
+    }
+
+    private static void addIdentifiers(Object raw, Set<String> target) {
+        if (raw instanceof Iterable<?> values) {
+            for (Object value : values) addIdentifiers(value, target);
+            return;
+        }
+        if (raw != null && raw.getClass().isArray()) {
+            for (Object value : (Object[]) raw) addIdentifiers(value, target);
+            return;
+        }
+        String value = identifier(raw);
+        if (value != null) target.add(value);
+    }
+
+    private static Set<String> textValues(List<Map<String, Object>> group, String... fields) {
+        return group.stream().flatMap(row -> textValues(row, fields).stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    private static Set<String> textValues(Map<String, Object> row, String... fields) {
+        return identifiers(row, fields).stream().filter(value -> !"CONFLICT".equalsIgnoreCase(value))
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     private static String barIdentity(Map<String, Object> row) {
@@ -414,6 +590,27 @@ public final class EvidenceEventCanonicalizer {
         return value == null ? "" : value.toString();
     }
 
+    private static int representationCount(Map<String, Object> row) {
+        Object raw = row.get("representation_count");
+        if (raw instanceof Number number) return Math.max(1, number.intValue());
+        try {
+            return raw == null ? 1 : Math.max(1, Integer.parseInt(text(raw)));
+        } catch (NumberFormatException ignored) {
+            return 1;
+        }
+    }
+
+    private static boolean intersects(Set<String> left, Set<String> right) {
+        if (left.isEmpty() || right.isEmpty()) return false;
+        Set<String> smaller = left.size() <= right.size() ? left : right;
+        Set<String> larger = smaller == left ? right : left;
+        return smaller.stream().anyMatch(larger::contains);
+    }
+
+    private static String singleText(List<String> values) {
+        return values.size() == 1 ? values.get(0) : null;
+    }
+
     private static void putIfPresent(Map<String, Object> row, String key, Object value) {
         if (value != null) row.put(key, value);
     }
@@ -434,15 +631,52 @@ public final class EvidenceEventCanonicalizer {
                               int uniqueMergedEventCount,
                               int duplicateRepresentationCount,
                               int identityConflictCount,
+                              int semanticConflictCount,
                               int duplicateSuspectCount) {
         public boolean conservesRawCount() {
             return rawObservationCount == uniqueMergedEventCount + duplicateRepresentationCount;
         }
     }
 
-    private record Identity(String decisionId, String liveSignalId, String composite) {
+    private record Identity(Set<String> decisionIds, Set<String> liveSignalIds, Set<String> composites) {
     }
 
     private record PlanUnion(BigDecimal entry, BigDecimal tp, BigDecimal sl, boolean conflict) {
+    }
+
+    private record SemanticUnion(List<String> eventFamilies,
+                                 List<String> selectedActions,
+                                 List<String> decisions,
+                                 List<String> finalOutcomes,
+                                 boolean actionConflict,
+                                 boolean outcomeConflict,
+                                 List<String> conflictReasons) {
+        boolean conflict() {
+            return actionConflict || outcomeConflict || !conflictReasons.isEmpty();
+        }
+    }
+
+    private enum ActionClass {
+        BUY_ENTRY("BUY_ENTRY_BLOCK"),
+        SELL_EXIT("SELL_EXIT"),
+        STATE_ADVANCE("DONCHIAN_STATE_ADVANCE"),
+        OBSERVATION("SIGNAL_EVAL");
+
+        private final String family;
+
+        ActionClass(String family) {
+            this.family = family;
+        }
+
+        String family() {
+            return family;
+        }
+    }
+
+    private enum OutcomeClass {
+        EXECUTED,
+        BLOCKED,
+        PASSED,
+        NEUTRAL
     }
 }

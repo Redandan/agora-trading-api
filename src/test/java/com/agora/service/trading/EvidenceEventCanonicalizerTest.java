@@ -37,6 +37,10 @@ class EvidenceEventCanonicalizerTest {
                 .containsEntry("candidate_entry", new java.math.BigDecimal("1E+2"))
                 .containsEntry("candidate_tp", new java.math.BigDecimal("106"))
                 .containsEntry("candidate_sl", new java.math.BigDecimal("88"));
+        EvidenceEventCanonicalizer.MergeResult remerged = EvidenceEventCanonicalizer.merge(forward.rows());
+        assertThat(remerged.rows()).isEqualTo(forward.rows());
+        assertThat(remerged.rawObservationCount()).isEqualTo(2);
+        assertThat(remerged.duplicateRepresentationCount()).isEqualTo(1);
     }
 
     @Test
@@ -109,8 +113,127 @@ class EvidenceEventCanonicalizerTest {
         Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(runtime, audit)).rows().get(0);
 
         assertThat(merged)
-                .containsEntry("final_outcome", "PASS")
-                .containsEntry("blocker_reason", "TradePlanQualityGate");
+                .containsEntry("final_outcome", "CONFLICT")
+                .containsEntry("blocker_reason", "TradePlanQualityGate")
+                .containsEntry("semantic_conflict", true)
+                .containsEntry("canonical_merge_eligible", false);
+    }
+
+    @Test
+    void sameLiveSignalWithDifferentDecisionIdsIsOneFailClosedConflictComponent() {
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 501L, "4h", "LONG", "2026-07-15T00:00:00");
+        runtime.put("live_signal_id", 9901L);
+        Map<String, Object> audit = row("DECISION_AUDIT", 502L, "4h", "LONG", "2026-07-15T00:00:00");
+        audit.put("live_signal_id", 9901L);
+
+        EvidenceEventCanonicalizer.MergeResult result = EvidenceEventCanonicalizer.merge(List.of(runtime, audit));
+
+        assertThat(result.uniqueMergedEventCount()).isEqualTo(1);
+        assertThat(result.duplicateRepresentationCount()).isEqualTo(1);
+        assertThat(result.identityConflictCount()).isEqualTo(1);
+        assertThat(result.rows().get(0))
+                .containsEntry("identity_conflict", true)
+                .containsEntry("canonical_merge_eligible", false);
+    }
+
+    @Test
+    void sameBarDonchianStateAdvanceAndBlockedBuyStaySeparateWithoutStrongIdentity() {
+        Map<String, Object> state = fallbackRow("4h", "LONG", "2026-07-15T00:00:00", "DONCHIAN_SHADOW");
+        state.put("selected_action", "DONCHIAN_SHADOW_STATE_ADVANCE");
+        state.put("decision", "HOLD");
+        Map<String, Object> buy = fallbackRow("4h", "LONG", "2026-07-15T00:00:00", "ENTRY_SKIP");
+        buy.put("selected_action", "BLOCK");
+        buy.put("decision", "BUY");
+        buy.put("terminal_blocker", "TradePlanQualityGate");
+
+        EvidenceEventCanonicalizer.MergeResult result = EvidenceEventCanonicalizer.merge(List.of(state, buy));
+
+        assertThat(result.uniqueMergedEventCount()).isEqualTo(2);
+        assertThat(result.duplicateRepresentationCount()).isZero();
+        assertThat(result.rows()).extracting(row -> row.get("event_family"))
+                .containsExactlyInAnyOrder("DONCHIAN_STATE_ADVANCE", "BUY_ENTRY_BLOCK");
+    }
+
+    @Test
+    void strongIdentityJoiningStateAdvanceAndBlockedBuyFailsSemanticConflict() {
+        Map<String, Object> state = row("RUNTIME_EVIDENCE", 601L, "4h", "LONG", "2026-07-15T00:00:00");
+        state.put("signal_source", "DONCHIAN_SHADOW");
+        state.put("selected_action", "DONCHIAN_SHADOW_STATE_ADVANCE");
+        state.put("decision", "HOLD");
+        Map<String, Object> buy = row("DECISION_AUDIT", 601L, "4h", "LONG", "2026-07-15T00:00:00");
+        buy.put("signal_source", "ENTRY_SKIP");
+        buy.put("selected_action", "BLOCK");
+        buy.put("decision", "BUY");
+
+        Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(state, buy)).rows().get(0);
+
+        assertThat(merged)
+                .containsEntry("semantic_conflict", true)
+                .containsEntry("canonical_merge_eligible", false);
+        assertThat(merged.get("semantic_conflict_reasons").toString()).contains("STATE_ADVANCE_VS_ACTION");
+        assertThat(EvidenceEventCanonicalizer.merge(List.of(state, buy)).semanticConflictCount()).isEqualTo(1);
+    }
+
+    @Test
+    void sameDecisionBuyAndSellOrEntryAndExitFailsSemanticConflict() {
+        Map<String, Object> buy = row("RUNTIME_EVIDENCE", 701L, "4h", "LONG", "2026-07-15T00:00:00");
+        buy.put("selected_action", "BUY_ENTRY");
+        buy.put("decision", "BUY");
+        Map<String, Object> sell = row("DECISION_AUDIT", 701L, "4h", "LONG", "2026-07-15T00:00:00");
+        sell.put("selected_action", "SELL_EXIT");
+        sell.put("decision", "SELL");
+
+        Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(buy, sell)).rows().get(0);
+
+        assertThat(merged)
+                .containsEntry("selected_action", "CONFLICT")
+                .containsEntry("decision", "CONFLICT")
+                .containsEntry("semantic_conflict", true)
+                .containsEntry("canonical_merge_eligible", false);
+        assertThat(merged.get("semantic_conflict_reasons").toString()).contains("BUY_ENTRY_VS_SELL_EXIT");
+    }
+
+    @Test
+    void sameLiveSignalConflictDoesNotDependOnMissingDecisionBridgeOrPermutation() {
+        Map<String, Object> first = row("RUNTIME_EVIDENCE", 801L, "4h", "LONG", "2026-07-15T00:00:00");
+        first.put("live_signal_id", 9988L);
+        Map<String, Object> second = row("DECISION_AUDIT", 802L, "4h", "LONG", "2026-07-15T00:00:00");
+        second.put("live_signal_id", 9988L);
+        Map<String, Object> bridge = row("RUNTIME_EVIDENCE", 0L, "4h", "LONG", "2026-07-15T00:00:00");
+        bridge.put("decision_id", null);
+        bridge.put("live_signal_id", 9988L);
+
+        EvidenceEventCanonicalizer.MergeResult direct = EvidenceEventCanonicalizer.merge(List.of(first, second));
+        for (List<Map<String, Object>> permutation : List.of(
+                List.of(first, second, bridge),
+                List.of(bridge, first, second),
+                List.of(second, bridge, first))) {
+            EvidenceEventCanonicalizer.MergeResult result = EvidenceEventCanonicalizer.merge(permutation);
+            assertThat(result.uniqueMergedEventCount()).isEqualTo(1);
+            assertThat(result.identityConflictCount()).isEqualTo(1);
+            assertThat(result.rows().get(0).get("canonical_merge_eligible")).isEqualTo(false);
+            assertThat(result.rows().get(0).get("canonical_event_identity"))
+                    .isEqualTo(direct.rows().get(0).get("canonical_event_identity"));
+        }
+    }
+
+    @Test
+    void canonicalOutputCanBeMergedAgainWithoutLosingProvenanceConflictOrCounts() {
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 901L, "4h", "LONG", "2026-07-15T00:00:00");
+        runtime.put("live_signal_id", 9909L);
+        Map<String, Object> audit = row("DECISION_AUDIT", 902L, "4h", "LONG", "2026-07-15T00:00:00");
+        audit.put("live_signal_id", 9909L);
+
+        EvidenceEventCanonicalizer.MergeResult first = EvidenceEventCanonicalizer.merge(List.of(runtime, audit));
+        EvidenceEventCanonicalizer.MergeResult second = EvidenceEventCanonicalizer.merge(first.rows());
+
+        assertThat(second.rows()).isEqualTo(first.rows());
+        assertThat(second.rawObservationCount()).isEqualTo(first.rawObservationCount());
+        assertThat(second.uniqueMergedEventCount()).isEqualTo(first.uniqueMergedEventCount());
+        assertThat(second.duplicateRepresentationCount()).isEqualTo(first.duplicateRepresentationCount());
+        assertThat(second.conservesRawCount()).isTrue();
+        assertThat(second.rows().get(0).get("source_ids"))
+                .isEqualTo(first.rows().get(0).get("source_ids"));
     }
 
     private Map<String, Object> fallbackRow(String interval, String side, String bar, String signalSource) {

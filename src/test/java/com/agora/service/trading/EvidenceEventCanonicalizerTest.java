@@ -322,6 +322,91 @@ class EvidenceEventCanonicalizerTest {
         assertThat(second.fieldConflictCount()).isEqualTo(first.fieldConflictCount());
     }
 
+    @Test
+    void dispositionOnlySourcesDoNotInjectBuyDirectionIntoSellOrExit() {
+        List<String> sources = List.of("FILTER_BLOCK", "ENTRY_SKIP", "AUTOTRADE_FAIL");
+        List<String> directions = List.of("SELL", "EXIT", "SELL");
+        for (int i = 0; i < sources.size(); i++) {
+            Map<String, Object> row = row("DECISION_AUDIT", 1401L + i, "4h", "SHORT", "2026-07-15T00:00:00");
+            row.put("signal_source", sources.get(i));
+            row.put("selected_action", "BLOCK");
+            row.put("decision", directions.get(i));
+            row.put("final_outcome", "BLOCKED");
+
+            Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(row)).rows().get(0);
+
+            assertThat(merged).containsEntry("event_family", "SELL_EXIT")
+                    .containsEntry("semantic_conflict", false)
+                    .containsEntry("canonical_merge_eligible", true);
+            assertThat(merged.get("semantic_conflict_reasons").toString())
+                    .doesNotContain("BUY_ENTRY_VS_SELL_EXIT");
+        }
+
+        Map<String, Object> blockedBuy = row("DECISION_AUDIT", 1410L, "4h", "LONG", "2026-07-15T00:00:00");
+        blockedBuy.put("signal_source", "FILTER_BLOCK");
+        blockedBuy.put("selected_action", "BLOCK");
+        blockedBuy.put("decision", "BUY");
+        blockedBuy.put("final_outcome", "BLOCKED");
+        assertThat(EvidenceEventCanonicalizer.merge(List.of(blockedBuy)).rows().get(0))
+                .containsEntry("event_family", "BUY_ENTRY_BLOCK")
+                .containsEntry("semantic_conflict", false);
+    }
+
+    @Test
+    void negativeOutcomeTokensTakePriorityOverExecutedSubstrings() {
+        for (String negative : List.of(
+                "NOT_EXECUTED", "EXECUTION_FAILED", "NOT_FILLED", "UNEXECUTED", "UNFILLED",
+                "ORDER_NOT_SENT", "EXECUTION_NOT_SENT", "FILL_UNCONFIRMED")) {
+            Map<String, Object> pass = row("RUNTIME_EVIDENCE", 1501L, "4h", "LONG", "2026-07-15T00:00:00");
+            pass.put("final_outcome", "PASS");
+            Map<String, Object> failed = row("DECISION_AUDIT", 1501L, "4h", "LONG", "2026-07-15T00:00:00");
+            failed.put("final_outcome", negative);
+
+            Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(pass, failed)).rows().get(0);
+
+            assertThat(merged).containsEntry("final_outcome", "CONFLICT")
+                    .containsEntry("semantic_conflict", true)
+                    .containsEntry("canonical_merge_eligible", false);
+        }
+    }
+
+    @Test
+    void singleNegativeOutcomeRemainsBlockedBuyInsteadOfExecuted() {
+        Map<String, Object> row = row("RUNTIME_EVIDENCE", 1601L, "4h", "LONG", "2026-07-15T00:00:00");
+        row.put("selected_action", "BLOCK_BUY");
+        row.put("decision", "BUY");
+        row.put("final_outcome", "NOT_EXECUTED");
+
+        Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(row)).rows().get(0);
+
+        assertThat(merged).containsEntry("final_outcome", "NOT_EXECUTED")
+                .containsEntry("event_family", "BUY_ENTRY_BLOCK")
+                .containsEntry("order_sent", false)
+                .containsEntry("semantic_conflict", false);
+    }
+
+    @Test
+    void actualProducerFailureOutcomesRemainNegativeDespiteOrderSentTokens() {
+        for (String negative : List.of(
+                "ORDER_FAILED",
+                "CRITICAL_ORDER_SENT_LIVE_SIGNAL_SAVE_FAILED",
+                "BTC_BASE_ORDER_FAILED",
+                "CRITICAL_BTC_BASE_ORDER_SENT_LIVE_SIGNAL_SAVE_FAILED",
+                "CRITICAL_ORDER_SENT_FILL_UNCONFIRMED",
+                "CRITICAL_ORDER_SENT_SIGNAL_SAVE_FAILED",
+                "CRITICAL_ORDER_SENT_OCO_ATTACH_FAILED")) {
+            Map<String, Object> pass = row("RUNTIME_EVIDENCE", 1701L, "4h", "LONG", "2026-07-15T00:00:00");
+            pass.put("final_outcome", "PASS");
+            Map<String, Object> failed = row("DECISION_AUDIT", 1701L, "4h", "LONG", "2026-07-15T00:00:00");
+            failed.put("final_outcome", negative);
+
+            Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(pass, failed)).rows().get(0);
+
+            assertThat(merged).containsEntry("semantic_conflict", true)
+                    .containsEntry("canonical_merge_eligible", false);
+        }
+    }
+
     private List<Map<String, Object>> concat(List<Map<String, Object>> rows, Map<String, Object> row) {
         List<Map<String, Object>> result = new ArrayList<>(rows);
         result.add(row);

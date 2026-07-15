@@ -290,7 +290,7 @@ public final class EvidenceEventCanonicalizer {
                 || "DONCHIAN_STATE_ADVANCE".equals(explicitFamily);
         boolean buy = containsAny(selected, "BUY", "ENTRY")
                 || containsAny(decision, "BUY", "ENTRY")
-                || containsAny(source, "SIGNAL_BUY", "ENTRY_SKIP", "FILTER_BLOCK", "AUTOTRADE_FAIL")
+                || containsAny(source, "SIGNAL_BUY", "BUY_SIGNAL")
                 || "BUY_ENTRY_BLOCK".equals(explicitFamily)
                 || explicitIntent(row) || hasAnyPlanValue(row);
         boolean sell = containsAny(selected, "SELL", "EXIT")
@@ -320,10 +320,13 @@ public final class EvidenceEventCanonicalizer {
     }
 
     private static OutcomeClass classifyOutcome(String value) {
+        if (containsAny(value, "BLOCK", "SUPPRESS", "DENIED", "CANCELLED", "CANCELED", "FILTERED",
+                "REJECT", "SKIP", "ERROR", "FAIL", "CRITICAL", "MISSING",
+                "NOT_EXECUTED", "NOT_EXECUTE", "NOT_FILLED", "UNEXECUTED", "UNFILLED",
+                "NO_EXECUTION", "NO_FILL", "ORDER_NOT_SENT", "EXECUTION_NOT_SENT",
+                "FILL_UNCONFIRMED", "UNCONFIRMED_FILL")) return OutcomeClass.BLOCKED;
         if (containsAny(value, "EXECUT", "FILLED", "ORDER_SENT", "AUTOTRADE_OK")
                 || Set.of("OCO_TP", "OCO_SL", "TIME_EXIT_24H").contains(value)) return OutcomeClass.EXECUTED;
-        if (containsAny(value, "BLOCK", "SUPPRESS", "DENIED", "CANCELLED", "CANCELED", "FILTERED",
-                "REJECT", "SKIP", "ERROR", "FAIL", "CRITICAL", "MISSING")) return OutcomeClass.BLOCKED;
         if ("PASS".equals(value) || "PASSED".equals(value) || value.startsWith("PASS_")
                 || value.startsWith("SUCCESS")) return OutcomeClass.PASSED;
         if (value.startsWith("PENDING")

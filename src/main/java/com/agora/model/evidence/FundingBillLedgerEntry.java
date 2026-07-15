@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Table(name = "funding_bill_ledger")
 public class FundingBillLedgerEntry extends AppendOnlyEvidence {
 
-    @Column(name = "account_ref_hash", nullable = false, length = 64, updatable = false)
+    @Column(name = "account_ref_hash", nullable = false, length = 64, columnDefinition = "CHAR(64)", updatable = false)
     private String accountRefHash;
 
     @Column(nullable = false, length = 30, updatable = false)

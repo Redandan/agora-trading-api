@@ -18,7 +18,7 @@ public abstract class AppendOnlyEvidence {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "dedupe_key", nullable = false, length = 64, updatable = false)
+    @Column(name = "dedupe_key", nullable = false, length = 64, columnDefinition = "CHAR(64)", updatable = false)
     private String dedupeKey;
 
     @Column(nullable = false, length = 32, updatable = false)
@@ -39,7 +39,7 @@ public abstract class AppendOnlyEvidence {
     @Column(name = "source_mode", nullable = false, length = 24, updatable = false)
     private String sourceMode;
 
-    @Column(name = "raw_payload_sha256", nullable = false, length = 64, updatable = false)
+    @Column(name = "raw_payload_sha256", nullable = false, length = 64, columnDefinition = "CHAR(64)", updatable = false)
     private String rawPayloadSha256;
 
     @Column(name = "provider_cursor", length = 255, updatable = false)
@@ -48,7 +48,7 @@ public abstract class AppendOnlyEvidence {
     @Column(name = "provider_page_key", length = 128, updatable = false)
     private String providerPageKey;
 
-    @Column(name = "gap_manifest_id", length = 64, updatable = false)
+    @Column(name = "gap_manifest_id", length = 64, columnDefinition = "CHAR(64)", updatable = false)
     private String gapManifestId;
 
     @Column(name = "gap_dataset", length = 64, updatable = false)

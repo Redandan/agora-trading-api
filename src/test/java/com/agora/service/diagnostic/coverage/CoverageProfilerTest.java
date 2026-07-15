@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,11 @@ class CoverageProfilerTest {
         assertThat(manifest.observedCount()).isEqualTo(2);
         assertThat(manifest.cleanCount()).isEqualTo(2);
         assertThat(manifest.coverageRatio()).isEqualByComparingTo("1.000000");
+        assertThat(manifest.structuralCoverageComplete()).isTrue();
+        assertThat(manifest.forwardCausalComplete()).isTrue();
+        assertThat(manifest.providerStable()).isTrue();
+        assertThat(manifest.complete()).isTrue();
+        assertThat(manifest.rowPartition().conserved()).isTrue();
         assertThat(manifest.missingRanges()).isEmpty();
         assertThat(manifest.querySucceeded()).isTrue();
         assertThat(manifest.pageComplete()).isTrue();
@@ -58,8 +64,11 @@ class CoverageProfilerTest {
                 row("dup", START), row("dup", START)));
 
         assertThat(manifest.duplicateCount()).isEqualTo(1);
+        assertThat(manifest.duplicateGroupCount()).isEqualTo(1);
+        assertThat(manifest.duplicateExcludedRowCount()).isEqualTo(2);
         assertThat(manifest.cleanCount()).isZero();
         assertThat(manifest.coverageRatio()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(manifest.rowPartition().conserved()).isTrue();
     }
 
     @Test
@@ -72,6 +81,8 @@ class CoverageProfilerTest {
         assertThat(manifest.cleanCount()).isEqualTo(1);
         assertThat(manifest.futureArrivingCount()).isEqualTo(1);
         assertThat(manifest.forwardCausalCount()).isZero();
+        assertThat(manifest.rowPartition().cleanForwardFutureArrivalCount()).isEqualTo(1);
+        assertThat(manifest.rowPartition().invalidCount()).isZero();
     }
 
     @Test
@@ -115,6 +126,8 @@ class CoverageProfilerTest {
             assertThat(transition.toProvider()).isEqualTo("binance");
             assertThat(transition.at()).isEqualTo(START.plus(Duration.ofHours(1)));
         });
+        assertThat(manifest.providerStable()).isFalse();
+        assertThat(manifest.complete()).isFalse();
     }
 
     @Test
@@ -126,10 +139,17 @@ class CoverageProfilerTest {
                 START.plus(Duration.ofHours(1)), START.plus(Duration.ofHours(1)),
                 "okx", Provenance.UNKNOWN, DataKind.BAR, Usage.FEATURE);
         DatasetManifest manifest = profileOne(query(CoverageDataset.MD_KLINE,
-                missingIngested, unknownProvenance));
+                missingIngested, unknownProvenance, null));
 
-        assertThat(manifest.observedCount()).isEqualTo(2);
+        assertThat(manifest.observedCount()).isEqualTo(3);
         assertThat(manifest.cleanCount()).isZero();
+        assertThat(manifest.rowPartition().invalidReasonCounts())
+                .containsEntry("MISSING_TIMESTAMP", 1L)
+                .containsEntry("UNKNOWN_PROVENANCE", 1L)
+                .containsEntry("NULL_ROW", 1L);
+        assertThat(manifest.rowPartition().invalidReasonCounts().values().stream()
+                .mapToLong(Long::longValue).sum()).isEqualTo(manifest.rowPartition().invalidCount());
+        assertThat(manifest.rowPartition().conserved()).isTrue();
     }
 
     @Test
@@ -141,6 +161,10 @@ class CoverageProfilerTest {
 
         assertThat(manifest.cleanCount()).isEqualTo(2);
         assertThat(manifest.forwardCausalCount()).isEqualTo(1);
+        assertThat(manifest.historicalCleanCount()).isEqualTo(1);
+        assertThat(manifest.structuralCoverageComplete()).isTrue();
+        assertThat(manifest.forwardCausalComplete()).isFalse();
+        assertThat(manifest.complete()).isFalse();
     }
 
     @Test
@@ -148,7 +172,7 @@ class CoverageProfilerTest {
         CoverageRecord future = record("b1", START.plus(Duration.ofHours(1)),
                 START.plus(Duration.ofHours(1)), START.plus(Duration.ofHours(1)).plusSeconds(2),
                 START.plus(Duration.ofHours(1)).plusSeconds(3), START.plus(Duration.ofHours(1)).plusSeconds(1),
-                "internal", Provenance.FORWARD, DataKind.DECISION, Usage.FEATURE);
+                "okx", Provenance.FORWARD, DataKind.DECISION, Usage.FEATURE);
         ProfileRequest request = request(List.of(CoverageDataset.MD_KLINE, CoverageDataset.BT_DECISION_AUDIT));
         CoverageGapManifest manifest = profiler.profile(new ProfileInput(request, List.of(
                 query(CoverageDataset.MD_KLINE, row("a0", START), row("a1", START.plus(Duration.ofHours(1)))),
@@ -170,11 +194,103 @@ class CoverageProfilerTest {
 
         assertThat(manifest.cleanCount()).isZero();
         assertThat(manifest.forwardCausalCount()).isZero();
+        assertThat(manifest.rowPartition().invalidReasonCounts())
+                .containsEntry("HOURLY_SCALAR_EXECUTABLE", 1L);
+    }
+
+    @Test
+    void completeSlotsWithProviderTransitionFailClosedAndDoNotIntersect() {
+        CoverageRecord first = row("a", START);
+        CoverageRecord second = record("b", START.plus(Duration.ofHours(1)),
+                START.plus(Duration.ofHours(1)), START.plus(Duration.ofHours(1)),
+                START.plus(Duration.ofHours(1)), START.plus(Duration.ofHours(1)),
+                "binance", Provenance.FORWARD, DataKind.BAR, Usage.FEATURE);
+
+        CoverageGapManifest manifest = profile(query(CoverageDataset.MD_KLINE, first, second));
+        DatasetManifest dataset = manifest.datasets().getFirst();
+
+        assertThat(dataset.structuralCoverageRatio()).isEqualByComparingTo("1.000000");
+        assertThat(dataset.forwardCausalCoverageRatio()).isEqualByComparingTo("1.000000");
+        assertThat(dataset.structuralCoverageComplete()).isTrue();
+        assertThat(dataset.providerStable()).isFalse();
+        assertThat(dataset.forwardCausalComplete()).isFalse();
+        assertThat(dataset.complete()).isFalse();
+        assertThat(manifest.providerStable()).isFalse();
+        assertThat(manifest.intersectionObservedCount()).isZero();
+        assertThat(manifest.intersectionCoverage()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(manifest.complete()).isFalse();
+    }
+
+    @Test
+    void historicalOnlyCanBeStructurallyCompleteButNeverForwardComplete() {
+        CoverageRecord first = record("h0", START, START, START, START, START,
+                "okx", Provenance.HISTORICAL_BACKFILL, DataKind.BAR, Usage.FEATURE);
+        CoverageRecord second = record("h1", START.plus(Duration.ofHours(1)),
+                START.plus(Duration.ofHours(1)), START.plus(Duration.ofHours(1)),
+                START.plus(Duration.ofHours(1)), START.plus(Duration.ofHours(1)),
+                "okx", Provenance.HISTORICAL_BACKFILL, DataKind.BAR, Usage.FEATURE);
+        DatasetManifest manifest = profileOne(query(CoverageDataset.MD_KLINE, first, second));
+
+        assertThat(manifest.structuralCoverageRatio()).isEqualByComparingTo("1.000000");
+        assertThat(manifest.forwardCausalCoverageRatio()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(manifest.structuralCoverageComplete()).isTrue();
+        assertThat(manifest.forwardCausalComplete()).isFalse();
+        assertThat(manifest.historicalCleanCount()).isEqualTo(2);
+        assertThat(manifest.forwardCausalCount()).isZero();
+        assertThat(manifest.complete()).isFalse();
+    }
+
+    @Test
+    void duplicatePartitionConservesEveryExcludedRow() {
+        DatasetManifest manifest = profileOne(query(CoverageDataset.MD_KLINE,
+                row("dup", START), row("dup", START), row("dup", START)));
+
+        var partition = manifest.rowPartition();
+        assertThat(partition.observedCount()).isEqualTo(3);
+        assertThat(partition.duplicateGroupCount()).isEqualTo(1);
+        assertThat(partition.duplicateExcludedRowCount()).isEqualTo(3);
+        assertThat(manifest.duplicateCount()).isEqualTo(2);
+        assertThat(partition.cleanForwardCausalCount()).isZero();
+        assertThat(partition.cleanHistoricalCount()).isZero();
+        assertThat(partition.invalidCount()).isZero();
+        assertThat(partition.cleanForwardCausalCount()
+                + partition.cleanForwardFutureArrivalCount()
+                + partition.cleanHistoricalCount()
+                + partition.duplicateExcludedRowCount()
+                + partition.invalidCount()).isEqualTo(partition.observedCount());
+        assertThat(partition.conserved()).isTrue();
+    }
+
+    @Test
+    void mixedHistoricalAndForwardPartitionHasExplicitCompleteTruth() {
+        CoverageRecord historical = record("h", START, START, START, START, START,
+                "okx", Provenance.HISTORICAL_BACKFILL, DataKind.BAR, Usage.FEATURE);
+        CoverageRecord forward = row("f", START.plus(Duration.ofHours(1)));
+        DatasetManifest manifest = profileOne(query(CoverageDataset.MD_KLINE, historical, forward));
+
+        assertThat(manifest.rowPartition().cleanHistoricalCount()).isEqualTo(1);
+        assertThat(manifest.rowPartition().cleanForwardCausalCount()).isEqualTo(1);
+        assertThat(manifest.rowPartition().cleanForwardCausalCount()
+                + manifest.rowPartition().cleanForwardFutureArrivalCount()
+                + manifest.rowPartition().cleanHistoricalCount()
+                + manifest.rowPartition().duplicateExcludedRowCount()
+                + manifest.rowPartition().invalidCount())
+                .isEqualTo(manifest.rowPartition().observedCount());
+        assertThat(manifest.rowPartition().conserved()).isTrue();
+        assertThat(manifest.structuralCoverageRatio()).isEqualByComparingTo("1.000000");
+        assertThat(manifest.forwardCausalCoverageRatio()).isEqualByComparingTo("0.500000");
+        assertThat(manifest.structuralCoverageComplete()).isTrue();
+        assertThat(manifest.forwardCausalComplete()).isFalse();
+        assertThat(manifest.complete()).isFalse();
     }
 
     private DatasetManifest profileOne(DatasetQuery query) {
+        return profile(query).datasets().getFirst();
+    }
+
+    private CoverageGapManifest profile(DatasetQuery query) {
         ProfileRequest request = request(List.of(query.dataset()));
-        return profiler.profile(new ProfileInput(request, List.of(query))).datasets().getFirst();
+        return profiler.profile(new ProfileInput(request, List.of(query)));
     }
 
     private ProfileRequest request(List<CoverageDataset> datasets) {
@@ -185,7 +301,7 @@ class CoverageProfilerTest {
     }
 
     private DatasetQuery query(CoverageDataset dataset, CoverageRecord... rows) {
-        return new DatasetQuery(dataset, true, List.of(), false, true, List.of(rows));
+        return new DatasetQuery(dataset, true, List.of(), false, true, Arrays.asList(rows));
     }
 
     private CoverageRecord row(String key, Instant time) {

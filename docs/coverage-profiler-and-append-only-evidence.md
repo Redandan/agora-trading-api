@@ -51,6 +51,56 @@ stricter numerator: provenance must be `FORWARD`, and both
 forward causal numerator. Intersection coverage requires a causal slot from
 every requested dataset.
 
+Completeness is intentionally split:
+
+- `structuralCoverageRatio` / `structuralCoverageComplete` describe whether
+  every requested slot has a structurally trustworthy unique row. Historical
+  rows can satisfy this structural dimension.
+- `forwardCausalCoverageRatio` / `forwardCausalComplete` require forward rows
+  that satisfy the causal timestamp rule. Historical-only coverage can therefore
+  be structurally 100% while forward causal coverage is 0%.
+- `coverageRatio` is retained as a compatibility alias for
+  `structuralCoverageRatio`.
+- `complete` is a legacy fail-closed aggregate. At both dataset and top level it
+  is true only when structural coverage is complete, forward causal coverage is
+  complete, and providers are stable. It must never be interpreted as query
+  success alone.
+
+Provider transitions are evidence boundaries, not ordinary continuity. Any
+transition emits `providerStable=false`, forces dataset and top-level
+`forwardCausalComplete=false` and `complete=false`, and prevents that dataset
+from contributing any causal intersection slots. This package has no frozen
+transition policy and therefore provides no override.
+
+### Conserved Row Partition
+
+Every observed row belongs to exactly one machine-readable `rowPartition`
+bucket:
+
+```text
+observedCount
+  = cleanForwardCausalCount
+  + cleanForwardFutureArrivalCount
+  + cleanHistoricalCount
+  + duplicateExcludedRowCount
+  + invalidCount
+```
+
+`conserved=true` proves that equality. `futureArrivingCount` is the compatibility
+alias for `cleanForwardFutureArrivalCount`, so future arrival is not also counted
+as invalid or causal. `historicalCleanCount` aliases `cleanHistoricalCount`.
+
+Duplicate handling distinguishes three values: `duplicateGroupCount` is the
+number of repeated dedupe keys; `duplicateExcludedRowCount` is every row in
+those fail-closed groups; legacy `duplicateCount` is only the number of rows in
+excess of one per group. No member of a duplicate group is selected as clean.
+
+Invalid rows receive one primary reason by fixed precedence so reason counts do
+not overlap: `NULL_ROW`, `MISSING_DEDUP_KEY`, `MISSING_TIMESTAMP`,
+`MISSING_PROVIDER`, `UNKNOWN_PROVENANCE`, `OUTSIDE_REQUEST_RANGE`, or
+`HOURLY_SCALAR_EXECUTABLE`. The sum of `invalidReasonCounts` equals
+`invalidCount`.
+
 `HOURLY_SCALAR` with `EXECUTABLE_QUOTE` or `EXECUTABLE_DEPTH` usage is rejected;
 hourly indicator values are not executable top-of-book/depth evidence.
 

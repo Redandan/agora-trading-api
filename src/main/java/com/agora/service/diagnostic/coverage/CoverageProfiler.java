@@ -8,13 +8,13 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -48,7 +48,7 @@ public final class CoverageProfiler {
 
         Set<Instant> intersection = null;
         for (DatasetWork item : work) {
-            if (!item.complete()) {
+            if (!item.intersectionEligible()) {
                 intersection = Set.of();
                 break;
             }
@@ -63,17 +63,25 @@ public final class CoverageProfiler {
         int intersectionCount = intersection == null ? 0 : intersection.size();
         BigDecimal intersectionCoverage = ratio(intersectionCount, expectedIntersection);
 
+        boolean providerStable = work.stream().allMatch(item -> item.manifest().providerStable());
+        boolean structuralCoverageComplete = work.stream()
+                .allMatch(item -> item.manifest().structuralCoverageComplete());
+        boolean forwardCausalComplete = work.stream()
+                .allMatch(item -> item.manifest().forwardCausalComplete())
+                && intersectionCoverage.compareTo(BigDecimal.ONE) == 0;
         List<DatasetManifest> datasets = work.stream()
                 .map(item -> item.manifest().withIntersectionCoverage(intersectionCoverage))
                 .toList();
-        boolean complete = work.stream().allMatch(item -> item.manifest().complete())
-                && intersectionCoverage.compareTo(BigDecimal.ONE) == 0;
+        boolean complete = providerStable && structuralCoverageComplete && forwardCausalComplete;
         return new CoverageGapManifest(
                 request.requestedStart(),
                 request.requestedEnd(),
                 expectedIntersection,
                 intersectionCount,
                 intersectionCoverage,
+                providerStable,
+                structuralCoverageComplete,
+                forwardCausalComplete,
                 complete,
                 datasets
         );
@@ -86,36 +94,92 @@ public final class CoverageProfiler {
         List<CoverageRecord> rows = query.records() == null ? List.of() : query.records();
         List<Instant> slots = expectedSlots(request.requestedStart(), request.requestedEnd(), cadence);
         Set<String> duplicateKeys = duplicateKeys(rows);
+        long duplicateGroupCount = duplicateKeys.size();
+        long duplicateExcludedRowCount = rows.stream()
+                .filter(row -> row != null && present(row.dedupKey()) && duplicateKeys.contains(row.dedupKey()))
+                .count();
         long duplicateCount = rows.stream()
                 .filter(row -> row != null && present(row.dedupKey()) && duplicateKeys.contains(row.dedupKey()))
                 .count() - duplicateKeys.size();
         duplicateCount = Math.max(0L, duplicateCount);
 
-        List<CoverageRecord> cleanRows = rows.stream()
-                .filter(Objects::nonNull)
-                .filter(row -> isClean(row, duplicateKeys, request))
+        List<CoverageRecord> cleanForwardCausal = new ArrayList<>();
+        List<CoverageRecord> cleanForwardFutureArrival = new ArrayList<>();
+        List<CoverageRecord> cleanHistorical = new ArrayList<>();
+        Map<String, Long> invalidReasonCounts = new LinkedHashMap<>();
+        for (CoverageRecord row : rows) {
+            if (row != null && present(row.dedupKey()) && duplicateKeys.contains(row.dedupKey())) {
+                continue;
+            }
+            String invalidReason = invalidReason(row, request);
+            if (invalidReason != null) {
+                invalidReasonCounts.merge(invalidReason, 1L, Long::sum);
+            } else if (row.provenance() == Provenance.HISTORICAL_BACKFILL) {
+                cleanHistorical.add(row);
+            } else if (isFutureArriving(row)) {
+                cleanForwardFutureArrival.add(row);
+            } else {
+                cleanForwardCausal.add(row);
+            }
+        }
+        List<CoverageRecord> cleanRows = new ArrayList<>();
+        cleanRows.addAll(cleanForwardCausal);
+        cleanRows.addAll(cleanForwardFutureArrival);
+        cleanRows.addAll(cleanHistorical);
+        cleanRows.sort(Comparator.comparing(CoverageRecord::eventTime));
+        List<CoverageRecord> causalRows = cleanForwardCausal.stream()
                 .sorted(Comparator.comparing(CoverageRecord::eventTime))
                 .toList();
-        long futureArrivingCount = rows.stream()
-                .filter(Objects::nonNull)
-                .filter(CoverageProfiler::isFutureArriving)
-                .count();
-        List<CoverageRecord> causalRows = cleanRows.stream()
-                .filter(CoverageProfiler::isForwardCausalEligible)
-                .toList();
+        long invalidCount = invalidReasonCounts.values().stream().mapToLong(Long::longValue).sum();
+        long partitionTotal = cleanForwardCausal.size() + cleanForwardFutureArrival.size()
+                + cleanHistorical.size() + duplicateExcludedRowCount + invalidCount;
+        RowPartition rowPartition = new RowPartition(
+                rows.size(),
+                cleanForwardCausal.size(),
+                cleanForwardFutureArrival.size(),
+                cleanHistorical.size(),
+                duplicateGroupCount,
+                duplicateExcludedRowCount,
+                invalidCount,
+                Collections.unmodifiableMap(new LinkedHashMap<>(invalidReasonCounts)),
+                partitionTotal == rows.size()
+        );
+        if (!rowPartition.conserved()) {
+            throw new IllegalStateException("row partition is not conserved for " + dataset);
+        }
 
         boolean queryComplete = query.querySucceeded() && !query.truncated() && query.pageComplete();
         Set<Instant> cleanSlots = slotSet(cleanRows, request.requestedStart(), cadence);
         Set<Instant> causalSlots = slotSet(causalRows, request.requestedStart(), request.intersectionCadence());
+        List<ProviderTransition> transitions = providerTransitions(cleanRows);
+        boolean providerStable = transitions.isEmpty();
         List<MissingRange> missingRanges = queryComplete
                 ? missingRanges(slots, cleanSlots, cadence, "NO_CLEAN_ROW")
                 : List.of(new MissingRange(request.requestedStart(), request.requestedEnd(),
                     query.querySucceeded() ? "PAGE_INCOMPLETE" : "QUERY_FAILED"));
-        BigDecimal coverage = queryComplete ? ratio(cleanSlots.size(), slots.size()) : BigDecimal.ZERO.setScale(6);
-        boolean datasetComplete = queryComplete
+        List<MissingRange> forwardCausalMissingRanges = queryComplete
+                ? missingRanges(slots, slotSet(causalRows, request.requestedStart(), cadence), cadence,
+                    "NO_FORWARD_CAUSAL_ROW")
+                : List.of(new MissingRange(request.requestedStart(), request.requestedEnd(),
+                    query.querySucceeded() ? "PAGE_INCOMPLETE" : "QUERY_FAILED"));
+        BigDecimal structuralCoverageRatio = queryComplete
+                ? ratio(cleanSlots.size(), slots.size()) : BigDecimal.ZERO.setScale(6);
+        BigDecimal forwardCausalCoverageRatio = queryComplete
+                ? ratio(slotSet(causalRows, request.requestedStart(), cadence).size(), slots.size())
+                : BigDecimal.ZERO.setScale(6);
+        boolean structuralCoverageComplete = queryComplete
                 && missingRanges.isEmpty()
                 && cleanRows.size() == rows.size()
-                && coverage.compareTo(BigDecimal.ONE) == 0;
+                && rowPartition.invalidCount() == 0
+                && rowPartition.duplicateExcludedRowCount() == 0
+                && structuralCoverageRatio.compareTo(BigDecimal.ONE) == 0;
+        boolean forwardCausalComplete = structuralCoverageComplete
+                && providerStable
+                && forwardCausalMissingRanges.isEmpty()
+                && rowPartition.cleanHistoricalCount() == 0
+                && rowPartition.cleanForwardFutureArrivalCount() == 0
+                && forwardCausalCoverageRatio.compareTo(BigDecimal.ONE) == 0;
+        boolean datasetComplete = structuralCoverageComplete && forwardCausalComplete && providerStable;
 
         DatasetManifest manifest = new DatasetManifest(
                 dataset,
@@ -125,10 +189,16 @@ public final class CoverageProfiler {
                 rows.size(),
                 cleanRows.size(),
                 duplicateCount,
-                futureArrivingCount,
+                duplicateGroupCount,
+                duplicateExcludedRowCount,
+                cleanForwardFutureArrival.size(),
+                cleanHistorical.size(),
                 causalRows.size(),
+                rowPartition,
                 missingRanges,
-                providerTransitions(cleanRows),
+                forwardCausalMissingRanges,
+                transitions,
+                providerStable,
                 min(rows, CoverageRecord::eventTime),
                 max(rows, CoverageRecord::eventTime),
                 min(rows, CoverageRecord::effectiveAt),
@@ -137,41 +207,46 @@ public final class CoverageProfiler {
                 max(rows, CoverageRecord::availableAt),
                 min(rows, CoverageRecord::ingestedAt),
                 max(rows, CoverageRecord::ingestedAt),
-                coverage,
+                structuralCoverageRatio,
+                structuralCoverageRatio,
+                forwardCausalCoverageRatio,
                 BigDecimal.ZERO.setScale(6),
+                structuralCoverageComplete,
+                forwardCausalComplete,
                 datasetComplete,
                 query.querySucceeded(),
                 query.queryErrors() == null ? List.of() : List.copyOf(query.queryErrors()),
                 query.truncated(),
                 query.pageComplete()
         );
-        return new DatasetWork(manifest, causalSlots, queryComplete);
+        return new DatasetWork(manifest, causalSlots, queryComplete && providerStable);
     }
 
-    private static boolean isClean(CoverageRecord row,
-                                   Set<String> duplicateKeys,
-                                   ProfileRequest request) {
-        if (!present(row.dedupKey()) || duplicateKeys.contains(row.dedupKey())) {
-            return false;
+    private static String invalidReason(CoverageRecord row, ProfileRequest request) {
+        if (row == null) {
+            return "NULL_ROW";
+        }
+        if (!present(row.dedupKey())) {
+            return "MISSING_DEDUP_KEY";
         }
         if (row.eventTime() == null || row.effectiveAt() == null || row.availableAt() == null
                 || row.ingestedAt() == null || row.decisionTime() == null) {
-            return false;
+            return "MISSING_TIMESTAMP";
         }
-        if (!present(row.provider()) || row.provenance() == null || row.provenance() == Provenance.UNKNOWN) {
-            return false;
+        if (!present(row.provider())) {
+            return "MISSING_PROVIDER";
+        }
+        if (row.provenance() == null || row.provenance() == Provenance.UNKNOWN) {
+            return "UNKNOWN_PROVENANCE";
         }
         if (row.eventTime().isBefore(request.requestedStart()) || !row.eventTime().isBefore(request.requestedEnd())) {
-            return false;
+            return "OUTSIDE_REQUEST_RANGE";
         }
-        return row.usage() == null || row.usage() == Usage.FEATURE
-                || row.dataKind() != DataKind.HOURLY_SCALAR;
-    }
-
-    private static boolean isForwardCausalEligible(CoverageRecord row) {
-        return row.provenance() == Provenance.FORWARD
-                && !row.effectiveAt().isAfter(row.decisionTime())
-                && !row.availableAt().isAfter(row.decisionTime());
+        if (row.usage() != null && row.usage() != Usage.FEATURE
+                && row.dataKind() == DataKind.HOURLY_SCALAR) {
+            return "HOURLY_SCALAR_EXECUTABLE";
+        }
+        return null;
     }
 
     private static boolean isFutureArriving(CoverageRecord row) {
@@ -304,7 +379,7 @@ public final class CoverageProfiler {
         Instant select(CoverageRecord record);
     }
 
-    private record DatasetWork(DatasetManifest manifest, Set<Instant> causalSlots, boolean complete) {
+    private record DatasetWork(DatasetManifest manifest, Set<Instant> causalSlots, boolean intersectionEligible) {
     }
 
     public enum CoverageDataset {
@@ -392,7 +467,7 @@ public final class CoverageProfiler {
     ) {
         public DatasetQuery {
             queryErrors = queryErrors == null ? List.of() : List.copyOf(queryErrors);
-            records = records == null ? List.of() : List.copyOf(records);
+            records = records == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(records));
         }
 
         private static DatasetQuery missing(CoverageDataset dataset) {
@@ -420,6 +495,9 @@ public final class CoverageProfiler {
             long intersectionExpectedCount,
             long intersectionObservedCount,
             BigDecimal intersectionCoverage,
+            boolean providerStable,
+            boolean structuralCoverageComplete,
+            boolean forwardCausalComplete,
             boolean complete,
             List<DatasetManifest> datasets
     ) {
@@ -433,10 +511,16 @@ public final class CoverageProfiler {
             long observedCount,
             long cleanCount,
             long duplicateCount,
+            long duplicateGroupCount,
+            long duplicateExcludedRowCount,
             long futureArrivingCount,
+            long historicalCleanCount,
             long forwardCausalCount,
+            RowPartition rowPartition,
             List<MissingRange> missingRanges,
+            List<MissingRange> forwardCausalMissingRanges,
             List<ProviderTransition> providerTransitions,
+            boolean providerStable,
             Instant oldestEventTime,
             Instant newestEventTime,
             Instant oldestEffectiveTime,
@@ -446,7 +530,11 @@ public final class CoverageProfiler {
             Instant oldestIngestedTime,
             Instant newestIngestedTime,
             BigDecimal coverageRatio,
+            BigDecimal structuralCoverageRatio,
+            BigDecimal forwardCausalCoverageRatio,
             BigDecimal intersectionCoverage,
+            boolean structuralCoverageComplete,
+            boolean forwardCausalComplete,
             boolean complete,
             boolean querySucceeded,
             List<String> queryErrors,
@@ -455,12 +543,28 @@ public final class CoverageProfiler {
     ) {
         private DatasetManifest withIntersectionCoverage(BigDecimal value) {
             return new DatasetManifest(dataset, requestedStart, requestedEnd, expectedCount, observedCount,
-                    cleanCount, duplicateCount, futureArrivingCount, forwardCausalCount, missingRanges,
-                    providerTransitions, oldestEventTime, newestEventTime, oldestEffectiveTime,
+                    cleanCount, duplicateCount, duplicateGroupCount, duplicateExcludedRowCount,
+                    futureArrivingCount, historicalCleanCount, forwardCausalCount, rowPartition, missingRanges,
+                    forwardCausalMissingRanges, providerTransitions, providerStable,
+                    oldestEventTime, newestEventTime, oldestEffectiveTime,
                     newestEffectiveTime, oldestAvailableTime, newestAvailableTime, oldestIngestedTime,
-                    newestIngestedTime, coverageRatio, value, complete, querySucceeded, queryErrors, truncated,
-                    pageComplete);
+                    newestIngestedTime, coverageRatio, structuralCoverageRatio, forwardCausalCoverageRatio,
+                    value, structuralCoverageComplete, forwardCausalComplete, complete, querySucceeded,
+                    queryErrors, truncated, pageComplete);
         }
+    }
+
+    public record RowPartition(
+            long observedCount,
+            long cleanForwardCausalCount,
+            long cleanForwardFutureArrivalCount,
+            long cleanHistoricalCount,
+            long duplicateGroupCount,
+            long duplicateExcludedRowCount,
+            long invalidCount,
+            Map<String, Long> invalidReasonCounts,
+            boolean conserved
+    ) {
     }
 
     public record MissingRange(Instant start, Instant end, String reason) {

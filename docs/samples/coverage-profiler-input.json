@@ -1,0 +1,140 @@
+{
+  "request": {
+    "requestedStart": "2026-07-15T00:00:00Z",
+    "requestedEnd": "2026-07-15T02:00:00Z",
+    "cadences": {
+      "md_kline": "PT1H",
+      "market_indicator_history": "PT1H",
+      "bt_decision_audit": "PT1H",
+      "bt_live_signal": "PT1H",
+      "bt_runtime_decision_evidence": "PT1H"
+    },
+    "intersectionCadence": "PT1H",
+    "requiredDatasets": [
+      "md_kline",
+      "market_indicator_history",
+      "bt_decision_audit",
+      "bt_live_signal",
+      "bt_runtime_decision_evidence"
+    ]
+  },
+  "queries": [
+    {
+      "dataset": "md_kline",
+      "querySucceeded": true,
+      "queryErrors": [],
+      "truncated": false,
+      "pageComplete": true,
+      "records": [
+        {
+          "dedupKey": "BTCUSDT|1h|okx|2026-07-15T00:00:00Z",
+          "eventTime": "2026-07-15T00:00:00Z",
+          "effectiveAt": "2026-07-15T00:59:59Z",
+          "availableAt": "2026-07-15T01:00:00Z",
+          "ingestedAt": "2026-07-15T01:00:01Z",
+          "decisionTime": "2026-07-15T01:00:00Z",
+          "provider": "okx",
+          "provenance": "FORWARD",
+          "dataKind": "BAR",
+          "usage": "FEATURE"
+        },
+        {
+          "dedupKey": "BTCUSDT|1h|binance|2026-07-15T01:00:00Z",
+          "eventTime": "2026-07-15T01:00:00Z",
+          "effectiveAt": "2026-07-15T01:59:59Z",
+          "availableAt": "2026-07-15T02:00:00Z",
+          "ingestedAt": "2026-07-15T02:00:01Z",
+          "decisionTime": "2026-07-15T02:00:00Z",
+          "provider": "binance",
+          "provenance": "FORWARD",
+          "dataKind": "BAR",
+          "usage": "FEATURE"
+        }
+      ]
+    },
+    {
+      "dataset": "market_indicator_history",
+      "querySucceeded": true,
+      "queryErrors": [],
+      "truncated": false,
+      "pageComplete": true,
+      "records": [
+        {
+          "dedupKey": "BTCUSDT|funding_rate|2026-07-15T00:00:00Z",
+          "eventTime": "2026-07-15T00:00:00Z",
+          "effectiveAt": "2026-07-15T00:00:00Z",
+          "availableAt": "2026-07-15T00:00:01Z",
+          "ingestedAt": "2026-07-15T00:00:02Z",
+          "decisionTime": "2026-07-15T00:01:00Z",
+          "provider": "coinalyze",
+          "provenance": "FORWARD",
+          "dataKind": "HOURLY_SCALAR",
+          "usage": "FEATURE"
+        }
+      ]
+    },
+    {
+      "dataset": "bt_decision_audit",
+      "querySucceeded": true,
+      "queryErrors": [],
+      "truncated": false,
+      "pageComplete": true,
+      "records": [
+        {
+          "dedupKey": "audit-1",
+          "eventTime": "2026-07-15T00:00:00Z",
+          "effectiveAt": "2026-07-15T00:00:00Z",
+          "availableAt": "2026-07-15T00:00:00Z",
+          "ingestedAt": "2026-07-15T00:00:01Z",
+          "decisionTime": "2026-07-15T00:00:00Z",
+          "provider": "trading-runtime",
+          "provenance": "FORWARD",
+          "dataKind": "DECISION",
+          "usage": "FEATURE"
+        }
+      ]
+    },
+    {
+      "dataset": "bt_live_signal",
+      "querySucceeded": true,
+      "queryErrors": [],
+      "truncated": false,
+      "pageComplete": true,
+      "records": [
+        {
+          "dedupKey": "signal-historical-1",
+          "eventTime": "2026-07-15T00:00:00Z",
+          "effectiveAt": "2026-07-15T00:00:00Z",
+          "availableAt": "2026-07-15T00:00:00Z",
+          "ingestedAt": "2026-07-15T01:30:00Z",
+          "decisionTime": "2026-07-15T00:00:00Z",
+          "provider": "trading-runtime",
+          "provenance": "HISTORICAL_BACKFILL",
+          "dataKind": "SIGNAL",
+          "usage": "FEATURE"
+        }
+      ]
+    },
+    {
+      "dataset": "bt_runtime_decision_evidence",
+      "querySucceeded": true,
+      "queryErrors": [],
+      "truncated": false,
+      "pageComplete": true,
+      "records": [
+        {
+          "dedupKey": "runtime-evidence-1",
+          "eventTime": "2026-07-15T00:00:00Z",
+          "effectiveAt": "2026-07-15T00:00:00Z",
+          "availableAt": "2026-07-15T00:00:00Z",
+          "ingestedAt": "2026-07-15T00:00:01Z",
+          "decisionTime": "2026-07-15T00:00:00Z",
+          "provider": "trading-runtime",
+          "provenance": "FORWARD",
+          "dataKind": "EVIDENCE",
+          "usage": "FEATURE"
+        }
+      ]
+    }
+  ]
+}

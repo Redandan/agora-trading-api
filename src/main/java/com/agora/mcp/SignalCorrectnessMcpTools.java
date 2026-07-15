@@ -898,7 +898,8 @@ public class SignalCorrectnessMcpTools {
                        e.interval_code, e.signal_source, e.selected_action, e.decision, e.score,
                        e.threshold_value, e.policy_mode, e.freshness_state, e.terminal_blocker,
                        e.blocker_reason, e.reason, e.final_outcome, e.execution_mode, e.order_sent,
-                       e.suppression_reason, e.ev_result_json, e.tqs_result_json, e.policy_inputs_json,
+                       e.suppression_reason, e.intent_created, e.oco_plan_created,
+                       e.ev_result_json, e.tqs_result_json, e.policy_inputs_json,
                        e.features_snapshot_json, e.execution_preview_json, e.warnings_json, e.live_signal_id,
                        s.actual_entry_price, s.entry_price live_entry_price, s.suggested_tp, s.suggested_sl, s.realized_pnl,
                        NULL audit_id
@@ -932,6 +933,7 @@ public class SignalCorrectnessMcpTools {
                        a.reason blocker_reason, a.reason, a.outcome final_outcome, 'AUDIT_ONLY' execution_mode,
                        COALESCE(s.auto_traded, 0) order_sent,
                        CASE WHEN a.outcome = 'PASS' THEN NULL ELSE COALESCE(a.blocker, a.reason) END suppression_reason,
+                       NULL intent_created, NULL oco_plan_created,
                        NULL ev_result_json, NULL tqs_result_json, a.context_json policy_inputs_json,
                        a.context_json features_snapshot_json, NULL execution_preview_json, NULL warnings_json, a.live_signal_id,
                        s.actual_entry_price, s.entry_price live_entry_price, s.suggested_tp, s.suggested_sl, s.realized_pnl,
@@ -1202,12 +1204,23 @@ public class SignalCorrectnessMcpTools {
         return value.subtract(entry).divide(entry, 8, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
     }
 
-    private String decisionPath(Map<String, Object> row) {
+    String decisionPath(Map<String, Object> row) {
         if (bool(row.get("order_sent"))) return "EXECUTED";
-        String selected = Objects.toString(row.get("selected_action"), "");
-        String outcome = Objects.toString(row.get("final_outcome"), "");
-        if (selected.contains("BLOCK") || "BLOCK".equals(row.get("policy_mode"))) return "BLOCK";
-        if ("PENDING".equalsIgnoreCase(outcome) || row.get("suppression_reason") != null) return "SUPPRESSED";
+        String selected = upper(row.get("selected_action"));
+        String policyMode = upper(row.get("policy_mode"));
+        String outcome = upper(row.get("final_outcome"));
+        if (selected.contains("BLOCK") || "BLOCK".equals(policyMode)
+                || hasMeaningfulBlockValue(row.get("terminal_blocker"))) {
+            return "BLOCK";
+        }
+        if (hasMeaningfulBlockValue(row.get("suppression_reason"))
+                || hasExplicitIntent(row)
+                || outcome.contains("SUPPRESS")
+                || outcome.contains("REJECT")
+                || outcome.contains("SKIP")
+                || outcome.contains("FAIL")) {
+            return "SUPPRESSED";
+        }
         return "PASS";
     }
 
@@ -1607,22 +1620,104 @@ public class SignalCorrectnessMcpTools {
         };
     }
 
-    private boolean isPriceActionable(Map<String, Object> row) {
+    boolean isPriceActionable(Map<String, Object> row) {
         if (row == null) return false;
-        if (bool(row.get("order_sent")) || row.get("live_signal_id") != null) return true;
-        String signal = Objects.toString(row.get("signal_source"), "");
-        String selected = Objects.toString(row.get("selected_action"), "");
-        String blocker = firstNonBlank(row.get("terminal_blocker"), row.get("blocker_reason"), row.get("suppression_reason"), "");
+        if (isInformationalPass(row) || isNonBuyStateTransition(row) || isExplicitNonBuyEvaluation(row)) return false;
+        if (bool(row.get("order_sent")) || hasMeaningfulIdentifier(row.get("live_signal_id"))) return true;
+        if (hasExplicitIntent(row)) return true;
+        String signal = upper(row.get("signal_source"));
+        String selected = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        String blocker = upper(firstNonBlank(row.get("terminal_blocker"), row.get("blocker_reason"), row.get("suppression_reason"), ""));
+        String compactBlocker = blocker.replaceAll("[^A-Z0-9]", "");
         if (signal.contains("ENTRY") || signal.contains("AUTOTRADE") || signal.contains("SIGNAL_BUY") || signal.contains("SIGNAL_SELL")) {
             return true;
         }
         if (signal.contains("FILTER_BLOCK")) return true;
-        if (selected.contains("BUY") || selected.contains("SELL") || selected.contains("BLOCK")) return true;
-        if (blocker.contains("DuplicateBar") || blocker.contains("EventRisk") || blocker.contains("ExpectedValue")
-                || blocker.contains("FearGreed") || blocker.contains("DataFreshness") || blocker.contains("OCO")) {
+        if (selected.contains("BUY") || selected.contains("SELL") || selected.contains("BLOCK")
+                || decision.contains("BUY") || decision.contains("SELL") || decision.contains("BLOCK")) return true;
+        if (compactBlocker.contains("DUPLICATEBAR") || compactBlocker.contains("EVENTRISK")
+                || compactBlocker.contains("EXPECTEDVALUE") || compactBlocker.contains("FEARGREED")
+                || compactBlocker.contains("DATAFRESHNESS") || compactBlocker.contains("OCO")
+                || compactBlocker.contains("TRADEPLANQUALITY") || compactBlocker.contains("ENTRYDEDUP")
+                || compactBlocker.contains("POSITIONSIZING") || compactBlocker.contains("OPENPOSITION")
+                || compactBlocker.contains("EXPOSURE")) {
             return true;
         }
         return false;
+    }
+
+    private boolean isInformationalPass(Map<String, Object> row) {
+        if (bool(row.get("order_sent")) || hasExplicitIntent(row)) {
+            return false;
+        }
+        String selected = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        String combined = selected + " " + decision + " " + upper(row.get("terminal_blocker")) + " "
+                + upper(row.get("blocker_reason")) + " " + upper(row.get("suppression_reason"));
+        return (combined.contains("EXPECTEDVALUEGATEPASS") && combined.contains("INFO"))
+                || ("SMALL_DRY_RUN".equals(selected) && ("PASS".equals(decision) || combined.contains("INFO")));
+    }
+
+    private boolean isNonBuyStateTransition(Map<String, Object> row) {
+        String signal = upper(row.get("signal_source"));
+        String selected = upper(row.get("selected_action"));
+        return selected.contains("DONCHIAN_SHADOW_STATE_ADVANCE")
+                || (signal.contains("DONCHIAN") && selected.contains("STATE_ADVANCE"));
+    }
+
+    private boolean isExplicitNonBuyEvaluation(Map<String, Object> row) {
+        if (bool(row.get("order_sent")) || hasExplicitIntent(row)) return false;
+        String selected = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        return decision.contains("HOLD")
+                || ((selected.contains("HOLD") || selected.contains("EVALUATED_ONLY"))
+                && !decision.contains("BUY") && !decision.contains("SELL"));
+    }
+
+    private boolean hasExplicitIntent(Map<String, Object> row) {
+        return bool(row.get("intent_created"))
+                || jsonBoolean(row.get("policy_inputs_json"), "intentCreated", "intent_created")
+                || jsonBoolean(row.get("execution_preview_json"), "intentCreated", "intent_created")
+                || jsonBoolean(row.get("features_snapshot_json"), "intentCreated", "intent_created");
+    }
+
+    private boolean jsonBoolean(Object rawJson, String... keys) {
+        if (rawJson == null || rawJson.toString().isBlank()) return false;
+        try {
+            JsonNode node = rawJson instanceof JsonNode jsonNode ? jsonNode : JSON.readTree(rawJson.toString());
+            for (String key : keys) {
+                JsonNode value = node.path(key);
+                if ((value.isBoolean() && value.asBoolean())
+                        || (value.isNumber() && value.asInt() != 0)
+                        || (value.isTextual() && Boolean.parseBoolean(value.asText()))) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+            return false;
+        }
+        return false;
+    }
+
+    private boolean hasMeaningfulIdentifier(Object value) {
+        if (value == null) return false;
+        String normalized = value.toString().trim();
+        return !normalized.isBlank() && !"0".equals(normalized) && !"N/A".equalsIgnoreCase(normalized);
+    }
+
+    private boolean hasMeaningfulBlockValue(Object value) {
+        String normalized = upper(value);
+        if (normalized.isBlank()
+                || List.of("NONE", "N/A", "NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PASS", "INFO", "PENDING")
+                .contains(normalized)) {
+            return false;
+        }
+        return !(normalized.contains("GATEPASS") && normalized.contains("INFO"));
+    }
+
+    private String upper(Object value) {
+        return value == null ? "" : value.toString().trim().toUpperCase(Locale.ROOT);
     }
 
     private int normalizeHours(Integer hours) {

@@ -94,6 +94,12 @@ public class MissedOpportunityRegressionValidationService {
         root.put("genericStagedAddWouldAllowGroups", genericWouldAllowGroups);
         root.put("highForwardReturnNoBuyCount", highForwardReturnNoBuy.count());
         root.set("highForwardReturnNoBuyExamples", highForwardReturnNoBuy.examples());
+        ObjectNode highForwardDiagnostics = root.putObject("highForwardReturnNoBuyDiagnostics");
+        highForwardDiagnostics.put("rawObservationCount", highForwardReturnNoBuy.rawObservationCount());
+        highForwardDiagnostics.put("uniqueObservationCount", highForwardReturnNoBuy.uniqueObservationCount());
+        highForwardDiagnostics.put("duplicateRepresentationCount", highForwardReturnNoBuy.duplicateRepresentationCount());
+        highForwardDiagnostics.put("excludedNonBuyObservationCount", highForwardReturnNoBuy.excludedNonBuyObservationCount());
+        highForwardDiagnostics.put("eligibleBlockedBuyIntentCount", highForwardReturnNoBuy.eligibleBlockedBuyIntentCount());
         root.put("recommendedFix", recommendedFix(rows, genericWouldAllowGroups, highForwardReturnNoBuy.count()));
         ArrayNode taxonomy = root.putArray("noBuyReasonTaxonomy");
         for (String value : List.of(
@@ -623,51 +629,81 @@ public class MissedOpportunityRegressionValidationService {
         return "VALID_SIGNAL_NOT_READY";
     }
 
-    private HighForwardReturnNoBuyScan scanHighForwardReturnNoBuy(String symbol, int hours) {
+    HighForwardReturnNoBuyScan scanHighForwardReturnNoBuy(String symbol, int hours) {
         ArrayNode examples = objectMapper.createArrayNode();
         try {
             LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
             LocalDateTime since = now.minusHours(hours);
             LocalDateTime matureUntil = now.minusHours(1);
             if (!matureUntil.isAfter(since)) {
-                return new HighForwardReturnNoBuyScan(0, examples);
+                return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0);
             }
 
             List<Map<String, Object>> candidates = new ArrayList<>();
             candidates.addAll(queryNoBuyRuntimeEvidence(symbol, since, matureUntil));
             candidates.addAll(queryNoBuyDecisionAudit(symbol, since, matureUntil));
+            int rawObservationCount = candidates.size();
             if (candidates.isEmpty()) {
-                return new HighForwardReturnNoBuyScan(0, examples);
+                return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0);
             }
 
-            LocalDateTime minTime = candidates.stream()
-                    .map(row -> asTime(row.get("evidence_time")))
-                    .filter(time -> time != null)
-                    .min(LocalDateTime::compareTo)
-                    .orElse(null);
-            LocalDateTime maxTime = candidates.stream()
-                    .map(row -> asTime(row.get("evidence_time")))
-                    .filter(time -> time != null)
-                    .max(LocalDateTime::compareTo)
-                    .orElse(null);
-            if (minTime == null || maxTime == null) {
-                return new HighForwardReturnNoBuyScan(0, examples);
-            }
-
-            NavigableMap<LocalDateTime, BigDecimal> closes = loadOneMinuteCloses(
-                    symbol, minTime.minusMinutes(5), maxTime.plusHours(1).plusMinutes(5));
-            if (closes.isEmpty()) {
-                return new HighForwardReturnNoBuyScan(0, examples);
-            }
-
-            int count = 0;
-            Set<String> seen = new HashSet<>();
+            List<Map<String, Object>> eligibleCandidates = new ArrayList<>();
+            Set<String> seenDecisionIds = new HashSet<>();
+            Set<String> seenMarketEvents = new HashSet<>();
+            int uniqueObservationCount = 0;
+            int duplicateRepresentationCount = 0;
+            int excludedNonBuyObservationCount = 0;
             for (Map<String, Object> row : candidates) {
                 LocalDateTime t = asTime(row.get("evidence_time"));
                 if (t == null || t.isAfter(matureUntil)) {
                     continue;
                 }
-                if (!seen.add(noBuyDedupeKey(row, t))) {
+                if (!registerUniqueNoBuyObservation(row, t, seenDecisionIds, seenMarketEvents)) {
+                    duplicateRepresentationCount++;
+                    continue;
+                }
+                uniqueObservationCount++;
+                if (!isBlockedBuyIntent(row)) {
+                    excludedNonBuyObservationCount++;
+                    continue;
+                }
+                eligibleCandidates.add(row);
+            }
+            int eligibleBlockedBuyIntentCount = eligibleCandidates.size();
+            if (eligibleCandidates.isEmpty()) {
+                return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
+                        uniqueObservationCount, duplicateRepresentationCount,
+                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+            }
+
+            LocalDateTime minTime = eligibleCandidates.stream()
+                    .map(row -> asTime(row.get("evidence_time")))
+                    .filter(time -> time != null)
+                    .min(LocalDateTime::compareTo)
+                    .orElse(null);
+            LocalDateTime maxTime = eligibleCandidates.stream()
+                    .map(row -> asTime(row.get("evidence_time")))
+                    .filter(time -> time != null)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(null);
+            if (minTime == null || maxTime == null) {
+                return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
+                        uniqueObservationCount, duplicateRepresentationCount,
+                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+            }
+
+            NavigableMap<LocalDateTime, BigDecimal> closes = loadOneMinuteCloses(
+                    symbol, minTime.minusMinutes(5), maxTime.plusHours(1).plusMinutes(5));
+            if (closes.isEmpty()) {
+                return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
+                        uniqueObservationCount, duplicateRepresentationCount,
+                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+            }
+
+            int count = 0;
+            for (Map<String, Object> row : eligibleCandidates) {
+                LocalDateTime t = asTime(row.get("evidence_time"));
+                if (t == null || t.isAfter(matureUntil)) {
                     continue;
                 }
                 BigDecimal entry = closeAtOrAfter(closes, t);
@@ -691,16 +727,21 @@ public class MissedOpportunityRegressionValidationService {
                     example.put("selectedAction", text(row.get("selected_action")));
                     example.put("terminalBlocker", text(row.get("terminal_blocker")));
                     example.put("blockerReason", text(row.get("blocker_reason")));
+                    example.put("canonicalMarketEventKey", noBuyCanonicalEventKey(row, t));
+                    example.put("intentCreated", hasExplicitIntent(row));
+                    example.put("candidatePlanPresent", hasCandidatePlan(row));
                     example.put("entryPrice", money(entry));
                     example.put("horizonPrice1h", money(horizon));
                     example.put("forwardReturn1hPct", money(returnPct));
                 }
             }
-            return new HighForwardReturnNoBuyScan(count, examples);
+            return new HighForwardReturnNoBuyScan(count, examples, rawObservationCount,
+                    uniqueObservationCount, duplicateRepresentationCount,
+                    excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
         } catch (Exception e) {
             ObjectNode example = examples.addObject();
             example.put("scanError", truncate(e.getMessage(), 240));
-            return new HighForwardReturnNoBuyScan(0, examples);
+            return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0);
         }
     }
 
@@ -711,15 +752,27 @@ public class MissedOpportunityRegressionValidationService {
             List<Map<String, Object>> rows = jdbc.queryForList("""
                     SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(10000) */
                            'RUNTIME_EVIDENCE' row_source,
-                           e.id decision_id,
+                           e.id row_id,
+                           e.decision_id,
                            e.evidence_time,
                            e.strategy_id,
+                           e.interval_code,
+                           e.side,
+                           e.signal_source,
                            e.selected_action,
+                           e.decision,
                            e.final_outcome,
+                           e.execution_mode,
                            e.policy_mode,
                            e.terminal_blocker,
                            e.blocker_reason,
+                           e.suppression_reason,
                            e.reason,
+                           e.intent_created,
+                           e.oco_plan_created,
+                           e.policy_inputs_json,
+                           e.execution_preview_json,
+                           e.features_snapshot_json,
                            e.order_sent
                     FROM bt_runtime_decision_evidence e FORCE INDEX (idx_rt_decision_evidence_symbol_time)
                     WHERE e.symbol = ?
@@ -742,22 +795,34 @@ public class MissedOpportunityRegressionValidationService {
             List<Map<String, Object>> rows = jdbc.queryForList("""
                     SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(10000) */
                            'DECISION_AUDIT' row_source,
+                           a.id row_id,
                            a.id decision_id,
                            a.event_time evidence_time,
                            a.strategy_id,
+                           a.interval_code,
+                           COALESCE(s.side, JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side'))) side,
+                           a.event_type signal_source,
                            a.outcome selected_action,
+                           JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.decision')) decision,
                            a.outcome final_outcome,
+                           'AUDIT_ONLY' execution_mode,
                            NULL policy_mode,
                            a.blocker terminal_blocker,
                            a.reason blocker_reason,
+                           CASE WHEN a.outcome = 'PASS' THEN NULL ELSE COALESCE(a.blocker, a.reason) END suppression_reason,
                            a.reason,
+                           NULL intent_created,
+                           NULL oco_plan_created,
+                           a.context_json policy_inputs_json,
+                           NULL execution_preview_json,
+                           a.context_json features_snapshot_json,
                            COALESCE(s.auto_traded, 0) order_sent
                     FROM bt_decision_audit a FORCE INDEX (idx_audit_symbol_time)
                     LEFT JOIN bt_live_signal s ON s.id = a.live_signal_id
                     WHERE a.symbol = ?
                       AND a.event_time >= ?
                       AND a.event_time <= ?
-                      AND a.event_type IN ('SIGNAL_EVAL','FILTER_BLOCK','ENTRY_SKIP')
+                      AND a.event_type IN ('SIGNAL_EVAL','SIGNAL_BUY','FILTER_BLOCK','ENTRY_SKIP','AUTOTRADE_FAIL')
                       AND COALESCE(s.auto_traded, 0) = 0
                     ORDER BY a.event_time DESC, a.id DESC
                     LIMIT 500
@@ -809,10 +874,165 @@ public class MissedOpportunityRegressionValidationService {
         return entry == null ? null : entry.getValue();
     }
 
-    private String noBuyDedupeKey(Map<String, Object> row, LocalDateTime time) {
+    private boolean registerUniqueNoBuyObservation(Map<String, Object> row,
+                                                   LocalDateTime time,
+                                                   Set<String> seenDecisionIds,
+                                                   Set<String> seenMarketEvents) {
+        String decisionId = meaningfulIdentifier(row.get("decision_id"));
+        String marketEvent = noBuyCanonicalEventKey(row, time);
+        if ((decisionId != null && seenDecisionIds.contains(decisionId))
+                || seenMarketEvents.contains(marketEvent)) {
+            return false;
+        }
+        if (decisionId != null) {
+            seenDecisionIds.add(decisionId);
+        }
+        seenMarketEvents.add(marketEvent);
+        return true;
+    }
+
+    private String noBuyCanonicalEventKey(Map<String, Object> row, LocalDateTime time) {
         long minuteBucket = time.toEpochSecond(ZoneOffset.UTC) / 60;
-        return text(row.get("strategy_id")) + "|" + minuteBucket + "|" + text(row.get("selected_action"))
-                + "|" + text(row.get("terminal_blocker")) + "|" + text(row.get("blocker_reason"));
+        return text(row.get("strategy_id")) + "|" + text(row.get("interval_code")) + "|" + minuteBucket;
+    }
+
+    private String meaningfulIdentifier(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.toString().trim();
+        return normalized.isBlank() || "0".equals(normalized) || "N/A".equalsIgnoreCase(normalized)
+                ? null : normalized;
+    }
+
+    private boolean isBlockedBuyIntent(Map<String, Object> row) {
+        if (row == null || asBoolean(row.get("order_sent"))) {
+            return false;
+        }
+        String signalSource = upper(row.get("signal_source"));
+        String selectedAction = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        if (selectedAction.contains("DONCHIAN_SHADOW_STATE_ADVANCE")
+                || (signalSource.contains("DONCHIAN") && selectedAction.contains("STATE_ADVANCE"))) {
+            return false;
+        }
+
+        boolean explicitIntent = hasExplicitIntent(row);
+        boolean candidatePlan = hasCandidatePlan(row);
+        boolean buyDecision = selectedAction.contains("BUY")
+                || decision.contains("BUY")
+                || signalSource.contains("SIGNAL_BUY");
+        boolean blockingEvent = signalSource.contains("FILTER_BLOCK")
+                || signalSource.contains("ENTRY_SKIP")
+                || signalSource.contains("AUTOTRADE_FAIL");
+        boolean blocked = blockingEvent
+                || selectedAction.contains("BLOCK")
+                || selectedAction.contains("SKIP")
+                || selectedAction.contains("REJECT")
+                || "BLOCK".equals(upper(row.get("policy_mode")))
+                || hasMeaningfulBlockValue(row.get("terminal_blocker"))
+                || hasMeaningfulBlockValue(row.get("suppression_reason"))
+                || isBlockedOutcome(row.get("final_outcome"));
+        boolean buyIntent = explicitIntent || buyDecision || (candidatePlan && blockingEvent);
+        return buyIntent && blocked;
+    }
+
+    private boolean hasExplicitIntent(Map<String, Object> row) {
+        return asBoolean(row.get("intent_created"))
+                || jsonBoolean(row.get("policy_inputs_json"), "intentCreated", "intent_created")
+                || jsonBoolean(row.get("execution_preview_json"), "intentCreated", "intent_created")
+                || jsonBoolean(row.get("features_snapshot_json"), "intentCreated", "intent_created");
+    }
+
+    private boolean hasCandidatePlan(Map<String, Object> row) {
+        Object[] jsonSources = {
+                row.get("policy_inputs_json"),
+                row.get("execution_preview_json"),
+                row.get("features_snapshot_json")
+        };
+        return jsonHasValue(jsonSources, "candidateEntry", "entryPrice", "entry")
+                && jsonHasValue(jsonSources, "candidateTp", "tpPrice", "tp", "suggestedTp")
+                && jsonHasValue(jsonSources, "candidateSl", "slPrice", "sl", "suggestedSl");
+    }
+
+    private boolean jsonBoolean(Object rawJson, String... keys) {
+        JsonNode node = readJsonNode(rawJson);
+        if (node == null) {
+            return false;
+        }
+        for (String key : keys) {
+            JsonNode value = node.path(key);
+            if (value.isBoolean() && value.asBoolean()) {
+                return true;
+            }
+            if (value.isNumber() && value.asInt() != 0) {
+                return true;
+            }
+            if (value.isTextual() && Boolean.parseBoolean(value.asText())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean jsonHasValue(Object[] rawJsonValues, String... keys) {
+        for (Object rawJson : rawJsonValues) {
+            JsonNode node = readJsonNode(rawJson);
+            if (node == null) {
+                continue;
+            }
+            for (String key : keys) {
+                JsonNode value = node.path(key);
+                if (!value.isMissingNode() && !value.isNull() && !value.asText().isBlank()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private JsonNode readJsonNode(Object rawJson) {
+        if (rawJson instanceof JsonNode node) {
+            return node;
+        }
+        if (rawJson == null || rawJson.toString().isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(rawJson.toString());
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private boolean hasMeaningfulBlockValue(Object value) {
+        String normalized = upper(value);
+        if (normalized.isBlank()
+                || Set.of("NONE", "N/A", "NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PASS", "INFO", "PENDING")
+                .contains(normalized)) {
+            return false;
+        }
+        return !(normalized.contains("GATEPASS") && normalized.contains("INFO"));
+    }
+
+    private boolean isBlockedOutcome(Object value) {
+        String outcome = upper(value);
+        return outcome.contains("BLOCK") || outcome.contains("REJECT")
+                || outcome.contains("SKIP") || outcome.contains("SUPPRESS") || outcome.contains("FAIL");
+    }
+
+    private boolean asBoolean(Object value) {
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        if (value instanceof Number number) {
+            return number.intValue() != 0;
+        }
+        return value != null && Boolean.parseBoolean(value.toString());
+    }
+
+    private String upper(Object value) {
+        return value == null ? "" : value.toString().trim().toUpperCase(Locale.ROOT);
     }
 
     private LocalDateTime asTime(Object value) {
@@ -1059,6 +1279,12 @@ public class MissedOpportunityRegressionValidationService {
                        ObjectNode evidence) {
     }
 
-    private record HighForwardReturnNoBuyScan(int count, ArrayNode examples) {
+    record HighForwardReturnNoBuyScan(int count,
+                                      ArrayNode examples,
+                                      int rawObservationCount,
+                                      int uniqueObservationCount,
+                                      int duplicateRepresentationCount,
+                                      int excludedNonBuyObservationCount,
+                                      int eligibleBlockedBuyIntentCount) {
     }
 }

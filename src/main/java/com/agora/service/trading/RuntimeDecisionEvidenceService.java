@@ -16,9 +16,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -27,6 +31,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class RuntimeDecisionEvidenceService {
+
+    static final int EXECUTION_MODE_MAX_LENGTH = 32;
 
     private final RuntimeDecisionEvidenceRepository repository;
     private final BtDecisionAuditRepository decisionAuditRepository;
@@ -734,12 +740,42 @@ public class RuntimeDecisionEvidenceService {
     private String resolveExecutionMode(JsonNode context) {
         String explicit = firstText(context, "executionMode", "execution_mode");
         if (explicit != null) {
-            return explicit;
+            return canonicalExecutionMode(explicit);
         }
         if (firstBoolean(context, "notify_only") || firstBoolean(context, "dry_run")) {
             return "SHADOW";
         }
         return "NOT_EVALUATED";
+    }
+
+    String canonicalExecutionMode(String rawMode) {
+        String normalized = rawMode == null ? "" : rawMode.trim().toUpperCase(Locale.ROOT)
+                .replaceAll("[^A-Z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        if (normalized.isBlank()) {
+            return "NOT_EVALUATED";
+        }
+        String canonical = switch (normalized) {
+            case "LOCAL_TRADINGVIEW_PARITY_EVALUATION" -> "LOCAL_TV_PARITY_EVAL";
+            case "LOCAL_TRADINGVIEW_PARITY_EXECUTION" -> "LOCAL_TV_PARITY_EXEC";
+            default -> normalized;
+        };
+        if (canonical.length() <= EXECUTION_MODE_MAX_LENGTH) {
+            return canonical;
+        }
+        String hash = stableExecutionModeHash(canonical);
+        int prefixLength = EXECUTION_MODE_MAX_LENGTH - hash.length() - 1;
+        return canonical.substring(0, prefixLength) + "_" + hash;
+    }
+
+    private String stableExecutionModeHash(String canonical) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(canonical.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest, 0, 4).toUpperCase(Locale.ROOT);
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
+        }
     }
 
     private Boolean resolveOrderSent(BtDecisionAudit audit, JsonNode context) {

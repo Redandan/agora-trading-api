@@ -229,12 +229,28 @@ class RuntimeDecisionEvidenceServiceTest {
         assertThat(written.get().getSignalSource()).isEqualTo("LOCAL_TRADINGVIEW");
         assertThat(written.get().getSelectedAction()).isEqualTo("WAIT");
         assertThat(written.get().getDecision()).isEqualTo("LOCAL_TRADINGVIEW_NO_BUY");
-        assertThat(written.get().getExecutionMode()).isEqualTo("LOCAL_TRADINGVIEW_PARITY_EVALUATION");
+        assertThat(written.get().getExecutionMode()).isEqualTo("LOCAL_TV_PARITY_EVAL");
         assertThat(written.get().getOrderSent()).isFalse();
         assertThat(written.get().getIntentCreated()).isFalse();
         assertThat(written.get().getSuppressionReason()).isEqualTo("LOCAL_TRADINGVIEW_NO_BUY");
         assertThat(written.get().getFeaturesSnapshotJson())
                 .contains("\"noCurrentBuyCandidateReason\":\"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE\"");
+    }
+
+    @Test
+    void executionModeIsCanonicalAndBoundedBeforePersistence() {
+        assertThat(service.canonicalExecutionMode("LOCAL_TRADINGVIEW_PARITY_EVALUATION"))
+                .isEqualTo("LOCAL_TV_PARITY_EVAL");
+        assertThat(service.canonicalExecutionMode(" local-tradingview parity execution "))
+                .isEqualTo("LOCAL_TV_PARITY_EXEC");
+
+        String first = service.canonicalExecutionMode("THIS_IS_AN_UNRECOGNIZED_EXECUTION_MODE_THAT_IS_TOO_LONG");
+        String second = service.canonicalExecutionMode("THIS_IS_AN_UNRECOGNIZED_EXECUTION_MODE_THAT_IS_TOO_LONG");
+
+        assertThat(first)
+                .hasSize(RuntimeDecisionEvidenceService.EXECUTION_MODE_MAX_LENGTH)
+                .isEqualTo(second)
+                .matches("[A-Z0-9_]+");
     }
 
     private RuntimeDecisionEvidence evidence(String symbol) {

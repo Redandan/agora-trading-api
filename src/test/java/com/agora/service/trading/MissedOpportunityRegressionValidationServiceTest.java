@@ -7,9 +7,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +25,7 @@ class MissedOpportunityRegressionValidationServiceTest {
     private final TinyLiveMinimumOrderPreviewService tinyLivePreviewService = mock(TinyLiveMinimumOrderPreviewService.class);
     private final ExplorationPolicyService explorationPolicyService = mock(ExplorationPolicyService.class);
     private final AutonomousExplorationLoopService loopService = mock(AutonomousExplorationLoopService.class);
+    private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final MissedOpportunityRegressionValidationService service =
             new MissedOpportunityRegressionValidationService(
@@ -30,7 +38,7 @@ class MissedOpportunityRegressionValidationServiceTest {
                     mock(ScoreBuyConfirmedDeployAutoExecutionService.class),
                     mock(CapitalAllocationPolicyPreviewService.class),
                     mock(StagedAddPolicyService.class),
-                    mock(JdbcTemplate.class),
+                    jdbc,
                     objectMapper);
 
     @Test
@@ -85,6 +93,135 @@ class MissedOpportunityRegressionValidationServiceTest {
         assertThat(root.path("warnings").toString())
                 .contains("ocoPreflightPendingUntilBuyCandidate=NOT_READY_MISSING_ENTRY_TP_SL");
         assertThat(root.path("readinessClassification").asText()).isEqualTo("WATCH_SIGNAL_NEAR_BUY_THRESHOLD");
+    }
+
+    @Test
+    void highForwardScanDeduplicatesAndExcludesHoldRepresentations() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77375L, eventTime);
+        runtime.put("selected_action", "EVALUATED_ONLY");
+        runtime.put("decision", "HOLD");
+        runtime.put("signal_source", "LOCAL_TRADINGVIEW");
+
+        Map<String, Object> audit = row("DECISION_AUDIT", 77375L, eventTime);
+        audit.put("selected_action", "HOLD");
+        audit.put("decision", "HOLD");
+        audit.put("signal_source", "SIGNAL_EVAL");
+        audit.put("policy_inputs_json", "{\"intentCreated\":false}");
+        stubNoBuyQueries(List.of(runtime), List.of(audit), List.of());
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.rawObservationCount()).isEqualTo(2);
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.duplicateRepresentationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isEqualTo(1);
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
+    void highForwardScanExcludesDonchianShadowStateAdvance() {
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 90001L, matureEventTime());
+        runtime.put("selected_action", "DONCHIAN_SHADOW_STATE_ADVANCE");
+        runtime.put("signal_source", "DONCHIAN_BREAKOUT");
+        stubNoBuyQueries(List.of(runtime), List.of(), List.of());
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.rawObservationCount()).isEqualTo(1);
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isEqualTo(1);
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
+    void highForwardScanExcludesInformationalPass() {
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 90002L, matureEventTime());
+        runtime.put("selected_action", "SMALL_DRY_RUN");
+        runtime.put("decision", "PASS");
+        runtime.put("final_outcome", "INFO");
+        runtime.put("blocker_reason", "AttentionRule: ExpectedValueGatePass / INFO");
+        runtime.put("suppression_reason", "NONE");
+        stubNoBuyQueries(List.of(runtime), List.of(), List.of());
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.rawObservationCount()).isEqualTo(1);
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isEqualTo(1);
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
+    void highForwardScanExcludesUnblockedIntent() {
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 90003L, matureEventTime());
+        runtime.put("selected_action", "ALLOW_ORDER_AFTER_EVIDENCE");
+        runtime.put("decision", "BUY");
+        runtime.put("intent_created", true);
+        runtime.put("final_outcome", "PASS");
+        runtime.put("terminal_blocker", "NONE");
+        runtime.put("suppression_reason", "NONE");
+        stubNoBuyQueries(List.of(runtime), List.of(), List.of());
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.excludedNonBuyObservationCount()).isEqualTo(1);
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
+    void highForwardScanCountsBlockedIntentOnceAcrossRuntimeAndAudit() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 91001L, eventTime);
+        runtime.put("selected_action", "ALLOW_ORDER_AFTER_EVIDENCE");
+        runtime.put("decision", "BUY");
+        runtime.put("intent_created", true);
+        runtime.put("terminal_blocker", "AutonomousExecutionIntent: evidence required");
+        runtime.put("suppression_reason", "NONE");
+
+        Map<String, Object> audit = row("DECISION_AUDIT", 91001L, eventTime);
+        audit.put("selected_action", "BLOCK");
+        audit.put("signal_source", "ENTRY_SKIP");
+        audit.put("terminal_blocker", "EntryDedup");
+        audit.put("policy_inputs_json", candidatePlanJson(true));
+        stubNoBuyQueries(List.of(runtime), List.of(audit), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.rawObservationCount()).isEqualTo(2);
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.duplicateRepresentationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isZero();
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isEqualTo(1);
+        assertThat(scan.count()).isEqualTo(1);
+        assertThat(scan.examples().path(0).path("intentCreated").asBoolean()).isTrue();
+    }
+
+    @Test
+    void highForwardScanAcceptsAuditEntrySkipWithCompleteCandidatePlan() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> audit = row("DECISION_AUDIT", 92001L, eventTime);
+        audit.put("selected_action", "BLOCK");
+        audit.put("signal_source", "ENTRY_SKIP");
+        audit.put("terminal_blocker", "TradePlanQualityGate");
+        audit.put("policy_inputs_json", candidatePlanJson(true));
+        stubNoBuyQueries(List.of(), List.of(audit), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isEqualTo(1);
+        assertThat(scan.count()).isEqualTo(1);
+        assertThat(scan.examples().path(0).path("candidatePlanPresent").asBoolean()).isTrue();
     }
 
     private TinyLiveMinimumOrderPreviewService.PreviewResult preview(List<String> denialReasons, List<String> warnings) {
@@ -143,5 +280,56 @@ class MissedOpportunityRegressionValidationServiceTest {
                 null,
                 null,
                 Instant.parse("2026-06-20T00:05:00Z"));
+    }
+
+    private LocalDateTime matureEventTime() {
+        return LocalDateTime.now(ZoneOffset.UTC).minusHours(2).truncatedTo(ChronoUnit.MINUTES);
+    }
+
+    private Map<String, Object> row(String source, long decisionId, LocalDateTime eventTime) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("row_source", source);
+        row.put("decision_id", decisionId);
+        row.put("evidence_time", eventTime);
+        row.put("strategy_id", 508L);
+        row.put("interval_code", "4h");
+        row.put("side", "LONG");
+        row.put("selected_action", "HOLD");
+        row.put("final_outcome", "PENDING");
+        row.put("order_sent", false);
+        return row;
+    }
+
+    private String candidatePlanJson(boolean intentCreated) {
+        return "{\"intentCreated\":" + intentCreated
+                + ",\"candidateEntry\":100,\"candidateTp\":106,\"candidateSl\":88}";
+    }
+
+    private List<Map<String, Object>> positiveKlines(LocalDateTime eventTime) {
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("open_time", eventTime);
+        entry.put("close_price", new BigDecimal("100"));
+        Map<String, Object> horizon = new LinkedHashMap<>();
+        horizon.put("open_time", eventTime.plusHours(1));
+        horizon.put("close_price", new BigDecimal("102"));
+        return List.of(entry, horizon);
+    }
+
+    private void stubNoBuyQueries(List<Map<String, Object>> runtimeRows,
+                                  List<Map<String, Object>> auditRows,
+                                  List<Map<String, Object>> klineRows) {
+        when(jdbc.queryForList(anyString(), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) {
+                return runtimeRows;
+            }
+            if (sql.contains("FROM bt_decision_audit")) {
+                return auditRows;
+            }
+            if (sql.contains("FROM md_kline")) {
+                return klineRows;
+            }
+            return List.of();
+        });
     }
 }

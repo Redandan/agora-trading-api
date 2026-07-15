@@ -310,6 +310,45 @@ class MissedOpportunityRegressionValidationServiceTest {
     }
 
     @Test
+    void highForwardScanExposesIndependentQueryFailureTruthTable() {
+        when(jdbc.queryForList(anyString(), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) {
+                throw new IllegalStateException("runtime unavailable");
+            }
+            if (sql.contains("FROM bt_decision_audit")) return List.of();
+            return List.of();
+        });
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.runtimeQuerySucceeded()).isFalse();
+        assertThat(scan.auditQuerySucceeded()).isTrue();
+        assertThat(scan.queryErrors()).containsExactly("RUNTIME_QUERY_FAILED:IllegalStateException");
+        assertThat(scan.queryTruncated()).isFalse();
+        assertThat(scan.requestedWindowComplete()).isFalse();
+    }
+
+    @Test
+    void highForwardScanExposesAuditQueryFailureIndependently() {
+        when(jdbc.queryForList(anyString(), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) return List.of();
+            if (sql.contains("FROM bt_decision_audit")) throw new IllegalStateException("audit unavailable");
+            return List.of();
+        });
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.runtimeQuerySucceeded()).isTrue();
+        assertThat(scan.auditQuerySucceeded()).isFalse();
+        assertThat(scan.queryErrors()).containsExactly("AUDIT_QUERY_FAILED:IllegalStateException");
+        assertThat(scan.requestedWindowComplete()).isFalse();
+    }
+
+    @Test
     void highForwardScanFailsClosedForSameLiveSignalWithDifferentDecisionIds() {
         LocalDateTime eventTime = matureEventTime();
         Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 120001L, eventTime);

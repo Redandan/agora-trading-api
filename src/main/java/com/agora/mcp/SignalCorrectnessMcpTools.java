@@ -913,7 +913,9 @@ public class SignalCorrectnessMcpTools {
             evidenceParams.add(strategyId);
         }
         evidenceParams.add(sourceLimit);
-        List<Map<String, Object>> rows = new ArrayList<>(jdbc.queryForList("""
+        QueryRows runtimeQuery;
+        try {
+            runtimeQuery = QueryRows.success(jdbc.queryForList("""
                 SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(15000) */ 'RUNTIME_EVIDENCE' row_source,
                        e.id row_id, e.id runtime_evidence_id, e.decision_id, e.evidence_time, e.symbol,
                        e.strategy_id, COALESCE(e.side, s.side) side, e.interval_code, s.bar_open_time,
@@ -935,6 +937,10 @@ public class SignalCorrectnessMcpTools {
                 ) e
                 LEFT JOIN bt_live_signal s ON s.id = e.live_signal_id
                 """, evidenceParams.toArray()));
+        } catch (Exception e) {
+            runtimeQuery = QueryRows.failure("RUNTIME_QUERY_FAILED", e);
+        }
+        List<Map<String, Object>> rows = new ArrayList<>(runtimeQuery.rows());
         int runtimeRowsFetched = rows.size();
 
         List<Object> auditParams = new ArrayList<>();
@@ -946,7 +952,9 @@ public class SignalCorrectnessMcpTools {
             auditParams.add(strategyId);
         }
         auditParams.add(sourceLimit);
-        List<Map<String, Object>> auditRows = jdbc.queryForList("""
+        QueryRows auditQuery;
+        try {
+            auditQuery = QueryRows.success(jdbc.queryForList("""
                 SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(15000) */ 'DECISION_AUDIT' row_source,
                        a.id row_id, NULL runtime_evidence_id, a.id decision_id, a.event_time evidence_time, a.symbol,
                        a.strategy_id,
@@ -973,7 +981,11 @@ public class SignalCorrectnessMcpTools {
                     LIMIT ?
                 ) a
                 LEFT JOIN bt_live_signal s ON s.id = a.live_signal_id
-                """, auditParams.toArray());
+                """, auditParams.toArray()));
+        } catch (Exception e) {
+            auditQuery = QueryRows.failure("AUDIT_QUERY_FAILED", e);
+        }
+        List<Map<String, Object>> auditRows = auditQuery.rows();
         int auditRowsFetched = auditRows.size();
         rows.addAll(auditRows);
         EvidenceEventCanonicalizer.MergeResult merge = EvidenceEventCanonicalizer.merge(rows);
@@ -993,7 +1005,9 @@ public class SignalCorrectnessMcpTools {
             return Long.compare(asLong(right.get("decision_id")), asLong(left.get("decision_id")));
         });
         List<Map<String, Object>> limited = rows.size() <= limit ? rows : new ArrayList<>(rows.subList(0, limit));
-        return new CanonicalLabelRows(List.copyOf(limited), merge, runtimeRowsFetched, auditRowsFetched, sourceLimit);
+        return new CanonicalLabelRows(List.copyOf(limited), merge, runtimeRowsFetched, auditRowsFetched, sourceLimit,
+                runtimeQuery.succeeded(), auditQuery.succeeded(),
+                queryErrors(runtimeQuery, auditQuery));
     }
 
     private LocalDateTime latestKlineTime(String symbol) {
@@ -1828,24 +1842,49 @@ public class SignalCorrectnessMcpTools {
         return values == null || values.isEmpty() ? "N/A" : String.join(", ", values);
     }
 
+    private static List<String> queryErrors(QueryRows... queries) {
+        return java.util.Arrays.stream(queries).map(QueryRows::error)
+                .filter(Objects::nonNull).toList();
+    }
+
+    private record QueryRows(List<Map<String, Object>> rows, boolean succeeded, String error) {
+        static QueryRows success(List<Map<String, Object>> rows) {
+            return new QueryRows(rows == null ? List.of() : List.copyOf(rows), true, null);
+        }
+
+        static QueryRows failure(String code, Exception error) {
+            String detail = error == null || error.getClass().getSimpleName().isBlank()
+                    ? code : code + ":" + error.getClass().getSimpleName();
+            return new QueryRows(List.of(), false, detail);
+        }
+    }
+
     private record CanonicalLabelRows(List<Map<String, Object>> rows,
                                       EvidenceEventCanonicalizer.MergeResult merge,
                                       int runtimeRowsFetched,
                                       int auditRowsFetched,
-                                      int sourceLimit) {
+                                      int sourceLimit,
+                                      boolean runtimeQuerySucceeded,
+                                      boolean auditQuerySucceeded,
+                                      List<String> queryErrors) {
         String diagnostics() {
             boolean queryTruncated = runtimeRowsFetched >= sourceLimit || auditRowsFetched >= sourceLimit;
             return "runtimeRowsFetched=" + runtimeRowsFetched + "\n"
                     + "auditRowsFetched=" + auditRowsFetched + "\n"
                     + "sourceLimit=" + sourceLimit + "\n"
+                    + "runtimeQuerySucceeded=" + runtimeQuerySucceeded + "\n"
+                    + "auditQuerySucceeded=" + auditQuerySucceeded + "\n"
+                    + "queryErrors=" + queryErrors + "\n"
                     + "queryTruncated=" + queryTruncated + "\n"
-                    + "requestedWindowComplete=" + !queryTruncated + "\n"
+                    + "requestedWindowComplete="
+                    + (runtimeQuerySucceeded && auditQuerySucceeded && !queryTruncated) + "\n"
                     + "fetchedRawObservationCount=" + merge.rawObservationCount() + "\n"
                     + "rawObservationCount=" + merge.rawObservationCount() + "\n"
                     + "uniqueMergedEventCount=" + merge.uniqueMergedEventCount() + "\n"
                     + "returnedEventCount=" + rows.size() + "\n"
                     + "duplicateRepresentationCount=" + merge.duplicateRepresentationCount() + "\n"
                     + "identityConflictCount=" + merge.identityConflictCount() + "\n"
+                    + "fieldConflictCount=" + merge.fieldConflictCount() + "\n"
                     + "semanticConflictCount=" + merge.semanticConflictCount() + "\n"
                     + "duplicateSuspectCount=" + merge.duplicateSuspectCount() + "\n"
                     + "fetchedRawCountConserved=" + merge.conservesRawCount() + "\n"

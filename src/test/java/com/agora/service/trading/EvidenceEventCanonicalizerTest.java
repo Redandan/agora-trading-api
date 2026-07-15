@@ -236,6 +236,105 @@ class EvidenceEventCanonicalizerTest {
                 .isEqualTo(first.rows().get(0).get("source_ids"));
     }
 
+    @Test
+    void runtimeAuthorityAndFullCanonicalRowSurviveRemergeAndAssociativeGrouping() {
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 1001L, "4h", "LONG", "2026-07-15T00:00:00");
+        runtime.put("execution_mode", "LIVE_MICRO");
+        runtime.put("execution_status", "EXECUTED_OCO_ATTACHED");
+        runtime.put("final_outcome", "EXECUTED_OCO_ATTACHED");
+        Map<String, Object> audit = row("DECISION_AUDIT", 1001L, "4h", "LONG", "2026-07-15T00:00:00");
+        audit.put("decision", "BUY");
+        Map<String, Object> supplement = row("RUNTIME_EVIDENCE", 1001L, "4h", "LONG", "2026-07-15T00:00:00");
+        supplement.put("terminal_blocker", "NONE");
+
+        EvidenceEventCanonicalizer.MergeResult direct = EvidenceEventCanonicalizer.merge(List.of(runtime, audit, supplement));
+        Map<String, Object> canonical = direct.rows().get(0);
+        assertThat(canonical).containsEntry("execution_mode", "LIVE_MICRO")
+                .containsEntry("execution_status", "EXECUTED_OCO_ATTACHED");
+        assertThat(EvidenceEventCanonicalizer.merge(direct.rows()).rows()).isEqualTo(direct.rows());
+
+        for (List<Map<String, Object>> grouping : List.of(
+                concat(EvidenceEventCanonicalizer.merge(List.of(runtime, audit)).rows(), supplement),
+                concat(runtime, EvidenceEventCanonicalizer.merge(List.of(audit, supplement)).rows()),
+                concat(EvidenceEventCanonicalizer.merge(List.of(runtime, supplement)).rows(), audit))) {
+            assertThat(EvidenceEventCanonicalizer.merge(grouping).rows()).isEqualTo(direct.rows());
+        }
+    }
+
+    @Test
+    void suppressedLegacyAndUnknownOutcomesFailClosed() {
+        Map<String, Object> pass = row("RUNTIME_EVIDENCE", 1101L, "4h", "LONG", "2026-07-15T00:00:00");
+        pass.put("final_outcome", "PASS");
+        for (String blocked : List.of("SUPPRESS", "SUPPRESSED", "DENIED", "CANCELLED", "FILTERED")) {
+            Map<String, Object> legacy = row("DECISION_AUDIT", 1101L, "4h", "LONG", "2026-07-15T00:00:00");
+            legacy.put("final_outcome", blocked);
+            Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(pass, legacy)).rows().get(0);
+            assertThat(merged).containsEntry("semantic_conflict", true)
+                    .containsEntry("canonical_merge_eligible", false);
+        }
+        Map<String, Object> unknown = row("RUNTIME_EVIDENCE", 1102L, "4h", "LONG", "2026-07-15T00:00:00");
+        unknown.put("final_outcome", "MYSTERY_LEGACY_VALUE");
+        Map<String, Object> merged = EvidenceEventCanonicalizer.merge(List.of(unknown)).rows().get(0);
+        assertThat(merged.get("semantic_conflict_reasons").toString()).contains("UNKNOWN_OUTCOME_VALUE");
+        assertThat(merged).containsEntry("canonical_merge_eligible", false);
+    }
+
+    @Test
+    void dispositionTokensRespectSellExitAndBuyDirection() {
+        Map<String, Object> blockedSell = row("RUNTIME_EVIDENCE", 1201L, "4h", "SHORT", "2026-07-15T00:00:00");
+        blockedSell.put("selected_action", "BLOCK_SELL");
+        blockedSell.put("decision", "SELL");
+        blockedSell.put("final_outcome", "BLOCKED");
+        Map<String, Object> skippedExit = row("RUNTIME_EVIDENCE", 1202L, "4h", "SHORT", "2026-07-15T00:00:00");
+        skippedExit.put("selected_action", "SKIP_EXIT");
+        skippedExit.put("decision", "EXIT");
+        skippedExit.put("final_outcome", "SKIPPED");
+        Map<String, Object> blockedBuy = row("RUNTIME_EVIDENCE", 1203L, "4h", "LONG", "2026-07-15T00:00:00");
+        blockedBuy.put("selected_action", "BLOCK_BUY");
+        blockedBuy.put("decision", "BUY");
+        blockedBuy.put("final_outcome", "BLOCKED");
+
+        assertThat(EvidenceEventCanonicalizer.merge(List.of(blockedSell)).rows().get(0))
+                .containsEntry("event_family", "SELL_EXIT").containsEntry("semantic_conflict", false);
+        assertThat(EvidenceEventCanonicalizer.merge(List.of(skippedExit)).rows().get(0))
+                .containsEntry("event_family", "SELL_EXIT").containsEntry("semantic_conflict", false);
+        assertThat(EvidenceEventCanonicalizer.merge(List.of(blockedBuy)).rows().get(0))
+                .containsEntry("event_family", "BUY_ENTRY_BLOCK").containsEntry("semantic_conflict", false);
+    }
+
+    @Test
+    void machineConflictReasonsAndCountsSurviveRemerge() {
+        Map<String, Object> left = row("RUNTIME_EVIDENCE", 1301L, "4h", "LONG", "2026-07-15T00:00:00");
+        left.put("live_signal_id", 77L);
+        left.put("candidate_entry", "100");
+        Map<String, Object> right = row("DECISION_AUDIT", 1302L, "4h", "LONG", "2026-07-15T00:00:00");
+        right.put("live_signal_id", 77L);
+        right.put("candidate_entry", "101");
+        EvidenceEventCanonicalizer.MergeResult first = EvidenceEventCanonicalizer.merge(List.of(left, right));
+        EvidenceEventCanonicalizer.MergeResult second = EvidenceEventCanonicalizer.merge(first.rows());
+        assertThat(first.rows().get(0).get("identity_conflict_reasons").toString())
+                .contains("MULTIPLE_DECISION_IDS");
+        assertThat(first.rows().get(0).get("field_conflict_reasons").toString())
+                .contains("PLAN_ENTRY_MISMATCH");
+        assertThat(first.identityConflictCount()).isEqualTo(1);
+        assertThat(first.fieldConflictCount()).isEqualTo(1);
+        assertThat(second.rows()).isEqualTo(first.rows());
+        assertThat(second.fieldConflictCount()).isEqualTo(first.fieldConflictCount());
+    }
+
+    private List<Map<String, Object>> concat(List<Map<String, Object>> rows, Map<String, Object> row) {
+        List<Map<String, Object>> result = new ArrayList<>(rows);
+        result.add(row);
+        return result;
+    }
+
+    private List<Map<String, Object>> concat(Map<String, Object> row, List<Map<String, Object>> rows) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        result.add(row);
+        result.addAll(rows);
+        return result;
+    }
+
     private Map<String, Object> fallbackRow(String interval, String side, String bar, String signalSource) {
         Map<String, Object> row = row("RUNTIME_EVIDENCE", 0L, interval, side, "2026-07-15T00:00:00");
         row.put("decision_id", null);

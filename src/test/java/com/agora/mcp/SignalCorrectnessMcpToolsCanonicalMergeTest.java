@@ -128,6 +128,53 @@ class SignalCorrectnessMcpToolsCanonicalMergeTest {
     }
 
     @Test
+    void diagnosticsExposeIndependentQueryFailureTruthTable() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
+                .truncatedTo(ChronoUnit.MINUTES);
+        when(jdbc.queryForList(any(String.class), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) throw new IllegalStateException("runtime unavailable");
+            if (sql.contains("FROM bt_decision_audit")) return List.of();
+            if (sql.contains("FROM md_kline")) return positiveBars(eventTime);
+            return List.of();
+        });
+        when(jdbc.queryForObject(any(String.class), eq(LocalDateTime.class), any(Object[].class)))
+                .thenReturn(eventTime.plusHours(25));
+
+        String truth = tools.getSignalTruthTable("FAILUSDT", 24, 508L, 50, "1h", true);
+
+        assertThat(truth).contains(
+                "runtimeQuerySucceeded=false",
+                "auditQuerySucceeded=true",
+                "queryErrors=[RUNTIME_QUERY_FAILED:IllegalStateException]",
+                "queryTruncated=false",
+                "requestedWindowComplete=false");
+    }
+
+    @Test
+    void diagnosticsExposeAuditQueryFailureIndependently() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
+                .truncatedTo(ChronoUnit.MINUTES);
+        when(jdbc.queryForList(any(String.class), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) return List.of();
+            if (sql.contains("FROM bt_decision_audit")) throw new IllegalStateException("audit unavailable");
+            if (sql.contains("FROM md_kline")) return positiveBars(eventTime);
+            return List.of();
+        });
+        when(jdbc.queryForObject(any(String.class), eq(LocalDateTime.class), any(Object[].class)))
+                .thenReturn(eventTime.plusHours(25));
+
+        String truth = tools.getSignalTruthTable("FAILUSDT", 24, 508L, 50, "1h", true);
+
+        assertThat(truth).contains(
+                "runtimeQuerySucceeded=true",
+                "auditQuerySucceeded=false",
+                "queryErrors=[AUDIT_QUERY_FAILED:IllegalStateException]",
+                "requestedWindowComplete=false");
+    }
+
+    @Test
     void sameLiveSignalWithDifferentDecisionIdsIsOneNonActionableConflictEvent() {
         LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusHours(2)
                 .truncatedTo(ChronoUnit.MINUTES);

@@ -39,7 +39,7 @@ public final class EvidenceEventCanonicalizer {
                 ? List.of()
                 : inputRows.stream().filter(Objects::nonNull).toList();
         if (rows.isEmpty()) {
-            return new MergeResult(List.of(), 0, 0, 0, 0, 0, 0);
+            return new MergeResult(List.of(), 0, 0, 0, 0, 0, 0, 0);
         }
 
         int rawRepresentationCount = rows.stream().mapToInt(EvidenceEventCanonicalizer::representationCount).sum();
@@ -61,11 +61,13 @@ public final class EvidenceEventCanonicalizer {
 
         List<Map<String, Object>> merged = new ArrayList<>();
         int identityConflicts = 0;
+        int fieldConflicts = 0;
         int semanticConflicts = 0;
         int duplicateSuspects = 0;
         for (List<Map<String, Object>> group : groups.values()) {
             Map<String, Object> canonical = mergeGroup(group);
             if (bool(canonical.get("identity_conflict"))) identityConflicts++;
+            if (bool(canonical.get("field_union_conflict"))) fieldConflicts++;
             if (bool(canonical.get("semantic_conflict"))) semanticConflicts++;
             if (bool(canonical.get("duplicate_suspect"))) duplicateSuspects++;
             merged.add(canonical);
@@ -75,7 +77,8 @@ public final class EvidenceEventCanonicalizer {
                         Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(row -> text(row.get("canonical_event_identity"))));
         return new MergeResult(List.copyOf(merged), rawRepresentationCount, merged.size(),
-                rawRepresentationCount - merged.size(), identityConflicts, semanticConflicts, duplicateSuspects);
+                rawRepresentationCount - merged.size(), identityConflicts, fieldConflicts,
+                semanticConflicts, duplicateSuspects);
     }
 
     private static Map<String, Object> mergeGroup(List<Map<String, Object>> group) {
@@ -101,13 +104,21 @@ public final class EvidenceEventCanonicalizer {
                 .flatMap(value -> value.composites().stream()).collect(Collectors.toCollection(TreeSet::new));
         String canonicalIdentity = canonicalIdentity(decisionIds, liveSignalIds, composites, ordered.get(0));
         boolean completeIdentity = canonicalIdentity != null;
-        boolean identityConflict = group.stream().anyMatch(row -> bool(row.get("identity_conflict")))
-                || decisionIds.size() > 1 || liveSignalIds.size() > 1
-                || symbols.size() > 1 || strategies.size() > 1
-                || intervals.size() > 1 || sides.size() > 1 || bars.size() > 1;
+        Set<String> identityConflictReasons = group.stream()
+                .flatMap(row -> identifiers(row, "identity_conflict_reasons").stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+        addMultiplicityReason(identityConflictReasons, decisionIds, "MULTIPLE_DECISION_IDS");
+        addMultiplicityReason(identityConflictReasons, liveSignalIds, "MULTIPLE_LIVE_SIGNAL_IDS");
+        addMultiplicityReason(identityConflictReasons, symbols, "SYMBOL_MISMATCH");
+        addMultiplicityReason(identityConflictReasons, strategies, "STRATEGY_MISMATCH");
+        addMultiplicityReason(identityConflictReasons, intervals, "INTERVAL_MISMATCH");
+        addMultiplicityReason(identityConflictReasons, sides, "SIDE_MISMATCH");
+        addMultiplicityReason(identityConflictReasons, bars, "BAR_OPEN_TIME_MISMATCH");
+        boolean identityConflict = !identityConflictReasons.isEmpty()
+                || group.stream().anyMatch(row -> bool(row.get("identity_conflict")));
 
         PlanUnion plan = planUnion(group);
-        boolean fieldConflict = plan.conflict()
+        boolean fieldConflict = !plan.conflictReasons().isEmpty()
                 || group.stream().anyMatch(row -> bool(row.get("field_union_conflict")));
         SemanticUnion semantics = semanticUnion(group);
         boolean semanticConflict = semantics.conflict()
@@ -120,7 +131,9 @@ public final class EvidenceEventCanonicalizer {
                 : "UNRESOLVED:" + text(first(ordered.get(0), "row_source", "row_id", "runtime_evidence_id", "audit_id")));
         result.put("canonical_identity_complete", completeIdentity);
         result.put("identity_conflict", identityConflict);
+        result.put("identity_conflict_reasons", List.copyOf(identityConflictReasons));
         result.put("field_union_conflict", fieldConflict);
+        result.put("field_conflict_reasons", plan.conflictReasons());
         result.put("semantic_conflict", semanticConflict);
         result.put("semantic_conflict_reasons", semantics.conflictReasons());
         result.put("duplicate_suspect", duplicateSuspect);
@@ -138,10 +151,19 @@ public final class EvidenceEventCanonicalizer {
         result.put("selected_actions", semantics.selectedActions());
         result.put("decisions", semantics.decisions());
         result.put("final_outcomes", semantics.finalOutcomes());
+        List<String> runtimeExecutionModes = runtimeValues(group, "runtime_execution_modes", "execution_mode");
+        List<String> runtimeExecutionStatuses = runtimeValues(group, "runtime_execution_statuses", "execution_status");
+        List<String> runtimeFinalOutcomes = runtimeValues(group, "runtime_final_outcomes", "final_outcome");
+        result.put("runtime_execution_modes", runtimeExecutionModes);
+        result.put("runtime_execution_statuses", runtimeExecutionStatuses);
+        result.put("runtime_final_outcomes", runtimeFinalOutcomes);
 
         result.put("order_sent", group.stream().anyMatch(row -> bool(row.get("order_sent"))));
         result.put("intent_created", group.stream().anyMatch(EvidenceEventCanonicalizer::explicitIntent));
         result.put("oco_plan_created", group.stream().anyMatch(row -> bool(row.get("oco_plan_created"))));
+        result.remove("candidate_entry");
+        result.remove("candidate_tp");
+        result.remove("candidate_sl");
         putIfPresent(result, "candidate_entry", plan.entry());
         putIfPresent(result, "candidate_tp", plan.tp());
         putIfPresent(result, "candidate_sl", plan.sl());
@@ -153,9 +175,10 @@ public final class EvidenceEventCanonicalizer {
         result.put("decision", semantics.actionConflict()
                 ? "CONFLICT" : strongest(group, "decision"));
         result.put("final_outcome", semantics.outcomeConflict()
-                ? "CONFLICT" : authoritativeRuntimeOutcome(group));
+                ? "CONFLICT" : authoritativeRuntimeOutcome(group, runtimeFinalOutcomes));
         result.put("signal_source", preferredAuditValue(group, "signal_source"));
-        result.put("execution_mode", preferredRuntimeValue(group, "execution_mode"));
+        putIfPresent(result, "execution_mode", strongestText(runtimeExecutionModes));
+        putIfPresent(result, "execution_status", strongestText(runtimeExecutionStatuses));
         result.put("policy_mode", strongest(group, "policy_mode"));
         mergeMeaningful(result, group, "terminal_blocker");
         mergeMeaningful(result, group, "blocker_reason");
@@ -251,6 +274,7 @@ public final class EvidenceEventCanonicalizer {
             reasons.add("STATE_ADVANCE_VS_ACTION");
         }
         if (outcomeConflict) reasons.add("INCOMPATIBLE_OUTCOME");
+        if (outcomeClasses.contains(OutcomeClass.UNKNOWN)) reasons.add("UNKNOWN_OUTCOME_VALUE");
         return new SemanticUnion(List.copyOf(families), List.copyOf(selectedActions), List.copyOf(decisions),
                 List.copyOf(finalOutcomes), actionConflict, outcomeConflict, List.copyOf(reasons));
     }
@@ -264,7 +288,7 @@ public final class EvidenceEventCanonicalizer {
 
         boolean state = containsAny(selected, "STATE_ADVANCE", "DONCHIAN_SHADOW_STATE_ADVANCE")
                 || "DONCHIAN_STATE_ADVANCE".equals(explicitFamily);
-        boolean buy = containsAny(selected, "BUY", "ENTRY", "BLOCK", "REJECT", "SKIP")
+        boolean buy = containsAny(selected, "BUY", "ENTRY")
                 || containsAny(decision, "BUY", "ENTRY")
                 || containsAny(source, "SIGNAL_BUY", "ENTRY_SKIP", "FILTER_BLOCK", "AUTOTRADE_FAIL")
                 || "BUY_ENTRY_BLOCK".equals(explicitFamily)
@@ -290,17 +314,23 @@ public final class EvidenceEventCanonicalizer {
         if (bool(row.get("order_sent"))) classes.add(OutcomeClass.EXECUTED);
         for (String outcome : outcomes) {
             String value = outcome.toUpperCase(Locale.ROOT);
-            if (containsAny(value, "EXECUT", "FILLED", "ORDER_SENT", "AUTOTRADE_OK")) {
-                classes.add(OutcomeClass.EXECUTED);
-            } else if (containsAny(value, "BLOCK", "REJECT", "SKIP", "FAIL")) {
-                classes.add(OutcomeClass.BLOCKED);
-            } else if ("PASS".equals(value) || value.contains("SUCCES")) {
-                classes.add(OutcomeClass.PASSED);
-            } else {
-                classes.add(OutcomeClass.NEUTRAL);
-            }
+            classes.add(classifyOutcome(value));
         }
         return classes;
+    }
+
+    private static OutcomeClass classifyOutcome(String value) {
+        if (containsAny(value, "EXECUT", "FILLED", "ORDER_SENT", "AUTOTRADE_OK")
+                || Set.of("OCO_TP", "OCO_SL", "TIME_EXIT_24H").contains(value)) return OutcomeClass.EXECUTED;
+        if (containsAny(value, "BLOCK", "SUPPRESS", "DENIED", "CANCELLED", "CANCELED", "FILTERED",
+                "REJECT", "SKIP", "ERROR", "FAIL", "CRITICAL", "MISSING")) return OutcomeClass.BLOCKED;
+        if ("PASS".equals(value) || "PASSED".equals(value) || value.startsWith("PASS_")
+                || value.startsWith("SUCCESS")) return OutcomeClass.PASSED;
+        if (value.startsWith("PENDING")
+                || Set.of("INFO", "STARTED", "SHADOW_OBSERVED", "WATCHING").contains(value)) {
+            return OutcomeClass.NEUTRAL;
+        }
+        return OutcomeClass.UNKNOWN;
     }
 
     private static boolean incompatibleActions(Set<ActionClass> classes) {
@@ -311,7 +341,8 @@ public final class EvidenceEventCanonicalizer {
 
     private static boolean incompatibleOutcomes(Set<OutcomeClass> classes) {
         return classes.contains(OutcomeClass.EXECUTED) && classes.contains(OutcomeClass.BLOCKED)
-                || classes.contains(OutcomeClass.PASSED) && classes.contains(OutcomeClass.BLOCKED);
+                || classes.contains(OutcomeClass.PASSED) && classes.contains(OutcomeClass.BLOCKED)
+                || classes.contains(OutcomeClass.UNKNOWN);
     }
 
     private static boolean hasAnyPlanValue(Map<String, Object> row) {
@@ -336,8 +367,12 @@ public final class EvidenceEventCanonicalizer {
         Set<BigDecimal> entries = decimals(group, "candidate_entry", "candidateEntry", "entryPrice", "entry");
         Set<BigDecimal> tps = decimals(group, "candidate_tp", "candidateTp", "tpPrice", "tp", "suggestedTp");
         Set<BigDecimal> sls = decimals(group, "candidate_sl", "candidateSl", "slPrice", "sl", "suggestedSl");
-        return new PlanUnion(single(entries), single(tps), single(sls),
-                entries.size() > 1 || tps.size() > 1 || sls.size() > 1);
+        Set<String> reasons = group.stream().flatMap(row -> identifiers(row, "field_conflict_reasons").stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+        addMultiplicityReason(reasons, entries, "PLAN_ENTRY_MISMATCH");
+        addMultiplicityReason(reasons, tps, "PLAN_TP_MISMATCH");
+        addMultiplicityReason(reasons, sls, "PLAN_SL_MISMATCH");
+        return new PlanUnion(single(entries), single(tps), single(sls), List.copyOf(reasons));
     }
 
     private static Set<BigDecimal> decimals(List<Map<String, Object>> group, String directKey, String... jsonKeys) {
@@ -406,11 +441,9 @@ public final class EvidenceEventCanonicalizer {
         return true;
     }
 
-    private static Object authoritativeRuntimeOutcome(List<Map<String, Object>> group) {
-        Object runtime = group.stream()
-                .filter(row -> "RUNTIME_EVIDENCE".equalsIgnoreCase(text(row.get("row_source"))))
-                .map(row -> row.get("final_outcome"))
-                .filter(Objects::nonNull)
+    private static Object authoritativeRuntimeOutcome(List<Map<String, Object>> group,
+                                                      List<String> runtimeFinalOutcomes) {
+        Object runtime = runtimeFinalOutcomes.stream()
                 .filter(value -> {
                     String normalized = normalized(value);
                     return normalized != null && !Set.of("PENDING", "INFO", "UNKNOWN", "N/A").contains(normalized);
@@ -419,6 +452,36 @@ public final class EvidenceEventCanonicalizer {
                         .thenComparing(EvidenceEventCanonicalizer::text))
                 .orElse(null);
         return runtime != null ? runtime : strongest(group, "final_outcome");
+    }
+
+    private static List<String> runtimeValues(List<Map<String, Object>> group,
+                                              String provenanceField,
+                                              String scalarField) {
+        Set<String> values = group.stream().flatMap(row -> identifiers(row, provenanceField).stream())
+                .collect(Collectors.toCollection(TreeSet::new));
+        group.stream()
+                .filter(row -> "RUNTIME_EVIDENCE".equalsIgnoreCase(text(row.get("row_source"))))
+                .map(row -> row.get(scalarField)).map(EvidenceEventCanonicalizer::identifier)
+                .filter(Objects::nonNull).forEach(values::add);
+        if ("execution_status".equals(scalarField)) {
+            for (Map<String, Object> row : group) {
+                if (!"RUNTIME_EVIDENCE".equalsIgnoreCase(text(row.get("row_source")))) continue;
+                for (String jsonField : JSON_FIELDS) {
+                    JsonNode node = json(row.get(jsonField));
+                    if (node == null) continue;
+                    for (String key : List.of("executionStatus", "execution_status")) {
+                        String value = identifier(node.path(key).asText(null));
+                        if (value != null) values.add(value);
+                    }
+                }
+            }
+        }
+        return List.copyOf(values);
+    }
+
+    private static String strongestText(List<String> values) {
+        return values.stream().max(Comparator.comparingInt(EvidenceEventCanonicalizer::semanticStrength)
+                .thenComparing(EvidenceEventCanonicalizer::text)).orElse(null);
     }
 
     private static Object strongest(List<Map<String, Object>> group, String field) {
@@ -438,10 +501,6 @@ public final class EvidenceEventCanonicalizer {
         if (normalized.contains("PASS")) return 30;
         if (normalized.contains("HOLD") || normalized.contains("INFO") || normalized.contains("PENDING")) return 10;
         return 20;
-    }
-
-    private static Object preferredRuntimeValue(List<Map<String, Object>> group, String field) {
-        return preferredSourceValue(group, "RUNTIME_EVIDENCE", field);
     }
 
     private static Object preferredAuditValue(List<Map<String, Object>> group, String field) {
@@ -607,6 +666,10 @@ public final class EvidenceEventCanonicalizer {
         return smaller.stream().anyMatch(larger::contains);
     }
 
+    private static void addMultiplicityReason(Set<String> reasons, Set<?> values, String reason) {
+        if (values.size() > 1) reasons.add(reason);
+    }
+
     private static String singleText(List<String> values) {
         return values.size() == 1 ? values.get(0) : null;
     }
@@ -631,6 +694,7 @@ public final class EvidenceEventCanonicalizer {
                               int uniqueMergedEventCount,
                               int duplicateRepresentationCount,
                               int identityConflictCount,
+                              int fieldConflictCount,
                               int semanticConflictCount,
                               int duplicateSuspectCount) {
         public boolean conservesRawCount() {
@@ -641,7 +705,7 @@ public final class EvidenceEventCanonicalizer {
     private record Identity(Set<String> decisionIds, Set<String> liveSignalIds, Set<String> composites) {
     }
 
-    private record PlanUnion(BigDecimal entry, BigDecimal tp, BigDecimal sl, boolean conflict) {
+    private record PlanUnion(BigDecimal entry, BigDecimal tp, BigDecimal sl, List<String> conflictReasons) {
     }
 
     private record SemanticUnion(List<String> eventFamilies,
@@ -677,6 +741,7 @@ public final class EvidenceEventCanonicalizer {
         EXECUTED,
         BLOCKED,
         PASSED,
-        NEUTRAL
+        NEUTRAL,
+        UNKNOWN
     }
 }

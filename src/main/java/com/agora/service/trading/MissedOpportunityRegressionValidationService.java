@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,6 +99,11 @@ public class MissedOpportunityRegressionValidationService {
         highForwardDiagnostics.put("duplicateRepresentationCount", highForwardReturnNoBuy.duplicateRepresentationCount());
         highForwardDiagnostics.put("excludedNonBuyObservationCount", highForwardReturnNoBuy.excludedNonBuyObservationCount());
         highForwardDiagnostics.put("eligibleBlockedBuyIntentCount", highForwardReturnNoBuy.eligibleBlockedBuyIntentCount());
+        highForwardDiagnostics.put("otherObservationCount", highForwardReturnNoBuy.otherObservationCount());
+        highForwardDiagnostics.put("identityConflictCount", highForwardReturnNoBuy.identityConflictCount());
+        highForwardDiagnostics.put("duplicateSuspectCount", highForwardReturnNoBuy.duplicateSuspectCount());
+        highForwardDiagnostics.put("rawCountConserved", highForwardReturnNoBuy.rawCountConserved());
+        highForwardDiagnostics.put("classificationCountConserved", highForwardReturnNoBuy.classificationCountConserved());
         root.put("recommendedFix", recommendedFix(rows, genericWouldAllowGroups, highForwardReturnNoBuy.count()));
         ArrayNode taxonomy = root.putArray("noBuyReasonTaxonomy");
         for (String value : List.of(
@@ -636,44 +640,47 @@ public class MissedOpportunityRegressionValidationService {
             LocalDateTime since = now.minusHours(hours);
             LocalDateTime matureUntil = now.minusHours(1);
             if (!matureUntil.isAfter(since)) {
-                return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0);
+                return HighForwardReturnNoBuyScan.empty(examples);
             }
 
             List<Map<String, Object>> candidates = new ArrayList<>();
             candidates.addAll(queryNoBuyRuntimeEvidence(symbol, since, matureUntil));
             candidates.addAll(queryNoBuyDecisionAudit(symbol, since, matureUntil));
-            int rawObservationCount = candidates.size();
             if (candidates.isEmpty()) {
-                return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0);
+                return HighForwardReturnNoBuyScan.empty(examples);
             }
 
+            EvidenceEventCanonicalizer.MergeResult merge = EvidenceEventCanonicalizer.merge(candidates);
+            int rawObservationCount = merge.rawObservationCount();
+            int uniqueObservationCount = merge.uniqueMergedEventCount();
+            int duplicateRepresentationCount = merge.duplicateRepresentationCount();
             List<Map<String, Object>> eligibleCandidates = new ArrayList<>();
-            Set<String> seenDecisionIds = new HashSet<>();
-            Set<String> seenMarketEvents = new HashSet<>();
-            int uniqueObservationCount = 0;
-            int duplicateRepresentationCount = 0;
             int excludedNonBuyObservationCount = 0;
-            for (Map<String, Object> row : candidates) {
+            int otherObservationCount = 0;
+            for (Map<String, Object> row : merge.rows()) {
                 LocalDateTime t = asTime(row.get("evidence_time"));
                 if (t == null || t.isAfter(matureUntil)) {
+                    otherObservationCount++;
                     continue;
                 }
-                if (!registerUniqueNoBuyObservation(row, t, seenDecisionIds, seenMarketEvents)) {
-                    duplicateRepresentationCount++;
+                if (!asBoolean(row.get("canonical_merge_eligible"))) {
+                    otherObservationCount++;
                     continue;
                 }
-                uniqueObservationCount++;
-                if (!isBlockedBuyIntent(row)) {
+                if (isBlockedBuyIntent(row)) {
+                    eligibleCandidates.add(row);
+                } else if (isExcludedNonBuyObservation(row)) {
                     excludedNonBuyObservationCount++;
-                    continue;
+                } else {
+                    otherObservationCount++;
                 }
-                eligibleCandidates.add(row);
             }
             int eligibleBlockedBuyIntentCount = eligibleCandidates.size();
             if (eligibleCandidates.isEmpty()) {
                 return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
                         uniqueObservationCount, duplicateRepresentationCount,
-                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
+                        otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
             }
 
             LocalDateTime minTime = eligibleCandidates.stream()
@@ -689,7 +696,8 @@ public class MissedOpportunityRegressionValidationService {
             if (minTime == null || maxTime == null) {
                 return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
                         uniqueObservationCount, duplicateRepresentationCount,
-                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
+                        otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
             }
 
             NavigableMap<LocalDateTime, BigDecimal> closes = loadOneMinuteCloses(
@@ -697,7 +705,8 @@ public class MissedOpportunityRegressionValidationService {
             if (closes.isEmpty()) {
                 return new HighForwardReturnNoBuyScan(0, examples, rawObservationCount,
                         uniqueObservationCount, duplicateRepresentationCount,
-                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+                        excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
+                        otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
             }
 
             int count = 0;
@@ -728,6 +737,7 @@ public class MissedOpportunityRegressionValidationService {
                     example.put("terminalBlocker", text(row.get("terminal_blocker")));
                     example.put("blockerReason", text(row.get("blocker_reason")));
                     example.put("canonicalMarketEventKey", noBuyCanonicalEventKey(row, t));
+                    example.set("sourceIds", objectMapper.valueToTree(row.get("source_ids")));
                     example.put("intentCreated", hasExplicitIntent(row));
                     example.put("candidatePlanPresent", hasCandidatePlan(row));
                     example.put("entryPrice", money(entry));
@@ -737,11 +747,12 @@ public class MissedOpportunityRegressionValidationService {
             }
             return new HighForwardReturnNoBuyScan(count, examples, rawObservationCount,
                     uniqueObservationCount, duplicateRepresentationCount,
-                    excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount);
+                    excludedNonBuyObservationCount, eligibleBlockedBuyIntentCount,
+                    otherObservationCount, merge.identityConflictCount(), merge.duplicateSuspectCount());
         } catch (Exception e) {
             ObjectNode example = examples.addObject();
             example.put("scanError", truncate(e.getMessage(), 240));
-            return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0);
+            return HighForwardReturnNoBuyScan.empty(examples);
         }
     }
 
@@ -753,11 +764,16 @@ public class MissedOpportunityRegressionValidationService {
                     SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(10000) */
                            'RUNTIME_EVIDENCE' row_source,
                            e.id row_id,
+                           e.id runtime_evidence_id,
+                           NULL audit_id,
                            e.decision_id,
                            e.evidence_time,
+                           e.symbol,
                            e.strategy_id,
                            e.interval_code,
-                           e.side,
+                           COALESCE(e.side, s.side) side,
+                           s.bar_open_time,
+                           e.live_signal_id,
                            e.signal_source,
                            e.selected_action,
                            e.decision,
@@ -775,6 +791,7 @@ public class MissedOpportunityRegressionValidationService {
                            e.features_snapshot_json,
                            e.order_sent
                     FROM bt_runtime_decision_evidence e FORCE INDEX (idx_rt_decision_evidence_symbol_time)
+                    LEFT JOIN bt_live_signal s ON s.id = e.live_signal_id
                     WHERE e.symbol = ?
                       AND e.evidence_time >= ?
                       AND e.evidence_time <= ?
@@ -796,10 +813,15 @@ public class MissedOpportunityRegressionValidationService {
                     SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(10000) */
                            'DECISION_AUDIT' row_source,
                            a.id row_id,
+                           NULL runtime_evidence_id,
+                           a.id audit_id,
                            a.id decision_id,
                            a.event_time evidence_time,
+                           a.symbol,
                            a.strategy_id,
                            a.interval_code,
+                           a.bar_open_time,
+                           a.live_signal_id,
                            COALESCE(s.side, JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side'))) side,
                            a.event_type signal_source,
                            a.outcome selected_action,
@@ -874,39 +896,14 @@ public class MissedOpportunityRegressionValidationService {
         return entry == null ? null : entry.getValue();
     }
 
-    private boolean registerUniqueNoBuyObservation(Map<String, Object> row,
-                                                   LocalDateTime time,
-                                                   Set<String> seenDecisionIds,
-                                                   Set<String> seenMarketEvents) {
-        String decisionId = meaningfulIdentifier(row.get("decision_id"));
-        String marketEvent = noBuyCanonicalEventKey(row, time);
-        if ((decisionId != null && seenDecisionIds.contains(decisionId))
-                || seenMarketEvents.contains(marketEvent)) {
-            return false;
-        }
-        if (decisionId != null) {
-            seenDecisionIds.add(decisionId);
-        }
-        seenMarketEvents.add(marketEvent);
-        return true;
-    }
-
     private String noBuyCanonicalEventKey(Map<String, Object> row, LocalDateTime time) {
-        long minuteBucket = time.toEpochSecond(ZoneOffset.UTC) / 60;
-        return text(row.get("strategy_id")) + "|" + text(row.get("interval_code")) + "|" + minuteBucket;
-    }
-
-    private String meaningfulIdentifier(Object value) {
-        if (value == null) {
-            return null;
-        }
-        String normalized = value.toString().trim();
-        return normalized.isBlank() || "0".equals(normalized) || "N/A".equalsIgnoreCase(normalized)
-                ? null : normalized;
+        String canonical = text(row.get("canonical_event_identity"));
+        return canonical.isBlank() ? "UNRESOLVED@" + time : canonical;
     }
 
     private boolean isBlockedBuyIntent(Map<String, Object> row) {
-        if (row == null || asBoolean(row.get("order_sent"))) {
+        if (row == null || !asBoolean(row.get("canonical_merge_eligible"))
+                || asBoolean(row.get("order_sent"))) {
             return false;
         }
         String signalSource = upper(row.get("signal_source"));
@@ -945,6 +942,10 @@ public class MissedOpportunityRegressionValidationService {
     }
 
     private boolean hasCandidatePlan(Map<String, Object> row) {
+        if (row.get("candidate_entry") != null && row.get("candidate_tp") != null
+                && row.get("candidate_sl") != null) {
+            return true;
+        }
         Object[] jsonSources = {
                 row.get("policy_inputs_json"),
                 row.get("execution_preview_json"),
@@ -953,6 +954,26 @@ public class MissedOpportunityRegressionValidationService {
         return jsonHasValue(jsonSources, "candidateEntry", "entryPrice", "entry")
                 && jsonHasValue(jsonSources, "candidateTp", "tpPrice", "tp", "suggestedTp")
                 && jsonHasValue(jsonSources, "candidateSl", "slPrice", "sl", "suggestedSl");
+    }
+
+    private boolean isExcludedNonBuyObservation(Map<String, Object> row) {
+        if (row == null || asBoolean(row.get("order_sent")) || hasExplicitIntent(row) || hasCandidatePlan(row)) {
+            return false;
+        }
+        String signalSource = upper(row.get("signal_source"));
+        String selectedAction = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        boolean donchianStateAdvance = selectedAction.contains("DONCHIAN_SHADOW_STATE_ADVANCE")
+                || (signalSource.contains("DONCHIAN") && selectedAction.contains("STATE_ADVANCE"));
+        boolean hold = decision.contains("HOLD") || selectedAction.contains("HOLD")
+                || selectedAction.contains("EVALUATED_ONLY");
+        boolean informationalPass = "PASS".equals(decision)
+                || "PASS".equals(upper(row.get("final_outcome")))
+                || "INFO".equals(upper(row.get("final_outcome")));
+        boolean buyOrSell = selectedAction.contains("BUY") || selectedAction.contains("SELL")
+                || decision.contains("BUY") || decision.contains("SELL")
+                || signalSource.contains("SIGNAL_BUY") || signalSource.contains("SIGNAL_SELL");
+        return donchianStateAdvance || hold || informationalPass || !buyOrSell;
     }
 
     private boolean jsonBoolean(Object rawJson, String... keys) {
@@ -1285,6 +1306,21 @@ public class MissedOpportunityRegressionValidationService {
                                       int uniqueObservationCount,
                                       int duplicateRepresentationCount,
                                       int excludedNonBuyObservationCount,
-                                      int eligibleBlockedBuyIntentCount) {
+                                      int eligibleBlockedBuyIntentCount,
+                                      int otherObservationCount,
+                                      int identityConflictCount,
+                                      int duplicateSuspectCount) {
+        static HighForwardReturnNoBuyScan empty(ArrayNode examples) {
+            return new HighForwardReturnNoBuyScan(0, examples, 0, 0, 0, 0, 0, 0, 0, 0);
+        }
+
+        boolean rawCountConserved() {
+            return rawObservationCount == uniqueObservationCount + duplicateRepresentationCount;
+        }
+
+        boolean classificationCountConserved() {
+            return uniqueObservationCount == excludedNonBuyObservationCount
+                    + eligibleBlockedBuyIntentCount + otherObservationCount;
+        }
     }
 }

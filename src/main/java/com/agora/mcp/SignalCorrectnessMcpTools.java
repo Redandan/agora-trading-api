@@ -4,6 +4,7 @@ import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
+import com.agora.service.trading.EvidenceEventCanonicalizer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -126,7 +127,8 @@ public class SignalCorrectnessMcpTools {
         int lim = normalizeLimit(limit, 50, 100);
         LabelHorizon horizon = normalizeLabelHorizon(labelHorizon);
         boolean includeAll = Boolean.TRUE.equals(includeNonActionable);
-        List<Map<String, Object>> rows = loadLabelRows(sym, h, strategyId, lim, includeAll, horizon);
+        CanonicalLabelRows canonical = loadCanonicalLabelRows(sym, h, strategyId, lim, includeAll, horizon);
+        List<Map<String, Object>> rows = canonical.rows();
 
         StringBuilder sb = new StringBuilder();
         sb.append("=== Signal Truth Table v0 ===\n")
@@ -135,7 +137,8 @@ public class SignalCorrectnessMcpTools {
                 .append(" strategyId=").append(strategyId == null ? "ALL" : strategyId)
                 .append(" limit=").append(lim)
                 .append(" labelHorizon=").append(horizon.code)
-                .append(" includeNonActionable=").append(includeAll).append("\n\n");
+                .append(" includeNonActionable=").append(includeAll).append("\n")
+                .append(canonical.diagnostics()).append("\n");
         if (rows.isEmpty()) {
             return sb.append("No signal candidates found in runtime evidence or decision audit.\n").toString();
         }
@@ -167,7 +170,8 @@ public class SignalCorrectnessMcpTools {
                     .append(" attribution=").append(attribution).append("\n")
                     .append("   evidenceRefs=auditId:").append(value(row, "audit_id"))
                     .append(",runtimeEvidenceId:").append(value(row, "runtime_evidence_id"))
-                    .append(",liveSignalId:").append(value(row, "live_signal_id")).append("\n")
+                    .append(",liveSignalId:").append(value(row, "live_signal_id"))
+                    .append(",allSources:").append(value(row, "source_ids")).append("\n")
                     .append("   evSnapshot=").append(shortJson(row.get("ev_result_json"))).append("\n")
                     .append("   tqsSnapshot=").append(shortJson(row.get("tqs_result_json"))).append("\n")
                     .append("   ensembleSnapshot=").append(shortJson(row.get("policy_inputs_json"))).append("\n")
@@ -196,7 +200,8 @@ public class SignalCorrectnessMcpTools {
         int h = normalizeHours(hours == null ? 168 : hours);
         LabelHorizon horizon = normalizeLabelHorizon(labelHorizon);
         boolean includeAll = Boolean.TRUE.equals(includeNonActionable);
-        List<Map<String, Object>> rows = loadLabelRows(sym, h, null, 500, true, horizon);
+        CanonicalLabelRows canonical = loadCanonicalLabelRows(sym, h, null, 500, true, horizon);
+        List<Map<String, Object>> rows = canonical.rows();
         LabelStats stats = labelStats(sym, rows, horizon, includeAll);
         StringBuilder sb = new StringBuilder();
         sb.append("=== Signal Outcome Labeler Status v0 ===\n")
@@ -204,6 +209,7 @@ public class SignalCorrectnessMcpTools {
                 .append("symbol=").append(sym).append(" hours=").append(h)
                 .append(" labelHorizon=").append(horizon.code)
                 .append(" includeNonActionable=").append(includeAll).append("\n")
+                .append(canonical.diagnostics())
                 .append("totalCandidates=").append(stats.totalCandidates).append("\n")
                 .append("actionableCandidates=").append(stats.actionableCandidates).append("\n")
                 .append("nonActionableCandidates=").append(stats.nonActionableCandidates).append("\n")
@@ -239,7 +245,8 @@ public class SignalCorrectnessMcpTools {
         int lim = normalizeLimit(limit, 50, 100);
         LabelHorizon horizon = normalizeLabelHorizon(labelHorizon);
         boolean includeAll = Boolean.TRUE.equals(includeNonActionable);
-        List<Map<String, Object>> rows = loadLabelRows(sym, h, null, lim, includeAll, horizon);
+        CanonicalLabelRows canonical = loadCanonicalLabelRows(sym, h, null, lim, includeAll, horizon);
+        List<Map<String, Object>> rows = canonical.rows();
         int labelable = 0;
         StringBuilder examples = new StringBuilder();
         Map<String, ForwardStats> forwardCache = new LinkedHashMap<>();
@@ -274,6 +281,7 @@ public class SignalCorrectnessMcpTools {
                 .append("symbol=").append(sym).append(" hours=").append(h).append(" limit=").append(lim)
                 .append(" labelHorizon=").append(horizon.code)
                 .append(" includeNonActionable=").append(includeAll).append("\n")
+                .append(canonical.diagnostics())
                 .append("candidateCount=").append(rows.size()).append("\n")
                 .append("labelableNow=").append(labelable).append("\n")
                 .append("stillUnresolved=").append(rows.size() - labelable).append("\n")
@@ -877,6 +885,15 @@ public class SignalCorrectnessMcpTools {
                                                     int limit,
                                                     boolean includeNonActionable,
                                                     LabelHorizon horizon) {
+        return loadCanonicalLabelRows(symbol, hours, strategyId, limit, includeNonActionable, horizon).rows();
+    }
+
+    private CanonicalLabelRows loadCanonicalLabelRows(String symbol,
+                                                       int hours,
+                                                       Long strategyId,
+                                                       int limit,
+                                                       boolean includeNonActionable,
+                                                       LabelHorizon horizon) {
         LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusHours(hours);
         LocalDateTime latestKline = latestKlineTime(symbol);
         LocalDateTime completeCutoff = latestKline == null
@@ -894,8 +911,9 @@ public class SignalCorrectnessMcpTools {
         evidenceParams.add(sourceLimit);
         List<Map<String, Object>> rows = new ArrayList<>(jdbc.queryForList("""
                 SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(15000) */ 'RUNTIME_EVIDENCE' row_source,
-                       e.id runtime_evidence_id, e.decision_id, e.evidence_time, e.strategy_id, e.side,
-                       e.interval_code, e.signal_source, e.selected_action, e.decision, e.score,
+                       e.id row_id, e.id runtime_evidence_id, e.decision_id, e.evidence_time, e.symbol,
+                       e.strategy_id, COALESCE(e.side, s.side) side, e.interval_code, s.bar_open_time,
+                       e.signal_source, e.selected_action, e.decision, e.score,
                        e.threshold_value, e.policy_mode, e.freshness_state, e.terminal_blocker,
                        e.blocker_reason, e.reason, e.final_outcome, e.execution_mode, e.order_sent,
                        e.suppression_reason, e.intent_created, e.oco_plan_created,
@@ -914,7 +932,6 @@ public class SignalCorrectnessMcpTools {
                 LEFT JOIN bt_live_signal s ON s.id = e.live_signal_id
                 """, evidenceParams.toArray()));
 
-        List<Map<String, Object>> runtimeRows = List.copyOf(rows);
         List<Object> auditParams = new ArrayList<>();
         auditParams.add(symbol);
         auditParams.add(since);
@@ -926,9 +943,12 @@ public class SignalCorrectnessMcpTools {
         auditParams.add(sourceLimit);
         List<Map<String, Object>> auditRows = jdbc.queryForList("""
                 SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(15000) */ 'DECISION_AUDIT' row_source,
-                       NULL runtime_evidence_id, a.id decision_id, a.event_time evidence_time, a.strategy_id,
+                       a.id row_id, NULL runtime_evidence_id, a.id decision_id, a.event_time evidence_time, a.symbol,
+                       a.strategy_id,
                        COALESCE(s.side, JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side'))) side,
-                       a.interval_code, a.event_type signal_source, a.outcome selected_action, NULL decision, NULL score,
+                       a.interval_code, COALESCE(a.bar_open_time, s.bar_open_time) bar_open_time,
+                       a.event_type signal_source, a.outcome selected_action,
+                       JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.decision')) decision, NULL score,
                        NULL threshold_value, NULL policy_mode, NULL freshness_state, a.blocker terminal_blocker,
                        a.reason blocker_reason, a.reason, a.outcome final_outcome, 'AUDIT_ONLY' execution_mode,
                        COALESCE(s.auto_traded, 0) order_sent,
@@ -949,9 +969,9 @@ public class SignalCorrectnessMcpTools {
                 ) a
                 LEFT JOIN bt_live_signal s ON s.id = a.live_signal_id
                 """, auditParams.toArray());
-        rows.addAll(auditRows.stream()
-                .filter(audit -> !hasNearbyRuntimeEvidence(runtimeRows, audit))
-                .toList());
+        rows.addAll(auditRows);
+        EvidenceEventCanonicalizer.MergeResult merge = EvidenceEventCanonicalizer.merge(rows);
+        rows = new ArrayList<>(merge.rows());
 
         if (!includeNonActionable) {
             rows = rows.stream().filter(this::isPriceActionable).collect(java.util.stream.Collectors.toCollection(ArrayList::new));
@@ -966,25 +986,8 @@ public class SignalCorrectnessMcpTools {
             if (timeCompare != 0) return timeCompare;
             return Long.compare(asLong(right.get("decision_id")), asLong(left.get("decision_id")));
         });
-        return rows.size() <= limit ? rows : new ArrayList<>(rows.subList(0, limit));
-    }
-
-    private boolean hasNearbyRuntimeEvidence(List<Map<String, Object>> runtimeRows, Map<String, Object> audit) {
-        if (runtimeRows == null || runtimeRows.isEmpty() || audit == null) return false;
-        LocalDateTime auditTime = asTime(audit.get("evidence_time"));
-        if (auditTime == null) return false;
-        String auditStrategyId = Objects.toString(audit.get("strategy_id"), "");
-        for (Map<String, Object> runtime : runtimeRows) {
-            LocalDateTime runtimeTime = asTime(runtime.get("evidence_time"));
-            if (runtimeTime == null) continue;
-            long seconds = Math.abs(Duration.between(runtimeTime, auditTime).toSeconds());
-            if (seconds > 180) continue;
-            String runtimeStrategyId = Objects.toString(runtime.get("strategy_id"), "");
-            if (auditStrategyId.isBlank() || Objects.equals(auditStrategyId, runtimeStrategyId)) {
-                return true;
-            }
-        }
-        return false;
+        List<Map<String, Object>> limited = rows.size() <= limit ? rows : new ArrayList<>(rows.subList(0, limit));
+        return new CanonicalLabelRows(List.copyOf(limited), merge);
     }
 
     private LocalDateTime latestKlineTime(String symbol) {
@@ -1140,17 +1143,20 @@ public class SignalCorrectnessMcpTools {
 
     private PricePlan pricePlan(Map<String, Object> row) {
         BigDecimal entry = firstDecimal(
+                row.get("candidate_entry"),
                 row.get("actual_entry_price"),
                 row.get("live_entry_price"),
                 jsonDecimal(row.get("execution_preview_json"), "entryPrice", "entry", "price", "signalPrice", "currentPrice"),
                 jsonDecimal(row.get("features_snapshot_json"), "entryPrice", "entry", "price", "signalPrice", "currentPrice", "close", "closePrice"),
                 jsonDecimal(row.get("policy_inputs_json"), "entryPrice", "entry", "price", "signalPrice", "currentPrice", "close", "closePrice"));
         BigDecimal tp = firstDecimal(
+                row.get("candidate_tp"),
                 row.get("suggested_tp"),
                 jsonDecimal(row.get("execution_preview_json"), "tpPrice", "tp"),
                 jsonDecimal(row.get("features_snapshot_json"), "tpPrice", "tp", "suggestedTp"),
                 jsonDecimal(row.get("policy_inputs_json"), "tpPrice", "tp", "suggestedTp"));
         BigDecimal sl = firstDecimal(
+                row.get("candidate_sl"),
                 row.get("suggested_sl"),
                 jsonDecimal(row.get("execution_preview_json"), "slPrice", "sl"),
                 jsonDecimal(row.get("features_snapshot_json"), "slPrice", "sl", "suggestedSl"),
@@ -1622,6 +1628,7 @@ public class SignalCorrectnessMcpTools {
 
     boolean isPriceActionable(Map<String, Object> row) {
         if (row == null) return false;
+        if (row.containsKey("canonical_merge_eligible") && !bool(row.get("canonical_merge_eligible"))) return false;
         if (isInformationalPass(row) || isNonBuyStateTransition(row) || isExplicitNonBuyEvaluation(row)) return false;
         if (bool(row.get("order_sent")) || hasMeaningfulIdentifier(row.get("live_signal_id"))) return true;
         if (hasExplicitIntent(row)) return true;
@@ -1813,6 +1820,18 @@ public class SignalCorrectnessMcpTools {
 
     private String joinList(List<String> values) {
         return values == null || values.isEmpty() ? "N/A" : String.join(", ", values);
+    }
+
+    private record CanonicalLabelRows(List<Map<String, Object>> rows,
+                                      EvidenceEventCanonicalizer.MergeResult merge) {
+        String diagnostics() {
+            return "rawObservationCount=" + merge.rawObservationCount() + "\n"
+                    + "uniqueMergedEventCount=" + merge.uniqueMergedEventCount() + "\n"
+                    + "duplicateRepresentationCount=" + merge.duplicateRepresentationCount() + "\n"
+                    + "identityConflictCount=" + merge.identityConflictCount() + "\n"
+                    + "duplicateSuspectCount=" + merge.duplicateSuspectCount() + "\n"
+                    + "rawCountConserved=" + merge.conservesRawCount() + "\n";
+        }
     }
 
     private record Summary(int auditCandidates,

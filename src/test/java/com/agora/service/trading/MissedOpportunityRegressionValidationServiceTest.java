@@ -172,8 +172,10 @@ class MissedOpportunityRegressionValidationServiceTest {
         MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
                 service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
 
-        assertThat(scan.excludedNonBuyObservationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isZero();
         assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.otherObservationCount()).isEqualTo(1);
+        assertThat(scan.classificationCountConserved()).isTrue();
         assertThat(scan.count()).isZero();
     }
 
@@ -204,6 +206,63 @@ class MissedOpportunityRegressionValidationServiceTest {
         assertThat(scan.eligibleBlockedBuyIntentCount()).isEqualTo(1);
         assertThat(scan.count()).isEqualTo(1);
         assertThat(scan.examples().path(0).path("intentCreated").asBoolean()).isTrue();
+        assertThat(scan.rawCountConserved()).isTrue();
+        assertThat(scan.classificationCountConserved()).isTrue();
+    }
+
+    @Test
+    void highForwardScanMergesWeakRuntimeHoldWithRichBlockedBuyAudit() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 91501L, eventTime);
+        runtime.put("selected_action", "EVALUATED_ONLY");
+        runtime.put("decision", "HOLD");
+        runtime.put("signal_source", "LOCAL_TRADINGVIEW");
+
+        Map<String, Object> audit = row("DECISION_AUDIT", 91501L, eventTime);
+        audit.put("selected_action", "BLOCK");
+        audit.put("signal_source", "ENTRY_SKIP");
+        audit.put("terminal_blocker", "TradePlanQualityGate");
+        audit.put("policy_inputs_json", candidatePlanJson(true));
+        stubNoBuyQueries(List.of(runtime), List.of(audit), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.rawObservationCount()).isEqualTo(2);
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.duplicateRepresentationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isZero();
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isEqualTo(1);
+        assertThat(scan.otherObservationCount()).isZero();
+        assertThat(scan.count()).isEqualTo(1);
+        assertThat(scan.rawCountConserved()).isTrue();
+        assertThat(scan.classificationCountConserved()).isTrue();
+    }
+
+    @Test
+    void highForwardScanUnionsSplitPlanButAnyOrderSentKeepsEventOutOfMissedOpportunity() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 91601L, eventTime);
+        runtime.put("selected_action", "BUY");
+        runtime.put("intent_created", true);
+        runtime.put("order_sent", true);
+        runtime.put("execution_preview_json", "{\"candidateEntry\":100}");
+
+        Map<String, Object> audit = row("DECISION_AUDIT", 91601L, eventTime);
+        audit.put("selected_action", "BLOCK");
+        audit.put("signal_source", "ENTRY_SKIP");
+        audit.put("terminal_blocker", "TradePlanQualityGate");
+        audit.put("policy_inputs_json", "{\"candidateTp\":106,\"candidateSl\":88}");
+        stubNoBuyQueries(List.of(runtime), List.of(audit), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.excludedNonBuyObservationCount()).isZero();
+        assertThat(scan.otherObservationCount()).isEqualTo(1);
+        assertThat(scan.count()).isZero();
+        assertThat(scan.classificationCountConserved()).isTrue();
     }
 
     @Test
@@ -291,9 +350,13 @@ class MissedOpportunityRegressionValidationServiceTest {
         row.put("row_source", source);
         row.put("decision_id", decisionId);
         row.put("evidence_time", eventTime);
+        row.put("symbol", "BTCUSDT");
         row.put("strategy_id", 508L);
         row.put("interval_code", "4h");
         row.put("side", "LONG");
+        row.put("bar_open_time", eventTime.truncatedTo(ChronoUnit.HOURS));
+        row.put("runtime_evidence_id", "RUNTIME_EVIDENCE".equals(source) ? decisionId + 100000 : null);
+        row.put("audit_id", "DECISION_AUDIT".equals(source) ? decisionId : null);
         row.put("selected_action", "HOLD");
         row.put("final_outcome", "PENDING");
         row.put("order_sent", false);

@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,6 +43,7 @@ public class OkxReadOnlyEvidenceAdapter {
 
     private static final String PROVIDER = "okx";
     private static final String RETENTION = "TRADING_EVIDENCE_LONG";
+    private static final int OKX_BOOK_LEVEL_COLUMNS = 4;
     private static final Set<String> QUOTE_INSTRUMENTS = Set.of("SPOT", "SWAP", "FUTURES");
 
     private final OkxEvidenceReadClient client;
@@ -116,6 +118,10 @@ public class OkxReadOnlyEvidenceAdapter {
             }
             index++;
         }
+        if (dataset == Dataset.EXECUTABLE_QUOTE && !rejected.isEmpty()) {
+            return new NormalizationBatch(List.of(), List.of(rejected.getFirst()),
+                    page.nextCursor(), page.pageComplete());
+        }
         return new NormalizationBatch(accepted, rejected, page.nextCursor(), page.pageComplete());
     }
 
@@ -131,16 +137,18 @@ public class OkxReadOnlyEvidenceAdapter {
         Timestamps times = timestamps(item, "ts", page, capture);
         JsonNode bids = item.path("bids");
         JsonNode asks = item.path("asks");
-        if (!bids.isArray() || bids.isEmpty() || !asks.isArray() || asks.isEmpty()) {
-            throw reject(RejectReason.INVALID_BOOK);
+        if (!bids.isArray() || !asks.isArray()) {
+            throw reject(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
         }
-        BigDecimal bidPx = arrayDecimal(bids.get(0), 0);
-        BigDecimal bidSz = arrayDecimal(bids.get(0), 1);
-        BigDecimal askPx = arrayDecimal(asks.get(0), 0);
-        BigDecimal askSz = arrayDecimal(asks.get(0), 1);
-        if (bidPx.signum() <= 0 || askPx.signum() <= 0 || bidPx.compareTo(askPx) > 0
-                || bidSz.signum() < 0 || askSz.signum() < 0) {
-            throw reject(RejectReason.INVALID_BOOK);
+        if (bids.isEmpty() || asks.isEmpty()) {
+            throw reject(RejectReason.EMPTY_BOOK_SIDE);
+        }
+        List<BookLevel> bidLevels = validateBookSide(bids, true);
+        List<BookLevel> askLevels = validateBookSide(asks, false);
+        BookLevel bestBid = bidLevels.getFirst();
+        BookLevel bestAsk = askLevels.getFirst();
+        if (bestBid.price().compareTo(bestAsk.price()) >= 0) {
+            throw reject(RejectReason.CROSSED_BOOK);
         }
         ObjectNode safe = objectMapper.createObjectNode();
         safe.put("instId", instId);
@@ -157,7 +165,56 @@ public class OkxReadOnlyEvidenceAdapter {
         CoverageProfiler.CoverageRecord coverage = coverage(dedupe, times, capture,
                 CoverageProfiler.DataKind.DEPTH, CoverageProfiler.Usage.EXECUTABLE_DEPTH);
         return new QuoteAppend(dedupe, times, provenance, instId, instrumentType, "DEPTH",
-                bidPx, bidSz, askPx, askSz, safeJson, sequence, coverage);
+                bestBid.price(), bestBid.size(), bestAsk.price(), bestAsk.size(), safeJson, sequence, coverage);
+    }
+
+    private static List<BookLevel> validateBookSide(JsonNode side, boolean bids) {
+        List<BookLevel> levels = new ArrayList<>(side.size());
+        BigDecimal previousPrice = null;
+        for (JsonNode row : side) {
+            if (!row.isArray() || row.size() != OKX_BOOK_LEVEL_COLUMNS) {
+                throw reject(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
+            }
+            for (JsonNode value : row) {
+                if (!value.isTextual() || value.textValue().isBlank()) {
+                    throw reject(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
+                }
+            }
+            BigDecimal price = bookDecimal(row.get(0).textValue());
+            BigDecimal size = bookDecimal(row.get(1).textValue());
+            bookNonNegativeInteger(row.get(2).textValue());
+            bookNonNegativeInteger(row.get(3).textValue());
+            if (price.signum() <= 0 || size.signum() < 0) {
+                throw reject(RejectReason.INVALID_BOOK_LEVEL_VALUE);
+            }
+            if (previousPrice != null) {
+                int comparison = previousPrice.compareTo(price);
+                if (bids ? comparison <= 0 : comparison >= 0) {
+                    throw reject(RejectReason.INVALID_BOOK_SORT_ORDER);
+                }
+            }
+            levels.add(new BookLevel(price, size));
+            previousPrice = price;
+        }
+        return List.copyOf(levels);
+    }
+
+    private static BigDecimal bookDecimal(String value) {
+        try {
+            return new BigDecimal(value);
+        } catch (RuntimeException e) {
+            throw reject(RejectReason.INVALID_BOOK_LEVEL_NUMBER);
+        }
+    }
+
+    private static void bookNonNegativeInteger(String value) {
+        try {
+            if (new BigInteger(value).signum() < 0) {
+                throw reject(RejectReason.INVALID_BOOK_LEVEL_VALUE);
+            }
+        } catch (NumberFormatException e) {
+            throw reject(RejectReason.INVALID_BOOK_LEVEL_NUMBER);
+        }
     }
 
     private FillAppend fill(JsonNode item,
@@ -310,7 +367,7 @@ public class OkxReadOnlyEvidenceAdapter {
         ArrayNode result = objectMapper.createArrayNode();
         for (JsonNode row : source) {
             if (!row.isArray()) {
-                throw reject(RejectReason.INVALID_BOOK);
+                throw reject(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
             }
             ArrayNode copied = objectMapper.createArrayNode();
             for (JsonNode value : row) {
@@ -373,13 +430,6 @@ public class OkxReadOnlyEvidenceAdapter {
         return value == null ? null : decimal(value);
     }
 
-    private static BigDecimal arrayDecimal(JsonNode row, int index) {
-        if (row == null || !row.isArray() || row.size() <= index) {
-            throw reject(RejectReason.INVALID_BOOK);
-        }
-        return decimal(row.get(index).asText());
-    }
-
     private static void requireAccount(CaptureContext capture) {
         if (capture == null || capture.accountOpaqueRef() == null || capture.accountOpaqueRef().isBlank()) {
             throw reject(RejectReason.MISSING_REQUIRED_FIELD);
@@ -429,5 +479,8 @@ public class OkxReadOnlyEvidenceAdapter {
             super(reason.name(), null, false, false);
             this.reason = reason;
         }
+    }
+
+    private record BookLevel(BigDecimal price, BigDecimal size) {
     }
 }

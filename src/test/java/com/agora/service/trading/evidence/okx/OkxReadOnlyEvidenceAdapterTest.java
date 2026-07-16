@@ -13,14 +13,20 @@ import com.agora.service.trading.evidence.okx.OkxEvidenceModels.RejectReason;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -127,6 +133,174 @@ class OkxReadOnlyEvidenceAdapterTest {
         assertThat(second.dedupeKey()).isEqualTo(first.dedupeKey()).hasSize(64);
         assertThat(second.provenance().rawPayloadSha256())
                 .isEqualTo(first.provenance().rawPayloadSha256()).hasSize(64);
+    }
+
+    @ParameterizedTest(name = "{0} level {1} must be validated")
+    @MethodSource("nonNumericLevelPositions")
+    void everyBidAndAskLevelFailsClosedWhenPriceIsNonNumeric(String side, int levelIndex) {
+        setLevelText(side, levelIndex, 0, "not-a-number");
+
+        assertBookRejected(RejectReason.INVALID_BOOK_LEVEL_NUMBER);
+    }
+
+    private static Stream<Arguments> nonNumericLevelPositions() {
+        return Stream.of(
+                Arguments.of("bids", 1),
+                Arguments.of("bids", 2),
+                Arguments.of("bids", 4),
+                Arguments.of("asks", 1),
+                Arguments.of("asks", 2),
+                Arguments.of("asks", 4));
+    }
+
+    @Test
+    void zeroSizeIsAllowedAtNonBestLevelsOnBothSides() {
+        setLevelText("bids", 2, 1, "0");
+        setLevelText("asks", 4, 1, "0.000000");
+
+        NormalizationBatch batch = executableDepth();
+
+        assertThat(batch.accepted()).hasSize(1);
+        assertThat(batch.rejected()).isEmpty();
+        assertThat(batch.validForAppend()).isTrue();
+    }
+
+    @ParameterizedTest(name = "{0}[{1}][{2}]={3}")
+    @MethodSource("invalidBookNumbersAndValues")
+    void invalidBookNumbersAndValuesFailClosed(String side,
+                                               int levelIndex,
+                                               int columnIndex,
+                                               String value,
+                                               RejectReason reason) {
+        setLevelText(side, levelIndex, columnIndex, value);
+
+        assertBookRejected(reason);
+    }
+
+    private static Stream<Arguments> invalidBookNumbersAndValues() {
+        return Stream.of(
+                Arguments.of("bids", 0, 0, "0", RejectReason.INVALID_BOOK_LEVEL_VALUE),
+                Arguments.of("asks", 4, 0, "-1", RejectReason.INVALID_BOOK_LEVEL_VALUE),
+                Arguments.of("bids", 3, 1, "-0.0001", RejectReason.INVALID_BOOK_LEVEL_VALUE),
+                Arguments.of("asks", 1, 1, "NaN", RejectReason.INVALID_BOOK_LEVEL_NUMBER),
+                Arguments.of("bids", 4, 1, "Infinity", RejectReason.INVALID_BOOK_LEVEL_NUMBER),
+                Arguments.of("asks", 2, 0, "not-a-number", RejectReason.INVALID_BOOK_LEVEL_NUMBER),
+                Arguments.of("bids", 1, 2, "bad-count", RejectReason.INVALID_BOOK_LEVEL_NUMBER),
+                Arguments.of("asks", 3, 3, "-1", RejectReason.INVALID_BOOK_LEVEL_VALUE));
+    }
+
+    @ParameterizedTest(name = "wrong column count on {0}: extra={2}")
+    @MethodSource("wrongColumnCounts")
+    void wrongColumnCountFailsClosed(String side, int levelIndex, boolean extraColumn) {
+        ArrayNode level = level(side, levelIndex);
+        if (extraColumn) {
+            level.add("unexpected");
+        } else {
+            level.remove(level.size() - 1);
+        }
+
+        assertBookRejected(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
+    }
+
+    private static Stream<Arguments> wrongColumnCounts() {
+        return Stream.of(
+                Arguments.of("bids", 1, false),
+                Arguments.of("asks", 3, true));
+    }
+
+    @Test
+    void nonTextContractColumnFailsClosedInsteadOfBeingStringified() {
+        level("bids", 2).set(2, mapper.createObjectNode().put("unexpected", true));
+
+        assertBookRejected(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
+    }
+
+    @ParameterizedTest(name = "unsorted {0}")
+    @MethodSource("unsortedSides")
+    void unsortedOrDuplicatePriceFailsClosed(String side, int levelIndex, String price) {
+        setLevelText(side, levelIndex, 0, price);
+
+        assertBookRejected(RejectReason.INVALID_BOOK_SORT_ORDER);
+    }
+
+    private static Stream<Arguments> unsortedSides() {
+        return Stream.of(
+                Arguments.of("bids", 2, "49999.0"),
+                Arguments.of("asks", 2, "50002.0"));
+    }
+
+    @ParameterizedTest(name = "best ask {0} must remain above best bid")
+    @MethodSource("crossedBestAsks")
+    void crossedOrLockedBookFailsClosed(String bestAsk) {
+        setLevelText("asks", 0, 0, bestAsk);
+
+        assertBookRejected(RejectReason.CROSSED_BOOK);
+    }
+
+    private static Stream<String> crossedBestAsks() {
+        return Stream.of("50000.0", "49999.0");
+    }
+
+    @ParameterizedTest(name = "empty {0}")
+    @MethodSource("bookSides")
+    void emptySideFailsClosed(String side) {
+        bookItem().set(side, mapper.createArrayNode());
+
+        assertBookRejected(RejectReason.EMPTY_BOOK_SIDE);
+    }
+
+    private static Stream<String> bookSides() {
+        return Stream.of("bids", "asks");
+    }
+
+    @ParameterizedTest(name = "non-array {0}")
+    @MethodSource("bookSides")
+    void nonArraySideFailsClosed(String side) {
+        bookItem().put(side, "not-an-array");
+
+        assertBookRejected(RejectReason.INVALID_BOOK_LEVEL_STRUCTURE);
+    }
+
+    @Test
+    void mixedValidInvalidBookPageDropsAllAcceptedRowsAndReturnsOneGapReason() {
+        ArrayNode data = (ArrayNode) client.responses
+                .get(OkxEvidenceReadClient.Endpoint.EXECUTABLE_BOOKS).path("data");
+        ObjectNode invalid = data.get(0).deepCopy();
+        ArrayNode invalidLastAsk = (ArrayNode) invalid.path("asks").get(4);
+        invalidLastAsk.set(1, TextNode.valueOf("NaN"));
+        data.add(invalid);
+
+        NormalizationBatch batch = executableDepth();
+
+        assertThat(batch.accepted()).isEmpty();
+        assertThat(batch.rejected()).hasSize(1);
+        assertThat(batch.rejected().getFirst().reason()).isEqualTo(RejectReason.INVALID_BOOK_LEVEL_NUMBER);
+        assertThat(batch.validForAppend()).isFalse();
+    }
+
+    private void assertBookRejected(RejectReason reason) {
+        NormalizationBatch batch = executableDepth();
+        assertThat(batch.accepted()).isEmpty();
+        assertThat(batch.rejected()).hasSize(1);
+        assertThat(batch.rejected().getFirst().reason()).isEqualTo(reason);
+        assertThat(batch.validForAppend()).isFalse();
+    }
+
+    private NormalizationBatch executableDepth() {
+        return adapter.executableDepth("BTC-USDT", "SPOT", 5, null, capture());
+    }
+
+    private ObjectNode bookItem() {
+        return (ObjectNode) client.responses
+                .get(OkxEvidenceReadClient.Endpoint.EXECUTABLE_BOOKS).path("data").get(0);
+    }
+
+    private ArrayNode level(String side, int levelIndex) {
+        return (ArrayNode) bookItem().path(side).get(levelIndex);
+    }
+
+    private void setLevelText(String side, int levelIndex, int columnIndex, String value) {
+        level(side, levelIndex).set(columnIndex, TextNode.valueOf(value));
     }
 
     private CaptureContext capture() {

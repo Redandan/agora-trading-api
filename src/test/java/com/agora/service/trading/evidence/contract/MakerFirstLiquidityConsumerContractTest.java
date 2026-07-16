@@ -51,7 +51,13 @@ class MakerFirstLiquidityConsumerContractTest {
         Result result = validator.validateMakerFirst(copy(base, missing, base.makerFirst()));
 
         assertThat(result.readiness()).isEqualTo(NOT_MEASURABLE);
-        assertThat(result.gapReasons()).containsExactly(MISSING_FILL_PRICE, MISSING_FILL_QUANTITY, MISSING_FILL_SIDE);
+        assertThat(result.gapReasons()).containsExactly(
+                MISSING_FILL_PRICE,
+                MISSING_FILL_QUANTITY,
+                MISSING_FILL_SIDE,
+                SIGNED_FEE_NOTIONAL_MISMATCH,
+                ACTUAL_FUNDING_NOTIONAL_MISMATCH,
+                COUNTERFACTUAL_FUNDING_NOTIONAL_MISMATCH);
     }
 
     private MinimumCommonEvidenceContract fixture(String name) throws Exception {

@@ -43,11 +43,23 @@ public record MinimumCommonEvidenceContract(
 
     public record ExecutableDepth(DepthKind kind,
                                   List<BookLevel> bids,
-                                  List<BookLevel> asks) {
+                                  List<BookLevel> asks,
+                                  DepthCoverage coverage) {
         public ExecutableDepth {
             bids = bids == null ? null : List.copyOf(bids);
             asks = asks == null ? null : List.copyOf(asks);
         }
+    }
+
+    /** Proof that the typed levels cover the complete provider snapshot rather than a scalar top quote. */
+    public record DepthCoverage(String sourceSnapshotIdentity,
+                                Integer providerBidLevelCount,
+                                Integer providerAskLevelCount,
+                                Integer capturedBidLevelCount,
+                                Integer capturedAskLevelCount,
+                                Boolean pageComplete,
+                                Boolean notTruncated,
+                                Boolean allSourceLevelsCaptured) {
     }
 
     /** Exact four-column OKX full-depth shape accepted at source commit 93e80abd. */
@@ -73,8 +85,24 @@ public record MinimumCommonEvidenceContract(
                                          String currency) {
     }
 
-    public record FundingEvidence(ReconciledSignedAmount actualBill,
-                                  ReconciledSignedAmount counterfactualFunding) {
+    public record FundingEvidence(ActualFundingBill actualBill,
+                                  CounterfactualFunding counterfactualFunding) {
+    }
+
+    public record ActualFundingBill(String identity,
+                                    FundingSemantic semantic,
+                                    BigDecimal notional,
+                                    BigDecimal reconciledNotional,
+                                    BigDecimal signedAmount,
+                                    String currency) {
+    }
+
+    public record CounterfactualFunding(String identity,
+                                        FundingSemantic semantic,
+                                        BigDecimal notional,
+                                        BigDecimal reconciledNotional,
+                                        BigDecimal signedAmount,
+                                        String currency) {
     }
 
     public record MarginEvidence(String identity,
@@ -103,5 +131,10 @@ public record MinimumCommonEvidenceContract(
     public enum LiquidityRole {
         MAKER,
         TAKER
+    }
+
+    public enum FundingSemantic {
+        ACTUAL_SETTLED_BILL,
+        DECISION_COUNTERFACTUAL_ESTIMATE
     }
 }

@@ -3,13 +3,18 @@ package com.agora.service.trading.evidence.contract;
 import com.agora.service.trading.evidence.contract.EvidenceConsumerReadiness.Result;
 import com.agora.service.trading.evidence.contract.FilterCounterfactualConsumerContract.GateProof;
 import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.BookLevel;
+import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.CounterfactualFunding;
 import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.DecisionLink;
+import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.DepthCoverage;
 import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.ExecutableDepth;
 import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.FillLifecycle;
+import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.ActualFundingBill;
+import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.FundingSemantic;
 import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.ReconciledSignedAmount;
 import com.agora.service.trading.evidence.contract.MinimumCommonEvidenceContract.TimestampChain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
@@ -19,6 +24,8 @@ import static com.agora.service.trading.evidence.contract.EvidenceConsumerReadin
 
 /** Deterministic, dependency-free validation for the local typed contract. */
 public final class MinimumCommonEvidenceValidator {
+
+    private static final int V2_NOTIONAL_SCALE = 12;
 
     public Result validateCommon(MinimumCommonEvidenceContract evidence) {
         EnumSet<CommonEvidenceGapReason> invalid = EnumSet.noneOf(CommonEvidenceGapReason.class);
@@ -34,16 +41,20 @@ public final class MinimumCommonEvidenceValidator {
         validateTimestamps(evidence.timestamps(), invalid);
         validateDepth(evidence.executableDepth(), invalid);
         validateFill(evidence.fill(), gaps);
-        validateAmount(evidence.signedFee(), MISSING_SIGNED_FEE_IDENTITY, SIGNED_FEE_NOTIONAL_MISMATCH, gaps);
+        validateFee(evidence.signedFee(), evidence.fill(), gaps);
         if (evidence.funding() == null) {
             gaps.add(MISSING_ACTUAL_FUNDING_BILL_IDENTITY);
             gaps.add(MISSING_COUNTERFACTUAL_FUNDING);
         } else {
-            validateAmount(evidence.funding().actualBill(), MISSING_ACTUAL_FUNDING_BILL_IDENTITY,
-                    ACTUAL_FUNDING_NOTIONAL_MISMATCH, gaps);
-            if (evidence.funding().counterfactualFunding() == null) gaps.add(MISSING_COUNTERFACTUAL_FUNDING);
-            else validateAmount(evidence.funding().counterfactualFunding(), MISSING_COUNTERFACTUAL_FUNDING,
-                    ACTUAL_FUNDING_NOTIONAL_MISMATCH, gaps);
+            validateActualFunding(evidence.funding().actualBill(), evidence.fill(), gaps);
+            validateCounterfactualFunding(evidence.funding().counterfactualFunding(), evidence.decisionLink(),
+                    evidence.fill(), gaps);
+            if (evidence.funding().actualBill() != null && evidence.funding().counterfactualFunding() != null
+                    && !blank(evidence.funding().actualBill().identity())
+                    && evidence.funding().actualBill().identity()
+                    .equals(evidence.funding().counterfactualFunding().identity())) {
+                gaps.add(FUNDING_IDENTITY_ALIAS);
+            }
         }
         if (!invalid.isEmpty()) return result(OBSERVED_INVALID, invalid);
         if (!gaps.isEmpty()) return result(OBSERVED_GAP, gaps);
@@ -109,6 +120,30 @@ public final class MinimumCommonEvidenceValidator {
             reasons.add(MISSING_EXECUTABLE_FULL_DEPTH);
             return;
         }
+        DepthCoverage coverage = depth.coverage();
+        if (coverage == null || blank(coverage.sourceSnapshotIdentity())
+                || coverage.providerBidLevelCount() == null || coverage.providerAskLevelCount() == null
+                || coverage.capturedBidLevelCount() == null || coverage.capturedAskLevelCount() == null) {
+            reasons.add(MISSING_EXECUTABLE_DEPTH_COVERAGE);
+            return;
+        }
+        if (depth.bids().size() < 2 || depth.asks().size() < 2
+                || coverage.providerBidLevelCount() < 2 || coverage.providerAskLevelCount() < 2) {
+            reasons.add(BEST_LEVEL_ONLY_NOT_FULL_DEPTH);
+            return;
+        }
+        if (!Boolean.TRUE.equals(coverage.pageComplete())) {
+            reasons.add(INCOMPLETE_EXECUTABLE_DEPTH_PAGE);
+            return;
+        }
+        if (!Boolean.TRUE.equals(coverage.notTruncated()) || !Boolean.TRUE.equals(coverage.allSourceLevelsCaptured())
+                || coverage.providerBidLevelCount().intValue() != coverage.capturedBidLevelCount().intValue()
+                || coverage.providerAskLevelCount().intValue() != coverage.capturedAskLevelCount().intValue()
+                || coverage.capturedBidLevelCount() != depth.bids().size()
+                || coverage.capturedAskLevelCount() != depth.asks().size()) {
+            reasons.add(TRUNCATED_EXECUTABLE_DEPTH);
+            return;
+        }
         if (!validLevels(depth.bids()) || !validLevels(depth.asks())) {
             reasons.add(INVALID_EXECUTABLE_DEPTH_LEVEL);
             return;
@@ -137,6 +172,8 @@ public final class MinimumCommonEvidenceValidator {
     }
 
     private static void validateFill(FillLifecycle fill, EnumSet<CommonEvidenceGapReason> reasons) {
+        if (fill == null || blank(fill.orderId())) reasons.add(MISSING_ORDER_ID);
+        if (fill == null || blank(fill.tradeId())) reasons.add(MISSING_TRADE_ID);
         if (fill == null || !positive(fill.price())) reasons.add(MISSING_FILL_PRICE);
         if (fill == null || !positive(fill.quantity())) reasons.add(MISSING_FILL_QUANTITY);
         if (fill == null || fill.side() == null) reasons.add(MISSING_FILL_SIDE);
@@ -144,16 +181,87 @@ public final class MinimumCommonEvidenceValidator {
         if (fill == null || fill.liquidityRole() == null) reasons.add(MISSING_LIQUIDITY_ROLE);
     }
 
-    private static void validateAmount(ReconciledSignedAmount amount,
-                                       CommonEvidenceGapReason identityReason,
-                                       CommonEvidenceGapReason mismatchReason,
-                                       EnumSet<CommonEvidenceGapReason> reasons) {
+    private static void validateFee(ReconciledSignedAmount amount,
+                                    FillLifecycle fill,
+                                    EnumSet<CommonEvidenceGapReason> reasons) {
         if (amount == null || blank(amount.identity()) || amount.signedAmount() == null || blank(amount.currency())) {
-            reasons.add(identityReason);
+            reasons.add(MISSING_SIGNED_FEE_IDENTITY);
             return;
         }
-        if (!positive(amount.notional()) || amount.reconciledNotional() == null
-                || amount.notional().compareTo(amount.reconciledNotional()) != 0) reasons.add(mismatchReason);
+        if (fill == null || blank(fill.orderId()) || blank(fill.tradeId())
+                || !amount.identity().equals(feeIdentity(fill, amount.currency()))) {
+            reasons.add(SIGNED_FEE_IDENTITY_MISMATCH);
+        }
+        if (!reconcilesToFill(amount.notional(), amount.reconciledNotional(), fill)) {
+            reasons.add(SIGNED_FEE_NOTIONAL_MISMATCH);
+        }
+    }
+
+    private static void validateActualFunding(ActualFundingBill amount,
+                                              FillLifecycle fill,
+                                              EnumSet<CommonEvidenceGapReason> reasons) {
+        if (amount == null || blank(amount.identity()) || amount.signedAmount() == null || blank(amount.currency())) {
+            reasons.add(MISSING_ACTUAL_FUNDING_BILL_IDENTITY);
+            return;
+        }
+        if (amount.semantic() != FundingSemantic.ACTUAL_SETTLED_BILL) {
+            reasons.add(ACTUAL_FUNDING_SEMANTIC_MISMATCH);
+        }
+        if (fill == null || blank(fill.orderId()) || blank(fill.tradeId())
+                || !amount.identity().equals(actualFundingIdentity(fill, amount.currency()))) {
+            reasons.add(ACTUAL_FUNDING_IDENTITY_MISMATCH);
+        }
+        if (!reconcilesToFill(amount.notional(), amount.reconciledNotional(), fill)) {
+            reasons.add(ACTUAL_FUNDING_NOTIONAL_MISMATCH);
+        }
+    }
+
+    private static void validateCounterfactualFunding(CounterfactualFunding amount,
+                                                      DecisionLink decision,
+                                                      FillLifecycle fill,
+                                                      EnumSet<CommonEvidenceGapReason> reasons) {
+        if (amount == null || blank(amount.identity()) || amount.signedAmount() == null || blank(amount.currency())) {
+            reasons.add(MISSING_COUNTERFACTUAL_FUNDING);
+            return;
+        }
+        if (amount.semantic() != FundingSemantic.DECISION_COUNTERFACTUAL_ESTIMATE) {
+            reasons.add(COUNTERFACTUAL_FUNDING_SEMANTIC_MISMATCH);
+        }
+        if (decision != null && !blank(decision.decisionId())
+                && (fill == null || blank(fill.orderId()) || blank(fill.tradeId())
+                || !amount.identity().equals(counterfactualFundingIdentity(decision, fill, amount.currency())))) {
+            reasons.add(COUNTERFACTUAL_FUNDING_IDENTITY_MISMATCH);
+        }
+        if (!reconcilesToFill(amount.notional(), amount.reconciledNotional(), fill)) {
+            reasons.add(COUNTERFACTUAL_FUNDING_NOTIONAL_MISMATCH);
+        }
+    }
+
+    private static boolean reconcilesToFill(BigDecimal notional,
+                                            BigDecimal reconciledNotional,
+                                            FillLifecycle fill) {
+        if (!positive(notional) || reconciledNotional == null || fill == null
+                || !positive(fill.price()) || !positive(fill.quantity())) return false;
+        BigDecimal expected = canonicalNotional(fill.price().multiply(fill.quantity()));
+        return canonicalNotional(notional).compareTo(expected) == 0
+                && canonicalNotional(reconciledNotional).compareTo(expected) == 0;
+    }
+
+    private static BigDecimal canonicalNotional(BigDecimal value) {
+        return value.setScale(V2_NOTIONAL_SCALE, RoundingMode.HALF_EVEN);
+    }
+
+    private static String feeIdentity(FillLifecycle fill, String currency) {
+        return String.join(":", "FILL_FEE", fill.orderId(), fill.tradeId(), currency);
+    }
+
+    private static String actualFundingIdentity(FillLifecycle fill, String currency) {
+        return String.join(":", "ACTUAL_FUNDING_BILL", fill.orderId(), fill.tradeId(), currency);
+    }
+
+    private static String counterfactualFundingIdentity(DecisionLink decision, FillLifecycle fill, String currency) {
+        return String.join(":", "COUNTERFACTUAL_FUNDING", decision.decisionId(), fill.orderId(),
+                fill.tradeId(), currency);
     }
 
     private static boolean completeDecision(DecisionLink link) {

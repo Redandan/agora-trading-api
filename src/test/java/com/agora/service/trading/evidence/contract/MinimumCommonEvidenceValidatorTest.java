@@ -39,6 +39,10 @@ class MinimumCommonEvidenceValidatorTest {
         assertThat(evidence.funding().actualBill().semantic()).isEqualTo(FundingSemantic.ACTUAL_SETTLED_BILL);
         assertThat(evidence.funding().counterfactualFunding().semantic())
                 .isEqualTo(FundingSemantic.DECISION_COUNTERFACTUAL_ESTIMATE);
+        assertThat(evidence.signedFee().identity())
+                .isEqualTo("FILL_FEE:decision-1:order-1:trade-1:USDT");
+        assertThat(evidence.funding().actualBill().identity())
+                .isEqualTo("ACTUAL_FUNDING_BILL:decision-1:order-1:trade-1:USDT");
         assertThat(evidence.executableDepth().coverage().allSourceLevelsCaptured()).isTrue();
         assertThat(evidence.executableDepth().coverage().capturedBidLevelCount())
                 .isEqualTo(evidence.executableDepth().bids().size());
@@ -72,7 +76,10 @@ class MinimumCommonEvidenceValidatorTest {
         Result result = validator.validateCommon(fixture("missing-decision-link.json"));
 
         assertThat(result.readiness()).isEqualTo(OBSERVED_GAP);
-        assertThat(result.gapReasons()).containsExactly(MISSING_DECISION_LINK);
+        assertThat(result.gapReasons()).containsExactly(
+                MISSING_DECISION_LINK,
+                SIGNED_FEE_IDENTITY_MISMATCH,
+                ACTUAL_FUNDING_IDENTITY_MISMATCH);
     }
 
     @Test
@@ -155,6 +162,28 @@ class MinimumCommonEvidenceValidatorTest {
                 COUNTERFACTUAL_FUNDING_IDENTITY_MISMATCH,
                 COUNTERFACTUAL_FUNDING_SEMANTIC_MISMATCH,
                 FUNDING_IDENTITY_ALIAS);
+    }
+
+    @Test
+    void feeAndActualFundingCannotBeReusedAcrossDecisions() throws Exception {
+        MinimumCommonEvidenceContract base = fixture("complete-common-evidence.json");
+        DecisionLink otherDecision = new DecisionLink("decision-other", base.decisionLink().interval(),
+                base.decisionLink().side(), base.decisionLink().barId(), base.decisionLink().action());
+        CounterfactualFunding counterfactualForOtherDecision = new CounterfactualFunding(
+                "COUNTERFACTUAL_FUNDING:decision-other:order-1:trade-1:USDT",
+                base.funding().counterfactualFunding().semantic(),
+                base.funding().counterfactualFunding().notional(),
+                base.funding().counterfactualFunding().reconciledNotional(),
+                base.funding().counterfactualFunding().signedAmount(),
+                base.funding().counterfactualFunding().currency());
+
+        Result result = validator.validateCommon(copy(base, otherDecision, base.executableDepth(), base.fill(),
+                base.signedFee(), new FundingEvidence(base.funding().actualBill(), counterfactualForOtherDecision)));
+
+        assertThat(result.readiness()).isEqualTo(OBSERVED_GAP);
+        assertThat(result.gapReasons()).containsExactly(
+                SIGNED_FEE_IDENTITY_MISMATCH,
+                ACTUAL_FUNDING_IDENTITY_MISMATCH);
     }
 
     @Test

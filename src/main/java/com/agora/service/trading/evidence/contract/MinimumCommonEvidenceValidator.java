@@ -41,12 +41,12 @@ public final class MinimumCommonEvidenceValidator {
         validateTimestamps(evidence.timestamps(), invalid);
         validateDepth(evidence.executableDepth(), invalid);
         validateFill(evidence.fill(), gaps);
-        validateFee(evidence.signedFee(), evidence.fill(), gaps);
+        validateFee(evidence.signedFee(), evidence.decisionLink(), evidence.fill(), gaps);
         if (evidence.funding() == null) {
             gaps.add(MISSING_ACTUAL_FUNDING_BILL_IDENTITY);
             gaps.add(MISSING_COUNTERFACTUAL_FUNDING);
         } else {
-            validateActualFunding(evidence.funding().actualBill(), evidence.fill(), gaps);
+            validateActualFunding(evidence.funding().actualBill(), evidence.decisionLink(), evidence.fill(), gaps);
             validateCounterfactualFunding(evidence.funding().counterfactualFunding(), evidence.decisionLink(),
                     evidence.fill(), gaps);
             if (evidence.funding().actualBill() != null && evidence.funding().counterfactualFunding() != null
@@ -182,14 +182,16 @@ public final class MinimumCommonEvidenceValidator {
     }
 
     private static void validateFee(ReconciledSignedAmount amount,
+                                    DecisionLink decision,
                                     FillLifecycle fill,
                                     EnumSet<CommonEvidenceGapReason> reasons) {
         if (amount == null || blank(amount.identity()) || amount.signedAmount() == null || blank(amount.currency())) {
             reasons.add(MISSING_SIGNED_FEE_IDENTITY);
             return;
         }
-        if (fill == null || blank(fill.orderId()) || blank(fill.tradeId())
-                || !amount.identity().equals(feeIdentity(fill, amount.currency()))) {
+        if (decision == null || blank(decision.decisionId()) || fill == null || blank(fill.orderId())
+                || blank(fill.tradeId()) || !amount.identity().equals(feeIdentity(
+                decision, fill, amount.currency()))) {
             reasons.add(SIGNED_FEE_IDENTITY_MISMATCH);
         }
         if (!reconcilesToFill(amount.notional(), amount.reconciledNotional(), fill)) {
@@ -198,6 +200,7 @@ public final class MinimumCommonEvidenceValidator {
     }
 
     private static void validateActualFunding(ActualFundingBill amount,
+                                              DecisionLink decision,
                                               FillLifecycle fill,
                                               EnumSet<CommonEvidenceGapReason> reasons) {
         if (amount == null || blank(amount.identity()) || amount.signedAmount() == null || blank(amount.currency())) {
@@ -207,8 +210,9 @@ public final class MinimumCommonEvidenceValidator {
         if (amount.semantic() != FundingSemantic.ACTUAL_SETTLED_BILL) {
             reasons.add(ACTUAL_FUNDING_SEMANTIC_MISMATCH);
         }
-        if (fill == null || blank(fill.orderId()) || blank(fill.tradeId())
-                || !amount.identity().equals(actualFundingIdentity(fill, amount.currency()))) {
+        if (decision == null || blank(decision.decisionId()) || fill == null || blank(fill.orderId())
+                || blank(fill.tradeId()) || !amount.identity().equals(actualFundingIdentity(
+                decision, fill, amount.currency()))) {
             reasons.add(ACTUAL_FUNDING_IDENTITY_MISMATCH);
         }
         if (!reconcilesToFill(amount.notional(), amount.reconciledNotional(), fill)) {
@@ -251,12 +255,13 @@ public final class MinimumCommonEvidenceValidator {
         return value.setScale(V2_NOTIONAL_SCALE, RoundingMode.HALF_EVEN);
     }
 
-    private static String feeIdentity(FillLifecycle fill, String currency) {
-        return String.join(":", "FILL_FEE", fill.orderId(), fill.tradeId(), currency);
+    private static String feeIdentity(DecisionLink decision, FillLifecycle fill, String currency) {
+        return String.join(":", "FILL_FEE", decision.decisionId(), fill.orderId(), fill.tradeId(), currency);
     }
 
-    private static String actualFundingIdentity(FillLifecycle fill, String currency) {
-        return String.join(":", "ACTUAL_FUNDING_BILL", fill.orderId(), fill.tradeId(), currency);
+    private static String actualFundingIdentity(DecisionLink decision, FillLifecycle fill, String currency) {
+        return String.join(":", "ACTUAL_FUNDING_BILL", decision.decisionId(), fill.orderId(),
+                fill.tradeId(), currency);
     }
 
     private static String counterfactualFundingIdentity(DecisionLink decision, FillLifecycle fill, String currency) {

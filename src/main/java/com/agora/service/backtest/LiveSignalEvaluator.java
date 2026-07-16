@@ -77,6 +77,8 @@ public class LiveSignalEvaluator {
     static final String TRADE_PLAN_QUALITY_GATE_ENABLED_KEY = "tradePlanQualityGateEnabled";
     static final String TRADE_PLAN_MIN_RISK_REWARD_KEY = "tradePlanMinRiskReward";
     static final String TRADE_PLAN_MAX_STOP_LOSS_PCT_KEY = "tradePlanMaxStopLossPct";
+    static final int EXPECTED_VALUE_DECIMAL_SCALE = 4;
+    static final RoundingMode EXPECTED_VALUE_ROUNDING_MODE = RoundingMode.HALF_EVEN;
     static final String ENSEMBLE_SHADOW_PRE_EXECUTION_DISCLAIMER =
             "Phase 1 - Ensemble 不擋；仍需通過下單前風控";
 
@@ -980,7 +982,27 @@ public class LiveSignalEvaluator {
                         "ExpectedValueGate", "calibrated win probability unavailable", evBlockContext, record.getId());
                 return;
             }
-            if (evGateEnabled && expectedR <= 0) {
+            ExpectedValueThresholdDecision expectedValueThreshold =
+                    evaluateExpectedValueThreshold(expectedR, minExpectedR);
+            if (evGateEnabled && !expectedValueThreshold.valid()) {
+                log.info("[LiveSignal] LONG blocked by preTradeExpectedValueGate (invalid decimal input): strategyId={} symbol={} expectedR={} min={}",
+                        strategy.getId(), symbol, expectedR, minExpectedR);
+                tradingMetrics.signalFiltered("ExpectedValueGate", "expected_value_input_invalid");
+                record.setAutoTraded(false);
+                record.setFilterReason("ExpectedValueGate: expected value input invalid");
+                liveSignalRepository.save(record);
+                Map<String, Object> evBlockContext = candidateTradePlanContext(
+                        expectedRDecision, minExpectedR, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
+                evBlockContext.put("strategyAllowlisted", isTqsStrategyAllowlisted(strategy));
+                evBlockContext.put("ev_reason", "EXPECTED_VALUE_INPUT_INVALID");
+                evBlockContext.put("abort_reason", "AUTO_TRADE_ABORTED");
+                evBlockContext.put("gate_enabled", true);
+                tradeQualityEngine.applyV0(evBlockContext, "ExpectedValueGate");
+                auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
+                        "ExpectedValueGate", "expected value input invalid", evBlockContext, record.getId());
+                return;
+            }
+            if (evGateEnabled && expectedValueThreshold.normalizedExpectedR().signum() <= 0) {
                 log.info("[LiveSignal] LONG blocked by preTradeExpectedValueGate (EV<=0): strategyId={} symbol={} expectedR={}",
                         strategy.getId(), symbol, String.format("%.4f", expectedR));
                 tradingMetrics.signalFiltered("ExpectedValueGate", "expected_r<=0");
@@ -998,7 +1020,7 @@ public class LiveSignalEvaluator {
                         "ExpectedValueGate", "expectedR<=0", evBlockContext, record.getId());
                 return;
             }
-            if (evGateEnabled && expectedR < minExpectedR) {
+            if (evGateEnabled && !expectedValueThreshold.passed()) {
                 log.info("[LiveSignal] LONG blocked by preTradeExpectedValueGate (below threshold): strategyId={} symbol={} expectedR={} min={}",
                         strategy.getId(), symbol, String.format("%.4f", expectedR), minExpectedR);
                 tradingMetrics.signalFiltered("ExpectedValueGate", "expected_r_below_threshold");
@@ -1314,14 +1336,23 @@ public class LiveSignalEvaluator {
                     "ExpectedValueGate", "calibrated win probability unavailable", evContext, liveSignalId);
             return;
         }
-        if (expectedR <= 0) {
+        ExpectedValueThresholdDecision expectedValueThreshold =
+                evaluateExpectedValueThreshold(expectedR, minExpectedR);
+        if (!expectedValueThreshold.valid()) {
+            evContext.put("ev_reason", "EXPECTED_VALUE_INPUT_INVALID");
+            tradeQualityEngine.applyV0(evContext, "ExpectedValueGate");
+            auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
+                    "ExpectedValueGate", "expected value input invalid", evContext, liveSignalId);
+            return;
+        }
+        if (expectedValueThreshold.normalizedExpectedR().signum() <= 0) {
             evContext.put("ev_reason", "expectedR<=0");
             tradeQualityEngine.applyV0(evContext, "ExpectedValueGate");
             auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
                     "ExpectedValueGate", "expectedR<=0", evContext, liveSignalId);
             return;
         }
-        if (expectedR < minExpectedR) {
+        if (!expectedValueThreshold.passed()) {
             evContext.put("ev_reason", "expectedR<minExpectedR");
             tradeQualityEngine.applyV0(evContext, "ExpectedValueGate");
             auditWriter.logFilterBlock(strategy.getId(), symbol, intervalCode,
@@ -1410,6 +1441,12 @@ public class LiveSignalEvaluator {
         Map<String, Object> ctx = autonomousIntentBaseContext(
                 expectedRDecision, stopLossPct, takeProfitPct, entry, tp, sl, snap, fearGreedGate);
         ctx.put("min_expected_r", minExpectedR);
+        ExpectedValueThresholdDecision thresholdDecision =
+                evaluateExpectedValueThreshold(expectedRDecision.expectedR(), minExpectedR);
+        ctx.put("expected_r_decimal_scale", EXPECTED_VALUE_DECIMAL_SCALE);
+        ctx.put("expected_r_rounding_mode", EXPECTED_VALUE_ROUNDING_MODE.name());
+        ctx.put("expected_r_normalized", thresholdDecision.normalizedExpectedR());
+        ctx.put("min_expected_r_normalized", thresholdDecision.normalizedMinExpectedR());
         ctx.put("candidateEntry", entry);
         ctx.put("candidateTp", tp);
         ctx.put("candidateSl", sl);
@@ -3010,6 +3047,39 @@ public class LiveSignalEvaluator {
         double expectedR = pWin * (takeProfitPct / stopLossPct) - (1.0 - pWin);
         return new ExpectedRDecision(expectedR, pWin,
                 "LIVE_SIGNAL_CONTEXT_NN_OUTPUT:" + strategyType.toUpperCase(Locale.ROOT), true);
+    }
+
+    /**
+     * Applies the ExpectedValueGate decimal contract before comparison. Four decimal places match
+     * the gate's persisted/operator-visible precision; HALF_EVEN avoids directional threshold bias.
+     * Invalid, non-finite, null, or negative inputs fail closed and never reach comparison.
+     */
+    static ExpectedValueThresholdDecision evaluateExpectedValueThreshold(Double expectedR,
+                                                                          Double minExpectedR) {
+        if (expectedR == null || minExpectedR == null
+                || !Double.isFinite(expectedR) || !Double.isFinite(minExpectedR)
+                || expectedR < 0.0 || minExpectedR < 0.0) {
+            return new ExpectedValueThresholdDecision(
+                    null, null, false, false, "EXPECTED_VALUE_INPUT_INVALID");
+        }
+        BigDecimal normalizedExpectedR = BigDecimal.valueOf(expectedR)
+                .setScale(EXPECTED_VALUE_DECIMAL_SCALE, EXPECTED_VALUE_ROUNDING_MODE);
+        BigDecimal normalizedMinExpectedR = BigDecimal.valueOf(minExpectedR)
+                .setScale(EXPECTED_VALUE_DECIMAL_SCALE, EXPECTED_VALUE_ROUNDING_MODE);
+        boolean passed = normalizedExpectedR.signum() > 0
+                && normalizedExpectedR.compareTo(normalizedMinExpectedR) >= 0;
+        String reason = normalizedExpectedR.signum() <= 0
+                ? "expectedR<=0"
+                : (passed ? "pass" : "expectedR<minExpectedR");
+        return new ExpectedValueThresholdDecision(
+                normalizedExpectedR, normalizedMinExpectedR, true, passed, reason);
+    }
+
+    static record ExpectedValueThresholdDecision(BigDecimal normalizedExpectedR,
+                                                  BigDecimal normalizedMinExpectedR,
+                                                  boolean valid,
+                                                  boolean passed,
+                                                  String reason) {
     }
 
     static record ExpectedRDecision(double expectedR,

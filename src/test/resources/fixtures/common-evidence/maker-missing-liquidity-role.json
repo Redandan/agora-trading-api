@@ -1,0 +1,10 @@
+{
+  "version":"MINIMUM_COMMON_EVIDENCE_CONTRACT_NEXT_V1","specSha256":"0a66d2e05b8968d028fc592401b2a488496292a6adb1d5c4272d0d7259441b3a","sourceCommit":"93e80abd",
+  "decisionLink":{"decisionId":"d","interval":"1m","side":"BUY","barId":"b","action":"ENTER"},
+  "timestamps":{"eventAt":"2026-07-16T00:00:00Z","effectiveAt":"2026-07-16T00:00:01Z","availableAt":"2026-07-16T00:00:02Z","observedAt":"2026-07-16T00:00:03Z","decisionAt":"2026-07-16T00:00:04Z","ingestedAt":"2026-07-16T00:00:05Z"},
+  "executableDepth":{"kind":"FULL_DEPTH","bids":[{"price":100,"size":1,"orderCount":1,"liquidationOrderCount":0}],"asks":[{"price":101,"size":1,"orderCount":1,"liquidationOrderCount":0}]},
+  "fill":{"orderId":"o","tradeId":"t","price":100,"quantity":1,"side":"BUY","lifecycle":"FILLED"},
+  "signedFee":{"identity":"t:USDT","notional":100,"reconciledNotional":100,"signedAmount":-0.1,"currency":"USDT"},
+  "funding":{"actualBill":{"identity":"b","notional":100,"reconciledNotional":100,"signedAmount":-0.01,"currency":"USDT"},"counterfactualFunding":{"identity":"c","notional":100,"reconciledNotional":100,"signedAmount":-0.02,"currency":"USDT"}},
+  "filterCounterfactual":{"blockerProofPresent":true,"eventRisk":"PASS","expectedValue":"PASS","fearGreedCausalEvidencePresent":true},"makerFirst":{"requestedQuantity":1}
+}

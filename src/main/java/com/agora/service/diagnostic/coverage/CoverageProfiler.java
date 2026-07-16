@@ -387,7 +387,11 @@ public final class CoverageProfiler {
         MARKET_INDICATOR_HISTORY("market_indicator_history"),
         BT_DECISION_AUDIT("bt_decision_audit"),
         BT_LIVE_SIGNAL("bt_live_signal"),
-        BT_RUNTIME_DECISION_EVIDENCE("bt_runtime_decision_evidence");
+        BT_RUNTIME_DECISION_EVIDENCE("bt_runtime_decision_evidence"),
+        EXECUTABLE_QUOTE_SNAPSHOT("executable_quote_snapshot"),
+        FILL_FEE_LEDGER("fill_fee_ledger"),
+        FUNDING_BILL_LEDGER("funding_bill_ledger"),
+        MARGIN_SNAPSHOT("margin_snapshot");
 
         private final String value;
 

@@ -1,0 +1,16 @@
+{
+  "code": "0",
+  "data": [
+    {
+      "instId": "BTC-USDT",
+      "instType": "SPOT",
+      "ordId": "order-1",
+      "tradeId": "trade-1",
+      "fillTime": "1710000000000",
+      "fee": "-0.250000000000",
+      "feeCcy": "USDT",
+      "secretKey": "MUST_NOT_PERSIST"
+    }
+  ],
+  "msg": ""
+}

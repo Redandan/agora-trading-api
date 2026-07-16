@@ -1,0 +1,15 @@
+{
+  "code": "0",
+  "data": [
+    {
+      "instId": "BTC-USDT",
+      "asks": [["50001.0", "1.25", "0", "2"]],
+      "bids": [["50000.0", "1.50", "0", "3"]],
+      "ts": "1710000000000",
+      "seqId": "9001",
+      "apiKey": "MUST_NOT_PERSIST",
+      "headers": {"OK-ACCESS-SIGN": "MUST_NOT_PERSIST"}
+    }
+  ],
+  "msg": ""
+}

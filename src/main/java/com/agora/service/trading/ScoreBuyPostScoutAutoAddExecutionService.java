@@ -15,12 +15,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -118,7 +117,8 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         } catch (Exception e) {
             audit.setOutcome("ERROR");
             audit.setReason("ORDER_FAILED: " + truncate(e.getMessage(), 420));
-            audit.setContextJson(receipt(preview, null, null, "ORDER_FAILED", e.getMessage(), false));
+            audit.setContextJson(receipt(preview, null, null, "ORDER_FAILED", e.getMessage(), false,
+                    evaluation.currentOpportunityKey()));
             decisionAuditRepository.save(audit);
             return writeExecutionResult(audit, false, false, null, null);
         }
@@ -132,9 +132,11 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
             audit.setLiveSignalId(signal.getId());
             audit.setOutcome("PASS");
             audit.setReason("EXECUTED_OCO_ATTACHED");
-            audit.setContextJson(receipt(preview, buy, ocoAlgoId, "EXECUTED_OCO_ATTACHED", null, true));
+            audit.setContextJson(receipt(preview, buy, ocoAlgoId, "EXECUTED_OCO_ATTACHED", null, true,
+                    evaluation.currentOpportunityKey()));
             decisionAuditRepository.save(audit);
-            writeEvidence(audit, signal, preview, buy, ocoAlgoId, "EXECUTED_OCO_ATTACHED");
+            writeEvidence(audit, signal, preview, buy, ocoAlgoId, "EXECUTED_OCO_ATTACHED",
+                    evaluation.currentOpportunityKey());
             telegramService.sendAlert("SCORE_BUY post-scout add executed. symbol=" + sym
                             + " strategyId=" + sid + " addType=" + evaluation.addOnType()
                             + " notional=" + notional + " orderId=" + buy.getOrderId()
@@ -145,7 +147,7 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
             audit.setOutcome("ERROR");
             audit.setReason("CRITICAL_UNPROTECTED_SCORE_BUY_POST_SCOUT_ADD: " + truncate(e.getMessage(), 360));
             audit.setContextJson(receipt(preview, buy, ocoAlgoId, "CRITICAL_UNPROTECTED_SCORE_BUY_POST_SCOUT_ADD",
-                    e.getMessage(), true));
+                    e.getMessage(), true, evaluation.currentOpportunityKey()));
             decisionAuditRepository.save(audit);
             if (signal == null) {
                 signal = saveSignal(sid, sym, previewEntry, tp, sl, buy, null,
@@ -153,7 +155,8 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
                 audit.setLiveSignalId(signal.getId());
                 decisionAuditRepository.save(audit);
             }
-            writeEvidence(audit, signal, preview, buy, ocoAlgoId, "CRITICAL_UNPROTECTED_SCORE_BUY_POST_SCOUT_ADD");
+            writeEvidence(audit, signal, preview, buy, ocoAlgoId, "CRITICAL_UNPROTECTED_SCORE_BUY_POST_SCOUT_ADD",
+                    evaluation.currentOpportunityKey());
             telegramService.sendAlert("CRITICAL_UNPROTECTED_SCORE_BUY_POST_SCOUT_ADD order placed but OCO attach/audit failed. symbol="
                             + sym + " orderId=" + buy.getOrderId() + " error=" + e.getMessage(),
                     false, "ScoreBuyPostScoutAdd", "CRITICAL");
@@ -201,11 +204,6 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         }
         if (prePositionSummary.path("exactDuplicateOpportunity").asBoolean(false)) {
             blockers.add("EXACT_DUPLICATE_OPPORTUNITY");
-        }
-
-        OpportunityDedup dedup = evaluateOpportunityDedup(preview, strategyId, symbol);
-        if (!dedup.distinct()) {
-            blockers.add("SAME_POST_SCOUT_OPPORTUNITY_COOLDOWN");
         }
 
         OcoHealth ocoHealth = checkExistingOcoHealth(strategyId, symbol);
@@ -257,6 +255,11 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
             blockers.removeIf(this::isPostScoutCapBlocker);
             effectiveMaxOrdersPerDay = Math.max(effectiveMaxOrdersPerDay, postScoutOrdersToday + 1);
             warnings.add("MISSED_ALPHA_ADAPTIVE_MICRO_SLOT_USED");
+        }
+        String executionSlotTag = executionSlotTag(missedAlphaMicroSlot.applied());
+        OpportunityDedup dedup = evaluateOpportunityDedup(preview, strategyId, symbol, executionSlotTag);
+        if (!dedup.distinct()) {
+            blockers.add("SAME_POST_SCOUT_OPPORTUNITY_COOLDOWN");
         }
         if (writePath && dryRun()) {
             blockers.add("DRY_RUN_ENABLED");
@@ -701,7 +704,8 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
             return "All non-cap gates passed in this preview; wait for the UTC daily cap reset and recheck all gates before any add.";
         }
         if (evaluation.blockers().contains("SAME_POST_SCOUT_OPPORTUNITY_COOLDOWN")) {
-            return "Same post-scout opportunity already produced an add inside the cooldown window; wait for a new 15m decision bar or a materially different price/OCO tuple.";
+            return "Same stable post-scout identity already produced an add inside the cooldown window; "
+                    + "wait for a different decision bar, side, strategy, management state, invalidation, or execution slot.";
         }
         return "Blocked by the listed primary blockers; no order is sent.";
     }
@@ -829,7 +833,7 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
     }
 
     private void writeEvidence(BtDecisionAudit audit, BtLiveSignal signal, JsonNode preview,
-                               TradeResult buy, Long ocoAlgoId, String outcome) {
+                               TradeResult buy, Long ocoAlgoId, String outcome, String opportunityKey) {
         RuntimeDecisionEvidence evidence = new RuntimeDecisionEvidence();
         evidence.setDecisionId(audit.getId());
         evidence.setEvidenceTime(LocalDateTime.now(ZoneOffset.UTC));
@@ -848,12 +852,12 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         evidence.setOrderSent(true);
         evidence.setExecutionMode("SCORE_BUY_POST_SCOUT_ADD_AUTO");
         evidence.setOcoOrderListId(ocoAlgoId == null ? null : String.valueOf(ocoAlgoId));
-        evidence.setExecutionPreviewJson(receipt(preview, buy, ocoAlgoId, outcome, null, true));
+        evidence.setExecutionPreviewJson(receipt(preview, buy, ocoAlgoId, outcome, null, true, opportunityKey));
         evidenceRepository.save(evidence);
     }
 
     private String receipt(JsonNode preview, TradeResult buy, Long ocoAlgoId, String status, String error,
-                           boolean orderAttempted) {
+                           boolean orderAttempted, String opportunityKey) {
         ObjectNode node = objectMapper.createObjectNode();
         node.put("version", "score-buy-post-scout-add-v0");
         node.put("status", status);
@@ -877,8 +881,7 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         node.put("holdBtcMode", preview.path("holdBtcMode").asBoolean(false));
         node.put("disasterOcoMode", text(preview, "disasterOcoMode", "KEEP_12PCT_HARD_OCO"));
         node.put("eventRiskLevel", text(preview, "eventRiskLevel", "UNKNOWN"));
-        node.put("postScoutOpportunityKey", opportunityKey(preview,
-                Long.parseLong(text(preview, "strategyId", String.valueOf(DEFAULT_STRATEGY_ID)))));
+        node.put("postScoutOpportunityKey", opportunityKey);
         node.put("autonomousExecutionScope", "BTCUSDT/485/LONG/SCORE_BUY_POST_SCOUT_ADD");
         if (error != null) node.put("error", truncate(error, 420));
         return node.toString();
@@ -899,16 +902,26 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         return write(root);
     }
 
-    private OpportunityDedup evaluateOpportunityDedup(JsonNode preview, long strategyId, String symbol) {
+    private OpportunityDedup evaluateOpportunityDedup(JsonNode preview, long strategyId, String symbol,
+                                                      String executionSlotTag) {
         int cooldownMinutes = opportunityCooldownMinutes();
-        String currentKey = opportunityKey(preview, strategyId);
+        String currentKey = opportunityKey(preview, strategyId, SIDE, executionSlotTag);
         LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(cooldownMinutes);
         List<BtLiveSignal> recent = liveSignalRepository.findRecentScoreBuyPostScoutAddTradesSince(
-                strategyId, symbol, since, PageRequest.of(0, 1));
+                strategyId, symbol, since, Pageable.unpaged());
         BtLiveSignal last = recent == null || recent.isEmpty() ? null : recent.get(0);
         if (last == null) {
             return new OpportunityDedup(currentKey, "NONE", "N/A", true,
                     "NO_RECENT_POST_SCOUT_ADD", cooldownMinutes);
+        }
+        BtLiveSignal matching = recent.stream()
+                .filter(row -> currentKey.equals(opportunityKeyFromFilterReason(row.getFilterReason())))
+                .findFirst()
+                .orElse(null);
+        if (matching != null) {
+            String matchingAt = matching.getCreatedAt() == null ? "UNKNOWN" : matching.getCreatedAt().toString();
+            return new OpportunityDedup(currentKey, currentKey, matchingAt, false,
+                    "SAME_POST_SCOUT_OPPORTUNITY_WITHIN_COOLDOWN", cooldownMinutes);
         }
         String lastKey = opportunityKeyFromFilterReason(last.getFilterReason());
         String lastAt = last.getCreatedAt() == null ? "UNKNOWN" : last.getCreatedAt().toString();
@@ -916,44 +929,51 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
             return new OpportunityDedup(currentKey, "UNKNOWN", lastAt, true,
                     "RECENT_ADD_HAS_NO_OPPORTUNITY_KEY_LEGACY_ROW", cooldownMinutes);
         }
-        if (currentKey.equals(lastKey)) {
-            return new OpportunityDedup(currentKey, lastKey, lastAt, false,
-                    "SAME_POST_SCOUT_OPPORTUNITY_WITHIN_COOLDOWN", cooldownMinutes);
-        }
         return new OpportunityDedup(currentKey, lastKey, lastAt, true,
                 "DISTINCT_POST_SCOUT_OPPORTUNITY", cooldownMinutes);
     }
 
-    private String opportunityKey(JsonNode preview, long strategyId) {
-        BigDecimal entry = money(preview, "entry", BigDecimal.ZERO);
-        BigDecimal tp = money(preview, "tp", BigDecimal.ZERO);
-        BigDecimal sl = money(preview, "sl", BigDecimal.ZERO);
+    String opportunityKey(JsonNode preview, long strategyId, String side, String executionSlotTag) {
         return String.join("|",
                 normalizeSymbol(text(preview, "symbol", DEFAULT_SYMBOL)),
                 String.valueOf(strategyId),
-                SIDE,
+                normalizeIdentityComponent(side, "UNKNOWN"),
                 text(preview, "postScoutManagementState", "UNKNOWN"),
                 text(preview, "addOnType", "UNKNOWN"),
                 "bar=" + text(preview.path("observerSummary"), "intradayReversalDecisionBarOpenTime", "UNKNOWN"),
-                "entry=" + priceBucket(entry),
-                "tp=" + priceBucket(tp),
-                "sl=" + priceBucket(sl),
                 "risk=" + text(preview, "eventRiskLevel", "UNKNOWN"),
-                "inv=" + text(preview, "formationInvalidationReason", "NONE"));
+                "inv=" + text(preview, "formationInvalidationReason", "NONE"),
+                "slot=" + normalizeIdentityComponent(executionSlotTag, "UNKNOWN"));
     }
 
-    private String opportunityKeyFromFilterReason(String filterReason) {
+    String opportunityKeyFromFilterReason(String filterReason) {
         if (filterReason == null) return "";
         int marker = filterReason.indexOf("|OPP:");
         if (marker < 0) return "";
-        return filterReason.substring(marker + 5).trim();
+        String executionSlotTag = markerValue(filterReason.substring(0, marker), "|SLOT:");
+        String rawKey = filterReason.substring(marker + 5).trim();
+        List<String> stableParts = java.util.Arrays.stream(rawKey.split("\\|"))
+                .filter(part -> !part.startsWith("entry=")
+                        && !part.startsWith("tp=")
+                        && !part.startsWith("sl=")
+                        && !part.startsWith("slot="))
+                .toList();
+        return String.join("|", stableParts)
+                + "|slot=" + normalizeIdentityComponent(executionSlotTag, "UNKNOWN");
     }
 
-    private String priceBucket(BigDecimal value) {
-        if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) return "0";
-        BigDecimal bucket = new BigDecimal("50");
-        return value.divide(bucket, 0, RoundingMode.DOWN).multiply(bucket)
-                .setScale(0, RoundingMode.DOWN).toPlainString();
+    private String markerValue(String value, String marker) {
+        int start = value.indexOf(marker);
+        if (start < 0) return "";
+        return value.substring(start + marker.length()).trim();
+    }
+
+    private String normalizeIdentityComponent(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String executionSlotTag(boolean missedAlphaMicroSlotApplied) {
+        return missedAlphaMicroSlotApplied ? "MISSED_ALPHA_MICRO" : "STANDARD";
     }
 
     private OcoHealth checkExistingOcoHealth(long strategyId, String symbol) {

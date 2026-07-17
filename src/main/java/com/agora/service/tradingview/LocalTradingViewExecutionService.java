@@ -78,6 +78,7 @@ public class LocalTradingViewExecutionService {
     private final VersionedProfitStartHardGateInputAssembler hardGateInputAssembler;
     private final VersionedProfitStartHardGateSnapshotService hardGateSnapshotService;
     private final VersionedProfitStartActivationReadinessService activationReadinessService;
+    private final PreSubmitEvidencePersistenceService preSubmitEvidencePersistenceService;
     private final ObjectMapper objectMapper;
     private final TelegramService telegramService;
 
@@ -155,17 +156,25 @@ public class LocalTradingViewExecutionService {
             return "VersionedProfitStartActivationBlocked";
         }
 
-        VersionedProfitStartHardGateSnapshotService.Inputs boundaryInputs =
-                hardGateInputAssembler.assemble(cohortSnapshot, context);
-        VersionedProfitStartHardGateSnapshotService.BoundaryDecision boundary =
-                hardGateSnapshotService.verifyAtOrderBoundary(hardGate, boundaryInputs, Instant.now());
-        context.put("versionedProfitStartOrderBoundaryAllowed", boundary.allowed());
-        context.put("versionedProfitStartOrderBoundaryBlockers", boundary.reasons());
-        if (!boundary.allowed()) {
-            return "VersionedProfitStartHardGateBoundaryRejected";
-        }
         if (!savePreSubmitSnapshotEvidence(strategy, symbol, interval, kline, context, hardGate)) {
             return "VersionedProfitStartHardGateEvidenceSaveFailed";
+        }
+
+        try {
+            VersionedProfitStartCohortService.Snapshot freshCohortSnapshot =
+                    versionedProfitStartCohortService.snapshot();
+            VersionedProfitStartHardGateSnapshotService.Inputs freshBoundaryInputs =
+                    hardGateInputAssembler.assemble(freshCohortSnapshot, context);
+            VersionedProfitStartHardGateSnapshotService.BoundaryDecision boundary =
+                    hardGateSnapshotService.verifyAtOrderBoundary(hardGate, freshBoundaryInputs, Instant.now());
+            context.put("versionedProfitStartOrderBoundaryAllowed", boundary.allowed());
+            context.put("versionedProfitStartOrderBoundaryBlockers", boundary.reasons());
+            if (!boundary.allowed()) {
+                return "VersionedProfitStartHardGateBoundaryRejected";
+            }
+        } catch (Exception e) {
+            context.put("versionedProfitStartFreshBoundaryError", truncate(e.getMessage(), 420));
+            return "VersionedProfitStartHardGateFreshInputsFailed";
         }
         return null;
     }
@@ -177,12 +186,11 @@ public class LocalTradingViewExecutionService {
                                                    Map<String, Object> context,
                                                    VersionedProfitStartHardGateSnapshotService.Snapshot hardGate) {
         try {
-            BtDecisionAudit audit = saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "PASS",
+            BtDecisionAudit audit = executionAudit(strategy, symbol, interval, kline.getOpenTime(), "PASS",
                     "VersionedProfitStartHardGateReadyPreSubmit",
-                    "Fresh versioned-profit hard-gate snapshot bound before provider order submission",
+                    "Durable versioned-profit hard-gate snapshot bound before provider order submission",
                     context, null);
             RuntimeDecisionEvidence evidence = new RuntimeDecisionEvidence();
-            evidence.setDecisionId(audit.getId());
             evidence.setEvidenceTime(LocalDateTime.now(ZoneOffset.UTC));
             evidence.setSymbol(symbol);
             evidence.setSide(SIDE);
@@ -198,9 +206,9 @@ public class LocalTradingViewExecutionService {
             evidence.setIntentCreated(true);
             evidence.setExecutionMode(props.executionMode().name());
             evidence.setExecutionPreviewJson(objectMapper.valueToTree(hardGate).toString());
-            RuntimeDecisionEvidence saved = evidenceRepository.save(evidence);
-            if (saved == null) return false;
-            context.put("versionedProfitStartPreSubmitDecisionId", audit.getId());
+            Long decisionId = preSubmitEvidencePersistenceService.persist(audit, evidence);
+            context.put("versionedProfitStartPreSubmitDecisionId", decisionId);
+            context.put("versionedProfitStartPreSubmitEvidenceDurable", true);
             return true;
         } catch (Exception e) {
             context.put("versionedProfitStartPreSubmitEvidenceError", truncate(e.getMessage(), 420));
@@ -341,10 +349,6 @@ public class LocalTradingViewExecutionService {
         context.put("wouldExecute", true);
         context.put("orderSent", false);
         context.put("ocoAttached", false);
-        saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "INFO",
-                "LocalTradingViewOrderPlacementStarted",
-                "Local TradingView parity order placement started", context, null);
-
         TradeResult buy;
         try {
             buy = tradingService.placeMarketBuy(symbol, notional.setScale(2, RoundingMode.HALF_UP).doubleValue());
@@ -439,10 +443,6 @@ public class LocalTradingViewExecutionService {
         context.put("wouldExecute", true);
         context.put("orderSent", false);
         context.put("ocoAttached", false);
-        saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "INFO",
-                "LocalTradingViewBtcBaseOrderPlacementStarted",
-                "Local TradingView BTC_BASE market buy placement started", context, null);
-
         TradeResult buy;
         try {
             buy = tradingService.placeMarketBuy(symbol, notional.setScale(2, RoundingMode.HALF_UP).doubleValue());
@@ -570,6 +570,19 @@ public class LocalTradingViewExecutionService {
                                                String reason,
                                                Map<String, Object> context,
                                                Long liveSignalId) {
+        return decisionAuditRepository.save(executionAudit(strategy, symbol, interval, barOpenTime,
+                outcome, blocker, reason, context, liveSignalId));
+    }
+
+    private BtDecisionAudit executionAudit(BtStrategy strategy,
+                                           String symbol,
+                                           String interval,
+                                           LocalDateTime barOpenTime,
+                                           String outcome,
+                                           String blocker,
+                                           String reason,
+                                           Map<String, Object> context,
+                                           Long liveSignalId) {
         BtDecisionAudit audit = new BtDecisionAudit();
         audit.setEventTime(LocalDateTime.now(ZoneOffset.UTC));
         audit.setStrategyId(strategy.getId());
@@ -582,7 +595,7 @@ public class LocalTradingViewExecutionService {
         audit.setReason(truncate(reason, 500));
         audit.setContextJson(toJson(context));
         audit.setLiveSignalId(liveSignalId);
-        return decisionAuditRepository.save(audit);
+        return audit;
     }
 
     private void writeEvidence(BtDecisionAudit audit,

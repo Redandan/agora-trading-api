@@ -183,6 +183,7 @@ class KlineClosedEventListenerTest {
                 readyHardGateAssembler(),
                 readyHardGateService(),
                 readyActivationReadiness(),
+                mock(com.agora.service.tradingview.PreSubmitEvidencePersistenceService.class),
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
@@ -242,6 +243,7 @@ class KlineClosedEventListenerTest {
                 readyHardGateAssembler(),
                 readyHardGateService(),
                 readyActivationReadiness(),
+                mock(com.agora.service.tradingview.PreSubmitEvidencePersistenceService.class),
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(

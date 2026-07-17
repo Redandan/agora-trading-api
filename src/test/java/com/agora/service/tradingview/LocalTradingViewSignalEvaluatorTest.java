@@ -412,6 +412,7 @@ class LocalTradingViewSignalEvaluatorTest {
                 mock(com.agora.service.trading.VersionedProfitStartHardGateInputAssembler.class),
                 mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.class),
                 mock(com.agora.service.trading.VersionedProfitStartActivationReadinessService.class),
+                mock(PreSubmitEvidencePersistenceService.class),
                 new ObjectMapper(),
                 mock(com.agora.service.TelegramService.class));
     }

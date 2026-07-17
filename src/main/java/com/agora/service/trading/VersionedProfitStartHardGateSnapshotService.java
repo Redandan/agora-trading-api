@@ -34,6 +34,7 @@ public class VersionedProfitStartHardGateSnapshotService {
     private static final Pattern COMMIT = Pattern.compile("^[0-9a-f]{40}$");
     private static final Pattern SAFE_ID = Pattern.compile("^[A-Z0-9._:-]{1,160}$");
     private static final int MAX_DECIMAL_PRECISION = 38;
+    private static final int MAX_DECIMAL_INTEGER_DIGITS = 38;
 
     public Snapshot snapshot(Inputs inputs) {
         return evaluate(inputs);
@@ -233,7 +234,7 @@ public class VersionedProfitStartHardGateSnapshotService {
         }
         BigDecimal total = BigDecimal.ZERO;
         for (int i = 0; i < all.length - 1; i++) total = total.add(all[i]);
-        if (total.precision() > MAX_DECIMAL_PRECISION) {
+        if (invalidDecimal(total)) {
             block("EXPOSURE", "EXPOSURE_ARITHMETIC_OVERFLOW", gates, stops);
         } else if (total.compareTo(exposure.cap()) > 0) {
             block("EXPOSURE", "CROSS_STRATEGY_EXPOSURE_CAP_BREACHED", gates, stops);
@@ -330,7 +331,14 @@ public class VersionedProfitStartHardGateSnapshotService {
     }
 
     private boolean invalidDecimal(BigDecimal value) {
-        return value == null || value.signum() < 0 || value.precision() > MAX_DECIMAL_PRECISION;
+        if (value == null || value.signum() < 0 || value.precision() > MAX_DECIMAL_PRECISION) {
+            return true;
+        }
+        // BigDecimal precision alone does not bound negative-scale values: 1E+1000 has
+        // precision 1 but 1001 integer digits. Use long arithmetic so an extreme int scale
+        // cannot overflow the domain check itself.
+        long integerDigits = Math.max(0L, (long) value.precision() - value.scale());
+        return integerDigits > MAX_DECIMAL_INTEGER_DIGITS;
     }
 
     private boolean isTinyLiveMode(String value) {

@@ -84,6 +84,38 @@ class VersionedProfitStartHardGateSnapshotServiceTest {
     }
 
     @Test
+    void negativeScaleNotionalOverflowStopsWithExistingMalformedReason() {
+        var base = clearInputs();
+        var overflowingOrder = limitsWithNotional(base, new BigDecimal("1E+1000"), new BigDecimal("5"));
+        var overflowingMinimum = limitsWithNotional(base, new BigDecimal("5"), new BigDecimal("1E+1000"));
+
+        assertStop(copy(base, base.candidate(), base.primaryTrend1h(), base.primaryTrend4h(), base.eventRisk(),
+                overflowingOrder, base.exposure(), base.oco(), base.runtimeWriter()),
+                "ORDER_SIZE_MISSING_MALFORMED_OR_OVERFLOW");
+        assertStop(copy(base, base.candidate(), base.primaryTrend1h(), base.primaryTrend4h(), base.eventRisk(),
+                overflowingMinimum, base.exposure(), base.oco(), base.runtimeWriter()),
+                "ORDER_SIZE_MISSING_MALFORMED_OR_OVERFLOW");
+    }
+
+    @Test
+    void negativeScaleIntegerDigitBoundaryAndReasonableFractionRemainClear() {
+        var base = clearInputs();
+        var boundedNegativeScale = limitsWithNotional(base, new BigDecimal("1E+37"), new BigDecimal("1E+37"));
+        var overflowingNegativeScale = limitsWithNotional(base, new BigDecimal("1E+38"), new BigDecimal("1E+37"));
+        var reasonableFraction = limitsWithNotional(base, new BigDecimal("5.125"), new BigDecimal("5.00"));
+
+        assertThat(service.evaluate(copy(base, base.candidate(), base.primaryTrend1h(), base.primaryTrend4h(),
+                base.eventRisk(), boundedNegativeScale, base.exposure(), base.oco(), base.runtimeWriter())).decision())
+                .isEqualTo(VersionedProfitStartHardGateSnapshotService.Decision.READY);
+        assertStop(copy(base, base.candidate(), base.primaryTrend1h(), base.primaryTrend4h(), base.eventRisk(),
+                overflowingNegativeScale, base.exposure(), base.oco(), base.runtimeWriter()),
+                "ORDER_SIZE_MISSING_MALFORMED_OR_OVERFLOW");
+        assertThat(service.evaluate(copy(base, base.candidate(), base.primaryTrend1h(), base.primaryTrend4h(),
+                base.eventRisk(), reasonableFraction, base.exposure(), base.oco(), base.runtimeWriter())).decision())
+                .isEqualTo(VersionedProfitStartHardGateSnapshotService.Decision.READY);
+    }
+
+    @Test
     void candidateHorizonCannotReplaceEitherPrimaryTrend() {
         var base = clearInputs();
         assertStop(copy(base, base.candidate(), blockedGate(), base.primaryTrend4h(), base.eventRisk(),
@@ -164,6 +196,18 @@ class VersionedProfitStartHardGateSnapshotServiceTest {
                         VersionedProfitStartHardGateSnapshotService.OcoPolicy.REQUIRED,
                         false, true, clearGate(), clearGate()),
                 clearGate());
+    }
+
+    private VersionedProfitStartHardGateSnapshotService.Limits limitsWithNotional(
+            VersionedProfitStartHardGateSnapshotService.Inputs base,
+            BigDecimal orderNotional,
+            BigDecimal minimumOrderNotional) {
+        var limits = base.limits();
+        return new VersionedProfitStartHardGateSnapshotService.Limits(
+                orderNotional, minimumOrderNotional, limits.lotValid(),
+                limits.ordersToday(), limits.maxOrdersPerDay(), limits.openPositions(), limits.maxOpenPositions(),
+                limits.duplicateOpportunity(), limits.currentCohortClosedEpisodes(), limits.sequentialLosses(),
+                limits.maxSequentialLosses());
     }
 
     private VersionedProfitStartHardGateSnapshotService.CohortIdentity identity(String symbol) {

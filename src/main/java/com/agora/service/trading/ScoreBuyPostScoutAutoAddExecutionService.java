@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +48,7 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
     private static final BigDecimal MIN_NOTIONAL = new BigDecimal("5.00");
     private static final BigDecimal DEFAULT_MAX_LOSS_BUDGET = new BigDecimal("2.00");
     private static final int MAX_BUDGET_AWARE_OPEN_POSITIONS = 16;
+    private static final int MAX_OPPORTUNITY_HISTORY_ROWS = 100;
     private static final String TIER_PULLBACK = "PULLBACK_BASE";
     private static final String TIER_PARTIAL_REVERSAL = "PARTIAL_REVERSAL_BASE";
     private static final String TIER_CONFIRMATION = "CONFIRMATION_RESERVED";
@@ -908,11 +909,26 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         String currentKey = opportunityKey(preview, strategyId, SIDE, executionSlotTag);
         LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(cooldownMinutes);
         List<BtLiveSignal> recent = liveSignalRepository.findRecentScoreBuyPostScoutAddTradesSince(
-                strategyId, symbol, since, Pageable.unpaged());
+                strategyId, symbol, since, PageRequest.of(0, MAX_OPPORTUNITY_HISTORY_ROWS + 1));
+        if (recent != null && recent.size() > MAX_OPPORTUNITY_HISTORY_ROWS) {
+            return new OpportunityDedup(currentKey, "UNKNOWN", "UNKNOWN", false,
+                    "POST_SCOUT_OPPORTUNITY_HISTORY_TRUNCATED_FAIL_CLOSED", cooldownMinutes);
+        }
         BtLiveSignal last = recent == null || recent.isEmpty() ? null : recent.get(0);
         if (last == null) {
             return new OpportunityDedup(currentKey, "NONE", "N/A", true,
                     "NO_RECENT_POST_SCOUT_ADD", cooldownMinutes);
+        }
+        BtLiveSignal malformed = recent.stream()
+                .filter(row -> hasOpportunityKeyMarker(row.getFilterReason()))
+                .filter(row -> opportunityKeyFromFilterReason(row.getFilterReason()).isBlank())
+                .findFirst()
+                .orElse(null);
+        if (malformed != null) {
+            String malformedAt = malformed.getCreatedAt() == null
+                    ? "UNKNOWN" : malformed.getCreatedAt().toString();
+            return new OpportunityDedup(currentKey, "MALFORMED", malformedAt, false,
+                    "MALFORMED_POST_SCOUT_OPPORTUNITY_KEY_FAIL_CLOSED", cooldownMinutes);
         }
         BtLiveSignal matching = recent.stream()
                 .filter(row -> currentKey.equals(opportunityKeyFromFilterReason(row.getFilterReason())))
@@ -958,8 +974,34 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
                         && !part.startsWith("sl=")
                         && !part.startsWith("slot="))
                 .toList();
+        if (!isStructurallyValidOpportunityKey(stableParts, executionSlotTag)) return "";
         return String.join("|", stableParts)
                 + "|slot=" + normalizeIdentityComponent(executionSlotTag, "UNKNOWN");
+    }
+
+    private boolean hasOpportunityKeyMarker(String filterReason) {
+        return filterReason != null && filterReason.contains("|OPP:");
+    }
+
+    private boolean isStructurallyValidOpportunityKey(List<String> parts, String executionSlotTag) {
+        if (parts.size() != 8 || executionSlotTag == null || executionSlotTag.isBlank()) return false;
+        if (parts.stream().anyMatch(String::isBlank)) return false;
+        try {
+            Long.parseLong(parts.get(1));
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return !parts.get(0).isBlank()
+                && !parts.get(2).isBlank()
+                && !parts.get(3).isBlank()
+                && !parts.get(4).isBlank()
+                && hasNonBlankIdentityValue(parts.get(5), "bar=")
+                && hasNonBlankIdentityValue(parts.get(6), "risk=")
+                && hasNonBlankIdentityValue(parts.get(7), "inv=");
+    }
+
+    private boolean hasNonBlankIdentityValue(String value, String prefix) {
+        return value.startsWith(prefix) && value.length() > prefix.length();
     }
 
     private String markerValue(String value, String marker) {

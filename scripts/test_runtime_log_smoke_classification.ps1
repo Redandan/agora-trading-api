@@ -502,6 +502,17 @@ Assert-SmokeCase `
     )
 
 Assert-SmokeCase `
+    -Name "near-prefix getDbRuntimeStatus tool remains an unknown warning" `
+    -Lines @(
+        "2026-07-17T05:07:27.965Z  WARN 2878669 --- [agora-trading-api] [at-handler-1699] c.agora.mcp.McpStreamableHttpController  : [McpHttp] Bad request method=tools/call: Unknown tool: getDbRuntimeStatusUnexpected"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "getDbRuntimeStatusUnexpected",
+        "unknown runtime WARN lines present: count=1 total_warn=1"
+    )
+
+Assert-SmokeCase `
     -Name "wrong-service getDbRuntimeStatus probe threshold fails closed" `
     -Lines @(
         "2026-07-17T05:07:27.965Z  WARN 2878669 --- [agora-trading-api] [at-handler-1699] c.agora.mcp.McpStreamableHttpController  : [McpHttp] Bad request method=tools/call: Unknown tool: getDbRuntimeStatus"

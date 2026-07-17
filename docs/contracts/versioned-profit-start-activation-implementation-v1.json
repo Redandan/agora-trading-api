@@ -1,0 +1,253 @@
+{
+  "contractVersion": "VERSIONED_PROFIT_START_ACTIVATION_IMPLEMENTATION_MANIFEST_V1",
+  "acceptanceContract": "VERSIONED_PROFIT_START_ACCEPTANCE_V1",
+  "deployedBaseCommit": "748a69ea5b9254e9bd79099e460cefc2ab9297dd",
+  "status": "SAFE_LOCAL_INTEGRATION_ACTIVATION_BLOCKED",
+  "currentState": {
+    "acceptanceState": "DEPLOYED_CODE_VERIFIED_ACTIVATION_BLOCKED",
+    "currentCohortId": "NOT_STARTED",
+    "canonicalClosedEpisodeCount": "NOT_MEASURABLE",
+    "exactFeeEpisodeCount": 0,
+    "positiveExactNetEpisodeCount": 0,
+    "sessionMustRemainOpen": true
+  },
+  "globalSafety": {
+    "productionMutationAllowed": false,
+    "environmentOrEffectiveFromMutationAllowed": false,
+    "databaseMutationAllowed": false,
+    "providerOrCollectorEnablementAllowed": false,
+    "liveSchedulerOrderOcoGridFundEarnOrTelegramMutationAllowed": false,
+    "grossOrEstimatedFeeMaySatisfyExactNet": false,
+    "legacyRowsMayEnterCurrentCohortMetrics": false,
+    "negativeCurrentCohortSamplesMayBeExcluded": false,
+    "zeroClosedEpisodesMayPassTinyLiveReadiness": true,
+    "thirtyClosedEpisodesRequiredForTinyLive": false
+  },
+  "blockers": [
+    {
+      "id": "TINY_LIVE_HARD_GATE_SNAPSHOT_NOT_IMPLEMENTED",
+      "implementationStatus": "LOCAL_CONTRACT_IMPLEMENTED_FRESH_RUNTIME_SNAPSHOT_STILL_REQUIRED",
+      "implementationId": "TINY_LIVE_HARD_GATE_SNAPSHOT_V1",
+      "purpose": "Produce a fail-closed, immutable, hash-bound safety decision immediately before any tiny-live order path, without manufacturing a candidate or relaxing trend rules.",
+      "acceptance": [
+        "Snapshot records cohort identity, observedAt, source timestamps, source freshness, inputs, per-gate result, blocker codes, and a deterministic sha256.",
+        "The order path re-evaluates the snapshot immediately before submission and binds its id and sha256 to runtime decision evidence.",
+        "Ready is allowed with zero current-cohort closed episodes when every safety gate is fresh and clear.",
+        "Gates cover tiny-live execution mode, cohort identity, candidate presence, 1h and 4h primary trend, signal and market-data freshness, event risk, minimum order and lot rules, daily order cap, one-open-position cap, cross-strategy exposure, stable same-thesis opportunity identity, OCO feasibility and health when OCO is required, runtime writer health, and current-cohort sequential loss budget.",
+        "Candidate-horizon trend never substitutes for the primary 1h and 4h trend gates.",
+        "WAIT_MARKET is returned for no valid candidate; no BUY or trend override is created.",
+        "No thirty-sample prerequisite is introduced for tiny-live readiness."
+      ],
+      "stopConditions": [
+        "Any required input is missing, stale, unknown, malformed, truncated, or identity-mismatched.",
+        "No valid candidate exists, either primary trend gate is not clear, or event risk is high or unknown.",
+        "Any order, position, exposure, duplicate-opportunity, minimum-size, runtime-health, data-freshness, OCO, or current-cohort loss limit is breached.",
+        "The snapshot changes or expires between evaluation and the order boundary.",
+        "The service cannot persist the bound runtime decision evidence before submission."
+      ],
+      "fileScope": {
+        "new": [
+          "src/main/java/com/agora/service/trading/VersionedProfitStartHardGateSnapshotService.java",
+          "src/main/java/com/agora/model/trading/VersionedProfitStartHardGateSnapshot.java",
+          "src/test/java/com/agora/service/trading/VersionedProfitStartHardGateSnapshotServiceTest.java"
+        ],
+        "modify": [
+          "src/main/java/com/agora/service/trading/VersionedProfitStartCohortService.java",
+          "src/main/java/com/agora/service/tradingview/LocalTradingViewExecutionService.java"
+        ],
+        "reuseReadOnly": [
+          "src/main/java/com/agora/service/trading/DailyLossGuard.java",
+          "src/main/java/com/agora/service/trading/SymbolExposureService.java",
+          "src/main/java/com/agora/service/trading/PanicBottomContextPreviewService.java"
+        ]
+      },
+      "migration": {
+        "required": false,
+        "reason": "The safety snapshot is computed from existing read-only sources and is bound to existing runtime decision evidence; it must not create a new activation write path."
+      },
+      "tests": [
+        "READY with zero closed episodes when every gate is fresh and clear.",
+        "WAIT_MARKET with no candidate and no order-side effect.",
+        "Fail closed for each missing, stale, unknown, or breached gate.",
+        "Fail when candidate-horizon trend is clear but either primary 1h or 4h trend is not clear.",
+        "Fail on same-thesis duplicate exposure across stable opportunity price drift.",
+        "Fail on Grid, live-position, funding-arbitrage, or BTC-base exposure cap breach.",
+        "Require healthy OCO only for execution modes whose policy requires OCO; preserve explicit BTC_BASE_DRY_RUN no-order behavior.",
+        "Detect snapshot expiry or hash drift at the final order boundary.",
+        "Prove no scheduler, live flag, order, OCO, Grid, fund, Earn, or Telegram mutation in the test fixture."
+      ],
+      "futureAuthorizations": []
+    },
+    {
+      "id": "CURRENT_COHORT_CANONICAL_METRIC_READER_NOT_IMPLEMENTED",
+      "implementationStatus": "LOCAL_READER_IMPLEMENTED_EXACT_CLASSIFICATION_STILL_BLOCKED",
+      "implementationId": "CURRENT_COHORT_CANONICAL_METRIC_READER_V1",
+      "purpose": "Read only canonical closed episodes for one exact versioned cohort and report exact measurability without mixing legacy, unrelated, or estimated-fee data.",
+      "acceptance": [
+        "Every query requires the full cohort identity and effectiveFrom and rejects partial or mismatched identity.",
+        "Canonical episodes use explicit decision, live-signal, order, trade, and entry-exit bindings; timestamp-window fallback is forbidden.",
+        "Only complete closed episodes enter closed count, profit factor, win rate, drawdown, and realized PnL.",
+        "All current-cohort canonical episodes, including losses, remain in sequential metrics; cohort reset cannot discard a loss.",
+        "Legacy or pre-effectiveFrom rows are excluded from current-cohort metrics and remain baseline or regression evidence only.",
+        "Exact-net is reported only when every entry and exit fill and signed fee has an unambiguous immutable binding and supported currency treatment.",
+        "A canonical gross-only close is labeled GROSS_ONLY or EXACT_NET_NOT_MEASURABLE and cannot increment exact-fee or positive-exact-net counts.",
+        "NOT_STARTED returns canonicalClosedEpisodeCount NOT_MEASURABLE and exact-fee and positive-exact-net counts zero."
+      ],
+      "stopConditions": [
+        "Cohort identity or effectiveFrom is missing or does not match the bound runtime evidence.",
+        "Entry, exit, order, trade, OCO child, or fee binding is missing, partial, duplicated inconsistently, or conflicting.",
+        "Any join relies only on symbol and a time window.",
+        "Any required fee currency cannot be valued exactly under the declared policy.",
+        "A legacy row, another strategy family, another Grid id, or a pre-effectiveFrom row would enter current-cohort metrics."
+      ],
+      "fileScope": {
+        "new": [
+          "src/main/java/com/agora/service/trading/VersionedProfitStartCanonicalMetricReader.java",
+          "src/main/java/com/agora/model/trading/VersionedProfitStartCanonicalEpisode.java",
+          "src/test/java/com/agora/service/trading/VersionedProfitStartCanonicalMetricReaderTest.java"
+        ],
+        "modify": [
+          "src/main/java/com/agora/service/trading/VersionedProfitStartCohortService.java",
+          "src/main/java/com/agora/repository/trading/BtLiveSignalRepository.java",
+          "src/main/java/com/agora/repository/trading/RuntimeDecisionEvidenceRepository.java"
+        ],
+        "dependsOn": [
+          "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_V1"
+        ]
+      },
+      "migration": {
+        "required": false,
+        "reason": "The reader itself is read-only, but exact-net classification depends on the separate additive immutable trade-fill schema."
+      },
+      "tests": [
+        "NOT_STARTED returns NOT_MEASURABLE, zero, zero without querying legacy performance.",
+        "Started cohort with zero episodes returns zero, zero, zero and remains eligible for tiny-live readiness.",
+        "Exclude all pre-effectiveFrom and mismatched code, config, model, signal-source, execution-mode, strategy-family, symbol, or Grid identity rows.",
+        "Include a negative current-cohort episode in count, realized PnL, profit factor, and drawdown.",
+        "Reject time-window-only pairing, partial fills, fee gaps, conflicting duplicate trades, and OCO child mismatch.",
+        "Classify gross-only data without incrementing exact-fee or positive-exact-net counts.",
+        "Count a positive exact-net episode only after exact fill and signed-fee parity succeeds."
+      ],
+      "futureAuthorizations": []
+    },
+    {
+      "id": "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED",
+      "implementationStatus": "NOT_IMPLEMENTED_OUTSIDE_FIXED_SCOPE",
+      "implementationId": "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_V1",
+      "purpose": "Persist provider-authenticated, append-only trade fills with enough immutable identity and economics to prove every entry and exit fill and signed fee for exact-net realization.",
+      "acceptance": [
+        "Each immutable fill records provider, account hash, instrument id and type, order id, trade id, fill timestamp, side, fill price, fill quantity, signed fee amount, fee currency, liquidity role when supplied, source page identity, collectedAt, and raw payload sha256.",
+        "The immutable hash allowlist covers every stored economic and identity field; changing a stored field changes the hash.",
+        "Provider pagination is complete and auditable; cursor gaps, truncation, or unsupported page ordering fail closed.",
+        "Identical duplicate provider trade ids are idempotent; a non-identical duplicate is a conflict and never overwrites evidence.",
+        "Entry and exit fills bind by provider account, order id, trade id, and explicit runtime decision or live-signal identity; symbol and time-window inference is forbidden.",
+        "OCO executions additionally bind the intended and actual child order identity and reject exit mismatch.",
+        "Exact net uses all entry and exit fill price-times-quantity values plus every signed fee with an explicit supported currency policy; rebates preserve their provider sign.",
+        "Missing fills, fee, fee currency, unsupported conversion, incomplete pagination, or identity conflict yields GROSS_ONLY or EXACT_NET_NOT_MEASURABLE, never exact net.",
+        "Collection and append remain default-off, fail-closed, forward-only, symbol-scoped, and incapable of placing or modifying orders."
+      ],
+      "stopConditions": [
+        "Provider authentication, account binding, instrument, order id, trade id, side, price, quantity, fee, fee currency, timestamp, or raw hash is absent or invalid.",
+        "Pagination is incomplete, truncated, repeated inconsistently, or cannot prove its terminal page.",
+        "A provider trade id already exists with a different immutable payload.",
+        "An entry or exit order cannot be explicitly bound to the current cohort and canonical episode.",
+        "Any fee is estimated, modeled, reconstructed from a schedule, or sourced only from aggregate order data.",
+        "The operation would backfill legacy rows, update or delete evidence, enable a scheduler, or cause any trading mutation."
+      ],
+      "fileScope": {
+        "new": [
+          "src/main/resources/db/migration/V3__immutable_trade_fill_evidence.sql",
+          "src/main/java/com/agora/model/evidence/TradeFillLedgerEntry.java",
+          "src/main/java/com/agora/repository/trading/evidence/TradeFillLedgerRepository.java",
+          "src/test/java/com/agora/repository/trading/evidence/TradeFillLedgerRepositoryTest.java",
+          "src/test/java/com/agora/service/trading/evidence/okx/ExactTradeFillEvidenceContractTest.java"
+        ],
+        "modify": [
+          "src/main/java/com/agora/config/OkxEvidenceProperties.java",
+          "src/main/java/com/agora/repository/trading/evidence/JdbcOkxEvidenceAppendRepository.java",
+          "src/main/java/com/agora/repository/trading/evidence/OkxEvidenceAppendRepository.java",
+          "src/main/java/com/agora/service/trading/evidence/okx/OkxEvidenceAppendService.java",
+          "src/main/java/com/agora/service/trading/evidence/okx/OkxEvidenceModels.java",
+          "src/main/java/com/agora/service/trading/evidence/okx/OkxEvidenceReadClient.java",
+          "src/main/java/com/agora/service/trading/evidence/okx/OkxReadOnlyEvidenceAdapter.java"
+        ]
+      },
+      "migration": {
+        "required": true,
+        "name": "V3__immutable_trade_fill_evidence.sql",
+        "rules": [
+          "Additive CREATE TABLE and CREATE INDEX only.",
+          "No ALTER, UPDATE, DELETE, DROP, legacy import, historical backfill, or baseline regeneration.",
+          "Unique provider-account-order-trade identity and immutable raw sha256 conflict detection.",
+          "Deployment authorization must bind the exact migration sha256 and candidate commit before Flyway may apply it."
+        ]
+      },
+      "tests": [
+        "Fresh-schema Flyway migration and upgrade from V2 both succeed without modifying existing evidence rows.",
+        "Static migration contract rejects ALTER, UPDATE, DELETE, DROP, INSERT-SELECT, and non-additive statements.",
+        "All-fill multi-page collection proves terminal pagination and preserves every fill.",
+        "Incomplete, truncated, repeated-conflict, and cursor-gap pagination fail closed.",
+        "Identical duplicate is idempotent and non-identical duplicate is a permanent conflict with no overwrite.",
+        "Multi-fill entry and exit arithmetic covers partial fills, price variation, fee cost, fee rebate, and supported base or quote fee currency.",
+        "Missing fee or unsupported currency returns EXACT_NET_NOT_MEASURABLE.",
+        "Explicit order, trade, runtime-decision, cohort, and OCO-child bindings are required; time-window matching is rejected.",
+        "Default-off and disabled-auth configurations perform no provider call and no database append.",
+        "Read and append fixtures prove there is no order, OCO, scheduler, live, Grid, fund, Earn, or Telegram side effect."
+      ],
+      "futureAuthorizations": [
+        "BLUE_GREEN_CODE_DEPLOY_WITH_EXACT_ADDITIVE_V3_MIGRATION_AND_RESTART_ONLY_<FULL_COMMIT>_<MIGRATION_SHA256>",
+        "ENABLE_FORWARD_ONLY_OKX_SPOT_BTC_USDT_FILL_READ_AND_APPEND_ONLY_EVIDENCE_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>"
+      ]
+    }
+  ],
+  "futureAuthorizationPackages": [
+    {
+      "name": "PUSH_EXACT_ACTIVATION_IMPLEMENTATION_CANDIDATE_<FULL_COMMIT>_TO_ORIGIN_MAIN",
+      "issuableNow": false,
+      "requiredBindings": [
+        "full candidate commit",
+        "expected origin/main parent"
+      ],
+      "scope": "Non-force fast-forward only; no deploy or runtime mutation."
+    },
+    {
+      "name": "BLUE_GREEN_CODE_DEPLOY_WITH_EXACT_ADDITIVE_V3_MIGRATION_AND_RESTART_ONLY_<FULL_COMMIT>_<MIGRATION_SHA256>",
+      "issuableNow": false,
+      "requiredBindings": [
+        "full candidate commit",
+        "exact V3 migration sha256",
+        "pre-deploy database and Flyway read-only verification",
+        "rollback plan that preserves append-only V3 evidence"
+      ],
+      "scope": "Blue-green code deploy, exact additive V3 Flyway application, and restart only; excludes environment changes, provider or collector enablement, live, scheduler, order, OCO, Grid, fund, Earn, and Telegram mutation."
+    },
+    {
+      "name": "ENABLE_FORWARD_ONLY_OKX_SPOT_BTC_USDT_FILL_READ_AND_APPEND_ONLY_EVIDENCE_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>",
+      "issuableNow": false,
+      "requiredBindings": [
+        "deployed full commit",
+        "config sha256",
+        "UTC collector effectiveFrom",
+        "read-only OKX endpoint and pagination contract",
+        "BTC-USDT SPOT symbol allowlist"
+      ],
+      "scope": "Authenticated read-only fill collection and append-only exact evidence after effectiveFrom; excludes historical import or backfill, update, delete, live, scheduler, order, OCO, Grid, fund, Earn, and Telegram mutation."
+    },
+    {
+      "name": "SET_VERSIONED_PROFIT_START_COHORT_IDENTITY_AND_TINY_LIVE_ENV_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>",
+      "issuableNow": false,
+      "requiredBindings": [
+        "deployed full commit",
+        "config sha256",
+        "model version",
+        "signal source",
+        "strategy id and family",
+        "symbol",
+        "execution mode",
+        "UTC effectiveFrom",
+        "fresh hard-gate snapshot"
+      ],
+      "scope": "Deferred cohort activation authorization only after all three blockers are implemented and deployed; it does not itself authorize an order, scheduler, OCO, Grid, fund, Earn, or Telegram mutation."
+    }
+  ]
+}

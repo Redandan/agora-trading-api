@@ -409,6 +409,9 @@ class LocalTradingViewSignalEvaluatorTest {
                 new com.agora.config.OkxTradingProperties(),
                 signalSourcePolicy,
                 cohortService,
+                mock(com.agora.service.trading.VersionedProfitStartHardGateInputAssembler.class),
+                mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.class),
+                mock(com.agora.service.trading.VersionedProfitStartActivationReadinessService.class),
                 new ObjectMapper(),
                 mock(com.agora.service.TelegramService.class));
     }

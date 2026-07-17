@@ -43,6 +43,47 @@ import static org.mockito.Mockito.doThrow;
 class LocalTradingViewExecutionServiceTest {
 
     @Test
+    void waitMarketNeverSubmitsBuy() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        var wait = mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Snapshot.class);
+        when(wait.decision()).thenReturn(
+                com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Decision.WAIT_MARKET);
+        when(wait.snapshotId()).thenReturn("WAIT-SNAPSHOT");
+        when(wait.sha256()).thenReturn("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+        when(wait.reasons()).thenReturn(List.of("NO_VALID_CANDIDATE"));
+        when(fixture.hardGateService.evaluate(any())).thenReturn(wait);
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
+
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.evidenceRepository, never()).save(any());
+    }
+
+    @Test
+    void preSubmitSnapshotEvidenceSaveFailurePreventsBuy() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        when(fixture.evidenceRepository.save(any())).thenThrow(new IllegalStateException("evidence unavailable"));
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
+
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.liveSignalRepository, never()).save(any());
+    }
+
+    @Test
+    void finalBoundaryHashDriftPreventsEvidenceAndBuy() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        when(fixture.hardGateService.verifyAtOrderBoundary(any(), any(), any())).thenReturn(
+                new com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.BoundaryDecision(
+                        false, null, List.of("SNAPSHOT_HASH_DRIFT")));
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
+
+        verify(fixture.evidenceRepository, never()).save(any());
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+    }
+
+    @Test
     void dryRunWritesExecutionReceiptWithoutOrder() {
         Fixture fixture = fixture(props(ExecutionMode.DRY_RUN));
 
@@ -151,7 +192,7 @@ class LocalTradingViewExecutionServiceTest {
                 "LOCAL_TRADINGVIEW_BTC_BASE:1:TRADINGVIEW_RELATIVE_LOW|COHORT:TEST-COHORT");
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
-        verify(fixture.evidenceRepository).save(evidenceCaptor.capture());
+        verify(fixture.evidenceRepository, org.mockito.Mockito.atLeastOnce()).save(evidenceCaptor.capture());
         RuntimeDecisionEvidence evidence = evidenceCaptor.getValue();
         assertThat(evidence.getSelectedAction()).isEqualTo("LOCAL_TRADINGVIEW_BTC_BASE_BUY");
         assertThat(evidence.getPolicyMode()).isEqualTo("LOCAL_TRADINGVIEW_BTC_BASE_MICRO_LIVE");
@@ -241,7 +282,7 @@ class LocalTradingViewExecutionServiceTest {
         assertThat(finalAudit.getLiveSignalId()).isEqualTo(77L);
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
-        verify(fixture.evidenceRepository).save(evidenceCaptor.capture());
+        verify(fixture.evidenceRepository, org.mockito.Mockito.atLeastOnce()).save(evidenceCaptor.capture());
         RuntimeDecisionEvidence evidence = evidenceCaptor.getValue();
         assertThat(evidence.getSignalSource()).isEqualTo("LOCAL_TRADINGVIEW");
         assertThat(evidence.getSelectedAction()).isEqualTo("LOCAL_TRADINGVIEW_EXECUTE");
@@ -276,7 +317,7 @@ class LocalTradingViewExecutionServiceTest {
                 eq("CRITICAL"));
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
-        verify(fixture.evidenceRepository).save(evidenceCaptor.capture());
+        verify(fixture.evidenceRepository, org.mockito.Mockito.atLeastOnce()).save(evidenceCaptor.capture());
         RuntimeDecisionEvidence evidence = evidenceCaptor.getValue();
         assertThat(evidence.getFinalOutcome()).isEqualTo("CRITICAL_UNPROTECTED_LOCAL_TRADINGVIEW");
         assertThat(evidence.getOrderSent()).isTrue();
@@ -302,7 +343,7 @@ class LocalTradingViewExecutionServiceTest {
                 .doesNotThrowAnyException();
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
-        verify(fixture.evidenceRepository).save(evidenceCaptor.capture());
+        verify(fixture.evidenceRepository, org.mockito.Mockito.atLeastOnce()).save(evidenceCaptor.capture());
         assertThat(evidenceCaptor.getValue().getFinalOutcome())
                 .isEqualTo("CRITICAL_UNPROTECTED_LOCAL_TRADINGVIEW");
         assertThat(evidenceCaptor.getValue().getOrderSent()).isTrue();
@@ -438,11 +479,48 @@ class LocalTradingViewExecutionServiceTest {
         });
         when(evidenceRepository.save(any(RuntimeDecisionEvidence.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        var hardGateAssembler = readyHardGateAssembler();
+        var hardGateService = readyHardGateService();
+        var activationReadiness = readyActivationReadiness();
         LocalTradingViewExecutionService service = new LocalTradingViewExecutionService(
                 props, auditWriter, liveSignalRepository, decisionAuditRepository, evidenceRepository,
-                tradingService, okx, signalSourcePolicy, cohortService, new ObjectMapper(), telegramService);
+                tradingService, okx, signalSourcePolicy, cohortService,
+                hardGateAssembler, hardGateService, activationReadiness,
+                new ObjectMapper(), telegramService);
         return new Fixture(service, auditWriter, liveSignalRepository, decisionAuditRepository,
-                evidenceRepository, tradingService, telegramService, cohortService);
+                evidenceRepository, tradingService, telegramService, cohortService, hardGateService);
+    }
+
+    private com.agora.service.trading.VersionedProfitStartHardGateInputAssembler readyHardGateAssembler() {
+        var assembler = mock(com.agora.service.trading.VersionedProfitStartHardGateInputAssembler.class);
+        when(assembler.assemble(any(), anyMap())).thenReturn(
+                mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Inputs.class));
+        return assembler;
+    }
+
+    private com.agora.service.trading.VersionedProfitStartHardGateSnapshotService readyHardGateService() {
+        var service = mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.class);
+        var snapshot = mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Snapshot.class);
+        when(snapshot.decision()).thenReturn(
+                com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Decision.READY);
+        when(snapshot.snapshotId()).thenReturn("TEST-SNAPSHOT");
+        when(snapshot.sha256()).thenReturn("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+        when(snapshot.reasons()).thenReturn(List.of());
+        when(service.evaluate(any())).thenReturn(snapshot);
+        when(service.verifyAtOrderBoundary(eq(snapshot), any(), any())).thenReturn(
+                new com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.BoundaryDecision(
+                        true, snapshot, List.of()));
+        return service;
+    }
+
+    private com.agora.service.trading.VersionedProfitStartActivationReadinessService readyActivationReadiness() {
+        var service = mock(com.agora.service.trading.VersionedProfitStartActivationReadinessService.class);
+        when(service.assess(any(), any())).thenReturn(
+                new com.agora.service.trading.VersionedProfitStartActivationReadinessService.Readiness(
+                        "TEST_READY", true, true, true, true, false,
+                        com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
+                        0, 0, 0, List.of()));
+        return service;
     }
 
     private TradingViewLocalSignalProperties props(ExecutionMode mode) {
@@ -492,7 +570,8 @@ class LocalTradingViewExecutionServiceTest {
             RuntimeDecisionEvidenceRepository evidenceRepository,
             TradingService tradingService,
             TelegramService telegramService,
-            VersionedProfitStartCohortService cohortService
+            VersionedProfitStartCohortService cohortService,
+            com.agora.service.trading.VersionedProfitStartHardGateSnapshotService hardGateService
     ) {
     }
 }

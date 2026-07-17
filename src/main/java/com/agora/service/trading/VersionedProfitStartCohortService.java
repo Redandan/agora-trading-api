@@ -43,10 +43,6 @@ public class VersionedProfitStartCohortService {
     public static final String MODEL_VERSION = "local-tradingview-parity-v1";
     public static final String EXACT_EVIDENCE_BLOCKER =
             "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED";
-    public static final String METRIC_READER_BLOCKER =
-            "CURRENT_COHORT_CANONICAL_METRIC_READER_NOT_IMPLEMENTED";
-    public static final String TINY_LIVE_HARD_GATE_BLOCKER =
-            "TINY_LIVE_HARD_GATE_SNAPSHOT_NOT_IMPLEMENTED";
 
     private static final long STRATEGY_ID = 485L;
     private static final String SYMBOL = "BTCUSDT";
@@ -60,6 +56,7 @@ public class VersionedProfitStartCohortService {
     private final BtStrategyRepository strategyRepository;
     private final ObjectMapper objectMapper;
     private final Environment environment;
+    private final VersionedProfitStartActivationReadinessService activationReadinessService;
 
     public Snapshot snapshot() {
         boolean enabled = environment.getProperty(PREFIX + "enabled", Boolean.class, false);
@@ -115,10 +112,9 @@ public class VersionedProfitStartCohortService {
             cohortId = "NOT_STARTED";
         }
         boolean identityReady = blockers.isEmpty();
-        List<String> activationBlockers = List.of(
-                TINY_LIVE_HARD_GATE_BLOCKER,
-                METRIC_READER_BLOCKER,
-                EXACT_EVIDENCE_BLOCKER);
+        // The hard-gate and canonical reader are implemented contracts, not
+        // proof that a fresh runtime snapshot or exact fee evidence exists.
+        List<String> activationBlockers = List.of(EXACT_EVIDENCE_BLOCKER);
         boolean activationReady = activationBlockers.isEmpty();
         return new Snapshot(
                 CONTRACT_VERSION,
@@ -159,10 +155,6 @@ public class VersionedProfitStartCohortService {
         if (!snapshot.executionMode().equals(normalize(executionMode))) {
             return "VERSIONED_PROFIT_START_EXECUTION_MODE_MISMATCH";
         }
-        if (!snapshot.activationReady()) {
-            return "VERSIONED_PROFIT_START_ACTIVATION_NOT_READY:"
-                    + String.join(",", snapshot.activationBlockers());
-        }
         return null;
     }
 
@@ -189,7 +181,8 @@ public class VersionedProfitStartCohortService {
     }
 
     public String status() {
-        ObjectNode root = asJson(snapshot());
+        Snapshot snapshot = snapshot();
+        ObjectNode root = asJson(snapshot);
         root.put("tool", "getVersionedProfitStartCohortStatus");
         root.put("boundary", "READ_ONLY; does not enable live execution, place orders, modify OCO/Grid, send Telegram, or write DB/provider evidence.");
         ObjectNode executionJudgmentSemantics = root.putObject("executionJudgmentSemantics");
@@ -207,10 +200,21 @@ public class VersionedProfitStartCohortService {
                 boundaryProbe.normalizedMinExpectedR().toPlainString());
         expectedValueGate.put("boundaryProbePassed", boundaryProbe.passed());
         expectedValueGate.put("invalidInputsFailClosed", true);
-        root.put("currentCohortCountsStatus", "NOT_MEASURABLE_COHORT_METRIC_READER_NOT_IMPLEMENTED");
-        root.putNull("currentCohortClosedEpisodes");
-        root.putNull("currentCohortExactFeeEpisodes");
-        root.putNull("currentCohortPositiveExactNetEpisodes");
+        VersionedProfitStartActivationReadinessService.Readiness readiness =
+                activationReadinessService.assess(snapshot, null);
+        root.put("currentCohortCountsStatus", readiness.classification().name());
+        if (readiness.cohortStarted()) {
+            root.put("currentCohortClosedEpisodes", readiness.canonicalClosedEpisodeCount());
+        } else {
+            root.put("currentCohortClosedEpisodes", "NOT_MEASURABLE");
+        }
+        root.put("currentCohortExactFeeEpisodes", readiness.exactFeeEpisodeCount());
+        root.put("currentCohortPositiveExactNetEpisodes", readiness.positiveExactNetEpisodeCount());
+        root.put("tinyLiveEligible", readiness.tinyLiveEligible());
+        root.put("hardGateReady", readiness.hardGateReady());
+        root.put("activationAllowed", readiness.activationAllowed());
+        ArrayNode readinessBlockers = root.putArray("readinessBlockers");
+        readiness.blockers().forEach(readinessBlockers::add);
         root.put("sessionMustRemainOpen", true);
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);

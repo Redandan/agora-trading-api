@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-import static com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.EXACT_NET;
 import static com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.GROSS_ONLY;
 import static com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,10 +34,10 @@ class CurrentCohortCanonicalMetricReaderTest {
         CurrentCohortCanonicalMetricReader.Result result =
                 reader.aggregate(IDENTITY, EFFECTIVE_FROM, List.of(legacy, current));
 
-        assertThat(result.classification()).isEqualTo(EXACT_NET);
+        assertThat(result.classification()).isEqualTo(GROSS_ONLY);
         assertThat(result.closedEpisodes()).isEqualTo(1);
-        assertThat(result.exactFeeEpisodes()).isEqualTo(1);
-        assertThat(result.positiveExactNetEpisodes()).isEqualTo(1);
+        assertThat(result.exactFeeEpisodes()).isZero();
+        assertThat(result.positiveExactNetEpisodes()).isZero();
         assertThat(result.legacyEpisodesExcluded()).isEqualTo(1);
         assertThat(result.blockers()).isEmpty();
     }
@@ -82,17 +81,17 @@ class CurrentCohortCanonicalMetricReaderTest {
     }
 
     @Test
-    void retainsNegativeExactNetAsExactButNotPositive() {
+    void retainsNegativeEpisodeButCannotPromoteItToExactNetBeforeV3() {
         CurrentCohortCanonicalMetricReader.Result result = reader.aggregate(
                 IDENTITY, EFFECTIVE_FROM, List.of(episode(
                         "loss", IDENTITY, "2026-07-17T01:00:00Z", "2026-07-17T02:00:00Z",
                         "-2.00", "-0.50", null, complete())));
 
-        assertThat(result.classification()).isEqualTo(EXACT_NET);
+        assertThat(result.classification()).isEqualTo(GROSS_ONLY);
         assertThat(result.closedEpisodes()).isEqualTo(1);
-        assertThat(result.exactFeeEpisodes()).isEqualTo(1);
+        assertThat(result.exactFeeEpisodes()).isZero();
         assertThat(result.positiveExactNetEpisodes()).isZero();
-        assertThat(result.episodes().getFirst().exactNet()).isEqualByComparingTo("-2.50");
+        assertThat(result.episodes().getFirst().exactNet()).isNull();
     }
 
     @Test
@@ -104,12 +103,24 @@ class CurrentCohortCanonicalMetricReaderTest {
         CurrentCohortCanonicalMetricReader.Result result =
                 reader.aggregate(IDENTITY, EFFECTIVE_FROM, List.of(evidence, evidence));
 
-        assertThat(result.classification()).isEqualTo(EXACT_NET);
+        assertThat(result.classification()).isEqualTo(GROSS_ONLY);
         assertThat(result.closedEpisodes()).isEqualTo(1);
-        assertThat(result.exactFeeEpisodes()).isEqualTo(1);
-        assertThat(result.positiveExactNetEpisodes()).isEqualTo(1);
+        assertThat(result.exactFeeEpisodes()).isZero();
+        assertThat(result.positiveExactNetEpisodes()).isZero();
         assertThat(result.duplicateEvidenceIgnored()).isEqualTo(1);
         assertThat(result.episodes()).hasSize(1);
+    }
+
+    @Test
+    void startedCohortWithNoClosedEpisodesReturnsZeroCountsWithoutAReadinessBlocker() {
+        CurrentCohortCanonicalMetricReader.Result result =
+                reader.aggregate(IDENTITY, EFFECTIVE_FROM, List.of());
+
+        assertThat(result.classification()).isEqualTo(NOT_MEASURABLE);
+        assertThat(result.closedEpisodes()).isZero();
+        assertThat(result.exactFeeEpisodes()).isZero();
+        assertThat(result.positiveExactNetEpisodes()).isZero();
+        assertThat(result.blockers()).isEmpty();
     }
 
     @Test

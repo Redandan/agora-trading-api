@@ -21,6 +21,10 @@ import java.util.Set;
  */
 public final class CurrentCohortCanonicalMetricReader {
 
+    public static final String EXACT_EVIDENCE_BLOCKER =
+            "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED";
+    private static final boolean EXACT_EVIDENCE_BINDING_IMPLEMENTED = false;
+
     public Result aggregate(CohortIdentity expectedIdentity,
                             Instant effectiveFrom,
                             Collection<ClosedEpisode> closedEpisodes) {
@@ -69,10 +73,6 @@ public final class CurrentCohortCanonicalMetricReader {
             }
         }
 
-        if (unique.isEmpty() && blockers.isEmpty()) {
-            blockers.add("CURRENT_COHORT_HAS_NO_CLOSED_EPISODES");
-        }
-
         List<EpisodeMetric> episodeMetrics = new ArrayList<>();
         int exactFeeEpisodes = 0;
         int positiveExactNetEpisodes = 0;
@@ -88,7 +88,8 @@ public final class CurrentCohortCanonicalMetricReader {
                     || !episode.evidenceCompleteness().grossPnlComplete()) {
                 classification = Classification.NOT_MEASURABLE;
                 hasNotMeasurable = true;
-            } else if (!episode.evidenceCompleteness().allFillsComplete()
+            } else if (!EXACT_EVIDENCE_BINDING_IMPLEMENTED
+                    || !episode.evidenceCompleteness().allFillsComplete()
                     || !episode.evidenceCompleteness().exactSignedFeesComplete()
                     || episode.exactSignedFee() == null) {
                 classification = Classification.GROSS_ONLY;
@@ -107,7 +108,7 @@ public final class CurrentCohortCanonicalMetricReader {
         }
 
         Classification classification;
-        if (!blockers.isEmpty() || hasNotMeasurable) {
+        if (unique.isEmpty() || !blockers.isEmpty() || hasNotMeasurable) {
             classification = Classification.NOT_MEASURABLE;
         } else if (hasGrossOnly) {
             classification = Classification.GROSS_ONLY;

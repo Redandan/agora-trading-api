@@ -14,6 +14,45 @@ import java.util.Optional;
 @Repository
 public interface RuntimeDecisionEvidenceRepository extends JpaRepository<RuntimeDecisionEvidence, Long> {
 
+    /**
+     * Explicit current-cohort episode binding. The join is only through the
+     * persisted live-signal id; symbol/time proximity is deliberately not a
+     * join key. Provider order identity remains mandatory even though exact
+     * all-fill/signed-fee evidence is not yet available.
+     */
+    @Query(value = """
+            SELECT e.decision_id AS decisionId,
+                   e.live_signal_id AS liveSignalId,
+                   ls.exchange_order_id AS providerOrderId,
+                   e.evidence_time AS evidenceTime,
+                   e.execution_preview_json AS executionPreviewJson,
+                   ls.exit_time AS exitTime,
+                   ls.realized_pnl AS realizedPnl
+            FROM bt_runtime_decision_evidence e
+            INNER JOIN bt_live_signal ls ON ls.id = e.live_signal_id
+            WHERE e.strategy_id = :strategyId
+              AND e.evidence_time >= :effectiveFrom
+              AND COALESCE(e.order_sent, 0) = 1
+              AND e.decision_id IS NOT NULL
+              AND e.live_signal_id IS NOT NULL
+              AND COALESCE(ls.exchange_order_id, '') <> ''
+              AND ls.exit_time IS NOT NULL
+            ORDER BY e.decision_id ASC
+            """, nativeQuery = true)
+    List<CanonicalEpisodeBinding> findCanonicalEpisodeBindings(
+            @Param("strategyId") Long strategyId,
+            @Param("effectiveFrom") LocalDateTime effectiveFrom);
+
+    interface CanonicalEpisodeBinding {
+        Long getDecisionId();
+        Long getLiveSignalId();
+        String getProviderOrderId();
+        LocalDateTime getEvidenceTime();
+        String getExecutionPreviewJson();
+        LocalDateTime getExitTime();
+        java.math.BigDecimal getRealizedPnl();
+    }
+
     Optional<RuntimeDecisionEvidence> findByDecisionId(Long decisionId);
 
     List<RuntimeDecisionEvidence> findByPolicyModeAndEvidenceTimeAfterOrderByEvidenceTimeAsc(

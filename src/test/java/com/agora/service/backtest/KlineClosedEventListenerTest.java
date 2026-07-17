@@ -180,6 +180,9 @@ class KlineClosedEventListenerTest {
                 okxProps(),
                 policy,
                 readyCohortService(),
+                readyHardGateAssembler(),
+                readyHardGateService(),
+                readyActivationReadiness(),
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
@@ -208,9 +211,10 @@ class KlineClosedEventListenerTest {
         assertThat(savedSignal.getSuggestedSl()).isEqualByComparingTo("88.44");
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
-        verify(evidenceRepository).save(evidenceCaptor.capture());
-        assertThat(evidenceCaptor.getValue().getFinalOutcome()).isEqualTo("EXECUTED_OCO_ATTACHED");
-        assertThat(evidenceCaptor.getValue().getOrderSent()).isTrue();
+        verify(evidenceRepository, org.mockito.Mockito.atLeastOnce()).save(evidenceCaptor.capture());
+        RuntimeDecisionEvidence finalEvidence = evidenceCaptor.getAllValues().get(evidenceCaptor.getAllValues().size() - 1);
+        assertThat(finalEvidence.getFinalOutcome()).isEqualTo("EXECUTED_OCO_ATTACHED");
+        assertThat(finalEvidence.getOrderSent()).isTrue();
     }
 
     @Test
@@ -235,6 +239,9 @@ class KlineClosedEventListenerTest {
                 okxProps(),
                 policy,
                 readyCohortService(),
+                readyHardGateAssembler(),
+                readyHardGateService(),
+                readyActivationReadiness(),
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
@@ -418,6 +425,38 @@ class KlineClosedEventListenerTest {
                 org.mockito.ArgumentMatchers.anyLong(), any(String.class), any(String.class)))
                 .thenReturn(null);
         when(service.currentCohortMarker(snapshot)).thenReturn("|COHORT:TEST-COHORT");
+        return service;
+    }
+
+    private com.agora.service.trading.VersionedProfitStartHardGateInputAssembler readyHardGateAssembler() {
+        var assembler = mock(com.agora.service.trading.VersionedProfitStartHardGateInputAssembler.class);
+        when(assembler.assemble(any(), any(Map.class))).thenReturn(
+                mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Inputs.class));
+        return assembler;
+    }
+
+    private com.agora.service.trading.VersionedProfitStartHardGateSnapshotService readyHardGateService() {
+        var service = mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.class);
+        var snapshot = mock(com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Snapshot.class);
+        when(snapshot.decision()).thenReturn(
+                com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.Decision.READY);
+        when(snapshot.snapshotId()).thenReturn("TEST-SNAPSHOT");
+        when(snapshot.sha256()).thenReturn("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+        when(snapshot.reasons()).thenReturn(List.of());
+        when(service.evaluate(any())).thenReturn(snapshot);
+        when(service.verifyAtOrderBoundary(eq(snapshot), any(), any())).thenReturn(
+                new com.agora.service.trading.VersionedProfitStartHardGateSnapshotService.BoundaryDecision(
+                        true, snapshot, List.of()));
+        return service;
+    }
+
+    private com.agora.service.trading.VersionedProfitStartActivationReadinessService readyActivationReadiness() {
+        var service = mock(com.agora.service.trading.VersionedProfitStartActivationReadinessService.class);
+        when(service.assess(any(), any())).thenReturn(
+                new com.agora.service.trading.VersionedProfitStartActivationReadinessService.Readiness(
+                        "TEST_READY", true, true, true, true, false,
+                        com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
+                        0, 0, 0, List.of()));
         return service;
     }
 }

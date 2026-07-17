@@ -66,20 +66,11 @@ class VersionedProfitStartCohortServiceTest {
         assertThat(first.legacyRowsExcluded()).isTrue();
         assertThat(first.exactNetAcceptanceAllowed()).isFalse();
         assertThat(first.activationBlockers())
-                .containsExactly(
-                        VersionedProfitStartCohortService.TINY_LIVE_HARD_GATE_BLOCKER,
-                        VersionedProfitStartCohortService.METRIC_READER_BLOCKER,
-                        VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
+                .containsExactly(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
         assertThat(first.finalAcceptanceBlockers())
-                .containsExactly(
-                        VersionedProfitStartCohortService.TINY_LIVE_HARD_GATE_BLOCKER,
-                        VersionedProfitStartCohortService.METRIC_READER_BLOCKER,
-                        VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
+                .containsExactly(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
         assertThat(service.liveExecutionBlocker(485L, "BTCUSDT", "BTC_BASE_LIVE_MICRO"))
-                .startsWith("VERSIONED_PROFIT_START_ACTIVATION_NOT_READY:")
-                .contains(VersionedProfitStartCohortService.TINY_LIVE_HARD_GATE_BLOCKER)
-                .contains(VersionedProfitStartCohortService.METRIC_READER_BLOCKER)
-                .contains(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
+                .isNull();
         assertThat(service.currentCohortMarker()).isEqualTo("|COHORT:" + first.cohortId());
 
         Map<String, Object> context = new LinkedHashMap<>();
@@ -94,7 +85,7 @@ class VersionedProfitStartCohortServiceTest {
                 .contains("\"boundaryProbeNormalizedMinExpectedR\" : \"0.2000\"")
                 .contains("\"boundaryProbePassed\" : true")
                 .contains("\"invalidInputsFailClosed\" : true")
-                .contains("\"currentCohortClosedEpisodes\" : null")
+                .contains("\"currentCohortClosedEpisodes\" : 0")
                 .contains(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
     }
 
@@ -129,8 +120,15 @@ class VersionedProfitStartCohortServiceTest {
                 "LOCAL_TRADINGVIEW", false, false, "", BigDecimal.ZERO));
         BtStrategyRepository strategyRepository = mock(BtStrategyRepository.class);
         when(strategyRepository.findById(485L)).thenReturn(Optional.of(strategy()));
+        VersionedProfitStartActivationReadinessService readiness =
+                mock(VersionedProfitStartActivationReadinessService.class);
+        when(readiness.assess(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.isNull()))
+                .thenReturn(new VersionedProfitStartActivationReadinessService.Readiness(
+                        "ACTIVATION_BLOCKED", true, false, false, false, false,
+                        CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
+                        0, 0, 0, java.util.List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER)));
         return new VersionedProfitStartCohortService(
-                props, policy, strategyRepository, new ObjectMapper(), environment);
+                props, policy, strategyRepository, new ObjectMapper(), environment, readiness);
     }
 
     private MockEnvironment readyEnvironment() {

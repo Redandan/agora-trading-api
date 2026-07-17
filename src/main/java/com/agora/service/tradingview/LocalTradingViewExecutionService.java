@@ -19,6 +19,9 @@ import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
 import com.agora.service.trading.VersionedProfitStartCohortService;
+import com.agora.service.trading.VersionedProfitStartActivationReadinessService;
+import com.agora.service.trading.VersionedProfitStartHardGateInputAssembler;
+import com.agora.service.trading.VersionedProfitStartHardGateSnapshotService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -33,6 +36,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -71,6 +75,9 @@ public class LocalTradingViewExecutionService {
     private final OkxTradingProperties okxTradingProperties;
     private final TradingSignalSourcePolicy signalSourcePolicy;
     private final VersionedProfitStartCohortService versionedProfitStartCohortService;
+    private final VersionedProfitStartHardGateInputAssembler hardGateInputAssembler;
+    private final VersionedProfitStartHardGateSnapshotService hardGateSnapshotService;
+    private final VersionedProfitStartActivationReadinessService activationReadinessService;
     private final ObjectMapper objectMapper;
     private final TelegramService telegramService;
 
@@ -105,12 +112,100 @@ public class LocalTradingViewExecutionService {
             return;
         }
 
+        blocker = activationContractBlocker(strategy, symbol, normalizedInterval, kline, context, cohortSnapshot);
+        if (blocker != null) {
+            logBlocked(strategy, symbol, normalizedInterval, kline.getOpenTime(), blocker, context);
+            return;
+        }
+
         if (isBtcBaseLiveMicro()) {
             placeBtcBaseOrder(strategy, symbol, normalizedInterval, kline, intent, context, entry, tp, sl, notional);
             return;
         }
 
         placeOrderAndAttachOco(strategy, symbol, normalizedInterval, kline, intent, context, entry, tp, sl, notional);
+    }
+
+    private String activationContractBlocker(BtStrategy strategy,
+                                             String symbol,
+                                             String interval,
+                                             MdKline kline,
+                                             Map<String, Object> context,
+                                             VersionedProfitStartCohortService.Snapshot cohortSnapshot) {
+        VersionedProfitStartHardGateSnapshotService.Inputs inputs =
+                hardGateInputAssembler.assemble(cohortSnapshot, context);
+        VersionedProfitStartHardGateSnapshotService.Snapshot hardGate = hardGateSnapshotService.evaluate(inputs);
+        context.put("versionedProfitStartHardGateSnapshotId", hardGate.snapshotId());
+        context.put("versionedProfitStartHardGateDecision", hardGate.decision().name());
+        context.put("versionedProfitStartHardGateSha256", hardGate.sha256());
+        context.put("versionedProfitStartHardGateBlockers", hardGate.reasons());
+        if (hardGate.decision() == VersionedProfitStartHardGateSnapshotService.Decision.WAIT_MARKET) {
+            return "VersionedProfitStartHardGateWaitMarket";
+        }
+        if (hardGate.decision() != VersionedProfitStartHardGateSnapshotService.Decision.READY) {
+            return "VersionedProfitStartHardGateNotReady";
+        }
+
+        VersionedProfitStartActivationReadinessService.Readiness readiness =
+                activationReadinessService.assess(cohortSnapshot, hardGate);
+        context.put("versionedProfitStartTinyLiveEligible", readiness.tinyLiveEligible());
+        context.put("versionedProfitStartActivationAllowed", readiness.activationAllowed());
+        context.put("versionedProfitStartReadinessBlockers", readiness.blockers());
+        if (!readiness.activationAllowed()) {
+            return "VersionedProfitStartActivationBlocked";
+        }
+
+        VersionedProfitStartHardGateSnapshotService.Inputs boundaryInputs =
+                hardGateInputAssembler.assemble(cohortSnapshot, context);
+        VersionedProfitStartHardGateSnapshotService.BoundaryDecision boundary =
+                hardGateSnapshotService.verifyAtOrderBoundary(hardGate, boundaryInputs, Instant.now());
+        context.put("versionedProfitStartOrderBoundaryAllowed", boundary.allowed());
+        context.put("versionedProfitStartOrderBoundaryBlockers", boundary.reasons());
+        if (!boundary.allowed()) {
+            return "VersionedProfitStartHardGateBoundaryRejected";
+        }
+        if (!savePreSubmitSnapshotEvidence(strategy, symbol, interval, kline, context, hardGate)) {
+            return "VersionedProfitStartHardGateEvidenceSaveFailed";
+        }
+        return null;
+    }
+
+    private boolean savePreSubmitSnapshotEvidence(BtStrategy strategy,
+                                                   String symbol,
+                                                   String interval,
+                                                   MdKline kline,
+                                                   Map<String, Object> context,
+                                                   VersionedProfitStartHardGateSnapshotService.Snapshot hardGate) {
+        try {
+            BtDecisionAudit audit = saveExecutionAudit(strategy, symbol, interval, kline.getOpenTime(), "PASS",
+                    "VersionedProfitStartHardGateReadyPreSubmit",
+                    "Fresh versioned-profit hard-gate snapshot bound before provider order submission",
+                    context, null);
+            RuntimeDecisionEvidence evidence = new RuntimeDecisionEvidence();
+            evidence.setDecisionId(audit.getId());
+            evidence.setEvidenceTime(LocalDateTime.now(ZoneOffset.UTC));
+            evidence.setSymbol(symbol);
+            evidence.setSide(SIDE);
+            evidence.setStrategyId(strategy.getId());
+            evidence.setIntervalCode(interval);
+            evidence.setSignalSource("LOCAL_TRADINGVIEW");
+            evidence.setFeaturesSnapshotJson(toJson(context));
+            evidence.setSelectedAction("VERSIONED_PROFIT_START_HARD_GATE_READY_PRE_SUBMIT");
+            evidence.setReason("PRE_SUBMIT_SNAPSHOT_BOUND");
+            evidence.setPolicyMode("VERSIONED_PROFIT_START_HARD_GATE");
+            evidence.setFinalOutcome("PRE_SUBMIT_SNAPSHOT_BOUND");
+            evidence.setOrderSent(false);
+            evidence.setIntentCreated(true);
+            evidence.setExecutionMode(props.executionMode().name());
+            evidence.setExecutionPreviewJson(objectMapper.valueToTree(hardGate).toString());
+            RuntimeDecisionEvidence saved = evidenceRepository.save(evidence);
+            if (saved == null) return false;
+            context.put("versionedProfitStartPreSubmitDecisionId", audit.getId());
+            return true;
+        } catch (Exception e) {
+            context.put("versionedProfitStartPreSubmitEvidenceError", truncate(e.getMessage(), 420));
+            return false;
+        }
     }
 
     private String preExecutionBlocker(BtStrategy strategy,

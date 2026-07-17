@@ -18,6 +18,7 @@ import com.agora.service.backtest.StrategySignal;
 import com.agora.service.meta.DecisionAuditWriter;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
+import com.agora.service.trading.VersionedProfitStartCohortService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -393,6 +394,11 @@ class LocalTradingViewSignalEvaluatorTest {
                                                               DecisionAuditWriter auditWriter) {
         TradingSignalSourcePolicy signalSourcePolicy = mock(TradingSignalSourcePolicy.class);
         when(signalSourcePolicy.primary()).thenReturn("LOCAL_TRADINGVIEW");
+        VersionedProfitStartCohortService cohortService = mock(VersionedProfitStartCohortService.class);
+        VersionedProfitStartCohortService.Snapshot cohortSnapshot =
+                mock(VersionedProfitStartCohortService.Snapshot.class);
+        when(cohortService.snapshot()).thenReturn(cohortSnapshot);
+        when(cohortService.currentCohortMarker(cohortSnapshot)).thenReturn("|COHORT:TEST-COHORT");
         return new LocalTradingViewExecutionService(
                 props,
                 auditWriter,
@@ -402,6 +408,7 @@ class LocalTradingViewSignalEvaluatorTest {
                 mock(TradingService.class),
                 new com.agora.config.OkxTradingProperties(),
                 signalSourcePolicy,
+                cohortService,
                 new ObjectMapper(),
                 mock(com.agora.service.TelegramService.class));
     }

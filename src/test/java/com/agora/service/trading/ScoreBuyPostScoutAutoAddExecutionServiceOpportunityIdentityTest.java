@@ -45,6 +45,19 @@ class ScoreBuyPostScoutAutoAddExecutionServiceOpportunityIdentityTest {
     }
 
     @Test
+    void readOnlyStatusContractDeclaresStableNonPriceIdentity() {
+        ObjectNode contract = service.opportunityIdentityContract();
+
+        assertThat(contract.path("version").asText()).isEqualTo("STABLE_OPPORTUNITY_IDENTITY_V1");
+        assertThat(contract.path("priceDriftCreatesDistinctIdentity").asBoolean()).isFalse();
+        assertThat(contract.path("excludedPriceFields").toString())
+                .isEqualTo("[\"entry\",\"tp\",\"sl\"]");
+        assertThat(contract.path("stableDimensions").toString())
+                .contains("symbol", "strategyId", "side", "postScoutManagementState",
+                        "intradayReversalDecisionBarOpenTime", "executionSlotTag");
+    }
+
+    @Test
     void stableDecisionDimensionsRemainDistinct() {
         ObjectNode baseline = preview("76898", "78000", "75200");
         String baselineKey = opportunityKey(baseline);

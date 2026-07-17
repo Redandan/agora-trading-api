@@ -17,6 +17,7 @@ import com.agora.service.meta.DecisionAuditWriter;
 import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
+import com.agora.service.trading.VersionedProfitStartCohortService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -97,6 +98,32 @@ class LocalTradingViewExecutionServiceTest {
     }
 
     @Test
+    void liveModeFailsClosedBeforeOrderWhenVersionedCohortIdentityIsNotReady() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        when(fixture.cohortService.liveExecutionBlocker(
+                fixture.cohortService.snapshot(), 485L, "BTCUSDT", "LIVE_MICRO"))
+                .thenReturn("VERSIONED_PROFIT_START_COHORT_NOT_READY:EFFECTIVE_FROM_NOT_CONFIGURED");
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> contextCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"),
+                eq(LocalDateTime.of(2026, 1, 3, 0, 0)),
+                eq("VersionedProfitStartCohortNotReady"),
+                eq("VERSIONED_PROFIT_START cohort identity is incomplete or mismatched; no order sent"),
+                contextCaptor.capture());
+        assertThat(contextCaptor.getValue())
+                .containsEntry("executionStatus", "BLOCKED_HARD_GATE")
+                .containsEntry("versionedProfitStartCohortBlocker",
+                        "VERSIONED_PROFIT_START_COHORT_NOT_READY:EFFECTIVE_FROM_NOT_CONFIGURED")
+                .containsEntry("orderSent", false);
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.liveSignalRepository, never()).save(any());
+    }
+
+    @Test
     void btcBaseLiveMicroPlacesMarketBuyWithoutOcoAndWritesEvidence() {
         Fixture fixture = fixture(props(ExecutionMode.BTC_BASE_LIVE_MICRO));
         TradeResult buy = new TradeResult();
@@ -120,7 +147,8 @@ class LocalTradingViewExecutionServiceTest {
         assertThat(savedSignal.getOcoOrderListId()).isNull();
         assertThat(savedSignal.getOcoQty()).isNull();
         assertThat(savedSignal.getEntryPrice()).isEqualByComparingTo("100.25");
-        assertThat(savedSignal.getFilterReason()).isEqualTo("LOCAL_TRADINGVIEW_BTC_BASE:1:TRADINGVIEW_RELATIVE_LOW");
+        assertThat(savedSignal.getFilterReason()).isEqualTo(
+                "LOCAL_TRADINGVIEW_BTC_BASE:1:TRADINGVIEW_RELATIVE_LOW|COHORT:TEST-COHORT");
 
         ArgumentCaptor<RuntimeDecisionEvidence> evidenceCaptor = ArgumentCaptor.forClass(RuntimeDecisionEvidence.class);
         verify(fixture.evidenceRepository).save(evidenceCaptor.capture());
@@ -202,7 +230,8 @@ class LocalTradingViewExecutionServiceTest {
         assertThat(savedSignal.getEntryPrice()).isEqualByComparingTo("100.25");
         assertThat(savedSignal.getSuggestedTp()).isEqualByComparingTo("103.26");
         assertThat(savedSignal.getSuggestedSl()).isEqualByComparingTo("88.22");
-        assertThat(savedSignal.getFilterReason()).isEqualTo("LOCAL_TRADINGVIEW_PARITY:1:TRADINGVIEW_RELATIVE_LOW");
+        assertThat(savedSignal.getFilterReason()).isEqualTo(
+                "LOCAL_TRADINGVIEW_PARITY:1:TRADINGVIEW_RELATIVE_LOW|COHORT:TEST-COHORT");
 
         ArgumentCaptor<BtDecisionAudit> auditCaptor = ArgumentCaptor.forClass(BtDecisionAudit.class);
         verify(fixture.decisionAuditRepository, org.mockito.Mockito.atLeast(2)).save(auditCaptor.capture());
@@ -368,6 +397,14 @@ class LocalTradingViewExecutionServiceTest {
         TradingSignalSourcePolicy signalSourcePolicy = mock(TradingSignalSourcePolicy.class);
         when(signalSourcePolicy.primary()).thenReturn("LOCAL_TRADINGVIEW");
         when(signalSourcePolicy.shouldRunLocalTradingViewEvaluator()).thenReturn(true);
+        VersionedProfitStartCohortService cohortService = mock(VersionedProfitStartCohortService.class);
+        VersionedProfitStartCohortService.Snapshot cohortSnapshot =
+                mock(VersionedProfitStartCohortService.Snapshot.class);
+        when(cohortService.snapshot()).thenReturn(cohortSnapshot);
+        when(cohortService.liveExecutionBlocker(eq(cohortSnapshot),
+                org.mockito.ArgumentMatchers.anyLong(), any(String.class), any(String.class)))
+                .thenReturn(null);
+        when(cohortService.currentCohortMarker(cohortSnapshot)).thenReturn("|COHORT:TEST-COHORT");
 
         OkxTradingProperties okx = new OkxTradingProperties();
         okx.setEnabled(true);
@@ -403,9 +440,9 @@ class LocalTradingViewExecutionServiceTest {
 
         LocalTradingViewExecutionService service = new LocalTradingViewExecutionService(
                 props, auditWriter, liveSignalRepository, decisionAuditRepository, evidenceRepository,
-                tradingService, okx, signalSourcePolicy, new ObjectMapper(), telegramService);
+                tradingService, okx, signalSourcePolicy, cohortService, new ObjectMapper(), telegramService);
         return new Fixture(service, auditWriter, liveSignalRepository, decisionAuditRepository,
-                evidenceRepository, tradingService, telegramService);
+                evidenceRepository, tradingService, telegramService, cohortService);
     }
 
     private TradingViewLocalSignalProperties props(ExecutionMode mode) {
@@ -454,7 +491,8 @@ class LocalTradingViewExecutionServiceTest {
             BtDecisionAuditRepository decisionAuditRepository,
             RuntimeDecisionEvidenceRepository evidenceRepository,
             TradingService tradingService,
-            TelegramService telegramService
+            TelegramService telegramService,
+            VersionedProfitStartCohortService cohortService
     ) {
     }
 }

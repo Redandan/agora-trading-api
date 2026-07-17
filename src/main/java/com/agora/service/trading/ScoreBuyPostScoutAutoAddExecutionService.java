@@ -345,6 +345,7 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         root.put("sl", text(preview, "sl", "0"));
         root.put("maxLossIfWrongUsdt", evaluation.maxLossIfWrong().stripTrailingZeros().toPlainString());
         root.put("maxLossBudgetUsdt", maxLossBudget().stripTrailingZeros().toPlainString());
+        root.set("opportunityIdentityContract", opportunityIdentityContract());
         root.put("postScoutDuplicateMode", "DISTINCT_OPPORTUNITY_KEY_WITH_COOLDOWN");
         root.put("postScoutOpportunityCooldownMinutes", evaluation.opportunityCooldownMinutes());
         root.put("currentOpportunityKey", evaluation.currentOpportunityKey());
@@ -901,6 +902,27 @@ public class ScoreBuyPostScoutAutoAddExecutionService {
         root.put("ocoAlgoId", ocoAlgoId);
         root.put("reason", audit.getReason());
         return write(root);
+    }
+
+    ObjectNode opportunityIdentityContract() {
+        ObjectNode contract = objectMapper.createObjectNode();
+        contract.put("version", "STABLE_OPPORTUNITY_IDENTITY_V1");
+        contract.put("priceDriftCreatesDistinctIdentity", false);
+        ArrayNode excludedPriceFields = contract.putArray("excludedPriceFields");
+        excludedPriceFields.add("entry");
+        excludedPriceFields.add("tp");
+        excludedPriceFields.add("sl");
+        ArrayNode stableDimensions = contract.putArray("stableDimensions");
+        stableDimensions.add("symbol");
+        stableDimensions.add("strategyId");
+        stableDimensions.add("side");
+        stableDimensions.add("postScoutManagementState");
+        stableDimensions.add("addOnType");
+        stableDimensions.add("intradayReversalDecisionBarOpenTime");
+        stableDimensions.add("eventRiskLevel");
+        stableDimensions.add("formationInvalidationReason");
+        stableDimensions.add("executionSlotTag");
+        return contract;
     }
 
     private OpportunityDedup evaluateOpportunityDedup(JsonNode preview, long strategyId, String symbol,

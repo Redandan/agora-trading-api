@@ -77,8 +77,8 @@ public class LiveSignalEvaluator {
     static final String TRADE_PLAN_QUALITY_GATE_ENABLED_KEY = "tradePlanQualityGateEnabled";
     static final String TRADE_PLAN_MIN_RISK_REWARD_KEY = "tradePlanMinRiskReward";
     static final String TRADE_PLAN_MAX_STOP_LOSS_PCT_KEY = "tradePlanMaxStopLossPct";
-    static final int EXPECTED_VALUE_DECIMAL_SCALE = 4;
-    static final RoundingMode EXPECTED_VALUE_ROUNDING_MODE = RoundingMode.HALF_EVEN;
+    public static final int EXPECTED_VALUE_DECIMAL_SCALE = 4;
+    public static final RoundingMode EXPECTED_VALUE_ROUNDING_MODE = RoundingMode.HALF_EVEN;
     static final String ENSEMBLE_SHADOW_PRE_EXECUTION_DISCLAIMER =
             "Phase 1 - Ensemble 不擋；仍需通過下單前風控";
 
@@ -3054,8 +3054,8 @@ public class LiveSignalEvaluator {
      * the gate's persisted/operator-visible precision; HALF_EVEN avoids directional threshold bias.
      * Invalid, non-finite, null, or negative inputs fail closed and never reach comparison.
      */
-    static ExpectedValueThresholdDecision evaluateExpectedValueThreshold(Double expectedR,
-                                                                          Double minExpectedR) {
+    public static ExpectedValueThresholdDecision evaluateExpectedValueThreshold(Double expectedR,
+                                                                                 Double minExpectedR) {
         if (expectedR == null || minExpectedR == null
                 || !Double.isFinite(expectedR) || !Double.isFinite(minExpectedR)
                 || expectedR < 0.0 || minExpectedR < 0.0) {
@@ -3075,11 +3075,11 @@ public class LiveSignalEvaluator {
                 normalizedExpectedR, normalizedMinExpectedR, true, passed, reason);
     }
 
-    static record ExpectedValueThresholdDecision(BigDecimal normalizedExpectedR,
-                                                  BigDecimal normalizedMinExpectedR,
-                                                  boolean valid,
-                                                  boolean passed,
-                                                  String reason) {
+    public record ExpectedValueThresholdDecision(BigDecimal normalizedExpectedR,
+                                                 BigDecimal normalizedMinExpectedR,
+                                                 boolean valid,
+                                                 boolean passed,
+                                                 String reason) {
     }
 
     static record ExpectedRDecision(double expectedR,

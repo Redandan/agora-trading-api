@@ -18,6 +18,7 @@ import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
+import com.agora.service.trading.VersionedProfitStartCohortService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -69,6 +70,7 @@ public class LocalTradingViewExecutionService {
     private final TradingService tradingService;
     private final OkxTradingProperties okxTradingProperties;
     private final TradingSignalSourcePolicy signalSourcePolicy;
+    private final VersionedProfitStartCohortService versionedProfitStartCohortService;
     private final ObjectMapper objectMapper;
     private final TelegramService telegramService;
 
@@ -90,12 +92,14 @@ public class LocalTradingViewExecutionService {
         BigDecimal notional = props.defaultNotionalUsdt().min(props.maxNotionalUsdt());
         BigDecimal tp = takeProfit(entry);
         BigDecimal sl = stopLoss(entry);
+        VersionedProfitStartCohortService.Snapshot cohortSnapshot =
+                versionedProfitStartCohortService.snapshot();
         Map<String, Object> context = executionContext(
                 strategy, kline, normalizedInterval, source, intent, baseContext, intentIndex,
-                entry, tp, sl, notional);
+                entry, tp, sl, notional, cohortSnapshot);
 
         String blocker = preExecutionBlocker(strategy, symbol, normalizedInterval, kline, intentIndex, entry, tp, sl,
-                notional, context);
+                notional, context, cohortSnapshot);
         if (blocker != null) {
             logBlocked(strategy, symbol, normalizedInterval, kline.getOpenTime(), blocker, context);
             return;
@@ -118,7 +122,8 @@ public class LocalTradingViewExecutionService {
                                        BigDecimal tp,
                                        BigDecimal sl,
                                        BigDecimal notional,
-                                       Map<String, Object> context) {
+                                       Map<String, Object> context,
+                                       VersionedProfitStartCohortService.Snapshot cohortSnapshot) {
         if (intentIndex > props.executionMaxOrdersPerBar()) {
             return "LocalTradingViewExecutionBarCap";
         }
@@ -133,6 +138,16 @@ public class LocalTradingViewExecutionService {
         }
         if (!props.effectiveExecutionLiveOrderEnabled()) {
             return "LocalTradingViewLiveOrderNotEnabled";
+        }
+        String cohortBlocker = versionedProfitStartCohortService.liveExecutionBlocker(
+                cohortSnapshot, strategy.getId(), symbol, props.executionMode().name());
+        if (cohortBlocker != null) {
+            context.put("versionedProfitStartCohortBlocker", cohortBlocker);
+            return "VersionedProfitStartCohortNotReady";
+        }
+        if (safe(context.get("versionedProfitStartCohortMarker")).isBlank()) {
+            context.put("versionedProfitStartCohortBlocker", "VERSIONED_PROFIT_START_COHORT_MARKER_MISSING");
+            return "VersionedProfitStartCohortNotReady";
         }
         if (!signalSourcePolicy.shouldRunLocalTradingViewEvaluator()) {
             return "LocalTradingViewPrimaryNotActive";
@@ -446,7 +461,8 @@ public class LocalTradingViewExecutionService {
         signal.setFilterReason((btcBase ? BTC_BASE_FILTER_REASON_PREFIX : OCO_FILTER_REASON_PREFIX)
                 + safe(context == null ? null : context.get("executionIntentIndex"))
                 + ":"
-                + truncate(intent.reason(), 220));
+                + truncate(intent.reason(), 220)
+                + safe(context == null ? null : context.get("versionedProfitStartCohortMarker")));
         return liveSignalRepository.save(signal);
     }
 
@@ -517,10 +533,11 @@ public class LocalTradingViewExecutionService {
                                                  LiveSignalContext.OrderIntent intent,
                                                  Map<String, Object> baseContext,
                                                  int intentIndex,
-                                                 BigDecimal entry,
-                                                 BigDecimal tp,
-                                                 BigDecimal sl,
-                                                 BigDecimal notional) {
+                                                  BigDecimal entry,
+                                                  BigDecimal tp,
+                                                  BigDecimal sl,
+                                                  BigDecimal notional,
+                                                  VersionedProfitStartCohortService.Snapshot cohortSnapshot) {
         Map<String, Object> context = new LinkedHashMap<>();
         if (baseContext != null) {
             context.putAll(baseContext);
@@ -568,6 +585,9 @@ public class LocalTradingViewExecutionService {
         context.put("executionStopLossPct", props.executionStopLossPct());
         context.put("orderSent", false);
         context.put("ocoAttached", false);
+        versionedProfitStartCohortService.bind(context, cohortSnapshot);
+        context.put("versionedProfitStartCohortMarker",
+                versionedProfitStartCohortService.currentCohortMarker(cohortSnapshot));
         return context;
     }
 
@@ -644,6 +664,8 @@ public class LocalTradingViewExecutionService {
         node.put("btcBaseMode", isBtcBaseMode());
         node.put("btcBaseLiveMicro", isBtcBaseLiveMicro());
         node.put("btcBaseOcoRequired", !isBtcBaseMode());
+        node.set("versionedProfitStartCohort",
+                objectMapper.valueToTree(context.get("versionedProfitStartCohort")));
         return node.toString();
     }
 
@@ -657,6 +679,8 @@ public class LocalTradingViewExecutionService {
                     "Local TradingView BTC_BASE dry-run; buy point would accumulate BTC base without OCO order";
             case "LocalTradingViewLiveOrderNotEnabled" ->
                     "Local TradingView live order flag is disabled; no order sent";
+            case "VersionedProfitStartCohortNotReady" ->
+                    "VERSIONED_PROFIT_START cohort identity is incomplete or mismatched; no order sent";
             case "LocalTradingViewSignalStale" ->
                     "Local TradingView signal is older than the configured max signal age; no order sent";
             case "LocalTradingViewPrimaryNotActive" ->

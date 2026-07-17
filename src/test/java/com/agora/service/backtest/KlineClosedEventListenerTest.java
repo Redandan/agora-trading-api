@@ -22,6 +22,7 @@ import com.agora.service.trading.TradeResult;
 import com.agora.service.trading.TradingService;
 import com.agora.service.trading.Strategy508TimeExitLaneService;
 import com.agora.service.trading.TradingSignalSourcePolicy;
+import com.agora.service.trading.VersionedProfitStartCohortService;
 import com.agora.service.tradingview.LocalTradingViewExecutionService;
 import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -178,6 +179,7 @@ class KlineClosedEventListenerTest {
                 tradingService,
                 okxProps(),
                 policy,
+                readyCohortService(),
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
@@ -232,6 +234,7 @@ class KlineClosedEventListenerTest {
                 tradingService,
                 okxProps(),
                 policy,
+                readyCohortService(),
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
@@ -404,5 +407,17 @@ class KlineClosedEventListenerTest {
         okx.setSecretKey("secret");
         okx.setPassphrase("passphrase");
         return okx;
+    }
+
+    private VersionedProfitStartCohortService readyCohortService() {
+        VersionedProfitStartCohortService service = mock(VersionedProfitStartCohortService.class);
+        VersionedProfitStartCohortService.Snapshot snapshot =
+                mock(VersionedProfitStartCohortService.Snapshot.class);
+        when(service.snapshot()).thenReturn(snapshot);
+        when(service.liveExecutionBlocker(eq(snapshot),
+                org.mockito.ArgumentMatchers.anyLong(), any(String.class), any(String.class)))
+                .thenReturn(null);
+        when(service.currentCohortMarker(snapshot)).thenReturn("|COHORT:TEST-COHORT");
+        return service;
     }
 }

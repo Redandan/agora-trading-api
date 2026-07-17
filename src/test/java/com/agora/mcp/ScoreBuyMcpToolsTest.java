@@ -17,6 +17,7 @@ import com.agora.service.trading.ScoreBuyPrePositionApprovalPreviewService;
 import com.agora.service.trading.ScoreBuyPrePositionAutoExecutionService;
 import com.agora.service.trading.ScoreBuyPrePositionExecutionPolicyPreviewService;
 import com.agora.service.trading.ScoreBuyPrePositionPreviewService;
+import com.agora.service.trading.VersionedProfitStartCohortService;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -58,6 +59,20 @@ class ScoreBuyMcpToolsTest {
     }
 
     @Test
+    void versionedProfitStartCohortStatusKeepsOpsReadOnlyMetadata() throws Exception {
+        Method method = ScoreBuyMcpTools.class.getDeclaredMethod("getVersionedProfitStartCohortStatus");
+
+        McpAuth auth = method.getAnnotation(McpAuth.class);
+        McpCategory category = method.getAnnotation(McpCategory.class);
+
+        assertThat(auth).isNotNull();
+        assertThat(auth.value()).isEqualTo(McpAuthLevel.OPS);
+        assertThat(category).isNotNull();
+        assertThat(Arrays.asList(category.value()))
+                .containsExactlyInAnyOrder(Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS);
+    }
+
+    @Test
     void previewScoreBuyConvictionDisplaysPanicBottomContextWithoutExecution() {
         ScoreBuyConvictionPreviewService conviction = mock(ScoreBuyConvictionPreviewService.class);
         PanicBottomContextPreviewService panic = mock(PanicBottomContextPreviewService.class);
@@ -81,7 +96,8 @@ class ScoreBuyMcpToolsTest {
                 mock(ScoreBuyPostScoutAutoAddExecutionService.class),
                 panic,
                 positionMcpTools,
-                mlGate);
+                mlGate,
+                mock(VersionedProfitStartCohortService.class));
 
         String output = tools.previewScoreBuyConviction("BTCUSDT", 485L);
 
@@ -114,7 +130,8 @@ class ScoreBuyMcpToolsTest {
                 mock(ScoreBuyPostScoutAutoAddExecutionService.class),
                 mock(PanicBottomContextPreviewService.class),
                 mock(PositionMcpTools.class),
-                mlGate);
+                mlGate,
+                mock(VersionedProfitStartCohortService.class));
 
         String output = tools.diagnoseScoreBuyMlGate("BTCUSDT", 485L, "1d");
 

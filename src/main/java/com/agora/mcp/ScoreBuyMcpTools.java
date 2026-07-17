@@ -17,6 +17,7 @@ import com.agora.service.trading.ScoreBuyPrePositionExecutionPolicyPreviewServic
 import com.agora.service.trading.ScoreBuyPrePositionPreviewService;
 import com.agora.service.trading.ScoreBuyPostScoutAutoAddExecutionService;
 import com.agora.service.trading.ScoreBuyPostScoutManagementPolicyService;
+import com.agora.service.trading.VersionedProfitStartCohortService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -40,6 +41,7 @@ public class ScoreBuyMcpTools {
     private final PanicBottomContextPreviewService panicBottomContextPreviewService;
     private final PositionMcpTools positionMcpTools;
     private final ScoreBuyMlGateDiagnosticService scoreBuyMlGateDiagnosticService;
+    private final VersionedProfitStartCohortService versionedProfitStartCohortService;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS, Category.MARKET_DATA})
@@ -131,6 +133,16 @@ public class ScoreBuyMcpTools {
             @ToolParam(required = false, description = "Symbol, default BTCUSDT") String symbol,
             @ToolParam(required = false, description = "SCORE_BUY strategy id, default 485") Long strategyId) {
         return postScoutAutoAddExecutionService.status(symbol, strategyId);
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
+    @Tool(description = "Read-only VERSIONED_PROFIT_START_ACCEPTANCE_V1 cohort identity status for the " +
+            "strategy-485 LOCAL_TRADINGVIEW execution lane. Derives cohort identity from deployed commit, " +
+            "runtime config hash, model version, signal source, execution mode, and explicit effectiveFrom. " +
+            "It never enables live execution, places orders, changes OCO/Grid, sends Telegram, or writes DB/provider evidence.")
+    public String getVersionedProfitStartCohortStatus() {
+        return versionedProfitStartCohortService.status();
     }
 
     @McpAuth(McpAuthLevel.OPS)

@@ -311,13 +311,37 @@ Assert-SmokeCase `
     )
 
 Assert-SmokeCase `
+    -Name "okx private ws broken pipe recovers with subscription confirmation" `
+    -Lines @(
+        "2026-07-16T13:29:12.605Z  WARN 2878669 --- [agora-trading-api] [8443/... writer] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Connection failure: Broken pipe",
+        "2026-07-16T13:29:17.974Z  INFO 2878669 --- [agora-trading-api] [kx.com:8443/...] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Subscription confirmed: {`"channel`":`"orders-algo`",`"instType`":`"ANY`"}"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "okx_private_ws_transient=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "okx private ws broken pipe fails closed without subscription confirmation" `
+    -Lines @(
+        "2026-07-16T13:29:12.605Z  WARN 2878669 --- [agora-trading-api] [8443/... writer] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Connection failure: Broken pipe"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "OKX private WS warnings lack subscription recovery after latest warning: count=1"
+    )
+
+Assert-SmokeCase `
     -Name "okx private ws transient threshold is fail closed without subscription recovery" `
     -Lines @(
         "2026-07-06T15:03:32.018Z  WARN 705276 --- [agora-trading-api] [kx.com:8443/...] c.a.service.trading.OkxPrivateWsService  : [OkxPrivateWs] Connection failure: null"
     ) `
     -ExpectedExitCode 1 `
     -ExpectedPatterns @(
-        "OKX private WS warnings exceeded threshold without subscription recovery: count=1 max=0"
+        "OKX private WS warnings lack subscription recovery after latest warning: count=1"
     ) `
     -Environment @{ MAX_OKX_PRIVATE_WS_TRANSIENT_WARN = "0" }
 
@@ -368,6 +392,125 @@ Assert-SmokeCase `
         "HTTP method-not-supported warnings exceeded threshold: count=1 max=0"
     ) `
     -Environment @{ MAX_HTTP_METHOD_NOT_SUPPORTED_WARN = "0" }
+
+Assert-SmokeCase `
+    -Name "kline gap warning requires and recognizes same-run backfill" `
+    -Lines @(
+        "2026-07-15T17:01:12.052Z  WARN 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m missing 2 bars (expected=1501 existing=1499): [2026-07-15T15:12, 2026-07-15T15:13]",
+        "2026-07-15T17:01:12.581Z  INFO 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m backfilled 2 bars from OKX (candidates=2 duplicatesOrFailed=0)"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "runtime WARN lines match known baseline",
+        "kline_gap=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "kline gap warning without backfill fails closed" `
+    -Lines @(
+        "2026-07-15T17:01:12.052Z  WARN 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m missing 2 bars (expected=1501 existing=1499): [2026-07-15T15:12, 2026-07-15T15:13]"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "one or more K-line gap warnings lack same-run same-scope OKX backfill recovery: count=1"
+    )
+
+Assert-SmokeCase `
+    -Name "every kline gap scope requires its own later backfill" `
+    -Lines @(
+        "2026-07-15T17:01:12.052Z  WARN 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] ETHUSDT@1m missing 1 bars (expected=1501 existing=1500): [2026-07-15T15:12]",
+        "2026-07-15T17:01:13.052Z  WARN 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m missing 2 bars (expected=1501 existing=1499): [2026-07-15T15:12, 2026-07-15T15:13]",
+        "2026-07-15T17:01:13.581Z  INFO 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m backfilled 2 bars from OKX (candidates=2 duplicatesOrFailed=0)"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "one or more K-line gap warnings lack same-run same-scope OKX backfill recovery: count=2"
+    )
+
+Assert-SmokeCase `
+    -Name "recovered kline gap count above bound fails closed" `
+    -Lines @(
+        "2026-07-15T17:01:12.052Z  WARN 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] ETHUSDT@1m missing 1 bars (expected=1501 existing=1500): [2026-07-15T15:12]",
+        "2026-07-15T17:01:12.581Z  INFO 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] ETHUSDT@1m backfilled 1 bars from OKX (candidates=1 duplicatesOrFailed=0)",
+        "2026-07-15T17:01:13.052Z  WARN 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m missing 2 bars (expected=1501 existing=1499): [2026-07-15T15:12, 2026-07-15T15:13]",
+        "2026-07-15T17:01:13.581Z  INFO 2878669 --- [agora-trading-api] [trading-sched-3] c.a.scheduler.trading.KlineGapDetector   : [KlineGap] BTCUSDT@1m backfilled 2 bars from OKX (candidates=2 duplicatesOrFailed=0)"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "K-line gap warnings exceeded threshold: count=2 max=1"
+    ) `
+    -Environment @{ MAX_KLINE_GAP_WARN = "1" }
+
+Assert-SmokeCase `
+    -Name "indicator fetch timeout is bounded known warning" `
+    -Lines @(
+        "2026-07-15T18:01:30.011Z  WARN 2878669 --- [agora-trading-api] [trading-sched-4] c.a.s.t.MarketIndicatorHistoryCollector  : [IndicatorHistory] parallel fetch timed out after 30s, some indicators may be missing"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "indicator_fetch_timeout=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "indicator fetch timeout threshold fails closed" `
+    -Lines @(
+        "2026-07-15T18:01:30.011Z  WARN 2878669 --- [agora-trading-api] [trading-sched-4] c.a.s.t.MarketIndicatorHistoryCollector  : [IndicatorHistory] parallel fetch timed out after 30s, some indicators may be missing"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "indicator fetch timeout warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_INDICATOR_FETCH_TIMEOUT_WARN = "0" }
+
+Assert-SmokeCase `
+    -Name "aging position warning is bounded and visible" `
+    -Lines @(
+        "2026-07-16T08:06:12.783Z  WARN 2878669 --- [agora-trading-api] [trading-sched-2] c.a.s.trading.PositionAgingMonitor       : [OcoPoll] Aging position: id=261 symbol=BTCUSDT daysOpen=6"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "aging_position=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "aging position warning threshold fails closed" `
+    -Lines @(
+        "2026-07-16T08:06:12.783Z  WARN 2878669 --- [agora-trading-api] [trading-sched-2] c.a.s.trading.PositionAgingMonitor       : [OcoPoll] Aging position: id=261 symbol=BTCUSDT daysOpen=6"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "aging position warnings exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_AGING_POSITION_WARN = "0" }
+
+Assert-SmokeCase `
+    -Name "wrong-service getDbRuntimeStatus probe is bounded and visible" `
+    -Lines @(
+        "2026-07-17T05:07:27.965Z  WARN 2878669 --- [agora-trading-api] [at-handler-1699] c.agora.mcp.McpStreamableHttpController  : [McpHttp] Bad request method=tools/call: Unknown tool: getDbRuntimeStatus"
+    ) `
+    -ExpectedExitCode 0 `
+    -ExpectedPatterns @(
+        "mcp_unknown_tool=1",
+        "unknown=0",
+        "runtime log smoke complete"
+    )
+
+Assert-SmokeCase `
+    -Name "wrong-service getDbRuntimeStatus probe threshold fails closed" `
+    -Lines @(
+        "2026-07-17T05:07:27.965Z  WARN 2878669 --- [agora-trading-api] [at-handler-1699] c.agora.mcp.McpStreamableHttpController  : [McpHttp] Bad request method=tools/call: Unknown tool: getDbRuntimeStatus"
+    ) `
+    -ExpectedExitCode 1 `
+    -ExpectedPatterns @(
+        "wrong-service getDbRuntimeStatus probes exceeded threshold: count=1 max=0"
+    ) `
+    -Environment @{ MAX_MCP_UNKNOWN_TOOL_WARN = "0" }
 
 Assert-SmokeCase `
     -Name "high risk allow flag is diagnostic only" `

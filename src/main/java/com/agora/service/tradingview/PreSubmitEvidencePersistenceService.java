@@ -21,6 +21,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PreSubmitEvidencePersistenceService {
 
+    private static final String RESERVATION_POLICY = "VERSIONED_PROFIT_START_HARD_GATE";
+    private static final String RESERVATION_ACTION = "VERSIONED_PROFIT_START_HARD_GATE_READY_PRE_SUBMIT";
+    private static final String RESERVATION_OUTCOME = "PRE_SUBMIT_SNAPSHOT_BOUND";
+
     private final BtDecisionAuditRepository decisionAuditRepository;
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
     private final BtStrategyRepository strategyRepository;
@@ -42,12 +46,21 @@ public class PreSubmitEvidencePersistenceService {
                 || !audit.getStrategyId().equals(evidence.getStrategyId())) {
             throw new IllegalStateException("bootstrap reservation inputs are not cohort bound");
         }
+        if (!RESERVATION_POLICY.equals(evidence.getPolicyMode())
+                || evidence.getEvidenceTime() == null
+                || evidence.getEvidenceTime().isBefore(
+                        cohort.effectiveFrom().atZone(ZoneOffset.UTC).toLocalDateTime())
+                || !RESERVATION_ACTION.equals(evidence.getSelectedAction())
+                || !RESERVATION_OUTCOME.equals(evidence.getFinalOutcome())
+                || !matches(cohort, boundCohort(evidence))) {
+            throw new IllegalStateException("bootstrap reservation evidence is not explicitly cohort bound");
+        }
         strategyRepository.findByIdForBootstrapReservation(cohort.strategyId())
                 .orElseThrow(() -> new IllegalStateException("bootstrap reservation owner row is unavailable"));
 
         List<RuntimeDecisionEvidence> existing = evidenceRepository
-                .findByPolicyModeAndStrategyIdAndEvidenceTimeAfterOrderByEvidenceTimeAsc(
-                        "VERSIONED_PROFIT_START_HARD_GATE",
+                .findByPolicyModeAndStrategyIdAndEvidenceTimeGreaterThanEqualOrderByEvidenceTimeAsc(
+                        RESERVATION_POLICY,
                         cohort.strategyId(),
                         cohort.effectiveFrom().atZone(ZoneOffset.UTC).toLocalDateTime());
         if (existing == null) {
@@ -55,8 +68,8 @@ public class PreSubmitEvidencePersistenceService {
         }
         for (RuntimeDecisionEvidence row : existing) {
             if (row == null
-                    || !"VERSIONED_PROFIT_START_HARD_GATE_READY_PRE_SUBMIT".equals(row.getSelectedAction())
-                    || !"PRE_SUBMIT_SNAPSHOT_BOUND".equals(row.getFinalOutcome())) {
+                    || !RESERVATION_ACTION.equals(row.getSelectedAction())
+                    || !RESERVATION_OUTCOME.equals(row.getFinalOutcome())) {
                 continue;
             }
             if (matches(cohort, boundCohort(row))) {

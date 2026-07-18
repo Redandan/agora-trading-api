@@ -58,7 +58,7 @@ public interface RuntimeDecisionEvidenceRepository extends JpaRepository<Runtime
     List<RuntimeDecisionEvidence> findByPolicyModeAndEvidenceTimeAfterOrderByEvidenceTimeAsc(
             String policyMode, LocalDateTime since);
 
-    List<RuntimeDecisionEvidence> findByPolicyModeAndStrategyIdAndEvidenceTimeAfterOrderByEvidenceTimeAsc(
+    List<RuntimeDecisionEvidence> findByPolicyModeAndStrategyIdAndEvidenceTimeGreaterThanEqualOrderByEvidenceTimeAsc(
             String policyMode, Long strategyId, LocalDateTime since);
 
     List<RuntimeDecisionEvidence> findByLiveSignalIdOrderByEvidenceTimeAsc(Long liveSignalId);

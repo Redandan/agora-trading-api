@@ -99,7 +99,7 @@ class PreSubmitEvidencePersistenceConcurrencyTest {
     @Test
     void failedEvidenceFlushRollsBackReservationPair() {
         RuntimeDecisionEvidence invalid = evidence();
-        invalid.setSelectedAction(null);
+        invalid.setSignalSource("X".repeat(65));
 
         org.assertj.core.api.Assertions.assertThatThrownBy(
                         () -> service.reserve(cohort(), audit(), invalid))
@@ -107,6 +107,38 @@ class PreSubmitEvidencePersistenceConcurrencyTest {
 
         assertThat(auditRepository.count()).isZero();
         assertThat(evidenceRepository.count()).isZero();
+    }
+
+    @Test
+    void failedEvidenceFlushRollsBackAndAValidRetrySucceeds() {
+        RuntimeDecisionEvidence invalid = evidence();
+        invalid.setSignalSource("X".repeat(65));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> service.reserve(cohort(), audit(), invalid))
+                .isInstanceOf(RuntimeException.class);
+        assertThat(auditRepository.count()).isZero();
+        assertThat(evidenceRepository.count()).isZero();
+
+        assertThat(service.reserve(cohort(), audit(), evidence())).isPositive();
+        assertThat(auditRepository.count()).isEqualTo(1);
+        assertThat(evidenceRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void reservationExactlyAtEffectiveFromBlocksASecondWinner() {
+        BtDecisionAudit existingAudit = auditRepository.saveAndFlush(audit());
+        RuntimeDecisionEvidence existingEvidence = evidence();
+        existingEvidence.setEvidenceTime(LocalDateTime.of(2026, 7, 17, 0, 0));
+        existingEvidence.setDecisionId(existingAudit.getId());
+        evidenceRepository.saveAndFlush(existingEvidence);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> service.reserve(cohort(), audit(), evidence()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("reservation already exists");
+        assertThat(auditRepository.count()).isEqualTo(1);
+        assertThat(evidenceRepository.count()).isEqualTo(1);
     }
 
     private BtDecisionAudit audit() {

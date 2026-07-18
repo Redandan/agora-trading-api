@@ -99,11 +99,11 @@ db_forbidden_tables="$OUTPUT_DIR/server-db-forbidden-marketplace-tables.txt"
 known_system_tables="$OUTPUT_DIR/server-db-known-system-tables.txt"
 
 find src/main/java/com/agora/model -name '*.java' -print0 |
-  xargs -0 perl -0ne 'if (/@Entity\b/ && /@Table\s*\(\s*name\s*=\s*"([^"]+)"/s) { print "$1\n" }' |
+  xargs -0 perl scripts/schema_baseline_entity_table_parser.pl tables |
   sort -u > "$source_tables"
 
 find src/main/java/com/agora/model -name '*.java' -print0 |
-  xargs -0 perl -0ne 'if (/@Entity\b/ && !/@Table\s*\(\s*name\s*=\s*"([^"]+)"/s) { print "$ARGV\n" }' |
+  xargs -0 perl scripts/schema_baseline_entity_table_parser.pl implicit |
   sort -u > "$implicit_entities"
 
 grep -E "$MARKETPLACE_TABLE_PATTERN" "$source_tables" \

@@ -855,6 +855,7 @@ function Assert-SchemaExtraCleanupApplyDropGuard {
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     Invoke-VerifyPowerShellTest -ScriptName "check_java_directory_classpath.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_schema_baseline_entity_table_parser.ps1"
 
     $mockitoArgLine = Resolve-MockitoJavaAgentArgLine
     Write-Host "[verify] mvn test"

@@ -49,6 +49,6 @@ class VersionedProfitStartHardGateInputAssemblerTest {
                 "local-tradingview-parity-v1", "LOCAL_TRADINGVIEW", "LIVE_MICRO",
                 Instant.parse("2026-07-17T00:00:00Z"), List.of(),
                 List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER),
-                List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER), true, false);
+                List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER), true, false, false, false);
     }
 }

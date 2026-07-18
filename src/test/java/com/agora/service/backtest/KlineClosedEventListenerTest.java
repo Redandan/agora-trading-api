@@ -170,6 +170,9 @@ class KlineClosedEventListenerTest {
         });
         when(evidenceRepository.save(any(RuntimeDecisionEvidence.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        var preSubmitPersistence = mock(
+                com.agora.service.tradingview.PreSubmitEvidencePersistenceService.class);
+        when(preSubmitPersistence.persist(any(), any())).thenReturn(1201L);
         LocalTradingViewExecutionService executionService = new LocalTradingViewExecutionService(
                 localProps(ExecutionMode.LIVE_MICRO),
                 auditWriter,
@@ -183,7 +186,7 @@ class KlineClosedEventListenerTest {
                 readyHardGateAssembler(),
                 readyHardGateService(),
                 readyActivationReadiness(),
-                mock(com.agora.service.tradingview.PreSubmitEvidencePersistenceService.class),
+                preSubmitPersistence,
                 new ObjectMapper(),
                 telegramService);
         LocalTradingViewSignalEvaluator localEvaluator = localEvaluator(
@@ -423,6 +426,7 @@ class KlineClosedEventListenerTest {
         VersionedProfitStartCohortService.Snapshot snapshot =
                 mock(VersionedProfitStartCohortService.Snapshot.class);
         when(service.snapshot()).thenReturn(snapshot);
+        when(snapshot.bootstrapOcoAuthorityArmed()).thenReturn(true);
         when(service.liveExecutionBlocker(eq(snapshot),
                 org.mockito.ArgumentMatchers.anyLong(), any(String.class), any(String.class)))
                 .thenReturn(null);
@@ -456,7 +460,12 @@ class KlineClosedEventListenerTest {
         var service = mock(com.agora.service.trading.VersionedProfitStartActivationReadinessService.class);
         when(service.assess(any(), any())).thenReturn(
                 new com.agora.service.trading.VersionedProfitStartActivationReadinessService.Readiness(
-                        "TEST_READY", true, true, true, true, false,
+                        "TEST_READY", true, true, true, true, true, false, false,
+                        com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
+                        0, 0, 0, List.of()));
+        when(service.assess(any(), any(), any())).thenReturn(
+                new com.agora.service.trading.VersionedProfitStartActivationReadinessService.Readiness(
+                        "TEST_READY", true, true, true, true, true, false, false,
                         com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
                         0, 0, 0, List.of()));
         return service;

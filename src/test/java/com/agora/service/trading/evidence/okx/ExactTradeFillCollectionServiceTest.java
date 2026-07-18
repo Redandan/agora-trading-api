@@ -214,6 +214,10 @@ class ExactTradeFillCollectionServiceTest {
         final Map<String, CollectionRun> runs = new HashMap<>();
         final Map<String, CollectionAppend> collections = new HashMap<>(); CollectionAppend appended; int appendCalls;
         public Optional<CollectionRun> findRun(String id) { return Optional.ofNullable(runs.get(id)); }
+        public List<RawFill> findRunFills(String id) {
+            CollectionAppend collection = collections.get(id);
+            return collection == null ? List.of() : collection.fills();
+        }
         public Optional<PriorRun> latestCompleteRun(String p, String a, String i, String t, String scope) {
             return runs.values().stream().filter(r -> r.bindingScopeSha256().equals(scope))
                     .max(Comparator.comparing(CollectionRun::completedAt))

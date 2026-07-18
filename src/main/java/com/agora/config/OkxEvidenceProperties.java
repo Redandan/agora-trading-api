@@ -27,6 +27,9 @@ public class OkxEvidenceProperties {
     private String accountRefHash;
     private String instrumentId = "BTC-USDT";
     private String instrumentType = "SPOT";
+    /** Explicit accounting currencies for exact-net assembly; blank values fail closed. */
+    private String exactFillBaseCurrency;
+    private String exactFillQuoteCurrency;
     private int exactFillPageLimit = 100;
     private int exactFillMaxPages = 100;
     /** Mandatory operator-supplied forward-only cohort boundary; there is no default window. */
@@ -40,8 +43,12 @@ public class OkxEvidenceProperties {
         private Long runtimeDecisionId;
         private Long liveSignalId;
         private Instant orderCreatedAt;
+        /** Explicit episode role; side or timestamp inference is forbidden. */
+        private ExactFillEpisodeRole episodeRole;
         private boolean ocoRequired;
         private String intendedChildOrderId;
         private String actualChildOrderId;
     }
+
+    public enum ExactFillEpisodeRole { ENTRY, EXIT }
 }

@@ -332,6 +332,21 @@ class LocalTradingViewExecutionServiceTest {
     }
 
     @Test
+    void bootstrapOrderAuthorityNeverImplicitlyAuthorizesOco() {
+        Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
+        when(fixture.cohortSnapshot.bootstrapOcoAuthorityArmed()).thenReturn(false);
+
+        fixture.service.preview(strategy(), kline(), "1d", "okx",
+                intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
+
+        verify(fixture.preSubmitEvidencePersistenceService, never()).persist(any(), any());
+        verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
+        verify(fixture.tradingService, never()).placeOco(any(), any(), any(), any());
+        verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"), any(),
+                eq("VersionedProfitStartBootstrapOcoAuthorityBlocked"), any(), anyMap());
+    }
+
+    @Test
     void ocoAttachFailureAfterBuySendsCriticalAlertAndWritesUnprotectedEvidence() {
         Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
         TradeResult buy = new TradeResult();
@@ -481,6 +496,7 @@ class LocalTradingViewExecutionServiceTest {
         VersionedProfitStartCohortService.Snapshot cohortSnapshot =
                 mock(VersionedProfitStartCohortService.Snapshot.class);
         when(cohortService.snapshot()).thenReturn(cohortSnapshot);
+        when(cohortSnapshot.bootstrapOcoAuthorityArmed()).thenReturn(true);
         when(cohortService.liveExecutionBlocker(eq(cohortSnapshot),
                 org.mockito.ArgumentMatchers.anyLong(), any(String.class), any(String.class)))
                 .thenReturn(null);
@@ -531,7 +547,7 @@ class LocalTradingViewExecutionServiceTest {
                 new ObjectMapper(), telegramService);
         return new Fixture(service, auditWriter, liveSignalRepository, decisionAuditRepository,
                 evidenceRepository, tradingService, telegramService, cohortService, hardGateAssembler,
-                hardGateService, preSubmitEvidencePersistenceService);
+                hardGateService, preSubmitEvidencePersistenceService, cohortSnapshot);
     }
 
     private com.agora.service.trading.VersionedProfitStartHardGateInputAssembler readyHardGateAssembler() {
@@ -558,11 +574,12 @@ class LocalTradingViewExecutionServiceTest {
 
     private com.agora.service.trading.VersionedProfitStartActivationReadinessService readyActivationReadiness() {
         var service = mock(com.agora.service.trading.VersionedProfitStartActivationReadinessService.class);
-        when(service.assess(any(), any())).thenReturn(
-                new com.agora.service.trading.VersionedProfitStartActivationReadinessService.Readiness(
-                        "TEST_READY", true, true, true, true, false,
-                        com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
-                        0, 0, 0, List.of()));
+        var readiness = new com.agora.service.trading.VersionedProfitStartActivationReadinessService.Readiness(
+                "TEST_READY", true, true, true, true, true, false, false,
+                com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
+                0, 0, 0, List.of());
+        when(service.assess(any(), any())).thenReturn(readiness);
+        when(service.assess(any(), any(), org.mockito.ArgumentMatchers.anyLong())).thenReturn(readiness);
         return service;
     }
 
@@ -616,7 +633,8 @@ class LocalTradingViewExecutionServiceTest {
             VersionedProfitStartCohortService cohortService,
             com.agora.service.trading.VersionedProfitStartHardGateInputAssembler hardGateAssembler,
             com.agora.service.trading.VersionedProfitStartHardGateSnapshotService hardGateService,
-            PreSubmitEvidencePersistenceService preSubmitEvidencePersistenceService
+            PreSubmitEvidencePersistenceService preSubmitEvidencePersistenceService,
+            VersionedProfitStartCohortService.Snapshot cohortSnapshot
     ) {
     }
 }

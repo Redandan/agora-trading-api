@@ -21,7 +21,26 @@
     "legacyRowsMayEnterCurrentCohortMetrics": false,
     "negativeCurrentCohortSamplesMayBeExcluded": false,
     "zeroClosedEpisodesMayPassTinyLiveReadiness": true,
-    "thirtyClosedEpisodesRequiredForTinyLive": false
+    "thirtyClosedEpisodesRequiredForTinyLive": false,
+    "bootstrapOrderAuthorityDefaultOff": true,
+    "bootstrapOcoAuthoritySeparateAndDefaultOff": true,
+    "bootstrapMaySatisfyExactNetAcceptance": false,
+    "historicalFillBackfillAllowed": false
+  },
+  "bootstrapSequence": {
+    "stages": [
+      "D0_COHORT_IDENTITY",
+      "D1_BOOTSTRAP_ORDER",
+      "C1_FORWARD_ONLY_COLLECTION",
+      "C2_COMPLETE_STABLE_EXACT_EVIDENCE",
+      "D2_EXACT_NET_ACCEPTANCE"
+    ],
+    "zeroSampleReadinessScope": "BOOTSTRAP_ELIGIBILITY_ONLY",
+    "durablePreSubmitReservationRequired": true,
+    "duplicateOrConcurrentBootstrapFailsClosed": true,
+    "explicitEntryExitRoleRequired": true,
+    "runItemGraphRequiredForCanonicalFillSet": true,
+    "operationalOrderAndOcoArmsExcludedFromCohortIdentity": true
   },
   "blockers": [
     {
@@ -238,7 +257,7 @@
       "scope": "Authenticated read-only fill collection and append-only exact evidence after effectiveFrom; excludes historical import or backfill, update, delete, live, scheduler, order, OCO, Grid, fund, Earn, and Telegram mutation."
     },
     {
-      "name": "SET_VERSIONED_PROFIT_START_COHORT_IDENTITY_AND_TINY_LIVE_ENV_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>",
+      "name": "SET_VERSIONED_PROFIT_START_COHORT_IDENTITY_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>",
       "issuableNow": false,
       "requiredBindings": [
         "deployed full commit",
@@ -248,10 +267,34 @@
         "strategy id and family",
         "symbol",
         "execution mode",
-        "UTC effectiveFrom",
-        "fresh hard-gate snapshot"
+        "UTC effectiveFrom"
       ],
-      "scope": "Deferred cohort activation authorization only after all three blockers are implemented and deployed; it does not itself authorize an order, scheduler, OCO, Grid, fund, Earn, or Telegram mutation."
+      "scope": "D0 cohort identity only; no order, scheduler, OCO, Grid, fund, Earn, Telegram, provider, or collector mutation."
+    },
+    {
+      "name": "AUTHORIZE_ONE_VERSIONED_PROFIT_START_BOOTSTRAP_ORDER_<COHORT_ID>_<RISK_CAPS>",
+      "issuableNow": false,
+      "requiredBindings": [
+        "deployed full commit",
+        "cohort id",
+        "fresh hard-gate snapshot id and sha256",
+        "exact notional and risk caps",
+        "durable pre-submit reservation"
+      ],
+      "scope": "D1 one-shot bootstrap order only. OCO-capable modes need a separate OCO authorization; no scheduler or repeated order authority."
+    },
+    {
+      "name": "ACCEPT_VERSIONED_PROFIT_START_EXACT_NET_<COHORT_ID>_<EVIDENCE_CUTOFF>",
+      "issuableNow": false,
+      "requiredBindings": [
+        "deployed full commit",
+        "cohort id",
+        "config sha256",
+        "UTC effectiveFrom and evidence cutoff",
+        "COMPLETE_STABLE V3 run and prior run",
+        "canonical exact-net episode result"
+      ],
+      "scope": "D2 exact-net acceptance only after C2; grants no order, OCO, scheduler, provider, collector, or environment mutation."
     }
   ]
 }

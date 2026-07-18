@@ -31,6 +31,14 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
         return run;
     }
 
+    @Override
+    public List<RawFill> findRunFills(String runId) {
+        CollectionRun run = queryRun(runId)
+                .orElseThrow(() -> new ExactFillConflictException("collection run not found"));
+        verifyCommittedRun(run);
+        return queryRunFills(runId);
+    }
+
     private Optional<CollectionRun> queryRun(String runId) {
         return jdbc.query("""
                 SELECT run_id,provider,account_ref_hash,instrument_id,instrument_type,binding_scope_sha256,status,started_at,completed_at,
@@ -184,22 +192,7 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
                 conflict("committed page chain incomplete");
             }
         }
-        List<RawFill> fills = jdbc.query("""
-                SELECT f.provider,f.account_ref_hash,f.instrument_id,f.instrument_type,f.order_id,f.trade_id,
-                       f.bill_id,f.fill_at,f.side,f.fill_price,f.fill_quantity,f.signed_fee_amount,f.fee_currency,
-                       f.liquidity_role,f.raw_payload_sha256,i.page_key,f.collected_at,f.cohort_id,
-                       f.runtime_decision_id,f.live_signal_id,f.intended_child_order_id,f.actual_child_order_id,
-                       f.fill_identity_sha256,f.immutable_content_sha256
-                FROM exact_trade_fill_run_item i
-                JOIN immutable_trade_fill f ON f.fill_identity_sha256=i.fill_identity_sha256
-                JOIN exact_trade_fill_page_manifest p ON p.run_id=i.run_id AND p.page_key=i.page_key
-                WHERE i.run_id=? ORDER BY i.fill_identity_sha256
-                """, (rs, n) -> new RawFill(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
-                rs.getString(5), rs.getString(6), rs.getString(7), rs.getTimestamp(8).toInstant(), rs.getString(9),
-                rs.getBigDecimal(10), rs.getBigDecimal(11), rs.getBigDecimal(12), rs.getString(13), rs.getString(14),
-                rs.getString(15), rs.getString(16), rs.getTimestamp(17).toInstant(), rs.getString(18),
-                nullableLong(rs, 19), nullableLong(rs, 20), rs.getString(21), rs.getString(22), rs.getString(23),
-                rs.getString(24)), run.runId());
+        List<RawFill> fills = queryRunFills(run.runId());
         if (fills.size() != run.fillCount()) conflict("committed run-item collection incomplete");
         for (RawFill fill : fills) {
             if (!Objects.equals(run.provider(), fill.provider())
@@ -215,6 +208,25 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
         if (!Objects.equals(run.canonicalFillSetSha256(), rebuilt)) {
             conflict("committed canonical fill-set mismatch");
         }
+    }
+
+    private List<RawFill> queryRunFills(String runId) {
+        return jdbc.query("""
+                SELECT f.provider,f.account_ref_hash,f.instrument_id,f.instrument_type,f.order_id,f.trade_id,
+                       f.bill_id,f.fill_at,f.side,f.fill_price,f.fill_quantity,f.signed_fee_amount,f.fee_currency,
+                       f.liquidity_role,f.raw_payload_sha256,i.page_key,f.collected_at,f.cohort_id,
+                       f.runtime_decision_id,f.live_signal_id,f.intended_child_order_id,f.actual_child_order_id,
+                       f.fill_identity_sha256,f.immutable_content_sha256
+                FROM exact_trade_fill_run_item i
+                JOIN immutable_trade_fill f ON f.fill_identity_sha256=i.fill_identity_sha256
+                JOIN exact_trade_fill_page_manifest p ON p.run_id=i.run_id AND p.page_key=i.page_key
+                WHERE i.run_id=? ORDER BY i.fill_identity_sha256
+                """, (rs, n) -> new RawFill(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                rs.getString(5), rs.getString(6), rs.getString(7), rs.getTimestamp(8).toInstant(), rs.getString(9),
+                rs.getBigDecimal(10), rs.getBigDecimal(11), rs.getBigDecimal(12), rs.getString(13), rs.getString(14),
+                rs.getString(15), rs.getString(16), rs.getTimestamp(17).toInstant(), rs.getString(18),
+                nullableLong(rs, 19), nullableLong(rs, 20), rs.getString(21), rs.getString(22), rs.getString(23),
+                rs.getString(24)), runId);
     }
 
     private static Long nullableLong(java.sql.ResultSet rs, int column) throws java.sql.SQLException {

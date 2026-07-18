@@ -31,6 +31,29 @@ not preserve fill side, price, or quantity. Existing strategy attribution may
 use estimated fees for non-exact reporting. Neither source may support an
 exact-net acceptance claim.
 
+## Bootstrap sequence contract
+
+The cohort bootstrap and exact-net acceptance are separate authorities. The
+only executable sequence is:
+
+1. `D0_COHORT_IDENTITY`: bind the deployed commit, configuration SHA-256 and
+   UTC `effectiveFrom`. This creates no order authority.
+2. `D1_BOOTSTRAP_ORDER`: after a fresh hard-gate snapshot, a separate
+   default-off order arm may permit one current-cohort bootstrap order. Modes
+   that attach OCO require an additional, separately default-off OCO arm.
+3. `C1_FORWARD_ONLY_COLLECTION`: collect provider-authenticated fills only
+   from the bound `effectiveFrom`; historical backfill remains forbidden.
+4. `C2_COMPLETE_STABLE_EXACT_EVIDENCE`: reconstruct the episode only from the
+   immutable V3 run-item graph, explicit ENTRY/EXIT roles and supported signed
+   fee currencies.
+5. `D2_EXACT_NET_ACCEPTANCE`: exact-net acceptance may start only after C2.
+
+At zero samples, readiness can authorize only D1 bootstrap eligibility; it can
+never satisfy D2 exact-net acceptance. A durable pre-submit reservation makes
+D1 one-shot and fail-closed under duplicate or concurrent attempts. The
+operational order/OCO arms are intentionally excluded from cohort identity and
+do not themselves change configuration, place an order, or enable a scheduler.
+
 ## 1. Tiny-live hard-gate snapshot — locally implemented, runtime proof required
 
 ### Acceptance
@@ -157,13 +180,16 @@ configuration checksum, and/or effective time do not yet exist.
 2. `BLUE_GREEN_CODE_DEPLOY_WITH_EXACT_ADDITIVE_V3_MIGRATION_AND_RESTART_ONLY_<FULL_COMMIT>_<MIGRATION_SHA256>`
    binds the exact code and additive migration. It excludes environment,
    collection, live, scheduler, order, OCO, and other trading mutations.
-3. `ENABLE_FORWARD_ONLY_OKX_SPOT_BTC_USDT_FILL_READ_AND_APPEND_ONLY_EVIDENCE_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>`
-   separately permits only provider read and append-only evidence from the
-   bound time; no historical import or backfill.
-4. `SET_VERSIONED_PROFIT_START_COHORT_IDENTITY_AND_TINY_LIVE_ENV_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>`
-   is deferred until the local contracts are deployed, a fresh hard-gate
-   snapshot is proven, and exact evidence binding is implemented. It does
-   not itself authorize an order or any scheduler/OCO/Grid mutation.
+3. `SET_VERSIONED_PROFIT_START_COHORT_IDENTITY_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>`
+   binds D0 only and grants no order authority.
+4. `AUTHORIZE_ONE_VERSIONED_PROFIT_START_BOOTSTRAP_ORDER_<COHORT_ID>_<RISK_CAPS>`
+   arms D1 only after a fresh hard-gate snapshot. OCO-capable modes require a
+   separate exact OCO authorization; neither permission enables a scheduler.
+5. `ENABLE_FORWARD_ONLY_OKX_SPOT_BTC_USDT_FILL_READ_AND_APPEND_ONLY_EVIDENCE_<CONFIG_SHA256>_FROM_<UTC_EFFECTIVE_FROM>`
+   permits C1 provider GET and append-only evidence from the bound time; no
+   historical import or backfill.
+6. `ACCEPT_VERSIONED_PROFIT_START_EXACT_NET_<COHORT_ID>_<EVIDENCE_CUTOFF>`
+   is D2 and is not issuable until C2 COMPLETE_STABLE evidence is verified.
 
 Until those later stages are separately authorized and verified, the deployed
 state remains activation-blocked and the cohort remains `NOT_STARTED`.

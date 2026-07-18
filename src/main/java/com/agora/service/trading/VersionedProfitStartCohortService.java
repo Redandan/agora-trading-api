@@ -60,6 +60,11 @@ public class VersionedProfitStartCohortService {
 
     public Snapshot snapshot() {
         boolean enabled = environment.getProperty(PREFIX + "enabled", Boolean.class, false);
+        // Operational arm is deliberately excluded from configSha256/cohortId.
+        boolean bootstrapOrderAuthorityArmed = environment.getProperty(
+                PREFIX + "bootstrap-order-authority-enabled", Boolean.class, false);
+        boolean bootstrapOcoAuthorityArmed = environment.getProperty(
+                PREFIX + "bootstrap-oco-authority-enabled", Boolean.class, false);
         String codeCommit = resolveCodeCommit();
         BtStrategy strategy = null;
         boolean strategyReadFailed = false;
@@ -136,6 +141,8 @@ public class VersionedProfitStartCohortService {
                 activationBlockers,
                 activationBlockers,
                 true,
+                bootstrapOrderAuthorityArmed,
+                bootstrapOcoAuthorityArmed,
                 false);
     }
 
@@ -213,6 +220,9 @@ public class VersionedProfitStartCohortService {
         root.put("tinyLiveEligible", readiness.tinyLiveEligible());
         root.put("hardGateReady", readiness.hardGateReady());
         root.put("activationAllowed", readiness.activationAllowed());
+        root.put("bootstrapOrderAuthorityArmed", readiness.bootstrapOrderAuthorityArmed());
+        root.put("bootstrapOrderAllowed", readiness.bootstrapOrderAllowed());
+        root.put("exactNetAcceptanceAllowed", readiness.exactNetAcceptanceAllowed());
         ArrayNode readinessBlockers = root.putArray("readinessBlockers");
         readiness.blockers().forEach(readinessBlockers::add);
         root.put("sessionMustRemainOpen", true);
@@ -248,6 +258,8 @@ public class VersionedProfitStartCohortService {
         ArrayNode finalBlockers = node.putArray("finalAcceptanceBlockers");
         snapshot.finalAcceptanceBlockers().forEach(finalBlockers::add);
         node.put("legacyRowsExcluded", snapshot.legacyRowsExcluded());
+        node.put("bootstrapOrderAuthorityArmed", snapshot.bootstrapOrderAuthorityArmed());
+        node.put("bootstrapOcoAuthorityArmed", snapshot.bootstrapOcoAuthorityArmed());
         node.put("exactNetAcceptanceAllowed", snapshot.exactNetAcceptanceAllowed());
         return node;
     }
@@ -271,6 +283,8 @@ public class VersionedProfitStartCohortService {
         out.put("identityBlockers", snapshot.identityBlockers());
         out.put("activationBlockers", snapshot.activationBlockers());
         out.put("legacyRowsExcluded", snapshot.legacyRowsExcluded());
+        out.put("bootstrapOrderAuthorityArmed", snapshot.bootstrapOrderAuthorityArmed());
+        out.put("bootstrapOcoAuthorityArmed", snapshot.bootstrapOcoAuthorityArmed());
         return out;
     }
 
@@ -411,6 +425,8 @@ public class VersionedProfitStartCohortService {
                            List<String> activationBlockers,
                            List<String> finalAcceptanceBlockers,
                            boolean legacyRowsExcluded,
+                           boolean bootstrapOrderAuthorityArmed,
+                           boolean bootstrapOcoAuthorityArmed,
                            boolean exactNetAcceptanceAllowed) {
     }
 }

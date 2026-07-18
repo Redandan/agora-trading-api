@@ -103,6 +103,25 @@ class VersionedProfitStartCohortServiceTest {
     }
 
     @Test
+    void operationalBootstrapArmDoesNotChangeIdentityOrConfigHash() {
+        MockEnvironment disarmedEnv = readyEnvironment();
+        MockEnvironment armedEnv = readyEnvironment()
+                .withProperty("trading.versioned-profit-start.cohort.bootstrap-order-authority-enabled", "true")
+                .withProperty("trading.versioned-profit-start.cohort.bootstrap-oco-authority-enabled", "true");
+        VersionedProfitStartCohortService disarmed = service(
+                props(ExecutionMode.LIVE_MICRO, new BigDecimal("10.0")), disarmedEnv);
+        VersionedProfitStartCohortService armed = service(
+                props(ExecutionMode.LIVE_MICRO, new BigDecimal("10.0")), armedEnv);
+
+        assertThat(disarmed.snapshot().bootstrapOrderAuthorityArmed()).isFalse();
+        assertThat(armed.snapshot().bootstrapOrderAuthorityArmed()).isTrue();
+        assertThat(disarmed.snapshot().bootstrapOcoAuthorityArmed()).isFalse();
+        assertThat(armed.snapshot().bootstrapOcoAuthorityArmed()).isTrue();
+        assertThat(armed.snapshot().configSha256()).isEqualTo(disarmed.snapshot().configSha256());
+        assertThat(armed.snapshot().cohortId()).isEqualTo(disarmed.snapshot().cohortId());
+    }
+
+    @Test
     void futureEffectiveFromFailsClosed() {
         MockEnvironment environment = readyEnvironment()
                 .withProperty("trading.versioned-profit-start.cohort.effective-from",
@@ -124,7 +143,7 @@ class VersionedProfitStartCohortServiceTest {
                 mock(VersionedProfitStartActivationReadinessService.class);
         when(readiness.assess(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.isNull()))
                 .thenReturn(new VersionedProfitStartActivationReadinessService.Readiness(
-                        "ACTIVATION_BLOCKED", true, false, false, false, false,
+                        "ACTIVATION_BLOCKED", true, false, false, false, false, false, false,
                         CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE,
                         0, 0, 0, java.util.List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER)));
         return new VersionedProfitStartCohortService(
@@ -135,7 +154,7 @@ class VersionedProfitStartCohortServiceTest {
         return new MockEnvironment()
                 .withProperty("trading.versioned-profit-start.cohort.enabled", "true")
                 .withProperty("trading.versioned-profit-start.cohort.effective-from",
-                        Instant.now().minusSeconds(60).toString())
+                        "2026-07-17T00:00:00Z")
                 .withProperty("app.git.commit", COMMIT);
     }
 

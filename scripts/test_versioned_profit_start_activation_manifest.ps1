@@ -46,6 +46,26 @@ Assert-Contract (-not [bool]$contract.globalSafety.legacyRowsMayEnterCurrentCoho
 Assert-Contract (-not [bool]$contract.globalSafety.negativeCurrentCohortSamplesMayBeExcluded) 'Current-cohort losses must not be excludable.'
 Assert-Contract ([bool]$contract.globalSafety.zeroClosedEpisodesMayPassTinyLiveReadiness) 'Zero closed episodes must be allowed for tiny-live readiness.'
 Assert-Contract (-not [bool]$contract.globalSafety.thirtyClosedEpisodesRequiredForTinyLive) 'Thirty outcomes must not block tiny-live readiness.'
+Assert-Contract ([bool]$contract.globalSafety.bootstrapOrderAuthorityDefaultOff) 'Bootstrap order authority must remain default-off.'
+Assert-Contract ([bool]$contract.globalSafety.bootstrapOcoAuthoritySeparateAndDefaultOff) 'OCO authority must be separate and default-off.'
+Assert-Contract (-not [bool]$contract.globalSafety.bootstrapMaySatisfyExactNetAcceptance) 'Bootstrap readiness cannot satisfy exact-net acceptance.'
+Assert-Contract (-not [bool]$contract.globalSafety.historicalFillBackfillAllowed) 'Historical fill backfill must remain prohibited.'
+
+$expectedSequence = @(
+    'D0_COHORT_IDENTITY',
+    'D1_BOOTSTRAP_ORDER',
+    'C1_FORWARD_ONLY_COLLECTION',
+    'C2_COMPLETE_STABLE_EXACT_EVIDENCE',
+    'D2_EXACT_NET_ACCEPTANCE'
+)
+$actualSequence = @($contract.bootstrapSequence.stages | ForEach-Object { [string]$_ })
+Assert-Contract (($actualSequence -join '|') -eq ($expectedSequence -join '|')) 'Bootstrap sequence must remain D0 -> D1 -> C1 -> C2 -> D2.'
+Assert-Contract ($contract.bootstrapSequence.zeroSampleReadinessScope -eq 'BOOTSTRAP_ELIGIBILITY_ONLY') 'Zero samples may authorize bootstrap eligibility only.'
+Assert-Contract ([bool]$contract.bootstrapSequence.durablePreSubmitReservationRequired) 'D1 requires a durable pre-submit reservation.'
+Assert-Contract ([bool]$contract.bootstrapSequence.duplicateOrConcurrentBootstrapFailsClosed) 'Duplicate/concurrent bootstrap must fail closed.'
+Assert-Contract ([bool]$contract.bootstrapSequence.explicitEntryExitRoleRequired) 'Exact evidence requires explicit ENTRY/EXIT roles.'
+Assert-Contract ([bool]$contract.bootstrapSequence.runItemGraphRequiredForCanonicalFillSet) 'Exact evidence must use the V3 run-item graph.'
+Assert-Contract ([bool]$contract.bootstrapSequence.operationalOrderAndOcoArmsExcludedFromCohortIdentity) 'Operational arms must not alter cohort identity.'
 
 $expectedBlockers = @(
     'TINY_LIVE_HARD_GATE_SNAPSHOT_NOT_IMPLEMENTED',

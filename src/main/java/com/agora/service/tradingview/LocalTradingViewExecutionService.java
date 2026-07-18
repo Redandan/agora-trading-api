@@ -150,13 +150,22 @@ public class LocalTradingViewExecutionService {
         VersionedProfitStartActivationReadinessService.Readiness readiness =
                 activationReadinessService.assess(cohortSnapshot, hardGate);
         context.put("versionedProfitStartTinyLiveEligible", readiness.tinyLiveEligible());
+        context.put("versionedProfitStartBootstrapOrderAuthorityArmed",
+                readiness.bootstrapOrderAuthorityArmed());
+        context.put("versionedProfitStartBootstrapOrderAllowed", readiness.bootstrapOrderAllowed());
         context.put("versionedProfitStartActivationAllowed", readiness.activationAllowed());
+        context.put("versionedProfitStartExactNetAcceptanceAllowed", readiness.exactNetAcceptanceAllowed());
         context.put("versionedProfitStartReadinessBlockers", readiness.blockers());
-        if (!readiness.activationAllowed()) {
-            return "VersionedProfitStartActivationBlocked";
+        if (!readiness.bootstrapOrderAllowed()) {
+            return "VersionedProfitStartBootstrapOrderAuthorityBlocked";
+        }
+        if (!isBtcBaseLiveMicro() && !cohortSnapshot.bootstrapOcoAuthorityArmed()) {
+            return "VersionedProfitStartBootstrapOcoAuthorityBlocked";
         }
 
-        if (!savePreSubmitSnapshotEvidence(strategy, symbol, interval, kline, context, hardGate)) {
+        Long reservationDecisionId = savePreSubmitSnapshotEvidence(
+                strategy, symbol, interval, kline, context, hardGate);
+        if (reservationDecisionId == null) {
             return "VersionedProfitStartHardGateEvidenceSaveFailed";
         }
 
@@ -172,6 +181,15 @@ public class LocalTradingViewExecutionService {
             if (!boundary.allowed()) {
                 return "VersionedProfitStartHardGateBoundaryRejected";
             }
+            VersionedProfitStartActivationReadinessService.Readiness freshReadiness =
+                    activationReadinessService.assess(
+                            freshCohortSnapshot, boundary.currentSnapshot(), reservationDecisionId);
+            context.put("versionedProfitStartFreshBootstrapOrderAllowed",
+                    freshReadiness.bootstrapOrderAllowed());
+            context.put("versionedProfitStartFreshReadinessBlockers", freshReadiness.blockers());
+            if (!freshReadiness.bootstrapOrderAllowed()) {
+                return "VersionedProfitStartBootstrapOrderBoundaryRejected";
+            }
         } catch (Exception e) {
             context.put("versionedProfitStartFreshBoundaryError", truncate(e.getMessage(), 420));
             return "VersionedProfitStartHardGateFreshInputsFailed";
@@ -179,12 +197,12 @@ public class LocalTradingViewExecutionService {
         return null;
     }
 
-    private boolean savePreSubmitSnapshotEvidence(BtStrategy strategy,
-                                                   String symbol,
-                                                   String interval,
-                                                   MdKline kline,
-                                                   Map<String, Object> context,
-                                                   VersionedProfitStartHardGateSnapshotService.Snapshot hardGate) {
+    private Long savePreSubmitSnapshotEvidence(BtStrategy strategy,
+                                               String symbol,
+                                               String interval,
+                                               MdKline kline,
+                                               Map<String, Object> context,
+                                               VersionedProfitStartHardGateSnapshotService.Snapshot hardGate) {
         try {
             BtDecisionAudit audit = executionAudit(strategy, symbol, interval, kline.getOpenTime(), "PASS",
                     "VersionedProfitStartHardGateReadyPreSubmit",
@@ -209,10 +227,10 @@ public class LocalTradingViewExecutionService {
             Long decisionId = preSubmitEvidencePersistenceService.persist(audit, evidence);
             context.put("versionedProfitStartPreSubmitDecisionId", decisionId);
             context.put("versionedProfitStartPreSubmitEvidenceDurable", true);
-            return true;
+            return decisionId;
         } catch (Exception e) {
             context.put("versionedProfitStartPreSubmitEvidenceError", truncate(e.getMessage(), 420));
-            return false;
+            return null;
         }
     }
 

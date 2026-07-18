@@ -79,10 +79,52 @@ class JdbcExactTradeFillAppendRepositoryTest {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM exact_trade_fill_collection_run WHERE run_id=?",
                 Integer.class, "2".repeat(64))).isZero();
 
+        String firstRun = first.run().runId();
+        jdbc.update("UPDATE exact_trade_fill_page_manifest SET request_cursor='altered' WHERE run_id=? AND page_index=1",
+                firstRun);
+        assertImmutableConflict(tx, repo, first, "immutable exact-fill identity conflict");
+        jdbc.update("UPDATE exact_trade_fill_page_manifest SET request_cursor='900' WHERE run_id=? AND page_index=1",
+                firstRun);
+
+        jdbc.update("UPDATE exact_trade_fill_page_manifest SET page_sha256=? WHERE run_id=? AND page_index=0",
+                "9".repeat(64), firstRun);
+        assertImmutableConflict(tx, repo, first, "immutable exact-fill identity conflict");
+        jdbc.update("UPDATE exact_trade_fill_page_manifest SET page_sha256=? WHERE run_id=? AND page_index=0",
+                first.pages().getFirst().pageSha256(), firstRun);
+
+        jdbc.update("UPDATE exact_trade_fill_run_item SET page_key=? WHERE run_id=?",
+                first.pages().getLast().pageKey(), firstRun);
+        assertImmutableConflict(tx, repo, first, "immutable exact-fill identity conflict");
+        jdbc.update("UPDATE exact_trade_fill_run_item SET page_key=? WHERE run_id=?",
+                first.pages().getFirst().pageKey(), firstRun);
+
+        String alternatePageKey = "c".repeat(64);
+        RawFill originalFill = first.fills().getFirst();
+        RawFill alternateFill = new RawFill(originalFill.provider(), originalFill.accountRefHash(),
+                originalFill.instrumentId(), originalFill.instrumentType(), originalFill.orderId(),
+                originalFill.tradeId(), originalFill.billId(), originalFill.fillAt(), originalFill.side(),
+                originalFill.fillPrice(), originalFill.fillQuantity(), originalFill.signedFeeAmount(),
+                originalFill.feeCurrency(), originalFill.liquidityRole(), originalFill.rawPayloadSha256(),
+                alternatePageKey, originalFill.collectedAt(), originalFill.cohortId(),
+                originalFill.runtimeDecisionId(), originalFill.liveSignalId(), originalFill.intendedChildOrderId(),
+                originalFill.actualChildOrderId(), originalFill.identitySha256(), originalFill.contentSha256());
+        PageManifest alternateData = new PageManifest(firstRun, 0, null, "900", alternatePageKey,
+                first.pages().getFirst().pageSha256(), 1, false, first.pages().getFirst().collectedAt());
+        CollectionAppend sameFillSetDifferentProvenance = new CollectionAppend(first.run(),
+                List.of(alternateData, first.pages().getLast()), List.of(alternateFill));
+        assertImmutableConflict(tx, repo, sameFillSetDifferentProvenance, "immutable exact-fill identity conflict");
+
         jdbc.update("DELETE FROM exact_trade_fill_run_item WHERE run_id=?", first.run().runId());
         assertThatThrownBy(() -> tx.execute(s -> repo.append(first)))
                 .isInstanceOf(JdbcExactTradeFillAppendRepository.ExactFillConflictException.class)
                 .hasMessageContaining("committed run-item collection incomplete");
+    }
+
+    private static void assertImmutableConflict(TransactionTemplate tx, JdbcExactTradeFillAppendRepository repo,
+                                                CollectionAppend collection, String message) {
+        assertThatThrownBy(() -> tx.execute(s -> repo.append(collection)))
+                .isInstanceOf(JdbcExactTradeFillAppendRepository.ExactFillConflictException.class)
+                .hasMessageContaining(message);
     }
 
     private static ExactTradeFillAppendRepository.AppendResult concurrentAppend(

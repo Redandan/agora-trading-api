@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -78,7 +79,8 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
             return AppendResult.APPENDED;
         } catch (DuplicateKeyException duplicate) {
             Optional<CollectionRun> committed = findRun(c.run().runId());
-            if (committed.isPresent() && sameScopeAndContent(c.run(), committed.get())) {
+            if (committed.isPresent() && sameScopeAndContent(c.run(), committed.get())
+                    && sameCommittedChildren(c)) {
                 return AppendResult.DUPLICATE_IDENTICAL;
             }
             throw new ExactFillConflictException("immutable exact-fill identity conflict", duplicate);
@@ -95,12 +97,22 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
         for (int i = 0; i < collection.pages().size(); i++) {
             PageManifest page = collection.pages().get(i);
             if (!collection.run().runId().equals(page.runId()) || page.pageIndex() != i
-                    || page.terminalPage() != (i == collection.pages().size() - 1)) {
+                    || page.terminalPage() != (i == collection.pages().size() - 1)
+                    || page.terminalPage() && page.fillCount() != 0
+                    || !page.terminalPage() && page.fillCount() < 1) {
                 conflict("collection append page chain mismatch");
             }
         }
         var pageKeys = collection.pages().stream().map(PageManifest::pageKey).collect(java.util.stream.Collectors.toSet());
         if (pageKeys.size() != collection.pages().size()) conflict("collection append duplicate page");
+        Map<String, Long> fillCountByPage = collection.fills().stream()
+                .collect(java.util.stream.Collectors.groupingBy(RawFill::sourcePageKey,
+                        java.util.stream.Collectors.counting()));
+        for (PageManifest page : collection.pages()) {
+            if (fillCountByPage.getOrDefault(page.pageKey(), 0L) != page.fillCount()) {
+                conflict("collection append page fill-count mismatch");
+            }
+        }
         for (RawFill fill : collection.fills()) {
             if (!Objects.equals(collection.run().provider(), fill.provider())
                     || !Objects.equals(collection.run().accountRefHash(), fill.accountRefHash())
@@ -127,8 +139,36 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
                 && requested.status() == committed.status()
                 && requested.pageCount() == committed.pageCount()
                 && requested.fillCount() == committed.fillCount()
+                && Objects.equals(requested.terminalCursor(), committed.terminalCursor())
                 && Objects.equals(requested.canonicalFillSetSha256(), committed.canonicalFillSetSha256())
                 && Objects.equals(requested.priorStableRunId(), committed.priorStableRunId());
+    }
+
+    /** Compares the complete semantic child graph; collection timestamps are observational, not provenance. */
+    private boolean sameCommittedChildren(CollectionAppend requested) {
+        List<PageRow> committedPages = jdbc.query("""
+                SELECT page_index,request_cursor,next_cursor,page_key,page_sha256,fill_count,terminal_page
+                FROM exact_trade_fill_page_manifest WHERE run_id=? ORDER BY page_index
+                """, (rs, n) -> new PageRow(rs.getInt(1), rs.getString(2), rs.getString(3),
+                rs.getString(4), rs.getString(5), rs.getInt(6), rs.getBoolean(7)), requested.run().runId());
+        List<PageRow> requestedPages = requested.pages().stream()
+                .map(p -> new PageRow(p.pageIndex(), p.requestCursor(), p.nextCursor(), p.pageKey(),
+                        p.pageSha256(), p.fillCount(), p.terminalPage()))
+                .toList();
+        if (!requestedPages.equals(committedPages)) return false;
+
+        List<RunItemRow> committedItems = jdbc.query("""
+                SELECT i.fill_identity_sha256,i.page_key,f.immutable_content_sha256
+                FROM exact_trade_fill_run_item i
+                JOIN immutable_trade_fill f ON f.fill_identity_sha256=i.fill_identity_sha256
+                WHERE i.run_id=? ORDER BY i.fill_identity_sha256
+                """, (rs, n) -> new RunItemRow(rs.getString(1), rs.getString(2), rs.getString(3)),
+                requested.run().runId());
+        List<RunItemRow> requestedItems = requested.fills().stream()
+                .map(f -> new RunItemRow(f.identitySha256(), f.sourcePageKey(), f.contentSha256()))
+                .sorted(java.util.Comparator.comparing(RunItemRow::identitySha256))
+                .toList();
+        return requestedItems.equals(committedItems);
     }
 
     /** Rebuilds the committed canonical fill-set through run-item; parent hashes are never trusted alone. */
@@ -136,7 +176,8 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
         List<PageRow> pages = jdbc.query("""
                 SELECT page_index,page_key,terminal_page FROM exact_trade_fill_page_manifest
                 WHERE run_id=? ORDER BY page_index
-                """, (rs, n) -> new PageRow(rs.getInt(1), rs.getString(2), rs.getBoolean(3)), run.runId());
+                """, (rs, n) -> new PageRow(rs.getInt(1), null, null, rs.getString(2), null, 0,
+                rs.getBoolean(3)), run.runId());
         if (pages.size() != run.pageCount() || pages.isEmpty()) conflict("committed page collection incomplete");
         for (int i = 0; i < pages.size(); i++) {
             if (pages.get(i).index() != i || pages.get(i).terminal() != (i == pages.size() - 1)) {
@@ -182,7 +223,9 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
     }
 
     private static void conflict(String message) { throw new ExactFillConflictException(message); }
-    private record PageRow(int index, String pageKey, boolean terminal) { }
+    private record PageRow(int index, String requestCursor, String nextCursor, String pageKey,
+                           String pageSha256, int fillCount, boolean terminal) { }
+    private record RunItemRow(String identitySha256, String pageKey, String contentSha256) { }
 
     private void appendPage(PageManifest p) {
         jdbc.update("""

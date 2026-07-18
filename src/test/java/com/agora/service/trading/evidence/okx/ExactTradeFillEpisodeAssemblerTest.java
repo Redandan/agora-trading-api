@@ -123,6 +123,19 @@ class ExactTradeFillEpisodeAssemblerTest {
                 .contains("PRIOR_CANONICAL_SCOPE_MISMATCH");
     }
 
+    @Test
+    void fillBeforeOrderCreationAndCrossOrderTradeReuseFailClosed() {
+        RawFill early = bound(rehash(fill("entry", "t1", "BUY", "100", "1", "0", "USDT"),
+                start().minusSeconds(1), "USDT"));
+        assertThat(assembler.assemble(binding(Set.of("t1"), early), List.of(early)).blockers())
+                .contains("FILL_PRECEDES_ORDER_CREATION");
+
+        RawFill entry = bound(fill("entry", "same", "BUY", "100", "1", "0", "USDT"));
+        RawFill exit = bound(fill("exit", "same", "SELL", "100", "1", "0", "USDT"));
+        assertThat(assembler.assemble(binding(Set.of("same"), entry, exit), List.of(entry, exit)).blockers())
+                .contains("CROSS_ORDER_DUPLICATE_TRADE_ID");
+    }
+
     private static ExactTradeFillEpisodeAssembler.Binding binding(Set<String> trades, RawFill... fills) {
         return binding(trades, Map.of("entry", orderBinding(false), "exit", orderBinding(false)), fills);
     }

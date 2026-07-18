@@ -71,17 +71,58 @@ class ExactTradeFillCollectionServiceTest {
     }
 
     @Test
-    void sameRunIsIdempotentWithoutASecondProviderRead() {
+    void sameRunIsIdempotentOnlyAfterReprovingIdenticalChildren() {
         FakeRepository repo = new FakeRepository();
-        CountingClient reads = new CountingClient(List.of(terminal(null)));
+        CountingClient reads = new CountingClient(List.of(terminal(null), terminal(null)));
         var service = new ExactTradeFillCollectionService(reads, repo);
         var request = request("7".repeat(64));
         service.collect(request);
         var rerun = service.collect(request);
 
         assertThat(rerun.appendResult()).isEqualTo(ExactTradeFillAppendRepository.AppendResult.DUPLICATE_IDENTICAL);
-        assertThat(reads.calls).isEqualTo(1);
-        assertThat(repo.appendCalls).isEqualTo(1);
+        assertThat(reads.calls).isEqualTo(2);
+        assertThat(repo.appendCalls).isEqualTo(2);
+    }
+
+    @Test
+    void retentionLimitCrossOrderDuplicateAndUnboundRowsFailClosed() {
+        FakeRepository repo = new FakeRepository();
+        var retentionRequest = new ExactTradeFillCollectionService.Request("b".repeat(64), ACCOUNT,
+                "BTC-USDT", "SPOT", 100, 10, NOW.atZone(java.time.ZoneOffset.UTC).minusMonths(3).toInstant(),
+                bindingsAt(NOW.atZone(java.time.ZoneOffset.UTC).minusMonths(3).toInstant()));
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(terminal(null)), repo)
+                .collect(retentionRequest)).hasMessage("EFFECTIVE_FROM_OUTSIDE_PROVEN_RETENTION");
+
+        var limitOne = new ExactTradeFillCollectionService.Request("c".repeat(64), ACCOUNT,
+                "BTC-USDT", "SPOT", 1, 10, effectiveFrom(), bindings());
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(page(null, "800", false,
+                fill("o1", "t1", "900", "BUY", "100", "1", "0", "USDT", "p1"),
+                fill("o2", "t2", "800", "SELL", "101", "1", "0", "USDT", "p1"))), repo)
+                .collect(limitOne)).hasMessage("PAGE_LIMIT_EXCEEDED");
+
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(page(null, "800", false,
+                fill("o1", "same", "900", "BUY", "100", "1", "0", "USDT", "p1"),
+                fill("o2", "same", "800", "SELL", "101", "1", "0", "USDT", "p1"))), repo)
+                .collect(request("d".repeat(64)))).hasMessage("CROSS_ORDER_DUPLICATE_TRADE_ID");
+
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(page(null, "900", false,
+                fill("outside", "t9", "900", "BUY", "100", "1", "0", "USDT", "p1"))), repo)
+                .collect(request("e".repeat(64)))).hasMessage("UNBOUND_FILL_SCOPE");
+        assertThat(repo.appendCalls).isZero();
+    }
+
+    @Test
+    void fillBeforeBoundOrderCreationFailsClosed() {
+        Instant orderCreatedAt = NOW;
+        var request = new ExactTradeFillCollectionService.Request("f".repeat(64), ACCOUNT,
+                "BTC-USDT", "SPOT", 100, 10, effectiveFrom(), bindingsAt(orderCreatedAt));
+        RawFill early = rehashAt(fill("o1", "t1", "900", "BUY", "100", "1", "0", "USDT", "p1"),
+                orderCreatedAt.minusSeconds(1));
+        FakeRepository repo = new FakeRepository();
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
+                page(null, "900", false, early)), repo).collect(request))
+                .hasMessage("FILL_PRECEDES_ORDER_CREATION");
+        assertThat(repo.appendCalls).isZero();
     }
 
     @Test
@@ -98,7 +139,7 @@ class ExactTradeFillCollectionServiceTest {
         assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
                 page(null, "800", false, preEffective), terminal("800")), repo)
                 .collect(request("9".repeat(64))))
-                .hasMessage("INVALID_OR_PRE_EFFECTIVE_FILL");
+                .hasMessage("FILL_PRECEDES_ORDER_CREATION");
 
         var oldOrder = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L,
                 effectiveFrom().minusSeconds(1), false, null, null);
@@ -114,8 +155,11 @@ class ExactTradeFillCollectionServiceTest {
                 effectiveFrom(), bindings());
     }
     private static Map<String, ExactTradeFillCollectionService.FillBinding> bindings() {
+        return bindingsAt(effectiveFrom());
+    }
+    private static Map<String, ExactTradeFillCollectionService.FillBinding> bindingsAt(Instant orderCreatedAt) {
         var binding = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L,
-                effectiveFrom(), false, null, null);
+                orderCreatedAt, false, null, null);
         return Map.of("o1", binding, "o2", binding);
     }
     private static Instant effectiveFrom() { return Instant.parse("2026-07-17T00:00:00Z"); }
@@ -167,7 +211,8 @@ class ExactTradeFillCollectionServiceTest {
         public RawPage getPage(String i, String t, int l, String c, String a) { return pages.get(calls++); }
     }
     private static final class FakeRepository implements ExactTradeFillAppendRepository {
-        final Map<String, CollectionRun> runs = new HashMap<>(); CollectionAppend appended; int appendCalls;
+        final Map<String, CollectionRun> runs = new HashMap<>();
+        final Map<String, CollectionAppend> collections = new HashMap<>(); CollectionAppend appended; int appendCalls;
         public Optional<CollectionRun> findRun(String id) { return Optional.ofNullable(runs.get(id)); }
         public Optional<PriorRun> latestCompleteRun(String p, String a, String i, String t, String scope) {
             return runs.values().stream().filter(r -> r.bindingScopeSha256().equals(scope))
@@ -175,7 +220,15 @@ class ExactTradeFillCollectionServiceTest {
                     .map(r -> new PriorRun(r.runId(), r.canonicalFillSetSha256(), r.bindingScopeSha256()));
         }
         public AppendResult append(CollectionAppend c) {
-            appendCalls++; appended = c; runs.put(c.run().runId(), c.run()); return AppendResult.APPENDED;
+            appendCalls++;
+            CollectionAppend existing = collections.putIfAbsent(c.run().runId(), c);
+            if (existing != null) {
+                if (!existing.pages().equals(c.pages()) || !existing.fills().equals(c.fills())) {
+                    throw new IllegalStateException("immutable exact-fill identity conflict");
+                }
+                return AppendResult.DUPLICATE_IDENTICAL;
+            }
+            appended = c; runs.put(c.run().runId(), c.run()); return AppendResult.APPENDED;
         }
     }
 }

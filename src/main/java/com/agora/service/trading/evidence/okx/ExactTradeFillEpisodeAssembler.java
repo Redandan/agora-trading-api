@@ -51,6 +51,7 @@ public final class ExactTradeFillEpisodeAssembler {
         if (!b.collectionHash().equals(actualCollectionHash)) blockers.add("CANONICAL_FILL_SET_HASH_MISMATCH");
 
         Set<String> actualTrades = new HashSet<>();
+        Map<String, String> tradeOrders = new HashMap<>();
         BigDecimal base = BigDecimal.ZERO;
         BigDecimal quote = BigDecimal.ZERO;
         String currencyInstrument = b.baseCurrency().toUpperCase(Locale.ROOT) + "-"
@@ -71,6 +72,14 @@ public final class ExactTradeFillEpisodeAssembler {
                     || !Objects.equals(orderBinding.intendedChildOrderId(), fill.intendedChildOrderId())
                     || !Objects.equals(orderBinding.actualChildOrderId(), fill.actualChildOrderId())) {
                 blockers.add("COHORT_BINDING_MISMATCH");
+            }
+            if (orderBinding != null && (fill.fillAt() == null
+                    || fill.fillAt().isBefore(orderBinding.orderCreatedAt()))) {
+                blockers.add("FILL_PRECEDES_ORDER_CREATION");
+            }
+            String priorTradeOrder = tradeOrders.putIfAbsent(fill.tradeId(), fill.orderId());
+            if (priorTradeOrder != null && !priorTradeOrder.equals(fill.orderId())) {
+                blockers.add("CROSS_ORDER_DUPLICATE_TRADE_ID");
             }
             if (fill.fillAt() == null || fill.fillAt().isBefore(b.effectiveFrom())
                     || fill.fillAt().isBefore(b.openedAt()) || fill.fillAt().isAfter(b.closedAt())) {

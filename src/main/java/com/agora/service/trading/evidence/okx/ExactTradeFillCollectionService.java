@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -23,40 +24,38 @@ public class ExactTradeFillCollectionService {
     public Result collect(Request request) {
         validateRequest(request);
         String bindingScopeHash = ExactTradeFillHashing.bindingScope(request.effectiveFrom(), request.bindings());
-        Optional<CollectionRun> existing = repository.findRun(request.runId());
-        if (existing.isPresent()) {
-            CollectionRun run = existing.get();
-            if (!"okx".equals(run.provider()) || !run.accountRefHash().equals(request.accountRefHash())
-                    || !run.instrumentId().equals(request.instrumentId())
-                    || !run.instrumentType().equals(request.instrumentType())
-                    || !run.bindingScopeSha256().equals(bindingScopeHash)) fail("RUN_ID_SCOPE_CONFLICT");
-            return new Result(run, ExactTradeFillAppendRepository.AppendResult.DUPLICATE_IDENTICAL);
-        }
         Instant started = clock.instant();
         List<RawPage> pages = new ArrayList<>();
         Map<String, RawFill> unique = new LinkedHashMap<>();
         Set<String> seenCursors = new HashSet<>();
         Set<String> seenPageKeys = new HashSet<>();
         Set<String> seenBillIds = new HashSet<>();
+        Map<String, String> seenTradeOrders = new HashMap<>();
         String cursor = null;
         boolean terminal = false;
         for (int pageIndex = 0; pageIndex < request.maxPages(); pageIndex++) {
             if (!seenCursors.add(cursor == null ? "<ROOT>" : cursor)) fail("CURSOR_CYCLE");
             RawPage page = readClient.getPage(request.instrumentId(), request.instrumentType(),
                     request.pageLimit(), cursor, request.accountRefHash());
-            validatePage(page, cursor, request, seenPageKeys, seenBillIds);
+            validatePage(page, cursor, request, seenPageKeys, seenBillIds, seenTradeOrders);
             pages.add(page);
             for (RawFill fill : page.fills()) {
                 if (fill == null || !page.pageKey().equals(fill.sourcePageKey())) {
                     fail("FILL_PAGE_BINDING_MISMATCH");
                 }
                 FillBinding binding = fill == null ? null : request.bindings().get(fill.orderId());
-                if (binding != null) merge(unique, bind(fill, binding), request);
+                if (binding == null) fail("UNBOUND_FILL_SCOPE");
+                if (fill.fillAt() == null || fill.fillAt().isBefore(binding.orderCreatedAt())) {
+                    fail("FILL_PRECEDES_ORDER_CREATION");
+                }
+                merge(unique, bind(fill, binding), request);
             }
             if (page.terminal()) { terminal = true; break; }
             cursor = page.nextCursor();
         }
         if (!terminal) fail("TERMINAL_PAGE_NOT_PROVEN");
+        Instant retentionFloor = pages.getLast().collectedAt().atZone(ZoneOffset.UTC).minusMonths(3).toInstant();
+        if (!request.effectiveFrom().isAfter(retentionFloor)) fail("EFFECTIVE_FROM_OUTSIDE_PROVEN_RETENTION");
         List<RawFill> fills = List.copyOf(unique.values());
         String fillSetHash = ExactTradeFillHashing.fillSet(fills);
         Optional<ExactTradeFillAppendRepository.PriorRun> prior = repository.latestCompleteRun(
@@ -98,9 +97,11 @@ public class ExactTradeFillCollectionService {
     }
 
     private static void validatePage(RawPage p, String expectedCursor, Request r,
-                                     Set<String> seenPageKeys, Set<String> seenBillIds) {
+                                     Set<String> seenPageKeys, Set<String> seenBillIds,
+                                     Map<String, String> seenTradeOrders) {
         if (p == null || !p.complete() || !Objects.equals(expectedCursor, p.requestCursor())
                 || !hash64(p.pageKey()) || !hash64(p.pageSha256()) || p.collectedAt() == null) fail("PARTIAL_PAGE");
+        if (p.fills().size() > r.pageLimit()) fail("PAGE_LIMIT_EXCEEDED");
         if (!seenPageKeys.add(p.pageKey())) fail("REPEATED_PAGE");
         if (p.terminal()) {
             if (!p.fills().isEmpty() || p.nextCursor() != null) fail("INVALID_TERMINAL_PAGE");
@@ -112,6 +113,11 @@ public class ExactTradeFillCollectionService {
             for (RawFill fill : p.fills()) {
                 if (fill == null || blank(fill.billId()) || !seenBillIds.add(fill.billId())) {
                     fail("DUPLICATE_OR_MISSING_BILL_ID");
+                }
+                if (blank(fill.tradeId()) || blank(fill.orderId())) fail("UNBOUND_FILL_SCOPE");
+                String priorOrder = seenTradeOrders.putIfAbsent(fill.tradeId(), fill.orderId());
+                if (priorOrder != null && !priorOrder.equals(fill.orderId())) {
+                    fail("CROSS_ORDER_DUPLICATE_TRADE_ID");
                 }
                 BigInteger billId = numericCursor(fill.billId(), "NON_NUMERIC_BILL_ID");
                 if (requestCursor != null && billId.compareTo(requestCursor) >= 0) {

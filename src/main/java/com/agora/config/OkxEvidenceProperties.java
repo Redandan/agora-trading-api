@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Instant;
 
 /** Fail-closed switches for the isolated OKX read-only evidence path. */
 @Data
@@ -28,6 +29,8 @@ public class OkxEvidenceProperties {
     private String instrumentType = "SPOT";
     private int exactFillPageLimit = 100;
     private int exactFillMaxPages = 100;
+    /** Mandatory operator-supplied forward-only cohort boundary; there is no default window. */
+    private Instant exactFillEffectiveFrom;
     private List<ExactFillBinding> exactFillBindings = new ArrayList<>();
 
     @Data
@@ -36,6 +39,8 @@ public class OkxEvidenceProperties {
         private String cohortId;
         private Long runtimeDecisionId;
         private Long liveSignalId;
+        private Instant orderCreatedAt;
+        private boolean ocoRequired;
         private String intendedChildOrderId;
         private String actualChildOrderId;
     }

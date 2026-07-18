@@ -27,10 +27,12 @@ public class ExactTradeFillOneShotRunner implements ApplicationRunner {
         collectionService.collect(new ExactTradeFillCollectionService.Request(
                 properties.getExactFillRunId(), properties.getAccountRefHash(), properties.getInstrumentId(),
                 properties.getInstrumentType(), properties.getExactFillPageLimit(),
-                properties.getExactFillMaxPages(), properties.getExactFillBindings().stream().collect(
+                properties.getExactFillMaxPages(), properties.getExactFillEffectiveFrom(),
+                properties.getExactFillBindings().stream().collect(
                 Collectors.toUnmodifiableMap(OkxEvidenceProperties.ExactFillBinding::getOrderId,
                         b -> new ExactTradeFillCollectionService.FillBinding(b.getCohortId(),
-                                b.getRuntimeDecisionId(), b.getLiveSignalId(), b.getIntendedChildOrderId(),
+                                b.getRuntimeDecisionId(), b.getLiveSignalId(), b.getOrderCreatedAt(),
+                                b.isOcoRequired(), b.getIntendedChildOrderId(),
                                 b.getActualChildOrderId())))));
     }
 }

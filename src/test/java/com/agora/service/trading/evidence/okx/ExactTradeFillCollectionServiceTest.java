@@ -15,18 +15,18 @@ class ExactTradeFillCollectionServiceTest {
     private static final Instant NOW = Instant.parse("2026-07-18T00:00:00Z");
 
     @Test
-    void terminalChainDedupeAndReorderProduceStableCanonicalHash() {
+    void terminalProviderOrderedChainProducesStableCanonicalHash() {
         FakeRepository repo = new FakeRepository();
-        RawFill a = fill("o1", "t1", "b1", "BUY", "100", "1", "-0.01", "USDT", "p1");
-        RawFill b = fill("o2", "t2", "b2", "SELL", "110", "1", "-0.01", "USDT", "p2");
-        var firstClient = client(page(null, "b1", false, a), page("b1", "b2", false, b, a), terminal("b2"));
+        RawFill a = fill("o1", "t1", "900", "BUY", "100", "1", "-0.01", "USDT", "p1");
+        RawFill b = fill("o2", "t2", "800", "SELL", "110", "1", "-0.01", "USDT", "p2");
+        var firstClient = client(page(null, "900", false, a), page("900", "800", false, b), terminal("800"));
         var first = new ExactTradeFillCollectionService(firstClient, repo).collect(request("1".repeat(64)));
 
         assertThat(first.run().status()).isEqualTo(RunStatus.COMPLETE_CANDIDATE);
         assertThat(first.run().fillCount()).isEqualTo(2);
         assertThat(repo.appended.fills()).extracting(RawFill::tradeId).containsExactly("t1", "t2");
 
-        var secondClient = client(page(null, "b2", false, b), page("b2", "b1", false, a), terminal("b1"));
+        var secondClient = client(page(null, "900", false, a), page("900", "800", false, b), terminal("800"));
         var second = new ExactTradeFillCollectionService(secondClient, repo).collect(request("2".repeat(64)));
 
         assertThat(second.run().status()).isEqualTo(RunStatus.COMPLETE_STABLE);
@@ -43,26 +43,29 @@ class ExactTradeFillCollectionServiceTest {
                 .collect(request("3".repeat(64)))).hasMessage("PARTIAL_PAGE");
         assertThat(repo.appendCalls).isZero();
 
-        RawFill a = fill("o1", "t1", "b1", "BUY", "100", "1", "0", "USDT", "p1");
+        RawFill a = fill("o1", "t1", "900", "BUY", "100", "1", "0", "USDT", "p1");
         var bounded = new ExactTradeFillCollectionService.Request("4".repeat(64), ACCOUNT,
-                "BTC-USDT", "SPOT", 100, 2, bindings());
+                "BTC-USDT", "SPOT", 100, 2, effectiveFrom(), bindings());
         assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
-                page(null, "b1", false, a), page("b1", "b2", false, a)), repo)
+                page(null, "900", false, a), page("900", "800", false,
+                        fill("o2", "t2", "800", "SELL", "101", "1", "0", "USDT", "p2"))), repo)
                 .collect(bounded)).hasMessage("TERMINAL_PAGE_NOT_PROVEN");
         assertThat(repo.appendCalls).isZero();
     }
 
     @Test
-    void cursorCycleAndConflictingDuplicateFailClosed() {
-        RawFill a = fill("o1", "t1", "b1", "BUY", "100", "1", "0", "USDT", "p1");
+    void cursorRangeAndConflictingDuplicateFailClosed() {
+        RawFill a = fill("o1", "t1", "900", "BUY", "100", "1", "0", "USDT", "p1");
         FakeRepository repo = new FakeRepository();
         assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
-                page(null, "1", false, a), page("1", "2", false, a), page("2", "1", false, a)), repo)
-                .collect(request("5".repeat(64)))).hasMessage("CURSOR_CYCLE");
+                page(null, "900", false, a), page("900", "800", false,
+                        fill("o2", "t2", "800", "SELL", "101", "1", "0", "USDT", "p2")),
+                page("800", "801", false, fill("o1", "t3", "801", "BUY", "100", "1", "0", "USDT", "p3"))), repo)
+                .collect(request("5".repeat(64)))).hasMessage("AFTER_CURSOR_RANGE_NOT_PROVEN");
 
-        RawFill conflict = fill("o1", "t1", "b1", "BUY", "101", "1", "0", "USDT", "p2");
+        RawFill conflict = fill("o1", "t1", "899", "BUY", "101", "1", "0", "USDT", "p2");
         assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
-                page(null, "1", false, a), page("1", "2", false, conflict), terminal("2")), repo)
+                page(null, "899", false, a, conflict), terminal("899")), repo)
                 .collect(request("6".repeat(64)))).hasMessage("PERMANENT_IDENTITY_CONFLICT");
         assertThat(repo.appendCalls).isZero();
     }
@@ -81,13 +84,41 @@ class ExactTradeFillCollectionServiceTest {
         assertThat(repo.appendCalls).isEqualTo(1);
     }
 
+    @Test
+    void unorderedPaginationAndPreEffectiveEvidenceFailBeforeAppend() {
+        FakeRepository repo = new FakeRepository();
+        RawFill older = fill("o1", "t1", "800", "BUY", "100", "1", "0", "USDT", "p1");
+        RawFill newer = fill("o2", "t2", "900", "SELL", "101", "1", "0", "USDT", "p2");
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
+                page(null, "900", false, older, newer), terminal("900")), repo)
+                .collect(request("8".repeat(64))))
+                .hasMessage("OKX_NEWEST_FIRST_ORDER_NOT_PROVEN");
+
+        RawFill preEffective = rehashAt(older, effectiveFrom().minusSeconds(1));
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
+                page(null, "800", false, preEffective), terminal("800")), repo)
+                .collect(request("9".repeat(64))))
+                .hasMessage("INVALID_OR_PRE_EFFECTIVE_FILL");
+
+        var oldOrder = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L,
+                effectiveFrom().minusSeconds(1), false, null, null);
+        var oldOrderRequest = new ExactTradeFillCollectionService.Request("a".repeat(64), ACCOUNT,
+                "BTC-USDT", "SPOT", 100, 10, effectiveFrom(), Map.of("o1", oldOrder));
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(terminal(null)), repo)
+                .collect(oldOrderRequest)).hasMessage("INVALID_REQUEST_OR_PRE_EFFECTIVE_ORDER");
+        assertThat(repo.appendCalls).isZero();
+    }
+
     private static ExactTradeFillCollectionService.Request request(String runId) {
-        return new ExactTradeFillCollectionService.Request(runId, ACCOUNT, "BTC-USDT", "SPOT", 100, 10, bindings());
+        return new ExactTradeFillCollectionService.Request(runId, ACCOUNT, "BTC-USDT", "SPOT", 100, 10,
+                effectiveFrom(), bindings());
     }
     private static Map<String, ExactTradeFillCollectionService.FillBinding> bindings() {
-        var binding = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L, null, null);
+        var binding = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L,
+                effectiveFrom(), false, null, null);
         return Map.of("o1", binding, "o2", binding);
     }
+    private static Instant effectiveFrom() { return Instant.parse("2026-07-17T00:00:00Z"); }
     private static CountingClient client(RawPage... pages) { return new CountingClient(List.of(pages)); }
     private static RawPage terminal(String cursor) {
         return new RawPage(cursor, null, hash("page", cursor), hash("empty", cursor), NOW, true, true, List.of());
@@ -119,6 +150,15 @@ class ExactTradeFillCollectionServiceTest {
                 d.cohortId(), d.runtimeDecisionId(), d.liveSignalId(), d.intendedChildOrderId(),
                 d.actualChildOrderId(), ExactTradeFillHashing.identity(d), ExactTradeFillHashing.content(d));
     }
+    private static RawFill rehashAt(RawFill fill, Instant at) {
+        RawFill draft = new RawFill(fill.provider(), fill.accountRefHash(), fill.instrumentId(),
+                fill.instrumentType(), fill.orderId(), fill.tradeId(), fill.billId(), at, fill.side(),
+                fill.fillPrice(), fill.fillQuantity(), fill.signedFeeAmount(), fill.feeCurrency(),
+                fill.liquidityRole(), fill.rawPayloadSha256(), fill.sourcePageKey(), fill.collectedAt(),
+                fill.cohortId(), fill.runtimeDecisionId(), fill.liveSignalId(), fill.intendedChildOrderId(),
+                fill.actualChildOrderId(), null, null);
+        return hashed(draft);
+    }
     private static String hash(String... v) { return ExactTradeFillHashing.hash(v); }
 
     private static final class CountingClient implements ExactTradeFillReadClient {
@@ -130,8 +170,9 @@ class ExactTradeFillCollectionServiceTest {
         final Map<String, CollectionRun> runs = new HashMap<>(); CollectionAppend appended; int appendCalls;
         public Optional<CollectionRun> findRun(String id) { return Optional.ofNullable(runs.get(id)); }
         public Optional<PriorRun> latestCompleteRun(String p, String a, String i, String t, String scope) {
-            return runs.values().stream().max(Comparator.comparing(CollectionRun::completedAt))
-                    .map(r -> new PriorRun(r.runId(), r.canonicalFillSetSha256()));
+            return runs.values().stream().filter(r -> r.bindingScopeSha256().equals(scope))
+                    .max(Comparator.comparing(CollectionRun::completedAt))
+                    .map(r -> new PriorRun(r.runId(), r.canonicalFillSetSha256(), r.bindingScopeSha256()));
         }
         public AppendResult append(CollectionAppend c) {
             appendCalls++; appended = c; runs.put(c.run().runId(), c.run()); return AppendResult.APPENDED;

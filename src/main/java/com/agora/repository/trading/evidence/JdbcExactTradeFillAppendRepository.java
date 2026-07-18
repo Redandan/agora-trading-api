@@ -5,13 +5,17 @@ import com.agora.service.trading.evidence.okx.ExactTradeFillModels.CollectionRun
 import com.agora.service.trading.evidence.okx.ExactTradeFillModels.PageManifest;
 import com.agora.service.trading.evidence.okx.ExactTradeFillModels.RawFill;
 import com.agora.service.trading.evidence.okx.ExactTradeFillModels.RunStatus;
+import com.agora.service.trading.evidence.okx.ExactTradeFillHashing;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -21,6 +25,12 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
 
     @Override
     public Optional<CollectionRun> findRun(String runId) {
+        Optional<CollectionRun> run = queryRun(runId);
+        run.ifPresent(this::verifyCommittedRun);
+        return run;
+    }
+
+    private Optional<CollectionRun> queryRun(String runId) {
         return jdbc.query("""
                 SELECT run_id,provider,account_ref_hash,instrument_id,instrument_type,binding_scope_sha256,status,started_at,completed_at,
                        page_count,fill_count,terminal_cursor,canonical_fill_set_sha256,prior_stable_run_id
@@ -34,16 +44,20 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
     @Override
     public Optional<PriorRun> latestCompleteRun(String provider, String accountRefHash,
                                                 String instrumentId, String instrumentType, String bindingScopeSha256) {
-        return jdbc.query("""
-                SELECT run_id, canonical_fill_set_sha256 FROM exact_trade_fill_collection_run
+        Optional<String> runId = jdbc.query("""
+                SELECT run_id FROM exact_trade_fill_collection_run
                 WHERE provider=? AND account_ref_hash=? AND instrument_id=? AND instrument_type=? AND binding_scope_sha256=?
                 ORDER BY completed_at DESC, id DESC LIMIT 1
-                """, (rs, n) -> new PriorRun(rs.getString(1), rs.getString(2)),
+                """, (rs, n) -> rs.getString(1),
                 provider, accountRefHash, instrumentId, instrumentType, bindingScopeSha256).stream().findFirst();
+        return runId.flatMap(this::findRun)
+                .map(run -> new PriorRun(run.runId(), run.canonicalFillSetSha256(), run.bindingScopeSha256()));
     }
 
     @Override
+    @Transactional
     public AppendResult append(CollectionAppend c) {
+        validateAppend(c);
         try {
             int rows = jdbc.update("""
                     INSERT INTO exact_trade_fill_collection_run
@@ -63,14 +77,112 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
             }
             return AppendResult.APPENDED;
         } catch (DuplicateKeyException duplicate) {
-            var hashes = jdbc.query("SELECT canonical_fill_set_sha256 FROM exact_trade_fill_collection_run WHERE run_id=?",
-                    (rs, n) -> rs.getString(1), c.run().runId());
-            if (hashes.size() == 1 && c.run().canonicalFillSetSha256().equals(hashes.getFirst())) {
+            Optional<CollectionRun> committed = findRun(c.run().runId());
+            if (committed.isPresent() && sameScopeAndContent(c.run(), committed.get())) {
                 return AppendResult.DUPLICATE_IDENTICAL;
             }
             throw new ExactFillConflictException("immutable exact-fill identity conflict", duplicate);
         }
     }
+
+    private void validateAppend(CollectionAppend collection) {
+        if (collection == null || collection.run() == null
+                || collection.pages().size() != collection.run().pageCount()
+                || collection.fills().size() != collection.run().fillCount()
+                || collection.pages().isEmpty()) {
+            conflict("collection append incomplete");
+        }
+        for (int i = 0; i < collection.pages().size(); i++) {
+            PageManifest page = collection.pages().get(i);
+            if (!collection.run().runId().equals(page.runId()) || page.pageIndex() != i
+                    || page.terminalPage() != (i == collection.pages().size() - 1)) {
+                conflict("collection append page chain mismatch");
+            }
+        }
+        var pageKeys = collection.pages().stream().map(PageManifest::pageKey).collect(java.util.stream.Collectors.toSet());
+        if (pageKeys.size() != collection.pages().size()) conflict("collection append duplicate page");
+        for (RawFill fill : collection.fills()) {
+            if (!Objects.equals(collection.run().provider(), fill.provider())
+                    || !Objects.equals(collection.run().accountRefHash(), fill.accountRefHash())
+                    || !Objects.equals(collection.run().instrumentId(), fill.instrumentId())
+                    || !Objects.equals(collection.run().instrumentType(), fill.instrumentType())
+                    || !pageKeys.contains(fill.sourcePageKey())
+                    || !Objects.equals(fill.identitySha256(), ExactTradeFillHashing.identity(fill))
+                    || !Objects.equals(fill.contentSha256(), ExactTradeFillHashing.content(fill))) {
+                conflict("collection append immutable fill mismatch");
+            }
+        }
+        if (!Objects.equals(collection.run().canonicalFillSetSha256(),
+                ExactTradeFillHashing.fillSet(collection.fills()))) {
+            conflict("collection append canonical fill-set mismatch");
+        }
+    }
+
+    private boolean sameScopeAndContent(CollectionRun requested, CollectionRun committed) {
+        return Objects.equals(requested.provider(), committed.provider())
+                && Objects.equals(requested.accountRefHash(), committed.accountRefHash())
+                && Objects.equals(requested.instrumentId(), committed.instrumentId())
+                && Objects.equals(requested.instrumentType(), committed.instrumentType())
+                && Objects.equals(requested.bindingScopeSha256(), committed.bindingScopeSha256())
+                && requested.status() == committed.status()
+                && requested.pageCount() == committed.pageCount()
+                && requested.fillCount() == committed.fillCount()
+                && Objects.equals(requested.canonicalFillSetSha256(), committed.canonicalFillSetSha256())
+                && Objects.equals(requested.priorStableRunId(), committed.priorStableRunId());
+    }
+
+    /** Rebuilds the committed canonical fill-set through run-item; parent hashes are never trusted alone. */
+    private void verifyCommittedRun(CollectionRun run) {
+        List<PageRow> pages = jdbc.query("""
+                SELECT page_index,page_key,terminal_page FROM exact_trade_fill_page_manifest
+                WHERE run_id=? ORDER BY page_index
+                """, (rs, n) -> new PageRow(rs.getInt(1), rs.getString(2), rs.getBoolean(3)), run.runId());
+        if (pages.size() != run.pageCount() || pages.isEmpty()) conflict("committed page collection incomplete");
+        for (int i = 0; i < pages.size(); i++) {
+            if (pages.get(i).index() != i || pages.get(i).terminal() != (i == pages.size() - 1)) {
+                conflict("committed page chain incomplete");
+            }
+        }
+        List<RawFill> fills = jdbc.query("""
+                SELECT f.provider,f.account_ref_hash,f.instrument_id,f.instrument_type,f.order_id,f.trade_id,
+                       f.bill_id,f.fill_at,f.side,f.fill_price,f.fill_quantity,f.signed_fee_amount,f.fee_currency,
+                       f.liquidity_role,f.raw_payload_sha256,i.page_key,f.collected_at,f.cohort_id,
+                       f.runtime_decision_id,f.live_signal_id,f.intended_child_order_id,f.actual_child_order_id,
+                       f.fill_identity_sha256,f.immutable_content_sha256
+                FROM exact_trade_fill_run_item i
+                JOIN immutable_trade_fill f ON f.fill_identity_sha256=i.fill_identity_sha256
+                JOIN exact_trade_fill_page_manifest p ON p.run_id=i.run_id AND p.page_key=i.page_key
+                WHERE i.run_id=? ORDER BY i.fill_identity_sha256
+                """, (rs, n) -> new RawFill(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                rs.getString(5), rs.getString(6), rs.getString(7), rs.getTimestamp(8).toInstant(), rs.getString(9),
+                rs.getBigDecimal(10), rs.getBigDecimal(11), rs.getBigDecimal(12), rs.getString(13), rs.getString(14),
+                rs.getString(15), rs.getString(16), rs.getTimestamp(17).toInstant(), rs.getString(18),
+                nullableLong(rs, 19), nullableLong(rs, 20), rs.getString(21), rs.getString(22), rs.getString(23),
+                rs.getString(24)), run.runId());
+        if (fills.size() != run.fillCount()) conflict("committed run-item collection incomplete");
+        for (RawFill fill : fills) {
+            if (!Objects.equals(run.provider(), fill.provider())
+                    || !Objects.equals(run.accountRefHash(), fill.accountRefHash())
+                    || !Objects.equals(run.instrumentId(), fill.instrumentId())
+                    || !Objects.equals(run.instrumentType(), fill.instrumentType())
+                    || !Objects.equals(fill.identitySha256(), ExactTradeFillHashing.identity(fill))
+                    || !Objects.equals(fill.contentSha256(), ExactTradeFillHashing.content(fill))) {
+                conflict("committed immutable fill mismatch");
+            }
+        }
+        String rebuilt = ExactTradeFillHashing.fillSet(fills);
+        if (!Objects.equals(run.canonicalFillSetSha256(), rebuilt)) {
+            conflict("committed canonical fill-set mismatch");
+        }
+    }
+
+    private static Long nullableLong(java.sql.ResultSet rs, int column) throws java.sql.SQLException {
+        long value = rs.getLong(column);
+        return rs.wasNull() ? null : value;
+    }
+
+    private static void conflict(String message) { throw new ExactFillConflictException(message); }
+    private record PageRow(int index, String pageKey, boolean terminal) { }
 
     private void appendPage(PageManifest p) {
         jdbc.update("""

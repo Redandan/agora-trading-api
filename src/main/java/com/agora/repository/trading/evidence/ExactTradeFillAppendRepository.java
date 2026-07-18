@@ -14,5 +14,5 @@ public interface ExactTradeFillAppendRepository {
     AppendResult append(CollectionAppend collection);
 
     enum AppendResult { APPENDED, DUPLICATE_IDENTICAL }
-    record PriorRun(String runId, String canonicalFillSetSha256) { }
+    record PriorRun(String runId, String canonicalFillSetSha256, String bindingScopeSha256) { }
 }

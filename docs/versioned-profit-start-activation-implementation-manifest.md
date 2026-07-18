@@ -50,9 +50,18 @@ only executable sequence is:
 
 At zero samples, readiness can authorize only D1 bootstrap eligibility; it can
 never satisfy D2 exact-net acceptance. A durable pre-submit reservation makes
-D1 one-shot and fail-closed under duplicate or concurrent attempts. The
-operational order/OCO arms are intentionally excluded from cohort identity and
-do not themselves change configuration, place an order, or enable a scheduler.
+D1 one-shot and fail-closed under duplicate or concurrent attempts. Reservation
+uses a database pessimistic-write lock on the cohort's strategy owner row; the
+lock, existing-reservation check, and durable audit/evidence insert share one
+`REQUIRES_NEW` transaction, so serialization applies across JVMs. Lock, query,
+flush, or commit failure returns no order-boundary authority. The operational
+order/OCO arms are intentionally excluded from cohort identity and do not
+themselves change configuration, place an order, or enable a scheduler.
+
+Exact evidence also requires the canonical episode's nonblank provider order
+ID to equal an explicitly configured `ENTRY` order ID. A different order, an
+`EXIT`-only match, missing provider order, candidate scope, entry-only scope, or
+unbound scope remains non-exact.
 
 ## 1. Tiny-live hard-gate snapshot — locally implemented, runtime proof required
 

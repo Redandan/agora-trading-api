@@ -63,7 +63,10 @@ Assert-Contract (($actualSequence -join '|') -eq ($expectedSequence -join '|')) 
 Assert-Contract ($contract.bootstrapSequence.zeroSampleReadinessScope -eq 'BOOTSTRAP_ELIGIBILITY_ONLY') 'Zero samples may authorize bootstrap eligibility only.'
 Assert-Contract ([bool]$contract.bootstrapSequence.durablePreSubmitReservationRequired) 'D1 requires a durable pre-submit reservation.'
 Assert-Contract ([bool]$contract.bootstrapSequence.duplicateOrConcurrentBootstrapFailsClosed) 'Duplicate/concurrent bootstrap must fail closed.'
+Assert-Contract ($contract.bootstrapSequence.reservationSerialization -eq 'DATABASE_PESSIMISTIC_WRITE_ON_COHORT_STRATEGY_OWNER') 'D1 reservation must use the database cohort-owner lock.'
+Assert-Contract ($contract.bootstrapSequence.reservationWriteTransaction -eq 'REQUIRES_NEW_LOCK_CHECK_INSERT_COMMIT') 'D1 lock/check/insert must share one independent transaction.'
 Assert-Contract ([bool]$contract.bootstrapSequence.explicitEntryExitRoleRequired) 'Exact evidence requires explicit ENTRY/EXIT roles.'
+Assert-Contract ([bool]$contract.bootstrapSequence.episodeProviderOrderMustExactlyMatchEntryOrderId) 'Exact evidence must bind the episode provider order to ENTRY.'
 Assert-Contract ([bool]$contract.bootstrapSequence.runItemGraphRequiredForCanonicalFillSet) 'Exact evidence must use the V3 run-item graph.'
 Assert-Contract ([bool]$contract.bootstrapSequence.operationalOrderAndOcoArmsExcludedFromCohortIdentity) 'Operational arms must not alter cohort identity.'
 
@@ -125,11 +128,17 @@ $readinessSource = Join-Path $repositoryRoot 'src\main\java\com\agora\service\tr
 $metricSource = Join-Path $repositoryRoot 'src\main\java\com\agora\service\trading\CurrentCohortCanonicalMetricReader.java'
 $executionSource = Join-Path $repositoryRoot 'src\main\java\com\agora\service\tradingview\LocalTradingViewExecutionService.java'
 $evidenceRepositorySource = Join-Path $repositoryRoot 'src\main\java\com\agora\repository\trading\RuntimeDecisionEvidenceRepository.java'
-foreach ($source in @($hardGateSource, $assemblerSource, $readinessSource, $metricSource, $executionSource, $evidenceRepositorySource)) {
+$reservationSource = Join-Path $repositoryRoot 'src\main\java\com\agora\service\tradingview\PreSubmitEvidencePersistenceService.java'
+$strategyRepositorySource = Join-Path $repositoryRoot 'src\main\java\com\agora\repository\trading\BtStrategyRepository.java'
+$exactReaderSource = Join-Path $repositoryRoot 'src\main\java\com\agora\service\trading\VersionedProfitStartExactEvidenceReader.java'
+foreach ($source in @($hardGateSource, $assemblerSource, $readinessSource, $metricSource, $executionSource, $evidenceRepositorySource, $reservationSource, $strategyRepositorySource, $exactReaderSource)) {
     Assert-Contract (Test-Path -LiteralPath $source -PathType Leaf) "Missing local integration source: $source"
 }
 Assert-Contract ((Get-Content -LiteralPath $executionSource -Raw) -match 'verifyAtOrderBoundary') 'Order boundary must verify snapshot expiry/hash drift.'
 Assert-Contract ((Get-Content -LiteralPath $executionSource -Raw) -match 'savePreSubmitSnapshotEvidence') 'Order boundary must bind pre-submit snapshot evidence.'
+Assert-Contract ((Get-Content -LiteralPath $reservationSource -Raw) -match 'Propagation.REQUIRES_NEW') 'Reservation must commit in an independent transaction.'
+Assert-Contract ((Get-Content -LiteralPath $strategyRepositorySource -Raw) -match 'PESSIMISTIC_WRITE') 'Reservation must use a cross-JVM database lock.'
+Assert-Contract ((Get-Content -LiteralPath $exactReaderSource -Raw) -match 'entries.contains\(episode.getProviderOrderId\(\)\)') 'Exact reader must bind provider order to explicit ENTRY.'
 Assert-Contract ((Get-Content -LiteralPath $evidenceRepositorySource -Raw) -match 'INNER JOIN bt_live_signal ls ON ls.id = e.live_signal_id') 'Canonical repository binding must join by explicit liveSignalId.'
 Assert-Contract ((Get-Content -LiteralPath $evidenceRepositorySource -Raw) -match 'exchange_order_id AS providerOrderId') 'Canonical repository binding must expose provider order id.'
 Assert-Contract ((Get-Content -LiteralPath $metricSource -Raw) -match 'exactNetPnl') 'Canonical reader must consume only assembled exact-net evidence.'

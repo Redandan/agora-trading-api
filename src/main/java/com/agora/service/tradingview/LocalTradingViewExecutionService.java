@@ -164,7 +164,7 @@ public class LocalTradingViewExecutionService {
         }
 
         Long reservationDecisionId = savePreSubmitSnapshotEvidence(
-                strategy, symbol, interval, kline, context, hardGate);
+                strategy, symbol, interval, kline, context, hardGate, cohortSnapshot);
         if (reservationDecisionId == null) {
             return "VersionedProfitStartHardGateEvidenceSaveFailed";
         }
@@ -200,9 +200,10 @@ public class LocalTradingViewExecutionService {
     private Long savePreSubmitSnapshotEvidence(BtStrategy strategy,
                                                String symbol,
                                                String interval,
-                                               MdKline kline,
-                                               Map<String, Object> context,
-                                               VersionedProfitStartHardGateSnapshotService.Snapshot hardGate) {
+                                                MdKline kline,
+                                                Map<String, Object> context,
+                                                VersionedProfitStartHardGateSnapshotService.Snapshot hardGate,
+                                                VersionedProfitStartCohortService.Snapshot cohortSnapshot) {
         try {
             BtDecisionAudit audit = executionAudit(strategy, symbol, interval, kline.getOpenTime(), "PASS",
                     "VersionedProfitStartHardGateReadyPreSubmit",
@@ -224,7 +225,8 @@ public class LocalTradingViewExecutionService {
             evidence.setIntentCreated(true);
             evidence.setExecutionMode(props.executionMode().name());
             evidence.setExecutionPreviewJson(objectMapper.valueToTree(hardGate).toString());
-            Long decisionId = preSubmitEvidencePersistenceService.persist(audit, evidence);
+            Long decisionId = preSubmitEvidencePersistenceService.reserve(
+                    cohortSnapshot, audit, evidence);
             context.put("versionedProfitStartPreSubmitDecisionId", decisionId);
             context.put("versionedProfitStartPreSubmitEvidenceDurable", true);
             return decisionId;

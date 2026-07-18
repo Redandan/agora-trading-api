@@ -72,6 +72,63 @@ class VersionedProfitStartExactEvidenceReaderTest {
         assertThat(result.blockers()).contains("EXACT_READINESS_BINDING_SCOPE_MISMATCH");
     }
 
+    @Test
+    void missingEpisodeProviderOrderNeverBecomesExact() {
+        VersionedProfitStartExactEvidenceReader.Result result =
+                new VersionedProfitStartExactEvidenceReader(properties(), repository)
+                        .read(cohort(), episode(null));
+
+        assertThat(result.exactNetMeasurable()).isFalse();
+        assertThat(result.blockers()).containsExactly("EXACT_READINESS_EPISODE_BINDING_INCOMPLETE");
+    }
+
+    @Test
+    void differentProviderOrderNeverBecomesExact() {
+        VersionedProfitStartExactEvidenceReader.Result result =
+                new VersionedProfitStartExactEvidenceReader(properties(), repository)
+                        .read(cohort(), episode("different-order"));
+
+        assertThat(result.exactNetMeasurable()).isFalse();
+        assertThat(result.blockers()).containsExactly(
+                "EXACT_READINESS_PROVIDER_ORDER_ENTRY_BINDING_MISMATCH");
+    }
+
+    @Test
+    void providerOrderMatchingOnlyExitNeverBecomesExact() {
+        VersionedProfitStartExactEvidenceReader.Result result =
+                new VersionedProfitStartExactEvidenceReader(properties(), repository)
+                        .read(cohort(), episode("exit-order"));
+
+        assertThat(result.exactNetMeasurable()).isFalse();
+        assertThat(result.blockers()).containsExactly(
+                "EXACT_READINESS_PROVIDER_ORDER_ENTRY_BINDING_MISMATCH");
+    }
+
+    @Test
+    void entryOnlyScopeNeverBecomesExact() {
+        OkxEvidenceProperties properties = properties();
+        properties.setExactFillBindings(new java.util.ArrayList<>(List.of(
+                configured("entry-order", OkxEvidenceProperties.ExactFillEpisodeRole.ENTRY))));
+
+        VersionedProfitStartExactEvidenceReader.Result result =
+                new VersionedProfitStartExactEvidenceReader(properties, repository).read(cohort(), episode());
+
+        assertThat(result.exactNetMeasurable()).isFalse();
+        assertThat(result.blockers()).contains("EXACT_READINESS_EXPLICIT_ENTRY_EXIT_SCOPE_INCOMPLETE");
+    }
+
+    @Test
+    void unboundEntryScopeNeverBecomesExact() {
+        OkxEvidenceProperties properties = properties();
+        properties.getExactFillBindings().getFirst().setLiveSignalId(999L);
+
+        VersionedProfitStartExactEvidenceReader.Result result =
+                new VersionedProfitStartExactEvidenceReader(properties, repository).read(cohort(), episode());
+
+        assertThat(result.exactNetMeasurable()).isFalse();
+        assertThat(result.blockers()).contains("EXACT_READINESS_BINDING_SCOPE_MISMATCH");
+    }
+
     private OkxEvidenceProperties properties() {
         OkxEvidenceProperties properties = new OkxEvidenceProperties();
         properties.setAccountRefHash(ACCOUNT);
@@ -124,10 +181,15 @@ class VersionedProfitStartExactEvidenceReaderTest {
     }
 
     private RuntimeDecisionEvidenceRepository.CanonicalEpisodeBinding episode() {
+        return episode("entry-order");
+    }
+
+    private RuntimeDecisionEvidenceRepository.CanonicalEpisodeBinding episode(String providerOrderId) {
         RuntimeDecisionEvidenceRepository.CanonicalEpisodeBinding episode =
                 mock(RuntimeDecisionEvidenceRepository.CanonicalEpisodeBinding.class);
         when(episode.getDecisionId()).thenReturn(101L);
         when(episode.getLiveSignalId()).thenReturn(77L);
+        when(episode.getProviderOrderId()).thenReturn(providerOrderId);
         when(episode.getEvidenceTime()).thenReturn(LocalDateTime.parse("2026-07-17T00:30:00"));
         when(episode.getExitTime()).thenReturn(LocalDateTime.parse("2026-07-17T03:00:00"));
         return episode;

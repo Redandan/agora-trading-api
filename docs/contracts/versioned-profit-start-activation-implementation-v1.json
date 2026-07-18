@@ -38,7 +38,10 @@
     "zeroSampleReadinessScope": "BOOTSTRAP_ELIGIBILITY_ONLY",
     "durablePreSubmitReservationRequired": true,
     "duplicateOrConcurrentBootstrapFailsClosed": true,
+    "reservationSerialization": "DATABASE_PESSIMISTIC_WRITE_ON_COHORT_STRATEGY_OWNER",
+    "reservationWriteTransaction": "REQUIRES_NEW_LOCK_CHECK_INSERT_COMMIT",
     "explicitEntryExitRoleRequired": true,
+    "episodeProviderOrderMustExactlyMatchEntryOrderId": true,
     "runItemGraphRequiredForCanonicalFillSet": true,
     "operationalOrderAndOcoArmsExcludedFromCohortIdentity": true
   },

@@ -172,7 +172,7 @@ class KlineClosedEventListenerTest {
 
         var preSubmitPersistence = mock(
                 com.agora.service.tradingview.PreSubmitEvidencePersistenceService.class);
-        when(preSubmitPersistence.persist(any(), any())).thenReturn(1201L);
+        when(preSubmitPersistence.reserve(any(), any(), any())).thenReturn(1201L);
         LocalTradingViewExecutionService executionService = new LocalTradingViewExecutionService(
                 localProps(ExecutionMode.LIVE_MICRO),
                 auditWriter,

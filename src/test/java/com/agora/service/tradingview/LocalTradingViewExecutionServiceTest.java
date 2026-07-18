@@ -65,7 +65,7 @@ class LocalTradingViewExecutionServiceTest {
     @Test
     void preSubmitSnapshotEvidenceSaveFailurePreventsBuy() {
         Fixture fixture = fixture(props(ExecutionMode.LIVE_MICRO));
-        when(fixture.preSubmitEvidencePersistenceService.persist(any(), any()))
+        when(fixture.preSubmitEvidencePersistenceService.reserve(any(), any(), any()))
                 .thenThrow(new IllegalStateException("commit unavailable"));
 
         fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
@@ -83,7 +83,7 @@ class LocalTradingViewExecutionServiceTest {
 
         fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
 
-        verify(fixture.preSubmitEvidencePersistenceService).persist(any(), any());
+        verify(fixture.preSubmitEvidencePersistenceService).reserve(any(), any(), any());
         verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
     }
 
@@ -96,7 +96,7 @@ class LocalTradingViewExecutionServiceTest {
 
         fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
 
-        verify(fixture.preSubmitEvidencePersistenceService).persist(any(), any());
+        verify(fixture.preSubmitEvidencePersistenceService).reserve(any(), any(), any());
         verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
     }
 
@@ -112,7 +112,7 @@ class LocalTradingViewExecutionServiceTest {
 
         fixture.service.preview(strategy(), kline(), "1d", "okx", intent(), Map.of(), 1);
 
-        verify(fixture.preSubmitEvidencePersistenceService).persist(any(), any());
+        verify(fixture.preSubmitEvidencePersistenceService).reserve(any(), any(), any());
         verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
     }
 
@@ -290,7 +290,7 @@ class LocalTradingViewExecutionServiceTest {
 
         InOrder boundaryOrder = inOrder(fixture.preSubmitEvidencePersistenceService,
                 fixture.hardGateService, fixture.tradingService);
-        boundaryOrder.verify(fixture.preSubmitEvidencePersistenceService).persist(any(), any());
+        boundaryOrder.verify(fixture.preSubmitEvidencePersistenceService).reserve(any(), any(), any());
         boundaryOrder.verify(fixture.hardGateService).verifyAtOrderBoundary(any(), any(), any());
         boundaryOrder.verify(fixture.tradingService).placeMarketBuy("BTCUSDT", 10.0);
 
@@ -339,7 +339,7 @@ class LocalTradingViewExecutionServiceTest {
         fixture.service.preview(strategy(), kline(), "1d", "okx",
                 intent(), Map.of("source", "LOCAL_TRADINGVIEW_PARITY"), 1);
 
-        verify(fixture.preSubmitEvidencePersistenceService, never()).persist(any(), any());
+        verify(fixture.preSubmitEvidencePersistenceService, never()).reserve(any(), any(), any());
         verify(fixture.tradingService, never()).placeMarketBuy(any(), org.mockito.ArgumentMatchers.anyDouble());
         verify(fixture.tradingService, never()).placeOco(any(), any(), any(), any());
         verify(fixture.auditWriter).logEntrySkip(eq(485L), eq("BTCUSDT"), eq("1d"), any(),
@@ -539,7 +539,7 @@ class LocalTradingViewExecutionServiceTest {
         var activationReadiness = readyActivationReadiness();
         PreSubmitEvidencePersistenceService preSubmitEvidencePersistenceService =
                 mock(PreSubmitEvidencePersistenceService.class);
-        when(preSubmitEvidencePersistenceService.persist(any(), any())).thenReturn(101L);
+        when(preSubmitEvidencePersistenceService.reserve(any(), any(), any())).thenReturn(101L);
         LocalTradingViewExecutionService service = new LocalTradingViewExecutionService(
                 props, auditWriter, liveSignalRepository, decisionAuditRepository, evidenceRepository,
                 tradingService, okx, signalSourcePolicy, cohortService,

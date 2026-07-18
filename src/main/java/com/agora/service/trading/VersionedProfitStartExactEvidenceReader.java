@@ -40,6 +40,7 @@ public class VersionedProfitStartExactEvidenceReader {
         try {
             if (cohort == null || episode == null || cohort.effectiveFrom() == null
                     || episode.getDecisionId() == null || episode.getLiveSignalId() == null
+                    || blank(episode.getProviderOrderId())
                     || episode.getEvidenceTime() == null || episode.getExitTime() == null) {
                 return blocked("EXACT_READINESS_EPISODE_BINDING_INCOMPLETE");
             }
@@ -76,6 +77,9 @@ public class VersionedProfitStartExactEvidenceReader {
                     || bindings.size() != properties.getExactFillBindings().size()) {
                 blockers.add("EXACT_READINESS_EXPLICIT_ENTRY_EXIT_SCOPE_INCOMPLETE");
                 return blocked(blockers);
+            }
+            if (!entries.contains(episode.getProviderOrderId())) {
+                return blocked("EXACT_READINESS_PROVIDER_ORDER_ENTRY_BINDING_MISMATCH");
             }
 
             String scope = ExactTradeFillHashing.bindingScope(cohort.effectiveFrom(), bindings);

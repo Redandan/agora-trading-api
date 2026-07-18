@@ -90,6 +90,7 @@ mkdir -p "$OUTPUT_DIR"
 
 source_tables="$OUTPUT_DIR/server-source-entity-tables.txt"
 implicit_entities="$OUTPUT_DIR/server-implicit-entities.txt"
+model_sources="$OUTPUT_DIR/server-model-sources.bin"
 db_tables="$OUTPUT_DIR/server-db-tables.txt"
 missing_tables="$OUTPUT_DIR/missing-in-db.txt"
 extra_tables="$OUTPUT_DIR/extra-in-db.txt"
@@ -98,12 +99,14 @@ unsafe_source_tables="$OUTPUT_DIR/server-unsafe-source-tables.txt"
 db_forbidden_tables="$OUTPUT_DIR/server-db-forbidden-marketplace-tables.txt"
 known_system_tables="$OUTPUT_DIR/server-db-known-system-tables.txt"
 
-find src/main/java/com/agora/model -name '*.java' -print0 |
-  xargs -0 perl scripts/schema_baseline_entity_table_parser.pl tables |
-  sort -u > "$source_tables"
+find src/main/java/com/agora/model -name '*.java' -print0 > "$model_sources"
+[ -s "$model_sources" ] || fail "schema baseline source inventory found no Java model source files"
 
-find src/main/java/com/agora/model -name '*.java' -print0 |
-  xargs -0 perl scripts/schema_baseline_entity_table_parser.pl implicit |
+xargs -0 perl scripts/schema_baseline_entity_table_parser.pl tables < "$model_sources" |
+  sort -u > "$source_tables"
+[ -s "$source_tables" ] || fail "schema baseline source inventory produced no entity tables"
+
+xargs -0 perl scripts/schema_baseline_entity_table_parser.pl implicit < "$model_sources" |
   sort -u > "$implicit_entities"
 
 grep -E "$MARKETPLACE_TABLE_PATTERN" "$source_tables" \

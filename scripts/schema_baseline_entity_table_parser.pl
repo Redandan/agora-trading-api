@@ -5,6 +5,8 @@ use warnings;
 my $mode = shift @ARGV // '';
 die "usage: $0 <tables|implicit> <entity-source>...\n"
   unless $mode eq 'tables' || $mode eq 'implicit';
+die "usage: $0 <tables|implicit> <entity-source>...\n"
+  unless @ARGV;
 
 for my $path (@ARGV) {
   open my $source_file, '<', $path

@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.GROSS_ONLY;
+import static com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.EXACT_NET;
 import static com.agora.service.trading.CurrentCohortCanonicalMetricReader.Classification.NOT_MEASURABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -121,6 +122,21 @@ class CurrentCohortCanonicalMetricReaderTest {
         assertThat(result.exactFeeEpisodes()).isZero();
         assertThat(result.positiveExactNetEpisodes()).isZero();
         assertThat(result.blockers()).isEmpty();
+    }
+
+    @Test
+    void completeStableAssemblerOutputCanPromoteExactNetWithoutEstimatedFee() {
+        var exact = new CurrentCohortCanonicalMetricReader.ClosedEpisode(
+                "exact", IDENTITY, Instant.parse("2026-07-17T01:00:00Z"),
+                Instant.parse("2026-07-17T02:00:00Z"), new BigDecimal("10"), null, null,
+                complete(), new BigDecimal("9.25"));
+
+        var result = reader.aggregate(IDENTITY, EFFECTIVE_FROM, List.of(exact));
+
+        assertThat(result.classification()).isEqualTo(EXACT_NET);
+        assertThat(result.exactFeeEpisodes()).isEqualTo(1);
+        assertThat(result.positiveExactNetEpisodes()).isEqualTo(1);
+        assertThat(result.episodes().getFirst().exactNet()).isEqualByComparingTo("9.25");
     }
 
     @Test

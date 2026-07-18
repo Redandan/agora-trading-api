@@ -5,6 +5,9 @@ import com.agora.model.evidence.ExecutableQuoteSnapshot;
 import com.agora.model.evidence.FillFeeLedgerEntry;
 import com.agora.model.evidence.FundingBillLedgerEntry;
 import com.agora.model.evidence.MarginSnapshot;
+import com.agora.model.evidence.ExactTradeFillCollectionRun;
+import com.agora.model.evidence.ExactTradeFillPageManifest;
+import com.agora.model.evidence.ImmutableTradeFill;
 import jakarta.persistence.Column;
 import org.hibernate.annotations.Immutable;
 import org.junit.jupiter.api.Test;
@@ -37,7 +40,10 @@ class AppendOnlyEvidenceSchemaValidationTest {
             ExecutableQuoteSnapshot.class,
             FillFeeLedgerEntry.class,
             FundingBillLedgerEntry.class,
-            MarginSnapshot.class);
+            MarginSnapshot.class,
+            ExactTradeFillCollectionRun.class,
+            ExactTradeFillPageManifest.class,
+            ImmutableTradeFill.class);
 
     private static final Map<String, List<String>> CHAR_64_COLUMNS = new LinkedHashMap<>();
 
@@ -113,16 +119,31 @@ class AppendOnlyEvidenceSchemaValidationTest {
     }
 
     @Test
-    void allFifteenEntityHashMappingsDeclareChar64() throws Exception {
+    void legacyAndV3EntityHashMappingsDeclareChar64() throws Exception {
         assertChar64(AppendOnlyEvidence.class, "dedupeKey");
         assertChar64(AppendOnlyEvidence.class, "rawPayloadSha256");
         assertChar64(AppendOnlyEvidence.class, "gapManifestId");
         assertChar64(FillFeeLedgerEntry.class, "accountRefHash");
         assertChar64(FundingBillLedgerEntry.class, "accountRefHash");
         assertChar64(MarginSnapshot.class, "accountRefHash");
+        assertChar64(ExactTradeFillCollectionRun.class, "runId");
+        assertChar64(ExactTradeFillCollectionRun.class, "accountRefHash");
+        assertChar64(ExactTradeFillCollectionRun.class, "bindingScopeSha256");
+        assertChar64(ExactTradeFillCollectionRun.class, "canonicalFillSetSha256");
+        assertChar64(ExactTradeFillCollectionRun.class, "priorStableRunId");
+        assertChar64(ExactTradeFillPageManifest.class, "runId");
+        assertChar64(ExactTradeFillPageManifest.class, "pageKey");
+        assertChar64(ExactTradeFillPageManifest.class, "pageSha256");
+        assertChar64(ImmutableTradeFill.class, "fillIdentitySha256");
+        assertChar64(ImmutableTradeFill.class, "immutableContentSha256");
+        assertChar64(ImmutableTradeFill.class, "accountRefHash");
+        assertChar64(ImmutableTradeFill.class, "sourceRunId");
+        assertChar64(ImmutableTradeFill.class, "sourcePageKey");
+        assertChar64(ImmutableTradeFill.class, "rawPayloadSha256");
 
-        int expandedMappingCount = (3 * EVIDENCE_ENTITIES.size()) + 3;
-        assertThat(expandedMappingCount).isEqualTo(15);
+        int legacyMappingCount = (3 * 4) + 3;
+        int v3MappingCount = 14;
+        assertThat(legacyMappingCount + v3MappingCount).isEqualTo(29);
     }
 
     private DataSource migratedV2DataSource() throws Exception {
@@ -146,6 +167,12 @@ class AppendOnlyEvidenceSchemaValidationTest {
             ScriptUtils.executeSqlScript(
                     connection,
                     new ByteArrayResource(h2CompatibleMigration.getBytes(StandardCharsets.UTF_8)));
+            try (InputStream input = Objects.requireNonNull(
+                    AppendOnlyEvidenceSchemaValidationTest.class.getClassLoader()
+                            .getResourceAsStream("db/migration/V3__immutable_trade_fill_evidence.sql"),
+                    "V3 exact fill migration resource")) {
+                ScriptUtils.executeSqlScript(connection, new ByteArrayResource(input.readAllBytes()));
+            }
         }
         return dataSource;
     }

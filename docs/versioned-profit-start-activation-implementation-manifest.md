@@ -9,9 +9,9 @@ Deployed base: `748a69ea5b9254e9bd79099e460cefc2ab9297dd`
 The machine-readable contract is
 [`docs/contracts/versioned-profit-start-activation-implementation-v1.json`](contracts/versioned-profit-start-activation-implementation-v1.json).
 This document now records a safe local integration contract. The hard-gate
-snapshot and canonical metric reader are locally implemented and consumable;
-that does not prove a fresh runtime snapshot, runtime activation, or exact-net
-evidence. It does not authorize a database, provider, collector,
+snapshot, canonical metric reader, and immutable all-fill V3 path are locally
+implemented and consumable; that does not prove a fresh runtime snapshot,
+runtime activation, or COMPLETE_STABLE exact-net evidence. It does not authorize a database, provider, collector,
 environment, live, scheduler, order, OCO, Grid, fund, Earn, or Telegram
 mutation.
 

@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TrailingStopSchemaBaselineTest {
 
     @Test
-    void sharedDbMigrationsKeepReviewedBaselineAndForwardOnlyV2() throws Exception {
+    void sharedDbMigrationsKeepReviewedBaselineAndForwardOnlyAdditiveEvidence() throws Exception {
         URI migrationUri = getClass().getClassLoader()
                 .getResource("db/migration")
                 .toURI();
@@ -32,7 +32,8 @@ class TrailingStopSchemaBaselineTest {
 
         assertThat(migrations).containsExactly(
                 "V1__baseline.sql",
-                "V2__append_only_execution_evidence.sql");
+                "V2__append_only_execution_evidence.sql",
+                "V3__immutable_trade_fill_evidence.sql");
 
         String baseline = readBaseline();
         String normalizedBaseline = baseline.toLowerCase(Locale.ROOT);

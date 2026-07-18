@@ -42,7 +42,7 @@ public class VersionedProfitStartCohortService {
     public static final String STRATEGY_FAMILY = "SCORE_BUY_V2";
     public static final String MODEL_VERSION = "local-tradingview-parity-v1";
     public static final String EXACT_EVIDENCE_BLOCKER =
-            "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED";
+            "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_COMPLETE_STABLE";
 
     private static final long STRATEGY_ID = 485L;
     private static final String SYMBOL = "BTCUSDT";

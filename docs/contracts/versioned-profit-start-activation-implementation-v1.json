@@ -131,8 +131,8 @@
       "futureAuthorizations": []
     },
     {
-      "id": "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED",
-      "implementationStatus": "NOT_IMPLEMENTED_OUTSIDE_FIXED_SCOPE",
+      "id": "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_COMPLETE_STABLE",
+      "implementationStatus": "LOCAL_IMPLEMENTED_COMPLETE_STABLE_RUNTIME_EVIDENCE_REQUIRED",
       "implementationId": "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_V1",
       "purpose": "Persist provider-authenticated, append-only trade fills with enough immutable identity and economics to prove every entry and exit fill and signed fee for exact-net realization.",
       "acceptance": [
@@ -157,19 +157,23 @@
       "fileScope": {
         "new": [
           "src/main/resources/db/migration/V3__immutable_trade_fill_evidence.sql",
-          "src/main/java/com/agora/model/evidence/TradeFillLedgerEntry.java",
+          "src/main/java/com/agora/model/evidence/ExactTradeFillCollectionRun.java",
+          "src/main/java/com/agora/model/evidence/ExactTradeFillPageManifest.java",
+          "src/main/java/com/agora/model/evidence/ImmutableTradeFill.java",
+          "src/main/java/com/agora/repository/trading/evidence/ExactTradeFillAppendRepository.java",
           "src/main/java/com/agora/repository/trading/evidence/TradeFillLedgerRepository.java",
-          "src/test/java/com/agora/repository/trading/evidence/TradeFillLedgerRepositoryTest.java",
-          "src/test/java/com/agora/service/trading/evidence/okx/ExactTradeFillEvidenceContractTest.java"
+          "src/main/java/com/agora/service/trading/evidence/okx/ExactTradeFillCollectionService.java",
+          "src/main/java/com/agora/service/trading/evidence/okx/ExactTradeFillEpisodeAssembler.java",
+          "src/main/java/com/agora/service/trading/evidence/okx/OkxTradingEvidenceReadClient.java",
+          "src/test/java/com/agora/repository/trading/evidence/JdbcExactTradeFillAppendRepositoryTest.java",
+          "src/test/java/com/agora/service/trading/evidence/okx/ExactTradeFillCollectionServiceTest.java",
+          "src/test/java/com/agora/service/trading/evidence/okx/ExactTradeFillEpisodeAssemblerTest.java"
         ],
         "modify": [
           "src/main/java/com/agora/config/OkxEvidenceProperties.java",
-          "src/main/java/com/agora/repository/trading/evidence/JdbcOkxEvidenceAppendRepository.java",
-          "src/main/java/com/agora/repository/trading/evidence/OkxEvidenceAppendRepository.java",
-          "src/main/java/com/agora/service/trading/evidence/okx/OkxEvidenceAppendService.java",
-          "src/main/java/com/agora/service/trading/evidence/okx/OkxEvidenceModels.java",
-          "src/main/java/com/agora/service/trading/evidence/okx/OkxEvidenceReadClient.java",
-          "src/main/java/com/agora/service/trading/evidence/okx/OkxReadOnlyEvidenceAdapter.java"
+          "src/main/java/com/agora/service/trading/OkxTradingService.java",
+          "src/main/java/com/agora/service/trading/CurrentCohortCanonicalMetricReader.java",
+          "src/main/java/com/agora/service/trading/VersionedProfitStartActivationReadinessService.java"
         ]
       },
       "migration": {

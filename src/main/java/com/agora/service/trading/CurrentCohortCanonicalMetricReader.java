@@ -22,8 +22,7 @@ import java.util.Set;
 public final class CurrentCohortCanonicalMetricReader {
 
     public static final String EXACT_EVIDENCE_BLOCKER =
-            "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED";
-    private static final boolean EXACT_EVIDENCE_BINDING_IMPLEMENTED = false;
+            "EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_COMPLETE_STABLE";
 
     public Result aggregate(CohortIdentity expectedIdentity,
                             Instant effectiveFrom,
@@ -88,16 +87,14 @@ public final class CurrentCohortCanonicalMetricReader {
                     || !episode.evidenceCompleteness().grossPnlComplete()) {
                 classification = Classification.NOT_MEASURABLE;
                 hasNotMeasurable = true;
-            } else if (!EXACT_EVIDENCE_BINDING_IMPLEMENTED
-                    || !episode.evidenceCompleteness().allFillsComplete()
+            } else if (!episode.evidenceCompleteness().allFillsComplete()
                     || !episode.evidenceCompleteness().exactSignedFeesComplete()
-                    || episode.exactSignedFee() == null) {
+                    || episode.exactNetPnl() == null) {
                 classification = Classification.GROSS_ONLY;
                 hasGrossOnly = true;
             } else {
                 classification = Classification.EXACT_NET;
-                // Canonical signed fees are adjustments: costs are negative and rebates positive.
-                exactNet = episode.grossPnl().add(episode.exactSignedFee());
+                exactNet = episode.exactNetPnl();
                 exactFeeEpisodes++;
                 if (exactNet.compareTo(BigDecimal.ZERO) > 0) {
                     positiveExactNetEpisodes++;
@@ -164,7 +161,14 @@ public final class CurrentCohortCanonicalMetricReader {
                                 BigDecimal grossPnl,
                                 BigDecimal exactSignedFee,
                                 BigDecimal estimatedFee,
-                                EvidenceCompleteness evidenceCompleteness) {
+                                EvidenceCompleteness evidenceCompleteness,
+                                BigDecimal exactNetPnl) {
+        public ClosedEpisode(String episodeId, CohortIdentity identity, Instant startedAt, Instant closedAt,
+                             BigDecimal grossPnl, BigDecimal exactSignedFee, BigDecimal estimatedFee,
+                             EvidenceCompleteness evidenceCompleteness) {
+            this(episodeId, identity, startedAt, closedAt, grossPnl, exactSignedFee, estimatedFee,
+                    evidenceCompleteness, null);
+        }
     }
 
     public record EpisodeMetric(String episodeId,

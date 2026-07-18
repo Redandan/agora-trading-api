@@ -50,7 +50,7 @@ Assert-Contract (-not [bool]$contract.globalSafety.thirtyClosedEpisodesRequiredF
 $expectedBlockers = @(
     'TINY_LIVE_HARD_GATE_SNAPSHOT_NOT_IMPLEMENTED',
     'CURRENT_COHORT_CANONICAL_METRIC_READER_NOT_IMPLEMENTED',
-    'EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED'
+    'EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_COMPLETE_STABLE'
 )
 $actualBlockers = @($contract.blockers | ForEach-Object { [string]$_.id })
 Assert-Contract ($actualBlockers.Count -eq $expectedBlockers.Count) 'Contract must contain exactly three activation blockers.'
@@ -70,11 +70,11 @@ foreach ($blocker in @($contract.blockers)) {
 
 $hardGate = $contract.blockers | Where-Object { $_.id -eq 'TINY_LIVE_HARD_GATE_SNAPSHOT_NOT_IMPLEMENTED' }
 $metricReader = $contract.blockers | Where-Object { $_.id -eq 'CURRENT_COHORT_CANONICAL_METRIC_READER_NOT_IMPLEMENTED' }
-$exactFill = $contract.blockers | Where-Object { $_.id -eq 'EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_IMPLEMENTED' }
+$exactFill = $contract.blockers | Where-Object { $_.id -eq 'EXACT_IMMUTABLE_ALL_FILL_SIGNED_FEE_BINDING_NOT_COMPLETE_STABLE' }
 
 Assert-Contract ($hardGate.implementationStatus -eq 'LOCAL_CONTRACT_IMPLEMENTED_FRESH_RUNTIME_SNAPSHOT_STILL_REQUIRED') 'Hard-gate local implementation status drifted.'
 Assert-Contract ($metricReader.implementationStatus -eq 'LOCAL_READER_IMPLEMENTED_EXACT_CLASSIFICATION_STILL_BLOCKED') 'Metric-reader local implementation status drifted.'
-Assert-Contract ($exactFill.implementationStatus -eq 'NOT_IMPLEMENTED_OUTSIDE_FIXED_SCOPE') 'Exact evidence blocker must remain not implemented.'
+Assert-Contract ($exactFill.implementationStatus -eq 'LOCAL_IMPLEMENTED_COMPLETE_STABLE_RUNTIME_EVIDENCE_REQUIRED') 'Exact evidence status must require COMPLETE_STABLE runtime evidence.'
 
 Assert-Contract (-not [bool]$hardGate.migration.required) 'Hard-gate snapshot must not require a migration.'
 Assert-Contract (-not [bool]$metricReader.migration.required) 'Canonical reader must not require its own migration.'
@@ -83,6 +83,8 @@ Assert-Contract ($exactFill.migration.name -eq 'V3__immutable_trade_fill_evidenc
 
 $metricReaderText = $metricReader | ConvertTo-Json -Depth 20 -Compress
 Assert-Contract ($metricReaderText -notmatch 'FillFeeLedgerRepository') 'Canonical reader must not treat the V2 fee-only ledger as an exact fill source.'
+Assert-Contract ((Get-Content -Raw (Join-Path $repositoryRoot 'src\main\java\com\agora\service\trading\evidence\okx\ExactTradeFillEpisodeAssembler.java')) -match 'BASE_BALANCE_NOT_CONSERVED') 'Exact assembler must enforce base conservation.'
+Assert-Contract ((Get-Content -Raw (Join-Path $repositoryRoot 'src\main\resources\db\migration\V3__immutable_trade_fill_evidence.sql')) -notmatch '(?im)^\s*(ALTER|UPDATE|DELETE|DROP|REPLACE)\b') 'V3 must remain additive and append-only.'
 
 $exactFillText = $exactFill | ConvertTo-Json -Depth 20 -Compress
 Assert-Contract ($exactFillText -match 'estimated') 'Exact-fill contract must explicitly reject estimated fees.'
@@ -110,7 +112,7 @@ Assert-Contract ((Get-Content -LiteralPath $executionSource -Raw) -match 'verify
 Assert-Contract ((Get-Content -LiteralPath $executionSource -Raw) -match 'savePreSubmitSnapshotEvidence') 'Order boundary must bind pre-submit snapshot evidence.'
 Assert-Contract ((Get-Content -LiteralPath $evidenceRepositorySource -Raw) -match 'INNER JOIN bt_live_signal ls ON ls.id = e.live_signal_id') 'Canonical repository binding must join by explicit liveSignalId.'
 Assert-Contract ((Get-Content -LiteralPath $evidenceRepositorySource -Raw) -match 'exchange_order_id AS providerOrderId') 'Canonical repository binding must expose provider order id.'
-Assert-Contract ((Get-Content -LiteralPath $metricSource -Raw) -match 'EXACT_EVIDENCE_BINDING_IMPLEMENTED = false') 'Exact-net classification must remain disabled before V3.'
+Assert-Contract ((Get-Content -LiteralPath $metricSource -Raw) -match 'exactNetPnl') 'Canonical reader must consume only assembled exact-net evidence.'
 
 $declaredAuthorizationNames = @($contract.futureAuthorizationPackages | ForEach-Object { [string]$_.name })
 foreach ($blockerAuthorization in @($contract.blockers | ForEach-Object { @($_.futureAuthorizations) })) {

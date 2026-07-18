@@ -4,6 +4,9 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Fail-closed switches for the isolated OKX read-only evidence path. */
 @Data
 @Configuration
@@ -15,4 +18,25 @@ public class OkxEvidenceProperties {
 
     /** Authenticated provider reads require a separate production authorization. */
     private boolean authenticatedIngestionEnabled = false;
+
+    /** Creates the one-shot bean only under a separately reviewed configuration. */
+    private boolean exactFillOneShotEnabled = false;
+
+    private String exactFillRunId;
+    private String accountRefHash;
+    private String instrumentId = "BTC-USDT";
+    private String instrumentType = "SPOT";
+    private int exactFillPageLimit = 100;
+    private int exactFillMaxPages = 100;
+    private List<ExactFillBinding> exactFillBindings = new ArrayList<>();
+
+    @Data
+    public static class ExactFillBinding {
+        private String orderId;
+        private String cohortId;
+        private Long runtimeDecisionId;
+        private Long liveSignalId;
+        private String intendedChildOrderId;
+        private String actualChildOrderId;
+    }
 }

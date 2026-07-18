@@ -66,7 +66,10 @@ public class VersionedProfitStartActivationReadinessService {
             blockers.add("HARD_GATE_CANONICAL_CLOSED_EPISODE_COUNT_MISMATCH");
         }
         if (!hardGateReady) blockers.add("FRESH_HARD_GATE_SNAPSHOT_NOT_READY");
-        blockers.add(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER);
+        if (metrics.closedEpisodes() == 0
+                || metrics.classification() != CurrentCohortCanonicalMetricReader.Classification.EXACT_NET) {
+            blockers.add(CurrentCohortCanonicalMetricReader.EXACT_EVIDENCE_BLOCKER);
+        }
         boolean tinyLiveEligible = hardGateReady && blockers.size() == 1;
         return new Readiness("ACTIVATION_BLOCKED", true, hardGateReady, tinyLiveEligible, false, false,
                 metrics.classification(), metrics.closedEpisodes(), metrics.exactFeeEpisodes(),

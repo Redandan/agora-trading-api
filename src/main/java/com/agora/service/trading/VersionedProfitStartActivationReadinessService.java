@@ -135,7 +135,8 @@ public class VersionedProfitStartActivationReadinessService {
                         || !"PRE_SUBMIT_SNAPSHOT_BOUND".equals(row.getFinalOutcome())) continue;
                 JsonNode bound = objectMapper.readTree(row.getFeaturesSnapshotJson())
                         .path("versionedProfitStartCohort");
-                if (!matches(cohort, bound) || row.getDecisionId() == null) {
+                if (!VersionedProfitStartCohortService.matchesExplicitBinding(objectMapper, cohort, bound)
+                        || row.getDecisionId() == null) {
                     blockers.add("BOOTSTRAP_RESERVATION_COHORT_BINDING_INVALID");
                     continue;
                 }
@@ -160,7 +161,7 @@ public class VersionedProfitStartActivationReadinessService {
         }
         try {
             JsonNode bound = objectMapper.readTree(row.getExecutionPreviewJson()).path("versionedProfitStartCohort");
-            if (!matches(cohort, bound)) {
+            if (!VersionedProfitStartCohortService.matchesExplicitBinding(objectMapper, cohort, bound)) {
                 blockers.add("BOUND_COHORT_IDENTITY_MISMATCH:" + row.getDecisionId());
                 return null;
             }
@@ -178,20 +179,6 @@ public class VersionedProfitStartActivationReadinessService {
                 new CurrentCohortCanonicalMetricReader.EvidenceCompleteness(
                         row.getRealizedPnl() != null, exactComplete, exactComplete),
                 exact.exactNetQuote());
-    }
-
-    private boolean matches(VersionedProfitStartCohortService.Snapshot c, JsonNode n) {
-        return n != null && !n.isMissingNode()
-                && c.cohortId().equals(n.path("cohortId").asText())
-                && c.strategyId() == n.path("strategyId").asLong(-1)
-                && c.strategyFamily().equals(n.path("strategyFamily").asText())
-                && c.symbol().equals(n.path("symbol").asText())
-                && c.codeCommit().equals(n.path("codeCommit").asText())
-                && c.configSha256().equals(n.path("configSha256").asText())
-                && c.modelVersion().equals(n.path("modelVersion").asText())
-                && c.signalSource().equals(n.path("signalSource").asText())
-                && c.executionMode().equals(n.path("executionMode").asText())
-                && c.effectiveFrom().toString().equals(n.path("effectiveFrom").asText());
     }
 
     private CurrentCohortCanonicalMetricReader.CohortIdentity metricIdentity(

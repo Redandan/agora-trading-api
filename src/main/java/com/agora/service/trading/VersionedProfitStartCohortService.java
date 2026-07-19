@@ -4,6 +4,7 @@ import com.agora.config.properties.TradingViewLocalSignalProperties;
 import com.agora.model.BtStrategy;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.service.backtest.LiveSignalEvaluator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
@@ -179,7 +181,7 @@ public class VersionedProfitStartCohortService {
 
     public void bind(Map<String, Object> context, Snapshot snapshot) {
         if (context == null) return;
-        context.put("versionedProfitStartCohort", asMap(snapshot));
+        context.put("versionedProfitStartCohort", asJson(snapshot));
     }
 
     public void bind(ObjectNode node) {
@@ -234,6 +236,18 @@ public class VersionedProfitStartCohortService {
     }
 
     private ObjectNode asJson(Snapshot snapshot) {
+        return explicitBinding(objectMapper, snapshot);
+    }
+
+    /**
+     * The one canonical, complete representation embedded in pre-submit evidence.
+     * Record-component coverage also makes adding or reordering a Snapshot field
+     * fail closed until this serializer is updated in the same change.
+     */
+    public static ObjectNode explicitBinding(ObjectMapper objectMapper, Snapshot snapshot) {
+        if (objectMapper == null || snapshot == null) {
+            throw new IllegalStateException("versioned-profit cohort binding inputs are missing");
+        }
         ObjectNode node = objectMapper.createObjectNode();
         node.put("contractVersion", snapshot.contractVersion());
         node.put("state", snapshot.state());
@@ -261,31 +275,20 @@ public class VersionedProfitStartCohortService {
         node.put("bootstrapOrderAuthorityArmed", snapshot.bootstrapOrderAuthorityArmed());
         node.put("bootstrapOcoAuthorityArmed", snapshot.bootstrapOcoAuthorityArmed());
         node.put("exactNetAcceptanceAllowed", snapshot.exactNetAcceptanceAllowed());
+        List<String> serializedFields = new ArrayList<>();
+        node.fieldNames().forEachRemaining(serializedFields::add);
+        List<String> snapshotFields = Arrays.stream(Snapshot.class.getRecordComponents())
+                .map(component -> component.getName())
+                .toList();
+        if (!serializedFields.equals(snapshotFields)) {
+            throw new IllegalStateException("versioned-profit cohort binding field coverage drifted");
+        }
         return node;
     }
 
-    private Map<String, Object> asMap(Snapshot snapshot) {
-        Map<String, Object> out = new TreeMap<>();
-        out.put("contractVersion", snapshot.contractVersion());
-        out.put("state", snapshot.state());
-        out.put("identityReady", snapshot.identityReady());
-        out.put("activationReady", snapshot.activationReady());
-        out.put("cohortId", snapshot.cohortId());
-        out.put("strategyId", snapshot.strategyId());
-        out.put("strategyFamily", snapshot.strategyFamily());
-        out.put("symbol", snapshot.symbol());
-        out.put("codeCommit", snapshot.codeCommit());
-        out.put("configSha256", snapshot.configSha256());
-        out.put("modelVersion", snapshot.modelVersion());
-        out.put("signalSource", snapshot.signalSource());
-        out.put("executionMode", snapshot.executionMode());
-        out.put("effectiveFrom", snapshot.effectiveFrom() == null ? "" : snapshot.effectiveFrom().toString());
-        out.put("identityBlockers", snapshot.identityBlockers());
-        out.put("activationBlockers", snapshot.activationBlockers());
-        out.put("legacyRowsExcluded", snapshot.legacyRowsExcluded());
-        out.put("bootstrapOrderAuthorityArmed", snapshot.bootstrapOrderAuthorityArmed());
-        out.put("bootstrapOcoAuthorityArmed", snapshot.bootstrapOcoAuthorityArmed());
-        return out;
+    public static boolean matchesExplicitBinding(ObjectMapper objectMapper, Snapshot snapshot, JsonNode candidate) {
+        if (candidate == null || !candidate.isObject()) return false;
+        return explicitBinding(objectMapper, snapshot).toString().equals(candidate.toString());
     }
 
     private String configSha256(BtStrategy strategy) {

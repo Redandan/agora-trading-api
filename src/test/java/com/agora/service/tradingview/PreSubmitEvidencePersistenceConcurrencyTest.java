@@ -9,6 +9,7 @@ import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.service.trading.VersionedProfitStartCohortService;
 import com.agora.trading.TradingApiApplication;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,7 +162,7 @@ class PreSubmitEvidencePersistenceConcurrencyTest {
         evidence.setSelectedAction("VERSIONED_PROFIT_START_HARD_GATE_READY_PRE_SUBMIT");
         evidence.setFinalOutcome("PRE_SUBMIT_SNAPSHOT_BOUND");
         evidence.setPolicyMode("VERSIONED_PROFIT_START_HARD_GATE");
-        evidence.setFeaturesSnapshotJson(boundIdentityJson());
+        evidence.setFeaturesSnapshotJson(boundCompleteJson());
         return evidence;
     }
 
@@ -172,19 +173,16 @@ class PreSubmitEvidencePersistenceConcurrencyTest {
                 "VPSTART1-485-BTCUSDT-TEST", strategyId, "SCORE_BUY_V2", "BTCUSDT",
                 "4".repeat(40), "5".repeat(64), "local-tradingview-parity-v1",
                 "LOCAL_TRADINGVIEW", "LIVE_MICRO", Instant.parse("2026-07-17T00:00:00Z"),
-                List.of(), List.of(), List.of(), true, true, false, false);
+                List.of(), List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER),
+                List.of(VersionedProfitStartCohortService.EXACT_EVIDENCE_BLOCKER),
+                true, true, false, false);
     }
 
-    private String boundIdentityJson() {
-        return """
-                {"versionedProfitStartCohort":{
-                  "cohortId":"VPSTART1-485-BTCUSDT-TEST","strategyId":%d,
-                  "strategyFamily":"SCORE_BUY_V2","symbol":"BTCUSDT",
-                  "codeCommit":"4444444444444444444444444444444444444444",
-                  "configSha256":"5555555555555555555555555555555555555555555555555555555555555555",
-                  "modelVersion":"local-tradingview-parity-v1","signalSource":"LOCAL_TRADINGVIEW",
-                  "executionMode":"LIVE_MICRO","effectiveFrom":"2026-07-17T00:00:00Z"}}
-                """.formatted(strategyId);
+    private String boundCompleteJson() {
+        ObjectNode root = new ObjectMapper().createObjectNode();
+        root.set("versionedProfitStartCohort",
+                VersionedProfitStartCohortService.explicitBinding(new ObjectMapper(), cohort()));
+        return root.toString();
     }
 
     @TestConfiguration

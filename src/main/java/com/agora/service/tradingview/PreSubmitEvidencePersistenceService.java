@@ -52,7 +52,8 @@ public class PreSubmitEvidencePersistenceService {
                         cohort.effectiveFrom().atZone(ZoneOffset.UTC).toLocalDateTime())
                 || !RESERVATION_ACTION.equals(evidence.getSelectedAction())
                 || !RESERVATION_OUTCOME.equals(evidence.getFinalOutcome())
-                || !matches(cohort, boundCohort(evidence))) {
+                || !VersionedProfitStartCohortService.matchesExplicitBinding(
+                        objectMapper, cohort, boundCohort(evidence))) {
             throw new IllegalStateException("bootstrap reservation evidence is not explicitly cohort bound");
         }
         strategyRepository.findByIdForBootstrapReservation(cohort.strategyId())
@@ -72,7 +73,8 @@ public class PreSubmitEvidencePersistenceService {
                     || !RESERVATION_OUTCOME.equals(row.getFinalOutcome())) {
                 continue;
             }
-            if (matches(cohort, boundCohort(row))) {
+            if (VersionedProfitStartCohortService.matchesExplicitBinding(
+                    objectMapper, cohort, boundCohort(row))) {
                 throw new IllegalStateException("current cohort bootstrap reservation already exists");
             }
         }
@@ -105,16 +107,4 @@ public class PreSubmitEvidencePersistenceService {
         }
     }
 
-    private boolean matches(VersionedProfitStartCohortService.Snapshot c, JsonNode n) {
-        return c.cohortId().equals(n.path("cohortId").asText())
-                && c.strategyId() == n.path("strategyId").asLong(-1)
-                && c.strategyFamily().equals(n.path("strategyFamily").asText())
-                && c.symbol().equals(n.path("symbol").asText())
-                && c.codeCommit().equals(n.path("codeCommit").asText())
-                && c.configSha256().equals(n.path("configSha256").asText())
-                && c.modelVersion().equals(n.path("modelVersion").asText())
-                && c.signalSource().equals(n.path("signalSource").asText())
-                && c.executionMode().equals(n.path("executionMode").asText())
-                && c.effectiveFrom().toString().equals(n.path("effectiveFrom").asText());
-    }
 }

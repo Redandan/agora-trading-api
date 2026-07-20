@@ -5,6 +5,7 @@ import com.agora.mcp.auth.McpAuth;
 import com.agora.mcp.auth.McpAuthLevel;
 import com.agora.mcp.auth.McpCategory;
 import com.agora.service.trading.EvidenceEventCanonicalizer;
+import com.agora.service.trading.EvidenceGovernanceSemantics;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -527,8 +528,11 @@ public class SignalCorrectnessMcpTools {
     public String getFilterAttributionMatrix(String symbol, Integer days) {
         String sym = normalizeSymbol(symbol);
         int d = normalizeDays(days, 5, 30);
-        LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusDays(d);
-        List<Map<String, Object>> rows = loadFilterRows(sym, since);
+        CanonicalLabelRows canonical = loadCanonicalLabelRows(
+                sym, d * 24, null, 500, true, LabelHorizon.H24, true);
+        List<Map<String, Object>> rows = canonical.rows().stream()
+                .filter(this::isFilterAttributionInput)
+                .toList();
         Map<String, FilterBucket> buckets = new LinkedHashMap<>();
         Map<GovernanceClassification, Integer> classificationCounts = new LinkedHashMap<>();
         int nonPriceActionableExcluded = 0;
@@ -552,6 +556,7 @@ public class SignalCorrectnessMcpTools {
         sb.append("=== Filter Attribution Matrix v0 ===\n")
                 .append(BOUNDARY).append("\n")
                 .append("symbol=").append(sym).append(" days=").append(d).append("\n")
+                .append(canonical.diagnostics()).append("\n")
                 .append("governanceClassificationCounts=").append(classificationCounts).append("\n")
                 .append("nonPriceActionableExcluded=").append(nonPriceActionableExcluded)
                 .append(" (strategy no-entry/watch-only rows are not counted as governance false blocks)\n")
@@ -896,6 +901,14 @@ public class SignalCorrectnessMcpTools {
                 """, symbol, since);
     }
 
+    private boolean isFilterAttributionInput(Map<String, Object> row) {
+        return hasMeaningfulBlockValue(row.get("terminal_blocker"))
+                || hasMeaningfulBlockValue(row.get("blocker_reason"))
+                || hasMeaningfulBlockValue(row.get("suppression_reason"))
+                || List.of("BLOCK", "READ_ONLY", "HALT_TRADING", "ALLOW_RISK_REDUCING_ONLY")
+                .contains(upper(row.get("policy_mode")));
+    }
+
     private List<Map<String, Object>> loadLabelRows(String symbol,
                                                     int hours,
                                                     Long strategyId,
@@ -911,6 +924,16 @@ public class SignalCorrectnessMcpTools {
                                                        int limit,
                                                        boolean includeNonActionable,
                                                        LabelHorizon horizon) {
+        return loadCanonicalLabelRows(symbol, hours, strategyId, limit, includeNonActionable, horizon, false);
+    }
+
+    private CanonicalLabelRows loadCanonicalLabelRows(String symbol,
+                                                       int hours,
+                                                       Long strategyId,
+                                                       int limit,
+                                                       boolean includeNonActionable,
+                                                       LabelHorizon horizon,
+                                                       boolean filterAttributionOnly) {
         LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusHours(hours);
         LocalDateTime latestKline = latestKlineTime(symbol);
         LocalDateTime completeCutoff = latestKline == null
@@ -925,6 +948,10 @@ public class SignalCorrectnessMcpTools {
             evidenceStrategySql = " AND e.strategy_id = ? ";
             evidenceParams.add(strategyId);
         }
+        String evidencePopulationSql = filterAttributionOnly
+                ? " AND (terminal_blocker IS NOT NULL OR blocker_reason IS NOT NULL OR suppression_reason IS NOT NULL"
+                + " OR policy_mode IN ('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')) "
+                : "";
         evidenceParams.add(sourceLimit);
         QueryRows runtimeQuery;
         try {
@@ -944,7 +971,7 @@ public class SignalCorrectnessMcpTools {
                     SELECT *
                     FROM bt_runtime_decision_evidence FORCE INDEX (idx_rt_decision_evidence_symbol_time)
                     WHERE symbol = ? AND evidence_time >= ?
-                """ + evidenceStrategySql.replace("e.", "") + """
+                """ + evidencePopulationSql + evidenceStrategySql.replace("e.", "") + """
                     ORDER BY evidence_time DESC, id DESC
                     LIMIT ?
                 ) e
@@ -964,6 +991,10 @@ public class SignalCorrectnessMcpTools {
             auditStrategySql = " AND a.strategy_id = ? ";
             auditParams.add(strategyId);
         }
+        String auditPopulationSql = filterAttributionOnly
+                ? " AND (blocker IS NOT NULL OR reason IS NOT NULL"
+                + " OR outcome IN ('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')) "
+                : "";
         auditParams.add(sourceLimit);
         QueryRows auditQuery;
         try {
@@ -989,7 +1020,7 @@ public class SignalCorrectnessMcpTools {
                     FROM bt_decision_audit FORCE INDEX (idx_audit_symbol_time)
                     WHERE symbol = ? AND event_time >= ?
                       AND event_type IN ('SIGNAL_EVAL','SIGNAL_BUY','SIGNAL_SELL','FILTER_BLOCK','AUTOTRADE_OK','AUTOTRADE_FAIL','ENTRY_SKIP')
-                """ + auditStrategySql.replace("a.", "") + """
+                """ + auditPopulationSql + auditStrategySql.replace("a.", "") + """
                     ORDER BY event_time DESC, id DESC
                     LIMIT ?
                 ) a
@@ -1725,28 +1756,11 @@ public class SignalCorrectnessMcpTools {
     }
 
     private boolean isStrategyNoEntryIntent(Map<String, Object> row) {
-        if (bool(row.get("order_sent"))) return false;
-        String semantics = governanceSemanticText(row);
-        if (containsAny(semantics,
-                "LOCAL_TRADINGVIEW_NO_BUY", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
-                "NO_CURRENT_BUY_CANDIDATE", "NO_BUY_ENTRY_INTENT", "STRATEGY_NO_ENTRY_INTENT")) {
-            return true;
-        }
-        String selected = upper(row.get("selected_action"));
-        String decision = upper(row.get("decision"));
-        return (selected.contains("HOLD") || selected.contains("EVALUATED_ONLY") || decision.contains("HOLD"))
-                && !selected.contains("BUY") && !decision.contains("BUY") && !hasExplicitIntent(row);
+        return EvidenceGovernanceSemantics.isStrategyNoEntryIntent(row);
     }
 
     private boolean hasExecutableBuyEntryIntent(Map<String, Object> row) {
-        if (isStrategyNoEntryIntent(row)) return false;
-        String selected = upper(row.get("selected_action"));
-        String decision = upper(row.get("decision"));
-        String source = upper(row.get("signal_source"));
-        boolean buyLane = selected.contains("BUY") || selected.contains("ENTRY")
-                || decision.contains("BUY") || decision.contains("ENTRY")
-                || source.contains("SIGNAL_BUY") || source.contains("ENTRY_SKIP") || source.contains("FILTER_BLOCK");
-        return buyLane && hasExplicitIntent(row);
+        return EvidenceGovernanceSemantics.hasExecutableBuyEntryIntent(row);
     }
 
     private String governanceSemanticText(Map<String, Object> row) {
@@ -1807,10 +1821,7 @@ public class SignalCorrectnessMcpTools {
     }
 
     private boolean hasExplicitIntent(Map<String, Object> row) {
-        return bool(row.get("intent_created"))
-                || jsonBoolean(row.get("policy_inputs_json"), "intentCreated", "intent_created")
-                || jsonBoolean(row.get("execution_preview_json"), "intentCreated", "intent_created")
-                || jsonBoolean(row.get("features_snapshot_json"), "intentCreated", "intent_created");
+        return EvidenceGovernanceSemantics.hasExplicitIntent(row);
     }
 
     private boolean jsonBoolean(Object rawJson, String... keys) {

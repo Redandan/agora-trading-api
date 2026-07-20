@@ -4,15 +4,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class SignalCorrectnessMcpToolsClassificationTest {
 
+    private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
     private final SignalCorrectnessMcpTools tools = new SignalCorrectnessMcpTools(
-            mock(JdbcTemplate.class),
+            jdbc,
             mock(DiagnosticMcpTools.class),
             mock(MarketDataMcpTools.class),
             mock(RuntimeEvidenceMcpTools.class),
@@ -59,6 +66,20 @@ class SignalCorrectnessMcpToolsClassificationTest {
 
         assertThat(tools.isPriceActionable(row)).isTrue();
         assertThat(tools.decisionPath(row)).isEqualTo("SUPPRESSED");
+    }
+
+    @Test
+    void explicitIntentOutsideBuyLaneIsNotGovernanceEligible() {
+        Map<String, Object> row = baseRow();
+        row.put("signal_source", "SIGNAL_EVAL");
+        row.put("selected_action", "EVALUATED_ONLY");
+        row.put("decision", "PASS");
+        row.put("intent_created", true);
+        row.put("terminal_blocker", "TradePlanQualityGate");
+
+        assertThat(tools.governanceClassification(row))
+                .isEqualTo(SignalCorrectnessMcpTools.GovernanceClassification.STRATEGY_NO_ENTRY_INTENT);
+        assertThat(tools.isPriceActionable(row)).isFalse();
     }
 
     @Test
@@ -112,6 +133,71 @@ class SignalCorrectnessMcpToolsClassificationTest {
         row.put("selected_action", "DONCHIAN_SHADOW_STATE_ADVANCE");
 
         assertThat(tools.isPriceActionable(row)).isFalse();
+    }
+
+    @Test
+    void filterAttributionCountsDuplicateClosedBarRepresentationsOnce() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusDays(2);
+        Map<String, Object> first = blockedBuyRow(70001L, eventTime);
+        Map<String, Object> second = blockedBuyRow(70002L, eventTime);
+
+        when(jdbc.queryForObject(anyString(), any(Class.class), any(Object[].class)))
+                .thenReturn(eventTime.plusDays(1));
+        when(jdbc.queryForList(anyString(), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) return List.of(first, second);
+            return List.of();
+        });
+
+        String report = tools.getFilterAttributionMatrix("BTCUSDT", 5);
+
+        assertThat(report).containsPattern("(?m)^TradePlanQualityGate\\s+\\|\\s+1\\s+\\|");
+        assertThat(report).contains("duplicateRepresentationCount=1");
+    }
+
+    @Test
+    void filterAttributionFailsClosedForCanonicalIdentityConflict() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusDays(2);
+        Map<String, Object> first = blockedBuyRow(71001L, eventTime);
+        Map<String, Object> second = blockedBuyRow(71002L, eventTime);
+        first.put("live_signal_id", 99001L);
+        second.put("live_signal_id", 99001L);
+
+        when(jdbc.queryForObject(anyString(), any(Class.class), any(Object[].class)))
+                .thenReturn(eventTime.plusDays(1));
+        when(jdbc.queryForList(anyString(), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) return List.of(first, second);
+            return List.of();
+        });
+
+        String report = tools.getFilterAttributionMatrix("BTCUSDT", 5);
+
+        assertThat(report).contains("identityConflictCount=1");
+        assertThat(report).contains("nonPriceActionableExcluded=1");
+        assertThat(report).doesNotContainPattern("(?m)^TradePlanQualityGate\\s+\\|");
+    }
+
+    private Map<String, Object> blockedBuyRow(long decisionId, LocalDateTime evidenceTime) {
+        Map<String, Object> row = baseRow();
+        row.put("row_source", "RUNTIME_EVIDENCE");
+        row.put("row_id", decisionId + 100000L);
+        row.put("runtime_evidence_id", decisionId + 100000L);
+        row.put("decision_id", decisionId);
+        row.put("evidence_time", evidenceTime);
+        row.put("symbol", "BTCUSDT");
+        row.put("strategy_id", 508L);
+        row.put("side", "LONG");
+        row.put("interval_code", "4h");
+        row.put("bar_open_time", evidenceTime.minusMinutes(evidenceTime.getMinute()));
+        row.put("signal_source", "FILTER_BLOCK");
+        row.put("selected_action", "BLOCK");
+        row.put("decision", "BUY");
+        row.put("terminal_blocker", "TradePlanQualityGate");
+        row.put("final_outcome", "BLOCKED");
+        row.put("intent_created", true);
+        row.put("features_snapshot_json", "{\"intentCreated\":true}");
+        return row;
     }
 
     private Map<String, Object> baseRow() {

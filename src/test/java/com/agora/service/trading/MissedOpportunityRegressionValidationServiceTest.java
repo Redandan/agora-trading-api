@@ -143,6 +143,24 @@ class MissedOpportunityRegressionValidationServiceTest {
     }
 
     @Test
+    void highForwardScanExcludesExplicitIntentThatNeverEnteredBuyLane() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77378L, eventTime);
+        runtime.put("selected_action", "EVALUATED_ONLY");
+        runtime.put("decision", "PASS");
+        runtime.put("signal_source", "SIGNAL_EVAL");
+        runtime.put("intent_created", true);
+        runtime.put("terminal_blocker", "TradePlanQualityGate");
+        stubNoBuyQueries(List.of(runtime), List.of(), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
     void highForwardScanKeepsCapacityBlockOutsideGovernanceFalseBlockPopulation() {
         LocalDateTime eventTime = matureEventTime();
         Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77377L, eventTime);

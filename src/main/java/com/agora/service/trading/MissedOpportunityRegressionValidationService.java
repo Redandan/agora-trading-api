@@ -948,17 +948,11 @@ public class MissedOpportunityRegressionValidationService {
         }
         String signalSource = upper(row.get("signal_source"));
         String selectedAction = upper(row.get("selected_action"));
-        String decision = upper(row.get("decision"));
         if (selectedAction.contains("DONCHIAN_SHADOW_STATE_ADVANCE")
                 || (signalSource.contains("DONCHIAN") && selectedAction.contains("STATE_ADVANCE"))) {
             return false;
         }
 
-        boolean explicitIntent = hasExplicitIntent(row);
-        boolean candidatePlan = hasCandidatePlan(row);
-        boolean buyDecision = selectedAction.contains("BUY")
-                || decision.contains("BUY")
-                || signalSource.contains("SIGNAL_BUY");
         boolean blockingEvent = signalSource.contains("FILTER_BLOCK")
                 || signalSource.contains("ENTRY_SKIP")
                 || signalSource.contains("AUTOTRADE_FAIL");
@@ -970,15 +964,12 @@ public class MissedOpportunityRegressionValidationService {
                 || hasMeaningfulBlockValue(row.get("terminal_blocker"))
                 || hasMeaningfulBlockValue(row.get("suppression_reason"))
                 || isBlockedOutcome(row.get("final_outcome"));
-        boolean buyIntent = explicitIntent || buyDecision || (candidatePlan && blockingEvent);
-        return buyIntent && blocked && isNamedTerminalGuardBlock(row);
+        return EvidenceGovernanceSemantics.hasExecutableBuyEntryIntent(row)
+                && blocked && isNamedTerminalGuardBlock(row);
     }
 
     private boolean hasExplicitIntent(Map<String, Object> row) {
-        return asBoolean(row.get("intent_created"))
-                || jsonBoolean(row.get("policy_inputs_json"), "intentCreated", "intent_created")
-                || jsonBoolean(row.get("execution_preview_json"), "intentCreated", "intent_created")
-                || jsonBoolean(row.get("features_snapshot_json"), "intentCreated", "intent_created");
+        return EvidenceGovernanceSemantics.hasExplicitIntent(row);
     }
 
     private boolean hasCandidatePlan(Map<String, Object> row) {
@@ -1019,16 +1010,7 @@ public class MissedOpportunityRegressionValidationService {
     }
 
     private boolean isStrategyNoEntryIntent(Map<String, Object> row) {
-        String semantics = governanceSemanticText(row);
-        if (textContainsAny(semantics,
-                "LOCAL_TRADINGVIEW_NO_BUY", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
-                "NO_CURRENT_BUY_CANDIDATE", "NO_BUY_ENTRY_INTENT", "STRATEGY_NO_ENTRY_INTENT")) {
-            return true;
-        }
-        String selected = upper(row.get("selected_action"));
-        String decision = upper(row.get("decision"));
-        return (selected.contains("HOLD") || selected.contains("EVALUATED_ONLY") || decision.contains("HOLD"))
-                && !selected.contains("BUY") && !decision.contains("BUY") && !hasExplicitIntent(row);
+        return EvidenceGovernanceSemantics.isStrategyNoEntryIntent(row);
     }
 
     private boolean isNamedTerminalGuardBlock(Map<String, Object> row) {

@@ -123,6 +123,44 @@ class MissedOpportunityRegressionValidationServiceTest {
     }
 
     @Test
+    void highForwardScanExcludesLocalTradingViewNoBuyEvenWhenEvaluationIntentFlagIsTrue() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77376L, eventTime);
+        runtime.put("selected_action", "HOLD");
+        runtime.put("decision", "HOLD");
+        runtime.put("side", "HOLD");
+        runtime.put("intent_created", true);
+        runtime.put("policy_inputs_json", "{\"decision\":\"LOCAL_TRADINGVIEW_NO_BUY\",\"blockers\":\"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE\"}");
+        stubNoBuyQueries(List.of(runtime), List.of(), List.of());
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.uniqueObservationCount()).isEqualTo(1);
+        assertThat(scan.excludedNonBuyObservationCount()).isEqualTo(1);
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
+    void highForwardScanKeepsCapacityBlockOutsideGovernanceFalseBlockPopulation() {
+        LocalDateTime eventTime = matureEventTime();
+        Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77377L, eventTime);
+        runtime.put("selected_action", "BLOCK");
+        runtime.put("decision", "BUY");
+        runtime.put("intent_created", true);
+        runtime.put("terminal_blocker", "daily new auto-entry cap reached");
+        stubNoBuyQueries(List.of(runtime), List.of(), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.otherObservationCount()).isEqualTo(1);
+        assertThat(scan.count()).isZero();
+    }
+
+    @Test
     void highForwardScanExcludesDonchianShadowStateAdvance() {
         Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 90001L, matureEventTime());
         runtime.put("selected_action", "DONCHIAN_SHADOW_STATE_ADVANCE");

@@ -107,7 +107,13 @@ public final class EvidenceEventCanonicalizer {
         Set<String> identityConflictReasons = group.stream()
                 .flatMap(row -> identifiers(row, "identity_conflict_reasons").stream())
                 .collect(Collectors.toCollection(TreeSet::new));
-        addMultiplicityReason(identityConflictReasons, decisionIds, "MULTIPLE_DECISION_IDS");
+        // A decision id identifies a persisted representation, not necessarily a distinct market event.
+        // Repeated audit/runtime observations for the same closed-bar lane legitimately have different ids.
+        // A shared live-signal id with multiple decision ids is different: that is a contradictory strong
+        // identity and must remain fail-closed instead of being hidden by bar-level canonicalization.
+        if (liveSignalIds.size() == 1 && decisionIds.size() > 1) {
+            identityConflictReasons.add("MULTIPLE_DECISION_IDS_FOR_LIVE_SIGNAL");
+        }
         addMultiplicityReason(identityConflictReasons, liveSignalIds, "MULTIPLE_LIVE_SIGNAL_IDS");
         addMultiplicityReason(identityConflictReasons, symbols, "SYMBOL_MISMATCH");
         addMultiplicityReason(identityConflictReasons, strategies, "STRATEGY_MISMATCH");
@@ -206,8 +212,11 @@ public final class EvidenceEventCanonicalizer {
     private static boolean matches(Identity left, Identity right) {
         if (intersects(left.decisionIds(), right.decisionIds())) return true;
         if (intersects(left.liveSignalIds(), right.liveSignalIds())) return true;
-        if (!left.decisionIds().isEmpty() && !right.decisionIds().isEmpty()) return false;
+        // Distinct strong live-signal identities may never be collapsed merely because their bars match.
         if (!left.liveSignalIds().isEmpty() && !right.liveSignalIds().isEmpty()) return false;
+        // Distinct decision ids may be audit/runtime representations of the same closed-bar event. The
+        // composite includes symbol, strategy, interval, side, closed bar, and action family, so BUY entry
+        // and SELL exit lanes cannot cross this fallback boundary.
         return intersects(left.composites(), right.composites());
     }
 

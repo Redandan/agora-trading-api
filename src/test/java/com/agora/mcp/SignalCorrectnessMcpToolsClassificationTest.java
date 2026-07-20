@@ -69,9 +69,40 @@ class SignalCorrectnessMcpToolsClassificationTest {
         row.put("decision", "BUY");
         row.put("terminal_blocker", "TradePlanQualityGate");
         row.put("final_outcome", "BLOCKED");
+        row.put("intent_created", true);
 
         assertThat(tools.isPriceActionable(row)).isTrue();
         assertThat(tools.decisionPath(row)).isEqualTo("BLOCK");
+        assertThat(tools.governanceClassification(row))
+                .isEqualTo(SignalCorrectnessMcpTools.GovernanceClassification.TERMINAL_GUARD_BLOCK);
+    }
+
+    @Test
+    void localTradingViewHoldWithEvaluationIntentIsStrategyNoEntryIntent() {
+        Map<String, Object> row = baseRow();
+        row.put("side", "HOLD");
+        row.put("selected_action", "HOLD");
+        row.put("decision", "HOLD");
+        row.put("intent_created", true);
+        row.put("policy_inputs_json", "{\"decision\":\"LOCAL_TRADINGVIEW_NO_BUY\",\"blockers\":\"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE\"}");
+
+        assertThat(tools.governanceClassification(row))
+                .isEqualTo(SignalCorrectnessMcpTools.GovernanceClassification.STRATEGY_NO_ENTRY_INTENT);
+        assertThat(tools.isPriceActionable(row)).isFalse();
+        assertThat(tools.decisionPath(row)).isEqualTo("PASS");
+    }
+
+    @Test
+    void executionCapacityBlockIsSeparateFromTerminalGuard() {
+        Map<String, Object> row = baseRow();
+        row.put("signal_source", "ENTRY_SKIP");
+        row.put("selected_action", "BLOCK");
+        row.put("decision", "BUY");
+        row.put("intent_created", true);
+        row.put("terminal_blocker", "daily new auto-entry cap reached");
+
+        assertThat(tools.governanceClassification(row))
+                .isEqualTo(SignalCorrectnessMcpTools.GovernanceClassification.EXECUTION_CAPACITY_BLOCK);
     }
 
     @Test

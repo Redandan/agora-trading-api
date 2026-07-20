@@ -76,6 +76,56 @@ class EvidenceEventCanonicalizerTest {
     }
 
     @Test
+    void strategy485ThirteenHoldRepresentationsCollapseToSevenClosedBars() {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        String[] bars = {
+                "2026-07-08T00:00:00", "2026-07-09T00:00:00", "2026-07-11T00:00:00",
+                "2026-07-12T00:00:00", "2026-07-13T00:00:00", "2026-07-16T00:00:00",
+                "2026-07-17T00:00:00"
+        };
+        int[] representations = {1, 1, 1, 2, 3, 3, 2};
+        long decisionId = 77000L;
+        for (int i = 0; i < bars.length; i++) {
+            for (int j = 0; j < representations[i]; j++) {
+                Map<String, Object> hold = row("DECISION_AUDIT", decisionId++, "1d", "HOLD", bars[i]);
+                hold.put("strategy_id", 485L);
+                hold.put("bar_open_time", LocalDateTime.parse(bars[i]));
+                hold.put("selected_action", "HOLD");
+                hold.put("decision", "HOLD");
+                hold.put("policy_inputs_json", "{\"decision\":\"LOCAL_TRADINGVIEW_NO_BUY\",\"blockers\":\"LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE\"}");
+                rows.add(hold);
+            }
+        }
+
+        EvidenceEventCanonicalizer.MergeResult result = EvidenceEventCanonicalizer.merge(rows);
+
+        assertThat(result.rawObservationCount()).isEqualTo(13);
+        assertThat(result.uniqueMergedEventCount()).isEqualTo(7);
+        assertThat(result.duplicateRepresentationCount()).isEqualTo(6);
+        assertThat(result.identityConflictCount()).isZero();
+        assertThat(result.rows()).allSatisfy(row -> {
+            assertThat(row).containsEntry("canonical_merge_eligible", true);
+            assertThat(row.get("source_ids")).isNotNull();
+        });
+    }
+
+    @Test
+    void sameClosedBarBuyEntryAndSellExitRemainSeparateLanes() {
+        Map<String, Object> buy = fallbackRow("1d", "LONG", "2026-07-17T00:00:00", "SIGNAL_BUY");
+        buy.put("selected_action", "BUY_ENTRY");
+        buy.put("decision", "BUY");
+        Map<String, Object> sell = fallbackRow("1d", "LONG", "2026-07-17T00:00:00", "SIGNAL_SELL");
+        sell.put("selected_action", "SELL_EXIT");
+        sell.put("decision", "SELL");
+
+        EvidenceEventCanonicalizer.MergeResult result = EvidenceEventCanonicalizer.merge(List.of(buy, sell));
+
+        assertThat(result.uniqueMergedEventCount()).isEqualTo(2);
+        assertThat(result.rows()).extracting(row -> row.get("event_family"))
+                .containsExactlyInAnyOrder("BUY_ENTRY_BLOCK", "SELL_EXIT");
+    }
+
+    @Test
     void nullAuditStrategyDoesNotWildcardMatchNearbyRuntime() {
         Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 101L, "4h", "LONG", "2026-07-15T00:00:00");
         Map<String, Object> audit = row("DECISION_AUDIT", 202L, "4h", "LONG", "2026-07-15T00:02:00");
@@ -313,7 +363,7 @@ class EvidenceEventCanonicalizerTest {
         EvidenceEventCanonicalizer.MergeResult first = EvidenceEventCanonicalizer.merge(List.of(left, right));
         EvidenceEventCanonicalizer.MergeResult second = EvidenceEventCanonicalizer.merge(first.rows());
         assertThat(first.rows().get(0).get("identity_conflict_reasons").toString())
-                .contains("MULTIPLE_DECISION_IDS");
+                .contains("MULTIPLE_DECISION_IDS_FOR_LIVE_SIGNAL");
         assertThat(first.rows().get(0).get("field_conflict_reasons").toString())
                 .contains("PLAN_ENTRY_MISMATCH");
         assertThat(first.identityConflictCount()).isEqualTo(1);

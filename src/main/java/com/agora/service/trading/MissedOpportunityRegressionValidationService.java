@@ -943,6 +943,9 @@ public class MissedOpportunityRegressionValidationService {
                 || asBoolean(row.get("order_sent"))) {
             return false;
         }
+        if (isStrategyNoEntryIntent(row)) {
+            return false;
+        }
         String signalSource = upper(row.get("signal_source"));
         String selectedAction = upper(row.get("selected_action"));
         String decision = upper(row.get("decision"));
@@ -968,7 +971,7 @@ public class MissedOpportunityRegressionValidationService {
                 || hasMeaningfulBlockValue(row.get("suppression_reason"))
                 || isBlockedOutcome(row.get("final_outcome"));
         boolean buyIntent = explicitIntent || buyDecision || (candidatePlan && blockingEvent);
-        return buyIntent && blocked;
+        return buyIntent && blocked && isNamedTerminalGuardBlock(row);
     }
 
     private boolean hasExplicitIntent(Map<String, Object> row) {
@@ -994,9 +997,11 @@ public class MissedOpportunityRegressionValidationService {
     }
 
     private boolean isExcludedNonBuyObservation(Map<String, Object> row) {
-        if (row == null || asBoolean(row.get("order_sent")) || hasExplicitIntent(row) || hasCandidatePlan(row)) {
+        if (row == null || asBoolean(row.get("order_sent"))) {
             return false;
         }
+        if (isStrategyNoEntryIntent(row)) return true;
+        if (hasExplicitIntent(row) || hasCandidatePlan(row)) return false;
         String signalSource = upper(row.get("signal_source"));
         String selectedAction = upper(row.get("selected_action"));
         String decision = upper(row.get("decision"));
@@ -1011,6 +1016,51 @@ public class MissedOpportunityRegressionValidationService {
                 || decision.contains("BUY") || decision.contains("SELL")
                 || signalSource.contains("SIGNAL_BUY") || signalSource.contains("SIGNAL_SELL");
         return donchianStateAdvance || hold || informationalPass || !buyOrSell;
+    }
+
+    private boolean isStrategyNoEntryIntent(Map<String, Object> row) {
+        String semantics = governanceSemanticText(row);
+        if (textContainsAny(semantics,
+                "LOCAL_TRADINGVIEW_NO_BUY", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
+                "NO_CURRENT_BUY_CANDIDATE", "NO_BUY_ENTRY_INTENT", "STRATEGY_NO_ENTRY_INTENT")) {
+            return true;
+        }
+        String selected = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        return (selected.contains("HOLD") || selected.contains("EVALUATED_ONLY") || decision.contains("HOLD"))
+                && !selected.contains("BUY") && !decision.contains("BUY") && !hasExplicitIntent(row);
+    }
+
+    private boolean isNamedTerminalGuardBlock(Map<String, Object> row) {
+        String semantics = governanceSemanticText(row);
+        if (textContainsAny(semantics,
+                "DAILY_CAP", "DAILY CAP", "DAILY NEW AUTO-ENTRY CAP", "MAX_TINY_LIVE", "CAPACITY",
+                "OPEN_POSITION", "OPEN POSITION", "POSITION_ALREADY_OPEN", "POSITION ALREADY OPEN",
+                "EXPOSURE", "RISK_BUDGET", "RISK BUDGET", "MAX_LOSS", "MAX LOSS", "NOTIONAL",
+                "INSUFFICIENT_BALANCE", "INSUFFICIENT BALANCE", "PROVIDER", "ORDER_NOT_SENT",
+                "EXECUTION_NOT_SENT", "RUNTIME_EVIDENCE")) {
+            return false;
+        }
+        return textContainsAny(semantics,
+                "TRADEPLANQUALITY", "TRADE_PLAN_QUALITY", "EXPECTED_VALUE", "EV_GATE",
+                "DATAFRESHNESS", "DATA_FRESHNESS", "ENTRYDEDUP", "ENTRY_DEDUP", "DUPLICATEBAR",
+                "DUPLICATE_BAR", "EVENTRISK", "EVENT_RISK", "FEARGREED", "FEAR_GREED", "OCO");
+    }
+
+    private String governanceSemanticText(Map<String, Object> row) {
+        return String.join(" ",
+                upper(row.get("terminal_blocker")), upper(row.get("blocker_reason")),
+                upper(row.get("suppression_reason")), upper(row.get("selected_action")),
+                upper(row.get("decision")), upper(row.get("signal_source")), upper(row.get("final_outcome")),
+                upper(row.get("policy_inputs_json")), upper(row.get("execution_preview_json")),
+                upper(row.get("features_snapshot_json")));
+    }
+
+    private boolean textContainsAny(String value, String... needles) {
+        for (String needle : needles) {
+            if (value.contains(needle)) return true;
+        }
+        return false;
     }
 
     private boolean jsonBoolean(Object rawJson, String... keys) {

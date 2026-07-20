@@ -151,6 +151,7 @@ public class SignalCorrectnessMcpTools {
             ForwardStats fwd = loadForwardStatsCached(forwardCache, sym, eventTime, plan, horizon);
             String path = decisionPath(row);
             OutcomeLabel label = label(row, path, fwd, horizon);
+            GovernanceClassification governanceClassification = governanceClassification(row);
             String correctness = label.correctness();
             String attribution = attributionLabel(row, correctness, fwd);
             sb.append(i++).append(". auditId=").append(value(row, "audit_id"))
@@ -162,6 +163,7 @@ public class SignalCorrectnessMcpTools {
                     .append(" timeframe=").append(value(row, "interval_code"))
                     .append(" signalSource=").append(value(row, "signal_source"))
                     .append(" decisionPath=").append(path)
+                    .append(" governanceClassification=").append(governanceClassification)
                     .append(" actionable=").append(isPriceActionable(row))
                     .append(" labelSource=").append(label.labelSource())
                     .append(" labelConfidence=").append(label.labelConfidence())
@@ -528,10 +530,18 @@ public class SignalCorrectnessMcpTools {
         LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusDays(d);
         List<Map<String, Object>> rows = loadFilterRows(sym, since);
         Map<String, FilterBucket> buckets = new LinkedHashMap<>();
+        Map<GovernanceClassification, Integer> classificationCounts = new LinkedHashMap<>();
         int nonPriceActionableExcluded = 0;
+        int nonGovernanceEligibleExcluded = 0;
         for (Map<String, Object> row : rows) {
+            GovernanceClassification classification = governanceClassification(row);
+            classificationCounts.merge(classification, 1, Integer::sum);
             if (!isPriceActionable(row)) {
                 nonPriceActionableExcluded++;
+                continue;
+            }
+            if (classification != GovernanceClassification.TERMINAL_GUARD_BLOCK) {
+                nonGovernanceEligibleExcluded++;
                 continue;
             }
             String blocker = resolveFilterBlocker(row) + scopeSuffix(row);
@@ -542,8 +552,11 @@ public class SignalCorrectnessMcpTools {
         sb.append("=== Filter Attribution Matrix v0 ===\n")
                 .append(BOUNDARY).append("\n")
                 .append("symbol=").append(sym).append(" days=").append(d).append("\n")
+                .append("governanceClassificationCounts=").append(classificationCounts).append("\n")
                 .append("nonPriceActionableExcluded=").append(nonPriceActionableExcluded)
-                .append(" (ATTENTION_HIT/AUDIT_ONLY/watch-only rows are not counted as governance false blocks)\n")
+                .append(" (strategy no-entry/watch-only rows are not counted as governance false blocks)\n")
+                .append("nonGovernanceEligibleExcluded=").append(nonGovernanceEligibleExcluded)
+                .append(" (execution/capacity and unclassified blocks remain visible in classification counts, not false-block samples)\n")
                 .append("classification: falseBlock/missedAlpha proxy uses forward24h or MFE24h >= ")
                 .append(fmtPct(MISSED_ALPHA_THRESHOLD_PCT)).append("; precision is diagnostic, not a trade instruction.\n\n");
         sb.append(String.format(Locale.US, "%-28s | %8s | %12s | %11s | %11s | %9s | examples%n",
@@ -1231,6 +1244,7 @@ public class SignalCorrectnessMcpTools {
     }
 
     String decisionPath(Map<String, Object> row) {
+        if (isStrategyNoEntryIntent(row)) return "PASS";
         if (bool(row.get("order_sent"))) return "EXECUTED";
         String selected = upper(row.get("selected_action"));
         String policyMode = upper(row.get("policy_mode"));
@@ -1255,8 +1269,15 @@ public class SignalCorrectnessMcpTools {
     }
 
     private OutcomeLabel label(Map<String, Object> row, String path, ForwardStats fwd, LabelHorizon horizon) {
-        if (!isPriceActionable(row)) {
+        GovernanceClassification governanceClassification = governanceClassification(row);
+        if (governanceClassification == GovernanceClassification.STRATEGY_NO_ENTRY_INTENT
+                || !isPriceActionable(row)) {
             return new OutcomeLabel("NOT_PRICE_ACTIONABLE", "NON_ACTIONABLE_SIGNAL", "HIGH", "NOT_PRICE_ACTIONABLE_SIGNAL");
+        }
+        if (isBlockLike(path)
+                && governanceClassification != GovernanceClassification.TERMINAL_GUARD_BLOCK) {
+            return new OutcomeLabel("NOT_GOVERNANCE_ELIGIBLE", "GOVERNANCE_CLASSIFICATION", "HIGH",
+                    governanceClassification.name());
         }
         BigDecimal pnl = asDecimal(row.get("realized_pnl"));
         if (pnl != null && pnl.signum() != 0) {
@@ -1323,7 +1344,8 @@ public class SignalCorrectnessMcpTools {
             String path = decisionPath(row);
             OutcomeLabel label = label(row, path, fwd, horizon);
             String correctness = label.correctness();
-            if ("NOT_PRICE_ACTIONABLE".equals(correctness)) continue;
+            if ("NOT_PRICE_ACTIONABLE".equals(correctness)
+                    || "NOT_GOVERNANCE_ELIGIBLE".equals(correctness)) continue;
             outcomes.add(new LabeledOutcome(
                     asTime(row.get("evidence_time")),
                     Objects.toString(row.get("audit_id"), "N/A"),
@@ -1649,6 +1671,7 @@ public class SignalCorrectnessMcpTools {
     boolean isPriceActionable(Map<String, Object> row) {
         if (row == null) return false;
         if (row.containsKey("canonical_merge_eligible") && !bool(row.get("canonical_merge_eligible"))) return false;
+        if (governanceClassification(row) == GovernanceClassification.STRATEGY_NO_ENTRY_INTENT) return false;
         if (isInformationalPass(row) || isNonBuyStateTransition(row) || isExplicitNonBuyEvaluation(row)) return false;
         if (bool(row.get("order_sent")) || hasMeaningfulIdentifier(row.get("live_signal_id"))) return true;
         if (hasExplicitIntent(row)) return true;
@@ -1672,6 +1695,87 @@ public class SignalCorrectnessMcpTools {
             return true;
         }
         return false;
+    }
+
+    GovernanceClassification governanceClassification(Map<String, Object> row) {
+        if (row == null) return GovernanceClassification.OTHER;
+        if (isStrategyNoEntryIntent(row)) return GovernanceClassification.STRATEGY_NO_ENTRY_INTENT;
+        if (bool(row.get("order_sent"))) return GovernanceClassification.ALLOWED_OR_EXECUTED;
+
+        String path = decisionPathWithoutClassification(row);
+        if (!isBlockLike(path)) return GovernanceClassification.ALLOWED_OR_EXECUTED;
+        if (!hasExecutableBuyEntryIntent(row)) return GovernanceClassification.STRATEGY_NO_ENTRY_INTENT;
+
+        String blocker = governanceSemanticText(row);
+        if (containsAny(blocker,
+                "DAILY_CAP", "DAILY CAP", "DAILY NEW AUTO-ENTRY CAP", "MAX_TINY_LIVE", "CAPACITY", "OPEN_POSITION",
+                "OPEN POSITION", "POSITION_ALREADY_OPEN", "POSITION ALREADY OPEN", "EXPOSURE",
+                "RISK_BUDGET", "RISK BUDGET", "MAX_LOSS", "MAX LOSS", "NOTIONAL",
+                "INSUFFICIENT_BALANCE", "INSUFFICIENT BALANCE", "PROVIDER", "ORDER_NOT_SENT",
+                "EXECUTION_NOT_SENT", "RUNTIME_EVIDENCE")) {
+            return GovernanceClassification.EXECUTION_CAPACITY_BLOCK;
+        }
+        if (containsAny(blocker,
+                "TRADEPLANQUALITY", "TRADE_PLAN_QUALITY", "EXPECTED_VALUE", "EV_GATE",
+                "DATAFRESHNESS", "DATA_FRESHNESS", "ENTRYDEDUP", "ENTRY_DEDUP", "DUPLICATEBAR",
+                "DUPLICATE_BAR", "EVENTRISK", "EVENT_RISK", "FEARGREED", "FEAR_GREED", "OCO")) {
+            return GovernanceClassification.TERMINAL_GUARD_BLOCK;
+        }
+        return GovernanceClassification.UNCLASSIFIED_BLOCK;
+    }
+
+    private boolean isStrategyNoEntryIntent(Map<String, Object> row) {
+        if (bool(row.get("order_sent"))) return false;
+        String semantics = governanceSemanticText(row);
+        if (containsAny(semantics,
+                "LOCAL_TRADINGVIEW_NO_BUY", "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE",
+                "NO_CURRENT_BUY_CANDIDATE", "NO_BUY_ENTRY_INTENT", "STRATEGY_NO_ENTRY_INTENT")) {
+            return true;
+        }
+        String selected = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        return (selected.contains("HOLD") || selected.contains("EVALUATED_ONLY") || decision.contains("HOLD"))
+                && !selected.contains("BUY") && !decision.contains("BUY") && !hasExplicitIntent(row);
+    }
+
+    private boolean hasExecutableBuyEntryIntent(Map<String, Object> row) {
+        if (isStrategyNoEntryIntent(row)) return false;
+        String selected = upper(row.get("selected_action"));
+        String decision = upper(row.get("decision"));
+        String source = upper(row.get("signal_source"));
+        boolean buyLane = selected.contains("BUY") || selected.contains("ENTRY")
+                || decision.contains("BUY") || decision.contains("ENTRY")
+                || source.contains("SIGNAL_BUY") || source.contains("ENTRY_SKIP") || source.contains("FILTER_BLOCK");
+        return buyLane && hasExplicitIntent(row);
+    }
+
+    private String governanceSemanticText(Map<String, Object> row) {
+        return String.join(" ",
+                upper(row.get("terminal_blocker")), upper(row.get("blocker_reason")),
+                upper(row.get("suppression_reason")), upper(row.get("selected_action")),
+                upper(row.get("decision")), upper(row.get("signal_source")), upper(row.get("final_outcome")),
+                upper(row.get("policy_inputs_json")), upper(row.get("execution_preview_json")),
+                upper(row.get("features_snapshot_json")));
+    }
+
+    private boolean containsAny(String value, String... tokens) {
+        for (String token : tokens) {
+            if (value.contains(token)) return true;
+        }
+        return false;
+    }
+
+    private String decisionPathWithoutClassification(Map<String, Object> row) {
+        if (bool(row.get("order_sent"))) return "EXECUTED";
+        String selected = upper(row.get("selected_action"));
+        String policyMode = upper(row.get("policy_mode"));
+        String outcome = upper(row.get("final_outcome"));
+        if (selected.contains("BLOCK") || "BLOCK".equals(policyMode)
+                || hasMeaningfulBlockValue(row.get("terminal_blocker"))) return "BLOCK";
+        if (hasMeaningfulBlockValue(row.get("suppression_reason"))
+                || hasExplicitIntent(row) || outcome.contains("SUPPRESS") || outcome.contains("REJECT")
+                || outcome.contains("SKIP") || outcome.contains("FAIL")) return "SUPPRESSED";
+        return "PASS";
     }
 
     private boolean isInformationalPass(Map<String, Object> row) {
@@ -2120,6 +2224,15 @@ public class SignalCorrectnessMcpTools {
             this.code = code;
             this.hours = hours;
         }
+    }
+
+    enum GovernanceClassification {
+        STRATEGY_NO_ENTRY_INTENT,
+        TERMINAL_GUARD_BLOCK,
+        EXECUTION_CAPACITY_BLOCK,
+        UNCLASSIFIED_BLOCK,
+        ALLOWED_OR_EXECUTED,
+        OTHER
     }
 
     private static final class LabelStats {

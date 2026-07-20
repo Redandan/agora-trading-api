@@ -153,6 +153,74 @@ public class SignalCorrectnessMcpToolsPreLimitSqlTest {
     }
 
     @Test
+    void runtimeBlockLikeActionAndOutcomeCannotRescuePlaceholderBlockerIntoQuota() throws Exception {
+        try (Connection connection = connection("runtime_placeholder_block_like")) {
+            createRuntimeTables(connection);
+            LocalDateTime base = LocalDateTime.parse("2026-07-18T00:00:00");
+            List<String> placeholders = List.of("NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PENDING");
+            try (PreparedStatement evidence = connection.prepareStatement("""
+                    INSERT INTO runtime_evidence(
+                      id, evidence_time, live_signal_id, side, selected_action, decision, signal_source,
+                      terminal_blocker, suppression_reason, policy_mode, blocker_reason, intent_created,
+                      policy_inputs_json, execution_preview_json, features_snapshot_json,
+                      final_outcome, order_sent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
+                for (int i = 0; i < 501; i++) {
+                    insertRuntime(evidence, 70_000L + i, base.plusSeconds(i + 1L), null, "LONG",
+                            "BLOCK", "BUY", "SIGNAL_BUY", placeholders.get(i % placeholders.size()), 1, "{}");
+                }
+                evidence.executeBatch();
+                insertRuntime(evidence, 69_999L, base, null, "LONG",
+                        "BUY", "BUY", "SIGNAL_BUY", "TradePlanQualityGate", 1, "{}");
+                evidence.executeBatch();
+            }
+
+            assertThat(runtimeIds(connection)).containsExactly(69_999L);
+        }
+    }
+
+    @Test
+    void auditBlockLikeOutcomeCannotRescuePlaceholderBlockerIntoQuota() throws Exception {
+        try (Connection connection = connection("audit_placeholder_block_like")) {
+            createAuditTables(connection);
+            LocalDateTime base = LocalDateTime.parse("2026-07-18T00:00:00");
+            List<String> placeholders = List.of("NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PENDING");
+            try (PreparedStatement audit = connection.prepareStatement("""
+                    INSERT INTO decision_audit(
+                      id, event_time, live_signal_id, event_type, outcome, blocker, reason, context_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
+                for (int i = 0; i < 501; i++) {
+                    insertAudit(audit, 80_000L + i, base.plusSeconds(i + 1L), "SIGNAL_BUY", "BLOCKED",
+                            placeholders.get(i % placeholders.size()),
+                            "{\"decision\":\"BUY\",\"intentCreated\":true,\"side\":\"LONG\"}");
+                }
+                insertAudit(audit, 79_999L, base, "SIGNAL_BUY", "BUY",
+                        "TradePlanQualityGate", "{\"intentCreated\":true,\"side\":\"LONG\"}");
+                audit.executeBatch();
+            }
+
+            assertThat(auditIds(connection)).containsExactly(79_999L);
+        }
+    }
+
+    @Test
+    void sharedJavaContractRejectsBlockLikeActionAndOutcomeButKeepsExactPolicyEvidence() {
+        Map<String, Object> placeholder = new LinkedHashMap<>();
+        placeholder.put("terminal_blocker", "PENDING");
+        placeholder.put("selected_action", "BLOCK");
+        placeholder.put("final_outcome", "BLOCKED");
+        assertThat(com.agora.service.trading.EvidenceGovernanceSemantics.isFilterAttributionInput(placeholder))
+                .isFalse();
+
+        placeholder.put("policy_mode", "BLOCK");
+        assertThat(com.agora.service.trading.EvidenceGovernanceSemantics.isFilterAttributionInput(placeholder))
+                .as("exact policy mode is explicitly independent blocker evidence")
+                .isTrue();
+    }
+
+    @Test
     void runtimeRawAndJoinedSideConflictFailsClosedBeforeLimit() throws Exception {
         try (Connection connection = connection("runtime_side_conflict")) {
             createRuntimeTables(connection);

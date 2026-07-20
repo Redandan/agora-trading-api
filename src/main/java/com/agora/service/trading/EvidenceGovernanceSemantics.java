@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Shared read-model semantics for deciding whether canonical evidence represents an executable BUY intent.
@@ -12,6 +13,10 @@ import java.util.Map;
 public final class EvidenceGovernanceSemantics {
 
     private static final ObjectMapper JSON = new ObjectMapper();
+    private static final Set<String> NON_BLOCK_VALUES = Set.of(
+            "", "NONE", "N/A", "NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PASS", "INFO", "PENDING");
+    private static final Set<String> FILTER_POLICY_MODES = Set.of(
+            "BLOCK", "READ_ONLY", "HALT_TRADING", "ALLOW_RISK_REDUCING_ONLY");
 
     private EvidenceGovernanceSemantics() {
     }
@@ -52,6 +57,37 @@ public final class EvidenceGovernanceSemantics {
                 || jsonBoolean(row.get("policy_inputs_json"), "intentCreated", "intent_created")
                 || jsonBoolean(row.get("execution_preview_json"), "intentCreated", "intent_created")
                 || jsonBoolean(row.get("features_snapshot_json"), "intentCreated", "intent_created"));
+    }
+
+    /**
+     * Canonical filter-attribution population contract. Named blocker fields are authoritative when meaningful;
+     * an exact governance policy mode is independent blocker evidence. Action and outcome text are never sufficient.
+     */
+    public static boolean isFilterAttributionInput(Map<String, Object> row) {
+        return row != null && (hasMeaningfulBlockValue(row.get("terminal_blocker"))
+                || hasMeaningfulBlockValue(row.get("blocker_reason"))
+                || hasMeaningfulBlockValue(row.get("suppression_reason"))
+                || FILTER_POLICY_MODES.contains(upper(row.get("policy_mode"))));
+    }
+
+    public static boolean hasMeaningfulBlockValue(Object value) {
+        String normalized = upper(value);
+        return !NON_BLOCK_VALUES.contains(normalized)
+                && !(normalized.contains("GATEPASS") && normalized.contains("INFO"));
+    }
+
+    /** MySQL predicate matching {@link #hasMeaningfulBlockValue(Object)}. */
+    public static String sqlMeaningfulBlockValue(String expression) {
+        String normalized = "UPPER(TRIM(COALESCE(" + expression + ", '')))";
+        return "(" + normalized + " NOT IN "
+                + "('','NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PASS','INFO','PENDING')"
+                + " AND NOT (" + normalized + " LIKE '%GATEPASS%' AND " + normalized + " LIKE '%INFO%'))";
+    }
+
+    /** MySQL predicate matching the exact policy-mode branch in {@link #isFilterAttributionInput(Map)}. */
+    public static String sqlFilterPolicyMode(String expression) {
+        return "UPPER(TRIM(COALESCE(" + expression + ", ''))) IN "
+                + "('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')";
     }
 
     /**

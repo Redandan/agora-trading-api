@@ -902,11 +902,7 @@ public class SignalCorrectnessMcpTools {
     }
 
     private boolean isFilterAttributionInput(Map<String, Object> row) {
-        return hasMeaningfulBlockValue(row.get("terminal_blocker"))
-                || hasMeaningfulBlockValue(row.get("blocker_reason"))
-                || hasMeaningfulBlockValue(row.get("suppression_reason"))
-                || List.of("BLOCK", "READ_ONLY", "HALT_TRADING", "ALLOW_RISK_REDUCING_ONLY")
-                .contains(upper(row.get("policy_mode")));
+        return EvidenceGovernanceSemantics.isFilterAttributionInput(row);
     }
 
     private List<Map<String, Object>> loadLabelRows(String symbol,
@@ -1052,21 +1048,16 @@ public class SignalCorrectnessMcpTools {
         String intentTruth = EvidenceGovernanceSemantics.sqlJsonIntentTruth("e.policy_inputs_json")
                 + " OR " + EvidenceGovernanceSemantics.sqlJsonIntentTruth("e.execution_preview_json")
                 + " OR " + EvidenceGovernanceSemantics.sqlJsonIntentTruth("e.features_snapshot_json");
+        String blockEvidence = String.join(" OR ",
+                EvidenceGovernanceSemantics.sqlMeaningfulBlockValue("e.terminal_blocker"),
+                EvidenceGovernanceSemantics.sqlMeaningfulBlockValue("e.suppression_reason"),
+                EvidenceGovernanceSemantics.sqlMeaningfulBlockValue("e.blocker_reason"),
+                EvidenceGovernanceSemantics.sqlFilterPolicyMode("e.policy_mode"));
         return """
                  AND
                      (
                        (
-                         (NULLIF(TRIM(COALESCE(e.terminal_blocker, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(e.terminal_blocker)) NOT IN
-                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
-                         OR (NULLIF(TRIM(COALESCE(e.suppression_reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(e.suppression_reason)) NOT IN
-                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
-                         OR (NULLIF(TRIM(COALESCE(e.blocker_reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(e.blocker_reason)) NOT IN
-                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
-                         OR UPPER(CONCAT_WS(' ', e.selected_action, e.policy_mode, e.final_outcome)) REGEXP
-                           'BLOCK|SKIP|REJECT|SUPPRESS|FAIL|READ_ONLY|HALT_TRADING|ALLOW_RISK_REDUCING_ONLY'
+                         %s
                        )
                        AND (
                          COALESCE(e.intent_created, 0) = 1
@@ -1077,23 +1068,19 @@ public class SignalCorrectnessMcpTools {
                            e.side, s.side)) NOT REGEXP 'SELL|SHORT|EXIT'
                        AND COALESCE(e.order_sent, 0) = 0
                      )
-                """.formatted(intentTruth);
+                """.formatted(blockEvidence, intentTruth);
     }
 
     static String auditFilterPopulationSql() {
         String intentTruth = EvidenceGovernanceSemantics.sqlJsonIntentTruth("a.context_json");
+        String blockEvidence = String.join(" OR ",
+                EvidenceGovernanceSemantics.sqlMeaningfulBlockValue("a.blocker"),
+                EvidenceGovernanceSemantics.sqlMeaningfulBlockValue("a.reason"));
         return """
                  AND
                      (
                        (
-                         (NULLIF(TRIM(COALESCE(a.blocker, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(a.blocker)) NOT IN
-                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
-                         OR (NULLIF(TRIM(COALESCE(a.reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(a.reason)) NOT IN
-                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
-                         OR UPPER(COALESCE(a.outcome, '')) REGEXP
-                           'BLOCK|SKIP|REJECT|SUPPRESS|FAIL|READ_ONLY|HALT_TRADING|ALLOW_RISK_REDUCING_ONLY'
+                         %s
                        )
                        AND (
                          %s
@@ -1107,7 +1094,7 @@ public class SignalCorrectnessMcpTools {
                            JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side')), s.side)) NOT REGEXP 'SELL|SHORT|EXIT'
                        AND COALESCE(s.auto_traded, 0) = 0
                      )
-                """.formatted(intentTruth);
+                """.formatted(blockEvidence, intentTruth);
     }
 
     private LocalDateTime latestKlineTime(String symbol) {
@@ -1905,13 +1892,7 @@ public class SignalCorrectnessMcpTools {
     }
 
     private boolean hasMeaningfulBlockValue(Object value) {
-        String normalized = upper(value);
-        if (normalized.isBlank()
-                || List.of("NONE", "N/A", "NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PASS", "INFO", "PENDING")
-                .contains(normalized)) {
-            return false;
-        }
-        return !(normalized.contains("GATEPASS") && normalized.contains("INFO"));
+        return EvidenceGovernanceSemantics.hasMeaningfulBlockValue(value);
     }
 
     private String upper(Object value) {

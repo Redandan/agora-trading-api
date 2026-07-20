@@ -949,8 +949,7 @@ public class SignalCorrectnessMcpTools {
             evidenceParams.add(strategyId);
         }
         String evidencePopulationSql = filterAttributionOnly
-                ? " AND (terminal_blocker IS NOT NULL OR blocker_reason IS NOT NULL OR suppression_reason IS NOT NULL"
-                + " OR policy_mode IN ('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')) "
+                ? runtimeFilterPopulationSql()
                 : "";
         evidenceParams.add(sourceLimit);
         QueryRows runtimeQuery;
@@ -992,8 +991,7 @@ public class SignalCorrectnessMcpTools {
             auditParams.add(strategyId);
         }
         String auditPopulationSql = filterAttributionOnly
-                ? " AND (blocker IS NOT NULL OR reason IS NOT NULL"
-                + " OR outcome IN ('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')) "
+                ? auditFilterPopulationSql()
                 : "";
         auditParams.add(sourceLimit);
         QueryRows auditQuery;
@@ -1052,6 +1050,54 @@ public class SignalCorrectnessMcpTools {
         return new CanonicalLabelRows(List.copyOf(limited), merge, runtimeRowsFetched, auditRowsFetched, sourceLimit,
                 runtimeQuery.succeeded(), auditQuery.succeeded(),
                 queryErrors(runtimeQuery, auditQuery));
+    }
+
+    private String runtimeFilterPopulationSql() {
+        return """
+                 AND /* evidence_filter_eligible = 1 */
+                     (
+                       (
+                         (NULLIF(TRIM(COALESCE(terminal_blocker, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(terminal_blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR (NULLIF(TRIM(COALESCE(suppression_reason, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(suppression_reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR policy_mode IN ('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')
+                         OR UPPER(COALESCE(blocker_reason, '')) REGEXP
+                           'TRADE.?PLAN.?QUALITY|EXPECTED.?VALUE|EV.?GATE|DATA.?FRESHNESS|ENTRY.?DEDUP|DUPLICATE.?BAR|EVENT.?RISK|FEAR.?GREED|OCO|DAILY.?CAP|CAPACITY|OPEN.?POSITION|EXPOSURE|RISK.?BUDGET|MAX.?LOSS|NOTIONAL|INSUFFICIENT.?BALANCE|PROVIDER|ORDER.?NOT.?SENT|EXECUTION.?NOT.?SENT|RUNTIME.?EVIDENCE'
+                       )
+                       AND (
+                         COALESCE(intent_created, 0) = 1
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(policy_inputs_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(features_snapshot_json, '$.intentCreated')), 'false')) IN ('true','1')
+                       )
+                       AND UPPER(CONCAT_WS(' ', selected_action, decision, signal_source)) REGEXP 'BUY|ENTRY'
+                       AND UPPER(CONCAT_WS(' ', selected_action, decision, signal_source, side)) NOT REGEXP 'SELL|SHORT|EXIT'
+                     )
+                """;
+    }
+
+    private String auditFilterPopulationSql() {
+        return """
+                 AND /* audit_filter_eligible = 1 */
+                     (
+                       (
+                         (NULLIF(TRIM(COALESCE(blocker, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR outcome IN ('BLOCK','BLOCKED','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')
+                         OR UPPER(COALESCE(reason, '')) REGEXP
+                           'TRADE.?PLAN.?QUALITY|EXPECTED.?VALUE|EV.?GATE|DATA.?FRESHNESS|ENTRY.?DEDUP|DUPLICATE.?BAR|EVENT.?RISK|FEAR.?GREED|OCO|DAILY.?CAP|CAPACITY|OPEN.?POSITION|EXPOSURE|RISK.?BUDGET|MAX.?LOSS|NOTIONAL|INSUFFICIENT.?BALANCE|PROVIDER|ORDER.?NOT.?SENT|EXECUTION.?NOT.?SENT|RUNTIME.?EVIDENCE'
+                       )
+                       AND LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.intentCreated')), 'false')) IN ('true','1')
+                       AND UPPER(CONCAT_WS(' ', event_type,
+                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.selectedAction')),
+                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.decision')))) REGEXP 'BUY|ENTRY'
+                       AND UPPER(CONCAT_WS(' ', event_type,
+                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.selectedAction')),
+                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.decision')),
+                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.side')))) NOT REGEXP 'SELL|SHORT|EXIT'
+                     )
+                """;
     }
 
     private LocalDateTime latestKlineTime(String symbol) {

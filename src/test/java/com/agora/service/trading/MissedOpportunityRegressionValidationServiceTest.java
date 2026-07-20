@@ -161,6 +161,33 @@ class MissedOpportunityRegressionValidationServiceTest {
     }
 
     @Test
+    void highForwardScanExcludesSellAndShortFilterBlocksWithExplicitIntent() {
+        LocalDateTime eventTime = matureEventTime();
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (String sellMarker : List.of("SELL", "SHORT")) {
+            Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77380L + rows.size(), eventTime.minusMinutes(rows.size()));
+            runtime.put("selected_action", "BLOCK");
+            runtime.put("decision", sellMarker);
+            runtime.put("side", sellMarker);
+            runtime.put("signal_source", "FILTER_BLOCK");
+            runtime.put("intent_created", true);
+            runtime.put("terminal_blocker", "TradePlanQualityGate");
+            runtime.put("final_outcome", "BLOCKED");
+            runtime.put("policy_inputs_json", candidatePlanJson(true));
+            rows.add(runtime);
+        }
+        stubNoBuyQueries(rows, List.of(), positiveKlines(eventTime));
+
+        MissedOpportunityRegressionValidationService.HighForwardReturnNoBuyScan scan =
+                service.scanHighForwardReturnNoBuy("BTCUSDT", 24);
+
+        assertThat(scan.eligibleBlockedBuyIntentCount()).isZero();
+        assertThat(scan.count()).isZero();
+        assertThat(scan.examples()).isEmpty();
+        assertThat(scan.classificationCountConserved()).isTrue();
+    }
+
+    @Test
     void highForwardScanKeepsCapacityBlockOutsideGovernanceFalseBlockPopulation() {
         LocalDateTime eventTime = matureEventTime();
         Map<String, Object> runtime = row("RUNTIME_EVIDENCE", 77377L, eventTime);

@@ -3,11 +3,12 @@ package com.agora.mcp;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -99,6 +100,24 @@ class SignalCorrectnessMcpToolsClassificationTest {
     }
 
     @Test
+    void sellAndShortFilterBlocksNeverEnterBuyGovernanceLane() {
+        for (String sellMarker : List.of("SELL", "SHORT")) {
+            Map<String, Object> row = baseRow();
+            row.put("signal_source", "FILTER_BLOCK");
+            row.put("selected_action", "BLOCK");
+            row.put("decision", sellMarker);
+            row.put("side", sellMarker);
+            row.put("terminal_blocker", "TradePlanQualityGate");
+            row.put("final_outcome", "BLOCKED");
+            row.put("intent_created", true);
+
+            assertThat(tools.governanceClassification(row))
+                    .as("%s FILTER_BLOCK must not be a BUY terminal guard", sellMarker)
+                    .isEqualTo(SignalCorrectnessMcpTools.GovernanceClassification.STRATEGY_NO_ENTRY_INTENT);
+        }
+    }
+
+    @Test
     void localTradingViewHoldWithEvaluationIntentIsStrategyNoEntryIntent() {
         Map<String, Object> row = baseRow();
         row.put("side", "HOLD");
@@ -176,6 +195,43 @@ class SignalCorrectnessMcpToolsClassificationTest {
         assertThat(report).contains("identityConflictCount=1");
         assertThat(report).contains("nonPriceActionableExcluded=1");
         assertThat(report).doesNotContainPattern("(?m)^TradePlanQualityGate\\s+\\|");
+    }
+
+    @Test
+    void filterAttributionNarrowsExecutableBlockersBeforeSourceLimit() {
+        LocalDateTime eventTime = LocalDateTime.now(ZoneOffset.UTC).minusDays(2);
+        List<Map<String, Object>> newestGeneralReasonRows = new ArrayList<>();
+        for (int i = 0; i < 500; i++) {
+            Map<String, Object> row = blockedBuyRow(80000L + i, eventTime.plusSeconds(i + 1L));
+            row.put("signal_source", "SIGNAL_EVAL");
+            row.put("selected_action", "PASS");
+            row.put("decision", "PASS");
+            row.put("terminal_blocker", null);
+            row.put("blocker_reason", "runtime mapping reason row " + i);
+            row.put("final_outcome", "PASS");
+            row.put("intent_created", false);
+            row.put("features_snapshot_json", "{}");
+            newestGeneralReasonRows.add(row);
+        }
+        Map<String, Object> olderTerminalBlocker = blockedBuyRow(79999L, eventTime);
+
+        when(jdbc.queryForObject(anyString(), any(Class.class), any(Object[].class)))
+                .thenReturn(eventTime.plusDays(1));
+        when(jdbc.queryForList(anyString(), any(Object[].class))).thenAnswer(invocation -> {
+            String sql = invocation.getArgument(0, String.class);
+            if (sql.contains("FROM bt_runtime_decision_evidence")) {
+                boolean narrowedBeforeLimit = sql.contains("evidence_filter_eligible = 1");
+                return narrowedBeforeLimit ? List.of(olderTerminalBlocker) : newestGeneralReasonRows;
+            }
+            return List.of();
+        });
+
+        String report = tools.getFilterAttributionMatrix("BTCUSDT", 5);
+
+        assertThat(report).contains("runtimeRowsFetched=1");
+        assertThat(report).contains("governanceClassificationCounts={TERMINAL_GUARD_BLOCK=1}");
+        assertThat(report).containsPattern("(?m)^TradePlanQualityGate\\s+\\|\\s+1\\s+\\|");
+        assertThat(report).contains("nonPriceActionableExcluded=0");
     }
 
     private Map<String, Object> blockedBuyRow(long decisionId, LocalDateTime evidenceTime) {

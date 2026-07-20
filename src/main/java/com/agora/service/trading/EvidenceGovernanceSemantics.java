@@ -21,10 +21,12 @@ public final class EvidenceGovernanceSemantics {
         String selected = upper(row.get("selected_action"));
         String decision = upper(row.get("decision"));
         String source = upper(row.get("signal_source"));
+        String side = upper(row.get("side"));
+        String lane = String.join(" ", selected, decision, source, side);
+        if (containsAny(lane, "SELL", "SHORT", "EXIT")) return false;
         boolean buyLane = selected.contains("BUY") || selected.contains("ENTRY")
                 || decision.contains("BUY") || decision.contains("ENTRY")
-                || source.contains("SIGNAL_BUY") || source.contains("ENTRY_SKIP")
-                || source.contains("FILTER_BLOCK");
+                || source.contains("SIGNAL_BUY") || source.contains("ENTRY_SKIP");
         return buyLane && hasExplicitIntent(row);
     }
 

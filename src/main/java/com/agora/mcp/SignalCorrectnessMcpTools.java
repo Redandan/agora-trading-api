@@ -966,15 +966,12 @@ public class SignalCorrectnessMcpTools {
                        e.features_snapshot_json, e.execution_preview_json, e.warnings_json, e.live_signal_id,
                        s.actual_entry_price, s.entry_price live_entry_price, s.suggested_tp, s.suggested_sl, s.realized_pnl,
                        NULL audit_id
-                FROM (
-                    SELECT *
-                    FROM bt_runtime_decision_evidence FORCE INDEX (idx_rt_decision_evidence_symbol_time)
-                    WHERE symbol = ? AND evidence_time >= ?
-                """ + evidencePopulationSql + evidenceStrategySql.replace("e.", "") + """
-                    ORDER BY evidence_time DESC, id DESC
-                    LIMIT ?
-                ) e
+                FROM bt_runtime_decision_evidence e FORCE INDEX (idx_rt_decision_evidence_symbol_time)
                 LEFT JOIN bt_live_signal s ON s.id = e.live_signal_id
+                WHERE e.symbol = ? AND e.evidence_time >= ?
+                """ + evidencePopulationSql + evidenceStrategySql + """
+                ORDER BY e.evidence_time DESC, e.id DESC
+                LIMIT ?
                 """, evidenceParams.toArray()));
         } catch (Exception e) {
             runtimeQuery = QueryRows.failure("RUNTIME_QUERY_FAILED", e);
@@ -1013,16 +1010,13 @@ public class SignalCorrectnessMcpTools {
                        a.context_json features_snapshot_json, NULL execution_preview_json, NULL warnings_json, a.live_signal_id,
                        s.actual_entry_price, s.entry_price live_entry_price, s.suggested_tp, s.suggested_sl, s.realized_pnl,
                        a.id audit_id
-                FROM (
-                    SELECT *
-                    FROM bt_decision_audit FORCE INDEX (idx_audit_symbol_time)
-                    WHERE symbol = ? AND event_time >= ?
-                      AND event_type IN ('SIGNAL_EVAL','SIGNAL_BUY','SIGNAL_SELL','FILTER_BLOCK','AUTOTRADE_OK','AUTOTRADE_FAIL','ENTRY_SKIP')
-                """ + auditPopulationSql + auditStrategySql.replace("a.", "") + """
-                    ORDER BY event_time DESC, id DESC
-                    LIMIT ?
-                ) a
+                FROM bt_decision_audit a FORCE INDEX (idx_audit_symbol_time)
                 LEFT JOIN bt_live_signal s ON s.id = a.live_signal_id
+                WHERE a.symbol = ? AND a.event_time >= ?
+                  AND a.event_type IN ('SIGNAL_EVAL','SIGNAL_BUY','SIGNAL_SELL','FILTER_BLOCK','AUTOTRADE_OK','AUTOTRADE_FAIL','ENTRY_SKIP')
+                """ + auditPopulationSql + auditStrategySql + """
+                ORDER BY a.event_time DESC, a.id DESC
+                LIMIT ?
                 """, auditParams.toArray()));
         } catch (Exception e) {
             auditQuery = QueryRows.failure("AUDIT_QUERY_FAILED", e);
@@ -1052,50 +1046,61 @@ public class SignalCorrectnessMcpTools {
                 queryErrors(runtimeQuery, auditQuery));
     }
 
-    private String runtimeFilterPopulationSql() {
+    static String runtimeFilterPopulationSql() {
         return """
-                 AND /* evidence_filter_eligible = 1 */
+                 AND
                      (
                        (
-                         (NULLIF(TRIM(COALESCE(terminal_blocker, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(terminal_blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
-                         OR (NULLIF(TRIM(COALESCE(suppression_reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(suppression_reason)) NOT IN ('NONE','N/A','PASS','INFO'))
-                         OR policy_mode IN ('BLOCK','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')
-                         OR UPPER(COALESCE(blocker_reason, '')) REGEXP
-                           'TRADE.?PLAN.?QUALITY|EXPECTED.?VALUE|EV.?GATE|DATA.?FRESHNESS|ENTRY.?DEDUP|DUPLICATE.?BAR|EVENT.?RISK|FEAR.?GREED|OCO|DAILY.?CAP|CAPACITY|OPEN.?POSITION|EXPOSURE|RISK.?BUDGET|MAX.?LOSS|NOTIONAL|INSUFFICIENT.?BALANCE|PROVIDER|ORDER.?NOT.?SENT|EXECUTION.?NOT.?SENT|RUNTIME.?EVIDENCE'
+                         (NULLIF(TRIM(COALESCE(e.terminal_blocker, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(e.terminal_blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR (NULLIF(TRIM(COALESCE(e.suppression_reason, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(e.suppression_reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR (NULLIF(TRIM(COALESCE(e.blocker_reason, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(e.blocker_reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR UPPER(CONCAT_WS(' ', e.selected_action, e.policy_mode, e.final_outcome)) REGEXP
+                           'BLOCK|SKIP|REJECT|SUPPRESS|FAIL|READ_ONLY|HALT_TRADING|ALLOW_RISK_REDUCING_ONLY'
                        )
                        AND (
-                         COALESCE(intent_created, 0) = 1
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(policy_inputs_json, '$.intentCreated')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(execution_preview_json, '$.intentCreated')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(features_snapshot_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         COALESCE(e.intent_created, 0) = 1
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.intent_created')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.intent_created')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.intent_created')), 'false')) IN ('true','1')
                        )
-                       AND UPPER(CONCAT_WS(' ', selected_action, decision, signal_source)) REGEXP 'BUY|ENTRY'
-                       AND UPPER(CONCAT_WS(' ', selected_action, decision, signal_source, side)) NOT REGEXP 'SELL|SHORT|EXIT'
+                       AND UPPER(CONCAT_WS(' ', e.selected_action, e.decision, e.signal_source)) REGEXP 'BUY|ENTRY'
+                       AND UPPER(CONCAT_WS(' ', e.selected_action, e.decision, e.signal_source,
+                           COALESCE(e.side, s.side))) NOT REGEXP 'SELL|SHORT|EXIT'
+                       AND COALESCE(e.order_sent, 0) = 0
                      )
                 """;
     }
 
-    private String auditFilterPopulationSql() {
+    static String auditFilterPopulationSql() {
         return """
-                 AND /* audit_filter_eligible = 1 */
+                 AND
                      (
                        (
-                         (NULLIF(TRIM(COALESCE(blocker, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
-                         OR outcome IN ('BLOCK','BLOCKED','READ_ONLY','HALT_TRADING','ALLOW_RISK_REDUCING_ONLY')
-                         OR UPPER(COALESCE(reason, '')) REGEXP
-                           'TRADE.?PLAN.?QUALITY|EXPECTED.?VALUE|EV.?GATE|DATA.?FRESHNESS|ENTRY.?DEDUP|DUPLICATE.?BAR|EVENT.?RISK|FEAR.?GREED|OCO|DAILY.?CAP|CAPACITY|OPEN.?POSITION|EXPOSURE|RISK.?BUDGET|MAX.?LOSS|NOTIONAL|INSUFFICIENT.?BALANCE|PROVIDER|ORDER.?NOT.?SENT|EXECUTION.?NOT.?SENT|RUNTIME.?EVIDENCE'
+                         (NULLIF(TRIM(COALESCE(a.blocker, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(a.blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR (NULLIF(TRIM(COALESCE(a.reason, '')), '') IS NOT NULL
+                           AND UPPER(TRIM(a.reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                         OR UPPER(COALESCE(a.outcome, '')) REGEXP
+                           'BLOCK|SKIP|REJECT|SUPPRESS|FAIL|READ_ONLY|HALT_TRADING|ALLOW_RISK_REDUCING_ONLY'
                        )
-                       AND LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.intentCreated')), 'false')) IN ('true','1')
-                       AND UPPER(CONCAT_WS(' ', event_type,
-                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.selectedAction')),
-                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.decision')))) REGEXP 'BUY|ENTRY'
-                       AND UPPER(CONCAT_WS(' ', event_type,
-                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.selectedAction')),
-                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.decision')),
-                           JSON_UNQUOTE(JSON_EXTRACT(context_json, '$.side')))) NOT REGEXP 'SELL|SHORT|EXIT'
+                       AND (
+                         LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.intentCreated')), 'false')) IN ('true','1')
+                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.intent_created')), 'false')) IN ('true','1')
+                       )
+                       AND UPPER(CONCAT_WS(' ', a.outcome, a.event_type,
+                           JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.selectedAction')),
+                           JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.decision')))) REGEXP 'BUY|ENTRY'
+                       AND UPPER(CONCAT_WS(' ', a.outcome, a.event_type,
+                           JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.selectedAction')),
+                           JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.decision')),
+                           COALESCE(s.side, JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side'))))) NOT REGEXP 'SELL|SHORT|EXIT'
+                       AND COALESCE(s.auto_traded, 0) = 0
                      )
                 """;
     }

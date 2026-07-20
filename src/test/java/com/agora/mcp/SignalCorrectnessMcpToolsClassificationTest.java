@@ -117,6 +117,28 @@ class SignalCorrectnessMcpToolsClassificationTest {
     }
 
     @Test
+    void rawOrJoinedSellConflictFailsClosedInJavaGovernanceSemantics() {
+        for (Map.Entry<String, String> conflict : Map.of(
+                "raw_side", "SELL",
+                "joined_side", "SHORT").entrySet()) {
+            Map<String, Object> row = baseRow();
+            row.put("signal_source", "FILTER_BLOCK");
+            row.put("selected_action", "BLOCK");
+            row.put("decision", "BUY");
+            row.put("side", "LONG");
+            row.put("raw_side", "LONG");
+            row.put("joined_side", "LONG");
+            row.put(conflict.getKey(), conflict.getValue());
+            row.put("terminal_blocker", "TradePlanQualityGate");
+            row.put("intent_created", true);
+
+            assertThat(tools.governanceClassification(row))
+                    .as("%s conflict must fail closed", conflict.getKey())
+                    .isEqualTo(SignalCorrectnessMcpTools.GovernanceClassification.STRATEGY_NO_ENTRY_INTENT);
+        }
+    }
+
+    @Test
     void localTradingViewHoldWithEvaluationIntentIsStrategyNoEntryIntent() {
         Map<String, Object> row = baseRow();
         row.put("side", "HOLD");

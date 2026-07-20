@@ -11,7 +11,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -74,6 +76,214 @@ public class SignalCorrectnessMcpToolsPreLimitSqlTest {
             }
 
             assertThat(auditIds(connection)).containsExactly(19_999L);
+        }
+    }
+
+    @Test
+    void runtimePlaceholderBlockersDoNotConsumePreLimitQuota() throws Exception {
+        try (Connection connection = connection("runtime_placeholders")) {
+            createRuntimeTables(connection);
+            LocalDateTime base = LocalDateTime.parse("2026-07-18T00:00:00");
+            List<String> placeholders = List.of("NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PENDING");
+            try (PreparedStatement live = connection.prepareStatement(
+                    "INSERT INTO live_signal(id, side) VALUES (?, ?)");
+                 PreparedStatement evidence = connection.prepareStatement("""
+                         INSERT INTO runtime_evidence(
+                           id, evidence_time, live_signal_id, side, selected_action, decision, signal_source,
+                           terminal_blocker, suppression_reason, policy_mode, blocker_reason, intent_created,
+                           policy_inputs_json, execution_preview_json, features_snapshot_json,
+                           final_outcome, order_sent)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         """)) {
+                for (int i = 0; i < 500; i++) {
+                    long id = 30_000L + i;
+                    live.setLong(1, id);
+                    live.setString(2, "LONG");
+                    live.addBatch();
+                    insertRuntime(evidence, id, base.plusSeconds(i + 1L), id, "LONG",
+                            "BUY", "BUY", "SIGNAL_BUY",
+                            placeholders.get(i % placeholders.size()), 1, "{}");
+                }
+                live.executeBatch();
+                evidence.executeBatch();
+                try (Statement neutralizeOutcome = connection.createStatement()) {
+                    neutralizeOutcome.executeUpdate(
+                            "UPDATE runtime_evidence SET final_outcome='PENDING' WHERE id >= 30000");
+                }
+                insertRuntime(evidence, 29_999L, base, null, "LONG",
+                        "BUY", "BUY", "SIGNAL_BUY", "TradePlanQualityGate", 1, "{}");
+                evidence.executeBatch();
+            }
+
+            assertThat(runtimeIds(connection)).containsExactly(29_999L);
+        }
+    }
+
+    @Test
+    void auditPlaceholderBlockersDoNotConsumePreLimitQuota() throws Exception {
+        try (Connection connection = connection("audit_placeholders")) {
+            createAuditTables(connection);
+            LocalDateTime base = LocalDateTime.parse("2026-07-18T00:00:00");
+            List<String> placeholders = List.of("NA", "NULL", "UNKNOWN", "NOT_APPLICABLE", "PENDING");
+            try (PreparedStatement audit = connection.prepareStatement("""
+                    INSERT INTO decision_audit(
+                      id, event_time, live_signal_id, event_type, outcome, blocker, reason, context_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
+                for (int i = 0; i < 500; i++) {
+                    long id = 40_000L + i;
+                    audit.setLong(1, id);
+                    audit.setObject(2, base.plusSeconds(i + 1L));
+                    audit.setObject(3, null);
+                    audit.setString(4, "SIGNAL_BUY");
+                    audit.setString(5, "BUY");
+                    audit.setString(6, placeholders.get(i % placeholders.size()));
+                    audit.setString(7, null);
+                    audit.setString(8, "{\"decision\":\"BUY\",\"intentCreated\":true,\"side\":\"LONG\"}");
+                    audit.addBatch();
+                }
+                audit.executeBatch();
+                insertAudit(audit, 39_999L, base, "FILTER_BLOCK", "BUY",
+                        "TradePlanQualityGate", "{\"intent_created\":true,\"side\":\"LONG\"}");
+                audit.executeBatch();
+            }
+
+            assertThat(auditIds(connection)).containsExactly(39_999L);
+        }
+    }
+
+    @Test
+    void runtimeRawAndJoinedSideConflictFailsClosedBeforeLimit() throws Exception {
+        try (Connection connection = connection("runtime_side_conflict")) {
+            createRuntimeTables(connection);
+            LocalDateTime base = LocalDateTime.parse("2026-07-18T00:00:00");
+            try (PreparedStatement live = connection.prepareStatement(
+                    "INSERT INTO live_signal(id, side) VALUES (?, ?)");
+                 PreparedStatement evidence = connection.prepareStatement("""
+                         INSERT INTO runtime_evidence(
+                           id, evidence_time, live_signal_id, side, selected_action, decision, signal_source,
+                           terminal_blocker, suppression_reason, policy_mode, blocker_reason, intent_created,
+                           policy_inputs_json, execution_preview_json, features_snapshot_json,
+                           final_outcome, order_sent)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         """)) {
+                for (int i = 0; i < 500; i++) {
+                    long id = 50_000L + i;
+                    live.setLong(1, id);
+                    live.setString(2, "SELL");
+                    live.addBatch();
+                    insertRuntime(evidence, id, base.plusSeconds(i + 1L), id, "LONG",
+                            "BLOCK", "BUY", "FILTER_BLOCK", "TradePlanQualityGate", 1, "{}");
+                }
+                live.executeBatch();
+                evidence.executeBatch();
+                insertRuntime(evidence, 49_999L, base, null, "LONG",
+                        "BLOCK", "BUY", "FILTER_BLOCK", "TradePlanQualityGate", 1, "{}");
+                evidence.executeBatch();
+            }
+
+            assertThat(runtimeIds(connection)).containsExactly(49_999L);
+        }
+    }
+
+    @Test
+    void auditRawSellSideCannotBeOverriddenByJoinedBuySideBeforeLimit() throws Exception {
+        try (Connection connection = connection("audit_side_conflict")) {
+            createAuditTables(connection);
+            LocalDateTime base = LocalDateTime.parse("2026-07-18T00:00:00");
+            try (PreparedStatement live = connection.prepareStatement(
+                    "INSERT INTO live_signal(id, side) VALUES (?, ?)");
+                 PreparedStatement audit = connection.prepareStatement("""
+                    INSERT INTO decision_audit(
+                      id, event_time, live_signal_id, event_type, outcome, blocker, reason, context_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
+                for (int i = 0; i < 500; i++) {
+                    long id = 60_000L + i;
+                    live.setLong(1, id);
+                    live.setString(2, "LONG");
+                    live.addBatch();
+                    audit.setLong(1, id);
+                    audit.setObject(2, base.plusSeconds(i + 1L));
+                    audit.setLong(3, id);
+                    audit.setString(4, "FILTER_BLOCK");
+                    audit.setString(5, "BUY");
+                    audit.setString(6, "TradePlanQualityGate");
+                    audit.setString(7, null);
+                    audit.setString(8, "{\"decision\":\"BUY\",\"intentCreated\":true,\"side\":\"SELL\"}");
+                    audit.addBatch();
+                }
+                live.executeBatch();
+                audit.executeBatch();
+                insertAudit(audit, 59_999L, base, "FILTER_BLOCK", "BUY",
+                        "TradePlanQualityGate", "{\"intent_created\":true,\"side\":\"LONG\"}");
+                audit.executeBatch();
+            }
+
+            assertThat(auditIds(connection)).containsExactly(59_999L);
+        }
+    }
+
+    @Test
+    void runtimeAndAuditSqlIntentTruthMatchesJavaContract() throws Exception {
+        List<IntentFixture> fixtures = List.of(
+                new IntentFixture(1, "\"1\"", true),
+                new IntentFixture(2, "1", true),
+                new IntentFixture(3, "2", false),
+                new IntentFixture(4, "true", true),
+                new IntentFixture(5, "false", false),
+                new IntentFixture(6, "null", false),
+                new IntentFixture(7, "\"\"", false),
+                new IntentFixture(8, "\"TrUe\"", true),
+                new IntentFixture(9, "\" false \"", false),
+                new IntentFixture(10, "1.0", false));
+
+        try (Connection connection = connection("intent_truth")) {
+            createRuntimeTables(connection);
+            try (PreparedStatement evidence = connection.prepareStatement("""
+                    INSERT INTO runtime_evidence(
+                      id, evidence_time, live_signal_id, side, selected_action, decision, signal_source,
+                      terminal_blocker, suppression_reason, policy_mode, blocker_reason, intent_created,
+                      policy_inputs_json, execution_preview_json, features_snapshot_json,
+                      final_outcome, order_sent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
+                for (IntentFixture fixture : fixtures) {
+                    insertRuntime(evidence, fixture.id(), LocalDateTime.parse("2026-07-18T00:00:00").plusSeconds(fixture.id()),
+                            null, "LONG", "BLOCK", "BUY", "FILTER_BLOCK", "TradePlanQualityGate", 0,
+                            "{\"intentCreated\":" + fixture.jsonValue() + "}");
+                }
+                evidence.executeBatch();
+            }
+            assertThat(runtimeIds(connection)).containsExactlyInAnyOrderElementsOf(
+                    fixtures.stream().filter(IntentFixture::expected).map(f -> (long) f.id()).toList());
+        }
+
+        try (Connection connection = connection("audit_intent_truth")) {
+            createAuditTables(connection);
+            try (PreparedStatement audit = connection.prepareStatement("""
+                    INSERT INTO decision_audit(
+                      id, event_time, live_signal_id, event_type, outcome, blocker, reason, context_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """)) {
+                for (IntentFixture fixture : fixtures) {
+                    insertAudit(audit, fixture.id(), LocalDateTime.parse("2026-07-18T00:00:00").plusSeconds(fixture.id()),
+                            "FILTER_BLOCK", "BUY", "TradePlanQualityGate",
+                            "{\"intentCreated\":" + fixture.jsonValue() + ",\"side\":\"LONG\"}");
+                }
+                audit.executeBatch();
+            }
+            assertThat(auditIds(connection)).containsExactlyInAnyOrderElementsOf(
+                    fixtures.stream().filter(IntentFixture::expected).map(f -> (long) f.id()).toList());
+        }
+
+        for (IntentFixture fixture : fixtures) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("intent_created", false);
+            row.put("policy_inputs_json", "{\"intentCreated\":" + fixture.jsonValue() + "}");
+            assertThat(com.agora.service.trading.EvidenceGovernanceSemantics.hasExplicitIntent(row))
+                    .as("intent fixture %s", fixture)
+                    .isEqualTo(fixture.expected());
         }
     }
 
@@ -206,5 +416,8 @@ public class SignalCorrectnessMcpToolsPreLimitSqlTest {
 
     public static String jsonUnquote(String value) {
         return value;
+    }
+
+    private record IntentFixture(int id, String jsonValue, boolean expected) {
     }
 }

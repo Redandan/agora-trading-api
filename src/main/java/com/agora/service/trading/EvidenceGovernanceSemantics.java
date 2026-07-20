@@ -22,7 +22,10 @@ public final class EvidenceGovernanceSemantics {
         String decision = upper(row.get("decision"));
         String source = upper(row.get("signal_source"));
         String side = upper(row.get("side"));
-        String lane = String.join(" ", selected, decision, source, side);
+        String rawSide = upper(row.get("raw_side"));
+        String joinedSide = upper(row.get("joined_side"));
+        // Any raw/joined SELL-like conflict is non-BUY. A joined BUY/LONG must never erase raw exit intent.
+        String lane = String.join(" ", selected, decision, source, side, rawSide, joinedSide);
         if (containsAny(lane, "SELL", "SHORT", "EXIT")) return false;
         boolean buyLane = selected.contains("BUY") || selected.contains("ENTRY")
                 || decision.contains("BUY") || decision.contains("ENTRY")
@@ -45,10 +48,25 @@ public final class EvidenceGovernanceSemantics {
     }
 
     public static boolean hasExplicitIntent(Map<String, Object> row) {
-        return row != null && (bool(row.get("intent_created"))
+        return row != null && (intentTruth(row.get("intent_created"))
                 || jsonBoolean(row.get("policy_inputs_json"), "intentCreated", "intent_created")
                 || jsonBoolean(row.get("execution_preview_json"), "intentCreated", "intent_created")
                 || jsonBoolean(row.get("features_snapshot_json"), "intentCreated", "intent_created"));
+    }
+
+    /**
+     * MySQL predicate matching {@link #intentTruth(Object)} for JSON values: true only for boolean true,
+     * numeric 1, textual "1", or case-insensitive textual "true" after trimming.
+     */
+    public static String sqlJsonIntentTruth(String jsonExpression) {
+        return "(" + String.join(" OR ",
+                sqlJsonIntentKeyTruth(jsonExpression, "intentCreated"),
+                sqlJsonIntentKeyTruth(jsonExpression, "intent_created")) + ")";
+    }
+
+    private static String sqlJsonIntentKeyTruth(String jsonExpression, String key) {
+        return "LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(" + jsonExpression + ", '$." + key
+                + "')), 'false'))) IN ('true','1')";
     }
 
     private static String semanticText(Map<String, Object> row) {
@@ -66,9 +84,7 @@ public final class EvidenceGovernanceSemantics {
             JsonNode node = rawJson instanceof JsonNode jsonNode ? jsonNode : JSON.readTree(rawJson.toString());
             for (String key : keys) {
                 JsonNode value = node.path(key);
-                if ((value.isBoolean() && value.asBoolean())
-                        || (value.isNumber() && value.asInt() != 0)
-                        || (value.isTextual() && Boolean.parseBoolean(value.asText()))) {
+                if (intentTruth(value)) {
                     return true;
                 }
             }
@@ -76,6 +92,20 @@ public final class EvidenceGovernanceSemantics {
             return false;
         }
         return false;
+    }
+
+    private static boolean intentTruth(Object value) {
+        if (value instanceof JsonNode node) {
+            if (node.isBoolean()) return node.booleanValue();
+            if (node.isNumber()) return "1".equals(node.asText().trim());
+            if (node.isTextual()) return intentTruth(node.textValue());
+            return false;
+        }
+        if (value instanceof Boolean booleanValue) return booleanValue;
+        if (value instanceof Number numberValue) return "1".equals(numberValue.toString().trim());
+        if (value == null) return false;
+        String normalized = value.toString().trim();
+        return "1".equals(normalized) || "true".equalsIgnoreCase(normalized);
     }
 
     private static boolean containsAny(String value, String... tokens) {

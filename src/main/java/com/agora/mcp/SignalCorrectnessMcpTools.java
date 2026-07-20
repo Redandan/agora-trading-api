@@ -957,7 +957,8 @@ public class SignalCorrectnessMcpTools {
             runtimeQuery = QueryRows.success(jdbc.queryForList("""
                 SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(15000) */ 'RUNTIME_EVIDENCE' row_source,
                        e.id row_id, e.id runtime_evidence_id, e.decision_id, e.evidence_time, e.symbol,
-                       e.strategy_id, COALESCE(e.side, s.side) side, e.interval_code, s.bar_open_time,
+                       e.strategy_id, e.side raw_side, s.side joined_side, COALESCE(e.side, s.side) side,
+                       e.interval_code, s.bar_open_time,
                        e.signal_source, e.selected_action, e.decision, e.score,
                        e.threshold_value, e.policy_mode, e.freshness_state, e.terminal_blocker,
                        e.blocker_reason, e.reason, e.final_outcome, e.execution_mode, e.order_sent,
@@ -997,7 +998,8 @@ public class SignalCorrectnessMcpTools {
                 SELECT /*+ SET_VAR(use_secondary_engine=OFF) MAX_EXECUTION_TIME(15000) */ 'DECISION_AUDIT' row_source,
                        a.id row_id, NULL runtime_evidence_id, a.id decision_id, a.event_time evidence_time, a.symbol,
                        a.strategy_id,
-                       COALESCE(s.side, JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side'))) side,
+                       JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side')) raw_side, s.side joined_side,
+                       COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side')), s.side) side,
                        a.interval_code, COALESCE(a.bar_open_time, s.bar_open_time) bar_open_time,
                        a.event_type signal_source, a.outcome selected_action,
                        JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.decision')) decision, NULL score,
@@ -1047,51 +1049,54 @@ public class SignalCorrectnessMcpTools {
     }
 
     static String runtimeFilterPopulationSql() {
+        String intentTruth = EvidenceGovernanceSemantics.sqlJsonIntentTruth("e.policy_inputs_json")
+                + " OR " + EvidenceGovernanceSemantics.sqlJsonIntentTruth("e.execution_preview_json")
+                + " OR " + EvidenceGovernanceSemantics.sqlJsonIntentTruth("e.features_snapshot_json");
         return """
                  AND
                      (
                        (
                          (NULLIF(TRIM(COALESCE(e.terminal_blocker, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(e.terminal_blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
+                           AND UPPER(TRIM(e.terminal_blocker)) NOT IN
+                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
                          OR (NULLIF(TRIM(COALESCE(e.suppression_reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(e.suppression_reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                           AND UPPER(TRIM(e.suppression_reason)) NOT IN
+                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
                          OR (NULLIF(TRIM(COALESCE(e.blocker_reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(e.blocker_reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                           AND UPPER(TRIM(e.blocker_reason)) NOT IN
+                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
                          OR UPPER(CONCAT_WS(' ', e.selected_action, e.policy_mode, e.final_outcome)) REGEXP
                            'BLOCK|SKIP|REJECT|SUPPRESS|FAIL|READ_ONLY|HALT_TRADING|ALLOW_RISK_REDUCING_ONLY'
                        )
                        AND (
                          COALESCE(e.intent_created, 0) = 1
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.intentCreated')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.policy_inputs_json, '$.intent_created')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.intentCreated')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.execution_preview_json, '$.intent_created')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.intentCreated')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.features_snapshot_json, '$.intent_created')), 'false')) IN ('true','1')
+                         OR %s
                        )
                        AND UPPER(CONCAT_WS(' ', e.selected_action, e.decision, e.signal_source)) REGEXP 'BUY|ENTRY'
                        AND UPPER(CONCAT_WS(' ', e.selected_action, e.decision, e.signal_source,
-                           COALESCE(e.side, s.side))) NOT REGEXP 'SELL|SHORT|EXIT'
+                           e.side, s.side)) NOT REGEXP 'SELL|SHORT|EXIT'
                        AND COALESCE(e.order_sent, 0) = 0
                      )
-                """;
+                """.formatted(intentTruth);
     }
 
     static String auditFilterPopulationSql() {
+        String intentTruth = EvidenceGovernanceSemantics.sqlJsonIntentTruth("a.context_json");
         return """
                  AND
                      (
                        (
                          (NULLIF(TRIM(COALESCE(a.blocker, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(a.blocker)) NOT IN ('NONE','N/A','PASS','INFO'))
+                           AND UPPER(TRIM(a.blocker)) NOT IN
+                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
                          OR (NULLIF(TRIM(COALESCE(a.reason, '')), '') IS NOT NULL
-                           AND UPPER(TRIM(a.reason)) NOT IN ('NONE','N/A','PASS','INFO'))
+                           AND UPPER(TRIM(a.reason)) NOT IN
+                             ('NONE','N/A','NA','NULL','UNKNOWN','NOT_APPLICABLE','PENDING','PASS','INFO'))
                          OR UPPER(COALESCE(a.outcome, '')) REGEXP
                            'BLOCK|SKIP|REJECT|SUPPRESS|FAIL|READ_ONLY|HALT_TRADING|ALLOW_RISK_REDUCING_ONLY'
                        )
                        AND (
-                         LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.intentCreated')), 'false')) IN ('true','1')
-                         OR LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.intent_created')), 'false')) IN ('true','1')
+                         %s
                        )
                        AND UPPER(CONCAT_WS(' ', a.outcome, a.event_type,
                            JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.selectedAction')),
@@ -1099,10 +1104,10 @@ public class SignalCorrectnessMcpTools {
                        AND UPPER(CONCAT_WS(' ', a.outcome, a.event_type,
                            JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.selectedAction')),
                            JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.decision')),
-                           COALESCE(s.side, JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side'))))) NOT REGEXP 'SELL|SHORT|EXIT'
+                           JSON_UNQUOTE(JSON_EXTRACT(a.context_json, '$.side')), s.side)) NOT REGEXP 'SELL|SHORT|EXIT'
                        AND COALESCE(s.auto_traded, 0) = 0
                      )
-                """;
+                """.formatted(intentTruth);
     }
 
     private LocalDateTime latestKlineTime(String symbol) {

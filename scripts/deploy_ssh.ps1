@@ -90,7 +90,7 @@ stamp=`$(date -u +%Y%m%dT%H%M%SZ)
 log="logs/deploy/deploy-`$stamp.log"
 exitfile="logs/deploy/deploy-`$stamp.exit"
 pidfile="logs/deploy/deploy-`$stamp.pid"
-nohup bash -c "cd '$AppDir' && bash deploy.sh > '`$log' 2>&1; code=\`$?; echo \`$code > '`$exitfile'" >/dev/null 2>&1 &
+nohup bash -c "cd '$AppDir' && BRANCH='$Branch' bash deploy.sh > '`$log' 2>&1; code=\`$?; echo \`$code > '`$exitfile'" >/dev/null 2>&1 &
 pid=`$!
 echo "`$pid" > "`$pidfile"
 printf 'DEPLOY_PID=%s\nDEPLOY_LOG=%s\nDEPLOY_EXIT=%s\n' "`$pid" "`$log" "`$exitfile"

@@ -10,6 +10,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class OkxTradingServiceGridRetirementQuantityTest {
 
     @Test
+    void normalizesCompactSpotSymbolAndKeepsProviderInstrumentIdempotent() {
+        assertThat(OkxTradingService.toInstId("BTCUSDT")).isEqualTo("BTC-USDT");
+        assertThat(OkxTradingService.toInstId("BTC-USDT")).isEqualTo("BTC-USDT");
+    }
+
+    @Test
     void subtractsSignedBaseFeeAndRoundsDownWithoutUsingOtherAccountBtc() {
         OkxTradingService.GridRetirementQuantity result =
                 OkxTradingService.calculateGridRetirementQuantity(

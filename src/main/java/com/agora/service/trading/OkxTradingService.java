@@ -1319,7 +1319,10 @@ public class OkxTradingService implements TradingService {
     }
 
     /** BTCUSDT → BTC-USDT（OKX 現貨交易對格式） */
-    private String toInstId(String symbol) {
+    static String toInstId(String symbol) {
+        if (symbol != null && symbol.endsWith("-USDT")) {
+            return symbol;
+        }
         if (symbol != null && symbol.endsWith("USDT") && symbol.length() > 4) {
             return symbol.substring(0, symbol.length() - 4) + "-USDT";
         }

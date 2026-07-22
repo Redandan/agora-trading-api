@@ -1669,6 +1669,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_closed_grid_residual_disposition_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_legacy_grid_retirement_preflight.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_custom_grid_runtime_removed.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_legacy_grid_immutable_archive.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_aged_position_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_position_review_gate.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_operator_review_packet.ps1"

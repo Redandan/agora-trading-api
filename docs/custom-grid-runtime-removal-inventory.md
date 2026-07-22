@@ -18,7 +18,8 @@ All conditions must be proven from Production immediately before removal:
 4. No provider order or attributable BTC remains unresolved.
 5. Grid and Grid-level rows, original provider order/fill receipts, signed
    fees, exact-net PnL, and reconciliation metadata have been exported and
-   hashed into the immutable archive.
+   hashed into the immutable archive defined by
+   `docs/legacy-grid-immutable-archive-contract.md`.
 
 Failure of any condition keeps the retirement-only runtime quarantined and
 blocks deletion.

@@ -630,6 +630,10 @@ try {
         "previewBtcBasePositionDisposition",
         "analyzeBtcDonchianShadowGoldenParity",
         "getBtcDonchianShadowReadiness",
+        "getOkxNativeSpotGridStatus",
+        "previewOkxNativeSpotGridMigration",
+        "getOkxNativeSpotGridAcceptanceEvidence",
+        "getOkxNativeSpotGridFunctionalSafetyEvidence",
         "getGovernanceDriftDashboard",
         "findGovernanceRelaxationCandidates",
         "findGovernanceTighteningCandidates",
@@ -642,6 +646,37 @@ try {
         "listAiProviders",
         "listAiTasks"
     )
+    Assert-McpToolsPresent -Url $mcpUrl -RequiredTools @(
+        "createOkxNativeSpotGrid",
+        "stopOkxNativeSpotGrid"
+    )
+    $nativeCreateGuard = Invoke-McpTool -Url $mcpUrl -ToolName "createOkxNativeSpotGrid" -Arguments @{
+        symbol = "INVALID"
+        minPx = 1
+        maxPx = 2
+        gridNum = 2
+        quoteSz = 10
+        algoClOrdId = "LOCALSMOKEBLOCKED"
+        execute = $true
+        confirmText = "invalid"
+    }
+    $nativeCreateGuardText = Get-McpDecodedText -Content $nativeCreateGuard
+    Assert-McpContentContains -Content $nativeCreateGuardText -Pattern '"featureEnabled"\s*:\s*false' -Description "native Grid feature gate defaults off"
+    Assert-McpContentContains -Content $nativeCreateGuardText -Pattern '"liveActionEnabled"\s*:\s*false' -Description "native Grid live-action gate defaults off"
+    Assert-McpContentContains -Content $nativeCreateGuardText -Pattern '"providerCreateAttempted"\s*:\s*false' -Description "native Grid disabled create guard sends no provider create"
+    Assert-McpContentContains -Content $nativeCreateGuardText -Pattern '"databaseMutationAttempted"\s*:\s*false' -Description "native Grid disabled create guard performs no DB mutation"
+
+    $nativeStopGuard = Invoke-McpTool -Url $mcpUrl -ToolName "stopOkxNativeSpotGrid" -Arguments @{
+        algoId = "1"
+        disposition = "KEEP_BASE"
+        execute = $true
+        confirmText = "invalid"
+    }
+    $nativeStopGuardText = Get-McpDecodedText -Content $nativeStopGuard
+    Assert-McpContentContains -Content $nativeStopGuardText -Pattern '"featureEnabled"\s*:\s*false' -Description "native Grid stop feature gate defaults off"
+    Assert-McpContentContains -Content $nativeStopGuardText -Pattern '"liveActionEnabled"\s*:\s*false' -Description "native Grid stop live-action gate defaults off"
+    Assert-McpContentContains -Content $nativeStopGuardText -Pattern '"providerStopAttempted"\s*:\s*false' -Description "native Grid disabled stop guard sends no provider stop"
+    Assert-McpContentContains -Content $nativeStopGuardText -Pattern '"databaseMutationAttempted"\s*:\s*false' -Description "native Grid disabled stop guard performs no DB mutation"
     & (Join-Path $PSScriptRoot "smoke_mcp_parity.ps1") -BaseUrl "http://127.0.0.1:$Port/api" -McpKey "local-smoke-mcp"
     if (-not $?) {
         throw "Reusable MCP parity smoke failed"

@@ -24,6 +24,9 @@ The candidate may:
 - read active/history/detail provider state for idempotency and reconciliation;
 - read filled/live Grid sub-orders and authenticated BTC-USDT fills for
   signed-fee exact-net acceptance evidence;
+- expose read-only Gate A safety evidence for legacy closure, zero custom Grid
+  order activity in the acceptance window, one provider Bot identity, and
+  current BTC/USDT holdings;
 - keep `TRADING_OKX_NATIVE_GRID_ENABLED=false` and
   `TRADING_OKX_NATIVE_GRID_LIVE_ACTION_ENABLED=false`;
 - expose dry-run packets whose required confirmation is bound to the exact
@@ -71,7 +74,10 @@ Deployment passes only when:
 6. the acceptance evidence tool is read-only and refuses exact-net proof when
    Bot lifecycle, provider pair, fill coverage, signed fee, pagination, live
    sub-order, or base-residual evidence is incomplete;
-7. Production Grid rows, balances, provider orders, and native Bot inventories
+7. the functional safety evidence tool remains read-only and refuses its
+   component PASS on any open/unsafe legacy state, custom Grid order activity,
+   duplicate/missing provider Bot identity, or unavailable holdings snapshot;
+8. Production Grid rows, balances, provider orders, and native Bot inventories
    are unchanged by deployment.
 
 This is adapter deployment acceptance only. It is not

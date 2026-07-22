@@ -90,6 +90,16 @@ residual above one OKX lot. This receipt alone never declares functional
 acceptance because create idempotency, restart rediscovery, duplicate safety,
 and the separately authorized stop receipt remain independent requirements.
 
+`getOkxNativeSpotGridFunctionalSafetyEvidence(algoId, algoClOrdId,
+windowStartUtc)` is the complementary read-only safety receipt. It fails closed
+unless every legacy Grid is closed, legacy inventory/in-flight counts are zero,
+no custom Grid order activity appears inside the acceptance window, exactly one
+BTC-USDT native Bot was created in that window with the expected provider
+identity, and current BTC/USDT holdings can be read. Its
+`PASS_GATE_A_SAFETY_COMPONENT_ONLY` output is never the overall functional
+result; use the independent create, restart, pair, stop, and exact-net receipts
+defined in `docs/okx-native-spot-grid-functional-authorization.md`.
+
 ## Acceptance standard
 
 Migration is accepted only when both Gate A and Gate B pass. Passing tests,

@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -301,6 +304,153 @@ public class OkxNativeGridMcpTools {
         report.put("functionalAcceptanceReason",
                 "This receipt proves provider trade economics only; create idempotency, restart rediscovery, duplicate/order safety, and authorized stop receipts remain separate Gate A evidence.");
         return report.toPrettyString();
+    }
+
+    @Tool(description = "Read-only Gate A safety evidence for one OKX-native BTC-USDT Spot Grid acceptance window. "
+            + "It proves current legacy Grid closure, zero legacy inventory/in-flight state, zero custom Grid order "
+            + "activity since windowStartUtc, and exactly one provider-native BTC-USDT Grid bot created in the window "
+            + "with the expected algoId/algoClOrdId. It reads provider inventory, account holdings, and legacy rows only; "
+            + "it never creates/stops a bot, sends an order, or mutates DB. params: algoId, algoClOrdId, windowStartUtc")
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.ANALYTICS, Category.DIAGNOSTIC})
+    public String getOkxNativeSpotGridFunctionalSafetyEvidence(String algoId,
+                                                                String algoClOrdId,
+                                                                String windowStartUtc) {
+        if (algoId == null || !algoId.matches("[0-9]+")) {
+            throw new IllegalArgumentException("algoId must contain digits only");
+        }
+        if (algoClOrdId == null || !algoClOrdId.matches("[A-Za-z0-9]{1,32}")) {
+            throw new IllegalArgumentException("algoClOrdId must be 1-32 alphanumeric characters");
+        }
+        Instant windowStart;
+        try {
+            windowStart = Instant.parse(windowStartUtc);
+        } catch (RuntimeException invalidTimestamp) {
+            throw new IllegalArgumentException("windowStartUtc must be an ISO-8601 UTC instant", invalidTimestamp);
+        }
+
+        ObjectNode report = objectMapper.createObjectNode();
+        report.put("tool", "getOkxNativeSpotGridFunctionalSafetyEvidence");
+        report.put("boundary", "READ_ONLY_GATE_A_SAFETY_EVIDENCE_NO_MUTATION");
+        report.put("algoId", algoId);
+        report.put("algoClOrdId", algoClOrdId);
+        report.put("windowStartUtc", windowStart.toString());
+        report.put("windowStartEpochMs", windowStart.toEpochMilli());
+        report.put("orderSent", false);
+        report.put("botMutation", false);
+        report.put("databaseMutation", false);
+        ArrayNode blockers = report.putArray("blockers");
+
+        List<BtGrid> grids = gridRepository.findAll();
+        Map<Long, BtGrid> gridsById = new HashMap<>();
+        for (BtGrid grid : grids) gridsById.put(grid.getId(), grid);
+        long openLegacyGridCount = grids.stream().filter(grid -> grid.getClosedAt() == null).count();
+        report.put("legacyGridCount", grids.size());
+        report.put("openLegacyGridCount", openLegacyGridCount);
+        if (openLegacyGridCount > 0) blockers.add("OPEN_LEGACY_GRIDS_REMAIN");
+
+        ArrayNode unsafeLevels = report.putArray("legacyInventoryOrInFlightLevels");
+        ArrayNode customActivity = report.putArray("customGridOrderActivitySinceWindowStart");
+        LocalDateTime windowStartDb = LocalDateTime.ofInstant(windowStart, ZoneOffset.UTC);
+        for (BtGridLevel level : gridLevelRepository.findAll()) {
+            if (INVENTORY_OR_IN_FLIGHT_STATUSES.contains(level.getStatus())) {
+                ObjectNode item = unsafeLevels.addObject();
+                item.put("gridId", level.getGridId());
+                item.put("levelId", level.getId());
+                item.put("status", level.getStatus());
+                if (level.getFilledQty() != null) item.put("filledQty", level.getFilledQty());
+            }
+            boolean buyActivity = level.getBuyOrderId() != null && !level.getBuyOrderId().isBlank()
+                    && level.getFilledAt() != null && !level.getFilledAt().isBefore(windowStartDb);
+            boolean sellActivity = level.getSellOrderId() != null && !level.getSellOrderId().isBlank()
+                    && level.getClosedAt() != null && !level.getClosedAt().isBefore(windowStartDb);
+            if (buyActivity || sellActivity) {
+                ObjectNode item = customActivity.addObject();
+                item.put("gridId", level.getGridId());
+                item.put("levelId", level.getId());
+                if (buyActivity) {
+                    item.put("buyOrderId", level.getBuyOrderId());
+                    item.put("filledAt", level.getFilledAt().toString());
+                }
+                if (sellActivity) {
+                    item.put("sellOrderId", level.getSellOrderId());
+                    item.put("closedAt", level.getClosedAt().toString());
+                }
+                BtGrid parent = gridsById.get(level.getGridId());
+                if (parent != null) item.put("symbol", parent.getSymbol());
+            }
+        }
+        report.put("legacyInventoryOrInFlightLevelCount", unsafeLevels.size());
+        report.put("customGridOrderActivityCountSinceWindowStart", customActivity.size());
+        if (!unsafeLevels.isEmpty()) blockers.add("LEGACY_INVENTORY_OR_IN_FLIGHT_REMAINS");
+        if (!customActivity.isEmpty()) blockers.add("CUSTOM_GRID_ORDER_ACTIVITY_IN_ACCEPTANCE_WINDOW");
+
+        ArrayNode active = copyArray(okxTradingService.getNativeSpotGridOrders(false));
+        ArrayNode history = copyArray(okxTradingService.getNativeSpotGridOrders(true));
+        report.set("activeNativeBots", active);
+        report.set("historyNativeBots", history);
+        report.put("activeNativeBotCount", active.size());
+        if (active.size() > 1) blockers.add("MULTIPLE_ACTIVE_NATIVE_BOTS");
+
+        Map<String, JsonNode> uniqueBots = new HashMap<>();
+        active.forEach(bot -> addUniqueBot(uniqueBots, bot));
+        history.forEach(bot -> addUniqueBot(uniqueBots, bot));
+        ArrayNode createdInWindow = report.putArray("nativeBtcUsdtBotsCreatedSinceWindowStart");
+        int targetIdentityCount = 0;
+        boolean targetCreateTimeComplete = true;
+        for (JsonNode bot : uniqueBots.values()) {
+            if (algoId.equals(bot.path("algoId").asText())
+                    && algoClOrdId.equals(bot.path("algoClOrdId").asText())) {
+                targetIdentityCount++;
+            }
+            if (!"BTC-USDT".equals(bot.path("instId").asText())) continue;
+            Long createdAtMs = epochMillis(bot.path("cTime"));
+            if (algoId.equals(bot.path("algoId").asText()) && createdAtMs == null) {
+                targetCreateTimeComplete = false;
+            }
+            if (createdAtMs != null && createdAtMs >= windowStart.toEpochMilli()) {
+                createdInWindow.add(bot.deepCopy());
+            }
+        }
+        report.put("targetProviderIdentityCount", targetIdentityCount);
+        report.put("targetCreateTimeComplete", targetCreateTimeComplete);
+        report.put("nativeBtcUsdtBotCountCreatedSinceWindowStart", createdInWindow.size());
+        if (targetIdentityCount != 1) blockers.add("TARGET_PROVIDER_IDENTITY_MUST_OCCUR_EXACTLY_ONCE");
+        if (!targetCreateTimeComplete) blockers.add("TARGET_PROVIDER_CREATE_TIME_MISSING");
+        if (createdInWindow.size() != 1) blockers.add("EXACTLY_ONE_NATIVE_BTC_USDT_BOT_MUST_BE_CREATED_IN_WINDOW");
+
+        ArrayNode holdings = report.putArray("currentSpotHoldings");
+        for (OkxTradingService.SpotHolding holding : okxTradingService.getFreshSpotHoldings()) {
+            if (!Set.of("BTC", "USDT").contains(holding.ccy.toUpperCase(Locale.ROOT))) continue;
+            ObjectNode item = holdings.addObject();
+            item.put("currency", holding.ccy);
+            item.put("available", holding.availBal);
+            item.put("cash", holding.cashBal);
+            item.put("equityUsd", holding.eqUsd);
+        }
+        if (holdings.isEmpty()) blockers.add("SPOT_HOLDINGS_SNAPSHOT_EMPTY_OR_UNAVAILABLE");
+
+        report.put("safetyEvidencePass", blockers.isEmpty());
+        report.put("gateAComponent", blockers.isEmpty()
+                ? "PASS_GATE_A_SAFETY_COMPONENT_ONLY"
+                : "FAIL_GATE_A_SAFETY_COMPONENT");
+        report.put("overallFunctionalAcceptance", "NOT_YET_PROVEN_BY_THIS_COMPONENT");
+        return report.toPrettyString();
+    }
+
+    private void addUniqueBot(Map<String, JsonNode> uniqueBots, JsonNode bot) {
+        String id = bot.path("algoId").asText();
+        if (!id.isBlank()) uniqueBots.putIfAbsent(id, bot);
+    }
+
+    private Long epochMillis(JsonNode value) {
+        String text = value == null ? "" : value.asText();
+        if (text.isBlank()) return null;
+        try {
+            return Long.parseLong(text);
+        } catch (NumberFormatException invalid) {
+            return null;
+        }
     }
 
     private void appendProviderRuleEvidence(ObjectNode report,

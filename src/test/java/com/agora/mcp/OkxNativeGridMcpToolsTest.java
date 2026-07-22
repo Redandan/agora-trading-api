@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -221,6 +222,101 @@ class OkxNativeGridMcpToolsTest {
                 "PUBLIC_RULE_LOWER_BOUND_FAILS",
                 "TOTAL_QUOTE_BELOW_OKX_PUBLIC_MIN_SIZE_LOWER_BOUND",
                 "\"minimumTotalQuoteLowerBound\" : 12.00000");
+    }
+
+    @Test
+    void functionalSafetyEvidencePassesOnlyAsAReadOnlyGateAComponent() {
+        OkxTradingService okx = mock(OkxTradingService.class);
+        BtGridRepository grids = mock(BtGridRepository.class);
+        BtGridLevelRepository levels = mock(BtGridLevelRepository.class);
+        ObjectMapper mapper = new ObjectMapper();
+
+        BtGrid closedGrid = new BtGrid();
+        closedGrid.setId(10L);
+        closedGrid.setSymbol("BTCUSDT");
+        closedGrid.setClosedAt(LocalDateTime.parse("2026-07-22T09:00:00"));
+        BtGridLevel historical = new BtGridLevel();
+        historical.setId(70L);
+        historical.setGridId(10L);
+        historical.setStatus("CLOSED");
+        historical.setBuyOrderId("legacy-buy");
+        historical.setSellOrderId("legacy-sell");
+        historical.setFilledAt(LocalDateTime.parse("2026-07-22T08:00:00"));
+        historical.setClosedAt(LocalDateTime.parse("2026-07-22T08:05:00"));
+        when(grids.findAll()).thenReturn(List.of(closedGrid));
+        when(levels.findAll()).thenReturn(List.of(historical));
+        when(okx.getNativeSpotGridOrders(false)).thenReturn(mapper.createArrayNode());
+        ArrayNode history = mapper.createArrayNode();
+        history.addObject().put("algoId", "123456789").put("algoClOrdId", "AGOKXG120260722")
+                .put("instId", "BTC-USDT")
+                .put("cTime", Long.toString(Instant.parse("2026-07-22T10:01:00Z").toEpochMilli()));
+        when(okx.getNativeSpotGridOrders(true)).thenReturn(history);
+        when(okx.getFreshSpotHoldings()).thenReturn(List.of(
+                new OkxTradingService.SpotHolding("USDT", new BigDecimal("477"),
+                        new BigDecimal("477"), new BigDecimal("477"))));
+
+        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels,
+                mock(OkxNativeGridExecutionService.class))
+                .getOkxNativeSpotGridFunctionalSafetyEvidence(
+                        "123456789", "AGOKXG120260722", "2026-07-22T10:00:00Z");
+
+        assertThat(output).contains(
+                "READ_ONLY_GATE_A_SAFETY_EVIDENCE_NO_MUTATION",
+                "\"openLegacyGridCount\" : 0",
+                "\"legacyInventoryOrInFlightLevelCount\" : 0",
+                "\"customGridOrderActivityCountSinceWindowStart\" : 0",
+                "\"nativeBtcUsdtBotCountCreatedSinceWindowStart\" : 1",
+                "\"targetProviderIdentityCount\" : 1",
+                "\"safetyEvidencePass\" : true",
+                "PASS_GATE_A_SAFETY_COMPONENT_ONLY",
+                "\"overallFunctionalAcceptance\" : \"NOT_YET_PROVEN_BY_THIS_COMPONENT\"",
+                "\"orderSent\" : false",
+                "\"databaseMutation\" : false");
+    }
+
+    @Test
+    void functionalSafetyEvidenceFailsClosedOnLegacyActivityAndDuplicateNativeBots() {
+        OkxTradingService okx = mock(OkxTradingService.class);
+        BtGridRepository grids = mock(BtGridRepository.class);
+        BtGridLevelRepository levels = mock(BtGridLevelRepository.class);
+        ObjectMapper mapper = new ObjectMapper();
+
+        BtGrid openGrid = new BtGrid();
+        openGrid.setId(10L);
+        openGrid.setSymbol("BTCUSDT");
+        BtGridLevel holding = new BtGridLevel();
+        holding.setId(70L);
+        holding.setGridId(10L);
+        holding.setStatus("HOLDING");
+        holding.setBuyOrderId("late-custom-buy");
+        holding.setFilledAt(LocalDateTime.parse("2026-07-22T10:02:00"));
+        when(grids.findAll()).thenReturn(List.of(openGrid));
+        when(levels.findAll()).thenReturn(List.of(holding));
+        ArrayNode active = mapper.createArrayNode();
+        active.addObject().put("algoId", "123456789").put("algoClOrdId", "AGOKXG120260722")
+                .put("instId", "BTC-USDT")
+                .put("cTime", Long.toString(Instant.parse("2026-07-22T10:01:00Z").toEpochMilli()));
+        active.addObject().put("algoId", "987654321").put("algoClOrdId", "AGOKXG1DUPLICATE")
+                .put("instId", "BTC-USDT")
+                .put("cTime", Long.toString(Instant.parse("2026-07-22T10:03:00Z").toEpochMilli()));
+        when(okx.getNativeSpotGridOrders(false)).thenReturn(active);
+        when(okx.getNativeSpotGridOrders(true)).thenReturn(mapper.createArrayNode());
+        when(okx.getFreshSpotHoldings()).thenReturn(List.of(
+                new OkxTradingService.SpotHolding("USDT", BigDecimal.TEN, BigDecimal.TEN, BigDecimal.TEN)));
+
+        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels,
+                mock(OkxNativeGridExecutionService.class))
+                .getOkxNativeSpotGridFunctionalSafetyEvidence(
+                        "123456789", "AGOKXG120260722", "2026-07-22T10:00:00Z");
+
+        assertThat(output).contains(
+                "OPEN_LEGACY_GRIDS_REMAIN",
+                "LEGACY_INVENTORY_OR_IN_FLIGHT_REMAINS",
+                "CUSTOM_GRID_ORDER_ACTIVITY_IN_ACCEPTANCE_WINDOW",
+                "MULTIPLE_ACTIVE_NATIVE_BOTS",
+                "EXACTLY_ONE_NATIVE_BTC_USDT_BOT_MUST_BE_CREATED_IN_WINDOW",
+                "\"safetyEvidencePass\" : false",
+                "FAIL_GATE_A_SAFETY_COMPONENT");
     }
 
     private static ArrayNode minimumInvestment(ObjectMapper mapper, String quoteAmount) {

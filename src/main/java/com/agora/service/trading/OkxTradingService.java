@@ -163,6 +163,11 @@ public class OkxTradingService implements TradingService {
         return props.hasPrivateCredentials();
     }
 
+    /** Read-only visibility for protected workflows that must honor the provider-order master gate. */
+    public boolean isAutoTradeEnabled() {
+        return props.isEnabled();
+    }
+
     /**
      * Read-only OKX-native Spot Grid inventory. This is intentionally separate from the
      * deprecated local {@code bt_grid} state machine and never creates, amends, or stops a bot.

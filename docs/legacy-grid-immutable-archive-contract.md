@@ -91,6 +91,24 @@ Execution requires the exact returned confirmation plus `-Execute`. It sends
 at most one fixed archive POST and forbids retry after an ambiguous response;
 reconciliation must return to GET. This is not a trading-order authorization.
 
+After GET reports one finished file, download it without a server-side
+temporary file and inspect it locally without extraction:
+
+```powershell
+.\scripts\download_okx_bills_history_archive_ssh.ps1 `
+  -ExpectedCommit <FULL_PRODUCTION_COMMIT> `
+  -Year 2026 -Quarter Q2 `
+  -OutputPath <NEW_LOCAL_PATH>
+
+.\scripts\inspect_okx_bills_history_archive.ps1 `
+  -ArchivePath <NEW_LOCAL_PATH>
+```
+
+The downloader refuses overwrite, redacts the provider URL, verifies byte
+count and SHA-256 before writing one new local file, and performs no server
+filesystem write. Structural inspection remains
+`NOT_GRID_ATTRIBUTED`; it cannot substitute for unique 46-pair reconciliation.
+
 ```powershell
 .\scripts\verify_legacy_grid_immutable_archive.ps1 `
   -ArchivePath <archive.json> `

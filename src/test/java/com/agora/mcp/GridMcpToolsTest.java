@@ -38,7 +38,7 @@ class GridMcpToolsTest {
                 mock(BtLiveSignalRepository.class),
                 mock(MdKlineRepository.class),
                 mock(OkxTradingService.class),
-                new TradingGridProperties(false, false, 24, 300000, true, new BigDecimal("5.0")),
+                new TradingGridProperties(false, false, false, false, 24, 300000, true, new BigDecimal("5.0")),
                 mock(CapitalAllocationPolicyPreviewService.class));
 
         assertThat(tools.createGrid("BTCUSDT", new BigDecimal("60000"), new BigDecimal("70000"),
@@ -48,7 +48,111 @@ class GridMcpToolsTest {
                 .contains("BLOCKED_DEPRECATED_CUSTOM_GRID_RESUME_USE_OKX_NATIVE");
         assertThat(tools.enableGridAutoRebalance(10L, true, null, null, null))
                 .contains("BLOCKED_DEPRECATED_CUSTOM_GRID_AUTO_REBALANCE_USE_OKX_NATIVE");
+        assertThat(tools.closeGrid(10L))
+                .contains("BLOCKED_DEPRECATED_CUSTOM_GRID_CLOSE_USE_RETIRE_LEGACY_GRID_DRY_RUN");
         verifyNoInteractions(gridRepository);
+    }
+
+    @Test
+    void legacyRetirementDryRunBindsProviderFeeAwareQuantityWithoutMutation() {
+        Fixture fixture = closeGridFixture();
+
+        String output = fixture.tools.retireLegacyGrid(7L, "MARKET_SELL_AND_CLOSE", false, null);
+
+        assertThat(output).contains(
+                "packetType=LEGACY_GRID_RETIREMENT",
+                "status=READY_FOR_SEPARATE_EXACT_RETIREMENT_AUTHORIZATION",
+                "holdingCount=1",
+                "totalSellQty=0.001",
+                "buyOrderId=buy-order-7-46",
+                "providerOrderAttempted=false",
+                "databaseMutationAttempted=false",
+                "requiredConfirmText=AUTHORIZE_LEGACY_GRID_RETIREMENT");
+        verify(fixture.okxTradingService, never()).placeMarketSellWithFill(any(), any());
+        verify(fixture.gridRepository, never()).save(any());
+        verify(fixture.levelRepository, never()).save(any());
+    }
+
+    @Test
+    void legacyRetirementExecutesOnlyWithFreshExactConfirmationAndArmedGates() {
+        Fixture fixture = closeGridFixture();
+        TradeResult tradeResult = new TradeResult();
+        tradeResult.setOrderId("ord-authorized-retirement");
+        tradeResult.setAvgPrice(new BigDecimal("110"));
+        tradeResult.setQty(new BigDecimal("0.001"));
+        when(fixture.okxTradingService.isAutoTradeEnabled()).thenReturn(true);
+        when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class)))
+                .thenReturn(tradeResult);
+        String preview = fixture.tools.retireLegacyGrid(7L, "MARKET_SELL_AND_CLOSE", false, null);
+        String confirm = lineValue(preview, "requiredConfirmText=");
+
+        String output = fixture.tools.retireLegacyGrid(7L, "MARKET_SELL_AND_CLOSE", true, confirm);
+
+        assertThat(output).contains(
+                "status=EXECUTION_REQUEST_ACCEPTED",
+                "close_grid_status=CLOSED_NO_RESIDUAL",
+                "grid_closed=true");
+        verify(fixture.okxTradingService).placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class));
+    }
+
+    @Test
+    void legacyEmptyGridRetirementClosesDbLifecycleWithoutProviderOrder() {
+        BtGridRepository gridRepository = mock(BtGridRepository.class);
+        BtGridLevelRepository levelRepository = mock(BtGridLevelRepository.class);
+        OkxTradingService okx = mock(OkxTradingService.class);
+        GridMcpTools tools = new GridMcpTools(
+                gridRepository, levelRepository, mock(BtLiveSignalRepository.class),
+                mock(MdKlineRepository.class), okx,
+                new TradingGridProperties(false, false, true, true, 24, 300000, true, new BigDecimal("5.0")),
+                mock(CapitalAllocationPolicyPreviewService.class));
+        BtGrid grid = new BtGrid();
+        grid.setId(11L);
+        grid.setSymbol("BTCUSDT");
+        grid.setEnabled(true);
+        grid.setTotalRealizedPnl(BigDecimal.ZERO);
+        grid.setClosedPairCount(0);
+        BtGridLevel pending = new BtGridLevel();
+        pending.setId(72L);
+        pending.setGridId(11L);
+        pending.setStatus("PENDING");
+        when(gridRepository.findById(11L)).thenReturn(Optional.of(grid));
+        when(levelRepository.findByGridId(11L)).thenReturn(List.of(pending));
+        when(levelRepository.findByGridIdAndStatusIn(
+                11L, List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"))).thenReturn(List.of());
+
+        String preview = tools.retireLegacyGrid(11L, "CLOSE_NO_HOLDING", false, null);
+        String confirm = lineValue(preview, "requiredConfirmText=");
+        String result = tools.retireLegacyGrid(11L, "CLOSE_NO_HOLDING", true, confirm);
+
+        assertThat(preview).contains(
+                "status=READY_FOR_SEPARATE_EXACT_RETIREMENT_AUTHORIZATION",
+                "holdingCount=0",
+                "totalSellQty=0");
+        assertThat(result).contains("status=EXECUTION_REQUEST_ACCEPTED", "grid_closed=true");
+        assertThat(grid.getClosedAt()).isNotNull();
+        verifyNoInteractions(okx);
+    }
+
+    @Test
+    void legacyRetirementRejectsStaleConfirmationAfterLevelStateChanges() {
+        Fixture fixture = closeGridFixture();
+        when(fixture.okxTradingService.isAutoTradeEnabled()).thenReturn(true);
+        String preview = fixture.tools.retireLegacyGrid(7L, "MARKET_SELL_AND_CLOSE", false, null);
+        String staleConfirm = lineValue(preview, "requiredConfirmText=");
+        fixture.level46.setFilledQty(new BigDecimal("0.0009"));
+        when(fixture.okxTradingService.getGridRetirementQuantity(
+                "BTCUSDT", "buy-order-7-46", new BigDecimal("0.0009")))
+                .thenReturn(new OkxTradingService.GridRetirementQuantity(
+                        "BTC-USDT", "buy-order-7-46", new BigDecimal("0.0009"),
+                        new BigDecimal("0.0009"), BigDecimal.ZERO, "BTC",
+                        new BigDecimal("0.0009"), new BigDecimal("0.0009"),
+                        BigDecimal.ZERO, new BigDecimal("0.00000001")));
+
+        String result = fixture.tools.retireLegacyGrid(
+                7L, "MARKET_SELL_AND_CLOSE", true, staleConfirm);
+
+        assertThat(result).contains("status=RETIREMENT_BLOCKED", "CONFIRM_TEXT_MISMATCH");
+        verify(fixture.okxTradingService, never()).placeMarketSellWithFill(any(), any());
     }
 
     @Test
@@ -175,7 +279,7 @@ class GridMcpToolsTest {
         when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"),
                 argThat(q -> q.compareTo(new BigDecimal("0.001")) == 0))).thenReturn(tradeResult);
 
-        String output = fixture.tools.closeGrid(7L);
+        String output = fixture.tools.executeAuthorizedLegacyClose(7L);
 
         assertThat(output).contains(
                 "close_grid_status=CLOSED_NO_RESIDUAL",
@@ -198,7 +302,7 @@ class GridMcpToolsTest {
         when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class)))
                 .thenThrow(new RuntimeException("okx timeout"));
 
-        String output = fixture.tools.closeGrid(7L);
+        String output = fixture.tools.executeAuthorizedLegacyClose(7L);
 
         assertThat(output).contains(
                 "close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED",
@@ -220,7 +324,7 @@ class GridMcpToolsTest {
                 "BTCUSDT", "buy-order-7-46", new BigDecimal("0.001")))
                 .thenThrow(new IllegalStateException("DB/provider gross quantity mismatch"));
 
-        String output = fixture.tools.closeGrid(7L);
+        String output = fixture.tools.executeAuthorizedLegacyClose(7L);
 
         assertThat(output).contains(
                 "close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED",
@@ -244,7 +348,7 @@ class GridMcpToolsTest {
         when(fixture.okxTradingService.placeMarketSellWithFill(eq("BTCUSDT"), any(BigDecimal.class)))
                 .thenReturn(tradeResult);
 
-        String output = fixture.tools.closeGrid(7L);
+        String output = fixture.tools.executeAuthorizedLegacyClose(7L);
 
         assertThat(output).contains(
                 "close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED",
@@ -344,7 +448,7 @@ class GridMcpToolsTest {
                 liveSignalRepository,
                 klineRepository,
                 okxTradingService,
-                new TradingGridProperties(false, false, 24, 300000, true, new BigDecimal("5.0")),
+                new TradingGridProperties(false, false, false, false, 24, 300000, true, new BigDecimal("5.0")),
                 mock(CapitalAllocationPolicyPreviewService.class));
 
         BtGrid grid = new BtGrid();
@@ -358,6 +462,7 @@ class GridMcpToolsTest {
         BtGridLevel level47 = closedResidualLevel(47L, new BigDecimal("0.00012314"), new BigDecimal("81206.3"), "HOLDING");
 
         when(gridRepository.findById(7L)).thenReturn(Optional.of(grid));
+        when(levelRepository.findByGridId(7L)).thenReturn(List.of(level46, level47));
         when(levelRepository.findById(46L)).thenReturn(Optional.of(level46));
         when(levelRepository.findById(47L)).thenReturn(Optional.of(level47));
         when(okxTradingService.getLastPrice("BTCUSDT")).thenReturn(new BigDecimal("63266.7"));
@@ -373,6 +478,14 @@ class GridMcpToolsTest {
         return new Fixture(tools, gridRepository, levelRepository, okxTradingService, grid, level46, level47);
     }
 
+    private static String lineValue(String output, String prefix) {
+        return output.lines()
+                .filter(line -> line.startsWith(prefix))
+                .map(line -> line.substring(prefix.length()))
+                .findFirst()
+                .orElseThrow();
+    }
+
     private static Fixture closeGridFixture() {
         BtGridRepository gridRepository = mock(BtGridRepository.class);
         BtGridLevelRepository levelRepository = mock(BtGridLevelRepository.class);
@@ -385,7 +498,7 @@ class GridMcpToolsTest {
                 liveSignalRepository,
                 klineRepository,
                 okxTradingService,
-                new TradingGridProperties(false, false, 24, 300000, true, new BigDecimal("5.0")),
+                new TradingGridProperties(false, false, true, true, 24, 300000, true, new BigDecimal("5.0")),
                 mock(CapitalAllocationPolicyPreviewService.class));
 
         BtGrid grid = new BtGrid();
@@ -403,6 +516,7 @@ class GridMcpToolsTest {
         BtGridLevel level47 = closedResidualLevel(47L, BigDecimal.ZERO, new BigDecimal("100"), "PENDING");
 
         when(gridRepository.findById(7L)).thenReturn(Optional.of(grid));
+        when(levelRepository.findByGridId(7L)).thenReturn(List.of(level46, level47));
         when(levelRepository.findByGridIdAndStatusIn(eq(7L), eq(List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"))))
                 .thenReturn(List.of(level46));
         when(okxTradingService.getLastPrice("BTCUSDT")).thenReturn(new BigDecimal("110"));

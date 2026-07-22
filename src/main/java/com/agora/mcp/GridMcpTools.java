@@ -19,17 +19,21 @@ import com.agora.service.trading.TradeResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -442,9 +446,121 @@ public class GridMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
-    @Tool(description = "關閉 grid:平掉所有 HOLDING + SELL_FAILED + SELL_PARTIAL 倉位；只有全部賣出才設 enabled=false + closed_at。" +
-            "若任何 level sell 失敗或 partial fill，Grid 只會暫停並回報 residual，不會 closed_at。不可逆;若只是暫時停請用 pauseGrid。")
+    @Tool(description = "DEPRECATED unsafe custom Grid close entrypoint. Always blocked during migration. " +
+            "Use retireLegacyGrid dry-run and its exact dynamic confirmation for separately authorized retirement.")
+    @Deprecated(forRemoval = true)
     public String closeGrid(Long gridId) {
+        return "BLOCKED_DEPRECATED_CUSTOM_GRID_CLOSE_USE_RETIRE_LEGACY_GRID_DRY_RUN";
+    }
+
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
+    @Tool(description = "Protected retirement for one legacy custom Grid. Dry-run by default. disposition must be " +
+            "MARKET_SELL_AND_CLOSE when exactly attributable HOLDING inventory exists, or CLOSE_NO_HOLDING when none exists. " +
+            "execute=true requires both disabled-by-default legacy-retirement gates and exact dynamic confirmText. " +
+            "Market sell additionally requires the OKX master trading switch. Preview performs provider/order/fee/lot-size reads " +
+            "but never sends an order or mutates DB. params: gridId, disposition, execute, confirmText")
+    public String retireLegacyGrid(
+            Long gridId,
+            String disposition,
+            @ToolParam(required = false, description = "False/null for dry-run; true requests guarded retirement") Boolean execute,
+            @ToolParam(required = false, description = "Exact dynamic confirmation text returned by dry-run") String confirmText) {
+        boolean executeRequested = Boolean.TRUE.equals(execute);
+        String normalizedDisposition = disposition == null ? "" : disposition.trim().toUpperCase(java.util.Locale.ROOT);
+        List<String> blockers = new ArrayList<>();
+        BtGrid grid = gridId == null ? null : gridRepository.findById(gridId).orElse(null);
+        if (gridId == null || gridId <= 0) blockers.add("GRID_ID_REQUIRED");
+        if (gridId != null && grid == null) blockers.add("GRID_NOT_FOUND");
+        if (grid != null && grid.getClosedAt() != null) blockers.add("GRID_ALREADY_CLOSED");
+
+        List<BtGridLevel> levels = grid == null ? List.of() : gridLevelRepository.findByGridId(gridId).stream()
+                .sorted(java.util.Comparator.comparing(BtGridLevel::getId))
+                .toList();
+        List<BtGridLevel> holdings = levels.stream().filter(level -> "HOLDING".equals(level.getStatus())).toList();
+        long inFlight = levels.stream().filter(level -> Set.of("PENDING_OKX", "SELLING_OKX").contains(level.getStatus())).count();
+        long residual = levels.stream().filter(level -> Set.of("SELL_FAILED", "SELL_PARTIAL").contains(level.getStatus())).count();
+        if (inFlight > 0) blockers.add("LEGACY_IN_FLIGHT_LEVELS_MUST_BE_ZERO");
+        if (residual > 0) blockers.add("LEGACY_RESIDUAL_REQUIRES_DEDICATED_RECOVERY");
+
+        String requiredDisposition = holdings.isEmpty() ? "CLOSE_NO_HOLDING" : "MARKET_SELL_AND_CLOSE";
+        if (!requiredDisposition.equals(normalizedDisposition)) {
+            blockers.add("DISPOSITION_MUST_EQUAL_" + requiredDisposition);
+        }
+
+        List<String> providerPlans = new ArrayList<>();
+        BigDecimal totalSellQty = BigDecimal.ZERO;
+        for (BtGridLevel holding : holdings) {
+            try {
+                OkxTradingService.GridRetirementQuantity quantity = okxTradingService.getGridRetirementQuantity(
+                        grid.getSymbol(), holding.getBuyOrderId(), holding.getFilledQty());
+                totalSellQty = totalSellQty.add(quantity.sellQuantity());
+                providerPlans.add("level=" + holding.getId()
+                        + ",buyOrderId=" + holding.getBuyOrderId()
+                        + ",providerGross=" + quantity.providerGrossQty().toPlainString()
+                        + ",signedBuyFee=" + quantity.signedBuyFee().toPlainString()
+                        + ",feeCurrency=" + quantity.feeCurrency()
+                        + ",netAttributable=" + quantity.netAttributableQty().toPlainString()
+                        + ",sellQty=" + quantity.sellQuantity().toPlainString()
+                        + ",dust=" + quantity.attributionDust().toPlainString());
+            } catch (RuntimeException error) {
+                blockers.add("LEVEL_" + holding.getId() + "_PROVIDER_ATTRIBUTION_FAILED");
+            }
+        }
+
+        String stateCanonical = levels.stream()
+                .map(level -> level.getId() + "|" + level.getStatus() + "|"
+                        + nullSafe(level.getFilledQty()) + "|" + nullSafe(level.getBuyOrderId()) + "|"
+                        + nullSafe(level.getSellOrderId()) + "|" + nullSafe(level.getIntentAt()))
+                .collect(java.util.stream.Collectors.joining(";"));
+        String stateHash = sha256GridRetirementState(stateCanonical + "|" + String.join(";", providerPlans));
+        String requiredConfirmText = "AUTHORIZE_LEGACY_GRID_RETIREMENT|gridId=" + gridId
+                + "|symbol=" + (grid == null ? "UNKNOWN" : grid.getSymbol())
+                + "|disposition=" + normalizedDisposition
+                + "|holdingCount=" + holdings.size()
+                + "|totalSellQty=" + totalSellQty.stripTrailingZeros().toPlainString()
+                + "|stateSha256=" + stateHash;
+
+        if (executeRequested && !gridProperties.legacyRetirementEnabled()) blockers.add("LEGACY_RETIREMENT_FEATURE_DISABLED");
+        if (executeRequested && !gridProperties.legacyRetirementLiveActionEnabled()) blockers.add("LEGACY_RETIREMENT_LIVE_ACTION_DISABLED");
+        if (executeRequested && !holdings.isEmpty() && !okxTradingService.isAutoTradeEnabled()) {
+            blockers.add("OKX_AUTO_TRADE_MASTER_DISABLED");
+        }
+        if (executeRequested && !requiredConfirmText.equals(confirmText)) blockers.add("CONFIRM_TEXT_MISMATCH");
+
+        StringBuilder packet = new StringBuilder();
+        packet.append("packetType=LEGACY_GRID_RETIREMENT\n");
+        packet.append("boundary=PROTECTED_WRITE_DRY_RUN_BY_DEFAULT\n");
+        packet.append("gridId=").append(gridId).append('\n');
+        packet.append("symbol=").append(grid == null ? "UNKNOWN" : grid.getSymbol()).append('\n');
+        packet.append("disposition=").append(normalizedDisposition).append('\n');
+        packet.append("requiredDisposition=").append(requiredDisposition).append('\n');
+        packet.append("holdingCount=").append(holdings.size()).append('\n');
+        packet.append("inFlightCount=").append(inFlight).append('\n');
+        packet.append("residualCount=").append(residual).append('\n');
+        packet.append("totalSellQty=").append(totalSellQty.stripTrailingZeros().toPlainString()).append('\n');
+        packet.append("providerPlans=").append(providerPlans).append('\n');
+        packet.append("stateSha256=").append(stateHash).append('\n');
+        packet.append("featureEnabled=").append(gridProperties.legacyRetirementEnabled()).append('\n');
+        packet.append("liveActionEnabled=").append(gridProperties.legacyRetirementLiveActionEnabled()).append('\n');
+        packet.append("executeRequested=").append(executeRequested).append('\n');
+        packet.append("requiredConfirmText=").append(requiredConfirmText).append('\n');
+        packet.append("blockers=").append(new LinkedHashSet<>(blockers)).append('\n');
+
+        if (!executeRequested || !blockers.isEmpty()) {
+            packet.append("status=").append(blockers.isEmpty()
+                    ? "READY_FOR_SEPARATE_EXACT_RETIREMENT_AUTHORIZATION"
+                    : "RETIREMENT_BLOCKED").append('\n');
+            packet.append("providerOrderAttempted=false\n");
+            packet.append("databaseMutationAttempted=false\n");
+            return packet.toString();
+        }
+
+        packet.append("status=EXECUTION_REQUEST_ACCEPTED\n");
+        packet.append(executeAuthorizedLegacyClose(gridId));
+        return packet.toString();
+    }
+
+    String executeAuthorizedLegacyClose(Long gridId) {
         if (gridId == null) return "❌ gridId 不可為空";
         BtGrid g = gridRepository.findById(gridId).orElse(null);
         if (g == null) return "❌ Grid #" + gridId + " 不存在";
@@ -456,11 +572,13 @@ public class GridMcpTools {
         int partialCount = 0;
         int failCount = 0;
         BigDecimal totalClose = BigDecimal.ZERO;
-        BigDecimal mark;
-        try {
-            mark = okxTradingService.getLastPrice(g.getSymbol());
-        } catch (Exception e) {
-            mark = null;
+        BigDecimal mark = null;
+        if (!filled.isEmpty()) {
+            try {
+                mark = okxTradingService.getLastPrice(g.getSymbol());
+            } catch (Exception ignored) {
+                mark = null;
+            }
         }
         LocalDateTime attemptAt = LocalDateTime.now();
         for (BtGridLevel level : filled) {
@@ -594,6 +712,19 @@ public class GridMcpTools {
     private static String closeGridError(String prefix, Exception e) {
         String message = prefix + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
         return message.length() <= 500 ? message : message.substring(0, 500);
+    }
+
+    private static String nullSafe(Object value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private static String sha256GridRetirementState(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception impossible) {
+            throw new IllegalStateException("SHA-256 unavailable", impossible);
+        }
     }
 
     @McpAuth(McpAuthLevel.OPS)

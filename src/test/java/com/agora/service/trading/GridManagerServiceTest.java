@@ -29,7 +29,7 @@ class GridManagerServiceTest {
     private final NotificationPort notificationPort = mock(NotificationPort.class);
     private final DecisionAuditWriter auditWriter = mock(DecisionAuditWriter.class);
     private final TradingGridProperties props = new TradingGridProperties(
-            true, false, 24, 300000, true, new BigDecimal("5.0"));
+            true, false, false, false, 24, 300000, true, new BigDecimal("5.0"));
 
     @Test
     void manualPauseSkipsGridWithoutFetchingPriceOrAutoResuming() {

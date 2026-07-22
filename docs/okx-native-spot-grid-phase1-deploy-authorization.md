@@ -22,6 +22,9 @@ The candidate commit may:
 - block deprecated custom `createGrid`, `resumeGrid`, and enabling custom
   auto-rebalance;
 - retain custom query and retirement-only paths while legacy inventory exists;
+- permanently block the old raw `closeGrid` entrypoint and expose only a
+  dry-run-first `retireLegacyGrid` path whose execution requires two additional
+  disabled-by-default gates and exact state-bound confirmation;
 - make the retirement-only close path reconstruct its maximum attributable
   sell quantity from the original OKX BUY, signed base-currency fee, and OKX
   lot size before any sell can proceed.
@@ -33,6 +36,8 @@ This authorization does not permit:
 - creating, amending, starting, stopping, or deleting an OKX-native Grid Bot;
 - sending a provider BUY or SELL;
 - closing or changing Grid #10 or Grid #11;
+- enabling either legacy-retirement execution gate or invoking an executing
+  `retireLegacyGrid` request;
 - selling any BTC, including the Grid #10 attributable quantity;
 - changing a Production Grid enablement flag to true;
 - database insert, update, delete, migration, archival, or table drop;
@@ -61,10 +66,12 @@ The deploy passes only if all of the following are read-only verified:
 3. the migration preview reports the capital/product/single-bot blockers and
    sends no order;
 4. deprecated custom create/resume/auto-rebalance expansion is blocked;
-5. `TRADING_GRID_ENABLED` remains false;
-6. Grid #10/#11 rows, holdings, provider orders, and account balances are
+5. deprecated raw `closeGrid` is blocked and a retirement dry-run reports
+   `providerOrderAttempted=false` and `databaseMutationAttempted=false`;
+6. `TRADING_GRID_ENABLED` and both legacy-retirement gates remain false;
+7. Grid #10/#11 rows, holdings, provider orders, and account balances are
    unchanged by the deploy;
-7. zero OKX-native Bots and zero new custom Grid orders were created.
+8. zero OKX-native Bots and zero new custom Grid orders were created.
 
 Failure triggers application rollback to the preceding reviewed commit. A
 rollback must not call any Grid close, provider order, or Bot stop operation.

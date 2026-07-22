@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 public record TradingGridProperties(
         @DefaultValue("false") boolean enabled,
         @DefaultValue("false") boolean customCreateResumeEnabled,
+        @DefaultValue("false") boolean legacyRetirementEnabled,
+        @DefaultValue("false") boolean legacyRetirementLiveActionEnabled,
         @DefaultValue("24") @Positive int sellFailedAgingHours,
         @DefaultValue("300000") @Positive long checkIntervalMs,
         @DefaultValue("true") boolean recycleClosedLevels,

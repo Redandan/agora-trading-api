@@ -22,6 +22,24 @@ Production commit `3401f96d723fb2e49c55a810b137dc77e1bfad5f`:
 The operator should authorize and execute Grid #11 first because it requires
 no provider order. Grid #10 remains a separate decision afterward.
 
+Immediately before requesting either authorization, run the consolidated
+read-only preflight with the exact expected commit, state SHA-256, quantity,
+and (for Grid #10) original BUY order ID:
+
+```powershell
+.\scripts\prepare_legacy_grid_retirement_preflight_ssh.ps1 `
+  -GridId <10-or-11> `
+  -ExpectedCommit <FULL_PRODUCTION_COMMIT> `
+  -ExpectedStateSha256 <CURRENT_STATE_SHA256> `
+  -ExpectedTotalSellQty <CURRENT_EXACT_QUANTITY> `
+  -ExpectedBuyOrderId <GRID10_BUY_ORDER_ID_IF_APPLICABLE> `
+  -RequireReady
+```
+
+`READY_FOR_EXACT_AUTHORIZATION_NOT_EXECUTION` proves only that the current
+packet is internally consistent. It performs no environment change, restart,
+DB mutation, provider order, Grid retirement, Bot action, or deployment.
+
 ## Packet A: Grid #11 no-holding closure
 
 ### Exact current dry-run

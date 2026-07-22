@@ -7,6 +7,13 @@ This repo deploys the standalone trading service. It should not deploy marketpla
 For the current acceptance state and remaining cutover blockers, start with
 `docs/split-acceptance-status.md`.
 
+Before requesting a legacy Grid #10 or #11 retirement authorization, run
+`scripts/prepare_legacy_grid_retirement_preflight_ssh.ps1` with the exact
+Production commit, state SHA-256, quantity, and original BUY order ID when
+applicable. `READY_FOR_EXACT_AUTHORIZATION_NOT_EXECUTION` is read-only evidence,
+not permission to change environment, restart, write DB, place an order, retire
+a Grid, act on an OKX Bot, deploy, or remove the custom runtime.
+
 ## Required Environment
 
 Server secrets file:

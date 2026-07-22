@@ -2,7 +2,7 @@
 
 ## Boundary
 
-`LEGACY_CUSTOM_GRID_ARCHIVE_V1` is the evidence artifact required before the
+`LEGACY_CUSTOM_GRID_ARCHIVE_V2` is the evidence artifact required before the
 custom Grid runtime can be removed. Creating or verifying this artifact does
 not authorize a Grid disposition, provider order, Bot action, Production DB
 mutation, deployment, runtime deletion, or table drop.
@@ -16,15 +16,26 @@ requests only.
 
 The archive is one JSON object with:
 
-- `schemaVersion=LEGACY_CUSTOM_GRID_ARCHIVE_V1`;
+- `schemaVersion=LEGACY_CUSTOM_GRID_ARCHIVE_V2`;
 - `payloadEncoding=base64-utf8-json`;
 - `payloadSha256`, the lowercase SHA-256 of the exact decoded payload bytes;
 - `payloadBase64`, the immutable UTF-8 JSON payload.
 
 The payload contains the deployed full commit, collection time, all `bt_grid`
-and `bt_grid_level` rows, provider order details, provider fills, and a
-reconciliation object. Hash verification occurs before any semantic field is
-trusted.
+and `bt_grid_level` rows, an immutable `completedPairs` ledger, provider order
+details where still retrievable, provider fills, and a reconciliation object.
+Hash verification occurs before any semantic field is trusted.
+
+`completedPairs` is independent of the current reusable level rows. Each entry
+contains a unique `pairKey`, `gridId`, one or more `buyOrderIds`, one or more
+`sellOrderIds`, and an exact `attributionMethod`. Multiple sell IDs are required
+when a pair exited through partial fills or retries. Accepted attribution
+families are preserved database order IDs, one provider tag shared by every
+fill in exactly one pair, or an audit row that itself contains the exact
+provider order IDs.
+Timestamp/price/quantity proximity, FIFO/LIFO assumptions, aggregate PnL
+fitting, and inferred BUY/SELL alternation are not exact attribution and must
+fail closed.
 
 ## Exact-net rules
 
@@ -40,18 +51,21 @@ For every level with a completed BUY/SELL pair:
    proportional exact BUY cost basis of base disposed.
 5. Unsold base is `attributedDustBtc`; it is not valued as realized PnL.
 
-Every provider fill must include order ID, side, price, quantity, signed fee,
-and fee currency. Fee currencies other than BTC or USDT fail closed. Database
+Every provider fill must include unique bill/trade IDs, order ID, side, price,
+quantity, signed fee, and fee currency. Duplicate fill evidence and fee
+currencies other than BTC or USDT fail closed. Database
 `total_realized_pnl`, gross fill quantity, account balance changes, and
 unrealized marks are retained as comparison evidence but cannot substitute for
 the provider-derived exact-net calculation.
 
-The sum of `bt_grid.closed_pair_count` must exactly equal the number of
-provider-covered pairs reconstructed by the archive. The legacy recycler
-cleared a level's BUY/SELL order IDs when returning it to `PENDING`; therefore
-an archive that contains only the surviving level order IDs must fail with
+The sum of `bt_grid.closed_pair_count` must exactly equal the number of unique
+provider-covered entries in `completedPairs`. Every order ID may belong to at
+most one pair. The legacy recycler cleared a level's BUY/SELL order IDs when
+returning it to `PENDING`; therefore an archive that contains only the
+surviving level order IDs must fail with
 `HISTORICAL_COMPLETED_PAIR_COVERAGE_INCOMPLETE`. It is forbidden to silently
-replace missing historical pair evidence with the DB aggregate PnL.
+replace missing historical pair evidence with the DB aggregate PnL or to add
+synthetic CLOSED level rows that never existed in Production.
 
 ## Local verification
 
@@ -108,6 +122,10 @@ The downloader refuses overwrite, redacts the provider URL, verifies byte
 count and SHA-256 before writing one new local file, and performs no server
 filesystem write. Structural inspection remains
 `NOT_GRID_ATTRIBUTED`; it cannot substitute for unique 46-pair reconciliation.
+OKX documents that the decompressed quarterly CSV can carry `ordId`, `tradeId`,
+`clOrdId`, `tag`, fill price/quantity/time, and signed fee fields. Those fields
+are sufficient for provider fill accounting, but they prove custom-Grid
+ownership only when an exact non-heuristic attribution key is actually present.
 
 ```powershell
 .\scripts\verify_legacy_grid_immutable_archive.ps1 `

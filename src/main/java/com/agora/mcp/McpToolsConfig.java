@@ -84,6 +84,13 @@ public class McpToolsConfig {
     }
 
     @Bean
+    public ToolCallbackProvider okxNativeGridMcpToolCallbacks(OkxNativeGridMcpTools tools) {
+        return MethodToolCallbackProvider.builder()
+                .toolObjects(tools)
+                .build();
+    }
+
+    @Bean
     public ToolCallbackProvider positionMcpToolCallbacks(PositionMcpTools positionMcpTools) {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(positionMcpTools)

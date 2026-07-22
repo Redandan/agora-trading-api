@@ -35,7 +35,7 @@ class TinyLiveMinimumOrderPreviewServiceTest {
     private final EventRiskLevelEngine eventRiskLevelEngine = mock(EventRiskLevelEngine.class);
     private final OkxTradingService okxTradingService = mock(OkxTradingService.class);
     private final TradingGridProperties gridProperties = new TradingGridProperties(
-            false, 24, 300_000L, true, new BigDecimal("5.0"));
+            false, false, 24, 300_000L, true, new BigDecimal("5.0"));
     private final AutoExplorationRolloutStateService rolloutStateService =
             mock(AutoExplorationRolloutStateService.class);
 

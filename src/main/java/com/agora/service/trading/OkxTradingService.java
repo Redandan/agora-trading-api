@@ -163,6 +163,17 @@ public class OkxTradingService implements TradingService {
         return props.hasPrivateCredentials();
     }
 
+    /**
+     * Read-only OKX-native Spot Grid inventory. This is intentionally separate from the
+     * deprecated local {@code bt_grid} state machine and never creates, amends, or stops a bot.
+     */
+    public JsonNode getNativeSpotGridOrders(boolean history) {
+        String endpoint = history ? "orders-algo-history" : "orders-algo-pending";
+        JsonNode response = get("/api/v5/tradingBot/grid/" + endpoint + "?algoOrdType=grid");
+        assertOkxCode(response);
+        return response.path("data");
+    }
+
     // ──────────────────────────────────────────────
     //  公開查詢方法
     // ──────────────────────────────────────────────
@@ -193,6 +204,87 @@ public class OkxTradingService implements TradingService {
                 decimalOrNull(row.path("lotSz").asText(null)),
                 decimalOrNull(row.path("tickSz").asText(null))
         );
+    }
+
+    /**
+     * Reconstructs the quantity attributable to one legacy Grid BUY before a retirement SELL.
+     * This is a read-only provider reconciliation. It prevents an old gross DB fill from
+     * consuming unrelated account BTC when OKX charged the BUY fee in base currency.
+     */
+    public GridRetirementQuantity getGridRetirementQuantity(String symbol,
+                                                             String buyOrderId,
+                                                             BigDecimal databaseGrossQty) {
+        if (buyOrderId == null || buyOrderId.isBlank()) {
+            throw new IllegalArgumentException("Grid retirement requires the original buyOrderId");
+        }
+        if (databaseGrossQty == null || databaseGrossQty.signum() <= 0) {
+            throw new IllegalArgumentException("Grid retirement requires a positive database gross quantity");
+        }
+        String instId = toInstId(symbol);
+        JsonNode order = queryOrder(instId, buyOrderId);
+        if (!"filled".equals(order.path("state").asText())) {
+            throw new IllegalStateException("Grid retirement BUY order is not filled: " + buyOrderId);
+        }
+        if (!"buy".equals(order.path("side").asText())) {
+            throw new IllegalStateException("Grid retirement order is not a BUY: " + buyOrderId);
+        }
+        BigDecimal providerGrossQty = decimalOrNull(order.path("accFillSz").asText(null));
+        if (providerGrossQty == null || providerGrossQty.signum() <= 0) {
+            throw new IllegalStateException("Grid retirement BUY order has no positive accFillSz: " + buyOrderId);
+        }
+        String feeCurrency = firstNonBlank(
+                order.path("fillFeeCcy").asText(null),
+                order.path("feeCcy").asText(null));
+        BigDecimal signedFee = decimalOrNull(firstNonBlank(
+                order.path("fillFee").asText(null),
+                order.path("fee").asText(null)));
+        if (signedFee == null) signedFee = BigDecimal.ZERO;
+        SpotInstrumentRules rules = getSpotInstrumentRules(instId);
+        return calculateGridRetirementQuantity(
+                instId, buyOrderId, databaseGrossQty, providerGrossQty,
+                signedFee, feeCurrency, rules.lotSize());
+    }
+
+    static GridRetirementQuantity calculateGridRetirementQuantity(String instId,
+                                                                    String buyOrderId,
+                                                                    BigDecimal databaseGrossQty,
+                                                                    BigDecimal providerGrossQty,
+                                                                    BigDecimal signedFee,
+                                                                    String feeCurrency,
+                                                                    BigDecimal lotSize) {
+        if (lotSize == null || lotSize.signum() <= 0) {
+            throw new IllegalStateException("OKX lot size is unavailable for " + instId);
+        }
+        if (databaseGrossQty.subtract(providerGrossQty).abs().compareTo(lotSize) > 0) {
+            throw new IllegalStateException("Grid DB/provider gross quantity mismatch: db="
+                    + databaseGrossQty + " provider=" + providerGrossQty + " lotSize=" + lotSize);
+        }
+        String baseCurrency = instId == null ? "" : instId.split("-")[0];
+        BigDecimal fee = signedFee == null ? BigDecimal.ZERO : signedFee;
+        BigDecimal netAttributableQty = providerGrossQty;
+        if (feeCurrency != null && !feeCurrency.isBlank() && baseCurrency.equalsIgnoreCase(feeCurrency)) {
+            netAttributableQty = providerGrossQty.add(fee);
+        } else if (fee.signum() != 0 && (feeCurrency == null || feeCurrency.isBlank())) {
+            throw new IllegalStateException("Grid retirement signed fee has no currency: " + buyOrderId);
+        }
+        if (netAttributableQty.signum() <= 0 || netAttributableQty.compareTo(providerGrossQty) > 0) {
+            throw new IllegalStateException("Grid retirement net attributable quantity is invalid: "
+                    + netAttributableQty);
+        }
+        BigDecimal sellQuantity = netAttributableQty.divide(lotSize, 0, java.math.RoundingMode.DOWN)
+                .multiply(lotSize)
+                .stripTrailingZeros();
+        if (sellQuantity.signum() <= 0) {
+            throw new IllegalStateException("Grid retirement quantity is below one OKX lot: " + netAttributableQty);
+        }
+        BigDecimal attributionDust = netAttributableQty.subtract(sellQuantity).max(BigDecimal.ZERO);
+        return new GridRetirementQuantity(
+                instId, buyOrderId, databaseGrossQty, providerGrossQty,
+                fee, feeCurrency, netAttributableQty, sellQuantity, attributionDust, lotSize);
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : second;
     }
 
     /** 查詢永續合約最新成交價（用於計算 basis）。回傳 null 表示查詢失敗。 */
@@ -890,6 +982,20 @@ public class OkxTradingService implements TradingService {
             BigDecimal minSize,
             BigDecimal lotSize,
             BigDecimal tickSize
+    ) {
+    }
+
+    public record GridRetirementQuantity(
+            String instId,
+            String buyOrderId,
+            BigDecimal databaseGrossQty,
+            BigDecimal providerGrossQty,
+            BigDecimal signedBuyFee,
+            String feeCurrency,
+            BigDecimal netAttributableQty,
+            BigDecimal sellQuantity,
+            BigDecimal attributionDust,
+            BigDecimal lotSize
     ) {
     }
 

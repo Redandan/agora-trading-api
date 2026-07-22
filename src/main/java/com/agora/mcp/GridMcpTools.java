@@ -54,14 +54,21 @@ public class GridMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING})
-    @Tool(description = "建立網格交易(grid)。N 條價格線等距鋪在 [priceLower, priceUpper] 區間,建立 N-1 個 buy level," +
+    @Tool(description = "DEPRECATED custom Grid create path. New Grid creation is disabled by default while migration " +
+            "moves execution to OKX native Spot Grid. Existing custom grids remain queryable/closable for retirement. " +
+            "When explicitly re-enabled, N 條價格線等距鋪在 [priceLower, priceUpper] 區間,建立 N-1 個 buy level," +
             "上界只作 paired sell boundary。每格 perLevelUsdt 金額。價格觸某 level → market buy,之後漲到 pairedSellPrice(filled + step)→ market sell。" +
             "stopOutPct 預設 0.03(3%,區間外 3% 觸發全平);hintGated=true(預設)受 Gemini advisor regime 白名單控管。" +
             "param: symbol, priceLower, priceUpper, gridCount(2-50), perLevelUsdt(≥5)," +
             "stopOutPct(選填,預設 0.03), regimeWhitelist(預設 'SIDEWAYS,VOLATILE,RECOVERY')")
+    @Deprecated(forRemoval = true)
     public String createGrid(String symbol, BigDecimal priceLower, BigDecimal priceUpper,
                               Integer gridCount, BigDecimal perLevelUsdt,
                               BigDecimal stopOutPct, String regimeWhitelist) {
+        if (!gridProperties.customCreateResumeEnabled()) {
+            return "BLOCKED_DEPRECATED_CUSTOM_GRID_CREATE_USE_OKX_NATIVE; "
+                    + "closeGrid remains available for exact legacy holding retirement";
+        }
         if (symbol == null || priceLower == null || priceUpper == null || gridCount == null || perLevelUsdt == null) {
             return "❌ symbol/priceLower/priceUpper/gridCount/perLevelUsdt 皆必填";
         }
@@ -411,6 +418,9 @@ public class GridMcpTools {
     public String enableGridAutoRebalance(Long gridId, Boolean enable, Double triggerPct,
                                           Integer minHoursOutside, Integer maxRebalanceCount) {
         if (gridId == null || enable == null) return "❌ gridId 和 enable 為必填";
+        if (Boolean.TRUE.equals(enable) && !gridProperties.customCreateResumeEnabled()) {
+            return "BLOCKED_DEPRECATED_CUSTOM_GRID_AUTO_REBALANCE_USE_OKX_NATIVE";
+        }
         BtGrid g = gridRepository.findById(gridId).orElse(null);
         if (g == null) return "❌ Grid #" + gridId + " 不存在";
         if (g.getClosedAt() != null) return "❌ Grid #" + gridId + " 已關閉";
@@ -454,15 +464,27 @@ public class GridMcpTools {
         }
         LocalDateTime attemptAt = LocalDateTime.now();
         for (BtGridLevel level : filled) {
+            BigDecimal requestedQty;
+            OkxTradingService.GridRetirementQuantity retirementQuantity;
             try {
-                BigDecimal requestedQty = level.getFilledQty();
-                if (requestedQty == null || requestedQty.signum() <= 0) {
-                    level.setErrorMessage("closeGrid blocked: non-positive filledQty");
-                    gridLevelRepository.save(level);
-                    failCount++;
-                    continue;
-                }
+                retirementQuantity =
+                        okxTradingService.getGridRetirementQuantity(
+                                g.getSymbol(), level.getBuyOrderId(), level.getFilledQty());
+                requestedQty = retirementQuantity.sellQuantity();
+                level.setErrorMessage(String.format(
+                        "retirement preflight: gross=%s signedBuyFee=%s %s net=%s sell=%s dust=%s",
+                        retirementQuantity.providerGrossQty(), retirementQuantity.signedBuyFee(),
+                        retirementQuantity.feeCurrency(), retirementQuantity.netAttributableQty(),
+                        retirementQuantity.sellQuantity(), retirementQuantity.attributionDust()));
+                gridLevelRepository.save(level);
+            } catch (Exception preflightError) {
+                level.setErrorMessage(closeGridError("closeGrid fee-aware quantity preflight blocked: ", preflightError));
+                gridLevelRepository.save(level);
+                failCount++;
+                continue;
+            }
 
+            try {
                 level.setStatus("SELLING_OKX");
                 level.setIntentAt(attemptAt);
                 level.setErrorMessage(null);
@@ -477,8 +499,14 @@ public class GridMcpTools {
                 BigDecimal leftover = requestedQty.subtract(soldQty).max(BigDecimal.ZERO);
                 BigDecimal sellPx = closeGridSellPrice(sellResult, mark, level);
                 BigDecimal buyPx = level.getFilledPrice() != null ? level.getFilledPrice() : sellPx;
-                BigDecimal pnl = sellPx.subtract(buyPx)
-                        .multiply(soldQty)
+                BigDecimal grossBuyCost = buyPx.multiply(retirementQuantity.providerGrossQty());
+                BigDecimal allocatedBuyCost = grossBuyCost.multiply(soldQty)
+                        .divide(retirementQuantity.netAttributableQty(), 16, RoundingMode.HALF_UP);
+                BigDecimal sellFeeUsdt = sellResult.getFeeUsdt() != null
+                        ? sellResult.getFeeUsdt() : BigDecimal.ZERO;
+                BigDecimal pnl = sellPx.multiply(soldQty)
+                        .subtract(allocatedBuyCost)
+                        .subtract(sellFeeUsdt)
                         .setScale(8, RoundingMode.HALF_UP);
                 BigDecimal prevRealized = level.getRealizedPnl() != null
                         ? level.getRealizedPnl() : BigDecimal.ZERO;
@@ -1627,8 +1655,13 @@ public class GridMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
-    @Tool(description = "恢復暫停中的 grid。param: gridId")
+    @Tool(description = "DEPRECATED custom Grid resume path. Disabled by default during OKX native Spot Grid migration. " +
+            "Legacy grids remain queryable and may be closed through a separately authorized retirement action. param: gridId")
+    @Deprecated(forRemoval = true)
     public String resumeGrid(Long gridId) {
+        if (!gridProperties.customCreateResumeEnabled()) {
+            return "BLOCKED_DEPRECATED_CUSTOM_GRID_RESUME_USE_OKX_NATIVE";
+        }
         if (gridId == null) return "❌ gridId 不可為空";
         BtGrid g = gridRepository.findById(gridId).orElse(null);
         if (g == null) return "❌ Grid #" + gridId + " 不存在";

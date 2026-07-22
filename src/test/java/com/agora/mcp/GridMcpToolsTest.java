@@ -24,9 +24,32 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class GridMcpToolsTest {
+
+    @Test
+    void deprecatedCustomCreateResumeAndAutoRebalanceExpansionAreBlocked() {
+        BtGridRepository gridRepository = mock(BtGridRepository.class);
+        GridMcpTools tools = new GridMcpTools(
+                gridRepository,
+                mock(BtGridLevelRepository.class),
+                mock(BtLiveSignalRepository.class),
+                mock(MdKlineRepository.class),
+                mock(OkxTradingService.class),
+                new TradingGridProperties(false, false, 24, 300000, true, new BigDecimal("5.0")),
+                mock(CapitalAllocationPolicyPreviewService.class));
+
+        assertThat(tools.createGrid("BTCUSDT", new BigDecimal("60000"), new BigDecimal("70000"),
+                2, new BigDecimal("10"), new BigDecimal("0.03"), "SIDEWAYS"))
+                .contains("BLOCKED_DEPRECATED_CUSTOM_GRID_CREATE_USE_OKX_NATIVE");
+        assertThat(tools.resumeGrid(10L))
+                .contains("BLOCKED_DEPRECATED_CUSTOM_GRID_RESUME_USE_OKX_NATIVE");
+        assertThat(tools.enableGridAutoRebalance(10L, true, null, null, null))
+                .contains("BLOCKED_DEPRECATED_CUSTOM_GRID_AUTO_REBALANCE_USE_OKX_NATIVE");
+        verifyNoInteractions(gridRepository);
+    }
 
     @Test
     void createGridUsesUpperPriceAsSellBoundaryNotBuyLevel() {
@@ -191,6 +214,27 @@ class GridMcpToolsTest {
     }
 
     @Test
+    void closeGridFailsClosedBeforeSellWhenFeeAwareQuantityCannotBeProven() {
+        Fixture fixture = closeGridFixture();
+        when(fixture.okxTradingService.getGridRetirementQuantity(
+                "BTCUSDT", "buy-order-7-46", new BigDecimal("0.001")))
+                .thenThrow(new IllegalStateException("DB/provider gross quantity mismatch"));
+
+        String output = fixture.tools.closeGrid(7L);
+
+        assertThat(output).contains(
+                "close_grid_status=BLOCKED_RESIDUAL_NOT_CLOSED",
+                "grid_closed=false",
+                "failed: 1");
+        assertThat(fixture.level46.getStatus()).isEqualTo("HOLDING");
+        assertThat(fixture.level46.getIntentAt()).isNull();
+        assertThat(fixture.level46.getErrorMessage()).contains(
+                "fee-aware quantity preflight blocked",
+                "DB/provider gross quantity mismatch");
+        verify(fixture.okxTradingService, never()).placeMarketSellWithFill(any(), any());
+    }
+
+    @Test
     void closeGridDoesNotSetClosedAtWhenSellPartiallyFills() {
         Fixture fixture = closeGridFixture();
         TradeResult tradeResult = new TradeResult();
@@ -300,7 +344,7 @@ class GridMcpToolsTest {
                 liveSignalRepository,
                 klineRepository,
                 okxTradingService,
-                new TradingGridProperties(false, 24, 300000, true, new BigDecimal("5.0")),
+                new TradingGridProperties(false, false, 24, 300000, true, new BigDecimal("5.0")),
                 mock(CapitalAllocationPolicyPreviewService.class));
 
         BtGrid grid = new BtGrid();
@@ -341,7 +385,7 @@ class GridMcpToolsTest {
                 liveSignalRepository,
                 klineRepository,
                 okxTradingService,
-                new TradingGridProperties(false, 24, 300000, true, new BigDecimal("5.0")),
+                new TradingGridProperties(false, false, 24, 300000, true, new BigDecimal("5.0")),
                 mock(CapitalAllocationPolicyPreviewService.class));
 
         BtGrid grid = new BtGrid();
@@ -355,12 +399,20 @@ class GridMcpToolsTest {
         level46.setLevelIndex(2);
         level46.setRetryCount(1);
         level46.setPairedSellPrice(new BigDecimal("110"));
+        level46.setBuyOrderId("buy-order-7-46");
         BtGridLevel level47 = closedResidualLevel(47L, BigDecimal.ZERO, new BigDecimal("100"), "PENDING");
 
         when(gridRepository.findById(7L)).thenReturn(Optional.of(grid));
         when(levelRepository.findByGridIdAndStatusIn(eq(7L), eq(List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"))))
                 .thenReturn(List.of(level46));
         when(okxTradingService.getLastPrice("BTCUSDT")).thenReturn(new BigDecimal("110"));
+        when(okxTradingService.getGridRetirementQuantity(
+                "BTCUSDT", "buy-order-7-46", new BigDecimal("0.001")))
+                .thenReturn(new OkxTradingService.GridRetirementQuantity(
+                        "BTC-USDT", "buy-order-7-46", new BigDecimal("0.001"),
+                        new BigDecimal("0.001"), BigDecimal.ZERO, "BTC",
+                        new BigDecimal("0.001"), new BigDecimal("0.001"),
+                        BigDecimal.ZERO, new BigDecimal("0.00000001")));
         return new Fixture(tools, gridRepository, levelRepository, okxTradingService, grid, level46, level47);
     }
 

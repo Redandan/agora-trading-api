@@ -95,6 +95,40 @@ class OkxNativeGridExecutionServiceTest {
     }
 
     @Test
+    void exactOkxMinimumAboveCapitalCapFailsClosedBeforeCreate() throws Exception {
+        OkxNativeGridExecutionService service = service(true, true);
+        readyCreatePreconditions();
+        when(okx.getNativeSpotGridMinimumInvestment(
+                "BTC-USDT", new BigDecimal("60000"), new BigDecimal("70000"), 10))
+                .thenReturn(minimumInvestment("10.01"));
+
+        JsonNode result = mapper.readTree(previewCreate(service, false, null));
+
+        assertThat(result.path("status").asText()).isEqualTo("CREATE_BLOCKED");
+        assertThat(result.path("blockers").toString())
+                .contains("OKX_MINIMUM_EXCEEDS_10_USDT_CAP", "QUOTE_SIZE_BELOW_OKX_EXACT_MINIMUM");
+        assertThat(result.path("providerCreateMinimumAcceptanceProven").asBoolean()).isFalse();
+        verify(okx, never()).createNativeSpotGrid(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void missingExactQuoteMinimumFailsClosedBeforeCreate() throws Exception {
+        OkxNativeGridExecutionService service = service(true, true);
+        readyCreatePreconditions();
+        when(okx.getNativeSpotGridMinimumInvestment(
+                "BTC-USDT", new BigDecimal("60000"), new BigDecimal("70000"), 10))
+                .thenReturn(mapper.createArrayNode().addObject().putArray("minInvestmentData"));
+
+        JsonNode result = mapper.readTree(previewCreate(service, false, null));
+
+        assertThat(result.path("blockers").toString()).contains("OKX_EXACT_QUOTE_MINIMUM_MISSING");
+        assertThat(result.path("providerCreateMinimumAcceptanceProven").asBoolean()).isFalse();
+    }
+
+    @Test
     void matchingProviderClientIdMakesRetryIdempotentWithoutSecondCreate() throws Exception {
         OkxNativeGridExecutionService service = service(true, true);
         ArrayNode active = mapper.createArrayNode();
@@ -158,11 +192,21 @@ class OkxNativeGridExecutionServiceTest {
         when(grids.findBySymbolAndClosedAtIsNull("BTCUSDT")).thenReturn(List.of());
         when(okx.getSpotInstrumentRules("BTC-USDT")).thenReturn(rules());
         when(okx.getLastPrice("BTC-USDT")).thenReturn(new BigDecimal("65000"));
+        when(okx.getNativeSpotGridMinimumInvestment(
+                "BTC-USDT", new BigDecimal("60000"), new BigDecimal("70000"), 10))
+                .thenReturn(minimumInvestment("10"));
     }
 
     private OkxTradingService.SpotInstrumentRules rules() {
         return new OkxTradingService.SpotInstrumentRules("BTC-USDT", new BigDecimal("0.00001"),
                 new BigDecimal("0.00000001"), new BigDecimal("0.1"));
+    }
+
+    private ArrayNode minimumInvestment(String quoteAmount) {
+        ArrayNode data = mapper.createArrayNode();
+        data.addObject().putArray("minInvestmentData")
+                .addObject().put("amt", quoteAmount).put("ccy", "USDT");
+        return data;
     }
 
     private String previewCreate(OkxNativeGridExecutionService service, boolean execute, String confirm) {

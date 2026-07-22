@@ -189,6 +189,37 @@ public class OkxTradingService implements TradingService {
     }
 
     /**
+     * Public, read-only computation of OKX's current minimum investment for the exact
+     * quote-only Spot Grid package. This endpoint does not create or amend a bot.
+     */
+    public JsonNode getNativeSpotGridMinimumInvestment(String instId,
+                                                       BigDecimal minPx,
+                                                       BigDecimal maxPx,
+                                                       int gridNum) {
+        ObjectNode body = nativeSpotGridMinimumInvestmentBody(
+                objectMapper, instId, minPx, maxPx, gridNum);
+        JsonNode response = postPublic("/api/v5/tradingBot/grid/min-investment", body.toString());
+        assertOkxCode(response);
+        return response.path("data");
+    }
+
+    static ObjectNode nativeSpotGridMinimumInvestmentBody(ObjectMapper mapper,
+                                                           String instId,
+                                                           BigDecimal minPx,
+                                                           BigDecimal maxPx,
+                                                           int gridNum) {
+        ObjectNode body = mapper.createObjectNode();
+        body.put("instId", instId);
+        body.put("algoOrdType", "grid");
+        body.put("minPx", minPx);
+        body.put("maxPx", maxPx);
+        body.put("gridNum", Integer.toString(gridNum));
+        body.put("runType", "1");
+        body.put("investmentType", "quote");
+        return body;
+    }
+
+    /**
      * Provider write. Callers must enforce the disabled-by-default feature gates, fresh
      * inventory reconciliation, capital cap, and exact dynamic confirmation.
      */
@@ -1522,6 +1553,16 @@ public class OkxTradingService implements TradingService {
         Request req = new Request.Builder()
                 .url(props.getBaseUrl() + path)
                 .get()
+                .build();
+        return execute(req, path);
+    }
+
+    /** POST for OKX public calculation endpoints; no private credentials or signature. */
+    private JsonNode postPublic(String path, String jsonBody) {
+        RequestBody body = RequestBody.create(jsonBody, JSON_TYPE);
+        Request req = new Request.Builder()
+                .url(props.getBaseUrl() + path)
+                .post(body)
                 .build();
         return execute(req, path);
     }

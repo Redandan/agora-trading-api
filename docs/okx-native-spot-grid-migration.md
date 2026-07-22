@@ -73,6 +73,9 @@ idempotency, minimum-order, and single-holding checks remain hard blockers.
 The protected create tool fixes `algoOrdType=grid`, `runType=1`, uses only
 `quoteSz`, rejects `quoteSz>10`, requires a fresh unique provider
 `algoClOrdId`, and re-reads active/history inventory before execution. The
+preflight calls OKX's public `POST /api/v5/tradingBot/grid/min-investment` for
+the exact range and grid count, requires a positive USDT minimum, and blocks
+when that minimum exceeds 10 USDT or the requested `quoteSz`. The
 protected stop tool requires an explicit `SELL_BASE` versus `KEEP_BASE`
 disposition and binds confirmation to a SHA-256 of the current provider Bot
 detail. Neither tool writes the local database.

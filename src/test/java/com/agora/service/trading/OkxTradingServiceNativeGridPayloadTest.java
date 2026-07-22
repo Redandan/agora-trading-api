@@ -32,6 +32,21 @@ class OkxTradingServiceNativeGridPayloadTest {
     }
 
     @Test
+    void minimumInvestmentPayloadRequestsTheExactQuoteOnlyArithmeticPackage() {
+        ObjectNode body = OkxTradingService.nativeSpotGridMinimumInvestmentBody(
+                mapper, "BTC-USDT", new BigDecimal("60000"), new BigDecimal("70000"), 10);
+
+        assertThat(body.path("instId").asText()).isEqualTo("BTC-USDT");
+        assertThat(body.path("algoOrdType").asText()).isEqualTo("grid");
+        assertThat(body.path("runType").asText()).isEqualTo("1");
+        assertThat(body.path("investmentType").asText()).isEqualTo("quote");
+        assertThat(body.path("gridNum").asText()).isEqualTo("10");
+        assertThat(body.has("lever")).isFalse();
+        assertThat(body.has("direction")).isFalse();
+        assertThat(body.has("investmentData")).isFalse();
+    }
+
+    @Test
     void stopPayloadIsOneExactSpotBotAndExplicitDisposition() {
         ArrayNode body = OkxTradingService.nativeSpotGridStopBody(mapper, "123456789", "2");
 

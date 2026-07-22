@@ -286,11 +286,39 @@ public class OkxNativeGridExecutionService {
                 root.put("publicMinimumQuoteLowerBound", lowerBound);
                 if (quoteSz.compareTo(lowerBound) < 0) blockers.add("QUOTE_SIZE_BELOW_PUBLIC_MINIMUM_LOWER_BOUND");
             }
-            root.put("providerCreateMinimumAcceptanceProven", false);
+            JsonNode minimumData = okxTradingService.getNativeSpotGridMinimumInvestment(
+                    INST_ID, minPx, maxPx, gridNum);
+            BigDecimal minimumQuote = findMinimumAmount(minimumData, "USDT");
+            if (minimumQuote == null) {
+                blockers.add("OKX_EXACT_QUOTE_MINIMUM_MISSING");
+                root.put("providerCreateMinimumAcceptanceProven", false);
+            } else {
+                root.put("providerMinimumQuoteUsdt", minimumQuote);
+                boolean minimumAccepted = quoteSz.compareTo(minimumQuote) >= 0;
+                root.put("providerCreateMinimumAcceptanceProven", minimumAccepted);
+                if (minimumQuote.compareTo(QUOTE_CAP) > 0) blockers.add("OKX_MINIMUM_EXCEEDS_10_USDT_CAP");
+                if (!minimumAccepted) blockers.add("QUOTE_SIZE_BELOW_OKX_EXACT_MINIMUM");
+            }
         } catch (RuntimeException error) {
             blockers.add("OKX_PROVIDER_RULE_LOOKUP_FAILED");
             root.put("providerRuleError", safeMessage(error));
         }
+    }
+
+    private BigDecimal findMinimumAmount(JsonNode minimumData, String currency) {
+        if (minimumData == null || !minimumData.isArray() || minimumData.isEmpty()) return null;
+        JsonNode rows = minimumData.path(0).path("minInvestmentData");
+        if (!rows.isArray()) return null;
+        for (JsonNode row : rows) {
+            if (!currency.equalsIgnoreCase(row.path("ccy").asText())) continue;
+            try {
+                BigDecimal amount = new BigDecimal(row.path("amt").asText());
+                return amount.signum() > 0 ? amount : null;
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     private JsonNode readActive(List<String> blockers) {

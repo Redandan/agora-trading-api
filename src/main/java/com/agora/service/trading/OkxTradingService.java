@@ -188,6 +188,19 @@ public class OkxTradingService implements TradingService {
         return response.path("data");
     }
 
+    /** Read-only filled or live child orders for one provider-native Spot Grid bot. */
+    public JsonNode getNativeSpotGridSubOrders(String algoId, String type) {
+        requireDigits("algoId", algoId);
+        String normalizedType = type == null ? "" : type.trim().toLowerCase();
+        if (!"filled".equals(normalizedType) && !"live".equals(normalizedType)) {
+            throw new IllegalArgumentException("type must be filled or live");
+        }
+        JsonNode response = get("/api/v5/tradingBot/grid/sub-orders?algoOrdType=grid&algoId="
+                + algoId + "&type=" + normalizedType + "&limit=100");
+        assertOkxCode(response);
+        return response.path("data");
+    }
+
     /**
      * Public, read-only computation of OKX's current minimum investment for the exact
      * quote-only Spot Grid package. This endpoint does not create or amend a bot.

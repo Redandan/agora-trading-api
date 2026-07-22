@@ -21,8 +21,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /** Read-only migration bridge for OKX-native Spot Grid bots. */
@@ -93,7 +96,7 @@ public class OkxNativeGridMcpTools {
 
         ArrayNode blockers = report.putArray("blockers");
         validateRequest(instrument, priceLower, priceUpper, gridCount, totalQuoteUsdt, blockers);
-        appendProviderRuleEvidence(report, blockers, instrument, priceLower, gridCount, totalQuoteUsdt);
+        appendProviderRuleEvidence(report, blockers, instrument, priceLower, priceUpper, gridCount, totalQuoteUsdt);
 
         ArrayNode activeNative = copyArray(okxTradingService.getNativeSpotGridOrders(false));
         report.set("activeNativeBots", activeNative);
@@ -129,9 +132,6 @@ public class OkxNativeGridMcpTools {
             blockers.add("LEGACY_INVENTORY_OR_IN_FLIGHT_LEVEL_REQUIRES_SEPARATE_RESOLUTION_AUTHORIZATION");
         }
 
-        // OKX validates instrument-specific minimum investment when a bot is created. This read-only
-        // bridge deliberately does not submit a create request merely to discover that minimum.
-        blockers.add("OKX_NATIVE_MINIMUM_INVESTMENT_NOT_YET_PROVIDER_PREFLIGHTED");
         report.put("decision", blockers.isEmpty()
                 ? "READY_FOR_SEPARATE_EXACT_TRADE_AUTHORIZATION"
                 : "NOT_READY_FOR_TRADE_AUTHORIZATION");
@@ -175,15 +175,145 @@ public class OkxNativeGridMcpTools {
         return executionService.previewOrStop(algoId, disposition, execute, confirmText);
     }
 
+    @Tool(description = "Read-only acceptance evidence for one OKX-native BTC-USDT Spot Grid bot. "
+            + "Reads active/history/detail, filled/live Grid sub-orders, and authenticated BTC-USDT fill history. "
+            + "It counts provider groupId buy/sell pairs and computes signed-fee quote cash flow only when "
+            + "terminal-state, fill coverage, fee currency, pagination, and residual-base checks are all proven. "
+            + "It never creates/stops a bot, sends an order, or changes DB state. param: algoId")
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.ANALYTICS, Category.DIAGNOSTIC})
+    public String getOkxNativeSpotGridAcceptanceEvidence(String algoId) {
+        if (algoId == null || !algoId.matches("[0-9]+")) {
+            throw new IllegalArgumentException("algoId must contain digits only");
+        }
+        ObjectNode report = objectMapper.createObjectNode();
+        report.put("tool", "getOkxNativeSpotGridAcceptanceEvidence");
+        report.put("boundary", "READ_ONLY_NATIVE_GRID_EXACT_EVIDENCE_NO_MUTATION");
+        report.put("algoId", algoId);
+        report.put("instrument", "BTC-USDT");
+        report.put("orderSent", false);
+        report.put("botMutation", false);
+        report.put("databaseMutation", false);
+        ArrayNode blockers = report.putArray("blockers");
+
+        ArrayNode active = copyArray(okxTradingService.getNativeSpotGridOrders(false));
+        ArrayNode history = copyArray(okxTradingService.getNativeSpotGridOrders(true));
+        JsonNode activeBot = findByAlgoId(active, algoId);
+        JsonNode historyBot = findByAlgoId(history, algoId);
+        boolean terminal = activeBot == null && historyBot != null;
+        report.put("providerLifecycle", activeBot != null ? "ACTIVE" : historyBot != null ? "HISTORY_TERMINAL" : "NOT_FOUND");
+        report.put("terminalProviderStateProven", terminal);
+        if (activeBot != null) report.set("activeBot", activeBot.deepCopy());
+        if (historyBot != null) report.set("historyBot", historyBot.deepCopy());
+        if (activeBot == null && historyBot == null) blockers.add("PROVIDER_BOT_NOT_FOUND");
+
+        ArrayNode detail = copyArray(okxTradingService.getNativeSpotGridOrderDetails(algoId));
+        report.set("providerDetail", detail);
+        if (detail.isEmpty()) blockers.add("PROVIDER_BOT_DETAIL_MISSING");
+
+        ArrayNode filledSubOrders = copyArray(okxTradingService.getNativeSpotGridSubOrders(algoId, "filled"));
+        ArrayNode liveSubOrders = copyArray(okxTradingService.getNativeSpotGridSubOrders(algoId, "live"));
+        report.set("filledSubOrders", filledSubOrders);
+        report.set("liveSubOrders", liveSubOrders);
+        report.put("filledSubOrderCount", filledSubOrders.size());
+        report.put("liveSubOrderCount", liveSubOrders.size());
+        if (!liveSubOrders.isEmpty()) blockers.add("LIVE_SUB_ORDERS_REMAIN");
+
+        Map<String, Set<String>> groupSides = new HashMap<>();
+        Set<String> filledOrderIds = new HashSet<>();
+        for (JsonNode order : filledSubOrders) {
+            String orderId = order.path("ordId").asText();
+            if (!orderId.isBlank()) filledOrderIds.add(orderId);
+            String groupId = order.path("groupId").asText();
+            String side = order.path("side").asText().toUpperCase(Locale.ROOT);
+            if (!groupId.isBlank() && ("BUY".equals(side) || "SELL".equals(side))) {
+                groupSides.computeIfAbsent(groupId, ignored -> new HashSet<>()).add(side);
+            }
+        }
+        long completedPairs = groupSides.values().stream()
+                .filter(sides -> sides.contains("BUY") && sides.contains("SELL"))
+                .count();
+        report.put("completedProviderGroupPairCount", completedPairs);
+        if (completedPairs < 1) blockers.add("NO_COMPLETED_PROVIDER_BUY_SELL_GROUP_PAIR");
+
+        JsonNode fillPage = okxTradingService.getFillHistoryPage("SPOT", "BTC-USDT", 100, null);
+        ArrayNode allFills = copyArray(fillPage.path("data"));
+        boolean pageComplete = allFills.size() < 100;
+        report.put("fillHistoryFirstPageCount", allFills.size());
+        report.put("fillHistoryCoverageComplete", pageComplete);
+        if (!pageComplete) blockers.add("FILL_HISTORY_REQUIRES_ADDITIONAL_PAGES");
+
+        ArrayNode botFills = report.putArray("providerFills");
+        Set<String> coveredSubOrderIds = new HashSet<>();
+        BigDecimal baseFlow = BigDecimal.ZERO;
+        BigDecimal quoteFlow = BigDecimal.ZERO;
+        boolean signedFeeComplete = true;
+        for (JsonNode fill : allFills) {
+            String fillAlgoId = fill.path("algoId").asText();
+            String orderId = fill.path("ordId").asText();
+            if (!algoId.equals(fillAlgoId) && !filledOrderIds.contains(orderId)) continue;
+            botFills.add(fill.deepCopy());
+            if (filledOrderIds.contains(orderId)) coveredSubOrderIds.add(orderId);
+            try {
+                BigDecimal price = positiveDecimal(fill, "fillPx");
+                BigDecimal quantity = positiveDecimal(fill, "fillSz");
+                BigDecimal fee = requiredDecimal(fill, "fee");
+                String side = fill.path("side").asText().toUpperCase(Locale.ROOT);
+                String feeCurrency = fill.path("feeCcy").asText().toUpperCase(Locale.ROOT);
+                if ("BUY".equals(side)) {
+                    baseFlow = baseFlow.add(quantity);
+                    quoteFlow = quoteFlow.subtract(price.multiply(quantity));
+                } else if ("SELL".equals(side)) {
+                    baseFlow = baseFlow.subtract(quantity);
+                    quoteFlow = quoteFlow.add(price.multiply(quantity));
+                } else {
+                    signedFeeComplete = false;
+                }
+                if ("BTC".equals(feeCurrency)) baseFlow = baseFlow.add(fee);
+                else if ("USDT".equals(feeCurrency)) quoteFlow = quoteFlow.add(fee);
+                else signedFeeComplete = false;
+            } catch (IllegalArgumentException invalidFill) {
+                signedFeeComplete = false;
+            }
+        }
+        report.put("providerFillCount", botFills.size());
+        report.put("signedFeeCoverageComplete", signedFeeComplete);
+        report.put("filledSubOrderFillCoverageComplete", coveredSubOrderIds.containsAll(filledOrderIds));
+        report.put("netBaseFlowBtc", baseFlow);
+        report.put("signedFeeNetQuoteCashFlowUsdt", quoteFlow);
+        if (botFills.isEmpty()) blockers.add("NO_PROVIDER_FILLS_BOUND_TO_BOT");
+        if (!coveredSubOrderIds.containsAll(filledOrderIds)) blockers.add("SUB_ORDER_FILL_COVERAGE_INCOMPLETE");
+        if (!signedFeeComplete) blockers.add("SIGNED_FEE_OR_FILL_FIELDS_INCOMPLETE");
+
+        BigDecimal lotSize = okxTradingService.getSpotInstrumentRules("BTC-USDT").lotSize();
+        report.put("providerLotSizeBtc", lotSize);
+        boolean residualWithinLot = lotSize != null && baseFlow.abs().compareTo(lotSize) <= 0;
+        report.put("baseResidualWithinOneLot", residualWithinLot);
+        if (!residualWithinLot) blockers.add("BASE_RESIDUAL_EXCEEDS_ONE_LOT");
+        if (!terminal) blockers.add("BOT_NOT_TERMINAL_IN_PROVIDER_HISTORY");
+
+        boolean exactNetProven = terminal && liveSubOrders.isEmpty() && completedPairs >= 1
+                && pageComplete && !botFills.isEmpty() && coveredSubOrderIds.containsAll(filledOrderIds)
+                && signedFeeComplete && residualWithinLot;
+        report.put("exactNetPnlProven", exactNetProven);
+        if (exactNetProven) report.put("exactNetPnlUsdt", quoteFlow);
+        report.put("functionalAcceptance", "NOT_YET_PROVEN");
+        report.put("functionalAcceptanceReason",
+                "This receipt proves provider trade economics only; create idempotency, restart rediscovery, duplicate/order safety, and authorized stop receipts remain separate Gate A evidence.");
+        return report.toPrettyString();
+    }
+
     private void appendProviderRuleEvidence(ObjectNode report,
                                             ArrayNode blockers,
                                             String instrument,
                                             BigDecimal priceLower,
+                                            BigDecimal priceUpper,
                                             Integer gridCount,
                                             BigDecimal totalQuoteUsdt) {
         ObjectNode evidence = report.putObject("providerRuleEvidence");
         evidence.put("source", "OKX_PUBLIC_INSTRUMENT_AND_TICKER_READ_ONLY");
-        if (!"BTC-USDT".equals(instrument) || priceLower == null || priceLower.signum() <= 0
+        if (!"BTC-USDT".equals(instrument) || priceLower == null || priceUpper == null
+                || priceLower.signum() <= 0 || priceUpper.signum() <= 0
                 || gridCount == null || gridCount < 2 || totalQuoteUsdt == null) {
             evidence.put("status", "NOT_COMPUTABLE_INVALID_REQUEST");
             return;
@@ -213,6 +343,23 @@ public class OkxNativeGridMcpTools {
                     : "PUBLIC_RULE_LOWER_BOUND_FAILS");
             if (totalQuoteUsdt.compareTo(minimumTotalQuoteLowerBound) < 0) {
                 blockers.add("TOTAL_QUOTE_BELOW_OKX_PUBLIC_MIN_SIZE_LOWER_BOUND");
+            }
+            JsonNode minimumData = okxTradingService.getNativeSpotGridMinimumInvestment(
+                    instrument, priceLower, priceUpper, gridCount);
+            BigDecimal exactMinimum = findMinimumAmount(minimumData, "USDT");
+            if (exactMinimum == null) {
+                evidence.put("exactMinimumStatus", "MISSING");
+                blockers.add("OKX_EXACT_QUOTE_MINIMUM_MISSING");
+            } else {
+                evidence.put("exactMinimumQuoteUsdt", exactMinimum);
+                evidence.put("exactMinimumStatus", totalQuoteUsdt.compareTo(exactMinimum) >= 0
+                        ? "PASSES" : "REQUEST_BELOW_MINIMUM");
+                if (exactMinimum.compareTo(TINY_LIVE_QUOTE_CAP) > 0) {
+                    blockers.add("OKX_MINIMUM_EXCEEDS_10_USDT_CAP");
+                }
+                if (totalQuoteUsdt.compareTo(exactMinimum) < 0) {
+                    blockers.add("TOTAL_QUOTE_BELOW_OKX_EXACT_MINIMUM");
+                }
             }
         } catch (RuntimeException error) {
             evidence.put("status", "PROVIDER_RULE_LOOKUP_FAILED");
@@ -254,5 +401,42 @@ public class OkxNativeGridMcpTools {
         ArrayNode result = objectMapper.createArrayNode();
         if (value != null && value.isArray()) value.forEach(result::add);
         return result;
+    }
+
+    private JsonNode findByAlgoId(ArrayNode bots, String algoId) {
+        for (JsonNode bot : bots) if (algoId.equals(bot.path("algoId").asText())) return bot;
+        return null;
+    }
+
+    private BigDecimal findMinimumAmount(JsonNode minimumData, String currency) {
+        if (minimumData == null || !minimumData.isArray() || minimumData.isEmpty()) return null;
+        JsonNode rows = minimumData.path(0).path("minInvestmentData");
+        if (!rows.isArray()) return null;
+        for (JsonNode row : rows) {
+            if (!currency.equalsIgnoreCase(row.path("ccy").asText())) continue;
+            try {
+                BigDecimal amount = new BigDecimal(row.path("amt").asText());
+                return amount.signum() > 0 ? amount : null;
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private BigDecimal requiredDecimal(JsonNode node, String field) {
+        String value = node.path(field).asText();
+        if (value.isBlank()) throw new IllegalArgumentException("missing " + field);
+        try {
+            return new BigDecimal(value);
+        } catch (NumberFormatException error) {
+            throw new IllegalArgumentException("invalid " + field, error);
+        }
+    }
+
+    private BigDecimal positiveDecimal(JsonNode node, String field) {
+        BigDecimal value = requiredDecimal(node, field);
+        if (value.signum() <= 0) throw new IllegalArgumentException("non-positive " + field);
+        return value;
     }
 }

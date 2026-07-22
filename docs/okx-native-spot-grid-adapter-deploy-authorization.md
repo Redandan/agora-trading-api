@@ -22,6 +22,8 @@ The candidate may:
   exact USDT minimum is present and no greater than both the requested amount
   and the 10 USDT cap;
 - read active/history/detail provider state for idempotency and reconciliation;
+- read filled/live Grid sub-orders and authenticated BTC-USDT fills for
+  signed-fee exact-net acceptance evidence;
 - keep `TRADING_OKX_NATIVE_GRID_ENABLED=false` and
   `TRADING_OKX_NATIVE_GRID_LIVE_ACTION_ENABLED=false`;
 - expose dry-run packets whose required confirmation is bound to the exact
@@ -66,7 +68,10 @@ Deployment passes only when:
    or while another native/legacy holding exists are blocked;
 5. a stop dry-run sends no provider request and binds disposition to the exact
    active Bot detail hash;
-6. Production Grid rows, balances, provider orders, and native Bot inventories
+6. the acceptance evidence tool is read-only and refuses exact-net proof when
+   Bot lifecycle, provider pair, fill coverage, signed fee, pagination, live
+   sub-order, or base-residual evidence is incomplete;
+7. Production Grid rows, balances, provider orders, and native Bot inventories
    are unchanged by deployment.
 
 This is adapter deployment acceptance only. It is not

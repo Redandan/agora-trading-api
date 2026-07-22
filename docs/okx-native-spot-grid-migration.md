@@ -80,6 +80,16 @@ protected stop tool requires an explicit `SELL_BASE` versus `KEEP_BASE`
 disposition and binds confirmation to a SHA-256 of the current provider Bot
 detail. Neither tool writes the local database.
 
+`getOkxNativeSpotGridAcceptanceEvidence(algoId)` is the read-only Gate A trade
+economics receipt. It joins provider active/history/detail state, filled/live
+Grid sub-orders, provider `groupId` pairs, and authenticated BTC-USDT fill
+history. Exact-net PnL is emitted only for a terminal Bot with at least one
+completed provider buy/sell group, complete signed-fee fields, complete child
+order coverage, an untruncated fill page, no live sub-orders, and no base
+residual above one OKX lot. This receipt alone never declares functional
+acceptance because create idempotency, restart rediscovery, duplicate safety,
+and the separately authorized stop receipt remain independent requirements.
+
 ## Acceptance standard
 
 Migration is accepted only when both Gate A and Gate B pass. Passing tests,
@@ -104,7 +114,8 @@ All items are required:
    timestamps are retained as exact forward evidence.
 5. Reporting reconciles OKX bot state, spot balance, open/unpaired inventory,
    completed Grid profit, signed fees, and exact-net PnL. No gross or unrealized
-   PnL is presented as exact-net profit.
+   PnL is presented as exact-net profit. The read-only acceptance evidence tool
+   must report `exactNetPnlProven=true`; otherwise exact-net remains unproven.
 6. During the acceptance window there are zero duplicate bots, zero duplicate
    orders caused by retries, zero unexplained holdings, zero unprotected filled
    inventory, and zero local custom-Grid orders.

@@ -78,6 +78,15 @@ if ($null -ne $payload) {
     if (@($levels | Where-Object { $unsafe -contains ([string]$_.status).ToUpperInvariant() }).Count -gt 0) {
         Add-UniqueBlocker $blockers "LEGACY_INVENTORY_OR_IN_FLIGHT_REMAINS"
     }
+    $databaseClosedPairCount = 0
+    foreach ($grid in $grids) {
+        $gridClosedPairCount = 0
+        if (-not [int]::TryParse([string]$grid.closedPairCount, [ref]$gridClosedPairCount) -or $gridClosedPairCount -lt 0) {
+            Add-UniqueBlocker $blockers "GRID_CLOSED_PAIR_COUNT_INVALID"
+        } else {
+            $databaseClosedPairCount += $gridClosedPairCount
+        }
+    }
 
     $ordersById = @{}
     foreach ($order in $orders) {
@@ -150,6 +159,7 @@ if ($null -ne $payload) {
         if ([int]$reconciliation.unsafeLevelCount -ne 0) { Add-UniqueBlocker $blockers "RECONCILIATION_UNSAFE_LEVEL_COUNT_NONZERO" }
         if (-not [bool]$reconciliation.signedFeeCoverageComplete) { Add-UniqueBlocker $blockers "RECONCILIATION_SIGNED_FEE_INCOMPLETE" }
         if ([int]$reconciliation.completedPairCount -ne $computedPairCount) { Add-UniqueBlocker $blockers "RECONCILIATION_PAIR_COUNT_MISMATCH" }
+        if ($databaseClosedPairCount -ne $computedPairCount) { Add-UniqueBlocker $blockers "HISTORICAL_COMPLETED_PAIR_COVERAGE_INCOMPLETE" }
         $claimedPnl = Decimal-OrNull $reconciliation.exactNetRealizedPnlUsdt
         $claimedDust = Decimal-OrNull $reconciliation.attributedDustBtc
         if ($null -eq $claimedPnl -or $claimedPnl -ne $computedExactNetPnl) { Add-UniqueBlocker $blockers "RECONCILIATION_EXACT_NET_PNL_MISMATCH" }

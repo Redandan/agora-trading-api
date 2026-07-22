@@ -46,7 +46,50 @@ and fee currency. Fee currencies other than BTC or USDT fail closed. Database
 unrealized marks are retained as comparison evidence but cannot substitute for
 the provider-derived exact-net calculation.
 
+The sum of `bt_grid.closed_pair_count` must exactly equal the number of
+provider-covered pairs reconstructed by the archive. The legacy recycler
+cleared a level's BUY/SELL order IDs when returning it to `PENDING`; therefore
+an archive that contains only the surviving level order IDs must fail with
+`HISTORICAL_COMPLETED_PAIR_COVERAGE_INCOMPLETE`. It is forbidden to silently
+replace missing historical pair evidence with the DB aggregate PnL.
+
 ## Local verification
+
+Before calling any provider archive exporter, quantify whether Production still
+has order-ID coverage for every historical completed pair:
+
+```powershell
+.\scripts\prepare_legacy_grid_archive_source_gap_ssh.ps1 `
+  -ExpectedCommit <FULL_PRODUCTION_COMMIT>
+```
+
+`BLOCKED_HISTORICAL_ARCHIVE_SOURCE_GAP` means an exporter must not fabricate a
+complete archive from the surviving rows.
+
+When historical provider order IDs are missing, check whether the already
+prepared prior-quarter OKX bills archive is available using authenticated GET
+only:
+
+```powershell
+.\scripts\check_okx_bills_history_archive_availability_ssh.ps1 `
+  -Year 2026 -Quarter Q2
+```
+
+This check redacts `fileHref` and never applies for or downloads an archive.
+If OKX reports no prepared file, the required POST archive application is a
+separate external provider action and must not be inferred from this GET.
+
+Generate the exact state-bound request confirmation without sending POST:
+
+```powershell
+.\scripts\request_okx_bills_history_archive_ssh.ps1 `
+  -ExpectedCommit <FULL_PRODUCTION_COMMIT> `
+  -Year 2026 -Quarter Q2
+```
+
+Execution requires the exact returned confirmation plus `-Execute`. It sends
+at most one fixed archive POST and forbids retry after an ambiguous response;
+reconciliation must return to GET. This is not a trading-order authorization.
 
 ```powershell
 .\scripts\verify_legacy_grid_immutable_archive.ps1 `
@@ -59,4 +102,3 @@ The strongest local result is
 still requires independent Production post-export reconciliation and the other
 Gate B evidence. Physical table deletion remains a later, separately
 authorized DB migration.
-

@@ -88,6 +88,18 @@ tables for `PASS_CUSTOM_GRID_FULLY_DELETED`.
 
 ## Required verification for runtime removal
 
+Run the local fail-closed static component after the Gate A and archive
+preconditions have passed and the removal change has been made:
+
+```powershell
+.\scripts\verify_custom_grid_runtime_removed.ps1 -RequirePass
+```
+
+Before removal, the expected result is `CUSTOM_GRID_RUNTIME_PRESENT`. A clean
+local result is only `PASS_CUSTOM_GRID_RUNTIME_REMOVED_LOCAL_COMPONENT_ONLY`;
+it cannot prove Production deployment, archive reconciliation, physical table
+deletion, or overall migration acceptance.
+
 Acceptance requires all of the following, not merely green unit tests:
 
 1. repository search finds no custom Grid create/resume/rebuild/scheduler/

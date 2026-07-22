@@ -238,7 +238,7 @@ try {
     }
 
     $ignore = Get-Content -Raw ".gitignore"
-    if ($ignore -notmatch "(?m)^!\.env\.trading\.secrets\.example$") {
+    if ($ignore -notmatch "(?m)^!\.env\.trading\.secrets\.example\r?$") {
         throw ".gitignore must allow tracking .env.trading.secrets.example"
     }
 

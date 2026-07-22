@@ -4,6 +4,7 @@ import com.agora.config.OkxTradingProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -177,6 +178,80 @@ public class OkxTradingService implements TradingService {
         JsonNode response = get("/api/v5/tradingBot/grid/" + endpoint + "?algoOrdType=grid");
         assertOkxCode(response);
         return response.path("data");
+    }
+
+    /** Read-only detail for one provider-native Spot Grid bot. */
+    public JsonNode getNativeSpotGridOrderDetails(String algoId) {
+        requireDigits("algoId", algoId);
+        JsonNode response = get("/api/v5/tradingBot/grid/orders-algo-details?algoOrdType=grid&algoId=" + algoId);
+        assertOkxCode(response);
+        return response.path("data");
+    }
+
+    /**
+     * Provider write. Callers must enforce the disabled-by-default feature gates, fresh
+     * inventory reconciliation, capital cap, and exact dynamic confirmation.
+     */
+    public JsonNode createNativeSpotGrid(String instId,
+                                         BigDecimal minPx,
+                                         BigDecimal maxPx,
+                                         int gridNum,
+                                         BigDecimal quoteSz,
+                                         String algoClOrdId) {
+        checkEnabled();
+        ObjectNode body = nativeSpotGridCreateBody(
+                objectMapper, instId, minPx, maxPx, gridNum, quoteSz, algoClOrdId);
+        JsonNode response = post("/api/v5/tradingBot/grid/order-algo", body.toString());
+        assertOkxWriteSuccess(response);
+        return response.path("data");
+    }
+
+    static ObjectNode nativeSpotGridCreateBody(ObjectMapper mapper,
+                                                String instId,
+                                                BigDecimal minPx,
+                                                BigDecimal maxPx,
+                                                int gridNum,
+                                                BigDecimal quoteSz,
+                                                String algoClOrdId) {
+        ObjectNode body = mapper.createObjectNode();
+        body.put("instId", instId);
+        body.put("algoOrdType", "grid");
+        body.put("minPx", minPx);
+        body.put("maxPx", maxPx);
+        body.put("gridNum", Integer.toString(gridNum));
+        body.put("runType", "1");
+        body.put("quoteSz", quoteSz);
+        body.put("algoClOrdId", algoClOrdId);
+        return body;
+    }
+
+    /** Provider write. stopType=1 sells base; stopType=2 keeps base. */
+    public JsonNode stopNativeSpotGrid(String algoId, String stopType) {
+        checkEnabled();
+        requireDigits("algoId", algoId);
+        if (!"1".equals(stopType) && !"2".equals(stopType)) {
+            throw new IllegalArgumentException("stopType must be 1 (sell base) or 2 (keep base)");
+        }
+        ArrayNode body = nativeSpotGridStopBody(objectMapper, algoId, stopType);
+        JsonNode response = post("/api/v5/tradingBot/grid/stop-order-algo", body.toString());
+        assertOkxWriteSuccess(response);
+        return response.path("data");
+    }
+
+    static ArrayNode nativeSpotGridStopBody(ObjectMapper mapper, String algoId, String stopType) {
+        ArrayNode body = mapper.createArrayNode();
+        ObjectNode item = body.addObject();
+        item.put("algoId", algoId);
+        item.put("algoOrdType", "grid");
+        item.put("instId", "BTC-USDT");
+        item.put("stopType", stopType);
+        return body;
+    }
+
+    private void requireDigits(String field, String value) {
+        if (value == null || !value.matches("[0-9]+")) {
+            throw new IllegalArgumentException(field + " must contain digits only");
+        }
     }
 
     // ──────────────────────────────────────────────
@@ -1400,6 +1475,22 @@ public class OkxTradingService implements TradingService {
             String sMsg  = first.path("sMsg").asText("");
             String detail = sCode.isEmpty() ? "" : " [sCode=" + sCode + " sMsg=" + sMsg + "]";
             throw new RuntimeException("OKX API error [code=" + code + "]: " + resp.path("msg").asText() + detail);
+        }
+    }
+
+    /** OKX write endpoints can return top-level code=0 with an item-level rejection. */
+    private void assertOkxWriteSuccess(JsonNode response) {
+        assertOkxCode(response);
+        JsonNode data = response.path("data");
+        if (!data.isArray() || data.isEmpty()) {
+            throw new RuntimeException("OKX write response has no result item");
+        }
+        for (JsonNode item : data) {
+            String itemCode = item.path("sCode").asText("0");
+            if (!"0".equals(itemCode)) {
+                throw new RuntimeException("OKX write rejected [sCode=" + itemCode
+                        + " sMsg=" + item.path("sMsg").asText() + "]");
+            }
         }
     }
 

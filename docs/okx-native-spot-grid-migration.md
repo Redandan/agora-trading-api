@@ -44,7 +44,16 @@ before any action.
 
 ## Phase 3: native Bot write adapter
 
-Add a separately gated adapter for OKX `Place grid algo order` only after:
+The local candidate may contain the write adapter before it is deployed, but it
+must remain disabled through both `TRADING_OKX_NATIVE_GRID_ENABLED=false` and
+`TRADING_OKX_NATIVE_GRID_LIVE_ACTION_ENABLED=false`. Phase 1 Production deploy
+authorization remains pinned to its exact earlier commit and does not include
+this adapter.
+
+Execution also requires the existing `TRADING_OKX_ENABLED=true` master trading
+switch. The native adapter cannot bypass that global provider-order gate.
+
+Enable the separately gated adapter for OKX `Place grid algo order` only after:
 
 - account-level native Grid API availability is proven read-only;
 - total quote investment is the single capital authority;
@@ -60,6 +69,13 @@ Add a separately gated adapter for OKX `Place grid algo order` only after:
 The adapter must default to disabled and expose preview/read tools before any
 write tool. Trend classification may be advisory, but capital, product type,
 idempotency, minimum-order, and single-holding checks remain hard blockers.
+
+The protected create tool fixes `algoOrdType=grid`, `runType=1`, uses only
+`quoteSz`, rejects `quoteSz>10`, requires a fresh unique provider
+`algoClOrdId`, and re-reads active/history inventory before execution. The
+protected stop tool requires an explicit `SELL_BASE` versus `KEEP_BASE`
+disposition and binds confirmation to a SHA-256 of the current provider Bot
+detail. Neither tool writes the local database.
 
 ## Acceptance standard
 

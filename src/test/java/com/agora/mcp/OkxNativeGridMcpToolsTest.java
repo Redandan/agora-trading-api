@@ -5,6 +5,7 @@ import com.agora.model.BtGridLevel;
 import com.agora.repository.trading.BtGridLevelRepository;
 import com.agora.repository.trading.BtGridRepository;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.OkxNativeGridExecutionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -34,7 +35,7 @@ class OkxNativeGridMcpToolsTest {
         when(okx.getNativeSpotGridOrders(false)).thenReturn(active);
         when(okx.getNativeSpotGridOrders(true)).thenReturn(mapper.createArrayNode());
 
-        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels)
+        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels, mock(OkxNativeGridExecutionService.class))
                 .getOkxNativeSpotGridStatus(true);
 
         assertThat(output).contains(
@@ -73,7 +74,7 @@ class OkxNativeGridMcpToolsTest {
         when(grids.findBySymbolAndClosedAtIsNull("BTCUSDT")).thenReturn(List.of(grid));
         when(levels.findByGridId(10L)).thenReturn(List.of(holding));
 
-        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels)
+        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels, mock(OkxNativeGridExecutionService.class))
                 .previewOkxNativeSpotGridMigration("BTCUSDT", new BigDecimal("60000"),
                         new BigDecimal("70000"), 10, new BigDecimal("10"));
 
@@ -106,7 +107,7 @@ class OkxNativeGridMcpToolsTest {
         when(okx.getLastPrice("BTC-USDT")).thenReturn(new BigDecimal("66370.5"));
         when(grids.findBySymbolAndClosedAtIsNull("BTCUSDT")).thenReturn(List.of());
 
-        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels)
+        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels, mock(OkxNativeGridExecutionService.class))
                 .previewOkxNativeSpotGridMigration("BTC-USDT", new BigDecimal("60000"),
                         new BigDecimal("70000"), 10, new BigDecimal("10.01"));
 
@@ -126,7 +127,7 @@ class OkxNativeGridMcpToolsTest {
         when(okx.getLastPrice("BTC-USDT")).thenReturn(new BigDecimal("66370.5"));
         when(grids.findBySymbolAndClosedAtIsNull("BTCUSDT")).thenReturn(List.of());
 
-        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels)
+        String output = new OkxNativeGridMcpTools(okx, mapper, grids, levels, mock(OkxNativeGridExecutionService.class))
                 .previewOkxNativeSpotGridMigration("BTC-USDT", new BigDecimal("60000"),
                         new BigDecimal("70000"), 20, new BigDecimal("10"));
 

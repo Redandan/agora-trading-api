@@ -9,12 +9,14 @@ import com.agora.model.BtGridLevel;
 import com.agora.repository.trading.BtGridLevelRepository;
 import com.agora.repository.trading.BtGridRepository;
 import com.agora.service.trading.OkxTradingService;
+import com.agora.service.trading.OkxNativeGridExecutionService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +38,7 @@ public class OkxNativeGridMcpTools {
     private final ObjectMapper objectMapper;
     private final BtGridRepository gridRepository;
     private final BtGridLevelRepository gridLevelRepository;
+    private final OkxNativeGridExecutionService executionService;
 
     @Tool(description = "Read-only inventory of OKX-native Spot Grid bots. Returns active bots and, "
             + "when includeHistory=true, stopped/history bots. This migration tool never creates, amends, "
@@ -135,6 +138,41 @@ public class OkxNativeGridMcpTools {
         report.put("requiredNextAuthorization",
                 "Separate exact authorization for legacy holding resolution, then a separate exact OKX native bot create package");
         return report.toPrettyString();
+    }
+
+    @Tool(description = "Protected OKX-native BTC-USDT Spot Grid create workflow. Dry-run by default. "
+            + "Hard-limits product to Spot grid, 1x/no leverage, one active bot, arithmetic spacing, and quoteSz <=10 USDT. "
+            + "execute=true additionally requires both disabled-by-default server gates, zero open legacy grids/in-flight inventory, "
+            + "a unique 1-32 character alphanumeric algoClOrdId, and the exact dynamic confirmText returned by the dry-run. "
+            + "No database or custom Grid mutation occurs. params: symbol, minPx, maxPx, gridNum, quoteSz, algoClOrdId, execute, confirmText")
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
+    public String createOkxNativeSpotGrid(
+            String symbol,
+            BigDecimal minPx,
+            BigDecimal maxPx,
+            Integer gridNum,
+            BigDecimal quoteSz,
+            String algoClOrdId,
+            @ToolParam(required = false, description = "False/null for dry-run; true requests guarded provider create") Boolean execute,
+            @ToolParam(required = false, description = "Exact dynamic confirmation text returned by dry-run") String confirmText) {
+        return executionService.previewOrCreate(
+                symbol, minPx, maxPx, gridNum, quoteSz, algoClOrdId, execute, confirmText);
+    }
+
+    @Tool(description = "Protected OKX-native BTC-USDT Spot Grid stop workflow. Dry-run by default. "
+            + "disposition must be SELL_BASE (provider stopType=1, may market-sell bot BTC) or KEEP_BASE "
+            + "(stopType=2, leaves attributable BTC). execute=true requires both disabled-by-default server gates, "
+            + "the exact active provider algoId, and exact dynamic confirmText containing a hash of current bot state. "
+            + "No database or custom Grid mutation occurs. params: algoId, disposition, execute, confirmText")
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.WRITE_TRADING, Category.GOVERNANCE})
+    public String stopOkxNativeSpotGrid(
+            String algoId,
+            String disposition,
+            @ToolParam(required = false, description = "False/null for dry-run; true requests guarded provider stop") Boolean execute,
+            @ToolParam(required = false, description = "Exact dynamic confirmation text returned by dry-run") String confirmText) {
+        return executionService.previewOrStop(algoId, disposition, execute, confirmText);
     }
 
     private void appendProviderRuleEvidence(ObjectNode report,

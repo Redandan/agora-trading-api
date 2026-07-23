@@ -20,12 +20,14 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +39,8 @@ import java.util.Set;
 public class OkxNativeGridMcpTools {
 
     private static final BigDecimal TINY_LIVE_QUOTE_CAP = new BigDecimal("10");
+    private static final int EXACT_FILL_PAGE_LIMIT = 100;
+    private static final int EXACT_FILL_MAX_PAGES_PER_ORDER = 100;
     private static final Set<String> INVENTORY_OR_IN_FLIGHT_STATUSES = Set.of(
             "HOLDING", "SELL_FAILED", "SELL_PARTIAL", "PENDING_OKX", "SELLING_OKX");
 
@@ -239,12 +243,13 @@ public class OkxNativeGridMcpTools {
         report.put("completedProviderGroupPairCount", completedPairs);
         if (completedPairs < 1) blockers.add("NO_COMPLETED_PROVIDER_BUY_SELL_GROUP_PAIR");
 
-        JsonNode fillPage = okxTradingService.getFillHistoryPage("SPOT", "BTC-USDT", 100, null);
-        ArrayNode allFills = copyArray(fillPage.path("data"));
-        boolean pageComplete = allFills.size() < 100;
-        report.put("fillHistoryFirstPageCount", allFills.size());
+        FillHistoryCoverage fillHistory = collectOrderFillHistory(filledOrderIds);
+        ArrayNode allFills = fillHistory.fills();
+        boolean pageComplete = fillHistory.complete();
+        report.put("fillHistoryPageCount", fillHistory.pageCount());
+        report.put("fillHistoryTotalCount", allFills.size());
         report.put("fillHistoryCoverageComplete", pageComplete);
-        if (!pageComplete) blockers.add("FILL_HISTORY_REQUIRES_ADDITIONAL_PAGES");
+        if (!pageComplete) blockers.add("FILL_HISTORY_PAGINATION_INCOMPLETE");
 
         ArrayNode botFills = report.putArray("providerFills");
         Set<String> coveredSubOrderIds = new HashSet<>();
@@ -589,4 +594,78 @@ public class OkxNativeGridMcpTools {
         if (value.signum() <= 0) throw new IllegalArgumentException("non-positive " + field);
         return value;
     }
+
+    private FillHistoryCoverage collectOrderFillHistory(Set<String> orderIds) {
+        ArrayNode fills = objectMapper.createArrayNode();
+        int pageCount = 0;
+        boolean complete = true;
+        Set<String> seenBillIds = new HashSet<>();
+        Set<String> seenTradeIds = new HashSet<>();
+
+        for (String orderId : new java.util.TreeSet<>(orderIds)) {
+            String cursor = null;
+            boolean orderComplete = false;
+            Set<String> seenCursors = new LinkedHashSet<>();
+            for (int pageIndex = 0; pageIndex < EXACT_FILL_MAX_PAGES_PER_ORDER; pageIndex++) {
+                String cursorKey = cursor == null ? "<ROOT>" : cursor;
+                if (!seenCursors.add(cursorKey)) {
+                    complete = false;
+                    break;
+                }
+                JsonNode response = okxTradingService.getFillHistoryPage(
+                        "SPOT", "BTC-USDT", orderId, EXACT_FILL_PAGE_LIMIT, cursor);
+                pageCount++;
+                JsonNode data = response == null ? null : response.path("data");
+                if (response == null || !"0".equals(response.path("code").asText()) || !data.isArray()) {
+                    complete = false;
+                    break;
+                }
+                if (data.isEmpty()) {
+                    orderComplete = true;
+                    break;
+                }
+
+                BigInteger priorBillId = null;
+                BigInteger requestCursor = cursor == null ? null : numericId(cursor);
+                String nextCursor = null;
+                boolean validPage = requestCursor != null || cursor == null;
+                for (JsonNode fill : data) {
+                    String fillOrderId = fill.path("ordId").asText();
+                    String billId = fill.path("billId").asText();
+                    String tradeId = fill.path("tradeId").asText();
+                    BigInteger numericBillId = numericId(billId);
+                    if (!orderId.equals(fillOrderId) || numericBillId == null
+                            || tradeId.isBlank() || !seenBillIds.add(billId) || !seenTradeIds.add(tradeId)
+                            || requestCursor != null && numericBillId.compareTo(requestCursor) >= 0
+                            || priorBillId != null && numericBillId.compareTo(priorBillId) >= 0) {
+                        validPage = false;
+                        break;
+                    }
+                    priorBillId = numericBillId;
+                    nextCursor = billId;
+                    fills.add(fill.deepCopy());
+                }
+                if (!validPage || nextCursor == null || nextCursor.equals(cursor)) {
+                    complete = false;
+                    break;
+                }
+                cursor = nextCursor;
+            }
+            if (!orderComplete) {
+                complete = false;
+            }
+        }
+        return new FillHistoryCoverage(fills, pageCount, complete);
+    }
+
+    private BigInteger numericId(String value) {
+        if (value == null || !value.matches("[0-9]+")) return null;
+        try {
+            return new BigInteger(value);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private record FillHistoryCoverage(ArrayNode fills, int pageCount, boolean complete) { }
 }

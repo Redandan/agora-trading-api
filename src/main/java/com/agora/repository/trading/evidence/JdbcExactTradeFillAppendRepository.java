@@ -107,7 +107,7 @@ public class JdbcExactTradeFillAppendRepository implements ExactTradeFillAppendR
             if (!collection.run().runId().equals(page.runId()) || page.pageIndex() != i
                     || page.terminalPage() != (i == collection.pages().size() - 1)
                     || page.terminalPage() && page.fillCount() != 0
-                    || !page.terminalPage() && page.fillCount() < 1) {
+                    || page.fillCount() < 0) {
                 conflict("collection append page chain mismatch");
             }
         }

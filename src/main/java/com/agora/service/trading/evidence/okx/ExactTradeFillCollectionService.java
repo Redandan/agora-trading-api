@@ -31,6 +31,7 @@ public class ExactTradeFillCollectionService {
         Set<String> seenPageKeys = new HashSet<>();
         Set<String> seenBillIds = new HashSet<>();
         Map<String, String> seenTradeOrders = new HashMap<>();
+        Set<String> coveredBoundOrderIds = new HashSet<>();
         String cursor = null;
         boolean terminal = false;
         for (int pageIndex = 0; pageIndex < request.maxPages(); pageIndex++) {
@@ -44,11 +45,14 @@ public class ExactTradeFillCollectionService {
                     fail("FILL_PAGE_BINDING_MISMATCH");
                 }
                 FillBinding binding = fill == null ? null : request.bindings().get(fill.orderId());
-                if (binding == null) fail("UNBOUND_FILL_SCOPE");
+                if (binding == null) {
+                    continue;
+                }
                 if (fill.fillAt() == null || fill.fillAt().isBefore(binding.orderCreatedAt())) {
                     fail("FILL_PRECEDES_ORDER_CREATION");
                 }
                 merge(unique, bind(fill, binding), request);
+                coveredBoundOrderIds.add(fill.orderId());
             }
             if (page.terminal()) { terminal = true; break; }
             cursor = page.nextCursor();
@@ -56,6 +60,9 @@ public class ExactTradeFillCollectionService {
         if (!terminal) fail("TERMINAL_PAGE_NOT_PROVEN");
         Instant retentionFloor = pages.getLast().collectedAt().atZone(ZoneOffset.UTC).minusMonths(3).toInstant();
         if (!request.effectiveFrom().isAfter(retentionFloor)) fail("EFFECTIVE_FROM_OUTSIDE_PROVEN_RETENTION");
+        if (!coveredBoundOrderIds.containsAll(request.bindings().keySet())) {
+            fail("BOUND_ORDER_FILL_COVERAGE_INCOMPLETE");
+        }
         List<RawFill> fills = List.copyOf(unique.values());
         String fillSetHash = ExactTradeFillHashing.fillSet(fills);
         Optional<ExactTradeFillAppendRepository.PriorRun> prior = repository.latestCompleteRun(
@@ -63,11 +70,15 @@ public class ExactTradeFillCollectionService {
         boolean stable = prior.map(p -> p.bindingScopeSha256().equals(bindingScopeHash)
                 && p.canonicalFillSetSha256().equals(fillSetHash)).orElse(false);
         Instant completed = clock.instant();
+        Map<String, Long> boundFillCountByPage = fills.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        RawFill::sourcePageKey, java.util.stream.Collectors.counting()));
         List<PageManifest> manifests = new ArrayList<>();
         for (int i = 0; i < pages.size(); i++) {
             RawPage p = pages.get(i);
             manifests.add(new PageManifest(request.runId(), i, p.requestCursor(), p.nextCursor(), p.pageKey(),
-                    p.pageSha256(), p.fills().size(), p.terminal(), p.collectedAt()));
+                    p.pageSha256(), Math.toIntExact(boundFillCountByPage.getOrDefault(p.pageKey(), 0L)),
+                    p.terminal(), p.collectedAt()));
         }
         CollectionRun run = new CollectionRun(request.runId(), "okx", request.accountRefHash(),
                 request.instrumentId(), request.instrumentType(), bindingScopeHash,

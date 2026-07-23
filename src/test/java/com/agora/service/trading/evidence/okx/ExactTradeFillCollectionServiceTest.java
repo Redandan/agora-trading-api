@@ -73,19 +73,23 @@ class ExactTradeFillCollectionServiceTest {
     @Test
     void sameRunIsIdempotentOnlyAfterReprovingIdenticalChildren() {
         FakeRepository repo = new FakeRepository();
-        CountingClient reads = new CountingClient(List.of(terminal(null), terminal(null)));
+        RawFill entry = fill("o1", "t1", "900", "BUY", "100", "1", "0", "USDT", "p1");
+        RawFill exit = fill("o2", "t2", "800", "SELL", "101", "1", "0", "USDT", "p1");
+        CountingClient reads = new CountingClient(List.of(
+                page(null, "800", false, entry, exit), terminal("800"),
+                page(null, "800", false, entry, exit), terminal("800")));
         var service = new ExactTradeFillCollectionService(reads, repo);
         var request = request("7".repeat(64));
         service.collect(request);
         var rerun = service.collect(request);
 
         assertThat(rerun.appendResult()).isEqualTo(ExactTradeFillAppendRepository.AppendResult.DUPLICATE_IDENTICAL);
-        assertThat(reads.calls).isEqualTo(2);
+        assertThat(reads.calls).isEqualTo(4);
         assertThat(repo.appendCalls).isEqualTo(2);
     }
 
     @Test
-    void retentionLimitCrossOrderDuplicateAndUnboundRowsFailClosed() {
+    void retentionLimitAndCrossOrderDuplicateFailClosed() {
         FakeRepository repo = new FakeRepository();
         var retentionRequest = new ExactTradeFillCollectionService.Request("b".repeat(64), ACCOUNT,
                 "BTC-USDT", "SPOT", 100, 10, NOW.atZone(java.time.ZoneOffset.UTC).minusMonths(3).toInstant(),
@@ -105,9 +109,37 @@ class ExactTradeFillCollectionServiceTest {
                 fill("o2", "same", "800", "SELL", "101", "1", "0", "USDT", "p1"))), repo)
                 .collect(request("d".repeat(64)))).hasMessage("CROSS_ORDER_DUPLICATE_TRADE_ID");
 
-        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(page(null, "900", false,
-                fill("outside", "t9", "900", "BUY", "100", "1", "0", "USDT", "p1"))), repo)
-                .collect(request("e".repeat(64)))).hasMessage("UNBOUND_FILL_SCOPE");
+        assertThat(repo.appendCalls).isZero();
+    }
+
+    @Test
+    void scansUnboundInstrumentRowsButPersistsOnlyExplicitBindings() {
+        FakeRepository repo = new FakeRepository();
+        RawFill outside = fill("outside", "t9", "950", "BUY", "90", "1", "0", "USDT", "p1");
+        RawFill entry = fill("o1", "t1", "900", "BUY", "100", "1", "-0.01", "USDT", "p1");
+        RawFill exit = fill("o2", "t2", "800", "SELL", "110", "1", "-0.01", "USDT", "p1");
+
+        var result = new ExactTradeFillCollectionService(client(
+                page(null, "950", false, outside),
+                page("950", "800", false, entry, exit),
+                terminal("800")), repo)
+                .collect(request("e".repeat(64)));
+
+        assertThat(result.run().fillCount()).isEqualTo(2);
+        assertThat(repo.appended.fills()).extracting(RawFill::orderId).containsExactly("o1", "o2");
+        assertThat(repo.appended.pages()).extracting(PageManifest::fillCount).containsExactly(0, 2, 0);
+    }
+
+    @Test
+    void failsWhenAnyExplicitlyBoundOrderHasNoFillAfterCompletePagination() {
+        FakeRepository repo = new FakeRepository();
+        RawFill outside = fill("outside", "t9", "950", "BUY", "90", "1", "0", "USDT", "p1");
+        RawFill entry = fill("o1", "t1", "900", "BUY", "100", "1", "0", "USDT", "p1");
+
+        assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(
+                page(null, "900", false, outside, entry), terminal("900")), repo)
+                .collect(request("0".repeat(64))))
+                .hasMessage("BOUND_ORDER_FILL_COVERAGE_INCOMPLETE");
         assertThat(repo.appendCalls).isZero();
     }
 

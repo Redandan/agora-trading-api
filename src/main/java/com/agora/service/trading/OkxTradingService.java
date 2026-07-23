@@ -626,15 +626,28 @@ public class OkxTradingService implements TradingService {
      * This method cannot place, cancel, or modify an order.
      */
     public JsonNode getFillHistoryPage(String instType, String instId, int limit, String afterBillId) {
+        return getFillHistoryPage(instType, instId, null, limit, afterBillId);
+    }
+
+    /**
+     * Exact-evidence GET-only page optionally restricted to one immutable provider order ID.
+     * The order filter avoids mixing unrelated fills from the same instrument.
+     */
+    public JsonNode getFillHistoryPage(String instType, String instId, String orderId,
+                                       int limit, String afterBillId) {
         String normalizedType = instType == null ? "" : instType.trim().toUpperCase();
         String normalizedId = instId == null ? "" : instId.trim().toUpperCase();
         if (!"SPOT".equals(normalizedType) || !normalizedId.matches("[A-Z0-9]+-[A-Z0-9]+")) {
             throw new IllegalArgumentException("exact fill history is restricted to a concrete SPOT instrument");
         }
+        if (orderId != null && !orderId.matches("[0-9]+")) {
+            throw new IllegalArgumentException("orderId must contain digits only");
+        }
         if (afterBillId != null && !afterBillId.matches("[0-9]+")) {
             throw new IllegalArgumentException("after cursor must be an OKX billId");
         }
         String path = "/api/v5/trade/fills-history?instType=SPOT&instId=" + normalizedId
+                + (orderId == null ? "" : "&ordId=" + orderId)
                 + "&limit=" + normalizeRecentFillsLimit(limit)
                 + (afterBillId == null ? "" : "&after=" + afterBillId);
         JsonNode response = get(path);

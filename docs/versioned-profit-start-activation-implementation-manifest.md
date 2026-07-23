@@ -138,6 +138,11 @@ collection time, and an immutable raw-payload SHA-256. Complete pagination must
 be provable. Identical repeats are idempotent; a non-identical repeat is a
 permanent conflict and never overwrites evidence.
 
+Instrument-scoped pages may contain fills from unrelated orders. Those rows are
+included in cursor/page-integrity validation but are not persisted into the
+cohort run. Every explicitly bound order must still have at least one fill
+after the terminal empty page is reached; otherwise the run fails before append.
+
 Exact net uses all entry and exit fills plus every provider-signed fee under an
 explicit supported currency policy. Estimated, modeled, schedule-derived, or
 aggregate-order fees are forbidden. Missing fields, pagination gaps,

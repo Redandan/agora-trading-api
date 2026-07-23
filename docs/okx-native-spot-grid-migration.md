@@ -33,7 +33,8 @@ physical database-table deletion.
 
 ## Phase 2: retire legacy inventory
 
-1. Refresh `listGrids`, `gridStats`, exposure, spot holdings, and OKX fills.
+1. Refresh `getOkxNativeSpotGridStatus`, provider exposure, spot holdings, and
+   `getOkxNativeSpotGridAcceptanceEvidence`.
 2. Obtain exact authorization for each legacy Grid holding disposition.
 3. Close or retain each holding according to that authorization.
    Retirement quantity must be reconstructed from the original OKX BUY order,

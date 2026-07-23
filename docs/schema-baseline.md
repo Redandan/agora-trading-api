@@ -92,53 +92,13 @@ such as `flyway_schema_history` and `trading_flyway_schema_history`. In shared
 mode, `extra-in-db.txt` is reported for visibility but does not fail
 acceptance; missing trading entity tables still fail.
 
-## Extra Table Cleanup Planning
+## Extra Tables
 
-Extra-table cleanup is a standalone-DB-only historical/operator path. It is
-disabled in shared DB mode because marketplace/shared tables are expected in
-`agora_market`.
-
-If `SCHEMA_COMPARE_MODE=standalone` and the server compare reports only empty
-residual extra tables, generate a review-only cleanup plan:
-
-```bash
-cd /home/ubuntu/agora-trading-api
-bash scripts/schema_extra_tables_cleanup_plan_server.sh
-```
-
-The cleanup-plan script reads the existing `extra-in-db.txt`, queries exact
-`COUNT(*)` values for every listed table, and writes:
-
-- `target/schema-baseline/extra-table-row-counts.tsv`
-- `target/schema-baseline/extra-table-cleanup-plan.sql`
-
-It must not execute `DROP TABLE` or mutate the database. The generated SQL keeps
-drop statements commented out so an operator must explicitly review, back up the
-database, re-run the compare, and choose what to apply. If any extra table has
-rows, the cleanup-plan script fails.
-
-After review, a guarded operator script can create a fresh MySQL backup and
-optionally apply the empty-table cleanup:
-
-```bash
-cd /home/ubuntu/agora-trading-api
-bash scripts/schema_extra_tables_cleanup_apply_server.sh
-```
-
-The apply script is dry-run by default. It re-runs the cleanup planner, refuses
-to continue if any listed table has rows, and writes a full database backup under
-`/home/ubuntu/backups/agora-trading-api-schema-cleanup/`. If `extra-in-db.txt`
-is missing, it first runs the read-only schema compare to regenerate comparison
-outputs, and then continues only if the extra-table list exists. It drops tables
-only when `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` is explicitly set for that
-command:
-
-```bash
-APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1 bash scripts/schema_extra_tables_cleanup_apply_server.sh
-```
-
-Re-run `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` immediately
-after any applied cleanup.
+Marketplace/shared tables reported in `extra-in-db.txt` are expected while
+Trading uses the shared `agora_market` database. This repository does not ship
+an extra-table cleanup or drop path. If Trading moves to a standalone database,
+any cleanup tooling requires a separate reviewed design and explicit
+authorization.
 
 ## Baseline Acceptance
 

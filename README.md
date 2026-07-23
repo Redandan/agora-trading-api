@@ -2,6 +2,11 @@
 
 Standalone Trading service extracted from AgoraMarketAPI.
 
+> **Retired activation chain:** the legacy aggressive-profit, high-risk
+> micro-live probe, evidence-only accelerator, and broad order-capable scope
+> packet scripts were removed on 2026-07-23. Later references to those commands
+> are retained as acceptance history only and are not runnable guidance.
+
 ## Local run
 
 Compile/test-only verification:

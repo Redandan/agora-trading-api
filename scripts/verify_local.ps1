@@ -1569,10 +1569,6 @@ try {
     foreach ($pattern in @("LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_PACKET", "READY_FOR_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_HANDOFF_NOT_MUTATION", "REQUEST_EXACT_LOCAL_TRADINGVIEW_OCO_LIFECYCLE_ENV_AUTHORIZATION", "exactOcoLifecycleAuthorizationText", "TRADING_OCO_POLLER_ENABLED=true", "POSITION_EXIT_MANAGER_ENABLED=false", "smoke_local_tradingview_candidate_ssh.ps1 -RequireLiveMicroArmed -RequireOcoLifecycleTracked", "smoke_strategy485_position_risk_ssh.ps1", "prepare_oco_sync_reconciliation_packet_ssh.ps1", "local_tradingview_oco_lifecycle_env_request_allowed=false", "production_env_change_allowed=false", "deploy_allowed=false", "order_allowed=false", "telegram_send_allowed=false", "notAuthorization")) {
         Assert-RgMatch -Pattern $pattern -Paths @("scripts/prepare_local_tradingview_oco_lifecycle_env_handoff.ps1", "scripts/test_local_tradingview_oco_lifecycle_env_handoff.ps1", "README.md", "docs/deploy-runbook.md", "docs/live-readiness-blocker-remediation.md", "docs/tradingview-webhook.md", "SPLIT_PROGRESS.md") -Description "local TradingView OCO lifecycle env handoff keeps read-only exact authorization marker $pattern"
     }
-    foreach ($pattern in @("LIVE_ORDER_CAPABLE_SCOPE_REVIEW_PACKET", "READY_FOR_ORDER_CAPABLE_SCOPE_OPERATOR_REVIEW_NOT_MUTATION", "FIX_GRID_POST_ENV_REVIEW_OR_ROLLBACK_GRID_OKX_SCOPE", "ACCEPT_EXISTING_GRID_OKX_TRAILING_SCOPE_READ_ONLY_REVIEW", "exactAcceptScopeAuthorizationText", "exactRollbackScopeAuthorizationText", "riskAcceptanceConditions", "killSwitchPlan", "TRADING_OKX_ENABLED_SCOPE_EVIDENCE_MISSING", "TRADING_OKX_ENABLED_GRID_SCOPE_NOT_READY", "TRADING_GRID_ENABLED_SCOPE_EVIDENCE_MISSING", "GRID_SCOPE_REVIEW_NOT_READY", "GRID_SCOPE_READY_MARKER_NOT_TRUE", "TRAILING_STOP_ENABLED_SCOPE_EVIDENCE_MISSING", "TRAILING_SCOPE_REVIEW_NOT_READY", "RUNTIME_LOG_SMOKE_NOT_PASS", "AUDIT_USED_STALE_SERVER_CHECKER_LOCAL_CLASSIFIER_PASSED", "EXISTING_GRID_ORDER_PATH_ACTIVATION_RISK", "TRAILING_STOP_DRY_RUN_OBSERVATION_ONLY_NOT_OCO_MUTATION_APPROVAL", "TINY_LIVE_DRY_RUN_FALSE_WHILE_EXECUTION_DISABLED", "TRADING_OKX_ENABLED=false", "TRADING_GRID_ENABLED=false", "TRAILING_STOP_ENABLED=false", "order_allowed=false", "grid_mutation_allowed=false", "exchange_mutation_allowed=false", "notAuthorization")) {
-        Assert-RgMatch -Pattern $pattern -Paths @("scripts/prepare_live_order_capable_scope_review_packet.ps1", "scripts/test_live_order_capable_scope_review_packet.ps1") -Description "live order-capable scope review packet keeps read-only aggressive review marker $pattern"
-    }
-    Invoke-VerifyPowerShellTest -ScriptName "test_live_order_capable_scope_review_packet.ps1"
     Assert-LiveReadinessBundleNoEvidenceGuard
     Invoke-VerifyPowerShellTest -ScriptName "test_signal_policy_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy574_signal_governance_smoke.ps1"
@@ -1673,14 +1669,6 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_review_chain_blocked_packet_preservation.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_next_action_board.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_operator_authorization_request_packet.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_aggressive_activation_operator_packet.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_handoff.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_preflight_review_packet.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_activation_authorization_bundle.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_activation_source_refresh.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_high_risk_micro_live_probe_execution_preflight_packet.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_only_accelerator_env_deploy_handoff.ps1"
-    Invoke-VerifyPowerShellTest -ScriptName "test_profit_evidence_only_accelerator_post_env_read_only_bundle.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_live_blocker_audit_packet.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_profit_live_blocker_source_refresh.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_trailing_stop_dry_run_operator_decision_packet.ps1"

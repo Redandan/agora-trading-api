@@ -7,6 +7,12 @@ This repo deploys the standalone trading service. It should not deploy marketpla
 For the current acceptance state and remaining cutover blockers, start with
 `docs/split-acceptance-status.md`.
 
+The legacy aggressive-profit, high-risk micro-live probe, evidence-only
+accelerator, and broad order-capable scope packet scripts were retired on
+2026-07-23. Historical references later in this runbook are acceptance records,
+not current commands. Any future live-capable change requires a new narrowly
+scoped review based on current evidence.
+
 Before requesting a legacy Grid #10 or #11 retirement authorization, run
 `scripts/prepare_legacy_grid_retirement_preflight_ssh.ps1` with the exact
 Production commit, state SHA-256, quantity, and original BUY order ID when

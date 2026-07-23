@@ -1674,6 +1674,7 @@ try {
     Invoke-VerifyPowerShellTest -ScriptName "test_okx_bills_history_archive_availability.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_okx_bills_history_archive_request.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_okx_bills_history_archive_download_and_inspection.ps1"
+    Invoke-VerifyPowerShellTest -ScriptName "test_okx_recent_spot_fill_attribution.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_aged_position_review_plan.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_position_review_gate.ps1"
     Invoke-VerifyPowerShellTest -ScriptName "test_strategy485_operator_review_packet.ps1"

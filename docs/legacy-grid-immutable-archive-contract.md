@@ -127,6 +127,23 @@ OKX documents that the decompressed quarterly CSV can carry `ordId`, `tradeId`,
 are sufficient for provider fill accounting, but they prove custom-Grid
 ownership only when an exact non-heuristic attribution key is actually present.
 
+Before the quarterly file is available, inspect the provider's directly
+queryable recent BTC-USDT fill window without returning raw fills:
+
+```powershell
+.\scripts\inspect_okx_recent_spot_fill_attribution_ssh.ps1 `
+  -ExpectedCommit <FULL_PRODUCTION_COMMIT> `
+  -OutputPath <NEW_LOCAL_SNAPSHOT_PATH>
+```
+
+`RECENT_PROVIDER_FILLS_HAVE_NO_PAIR_TAG_ATTRIBUTION` proves that the inspected
+provider window has signed-fee fill evidence but no provider tag that can serve
+as an exact completed-pair key. It does not prove what fields will exist in the
+older quarterly file and does not authorize heuristic reconstruction.
+When `OutputPath` is supplied, the tool returns the provider rows through
+caller memory, verifies SHA-256 and byte count, writes one new local snapshot,
+and refuses overwrite. It never writes a file on the Production server.
+
 ```powershell
 .\scripts\verify_legacy_grid_immutable_archive.ps1 `
   -ArchivePath <archive.json> `

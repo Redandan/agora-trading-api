@@ -1,10 +1,12 @@
 package com.agora.mcp;
 
+import com.agora.exception.BusinessException;
 import com.agora.mcp.auth.McpApiKeyFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.execution.ToolExecutionException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.core.env.Environment;
@@ -88,9 +90,15 @@ public class McpStreamableHttpController {
                 case "resources/read"            -> ok(id, readToolResource(body));
                 default                          -> methodNotFound(id, method);
             };
-        } catch (IllegalArgumentException e) {
-            log.warn("[McpHttp] Bad request method={}: {}", method, e.getMessage());
-            return errorResponse(id, -32602, e.getMessage());
+        } catch (IllegalArgumentException | BusinessException e) {
+            return invalidParams(id, method, e);
+        } catch (ToolExecutionException e) {
+            Throwable invalidInput = findInvalidInputCause(e);
+            if (invalidInput != null) {
+                return invalidParams(id, method, invalidInput);
+            }
+            log.error("[McpHttp] Error handling method={}: {}", method, e.getMessage(), e);
+            return errorResponse(id, -32603, "Internal error: " + e.getMessage());
         } catch (Exception e) {
             log.error("[McpHttp] Error handling method={}: {}", method, e.getMessage(), e);
             return errorResponse(id, -32603, "Internal error: " + e.getMessage());
@@ -363,6 +371,23 @@ public class McpStreamableHttpController {
 
     private ResponseEntity<Map<String, Object>> methodNotFound(Object id, String method) {
         return errorResponse(id, -32601, "Method not found: " + method);
+    }
+
+    private ResponseEntity<Map<String, Object>> invalidParams(Object id, String method, Throwable cause) {
+        String message = cause.getMessage() != null ? cause.getMessage() : "Invalid tool arguments";
+        log.info("[McpHttp] Rejected invalid params method={}: {}", method, message);
+        return errorResponse(id, -32602, message);
+    }
+
+    private Throwable findInvalidInputCause(Throwable error) {
+        Throwable current = error.getCause();
+        while (current != null && current != error) {
+            if (current instanceof IllegalArgumentException || current instanceof BusinessException) {
+                return current;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 
     private ResponseEntity<Map<String, Object>> errorResponse(Object id, int code, String message) {

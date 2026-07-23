@@ -1,10 +1,7 @@
 package com.agora.service.trading;
 
-import com.agora.config.properties.TradingGridProperties;
 import com.agora.model.BtLiveSignal;
 import com.agora.repository.trading.BtDecisionAuditRepository;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -30,12 +27,8 @@ class TinyLiveMinimumOrderPreviewServiceTest {
     private final RuntimeDecisionEvidenceService evidenceService = mock(RuntimeDecisionEvidenceService.class);
     private final BtDecisionAuditRepository decisionAuditRepository = mock(BtDecisionAuditRepository.class);
     private final BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
-    private final BtGridRepository gridRepository = mock(BtGridRepository.class);
-    private final BtGridLevelRepository gridLevelRepository = mock(BtGridLevelRepository.class);
     private final EventRiskLevelEngine eventRiskLevelEngine = mock(EventRiskLevelEngine.class);
     private final OkxTradingService okxTradingService = mock(OkxTradingService.class);
-    private final TradingGridProperties gridProperties = new TradingGridProperties(
-            false, false, false, false, 24, 300_000L, true, new BigDecimal("5.0"));
     private final AutoExplorationRolloutStateService rolloutStateService =
             mock(AutoExplorationRolloutStateService.class);
 
@@ -87,7 +80,6 @@ class TinyLiveMinimumOrderPreviewServiceTest {
         when(liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of());
         when(liveSignalRepository.countTinyLiveAutoTradesSince(eq(574L), eq("BTCUSDT"), any(LocalDateTime.class)))
                 .thenReturn(0L);
-        when(gridRepository.findBySymbolAndClosedAtIsNull(eq("BTCUSDT"))).thenReturn(List.of());
         when(okxTradingService.getLastPrice(eq("BTCUSDT"))).thenReturn(new BigDecimal("60000"));
         when(okxTradingService.getSpotInstrumentRules(eq("BTCUSDT"))).thenReturn(
                 new OkxTradingService.SpotInstrumentRules(
@@ -102,12 +94,9 @@ class TinyLiveMinimumOrderPreviewServiceTest {
                 evidenceService,
                 decisionAuditRepository,
                 liveSignalRepository,
-                gridRepository,
-                gridLevelRepository,
                 eventRiskLevelEngine,
                 okxTradingService,
                 new OcoOrderStateInspector(okxTradingService),
-                gridProperties,
                 rolloutStateService,
                 new ObjectMapper(),
                 new MockEnvironment());

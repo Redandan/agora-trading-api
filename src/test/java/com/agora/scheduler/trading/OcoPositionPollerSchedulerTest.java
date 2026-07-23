@@ -4,7 +4,6 @@ import com.agora.config.OkxTradingProperties;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.metrics.TradingMetrics;
 import com.agora.model.BtLiveSignal;
-import com.agora.repository.trading.BtGridLevelRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.service.TgNotificationDeduper;
 import com.agora.service.TgNotificationDeduper.Severity;
@@ -92,28 +91,6 @@ class OcoPositionPollerSchedulerTest {
         verify(tracker).confirmOrSeed(eq("BTC"), argThat(v -> v.compareTo(new BigDecimal("0.00030000")) == 0), any(LocalDateTime.class));
         verify(fixture.tgDeduper).shouldSend(eq("Reconcile:Untracked:BTC"), any(Duration.class), eq(Severity.WARN));
         verify(fixture.notificationPort).alert(contains("發現未追蹤持倉"), eq(true), eq("Reconcile:Untracked:BTC"), eq("WARN"));
-    }
-
-    @Test
-    void closedGridResidualCountsAsKnownInventoryAndDoesNotTriggerUntrackedAlert() {
-        UntrackedHoldingTracker tracker = mock(UntrackedHoldingTracker.class);
-        Fixture fixture = newFixture(tracker);
-        stubReconcileInputs(fixture,
-                new OkxTradingService.SpotHolding(
-                        "BTC",
-                        new BigDecimal("0.00024333292"),
-                        new BigDecimal("0.00024333292"),
-                        new BigDecimal("15.40")));
-        when(fixture.gridLevelRepository.sumFilledQtyBySymbolForActiveGrids())
-                .thenReturn(List.<Object[]>of(new Object[] {"BTCUSDT", new BigDecimal("0.00008096")}));
-        when(fixture.gridLevelRepository.sumResidualFilledQtyBySymbolForClosedGrids())
-                .thenReturn(List.<Object[]>of(new Object[] {"BTCUSDT", new BigDecimal("0.00012479")}));
-
-        invokeReconcile(fixture.scheduler);
-
-        verify(tracker).clear("BTC");
-        verify(tracker, never()).confirmOrSeed(anyString(), any(BigDecimal.class), any(LocalDateTime.class));
-        verifyNoInteractions(fixture.tgDeduper, fixture.notificationPort, fixture.orphanReconciler);
     }
 
     @Test
@@ -213,8 +190,6 @@ class OcoPositionPollerSchedulerTest {
 
     private static void stubReconcileInputs(Fixture fixture, OkxTradingService.SpotHolding holding) {
         when(fixture.liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNull()).thenReturn(List.of());
-        when(fixture.gridLevelRepository.sumFilledQtyBySymbolForActiveGrids()).thenReturn(List.of());
-        when(fixture.gridLevelRepository.sumResidualFilledQtyBySymbolForClosedGrids()).thenReturn(List.of());
         when(fixture.okxTradingService.getPendingOcoAlgos()).thenReturn(MAPPER.createArrayNode());
         when(fixture.okxTradingService.getSpotHoldings()).thenReturn(List.of(holding));
         when(fixture.okxTradingService.getUsdtBalance()).thenReturn("N/A");
@@ -226,14 +201,12 @@ class OcoPositionPollerSchedulerTest {
 
     private static Fixture newFixture(UntrackedHoldingTracker tracker) {
         BtLiveSignalRepository liveSignalRepository = mock(BtLiveSignalRepository.class);
-        BtGridLevelRepository gridLevelRepository = mock(BtGridLevelRepository.class);
         OkxTradingService okxTradingService = mock(OkxTradingService.class);
         NotificationPort notificationPort = mock(NotificationPort.class);
         TgNotificationDeduper tgDeduper = mock(TgNotificationDeduper.class);
         OrphanTradeReconcilerService orphanReconciler = mock(OrphanTradeReconcilerService.class);
         OcoPositionPollerScheduler scheduler = new OcoPositionPollerScheduler(
                 liveSignalRepository,
-                gridLevelRepository,
                 okxTradingService,
                 mock(OcoManagementService.class),
                 notificationPort,
@@ -250,14 +223,13 @@ class OcoPositionPollerSchedulerTest {
                 mock(SpotPositionCloseService.class),
                 new OcoOrderStateInspector(okxTradingService));
         ReflectionTestUtils.setField(scheduler, "untrackedMinNotionalUsdt", new BigDecimal("10.0"));
-        return new Fixture(scheduler, liveSignalRepository, gridLevelRepository, okxTradingService,
+        return new Fixture(scheduler, liveSignalRepository, okxTradingService,
                 notificationPort, tgDeduper, orphanReconciler);
     }
 
     private record Fixture(
             OcoPositionPollerScheduler scheduler,
             BtLiveSignalRepository liveSignalRepository,
-            BtGridLevelRepository gridLevelRepository,
             OkxTradingService okxTradingService,
             NotificationPort notificationPort,
             TgNotificationDeduper tgDeduper,

@@ -1,10 +1,6 @@
 package com.agora.service.trading;
 
-import com.agora.model.BtGrid;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +17,11 @@ import java.util.List;
  *
  * <p>Given a target price (e.g. "what if BTC hits $80,000?"), walk the
  * monotonic LINEAR path from current to target and trigger every reachable
- * OCO TP/SL and Grid level event in price order. Output the trigger
+ * OCO TP/SL event in price order. Output the trigger
  * timeline, per-event PnL, and final account state.
  *
- * <p><b>Phase 1 scope</b>: OCO TP/SL + Grid PENDING/HOLDING levels only.
- * No strategy entry simulation, no Monte Carlo path. LINEAR path means
- * the simulation never reverses direction — Grid SELL → PENDING reset is
- * NOT followed by a fresh BUY because the price never dips back. Same for
- * SELL path. Caller wanting cascade should re-run with the new state.
+ * <p>Custom Grid simulation was removed with the executable custom Grid
+ * runtime. No strategy entry simulation or Monte Carlo path is included.
  *
  * <p><b>Fee model</b>: flat OKX taker 0.1% per trade. Cumulative fees
  * shown separately so realized PnL stays comparable to the position book.
@@ -42,14 +35,10 @@ public class PriceScenarioSimulationService {
     private static final double TAKER_FEE_RATE = 0.001;
 
     private final BtLiveSignalRepository liveSignalRepo;
-    private final BtGridRepository gridRepo;
-    private final BtGridLevelRepository gridLevelRepo;
     private final OkxTradingService okxTradingService;
 
     public enum EventType {
-        OCO_TP, OCO_SL,
-        GRID_PAIRED_SELL,    // HOLDING -> PENDING (price up)
-        GRID_BUY             // PENDING -> HOLDING (price down)
+        OCO_TP, OCO_SL
     }
 
     public record TriggerEvent(
@@ -136,50 +125,12 @@ public class PriceScenarioSimulationService {
             }
         }
 
-        // ── 2. Collect Grid level trigger events ─────────────────────────
-        List<BtGrid> activeGrids = gridRepo.findByEnabledTrueAndClosedAtIsNull().stream()
-                .filter(g -> symbol.equals(g.getSymbol()) && g.getPausedAt() == null)
-                .toList();
-
-        for (BtGrid g : activeGrids) {
-            List<BtGridLevel> levels = gridLevelRepo.findByGridId(g.getId());
-            for (BtGridLevel lv : levels) {
-                String st = lv.getStatus();
-                if (priceUp && "HOLDING".equals(st) && lv.getPairedSellPrice() != null) {
-                    double sellPx = lv.getPairedSellPrice().doubleValue();
-                    if (sellPx <= targetPrice && sellPx >= currentPrice
-                            && lv.getFilledQty() != null && lv.getFilledPrice() != null) {
-                        double qty = lv.getFilledQty().doubleValue();
-                        double cash = sellPx * qty;
-                        double fee = cash * TAKER_FEE_RATE;
-                        double pnl = (sellPx - lv.getFilledPrice().doubleValue()) * qty - fee;
-                        events.add(new TriggerEvent(EventType.GRID_PAIRED_SELL, sellPx,
-                                String.format("Grid #%d L%d paired SELL ($%.2f buy → $%.2f sell)",
-                                        g.getId(), lv.getLevelIndex(),
-                                        lv.getFilledPrice().doubleValue(), sellPx),
-                                qty, cash - fee, -qty, pnl, fee));
-                    }
-                } else if (!priceUp && "PENDING".equals(st)) {
-                    double buyPx = lv.getPrice().doubleValue();
-                    if (buyPx >= targetPrice && buyPx <= currentPrice) {
-                        double notional = g.getPerLevelUsdt().doubleValue();
-                        double qty = notional / buyPx;
-                        double fee = notional * TAKER_FEE_RATE;
-                        events.add(new TriggerEvent(EventType.GRID_BUY, buyPx,
-                                String.format("Grid #%d L%d BUY @ $%.2f",
-                                        g.getId(), lv.getLevelIndex(), buyPx),
-                                qty, -(notional + fee), qty, 0, fee));
-                    }
-                }
-            }
-        }
-
-        // ── 3. Sort events by trigger price (ascending if up, descending if down)
+        // ── 2. Sort events by trigger price (ascending if up, descending if down)
         events.sort(priceUp
                 ? Comparator.comparingDouble(TriggerEvent::triggerPrice)
                 : Comparator.comparingDouble(TriggerEvent::triggerPrice).reversed());
 
-        // ── 4. Walk events, tally final state ────────────────────────────
+        // ── 3. Walk events, tally final state ────────────────────────────
         double usdt = startUsdt;
         double btc = startBtc;
         double realized = 0;
@@ -228,7 +179,7 @@ public class PriceScenarioSimulationService {
 
         sb.append(String.format("%n⏱ Trigger sequence (%d events):%n", events.size()));
         if (events.isEmpty()) {
-            sb.append("  (none — no OCO/Grid level reached between current and target)\n");
+            sb.append("  (none — no OCO level reached between current and target)\n");
         } else {
             int i = 1;
             double runningUsdt = startUsdt;
@@ -257,9 +208,7 @@ public class PriceScenarioSimulationService {
         sb.append(String.format("  Total fees:   $%.4f%n", fees));
         sb.append(String.format("  Net Δ vs current: %+.2f USDT%n", netChange));
 
-        sb.append("\n⚠️ Disclaimer: LINEAR path assumes no oscillation. Real BTC may dip+rebound\n");
-        sb.append("    between current and target, triggering Grid BUY then SELL on same level\n");
-        sb.append("    (cascade gain). Re-run simulation from intermediate states for more depth.\n");
+        sb.append("\n⚠️ Disclaimer: LINEAR path assumes no oscillation and excludes strategy entries.\n");
         return sb.toString();
     }
 

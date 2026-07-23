@@ -48,7 +48,7 @@ public class MarketWsAutoSubscriber {
 
         // V14 — derive item list from enabled strategies + grids (yaml fallback).
         // Order of precedence:
-        //   1. bt_strategy.enabled=1 × bt_grid.enabled=1 (DB source of truth)
+        //   1. enabled bt_strategy rows (DB source of truth)
         //   2. yaml items (legacy fallback, resolver handles empty-DB gracefully)
         List<MarketWsAutoSubscribeProperties.Item> itemsToSubscribe = subscriptionResolver.resolve();
         if (itemsToSubscribe.isEmpty()) {

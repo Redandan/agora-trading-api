@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
  *   <li>關閉:{@code closed_at=timestamp}(stop-out 或手動 close),不可再開</li>
  * </ul>
  *
- * <p><b>Gemini hint 整合</b>:若 {@code hintGated=true},GridManagerService 每次檢查前查
- * {@code gemini_market_hint} 當前 hint 的 regime,若不在 {@code regimeWhitelist} 則暫停此 grid。
+ * <p>Historical custom Grid record retained for immutable attribution after
+ * the executable custom Grid runtime was removed.
  */
 @Data
 @Entity

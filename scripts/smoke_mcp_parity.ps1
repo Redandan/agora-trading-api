@@ -132,7 +132,6 @@ $requiredTools = @(
     "verifyScoreBuyTradingViewGoldenTruth",
     "backfillBinanceKlines",
     "backfillBinanceKlinesRange",
-    "listGrids",
     "getOpenPositions",
     "getSystemHealth",
     "getMarketSentiment",

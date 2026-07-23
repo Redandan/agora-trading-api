@@ -1,9 +1,7 @@
 package com.agora.service.backtest;
 
-import com.agora.model.BtGrid;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.GeminiMarketHintRepository;
@@ -57,7 +55,6 @@ public class TradingAnalysisService {
     private final WhaleFlowService whaleFlowService;
     private final BtStrategyRepository strategyRepository;
     private final BtLiveSignalRepository liveSignalRepository;
-    private final BtGridRepository gridRepository;
     private final MarketIndicatorHistoryRepository indicatorHistoryRepository;
     private final GeminiMarketHintRepository geminiHintRepository;
     private final AiTaskRouter aiTaskRouter;
@@ -171,20 +168,6 @@ public class TradingAnalysisService {
                                     : "⚠️無OCO需補掛"));
                 }
             }
-            List<BtGrid> grids = gridRepository.findByEnabledTrueAndClosedAtIsNull();
-            if (!grids.isEmpty()) {
-                sb.append("活躍網格（注意：⏸暫停=regime不符，5分鐘內自動恢復，不需人工介入；autoRebalance 網格不要建議縮小）：\n");
-                for (BtGrid g : grids) {
-                    String rebalanceNote = Boolean.TRUE.equals(g.getAutoRebalance())
-                            ? String.format(" 🔄已啟用autoRebalance(%.1f%%觸發)", g.getRebalanceTriggerPct()*100)
-                            : "";
-                    sb.append(String.format("  • Grid#%d %s %.0f~%.0f PnL%+.2f%s\n",
-                            g.getId(), g.getSymbol(),
-                            g.getPriceLower().doubleValue(), g.getPriceUpper().doubleValue(),
-                            g.getTotalRealizedPnl() != null ? g.getTotalRealizedPnl().doubleValue() : 0.0,
-                            rebalanceNote));
-                }
-            }
         } catch (Exception e) { log.debug("[TradingAnalysis] portfolio context failed: {}", e.getMessage()); }
         return sb.toString();
     }
@@ -261,7 +244,7 @@ public class TradingAnalysisService {
                 "【建議】針對持倉各寫一條（「-」開頭）\n" +
                 "嚴格規則：\n" +
                 "1. 若倉位已有 OCO，不建議『調整至相同數值』的止損止盈\n" +
-                "2. 若 Grid 已啟用 autoRebalance，不建議暫停或縮小\n" +
+                "2. OKX Native Grid 由專用狀態工具觀測，不在此分析中提出變更\n" +
                 "3. 只說需要改變的事，現狀正常就說『維持現狀』\n" +
                 "4. 不重複數字，不用 Markdown，語氣簡潔";
             AiTask task = new AiTask.AnswerUserQuery(prompt, List.of(context), 700);

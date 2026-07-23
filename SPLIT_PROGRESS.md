@@ -1,5 +1,14 @@
 # Split Progress
 
+- 2026-07-23: removed the executable custom Grid runtime from a local candidate:
+  MCP mutation tools, manager/service, schedulers, recovery/event detectors,
+  custom configuration flags, downstream exposure/report/simulation wiring,
+  and legacy operator scripts are gone. OKX Native Spot Grid remains the only
+  executable Grid path. Historical `bt_grid` / `bt_grid_level` entities,
+  repositories, and schema are retained read-only for native safety checks and
+  attribution; no DB migration or table deletion occurred. This is local-only
+  work and does not claim Production deployment, Gate A completion, archive
+  completion, `PASS_CUSTOM_GRID_FULLY_DELETED`, or `MIGRATION_ACCEPTED`.
 - 2026-07-14: completed the explicitly authorized production adoption of
   strategy 508 positions `#260/#261/#262` into intentional BTC Base
   management. The exact cohort quantity was `0.00047090 BTC`; all three rows

@@ -1,14 +1,9 @@
 package com.agora.service.trading;
 
-import com.agora.config.properties.TradingGridProperties;
 import com.agora.model.BtDecisionAudit;
-import com.agora.model.BtGrid;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.RuntimeDecisionEvidence;
 import com.agora.repository.trading.BtDecisionAuditRepository;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,16 +41,14 @@ public class TinyLiveMinimumOrderPreviewService {
     private static final BigDecimal DEFAULT_MIN_SIZE_BTC = new BigDecimal("0.00001");
     private static final BigDecimal DEFAULT_LOT_SIZE_BTC = new BigDecimal("0.00000001");
     private static final BigDecimal DEFAULT_TICK_SIZE_USDT = new BigDecimal("0.10");
+    private static final BigDecimal DEFAULT_MIN_NOTIONAL_USDT = new BigDecimal("5.0");
 
     private final RuntimeDecisionEvidenceService evidenceService;
     private final BtDecisionAuditRepository decisionAuditRepository;
     private final BtLiveSignalRepository liveSignalRepository;
-    private final BtGridRepository gridRepository;
-    private final BtGridLevelRepository gridLevelRepository;
     private final EventRiskLevelEngine eventRiskLevelEngine;
     private final OkxTradingService okxTradingService;
     private final OcoOrderStateInspector ocoOrderStateInspector;
-    private final TradingGridProperties gridProperties;
     private final AutoExplorationRolloutStateService rolloutStateService;
     private final ObjectMapper objectMapper;
     private final Environment env;
@@ -106,8 +99,8 @@ public class TinyLiveMinimumOrderPreviewService {
         BigDecimal lotSize = firstNonNull(rules.lotSize(), DEFAULT_LOT_SIZE_BTC);
         BigDecimal tickSize = firstNonNull(rules.tickSize(), DEFAULT_TICK_SIZE_USDT);
         BigDecimal requiredMinNotional = entry == null
-                ? gridProperties.minSellNotionalUsdt()
-                : gridProperties.minSellNotionalUsdt().max(minSize.multiply(entry));
+                ? DEFAULT_MIN_NOTIONAL_USDT
+                : DEFAULT_MIN_NOTIONAL_USDT.max(minSize.multiply(entry));
         BigDecimal proposedNotional = requiredMinNotional.setScale(2, RoundingMode.CEILING);
         BigDecimal proposedQty = entry == null || entry.signum() <= 0
                 ? BigDecimal.ZERO
@@ -613,21 +606,10 @@ public class TinyLiveMinimumOrderPreviewService {
                 .count();
         long tinyLiveAutoTradesToday = liveSignalRepository.countTinyLiveAutoTradesSince(
                 strategyId, symbol, LocalDate.now(ZoneOffset.UTC).atStartOfDay());
-        BigDecimal gridExposure = BigDecimal.ZERO;
-        if (markPrice != null) {
-            for (BtGrid grid : gridRepository.findBySymbolAndClosedAtIsNull(symbol)) {
-                for (BtGridLevel level : gridLevelRepository.findByGridIdAndStatusIn(
-                        grid.getId(), List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"))) {
-                    if (level.getFilledQty() != null) {
-                        gridExposure = gridExposure.add(level.getFilledQty().multiply(markPrice));
-                    }
-                }
-            }
-        }
         String staleReleaseReason = staleSlotReleaseReason(sameStrategyOpenTinyLiveRows);
         return new AccountExposure(openAuto.size(), sameStrategyOpenAuto, sameStrategyOpenTinyLive,
                 sameStrategyOpenCandidate,
-                tinyLiveAutoTradesToday, gridExposure, "ELIGIBLE".equals(staleReleaseReason), staleReleaseReason);
+                tinyLiveAutoTradesToday, BigDecimal.ZERO, "ELIGIBLE".equals(staleReleaseReason), staleReleaseReason);
     }
 
     private String staleSlotReleaseReason(List<BtLiveSignal> rows) {

@@ -2671,76 +2671,6 @@ Expected:
   mutation, scheduler enablement, production env changes, or DB/grid/fund/Earn/
   Telegram/exchange/external backfill/import mutation.
 
-For a local read-only EntryDedup / ShadowExecutionIntent operator packet after
-refreshing candidate-flow, EntryDedup, strategy574, and signal-correctness
-evidence logs, run:
-
-```powershell
-.\scripts\prepare_entry_dedup_shadow_operator_packet.ps1 -RequireReady
-```
-
-Expected:
-
-- The packet reads saved local evidence logs only. It does not rerun SSH, call
-  GitHub, deploy, restart, reload nginx, change production env, write DB rows,
-  place orders, modify OCO, send Telegram, enable schedulers, or mutate
-  grid/fund/Earn/exchange/external backfill state.
-- Output includes `ENTRY_DEDUP_SHADOW_EXECUTION_INTENT_OPERATOR_PACKET`,
-  `entry_dedup_shadow_operator_packet`,
-  `entry_dedup_shadow_operator_packet_status`, and
-  `entry_skip_blocker_ranking`.
-- `READY_FOR_ENTRY_DEDUP_SHADOW_EXECUTION_INTENT_OPERATOR_REVIEW_NOT_LIVE`
-  means the 14d candidate-flow blocker ranking, Strategy 508/1h positive
-  EntryDedup skip evidence, Strategy 574 blocked gate, and current
-  DataFreshness sample state are attached for a separate operator review.
-- Strategy 574 remains context only while its gate is blocked. A blocked
-  Strategy 574 gate or `dataFreshnessCurrentStatus=NO_CURRENT_SAMPLE` is not
-  approval to relax DataFreshnessGuard, EntryDedup, strategy thresholds, or live
-  policy.
-- The packet keeps `entry_dedup_policy_change_allowed=false`,
-  `data_freshness_policy_change_allowed=false`,
-  `live_policy_change_allowed=false`, `scheduler_enablement_allowed=false`,
-  `order_allowed=false`, `position_or_oco_mutation_allowed=false`,
-  `telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false`.
-- Before any future mutation proposal, require a fresh read-only rerun,
-  ExpectedValueGate pass-like evidence, EventRiskControl clearance or separate
-  approval, duplicate-hash and same-candidate replay protection, daily cap and
-  max-loss budget evidence, exact-route OCO feasibility, and separate explicit
-  authorization.
-
-For a local read-only BUY-like candidate loss packet for #8/#12 after refreshing
-14d/30d `smoke_buy_like_candidate_progression_ssh.ps1` logs, run:
-
-```powershell
-.\scripts\prepare_buy_like_candidate_loss_review_packet.ps1 -MaxAgeMinutes 1440 -RequireReady
-```
-
-Expected:
-
-- The packet reads saved local evidence logs only. It does not rerun SSH, call
-  GitHub, deploy, restart, reload nginx, change production env, write DB rows,
-  place orders, modify OCO, send Telegram, enable schedulers, or mutate
-  grid/fund/Earn/exchange/external backfill state.
-- Output includes `BUY_LIKE_CANDIDATE_LOSS_REVIEW_PACKET`,
-  `buy_like_candidate_loss_review_packet`,
-  `buy_like_candidate_loss_14d_ranking`,
-  `buy_like_candidate_loss_30d_ranking`, `issue8_status`, and
-  `issue12_close_readiness`.
-- `READY_FOR_BUY_LIKE_CANDIDATE_LOSS_OPERATOR_REVIEW_NOT_LIVE` means the
-  14d/30d BUY-like candidate loss ranking is attached for operator review.
-  It is not approval to relax EntryDedup, DataFreshnessGuard, strategy
-  thresholds, scheduler, or live policy.
-- Current evidence should keep #8/#6/#7 blocked when fresh DataFreshness
-  terminal rows, replayCandidateId rows, entry/TP/SL plans, EV snapshots, OCO
-  snapshots, or complete replayable candidate rows remain missing.
-- The packet keeps `close_issue8_allowed=false`,
-  `close_issue6_or_7_allowed=false`, `live_policy_change_allowed=false`,
-  `entry_dedup_policy_change_allowed=false`,
-  `data_freshness_policy_change_allowed=false`,
-  `scheduler_enablement_allowed=false`, `order_allowed=false`,
-  `position_or_oco_mutation_allowed=false`, `telegram_send_allowed=false`, and
-  `deploy_or_env_change_allowed=false`.
-
 For the consolidated read-only open-issue status packet covering active open
 #6/#7/#8 plus closed #9/#10/#11/#12 context, run:
 
@@ -4298,24 +4228,6 @@ Expected:
   distribution, generic examples, and `NoTerminalFollowupExamples` so
   trading-candidate loss is not confused with macro/attention warning flow and
   no-terminal continuity gaps have concrete candidate audit rows to review.
-- When `NO_TERMINAL_FOLLOWUP` remains material, run
-  `.\scripts\smoke_no_terminal_followup_continuity_ssh.ps1`. It replays the
-  BUY-like candidate matching read-only, then classifies no-terminal rows as
-  pending windows, terminal-after-window, same-strategy/different-interval
-  terminal, other nearby terminal, non-terminal same-key continuation, or no
-  follow-up within the extended window. This distinguishes a matching-window
-  artifact from a real candidate-audit continuity gap before changing
-  DataFreshnessGuard, EntryDedup, strategy activation, or live execution.
-- After the continuity RCA log is fresh, run
-  `.\scripts\prepare_buy_like_continuity_matcher_review_packet.ps1 -RequireReady`
-  to quantify how much of the 6h `NO_TERMINAL_FOLLOWUP` bucket is explained by
-  longer-window or interval-aware matching. The packet emits
-  `matcher_artifact_explained_rows`, `matcher_artifact_explained_pct`,
-  `residual_potential_true_gap_rows`, and a review-only
-  `matcher_review_recommendation`. It is an evidence packet for matcher
-  semantics only and does not authorize runtime matcher changes,
-  DataFreshnessGuard or EntryDedup relaxation, strategy activation, scheduler,
-  orders, deploy, or production env changes.
 - Use `.\scripts\prepare_profit_candidate_flow_review_packet_ssh.ps1` when the
   operator needs the BUY-like progression result and DataFreshness replay
   readiness blockers in one `PROFIT_CANDIDATE_FLOW_REVIEW_PACKET`.
@@ -5667,7 +5579,7 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` and `SPRING_FLYWAY_ENABLED=true` are required after the Flyway baseline exists.
 - Deploy, server preflight, and verification require the real server env to use the Trading-owned `trading_flyway_schema_history` table.
 - schema baseline database comparison is available through `scripts/schema_baseline_compare_server.sh`; run it through `RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh` before regenerating `V1__baseline.sql` for review or before accepting a future `V2__...` migration.
-- Extra marketplace/shared tables are expected in shared DB mode. The standalone-only cleanup planner is disabled unless `SCHEMA_COMPARE_MODE=standalone`.
+- Extra marketplace/shared tables are expected in shared DB mode. This repository does not ship an extra-table cleanup or drop path.
 - active local trading health via required `app.port` metadata by default, limited to the `8084/8085` blue-green port set; `REQUIRE_DEPLOY_METADATA=0` may use default `8084` only for non-deploy diagnostics.
 - AgoraMarket exchange-rate dependency health through `https://agoramarketapi.purrtechllc.com/api/actuator/health` by default.
 - optional public trading health URL.
@@ -5676,8 +5588,6 @@ exchange-rate client. They do not deploy, configure, or mutate AgoraMarketAPI.
   must point at the active blue-green `app.port` by default; set
   `REQUIRE_NGINX_DEDICATED_API=0` only for non-nginx diagnostics.
 - nginx service must be active by default; set `REQUIRE_NGINX_SERVICE=0` only for non-nginx verification environments.
-- guarded standalone-only empty-table cleanup through `scripts/schema_extra_tables_cleanup_apply_server.sh`; the script is disabled in shared DB mode and refuses to drop tables unless `SCHEMA_COMPARE_MODE=standalone` plus `APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1` are explicitly set.
-
 ## Rollback
 
 Use the previously active port if it is still running:

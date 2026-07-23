@@ -1,5 +1,10 @@
 # Split Progress
 
+- 2026-07-23: removed the retired custom-Grid archive, retirement, and
+  verification documents/scripts from the local candidate. OKX Native Spot Grid
+  remains unchanged. Historical `bt_grid` / `bt_grid_level` schema and the
+  read-only interfaces required by current native safety checks remain; no
+  database migration, table deletion, production mutation, or deploy occurred.
 - 2026-07-23: removed the executable custom Grid runtime from a local candidate:
   MCP mutation tools, manager/service, schedulers, recovery/event detectors,
   custom configuration flags, downstream exposure/report/simulation wiring,
@@ -4406,22 +4411,6 @@ Trading deployment prep:
   deploy/env changes, and DB/grid/fund/Earn/exchange mutation disabled until a
   separate explicit authorization and post-change read-only verification plan
   exist.
-- Closed Grid residuals now have a read-only disposition packet:
-  `scripts/prepare_closed_grid_residual_disposition_packet_ssh.ps1`. It either
-  parses an existing source log or collects production read-only evidence with
-  trading-owned `bt_grid`/`bt_grid_level` SELECTs plus server-local MCP read
-  tools (`listGrids`, `gridStats`, `listGridDustSellRisks`, `getOcoHealth`,
-  `listOpenPositions`, `getExecutionRiskSnapshot`, and
-  `reconcileOrphanTrades`). It emits
-  `CLOSED_GRID_RESIDUAL_DISPOSITION_PACKET`,
-  `closed_grid_residual_disposition_status`, affected grid/level ids, residual
-  qty/notional, runtime reconcile-log counters, and
-  `exactAuthorizationTextForNextPlan`. The packet remains a decision artifact
-  only: `closed_grid_residual_cleanup_allowed=false`,
-  `exchange_sell_allowed=false`, `db_write_allowed=false`,
-  `order_allowed=false`, `grid_mutation_allowed=false`,
-  `telegram_send_allowed=false`, and `deploy_or_env_change_allowed=false` until
-  a separate explicit cleanup execution plan is reviewed and approved.
 - 2026-06-29 read-only grid-open tooling refresh after commits `f09bdce` and
   `ef753ac` clarified the operator evidence without relaxing any runtime gate.
   Candidate replay trend context now uses

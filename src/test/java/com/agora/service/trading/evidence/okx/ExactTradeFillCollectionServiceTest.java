@@ -174,7 +174,8 @@ class ExactTradeFillCollectionServiceTest {
                 .hasMessage("FILL_PRECEDES_ORDER_CREATION");
 
         var oldOrder = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L,
-                effectiveFrom().minusSeconds(1), false, null, null);
+                effectiveFrom().minusSeconds(1), ExactTradeFillCollectionService.EpisodeRole.ENTRY,
+                false, null, null);
         var oldOrderRequest = new ExactTradeFillCollectionService.Request("a".repeat(64), ACCOUNT,
                 "BTC-USDT", "SPOT", 100, 10, effectiveFrom(), Map.of("o1", oldOrder));
         assertThatThrownBy(() -> new ExactTradeFillCollectionService(client(terminal(null)), repo)
@@ -191,7 +192,8 @@ class ExactTradeFillCollectionServiceTest {
     }
     private static Map<String, ExactTradeFillCollectionService.FillBinding> bindingsAt(Instant orderCreatedAt) {
         var binding = new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L,
-                orderCreatedAt, false, null, null);
+                orderCreatedAt, ExactTradeFillCollectionService.EpisodeRole.ENTRY,
+                false, null, null);
         return Map.of("o1", binding, "o2", binding);
     }
     private static Instant effectiveFrom() { return Instant.parse("2026-07-17T00:00:00Z"); }

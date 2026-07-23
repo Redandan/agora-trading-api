@@ -56,9 +56,11 @@ class ExactTradeFillEpisodeAssemblerTest {
                 .contains("COHORT_BINDING_MISMATCH");
 
         RawFill missingOcoIdentity = bound(fill("exit", "t2", "SELL", "110", "1", "0", "USDT"));
-        var requiredOco = binding(Set.of("t2"), Map.of("entry", orderBinding(false),
-                "exit", new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L, start(), true,
-                "exit", "exit")), missingOcoIdentity);
+        var requiredOco = binding(Set.of("t2"), Map.of(
+                "entry", orderBinding(ExactTradeFillCollectionService.EpisodeRole.ENTRY, false),
+                "exit", new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L, start(),
+                        ExactTradeFillCollectionService.EpisodeRole.EXIT, true, "exit", "exit")),
+                missingOcoIdentity);
         assertThat(assembler.assemble(requiredOco, List.of(missingOcoIdentity)).blockers())
                 .contains("OCO_REQUIRED_CHILD_IDENTITY_INCOMPLETE_OR_MISMATCH");
 
@@ -136,8 +138,27 @@ class ExactTradeFillEpisodeAssemblerTest {
                 .contains("CROSS_ORDER_DUPLICATE_TRADE_ID");
     }
 
+    @Test
+    void explicitEpisodeRoleIsHashBoundAndMustMatchEntryExitScope() {
+        Map<String, ExactTradeFillCollectionService.FillBinding> valid = Map.of(
+                "entry", orderBinding(ExactTradeFillCollectionService.EpisodeRole.ENTRY, false),
+                "exit", orderBinding(ExactTradeFillCollectionService.EpisodeRole.EXIT, false));
+        Map<String, ExactTradeFillCollectionService.FillBinding> reversed = Map.of(
+                "entry", orderBinding(ExactTradeFillCollectionService.EpisodeRole.EXIT, false),
+                "exit", orderBinding(ExactTradeFillCollectionService.EpisodeRole.ENTRY, false));
+        assertThat(ExactTradeFillHashing.bindingScope(start(), valid))
+                .isNotEqualTo(ExactTradeFillHashing.bindingScope(start(), reversed));
+
+        RawFill buy = bound(fill("entry", "t1", "BUY", "100", "1", "0", "USDT"));
+        RawFill sell = bound(fill("exit", "t2", "SELL", "110", "1", "0", "USDT"));
+        assertThat(assembler.assemble(binding(Set.of("t1", "t2"), reversed, buy, sell),
+                List.of(buy, sell)).blockers()).contains("EXPLICIT_EPISODE_ROLE_BINDING_MISMATCH");
+    }
+
     private static ExactTradeFillEpisodeAssembler.Binding binding(Set<String> trades, RawFill... fills) {
-        return binding(trades, Map.of("entry", orderBinding(false), "exit", orderBinding(false)), fills);
+        return binding(trades, Map.of(
+                "entry", orderBinding(ExactTradeFillCollectionService.EpisodeRole.ENTRY, false),
+                "exit", orderBinding(ExactTradeFillCollectionService.EpisodeRole.EXIT, false)), fills);
     }
     private static ExactTradeFillEpisodeAssembler.Binding binding(Set<String> trades,
                                                                    Map<String, ExactTradeFillCollectionService.FillBinding> orderBindings,
@@ -148,9 +169,10 @@ class ExactTradeFillEpisodeAssemblerTest {
                 "a".repeat(64), collectionHash, "okx", "a".repeat(64), "BTC-USDT", "SPOT", scope, scope,
                 start(), "BTC", "USDT", start(), end(), Set.of("entry"), Set.of("exit"), trades, orderBindings);
     }
-    private static ExactTradeFillCollectionService.FillBinding orderBinding(boolean ocoRequired) {
-        return new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L, start(), ocoRequired,
-                ocoRequired ? "exit" : null, ocoRequired ? "exit" : null);
+    private static ExactTradeFillCollectionService.FillBinding orderBinding(
+            ExactTradeFillCollectionService.EpisodeRole role, boolean ocoRequired) {
+        return new ExactTradeFillCollectionService.FillBinding("cohort", 1L, 2L, start(), role,
+                ocoRequired, ocoRequired ? "exit" : null, ocoRequired ? "exit" : null);
     }
     private static Instant start() { return Instant.parse("2026-07-17T00:00:00Z"); }
     private static Instant end() { return Instant.parse("2026-07-18T12:00:00Z"); }

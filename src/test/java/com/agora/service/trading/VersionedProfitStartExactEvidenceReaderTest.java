@@ -3,6 +3,7 @@ package com.agora.service.trading;
 import com.agora.config.OkxEvidenceProperties;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.repository.trading.evidence.ExactTradeFillAppendRepository;
+import com.agora.service.trading.evidence.okx.ExactTradeFillCollectionService;
 import com.agora.service.trading.evidence.okx.ExactTradeFillCollectionService.FillBinding;
 import com.agora.service.trading.evidence.okx.ExactTradeFillHashing;
 import com.agora.service.trading.evidence.okx.ExactTradeFillModels.CollectionRun;
@@ -34,8 +35,8 @@ class VersionedProfitStartExactEvidenceReaderTest {
     void readsOneExplicitCompleteStableEpisodeWithoutTimeWindowJoin() {
         OkxEvidenceProperties properties = properties();
         Map<String, FillBinding> bindings = Map.of(
-                "entry-order", binding(false, null),
-                "exit-order", binding(false, null));
+                "entry-order", binding(ExactTradeFillCollectionService.EpisodeRole.ENTRY, false, null),
+                "exit-order", binding(ExactTradeFillCollectionService.EpisodeRole.EXIT, false, null));
         String scope = ExactTradeFillHashing.bindingScope(EFFECTIVE, bindings);
         List<RawFill> fills = List.of(
                 fill("entry-order", "trade-entry", "BUY", "100", "1", "-0.10",
@@ -155,8 +156,8 @@ class VersionedProfitStartExactEvidenceReaderTest {
         return binding;
     }
 
-    private FillBinding binding(boolean oco, String child) {
-        return new FillBinding(COHORT, 101L, 77L, OPENED, oco, child, child);
+    private FillBinding binding(ExactTradeFillCollectionService.EpisodeRole role, boolean oco, String child) {
+        return new FillBinding(COHORT, 101L, 77L, OPENED, role, oco, child, child);
     }
 
     private CollectionRun run(String runId, String scope, RunStatus status,

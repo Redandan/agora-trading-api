@@ -98,6 +98,7 @@ public class ExactTradeFillCollectionService {
                 || r.bindings().entrySet().stream().anyMatch(e -> blank(e.getKey()) || e.getValue() == null
                 || blank(e.getValue().cohortId()) || e.getValue().runtimeDecisionId() == null
                 || e.getValue().liveSignalId() == null || e.getValue().orderCreatedAt() == null
+                || e.getValue().episodeRole() == null
                 || e.getValue().orderCreatedAt().isBefore(r.effectiveFrom())
                 || e.getValue().ocoRequired() && (blank(e.getValue().intendedChildOrderId())
                 || blank(e.getValue().actualChildOrderId())
@@ -192,8 +193,9 @@ public class ExactTradeFillCollectionService {
         }
     }
     public record FillBinding(String cohortId, Long runtimeDecisionId, Long liveSignalId,
-                              Instant orderCreatedAt, boolean ocoRequired,
+                              Instant orderCreatedAt, EpisodeRole episodeRole, boolean ocoRequired,
                               String intendedChildOrderId, String actualChildOrderId) { }
+    public enum EpisodeRole { ENTRY, EXIT }
     public record Result(CollectionRun run, ExactTradeFillAppendRepository.AppendResult appendResult) { }
     public static final class ExactCollectionException extends RuntimeException {
         public ExactCollectionException(String reason) { super(reason); }

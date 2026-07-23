@@ -162,7 +162,7 @@
         "The immutable hash allowlist covers every stored economic and identity field; changing a stored field changes the hash.",
         "Provider pagination is complete and auditable; cursor gaps, truncation, or unsupported page ordering fail closed.",
         "Identical duplicate provider trade ids are idempotent; a non-identical duplicate is a conflict and never overwrites evidence.",
-        "Entry and exit fills bind by provider account, order id, trade id, and explicit runtime decision or live-signal identity; symbol and time-window inference is forbidden.",
+        "Entry and exit fills bind by provider account, order id, trade id, explicit ENTRY or EXIT role, and explicit runtime decision or live-signal identity; the role is part of the immutable binding-scope hash, and symbol or time-window inference is forbidden.",
         "OCO executions additionally bind the intended and actual child order identity and reject exit mismatch.",
         "Exact net uses all entry and exit fill price-times-quantity values plus every signed fee with an explicit supported currency policy; rebates preserve their provider sign.",
         "Missing fills, fee, fee currency, unsupported conversion, incomplete pagination, or identity conflict yields GROSS_ONLY or EXACT_NET_NOT_MEASURABLE, never exact net.",

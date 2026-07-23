@@ -93,6 +93,12 @@ completed provider buy/sell group, complete signed-fee fields, complete child
 order coverage, a terminal per-order fill cursor chain, no live sub-orders, and
 no base residual above one OKX lot. A short non-empty page is not treated as
 pagination completion; each child order must reach an empty provider page.
+OKX may omit provider-native Grid initialization fills from both transaction
+history endpoints. In that narrow case, the receipt may use authenticated Order
+details only when the order is terminal-filled, has an immutable trade ID and
+signed fee, and `fillSz == accFillSz` plus `fillPx == avgPx` prove that the last
+fill is the complete one-fill order. Any multi-fill or incomplete detail remains
+fail-closed.
 This receipt alone never declares functional
 acceptance because create idempotency, restart rediscovery, duplicate safety,
 and the separately authorized stop receipt remain independent requirements.

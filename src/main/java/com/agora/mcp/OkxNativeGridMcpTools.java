@@ -248,6 +248,7 @@ public class OkxNativeGridMcpTools {
         boolean pageComplete = fillHistory.complete();
         report.put("fillHistoryPageCount", fillHistory.pageCount());
         report.put("fillHistoryTotalCount", allFills.size());
+        report.put("orderDetailSingleFillFallbackCount", fillHistory.orderDetailFallbackCount());
         report.put("fillHistoryCoverageComplete", pageComplete);
         if (!pageComplete) blockers.add("FILL_HISTORY_PAGINATION_INCOMPLETE");
 
@@ -598,6 +599,7 @@ public class OkxNativeGridMcpTools {
     private FillHistoryCoverage collectOrderFillHistory(Set<String> orderIds) {
         ArrayNode fills = objectMapper.createArrayNode();
         int pageCount = 0;
+        int orderDetailFallbackCount = 0;
         boolean complete = true;
         Set<String> seenBillIds = new HashSet<>();
         Set<String> seenTradeIds = new HashSet<>();
@@ -621,7 +623,17 @@ public class OkxNativeGridMcpTools {
                     break;
                 }
                 if (data.isEmpty()) {
-                    orderComplete = true;
+                    if (cursor != null) {
+                        orderComplete = true;
+                    } else {
+                        JsonNode detail = okxTradingService.getSpotOrderDetail("BTC-USDT", orderId);
+                        JsonNode singleFill = provenSingleFillOrderDetail(detail, orderId, seenTradeIds);
+                        if (singleFill != null) {
+                            fills.add(singleFill);
+                            orderDetailFallbackCount++;
+                            orderComplete = true;
+                        }
+                    }
                     break;
                 }
 
@@ -655,7 +667,38 @@ public class OkxNativeGridMcpTools {
                 complete = false;
             }
         }
-        return new FillHistoryCoverage(fills, pageCount, complete);
+        return new FillHistoryCoverage(fills, pageCount, orderDetailFallbackCount, complete);
+    }
+
+    private JsonNode provenSingleFillOrderDetail(JsonNode detail, String orderId, Set<String> seenTradeIds) {
+        if (detail == null || !orderId.equals(detail.path("ordId").asText())
+                || !"filled".equalsIgnoreCase(detail.path("state").asText())) {
+            return null;
+        }
+        String tradeId = detail.path("tradeId").asText();
+        String side = detail.path("side").asText();
+        String feeCurrency = detail.path("feeCcy").asText();
+        if (tradeId.isBlank() || !("buy".equalsIgnoreCase(side) || "sell".equalsIgnoreCase(side))
+                || feeCurrency.isBlank() || !detail.path("fillTime").asText().matches("[0-9]+")) {
+            return null;
+        }
+        try {
+            BigDecimal fillQuantity = positiveDecimal(detail, "fillSz");
+            BigDecimal accumulatedQuantity = positiveDecimal(detail, "accFillSz");
+            BigDecimal fillPrice = positiveDecimal(detail, "fillPx");
+            BigDecimal averagePrice = positiveDecimal(detail, "avgPx");
+            requiredDecimal(detail, "fee");
+            if (fillQuantity.compareTo(accumulatedQuantity) != 0
+                    || fillPrice.compareTo(averagePrice) != 0
+                    || !seenTradeIds.add(tradeId)) {
+                return null;
+            }
+        } catch (IllegalArgumentException error) {
+            return null;
+        }
+        ObjectNode receipt = detail.deepCopy();
+        receipt.put("evidenceSource", "ORDER_DETAIL_PROVEN_SINGLE_FILL");
+        return receipt;
     }
 
     private BigInteger numericId(String value) {
@@ -667,5 +710,6 @@ public class OkxNativeGridMcpTools {
         }
     }
 
-    private record FillHistoryCoverage(ArrayNode fills, int pageCount, boolean complete) { }
+    private record FillHistoryCoverage(ArrayNode fills, int pageCount,
+                                       int orderDetailFallbackCount, boolean complete) { }
 }

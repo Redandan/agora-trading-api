@@ -149,6 +149,7 @@ class OkxNativeGridMcpToolsTest {
                 "\"completedProviderGroupPairCount\" : 1",
                 "\"fillHistoryPageCount\" : 4",
                 "\"fillHistoryTotalCount\" : 2",
+                "\"orderDetailSingleFillFallbackCount\" : 0",
                 "\"fillHistoryCoverageComplete\" : true",
                 "\"providerFillCount\" : 2",
                 "\"signedFeeCoverageComplete\" : true",
@@ -187,6 +188,85 @@ class OkxNativeGridMcpToolsTest {
                 "\"exactNetPnlProven\" : false",
                 "\"functionalAcceptance\" : \"NOT_YET_PROVEN\"")
                 .doesNotContain("\"exactNetPnlUsdt\"");
+    }
+
+    @Test
+    void acceptanceEvidenceUsesOrderDetailOnlyWhenItProvesOneCompleteFill() {
+        OkxTradingService okx = mock(OkxTradingService.class);
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode history = mapper.createArrayNode();
+        history.addObject().put("algoId", "123456789").put("instId", "BTC-USDT").put("state", "stopped");
+        when(okx.getNativeSpotGridOrders(false)).thenReturn(mapper.createArrayNode());
+        when(okx.getNativeSpotGridOrders(true)).thenReturn(history);
+        when(okx.getNativeSpotGridOrderDetails("123456789")).thenReturn(history);
+        ArrayNode filled = mapper.createArrayNode();
+        filled.addObject().put("algoId", "123456789").put("ordId", "1001")
+                .put("groupId", "pair-1").put("side", "buy");
+        filled.addObject().put("algoId", "123456789").put("ordId", "1002")
+                .put("groupId", "pair-1").put("side", "sell");
+        when(okx.getNativeSpotGridSubOrders("123456789", "filled")).thenReturn(filled);
+        when(okx.getNativeSpotGridSubOrders("123456789", "live")).thenReturn(mapper.createArrayNode());
+        ObjectNode empty = mapper.createObjectNode().put("code", "0");
+        empty.putArray("data");
+        when(okx.getFillHistoryPage("SPOT", "BTC-USDT", "1001", 100, null)).thenReturn(empty);
+        when(okx.getFillHistoryPage("SPOT", "BTC-USDT", "1002", 100, null)).thenReturn(empty);
+        when(okx.getSpotOrderDetail("BTC-USDT", "1001")).thenReturn(singleFillOrder(
+                mapper, "1001", "t1", "buy", "60000", "0.0001", "-0.0000001", "BTC"));
+        when(okx.getSpotOrderDetail("BTC-USDT", "1002")).thenReturn(singleFillOrder(
+                mapper, "1002", "t2", "sell", "61000", "0.0000999", "-0.00060939", "USDT"));
+        when(okx.getSpotInstrumentRules("BTC-USDT")).thenReturn(
+                new OkxTradingService.SpotInstrumentRules("BTC-USDT", new BigDecimal("0.00001"),
+                        new BigDecimal("0.00000001"), new BigDecimal("0.1")));
+
+        String output = new OkxNativeGridMcpTools(okx, mapper, mock(BtGridRepository.class),
+                mock(BtGridLevelRepository.class), mock(OkxNativeGridExecutionService.class))
+                .getOkxNativeSpotGridAcceptanceEvidence("123456789");
+
+        assertThat(output).contains(
+                "\"fillHistoryPageCount\" : 2",
+                "\"fillHistoryTotalCount\" : 2",
+                "\"orderDetailSingleFillFallbackCount\" : 2",
+                "\"evidenceSource\" : \"ORDER_DETAIL_PROVEN_SINGLE_FILL\"",
+                "\"fillHistoryCoverageComplete\" : true",
+                "\"signedFeeCoverageComplete\" : true",
+                "\"exactNetPnlProven\" : true",
+                "\"exactNetPnlUsdt\" : 0.09329061");
+    }
+
+    @Test
+    void acceptanceEvidenceRejectsOrderDetailWhenLatestFillIsNotTheWholeOrder() {
+        OkxTradingService okx = mock(OkxTradingService.class);
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode history = mapper.createArrayNode();
+        history.addObject().put("algoId", "123456789").put("instId", "BTC-USDT").put("state", "stopped");
+        when(okx.getNativeSpotGridOrders(false)).thenReturn(mapper.createArrayNode());
+        when(okx.getNativeSpotGridOrders(true)).thenReturn(history);
+        when(okx.getNativeSpotGridOrderDetails("123456789")).thenReturn(history);
+        ArrayNode filled = mapper.createArrayNode();
+        filled.addObject().put("algoId", "123456789").put("ordId", "1001")
+                .put("groupId", "pair-1").put("side", "buy");
+        when(okx.getNativeSpotGridSubOrders("123456789", "filled")).thenReturn(filled);
+        when(okx.getNativeSpotGridSubOrders("123456789", "live")).thenReturn(mapper.createArrayNode());
+        ObjectNode empty = mapper.createObjectNode().put("code", "0");
+        empty.putArray("data");
+        when(okx.getFillHistoryPage("SPOT", "BTC-USDT", "1001", 100, null)).thenReturn(empty);
+        ObjectNode multiFill = singleFillOrder(
+                mapper, "1001", "t1", "buy", "60000", "0.0001", "-0.0000001", "BTC");
+        multiFill.put("accFillSz", "0.0002");
+        when(okx.getSpotOrderDetail("BTC-USDT", "1001")).thenReturn(multiFill);
+        when(okx.getSpotInstrumentRules("BTC-USDT")).thenReturn(
+                new OkxTradingService.SpotInstrumentRules("BTC-USDT", new BigDecimal("0.00001"),
+                        new BigDecimal("0.00000001"), new BigDecimal("0.1")));
+
+        String output = new OkxNativeGridMcpTools(okx, mapper, mock(BtGridRepository.class),
+                mock(BtGridLevelRepository.class), mock(OkxNativeGridExecutionService.class))
+                .getOkxNativeSpotGridAcceptanceEvidence("123456789");
+
+        assertThat(output).contains(
+                "\"orderDetailSingleFillFallbackCount\" : 0",
+                "\"fillHistoryCoverageComplete\" : false",
+                "FILL_HISTORY_PAGINATION_INCOMPLETE",
+                "\"exactNetPnlProven\" : false");
     }
 
     @Test
@@ -385,5 +465,22 @@ class OkxNativeGridMcpToolsTest {
                 .put("fee", fee)
                 .put("feeCcy", feeCurrency);
         return page;
+    }
+
+    private static ObjectNode singleFillOrder(ObjectMapper mapper, String orderId, String tradeId,
+                                              String side, String price, String quantity,
+                                              String fee, String feeCurrency) {
+        return mapper.createObjectNode()
+                .put("ordId", orderId)
+                .put("tradeId", tradeId)
+                .put("state", "filled")
+                .put("side", side)
+                .put("fillPx", price)
+                .put("avgPx", price)
+                .put("fillSz", quantity)
+                .put("accFillSz", quantity)
+                .put("fillTime", "1784779297919")
+                .put("fee", fee)
+                .put("feeCcy", feeCurrency);
     }
 }

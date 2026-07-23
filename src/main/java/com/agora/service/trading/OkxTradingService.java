@@ -655,6 +655,22 @@ public class OkxTradingService implements TradingService {
         return response;
     }
 
+    /**
+     * GET-only immutable order receipt used when OKX Grid child fills are absent from both
+     * transaction-history endpoints. Callers must independently prove that fillSz equals
+     * accFillSz before treating the latest-fill fields as complete all-fill evidence.
+     */
+    public JsonNode getSpotOrderDetail(String instId, String orderId) {
+        String normalizedId = instId == null ? "" : instId.trim().toUpperCase();
+        if (!normalizedId.matches("[A-Z0-9]+-[A-Z0-9]+")) {
+            throw new IllegalArgumentException("spot order detail requires a concrete instrument");
+        }
+        if (orderId == null || !orderId.matches("[0-9]+")) {
+            throw new IllegalArgumentException("orderId must contain digits only");
+        }
+        return queryOrder(normalizedId, orderId);
+    }
+
     static int normalizeRecentFillsLimit(int limit) {
         if (limit < 1) {
             return 1;

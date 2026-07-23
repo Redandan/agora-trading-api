@@ -1,18 +1,13 @@
 package com.agora.scheduler.trading;
 
-import com.agora.model.BtGrid;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.repository.trading.SignalOutcomeVerificationRepository;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoManagementService;
-import com.agora.service.trading.OkxTradingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -47,13 +41,8 @@ import java.util.stream.Collectors;
 public class DailyReportScheduler {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final BigDecimal GRID_DUST_NOTIONAL_THRESHOLD = new BigDecimal("5.0");
-
     private final BtLiveSignalRepository liveSignalRepository;
     private final BtStrategyRepository strategyRepository;
-    private final BtGridRepository gridRepository;
-    private final BtGridLevelRepository gridLevelRepository;
-    private final OkxTradingService okxTradingService;
     private final ObjectMapper objectMapper;
     private final NotificationPort notificationPort;
     private final SignalOutcomeVerificationRepository signalVerificationRepository;
@@ -94,102 +83,6 @@ public class DailyReportScheduler {
         } catch (Exception e) {
             log.warn("[DailyReport] appendStrategyModeSection failed: {}", e.getMessage());
         }
-    }
-
-    private void appendGridHealthSection(StringBuilder sb) {
-        try {
-            List<BtGrid> grids = gridRepository.findByEnabledTrueAndClosedAtIsNull();
-            if (grids.isEmpty()) return;
-
-            // 嘗試取 BTC 現價（用於邊界距離計算）
-            BigDecimal btcPrice = null;
-            try {
-                btcPrice = okxTradingService.getSpotHoldings().stream()
-                        .filter(h -> "BTC".equals(h.ccy) && h.eqUsd != null && h.cashBal != null
-                                && h.cashBal.compareTo(BigDecimal.ZERO) > 0)
-                        .map(h -> h.eqUsd.divide(h.cashBal, 2, RoundingMode.HALF_UP))
-                        .findFirst().orElse(null);
-            } catch (Exception ignored) {}
-
-            sb.append("\n<b>📊 活躍網格 (").append(grids.size()).append(")</b>\n");
-            for (BtGrid grid : grids) {
-                long holding    = gridLevelRepository.countByGridIdAndStatus(grid.getId(), "HOLDING");
-                long sellFailed = gridLevelRepository.countByGridIdAndStatus(grid.getId(), "SELL_FAILED");
-                long sellPartial = gridLevelRepository.countByGridIdAndStatus(grid.getId(), "SELL_PARTIAL");
-                double pnl = grid.getTotalRealizedPnl() != null ? grid.getTotalRealizedPnl().doubleValue() : 0.0;
-
-                sb.append(String.format("  Grid #%d %s %.0f~%.0f | 持倉 %d 格 | PnL %+.2f USDT\n",
-                        grid.getId(), grid.getSymbol(),
-                        grid.getPriceLower().doubleValue(), grid.getPriceUpper().doubleValue(),
-                        holding, pnl));
-
-                // 邊界距離警告
-                if (btcPrice != null) {
-                    double lower = grid.getPriceLower().doubleValue();
-                    double upper = grid.getPriceUpper().doubleValue();
-                    double price = btcPrice.doubleValue();
-                    double distUp  = (upper - price) / price * 100;
-                    double distDn  = (price - lower) / price * 100;
-                    if (distUp < 5.0)
-                        sb.append(String.format("  ⚠️ 距上限 %.1f%%，考慮擴展範圍\n", distUp));
-                    if (distDn < 5.0)
-                        sb.append(String.format("  ⚠️ 距下限 %.1f%%，考慮擴展範圍\n", distDn));
-                }
-                if (sellFailed > 0) {
-                    List<BtGridLevel> failedLevels = gridLevelRepository.findByGridIdAndStatus(grid.getId(), "SELL_FAILED");
-                    long dustFailed = failedLevels.stream().filter(this::isDustSellFailure).count();
-                    long actionableFailed = Math.max(0, sellFailed - dustFailed);
-                    if (actionableFailed > 0) {
-                        sb.append(String.format("  ⚠️ SELL_FAILED %d 格，請手動檢查\n", actionableFailed));
-                    }
-                    if (dustFailed > 0) {
-                        sb.append(String.format("  ℹ️ Grid dust locked %d 格，小於 OKX 最小下單額或已停止 retry\n", dustFailed));
-                    }
-                }
-                if (sellPartial > 0)
-                    sb.append(String.format("  ⚠️ SELL_PARTIAL %d 格 (#399 leftover dust)，主迴圈會 retry，3 次後留人工\n", sellPartial));
-
-                // 自動換範圍狀態
-                if (Boolean.TRUE.equals(grid.getAutoRebalance())) {
-                    int cnt = grid.getRebalanceCount() != null ? grid.getRebalanceCount() : 0;
-                    int max = grid.getMaxRebalanceCount() != null ? grid.getMaxRebalanceCount() : 5;
-                    sb.append(String.format("  🔄 自動換範圍：%d/%d 次 (閾值 %.1f%%, 最少在外 %dh)\n",
-                            cnt, max,
-                            (grid.getRebalanceTriggerPct() != null ? grid.getRebalanceTriggerPct() : 0.015) * 100,
-                            grid.getMinHoursOutside() != null ? grid.getMinHoursOutside() : 4));
-                }
-            }
-        } catch (Exception e) {
-            log.warn("[DailyReport] appendGridHealthSection failed: {}", e.getMessage());
-        }
-    }
-
-    private boolean isDustSellFailure(BtGridLevel level) {
-        if (level == null) return false;
-        String error = level.getErrorMessage() != null ? level.getErrorMessage().toLowerCase() : "";
-        boolean explicitDust = error.contains("dust")
-                || error.contains("minsz")
-                || error.contains("minimum order")
-                || error.contains("minimum")
-                || error.contains("51020");
-        if (explicitDust && level.getRetryCount() != null && level.getRetryCount() >= 3) {
-            return true;
-        }
-        BigDecimal notional = estimateSellNotional(level);
-        return notional != null
-                && notional.compareTo(GRID_DUST_NOTIONAL_THRESHOLD) < 0
-                && level.getRetryCount() != null
-                && level.getRetryCount() >= 3;
-    }
-
-    private BigDecimal estimateSellNotional(BtGridLevel level) {
-        if (level.getFilledQty() == null || level.getPairedSellPrice() == null) {
-            return null;
-        }
-        if (level.getFilledQty().signum() <= 0 || level.getPairedSellPrice().signum() <= 0) {
-            return null;
-        }
-        return level.getFilledQty().multiply(level.getPairedSellPrice()).setScale(8, RoundingMode.HALF_UP);
     }
 
     private void appendSignalAccuracySection(StringBuilder sb) {
@@ -306,9 +199,6 @@ public class DailyReportScheduler {
 
         // ── 策略模式明細 ────────────────────────────────────────────────────
         appendStrategyModeSection(sb);
-
-        // ── 活躍網格 ─────────────────────────────────────────────────────────
-        appendGridHealthSection(sb);
 
         // ── OCO 保護狀態 ──────────────────────────────────────────────────────
         appendOcoProtectionSection(sb);

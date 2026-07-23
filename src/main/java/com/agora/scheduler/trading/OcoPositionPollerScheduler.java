@@ -3,7 +3,6 @@ package com.agora.scheduler.trading;
 import com.agora.config.OkxTradingProperties;
 import com.agora.metrics.TradingMetrics;
 import com.agora.model.BtLiveSignal;
-import com.agora.repository.trading.BtGridLevelRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.TgNotificationDeduper;
@@ -49,7 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OcoPositionPollerScheduler {
 
     private final BtLiveSignalRepository liveSignalRepository;
-    private final BtGridLevelRepository gridLevelRepository;
     private final OkxTradingService okxTradingService;
     private final OcoManagementService ocoManagementService;
     private final NotificationPort notificationPort;
@@ -502,30 +500,6 @@ public class OcoPositionPollerScheduler {
             if ("SHORT".equals(pos.getSide())) continue; // SWAP 合約不計入現貨對帳
             String base = pos.getSymbol().replace("USDT", ""); // "ETHUSDT" → "ETH"
             dbQtyByBase.merge(base, pos.getTradedQty(), BigDecimal::add);
-        }
-
-        // 1b. Grid：active grid 下 FILLED level 的持倉也屬合法 DB 持倉
-        //     若不納入,Grid buy 成交後會被誤判為 orphan 觸發 "未追蹤持倉" 警告
-        for (Object[] row : gridLevelRepository.sumFilledQtyBySymbolForActiveGrids()) {
-            String symbol = (String) row[0];
-            BigDecimal qty = (BigDecimal) row[1];
-            if (qty == null || qty.signum() <= 0) continue;
-            String base = symbol.replace("USDT", "");
-            dbQtyByBase.merge(base, qty, BigDecimal::add);
-        }
-
-        // 1b-2. Closed grid residuals are no longer automation-owned, but they
-        // are still DB-known inventory. Counting them here prevents a retired
-        // grid dust/leftover row from being mislabeled as an untracked manual
-        // holding. Actual cleanup still requires a separate operator decision.
-        for (Object[] row : gridLevelRepository.sumResidualFilledQtyBySymbolForClosedGrids()) {
-            String symbol = (String) row[0];
-            BigDecimal qty = (BigDecimal) row[1];
-            if (qty == null || qty.signum() <= 0) continue;
-            String base = symbol.replace("USDT", "");
-            dbQtyByBase.merge(base, qty, BigDecimal::add);
-            log.info("[Reconcile] include known closed-grid residual {} qty={} in expected spot inventory",
-                    base, qty);
         }
 
         // 1c. OKX 上 pending 的 OCO algo 訂單(side=sell)鎖住的 base qty 也算 managed,

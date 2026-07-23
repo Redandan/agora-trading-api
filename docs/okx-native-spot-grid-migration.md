@@ -2,20 +2,25 @@
 
 ## Decision
 
-The local `bt_grid` execution engine is deprecated for new Grid creation. The
-migration target is OKX-native Spot Grid, while existing local grids remain
-queryable and closable until their holdings and residuals are retired.
+The local `bt_grid` execution engine has been removed from the local candidate.
+OKX-native Spot Grid is the only executable Grid implementation. Historical
+`bt_grid` / `bt_grid_level` records and read-only repositories remain solely
+for provider reconciliation, safety checks, and immutable attribution.
 
 This document is a migration plan, not authorization to place or stop an OKX
 bot, sell a legacy holding, change production environment, deploy, or restart.
 
+As of 2026-07-23, the local removal receipt is
+`PASS_CUSTOM_GRID_RUNTIME_REMOVED_LOCAL_COMPONENT_ONLY`. This does not prove a
+Production deployment, Gate A functional acceptance, archive completion, or
+physical database-table deletion.
+
 ## Phase 1: freeze expansion and establish read-only visibility
 
-- Keep `TRADING_GRID_ENABLED=false`.
-- Keep `TRADING_GRID_CUSTOM_CREATE_RESUME_ENABLED=false`.
-- Block local `createGrid`, `resumeGrid`, and enabling local auto-rebalance.
-- Preserve `listGrids`, `gridStats`, `closeGrid`, and residual cleanup so legacy
-  inventory can be reviewed and retired through separately authorized actions.
+- The legacy Grid flags, mutation tools, schedulers, recovery scanner,
+  auto-rebalance path, and provider order path no longer exist.
+- No local `createGrid`, `resumeGrid`, `closeGrid`, or auto-rebalance entry
+  point remains.
 - Use `getOkxNativeSpotGridStatus(includeHistory=true)` for server-local,
   read-only OKX-native Bot inventory.
 - Use `previewOkxNativeSpotGridMigration` to produce a read-only BTC-USDT,
@@ -158,8 +163,9 @@ All items are required:
    buy/sell calls, mutation services, configuration flags, and production
    wiring are removed. Repository-wide search finds no executable custom Grid
    order path.
-4. Legacy close/recovery code is removed only after item 1 is proven. Until
-   then it remains a quarantined retirement path and cannot open new exposure.
+4. Legacy close/recovery code is removed. Historical records remain read-only;
+   any future residual disposition requires a separately reviewed mechanism
+   and exact authorization rather than restoration of the custom engine.
 5. Historical Grid records needed for signed-fee PnL attribution are exported
    to an immutable archive and reconciled to provider evidence.
 6. Dropping `bt_grid` / `bt_grid_level` tables is a final, separately authorized

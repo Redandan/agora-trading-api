@@ -93,7 +93,6 @@ required_tools = [
     "verifyScoreBuyTradingViewGoldenTruth",
     "backfillBinanceKlines",
     "backfillBinanceKlinesRange",
-    "listGrids",
     "getOpenPositions",
     "getSystemHealth",
     "getMarketSentiment",

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  *
  * <p>2026-04-16 重構:原 TradingMcpTools.java(2365 行)拆為 4 個專責類別:
  * {@link StrategyManagementMcpTools} / {@link BacktestValidationMcpTools} /
- * {@link GridMcpTools} / {@link MarketDataMcpTools}。
+ * {@link OkxNativeGridMcpTools} / {@link MarketDataMcpTools}。
  */
 @Configuration
 @Slf4j
@@ -71,13 +71,6 @@ public class McpToolsConfig {
 
     @Bean
     public ToolCallbackProvider backtestValidationMcpToolCallbacks(BacktestValidationMcpTools tools) {
-        return MethodToolCallbackProvider.builder()
-                .toolObjects(tools)
-                .build();
-    }
-
-    @Bean
-    public ToolCallbackProvider gridMcpToolCallbacks(GridMcpTools tools) {
         return MethodToolCallbackProvider.builder()
                 .toolObjects(tools)
                 .build();

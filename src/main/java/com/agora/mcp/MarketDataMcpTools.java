@@ -2952,7 +2952,7 @@ public class MarketDataMcpTools {
 
     @com.agora.mcp.auth.McpAuth(com.agora.mcp.auth.McpAuthLevel.OPS)
     @com.agora.mcp.auth.McpCategory({com.agora.mcp.auth.Category.DIAGNOSTIC})
-    @Tool(description = "手動觸發 WS 訂閱 resync。掃 enabled bt_strategy + bt_grid,"
+    @Tool(description = "手動觸發 WS 訂閱 resync。掃 enabled bt_strategy,"
             + "對比當前 WS 訂閱,補齊缺的 / 移除多餘的。正常情況 StrategyEnabledEvent"
             + "會自動觸發,此工具供除錯或 yaml ↔ DB 差異對帳用。"
             + "回傳格式: 'trigger=manual desired=N current=N added=N removed=N'")

@@ -1,6 +1,5 @@
 package com.agora.config;
 
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtStrategyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Derives the WS kline subscription list from enabled strategies + grids at
+ * Derives the WS kline subscription list from enabled strategies at
  * runtime, replacing the yaml-hardcoded {@link MarketWsAutoSubscribeProperties}
  * (which stays as a fallback when DB has no active owners).
  *
@@ -53,7 +52,6 @@ public class WsSubscriptionResolver {
     private static final String DEFAULT_MARKET_TYPE = "SPOT";
 
     private final BtStrategyRepository strategyRepository;
-    private final BtGridRepository gridRepository;
     private final MarketWsAutoSubscribeProperties fallbackProperties;
 
     /**
@@ -79,23 +77,13 @@ public class WsSubscriptionResolver {
             }
         }
 
-        int gridCount = 0;
-        for (var grid : gridRepository.findByEnabledTrueAndClosedAtIsNull()) {
-            gridCount++;
-            String sym = grid.getSymbol() != null ? grid.getSymbol().toUpperCase() : null;
-            if (sym == null || sym.isBlank()) continue;
-            for (String iv : DEFAULT_INTERVALS) {
-                addItem(items, seenKeys, sym, iv, DEFAULT_MARKET_TYPE);
-            }
-        }
-
         if (!items.isEmpty()) {
-            log.info("[WsSubResolver] Resolved {} items from DB ({} strategies + {} grids)",
-                    items.size(), strategyCount, gridCount);
+            log.info("[WsSubResolver] Resolved {} items from DB ({} strategies)",
+                    items.size(), strategyCount);
             return items;
         }
 
-        log.warn("[WsSubResolver] No enabled strategy or grid; falling back to yaml items");
+        log.warn("[WsSubResolver] No enabled strategy; falling back to yaml items");
         List<MarketWsAutoSubscribeProperties.Item> yaml = fallbackProperties.getItems();
         return yaml != null ? yaml : List.of();
     }

@@ -1,7 +1,6 @@
 package com.agora.service.trading;
 
 import com.agora.mcp.DiagnosticMcpTools;
-import com.agora.mcp.GridMcpTools;
 import com.agora.mcp.IndicatorMcpTools;
 import com.agora.mcp.MarketDataMcpTools;
 import com.agora.mcp.PositionMcpTools;
@@ -25,7 +24,6 @@ public class AutonomousTradingSnapshotService {
     private final AutoExplorationRolloutControllerService rolloutControllerService;
     private final TinyLiveExecutionService tinyLiveExecutionService;
     private final PositionMcpTools positionMcpTools;
-    private final GridMcpTools gridMcpTools;
     private final MarketDataMcpTools marketDataMcpTools;
     private final IndicatorMcpTools indicatorMcpTools;
     private final DiagnosticMcpTools diagnosticMcpTools;
@@ -55,7 +53,7 @@ public class AutonomousTradingSnapshotService {
                 : rolloutStatus.loop().monitor().render();
         String executions = safe("tinyLiveExecutions", () -> tinyLiveExecutionService.listExecutions(sym, 24 * 60, 20));
         String oco = safe("ocoHealth", positionMcpTools::getOcoHealth);
-        String exposure = safe("exposure", gridMcpTools::getCurrentExposure);
+        String exposure = "Custom Grid exposure runtime removed; use OKX native Grid status.";
         String trades = safe("okxTradeHistory", () -> positionMcpTools.getOkxTradeHistory(20));
         String tradeReconciliation = safe("tradeReconciliation", () ->
                 diagnosticMcpTools.reconcileOrphanTrades("BTC", 24, 20.0, 1.0, 10, false));

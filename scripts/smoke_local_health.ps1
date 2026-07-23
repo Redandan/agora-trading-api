@@ -341,14 +341,11 @@ $envOverrides = @{
     WICK_CAPTURE_SHADOW_ENABLED = "false"
     WICK_CAPTURE_SHADOW_BOOTSTRAP_ENABLED = "false"
     SHADOW_CLEANUP_ENABLED = "false"
-    GRID_RECOVERY_ENABLED = "false"
     TRADING_DAILY_TG_REPORT_ENABLED = "false"
     TRADING_BTC_PRICE_MOVE_ALERT_ENABLED = "false"
     MARKET_SIGNAL_RISK_CARD_ENABLED = "false"
     MARKET_SIGNAL_RISK_CARD_DRY_RUN = "true"
     TRADING_WAI_ENABLED = "false"
-    TRADING_GRID_ENABLED = "false"
-    TRADING_GRID_AUTO_REBALANCE_SCHEDULER_ENABLED = "false"
     TRADING_FUNDING_ARB_ENABLED = "false"
     TRAILING_STOP_ENABLED = "false"
     TRAILING_STOP_DRY_RUN = "true"
@@ -496,14 +493,11 @@ try {
         "--wick-capture.shadow.enabled=false",
         "--wick-capture.shadow.bootstrap-enabled=false",
         "--shadow-cleanup.enabled=false",
-        "--grid.recovery.enabled=false",
         "--trading.daily-tg-report.enabled=false",
         "--trading.btc-price-move-alert.enabled=false",
         "--market-signal.risk-card.enabled=false",
         "--market-signal.risk-card.dry-run=true",
         "--trading.wai.enabled=false",
-        "--trading.grid.enabled=false",
-        "--trading.grid.auto-rebalance-scheduler.enabled=false",
         "--trading.funding-arb.enabled=false",
         "--trailing-stop.enabled=false",
         "--trailing-stop.dry-run=true",
@@ -602,7 +596,6 @@ try {
         "verifyScoreBuyTradingViewGoldenTruth",
         "backfillBinanceKlines",
         "backfillBinanceKlinesRange",
-        "listGrids",
         "getOpenPositions",
         "getSystemHealth",
         "getMarketSentiment",

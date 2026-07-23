@@ -1,12 +1,8 @@
 package com.agora.service.trading;
 
-import com.agora.model.BtGrid;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.BtOcoAdjustmentAuditRepository;
 import com.agora.repository.trading.BtStrategyRepository;
@@ -33,13 +29,13 @@ import java.util.Random;
 /**
  * #413 — Opportunity Scanner.
  *
- * <p>Read-only meta-tool that integrates current OCO / Grid / Earn / Strategy /
+ * <p>Read-only meta-tool that integrates current OCO / Earn / Strategy /
  * FundingArb state into a single ranked "what should I do" list. Replaces the
- * 5-10 minute manual juggling of {@code getOpenPositions} + {@code listGrids}
- * + {@code getBalance} + {@code listStrategies} + mental EV math.
+ * 5-10 minute manual juggling of {@code getOpenPositions} +
+ * {@code getBalance} + {@code listStrategies} + mental EV math.
  *
  * <p><b>Phase 1 scope</b>: 5 action kinds — HOLD/MODIFY/CLOSE OCO (per
- * position), HOLD Grid (per active grid), SUBSCRIBE Earn USDT, WAIT for
+ * position), SUBSCRIBE Earn USDT, WAIT for
  * strategy trigger (aggregate), AVOID Funding Arb (single warning). No
  * capital constraint solver, no correlation penalty, no AI ranking. Pure
  * additive integration over already-shipped services.
@@ -49,7 +45,6 @@ import java.util.Random;
  * <ul>
  *   <li>OCO EV: from {@link OcoOutcomeAnalysisService} as-is — that service
  *       assumes the bracket fully resolves within the horizon, so no scaling.</li>
- *   <li>Grid EV: historical PnL-per-pair × projected pairs in horizon.</li>
  *   <li>Earn EV: principal × APY × (horizonDays / 365).</li>
  *   <li>Strategy WAIT EV: signals in last 7d × historical avg PnL × (horizon/7),
  *       Phase 1 simplification: $0 placeholder if zero historical fires.</li>
@@ -76,11 +71,6 @@ public class OpportunityScannerService {
     /** Phase 3 — joint EV correlation haircut per extra BTC LONG row (cap at 30%). */
     private static final double JOINT_EV_HAIRCUT_PER_EXTRA_ROW = 0.05;
     private static final double JOINT_EV_HAIRCUT_CAP = 0.30;
-    /** Phase 3 — ADD_GRID template params. */
-    private static final int ADD_GRID_LEVELS = 3;
-    private static final double ADD_GRID_MIN_FREE_USDT = 50.0;
-    private static final double ADD_GRID_MAX_CONCENTRATION = 70.0;
-
     /** Phase 4 — MODIFY_OCO_TIGHTEN template emits when WARN P(TP) ≥ this. */
     private static final double MODIFY_OCO_TIGHTEN_PTP_MIN = 90.0;
     /** Phase 4 — tighten reduces upside (less room to TP) but locks profit; rough EV factor. */
@@ -92,8 +82,6 @@ public class OpportunityScannerService {
     private static final double MC_DEFAULT_DAILY_VOL = 0.025;  // 2.5% fallback when no klines
 
     private final BtLiveSignalRepository liveSignalRepo;
-    private final BtGridRepository gridRepo;
-    private final BtGridLevelRepository gridLevelRepo;
     private final BtStrategyRepository strategyRepo;
     private final OkxTradingService okxTradingService;
     private final OkxEarnService okxEarnService;
@@ -105,14 +93,13 @@ public class OpportunityScannerService {
 
     public enum ActionKind {
         HOLD_OCO, MODIFY_OCO, MODIFY_OCO_TIGHTEN, CLOSE_OCO, WARN_OCO, RECONCILE_OCO,
-        HOLD_GRID, ADD_GRID, RESERVE_GRID,
         SUBSCRIBE_EARN,
         WAIT_STRATEGY,
         AVOID_FUNDING_ARB
     }
 
     /**
-     * Phase 2 — affects EV scaling on speculative rows (OCO / Grid / WAIT) and
+     * Phase 2 — affects EV scaling on speculative rows (OCO / WAIT) and
      * the visibility of MODIFY/CLOSE rows. Earn rows are unaffected (deterministic).
      * <ul>
      *   <li>{@code CONSERVATIVE}: 0.7× discount on speculative EV; demote any
@@ -313,67 +300,17 @@ public class OpportunityScannerService {
             }
         }
 
-        // ── 3. Grid opportunities (one per active grid) ──────────────────
-        List<BtGrid> activeGrids = gridRepo.findByEnabledTrueAndClosedAtIsNull();
-        // Phase 5 (#416) — track capital reserved for PAUSED grids (don't divert to Earn)
-        double pausedGridReserve = 0;
-        for (BtGrid g : activeGrids) {
-            try {
-                if (g.getPausedAt() != null) {
-                    // Phase 5 — emit RESERVE_GRID row for paused grids so user sees
-                    // the idle capital allocation (vs silently dropping the grid)
-                    Opportunity reserveOpp = buildReserveGridOpportunity(g);
-                    if (reserveOpp != null) {
-                        ranked.add(reserveOpp);
-                        pausedGridReserve += reserveOpp.capitalUsdt();
-                        // PAUSED grid still represents BTC LONG potential; flag for concentration
-                        if (g.getSymbol() != null) {
-                            longExposureBySymbol.merge(g.getSymbol(), reserveOpp.capitalUsdt(), Double::sum);
-                        }
-                    }
-                    continue;
-                }
-                Opportunity opp = analyzeGrid(g, horizonDays, risk);
-                if (opp != null) {
-                    ranked.add(opp);
-                    if (g.getSymbol() != null) {
-                        longExposureBySymbol.merge(g.getSymbol(), opp.capitalUsdt(), Double::sum);
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("[OpportunityScanner] Grid #{} analyze failed: {}",
-                        g.getId(), e.getMessage());
-            }
-        }
-
-        // ── 3b. Phase 4 — pre-compute per-symbol concentration (no ADD_GRID yet) ──
-        Map<String, Double> currentConcentrationBySymbol = computeConcentration(longExposureBySymbol, totalUsd);
-        double currentConcentrationPct = currentConcentrationBySymbol
-                .getOrDefault("BTCUSDT", 0.0);
-
-        // ── 3c. Phase 3 — ADD_GRID template (consumes free USDT, gated on concentration) ──
-        double addGridCapital = 0;
-        Opportunity addGridOpp = maybeAddGridOpportunity(activeGrids,
-                freeUsdt, currentConcentrationPct, horizonDays, risk);
-        if (addGridOpp != null) {
-            ranked.add(addGridOpp);
-            addGridCapital = addGridOpp.capitalUsdt();
-        }
-
-        // ── 4. Earn opportunity (USDT only, single recommendation) ───────
-        // Phase 3 — Earn ask shrinks by ADD_GRID capital so solver doesn't overspend.
-        // Phase 5 (#416) — also shrinks by pausedGridReserve so user keeps capital ready
-        // for grid resume (regime flip) instead of fully draining to Earn.
-        double subscribeUsdt = Math.max(0, freeUsdt - USDT_BUFFER - addGridCapital - pausedGridReserve);
+        // ── 3. Earn opportunity (USDT only, single recommendation) ───────
+        double subscribeUsdt = Math.max(0, freeUsdt - USDT_BUFFER);
         double allInEarnEv = 0;
-        // Phase 3 — full-pool Earn baseline (independent of ADD_GRID/reserve claim)
+        // Phase 3 — full-pool Earn baseline.
         double fullPoolSubscribe = Math.max(0, freeUsdt - USDT_BUFFER);
         if (subscribeUsdt >= EARN_MIN_SUBSCRIBE) {
             try {
                 OkxEarnService.EarnRateSummary rate = okxEarnService.getRateSummary("USDT");
                 double apyPct = rate.estApyPct().doubleValue();
                 double evEarn = subscribeUsdt * (apyPct / 100.0) * (horizonDays / 365.0);
-                // Baseline anchor uses full pool (alternative: skip ADD_GRID, all-in Earn)
+                // Baseline anchor uses the full eligible pool.
                 allInEarnEv = fullPoolSubscribe * (apyPct / 100.0) * (horizonDays / 365.0);
                 String detail = String.format(
                         "subscribeEarn(USDT, %.2f) — current est APY %.2f%%, %d-day yield",
@@ -445,9 +382,8 @@ public class OpportunityScannerService {
         }
 
         // ── 7. Phase 4 — multi-symbol concentration penalty + MC joint EV ──
-        // ADD_GRID's hypothetical capital is NOT added to longExposureBySymbol —
-        // its row is gated/demoted based on pre-ADD_GRID concentration (no feedback loop).
-        Map<String, Double> concentrationBySymbol = currentConcentrationBySymbol;
+        Map<String, Double> concentrationBySymbol =
+                computeConcentration(longExposureBySymbol, totalUsd);
         double btcConcentrationPct = concentrationBySymbol.getOrDefault("BTCUSDT", 0.0);
 
         // Apply per-symbol concentration penalty: flag all symbols' LONG rows
@@ -493,7 +429,7 @@ public class OpportunityScannerService {
 
         // Phase 4 — full Monte Carlo GBM joint EV (replaces haircut when available)
         McJointResult mc = runMonteCarlo(btcPrice, horizonDays,
-                openOcoPositions, activeGrids, risk);
+                openOcoPositions, risk);
 
         String report = formatReport(horizonDays, risk, freeUsdt, btcQty, btcValue,
                 earnPrincipal, totalUsd, btcConcentrationPct, concentrationBySymbol,
@@ -530,8 +466,7 @@ public class OpportunityScannerService {
         return k == ActionKind.HOLD_OCO || k == ActionKind.MODIFY_OCO
                 || k == ActionKind.MODIFY_OCO_TIGHTEN
                 || k == ActionKind.WARN_OCO || k == ActionKind.CLOSE_OCO
-                || k == ActionKind.RECONCILE_OCO
-                || k == ActionKind.HOLD_GRID || k == ActionKind.ADD_GRID;
+                || k == ActionKind.RECONCILE_OCO;
     }
 
     /**
@@ -580,11 +515,6 @@ public class OpportunityScannerService {
         return Math.sqrt(Math.max(0, var));
     }
 
-    /** Phase 4 — Grid pair PnL std heuristic: 50% CoV (rough). */
-    private static double estimateGridStd(double evGrid) {
-        return Math.abs(evGrid) * 0.5;
-    }
-
     /** Phase 4 — estimate BTC daily log-return std from last N daily klines. */
     private double estimateBtcDailyVol() {
         try {
@@ -617,15 +547,14 @@ public class OpportunityScannerService {
     /**
      * Phase 4 — Monte Carlo joint EV simulation. Generates {@link #MC_SIMULATIONS}
      * GBM price paths over {@code horizonDays} (daily steps), evaluates per-OCO
-     * first-touch barrier outcomes and per-Grid range overlap, and returns mean ± std.
+     * first-touch barrier outcomes, and returns mean ± std.
      * Risk scaling is applied to the final mean/std (consistent with single-row scaling).
      */
     private McJointResult runMonteCarlo(double btcPriceNow, int horizonDays,
                                          List<BtLiveSignal> ocoPositions,
-                                         List<BtGrid> activeGrids,
                                          RiskTolerance risk) {
         if (btcPriceNow <= 0) return new McJointResult(0, 0, 0, 0);
-        if (ocoPositions.isEmpty() && activeGrids.isEmpty()) {
+        if (ocoPositions.isEmpty()) {
             return new McJointResult(0, 0, 0, 0);
         }
         double dailyVol = estimateBtcDailyVol();
@@ -672,28 +601,6 @@ public class OpportunityScannerService {
                 }
             }
 
-            // Per-Grid: range-overlap pair count × historical avg pair PnL
-            for (BtGrid g : activeGrids) {
-                if (g.getPausedAt() != null) continue;
-                if (!"BTCUSDT".equalsIgnoreCase(g.getSymbol())) continue;
-                if (g.getPriceLower() == null || g.getPriceUpper() == null
-                        || g.getClosedPairCount() == null
-                        || g.getTotalRealizedPnl() == null) continue;
-                int closedPairs = g.getClosedPairCount();
-                if (closedPairs == 0) continue;
-                double lower = g.getPriceLower().doubleValue();
-                double upper = g.getPriceUpper().doubleValue();
-                int levels = g.getGridCount() != null ? g.getGridCount() : 1;
-                double gridSpread = upper - lower;
-                if (gridSpread <= 0) continue;
-                double overlap = Math.max(0, Math.min(pathHigh, upper) - Math.max(pathLow, lower));
-                if (overlap <= 0) continue;
-                double avgPnl = g.getTotalRealizedPnl().doubleValue() / closedPairs;
-                // Rough: overlap fraction × levels × 0.5 (each level contributes one half-pair)
-                double pathPairs = (overlap / gridSpread) * levels * 0.5;
-                pathPnl += pathPairs * avgPnl;
-            }
-
             simPnls[sim] = pathPnl;
         }
 
@@ -715,70 +622,6 @@ public class OpportunityScannerService {
                                   MC_SIMULATIONS, dailyVol * 100);
     }
 
-    /**
-     * Phase 3 — ADD_GRID template. Generates an "extend the best-performing grid"
-     * suggestion when conditions are met. Returns null when no candidate.
-     * Conditions: at least one active grid with closed pairs > 0, free USDT
-     * above {@link #ADD_GRID_MIN_FREE_USDT} + buffer, current BTC concentration
-     * below {@link #ADD_GRID_MAX_CONCENTRATION}.
-     */
-    private Opportunity maybeAddGridOpportunity(List<BtGrid> activeGrids,
-                                                 double freeUsdt,
-                                                 double currentConcentrationPct,
-                                                 int horizonDays,
-                                                 RiskTolerance risk) {
-        if (currentConcentrationPct >= ADD_GRID_MAX_CONCENTRATION) return null;
-        if (freeUsdt < ADD_GRID_MIN_FREE_USDT + USDT_BUFFER) return null;
-        BtGrid best = null;
-        double bestPpd = 0;  // pairs-per-day × avgPnl (productivity score)
-        long bestAgeDays = 1;
-        for (BtGrid g : activeGrids) {
-            if (g.getPausedAt() != null) continue;
-            int closedPairs = g.getClosedPairCount() != null ? g.getClosedPairCount() : 0;
-            if (closedPairs == 0) continue;
-            double totalPnl = g.getTotalRealizedPnl() != null
-                    ? g.getTotalRealizedPnl().doubleValue() : 0;
-            long ageDays = g.getCreatedAt() != null
-                    ? Math.max(1, Duration.between(g.getCreatedAt(),
-                            LocalDateTime.now(ZoneOffset.UTC)).toDays())
-                    : 1;
-            double pairsPerDay = (double) closedPairs / ageDays;
-            double avgPnlPerPair = totalPnl / closedPairs;
-            double score = pairsPerDay * avgPnlPerPair;
-            if (score > bestPpd) {
-                best = g;
-                bestPpd = score;
-                bestAgeDays = ageDays;
-            }
-        }
-        if (best == null || bestPpd <= 0) return null;
-        double perLevelUsdt = best.getPerLevelUsdt() != null
-                ? best.getPerLevelUsdt().doubleValue() : 10.0;
-        double addCapital = perLevelUsdt * ADD_GRID_LEVELS;
-        if (addCapital > Math.max(0, freeUsdt - USDT_BUFFER)) return null;
-
-        // Project EV: same per-pair productivity scaled to additional levels.
-        // Conservative: assume new levels match current pairs-per-day per level.
-        int currentLevels = best.getGridCount() != null ? best.getGridCount() : 1;
-        double rawEv = bestPpd * horizonDays * ((double) ADD_GRID_LEVELS / currentLevels);
-        double scaledEv = scaleSpeculativeEv(rawEv, ActionKind.ADD_GRID, risk);
-        int closedPairsBest = best.getClosedPairCount() != null ? best.getClosedPairCount() : 0;
-        double ppd = (double) closedPairsBest / Math.max(1, bestAgeDays);
-        double avgPnl = ppd > 0 ? bestPpd / ppd : 0;
-        String detail = String.format(
-                "Extend Grid #%d %s by %d levels @ $%.2f each — projected from %.1f pairs/day × $%.4f/pair",
-                best.getId(), best.getSymbol(), ADD_GRID_LEVELS, perLevelUsdt,
-                ppd, avgPnl);
-        String baseline = String.format(
-                "vs idle 0 USDT: +%.2f USDT (capital newly deployed)", scaledEv);
-        double evStd = estimateGridStd(rawEv);
-        return new Opportunity(ActionKind.ADD_GRID, best.getSymbol(),
-                "ADD Grid #" + best.getId() + " +" + ADD_GRID_LEVELS + "L",
-                detail, scaledEv, rawEv, evStd, Double.NaN,
-                addCapital, "free USDT used", baseline,
-                true /* NEW capital */);
-    }
-
     /** Phase 3 — last 7d BTC close-to-close drift, returns 0 if data unavailable. */
     private double btc7dDriftPct() {
         try {
@@ -798,16 +641,13 @@ public class OpportunityScannerService {
     /**
      * Phase 2 — risk-tolerance EV scalar for speculative rows.
      * Earn / WAIT placeholder / AVOID rows are never scaled.
-     * Phase 3 — ADD_GRID is speculative (projection from grid history).
      */
     static double scaleSpeculativeEv(double rawEv, ActionKind kind, RiskTolerance risk) {
         boolean speculative = kind == ActionKind.HOLD_OCO
                 || kind == ActionKind.MODIFY_OCO
                 || kind == ActionKind.MODIFY_OCO_TIGHTEN
                 || kind == ActionKind.CLOSE_OCO
-                || kind == ActionKind.WARN_OCO
-                || kind == ActionKind.HOLD_GRID
-                || kind == ActionKind.ADD_GRID;
+                || kind == ActionKind.WARN_OCO;
         if (!speculative) return rawEv;
         return switch (risk) {
             case CONSERVATIVE -> rawEv * 0.7;
@@ -824,105 +664,6 @@ public class OpportunityScannerService {
         if (upper.startsWith("CLOSE")) return ActionKind.CLOSE_OCO;
         if (upper.startsWith("MODIFY")) return ActionKind.MODIFY_OCO;
         return ActionKind.HOLD_OCO;
-    }
-
-    /**
-     * Project Grid EV over the horizon based on historical pair frequency.
-     * <p>Returns null if grid has no history (closedPairCount=0) since Phase 1
-     * doesn't model breakeven/level-distance forecast for fresh grids.
-     */
-    private Opportunity analyzeGrid(BtGrid g, int horizonDays, RiskTolerance risk) {
-        int closedPairs = g.getClosedPairCount() != null ? g.getClosedPairCount() : 0;
-        double totalPnl = g.getTotalRealizedPnl() != null
-                ? g.getTotalRealizedPnl().doubleValue() : 0;
-
-        long ageDays = g.getCreatedAt() != null
-                ? Math.max(1, Duration.between(g.getCreatedAt(),
-                        LocalDateTime.now(ZoneOffset.UTC)).toDays())
-                : 1;
-
-        // Historical pair-rate × per-pair PnL × horizon — null if no history.
-        double evGrid;
-        String detail;
-        if (closedPairs == 0) {
-            // No closed pairs yet — fall back to "passive monitoring" with $0 EV
-            // rather than fabricate a forecast. Caller still sees the row.
-            evGrid = 0;
-            detail = String.format(
-                    "Grid #%d %s [%s ~ %s] %d levels — no closed pairs yet (age %dd)",
-                    g.getId(), g.getSymbol(),
-                    g.getPriceLower().toPlainString(), g.getPriceUpper().toPlainString(),
-                    g.getGridCount(), ageDays);
-        } else {
-            double pairsPerDay = (double) closedPairs / ageDays;
-            double avgPnlPerPair = totalPnl / closedPairs;
-            evGrid = pairsPerDay * horizonDays * avgPnlPerPair;
-            detail = String.format(
-                    "Grid #%d %s — %d pairs in %dd (≈%.1f/day, avg %+.4f USDT/pair)",
-                    g.getId(), g.getSymbol(), closedPairs, ageDays,
-                    pairsPerDay, avgPnlPerPair);
-        }
-
-        // Capital tied up = sum of per-level USDT × levels still HOLDING + PENDING
-        // Approximation: assume all levels deploy at full perLevelUsdt
-        double capital = 0;
-        try {
-            List<BtGridLevel> levels = gridLevelRepo.findByGridId(g.getId());
-            for (BtGridLevel lv : levels) {
-                String st = lv.getStatus();
-                if ("HOLDING".equals(st) || "PENDING".equals(st)) {
-                    capital += g.getPerLevelUsdt().doubleValue();
-                }
-            }
-        } catch (Exception ignored) {
-            capital = g.getPerLevelUsdt().doubleValue() * g.getGridCount();
-        }
-
-        String baseline = "vs HODL: grid captures sideways oscillation";
-        double scaledEv = scaleSpeculativeEv(evGrid, ActionKind.HOLD_GRID, risk);
-        double evStd = estimateGridStd(evGrid);
-        return new Opportunity(ActionKind.HOLD_GRID, g.getSymbol(),
-                "HOLD Grid #" + g.getId(),
-                detail, scaledEv, evGrid, evStd, Double.NaN,
-                capital, "already locked in Grid", baseline,
-                false /* already-locked, not new capital */);
-    }
-
-    /**
-     * Phase 5 (#416) — emit RESERVE_GRID row for paused grids so the user sees
-     * the idle USDT capital reserved for grid resume (instead of silently dropping
-     * the grid from output and over-allocating to Earn).
-     * EV = 0 (opportunity cost only); capital = perLevelUsdt × pendingLevelCount.
-     */
-    private Opportunity buildReserveGridOpportunity(BtGrid g) {
-        if (g.getPerLevelUsdt() == null) return null;
-        double perLevel = g.getPerLevelUsdt().doubleValue();
-        long pending;
-        try {
-            pending = gridLevelRepo.countByGridIdAndStatus(g.getId(), "PENDING");
-        } catch (Exception e) {
-            // fallback to total grid count if repo call fails
-            pending = g.getGridCount() != null ? g.getGridCount() : 0;
-        }
-        if (pending <= 0) return null;
-        double reserveCapital = perLevel * pending;
-        String label = String.format("RESERVE Grid #%d (%d levels @ $%.2f)",
-                g.getId(), pending, perLevel);
-        String pausedAt = g.getPausedAt() != null
-                ? g.getPausedAt().toString().substring(0, 10)
-                : "(unknown)";
-        String detail = String.format(
-                "Grid #%d %s PAUSED since %s — keep $%.2f USDT idle for resume " +
-                "(don't subscribe to Earn). Re-evaluate when regime flips.",
-                g.getId(), g.getSymbol(), pausedAt, reserveCapital);
-        String baseline = "vs full subscribe Earn: lose ~+$0.0X yield to keep grid alpha optionality";
-        return new Opportunity(ActionKind.RESERVE_GRID, g.getSymbol(),
-                label, detail,
-                0.0 /* EV — pure reservation, no expected income */,
-                0.0 /* rawEv */, 0.0 /* std — deterministic 0 */,
-                Double.NaN /* winRate N/A */,
-                reserveCapital, "reserved for grid resume", baseline,
-                false /* not NEW capital — already in account, just earmarked */);
     }
 
     /**
@@ -949,22 +690,18 @@ public class OpportunityScannerService {
                                 McJointResult mc) {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Opportunity Scan ===\n");
-        // Phase 5 (#416) — IDLE WARNING banner at top when recommendations
-        // underperform best baseline (e.g. all-cash + Grid paused + no fires)
+        // IDLE WARNING banner when recommendations underperform the best baseline.
         if (edge < 0) {
             long btcLongCount = ranked.stream()
                     .filter(o -> "BTCUSDT".equalsIgnoreCase(o.symbol())
-                            && (o.kind() == ActionKind.HOLD_OCO
-                            || o.kind() == ActionKind.HOLD_GRID))
+                            && o.kind() == ActionKind.HOLD_OCO)
                     .count();
-            long pausedCount = ranked.stream()
-                    .filter(o -> o.kind() == ActionKind.RESERVE_GRID).count();
             sb.append("\n🚨 PORTFOLIO IDLE WARNING:\n");
             sb.append(String.format("  Recommended (%+.2f) underperforms HODL (%+.2f) by %.2f USDT.%n",
                     summedEv, hodlBaselineEv, Math.abs(edge)));
             sb.append(String.format(
-                    "  Reasons: %d active BTC LONG positions / %d Grid PAUSED / no strategy fired in 7d.%n",
-                    btcLongCount, pausedCount));
+                    "  Reasons: %d active BTC LONG positions / no strategy fired in 7d.%n",
+                    btcLongCount));
             sb.append("  Consider: (a) wait for regime flip / (b) light spot BTC buy / (c) accept Earn floor.\n\n");
         }
         sb.append(String.format("Horizon: %d days  |  Risk: %s  |  Total: $%.2f USD%n",
@@ -1057,12 +794,11 @@ public class OpportunityScannerService {
         sb.append("    > 60% applies 0.7× penalty on *incremental* (newCapital=true) rows of\n");
         sb.append("    that symbol; existing locked rows are flagged but EV unchanged.\n");
         sb.append("    HODL baseline uses last-7d BTC drift. Per-row ±std comes from Bernoulli\n");
-        sb.append("    (OCO TP/SL) or 50%-CoV heuristic (Grid). Joint EV uses Monte Carlo GBM\n");
+        sb.append("    OCO TP/SL outcomes. Joint EV uses Monte Carlo GBM\n");
         sb.append("    (").append(MC_SIMULATIONS).append(" sims, BTC vol from last ").append(MC_VOL_LOOKBACK_DAYS)
                 .append("d daily klines, deterministic seed) when\n");
         sb.append("    klines are available; falls back to 5%/extra-row haircut otherwise.\n");
         sb.append("    MODIFY_OCO_TIGHTEN emits when WARN_OCO P(TP)≥90% (lock partial profit).\n");
-        sb.append("    ADD_GRID is template only; actual grid extension needs modifyGrid MCP.\n");
         return sb.toString();
     }
 

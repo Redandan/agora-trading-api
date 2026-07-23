@@ -1,10 +1,6 @@
 package com.agora.service.trading;
 
-import com.agora.model.BtGrid;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.SignalOutcomeVerificationRepository;
 import com.agora.service.ai.GeminiApiClient;
@@ -46,8 +42,6 @@ public class TradingManagerService {
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("MM-dd HH:mm");
 
     private final BtLiveSignalRepository liveSignalRepository;
-    private final BtGridRepository btGridRepository;
-    private final BtGridLevelRepository btGridLevelRepository;
     private final OkxTradingService okxTradingService;
     private final OcoOrderStateInspector ocoOrderStateInspector;
     private final OkxEarnService okxEarnService;
@@ -117,23 +111,14 @@ public class TradingManagerService {
             }
         }
 
-        // 活躍 Grid（DB 查詢，不需 API）
-        List<BtGrid> activeGrids;
-        try {
-            activeGrids = btGridRepository.findByEnabledTrueAndClosedAtIsNull();
-        } catch (Exception e) {
-            log.warn("[TradingManager] fetchActiveGrids failed: {}", e.getMessage());
-            activeGrids = Collections.emptyList();
-        }
-
         List<PositionView> views = buildPositionViews(openPositions, now, okxPrivateReady);
         String positionTable = buildPositionTable(views);
-        String holdingsSection = buildHoldingsSection(nonUsdt, activeGrids);
+        String holdingsSection = buildHoldingsSection(nonUsdt);
         String earnSection = buildEarnSection(earnBalances);
         String fundingSection = buildFundingSection(fundingHoldings);
         // AI comment 移除：/report 已在第二條訊息提供完整市場分析，此處重複呼叫 Gemini 浪費 token
         return formatCurrentReport(openPositions.size(), usdtBalance, earnSection, fundingSection,
-                holdingsSection, positionTable, null, now, activeGrids, okxPrivateNotice);
+                holdingsSection, positionTable, null, now, okxPrivateNotice);
     }
 
     /** 建立 OKX Funding Account 段落（Issue #155）；若無餘額回傳 null。 */
@@ -297,9 +282,8 @@ public class TradingManagerService {
                 promptSb.toString(), 800);
     }
 
-    /** 建立非 USDT 現貨持倉段落，並附上對應的 Grid 持倉明細。 */
-    private String buildHoldingsSection(List<OkxTradingService.SpotHolding> nonUsdt,
-                                        List<BtGrid> activeGrids) {
+    /** 建立非 USDT 現貨持倉段落。 */
+    private String buildHoldingsSection(List<OkxTradingService.SpotHolding> nonUsdt) {
         // 過濾塵埃持倉：用 cashBal 判斷（OCO 鎖倉後 eqUsd 可能為 0，但 cashBal 仍有值）
         // eqUsd > 0 優先，否則用 cashBal > 0.001（約 $0.08 for BTC at $76k）兜底
         List<OkxTradingService.SpotHolding> meaningful = nonUsdt.stream()
@@ -308,10 +292,6 @@ public class TradingManagerService {
                 .toList();
         if (meaningful.isEmpty()) return null;
         nonUsdt = meaningful;
-        // 依 symbol 分組 grid
-        Map<String, List<BtGrid>> gridsBySymbol = activeGrids.stream()
-                .collect(Collectors.groupingBy(BtGrid::getSymbol));
-
         StringBuilder sb = new StringBuilder();
         for (OkxTradingService.SpotHolding h : nonUsdt) {
             double usdVal = (h.eqUsd != null && h.eqUsd.compareTo(BigDecimal.ZERO) > 0)
@@ -320,43 +300,6 @@ public class TradingManagerService {
             sb.append(String.format("%s: %s (≈$%.2f)",
                     h.ccy, h.cashBal.toPlainString(), usdVal));
 
-            // 同幣種的 Grid 持倉明細（只找 HOLDING / SELL_FAILED / SELL_PARTIAL 的格）
-            String symbol = h.ccy + "USDT";
-            List<BtGrid> grids = gridsBySymbol.getOrDefault(symbol, Collections.emptyList());
-            for (BtGrid g : grids) {
-                List<BtGridLevel> holdingLevels = btGridLevelRepository
-                        .findByGridIdAndStatusIn(g.getId(), List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"));
-                if (holdingLevels.isEmpty()) continue;
-                String gridStatus = g.getPausedAt() != null ? " ⏸" : "";
-                sb.append(String.format("\n Grid#%d [%s~%s]%s 持倉%d格:",
-                        g.getId(),
-                        formatPrice(g.getPriceLower()),
-                        formatPrice(g.getPriceUpper()),
-                        gridStatus,
-                        holdingLevels.size()));
-                holdingLevels.sort(Comparator.comparing(BtGridLevel::getLevelIndex));
-                for (BtGridLevel lv : holdingLevels) {
-                    String sellFlag = "SELL_FAILED".equals(lv.getStatus()) ? "⚠️" : "";
-                    // 計算每格預期利潤（扣掉手續費後約 = (sell-buy) × qty × (1 - 0.001×2)）
-                    String profitStr = "";
-                    if (lv.getFilledQty() != null && lv.getFilledPrice() != null
-                            && lv.getPairedSellPrice() != null) {
-                        BigDecimal grossProfit = lv.getPairedSellPrice()
-                                .subtract(lv.getFilledPrice())
-                                .multiply(lv.getFilledQty());
-                        BigDecimal netProfit = grossProfit.multiply(BigDecimal.valueOf(0.998));
-                        profitStr = String.format(" (+$%.3f)", netProfit.doubleValue());
-                    }
-                    sb.append(String.format("\n  L%d%s: 買@%s→賣@%s | %s %s%s",
-                            lv.getLevelIndex(),
-                            sellFlag,
-                            formatPrice(lv.getFilledPrice()),
-                            formatPrice(lv.getPairedSellPrice()),
-                            lv.getFilledQty() != null ? lv.getFilledQty().toPlainString() : "?",
-                            h.ccy,
-                            profitStr));
-                }
-            }
             sb.append("\n");
         }
         return sb.toString().trim();
@@ -390,7 +333,7 @@ public class TradingManagerService {
     private String formatCurrentReport(int count, String usdtBalance, String earnSection,
                                        String fundingSection, String holdingsSection,
                                        String table, String aiComment, LocalDateTime now,
-                                       List<BtGrid> activeGrids, String okxPrivateNotice) {
+                                       String okxPrivateNotice) {
         StringBuilder sb = new StringBuilder();
         sb.append("🤖 <b>交易經理｜當前倉位報告</b>\n");
         sb.append("🕐 ").append(now.format(FMT)).append(" (UTC)\n\n");
@@ -416,13 +359,6 @@ public class TradingManagerService {
             sb.append("<code>").append(escapeHtml(holdingsSection)).append("</code>\n");
         }
 
-        // 活躍網格獨立區塊（含 PENDING，不依賴 HOLDING 格）
-        String gridSection = buildGridStatusSection(activeGrids);
-        if (!gridSection.isEmpty()) {
-            sb.append("<b>📈 活躍網格 (").append(activeGrids.size()).append(")</b>\n");
-            sb.append("<code>").append(escapeHtml(gridSection)).append("</code>\n");
-        }
-
         sb.append("<b>📦 開倉數量：</b>").append(count).append(" 筆\n\n");
 
         if (count > 0) {
@@ -437,32 +373,6 @@ public class TradingManagerService {
         }
 
         return sb.toString();
-    }
-
-    /** 所有活躍網格的狀態摘要（含 PENDING，不依賴有無 HOLDING 格）。 */
-    private String buildGridStatusSection(List<BtGrid> grids) {
-        if (grids.isEmpty()) return "";
-        StringBuilder sb = new StringBuilder();
-        for (BtGrid g : grids) {
-            long holding = btGridLevelRepository.countByGridIdAndStatus(g.getId(), "HOLDING");
-            long sellFailed = btGridLevelRepository.countByGridIdAndStatus(g.getId(), "SELL_FAILED");
-            double pnl = g.getTotalRealizedPnl() != null ? g.getTotalRealizedPnl().doubleValue() : 0.0;
-            String status = g.getPausedAt() != null ? "⏸暫停(regime不符，5分鐘內自動恢復)" : "▶️運行";
-            String rebalanceTag = Boolean.TRUE.equals(g.getAutoRebalance()) ? " 🔄自動換範圍" : "";
-            sb.append(String.format("#%d %s %.0f~%.0f | %s | PnL %+.2f USDT%s\n",
-                    g.getId(), g.getSymbol(),
-                    g.getPriceLower().doubleValue(), g.getPriceUpper().doubleValue(),
-                    status, pnl, rebalanceTag));
-            if (holding > 0 || sellFailed > 0) {
-                sb.append(String.format("  持倉%d格", holding));
-                if (sellFailed > 0) sb.append(String.format("  ⚠️賣出失敗%d格", sellFailed));
-                sb.append("\n");
-            }
-            if (Boolean.TRUE.equals(g.getAutoRebalance()) && g.getRebalanceCount() != null && g.getRebalanceCount() > 0) {
-                sb.append(String.format("  已自動換範圍%d次（上限%d）\n", g.getRebalanceCount(), g.getMaxRebalanceCount()));
-            }
-        }
-        return sb.toString().trim();
     }
 
     /** 近 7 天信號正確率摘要（空=無資料）。 */

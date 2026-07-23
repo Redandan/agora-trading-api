@@ -1,11 +1,8 @@
 package com.agora.service.trading;
 
 import com.agora.model.BtFundingArb;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
 import com.agora.repository.trading.BtFundingArbRepository;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,8 +12,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * #400 — aggregates symbol-level reserved/open quantities across grid levels,
- * live-signal positions, and funding-arb spot legs. Used by AdminOcoController
+ * #400 — aggregates symbol-level reserved/open quantities across
+ * live-signal positions and funding-arb spot legs. Used by AdminOcoController
  * to validate manual market-sell qty against committed exposure before placing
  * an order, so a typo can't accidentally dump locked BTC.
  *
@@ -28,38 +25,16 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class SymbolExposureService {
 
-    /** Grid level statuses that hold real BTC and must NOT be sold by orphan cleanup. */
-    private static final List<String> GRID_RESERVED_STATUSES = List.of(
-            "HOLDING", "PENDING_OKX", "SELLING_OKX", "SELL_FAILED", "SELL_PARTIAL");
     /** FundingArb statuses where the spot leg is still on the OKX account. */
     private static final List<String> FUNDING_ARB_OPEN_STATUSES = List.of(
             "OPEN", "OPENING", "CLOSING");
 
-    private final BtGridRepository gridRepository;
-    private final BtGridLevelRepository gridLevelRepository;
     private final BtLiveSignalRepository liveSignalRepository;
     private final BtFundingArbRepository fundingArbRepository;
 
-    /**
-     * Sum of {@code filled_qty} across all active grid levels (status in
-     * {@link #GRID_RESERVED_STATUSES}) for the given symbol. SELL_PARTIAL stores
-     * the leftover qty in {@code filled_qty} (#399) so the same SUM gives the
-     * correct number for both HOLDING and partial-leftover cases.
-     */
+    /** Compatibility surface after removal of the executable custom Grid runtime. */
     public BigDecimal sumGridReservedQty(String symbol) {
-        BigDecimal sum = BigDecimal.ZERO;
-        for (var grid : gridRepository.findAll()) {
-            if (grid.getClosedAt() != null) continue;
-            if (!symbol.equalsIgnoreCase(grid.getSymbol())) continue;
-            List<BtGridLevel> levels = gridLevelRepository
-                    .findByGridIdAndStatusIn(grid.getId(), GRID_RESERVED_STATUSES);
-            for (BtGridLevel lv : levels) {
-                if (lv.getFilledQty() != null) {
-                    sum = sum.add(lv.getFilledQty());
-                }
-            }
-        }
-        return sum;
+        return BigDecimal.ZERO;
     }
 
     /**

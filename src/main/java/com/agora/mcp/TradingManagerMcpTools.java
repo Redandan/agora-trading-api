@@ -45,7 +45,6 @@ public class TradingManagerMcpTools {
 
     private final ReportMcpTools reportMcpTools;
     private final PositionMcpTools positionMcpTools;
-    private final GridMcpTools gridMcpTools;
     private final StrategyManagementMcpTools strategyManagementMcpTools;
     private final MarketDataMcpTools marketDataMcpTools;
     private final IndicatorMcpTools indicatorMcpTools;
@@ -72,8 +71,6 @@ public class TradingManagerMcpTools {
         sections.add(section("2. OCO Protection", positionMcpTools::getOcoHealth));
         sections.add(section("3. System Health", marketDataMcpTools::getSystemHealth));
         sections.add(section("4. Indicator Freshness", () -> indicatorMcpTools.getCollectionFreshness(sym)));
-        sections.add(section("5. Grid Overview", gridMcpTools::listGrids));
-        sections.add(section("6. Grid Alignment", gridMcpTools::getGridPriceAlignment));
         sections.add(section("7. Opportunity Scan", () -> positionMcpTools.scanOpportunities(7, "MODERATE")));
         sections.add(section("8. Gemini Advisor", marketDataMcpTools::getGeminiAdvisorStatus));
         sections.add(section("9. AI Quota", reportMcpTools::checkAiQuota));
@@ -401,8 +398,6 @@ public class TradingManagerMcpTools {
         sections.add(section("2. OCO Protection", positionMcpTools::getOcoHealth));
         sections.add(section("3. System Health", marketDataMcpTools::getSystemHealth));
         sections.add(section("4. Indicator Freshness", () -> indicatorMcpTools.getCollectionFreshness(sym)));
-        sections.add(section("5. Grid Overview", gridMcpTools::listGrids));
-        sections.add(section("6. Grid Alignment", gridMcpTools::getGridPriceAlignment));
         sections.add(section("7. Opportunity Scan", () -> positionMcpTools.scanOpportunities(7, "MODERATE")));
         sections.add(section("8. Gemini Advisor", marketDataMcpTools::getGeminiAdvisorStatus));
         sections.add(section("9. AI Quota", reportMcpTools::checkAiQuota));

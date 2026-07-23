@@ -1,10 +1,6 @@
 package com.agora.service.trading;
 
-import com.agora.model.BtGrid;
-import com.agora.model.BtGridLevel;
 import com.agora.model.BtLiveSignal;
-import com.agora.repository.trading.BtGridLevelRepository;
-import com.agora.repository.trading.BtGridRepository;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,8 +32,6 @@ public class CapitalAllocationPolicyPreviewService {
     private final OkxTradingService okxTradingService;
     private final OkxEarnService okxEarnService;
     private final BtLiveSignalRepository liveSignalRepository;
-    private final BtGridRepository gridRepository;
-    private final BtGridLevelRepository gridLevelRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
@@ -195,27 +189,7 @@ public class CapitalAllocationPolicyPreviewService {
             warnings.add("AUTO_EXPOSURE_READ_FAILED:" + e.getMessage());
         }
 
-        BigDecimal gridActual = BigDecimal.ZERO;
-        BigDecimal gridMax = BigDecimal.ZERO;
-        try {
-            for (BtGrid grid : gridRepository.findByEnabledTrueAndClosedAtIsNull()) {
-                gridMax = gridMax.add(grid.getPerLevelUsdt().multiply(BigDecimal.valueOf(grid.getGridCount())));
-                for (BtGridLevel level : gridLevelRepository.findByGridIdAndStatusIn(
-                        grid.getId(), List.of("HOLDING", "SELL_FAILED", "SELL_PARTIAL"))) {
-                    if (level.getFilledPrice() != null && level.getFilledQty() != null) {
-                        gridActual = gridActual.add(level.getFilledPrice().multiply(level.getFilledQty()));
-                    } else if (symbol.equalsIgnoreCase(grid.getSymbol()) && level.getFilledQty() != null) {
-                        BigDecimal mark = lastPrice(symbol, priceCache);
-                        if (mark != null) {
-                            gridActual = gridActual.add(mark.multiply(level.getFilledQty()));
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            warnings.add("GRID_EXPOSURE_READ_FAILED:" + e.getMessage());
-        }
-        return new Exposure(autoCost, autoMarket, gridActual, gridMax);
+        return new Exposure(autoCost, autoMarket, BigDecimal.ZERO, BigDecimal.ZERO);
     }
 
     private BigDecimal lastPrice(String symbol, Map<String, BigDecimal> cache) {

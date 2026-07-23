@@ -787,71 +787,6 @@ function Assert-DataFreshnessRcaSnapshotSummary {
     }
 }
 
-function Assert-SchemaExtraCleanupSharedModeFailsFast {
-    $bash = Resolve-BashCommand
-    $bashPwd = (& $bash -lc "pwd").Trim()
-    if ([string]::IsNullOrWhiteSpace($bashPwd)) {
-        throw "Unable to resolve bash working directory for schema cleanup guard test"
-    }
-
-    $previousAppDir = $env:APP_DIR
-    $previousEnvFile = $env:ENV_FILE
-    $previousMode = $env:SCHEMA_COMPARE_MODE
-    try {
-        $env:APP_DIR = $bashPwd
-        $env:ENV_FILE = "$bashPwd/.missing-env-for-shared-cleanup-guard"
-        $env:SCHEMA_COMPARE_MODE = "shared"
-
-        foreach ($case in @(
-            @{ Script = "scripts/schema_extra_tables_cleanup_plan_server.sh"; Pattern = "cleanup planning is disabled in shared DB mode" },
-            @{ Script = "scripts/schema_extra_tables_cleanup_apply_server.sh"; Pattern = "cleanup is disabled in shared DB mode" }
-        )) {
-            $previousErrorActionPreference = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = "Continue"
-                $output = & $bash $case.Script 2>&1
-                $exitCode = $LASTEXITCODE
-            } finally {
-                $ErrorActionPreference = $previousErrorActionPreference
-            }
-            if ($exitCode -eq 0) {
-                Write-Error "$($case.Script) must fail in shared DB mode"
-            }
-            if (($output -join "`n") -notmatch $case.Pattern) {
-                Write-Error "$($case.Script) must fail fast with shared-mode cleanup guard before env/db tooling checks. Output:`n$output"
-            }
-        }
-    } finally {
-        $env:APP_DIR = $previousAppDir
-        $env:ENV_FILE = $previousEnvFile
-        $env:SCHEMA_COMPARE_MODE = $previousMode
-    }
-}
-
-function Assert-SchemaExtraCleanupApplyDropGuard {
-    $path = "scripts/schema_extra_tables_cleanup_apply_server.sh"
-    $text = Get-Content -LiteralPath $path -Raw
-
-    $sharedGuardIndex = $text.IndexOf('shared) fail "schema extra-table cleanup is disabled in shared DB mode')
-    $firstMysqlToolIndex = $text.IndexOf('require_cmd mysql')
-    $firstEnvReadIndex = $text.IndexOf('SPRING_DATASOURCE_URL="$(read_env_key SPRING_DATASOURCE_URL)"')
-    $dryRunIndex = $text.IndexOf('if [ "$APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" != "1" ]; then')
-    $dropIndex = $text.IndexOf('-e "DROP TABLE')
-
-    if ($sharedGuardIndex -lt 0) {
-        Write-Error "schema extra-table cleanup apply script must fail fast in shared DB mode before any DB tooling or env reads"
-    }
-    if ($firstMysqlToolIndex -lt 0 -or $firstEnvReadIndex -lt 0 -or $dryRunIndex -lt 0 -or $dropIndex -lt 0) {
-        Write-Error "schema extra-table cleanup apply script guard structure changed; update verifier before changing cleanup semantics"
-    }
-    if ($sharedGuardIndex -gt $firstMysqlToolIndex -or $sharedGuardIndex -gt $firstEnvReadIndex) {
-        Write-Error "schema extra-table cleanup apply script must reject shared DB mode before requiring mysql tooling or reading datasource env"
-    }
-    if ($dropIndex -lt $dryRunIndex) {
-        Write-Error "schema extra-table cleanup apply script must not contain executable DROP TABLE before the explicit APPLY_SCHEMA_EXTRA_TABLE_CLEANUP=1 dry-run guard"
-    }
-}
-
 Push-Location (Resolve-Path "$PSScriptRoot\..")
 try {
     Invoke-VerifyPowerShellTest -ScriptName "check_java_directory_classpath.ps1"
@@ -976,15 +911,6 @@ try {
     Assert-RgMatch -Pattern "shared marketplace tables are intentionally excluded|Shared marketplace tables are intentionally excluded" -Paths @("scripts/schema_baseline_generate_server.sh", "docs/schema-baseline.md") -Description "baseline generator excludes shared marketplace tables"
     Assert-RgNoMatch -Pattern "SPRING_FLYWAY_ENABLED=true|SPRING_JPA_HIBERNATE_DDL_AUTO=validate|flyway enabled|DROP TABLE|schema_extra_tables_cleanup" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not enable Flyway, switch ddl-auto, or run cleanup"
     Assert-RgNoMatch -Pattern "flyway:(migrate|baseline)|spring-boot:run|mvn .*flyway|SPRING_FLYWAY_ENABLED=|SPRING_FLYWAY_TABLE=|APPLY_SCHEMA_EXTRA_TABLE_CLEANUP|schema_extra_tables_cleanup_(plan|apply)_server\.sh|mysql[[:space:]].*-e" -Paths @("scripts/schema_baseline_generate_server.sh") -Description "baseline generator must not run Flyway, Spring Boot, cleanup, or MySQL mutation/query commands"
-    Assert-RgMatch -Pattern "schema_extra_tables_cleanup_plan_server.sh" -Paths @("docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "standalone-only schema extra-table cleanup planning is documented"
-    Assert-RgNoMatch -Pattern "^[[:space:]]*DROP TABLE" -Paths @("scripts/schema_extra_tables_cleanup_plan_server.sh") -Description "schema extra-table cleanup planner must not execute drop statements"
-    Assert-RgMatch -Pattern "disabled in shared DB mode" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "scripts/schema_extra_tables_cleanup_plan_server.sh", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema extra-table cleanup is disabled in shared DB mode"
-    Assert-SchemaExtraCleanupSharedModeFailsFast
-    Assert-SchemaExtraCleanupApplyDropGuard
-    Assert-RgMatch -Pattern "APPLY_SCHEMA_EXTRA_TABLE_CLEANUP" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "standalone schema extra-table cleanup apply path requires explicit apply flag"
-    Assert-RgMatch -Pattern "mysqldump" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "schema extra-table cleanup apply path creates a backup before destructive cleanup"
-    Assert-RgMatch -Pattern "dry-run complete" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh") -Description "standalone schema extra-table cleanup apply path defaults to dry-run"
-    Assert-RgMatch -Pattern "schema_baseline_compare_server.sh" -Paths @("scripts/schema_extra_tables_cleanup_apply_server.sh", "docs/schema-baseline.md") -Description "schema extra-table cleanup apply path can regenerate read-only compare outputs"
     Assert-RgMatch -Pattern "RUN_SCHEMA_BASELINE_COMPARE" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "docs/schema-baseline.md", "SPLIT_PROGRESS.md") -Description "schema baseline compare is exposed through server verification"
     Assert-RgMatch -Pattern "VERIFY_GIT_CURRENT" -Paths @("scripts/verify_server.sh", "docs/deploy-runbook.md", "SPLIT_PROGRESS.md") -Description "server verification checks deployed git currentness by default"
     Assert-RgMatch -Pattern "REQUIRE_DEPLOY_METADATA=.*REQUIRE_DEPLOY_METADATA:-1" -Paths @("scripts/verify_server.sh") -Description "server verification requires deploy metadata by default"

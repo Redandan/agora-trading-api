@@ -4601,7 +4601,8 @@ Trading deployment prep:
 
 ## Cleanup Priority
 
-1. Keep `scripts/schema_extra_tables_cleanup_plan_server.sh` and `scripts/schema_extra_tables_cleanup_apply_server.sh` disabled in shared DB mode; extra marketplace/shared tables are expected.
+1. Do not ship extra-table cleanup or drop tooling while the database remains
+   shared; extra marketplace/shared tables are expected.
 2. Keep the reviewed Flyway baseline under `src/main/resources/db/migration` and add future Trading schema changes as `V2__...` migrations.
 3. Keep production on schema validation plus Flyway with the Trading-owned
    `trading_flyway_schema_history` table.

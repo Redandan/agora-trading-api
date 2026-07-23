@@ -32,6 +32,7 @@ public class ExactTradeFillOneShotRunner implements ApplicationRunner {
                 Collectors.toUnmodifiableMap(OkxEvidenceProperties.ExactFillBinding::getOrderId,
                         b -> new ExactTradeFillCollectionService.FillBinding(b.getCohortId(),
                                 b.getRuntimeDecisionId(), b.getLiveSignalId(), b.getOrderCreatedAt(),
+                                ExactTradeFillCollectionService.EpisodeRole.valueOf(b.getEpisodeRole().name()),
                                 b.isOcoRequired(), b.getIntendedChildOrderId(),
                                 b.getActualChildOrderId())))));
     }

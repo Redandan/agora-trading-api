@@ -35,7 +35,8 @@ public final class ExactTradeFillHashing {
         String[] canonical = bindings.entrySet().stream().sorted(Map.Entry.comparingByKey())
                 .map(e -> hash(e.getKey(), e.getValue().cohortId(),
                         text(e.getValue().runtimeDecisionId()), text(e.getValue().liveSignalId()),
-                        text(e.getValue().orderCreatedAt()), Boolean.toString(e.getValue().ocoRequired()),
+                        text(e.getValue().orderCreatedAt()), text(e.getValue().episodeRole()),
+                        Boolean.toString(e.getValue().ocoRequired()),
                         e.getValue().intendedChildOrderId(), e.getValue().actualChildOrderId()))
                 .toArray(String[]::new);
         return hash(text(effectiveFrom), hash(canonical));

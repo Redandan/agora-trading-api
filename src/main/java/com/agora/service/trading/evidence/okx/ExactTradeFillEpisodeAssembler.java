@@ -18,6 +18,17 @@ public final class ExactTradeFillEpisodeAssembler {
         Set<String> episodeOrders = new HashSet<>(b.entryOrderIds());
         episodeOrders.addAll(b.exitOrderIds());
         if (!episodeOrders.equals(b.orderBindings().keySet())) blockers.add("ORDER_BINDING_SCOPE_MISMATCH");
+        for (Map.Entry<String, FillBinding> order : b.orderBindings().entrySet()) {
+            boolean entry = b.entryOrderIds().contains(order.getKey());
+            boolean exit = b.exitOrderIds().contains(order.getKey());
+            if (entry == exit || order.getValue() == null || order.getValue().episodeRole() == null
+                    || entry != (order.getValue().episodeRole()
+                    == ExactTradeFillCollectionService.EpisodeRole.ENTRY)
+                    || exit != (order.getValue().episodeRole()
+                    == ExactTradeFillCollectionService.EpisodeRole.EXIT)) {
+                blockers.add("EXPLICIT_EPISODE_ROLE_BINDING_MISMATCH");
+            }
+        }
         String rebuiltScope = ExactTradeFillHashing.bindingScope(b.effectiveFrom(), b.orderBindings());
         if (!b.bindingScopeSha256().equals(rebuiltScope)) blockers.add("BINDING_SCOPE_HASH_MISMATCH");
         if (!b.bindingScopeSha256().equals(b.priorBindingScopeSha256())) {

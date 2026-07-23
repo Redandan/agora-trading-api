@@ -4,6 +4,7 @@ import com.agora.config.OkxEvidenceProperties;
 import com.agora.config.OkxEvidenceProperties.ExactFillEpisodeRole;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.repository.trading.evidence.ExactTradeFillAppendRepository;
+import com.agora.service.trading.evidence.okx.ExactTradeFillCollectionService;
 import com.agora.service.trading.evidence.okx.ExactTradeFillCollectionService.FillBinding;
 import com.agora.service.trading.evidence.okx.ExactTradeFillEpisodeAssembler;
 import com.agora.service.trading.evidence.okx.ExactTradeFillHashing;
@@ -65,7 +66,9 @@ public class VersionedProfitStartExactEvidenceReader {
                     continue;
                 }
                 FillBinding binding = new FillBinding(configured.getCohortId(), configured.getRuntimeDecisionId(),
-                        configured.getLiveSignalId(), configured.getOrderCreatedAt(), configured.isOcoRequired(),
+                        configured.getLiveSignalId(), configured.getOrderCreatedAt(),
+                        ExactTradeFillCollectionService.EpisodeRole.valueOf(configured.getEpisodeRole().name()),
+                        configured.isOcoRequired(),
                         configured.getIntendedChildOrderId(), configured.getActualChildOrderId());
                 if (bindings.putIfAbsent(configured.getOrderId(), binding) != null) {
                     blockers.add("EXACT_READINESS_DUPLICATE_ORDER_BINDING");

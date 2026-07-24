@@ -437,6 +437,35 @@ only from archived strategies.
 Archived database rows remain queryable as inventory, but they do not retain
 their own executable strategy classes.
 
+Batch 3A is implemented locally and not yet committed, deployed, or accepted
+on Production.
+
+Local result:
+
+- Production inventory confirms database strategy `485` has strategy type
+  `SCORE_BUY_V2`; therefore `ScoreBuyV2Strategy`, its frozen
+  `ScoreBuyStrategy` delegate, and the current TradingView PAPER closure remain
+  protected;
+- database strategy `508` is the separate archived
+  `OI_FUNDING_DIVERGENCE` row and remains queryable through catalog inventory;
+- removed the executable `CMI_MIH_THRESHOLD`, `EMA_RSI`, `MEAN_REVERSION`,
+  `OI_FUNDING_DIVERGENCE`, `SCORE_BUY_V3`, and `SOP_MTF_ADX` implementations;
+- removed ten uncalled backtest quality/trade validation, DataFreshness replay,
+  BTC-base simulation, sentiment, timeframe validation, and TradingView
+  optimization helpers;
+- removed 16 Java files, 4,089 Java lines, 12 Spring beans, and four obsolete
+  local-smoke configuration lines; main Java files decreased from 350 to 334;
+- retained the generic `BacktestEngine` for now because owner 508 still calls
+  its indicator builder; extracting that small protected function is a
+  separate Batch 3B design;
+- retained every strategy/backtest database row, entity, repository, and
+  Flyway migration;
+- `mvn -DskipTests package` passed while compiling 334 source files;
+- environment-template validation and direct protected-runtime assertions
+  passed with 10 MCP tools, exactly two non-LIVE catalog contracts, the
+  `SCORE_BUY_V2` compatibility adapter, unchanged 508 and Donchian mappings,
+  no Grid mutation path, and zero migration or deployment-script diff.
+
 ### Batch 4 — Repository and entity pruning
 
 Risk: medium.
@@ -532,7 +561,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Begin Batch 3 with a read-only dependency inventory. Compute the exact source
-closure required by owner 508, Donchian golden replay, and the two catalog
-streams before proposing any backtest or archived-strategy deletion. Keep the
-first Batch 3 removal candidate separate from this accepted deployment.
+Review and commit the local Batch 3A candidate separately from the accepted
+Batch 2D runtime. Deployment remains a separate authorization. Do not begin
+the larger Batch 3B extraction until Batch 3A has its own Production acceptance
+or the owner explicitly chooses to continue local-only cleanup first.

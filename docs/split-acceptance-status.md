@@ -443,8 +443,35 @@ Production evidence:
 - retained SQI/liquidation historical row counts and latest timestamps remained
   unchanged; no migration, schema, or database-data mutation ran.
 
-Recommended next action: begin Batch 3 with a read-only dependency inventory
-for the owner 508, Donchian, and archived strategy/backtest source closures.
+## Batch 3A local candidate
+
+Batch 3A is implemented locally but is not committed, deployed, or accepted on
+Production. The current Production identity above remains
+`657f7ae0ed6d`.
+
+Local evidence:
+
+- Production catalog and read-only database inspection confirmed strategy
+  `485` is `SCORE_BUY_V2`; its compatibility adapter and frozen
+  `ScoreBuyStrategy` delegate remain protected;
+- Production database strategy `508` is the separate archived
+  `OI_FUNDING_DIVERGENCE` strategy;
+- removed six archived executable strategy implementations and ten uncalled
+  backtest validation, replay, simulation, and optimization helpers;
+- removed 16 Java files, 4,089 Java lines, 12 Spring beans, and four obsolete
+  local-smoke configuration lines; Java files decreased from 350 to 334;
+- archived strategy and backtest database rows remain queryable; no entity,
+  repository, migration, schema, or database-data change is included;
+- `mvn -DskipTests package` passed while compiling 334 source files;
+- environment-template validation passed with 43 keys;
+- direct assertions passed for exactly 10 MCP tools, exactly two non-LIVE
+  catalog contracts, unchanged owner 508 and Donchian mappings, retained
+  Grid/OCO files, absent Grid mutation tools, removed source symbols, and zero
+  migration/deployment-script diff.
+
+Recommended next action: review and commit Batch 3A as one isolated source
+cleanup commit. Deployment and Production acceptance require separate
+authorization.
 
 ## Not proven by acceptance
 

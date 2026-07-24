@@ -38,10 +38,6 @@ trading:
   tiny-live:
     auto-execution:
       enabled: false
-  data-freshness:
-    shadow-replay:
-      collector:
-        enabled: false
   wai:
     enabled: false
 

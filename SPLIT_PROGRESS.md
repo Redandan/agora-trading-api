@@ -1,5 +1,25 @@
 # Split Progress
 
+- 2026-07-24: implemented local-only minimal-runtime cleanup Batch 3A.
+  Removed six archived strategy implementations (`CMI_MIH_THRESHOLD`,
+  `EMA_RSI`, `MEAN_REVERSION`, `OI_FUNDING_DIVERGENCE`, `SCORE_BUY_V3`,
+  and `SOP_MTF_ADX`) plus ten uncalled backtest validation, replay,
+  simulation, and optimization helpers. Production read-only inventory proved
+  database strategy `485` is `SCORE_BUY_V2`, so its compatibility adapter and
+  frozen `ScoreBuyStrategy` delegate remain protected; database strategy `508`
+  is the separate archived `OI_FUNDING_DIVERGENCE` row. The runtime catalog
+  still contains only owner 508 PAPER and Donchian SHADOW, while archived
+  database rows remain queryable without executable strategy classes. Removed
+  the obsolete local-smoke DataFreshness shadow-replay setting; its Production
+  setting is absent and therefore default-off. This deletes 16 Java files,
+  4,089 Java lines, 12 Spring beans, and 4 configuration lines, reducing main
+  Java files from 350 to 334. `mvn -DskipTests package` passed while compiling
+  334 source files; environment-template validation and direct
+  10-tool/two-contract/no-LIVE/508/Donchian/Grid/OCO/zero-migration-diff
+  assertions passed. No entity, repository, migration, database, strategy
+  activation, order, OCO/Grid, position, fund, Telegram, scheduler,
+  environment, deployment, or Production state was changed. This candidate is
+  not committed, deployed, or Production accepted.
 - 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
   2D as runtime commit `657f7ae0ed6d`. The blue/green deployment switched
   Production from `8085` to `8084` and fully drained `8085`. Independent

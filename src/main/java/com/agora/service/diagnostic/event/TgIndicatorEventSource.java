@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * #337 EventSource: tg_indicator — 從 {@code tg_notification_log} 抽取指標警報事件。
  *
- * <p>filter = TG {@code source} 欄位的 LIKE pattern（例如 {@code "SqiIndicator"}）。
+ * <p>filter = TG {@code source} 欄位的 LIKE pattern（例如 {@code "ShortBuildIndicator"}）。
  *
  * <p>方向推斷由 {@link IndicatorDirectionResolver} 提供顯式 lookup（取代原本錯的
  * keyword heuristic — "Squeeze" 是 LONG 訊號不是 SHORT）。

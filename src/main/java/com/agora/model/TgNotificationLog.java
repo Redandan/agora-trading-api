@@ -27,7 +27,7 @@ public class TgNotificationLog {
     private String level = "INFO";      // INFO / WARN / CRITICAL
 
     @Column(length = 100)
-    private String source;              // 發送方，如 "SqiIndicator" / "AttentionRule#37"
+    private String source;              // 發送方，如 "ShortBuildIndicator"
 
     @Column(length = 20)
     private String symbol;

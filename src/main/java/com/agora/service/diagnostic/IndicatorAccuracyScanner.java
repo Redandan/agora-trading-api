@@ -60,7 +60,7 @@ public class IndicatorAccuracyScanner {
 
     /** Tier 1：微觀結構 (orderbook / position / funding) — TG source 與 mih indicator name */
     private static final List<String> TIER1_KEYS = List.of(
-            "SqiIndicator", "ShortBuildIndicator", "WhaleBuyMonitor",
+            "ShortBuildIndicator", "WhaleBuyMonitor",
             "FundingRateMonitor", "LongShortRatioMonitor",
             "OpenInterestMonitor", "LiquidationMonitor",
             "funding_rate", "long_short_ratio", "whale_buy_ratio",

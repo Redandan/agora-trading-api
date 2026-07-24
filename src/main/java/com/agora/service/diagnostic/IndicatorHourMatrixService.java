@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  *
  * <p>用途範例：
  * <ul>
- *   <li>SqiIndicator 警報在亞洲時段 vs 歐美時段 hit% 差異</li>
+ *   <li>ShortBuildIndicator 警報在亞洲時段 vs 歐美時段 hit% 差異</li>
  *   <li>funding_rate 深負在 8/16/24h funding settlement 時段周圍是否更準</li>
  *   <li>確認 #338 leaderboard 的 alpha 是否集中某些時段（防 narrow window inflation）</li>
  * </ul>

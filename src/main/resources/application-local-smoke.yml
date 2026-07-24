@@ -19,10 +19,6 @@ meta-control:
   ml-materialized-refresh:
     startup-check-enabled: false
 
-market:
-  liquidation-ws:
-    enabled: false
-
 okx:
   earn-topup:
     enabled: false
@@ -39,9 +35,6 @@ trading:
     api-key: local-smoke-mcp
   internal:
     api-key: local-smoke-internal-key
-  short-squeeze-alert:
-    enabled: false
-    taker-buy-collector-enabled: false
   tiny-live:
     auto-execution:
       enabled: false

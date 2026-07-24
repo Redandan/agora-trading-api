@@ -9,7 +9,7 @@ import java.util.List;
  * <p>每個 source 自己定義 \\{@code filter\\} 字串語意（見 issue #337 表格），
  * 例如：
  * <ul>
- *   <li>{@code tg_indicator}：filter = TG \\{@code source\\} 欄位 LIKE，如 {@code SqiIndicator}</li>
+ *   <li>{@code tg_indicator}：filter = TG \\{@code source\\} 欄位 LIKE，如 {@code ShortBuildIndicator}</li>
  *   <li>{@code mih_threshold}：filter = "indicator:operator:value"，如 {@code funding_rate:lte:-0.0003}</li>
  *   <li>{@code decision_audit}：filter = event_type，如 {@code FILTER_BLOCK} / {@code ATTENTION_HIT}</li>
  *   <li>{@code ml_inference}：filter = "versionId:decision"，如 {@code 19:BLOCK}</li>

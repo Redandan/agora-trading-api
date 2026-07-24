@@ -1,5 +1,26 @@
 # Split Progress
 
+- 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2D.
+  Production inspection confirmed `MARKET_LIQUIDATION_WS_ENABLED` was absent,
+  the service defaulted to `false`, and the active runtime logged the OKX
+  liquidation WebSocket as disabled. Source-graph inspection found only two
+  inbound consumers: the uncalled `SqiIndicator` and
+  `SqueezeIndicatorService`; no current scheduler, MCP, controller, catalog,
+  508, Donchian, Grid, OCO, account-safety, or report path consumed them.
+  Production `sqi*` and `btc_short_liq_usd_1h` rows were last written on
+  2026-06-13, with zero rows in the latest seven-day window and no SQI/Squeeze
+  Telegram source rows. Removed those three components,
+  `ShortSqueezeAlertProperties`, seven obsolete local-smoke settings, and
+  stale SQI diagnostic-source metadata. This removes 4 Java files and 908 Java
+  lines, reducing current main Java files from 354 to 350. Historical
+  indicator data, entities, repositories, and Flyway migrations remain
+  unchanged. `mvn -DskipTests package` passed while compiling 350 source files;
+  environment-template validation and direct
+  10-tool/no-LIVE/508/Donchian/Grid/OCO/removed-file/zero-migration-diff
+  assertions passed. This candidate is not committed, deployed, or accepted on
+  Production and made no strategy, market-stream, order, OCO/Grid, position,
+  fund, Telegram, scheduler, environment, migration, schema, or database-data
+  mutation.
 - 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
   2C as runtime commit `505850dda60b`. The blue/green deployment switched
   Production from `8084` to `8085` and fully drained `8084`. Independent

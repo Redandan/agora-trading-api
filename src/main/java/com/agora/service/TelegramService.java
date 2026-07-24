@@ -23,7 +23,7 @@ public interface TelegramService {
      *
      * @param message 訊息內容
      * @param useHtml 是否 HTML 格式
-     * @param source  發送方，例如 "SqiIndicator" / "ShortSqueezeAlert"
+     * @param source  發送方，例如 "ShortBuildIndicator"
      * @param level   告警級別：INFO / WARN / CRITICAL
      */
     void sendAlert(String message, boolean useHtml, String source, String level);

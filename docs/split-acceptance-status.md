@@ -385,9 +385,41 @@ Production evidence:
   provider groups remained 2. The active bot's exact-net acceptance remains
   `NOT_YET_PROVEN`.
 
-Recommended next action: review the `OkxLiquidationWsService` indicator
-dependency closure as a separate candidate before the broader backtest and
-strategy-library reduction.
+## Batch 2D local candidate
+
+Batch 2D is implemented and locally verified, but it is not committed,
+deployed, or accepted on Production. The current Production runtime remains
+`505850dda60b` on port `8085`.
+
+The candidate removes the default-off OKX liquidation WebSocket and its two
+uncalled SQI consumers. It does not change the two catalog market streams,
+owner 508, Donchian, native Grid provider reads, OKX authenticated
+account/order reads, private OCO WebSocket, or execution safety.
+
+Local evidence:
+
+- Production has no `MARKET_LIQUIDATION_WS_ENABLED` setting, and the active
+  runtime logs the service as disabled;
+- only `SqiIndicator` and `SqueezeIndicatorService` injected the liquidation
+  WebSocket; neither has a current caller or scheduler entry;
+- Production SQI/liquidation indicator rows were last written on 2026-06-13,
+  with zero rows in the latest seven-day window and no matching Telegram
+  source rows;
+- four Java files and 908 Java lines are removed; current main Java files
+  decrease from 354 to 350;
+- seven obsolete local-smoke settings and stale SQI diagnostic-source metadata
+  are removed;
+- historical indicator rows, entities, repositories, and migrations remain
+  unchanged;
+- `mvn -DskipTests package` passed, compiling 350 source files;
+- environment-template validation and direct
+  10-tool/no-LIVE/508/Donchian/Grid/OCO/removed-file/zero-migration-diff
+  assertions passed;
+- the repository has no test tree, so this is package and direct-contract
+  evidence, not automated test-suite evidence.
+
+Recommended next action: review and commit Batch 2D, then deploy and run the
+full Production acceptance checklist as a separate authorized step.
 
 ## Not proven by acceptance
 

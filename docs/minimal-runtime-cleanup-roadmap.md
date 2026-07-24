@@ -226,6 +226,37 @@ Accepted result:
   completed provider groups remained 2. The bot is active and exact-net
   profitability remains unproven.
 
+Batch 2D is a local-only candidate as of 2026-07-24. It has not been
+committed, deployed, or accepted on Production.
+
+Local result:
+
+- Production has no `MARKET_LIQUIDATION_WS_ENABLED` setting, so the service
+  resolves to default `false`; the active runtime logs it as disabled;
+- the removed liquidation WebSocket had inbound dependencies only from
+  `SqiIndicator` and `SqueezeIndicatorService`;
+- `SqueezeIndicatorService.calcSqi()` had no caller, and no current component
+  injected or discovered `SqiIndicator` through `CompositeIndicator`;
+- `CompositeIndicatorScheduler` and the former short-squeeze scheduler and
+  collector no longer exist;
+- Production `sqi*` and `btc_short_liq_usd_1h` rows were last written on
+  2026-06-13 and had zero rows in the latest seven-day window; no SQI or
+  Squeeze Telegram source rows were found;
+- removed `OkxLiquidationWsService`, `SqiIndicator`,
+  `SqueezeIndicatorService`, and `ShortSqueezeAlertProperties`, plus their
+  seven local-smoke configuration lines and stale SQI diagnostic-source
+  metadata;
+- removed 4 Java files and 908 Java lines; current main Java files decreased
+  from 354 to 350;
+- retained `market_indicator_history`, historical SQI/liquidation rows,
+  repositories, entities, and all Flyway migrations without data or schema
+  changes;
+- `mvn -DskipTests package` passed, compiling 350 source files;
+- environment-template validation passed with 43 keys;
+- direct assertions passed for 10 MCP tools, exactly two non-LIVE catalog
+  contracts, protected 508/Donchian/Grid/OCO files, removed files/config,
+  and zero migration diff.
+
 ## Protected keep set
 
 The following areas are protected during cleanup. A cleanup batch must not
@@ -330,7 +361,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths — Production accepted
+### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A-2C Production accepted; 2D local candidate
 
 Risk: low to medium.
 
@@ -360,12 +391,13 @@ native Grid tool has its own provider-read implementation. Batch 2B removes
 source mappings only: historical migration definitions and database tables
 remain untouched.
 
-`OkxLiquidationWsService` remains deferred until the indicator dependency
-review. Batch 2C separately removes the generic OKX evidence models,
+Batch 2C separately removes the generic OKX evidence models,
 append/read adapters, repositories, source mappings, and coverage bridge after
 confirming both Production switches are absent and all four historical V2
 tables are empty. The pure local `CoverageProfiler`, V2 migration, and database
-tables remain.
+tables remain. Batch 2D removes the default-off liquidation WebSocket and its
+two uncalled SQI consumers after Production and source-graph verification. It
+retains all historical indicator data and database structure.
 
 ### Batch 3 — Backtest and strategy-library reduction
 
@@ -480,7 +512,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review the `OkxLiquidationWsService` indicator dependency closure as the next
-isolated candidate. Keep that review separate from the broader Batch 3
-backtest/strategy-library reduction, and retain the service if any protected
-runtime still injects or consumes it.
+Review and commit Batch 2D as its own runtime change. After a separately
+authorized deployment, independently verify the 10-tool registry, exact two
+catalog streams, owner 508 PAPER, Donchian SHADOW, Grid continuity, OCO/account
+safety, runtime logs, and unchanged database schema before beginning Batch 3.

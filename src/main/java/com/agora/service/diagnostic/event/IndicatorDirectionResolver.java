@@ -17,12 +17,11 @@ import java.util.Map;
 public class IndicatorDirectionResolver {
 
     /**
-     * TG source 欄位（如 "SqiIndicator" / "ShortBuildIndicator"）→ 預期方向。
+     * TG source 欄位（如 "ShortBuildIndicator"）→ 預期方向。
      * 缺項 → 預設 LONG（看 issue body：多數預警都是「市場反彈」訊號）。
      */
     private static final Map<String, String> TG_SOURCE_TO_DIRECTION = Map.ofEntries(
             // —— LONG（看多） ——
-            Map.entry("SqiIndicator", Event.LONG),               // Short Squeeze Index：空頭擁擠→反彈
             Map.entry("ShortBuildIndicator", Event.LONG),        // 空頭累積→squeeze fuel→反彈
             Map.entry("StablecoinDemandIndicator", Event.LONG),  // 穩定幣需求高→sidelined buying→反彈
             Map.entry("EtfPressureIndicator", Event.LONG),       // ETF 買壓→LONG

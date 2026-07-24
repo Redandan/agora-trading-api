@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-24
+Last verified: 2026-07-24 18:08 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,14 +9,16 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- worktree, `origin/main`, and deployed app commit: `788ad4a8c60c`;
-- active port: `8085`;
-- inactive blue/green port: `8084`, drained;
+- deployed runtime commit: `2b8bff881cc1`;
+- at the acceptance checkpoint, server worktree and `origin/main` matched the
+  deployed runtime commit;
+- active port: `8084`;
+- inactive blue/green port: `8085`, drained;
 - local and public dedicated health: passed;
 - local and public dedicated MCP: passed with Bearer authentication;
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
-- nginx shared/dedicated upstreams: active port `8085`;
+- nginx shared/dedicated upstreams: active port `8084`;
 - server worktree: clean.
 
 The current server verification command is:
@@ -114,6 +116,10 @@ Trading can read active/history/detail, sub-orders, fills, provider grouping,
 fees, and economic evidence. It cannot create, amend, or stop a native Grid.
 Grid state and floating PnL can change independently of a service deployment.
 
+At the latest acceptance checkpoint the same bot had 11 provider fills and 2
+completed provider groups. It remained active, so exact-net functional
+acceptance and long-term profitability were not proven.
+
 ## Execution safety
 
 The current read-only execution-safety result is:
@@ -192,16 +198,38 @@ Direct source/config assertions must additionally prove:
 For docs-only changes, `git diff --check` is sufficient unless the document
 claims new runtime or deployment evidence.
 
-## Cleanup handoff
+## Batch 1 production acceptance
 
-The current staged source-reduction plan is
+The current source-reduction plan is
 `docs/minimal-runtime-cleanup-roadmap.md`.
 
-Batch 1 is locally implemented and verified but is not committed or deployed.
+Batch 1 was committed as `2b8bff881cc1`, deployed, and accepted on Production.
 It removes the unreachable Execution Event, SystemReminder, isolated
 Meta/Attention, and auto-exploration rollout source while leaving historical
-database tables unchanged. The local candidate compiles and retains the 10-tool
-and protected-runtime source invariants.
+database tables unchanged.
+
+Acceptance evidence:
+
+- local package, retained script syntax, environment-template validation, and
+  direct protected-runtime assertions passed;
+- blue/green deployment switched `8085` to `8084` and drained `8085`;
+- server health, dedicated MCP, nginx routing, and AgoraMarket dependency
+  checks passed;
+- shared-database comparison found all 42 source entity tables and 0 missing
+  tables;
+- runtime log smoke found 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- all 10 read-only MCP tools passed with 11 resources and unchanged registry
+  identity;
+- exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- owner 508 remained disabled PAPER and Donchian remained SHADOW;
+- Donchian golden parity passed; neither strategy sent an order, changed OCO,
+  or sent Telegram during acceptance;
+- positions `#260/#261/#262`, execution-safety `issues=0`, account
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- native Grid `3767345250394603520` remained `running` with unchanged range,
+  10 USDT investment, and 10 grids.
 
 The protected keep set is:
 
@@ -214,9 +242,9 @@ The protected keep set is:
 - 10-tool MCP, internal reports, critical outbound notifications, health,
   schema validation, and deployment.
 
-Recommended next action: review and commit Batch 1, then obtain separate
-deployment authorization and run Production acceptance. Do not begin the
-alternative-data batch until Batch 1 is accepted.
+Recommended next action: start Batch 2 only as a new reviewable source-only
+candidate. Recompute the protected dependency closure and obtain separate
+deployment authorization after local acceptance.
 
 ## Not proven by acceptance
 

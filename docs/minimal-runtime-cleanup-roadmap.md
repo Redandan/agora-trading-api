@@ -24,10 +24,11 @@ database migration, or production configuration changes.
 
 ## Current verified baseline
 
-Production was reverified read-only on 2026-07-24:
+Production was reverified after the authorized Batch 1 deployment on
+2026-07-24 at 18:08 Asia/Taipei:
 
-- deployed commit: `788ad4a8c60c`;
-- active port: `8085`; inactive port `8084` drained;
+- deployed runtime commit: `2b8bff881cc1`;
+- active port: `8084`; inactive port `8085` drained;
 - Trading MCP: 10 tools and 11 resources;
 - catalog contracts:
   - `TV_BTC_DAILY_ACCUMULATION_V1@v1`, PAPER,
@@ -41,7 +42,8 @@ Production was reverified read-only on 2026-07-24:
   create, amend, or stop adapter;
 - execution-safety status is `OK`; positions `#260/#261/#262` are intentional
   BTC Base holdings without OCO;
-- server worktree, `origin/main`, and deployed metadata match;
+- at the acceptance checkpoint, server worktree, `origin/main`, and deployed
+  metadata matched `2b8bff881cc1`;
 - local and public dedicated health/MCP passed, and shared-host MCP remained
   blocked.
 
@@ -61,10 +63,9 @@ from removing more API endpoints.
 
 ## Cleanup status
 
-Batch 1 is implemented and verified locally on 2026-07-24. It is not committed
-or deployed evidence.
+Batch 1 was committed, deployed, and accepted on Production on 2026-07-24.
 
-Local candidate result:
+Accepted result:
 
 - removed 26 unreachable Java files;
 - Java files: 427 to 401;
@@ -81,6 +82,24 @@ Local candidate result:
 - PowerShell syntax and environment-template validation: passed;
 - direct core assertions: 10 MCP tools, no catalog LIVE registration, protected
   runtime files present, deleted symbols absent, migrations unchanged.
+- runtime commit `2b8bff881cc1` deployed by blue/green switch from `8085` to
+  `8084`;
+- independent server verification and shared-database schema comparison
+  passed: 42 source entity tables, 0 missing database tables;
+- runtime log smoke passed: 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- all 10 MCP tools passed after deployment with the same 11-resource registry
+  hash;
+- startup resolved exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h`, and both
+  streams reached `RUNNING`;
+- owner 508 remained disabled PAPER with exchange orders unauthorized;
+- Donchian exact golden parity passed and remained SHADOW without order, OCO,
+  or Telegram actions;
+- positions `#260/#261/#262`, execution-safety `issues=0`, and protected
+  `0.00050810202 BTC` remained unchanged;
+- OKX native Grid `3767345250394603520` remained `running` with 10 USDT,
+  10 grids, 11 provider fills, and 2 completed provider groups. This proves
+  continuity, not exact-net or long-term profitability.
 
 ## Protected keep set
 
@@ -160,7 +179,7 @@ database migration is explicitly approved.
 
 ## Scheduled cleanup batches
 
-### Batch 1 — Unreachable operator subsystems — locally verified
+### Batch 1 — Unreachable operator subsystems — Production accepted
 
 Risk: low.
 
@@ -322,6 +341,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review and commit the isolated Batch 1 candidate. Deployment remains a separate
-authorization and must pass the Production acceptance listed above. Start Batch
-2 only after Batch 1 is accepted; do not combine it with backtest cleanup.
+Review Batch 2 candidates as a new source-only change. Do not combine
+alternative-data cleanup with backtest/library cleanup, and do not deploy the
+next batch until its protected dependency closure and local acceptance are
+complete.

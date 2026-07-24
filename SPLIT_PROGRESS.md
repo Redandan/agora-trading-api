@@ -1,6 +1,25 @@
 # Split Progress
 
-- 2026-07-24: implemented the local-only first minimal-runtime cleanup batch.
+- 2026-07-24: committed, deployed, and accepted the first minimal-runtime
+  cleanup batch as runtime commit `2b8bff881cc1`. The blue/green deployment
+  switched Production from `8085` to `8084` and fully drained `8085`.
+  Independent server verification passed health, authenticated dedicated MCP,
+  nginx routing, currentness at the acceptance checkpoint, and the AgoraMarket
+  dependency. Shared-database comparison found all 42 source entity tables
+  with 0 missing tables; no migration or table deletion was performed. Runtime
+  log smoke found 0 errors, 0 unknown warnings, and 0 high-risk operation-like
+  lines. All 10 read-only MCP tools passed with 11 resources and the unchanged
+  registry hash. Owner 508 remained disabled PAPER, Donchian remained SHADOW
+  with exact golden parity, and exactly Binance `BTCUSDT@1d` plus OKX
+  `BTCUSDT@1h` reached `RUNNING`. Positions `#260/#261/#262`,
+  execution-safety `issues=0`, `473.2783880116848 USDT`, and protected
+  `0.00050810202 BTC` matched the pre-deploy baseline. OKX native Grid
+  `3767345250394603520` remained `running` with its 10 USDT investment,
+  10-grid range, 11 provider fills, and 2 completed provider groups. No order,
+  OCO/Grid mutation, fund movement, database mutation, strategy activation, or
+  Telegram send was performed. Active Grid continuity is not exact-net or
+  long-term profitability proof.
+- 2026-07-24: implemented the first minimal-runtime cleanup batch locally.
   Removed 26 Java files belonging to the unregistered/default-off Execution
   Event subsystem and the isolated SystemReminder, SystemSnapshot,
   AttentionRule, and AutoExploration rollout paths. Removed two retired
@@ -11,9 +30,8 @@
   definitions remain unchanged; no migration or table deletion was added.
   `mvn -DskipTests package`, retained shell/PowerShell syntax, environment
   template validation, `git diff --check`, and direct 10-tool/catalog/protected
-  runtime assertions passed. This local candidate is not committed or deployed
-  evidence and does not change Production, environment, database, strategy,
-  order, OCO, Grid, position, fund, Telegram delivery, or runtime behavior.
+  runtime assertions passed. This implementation was subsequently deployed and
+  accepted in the entry above.
 - 2026-07-24: refreshed the current documentation boundary after read-only
   Production verification at deployed commit `788ad4a8c60c`. Added a staged
   minimal-runtime cleanup roadmap with an explicit protected keep set,

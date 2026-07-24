@@ -1,5 +1,21 @@
 # Split Progress
 
+- 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
+  2A as runtime commit `2f4ab79fcb03`. The blue/green deployment switched
+  Production from `8084` to `8085` and fully drained `8084`. Independent
+  server, public-route, and shared-database schema verification passed with 42
+  source entity tables and 0 missing tables. Runtime log smoke found 0 errors,
+  0 unknown warnings, and 0 high-risk operation-like lines. All 10 MCP tools
+  passed with 11 resources and the unchanged registry hash. Exactly Binance
+  `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`. Owner 508 remained
+  disabled PAPER; Donchian remained SHADOW with exact golden parity and no
+  order, OCO, or Telegram action. Positions `#260/#261/#262`,
+  execution-safety `issues=0`, `473.2783880116848 USDT`, and protected
+  `0.00050810202 BTC` matched the pre-deploy baseline. OKX native Grid
+  `3767345250394603520` retained the same running state, range, 10 USDT
+  investment, 10 grids, 11 provider fills, and 2 completed provider groups.
+  No database migration, strategy activation, order, OCO/Grid mutation, fund
+  movement, or Telegram send was performed.
 - 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2A. Removed
   four default-off startup backfill runners, their exclusive Coinalyze,
   The Graph/Uniswap, Hyperliquid, and aggregate indicator-history backfill
@@ -13,8 +29,8 @@
   10-tool/no-LIVE/protected-file assertions, migration-diff check, and
   `git diff --check` passed. No entity, repository, migration, database,
   Production, strategy, market-stream, order, OCO/Grid, position, fund,
-  Telegram, report, or notification state was changed. This candidate is not
-  committed or deployed.
+  Telegram, report, or notification state was changed. This candidate was
+  subsequently committed, deployed, and accepted in the entry above.
 - 2026-07-24: committed, deployed, and accepted the first minimal-runtime
   cleanup batch as runtime commit `2b8bff881cc1`. The blue/green deployment
   switched Production from `8085` to `8084` and fully drained `8085`.

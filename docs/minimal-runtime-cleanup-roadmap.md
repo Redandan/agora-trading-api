@@ -24,11 +24,11 @@ database migration, or production configuration changes.
 
 ## Current verified baseline
 
-Production was reverified after the authorized Batch 1 deployment on
-2026-07-24 at 18:08 Asia/Taipei:
+Production was reverified after the authorized Batch 2A deployment on
+2026-07-24 at 18:43 Asia/Taipei:
 
-- deployed runtime commit: `2b8bff881cc1`;
-- active port: `8084`; inactive port `8085` drained;
+- deployed runtime commit: `2f4ab79fcb03`;
+- active port: `8085`; inactive port `8084` drained;
 - Trading MCP: 10 tools and 11 resources;
 - catalog contracts:
   - `TV_BTC_DAILY_ACCUMULATION_V1@v1`, PAPER,
@@ -43,7 +43,7 @@ Production was reverified after the authorized Batch 1 deployment on
 - execution-safety status is `OK`; positions `#260/#261/#262` are intentional
   BTC Base holdings without OCO;
 - at the acceptance checkpoint, server worktree, `origin/main`, and deployed
-  metadata matched `2b8bff881cc1`;
+  metadata matched `2f4ab79fcb03`;
 - local and public dedicated health/MCP passed, and shared-host MCP remained
   blocked.
 
@@ -101,9 +101,9 @@ Accepted result:
   10 grids, 11 provider fills, and 2 completed provider groups. This proves
   continuity, not exact-net or long-term profitability.
 
-Batch 2A is a local candidate on 2026-07-24. It is not committed or deployed.
+Batch 2A was committed, deployed, and accepted on Production on 2026-07-24.
 
-Local candidate result:
+Accepted result:
 
 - Production has no explicit enablement for any removed startup root; all four
   startup backfills and migration drift checking resolve to default `false`;
@@ -122,6 +122,22 @@ Local candidate result:
 - `mvn -DskipTests package`: passed, compiling 389 source units;
 - direct assertions passed for 10 MCP tools, no catalog LIVE registration,
   protected files present, removed symbols absent, and zero migration diff.
+- runtime commit `2f4ab79fcb03` deployed by blue/green switch from `8084` to
+  `8085`; the old `8084` listener was fully drained;
+- independent server, public route, and shared-database schema verification
+  passed with 42 source entity tables and 0 missing tables;
+- runtime log smoke passed with 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- all 10 MCP tools passed with the unchanged 11-resource registry hash;
+- owner 508 remained disabled PAPER; Donchian remained SHADOW and exact golden
+  parity passed without order, OCO, or Telegram actions;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- OKX native Grid `3767345250394603520` retained the same running state, range,
+  10 USDT investment, 10 grids, 11 provider fills, and 2 completed provider
+  groups.
 
 ## Protected keep set
 
@@ -227,7 +243,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A local candidate
+### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A Production accepted
 
 Risk: low to medium.
 
@@ -370,6 +386,6 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review and commit Batch 2A as one source-only change. Do not combine it with
-Liquidation WS, exact-fill evidence, or backtest/library cleanup. Deployment
-still requires separate authorization and full Production acceptance.
+Analyze the exact-fill one-shot path as a separate source-only candidate.
+Keep `OkxLiquidationWsService` with the later indicator dependency review, and
+do not combine either candidate with backtest/library cleanup.

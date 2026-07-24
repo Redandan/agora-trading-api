@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-24 18:08 Asia/Taipei
+Last verified: 2026-07-24 18:43 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,16 +9,16 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- deployed runtime commit: `2b8bff881cc1`;
+- deployed runtime commit: `2f4ab79fcb03`;
 - at the acceptance checkpoint, server worktree and `origin/main` matched the
   deployed runtime commit;
-- active port: `8084`;
-- inactive blue/green port: `8085`, drained;
+- active port: `8085`;
+- inactive blue/green port: `8084`, drained;
 - local and public dedicated health: passed;
 - local and public dedicated MCP: passed with Bearer authentication;
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
-- nginx shared/dedicated upstreams: active port `8084`;
+- nginx shared/dedicated upstreams: active port `8085`;
 - server worktree: clean.
 
 The current server verification command is:
@@ -242,29 +242,47 @@ The protected keep set is:
 - 10-tool MCP, internal reports, critical outbound notifications, health,
   schema validation, and deployment.
 
-Recommended next action: start Batch 2 only as a new reviewable source-only
-candidate. Recompute the protected dependency closure and obtain separate
-deployment authorization after local acceptance.
+Batch 1 remains historical accepted evidence. The current runtime includes the
+subsequently accepted Batch 2A reduction described below.
 
-## Current local cleanup candidate
+## Batch 2A production acceptance
 
-Batch 2A is implemented locally but is not committed or deployed. Production
-continues to run the accepted Batch 1 runtime `2b8bff881cc1`.
+Batch 2A was committed as `2f4ab79fcb03`, deployed, and accepted on
+Production.
 
-The local candidate removes four default-off startup backfill runners, their
-exclusive Coinalyze, The Graph/Uniswap, Hyperliquid, and aggregate backfill
-services, two exclusive configuration records, and the superseded migration
-drift checker. It reduces Java files from 401 to 390 and startup runner classes
-from 5 to 1.
+It removes four default-off startup backfill runners, their exclusive
+Coinalyze, The Graph/Uniswap, Hyperliquid, and aggregate backfill services, two
+exclusive configuration records, and the superseded migration drift checker.
+It reduces Java files from 401 to 390 and startup runner classes from 5 to 1.
 
 `OkxLiquidationWsService` and the exact-fill one-shot path are intentionally
 deferred because they still overlap other source components. No migration,
 entity, repository, strategy, market-stream, Grid, OCO, account, report, or
 notification component is part of Batch 2A.
 
-Local package, direct protected-runtime assertions, and `git diff --check`
-passed. The next action is review/commit only; Production deployment requires
-separate authorization and the full acceptance sequence above.
+Acceptance evidence:
+
+- blue/green deployment switched `8084` to `8085` and drained `8084`;
+- server, public route, and shared-database schema verification passed with 42
+  source entity tables and 0 missing tables;
+- runtime log smoke found 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- all 10 MCP tools passed with 11 resources and the unchanged registry hash;
+- exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- owner 508 remained disabled PAPER and Donchian remained SHADOW with exact
+  golden parity;
+- no strategy order, OCO change, Grid mutation, database mutation, or Telegram
+  send occurred during acceptance;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- native Grid `3767345250394603520` remained `running` with the same range,
+  10 USDT investment, 10 grids, 11 provider fills, and 2 completed provider
+  groups.
+
+Recommended next action: analyze the exact-fill one-shot path as a separate
+source-only candidate. Keep Liquidation WS with the later indicator dependency
+review.
 
 ## Not proven by acceptance
 

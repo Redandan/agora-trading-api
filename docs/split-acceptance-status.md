@@ -443,11 +443,11 @@ Production evidence:
 - retained SQI/liquidation historical row counts and latest timestamps remained
   unchanged; no migration, schema, or database-data mutation ran.
 
-## Batch 3A local candidate
+## Batch 3A committed candidate
 
-Batch 3A is implemented locally but is not committed, deployed, or accepted on
-Production. The current Production identity above remains
-`657f7ae0ed6d`.
+Batch 3A is committed and pushed as runtime commit `10e5ee3fd9ec`, but it is
+not deployed or accepted on Production. The current Production identity above
+remains `657f7ae0ed6d`.
 
 Local evidence:
 
@@ -469,9 +469,8 @@ Local evidence:
   Grid/OCO files, absent Grid mutation tools, removed source symbols, and zero
   migration/deployment-script diff.
 
-Recommended next action: review and commit Batch 3A as one isolated source
-cleanup commit. Deployment and Production acceptance require separate
-authorization.
+Recommended next action: deploy and Production-accept Batch 3A only with
+separate authorization.
 
 ## Not proven by acceptance
 

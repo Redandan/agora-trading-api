@@ -437,8 +437,8 @@ only from archived strategies.
 Archived database rows remain queryable as inventory, but they do not retain
 their own executable strategy classes.
 
-Batch 3A is implemented locally and not yet committed, deployed, or accepted
-on Production.
+Batch 3A is committed and pushed as runtime commit `10e5ee3fd9ec`; it is not
+yet deployed or accepted on Production.
 
 Local result:
 
@@ -561,7 +561,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review and commit the local Batch 3A candidate separately from the accepted
-Batch 2D runtime. Deployment remains a separate authorization. Do not begin
-the larger Batch 3B extraction until Batch 3A has its own Production acceptance
-or the owner explicitly chooses to continue local-only cleanup first.
+Deploy and Production-accept Batch 3A only with separate authorization. Do not
+begin the larger Batch 3B extraction until Batch 3A has its own Production
+acceptance or the owner explicitly chooses to continue local-only cleanup
+first.

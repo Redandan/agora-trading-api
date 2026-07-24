@@ -1,6 +1,7 @@
 # Split Progress
 
-- 2026-07-24: implemented local-only minimal-runtime cleanup Batch 3A.
+- 2026-07-24: committed and pushed minimal-runtime cleanup Batch 3A as runtime
+  commit `10e5ee3fd9ec`; it is not deployed or Production accepted.
   Removed six archived strategy implementations (`CMI_MIH_THRESHOLD`,
   `EMA_RSI`, `MEAN_REVERSION`, `OI_FUNDING_DIVERGENCE`, `SCORE_BUY_V3`,
   and `SOP_MTF_ADX`) plus ten uncalled backtest validation, replay,
@@ -18,8 +19,7 @@
   10-tool/two-contract/no-LIVE/508/Donchian/Grid/OCO/zero-migration-diff
   assertions passed. No entity, repository, migration, database, strategy
   activation, order, OCO/Grid, position, fund, Telegram, scheduler,
-  environment, deployment, or Production state was changed. This candidate is
-  not committed, deployed, or Production accepted.
+  environment, deployment, or Production state was changed.
 - 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
   2D as runtime commit `657f7ae0ed6d`. The blue/green deployment switched
   Production from `8085` to `8084` and fully drained `8085`. Independent

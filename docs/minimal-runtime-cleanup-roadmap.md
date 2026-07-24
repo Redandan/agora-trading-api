@@ -101,6 +101,28 @@ Accepted result:
   10 grids, 11 provider fills, and 2 completed provider groups. This proves
   continuity, not exact-net or long-term profitability.
 
+Batch 2A is a local candidate on 2026-07-24. It is not committed or deployed.
+
+Local candidate result:
+
+- Production has no explicit enablement for any removed startup root; all four
+  startup backfills and migration drift checking resolve to default `false`;
+- removed 11 Java files: four startup backfill runners, their exclusive
+  Coinalyze, The Graph/Uniswap, Hyperliquid, and aggregate backfill services,
+  two exclusive configuration records, and the superseded migration drift
+  checker;
+- Java files: 401 to 390;
+- startup `ApplicationRunner`/`CommandLineRunner` classes: 5 to 1;
+- retained `OkxLiquidationWsService` because old indicator components still
+  inject it;
+- retained the exact-fill one-shot path for separate review because its
+  configuration and append service overlap retained evidence code;
+- local-smoke defaults and schema-baseline guidance were updated; Flyway
+  migrations and historical database tables remain unchanged;
+- `mvn -DskipTests package`: passed, compiling 389 source units;
+- direct assertions passed for 10 MCP tools, no catalog LIVE registration,
+  protected files present, removed symbols absent, and zero migration diff.
+
 ## Protected keep set
 
 The following areas are protected during cleanup. A cleanup batch must not
@@ -205,7 +227,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths
+### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A local candidate
 
 Risk: low to medium.
 
@@ -227,6 +249,13 @@ deployment verification.
 Do not remove `MdKline`, the two active K-line providers, OKX authenticated
 account/order reads, or exact fill/fee evidence still used by Grid and
 execution safety.
+
+Batch 2A removes the four startup backfill runners, their exclusive external
+provider/service closure, and `MigrationDriftChecker`. It deliberately defers
+`OkxLiquidationWsService` and the exact-fill one-shot path until their
+cross-dependencies are separated. No entity, repository, migration, scheduler,
+strategy, market-stream, Grid, OCO, report, or notification component is
+removed in 2A.
 
 ### Batch 3 — Backtest and strategy-library reduction
 
@@ -341,7 +370,6 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review Batch 2 candidates as a new source-only change. Do not combine
-alternative-data cleanup with backtest/library cleanup, and do not deploy the
-next batch until its protected dependency closure and local acceptance are
-complete.
+Review and commit Batch 2A as one source-only change. Do not combine it with
+Liquidation WS, exact-fill evidence, or backtest/library cleanup. Deployment
+still requires separate authorization and full Production acceptance.

@@ -13,9 +13,8 @@ import java.lang.annotation.Target;
  * <p>Spring Boot's blue-green deploy health check (via {@code /actuator/health})
  * waits for {@code ReadinessState.ACCEPTING_TRAFFIC}. If an {@code ApplicationRunner}
  * runs synchronously and takes &gt; 30s, the readiness probe fails and deploy.sh
- * times out at 240s. Past incidents:
+ * times out at 240s. A past incident was:
  * <ul>
- *   <li>{@code CompositeIndicatorBackfillRunner} — synchronous backfill froze deploy</li>
  *   <li>Legacy SQI startup backfill — JPA Metaspace exhaustion via too many distinct queries</li>
  * </ul>
  *
@@ -27,8 +26,7 @@ import java.lang.annotation.Target;
  *       runner is opt-in (manual trigger only, default disabled)</li>
  * </ol>
  *
- * <p>Enforced by {@code ApplicationRunnerArchTest} at compile time. Runtime status
- * tracked by {@code StartupBudgetWatcher}.
+ * <p>Runtime status is tracked by {@code StartupBudgetWatcher}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

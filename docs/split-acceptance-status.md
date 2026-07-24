@@ -246,6 +246,26 @@ Recommended next action: start Batch 2 only as a new reviewable source-only
 candidate. Recompute the protected dependency closure and obtain separate
 deployment authorization after local acceptance.
 
+## Current local cleanup candidate
+
+Batch 2A is implemented locally but is not committed or deployed. Production
+continues to run the accepted Batch 1 runtime `2b8bff881cc1`.
+
+The local candidate removes four default-off startup backfill runners, their
+exclusive Coinalyze, The Graph/Uniswap, Hyperliquid, and aggregate backfill
+services, two exclusive configuration records, and the superseded migration
+drift checker. It reduces Java files from 401 to 390 and startup runner classes
+from 5 to 1.
+
+`OkxLiquidationWsService` and the exact-fill one-shot path are intentionally
+deferred because they still overlap other source components. No migration,
+entity, repository, strategy, market-stream, Grid, OCO, account, report, or
+notification component is part of Batch 2A.
+
+Local package, direct protected-runtime assertions, and `git diff --check`
+passed. The next action is review/commit only; Production deployment requires
+separate authorization and the full acceptance sequence above.
+
 ## Not proven by acceptance
 
 Deployment and health evidence do not prove:

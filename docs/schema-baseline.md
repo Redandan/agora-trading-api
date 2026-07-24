@@ -117,9 +117,10 @@ For baseline drift review and future schema-change acceptance:
 - Set production to `SPRING_FLYWAY_TABLE=trading_flyway_schema_history`.
 - Set production to `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true` for existing
   shared-schema adoption.
-- Enable `meta-control.migration-drift-check.enabled=true` only after the baseline exists.
-- Keep MCP `getAppliedMigrations` and `MigrationDriftChecker` on the same
-  Trading-owned `trading_flyway_schema_history` table; do not read AgoraMarketAPI's shared `flyway_schema_history` for Trading migration status.
+- Use `scripts/verify_server_ssh.ps1 -SchemaCompare` for the current read-only
+  source-to-database ownership check.
+- Keep Trading Flyway history on `trading_flyway_schema_history`; do not read
+  AgoraMarketAPI's shared `flyway_schema_history` for Trading migration status.
 
 ## Baseline Generation
 

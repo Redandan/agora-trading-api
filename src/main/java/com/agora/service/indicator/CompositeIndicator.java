@@ -6,11 +6,8 @@ import java.util.List;
 /**
  * CMI Framework 複合指標 Interface。
  *
- * <p>實作此 interface 的 @Component 會被 Spring 自動發現並注入：
- * <ul>
- *   <li>{@link com.agora.scheduler.trading.CompositeIndicatorScheduler}：每分鐘計算 + 持久化 + 告警</li>
- *   <li>{@link com.agora.config.CompositeIndicatorBackfillRunner}：啟動時自動 backfill</li>
- * </ul>
+ * <p>實作此 interface 的 @Component 會被 Spring 自動發現。各實作的可執行入口
+ * 需要由目前 runtime dependency closure 獨立確認。
  *
  * <h3>實作規範（上線前強制）</h3>
  * <ul>

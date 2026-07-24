@@ -1,5 +1,20 @@
 # Split Progress
 
+- 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2A. Removed
+  four default-off startup backfill runners, their exclusive Coinalyze,
+  The Graph/Uniswap, Hyperliquid, and aggregate indicator-history backfill
+  services, two exclusive configuration records, and the superseded
+  `MigrationDriftChecker`. Production inspection confirmed all removed startup
+  switches were absent and therefore defaulted to `false`; Coinalyze and The
+  Graph keys were also absent. Java files decreased from 401 to 390 and startup
+  runner classes from 5 to 1. `OkxLiquidationWsService` and the exact-fill
+  one-shot path were explicitly deferred because they overlap other retained
+  source components. `mvn -DskipTests package`, deleted-symbol checks,
+  10-tool/no-LIVE/protected-file assertions, migration-diff check, and
+  `git diff --check` passed. No entity, repository, migration, database,
+  Production, strategy, market-stream, order, OCO/Grid, position, fund,
+  Telegram, report, or notification state was changed. This candidate is not
+  committed or deployed.
 - 2026-07-24: committed, deployed, and accepted the first minimal-runtime
   cleanup batch as runtime commit `2b8bff881cc1`. The blue/green deployment
   switched Production from `8085` to `8084` and fully drained `8085`.

@@ -1,5 +1,24 @@
 # Split Progress
 
+- 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2B. Read-only
+  Production inspection confirmed that the OKX evidence collector,
+  authenticated ingestion, and exact-fill one-shot switches were absent and
+  therefore defaulted to `false`. Removed the exact-fill one-shot runner and
+  its exclusive provider-read, collection, episode assembly, hashing, append,
+  collection-metadata, and immutable-fill closure, plus the now-unused
+  `AsyncStartup` marker and exact-fill-only settings. This deletes 16 Java
+  files and 1,154 lines, reducing Java files from 390 to 374, compiled source
+  units from 389 to 373, and startup runner classes from 1 to 0. The native
+  Grid tool retains its independent OKX fill pagination; generic OKX evidence
+  and `OkxLiquidationWsService` remain deferred. Three source entity mappings,
+  four repository interfaces, and one repository implementation are removed,
+  while historical migrations and database tables remain untouched.
+  `mvn -DskipTests package`,
+  environment-template validation, 10-tool/no-LIVE/508/Donchian/protected-file
+  assertions, removed-symbol checks, zero-runner checks, and migration-diff
+  checks passed. This candidate is not committed, deployed, or accepted on
+  Production and made no strategy, market-stream, order, OCO/Grid, position,
+  fund, Telegram, scheduler, environment, migration, or database mutation.
 - 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
   2A as runtime commit `2f4ab79fcb03`. The blue/green deployment switched
   Production from `8084` to `8085` and fully drained `8084`. Independent

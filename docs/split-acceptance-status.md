@@ -280,9 +280,37 @@ Acceptance evidence:
   10 USDT investment, 10 grids, 11 provider fills, and 2 completed provider
   groups.
 
-Recommended next action: analyze the exact-fill one-shot path as a separate
-source-only candidate. Keep Liquidation WS with the later indicator dependency
-review.
+## Batch 2B local candidate
+
+Batch 2B is implemented and locally verified, but it is not committed,
+deployed, or accepted on Production. The current Production identity therefore
+remains `2f4ab79fcb03` on port `8085`.
+
+The candidate removes the default-off exact-fill one-shot runner and its
+exclusive authenticated provider-read, collection, episode assembly, hashing,
+append, collection-metadata, and immutable-fill source closure. It also removes
+the now-unused `AsyncStartup` marker and exact-fill-only configuration fields.
+
+Local evidence:
+
+- Production has no explicit collector, authenticated-ingestion, or exact-fill
+  one-shot enablement; all three settings resolve to default `false`;
+- 16 Java files and 1,154 lines are removed;
+- Java files decrease from 390 to 374, compiled source units from 389 to 373,
+  and startup runner classes from 1 to 0;
+- three source entity mappings, four repository interfaces, and one repository
+  implementation are removed, but historical Flyway definitions and database
+  tables remain unchanged;
+- generic OKX evidence code and `OkxLiquidationWsService` remain deferred;
+- native Grid provider-fill reads remain in `OkxNativeGridMcpTools` and do not
+  depend on the removed collector;
+- `mvn -DskipTests package`, environment-template validation, direct protected
+  runtime assertions, removed-symbol checks, and migration-diff checks passed;
+- the repository has no test tree, so this is package and direct-contract
+  evidence, not automated test-suite evidence.
+
+Recommended next action: review and commit Batch 2B, then deploy and run the
+full Production acceptance checklist as a separate authorized step.
 
 ## Not proven by acceptance
 

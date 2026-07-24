@@ -139,6 +139,35 @@ Accepted result:
   10 USDT investment, 10 grids, 11 provider fills, and 2 completed provider
   groups.
 
+Batch 2B is a local-only candidate as of 2026-07-24. It has not been committed,
+deployed, or accepted on Production.
+
+Local result:
+
+- Production has no explicit enablement for the OKX evidence collector,
+  authenticated ingestion, or exact-fill one-shot runner; all three resolve to
+  default `false`;
+- removed the exact-fill one-shot runner and its exclusive authenticated read
+  client, collection, episode assembly, hashing, append repository, collection
+  metadata, and immutable-fill entity closure;
+- removed the now-unused `AsyncStartup` marker and exact-fill-only
+  configuration fields;
+- removed 16 Java files and 1,154 lines; Java files decreased from 390 to 374
+  and startup `ApplicationRunner`/`CommandLineRunner` classes from 1 to 0;
+- removed three source entity mappings, four repository interfaces, and one
+  repository implementation while retaining their historical Flyway
+  definitions and database tables;
+- retained generic OKX evidence code for a separate dependency review;
+- retained `OkxLiquidationWsService` for the later indicator dependency
+  review;
+- retained the native Grid tool's own provider fill pagination. It directly
+  reads OKX Grid evidence and did not depend on the removed offline collector;
+- `mvn -DskipTests package` passed, compiling 373 source units;
+- environment-template validation and direct assertions passed for 10 MCP
+  tools, no catalog LIVE registration, unchanged 508/Donchian contracts,
+  protected Grid/OCO files, removed-symbol absence, zero startup runners, and
+  zero migration diff.
+
 ## Protected keep set
 
 The following areas are protected during cleanup. A cleanup batch must not
@@ -243,7 +272,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A Production accepted
+### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A Production accepted; 2B local candidate
 
 Risk: low to medium.
 
@@ -267,11 +296,15 @@ account/order reads, or exact fill/fee evidence still used by Grid and
 execution safety.
 
 Batch 2A removes the four startup backfill runners, their exclusive external
-provider/service closure, and `MigrationDriftChecker`. It deliberately defers
-`OkxLiquidationWsService` and the exact-fill one-shot path until their
-cross-dependencies are separated. No entity, repository, migration, scheduler,
-strategy, market-stream, Grid, OCO, report, or notification component is
-removed in 2A.
+provider/service closure, and `MigrationDriftChecker`. Batch 2B separately
+removes the default-off exact-fill one-shot closure after proving that the
+native Grid tool has its own provider-read implementation. Batch 2B removes
+source mappings only: historical migration definitions and database tables
+remain untouched.
+
+`OkxLiquidationWsService` remains deferred until the indicator dependency
+review. Generic OKX evidence models, append/read adapters, repositories, and
+coverage logic also remain deferred rather than being mixed into Batch 2B.
 
 ### Batch 3 — Backtest and strategy-library reduction
 
@@ -386,6 +419,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Analyze the exact-fill one-shot path as a separate source-only candidate.
-Keep `OkxLiquidationWsService` with the later indicator dependency review, and
-do not combine either candidate with backtest/library cleanup.
+Review, commit, deploy, and independently accept Batch 2B as its own runtime
+change. Keep `OkxLiquidationWsService` with the later indicator dependency
+review, and review the generic OKX evidence closure separately before starting
+the broader backtest/library reduction.

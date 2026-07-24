@@ -164,11 +164,6 @@ public class OkxTradingService implements TradingService {
         return props.hasPrivateCredentials();
     }
 
-    /** Read-only visibility for protected workflows that must honor the provider-order master gate. */
-    public boolean isAutoTradeEnabled() {
-        return props.isEnabled();
-    }
-
     /**
      * Read-only OKX-native Spot Grid inventory. This is intentionally separate from the
      * deprecated local {@code bt_grid} state machine and never creates, amends, or stops a bot.
@@ -199,97 +194,6 @@ public class OkxTradingService implements TradingService {
                 + algoId + "&type=" + normalizedType + "&limit=100");
         assertOkxCode(response);
         return response.path("data");
-    }
-
-    /**
-     * Public, read-only computation of OKX's current minimum investment for the exact
-     * quote-only Spot Grid package. This endpoint does not create or amend a bot.
-     */
-    public JsonNode getNativeSpotGridMinimumInvestment(String instId,
-                                                       BigDecimal minPx,
-                                                       BigDecimal maxPx,
-                                                       int gridNum) {
-        ObjectNode body = nativeSpotGridMinimumInvestmentBody(
-                objectMapper, instId, minPx, maxPx, gridNum);
-        JsonNode response = postPublic("/api/v5/tradingBot/grid/min-investment", body.toString());
-        assertOkxCode(response);
-        return response.path("data");
-    }
-
-    static ObjectNode nativeSpotGridMinimumInvestmentBody(ObjectMapper mapper,
-                                                           String instId,
-                                                           BigDecimal minPx,
-                                                           BigDecimal maxPx,
-                                                           int gridNum) {
-        ObjectNode body = mapper.createObjectNode();
-        body.put("instId", instId);
-        body.put("algoOrdType", "grid");
-        body.put("minPx", minPx);
-        body.put("maxPx", maxPx);
-        body.put("gridNum", Integer.toString(gridNum));
-        body.put("runType", "1");
-        body.put("investmentType", "quote");
-        return body;
-    }
-
-    /**
-     * Provider write. Callers must enforce the disabled-by-default feature gates, fresh
-     * inventory reconciliation, capital cap, and exact dynamic confirmation.
-     */
-    public JsonNode createNativeSpotGrid(String instId,
-                                         BigDecimal minPx,
-                                         BigDecimal maxPx,
-                                         int gridNum,
-                                         BigDecimal quoteSz,
-                                         String algoClOrdId) {
-        checkEnabled();
-        ObjectNode body = nativeSpotGridCreateBody(
-                objectMapper, instId, minPx, maxPx, gridNum, quoteSz, algoClOrdId);
-        JsonNode response = post("/api/v5/tradingBot/grid/order-algo", body.toString());
-        assertOkxWriteSuccess(response);
-        return response.path("data");
-    }
-
-    static ObjectNode nativeSpotGridCreateBody(ObjectMapper mapper,
-                                                String instId,
-                                                BigDecimal minPx,
-                                                BigDecimal maxPx,
-                                                int gridNum,
-                                                BigDecimal quoteSz,
-                                                String algoClOrdId) {
-        ObjectNode body = mapper.createObjectNode();
-        body.put("instId", instId);
-        body.put("algoOrdType", "grid");
-        body.put("minPx", minPx);
-        body.put("maxPx", maxPx);
-        body.put("gridNum", Integer.toString(gridNum));
-        body.put("runType", "1");
-        body.put("quoteSz", quoteSz);
-        body.put("algoClOrdId", algoClOrdId);
-        return body;
-    }
-
-    /** Provider write. stopType=1 sells base; stopType=2 keeps base. */
-    public JsonNode stopNativeSpotGrid(String algoId, String stopType) {
-        checkEnabled();
-        requireDigits("algoId", algoId);
-        if (!"1".equals(stopType) && !"2".equals(stopType)) {
-            throw new IllegalArgumentException("stopType must be 1 (sell base) or 2 (keep base)");
-        }
-        ArrayNode body = nativeSpotGridStopBody(objectMapper, algoId, stopType);
-        JsonNode response = post("/api/v5/tradingBot/grid/stop-order-algo", body.toString());
-        assertOkxWriteSuccess(response);
-        return response.path("data");
-    }
-
-    static ArrayNode nativeSpotGridStopBody(ObjectMapper mapper, String algoId, String stopType) {
-        ArrayNode body = mapper.createArrayNode();
-        ObjectNode item = body.addObject();
-        item.put("algoId", algoId);
-        item.put("algoOrdType", "grid");
-        item.put("instId", "BTC-USDT");
-        item.put("stopType", stopType);
-        return body;
     }
 
     private void requireDigits(String field, String value) {
@@ -1551,22 +1455,6 @@ public class OkxTradingService implements TradingService {
         }
     }
 
-    /** OKX write endpoints can return top-level code=0 with an item-level rejection. */
-    private void assertOkxWriteSuccess(JsonNode response) {
-        assertOkxCode(response);
-        JsonNode data = response.path("data");
-        if (!data.isArray() || data.isEmpty()) {
-            throw new RuntimeException("OKX write response has no result item");
-        }
-        for (JsonNode item : data) {
-            String itemCode = item.path("sCode").asText("0");
-            if (!"0".equals(itemCode)) {
-                throw new RuntimeException("OKX write rejected [sCode=" + itemCode
-                        + " sMsg=" + item.path("sMsg").asText() + "]");
-            }
-        }
-    }
-
     /** POST（JSON body） */
     private JsonNode post(String path, String jsonBody) {
         String ts = Instant.now().truncatedTo(ChronoUnit.MILLIS).toString();
@@ -1595,16 +1483,6 @@ public class OkxTradingService implements TradingService {
         Request req = new Request.Builder()
                 .url(props.getBaseUrl() + path)
                 .get()
-                .build();
-        return execute(req, path);
-    }
-
-    /** POST for OKX public calculation endpoints; no private credentials or signature. */
-    private JsonNode postPublic(String path, String jsonBody) {
-        RequestBody body = RequestBody.create(jsonBody, JSON_TYPE);
-        Request req = new Request.Builder()
-                .url(props.getBaseUrl() + path)
-                .post(body)
                 .build();
         return execute(req, path);
     }

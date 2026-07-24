@@ -11,7 +11,8 @@ Strategy-driven BTC-USDT spot trading service.
   alias.
 - The daily strategy is PAPER-only until forward economic evidence justifies a
   separately authorized live rollout.
-- OKX Native Spot Grid remains an independent executable subsystem.
+- OKX Native Spot Grid remains provider-managed and independently running;
+  this service exposes read-only status and economic evidence only.
 - Mechanical execution safety remains; legacy strategy selection, AI/ML
   promotion, experimental entries, and strategy-imposed exits are outside the
   minimal path.

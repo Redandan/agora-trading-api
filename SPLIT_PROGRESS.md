@@ -1,5 +1,11 @@
 # Split Progress
 
+- 2026-07-24: reduced OKX Native Spot Grid to a read-only provider-monitoring
+  lane. Removed Grid create/stop and migration/Gate-A MCP tools, their execution
+  service, provider write methods, disabled write-gate configuration, and
+  obsolete authorization documents. The MCP whitelist is now 10 tools. The
+  existing provider bot is not stopped, recreated, or reconfigured; no order,
+  position, fund, database, or schema mutation is part of this cleanup.
 - 2026-07-23: removed the retired custom-Grid archive, retirement, and
   verification documents/scripts from the local candidate. OKX Native Spot Grid
   remains unchanged. Historical `bt_grid` / `bt_grid_level` schema and the

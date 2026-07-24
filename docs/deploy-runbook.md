@@ -62,7 +62,8 @@ TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_PAPER
 PAPER activation may set it to `true`; `BTC_BASE_PAPER` can persist simulated
 fills and accounting evidence but cannot send an exchange order. OKX Native
 Spot Grid is configured and operated independently; a service deployment must
-not create, stop, or replace a Grid.
+not create, stop, or replace a Grid. This runtime contains no Grid mutation
+adapter or Grid write gate; it only queries provider status/economic evidence.
 
 ## Retained scripts
 

@@ -5,8 +5,8 @@ This repo is the trading service extracted from `AgoraMarketAPI`.
 ## Owns
 
 - Versioned strategy catalog, owner 508 PAPER accounting, archived strategy
-  inventory, Donchian SHADOW evidence, spot OCO reconciliation, OKX-native Grid,
-  and the minimal trading MCP surface.
+  inventory, Donchian SHADOW evidence, spot OCO reconciliation, read-only
+  OKX-native Grid monitoring, and the minimal trading MCP surface.
 - Market data ingestion used by trading decisions.
 - Trading execution-safety notifications and operator diagnostics.
 - Trading database schema. Marketplace entities must not be read through shared JPA repositories.

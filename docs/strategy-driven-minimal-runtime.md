@@ -118,8 +118,9 @@ positive out-of-sample result. All other strategies are preserved as
 execution services, or risk pipelines.
 
 OKX Native Spot Grid remains a separate provider-managed lane with separate
-capital ownership. Strategy inventory and Grid inventory must never consume or
-sell each other's BTC implicitly.
+capital ownership. This runtime can read Grid status and economic evidence but
+cannot create, amend, or stop a Grid. Strategy inventory and Grid inventory
+must never consume or sell each other's BTC implicitly.
 
 ## Platform responsibilities
 
@@ -174,12 +175,13 @@ Implemented locally on 2026-07-24:
 5. The legacy live evaluator, Webhook, 508 time-exit, AI/ML/Ensemble,
    auto-entry services, strategy risk filters, Earn/Funding lanes, and their
    schedulers/MCP tools were removed.
-6. The MCP surface is a fixed 14-tool whitelist: runtime identity, strategy
-   catalog, Donchian evidence, read-only execution safety, and guarded OKX
-   Native Grid.
+6. The MCP surface is a fixed 10-tool whitelist: runtime identity, strategy
+   catalog, Donchian evidence, read-only execution safety, and read-only OKX
+   Native Grid monitoring.
 7. Existing spot OCO reconciliation remains for mechanical execution safety;
    it is not part of owner 508 strategy logic.
-8. No production environment, Grid, order, fund, or database state was changed.
+8. Grid create/stop services, migration previews, write gates, and obsolete
+   authorization documents were removed. Provider Grid state is not changed.
 
 ## Acceptance evidence
 
@@ -196,11 +198,12 @@ acceptance uses compilation plus direct source/config assertions:
   calling an exchange adapter;
 - the application must contain no TradingView Webhook, legacy live evaluator,
   time-exit, AI/ML/Ensemble, or auto-entry runtime;
-- MCP registration must expose exactly 14 whitelisted tools;
+- MCP registration must expose exactly 10 whitelisted tools and no Grid
+  create, stop, migration-preview, or Gate-A authorization tool;
 - all retained deployment scripts must parse, and the environment template
   must pass its fail-closed validator;
-- LIVE remains unavailable and all provider mutations require separate gates
-  and explicit authorization.
+- LIVE remains unavailable; provider-managed Grid mutations are outside this
+  runtime and must be performed separately at the exchange.
 
 ## Deferred operator choices
 

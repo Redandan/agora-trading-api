@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  * Minimal MCP surface for the strategy-driven runtime.
  *
  * <p>Only catalog inspection, owner strategy evidence, execution-safety reads,
- * and separately guarded OKX Native Grid operations are exposed. Legacy AI,
+ * and read-only OKX Native Grid monitoring are exposed. Legacy AI,
  * ML, ensemble, autonomous execution, Earn, funding-arbitrage, and broad
  * strategy-management tools remain outside the runtime API.</p>
  */

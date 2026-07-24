@@ -1,5 +1,17 @@
 # Split Acceptance Status
 
+## 2026-07-24 strategy-minimal Grid boundary
+
+- The current candidate removes all service-side OKX Native Spot Grid mutation
+  paths and retains only status plus economic-evidence reads.
+- Expected MCP inventory is exactly 10 tools, with no create, stop,
+  migration-preview, or Gate-A authorization tool.
+- Deployment acceptance must prove the same provider `algoId`, running state,
+  range, grid count, quote investment, protected BTC balance, open positions,
+  and execution-safety state before and after deployment.
+- This cleanup does not authorize a Grid, order, position, fund, database,
+  schema, or strategy-mode mutation.
+
 Last refreshed: 2026-07-14
 
 This file is the current handoff for deciding whether the extracted

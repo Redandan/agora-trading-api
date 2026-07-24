@@ -1,13 +1,24 @@
-# Coverage Profiler And Append-Only Evidence
+# Coverage Profiler And Historical Append-Only Evidence
 
 ## Status And Boundary
 
-This batch implements a local fixture-driven coverage profiler and a forward-only
+Current runtime note (2026-07-24): Batch 2C is a local-only cleanup candidate.
+It retains the pure fixture-driven `CoverageProfiler` and CLI, but removes the
+unused generic OKX evidence adapter, append/coverage/read services, JPA
+mappings, and repositories. Both Production ingestion switches are absent and
+all four V2 tables contain zero rows. The V2 migration and database tables
+remain historical schema evidence and are not dropped.
+
+The V2 implementation and rollout sections below are retained as historical
+design evidence. They are not current runnable guidance and do not authorize
+restoring provider ingestion.
+
+The original batch implemented a local fixture-driven coverage profiler and a forward-only
 `V2__append_only_execution_evidence.sql` migration. It does not register an MCP
 tool or HTTP route, connect to a provider, start a collector or scheduler, or
 enable strategy, order, OCO, Grid, Earn, fund, or Telegram behavior.
 
-Status at handoff:
+Historical status at its original handoff:
 
 - Implemented locally: profiler, machine-readable manifest, CLI, focused tests,
   four create-only tables, immutable JPA mappings, read-only repositories, and a
@@ -123,11 +134,11 @@ absent or fully populated with manifest id, dataset, and a valid half-open gap
 range. Account references are hashes; no account key or credential is stored.
 There are no cascade foreign keys.
 
-JPA entities are `@Immutable`; repositories deliberately expose no save, update,
-or delete method. The current service is read-only. Future ingestion must use a
-separately reviewed append path that treats a duplicate-key conflict as an
-idempotent replay only after the immutable raw hash and semantic fields match;
-otherwise it must stop rather than overwrite.
+The former JPA entities were `@Immutable`; their repositories deliberately
+exposed no save, update, or delete method. Batch 2C removes those source
+mappings and services because they remained unused and the tables remained
+empty. Any future ingestion would require a newly reviewed implementation and
+must not silently restore this historical path.
 
 ## Retention Design
 
@@ -166,7 +177,7 @@ and disk headroom from a representative local/staging payload.
 Startup compatibility requires Flyway V2 success, Hibernate `validate`, and the
 application starting with all four tables empty. No startup writer exists.
 
-Read-only acceptance after a separately authorized deploy:
+Historical read-only acceptance after its separately authorized deploy:
 
 - Flyway history contains V2 with the reviewed checksum.
 - `SHOW CREATE TABLE` matches the four create-only definitions and no other

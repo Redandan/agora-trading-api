@@ -331,8 +331,37 @@ Production evidence:
   and 2 completed provider groups; exact-net acceptance remains
   `NOT_YET_PROVEN` while the bot is active.
 
-Recommended next action: review the generic OKX evidence closure separately.
-Keep Liquidation WS with the later indicator dependency review.
+## Batch 2C local candidate
+
+Batch 2C is implemented and locally verified, but it is not committed,
+deployed, or accepted on Production. The current Production runtime remains
+`cee8a45d848d` on port `8084`.
+
+The candidate removes the generic OKX evidence normalize, coverage, append,
+and read-summary closure. It does not remove native Grid provider reads or OKX
+account/order/OCO safety.
+
+Local evidence:
+
+- the generic collector and authenticated-ingestion Production switches are
+  absent and therefore default to `false`;
+- `executable_quote_snapshot`, `fill_fee_ledger`,
+  `funding_bill_ledger`, and `margin_snapshot` each contain zero rows;
+- 19 Java files and 1,395 lines are removed;
+- Java files decrease from 374 to 355, compiled source units from 373 to 354,
+  repository files from 42 to 35, and source entity tables from 39 to 35;
+- four source entity mappings, six repository interfaces, one repository
+  implementation, and the isolated Spring service/configuration closure are
+  removed;
+- the V2 migration and all four historical database tables remain unchanged;
+- the pure local `CoverageProfiler` and CLI remain;
+- `mvn -DskipTests package`, environment-template validation, direct protected
+  runtime assertions, removed-symbol checks, and migration-diff checks passed;
+- the repository has no test tree, so this is package and direct-contract
+  evidence, not automated test-suite evidence.
+
+Recommended next action: review and commit Batch 2C, then deploy and run the
+full Production acceptance checklist as a separate authorized step.
 
 ## Not proven by acceptance
 

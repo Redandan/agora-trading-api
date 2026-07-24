@@ -6,23 +6,30 @@ Acceptance contract: `VERSIONED_PROFIT_START_ACCEPTANCE_V1`
 
 Deployed base: `748a69ea5b9254e9bd79099e460cefc2ab9297dd`
 
+Current runtime note (2026-07-24): this manifest is historical design evidence,
+not runnable current guidance. Batch 2B removed the V3 exact-fill one-shot
+source path, and Batch 2C is a local candidate that removes the unused generic
+V2 evidence source mappings and services. The V2/V3 migrations and historical
+tables remain untouched. No activation or collection sequence below is
+currently implemented or authorized.
+
 The machine-readable contract is
 [`docs/contracts/versioned-profit-start-activation-implementation-v1.json`](contracts/versioned-profit-start-activation-implementation-v1.json).
-This document now records a safe local integration contract. The hard-gate
-snapshot, canonical metric reader, and immutable all-fill V3 path are locally
-implemented and consumable; that does not prove a fresh runtime snapshot,
+This document records a historical local integration contract. The hard-gate
+snapshot, canonical metric reader, and immutable all-fill V3 path were once
+locally implemented and consumable; that did not prove a fresh runtime snapshot,
 runtime activation, or COMPLETE_STABLE exact-net evidence. It does not authorize a database, provider, collector,
 environment, live, scheduler, order, OCO, Grid, fund, Earn, or Telegram
 mutation.
 
-## Current state
+## Historical captured state
 
 - Acceptance state: `DEPLOYED_CODE_VERIFIED_ACTIVATION_BLOCKED`
 - Cohort: `NOT_STARTED`
 - Counts: canonical closed `NOT_MEASURABLE`, exact-fee `0`, positive exact-net `0`
 - The session remains open.
 
-The local integration deliberately keeps activation blocked. The historical
+The former local integration deliberately kept activation blocked. The historical
 hard-gate and canonical-reader blocker identifiers remain in the contract for
 traceability, with explicit local implementation status; only their runtime
 evidence can establish readiness. Existing V2
@@ -33,8 +40,8 @@ exact-net acceptance claim.
 
 ## Bootstrap sequence contract
 
-The cohort bootstrap and exact-net acceptance are separate authorities. The
-only executable sequence is:
+The cohort bootstrap and exact-net acceptance were separate authorities. The
+historical sequence was:
 
 1. `D0_COHORT_IDENTITY`: bind the deployed commit, configuration SHA-256 and
    UTC `effectiveFrom`. This creates no order authority.
@@ -123,9 +130,10 @@ consulting legacy performance.
 
 New code is limited to a canonical episode model, read-only reader, and focused
 test. Existing decision and live-signal repositories may receive narrow
-read-only queries. The V2 fee repository is not an exact source and remains
-unchanged. The reader does not need its own migration, but exact classification
-depends on the additive immutable trade-fill schema below.
+read-only queries. The former V2 fee repository was not an exact source and is
+removed by the Batch 2C local candidate; its empty historical table remains.
+The reader did not need its own migration, but exact classification depended
+on the additive immutable trade-fill schema below.
 
 ## 3. Exact immutable all-fill signed-fee binding
 

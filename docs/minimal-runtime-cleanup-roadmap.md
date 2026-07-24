@@ -184,6 +184,29 @@ Accepted result:
   fills and 2 completed provider groups. The bot remains active, so exact-net
   acceptance and long-term profitability remain unproven.
 
+Batch 2C is a local-only candidate as of 2026-07-24. It has not been committed,
+deployed, or accepted on Production.
+
+Local result:
+
+- Production has no explicit generic OKX evidence collector or authenticated
+  ingestion enablement; both switches resolve to default `false`;
+- the four V2 evidence tables are present but contain zero rows;
+- removed the isolated generic OKX normalize/coverage/append path, its
+  configuration, its unused read-summary service, four entity mappings, six
+  repository interfaces, and one repository implementation;
+- removed 19 Java files and 1,395 lines; Java files decreased from 374 to 355,
+  compiled source units from 373 to 354, repositories from 42 to 35, and
+  source entity tables from 39 to 35;
+- retained `V2__append_only_execution_evidence.sql` and the four historical
+  database tables without a migration or data change;
+- retained the pure local `CoverageProfiler` and CLI because they are
+  provider-, database-, Spring-, and runtime-independent;
+- retained native Grid's independent provider reads and all OKX
+  account/order/OCO safety code;
+- `mvn -DskipTests package`, environment-template validation, direct protected
+  runtime assertions, deleted-symbol checks, and zero migration diff passed.
+
 ## Protected keep set
 
 The following areas are protected during cleanup. A cleanup batch must not
@@ -288,7 +311,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths — Production accepted
+### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A/2B Production accepted; 2C local candidate
 
 Risk: low to medium.
 
@@ -319,8 +342,11 @@ source mappings only: historical migration definitions and database tables
 remain untouched.
 
 `OkxLiquidationWsService` remains deferred until the indicator dependency
-review. Generic OKX evidence models, append/read adapters, repositories, and
-coverage logic also remain deferred rather than being mixed into Batch 2B.
+review. Batch 2C separately removes the generic OKX evidence models,
+append/read adapters, repositories, source mappings, and coverage bridge after
+confirming both Production switches are absent and all four historical V2
+tables are empty. The pure local `CoverageProfiler`, V2 migration, and database
+tables remain.
 
 ### Batch 3 — Backtest and strategy-library reduction
 
@@ -435,7 +461,6 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review the generic OKX evidence closure as a separate low-risk source candidate.
-Keep `OkxLiquidationWsService` with the later indicator dependency review, and
-do not mix either dependency closure with the broader backtest/library
-reduction.
+Review, commit, deploy, and independently accept Batch 2C as its own runtime
+change. Keep `OkxLiquidationWsService` with the later indicator dependency
+review, and do not mix it with the broader backtest/library reduction.

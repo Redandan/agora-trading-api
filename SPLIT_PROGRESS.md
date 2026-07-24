@@ -1,5 +1,22 @@
 # Split Progress
 
+- 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2C.
+  Production inspection confirmed the generic OKX evidence collector and
+  authenticated-ingestion switches were absent and therefore defaulted to
+  `false`; all four V2 evidence tables contained zero rows. Removed the
+  isolated normalize/coverage/append/read-summary closure, its configuration,
+  four entity mappings, six repository interfaces, and one repository
+  implementation. This deletes 19 Java files and 1,395 lines, reducing Java
+  files from 374 to 355, compiled source units from 373 to 354, repository
+  files from 42 to 35, and source entity tables from 39 to 35. The V2
+  migration and four historical database tables remain unchanged. The pure
+  local `CoverageProfiler`/CLI, native Grid provider reads, and OKX
+  account/order/OCO safety remain. `mvn -DskipTests package`,
+  environment-template validation, direct 10-tool/no-LIVE/508/Donchian/Grid/OCO
+  assertions, deleted-symbol checks, and zero migration diff passed. This
+  candidate is not committed, deployed, or accepted on Production and made no
+  strategy, order, OCO/Grid, position, fund, Telegram, scheduler, environment,
+  migration, schema, or database-data mutation.
 - 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
   2B as runtime commit `cee8a45d848d`. The blue/green deployment switched
   Production from `8085` to `8084` and fully drained `8085`. Server worktree,

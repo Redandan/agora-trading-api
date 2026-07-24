@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-24 21:56 Asia/Taipei
+Last verified: 2026-07-24 23:33 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,16 +9,16 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- deployed runtime commit: `505850dda60b`;
+- deployed runtime commit: `657f7ae0ed6d`;
 - at the acceptance checkpoint, server worktree and `origin/main` matched the
   deployed runtime commit;
-- active port: `8085`;
-- inactive blue/green port: `8084`, drained;
+- active port: `8084`;
+- inactive blue/green port: `8085`, drained;
 - local and public dedicated health: passed;
 - local and public dedicated MCP: passed with Bearer authentication;
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
-- nginx shared/dedicated upstreams: active port `8085`;
+- nginx shared/dedicated upstreams: active port `8084`;
 - server worktree: clean.
 
 The current server verification command is:
@@ -385,11 +385,10 @@ Production evidence:
   provider groups remained 2. The active bot's exact-net acceptance remains
   `NOT_YET_PROVEN`.
 
-## Batch 2D local candidate
+## Batch 2D production acceptance
 
-Batch 2D is implemented and locally verified, but it is not committed,
-deployed, or accepted on Production. The current Production runtime remains
-`505850dda60b` on port `8085`.
+Batch 2D was committed as `657f7ae0ed6d`, deployed, and accepted on
+Production.
 
 The candidate removes the default-off OKX liquidation WebSocket and its two
 uncalled SQI consumers. It does not change the two catalog market streams,
@@ -418,8 +417,34 @@ Local evidence:
 - the repository has no test tree, so this is package and direct-contract
   evidence, not automated test-suite evidence.
 
-Recommended next action: review and commit Batch 2D, then deploy and run the
-full Production acceptance checklist as a separate authorized step.
+Production evidence:
+
+- blue/green deployment switched `8085` to `8084` and fully drained `8085`;
+- server worktree, `origin/main`, and deployed metadata matched
+  `657f7ae0ed6d` at the runtime acceptance checkpoint;
+- local and public health, dedicated authenticated MCP, nginx routing, and the
+  AgoraMarket dependency passed; the shared-host Trading MCP remained blocked;
+- shared-database comparison found 35 source entity tables, 209 database
+  tables, and 0 missing source tables;
+- the active startup log contained zero `OkxLiqWS` lines while exactly Binance
+  `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- runtime log smoke found 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- all 10 MCP tools passed with 11 resources and the unchanged registry hash;
+- owner 508 remained disabled PAPER with exchange orders unauthorized;
+- Donchian golden parity and runtime integrity passed while it remained SHADOW
+  with no order, OCO, or Telegram action;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- native Grid `3767345250394603520` remained `running` with 14 provider fills
+  and 2 completed provider groups; exact-net acceptance remains
+  `NOT_YET_PROVEN`;
+- retained SQI/liquidation historical row counts and latest timestamps remained
+  unchanged; no migration, schema, or database-data mutation ran.
+
+Recommended next action: begin Batch 3 with a read-only dependency inventory
+for the owner 508, Donchian, and archived strategy/backtest source closures.
 
 ## Not proven by acceptance
 

@@ -24,11 +24,11 @@ database migration, or production configuration changes.
 
 ## Current verified baseline
 
-Production was reverified after the authorized Batch 2C deployment on
-2026-07-24 at 21:56 Asia/Taipei:
+Production was reverified after the authorized Batch 2D deployment on
+2026-07-24 at 23:33 Asia/Taipei:
 
-- deployed runtime commit: `505850dda60b`;
-- active port: `8085`; inactive port `8084` drained;
+- deployed runtime commit: `657f7ae0ed6d`;
+- active port: `8084`; inactive port `8085` drained;
 - Trading MCP: 10 tools and 11 resources;
 - catalog contracts:
   - `TV_BTC_DAILY_ACCUMULATION_V1@v1`, PAPER,
@@ -43,7 +43,7 @@ Production was reverified after the authorized Batch 2C deployment on
 - execution-safety status is `OK`; positions `#260/#261/#262` are intentional
   BTC Base holdings without OCO;
 - at the acceptance checkpoint, server worktree, `origin/main`, and deployed
-  metadata matched `505850dda60b`;
+  metadata matched `657f7ae0ed6d`;
 - local and public dedicated health/MCP passed, and shared-host MCP remained
   blocked.
 
@@ -226,10 +226,9 @@ Accepted result:
   completed provider groups remained 2. The bot is active and exact-net
   profitability remains unproven.
 
-Batch 2D is a local-only candidate as of 2026-07-24. It has not been
-committed, deployed, or accepted on Production.
+Batch 2D was committed, deployed, and accepted on Production on 2026-07-24.
 
-Local result:
+Accepted result:
 
 - Production has no `MARKET_LIQUIDATION_WS_ENABLED` setting, so the service
   resolves to default `false`; the active runtime logs it as disabled;
@@ -256,6 +255,27 @@ Local result:
 - direct assertions passed for 10 MCP tools, exactly two non-LIVE catalog
   contracts, protected 508/Donchian/Grid/OCO files, removed files/config,
   and zero migration diff.
+- runtime commit `657f7ae0ed6d` deployed by blue/green switch from `8085` to
+  `8084`; the old `8085` listener was fully drained;
+- independent server, public-route, and shared-database verification passed:
+  35 source entity tables, 209 database tables, and 0 missing source tables;
+- the active startup log contained zero `OkxLiqWS` lines while exactly Binance
+  `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- runtime log smoke passed with 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- all 10 MCP tools passed with 11 resources and the unchanged registry hash;
+- owner 508 remained disabled PAPER and exchange orders remained unauthorized;
+- Donchian exact golden parity and runtime integrity passed while it remained
+  SHADOW with no order, OCO, or Telegram action;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- OKX native Grid `3767345250394603520` remained `running` with 14 provider
+  fills and 2 completed provider groups; exact-net profitability remains
+  unproven;
+- retained SQI/liquidation historical row counts and latest timestamps remained
+  unchanged after deployment; no migration, schema, or database-data mutation
+  ran.
 
 ## Protected keep set
 
@@ -361,7 +381,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A-2C Production accepted; 2D local candidate
+### Batch 2 — Dormant alternative-data and startup-backfill paths — Production accepted
 
 Risk: low to medium.
 
@@ -512,7 +532,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review and commit Batch 2D as its own runtime change. After a separately
-authorized deployment, independently verify the 10-tool registry, exact two
-catalog streams, owner 508 PAPER, Donchian SHADOW, Grid continuity, OCO/account
-safety, runtime logs, and unchanged database schema before beginning Batch 3.
+Begin Batch 3 with a read-only dependency inventory. Compute the exact source
+closure required by owner 508, Donchian golden replay, and the two catalog
+streams before proposing any backtest or archived-strategy deletion. Keep the
+first Batch 3 removal candidate separate from this accepted deployment.

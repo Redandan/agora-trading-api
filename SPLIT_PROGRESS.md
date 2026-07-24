@@ -1,5 +1,24 @@
 # Split Progress
 
+- 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
+  2D as runtime commit `657f7ae0ed6d`. The blue/green deployment switched
+  Production from `8085` to `8084` and fully drained `8085`. Independent
+  server, public-route, and shared-database verification passed with 35 source
+  entity tables, 209 database tables, and 0 missing source tables. The active
+  startup log contained zero `OkxLiqWS` lines while exactly Binance
+  `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`. Runtime log smoke found
+  0 errors, 0 unknown warnings, and 0 high-risk operation-like lines. All 10
+  MCP tools passed with 11 resources and the unchanged registry hash. Owner
+  508 remained disabled PAPER; Donchian remained SHADOW with exact golden
+  parity and runtime integrity. Positions `#260/#261/#262`, execution-safety
+  `issues=0`, `473.2783880116848 USDT`, and protected `0.00050810202 BTC`
+  matched the pre-deploy baseline. OKX native Grid
+  `3767345250394603520` remained `running` with 14 provider fills and 2
+  completed provider groups; exact-net profitability remains unproven.
+  Retained SQI/liquidation historical row counts and latest timestamps remained
+  unchanged. No strategy activation, order, OCO/Grid mutation, fund movement,
+  Telegram send, environment change, migration, schema, or database-data
+  mutation was performed.
 - 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2D.
   Production inspection confirmed `MARKET_LIQUIDATION_WS_ENABLED` was absent,
   the service defaulted to `false`, and the active runtime logged the OKX

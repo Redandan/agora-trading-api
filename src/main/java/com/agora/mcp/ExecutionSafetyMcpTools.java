@@ -106,7 +106,7 @@ public class ExecutionSafetyMcpTools {
                     .append(" strategyId=").append(position.getStrategyId())
                     .append(" symbol=").append(position.getSymbol())
                     .append(" qty=").append(decimal(position.getTradedQty()))
-                    .append(" entry=").append(decimal(position.getEntryPrice()))
+                    .append(" entry=").append(decimal(entryPrice(position)))
                     .append(" ocoAlgoId=").append(position.getOcoOrderListId())
                     .append(" managementState=")
                     .append(BtcBasePositionStatePolicy.managementState(position))
@@ -144,5 +144,11 @@ public class ExecutionSafetyMcpTools {
 
     private String decimal(BigDecimal value) {
         return value == null ? "N/A" : value.stripTrailingZeros().toPlainString();
+    }
+
+    private BigDecimal entryPrice(BtLiveSignal position) {
+        return position.getActualEntryPrice() != null
+                ? position.getActualEntryPrice()
+                : position.getEntryPrice();
     }
 }

@@ -1,5 +1,24 @@
 # Split Progress
 
+- 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
+  2C as runtime commit `505850dda60b`. The blue/green deployment switched
+  Production from `8084` to `8085` and fully drained `8084`. Independent
+  server, public-route, and shared-database verification passed with 35 source
+  entity tables, 209 database tables, and 0 missing source tables. The four
+  retained V2 evidence tables still contained zero rows; no migration, table
+  deletion, or database-data mutation ran. Runtime log smoke found 0 errors, 0
+  unknown warnings, and 0 high-risk operation-like lines. All 10 MCP tools
+  passed with 11 resources and the unchanged registry hash. Exactly Binance
+  `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`. Owner 508 remained
+  disabled PAPER; Donchian remained SHADOW with exact golden parity and
+  runtime integrity. Positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline. OKX native Grid `3767345250394603520` remained
+  `running`; provider fills advanced naturally from 13 before deployment to 14
+  during acceptance, completed provider groups remained 2, and exact-net
+  profitability remains unproven. No strategy activation, order, OCO/Grid
+  mutation, fund movement, Telegram send, environment change, migration, or
+  database mutation was performed.
 - 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2C.
   Production inspection confirmed the generic OKX evidence collector and
   authenticated-ingestion switches were absent and therefore defaulted to

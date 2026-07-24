@@ -24,11 +24,11 @@ database migration, or production configuration changes.
 
 ## Current verified baseline
 
-Production was reverified after the authorized Batch 2B deployment on
-2026-07-24 at 19:09 Asia/Taipei:
+Production was reverified after the authorized Batch 2C deployment on
+2026-07-24 at 21:56 Asia/Taipei:
 
-- deployed runtime commit: `cee8a45d848d`;
-- active port: `8084`; inactive port `8085` drained;
+- deployed runtime commit: `505850dda60b`;
+- active port: `8085`; inactive port `8084` drained;
 - Trading MCP: 10 tools and 11 resources;
 - catalog contracts:
   - `TV_BTC_DAILY_ACCUMULATION_V1@v1`, PAPER,
@@ -43,7 +43,7 @@ Production was reverified after the authorized Batch 2B deployment on
 - execution-safety status is `OK`; positions `#260/#261/#262` are intentional
   BTC Base holdings without OCO;
 - at the acceptance checkpoint, server worktree, `origin/main`, and deployed
-  metadata matched `cee8a45d848d`;
+  metadata matched `505850dda60b`;
 - local and public dedicated health/MCP passed, and shared-host MCP remained
   blocked.
 
@@ -184,10 +184,9 @@ Accepted result:
   fills and 2 completed provider groups. The bot remains active, so exact-net
   acceptance and long-term profitability remain unproven.
 
-Batch 2C is a local-only candidate as of 2026-07-24. It has not been committed,
-deployed, or accepted on Production.
+Batch 2C was committed, deployed, and accepted on Production on 2026-07-24.
 
-Local result:
+Accepted result:
 
 - Production has no explicit generic OKX evidence collector or authenticated
   ingestion enablement; both switches resolve to default `false`;
@@ -206,6 +205,26 @@ Local result:
   account/order/OCO safety code;
 - `mvn -DskipTests package`, environment-template validation, direct protected
   runtime assertions, deleted-symbol checks, and zero migration diff passed.
+- runtime commit `505850dda60b` deployed by blue/green switch from `8084` to
+  `8085`; the old `8084` listener was fully drained;
+- independent server, public-route, and shared-database verification passed:
+  35 source entity tables, 209 database tables, and 0 missing source tables;
+- the four retained V2 evidence tables still contained zero rows after
+  deployment; no migration, table deletion, or database-data mutation ran;
+- runtime log smoke passed with 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- all 10 MCP tools passed with 11 resources and the unchanged registry hash;
+- exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- owner 508 remained disabled PAPER and exchange orders remained unauthorized;
+- Donchian exact golden parity and runtime integrity passed while it remained
+  SHADOW with no order, OCO, or Telegram action;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- OKX native Grid `3767345250394603520` remained `running`. Provider fills
+  advanced naturally from 13 before deployment to 14 during acceptance, while
+  completed provider groups remained 2. The bot is active and exact-net
+  profitability remains unproven.
 
 ## Protected keep set
 
@@ -311,7 +330,7 @@ Verified local result:
 - no change to callable tools, strategies, market streams, Grid, OCO, reports,
   or notification delivery.
 
-### Batch 2 — Dormant alternative-data and startup-backfill paths — 2A/2B Production accepted; 2C local candidate
+### Batch 2 — Dormant alternative-data and startup-backfill paths — Production accepted
 
 Risk: low to medium.
 
@@ -461,6 +480,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Review, commit, deploy, and independently accept Batch 2C as its own runtime
-change. Keep `OkxLiquidationWsService` with the later indicator dependency
-review, and do not mix it with the broader backtest/library reduction.
+Review the `OkxLiquidationWsService` indicator dependency closure as the next
+isolated candidate. Keep that review separate from the broader Batch 3
+backtest/strategy-library reduction, and retain the service if any protected
+runtime still injects or consumes it.

@@ -1,5 +1,24 @@
 # Split Progress
 
+- 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
+  2B as runtime commit `cee8a45d848d`. The blue/green deployment switched
+  Production from `8085` to `8084` and fully drained `8085`. Server worktree,
+  `origin/main`, deployed metadata, local/public health, dedicated authenticated
+  MCP, nginx routing, and the AgoraMarket dependency passed. Shared-database
+  comparison found 39 source entity tables, 209 database tables, and 0 missing
+  source tables; no migration or table deletion ran. Runtime log smoke found 0
+  errors, 0 unknown warnings, and 0 high-risk operation-like lines. All 10 MCP
+  tools passed with 11 resources and the unchanged registry hash. Exactly
+  Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`. Owner 508
+  remained disabled PAPER; Donchian remained SHADOW with exact golden parity
+  and runtime integrity. Positions `#260/#261/#262`, execution-safety
+  `issues=0`, `473.2783880116848 USDT`, and protected `0.00050810202 BTC`
+  matched the pre-deploy baseline. OKX native Grid
+  `3767345250394603520` remained `running` with 11 provider fills and 2
+  completed provider groups; exact-net acceptance remains unproven while the
+  bot is active. No strategy activation, order, OCO/Grid mutation, fund
+  movement, Telegram send, environment change, migration, or database mutation
+  was performed.
 - 2026-07-24: implemented local-only minimal-runtime cleanup Batch 2B. Read-only
   Production inspection confirmed that the OKX evidence collector,
   authenticated ingestion, and exact-fill one-shot switches were absent and

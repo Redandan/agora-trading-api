@@ -1,6 +1,6 @@
 # Minimal Runtime Cleanup Roadmap
 
-Last verified: 2026-07-24
+Last verified: 2026-07-25
 
 ## Objective
 
@@ -24,11 +24,12 @@ database migration, or production configuration changes.
 
 ## Current verified baseline
 
-Production was reverified after the authorized Batch 2D deployment on
-2026-07-24 at 23:33 Asia/Taipei:
+Production was reverified after the authorized Batch 3A deployment on
+2026-07-25 at 00:14 Asia/Taipei:
 
-- deployed runtime commit: `657f7ae0ed6d`;
-- active port: `8084`; inactive port `8085` drained;
+- deployed build commit: `e1ab8637899d`;
+- Batch 3A runtime change commit: `10e5ee3fd9ec`;
+- active port: `8085`; inactive port `8084` drained;
 - Trading MCP: 10 tools and 11 resources;
 - catalog contracts:
   - `TV_BTC_DAILY_ACCUMULATION_V1@v1`, PAPER,
@@ -43,7 +44,7 @@ Production was reverified after the authorized Batch 2D deployment on
 - execution-safety status is `OK`; positions `#260/#261/#262` are intentional
   BTC Base holdings without OCO;
 - at the acceptance checkpoint, server worktree, `origin/main`, and deployed
-  metadata matched `657f7ae0ed6d`;
+  metadata matched `e1ab8637899d`;
 - local and public dedicated health/MCP passed, and shared-host MCP remained
   blocked.
 
@@ -277,6 +278,47 @@ Accepted result:
   unchanged after deployment; no migration, schema, or database-data mutation
   ran.
 
+Batch 3A was committed, deployed, and accepted on Production on 2026-07-25.
+
+Accepted result:
+
+- removed six archived executable strategy implementations and ten uncalled
+  backtest validation, replay, simulation, and optimization helpers;
+- removed 16 Java files, 4,089 Java lines, 12 Spring beans, and four obsolete
+  local-smoke configuration lines; main Java files decreased from 350 to 334;
+- retained the `SCORE_BUY_V2` compatibility adapter, frozen
+  `ScoreBuyStrategy` delegate, owner 508 PAPER closure, Donchian SHADOW, native
+  Grid reads, OCO safety, entities, repositories, migrations, and historical
+  database rows;
+- `mvn -DskipTests package` passed while compiling 334 source files;
+- environment-template validation and direct protected-runtime assertions
+  passed with exactly 10 tools, two non-LIVE contracts, and no migration or
+  deployment-script diff;
+- runtime change commit `10e5ee3fd9ec` was deployed in build commit
+  `e1ab8637899d` by blue/green switch from `8084` to `8085`; `8084` was fully
+  drained;
+- independent server, route, and shared-database verification passed with 35
+  source entity tables, 209 database tables, and 0 missing source tables;
+- all 10 MCP tools passed with 11 resources and the unchanged registry hash;
+- exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- the catalog contained only owner 508 PAPER and Donchian SHADOW; owner 508
+  remained disabled and neither contract authorized exchange orders;
+- the database retained 30 strategy inventory rows and 6 strategy types,
+  including strategy `485` (`SCORE_BUY_V2`) and the separate archived strategy
+  `508` (`OI_FUNDING_DIVERGENCE`);
+- Donchian golden parity and runtime integrity passed without order, OCO, or
+  Telegram action;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- native Grid `3767345250394603520` remained `running` with 15 provider fills
+  and 3 completed provider groups; exact-net profitability remains unproven;
+- runtime-log smoke found 0 errors, 0 unknown warnings, 0 removed-path
+  mentions, and 0 high-risk operation-like lines;
+- no strategy activation, order, OCO/Grid mutation, position/fund movement,
+  Telegram send, environment change, migration, schema, or database-data
+  mutation was performed.
+
 ## Protected keep set
 
 The following areas are protected during cleanup. A cleanup batch must not
@@ -437,8 +479,8 @@ only from archived strategies.
 Archived database rows remain queryable as inventory, but they do not retain
 their own executable strategy classes.
 
-Batch 3A is committed and pushed as runtime commit `10e5ee3fd9ec`; it is not
-yet deployed or accepted on Production.
+Batch 3A runtime commit `10e5ee3fd9ec` was deployed in build commit
+`e1ab8637899d` and accepted on Production on 2026-07-25.
 
 Local result:
 
@@ -465,6 +507,20 @@ Local result:
   passed with 10 MCP tools, exactly two non-LIVE catalog contracts, the
   `SCORE_BUY_V2` compatibility adapter, unchanged 508 and Donchian mappings,
   no Grid mutation path, and zero migration or deployment-script diff.
+
+Production result:
+
+- blue/green switched from `8084` to `8085` and fully drained `8084`;
+- server identity, health, dedicated MCP, nginx routes, dependency health, and
+  the 35-of-209 shared-database comparison passed;
+- all 10 tools, exactly two catalog contracts, and exactly two catalog market
+  streams passed;
+- archived strategy inventory remained queryable without executable runtime
+  registration;
+- owner 508, Donchian, native Grid, open positions, execution safety, USDT,
+  and protected BTC matched the pre-deploy contract and safety baseline;
+- runtime log smoke passed without errors, unknown warnings, removed-path
+  mentions, or high-risk operation-like lines.
 
 ### Batch 4 — Repository and entity pruning
 
@@ -561,7 +617,7 @@ Stop a cleanup batch and reduce its scope when:
 
 ## Recommended next action
 
-Deploy and Production-accept Batch 3A only with separate authorization. Do not
-begin the larger Batch 3B extraction until Batch 3A has its own Production
-acceptance or the owner explicitly chooses to continue local-only cleanup
-first.
+Design Batch 3B as a read-only dependency extraction around the small
+indicator-builder function that owner 508 still receives from the generic
+`BacktestEngine`. Do not edit or deploy Batch 3B until that dependency closure
+and its measurable maintenance gain are reviewed separately.

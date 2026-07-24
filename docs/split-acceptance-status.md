@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-24 23:33 Asia/Taipei
+Last verified: 2026-07-25 00:14 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,16 +9,17 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- deployed runtime commit: `657f7ae0ed6d`;
+- deployed build commit: `e1ab8637899d`;
+- Batch 3A runtime change commit: `10e5ee3fd9ec`;
 - at the acceptance checkpoint, server worktree and `origin/main` matched the
-  deployed runtime commit;
-- active port: `8084`;
-- inactive blue/green port: `8085`, drained;
+  deployed build commit;
+- active port: `8085`;
+- inactive blue/green port: `8084`, drained;
 - local and public dedicated health: passed;
 - local and public dedicated MCP: passed with Bearer authentication;
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
-- nginx shared/dedicated upstreams: active port `8084`;
+- nginx shared/dedicated upstreams: active port `8085`;
 - server worktree: clean.
 
 The current server verification command is:
@@ -443,11 +444,10 @@ Production evidence:
 - retained SQI/liquidation historical row counts and latest timestamps remained
   unchanged; no migration, schema, or database-data mutation ran.
 
-## Batch 3A committed candidate
+## Batch 3A production acceptance
 
-Batch 3A is committed and pushed as runtime commit `10e5ee3fd9ec`, but it is
-not deployed or accepted on Production. The current Production identity above
-remains `657f7ae0ed6d`.
+Batch 3A runtime change commit `10e5ee3fd9ec` was deployed in build commit
+`e1ab8637899d` and accepted on Production.
 
 Local evidence:
 
@@ -469,8 +469,40 @@ Local evidence:
   Grid/OCO files, absent Grid mutation tools, removed source symbols, and zero
   migration/deployment-script diff.
 
-Recommended next action: deploy and Production-accept Batch 3A only with
-separate authorization.
+Production evidence:
+
+- blue/green deployment switched `8084` to `8085` and fully drained `8084`;
+- server worktree, `origin/main`, and deployed metadata matched
+  `e1ab8637899d` at the acceptance checkpoint;
+- local and public health, dedicated authenticated MCP, nginx routing, and the
+  AgoraMarket dependency passed; shared-host Trading MCP remained blocked;
+- shared-database comparison found 35 source entity tables, 209 database
+  tables, and 0 missing source tables;
+- all 10 MCP tools passed with 11 resources and the unchanged registry hash;
+- the catalog contained exactly owner 508 PAPER and Donchian SHADOW, with no
+  LIVE contract or exchange-order authorization;
+- exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`;
+- database strategy inventory retained 30 rows and 6 strategy types,
+  including strategy `485` (`SCORE_BUY_V2`) and the separate archived strategy
+  `508` (`OI_FUNDING_DIVERGENCE`);
+- Donchian golden parity and runtime integrity passed without order, OCO, or
+  Telegram action;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- native Grid `3767345250394603520` remained `running` with 15 provider fills,
+  3 completed provider groups, provider-reported Grid profit
+  `0.0102929584 USDT`, and snapshot total PnL `-0.151920140929301 USDT`;
+  exact-net acceptance remains `NOT_YET_PROVEN` while the bot is active;
+- runtime-log smoke found 0 errors, 0 unknown warnings, 0 removed-path
+  mentions, and 0 high-risk operation-like lines;
+- no strategy activation, order, OCO/Grid mutation, position/fund movement,
+  Telegram send, environment change, migration, schema, or database-data
+  mutation was performed.
+
+Recommended next action: review a Batch 3B design that extracts the small
+owner-508 indicator-builder dependency from the generic `BacktestEngine`
+without changing runtime behavior.
 
 ## Not proven by acceptance
 

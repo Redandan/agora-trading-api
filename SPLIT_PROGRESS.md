@@ -1,25 +1,31 @@
 # Split Progress
 
-- 2026-07-24: committed and pushed minimal-runtime cleanup Batch 3A as runtime
-  commit `10e5ee3fd9ec`; it is not deployed or Production accepted.
-  Removed six archived strategy implementations (`CMI_MIH_THRESHOLD`,
-  `EMA_RSI`, `MEAN_REVERSION`, `OI_FUNDING_DIVERGENCE`, `SCORE_BUY_V3`,
-  and `SOP_MTF_ADX`) plus ten uncalled backtest validation, replay,
-  simulation, and optimization helpers. Production read-only inventory proved
-  database strategy `485` is `SCORE_BUY_V2`, so its compatibility adapter and
-  frozen `ScoreBuyStrategy` delegate remain protected; database strategy `508`
-  is the separate archived `OI_FUNDING_DIVERGENCE` row. The runtime catalog
-  still contains only owner 508 PAPER and Donchian SHADOW, while archived
-  database rows remain queryable without executable strategy classes. Removed
-  the obsolete local-smoke DataFreshness shadow-replay setting; its Production
-  setting is absent and therefore default-off. This deletes 16 Java files,
-  4,089 Java lines, 12 Spring beans, and 4 configuration lines, reducing main
-  Java files from 350 to 334. `mvn -DskipTests package` passed while compiling
-  334 source files; environment-template validation and direct
-  10-tool/two-contract/no-LIVE/508/Donchian/Grid/OCO/zero-migration-diff
-  assertions passed. No entity, repository, migration, database, strategy
-  activation, order, OCO/Grid, position, fund, Telegram, scheduler,
-  environment, deployment, or Production state was changed.
+- 2026-07-25: deployed and Production-accepted minimal-runtime cleanup Batch
+  3A. Runtime change commit `10e5ee3fd9ec` was deployed in build commit
+  `e1ab8637899d`; blue/green switched Production from `8084` to `8085` and
+  fully drained `8084`. The batch removes six archived strategy
+  implementations plus ten uncalled backtest validation, replay, simulation,
+  and optimization helpers: 16 Java files, 4,089 Java lines, 12 Spring beans,
+  and 4 local-smoke configuration lines, reducing main Java files from 350 to
+  334. Independent server, public-route, and shared-database verification
+  passed with 35 source entity tables, 209 database tables, and 0 missing
+  source tables. All 10 MCP tools passed with 11 resources and the unchanged
+  registry hash. The catalog contained only owner 508 PAPER and Donchian
+  SHADOW; exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` reached `RUNNING`.
+  All 30 archived/current strategy inventory rows and 6 strategy types
+  remained queryable, including database strategy `485` (`SCORE_BUY_V2`) and
+  the separate archived strategy `508` (`OI_FUNDING_DIVERGENCE`).
+  Runtime-log smoke found 0 errors, 0 unknown warnings, 0 removed-path
+  mentions, and 0 high-risk operation-like lines. Positions
+  `#260/#261/#262`, execution-safety `issues=0`, `473.2783880116848 USDT`,
+  and protected `0.00050810202 BTC` matched the pre-deploy baseline. OKX
+  native Grid `3767345250394603520` remained `running` with 15 provider fills,
+  3 completed provider groups, provider-reported Grid profit
+  `0.0102929584 USDT`, and snapshot total PnL `-0.151920140929301 USDT`;
+  exact-net profitability remains unproven while the bot is active. No
+  strategy activation, order, OCO/Grid mutation, position/fund movement,
+  Telegram send, scheduler/environment change, migration, schema, or
+  database-data mutation was performed.
 - 2026-07-24: committed, deployed, and accepted minimal-runtime cleanup Batch
   2D as runtime commit `657f7ae0ed6d`. The blue/green deployment switched
   Production from `8085` to `8084` and fully drained `8085`. Independent

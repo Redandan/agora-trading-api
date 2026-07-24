@@ -125,12 +125,6 @@
             <artifactId>logback-classic</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>1.11.0</version>
-        </dependency>
-        
         <!-- Telegram Bot SDK 7.x -->
         <dependency>
             <groupId>org.telegram</groupId>
@@ -142,27 +136,6 @@
             <artifactId>telegrambots-client</artifactId>
             <version>7.3.0</version>
         </dependency>
-        
-        <!-- Test Dependencies -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- OkHttp MockWebServer for HTTP client unit tests -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>mockwebserver</artifactId>
-            <version>${okhttp.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Actuator + Prometheus micrometer (observability) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -177,21 +150,6 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
-        </dependency>
-
-        <!-- Spring AI Anthropic Provider — for Multi-AI Router Phase 1 -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-model-anthropic</artifactId>
-        </dependency>
-
-        <!-- ta4j — Java Technical Analysis Library (issue #197) -->
-        <!-- Used for standardized indicator calculation (RSI/ADX/ATR/BB) and
-             composable Rule interface for strategy signal experiments. -->
-        <dependency>
-            <groupId>org.ta4j</groupId>
-            <artifactId>ta4j-core</artifactId>
-            <version>0.15</version>
         </dependency>
 
     </dependencies>

@@ -1,10 +1,8 @@
 package com.agora.infra.bot.impl;
 
 import com.agora.infra.bot.TradingReportFacade;
-import com.agora.mcp.MetaControlMcpTools;
-import com.agora.mcp.PositionMcpTools;
-import com.agora.service.backtest.TradingAnalysisService;
-import com.agora.service.trading.TradingManagerService;
+import com.agora.mcp.ExecutionSafetyMcpTools;
+import com.agora.mcp.StrategyCatalogMcpTools;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,34 +10,36 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class TradingReportFacadeImpl implements TradingReportFacade {
 
-    private final TradingManagerService tradingManagerService;
-    private final TradingAnalysisService tradingAnalysisService;
-    private final MetaControlMcpTools metaControlMcpTools;
-    private final PositionMcpTools positionMcpTools;
+    private final ExecutionSafetyMcpTools executionSafetyMcpTools;
+    private final StrategyCatalogMcpTools strategyCatalogMcpTools;
 
     @Override
     public String currentSituation() {
-        return tradingManagerService.reportCurrentSituation();
+        return executionSafetyMcpTools.getOpenSpotPositions()
+                + "\n\n"
+                + executionSafetyMcpTools.getExecutionSafetyStatus();
     }
 
     @Override
     public String marketAnalysis() {
-        return tradingAnalysisService.analyze();
+        return strategyCatalogMcpTools.getOwner508RuntimeStatus();
     }
 
     @Override
     public String weeklyReport() {
-        return tradingManagerService.reportWeekly();
+        return "Legacy AI/ML weekly trading report retired.\n"
+                + strategyCatalogMcpTools.getStrategyRuntimeCatalog();
     }
 
     @Override
     public String marketSignalRiskDrillDown(Integer hours, String symbol, String detailType, Integer limit) {
         String type = normalizeDetailType(detailType);
         return switch (type) {
-            case "current_position" -> positionMcpTools.getOpenPositions();
-            case "oco_status" -> positionMcpTools.getOcoHealth();
-            case "trailing_status" -> positionMcpTools.getTrailingStopStatus();
-            default -> metaControlMcpTools.getMarketSignalRiskDrillDown(hours, symbol, type, limit);
+            case "current_position" -> executionSafetyMcpTools.getOpenSpotPositions();
+            case "oco_status", "trailing_status" -> executionSafetyMcpTools.getExecutionSafetyStatus();
+            default -> executionSafetyMcpTools.getExecutionSafetyStatus()
+                    + "\n\n"
+                    + strategyCatalogMcpTools.getOwner508RuntimeStatus();
         };
     }
 

@@ -3,7 +3,6 @@ package com.agora.service.backtest;
 import com.agora.dto.backtest.BacktestResultResponse;
 import com.agora.model.MdKline;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,16 +13,6 @@ import java.util.*;
 @Slf4j
 @Component
 public class BacktestEngine {
-
-    /**
-     * 歷史過濾器（可選注入，null = 測試模式或 Spring context 未載入）。
-     * 當 config 帶 {@code applyFilters=true} 且此欄位非 null 時，於每個 BUY/SELL 進場點
-     * 呼叫 {@link HistoricalFilterEvaluator} 判斷是否應略過此次進場。
-     */
-    private HistoricalFilterEvaluator filterEvaluator;
-
-    @Autowired(required = false)
-    public void setFilterEvaluator(HistoricalFilterEvaluator f) { this.filterEvaluator = f; }
 
     public BacktestRunSummary run(
             List<MdKline> klines,
@@ -111,7 +100,6 @@ public class BacktestEngine {
         // #392 Option B: lightweight RegimeFilter parity — counts LONG entries
         // suppressed because the deterministic regime classifier voted TRENDING_DOWN.
         int regimeBlockedCount = 0;
-        boolean applyRegimeFilter = getBoolean(config, "applyRegimeFilter", false);
         LocalDateTime tradeStartTime = getLocalDateTime(config, "backtestTradeStartTime");
 
         if (getBoolean(config, "tradingViewOrderIntentExecution", false)) {
@@ -120,9 +108,6 @@ public class BacktestEngine {
         }
 
         // 每次 run() 開始前清除 HistoricalFilterEvaluator thread-local 快取
-        if (filterEvaluator != null && getBoolean(config, "applyFilters", false)) {
-            filterEvaluator.reset();
-        }
         Position openPosition = null;
         List<TradeRecord> trades = new ArrayList<TradeRecord>();
 
@@ -327,37 +312,6 @@ public class BacktestEngine {
             if (entryWindowOpen && openPosition == null && cash > 0.0 && i < baseKlines.size() - 1) {
                 boolean isBuy  = signal == StrategySignal.BUY;
                 boolean isSell = allowShort && signal == StrategySignal.SELL;
-
-                // #392 Option B: RegimeFilter parity — suppresses LONG entries when
-                // deterministic classifier votes TRENDING_DOWN (matches LiveSignalEvaluator:545-568).
-                // Default off for back-compat; opt-in via config.applyRegimeFilter=true.
-                if (isBuy && applyRegimeFilter) {
-                    BacktestRegimeFilter.Decision regimeDecision =
-                            BacktestRegimeFilter.evaluateLongEntry(context, config);
-                    if (regimeDecision.reason() == BacktestRegimeFilter.BlockReason.TRENDING_DOWN_LONG_BLOCKED) {
-                        regimeBlockedCount++;
-                        log.debug("[Backtest] RegimeFilter blocked LONG at {} regime={} conf={}",
-                                current.getOpenTime(), regimeDecision.regime(), regimeDecision.confidence());
-                        isBuy = false;
-                    }
-                }
-
-                // 歷史過濾器：與實時 Long/ShortAiFilter 相同規則子集（F&G、事件日曆、資金費率）
-                // 啟用：config.applyFilters=true。null = 測試模式、不啟用。
-                if ((isBuy || isSell)
-                        && filterEvaluator != null
-                        && getBoolean(config, "applyFilters", false)) {
-                    String side = isBuy ? "LONG" : "SHORT";
-                    String blockReason = filterEvaluator.wouldBlock(
-                            side, current.getSymbol(), current.getOpenTime(), config);
-                    if (blockReason != null) {
-                        filteredEntryCount++;
-                        log.debug("[Backtest] Filter blocked {} at {} {}: {}",
-                                side, current.getSymbol(), current.getOpenTime(), blockReason);
-                        isBuy = false;
-                        isSell = false;
-                    }
-                }
 
                 // 進場頻率冷卻：檢查距離上次平倉的時間
                 if ((isBuy || isSell) && cooldownMinutes > 0 && lastExitTime != null) {

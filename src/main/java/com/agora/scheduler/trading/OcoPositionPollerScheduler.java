@@ -7,11 +7,9 @@ import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.infra.notification.NotificationPort;
 import com.agora.service.TgNotificationDeduper;
 import com.agora.service.TgNotificationDeduper.Severity;
-import com.agora.service.ml.MlInferenceLogger;
 import com.agora.service.trading.BtcBasePositionStatePolicy;
 import com.agora.service.trading.OcoManagementService;
 import com.agora.service.trading.OcoOrderStateInspector;
-import com.agora.service.trading.PostTradeReviewService;
 import com.agora.service.trading.PositionMutationGuard;
 import com.agora.service.trading.OkxTradingService;
 import com.agora.service.trading.SpotPositionCloseService;
@@ -52,13 +50,7 @@ public class OcoPositionPollerScheduler {
     private final OcoManagementService ocoManagementService;
     private final NotificationPort notificationPort;
     private final OkxTradingProperties tradingProperties;
-    private final PostTradeReviewService postTradeReviewService;
     private final TradingMetrics tradingMetrics;
-    private final MlInferenceLogger mlInferenceLogger;
-    /** Simple Earn 緩衝維護（每 10 min 檢查；低於 threshold 自動補至 target）*/
-    private final com.agora.service.trading.OkxEarnService okxEarnService;
-    private final com.agora.service.trading.SwapRiskMonitorService swapRiskMonitorService;
-    private final com.agora.service.trading.PositionAgingMonitor positionAgingMonitor;
     /** #340 — 2-cycle confirmation 避免 grid BUY 成交瞬間 race condition 誤報。*/
     private final UntrackedHoldingTracker untrackedHoldingTracker;
     /** #340 Phase 2 — alert 觸發時自動 call reconcileOrphanTrades 帶 OKX trade context */
@@ -98,7 +90,10 @@ public class OcoPositionPollerScheduler {
     private void doPollOcoPositions() {
         // ── 1. 檢查已有 OCO 的倉位是否已成交 ──────────────────────────────────
         List<BtLiveSignal> openPositions =
-                liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull();
+                liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNotNull()
+                        .stream()
+                        .filter(position -> !"SHORT".equals(position.getSide()))
+                        .toList();
 
         log.debug("[OcoPoll] Checking {} open position(s) with OCO orders", openPositions.size());
 
@@ -125,12 +120,6 @@ public class OcoPositionPollerScheduler {
             log.error("[Reconcile] reconcileHoldings failed: {}", e.getMessage());
         }
 
-        // ── 4. 持倉超時警告（每次 OcoPoll 都檢查，TG 每天最多提醒一次）────────
-        try {
-            positionAgingMonitor.checkAgingPositions();
-        } catch (Exception e) {
-            log.error("[OcoPoll] checkAgingPositions failed: {}", e.getMessage());
-        }
     }
 
     /**
@@ -139,7 +128,10 @@ public class OcoPositionPollerScheduler {
      */
     private void retryUnprotectedPositions() {
         List<BtLiveSignal> unprotected =
-                liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNull();
+                liveSignalRepository.findByAutoTradedIsTrueAndExitTimeIsNullAndOcoOrderListIdIsNull()
+                        .stream()
+                        .filter(position -> !"SHORT".equals(position.getSide()))
+                        .toList();
         if (unprotected.isEmpty()) return;
 
         log.info("[OcoPoll] Found {} unprotected position(s), attempting auto OCO retry", unprotected.size());
@@ -443,10 +435,6 @@ public class OcoPositionPollerScheduler {
         pos.setRealizedPnl(realizedPnl);
         liveSignalRepository.save(pos);
 
-        // Backfill actual_outcome in ml_inference_log for alignment-rate tracking.
-        // Async, swallows all errors — OCO closure is never blocked.
-        mlInferenceLogger.backfillOutcome(pos.getId(), pnlPct > 0 ? 1 : 0, pnlPct);
-
         log.info("[OcoPoll] Position closed by OCO: id={} symbol={} side={} reason={} exitPrice={} pnl={}%",
                 pos.getId(), pos.getSymbol(), pos.getSide(), exitReason, exitPrice,
                 String.format("%.2f", pnlPct * 100));
@@ -469,7 +457,6 @@ public class OcoPositionPollerScheduler {
             log.error("[OcoPoll] TG notify failed: {}", e.getMessage());
         }
 
-        postTradeReviewService.reviewAsync(pos, exitReason, exitPrice, pnlPct);
     }
 
     private String formatPrice(BigDecimal price) {
@@ -597,16 +584,8 @@ public class OcoPositionPollerScheduler {
         }
         untrackedHoldingTracker.cleanup(LocalDateTime.now(ZoneOffset.UTC));
 
-        // 3c. OKX SWAP 有持倉但 DB 沒有對應記錄 → 孤兒 SWAP 倉位，發 TG 警告並嘗試補掛 OCO
-        swapRiskMonitorService.detectSwapOrphans();
-
-        // 3d. DB 有 SHORT 開倉但 OKX 無對應 SWAP → 已平倉但 DB 未更新（反向孤兒）
-        swapRiskMonitorService.detectPhantomShorts();
-
-        // 3e. #267 ATR Trailing Stop: ratchet SL for positions with atrTrailingStopEnabled
-        swapRiskMonitorService.applyAtrTrailingStop();
-
-        // 3b. DB 有倉位但 OKX 無餘額 → OCO 可能已成交但 DB 尚未更新 → 自動關閉
+        // DB 有倉位但 OKX 無餘額只記錄告警。實際關閉由 OCO provider
+        // fill evidence 驅動，避免以模糊餘額自動改寫持倉。
         for (Map.Entry<String, BigDecimal> entry : dbQtyByBase.entrySet()) {
             String base = entry.getKey();
             BigDecimal dbQty = entry.getValue();
@@ -614,50 +593,11 @@ public class OcoPositionPollerScheduler {
             boolean foundInOkx = holdings.stream().anyMatch(h ->
                     h.ccy.equals(base) && h.cashBal.compareTo(RECONCILE_THRESHOLD) >= 0);
             if (!foundInOkx) {
-                log.warn("[Reconcile] DB 有 {} 開倉 qty={} 但 OKX 無餘額，自動關閉 DB 記錄", base, dbQty);
-                String symbol = base + "USDT";
-                for (BtLiveSignal pos : openPositions) {
-                    if (symbol.equals(pos.getSymbol()) && !"SHORT".equals(pos.getSide())) {
-                        // OCO 處於 live/effective/pause 代表限價單仍在掛單中（ETH 被鎖住），
-                        // cashBal=0 不代表已售出，等下次 checkAndClose 正常處理。
-                        if (isOcoStillActive(pos)) {
-                            log.info("[Reconcile] Skip auto-close id={}: OCO still active (state=live/effective), will be handled by checkAndClose", pos.getId());
-                            continue;
-                        }
-                        try {
-                            swapRiskMonitorService.autoCloseOrphanPosition(pos);
-                        } catch (Exception e) {
-                            log.error("[Reconcile] Auto-close failed: id={} error={}", pos.getId(), e.getMessage());
-                        }
-                    }
-                }
+                log.warn("[Reconcile] DB has {} open qty={} but OKX has no visible balance; no mutation without OCO fill evidence",
+                        base, dbQty);
             }
         }
 
-        // 3e. SWAP 帳戶爆倉風險監控（僅有 SWAP 開倉時才查）
-        boolean hasOpenShort = openPositions.stream().anyMatch(p -> "SHORT".equals(p.getSide()));
-        if (hasOpenShort) {
-            swapRiskMonitorService.checkSwapRiskState();
-        }
-
-        // 4. Simple Earn 緩衝維護（交易帳戶 USDT 低於 threshold 自動補至 target）
-        try {
-            String balStr = okxTradingService.getUsdtBalance();
-            if (!"N/A".equals(balStr)) {
-                java.math.BigDecimal balance = new java.math.BigDecimal(balStr);
-                boolean topped = okxEarnService.topUpTradingBuffer(balance);
-                if (topped) {
-                    notificationPort.broadcast(
-                            String.format("💰 <b>Simple Earn 自動補倉</b>\n" +
-                                    "交易帳戶 USDT %.2f 低於門檻 %.2f，已從 Earn 自動補充至目標 %.2f。",
-                                    balance.doubleValue(),
-                                    okxEarnService.getTopupThresholdUsdt().doubleValue(),
-                                    okxEarnService.getTopupTargetUsdt().doubleValue()), false);
-                }
-            }
-        } catch (Exception e) {
-            log.warn("[OcoPoll] Earn top-up check failed (non-blocking): {}", e.getMessage());
-        }
     }
 
 

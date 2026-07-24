@@ -4,9 +4,11 @@ This repo is the trading service extracted from `AgoraMarketAPI`.
 
 ## Owns
 
-- Trading strategy configuration, backtests, signals, OCO/grid state, execution audits, and trading MCP tools.
+- Versioned strategy catalog, owner 508 PAPER accounting, archived strategy
+  inventory, Donchian SHADOW evidence, spot OCO reconciliation, OKX-native Grid,
+  and the minimal trading MCP surface.
 - Market data ingestion used by trading decisions.
-- Trading-specific Telegram notifications and operator diagnostics.
+- Trading execution-safety notifications and operator diagnostics.
 - Trading database schema. Marketplace entities must not be read through shared JPA repositories.
 
 ## Does Not Own
@@ -62,9 +64,12 @@ requirement explicitly needs shared identity, treat that as a separate design
 change with a dedicated DTO-only SDK. Do not predefine user internal API
 contracts in trading.
 
-## Cleanup Regression Guard
+## Cleanup Boundary
 
-Marketplace leftovers should be removed or replaced locally, not turned into internal APIs. `scripts/verify_local.ps1` guards the current forbidden categories, including:
+Marketplace leftovers should be removed or replaced locally, not turned into
+internal APIs. The automated local regression script was removed during the
+strategy-first simplification, so changes touching these areas require direct
+source review. Forbidden categories include:
 
 - Flutter/AppVersion deployment, search logging, customer issue, address, image audit, and product-classification residue.
 - OAuth2, WalletConnect/Web3 login, AuthService/AuthCode/2FA, JWT/member login, and marketplace account DTO residue.

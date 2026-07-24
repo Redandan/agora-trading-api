@@ -7,6 +7,8 @@ import com.agora.model.RuntimeDecisionEvidence;
 import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
+import com.agora.service.strategy.StrategyLifecycleMode;
+import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -63,14 +65,16 @@ public class BtcDonchianShadowLaneService {
     private final RuntimeDecisionEvidenceService runtimeEvidenceService;
     private final BtcDonchianShadowEngine engine;
     private final ObjectMapper objectMapper;
+    private final StrategyRuntimeCatalog strategyRuntimeCatalog;
 
     public boolean isEnabled() {
-        return properties.enabled();
+        return properties.enabled()
+                && strategyRuntimeCatalog.isMode(POLICY_MODE, StrategyLifecycleMode.SHADOW);
     }
 
     @Transactional
     public void evaluate(MdKline eventKline) {
-        if (!properties.enabled() || !matchesScope(eventKline)) return;
+        if (!isEnabled() || !matchesScope(eventKline)) return;
         if (!runtimeEvidenceService.isEnabled()) {
             log.warn("[BtcDonchianShadow] runtime evidence disabled; closed bar ignored openTime={}",
                     eventKline.getOpenTime());

@@ -1,7 +1,12 @@
 package com.agora.mcp;
 
+import com.agora.mcp.auth.Category;
+import com.agora.mcp.auth.McpAuth;
+import com.agora.mcp.auth.McpAuthLevel;
+import com.agora.mcp.auth.McpCategory;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.core.env.Environment;
@@ -33,6 +38,11 @@ public class McpRegistryVersionService {
         this.environment = environment;
     }
 
+    @McpAuth(McpAuthLevel.OPS)
+    @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
+    @Tool(
+            name = "getMcpRegistryVersion",
+            description = "Read-only runtime and MCP registry identity. Reports the deployed version and whitelisted tool count without changing trading, Grid, OCO, funds, or database state.")
     public Map<String, Object> buildVersionInfo() {
         List<String> toolNames = toolCallbackProviders.orderedStream()
                 .flatMap(provider -> java.util.Arrays.stream(provider.getToolCallbacks()))

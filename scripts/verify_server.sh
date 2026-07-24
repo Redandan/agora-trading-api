@@ -339,6 +339,14 @@ require_env_value SPRING_FLYWAY_ENABLED true
 require_env_value SPRING_FLYWAY_TABLE trading_flyway_schema_history
 require_env_value SPRING_FLYWAY_BASELINE_ON_MIGRATE true
 require_env_value SPRING_FLYWAY_BASELINE_VERSION 1
+require_env_value TRADINGVIEW_LOCAL_ENABLED false
+require_env_value TRADINGVIEW_LOCAL_STRATEGY_ID 485
+require_env_value TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS BTCUSDT
+require_env_value TRADINGVIEW_LOCAL_ALLOWED_INTERVALS 1d
+require_env_value TRADINGVIEW_LOCAL_ALLOWED_SOURCES binance
+require_env_value TRADINGVIEW_LOCAL_EXECUTION_MODE BTC_BASE_PAPER
+require_env_value TRADING_OKX_NATIVE_GRID_ENABLED false
+require_env_value TRADING_OKX_NATIVE_GRID_LIVE_ACTION_ENABLED false
 
 case "$(env_value SPRING_DATASOURCE_URL)" in
   jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"|jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"\?*) ;;

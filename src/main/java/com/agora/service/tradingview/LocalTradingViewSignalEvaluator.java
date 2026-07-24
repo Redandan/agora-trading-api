@@ -1,6 +1,7 @@
 package com.agora.service.tradingview;
 
 import com.agora.config.properties.TradingViewLocalSignalProperties;
+import com.agora.config.properties.TradingViewLocalSignalProperties.ExecutionMode;
 import com.agora.model.BtStrategy;
 import com.agora.model.MdKline;
 import com.agora.repository.trading.MdKlineRepository;
@@ -13,6 +14,8 @@ import com.agora.service.backtest.StrategyRegistry;
 import com.agora.service.backtest.StrategySignal;
 import com.agora.service.backtest.TradingViewScoreBuyModel;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.strategy.StrategyLifecycleMode;
+import com.agora.service.strategy.StrategyRuntimeCatalog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -38,9 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>This service evaluates the local TradingView-parity ScoreBuy strategy on
  * closed K-lines and writes decision audit rows for each Pine-equivalent order
- * intent. Exchange orders are delegated to {@link LocalTradingViewExecutionService}
- * and remain disabled unless that service's execution mode and hard gates allow
- * the local TradingView lane to trade.</p>
+ * intent. The current catalog mode is PAPER, so this lane has no exchange-order
+ * adapter.</p>
  */
 @Slf4j
 @Service
@@ -48,7 +49,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LocalTradingViewSignalEvaluator {
 
     private static final String SOURCE = "LOCAL_TRADINGVIEW_PARITY";
-    private static final String BLOCKER = "LocalTradingViewDryRun";
     private static final String NO_BUY_REASON = "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE";
 
     private final TradingViewLocalSignalProperties props;
@@ -57,15 +57,19 @@ public class LocalTradingViewSignalEvaluator {
     private final BacktestEngine backtestEngine;
     private final MdKlineRepository klineRepository;
     private final DecisionAuditWriter auditWriter;
-    private final LocalTradingViewExecutionService executionService;
+    private final TradingViewAccumulationPaperService paperService;
+    private final StrategyRuntimeCatalog strategyRuntimeCatalog;
     private final Map<String, Instant> seenKeys = new ConcurrentHashMap<>();
 
     public boolean isEnabled() {
-        return props.enabled();
+        return props.enabled()
+                && props.executionMode() == ExecutionMode.BTC_BASE_PAPER
+                && strategyRuntimeCatalog.isMode(
+                TradingViewDailyStrategyContract.KEY, StrategyLifecycleMode.PAPER);
     }
 
     public void evaluate(MdKline eventKline) {
-        if (!props.enabled() || eventKline == null) {
+        if (!isEnabled() || eventKline == null) {
             return;
         }
 
@@ -75,6 +79,14 @@ public class LocalTradingViewSignalEvaluator {
         if (!allowed(symbol, props.allowedSymbols(), true)
                 || !allowed(interval, props.allowedIntervals(), false)
                 || !allowed(source, props.allowedSources(), false)) {
+            return;
+        }
+        if (props.strategyId() != TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
+            log.error("[LocalTradingView] refuse mismatched strategy mapping configuredId={} contract={} expectedDatabaseId={} legacyCollisionId={}",
+                    props.strategyId(),
+                    TradingViewDailyStrategyContract.KEY,
+                    TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID,
+                    TradingViewDailyStrategyContract.LEGACY_DATABASE_ID_COLLISION);
             return;
         }
 
@@ -96,6 +108,8 @@ public class LocalTradingViewSignalEvaluator {
             }
 
             Map<String, double[]> indicators = backtestEngine.buildIndicators(klines, config);
+            evaluatePaperLedgerIfEnabled(
+                    strategyEntity, strategy, config, klines, indicators, eventKline, interval, source);
             int catchUpBars = Math.max(1, props.catchUpBars());
             int startIndex = Math.max(0, index - catchUpBars + 1);
             List<BarEvaluation> evaluations = new ArrayList<>();
@@ -107,40 +121,29 @@ public class LocalTradingViewSignalEvaluator {
                 }
             }
 
-            LocalDateTime selectedExecutionBar = null;
-            for (int i = evaluations.size() - 1; i >= 0; i--) {
-                BarEvaluation evaluation = evaluations.get(i);
-                if (evaluation.signal() == StrategySignal.BUY
-                        && !evaluation.intents().isEmpty()
-                        && hasCompleteReplayHistory(evaluation.details())
-                        && isFreshEnoughForExecution(evaluation.kline())) {
-                    selectedExecutionBar = evaluation.kline().getOpenTime();
-                    break;
-                }
-            }
-
             for (BarEvaluation evaluation : evaluations) {
                 if (evaluation.signal() != StrategySignal.BUY || evaluation.intents().isEmpty()) {
                     auditNoBuy(strategyEntity, evaluation.kline(), interval, source, evaluation.signal(),
                             evaluation.details(), eventKline.getOpenTime(), catchUpBars);
                     continue;
                 }
+                TradingViewAccumulationOrderPlanner.Plan accumulationPlan =
+                        TradingViewAccumulationOrderPlanner.plan(
+                                evaluation.intents(),
+                                props.defaultNotionalUsdt(),
+                                props.maxNotionalUsdt());
                 int intentIndex = 0;
                 for (LiveSignalContext.OrderIntent intent : evaluation.intents()) {
                     intentIndex++;
-                    boolean executionSelected = Objects.equals(
-                            evaluation.kline().getOpenTime(), selectedExecutionBar) && intentIndex == 1;
                     boolean historyComplete = hasCompleteReplayHistory(evaluation.details());
                     String executionSelection = !historyComplete
                             ? "SHADOW_ONLY_INCOMPLETE_REPLAY_HISTORY"
-                            : executionSelected
-                            ? "LATEST_ELIGIBLE_FIRST_INTENT"
-                            : Objects.equals(evaluation.kline().getOpenTime(), selectedExecutionBar)
-                            ? "SHADOW_ONLY_ADDITIONAL_INTENT"
-                            : "SHADOW_ONLY_CATCH_UP_INTENT";
+                            : Objects.equals(evaluation.kline().getOpenTime(), eventKline.getOpenTime())
+                            ? "PAPER_CURRENT_BAR_INTENT"
+                            : "PAPER_CATCH_UP_INTENT";
                     auditIntent(strategyEntity, evaluation.kline(), interval, source, intent,
                             evaluation.details(), intentIndex, eventKline.getOpenTime(), catchUpBars,
-                            executionSelected, executionSelection);
+                            executionSelection, accumulationPlan);
                 }
             }
         } catch (Exception e) {
@@ -233,6 +236,8 @@ public class LocalTradingViewSignalEvaluator {
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("source", SOURCE);
         context.put("signalSource", "LOCAL_TRADINGVIEW");
+        context.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
+        context.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
         context.put("strategyId", strategy.getId());
         context.put("strategy", strategy.getName());
         context.put("strategyType", strategy.getStrategyType());
@@ -273,7 +278,8 @@ public class LocalTradingViewSignalEvaluator {
     private void auditIntent(BtStrategy strategy, MdKline kline, String interval, String source,
                              LiveSignalContext.OrderIntent intent, Map<String, Object> details, int intentIndex,
                              LocalDateTime triggerOpenTime, int catchUpBars,
-                             boolean executionSelected, String executionSelection) {
+                             String executionSelection,
+                             TradingViewAccumulationOrderPlanner.Plan accumulationPlan) {
         String key = String.join("|",
                 String.valueOf(strategy.getId()),
                 normalizeSymbol(kline.getSymbol()),
@@ -287,11 +293,14 @@ public class LocalTradingViewSignalEvaluator {
         }
         evictOldKeys();
 
-        BigDecimal requested = props.defaultNotionalUsdt();
-        BigDecimal effective = requested.min(props.maxNotionalUsdt());
+        TradingViewAccumulationOrderPlanner.IntentPlan intentPlan =
+                accumulationPlan.intents().get(intentIndex - 1);
+        BigDecimal requested = intentPlan.requestedNotionalUsdt();
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("source", SOURCE);
         context.put("signalSource", "LOCAL_TRADINGVIEW");
+        context.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
+        context.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
         context.put("strategyId", strategy.getId());
         context.put("strategy", strategy.getName());
         context.put("strategyType", strategy.getStrategyType());
@@ -310,40 +319,80 @@ public class LocalTradingViewSignalEvaluator {
         context.put("catchUpBars", catchUpBars);
         context.put("catchUpEvaluation", !Objects.equals(kline.getOpenTime(), triggerOpenTime));
         context.put("requestedNotionalUsdt", requested);
-        context.put("effectiveNotionalUsdt", effective);
+        context.put("intentWeight", intentPlan.weight());
+        context.put("aggregateIntentWeight", accumulationPlan.aggregateWeight());
+        context.put("aggregateIntentReasons", accumulationPlan.aggregateReasons());
+        context.put("aggregateRequestedNotionalUsdt", accumulationPlan.requestedNotionalUsdt());
+        context.put("aggregateMaxOrderNotionalUsdt", accumulationPlan.maxOrderNotionalUsdt());
+        context.put("aggregateNotionalWithinCap", accumulationPlan.withinOrderCap());
+        context.put("effectiveNotionalUsdt", accumulationPlan.requestedNotionalUsdt());
         context.put("dryRun", true);
-        context.put("selectedAction", "SHADOW_EXECUTION_INTENT");
+        context.put("selectedAction", props.executionMode() == ExecutionMode.BTC_BASE_PAPER
+                ? "PAPER_EXECUTION_INTENT"
+                : "SHADOW_EXECUTION_INTENT");
         context.put("intentCreated", true);
         context.put("orderSent", false);
         context.put("duplicate", false);
-        context.put("blockers", "LOCAL_TRADINGVIEW_DRY_RUN");
+        context.put("blockers", props.executionMode() == ExecutionMode.BTC_BASE_PAPER
+                ? "PAPER_MODE_NO_EXCHANGE_ORDER"
+                : "LOCAL_TRADINGVIEW_DRY_RUN");
         context.put("executionModeSetting", props.executionMode().name());
         context.put("executionEnabled", props.effectiveExecutionEnabled());
         context.put("executionDryRun", props.effectiveExecutionDryRun());
         context.put("executionLiveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
-        context.put("liveExecutionSelected", executionSelected);
+        context.put("liveExecutionSelected", false);
         context.put("executionSelection", executionSelection);
-        context.put("suppressionReason", "SHADOW_MODE");
+        context.put("suppressionReason", "PAPER_MODE");
         if (details != null) {
             details.forEach((name, value) -> context.put("strategyDecision." + name, value));
         }
 
         auditWriter.logSignalEval(strategy.getId(), normalizeSymbol(kline.getSymbol()), interval,
                 kline.getOpenTime(), "BUY", context);
-        auditWriter.logEntrySkip(strategy.getId(), normalizeSymbol(kline.getSymbol()), interval,
-                kline.getOpenTime(), BLOCKER, "Local TradingView parity dry-run; no order sent", context);
-        if (executionSelected) {
-            executionService.preview(strategy, kline, interval, source, intent, context, intentIndex);
-        }
     }
 
-    private boolean isFreshEnoughForExecution(MdKline kline) {
-        if (props.maxSignalAgeHours() <= 0) {
-            return true;
+    private void evaluatePaperLedgerIfEnabled(BtStrategy strategyEntity,
+                                              Strategy strategy,
+                                              Map<String, Object> config,
+                                              List<MdKline> klines,
+                                              Map<String, double[]> indicators,
+                                              MdKline eventKline,
+                                              String interval,
+                                              String source) {
+        if (props.executionMode() != ExecutionMode.BTC_BASE_PAPER) {
+            return;
         }
-        LocalDateTime closeTime = kline.getCloseTime() != null ? kline.getCloseTime() : kline.getOpenTime();
-        return closeTime != null
-                && !closeTime.isBefore(LocalDateTime.now(ZoneOffset.UTC).minusHours(props.maxSignalAgeHours()));
+        List<TradingViewAccumulationPaperEngine.PaperBar> paperBars =
+                new ArrayList<>(klines.size());
+        for (int paperIndex = 0; paperIndex < klines.size(); paperIndex++) {
+            BarEvaluation evaluation = evaluateBar(
+                    strategy,
+                    config,
+                    klines,
+                    indicators,
+                    paperIndex,
+                    interval,
+                    source,
+                    eventKline.getOpenTime());
+            if (evaluation == null) {
+                paperService.recordBlocked(
+                        strategyEntity,
+                        eventKline,
+                        source,
+                        "PAPER_STRATEGY_EVALUATION_FAILED");
+                return;
+            }
+            List<LiveSignalContext.OrderIntent> executableIntents =
+                    hasCompleteReplayHistory(evaluation.details())
+                            ? evaluation.intents()
+                            : List.of();
+            paperBars.add(new TradingViewAccumulationPaperEngine.PaperBar(
+                    evaluation.kline().getOpenTime(),
+                    evaluation.kline().getOpenPrice(),
+                    evaluation.kline().getClosePrice(),
+                    executableIntents));
+        }
+        paperService.evaluate(strategyEntity, eventKline, source, paperBars);
     }
 
     private boolean hasCompleteReplayHistory(Map<String, Object> details) {

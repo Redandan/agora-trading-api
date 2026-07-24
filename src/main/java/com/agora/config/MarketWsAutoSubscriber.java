@@ -2,10 +2,8 @@ package com.agora.config;
 
 import com.agora.service.ServerStartupService;
 import com.agora.infra.notification.NotificationPort;
-import com.agora.service.backtest.LiveSignalEvaluator;
 import com.agora.service.market.KlineStreamService;
 import com.agora.service.market.MarketDataTelegramAlertFormatter;
-import com.agora.service.trading.TradingSignalSourcePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,8 +18,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 應用啟動後自動建立 Binance WS 訂閱，並在 legacy signal-source rollback
- * 明確啟用時從 DB 補跑最新評估以暖機快取。
+ * 應用啟動後自動建立市場資料 WS 訂閱。
+ *
+ * <p>策略評估只由 closed K-line event 經 Strategy Runtime Catalog 分派；
+ * 啟動流程不得從資料庫 enabled flag 直接補跑舊策略。</p>
  */
 @Slf4j
 @Component
@@ -33,8 +33,6 @@ public class MarketWsAutoSubscriber {
     private final List<KlineStreamService> wsKlineServices;
     private final NotificationPort notificationPort;
     private final MarketWsAutoSubscribeProperties properties;
-    private final LiveSignalEvaluator liveSignalEvaluator;
-    private final TradingSignalSourcePolicy signalSourcePolicy;
     private final ServerStartupService serverStartupService;
     private final WsSubscriptionResolver subscriptionResolver;
 
@@ -99,28 +97,7 @@ public class MarketWsAutoSubscriber {
         waitForWsRunning(subscribed, activeServices);
         serverStartupService.recordWsReady(startupLogId);
 
-        // 暖機快取：只在 legacy live evaluator 或明確 allowlist 的 secondary legacy lane 啟用時補跑評估。
-        if (!properties.isWarmUpEnabled()) {
-            log.info("[MarketWS] Cache warm-up disabled");
-        } else if (!signalSourcePolicy.shouldRunAnyLegacyLiveEvaluator()) {
-            log.info("[MarketWS] Legacy evaluator warm-up skipped by signal-source policy: {}",
-                    signalSourcePolicy.status());
-        } else if (!subscribed.isEmpty()) {
-            log.info("[MarketWS] Warming up MarketSignalCache for {} pairs...", subscribed.size());
-            for (MarketWsAutoSubscribeProperties.Item item : subscribed) {
-                // 1m 訂閱只為即時價格資料，不做策略評估
-                if ("1m".equalsIgnoreCase(item.getIntervalCode())) continue;
-                try {
-                    liveSignalEvaluator.evaluate(item.getSymbol(), item.getIntervalCode());
-                    log.info("[MarketWS] Cache warmed up: {}@{}", item.getSymbol(), item.getIntervalCode());
-                } catch (Exception e) {
-                    log.warn("[MarketWS] Cache warm-up failed for {}@{}: {}",
-                            item.getSymbol(), item.getIntervalCode(), e.getMessage());
-                }
-            }
-            log.info("[MarketWS] MarketSignalCache warm-up complete");
-        }
-
+        log.info("[MarketWS] Strategy warm-up skipped; closed K-line events own catalog dispatch");
         serverStartupService.recordFirstEval(startupLogId);
     }
 

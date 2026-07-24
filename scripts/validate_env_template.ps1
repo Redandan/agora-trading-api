@@ -1,245 +1,113 @@
-Set-StrictMode -Version Latest
+param(
+    [string]$Path = (Join-Path $PSScriptRoot "..\.env.trading.secrets.example")
+)
+
 $ErrorActionPreference = "Stop"
+$resolved = (Resolve-Path -LiteralPath $Path).Path
+$values = [ordered]@{}
 
-Push-Location (Resolve-Path "$PSScriptRoot\..")
-try {
-    $templatePath = ".env.trading.secrets.example"
-    if (-not (Test-Path $templatePath)) {
-        throw "Env template missing: $templatePath"
+foreach ($line in Get-Content -LiteralPath $resolved) {
+    $trimmed = $line.Trim()
+    if (-not $trimmed -or $trimmed.StartsWith("#")) {
+        continue
     }
-
-    $templateKeys = [ordered]@{}
-    Get-Content $templatePath | ForEach-Object {
-        $line = $_.Trim()
-        if ($line -eq "" -or $line.StartsWith("#")) {
-            return
-        }
-        if ($line -notmatch "^([A-Z0-9_]+)=(.*)$") {
-            throw "Invalid env template line: $_"
-        }
-        $templateKeys[$Matches[1]] = $Matches[2]
+    $separator = $trimmed.IndexOf("=")
+    if ($separator -lt 1) {
+        throw "Invalid environment template line: $line"
     }
-
-    $requiredByScripts = [ordered]@{}
-    foreach ($scriptPath in @("deploy.sh", "scripts/preflight_server.sh", "scripts/verify_server.sh")) {
-        $content = Get-Content -Raw $scriptPath
-        [regex]::Matches($content, "require_env_(?:key|value)\s+([A-Z0-9_]+)") | ForEach-Object {
-            $key = $_.Groups[1].Value
-            if (-not $requiredByScripts.Contains($key)) {
-                $requiredByScripts[$key] = New-Object System.Collections.Generic.List[string]
-            }
-            $requiredByScripts[$key].Add($scriptPath)
-        }
+    $key = $trimmed.Substring(0, $separator).Trim()
+    $value = $trimmed.Substring($separator + 1)
+    if ($values.Contains($key)) {
+        throw "Duplicate environment template key: $key"
     }
-
-    foreach ($key in $requiredByScripts.Keys) {
-        if (-not $templateKeys.Contains($key)) {
-            throw "Env template missing required key from server scripts: $key used by $($requiredByScripts[$key] -join ', ')"
-        }
-    }
-
-    foreach ($key in @("AGORA_MARKET_INTERNAL_TIMEOUT_MS", "META_CONTROL_ML_SQL_SCHEMA", "META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE", "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW", "SPRING_JPA_HIBERNATE_DDL_AUTO", "SPRING_FLYWAY_ENABLED", "SPRING_FLYWAY_TABLE", "SPRING_FLYWAY_BASELINE_ON_MIGRATE", "SPRING_FLYWAY_BASELINE_VERSION", "PORT")) {
-        if (-not $templateKeys.Contains($key)) {
-            throw "Env template missing deploy default key: $key"
-        }
-    }
-
-    $safeDefaults = [ordered]@{
-        TRADING_SCHEDULER_POOL_SIZE = "4"
-        TRADING_CORS_ALLOWED_ORIGINS = "http://localhost:*,http://127.0.0.1:*"
-        META_CONTROL_STARTUP_BACKFILL_COINALYZE_ENABLED = "false"
-        META_CONTROL_STARTUP_BACKFILL_COMPOSITE_INDICATOR_ENABLED = "false"
-        META_CONTROL_STARTUP_BACKFILL_DEX_FLOW_ENABLED = "false"
-        META_CONTROL_STARTUP_BACKFILL_HYPERLIQUID_FUNDING_ENABLED = "false"
-        META_CONTROL_HOURLY_ORCHESTRATOR_ENABLED = "false"
-        META_CONTROL_INDICATOR_HISTORY_ENABLED = "false"
-        META_CONTROL_BTC_PRICE_MOVE_INDICATOR_ENABLED = "false"
-        META_CONTROL_ETF_PRESSURE_REFRESH_ENABLED = "false"
-        META_CONTROL_ATTRIBUTION_ENABLED = "false"
-        META_CONTROL_AUDIT_ENABLED = "false"
-        KLINE_PRUNING_ENABLED = "false"
-        TRADING_EPHEMERAL_CLEANUP_ENABLED = "false"
-        META_CONTROL_COMPOSITE_INDICATOR_SCHEDULER_ENABLED = "false"
-        META_CONTROL_MARKET_INDICATOR_ATTENTION_ENABLED = "false"
-        META_CONTROL_ML_MATERIALIZED_REFRESH_STARTUP_CHECK_ENABLED = "false"
-        META_CONTROL_ML_PROTECTION_ENABLED = "false"
-        META_CONTROL_ML_PROTECTION_AUTO_KILL_SECONDARY_LOAD = "false"
-        META_CONTROL_ML_SHADOW_ENABLED = "false"
-        META_CONTROL_ML_EDGE_WATCHER_ENABLED = "false"
-        META_CONTROL_ML_AUTORETRAIN_ENABLED = "false"
-        META_CONTROL_DAILY_ML_DIGEST_ENABLED = "false"
-        META_CONTROL_ATTENTION_WEEKLY_DIGEST_ENABLED = "false"
-        META_CONTROL_SCORECARD_DIGEST_ENABLED = "false"
-        META_CONTROL_MARKET_FLIP_DETECTOR_ENABLED = "false"
-        META_CONTROL_MARKET_FLIP_ANALYSIS_ENABLED = "false"
-        META_CONTROL_MARKET_FLIP_AUTO_ESCALATE_ENABLED = "false"
-        WICK_CAPTURE_SHADOW_ENABLED = "false"
-        WICK_CAPTURE_SHADOW_BOOTSTRAP_ENABLED = "false"
-        SHADOW_CLEANUP_ENABLED = "false"
-        TRADING_DAILY_TG_REPORT_ENABLED = "false"
-        TRADING_AUTONOMOUS_DIGEST_ENABLED = "false"
-        TRADING_AUTONOMOUS_DIGEST_TELEGRAM_ENABLED = "false"
-        TRADING_AUTONOMOUS_DIGEST_SEVERE_SCAN_ENABLED = "false"
-        TRADING_AUTONOMOUS_DIGEST_SNAPSHOT_REFRESH_ENABLED = "false"
-        TRADING_SCORE_BUY_FORMING_DAY_NOTIFICATION_ENABLED = "false"
-        TRADING_SCORE_BUY_FORMING_DAY_NOTIFICATION_TELEGRAM_ENABLED = "false"
-        TRADING_EVENT_CALENDAR_FRESHNESS_NOTIFICATION_ENABLED = "false"
-        TRADING_LIVE_SIGNAL_RETRY_NOTIFICATION_ENABLED = "false"
-        EVENT_SCAN_NOTIFICATION_ENABLED = "false"
-        EVENT_SCAN_NOTIFICATION_DRY_RUN = "true"
-        EXECUTION_EVENT_ENABLED = "false"
-        EXECUTION_EVENT_NOTIFICATION_DRY_RUN = "true"
-        TRADING_BTC_PRICE_MOVE_ALERT_ENABLED = "false"
-        TRADING_GEMINI_ADVISOR_ENABLED = "false"
-        TRADING_GEMINI_ADVISOR_FLIP_DETECTOR_ENABLED = "false"
-        TRADING_GEMINI_ADVISOR_STALENESS_DETECTOR_ENABLED = "false"
-        TRADING_LONG_AI_FILTER_ENABLED = "false"
-        TRADING_SHORT_AI_FILTER_ENABLED = "false"
-        TRADING_ENSEMBLE_PREVIEW_LIVE_MARKET_READS_ENABLED = "false"
-        TRADING_MARKET_DATA_MCP_LIVE_SENTIMENT_ENABLED = "false"
-        TRADING_MARKET_DATA_MCP_EXTERNAL_HEALTH_PROBES_ENABLED = "false"
-        TRADING_MARKET_DATA_MCP_EXTERNAL_BACKFILLS_ENABLED = "false"
-        EVENT_RISK_CONTROL_STATUS_NOTIFY_ENABLED = "false"
-        AI_STRATEGY_DISCOVERY_ENABLED = "false"
-        TRADING_EXPLORATION_MONITOR_ENABLED = "false"
-        TRADING_EXPLORATION_MONITOR_TELEGRAM_ENABLED = "false"
-        TRADING_EXPLORATION_LOOP_ENABLED = "false"
-        TRADING_EXPLORATION_LOOP_TELEGRAM_ENABLED = "false"
-        TRADING_EXPLORATION_LOOP_PRODUCTION_ENABLED = "false"
-        TRADING_EXPLORATION_ROLLOUT_AUTO_ENABLED = "false"
-        TRADING_EXPLORATION_ROLLOUT_ALLOW_PRODUCTION_PROMOTION = "false"
-        TRADING_EXPLORATION_ROLLOUT_ALLOW_CAP_INCREASE = "false"
-        MARKET_SIGNAL_RISK_CARD_ENABLED = "false"
-        MARKET_SIGNAL_RISK_CARD_DRY_RUN = "true"
-        SIGNAL_VERIFICATION_SCHEDULER_ENABLED = "false"
-        AGORA_ALPHA_TRACKER_ENABLED = "false"
-        MARKET_LIQUIDATION_WS_ENABLED = "false"
-        MARKET_WS_AUTO_SUBSCRIBE_ENABLED = "false"
-        MARKET_WS_AUTO_SUBSCRIBE_WARM_UP_ENABLED = "false"
-        MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS = "okx"
-        TRADING_KLINE_DIVERGENCE_ENABLED = "false"
-        POLYMARKET_MONITOR_ENABLED = "false"
-        TRADING_WAI_ENABLED = "false"
-        TRADING_FUNDING_ARB_ENABLED = "false"
-        TRADING_SHORT_SQUEEZE_ALERT_ENABLED = "false"
-        TRADING_SHORT_SQUEEZE_ALERT_TAKER_BUY_COLLECTOR_ENABLED = "false"
-        TRADING_OKX_ENABLED = "false"
-        TRADING_OCO_POLLER_ENABLED = "false"
-        TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT = "10.0"
-        TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_ENABLED = "false"
-        TRADING_OKX_POSITION_SIZING_MIN_NOTIONAL_FLOOR_MAX_RISK_USDT = "6.25"
-        TRADING_BINANCE_ENABLED = "false"
-        TRADING_TINY_LIVE_AUTO_EXECUTION_ENABLED = "false"
-        TRADING_TINY_LIVE_AUTO_EXECUTION_DRY_RUN = "true"
-        TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_ENABLED = "false"
-        TRADING_SCORE_BUY_PRE_POSITION_EXECUTION_DRY_RUN = "true"
-        TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_ENABLED = "false"
-        TRADING_SCORE_BUY_CONFIRMED_DEPLOY_EXECUTION_DRY_RUN = "true"
-        TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_ENABLED = "false"
-        TRADING_SCORE_BUY_POST_SCOUT_ADD_EXECUTION_DRY_RUN = "true"
-        TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_ENABLED = "false"
-        TRADING_SCORE_BUY_POST_SCOUT_ADD_NOTIFICATION_TELEGRAM_ENABLED = "false"
-        TRADING_SIGNAL_SOURCE_PRIMARY = "TRADINGVIEW"
-        TRADING_LEGACY_LIVE_EVALUATOR_ENABLED = "false"
-        TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED = "false"
-        TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS = ""
-        TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT = "0"
-        TRADING_508_TIME_EXIT_MODE = "OFF"
-        TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED = "false"
-        TRADINGVIEW_WEBHOOK_ENABLED = "false"
-        TRADINGVIEW_WEBHOOK_DRY_RUN = "true"
-        TRADINGVIEW_WEBHOOK_ALLOWED_SYMBOLS = "BTCUSDT"
-        TRADINGVIEW_WEBHOOK_DEFAULT_NOTIONAL_USDT = "10.0"
-        TRADINGVIEW_WEBHOOK_MAX_NOTIONAL_USDT = "10.0"
-        TRADINGVIEW_WEBHOOK_IDEMPOTENCY_TTL_HOURS = "24"
-        TRADINGVIEW_LOCAL_ENABLED = "false"
-        TRADINGVIEW_LOCAL_STRATEGY_ID = "485"
-        TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS = "BTCUSDT"
-        TRADINGVIEW_LOCAL_ALLOWED_INTERVALS = "1d"
-        TRADINGVIEW_LOCAL_ALLOWED_SOURCES = ""
-        TRADINGVIEW_LOCAL_HISTORY_BARS = "320"
-        TRADINGVIEW_LOCAL_CATCH_UP_BARS = "3"
-        TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS = "72"
-        TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT = "10.0"
-        TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT = "10.0"
-        TRADINGVIEW_LOCAL_EXECUTION_MODE = "LEGACY"
-        TRADINGVIEW_LOCAL_EXECUTION_ENABLED = "false"
-        TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN = "true"
-        TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED = "false"
-        TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR = "1"
-        TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY = "1"
-        TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS = "1"
-        TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT = "0.0300"
-        TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT = "0.1200"
-        MCP_GUARDIAN_LIVE_ACTIONS_ENABLED = "false"
-        TRADING_RUNTIME_EVIDENCE_ENABLED = "false"
-        TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED = "false"
-        TRADING_DISCOVERY_AI_SUGGESTIONS_ENABLED = "false"
-        OKX_EARN_TOPUP_ENABLED = "false"
-        TRAILING_STOP_ENABLED = "false"
-        TRAILING_STOP_DRY_RUN = "true"
-        POSITION_EXIT_MANAGER_ENABLED = "false"
-        POSITION_EXIT_MANAGER_DRY_RUN = "true"
-    }
-
-    foreach ($key in $safeDefaults.Keys) {
-        if (-not $templateKeys.Contains($key)) {
-            throw "Env template missing optional safety key: $key"
-        }
-        if ($templateKeys[$key] -ne $safeDefaults[$key]) {
-            throw "Env template optional safety key must default to $($safeDefaults[$key]): $key"
-        }
-    }
-
-    foreach ($key in @("TRADING_MCP_KEY", "AGORA_MARKET_INTERNAL_API_KEY", "TRADING_INTERNAL_API_KEY", "SPRING_DATASOURCE_USERNAME", "SPRING_DATASOURCE_PASSWORD", "TRADING_OKX_API_KEY", "TRADING_OKX_SECRET_KEY", "TRADING_OKX_PASSPHRASE", "TRADING_BINANCE_API_KEY", "TRADING_BINANCE_SECRET_KEY", "TRADINGVIEW_WEBHOOK_SECRET", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHANNEL_ID", "GEMINI_API_KEY", "GROQ_API_KEY", "ANTHROPIC_API_KEY", "JINA_API_KEY", "TRADING_MARKET_DATA_COINALYZE_API_KEY", "EXTERNAL_COINGECKO_DEMO_API_KEY", "EXTERNAL_FRED_API_KEY", "EXTERNAL_ETHERSCAN_API_KEY", "EXTERNAL_ALCHEMY_API_KEY", "EXTERNAL_THEGRAPH_API_KEY", "EXCHANGE_RATE_COINMARKETCAP_API_KEY")) {
-        if ($templateKeys[$key] -ne "") {
-            throw "Secret-like env template key must stay empty: $key"
-        }
-    }
-
-    if ($templateKeys["AGORA_MARKET_BASE_URL"] -ne "https://agoramarketapi.purrtechllc.com") {
-        throw "AGORA_MARKET_BASE_URL should point at stable AgoraMarketAPI dependency in the template"
-    }
-    if ($templateKeys["AGORA_MARKET_INTERNAL_TIMEOUT_MS"] -ne "3000") {
-        throw "AGORA_MARKET_INTERNAL_TIMEOUT_MS should default to the bounded internal API timeout"
-    }
-    if ($templateKeys["SPRING_DATASOURCE_URL"] -notmatch "^jdbc:mysql://[^/]+/agora_market(\?|$)") {
-        throw "SPRING_DATASOURCE_URL should point at the shared agora_market database in the template"
-    }
-    if ($templateKeys["META_CONTROL_ML_SQL_SCHEMA"] -ne "agora_market") {
-        throw "META_CONTROL_ML_SQL_SCHEMA should default to the standalone trading schema"
-    }
-    if ($templateKeys["META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE"] -ne "bt_signal_training_v8_mat") {
-        throw "META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE should default to the signal scorer materialized table"
-    }
-    if ($templateKeys["META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW"] -ne "vw_signal_training_v2") {
-        throw "META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW should default to the weekly retrain view"
-    }
-    if ($templateKeys["SPRING_JPA_HIBERNATE_DDL_AUTO"] -ne "validate") {
-        throw "Template must use Hibernate schema validation after the Flyway baseline exists"
-    }
-    if ($templateKeys["SPRING_FLYWAY_ENABLED"] -ne "true") {
-        throw "Template must enable Flyway after the baseline exists"
-    }
-    if ($templateKeys["SPRING_FLYWAY_TABLE"] -ne "trading_flyway_schema_history") {
-        throw "Template must use the Trading-owned Flyway history table"
-    }
-    if ($templateKeys["SPRING_FLYWAY_BASELINE_ON_MIGRATE"] -ne "true") {
-        throw "Template must baseline the existing shared schema on first Flyway migrate"
-    }
-    if ($templateKeys["SPRING_FLYWAY_BASELINE_VERSION"] -ne "1") {
-        throw "Template must baseline at version 1"
-    }
-    if ($templateKeys["PORT"] -ne "8084") {
-        throw "Template must default to the blue-green 8084 port"
-    }
-
-    $ignore = Get-Content -Raw ".gitignore"
-    if ($ignore -notmatch "(?m)^!\.env\.trading\.secrets\.example\r?$") {
-        throw ".gitignore must allow tracking .env.trading.secrets.example"
-    }
-
-    Write-Host "[env-template] OK $templatePath covers $($requiredByScripts.Keys.Count) required server env key(s)"
-} finally {
-    Pop-Location
+    $values[$key] = $value
 }
+
+$requiredKeys = @(
+    "TRADING_MCP_KEY",
+    "AGORA_MARKET_BASE_URL",
+    "AGORA_MARKET_INTERNAL_API_KEY",
+    "AGORA_MARKET_INTERNAL_TIMEOUT_MS",
+    "SPRING_DATASOURCE_URL",
+    "SPRING_DATASOURCE_USERNAME",
+    "SPRING_DATASOURCE_PASSWORD",
+    "SPRING_JPA_HIBERNATE_DDL_AUTO",
+    "SPRING_FLYWAY_ENABLED",
+    "SPRING_FLYWAY_TABLE",
+    "SPRING_FLYWAY_BASELINE_ON_MIGRATE",
+    "SPRING_FLYWAY_BASELINE_VERSION",
+    "TRADINGVIEW_LOCAL_ENABLED",
+    "TRADINGVIEW_LOCAL_STRATEGY_ID",
+    "TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS",
+    "TRADINGVIEW_LOCAL_ALLOWED_INTERVALS",
+    "TRADINGVIEW_LOCAL_ALLOWED_SOURCES",
+    "TRADINGVIEW_LOCAL_EXECUTION_MODE",
+    "TRADING_BTC_DONCHIAN_SHADOW_MODE",
+    "TRADING_OKX_ENABLED",
+    "TRADING_OKX_NATIVE_GRID_ENABLED",
+    "TRADING_OKX_NATIVE_GRID_LIVE_ACTION_ENABLED",
+    "TRADING_OCO_POLLER_ENABLED",
+    "TRADING_OKX_API_KEY",
+    "TRADING_OKX_SECRET_KEY",
+    "TRADING_OKX_PASSPHRASE"
+)
+foreach ($key in $requiredKeys) {
+    if (-not $values.Contains($key)) {
+        throw "Environment template missing required key: $key"
+    }
+}
+
+$safeDefaults = [ordered]@{
+    SPRING_JPA_HIBERNATE_DDL_AUTO = "validate"
+    SPRING_FLYWAY_ENABLED = "true"
+    SPRING_FLYWAY_TABLE = "trading_flyway_schema_history"
+    SPRING_FLYWAY_BASELINE_ON_MIGRATE = "true"
+    SPRING_FLYWAY_BASELINE_VERSION = "1"
+    TRADINGVIEW_LOCAL_ENABLED = "false"
+    TRADINGVIEW_LOCAL_STRATEGY_ID = "485"
+    TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS = "BTCUSDT"
+    TRADINGVIEW_LOCAL_ALLOWED_INTERVALS = "1d"
+    TRADINGVIEW_LOCAL_ALLOWED_SOURCES = "binance"
+    TRADINGVIEW_LOCAL_EXECUTION_MODE = "BTC_BASE_PAPER"
+    TRADING_BTC_DONCHIAN_SHADOW_MODE = "OFF"
+    TRADING_OKX_ENABLED = "false"
+    TRADING_OKX_NATIVE_GRID_ENABLED = "false"
+    TRADING_OKX_NATIVE_GRID_LIVE_ACTION_ENABLED = "false"
+    TRADING_OCO_POLLER_ENABLED = "false"
+    EXECUTION_EVENT_ENABLED = "false"
+    EXECUTION_EVENT_NOTIFICATION_DRY_RUN = "true"
+}
+foreach ($key in $safeDefaults.Keys) {
+    if (-not $values.Contains($key) -or $values[$key] -ne $safeDefaults[$key]) {
+        throw "Environment template key must default to $($safeDefaults[$key]): $key"
+    }
+}
+
+foreach ($key in @(
+    "TRADING_MCP_KEY",
+    "AGORA_MARKET_INTERNAL_API_KEY",
+    "TRADING_INTERNAL_API_KEY",
+    "SPRING_DATASOURCE_USERNAME",
+    "SPRING_DATASOURCE_PASSWORD",
+    "TRADING_OKX_API_KEY",
+    "TRADING_OKX_SECRET_KEY",
+    "TRADING_OKX_PASSPHRASE",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CHANNEL_ID"
+)) {
+    if ($values[$key] -ne "") {
+        throw "Secret-like environment template key must stay empty: $key"
+    }
+}
+
+if ($values["AGORA_MARKET_BASE_URL"] -ne "https://agoramarketapi.purrtechllc.com") {
+    throw "AGORA_MARKET_BASE_URL must use the stable AgoraMarketAPI dependency"
+}
+if ($values["AGORA_MARKET_INTERNAL_TIMEOUT_MS"] -ne "3000") {
+    throw "AGORA_MARKET_INTERNAL_TIMEOUT_MS must remain bounded at 3000"
+}
+if ($values["SPRING_DATASOURCE_URL"] -notmatch "^jdbc:mysql://[^/]+/agora_market(\?|$)") {
+    throw "SPRING_DATASOURCE_URL must point to the shared agora_market database"
+}
+
+Write-Output "Environment template validation passed: $($values.Count) keys"

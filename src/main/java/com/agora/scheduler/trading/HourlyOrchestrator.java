@@ -8,23 +8,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * 每小時資料收集與維護任務統一排程器（UTC :00）。
+ * Minimal hourly market-data integrity task.
  *
- * <h3>為何集中排程</h3>
- * 原本 4 個任務分散在 :01 / :05 / :07 / :15，造成每小時內 4 個 thread slot
- * 分別被佔用（pool.size=6 下佔比達 67%）。集中後串行執行，最差耗時 ~35s，
- * 遠小於 60 分鐘，不影響下次觸發。
- *
- * <h3>執行順序（各 step 獨立 try/catch，任一失敗不影響其餘）</h3>
- * <ol>
- *   <li>marketIndicatorCollect：抓 F&G/Whale/Funding/LS/Orderbook 並行寫入（~1s）</li>
- *   <li>klineGapDetect：掃描過去 25h 缺口並從 OKX 補齊（~2s）</li>
- *   <li>metaAttribution：計算 PAUSE override 的 alpha 貢獻（2-30s）</li>
- * </ol>
- *
- * <h3>@Transactional 注意</h3>
- * 各 step 的方法透過 Spring bean proxy 呼叫，原有的 {@code @Transactional}
- * 仍正常生效。
+ * <p>AI/ML indicators, meta-control attribution, and position suggestions are
+ * intentionally absent. The only responsibility is read/repair of K-line gaps
+ * used by strategy evaluation.</p>
  */
 @Slf4j
 @Component
@@ -32,10 +20,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HourlyOrchestrator {
 
-    private final MarketIndicatorHistoryCollector marketIndicatorHistoryCollector;
     private final KlineGapDetector klineGapDetector;
-    private final MetaControlAttributionScheduler metaControlAttributionScheduler;
-    private final LiveSignalHealthScheduler liveSignalHealthScheduler;
 
     @Value("${meta-control.hourly-orchestrator.enabled:false}")
     private boolean enabled;
@@ -43,7 +28,7 @@ public class HourlyOrchestrator {
     /**
      * 每小時 UTC +1 分鐘觸發。
      *
-     * <p>避免與整點 bar close 的即時訊號評估（KlineClosedEvent → LiveSignalEvaluator）
+     * <p>避免與整點 closed K-line strategy dispatch
      * 在同一秒爭用 DB 連線池。
      */
     @Scheduled(cron = "0 1 * * * *", zone = "UTC")
@@ -55,18 +40,8 @@ public class HourlyOrchestrator {
         log.info("[HourlyOrchestrator] ===== Start hourly task sequence =====");
         long t0 = System.currentTimeMillis();
 
-        // Step 1: 市場指標 snapshot（F&G/Whale/Funding/LS/Orderbook，並行 API）
-        safeRun("marketIndicatorCollect", marketIndicatorHistoryCollector::collect);
-
-        // Step 2: K 線缺口偵測與補齊（OKX REST 回填）
+        // K 線缺口偵測與補齊（行情完整性，不是交易決策）
         safeRun("klineGapDetect", klineGapDetector::detectAndBackfill);
-
-        // Step 3: Meta-Control attribution 計算（最耗時，放最後）
-        safeRun("metaAttribution", metaControlAttributionScheduler::computeHourly);
-
-        // Step 4: Wide-TP 掃描（持倉 ≥ 48h + TP ≥ 15% + ATR 恢復正常 → TG 建議收斂）
-        // 每小時跑確保在 48h 門檻後第一個整點即時通知，無需等到 daily 00:00
-        safeRun("wideTpScan", liveSignalHealthScheduler::runWideTpScan);
 
         log.info("[HourlyOrchestrator] ===== Complete. total elapsed={}ms =====",
                 System.currentTimeMillis() - t0);

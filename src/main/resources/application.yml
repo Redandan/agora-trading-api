@@ -49,59 +49,24 @@ trading:
     api-key: ${TRADING_MCP_KEY:}
   internal:
     api-key: ${TRADING_INTERNAL_API_KEY:${AGORA_MARKET_INTERNAL_API_KEY:}}
-  signal-source:
-    primary: ${TRADING_SIGNAL_SOURCE_PRIMARY:TRADINGVIEW}
-    legacy-live-evaluator-enabled: ${TRADING_LEGACY_LIVE_EVALUATOR_ENABLED:false}
-    legacy-secondary-evaluator-enabled: ${TRADING_LEGACY_SECONDARY_EVALUATOR_ENABLED:false}
-    legacy-secondary-allowed-strategy-ids: ${TRADING_LEGACY_SECONDARY_ALLOWED_STRATEGY_IDS:}
-    legacy-secondary-max-notional-usdt: ${TRADING_LEGACY_SECONDARY_MAX_NOTIONAL_USDT:0}
-  strategy508-time-exit:
-    mode: ${TRADING_508_TIME_EXIT_MODE:OFF}
-    live-order-enabled: ${TRADING_508_TIME_EXIT_LIVE_ORDER_ENABLED:false}
   btc-donchian-shadow:
     mode: ${TRADING_BTC_DONCHIAN_SHADOW_MODE:OFF}
   tradingview:
-    webhook:
-      enabled: ${TRADINGVIEW_WEBHOOK_ENABLED:false}
-      dry-run: ${TRADINGVIEW_WEBHOOK_DRY_RUN:true}
-      secret: ${TRADINGVIEW_WEBHOOK_SECRET:}
-      allowed-symbols: ${TRADINGVIEW_WEBHOOK_ALLOWED_SYMBOLS:BTCUSDT}
-      default-notional-usdt: ${TRADINGVIEW_WEBHOOK_DEFAULT_NOTIONAL_USDT:10.0}
-      max-notional-usdt: ${TRADINGVIEW_WEBHOOK_MAX_NOTIONAL_USDT:10.0}
-      idempotency-ttl-hours: ${TRADINGVIEW_WEBHOOK_IDEMPOTENCY_TTL_HOURS:24}
     local:
       enabled: ${TRADINGVIEW_LOCAL_ENABLED:false}
       strategy-id: ${TRADINGVIEW_LOCAL_STRATEGY_ID:485}
       allowed-symbols: ${TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS:BTCUSDT}
       allowed-intervals: ${TRADINGVIEW_LOCAL_ALLOWED_INTERVALS:1d}
-      allowed-sources: ${TRADINGVIEW_LOCAL_ALLOWED_SOURCES:}
+      allowed-sources: ${TRADINGVIEW_LOCAL_ALLOWED_SOURCES:binance}
       history-bars: ${TRADINGVIEW_LOCAL_HISTORY_BARS:320}
       catch-up-bars: ${TRADINGVIEW_LOCAL_CATCH_UP_BARS:3}
       max-signal-age-hours: ${TRADINGVIEW_LOCAL_MAX_SIGNAL_AGE_HOURS:72}
       default-notional-usdt: ${TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT:10.0}
-      max-notional-usdt: ${TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT:10.0}
-      execution-mode: ${TRADINGVIEW_LOCAL_EXECUTION_MODE:LEGACY}
-      execution-enabled: ${TRADINGVIEW_LOCAL_EXECUTION_ENABLED:false}
-      execution-dry-run: ${TRADINGVIEW_LOCAL_EXECUTION_DRY_RUN:true}
-      execution-live-order-enabled: ${TRADINGVIEW_LOCAL_EXECUTION_LIVE_ORDER_ENABLED:false}
-      execution-max-orders-per-bar: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_BAR:1}
-      execution-max-orders-per-day: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_ORDERS_PER_DAY:1}
-      execution-max-open-positions: ${TRADINGVIEW_LOCAL_EXECUTION_MAX_OPEN_POSITIONS:1}
-      execution-take-profit-pct: ${TRADINGVIEW_LOCAL_EXECUTION_TAKE_PROFIT_PCT:0.0300}
-      execution-stop-loss-pct: ${TRADINGVIEW_LOCAL_EXECUTION_STOP_LOSS_PCT:0.1200}
+      max-notional-usdt: ${TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT:80.0}
+      execution-mode: ${TRADINGVIEW_LOCAL_EXECUTION_MODE:BTC_BASE_PAPER}
       btc-base-max-exposure-usdt: ${TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT:250.0}
-      golden-truth-csv-path: ${TRADINGVIEW_LOCAL_GOLDEN_TRUTH_CSV_PATH:}
-  data-freshness:
-    shadow-replay:
-      collector:
-        enabled: ${TRADING_DATAFRESHNESS_SHADOW_REPLAY_COLLECTOR_ENABLED:false}
   oco-poller:
     untracked-min-notional-usdt: ${TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT:10.0}
-  btc-base-adoption:
-    enabled: ${TRADING_BTC_BASE_ADOPTION_ENABLED:false}
-    live-action-enabled: ${TRADING_BTC_BASE_ADOPTION_LIVE_ACTION_ENABLED:false}
-    confirm-attempts: ${TRADING_BTC_BASE_ADOPTION_CONFIRM_ATTEMPTS:8}
-    confirm-interval-ms: ${TRADING_BTC_BASE_ADOPTION_CONFIRM_INTERVAL_MS:250}
 
 mcp:
   api-key: ${MCP_API_KEY:${TRADING_MCP_KEY:}}
@@ -119,13 +84,6 @@ telegram:
     channel-id: ${TELEGRAM_BOT_CHANNEL_ID:${TELEGRAM_CHANNEL_ID:}}
     api-base-url: ${TELEGRAM_API_BASE_URL:https://api.telegram.org}
     http-proxy: ${TELEGRAM_HTTP_PROXY:}
-
-meta-control:
-  ml:
-    sql:
-      schema: ${META_CONTROL_ML_SQL_SCHEMA:agora_market}
-      signal-scorer-training-table: ${META_CONTROL_ML_SQL_SIGNAL_SCORER_TRAINING_TABLE:bt_signal_training_v8_mat}
-      weekly-retrain-training-view: ${META_CONTROL_ML_SQL_WEEKLY_RETRAIN_TRAINING_VIEW:vw_signal_training_v2}
 
 app:
   cors:

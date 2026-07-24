@@ -5,10 +5,9 @@ Read these files before non-trivial analysis or edits:
 
 - `SERVICE_BOUNDARY.md` for service ownership and cross-service dependency
   rules.
-- `SPLIT_PROGRESS.md` for current split status, completed cleanup, and
-  acceptance history.
-- `docs/split-acceptance-status.md` for the current deploy/acceptance handoff.
-- `docs/deploy-runbook.md` for local, server, and deployment verification.
+- `docs/strategy-driven-minimal-runtime.md` for the active strategy-first
+  runtime contract.
+- `docs/deploy-runbook.md` for the retained deployment workflow.
 
 Default workflow:
 
@@ -16,16 +15,13 @@ Default workflow:
 2. Classify production, trading strategy, OCO/grid, order, fund, Earn, MCP
    write, scheduler, and database risk before editing.
 3. Keep unrelated local or server-side changes intact.
-4. For Java, config, script, or runtime-behavior changes, run
-   `.\scripts\verify_local.ps1`. Add
-   `.\scripts\smoke_local_health.ps1 -Port 18084 -TimeoutSeconds 180` when the
-   change can affect startup, HTTP routing, MCP registration, scheduler
-   gating, external-provider guards, or split acceptance.
-5. For split-boundary-only cleanup, run
-   `.\scripts\verify_split_boundaries.ps1`.
-6. For docs-only changes, `git diff --check` is normally enough unless the docs
-   change claims new runtime, deploy, or acceptance evidence.
-7. Deploy and run server verification only when runtime/API behavior changed
+4. The automated test tree and non-deployment verification scripts were
+   intentionally removed during the strategy-first simplification. For Java
+   or config changes, compile with `mvn -DskipTests package`.
+5. For deployment-script changes, syntax-check the retained scripts and review
+   their exact dependency closure before deploying.
+6. For docs-only changes, `git diff --check` is normally enough.
+7. Deploy and run `scripts/verify_server.sh` only when runtime/API behavior changed
    and the requested scope permits it.
 
 Standing boundaries:

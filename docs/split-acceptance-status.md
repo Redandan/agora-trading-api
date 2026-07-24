@@ -1,5 +1,19 @@
 # Split Acceptance Status
 
+## 2026-07-24 catalog-driven market-data candidate
+
+- The current source derives WebSocket subscriptions only from
+  `StrategyRuntimeCatalog`; database strategy `enabled` flags cannot create
+  streams or trigger startup validation/resubscription.
+- With the authorized modes unchanged, expected Production inventory is exactly
+  Binance `BTCUSDT@1d` for owner 508 PAPER readiness and OKX `BTCUSDT@1h` for
+  Donchian SHADOW.
+- Deployment acceptance must prove exactly those two catalog streams, no
+  enabled-strategy startup validator or resync listener, and unchanged Grid,
+  BTC balance, open positions, execution-safety state, and strategy modes.
+- This candidate does not authorize any environment, database, order, Grid,
+  position, fund, or mode mutation.
+
 ## 2026-07-24 strategy-minimal Grid boundary
 
 - The current candidate removes all service-side OKX Native Spot Grid mutation

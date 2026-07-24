@@ -35,8 +35,8 @@ import java.util.concurrent.TimeUnit;
  * <p>背景：Binance WS 偶發斷線會導致 1-2 根 K 線遺失（2026-04-14 發生過）。
  * 遺失的 bar 會讓策略信號評估跳過，但系統無自動偵測，需手動排查。
  *
- * <p>運作：每小時掃描 DB-derived auto-subscribe 清單中每個 (symbol, interval)
- * 過去 25 小時的 K 線，對比預期 bar 時間，若有缺口則呼叫 OKX candles API 補齊。
+ * <p>運作：每小時掃描 runtime-catalog 中由 OKX 提供的 (symbol, interval)
+ * 過去 25 小時 K 線，對比預期 bar 時間，若有缺口則呼叫 OKX candles API 補齊。
  *
  * <p>資料源選擇 OKX 而非 Binance：過往經驗顯示 Binance.us 在美國受限場景下偶有斷連
  * 或 API 失效，OKX 穩定度較佳。SPOT 收盤價差異通常 < 0.05%，對信號評估無實質影響。
@@ -136,13 +136,15 @@ public class KlineGapDetector {
     private List<MarketWsAutoSubscribeProperties.Item> resolveItemsToCheck() {
         try {
             List<MarketWsAutoSubscribeProperties.Item> resolved = subscriptionResolver.resolve();
-            if (resolved != null && !resolved.isEmpty()) {
-                return resolved;
-            }
+            return resolved == null
+                    ? List.of()
+                    : resolved.stream()
+                            .filter(item -> "okx".equalsIgnoreCase(item.getProvider()))
+                            .toList();
         } catch (Exception e) {
-            log.warn("[KlineGap] subscription resolver failed, falling back to yaml items: {}", e.getMessage());
+            log.warn("[KlineGap] catalog subscription resolver failed: {}", e.getMessage());
+            return List.of();
         }
-        return wsProps.getItems() != null ? wsProps.getItems() : List.of();
     }
 
     private int checkGaps(String symbol, String intervalCode, LocalDateTime start, LocalDateTime end) {

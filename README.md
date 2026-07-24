@@ -11,6 +11,9 @@ Strategy-driven BTC-USDT spot trading service.
   alias.
 - The daily strategy is PAPER-only until forward economic evidence justifies a
   separately authorized live rollout.
+- Market WebSockets are derived from the versioned runtime catalog, not
+  database `enabled` flags: owner 508 requires Binance `BTCUSDT@1d`, and the
+  Donchian lane requires OKX `BTCUSDT@1h` only while it is explicitly SHADOW.
 - OKX Native Spot Grid remains provider-managed and independently running;
   this service exposes read-only status and economic evidence only.
 - Mechanical execution safety remains; legacy strategy selection, AI/ML

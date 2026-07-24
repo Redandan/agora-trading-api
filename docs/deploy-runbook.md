@@ -65,6 +65,18 @@ Spot Grid is configured and operated independently; a service deployment must
 not create, stop, or replace a Grid. This runtime contains no Grid mutation
 adapter or Grid write gate; it only queries provider status/economic evidence.
 
+Market-data startup has one global switch and a provider safety allowlist:
+
+```bash
+MARKET_WS_AUTO_SUBSCRIBE_ENABLED=false
+MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=binance,okx
+```
+
+When enabled, the runtime catalog—not database `enabled` rows or environment
+item lists—selects exact streams. Owner 508 uses Binance `BTCUSDT@1d`;
+Donchian uses OKX `BTCUSDT@1h` only in SHADOW. There is no startup warm-up,
+database-change resubscription, or dual-provider divergence setting.
+
 ## Retained scripts
 
 | File | Purpose |

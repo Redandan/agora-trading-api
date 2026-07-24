@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface MdKlineRepository extends JpaRepository<MdKline, Long> {
@@ -65,13 +64,6 @@ public interface MdKlineRepository extends JpaRepository<MdKline, Long> {
                                                                String source);
 
     /**
-     * 查詢同 (symbol, interval, openTime) 在指定 source 的單筆 K 線（供即時偏差比對）。
-     * KlineDivergenceListener 在收到一邊收盤後，用此查另一邊是否已到達。
-     */
-    Optional<MdKline> findFirstBySymbolAndIntervalCodeAndOpenTimeAndSource(
-            String symbol, String intervalCode, LocalDateTime openTime, String source);
-
-    /**
      * 查詢指定 source 的 K 線區間（回測/驗證使用）。
      */
     @Query(value = "SELECT /*+ SET_VAR(use_secondary_engine=OFF) */ * FROM md_kline " +
@@ -104,35 +96,6 @@ public interface MdKlineRepository extends JpaRepository<MdKline, Long> {
     List<MdKline> findBySymbolAndIntervalCodeAndSourceOrderByOpenTimeDesc(
             @Param("symbol") String symbol, @Param("intervalCode") String intervalCode,
             @Param("source") String source, Pageable pageable);
-
-    /**
-     * V041：啟動時驗證每個 enabled 策略是否擁有足夠的 kline 樣本供指標計算。
-     * 計算特定 (symbol, interval, source) 組合的 bar 數。
-     */
-    @Query(value = "SELECT /*+ SET_VAR(use_secondary_engine=OFF) */ COUNT(*) FROM md_kline " +
-            "WHERE symbol = :symbol AND interval_code = :intervalCode AND source = :source",
-            nativeQuery = true)
-    long countBySymbolAndIntervalCodeAndSource(@Param("symbol") String symbol,
-                                               @Param("intervalCode") String intervalCode,
-                                               @Param("source") String source);
-
-    /**
-     * 雙源對比查詢：同 (symbol, interval, openTime) 的 binance vs okx 兩筆併排，供 divergence monitor 使用。
-     * 回傳欄位：[openTime, binance_close, okx_close, binance_vol, okx_vol]
-     */
-    @Query(value = "SELECT /*+ SET_VAR(use_secondary_engine=OFF) */ " +
-           "b.open_time, b.close_price, o.close_price, b.volume, o.volume " +
-           "FROM md_kline b JOIN md_kline o " +
-           "  ON b.symbol = o.symbol AND b.interval_code = o.interval_code AND b.open_time = o.open_time " +
-           " AND b.source = 'binance' AND o.source = 'okx' " +
-           "WHERE b.symbol = :symbol AND b.interval_code = :intervalCode " +
-           "  AND b.open_time BETWEEN :start AND :end " +
-           "ORDER BY b.open_time DESC",
-           nativeQuery = true)
-    List<Object[]> findDualSourcePairs(@Param("symbol") String symbol,
-                                        @Param("intervalCode") String intervalCode,
-                                        @Param("start") LocalDateTime start,
-                                        @Param("end") LocalDateTime end);
 
     /**
      * 刪除指定時間範圍內的 K 線，回傳刪除筆數（供資料修復使用）。

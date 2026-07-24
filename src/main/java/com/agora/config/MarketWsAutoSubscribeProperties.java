@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -27,25 +26,15 @@ public class MarketWsAutoSubscribeProperties {
     private boolean enabled = false;
 
     /**
-     * 啟動時需要自動訂閱的清單。
-     */
-    private List<Item> items = new ArrayList<>();
-
-    /**
-     * 啟動後是否立即跑策略評估暖機。
-     */
-    private boolean warmUpEnabled = false;
-
-    /**
      * Providers allowed for automatic subscriptions. Empty means all available
-     * KlineStreamService beans, preserving the legacy dual-write behavior.
+     * KlineStreamService beans. Catalog items still route to one exact provider.
      */
-    private List<String> providers = new ArrayList<>();
+    private List<String> providers = List.of();
 
     @PostConstruct
     void logConfig() {
-        log.info("[MarketWS] auto-subscribe config: enabled={} warm-up-enabled={} providers={} items={}",
-                enabled, warmUpEnabled, providerSummary(), items.size());
+        log.info("[MarketWS] auto-subscribe config: enabled={} providers={}",
+                enabled, providerSummary());
     }
 
     public boolean isProviderEnabled(String providerName) {
@@ -74,6 +63,7 @@ public class MarketWsAutoSubscribeProperties {
 
     @Data
     public static class Item {
+        private String provider;
         private String symbol;
         private String intervalCode;
         private String marketType = "SPOT";

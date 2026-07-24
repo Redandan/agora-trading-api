@@ -1,5 +1,12 @@
 # Split Progress
 
+- 2026-07-24: replaced database-enabled and dual-provider market-data startup
+  with exact `StrategyRuntimeCatalog` requirements. Owner 508 PAPER readiness
+  owns Binance `BTCUSDT@1d`; Donchian owns OKX `BTCUSDT@1h` only while SHADOW.
+  Removed the legacy enabled-strategy validator, database-change resubscription
+  listener, dual-provider divergence monitor/alerter, and their dead repository
+  queries/settings. This source change does not alter Production environment,
+  Grid, BTC, positions, funds, database rows, orders, or strategy modes.
 - 2026-07-24: reduced OKX Native Spot Grid to a read-only provider-monitoring
   lane. Removed Grid create/stop and migration/Gate-A MCP tools, their execution
   service, provider write methods, disabled write-gate configuration, and

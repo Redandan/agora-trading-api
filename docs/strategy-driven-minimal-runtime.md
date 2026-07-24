@@ -182,6 +182,14 @@ Implemented locally on 2026-07-24:
    it is not part of owner 508 strategy logic.
 8. Grid create/stop services, migration previews, write gates, and obsolete
    authorization documents were removed. Provider Grid state is not changed.
+9. Market-data startup is catalog-driven. Owner 508 contributes exactly
+   `binance:BTCUSDT@1d` for PAPER readiness. Donchian contributes exactly
+   `okx:BTCUSDT@1h` only while its explicit mode is SHADOW. Database
+   `bt_strategy.enabled` values cannot add subscriptions, startup validation,
+   warm-up evaluation, or resubscription side effects.
+10. The legacy enabled-strategy startup validator, database-change
+    resubscription listener, and dual-provider divergence monitor were removed.
+    The provider list is retained only as a fail-closed mechanical allowlist.
 
 ## Acceptance evidence
 
@@ -193,6 +201,12 @@ acceptance uses compilation plus direct source/config assertions:
 - compilation must succeed with no test source or test dependency;
 - the runtime catalog must contain no `LIVE` assignment;
 - owner 508 must remain `BTCUSDT`, `1d`, `binance`, `PAPER`;
+- with the current Donchian SHADOW mode, startup must resolve exactly two
+  streams: `binance:BTCUSDT@1d` and `okx:BTCUSDT@1h`; with Donchian OFF, only
+  the owner 508 stream remains;
+- changing database strategy `enabled` flags must not change stream inventory;
+- startup must not run legacy enabled-strategy data validation, warm-up
+  evaluation, database-change resubscription, or dual-provider divergence;
 - its evaluator must accept only closed, allowed, non-stale bars;
 - PAPER accounting must use next-daily-open fills and own resulting BTC without
   calling an exchange adapter;

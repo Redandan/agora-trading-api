@@ -1,6 +1,11 @@
 package com.agora.config;
 
-import com.agora.repository.trading.BtStrategyRepository;
+import com.agora.config.properties.BtcDonchianShadowProperties;
+import com.agora.service.strategy.StrategyLifecycleMode;
+import com.agora.service.strategy.StrategyRuntimeCatalog;
+import com.agora.service.strategy.StrategyRuntimeDefinition;
+import com.agora.service.trading.BtcDonchianShadowPolicy;
+import com.agora.service.tradingview.TradingViewDailyStrategyContract;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -8,103 +13,82 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Locale;
 import java.util.Set;
 
 /**
- * Derives the WS kline subscription list from enabled strategies at
- * runtime, replacing the yaml-hardcoded {@link MarketWsAutoSubscribeProperties}
- * (which stays as a fallback when DB has no active owners).
+ * Exact market-data requirements derived from the versioned runtime catalog.
  *
- * <h3>Rationale</h3>
- * Before this class, adding a new trading pair (e.g. {@code SOLUSDT}) meant:
- * <ol>
- *   <li>Enable a strategy in DB.</li>
- *   <li>Edit {@code application.yml} to add the subscription item.</li>
- *   <li>Redeploy.</li>
- * </ol>
- * Step 2 often drifted (disabling a strategy left an orphan yaml item still
- * consuming bandwidth). With this resolver, step 1 is sufficient — a
- * {@code StrategyEnabledEvent} triggers a resync, or the periodic
- * reconciler picks it up within 5 minutes.
- *
- * <h3>Interval choice</h3>
- * For every symbol we subscribe 1m, 1h, 4h, and 1d. 1m supports real-time price
- * and synthetic 15m ScoreBuy views, 1h/4h cover MTF strategies, and 1d covers
- * daily strategies such as SCORE_BUY_V2. Finer-grained per-strategy interval
- * derivation would require parsing {@code bt_strategy.config_json} which is
- * free-form and brittle.
- *
- * <h3>Source (binance vs okx)</h3>
- * Not the resolver's concern: the subscriber loops over every
- * {@code KlineStreamService} bean, so each item is subscribed on every
- * provider. The {@code strategy.kline_source} column only decides which
- * source {@code LiveSignalEvaluator} reads from when evaluating — both WS
- * streams keep writing {@code md_kline} rows (dual-write).
+ * <p>Database {@code bt_strategy.enabled} rows are research inventory and
+ * cannot create runtime subscriptions. Each active lane contributes exactly
+ * one source/symbol/interval requirement. Owner 508 retains its Binance daily
+ * feed for PAPER readiness; Donchian contributes its OKX hourly feed only
+ * while its explicit SHADOW switch is enabled.</p>
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WsSubscriptionResolver {
 
-    /** Intervals to subscribe per symbol: 1m (real-time price), 1h/4h (MTF strategies), 1d (daily strategies e.g. SCORE_BUY_V2). */
-    private static final List<String> DEFAULT_INTERVALS = List.of("1m", "1h", "4h", "1d");
     private static final String DEFAULT_MARKET_TYPE = "SPOT";
 
-    private final BtStrategyRepository strategyRepository;
-    private final MarketWsAutoSubscribeProperties fallbackProperties;
+    private final StrategyRuntimeCatalog strategyRuntimeCatalog;
+    private final BtcDonchianShadowProperties donchianProperties;
 
-    /**
-     * Resolve the current desired subscription list.
-     *
-     * @return never null; empty list possible if both DB and yaml are empty.
-     */
     public List<MarketWsAutoSubscribeProperties.Item> resolve() {
         Set<String> seenKeys = new LinkedHashSet<>();
         List<MarketWsAutoSubscribeProperties.Item> items = new ArrayList<>();
 
-        int strategyCount = 0;
-        for (var strategy : strategyRepository.findByEnabled(true)) {
-            strategyCount++;
-            String symbols = strategy.getSymbols();
-            if (symbols == null || symbols.isBlank()) continue;
-            for (String raw : symbols.split(",")) {
-                String sym = raw.trim().toUpperCase();
-                if (sym.isEmpty()) continue;
-                for (String iv : DEFAULT_INTERVALS) {
-                    addItem(items, seenKeys, sym, iv, DEFAULT_MARKET_TYPE);
-                }
-            }
+        StrategyRuntimeDefinition owner508 =
+                strategyRuntimeCatalog.require(TradingViewDailyStrategyContract.KEY);
+        if (owner508.mode() == StrategyLifecycleMode.PAPER) {
+            addDefinition(items, seenKeys, owner508);
         }
 
-        if (!items.isEmpty()) {
-            log.info("[WsSubResolver] Resolved {} items from DB ({} strategies)",
-                    items.size(), strategyCount);
-            return items;
+        if (donchianProperties.enabled()
+                && strategyRuntimeCatalog.isMode(
+                        BtcDonchianShadowPolicy.POLICY_MODE,
+                        StrategyLifecycleMode.SHADOW)) {
+            addDefinition(
+                    items,
+                    seenKeys,
+                    strategyRuntimeCatalog.require(BtcDonchianShadowPolicy.POLICY_MODE));
         }
 
-        log.warn("[WsSubResolver] No enabled strategy; falling back to yaml items");
-        List<MarketWsAutoSubscribeProperties.Item> yaml = fallbackProperties.getItems();
-        return yaml != null ? yaml : List.of();
+        log.info("[WsSubResolver] Resolved {} exact catalog requirement(s): {}",
+                items.size(),
+                items.stream()
+                        .map(item -> item.getProvider() + ":" + item.getSymbol() + "@"
+                                + item.getIntervalCode())
+                        .toList());
+        return List.copyOf(items);
     }
 
-    private void addItem(List<MarketWsAutoSubscribeProperties.Item> items,
-                         Set<String> seenKeys, String symbol, String interval, String marketType) {
-        String key = marketType + ":" + symbol + ":" + interval;
-        if (!seenKeys.add(key)) return;  // dedup
+    private void addDefinition(List<MarketWsAutoSubscribeProperties.Item> items,
+                               Set<String> seenKeys,
+                               StrategyRuntimeDefinition definition) {
+        String provider = normalize(definition.source());
+        String symbol = normalizeUpper(definition.symbol());
+        String interval = normalize(definition.interval());
+        if (provider.isEmpty() || symbol.isEmpty() || interval.isEmpty()) {
+            throw new IllegalStateException(
+                    definition.versionedKey() + " has incomplete market-data scope");
+        }
+        String key = provider + ":" + DEFAULT_MARKET_TYPE + ":" + symbol + ":" + interval;
+        if (!seenKeys.add(key)) return;
         MarketWsAutoSubscribeProperties.Item item = new MarketWsAutoSubscribeProperties.Item();
+        item.setProvider(provider);
         item.setSymbol(symbol);
         item.setIntervalCode(interval);
-        item.setMarketType(marketType);
+        item.setMarketType(DEFAULT_MARKET_TYPE);
         items.add(item);
     }
 
-    /**
-     * Build a stable string key used for diffing two subscription sets.
-     */
-    public static String keyOf(MarketWsAutoSubscribeProperties.Item item) {
-        return Objects.requireNonNullElse(item.getMarketType(), DEFAULT_MARKET_TYPE).toUpperCase()
-                + ":" + Objects.requireNonNullElse(item.getSymbol(), "").toUpperCase()
-                + ":" + Objects.requireNonNullElse(item.getIntervalCode(), "");
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeUpper(String value) {
+        return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
     }
 }

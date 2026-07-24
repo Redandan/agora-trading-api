@@ -13,9 +13,9 @@ import java.util.List;
  *   <li>{@link OkxWsKlineService} — OKX v5 WebSocket（與交易所一致的價源）</li>
  * </ul>
  *
- * <p>Spring loads available providers. Automatic startup/resync subscribers use
- * {@code market.ws.auto-subscribe.providers} to choose which providers receive
- * automatic subscriptions.
+ * <p>Spring loads available providers. The strategy runtime catalog owns each
+ * exact provider/symbol/interval requirement; the configured provider list is
+ * only a mechanical allowlist.
  */
 public interface KlineStreamService {
 

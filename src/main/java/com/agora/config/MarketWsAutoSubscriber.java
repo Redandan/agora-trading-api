@@ -12,10 +12,10 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 應用啟動後自動建立市場資料 WS 訂閱。
@@ -44,13 +44,10 @@ public class MarketWsAutoSubscriber {
             return;
         }
 
-        // V14 — derive item list from enabled strategies + grids (yaml fallback).
-        // Order of precedence:
-        //   1. enabled bt_strategy rows (DB source of truth)
-        //   2. yaml items (legacy fallback, resolver handles empty-DB gracefully)
+        // The runtime catalog owns exact provider/symbol/interval requirements.
         List<MarketWsAutoSubscribeProperties.Item> itemsToSubscribe = subscriptionResolver.resolve();
         if (itemsToSubscribe.isEmpty()) {
-            log.warn("[MarketWS] No items to subscribe (DB empty + yaml empty)");
+            log.warn("[MarketWS] No catalog market-data requirements to subscribe");
             return;
         }
         List<KlineStreamService> activeServices = activeStreamServices();
@@ -61,7 +58,7 @@ public class MarketWsAutoSubscriber {
         }
 
         long startupLogId = serverStartupService.recordStarted();
-        List<MarketWsAutoSubscribeProperties.Item> subscribed = new ArrayList<>();
+        Set<String> expectedSubscriptionKeys = new LinkedHashSet<>();
 
         for (MarketWsAutoSubscribeProperties.Item item : itemsToSubscribe) {
             try {
@@ -71,13 +68,22 @@ public class MarketWsAutoSubscriber {
                             item.getSymbol(), item.getIntervalCode());
                     continue;
                 }
-                // 每個允許的 provider 各開一條訂閱，資料以 source 欄位區分。
-                for (KlineStreamService svc : activeServices) {
+                List<KlineStreamService> itemServices = servicesFor(item, activeServices);
+                if (itemServices.isEmpty()) {
+                    log.warn("[MarketWS] No enabled provider matches catalog requirement provider={} {} {}@{}",
+                            item.getProvider(), item.getMarketType(), item.getSymbol(), item.getIntervalCode());
+                    continue;
+                }
+                for (KlineStreamService svc : itemServices) {
                     svc.subscribe(item.getSymbol(), item.getIntervalCode(), item.getMarketType());
-                    log.info("[MarketWS] Auto subscribed via {} → {} {}@{}",
+                    expectedSubscriptionKeys.add(subscriptionKey(
+                            svc.providerName(),
+                            item.getMarketType(),
+                            item.getSymbol(),
+                            item.getIntervalCode()));
+                    log.info("[MarketWS] Catalog subscribed via {} → {} {}@{}",
                             svc.providerName(), item.getMarketType(), item.getSymbol(), item.getIntervalCode());
                 }
-                subscribed.add(item);
             } catch (Exception e) {
                 String message = MarketDataTelegramAlertFormatter.wsStartupFailure(
                         item.getMarketType(),
@@ -94,7 +100,7 @@ public class MarketWsAutoSubscriber {
         }
 
         // 等待所有 WS 真正連線（onOpen 後 status 變 RUNNING），最多 30 秒
-        waitForWsRunning(subscribed, activeServices);
+        waitForWsRunning(expectedSubscriptionKeys, activeServices);
         serverStartupService.recordWsReady(startupLogId);
 
         log.info("[MarketWS] Strategy warm-up skipped; closed K-line events own catalog dispatch");
@@ -105,35 +111,29 @@ public class MarketWsAutoSubscriber {
      * 輪詢直到所有已訂閱的 WS 均為 RUNNING 狀態，或超時（30 秒）。
      * 避免在 TCP 握手完成前就記錄 ws_ready_at。
      */
-    private void waitForWsRunning(List<MarketWsAutoSubscribeProperties.Item> subscribed,
+    private void waitForWsRunning(Set<String> expectedSubscriptionKeys,
                                   List<KlineStreamService> activeServices) {
-        if (subscribed.isEmpty()) return;
-
-        Set<String> expectedKeys = subscribed.stream()
-                .map(i -> i.getMarketType().toUpperCase() + ":"
-                        + i.getSymbol().toUpperCase() + ":"
-                        + i.getIntervalCode())
-                .collect(Collectors.toSet());
+        if (expectedSubscriptionKeys.isEmpty()) return;
 
         int maxWaitMs = 30_000;
         int intervalMs = 200;
         int elapsed = 0;
 
-        // 每個 item 會在每個允許的 provider 各開 1 條連線，total = items × providers
-        int expectedTotal = expectedKeys.size() * activeServices.size();
+        int expectedTotal = expectedSubscriptionKeys.size();
         while (elapsed < maxWaitMs) {
             long runningCount = activeServices.stream()
-                    .flatMap(svc -> svc.listSubscriptions().stream())
-                    .filter(s -> "RUNNING".equals(s.getStatus()))
-                    .filter(s -> expectedKeys.contains(
-                            s.getMarketType().toUpperCase() + ":"
-                            + s.getSymbol().toUpperCase() + ":"
-                            + s.getIntervalCode()))
+                    .flatMap(svc -> svc.listSubscriptions().stream()
+                            .filter(s -> "RUNNING".equals(s.getStatus()))
+                            .filter(s -> expectedSubscriptionKeys.contains(subscriptionKey(
+                                    svc.providerName(),
+                                    s.getMarketType(),
+                                    s.getSymbol(),
+                                    s.getIntervalCode()))))
                     .count();
 
             if (runningCount >= expectedTotal) {
-                log.info("[MarketWS] All {} WS connections RUNNING across {} provider(s) (+{}ms)",
-                        expectedTotal, activeServices.size(), elapsed);
+                log.info("[MarketWS] All {} catalog WS connections RUNNING (+{}ms)",
+                        expectedTotal, elapsed);
                 return;
             }
             try {
@@ -151,5 +151,36 @@ public class MarketWsAutoSubscriber {
         return wsKlineServices.stream()
                 .filter(svc -> properties.isProviderEnabled(svc.providerName()))
                 .toList();
+    }
+
+    private List<KlineStreamService> servicesFor(
+            MarketWsAutoSubscribeProperties.Item item,
+            List<KlineStreamService> activeServices) {
+        String requiredProvider = normalize(item.getProvider());
+        if (requiredProvider.isEmpty()) {
+            return activeServices;
+        }
+        return activeServices.stream()
+                .filter(svc -> requiredProvider.equals(normalize(svc.providerName())))
+                .toList();
+    }
+
+    private static String subscriptionKey(
+            String provider,
+            String marketType,
+            String symbol,
+            String interval) {
+        return normalize(provider) + ":"
+                + normalizeUpper(marketType) + ":"
+                + normalizeUpper(symbol) + ":"
+                + normalize(interval);
+    }
+
+    private static String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeUpper(String value) {
+        return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
     }
 }

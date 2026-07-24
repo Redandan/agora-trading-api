@@ -36,8 +36,9 @@ import java.util.stream.Collectors;
 /**
  * OKX v5 WebSocket 即時 K 線訂閱（Business channel）。與交易所執行面一致的價源。
  *
- * <p>Spring loads this provider alongside other kline providers; automatic
- * subscription ownership is controlled by {@code market.ws.auto-subscribe.providers}.
+ * <p>Spring loads this provider alongside other kline providers. The strategy
+ * runtime catalog owns subscription requirements; the provider configuration
+ * is only a mechanical allowlist.
  *
  * <p>OKX 協定摘要：
  * <ul>

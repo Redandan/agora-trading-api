@@ -124,13 +124,11 @@ public class McpStreamableHttpController {
             return mcpApiKeyFilter.buildAuthContract();
         }
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("mode", "SESSION_BATCH");
-        out.put("requiresPlan", true);
-        out.put("planTool", "getMcpAuthProbe");
-        out.put("requiredField", "requestedTools");
-        out.put("requiredArguments", Map.of("requestedTools", "string[]"));
-        out.put("errorCode", -32004);
-        out.put("errorMessage", "BATCH_PLAN_REQUIRED");
+        out.put("mode", "BEARER_API_KEY");
+        out.put("scheme", "Bearer");
+        out.put("requiresPlan", false);
+        out.put("unannotatedToolPolicy", "DENY");
+        out.put("nonToolMethodPolicy", "DEV_OR_OPS_KEY_REQUIRED");
         return out;
     }
 

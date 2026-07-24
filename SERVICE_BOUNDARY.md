@@ -53,6 +53,9 @@ The response DTO should match the current `ExchangeRateInfo` shape:
 Trading does not share marketplace login, user profiles, or marketplace user tables.
 Non-public HTTP routes default to deny-all; trading access is through explicit
 public probes/docs and MCP API-key guarded tools, not role-based web login.
+Trading MCP does not own Telegram callbacks or cross-service approval state.
+Its callable tools require their declared Bearer API-key level; unannotated or
+unknown tools fail closed.
 
 ## Telegram Report Gateway
 

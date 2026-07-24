@@ -2,8 +2,6 @@ package com.agora.service;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
-import java.time.Instant;
-
 public interface TelegramService {
     /**
      * 發送消息到 Telegram 頻道（純文本）
@@ -44,12 +42,6 @@ public interface TelegramService {
     void sendChannelMessageWithKeyboard(String message, boolean useHtml, InlineKeyboardMarkup keyboard,
                                         String source, String level);
 
-    /**
-     * Sends the master approval prompt for an external AI MCP session.
-     */
-    void sendMcpMasterApprovalRequest(String grantRequestId, String sessionShortHash,
-                                      String firstToolName, Instant expiresAt);
-    
     /**
      * 發送消息到 Telegram 用戶（私聊）
      *

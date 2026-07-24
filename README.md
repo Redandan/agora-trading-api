@@ -19,6 +19,9 @@ Strategy-driven BTC-USDT spot trading service.
 - Mechanical execution safety remains; legacy strategy selection, AI/ML
   promotion, experimental entries, and strategy-imposed exits are outside the
   minimal path.
+- Trading MCP uses one fail-closed Bearer API-key boundary for its read-only
+  tool whitelist. The retired Guardian and cross-JVM Telegram approval paths
+  are not part of this service.
 
 ## Build and local run
 

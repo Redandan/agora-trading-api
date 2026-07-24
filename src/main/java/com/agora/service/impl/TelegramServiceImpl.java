@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -245,8 +244,6 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
     private boolean containsTradeOrAuthorizationMarker(String message) {
         String text = message.toLowerCase(Locale.ROOT);
         return message.contains("【交易保護】")
-                || message.contains("MCP 外部 AI 授權請求")
-                || text.contains("mcp-master-approval")
                 || text.contains("已成交")
                 || text.contains("下單")
                 || text.contains("oco")
@@ -1012,39 +1009,6 @@ public class TelegramServiceImpl implements TelegramService, NotificationPort {
             case SYSTEM_NOISE -> "系統雜訊 / 無需操作";
             default -> "OTHER";
         };
-    }
-
-    @Override
-    public void sendMcpMasterApprovalRequest(String grantRequestId, String sessionShortHash,
-                                             String firstToolName, Instant expiresAt) {
-        String tool = firstToolName == null || firstToolName.isBlank() ? "未知工具" : firstToolName;
-        String message = String.join("\n",
-                "MCP 外部 AI 授權請求",
-                "",
-                "狀態: 等待人工批准",
-                "工具: " + tool,
-                "會話指紋: " + sessionShortHash,
-                "授權請求 ID: " + grantRequestId,
-                "到期時間: " + expiresAt,
-                "",
-                "請確認這是你正在 ChatGPT / External-AI MCP 發起的操作。",
-                "批准後，符合相同授權範圍的呼叫可在 TTL 內重試。"
-        );
-
-        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
-                .keyboard(List.of(new InlineKeyboardRow(List.of(
-                        InlineKeyboardButton.builder()
-                                .text("批准")
-                                .callbackData("mcp_master_approve:" + grantRequestId)
-                                .build(),
-                        InlineKeyboardButton.builder()
-                                .text("拒絕")
-                                .callbackData("mcp_master_reject:" + grantRequestId)
-                                .build()
-                ))))
-                .build();
-
-        sendChannelMessageWithKeyboard(message, false, keyboard, "mcp-master-approval", "WARN");
     }
 
     private boolean shouldSuppressNoise(String message, String source, String level) {

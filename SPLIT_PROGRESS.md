@@ -1,5 +1,14 @@
 # Split Progress
 
+- 2026-07-24: reduced Trading MCP authentication to the active fail-closed
+  Bearer API-key boundary. Removed 853-line legacy Guardian/External-AI logic,
+  the 390-line Trading-local session approval store, and the Telegram approval
+  prompt path that could not share state with AgoraMarketAPI's callback JVM.
+  DEV/OPS/LOCAL_ONLY levels, annotation discovery, category metadata, request
+  size protection, authenticated protocol methods, and exact tool authorization
+  remain. This source change does not modify keys, routes, Telegram, Production
+  environment, database, trading, OCO, Grid, positions, funds, or strategy
+  modes.
 - 2026-07-24: replaced database-enabled and dual-provider market-data startup
   with exact `StrategyRuntimeCatalog` requirements. Owner 508 PAPER readiness
   owns Binance `BTCUSDT@1d`; Donchian owns OKX `BTCUSDT@1h` only while SHADOW.

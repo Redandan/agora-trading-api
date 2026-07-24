@@ -190,6 +190,11 @@ Implemented locally on 2026-07-24:
 10. The legacy enabled-strategy startup validator, database-change
     resubscription listener, and dual-provider divergence monitor were removed.
     The provider list is retained only as a fail-closed mechanical allowlist.
+11. Trading MCP authentication is a fail-closed Bearer API-key boundary.
+    Guardian policy lists, External-AI session approval, Telegram approval
+    prompts, and Trading-local in-memory approval state were removed. Telegram
+    callbacks remain owned by AgoraMarketAPI and cannot approve state inside a
+    separate Trading JVM.
 
 ## Acceptance evidence
 
@@ -214,6 +219,11 @@ acceptance uses compilation plus direct source/config assertions:
   time-exit, AI/ML/Ensemble, or auto-entry runtime;
 - MCP registration must expose exactly 10 whitelisted tools and no Grid
   create, stop, migration-preview, or Gate-A authorization tool;
+- every registered tool must retain explicit `@McpAuth`; a missing, invalid, or
+  unannotated tool request must be denied, while the configured OPS key must
+  continue to support initialize, tools/list, resources, and tool calls;
+- initialize and tools/list metadata must report `BEARER_API_KEY`, with no
+  `SESSION_BATCH`, `getMcpAuthProbe`, Guardian, or Telegram approval contract;
 - all retained deployment scripts must parse, and the environment template
   must pass its fail-closed validator;
 - LIVE remains unavailable; provider-managed Grid mutations are outside this

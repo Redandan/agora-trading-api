@@ -1,5 +1,18 @@
 # Split Acceptance Status
 
+## 2026-07-24 minimal MCP authentication candidate
+
+- The current source retains DEV/OPS/LOCAL_ONLY authorization levels and
+  fail-closes missing, invalid, unknown, and unannotated tool calls.
+- It removes the unconfigured Trading Guardian and External-AI keys, the
+  `SESSION_BATCH`/`getMcpAuthProbe` flow, Trading-local in-memory approval
+  state, and Telegram approval prompt dependency.
+- Deployment acceptance must prove authenticated initialize, tools/list,
+  resources, all 10 whitelisted tool calls, unauthenticated rejection, unknown
+  tool rejection, and unchanged Grid/BTC/position/strategy state.
+- This cleanup does not authorize a key, route, Telegram, environment,
+  database, trading, OCO, Grid, position, fund, or strategy-mode mutation.
+
 ## 2026-07-24 catalog-driven market-data candidate
 
 - The current source derives WebSocket subscriptions only from

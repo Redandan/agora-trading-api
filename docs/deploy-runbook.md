@@ -45,6 +45,12 @@ PORT=8084
 Use `.env.trading.secrets.example` as the complete key inventory. Never commit
 the real secrets file.
 
+`TRADING_MCP_KEY` supplies the Trading MCP Bearer credential used by both the
+DEV and OPS compatibility properties. Trading has no Guardian key,
+External-AI session key, or Telegram approval state. Server-local and dedicated
+public MCP checks must send this Bearer key; unknown and unannotated tools fail
+closed.
+
 ## Strategy-safe deployment defaults
 
 The daily owner strategy must remain non-live unless separately authorized:

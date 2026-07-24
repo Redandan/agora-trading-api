@@ -81,3 +81,10 @@ source review. Forbidden categories include:
 - WebPush, chat/realtime, commerce order/cart/delivery/logistics, marketplace wallet enum, PWA/slot analytics, staking, and transaction DTO residue.
 
 If a later trading feature really needs one of these capabilities, add a trading-owned model/service or an explicit SDK/HTTP DTO contract. Do not re-import marketplace entities, repositories, controllers, or service implementations.
+
+The protected runtime, staged removal batches, source-only database policy, and
+per-batch acceptance rules are defined in
+`docs/minimal-runtime-cleanup-roadmap.md`. Cleanup must preserve owner 508
+PAPER semantics, Donchian SHADOW evidence, exact catalog market streams,
+mechanical OCO execution safety, read-only provider Grid monitoring, outbound
+critical notifications, and deployment verification.

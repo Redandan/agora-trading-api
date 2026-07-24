@@ -70,8 +70,6 @@ $safeDefaults = [ordered]@{
     TRADING_BTC_DONCHIAN_SHADOW_MODE = "OFF"
     TRADING_OKX_ENABLED = "false"
     TRADING_OCO_POLLER_ENABLED = "false"
-    EXECUTION_EVENT_ENABLED = "false"
-    EXECUTION_EVENT_NOTIFICATION_DRY_RUN = "true"
 }
 foreach ($key in $safeDefaults.Keys) {
     if (-not $values.Contains($key) -or $values[$key] -ne $safeDefaults[$key]) {

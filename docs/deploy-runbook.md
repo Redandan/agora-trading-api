@@ -6,6 +6,11 @@ This runbook covers only deployment of the standalone Trading service. It does
 not authorize strategy activation, orders, OCO/Grid mutations, fund movement,
 Earn actions, Telegram sends, database migrations, or production data changes.
 
+Use `split-acceptance-status.md` for the current deployed handoff and
+`minimal-runtime-cleanup-roadmap.md` for staged source reduction. Historical
+commands in dated documents or `SPLIT_PROGRESS.md` are not deployment
+instructions.
+
 The automated test tree and non-deployment scripts were intentionally removed
 during the strategy-first simplification. Historical documents may still name
 retired scripts; those names are not runnable instructions.

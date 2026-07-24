@@ -95,7 +95,11 @@ See `docs/deploy-runbook.md` for required environment and safety boundaries.
 
 - `SERVICE_BOUNDARY.md`
 - `docs/strategy-driven-minimal-runtime.md`
+- `docs/minimal-runtime-cleanup-roadmap.md`
+- `docs/split-acceptance-status.md`
 - `docs/deploy-runbook.md`
 
-`SPLIT_PROGRESS.md`, `docs/split-acceptance-status.md`, and other dated
-documents are historical records rather than runnable instructions.
+`SPLIT_PROGRESS.md` and other dated documents are historical records rather
+than runnable instructions. `docs/split-acceptance-status.md` is the concise
+current production handoff; historical acceptance evidence remains in Git and
+`SPLIT_PROGRESS.md`.

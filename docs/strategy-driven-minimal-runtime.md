@@ -13,6 +13,26 @@ to a different strategy.
 No production environment, database row, exchange order, Grid configuration,
 fund allocation, or scheduler state is changed by this plan.
 
+## Current production state
+
+Read-only verification on 2026-07-24 confirmed:
+
+- deployed commit `788ad4a8c60c` on active port `8085`;
+- 10 MCP tools and 11 resources;
+- exactly two connected catalog streams: Binance `BTCUSDT@1d` and OKX
+  `BTCUSDT@1h`;
+- owner 508 mapped to database strategy `485`, PAPER, with
+  `TRADINGVIEW_LOCAL_ENABLED=false`;
+- Donchian configured SHADOW with runtime evidence enabled and no exchange
+  implementation;
+- one provider-managed OKX BTC-USDT Spot Grid running through the read-only
+  monitoring boundary;
+- execution-safety status `OK`, with positions `#260/#261/#262` intentionally
+  classified as BTC Base holdings without OCO.
+
+The staged source-reduction plan is maintained in
+`minimal-runtime-cleanup-roadmap.md`.
+
 ## Identity correction
 
 | Identity | Current meaning | Disposition |
@@ -154,15 +174,17 @@ The following are strategy/risk opinions and must not block
 - `VersionedProfitStart` cohort/readiness/snapshot gates;
 - generic TP/SL, OCO, trailing-stop, time-exit, and open-position rules;
 - cross-strategy exposure optimization;
-- independent 508 time-exit, Donchian, and legacy live evaluators;
+- independent 508 time-exit and legacy live evaluators;
 - strategy-specific schedulers and MCP review-packet chains.
 
 The deterministic online model contained in the captured Pine source remains
 inside the strategy calculation. It is strategy code, not a platform ML gate.
+Donchian remains an isolated SHADOW evidence lane; it cannot block owner 508
+and has no exchange-order adapter.
 
 ## Development sequence
 
-Implemented locally on 2026-07-24:
+Implemented and deployed by 2026-07-24:
 
 1. The Pine hash, Binance daily source, owner alias, and intent weights are
    frozen in `TradingViewDailyStrategyContract`.

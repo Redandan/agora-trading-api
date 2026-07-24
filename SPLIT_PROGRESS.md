@@ -1,5 +1,29 @@
 # Split Progress
 
+- 2026-07-24: implemented the local-only first minimal-runtime cleanup batch.
+  Removed 26 Java files belonging to the unregistered/default-off Execution
+  Event subsystem and the isolated SystemReminder, SystemSnapshot,
+  AttentionRule, and AutoExploration rollout paths. Removed two retired
+  Execution Event template settings, their validator expectations, the old
+  runtime-log error classifier, and the now-unreferenced Attention audit
+  method. Java inventory decreased from 427 to 401, repositories from 51 to
+  47, and scheduler-related files from 9 to 8. Historical database table
+  definitions remain unchanged; no migration or table deletion was added.
+  `mvn -DskipTests package`, retained shell/PowerShell syntax, environment
+  template validation, `git diff --check`, and direct 10-tool/catalog/protected
+  runtime assertions passed. This local candidate is not committed or deployed
+  evidence and does not change Production, environment, database, strategy,
+  order, OCO, Grid, position, fund, Telegram delivery, or runtime behavior.
+- 2026-07-24: refreshed the current documentation boundary after read-only
+  Production verification at deployed commit `788ad4a8c60c`. Added a staged
+  minimal-runtime cleanup roadmap with an explicit protected keep set,
+  source-only database policy, six cleanup batches, per-batch acceptance, and
+  stop conditions. Replaced the stale current acceptance handoff that still
+  described the July 14 330-tool runtime and deleted verification scripts.
+  Corrected the minimal-runtime document so the retained Donchian SHADOW lane
+  is no longer described as removed. This docs-only change does not modify
+  Production, environment, database, strategy, order, OCO, Grid, position,
+  fund, scheduler, Telegram, MCP registration, or runtime behavior.
 - 2026-07-24: reduced Trading MCP authentication to the active fail-closed
   Bearer API-key boundary. Removed 853-line legacy Guardian/External-AI logic,
   the 390-line Trading-local session approval store, and the Telegram approval

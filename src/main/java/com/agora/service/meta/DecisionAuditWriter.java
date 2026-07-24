@@ -138,15 +138,6 @@ public class DecisionAuditWriter {
                 null, blocker, reason, null, null));
     }
 
-    /** Attention rule 命中(LOG_ONLY 不阻擋,NOTIFY 會額外發 TG)。 */
-    @Async("metaAuditExecutor")
-    public void logAttentionHit(Long strategyId, String symbol, String intervalCode,
-                                String ruleName, String severity,
-                                Map<String, Object> context) {
-        save(build("ATTENTION_HIT", "INFO", strategyId, symbol, intervalCode,
-                null, "AttentionRule", ruleName + " / " + severity, context, null));
-    }
-
     /**
      * Synchronous guard for live autonomous execution.
      * If runtime evidence is disabled, unavailable, or cannot be written, callers

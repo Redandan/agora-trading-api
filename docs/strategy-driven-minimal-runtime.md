@@ -5,25 +5,30 @@
 The minimal product is a BTC spot strategy runner plus the exchange-native OKX
 Spot Grid integration.
 
-The first strategy is named `TV_BTC_DAILY_ACCUMULATION_V1`. The owner-facing
-alias may remain `508`, but the runtime must not use the bare number `508` as
-the strategy identity because the production database already assigns that ID
-to a different strategy.
+The frozen entry strategy is named `TV_BTC_DAILY_ACCUMULATION_V1`. The current
+PAPER runtime is `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2`, which keeps those
+entries and adds per-lot profit exits. The owner-facing alias may remain `508`,
+but the runtime must not use the bare number `508` as the strategy identity
+because the production database already assigns that ID to a different
+strategy.
 
-No production environment, database row, exchange order, Grid configuration,
-fund allocation, or scheduler state is changed by this plan.
+Deployment of V2 does not activate the evaluator. Production remains
+`TRADINGVIEW_LOCAL_ENABLED=false`; no exchange order, Grid configuration, fund
+allocation, or scheduler state is changed by the deployment.
 
 ## Current production state
 
 Read-only verification on 2026-07-25 confirmed:
 
-- Batch 3A runtime change commit `10e5ee3fd9ec` is deployed in build
-  `e1ab8637899d` on active port `8085`; inactive port `8084` is drained;
+- Score Buy Auto Exit V2 commit `8396769` is deployed on active port `8084`;
+  inactive port `8085` is drained;
 - 10 MCP tools and 11 resources;
+- three registered strategy contracts: V2 PAPER, V1 ARCHIVED, and Donchian
+  SHADOW, with no LIVE contract or exchange-order authorization;
 - exactly two connected catalog streams: Binance `BTCUSDT@1d` and OKX
   `BTCUSDT@1h`;
-- owner 508 mapped to database strategy `485`, PAPER, with
-  `TRADINGVIEW_LOCAL_ENABLED=false`;
+- owner 508 mapped to database strategy `485` and V2 PAPER, with
+  `TRADINGVIEW_LOCAL_ENABLED=false`; V1 remains its frozen entry contract;
 - Donchian configured SHADOW with runtime evidence enabled and no exchange
   implementation;
 - one provider-managed OKX BTC-USDT Spot Grid running through the read-only
@@ -31,8 +36,8 @@ Read-only verification on 2026-07-25 confirmed:
   exact-net profitability remains unproven while the bot is active;
 - execution-safety status `OK`, with positions `#260/#261/#262` intentionally
   classified as BTC Base holdings without OCO;
-- shared-database comparison found 35 source entity tables, 209 database
-  tables, and 0 missing source tables;
+- the last shared-database comparison found 35 source entity tables, 209
+  database tables, and 0 missing source tables; V2 added no schema change;
 - runtime-log verification found 0 errors, 0 unknown warnings, and 0
   high-risk operation-like lines.
 
@@ -44,7 +49,8 @@ The staged source-reduction plan is maintained in
 | Identity | Current meaning | Disposition |
 | --- | --- | --- |
 | owner alias `508` | TradingView-validated BTC daily strategy | Preserve as a display alias only |
-| canonical key `TV_BTC_DAILY_ACCUMULATION_V1` | Versioned strategy contract defined below | New source-of-truth identity |
+| canonical key `TV_BTC_DAILY_ACCUMULATION_V1` | Frozen versioned entry contract defined below | Preserve as archived entry evidence |
+| canonical key `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` | Current per-lot auto-exit PAPER runtime | Production deployed but evaluator disabled |
 | production DB `bt_strategy.id=485` | `SCORE_BUY_V2-BTC-1d-MLGated-v1`; captured TradingView Pine parity evidence | Temporary database mapping for migration |
 | production DB `bt_strategy.id=508` | `OI_FUNDING_DIVERGENCE`; OKX market features; one-hour strategy | Archive/shadow only; never treat as the daily TradingView strategy |
 | `STRATEGY_508_4H_24H_V1` | Later four-hour, 24-hour exit experiment | Retire from the canonical `508` path |

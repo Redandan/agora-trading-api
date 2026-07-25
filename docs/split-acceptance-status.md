@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-25 00:14 Asia/Taipei
+Last verified: 2026-07-25 10:52 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,17 +9,17 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- deployed build commit: `e1ab8637899d`;
-- Batch 3A runtime change commit: `10e5ee3fd9ec`;
+- deployed build commit: `8396769`;
+- Score Buy Auto Exit V2 runtime change commit: `8396769`;
 - at the acceptance checkpoint, server worktree and `origin/main` matched the
   deployed build commit;
-- active port: `8085`;
-- inactive blue/green port: `8084`, drained;
+- active port: `8084`;
+- inactive blue/green port: `8085`, drained;
 - local and public dedicated health: passed;
 - local and public dedicated MCP: passed with Bearer authentication;
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
-- nginx shared/dedicated upstreams: active port `8085`;
+- nginx shared/dedicated upstreams: active port `8084`;
 - server worktree: clean.
 
 The current server verification command is:
@@ -55,16 +55,19 @@ are not a Trading cleanup target.
 
 ## Strategy state
 
-The runtime catalog contains exactly two executable/evidence contracts:
+The runtime catalog contains three registered contracts. Exactly two are
+executable/evidence lanes and none is `LIVE`:
 
 | Contract | Mode | Market data | Exchange order |
 | --- | --- | --- | --- |
-| `TV_BTC_DAILY_ACCUMULATION_V1@v1` | PAPER | Binance `BTCUSDT@1d` | not allowed |
+| `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2` | PAPER | Binance `BTCUSDT@1d` | not allowed |
+| `TV_BTC_DAILY_ACCUMULATION_V1@v1` | ARCHIVED | none | not allowed |
 | `BTC_DONCHIAN_20D_10D_V1@v1` | SHADOW | OKX `BTCUSDT@1h` | not allowed |
 
 Owner 508 is a display alias for
-`TV_BTC_DAILY_ACCUMULATION_V1@v1`. Its temporary database mapping is strategy
-`485`. Database strategy `508` is a different archived strategy.
+`TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2`; V1 remains the frozen entry contract.
+Its temporary database mapping is strategy `485`. Database strategy `508` is
+a different archived strategy.
 
 Current owner 508 settings:
 
@@ -72,6 +75,9 @@ Current owner 508 settings:
 configuredEnabled=false
 configuredExecutionMode=BTC_BASE_PAPER
 configuredStrategyId=485
+exitPolicy=PER_LOT_NET_PROFIT_TARGET
+netProfitTrigger=0.0500
+minRealizedNetProfit=0.0100
 exchangeOrderAuthorized=false
 ```
 
@@ -117,8 +123,10 @@ Trading can read active/history/detail, sub-orders, fills, provider grouping,
 fees, and economic evidence. It cannot create, amend, or stop a native Grid.
 Grid state and floating PnL can change independently of a service deployment.
 
-At the latest acceptance checkpoint the same bot had 11 provider fills and 2
-completed provider groups. It remained active, so exact-net functional
+At the latest acceptance checkpoint the same bot had 16 provider fills and 3
+completed provider groups. Provider-reported Grid profit was
+`0.0102929584 USDT`, floating profit was `-0.1824086076425329 USDT`, and total
+PnL was `-0.1721156492425329 USDT`. It remained active, so exact-net functional
 acceptance and long-term profitability were not proven.
 
 ## Execution safety
@@ -189,8 +197,9 @@ git diff --check
 Direct source/config assertions must additionally prove:
 
 - exactly 10 MCP tools;
-- exactly two catalog contracts and no `LIVE` mode;
-- owner 508 and Donchian mappings unchanged;
+- exactly three registered catalog contracts, two active/evidence lanes, and
+  no `LIVE` mode;
+- owner 508 V2 PAPER, archived V1, and Donchian SHADOW mappings;
 - no Grid mutation adapter;
 - database flags cannot start streams;
 - no database migration or table deletion;
@@ -503,6 +512,48 @@ Production evidence:
 Recommended next action: review a Batch 3B design that extracts the small
 owner-508 indicator-builder dependency from the generic `BacktestEngine`
 without changing runtime behavior.
+
+## Score Buy Auto Exit V2 production acceptance
+
+Runtime commit `8396769` was deployed and accepted on Production with the
+strategy evaluator disabled.
+
+Local evidence:
+
+- `mvn -DskipTests package` passed while compiling 336 source files;
+- the deterministic PAPER state machine passed buy intent, next-open buy,
+  profit-target queue, low-open defer/re-arm, profitable next-open sell, and
+  JSON state restore assertions;
+- V1 is `ARCHIVED`, V2 is `PAPER`, Donchian is `SHADOW`, and no catalog
+  contract is `LIVE`;
+- V2 has no exchange, OCO, Grid, Telegram, or live-position adapter.
+
+Production evidence:
+
+- blue/green deployment switched `8085` to `8084` and fully drained `8085`;
+- server worktree, `origin/main`, and deployed metadata matched `8396769` at
+  the runtime acceptance checkpoint;
+- local and public health, dedicated authenticated MCP, nginx routing, and the
+  AgoraMarket dependency passed; shared-host Trading MCP remained HTTP 404;
+- owner 508 resolved to
+  `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2` in `PAPER`, with V1 retained as
+  `ARCHIVED`, Donchian retained as `SHADOW`, and exchange orders unauthorized;
+- `TRADINGVIEW_LOCAL_ENABLED=false`, so V2 produced no runtime evaluation,
+  simulated fill, state row, or order during acceptance;
+- exactly 10 read-only MCP tools remained exposed;
+- startup resolved exactly Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h`;
+- runtime-log smoke found 0 errors, 0 unknown warnings, and 0 high-risk
+  operation-like lines;
+- positions `#260/#261/#262`, execution-safety `issues=0`,
+  `473.2783880116848 USDT`, and protected `0.00050810202 BTC` matched the
+  pre-deploy baseline;
+- native Grid `3767345250394603520` remained `running` with the same range,
+  10 USDT investment, 10 grids, 16 provider fills, and 3 completed provider
+  groups; its current total PnL was `-0.1721156492425329 USDT`, so exact-net
+  profitability remains unproven while the bot is active;
+- no strategy activation, order, OCO/Grid mutation, position/fund movement,
+  Telegram send, migration, schema change, or database-data mutation was
+  performed.
 
 ## Not proven by acceptance
 

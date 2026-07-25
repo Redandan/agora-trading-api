@@ -16,6 +16,10 @@ Strategy-driven BTC-USDT spot trading service.
 - Market WebSockets are derived from the versioned runtime catalog, not
   database `enabled` flags: owner 509 requires Binance `BTCUSDT@1d`, and the
   Donchian lane requires OKX `BTCUSDT@1h` only while it is explicitly SHADOW.
+- `BTC_MEI_DIRECTIONAL_ACCUMULATION_V1` is a source-pinned, direction-confirmed
+  research candidate. It defaults to `OFF`, has no live adapter, and would
+  reuse the same deduplicated OKX hourly stream only after separate SHADOW
+  authorization.
 - OKX Native Spot Grid remains provider-managed and independently running;
   this service exposes read-only status and economic evidence only.
 - Mechanical execution safety remains; legacy strategy selection, AI/ML
@@ -97,6 +101,7 @@ See `docs/deploy-runbook.md` for required environment and safety boundaries.
 
 - `SERVICE_BOUNDARY.md`
 - `docs/strategy-driven-minimal-runtime.md`
+- `docs/btc-mei-directional-shadow-candidate-v1.md`
 - `docs/minimal-runtime-cleanup-roadmap.md`
 - `docs/split-acceptance-status.md`
 - `docs/deploy-runbook.md`

@@ -68,6 +68,28 @@ bar produces a weighted entry. The durable signal reservation and OKX client
 order ID are written before provider submission so an ambiguous timeout is not
 blindly retried.
 
+## Local second-candidate development
+
+`BTC_MEI_DIRECTIONAL_ACCUMULATION_V1@v1` was subsequently implemented as a new
+source-pinned research contract. It is not the old database strategy 567 and
+does not inherit 567's historical result.
+
+The local catalog now contains four contracts, but Production remains on the
+three-contract deployed baseline until a separate deployment is authorized.
+The new candidate:
+
+- is registered as `SHADOW` with its explicit switch defaulting to `OFF`;
+- uses OKX `BTCUSDT@1h` closed bars and would reuse the Donchian stream through
+  subscription deduplication;
+- requires MEI `>=60`, positive 24-hour momentum, and `close>EMA20`;
+- uses edge-triggered 10 USDT virtual lots, a 250 USDT open-cost cap, and
+  fee/slippage-aware profit-only exits;
+- writes only audit/runtime evidence and has no live exchange implementation.
+
+Its frozen contract and later SHADOW acceptance gate are documented in
+`btc-mei-directional-shadow-candidate-v1.md`. This local development did not
+deploy or enable the lane.
+
 ## Identity correction
 
 | Identity | Current meaning | Disposition |
@@ -231,28 +253,30 @@ Implemented and deployed by 2026-07-25:
 1. The Pine hash, Binance daily source, owner alias, and intent weights are
    frozen in `TradingViewDailyStrategyContract`.
 2. `StrategyRuntimeCatalog` assigns owner 509 to `LIVE`, archived V1/508 to
-   `ARCHIVED`, Donchian to
+   `ARCHIVED`, Donchian and the default-OFF MEI directional candidate to
    `SHADOW`, and every other database strategy to `ARCHIVED`.
 3. `KlineClosedEventListener` dispatches only the catalog-owned LIVE and
-   SHADOW lanes. Database `enabled` flags cannot revive the legacy evaluator.
+   explicitly enabled SHADOW lanes. Database `enabled` flags cannot revive the
+   legacy evaluator.
 4. The LIVE adapter aggregates the current daily bar's weights, commits a
    unique reservation, places an OKX spot order with `clOrdId`, and persists
    actual fills/fees. Catch-up bars are audit-only.
 5. The legacy live evaluator, Webhook, 508 time-exit, AI/ML/Ensemble,
    auto-entry services, strategy risk filters, Earn/Funding lanes, and their
    schedulers/MCP tools were removed.
-6. The MCP surface is a fixed 10-tool whitelist: runtime identity, strategy
-   catalog, Donchian evidence, read-only execution safety, and read-only OKX
-   Native Grid monitoring.
+6. The MCP surface remains a fixed 10-tool whitelist: runtime identity,
+   strategy catalog, Donchian evidence, read-only execution safety, and
+   read-only OKX Native Grid monitoring. The MEI candidate adds no tool.
 7. Existing spot OCO reconciliation remains for mechanical execution safety;
    it is not part of owner 509 strategy logic.
 8. Grid create/stop services, migration previews, write gates, and obsolete
    authorization documents were removed. Provider Grid state is not changed.
 9. Market-data startup is catalog-driven. Owner 509 contributes exactly
-   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian contributes exactly
-   `okx:BTCUSDT@1h` only while its explicit mode is SHADOW. Database
-   `bt_strategy.enabled` values cannot add subscriptions, startup validation,
-   warm-up evaluation, or resubscription side effects.
+   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian and MEI directional
+   candidates contribute the same deduplicated `okx:BTCUSDT@1h` requirement
+   only while their explicit modes are SHADOW. Database `bt_strategy.enabled`
+   values cannot add subscriptions, startup validation, warm-up evaluation,
+   or resubscription side effects.
 10. The legacy enabled-strategy startup validator, database-change
     resubscription listener, and dual-provider divergence monitor were removed.
     The provider list is retained only as a fail-closed mechanical allowlist.
@@ -277,9 +301,11 @@ acceptance uses compilation plus direct source/config assertions:
 - compilation must succeed with no test source or test dependency;
 - the runtime catalog must contain exactly one `LIVE` assignment;
 - owner 509 must remain `BTCUSDT`, `1d`, `binance`, `LIVE`;
-- with the current Donchian SHADOW mode, startup must resolve exactly two
-  streams: `binance:BTCUSDT@1d` and `okx:BTCUSDT@1h`; with Donchian OFF, only
-  the owner 509 stream remains;
+- the local catalog must contain the default-OFF MEI candidate as `SHADOW`
+  without any live exchange implementation;
+- with either hourly SHADOW lane enabled, startup must resolve exactly two
+  deduplicated streams: `binance:BTCUSDT@1d` and `okx:BTCUSDT@1h`; with both
+  hourly lanes OFF, only the owner 509 stream remains;
 - changing database strategy `enabled` flags must not change stream inventory;
 - startup must not run legacy enabled-strategy data validation, warm-up
   evaluation, database-change resubscription, or dual-provider divergence;

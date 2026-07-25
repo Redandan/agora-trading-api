@@ -1,10 +1,12 @@
 package com.agora.config;
 
 import com.agora.config.properties.BtcDonchianShadowProperties;
+import com.agora.config.properties.BtcMeiDirectionalShadowProperties;
 import com.agora.service.strategy.StrategyLifecycleMode;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.agora.service.strategy.StrategyRuntimeDefinition;
 import com.agora.service.trading.BtcDonchianShadowPolicy;
+import com.agora.service.trading.BtcMeiDirectionalShadowPolicy;
 import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +24,9 @@ import java.util.Set;
  * <p>Database {@code bt_strategy.enabled} rows are research inventory and
  * cannot create runtime subscriptions. Each active lane contributes exactly
  * one source/symbol/interval requirement. Owner 509 retains its Binance daily
- * feed while evaluation is allowed; Donchian contributes its OKX hourly feed only
- * while its explicit SHADOW switch is enabled.</p>
+ * feed while evaluation is allowed. Donchian and MEI directional candidates
+ * contribute the same deduplicated OKX hourly feed only while their explicit
+ * SHADOW switches are enabled.</p>
  */
 @Slf4j
 @Service
@@ -34,6 +37,7 @@ public class WsSubscriptionResolver {
 
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
     private final BtcDonchianShadowProperties donchianProperties;
+    private final BtcMeiDirectionalShadowProperties meiDirectionalProperties;
 
     public List<MarketWsAutoSubscribeProperties.Item> resolve() {
         Set<String> seenKeys = new LinkedHashSet<>();
@@ -53,6 +57,16 @@ public class WsSubscriptionResolver {
                     items,
                     seenKeys,
                     strategyRuntimeCatalog.require(BtcDonchianShadowPolicy.POLICY_MODE));
+        }
+
+        if (meiDirectionalProperties.enabled()
+                && strategyRuntimeCatalog.isMode(
+                        BtcMeiDirectionalShadowPolicy.POLICY_MODE,
+                        StrategyLifecycleMode.SHADOW)) {
+            addDefinition(
+                    items,
+                    seenKeys,
+                    strategyRuntimeCatalog.require(BtcMeiDirectionalShadowPolicy.POLICY_MODE));
         }
 
         log.info("[WsSubResolver] Resolved {} exact catalog requirement(s): {}",

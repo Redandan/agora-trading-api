@@ -89,6 +89,17 @@ MARKET_WS_AUTO_SUBSCRIBE_ENABLED=true
 MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=binance,okx
 ```
 
+Research lanes use separate fail-closed switches:
+
+```bash
+TRADING_BTC_DONCHIAN_SHADOW_MODE=OFF
+TRADING_BTC_MEI_DIRECTIONAL_SHADOW_MODE=OFF
+```
+
+The MEI directional candidate must remain `OFF` for its first deployment.
+Changing either value to `SHADOW` is a Production configuration mutation that
+requires separate authorization. Neither lane has an exchange-order adapter.
+
 When enabled, the runtime catalog—not database `enabled` rows or environment
 item lists—selects exact streams. Owner 509 uses Binance `BTCUSDT@1d`;
 Donchian uses OKX `BTCUSDT@1h` only in SHADOW. There is no startup warm-up,

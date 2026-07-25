@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Durable PAPER lane for the frozen daily TradingView accumulation contract.
+ * Durable PAPER lane for score-buy entries with per-lot automatic profit exits.
  *
  * <p>State is restored from verified runtime-evidence snapshots. A transaction
  * scoped strategy-row lock plus a persisted decision-audit key serializes the
@@ -45,12 +45,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TradingViewAccumulationPaperService {
+public class TradingViewScoreBuyAutoExitPaperService {
 
-    static final String POLICY_MODE = "TV_BTC_DAILY_ACCUMULATION_PAPER_V1";
-    static final String EVENT_TYPE = "LOCAL_TV_PAPER";
-    static final String BLOCK_EVENT_TYPE = "LOCAL_TV_PAPER_BLOCK";
-    static final String EVIDENCE_SCHEMA_VERSION = "TV_BTC_DAILY_ACCUMULATION_PAPER_STATE_V1";
+    static final String POLICY_MODE = "TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_PAPER_V2";
+    static final String EVENT_TYPE = "LOCAL_TV_V2_PAPER";
+    static final String BLOCK_EVENT_TYPE = "LOCAL_TV_V2_PAPER_BLOCK";
+    static final String EVIDENCE_SCHEMA_VERSION = "TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_PAPER_STATE_V2";
     private static final String EXECUTION_MODE = "PAPER";
     private static final int STATE_RESTORE_SCAN_LIMIT = 50;
 
@@ -61,20 +61,20 @@ public class TradingViewAccumulationPaperService {
     private final BtDecisionAuditRepository decisionAuditRepository;
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
     private final ObjectMapper objectMapper;
-    private final TradingViewAccumulationPaperEngine engine;
+    private final TradingViewScoreBuyAutoExitPaperEngine engine;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
 
     public boolean isEnabled() {
         return properties.executionMode() == ExecutionMode.BTC_BASE_PAPER
                 && strategyRuntimeCatalog.isMode(
-                TradingViewDailyStrategyContract.KEY, StrategyLifecycleMode.PAPER);
+                TradingViewScoreBuyAutoExitStrategyContract.KEY, StrategyLifecycleMode.PAPER);
     }
 
     @Transactional
     public void evaluate(BtStrategy strategy,
                          MdKline eventKline,
                          String source,
-                         List<TradingViewAccumulationPaperEngine.PaperBar> evaluatedBars) {
+                         List<TradingViewScoreBuyAutoExitPaperEngine.PaperBar> evaluatedBars) {
         if (!isEnabled() || strategy == null || eventKline == null || eventKline.getOpenTime() == null) {
             return;
         }
@@ -111,8 +111,8 @@ public class TradingViewAccumulationPaperService {
                 .orElseThrow(() -> new IllegalStateException("paper strategy row is unavailable"));
         if (decisionAuditRepository.existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndEventType(
                 strategy.getId(),
-                TradingViewDailyStrategyContract.SIGNAL_SYMBOL,
-                TradingViewDailyStrategyContract.SIGNAL_INTERVAL,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL,
                 eventKline.getOpenTime(),
                 BLOCK_EVENT_TYPE)) {
             return;
@@ -122,13 +122,13 @@ public class TradingViewAccumulationPaperService {
 
     private void evaluateLocked(BtStrategy strategy,
                                 MdKline eventKline,
-                                List<TradingViewAccumulationPaperEngine.PaperBar> evaluatedBars) {
+                                List<TradingViewScoreBuyAutoExitPaperEngine.PaperBar> evaluatedBars) {
         strategyRepository.findByIdForBootstrapReservation(strategy.getId())
                 .orElseThrow(() -> new IllegalStateException("paper strategy row is unavailable"));
         if (decisionAuditRepository.existsByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTimeAndEventType(
                 strategy.getId(),
-                TradingViewDailyStrategyContract.SIGNAL_SYMBOL,
-                TradingViewDailyStrategyContract.SIGNAL_INTERVAL,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL,
                 eventKline.getOpenTime(),
                 EVENT_TYPE)) {
             log.debug("[LocalTradingViewPaper] persisted duplicate ignored openTime={}",
@@ -136,10 +136,10 @@ public class TradingViewAccumulationPaperService {
             return;
         }
 
-        List<TradingViewAccumulationPaperEngine.PaperBar> bars = evaluatedBars == null
+        List<TradingViewScoreBuyAutoExitPaperEngine.PaperBar> bars = evaluatedBars == null
                 ? new ArrayList<>()
                 : new ArrayList<>(evaluatedBars);
-        bars.sort(Comparator.comparing(TradingViewAccumulationPaperEngine.PaperBar::openTime,
+        bars.sort(Comparator.comparing(TradingViewScoreBuyAutoExitPaperEngine.PaperBar::openTime,
                 Comparator.nullsLast(Comparator.naturalOrder())));
         if (bars.isEmpty()
                 || !eventKline.getOpenTime().equals(bars.get(bars.size() - 1).openTime())) {
@@ -148,7 +148,7 @@ public class TradingViewAccumulationPaperService {
         }
 
         RestoredState restored = restoreLatestState(strategy.getId());
-        TradingViewAccumulationPaperEngine.State state = restored.state();
+        TradingViewScoreBuyAutoExitPaperEngine.State state = restored.state();
         boolean bootstrap = state == null;
         if (bootstrap) {
             if (!TradingViewScoreBuyModel.BTCUSDT_1D_REPLAY_START_UTC.equals(bars.get(0).openTime())) {
@@ -168,19 +168,18 @@ public class TradingViewAccumulationPaperService {
             }
         }
 
-        TradingViewAccumulationPaperEngine.StepResult current = null;
+        TradingViewScoreBuyAutoExitPaperEngine.StepResult current = null;
         try {
-            for (TradingViewAccumulationPaperEngine.PaperBar bar : bars) {
-                current = engine.step(
-                        state,
-                        bar,
-                        properties.defaultNotionalUsdt(),
-                        properties.maxNotionalUsdt(),
-                        properties.btcBaseMaxExposureUsdt(),
-                        TradingViewDailyStrategyContract.PAPER_FEE_RATE);
+            TradingViewScoreBuyAutoExitPaperEngine.Policy policy =
+                    TradingViewScoreBuyAutoExitPaperEngine.Policy.paperDefault(
+                            properties.defaultNotionalUsdt(),
+                            properties.maxNotionalUsdt(),
+                            properties.btcBaseMaxExposureUsdt());
+            for (TradingViewScoreBuyAutoExitPaperEngine.PaperBar bar : bars) {
+                current = engine.step(state, bar, policy);
                 state = current.state();
             }
-        } catch (TradingViewAccumulationPaperEngine.DataQualityException
+        } catch (TradingViewScoreBuyAutoExitPaperEngine.DataQualityException
                  | IllegalArgumentException e) {
             persistBlocked(strategy, eventKline, safeCode(e.getMessage()), state, bars.size());
             return;
@@ -202,7 +201,7 @@ public class TradingViewAccumulationPaperService {
 
     private void persistObserved(BtStrategy strategy,
                                  MdKline bar,
-                                 TradingViewAccumulationPaperEngine.StepResult step,
+                                 TradingViewScoreBuyAutoExitPaperEngine.StepResult step,
                                  boolean bootstrap,
                                  boolean catchUp,
                                  int batchBars,
@@ -212,21 +211,26 @@ public class TradingViewAccumulationPaperService {
         String selectedAction = selectedAction(step.events());
 
         Map<String, Object> auditContext = new LinkedHashMap<>();
-        auditContext.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
-        auditContext.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
+        auditContext.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
+        auditContext.put("entryContractKey", TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY);
+        auditContext.put("strategyOwnerAlias", TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS);
         auditContext.put("policyMode", POLICY_MODE);
         auditContext.put("executionMode", EXECUTION_MODE);
-        auditContext.put("executionTiming", TradingViewDailyStrategyContract.PAPER_EXECUTION_TIMING);
+        auditContext.put("executionTiming", TradingViewScoreBuyAutoExitStrategyContract.PAPER_EXECUTION_TIMING);
         auditContext.put("bootstrap", bootstrap);
         auditContext.put("catchUp", catchUp);
         auditContext.put("batchBars", batchBars);
         auditContext.put("invalidStateRowsScanned", invalidRowsScanned);
         auditContext.put("selectedAction", selectedAction);
         auditContext.put("eventTypes", step.events().stream()
-                .map(TradingViewAccumulationPaperEngine.PaperEvent::type).toList());
+                .map(TradingViewScoreBuyAutoExitPaperEngine.PaperEvent::type).toList());
         auditContext.put("stateAfterSha256", stateHash);
-        auditContext.put("fillCount", step.state().fillCount());
-        auditContext.put("deployedNotionalUsdt", step.state().deployedNotionalUsdt());
+        auditContext.put("buyFillCount", step.state().buyFillCount());
+        auditContext.put("sellFillCount", step.state().sellFillCount());
+        auditContext.put("winningExitLotCount", step.state().winningExitLotCount());
+        auditContext.put("openLotCount", step.state().openLots().size());
+        auditContext.put("totalBuyNotionalUsdt", step.state().totalBuyNotionalUsdt());
+        auditContext.put("realizedPnlUsdt", step.state().realizedPnlUsdt());
         auditContext.put("inventoryQty", step.state().inventoryQty());
         auditContext.put("unrealizedPnlUsdt", step.state().unrealizedPnlUsdt());
         auditContext.put("orderSent", false);
@@ -244,8 +248,9 @@ public class TradingViewAccumulationPaperService {
 
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("evidenceSchemaVersion", EVIDENCE_SCHEMA_VERSION);
-        snapshot.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
-        snapshot.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
+        snapshot.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
+        snapshot.put("entryContractKey", TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY);
+        snapshot.put("strategyOwnerAlias", TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS);
         snapshot.put("policyMode", POLICY_MODE);
         snapshot.put("barOpenTime", text(bar.getOpenTime()));
         snapshot.put("barCloseTime", text(bar.getCloseTime()));
@@ -253,9 +258,12 @@ public class TradingViewAccumulationPaperService {
         snapshot.put("catchUp", catchUp);
         snapshot.put("batchBars", batchBars);
         snapshot.put("invalidStateRowsScanned", invalidRowsScanned);
-        snapshot.put("executionTiming", TradingViewDailyStrategyContract.PAPER_EXECUTION_TIMING);
-        snapshot.put("feeRate", TradingViewDailyStrategyContract.PAPER_FEE_RATE);
-        snapshot.put("strategyExitPolicy", TradingViewDailyStrategyContract.EXIT_POLICY);
+        snapshot.put("executionTiming", TradingViewScoreBuyAutoExitStrategyContract.PAPER_EXECUTION_TIMING);
+        snapshot.put("feeRate", TradingViewScoreBuyAutoExitStrategyContract.PAPER_FEE_RATE);
+        snapshot.put("slippageRate", TradingViewScoreBuyAutoExitStrategyContract.PAPER_ADVERSE_SLIPPAGE_RATE);
+        snapshot.put("strategyExitPolicy", TradingViewScoreBuyAutoExitStrategyContract.EXIT_POLICY);
+        snapshot.put("netProfitTrigger", TradingViewScoreBuyAutoExitStrategyContract.NET_PROFIT_TRIGGER);
+        snapshot.put("minRealizedNetProfit", TradingViewScoreBuyAutoExitStrategyContract.MIN_REALIZED_NET_PROFIT);
         snapshot.put("stateAfterSha256", stateHash);
         snapshot.put("stateAfter", step.state());
         snapshot.put("events", step.events());
@@ -272,11 +280,12 @@ public class TradingViewAccumulationPaperService {
         evidence.setSelectedAction(selectedAction);
         evidence.setReason(eventReason(step.events()));
         evidence.setFinalOutcome("PAPER_OBSERVED");
-        evidence.setDecision(step.events().stream()
-                .anyMatch(event -> "PAPER_INTENT_QUEUED_NEXT_DAILY_OPEN".equals(event.type()))
-                ? "BUY_SIGNAL" : "HOLD");
-        evidence.setIntentCreated(step.events().stream()
-                .anyMatch(event -> "PAPER_INTENT_QUEUED_NEXT_DAILY_OPEN".equals(event.type())));
+        boolean sellIntent = step.events().stream()
+                .anyMatch(event -> "PAPER_EXIT_QUEUED_NEXT_DAILY_OPEN".equals(event.type()));
+        boolean buyIntent = step.events().stream()
+                .anyMatch(event -> "PAPER_BUY_INTENT_QUEUED_NEXT_DAILY_OPEN".equals(event.type()));
+        evidence.setDecision(sellIntent ? "SELL_SIGNAL" : buyIntent ? "BUY_SIGNAL" : "HOLD");
+        evidence.setIntentCreated(sellIntent || buyIntent);
         evidence.setPolicyInputsJson(policyInputsJson());
         evidence.setExecutionPreviewJson(writeJson(Map.of(
                 "events", step.events(),
@@ -290,13 +299,13 @@ public class TradingViewAccumulationPaperService {
     private void persistBlocked(BtStrategy strategy,
                                 MdKline bar,
                                 String blocker,
-                                TradingViewAccumulationPaperEngine.State state,
+                                TradingViewScoreBuyAutoExitPaperEngine.State state,
                                 int batchBars) {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         String safeBlocker = safeCode(blocker);
         String stateHash = state == null ? "" : stateSha256(state);
         Map<String, Object> auditContext = new LinkedHashMap<>();
-        auditContext.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
+        auditContext.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
         auditContext.put("policyMode", POLICY_MODE);
         auditContext.put("executionMode", EXECUTION_MODE);
         auditContext.put("terminalBlocker", safeBlocker);
@@ -311,12 +320,12 @@ public class TradingViewAccumulationPaperService {
                 BLOCK_EVENT_TYPE,
                 "BLOCKED",
                 safeBlocker,
-                "LOCAL_TRADINGVIEW_PAPER_BLOCKED",
+                "LOCAL_TRADINGVIEW_V2_PAPER_BLOCKED",
                 auditContext);
 
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("evidenceSchemaVersion", EVIDENCE_SCHEMA_VERSION);
-        snapshot.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
+        snapshot.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
         snapshot.put("policyMode", POLICY_MODE);
         snapshot.put("barOpenTime", text(bar.getOpenTime()));
         snapshot.put("terminalBlocker", safeBlocker);
@@ -332,7 +341,7 @@ public class TradingViewAccumulationPaperService {
         RuntimeDecisionEvidence evidence = baseEvidence(strategy, audit, now);
         evidence.setFeaturesSnapshotJson(writeJson(snapshot));
         evidence.setFreshnessState("INCOMPLETE_FAIL_CLOSED");
-        evidence.setSelectedAction("LOCAL_TRADINGVIEW_PAPER_BLOCKED");
+        evidence.setSelectedAction("LOCAL_TRADINGVIEW_V2_PAPER_BLOCKED");
         evidence.setReason(safeBlocker);
         evidence.setFinalOutcome("BLOCKED_DATA_QUALITY");
         evidence.setDecision("HOLD");
@@ -352,8 +361,8 @@ public class TradingViewAccumulationPaperService {
         List<RuntimeDecisionEvidence> rows = evidenceRepository
                 .findByPolicyModeAndSymbolAndIntervalCodeOrderByIdDesc(
                         POLICY_MODE,
-                        TradingViewDailyStrategyContract.SIGNAL_SYMBOL,
-                        TradingViewDailyStrategyContract.SIGNAL_INTERVAL,
+                        TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
+                        TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL,
                         PageRequest.of(0, STATE_RESTORE_SCAN_LIMIT));
         if (rows == null || rows.isEmpty()) {
             return new RestoredState(null, 0);
@@ -374,8 +383,8 @@ public class TradingViewAccumulationPaperService {
                     invalid++;
                     continue;
                 }
-                TradingViewAccumulationPaperEngine.State state = objectMapper.treeToValue(
-                        stateNode, TradingViewAccumulationPaperEngine.State.class);
+                TradingViewScoreBuyAutoExitPaperEngine.State state = objectMapper.treeToValue(
+                        stateNode, TradingViewScoreBuyAutoExitPaperEngine.State.class);
                 if (!expectedHash.equals(stateSha256(state))) {
                     invalid++;
                     continue;
@@ -399,8 +408,8 @@ public class TradingViewAccumulationPaperService {
         BtDecisionAudit audit = new BtDecisionAudit();
         audit.setEventTime(now);
         audit.setStrategyId(strategy.getId());
-        audit.setSymbol(TradingViewDailyStrategyContract.SIGNAL_SYMBOL);
-        audit.setIntervalCode(TradingViewDailyStrategyContract.SIGNAL_INTERVAL);
+        audit.setSymbol(TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL);
+        audit.setIntervalCode(TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL);
         audit.setBarOpenTime(bar.getOpenTime());
         audit.setEventType(eventType);
         audit.setOutcome(outcome);
@@ -416,13 +425,13 @@ public class TradingViewAccumulationPaperService {
         RuntimeDecisionEvidence evidence = new RuntimeDecisionEvidence();
         evidence.setDecisionId(audit.getId());
         evidence.setEvidenceTime(now);
-        evidence.setSymbol(TradingViewDailyStrategyContract.SIGNAL_SYMBOL);
+        evidence.setSymbol(TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL);
         evidence.setSide("LONG");
         evidence.setStrategyId(strategy.getId());
-        evidence.setIntervalCode(TradingViewDailyStrategyContract.SIGNAL_INTERVAL);
+        evidence.setIntervalCode(TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL);
         evidence.setSignalSource("LOCAL_TRADINGVIEW");
         evidence.setPolicyMode(POLICY_MODE);
-        evidence.setPolicyReason("Frozen TradingView parity BUY intents; 1/2/5 notional weights; next daily open PAPER fill; no exit");
+        evidence.setPolicyReason("Frozen TradingView parity BUY intents; per-lot +5% net-profit trigger; next-daily-open PAPER exits with +1% execution floor");
         evidence.setExecutionMode(EXECUTION_MODE);
         evidence.setOrderSent(false);
         evidence.setSuppressionReason("PAPER_MODE_NO_ORDER_CAPABILITY");
@@ -432,12 +441,12 @@ public class TradingViewAccumulationPaperService {
 
     private boolean contractMatches(BtStrategy strategy, MdKline eventKline, String source) {
         return strategy.getId() != null
-                && strategy.getId() == TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID
-                && TradingViewDailyStrategyContract.SIGNAL_SYMBOL.equalsIgnoreCase(
+                && strategy.getId() == TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID
+                && TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL.equalsIgnoreCase(
                 normalizeSymbol(eventKline.getSymbol()))
-                && TradingViewDailyStrategyContract.SIGNAL_INTERVAL.equalsIgnoreCase(
+                && TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL.equalsIgnoreCase(
                 eventKline.getIntervalCode())
-                && TradingViewDailyStrategyContract.SIGNAL_SOURCE.equalsIgnoreCase(source)
+                && TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SOURCE.equalsIgnoreCase(source)
                 && closedAndFresh(eventKline);
     }
 
@@ -456,47 +465,60 @@ public class TradingViewAccumulationPaperService {
 
     private String policyInputsJson() {
         Map<String, Object> policy = new LinkedHashMap<>();
-        policy.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
-        policy.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
-        policy.put("databaseStrategyId", TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID);
-        policy.put("signalSource", TradingViewDailyStrategyContract.SIGNAL_SOURCE);
-        policy.put("symbol", TradingViewDailyStrategyContract.SIGNAL_SYMBOL);
-        policy.put("intervalCode", TradingViewDailyStrategyContract.SIGNAL_INTERVAL);
-        policy.put("executionTiming", TradingViewDailyStrategyContract.PAPER_EXECUTION_TIMING);
+        policy.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
+        policy.put("entryContractKey", TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY);
+        policy.put("strategyOwnerAlias", TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS);
+        policy.put("databaseStrategyId", TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID);
+        policy.put("signalSource", TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SOURCE);
+        policy.put("symbol", TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL);
+        policy.put("intervalCode", TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL);
+        policy.put("executionTiming", TradingViewScoreBuyAutoExitStrategyContract.PAPER_EXECUTION_TIMING);
         policy.put("baseNotionalUsdt", properties.defaultNotionalUsdt());
         policy.put("maxOrderNotionalUsdt", properties.maxNotionalUsdt());
         policy.put("maxExposureUsdt", properties.btcBaseMaxExposureUsdt());
-        policy.put("feeRate", TradingViewDailyStrategyContract.PAPER_FEE_RATE);
-        policy.put("exitPolicy", TradingViewDailyStrategyContract.EXIT_POLICY);
+        policy.put("feeRate", TradingViewScoreBuyAutoExitStrategyContract.PAPER_FEE_RATE);
+        policy.put("slippageRate", TradingViewScoreBuyAutoExitStrategyContract.PAPER_ADVERSE_SLIPPAGE_RATE);
+        policy.put("exitPolicy", TradingViewScoreBuyAutoExitStrategyContract.EXIT_POLICY);
+        policy.put("netProfitTrigger", TradingViewScoreBuyAutoExitStrategyContract.NET_PROFIT_TRIGGER);
+        policy.put("minRealizedNetProfit", TradingViewScoreBuyAutoExitStrategyContract.MIN_REALIZED_NET_PROFIT);
         policy.put("orderAllowed", false);
         return writeJson(policy);
     }
 
-    private String selectedAction(List<TradingViewAccumulationPaperEngine.PaperEvent> events) {
-        if (events.stream().anyMatch(event -> "PAPER_FILL_NEXT_DAILY_OPEN".equals(event.type()))) {
-            return "LOCAL_TRADINGVIEW_PAPER_FILL";
+    private String selectedAction(List<TradingViewScoreBuyAutoExitPaperEngine.PaperEvent> events) {
+        if (events.stream().anyMatch(event -> "PAPER_SELL_FILL_NEXT_DAILY_OPEN".equals(event.type()))) {
+            return "LOCAL_TRADINGVIEW_V2_PAPER_SELL_FILL";
         }
-        if (events.stream().anyMatch(event -> "PAPER_INTENT_QUEUED_NEXT_DAILY_OPEN".equals(event.type()))) {
-            return "LOCAL_TRADINGVIEW_PAPER_INTENT";
+        if (events.stream().anyMatch(event -> "PAPER_BUY_FILL_NEXT_DAILY_OPEN".equals(event.type()))) {
+            return "LOCAL_TRADINGVIEW_V2_PAPER_BUY_FILL";
         }
-        if (events.stream().anyMatch(event -> "PAPER_INTENT_BLOCKED".equals(event.type()))) {
-            return "LOCAL_TRADINGVIEW_PAPER_INTENT_BLOCKED";
+        if (events.stream().anyMatch(event -> "PAPER_EXIT_QUEUED_NEXT_DAILY_OPEN".equals(event.type()))) {
+            return "LOCAL_TRADINGVIEW_V2_PAPER_EXIT_INTENT";
         }
-        return "LOCAL_TRADINGVIEW_PAPER_STATE_ADVANCE";
+        if (events.stream().anyMatch(event -> "PAPER_BUY_INTENT_QUEUED_NEXT_DAILY_OPEN".equals(event.type()))) {
+            return "LOCAL_TRADINGVIEW_V2_PAPER_BUY_INTENT";
+        }
+        if (events.stream().anyMatch(event -> event.type().contains("BLOCKED"))) {
+            return "LOCAL_TRADINGVIEW_V2_PAPER_INTENT_BLOCKED";
+        }
+        if (events.stream().anyMatch(event -> event.type().contains("DEFERRED"))) {
+            return "LOCAL_TRADINGVIEW_V2_PAPER_EXIT_DEFERRED";
+        }
+        return "LOCAL_TRADINGVIEW_V2_PAPER_STATE_ADVANCE";
     }
 
-    private String eventReason(List<TradingViewAccumulationPaperEngine.PaperEvent> events) {
+    private String eventReason(List<TradingViewScoreBuyAutoExitPaperEngine.PaperEvent> events) {
         if (events.isEmpty()) {
             return "NO_SIGNAL_STATE_ADVANCED";
         }
         return events.stream()
-                .map(TradingViewAccumulationPaperEngine.PaperEvent::type)
+                .map(TradingViewScoreBuyAutoExitPaperEngine.PaperEvent::type)
                 .distinct()
                 .reduce((left, right) -> left + "," + right)
                 .orElse("NO_SIGNAL_STATE_ADVANCED");
     }
 
-    private String stateSha256(TradingViewAccumulationPaperEngine.State state) {
+    private String stateSha256(TradingViewScoreBuyAutoExitPaperEngine.State state) {
         try {
             byte[] json = objectMapper.writeValueAsString(state).getBytes(StandardCharsets.UTF_8);
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(json));
@@ -544,7 +566,7 @@ public class TradingViewAccumulationPaperService {
     }
 
     private record RestoredState(
-            TradingViewAccumulationPaperEngine.State state,
+            TradingViewScoreBuyAutoExitPaperEngine.State state,
             int invalidRowsScanned
     ) {
     }

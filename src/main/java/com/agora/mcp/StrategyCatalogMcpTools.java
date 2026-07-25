@@ -9,7 +9,7 @@ import com.agora.model.BtStrategy;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.agora.service.strategy.StrategyRuntimeDefinition;
-import com.agora.service.tradingview.TradingViewDailyStrategyContract;
+import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
@@ -61,11 +61,13 @@ public class StrategyCatalogMcpTools {
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
-    @Tool(description = "Read-only owner Strategy 508 runtime status. Confirms its frozen daily BTCUSDT Binance PAPER mapping and fail-closed configuration. Never sends an exchange order.")
+    @Tool(description = "Read-only owner Strategy 508 runtime status. Confirms its daily BTCUSDT Binance V2 PAPER mapping with frozen score-buy entries and automatic per-lot profit exits. Never sends an exchange order.")
     public String getOwner508RuntimeStatus() {
-        StrategyRuntimeDefinition definition = catalog.require(TradingViewDailyStrategyContract.KEY);
+        StrategyRuntimeDefinition definition =
+                catalog.require(TradingViewScoreBuyAutoExitStrategyContract.KEY);
         return "OWNER_508_RUNTIME_STATUS\n"
                 + "contract=" + definition.versionedKey() + "\n"
+                + "entryContract=" + TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY + "\n"
                 + "ownerAlias=" + definition.ownerAlias() + "\n"
                 + "databaseStrategyId=" + definition.databaseStrategyId() + "\n"
                 + "mode=" + definition.mode() + "\n"
@@ -75,6 +77,9 @@ public class StrategyCatalogMcpTools {
                 + "configuredEnabled=" + localProperties.enabled() + "\n"
                 + "configuredExecutionMode=" + localProperties.executionMode() + "\n"
                 + "configuredStrategyId=" + localProperties.strategyId() + "\n"
+                + "exitPolicy=" + TradingViewScoreBuyAutoExitStrategyContract.EXIT_POLICY + "\n"
+                + "netProfitTrigger=" + TradingViewScoreBuyAutoExitStrategyContract.NET_PROFIT_TRIGGER + "\n"
+                + "minRealizedNetProfit=" + TradingViewScoreBuyAutoExitStrategyContract.MIN_REALIZED_NET_PROFIT + "\n"
                 + "exchangeOrderAuthorized=false\n";
     }
 

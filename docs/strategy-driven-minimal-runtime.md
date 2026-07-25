@@ -124,6 +124,14 @@ explicitly reviews both the base notional and total BTC inventory cap.
 - A future sell rule requires a new versioned strategy contract. It must not be
   injected by the platform under the same V1 identity.
 
+The first such research candidate is documented in
+`score-buy-auto-exit-v2.md`. It keeps V1 entries and tracks each buy bar as an
+independent lot, queuing a profit-only exit after estimated net return reaches
+5%. The current local source retains V1 as `ARCHIVED` and registers V2 as
+`PAPER` with an independent durable state schema. Deployment does not activate
+the evaluator because the deployment default is
+`TRADINGVIEW_LOCAL_ENABLED=false`. V2 cannot place an exchange order.
+
 The repository has exact buy-point parity evidence. It does not contain proof
 that the original Pine strategy had an exit rule. Therefore adding a local exit
 would be an unverified strategy change.

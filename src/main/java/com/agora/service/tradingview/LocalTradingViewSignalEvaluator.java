@@ -57,7 +57,7 @@ public class LocalTradingViewSignalEvaluator {
     private final BacktestEngine backtestEngine;
     private final MdKlineRepository klineRepository;
     private final DecisionAuditWriter auditWriter;
-    private final TradingViewAccumulationPaperService paperService;
+    private final TradingViewScoreBuyAutoExitPaperService paperService;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
     private final Map<String, Instant> seenKeys = new ConcurrentHashMap<>();
 
@@ -65,7 +65,7 @@ public class LocalTradingViewSignalEvaluator {
         return props.enabled()
                 && props.executionMode() == ExecutionMode.BTC_BASE_PAPER
                 && strategyRuntimeCatalog.isMode(
-                TradingViewDailyStrategyContract.KEY, StrategyLifecycleMode.PAPER);
+                TradingViewScoreBuyAutoExitStrategyContract.KEY, StrategyLifecycleMode.PAPER);
     }
 
     public void evaluate(MdKline eventKline) {
@@ -81,12 +81,12 @@ public class LocalTradingViewSignalEvaluator {
                 || !allowed(source, props.allowedSources(), false)) {
             return;
         }
-        if (props.strategyId() != TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
+        if (props.strategyId() != TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
             log.error("[LocalTradingView] refuse mismatched strategy mapping configuredId={} contract={} expectedDatabaseId={} legacyCollisionId={}",
                     props.strategyId(),
-                    TradingViewDailyStrategyContract.KEY,
-                    TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID,
-                    TradingViewDailyStrategyContract.LEGACY_DATABASE_ID_COLLISION);
+                    TradingViewScoreBuyAutoExitStrategyContract.KEY,
+                    TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID,
+                    TradingViewScoreBuyAutoExitStrategyContract.LEGACY_DATABASE_ID_COLLISION);
             return;
         }
 
@@ -236,8 +236,9 @@ public class LocalTradingViewSignalEvaluator {
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("source", SOURCE);
         context.put("signalSource", "LOCAL_TRADINGVIEW");
-        context.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
-        context.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
+        context.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
+        context.put("entryContractKey", TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY);
+        context.put("strategyOwnerAlias", TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS);
         context.put("strategyId", strategy.getId());
         context.put("strategy", strategy.getName());
         context.put("strategyType", strategy.getStrategyType());
@@ -299,8 +300,9 @@ public class LocalTradingViewSignalEvaluator {
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("source", SOURCE);
         context.put("signalSource", "LOCAL_TRADINGVIEW");
-        context.put("strategyContractKey", TradingViewDailyStrategyContract.KEY);
-        context.put("strategyOwnerAlias", TradingViewDailyStrategyContract.OWNER_ALIAS);
+        context.put("strategyContractKey", TradingViewScoreBuyAutoExitStrategyContract.KEY);
+        context.put("entryContractKey", TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY);
+        context.put("strategyOwnerAlias", TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS);
         context.put("strategyId", strategy.getId());
         context.put("strategy", strategy.getName());
         context.put("strategyType", strategy.getStrategyType());
@@ -362,7 +364,7 @@ public class LocalTradingViewSignalEvaluator {
         if (props.executionMode() != ExecutionMode.BTC_BASE_PAPER) {
             return;
         }
-        List<TradingViewAccumulationPaperEngine.PaperBar> paperBars =
+        List<TradingViewScoreBuyAutoExitPaperEngine.PaperBar> paperBars =
                 new ArrayList<>(klines.size());
         for (int paperIndex = 0; paperIndex < klines.size(); paperIndex++) {
             BarEvaluation evaluation = evaluateBar(
@@ -386,7 +388,7 @@ public class LocalTradingViewSignalEvaluator {
                     hasCompleteReplayHistory(evaluation.details())
                             ? evaluation.intents()
                             : List.of();
-            paperBars.add(new TradingViewAccumulationPaperEngine.PaperBar(
+            paperBars.add(new TradingViewScoreBuyAutoExitPaperEngine.PaperBar(
                     evaluation.kline().getOpenTime(),
                     evaluation.kline().getOpenPrice(),
                     evaluation.kline().getClosePrice(),

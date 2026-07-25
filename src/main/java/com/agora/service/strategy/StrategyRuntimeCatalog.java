@@ -3,6 +3,7 @@ package com.agora.service.strategy;
 import com.agora.model.BtStrategy;
 import com.agora.service.trading.BtcDonchianShadowPolicy;
 import com.agora.service.tradingview.TradingViewDailyStrategyContract;
+import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
@@ -29,11 +30,21 @@ public class StrategyRuntimeCatalog {
                 TradingViewDailyStrategyContract.CONTRACT_VERSION,
                 TradingViewDailyStrategyContract.OWNER_ALIAS,
                 TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID,
-                StrategyLifecycleMode.PAPER,
+                StrategyLifecycleMode.ARCHIVED,
                 TradingViewDailyStrategyContract.SIGNAL_SYMBOL,
                 TradingViewDailyStrategyContract.SIGNAL_INTERVAL,
                 TradingViewDailyStrategyContract.SIGNAL_SOURCE,
-                "Owner 508 daily BTC accumulation; next daily open PAPER fills; no exit"));
+                "Frozen owner 508 V1 entry and accumulation evidence; no longer evaluated"));
+        register(catalog, new StrategyRuntimeDefinition(
+                TradingViewScoreBuyAutoExitStrategyContract.KEY,
+                TradingViewScoreBuyAutoExitStrategyContract.CONTRACT_VERSION,
+                TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS,
+                TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID,
+                StrategyLifecycleMode.PAPER,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL,
+                TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SOURCE,
+                "Owner 508 V2; frozen score-buy entries; per-lot +5% net-profit PAPER exits"));
         register(catalog, new StrategyRuntimeDefinition(
                 BtcDonchianShadowPolicy.POLICY_MODE,
                 1,
@@ -66,7 +77,7 @@ public class StrategyRuntimeCatalog {
 
     public StrategyLifecycleMode modeForDatabaseStrategy(Long strategyId) {
         if (strategyId != null
-                && strategyId == TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
+                && strategyId == TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
             return StrategyLifecycleMode.PAPER;
         }
         return StrategyLifecycleMode.ARCHIVED;
@@ -75,8 +86,8 @@ public class StrategyRuntimeCatalog {
     public StrategyRuntimeDefinition describeDatabaseStrategy(BtStrategy strategy) {
         if (strategy != null
                 && strategy.getId() != null
-                && strategy.getId() == TradingViewDailyStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
-            return require(TradingViewDailyStrategyContract.KEY);
+                && strategy.getId() == TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
+            return require(TradingViewScoreBuyAutoExitStrategyContract.KEY);
         }
         Long id = strategy == null ? null : strategy.getId();
         String type = strategy == null || strategy.getStrategyType() == null

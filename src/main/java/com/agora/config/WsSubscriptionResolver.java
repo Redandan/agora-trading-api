@@ -5,7 +5,7 @@ import com.agora.service.strategy.StrategyLifecycleMode;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.agora.service.strategy.StrategyRuntimeDefinition;
 import com.agora.service.trading.BtcDonchianShadowPolicy;
-import com.agora.service.tradingview.TradingViewDailyStrategyContract;
+import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,7 +40,7 @@ public class WsSubscriptionResolver {
         List<MarketWsAutoSubscribeProperties.Item> items = new ArrayList<>();
 
         StrategyRuntimeDefinition owner508 =
-                strategyRuntimeCatalog.require(TradingViewDailyStrategyContract.KEY);
+                strategyRuntimeCatalog.require(TradingViewScoreBuyAutoExitStrategyContract.KEY);
         if (owner508.mode() == StrategyLifecycleMode.PAPER) {
             addDefinition(items, seenKeys, owner508);
         }

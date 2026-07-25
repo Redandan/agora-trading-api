@@ -15,9 +15,10 @@ fund allocation, or scheduler state is changed by this plan.
 
 ## Current production state
 
-Read-only verification on 2026-07-24 confirmed:
+Read-only verification on 2026-07-25 confirmed:
 
-- deployed commit `788ad4a8c60c` on active port `8085`;
+- Batch 3A runtime change commit `10e5ee3fd9ec` is deployed in build
+  `e1ab8637899d` on active port `8085`; inactive port `8084` is drained;
 - 10 MCP tools and 11 resources;
 - exactly two connected catalog streams: Binance `BTCUSDT@1d` and OKX
   `BTCUSDT@1h`;
@@ -26,9 +27,14 @@ Read-only verification on 2026-07-24 confirmed:
 - Donchian configured SHADOW with runtime evidence enabled and no exchange
   implementation;
 - one provider-managed OKX BTC-USDT Spot Grid running through the read-only
-  monitoring boundary;
+  monitoring boundary; the runtime still has no Grid mutation adapter and
+  exact-net profitability remains unproven while the bot is active;
 - execution-safety status `OK`, with positions `#260/#261/#262` intentionally
-  classified as BTC Base holdings without OCO.
+  classified as BTC Base holdings without OCO;
+- shared-database comparison found 35 source entity tables, 209 database
+  tables, and 0 missing source tables;
+- runtime-log verification found 0 errors, 0 unknown warnings, and 0
+  high-risk operation-like lines.
 
 The staged source-reduction plan is maintained in
 `minimal-runtime-cleanup-roadmap.md`.
@@ -184,7 +190,7 @@ and has no exchange-order adapter.
 
 ## Development sequence
 
-Implemented and deployed by 2026-07-24:
+Implemented and deployed by 2026-07-25:
 
 1. The Pine hash, Binance daily source, owner alias, and intent weights are
    frozen in `TradingViewDailyStrategyContract`.
@@ -217,6 +223,11 @@ Implemented and deployed by 2026-07-24:
     prompts, and Trading-local in-memory approval state were removed. Telegram
     callbacks remain owned by AgoraMarketAPI and cannot approve state inside a
     separate Trading JVM.
+12. Batch 3A removed six archived executable strategy implementations and ten
+    uncalled backtest, replay, simulation, and optimization helpers while
+    preserving the `SCORE_BUY_V2` compatibility adapter, frozen owner-508
+    strategy implementation, Donchian SHADOW, Grid reads, OCO safety,
+    historical strategy rows, entities, repositories, and migrations.
 
 ## Acceptance evidence
 

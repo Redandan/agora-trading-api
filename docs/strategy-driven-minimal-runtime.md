@@ -43,6 +43,31 @@ Read-only verification on 2026-07-25 confirmed:
 The staged source-reduction plan is maintained in
 `minimal-runtime-cleanup-roadmap.md`.
 
+## LIVE production acceptance
+
+Owner 509 was deployed from commit `6dae3fb` on 2026-07-25. Production
+verification confirmed:
+
+- active port `8084`, inactive port `8085` drained, with local/public health
+  and authenticated dedicated MCP passing;
+- V2 `LIVE`, V1 `ARCHIVED`, Donchian `SHADOW`, and
+  `executionArmed=true`;
+- base/max/exposure settings `10/80/250 USDT`, with OKX private credentials
+  and account connectivity confirmed;
+- Binance `BTCUSDT@1d` and OKX `BTCUSDT@1h` catalog subscriptions connected;
+- execution-safety status `OK`; existing positions `#260/#261/#262` remained
+  intentional legacy BTC Base holdings and are outside the owner-509 exit
+  namespace;
+- the same provider-managed OKX Spot Grid remained `running`, and no Grid
+  mutation capability was added;
+- 0 runtime errors, 0 unknown warnings, and 0 high-risk operation-like lines.
+
+Acceptance intentionally sent no test order and used no simulated performance
+claim. A real order will be sent only when the next genuine fresh closed daily
+bar produces a weighted entry. The durable signal reservation and OKX client
+order ID are written before provider submission so an ambiguous timeout is not
+blindly retried.
+
 ## Identity correction
 
 | Identity | Current meaning | Disposition |

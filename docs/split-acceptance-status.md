@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-25 10:52 Asia/Taipei
+Last verified: 2026-07-25 12:10 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,8 +9,8 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- deployed build commit: `8396769`;
-- Score Buy Auto Exit V2 runtime change commit: `8396769`;
+- deployed build commit: `6dae3fb`;
+- owner 509 LIVE runtime change commit: `6dae3fb`;
 - at the acceptance checkpoint, server worktree and `origin/main` matched the
   deployed build commit;
 - active port: `8084`;
@@ -20,6 +20,8 @@ runnable current guidance.
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
 - nginx shared/dedicated upstreams: active port `8084`;
+- runtime log: 0 errors, 0 unknown warnings, and 0 high-risk operation-like
+  lines;
 - server worktree: clean.
 
 The current server verification command is:
@@ -36,7 +38,7 @@ read-only and does not authorize deployment or trading actions.
 Trading owns:
 
 - versioned strategy catalog;
-- owner 508 PAPER accounting;
+- owner 509 bounded LIVE spot execution and durable per-signal accounting;
 - Donchian SHADOW evidence;
 - exact strategy-owned market streams;
 - spot OCO reconciliation and account/order safety;
@@ -55,37 +57,48 @@ are not a Trading cleanup target.
 
 ## Strategy state
 
-The runtime catalog contains three registered contracts. Exactly two are
-executable/evidence lanes and none is `LIVE`:
+The runtime catalog contains three registered contracts. Owner 509 is the only
+`LIVE` contract:
 
 | Contract | Mode | Market data | Exchange order |
 | --- | --- | --- | --- |
-| `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2` | PAPER | Binance `BTCUSDT@1d` | not allowed |
+| `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2` | LIVE | Binance `BTCUSDT@1d` | bounded OKX Spot |
 | `TV_BTC_DAILY_ACCUMULATION_V1@v1` | ARCHIVED | none | not allowed |
 | `BTC_DONCHIAN_20D_10D_V1@v1` | SHADOW | OKX `BTCUSDT@1h` | not allowed |
 
-Owner 508 is a display alias for
-`TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2`; V1 remains the frozen entry contract.
-Its temporary database mapping is strategy `485`. Database strategy `508` is
-a different archived strategy.
+Owner 509 is the display alias for
+`TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2`. Owner 508 remains the archived V1
+entry lineage. The active runtime's temporary database mapping is strategy
+`485`; database strategy `508` is a different archived strategy.
 
-Current owner 508 settings:
+Current owner 509 settings:
 
 ```text
-configuredEnabled=false
-configuredExecutionMode=BTC_BASE_PAPER
+configuredEnabled=true
+configuredExecutionMode=BTC_BASE_LIVE
 configuredStrategyId=485
+baseNotionalUsdt=10.0
+maxOrderNotionalUsdt=80.0
+maxExposureUsdt=250.0
+liveMaxSignalAgeMinutes=15
 exitPolicy=PER_LOT_NET_PROFIT_TARGET
 netProfitTrigger=0.0500
 minRealizedNetProfit=0.0100
-exchangeOrderAuthorized=false
+exchangeOrderAuthorized=true
+executionArmed=true
 ```
 
-The Binance daily stream remains connected for catalog readiness, but the 508
-evaluator does not run while `configuredEnabled=false`.
+Weights `1/2/5` map to `10/20/50 USDT`. Multiple entries on one closed daily
+bar may aggregate up to `80 USDT`; total open owner-509 cost is capped at
+`250 USDT`. Only a fresh Binance daily close may send an order. Historical
+catch-up bars are audit-only.
+
+The automatic sell path applies only to lots created by owner 509. It targets
+an estimated net gain of at least 5%, records actual fees and realized PnL, and
+does not adopt owner 508, manual, or Grid holdings. It has no stop-loss or OCO.
 
 Donchian runtime evidence is enabled in SHADOW. It has no live implementation,
-order, OCO, or Telegram path and cannot block owner 508.
+order, OCO, or Telegram path and cannot block owner 509.
 
 Every unlisted database strategy is `ARCHIVED`; a database `enabled` value
 cannot start a stream or enter the runtime evaluation path.
@@ -129,6 +142,10 @@ completed provider groups. Provider-reported Grid profit was
 PnL was `-0.1721156492425329 USDT`. It remained active, so exact-net functional
 acceptance and long-term profitability were not proven.
 
+The 2026-07-25 owner-509 deployment rechecked the provider inventory:
+`activeCount=1`, the same `algoId` remained `running`, and the Trading runtime
+still exposes no Grid mutation adapter.
+
 ## Execution safety
 
 The current read-only execution-safety result is:
@@ -155,7 +172,7 @@ Production exposes exactly 10 tools:
 
 1. `getMcpRegistryVersion`
 2. `getStrategyRuntimeCatalog`
-3. `getOwner508RuntimeStatus`
+3. `getOwner509RuntimeStatus`
 4. `analyzeBtcDonchianShadowGoldenParity`
 5. `getBtcDonchianShadowReadiness`
 6. `getOkxNativeSpotGridStatus`
@@ -197,13 +214,25 @@ git diff --check
 Direct source/config assertions must additionally prove:
 
 - exactly 10 MCP tools;
-- exactly three registered catalog contracts, two active/evidence lanes, and
-  no `LIVE` mode;
-- owner 508 V2 PAPER, archived V1, and Donchian SHADOW mappings;
+- exactly three registered catalog contracts and exactly one `LIVE` mode;
+- owner 509 V2 LIVE, archived owner 508 V1, and Donchian SHADOW mappings;
+- weights `1/2/5` map to `10/20/50 USDT`, with `80 USDT` same-bar and
+  `250 USDT` open-cost caps;
+- only fresh closed Binance daily bars can send owner-509 orders;
+- durable signal reservation and unique OKX client order identifiers prevent
+  blind duplicate retries;
+- automatic exits can sell only owner-509 lots;
 - no Grid mutation adapter;
 - database flags cannot start streams;
 - no database migration or table deletion;
 - retained deployment scripts still parse.
+
+The promotion acceptance did not send a manual or test order and did not claim
+simulated performance. Production instead proved the complete armed path:
+Binance `BTCUSDT@1d` subscription, owner 509 `LIVE`, local execution enabled,
+OKX private credentials and account connectivity, and
+`executionArmed=true`. The first real fill remains dependent on the next
+genuine closed-bar signal.
 
 For docs-only changes, `git diff --check` is sufficient unless the document
 claims new runtime or deployment evidence.

@@ -7,12 +7,13 @@ candidate derived from the old strategy-567 MEI idea.
 
 Current status:
 
-- implemented in local source;
+- deployed as an isolated candidate;
 - registered as `SHADOW`, but its runtime switch defaults to `OFF`;
-- not deployed and not enabled in Production;
+- returned to `OFF` for the V2 restart-continuity rollout; current operator
+  mode must be verified from live configuration;
 - no exchange, OCO, Grid, fund, Telegram, or live-signal dependency;
 - no schema migration and no new MCP tool;
-- when enabled later, reuses the already cataloged OKX `BTCUSDT@1h` stream.
+- when enabled, reuses the already cataloged OKX `BTCUSDT@1h` stream.
 
 Old strategy-567 results do not transfer to this version. The old result used a
 different source contract and mostly `TIME`, `SL`, or `END` exits.
@@ -66,10 +67,22 @@ and `orderSent=false`.
 
 ## Runtime and restart behavior
 
-The lane bootstraps from exactly 73 contiguous OKX hourly bars. It stores a
-hash-verified state snapshot in the existing runtime-evidence table and can
-catch up at most 30 days of missing hourly bars. Missing, mixed-source,
-non-hourly, non-closed, or discontinuous data fails closed.
+The lane bootstraps from exactly 73 contiguous OKX hourly bars. Evidence schema
+V2 stores the exact serialized state as a JSON string plus its SHA-256 in the
+existing runtime-evidence table. The string boundary is intentional: the
+database `JSON` type may normalize numeric JSON tokens, so the restart state
+must not depend on the scale or precision of an embedded JSON number.
+
+Only the first V2 row may bootstrap when no V2 state exists. Once any V2 row
+exists, a missing, corrupt, or hash-mismatched restart state writes
+`STATE_RESTORE_FAILED` and blocks instead of silently bootstrapping again.
+Valid state may catch up at most 30 days of missing hourly bars. Missing,
+mixed-source, non-hourly, non-closed, or discontinuous data also fails closed.
+
+The four initial Production V1 rows from 2026-07-25 10:00–13:00 UTC are
+excluded from forward evidence. Database JSON numeric normalization made their
+post-write state hash unverifiable, so every row incorrectly bootstrapped from
+73 bars. They remain as audit history and are not deleted or migrated.
 
 `TRADING_BTC_MEI_DIRECTIONAL_SHADOW_MODE` accepts only:
 
@@ -92,6 +105,16 @@ Before enabling SHADOW:
 4. verify enabling this lane would deduplicate onto the existing OKX hourly
    subscription;
 5. obtain explicit authorization for the Production configuration change.
+
+After a V2 restart-continuity deployment:
+
+1. the first genuine closed hourly bar must write `bootstrap=true`;
+2. the next genuine bar must write `bootstrap=false`, `catchUp=false`, and
+   `invalidStateRowsScanned=0`;
+3. both rows must retain the exact canonical-state hash after database
+   round-trip;
+4. a deliberately unreadable current-schema state must fail closed rather than
+   creating another bootstrap row.
 
 Minimum forward screening after SHADOW activation:
 

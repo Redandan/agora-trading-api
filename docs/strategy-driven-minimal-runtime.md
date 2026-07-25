@@ -87,8 +87,15 @@ The new candidate:
 - writes only audit/runtime evidence and has no live exchange implementation.
 
 Its frozen contract and later SHADOW acceptance gate are documented in
-`btc-mei-directional-shadow-candidate-v1.md`. This local development did not
-deploy or enable the lane.
+`btc-mei-directional-shadow-candidate-v1.md`.
+
+The first Production SHADOW window exposed a restart-continuity defect: four
+hourly V1 evidence rows all re-bootstrapped because the database `JSON` column
+normalized `BigDecimal` tokens before the stored state was read back and
+hashed. The candidate was returned to `OFF`. Evidence V2 keeps the exact
+serialized state inside a JSON string, verifies its SHA-256 before restore,
+and fails closed after any current-schema restore failure. The four V1 rows
+remain audit history but are not valid forward observations.
 
 ## Identity correction
 

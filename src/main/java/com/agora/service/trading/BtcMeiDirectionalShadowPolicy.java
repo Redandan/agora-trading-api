@@ -12,7 +12,7 @@ public final class BtcMeiDirectionalShadowPolicy {
 
     public static final String POLICY_MODE = "BTC_MEI_DIRECTIONAL_ACCUMULATION_V1";
     public static final String STATE_SCHEMA_VERSION = "BTC_MEI_DIRECTIONAL_SHADOW_STATE_V1";
-    public static final String EVIDENCE_SCHEMA_VERSION = "BTC_MEI_DIRECTIONAL_SHADOW_EVIDENCE_V1";
+    public static final String EVIDENCE_SCHEMA_VERSION = "BTC_MEI_DIRECTIONAL_SHADOW_EVIDENCE_V2";
     public static final String SYMBOL = "BTCUSDT";
     public static final String INTERVAL = "1h";
     public static final String SOURCE = "okx";

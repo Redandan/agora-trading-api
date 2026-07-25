@@ -316,11 +316,25 @@ public final class BtcMeiDirectionalShadowEngine {
     }
 
     public String stateSha256(State state) {
+        return canonicalStateSha256(stateCanonicalJson(state));
+    }
+
+    public String stateCanonicalJson(State state) {
         try {
-            byte[] json = objectMapper.writeValueAsString(state)
-                    .getBytes(StandardCharsets.UTF_8);
+            return objectMapper.writeValueAsString(state);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to serialize MEI directional state", e);
+        }
+    }
+
+    public String canonicalStateSha256(String canonicalStateJson) {
+        if (canonicalStateJson == null || canonicalStateJson.isBlank()) {
+            throw new IllegalArgumentException("canonicalStateJson must not be blank");
+        }
+        try {
             return HexFormat.of().formatHex(
-                    MessageDigest.getInstance("SHA-256").digest(json));
+                    MessageDigest.getInstance("SHA-256").digest(
+                            canonicalStateJson.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
             throw new IllegalStateException("Unable to hash MEI directional state", e);
         }

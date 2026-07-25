@@ -133,6 +133,14 @@ public class BtcMeiDirectionalShadowLaneService {
             return;
         }
         if (state == null) {
+            if (restored != null && restored.currentSchemaEvidenceSeen()) {
+                log.warn("[BtcMeiDirectionalShadow] current-schema state restore failed; "
+                                + "blocking instead of re-bootstrap openTime={} invalidRows={}",
+                        eventKline.getOpenTime(), restored.invalidRowsScanned());
+                persistBlocked(eventKline, null, "STATE_RESTORE_FAILED",
+                        false, false, restored.invalidRowsScanned());
+                return;
+            }
             bootstrap(eventKline, restored == null ? 0 : restored.invalidRowsScanned());
             return;
         }
@@ -228,7 +236,8 @@ public class BtcMeiDirectionalShadowLaneService {
                                  int invalidStateRows) {
         List<BtcMeiDirectionalShadowEngine.RuntimeEvent> events = step.events();
         String selectedAction = selectedAction(events);
-        String stateHash = engine.stateSha256(step.state());
+        String canonicalStateJson = engine.stateCanonicalJson(step.state());
+        String stateHash = engine.canonicalStateSha256(canonicalStateJson);
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
         Map<String, Object> auditContext = new LinkedHashMap<>();
@@ -267,7 +276,7 @@ public class BtcMeiDirectionalShadowLaneService {
         snapshot.put("slippageModelComplete", true);
         snapshot.put("signal", step.signal());
         snapshot.put("stateAfterSha256", stateHash);
-        snapshot.put("stateAfter", step.state());
+        snapshot.put("stateAfterCanonicalJson", canonicalStateJson);
         snapshot.put("events", events);
         snapshot.put("orderSent", false);
         snapshot.put("ocoModified", false);
@@ -307,7 +316,11 @@ public class BtcMeiDirectionalShadowLaneService {
         if (decisionAuditRepository.existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
                 SYMBOL, INTERVAL, bar.getOpenTime(), BLOCK_EVENT_TYPE)) return;
         String safeBlocker = safeCode(blocker);
-        String stateHash = state == null ? null : engine.stateSha256(state);
+        String canonicalStateJson =
+                state == null ? null : engine.stateCanonicalJson(state);
+        String stateHash = canonicalStateJson == null
+                ? null
+                : engine.canonicalStateSha256(canonicalStateJson);
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
         Map<String, Object> auditContext = new LinkedHashMap<>();
@@ -338,7 +351,9 @@ public class BtcMeiDirectionalShadowLaneService {
         snapshot.put("timingCausal", false);
         snapshot.put("hourlyLatticeComplete", false);
         snapshot.put("stateAfterSha256", stateHash);
-        if (state != null) snapshot.put("stateAfter", state);
+        if (canonicalStateJson != null) {
+            snapshot.put("stateAfterCanonicalJson", canonicalStateJson);
+        }
         snapshot.put("events", List.of());
         snapshot.put("orderSent", false);
         snapshot.put("ocoModified", false);
@@ -414,22 +429,32 @@ public class BtcMeiDirectionalShadowLaneService {
                         PageRequest.of(0, STATE_RESTORE_SCAN_LIMIT));
         if (rows == null || rows.isEmpty()) return null;
         int invalid = 0;
+        boolean currentSchemaEvidenceSeen = false;
         for (RuntimeDecisionEvidence row : rows) {
             try {
+                JsonNode root = objectMapper.readTree(row.getFeaturesSnapshotJson());
+                if (!EVIDENCE_SCHEMA_VERSION.equals(
+                        root.path("evidenceSchemaVersion").asText(""))) {
+                    invalid++;
+                    continue;
+                }
+                currentSchemaEvidenceSeen = true;
                 if (Boolean.TRUE.equals(row.getOrderSent())
                         || !"SHADOW_ONLY".equals(row.getExecutionMode())) {
                     invalid++;
                     continue;
                 }
-                JsonNode root = objectMapper.readTree(row.getFeaturesSnapshotJson());
-                JsonNode stateNode = root.path("stateAfter");
+                String canonicalStateJson =
+                        root.path("stateAfterCanonicalJson").asText("");
                 String expectedHash = root.path("stateAfterSha256").asText("");
-                if (stateNode.isMissingNode() || stateNode.isNull() || expectedHash.isBlank()) {
+                if (canonicalStateJson.isBlank() || expectedHash.isBlank()
+                        || !expectedHash.equals(
+                        engine.canonicalStateSha256(canonicalStateJson))) {
                     invalid++;
                     continue;
                 }
-                BtcMeiDirectionalShadowEngine.State state = objectMapper.treeToValue(
-                        stateNode,
+                BtcMeiDirectionalShadowEngine.State state = objectMapper.readValue(
+                        canonicalStateJson,
                         BtcMeiDirectionalShadowEngine.State.class);
                 if (!expectedHash.equals(engine.stateSha256(state))) {
                     invalid++;
@@ -442,12 +467,12 @@ public class BtcMeiDirectionalShadowLaneService {
                         continue;
                     }
                 }
-                return new RestoredState(state, invalid);
+                return new RestoredState(state, invalid, true);
             } catch (Exception ignored) {
                 invalid++;
             }
         }
-        return new RestoredState(null, invalid);
+        return new RestoredState(null, invalid, currentSchemaEvidenceSeen);
     }
 
     private String policyInputsJson(String stateHash) {
@@ -587,7 +612,8 @@ public class BtcMeiDirectionalShadowLaneService {
 
     private record RestoredState(
             BtcMeiDirectionalShadowEngine.State state,
-            int invalidRowsScanned
+            int invalidRowsScanned,
+            boolean currentSchemaEvidenceSeen
     ) {
     }
 }

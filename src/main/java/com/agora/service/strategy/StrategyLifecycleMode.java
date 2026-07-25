@@ -3,8 +3,7 @@ package com.agora.service.strategy;
 /**
  * Strategy lifecycle modes supported by the strategy-driven runtime.
  *
- * <p>Only {@link #LIVE} may ever reach an exchange order adapter. The current
- * catalog does not assign LIVE to any strategy.</p>
+ * <p>Only {@link #LIVE} may ever reach an exchange order adapter.</p>
  */
 public enum StrategyLifecycleMode {
     ARCHIVED(false, false),

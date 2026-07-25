@@ -65,6 +65,7 @@ trading:
       max-notional-usdt: ${TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT:80.0}
       execution-mode: ${TRADINGVIEW_LOCAL_EXECUTION_MODE:BTC_BASE_PAPER}
       btc-base-max-exposure-usdt: ${TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT:250.0}
+      live-max-signal-age-minutes: ${TRADINGVIEW_LOCAL_LIVE_MAX_SIGNAL_AGE_MINUTES:15}
   oco-poller:
     untracked-min-notional-usdt: ${TRADING_OCO_POLLER_UNTRACKED_MIN_NOTIONAL_USDT:10.0}
 

@@ -21,6 +21,9 @@ public interface BtLiveSignalRepository extends JpaRepository<BtLiveSignal, Long
     /** Exact persisted live-signal/provider-order binding; never infer by time window. */
     Optional<BtLiveSignal> findByIdAndExchangeOrderId(Long id, String exchangeOrderId);
 
+    Optional<BtLiveSignal> findByStrategyIdAndSymbolAndIntervalCodeAndBarOpenTime(
+            Long strategyId, String symbol, String intervalCode, LocalDateTime barOpenTime);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT ls FROM BtLiveSignal ls WHERE ls.id = :id")
     Optional<BtLiveSignal> findByIdForUpdate(@Param("id") Long id);

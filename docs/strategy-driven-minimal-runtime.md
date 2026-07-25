@@ -5,18 +5,17 @@
 The minimal product is a BTC spot strategy runner plus the exchange-native OKX
 Spot Grid integration.
 
-The frozen entry strategy is named `TV_BTC_DAILY_ACCUMULATION_V1`. The current
-PAPER runtime is `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2`, which keeps those
-entries and adds per-lot profit exits. The owner-facing alias may remain `508`,
-but the runtime must not use the bare number `508` as the strategy identity
-because the production database already assigns that ID to a different
-strategy.
+The frozen entry strategy is named `TV_BTC_DAILY_ACCUMULATION_V1`. The active
+runtime is `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2`, owner alias `509`, which keeps
+those entries and adds per-lot profit exits. Historical V1 remains archived
+under alias `508`; neither alias is a database primary key.
 
-Deployment of V2 does not activate the evaluator. Production remains
-`TRADINGVIEW_LOCAL_ENABLED=false`; no exchange order, Grid configuration, fund
-allocation, or scheduler state is changed by the deployment.
+Owner 509 is authorized for bounded OKX spot LIVE execution. Weights `1/2/5`
+map to `10/20/50 USDT`, the maximum same-bar aggregate is `80 USDT`, and total
+open owner-509 cost is capped at `250 USDT`. This authorization does not include
+manual/test orders, Grid changes, transfers, OCO, or unrelated strategy actions.
 
-## Current production state
+## Pre-promotion production baseline
 
 Read-only verification on 2026-07-25 confirmed:
 
@@ -48,9 +47,10 @@ The staged source-reduction plan is maintained in
 
 | Identity | Current meaning | Disposition |
 | --- | --- | --- |
-| owner alias `508` | TradingView-validated BTC daily strategy | Preserve as a display alias only |
+| owner alias `508` | Historical TradingView-validated V1 entry strategy | Preserve as archived display lineage |
+| owner alias `509` | V2 score-buy plus automatic profit-only exit | Active LIVE display alias |
 | canonical key `TV_BTC_DAILY_ACCUMULATION_V1` | Frozen versioned entry contract defined below | Preserve as archived entry evidence |
-| canonical key `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` | Current per-lot auto-exit PAPER runtime | Production deployed but evaluator disabled |
+| canonical key `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` | Current per-lot auto-exit runtime | Register as LIVE under owner 509 |
 | production DB `bt_strategy.id=485` | `SCORE_BUY_V2-BTC-1d-MLGated-v1`; captured TradingView Pine parity evidence | Temporary database mapping for migration |
 | production DB `bt_strategy.id=508` | `OI_FUNDING_DIVERGENCE`; OKX market features; one-hour strategy | Archive/shadow only; never treat as the daily TradingView strategy |
 | `STRATEGY_508_4H_24H_V1` | Later four-hour, 24-hour exit experiment | Retire from the canonical `508` path |
@@ -79,9 +79,9 @@ The signed-in TradingView chart was rechecked on 2026-07-24:
   return, and `23.38%` maximum drawdown as of 2026-07-24.
 
 Therefore exact signal parity is proven, but profitable three-year performance
-is not. Runtime simplification may proceed, while this strategy remains PAPER
-until a corrected position-sizing model has positive out-of-sample evidence.
-This is a promotion decision, not a per-signal risk veto.
+is not. The owner explicitly chose bounded LIVE execution without using
+simulated performance as a promotion gate. This limitation remains visible as
+economic context and must not become a per-signal platform veto.
 
 ### Market and clock
 
@@ -130,13 +130,12 @@ explicitly reviews both the base notional and total BTC inventory cap.
 - A future sell rule requires a new versioned strategy contract. It must not be
   injected by the platform under the same V1 identity.
 
-The first such research candidate is documented in
+The first such strategy version is documented in
 `score-buy-auto-exit-v2.md`. It keeps V1 entries and tracks each buy bar as an
 independent lot, queuing a profit-only exit after estimated net return reaches
-5%. The current local source retains V1 as `ARCHIVED` and registers V2 as
-`PAPER` with an independent durable state schema. Deployment does not activate
-the evaluator because the deployment default is
-`TRADINGVIEW_LOCAL_ENABLED=false`. V2 cannot place an exchange order.
+5%. The current source retains V1 as `ARCHIVED` and registers V2/owner 509 as
+`LIVE`. Actual OKX fills are stored in `bt_live_signal`; historical PAPER
+snapshots remain evidence only and are not consulted by the LIVE order path.
 
 The repository has exact buy-point parity evidence. It does not contain proof
 that the original Pine strategy had an exit rule. Therefore adding a local exit
@@ -151,11 +150,9 @@ Every strategy has exactly one mode:
 - `PAPER`: evaluated with durable simulated intents/fills and inventory.
 - `LIVE`: may reach an exchange adapter after execution-safety checks.
 
-Only `TV_BTC_DAILY_ACCUMULATION_V1` is eligible for LIVE research in the first
-minimal release. It must not progress beyond PAPER until corrected sizing has a
-positive out-of-sample result. All other strategies are preserved as
-`ARCHIVED`, `SHADOW`, or `PAPER`; they do not receive their own schedulers,
-execution services, or risk pipelines.
+Only `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` under owner alias `509` is LIVE.
+All other strategies are preserved as `ARCHIVED`, `SHADOW`, or `PAPER`; they
+do not receive their own schedulers, execution services, or risk pipelines.
 
 OKX Native Spot Grid remains a separate provider-managed lane with separate
 capital ownership. This runtime can read Grid status and economic evidence but
@@ -187,7 +184,7 @@ good.
 ## Removed from the active decision path
 
 The following are strategy/risk opinions and must not block
-`TV_BTC_DAILY_ACCUMULATION_V1`:
+`TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2`:
 
 - ensemble votes and external AI/ML promotion gates;
 - event-risk, regime, fear/greed, news, Expected-R, and trade-quality gates;
@@ -199,7 +196,7 @@ The following are strategy/risk opinions and must not block
 
 The deterministic online model contained in the captured Pine source remains
 inside the strategy calculation. It is strategy code, not a platform ML gate.
-Donchian remains an isolated SHADOW evidence lane; it cannot block owner 508
+Donchian remains an isolated SHADOW evidence lane; it cannot block owner 509
 and has no exchange-order adapter.
 
 ## Development sequence
@@ -208,12 +205,14 @@ Implemented and deployed by 2026-07-25:
 
 1. The Pine hash, Binance daily source, owner alias, and intent weights are
    frozen in `TradingViewDailyStrategyContract`.
-2. `StrategyRuntimeCatalog` assigns owner 508 to `PAPER`, Donchian to
+2. `StrategyRuntimeCatalog` assigns owner 509 to `LIVE`, archived V1/508 to
+   `ARCHIVED`, Donchian to
    `SHADOW`, and every other database strategy to `ARCHIVED`.
-3. `KlineClosedEventListener` dispatches only the catalog-owned PAPER and
+3. `KlineClosedEventListener` dispatches only the catalog-owned LIVE and
    SHADOW lanes. Database `enabled` flags cannot revive the legacy evaluator.
-4. The PAPER engine persists weighted intents, next-daily-open fills, fees,
-   and BTC inventory without an exchange-order adapter.
+4. The LIVE adapter aggregates the current daily bar's weights, commits a
+   unique reservation, places an OKX spot order with `clOrdId`, and persists
+   actual fills/fees. Catch-up bars are audit-only.
 5. The legacy live evaluator, Webhook, 508 time-exit, AI/ML/Ensemble,
    auto-entry services, strategy risk filters, Earn/Funding lanes, and their
    schedulers/MCP tools were removed.
@@ -221,11 +220,11 @@ Implemented and deployed by 2026-07-25:
    catalog, Donchian evidence, read-only execution safety, and read-only OKX
    Native Grid monitoring.
 7. Existing spot OCO reconciliation remains for mechanical execution safety;
-   it is not part of owner 508 strategy logic.
+   it is not part of owner 509 strategy logic.
 8. Grid create/stop services, migration previews, write gates, and obsolete
    authorization documents were removed. Provider Grid state is not changed.
-9. Market-data startup is catalog-driven. Owner 508 contributes exactly
-   `binance:BTCUSDT@1d` for PAPER readiness. Donchian contributes exactly
+9. Market-data startup is catalog-driven. Owner 509 contributes exactly
+   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian contributes exactly
    `okx:BTCUSDT@1h` only while its explicit mode is SHADOW. Database
    `bt_strategy.enabled` values cannot add subscriptions, startup validation,
    warm-up evaluation, or resubscription side effects.
@@ -251,17 +250,18 @@ acceptance uses compilation plus direct source/config assertions:
 - the historical parity checkpoint was 42 expected intents with zero missing
   and zero extra; this is retained as prior evidence, not rerun in this change;
 - compilation must succeed with no test source or test dependency;
-- the runtime catalog must contain no `LIVE` assignment;
-- owner 508 must remain `BTCUSDT`, `1d`, `binance`, `PAPER`;
+- the runtime catalog must contain exactly one `LIVE` assignment;
+- owner 509 must remain `BTCUSDT`, `1d`, `binance`, `LIVE`;
 - with the current Donchian SHADOW mode, startup must resolve exactly two
   streams: `binance:BTCUSDT@1d` and `okx:BTCUSDT@1h`; with Donchian OFF, only
-  the owner 508 stream remains;
+  the owner 509 stream remains;
 - changing database strategy `enabled` flags must not change stream inventory;
 - startup must not run legacy enabled-strategy data validation, warm-up
   evaluation, database-change resubscription, or dual-provider divergence;
 - its evaluator must accept only closed, allowed, non-stale bars;
-- PAPER accounting must use next-daily-open fills and own resulting BTC without
-  calling an exchange adapter;
+- LIVE execution must accept only the current complete bar, use durable
+  reservation plus OKX `clOrdId`, enforce `10/80/250 USDT` limits, persist
+  actual fills/fees, and never blindly retry an ambiguous result;
 - the application must contain no TradingView Webhook, legacy live evaluator,
   time-exit, AI/ML/Ensemble, or auto-entry runtime;
 - MCP registration must expose exactly 10 whitelisted tools and no Grid
@@ -273,8 +273,9 @@ acceptance uses compilation plus direct source/config assertions:
   `SESSION_BATCH`, `getMcpAuthProbe`, Guardian, or Telegram approval contract;
 - all retained deployment scripts must parse, and the environment template
   must pass its fail-closed validator;
-- LIVE remains unavailable; provider-managed Grid mutations are outside this
-  runtime and must be performed separately at the exchange.
+- owner 509 LIVE must report `executionArmed=true`; provider-managed Grid
+  mutations remain outside this runtime and must be performed separately at
+  the exchange.
 
 ## Deferred operator choices
 

@@ -2,27 +2,28 @@
 
 ## Decision
 
-`TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` is a PAPER/research candidate that keeps
+`TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2`, owner alias `509`, keeps
 the frozen TradingView score-buy entry contract and adds automatic, per-lot
 profit harvesting.
 
 V2 does not change the frozen entry logic in
-`TV_BTC_DAILY_ACCUMULATION_V1`. In the current local source, V1 is retained as
-`ARCHIVED` and V2 is registered as `PAPER`. V2 reuses the same daily evaluator
-and Binance stream, has no exchange adapter, and cannot place a real order.
-Deployment does not activate the evaluator: the deployment default remains
-`TRADINGVIEW_LOCAL_ENABLED=false`.
+`TV_BTC_DAILY_ACCUMULATION_V1`. V1 remains `ARCHIVED` under its historical
+owner alias `508`; V2 is registered as `LIVE` under owner alias `509`. V2 uses
+the same Binance daily evaluator and sends only its current complete bar to a
+minimal OKX spot adapter.
 
 ## Strategy contract
 
 - Signal source: Binance `BTCUSDT`, daily UTC, closed bars only.
 - Entry rules and intent weights: exactly the frozen V1 score-buy rules.
-- Buy timing: next available daily open.
+- Buy timing: first available OKX market execution after the Binance daily bar
+  closes; historical/catch-up bars are audit-only.
 - Position model: every signal bar creates one independently tracked lot;
   same-bar score-buy intents are aggregated into that lot.
 - Exit trigger: estimated net liquidation return reaches `+5%`, including
   entry fee, estimated exit fee, and adverse slippage.
-- Exit timing: next available daily open.
+- Exit timing: first available OKX market execution after a daily close confirms
+  the provider-price trigger.
 - Profit floor: defer the queued exit when that open would realize less than
   `+1%` net profit after costs.
 - No automatic loss exit, maximum holding-time exit, OCO, trailing stop,
@@ -80,20 +81,19 @@ The local implementation now:
 
 1. uses a V2-specific policy mode and evidence schema, leaving V1 evidence
    untouched;
-2. preserves lot IDs, buy fills, sell fills, fees, realized PnL, open
-   inventory, and deferred exits in hashed durable PAPER snapshots;
-3. rebuilds V2 state from the full causal daily history when no valid V2
-   snapshot exists;
-4. keeps exactly one Binance daily subscription for owner 508;
-5. has no dependency on exchange trading, OCO, Telegram, Grid, or live
-   positions.
+2. preserves real provider order IDs, client order IDs, fill prices, net
+   quantities, fees, realized PnL, and independently owned 509 lots;
+3. commits a durable reservation before provider submission; ambiguous results
+   are alerted and never blindly retried;
+4. keeps exactly one Binance daily subscription for owner 509;
+5. never attaches OCO and never sells Grid, manual, archived 508, or other
+   strategy BTC;
+6. applies only mechanical limits: `10 USDT` per weight unit, `80 USDT`
+   maximum same-bar aggregate, `250 USDT` total open cost, exact market scope,
+   current-bar freshness, provider credentials/balance, and exchange minimums.
 
-Every deployment must keep `TRADINGVIEW_LOCAL_ENABLED=false` unless PAPER
-activation was separately approved. The next strategy gate is separately
-approved PAPER enablement and forward observation. Review whether `3/5`
-positive folds is acceptable for the operator's goal of reducing manual exits,
-or whether further strategy work must first reach `4/5`.
-
-LIVE requires a separate sell adapter, inventory ownership design, explicit
-capital limits, deployment approval, and operator authorization. This document
-does not authorize any of them.
+The owner explicitly authorized LIVE promotion with weights `1/2/5` mapped to
+`10/20/50 USDT`. Historical simulated performance is retained as context but
+is not an execution gate. A real provider order occurs only when the next
+genuine current-bar 509 buy or profit-exit condition appears; acceptance must
+not manufacture a trade.

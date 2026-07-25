@@ -40,8 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>This service evaluates the local TradingView-parity ScoreBuy strategy on
  * closed K-lines and writes decision audit rows for each Pine-equivalent order
- * intent. The current catalog mode is PAPER, so this lane has no exchange-order
- * adapter.</p>
+ * intent. Owner 509 may pass only the current complete daily bar to the
+ * minimal LIVE adapter; catch-up bars remain audit-only.</p>
  */
 @Slf4j
 @Service
@@ -58,14 +58,20 @@ public class LocalTradingViewSignalEvaluator {
     private final MdKlineRepository klineRepository;
     private final DecisionAuditWriter auditWriter;
     private final TradingViewScoreBuyAutoExitPaperService paperService;
+    private final TradingViewScoreBuyAutoExitLiveService liveService;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
     private final Map<String, Instant> seenKeys = new ConcurrentHashMap<>();
 
     public boolean isEnabled() {
-        return props.enabled()
-                && props.executionMode() == ExecutionMode.BTC_BASE_PAPER
-                && strategyRuntimeCatalog.isMode(
-                TradingViewScoreBuyAutoExitStrategyContract.KEY, StrategyLifecycleMode.PAPER);
+        if (!props.enabled() || !props.effectiveExecutionEnabled()) {
+            return false;
+        }
+        StrategyLifecycleMode expectedMode =
+                props.executionMode() == ExecutionMode.BTC_BASE_LIVE
+                        ? StrategyLifecycleMode.LIVE
+                        : StrategyLifecycleMode.PAPER;
+        return strategyRuntimeCatalog.isMode(
+                TradingViewScoreBuyAutoExitStrategyContract.KEY, expectedMode);
     }
 
     public void evaluate(MdKline eventKline) {
@@ -121,6 +127,20 @@ public class LocalTradingViewSignalEvaluator {
                 }
             }
 
+            if (props.executionMode() == ExecutionMode.BTC_BASE_LIVE) {
+                evaluations.stream()
+                        .filter(evaluation -> Objects.equals(
+                                evaluation.kline().getOpenTime(), eventKline.getOpenTime()))
+                        .findFirst()
+                        .ifPresent(evaluation -> liveService.evaluate(
+                                strategyEntity,
+                                evaluation.kline(),
+                                source,
+                                hasCompleteReplayHistory(evaluation.details())
+                                        ? evaluation.intents() : List.of(),
+                                evaluation.details()));
+            }
+
             for (BarEvaluation evaluation : evaluations) {
                 if (evaluation.signal() != StrategySignal.BUY || evaluation.intents().isEmpty()) {
                     auditNoBuy(strategyEntity, evaluation.kline(), interval, source, evaluation.signal(),
@@ -139,8 +159,10 @@ public class LocalTradingViewSignalEvaluator {
                     String executionSelection = !historyComplete
                             ? "SHADOW_ONLY_INCOMPLETE_REPLAY_HISTORY"
                             : Objects.equals(evaluation.kline().getOpenTime(), eventKline.getOpenTime())
-                            ? "PAPER_CURRENT_BAR_INTENT"
-                            : "PAPER_CATCH_UP_INTENT";
+                            ? props.executionMode() == ExecutionMode.BTC_BASE_LIVE
+                            ? "LIVE_CURRENT_BAR_INTENT"
+                            : "PAPER_CURRENT_BAR_INTENT"
+                            : "CATCH_UP_AUDIT_ONLY";
                     auditIntent(strategyEntity, evaluation.kline(), interval, source, intent,
                             evaluation.details(), intentIndex, eventKline.getOpenTime(), catchUpBars,
                             executionSelection, accumulationPlan);
@@ -328,23 +350,29 @@ public class LocalTradingViewSignalEvaluator {
         context.put("aggregateMaxOrderNotionalUsdt", accumulationPlan.maxOrderNotionalUsdt());
         context.put("aggregateNotionalWithinCap", accumulationPlan.withinOrderCap());
         context.put("effectiveNotionalUsdt", accumulationPlan.requestedNotionalUsdt());
-        context.put("dryRun", true);
-        context.put("selectedAction", props.executionMode() == ExecutionMode.BTC_BASE_PAPER
-                ? "PAPER_EXECUTION_INTENT"
-                : "SHADOW_EXECUTION_INTENT");
+        boolean liveCurrentBar = props.executionMode() == ExecutionMode.BTC_BASE_LIVE
+                && Objects.equals(kline.getOpenTime(), triggerOpenTime)
+                && hasCompleteReplayHistory(details);
+        context.put("dryRun", !liveCurrentBar);
+        context.put("selectedAction", liveCurrentBar
+                ? "LIVE_EXECUTION_INTENT"
+                : props.executionMode() == ExecutionMode.BTC_BASE_PAPER
+                ? "PAPER_EXECUTION_INTENT" : "SHADOW_EXECUTION_INTENT");
         context.put("intentCreated", true);
         context.put("orderSent", false);
         context.put("duplicate", false);
-        context.put("blockers", props.executionMode() == ExecutionMode.BTC_BASE_PAPER
+        context.put("blockers", liveCurrentBar
+                ? ""
+                : props.executionMode() == ExecutionMode.BTC_BASE_PAPER
                 ? "PAPER_MODE_NO_EXCHANGE_ORDER"
                 : "LOCAL_TRADINGVIEW_DRY_RUN");
         context.put("executionModeSetting", props.executionMode().name());
         context.put("executionEnabled", props.effectiveExecutionEnabled());
         context.put("executionDryRun", props.effectiveExecutionDryRun());
         context.put("executionLiveOrderEnabled", props.effectiveExecutionLiveOrderEnabled());
-        context.put("liveExecutionSelected", false);
+        context.put("liveExecutionSelected", liveCurrentBar);
         context.put("executionSelection", executionSelection);
-        context.put("suppressionReason", "PAPER_MODE");
+        context.put("suppressionReason", liveCurrentBar ? "" : "NON_CURRENT_OR_NON_LIVE");
         if (details != null) {
             details.forEach((name, value) -> context.put("strategyDecision." + name, value));
         }

@@ -4,15 +4,17 @@ Strategy-driven BTC-USDT spot trading service.
 
 ## Current product boundary
 
-- The owner-facing `508` strategy is the daily BTCUSDT accumulation strategy
-  defined in `docs/strategy-driven-minimal-runtime.md`.
+- The owner-facing `509` strategy is the daily BTCUSDT score-buy plus
+  profit-only auto-exit strategy defined in
+  `docs/strategy-driven-minimal-runtime.md`.
 - Its temporary database mapping remains strategy `485`; database strategy
   `508` is a different legacy strategy and must not be treated as the owner
   alias.
-- The daily strategy is PAPER-only until forward economic evidence justifies a
-  separately authorized live rollout.
+- Owner 509 is explicitly authorized for bounded LIVE OKX spot execution:
+  weights `1/2/5` map to `10/20/50 USDT`, with an `80 USDT` same-bar order cap
+  and `250 USDT` open-cost cap.
 - Market WebSockets are derived from the versioned runtime catalog, not
-  database `enabled` flags: owner 508 requires Binance `BTCUSDT@1d`, and the
+  database `enabled` flags: owner 509 requires Binance `BTCUSDT@1d`, and the
   Donchian lane requires OKX `BTCUSDT@1h` only while it is explicitly SHADOW.
 - OKX Native Spot Grid remains provider-managed and independently running;
   this service exposes read-only status and economic evidence only.

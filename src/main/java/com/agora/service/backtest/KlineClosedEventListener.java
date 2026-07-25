@@ -41,7 +41,7 @@ public class KlineClosedEventListener {
                     localTradingViewSignalEvaluator.isEnabled());
             localTradingViewSignalEvaluator.evaluate(kline);
         } catch (Exception e) {
-            log.error("[KlineClosedEventListener] owner 508 PAPER lane failed {}@{} openTime={}: {}",
+            log.error("[KlineClosedEventListener] owner 509 strategy lane failed {}@{} openTime={}: {}",
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
         try {

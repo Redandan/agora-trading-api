@@ -22,22 +22,25 @@ public record TradingViewLocalSignalProperties(
         @DefaultValue("10.0") @Positive BigDecimal defaultNotionalUsdt,
         @DefaultValue("80.0") @Positive BigDecimal maxNotionalUsdt,
         @DefaultValue("BTC_BASE_PAPER") ExecutionMode executionMode,
-        @DefaultValue("250.0") @Positive BigDecimal btcBaseMaxExposureUsdt
+        @DefaultValue("250.0") @Positive BigDecimal btcBaseMaxExposureUsdt,
+        @DefaultValue("15") @Positive long liveMaxSignalAgeMinutes
 ) {
     public boolean effectiveExecutionEnabled() {
-        return executionMode == ExecutionMode.BTC_BASE_PAPER;
+        return executionMode == ExecutionMode.BTC_BASE_PAPER
+                || executionMode == ExecutionMode.BTC_BASE_LIVE;
     }
 
     public boolean effectiveExecutionDryRun() {
-        return true;
+        return executionMode != ExecutionMode.BTC_BASE_LIVE;
     }
 
     public boolean effectiveExecutionLiveOrderEnabled() {
-        return false;
+        return enabled && executionMode == ExecutionMode.BTC_BASE_LIVE;
     }
 
     public enum ExecutionMode {
         OFF,
-        BTC_BASE_PAPER
+        BTC_BASE_PAPER,
+        BTC_BASE_LIVE
     }
 }

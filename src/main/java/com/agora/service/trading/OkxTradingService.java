@@ -1066,12 +1066,22 @@ public class OkxTradingService implements TradingService {
      */
     @Override
     public TradeResult placeMarketBuy(String symbol, double usdtAmount) {
+        return placeMarketBuy(symbol, usdtAmount, null);
+    }
+
+    /**
+     * Market buy with an OKX client order id. The caller must persist the id
+     * before submission so an ambiguous network result can be reconciled
+     * without blindly placing a second order.
+     */
+    public TradeResult placeMarketBuy(String symbol, double usdtAmount, String clientOrderId) {
         checkEnabled();
         String instId = toInstId(symbol);
+        String clientField = clientOrderField(clientOrderId);
         String body = String.format(
                 "{\"instId\":\"%s\",\"tdMode\":\"cash\",\"side\":\"buy\"," +
-                "\"ordType\":\"market\",\"tgtCcy\":\"quote_ccy\",\"sz\":\"%.2f\"}",
-                instId, usdtAmount);
+                "\"ordType\":\"market\",\"tgtCcy\":\"quote_ccy\",\"sz\":\"%.2f\"%s}",
+                instId, usdtAmount, clientField);
 
         JsonNode resp = post("/api/v5/trade/order", body);
         assertOkxCode(resp);
@@ -1155,12 +1165,23 @@ public class OkxTradingService implements TradingService {
      * smaller than the requested {@code sz} — that's the partial-fill case.
      */
     public TradeResult placeMarketSellWithFill(String symbol, BigDecimal qty) {
+        return placeMarketSellWithFill(symbol, qty, null);
+    }
+
+    /**
+     * Market sell with an OKX client order id for durable duplicate
+     * prevention and ambiguous-result reconciliation.
+     */
+    public TradeResult placeMarketSellWithFill(String symbol,
+                                               BigDecimal qty,
+                                               String clientOrderId) {
         checkEnabled();
         String instId = toInstId(symbol);
+        String clientField = clientOrderField(clientOrderId);
         String body = String.format(
                 "{\"instId\":\"%s\",\"tdMode\":\"cash\",\"side\":\"sell\"," +
-                "\"ordType\":\"market\",\"sz\":\"%s\"}",
-                instId, qty.toPlainString());
+                "\"ordType\":\"market\",\"sz\":\"%s\"%s}",
+                instId, qty.toPlainString(), clientField);
 
         JsonNode resp = post("/api/v5/trade/order", body);
         assertOkxCode(resp);
@@ -1405,6 +1426,31 @@ public class OkxTradingService implements TradingService {
      */
     public JsonNode querySpotOrderDetail(String symbol, String ordId) {
         return queryOrder(toInstId(symbol), ordId);
+    }
+
+    /** Read-only lookup used to reconcile a reserved order after an ambiguous submission. */
+    public JsonNode querySpotOrderDetailByClientOrderId(String symbol, String clientOrderId) {
+        validateClientOrderId(clientOrderId);
+        String path = "/api/v5/trade/order?instId=" + toInstId(symbol) + "&clOrdId=" + clientOrderId;
+        JsonNode resp = get(path);
+        assertOkxCode(resp);
+        return resp.path("data").path(0);
+    }
+
+    private String clientOrderField(String clientOrderId) {
+        if (clientOrderId == null || clientOrderId.isBlank()) {
+            return "";
+        }
+        validateClientOrderId(clientOrderId);
+        return ",\"clOrdId\":\"" + clientOrderId + "\"";
+    }
+
+    private void validateClientOrderId(String clientOrderId) {
+        if (clientOrderId == null
+                || !clientOrderId.matches("[A-Za-z0-9]{1,32}")) {
+            throw new IllegalArgumentException(
+                    "OKX client order id must be 1-32 alphanumeric characters");
+        }
     }
 
     /** 每張合約對應的基幣數量（BTC=0.01, ETH=0.1, 其餘預設 0.01） */

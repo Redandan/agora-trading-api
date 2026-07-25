@@ -408,7 +408,7 @@ public final class TradingViewScoreBuyAutoExitPaperEngine {
     private String lotId(LocalDateTime signalBarOpenTime) {
         return signalBarOpenTime == null
                 ? ""
-                : "TV508V2-" + signalBarOpenTime.toString();
+                : "TV509V2-" + signalBarOpenTime.toString();
     }
 
     public record Policy(

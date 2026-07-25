@@ -1,5 +1,6 @@
 package com.agora.mcp;
 
+import com.agora.config.OkxTradingProperties;
 import com.agora.config.properties.TradingViewLocalSignalProperties;
 import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
@@ -28,10 +29,11 @@ public class StrategyCatalogMcpTools {
     private final StrategyRuntimeCatalog catalog;
     private final BtStrategyRepository strategyRepository;
     private final TradingViewLocalSignalProperties localProperties;
+    private final OkxTradingProperties okxProperties;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
-    @Tool(description = "Read-only strategy runtime catalog. Shows the versioned 508 PAPER and Donchian SHADOW contracts; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
+    @Tool(description = "Read-only strategy runtime catalog. Shows owner 509 LIVE, archived owner 508 V1, and Donchian SHADOW; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
     public String getStrategyRuntimeCatalog() {
         StringBuilder result = new StringBuilder("STRATEGY_RUNTIME_CATALOG\n");
         for (StrategyRuntimeDefinition definition : catalog.definitions()) {
@@ -55,17 +57,17 @@ public class StrategyCatalogMcpTools {
         } catch (Exception e) {
             result.append("- unavailable: ").append(e.getClass().getSimpleName()).append('\n');
         }
-        result.append("exchangeOrderAuthorized=false\n");
+        result.append("exchangeOrderAuthorized=").append(executionArmed()).append('\n');
         return result.toString();
     }
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC})
-    @Tool(description = "Read-only owner Strategy 508 runtime status. Confirms its daily BTCUSDT Binance V2 PAPER mapping with frozen score-buy entries and automatic per-lot profit exits. Never sends an exchange order.")
-    public String getOwner508RuntimeStatus() {
+    @Tool(description = "Read-only owner Strategy 509 runtime status. Confirms its daily Binance BTCUSDT signal scope, weighted OKX spot execution, and automatic per-lot profit exits. Never sends an order.")
+    public String getOwner509RuntimeStatus() {
         StrategyRuntimeDefinition definition =
                 catalog.require(TradingViewScoreBuyAutoExitStrategyContract.KEY);
-        return "OWNER_508_RUNTIME_STATUS\n"
+        return "OWNER_509_RUNTIME_STATUS\n"
                 + "contract=" + definition.versionedKey() + "\n"
                 + "entryContract=" + TradingViewScoreBuyAutoExitStrategyContract.ENTRY_CONTRACT_KEY + "\n"
                 + "ownerAlias=" + definition.ownerAlias() + "\n"
@@ -77,10 +79,17 @@ public class StrategyCatalogMcpTools {
                 + "configuredEnabled=" + localProperties.enabled() + "\n"
                 + "configuredExecutionMode=" + localProperties.executionMode() + "\n"
                 + "configuredStrategyId=" + localProperties.strategyId() + "\n"
+                + "baseNotionalUsdt=" + localProperties.defaultNotionalUsdt() + "\n"
+                + "maxOrderNotionalUsdt=" + localProperties.maxNotionalUsdt() + "\n"
+                + "maxExposureUsdt=" + localProperties.btcBaseMaxExposureUsdt() + "\n"
+                + "liveMaxSignalAgeMinutes=" + localProperties.liveMaxSignalAgeMinutes() + "\n"
                 + "exitPolicy=" + TradingViewScoreBuyAutoExitStrategyContract.EXIT_POLICY + "\n"
                 + "netProfitTrigger=" + TradingViewScoreBuyAutoExitStrategyContract.NET_PROFIT_TRIGGER + "\n"
                 + "minRealizedNetProfit=" + TradingViewScoreBuyAutoExitStrategyContract.MIN_REALIZED_NET_PROFIT + "\n"
-                + "exchangeOrderAuthorized=false\n";
+                + "okxTradingEnabled=" + okxProperties.isEnabled() + "\n"
+                + "okxPrivateCredentialsConfigured=" + okxProperties.hasPrivateCredentials() + "\n"
+                + "exchangeOrderAuthorized=" + executionArmed() + "\n"
+                + "executionArmed=" + executionArmed() + "\n";
     }
 
     private void append(StringBuilder result, StrategyRuntimeDefinition definition) {
@@ -95,5 +104,14 @@ public class StrategyCatalogMcpTools {
 
     private String safe(String value) {
         return value == null || value.isBlank() ? "N/A" : value;
+    }
+
+    private boolean executionArmed() {
+        return catalog.isMode(
+                TradingViewScoreBuyAutoExitStrategyContract.KEY,
+                com.agora.service.strategy.StrategyLifecycleMode.LIVE)
+                && localProperties.effectiveExecutionLiveOrderEnabled()
+                && okxProperties.isEnabled()
+                && okxProperties.hasPrivateCredentials();
     }
 }

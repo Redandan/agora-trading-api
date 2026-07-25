@@ -2,9 +2,10 @@
 
 ## Scope
 
-This runbook covers only deployment of the standalone Trading service. It does
-not authorize strategy activation, orders, OCO/Grid mutations, fund movement,
-Earn actions, Telegram sends, database migrations, or production data changes.
+This runbook covers deployment of the standalone Trading service and the
+explicitly authorized owner 509 LIVE configuration below. It does not authorize
+manual/test orders, OCO/Grid mutations, fund movement, Earn actions, database
+migrations, or unrelated production data changes.
 
 Use `split-acceptance-status.md` for the current deployed handoff and
 `minimal-runtime-cleanup-roadmap.md` for staged source reduction. Historical
@@ -56,35 +57,40 @@ External-AI session key, or Telegram approval state. Server-local and dedicated
 public MCP checks must send this Bearer key; unknown and unannotated tools fail
 closed.
 
-## Strategy-safe deployment defaults
+## Owner 509 LIVE deployment contract
 
-The daily owner strategy must remain non-live unless separately authorized:
+The owner authorized this bounded LIVE configuration:
 
 ```bash
-TRADINGVIEW_LOCAL_ENABLED=false
+TRADINGVIEW_LOCAL_ENABLED=true
 TRADINGVIEW_LOCAL_STRATEGY_ID=485
 TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS=BTCUSDT
 TRADINGVIEW_LOCAL_ALLOWED_INTERVALS=1d
 TRADINGVIEW_LOCAL_ALLOWED_SOURCES=binance
-TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_PAPER
+TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT=10.0
+TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT=80.0
+TRADINGVIEW_LOCAL_EXECUTION_MODE=BTC_BASE_LIVE
+TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT=250.0
+TRADINGVIEW_LOCAL_LIVE_MAX_SIGNAL_AGE_MINUTES=15
+TRADING_OKX_ENABLED=true
 ```
 
-`TRADINGVIEW_LOCAL_ENABLED=false` is the deploy default. A separately reviewed
-PAPER activation may set it to `true`; `BTC_BASE_PAPER` can persist simulated
-fills and accounting evidence but cannot send an exchange order. OKX Native
-Spot Grid is configured and operated independently; a service deployment must
-not create, stop, or replace a Grid. This runtime contains no Grid mutation
-adapter or Grid write gate; it only queries provider status/economic evidence.
+Owner 509 sends at most one aggregated buy for a genuine current Binance daily
+bar and never replays historical/catch-up signals. It may aggregate eligible
+509 lots into one profit-only sell. Every provider submission has a durable
+reservation and OKX client order ID; an ambiguous result is alerted and never
+blindly retried. OKX Native Spot Grid remains independently configured and its
+BTC is outside owner 509 inventory.
 
 Market-data startup has one global switch and a provider safety allowlist:
 
 ```bash
-MARKET_WS_AUTO_SUBSCRIBE_ENABLED=false
+MARKET_WS_AUTO_SUBSCRIBE_ENABLED=true
 MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=binance,okx
 ```
 
 When enabled, the runtime catalog—not database `enabled` rows or environment
-item lists—selects exact streams. Owner 508 uses Binance `BTCUSDT@1d`;
+item lists—selects exact streams. Owner 509 uses Binance `BTCUSDT@1d`;
 Donchian uses OKX `BTCUSDT@1h` only in SHADOW. There is no startup warm-up,
 database-change resubscription, or dual-provider divergence setting.
 

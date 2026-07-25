@@ -339,12 +339,22 @@ require_env_value SPRING_FLYWAY_ENABLED true
 require_env_value SPRING_FLYWAY_TABLE trading_flyway_schema_history
 require_env_value SPRING_FLYWAY_BASELINE_ON_MIGRATE true
 require_env_value SPRING_FLYWAY_BASELINE_VERSION 1
-require_env_value TRADINGVIEW_LOCAL_ENABLED false
+require_env_value TRADINGVIEW_LOCAL_ENABLED true
 require_env_value TRADINGVIEW_LOCAL_STRATEGY_ID 485
 require_env_value TRADINGVIEW_LOCAL_ALLOWED_SYMBOLS BTCUSDT
 require_env_value TRADINGVIEW_LOCAL_ALLOWED_INTERVALS 1d
 require_env_value TRADINGVIEW_LOCAL_ALLOWED_SOURCES binance
-require_env_value TRADINGVIEW_LOCAL_EXECUTION_MODE BTC_BASE_PAPER
+require_env_value TRADINGVIEW_LOCAL_DEFAULT_NOTIONAL_USDT 10.0
+require_env_value TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT 80.0
+require_env_value TRADINGVIEW_LOCAL_EXECUTION_MODE BTC_BASE_LIVE
+require_env_value TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT 250.0
+require_env_value TRADINGVIEW_LOCAL_LIVE_MAX_SIGNAL_AGE_MINUTES 15
+require_env_value MARKET_WS_AUTO_SUBSCRIBE_ENABLED true
+require_env_value MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS binance,okx
+require_env_value TRADING_OKX_ENABLED true
+require_env_key TRADING_OKX_API_KEY
+require_env_key TRADING_OKX_SECRET_KEY
+require_env_key TRADING_OKX_PASSPHRASE
 
 case "$(env_value SPRING_DATASOURCE_URL)" in
   jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"|jdbc:mysql://*/"$EXPECTED_TRADING_DATABASE"\?*) ;;
@@ -450,6 +460,44 @@ MCP_RESPONSE="$(curl -fsS \
   "$MCP_URL")" || fail "local MCP getMcpRegistryVersion failed: $MCP_URL"
 printf '%s' "$MCP_RESPONSE" | grep -q '"content"' || fail "local MCP getMcpRegistryVersion response missing content array: $MCP_URL"
 ok "local MCP getMcpRegistryVersion passed: $MCP_URL"
+
+OWNER_509_RESPONSE="$(curl -fsS \
+  --max-time 30 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${MCP_KEY}" \
+  --data '{"jsonrpc":"2.0","id":"server-verify-owner-509","method":"tools/call","params":{"name":"getOwner509RuntimeStatus","arguments":{}}}' \
+  "$MCP_URL")" || fail "local MCP getOwner509RuntimeStatus failed: $MCP_URL"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'OWNER_509_RUNTIME_STATUS' \
+  || fail "owner 509 status response missing expected header"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'ownerAlias=509' \
+  || fail "owner 509 status response missing ownerAlias=509"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'mode=LIVE' \
+  || fail "owner 509 status response missing mode=LIVE"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'configuredEnabled=true' \
+  || fail "owner 509 status response missing configuredEnabled=true"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'configuredExecutionMode=BTC_BASE_LIVE' \
+  || fail "owner 509 status response missing BTC_BASE_LIVE"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'baseNotionalUsdt=10.0' \
+  || fail "owner 509 status response missing base notional 10.0"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'maxOrderNotionalUsdt=80.0' \
+  || fail "owner 509 status response missing max order notional 80.0"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'maxExposureUsdt=250.0' \
+  || fail "owner 509 status response missing max exposure 250.0"
+printf '%s' "$OWNER_509_RESPONSE" | grep -q 'executionArmed=true' \
+  || fail "owner 509 status response is not executionArmed=true"
+ok "owner 509 LIVE runtime is armed with expected 10/80/250 USDT limits"
+
+OKX_ACCOUNT_RESPONSE="$(curl -fsS \
+  --max-time 30 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${MCP_KEY}" \
+  --data '{"jsonrpc":"2.0","id":"server-verify-okx-account","method":"tools/call","params":{"name":"getExchangeAccountSafetySnapshot","arguments":{}}}' \
+  "$MCP_URL")" || fail "local MCP getExchangeAccountSafetySnapshot failed: $MCP_URL"
+printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'OKX_ACCOUNT_SAFETY_SNAPSHOT' \
+  || fail "OKX account safety snapshot response missing expected header"
+printf '%s' "$OKX_ACCOUNT_RESPONSE" | grep -q 'ccy=USDT' \
+  || fail "OKX account safety snapshot does not contain USDT"
+ok "OKX private account read passed; credentials and account connectivity confirmed"
 
 if curl -fsS "$AGORA_MARKET_HEALTH_URL" >/dev/null; then
   ok "AgoraMarket exchange-rate dependency health passed: $AGORA_MARKET_HEALTH_URL"

@@ -22,7 +22,7 @@ class TradingReportFacadeImpl implements TradingReportFacade {
 
     @Override
     public String marketAnalysis() {
-        return strategyCatalogMcpTools.getOwner508RuntimeStatus();
+        return strategyCatalogMcpTools.getOwner509RuntimeStatus();
     }
 
     @Override
@@ -39,7 +39,7 @@ class TradingReportFacadeImpl implements TradingReportFacade {
             case "oco_status", "trailing_status" -> executionSafetyMcpTools.getExecutionSafetyStatus();
             default -> executionSafetyMcpTools.getExecutionSafetyStatus()
                     + "\n\n"
-                    + strategyCatalogMcpTools.getOwner508RuntimeStatus();
+                    + strategyCatalogMcpTools.getOwner509RuntimeStatus();
         };
     }
 

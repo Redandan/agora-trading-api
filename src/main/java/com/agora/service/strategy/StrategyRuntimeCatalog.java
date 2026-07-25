@@ -40,11 +40,11 @@ public class StrategyRuntimeCatalog {
                 TradingViewScoreBuyAutoExitStrategyContract.CONTRACT_VERSION,
                 TradingViewScoreBuyAutoExitStrategyContract.OWNER_ALIAS,
                 TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID,
-                StrategyLifecycleMode.PAPER,
+                StrategyLifecycleMode.LIVE,
                 TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SYMBOL,
                 TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_INTERVAL,
                 TradingViewScoreBuyAutoExitStrategyContract.SIGNAL_SOURCE,
-                "Owner 508 V2; frozen score-buy entries; per-lot +5% net-profit PAPER exits"));
+                "Owner 509 V2 LIVE; frozen score-buy entries; per-lot +5% net-profit exits"));
         register(catalog, new StrategyRuntimeDefinition(
                 BtcDonchianShadowPolicy.POLICY_MODE,
                 1,
@@ -78,7 +78,7 @@ public class StrategyRuntimeCatalog {
     public StrategyLifecycleMode modeForDatabaseStrategy(Long strategyId) {
         if (strategyId != null
                 && strategyId == TradingViewScoreBuyAutoExitStrategyContract.CURRENT_DATABASE_STRATEGY_ID) {
-            return StrategyLifecycleMode.PAPER;
+            return StrategyLifecycleMode.LIVE;
         }
         return StrategyLifecycleMode.ARCHIVED;
     }

@@ -4,9 +4,10 @@ This repo is the trading service extracted from `AgoraMarketAPI`.
 
 ## Owns
 
-- Versioned strategy catalog, owner 508 PAPER accounting, archived strategy
-  inventory, Donchian SHADOW evidence, spot OCO reconciliation, read-only
-  OKX-native Grid monitoring, and the minimal trading MCP surface.
+- Versioned strategy catalog, owner 509 LIVE execution, archived owner 508/V1
+  evidence, PAPER accounting, archived strategy inventory, Donchian SHADOW
+  evidence, spot OCO reconciliation, read-only OKX-native Grid monitoring, and
+  the minimal trading MCP surface.
 - Market data ingestion used by trading decisions. The versioned runtime
   catalog owns exact provider/symbol/interval subscriptions; database strategy
   `enabled` flags are research inventory and cannot start a stream.
@@ -84,7 +85,7 @@ If a later trading feature really needs one of these capabilities, add a trading
 
 The protected runtime, staged removal batches, source-only database policy, and
 per-batch acceptance rules are defined in
-`docs/minimal-runtime-cleanup-roadmap.md`. Cleanup must preserve owner 508
-PAPER semantics, Donchian SHADOW evidence, exact catalog market streams,
-mechanical OCO execution safety, read-only provider Grid monitoring, outbound
-critical notifications, and deployment verification.
+`docs/minimal-runtime-cleanup-roadmap.md`. Cleanup must preserve owner 509 LIVE
+semantics, archived owner 508/V1 evidence, Donchian SHADOW evidence, exact
+catalog market streams, mechanical OCO execution safety, read-only provider
+Grid monitoring, outbound critical notifications, and deployment verification.

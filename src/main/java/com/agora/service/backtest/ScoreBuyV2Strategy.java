@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * Compatibility type for the owner 508 database row.
+ * Compatibility type for owner 509's current database mapping (strategy 485).
  *
  * <p>The former ML branch was removed. SCORE_BUY_V2 now always delegates to the
  * frozen Pine-parity implementation so a database config flag cannot revive a

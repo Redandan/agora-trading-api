@@ -21,8 +21,8 @@ import java.util.Set;
  *
  * <p>Database {@code bt_strategy.enabled} rows are research inventory and
  * cannot create runtime subscriptions. Each active lane contributes exactly
- * one source/symbol/interval requirement. Owner 508 retains its Binance daily
- * feed for PAPER readiness; Donchian contributes its OKX hourly feed only
+ * one source/symbol/interval requirement. Owner 509 retains its Binance daily
+ * feed while evaluation is allowed; Donchian contributes its OKX hourly feed only
  * while its explicit SHADOW switch is enabled.</p>
  */
 @Slf4j
@@ -39,10 +39,10 @@ public class WsSubscriptionResolver {
         Set<String> seenKeys = new LinkedHashSet<>();
         List<MarketWsAutoSubscribeProperties.Item> items = new ArrayList<>();
 
-        StrategyRuntimeDefinition owner508 =
+        StrategyRuntimeDefinition owner509 =
                 strategyRuntimeCatalog.require(TradingViewScoreBuyAutoExitStrategyContract.KEY);
-        if (owner508.mode() == StrategyLifecycleMode.PAPER) {
-            addDefinition(items, seenKeys, owner508);
+        if (owner509.mode().evaluationAllowed()) {
+            addDefinition(items, seenKeys, owner509);
         }
 
         if (donchianProperties.enabled()

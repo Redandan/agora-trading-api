@@ -66,11 +66,11 @@ Owner 509 is the only `LIVE` contract:
 | `TV_BTC_DAILY_ACCUMULATION_V1@v1` | ARCHIVED | none | not allowed |
 | `BTC_DONCHIAN_20D_10D_V1@v1` | SHADOW | OKX `BTCUSDT@1h` | not allowed |
 
-Local source developed after this Production snapshot also registers
-`BTC_MEI_DIRECTIONAL_ACCUMULATION_V1@v1` as a fourth, default-OFF `SHADOW`
-contract. It is not deployed or enabled, adds no live adapter, and would reuse
-the same deduplicated OKX hourly stream. See
-`btc-mei-directional-shadow-candidate-v1.md`.
+The isolated fourth contract is now
+`BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1`, a default-OFF `SHADOW` candidate that
+reuses the deduplicated OKX hourly stream and has no live adapter. It replaces
+the retired experimental MEI runtime identity without restoring old MEI state.
+See `btc-dra-shadow-candidate-v1.md`.
 
 Owner 509 is the display alias for
 `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2`. Owner 508 remains the archived V1
@@ -222,7 +222,7 @@ Direct source/config assertions must additionally prove:
 - exactly 10 MCP tools;
 - exactly four local catalog contracts and exactly one `LIVE` mode;
 - owner 509 V2 LIVE, archived owner 508 V1, Donchian SHADOW, and default-OFF
-  MEI directional SHADOW mappings;
+  DRA SHADOW mappings;
 - weights `1/2/5` map to `10/20/50 USDT`, with `80 USDT` same-bar and
   `250 USDT` open-cost caps;
 - only fresh closed Binance daily bars can send owner-509 orders;

@@ -68,34 +68,37 @@ bar produces a weighted entry. The durable signal reservation and OKX client
 order ID are written before provider submission so an ambiguous timeout is not
 blindly retried.
 
-## Local second-candidate development
+## DRA second-candidate development
 
-`BTC_MEI_DIRECTIONAL_ACCUMULATION_V1@v1` was subsequently implemented as a new
-source-pinned research contract. It is not the old database strategy 567 and
-does not inherit 567's historical result.
+`BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1` is the isolated second candidate
+selected by the 2026-07-26 factor-ablation study. It replaces the experimental
+MEI directional runtime identity; old MEI evidence remains immutable history
+and is never restored into DRA state.
 
-The local catalog now contains four contracts, but Production remains on the
-three-contract deployed baseline until a separate deployment is authorized.
-The new candidate:
+The candidate:
 
 - is registered as `SHADOW` with its explicit switch defaulting to `OFF`;
-- uses OKX `BTCUSDT@1h` closed bars and would reuse the Donchian stream through
-  subscription deduplication;
-- requires MEI `>=60`, positive 24-hour momentum, and `close>EMA20`;
-- uses edge-triggered 10 USDT virtual lots, a 250 USDT open-cost cap, and
-  fee/slippage-aware profit-only exits;
+- uses source-pinned OKX `BTCUSDT@1h` closed bars and makes entry decisions only
+  on the UTC daily close;
+- requires close above daily EMA20, daily EMA20 above its value five days ago,
+  and positive 24-hour momentum;
+- intentionally contains no MEI or drawdown gate;
+- uses 30 USDT virtual lots, a seven-day cooldown, a 250 USDT open-cost cap,
+  and fee/slippage-aware profit-only exits;
 - writes only audit/runtime evidence and has no live exchange implementation.
 
-Its frozen contract and later SHADOW acceptance gate are documented in
-`btc-mei-directional-shadow-candidate-v1.md`.
+The three-year no-drawdown result with a 250 USDT reserve was `+107.15130387`
+realized, `-6.46487858` unrealized, and `+100.68642529` total, with
+`10.183632%` maximum drawdown. These are historical research results, not
+forward performance.
 
-The first Production SHADOW window exposed a restart-continuity defect: four
-hourly V1 evidence rows all re-bootstrapped because the database `JSON` column
-normalized `BigDecimal` tokens before the stored state was read back and
-hashed. The candidate was returned to `OFF`. Evidence V2 keeps the exact
-serialized state inside a JSON string, verifies its SHA-256 before restore,
-and fails closed after any current-schema restore failure. The four V1 rows
-remain audit history but are not valid forward observations.
+Its frozen contract and SHADOW acceptance gate are documented in
+`btc-dra-shadow-candidate-v1.md`.
+
+The old MEI evidence V2 restart boundary is retained in its historical rows,
+but the active DRA policy uses a new policy key, state schema, evidence schema,
+event type, and environment switch. DRA therefore cannot accidentally inherit
+MEI lots or continuity state.
 
 ## Identity correction
 
@@ -260,7 +263,7 @@ Implemented and deployed by 2026-07-25:
 1. The Pine hash, Binance daily source, owner alias, and intent weights are
    frozen in `TradingViewDailyStrategyContract`.
 2. `StrategyRuntimeCatalog` assigns owner 509 to `LIVE`, archived V1/508 to
-   `ARCHIVED`, Donchian and the default-OFF MEI directional candidate to
+   `ARCHIVED`, Donchian and the default-OFF DRA candidate to
    `SHADOW`, and every other database strategy to `ARCHIVED`.
 3. `KlineClosedEventListener` dispatches only the catalog-owned LIVE and
    explicitly enabled SHADOW lanes. Database `enabled` flags cannot revive the
@@ -273,13 +276,13 @@ Implemented and deployed by 2026-07-25:
    schedulers/MCP tools were removed.
 6. The MCP surface remains a fixed 10-tool whitelist: runtime identity,
    strategy catalog, Donchian evidence, read-only execution safety, and
-   read-only OKX Native Grid monitoring. The MEI candidate adds no tool.
+   read-only OKX Native Grid monitoring. DRA adds no tool.
 7. Existing spot OCO reconciliation remains for mechanical execution safety;
    it is not part of owner 509 strategy logic.
 8. Grid create/stop services, migration previews, write gates, and obsolete
    authorization documents were removed. Provider Grid state is not changed.
 9. Market-data startup is catalog-driven. Owner 509 contributes exactly
-   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian and MEI directional
+   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian and DRA
    candidates contribute the same deduplicated `okx:BTCUSDT@1h` requirement
    only while their explicit modes are SHADOW. Database `bt_strategy.enabled`
    values cannot add subscriptions, startup validation, warm-up evaluation,
@@ -308,7 +311,7 @@ acceptance uses compilation plus direct source/config assertions:
 - compilation must succeed with no test source or test dependency;
 - the runtime catalog must contain exactly one `LIVE` assignment;
 - owner 509 must remain `BTCUSDT`, `1d`, `binance`, `LIVE`;
-- the local catalog must contain the default-OFF MEI candidate as `SHADOW`
+- the local catalog must contain the default-OFF DRA candidate as `SHADOW`
   without any live exchange implementation;
 - with either hourly SHADOW lane enabled, startup must resolve exactly two
   deduplicated streams: `binance:BTCUSDT@1d` and `okx:BTCUSDT@1h`; with both

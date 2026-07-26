@@ -93,16 +93,19 @@ Research lanes use separate fail-closed switches:
 
 ```bash
 TRADING_BTC_DONCHIAN_SHADOW_MODE=OFF
-TRADING_BTC_MEI_DIRECTIONAL_SHADOW_MODE=OFF
+TRADING_BTC_DRA_SHADOW_MODE=OFF
 ```
 
-The MEI directional candidate must remain `OFF` for its first deployment.
-Changing either value to `SHADOW` is a Production configuration mutation that
-requires separate authorization. Neither lane has an exchange-order adapter.
+Both research lanes default to `OFF`. Changing either value to `SHADOW` is a
+Production configuration mutation that requires separate authorization.
+Neither lane has an exchange-order adapter. The owner authorized
+`TRADING_BTC_DRA_SHADOW_MODE=SHADOW` on 2026-07-26 for forward observation of
+the no-drawdown DRA V1 contract; this does not authorize LIVE execution.
 
 When enabled, the runtime catalog—not database `enabled` rows or environment
 item lists—selects exact streams. Owner 509 uses Binance `BTCUSDT@1d`;
-Donchian uses OKX `BTCUSDT@1h` only in SHADOW. There is no startup warm-up,
+Donchian and DRA use the same deduplicated OKX `BTCUSDT@1h` requirement only
+while their respective switches are `SHADOW`. There is no startup warm-up,
 database-change resubscription, or dual-provider divergence setting.
 
 ## Retained scripts

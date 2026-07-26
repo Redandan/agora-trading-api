@@ -51,8 +51,8 @@ trading:
     api-key: ${TRADING_INTERNAL_API_KEY:${AGORA_MARKET_INTERNAL_API_KEY:}}
   btc-donchian-shadow:
     mode: ${TRADING_BTC_DONCHIAN_SHADOW_MODE:OFF}
-  btc-mei-directional-shadow:
-    mode: ${TRADING_BTC_MEI_DIRECTIONAL_SHADOW_MODE:OFF}
+  btc-dra-shadow:
+    mode: ${TRADING_BTC_DRA_SHADOW_MODE:OFF}
   tradingview:
     local:
       enabled: ${TRADINGVIEW_LOCAL_ENABLED:false}

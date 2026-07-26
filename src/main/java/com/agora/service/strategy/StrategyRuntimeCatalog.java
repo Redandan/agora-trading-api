@@ -2,7 +2,7 @@ package com.agora.service.strategy;
 
 import com.agora.model.BtStrategy;
 import com.agora.service.trading.BtcDonchianShadowPolicy;
-import com.agora.service.trading.BtcMeiDirectionalShadowPolicy;
+import com.agora.service.trading.BtcDraShadowPolicy;
 import com.agora.service.tradingview.TradingViewDailyStrategyContract;
 import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import org.springframework.stereotype.Component;
@@ -57,15 +57,16 @@ public class StrategyRuntimeCatalog {
                 BtcDonchianShadowPolicy.SOURCE,
                 "Frozen Donchian research lane; evidence only; no exchange adapter"));
         register(catalog, new StrategyRuntimeDefinition(
-                BtcMeiDirectionalShadowPolicy.POLICY_MODE,
+                BtcDraShadowPolicy.POLICY_MODE,
                 1,
                 null,
                 null,
                 StrategyLifecycleMode.SHADOW,
-                BtcMeiDirectionalShadowPolicy.SYMBOL,
-                BtcMeiDirectionalShadowPolicy.INTERVAL,
-                BtcMeiDirectionalShadowPolicy.SOURCE,
-                "Source-pinned directional MEI candidate; default OFF; evidence only; no exchange adapter"));
+                BtcDraShadowPolicy.SYMBOL,
+                BtcDraShadowPolicy.INTERVAL,
+                BtcDraShadowPolicy.SOURCE,
+                "BTC Daily Reversal Accumulation V1; no drawdown or MEI gate; "
+                        + "default OFF; evidence only; no exchange adapter"));
         definitions = Map.copyOf(catalog);
     }
 

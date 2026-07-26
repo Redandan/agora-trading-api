@@ -11,49 +11,44 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.BASE_NOTIONAL_USDT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.EMA_PERIOD_HOURS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_24H;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_24H_WEIGHT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_48H;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_48H_WEIGHT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_72H;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_72H_WEIGHT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_BINS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTRY_ENTROPY_THRESHOLD;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.FEE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.INTERVAL;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MAX_OPEN_COST_USDT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MIN_REALIZED_NET_PROFIT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MOMENTUM_LOOKBACK_HOURS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.NET_PROFIT_TRIGGER;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.REQUIRED_CLOSE_POINTS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.SOURCE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.STATE_SCHEMA_VERSION;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.SYMBOL;
+import static com.agora.service.trading.BtcDraShadowPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraShadowPolicy.ARM_EXPIRY_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.BASE_NOTIONAL_USDT;
+import static com.agora.service.trading.BtcDraShadowPolicy.DAILY_EMA_PERIOD_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.EMA_SLOPE_LOOKBACK_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.ENTRY_COOLDOWN_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.FEE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraShadowPolicy.INTERVAL;
+import static com.agora.service.trading.BtcDraShadowPolicy.MAX_OPEN_COST_USDT;
+import static com.agora.service.trading.BtcDraShadowPolicy.MIN_REALIZED_NET_PROFIT;
+import static com.agora.service.trading.BtcDraShadowPolicy.MOMENTUM_LOOKBACK_HOURS;
+import static com.agora.service.trading.BtcDraShadowPolicy.NET_PROFIT_TRIGGER;
+import static com.agora.service.trading.BtcDraShadowPolicy.REQUIRED_CLOSE_POINTS;
+import static com.agora.service.trading.BtcDraShadowPolicy.REQUIRED_DAILY_EMA_POINTS;
+import static com.agora.service.trading.BtcDraShadowPolicy.SOURCE;
+import static com.agora.service.trading.BtcDraShadowPolicy.STATE_SCHEMA_VERSION;
+import static com.agora.service.trading.BtcDraShadowPolicy.SYMBOL;
 
 /**
- * Pure, deterministic SHADOW engine for the source-pinned MEI directional candidate.
+ * Pure deterministic SHADOW engine for BTC Daily Reversal Accumulation V1.
  *
- * <p>The engine has no repository, exchange, OCO, Grid, notification, or clock
- * dependency. It consumes one proven closed OKX hourly bar at a time and keeps
- * independent virtual lots. Entries and exits are evaluated at bar close and
- * filled at the next hourly open with adverse cost assumptions.</p>
+ * <p>The engine has no repository, exchange, OCO, Grid, notification, or
+ * clock dependency. It consumes contiguous closed OKX hourly bars. Entry is
+ * confirmed only by the UTC daily close: close above daily EMA20, EMA20 above
+ * its value five daily closes earlier, and positive 24-hour momentum. MEI and
+ * drawdown gates are intentionally absent.</p>
  */
 @Component
 @RequiredArgsConstructor
-public final class BtcMeiDirectionalShadowEngine {
+public final class BtcDraShadowEngine {
 
     private static final int QUANTITY_SCALE = 12;
     private static final int MONEY_SCALE = 8;
     private static final int RETURN_SCALE = 8;
-    private static final double EPSILON = 1e-12;
 
     private final ObjectMapper objectMapper;
 
@@ -62,8 +57,11 @@ public final class BtcMeiDirectionalShadowEngine {
                 STATE_SCHEMA_VERSION,
                 null,
                 List.of(),
+                List.of(),
                 null,
-                false,
+                null,
+                null,
+                null,
                 null,
                 BigDecimal.ZERO,
                 "",
@@ -83,13 +81,28 @@ public final class BtcMeiDirectionalShadowEngine {
                 0,
                 0,
                 0,
+                0,
+                0,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 MAX_OPEN_COST_USDT,
                 BigDecimal.ZERO);
     }
 
+    /**
+     * Advances indicators during bootstrap without creating historical virtual
+     * positions or arming a historical entry.
+     */
+    public StepResult warmup(State previous, MdKline bar) {
+        return advance(previous, bar, false);
+    }
+
+    /** Advances one genuine closed hourly bar with SHADOW trading enabled. */
     public StepResult step(State previous, MdKline bar) {
+        return advance(previous, bar, true);
+    }
+
+    private StepResult advance(State previous, MdKline bar, boolean tradingEnabled) {
         State state = previous == null ? initialState() : previous;
         validate(state, bar);
 
@@ -105,7 +118,7 @@ public final class BtcMeiDirectionalShadowEngine {
         int deferredExitCount = state.deferredExitCount();
 
         for (Lot lot : state.openLots()) {
-            if (lot.exitQueuedAtBarOpenTime() == null) {
+            if (!tradingEnabled || lot.exitQueuedAtBarOpenTime() == null) {
                 lots.add(lot);
                 continue;
             }
@@ -117,8 +130,8 @@ public final class BtcMeiDirectionalShadowEngine {
             BigDecimal netProceeds = grossProceeds.subtract(sellFee);
             BigDecimal lotPnl = netProceeds.subtract(lot.grossBuyNotionalUsdt())
                     .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-            BigDecimal realizedReturn = returnOnCost(
-                    netProceeds, lot.grossBuyNotionalUsdt());
+            BigDecimal realizedReturn =
+                    returnOnCost(netProceeds, lot.grossBuyNotionalUsdt());
             if (realizedReturn.compareTo(MIN_REALIZED_NET_PROFIT) < 0) {
                 deferredExitCount++;
                 lots.add(lot.withExitQueuedAt(null));
@@ -155,84 +168,127 @@ public final class BtcMeiDirectionalShadowEngine {
                     "NEXT_1H_OPEN_NET_PROFIT_CONFIRMED"));
         }
 
-        if (positive(state.pendingBuyNotionalUsdt())) {
+        LocalDateTime pendingSignalTime = state.pendingSignalBarOpenTime();
+        BigDecimal pendingBuyNotional = state.pendingBuyNotionalUsdt();
+        String pendingReason = state.pendingReason();
+        if (tradingEnabled && positive(pendingBuyNotional)) {
             BigDecimal buyPrice = adverseBuyPrice(bar.getOpenPrice());
-            BigDecimal buyFee = state.pendingBuyNotionalUsdt().multiply(FEE_RATE_PER_SIDE)
+            BigDecimal buyFee = pendingBuyNotional.multiply(FEE_RATE_PER_SIDE)
                     .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-            BigDecimal netBuyNotional = state.pendingBuyNotionalUsdt().subtract(buyFee);
+            BigDecimal netBuyNotional = pendingBuyNotional.subtract(buyFee);
             BigDecimal fillQuantity = netBuyNotional.divide(
                     buyPrice, QUANTITY_SCALE, RoundingMode.DOWN);
             if (!positive(fillQuantity)) {
                 throw new DataQualityException("BUY_FILL_QUANTITY_NOT_POSITIVE");
             }
-            String lotId = lotId(state.pendingSignalBarOpenTime());
+            String lotId = lotId(pendingSignalTime);
             lots.add(new Lot(
                     lotId,
-                    state.pendingSignalBarOpenTime(),
+                    pendingSignalTime,
                     bar.getOpenTime(),
-                    state.pendingBuyNotionalUsdt(),
+                    pendingBuyNotional,
                     buyPrice,
                     fillQuantity,
-                    state.pendingReason(),
+                    pendingReason,
                     null));
-            totalBuyNotional = totalBuyNotional.add(state.pendingBuyNotionalUsdt());
+            totalBuyNotional = totalBuyNotional.add(pendingBuyNotional);
             totalFees = totalFees.add(buyFee);
             buyFillCount++;
             events.add(new RuntimeEvent(
                     "VIRTUAL_BUY_FILL",
                     bar.getOpenTime(),
-                    state.pendingSignalBarOpenTime(),
+                    pendingSignalTime,
                     lotId,
-                    state.pendingBuyNotionalUsdt(),
+                    pendingBuyNotional,
                     buyPrice,
                     fillQuantity,
                     buyFee,
                     BigDecimal.ZERO,
                     BigDecimal.ZERO,
                     "NEXT_1H_OPEN"));
+            pendingSignalTime = null;
+            pendingBuyNotional = BigDecimal.ZERO;
+            pendingReason = "";
         }
 
         List<ClosePoint> closeHistory = appendClose(
                 state.closeHistory(), bar.getOpenTime(), bar.getClosePrice());
-        BigDecimal ema20 = nextEma(state.ema20(), bar.getClosePrice());
-        SignalSnapshot signal = signal(closeHistory, ema20);
+        DailyIndicators daily = updateDailyIndicators(
+                state.dailyEmaHistory(), state.dailyEma20(), bar);
+        SignalSnapshot signal = signal(
+                closeHistory,
+                daily.history(),
+                daily.ema20(),
+                state.armedAt(),
+                state.armExpiresAt(),
+                bar);
 
-        List<Lot> evaluatedLots = new ArrayList<>();
-        for (Lot lot : lots) {
-            if (lot.exitQueuedAtBarOpenTime() != null) {
-                evaluatedLots.add(lot);
-                continue;
+        if (tradingEnabled) {
+            List<Lot> evaluatedLots = new ArrayList<>();
+            for (Lot lot : lots) {
+                if (lot.exitQueuedAtBarOpenTime() != null) {
+                    evaluatedLots.add(lot);
+                    continue;
+                }
+                BigDecimal netProceeds = estimatedNetSellProceeds(
+                        lot.quantity(), bar.getClosePrice());
+                BigDecimal netReturn =
+                        returnOnCost(netProceeds, lot.grossBuyNotionalUsdt());
+                if (netReturn.compareTo(NET_PROFIT_TRIGGER) >= 0) {
+                    evaluatedLots.add(lot.withExitQueuedAt(bar.getOpenTime()));
+                    events.add(new RuntimeEvent(
+                            "VIRTUAL_EXIT_QUEUED",
+                            bar.getOpenTime(),
+                            lot.signalBarOpenTime(),
+                            lot.lotId(),
+                            lot.grossBuyNotionalUsdt(),
+                            adverseSellPrice(bar.getClosePrice()),
+                            lot.quantity(),
+                            BigDecimal.ZERO,
+                            netProceeds.subtract(lot.grossBuyNotionalUsdt()),
+                            netReturn,
+                            "CLOSE_NET_RETURN_AT_LEAST_5_PERCENT"));
+                } else {
+                    evaluatedLots.add(lot);
+                }
             }
-            BigDecimal netProceeds = estimatedNetSellProceeds(
-                    lot.quantity(), bar.getClosePrice());
-            BigDecimal netReturn = returnOnCost(
-                    netProceeds, lot.grossBuyNotionalUsdt());
-            if (netReturn.compareTo(NET_PROFIT_TRIGGER) >= 0) {
-                evaluatedLots.add(lot.withExitQueuedAt(bar.getOpenTime()));
-                events.add(new RuntimeEvent(
-                        "VIRTUAL_EXIT_QUEUED",
-                        bar.getOpenTime(),
-                        lot.signalBarOpenTime(),
-                        lot.lotId(),
-                        lot.grossBuyNotionalUsdt(),
-                        adverseSellPrice(bar.getClosePrice()),
-                        lot.quantity(),
-                        BigDecimal.ZERO,
-                        netProceeds.subtract(lot.grossBuyNotionalUsdt()),
-                        netReturn,
-                        "CLOSE_NET_RETURN_AT_LEAST_5_PERCENT"));
-            } else {
-                evaluatedLots.add(lot);
-            }
+            lots = evaluatedLots;
         }
 
-        LocalDateTime pendingSignalTime = null;
-        BigDecimal pendingBuyNotional = BigDecimal.ZERO;
-        String pendingReason = "";
+        LocalDateTime armedAt = tradingEnabled ? state.armedAt() : null;
+        LocalDateTime armExpiresAt = tradingEnabled ? state.armExpiresAt() : null;
+        LocalDateTime lastEntrySignalAt =
+                tradingEnabled ? state.lastEntrySignalBarOpenTime() : null;
         int queuedEntryCount = state.queuedEntryCount();
         int blockedEntryCount = state.blockedEntryCount();
-        if (signal.eligible() && !state.entryConditionMetLastBar()) {
-            BigDecimal openCost = evaluatedLots.stream()
+        int armCount = state.armCount();
+        int expiredArmCount = state.expiredArmCount();
+
+        if (tradingEnabled && armedAt != null
+                && !bar.getOpenTime().isBefore(armExpiresAt)) {
+            events.add(new RuntimeEvent(
+                    "DRA_ARM_EXPIRED",
+                    bar.getOpenTime(),
+                    armedAt,
+                    "",
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    "NO_DAILY_REVERSAL_CONFIRMATION_WITHIN_30_DAYS"));
+            armedAt = null;
+            armExpiresAt = null;
+            expiredArmCount++;
+        }
+
+        boolean confirmationEligible = tradingEnabled
+                && armedAt != null
+                && bar.getOpenTime().isAfter(armedAt)
+                && signal.dailyReversalConfirmed();
+        if (confirmationEligible) {
+            BigDecimal openCost = lots.stream()
                     .map(Lot::grossBuyNotionalUsdt)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             if (openCost.add(BASE_NOTIONAL_USDT).compareTo(MAX_OPEN_COST_USDT) > 0) {
@@ -253,6 +309,7 @@ public final class BtcMeiDirectionalShadowEngine {
                 pendingSignalTime = bar.getOpenTime();
                 pendingBuyNotional = BASE_NOTIONAL_USDT;
                 pendingReason = signal.reason();
+                lastEntrySignalAt = bar.getOpenTime();
                 queuedEntryCount++;
                 events.add(new RuntimeEvent(
                         "VIRTUAL_ENTRY_QUEUED",
@@ -267,9 +324,32 @@ public final class BtcMeiDirectionalShadowEngine {
                         BigDecimal.ZERO,
                         signal.reason()));
             }
+            armedAt = null;
+            armExpiresAt = null;
         }
 
-        Metrics metrics = metrics(evaluatedLots, bar.getClosePrice());
+        boolean cooldownPassed = lastEntrySignalAt == null
+                || !bar.getOpenTime().isBefore(
+                        lastEntrySignalAt.plusDays(ENTRY_COOLDOWN_DAYS));
+        if (tradingEnabled && armedAt == null && cooldownPassed) {
+            armedAt = bar.getOpenTime();
+            armExpiresAt = bar.getOpenTime().plusDays(ARM_EXPIRY_DAYS);
+            armCount++;
+            events.add(new RuntimeEvent(
+                    "DRA_ARMED",
+                    bar.getOpenTime(),
+                    bar.getOpenTime(),
+                    "",
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    "WAITING_FOR_DAILY_EMA20_REVERSAL_CONFIRMATION"));
+        }
+
+        Metrics metrics = metrics(lots, bar.getClosePrice());
         BigDecimal totalPnl = realizedPnl.add(metrics.unrealizedPnlUsdt())
                 .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         BigDecimal openLoss = metrics.openReturn().signum() < 0
@@ -287,12 +367,15 @@ public final class BtcMeiDirectionalShadowEngine {
                 STATE_SCHEMA_VERSION,
                 bar.getOpenTime(),
                 closeHistory,
-                ema20,
-                signal.eligible(),
+                daily.history(),
+                daily.ema20(),
+                armedAt,
+                armExpiresAt,
+                lastEntrySignalAt,
                 pendingSignalTime,
                 pendingBuyNotional,
                 pendingReason,
-                List.copyOf(evaluatedLots),
+                List.copyOf(lots),
                 totalBuyNotional.setScale(MONEY_SCALE, RoundingMode.HALF_UP),
                 totalSellProceeds.setScale(MONEY_SCALE, RoundingMode.HALF_UP),
                 realizedPnl.setScale(MONEY_SCALE, RoundingMode.HALF_UP),
@@ -308,11 +391,16 @@ public final class BtcMeiDirectionalShadowEngine {
                 deferredExitCount,
                 queuedEntryCount,
                 blockedEntryCount,
+                armCount,
+                expiredArmCount,
                 state.maxOpenCostUsdt().max(metrics.openCostUsdt()),
                 state.maxOpenCapitalLossPct().max(openLoss),
                 peakVirtualEquity,
                 state.maxVirtualDrawdownPct().max(virtualDrawdown));
-        return new StepResult(next, signal, List.copyOf(events));
+        return new StepResult(
+                next,
+                signal.withEntryEligible(confirmationEligible),
+                List.copyOf(events));
     }
 
     public String stateSha256(State state) {
@@ -323,7 +411,7 @@ public final class BtcMeiDirectionalShadowEngine {
         try {
             return objectMapper.writeValueAsString(state);
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to serialize MEI directional state", e);
+            throw new IllegalStateException("Unable to serialize DRA state", e);
         }
     }
 
@@ -336,125 +424,110 @@ public final class BtcMeiDirectionalShadowEngine {
                     MessageDigest.getInstance("SHA-256").digest(
                             canonicalStateJson.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to hash MEI directional state", e);
+            throw new IllegalStateException("Unable to hash DRA state", e);
         }
     }
 
-    public ReplayResult replay(List<MdKline> inputBars) {
-        if (inputBars == null || inputBars.isEmpty()) {
-            throw new DataQualityException("NO_BARS");
+    private DailyIndicators updateDailyIndicators(
+            List<DailyEmaPoint> previousHistory,
+            BigDecimal previousEma,
+            MdKline bar) {
+        if (bar.getOpenTime().getHour() != 23) {
+            return new DailyIndicators(previousHistory, previousEma);
         }
-        List<MdKline> bars = new ArrayList<>(inputBars);
-        bars.sort(Comparator.comparing(MdKline::getOpenTime));
-        State state = initialState();
-        List<RuntimeEvent> events = new ArrayList<>();
-        SignalSnapshot lastSignal = null;
-        for (MdKline bar : bars) {
-            StepResult step = step(state, bar);
-            state = step.state();
-            lastSignal = step.signal();
-            events.addAll(step.events());
-        }
-        return new ReplayResult(
-                state,
-                lastSignal,
-                List.copyOf(events),
-                bars.get(0).getOpenTime(),
-                bars.get(bars.size() - 1).getOpenTime(),
-                bars.size());
+        BigDecimal ema = nextDailyEma(previousEma, bar.getClosePrice());
+        List<DailyEmaPoint> history = new ArrayList<>(previousHistory);
+        history.add(new DailyEmaPoint(bar.getOpenTime(), ema));
+        while (history.size() > REQUIRED_DAILY_EMA_POINTS) history.remove(0);
+        return new DailyIndicators(List.copyOf(history), ema);
     }
 
-    private SignalSnapshot signal(List<ClosePoint> history, BigDecimal ema20) {
-        if (history.size() < REQUIRED_CLOSE_POINTS || ema20 == null) {
+    private SignalSnapshot signal(
+            List<ClosePoint> closeHistory,
+            List<DailyEmaPoint> dailyEmaHistory,
+            BigDecimal dailyEma20,
+            LocalDateTime armedAt,
+            LocalDateTime armExpiresAt,
+            MdKline bar) {
+        boolean dailyDecision = bar.getOpenTime().getHour() == 23;
+        if (closeHistory.size() < REQUIRED_CLOSE_POINTS
+                || dailyEmaHistory.size() < REQUIRED_DAILY_EMA_POINTS
+                || dailyEma20 == null) {
             return new SignalSnapshot(
-                    false, 0, 0, 0, 0, BigDecimal.ZERO, ema20,
-                    false, "INSUFFICIENT_CLOSED_HISTORY");
+                    false,
+                    dailyDecision,
+                    BigDecimal.ZERO,
+                    dailyEma20,
+                    null,
+                    false,
+                    false,
+                    false,
+                    false,
+                    armedAt != null,
+                    armedAt,
+                    armExpiresAt,
+                    "INSUFFICIENT_DAILY_REVERSAL_HISTORY");
         }
-        double entropy24 = entropy(history, ENTROPY_24H);
-        double entropy48 = entropy(history, ENTROPY_48H);
-        double entropy72 = entropy(history, ENTROPY_72H);
-        double score = Math.min(100.0,
-                entropy24 * ENTROPY_24H_WEIGHT
-                        + entropy48 * ENTROPY_48H_WEIGHT
-                        + entropy72 * ENTROPY_72H_WEIGHT);
-        BigDecimal close = history.get(history.size() - 1).closePrice();
-        BigDecimal close24hAgo = history.get(history.size() - 1 - MOMENTUM_LOOKBACK_HOURS)
-                .closePrice();
+        BigDecimal close = closeHistory.get(closeHistory.size() - 1).closePrice();
+        BigDecimal close24hAgo =
+                closeHistory.get(closeHistory.size() - 1 - MOMENTUM_LOOKBACK_HOURS)
+                        .closePrice();
         BigDecimal momentum = close.subtract(close24hAgo)
                 .divide(close24hAgo, RETURN_SCALE, RoundingMode.HALF_UP);
-        boolean entropyPassed = score >= ENTRY_ENTROPY_THRESHOLD;
-        boolean momentumPassed = momentum.signum() > 0;
-        boolean emaPassed = close.compareTo(ema20) > 0;
-        boolean eligible = entropyPassed && momentumPassed && emaPassed;
+        BigDecimal emaFiveDaysAgo =
+                dailyEmaHistory.get(dailyEmaHistory.size() - 1 - EMA_SLOPE_LOOKBACK_DAYS)
+                        .ema20();
+        boolean closeAboveEma = close.compareTo(dailyEma20) > 0;
+        boolean emaRising = dailyEma20.compareTo(emaFiveDaysAgo) > 0;
+        boolean momentumPositive = momentum.signum() > 0;
+        boolean confirmed =
+                dailyDecision && closeAboveEma && emaRising && momentumPositive;
         String reason = String.format(
                 Locale.ROOT,
-                "MEI=%.4f threshold=%.1f momentum24h=%s close=%s ema20=%s",
-                score,
-                ENTRY_ENTROPY_THRESHOLD,
+                "dailyDecision=%s momentum24h=%s close=%s dailyEma20=%s "
+                        + "dailyEma20FiveDaysAgo=%s closeAboveEma=%s "
+                        + "emaRisingFiveDays=%s",
+                dailyDecision,
                 momentum.toPlainString(),
                 close.toPlainString(),
-                ema20.toPlainString());
+                dailyEma20.toPlainString(),
+                emaFiveDaysAgo.toPlainString(),
+                closeAboveEma,
+                emaRising);
         return new SignalSnapshot(
                 true,
-                score,
-                entropy24,
-                entropy48,
-                entropy72,
+                dailyDecision,
                 momentum,
-                ema20,
-                eligible,
+                dailyEma20,
+                emaFiveDaysAgo,
+                closeAboveEma,
+                emaRising,
+                momentumPositive,
+                confirmed,
+                armedAt != null,
+                armedAt,
+                armExpiresAt,
                 reason);
     }
 
-    private double entropy(List<ClosePoint> history, int windowHours) {
-        int start = history.size() - (windowHours + 1);
-        double[] returns = new double[windowHours];
-        for (int i = 0; i < windowHours; i++) {
-            double previous = history.get(start + i).closePrice().doubleValue();
-            double current = history.get(start + i + 1).closePrice().doubleValue();
-            returns[i] = previous > 0 ? (current - previous) / previous : 0;
-        }
-        double mean = 0;
-        for (double value : returns) mean += value;
-        mean /= returns.length;
-        double variance = 0;
-        for (double value : returns) {
-            double delta = value - mean;
-            variance += delta * delta;
-        }
-        double standardDeviation = Math.sqrt(variance / returns.length);
-        double low = mean - 3 * standardDeviation;
-        double high = mean + 3 * standardDeviation;
-        if (high - low < EPSILON) return 0;
-
-        int[] counts = new int[ENTROPY_BINS];
-        double width = (high - low) / ENTROPY_BINS;
-        for (double value : returns) {
-            int bin = (int) Math.floor((value - low) / width);
-            counts[Math.max(0, Math.min(ENTROPY_BINS - 1, bin))]++;
-        }
-        double entropy = 0;
-        for (int count : counts) {
-            if (count == 0) continue;
-            double probability = (double) count / returns.length;
-            entropy -= probability * Math.log(probability);
-        }
-        return Math.min(entropy / Math.log(ENTROPY_BINS) * 100.0, 100.0);
-    }
-
-    private List<ClosePoint> appendClose(List<ClosePoint> previous,
-                                         LocalDateTime openTime,
-                                         BigDecimal closePrice) {
+    private List<ClosePoint> appendClose(
+            List<ClosePoint> previous,
+            LocalDateTime openTime,
+            BigDecimal closePrice) {
         List<ClosePoint> next = new ArrayList<>(previous);
         next.add(new ClosePoint(openTime, closePrice));
         while (next.size() > REQUIRED_CLOSE_POINTS) next.remove(0);
         return List.copyOf(next);
     }
 
-    private BigDecimal nextEma(BigDecimal previousEma, BigDecimal closePrice) {
-        if (previousEma == null) return closePrice.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+    private BigDecimal nextDailyEma(BigDecimal previousEma, BigDecimal closePrice) {
+        if (previousEma == null) {
+            return closePrice.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+        }
         BigDecimal alpha = BigDecimal.valueOf(2)
-                .divide(BigDecimal.valueOf(EMA_PERIOD_HOURS + 1L), 16, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(DAILY_EMA_PERIOD_DAYS + 1L),
+                        16,
+                        RoundingMode.HALF_UP);
         return closePrice.multiply(alpha)
                 .add(previousEma.multiply(BigDecimal.ONE.subtract(alpha)))
                 .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
@@ -482,7 +555,9 @@ public final class BtcMeiDirectionalShadowEngine {
                 openReturn);
     }
 
-    private BigDecimal estimatedNetSellProceeds(BigDecimal quantity, BigDecimal referencePrice) {
+    private BigDecimal estimatedNetSellProceeds(
+            BigDecimal quantity,
+            BigDecimal referencePrice) {
         BigDecimal gross = quantity.multiply(adverseSellPrice(referencePrice))
                 .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         return gross.subtract(gross.multiply(FEE_RATE_PER_SIDE)
@@ -525,10 +600,13 @@ public final class BtcMeiDirectionalShadowEngine {
             throw new DataQualityException("BAR_PRICE_INVALID");
         }
         if (state.lastProcessedBarOpenTime() != null
-                && !state.lastProcessedBarOpenTime().plusHours(1).equals(bar.getOpenTime())) {
+                && !state.lastProcessedBarOpenTime().plusHours(1)
+                .equals(bar.getOpenTime())) {
             throw new DataQualityException("HOURLY_BAR_SEQUENCE_GAP");
         }
-        if (state.closeHistory() == null || state.openLots() == null
+        if (state.closeHistory() == null
+                || state.dailyEmaHistory() == null
+                || state.openLots() == null
                 || state.pendingBuyNotionalUsdt() == null
                 || state.maxOpenCostUsdt() == null
                 || state.maxOpenCapitalLossPct() == null
@@ -536,13 +614,17 @@ public final class BtcMeiDirectionalShadowEngine {
                 || state.maxVirtualDrawdownPct() == null) {
             throw new DataQualityException("STATE_FIELD_MISSING");
         }
-        if (state.closeHistory().size() > REQUIRED_CLOSE_POINTS) {
+        if (state.closeHistory().size() > REQUIRED_CLOSE_POINTS
+                || state.dailyEmaHistory().size() > REQUIRED_DAILY_EMA_POINTS) {
             throw new DataQualityException("STATE_HISTORY_TOO_LARGE");
         }
         if (!state.closeHistory().isEmpty()
                 && !state.closeHistory().get(state.closeHistory().size() - 1).openTime()
                 .equals(state.lastProcessedBarOpenTime())) {
             throw new DataQualityException("STATE_HISTORY_TIME_MISMATCH");
+        }
+        if (state.armedAt() == null ^ state.armExpiresAt() == null) {
+            throw new DataQualityException("ARM_STATE_INCOMPLETE");
         }
         if (positive(state.pendingBuyNotionalUsdt())
                 && (state.pendingSignalBarOpenTime() == null
@@ -561,12 +643,13 @@ public final class BtcMeiDirectionalShadowEngine {
     }
 
     private String lotId(LocalDateTime signalBarOpenTime) {
-        return signalBarOpenTime == null
-                ? ""
-                : "MEI-DIR-V1-" + signalBarOpenTime;
+        return signalBarOpenTime == null ? "" : "DRA-V1-" + signalBarOpenTime;
     }
 
     public record ClosePoint(LocalDateTime openTime, BigDecimal closePrice) {
+    }
+
+    public record DailyEmaPoint(LocalDateTime closeBarOpenTime, BigDecimal ema20) {
     }
 
     public record Lot(
@@ -596,8 +679,11 @@ public final class BtcMeiDirectionalShadowEngine {
             String schemaVersion,
             LocalDateTime lastProcessedBarOpenTime,
             List<ClosePoint> closeHistory,
-            BigDecimal ema20,
-            boolean entryConditionMetLastBar,
+            List<DailyEmaPoint> dailyEmaHistory,
+            BigDecimal dailyEma20,
+            LocalDateTime armedAt,
+            LocalDateTime armExpiresAt,
+            LocalDateTime lastEntrySignalBarOpenTime,
             LocalDateTime pendingSignalBarOpenTime,
             BigDecimal pendingBuyNotionalUsdt,
             String pendingReason,
@@ -617,6 +703,8 @@ public final class BtcMeiDirectionalShadowEngine {
             int deferredExitCount,
             int queuedEntryCount,
             int blockedEntryCount,
+            int armCount,
+            int expiredArmCount,
             BigDecimal maxOpenCostUsdt,
             BigDecimal maxOpenCapitalLossPct,
             BigDecimal peakVirtualEquityUsdt,
@@ -624,6 +712,8 @@ public final class BtcMeiDirectionalShadowEngine {
     ) {
         public State {
             closeHistory = closeHistory == null ? List.of() : List.copyOf(closeHistory);
+            dailyEmaHistory =
+                    dailyEmaHistory == null ? List.of() : List.copyOf(dailyEmaHistory);
             openLots = openLots == null ? List.of() : List.copyOf(openLots);
             pendingReason = pendingReason == null ? "" : pendingReason;
         }
@@ -631,15 +721,35 @@ public final class BtcMeiDirectionalShadowEngine {
 
     public record SignalSnapshot(
             boolean ready,
-            double score,
-            double entropy24h,
-            double entropy48h,
-            double entropy72h,
+            boolean dailyDecision,
             BigDecimal momentum24h,
-            BigDecimal ema20,
-            boolean eligible,
+            BigDecimal dailyEma20,
+            BigDecimal dailyEma20FiveDaysAgo,
+            boolean closeAboveEma,
+            boolean emaRisingFiveDays,
+            boolean momentumPositive,
+            boolean dailyReversalConfirmed,
+            boolean entryEligible,
+            LocalDateTime armedAt,
+            LocalDateTime armExpiresAt,
             String reason
     ) {
+        public SignalSnapshot withEntryEligible(boolean value) {
+            return new SignalSnapshot(
+                    ready,
+                    dailyDecision,
+                    momentum24h,
+                    dailyEma20,
+                    dailyEma20FiveDaysAgo,
+                    closeAboveEma,
+                    emaRisingFiveDays,
+                    momentumPositive,
+                    dailyReversalConfirmed,
+                    value,
+                    armedAt,
+                    armExpiresAt,
+                    reason);
+        }
     }
 
     public record RuntimeEvent(
@@ -664,13 +774,9 @@ public final class BtcMeiDirectionalShadowEngine {
     ) {
     }
 
-    public record ReplayResult(
-            State state,
-            SignalSnapshot lastSignal,
-            List<RuntimeEvent> events,
-            LocalDateTime firstBarOpenTime,
-            LocalDateTime lastBarOpenTime,
-            int barCount
+    private record DailyIndicators(
+            List<DailyEmaPoint> history,
+            BigDecimal ema20
     ) {
     }
 

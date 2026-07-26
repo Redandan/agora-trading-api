@@ -1,4 +1,9 @@
-# BTC MEI Directional SHADOW Candidate V1
+# Retired BTC MEI Directional SHADOW Candidate V1
+
+> Retired on 2026-07-26. The active second-candidate identity is
+> `BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1` (DRA). This document and the old
+> Production rows are retained only as immutable historical evidence; DRA
+> never restores this state.
 
 ## Status
 

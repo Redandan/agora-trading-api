@@ -3,7 +3,7 @@ package com.agora.service.backtest;
 import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
 import com.agora.service.trading.BtcDonchianShadowLaneService;
-import com.agora.service.trading.BtcMeiDirectionalShadowLaneService;
+import com.agora.service.trading.BtcDraShadowLaneService;
 import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class KlineClosedEventListener {
 
     private final LocalTradingViewSignalEvaluator localTradingViewSignalEvaluator;
     private final BtcDonchianShadowLaneService btcDonchianShadowLaneService;
-    private final BtcMeiDirectionalShadowLaneService btcMeiDirectionalShadowLaneService;
+    private final BtcDraShadowLaneService btcDraShadowLaneService;
 
     @Async
     @EventListener
@@ -53,9 +53,9 @@ public class KlineClosedEventListener {
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
         try {
-            btcMeiDirectionalShadowLaneService.evaluate(kline);
+            btcDraShadowLaneService.evaluate(kline);
         } catch (Exception e) {
-            log.error("[KlineClosedEventListener] BTC MEI directional shadow lane failed {}@{} openTime={}: {}",
+            log.error("[KlineClosedEventListener] BTC DRA shadow lane failed {}@{} openTime={}: {}",
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
     }

@@ -1,6 +1,6 @@
 package com.agora.service.trading;
 
-import com.agora.config.properties.BtcMeiDirectionalShadowProperties;
+import com.agora.config.properties.BtcDraShadowProperties;
 import com.agora.model.BtDecisionAudit;
 import com.agora.model.MdKline;
 import com.agora.model.RuntimeDecisionEvidence;
@@ -33,32 +33,27 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.BASE_NOTIONAL_USDT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.EMA_PERIOD_HOURS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_24H;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_24H_WEIGHT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_48H;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_48H_WEIGHT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_72H;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_72H_WEIGHT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTROPY_BINS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.ENTRY_ENTROPY_THRESHOLD;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.EVIDENCE_SCHEMA_VERSION;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.FEE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.INTERVAL;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MAX_CATCH_UP_BARS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MAX_OPEN_COST_USDT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MIN_REALIZED_NET_PROFIT;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.MOMENTUM_LOOKBACK_HOURS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.NET_PROFIT_TRIGGER;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.POLICY_MODE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.REQUIRED_CLOSE_POINTS;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.SOURCE;
-import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.SYMBOL;
+import static com.agora.service.trading.BtcDraShadowPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraShadowPolicy.ARM_EXPIRY_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.BASE_NOTIONAL_USDT;
+import static com.agora.service.trading.BtcDraShadowPolicy.BOOTSTRAP_HISTORY_HOURS;
+import static com.agora.service.trading.BtcDraShadowPolicy.DAILY_EMA_PERIOD_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.EMA_SLOPE_LOOKBACK_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.ENTRY_COOLDOWN_DAYS;
+import static com.agora.service.trading.BtcDraShadowPolicy.EVIDENCE_SCHEMA_VERSION;
+import static com.agora.service.trading.BtcDraShadowPolicy.FEE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraShadowPolicy.INTERVAL;
+import static com.agora.service.trading.BtcDraShadowPolicy.MAX_CATCH_UP_BARS;
+import static com.agora.service.trading.BtcDraShadowPolicy.MAX_OPEN_COST_USDT;
+import static com.agora.service.trading.BtcDraShadowPolicy.MIN_REALIZED_NET_PROFIT;
+import static com.agora.service.trading.BtcDraShadowPolicy.MOMENTUM_LOOKBACK_HOURS;
+import static com.agora.service.trading.BtcDraShadowPolicy.NET_PROFIT_TRIGGER;
+import static com.agora.service.trading.BtcDraShadowPolicy.POLICY_MODE;
+import static com.agora.service.trading.BtcDraShadowPolicy.SOURCE;
+import static com.agora.service.trading.BtcDraShadowPolicy.SYMBOL;
 
 /**
- * Source-pinned, evidence-only runtime lane for the MEI directional candidate.
+ * Source-pinned evidence-only runtime lane for BTC DRA V1.
  *
  * <p>This class deliberately has no exchange, OCO, Grid, fund, or notification
  * dependency. Its only writes are decision audit and runtime evidence rows.</p>
@@ -66,21 +61,21 @@ import static com.agora.service.trading.BtcMeiDirectionalShadowPolicy.SYMBOL;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BtcMeiDirectionalShadowLaneService {
+public class BtcDraShadowLaneService {
 
-    static final String EVENT_TYPE = "BTC_MEI_DIRECTIONAL_SHADOW";
-    static final String BLOCK_EVENT_TYPE = "BTC_MEI_DIRECTIONAL_BLOCKED";
-    private static final String SIGNAL_SOURCE = "OKX_CLOSED_1H_MEI_DIRECTIONAL";
+    static final String EVENT_TYPE = "BTC_DRA_SHADOW";
+    static final String BLOCK_EVENT_TYPE = "BTC_DRA_BLOCKED";
+    private static final String SIGNAL_SOURCE = "OKX_CLOSED_1H_DRA";
     private static final int STATE_RESTORE_SCAN_LIMIT = 50;
 
     private final Set<String> evaluatingBars = ConcurrentHashMap.newKeySet();
 
-    private final BtcMeiDirectionalShadowProperties properties;
+    private final BtcDraShadowProperties properties;
     private final MdKlineRepository klineRepository;
     private final BtDecisionAuditRepository decisionAuditRepository;
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
     private final RuntimeDecisionEvidenceService runtimeEvidenceService;
-    private final BtcMeiDirectionalShadowEngine engine;
+    private final BtcDraShadowEngine engine;
     private final ObjectMapper objectMapper;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
 
@@ -93,13 +88,14 @@ public class BtcMeiDirectionalShadowLaneService {
     public void evaluate(MdKline eventKline) {
         if (!isEnabled() || !matchesScope(eventKline)) return;
         if (!runtimeEvidenceService.isEnabled()) {
-            log.warn("[BtcMeiDirectionalShadow] runtime evidence disabled; bar ignored openTime={}",
+            log.warn("[BtcDraShadow] runtime evidence disabled; bar ignored openTime={}",
                     eventKline.getOpenTime());
             return;
         }
-        String key = SOURCE + "|" + SYMBOL + "|" + INTERVAL + "|" + eventKline.getOpenTime();
+        String key = SOURCE + "|" + SYMBOL + "|" + INTERVAL + "|"
+                + eventKline.getOpenTime();
         if (!evaluatingBars.add(key)) {
-            log.debug("[BtcMeiDirectionalShadow] concurrent duplicate ignored: {}", key);
+            log.debug("[BtcDraShadow] concurrent duplicate ignored: {}", key);
             return;
         }
         try {
@@ -111,130 +107,218 @@ public class BtcMeiDirectionalShadowLaneService {
 
     private void evaluateLocked(MdKline eventKline) {
         if (eventKline.getOpenTime() == null) return;
-        if (decisionAuditRepository.existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
-                SYMBOL, INTERVAL, eventKline.getOpenTime(), EVENT_TYPE)) {
-            log.debug("[BtcMeiDirectionalShadow] persisted duplicate ignored openTime={}",
+        if (decisionAuditRepository
+                .existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
+                        SYMBOL,
+                        INTERVAL,
+                        eventKline.getOpenTime(),
+                        EVENT_TYPE)) {
+            log.debug("[BtcDraShadow] persisted duplicate ignored openTime={}",
                     eventKline.getOpenTime());
             return;
         }
         LocalDateTime expectedClose = eventKline.getOpenTime().plusHours(1);
         if (eventKline.getCloseTime() == null
                 || !expectedClose.equals(eventKline.getCloseTime())
-                || expectedClose.isAfter(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(1))) {
-            persistBlocked(eventKline, null, "EVENT_NOT_PROVEN_CLOSED", false, false, 0);
+                || expectedClose.isAfter(
+                        LocalDateTime.now(ZoneOffset.UTC).plusMinutes(1))) {
+            persistBlocked(
+                    eventKline,
+                    null,
+                    "EVENT_NOT_PROVEN_CLOSED",
+                    false,
+                    false,
+                    0);
             return;
         }
 
         RestoredState restored = restoreLatestState();
-        BtcMeiDirectionalShadowEngine.State state =
+        BtcDraShadowEngine.State state =
                 restored == null ? null : restored.state();
-        if (state != null && state.lastProcessedBarOpenTime() != null
-                && !state.lastProcessedBarOpenTime().isBefore(eventKline.getOpenTime())) {
+        if (state != null
+                && state.lastProcessedBarOpenTime() != null
+                && !state.lastProcessedBarOpenTime()
+                .isBefore(eventKline.getOpenTime())) {
             return;
         }
         if (state == null) {
             if (restored != null && restored.currentSchemaEvidenceSeen()) {
-                log.warn("[BtcMeiDirectionalShadow] current-schema state restore failed; "
-                                + "blocking instead of re-bootstrap openTime={} invalidRows={}",
-                        eventKline.getOpenTime(), restored.invalidRowsScanned());
-                persistBlocked(eventKline, null, "STATE_RESTORE_FAILED",
-                        false, false, restored.invalidRowsScanned());
+                log.warn("[BtcDraShadow] current-schema state restore failed; "
+                                + "blocking instead of re-bootstrap openTime={} "
+                                + "invalidRows={}",
+                        eventKline.getOpenTime(),
+                        restored.invalidRowsScanned());
+                persistBlocked(
+                        eventKline,
+                        null,
+                        "STATE_RESTORE_FAILED",
+                        false,
+                        false,
+                        restored.invalidRowsScanned());
                 return;
             }
-            bootstrap(eventKline, restored == null ? 0 : restored.invalidRowsScanned());
+            bootstrap(
+                    eventKline,
+                    restored == null ? 0 : restored.invalidRowsScanned());
             return;
         }
         catchUp(state, eventKline, restored.invalidRowsScanned());
     }
 
     private void bootstrap(MdKline eventKline, int invalidStateRows) {
-        LocalDateTime start = eventKline.getOpenTime().minusHours(REQUIRED_CLOSE_POINTS - 1L);
+        LocalDateTime start = eventKline.getOpenTime()
+                .minusHours(BOOTSTRAP_HISTORY_HOURS - 1L);
         List<MdKline> bars = klineRepository
                 .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                        SYMBOL, INTERVAL, SOURCE, start, eventKline.getOpenTime());
+                        SYMBOL,
+                        INTERVAL,
+                        SOURCE,
+                        start,
+                        eventKline.getOpenTime());
         if (bars == null
-                || bars.size() != REQUIRED_CLOSE_POINTS
+                || bars.size() != BOOTSTRAP_HISTORY_HOURS
                 || !start.equals(bars.get(0).getOpenTime())
-                || !eventKline.getOpenTime().equals(bars.get(bars.size() - 1).getOpenTime())) {
-            persistBlocked(eventKline, null, "BOOTSTRAP_HISTORY_INCOMPLETE",
-                    true, false, invalidStateRows);
+                || !eventKline.getOpenTime()
+                .equals(bars.get(bars.size() - 1).getOpenTime())) {
+            persistBlocked(
+                    eventKline,
+                    null,
+                    "BOOTSTRAP_HISTORY_INCOMPLETE",
+                    true,
+                    false,
+                    invalidStateRows);
             return;
         }
 
-        BtcMeiDirectionalShadowEngine.State state = engine.initialState();
-        BtcMeiDirectionalShadowEngine.StepResult current = null;
+        BtcDraShadowEngine.State state = engine.initialState();
+        BtcDraShadowEngine.StepResult current = null;
         try {
-            for (MdKline bar : bars) {
-                current = engine.step(state, bar);
+            for (int i = 0; i < bars.size(); i++) {
+                MdKline bar = bars.get(i);
+                current = i == bars.size() - 1
+                        ? engine.step(state, bar)
+                        : engine.warmup(state, bar);
                 state = current.state();
             }
-        } catch (BtcMeiDirectionalShadowEngine.DataQualityException e) {
-            persistBlocked(eventKline, null, "BOOTSTRAP_" + safeCode(e.getMessage()),
-                    true, false, invalidStateRows);
+        } catch (BtcDraShadowEngine.DataQualityException e) {
+            persistBlocked(
+                    eventKline,
+                    null,
+                    "BOOTSTRAP_" + safeCode(e.getMessage()),
+                    true,
+                    false,
+                    invalidStateRows);
             return;
         }
         if (current == null) {
-            persistBlocked(eventKline, null, "BOOTSTRAP_NO_CURRENT_STEP",
-                    true, false, invalidStateRows);
+            persistBlocked(
+                    eventKline,
+                    null,
+                    "BOOTSTRAP_NO_CURRENT_STEP",
+                    true,
+                    false,
+                    invalidStateRows);
             return;
         }
-        persistObserved(eventKline, current, true, false,
-                bars.size(), invalidStateRows);
+        persistObserved(
+                eventKline,
+                current,
+                true,
+                false,
+                bars.size(),
+                invalidStateRows);
     }
 
-    private void catchUp(BtcMeiDirectionalShadowEngine.State initial,
-                         MdKline eventKline,
-                         int invalidStateRows) {
+    private void catchUp(
+            BtcDraShadowEngine.State initial,
+            MdKline eventKline,
+            int invalidStateRows) {
         LocalDateTime next = initial.lastProcessedBarOpenTime().plusHours(1);
-        long expected = Duration.between(next, eventKline.getOpenTime()).toHours() + 1;
+        long expected =
+                Duration.between(next, eventKline.getOpenTime()).toHours() + 1;
         if (expected <= 0) return;
         if (expected > MAX_CATCH_UP_BARS) {
-            persistBlocked(eventKline, initial, "CATCH_UP_LIMIT_EXCEEDED",
-                    false, true, invalidStateRows);
+            persistBlocked(
+                    eventKline,
+                    initial,
+                    "CATCH_UP_LIMIT_EXCEEDED",
+                    false,
+                    true,
+                    invalidStateRows);
             return;
         }
         List<MdKline> bars = klineRepository
                 .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
-                        SYMBOL, INTERVAL, SOURCE, next, eventKline.getOpenTime());
+                        SYMBOL,
+                        INTERVAL,
+                        SOURCE,
+                        next,
+                        eventKline.getOpenTime());
         if (bars == null
                 || bars.size() != expected
                 || !next.equals(bars.get(0).getOpenTime())
-                || !eventKline.getOpenTime().equals(bars.get(bars.size() - 1).getOpenTime())) {
-            persistBlocked(eventKline, initial, "CATCH_UP_HISTORY_INCOMPLETE",
-                    false, true, invalidStateRows);
+                || !eventKline.getOpenTime()
+                .equals(bars.get(bars.size() - 1).getOpenTime())) {
+            persistBlocked(
+                    eventKline,
+                    initial,
+                    "CATCH_UP_HISTORY_INCOMPLETE",
+                    false,
+                    true,
+                    invalidStateRows);
             return;
         }
 
-        BtcMeiDirectionalShadowEngine.State state = initial;
+        BtcDraShadowEngine.State state = initial;
         for (int i = 0; i < bars.size(); i++) {
             MdKline bar = bars.get(i);
-            if (decisionAuditRepository.existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
-                    SYMBOL, INTERVAL, bar.getOpenTime(), EVENT_TYPE)) {
-                persistBlocked(eventKline, state, "AUDIT_STATE_DIVERGENCE",
-                        false, true, invalidStateRows);
+            if (decisionAuditRepository
+                    .existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
+                            SYMBOL,
+                            INTERVAL,
+                            bar.getOpenTime(),
+                            EVENT_TYPE)) {
+                persistBlocked(
+                        eventKline,
+                        state,
+                        "AUDIT_STATE_DIVERGENCE",
+                        false,
+                        true,
+                        invalidStateRows);
                 return;
             }
-            BtcMeiDirectionalShadowEngine.StepResult step;
+            BtcDraShadowEngine.StepResult step;
             try {
                 step = engine.step(state, bar);
-            } catch (BtcMeiDirectionalShadowEngine.DataQualityException e) {
-                persistBlocked(bar, state, "CATCH_UP_" + safeCode(e.getMessage()),
-                        false, true, invalidStateRows);
+            } catch (BtcDraShadowEngine.DataQualityException e) {
+                persistBlocked(
+                        bar,
+                        state,
+                        "CATCH_UP_" + safeCode(e.getMessage()),
+                        false,
+                        true,
+                        invalidStateRows);
                 return;
             }
             state = step.state();
-            persistObserved(bar, step, false, i < bars.size() - 1,
-                    bars.size(), invalidStateRows);
+            persistObserved(
+                    bar,
+                    step,
+                    false,
+                    i < bars.size() - 1,
+                    bars.size(),
+                    invalidStateRows);
         }
     }
 
-    private void persistObserved(MdKline bar,
-                                 BtcMeiDirectionalShadowEngine.StepResult step,
-                                 boolean bootstrap,
-                                 boolean catchUp,
-                                 int batchBars,
-                                 int invalidStateRows) {
-        List<BtcMeiDirectionalShadowEngine.RuntimeEvent> events = step.events();
+    private void persistObserved(
+            MdKline bar,
+            BtcDraShadowEngine.StepResult step,
+            boolean bootstrap,
+            boolean catchUp,
+            int batchBars,
+            int invalidStateRows) {
+        List<BtcDraShadowEngine.RuntimeEvent> events = step.events();
         String selectedAction = selectedAction(events);
         String canonicalStateJson = engine.stateCanonicalJson(step.state());
         String stateHash = engine.canonicalStateSha256(canonicalStateJson);
@@ -243,8 +327,11 @@ public class BtcMeiDirectionalShadowLaneService {
         Map<String, Object> auditContext = new LinkedHashMap<>();
         auditContext.put("policyMode", POLICY_MODE);
         auditContext.put("source", SOURCE);
-        auditContext.put("score", step.signal().score());
-        auditContext.put("eligible", step.signal().eligible());
+        auditContext.put(
+                "dailyReversalConfirmed",
+                step.signal().dailyReversalConfirmed());
+        auditContext.put("entryEligible", step.signal().entryEligible());
+        auditContext.put("armed", step.state().armedAt() != null);
         auditContext.put("selectedAction", selectedAction);
         auditContext.put("stateAfterSha256", stateHash);
         auditContext.put("orderSent", false);
@@ -286,14 +373,13 @@ public class BtcMeiDirectionalShadowLaneService {
 
         RuntimeDecisionEvidence evidence = baseEvidence(audit, now);
         evidence.setFeaturesSnapshotJson(toJson(snapshot));
-        evidence.setFreshnessState(catchUp
-                ? "CAUSAL_CATCH_UP_COMPLETE"
-                : "CURRENT_CLOSED_BAR");
+        evidence.setFreshnessState(
+                catchUp ? "CAUSAL_CATCH_UP_COMPLETE" : "CURRENT_CLOSED_BAR");
         evidence.setSelectedAction(selectedAction);
         evidence.setReason(eventReason(events, step.signal()));
         evidence.setFinalOutcome("SHADOW_OBSERVED");
-        evidence.setScore(step.signal().score());
-        evidence.setThreshold(ENTRY_ENTROPY_THRESHOLD);
+        evidence.setScore(step.signal().entryEligible() ? 1.0 : 0.0);
+        evidence.setThreshold(1.0);
         evidence.setDecision(decision(events));
         evidence.setIntentCreated(events.stream().anyMatch(this::isSignalEvent));
         evidence.setPolicyInputsJson(policyInputsJson(stateHash));
@@ -306,15 +392,22 @@ public class BtcMeiDirectionalShadowLaneService {
         evidenceRepository.save(evidence);
     }
 
-    private void persistBlocked(MdKline bar,
-                                BtcMeiDirectionalShadowEngine.State state,
-                                String blocker,
-                                boolean bootstrap,
-                                boolean catchUp,
-                                int invalidStateRows) {
+    private void persistBlocked(
+            MdKline bar,
+            BtcDraShadowEngine.State state,
+            String blocker,
+            boolean bootstrap,
+            boolean catchUp,
+            int invalidStateRows) {
         if (bar == null || bar.getOpenTime() == null) return;
-        if (decisionAuditRepository.existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
-                SYMBOL, INTERVAL, bar.getOpenTime(), BLOCK_EVENT_TYPE)) return;
+        if (decisionAuditRepository
+                .existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
+                        SYMBOL,
+                        INTERVAL,
+                        bar.getOpenTime(),
+                        BLOCK_EVENT_TYPE)) {
+            return;
+        }
         String safeBlocker = safeCode(blocker);
         String canonicalStateJson =
                 state == null ? null : engine.stateCanonicalJson(state);
@@ -336,7 +429,7 @@ public class BtcMeiDirectionalShadowLaneService {
                 BLOCK_EVENT_TYPE,
                 "BLOCKED",
                 safeBlocker,
-                "MEI_DIRECTIONAL_SHADOW_BLOCKED",
+                "DRA_SHADOW_BLOCKED",
                 auditContext);
 
         Map<String, Object> snapshot = new LinkedHashMap<>();
@@ -364,7 +457,7 @@ public class BtcMeiDirectionalShadowLaneService {
         RuntimeDecisionEvidence evidence = baseEvidence(audit, now);
         evidence.setFeaturesSnapshotJson(toJson(snapshot));
         evidence.setFreshnessState("INCOMPLETE_FAIL_CLOSED");
-        evidence.setSelectedAction("MEI_DIRECTIONAL_SHADOW_BLOCKED");
+        evidence.setSelectedAction("DRA_SHADOW_BLOCKED");
         evidence.setReason(safeBlocker);
         evidence.setFinalOutcome("BLOCKED_DATA_QUALITY");
         evidence.setDecision("HOLD");
@@ -380,13 +473,14 @@ public class BtcMeiDirectionalShadowLaneService {
         evidenceRepository.save(evidence);
     }
 
-    private BtDecisionAudit saveAudit(MdKline bar,
-                                      LocalDateTime now,
-                                      String eventType,
-                                      String outcome,
-                                      String blocker,
-                                      String reason,
-                                      Map<String, Object> context) {
+    private BtDecisionAudit saveAudit(
+            MdKline bar,
+            LocalDateTime now,
+            String eventType,
+            String outcome,
+            String blocker,
+            String reason,
+            Map<String, Object> context) {
         BtDecisionAudit audit = new BtDecisionAudit();
         audit.setEventTime(now);
         audit.setStrategyId(null);
@@ -401,7 +495,9 @@ public class BtcMeiDirectionalShadowLaneService {
         return decisionAuditRepository.save(audit);
     }
 
-    private RuntimeDecisionEvidence baseEvidence(BtDecisionAudit audit, LocalDateTime now) {
+    private RuntimeDecisionEvidence baseEvidence(
+            BtDecisionAudit audit,
+            LocalDateTime now) {
         RuntimeDecisionEvidence evidence = new RuntimeDecisionEvidence();
         evidence.setDecisionId(audit.getId());
         evidence.setEvidenceTime(now);
@@ -412,7 +508,8 @@ public class BtcMeiDirectionalShadowLaneService {
         evidence.setSignalSource(SIGNAL_SOURCE);
         evidence.setPolicyMode(POLICY_MODE);
         evidence.setPolicyReason(
-                "MEI>=60, positive 24h momentum, close>EMA20; edge-triggered virtual accumulation");
+                "UTC daily close above daily EMA20, rising five-day EMA20, "
+                        + "positive 24h momentum; no MEI or drawdown gate");
         evidence.setExecutionMode("SHADOW_ONLY");
         evidence.setOrderSent(false);
         evidence.setSuppressionReason("SHADOW_ONLY_NO_ORDER_CAPABILITY");
@@ -432,7 +529,8 @@ public class BtcMeiDirectionalShadowLaneService {
         boolean currentSchemaEvidenceSeen = false;
         for (RuntimeDecisionEvidence row : rows) {
             try {
-                JsonNode root = objectMapper.readTree(row.getFeaturesSnapshotJson());
+                JsonNode root = objectMapper.readTree(
+                        row.getFeaturesSnapshotJson());
                 if (!EVIDENCE_SCHEMA_VERSION.equals(
                         root.path("evidenceSchemaVersion").asText(""))) {
                     invalid++;
@@ -446,22 +544,25 @@ public class BtcMeiDirectionalShadowLaneService {
                 }
                 String canonicalStateJson =
                         root.path("stateAfterCanonicalJson").asText("");
-                String expectedHash = root.path("stateAfterSha256").asText("");
-                if (canonicalStateJson.isBlank() || expectedHash.isBlank()
+                String expectedHash =
+                        root.path("stateAfterSha256").asText("");
+                if (canonicalStateJson.isBlank()
+                        || expectedHash.isBlank()
                         || !expectedHash.equals(
                         engine.canonicalStateSha256(canonicalStateJson))) {
                     invalid++;
                     continue;
                 }
-                BtcMeiDirectionalShadowEngine.State state = objectMapper.readValue(
+                BtcDraShadowEngine.State state = objectMapper.readValue(
                         canonicalStateJson,
-                        BtcMeiDirectionalShadowEngine.State.class);
+                        BtcDraShadowEngine.State.class);
                 if (!expectedHash.equals(engine.stateSha256(state))) {
                     invalid++;
                     continue;
                 }
                 if ("SHADOW_OBSERVED".equals(row.getFinalOutcome())) {
-                    LocalDateTime evidenceBar = parseTime(root.path("barOpenTime").asText(""));
+                    LocalDateTime evidenceBar =
+                            parseTime(root.path("barOpenTime").asText(""));
                     if (!state.lastProcessedBarOpenTime().equals(evidenceBar)) {
                         invalid++;
                         continue;
@@ -478,20 +579,20 @@ public class BtcMeiDirectionalShadowLaneService {
     private String policyInputsJson(String stateHash) {
         Map<String, Object> policy = new LinkedHashMap<>();
         policy.put("policyMode", POLICY_MODE);
-        policy.put("entropyWindowsHours", List.of(ENTROPY_24H, ENTROPY_48H, ENTROPY_72H));
-        policy.put("entropyWeights", List.of(
-                ENTROPY_24H_WEIGHT,
-                ENTROPY_48H_WEIGHT,
-                ENTROPY_72H_WEIGHT));
-        policy.put("entropyBins", ENTROPY_BINS);
-        policy.put("entryEntropyThreshold", ENTRY_ENTROPY_THRESHOLD);
+        policy.put("dailyDecisionHourUtc", 23);
+        policy.put("dailyEmaPeriodDays", DAILY_EMA_PERIOD_DAYS);
+        policy.put("emaSlopeLookbackDays", EMA_SLOPE_LOOKBACK_DAYS);
         policy.put("momentumLookbackHours", MOMENTUM_LOOKBACK_HOURS);
-        policy.put("emaPeriodHours", EMA_PERIOD_HOURS);
-        policy.put("entryTrigger", "FALSE_TO_TRUE_EDGE_ONLY");
+        policy.put("entryCooldownDays", ENTRY_COOLDOWN_DAYS);
+        policy.put("armExpiryDays", ARM_EXPIRY_DAYS);
+        policy.put("meiGatePresent", false);
+        policy.put("drawdownGatePresent", false);
         policy.put("baseNotionalUsdt", BASE_NOTIONAL_USDT);
         policy.put("maxOpenCostUsdt", MAX_OPEN_COST_USDT);
         policy.put("feeRatePerSide", FEE_RATE_PER_SIDE);
-        policy.put("adverseSlippageRatePerSide", ADVERSE_SLIPPAGE_RATE_PER_SIDE);
+        policy.put(
+                "adverseSlippageRatePerSide",
+                ADVERSE_SLIPPAGE_RATE_PER_SIDE);
         policy.put("netProfitTrigger", NET_PROFIT_TRIGGER);
         policy.put("minRealizedNetProfit", MIN_REALIZED_NET_PROFIT);
         policy.put("signalExecution", "NEXT_1H_OPEN");
@@ -502,14 +603,16 @@ public class BtcMeiDirectionalShadowLaneService {
         return toJson(policy);
     }
 
-    private String exposureSnapshotJson(BtcMeiDirectionalShadowEngine.State state) {
+    private String exposureSnapshotJson(BtcDraShadowEngine.State state) {
         LocalDateTime oldest = state.openLots().stream()
-                .map(BtcMeiDirectionalShadowEngine.Lot::buyFillBarOpenTime)
+                .map(BtcDraShadowEngine.Lot::buyFillBarOpenTime)
                 .min(LocalDateTime::compareTo)
                 .orElse(null);
         BigDecimal averageCostPrice = state.inventoryQty().signum() > 0
                 ? state.openCostUsdt().divide(
-                        state.inventoryQty(), 8, RoundingMode.HALF_UP)
+                        state.inventoryQty(),
+                        8,
+                        RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
         Map<String, Object> exposure = new LinkedHashMap<>();
         exposure.put("realizedPnlUsdt", state.realizedPnlUsdt());
@@ -517,48 +620,64 @@ public class BtcMeiDirectionalShadowLaneService {
         exposure.put("openCostUsdt", state.openCostUsdt());
         exposure.put("openAverageCostPrice", averageCostPrice);
         exposure.put("oldestOpenLotTime", formatTime(oldest));
-        exposure.put("maximumObservedOpenCostUsdt", state.maxOpenCostUsdt());
-        exposure.put("maximumOpenCapitalLossPct", state.maxOpenCapitalLossPct());
-        exposure.put("peakVirtualEquityUsdt", state.peakVirtualEquityUsdt());
-        exposure.put("maximumVirtualDrawdownPct", state.maxVirtualDrawdownPct());
+        exposure.put(
+                "maximumObservedOpenCostUsdt",
+                state.maxOpenCostUsdt());
+        exposure.put(
+                "maximumOpenCapitalLossPct",
+                state.maxOpenCapitalLossPct());
+        exposure.put(
+                "peakVirtualEquityUsdt",
+                state.peakVirtualEquityUsdt());
+        exposure.put(
+                "maximumVirtualDrawdownPct",
+                state.maxVirtualDrawdownPct());
         return toJson(exposure);
     }
 
-    private String selectedAction(List<BtcMeiDirectionalShadowEngine.RuntimeEvent> events) {
-        if (events == null || events.isEmpty()) return "MEI_DIRECTIONAL_STATE_ADVANCE";
+    private String selectedAction(List<BtcDraShadowEngine.RuntimeEvent> events) {
+        if (events == null || events.isEmpty()) return "DRA_STATE_ADVANCE";
         Set<String> types = events.stream()
-                .map(BtcMeiDirectionalShadowEngine.RuntimeEvent::eventType)
+                .map(BtcDraShadowEngine.RuntimeEvent::eventType)
                 .collect(Collectors.toSet());
-        if (types.contains("VIRTUAL_SELL_FILL")) return "MEI_DIRECTIONAL_VIRTUAL_SELL";
-        if (types.contains("VIRTUAL_ENTRY_QUEUED")) return "MEI_DIRECTIONAL_ENTRY_SIGNAL";
-        if (types.contains("VIRTUAL_EXIT_QUEUED")) return "MEI_DIRECTIONAL_EXIT_SIGNAL";
-        if (types.contains("VIRTUAL_BUY_FILL")) return "MEI_DIRECTIONAL_VIRTUAL_BUY";
-        if (types.contains("VIRTUAL_ENTRY_BLOCKED")) return "MEI_DIRECTIONAL_ENTRY_BLOCKED";
-        return "MEI_DIRECTIONAL_EXIT_DEFERRED";
+        if (types.contains("VIRTUAL_SELL_FILL")) return "DRA_VIRTUAL_SELL";
+        if (types.contains("VIRTUAL_ENTRY_QUEUED")) return "DRA_ENTRY_SIGNAL";
+        if (types.contains("VIRTUAL_EXIT_QUEUED")) return "DRA_EXIT_SIGNAL";
+        if (types.contains("VIRTUAL_BUY_FILL")) return "DRA_VIRTUAL_BUY";
+        if (types.contains("VIRTUAL_ENTRY_BLOCKED")) return "DRA_ENTRY_BLOCKED";
+        if (types.contains("DRA_ARMED")) return "DRA_ARMED";
+        if (types.contains("DRA_ARM_EXPIRED")) return "DRA_ARM_EXPIRED";
+        return "DRA_EXIT_DEFERRED";
     }
 
-    private String eventReason(List<BtcMeiDirectionalShadowEngine.RuntimeEvent> events,
-                               BtcMeiDirectionalShadowEngine.SignalSnapshot signal) {
-        if (events == null || events.isEmpty()) return truncate(signal.reason(), 500);
+    private String eventReason(
+            List<BtcDraShadowEngine.RuntimeEvent> events,
+            BtcDraShadowEngine.SignalSnapshot signal) {
+        if (events == null || events.isEmpty()) {
+            return truncate(signal.reason(), 500);
+        }
         return truncate(events.stream()
-                .map(BtcMeiDirectionalShadowEngine.RuntimeEvent::eventType)
+                .map(BtcDraShadowEngine.RuntimeEvent::eventType)
                 .distinct()
                 .collect(Collectors.joining(",")), 500);
     }
 
-    private String decision(List<BtcMeiDirectionalShadowEngine.RuntimeEvent> events) {
+    private String decision(List<BtcDraShadowEngine.RuntimeEvent> events) {
         boolean buy = events.stream()
-                .anyMatch(event -> "VIRTUAL_ENTRY_QUEUED".equals(event.eventType()));
+                .anyMatch(event ->
+                        "VIRTUAL_ENTRY_QUEUED".equals(event.eventType()));
         boolean exit = events.stream()
-                .anyMatch(event -> "VIRTUAL_EXIT_QUEUED".equals(event.eventType())
-                        || "VIRTUAL_SELL_FILL".equals(event.eventType()));
+                .anyMatch(event ->
+                        "VIRTUAL_EXIT_QUEUED".equals(event.eventType())
+                                || "VIRTUAL_SELL_FILL".equals(
+                                event.eventType()));
         if (buy && exit) return "BUY_AND_EXIT";
         if (buy) return "BUY_SIGNAL";
         if (exit) return "EXIT";
         return "HOLD";
     }
 
-    private boolean isSignalEvent(BtcMeiDirectionalShadowEngine.RuntimeEvent event) {
+    private boolean isSignalEvent(BtcDraShadowEngine.RuntimeEvent event) {
         return "VIRTUAL_ENTRY_QUEUED".equals(event.eventType())
                 || "VIRTUAL_EXIT_QUEUED".equals(event.eventType());
     }
@@ -572,17 +691,23 @@ public class BtcMeiDirectionalShadowLaneService {
 
     private String normalizeSymbol(String symbol) {
         return symbol == null ? "" : symbol.toUpperCase(Locale.ROOT)
-                .replace("-", "").replace("/", "").replace("_", "");
+                .replace("-", "")
+                .replace("/", "")
+                .replace("_", "");
     }
 
     private String formatTime(LocalDateTime value) {
-        return value == null ? null : DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(value);
+        return value == null
+                ? null
+                : DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(value);
     }
 
     private LocalDateTime parseTime(String value) {
         if (value == null || value.isBlank()) return null;
         try {
-            return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return LocalDateTime.parse(
+                    value,
+                    DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         } catch (DateTimeParseException ignored) {
             return OffsetDateTime.parse(
                     value,
@@ -595,14 +720,16 @@ public class BtcMeiDirectionalShadowLaneService {
             return objectMapper.writeValueAsString(value);
         } catch (Exception e) {
             throw new IllegalStateException(
-                    "Unable to serialize MEI directional runtime evidence",
+                    "Unable to serialize DRA runtime evidence",
                     e);
         }
     }
 
     private String safeCode(String value) {
         if (value == null || value.isBlank()) return "UNKNOWN_FAIL_CLOSED";
-        return truncate(value.replaceAll("[^A-Za-z0-9_:\\->]", "_"), 128);
+        return truncate(
+                value.replaceAll("[^A-Za-z0-9_:\\->]", "_"),
+                128);
     }
 
     private String truncate(String value, int max) {
@@ -611,7 +738,7 @@ public class BtcMeiDirectionalShadowLaneService {
     }
 
     private record RestoredState(
-            BtcMeiDirectionalShadowEngine.State state,
+            BtcDraShadowEngine.State state,
             int invalidRowsScanned,
             boolean currentSchemaEvidenceSeen
     ) {

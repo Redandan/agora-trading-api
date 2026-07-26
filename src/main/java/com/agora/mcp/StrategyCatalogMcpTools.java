@@ -1,7 +1,7 @@
 package com.agora.mcp;
 
 import com.agora.config.OkxTradingProperties;
-import com.agora.config.properties.BtcMeiDirectionalShadowProperties;
+import com.agora.config.properties.BtcDraShadowProperties;
 import com.agora.config.properties.TradingViewLocalSignalProperties;
 import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
@@ -31,11 +31,11 @@ public class StrategyCatalogMcpTools {
     private final BtStrategyRepository strategyRepository;
     private final TradingViewLocalSignalProperties localProperties;
     private final OkxTradingProperties okxProperties;
-    private final BtcMeiDirectionalShadowProperties meiDirectionalProperties;
+    private final BtcDraShadowProperties draProperties;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
-    @Tool(description = "Read-only strategy runtime catalog. Shows owner 509 LIVE, archived owner 508 V1, Donchian SHADOW, and the default-OFF MEI directional SHADOW candidate; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
+    @Tool(description = "Read-only strategy runtime catalog. Shows owner 509 LIVE, archived owner 508 V1, Donchian SHADOW, and the default-OFF DRA SHADOW candidate; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
     public String getStrategyRuntimeCatalog() {
         StringBuilder result = new StringBuilder("STRATEGY_RUNTIME_CATALOG\n");
         for (StrategyRuntimeDefinition definition : catalog.definitions()) {
@@ -59,8 +59,8 @@ public class StrategyCatalogMcpTools {
         } catch (Exception e) {
             result.append("- unavailable: ").append(e.getClass().getSimpleName()).append('\n');
         }
-        result.append("meiDirectionalConfiguredEnabled=")
-                .append(meiDirectionalProperties.enabled())
+        result.append("draConfiguredEnabled=")
+                .append(draProperties.enabled())
                 .append('\n');
         result.append("exchangeOrderAuthorized=").append(executionArmed()).append('\n');
         return result.toString();

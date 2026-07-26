@@ -1,5 +1,9 @@
 # BTC MEI Directional V1 Performance Report
 
+> Historical only. The MEI runtime candidate was retired on 2026-07-26 after
+> factor ablation showed that its threshold changed no trade. The successor is
+> `BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1`.
+
 Date: 2026-07-25
 
 Contract: `BTC_MEI_DIRECTIONAL_ACCUMULATION_V1@v1`

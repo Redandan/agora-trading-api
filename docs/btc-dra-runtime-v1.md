@@ -1,4 +1,4 @@
-# BTC DRA SHADOW Candidate V1
+# BTC DRA Runtime V1
 
 ## Status
 
@@ -7,11 +7,17 @@
 
 Runtime boundary:
 
-- catalog mode: `SHADOW`;
-- configuration switch: `TRADING_BTC_DRA_SHADOW_MODE`;
+- catalog capability: `LIVE`;
+- configuration switch: `TRADING_BTC_DRA_MODE`;
 - safe default: `OFF`;
-- authorized Production observation value: `SHADOW`;
-- no exchange, OCO, Grid, fund, Telegram, or live-signal dependency;
+- authorized Production value: `LIVE`;
+- exact live notional and total exposure: `30 USDT`;
+- at most one live lot;
+- no OCO, Grid, fund, leverage, or Telegram dependency;
+- actual fills use the existing `bt_live_signal` durable ledger under the
+  catalog-only strategy id `-10001`;
+- the DRA position prefix remains inside the intentional BTC-base namespace so
+  OCO reconciliation cannot adopt it;
 - no schema migration and no additional MCP tool;
 - reuses the catalog-owned OKX `BTCUSDT@1h` stream.
 
@@ -50,7 +56,7 @@ The strategy intentionally has:
 Because confirmation is evaluated before re-arming on the same daily bar, a
 new arm cannot confirm until a later daily close.
 
-## Virtual accounting contract
+## Reference accounting contract
 
 - one virtual entry lot: `30 USDT`;
 - maximum open virtual cost: `250 USDT`;
@@ -61,7 +67,26 @@ new arm cannot confirm until a later daily close.
 - next-open sell is deferred unless at least `+1%` net profit remains;
 - no stop loss, time exit, forced risk exit, or end-of-period liquidation.
 
-The 250 USDT cap is mechanical accounting safety, not an alpha veto.
+The 250 USDT cap belongs to the historical/reference ledger. LIVE execution is
+independently capped at exactly one 30 USDT lot.
+
+## LIVE execution contract
+
+- only a genuine fresh current bar may reach the adapter;
+- bootstrap, catch-up, stale, incomplete, duplicate, or hash-invalid state can
+  never place an order;
+- a new daily entry signal is durably reserved before submitting one OKX market
+  buy with deterministic `clOrdId`;
+- an unresolved or ambiguous submission is never retried automatically;
+- while any DRA reservation or open lot exists, another DRA buy is blocked;
+- the live lot uses actual fill quantity, price, and fee-aware effective cost;
+- a sell is considered only when fee- and adverse-slippage-adjusted estimated
+  net return reaches `+5%`;
+- no stop-loss, time exit, forced loss sale, OCO, or trailing exit exists;
+- a sell uses only the quantity recorded in the DRA-owned live lot;
+- actual fills, fees, realized PnL, provider order id, and client order id are
+  persisted and linked back to the canonical DRA evidence row;
+- no deployment or acceptance step sends a test order.
 
 ## Bootstrap and restart contract
 
@@ -69,7 +94,9 @@ The first DRA event warms indicators from exactly 90 days of contiguous OKX
 hourly bars. Historical warm-up bars cannot create virtual lots or arms; only
 the genuine current closed bar may start DRA state.
 
-Evidence stores the exact canonical state as a JSON string and its SHA-256.
+Evidence schema is `BTC_DRA_RUNTIME_EVIDENCE_V1`; state schema is
+`BTC_DRA_RUNTIME_STATE_V1`. Evidence stores the exact canonical state as a JSON
+string and its SHA-256.
 After any current-schema DRA evidence exists:
 
 - valid state may catch up at most 30 days;
@@ -83,8 +110,8 @@ Every DRA evidence row records:
 - virtual events and exposure;
 - realized and unrealized PnL;
 - state canonical JSON and SHA-256;
-- `orderSent=false`;
-- `liveImplementationPresent=false`;
+- actual `orderSent`;
+- `liveImplementationPresent=true` while configured LIVE;
 - `ocoModified=false`;
 - `gridModified=false`.
 
@@ -96,13 +123,19 @@ Deployment acceptance requires:
 2. positions `260/261/262` remain outside DRA and owner-509 takeover;
 3. OKX Native Grid `3767345250394603520` remains provider-managed and running;
 4. OCO execution safety has no new issue;
-5. catalog shows DRA as `SHADOW` with `exchangeOrderAllowed=false`;
-6. `draConfiguredEnabled=true`;
+5. catalog shows DRA as `LIVE`, configured mode `LIVE`, and
+   `draExecutionArmed=true`;
+6. live notional and maximum live exposure both equal exactly `30.00 USDT`;
 7. the first genuine DRA row has `bootstrap=true`, `catchUp=false`,
    `orderSent=false`, no blocker, and a valid canonical-state hash;
 8. the next genuine row restores that state with `bootstrap=false`,
    `catchUp=false`, `invalidStateRowsScanned=0`, and contiguous bar time.
+9. deployment, bootstrap, catch-up, and acceptance create no DRA live-signal
+   reservation and send no order;
+10. the first later qualifying signal may send exactly one 30 USDT buy; its
+    reservation, `clOrdId`, provider order id, fill, quantity, and fees must be
+    reconciled before acceptance is called complete.
 
-The first row proves deployment and bootstrap only. Forward profitability
-requires later completed virtual exits and cannot be inferred from historical
-backtest results.
+The first rows prove deployment and restart continuity only. Forward
+profitability requires later completed actual exits and cannot be inferred from
+historical backtest results.

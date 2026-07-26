@@ -15,26 +15,26 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 
-import static com.agora.service.trading.BtcDraShadowPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcDraShadowPolicy.ARM_EXPIRY_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.BASE_NOTIONAL_USDT;
-import static com.agora.service.trading.BtcDraShadowPolicy.DAILY_EMA_PERIOD_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.EMA_SLOPE_LOOKBACK_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.ENTRY_COOLDOWN_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.FEE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcDraShadowPolicy.INTERVAL;
-import static com.agora.service.trading.BtcDraShadowPolicy.MAX_OPEN_COST_USDT;
-import static com.agora.service.trading.BtcDraShadowPolicy.MIN_REALIZED_NET_PROFIT;
-import static com.agora.service.trading.BtcDraShadowPolicy.MOMENTUM_LOOKBACK_HOURS;
-import static com.agora.service.trading.BtcDraShadowPolicy.NET_PROFIT_TRIGGER;
-import static com.agora.service.trading.BtcDraShadowPolicy.REQUIRED_CLOSE_POINTS;
-import static com.agora.service.trading.BtcDraShadowPolicy.REQUIRED_DAILY_EMA_POINTS;
-import static com.agora.service.trading.BtcDraShadowPolicy.SOURCE;
-import static com.agora.service.trading.BtcDraShadowPolicy.STATE_SCHEMA_VERSION;
-import static com.agora.service.trading.BtcDraShadowPolicy.SYMBOL;
+import static com.agora.service.trading.BtcDraPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraPolicy.ARM_EXPIRY_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.BASE_NOTIONAL_USDT;
+import static com.agora.service.trading.BtcDraPolicy.DAILY_EMA_PERIOD_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.EMA_SLOPE_LOOKBACK_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.ENTRY_COOLDOWN_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.FEE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraPolicy.INTERVAL;
+import static com.agora.service.trading.BtcDraPolicy.MAX_OPEN_COST_USDT;
+import static com.agora.service.trading.BtcDraPolicy.MIN_REALIZED_NET_PROFIT;
+import static com.agora.service.trading.BtcDraPolicy.MOMENTUM_LOOKBACK_HOURS;
+import static com.agora.service.trading.BtcDraPolicy.NET_PROFIT_TRIGGER;
+import static com.agora.service.trading.BtcDraPolicy.REQUIRED_CLOSE_POINTS;
+import static com.agora.service.trading.BtcDraPolicy.REQUIRED_DAILY_EMA_POINTS;
+import static com.agora.service.trading.BtcDraPolicy.SOURCE;
+import static com.agora.service.trading.BtcDraPolicy.STATE_SCHEMA_VERSION;
+import static com.agora.service.trading.BtcDraPolicy.SYMBOL;
 
 /**
- * Pure deterministic SHADOW engine for BTC Daily Reversal Accumulation V1.
+ * Pure deterministic reference engine for BTC Daily Reversal Accumulation V1.
  *
  * <p>The engine has no repository, exchange, OCO, Grid, notification, or
  * clock dependency. It consumes contiguous closed OKX hourly bars. Entry is

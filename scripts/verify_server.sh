@@ -349,6 +349,10 @@ require_env_value TRADINGVIEW_LOCAL_MAX_NOTIONAL_USDT 80.0
 require_env_value TRADINGVIEW_LOCAL_EXECUTION_MODE BTC_BASE_LIVE
 require_env_value TRADINGVIEW_LOCAL_BTC_BASE_MAX_EXPOSURE_USDT 250.0
 require_env_value TRADINGVIEW_LOCAL_LIVE_MAX_SIGNAL_AGE_MINUTES 15
+require_env_value TRADING_BTC_DRA_MODE LIVE
+require_env_value TRADING_BTC_DRA_LIVE_NOTIONAL_USDT 30.00
+require_env_value TRADING_BTC_DRA_MAX_LIVE_EXPOSURE_USDT 30.00
+require_env_value TRADING_BTC_DRA_LIVE_MAX_SIGNAL_AGE_MINUTES 15
 require_env_value MARKET_WS_AUTO_SUBSCRIBE_ENABLED true
 require_env_value MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS binance,okx
 require_env_value TRADING_OKX_ENABLED true
@@ -486,6 +490,24 @@ printf '%s' "$OWNER_509_RESPONSE" | grep -q 'maxExposureUsdt=250.0' \
 printf '%s' "$OWNER_509_RESPONSE" | grep -q 'executionArmed=true' \
   || fail "owner 509 status response is not executionArmed=true"
 ok "owner 509 LIVE runtime is armed with expected 10/80/250 USDT limits"
+
+DRA_CATALOG_RESPONSE="$(curl -fsS \
+  --max-time 30 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${MCP_KEY}" \
+  --data '{"jsonrpc":"2.0","id":"server-verify-dra-live","method":"tools/call","params":{"name":"getStrategyRuntimeCatalog","arguments":{}}}' \
+  "$MCP_URL")" || fail "local MCP getStrategyRuntimeCatalog failed: $MCP_URL"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1 mode=LIVE' \
+  || fail "DRA catalog response missing LIVE contract"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draConfiguredMode=LIVE' \
+  || fail "DRA catalog response missing configured LIVE mode"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draLiveNotionalUsdt=30.00' \
+  || fail "DRA catalog response missing 30.00 USDT live notional"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draMaxLiveExposureUsdt=30.00' \
+  || fail "DRA catalog response missing 30.00 USDT max live exposure"
+printf '%s' "$DRA_CATALOG_RESPONSE" | grep -q 'draExecutionArmed=true' \
+  || fail "DRA catalog response is not executionArmed=true"
+ok "DRA LIVE canary is armed with exact single-lot 30 USDT limits"
 
 OKX_ACCOUNT_RESPONSE="$(curl -fsS \
   --max-time 30 \

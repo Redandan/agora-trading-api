@@ -3,7 +3,7 @@
 ## Scope
 
 This runbook covers deployment of the standalone Trading service and the
-explicitly authorized owner 509 LIVE configuration below. It does not authorize
+explicitly authorized owner 509 plus DRA LIVE configurations below. It does not authorize
 manual/test orders, OCO/Grid mutations, fund movement, Earn actions, database
 migrations, or unrelated production data changes.
 
@@ -89,23 +89,31 @@ MARKET_WS_AUTO_SUBSCRIBE_ENABLED=true
 MARKET_WS_AUTO_SUBSCRIBE_PROVIDERS=binance,okx
 ```
 
-Research lanes use separate fail-closed switches:
+Donchian remains a research lane:
 
 ```bash
 TRADING_BTC_DONCHIAN_SHADOW_MODE=OFF
-TRADING_BTC_DRA_SHADOW_MODE=OFF
 ```
 
-Both research lanes default to `OFF`. Changing either value to `SHADOW` is a
-Production configuration mutation that requires separate authorization.
-Neither lane has an exchange-order adapter. The owner authorized
-`TRADING_BTC_DRA_SHADOW_MODE=SHADOW` on 2026-07-26 for forward observation of
-the no-drawdown DRA V1 contract; this does not authorize LIVE execution.
+DRA defaults to `OFF`. The owner authorized this exact bounded LIVE canary on
+2026-07-26:
+
+```bash
+TRADING_BTC_DRA_MODE=LIVE
+TRADING_BTC_DRA_LIVE_NOTIONAL_USDT=30.00
+TRADING_BTC_DRA_MAX_LIVE_EXPOSURE_USDT=30.00
+TRADING_BTC_DRA_LIVE_MAX_SIGNAL_AGE_MINUTES=15
+```
+
+DRA permits one actual OKX spot lot, uses no leverage, and sells only its own
+recorded BTC after the profit-only exit condition. It does not authorize a
+second lot, 250 USDT live exposure, test/manual orders, OCO, Grid, fund
+movement, or Telegram sends.
 
 When enabled, the runtime catalog—not database `enabled` rows or environment
 item lists—selects exact streams. Owner 509 uses Binance `BTCUSDT@1d`;
 Donchian and DRA use the same deduplicated OKX `BTCUSDT@1h` requirement only
-while their respective switches are `SHADOW`. There is no startup warm-up,
+while their respective switches allow evaluation. There is no startup warm-up,
 database-change resubscription, or dual-provider divergence setting.
 
 ## Retained scripts

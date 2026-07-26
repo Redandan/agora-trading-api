@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Last verified: 2026-07-25 12:10 Asia/Taipei
+Contract updated: 2026-07-26 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -9,17 +9,15 @@ runnable current guidance.
 ## Current production identity
 
 - repository/server directory: `/home/ubuntu/agora-trading-api`;
-- deployed build commit: `6dae3fb`;
-- owner 509 LIVE runtime change commit: `6dae3fb`;
-- at the acceptance checkpoint, server worktree and `origin/main` matched the
-  deployed build commit;
-- active port: `8084`;
-- inactive blue/green port: `8085`, drained;
+- the exact deployed build commit, server worktree commit, and `origin/main`
+  commit must match and are reported by the verification command below;
+- one of the blue/green ports `8084` or `8085` is active and the other must be
+  drained;
 - local and public dedicated health: passed;
 - local and public dedicated MCP: passed with Bearer authentication;
 - shared-host `/api/trading/mcp`: blocked with HTTP 404;
 - AgoraMarket internal dependency health: passed;
-- nginx shared/dedicated upstreams: active port `8084`;
+- nginx shared/dedicated upstreams: must target the verified active port;
 - runtime log: 0 errors, 0 unknown warnings, and 0 high-risk operation-like
   lines;
 - server worktree: clean.
@@ -38,7 +36,8 @@ read-only and does not authorize deployment or trading actions.
 Trading owns:
 
 - versioned strategy catalog;
-- owner 509 bounded LIVE spot execution and durable per-signal accounting;
+- owner 509 and DRA bounded LIVE spot execution with durable per-signal
+  accounting;
 - Donchian SHADOW evidence;
 - exact strategy-owned market streams;
 - spot OCO reconciliation and account/order safety;
@@ -57,20 +56,20 @@ are not a Trading cleanup target.
 
 ## Strategy state
 
-The deployed Production runtime catalog contains three registered contracts.
-Owner 509 is the only `LIVE` contract:
+The Production runtime catalog contains four registered contracts. Owner 509
+and DRA are the two explicitly authorized `LIVE` contracts:
 
 | Contract | Mode | Market data | Exchange order |
 | --- | --- | --- | --- |
 | `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2` | LIVE | Binance `BTCUSDT@1d` | bounded OKX Spot |
 | `TV_BTC_DAILY_ACCUMULATION_V1@v1` | ARCHIVED | none | not allowed |
 | `BTC_DONCHIAN_20D_10D_V1@v1` | SHADOW | OKX `BTCUSDT@1h` | not allowed |
+| `BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1` | LIVE | OKX `BTCUSDT@1h` | one bounded 30 USDT Spot lot |
 
-The isolated fourth contract is now
-`BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1`, a default-OFF `SHADOW` candidate that
-reuses the deduplicated OKX hourly stream and has no live adapter. It replaces
-the retired experimental MEI runtime identity without restoring old MEI state.
-See `btc-dra-shadow-candidate-v1.md`.
+DRA reuses the deduplicated OKX hourly stream and keeps the deterministic
+reference lane separate from its LIVE adapter. It replaces the retired
+experimental MEI runtime identity without restoring old MEI state. See
+`btc-dra-runtime-v1.md`.
 
 Owner 509 is the display alias for
 `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2@v2`. Owner 508 remains the archived V1
@@ -102,6 +101,12 @@ catch-up bars are audit-only.
 The automatic sell path applies only to lots created by owner 509. It targets
 an estimated net gain of at least 5%, records actual fees and realized PnL, and
 does not adopt owner 508, manual, or Grid holdings. It has no stop-loss or OCO.
+
+DRA may hold at most one 30 USDT lot. It reserves the signal durably before
+submitting an OKX Spot order, never retries an ambiguous submission, and sells
+only its own filled quantity when estimated fee-adjusted net return is at least
+5%. It has no stop-loss, time exit, OCO, Grid, leverage, or fund-transfer path.
+Bootstrap, catch-up, stale, and multi-bar observations are audit-only.
 
 Donchian runtime evidence is enabled in SHADOW. It has no live implementation,
 order, OCO, or Telegram path and cannot block owner 509.
@@ -220,15 +225,17 @@ git diff --check
 Direct source/config assertions must additionally prove:
 
 - exactly 10 MCP tools;
-- exactly four local catalog contracts and exactly one `LIVE` mode;
-- owner 509 V2 LIVE, archived owner 508 V1, Donchian SHADOW, and default-OFF
-  DRA SHADOW mappings;
+- exactly four local catalog contracts and exactly two authorized `LIVE` modes;
+- owner 509 V2 LIVE, DRA 30 USDT LIVE, archived owner 508 V1, and Donchian
+  SHADOW mappings;
 - weights `1/2/5` map to `10/20/50 USDT`, with `80 USDT` same-bar and
   `250 USDT` open-cost caps;
 - only fresh closed Binance daily bars can send owner-509 orders;
 - durable signal reservation and unique OKX client order identifiers prevent
   blind duplicate retries;
-- automatic exits can sell only owner-509 lots;
+- automatic exits can sell only lots owned by their respective strategy;
+- DRA bootstrap, catch-up, stale, and multi-bar observations cannot submit an
+  exchange order;
 - no Grid mutation adapter;
 - database flags cannot start streams;
 - no database migration or table deletion;

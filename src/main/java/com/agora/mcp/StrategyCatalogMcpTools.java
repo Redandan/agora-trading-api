@@ -1,7 +1,7 @@
 package com.agora.mcp;
 
 import com.agora.config.OkxTradingProperties;
-import com.agora.config.properties.BtcDraShadowProperties;
+import com.agora.config.properties.BtcDraRuntimeProperties;
 import com.agora.config.properties.TradingViewLocalSignalProperties;
 import com.agora.mcp.auth.Category;
 import com.agora.mcp.auth.McpAuth;
@@ -11,6 +11,7 @@ import com.agora.model.BtStrategy;
 import com.agora.repository.trading.BtStrategyRepository;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.agora.service.strategy.StrategyRuntimeDefinition;
+import com.agora.service.trading.BtcDraLiveExecutionService;
 import com.agora.service.tradingview.TradingViewScoreBuyAutoExitStrategyContract;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -31,11 +32,12 @@ public class StrategyCatalogMcpTools {
     private final BtStrategyRepository strategyRepository;
     private final TradingViewLocalSignalProperties localProperties;
     private final OkxTradingProperties okxProperties;
-    private final BtcDraShadowProperties draProperties;
+    private final BtcDraRuntimeProperties draProperties;
+    private final BtcDraLiveExecutionService draLiveExecutionService;
 
     @McpAuth(McpAuthLevel.OPS)
     @McpCategory({Category.READ_TRADING, Category.DIAGNOSTIC, Category.ANALYTICS})
-    @Tool(description = "Read-only strategy runtime catalog. Shows owner 509 LIVE, archived owner 508 V1, Donchian SHADOW, and the default-OFF DRA SHADOW candidate; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
+    @Tool(description = "Read-only strategy runtime catalog. Shows owner 509 LIVE, archived owner 508 V1, Donchian SHADOW, and the explicitly configured DRA 30 USDT LIVE canary; all unlisted database strategies are ARCHIVED. No strategy, order, Grid, fund, or database state is changed.")
     public String getStrategyRuntimeCatalog() {
         StringBuilder result = new StringBuilder("STRATEGY_RUNTIME_CATALOG\n");
         for (StrategyRuntimeDefinition definition : catalog.definitions()) {
@@ -59,10 +61,22 @@ public class StrategyCatalogMcpTools {
         } catch (Exception e) {
             result.append("- unavailable: ").append(e.getClass().getSimpleName()).append('\n');
         }
-        result.append("draConfiguredEnabled=")
-                .append(draProperties.enabled())
+        result.append("draConfiguredMode=")
+                .append(draProperties.mode())
                 .append('\n');
-        result.append("exchangeOrderAuthorized=").append(executionArmed()).append('\n');
+        result.append("draLiveNotionalUsdt=")
+                .append(draProperties.liveNotionalUsdt())
+                .append('\n');
+        result.append("draMaxLiveExposureUsdt=")
+                .append(draProperties.maxLiveExposureUsdt())
+                .append('\n');
+        result.append("draExecutionArmed=")
+                .append(draLiveExecutionService.executionArmed())
+                .append('\n');
+        result.append("owner509ExecutionArmed=").append(executionArmed()).append('\n');
+        result.append("exchangeOrderAuthorized=")
+                .append(executionArmed() || draLiveExecutionService.executionArmed())
+                .append('\n');
         return result.toString();
     }
 

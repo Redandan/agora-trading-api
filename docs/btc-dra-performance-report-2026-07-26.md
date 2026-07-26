@@ -6,16 +6,16 @@ Contract: `BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1`
 
 ## Decision
 
-DRA V1 uses the no-drawdown version for Production SHADOW observation.
-
-It is not authorized for LIVE execution:
+DRA V1 uses the no-drawdown version. On 2026-07-26 the owner authorized an
+independent, single-lot 30 USDT Production LIVE canary:
 
 ```text
 HISTORICAL_RESEARCH_PASS
 OUT_OF_SAMPLE_PASS
 BETTER_THAN_509_ON_REALIZED_AND_UNREALIZED
-SHADOW_AUTHORIZED
-LIVE_NOT_AUTHORIZED
+SHADOW_RESEARCH_PASS
+LIVE_CANARY_30_USDT_AUTHORIZED
+FULL_250_USDT_LIVE_NOT_AUTHORIZED
 ```
 
 ## Data and accounting

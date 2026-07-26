@@ -51,8 +51,11 @@ trading:
     api-key: ${TRADING_INTERNAL_API_KEY:${AGORA_MARKET_INTERNAL_API_KEY:}}
   btc-donchian-shadow:
     mode: ${TRADING_BTC_DONCHIAN_SHADOW_MODE:OFF}
-  btc-dra-shadow:
-    mode: ${TRADING_BTC_DRA_SHADOW_MODE:OFF}
+  btc-dra:
+    mode: ${TRADING_BTC_DRA_MODE:OFF}
+    live-notional-usdt: ${TRADING_BTC_DRA_LIVE_NOTIONAL_USDT:30.00}
+    max-live-exposure-usdt: ${TRADING_BTC_DRA_MAX_LIVE_EXPOSURE_USDT:30.00}
+    live-max-signal-age-minutes: ${TRADING_BTC_DRA_LIVE_MAX_SIGNAL_AGE_MINUTES:15}
   tradingview:
     local:
       enabled: ${TRADINGVIEW_LOCAL_ENABLED:false}

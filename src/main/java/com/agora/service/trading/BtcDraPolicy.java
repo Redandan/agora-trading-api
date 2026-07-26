@@ -7,16 +7,19 @@ import java.math.BigDecimal;
  *
  * <p>DRA is the no-drawdown-filter candidate selected by the 2026-07-26
  * ablation study. It observes OKX hourly bars, makes entry decisions only on
- * the UTC daily close, and has no exchange-order implementation.</p>
+ * the UTC daily close. Its separately bounded execution profile permits one
+ * 30 USDT OKX spot lot when the explicit LIVE switch is armed.</p>
  */
-public final class BtcDraShadowPolicy {
+public final class BtcDraPolicy {
 
     public static final String POLICY_MODE = "BTC_DAILY_REVERSAL_ACCUMULATION_V1";
-    public static final String STATE_SCHEMA_VERSION = "BTC_DRA_SHADOW_STATE_V1";
-    public static final String EVIDENCE_SCHEMA_VERSION = "BTC_DRA_SHADOW_EVIDENCE_V1";
+    public static final String STATE_SCHEMA_VERSION = "BTC_DRA_RUNTIME_STATE_V1";
+    public static final String EVIDENCE_SCHEMA_VERSION = "BTC_DRA_RUNTIME_EVIDENCE_V1";
     public static final String SYMBOL = "BTCUSDT";
     public static final String INTERVAL = "1h";
     public static final String SOURCE = "okx";
+    public static final String EXECUTION_SYMBOL = "BTCUSDT";
+    public static final long RUNTIME_LEDGER_STRATEGY_ID = -10001L;
 
     public static final int DAILY_EMA_PERIOD_DAYS = 20;
     public static final int EMA_SLOPE_LOOKBACK_DAYS = 5;
@@ -35,6 +38,6 @@ public final class BtcDraShadowPolicy {
     public static final BigDecimal NET_PROFIT_TRIGGER = new BigDecimal("0.0500");
     public static final BigDecimal MIN_REALIZED_NET_PROFIT = new BigDecimal("0.0100");
 
-    private BtcDraShadowPolicy() {
+    private BtcDraPolicy() {
     }
 }

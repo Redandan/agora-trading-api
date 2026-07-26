@@ -1,13 +1,12 @@
 package com.agora.service.trading;
 
-import com.agora.config.properties.BtcDraShadowProperties;
+import com.agora.config.properties.BtcDraRuntimeProperties;
 import com.agora.model.BtDecisionAudit;
 import com.agora.model.MdKline;
 import com.agora.model.RuntimeDecisionEvidence;
 import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
-import com.agora.service.strategy.StrategyLifecycleMode;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,44 +32,45 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static com.agora.service.trading.BtcDraShadowPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcDraShadowPolicy.ARM_EXPIRY_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.BASE_NOTIONAL_USDT;
-import static com.agora.service.trading.BtcDraShadowPolicy.BOOTSTRAP_HISTORY_HOURS;
-import static com.agora.service.trading.BtcDraShadowPolicy.DAILY_EMA_PERIOD_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.EMA_SLOPE_LOOKBACK_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.ENTRY_COOLDOWN_DAYS;
-import static com.agora.service.trading.BtcDraShadowPolicy.EVIDENCE_SCHEMA_VERSION;
-import static com.agora.service.trading.BtcDraShadowPolicy.FEE_RATE_PER_SIDE;
-import static com.agora.service.trading.BtcDraShadowPolicy.INTERVAL;
-import static com.agora.service.trading.BtcDraShadowPolicy.MAX_CATCH_UP_BARS;
-import static com.agora.service.trading.BtcDraShadowPolicy.MAX_OPEN_COST_USDT;
-import static com.agora.service.trading.BtcDraShadowPolicy.MIN_REALIZED_NET_PROFIT;
-import static com.agora.service.trading.BtcDraShadowPolicy.MOMENTUM_LOOKBACK_HOURS;
-import static com.agora.service.trading.BtcDraShadowPolicy.NET_PROFIT_TRIGGER;
-import static com.agora.service.trading.BtcDraShadowPolicy.POLICY_MODE;
-import static com.agora.service.trading.BtcDraShadowPolicy.SOURCE;
-import static com.agora.service.trading.BtcDraShadowPolicy.SYMBOL;
+import static com.agora.service.trading.BtcDraPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraPolicy.ARM_EXPIRY_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.BASE_NOTIONAL_USDT;
+import static com.agora.service.trading.BtcDraPolicy.BOOTSTRAP_HISTORY_HOURS;
+import static com.agora.service.trading.BtcDraPolicy.DAILY_EMA_PERIOD_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.EMA_SLOPE_LOOKBACK_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.ENTRY_COOLDOWN_DAYS;
+import static com.agora.service.trading.BtcDraPolicy.EVIDENCE_SCHEMA_VERSION;
+import static com.agora.service.trading.BtcDraPolicy.FEE_RATE_PER_SIDE;
+import static com.agora.service.trading.BtcDraPolicy.INTERVAL;
+import static com.agora.service.trading.BtcDraPolicy.MAX_CATCH_UP_BARS;
+import static com.agora.service.trading.BtcDraPolicy.MAX_OPEN_COST_USDT;
+import static com.agora.service.trading.BtcDraPolicy.MIN_REALIZED_NET_PROFIT;
+import static com.agora.service.trading.BtcDraPolicy.MOMENTUM_LOOKBACK_HOURS;
+import static com.agora.service.trading.BtcDraPolicy.NET_PROFIT_TRIGGER;
+import static com.agora.service.trading.BtcDraPolicy.POLICY_MODE;
+import static com.agora.service.trading.BtcDraPolicy.SOURCE;
+import static com.agora.service.trading.BtcDraPolicy.SYMBOL;
 
 /**
- * Source-pinned evidence-only runtime lane for BTC DRA V1.
+ * Source-pinned runtime and canonical evidence lane for BTC DRA V1.
  *
  * <p>This class deliberately has no exchange, OCO, Grid, fund, or notification
- * dependency. Its only writes are decision audit and runtime evidence rows.</p>
+ * dependency. It commits the deterministic state first and returns a narrow
+ * observation to the separately bounded live execution adapter.</p>
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BtcDraShadowLaneService {
+public class BtcDraRuntimeLaneService {
 
-    static final String EVENT_TYPE = "BTC_DRA_SHADOW";
+    static final String EVENT_TYPE = "BTC_DRA_RUNTIME";
     static final String BLOCK_EVENT_TYPE = "BTC_DRA_BLOCKED";
     private static final String SIGNAL_SOURCE = "OKX_CLOSED_1H_DRA";
     private static final int STATE_RESTORE_SCAN_LIMIT = 50;
 
     private final Set<String> evaluatingBars = ConcurrentHashMap.newKeySet();
 
-    private final BtcDraShadowProperties properties;
+    private final BtcDraRuntimeProperties properties;
     private final MdKlineRepository klineRepository;
     private final BtDecisionAuditRepository decisionAuditRepository;
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
@@ -81,41 +81,41 @@ public class BtcDraShadowLaneService {
 
     public boolean isEnabled() {
         return properties.enabled()
-                && strategyRuntimeCatalog.isMode(POLICY_MODE, StrategyLifecycleMode.SHADOW);
+                && strategyRuntimeCatalog.require(POLICY_MODE).mode().evaluationAllowed();
     }
 
     @Transactional
-    public void evaluate(MdKline eventKline) {
-        if (!isEnabled() || !matchesScope(eventKline)) return;
+    public RuntimeObservation evaluate(MdKline eventKline) {
+        if (!isEnabled() || !matchesScope(eventKline)) return null;
         if (!runtimeEvidenceService.isEnabled()) {
-            log.warn("[BtcDraShadow] runtime evidence disabled; bar ignored openTime={}",
+            log.warn("[BtcDraRuntime] runtime evidence disabled; bar ignored openTime={}",
                     eventKline.getOpenTime());
-            return;
+            return null;
         }
         String key = SOURCE + "|" + SYMBOL + "|" + INTERVAL + "|"
                 + eventKline.getOpenTime();
         if (!evaluatingBars.add(key)) {
-            log.debug("[BtcDraShadow] concurrent duplicate ignored: {}", key);
-            return;
+            log.debug("[BtcDraRuntime] concurrent duplicate ignored: {}", key);
+            return null;
         }
         try {
-            evaluateLocked(eventKline);
+            return evaluateLocked(eventKline);
         } finally {
             evaluatingBars.remove(key);
         }
     }
 
-    private void evaluateLocked(MdKline eventKline) {
-        if (eventKline.getOpenTime() == null) return;
+    private RuntimeObservation evaluateLocked(MdKline eventKline) {
+        if (eventKline.getOpenTime() == null) return null;
         if (decisionAuditRepository
                 .existsBySymbolAndIntervalCodeAndBarOpenTimeAndEventType(
                         SYMBOL,
                         INTERVAL,
                         eventKline.getOpenTime(),
                         EVENT_TYPE)) {
-            log.debug("[BtcDraShadow] persisted duplicate ignored openTime={}",
+            log.debug("[BtcDraRuntime] persisted duplicate ignored openTime={}",
                     eventKline.getOpenTime());
-            return;
+            return null;
         }
         LocalDateTime expectedClose = eventKline.getOpenTime().plusHours(1);
         if (eventKline.getCloseTime() == null
@@ -129,7 +129,7 @@ public class BtcDraShadowLaneService {
                     false,
                     false,
                     0);
-            return;
+            return null;
         }
 
         RestoredState restored = restoreLatestState();
@@ -139,11 +139,11 @@ public class BtcDraShadowLaneService {
                 && state.lastProcessedBarOpenTime() != null
                 && !state.lastProcessedBarOpenTime()
                 .isBefore(eventKline.getOpenTime())) {
-            return;
+            return null;
         }
         if (state == null) {
             if (restored != null && restored.currentSchemaEvidenceSeen()) {
-                log.warn("[BtcDraShadow] current-schema state restore failed; "
+                log.warn("[BtcDraRuntime] current-schema state restore failed; "
                                 + "blocking instead of re-bootstrap openTime={} "
                                 + "invalidRows={}",
                         eventKline.getOpenTime(),
@@ -155,17 +155,16 @@ public class BtcDraShadowLaneService {
                         false,
                         false,
                         restored.invalidRowsScanned());
-                return;
+                return null;
             }
-            bootstrap(
+            return bootstrap(
                     eventKline,
                     restored == null ? 0 : restored.invalidRowsScanned());
-            return;
         }
-        catchUp(state, eventKline, restored.invalidRowsScanned());
+        return catchUp(state, eventKline, restored.invalidRowsScanned());
     }
 
-    private void bootstrap(MdKline eventKline, int invalidStateRows) {
+    private RuntimeObservation bootstrap(MdKline eventKline, int invalidStateRows) {
         LocalDateTime start = eventKline.getOpenTime()
                 .minusHours(BOOTSTRAP_HISTORY_HOURS - 1L);
         List<MdKline> bars = klineRepository
@@ -187,7 +186,7 @@ public class BtcDraShadowLaneService {
                     true,
                     false,
                     invalidStateRows);
-            return;
+            return null;
         }
 
         BtcDraShadowEngine.State state = engine.initialState();
@@ -208,7 +207,7 @@ public class BtcDraShadowLaneService {
                     true,
                     false,
                     invalidStateRows);
-            return;
+            return null;
         }
         if (current == null) {
             persistBlocked(
@@ -218,9 +217,9 @@ public class BtcDraShadowLaneService {
                     true,
                     false,
                     invalidStateRows);
-            return;
+            return null;
         }
-        persistObserved(
+        return persistObserved(
                 eventKline,
                 current,
                 true,
@@ -229,14 +228,14 @@ public class BtcDraShadowLaneService {
                 invalidStateRows);
     }
 
-    private void catchUp(
+    private RuntimeObservation catchUp(
             BtcDraShadowEngine.State initial,
             MdKline eventKline,
             int invalidStateRows) {
         LocalDateTime next = initial.lastProcessedBarOpenTime().plusHours(1);
         long expected =
                 Duration.between(next, eventKline.getOpenTime()).toHours() + 1;
-        if (expected <= 0) return;
+        if (expected <= 0) return null;
         if (expected > MAX_CATCH_UP_BARS) {
             persistBlocked(
                     eventKline,
@@ -245,7 +244,7 @@ public class BtcDraShadowLaneService {
                     false,
                     true,
                     invalidStateRows);
-            return;
+            return null;
         }
         List<MdKline> bars = klineRepository
                 .findBySymbolAndIntervalCodeAndSourceAndOpenTimeBetweenOrderByOpenTimeAsc(
@@ -266,10 +265,11 @@ public class BtcDraShadowLaneService {
                     false,
                     true,
                     invalidStateRows);
-            return;
+            return null;
         }
 
         BtcDraShadowEngine.State state = initial;
+        RuntimeObservation latest = null;
         for (int i = 0; i < bars.size(); i++) {
             MdKline bar = bars.get(i);
             if (decisionAuditRepository
@@ -285,7 +285,7 @@ public class BtcDraShadowLaneService {
                         false,
                         true,
                         invalidStateRows);
-                return;
+                return null;
             }
             BtcDraShadowEngine.StepResult step;
             try {
@@ -298,10 +298,10 @@ public class BtcDraShadowLaneService {
                         false,
                         true,
                         invalidStateRows);
-                return;
+                return null;
             }
             state = step.state();
-            persistObserved(
+            latest = persistObserved(
                     bar,
                     step,
                     false,
@@ -309,9 +309,10 @@ public class BtcDraShadowLaneService {
                     bars.size(),
                     invalidStateRows);
         }
+        return latest;
     }
 
-    private void persistObserved(
+    private RuntimeObservation persistObserved(
             MdKline bar,
             BtcDraShadowEngine.StepResult step,
             boolean bootstrap,
@@ -335,7 +336,7 @@ public class BtcDraShadowLaneService {
         auditContext.put("selectedAction", selectedAction);
         auditContext.put("stateAfterSha256", stateHash);
         auditContext.put("orderSent", false);
-        auditContext.put("liveImplementationPresent", false);
+        auditContext.put("liveImplementationPresent", properties.liveOrderEnabled());
         BtDecisionAudit audit = saveAudit(
                 bar,
                 now,
@@ -369,7 +370,7 @@ public class BtcDraShadowLaneService {
         snapshot.put("ocoModified", false);
         snapshot.put("gridModified", false);
         snapshot.put("telegramSent", false);
-        snapshot.put("liveImplementationPresent", false);
+        snapshot.put("liveImplementationPresent", properties.liveOrderEnabled());
 
         RuntimeDecisionEvidence evidence = baseEvidence(audit, now);
         evidence.setFeaturesSnapshotJson(toJson(snapshot));
@@ -377,7 +378,10 @@ public class BtcDraShadowLaneService {
                 catchUp ? "CAUSAL_CATCH_UP_COMPLETE" : "CURRENT_CLOSED_BAR");
         evidence.setSelectedAction(selectedAction);
         evidence.setReason(eventReason(events, step.signal()));
-        evidence.setFinalOutcome("SHADOW_OBSERVED");
+        evidence.setFinalOutcome(
+                properties.liveOrderEnabled()
+                        ? "DRA_LIVE_OBSERVED_NO_ORDER"
+                        : "SHADOW_OBSERVED");
         evidence.setScore(step.signal().entryEligible() ? 1.0 : 0.0);
         evidence.setThreshold(1.0);
         evidence.setDecision(decision(events));
@@ -386,10 +390,18 @@ public class BtcDraShadowLaneService {
         evidence.setExposureSnapshotJson(exposureSnapshotJson(step.state()));
         evidence.setExecutionPreviewJson(toJson(Map.of(
                 "events", events,
-                "virtualExecutionOnly", true,
+                "virtualExecutionOnly", !properties.liveOrderEnabled(),
                 "orderSent", false,
-                "liveImplementationPresent", false)));
-        evidenceRepository.save(evidence);
+                "liveImplementationPresent", properties.liveOrderEnabled())));
+        RuntimeDecisionEvidence saved = evidenceRepository.saveAndFlush(evidence);
+        return new RuntimeObservation(
+                bar,
+                step,
+                bootstrap,
+                catchUp,
+                batchBars,
+                invalidStateRows,
+                saved.getId());
     }
 
     private void persistBlocked(
@@ -422,7 +434,7 @@ public class BtcDraShadowLaneService {
         auditContext.put("terminalBlocker", safeBlocker);
         auditContext.put("stateAfterSha256", stateHash);
         auditContext.put("orderSent", false);
-        auditContext.put("liveImplementationPresent", false);
+        auditContext.put("liveImplementationPresent", properties.liveOrderEnabled());
         BtDecisionAudit audit = saveAudit(
                 bar,
                 now,
@@ -452,7 +464,7 @@ public class BtcDraShadowLaneService {
         snapshot.put("ocoModified", false);
         snapshot.put("gridModified", false);
         snapshot.put("telegramSent", false);
-        snapshot.put("liveImplementationPresent", false);
+        snapshot.put("liveImplementationPresent", properties.liveOrderEnabled());
 
         RuntimeDecisionEvidence evidence = baseEvidence(audit, now);
         evidence.setFeaturesSnapshotJson(toJson(snapshot));
@@ -466,7 +478,7 @@ public class BtcDraShadowLaneService {
         evidence.setIntentCreated(false);
         evidence.setPolicyInputsJson(policyInputsJson(stateHash));
         evidence.setExecutionPreviewJson(toJson(Map.of(
-                "virtualExecutionOnly", true,
+                "virtualExecutionOnly", !properties.liveOrderEnabled(),
                 "orderSent", false,
                 "blocked", true,
                 "blocker", safeBlocker)));
@@ -510,9 +522,15 @@ public class BtcDraShadowLaneService {
         evidence.setPolicyReason(
                 "UTC daily close above daily EMA20, rising five-day EMA20, "
                         + "positive 24h momentum; no MEI or drawdown gate");
-        evidence.setExecutionMode("SHADOW_ONLY");
+        evidence.setExecutionMode(
+                properties.liveOrderEnabled()
+                        ? "OKX_SPOT_LIVE_CANARY"
+                        : "SHADOW_ONLY");
         evidence.setOrderSent(false);
-        evidence.setSuppressionReason("SHADOW_ONLY_NO_ORDER_CAPABILITY");
+        evidence.setSuppressionReason(
+                properties.liveOrderEnabled()
+                        ? "NO_ORDER_FOR_THIS_BAR"
+                        : "SHADOW_ONLY_NO_ORDER_CAPABILITY");
         evidence.setOcoPlanCreated(false);
         return evidence;
     }
@@ -537,8 +555,8 @@ public class BtcDraShadowLaneService {
                     continue;
                 }
                 currentSchemaEvidenceSeen = true;
-                if (Boolean.TRUE.equals(row.getOrderSent())
-                        || !"SHADOW_ONLY".equals(row.getExecutionMode())) {
+                if (!"SHADOW_ONLY".equals(row.getExecutionMode())
+                        && !"OKX_SPOT_LIVE_CANARY".equals(row.getExecutionMode())) {
                     invalid++;
                     continue;
                 }
@@ -560,7 +578,7 @@ public class BtcDraShadowLaneService {
                     invalid++;
                     continue;
                 }
-                if ("SHADOW_OBSERVED".equals(row.getFinalOutcome())) {
+                if (!"BLOCKED_DATA_QUALITY".equals(row.getFinalOutcome())) {
                     LocalDateTime evidenceBar =
                             parseTime(root.path("barOpenTime").asText(""));
                     if (!state.lastProcessedBarOpenTime().equals(evidenceBar)) {
@@ -598,8 +616,10 @@ public class BtcDraShadowLaneService {
         policy.put("signalExecution", "NEXT_1H_OPEN");
         policy.put("forcedExit", false);
         policy.put("stateAfterSha256", stateHash);
-        policy.put("liveImplementationPresent", false);
-        policy.put("orderAllowed", false);
+        policy.put("liveImplementationPresent", properties.liveOrderEnabled());
+        policy.put("orderAllowed", properties.liveOrderEnabled());
+        policy.put("liveNotionalUsdt", properties.liveNotionalUsdt());
+        policy.put("maxLiveExposureUsdt", properties.maxLiveExposureUsdt());
         return toJson(policy);
     }
 
@@ -735,6 +755,28 @@ public class BtcDraShadowLaneService {
     private String truncate(String value, int max) {
         if (value == null || value.length() <= max) return value;
         return value.substring(0, max);
+    }
+
+    /**
+     * A committed canonical observation. The listener invokes the LIVE adapter
+     * only after the surrounding lane transaction has returned successfully.
+     */
+    public record RuntimeObservation(
+            MdKline bar,
+            BtcDraShadowEngine.StepResult step,
+            boolean bootstrap,
+            boolean catchUp,
+            int batchBars,
+            int invalidStateRows,
+            Long evidenceId
+    ) {
+        public boolean exactFreshSingleBar() {
+            return !bootstrap
+                    && !catchUp
+                    && batchBars == 1
+                    && invalidStateRows == 0
+                    && evidenceId != null;
+        }
     }
 
     private record RestoredState(

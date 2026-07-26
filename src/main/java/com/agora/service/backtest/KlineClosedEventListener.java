@@ -3,7 +3,8 @@ package com.agora.service.backtest;
 import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
 import com.agora.service.trading.BtcDonchianShadowLaneService;
-import com.agora.service.trading.BtcDraShadowLaneService;
+import com.agora.service.trading.BtcDraLiveExecutionService;
+import com.agora.service.trading.BtcDraRuntimeLaneService;
 import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,8 @@ public class KlineClosedEventListener {
 
     private final LocalTradingViewSignalEvaluator localTradingViewSignalEvaluator;
     private final BtcDonchianShadowLaneService btcDonchianShadowLaneService;
-    private final BtcDraShadowLaneService btcDraShadowLaneService;
+    private final BtcDraRuntimeLaneService btcDraRuntimeLaneService;
+    private final BtcDraLiveExecutionService btcDraLiveExecutionService;
 
     @Async
     @EventListener
@@ -53,9 +55,11 @@ public class KlineClosedEventListener {
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
         try {
-            btcDraShadowLaneService.evaluate(kline);
+            BtcDraRuntimeLaneService.RuntimeObservation observation =
+                    btcDraRuntimeLaneService.evaluate(kline);
+            btcDraLiveExecutionService.evaluate(observation);
         } catch (Exception e) {
-            log.error("[KlineClosedEventListener] BTC DRA shadow lane failed {}@{} openTime={}: {}",
+            log.error("[KlineClosedEventListener] BTC DRA runtime lane failed {}@{} openTime={}: {}",
                     kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
         }
     }

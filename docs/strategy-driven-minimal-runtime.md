@@ -68,32 +68,37 @@ bar produces a weighted entry. The durable signal reservation and OKX client
 order ID are written before provider submission so an ambiguous timeout is not
 blindly retried.
 
-## DRA second-candidate development
+## DRA 30 USDT LIVE canary
 
 `BTC_DAILY_REVERSAL_ACCUMULATION_V1@v1` is the isolated second candidate
 selected by the 2026-07-26 factor-ablation study. It replaces the experimental
 MEI directional runtime identity; old MEI evidence remains immutable history
 and is never restored into DRA state.
 
-The candidate:
+The runtime:
 
-- is registered as `SHADOW` with its explicit switch defaulting to `OFF`;
+- is registered as `LIVE` capability with its explicit switch defaulting to
+  `OFF`;
 - uses source-pinned OKX `BTCUSDT@1h` closed bars and makes entry decisions only
   on the UTC daily close;
 - requires close above daily EMA20, daily EMA20 above its value five days ago,
   and positive 24-hour momentum;
 - intentionally contains no MEI or drawdown gate;
-- uses 30 USDT virtual lots, a seven-day cooldown, a 250 USDT open-cost cap,
-  and fee/slippage-aware profit-only exits;
-- writes only audit/runtime evidence and has no live exchange implementation.
+- retains 30 USDT virtual reference lots and a 250 USDT research cap;
+- permits exactly one actual 30 USDT OKX spot lot when configured `LIVE`;
+- durably reserves deterministic client order ids before provider submission;
+- persists actual fills and fees in the isolated DRA live ledger;
+- sells only DRA-owned quantity after fee/slippage-aware estimated net return
+  reaches `+5%`;
+- has no stop-loss, forced exit, OCO, Grid, fund, leverage, or Telegram action.
 
 The three-year no-drawdown result with a 250 USDT reserve was `+107.15130387`
 realized, `-6.46487858` unrealized, and `+100.68642529` total, with
 `10.183632%` maximum drawdown. These are historical research results, not
 forward performance.
 
-Its frozen contract and SHADOW acceptance gate are documented in
-`btc-dra-shadow-candidate-v1.md`.
+Its frozen strategy and execution contract is documented in
+`btc-dra-runtime-v1.md`.
 
 The old MEI evidence V2 restart boundary is retained in its historical rows,
 but the active DRA policy uses a new policy key, state schema, evidence schema,
@@ -207,9 +212,10 @@ Every strategy has exactly one mode:
 - `PAPER`: evaluated with durable simulated intents/fills and inventory.
 - `LIVE`: may reach an exchange adapter after execution-safety checks.
 
-Only `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` under owner alias `509` is LIVE.
-All other strategies are preserved as `ARCHIVED`, `SHADOW`, or `PAPER`; they
-do not receive their own schedulers, execution services, or risk pipelines.
+Only `TV_BTC_DAILY_SCORE_BUY_AUTO_EXIT_V2` under owner alias `509` and the
+explicitly configured DRA single-lot canary may be LIVE. All other strategies
+are preserved as `ARCHIVED`, `SHADOW`, or `PAPER`; they do not receive their
+own schedulers, execution services, or risk pipelines.
 
 OKX Native Spot Grid remains a separate provider-managed lane with separate
 capital ownership. This runtime can read Grid status and economic evidence but
@@ -258,13 +264,13 @@ and has no exchange-order adapter.
 
 ## Development sequence
 
-Implemented and deployed by 2026-07-25:
+Implemented in the retained Production runtime:
 
 1. The Pine hash, Binance daily source, owner alias, and intent weights are
    frozen in `TradingViewDailyStrategyContract`.
-2. `StrategyRuntimeCatalog` assigns owner 509 to `LIVE`, archived V1/508 to
-   `ARCHIVED`, Donchian and the default-OFF DRA candidate to
-   `SHADOW`, and every other database strategy to `ARCHIVED`.
+2. `StrategyRuntimeCatalog` assigns owner 509 and the default-OFF DRA canary to
+   `LIVE`, archived V1/508 to `ARCHIVED`, Donchian to `SHADOW`, and every other
+   database strategy to `ARCHIVED`.
 3. `KlineClosedEventListener` dispatches only the catalog-owned LIVE and
    explicitly enabled SHADOW lanes. Database `enabled` flags cannot revive the
    legacy evaluator.
@@ -276,15 +282,16 @@ Implemented and deployed by 2026-07-25:
    schedulers/MCP tools were removed.
 6. The MCP surface remains a fixed 10-tool whitelist: runtime identity,
    strategy catalog, Donchian evidence, read-only execution safety, and
-   read-only OKX Native Grid monitoring. DRA adds no tool.
+   read-only OKX Native Grid monitoring. DRA adds no tool; its mode, exact
+   notional, exposure cap, and armed state are shown by the catalog.
 7. Existing spot OCO reconciliation remains for mechanical execution safety;
    it is not part of owner 509 strategy logic.
 8. Grid create/stop services, migration previews, write gates, and obsolete
    authorization documents were removed. Provider Grid state is not changed.
 9. Market-data startup is catalog-driven. Owner 509 contributes exactly
-   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian and DRA
-   candidates contribute the same deduplicated `okx:BTCUSDT@1h` requirement
-   only while their explicit modes are SHADOW. Database `bt_strategy.enabled`
+   `binance:BTCUSDT@1d` for LIVE evaluation. Donchian and DRA contribute the
+   same deduplicated `okx:BTCUSDT@1h` requirement only while their explicit
+   modes allow evaluation. Database `bt_strategy.enabled`
    values cannot add subscriptions, startup validation, warm-up evaluation,
    or resubscription side effects.
 10. The legacy enabled-strategy startup validator, database-change
@@ -309,20 +316,24 @@ acceptance uses compilation plus direct source/config assertions:
 - the historical parity checkpoint was 42 expected intents with zero missing
   and zero extra; this is retained as prior evidence, not rerun in this change;
 - compilation must succeed with no test source or test dependency;
-- the runtime catalog must contain exactly one `LIVE` assignment;
+- the runtime catalog must contain exactly two authorized `LIVE` assignments:
+  owner 509 and DRA;
 - owner 509 must remain `BTCUSDT`, `1d`, `binance`, `LIVE`;
-- the local catalog must contain the default-OFF DRA candidate as `SHADOW`
-  without any live exchange implementation;
-- with either hourly SHADOW lane enabled, startup must resolve exactly two
+- the local catalog must contain the default-OFF DRA 30 USDT canary as `LIVE`,
+  while its environment mode independently fails closed;
+- with either hourly lane enabled, startup must resolve exactly two
   deduplicated streams: `binance:BTCUSDT@1d` and `okx:BTCUSDT@1h`; with both
   hourly lanes OFF, only the owner 509 stream remains;
 - changing database strategy `enabled` flags must not change stream inventory;
 - startup must not run legacy enabled-strategy data validation, warm-up
   evaluation, database-change resubscription, or dual-provider divergence;
 - its evaluator must accept only closed, allowed, non-stale bars;
-- LIVE execution must accept only the current complete bar, use durable
-  reservation plus OKX `clOrdId`, enforce `10/80/250 USDT` limits, persist
-  actual fills/fees, and never blindly retry an ambiguous result;
+- owner 509 LIVE execution must accept only the current complete bar, use
+  durable reservation plus OKX `clOrdId`, enforce `10/80/250 USDT` limits,
+  persist actual fills/fees, and never blindly retry an ambiguous result;
+- DRA LIVE must require a non-bootstrap, non-catch-up, exact current bar, use a
+  separate durable ledger and client order namespace, enforce one 30 USDT lot,
+  and never submit deployment/test/replay orders;
 - the application must contain no TradingView Webhook, legacy live evaluator,
   time-exit, AI/ML/Ensemble, or auto-entry runtime;
 - MCP registration must expose exactly 10 whitelisted tools and no Grid
@@ -334,17 +345,13 @@ acceptance uses compilation plus direct source/config assertions:
   `SESSION_BATCH`, `getMcpAuthProbe`, Guardian, or Telegram approval contract;
 - all retained deployment scripts must parse, and the environment template
   must pass its fail-closed validator;
-- owner 509 LIVE must report `executionArmed=true`; provider-managed Grid
-  mutations remain outside this runtime and must be performed separately at
-  the exchange.
+- owner 509 LIVE must report `executionArmed=true`, and the catalog must report
+  DRA `draExecutionArmed=true` with exact `30.00/30.00 USDT`; provider-managed
+  Grid mutations remain outside this runtime and must be performed separately
+  at the exchange.
 
 ## Deferred operator choices
 
-These choices do not block PAPER development:
-
-- LIVE base notional per weight unit;
-- LIVE total BTC inventory cap;
-- whether the first LIVE release aggregates same-bar intents or submits them
-  individually;
-- production deployment and LIVE enablement;
-- capital allocation between the strategy and OKX Native Spot Grid.
+The remaining choice is whether later evidence justifies increasing DRA beyond
+the authorized one-lot 30 USDT canary. No larger DRA exposure is implicitly
+authorized.

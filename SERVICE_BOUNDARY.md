@@ -6,7 +6,7 @@ This repo is the trading service extracted from `AgoraMarketAPI`.
 
 - Versioned strategy catalog, owner 509 LIVE execution, archived owner 508/V1
   evidence, PAPER accounting, archived strategy inventory, Donchian SHADOW
-  evidence, the default-OFF DRA SHADOW candidate, spot OCO
+  evidence, the default-OFF DRA 30 USDT LIVE-capable canary, spot OCO
   reconciliation, read-only OKX-native Grid monitoring, and the minimal
   trading MCP surface.
 - Market data ingestion used by trading decisions. The versioned runtime
@@ -88,6 +88,6 @@ The protected runtime, staged removal batches, source-only database policy, and
 per-batch acceptance rules are defined in
 `docs/minimal-runtime-cleanup-roadmap.md`. Cleanup must preserve owner 509 LIVE
 semantics, archived owner 508/V1 evidence, Donchian SHADOW evidence, exact
-catalog market streams, the isolated default-OFF DRA candidate,
+catalog market streams, the isolated default-OFF DRA single-lot canary,
 mechanical OCO execution safety, read-only provider Grid monitoring, outbound
 critical notifications, and deployment verification.

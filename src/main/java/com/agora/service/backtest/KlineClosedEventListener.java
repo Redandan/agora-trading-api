@@ -2,10 +2,8 @@ package com.agora.service.backtest;
 
 import com.agora.event.KlineClosedEvent;
 import com.agora.model.MdKline;
-import com.agora.service.trading.BtcDonchianShadowLaneService;
-import com.agora.service.trading.BtcDraLiveExecutionService;
-import com.agora.service.trading.BtcDraRuntimeLaneService;
-import com.agora.service.tradingview.LocalTradingViewSignalEvaluator;
+import com.agora.service.strategy.RuntimeStrategy;
+import com.agora.service.strategy.RuntimeStrategyRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,10 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KlineClosedEventListener {
 
-    private final LocalTradingViewSignalEvaluator localTradingViewSignalEvaluator;
-    private final BtcDonchianShadowLaneService btcDonchianShadowLaneService;
-    private final BtcDraRuntimeLaneService btcDraRuntimeLaneService;
-    private final BtcDraLiveExecutionService btcDraLiveExecutionService;
+    private final RuntimeStrategyRegistry runtimeStrategyRegistry;
 
     @Async
     @EventListener
@@ -39,28 +34,19 @@ public class KlineClosedEventListener {
         if ("1m".equalsIgnoreCase(intervalCode)) {
             return;
         }
-        try {
-            log.debug("[KlineClosedEventListener] evaluate strategy-driven TradingView parity {}@{} openTime={} source={} enabled={}",
-                    kline.getSymbol(), intervalCode, kline.getOpenTime(), kline.getSource(),
-                    localTradingViewSignalEvaluator.isEnabled());
-            localTradingViewSignalEvaluator.evaluate(kline);
-        } catch (Exception e) {
-            log.error("[KlineClosedEventListener] owner 509 strategy lane failed {}@{} openTime={}: {}",
-                    kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
-        }
-        try {
-            btcDonchianShadowLaneService.evaluate(kline);
-        } catch (Exception e) {
-            log.error("[KlineClosedEventListener] BTC Donchian shadow lane failed {}@{} openTime={}: {}",
-                    kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
-        }
-        try {
-            BtcDraRuntimeLaneService.RuntimeObservation observation =
-                    btcDraRuntimeLaneService.evaluate(kline);
-            btcDraLiveExecutionService.evaluate(observation);
-        } catch (Exception e) {
-            log.error("[KlineClosedEventListener] BTC DRA runtime lane failed {}@{} openTime={}: {}",
-                    kline.getSymbol(), intervalCode, kline.getOpenTime(), e.getMessage(), e);
+        for (RuntimeStrategy strategy : runtimeStrategyRegistry.evaluationOrder()) {
+            try {
+                strategy.onClosedBar(kline);
+            } catch (Exception e) {
+                log.error("[KlineClosedEventListener] strategy lane failed key={} {}@{} "
+                                + "openTime={}: {}",
+                        strategy.key(),
+                        kline.getSymbol(),
+                        intervalCode,
+                        kline.getOpenTime(),
+                        e.getMessage(),
+                        e);
+            }
         }
     }
 }

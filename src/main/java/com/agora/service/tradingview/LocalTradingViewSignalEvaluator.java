@@ -14,6 +14,7 @@ import com.agora.service.backtest.StrategyRegistry;
 import com.agora.service.backtest.StrategySignal;
 import com.agora.service.backtest.TradingViewScoreBuyModel;
 import com.agora.service.meta.DecisionAuditWriter;
+import com.agora.service.strategy.RuntimeStrategy;
 import com.agora.service.strategy.StrategyLifecycleMode;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import lombok.RequiredArgsConstructor;
@@ -46,10 +47,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LocalTradingViewSignalEvaluator {
+public class LocalTradingViewSignalEvaluator implements RuntimeStrategy {
 
     private static final String SOURCE = "LOCAL_TRADINGVIEW_PARITY";
     private static final String NO_BUY_REASON = "LOCAL_TRADINGVIEW_NO_CURRENT_BUY_CANDIDATE";
+    private static final int EVALUATION_ORDER = 100;
 
     private final TradingViewLocalSignalProperties props;
     private final BtStrategyService strategyService;
@@ -61,6 +63,28 @@ public class LocalTradingViewSignalEvaluator {
     private final TradingViewScoreBuyAutoExitLiveService liveService;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
     private final Map<String, Instant> seenKeys = new ConcurrentHashMap<>();
+
+    @Override
+    public String key() {
+        return TradingViewScoreBuyAutoExitStrategyContract.KEY;
+    }
+
+    @Override
+    public int evaluationOrder() {
+        return EVALUATION_ORDER;
+    }
+
+    @Override
+    public void onClosedBar(MdKline kline) {
+        log.debug("[LocalTradingView] evaluate strategy runtime {}@{} openTime={} "
+                        + "source={} enabled={}",
+                kline.getSymbol(),
+                kline.getIntervalCode(),
+                kline.getOpenTime(),
+                kline.getSource(),
+                isEnabled());
+        evaluate(kline);
+    }
 
     public boolean isEnabled() {
         if (!props.enabled() || !props.effectiveExecutionEnabled()) {

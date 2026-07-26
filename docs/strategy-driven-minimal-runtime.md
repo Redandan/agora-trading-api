@@ -222,6 +222,27 @@ capital ownership. This runtime can read Grid status and economic evidence but
 cannot create, amend, or stop a Grid. Strategy inventory and Grid inventory
 must never consume or sell each other's BTC implicitly.
 
+## Runtime strategy layer
+
+`RuntimeStrategy` is the minimal Production strategy boundary for closed-bar
+dispatch. `RuntimeStrategyRegistry` binds every catalog contract whose mode
+allows evaluation to exactly one implementation and fails startup when an
+implementation is missing, duplicated, or not present in the catalog.
+
+The registry standardizes only strategy identity, deterministic evaluation
+order, and closed-bar dispatch. It deliberately does not introduce a shared
+risk gate, generic OCO behavior, position-sizing opinion, or exchange action.
+Each strategy retains its existing state, evidence, and authorized execution
+adapter:
+
+- owner 509 delegates to the frozen TradingView-parity evaluator;
+- Donchian delegates to its evidence-only SHADOW lane;
+- DRA uses a thin adapter that commits its runtime observation before invoking
+  the separately bounded LIVE executor.
+
+The legacy `service.backtest.Strategy` interface remains a backtest/evaluator
+calculation contract and is not the Production runtime registry.
+
 ## Platform responsibilities
 
 The platform may enforce only mechanical execution safety:
@@ -271,9 +292,11 @@ Implemented in the retained Production runtime:
 2. `StrategyRuntimeCatalog` assigns owner 509 and the default-OFF DRA canary to
    `LIVE`, archived V1/508 to `ARCHIVED`, Donchian to `SHADOW`, and every other
    database strategy to `ARCHIVED`.
-3. `KlineClosedEventListener` dispatches only the catalog-owned LIVE and
-   explicitly enabled SHADOW lanes. Database `enabled` flags cannot revive the
-   legacy evaluator.
+3. `KlineClosedEventListener` iterates the fail-closed
+   `RuntimeStrategyRegistry`; it does not name owner 509, Donchian, or DRA
+   directly. The registry contains exactly one implementation for each
+   catalog-owned evaluation-capable contract. Database `enabled` flags cannot
+   add a strategy lane or revive the legacy evaluator.
 4. The LIVE adapter aggregates the current daily bar's weights, commits a
    unique reservation, places an OKX spot order with `clOrdId`, and persists
    actual fills/fees. Catch-up bars are audit-only.
@@ -316,6 +339,11 @@ acceptance uses compilation plus direct source/config assertions:
 - the historical parity checkpoint was 42 expected intents with zero missing
   and zero extra; this is retained as prior evidence, not rerun in this change;
 - compilation must succeed with no test source or test dependency;
+- the runtime registry must bind exactly owner 509, Donchian, and DRA, preserve
+  their deterministic evaluation order, and fail closed on a catalog/registry
+  mismatch;
+- `KlineClosedEventListener` must depend only on the runtime registry rather
+  than concrete strategy lane classes;
 - the runtime catalog must contain exactly two authorized `LIVE` assignments:
   owner 509 and DRA;
 - owner 509 must remain `BTCUSDT`, `1d`, `binance`, `LIVE`;

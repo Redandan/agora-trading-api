@@ -7,6 +7,7 @@ import com.agora.model.RuntimeDecisionEvidence;
 import com.agora.repository.trading.BtDecisionAuditRepository;
 import com.agora.repository.trading.MdKlineRepository;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
+import com.agora.service.strategy.RuntimeStrategy;
 import com.agora.service.strategy.StrategyLifecycleMode;
 import com.agora.service.strategy.StrategyRuntimeCatalog;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,12 +50,13 @@ import static com.agora.service.trading.BtcDonchianShadowPolicy.SYMBOL;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BtcDonchianShadowLaneService {
+public class BtcDonchianShadowLaneService implements RuntimeStrategy {
 
     static final String EVENT_TYPE = "BTC_DONCHIAN_SHADOW";
     static final String BLOCK_EVENT_TYPE = "BTC_DONCHIAN_BLOCKED";
     private static final String SIGNAL_SOURCE = "OKX_CLOSED_1H_DONCHIAN";
     private static final int STATE_RESTORE_SCAN_LIMIT = 50;
+    private static final int EVALUATION_ORDER = 200;
 
     private final Set<String> evaluatingBars = ConcurrentHashMap.newKeySet();
 
@@ -66,6 +68,21 @@ public class BtcDonchianShadowLaneService {
     private final BtcDonchianShadowEngine engine;
     private final ObjectMapper objectMapper;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
+
+    @Override
+    public String key() {
+        return POLICY_MODE;
+    }
+
+    @Override
+    public int evaluationOrder() {
+        return EVALUATION_ORDER;
+    }
+
+    @Override
+    public void onClosedBar(MdKline kline) {
+        evaluate(kline);
+    }
 
     public boolean isEnabled() {
         return properties.enabled()

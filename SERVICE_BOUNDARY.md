@@ -4,11 +4,11 @@ This repo is the trading service extracted from `AgoraMarketAPI`.
 
 ## Owns
 
-- Versioned strategy catalog, owner 509 LIVE execution, archived owner 508/V1
-  evidence, PAPER accounting, archived strategy inventory, Donchian SHADOW
-  evidence, the default-OFF DRA 30 USDT LIVE-capable canary, spot OCO
-  reconciliation, read-only OKX-native Grid monitoring, and the minimal
-  trading MCP surface.
+- Versioned strategy catalog and fail-closed runtime strategy registry, owner
+  509 LIVE execution, archived owner 508/V1 evidence, PAPER accounting,
+  archived strategy inventory, Donchian SHADOW evidence, the default-OFF DRA
+  30 USDT LIVE-capable canary, spot OCO reconciliation, read-only OKX-native
+  Grid monitoring, and the minimal trading MCP surface.
 - Market data ingestion used by trading decisions. The versioned runtime
   catalog owns exact provider/symbol/interval subscriptions; database strategy
   `enabled` flags are research inventory and cannot start a stream.

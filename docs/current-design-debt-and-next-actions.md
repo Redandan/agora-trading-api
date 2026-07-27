@@ -104,8 +104,8 @@ holding age, utilization, and blocked opportunity cost remain visible.
 
 ### Completed code reduction
 
-On 2026-07-27, Batches 4A through 4C removed 40 unreferenced legacy classes and
-8,053 source lines. The removed roots covered old counterfactual/adoption
+On 2026-07-27, Batches 4A through 4D removed 42 unreferenced legacy classes and
+8,409 source lines. The removed roots covered old counterfactual/adoption
 services, standalone simulations, unused provider adapters, inactive
 diagnostics, and retired risk helpers. Compilation and direct source
 assertions preserved the three runtime strategy implementations, the fixed
@@ -115,9 +115,9 @@ environment values, migrations, and deployment scripts.
 A low reference count alone is not sufficient evidence for further deletion.
 Spring interface implementations, event listeners, schedulers, configuration
 binding, JPA entities/repositories, and provider warning classifications need
-their own dependency closure. In particular, `EtherscanService` and
-`PythNetworkService` remain until their retained deployment-log
-classifications are reviewed in the same change.
+their own dependency closure. Batch 4D completed that closure for the unused
+Etherscan and Pyth adapters together with their obsolete runtime-log
+classifications.
 
 ### P0 — Observe the first complete DRA lifecycle
 

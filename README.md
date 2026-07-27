@@ -108,7 +108,6 @@ See `docs/deploy-runbook.md` for required environment and safety boundaries.
 - `docs/score-buy-auto-exit-v2.md`
 - `docs/btc-dra-runtime-v1.md`
 - `docs/current-design-debt-and-next-actions.md`
-- `docs/coverage-profiler.md`
 - `docs/split-acceptance-status.md`
 - `docs/deploy-runbook.md`
 

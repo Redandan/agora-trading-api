@@ -10,8 +10,6 @@ spring:
     enabled: false
 
 meta-control:
-  attribution:
-    enabled: false
   composite-indicator:
     scheduler-enabled: false
   hourly-orchestrator:
@@ -21,10 +19,6 @@ meta-control:
 
 okx:
   earn-topup:
-    enabled: false
-
-polymarket:
-  monitor:
     enabled: false
 
 trailing-stop:

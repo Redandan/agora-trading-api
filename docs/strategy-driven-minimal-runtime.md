@@ -380,6 +380,15 @@ Implemented in the retained Production runtime:
     runtime environment value, entity, table, historical row, or migration
     changed. Batch 4D also removed two obsolete provider-specific warning
     classifications from the retained runtime-log verification script.
+14. Local-only Batch 5A removed 27 more unreachable Java files and 4,280
+    source lines after closing their Spring and interface dependency graphs.
+    The removed roots were dormant historical import clients, the retired
+    alpha-outcome diagnostic graph, the standalone coverage profiler, an
+    unused bot diagnostics facade, and the orphaned meta-control/general
+    backtest service shell. It retained all historical entities/tables,
+    `BacktestEngine` and owner-509 calculation dependencies, the three runtime
+    strategies, the fixed MCP surface, Grid/OCO, and deployment scripts. This
+    batch is local-only until separately committed and deployed.
 
 ## Acceptance evidence
 

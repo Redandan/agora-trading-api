@@ -54,11 +54,27 @@ AgoraMarketAPI continues to own:
 The shared `agora_market` database remains expected. Extra marketplace tables
 are not a Trading cleanup target.
 
+## Local Batch 5A candidate
+
+The current working tree contains a local-only cleanup candidate that has not
+been committed, pushed, or deployed. It removes 27 unreachable Java files,
+19 inactive Spring components, and 4,280 Java source lines from dormant
+historical import, retired alpha diagnostics, standalone coverage profiling,
+unused bot diagnostics, and orphaned meta-control/general backtest service
+closures.
+
+Clean compilation rebuilt all 207 remaining source files. Direct assertions
+still find exactly three `RuntimeStrategy` implementations, 10 MCP tools, and
+36 JPA entities. There is no diff under owner 509, DRA, Donchian, MCP,
+Grid/OCO, Production `application.yml`, migrations, or retained deployment
+scripts. Historical tables and rows are intentionally unchanged.
+
 ## 2026-07-27 DRA LIVE checkpoint
 
 The latest recorded read-only acceptance checkpoint matched deployed build,
 server worktree, and `origin/main` at
-`3fdccaf970e14067a2f9f2c52c7c585e9947a5f5`.
+`13b3d7751c86c723419d2745088007ae7b030a47`; Production was active on
+port `8085` with the old `8084` listener drained.
 
 DRA continuity was valid through the genuine closed OKX hourly bar
 `2026-07-27T02:00:00`. Evidence row `28673` restored the preceding canonical

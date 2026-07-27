@@ -35,8 +35,8 @@ public class BtBacktestResult {
 
     /**
      * 此次回測實際讀取的 K 線資料源（{@code okx} / {@code binance}）。
-     * 舊資料（V041 之前建立）可能為 null，無法回溯辨認；新回測由 {@link com.agora.service.BacktestService}
-     * 以 strategy.klineSource（優先）或 request.source 推導後填入。
+     * 舊資料（V041 之前建立）可能為 null，無法回溯辨認；目前僅保留
+     * 既有歷史列與 schema 相容性，Production runtime 不再建立通用回測結果。
      */
     @Column(name = "kline_source", length = 16)
     private String klineSource;
@@ -118,9 +118,7 @@ public class BtBacktestResult {
     /**
      * 正規化 trades(V040 起)。與 {@link #tradesJson} 並存:
      * JSON 保留為 audit / legacy / rollback,normalized 供分析查詢。
-     *
-     * <p>Writes go through {@code BtBacktestTradeRepository},非 cascade,以保持
-     * BacktestService 顯式雙寫的流程。
+     * 目前只保留既有歷史關聯供查詢；Production runtime 不再寫入通用回測交易。
      */
     @OneToMany(mappedBy = "backtest", fetch = FetchType.LAZY)
     @ToString.Exclude

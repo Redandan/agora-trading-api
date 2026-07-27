@@ -3,9 +3,8 @@ package com.agora.enums.trading;
 /**
  * Meta-Control attribution 計算狀態。
  *
- * <p>Attribution scheduler 每小時掃剛結束的 override,對每筆嘗試算
- * counterfactual backtest。失敗或不適用的情況以此 enum 標註,供後續排錯與
- * 樣本篩選使用。
+ * <p>保留給既有 attribution 歷史列做 schema 相容性。原 attribution
+ * scheduler 與 counterfactual backtest runtime 已退役。
  */
 public enum AttributionStatusEnum {
     /** 計算成功,alpha_contribution 欄位有效 */
@@ -17,6 +16,6 @@ public enum AttributionStatusEnum {
     /** Override.symbol = NULL(適用所有 symbol),v1 不處理跨幣種 backtest 複雜度 */
     SCOPE_TOO_BROAD,
 
-    /** BacktestService 拋 exception(K 線缺口 / 策略參數錯 / ...),詳見 error_message */
+    /** 歷史 counterfactual backtest 失敗；詳見既有 error_message */
     BACKTEST_FAILED
 }

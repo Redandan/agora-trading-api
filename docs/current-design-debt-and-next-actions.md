@@ -121,6 +121,18 @@ their own dependency closure. Batch 4D completed that closure for the unused
 Etherscan and Pyth adapters together with their obsolete runtime-log
 classifications.
 
+Local-only Batch 5A completed a second dependency-closure pass on 2026-07-27.
+It removed 27 unreachable Java files, 19 inactive Spring components, and 4,280
+Java source lines. The deleted roots were the uncalled Binance/FRED/Polymarket
+historical import services, the retired alpha-outcome diagnostic graph, the
+standalone coverage-profiler CLI and fixtures, the unused market-diagnostics
+facade, and the orphaned meta-control attribution/general backtest service
+shell. Historical entities, database rows, migrations, the retained strategy
+calculation engine, all three runtime strategies, the 10-tool MCP contract,
+Grid/OCO safety, and deployment scripts remain unchanged. A clean package
+recompiled all 207 remaining source files successfully. Batch 5A is not
+committed, pushed, or deployed at this checkpoint.
+
 ### P0 — Observe the first complete DRA lifecycle
 
 Do not change DRA V1 while its first live lot remains open. A complete provider

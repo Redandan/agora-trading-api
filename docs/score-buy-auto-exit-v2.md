@@ -66,6 +66,12 @@ folds. V2 improves the recent terminal result and automates most historical
 profit-taking, but it does not yet satisfy a `4/5` positive-fold promotion
 gate.
 
+These results make owner 509 a parity and execution baseline, not a
+proven-profitable benchmark. Current comparisons must use equal capital and
+report realized, unrealized, total PnL, drawdown, utilization, blocked entries,
+and holding age. Realized-only ranking is invalid because V2 has no forced loss
+exit.
+
 ## Evidence limitation
 
 The preserved TradingView report contains 203 full-history intents, while the
@@ -81,8 +87,9 @@ The local implementation now:
 
 1. uses a V2-specific policy mode and evidence schema, leaving V1 evidence
    untouched;
-2. preserves real provider order IDs, client order IDs, fill prices, net
-   quantities, fees, realized PnL, and independently owned 509 lots;
+2. preserves provider order IDs, client order IDs, observed fill prices,
+   quantities, fees, realized PnL, and independently owned 509 lots; delayed
+   provider fees remain provisional until reconciled from the provider receipt;
 3. commits a durable reservation before provider submission; ambiguous results
    are alerted and never blindly retried;
 4. keeps exactly one Binance daily subscription for owner 509;

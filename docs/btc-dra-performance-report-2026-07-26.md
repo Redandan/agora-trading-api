@@ -59,6 +59,21 @@ Period: `2023-07-26` through `2026-07-25`.
 DRA V1 produced 67 buys, 64 sells, 3 open lots, 90 USDT ending open
 cost, 150 USDT maximum observed open cost, and no cap-blocked entry.
 
+## One-lot capacity overlay
+
+The three-year table above uses the 250 USDT multi-lot reference ledger.
+Production instead permits one 30 USDT lot. Applying that capacity limit to
+the same DRA signals produces the fairer LIVE-capacity comparison:
+
+| Window | Buys / sells / open | Capacity-blocked entries | Realized | Unrealized | Total |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2023-07-26–2026-07-25 | `25 / 24 / 1` | `43` | `+39.92025564` | `-6.13311123` | `+33.78714441` |
+| OOS 2025–2026-07-25 | `9 / 8 / 1` | `22` | `+12.66255279` | `-6.13311123` | `+6.52944156` |
+
+The one-lot overlay still outperformed the fair-reset owner-509 baseline in
+this research window, but it gave up most DRA entries while the lot was
+occupied. It is capacity evidence, not a forecast of the 30 USDT LIVE result.
+
 ## Validation split
 
 | Period | Realized | Unrealized | Total | Max drawdown |
@@ -83,6 +98,11 @@ The effective DRA factors are:
 5. bounded open cost.
 
 The drawdown gate improved ending unrealized PnL but reduced realized and total
-three-year PnL. The owner selected the no-drawdown version for SHADOW so that
-forward evidence can determine whether the higher historical realized return
-persists.
+three-year PnL. The owner selected the no-drawdown version for the separately
+bounded 30 USDT LIVE canary so that forward evidence can determine whether the
+higher historical realized return persists.
+
+Future comparisons must keep realized and unrealized PnL separate but rank on
+fee-adjusted total PnL under equal capital. They must also report drawdown,
+utilization, blocked entries, and holding age; realized-only ranking is invalid
+for a strategy with no forced loss exit.

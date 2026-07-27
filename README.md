@@ -13,13 +13,17 @@ Strategy-driven BTC-USDT spot trading service.
 - Owner 509 is explicitly authorized for bounded LIVE OKX spot execution:
   weights `1/2/5` map to `10/20/50 USDT`, with an `80 USDT` same-bar order cap
   and `250 USDT` open-cost cap.
+- Owner 509 is the TradingView-parity LIVE baseline, not a proven-profitable
+  strategy. Performance decisions must include both realized and unrealized
+  PnL under equal capital.
 - Market WebSockets are derived from the versioned runtime catalog, not
   database `enabled` flags: owner 509 requires Binance `BTCUSDT@1d`, and the
   Donchian lane requires OKX `BTCUSDT@1h` only while it is explicitly SHADOW.
-- `BTC_MEI_DIRECTIONAL_ACCUMULATION_V1` is a source-pinned, direction-confirmed
-  research candidate. It defaults to `OFF`, has no live adapter, and would
-  reuse the same deduplicated OKX hourly stream only after separate SHADOW
-  authorization.
+- `BTC_DAILY_REVERSAL_ACCUMULATION_V1` (`DRA`) is authorized as a separate
+  one-lot `30 USDT` LIVE canary. Its `250 USDT` multi-lot backtest is research
+  context and must not be presented as the economics of the LIVE canary.
+- Retired MEI rows remain immutable historical evidence and cannot restore into
+  DRA state or enter the active runtime.
 - OKX Native Spot Grid remains provider-managed and independently running;
   this service exposes read-only status and economic evidence only.
 - Mechanical execution safety remains; legacy strategy selection, AI/ML
@@ -101,12 +105,14 @@ See `docs/deploy-runbook.md` for required environment and safety boundaries.
 
 - `SERVICE_BOUNDARY.md`
 - `docs/strategy-driven-minimal-runtime.md`
-- `docs/btc-mei-directional-shadow-candidate-v1.md`
-- `docs/minimal-runtime-cleanup-roadmap.md`
+- `docs/score-buy-auto-exit-v2.md`
+- `docs/btc-dra-runtime-v1.md`
+- `docs/current-design-debt-and-next-actions.md`
+- `docs/coverage-profiler.md`
 - `docs/split-acceptance-status.md`
 - `docs/deploy-runbook.md`
 
-`SPLIT_PROGRESS.md` and other dated documents are historical records rather
-than runnable instructions. `docs/split-acceptance-status.md` is the concise
-current production handoff; historical acceptance evidence remains in Git and
-`SPLIT_PROGRESS.md`.
+`docs/split-acceptance-status.md` is the concise current production handoff.
+The cleanup chronology remains in Git and `SPLIT_PROGRESS.md`; superseded
+AI/ML, TQS/Autopilot, Guardian, live-readiness, MEI, and pre-simplification
+proposal documents were removed from the working tree.

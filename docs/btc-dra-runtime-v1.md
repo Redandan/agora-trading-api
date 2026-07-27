@@ -36,6 +36,11 @@ Market and timing:
 - exact contiguous hourly sequence required;
 - virtual fill at the next hourly open.
 
+Entry confirmation therefore occurs once per UTC day. After a live lot exists,
+exit eligibility is evaluated on each fresh closed OKX `1h` bar. V1 does not
+continuously watch intrabar prices; adding an intrabar exit would require a new
+strategy version.
+
 An entry may be confirmed only while the lane is armed and all three conditions
 are true:
 
@@ -84,9 +89,25 @@ independently capped at exactly one 30 USDT lot.
   net return reaches `+5%`;
 - no stop-loss, time exit, forced loss sale, OCO, or trailing exit exists;
 - a sell uses only the quantity recorded in the DRA-owned live lot;
-- actual fills, fees, realized PnL, provider order id, and client order id are
-  persisted and linked back to the canonical DRA evidence row;
+- provider order id, client order id, observed fill price, gross quantity,
+  observed fee, sellable strategy quantity, and realized PnL are linked to the
+  canonical DRA evidence row;
+- when the provider buy fee is not yet available, the current adapter records a
+  conservative sellable quantity using a `0.2%` buffer. The provider receipt,
+  not that provisional quantity, remains the exact source of truth;
 - no deployment or acceptance step sends a test order.
+
+## Performance reporting contract
+
+DRA must be compared with owner 509 under equal starting capital, market
+window, fees, adverse slippage, and final valuation time. Report realized PnL,
+unrealized PnL, total PnL, maximum drawdown, capital utilization, blocked
+entries, and holding age separately.
+
+The 250 USDT reference ledger permits multiple lots. The Production canary
+permits one 30 USDT lot. The reference result cannot be used as the expected
+return of the one-lot LIVE deployment. Realized PnL alone is not sufficient
+because V1 intentionally leaves losing inventory open.
 
 ## Bootstrap and restart contract
 
@@ -115,6 +136,27 @@ Every DRA evidence row records:
 - `ocoModified=false`;
 - `gridModified=false`.
 
+## Known V1 limitations
+
+These limitations do not authorize changing the frozen V1 strategy. They block
+scaling beyond the current canary until corrected:
+
+1. OKX buy fees may arrive after the initial fill response. The current
+   `0.2%` quantity buffer protects unrelated BTC, but exact provider fee and net
+   quantity need a durable reconciliation state.
+2. A partial sell remains `OPEN_PARTIAL`, while the deterministic sell
+   `clOrdId` is derived from the original lot bar. A later sell attempt needs
+   provider-order reconciliation plus a durable sell sequence before it can be
+   safely retried.
+3. State restore scans recent append-only evidence rows. This fails closed for
+   the current canary, but current state should be separated from evidence
+   history before more LIVE strategies are added.
+4. Duplicate bar evaluation is guarded in process; strategy-plus-bar
+   uniqueness is not yet a database contract for multi-instance evaluation.
+5. The repository currently has no automated test tree. The next change to
+   DRA order, fill, ownership, or state code must add the focused contract
+   tests listed in `current-design-debt-and-next-actions.md`.
+
 ## Production acceptance
 
 Deployment acceptance requires:
@@ -134,7 +176,7 @@ Deployment acceptance requires:
    reservation and send no order;
 10. the first later qualifying signal may send exactly one 30 USDT buy; its
     reservation, `clOrdId`, provider order id, fill, quantity, and fees must be
-    reconciled before acceptance is called complete.
+    reconciled before economic acceptance is called complete.
 
 The first rows prove deployment and restart continuity only. Forward
 profitability requires later completed actual exits and cannot be inferred from

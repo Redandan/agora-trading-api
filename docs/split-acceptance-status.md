@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Contract updated: 2026-07-26 Asia/Taipei
+Contract updated: 2026-07-27 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -54,6 +54,43 @@ AgoraMarketAPI continues to own:
 The shared `agora_market` database remains expected. Extra marketplace tables
 are not a Trading cleanup target.
 
+## 2026-07-27 DRA LIVE checkpoint
+
+The latest recorded read-only acceptance checkpoint matched deployed build,
+server worktree, and `origin/main` at
+`3fdccaf970e14067a2f9f2c52c7c585e9947a5f5`.
+
+DRA continuity was valid through the genuine closed OKX hourly bar
+`2026-07-27T02:00:00`. Evidence row `28673` restored the preceding canonical
+state with matching SHA-256, `bootstrap=false`, `catchUp=false`, one contiguous
+bar, and no restore blocker.
+
+The first genuine DRA entry was created from the
+`2026-07-26T23:00:00` bar:
+
+```text
+positionId=263
+clOrdId=DRA1B20260726230000
+okxOrderId=3778497541598928896
+fillPrice=65416.7
+grossQty=0.00045859 BTC
+providerFee=-0.00000045859 BTC
+providerVerifiedNetQty=0.00045813141 BTC
+conservativeRecordedSellableQty=0.00045767 BTC
+```
+
+Exactly one DRA reservation/order existed for that bar. The difference
+`0.00000046141 BTC` is a conservative ownership reserve caused by the provider
+fee arriving after the initial fill response; it is not a trading loss or a
+second position. It exposes the delayed-fee reconciliation debt described in
+`current-design-debt-and-next-actions.md`.
+
+The DRA lot was still open at this checkpoint, so realized DRA performance and
+the full buy-to-sell lifecycle were not yet proven. Owner 509 advanced on its
+latest complete daily bar with a normal HOLD/no-buy audit, positions
+`260/261/262` remained unowned by DRA/509, the Native Grid remained running,
+and execution-safety had no new OCO issue.
+
 ## Strategy state
 
 The Production runtime catalog contains four registered contracts. Owner 509
@@ -99,8 +136,9 @@ bar may aggregate up to `80 USDT`; total open owner-509 cost is capped at
 catch-up bars are audit-only.
 
 The automatic sell path applies only to lots created by owner 509. It targets
-an estimated net gain of at least 5%, records actual fees and realized PnL, and
-does not adopt owner 508, manual, or Grid holdings. It has no stop-loss or OCO.
+an estimated net gain of at least 5%, records observed provider fee fields and
+realized PnL, and does not adopt owner 508, manual, or Grid holdings. Delayed
+provider fees remain provisional until reconciled. It has no stop-loss or OCO.
 
 DRA may hold at most one 30 USDT lot. It reserves the signal durably before
 submitting an OKX Spot order, never retries an ambiguous submission, and sells
@@ -242,19 +280,21 @@ Direct source/config assertions must additionally prove:
 - retained deployment scripts still parse.
 
 The promotion acceptance did not send a manual or test order and did not claim
-simulated performance. Production instead proved the complete armed path:
+simulated performance. Production instead proved the armed path:
 Binance `BTCUSDT@1d` subscription, owner 509 `LIVE`, local execution enabled,
 OKX private credentials and account connectivity, and
-`executionArmed=true`. The first real fill remains dependent on the next
-genuine closed-bar signal.
+`executionArmed=true`. Owner 509's first genuine daily event was a HOLD/no-buy;
+DRA later produced the genuine 30 USDT entry recorded above. Neither event
+proves profitability.
 
 For docs-only changes, `git diff --check` is sufficient unless the document
 claims new runtime or deployment evidence.
 
 ## Batch 1 production acceptance
 
-The current source-reduction plan is
-`docs/minimal-runtime-cleanup-roadmap.md`.
+The completed source-reduction chronology remains in `SPLIT_PROGRESS.md` and
+Git history. The following batch sections are historical acceptance evidence,
+not current cleanup instructions.
 
 Batch 1 was committed as `2b8bff881cc1`, deployed, and accepted on Production.
 It removes the unreachable Execution Event, SystemReminder, isolated
@@ -602,7 +642,8 @@ Production evidence:
 
 Deployment and health evidence do not prove:
 
-- owner 508 profitability;
+- owner 509 profitability;
+- DRA profitability or a completed live exit;
 - Donchian forward profitability;
 - Grid long-term profitability;
 - authorization to enable PAPER or LIVE;

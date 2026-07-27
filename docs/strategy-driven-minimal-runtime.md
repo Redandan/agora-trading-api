@@ -14,6 +14,8 @@ Owner 509 is authorized for bounded OKX spot LIVE execution. Weights `1/2/5`
 map to `10/20/50 USDT`, the maximum same-bar aggregate is `80 USDT`, and total
 open owner-509 cost is capped at `250 USDT`. This authorization does not include
 manual/test orders, Grid changes, transfers, OCO, or unrelated strategy actions.
+Owner 509 is the TradingView-parity baseline; LIVE authorization is not a
+profitability claim.
 
 ## Pre-promotion production baseline
 
@@ -40,8 +42,9 @@ Read-only verification on 2026-07-25 confirmed:
 - runtime-log verification found 0 errors, 0 unknown warnings, and 0
   high-risk operation-like lines.
 
-The staged source-reduction plan is maintained in
-`minimal-runtime-cleanup-roadmap.md`.
+The completed source-reduction chronology remains in `SPLIT_PROGRESS.md` and
+Git history. Current maintenance priorities are defined in
+`current-design-debt-and-next-actions.md`.
 
 ## LIVE production acceptance
 
@@ -87,15 +90,28 @@ The runtime:
 - retains 30 USDT virtual reference lots and a 250 USDT research cap;
 - permits exactly one actual 30 USDT OKX spot lot when configured `LIVE`;
 - durably reserves deterministic client order ids before provider submission;
-- persists actual fills and fees in the isolated DRA live ledger;
+- persists provider receipt fields in the isolated DRA live ledger and uses a
+  conservative quantity buffer if the final buy fee is delayed;
 - sells only DRA-owned quantity after fee/slippage-aware estimated net return
-  reaches `+5%`;
+  reaches `+5%`, evaluated on each fresh closed OKX hourly bar;
 - has no stop-loss, forced exit, OCO, Grid, fund, leverage, or Telegram action.
 
 The three-year no-drawdown result with a 250 USDT reserve was `+107.15130387`
 realized, `-6.46487858` unrealized, and `+100.68642529` total, with
 `10.183632%` maximum drawdown. These are historical research results, not
 forward performance.
+
+The headline result uses a multi-lot 250 USDT reserve. It is not the fair
+expected result of the one-lot 30 USDT Production canary. Under the same
+historical accounting, the one-lot capacity overlay produced:
+
+| Window | Buys / sells / open | Capacity-blocked entries | Realized | Unrealized | Total |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Three-year | `25 / 24 / 1` | `43` | `+39.92025564` | `-6.13311123` | `+33.78714441` |
+| OOS 2025–2026-07-25 | `9 / 8 / 1` | `22` | `+12.66255279` | `-6.13311123` | `+6.52944156` |
+
+These overlay results show the opportunity cost of a single live lot. They
+remain historical research, not forward or Production profit.
 
 Its frozen strategy and execution contract is documented in
 `btc-dra-runtime-v1.md`.
@@ -104,6 +120,23 @@ The old MEI evidence V2 restart boundary is retained in its historical rows,
 but the active DRA policy uses a new policy key, state schema, evidence schema,
 event type, and environment switch. DRA therefore cannot accidentally inherit
 MEI lots or continuity state.
+
+## Donchian SHADOW contract
+
+`BTC_DONCHIAN_20D_10D_V1@v1` remains an evidence-only SHADOW strategy:
+
+- source: OKX `BTCUSDT`, closed `1h` bars;
+- entry: daily close above the prior 20 complete UTC-day highs;
+- exit: daily close below the prior 10 complete UTC-day lows;
+- initial virtual stop: complete UTC-day ATR14 multiplied by 2;
+- virtual sizing: 1% of virtual equity, capped at 100% exposure with no
+  leverage;
+- execution model: next `1h` open with explicit fee and adverse-slippage
+  accounting.
+
+Its runtime, research replay, and golden verification use the same strategy
+engine. Donchian has no LIVE adapter, exchange order, OCO, Grid, Telegram, or
+fund path and cannot block owner 509 or DRA.
 
 ## Identity correction
 
@@ -144,6 +177,12 @@ Therefore exact signal parity is proven, but profitable three-year performance
 is not. The owner explicitly chose bounded LIVE execution without using
 simulated performance as a promotion gate. This limitation remains visible as
 economic context and must not become a per-signal platform veto.
+
+All strategy comparisons must separately report realized and unrealized PnL,
+then use fee-adjusted total PnL under equal capital as the primary ranking.
+Maximum drawdown, utilization, blocked entries, and holding age are required.
+Realized-only ranking is invalid for profit-only strategies because losses can
+remain indefinitely unrealized.
 
 ### Market and clock
 
@@ -259,7 +298,8 @@ The platform may enforce only mechanical execution safety:
 - partial-fill and rejected-order reconciliation;
 - an ambiguous submission outcome is alerted and reconciled, never blindly
   retried;
-- actual fees, fills, balances, and inventory ownership are recorded;
+- provider receipt fields, balances, and inventory ownership are recorded;
+  delayed fees remain provisional until reconciled from the provider;
 - no sell, transfer, OCO, Grid, or fund action may be inferred from a BUY intent.
 
 These are execution correctness rules. They do not decide whether the alpha is
@@ -297,9 +337,9 @@ Implemented in the retained Production runtime:
    directly. The registry contains exactly one implementation for each
    catalog-owned evaluation-capable contract. Database `enabled` flags cannot
    add a strategy lane or revive the legacy evaluator.
-4. The LIVE adapter aggregates the current daily bar's weights, commits a
+4. The owner-509 LIVE adapter aggregates the current daily bar's weights, commits a
    unique reservation, places an OKX spot order with `clOrdId`, and persists
-   actual fills/fees. Catch-up bars are audit-only.
+   provider receipt fields. Catch-up bars are audit-only.
 5. The legacy live evaluator, Webhook, 508 time-exit, AI/ML/Ensemble,
    auto-entry services, strategy risk filters, Earn/Funding lanes, and their
    schedulers/MCP tools were removed.
@@ -358,7 +398,8 @@ acceptance uses compilation plus direct source/config assertions:
 - its evaluator must accept only closed, allowed, non-stale bars;
 - owner 509 LIVE execution must accept only the current complete bar, use
   durable reservation plus OKX `clOrdId`, enforce `10/80/250 USDT` limits,
-  persist actual fills/fees, and never blindly retry an ambiguous result;
+  persist provider receipt fields, and never blindly retry an ambiguous
+  result;
 - DRA LIVE must require a non-bootstrap, non-catch-up, exact current bar, use a
   separate durable ledger and client order namespace, enforce one 30 USDT lot,
   and never submit deployment/test/replay orders;
@@ -382,4 +423,6 @@ acceptance uses compilation plus direct source/config assertions:
 
 The remaining choice is whether later evidence justifies increasing DRA beyond
 the authorized one-lot 30 USDT canary. No larger DRA exposure is implicitly
-authorized.
+authorized. The accepted limitations, required fixes, economic comparison
+contract, and scaling sequence are maintained in
+`current-design-debt-and-next-actions.md`.

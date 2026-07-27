@@ -7,7 +7,8 @@ This repo is the trading service extracted from `AgoraMarketAPI`.
 - Versioned strategy catalog and fail-closed runtime strategy registry, owner
   509 LIVE execution, archived owner 508/V1 evidence, PAPER accounting,
   archived strategy inventory, Donchian SHADOW evidence, the default-OFF DRA
-  30 USDT LIVE-capable canary, spot OCO reconciliation, read-only OKX-native
+  switch with an explicitly authorized 30 USDT single-lot LIVE canary, spot
+  OCO reconciliation, read-only OKX-native
   Grid monitoring, and the minimal trading MCP surface.
 - Market data ingestion used by trading decisions. The versioned runtime
   catalog owns exact provider/symbol/interval subscriptions; database strategy
@@ -84,10 +85,14 @@ source review. Forbidden categories include:
 
 If a later trading feature really needs one of these capabilities, add a trading-owned model/service or an explicit SDK/HTTP DTO contract. Do not re-import marketplace entities, repositories, controllers, or service implementations.
 
-The protected runtime, staged removal batches, source-only database policy, and
-per-batch acceptance rules are defined in
-`docs/minimal-runtime-cleanup-roadmap.md`. Cleanup must preserve owner 509 LIVE
-semantics, archived owner 508/V1 evidence, Donchian SHADOW evidence, exact
-catalog market streams, the isolated default-OFF DRA single-lot canary,
-mechanical OCO execution safety, read-only provider Grid monitoring, outbound
-critical notifications, and deployment verification.
+Cleanup must preserve owner 509 LIVE semantics, archived owner 508/V1 evidence,
+Donchian SHADOW evidence, exact catalog market streams, the isolated DRA
+single-lot canary, mechanical OCO execution safety, read-only provider Grid
+monitoring, outbound critical notifications, and deployment verification. The
+completed cleanup chronology remains in `SPLIT_PROGRESS.md` and Git history.
+
+Current maintenance debt and the scaling gate are defined in
+`docs/current-design-debt-and-next-actions.md`. Deleted or retired AI/ML,
+TQS/Autopilot, Guardian, generic strategy-risk, and strategy-specific
+orchestration paths are historical designs. Do not restore them without a new
+versioned requirement and causal performance evidence.

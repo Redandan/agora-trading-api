@@ -8,8 +8,8 @@ manual/test orders, OCO/Grid mutations, fund movement, Earn actions, database
 migrations, or unrelated production data changes.
 
 Use `split-acceptance-status.md` for the current deployed handoff and
-`minimal-runtime-cleanup-roadmap.md` for staged source reduction. Historical
-commands in dated documents or `SPLIT_PROGRESS.md` are not deployment
+`current-design-debt-and-next-actions.md` for current maintenance priorities.
+Historical commands in Git history or `SPLIT_PROGRESS.md` are not deployment
 instructions.
 
 The automated test tree and non-deployment scripts were intentionally removed
@@ -142,6 +142,13 @@ There is no repository test suite. Compile and package only:
 ```powershell
 mvn -DskipTests package
 ```
+
+For the current unchanged runtime this is the documented local check. Before
+the next Java change to order submission, fill/fee reconciliation, position
+ownership, client-order idempotency, or strategy state, first add the narrow
+LIVE-contract tests listed in
+`current-design-debt-and-next-actions.md`. Do not restore the deleted generic
+AI/backtest test infrastructure.
 
 Before changing a retained shell script:
 

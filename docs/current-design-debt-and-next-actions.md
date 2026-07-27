@@ -102,6 +102,23 @@ holding age, utilization, and blocked opportunity cost remain visible.
 
 ## Actual design debt
 
+### Completed code reduction
+
+On 2026-07-27, Batches 4A and 4B removed 38 unreferenced legacy classes and
+7,786 source lines. The removed roots covered old counterfactual/adoption
+services, standalone simulations, unused provider adapters, inactive
+diagnostics, and retired risk helpers. Compilation and direct source
+assertions preserved the three runtime strategy implementations, the fixed
+10-tool MCP surface, OCO safety, read-only Grid monitoring, configuration,
+migrations, and deployment scripts.
+
+A low reference count alone is not sufficient evidence for further deletion.
+Spring interface implementations, event listeners, schedulers, configuration
+binding, JPA entities/repositories, and provider warning classifications need
+their own dependency closure. In particular, `EtherscanService` and
+`PythNetworkService` remain until their retained deployment-log
+classifications are reviewed in the same change.
+
 ### P0 — Observe the first complete DRA lifecycle
 
 Do not change DRA V1 while its first live lot remains open. A complete provider

@@ -140,7 +140,15 @@ inactive generic OKX sizing/loss configuration. Historical blocker values
 remain readable in stored audit/evidence rows. Batch 5B removes a net 878 Java
 source lines, leaving 205 Java source files. A clean package succeeds, and no
 owner-509, DRA, Donchian, MCP, Grid/OCO, Production configuration, entity,
-migration, or deployment path changed.
+migration, or deployment path changed. It is committed locally as `19f7040`;
+it is not pushed or deployed.
+
+Local-only Batch 5C removes the uncalled Binance exchange-order Spring adapter
+and its unused configuration binding. Binance daily market data for owner 509
+is independent and remains unchanged; OKX remains the only registered order
+adapter. The batch removes a net 241 Java source lines, leaving 203 Java source
+files, without changing an OCO caller, active strategy, Production setting,
+entity, migration, or deployment path.
 
 ### P0 — Observe the first complete DRA lifecycle
 

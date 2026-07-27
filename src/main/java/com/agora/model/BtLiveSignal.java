@@ -87,7 +87,7 @@ public class BtLiveSignal {
 
     // ── 自動交易欄位 ──────────────────────────────────
 
-    /** 是否已自動下單。NULL / false = 純通知模式，true = 已透過 BinanceTradingService 下單。 */
+    /** 是否已自動下單。NULL / false = 純通知模式，true = 已透過交易所適配器下單。 */
     @Column(name = "auto_traded")
     private Boolean autoTraded;
 

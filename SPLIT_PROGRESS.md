@@ -1,5 +1,14 @@
 # Split Progress
 
+- 2026-07-27: completed local-only cleanup Batch 5C on top of committed Batch
+  5B (`19f7040`). Batch 5C removes the uncalled Binance exchange-order Spring
+  adapter and its unused configuration binding while retaining Binance as
+  owner 509's daily market-data source. The active `TradingService`
+  implementation remains OKX; OCO callers and behavior are unchanged. The
+  batch removes a net 241 Java source lines, leaving 203 Java source files. A
+  clean `mvn clean package -DskipTests` succeeded. Batch 5C is not pushed or
+  deployed, and no Production, order, OCO/Grid, fund, scheduler, Telegram,
+  migration, or database mutation was performed.
 - 2026-07-27: completed local-only cleanup Batch 5B on top of committed Batch
   5A (`f405ee0`). Batch 5B removes the uncalled `ExposureOptimizer` and
   `DailyLossGuard` Spring services, 29 repository methods left behind by
@@ -9,9 +18,9 @@
   removes a net 878 Java source lines and leaves 205 Java source files. A clean
   `mvn clean package -DskipTests` succeeded. Owner 509, DRA, Donchian, all 10
   MCP tools, 36 JPA entities, Grid/OCO, Production configuration, migrations,
-  and deployment scripts remain unchanged. Batch 5B is not pushed or deployed,
-  and no Production, order, OCO/Grid, fund, scheduler, Telegram, migration, or
-  database mutation was performed.
+  and deployment scripts remain unchanged. It was committed locally as
+  `19f7040` but is not pushed or deployed. No Production, order, OCO/Grid,
+  fund, scheduler, Telegram, migration, or database mutation was performed.
 - 2026-07-27: completed local-only cleanup Batch 5A after a fresh Spring,
   interface, Controller, MCP, scheduler, event, and runtime-strategy dependency
   closure. The candidate removes 27 unreachable Java files, 19 inactive Spring

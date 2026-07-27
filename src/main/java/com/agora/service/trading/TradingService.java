@@ -5,12 +5,8 @@ import java.math.BigDecimal;
 /**
  * 現貨自動交易介面，統一買入、OCO 掛單、取消 OCO、賣出的操作。
  *
- * <p>實作：
- * <ul>
- *   <li>{@link OkxTradingService}（@Primary，目前使用）</li>
- *   <li>{@link BinanceTradingService}（備用，美國 IP 不可用）</li>
- * </ul>
- * </p>
+ * <p>The only registered implementation is {@link OkxTradingService}. Binance
+ * remains a market-data source for owner 509, not an exchange-order adapter.</p>
  */
 public interface TradingService {
 

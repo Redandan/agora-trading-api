@@ -389,13 +389,18 @@ Implemented in the retained Production runtime:
     `BacktestEngine` and owner-509 calculation dependencies, the three runtime
     strategies, the fixed MCP surface, Grid/OCO, and deployment scripts. It is
     committed locally as `f405ee0` but has not been pushed or deployed.
-15. Local-only Batch 5B removed the uncalled `ExposureOptimizer` and
+15. Batch 5B removed the uncalled `ExposureOptimizer` and
     `DailyLossGuard`, 29 repository methods belonging only to retired
     score-buy, Tiny Live, Meta-Control, health-summary, cooldown, and shared
     risk-gate paths, and inactive generic OKX sizing/loss settings. Historical
     audit rows remain readable; the active strategy, execution-safety, Grid,
     OCO, MCP, entity, migration, Production configuration, and deployment
-    contracts are unchanged.
+    contracts are unchanged. It is committed locally as `19f7040` but has not
+    been pushed or deployed.
+16. Local-only Batch 5C removed the uncalled Binance exchange-order adapter and
+    its unused configuration binding. Binance remains owner 509's daily
+    market-data source; OKX remains the sole registered order adapter. No
+    strategy, OCO caller, market-data path, or Production setting changed.
 
 ## Acceptance evidence
 

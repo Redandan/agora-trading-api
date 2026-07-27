@@ -68,13 +68,19 @@ still find exactly three `RuntimeStrategy` implementations, 10 MCP tools, and
 Grid/OCO, Production `application.yml`, migrations, or retained deployment
 scripts. Historical tables and rows are intentionally unchanged.
 
-The working tree additionally contains local-only Batch 5B. It removes two
-uncalled Spring services (`ExposureOptimizer` and `DailyLossGuard`), 29
+Batch 5B is committed locally as `19f7040` but is not pushed or deployed. It
+removes two uncalled Spring services (`ExposureOptimizer` and `DailyLossGuard`), 29
 repository methods with no remaining caller, inactive generic OKX sizing/loss
 settings, and a net 878 Java source lines. Clean compilation rebuilds all 205
 remaining source files. Historical blocker strings remain readable; no
-Production configuration or protected runtime path changed. Batch 5B is not
-pushed or deployed.
+Production configuration or protected runtime path changed.
+
+The working tree additionally contains local-only Batch 5C. It removes the
+uncalled Binance exchange-order adapter and its unused configuration binding,
+while retaining Binance daily market data for owner 509 and OKX as the only
+registered order adapter. It removes a net 241 Java source lines and leaves
+203 Java source files. OCO callers, Production settings, entities, migrations,
+and deployment scripts remain unchanged. Batch 5C is not pushed or deployed.
 
 ## 2026-07-27 DRA LIVE checkpoint
 

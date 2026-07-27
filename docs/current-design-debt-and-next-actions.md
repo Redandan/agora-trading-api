@@ -104,8 +104,8 @@ holding age, utilization, and blocked opportunity cost remain visible.
 
 ### Completed code reduction
 
-On 2026-07-27, Batches 4A through 4G removed 106 unreferenced legacy classes
-and 11,891 source lines. The removed roots covered old counterfactual/adoption
+On 2026-07-27, Batches 4A through 4H removed 111 unreferenced legacy classes
+and 12,117 source lines. The removed roots covered old counterfactual/adoption
 services, standalone simulations, unused provider adapters, inactive
 diagnostics, retired risk helpers, evidence utilities, Telegram presentation
 helpers, AI DTOs, configuration bindings, and repository interfaces with no

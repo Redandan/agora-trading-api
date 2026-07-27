@@ -104,13 +104,14 @@ holding age, utilization, and blocked opportunity cost remain visible.
 
 ### Completed code reduction
 
-On 2026-07-27, Batches 4A through 4D removed 42 unreferenced legacy classes and
-8,409 source lines. The removed roots covered old counterfactual/adoption
+On 2026-07-27, Batches 4A through 4E removed 57 unreferenced legacy classes and
+10,327 source lines. The removed roots covered old counterfactual/adoption
 services, standalone simulations, unused provider adapters, inactive
-diagnostics, and retired risk helpers. Compilation and direct source
-assertions preserved the three runtime strategy implementations, the fixed
-10-tool MCP surface, OCO safety, read-only Grid monitoring, active runtime
-environment values, migrations, and deployment scripts.
+diagnostics, retired risk helpers, evidence utilities, Telegram presentation
+helpers, and AI DTOs. Compilation and direct source assertions preserved the
+three runtime strategy implementations, the fixed 10-tool MCP surface, OCO
+safety, read-only Grid monitoring, active runtime environment values,
+migrations, and deployment scripts.
 
 A low reference count alone is not sufficient evidence for further deletion.
 Spring interface implementations, event listeners, schedulers, configuration

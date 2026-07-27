@@ -121,7 +121,7 @@ their own dependency closure. Batch 4D completed that closure for the unused
 Etherscan and Pyth adapters together with their obsolete runtime-log
 classifications.
 
-Local-only Batch 5A completed a second dependency-closure pass on 2026-07-27.
+Batch 5A completed a second dependency-closure pass on 2026-07-27.
 It removed 27 unreachable Java files, 19 inactive Spring components, and 4,280
 Java source lines. The deleted roots were the uncalled Binance/FRED/Polymarket
 historical import services, the retired alpha-outcome diagnostic graph, the
@@ -130,8 +130,17 @@ facade, and the orphaned meta-control attribution/general backtest service
 shell. Historical entities, database rows, migrations, the retained strategy
 calculation engine, all three runtime strategies, the 10-tool MCP contract,
 Grid/OCO safety, and deployment scripts remain unchanged. A clean package
-recompiled all 207 remaining source files successfully. Batch 5A is not
-committed, pushed, or deployed at this checkpoint.
+recompiled all 207 remaining source files successfully. Batch 5A is committed
+locally as `f405ee0`; it is not pushed or deployed at this checkpoint.
+
+Local-only Batch 5B removed the uncalled `ExposureOptimizer` and
+`DailyLossGuard`, 29 no-caller repository methods from retired score-buy,
+Tiny Live, Meta-Control, health-summary, cooldown, and risk-gate paths, and
+inactive generic OKX sizing/loss configuration. Historical blocker values
+remain readable in stored audit/evidence rows. Batch 5B removes a net 878 Java
+source lines, leaving 205 Java source files. A clean package succeeds, and no
+owner-509, DRA, Donchian, MCP, Grid/OCO, Production configuration, entity,
+migration, or deployment path changed.
 
 ### P0 — Observe the first complete DRA lifecycle
 

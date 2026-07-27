@@ -118,8 +118,6 @@ public class OkxTradingService implements TradingService {
                 keyConfigured ? props.getApiKey().substring(0, Math.min(8, props.getApiKey().length())) : "N/A");
         log.info("[OKX] Secret configured    : {}", secretConfigured);
         log.info("[OKX] Passphrase configured: {}", passphraseConfigured);
-        log.info("[OKX] Trade amount (USDT)  : {}", props.getTradeAmountUsdt());
-        log.info("[OKX] Max open positions   : {}", props.getMaxOpenPositions());
         log.info("[OKX] ======================================");
 
         if (props.isEnabled()) {

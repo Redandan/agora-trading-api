@@ -52,7 +52,7 @@ public class BtDecisionAudit {
     @Column(nullable = false, length = 16)
     private String outcome;
 
-    /** LongAiFilter / ShortAiFilter / DailyLossGuard / StrategyOverride / HintDisable / AttentionRule */
+    /** Blocker identifier. Historical rows may contain names of retired decision layers. */
     @Column(length = 64)
     private String blocker;
 

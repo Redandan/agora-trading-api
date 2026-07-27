@@ -1,5 +1,17 @@
 # Split Progress
 
+- 2026-07-27: completed local-only cleanup Batch 5B on top of committed Batch
+  5A (`f405ee0`). Batch 5B removes the uncalled `ExposureOptimizer` and
+  `DailyLossGuard` Spring services, 29 repository methods left behind by
+  retired score-buy, Tiny Live, Meta-Control, health-summary, cooldown, and
+  risk-gate paths, and inactive generic OKX sizing/loss settings. Historical
+  blocker strings remain readable in evidence and audit rows. The batch
+  removes a net 878 Java source lines and leaves 205 Java source files. A clean
+  `mvn clean package -DskipTests` succeeded. Owner 509, DRA, Donchian, all 10
+  MCP tools, 36 JPA entities, Grid/OCO, Production configuration, migrations,
+  and deployment scripts remain unchanged. Batch 5B is not pushed or deployed,
+  and no Production, order, OCO/Grid, fund, scheduler, Telegram, migration, or
+  database mutation was performed.
 - 2026-07-27: completed local-only cleanup Batch 5A after a fresh Spring,
   interface, Controller, MCP, scheduler, event, and runtime-strategy dependency
   closure. The candidate removes 27 unreachable Java files, 19 inactive Spring
@@ -9,12 +21,12 @@
   diagnostics, the coverage-profiler CLI, an unused bot diagnostics facade,
   and the orphaned meta-control attribution/general backtest service shell.
   Historical entities, rows, tables, and migrations remain; `BacktestEngine`,
-  owner 509, DRA, Donchian, all 10 MCP tools, 36 JPA entities, Grid/OCO,
+  owner 509, DRA, Donchian, all 10 MCP tools, 35 JPA entities, Grid/OCO,
   Production configuration, and deployment scripts are unchanged. A clean
   `mvn clean package -DskipTests` rebuilt all 207 remaining Java sources
-  successfully. No commit, push, deploy, restart, Production configuration,
-  order, OCO/Grid, fund, scheduler, Telegram, migration, or database mutation
-  was performed.
+  successfully. It was committed locally as `f405ee0` but was not pushed or
+  deployed. No restart, Production configuration, order, OCO/Grid, fund,
+  scheduler, Telegram, migration, or database mutation was performed.
 - 2026-07-25: deployed and Production-accepted minimal-runtime cleanup Batch
   3A. Runtime change commit `10e5ee3fd9ec` was deployed in build commit
   `e1ab8637899d`; blue/green switched Production from `8084` to `8085` and

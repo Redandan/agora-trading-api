@@ -10,12 +10,8 @@ spring:
     enabled: false
 
 meta-control:
-  composite-indicator:
-    scheduler-enabled: false
   hourly-orchestrator:
     enabled: false
-  ml-materialized-refresh:
-    startup-check-enabled: false
 
 okx:
   earn-topup:
@@ -29,12 +25,6 @@ trading:
     api-key: local-smoke-mcp
   internal:
     api-key: local-smoke-internal-key
-  tiny-live:
-    auto-execution:
-      enabled: false
-  wai:
-    enabled: false
-
 mcp:
   api-key: local-smoke-mcp
   ops-key: local-smoke-mcp

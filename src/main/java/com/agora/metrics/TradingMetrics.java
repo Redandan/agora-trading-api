@@ -45,7 +45,7 @@ public class TradingMetrics {
                 .increment();
     }
 
-    /** Signal blocked by a filter (LongAiFilter / ShortAiFilter / DailyLossGuard / ...). */
+    /** Signal blocked before order placement; historical blocker names remain valid metric tags. */
     public void signalFiltered(String filterName, String reason) {
         Counter.builder(SIGNAL_FILTERED)
                 .description("Signal blocked before order placement")

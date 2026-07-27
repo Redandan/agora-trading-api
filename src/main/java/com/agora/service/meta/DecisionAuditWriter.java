@@ -55,7 +55,7 @@ public class DecisionAuditWriter {
                 barOpenTime, null, side, context, null));
     }
 
-    /** Filter / DailyLossGuard / StrategyOverride / HintDisable 擋下。 */
+    /** Record a pre-order block; historical blocker names remain readable. */
     @Async("metaAuditExecutor")
     public void logFilterBlock(Long strategyId, String symbol, String intervalCode,
                                String blocker, String reason,

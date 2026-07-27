@@ -370,15 +370,16 @@ Implemented in the retained Production runtime:
     preserving the `SCORE_BUY_V2` compatibility adapter, frozen owner-508
     strategy implementation, Donchian SHADOW, Grid reads, OCO safety,
     historical strategy rows, entities, repositories, and migrations.
-13. Batches 4A through 4F removed 85 additional unreferenced legacy classes,
+13. Batches 4A through 4G removed 106 additional unreferenced legacy classes,
     including provider adapters, diagnostic components, risk/replay helpers,
     evidence utilities, Telegram presentation helpers, AI DTOs, and unused
-    configuration bindings (11,123 source lines). They had no controller, MCP,
-    scheduler, event, interface-injection, or strategy-registry entry;
-    configuration binding was removed only with its last consumer. No runtime
-    catalog, strategy adapter, OCO/Grid path, active runtime environment value,
-    or migration changed. Batch 4D also removed two obsolete provider-specific
-    warning classifications from the retained runtime-log verification script.
+    configuration bindings and repository interfaces (11,891 source lines).
+    They had no controller, MCP, scheduler, event, interface-injection, or
+    strategy-registry entry; configuration binding was removed only with its
+    last consumer. No runtime catalog, strategy adapter, OCO/Grid path, active
+    runtime environment value, entity, table, historical row, or migration
+    changed. Batch 4D also removed two obsolete provider-specific warning
+    classifications from the retained runtime-log verification script.
 
 ## Acceptance evidence
 

@@ -19,11 +19,14 @@ CREATE TABLE IF NOT EXISTS `bt_spot_execution_attempt` (
   `average_price` decimal(30,12) DEFAULT NULL,
   `gross_fill_quantity` decimal(30,12) DEFAULT NULL,
   `net_fill_quantity` decimal(30,12) DEFAULT NULL,
+  `gross_quote_amount` decimal(30,12) DEFAULT NULL,
   `signed_fee_amount` decimal(30,12) DEFAULT NULL,
   `fee_currency` varchar(20) DEFAULT NULL,
   `fee_usdt` decimal(30,12) DEFAULT NULL,
   `fee_reconciliation_status` varchar(24) NOT NULL,
   `applied_fill_quantity` decimal(30,12) NOT NULL DEFAULT 0,
+  `applied_gross_quote_amount` decimal(30,12) NOT NULL DEFAULT 0,
+  `applied_fee_usdt` decimal(30,12) NOT NULL DEFAULT 0,
   `remaining_lot_quantity` decimal(30,12) DEFAULT NULL,
   `submitted_at` datetime(6) DEFAULT NULL,
   `provider_accepted_at` datetime(6) DEFAULT NULL,
@@ -77,11 +80,17 @@ CREATE TABLE IF NOT EXISTS `bt_spot_execution_attempt` (
           OR `gross_fill_quantity` >= 0)
         AND (`net_fill_quantity` IS NULL
           OR `net_fill_quantity` >= 0)
+        AND (`gross_quote_amount` IS NULL
+          OR `gross_quote_amount` >= 0)
         AND `applied_fill_quantity` >= 0
+        AND `applied_gross_quote_amount` >= 0
+        AND `applied_fee_usdt` >= 0
         AND (`remaining_lot_quantity` IS NULL
           OR `remaining_lot_quantity` >= 0)
         AND (`gross_fill_quantity` IS NULL
           OR `applied_fill_quantity` <= `gross_fill_quantity`)
+        AND (`gross_quote_amount` IS NULL
+          OR `applied_gross_quote_amount` <= `gross_quote_amount`)
       )
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4

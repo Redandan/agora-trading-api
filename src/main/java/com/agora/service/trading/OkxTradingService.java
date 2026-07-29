@@ -22,6 +22,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -68,6 +70,7 @@ public class OkxTradingService implements TradingService {
     private static final long ACCOUNT_HOLDINGS_STALE_CACHE_TTL_MS = 180_000L;
     private static final long ACCOUNT_HOLDINGS_LOOKUP_MIN_INTERVAL_MS = 500L;
     private static final BigDecimal UNKNOWN_BUY_FEE_QTY_BUFFER_RATE = new BigDecimal("0.002");
+    private static final String ORDER_NOT_FOUND_CODE = "51603";
     private static final List<String> ALGO_ORDER_HISTORY_STATES = List.of("effective", "canceled", "order_failed");
 
     private final OkxTradingProperties props;
@@ -1322,25 +1325,14 @@ public class OkxTradingService implements TradingService {
                 } catch (NumberFormatException ignored) {
                     feeAmount = BigDecimal.ZERO;
                 }
-                BigDecimal netQty;
-                if (side == SpotOrderSide.SELL) {
-                    // accFillSz is the base quantity sold. Quote-currency fees do not
-                    // reduce that filled quantity and must not trigger the buy-side
-                    // spot-balance fallback after the position has already been sold.
-                    netQty = gross;
-                } else if (instBase.equals(feeCcyStr) && !feeCcyStr.isEmpty()) {
-                    // 費用以基幣扣收（最常見）：淨量 = gross + fee（fee 為負）
-                    // 使用 gross.scale() 截尾以對齊 OKX lot size 精度，避免小數位過多被拒絕。
-                    netQty = gross.add(feeAmount).setScale(gross.scale(), java.math.RoundingMode.DOWN);
-                } else if (!feeCcyStr.isEmpty()) {
-                    // Quote/discount-token fees do not reduce the base quantity received.
-                    netQty = gross;
-                } else {
-                    // An account balance cannot identify which BTC belongs to this fill when
-                    // other holdings exist. Reserve a conservative fee buffer instead of
-                    // risking an oversized OCO that consumes pre-existing BTC.
-                    netQty = gross.multiply(BigDecimal.ONE.subtract(UNKNOWN_BUY_FEE_QTY_BUFFER_RATE))
-                            .setScale(gross.scale(), java.math.RoundingMode.DOWN);
+                BigDecimal netQty = spotNetQuantity(
+                        side,
+                        instBase,
+                        gross,
+                        feeAmount,
+                        feeCcyStr);
+                if (side == SpotOrderSide.BUY
+                        && feeCcyStr.isEmpty()) {
                     log.warn("[OKX] Buy fee unavailable; using conservative net quantity: ordId={} gross={} netQty={}",
                             ordId, gross, netQty);
                 }
@@ -1375,6 +1367,22 @@ public class OkxTradingService implements TradingService {
             return absolute.multiply(avgPrice).setScale(8, java.math.RoundingMode.HALF_UP);
         }
         return null;
+    }
+
+    private BigDecimal spotNetQuantity(
+            SpotOrderSide side,
+            String baseCurrency,
+            BigDecimal gross,
+            BigDecimal signedFeeAmount,
+            String feeCurrency) {
+        return side == SpotOrderSide.SELL
+                ? gross
+                : SpotExecutionAttemptPolicy.buyNetQuantity(
+                        gross,
+                        signedFeeAmount,
+                        feeCurrency,
+                        baseCurrency,
+                        UNKNOWN_BUY_FEE_QTY_BUFFER_RATE);
     }
 
     private enum SpotOrderSide {
@@ -1435,6 +1443,103 @@ public class OkxTradingService implements TradingService {
         return resp.path("data").path(0);
     }
 
+    /**
+     * Provider-first lookup for an execution attempt.
+     *
+     * <p>Only OKX code 51603 is treated as definitive absence. Transport
+     * errors, empty success payloads, and every unknown provider code throw so
+     * the caller keeps the attempt unresolved and never blindly submits.</p>
+     */
+    public SpotOrderLookup lookupSpotOrderByClientOrderId(
+            String symbol,
+            String clientOrderId) {
+        validateClientOrderId(clientOrderId);
+        String instId = toInstId(symbol);
+        String path = "/api/v5/trade/order?instId=" + instId
+                + "&clOrdId=" + clientOrderId;
+        JsonNode response = get(path);
+        String code = response.path("code").asText("");
+        if (ORDER_NOT_FOUND_CODE.equals(code)) {
+            return new SpotOrderLookup(
+                    SpotOrderLookupStatus.NOT_FOUND,
+                    null);
+        }
+        assertOkxCode(response);
+        JsonNode order = response.path("data").path(0);
+        if (order.isMissingNode() || order.isNull()
+                || order.path("ordId").asText("").isBlank()) {
+            throw new IllegalStateException(
+                    "OKX order lookup returned empty success payload");
+        }
+        String returnedClientOrderId =
+                order.path("clOrdId").asText("");
+        if (!clientOrderId.equals(returnedClientOrderId)) {
+            throw new IllegalStateException(
+                    "OKX order lookup client id mismatch");
+        }
+        BigDecimal averagePrice = decimalOrNull(
+                order.path("avgPx").asText(""));
+        BigDecimal cumulativeGrossQuantity = decimalOrZero(
+                order.path("accFillSz").asText(""));
+        BigDecimal signedFeeAmount = decimalOrZero(
+                order.path("fillFee").asText(""));
+        String feeCurrency = order.path("fillFeeCcy")
+                .asText("")
+                .trim();
+        String baseCurrency = instId.split("-")[0];
+        String side = order.path("side").asText("");
+        SpotOrderSide orderSide = switch (side.toLowerCase()) {
+            case "buy" -> SpotOrderSide.BUY;
+            case "sell" -> SpotOrderSide.SELL;
+            default -> throw new IllegalStateException(
+                    "OKX order lookup returned unsupported side");
+        };
+        BigDecimal feeUsdt = normalizeSpotFeeUsdt(
+                baseCurrency,
+                averagePrice,
+                signedFeeAmount,
+                feeCurrency);
+        BigDecimal netQuantity = spotNetQuantity(
+                orderSide,
+                baseCurrency,
+                cumulativeGrossQuantity,
+                signedFeeAmount,
+                feeCurrency);
+        LocalDateTime providerAt = providerTime(
+                order.path("uTime").asText(""));
+        SpotOrderSnapshot snapshot = new SpotOrderSnapshot(
+                order.path("ordId").asText(),
+                returnedClientOrderId,
+                side,
+                order.path("state").asText(""),
+                averagePrice,
+                cumulativeGrossQuantity,
+                netQuantity,
+                signedFeeAmount,
+                feeCurrency.isBlank() ? null : feeCurrency,
+                feeUsdt,
+                order.toString(),
+                providerAt);
+        return new SpotOrderLookup(
+                SpotOrderLookupStatus.FOUND,
+                snapshot);
+    }
+
+    private BigDecimal decimalOrZero(String value) {
+        BigDecimal parsed = decimalOrNull(value);
+        return parsed == null ? BigDecimal.ZERO : parsed;
+    }
+
+    private LocalDateTime providerTime(String epochMillis) {
+        try {
+            return LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(Long.parseLong(epochMillis)),
+                    ZoneOffset.UTC);
+        } catch (Exception ignored) {
+            return LocalDateTime.now(ZoneOffset.UTC);
+        }
+    }
+
     private String clientOrderField(String clientOrderId) {
         if (clientOrderId == null || clientOrderId.isBlank()) {
             return "";
@@ -1449,6 +1554,31 @@ public class OkxTradingService implements TradingService {
             throw new IllegalArgumentException(
                     "OKX client order id must be 1-32 alphanumeric characters");
         }
+    }
+
+    public enum SpotOrderLookupStatus {
+        FOUND,
+        NOT_FOUND
+    }
+
+    public record SpotOrderLookup(
+            SpotOrderLookupStatus status,
+            SpotOrderSnapshot snapshot) {
+    }
+
+    public record SpotOrderSnapshot(
+            String providerOrderId,
+            String clientOrderId,
+            String side,
+            String providerState,
+            BigDecimal averagePrice,
+            BigDecimal cumulativeGrossQuantity,
+            BigDecimal netQuantity,
+            BigDecimal signedFeeAmount,
+            String feeCurrency,
+            BigDecimal feeUsdt,
+            String providerReceiptJson,
+            LocalDateTime providerAt) {
     }
 
     /** 每張合約對應的基幣數量（BTC=0.01, ETH=0.1, 其餘預設 0.01） */

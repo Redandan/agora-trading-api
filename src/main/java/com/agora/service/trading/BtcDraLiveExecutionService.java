@@ -5,6 +5,7 @@ import com.agora.config.properties.BtcDraRuntimeProperties;
 import com.agora.model.BtLiveSignal;
 import com.agora.model.MdKline;
 import com.agora.model.RuntimeDecisionEvidence;
+import com.agora.model.SpotExecutionAttempt;
 import com.agora.repository.trading.BtLiveSignalRepository;
 import com.agora.repository.trading.RuntimeDecisionEvidenceRepository;
 import com.agora.service.meta.DecisionAuditWriter;
@@ -22,11 +23,11 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.agora.service.trading.BtcDraPolicy.ADVERSE_SLIPPAGE_RATE_PER_SIDE;
 import static com.agora.service.trading.BtcDraPolicy.BASE_NOTIONAL_USDT;
@@ -59,13 +60,11 @@ public class BtcDraLiveExecutionService {
     static final String EXECUTION_MODE = "OKX_SPOT_LIVE_CANARY";
 
     private static final String SIDE = "LONG";
-    private static final BigDecimal DUST_QTY = new BigDecimal("0.00000001");
-    private static final DateTimeFormatter CLIENT_TIME =
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ROOT);
 
     private final BtcDraRuntimeProperties properties;
     private final OkxTradingProperties okxProperties;
     private final OkxTradingService okxTradingService;
+    private final BtcDraExecutionAttemptService executionAttemptService;
     private final BtLiveSignalRepository liveSignalRepository;
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
     private final DecisionAuditWriter auditWriter;
@@ -97,8 +96,13 @@ public class BtcDraLiveExecutionService {
             return;
         }
 
-        executeEligibleExit(observation);
-        if (hasEntrySignal(observation)) {
+        if (reconcileOutstandingBuyAttempt(observation)) {
+            return;
+        }
+        boolean exitHandledOrPending =
+                executeEligibleExit(observation);
+        if (!exitHandledOrPending
+                && hasEntrySignal(observation)) {
             executeBuy(observation);
         }
     }
@@ -144,7 +148,9 @@ public class BtcDraLiveExecutionService {
             return false;
         }
 
-        String clientOrderId = clientOrderId("B", entryEvent.signalBarOpenTime());
+        String clientOrderId =
+                SpotExecutionAttemptPolicy.draBuyClientOrderId(
+                        entryEvent.signalBarOpenTime());
         Map<String, Object> context = baseContext(observation);
         context.put("action", "BUY");
         context.put("clientOrderId", clientOrderId);
@@ -164,6 +170,28 @@ public class BtcDraLiveExecutionService {
         }
 
         context.put("liveSignalId", reservation.getId());
+        BtcDraExecutionAttemptService.Reservation attemptReservation;
+        try {
+            attemptReservation = executionAttemptService.reserveBuy(
+                    reservation.getId(),
+                    POLICY_MODE,
+                    observation.bar().getOpenTime(),
+                    properties.liveNotionalUsdt());
+        } catch (Exception e) {
+            markReservationState(
+                    reservation,
+                    "BUY_ATTEMPT_RESERVATION_FAILED:CL="
+                            + clientOrderId);
+            auditFailure(
+                    "DRA_BUY_ATTEMPT_RESERVATION_FAILED",
+                    context,
+                    e);
+            return false;
+        }
+        SpotExecutionAttempt attempt =
+                attemptReservation.attempt();
+        context.put("executionAttemptId", attempt.getId());
+        context.put("attemptSequence", attempt.getAttemptSequence());
         if (!updateEvidence(
                 observation,
                 reservation.getId(),
@@ -181,6 +209,51 @@ public class BtcDraLiveExecutionService {
             return false;
         }
 
+        OkxTradingService.SpotOrderLookup lookup;
+        try {
+            lookup = okxTradingService.lookupSpotOrderByClientOrderId(
+                    EXECUTION_SYMBOL,
+                    clientOrderId);
+        } catch (Exception e) {
+            executionAttemptService.markLookupBlocked(
+                    attempt.getId(),
+                    "PRE_SUBMIT_LOOKUP:"
+                            + safe(e.getMessage(), 420));
+            context.put("submissionAmbiguous", true);
+            context.put("error", safe(e.getMessage(), 320));
+            updateEvidence(
+                    observation,
+                    reservation.getId(),
+                    "DRA_LIVE_BUY_LOOKUP_UNRESOLVED",
+                    "LIVE_BUY_LOOKUP_UNRESOLVED",
+                    null,
+                    context);
+            auditFailure(
+                    "DRA_BUY_LOOKUP_UNRESOLVED",
+                    context,
+                    e);
+            return false;
+        }
+        if (lookup.status()
+                == OkxTradingService.SpotOrderLookupStatus.FOUND) {
+            return applyProviderBuySnapshot(
+                    observation,
+                    attempt,
+                    providerSnapshot(lookup.snapshot(), "buy"),
+                    context,
+                    false,
+                    "DRA_LIVE_BUY_PROVIDER_FOUND");
+        }
+        if (!executionAttemptService.claimForSubmission(
+                attempt.getId(),
+                LocalDateTime.now(ZoneOffset.UTC))) {
+            auditSkip(
+                    observation,
+                    "DRA_BUY_SUBMISSION_CLAIM_LOST",
+                    reservation.getId());
+            return false;
+        }
+
         TradeResult fill;
         try {
             fill = okxTradingService.placeMarketBuy(
@@ -191,6 +264,10 @@ public class BtcDraLiveExecutionService {
                     clientOrderId);
             requireValidFill(fill);
         } catch (Exception e) {
+            executionAttemptService.markSubmissionUnknown(
+                    attempt.getId(),
+                    "BUY_SUBMISSION:"
+                            + safe(e.getMessage(), 420));
             markSubmissionUnconfirmed(reservation, "BUY", clientOrderId, e);
             context.put("submissionAmbiguous", true);
             context.put("error", safe(e.getMessage(), 320));
@@ -205,69 +282,179 @@ public class BtcDraLiveExecutionService {
             return false;
         }
 
-        try {
-            BigDecimal effectiveEntry = effectiveBuyCostPerNetUnit(fill);
-            reservation.setEntryPrice(effectiveEntry);
-            reservation.setSuggestedTp(requiredExitPrice(effectiveEntry));
-            reservation.setActualEntryPrice(fill.getAvgPrice());
-            reservation.setTradedQty(fill.getQty());
-            reservation.setOcoQty(fill.getQty());
-            reservation.setAutoTraded(true);
-            reservation.setExchangeOrderId(safe("OKX:" + fill.getOrderId(), 50));
-            reservation.setFilterReason(positionReason(
-                    "OPEN:CL=" + clientOrderId + ":ORDER=" + fill.getOrderId()));
-            liveSignalRepository.saveAndFlush(reservation);
+        return applyProviderBuySnapshot(
+                observation,
+                attempt,
+                providerSnapshot(fill),
+                context,
+                true,
+                "DRA_LIVE_BUY_FILLED");
+    }
 
-            context.put("providerOrderId", fill.getOrderId());
-            context.put("avgPrice", fill.getAvgPrice());
-            context.put("grossQty", fill.getGrossQty());
-            context.put("netQty", fill.getQty());
-            context.put("feeAmount", fill.getFeeAmount());
-            context.put("feeCurrency", fill.getFeeCurrency());
-            context.put("feeUsdt", fill.getFeeUsdt());
-            context.put("effectiveEntryPrice", effectiveEntry);
-            boolean evidenceUpdated = updateEvidence(
-                    observation,
-                    reservation.getId(),
-                    "DRA_LIVE_BUY_FILLED",
-                    "LIVE_BUY_FILLED",
-                    true,
-                    context);
-            auditSuccess("BUY", reservation.getId(), context);
-            if (!evidenceUpdated) {
-                log.error("[DRA-LIVE] BUY filled but evidence update failed liveSignal={} "
-                                + "orderId={} clOrdId={}",
-                        reservation.getId(), fill.getOrderId(), clientOrderId);
+    private boolean reconcileOutstandingBuyAttempt(
+            BtcDraRuntimeLaneService.RuntimeObservation observation) {
+        Optional<SpotExecutionAttempt> outstanding =
+                executionAttemptService.findOutstandingBuy();
+        if (outstanding.isEmpty()) return false;
+        SpotExecutionAttempt attempt = outstanding.get();
+        if (attempt.getState() == SpotExecutionAttempt.State.RESERVED) {
+            if (attempt.getTriggerBarOpenTime().equals(
+                    observation.bar().getOpenTime())) {
+                return true;
             }
-            log.info("[DRA-LIVE] BUY filled signalBar={} notional={} orderId={} "
-                            + "qty={} effectiveEntry={}",
-                    entryEvent.signalBarOpenTime(),
-                    properties.liveNotionalUsdt(),
-                    fill.getOrderId(),
-                    fill.getQty(),
-                    effectiveEntry);
+            try {
+                executionAttemptService.rejectStaleUnsubmittedBuy(
+                        attempt.getId(),
+                        "STALE_RESERVED_BUY_NOT_SUBMITTED");
+            } catch (Exception e) {
+                auditFailure(
+                        "DRA_STALE_BUY_RESERVATION_REJECT_FAILED",
+                        baseContext(observation),
+                        e);
+            }
             return true;
+        }
+
+        Map<String, Object> context = baseContext(observation);
+        context.put("action", "BUY_RECONCILIATION");
+        context.put("executionAttemptId", attempt.getId());
+        context.put("attemptSequence", attempt.getAttemptSequence());
+        context.put("clientOrderId", attempt.getClientOrderId());
+        context.put("liveSignalId", attempt.getLiveSignalId());
+        try {
+            OkxTradingService.SpotOrderLookup lookup =
+                    okxTradingService.lookupSpotOrderByClientOrderId(
+                            EXECUTION_SYMBOL,
+                            attempt.getClientOrderId());
+            if (lookup.status()
+                    == OkxTradingService.SpotOrderLookupStatus.NOT_FOUND) {
+                executionAttemptService.markLookupBlocked(
+                        attempt.getId(),
+                        "PROVIDER_ORDER_NOT_FOUND_NO_RETRY");
+                context.put("providerOrderFound", false);
+                context.put("submissionAmbiguous", true);
+                updateEvidence(
+                        observation,
+                        attempt.getLiveSignalId(),
+                        "DRA_LIVE_BUY_SUBMISSION_UNRESOLVED",
+                        "LIVE_BUY_SUBMISSION_UNRESOLVED",
+                        null,
+                        context);
+                return true;
+            }
+            return applyProviderBuySnapshot(
+                    observation,
+                    attempt,
+                    providerSnapshot(lookup.snapshot(), "buy"),
+                    context,
+                    false,
+                    "DRA_LIVE_BUY_RECONCILED");
         } catch (Exception e) {
-            context.put("providerOrderId", fill.getOrderId());
-            context.put("orderSent", true);
+            executionAttemptService.markLookupBlocked(
+                    attempt.getId(),
+                    "BUY_RECONCILIATION_LOOKUP:"
+                            + safe(e.getMessage(), 420));
+            context.put("submissionAmbiguous", true);
             context.put("error", safe(e.getMessage(), 320));
             updateEvidence(
                     observation,
-                    reservation.getId(),
-                    "DRA_LIVE_BUY_FILL_PERSIST_FAILED",
-                    "LIVE_BUY_FILL_PERSIST_FAILED",
-                    true,
+                    attempt.getLiveSignalId(),
+                    "DRA_LIVE_BUY_RECONCILIATION_UNRESOLVED",
+                    "LIVE_BUY_RECONCILIATION_UNRESOLVED",
+                    null,
                     context);
-            auditFailure("DRA_BUY_FILL_PERSIST_FAILED", context, e);
-            log.error("[DRA-LIVE] BUY filled but persistence failed orderId={} "
-                            + "clOrdId={} error={}",
-                    fill.getOrderId(), clientOrderId, e.getMessage(), e);
+            auditFailure(
+                    "DRA_BUY_RECONCILIATION_UNRESOLVED",
+                    context,
+                    e);
+            return true;
+        }
+    }
+
+    private boolean applyProviderBuySnapshot(
+            BtcDraRuntimeLaneService.RuntimeObservation observation,
+            SpotExecutionAttempt attempt,
+            BtcDraExecutionAttemptService.ProviderFillSnapshot snapshot,
+            Map<String, Object> context,
+            boolean orderSentNow,
+            String action) {
+        try {
+            BtcDraExecutionAttemptService.ApplyResult result =
+                    executionAttemptService.applyBuySnapshot(
+                            attempt.getId(),
+                            snapshot);
+            context.put("providerOrderId", snapshot.providerOrderId());
+            context.put("providerState", snapshot.providerState());
+            context.put("avgPrice", snapshot.averagePrice());
+            context.put("grossQty", snapshot.cumulativeGrossQuantity());
+            context.put("netQty", snapshot.netQuantity());
+            context.put("feeAmount", snapshot.signedFeeAmount());
+            context.put("feeCurrency", snapshot.feeCurrency());
+            context.put("feeUsdt", snapshot.feeUsdt());
+            context.put("attemptState", result.state().name());
+            context.put("feeStatus", result.feeStatus().name());
+            boolean evidenceUpdated = updateEvidence(
+                    observation,
+                    attempt.getLiveSignalId(),
+                    action,
+                    result.state().name(),
+                    orderSentNow,
+                    context);
+            if (result.appliedFillQuantity().signum() > 0
+                    && (result.state()
+                    == SpotExecutionAttempt.State.RECONCILED_FILLED
+                    || result.state()
+                    == SpotExecutionAttempt.State.RECONCILED_PARTIAL)) {
+                auditSuccess(
+                        "BUY",
+                        attempt.getLiveSignalId(),
+                        context);
+            }
+            if (!evidenceUpdated) {
+                log.error(
+                        "[DRA-LIVE] BUY reconciliation evidence failed "
+                                + "attempt={} orderId={} clOrdId={}",
+                        attempt.getId(),
+                        snapshot.providerOrderId(),
+                        attempt.getClientOrderId());
+            }
+            return true;
+        } catch (Exception e) {
+            executionAttemptService.markLookupBlocked(
+                    attempt.getId(),
+                    "BUY_FILL_APPLY:"
+                            + safe(e.getMessage(), 420));
+            context.put("providerOrderId", snapshot.providerOrderId());
+            context.put("orderSent", orderSentNow);
+            context.put("error", safe(e.getMessage(), 320));
+            updateEvidence(
+                    observation,
+                    attempt.getLiveSignalId(),
+                    "DRA_LIVE_BUY_FILL_APPLY_UNRESOLVED",
+                    "LIVE_BUY_FILL_APPLY_UNRESOLVED",
+                    orderSentNow ? true : null,
+                    context);
+            auditFailure(
+                    "DRA_BUY_FILL_APPLY_UNRESOLVED",
+                    context,
+                    e);
             return false;
         }
     }
 
     private boolean executeEligibleExit(
             BtcDraRuntimeLaneService.RuntimeObservation observation) {
+        Optional<SpotExecutionAttempt> outstanding =
+                executionAttemptService.findOutstandingSell();
+        if (outstanding.isPresent()
+                && outstanding.get().getState()
+                != SpotExecutionAttempt.State.RESERVED) {
+            reconcileOutstandingSellAttempt(
+                    observation,
+                    outstanding.get());
+            return true;
+        }
+
         List<BtLiveSignal> openLots = ownedOpenRows().stream()
                 .filter(row -> Boolean.TRUE.equals(row.getAutoTraded()))
                 .filter(row -> row.getFilterReason() != null
@@ -322,23 +509,37 @@ public class BtcDraLiveExecutionService {
             return false;
         }
 
-        String clientOrderId = clientOrderId("S", lot.getBarOpenTime());
+        BtcDraExecutionAttemptService.Reservation reservation;
+        try {
+            reservation = executionAttemptService.reserveSell(
+                    lot.getId(),
+                    POLICY_MODE,
+                    observation.bar().getOpenTime(),
+                    requestedQty);
+        } catch (Exception e) {
+            auditFailure(
+                    "DRA_SELL_ATTEMPT_RESERVATION_FAILED",
+                    baseContext(observation),
+                    e);
+            return false;
+        }
+        SpotExecutionAttempt attempt = reservation.attempt();
+        if (attempt.getState() != SpotExecutionAttempt.State.RESERVED) {
+            reconcileOutstandingSellAttempt(observation, attempt);
+            return true;
+        }
+
+        String clientOrderId = attempt.getClientOrderId();
         Map<String, Object> context = baseContext(observation);
         context.put("action", "SELL");
+        context.put("executionAttemptId", attempt.getId());
+        context.put("attemptSequence", attempt.getAttemptSequence());
         context.put("clientOrderId", clientOrderId);
         context.put("liveSignalId", lot.getId());
         context.put("currentPrice", currentPrice);
         context.put("requestedQty", requestedQty);
         context.put("estimatedNetReturn", estimatedNetReturn(lot, currentPrice));
 
-        try {
-            lot.setFilterReason(positionReason(
-                    "SELL_RESERVED:CL=" + clientOrderId + ":LOT=" + lot.getId()));
-            liveSignalRepository.saveAndFlush(lot);
-        } catch (Exception e) {
-            auditFailure("DRA_SELL_RESERVATION_FAILED", context, e);
-            return false;
-        }
         if (!updateEvidence(
                 observation,
                 lot.getId(),
@@ -346,13 +547,55 @@ public class BtcDraLiveExecutionService {
                 "LIVE_SELL_RESERVED",
                 false,
                 context)) {
-            markReservationState(
-                    lot,
-                    "SELL_EVIDENCE_RESERVATION_FAILED:CL=" + clientOrderId);
             auditFailure(
                     "DRA_SELL_EVIDENCE_RESERVATION_FAILED",
                     context,
                     new IllegalStateException("DRA_EVIDENCE_UPDATE_FAILED"));
+            return false;
+        }
+
+        OkxTradingService.SpotOrderLookup lookup;
+        try {
+            lookup = okxTradingService.lookupSpotOrderByClientOrderId(
+                    EXECUTION_SYMBOL,
+                    clientOrderId);
+        } catch (Exception e) {
+            executionAttemptService.markLookupBlocked(
+                    attempt.getId(),
+                    "PRE_SUBMIT_LOOKUP:" + safe(e.getMessage(), 420));
+            context.put("submissionAmbiguous", true);
+            context.put("error", safe(e.getMessage(), 320));
+            updateEvidence(
+                    observation,
+                    lot.getId(),
+                    "DRA_LIVE_SELL_LOOKUP_UNRESOLVED",
+                    "LIVE_SELL_LOOKUP_UNRESOLVED",
+                    null,
+                    context);
+            auditFailure(
+                    "DRA_SELL_LOOKUP_UNRESOLVED",
+                    context,
+                    e);
+            return false;
+        }
+        if (lookup.status()
+                == OkxTradingService.SpotOrderLookupStatus.FOUND) {
+            return applyProviderSellSnapshot(
+                    observation,
+                    attempt,
+                    providerSnapshot(lookup.snapshot()),
+                    context,
+                    false,
+                    "DRA_LIVE_SELL_PROVIDER_FOUND");
+        }
+
+        if (!executionAttemptService.claimForSubmission(
+                attempt.getId(),
+                LocalDateTime.now(ZoneOffset.UTC))) {
+            auditSkip(
+                    observation,
+                    "DRA_SELL_SUBMISSION_CLAIM_LOST",
+                    lot.getId());
             return false;
         }
 
@@ -364,7 +607,9 @@ public class BtcDraLiveExecutionService {
                     clientOrderId);
             requireValidFill(fill);
         } catch (Exception e) {
-            markSubmissionUnconfirmed(lot, "SELL", clientOrderId, e);
+            executionAttemptService.markSubmissionUnknown(
+                    attempt.getId(),
+                    "SELL_SUBMISSION:" + safe(e.getMessage(), 420));
             context.put("submissionAmbiguous", true);
             context.put("error", safe(e.getMessage(), 320));
             updateEvidence(
@@ -378,77 +623,201 @@ public class BtcDraLiveExecutionService {
             return false;
         }
 
-        BigDecimal soldQty = positive(fill.getGrossQty())
-                ? fill.getGrossQty()
-                : fill.getQty();
-        soldQty = soldQty.min(lot.getTradedQty());
-        BigDecimal feeUsdt = positive(fill.getFeeUsdt())
-                ? fill.getFeeUsdt()
-                : fill.getAvgPrice().multiply(soldQty).multiply(FEE_RATE_PER_SIDE);
-        BigDecimal proceeds = fill.getAvgPrice().multiply(soldQty).subtract(feeUsdt);
-        BigDecimal cost = lot.getEntryPrice().multiply(soldQty);
-        BigDecimal realized = proceeds.subtract(cost)
-                .setScale(8, RoundingMode.HALF_UP);
-        BigDecimal remaining = lot.getTradedQty().subtract(soldQty);
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        try {
-            BigDecimal previousPnl = lot.getRealizedPnl() == null
-                    ? BigDecimal.ZERO
-                    : lot.getRealizedPnl();
-            lot.setRealizedPnl(previousPnl.add(realized));
-            if (remaining.compareTo(DUST_QTY) <= 0) {
-                lot.setExitPrice(fill.getAvgPrice());
-                lot.setExitTime(now);
-                lot.setExitReason("DRA_AUTO_NET_PROFIT");
-                lot.setFilterReason(positionReason(
-                        "CLOSED:CL=" + clientOrderId + ":ORDER=" + fill.getOrderId()));
-            } else {
-                lot.setTradedQty(remaining);
-                lot.setOcoQty(remaining);
-                lot.setFilterReason(positionReason(
-                        "OPEN_PARTIAL:CL=" + clientOrderId + ":ORDER=" + fill.getOrderId()));
-            }
-            liveSignalRepository.saveAndFlush(lot);
+        return applyProviderSellSnapshot(
+                observation,
+                attempt,
+                providerSnapshot(fill),
+                context,
+                true,
+                "DRA_LIVE_SELL_FILLED");
+    }
 
-            context.put("providerOrderId", fill.getOrderId());
-            context.put("avgPrice", fill.getAvgPrice());
-            context.put("soldQty", soldQty);
-            context.put("remainingQty", remaining.max(BigDecimal.ZERO));
-            context.put("feeUsdt", feeUsdt);
-            context.put("realizedPnlUsdt", realized);
-            boolean evidenceUpdated = updateEvidence(
-                    observation,
-                    lot.getId(),
-                    "DRA_LIVE_SELL_FILLED",
-                    "LIVE_SELL_FILLED",
-                    true,
-                    context);
-            auditSuccess("SELL", lot.getId(), context);
-            if (!evidenceUpdated) {
-                log.error("[DRA-LIVE] SELL filled but evidence update failed liveSignal={} "
-                                + "orderId={} clOrdId={}",
-                        lot.getId(), fill.getOrderId(), clientOrderId);
+    private void reconcileOutstandingSellAttempt(
+            BtcDraRuntimeLaneService.RuntimeObservation observation,
+            SpotExecutionAttempt attempt) {
+        Map<String, Object> context = baseContext(observation);
+        context.put("action", "SELL_RECONCILIATION");
+        context.put("executionAttemptId", attempt.getId());
+        context.put("attemptSequence", attempt.getAttemptSequence());
+        context.put("clientOrderId", attempt.getClientOrderId());
+        context.put("liveSignalId", attempt.getLiveSignalId());
+        try {
+            OkxTradingService.SpotOrderLookup lookup =
+                    okxTradingService.lookupSpotOrderByClientOrderId(
+                            EXECUTION_SYMBOL,
+                            attempt.getClientOrderId());
+            if (lookup.status()
+                    == OkxTradingService.SpotOrderLookupStatus.NOT_FOUND) {
+                executionAttemptService.markLookupBlocked(
+                        attempt.getId(),
+                        "PROVIDER_ORDER_NOT_FOUND_NO_RETRY");
+                context.put("providerOrderFound", false);
+                context.put("submissionAmbiguous", true);
+                updateEvidence(
+                        observation,
+                        attempt.getLiveSignalId(),
+                        "DRA_LIVE_SELL_SUBMISSION_UNRESOLVED",
+                        "LIVE_SELL_SUBMISSION_UNRESOLVED",
+                        null,
+                        context);
+                return;
             }
-            log.info("[DRA-LIVE] SELL filled liveSignal={} orderId={} qty={} "
-                            + "realizedPnl={} remainingQty={}",
-                    lot.getId(), fill.getOrderId(), soldQty, realized, remaining);
-            return true;
+            applyProviderSellSnapshot(
+                    observation,
+                    attempt,
+                    providerSnapshot(lookup.snapshot()),
+                    context,
+                    false,
+                    "DRA_LIVE_SELL_RECONCILED");
         } catch (Exception e) {
-            context.put("providerOrderId", fill.getOrderId());
-            context.put("orderSent", true);
+            executionAttemptService.markLookupBlocked(
+                    attempt.getId(),
+                    "RECONCILIATION_LOOKUP:"
+                            + safe(e.getMessage(), 420));
+            context.put("submissionAmbiguous", true);
             context.put("error", safe(e.getMessage(), 320));
             updateEvidence(
                     observation,
-                    lot.getId(),
-                    "DRA_LIVE_SELL_FILL_PERSIST_FAILED",
-                    "LIVE_SELL_FILL_PERSIST_FAILED",
-                    true,
+                    attempt.getLiveSignalId(),
+                    "DRA_LIVE_SELL_RECONCILIATION_UNRESOLVED",
+                    "LIVE_SELL_RECONCILIATION_UNRESOLVED",
+                    null,
                     context);
-            auditFailure("DRA_SELL_FILL_PERSIST_FAILED", context, e);
-            log.error("[DRA-LIVE] SELL filled but persistence failed orderId={} "
-                            + "clOrdId={} error={}",
-                    fill.getOrderId(), clientOrderId, e.getMessage(), e);
+            auditFailure(
+                    "DRA_SELL_RECONCILIATION_UNRESOLVED",
+                    context,
+                    e);
+        }
+    }
+
+    private boolean applyProviderSellSnapshot(
+            BtcDraRuntimeLaneService.RuntimeObservation observation,
+            SpotExecutionAttempt attempt,
+            BtcDraExecutionAttemptService.ProviderFillSnapshot snapshot,
+            Map<String, Object> context,
+            boolean orderSentNow,
+            String action) {
+        try {
+            BtcDraExecutionAttemptService.ApplyResult result =
+                    executionAttemptService.applySellSnapshot(
+                            attempt.getId(),
+                            snapshot);
+            context.put("providerOrderId", snapshot.providerOrderId());
+            context.put("providerState", snapshot.providerState());
+            context.put("avgPrice", snapshot.averagePrice());
+            context.put(
+                    "providerCumulativeGrossQty",
+                    snapshot.cumulativeGrossQuantity());
+            context.put(
+                    "appliedSoldQty",
+                    result.appliedFillQuantity());
+            context.put(
+                    "remainingQty",
+                    result.remainingLotQuantity());
+            context.put(
+                    "appliedFeeUsdt",
+                    result.appliedFeeUsdt());
+            context.put(
+                    "realizedPnlDeltaUsdt",
+                    result.realizedPnlDelta());
+            context.put("attemptState", result.state().name());
+            context.put("feeStatus", result.feeStatus().name());
+            boolean evidenceUpdated = updateEvidence(
+                    observation,
+                    attempt.getLiveSignalId(),
+                    action,
+                    result.state().name(),
+                    orderSentNow,
+                    context);
+            if (result.appliedFillQuantity().signum() > 0) {
+                auditSuccess(
+                        "SELL",
+                        attempt.getLiveSignalId(),
+                        context);
+            }
+            if (!evidenceUpdated) {
+                log.error(
+                        "[DRA-LIVE] SELL reconciliation evidence failed "
+                                + "attempt={} orderId={} clOrdId={}",
+                        attempt.getId(),
+                        snapshot.providerOrderId(),
+                        attempt.getClientOrderId());
+            }
+            return true;
+        } catch (Exception e) {
+            executionAttemptService.markLookupBlocked(
+                    attempt.getId(),
+                    "FILL_APPLY:" + safe(e.getMessage(), 420));
+            context.put("providerOrderId", snapshot.providerOrderId());
+            context.put("orderSent", orderSentNow);
+            context.put("error", safe(e.getMessage(), 320));
+            updateEvidence(
+                    observation,
+                    attempt.getLiveSignalId(),
+                    "DRA_LIVE_SELL_FILL_APPLY_UNRESOLVED",
+                    "LIVE_SELL_FILL_APPLY_UNRESOLVED",
+                    orderSentNow ? true : null,
+                    context);
+            auditFailure(
+                    "DRA_SELL_FILL_APPLY_UNRESOLVED",
+                    context,
+                    e);
             return false;
+        }
+    }
+
+    private BtcDraExecutionAttemptService.ProviderFillSnapshot
+            providerSnapshot(TradeResult fill) {
+        BigDecimal grossQuantity = positive(fill.getGrossQty())
+                ? fill.getGrossQty()
+                : fill.getQty();
+        return new BtcDraExecutionAttemptService.ProviderFillSnapshot(
+                fill.getOrderId(),
+                "filled",
+                fill.getAvgPrice(),
+                grossQuantity,
+                fill.getNetQty() == null
+                        ? fill.getQty()
+                        : fill.getNetQty(),
+                fill.getFeeAmount(),
+                fill.getFeeCurrency(),
+                fill.getFeeUsdt(),
+                receiptJson(fill),
+                LocalDateTime.now(ZoneOffset.UTC));
+    }
+
+    private BtcDraExecutionAttemptService.ProviderFillSnapshot
+            providerSnapshot(
+                    OkxTradingService.SpotOrderSnapshot snapshot) {
+        return providerSnapshot(snapshot, "sell");
+    }
+
+    private BtcDraExecutionAttemptService.ProviderFillSnapshot
+            providerSnapshot(
+                    OkxTradingService.SpotOrderSnapshot snapshot,
+                    String expectedSide) {
+        if (!expectedSide.equalsIgnoreCase(snapshot.side())) {
+            throw new IllegalStateException(
+                    "DRA provider order side mismatch");
+        }
+        return new BtcDraExecutionAttemptService.ProviderFillSnapshot(
+                snapshot.providerOrderId(),
+                snapshot.providerState(),
+                snapshot.averagePrice(),
+                snapshot.cumulativeGrossQuantity(),
+                snapshot.netQuantity(),
+                snapshot.signedFeeAmount(),
+                snapshot.feeCurrency(),
+                snapshot.feeUsdt(),
+                snapshot.providerReceiptJson(),
+                snapshot.providerAt());
+    }
+
+    private String receiptJson(TradeResult fill) {
+        try {
+            return objectMapper.writeValueAsString(fill);
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -722,18 +1091,6 @@ public class BtcDraLiveExecutionService {
                 .stripTrailingZeros();
     }
 
-    private BigDecimal effectiveBuyCostPerNetUnit(TradeResult fill) {
-        BigDecimal grossQty = positive(fill.getGrossQty())
-                ? fill.getGrossQty()
-                : fill.getQty();
-        BigDecimal cost = fill.getAvgPrice().multiply(grossQty);
-        if ("USDT".equalsIgnoreCase(fill.getFeeCurrency())
-                && positive(fill.getFeeUsdt())) {
-            cost = cost.add(fill.getFeeUsdt());
-        }
-        return cost.divide(fill.getQty(), 8, RoundingMode.HALF_UP);
-    }
-
     private BigDecimal requiredExitPrice(BigDecimal effectiveEntry) {
         if (!positive(effectiveEntry)) return effectiveEntry;
         BigDecimal afterFeeAndSlippage = BigDecimal.ONE
@@ -752,13 +1109,6 @@ public class BtcDraLiveExecutionService {
                 || !positive(fill.getQty())) {
             throw new IllegalStateException("DRA_OKX_FILL_INCOMPLETE");
         }
-    }
-
-    private String clientOrderId(String side, LocalDateTime signalBarOpenTime) {
-        if (signalBarOpenTime == null) {
-            throw new IllegalArgumentException("DRA signal time is required");
-        }
-        return "DRA1" + side + CLIENT_TIME.format(signalBarOpenTime);
     }
 
     private String positionReason(String suffix) {

@@ -8,8 +8,11 @@ Status:
 CURRENT_CODE_REVIEWED
 FAILURE_MODES_CONFIRMED
 LOCAL_FOUNDATION_IMPLEMENTED
-NOT_WIRED_TO_RUNTIME
-NO_RUNTIME_CHANGE
+LOCAL_DRA_SELL_WIRING_IMPLEMENTED
+LOCAL_DRA_BUY_FEE_RECONCILIATION_IMPLEMENTED
+LOCAL_CONTRACT_TESTS_PASS
+DB_RACE_TEST_NOT_RUN
+NOT_DEPLOYED
 MIGRATION_FILE_NOT_EXECUTED
 NO_PRODUCTION_WRITE
 ```
@@ -207,7 +210,18 @@ The local foundation now contains:
 - deterministic DRA partial-sell sequence IDs;
 - idempotent cumulative-fill delta calculation and focused pure tests.
 
-It is intentionally not injected into `BtcDraLiveExecutionService`. The
-migration has not been run, and no runtime path reads or writes the new table.
-Runtime wiring remains a separate reviewed batch after Production continuity
-acceptance.
+The DRA sell path is now wired locally to reserve before provider mutation,
+atomically elect one submitter, look up OKX by client order ID before submit,
+and apply cumulative provider fills as idempotent quantity/quote/fee deltas.
+Ambiguous submission remains unresolved and cannot return to `SUBMITTING`.
+The first sell retains `DRA1S<signal-time>`; only a reconciled partial may
+allocate a later sequence.
+
+The buy path is also wired locally to reserve and claim before submission.
+Provider-net quantity remains conservative while fee currency is absent; a
+later provider lookup can finalize base-fee quantity or quote-fee cash cost
+without a second order or duplicate success audit.
+
+The migration has not been run and none of this local wiring is deployed.
+Position 263 has not been backfilled or changed. Database-backed concurrency
+validation and a final staged-diff review remain required before promotion.

@@ -126,6 +126,9 @@ public class SpotExecutionAttempt {
     @Column(name = "net_fill_quantity", precision = 30, scale = 12)
     private BigDecimal netFillQuantity;
 
+    @Column(name = "gross_quote_amount", precision = 30, scale = 12)
+    private BigDecimal grossQuoteAmount;
+
     @Column(name = "signed_fee_amount", precision = 30, scale = 12)
     private BigDecimal signedFeeAmount;
 
@@ -148,6 +151,20 @@ public class SpotExecutionAttempt {
             precision = 30,
             scale = 12)
     private BigDecimal appliedFillQuantity = BigDecimal.ZERO;
+
+    @Column(
+            name = "applied_gross_quote_amount",
+            nullable = false,
+            precision = 30,
+            scale = 12)
+    private BigDecimal appliedGrossQuoteAmount = BigDecimal.ZERO;
+
+    @Column(
+            name = "applied_fee_usdt",
+            nullable = false,
+            precision = 30,
+            scale = 12)
+    private BigDecimal appliedFeeUsdt = BigDecimal.ZERO;
 
     @Column(name = "remaining_lot_quantity", precision = 30, scale = 12)
     private BigDecimal remainingLotQuantity;

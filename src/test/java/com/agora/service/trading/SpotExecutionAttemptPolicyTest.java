@@ -27,6 +27,14 @@ class SpotExecutionAttemptPolicyTest {
     }
 
     @Test
+    void draBuyKeepsAcceptedClientOrderId() {
+        assertEquals(
+                "DRA1B20260726230000",
+                SpotExecutionAttemptPolicy.draBuyClientOrderId(
+                        DRA_SIGNAL_BAR));
+    }
+
+    @Test
     void provenPartialGetsDistinctDeterministicSequenceId() {
         String first =
                 SpotExecutionAttemptPolicy.draSellClientOrderId(
@@ -79,6 +87,98 @@ class SpotExecutionAttemptPolicyTest {
         assertFalse(SpotExecutionAttemptPolicy.canTransition(
                 State.RECONCILED_PARTIAL,
                 State.SUBMITTING));
+    }
+
+    @Test
+    void cumulativeReconciliationAppliesQuantityQuoteAndFeeOnce() {
+        SpotExecutionAttemptPolicy.ReconciliationDelta delta =
+                SpotExecutionAttemptPolicy.reconciliationDelta(
+                        new BigDecimal("0.00030000"),
+                        new BigDecimal("0.00010000"),
+                        new BigDecimal("0.00035767"),
+                        new BigDecimal("19.50000000"),
+                        new BigDecimal("6.40000000"),
+                        new BigDecimal("0.01950000"),
+                        new BigDecimal("0.00640000"));
+
+        assertEquals(
+                new BigDecimal("0.00020000"),
+                delta.fillQuantity());
+        assertEquals(
+                new BigDecimal("13.10000000"),
+                delta.grossQuoteAmount());
+        assertEquals(
+                new BigDecimal("0.01310000"),
+                delta.feeUsdt());
+
+        SpotExecutionAttemptPolicy.ReconciliationDelta replay =
+                SpotExecutionAttemptPolicy.reconciliationDelta(
+                        new BigDecimal("0.00030000"),
+                        new BigDecimal("0.00030000"),
+                        new BigDecimal("0.00015767"),
+                        new BigDecimal("19.50000000"),
+                        new BigDecimal("19.50000000"),
+                        new BigDecimal("0.01950000"),
+                        new BigDecimal("0.01950000"));
+        assertEquals(0, replay.fillQuantity().signum());
+        assertEquals(0, replay.grossQuoteAmount().signum());
+        assertEquals(0, replay.feeUsdt().signum());
+    }
+
+    @Test
+    void cumulativeReconciliationRejectsOverfill() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SpotExecutionAttemptPolicy.reconciliationDelta(
+                        new BigDecimal("0.00060000"),
+                        new BigDecimal("0.00010000"),
+                        new BigDecimal("0.00035767"),
+                        new BigDecimal("39.00000000"),
+                        new BigDecimal("6.40000000"),
+                        BigDecimal.ZERO,
+                        BigDecimal.ZERO));
+    }
+
+    @Test
+    void delayedBaseFeeFinalizesProviderNetQuantity() {
+        BigDecimal gross = new BigDecimal("0.00045859000");
+        assertEquals(
+                new BigDecimal("0.00045767282"),
+                SpotExecutionAttemptPolicy.buyNetQuantity(
+                        gross,
+                        BigDecimal.ZERO,
+                        null,
+                        "BTC",
+                        new BigDecimal("0.002")));
+        assertEquals(
+                new BigDecimal("0.00045813141"),
+                SpotExecutionAttemptPolicy.buyNetQuantity(
+                        gross,
+                        new BigDecimal("-0.00000045859"),
+                        "BTC",
+                        "BTC",
+                        new BigDecimal("0.002")));
+    }
+
+    @Test
+    void quoteFeeChangesCashCostButNotBaseQuantity() {
+        BigDecimal gross = new BigDecimal("0.00045859000");
+        BigDecimal net =
+                SpotExecutionAttemptPolicy.buyNetQuantity(
+                        gross,
+                        new BigDecimal("-0.03000000"),
+                        "USDT",
+                        "BTC",
+                        new BigDecimal("0.002"));
+        assertEquals(gross, net);
+        assertEquals(
+                new BigDecimal("65482.11791142"),
+                SpotExecutionAttemptPolicy.effectiveBuyEntryPrice(
+                        new BigDecimal("65416.7"),
+                        gross,
+                        net,
+                        new BigDecimal("0.03000000"),
+                        "USDT"));
     }
 
     @Test

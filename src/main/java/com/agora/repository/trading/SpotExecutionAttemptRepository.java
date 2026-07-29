@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -32,6 +33,16 @@ public interface SpotExecutionAttemptRepository
     Optional<SpotExecutionAttempt>
             findTopByLiveSignalIdAndSideOrderByAttemptSequenceDesc(
                     Long liveSignalId,
+                    Side side);
+
+    List<SpotExecutionAttempt>
+            findByLiveSignalIdAndSideOrderByAttemptSequenceAsc(
+                    Long liveSignalId,
+                    Side side);
+
+    List<SpotExecutionAttempt>
+            findByStrategyContractAndSideOrderByCreatedAtAsc(
+                    String strategyContract,
                     Side side);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

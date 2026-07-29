@@ -1,6 +1,6 @@
 # Current Design Debt and Next Actions
 
-Status date: 2026-07-27
+Status date: 2026-07-29
 
 This is the current decision document for maintenance and strategy scaling.
 Selected strategy research and rollout evidence remains where it is required
@@ -131,31 +131,45 @@ shell. Historical entities, database rows, migrations, the retained strategy
 calculation engine, all three runtime strategies, the 10-tool MCP contract,
 Grid/OCO safety, and deployment scripts remain unchanged. A clean package
 recompiled all 207 remaining source files successfully. Batch 5A is committed
-locally as `f405ee0`; it is not pushed or deployed at this checkpoint.
+as `f405ee0`.
 
-Local-only Batch 5B removed the uncalled `ExposureOptimizer` and
+Batch 5B removed the uncalled `ExposureOptimizer` and
 `DailyLossGuard`, 29 no-caller repository methods from retired score-buy,
 Tiny Live, Meta-Control, health-summary, cooldown, and risk-gate paths, and
 inactive generic OKX sizing/loss configuration. Historical blocker values
 remain readable in stored audit/evidence rows. Batch 5B removes a net 878 Java
 source lines, leaving 205 Java source files. A clean package succeeds, and no
 owner-509, DRA, Donchian, MCP, Grid/OCO, Production configuration, entity,
-migration, or deployment path changed. It is committed locally as `19f7040`;
-it is not pushed or deployed.
+migration, or deployment path changed. It is committed as `19f7040`;
+the commit is part of the current `main` lineage.
 
-Local-only Batch 5C removes the uncalled Binance exchange-order Spring adapter
+Batch 5C removed the uncalled Binance exchange-order Spring adapter
 and its unused configuration binding. Binance daily market data for owner 509
 is independent and remains unchanged; OKX remains the only registered order
 adapter. The batch removes a net 241 Java source lines, leaving 203 Java source
 files, without changing an OCO caller, active strategy, Production setting,
-entity, migration, or deployment path.
+entity, migration, or deployment path. It is committed as `dbf10dc`.
+
+Read-only Production verification on 2026-07-28 confirmed local `main`,
+`origin/main`, the server worktree, and deployed `app.commit` all at
+`dbf10dc`. The active service was healthy on port `8084`, with port `8085`
+drained. Therefore Batches 5A through 5C are pushed and deployed; the earlier
+local-only checkpoint is superseded.
 
 ### P0 — Observe the first complete DRA lifecycle
 
-Do not change DRA V1 while its first live lot remains open. A complete provider
-buy-to-sell cycle is needed to validate entry ownership, exit eligibility,
-actual fee reconciliation, realized PnL, and duplicate prevention. Deployment
-and continuity evidence are functional evidence, not profitability evidence.
+Do not change DRA V1 entry economics, 30 USDT notional, one-lot ownership, or
+the +5% net-profit exit while its first live lot remains open. A complete
+provider buy-to-sell cycle is still needed to validate entry ownership, exit
+eligibility, actual fee reconciliation, realized PnL, and duplicate prevention.
+Deployment and continuity evidence are functional evidence, not profitability
+evidence.
+
+The owner authorized one narrow exception on 2026-07-29: bootstrap must replay
+historical arm, expiry, last-entry-signal, and cooldown state before the first
+genuine closed bar. It must not reconstruct historical lots or submit a
+historical, deployment, restart, or test order. This lifecycle correction does
+not authorize DRA V2, scaling, a new entry factor, or a changed exit.
 
 ### P1 — Reconcile delayed provider fees
 
@@ -185,12 +199,14 @@ Required correction before scaling:
 3. generate the next deterministic ID from strategy, lot, and sell sequence;
 4. never submit a new sell while the previous outcome is unresolved.
 
-### P1 — Restore a small contract-test boundary
+### P1 — Maintain a small contract-test boundary
 
 The old broad automated test tree was intentionally removed. That does not
-justify changing LIVE execution code without focused tests. Before the next
-Java change to order, fill, ownership, or state handling, add a small suite
-covering:
+justify changing LIVE execution code without focused tests. The 2026-07-29
+bootstrap correction restores a narrow deterministic suite for historical
+entry-state replay, cooldown, arm expiry, state seeding, and startup duplicate
+prevention. Before changing order, fill, ownership, or exit handling, extend
+that small suite to cover:
 
 - DRA entry and exit net-return math;
 - delayed buy fee reconciliation;
@@ -254,13 +270,16 @@ requires all of the following:
 
 ## Recommended order of work
 
-1. Keep Production unchanged and finish read-only DRA/509 continuity
-   observation.
-2. After the first DRA exit, reconcile provider receipts and publish the first
+1. Deploy the authorized bootstrap-continuity correction, proving that the
+   existing valid state restores without a new bootstrap, order, reservation,
+   or mutation of the open DRA lot.
+2. Continue read-only DRA/509 continuity observation. Do not manufacture a
+   Production bootstrap by deleting, corrupting, or replacing stored evidence.
+3. After the first DRA exit, reconcile provider receipts and publish the first
    real economic result.
-3. Fix delayed-fee accounting and partial-sell idempotency together with the
+4. Fix delayed-fee accounting and partial-sell idempotency together with the
    narrow contract tests.
-4. Re-run the equal-capital comparison.
-5. Decide whether DRA V2 or a larger/multi-lot DRA deployment is justified.
-6. Only then consider typed state, database bar uniqueness, or targeted class
+5. Re-run the equal-capital comparison.
+6. Decide whether DRA V2 or a larger/multi-lot DRA deployment is justified.
+7. Only then consider typed state, database bar uniqueness, or targeted class
    extraction needed by the approved scale.

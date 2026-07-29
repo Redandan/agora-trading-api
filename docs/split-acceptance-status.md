@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Contract updated: 2026-07-27 Asia/Taipei
+Contract updated: 2026-07-29 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -54,9 +54,9 @@ AgoraMarketAPI continues to own:
 The shared `agora_market` database remains expected. Extra marketplace tables
 are not a Trading cleanup target.
 
-## Local cleanup status
+## Cleanup deployment status
 
-Batch 5A is committed locally as `f405ee0` but is not pushed or deployed. It
+Batch 5A is committed as `f405ee0`. It
 removes 27 unreachable Java files, 19 inactive Spring components, and 4,280
 Java source lines from dormant historical import, retired alpha diagnostics,
 standalone coverage profiling, unused bot diagnostics, and orphaned
@@ -68,19 +68,92 @@ still find exactly three `RuntimeStrategy` implementations, 10 MCP tools, and
 Grid/OCO, Production `application.yml`, migrations, or retained deployment
 scripts. Historical tables and rows are intentionally unchanged.
 
-Batch 5B is committed locally as `19f7040` but is not pushed or deployed. It
+Batch 5B is committed as `19f7040`. It
 removes two uncalled Spring services (`ExposureOptimizer` and `DailyLossGuard`), 29
 repository methods with no remaining caller, inactive generic OKX sizing/loss
 settings, and a net 878 Java source lines. Clean compilation rebuilds all 205
 remaining source files. Historical blocker strings remain readable; no
 Production configuration or protected runtime path changed.
 
-The working tree additionally contains local-only Batch 5C. It removes the
+Batch 5C is committed as `dbf10dc`. It removes the
 uncalled Binance exchange-order adapter and its unused configuration binding,
 while retaining Binance daily market data for owner 509 and OKX as the only
 registered order adapter. It removes a net 241 Java source lines and leaves
 203 Java source files. OCO callers, Production settings, entities, migrations,
-and deployment scripts remain unchanged. Batch 5C is not pushed or deployed.
+and deployment scripts remain unchanged.
+
+Read-only Production verification on 2026-07-28 confirmed local `main`,
+`origin/main`, the clean server worktree, and deployed `app.commit` all at
+`dbf10dc`. The active service was healthy on port `8084`, with port `8085`
+drained. Batches 5A through 5C are therefore pushed and deployed.
+
+## 2026-07-29 DRA bootstrap-continuity release target
+
+The owner authorized a bootstrap-lifecycle correction without changing the
+frozen DRA V1 trading economics. The correction replays historical arm,
+expiry, last-entry-signal, and seven-day cooldown state before the first
+genuine current closed bar. It must not reconstruct a historical lot,
+reservation, live signal, exchange order, Grid/OCO action, fund action, or
+Telegram message.
+
+Local acceptance requires the focused deterministic bootstrap tests, a clean
+application package, and a review proving no changes to DRA 30 USDT notional,
+one-lot ownership, +5% estimated-net exit, owner 509, Grid/OCO, Production
+configuration, migrations, or deployment scripts.
+
+Production acceptance is read-only:
+
+- local `HEAD`, local `origin/main`, server `HEAD`, server `origin/main`, and
+  deployed `app.commit` must be identical;
+- the existing valid DRA V1 evidence state must restore across deployment; the
+  deployment must not create a new bootstrap row, reservation, buy, sell, or
+  second DRA lot;
+- the next natural complete OKX BTCUSDT 1h bar must continue with a matching
+  canonical hash, `bootstrap=false`, no blocker, and no duplicate order;
+- position `263` must retain its existing ownership, quantity, effective entry,
+  and provider identifiers until its unchanged strategy exit occurs;
+- owner 509, positions `260/261/262`, Native Grid
+  `3767345250394603520`, and OCO execution safety must remain unchanged.
+
+Production must not delete, corrupt, replace, or backfill evidence to force a
+fresh bootstrap. The new-bootstrap path is accepted by deterministic local
+tests; if a genuine fresh environment occurs later, its natural first evidence
+must be audit-only and must contain the replayed lifecycle state.
+
+## 2026-07-28 DRA LIVE checkpoint
+
+Read-only Production evidence through the closed OKX bar
+`2026-07-28T00:00:00Z` confirmed:
+
+- 34 consecutive `BTC_DRA_RUNTIME_EVIDENCE_V1` rows from
+  `2026-07-26T15:00:00Z`, with zero hourly gaps, hash mismatches, blockers, or
+  catch-up rows;
+- the bootstrap row scanned one intentionally ignored legacy SHADOW row; all
+  subsequent rows report `invalidStateRowsScanned=0`;
+- the first genuine DRA entry produced exactly one `bt_live_signal` row,
+  `id=263`, for the unique `2026-07-26T23:00:00Z` signal bar;
+- requested notional was exactly `30 USDT`, client order ID
+  `DRA1B20260726230000`, OKX order ID `3778497541598928896`, average fill
+  `65416.7`, gross quantity `0.00045859 BTC`, and conservatively recorded net
+  quantity `0.00045767 BTC`;
+- the later immutable OKX order and fill receipts contain one signed fee of
+  `-0.00000045859 BTC`, making provider-net quantity `0.00045813141 BTC`;
+  the runtime evidence still has null fee fields and the database retains the
+  conservative `0.00045767 BTC`, leaving a `0.00000046141 BTC` safety margin
+  until P1 delayed-fee reconciliation is implemented;
+- there was one DRA row, one provider order ID, one open lot, and no duplicate
+  order or closed DRA lot;
+- at the latest closed price `63487.8`, the fee/slippage-aware mark was about
+  `-0.98655319 USDT` (`-3.2886%`), below the required exit price
+  `68928.96843526`; no sell was eligible;
+- owner 509 remained armed at `10/80/250 USDT`; positions `260/261/262`
+  remained outside DRA ownership; DRA owned only position `263`;
+- execution-safety status remained `OK` with zero issues, and OKX Native Spot
+  Grid `3767345250394603520` remained `running`.
+
+The first DRA buy is accepted. The first complete buy-to-sell lifecycle is not
+yet complete, so P1 execution-accounting changes and any DRA scaling remain
+deferred.
 
 ## 2026-07-27 DRA LIVE checkpoint
 
@@ -280,14 +353,17 @@ state.
 
 ## Local acceptance boundary
 
-The repository test tree and non-deployment verification scripts were removed
-during strategy-first simplification. For a code-removal batch, local
-acceptance is:
+The broad repository test tree and non-deployment verification scripts were
+removed during strategy-first simplification. The focused DRA bootstrap
+contract suite is now retained. For a code-removal batch, local acceptance is:
 
 ```powershell
 mvn -DskipTests package
 git diff --check
 ```
+
+For the DRA bootstrap-continuity path, run its focused deterministic tests
+before the full package.
 
 Direct source/config assertions must additionally prove:
 

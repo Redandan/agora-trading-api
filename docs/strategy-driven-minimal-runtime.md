@@ -388,28 +388,39 @@ Implemented in the retained Production runtime:
     backtest service shell. It retained all historical entities/tables,
     `BacktestEngine` and owner-509 calculation dependencies, the three runtime
     strategies, the fixed MCP surface, Grid/OCO, and deployment scripts. It is
-    committed locally as `f405ee0` but has not been pushed or deployed.
+    committed as `f405ee0`.
 15. Batch 5B removed the uncalled `ExposureOptimizer` and
     `DailyLossGuard`, 29 repository methods belonging only to retired
     score-buy, Tiny Live, Meta-Control, health-summary, cooldown, and shared
     risk-gate paths, and inactive generic OKX sizing/loss settings. Historical
     audit rows remain readable; the active strategy, execution-safety, Grid,
     OCO, MCP, entity, migration, Production configuration, and deployment
-    contracts are unchanged. It is committed locally as `19f7040` but has not
-    been pushed or deployed.
-16. Local-only Batch 5C removed the uncalled Binance exchange-order adapter and
+    contracts are unchanged. It is committed as `19f7040`.
+16. Batch 5C removed the uncalled Binance exchange-order adapter and
     its unused configuration binding. Binance remains owner 509's daily
     market-data source; OKX remains the sole registered order adapter. No
-    strategy, OCO caller, market-data path, or Production setting changed.
+    strategy, OCO caller, market-data path, or Production setting changed. It
+    is committed as `dbf10dc`.
+17. Read-only Production verification on 2026-07-28 confirmed local `main`,
+    `origin/main`, the clean server worktree, and deployed `app.commit` all at
+    `dbf10dc`. The active service was healthy on port `8084`, with `8085`
+    drained. Batches 5A through 5C are therefore pushed and deployed.
+18. The 2026-07-29 DRA bootstrap-continuity correction replays only historical
+    arm, expiry, last-entry-signal, and cooldown state before the first genuine
+    current closed bar. It never reconstructs a historical lot, reservation,
+    or order. DRA remains one 30 USDT lot with the unchanged +5% estimated-net
+    exit.
 
 ## Acceptance evidence
 
-The repository test tree was removed at the owner's request, so current local
-acceptance uses compilation plus direct source/config assertions:
+The broad repository test tree was removed at the owner's request. Current
+local acceptance uses compilation, direct source/config assertions, and the
+narrow deterministic DRA bootstrap contract suite:
 
 - the historical parity checkpoint was 42 expected intents with zero missing
   and zero extra; this is retained as prior evidence, not rerun in this change;
-- compilation must succeed with no test source or test dependency;
+- the focused DRA bootstrap tests must pass, and the complete application must
+  package successfully with tests skipped;
 - the runtime registry must bind exactly owner 509, Donchian, and DRA, preserve
   their deterministic evaluation order, and fail closed on a catalog/registry
   mismatch;
@@ -434,6 +445,9 @@ acceptance uses compilation plus direct source/config assertions:
 - DRA LIVE must require a non-bootstrap, non-catch-up, exact current bar, use a
   separate durable ledger and client order namespace, enforce one 30 USDT lot,
   and never submit deployment/test/replay orders;
+- a fresh DRA bootstrap must carry forward historical arm, expiry,
+  last-entry-signal, and cooldown state without reconstructing lots; an
+  existing valid current-schema state must restore unchanged across deployment;
 - the application must contain no TradingView Webhook, legacy live evaluator,
   time-exit, AI/ML/Ensemble, or auto-entry runtime;
 - MCP registration must expose exactly 10 whitelisted tools and no Grid

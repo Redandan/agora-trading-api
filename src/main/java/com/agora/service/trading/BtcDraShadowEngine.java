@@ -407,6 +407,66 @@ public final class BtcDraShadowEngine {
         return canonicalStateSha256(stateCanonicalJson(state));
     }
 
+    /**
+     * Carries the entry lifecycle observed during historical bootstrap into
+     * the first genuine current-bar step without creating historical lots.
+     */
+    public State seedBootstrapEntryState(
+            State state,
+            BtcDraBootstrapEntryStateReplayer.State replayState) {
+        if (state == null || replayState == null) {
+            throw new IllegalArgumentException(
+                    "state and replayState must not be null");
+        }
+        if (state.lastProcessedBarOpenTime() == null
+                || state.pendingSignalBarOpenTime() != null
+                || positive(state.pendingBuyNotionalUsdt())
+                || !state.openLots().isEmpty()
+                || (replayState.armedAt() != null
+                && replayState.armedAt().isAfter(
+                        state.lastProcessedBarOpenTime()))
+                || (replayState.lastEntrySignalBarOpenTime() != null
+                && replayState.lastEntrySignalBarOpenTime().isAfter(
+                        state.lastProcessedBarOpenTime()))) {
+            throw new DataQualityException(
+                    "BOOTSTRAP_ENTRY_SEED_STATE_INVALID");
+        }
+        return new State(
+                state.schemaVersion(),
+                state.lastProcessedBarOpenTime(),
+                state.closeHistory(),
+                state.dailyEmaHistory(),
+                state.dailyEma20(),
+                replayState.armedAt(),
+                replayState.armExpiresAt(),
+                replayState.lastEntrySignalBarOpenTime(),
+                state.pendingSignalBarOpenTime(),
+                state.pendingBuyNotionalUsdt(),
+                state.pendingReason(),
+                state.openLots(),
+                state.totalBuyNotionalUsdt(),
+                state.totalSellProceedsUsdt(),
+                state.realizedPnlUsdt(),
+                state.totalFeesUsdt(),
+                state.openCostUsdt(),
+                state.inventoryQty(),
+                state.inventoryValueUsdt(),
+                state.unrealizedPnlUsdt(),
+                state.totalPnlUsdt(),
+                state.buyFillCount(),
+                state.sellFillCount(),
+                state.winningExitCount(),
+                state.deferredExitCount(),
+                state.queuedEntryCount(),
+                state.blockedEntryCount(),
+                replayState.armCount(),
+                replayState.expiredArmCount(),
+                state.maxOpenCostUsdt(),
+                state.maxOpenCapitalLossPct(),
+                state.peakVirtualEquityUsdt(),
+                state.maxVirtualDrawdownPct());
+    }
+
     public String stateCanonicalJson(State state) {
         try {
             return objectMapper.writeValueAsString(state);

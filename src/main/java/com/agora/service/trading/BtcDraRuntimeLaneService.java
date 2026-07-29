@@ -76,6 +76,7 @@ public class BtcDraRuntimeLaneService {
     private final RuntimeDecisionEvidenceRepository evidenceRepository;
     private final RuntimeDecisionEvidenceService runtimeEvidenceService;
     private final BtcDraShadowEngine engine;
+    private final BtcDraBootstrapEntryStateReplayer bootstrapEntryStateReplayer;
     private final ObjectMapper objectMapper;
     private final StrategyRuntimeCatalog strategyRuntimeCatalog;
 
@@ -191,12 +192,24 @@ public class BtcDraRuntimeLaneService {
 
         BtcDraShadowEngine.State state = engine.initialState();
         BtcDraShadowEngine.StepResult current = null;
+        BtcDraBootstrapEntryStateReplayer.State bootstrapEntryState =
+                bootstrapEntryStateReplayer.initialState();
         try {
             for (int i = 0; i < bars.size(); i++) {
                 MdKline bar = bars.get(i);
-                current = i == bars.size() - 1
-                        ? engine.step(state, bar)
-                        : engine.warmup(state, bar);
+                if (i == bars.size() - 1) {
+                    state = engine.seedBootstrapEntryState(
+                            state,
+                            bootstrapEntryState);
+                    current = engine.step(state, bar);
+                } else {
+                    current = engine.warmup(state, bar);
+                    bootstrapEntryState = bootstrapEntryStateReplayer.observe(
+                            bootstrapEntryState,
+                            bar.getOpenTime(),
+                            current.signal().dailyReversalConfirmed())
+                            .state();
+                }
                 state = current.state();
             }
         } catch (BtcDraShadowEngine.DataQualityException e) {

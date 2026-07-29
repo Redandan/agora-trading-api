@@ -11,7 +11,7 @@ LOCAL_FOUNDATION_IMPLEMENTED
 LOCAL_DRA_SELL_WIRING_IMPLEMENTED
 LOCAL_DRA_BUY_FEE_RECONCILIATION_IMPLEMENTED
 LOCAL_CONTRACT_TESTS_PASS
-DB_RACE_TEST_NOT_RUN
+DISPOSABLE_MYSQL_8_4_DB_RACE_PASS
 NOT_DEPLOYED
 MIGRATION_FILE_NOT_EXECUTED
 NO_PRODUCTION_WRITE
@@ -223,5 +223,20 @@ later provider lookup can finalize base-fee quantity or quote-fee cash cost
 without a second order or duplicate success audit.
 
 The migration has not been run and none of this local wiring is deployed.
-Position 263 has not been backfilled or changed. Database-backed concurrency
-validation and a final staged-diff review remain required before promotion.
+Position 263 has not been backfilled or changed. A final staged-diff review
+remains required before promotion.
+
+### Disposable MySQL concurrency evidence
+
+A clean local MySQL 8.4 instance applied V4 without modification. Two
+independent client connections then competed on the same DRA sell identity:
+
+```text
+competing inserts: one success, one unique-key rejection, persisted rows=1
+atomic claims: 1,0
+final state/version: SUBMITTING|1
+invalid applied quantity greater than gross quantity: rejected
+```
+
+The instance never used Production credentials or data. It was shut down
+after the test and its temporary directory was moved to the recycle bin.

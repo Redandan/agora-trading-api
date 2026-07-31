@@ -89,7 +89,8 @@ The runtime:
 - intentionally contains no MEI or drawdown gate;
 - retains 30 USDT virtual reference lots and a 250 USDT research cap;
 - permits exactly one actual 30 USDT OKX spot lot when configured `LIVE`;
-- durably reserves deterministic client order ids before provider submission;
+- durably reserves deterministic client order ids before provider submission
+  and records provider-first attempt state;
 - persists provider receipt fields in the isolated DRA live ledger and uses a
   conservative quantity buffer if the final buy fee is delayed;
 - sells only DRA-owned quantity after fee/slippage-aware estimated net return
@@ -410,12 +411,19 @@ Implemented in the retained Production runtime:
     current closed bar. It never reconstructs a historical lot, reservation,
     or order. DRA remains one 30 USDT lot with the unchanged +5% estimated-net
     exit.
+19. The 2026-07-30 provider-first DRA release added a durable
+    `bt_spot_execution_attempt` state machine, atomic single-submitter claim,
+    provider lookup by deterministic `clOrdId`, explicit ambiguous state,
+    cumulative fill/fee deltas, and sequenced partial-sell retries. Commit
+    `ae47ef0609b6f86c7cfe2338c6d80a3135dc7e25` deployed on active port
+    `8084`; V4 started with zero rows and did not backfill position `263`.
+    The first new-JVM natural bar passed at evidence `28830` without an order.
 
 ## Acceptance evidence
 
 The broad repository test tree was removed at the owner's request. Current
-local acceptance uses compilation, direct source/config assertions, and the
-narrow deterministic DRA bootstrap contract suite:
+local acceptance uses compilation, direct source/config assertions, and a
+narrow 14-test DRA bootstrap/execution-attempt contract suite:
 
 - the historical parity checkpoint was 42 expected intents with zero missing
   and zero extra; this is retained as prior evidence, not rerun in this change;

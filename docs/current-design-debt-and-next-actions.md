@@ -1,6 +1,6 @@
 # Current Design Debt and Next Actions
 
-Status date: 2026-07-29
+Status date: 2026-07-31
 
 This is the current decision document for maintenance and strategy scaling.
 Selected strategy research and rollout evidence remains where it is required
@@ -156,6 +156,34 @@ Read-only Production verification on 2026-07-28 confirmed local `main`,
 drained. Therefore Batches 5A through 5C are pushed and deployed; the earlier
 local-only checkpoint is superseded.
 
+### Completed provider-first DRA execution safety
+
+Commit `ae47ef0609b6f86c7cfe2338c6d80a3135dc7e25` deployed the narrow
+provider-first DRA execution layer. Flyway V4 added
+`bt_spot_execution_attempt` with durable uniqueness for
+lot/side/sequence, client order ID, and provider order ID. Only one JVM can
+atomically claim a reserved attempt for submission. Before sending, the
+runtime queries OKX by deterministic `clOrdId`; an ambiguous result remains
+unresolved and is never blindly retried.
+
+Cumulative provider fills and fees are applied only as monotonic deltas.
+Overfill and backwards cumulative receipts fail closed. A base-currency buy
+fee reduces strategy-owned BTC; a quote-currency fee changes cash cost; a
+temporarily unknown fee currency keeps a conservative quantity until a later
+provider receipt resolves it. A reconciled partial sell allocates a new
+durable attempt sequence instead of reusing the first client order ID.
+
+The focused suite contains 14 deterministic tests covering bootstrap and
+execution-attempt policy. A disposable MySQL 8.4 race test proved one
+successful competing insert, one unique-key rejection, atomic claim results
+`1,0`, and rejection of applied quantity greater than provider gross
+quantity.
+
+Production V4 started with zero attempt rows and deliberately did not backfill
+pre-V4 position `263`. The first new-JVM natural bar passed without a new
+reservation or order. This proves deployment and no-duplicate continuity, not
+the still-pending first sell lifecycle.
+
 ### P0 — Observe the first complete DRA lifecycle
 
 Do not change DRA V1 entry economics, 30 USDT notional, one-lot ownership, or
@@ -171,42 +199,33 @@ genuine closed bar. It must not reconstruct historical lots or submit a
 historical, deployment, restart, or test order. This lifecycle correction does
 not authorize DRA V2, scaling, a new entry factor, or a changed exit.
 
-### P1 — Reconcile delayed provider fees
+### Completed — Reconcile delayed provider fees
 
 OKX can publish the buy fee after the initial fill response. The current
-adapter retries briefly and, if the fee is still unavailable, reduces the
-sellable quantity by a conservative `0.2%` buffer. This protects unrelated BTC
-but means the initial database quantity is not the exact provider-net quantity.
+provider-first attempt persists gross fill, observed fee, fee status, applied
+deltas, and remaining lot quantity. A later provider lookup can finalize a
+base-fee quantity or quote-fee cash cost without submitting another order.
 
-Required correction before scaling:
+Position `263` predates V4 and was intentionally not backfilled. Its
+`0.00000046141 BTC` safety remainder must therefore remain a separately
+reported asset during the first sell reconciliation; it is not evidence that
+the new attempt flow lost quantity.
 
-1. persist the immutable provider gross fill and observed fee status;
-2. reconcile the final provider fee/order receipt asynchronously;
-3. derive the strategy-owned net quantity from that receipt;
-4. retain a visible reconciliation state instead of treating a conservative
-   buffer as final accounting.
+### Completed — Make partial sell retries idempotent
 
-### P1 — Make partial sell retries idempotent
-
-DRA V1 marks a partial sell as `OPEN_PARTIAL`, but the current deterministic
-sell client-order ID is derived from the original signal bar. Another sell
-attempt can therefore reuse the same client-order ID.
-
-Required correction before scaling:
-
-1. reconcile the existing provider order before any retry;
-2. allocate a durable sell sequence such as `S01`, `S02`;
-3. generate the next deterministic ID from strategy, lot, and sell sequence;
-4. never submit a new sell while the previous outcome is unresolved.
+DRA now reconciles the existing provider order before any retry and allocates
+the next deterministic client order ID only after a reconciled partial. An
+unresolved or ambiguous attempt blocks later submission. The first sell for
+position `263` remains `DRA1S20260726230000`; later sequences exist only when
+the preceding provider receipt proves a partial fill.
 
 ### P1 — Maintain a small contract-test boundary
 
-The old broad automated test tree was intentionally removed. That does not
-justify changing LIVE execution code without focused tests. The 2026-07-29
-bootstrap correction restores a narrow deterministic suite for historical
-entry-state replay, cooldown, arm expiry, state seeding, and startup duplicate
-prevention. Before changing order, fill, ownership, or exit handling, extend
-that small suite to cover:
+The old broad automated test tree was intentionally removed. The retained
+narrow deterministic suite now covers historical entry-state replay plus the
+provider-first execution-attempt policy. Before changing order, fill,
+ownership, or exit handling, extend that small suite where the change lands,
+including:
 
 - DRA entry and exit net-return math;
 - delayed buy fee reconciliation;
@@ -270,16 +289,15 @@ requires all of the following:
 
 ## Recommended order of work
 
-1. Deploy the authorized bootstrap-continuity correction, proving that the
-   existing valid state restores without a new bootstrap, order, reservation,
-   or mutation of the open DRA lot.
-2. Continue read-only DRA/509 continuity observation. Do not manufacture a
-   Production bootstrap by deleting, corrupting, or replacing stored evidence.
-3. After the first DRA exit, reconcile provider receipts and publish the first
-   real economic result.
-4. Fix delayed-fee accounting and partial-sell idempotency together with the
-   narrow contract tests.
-5. Re-run the equal-capital comparison.
-6. Decide whether DRA V2 or a larger/multi-lot DRA deployment is justified.
-7. Only then consider typed state, database bar uniqueness, or targeted class
+1. Continue read-only DRA/509 observation until position `263` performs its
+   first genuine profit-qualified sell.
+2. Reconcile the provider cash result, database realized PnL, and separate BTC
+   safety remainder; publish the first real economic result without
+   double-counting.
+3. Keep DRA at one 30 USDT lot and the frozen +5% exit until that cycle passes.
+4. Re-run the equal-capital comparison after real realized evidence exists.
+5. Decide whether DRA V2, larger/multi-lot DRA, or applying the same
+   provider-first attempt layer to owner 509 is justified and explicitly
+   authorized.
+6. Only then consider typed state, database bar uniqueness, or targeted class
    extraction needed by the approved scale.

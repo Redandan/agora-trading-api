@@ -16,9 +16,12 @@ Runtime boundary:
 - no OCO, Grid, fund, leverage, or Telegram dependency;
 - actual fills use the existing `bt_live_signal` durable ledger under the
   catalog-only strategy id `-10001`;
+- provider submissions and cumulative reconciliation use the dedicated
+  `bt_spot_execution_attempt` mechanical ledger;
 - the DRA position prefix remains inside the intentional BTC-base namespace so
   OCO reconciliation cannot adopt it;
-- no schema migration and no additional MCP tool;
+- one forward-only execution-attempt schema migration and no additional MCP
+  tool;
 - reuses the catalog-owned OKX `BTCUSDT@1h` stream.
 
 The previous MEI directional runtime is retired. Its evidence rows remain
@@ -82,6 +85,8 @@ independently capped at exactly one 30 USDT lot.
   never place an order;
 - a new daily entry signal is durably reserved before submitting one OKX market
   buy with deterministic `clOrdId`;
+- the runtime queries OKX by deterministic `clOrdId` before submission and
+  requires one atomic database submitter claim;
 - an unresolved or ambiguous submission is never retried automatically;
 - while any DRA reservation or open lot exists, another DRA buy is blocked;
 - the live lot uses actual fill quantity, price, and fee-aware effective cost;
@@ -89,6 +94,9 @@ independently capped at exactly one 30 USDT lot.
   net return reaches `+5%`;
 - no stop-loss, time exit, forced loss sale, OCO, or trailing exit exists;
 - a sell uses only the quantity recorded in the DRA-owned live lot;
+- cumulative fills and fees are applied as monotonic deltas; overfill and
+  backwards provider receipts fail closed;
+- only a reconciled partial sell may allocate the next durable sell sequence;
 - provider order id, client order id, observed fill price, gross quantity,
   observed fee, sellable strategy quantity, and realized PnL are linked to the
   canonical DRA evidence row;
@@ -138,24 +146,20 @@ Every DRA evidence row records:
 
 ## Known V1 limitations
 
-These limitations do not authorize changing the frozen V1 strategy. They block
-scaling beyond the current canary until corrected:
+These limitations do not authorize changing the frozen V1 strategy:
 
-1. OKX buy fees may arrive after the initial fill response. The current
-   `0.2%` quantity buffer protects unrelated BTC, but exact provider fee and net
-   quantity need a durable reconciliation state.
-2. A partial sell remains `OPEN_PARTIAL`, while the deterministic sell
-   `clOrdId` is derived from the original lot bar. A later sell attempt needs
-   provider-order reconciliation plus a durable sell sequence before it can be
-   safely retried.
-3. State restore scans recent append-only evidence rows. This fails closed for
+1. Position `263` predates the execution-attempt ledger. It remains
+   intentionally unbackfilled, so its provider/DB quantity difference must be
+   reported as a separate BTC safety remainder during the first sell
+   reconciliation.
+2. State restore scans recent append-only evidence rows. This fails closed for
    the current canary, but current state should be separated from evidence
    history before more LIVE strategies are added.
-4. Duplicate bar evaluation is guarded in process; strategy-plus-bar
+3. Duplicate bar evaluation is guarded in process; strategy-plus-bar
    uniqueness is not yet a database contract for multi-instance evaluation.
-5. The repository currently has no automated test tree. The next change to
-   DRA order, fill, ownership, or state code must add the focused contract
-   tests listed in `current-design-debt-and-next-actions.md`.
+4. The broad historical test tree remains removed. The retained 14-test
+   bootstrap/execution-attempt contract suite must be extended whenever DRA
+   order, fill, ownership, or state behavior changes.
 
 ## Production acceptance
 
@@ -181,3 +185,10 @@ Deployment acceptance requires:
 The first rows prove deployment and restart continuity only. Forward
 profitability requires later completed actual exits and cannot be inferred from
 historical backtest results.
+
+Current Production checkpoint: commit
+`ae47ef0609b6f86c7cfe2338c6d80a3135dc7e25`, active port `8084`, V4
+execution-attempt table present with zero initial rows, and first new-JVM
+natural bar accepted at evidence `28830` for
+`2026-07-30T05:00:00Z`. Position `263` remains the only DRA lot and has not
+sold.

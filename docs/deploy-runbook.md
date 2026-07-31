@@ -137,16 +137,22 @@ No other script is part of the supported deployment workflow.
 
 ## Local build
 
-There is no repository test suite. Compile and package only:
+The broad historical test tree remains intentionally removed. The narrow
+bootstrap and execution-attempt LIVE-contract suite is retained:
+
+```powershell
+mvn test
+```
+
+Then compile and package the complete application:
 
 ```powershell
 mvn -DskipTests package
 ```
 
-For the current unchanged runtime this is the documented local check. Before
-the next Java change to order submission, fill/fee reconciliation, position
-ownership, client-order idempotency, or strategy state, first add the narrow
-LIVE-contract tests listed in
+Before the next Java change to order submission, fill/fee reconciliation,
+position ownership, client-order idempotency, or strategy state, extend the
+narrow LIVE-contract tests listed in
 `current-design-debt-and-next-actions.md`. Do not restore the deleted generic
 AI/backtest test infrastructure.
 
@@ -237,8 +243,9 @@ legacy Trading MCP route must remain blocked.
 
 ## Schema boundary
 
-Normal deploys do not create, drop, or clean tables. The optional compare is
-read-only:
+Normal deploys do not invent, drop, or clean tables. A checked-in forward-only
+Flyway migration may run only when that exact migration is explicitly
+authorized as part of the release. The optional compare is read-only:
 
 ```bash
 RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
@@ -247,6 +254,11 @@ RUN_SCHEMA_BASELINE_COMPARE=1 bash scripts/verify_server.sh
 Do not run Flyway baseline regeneration, table cleanup, or a migration merely
 because comparison reports shared marketplace tables. Extra marketplace tables
 are expected while Trading and AgoraMarket share `agora_market`.
+
+The explicitly authorized 2026-07-30 release applied
+`V4__spot_execution_attempt.sql`. It created
+`bt_spot_execution_attempt` with zero initial rows and did not backfill
+existing DRA position `263`.
 
 ## Failure handling
 

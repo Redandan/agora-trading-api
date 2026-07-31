@@ -1,6 +1,6 @@
 # Split Acceptance Status
 
-Contract updated: 2026-07-29 Asia/Taipei
+Contract updated: 2026-07-31 Asia/Taipei
 
 This file is the concise current handoff for the standalone Trading service.
 Historical acceptance detail remains in Git and `SPLIT_PROGRESS.md`; it is not
@@ -37,7 +37,7 @@ Trading owns:
 
 - versioned strategy catalog;
 - owner 509 and DRA bounded LIVE spot execution with durable per-signal
-  accounting;
+  accounting; DRA additionally uses provider-first execution-attempt state;
 - Donchian SHADOW evidence;
 - exact strategy-owned market streams;
 - spot OCO reconciliation and account/order safety;
@@ -87,7 +87,44 @@ Read-only Production verification on 2026-07-28 confirmed local `main`,
 `dbf10dc`. The active service was healthy on port `8084`, with port `8085`
 drained. Batches 5A through 5C are therefore pushed and deployed.
 
-## 2026-07-29 DRA bootstrap-continuity release target
+## 2026-07-30 provider-first DRA release
+
+Commit `ae47ef0609b6f86c7cfe2338c6d80a3135dc7e25` is the current
+Production baseline. Local `main`, `origin/main`, the clean server worktree,
+server `origin/main`, and deployed `app.commit` matched. The blue/green
+deployment switched to port `8084` and drained port `8085`.
+
+Flyway V4 created `bt_spot_execution_attempt` as the durable mechanical
+provider-first state for DRA orders. It adds unique lot/side/sequence, client
+order ID, and provider order ID contracts; an atomic
+`RESERVED -> SUBMITTING` claim; explicit ambiguous-submission state; and
+idempotent cumulative fill/fee deltas. V4 completed successfully with zero
+initial rows and did not backfill or modify existing DRA position `263`.
+
+Deployment acceptance confirmed:
+
+- shared-schema comparison passed with 36 source entity tables and zero
+  missing source tables;
+- owner 509 remained LIVE and armed at `10/80/250 USDT`;
+- DRA remained LIVE and armed at exactly `30/30 USDT`;
+- positions `260/261/262` remained outside DRA/509 ownership;
+- position `263` remained the sole open DRA lot;
+- Native Grid `3767345250394603520` remained `running`;
+- OCO execution safety reported zero issues;
+- runtime logs had zero errors, zero unknown warnings, and no high-risk
+  operation-like lines.
+
+The first natural bar processed by the new JVM passed at evidence `28830`,
+bar `2026-07-30T05:00:00Z`: `bootstrap=false`, `catchUp=false`,
+`batchBars=1`, `invalidStateRowsScanned=0`, `HOLD`, `orderSent=false`, no
+blocker, and matching stored/computed canonical SHA-256. The attempt table
+remained empty and no second DRA signal or order was created.
+
+The provider-first deployment and restart continuity are accepted. The first
+complete DRA buy-to-sell economic cycle is still pending; only a genuine
+profit-qualified sell may create the first Production execution-attempt row.
+
+## 2026-07-29 DRA bootstrap-continuity release
 
 The owner authorized a bootstrap-lifecycle correction without changing the
 frozen DRA V1 trading economics. The correction replays historical arm,
@@ -95,6 +132,12 @@ expiry, last-entry-signal, and seven-day cooldown state before the first
 genuine current closed bar. It must not reconstruct a historical lot,
 reservation, live signal, exchange order, Grid/OCO action, fund action, or
 Telegram message.
+
+Commit `900d651eebbb60632454da92139ba421841fbadb` deployed this
+correction. Its first post-deployment natural bar passed at evidence `28789`
+without a new lot or order. The later provider-first release supersedes this
+commit as the current Production identity without changing the accepted
+bootstrap contract.
 
 Local acceptance requires the focused deterministic bootstrap tests, a clean
 application package, and a review proving no changes to DRA 30 USDT notional,
@@ -139,8 +182,9 @@ Read-only Production evidence through the closed OKX bar
 - the later immutable OKX order and fill receipts contain one signed fee of
   `-0.00000045859 BTC`, making provider-net quantity `0.00045813141 BTC`;
   the runtime evidence still has null fee fields and the database retains the
-  conservative `0.00045767 BTC`, leaving a `0.00000046141 BTC` safety margin
-  until P1 delayed-fee reconciliation is implemented;
+  conservative `0.00045767 BTC`, leaving a `0.00000046141 BTC` safety margin;
+  V4 later added durable fee reconciliation for new attempts but intentionally
+  did not backfill this pre-V4 lot;
 - there was one DRA row, one provider order ID, one open lot, and no duplicate
   order or closed DRA lot;
 - at the latest closed price `63487.8`, the fee/slippage-aware mark was about
@@ -152,8 +196,9 @@ Read-only Production evidence through the closed OKX bar
   Grid `3767345250394603520` remained `running`.
 
 The first DRA buy is accepted. The first complete buy-to-sell lifecycle is not
-yet complete, so P1 execution-accounting changes and any DRA scaling remain
-deferred.
+yet complete, so scaling remains deferred. The later provider-first release
+completed the mechanical P1 execution changes for new attempts without
+backfilling this pre-V4 lot.
 
 ## 2026-07-27 DRA LIVE checkpoint
 
@@ -184,8 +229,9 @@ conservativeRecordedSellableQty=0.00045767 BTC
 Exactly one DRA reservation/order existed for that bar. The difference
 `0.00000046141 BTC` is a conservative ownership reserve caused by the provider
 fee arriving after the initial fill response; it is not a trading loss or a
-second position. It exposes the delayed-fee reconciliation debt described in
-`current-design-debt-and-next-actions.md`.
+second position. V4 subsequently added durable fee reconciliation for new
+attempts. Position `263` remains intentionally unbackfilled, so this legacy
+safety remainder must still be reported separately at exit.
 
 The DRA lot was still open at this checkpoint, so realized DRA performance and
 the full buy-to-sell lifecycle were not yet proven. Owner 509 advanced on its

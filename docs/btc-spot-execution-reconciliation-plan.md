@@ -198,9 +198,15 @@ separate approvals. Before any runtime change:
 5. deploy without a manual or test order;
 6. accept only through natural provider events and read-only reconciliation.
 
-## Current local implementation boundary
+The DRA promotion steps above completed on 2026-07-30 without a manual or test
+order. The remaining boundary is natural provider reconciliation of the first
+profit-qualified sell; it does not authorize changing DRA economics or
+scaling.
 
-The local foundation now contains:
+## Deployed implementation boundary
+
+Production commit `ae47ef0609b6f86c7cfe2338c6d80a3135dc7e25`
+contains:
 
 - a forward-only `bt_spot_execution_attempt` migration file;
 - database uniqueness for lot/side/sequence, client order ID, and provider
@@ -210,21 +216,23 @@ The local foundation now contains:
 - deterministic DRA partial-sell sequence IDs;
 - idempotent cumulative-fill delta calculation and focused pure tests.
 
-The DRA sell path is now wired locally to reserve before provider mutation,
+The DRA sell path reserves before provider mutation,
 atomically elect one submitter, look up OKX by client order ID before submit,
 and apply cumulative provider fills as idempotent quantity/quote/fee deltas.
 Ambiguous submission remains unresolved and cannot return to `SUBMITTING`.
 The first sell retains `DRA1S<signal-time>`; only a reconciled partial may
 allocate a later sequence.
 
-The buy path is also wired locally to reserve and claim before submission.
+The buy path also reserves and claims before submission.
 Provider-net quantity remains conservative while fee currency is absent; a
 later provider lookup can finalize base-fee quantity or quote-fee cash cost
 without a second order or duplicate success audit.
 
-The migration has not been run and none of this local wiring is deployed.
-Position 263 has not been backfilled or changed. A final staged-diff review
-remains required before promotion.
+Flyway V4 completed in Production on 2026-07-30 and created
+`bt_spot_execution_attempt` with zero initial rows. Position `263` was not
+backfilled or changed. The first natural new-JVM bar passed at evidence
+`28830` with a matching state hash, no blocker, no order, and no execution
+attempt. The first complete provider SELL reconciliation remains pending.
 
 ### Disposable MySQL concurrency evidence
 

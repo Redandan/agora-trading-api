@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timedelta, timezone
+import hashlib
 import json
 import os
 import shlex
@@ -26,6 +27,17 @@ from .evidence import (
     seal_daily_evidence,
     seal_deterministic_evidence_review,
     validate_evidence_manifest,
+    verify_evidence_source_contract,
+)
+from .forward_candidate import (
+    FORWARD_ADAPTER_KEY,
+    FORWARD_SOURCE,
+    build_candidate_oos_trigger,
+    candidate_oos_trigger_id,
+    candidate_oos_source_contract,
+    diagnostic_contract_status,
+    discovery_candidate_context,
+    validate_forward_adapter_config,
 )
 from .learning import build_learning
 from .hypotheses import (
@@ -192,6 +204,7 @@ def status_payload(
     )
     repo_root = Path(__file__).resolve().parents[1]
     corpus = selection_corpus_status(store.root)
+    forward_contract = diagnostic_contract_status()
     declared_candidate_adapters = sorted(
         key for key, spec in ADAPTERS.items() if spec.forward_candidate_eligible
     )
@@ -209,6 +222,10 @@ def status_payload(
             )
         elif spec.required_corpus_id not in {None, SELECTION_CORPUS_ID}:
             candidate_blockers.append({"adapter": key, "reason": "UNKNOWN_CANONICAL_CORPUS"})
+        elif key == FORWARD_ADAPTER_KEY and forward_contract["status"] != "READY":
+            candidate_blockers.append(
+                {"adapter": key, "reason": "FORWARD_DIAGNOSTIC_CONTRACT_INVALID"}
+            )
         else:
             candidate_adapters.append(key)
     readiness_status = (
@@ -220,6 +237,40 @@ def status_payload(
             else "NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER"
         )
     )
+    trigger_records = []
+    for trigger, state in checked_evidence_triggers(store):
+        record = {
+            "trigger_id": trigger["trigger_id"],
+            "title": trigger["title"],
+            "purpose": trigger.get("purpose", "HYPOTHESIS_DISCOVERY"),
+            "candidate_binding": trigger.get("candidate_binding"),
+            "status": effective_trigger_status(state, now=current),
+            "next_review_at": state.get("next_review_at"),
+            "review_count": state.get("review_count", 0),
+            "evidence_ready_at": state.get("evidence_ready_at"),
+            "oos_ready_at": state.get("oos_ready_at"),
+            "candidate_registration_sla": _candidate_registration_sla(
+                state,
+                now=current,
+            ),
+            "diagnostic_summary": (state.get("detail") or {}).get(
+                "diagnostic_summary"
+            ),
+            "candidate_context": discovery_candidate_context(
+                store,
+                trigger,
+                state,
+                now=current,
+            ),
+            "progress": evidence_progress(
+                store,
+                trigger,
+                state,
+                now=current,
+                capture_max_lag_seconds=capture_max_lag_seconds,
+            ),
+        }
+        trigger_records.append(record)
     return {
         "state_dir": str(store.root),
         "experiments": [
@@ -229,41 +280,19 @@ def status_payload(
                 "adapter": manifest["adapter"],
                 "stage": state["stage"],
                 "outcome": state.get("outcome"),
+                "oos_evidence_trigger_id": state.get("oos_evidence_trigger_id"),
                 "updated_at": state["updated_at"],
             }
             for manifest, state in entries
         ],
-        "evidence_triggers": [
-            {
-                "trigger_id": trigger["trigger_id"],
-                "title": trigger["title"],
-                "status": effective_trigger_status(state, now=current),
-                "next_review_at": state.get("next_review_at"),
-                "review_count": state.get("review_count", 0),
-                "evidence_ready_at": state.get("evidence_ready_at"),
-                "candidate_registration_sla": _candidate_registration_sla(
-                    state,
-                    now=current,
-                ),
-                "diagnostic_summary": (state.get("detail") or {}).get(
-                    "diagnostic_summary"
-                ),
-                "progress": evidence_progress(
-                    store,
-                    trigger,
-                    state,
-                    now=current,
-                    capture_max_lag_seconds=capture_max_lag_seconds,
-                ),
-            }
-            for trigger, state in checked_evidence_triggers(store)
-        ],
+        "evidence_triggers": trigger_records,
         "forward_candidate_readiness": {
             "status": readiness_status,
             "eligible_adapters": candidate_adapters,
             "declared_adapters": declared_candidate_adapters,
             "blockers": candidate_blockers,
             "historical_selection_corpus": corpus,
+            "diagnostic_contract": forward_contract,
         },
     }
 
@@ -278,6 +307,224 @@ def select_actionable(store: ResearchStore) -> tuple[dict[str, Any], dict[str, A
         return None
     actionable.sort(key=lambda pair: (pair[1]["created_at"], pair[0]["experiment_id"]))
     return actionable[0]
+
+
+def candidate_oos_execution_context(
+    store: ResearchStore,
+    manifest: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    now: datetime,
+    capture_max_lag_seconds: int,
+    dry_run: bool,
+) -> dict[str, Any]:
+    trigger_id = state.get("oos_evidence_trigger_id")
+    if not isinstance(trigger_id, str) or not trigger_id:
+        raise ValueError("forward candidate is missing its sealed OOS trigger")
+    trigger = store.load_evidence_trigger(trigger_id)
+    trigger_state = store.load_evidence_trigger_state(trigger_id)
+    if trigger.get("purpose") != "CANDIDATE_OOS":
+        raise ValueError("forward candidate OOS trigger purpose is invalid")
+    binding = trigger.get("candidate_binding")
+    if (
+        not isinstance(binding, dict)
+        or binding.get("experiment_id") != manifest["experiment_id"]
+        or binding.get("manifest_sha256") != state.get("manifest_sha256")
+    ):
+        raise ValueError("forward candidate OOS binding mismatch")
+    progress = evidence_progress(
+        store,
+        trigger,
+        trigger_state,
+        now=now,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    if progress["status"] == "COMPLETE":
+        if dry_run:
+            return {
+                "status": "DRY_RUN",
+                "action": "BUILD_DETERMINISTIC_CANDIDATE_OOS_REVIEW_THEN_RUN_OOS",
+                "experiment_id": manifest["experiment_id"],
+                "trigger_id": trigger_id,
+                "evidence_progress": progress,
+                "authorization": manifest["authorization"],
+            }
+        seal_deterministic_evidence_review(
+            store,
+            trigger,
+            trigger_state,
+            now=now,
+            capture_max_lag_seconds=capture_max_lag_seconds,
+        )
+        trigger_state = store.load_evidence_trigger_state(trigger_id)
+        progress = evidence_progress(
+            store,
+            trigger,
+            trigger_state,
+            now=now,
+            capture_max_lag_seconds=capture_max_lag_seconds,
+        )
+    if progress["status"] != "READY_FOR_OOS":
+        return {
+            "status": "WAITING_FOR_CANDIDATE_OOS",
+            "experiment_id": manifest["experiment_id"],
+            "trigger_id": trigger_id,
+            "evidence_progress": progress,
+            "authorization": manifest["authorization"],
+        }
+    reviews = trigger_state.get("reviews")
+    if not isinstance(reviews, list) or not reviews:
+        raise ValueError("ready candidate OOS trigger has no sealed review")
+    review_ref = reviews[-1]
+    review_path = (store.root / str(review_ref.get("path", ""))).resolve()
+    try:
+        review_path.relative_to(store.root)
+    except ValueError as error:
+        raise ValueError("candidate OOS review path escapes research state") from error
+    if not review_path.is_file() or sha256_file(review_path) != review_ref.get("sha256"):
+        raise ValueError("candidate OOS review changed or disappeared")
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    if review.get("outcome") != "READY_FOR_OOS":
+        raise ValueError("candidate OOS review outcome is invalid")
+    verified = verify_review_artifacts(store, trigger, review)
+    if verified != (trigger_state.get("detail") or {}).get("verified_evidence"):
+        raise ValueError("candidate OOS verification no longer matches canonical state")
+    dataset_ref = verified[0]["dataset_artifact"]
+    dataset_path = (store.root / str(dataset_ref["path"])).resolve()
+    try:
+        dataset_path.relative_to(store.root)
+    except ValueError as error:
+        raise ValueError("candidate OOS dataset path escapes research state") from error
+    if not dataset_path.is_file() or sha256_file(dataset_path) != dataset_ref["sha256"]:
+        raise ValueError("candidate OOS dataset changed or disappeared")
+    return {
+        "status": "READY_FOR_OOS_EXECUTION",
+        "trigger_id": trigger_id,
+        "dataset_path": str(dataset_path),
+        "dataset_sha256": dataset_ref["sha256"],
+    }
+
+
+def close_candidate_oos_trigger(
+    store: ResearchStore,
+    state: dict[str, Any],
+    *,
+    reason: str,
+) -> None:
+    trigger_id = state.get("oos_evidence_trigger_id")
+    if not isinstance(trigger_id, str) or not trigger_id:
+        return
+    trigger_state = store.load_evidence_trigger_state(trigger_id)
+    if trigger_state.get("status") == "CLOSED":
+        return
+    trigger_state["status"] = "CLOSED"
+    trigger_state["next_review_at"] = None
+    trigger_state["detail"] = {
+        "conclusion": (
+            "The candidate failed before OOS consumption; preserved forward observations "
+            "remain sealed and no strategy OOS was opened."
+        ),
+        "closed_reason": reason,
+    }
+    store.save_evidence_trigger_state(trigger_state)
+    store.append_evidence_trigger_event(
+        trigger_id,
+        "CANDIDATE_OOS_CLOSED_UNOPENED",
+        {"reason": reason, "experiment_id": state["experiment_id"]},
+    )
+
+
+def close_consumed_candidate_oos_trigger(
+    store: ResearchStore,
+    state: dict[str, Any],
+    *,
+    outcome: str,
+) -> None:
+    trigger_id = state.get("oos_evidence_trigger_id")
+    if not isinstance(trigger_id, str) or not trigger_id:
+        raise ValueError("consumed forward OOS is missing its trigger id")
+    trigger_state = store.load_evidence_trigger_state(trigger_id)
+    if trigger_state.get("status") != "READY_FOR_OOS":
+        raise ValueError("candidate OOS can be consumed only from READY_FOR_OOS")
+    prior_detail = trigger_state.get("detail")
+    detail = dict(prior_detail) if isinstance(prior_detail, dict) else {}
+    detail.update(
+        {
+            "conclusion": (
+                "The candidate-bound OOS dataset was consumed exactly once by the "
+                "frozen experiment and the trigger is now terminal."
+            ),
+            "experiment_id": state["experiment_id"],
+            "oos_outcome": outcome,
+        }
+    )
+    trigger_state["status"] = "CLOSED"
+    trigger_state["next_review_at"] = None
+    trigger_state["detail"] = detail
+    store.save_evidence_trigger_state(trigger_state)
+    store.append_evidence_trigger_event(
+        trigger_id,
+        "CANDIDATE_OOS_CONSUMED_ONCE",
+        {"outcome": outcome, "experiment_id": state["experiment_id"]},
+    )
+
+
+def ensure_forward_candidate_oos(
+    store: ResearchStore,
+    manifest: dict[str, Any],
+    experiment_state: dict[str, Any],
+    discovery_trigger: dict[str, Any],
+    *,
+    now: datetime,
+) -> dict[str, Any]:
+    trigger_id = candidate_oos_trigger_id(str(manifest["experiment_id"]))
+    trigger_dir = store.evidence_trigger_dir(trigger_id)
+    if trigger_dir.exists():
+        trigger = store.load_evidence_trigger(trigger_id)
+        state = store.load_evidence_trigger_state(trigger_id)
+        config = manifest["adapter_config"]
+        required_identity = {
+            "purpose": "CANDIDATE_OOS",
+            "source": FORWARD_SOURCE,
+            "evidence_start": config["oos_window"]["start_at"],
+            "review_not_before": config["oos_window"]["end_at"],
+            "minimum_observations": config["oos_window"]["observation_days"],
+            "candidate_binding": {
+                "experiment_id": manifest["experiment_id"],
+                "manifest_sha256": str(experiment_state["manifest_sha256"]),
+                "adapter": manifest["adapter"],
+                "mechanism_key": config["mechanism_key"],
+            },
+            "authorization": manifest["authorization"],
+        }
+        for field, value in required_identity.items():
+            if trigger.get(field) != value:
+                raise ValueError(f"partially registered candidate OOS {field} mismatch")
+    else:
+        trigger = build_candidate_oos_trigger(
+            manifest,
+            manifest_sha256=str(experiment_state["manifest_sha256"]),
+            discovery_trigger=discovery_trigger,
+            now=now,
+        )
+        state = store.register_evidence_trigger(trigger)
+    contract = verify_evidence_source_contract(store, trigger, state)
+    expected_contract = candidate_oos_source_contract(trigger)
+    if contract is None:
+        source_reference = register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            expected_contract,
+            registered_at=now,
+        )
+    else:
+        if {key: contract.get(key) for key in expected_contract} != expected_contract:
+            raise ValueError("partially registered candidate OOS source contract mismatch")
+        source_reference = state["evidence_source_contract"]
+    experiment_state["oos_evidence_trigger_id"] = trigger_id
+    experiment_state["oos_evidence_source_sha256"] = source_reference["sha256"]
+    return experiment_state
 
 
 def sync_linked_hypothesis(store: ResearchStore, state: dict[str, Any]) -> None:
@@ -342,6 +589,15 @@ def register_candidate_bundle(
         raise ValueError(f"candidate bundle has unknown fields: {', '.join(unknown)}")
     if value["schema_version"] != "1":
         raise ValueError("candidate bundle schema_version must be 1")
+    bundle_sha256 = hashlib.sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            allow_nan=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
     authorization = str(value["authorization"])
     if authorization != "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE":
         raise ValueError("candidate bundle authorization must remain research-only")
@@ -359,9 +615,14 @@ def register_candidate_bundle(
     if effective_trigger_status(trigger_state) == "CLOSED":
         linked = trigger_state.get("hypothesis_id")
         if linked and linked == hypothesis_value.get("hypothesis_id"):
+            if trigger_state.get("candidate_bundle_sha256") != bundle_sha256:
+                raise ValueError(
+                    "closed evidence trigger candidate bundle content changed"
+                )
             hypothesis = store.load_hypothesis(str(linked))
             experiment_id = hypothesis.get("experiment_id")
             if experiment_id:
+                existing_state = store.load_state(str(experiment_id))
                 return {
                     "status": "CANDIDATE_BUNDLE_ALREADY_REGISTERED",
                     "trigger_id": trigger_id,
@@ -369,6 +630,9 @@ def register_candidate_bundle(
                     "experiment_id": experiment_id,
                     "lead_time_seconds": trigger_state.get("candidate_lead_time_seconds"),
                     "lead_time_sla": trigger_state.get("candidate_lead_time_sla"),
+                    "oos_evidence_trigger_id": existing_state.get(
+                        "oos_evidence_trigger_id"
+                    ),
                 }
         raise ValueError("evidence trigger is already closed")
     if effective_trigger_status(trigger_state) != "READY_FOR_HYPOTHESIS":
@@ -395,6 +659,7 @@ def register_candidate_bundle(
         raise ValueError("ready evidence verification no longer matches sealed trigger state")
     if int(verified[0].get("observation_count", 0)) < int(trigger["minimum_observations"]):
         raise ValueError("verified evidence observation count is below the trigger minimum")
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
 
     hypothesis = build_hypothesis(
         hypothesis_value,
@@ -431,6 +696,19 @@ def register_candidate_bundle(
             raise ValueError(
                 f"forward candidate canonical corpus is not ready: {corpus['status']}"
             )
+    forward_context = None
+    if manifest.adapter == FORWARD_ADAPTER_KEY:
+        forward_context = discovery_candidate_context(
+            store,
+            trigger,
+            trigger_state,
+            now=current,
+        )
+        if forward_context is None or forward_context["status"] != "READY":
+            raise ValueError(
+                "sealed discovery evidence has no supported forward candidate mechanism"
+            )
+        validate_forward_adapter_config(manifest.to_dict(), forward_context)
     hypothesis_id = str(hypothesis["hypothesis_id"])
     if manifest.experiment_id != hypothesis_id:
         raise ValueError("candidate experiment_id must equal hypothesis_id")
@@ -453,7 +731,6 @@ def register_candidate_bundle(
     hypothesis_created = parse_timestamp(hypothesis["created_at"], "hypothesis created_at")
     manifest_created = parse_timestamp(manifest.created_at, "manifest created_at")
     reviewed_at = parse_timestamp(str(review["reviewed_at"]), "evidence reviewed_at")
-    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     if hypothesis_created < reviewed_at or manifest_created != hypothesis_created:
         raise ValueError("candidate hypothesis/manifest timestamps must follow the sealed review")
     if hypothesis_created > current + timedelta(minutes=5):
@@ -467,7 +744,11 @@ def register_candidate_bundle(
     if existing is not None and existing.get("fingerprint") != hypothesis["fingerprint"]:
         raise ValueError("candidate hypothesis id already exists with different content")
     if existing is not None and existing.get("status") != "READY":
-        raise ValueError("partially registered candidate hypothesis is not executable")
+        if not (
+            existing.get("status") == "REGISTERED"
+            and existing.get("experiment_id") == manifest.experiment_id
+        ):
+            raise ValueError("partially registered candidate hypothesis is not recoverable")
     duplicate = next(
         (
             record
@@ -503,11 +784,35 @@ def register_candidate_bundle(
         experiment_state = store.register(manifest, current_policy_hash)
         experiment_state["hypothesis_id"] = hypothesis_id
         store.save_state(experiment_state)
-        sync_linked_hypothesis(store, experiment_state)
     else:
         experiment_state = store.load_state(manifest.experiment_id)
-        if experiment_state.get("hypothesis_id") != hypothesis_id:
+        stored_manifest = store.load_manifest(manifest.experiment_id)
+        manifest_path = experiment_path / "manifest.json"
+        if stored_manifest != manifest.to_dict():
+            raise ValueError("partially registered candidate manifest content mismatch")
+        if experiment_state.get("manifest_sha256") != sha256_file(manifest_path):
+            raise ValueError("partially registered candidate manifest hash mismatch")
+        if experiment_state.get("policy_sha256") != current_policy_hash:
+            raise ValueError("partially registered candidate policy hash mismatch")
+        if (
+            experiment_state.get("stage") != Stage.PREREGISTERED.value
+            or int(experiment_state.get("run_count", 0)) != 0
+            or experiment_state.get("artifacts") not in ({}, None)
+        ):
+            raise ValueError("partially registered candidate already advanced")
+        if experiment_state.get("hypothesis_id") not in {None, hypothesis_id}:
             raise ValueError("candidate experiment is not linked to the bundled hypothesis")
+        experiment_state["hypothesis_id"] = hypothesis_id
+    if manifest.adapter == FORWARD_ADAPTER_KEY:
+        experiment_state = ensure_forward_candidate_oos(
+            store,
+            manifest.to_dict(),
+            experiment_state,
+            trigger,
+            now=current,
+        )
+    store.save_state(experiment_state)
+    sync_linked_hypothesis(store, experiment_state)
 
     lead_time_seconds = max(0, int((current - reviewed_at).total_seconds()))
     trigger_state["status"] = "CLOSED"
@@ -515,6 +820,7 @@ def register_candidate_bundle(
     trigger_state["next_review_at"] = None
     trigger_state["candidate_lead_time_seconds"] = lead_time_seconds
     trigger_state["candidate_lead_time_sla"] = "PASS" if lead_time_seconds <= 86400 else "BREACH"
+    trigger_state["candidate_bundle_sha256"] = bundle_sha256
     store.save_evidence_trigger_state(trigger_state)
     store.append_evidence_trigger_event(
         trigger_id,
@@ -524,6 +830,7 @@ def register_candidate_bundle(
             "experiment_id": manifest.experiment_id,
             "lead_time_seconds": lead_time_seconds,
             "lead_time_sla": trigger_state["candidate_lead_time_sla"],
+            "candidate_bundle_sha256": bundle_sha256,
         },
     )
     return {
@@ -534,6 +841,8 @@ def register_candidate_bundle(
         "experiment_stage": experiment_state["stage"],
         "lead_time_seconds": lead_time_seconds,
         "lead_time_sla": trigger_state["candidate_lead_time_sla"],
+        "candidate_bundle_sha256": bundle_sha256,
+        "oos_evidence_trigger_id": experiment_state.get("oos_evidence_trigger_id"),
         "authorization": authorization,
     }
 
@@ -559,8 +868,10 @@ def verify_review_artifacts(
             if not isinstance(value, dict):
                 raise ValueError("forward evidence manifest must be a JSON object")
             verified_manifests.append(validate_evidence_manifest(value, trigger, store))
-    if review["outcome"] == "READY_FOR_HYPOTHESIS" and len(verified_manifests) != 1:
-        raise ValueError("READY_FOR_HYPOTHESIS requires one verified evidence manifest")
+    if review["outcome"] in {"READY_FOR_HYPOTHESIS", "READY_FOR_OOS"} and len(
+        verified_manifests
+    ) != 1:
+        raise ValueError(f"{review['outcome']} requires one verified evidence manifest")
     return verified_manifests
 
 
@@ -745,6 +1056,24 @@ def run_tick(
             "reason": boundary_error,
             "dry_run": dry_run,
         }
+    execution_state = state
+    if (
+        state["stage"] == Stage.OOS_READY.value
+        and manifest.get("adapter") == FORWARD_ADAPTER_KEY
+    ):
+        oos_context = candidate_oos_execution_context(
+            store,
+            manifest,
+            state,
+            now=current,
+            capture_max_lag_seconds=int(
+                policy.get("evidence", {}).get("capture_max_lag_seconds", 21600)
+            ),
+            dry_run=dry_run,
+        )
+        if oos_context["status"] != "READY_FOR_OOS_EXECUTION":
+            return oos_context
+        execution_state = {**state, "oos_dataset_path": oos_context["dataset_path"]}
     action = next_action(manifest, state)
     if action is None:
         state["stage"] = Stage.BLOCKED.value
@@ -758,7 +1087,12 @@ def run_tick(
             "reason": state["outcome"],
             "dry_run": dry_run,
         }
-    run = build_run(REPO_ROOT, store.artifact_dir(state["experiment_id"]), manifest, state)
+    run = build_run(
+        REPO_ROOT,
+        store.artifact_dir(state["experiment_id"]),
+        manifest,
+        execution_state,
+    )
     preview = {
         "status": "DRY_RUN" if dry_run else "RUNNING",
         "experiment_id": state["experiment_id"],
@@ -787,6 +1121,18 @@ def run_tick(
             atomic_write_json(learning_path, build_learning(manifest, result, outcome))
             state["artifacts"]["learning"] = str(learning_path.relative_to(store.root))
         state["detail"] = {"runner_exit_code": returncode}
+        if action == "preselect" and is_terminal_stage(stage):
+            close_candidate_oos_trigger(
+                store,
+                state,
+                reason=outcome,
+            )
+        elif action == "oos" and manifest.get("adapter") == FORWARD_ADAPTER_KEY:
+            close_consumed_candidate_oos_trigger(
+                store,
+                state,
+                outcome=outcome,
+            )
         store.save_state(state)
         try:
             sync_linked_hypothesis(store, state)
@@ -811,6 +1157,18 @@ def run_tick(
         state["stage"] = Stage.FAILED.value
         state["outcome"] = "INFRASTRUCTURE_FAILURE"
         state["detail"] = {"type": type(error).__name__, "message": str(error)}
+        if action == "preselect":
+            close_candidate_oos_trigger(
+                store,
+                state,
+                reason="PRESELECTION_INFRASTRUCTURE_FAILURE",
+            )
+        elif action == "oos" and manifest.get("adapter") == FORWARD_ADAPTER_KEY:
+            close_consumed_candidate_oos_trigger(
+                store,
+                state,
+                outcome="OOS_EXECUTION_INFRASTRUCTURE_FAILURE",
+            )
         store.save_state(state)
         store.append_event(state["experiment_id"], "RUN_FAILED", state["detail"])
         raise

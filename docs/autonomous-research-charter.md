@@ -64,6 +64,14 @@ dataset and diagnostic hashes, and every required integrity check. The evidence
 window that generated a hypothesis is discovery data and cannot be relabelled
 as that hypothesis's clean OOS.
 
+For the V1 90-day discovery contract, only the preregistered volume- and
+range-confirmation mechanisms may be evaluated. Canonical status exposes at
+most one mechanism that passed every independent predictive gate plus an exact
+candidate configuration template. No passing mechanism closes the trigger as
+`NO_CANDIDATE_FORWARD_DIAGNOSTIC`; the next heartbeat must surface that sealed
+learning once rather than silently treating it as an idle pipeline. The exact
+strategy and OOS contract is in `dra-forward-entry-admission-v1.md`.
+
 For `COMPLETE_UTC_DAY` triggers, each day must be normalized and sealed within
 the V3 capture window through `research_pipeline/evidence-day.schema.json`.
 Exactly 24 contiguous closed hours, valid OHLC/volume, trigger/source binding,
@@ -154,6 +162,8 @@ WAITING
   -> REVIEW_DUE
   -> WAIT | READY_FOR_HYPOTHESIS | CLOSED
   -> EVIDENCE_TRIGGER:<id> hypothesis source
+  -> candidate registration creates a separate CANDIDATE_OOS trigger
+  -> CANDIDATE_OOS WAITING | READY_FOR_OOS | CLOSED_UNOPENED
   -> CLOSED / linked hypothesis
 ```
 
@@ -203,6 +213,11 @@ durable results, and produces sponsor briefings. When a sealed review reports
 `READY_FOR_HYPOTHESIS`, the same task may submit exactly one schema-bound
 hypothesis and matching frozen manifest through the candidate-bundle operation;
 the server re-verifies all sealed evidence and policy gates before registration.
+For `dra-forward-entry-admission-v1`, Codex must copy canonical
+`candidate_context` and may replace only its mechanism placeholder with the one
+eligible mechanism. Registration converges through interruptions and creates a
+distinct future `CANDIDATE_OOS` trigger; discovery evidence is never reused and
+partial OOS is never exposed.
 Canonical status supplies the exact 24-hour registration deadline, signed time
 remaining, and the preserved measured result, so the cloud task never derives
 the SLA from conversation history or its own clock.

@@ -14,6 +14,9 @@ from unittest.mock import patch
 
 from research_pipeline.adapters import ADAPTERS
 from research_pipeline.cli import (
+    candidate_oos_execution_context,
+    close_candidate_oos_trigger,
+    close_consumed_candidate_oos_trigger,
     register_candidate_bundle,
     run_tick,
     status_payload,
@@ -24,6 +27,12 @@ from research_pipeline.evidence import (
     register_evidence_source_contract,
     seal_daily_evidence,
     validate_evidence_manifest,
+)
+from research_pipeline.forward_candidate import (
+    FORWARD_ADAPTER_KEY,
+    FORWARD_PARENT,
+    diagnostic_contract_status,
+    discovery_candidate_context,
 )
 from research_pipeline.models import RESEARCH_AUTHORIZATION
 from research_pipeline.heartbeat import run_heartbeat_cycle
@@ -500,7 +509,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
         )
         self.assertEqual(
             canonical["forward_candidate_readiness"]["status"],
-            "NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER",
+            "FORWARD_CANDIDATE_ADAPTER_BLOCKED",
         )
         self.assertEqual(
             canonical["forward_candidate_readiness"]["historical_selection_corpus"]["status"],
@@ -626,7 +635,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
             "READY_FOR_HYPOTHESIS",
         )
 
-    def test_ninety_day_window_reaches_ready_on_the_final_sealed_day(self) -> None:
+    def test_ninety_day_window_closes_when_no_frozen_mechanism_passes(self) -> None:
         trigger_path = (
             Path(__file__).parents[1]
             / "examples"
@@ -686,9 +695,11 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 self.assertIsNone(final["review"])
 
         self.assertIsNotNone(final)
-        self.assertEqual(final["progress"]["status"], "READY_FOR_HYPOTHESIS")
-        self.assertEqual(final["review"]["evidence_ready_at"], "2026-04-01T01:00:00Z")
+        self.assertEqual(final["progress"]["status"], "CLOSED")
+        self.assertEqual(final["review"]["status"], "NO_CANDIDATE_FORWARD_DIAGNOSTIC")
+        self.assertIsNone(final["review"]["evidence_ready_at"])
         ready_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        self.assertEqual(ready_state["status"], "CLOSED")
         review = json.loads(
             (store.root / ready_state["reviews"][0]["path"]).read_text(encoding="utf-8")
         )
@@ -702,10 +713,308 @@ class EvidenceManifestContractTest(unittest.TestCase):
         )
         self.assertEqual(dataset["observation_count"], 90)
         self.assertEqual(dataset["source_row_count"], 2160)
+        diagnostic = json.loads(
+            (store.root / manifest["diagnostic_artifact"]["path"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(diagnostic["eligible_mechanisms"], [])
         self.assertEqual(
             {item["name"] for item in manifest["integrity_checks"]},
             set(trigger["required_integrity_checks"]),
         )
+
+        tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+        first_heartbeat = run_heartbeat_cycle(
+            store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 4, 2, 1, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertEqual(
+            first_heartbeat["research_status"], "IDLE_NO_ACTIONABLE_EXPERIMENT"
+        )
+        no_candidate_events = [
+            event
+            for event in first_heartbeat["events"]
+            if event["research_status"] == "NO_CANDIDATE_FORWARD_DIAGNOSTIC"
+        ]
+        self.assertEqual(len(no_candidate_events), 1)
+        self.assertEqual(no_candidate_events[0]["sha256"], ready_state["reviews"][0]["sha256"])
+
+        second_heartbeat = run_heartbeat_cycle(
+            store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 4, 3, 1, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertFalse(
+            any(
+                event["research_status"] == "NO_CANDIDATE_FORWARD_DIAGNOSTIC"
+                for event in second_heartbeat["events"]
+            )
+        )
+
+    def test_candidate_oos_window_seals_without_exposing_market_path(self) -> None:
+        store = ResearchStore(self.root / "candidate-oos-state", lock_stale_seconds=60)
+        store.bootstrap()
+        experiment_id = "candidate-oos-test"
+        experiment_dir = store.experiment_dir(experiment_id)
+        experiment_dir.mkdir(parents=True)
+        (experiment_dir / "artifacts").mkdir()
+        manifest = {
+            "schema_version": "1",
+            "experiment_id": experiment_id,
+            "adapter": "dra-forward-entry-admission-v1",
+            "adapter_config": {
+                "mechanism_key": "DRA_ENTRY_VOLUME_CONFIRMATION_20D"
+            },
+        }
+        manifest_path = experiment_dir / "manifest.json"
+        atomic_write_json(manifest_path, manifest)
+        trigger = build_evidence_trigger(
+            {
+                "schema_version": "1",
+                "trigger_id": "candidate-oos-trigger-test",
+                "title": "Candidate OOS trigger test",
+                "rationale": "Prove OOS stays sealed until its complete window is ready.",
+                "source": "sealed test source",
+                "evidence_start": "2026-01-01T00:00:00Z",
+                "review_not_before": "2026-01-03T00:00:00Z",
+                "minimum_observations": 2,
+                "observation_unit": "COMPLETE_UTC_DAY",
+                "required_integrity_checks": [
+                    "closed_bar_causality",
+                    "candidate_manifest_frozen_before_oos_start",
+                ],
+                "prohibited_inferences": ["do not open candidate performance early"],
+                "excluded_branches": ["closed branch"],
+                "created_at": "2025-12-31T00:00:00Z",
+                "authorization": RESEARCH_AUTHORIZATION,
+                "purpose": "CANDIDATE_OOS",
+                "candidate_binding": {
+                    "experiment_id": experiment_id,
+                    "manifest_sha256": sha256_file(manifest_path),
+                    "adapter": "dra-forward-entry-admission-v1",
+                    "mechanism_key": "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
+                },
+            }
+        )
+        store.register_evidence_trigger(trigger)
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            {
+                "schema_version": "1",
+                "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+                "trigger_id": trigger["trigger_id"],
+                "trigger_fingerprint": trigger["fingerprint"],
+                "source": trigger["source"],
+                "producer": "contract-test",
+                "transport": "SEALED_ONE_WAY_DROP",
+                "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+                "worker_network_access": "DENY",
+                "worker_database_access": "DENY",
+                "backfill": "DENY",
+                "authorization": RESEARCH_AUTHORIZATION,
+            },
+            registered_at=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+        final = None
+        for offset in range(2):
+            day_start = datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(
+                days=offset
+            )
+            bundle = self._daily_bundle(day_start.date().isoformat())
+            bundle["trigger_id"] = trigger["trigger_id"]
+            bundle["trigger_fingerprint"] = trigger["fingerprint"]
+            bundle["source"] = trigger["source"]
+            state = store.load_evidence_trigger_state(trigger["trigger_id"])
+            final = seal_daily_evidence(
+                store,
+                trigger,
+                state,
+                bundle,
+                received_at=day_start + timedelta(days=1, hours=1),
+            )
+
+        self.assertEqual(final["progress"]["status"], "READY_FOR_OOS")
+        self.assertEqual(final["review"]["status"], "CANDIDATE_OOS_READY")
+        oos_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        review = json.loads(
+            (store.root / oos_state["reviews"][0]["path"]).read_text(encoding="utf-8")
+        )
+        evidence_manifest = json.loads(
+            (store.root / review["evidence_artifacts"][0]["path"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        diagnostic = json.loads(
+            (store.root / evidence_manifest["diagnostic_artifact"]["path"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(diagnostic["diagnostic_type"], "CANDIDATE_OOS_SEAL_ONLY")
+        self.assertFalse(diagnostic["guardrails"]["market_path_summary_exposed"])
+        self.assertNotIn("summary", diagnostic)
+        close_candidate_oos_trigger(
+            store,
+            {
+                "experiment_id": experiment_id,
+                "oos_evidence_trigger_id": trigger["trigger_id"],
+            },
+            reason="PRESELECTION_FAILED_AFTER_OOS_CAPTURE",
+        )
+        closed_unopened = store.load_evidence_trigger_state(trigger["trigger_id"])
+        self.assertEqual(closed_unopened["status"], "CLOSED")
+        self.assertEqual(
+            closed_unopened["detail"]["closed_reason"],
+            "PRESELECTION_FAILED_AFTER_OOS_CAPTURE",
+        )
+
+    def test_candidate_oos_complete_window_recovers_delayed_review(self) -> None:
+        store = ResearchStore(self.root / "candidate-oos-recovery", lock_stale_seconds=60)
+        store.bootstrap()
+        experiment_id = "candidate-oos-recovery-test"
+        experiment_dir = store.experiment_dir(experiment_id)
+        experiment_dir.mkdir(parents=True)
+        (experiment_dir / "artifacts").mkdir()
+        manifest = {
+            "schema_version": "1",
+            "experiment_id": experiment_id,
+            "adapter": "dra-forward-entry-admission-v1",
+            "adapter_config": {
+                "mechanism_key": "DRA_ENTRY_VOLUME_CONFIRMATION_20D"
+            },
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+        manifest_path = experiment_dir / "manifest.json"
+        atomic_write_json(manifest_path, manifest)
+        manifest_sha256 = sha256_file(manifest_path)
+        trigger = build_evidence_trigger(
+            {
+                "schema_version": "1",
+                "trigger_id": "candidate-oos-recovery-trigger",
+                "title": "Candidate OOS recovery trigger",
+                "rationale": "Recover a complete OOS window after review interruption.",
+                "source": "sealed test source",
+                "evidence_start": "2026-01-01T00:00:00Z",
+                "review_not_before": "2026-01-03T00:00:00Z",
+                "minimum_observations": 2,
+                "observation_unit": "COMPLETE_UTC_DAY",
+                "required_integrity_checks": [
+                    "closed_bar_causality",
+                    "candidate_manifest_frozen_before_oos_start",
+                ],
+                "prohibited_inferences": ["do not open candidate performance early"],
+                "excluded_branches": ["closed branch"],
+                "created_at": "2025-12-31T00:00:00Z",
+                "authorization": RESEARCH_AUTHORIZATION,
+                "purpose": "CANDIDATE_OOS",
+                "candidate_binding": {
+                    "experiment_id": experiment_id,
+                    "manifest_sha256": manifest_sha256,
+                    "adapter": "dra-forward-entry-admission-v1",
+                    "mechanism_key": "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
+                },
+            }
+        )
+        store.register_evidence_trigger(trigger)
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            {
+                "schema_version": "1",
+                "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+                "trigger_id": trigger["trigger_id"],
+                "trigger_fingerprint": trigger["fingerprint"],
+                "source": trigger["source"],
+                "producer": "contract-test",
+                "transport": "SEALED_ONE_WAY_DROP",
+                "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+                "worker_network_access": "DENY",
+                "worker_database_access": "DENY",
+                "backfill": "DENY",
+                "authorization": RESEARCH_AUTHORIZATION,
+            },
+            registered_at=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+        for offset in range(2):
+            day_start = datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(
+                days=offset
+            )
+            bundle = self._daily_bundle(day_start.date().isoformat())
+            bundle["trigger_id"] = trigger["trigger_id"]
+            bundle["trigger_fingerprint"] = trigger["fingerprint"]
+            bundle["source"] = trigger["source"]
+            state = store.load_evidence_trigger_state(trigger["trigger_id"])
+            if offset == 1:
+                with patch(
+                    "research_pipeline.evidence._finalize_review_if_due",
+                    side_effect=lambda *args, progress, **kwargs: (progress, None),
+                ):
+                    final = seal_daily_evidence(
+                        store,
+                        trigger,
+                        state,
+                        bundle,
+                        received_at=day_start + timedelta(days=1, hours=1),
+                    )
+            else:
+                seal_daily_evidence(
+                    store,
+                    trigger,
+                    state,
+                    bundle,
+                    received_at=day_start + timedelta(days=1, hours=1),
+                )
+        self.assertEqual(final["progress"]["status"], "COMPLETE")
+        experiment_state = {
+            "experiment_id": experiment_id,
+            "manifest_sha256": manifest_sha256,
+            "oos_evidence_trigger_id": trigger["trigger_id"],
+        }
+        preview = candidate_oos_execution_context(
+            store,
+            manifest,
+            experiment_state,
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+            capture_max_lag_seconds=21600,
+            dry_run=True,
+        )
+        self.assertEqual(preview["status"], "DRY_RUN")
+        self.assertEqual(
+            preview["action"],
+            "BUILD_DETERMINISTIC_CANDIDATE_OOS_REVIEW_THEN_RUN_OOS",
+        )
+        recovered = candidate_oos_execution_context(
+            store,
+            manifest,
+            experiment_state,
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+            capture_max_lag_seconds=21600,
+            dry_run=False,
+        )
+        self.assertEqual(recovered["status"], "READY_FOR_OOS_EXECUTION")
+        self.assertTrue(Path(recovered["dataset_path"]).is_file())
+        self.assertEqual(
+            store.load_evidence_trigger_state(trigger["trigger_id"])["status"],
+            "READY_FOR_OOS",
+        )
+        close_consumed_candidate_oos_trigger(
+            store,
+            experiment_state,
+            outcome="OUT_OF_SAMPLE_FAIL",
+        )
+        consumed = store.load_evidence_trigger_state(trigger["trigger_id"])
+        self.assertEqual(consumed["status"], "CLOSED")
+        self.assertEqual(consumed["detail"]["oos_outcome"], "OUT_OF_SAMPLE_FAIL")
 
     def test_progress_fails_closed_after_missed_capture_deadline(self) -> None:
         self._register_source()
@@ -835,6 +1144,99 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 current_policy_hash=policy_sha256(policy_path),
             )
         self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
+        changed = copy.deepcopy(bundle)
+        changed["hypothesis"]["title"] = "Changed after registration"
+        with self._eligible_forward_test_adapter():
+            with self.assertRaisesRegex(ValueError, "bundle content changed"):
+                register_candidate_bundle(
+                    self.store,
+                    policy,
+                    changed,
+                    current_policy_hash=policy_sha256(policy_path),
+                )
+
+    def test_supported_forward_candidate_registers_with_separate_sealed_oos(self) -> None:
+        contract = diagnostic_contract_status()
+        self.diagnostic.write_text(
+            json.dumps(
+                {
+                    "diagnostic_contract_id": contract["contract_id"],
+                    "diagnostic_contract_sha256": contract["sha256"],
+                    "eligible_mechanisms": [
+                        {
+                            "mechanism_key": "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
+                            "all_predictive_gates_pass": True,
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.manifest = self._manifest()
+        bundle, policy = self._ready_candidate_bundle()
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
+        current = ready_at + timedelta(minutes=2)
+        context = discovery_candidate_context(
+            self.store,
+            self.trigger,
+            state,
+            now=current,
+        )
+        self.assertEqual(context["status"], "READY")
+        config = copy.deepcopy(context["adapter_config_template"])
+        config["mechanism_key"] = "DRA_ENTRY_VOLUME_CONFIRMATION_20D"
+        bundle["hypothesis"]["parent"] = FORWARD_PARENT
+        bundle["hypothesis"]["required_capability"] = FORWARD_ADAPTER_KEY
+        bundle["manifest"].update(
+            {
+                "parent": FORWARD_PARENT,
+                "adapter": FORWARD_ADAPTER_KEY,
+                "selection_cutoff": context["selection_cutoff"],
+                "oos_cutoff": context["oos_window"]["end_at"],
+                "max_variants": 3,
+                "adapter_config": config,
+            }
+        )
+        with patch(
+            "research_pipeline.cli.selection_corpus_status",
+            return_value={"status": "READY"},
+        ):
+            with patch(
+                "research_pipeline.cli.register_evidence_source_contract",
+                side_effect=RuntimeError("simulated source-contract interruption"),
+            ):
+                with self.assertRaisesRegex(
+                    RuntimeError, "simulated source-contract interruption"
+                ):
+                    register_candidate_bundle(
+                        self.store,
+                        policy,
+                        bundle,
+                        current_policy_hash="6" * 64,
+                        now=current,
+                    )
+            result = register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash="6" * 64,
+                now=current,
+            )
+
+        self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertIsNotNone(result["oos_evidence_trigger_id"])
+        experiment_state = self.store.load_state(result["experiment_id"])
+        oos_id = experiment_state["oos_evidence_trigger_id"]
+        oos_trigger = self.store.load_evidence_trigger(oos_id)
+        oos_state = self.store.load_evidence_trigger_state(oos_id)
+        self.assertEqual(oos_trigger["purpose"], "CANDIDATE_OOS")
+        self.assertEqual(
+            oos_trigger["candidate_binding"]["manifest_sha256"],
+            experiment_state["manifest_sha256"],
+        )
+        self.assertIsNotNone(oos_state["evidence_source_contract"])
+        self.assertEqual(oos_state["status"], "WAITING")
 
     def test_candidate_bundle_preserves_a_measured_24h_sla_breach(self) -> None:
         bundle, policy = self._ready_candidate_bundle()

@@ -26,17 +26,30 @@ review date arrives while the final day is still `CAPTURE_DUE`, capture remains
 the next action; never skip it, backfill it, or write the review locally.
 
 When canonical status becomes `EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS`, use
-the sealed `evidence_diagnostic` to formulate at most one deduplicated causal
-hypothesis and its matching frozen experiment manifest. Submit exactly one
-schema-bound bundle through `submit_research_candidate_bundle`. The discovery
-window is not clean OOS. The server must reverify all sealed evidence and stop
-at `PREREGISTERED`; do not execute or promote the experiment in the same step.
+the matching canonical evidence trigger's `candidate_context`. Require
+`candidate_context.status=READY`, exactly one item in `eligible_mechanisms`, and
+that item's `all_predictive_gates_pass=true`. Copy the exact `adapter`, `parent`,
+`selection_cutoff`, `oos_cutoff`, `max_variants`, and
+`adapter_config_template`; replace only the template `mechanism_key` with that
+eligible mechanism. Do not invent a threshold, window, feature, source hash, or
+second mechanism. Formulate at most one deduplicated causal hypothesis and its
+matching frozen experiment manifest, then submit exactly one schema-bound
+bundle through `submit_research_candidate_bundle`. If candidate context is
+`NO_SUPPORTED_MECHANISM`, do not submit: preserve the sealed
+`NO_CANDIDATE_FORWARD_DIAGNOSTIC` learning and wait for a newly preregistered
+mechanism or untouched evidence window. The discovery window is not clean OOS.
+The server must reverify all sealed evidence and stop at `PREREGISTERED`; do not
+execute or promote the experiment in the same step.
 Require canonical `registry.forward_candidate_readiness.status=READY` and use
 only one adapter listed in `eligible_adapters`. If readiness reports
 `NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER`, emit a capability-readiness alert and
 do not repurpose a parity adapter, diagnostic-only adapter, or closed historical
 branch as a strategy candidate. A submitted forward candidate must retain a
-sealed OOS cutoff; registration readiness is not permission to omit OOS.
+sealed OOS cutoff. Registration creates a distinct `CANDIDATE_OOS` trigger
+whose start is after the candidate manifest freeze. Do not reuse the discovery
+dataset, open partial OOS, submit a second candidate, or change the frozen
+mechanism while the candidate OOS trigger is waiting. Registration readiness is
+not permission to omit OOS.
 Use canonical `candidate_registration_sla`, not chat-side time arithmetic, to
 observe the 24-hour contract. `PENDING_WITHIN_SLA` requires submission in the
 same cloud cycle. `BREACH_PENDING_REGISTRATION` is an operational alert but

@@ -407,6 +407,56 @@ def load_result(state_root: Path, state: dict[str, Any]) -> dict[str, Any] | Non
 def performance_lines(result: dict[str, Any] | None) -> list[str]:
     if not result:
         return []
+    if result.get("schema_version") == "DRA_FORWARD_ENTRY_ADMISSION_RUNNER_V1":
+        if isinstance(result.get("baseline"), dict):
+            parent = result["baseline"].get("validation")
+            primary_variant = next(
+                (
+                    item
+                    for item in result.get("variants", [])
+                    if isinstance(item, dict) and item.get("role") == "primary"
+                ),
+                None,
+            )
+            candidate = (
+                primary_variant.get("validation")
+                if isinstance(primary_variant, dict)
+                else None
+            )
+            label = "Historical Validation"
+        else:
+            parent = result.get("parent")
+            primary_variant = next(
+                (
+                    item
+                    for item in result.get("variants", [])
+                    if isinstance(item, dict) and item.get("role") == "primary"
+                ),
+                None,
+            )
+            candidate = (
+                primary_variant.get("result")
+                if isinstance(primary_variant, dict)
+                else None
+            )
+            label = "Sealed OOS"
+        if isinstance(parent, dict) and isinstance(candidate, dict):
+            candidate_total = Decimal(candidate["total_pnl_usdt"])
+            parent_total = Decimal(parent["total_pnl_usdt"])
+            candidate_dd = Decimal(candidate["max_drawdown_pct"])
+            parent_dd = Decimal(parent["max_drawdown_pct"])
+            return [
+                f"- {label} total PnL: `{candidate_total}` USDT "
+                f"(parent `{parent_total}`; delta `{candidate_total - parent_total:+}`)",
+                f"- {label} drawdown: `{candidate_dd}%` "
+                f"(parent `{parent_dd}%`; delta `{candidate_dd - parent_dd:+}%`)",
+                f"- Realized / unrealized: `{candidate['realized_usdt']}` / "
+                f"`{candidate['unrealized_usdt']}` USDT",
+                f"- Median / P90 hold: `{candidate['median_hold_hours']}` / "
+                f"`{candidate['p90_hold_hours']}` hours",
+                f"- Frozen mechanism: `{result.get('mechanism_key')}`; "
+                f"status `{result.get('status')}`",
+            ]
     if result.get("schema_version") == "BTC_DRA_ONE_SLOT_SIGNAL_ROTATION_V1_RESULT":
         parent_windows = result.get("parent")
         candidate_windows = result.get("candidate")

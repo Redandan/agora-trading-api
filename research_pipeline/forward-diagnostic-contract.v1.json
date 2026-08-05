@@ -1,0 +1,59 @@
+{
+  "schema_version": "1",
+  "contract_id": "PROSPECTIVE_MARKET_MECHANISM_DIAGNOSTIC_V1",
+  "observation_unit": "COMPLETE_UTC_DAY",
+  "minimum_observations": 90,
+  "response_horizon_days": 1,
+  "mechanisms": [
+    {
+      "key": "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
+      "feature": "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN",
+      "lookback_days": 20,
+      "direction": "GREATER_THAN_OR_EQUAL",
+      "thresholds": {
+        "lower_neighbor": "1.25",
+        "primary": "1.50",
+        "upper_neighbor": "1.75"
+      }
+    },
+    {
+      "key": "DRA_ENTRY_RANGE_CONFIRMATION_20D",
+      "feature": "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN",
+      "lookback_days": 20,
+      "direction": "GREATER_THAN_OR_EQUAL",
+      "thresholds": {
+        "lower_neighbor": "1.25",
+        "primary": "1.50",
+        "upper_neighbor": "1.75"
+      }
+    }
+  ],
+  "predictive_gates": {
+    "minimum_labeled_events": 8,
+    "minimum_events_per_half": 3,
+    "minimum_event_coverage_pct": "8.00",
+    "maximum_event_coverage_pct": "50.00",
+    "minimum_median_next_day_return_delta_pct": "0.05000000",
+    "minimum_positive_next_day_share_pct": "55.00",
+    "maximum_top_month_positive_contribution_pct": "70.00",
+    "require_positive_first_half_delta": true,
+    "require_positive_second_half_delta": true
+  },
+  "selection_rule": {
+    "maximum_selected_mechanisms": 1,
+    "rank_by": [
+      "median_next_day_return_delta_pct_desc",
+      "labeled_event_count_desc",
+      "mechanism_key_asc"
+    ],
+    "neighbor_thresholds_are_stability_checks_not_candidates": true
+  },
+  "guardrails": [
+    "diagnostic_window_is_discovery_not_oos",
+    "no_strategy_pnl_is_evaluated",
+    "no_threshold_is_changed_after_outcome_access",
+    "closed_branch_exclusions_remain_binding",
+    "at_most_one_mechanism_can_seed_the_next_hypothesis"
+  ],
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

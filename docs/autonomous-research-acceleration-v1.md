@@ -70,6 +70,12 @@ mechanism-neutral market-path diagnostic, typed evidence manifest, and one
 `READY_FOR_HYPOTHESIS` review. Unknown integrity-check names fail closed. This
 step selects no strategy and computes no strategy PnL.
 
+The 90-day V1 diagnostic is nevertheless machine-actionable: it evaluates only
+two preregistered entry-admission mechanisms, applies fixed predictive support,
+breadth, response, concentration, and split-window gates, and exposes at most
+one passing mechanism. Zero passing mechanisms closes as a sealed
+`NO_CANDIDATE_FORWARD_DIAGNOSTIC`; it does not invite parameter tuning.
+
 Each prospective UTC day is accepted only through the fixed
 `FORWARD_EVIDENCE_DAY` contract. The canonical writer derives all 24 hourly
 positions, validates time-grid and OHLC/volume integrity, refuses out-of-order
@@ -117,6 +123,10 @@ policy metrics and constraints, adapter capability, duplicate fingerprint,
 active budget, and timestamps before any registration. A successful operation
 ends at `PREREGISTERED`, closes the evidence trigger, and records the measured
 evidence-ready lead time and 24-hour SLA result.
+The eligible adapter copies canonical `candidate_context`, uses the exact
+retained corpus, and creates a distinct future candidate-bound OOS trigger.
+Partial registration is resumable only when every sealed identity still
+matches. Candidate OOS remains opaque until its full window is sealed.
 Canonical status exposes the exact registration deadline and signed seconds
 remaining before submission, then preserves the measured `PASS` or `BREACH`.
 

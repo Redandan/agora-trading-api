@@ -48,6 +48,7 @@ class ExperimentManifest:
     max_variants: int
     authorization: str
     objective: dict[str, Any]
+    adapter_config: dict[str, Any] | None = None
 
     @classmethod
     def from_dict(cls, value: dict[str, Any], *, max_variants: int) -> "ExperimentManifest":
@@ -69,6 +70,10 @@ class ExperimentManifest:
         missing = sorted(required.difference(value))
         if missing:
             raise ValueError(f"manifest missing fields: {', '.join(missing)}")
+        allowed = required | {"oos_cutoff", "adapter_config"}
+        unknown = sorted(set(value).difference(allowed))
+        if unknown:
+            raise ValueError(f"manifest has unknown fields: {', '.join(unknown)}")
         if value["schema_version"] != "1":
             raise ValueError("manifest schema_version must be 1")
         experiment_id = str(value["experiment_id"])
@@ -87,6 +92,9 @@ class ExperimentManifest:
         objective = value["objective"]
         if not isinstance(objective, dict) or not objective.get("primary_metric"):
             raise ValueError("objective.primary_metric is required")
+        adapter_config = value.get("adapter_config")
+        if adapter_config is not None and not isinstance(adapter_config, dict):
+            raise ValueError("adapter_config must be an object")
         return cls(
             schema_version="1",
             experiment_id=experiment_id,
@@ -102,10 +110,11 @@ class ExperimentManifest:
             max_variants=variants,
             authorization=RESEARCH_AUTHORIZATION,
             objective=dict(objective),
+            adapter_config=None if adapter_config is None else dict(adapter_config),
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "schema_version": self.schema_version,
             "experiment_id": self.experiment_id,
             "title": self.title,
@@ -121,6 +130,9 @@ class ExperimentManifest:
             "authorization": self.authorization,
             "objective": self.objective,
         }
+        if self.adapter_config is not None:
+            result["adapter_config"] = self.adapter_config
+        return result
 
 
 def nonblank(value: dict[str, Any], field: str) -> str:

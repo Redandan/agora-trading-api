@@ -13,9 +13,10 @@ TRIGGER_STATUSES = {
     "WAITING",
     "REVIEW_DUE",
     "READY_FOR_HYPOTHESIS",
+    "READY_FOR_OOS",
     "CLOSED",
 }
-REVIEW_OUTCOMES = {"WAIT", "READY_FOR_HYPOTHESIS", "CLOSE"}
+REVIEW_OUTCOMES = {"WAIT", "READY_FOR_HYPOTHESIS", "READY_FOR_OOS", "CLOSE"}
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 DETERMINISTIC_COMPLETE_DAY_CHECKS = {
     "closed_bar_causality",
@@ -24,6 +25,7 @@ DETERMINISTIC_COMPLETE_DAY_CHECKS = {
     "immutable_row_count_and_sha256",
     "mechanism_neutral_diagnostic_before_strategy_mapping",
     "new_hypothesis_fingerprint_not_in_closed_tree",
+    "candidate_manifest_frozen_before_oos_start",
 }
 
 
@@ -49,6 +51,10 @@ def build_evidence_trigger(value: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(f"evidence trigger missing fields: {', '.join(missing)}")
     if value["schema_version"] != "1":
         raise ValueError("evidence trigger schema_version must be 1")
+    allowed = required | {"purpose", "candidate_binding"}
+    unknown = sorted(set(value).difference(allowed))
+    if unknown:
+        raise ValueError(f"evidence trigger has unknown fields: {', '.join(unknown)}")
     trigger_id = _nonblank(value, "trigger_id")
     if not EXPERIMENT_ID.fullmatch(trigger_id):
         raise ValueError("trigger_id must be a 3-80 character lowercase slug")
@@ -91,6 +97,16 @@ def build_evidence_trigger(value: dict[str, Any]) -> dict[str, Any]:
             )
     prohibited = _string_list(value["prohibited_inferences"], "prohibited_inferences")
     excluded = _string_list(value["excluded_branches"], "excluded_branches")
+    purpose = str(value.get("purpose", "HYPOTHESIS_DISCOVERY"))
+    if purpose not in {"HYPOTHESIS_DISCOVERY", "CANDIDATE_OOS"}:
+        raise ValueError("evidence trigger purpose is invalid")
+    candidate_binding = value.get("candidate_binding")
+    if purpose == "CANDIDATE_OOS":
+        candidate_binding = _candidate_binding(candidate_binding)
+        if "candidate_manifest_frozen_before_oos_start" not in integrity:
+            raise ValueError("candidate OOS trigger must verify its frozen manifest")
+    elif candidate_binding is not None:
+        raise ValueError("candidate_binding is only valid for CANDIDATE_OOS")
     record = {
         "schema_version": "1",
         "trigger_id": trigger_id,
@@ -104,6 +120,8 @@ def build_evidence_trigger(value: dict[str, Any]) -> dict[str, Any]:
         "required_integrity_checks": integrity,
         "prohibited_inferences": prohibited,
         "excluded_branches": excluded,
+        "purpose": purpose,
+        "candidate_binding": candidate_binding,
         "created_at": created_at,
         "authorization": RESEARCH_AUTHORIZATION,
     }
@@ -178,7 +196,7 @@ def build_evidence_review(
         artifacts.append(
             {"path": path, "sha256": sha256, "artifact_type": artifact_type}
         )
-    if outcome == "READY_FOR_HYPOTHESIS":
+    if outcome in {"READY_FOR_HYPOTHESIS", "READY_FOR_OOS"}:
         manifests = [
             artifact
             for artifact in artifacts
@@ -186,7 +204,7 @@ def build_evidence_review(
         ]
         if len(manifests) != 1:
             raise ValueError(
-                "READY_FOR_HYPOTHESIS requires exactly one forward evidence manifest"
+                f"{outcome} requires exactly one forward evidence manifest"
             )
     next_review_at = value.get("next_review_at")
     if outcome == "WAIT":
@@ -211,9 +229,7 @@ def build_evidence_review(
 
 
 def trigger_fingerprint(record: dict[str, Any]) -> str:
-    payload = {
-        key: record[key]
-        for key in (
+    keys = [
             "source",
             "evidence_start",
             "minimum_observations",
@@ -221,10 +237,36 @@ def trigger_fingerprint(record: dict[str, Any]) -> str:
             "required_integrity_checks",
             "prohibited_inferences",
             "excluded_branches",
-        )
-    }
+    ]
+    if record.get("purpose") == "CANDIDATE_OOS":
+        keys.extend(("purpose", "candidate_binding"))
+    payload = {key: record[key] for key in keys}
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _candidate_binding(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict):
+        raise ValueError("candidate OOS trigger requires candidate_binding")
+    required = {"experiment_id", "manifest_sha256", "adapter", "mechanism_key"}
+    if set(value) != required:
+        raise ValueError("candidate OOS binding fields are invalid")
+    experiment_id = str(value["experiment_id"])
+    if not EXPERIMENT_ID.fullmatch(experiment_id):
+        raise ValueError("candidate OOS experiment_id is invalid")
+    manifest_sha256 = str(value["manifest_sha256"])
+    if not SHA256.fullmatch(manifest_sha256):
+        raise ValueError("candidate OOS manifest hash is invalid")
+    adapter = str(value["adapter"]).strip()
+    mechanism_key = str(value["mechanism_key"]).strip()
+    if not adapter or not mechanism_key:
+        raise ValueError("candidate OOS adapter and mechanism are required")
+    return {
+        "experiment_id": experiment_id,
+        "manifest_sha256": manifest_sha256,
+        "adapter": adapter,
+        "mechanism_key": mechanism_key,
+    }
 
 
 def _string_list(value: Any, field: str) -> list[str]:

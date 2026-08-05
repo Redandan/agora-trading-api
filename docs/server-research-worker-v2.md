@@ -87,6 +87,15 @@ candidate capabilities. If no eligible adapter exists, status reports
 `NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER`; this is an honest capability gap, not
 permission to relabel old work to satisfy the 24-hour metric.
 
+The installed eligible adapter is `dra-forward-entry-admission-v1`. Readiness
+also requires the frozen diagnostic contract and exact retained pre-2025 corpus
+to rehash successfully. A ready discovery trigger exposes a canonical
+`candidate_context` with no free-form parameter surface. Candidate registration
+creates and source-binds a separate future 90-day `CANDIDATE_OOS` trigger.
+Interrupted registration resumes only when the hypothesis, manifest, policy,
+candidate binding, OOS window, and source contract remain identical; otherwise
+it fails closed.
+
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical
 progress is `CAPTURE_DUE`, the same MCP operation creates one deterministic
@@ -103,6 +112,10 @@ mechanism-neutral dataset, diagnostic, typed evidence manifest, and one
 `READY_FOR_HYPOTHESIS` review. It does not select a strategy or calculate
 strategy PnL. This reuses the existing heartbeat/ingest boundary: no sixth MCP
 tool, third queue operation, second writer, or additional timer is introduced.
+For the full 90-day discovery contract, the diagnostic evaluates only the two
+preregistered market mechanisms and exposes at most one that passes every gate.
+If none passes, it closes as `NO_CANDIDATE_FORWARD_DIAGNOSTIC`; the next
+heartbeat places the sealed review into the Coach outbox exactly once.
 If the calendar review boundary arrives before the final day is present,
 capture remains the next action. The existing heartbeat can recover a legacy
 complete-but-unreviewed state by producing the same sealed artifacts.
@@ -175,6 +188,8 @@ The systemd path unit is an event consumer, not an additional schedule.
   the 24-hour SLA passed;
 - a parity, diagnostic-only, OOS-less, or closed historical adapter cannot be
   registered as a forward-evidence strategy candidate;
+- the eligible adapter accepts only canonical `candidate_context`, creates a
+  separate candidate-bound OOS trigger, and recovers interrupted registration;
 - canonical status exposes the exact hash and row readiness of the retained
   pre-2025 selection corpus without importing or recomputing it;
 - a crashed queue lease remains auditable and can no longer block the queue
@@ -192,6 +207,8 @@ The systemd path unit is an event consumer, not an additional schedule.
 - the last canonical day produces one typed manifest, mechanism-neutral
   diagnostic, and sealed ready review, while a still-missing final day remains
   capture-first;
+- a complete-but-unreviewed candidate OOS window is recovered by the existing
+  heartbeat, and a no-candidate discovery review reaches Coach exactly once;
 - the systemd heartbeat timer is disabled after cloud cutover;
 - no source timer exists; source and intake are event-driven path units;
 - the single web Ops schedule runs with the local computer off.

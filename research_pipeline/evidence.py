@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 from typing import Any
 
+from .forward_candidate import DIAGNOSTIC_CONTRACT_PATH, load_diagnostic_contract
 from .models import RESEARCH_AUTHORIZATION, parse_timestamp
 from .storage import ResearchStore, atomic_write_json, read_json, sha256_file
 from .waiting import DETERMINISTIC_COMPLETE_DAY_CHECKS, build_evidence_review
@@ -481,8 +482,8 @@ def evidence_progress(
     lifecycle_status = str(state.get("status"))
     if lifecycle_status == "CLOSED":
         status = "CLOSED"
-    elif lifecycle_status == "READY_FOR_HYPOTHESIS":
-        status = "READY_FOR_HYPOTHESIS"
+    elif lifecycle_status in {"READY_FOR_HYPOTHESIS", "READY_FOR_OOS"}:
+        status = lifecycle_status
     elif source_contract is None:
         status = "SOURCE_UNBOUND"
     elif count >= target:
@@ -497,7 +498,11 @@ def evidence_progress(
         status = "MISSED_CAPTURE_WINDOW"
     complete_days = max(0, int((current - evidence_start).total_seconds() // 86400))
     expected = min(target, complete_days)
-    accepting = lifecycle_status not in {"CLOSED", "READY_FOR_HYPOTHESIS"} and count < target
+    accepting = lifecycle_status not in {
+        "CLOSED",
+        "READY_FOR_HYPOTHESIS",
+        "READY_FOR_OOS",
+    } and count < target
     return {
         "status": status,
         "observation_count": count,
@@ -532,12 +537,17 @@ def seal_deterministic_evidence_review(
 ) -> dict[str, Any]:
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     lifecycle_status = str(state.get("status"))
-    if lifecycle_status == "READY_FOR_HYPOTHESIS":
+    if lifecycle_status in {"READY_FOR_HYPOTHESIS", "READY_FOR_OOS"}:
         return {
-            "status": "EVIDENCE_REVIEW_ALREADY_READY",
+            "status": (
+                "CANDIDATE_OOS_REVIEW_ALREADY_READY"
+                if lifecycle_status == "READY_FOR_OOS"
+                else "EVIDENCE_REVIEW_ALREADY_READY"
+            ),
             "trigger_id": trigger["trigger_id"],
             "review_count": state.get("review_count", 0),
-            "evidence_ready_at": state.get("evidence_ready_at"),
+            "evidence_ready_at": state.get("evidence_ready_at")
+            or state.get("oos_ready_at"),
             "diagnostic_summary": (state.get("detail") or {}).get("diagnostic_summary"),
         }
     if lifecycle_status == "CLOSED":
@@ -616,9 +626,35 @@ def seal_deterministic_evidence_review(
 
     coverage_start = str(progress["coverage_start"])
     coverage_end = str(progress["coverage_end"])
+    purpose = str(trigger.get("purpose", "HYPOTHESIS_DISCOVERY"))
+    is_candidate_oos = purpose == "CANDIDATE_OOS"
+    if is_candidate_oos:
+        binding = trigger.get("candidate_binding")
+        if not isinstance(binding, dict):
+            raise ValueError("candidate OOS trigger is missing its candidate binding")
+        experiment_id = str(binding["experiment_id"])
+        candidate_manifest_path = store.experiment_dir(experiment_id) / "manifest.json"
+        if (
+            not candidate_manifest_path.is_file()
+            or sha256_file(candidate_manifest_path) != binding["manifest_sha256"]
+        ):
+            raise ValueError("candidate OOS manifest changed or disappeared")
+        candidate_manifest = read_json(candidate_manifest_path)
+        adapter_config = candidate_manifest.get("adapter_config")
+        if (
+            candidate_manifest.get("adapter") != binding["adapter"]
+            or not isinstance(adapter_config, dict)
+            or adapter_config.get("mechanism_key") != binding["mechanism_key"]
+        ):
+            raise ValueError("candidate OOS binding no longer matches the frozen manifest")
+
     dataset = {
         "schema_version": "1",
-        "dataset_type": "MECHANISM_NEUTRAL_FORWARD_EVIDENCE",
+        "dataset_type": (
+            "CANDIDATE_OOS_FORWARD_EVIDENCE"
+            if is_candidate_oos
+            else "MECHANISM_NEUTRAL_FORWARD_EVIDENCE"
+        ),
         "trigger_id": trigger["trigger_id"],
         "trigger_fingerprint": trigger["fingerprint"],
         "source": trigger["source"],
@@ -634,9 +670,32 @@ def seal_deterministic_evidence_review(
         "created_at": ready_text,
         "authorization": RESEARCH_AUTHORIZATION,
     }
+    if is_candidate_oos:
+        dataset["candidate_binding"] = trigger["candidate_binding"]
     dataset_path = artifact_dir / "dataset.json"
     _seal_or_verify_json(dataset_path, dataset)
-    diagnostic = _mechanism_neutral_diagnostic(dataset, trigger)
+    diagnostic = (
+        {
+            "schema_version": "1",
+            "diagnostic_type": "CANDIDATE_OOS_SEAL_ONLY",
+            "trigger_id": trigger["trigger_id"],
+            "trigger_fingerprint": trigger["fingerprint"],
+            "coverage_start": coverage_start,
+            "coverage_end": coverage_end,
+            "observation_count": len(dataset_observations),
+            "candidate_binding": trigger["candidate_binding"],
+            "guardrails": {
+                "strategy_performance_evaluated": False,
+                "market_path_summary_exposed": False,
+                "candidate_threshold_changed": False,
+                "oos_opened": False,
+            },
+            "created_at": ready_text,
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+        if is_candidate_oos
+        else _mechanism_neutral_diagnostic(dataset, trigger)
+    )
     diagnostic_path = artifact_dir / "diagnostic.json"
     _seal_or_verify_json(diagnostic_path, diagnostic)
 
@@ -664,6 +723,10 @@ def seal_deterministic_evidence_review(
         "new_hypothesis_fingerprint_not_in_closed_tree": (
             "No hypothesis was selected by this review; later candidate registration "
             "enforces fingerprint deduplication against the canonical hypothesis tree."
+        ),
+        "candidate_manifest_frozen_before_oos_start": (
+            "The candidate manifest hash and mechanism binding were reverified before "
+            "the sealed OOS dataset was made runnable."
         ),
     }
     manifest = {
@@ -695,20 +758,53 @@ def seal_deterministic_evidence_review(
     _seal_or_verify_json(manifest_path, manifest)
     verified_manifest = validate_evidence_manifest(manifest, trigger, store)
 
-    summary = diagnostic["summary"]
-    conclusion = (
-        f"{len(dataset_observations)} prospective complete UTC days passed the frozen "
-        f"integrity review. Market close-path return was "
-        f"{summary['market_close_path_return_pct']}%, maximum close-path drawdown was "
-        f"{summary['maximum_close_path_drawdown_pct']}%, and no strategy PnL or "
-        "hypothesis mapping was evaluated."
-    )
+    summary = diagnostic.get("summary")
+    eligible_mechanisms = diagnostic.get("eligible_mechanisms", [])
+    diagnostic_summary = summary
+    if (
+        not is_candidate_oos
+        and int(trigger["minimum_observations"])
+        >= int(load_diagnostic_contract()["minimum_observations"])
+    ):
+        diagnostic_summary = {
+            **(summary if isinstance(summary, dict) else {}),
+            "diagnostic_contract_id": diagnostic.get("diagnostic_contract_id"),
+            "diagnostic_contract_sha256": diagnostic.get(
+                "diagnostic_contract_sha256"
+            ),
+            "mechanism_results": diagnostic.get("mechanism_results", []),
+            "eligible_mechanisms": eligible_mechanisms,
+        }
+    if is_candidate_oos:
+        outcome = "READY_FOR_OOS"
+        conclusion = (
+            f"{len(dataset_observations)} untouched candidate OOS days passed the frozen "
+            "integrity review. No market-path summary or strategy performance was exposed."
+        )
+    elif int(trigger["minimum_observations"]) >= int(
+        load_diagnostic_contract()["minimum_observations"]
+    ) and not eligible_mechanisms:
+        outcome = "CLOSE"
+        conclusion = (
+            f"{len(dataset_observations)} prospective complete UTC days passed integrity, "
+            "but no preregistered market mechanism passed every independent predictive "
+            "gate. No strategy hypothesis is authorized from this window."
+        )
+    else:
+        outcome = "READY_FOR_HYPOTHESIS"
+        conclusion = (
+            f"{len(dataset_observations)} prospective complete UTC days passed the frozen "
+            f"integrity review. Market close-path return was "
+            f"{summary['market_close_path_return_pct']}%, maximum close-path drawdown was "
+            f"{summary['maximum_close_path_drawdown_pct']}%, and no strategy PnL or "
+            "hypothesis mapping was evaluated."
+        )
     review = build_evidence_review(
         {
             "schema_version": "1",
             "trigger_id": trigger["trigger_id"],
             "reviewed_at": ready_text,
-            "outcome": "READY_FOR_HYPOTHESIS",
+            "outcome": outcome,
             "conclusion": conclusion,
             "evidence_artifacts": [
                 {
@@ -728,37 +824,55 @@ def seal_deterministic_evidence_review(
         {
             "path": _relative_path(store, review_path),
             "sha256": sha256_file(review_path),
-            "outcome": "READY_FOR_HYPOTHESIS",
+            "outcome": outcome,
         }
     )
     state["detail"] = {
         "conclusion": conclusion,
         "verified_evidence": [verified_manifest],
-        "diagnostic_summary": summary,
+        "diagnostic_summary": diagnostic_summary,
+        "eligible_mechanisms": eligible_mechanisms,
     }
-    state["status"] = "READY_FOR_HYPOTHESIS"
+    state["status"] = (
+        "READY_FOR_OOS"
+        if outcome == "READY_FOR_OOS"
+        else ("READY_FOR_HYPOTHESIS" if outcome == "READY_FOR_HYPOTHESIS" else "CLOSED")
+    )
     state["next_review_at"] = None
-    state["evidence_ready_at"] = ready_text
+    if outcome == "READY_FOR_OOS":
+        state["oos_ready_at"] = ready_text
+    elif outcome == "READY_FOR_HYPOTHESIS":
+        state["evidence_ready_at"] = ready_text
     store.save_evidence_trigger_state(state)
     store.append_evidence_trigger_event(
         str(trigger["trigger_id"]),
         "DETERMINISTIC_EVIDENCE_REVIEW_RECORDED",
         {
             "sequence": sequence,
-            "outcome": "READY_FOR_HYPOTHESIS",
+            "outcome": outcome,
             "review_path": _relative_path(store, review_path),
             "review_sha256": sha256_file(review_path),
-            "evidence_ready_at": ready_text,
+            "evidence_ready_at": ready_text if outcome == "READY_FOR_HYPOTHESIS" else None,
+            "oos_ready_at": ready_text if outcome == "READY_FOR_OOS" else None,
         },
     )
     return {
-        "status": "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS",
+        "status": (
+            "CANDIDATE_OOS_READY"
+            if outcome == "READY_FOR_OOS"
+            else (
+                "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS"
+                if outcome == "READY_FOR_HYPOTHESIS"
+                else "NO_CANDIDATE_FORWARD_DIAGNOSTIC"
+            )
+        ),
         "trigger_id": trigger["trigger_id"],
         "review_count": sequence,
         "artifact_path": _relative_path(store, review_path),
         "sha256": sha256_file(review_path),
-        "evidence_ready_at": ready_text,
-        "diagnostic_summary": summary,
+        "evidence_ready_at": ready_text if outcome == "READY_FOR_HYPOTHESIS" else None,
+        "oos_ready_at": ready_text if outcome == "READY_FOR_OOS" else None,
+        "diagnostic_summary": diagnostic_summary,
         "authorization": RESEARCH_AUTHORIZATION,
     }
 
@@ -766,11 +880,12 @@ def seal_deterministic_evidence_review(
 def _mechanism_neutral_diagnostic(
     dataset: dict[str, Any], trigger: dict[str, Any]
 ) -> dict[str, Any]:
-    daily: list[dict[str, Decimal]] = []
+    daily: list[dict[str, Any]] = []
     for observation in dataset["observations"]:
         bars = observation["bars"]
         daily.append(
             {
+                "day": str(observation["observation_id"]),
                 "open": Decimal(str(bars[0]["open"])),
                 "high": max(Decimal(str(bar["high"])) for bar in bars),
                 "low": min(Decimal(str(bar["low"])) for bar in bars),
@@ -821,6 +936,19 @@ def _mechanism_neutral_diagnostic(
         "median_daily_volume": _metric_text(_percentile(volumes, 50)),
         "p90_daily_volume": _metric_text(_percentile(volumes, 90)),
     }
+    contract = load_diagnostic_contract()
+    mechanism_results = _forward_mechanism_results(daily, contract)
+    eligible = [
+        item for item in mechanism_results if item["all_predictive_gates_pass"]
+    ]
+    eligible.sort(
+        key=lambda item: (
+            -Decimal(str(item["statistics"]["median_next_day_return_delta_pct"])),
+            -int(item["statistics"]["labeled_event_count"]),
+            str(item["mechanism_key"]),
+        )
+    )
+    eligible = eligible[: int(contract["selection_rule"]["maximum_selected_mechanisms"])]
     return {
         "schema_version": "1",
         "diagnostic_type": "MECHANISM_NEUTRAL_FORWARD_MARKET_PATH",
@@ -831,7 +959,11 @@ def _mechanism_neutral_diagnostic(
         "observation_count": dataset["observation_count"],
         "source_row_count": dataset["source_row_count"],
         "chain_head": dataset["chain_head"],
+        "diagnostic_contract_id": contract["contract_id"],
+        "diagnostic_contract_sha256": sha256_file(DIAGNOSTIC_CONTRACT_PATH),
         "summary": summary,
+        "mechanism_results": mechanism_results,
+        "eligible_mechanisms": eligible,
         "guardrails": {
             "mechanism_neutral": True,
             "strategy_performance_evaluated": False,
@@ -843,6 +975,162 @@ def _mechanism_neutral_diagnostic(
         "created_at": dataset["created_at"],
         "authorization": RESEARCH_AUTHORIZATION,
     }
+
+
+def _forward_mechanism_results(
+    daily: list[dict[str, Any]],
+    contract: dict[str, Any],
+) -> list[dict[str, Any]]:
+    gates_contract = contract["predictive_gates"]
+    results: list[dict[str, Any]] = []
+    for mechanism in contract["mechanisms"]:
+        lookback = int(mechanism["lookback_days"])
+        threshold = Decimal(str(mechanism["thresholds"]["primary"]))
+        labeled: list[dict[str, Any]] = []
+        for index in range(lookback, len(daily) - 1):
+            current = daily[index]
+            history = daily[index - lookback : index]
+            if mechanism["feature"] == "DAILY_VOLUME_TO_PRIOR_20D_MEDIAN":
+                denominator = _decimal_median([Decimal(str(item["volume"])) for item in history])
+                numerator = Decimal(str(current["volume"]))
+            elif mechanism["feature"] == "DAILY_RANGE_PCT_TO_PRIOR_20D_MEDIAN":
+                historical_ranges = [
+                    (Decimal(str(item["high"])) - Decimal(str(item["low"])))
+                    / Decimal(str(item["open"]))
+                    for item in history
+                ]
+                denominator = _decimal_median(historical_ranges)
+                numerator = (
+                    Decimal(str(current["high"])) - Decimal(str(current["low"]))
+                ) / Decimal(str(current["open"]))
+            else:
+                raise ValueError(f"unsupported forward diagnostic feature: {mechanism['feature']}")
+            ratio = Decimal("0") if denominator <= 0 else numerator / denominator
+            next_return = (
+                Decimal(str(daily[index + 1]["close"]))
+                / Decimal(str(current["close"]))
+                - Decimal("1")
+            ) * Decimal("100")
+            labeled.append(
+                {
+                    "event": ratio >= threshold,
+                    "ratio": ratio,
+                    "next_return": next_return,
+                    "month": str(daily[index + 1]["day"])[:7],
+                }
+            )
+        events = [item for item in labeled if item["event"]]
+        non_events = [item for item in labeled if not item["event"]]
+        midpoint = len(labeled) // 2
+        first_events = [item for item in labeled[:midpoint] if item["event"]]
+        first_non_events = [item for item in labeled[:midpoint] if not item["event"]]
+        second_events = [item for item in labeled[midpoint:] if item["event"]]
+        second_non_events = [item for item in labeled[midpoint:] if not item["event"]]
+
+        event_median = _optional_median([item["next_return"] for item in events])
+        non_event_median = _optional_median([item["next_return"] for item in non_events])
+        delta = (
+            event_median - non_event_median
+            if event_median is not None and non_event_median is not None
+            else None
+        )
+        first_delta = _median_delta(first_events, first_non_events)
+        second_delta = _median_delta(second_events, second_non_events)
+        coverage = (
+            Decimal(len(events)) / Decimal(len(labeled)) * Decimal("100")
+            if labeled
+            else Decimal("0")
+        )
+        positive_share = (
+            Decimal(sum(item["next_return"] > 0 for item in events))
+            / Decimal(len(events))
+            * Decimal("100")
+            if events
+            else Decimal("0")
+        )
+        month_positive: dict[str, Decimal] = {}
+        for item in events:
+            if item["next_return"] > 0:
+                month_positive[item["month"]] = month_positive.get(
+                    item["month"], Decimal("0")
+                ) + item["next_return"]
+        positive_total = sum(month_positive.values(), Decimal("0"))
+        top_month = (
+            max(month_positive.values()) / positive_total * Decimal("100")
+            if positive_total > 0
+            else Decimal("100")
+        )
+        gates = {
+            "minimum_observations": len(daily) >= int(contract["minimum_observations"]),
+            "minimum_labeled_events": len(events)
+            >= int(gates_contract["minimum_labeled_events"]),
+            "minimum_events_per_half": len(first_events)
+            >= int(gates_contract["minimum_events_per_half"])
+            and len(second_events) >= int(gates_contract["minimum_events_per_half"]),
+            "event_coverage_within_bounds": coverage
+            >= Decimal(str(gates_contract["minimum_event_coverage_pct"]))
+            and coverage <= Decimal(str(gates_contract["maximum_event_coverage_pct"])),
+            "median_next_day_return_delta": delta is not None
+            and delta
+            >= Decimal(str(gates_contract["minimum_median_next_day_return_delta_pct"])),
+            "positive_next_day_share": positive_share
+            >= Decimal(str(gates_contract["minimum_positive_next_day_share_pct"])),
+            "top_month_positive_contribution": top_month
+            <= Decimal(str(gates_contract["maximum_top_month_positive_contribution_pct"])),
+            "positive_first_half_delta": first_delta is not None and first_delta > 0,
+            "positive_second_half_delta": second_delta is not None and second_delta > 0,
+        }
+        statistics = {
+            "labeled_day_count": len(labeled),
+            "labeled_event_count": len(events),
+            "first_half_event_count": len(first_events),
+            "second_half_event_count": len(second_events),
+            "event_coverage_pct": _metric_text(coverage),
+            "median_event_next_day_return_pct": _optional_metric(event_median),
+            "median_non_event_next_day_return_pct": _optional_metric(non_event_median),
+            "median_next_day_return_delta_pct": _optional_metric(delta),
+            "first_half_median_delta_pct": _optional_metric(first_delta),
+            "second_half_median_delta_pct": _optional_metric(second_delta),
+            "positive_event_next_day_share_pct": _metric_text(positive_share),
+            "top_month_positive_contribution_pct": _metric_text(top_month),
+        }
+        results.append(
+            {
+                "mechanism_key": mechanism["key"],
+                "feature": mechanism["feature"],
+                "lookback_days": lookback,
+                "thresholds": mechanism["thresholds"],
+                "statistics": statistics,
+                "predictive_gates": gates,
+                "all_predictive_gates_pass": all(gates.values()),
+            }
+        )
+    return results
+
+
+def _decimal_median(values: list[Decimal]) -> Decimal:
+    ordered = sorted(values)
+    midpoint = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[midpoint]
+    return (ordered[midpoint - 1] + ordered[midpoint]) / Decimal("2")
+
+
+def _optional_median(values: list[Decimal]) -> Decimal | None:
+    return _decimal_median(values) if values else None
+
+
+def _median_delta(
+    events: list[dict[str, Any]],
+    non_events: list[dict[str, Any]],
+) -> Decimal | None:
+    event = _optional_median([item["next_return"] for item in events])
+    non_event = _optional_median([item["next_return"] for item in non_events])
+    return event - non_event if event is not None and non_event is not None else None
+
+
+def _optional_metric(value: Decimal | None) -> str | None:
+    return None if value is None else _metric_text(value)
 
 
 def _percentile(values: list[Decimal], percentile: int) -> Decimal:

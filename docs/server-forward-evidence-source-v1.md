@@ -39,6 +39,8 @@ single Codex cloud Ops schedule
   -> research_pipeline ingest-evidence-day
   -> canonical hash chain
   -> on the final day, deterministic dataset / diagnostic / manifest / review
+  -> discovery: one supported mechanism or sealed NO_CANDIDATE
+  -> candidate: separate sealed OOS window with no early market-path summary
 ```
 
 The source runs as a separate `agora-evidence-source` Unix identity. It may:
@@ -81,8 +83,14 @@ the bundle from those rows, revalidates the existing
 `evidence-day.schema.json` contract and appends the canonical SHA-256 chain.
 When that append completes the frozen window, the same intake seals a
 mechanism-neutral market-path diagnostic, typed evidence manifest, and ready
-review. It does not map a strategy or evaluate strategy PnL; Codex remains the
-hypothesis selector on the next cloud step.
+review. For the frozen 90-day discovery trigger, the diagnostic evaluates only
+the preregistered mechanism tests in
+`research_pipeline/forward-diagnostic-contract.v1.json`; it does not calculate
+strategy PnL. Codex may select only the single passing mechanism exposed by
+canonical status. If none passes, the review closes and is reported on the next
+heartbeat. A later candidate uses the same source transport through a distinct
+candidate-bound OOS trigger; its sealed review hides market-path summaries
+until the complete OOS window is ready.
 
 ## Activation gate
 

@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .corpus import SELECTION_CORPUS_ID, SELECTION_CORPUS_RELATIVE_PATH
+
 
 @dataclass(frozen=True)
 class AdapterSpec:
@@ -76,6 +78,20 @@ ADAPTERS = {
         selection_cutoff="2025-01-01T00:00:00Z",
         candidate_variants=1,
         description="Frozen one-slot profitable-incumbent fresh-signal rotation diagnostic",
+    ),
+    "dra-forward-entry-admission-v1": AdapterSpec(
+        key="dra-forward-entry-admission-v1",
+        runner="btc_dra_forward_entry_admission_v1.py",
+        initial_action="preselect",
+        supports_oos=True,
+        selection_cutoff="2025-01-01T00:00:00Z",
+        candidate_variants=3,
+        description=(
+            "Evidence-bound DRA V1 volume/range entry-admission candidate with "
+            "one primary threshold, two frozen neighbors, and sealed future OOS"
+        ),
+        forward_candidate_eligible=True,
+        required_corpus_id=SELECTION_CORPUS_ID,
     ),
 }
 
@@ -175,6 +191,45 @@ def build_run(
         command.extend(["--output", str(artifact_path)])
     elif spec.key == "one-slot-signal-rotation-v1" and action == "diagnostic":
         command.extend(["--output", str(artifact_path)])
+    elif spec.key == "dra-forward-entry-admission-v1" and action == "preselect":
+        state_root = artifact_dir.parents[2]
+        manifest_path = artifact_dir.parent / "manifest.json"
+        command.extend(
+            [
+                "preselect",
+                "--manifest",
+                str(manifest_path),
+                "--input",
+                str(state_root / SELECTION_CORPUS_RELATIVE_PATH),
+                "--output",
+                str(artifact_path),
+            ]
+        )
+    elif spec.key == "dra-forward-entry-admission-v1" and action == "oos":
+        state_root = artifact_dir.parents[2]
+        preselect = artifact_dir / "preselect.json"
+        if not preselect.is_file():
+            raise ValueError("sealed preselect artifact is missing")
+        oos_dataset = Path(str(state.get("oos_dataset_path", ""))).resolve()
+        try:
+            oos_dataset.relative_to(state_root.resolve())
+        except ValueError as error:
+            raise ValueError("sealed OOS dataset path escapes research state") from error
+        if not oos_dataset.is_file():
+            raise ValueError("sealed OOS dataset is not ready")
+        command.extend(
+            [
+                "oos",
+                "--manifest",
+                str(artifact_dir.parent / "manifest.json"),
+                "--preselect",
+                str(preselect),
+                "--input",
+                str(oos_dataset),
+                "--output",
+                str(artifact_path),
+            ]
+        )
     else:
         raise ValueError(f"unsupported adapter action: {spec.key}/{action}")
     return AdapterRun(

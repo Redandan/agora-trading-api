@@ -48,6 +48,8 @@ def run_heartbeat_cycle(
         events.append(_integrity_event_for_tick(store, tick_result))
     elif tick_executed and research_status == "CLOSED":
         events.append(_material_learning_event(store, tick_result))
+    elif tick_executed and research_status == "OOS_READY":
+        events.append(_candidate_frozen_event(store, tick_result))
     elif research_changed and research_status == "EVIDENCE_SOURCE_UNBOUND":
         events.append(_evidence_source_unbound_event(store, tick_result))
     elif research_changed and research_status == "EVIDENCE_CAPTURE_MISSED":
@@ -56,6 +58,9 @@ def run_heartbeat_cycle(
         events.append(_evidence_due_event(store, tick_result))
     elif research_changed and research_status == "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS":
         events.append(_evidence_ready_event(store, tick_result))
+
+    review_events, announced_reviews = _new_closed_evidence_review_events(store, state)
+    events.extend(review_events)
 
     due = _schedule(now, state, tick_result)
     report_events: list[dict[str, Any]] = []
@@ -115,6 +120,7 @@ def run_heartbeat_cycle(
             },
             "consecutive_failures": 0,
             "last_research_fingerprint": research_fingerprint,
+            "announced_closed_evidence_reviews": announced_reviews,
             "last_result": {
                 "research_status": research_status,
                 "trigger_id": tick_result.get("trigger_id"),
@@ -226,6 +232,7 @@ def _load_state(store: ResearchStore, *, verify_schema: bool = True) -> dict[str
             "consecutive_failures": 0,
             "last_failure": None,
             "last_research_fingerprint": None,
+            "announced_closed_evidence_reviews": {},
             "last_result": None,
         }
     state = read_json(path)
@@ -524,6 +531,134 @@ def _evidence_ready_event(store: ResearchStore, result: dict[str, Any]) -> dict[
     }
 
 
+def _new_closed_evidence_review_events(
+    store: ResearchStore,
+    heartbeat_state: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    """Surface source-ingest review closures once on the next heartbeat.
+
+    The forward source can seal the final observation and deterministic review
+    outside the heartbeat lock.  Without this durable scan, a CLOSE outcome
+    disappears from the actionable queue before the Coach outbox can see it.
+    """
+
+    raw_announced = heartbeat_state.get("announced_closed_evidence_reviews")
+    announced = (
+        {str(key): str(value) for key, value in raw_announced.items()}
+        if isinstance(raw_announced, dict)
+        else {}
+    )
+    previous_success = heartbeat_state.get("last_success")
+    previous_success_at = (
+        parse_timestamp(str(previous_success), "heartbeat last_success").astimezone(
+            timezone.utc
+        )
+        if previous_success
+        else None
+    )
+    pending: list[tuple[datetime, str, str, dict[str, Any]]] = []
+    for trigger, trigger_state in store.evidence_trigger_entries():
+        reviews = trigger_state.get("reviews")
+        if not isinstance(reviews, list):
+            continue
+        for reference in reviews:
+            if not isinstance(reference, dict) or reference.get("outcome") != "CLOSE":
+                continue
+            relative = str(reference.get("path") or "")
+            expected_hash = str(reference.get("sha256") or "")
+            path = (store.root / relative).resolve()
+            try:
+                path.relative_to(store.root)
+            except ValueError as error:
+                raise ValueError("closed evidence review path escapes research state") from error
+            if not path.is_file() or sha256_file(path) != expected_hash:
+                raise ValueError("sealed closed evidence review changed or disappeared")
+            review = read_json(path)
+            if review.get("outcome") != "CLOSE":
+                raise ValueError("closed evidence review reference outcome mismatch")
+            reviewed_at = parse_timestamp(
+                str(review.get("reviewed_at")), "evidence reviewed_at"
+            ).astimezone(timezone.utc)
+            trigger_id = str(trigger["trigger_id"])
+            if announced.get(trigger_id) == expected_hash:
+                continue
+            # On upgrade, adopt old sealed reviews without replaying stale Coach events.
+            if previous_success_at is not None and reviewed_at <= previous_success_at:
+                announced[trigger_id] = expected_hash
+                continue
+            pending.append(
+                (
+                    reviewed_at,
+                    trigger_id,
+                    expected_hash,
+                    {
+                        "event_type": "MATERIAL_LEARNING",
+                        "artifact_path": _relative(store, path),
+                        "sha256": expected_hash,
+                        "research_status": "NO_CANDIDATE_FORWARD_DIAGNOSTIC",
+                        "material_conclusion": str(
+                            review.get("conclusion")
+                            or "No preregistered mechanism passed the frozen diagnostic gates."
+                        ),
+                        "pnl_drawdown_evidence": None,
+                        "evidence_diagnostic": (trigger_state.get("detail") or {}).get(
+                            "diagnostic_summary"
+                        ),
+                        "uncertainty": (
+                            "The closed discovery window tested only its preregistered "
+                            "mechanisms and is not strategy OOS evidence."
+                        ),
+                        "next_action": (
+                            "KEEP_THE_BRANCH_CLOSED_AND_WAIT_FOR_A_NEW_PREREGISTERED_"
+                            "MECHANISM_OR_UNTOUCHED_DATA_WINDOW"
+                        ),
+                        "concept_to_teach": (
+                            "A clean no-candidate result prevents post-hoc tuning and is "
+                            "useful progress, not a stalled pipeline."
+                        ),
+                    },
+                )
+            )
+    pending.sort(key=lambda item: (item[0], item[3]["artifact_path"]))
+    selected = pending[:8]
+    for _, trigger_id, expected_hash, _ in selected:
+        announced[trigger_id] = expected_hash
+    return [event for _, _, _, event in selected], announced
+
+
+def _candidate_frozen_event(
+    store: ResearchStore,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    experiment_id = str(result["experiment_id"])
+    state = store.load_state(experiment_id)
+    relative = state.get("artifacts", {}).get("preselect")
+    if not isinstance(relative, str):
+        return _integrity_event_for_tick(
+            store,
+            {**result, "reason": "MISSING_SEALED_PRESELECTION"},
+        )
+    path = store.root / relative
+    return {
+        "event_type": "MATERIAL_LEARNING",
+        "artifact_path": _relative(store, path),
+        "sha256": sha256_file(path),
+        "research_status": "CANDIDATE_FROZEN_OOS_SEALED_WAIT",
+        "material_conclusion": (
+            "One evidence-bound candidate passed its frozen Design and Validation gates; "
+            "its independent future OOS remains sealed and unopened."
+        ),
+        "pnl_drawdown_evidence": _performance_evidence(store, experiment_id),
+        "evidence_diagnostic": None,
+        "uncertainty": "Passing historical gates is not OOS evidence or activation authority.",
+        "next_action": "WAIT_FOR_COMPLETE_SEALED_CANDIDATE_OOS_WITHOUT_CHANGING_GATES",
+        "concept_to_teach": (
+            "A frozen candidate is a promise about what will be tested, not proof that the "
+            "strategy generalizes."
+        ),
+    }
+
+
 def _report_event(
     store: ResearchStore,
     record: dict[str, Any],
@@ -574,6 +709,13 @@ def _next_action(result: dict[str, Any]) -> str:
         return "PERFORM_ONE_FROZEN_READ_ONLY_EVIDENCE_REVIEW"
     if status == "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS":
         return "PROPOSE_AT_MOST_ONE_HYPOTHESIS_FROM_SEALED_EVIDENCE"
+    if status == "WAITING_FOR_CANDIDATE_OOS":
+        progress = result.get("evidence_progress", {})
+        return (
+            f"SEAL_NEXT_CANDIDATE_OOS_DAY_BY_{progress.get('next_capture_deadline')}"
+            if progress.get("status") == "CAPTURE_DUE"
+            else f"WAIT_FOR_COMPLETE_SEALED_CANDIDATE_OOS_UNTIL_{progress.get('next_capture_deadline')}"
+        )
     if status == "READY_HYPOTHESIS_REQUIRES_FROZEN_MANIFEST":
         return "FREEZE_VALIDATE_AND_REGISTER_THE_SELECTED_HYPOTHESIS_MANIFEST"
     if status in {"BLOCKED", "FAILED"}:

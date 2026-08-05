@@ -177,6 +177,16 @@ delivery id before removing the pending event. Repeated verified receipts are
 idempotent; unverified or unknown receipts fail closed. An unavailable or
 mismatched artifact makes the outbox `COACH_OUTBOX_INVALID`.
 
+Each newly queued Coach event also freezes a queue timestamp and the next
+normal daily cloud cycle's bounded three-hour completion window as its
+delivery-proof deadline. Canonical status reports signed time remaining,
+`PENDING_WITHIN_SLA`, or
+`BREACH_PENDING_DELIVERY_PROOF`. When the next due heartbeat accepts a verified
+task-readback receipt, canonical state preserves the queue time, deadline,
+acknowledgement time, integer lead time, and `PASS` or `BREACH`. Untimed legacy
+events or receipts remain explicit `MISSING_PROOF`; no task output or chat
+history may synthesize the missing clock.
+
 The dispatch path watches both `pending.json` and an interrupted
 `running.json`. The oneshot restarts only after an abnormal process stop and
 resumes the same schema-bound request idempotently, preserving its original
@@ -240,6 +250,9 @@ The systemd path unit is an event consumer, not an additional schedule.
   readback, while only a verified receipt on the next due heartbeat can
   acknowledge it and target unavailability remains pending rather than adding
   a timer or messenger;
+- canonical status measures queue-to-verified-receipt proof against the next
+  normal cloud cycle's bounded three-hour completion window, preserves `PASS`
+  or `BREACH`, and exposes legacy timing as `MISSING_PROOF`;
 - canonical status returns a clean, hash-verified Worker release and Git commit;
 - server verification proves the unprivileged Worker identity can read and
   validate that release provenance, every manifest-listed file, and the exact

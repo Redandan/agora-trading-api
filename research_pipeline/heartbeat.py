@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -25,6 +26,11 @@ COACH_DELIVERY_STATUSES = {
 MAX_COACH_PENDING_EVENTS = 32
 MAX_COACH_DELIVERED_RECEIPTS = 256
 MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
+COACH_DELIVERY_PROOF_CYCLE_WINDOW = timedelta(hours=3)
+COACH_DELIVERY_EVENT_TIMING_FIELDS = {
+    "delivery_queued_at",
+    "delivery_deadline_at",
+}
 
 
 def parse_heartbeat_now(value: str | None) -> datetime:
@@ -320,7 +326,11 @@ def _advance_coach_delivery(
     if len(delivered) > MAX_COACH_DELIVERED_RECEIPTS:
         raise ValueError("coach delivered receipt count exceeds the bounded limit")
 
-    pending_by_id = {_event_delivery_id(event): event for event in pending}
+    pending_by_id: dict[str, dict[str, Any]] = {}
+    for event in pending:
+        delivery_id = _event_delivery_id(event)
+        _validate_pending_coach_event_timing(event)
+        pending_by_id[delivery_id] = event
     delivered_by_id = {_receipt_delivery_id(receipt): receipt for receipt in delivered}
     if len(pending_by_id) != len(pending) or len(delivered_by_id) != len(delivered):
         raise ValueError("coach delivery state contains duplicate delivery ids")
@@ -340,11 +350,40 @@ def _advance_coach_delivery(
             continue
         if delivery_id not in pending_by_id:
             raise ValueError("coach delivery receipt does not match a canonical pending event")
+        pending_event = pending_by_id[delivery_id]
         pending = [event for event in pending if _event_delivery_id(event) != delivery_id]
         pending_by_id.pop(delivery_id)
+        queued_text = pending_event.get("delivery_queued_at")
+        deadline_text = pending_event.get("delivery_deadline_at")
+        if isinstance(queued_text, str) and isinstance(deadline_text, str):
+            queued_at = parse_timestamp(queued_text, "delivery_queued_at").astimezone(
+                timezone.utc
+            )
+            deadline_at = parse_timestamp(
+                deadline_text, "delivery_deadline_at"
+            ).astimezone(timezone.utc)
+            if deadline_at <= queued_at:
+                raise ValueError("coach delivery deadline must be after queued_at")
+            if now < queued_at:
+                raise ValueError("coach delivery receipt predates queued_at")
+            delivery_proof_lead_time_seconds: int | None = math.ceil(
+                (now - queued_at).total_seconds()
+            )
+            delivery_proof_sla = "PASS" if now <= deadline_at else "BREACH"
+        elif queued_text is None and deadline_text is None:
+            queued_text = None
+            deadline_text = None
+            delivery_proof_lead_time_seconds = None
+            delivery_proof_sla = "MISSING_PROOF_LEGACY_EVENT"
+        else:
+            raise ValueError("coach delivery event timing metadata is incomplete")
         sealed_receipt = {
             **receipt,
             "acknowledged_at": _iso_utc(now),
+            "delivery_queued_at": queued_text,
+            "delivery_deadline_at": deadline_text,
+            "delivery_proof_lead_time_seconds": delivery_proof_lead_time_seconds,
+            "delivery_proof_sla": delivery_proof_sla,
         }
         delivered.append(sealed_receipt)
         delivered_by_id[delivery_id] = sealed_receipt
@@ -356,12 +395,21 @@ def _advance_coach_delivery(
             continue
         existing = pending_by_id.get(delivery_id)
         if existing is not None:
-            if _canonical_json(existing) != _canonical_json(event):
+            existing_payload = {
+                key: value
+                for key, value in existing.items()
+                if key not in COACH_DELIVERY_EVENT_TIMING_FIELDS
+            }
+            if _canonical_json(existing_payload) != _canonical_json(event):
                 raise ValueError("coach pending event changed under the same delivery id")
             continue
         if len(pending) >= MAX_COACH_PENDING_EVENTS:
             raise ValueError("coach delivery pending event count exceeds the bounded limit")
-        sealed_event = dict(event)
+        sealed_event = {
+            **event,
+            "delivery_queued_at": _iso_utc(now),
+            "delivery_deadline_at": _iso_utc(_coach_delivery_deadline(now)),
+        }
         pending.append(sealed_event)
         pending_by_id[delivery_id] = sealed_event
 
@@ -416,12 +464,91 @@ def _event_delivery_id(event: Any) -> str:
     return delivery_id
 
 
+def _validate_pending_coach_event_timing(event: dict[str, Any]) -> None:
+    queued_text = event.get("delivery_queued_at")
+    deadline_text = event.get("delivery_deadline_at")
+    if queued_text is None and deadline_text is None:
+        return
+    if not isinstance(queued_text, str) or not isinstance(deadline_text, str):
+        raise ValueError("coach pending event timing metadata is incomplete")
+    queued_at = parse_timestamp(queued_text, "delivery_queued_at").astimezone(
+        timezone.utc
+    )
+    deadline_at = parse_timestamp(
+        deadline_text, "delivery_deadline_at"
+    ).astimezone(timezone.utc)
+    if deadline_at != _coach_delivery_deadline(queued_at):
+        raise ValueError(
+            "coach pending event deadline is not the next cloud cycle completion"
+        )
+
+
 def _receipt_delivery_id(receipt: Any) -> str:
     if not isinstance(receipt, dict):
         raise ValueError("coach delivered receipt must be an object")
     delivery_id = receipt.get("delivery_id")
     if not isinstance(delivery_id, str) or not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
         raise ValueError("coach delivered receipt id is invalid")
+    legacy_fields = {
+        "schema_version",
+        "delivery_id",
+        "delivery_token",
+        "target_thread_id",
+        "delivery_status",
+        "acknowledged_at",
+    }
+    proof_fields = {
+        "delivery_queued_at",
+        "delivery_deadline_at",
+        "delivery_proof_lead_time_seconds",
+        "delivery_proof_sla",
+    }
+    receipt_fields = frozenset(receipt)
+    if receipt_fields not in {
+        frozenset(legacy_fields),
+        frozenset(legacy_fields | proof_fields),
+    }:
+        raise ValueError("coach delivered receipt fields are invalid")
+    if receipt.get("schema_version") != "1":
+        raise ValueError("coach delivered receipt schema_version is invalid")
+    if receipt.get("delivery_token") != f"{COACH_DELIVERY_TOKEN_PREFIX}{delivery_id}":
+        raise ValueError("coach delivered receipt token is invalid")
+    if receipt.get("target_thread_id") != COACH_TASK_ID:
+        raise ValueError("coach delivered receipt target is invalid")
+    if receipt.get("delivery_status") not in COACH_DELIVERY_STATUSES:
+        raise ValueError("coach delivered receipt status is invalid")
+    acknowledged_at = parse_timestamp(
+        str(receipt.get("acknowledged_at")), "acknowledged_at"
+    ).astimezone(timezone.utc)
+    if proof_fields.issubset(receipt):
+        proof_sla = receipt.get("delivery_proof_sla")
+        queued_text = receipt.get("delivery_queued_at")
+        deadline_text = receipt.get("delivery_deadline_at")
+        lead_time = receipt.get("delivery_proof_lead_time_seconds")
+        if proof_sla == "MISSING_PROOF_LEGACY_EVENT":
+            if any(value is not None for value in (queued_text, deadline_text, lead_time)):
+                raise ValueError("legacy coach delivery proof fields are inconsistent")
+        elif proof_sla in {"PASS", "BREACH"}:
+            if not isinstance(queued_text, str) or not isinstance(deadline_text, str):
+                raise ValueError("coach delivered receipt timing is invalid")
+            queued_at = parse_timestamp(
+                queued_text, "delivery_queued_at"
+            ).astimezone(timezone.utc)
+            deadline_at = parse_timestamp(
+                deadline_text, "delivery_deadline_at"
+            ).astimezone(timezone.utc)
+            expected_lead = math.ceil((acknowledged_at - queued_at).total_seconds())
+            expected_sla = "PASS" if acknowledged_at <= deadline_at else "BREACH"
+            if (
+                deadline_at != _coach_delivery_deadline(queued_at)
+                or not isinstance(lead_time, int)
+                or lead_time < 0
+                or lead_time != expected_lead
+                or proof_sla != expected_sla
+            ):
+                raise ValueError("coach delivered receipt proof SLA is inconsistent")
+        else:
+            raise ValueError("coach delivered receipt proof SLA status is invalid")
     return delivery_id
 
 
@@ -558,6 +685,10 @@ def _next_daily(now: datetime) -> datetime:
     if candidate <= local:
         candidate += timedelta(days=1)
     return candidate.astimezone(timezone.utc)
+
+
+def _coach_delivery_deadline(now: datetime) -> datetime:
+    return _next_daily(now) + COACH_DELIVERY_PROOF_CYCLE_WINDOW
 
 
 def _weekly_period(value: date) -> str:

@@ -288,6 +288,17 @@ Coach-task delivery, and this path must not be replaced by a second timer or an
 unapproved messaging service. The first real material event from a cloud cycle
 is still required to prove the next-cycle Coach-thread SLA.
 
+That SLA is measured conservatively from canonical outbox enqueue to canonical
+acceptance of a verified task-readback receipt. A new event freezes
+`delivery_queued_at` and the end of the next normal daily cloud cycle's bounded
+three-hour completion window as `delivery_deadline_at`. Pending status exposes
+signed seconds and becomes
+`BREACH_PENDING_DELIVERY_PROOF` immediately after the deadline. Acceptance
+preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
+`BREACH`; untimed legacy events and receipts remain explicit `MISSING_PROOF`
+instead of being reconstructed. This measurement does not replace the required
+first-real-event proof.
+
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,
 mechanism-neutral diagnostic, evidence manifest, and ready review immediately

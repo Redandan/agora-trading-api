@@ -36,7 +36,7 @@ from research_pipeline.forward_candidate import (
     discovery_candidate_context,
 )
 from research_pipeline.models import RESEARCH_AUTHORIZATION
-from research_pipeline.heartbeat import run_heartbeat_cycle
+from research_pipeline.heartbeat import _advance_coach_delivery, run_heartbeat_cycle
 from research_pipeline.policy import load_policy, policy_sha256
 from research_pipeline.storage import ResearchStore, atomic_write_json, sha256_file
 from research_pipeline.waiting import build_evidence_review, build_evidence_trigger
@@ -1348,6 +1348,15 @@ class EvidenceManifestContractTest(unittest.TestCase):
             delivery_id,
             [event["sha256"] for event in state["coach_delivery"]["pending_events"]],
         )
+        pending_event = next(
+            event
+            for event in state["coach_delivery"]["pending_events"]
+            if event["sha256"] == delivery_id
+        )
+        self.assertEqual(pending_event["delivery_queued_at"], "2025-12-31T12:00:00Z")
+        self.assertEqual(
+            pending_event["delivery_deadline_at"], "2026-01-01T04:00:00Z"
+        )
 
         routine = run_heartbeat_cycle(
             self.store,
@@ -1384,6 +1393,17 @@ class EvidenceManifestContractTest(unittest.TestCase):
             delivery_id,
             [event["sha256"] for event in state["coach_delivery"]["pending_events"]],
         )
+        delivered = next(
+            item
+            for item in state["coach_delivery"]["delivered_receipts"]
+            if item["delivery_id"] == delivery_id
+        )
+        self.assertEqual(delivered["delivery_proof_sla"], "PASS")
+        self.assertEqual(delivered["delivery_proof_lead_time_seconds"], 7200)
+        self.assertEqual(delivered["delivery_queued_at"], "2025-12-31T12:00:00Z")
+        self.assertEqual(
+            delivered["delivery_deadline_at"], "2026-01-01T04:00:00Z"
+        )
 
         repeated = run_heartbeat_cycle(
             self.store,
@@ -1410,6 +1430,88 @@ class EvidenceManifestContractTest(unittest.TestCase):
                     }
                 ],
             )
+
+    def test_coach_delivery_proof_sla_breach_and_legacy_are_preserved(self) -> None:
+        target = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+        delivery_id = "a" * 64
+        receipt = {
+            "schema_version": "1",
+            "delivery_id": delivery_id,
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+            "target_thread_id": target,
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+        }
+        state: dict[str, object] = {}
+        _advance_coach_delivery(
+            state,
+            receipts=[],
+            new_events=[{"sha256": delivery_id}],
+            now=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+        _advance_coach_delivery(
+            state,
+            receipts=[receipt],
+            new_events=[],
+            now=datetime(2026, 1, 1, 4, 0, 1, tzinfo=timezone.utc),
+        )
+        breached = state["coach_delivery"]["delivered_receipts"][0]
+        self.assertEqual(breached["delivery_proof_sla"], "BREACH")
+        self.assertEqual(breached["delivery_proof_lead_time_seconds"], 57601)
+        tampered_receipt_state = copy.deepcopy(state)
+        tampered_receipt_state["coach_delivery"]["delivered_receipts"][0][
+            "delivery_proof_lead_time_seconds"
+        ] += 1
+        with self.assertRaisesRegex(ValueError, "proof SLA"):
+            _advance_coach_delivery(
+                tampered_receipt_state,
+                receipts=[],
+                new_events=[],
+                now=datetime(2026, 1, 1, 2, tzinfo=timezone.utc),
+            )
+
+        pending_state: dict[str, object] = {}
+        _advance_coach_delivery(
+            pending_state,
+            receipts=[],
+            new_events=[{"sha256": "c" * 64}],
+            now=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+        pending_state["coach_delivery"]["pending_events"][0][
+            "delivery_deadline_at"
+        ] = "2026-01-01T02:00:00Z"
+        with self.assertRaisesRegex(ValueError, "next cloud cycle"):
+            _advance_coach_delivery(
+                pending_state,
+                receipts=[],
+                new_events=[],
+                now=datetime(2025, 12, 31, 13, tzinfo=timezone.utc),
+            )
+
+        legacy_id = "b" * 64
+        legacy_state = {
+            "coach_delivery": {
+                "schema_version": "1",
+                "pending_events": [{"sha256": legacy_id}],
+                "delivered_receipts": [],
+            }
+        }
+        _advance_coach_delivery(
+            legacy_state,
+            receipts=[
+                {
+                    **receipt,
+                    "delivery_id": legacy_id,
+                    "delivery_token": f"SEALED_RESEARCH_DELIVERY:{legacy_id}",
+                }
+            ],
+            new_events=[],
+            now=datetime(2026, 1, 1, 1, tzinfo=timezone.utc),
+        )
+        legacy = legacy_state["coach_delivery"]["delivered_receipts"][0]
+        self.assertEqual(
+            legacy["delivery_proof_sla"], "MISSING_PROOF_LEGACY_EVENT"
+        )
+        self.assertIsNone(legacy["delivery_proof_lead_time_seconds"])
 
     def test_candidate_bundle_registers_atomically_with_24h_sla(self) -> None:
         bundle, policy = self._ready_candidate_bundle()

@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -120,6 +120,7 @@ MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
 MAX_COACH_DELIVERED_RECEIPTS = 256
 CANDIDATE_AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
 COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+COACH_DELIVERY_PROOF_CYCLE_WINDOW = timedelta(hours=3)
 COACH_EVENT_TYPES = {
     "MATERIAL_LEARNING",
     "WEEKLY_BRIEF_READY",
@@ -403,7 +404,11 @@ def _installed_source_tree_summary(manifest_bytes: bytes) -> dict[str, Any]:
     }
 
 
-def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
+def _coach_outbox(
+    coach_delivery: Any,
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     if coach_delivery is None:
         return {"status": "IDLE", "coach_task_id": COACH_TASK_ID}
     if not isinstance(coach_delivery, dict) or coach_delivery.get("schema_version") != "1":
@@ -427,11 +432,13 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
             "coach_task_id": COACH_TASK_ID,
             "reason": receipt_error,
         }
+    proof_sla_summary = _delivery_proof_sla_summary(receipts)
     if not events:
         return {
             "status": "IDLE",
             "coach_task_id": COACH_TASK_ID,
             "delivered_receipt_count": len(receipts),
+            "delivery_proof_sla": proof_sla_summary,
         }
     if len(events) > MAX_COACH_PENDING_EVENTS:
         return {
@@ -440,6 +447,7 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
             "reason": "event count exceeds the bounded outbox limit",
         }
 
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     verified: list[dict[str, Any]] = []
     delivery_ids: set[str] = set()
     state_root = STATE_DIR.resolve()
@@ -461,6 +469,35 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
             return _coach_outbox_error(index, "delivery id is duplicated")
         if expected_hash in receipt_ids:
             return _coach_outbox_error(index, "delivery id is both pending and delivered")
+        queued_text = raw_event.get("delivery_queued_at")
+        deadline_text = raw_event.get("delivery_deadline_at")
+        if queued_text is None and deadline_text is None:
+            event_proof_sla = {
+                "status": "MISSING_PROOF_LEGACY_EVENT",
+                "seconds_to_deadline": None,
+            }
+        elif isinstance(queued_text, str) and isinstance(deadline_text, str):
+            queued_at = _parse_time(queued_text)
+            deadline_at = _parse_time(deadline_text)
+            if (
+                queued_at is None
+                or deadline_at is None
+                or deadline_at != _next_cloud_cycle_deadline(queued_at)
+            ):
+                return _coach_outbox_error(index, "delivery timing metadata is invalid")
+            seconds_to_deadline = math.floor(
+                (deadline_at - current).total_seconds()
+            )
+            event_proof_sla = {
+                "status": (
+                    "PENDING_WITHIN_SLA"
+                    if current <= deadline_at
+                    else "BREACH_PENDING_DELIVERY_PROOF"
+                ),
+                "seconds_to_deadline": seconds_to_deadline,
+            }
+        else:
+            return _coach_outbox_error(index, "delivery timing metadata is incomplete")
         artifact = (STATE_DIR / relative).resolve()
         try:
             artifact.relative_to(state_root)
@@ -498,6 +535,7 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
             "target_thread_id": COACH_TASK_ID,
             "canonical_reverification_required": True,
             "scope": "STATE_SYNC_ONLY_NO_RESEARCH_WRITE_OR_TRADING_ACTION",
+            "delivery_proof_sla": event_proof_sla,
             "event": verified_event,
         }
         delivery_prompt = (
@@ -521,6 +559,9 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
                 "delivery_token": delivery_token,
                 "delivery_prompt": delivery_prompt,
                 "artifact_verified": True,
+                "delivery_queued_at": queued_text,
+                "delivery_deadline_at": deadline_text,
+                "delivery_proof_sla": event_proof_sla,
             }
         )
     delivery_contract = EXPECTED_OPS_SCHEDULE_CONTRACT["coach_delivery"]
@@ -532,6 +573,7 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
         "event_count": len(verified),
         "pending_count": len(events),
         "delivered_receipt_count": len(receipts),
+        "delivery_proof_sla_summary": proof_sla_summary,
         "events": verified,
     }
 
@@ -539,7 +581,7 @@ def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
 def _canonical_delivered_receipt_ids(receipts: list[Any]) -> tuple[set[str], str | None]:
     if len(receipts) > MAX_COACH_DELIVERED_RECEIPTS:
         return set(), "delivered receipt count exceeds the bounded limit"
-    required = {
+    legacy_required = {
         "schema_version",
         "delivery_id",
         "delivery_token",
@@ -547,12 +589,24 @@ def _canonical_delivered_receipt_ids(receipts: list[Any]) -> tuple[set[str], str
         "delivery_status",
         "acknowledged_at",
     }
+    proof_fields = {
+        "delivery_queued_at",
+        "delivery_deadline_at",
+        "delivery_proof_lead_time_seconds",
+        "delivery_proof_sla",
+    }
     allowed_statuses = set(
         EXPECTED_OPS_SCHEDULE_CONTRACT["coach_delivery"]["verified_receipt_statuses"]
     )
     delivery_ids: set[str] = set()
     for receipt in receipts:
-        if not isinstance(receipt, dict) or set(receipt) != required:
+        if not isinstance(receipt, dict):
+            return set(), "canonical delivered receipt fields are invalid"
+        receipt_fields = frozenset(receipt)
+        if receipt_fields not in {
+            frozenset(legacy_required),
+            frozenset(legacy_required | proof_fields),
+        }:
             return set(), "canonical delivered receipt fields are invalid"
         delivery_id = str(receipt.get("delivery_id", ""))
         if not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
@@ -567,12 +621,82 @@ def _canonical_delivered_receipt_ids(receipts: list[Any]) -> tuple[set[str], str
             return set(), "canonical delivered receipt target is invalid"
         if receipt.get("delivery_status") not in allowed_statuses:
             return set(), "canonical delivered receipt status is invalid"
-        if not isinstance(receipt.get("acknowledged_at"), str) or not receipt[
-            "acknowledged_at"
-        ].endswith("Z"):
+        acknowledged_at = _parse_time(receipt.get("acknowledged_at"))
+        if acknowledged_at is None:
             return set(), "canonical delivered receipt time is invalid"
+        if proof_fields.issubset(receipt):
+            proof_sla = receipt.get("delivery_proof_sla")
+            queued_at = _parse_time(receipt.get("delivery_queued_at"))
+            deadline_at = _parse_time(receipt.get("delivery_deadline_at"))
+            lead_time = receipt.get("delivery_proof_lead_time_seconds")
+            if proof_sla == "MISSING_PROOF_LEGACY_EVENT":
+                if any(
+                    value is not None
+                    for value in (
+                        receipt.get("delivery_queued_at"),
+                        receipt.get("delivery_deadline_at"),
+                        lead_time,
+                    )
+                ):
+                    return set(), "legacy delivery proof fields are inconsistent"
+            elif proof_sla in {"PASS", "BREACH"}:
+                if (
+                    queued_at is None
+                    or deadline_at is None
+                    or deadline_at != _next_cloud_cycle_deadline(queued_at)
+                    or acknowledged_at < queued_at
+                    or not isinstance(lead_time, int)
+                    or lead_time < 0
+                ):
+                    return set(), "canonical delivery proof timing is invalid"
+                expected_lead = math.ceil(
+                    (acknowledged_at - queued_at).total_seconds()
+                )
+                expected_sla = "PASS" if acknowledged_at <= deadline_at else "BREACH"
+                if lead_time != expected_lead or proof_sla != expected_sla:
+                    return set(), "canonical delivery proof SLA is inconsistent"
+            else:
+                return set(), "canonical delivery proof SLA status is invalid"
         delivery_ids.add(delivery_id)
     return delivery_ids, None
+
+
+def _delivery_proof_sla_summary(receipts: list[Any]) -> dict[str, Any]:
+    counts = {"PASS": 0, "BREACH": 0, "MISSING_PROOF": 0}
+    latest: dict[str, Any] | None = None
+    latest_at: datetime | None = None
+    for receipt in receipts:
+        if not isinstance(receipt, dict):
+            continue
+        status = receipt.get("delivery_proof_sla")
+        if status == "PASS":
+            counts["PASS"] += 1
+        elif status == "BREACH":
+            counts["BREACH"] += 1
+        else:
+            counts["MISSING_PROOF"] += 1
+        acknowledged_at = _parse_time(receipt.get("acknowledged_at"))
+        if acknowledged_at is not None and (
+            latest_at is None or acknowledged_at >= latest_at
+        ):
+            latest_at = acknowledged_at
+            latest = {
+                "delivery_id": receipt.get("delivery_id"),
+                "acknowledged_at": receipt.get("acknowledged_at"),
+                "delivery_queued_at": receipt.get("delivery_queued_at"),
+                "delivery_deadline_at": receipt.get("delivery_deadline_at"),
+                "lead_time_seconds": receipt.get(
+                    "delivery_proof_lead_time_seconds"
+                ),
+                "status": status or "MISSING_PROOF_LEGACY_RECEIPT",
+            }
+    return {
+        "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+        "pass_count": counts["PASS"],
+        "breach_count": counts["BREACH"],
+        "missing_proof_count": counts["MISSING_PROOF"],
+        "latest": latest,
+    }
 
 
 def _coach_outbox_error(index: int, reason: str) -> dict[str, Any]:
@@ -603,6 +727,18 @@ def _parse_time(value: Any) -> datetime | None:
     if parsed.tzinfo is None:
         return None
     return parsed.astimezone(timezone.utc)
+
+
+def _next_cloud_cycle(value: datetime) -> datetime:
+    current = value.astimezone(timezone.utc)
+    candidate = current.replace(hour=1, minute=0, second=0, microsecond=0)
+    if candidate <= current:
+        candidate += timedelta(days=1)
+    return candidate
+
+
+def _next_cloud_cycle_deadline(value: datetime) -> datetime:
+    return _next_cloud_cycle(value) + COACH_DELIVERY_PROOF_CYCLE_WINDOW
 
 
 def _queue_stale_seconds() -> int:
@@ -1451,7 +1587,10 @@ def research_status() -> dict[str, Any]:
         "latest_evidence_capture": source_latest,
         "latest_evidence_ingest": ingest_latest,
         "latest_heartbeat": latest,
-        "coach_outbox": _coach_outbox(heartbeat_state.get("coach_delivery")),
+        "coach_outbox": _coach_outbox(
+            heartbeat_state.get("coach_delivery"),
+            now=current,
+        ),
         "registry": registry,
     }
 

@@ -92,6 +92,17 @@ fields from chat history. Include at least `event_type`, `artifact_path`,
 Use the sealed SHA-256 as `delivery_id` and target Coach task
 `019fca63-4f8f-71e3-9d88-297bca468eb9`.
 
+Observe each event's canonical `delivery_proof_sla`. The measured clock is
+queue-to-verified-receipt proof: `delivery_queued_at` is frozen when the event
+enters the outbox and `delivery_deadline_at` is the end of the next normal
+cloud cycle's bounded three-hour completion window.
+`PENDING_WITHIN_SLA` must be delivered in the current cycle.
+`BREACH_PENDING_DELIVERY_PROOF` is an operational alert, but it still permits
+only the same single deduplicated delivery attempt. Preserve canonical signed
+seconds and the eventual `PASS` or `BREACH` lead time. Treat
+`MISSING_PROOF_LEGACY_EVENT` or `MISSING_PROOF_LEGACY_RECEIPT` as missing proof;
+never infer timing from chat history.
+
 Require `coach_outbox.delivery_contract.status=READY` and
 `contract_id=SEALED_COACH_THREAD_DELIVERY_V2`. For each event, copy the exact
 canonical `delivery_prompt`; do not reconstruct it from chat or edit its JSON.

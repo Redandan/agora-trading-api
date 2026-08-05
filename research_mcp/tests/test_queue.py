@@ -773,6 +773,81 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(envelope["event"], event)
         self.assertTrue(envelope["canonical_reverification_required"])
         self.assertTrue(outbox["events"][0]["artifact_verified"])
+        self.assertEqual(
+            outbox["events"][0]["delivery_proof_sla"]["status"],
+            "MISSING_PROOF_LEGACY_EVENT",
+        )
+
+        timed_event = {
+            **event,
+            "delivery_queued_at": "2025-12-31T12:00:00Z",
+            "delivery_deadline_at": "2026-01-01T04:00:00Z",
+        }
+        pending = queue._coach_outbox(
+            {
+                "schema_version": "1",
+                "pending_events": [timed_event],
+                "delivered_receipts": [],
+            },
+            now=datetime(2025, 12, 31, 13, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            pending["events"][0]["delivery_proof_sla"],
+            {"status": "PENDING_WITHIN_SLA", "seconds_to_deadline": 54000},
+        )
+        at_deadline = queue._coach_outbox(
+            {
+                "schema_version": "1",
+                "pending_events": [timed_event],
+                "delivered_receipts": [],
+            },
+            now=datetime(2026, 1, 1, 4, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            at_deadline["events"][0]["delivery_proof_sla"],
+            {"status": "PENDING_WITHIN_SLA", "seconds_to_deadline": 0},
+        )
+        breached = queue._coach_outbox(
+            {
+                "schema_version": "1",
+                "pending_events": [timed_event],
+                "delivered_receipts": [],
+            },
+            now=datetime(2026, 1, 1, 4, 0, 1, tzinfo=timezone.utc),
+        )
+        self.assertEqual(
+            breached["events"][0]["delivery_proof_sla"],
+            {
+                "status": "BREACH_PENDING_DELIVERY_PROOF",
+                "seconds_to_deadline": -1,
+            },
+        )
+
+        verified_receipt = {
+            "schema_version": "1",
+            "delivery_id": event["sha256"],
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{event['sha256']}",
+            "target_thread_id": queue.COACH_TASK_ID,
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+            "acknowledged_at": "2025-12-31T14:00:00Z",
+            "delivery_queued_at": "2025-12-31T12:00:00Z",
+            "delivery_deadline_at": "2026-01-01T04:00:00Z",
+            "delivery_proof_lead_time_seconds": 7200,
+            "delivery_proof_sla": "PASS",
+        }
+        delivered = queue._coach_outbox(
+            {
+                "schema_version": "1",
+                "pending_events": [],
+                "delivered_receipts": [verified_receipt],
+            },
+            now=datetime(2025, 12, 31, 14, tzinfo=timezone.utc),
+        )
+        self.assertEqual(delivered["status"], "IDLE")
+        self.assertEqual(delivered["delivery_proof_sla"]["pass_count"], 1)
+        self.assertEqual(
+            delivered["delivery_proof_sla"]["latest"]["status"], "PASS"
+        )
 
         oversized = queue._coach_outbox(
             {

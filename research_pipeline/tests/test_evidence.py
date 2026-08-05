@@ -1653,6 +1653,8 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 )
 
     def test_candidate_registration_recovers_finalize_interruption_without_duplicate_audit(self) -> None:
+        from research_mcp import queue as research_queue
+
         bundle, policy = self._ready_candidate_bundle()
         policy_path = Path(__file__).parents[1] / "policy.v3.json"
         state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
@@ -1695,10 +1697,40 @@ class EvidenceManifestContractTest(unittest.TestCase):
                     "+00:00", "Z"
                 ),
             )
+
+            requests = self.root / "requests"
+            runs = requests / "runs"
+            runs.mkdir(parents=True)
+            normalized_bundle, payload_sha256 = (
+                research_queue._validated_candidate_payload(bundle)
+            )
+            failed_request = {
+                "schema_version": "1",
+                "request_id": "c" * 32,
+                "requested_at": "2026-01-03T00:02:00Z",
+                "source": "CODEX_CLOUD_OPS",
+                "operation": "REGISTER_CANDIDATE_BUNDLE",
+                "payload": normalized_bundle,
+                "payload_sha256": payload_sha256,
+                "status": "FAILED",
+                "completed_at": "2026-01-03T00:02:01Z",
+                "exit_code": 1,
+            }
+            atomic_write_json(runs / ("c" * 32 + ".json"), failed_request)
+            with (
+                patch.object(research_queue, "STATE_DIR", self.root),
+                patch.object(research_queue, "REQUEST_DIR", requests),
+                patch.object(research_queue, "POLICY_FILE", policy_path),
+            ):
+                recovery = research_queue._candidate_registration_recovery()
+                self.assertEqual(recovery["status"], "EXACT_REPLAY_REQUIRED")
+                self.assertEqual(recovery["payload_sha256"], payload_sha256)
+                self.assertEqual(recovery["bundle"], normalized_bundle)
+
             recovered = register_candidate_bundle(
                 self.store,
                 policy,
-                bundle,
+                recovery["bundle"],
                 current_policy_hash=policy_sha256(policy_path),
                 now=ready_at + timedelta(days=3),
             )
@@ -1709,6 +1741,25 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 current_policy_hash=policy_sha256(policy_path),
                 now=ready_at + timedelta(days=4),
             )
+
+            completed_request = {
+                **failed_request,
+                "request_id": "d" * 32,
+                "status": "COMPLETED",
+                "completed_at": "2026-01-06T00:00:01Z",
+                "exit_code": 0,
+                "result": recovered,
+            }
+            atomic_write_json(runs / ("d" * 32 + ".json"), completed_request)
+            with (
+                patch.object(research_queue, "STATE_DIR", self.root),
+                patch.object(research_queue, "REQUEST_DIR", requests),
+                patch.object(research_queue, "POLICY_FILE", policy_path),
+            ):
+                self.assertEqual(
+                    research_queue._candidate_registration_recovery(),
+                    {"status": "IDLE"},
+                )
 
         self.assertEqual(recovered["status"], "CANDIDATE_BUNDLE_REGISTERED")
         self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
@@ -1737,6 +1788,90 @@ class EvidenceManifestContractTest(unittest.TestCase):
             registrations[0]["detail"]["candidate_frozen_at"],
             partial_experiment["candidate_frozen_at"],
         )
+
+    def test_candidate_registration_queue_recovers_hypothesis_only_interruption(self) -> None:
+        from research_mcp import queue as research_queue
+
+        bundle, policy = self._ready_candidate_bundle()
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        trigger_state = self.store.load_evidence_trigger_state(
+            self.trigger["trigger_id"]
+        )
+        ready_at = datetime.fromisoformat(str(trigger_state["evidence_ready_at"]))
+
+        with self._eligible_forward_test_adapter():
+            with patch.object(
+                self.store,
+                "register",
+                side_effect=RuntimeError("simulated experiment registration interruption"),
+            ):
+                with self.assertRaisesRegex(
+                    RuntimeError, "experiment registration interruption"
+                ):
+                    register_candidate_bundle(
+                        self.store,
+                        policy,
+                        bundle,
+                        current_policy_hash=policy_sha256(policy_path),
+                        now=ready_at + timedelta(minutes=2),
+                    )
+
+            hypothesis_id = str(bundle["hypothesis"]["hypothesis_id"])
+            experiment_id = str(bundle["manifest"]["experiment_id"])
+            self.assertEqual(
+                self.store.load_hypothesis(hypothesis_id)["status"],
+                "READY",
+            )
+            self.assertFalse(self.store.experiment_dir(experiment_id).exists())
+
+            requests = self.root / "hypothesis-only-requests"
+            runs = requests / "runs"
+            runs.mkdir(parents=True)
+            normalized_bundle, payload_sha256 = (
+                research_queue._validated_candidate_payload(bundle)
+            )
+            atomic_write_json(
+                runs / ("e" * 32 + ".json"),
+                {
+                    "schema_version": "1",
+                    "request_id": "e" * 32,
+                    "requested_at": "2026-01-03T00:02:00Z",
+                    "source": "CODEX_CLOUD_OPS",
+                    "operation": "REGISTER_CANDIDATE_BUNDLE",
+                    "payload": normalized_bundle,
+                    "payload_sha256": payload_sha256,
+                    "status": "FAILED",
+                    "completed_at": "2026-01-03T00:02:01Z",
+                    "exit_code": 1,
+                },
+            )
+            with (
+                patch.object(research_queue, "STATE_DIR", self.root),
+                patch.object(research_queue, "REQUEST_DIR", requests),
+                patch.object(research_queue, "POLICY_FILE", policy_path),
+            ):
+                recovery = research_queue._candidate_registration_recovery()
+
+            self.assertEqual(recovery["status"], "EXACT_REPLAY_REQUIRED")
+            self.assertTrue(
+                recovery["partial_registration"]["hypothesis_registered"]
+            )
+            self.assertFalse(
+                recovery["partial_registration"]["experiment_preregistered"]
+            )
+            self.assertEqual(recovery["bundle"], normalized_bundle)
+            recovered = register_candidate_bundle(
+                self.store,
+                policy,
+                recovery["bundle"],
+                current_policy_hash=policy_sha256(policy_path),
+                now=ready_at + timedelta(minutes=5),
+            )
+
+        self.assertEqual(recovered["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertEqual(recovered["lead_time_seconds"], 300)
+        self.assertEqual(recovered["lead_time_sla"], "PASS")
+        self.assertEqual(recovered["experiment_stage"], "PREREGISTERED")
 
     def test_candidate_registration_status_breaches_immediately_after_deadline(self) -> None:
         _bundle, policy = self._ready_candidate_bundle()

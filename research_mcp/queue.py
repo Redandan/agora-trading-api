@@ -599,10 +599,23 @@ def research_briefing(period: str) -> dict[str, Any]:
     actual_hash = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
     if actual_hash != expected_hash:
         return {"status": "REPORT_ARTIFACT_HASH_MISMATCH", "period": period}
+    policy = _policy_summary()
+    policy_match = re.search(r"^- Policy: `([^`]+)`\s*$", content, re.MULTILINE)
+    report_policy_id = policy_match.group(1) if policy_match else None
+    current_policy_id = policy.get("policy_id") if policy.get("status") == "READY" else None
+    if report_policy_id is None or current_policy_id is None:
+        policy_alignment = "MISSING_PROOF"
+    elif report_policy_id == current_policy_id:
+        policy_alignment = "CURRENT"
+    else:
+        policy_alignment = "SEALED_HISTORICAL_POLICY"
     return {
         "status": "REPORT_READY",
         "period": period,
         "generated_at": record.get("report_date"),
+        "report_policy_id": report_policy_id,
+        "current_policy_id": current_policy_id,
+        "policy_alignment": policy_alignment,
         "artifact_id": artifact_path.stem,
         "artifact_path": relative,
         "sha256": expected_hash,

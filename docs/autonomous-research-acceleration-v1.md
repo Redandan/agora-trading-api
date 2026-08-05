@@ -87,7 +87,9 @@ may be admitted.
 The OAuth Research MCP is the canonical status path. A local `.research-state`
 is diagnostic replica evidence and must be labelled as such. Weekly and monthly
 MCP briefings are sealed under canonical state and return an artifact id,
-relative path, and SHA-256 for the Coach handoff.
+relative path, and SHA-256 for the Coach handoff. Their response keeps the
+artifact's embedded policy separate from the current canonical policy so a
+pre-cutover report remains immutable but is visibly historical.
 
 ### Evidence-ready candidate registration
 

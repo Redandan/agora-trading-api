@@ -98,7 +98,10 @@ Pending and running requests remain queryable by request id before the final run
 record exists. A request older than the policy lease is preserved as
 `STALE_RECOVERED`; only then may a new request be admitted. Weekly and monthly
 briefings are sealed under canonical `state/reports` and return their artifact
-id, relative path, and SHA-256.
+id, relative path, and SHA-256. The MCP response also distinguishes the policy
+embedded in that immutable report from the currently active canonical policy;
+an older artifact is labelled `SEALED_HISTORICAL_POLICY` rather than silently
+presented as a current-policy briefing.
 
 ## Cutover
 

@@ -234,7 +234,10 @@ class DurableQueueContractTest(unittest.TestCase):
     def test_briefing_is_sealed_with_hash_and_artifact_id(self) -> None:
         report = self.state / "reports" / "weekly-learning-brief-2026-01-01.md"
         report.parent.mkdir(parents=True, exist_ok=True)
-        report.write_text("# Weekly\nEvidence.\n", encoding="utf-8")
+        report.write_text(
+            "# Weekly\n\n- Policy: `AUTONOMOUS_TRADING_RESEARCH_V2`\n\nEvidence.\n",
+            encoding="utf-8",
+        )
         heartbeat = self.state / "heartbeat" / "state.json"
         heartbeat.parent.mkdir(parents=True, exist_ok=True)
         heartbeat.write_text(
@@ -254,6 +257,9 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["status"], "REPORT_READY")
         self.assertTrue(artifact.is_file())
         self.assertTrue(result["artifact_id"].startswith("weekly-learning-brief-"))
+        self.assertEqual(result["report_policy_id"], "AUTONOMOUS_TRADING_RESEARCH_V2")
+        self.assertEqual(result["current_policy_id"], "AUTONOMOUS_TRADING_RESEARCH_V3")
+        self.assertEqual(result["policy_alignment"], "SEALED_HISTORICAL_POLICY")
 
 
 if __name__ == "__main__":

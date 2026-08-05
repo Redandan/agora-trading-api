@@ -238,3 +238,10 @@ non-mandatory until Phase C reproduces one representative complex overlay with
 the same four ledgers. The approved launcher is direct Java 21 classpath
 execution; the repository Maven exec configuration is not a research launcher
 because it targets the Spring Boot application.
+
+The Phase C opportunity-cost gate is frozen in
+`java-phase-c-opportunity-cost-audit-v1.md`: do not build Phase C for a merely
+plausible or already rejected overlay. Start it only after an evidence-bound
+experiment passes its preregistered Design and Validation gates to
+`CANDIDATE_FROZEN`, while sealed OOS remains unopened, and only when the overlay
+exercises material lot-management semantics absent from Phase B.

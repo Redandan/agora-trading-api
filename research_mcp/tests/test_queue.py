@@ -53,6 +53,7 @@ class DurableQueueContractTest(unittest.TestCase):
         queue.APP_DIR = self.app
         self.ops_schedule_contract_sha256 = self._ops_schedule_contract()
         self._release_provenance()
+        self._candidate_trigger_state()
 
     def tearDown(self) -> None:
         (
@@ -81,6 +82,51 @@ class DurableQueueContractTest(unittest.TestCase):
             "manifest": {"experiment_id": "candidate-test"},
             "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
         }
+
+    def _candidate_trigger_state(
+        self,
+        *,
+        status: str = "READY_FOR_HYPOTHESIS",
+        complete_ready_proof: bool = True,
+    ) -> None:
+        trigger_id = str(self._candidate_bundle()["trigger_id"])
+        trigger_dir = self.state / "evidence-triggers" / trigger_id
+        trigger_dir.mkdir(parents=True, exist_ok=True)
+        state: dict[str, object] = {
+            "schema_version": "1",
+            "trigger_id": trigger_id,
+            "status": status,
+        }
+        if status == "READY_FOR_HYPOTHESIS" and complete_ready_proof:
+            reviewed_at = "2026-01-01T00:00:00Z"
+            review = {
+                "schema_version": "1",
+                "trigger_id": trigger_id,
+                "outcome": "READY_FOR_HYPOTHESIS",
+                "reviewed_at": reviewed_at,
+            }
+            review_path = trigger_dir / "reviews" / "001.json"
+            review_path.parent.mkdir(parents=True, exist_ok=True)
+            review_path.write_text(json.dumps(review), encoding="utf-8")
+            state.update(
+                {
+                    "evidence_ready_at": reviewed_at,
+                    "reviews": [
+                        {
+                            "path": str(review_path.relative_to(self.state)),
+                            "sha256": hashlib.sha256(
+                                review_path.read_bytes()
+                            ).hexdigest(),
+                            "outcome": "READY_FOR_HYPOTHESIS",
+                        }
+                    ],
+                    "detail": {"verified_evidence": [{"manifest": "verified"}]},
+                }
+            )
+        (trigger_dir / "state.json").write_text(
+            json.dumps(state),
+            encoding="utf-8",
+        )
 
     def _candidate_run(
         self,
@@ -112,6 +158,7 @@ class DurableQueueContractTest(unittest.TestCase):
         bundle: dict[str, object],
         *,
         candidate_frozen_at: str | None = "2026-01-01T00:00:30Z",
+        trigger_status: str = "READY_FOR_HYPOTHESIS",
     ) -> None:
         trigger_id = str(bundle["trigger_id"])
         hypothesis = dict(bundle["hypothesis"])
@@ -120,14 +167,16 @@ class DurableQueueContractTest(unittest.TestCase):
         experiment_id = str(manifest["experiment_id"])
         trigger_dir = self.state / "evidence-triggers" / trigger_id
         trigger_dir.mkdir(parents=True, exist_ok=True)
+        trigger_state: dict[str, object] = {
+            "schema_version": "1",
+            "trigger_id": trigger_id,
+            "status": trigger_status,
+        }
+        if trigger_status == "CLOSED":
+            _payload, payload_sha256 = queue._validated_candidate_payload(bundle)
+            trigger_state["candidate_bundle_sha256"] = payload_sha256
         (trigger_dir / "state.json").write_text(
-            json.dumps(
-                {
-                    "schema_version": "1",
-                    "trigger_id": trigger_id,
-                    "status": "READY_FOR_HYPOTHESIS",
-                }
-            ),
+            json.dumps(trigger_state),
             encoding="utf-8",
         )
         hypothesis_dir = self.state / "hypotheses"
@@ -537,6 +586,64 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertRegex(first["payload_sha256"], r"^[a-f0-9]{64}$")
         self.assertEqual(queue.get_run(first["request_id"])["status"], "QUEUED")
 
+    def test_candidate_request_rejects_missing_waiting_and_closed_trigger_before_queue(
+        self,
+    ) -> None:
+        state_path = (
+            self.state
+            / "evidence-triggers"
+            / str(self._candidate_bundle()["trigger_id"])
+            / "state.json"
+        )
+        state_path.unlink()
+        missing = self._request_candidate_bundle(self._candidate_bundle())
+        self.assertEqual(missing["status"], "CANDIDATE_TRIGGER_NOT_READY")
+        self.assertEqual(missing["reason"], "CANDIDATE_TRIGGER_STATE_MISSING")
+        self.assertFalse((self.requests / "pending.json").exists())
+
+        for trigger_status in ("WAITING", "CLOSED"):
+            with self.subTest(trigger_status=trigger_status):
+                self._candidate_trigger_state(status=trigger_status)
+                rejected = self._request_candidate_bundle(self._candidate_bundle())
+                self.assertEqual(rejected["status"], "CANDIDATE_TRIGGER_NOT_READY")
+                self.assertEqual(rejected["trigger_status"], trigger_status)
+                self.assertFalse((self.requests / "pending.json").exists())
+
+    def test_candidate_request_blocks_incomplete_or_tampered_ready_proof_before_queue(
+        self,
+    ) -> None:
+        self._candidate_trigger_state(complete_ready_proof=False)
+        incomplete = self._request_candidate_bundle(self._candidate_bundle())
+        self.assertEqual(
+            incomplete["status"],
+            "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+        )
+        self.assertEqual(
+            incomplete["reason"],
+            "CANDIDATE_TRIGGER_READY_PROOF_INCOMPLETE",
+        )
+        self.assertFalse((self.requests / "pending.json").exists())
+
+        self._candidate_trigger_state()
+        review_path = (
+            self.state
+            / "evidence-triggers"
+            / str(self._candidate_bundle()["trigger_id"])
+            / "reviews"
+            / "001.json"
+        )
+        review_path.write_text("tampered\n", encoding="utf-8")
+        tampered = self._request_candidate_bundle(self._candidate_bundle())
+        self.assertEqual(
+            tampered["status"],
+            "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+        )
+        self.assertEqual(
+            tampered["reason"],
+            "CANDIDATE_TRIGGER_READY_REVIEW_HASH_MISMATCH",
+        )
+        self.assertFalse((self.requests / "pending.json").exists())
+
     def test_different_operation_cannot_replace_active_request(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")
         heartbeat = self._request_heartbeat(
@@ -569,7 +676,7 @@ class DurableQueueContractTest(unittest.TestCase):
 
     def test_status_exposes_one_hash_verified_partial_candidate_for_exact_replay(self) -> None:
         bundle = self._candidate_bundle()
-        self._partial_candidate_registration(bundle)
+        self._partial_candidate_registration(bundle, trigger_status="CLOSED")
         failed, payload_sha256 = self._candidate_run(
             bundle,
             request_id="c" * 32,

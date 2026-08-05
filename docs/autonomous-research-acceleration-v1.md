@@ -151,6 +151,13 @@ hash-verified bundle for one replay; a repeated failure, multiple recoverable
 payloads, or partial-state drift fails closed and withholds the bundle. The MCP
 candidate-write preflight also rejects a different payload while replay is due
 and rejects a third submission after that single replay fails.
+For every normal new candidate, that preflight also requires the named
+canonical trigger to be `READY_FOR_HYPOTHESIS`, its readiness timestamp to
+match the hash-verified latest ready review, and exactly one verified evidence
+manifest in canonical state. Missing, waiting, closed, incomplete, or tampered
+readiness stops before queue creation. Only the exact hash-bound recovery replay
+may bypass this normal readiness check because partial registration can already
+have closed the trigger.
 
 The queue accepts only `RESEARCH_HEARTBEAT` and
 `REGISTER_CANDIDATE_BUNDLE`. It exposes no shell command, environment override,
@@ -259,6 +266,8 @@ database query, or backfill.
   `CANDIDATE_OOS` trigger without executing a runner;
 - the candidate path rejects tampered evidence, omitted performance metrics,
   unsupported operations, oversized payloads, and concurrent queue replacement;
+- a missing, waiting, closed, incomplete, or tampered evidence trigger is
+  rejected by the MCP write preflight without creating a candidate queue item;
 - the Research Worker has no Trading secrets or writable Production mounts;
 - `agora-research-heartbeat.timer` remains disabled and the path unit remains
   an event consumer only.

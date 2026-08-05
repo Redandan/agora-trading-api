@@ -1686,8 +1686,11 @@ def _candidate_registration_recovery() -> dict[str, Any]:
 
 def _candidate_registration_recovery_gate(
     payload_sha256: str,
+    *,
+    recovery: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
-    recovery = _candidate_registration_recovery()
+    if recovery is None:
+        recovery = _candidate_registration_recovery()
     status = recovery.get("status")
     if status == "IDLE":
         return None
@@ -1713,6 +1716,111 @@ def _candidate_registration_recovery_gate(
         "reason": "candidate registration recovery status is invalid",
         "candidate_registration_recovery": recovery,
     }
+
+
+def _candidate_trigger_readiness_gate(
+    bundle: dict[str, Any],
+) -> dict[str, Any] | None:
+    trigger_id = str(bundle.get("trigger_id", ""))
+    state_path = STATE_DIR / "evidence-triggers" / trigger_id / "state.json"
+    state = _read_json(state_path)
+    if state is None:
+        if state_path.exists():
+            return {
+                "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+                "reason": "CANDIDATE_TRIGGER_STATE_UNREADABLE",
+                "trigger_id": trigger_id,
+            }
+        return {
+            "status": "CANDIDATE_TRIGGER_NOT_READY",
+            "reason": "CANDIDATE_TRIGGER_STATE_MISSING",
+            "trigger_id": trigger_id,
+            "trigger_status": None,
+        }
+    if state.get("trigger_id") != trigger_id:
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_ID_MISMATCH",
+            "trigger_id": trigger_id,
+            "canonical_trigger_id": state.get("trigger_id"),
+        }
+    trigger_status = str(state.get("status", ""))
+    if trigger_status != "READY_FOR_HYPOTHESIS":
+        return {
+            "status": "CANDIDATE_TRIGGER_NOT_READY",
+            "reason": "CANDIDATE_TRIGGER_STATUS_NOT_READY",
+            "trigger_id": trigger_id,
+            "trigger_status": trigger_status or None,
+        }
+
+    evidence_ready_at = _parse_time(state.get("evidence_ready_at"))
+    reviews = state.get("reviews")
+    detail = state.get("detail")
+    verified_evidence = (
+        detail.get("verified_evidence") if isinstance(detail, dict) else None
+    )
+    if (
+        evidence_ready_at is None
+        or not isinstance(reviews, list)
+        or not reviews
+        or not isinstance(verified_evidence, list)
+        or len(verified_evidence) != 1
+    ):
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_READY_PROOF_INCOMPLETE",
+            "trigger_id": trigger_id,
+        }
+
+    latest_review = reviews[-1]
+    if not isinstance(latest_review, dict):
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_READY_REVIEW_REFERENCE_INVALID",
+            "trigger_id": trigger_id,
+        }
+    relative = str(latest_review.get("path", "")).strip()
+    expected_sha256 = str(latest_review.get("sha256", "")).strip().lower()
+    if (
+        latest_review.get("outcome") != "READY_FOR_HYPOTHESIS"
+        or not relative
+        or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256)
+    ):
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_READY_REVIEW_REFERENCE_INVALID",
+            "trigger_id": trigger_id,
+        }
+    review_path = (STATE_DIR / relative).resolve()
+    try:
+        review_path.relative_to(STATE_DIR.resolve())
+    except ValueError:
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_READY_REVIEW_PATH_REJECTED",
+            "trigger_id": trigger_id,
+        }
+    review = _read_json(review_path)
+    try:
+        actual_sha256 = sha256_file(review_path) if review is not None else None
+    except OSError:
+        actual_sha256 = None
+    if review is None or actual_sha256 != expected_sha256:
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_READY_REVIEW_HASH_MISMATCH",
+            "trigger_id": trigger_id,
+        }
+    if (
+        review.get("outcome") != "READY_FOR_HYPOTHESIS"
+        or _parse_time(review.get("reviewed_at")) != evidence_ready_at
+    ):
+        return {
+            "status": "CANDIDATE_TRIGGER_INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_TRIGGER_READY_REVIEW_MISMATCH",
+            "trigger_id": trigger_id,
+        }
+    return None
 
 
 def request_candidate_bundle(
@@ -1752,9 +1860,17 @@ def request_candidate_bundle(
             "completed_at": completed.get("completed_at"),
             "recovered": recovered,
         }
-    recovery_block = _candidate_registration_recovery_gate(payload_sha256)
+    recovery = _candidate_registration_recovery()
+    recovery_block = _candidate_registration_recovery_gate(
+        payload_sha256,
+        recovery=recovery,
+    )
     if recovery_block:
         return {**recovery_block, "recovered": recovered}
+    if recovery.get("status") != "EXACT_REPLAY_REQUIRED":
+        readiness_block = _candidate_trigger_readiness_gate(payload)
+        if readiness_block:
+            return {**readiness_block, "recovered": recovered}
     return _enqueue_request(
         "REGISTER_CANDIDATE_BUNDLE",
         current=current,

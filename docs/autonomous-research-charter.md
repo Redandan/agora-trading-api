@@ -270,6 +270,12 @@ drift is an integrity block rather than an invitation to generate another
 candidate. This is a server write precondition, not only a cloud-prompt rule:
 the MCP refuses a different bundle while exact replay is required and refuses
 every new candidate queue mutation after the one permitted replay also fails.
+Outside that exact-replay exception, the MCP candidate-write preflight must
+also read the named canonical trigger before queue creation. A missing,
+`WAITING`, `REVIEW_DUE`, or `CLOSED` trigger is not candidate-ready; a trigger
+labelled `READY_FOR_HYPOTHESIS` without a timestamp-matched hash-verified latest
+ready review and exactly one verified evidence manifest is an integrity block.
+The Worker still repeats the complete scientific validation during registration.
 The same status must report whether a genuinely forward-candidate-eligible
 adapter and its required sealed corpus are ready. A Java parity adapter,
 diagnostic-only adapter, or closed historical branch cannot be submitted merely

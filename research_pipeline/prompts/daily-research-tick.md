@@ -44,6 +44,12 @@ Treat MCP write responses `EXACT_CANDIDATE_REPLAY_REQUIRED` and
 `CANDIDATE_REGISTRATION_INTEGRITY_BLOCKED` as the same mandatory stop. Do not
 resubmit, switch payloads, or infer that a queue-write rejection can be fixed
 from conversation state.
+Treat `CANDIDATE_TRIGGER_NOT_READY` as proof that no normal candidate may be
+queued in this cycle: re-read canonical status, do not retry, and continue the
+evidence wait. Treat `CANDIDATE_TRIGGER_INTEGRITY_BLOCKED` as an immediate
+operational integrity alert and do not reconstruct readiness from chat or local
+state. Only the exact canonical recovery replay described above may bypass the
+normal ready-trigger preflight.
 
 The fixed forward-source companion captures only the next complete UTC day.
 When the final required day is canonically ingested, the deterministic pipeline

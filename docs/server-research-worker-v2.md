@@ -120,6 +120,14 @@ drift from the stored hypothesis/manifest becomes `INTEGRITY_BLOCKED` and never
 authorizes bundle regeneration. Candidate submission enforces that recovery
 state before queue creation: only the required hash may use the single replay,
 and a second failed replay blocks any third request at the MCP write boundary.
+For a normal new submission, the same preflight refuses queue creation unless
+the named canonical trigger is `READY_FOR_HYPOTHESIS`, its readiness timestamp
+matches the hash-verified latest ready review, and canonical state contains
+exactly one verified evidence manifest. Missing, waiting, closed, or incomplete
+ready state cannot create a failed durable run. The one exact recovery replay
+is exempt because a successfully preregistered partial flow may already have
+closed its trigger; its original payload hash and partial state are verified by
+the stricter recovery gate instead.
 
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical
@@ -266,6 +274,8 @@ The systemd path unit is an event consumer, not an additional schedule.
   separate candidate-bound OOS trigger, and recovers interrupted registration;
 - a failed candidate request with matching partial state is visible through one
   exact canonical replay bundle; repeated failure or payload drift blocks it;
+- a normal candidate request cannot create a queue item while its canonical
+  trigger is missing, waiting, closed, or lacks hash-verified ready proof;
 - canonical status exposes the exact hash and row readiness of the retained
   pre-2025 selection corpus without importing or recomputing it;
 - a crashed queue lease remains auditable and can no longer block the queue

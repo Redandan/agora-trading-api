@@ -144,8 +144,47 @@ def checked_evidence_triggers(
     return entries
 
 
-def status_payload(store: ResearchStore, policy: dict[str, Any]) -> dict[str, Any]:
+def _candidate_registration_sla(
+    state: dict[str, Any],
+    *,
+    now: datetime,
+) -> dict[str, Any] | None:
+    ready_text = state.get("evidence_ready_at")
+    if not isinstance(ready_text, str) or not ready_text.strip():
+        return None
+    ready_at = parse_timestamp(ready_text, "evidence_ready_at")
+    deadline = ready_at + timedelta(hours=24)
+    deadline_text = deadline.isoformat(timespec="seconds").replace("+00:00", "Z")
+    recorded_status = state.get("candidate_lead_time_sla")
+    recorded_seconds = state.get("candidate_lead_time_seconds")
+    if recorded_status in {"PASS", "BREACH"} and isinstance(recorded_seconds, int):
+        return {
+            "status": recorded_status,
+            "deadline": deadline_text,
+            "lead_time_seconds": recorded_seconds,
+            "seconds_remaining": None,
+        }
+    seconds_remaining = int((deadline - now).total_seconds())
+    return {
+        "status": (
+            "PENDING_WITHIN_SLA"
+            if seconds_remaining >= 0
+            else "BREACH_PENDING_REGISTRATION"
+        ),
+        "deadline": deadline_text,
+        "lead_time_seconds": None,
+        "seconds_remaining": seconds_remaining,
+    }
+
+
+def status_payload(
+    store: ResearchStore,
+    policy: dict[str, Any],
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     entries = store.entries()
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     capture_max_lag_seconds = int(
         policy.get("evidence", {}).get("capture_max_lag_seconds", 21600)
     )
@@ -170,6 +209,10 @@ def status_payload(store: ResearchStore, policy: dict[str, Any]) -> dict[str, An
                 "next_review_at": state.get("next_review_at"),
                 "review_count": state.get("review_count", 0),
                 "evidence_ready_at": state.get("evidence_ready_at"),
+                "candidate_registration_sla": _candidate_registration_sla(
+                    state,
+                    now=current,
+                ),
                 "diagnostic_summary": (state.get("detail") or {}).get(
                     "diagnostic_summary"
                 ),
@@ -177,6 +220,7 @@ def status_payload(store: ResearchStore, policy: dict[str, Any]) -> dict[str, An
                     store,
                     trigger,
                     state,
+                    now=current,
                     capture_max_lag_seconds=capture_max_lag_seconds,
                 ),
             }
@@ -242,6 +286,7 @@ def register_candidate_bundle(
     value: dict[str, Any],
     *,
     current_policy_hash: str,
+    now: datetime | None = None,
 ) -> dict[str, Any]:
     required = {
         "schema_version",
@@ -352,7 +397,7 @@ def register_candidate_bundle(
     hypothesis_created = parse_timestamp(hypothesis["created_at"], "hypothesis created_at")
     manifest_created = parse_timestamp(manifest.created_at, "manifest created_at")
     reviewed_at = parse_timestamp(str(review["reviewed_at"]), "evidence reviewed_at")
-    current = datetime.now(timezone.utc)
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     if hypothesis_created < reviewed_at or manifest_created != hypothesis_created:
         raise ValueError("candidate hypothesis/manifest timestamps must follow the sealed review")
     if hypothesis_created > current + timedelta(minutes=5):

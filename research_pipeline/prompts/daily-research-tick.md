@@ -31,6 +31,11 @@ hypothesis and its matching frozen experiment manifest. Submit exactly one
 schema-bound bundle through `submit_research_candidate_bundle`. The discovery
 window is not clean OOS. The server must reverify all sealed evidence and stop
 at `PREREGISTERED`; do not execute or promote the experiment in the same step.
+Use canonical `candidate_registration_sla`, not chat-side time arithmetic, to
+observe the 24-hour contract. `PENDING_WITHIN_SLA` requires submission in the
+same cloud cycle. `BREACH_PENDING_REGISTRATION` is an operational alert but
+does not authorize dropping evidence or relaxing a scientific gate; submit the
+still-valid bounded bundle once and preserve the measured `BREACH` result.
 
 Create a Coach handoff only when a sealed server heartbeat returns
 `should_notify_coach=true`. Require canonical `coach_outbox.status` to be

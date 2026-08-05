@@ -203,6 +203,9 @@ durable results, and produces sponsor briefings. When a sealed review reports
 `READY_FOR_HYPOTHESIS`, the same task may submit exactly one schema-bound
 hypothesis and matching frozen manifest through the candidate-bundle operation;
 the server re-verifies all sealed evidence and policy gates before registration.
+Canonical status supplies the exact 24-hour registration deadline, signed time
+remaining, and the preserved measured result, so the cloud task never derives
+the SLA from conversation history or its own clock.
 The server rejects early
 heartbeats, converges concurrent calls on one request id, and preserves stale
 queue leases as terminal audit records before recovery. Weekly and monthly MCP

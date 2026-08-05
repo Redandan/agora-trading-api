@@ -117,6 +117,8 @@ policy metrics and constraints, adapter capability, duplicate fingerprint,
 active budget, and timestamps before any registration. A successful operation
 ends at `PREREGISTERED`, closes the evidence trigger, and records the measured
 evidence-ready lead time and 24-hour SLA result.
+Canonical status exposes the exact registration deadline and signed seconds
+remaining before submission, then preserves the measured `PASS` or `BREACH`.
 
 The queue accepts only `RESEARCH_HEARTBEAT` and
 `REGISTER_CANDIDATE_BUNDLE`. It exposes no shell command, environment override,

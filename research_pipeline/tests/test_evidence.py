@@ -191,6 +191,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
             {
                 "status": "READY_FOR_HYPOTHESIS",
                 "next_review_at": None,
+                "evidence_ready_at": reviewed_at.isoformat(),
                 "review_count": 1,
                 "reviews": [
                     {
@@ -458,13 +459,26 @@ class EvidenceManifestContractTest(unittest.TestCase):
 
         policy_path = Path(__file__).parents[1] / "policy.v3.json"
         policy = load_policy(policy_path)
-        canonical = status_payload(self.store, policy)
+        canonical = status_payload(
+            self.store,
+            policy,
+            now=datetime(2026, 1, 3, 2, tzinfo=timezone.utc),
+        )
         trigger_status = next(
             item
             for item in canonical["evidence_triggers"]
             if item["trigger_id"] == self.trigger["trigger_id"]
         )
         self.assertEqual(trigger_status["evidence_ready_at"], "2026-01-03T01:00:00Z")
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"],
+            {
+                "status": "PENDING_WITHIN_SLA",
+                "deadline": "2026-01-04T01:00:00Z",
+                "lead_time_seconds": None,
+                "seconds_remaining": 82800,
+            },
+        )
         self.assertEqual(
             trigger_status["diagnostic_summary"], ready_state["detail"]["diagnostic_summary"]
         )
@@ -762,17 +776,32 @@ class EvidenceManifestContractTest(unittest.TestCase):
     def test_candidate_bundle_registers_atomically_with_24h_sla(self) -> None:
         bundle, policy = self._ready_candidate_bundle()
         policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
         result = register_candidate_bundle(
             self.store,
             policy,
             bundle,
             current_policy_hash=policy_sha256(policy_path),
+            now=ready_at + timedelta(hours=24),
         )
         self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
         self.assertEqual(result["lead_time_sla"], "PASS")
+        self.assertEqual(result["lead_time_seconds"], 86400)
         self.assertEqual(result["experiment_stage"], "PREREGISTERED")
         state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
         self.assertEqual(state["status"], "CLOSED")
+        canonical = status_payload(
+            self.store,
+            policy,
+            now=ready_at + timedelta(days=2),
+        )
+        trigger_status = next(
+            item
+            for item in canonical["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )
+        self.assertEqual(trigger_status["candidate_registration_sla"]["status"], "PASS")
         repeated = register_candidate_bundle(
             self.store,
             policy,
@@ -780,6 +809,24 @@ class EvidenceManifestContractTest(unittest.TestCase):
             current_policy_hash=policy_sha256(policy_path),
         )
         self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
+
+    def test_candidate_bundle_preserves_a_measured_24h_sla_breach(self) -> None:
+        bundle, policy = self._ready_candidate_bundle()
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
+
+        result = register_candidate_bundle(
+            self.store,
+            policy,
+            bundle,
+            current_policy_hash=policy_sha256(policy_path),
+            now=ready_at + timedelta(hours=24, seconds=1),
+        )
+
+        self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertEqual(result["lead_time_sla"], "BREACH")
+        self.assertEqual(result["lead_time_seconds"], 86401)
 
     def test_candidate_bundle_cli_boundary_stops_at_preregistered(self) -> None:
         bundle, _policy = self._ready_candidate_bundle()

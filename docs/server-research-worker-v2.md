@@ -74,6 +74,10 @@ evidence artifact, enforces V3 metrics/constraints and active-experiment budget,
 then closes the trigger only after the experiment reaches `PREREGISTERED`.
 Repeated identical submissions converge while queued and return the prior
 completed result afterward. It cannot execute the experiment or promote it.
+Canonical status exposes the evidence-ready registration deadline, signed
+seconds remaining while pending, and the immutable measured `PASS` or `BREACH`
+after registration, so the 24-hour SLA is server-observable rather than inferred
+by the cloud prompt.
 
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical

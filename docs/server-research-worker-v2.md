@@ -117,7 +117,9 @@ state, `get_research_status` exposes one bounded
 The next cloud cycle may replay it once without changing any field. A second
 failed replay, multiple recoverable payloads, a run-payload hash mismatch, or
 drift from the stored hypothesis/manifest becomes `INTEGRITY_BLOCKED` and never
-authorizes bundle regeneration.
+authorizes bundle regeneration. Candidate submission enforces that recovery
+state before queue creation: only the required hash may use the single replay,
+and a second failed replay blocks any third request at the MCP write boundary.
 
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical

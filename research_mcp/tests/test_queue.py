@@ -598,6 +598,30 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(replayed["status"], "QUEUED")
         self.assertEqual(replayed["payload_sha256"], payload_sha256)
         self.assertEqual(replayed["payload"], failed["payload"])
+        repeated = self._request_candidate_bundle(recovery["bundle"])
+        self.assertEqual(repeated["status"], "QUEUED")
+        self.assertEqual(repeated["request_id"], replayed["request_id"])
+
+    def test_candidate_write_gate_rejects_new_payload_while_exact_replay_is_required(self) -> None:
+        bundle = self._candidate_bundle()
+        self._partial_candidate_registration(bundle)
+        _failed, payload_sha256 = self._candidate_run(
+            bundle,
+            request_id="c" * 32,
+            status="FAILED",
+        )
+        different = self._candidate_bundle()
+        different["hypothesis"]["hypothesis_id"] = "different-candidate"
+        different["manifest"]["experiment_id"] = "different-candidate"
+
+        rejected = self._request_candidate_bundle(different)
+
+        self.assertEqual(rejected["status"], "EXACT_CANDIDATE_REPLAY_REQUIRED")
+        self.assertEqual(rejected["required_payload_sha256"], payload_sha256)
+        self.assertEqual(rejected["failed_request_id"], "c" * 32)
+        self.assertEqual(rejected["failed_attempt_count"], 1)
+        self.assertEqual(rejected["retry_limit"], 1)
+        self.assertFalse((self.requests / "pending.json").exists())
 
     def test_status_blocks_a_second_failed_exact_candidate_replay(self) -> None:
         bundle = self._candidate_bundle()
@@ -614,6 +638,20 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(recovery["failed_attempt_count"], 2)
         self.assertNotIn("bundle", recovery)
+        rejected = self._request_candidate_bundle(bundle)
+        self.assertEqual(
+            rejected["status"],
+            "CANDIDATE_REGISTRATION_INTEGRITY_BLOCKED",
+        )
+        self.assertEqual(
+            rejected["reason"],
+            "CANDIDATE_EXACT_REPLAY_ALREADY_FAILED",
+        )
+        self.assertEqual(
+            rejected["candidate_registration_recovery"]["failed_attempt_count"],
+            2,
+        )
+        self.assertFalse((self.requests / "pending.json").exists())
 
     def test_status_blocks_failed_candidate_payload_drift_from_partial_state(self) -> None:
         bundle = self._candidate_bundle()

@@ -267,7 +267,9 @@ canonical hypothesis or preregistered experiment state. The cloud task may
 replay that exact bundle once; it must not reconstruct timestamps or content.
 Repeated replay failure, more than one recoverable bundle, or payload/state
 drift is an integrity block rather than an invitation to generate another
-candidate.
+candidate. This is a server write precondition, not only a cloud-prompt rule:
+the MCP refuses a different bundle while exact replay is required and refuses
+every new candidate queue mutation after the one permitted replay also fails.
 The same status must report whether a genuinely forward-candidate-eligible
 adapter and its required sealed corpus are ready. A Java parity adapter,
 diagnostic-only adapter, or closed historical branch cannot be submitted merely

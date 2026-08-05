@@ -1684,6 +1684,37 @@ def _candidate_registration_recovery() -> dict[str, Any]:
     }
 
 
+def _candidate_registration_recovery_gate(
+    payload_sha256: str,
+) -> dict[str, Any] | None:
+    recovery = _candidate_registration_recovery()
+    status = recovery.get("status")
+    if status == "IDLE":
+        return None
+    if status == "EXACT_REPLAY_REQUIRED":
+        if recovery.get("payload_sha256") == payload_sha256:
+            return None
+        return {
+            "status": "EXACT_CANDIDATE_REPLAY_REQUIRED",
+            "reason": "a hash-verified partial candidate must be recovered before any new candidate",
+            "required_payload_sha256": recovery.get("payload_sha256"),
+            "failed_request_id": recovery.get("request_id"),
+            "failed_attempt_count": recovery.get("failed_attempt_count"),
+            "retry_limit": recovery.get("retry_limit"),
+        }
+    if status == "INTEGRITY_BLOCKED":
+        return {
+            "status": "CANDIDATE_REGISTRATION_INTEGRITY_BLOCKED",
+            "reason": recovery.get("reason") or "candidate registration recovery is blocked",
+            "candidate_registration_recovery": recovery,
+        }
+    return {
+        "status": "CANDIDATE_REGISTRATION_INTEGRITY_BLOCKED",
+        "reason": "candidate registration recovery status is invalid",
+        "candidate_registration_recovery": recovery,
+    }
+
+
 def request_candidate_bundle(
     bundle: dict[str, Any],
     ops_schedule_contract_sha256: str | None,
@@ -1721,6 +1752,9 @@ def request_candidate_bundle(
             "completed_at": completed.get("completed_at"),
             "recovered": recovered,
         }
+    recovery_block = _candidate_registration_recovery_gate(payload_sha256)
+    if recovery_block:
+        return {**recovery_block, "recovered": recovered}
     return _enqueue_request(
         "REGISTER_CANDIDATE_BUNDLE",
         current=current,

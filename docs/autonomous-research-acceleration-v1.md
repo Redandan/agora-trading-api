@@ -148,7 +148,9 @@ time and derives the lead from it, so elapsed retry time cannot rewrite the
 The same canonical status exposes `candidate_registration_recovery` when one
 failed request matches partial canonical registration. It returns the exact
 hash-verified bundle for one replay; a repeated failure, multiple recoverable
-payloads, or partial-state drift fails closed and withholds the bundle.
+payloads, or partial-state drift fails closed and withholds the bundle. The MCP
+candidate-write preflight also rejects a different payload while replay is due
+and rejects a third submission after that single replay fails.
 
 The queue accepts only `RESEARCH_HEARTBEAT` and
 `REGISTER_CANDIDATE_BUNDLE`. It exposes no shell command, environment override,

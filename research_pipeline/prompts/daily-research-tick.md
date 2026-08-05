@@ -40,6 +40,10 @@ the same logical candidate, not permission for a second candidate. If recovery
 is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state
 payload drift, do not retry, regenerate, or relax a gate; emit the exact
 canonical reason as an operational integrity alert.
+Treat MCP write responses `EXACT_CANDIDATE_REPLAY_REQUIRED` and
+`CANDIDATE_REGISTRATION_INTEGRITY_BLOCKED` as the same mandatory stop. Do not
+resubmit, switch payloads, or infer that a queue-write rejection can be fixed
+from conversation state.
 
 The fixed forward-source companion captures only the next complete UTC day.
 When the final required day is canonically ingested, the deterministic pipeline

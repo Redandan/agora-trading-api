@@ -98,6 +98,8 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("candidate_registration_recovery", prompt)
         self.assertIn("EXACT_REPLAY_REQUIRED", prompt)
         self.assertIn("copy the canonical", prompt)
+        self.assertIn("EXACT_CANDIDATE_REPLAY_REQUIRED", prompt)
+        self.assertIn("CANDIDATE_REGISTRATION_INTEGRITY_BLOCKED", prompt)
         self.assertIn("BREACH_PENDING_REGISTRATION", prompt)
         self.assertIn("forward_candidate_readiness.status=READY", prompt)
         self.assertIn("candidate_context.status=READY", prompt)

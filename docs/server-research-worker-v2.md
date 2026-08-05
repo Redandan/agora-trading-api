@@ -35,8 +35,9 @@ The existing status operation also reads the immutable release provenance next
 to the deployed source. It exposes the release id, Git commit and branch, dirty
 flag, install time, and the SHA-256 of the installed source manifest. The
 manifest hash is rechecked on every status read. Missing, malformed, tampered,
-or dirty provenance fails closed and blocks cloud heartbeat/candidate actions;
-it never adds a new MCP operation or exposes a server filesystem path.
+or dirty provenance fails closed: both server write operations return
+`WORKER_RELEASE_INTEGRITY_BLOCKED` before touching either queue. This never adds
+a new MCP operation or exposes a server filesystem path.
 
 ## OAuth contract
 
@@ -148,6 +149,8 @@ The systemd path unit is an event consumer, not an additional schedule.
 - early and concurrent calls cannot create extra heartbeat requests;
 - an invalid, oversized, evidence-unbound, or policy-incomplete candidate bundle
   cannot modify canonical research state;
+- missing, tampered, or dirty Worker provenance blocks both queue write
+  operations before any request or evidence-capture file is created;
 - an accepted candidate bundle records the evidence-ready lead time and whether
   the 24-hour SLA passed;
 - a crashed queue lease remains auditable and can no longer block the queue

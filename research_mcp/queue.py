@@ -464,6 +464,12 @@ def _enqueue_request(
 def request_heartbeat(*, now: datetime | None = None) -> dict[str, Any]:
     """Create one due durable heartbeat; concurrent calls converge on the same run."""
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    worker_release = _worker_release_summary()
+    if worker_release.get("status") != "READY":
+        return {
+            "status": "WORKER_RELEASE_INTEGRITY_BLOCKED",
+            "worker_release": worker_release,
+        }
     REQUEST_DIR.mkdir(parents=True, exist_ok=True)
     recovered = _recover_stale_queue(current)
     active = _active_queue_response(
@@ -549,6 +555,12 @@ def request_candidate_bundle(
     """Queue one fixed research-only candidate registration operation."""
     payload, payload_sha256 = _validated_candidate_payload(bundle)
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    worker_release = _worker_release_summary()
+    if worker_release.get("status") != "READY":
+        return {
+            "status": "WORKER_RELEASE_INTEGRITY_BLOCKED",
+            "worker_release": worker_release,
+        }
     REQUEST_DIR.mkdir(parents=True, exist_ok=True)
     recovered = _recover_stale_queue(current)
     active = _active_queue_response(

@@ -51,6 +51,7 @@ class DurableQueueContractTest(unittest.TestCase):
         queue.INBOX_DIR = self.inbox
         queue.POLICY_FILE = self.policy
         queue.APP_DIR = self.app
+        self._release_provenance()
 
     def tearDown(self) -> None:
         (
@@ -282,6 +283,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertRegex(release["source_git_commit"], r"^[0-9a-f]{40}$")
 
     def test_missing_or_tampered_release_provenance_fails_closed(self) -> None:
+        shutil.rmtree(self.app / ".release")
         missing = queue._worker_release_summary()
         self.assertEqual(missing["status"], "RELEASE_PROVENANCE_READ_FAILED")
         self.assertNotIn(str(self.app), json.dumps(missing))
@@ -293,6 +295,18 @@ class DurableQueueContractTest(unittest.TestCase):
         tampered = queue._worker_release_summary()
         self.assertEqual(tampered["status"], "RELEASE_PROVENANCE_INVALID")
         self.assertIn("does not match", tampered["reason"])
+
+    def test_invalid_release_blocks_both_write_operations_without_queue_mutation(self) -> None:
+        shutil.rmtree(self.app / ".release")
+        self._heartbeat_state("2026-01-01T00:00:00Z")
+        heartbeat = queue.request_heartbeat(
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc)
+        )
+        candidate = queue.request_candidate_bundle(self._candidate_bundle())
+        self.assertEqual(heartbeat["status"], "WORKER_RELEASE_INTEGRITY_BLOCKED")
+        self.assertEqual(candidate["status"], "WORKER_RELEASE_INTEGRITY_BLOCKED")
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
 
     def test_briefing_is_sealed_with_hash_and_artifact_id(self) -> None:
         report = self.state / "reports" / "weekly-learning-brief-2026-01-01.md"

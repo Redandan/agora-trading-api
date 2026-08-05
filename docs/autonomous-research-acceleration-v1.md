@@ -95,7 +95,8 @@ Canonical status also binds every decision to the deployed Worker release. It
 must report a clean Git source commit plus a verified source-manifest hash from
 the immutable release. Missing, malformed, tampered, or dirty release
 provenance is an integrity blocker, not permission to continue from local
-assumptions.
+assumptions. Both MCP write operations enforce this before any queue mutation;
+the cloud prompt is not the only guard.
 
 ### Evidence-ready candidate registration
 
@@ -186,6 +187,8 @@ database query, or backfill.
 - generated Coach briefings include an immutable artifact id and SHA-256;
 - Worker release id, clean Git commit, and verified source-manifest hash are
   visible through the existing canonical status operation;
+- either MCP write operation fails before queue mutation when release provenance
+  is missing, invalid, tampered, or dirty;
 - evidence-ready Codex output can register one frozen candidate within 24 hours
   without a manual local task;
 - the candidate path rejects tampered evidence, omitted performance metrics,

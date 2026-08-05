@@ -92,18 +92,23 @@ def get_research_status() -> dict[str, Any]:
     title="Request one autonomous research heartbeat",
     annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True),
 )
-def request_research_heartbeat() -> dict[str, Any]:
-    """Queue one due bounded heartbeat; early calls reject and concurrent calls converge."""
-    return request_heartbeat()
+def request_research_heartbeat(
+    ops_schedule_contract_sha256: str,
+) -> dict[str, Any]:
+    """Queue one due bounded heartbeat after attesting the deployed Ops contract."""
+    return request_heartbeat(ops_schedule_contract_sha256)
 
 
 @mcp.tool(
     title="Submit one evidence-bound research candidate",
     annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True),
 )
-def submit_research_candidate_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
-    """Queue one bounded candidate bundle; it can only end at a preregistered offline experiment."""
-    return request_candidate_bundle(bundle)
+def submit_research_candidate_bundle(
+    bundle: dict[str, Any],
+    ops_schedule_contract_sha256: str,
+) -> dict[str, Any]:
+    """Queue one attested candidate bundle; it can only end at preregistration."""
+    return request_candidate_bundle(bundle, ops_schedule_contract_sha256)
 
 
 @mcp.tool(

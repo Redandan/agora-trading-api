@@ -39,6 +39,13 @@ or dirty provenance fails closed: both server write operations return
 `WORKER_RELEASE_INTEGRITY_BLOCKED` before touching either queue. This never adds
 a new MCP operation or exposes a server filesystem path.
 
+The same status exposes the frozen `CLOUD_OPS_SCHEDULE_V1` contract and its
+byte-level SHA-256. The two write operations require that hash in the
+`ops_schedule_contract_sha256` argument. A missing or changed contract returns
+`OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
+attestation returns `OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED`. Both outcomes
+occur before the request or companion evidence-capture queues are touched.
+
 ## OAuth contract
 
 The private connector uses dynamic client registration, authorization code with
@@ -192,6 +199,9 @@ The systemd path unit is an event consumer, not an additional schedule.
   cannot modify canonical research state;
 - missing, tampered, or dirty Worker provenance blocks both queue write
   operations before any request or evidence-capture file is created;
+- canonical status exposes the exact versioned cloud Ops schedule contract,
+  and a missing, altered, or mismatched contract attestation blocks both write
+  operations before queue mutation;
 - an accepted candidate bundle records the evidence-ready lead time and whether
   the 24-hour SLA passed;
 - a parity, diagnostic-only, OOS-less, or closed historical adapter cannot be

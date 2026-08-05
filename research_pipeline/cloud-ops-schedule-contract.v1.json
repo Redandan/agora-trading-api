@@ -1,0 +1,43 @@
+{
+  "schema_version": "1",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "schedule_count": 1,
+  "recurrence": {
+    "frequency": "DAILY",
+    "timezone": "Asia/Bangkok",
+    "local_time": "08:00",
+    "end": "NEVER"
+  },
+  "first_operation": "get_research_status",
+  "allowed_mcp_operations": [
+    "get_research_status",
+    "request_research_heartbeat",
+    "submit_research_candidate_bundle",
+    "get_research_run",
+    "get_research_briefing"
+  ],
+  "write_attestation": {
+    "parameter": "ops_schedule_contract_sha256",
+    "required": true
+  },
+  "required_guards": [
+    "WORKER_RELEASE_READY",
+    "POLICY_V3_READY",
+    "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+    "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
+    "CANDIDATE_REGISTRATION_SLA_CANONICAL",
+    "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
+    "DISTINCT_SEALED_CANDIDATE_OOS",
+    "HASH_VERIFIED_COACH_OUTBOX",
+    "CROSS_TASK_DELIVERY_PENDING_UNTIL_SUPPORTED"
+  ],
+  "forbidden_actions": [
+    "SECOND_TIMER_OR_WRITER",
+    "LOCAL_RESEARCH_STATE_FALLBACK",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_REOPEN_OR_GATE_RELAXATION"
+  ]
+}

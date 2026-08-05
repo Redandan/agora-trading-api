@@ -112,6 +112,14 @@ provenance is an integrity blocker, not permission to continue from local
 assumptions. Both MCP write operations enforce this before any queue mutation;
 the cloud prompt is not the only guard.
 
+Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V1` id and
+byte-level SHA-256. Each heartbeat and candidate submission must attest that
+exact hash. Missing or altered contract bytes and a stale/missing attestation
+fail before either the research request queue or companion capture queue is
+created. The live schedule definition is read back after a contract change,
+because server-side caller attestation cannot by itself prove the opaque UI
+prompt text.
+
 ### Evidence-ready candidate registration
 
 After canonical status reaches `READY_FOR_HYPOTHESIS`, Codex may submit exactly
@@ -220,6 +228,9 @@ database query, or backfill.
   visible through the existing canonical status operation;
 - either MCP write operation fails before queue mutation when release provenance
   is missing, invalid, tampered, or dirty;
+- the same two operations fail before queue mutation when the versioned cloud
+  Ops contract is missing or altered, or the caller omits/mismatches its
+  canonical SHA-256 attestation;
 - evidence-ready Codex output can register one frozen candidate within 24 hours
   without a manual local task;
 - an isolated 90-day passing-mechanism rehearsal produces one sealed Coach

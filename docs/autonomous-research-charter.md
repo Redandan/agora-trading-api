@@ -138,6 +138,15 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
+The sole cloud Ops schedule semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v1.json`. Canonical status must
+expose its contract id and byte-level SHA-256. Both MCP write operations require
+the caller to attest that exact deployed hash and must fail before queue
+mutation when the contract is missing, altered, or mismatched. This binds the
+scheduled caller to one versioned contract; it does not make an unobservable UI
+prompt cryptographically self-verifying, so the live schedule definition still
+requires platform-side readback after each contract change.
+
 ## State machine
 
 ```text
@@ -218,6 +227,10 @@ For `dra-forward-entry-admission-v1`, Codex must copy canonical
 eligible mechanism. Registration converges through interruptions and creates a
 distinct future `CANDIDATE_OOS` trigger; discovery evidence is never reused and
 partial OOS is never exposed.
+Every heartbeat or candidate write must include the canonical
+`ops_schedule_contract.sha256` as `ops_schedule_contract_sha256`; absence or
+mismatch is an operational integrity alert and cannot be bypassed by a local
+state fallback.
 Canonical status supplies the exact 24-hour registration deadline, signed time
 remaining, and the preserved measured result, so the cloud task never derives
 the SLA from conversation history or its own clock.

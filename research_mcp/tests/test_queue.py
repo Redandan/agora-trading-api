@@ -52,6 +52,7 @@ class DurableQueueContractTest(unittest.TestCase):
         queue.POLICY_FILE = self.policy
         queue.APP_DIR = self.app
         self._release_provenance()
+        self.ops_schedule_contract_sha256 = self._ops_schedule_contract()
 
     def tearDown(self) -> None:
         (
@@ -99,6 +100,31 @@ class DurableQueueContractTest(unittest.TestCase):
             json.dumps(value), encoding="utf-8"
         )
         return value
+
+    def _ops_schedule_contract(self) -> str:
+        source = (
+            Path(queue.__file__).resolve().parents[1]
+            / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
+        )
+        target = self.app / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        return hashlib.sha256(target.read_bytes()).hexdigest()
+
+    def _request_heartbeat(self, *, now: datetime) -> dict[str, object]:
+        return queue.request_heartbeat(
+            self.ops_schedule_contract_sha256,
+            now=now,
+        )
+
+    def _request_candidate_bundle(
+        self,
+        bundle: dict[str, object],
+    ) -> dict[str, object]:
+        return queue.request_candidate_bundle(
+            bundle,
+            self.ops_schedule_contract_sha256,
+        )
 
     def _forward_trigger(self, *, with_source_contract: bool = True) -> None:
         store = ResearchStore(self.state, lock_stale_seconds=60)
@@ -178,7 +204,7 @@ class DurableQueueContractTest(unittest.TestCase):
 
     def test_not_due_does_not_enqueue(self) -> None:
         self._heartbeat_state("2026-01-02T00:00:00Z")
-        result = queue.request_heartbeat(
+        result = self._request_heartbeat(
             now=datetime(2026, 1, 1, tzinfo=timezone.utc)
         )
         self.assertEqual(result["status"], "NOT_DUE")
@@ -187,8 +213,8 @@ class DurableQueueContractTest(unittest.TestCase):
     def test_due_request_is_idempotent_and_visible_before_dispatch(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")
         now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-        first = queue.request_heartbeat(now=now)
-        second = queue.request_heartbeat(now=now)
+        first = self._request_heartbeat(now=now)
+        second = self._request_heartbeat(now=now)
         self.assertEqual(first["status"], "QUEUED")
         self.assertEqual(second["request_id"], first["request_id"])
         self.assertEqual(queue.get_run(first["request_id"])["status"], "QUEUED")
@@ -197,7 +223,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self._heartbeat_state("2026-01-02T00:00:00Z")
         self._forward_trigger()
         now = datetime(2026, 1, 2, 1, tzinfo=timezone.utc)
-        result = queue.request_heartbeat(now=now)
+        result = self._request_heartbeat(now=now)
         capture = result["evidence_capture"]
         self.assertEqual(result["status"], "QUEUED")
         self.assertEqual(capture["status"], "QUEUED")
@@ -211,7 +237,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self._r1_forward_trigger()
         self._heartbeat_state("2026-08-06T01:00:00Z")
 
-        preclose = queue.request_heartbeat(
+        preclose = self._request_heartbeat(
             now=datetime(2026, 8, 6, 1, tzinfo=timezone.utc)
         )
         self.assertEqual(preclose["status"], "QUEUED")
@@ -220,13 +246,13 @@ class DurableQueueContractTest(unittest.TestCase):
 
         (self.requests / "pending.json").unlink()
         self._heartbeat_state("2026-08-07T01:00:00Z")
-        first_due = queue.request_heartbeat(
+        first_due = self._request_heartbeat(
             now=datetime(2026, 8, 7, 1, tzinfo=timezone.utc)
         )
         due_epoch = datetime(2026, 8, 7, 1, tzinfo=timezone.utc).timestamp()
         os.utime(self.requests / "pending.json", (due_epoch, due_epoch))
         source_pending = (self.source_requests / "pending.json").read_bytes()
-        repeated = queue.request_heartbeat(
+        repeated = self._request_heartbeat(
             now=datetime(2026, 8, 7, 1, tzinfo=timezone.utc)
         )
 
@@ -256,14 +282,14 @@ class DurableQueueContractTest(unittest.TestCase):
                     path.unlink()
                 self._heartbeat_state("2025-12-31T00:00:00Z")
                 self._forward_trigger(with_source_contract=with_source)
-                result = queue.request_heartbeat(now=current)
+                result = self._request_heartbeat(now=current)
                 self.assertEqual(result["evidence_capture"]["status"], "NOT_CAPTURE_DUE")
                 self.assertFalse((self.source_requests / "pending.json").exists())
 
     def test_candidate_request_is_bounded_idempotent_and_not_clock_gated(self) -> None:
         bundle = self._candidate_bundle()
-        first = queue.request_candidate_bundle(bundle)
-        repeated = queue.request_candidate_bundle(bundle)
+        first = self._request_candidate_bundle(bundle)
+        repeated = self._request_candidate_bundle(bundle)
         self.assertEqual(first["status"], "QUEUED")
         self.assertEqual(repeated["request_id"], first["request_id"])
         self.assertEqual(first["operation"], "REGISTER_CANDIDATE_BUNDLE")
@@ -272,16 +298,16 @@ class DurableQueueContractTest(unittest.TestCase):
 
     def test_different_operation_cannot_replace_active_request(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")
-        heartbeat = queue.request_heartbeat(
+        heartbeat = self._request_heartbeat(
             now=datetime(2026, 1, 1, tzinfo=timezone.utc)
         )
-        candidate = queue.request_candidate_bundle(self._candidate_bundle())
+        candidate = self._request_candidate_bundle(self._candidate_bundle())
         self.assertEqual(candidate["status"], "QUEUE_BUSY")
         self.assertEqual(candidate["active_request_id"], heartbeat["request_id"])
         self.assertEqual(candidate["active_operation"], "RESEARCH_HEARTBEAT")
 
     def test_completed_candidate_submission_is_not_enqueued_again(self) -> None:
-        first = queue.request_candidate_bundle(self._candidate_bundle())
+        first = self._request_candidate_bundle(self._candidate_bundle())
         pending = self.requests / "pending.json"
         completed = json.loads(pending.read_text(encoding="utf-8"))
         completed.update(
@@ -295,7 +321,7 @@ class DurableQueueContractTest(unittest.TestCase):
         run.parent.mkdir(parents=True, exist_ok=True)
         run.write_text(json.dumps(completed), encoding="utf-8")
         pending.unlink()
-        repeated = queue.request_candidate_bundle(self._candidate_bundle())
+        repeated = self._request_candidate_bundle(self._candidate_bundle())
         self.assertEqual(repeated["status"], "ALREADY_COMPLETED")
         self.assertEqual(repeated["request_id"], first["request_id"])
         self.assertFalse(pending.exists())
@@ -304,7 +330,7 @@ class DurableQueueContractTest(unittest.TestCase):
         bundle = self._candidate_bundle()
         bundle["hypothesis"]["padding"] = "x" * queue.MAX_CANDIDATE_BUNDLE_BYTES
         with self.assertRaisesRegex(ValueError, "byte limit"):
-            queue.request_candidate_bundle(bundle)
+            self._request_candidate_bundle(bundle)
 
     def test_stale_running_request_is_preserved_then_replaced(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")
@@ -317,7 +343,7 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         stale_epoch = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
         os.utime(running, (stale_epoch, stale_epoch))
-        result = queue.request_heartbeat(
+        result = self._request_heartbeat(
             now=datetime(2026, 1, 1, 0, 2, tzinfo=timezone.utc)
         )
         self.assertEqual(result["status"], "QUEUED")
@@ -336,6 +362,7 @@ class DurableQueueContractTest(unittest.TestCase):
         with patch.object(queue, "_pipeline", return_value=pipeline_result):
             result = queue.research_status()
         release = result["worker_release"]
+        contract = result["ops_schedule_contract"]
         self.assertEqual(release["status"], "READY")
         self.assertEqual(release["source_git_commit"], expected["source_git_commit"])
         self.assertEqual(
@@ -344,6 +371,10 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["coach_outbox"]["status"], "IDLE")
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
+        self.assertEqual(contract["status"], "READY")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V1")
+        self.assertEqual(contract["schedule_count"], 1)
+        self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
 
     def test_status_exposes_correlated_sealed_capture_health(self) -> None:
         request_id = "b" * 32
@@ -581,12 +612,55 @@ class DurableQueueContractTest(unittest.TestCase):
     def test_invalid_release_blocks_both_write_operations_without_queue_mutation(self) -> None:
         shutil.rmtree(self.app / ".release")
         self._heartbeat_state("2026-01-01T00:00:00Z")
-        heartbeat = queue.request_heartbeat(
+        heartbeat = self._request_heartbeat(
             now=datetime(2026, 1, 1, tzinfo=timezone.utc)
         )
-        candidate = queue.request_candidate_bundle(self._candidate_bundle())
+        candidate = self._request_candidate_bundle(self._candidate_bundle())
         self.assertEqual(heartbeat["status"], "WORKER_RELEASE_INTEGRITY_BLOCKED")
         self.assertEqual(candidate["status"], "WORKER_RELEASE_INTEGRITY_BLOCKED")
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
+
+    def test_invalid_ops_contract_blocks_both_writes_without_queue_mutation(self) -> None:
+        contract = self.app / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
+        contract.unlink()
+        self._heartbeat_state("2026-01-01T00:00:00Z")
+        heartbeat = self._request_heartbeat(
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc)
+        )
+        candidate = self._request_candidate_bundle(self._candidate_bundle())
+        self.assertEqual(
+            heartbeat["status"], "OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED"
+        )
+        self.assertEqual(
+            candidate["status"], "OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED"
+        )
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
+
+        self._ops_schedule_contract()
+        value = json.loads(contract.read_text(encoding="utf-8"))
+        value["schedule_count"] = 2
+        contract.write_text(json.dumps(value), encoding="utf-8")
+        invalid = queue._ops_schedule_contract_summary()
+        self.assertEqual(invalid["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
+
+    def test_wrong_ops_contract_attestation_blocks_both_writes(self) -> None:
+        self._heartbeat_state("2026-01-01T00:00:00Z")
+        heartbeat = queue.request_heartbeat(
+            "0" * 64,
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        )
+        candidate = queue.request_candidate_bundle(
+            self._candidate_bundle(),
+            "0" * 64,
+        )
+        self.assertEqual(
+            heartbeat["status"], "OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED"
+        )
+        self.assertEqual(
+            candidate["status"], "OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED"
+        )
         self.assertFalse((self.requests / "pending.json").exists())
         self.assertFalse((self.source_requests / "pending.json").exists())
 

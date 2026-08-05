@@ -18,6 +18,16 @@ exactly 64 lowercase hexadecimal characters. Missing, invalid, tampered, or
 dirty provenance is an operational alert; do not enqueue a heartbeat or submit
 a candidate until a clean release is deployed.
 
+Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
+Continue only when canonical `ops_schedule_contract.status=READY`,
+`contract_id=CLOUD_OPS_SCHEDULE_V1`, `schedule_count=1`,
+`timer_authority=CODEX_CLOUD_OPS_ONLY`, and
+`sha256=1a98990c88f494492e076bd38381b08a4eb4cfbe96017dc608fc95b520649ece`.
+Pass that exact hash as `ops_schedule_contract_sha256` on every
+`request_research_heartbeat` and `submit_research_candidate_bundle` call.
+Missing, invalid, or mismatched contract/attestation is an operational alert;
+fail closed without queueing either operation.
+
 The fixed forward-source companion captures only the next complete UTC day.
 When the final required day is canonically ingested, the deterministic pipeline
 seals the mechanism-neutral dataset, diagnostic, typed evidence manifest, and

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 from pathlib import Path
 import unittest
 
@@ -23,7 +24,19 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         )
 
         candidate = by_name["submit_research_candidate_bundle"]
-        self.assertEqual(candidate.inputSchema.get("required"), ["bundle"])
+        heartbeat = by_name["request_research_heartbeat"]
+        self.assertEqual(
+            heartbeat.inputSchema.get("required"),
+            ["ops_schedule_contract_sha256"],
+        )
+        self.assertEqual(
+            heartbeat.inputSchema["properties"]["ops_schedule_contract_sha256"]["type"],
+            "string",
+        )
+        self.assertEqual(
+            candidate.inputSchema.get("required"),
+            ["bundle", "ops_schedule_contract_sha256"],
+        )
         self.assertEqual(
             candidate.inputSchema["properties"]["bundle"],
             {
@@ -43,11 +56,21 @@ class ResearchMcpServerContractTest(unittest.TestCase):
             / "prompts"
             / "daily-research-tick.md"
         ).read_text(encoding="utf-8")
+        contract = (
+            Path(__file__).resolve().parents[2]
+            / "research_pipeline"
+            / "cloud-ops-schedule-contract.v1.json"
+        ).read_bytes()
+        contract_sha256 = hashlib.sha256(contract).hexdigest()
 
         self.assertIn("get_research_status", prompt)
         self.assertIn("submit_research_candidate_bundle", prompt)
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
+        self.assertIn("ops_schedule_contract.status=READY", prompt)
+        self.assertIn("CLOUD_OPS_SCHEDULE_V1", prompt)
+        self.assertIn(contract_sha256, prompt)
+        self.assertIn("ops_schedule_contract_sha256", prompt)
         self.assertIn("evidence_capture_health", prompt)
         self.assertIn("CAPTURE_OBSERVATION_PENDING", prompt)
         self.assertIn("EVIDENCE_INGEST_DISPATCH_STALLED", prompt)

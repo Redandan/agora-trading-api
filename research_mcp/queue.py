@@ -34,6 +34,52 @@ SOURCE_DROP_DIR = Path(
 POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
+OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
+    "research_pipeline/cloud-ops-schedule-contract.v1.json"
+)
+EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
+    "schema_version": "1",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V1",
+    "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+    "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+    "state_authority": "SERVER_CANONICAL",
+    "schedule_count": 1,
+    "recurrence": {
+        "frequency": "DAILY",
+        "timezone": "Asia/Bangkok",
+        "local_time": "08:00",
+        "end": "NEVER",
+    },
+    "first_operation": "get_research_status",
+    "allowed_mcp_operations": [
+        "get_research_status",
+        "request_research_heartbeat",
+        "submit_research_candidate_bundle",
+        "get_research_run",
+        "get_research_briefing",
+    ],
+    "write_attestation": {
+        "parameter": "ops_schedule_contract_sha256",
+        "required": True,
+    },
+    "required_guards": [
+        "WORKER_RELEASE_READY",
+        "POLICY_V3_READY",
+        "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+        "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
+        "CANDIDATE_REGISTRATION_SLA_CANONICAL",
+        "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
+        "DISTINCT_SEALED_CANDIDATE_OOS",
+        "HASH_VERIFIED_COACH_OUTBOX",
+        "CROSS_TASK_DELIVERY_PENDING_UNTIL_SUPPORTED",
+    ],
+    "forbidden_actions": [
+        "SECOND_TIMER_OR_WRITER",
+        "LOCAL_RESEARCH_STATE_FALLBACK",
+        "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+        "OOS_REOPEN_OR_GATE_RELAXATION",
+    ],
+}
 RUN_ID = re.compile(r"^[a-f0-9]{32}$")
 TERMINAL_RUN_STATUSES = {"COMPLETED", "FAILED", "STALE_RECOVERED"}
 MAX_CANDIDATE_BUNDLE_BYTES = 128 * 1024
@@ -88,6 +134,66 @@ def _policy_summary() -> dict[str, Any]:
         "authorization": value.get("authorization"),
         "sha256": hashlib.sha256(raw).hexdigest(),
     }
+
+
+def _ops_schedule_contract_summary() -> dict[str, Any]:
+    path = APP_DIR / OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
+    try:
+        raw = path.read_bytes()
+        value = json.loads(raw.decode("utf-8"))
+    except FileNotFoundError:
+        return {
+            "status": "OPS_SCHEDULE_CONTRACT_READ_FAILED",
+            "reason": "cloud Ops schedule contract is unavailable",
+        }
+    except (UnicodeDecodeError, json.JSONDecodeError, OSError):
+        return {
+            "status": "OPS_SCHEDULE_CONTRACT_INVALID",
+            "reason": "cloud Ops schedule contract is not valid UTF-8 JSON",
+        }
+    if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
+        return {
+            "status": "OPS_SCHEDULE_CONTRACT_INVALID",
+            "reason": "cloud Ops schedule contract does not match the frozen V1 semantics",
+        }
+    recurrence = value["recurrence"]
+    return {
+        "status": "READY",
+        "schema_version": value["schema_version"],
+        "contract_id": value["contract_id"],
+        "authorization": value["authorization"],
+        "timer_authority": value["timer_authority"],
+        "state_authority": value["state_authority"],
+        "schedule_count": value["schedule_count"],
+        "recurrence": recurrence,
+        "attestation_parameter": value["write_attestation"]["parameter"],
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
+
+
+def _ops_schedule_contract_gate(
+    attested_sha256: str | None,
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    contract = _ops_schedule_contract_summary()
+    if contract.get("status") != "READY":
+        return (
+            {
+                "status": "OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED",
+                "ops_schedule_contract": contract,
+            },
+            contract,
+        )
+    expected_sha256 = contract["sha256"]
+    if attested_sha256 != expected_sha256:
+        return (
+            {
+                "status": "OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED",
+                "reason": "caller did not attest the deployed cloud Ops schedule contract",
+                "ops_schedule_contract": contract,
+            },
+            contract,
+        )
+    return None, contract
 
 
 def _worker_release_summary() -> dict[str, Any]:
@@ -752,7 +858,11 @@ def _enqueue_request(
     return {"status": "QUEUED", **request, "recovered": recovered}
 
 
-def request_heartbeat(*, now: datetime | None = None) -> dict[str, Any]:
+def request_heartbeat(
+    ops_schedule_contract_sha256: str | None,
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
     """Create one due durable heartbeat; concurrent calls converge on the same run."""
     current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     worker_release = _worker_release_summary()
@@ -761,6 +871,9 @@ def request_heartbeat(*, now: datetime | None = None) -> dict[str, Any]:
             "status": "WORKER_RELEASE_INTEGRITY_BLOCKED",
             "worker_release": worker_release,
         }
+    contract_block, _ = _ops_schedule_contract_gate(ops_schedule_contract_sha256)
+    if contract_block:
+        return contract_block
     REQUEST_DIR.mkdir(parents=True, exist_ok=True)
     recovered = _recover_stale_queue(current)
     active = _active_queue_response(
@@ -840,6 +953,7 @@ def _completed_candidate(payload_sha256: str) -> dict[str, Any] | None:
 
 def request_candidate_bundle(
     bundle: dict[str, Any],
+    ops_schedule_contract_sha256: str | None,
     *,
     now: datetime | None = None,
 ) -> dict[str, Any]:
@@ -852,6 +966,9 @@ def request_candidate_bundle(
             "status": "WORKER_RELEASE_INTEGRITY_BLOCKED",
             "worker_release": worker_release,
         }
+    contract_block, _ = _ops_schedule_contract_gate(ops_schedule_contract_sha256)
+    if contract_block:
+        return contract_block
     REQUEST_DIR.mkdir(parents=True, exist_ok=True)
     recovered = _recover_stale_queue(current)
     active = _active_queue_response(
@@ -968,6 +1085,7 @@ def research_status() -> dict[str, Any]:
         "state_authority": "SERVER_CANONICAL",
         "policy": _policy_summary(),
         "worker_release": _worker_release_summary(),
+        "ops_schedule_contract": _ops_schedule_contract_summary(),
         "queue": queue,
         "evidence_capture_queue": (
             source_active

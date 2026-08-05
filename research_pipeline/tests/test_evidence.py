@@ -1186,6 +1186,34 @@ class EvidenceManifestContractTest(unittest.TestCase):
         self.assertEqual(late["status"], "BREACH_PENDING_REGISTRATION")
         self.assertEqual(late["seconds_remaining"], -1)
 
+    def test_candidate_bundle_rejects_readiness_timestamp_drift(self) -> None:
+        bundle, policy = self._ready_candidate_bundle()
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        sealed_ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
+        state["evidence_ready_at"] = (
+            sealed_ready_at - timedelta(seconds=1)
+        ).isoformat()
+        self.store.save_evidence_trigger_state(state)
+
+        with self._eligible_forward_test_adapter():
+            with self.assertRaisesRegex(
+                ValueError,
+                "evidence_ready_at does not match the sealed review",
+            ):
+                register_candidate_bundle(
+                    self.store,
+                    policy,
+                    bundle,
+                    current_policy_hash=policy_sha256(policy_path),
+                    now=sealed_ready_at + timedelta(minutes=2),
+                )
+
+        self.assertFalse(
+            self.store.experiment_dir(bundle["manifest"]["experiment_id"]).exists()
+        )
+        self.assertEqual(self.store.hypothesis_entries(), [])
+
     def test_supported_forward_candidate_registers_with_separate_sealed_oos(self) -> None:
         contract = diagnostic_contract_status()
         self.diagnostic.write_text(

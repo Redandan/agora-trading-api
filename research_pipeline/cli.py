@@ -732,6 +732,14 @@ def register_candidate_bundle(
     hypothesis_created = parse_timestamp(hypothesis["created_at"], "hypothesis created_at")
     manifest_created = parse_timestamp(manifest.created_at, "manifest created_at")
     reviewed_at = parse_timestamp(str(review["reviewed_at"]), "evidence reviewed_at")
+    evidence_ready_at = parse_timestamp(
+        str(trigger_state.get("evidence_ready_at", "")),
+        "evidence_ready_at",
+    )
+    if evidence_ready_at != reviewed_at:
+        raise ValueError(
+            "canonical evidence_ready_at does not match the sealed review reviewed_at"
+        )
     if hypothesis_created < reviewed_at or manifest_created != hypothesis_created:
         raise ValueError("candidate hypothesis/manifest timestamps must follow the sealed review")
     if hypothesis_created > current + timedelta(minutes=5):

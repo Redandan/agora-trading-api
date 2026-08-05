@@ -131,6 +131,17 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn('value["resume_count"]', runner)
         self.assertNotIn(".timer", path_unit)
 
+    def test_charter_keeps_coach_outbox_read_only_without_denying_verified_receipts(self) -> None:
+        charter = (
+            Path(__file__).resolve().parents[2]
+            / "docs"
+            / "autonomous-research-charter.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("no standalone ACK operation", charter)
+        self.assertIn("bounded verified receipt", charter)
+        self.assertNotIn("has no canonical ACK", charter)
+
 
 if __name__ == "__main__":
     unittest.main()

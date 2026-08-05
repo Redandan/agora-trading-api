@@ -270,11 +270,14 @@ before claiming verified delivery. The Coach task re-verifies canonical status
 and the artifact hash before interpretation. If the target host or tool is
 unavailable, the event remains in the scheduled result with
 `delivery_status=CROSS_TASK_DELIVERY_PENDING`; a successful send without
-readback is only `QUEUED_TO_COACH_TASK_UNVERIFIED`. The outbox remains read-only
-and has no canonical ACK. Scheduled/Activity output or a device notification is
-not direct Coach-task delivery, and this path must not be replaced by a second
-timer or an unapproved messaging service. The first real material event from a
-cloud cycle is still required to prove the next-cycle Coach-thread SLA.
+readback is only `QUEUED_TO_COACH_TASK_UNVERIFIED`. The outbox remains a
+read-only status surface and has no standalone ACK operation. Only the next
+normally due heartbeat may carry the bounded verified receipt that updates
+canonical delivery state; an early receipt write or a second timer remains
+forbidden. Scheduled/Activity output or a device notification is not direct
+Coach-task delivery, and this path must not be replaced by a second timer or an
+unapproved messaging service. The first real material event from a cloud cycle
+is still required to prove the next-cycle Coach-thread SLA.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,

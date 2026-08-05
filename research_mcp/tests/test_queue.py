@@ -441,6 +441,16 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertTrue(release["source_tree_verified"])
         self.assertEqual(release["source_file_count"], 2)
         self.assertEqual(result["coach_outbox"]["status"], "IDLE")
+        self.assertEqual(
+            result["coach_outbox"]["delivery_proof_sla"],
+            {
+                "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+                "pass_count": 0,
+                "breach_count": 0,
+                "missing_proof_count": 0,
+                "latest": None,
+            },
+        )
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
         self.assertEqual(contract["status"], "READY")

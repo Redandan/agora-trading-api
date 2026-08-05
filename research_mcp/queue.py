@@ -410,7 +410,12 @@ def _coach_outbox(
     now: datetime | None = None,
 ) -> dict[str, Any]:
     if coach_delivery is None:
-        return {"status": "IDLE", "coach_task_id": COACH_TASK_ID}
+        return {
+            "status": "IDLE",
+            "coach_task_id": COACH_TASK_ID,
+            "delivered_receipt_count": 0,
+            "delivery_proof_sla": _delivery_proof_sla_summary([]),
+        }
     if not isinstance(coach_delivery, dict) or coach_delivery.get("schema_version") != "1":
         return {
             "status": "COACH_OUTBOX_INVALID",

@@ -77,6 +77,16 @@ only inside the six-hour post-close window and only as the next untouched UTC
 day. Missing the window produces an integrity alert and permanently forbids
 backfill for that trigger.
 
+After the final required complete UTC day is ingested, the network-denied
+canonical pipeline revalidates the full chain and deterministically seals a
+mechanism-neutral dataset, diagnostic, typed evidence manifest, and one
+`READY_FOR_HYPOTHESIS` review. It does not select a strategy or calculate
+strategy PnL. This reuses the existing heartbeat/ingest boundary: no sixth MCP
+tool, third queue operation, second writer, or additional timer is introduced.
+If the calendar review boundary arrives before the final day is present,
+capture remains the next action. The existing heartbeat can recover a legacy
+complete-but-unreviewed state by producing the same sealed artifacts.
+
 Before evidence starts, canonical state must contain one sealed source contract
 binding the trigger to the producer and one-way delivery transport. The source
 contract cannot grant the Worker network or database access. If it is absent,
@@ -126,6 +136,9 @@ The systemd path unit is an event consumer, not an additional schedule.
 - every MCP briefing returns a sealed artifact id and SHA-256;
 - canonical status exposes the forward-day count, lag, hash-chain head, and
   next capture deadline, and a missed day becomes an integrity alert;
+- the last canonical day produces one typed manifest, mechanism-neutral
+  diagnostic, and sealed ready review, while a still-missing final day remains
+  capture-first;
 - the systemd heartbeat timer is disabled after cloud cutover;
 - no source timer exists; source and intake are event-driven path units;
 - the single web Ops schedule runs with the local computer off.

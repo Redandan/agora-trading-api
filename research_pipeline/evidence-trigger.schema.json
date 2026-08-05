@@ -49,5 +49,29 @@
     },
     "created_at": {"type": "string", "format": "date-time"},
     "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"observation_unit": {"const": "COMPLETE_UTC_DAY"}},
+        "required": ["observation_unit"]
+      },
+      "then": {
+        "properties": {
+          "required_integrity_checks": {
+            "items": {
+              "enum": [
+                "closed_bar_causality",
+                "no_gap_or_duplicate",
+                "no_gap_or_duplicate_complete_hours",
+                "immutable_row_count_and_sha256",
+                "mechanism_neutral_diagnostic_before_strategy_mapping",
+                "new_hypothesis_fingerprint_not_in_closed_tree"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
 }

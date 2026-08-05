@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 import unittest
 
 from research_mcp.server import mcp
@@ -34,6 +35,21 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertFalse(candidate.annotations.readOnlyHint)
         self.assertFalse(candidate.annotations.destructiveHint)
         self.assertTrue(candidate.annotations.idempotentHint)
+
+    def test_cloud_prompt_is_mcp_first_and_never_writes_local_research_state(self) -> None:
+        prompt = (
+            Path(__file__).resolve().parents[2]
+            / "research_pipeline"
+            / "prompts"
+            / "daily-research-tick.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("get_research_status", prompt)
+        self.assertIn("submit_research_candidate_bundle", prompt)
+        self.assertIn("evidence_diagnostic", prompt)
+        self.assertIn("019fca63-4f8f-71e3-9d88-297bca468eb9", prompt)
+        self.assertNotIn("read_research_worker_inbox_ssh", prompt)
+        self.assertNotIn("Seal the evidence under `.research-state`", prompt)
 
 
 if __name__ == "__main__":

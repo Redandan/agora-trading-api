@@ -6,7 +6,7 @@ import json
 import re
 from typing import Any
 
-from .models import EXPERIMENT_ID, RESEARCH_AUTHORIZATION, now_utc, parse_timestamp
+from .models import EXPERIMENT_ID, RESEARCH_AUTHORIZATION, parse_timestamp
 
 
 TRIGGER_STATUSES = {
@@ -17,6 +17,14 @@ TRIGGER_STATUSES = {
 }
 REVIEW_OUTCOMES = {"WAIT", "READY_FOR_HYPOTHESIS", "CLOSE"}
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+DETERMINISTIC_COMPLETE_DAY_CHECKS = {
+    "closed_bar_causality",
+    "no_gap_or_duplicate",
+    "no_gap_or_duplicate_complete_hours",
+    "immutable_row_count_and_sha256",
+    "mechanism_neutral_diagnostic_before_strategy_mapping",
+    "new_hypothesis_fingerprint_not_in_closed_tree",
+}
 
 
 def build_evidence_trigger(value: dict[str, Any]) -> dict[str, Any]:
@@ -61,7 +69,26 @@ def build_evidence_trigger(value: dict[str, Any]) -> dict[str, Any]:
     minimum_observations = int(value["minimum_observations"])
     if minimum_observations < 1:
         raise ValueError("minimum_observations must be positive")
+    observation_unit = _nonblank(value, "observation_unit")
+    if observation_unit == "COMPLETE_UTC_DAY":
+        if evidence.time() != datetime.min.time() or review.time() != datetime.min.time():
+            raise ValueError("COMPLETE_UTC_DAY trigger boundaries must be UTC midnight")
+        window_seconds = int((review - evidence).total_seconds())
+        if window_seconds % 86400 != 0:
+            raise ValueError("COMPLETE_UTC_DAY trigger window must contain whole UTC days")
+        window_days = window_seconds // 86400
+        if minimum_observations > window_days:
+            raise ValueError(
+                "minimum_observations cannot exceed the frozen complete-day window"
+            )
     integrity = _string_list(value["required_integrity_checks"], "required_integrity_checks")
+    if observation_unit == "COMPLETE_UTC_DAY":
+        unsupported = sorted(set(integrity).difference(DETERMINISTIC_COMPLETE_DAY_CHECKS))
+        if unsupported:
+            raise ValueError(
+                "COMPLETE_UTC_DAY trigger has unsupported deterministic checks: "
+                + ", ".join(unsupported)
+            )
     prohibited = _string_list(value["prohibited_inferences"], "prohibited_inferences")
     excluded = _string_list(value["excluded_branches"], "excluded_branches")
     record = {
@@ -73,7 +100,7 @@ def build_evidence_trigger(value: dict[str, Any]) -> dict[str, Any]:
         "evidence_start": evidence_start,
         "review_not_before": review_not_before,
         "minimum_observations": minimum_observations,
-        "observation_unit": _nonblank(value, "observation_unit"),
+        "observation_unit": observation_unit,
         "required_integrity_checks": integrity,
         "prohibited_inferences": prohibited,
         "excluded_branches": excluded,
@@ -179,7 +206,7 @@ def build_evidence_review(
         "evidence_artifacts": artifacts,
         "next_review_at": None if next_review_at is None else str(next_review_at),
         "authorization": RESEARCH_AUTHORIZATION,
-        "created_at": now_utc(),
+        "created_at": current.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
 
 

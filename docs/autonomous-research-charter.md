@@ -212,6 +212,15 @@ Research MCP and systemd path consumer do not select hypotheses or interpret
 results; Codex performs that reasoning, while they only validate, transport,
 and execute the frozen pipeline contract. No Spring scheduler is permitted.
 
+For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
+the deterministic contract, the canonical intake may create the typed dataset,
+mechanism-neutral diagnostic, evidence manifest, and ready review immediately
+after the final day is sealed. Reaching the calendar review date does not bypass
+a missing final capture. Unsupported integrity checks fail closed. This is
+artifact construction and integrity validation, not hypothesis selection or
+strategy-performance interpretation, and it introduces no extra MCP operation,
+timer, or mutable writer.
+
 ## Java convergence roadmap
 
 Do not translate all legacy runners at once. First wrap the existing runners,

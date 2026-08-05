@@ -10,6 +10,7 @@ from typing import Any
 
 from .models import RESEARCH_AUTHORIZATION, parse_timestamp
 from .storage import ResearchStore, atomic_write_json, read_json, sha256_file
+from .waiting import DETERMINISTIC_COMPLETE_DAY_CHECKS, build_evidence_review
 
 
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -37,7 +38,7 @@ def register_evidence_source_contract(
         raise ValueError("sealed evidence source contract already exists")
     atomic_write_json(path, contract)
     reference = {
-        "path": str(path.relative_to(store.root)),
+        "path": _relative_path(store, path),
         "sha256": sha256_file(path),
         "producer": contract["producer"],
         "registered_at": contract["registered_at"],
@@ -166,10 +167,19 @@ def seal_daily_evidence(
             or existing_value != normalized
         ):
             raise ValueError("sealed evidence day idempotency check failed")
+        progress, review_result = _finalize_review_if_due(
+            store,
+            trigger,
+            state,
+            progress=progress,
+            current=current,
+            capture_max_lag_seconds=capture_max_lag_seconds,
+        )
         return {
             "status": "EVIDENCE_DAY_ALREADY_SEALED",
             "observation": existing_ref,
             "progress": progress,
+            "review": review_result,
         }
     normalized = validate_daily_evidence_bundle(
         value,
@@ -195,7 +205,7 @@ def seal_daily_evidence(
     else:
         atomic_write_json(path, normalized)
     artifact_hash = sha256_file(path)
-    relative = str(path.relative_to(store.root))
+    relative = _relative_path(store, path)
     previous_chain = str(state.get("evidence_chain_head") or EMPTY_CHAIN_HEAD)
     if not SHA256.fullmatch(previous_chain):
         raise ValueError("evidence chain head is invalid")
@@ -225,11 +235,53 @@ def seal_daily_evidence(
         now=current,
         capture_max_lag_seconds=capture_max_lag_seconds,
     )
+    updated_progress, review_result = _finalize_review_if_due(
+        store,
+        trigger,
+        state,
+        progress=updated_progress,
+        current=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
     return {
         "status": "EVIDENCE_DAY_SEALED",
         "observation": reference,
         "progress": updated_progress,
+        "review": review_result,
     }
+
+
+def _finalize_review_if_due(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    progress: dict[str, Any],
+    current: datetime,
+    capture_max_lag_seconds: int,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    review_not_before = parse_timestamp(
+        str(trigger["review_not_before"]), "review_not_before"
+    ).astimezone(timezone.utc)
+    if progress["status"] != "COMPLETE" or current < review_not_before:
+        return progress, None
+    review = seal_deterministic_evidence_review(
+        store,
+        trigger,
+        state,
+        now=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    return (
+        evidence_progress(
+            store,
+            trigger,
+            state,
+            now=current,
+            capture_max_lag_seconds=capture_max_lag_seconds,
+        ),
+        review,
+    )
 
 
 def validate_daily_evidence_bundle(
@@ -374,7 +426,14 @@ def evidence_progress(
     evidence_start = parse_timestamp(str(trigger["evidence_start"]), "evidence_start").astimezone(
         timezone.utc
     )
+    review_not_before = parse_timestamp(
+        str(trigger["review_not_before"]), "review_not_before"
+    ).astimezone(timezone.utc)
     minimum = int(trigger["minimum_observations"])
+    target = minimum
+    if trigger.get("observation_unit") == "COMPLETE_UTC_DAY":
+        frozen_days = int((review_not_before - evidence_start).total_seconds() // 86400)
+        target = max(minimum, frozen_days)
     observations = state.get("evidence_observations", [])
     if not isinstance(observations, list):
         raise ValueError("evidence trigger state observations must be a list")
@@ -426,7 +485,7 @@ def evidence_progress(
         status = "READY_FOR_HYPOTHESIS"
     elif source_contract is None:
         status = "SOURCE_UNBOUND"
-    elif count >= minimum:
+    elif count >= target:
         status = "COMPLETE"
     elif current < evidence_start:
         status = "NOT_STARTED"
@@ -437,12 +496,13 @@ def evidence_progress(
     else:
         status = "MISSED_CAPTURE_WINDOW"
     complete_days = max(0, int((current - evidence_start).total_seconds() // 86400))
-    expected = min(minimum, complete_days)
-    accepting = lifecycle_status not in {"CLOSED", "READY_FOR_HYPOTHESIS"} and count < minimum
+    expected = min(target, complete_days)
+    accepting = lifecycle_status not in {"CLOSED", "READY_FOR_HYPOTHESIS"} and count < target
     return {
         "status": status,
         "observation_count": count,
         "minimum_observations": minimum,
+        "required_window_observations": target,
         "expected_observations": expected,
         "lag_observations": max(0, expected - count),
         "chain_head": previous_chain,
@@ -460,6 +520,351 @@ def evidence_progress(
             }
         ),
     }
+
+
+def seal_deterministic_evidence_review(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    now: datetime | None = None,
+    capture_max_lag_seconds: int = 21600,
+) -> dict[str, Any]:
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    lifecycle_status = str(state.get("status"))
+    if lifecycle_status == "READY_FOR_HYPOTHESIS":
+        return {
+            "status": "EVIDENCE_REVIEW_ALREADY_READY",
+            "trigger_id": trigger["trigger_id"],
+            "review_count": state.get("review_count", 0),
+            "evidence_ready_at": state.get("evidence_ready_at"),
+            "diagnostic_summary": (state.get("detail") or {}).get("diagnostic_summary"),
+        }
+    if lifecycle_status == "CLOSED":
+        raise ValueError("closed evidence trigger cannot be reviewed")
+    progress = evidence_progress(
+        store,
+        trigger,
+        state,
+        now=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    if progress["status"] != "COMPLETE":
+        raise ValueError(
+            "deterministic evidence review requires the complete frozen observation window"
+        )
+    review_not_before = parse_timestamp(
+        str(trigger["review_not_before"]), "review_not_before"
+    ).astimezone(timezone.utc)
+    if current < review_not_before:
+        raise ValueError("deterministic evidence review is not due")
+    required_checks = [str(item) for item in trigger["required_integrity_checks"]]
+    unsupported = sorted(set(required_checks).difference(DETERMINISTIC_COMPLETE_DAY_CHECKS))
+    if unsupported:
+        raise ValueError(
+            "deterministic evidence review has unsupported integrity checks: "
+            + ", ".join(unsupported)
+        )
+
+    references = state.get("evidence_observations")
+    if not isinstance(references, list) or not references:
+        raise ValueError("deterministic evidence review requires sealed observations")
+    received_times = [
+        parse_timestamp(str(reference.get("received_at")), "observation received_at").astimezone(
+            timezone.utc
+        )
+        for reference in references
+    ]
+    evidence_ready_at = max(review_not_before, max(received_times))
+    ready_text = _iso_utc(evidence_ready_at)
+    sequence = int(state.get("review_count", 0)) + 1
+    artifact_dir = (
+        store.evidence_trigger_dir(str(trigger["trigger_id"]))
+        / "review-artifacts"
+        / f"{sequence:03d}"
+    )
+
+    dataset_observations: list[dict[str, Any]] = []
+    manifest_observations: list[dict[str, Any]] = []
+    for reference in references:
+        day = str(reference["day"])
+        path = (store.root / str(reference["path"])).resolve()
+        stored = read_json(path)
+        day_start = datetime.combine(date.fromisoformat(day), time.min, tzinfo=timezone.utc)
+        day_end = day_start + timedelta(days=1)
+        dataset_observations.append(
+            {
+                "observation_id": day,
+                "start_at": _iso_utc(day_start),
+                "end_at": _iso_utc(day_end),
+                "source_row_count": len(stored["bars"]),
+                "artifact_path": str(reference["path"]),
+                "artifact_sha256": str(reference["sha256"]),
+                "chain_head": str(reference["chain_head"]),
+                "received_at": str(reference["received_at"]),
+                "bars": stored["bars"],
+            }
+        )
+        manifest_observations.append(
+            {
+                "observation_id": day,
+                "start_at": _iso_utc(day_start),
+                "end_at": _iso_utc(day_end),
+                "source_row_count": len(stored["bars"]),
+            }
+        )
+
+    coverage_start = str(progress["coverage_start"])
+    coverage_end = str(progress["coverage_end"])
+    dataset = {
+        "schema_version": "1",
+        "dataset_type": "MECHANISM_NEUTRAL_FORWARD_EVIDENCE",
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "observation_unit": trigger["observation_unit"],
+        "coverage_start": coverage_start,
+        "coverage_end": coverage_end,
+        "observation_count": len(dataset_observations),
+        "source_row_count": sum(
+            int(item["source_row_count"]) for item in dataset_observations
+        ),
+        "chain_head": progress["chain_head"],
+        "observations": dataset_observations,
+        "created_at": ready_text,
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+    dataset_path = artifact_dir / "dataset.json"
+    _seal_or_verify_json(dataset_path, dataset)
+    diagnostic = _mechanism_neutral_diagnostic(dataset, trigger)
+    diagnostic_path = artifact_dir / "diagnostic.json"
+    _seal_or_verify_json(diagnostic_path, diagnostic)
+
+    integrity_evidence = {
+        "closed_bar_causality": (
+            f"All {len(dataset_observations)} observations contain only complete UTC hours "
+            f"sealed after day close and within {capture_max_lag_seconds} seconds."
+        ),
+        "no_gap_or_duplicate_complete_hours": (
+            f"{len(dataset_observations)} contiguous UTC days and "
+            f"{dataset['source_row_count']} unique hourly positions were revalidated."
+        ),
+        "no_gap_or_duplicate": (
+            f"{len(dataset_observations)} contiguous UTC days and "
+            f"{dataset['source_row_count']} unique hourly positions were revalidated."
+        ),
+        "immutable_row_count_and_sha256": (
+            f"Every sealed day artifact was rehashed and the cumulative chain head is "
+            f"{progress['chain_head']}."
+        ),
+        "mechanism_neutral_diagnostic_before_strategy_mapping": (
+            "The sealed diagnostic contains market-path and distribution statistics only; "
+            "strategy mapping and strategy PnL were not evaluated."
+        ),
+        "new_hypothesis_fingerprint_not_in_closed_tree": (
+            "No hypothesis was selected by this review; later candidate registration "
+            "enforces fingerprint deduplication against the canonical hypothesis tree."
+        ),
+    }
+    manifest = {
+        "schema_version": "1",
+        "manifest_type": MANIFEST_TYPE,
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "observation_unit": trigger["observation_unit"],
+        "coverage_start": coverage_start,
+        "coverage_end": coverage_end,
+        "observations": manifest_observations,
+        "dataset_artifact": {
+            "path": _relative_path(store, dataset_path),
+            "sha256": sha256_file(dataset_path),
+        },
+        "diagnostic_artifact": {
+            "path": _relative_path(store, diagnostic_path),
+            "sha256": sha256_file(diagnostic_path),
+        },
+        "integrity_checks": [
+            {"name": name, "status": "PASS", "evidence": integrity_evidence[name]}
+            for name in required_checks
+        ],
+        "created_at": ready_text,
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+    manifest_path = artifact_dir / "evidence-manifest.json"
+    _seal_or_verify_json(manifest_path, manifest)
+    verified_manifest = validate_evidence_manifest(manifest, trigger, store)
+
+    summary = diagnostic["summary"]
+    conclusion = (
+        f"{len(dataset_observations)} prospective complete UTC days passed the frozen "
+        f"integrity review. Market close-path return was "
+        f"{summary['market_close_path_return_pct']}%, maximum close-path drawdown was "
+        f"{summary['maximum_close_path_drawdown_pct']}%, and no strategy PnL or "
+        "hypothesis mapping was evaluated."
+    )
+    review = build_evidence_review(
+        {
+            "schema_version": "1",
+            "trigger_id": trigger["trigger_id"],
+            "reviewed_at": ready_text,
+            "outcome": "READY_FOR_HYPOTHESIS",
+            "conclusion": conclusion,
+            "evidence_artifacts": [
+                {
+                    "path": _relative_path(store, manifest_path),
+                    "sha256": sha256_file(manifest_path),
+                    "artifact_type": MANIFEST_TYPE,
+                }
+            ],
+            "authorization": RESEARCH_AUTHORIZATION,
+        },
+        now=evidence_ready_at,
+    )
+    review_path = store.evidence_review_dir(str(trigger["trigger_id"])) / f"{sequence:03d}.json"
+    _seal_or_verify_json(review_path, review)
+    state["review_count"] = sequence
+    state.setdefault("reviews", []).append(
+        {
+            "path": _relative_path(store, review_path),
+            "sha256": sha256_file(review_path),
+            "outcome": "READY_FOR_HYPOTHESIS",
+        }
+    )
+    state["detail"] = {
+        "conclusion": conclusion,
+        "verified_evidence": [verified_manifest],
+        "diagnostic_summary": summary,
+    }
+    state["status"] = "READY_FOR_HYPOTHESIS"
+    state["next_review_at"] = None
+    state["evidence_ready_at"] = ready_text
+    store.save_evidence_trigger_state(state)
+    store.append_evidence_trigger_event(
+        str(trigger["trigger_id"]),
+        "DETERMINISTIC_EVIDENCE_REVIEW_RECORDED",
+        {
+            "sequence": sequence,
+            "outcome": "READY_FOR_HYPOTHESIS",
+            "review_path": _relative_path(store, review_path),
+            "review_sha256": sha256_file(review_path),
+            "evidence_ready_at": ready_text,
+        },
+    )
+    return {
+        "status": "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS",
+        "trigger_id": trigger["trigger_id"],
+        "review_count": sequence,
+        "artifact_path": _relative_path(store, review_path),
+        "sha256": sha256_file(review_path),
+        "evidence_ready_at": ready_text,
+        "diagnostic_summary": summary,
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def _mechanism_neutral_diagnostic(
+    dataset: dict[str, Any], trigger: dict[str, Any]
+) -> dict[str, Any]:
+    daily: list[dict[str, Decimal]] = []
+    for observation in dataset["observations"]:
+        bars = observation["bars"]
+        daily.append(
+            {
+                "open": Decimal(str(bars[0]["open"])),
+                "high": max(Decimal(str(bar["high"])) for bar in bars),
+                "low": min(Decimal(str(bar["low"])) for bar in bars),
+                "close": Decimal(str(bars[-1]["close"])),
+                "volume": sum((Decimal(str(bar["volume"])) for bar in bars), Decimal("0")),
+            }
+        )
+    closes = [item["close"] for item in daily]
+    close_returns = [
+        (closes[index] / closes[index - 1] - Decimal("1")) * Decimal("100")
+        for index in range(1, len(closes))
+    ]
+    if not close_returns:
+        close_returns = [Decimal("0")]
+    ranges = [
+        (item["high"] - item["low"]) / item["open"] * Decimal("100")
+        for item in daily
+    ]
+    volumes = [item["volume"] for item in daily]
+    peak = closes[0]
+    maximum_drawdown = Decimal("0")
+    underwater = 0
+    maximum_underwater = 0
+    for close in closes:
+        if close >= peak:
+            peak = close
+            underwater = 0
+        else:
+            underwater += 1
+            maximum_underwater = max(maximum_underwater, underwater)
+            maximum_drawdown = max(
+                maximum_drawdown,
+                (peak - close) / peak * Decimal("100"),
+            )
+    path_return = (closes[-1] / closes[0] - Decimal("1")) * Decimal("100")
+    summary = {
+        "market_close_path_return_pct": _metric_text(path_return),
+        "maximum_close_path_drawdown_pct": _metric_text(maximum_drawdown),
+        "maximum_underwater_days": maximum_underwater,
+        "positive_close_return_days": sum(value > 0 for value in close_returns),
+        "negative_close_return_days": sum(value < 0 for value in close_returns),
+        "flat_close_return_days": sum(value == 0 for value in close_returns),
+        "median_close_to_close_return_pct": _metric_text(_percentile(close_returns, 50)),
+        "p10_close_to_close_return_pct": _metric_text(_percentile(close_returns, 10)),
+        "p90_close_to_close_return_pct": _metric_text(_percentile(close_returns, 90)),
+        "median_intraday_range_pct": _metric_text(_percentile(ranges, 50)),
+        "p90_intraday_range_pct": _metric_text(_percentile(ranges, 90)),
+        "median_daily_volume": _metric_text(_percentile(volumes, 50)),
+        "p90_daily_volume": _metric_text(_percentile(volumes, 90)),
+    }
+    return {
+        "schema_version": "1",
+        "diagnostic_type": "MECHANISM_NEUTRAL_FORWARD_MARKET_PATH",
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "coverage_start": dataset["coverage_start"],
+        "coverage_end": dataset["coverage_end"],
+        "observation_count": dataset["observation_count"],
+        "source_row_count": dataset["source_row_count"],
+        "chain_head": dataset["chain_head"],
+        "summary": summary,
+        "guardrails": {
+            "mechanism_neutral": True,
+            "strategy_performance_evaluated": False,
+            "hypothesis_selected": False,
+            "discovery_window_is_clean_oos": False,
+            "prohibited_inferences": trigger["prohibited_inferences"],
+            "excluded_branches": trigger["excluded_branches"],
+        },
+        "created_at": dataset["created_at"],
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def _percentile(values: list[Decimal], percentile: int) -> Decimal:
+    ordered = sorted(values)
+    index = (len(ordered) - 1) * percentile // 100
+    return ordered[index]
+
+
+def _metric_text(value: Decimal) -> str:
+    return _decimal_text(value.quantize(Decimal("0.00000001")))
+
+
+def _seal_or_verify_json(path: Path, value: dict[str, Any]) -> None:
+    if path.exists():
+        if read_json(path) != value:
+            raise ValueError(f"sealed deterministic review artifact differs: {path}")
+        return
+    atomic_write_json(path, value)
+
+
+def _relative_path(store: ResearchStore, path: Path) -> str:
+    return str(path.resolve().relative_to(store.root)).replace("\\", "/")
 
 
 def verify_evidence_source_contract(

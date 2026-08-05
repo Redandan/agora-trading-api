@@ -53,6 +53,15 @@ UTC days, verifies dataset and diagnostic hashes, and requires every frozen
 integrity check to pass. A date alone or an unrelated artifact cannot make the
 trigger ready.
 
+For `COMPLETE_UTC_DAY`, readiness also requires coverage through the entire
+frozen `review_not_before` boundary; reaching a smaller minimum count early
+does not stop capture. Trigger validation rejects a minimum that cannot fit
+inside the frozen complete-day window. When the final day is sealed, the same
+network-denied canonical intake deterministically seals the normalized dataset,
+mechanism-neutral market-path diagnostic, typed evidence manifest, and one
+`READY_FOR_HYPOTHESIS` review. Unknown integrity-check names fail closed. This
+step selects no strategy and computes no strategy PnL.
+
 Each prospective UTC day is accepted only through the fixed
 `FORWARD_EVIDENCE_DAY` contract. The canonical writer derives all 24 hourly
 positions, validates time-grid and OHLC/volume integrity, refuses out-of-order
@@ -97,6 +106,11 @@ The queue accepts only `RESEARCH_HEARTBEAT` and
 server path, runner execution, or activation field. Identical candidate
 submissions converge while active and return the sealed prior result after
 completion.
+
+No extra review tool or queue operation is required. If the review date arrives
+before the final companion capture has been ingested, canonical progress stays
+capture-first. A legacy complete-but-unreviewed state is finalized by the next
+existing heartbeat operation using the same deterministic artifacts.
 
 ## Delivery order
 
@@ -147,6 +161,10 @@ database query, or backfill.
 
 - focused evidence and durable-queue contract tests pass;
 - an untyped or under-count evidence review cannot become ready;
+- the final complete UTC day seals one deterministic diagnostic, typed manifest,
+  and review without a local writer or additional timer;
+- a review date cannot skip a still-due final capture, and an impossible
+  complete-day minimum/window contract is rejected at registration;
 - a malformed, late, duplicate-with-different-content, or out-of-order UTC day
   cannot enter the evidence chain;
 - canonical status exposes sealed count, lag, chain head, and next capture

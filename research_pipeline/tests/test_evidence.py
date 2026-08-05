@@ -10,7 +10,12 @@ import sys
 import tempfile
 import unittest
 
-from research_pipeline.cli import register_candidate_bundle, verify_review_artifacts
+from research_pipeline.cli import (
+    register_candidate_bundle,
+    run_tick,
+    status_payload,
+    verify_review_artifacts,
+)
 from research_pipeline.evidence import (
     evidence_progress,
     register_evidence_source_contract,
@@ -261,6 +266,22 @@ class EvidenceManifestContractTest(unittest.TestCase):
         self.assertEqual(summary["observation_count"], 2)
         self.assertEqual(summary["minimum_observations"], 2)
 
+    def test_complete_day_trigger_rejects_impossible_or_unsupported_review_contract(self) -> None:
+        trigger_path = (
+            Path(__file__).parents[1]
+            / "examples"
+            / "prospective-mechanism-neutral-evidence-refresh-2026q4-r1.trigger.json"
+        )
+        value = json.loads(trigger_path.read_text(encoding="utf-8"))
+        impossible = copy.deepcopy(value)
+        impossible["minimum_observations"] = 91
+        with self.assertRaisesRegex(ValueError, "cannot exceed"):
+            build_evidence_trigger(impossible)
+        unsupported = copy.deepcopy(value)
+        unsupported["required_integrity_checks"] = ["human_judgment_required"]
+        with self.assertRaisesRegex(ValueError, "unsupported deterministic checks"):
+            build_evidence_trigger(unsupported)
+
     def test_manifest_rejects_insufficient_observations(self) -> None:
         value = copy.deepcopy(self.manifest)
         value["observations"] = value["observations"][:1]
@@ -371,6 +392,282 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 self._daily_bundle(),
                 received_at=datetime(2026, 1, 2, 7, tzinfo=timezone.utc),
             )
+
+    def test_review_date_does_not_skip_the_missing_final_capture(self) -> None:
+        self._register_source()
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        seal_daily_evidence(
+            self.store,
+            self.trigger,
+            state,
+            self._daily_bundle(),
+            received_at=datetime(2026, 1, 2, 1, tzinfo=timezone.utc),
+        )
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        policy = load_policy(policy_path)
+
+        preview = run_tick(
+            self.store,
+            policy,
+            dry_run=True,
+            current_policy_hash=policy_sha256(policy_path),
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(preview["status"], "WAITING_FOR_EVIDENCE")
+        self.assertEqual(preview["evidence_progress"]["status"], "CAPTURE_DUE")
+        self.assertEqual(preview["evidence_progress"]["next_observation_day"], "2026-01-02")
+
+    def test_final_day_seals_diagnostic_manifest_review_and_coach_event(self) -> None:
+        self._register_source()
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        seal_daily_evidence(
+            self.store,
+            self.trigger,
+            state,
+            self._daily_bundle(),
+            received_at=datetime(2026, 1, 2, 1, tzinfo=timezone.utc),
+        )
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        final = seal_daily_evidence(
+            self.store,
+            self.trigger,
+            state,
+            self._daily_bundle("2026-01-02"),
+            received_at=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(
+            final["review"]["status"], "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS"
+        )
+        self.assertEqual(final["progress"]["status"], "READY_FOR_HYPOTHESIS")
+        ready_state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        self.assertEqual(ready_state["status"], "READY_FOR_HYPOTHESIS")
+        self.assertEqual(ready_state["evidence_ready_at"], "2026-01-03T01:00:00Z")
+        review_path = self.root / ready_state["reviews"][0]["path"]
+        review = json.loads(review_path.read_text(encoding="utf-8"))
+        manifest_path = self.root / review["evidence_artifacts"][0]["path"]
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        verified = validate_evidence_manifest(manifest, self.trigger, self.store)
+        diagnostic_path = self.root / manifest["diagnostic_artifact"]["path"]
+        diagnostic = json.loads(diagnostic_path.read_text(encoding="utf-8"))
+        self.assertEqual(verified["observation_count"], 2)
+        self.assertFalse(diagnostic["guardrails"]["strategy_performance_evaluated"])
+        self.assertFalse(diagnostic["guardrails"]["hypothesis_selected"])
+        self.assertNotIn("pnl", json.dumps(diagnostic).lower())
+
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        policy = load_policy(policy_path)
+        canonical = status_payload(self.store, policy)
+        trigger_status = next(
+            item
+            for item in canonical["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )
+        self.assertEqual(trigger_status["evidence_ready_at"], "2026-01-03T01:00:00Z")
+        self.assertEqual(
+            trigger_status["diagnostic_summary"], ready_state["detail"]["diagnostic_summary"]
+        )
+        tick = run_tick(
+            self.store,
+            policy,
+            dry_run=True,
+            current_policy_hash=policy_sha256(policy_path),
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+        )
+        heartbeat = run_heartbeat_cycle(
+            self.store,
+            policy,
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertEqual(tick["status"], "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS")
+        self.assertEqual(heartbeat["event_type"], "MATERIAL_LEARNING")
+        self.assertTrue(heartbeat["should_notify_coach"])
+        self.assertEqual(
+            heartbeat["evidence_diagnostic"], ready_state["detail"]["diagnostic_summary"]
+        )
+
+    def test_due_complete_window_is_reviewed_by_the_existing_tick_operation(self) -> None:
+        trigger = build_evidence_trigger(
+            {
+                "schema_version": "1",
+                "trigger_id": "delayed-deterministic-review-test",
+                "title": "Delayed deterministic review test",
+                "rationale": "Prove the existing heartbeat operation can finish a due review.",
+                "source": "sealed test source",
+                "evidence_start": "2026-01-01T00:00:00Z",
+                "review_not_before": "2026-01-03T00:00:00Z",
+                "minimum_observations": 2,
+                "observation_unit": "COMPLETE_UTC_DAY",
+                "required_integrity_checks": ["closed_bar_causality"],
+                "prohibited_inferences": ["no performance selection"],
+                "excluded_branches": ["closed branch"],
+                "created_at": "2025-12-31T00:00:00Z",
+                "authorization": RESEARCH_AUTHORIZATION,
+            }
+        )
+        isolated_root = self.root / "delayed-state"
+        store = ResearchStore(isolated_root, lock_stale_seconds=60)
+        store.register_evidence_trigger(trigger)
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            {
+                "schema_version": "1",
+                "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+                "trigger_id": trigger["trigger_id"],
+                "trigger_fingerprint": trigger["fingerprint"],
+                "source": trigger["source"],
+                "producer": "contract-test",
+                "transport": "SEALED_ONE_WAY_DROP",
+                "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+                "worker_network_access": "DENY",
+                "worker_database_access": "DENY",
+                "backfill": "DENY",
+                "authorization": RESEARCH_AUTHORIZATION,
+            },
+            registered_at=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+        bundle = self._daily_bundle()
+        bundle["trigger_id"] = trigger["trigger_id"]
+        bundle["trigger_fingerprint"] = trigger["fingerprint"]
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        seal_daily_evidence(
+            store,
+            trigger,
+            state,
+            bundle,
+            received_at=datetime(2026, 1, 2, 1, tzinfo=timezone.utc),
+        )
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        second = self._daily_bundle("2026-01-02")
+        second["trigger_id"] = trigger["trigger_id"]
+        second["trigger_fingerprint"] = trigger["fingerprint"]
+        seal_daily_evidence(
+            store,
+            trigger,
+            state,
+            second,
+            received_at=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+        )
+        legacy_complete_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        legacy_complete_state["status"] = "WAITING"
+        legacy_complete_state["next_review_at"] = trigger["review_not_before"]
+        legacy_complete_state["review_count"] = 0
+        legacy_complete_state["reviews"] = []
+        legacy_complete_state["detail"] = None
+        legacy_complete_state.pop("evidence_ready_at", None)
+        store.save_evidence_trigger_state(legacy_complete_state)
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        policy = load_policy(policy_path)
+        current_hash = policy_sha256(policy_path)
+        preview = run_tick(
+            store,
+            policy,
+            dry_run=True,
+            current_policy_hash=current_hash,
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+        )
+        result = run_tick(
+            store,
+            policy,
+            dry_run=False,
+            current_policy_hash=current_hash,
+            now=datetime(2026, 1, 3, 1, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(preview["status"], "DRY_RUN")
+        self.assertEqual(preview["action"], "BUILD_DETERMINISTIC_FORWARD_EVIDENCE_REVIEW")
+        self.assertEqual(result["status"], "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS")
+        self.assertEqual(
+            store.load_evidence_trigger_state(trigger["trigger_id"])["status"],
+            "READY_FOR_HYPOTHESIS",
+        )
+
+    def test_ninety_day_window_reaches_ready_on_the_final_sealed_day(self) -> None:
+        trigger_path = (
+            Path(__file__).parents[1]
+            / "examples"
+            / "prospective-mechanism-neutral-evidence-refresh-2026q4-r1.trigger.json"
+        )
+        value = json.loads(trigger_path.read_text(encoding="utf-8"))
+        value.update(
+            {
+                "trigger_id": "prospective-mechanism-neutral-evidence-90-day-test",
+                "title": "Prospective mechanism-neutral evidence 90-day test",
+                "evidence_start": "2026-01-01T00:00:00Z",
+                "review_not_before": "2026-04-01T00:00:00Z",
+                "created_at": "2025-12-31T00:00:00Z",
+            }
+        )
+        trigger = build_evidence_trigger(value)
+        store = ResearchStore(self.root / "ninety-day-state", lock_stale_seconds=60)
+        store.register_evidence_trigger(trigger)
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            {
+                "schema_version": "1",
+                "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+                "trigger_id": trigger["trigger_id"],
+                "trigger_fingerprint": trigger["fingerprint"],
+                "source": trigger["source"],
+                "producer": "contract-test",
+                "transport": "SEALED_ONE_WAY_DROP",
+                "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+                "worker_network_access": "DENY",
+                "worker_database_access": "DENY",
+                "backfill": "DENY",
+                "authorization": RESEARCH_AUTHORIZATION,
+            },
+            registered_at=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+        start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        final = None
+        for offset in range(90):
+            day_start = start + timedelta(days=offset)
+            bundle = self._daily_bundle(day_start.date().isoformat())
+            bundle["trigger_id"] = trigger["trigger_id"]
+            bundle["trigger_fingerprint"] = trigger["fingerprint"]
+            bundle["source"] = trigger["source"]
+            state = store.load_evidence_trigger_state(trigger["trigger_id"])
+            final = seal_daily_evidence(
+                store,
+                trigger,
+                state,
+                bundle,
+                received_at=day_start + timedelta(days=1, hours=1),
+            )
+            if offset < 89:
+                self.assertIsNone(final["review"])
+
+        self.assertIsNotNone(final)
+        self.assertEqual(final["progress"]["status"], "READY_FOR_HYPOTHESIS")
+        self.assertEqual(final["review"]["evidence_ready_at"], "2026-04-01T01:00:00Z")
+        ready_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        review = json.loads(
+            (store.root / ready_state["reviews"][0]["path"]).read_text(encoding="utf-8")
+        )
+        manifest = json.loads(
+            (store.root / review["evidence_artifacts"][0]["path"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        dataset = json.loads(
+            (store.root / manifest["dataset_artifact"]["path"]).read_text(encoding="utf-8")
+        )
+        self.assertEqual(dataset["observation_count"], 90)
+        self.assertEqual(dataset["source_row_count"], 2160)
+        self.assertEqual(
+            {item["name"] for item in manifest["integrity_checks"]},
+            set(trigger["required_integrity_checks"]),
+        )
 
     def test_progress_fails_closed_after_missed_capture_deadline(self) -> None:
         self._register_source()

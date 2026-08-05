@@ -137,6 +137,7 @@ def run_heartbeat_cycle(
         "sha256": None if primary is None else primary["sha256"],
         "material_conclusion": None if primary is None else primary["material_conclusion"],
         "pnl_drawdown_evidence": None if primary is None else primary["pnl_drawdown_evidence"],
+        "evidence_diagnostic": None if primary is None else primary.get("evidence_diagnostic"),
         "uncertainty": None if primary is None else primary["uncertainty"],
         "next_action": _next_action(tick_result),
         "concept_to_teach": None if primary is None else primary["concept_to_teach"],
@@ -179,6 +180,7 @@ def record_heartbeat_failure(
         "research_status": "HEARTBEAT_FAILED_CLOSED",
         "material_conclusion": f"The research heartbeat failed closed: {type(error).__name__}.",
         "pnl_drawdown_evidence": None,
+        "evidence_diagnostic": None,
         "uncertainty": str(error),
         "next_action": "INSPECT_FAILURE_ARTIFACT_WITHOUT_ADVANCING_RESEARCH",
         "concept_to_teach": "A control-plane failure is not strategy evidence and cannot justify relaxing a gate.",
@@ -507,6 +509,7 @@ def _evidence_ready_event(store: ResearchStore, result: dict[str, Any]) -> dict[
     latest = reviews[-1]
     path = store.root / str(latest["path"])
     review = read_json(path)
+    diagnostic_summary = (state.get("detail") or {}).get("diagnostic_summary")
     return {
         "event_type": "MATERIAL_LEARNING",
         "artifact_path": _relative(store, path),
@@ -514,6 +517,7 @@ def _evidence_ready_event(store: ResearchStore, result: dict[str, Any]) -> dict[
         "research_status": "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS",
         "material_conclusion": str(review.get("conclusion") or "Evidence review is ready."),
         "pnl_drawdown_evidence": None,
+        "evidence_diagnostic": diagnostic_summary,
         "uncertainty": "The reviewed discovery window remains excluded from clean OOS.",
         "next_action": "PROPOSE_AT_MOST_ONE_CAUSAL_HYPOTHESIS_FROM_THE_SEALED_REVIEW",
         "concept_to_teach": "A sealed discovery review may justify one hypothesis, not a promotion claim.",

@@ -38,6 +38,7 @@ single Codex cloud Ops schedule
   -> network-denied agora-research ingest oneshot
   -> research_pipeline ingest-evidence-day
   -> canonical hash chain
+  -> on the final day, deterministic dataset / diagnostic / manifest / review
 ```
 
 The source runs as a separate `agora-evidence-source` Unix identity. It may:
@@ -78,6 +79,10 @@ artifact id. A separate raw artifact records capture time and is file-hashed by
 the delivery envelope. The network-denied intake independently reconstructs
 the bundle from those rows, revalidates the existing
 `evidence-day.schema.json` contract and appends the canonical SHA-256 chain.
+When that append completes the frozen window, the same intake seals a
+mechanism-neutral market-path diagnostic, typed evidence manifest, and ready
+review. It does not map a strategy or evaluate strategy PnL; Codex remains the
+hypothesis selector on the next cloud step.
 
 ## Activation gate
 

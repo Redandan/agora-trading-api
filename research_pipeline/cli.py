@@ -22,6 +22,7 @@ from .evidence import (
     evidence_progress,
     register_evidence_source_contract,
     seal_daily_evidence,
+    seal_deterministic_evidence_review,
     validate_evidence_manifest,
 )
 from .learning import build_learning
@@ -168,6 +169,10 @@ def status_payload(store: ResearchStore, policy: dict[str, Any]) -> dict[str, An
                 "status": effective_trigger_status(state),
                 "next_review_at": state.get("next_review_at"),
                 "review_count": state.get("review_count", 0),
+                "evidence_ready_at": state.get("evidence_ready_at"),
+                "diagnostic_summary": (state.get("detail") or {}).get(
+                    "diagnostic_summary"
+                ),
                 "progress": evidence_progress(
                     store,
                     trigger,
@@ -462,12 +467,14 @@ def evidence_wait_payload(
     store: ResearchStore,
     *,
     capture_max_lag_seconds: int,
+    now: datetime | None = None,
 ) -> dict[str, Any] | None:
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     entries = checked_evidence_triggers(store)
     ready = [
         (trigger, state)
         for trigger, state in entries
-        if effective_trigger_status(state) == "READY_FOR_HYPOTHESIS"
+        if effective_trigger_status(state, now=current) == "READY_FOR_HYPOTHESIS"
     ]
     if ready:
         ready.sort(key=lambda pair: (pair[1]["updated_at"], pair[0]["trigger_id"]))
@@ -477,28 +484,43 @@ def evidence_wait_payload(
             "trigger_id": trigger["trigger_id"],
             "title": trigger["title"],
             "review_count": state.get("review_count", 0),
+            "evidence_ready_at": state.get("evidence_ready_at"),
+            "diagnostic_summary": (state.get("detail") or {}).get(
+                "diagnostic_summary"
+            ),
             "authorization": trigger["authorization"],
         }
     due = [
-        (trigger, state)
+        (trigger, state, progress)
         for trigger, state in entries
-        if effective_trigger_status(state) == "REVIEW_DUE"
+        if effective_trigger_status(state, now=current) == "REVIEW_DUE"
+        for progress in [
+            evidence_progress(
+                store,
+                trigger,
+                state,
+                now=current,
+                capture_max_lag_seconds=capture_max_lag_seconds,
+            )
+        ]
+        if progress["status"] == "COMPLETE"
     ]
     if due:
-        due.sort(key=lambda pair: (pair[1]["next_review_at"], pair[0]["trigger_id"]))
-        trigger, state = due[0]
+        due.sort(key=lambda item: (item[1]["next_review_at"], item[0]["trigger_id"]))
+        trigger, state, progress = due[0]
         return {
             "status": "EVIDENCE_REVIEW_DUE",
             "trigger_id": trigger["trigger_id"],
             "title": trigger["title"],
             "next_review_at": state["next_review_at"],
             "source": trigger["source"],
+            "evidence_progress": progress,
             "authorization": trigger["authorization"],
         }
     waiting = [
         (trigger, state)
         for trigger, state in entries
-        if effective_trigger_status(state) == "WAITING"
+        if effective_trigger_status(state, now=current) in {"WAITING", "REVIEW_DUE"}
     ]
     if waiting:
         waiting.sort(key=lambda pair: (pair[1]["next_review_at"], pair[0]["trigger_id"]))
@@ -507,6 +529,7 @@ def evidence_wait_payload(
             store,
             trigger,
             state,
+            now=current,
             capture_max_lag_seconds=capture_max_lag_seconds,
         )
         if progress["status"] in {"SOURCE_UNBOUND", "MISSED_CAPTURE_WINDOW"}:
@@ -541,7 +564,9 @@ def run_tick(
     *,
     dry_run: bool,
     current_policy_hash: str,
+    now: datetime | None = None,
 ) -> dict[str, Any]:
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
     selected = select_actionable(store)
     if selected is None:
         hypotheses = store.hypothesis_entries()
@@ -564,8 +589,26 @@ def run_tick(
             capture_max_lag_seconds=int(
                 policy.get("evidence", {}).get("capture_max_lag_seconds", 21600)
             ),
+            now=current,
         )
         if evidence_wait:
+            if evidence_wait["status"] == "EVIDENCE_REVIEW_DUE":
+                if dry_run:
+                    return {
+                        **evidence_wait,
+                        "status": "DRY_RUN",
+                        "action": "BUILD_DETERMINISTIC_FORWARD_EVIDENCE_REVIEW",
+                    }
+                trigger_id = str(evidence_wait["trigger_id"])
+                return seal_deterministic_evidence_review(
+                    store,
+                    store.load_evidence_trigger(trigger_id),
+                    store.load_evidence_trigger_state(trigger_id),
+                    now=current,
+                    capture_max_lag_seconds=int(
+                        policy.get("evidence", {}).get("capture_max_lag_seconds", 21600)
+                    ),
+                )
             return evidence_wait
         return {
             "status": "IDLE_NO_ACTIONABLE_EXPERIMENT",
@@ -891,6 +934,7 @@ def main(argv: list[str] | None = None) -> int:
                 elif outcome == "READY_FOR_HYPOTHESIS":
                     state["status"] = "READY_FOR_HYPOTHESIS"
                     state["next_review_at"] = None
+                    state["evidence_ready_at"] = review["reviewed_at"]
                 else:
                     state["status"] = "CLOSED"
                     state["next_review_at"] = None
@@ -1161,6 +1205,7 @@ def main(argv: list[str] | None = None) -> int:
                         policy,
                         dry_run=True,
                         current_policy_hash=current_policy_hash,
+                        now=heartbeat_now,
                     )
                     tick_result = tick_preview
                     if tick_preview.get("status") == "DRY_RUN":
@@ -1169,6 +1214,7 @@ def main(argv: list[str] | None = None) -> int:
                             policy,
                             dry_run=False,
                             current_policy_hash=current_policy_hash,
+                            now=heartbeat_now,
                         )
                     payload = run_heartbeat_cycle(
                         store,

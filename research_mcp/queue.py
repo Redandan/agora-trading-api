@@ -1298,7 +1298,10 @@ def request_heartbeat(
     contract_block, _ = _ops_schedule_contract_gate(ops_schedule_contract_sha256)
     if contract_block:
         return contract_block
-    payload, payload_sha256 = _validated_heartbeat_payload(coach_delivery_receipts)
+    payload, payload_sha256 = _validated_heartbeat_payload(
+        coach_delivery_receipts,
+        now=current,
+    )
     REQUEST_DIR.mkdir(parents=True, exist_ok=True)
     recovered = _recover_stale_queue(current)
     active = _active_queue_response(
@@ -1325,6 +1328,8 @@ def request_heartbeat(
 
 def _validated_heartbeat_payload(
     raw_receipts: list[dict[str, Any]] | None,
+    *,
+    now: datetime | None = None,
 ) -> tuple[dict[str, Any], str]:
     receipts = [] if raw_receipts is None else raw_receipts
     if not isinstance(receipts, list):
@@ -1345,19 +1350,25 @@ def _validated_heartbeat_payload(
         if not isinstance(pending_events, list) or not isinstance(delivered_receipts, list):
             raise ValueError("canonical coach delivery lists are invalid")
 
-    canonical_ids: set[str] = set()
+    outbox = _coach_outbox(delivery, now=now)
+    if outbox.get("status") == "COACH_OUTBOX_INVALID":
+        raise ValueError(
+            "canonical coach outbox is invalid: "
+            + str(outbox.get("reason") or "unknown integrity failure")
+        )
+
+    pending_ids: set[str] = set()
     for event in pending_events:
-        if not isinstance(event, dict) or not re.fullmatch(
-            r"[0-9a-f]{64}", str(event.get("sha256", ""))
-        ):
-            raise ValueError("canonical coach pending event is invalid")
-        canonical_ids.add(str(event["sha256"]))
+        pending_ids.add(str(event["sha256"]))
+    delivered_ids: set[str] = set()
     for receipt in delivered_receipts:
-        if not isinstance(receipt, dict) or not re.fullmatch(
-            r"[0-9a-f]{64}", str(receipt.get("delivery_id", ""))
-        ):
-            raise ValueError("canonical coach delivered receipt is invalid")
-        canonical_ids.add(str(receipt["delivery_id"]))
+        delivered_ids.add(str(receipt["delivery_id"]))
+    verified_pending_ids = {
+        str(event["delivery_id"])
+        for event in outbox.get("events", [])
+        if isinstance(event, dict) and isinstance(event.get("delivery_id"), str)
+    }
+    canonical_ids = pending_ids | delivered_ids
 
     normalized_receipts: list[dict[str, str]] = []
     seen: set[str] = set()
@@ -1390,6 +1401,10 @@ def _validated_heartbeat_payload(
             raise ValueError("coach delivery receipt status is not verified")
         if delivery_id not in canonical_ids:
             raise ValueError("coach delivery receipt does not match canonical state")
+        if delivery_id in pending_ids and delivery_id not in verified_pending_ids:
+            raise ValueError(
+                "coach delivery receipt does not match the hash-verified canonical outbox batch"
+            )
         normalized_receipts.append({key: str(raw[key]) for key in required})
 
     payload = {

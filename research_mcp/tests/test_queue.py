@@ -239,7 +239,10 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(queue.get_run(first["request_id"])["status"], "QUEUED")
 
     def test_due_heartbeat_seals_verified_coach_receipts_in_hashed_payload(self) -> None:
-        delivery_id = "d" * 64
+        artifact = self.state / "events" / "material-learning.json"
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        artifact.write_text('{"sealed":true}\n', encoding="utf-8")
+        delivery_id = hashlib.sha256(artifact.read_bytes()).hexdigest()
         heartbeat = self.state / "heartbeat" / "state.json"
         heartbeat.parent.mkdir(parents=True, exist_ok=True)
         heartbeat.write_text(
@@ -249,7 +252,20 @@ class DurableQueueContractTest(unittest.TestCase):
                     "next_due": "2026-01-01T00:00:00Z",
                     "coach_delivery": {
                         "schema_version": "1",
-                        "pending_events": [{"sha256": delivery_id}],
+                        "pending_events": [
+                            {
+                                "event_type": "MATERIAL_LEARNING",
+                                "artifact_path": str(artifact.relative_to(self.state)),
+                                "sha256": delivery_id,
+                                "research_status": "CLOSED",
+                                "material_conclusion": "A sealed learning is ready.",
+                                "pnl_drawdown_evidence": None,
+                                "evidence_diagnostic": None,
+                                "uncertainty": "No prospective evidence exists.",
+                                "next_action": "PRESERVE_THE_CLOSED_BRANCH",
+                                "concept_to_teach": "A closed branch stays closed.",
+                            }
+                        ],
                         "delivered_receipts": [],
                     },
                 }
@@ -270,6 +286,86 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(second["request_id"], first["request_id"])
         self.assertEqual(first["payload"]["coach_delivery_receipts"], [receipt])
         self.assertRegex(first["payload_sha256"], r"^[a-f0-9]{64}$")
+
+    def test_invalid_canonical_coach_outbox_blocks_queue_mutation(self) -> None:
+        heartbeat = self.state / "heartbeat" / "state.json"
+        heartbeat.parent.mkdir(parents=True, exist_ok=True)
+        heartbeat.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "next_due": "2026-01-01T00:00:00Z",
+                    "coach_delivery": {
+                        "schema_version": "1",
+                        "pending_events": [{"sha256": "d" * 64}],
+                        "delivered_receipts": [],
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with self.assertRaisesRegex(ValueError, "canonical coach outbox is invalid"):
+            self._request_heartbeat(now=datetime(2026, 1, 1, tzinfo=timezone.utc))
+
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
+
+    def test_receipt_cannot_ack_event_outside_verified_outbox_batch(self) -> None:
+        events = []
+        for index in range(queue.MAX_COACH_OUTBOX_BATCH + 1):
+            artifact = self.state / "events" / f"material-learning-{index}.json"
+            artifact.parent.mkdir(parents=True, exist_ok=True)
+            artifact.write_text(
+                json.dumps({"sealed": True, "index": index}) + "\n",
+                encoding="utf-8",
+            )
+            events.append(
+                {
+                    "event_type": "MATERIAL_LEARNING",
+                    "artifact_path": str(artifact.relative_to(self.state)),
+                    "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+                    "research_status": "CLOSED",
+                    "material_conclusion": f"Sealed learning {index} is ready.",
+                    "pnl_drawdown_evidence": None,
+                    "evidence_diagnostic": None,
+                    "uncertainty": "No prospective evidence exists.",
+                    "next_action": "PRESERVE_THE_CLOSED_BRANCH",
+                    "concept_to_teach": "A closed branch stays closed.",
+                }
+            )
+        heartbeat = self.state / "heartbeat" / "state.json"
+        heartbeat.parent.mkdir(parents=True, exist_ok=True)
+        heartbeat.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "next_due": "2026-01-01T00:00:00Z",
+                    "coach_delivery": {
+                        "schema_version": "1",
+                        "pending_events": events,
+                        "delivered_receipts": [],
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        delivery_id = events[-1]["sha256"]
+        receipt = {
+            "schema_version": "1",
+            "delivery_id": delivery_id,
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+            "target_thread_id": queue.COACH_TASK_ID,
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+        }
+
+        with self.assertRaisesRegex(ValueError, "hash-verified canonical outbox batch"):
+            self._request_heartbeat(
+                now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                coach_delivery_receipts=[receipt],
+            )
+
+        self.assertFalse((self.requests / "pending.json").exists())
 
     def test_coach_receipt_must_match_canonical_pending_or_delivered_state(self) -> None:
         self._heartbeat_state("2026-01-01T00:00:00Z")

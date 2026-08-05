@@ -65,9 +65,15 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         contract = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v4.json"
+            / "cloud-ops-schedule-contract.v5.json"
         ).read_bytes()
         contract_sha256 = hashlib.sha256(contract).hexdigest()
+        historical_v4 = (
+            Path(__file__).resolve().parents[2]
+            / "research_pipeline"
+            / "cloud-ops-schedule-contract.v4.json"
+        ).read_bytes()
+        historical_v4_sha256 = hashlib.sha256(historical_v4).hexdigest()
         historical_v3 = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
@@ -78,14 +84,23 @@ class ResearchMcpServerContractTest(unittest.TestCase):
             historical_v3_sha256,
             "2d66149bee9e6b44e139fe471bd32dc10a8afa13e7c47d12b2e165f2a3456e8b",
         )
+        self.assertEqual(
+            historical_v4_sha256,
+            "f03b8a22542f07256a9ba483c336e55d1e46626ce4ed9a59a41ae1b0f2ac95de",
+        )
 
         self.assertIn("get_research_status", prompt)
         self.assertIn("submit_research_candidate_bundle", prompt)
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
         self.assertIn("ops_schedule_contract.status=READY", prompt)
-        self.assertIn("CLOUD_OPS_SCHEDULE_V4", prompt)
+        self.assertIn("CLOUD_OPS_SCHEDULE_V5", prompt)
         self.assertIn(contract_sha256, prompt)
+        self.assertIn("recurrence.timezone=Asia/Taipei", prompt)
+        self.assertIn("recurrence.local_time=09:00", prompt)
+        self.assertIn("recurrence.end=NEVER", prompt)
+        self.assertNotIn("CLOUD_OPS_SCHEDULE_V4", prompt)
+        self.assertNotIn(historical_v4_sha256, prompt)
         self.assertNotIn("CLOUD_OPS_SCHEDULE_V3", prompt)
         self.assertNotIn(historical_v3_sha256, prompt)
         self.assertIn("ops_schedule_contract_sha256", prompt)

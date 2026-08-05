@@ -37,19 +37,19 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v4.json"
+    "research_pipeline/cloud-ops-schedule-contract.v5.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
-    "schema_version": "4",
-    "contract_id": "CLOUD_OPS_SCHEDULE_V4",
+    "schema_version": "5",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V5",
     "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
     "timer_authority": "CODEX_CLOUD_OPS_ONLY",
     "state_authority": "SERVER_CANONICAL",
     "schedule_count": 1,
     "recurrence": {
         "frequency": "DAILY",
-        "timezone": "Asia/Bangkok",
-        "local_time": "08:00",
+        "timezone": "Asia/Taipei",
+        "local_time": "09:00",
         "end": "NEVER",
     },
     "first_operation": "get_research_status",
@@ -208,7 +208,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V4 semantics",
+            "reason": "cloud Ops schedule contract does not match the frozen V5 semantics",
         }
     recurrence = value["recurrence"]
     return {

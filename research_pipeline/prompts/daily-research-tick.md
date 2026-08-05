@@ -20,9 +20,11 @@ a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
 Continue only when canonical `ops_schedule_contract.status=READY`,
-`contract_id=CLOUD_OPS_SCHEDULE_V4`, `schedule_count=1`,
-`timer_authority=CODEX_CLOUD_OPS_ONLY`, and
-`sha256=f03b8a22542f07256a9ba483c336e55d1e46626ce4ed9a59a41ae1b0f2ac95de`.
+`contract_id=CLOUD_OPS_SCHEDULE_V5`, `schedule_count=1`,
+`timer_authority=CODEX_CLOUD_OPS_ONLY`,
+`recurrence.timezone=Asia/Taipei`, `recurrence.local_time=09:00`,
+`recurrence.end=NEVER`, and
+`sha256=404311088765a1b27062d6492f6c54c46723537d48269367d6e90b26c7d48933`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
@@ -34,7 +36,7 @@ submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
 partial canonical registration: require queue `IDLE`, copy the canonical
 `bundle` byte-for-value without changing its timestamp, text, mechanism, OOS
 window, or any other field, and call `submit_research_candidate_bundle` exactly
-once with the normal V4 attestation. Verify that the canonical
+once with the normal V5 attestation. Verify that the canonical
 `payload_sha256` is unchanged and poll that replay's run. This is recovery of
 the same logical candidate, not permission for a second candidate. If recovery
 is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state

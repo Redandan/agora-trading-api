@@ -115,9 +115,12 @@ provenance is an integrity blocker, not permission to continue from local
 assumptions. Both MCP write operations enforce this before any queue mutation;
 the cloud prompt is not the only guard.
 
-Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V2` id and
-byte-level SHA-256. Each heartbeat and candidate submission must attest that
-exact hash. Missing or altered contract bytes and a stale/missing attestation
+Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V5` id, the
+platform-readback `09:00 Asia/Taipei` recurrence, and byte-level SHA-256. V1
+through V4 remain immutable history; V5 replaces V4's UTC-equivalent but
+metadata-inexact timezone representation. Each heartbeat and candidate
+submission must attest the active exact hash. Missing or altered contract bytes
+and a stale/missing attestation
 fail before either the research request queue or companion capture queue is
 created. The live schedule definition is read back after a contract change,
 because server-side caller attestation cannot by itself prove the opaque UI

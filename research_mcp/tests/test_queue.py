@@ -852,8 +852,17 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V4")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V5")
         self.assertEqual(contract["schedule_count"], 1)
+        self.assertEqual(
+            contract["recurrence"],
+            {
+                "frequency": "DAILY",
+                "timezone": "Asia/Taipei",
+                "local_time": "09:00",
+                "end": "NEVER",
+            },
+        )
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
         self.assertEqual(
             contract["coach_delivery"]["contract_id"],

@@ -1562,6 +1562,78 @@ class EvidenceManifestContractTest(unittest.TestCase):
                     current_policy_hash=policy_sha256(policy_path),
                 )
 
+    def test_candidate_registration_recovers_finalize_interruption_without_duplicate_audit(self) -> None:
+        bundle, policy = self._ready_candidate_bundle()
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
+        original_save = self.store.save_evidence_trigger_state
+
+        def interrupt_closed_state(value: dict[str, object]) -> None:
+            if (
+                value.get("trigger_id") == self.trigger["trigger_id"]
+                and value.get("status") == "CLOSED"
+            ):
+                raise RuntimeError("simulated candidate finalize interruption")
+            original_save(value)
+
+        with self._eligible_forward_test_adapter():
+            with patch.object(
+                self.store,
+                "save_evidence_trigger_state",
+                side_effect=interrupt_closed_state,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "finalize interruption"):
+                    register_candidate_bundle(
+                        self.store,
+                        policy,
+                        bundle,
+                        current_policy_hash=policy_sha256(policy_path),
+                        now=ready_at + timedelta(minutes=2),
+                    )
+
+            interrupted = self.store.load_evidence_trigger_state(
+                self.trigger["trigger_id"]
+            )
+            self.assertEqual(interrupted["status"], "READY_FOR_HYPOTHESIS")
+            recovered = register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=ready_at + timedelta(minutes=3),
+            )
+            repeated = register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=ready_at + timedelta(minutes=4),
+            )
+
+        self.assertEqual(recovered["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
+        self.assertEqual(recovered["lead_time_seconds"], 120)
+        self.assertEqual(repeated["lead_time_seconds"], 120)
+        event_path = self.store.evidence_trigger_dir(
+            self.trigger["trigger_id"]
+        ) / "events.jsonl"
+        events = [
+            json.loads(line)
+            for line in event_path.read_text(encoding="utf-8").splitlines()
+        ]
+        registrations = [
+            event
+            for event in events
+            if event["event_type"] == "CANDIDATE_BUNDLE_REGISTERED"
+        ]
+        self.assertEqual(len(registrations), 1)
+        self.assertEqual(
+            registrations[0]["detail"]["candidate_bundle_sha256"],
+            recovered["candidate_bundle_sha256"],
+        )
+        self.assertEqual(registrations[0]["detail"]["lead_time_seconds"], 120)
+
     def test_candidate_registration_status_breaches_immediately_after_deadline(self) -> None:
         _bundle, policy = self._ready_candidate_bundle()
         state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])

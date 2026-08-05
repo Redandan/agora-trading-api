@@ -229,6 +229,63 @@ class ResearchStore:
         with path.open("a", encoding="utf-8", newline="\n") as stream:
             stream.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
 
+    def ensure_evidence_trigger_event(
+        self,
+        trigger_id: str,
+        event_type: str,
+        detail: dict[str, Any],
+        *,
+        identity_fields: set[str] | None = None,
+    ) -> dict[str, Any]:
+        """Append one lifecycle event atomically, or verify its exact prior append."""
+        path = self.evidence_trigger_dir(trigger_id) / "events.jsonl"
+        existing = path.read_text(encoding="utf-8") if path.exists() else ""
+        if existing and not existing.endswith("\n"):
+            raise ValueError("evidence trigger event log has an incomplete final record")
+
+        matching: list[dict[str, Any]] = []
+        for line_number, line in enumerate(existing.splitlines(), start=1):
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as error:
+                raise ValueError(
+                    f"evidence trigger event log record {line_number} is invalid"
+                ) from error
+            if not isinstance(record, dict) or record.get("trigger_id") != trigger_id:
+                raise ValueError(
+                    f"evidence trigger event log record {line_number} has invalid identity"
+                )
+            if record.get("event_type") == event_type:
+                matching.append(record)
+
+        if matching:
+            stored_detail = matching[0].get("detail") if len(matching) == 1 else None
+            if not isinstance(stored_detail, dict) or set(stored_detail) != set(detail):
+                raise ValueError(
+                    f"evidence trigger event {event_type} is duplicated or changed"
+                )
+            compared_fields = set(detail) if identity_fields is None else identity_fields
+            if not compared_fields.issubset(detail) or any(
+                stored_detail.get(field) != detail.get(field)
+                for field in compared_fields
+            ):
+                raise ValueError(
+                    f"evidence trigger event {event_type} is duplicated or changed"
+                )
+            return dict(stored_detail)
+
+        record = {
+            "timestamp": now_utc(),
+            "trigger_id": trigger_id,
+            "event_type": event_type,
+            "detail": detail,
+        }
+        atomic_write_text(
+            path,
+            existing + json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n",
+        )
+        return dict(detail)
+
     @contextmanager
     def lock(self) -> Iterator[None]:
         self.bootstrap()

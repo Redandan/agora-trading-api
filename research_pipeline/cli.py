@@ -631,6 +631,23 @@ def link_hypothesis(
     return store.load_hypothesis(hypothesis_id)
 
 
+def _candidate_registration_event_detail(
+    *,
+    hypothesis_id: str,
+    experiment_id: str,
+    lead_time_seconds: Any,
+    lead_time_sla: Any,
+    candidate_bundle_sha256: str,
+) -> dict[str, Any]:
+    return {
+        "hypothesis_id": hypothesis_id,
+        "experiment_id": experiment_id,
+        "lead_time_seconds": lead_time_seconds,
+        "lead_time_sla": lead_time_sla,
+        "candidate_bundle_sha256": candidate_bundle_sha256,
+    }
+
+
 def register_candidate_bundle(
     store: ResearchStore,
     policy: dict[str, Any],
@@ -688,6 +705,19 @@ def register_candidate_bundle(
             experiment_id = hypothesis.get("experiment_id")
             if experiment_id:
                 existing_state = store.load_state(str(experiment_id))
+                store.ensure_evidence_trigger_event(
+                    trigger_id,
+                    "CANDIDATE_BUNDLE_REGISTERED",
+                    _candidate_registration_event_detail(
+                        hypothesis_id=str(linked),
+                        experiment_id=str(experiment_id),
+                        lead_time_seconds=trigger_state.get(
+                            "candidate_lead_time_seconds"
+                        ),
+                        lead_time_sla=trigger_state.get("candidate_lead_time_sla"),
+                        candidate_bundle_sha256=bundle_sha256,
+                    ),
+                )
                 return {
                     "status": "CANDIDATE_BUNDLE_ALREADY_REGISTERED",
                     "trigger_id": trigger_id,
@@ -899,25 +929,41 @@ def register_candidate_bundle(
         "PASS" if registered_within_sla else "BREACH"
     )
     trigger_state["candidate_bundle_sha256"] = bundle_sha256
-    store.save_evidence_trigger_state(trigger_state)
-    store.append_evidence_trigger_event(
+    registration_event = _candidate_registration_event_detail(
+        hypothesis_id=hypothesis_id,
+        experiment_id=manifest.experiment_id,
+        lead_time_seconds=lead_time_seconds,
+        lead_time_sla=trigger_state["candidate_lead_time_sla"],
+        candidate_bundle_sha256=bundle_sha256,
+    )
+    sealed_registration_event = store.ensure_evidence_trigger_event(
         trigger_id,
         "CANDIDATE_BUNDLE_REGISTERED",
-        {
-            "hypothesis_id": hypothesis_id,
-            "experiment_id": manifest.experiment_id,
-            "lead_time_seconds": lead_time_seconds,
-            "lead_time_sla": trigger_state["candidate_lead_time_sla"],
-            "candidate_bundle_sha256": bundle_sha256,
+        registration_event,
+        identity_fields={
+            "hypothesis_id",
+            "experiment_id",
+            "candidate_bundle_sha256",
         },
     )
+    sealed_lead_time = sealed_registration_event.get("lead_time_seconds")
+    sealed_lead_time_sla = sealed_registration_event.get("lead_time_sla")
+    if (
+        not isinstance(sealed_lead_time, int)
+        or sealed_lead_time < 0
+        or sealed_lead_time_sla not in {"PASS", "BREACH"}
+    ):
+        raise ValueError("candidate registration audit SLA is invalid")
+    trigger_state["candidate_lead_time_seconds"] = sealed_lead_time
+    trigger_state["candidate_lead_time_sla"] = sealed_lead_time_sla
+    store.save_evidence_trigger_state(trigger_state)
     return {
         "status": "CANDIDATE_BUNDLE_REGISTERED",
         "trigger_id": trigger_id,
         "hypothesis_id": hypothesis_id,
         "experiment_id": manifest.experiment_id,
         "experiment_stage": experiment_state["stage"],
-        "lead_time_seconds": lead_time_seconds,
+        "lead_time_seconds": trigger_state["candidate_lead_time_seconds"],
         "lead_time_sla": trigger_state["candidate_lead_time_sla"],
         "candidate_bundle_sha256": bundle_sha256,
         "oos_evidence_trigger_id": experiment_state.get("oos_evidence_trigger_id"),

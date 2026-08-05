@@ -1,0 +1,63 @@
+{
+  "schema_version": "2",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V2",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "schedule_count": 1,
+  "recurrence": {
+    "frequency": "DAILY",
+    "timezone": "Asia/Bangkok",
+    "local_time": "08:00",
+    "end": "NEVER"
+  },
+  "first_operation": "get_research_status",
+  "allowed_mcp_operations": [
+    "get_research_status",
+    "request_research_heartbeat",
+    "submit_research_candidate_bundle",
+    "get_research_run",
+    "get_research_briefing"
+  ],
+  "allowed_codex_operations": [
+    "list_threads",
+    "read_thread",
+    "send_message_to_thread"
+  ],
+  "write_attestation": {
+    "parameter": "ops_schedule_contract_sha256",
+    "required": true
+  },
+  "coach_delivery": {
+    "contract_id": "SEALED_COACH_THREAD_DELIVERY_V1",
+    "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+    "delivery_id_source": "SEALED_ARTIFACT_SHA256",
+    "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
+    "preflight": "READ_TARGET_THREAD_AND_SKIP_IF_DELIVERY_ID_PRESENT",
+    "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
+    "verification": "READ_TARGET_THREAD_AND_REQUIRE_DELIVERY_ID",
+    "retry": "RETRY_ONLY_WHEN_DELIVERY_ID_IS_ABSENT",
+    "canonical_ack": "NONE_READ_ONLY_OUTBOX"
+  },
+  "required_guards": [
+    "WORKER_RELEASE_READY",
+    "POLICY_V3_READY",
+    "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+    "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
+    "CANDIDATE_REGISTRATION_SLA_CANONICAL",
+    "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
+    "DISTINCT_SEALED_CANDIDATE_OOS",
+    "HASH_VERIFIED_COACH_OUTBOX",
+    "COACH_THREAD_READ_BEFORE_SEND",
+    "COACH_DELIVERY_ID_DEDUPLICATION",
+    "COACH_THREAD_POST_SEND_READBACK",
+    "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
+  ],
+  "forbidden_actions": [
+    "SECOND_TIMER_OR_WRITER",
+    "LOCAL_RESEARCH_STATE_FALLBACK",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_REOPEN_OR_GATE_RELAXATION",
+    "UNVERIFIED_COACH_DELIVERY_CLAIM"
+  ]
+}

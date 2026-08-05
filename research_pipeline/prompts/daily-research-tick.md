@@ -20,9 +20,9 @@ a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
 Continue only when canonical `ops_schedule_contract.status=READY`,
-`contract_id=CLOUD_OPS_SCHEDULE_V1`, `schedule_count=1`,
+`contract_id=CLOUD_OPS_SCHEDULE_V2`, `schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`, and
-`sha256=1a98990c88f494492e076bd38381b08a4eb4cfbe96017dc608fc95b520649ece`.
+`sha256=656faefca560a263b9d6e86b300ca215955371a7f84bc244592b7cc35fd83625`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
@@ -89,11 +89,26 @@ fields from chat history. Include at least `event_type`, `artifact_path`,
 Use the sealed SHA-256 as `delivery_id` and target Coach task
 `019fca63-4f8f-71e3-9d88-297bca468eb9`.
 
-Direct delivery is valid only when the scheduled surface exposes a supported
-tool that writes to that exact existing Codex task and the call succeeds. If no
-such tool is available, return the complete handoff in the scheduled result
-with `delivery_status=CROSS_TASK_DELIVERY_PENDING`; never describe Scheduled,
-Activity, push/email/SMS, same-chat output, or manual copying as delivery to the
-Coach task. Do not repeat a `delivery_id` already present in the scheduled chat.
-This is a user-visible sealed outbox, not proof of Coach-thread delivery. Do not
-ask the Coach or sponsor to operate research or alter frozen gates.
+Require `coach_outbox.delivery_contract.status=READY` and
+`contract_id=SEALED_COACH_THREAD_DELIVERY_V1`. For each event, copy the exact
+canonical `delivery_prompt`; do not reconstruct it from chat or edit its JSON.
+Use `list_threads` to resolve the exact Coach task and its current host id, then
+use `read_thread` before sending. If the exact `delivery_token` is already in
+that task, do not resend it and report
+`delivery_status=ALREADY_DELIVERED_TO_COACH_TASK`.
+
+If the token is absent, call `send_message_to_thread` once with the exact target
+task id, resolved host id, and canonical `delivery_prompt`. Then call
+`read_thread` once more. Claim
+`delivery_status=DELIVERED_TO_COACH_TASK_VERIFIED` only when the exact token is
+visible in the target task after the successful send. If the send succeeds but
+readback is unavailable, report
+`delivery_status=QUEUED_TO_COACH_TASK_UNVERIFIED`; do not send again in the same
+cycle. If the task, tool, or host is unavailable before sending, return the
+complete handoff in the scheduled result with
+`delivery_status=CROSS_TASK_DELIVERY_PENDING`. Never describe Scheduled,
+Activity, push/email/SMS, same-chat output, or manual copying as Coach-task
+delivery. On a later cycle, retry only when `read_thread` still proves that the
+delivery token is absent. The outbox is read-only and has no canonical ACK, so
+thread readback plus the sealed artifact hash are the deduplication evidence.
+Do not ask the Coach or sponsor to operate research or alter frozen gates.

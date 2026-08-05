@@ -372,9 +372,13 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V1")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V2")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
+        self.assertEqual(
+            contract["coach_delivery"]["contract_id"],
+            "SEALED_COACH_THREAD_DELIVERY_V1",
+        )
 
     def test_status_exposes_correlated_sealed_capture_health(self) -> None:
         request_id = "b" * 32
@@ -578,8 +582,39 @@ class DurableQueueContractTest(unittest.TestCase):
         outbox = result["coach_outbox"]
         self.assertEqual(outbox["status"], "EVENTS_PENDING_EXTERNAL_DELIVERY")
         self.assertEqual(outbox["event_count"], 1)
+        self.assertEqual(
+            outbox["delivery_contract"]["contract_id"],
+            "SEALED_COACH_THREAD_DELIVERY_V1",
+        )
+        self.assertEqual(
+            outbox["delivery_contract"]["target_thread_id"],
+            queue.COACH_TASK_ID,
+        )
         self.assertEqual(outbox["events"][0]["delivery_id"], event["sha256"])
+        self.assertEqual(
+            outbox["events"][0]["delivery_token"],
+            f"SEALED_RESEARCH_DELIVERY:{event['sha256']}",
+        )
+        self.assertIn(event["sha256"], outbox["events"][0]["delivery_prompt"])
+        self.assertIn(
+            "STATE_SYNC_ONLY_NO_RESEARCH_WRITE_OR_TRADING_ACTION",
+            outbox["events"][0]["delivery_prompt"],
+        )
+        envelope = json.loads(outbox["events"][0]["delivery_prompt"].split("\n", 1)[1])
+        self.assertEqual(envelope["delivery_id"], event["sha256"])
+        self.assertEqual(envelope["target_thread_id"], queue.COACH_TASK_ID)
+        self.assertEqual(envelope["event"], event)
+        self.assertTrue(envelope["canonical_reverification_required"])
         self.assertTrue(outbox["events"][0]["artifact_verified"])
+
+        oversized = queue._coach_outbox(
+            {
+                "should_notify_coach": True,
+                "events": [{**event, "material_conclusion": "x" * 70000}],
+            }
+        )
+        self.assertEqual(oversized["status"], "COACH_OUTBOX_INVALID")
+        self.assertIn("bounded size", oversized["reason"])
 
         artifact.write_text("tampered\n", encoding="utf-8")
         invalid = queue._coach_outbox(

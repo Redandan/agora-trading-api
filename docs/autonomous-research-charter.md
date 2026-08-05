@@ -138,8 +138,9 @@ After state migration, a local `.research-state` is a read-only replica. There
 must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
-The sole cloud Ops schedule semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v1.json`. Canonical status must
+The active sole cloud Ops schedule semantics are frozen in
+`research_pipeline/cloud-ops-schedule-contract.v2.json`; V1 remains immutable
+historical contract evidence. Canonical status must
 expose its contract id and byte-level SHA-256. Both MCP write operations require
 the caller to attest that exact deployed hash and must fail before queue
 mutation when the contract is missing, altered, or mismatched. This binds the
@@ -253,18 +254,20 @@ routine; terminal source/intake failure, stalled dispatch, or hash/identity
 mismatch is an integrity alert. Observation never authorizes a second enqueue,
 backfill, or additional timer.
 
-The scheduled Work surface currently has no supported tool that can write into
-an arbitrary existing Codex task id. A material sealed event must therefore be
-returned in the single scheduled chat as a user-visible outbox with
-`delivery_status=CROSS_TASK_DELIVERY_PENDING`, the Coach task id, and the sealed
-artifact hash as its delivery id. The OAuth status `coach_outbox` re-verifies
-each artifact and supplies the structured event; Work must not reconstruct it
-from prose or unverified chat history. Scheduled/Activity output or a device
-notification is not direct Coach-task delivery. The Coach task re-verifies the
-canonical event and artifact hash when it next runs. Until a supported
-cross-task delivery tool exists and succeeds, the next-cycle Coach-thread SLA
-remains `MISSING_PROOF`; this gap must not be hidden by adding a second timer or
-an unapproved messaging service.
+The scheduled Work surface now exposes Codex task discovery, read, and send
+operations. A material sealed event uses the exact canonical delivery prompt
+from `coach_outbox`, with the artifact SHA-256 as both delivery id and dedupe
+token. The sole cloud cycle must resolve and read the exact Coach task before
+sending, skip an already-present token, send once, and read the task again
+before claiming verified delivery. The Coach task re-verifies canonical status
+and the artifact hash before interpretation. If the target host or tool is
+unavailable, the event remains in the scheduled result with
+`delivery_status=CROSS_TASK_DELIVERY_PENDING`; a successful send without
+readback is only `QUEUED_TO_COACH_TASK_UNVERIFIED`. The outbox remains read-only
+and has no canonical ACK. Scheduled/Activity output or a device notification is
+not direct Coach-task delivery, and this path must not be replaced by a second
+timer or an unapproved messaging service. The first real material event from a
+cloud cycle is still required to prove the next-cycle Coach-thread SLA.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,

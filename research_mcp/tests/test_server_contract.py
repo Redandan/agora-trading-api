@@ -59,7 +59,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         contract = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v1.json"
+            / "cloud-ops-schedule-contract.v2.json"
         ).read_bytes()
         contract_sha256 = hashlib.sha256(contract).hexdigest()
 
@@ -68,7 +68,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
         self.assertIn("ops_schedule_contract.status=READY", prompt)
-        self.assertIn("CLOUD_OPS_SCHEDULE_V1", prompt)
+        self.assertIn("CLOUD_OPS_SCHEDULE_V2", prompt)
         self.assertIn(contract_sha256, prompt)
         self.assertIn("ops_schedule_contract_sha256", prompt)
         self.assertIn("evidence_capture_health", prompt)
@@ -85,7 +85,13 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER", prompt)
         self.assertIn("closed historical", prompt)
         self.assertIn("delivery_status=CROSS_TASK_DELIVERY_PENDING", prompt)
-        self.assertIn("not proof of Coach-thread delivery", prompt)
+        self.assertIn("list_threads", prompt)
+        self.assertIn("read_thread", prompt)
+        self.assertIn("send_message_to_thread", prompt)
+        self.assertIn("SEALED_COACH_THREAD_DELIVERY_V1", prompt)
+        self.assertIn("DELIVERED_TO_COACH_TASK_VERIFIED", prompt)
+        self.assertIn("QUEUED_TO_COACH_TASK_UNVERIFIED", prompt)
+        self.assertIn("ALREADY_DELIVERED_TO_COACH_TASK", prompt)
         self.assertIn("coach_outbox", prompt)
         self.assertIn("019fca63-4f8f-71e3-9d88-297bca468eb9", prompt)
         self.assertNotIn("read_research_worker_inbox_ssh", prompt)

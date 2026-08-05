@@ -22,12 +22,15 @@ The program targets:
 - zero Trading runtime, database, order, fund, SHADOW, PAPER, or LIVE changes.
 
 The first target is implemented and tested as a deterministic pipeline SLA but
-still awaits a real evidence-ready trigger. The second target is proven through
-sealed report/event construction, but direct delivery into the separate Coach
-Codex task is not currently available from the cloud Work surface. Material
-events remain visible in the one scheduled chat as a hash-identified
-`CROSS_TASK_DELIVERY_PENDING` outbox. This is not counted as Coach-thread
-delivery and does not authorize a second schedule or external messenger.
+still awaits a real evidence-ready trigger. The second target now has a
+versioned Codex-task delivery contract: the sole cloud cycle resolves the exact
+Coach task, checks the sealed artifact delivery id before sending, sends the
+canonical envelope once, and reads the task back before claiming verified
+delivery. The app operations are available and the target task is readable, but
+the first real material cloud-cycle delivery is still pending proof. If the
+target host or tool is unavailable, the event remains a hash-identified
+`CROSS_TASK_DELIVERY_PENDING` outbox; this does not authorize a second schedule
+or external messenger.
 
 The 24-hour target starts only after the frozen evidence trigger is actually
 ready. It does not convert a 90-day prospective evidence requirement into a
@@ -112,7 +115,7 @@ provenance is an integrity blocker, not permission to continue from local
 assumptions. Both MCP write operations enforce this before any queue mutation;
 the cloud prompt is not the only guard.
 
-Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V1` id and
+Canonical status also reports the frozen `CLOUD_OPS_SCHEDULE_V2` id and
 byte-level SHA-256. Each heartbeat and candidate submission must attest that
 exact hash. Missing or altered contract bytes and a stale/missing attestation
 fail before either the research request queue or companion capture queue is
@@ -158,9 +161,11 @@ existing heartbeat operation using the same deterministic artifacts.
 4. Seal MCP briefings and make MCP status canonical-first.
 5. Add focused contract tests for these control-plane boundaries.
 6. Add the bounded AI-to-canonical candidate registration channel.
-7. deploy the independent Research Worker and verify the old timer remains
+7. Bind hash-deduplicated Coach task delivery to read-before-send and post-send
+   task readback.
+8. Deploy the independent Research Worker and verify the old timer remains
    disabled.
-8. Start the prospective evidence cycle only through a separately authorized,
+9. Start the prospective evidence cycle only through a separately authorized,
    research-only source contract.
 
 ## Current source boundary
@@ -219,9 +224,13 @@ database query, or backfill.
 - an abnormal stop or host reboot resumes the same in-flight request through
   the existing dispatch path, with bounded retries and no second timer;
 - generated Coach briefings include an immutable artifact id and SHA-256;
-- when direct cross-task delivery is unavailable, the single scheduled result
-  exposes a complete hash-identified `CROSS_TASK_DELIVERY_PENDING` handoff and
-  never claims it reached the Coach task;
+- the sole cloud cycle reads the exact Coach task before sending, skips an
+  existing sealed delivery id, sends only the canonical delivery prompt, and
+  reads the task back before claiming verified delivery;
+- when the target task, host, or delivery tool is unavailable, the single
+  scheduled result exposes a complete hash-identified
+  `CROSS_TASK_DELIVERY_PENDING` handoff and never claims it reached the Coach
+  task;
 - canonical status supplies that handoff through a bounded read-only outbox and
   fails closed when any event artifact path or hash cannot be re-verified;
 - Worker release id, clean Git commit, and verified source-manifest hash are

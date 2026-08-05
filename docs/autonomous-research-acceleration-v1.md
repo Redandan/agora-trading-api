@@ -222,6 +222,10 @@ database query, or backfill.
   is missing, invalid, tampered, or dirty;
 - evidence-ready Codex output can register one frozen candidate within 24 hours
   without a manual local task;
+- an isolated 90-day passing-mechanism rehearsal produces one sealed Coach
+  material event, one canonical candidate context, one idempotent
+  `PREREGISTERED` experiment inside the SLA, and one distinct unopened
+  `CANDIDATE_OOS` trigger without executing a runner;
 - the candidate path rejects tampered evidence, omitted performance metrics,
   unsupported operations, oversized payloads, and concurrent queue replacement;
 - the Research Worker has no Trading secrets or writable Production mounts;

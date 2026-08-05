@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 import hashlib
 import json
 from pathlib import Path
@@ -756,6 +757,232 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 for event in second_heartbeat["events"]
             )
         )
+
+    def test_ninety_day_ready_review_registers_one_forward_candidate_end_to_end(
+        self,
+    ) -> None:
+        trigger_path = (
+            Path(__file__).parents[1]
+            / "examples"
+            / "prospective-mechanism-neutral-evidence-refresh-2026q4-r1.trigger.json"
+        )
+        value = json.loads(trigger_path.read_text(encoding="utf-8"))
+        value.update(
+            {
+                "trigger_id": "prospective-mechanism-neutral-evidence-ready-e2e",
+                "title": "Prospective evidence-ready candidate end-to-end",
+                "evidence_start": "2026-01-01T00:00:00Z",
+                "review_not_before": "2026-04-01T00:00:00Z",
+                "created_at": "2025-12-31T00:00:00Z",
+            }
+        )
+        trigger = build_evidence_trigger(value)
+        store = ResearchStore(self.root / "ready-candidate-e2e", lock_stale_seconds=60)
+        store.register_evidence_trigger(trigger)
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            {
+                "schema_version": "1",
+                "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+                "trigger_id": trigger["trigger_id"],
+                "trigger_fingerprint": trigger["fingerprint"],
+                "source": trigger["source"],
+                "producer": "agora-okx-forward-source-v1",
+                "transport": "SEALED_ONE_WAY_DROP_V1",
+                "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+                "worker_network_access": "DENY",
+                "worker_database_access": "DENY",
+                "backfill": "DENY",
+                "authorization": RESEARCH_AUTHORIZATION,
+            },
+            registered_at=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
+        )
+
+        start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        close = Decimal("100")
+        final = None
+        for offset in range(90):
+            prior_event = (
+                offset > 0 and (offset - 1) >= 20 and (offset - 1) % 5 == 0
+            )
+            close *= Decimal("1.01") if prior_event else Decimal("0.999")
+            current_event = offset >= 20 and offset % 5 == 0
+            day_start = start + timedelta(days=offset)
+            bundle = self._daily_bundle(day_start.date().isoformat())
+            bundle["trigger_id"] = trigger["trigger_id"]
+            bundle["trigger_fingerprint"] = trigger["fingerprint"]
+            bundle["source"] = trigger["source"]
+            for index, bar in enumerate(bundle["bars"]):
+                daily_volume = Decimal("200") if current_event else Decimal("100")
+                bar.update(
+                    {
+                        "open": str(close),
+                        "high": str(close * Decimal("1.01")),
+                        "low": str(close * Decimal("0.99")),
+                        "close": str(close),
+                        "volume": str(daily_volume if index == 0 else Decimal("0")),
+                    }
+                )
+            bundle["source_provenance"] = {
+                "producer": "agora-okx-forward-source-v1",
+                "artifact_id": f"e2e-source-{day_start.date().isoformat()}",
+                "sha256": hashlib.sha256(
+                    f"e2e-source-{day_start.date().isoformat()}".encode("utf-8")
+                ).hexdigest(),
+            }
+            state = store.load_evidence_trigger_state(trigger["trigger_id"])
+            final = seal_daily_evidence(
+                store,
+                trigger,
+                state,
+                bundle,
+                received_at=day_start + timedelta(days=1, hours=1),
+            )
+
+        self.assertIsNotNone(final)
+        self.assertEqual(final["progress"]["status"], "READY_FOR_HYPOTHESIS")
+        self.assertEqual(
+            final["review"]["status"],
+            "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS",
+        )
+        ready_state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(ready_state["evidence_ready_at"]))
+        current = ready_at + timedelta(minutes=2)
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        policy = load_policy(policy_path)
+        tick = run_tick(
+            store,
+            policy,
+            dry_run=True,
+            current_policy_hash=policy_sha256(policy_path),
+            now=current,
+        )
+        heartbeat = run_heartbeat_cycle(
+            store,
+            policy,
+            now=current,
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertEqual(tick["status"], "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS")
+        self.assertTrue(heartbeat["should_notify_coach"])
+        self.assertEqual(heartbeat["event_type"], "MATERIAL_LEARNING")
+        self.assertEqual(
+            heartbeat["evidence_diagnostic"]["eligible_mechanisms"][0][
+                "mechanism_key"
+            ],
+            "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
+        )
+        context = discovery_candidate_context(
+            store,
+            trigger,
+            ready_state,
+            now=current,
+        )
+        self.assertEqual(context["status"], "READY")
+        self.assertEqual(len(context["eligible_mechanisms"]), 1)
+        mechanism = context["eligible_mechanisms"][0]
+        self.assertEqual(
+            mechanism["mechanism_key"],
+            "DRA_ENTRY_VOLUME_CONFIRMATION_20D",
+        )
+        self.assertTrue(mechanism["all_predictive_gates_pass"])
+
+        hypothesis_id = "forward-ready-e2e-candidate"
+        created_at = (ready_at + timedelta(minutes=1)).isoformat()
+        thesis = "Prospective volume confirmation improves DRA entry admission."
+        rationale = "The frozen forward diagnostic found independent response breadth."
+        hypothesis = {
+            "schema_version": "1",
+            "hypothesis_id": hypothesis_id,
+            "title": "Forward ready end-to-end candidate",
+            "thesis": thesis,
+            "mechanism": "Require the single forward-supported volume confirmation mechanism.",
+            "economic_rationale": rationale,
+            "source": f"EVIDENCE_TRIGGER:{trigger['trigger_id']}",
+            "parent": context["parent"],
+            "required_capability": context["adapter"],
+            "data_readiness": "READY",
+            "expected_metrics": policy["objective"]["required_metrics"],
+            "ranking": {
+                "economic_mechanism": 5,
+                "interpretability": 5,
+                "evidence_readiness": 5,
+                "opportunity_cost_reduction": 5,
+            },
+            "research_cycle_id": "forward-ready-e2e-cycle",
+            "created_at": created_at,
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+        adapter_config = copy.deepcopy(context["adapter_config_template"])
+        adapter_config["mechanism_key"] = mechanism["mechanism_key"]
+        manifest = {
+            "schema_version": "1",
+            "experiment_id": hypothesis_id,
+            "title": "Forward ready end-to-end candidate",
+            "thesis": thesis,
+            "economic_rationale": rationale,
+            "hypothesis_source": f"HYPOTHESIS:{hypothesis_id}",
+            "parent": context["parent"],
+            "adapter": context["adapter"],
+            "created_at": created_at,
+            "selection_cutoff": context["selection_cutoff"],
+            "oos_cutoff": context["oos_window"]["end_at"],
+            "max_variants": context["max_variants"],
+            "adapter_config": adapter_config,
+            "authorization": RESEARCH_AUTHORIZATION,
+            "objective": {
+                "primary_metric": policy["objective"]["primary_metric"],
+                "constraints": policy["objective"]["constraints"],
+            },
+        }
+        bundle = {
+            "schema_version": "1",
+            "trigger_id": trigger["trigger_id"],
+            "hypothesis": hypothesis,
+            "manifest": manifest,
+            "authorization": RESEARCH_AUTHORIZATION,
+        }
+        with patch(
+            "research_pipeline.cli.selection_corpus_status",
+            return_value={"status": "READY"},
+        ):
+            registered = register_candidate_bundle(
+                store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=current,
+            )
+            repeated = register_candidate_bundle(
+                store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=current,
+            )
+
+        self.assertEqual(registered["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertEqual(registered["lead_time_sla"], "PASS")
+        self.assertEqual(registered["lead_time_seconds"], 120)
+        self.assertEqual(registered["experiment_stage"], "PREREGISTERED")
+        self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
+        self.assertEqual(
+            store.load_evidence_trigger_state(trigger["trigger_id"])["status"],
+            "CLOSED",
+        )
+        experiment_state = store.load_state(hypothesis_id)
+        self.assertEqual(experiment_state["stage"], "PREREGISTERED")
+        self.assertIsNone(experiment_state.get("outcome"))
+        oos_id = experiment_state["oos_evidence_trigger_id"]
+        oos_trigger = store.load_evidence_trigger(oos_id)
+        oos_state = store.load_evidence_trigger_state(oos_id)
+        self.assertEqual(oos_trigger["purpose"], "CANDIDATE_OOS")
+        self.assertEqual(oos_state["status"], "WAITING")
+        self.assertIsNotNone(oos_state["evidence_source_contract"])
 
     def test_candidate_oos_window_seals_without_exposing_market_path(self) -> None:
         store = ResearchStore(self.root / "candidate-oos-state", lock_stale_seconds=60)

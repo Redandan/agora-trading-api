@@ -80,6 +80,7 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("evidence_capture_health", prompt)
         self.assertIn("CAPTURE_OBSERVATION_PENDING", prompt)
         self.assertIn("EVIDENCE_INGEST_DISPATCH_STALLED", prompt)
+        self.assertIn("INTEGRITY_BLOCKED", prompt)
         self.assertIn("source_git_dirty=false", prompt)
         self.assertIn("candidate_registration_sla", prompt)
         self.assertIn("BREACH_PENDING_REGISTRATION", prompt)

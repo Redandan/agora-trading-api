@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
@@ -728,8 +729,33 @@ def _capture_health_summary(
         deadline = _parse_time(deadline_text)
         if deadline is not None:
             result["capture_deadline"] = _now(deadline)
-            result["seconds_to_deadline"] = int((deadline - now).total_seconds())
+            result["seconds_to_deadline"] = math.floor(
+                (deadline - now).total_seconds()
+            )
         return result
+
+    def deadline_block(
+        value: dict[str, Any] | None,
+        *,
+        phase: str,
+        request_id_value: str,
+    ) -> dict[str, Any] | None:
+        request = _capture_request(value)
+        deadline = _parse_time(request.get("capture_deadline")) if request else None
+        if deadline is None:
+            return blocked(
+                f"{phase} capture deadline is missing or invalid",
+                request_id_value,
+            )
+        if now <= deadline:
+            return None
+        return {
+            **blocked(
+                f"{phase} remained active after the capture deadline",
+                request_id_value,
+            ),
+            **timing(value),
+        }
 
     if source_pending_invalid:
         return blocked("source capture queue record is unreadable or invalid")
@@ -740,6 +766,13 @@ def _capture_health_summary(
     if source_active:
         if active_id is None:
             return blocked("active source capture request id is invalid")
+        expired = deadline_block(
+            source_active,
+            phase="source capture",
+            request_id_value=active_id,
+        )
+        if expired:
+            return expired
         latest_id = request_id(source_latest)
         if latest_id == active_id and source_latest.get("status") == "RETRYING":
             return {
@@ -764,6 +797,13 @@ def _capture_health_summary(
         source_id = request_id(source_latest)
         if source_id != ingest_id or source_latest.get("status") != "COMPLETED":
             return blocked("evidence ingest request is not bound to one completed source capture", ingest_id)
+        expired = deadline_block(
+            source_latest,
+            phase="evidence ingest",
+            request_id_value=ingest_id,
+        )
+        if expired:
+            return expired
         latest_ingest_id = request_id(ingest_latest)
         if latest_ingest_id == ingest_id and ingest_latest.get("status") == "RETRYING":
             return {

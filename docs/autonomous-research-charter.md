@@ -260,6 +260,10 @@ observe canonical `evidence_capture_health`. A correlated `SEALED` result is
 routine; terminal source/intake failure, stalled dispatch, or hash/identity
 mismatch is an integrity alert. Observation never authorizes a second enqueue,
 backfill, or additional timer.
+An active source or canonical-ingest request is still in-window at the exact
+six-hour deadline, but becomes canonical `INTEGRITY_BLOCKED` immediately after
+that boundary. Status must retain its request id, target day, deadline, and
+negative seconds remaining so a stuck path cannot masquerade as a routine retry.
 
 The scheduled Work surface now exposes Codex task discovery, read, and send
 operations. A material sealed event uses the exact canonical delivery prompt

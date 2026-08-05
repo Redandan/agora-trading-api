@@ -150,6 +150,11 @@ field for a bounded interval in the same cycle. `SEALED` stays quiet; retries
 remain observable; terminal failure, stalled dispatch, or any correlation
 mismatch fails closed immediately. No second heartbeat, source timer, upload,
 or backfill operation is introduced.
+An active source or intake request may remain nonblocking through the exact
+six-hour deadline only. After that instant canonical health returns
+`INTEGRITY_BLOCKED`, preserving the request id, day, deadline, and negative
+seconds remaining; a stalled path therefore cannot hide an expired prospective
+capture behind `QUEUED` or `RETRYING`.
 
 Canonical status derives `coach_outbox` from durable server heartbeat state,
 not from whichever heartbeat happened to run most recently. For every material

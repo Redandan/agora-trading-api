@@ -610,6 +610,91 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(invalid["status"], "INTEGRITY_BLOCKED")
         self.assertTrue(invalid["integrity_blocking"])
 
+    def test_capture_health_blocks_active_source_or_ingest_after_deadline(self) -> None:
+        request_id = "b" * 32
+        request = {
+            "request_id": request_id,
+            "day": "2026-08-06",
+            "capture_deadline": "2026-08-07T06:00:00Z",
+        }
+        retry_record = {
+            "request_id": request_id,
+            "status": "RETRYING",
+            "error_type": "TemporarySourceError",
+            "detail": "temporary endpoint failure",
+        }
+
+        at_deadline = queue._capture_health_summary(
+            now=datetime(2026, 8, 7, 6, tzinfo=timezone.utc),
+            source_active={"status": "QUEUED", **request},
+            ingest_pending=None,
+            source_latest=retry_record,
+            ingest_latest=None,
+        )
+        self.assertEqual(at_deadline["status"], "SOURCE_CAPTURE_RETRYING")
+        self.assertFalse(at_deadline["integrity_blocking"])
+        self.assertEqual(at_deadline["seconds_to_deadline"], 0)
+
+        source_expired = queue._capture_health_summary(
+            now=datetime(2026, 8, 7, 6, 0, 1, tzinfo=timezone.utc),
+            source_active={"status": "QUEUED", **request},
+            ingest_pending=None,
+            source_latest=retry_record,
+            ingest_latest=None,
+        )
+        self.assertEqual(source_expired["status"], "INTEGRITY_BLOCKED")
+        self.assertTrue(source_expired["integrity_blocking"])
+        self.assertEqual(source_expired["request_id"], request_id)
+        self.assertEqual(source_expired["seconds_to_deadline"], -1)
+        self.assertIn("deadline", source_expired["reason"])
+
+        fractional_expiry = queue._capture_health_summary(
+            now=datetime(2026, 8, 7, 6, 0, 0, 500_000, tzinfo=timezone.utc),
+            source_active={"status": "QUEUED", **request},
+            ingest_pending=None,
+            source_latest=retry_record,
+            ingest_latest=None,
+        )
+        self.assertEqual(fractional_expiry["status"], "INTEGRITY_BLOCKED")
+        self.assertEqual(fractional_expiry["seconds_to_deadline"], -1)
+
+        completed_source = {
+            "request_id": request_id,
+            "request": request,
+            "status": "COMPLETED",
+            "completed_at": "2026-08-07T05:59:00Z",
+            "request_sha256": "c" * 64,
+            "bundle_sha256": "d" * 64,
+        }
+        ingest_expired = queue._capture_health_summary(
+            now=datetime(2026, 8, 7, 6, 0, 1, tzinfo=timezone.utc),
+            source_active=None,
+            ingest_pending={"request_id": request_id},
+            source_latest=completed_source,
+            ingest_latest={
+                "request_id": request_id,
+                "status": "RETRYING",
+                "error_type": "TemporarySourceError",
+                "detail": "pipeline is locked",
+            },
+        )
+        self.assertEqual(ingest_expired["status"], "INTEGRITY_BLOCKED")
+        self.assertTrue(ingest_expired["integrity_blocking"])
+        self.assertEqual(ingest_expired["request_id"], request_id)
+        self.assertEqual(ingest_expired["seconds_to_deadline"], -1)
+        self.assertIn("deadline", ingest_expired["reason"])
+
+        missing_deadline = queue._capture_health_summary(
+            now=datetime(2026, 8, 7, 1, tzinfo=timezone.utc),
+            source_active={"status": "QUEUED", "request_id": request_id},
+            ingest_pending=None,
+            source_latest=None,
+            ingest_latest=None,
+        )
+        self.assertEqual(missing_deadline["status"], "INTEGRITY_BLOCKED")
+        self.assertTrue(missing_deadline["integrity_blocking"])
+        self.assertIn("missing or invalid", missing_deadline["reason"])
+
     def test_status_exposes_hash_verified_canonical_coach_outbox(self) -> None:
         artifact = self.state / "events" / "material-learning.json"
         artifact.parent.mkdir(parents=True, exist_ok=True)

@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import math
 import os
 import shlex
 import sys
@@ -178,11 +179,11 @@ def _candidate_registration_sla(
             "lead_time_seconds": recorded_seconds,
             "seconds_remaining": None,
         }
-    seconds_remaining = int((deadline - now).total_seconds())
+    seconds_remaining = math.floor((deadline - now).total_seconds())
     return {
         "status": (
             "PENDING_WITHIN_SLA"
-            if seconds_remaining >= 0
+            if now <= deadline
             else "BREACH_PENDING_REGISTRATION"
         ),
         "deadline": deadline_text,
@@ -814,12 +815,17 @@ def register_candidate_bundle(
     store.save_state(experiment_state)
     sync_linked_hypothesis(store, experiment_state)
 
-    lead_time_seconds = max(0, int((current - reviewed_at).total_seconds()))
+    lead_time_seconds = math.ceil(
+        max(0.0, (current - reviewed_at).total_seconds())
+    )
+    registered_within_sla = current <= reviewed_at + timedelta(hours=24)
     trigger_state["status"] = "CLOSED"
     trigger_state["hypothesis_id"] = hypothesis_id
     trigger_state["next_review_at"] = None
     trigger_state["candidate_lead_time_seconds"] = lead_time_seconds
-    trigger_state["candidate_lead_time_sla"] = "PASS" if lead_time_seconds <= 86400 else "BREACH"
+    trigger_state["candidate_lead_time_sla"] = (
+        "PASS" if registered_within_sla else "BREACH"
+    )
     trigger_state["candidate_bundle_sha256"] = bundle_sha256
     store.save_evidence_trigger_state(trigger_state)
     store.append_evidence_trigger_event(

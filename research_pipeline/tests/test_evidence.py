@@ -1155,6 +1155,37 @@ class EvidenceManifestContractTest(unittest.TestCase):
                     current_policy_hash=policy_sha256(policy_path),
                 )
 
+    def test_candidate_registration_status_breaches_immediately_after_deadline(self) -> None:
+        _bundle, policy = self._ready_candidate_bundle()
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
+
+        at_deadline = status_payload(
+            self.store,
+            policy,
+            now=ready_at + timedelta(hours=24),
+        )
+        just_late = status_payload(
+            self.store,
+            policy,
+            now=ready_at + timedelta(hours=24, microseconds=500_000),
+        )
+
+        exact = next(
+            item
+            for item in at_deadline["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )["candidate_registration_sla"]
+        late = next(
+            item
+            for item in just_late["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )["candidate_registration_sla"]
+        self.assertEqual(exact["status"], "PENDING_WITHIN_SLA")
+        self.assertEqual(exact["seconds_remaining"], 0)
+        self.assertEqual(late["status"], "BREACH_PENDING_REGISTRATION")
+        self.assertEqual(late["seconds_remaining"], -1)
+
     def test_supported_forward_candidate_registers_with_separate_sealed_oos(self) -> None:
         contract = diagnostic_contract_status()
         self.diagnostic.write_text(
@@ -1250,7 +1281,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 policy,
                 bundle,
                 current_policy_hash=policy_sha256(policy_path),
-                now=ready_at + timedelta(hours=24, seconds=1),
+                now=ready_at + timedelta(hours=24, microseconds=500_000),
             )
 
         self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")

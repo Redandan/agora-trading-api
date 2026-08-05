@@ -255,6 +255,12 @@ the next normal due heartbeat rather than creating another writer or timer.
 Canonical status supplies the exact 24-hour registration deadline, signed time
 remaining, and the preserved measured result, so the cloud task never derives
 the SLA from conversation history or its own clock.
+The measured result is anchored to `candidate_frozen_at`, written only after
+the preregistered experiment and its separate OOS source contract are complete.
+If final discovery-state commit is interrupted, recovery reuses that frozen
+timestamp and original candidate context; it never substitutes retry time or
+moves the sealed OOS window. A mismatch among readiness time, frozen time,
+integer lead time, and `PASS`/`BREACH` is an integrity block.
 The same status must report whether a genuinely forward-candidate-eligible
 adapter and its required sealed corpus are ready. A Java parity adapter,
 diagnostic-only adapter, or closed historical branch cannot be submitted merely

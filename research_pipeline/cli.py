@@ -190,9 +190,44 @@ def _candidate_registration_sla(
     recorded_status = state.get("candidate_lead_time_sla")
     recorded_seconds = state.get("candidate_lead_time_seconds")
     if recorded_status in {"PASS", "BREACH"} and isinstance(recorded_seconds, int):
+        frozen_text = state.get("candidate_frozen_at")
+        if not isinstance(frozen_text, str) or not frozen_text.strip():
+            return {
+                "status": "INTEGRITY_BLOCKED",
+                "reason": "CANDIDATE_FROZEN_TIME_MISSING",
+                "deadline": deadline_text,
+                "lead_time_seconds": None,
+                "seconds_remaining": None,
+            }
+        try:
+            frozen_at = parse_timestamp(
+                frozen_text,
+                "candidate_frozen_at",
+            ).astimezone(timezone.utc)
+        except ValueError:
+            return {
+                "status": "INTEGRITY_BLOCKED",
+                "reason": "CANDIDATE_FROZEN_TIME_INVALID",
+                "deadline": deadline_text,
+                "lead_time_seconds": None,
+                "seconds_remaining": None,
+            }
+        expected_seconds = math.ceil(
+            max(0.0, (frozen_at - ready_at).total_seconds())
+        )
+        expected_status = "PASS" if frozen_at <= deadline else "BREACH"
+        if recorded_seconds != expected_seconds or recorded_status != expected_status:
+            return {
+                "status": "INTEGRITY_BLOCKED",
+                "reason": "CANDIDATE_FROZEN_SLA_MISMATCH",
+                "deadline": deadline_text,
+                "lead_time_seconds": None,
+                "seconds_remaining": None,
+            }
         return {
             "status": recorded_status,
             "deadline": deadline_text,
+            "candidate_frozen_at": frozen_text,
             "lead_time_seconds": recorded_seconds,
             "seconds_remaining": None,
         }
@@ -635,17 +670,21 @@ def _candidate_registration_event_detail(
     *,
     hypothesis_id: str,
     experiment_id: str,
+    candidate_frozen_at: Any,
     lead_time_seconds: Any,
     lead_time_sla: Any,
     candidate_bundle_sha256: str,
 ) -> dict[str, Any]:
-    return {
+    detail = {
         "hypothesis_id": hypothesis_id,
         "experiment_id": experiment_id,
         "lead_time_seconds": lead_time_seconds,
         "lead_time_sla": lead_time_sla,
         "candidate_bundle_sha256": candidate_bundle_sha256,
     }
+    if candidate_frozen_at is not None:
+        detail["candidate_frozen_at"] = candidate_frozen_at
+    return detail
 
 
 def register_candidate_bundle(
@@ -711,6 +750,9 @@ def register_candidate_bundle(
                     _candidate_registration_event_detail(
                         hypothesis_id=str(linked),
                         experiment_id=str(experiment_id),
+                        candidate_frozen_at=trigger_state.get(
+                            "candidate_frozen_at"
+                        ),
                         lead_time_seconds=trigger_state.get(
                             "candidate_lead_time_seconds"
                         ),
@@ -723,6 +765,9 @@ def register_candidate_bundle(
                     "trigger_id": trigger_id,
                     "hypothesis_id": linked,
                     "experiment_id": experiment_id,
+                    "candidate_frozen_at": trigger_state.get(
+                        "candidate_frozen_at"
+                    ),
                     "lead_time_seconds": trigger_state.get("candidate_lead_time_seconds"),
                     "lead_time_sla": trigger_state.get("candidate_lead_time_sla"),
                     "oos_evidence_trigger_id": existing_state.get(
@@ -793,11 +838,25 @@ def register_candidate_bundle(
             )
     forward_context = None
     if manifest.adapter == FORWARD_ADAPTER_KEY:
+        context_time = current
+        partial_experiment_path = store.experiment_dir(manifest.experiment_id)
+        if partial_experiment_path.exists():
+            partial_state = store.load_state(manifest.experiment_id)
+            frozen_text = partial_state.get("candidate_frozen_at")
+            if frozen_text is not None:
+                if not isinstance(frozen_text, str) or not frozen_text.strip():
+                    raise ValueError("candidate frozen timestamp is invalid")
+                context_time = parse_timestamp(
+                    frozen_text,
+                    "candidate_frozen_at",
+                ).astimezone(timezone.utc)
+                if context_time > current + timedelta(minutes=5):
+                    raise ValueError("candidate frozen timestamp is in the future")
         forward_context = discovery_candidate_context(
             store,
             trigger,
             trigger_state,
-            now=current,
+            now=context_time,
         )
         if forward_context is None or forward_context["status"] != "READY":
             raise ValueError(
@@ -914,16 +973,41 @@ def register_candidate_bundle(
             trigger,
             now=current,
         )
+    candidate_frozen_text = experiment_state.get("candidate_frozen_at")
+    if candidate_frozen_text is None:
+        candidate_frozen_at = (
+            current
+            if now is not None
+            else datetime.now(timezone.utc).astimezone(timezone.utc)
+        )
+        if candidate_frozen_at < reviewed_at:
+            raise ValueError("candidate frozen timestamp precedes evidence readiness")
+        candidate_frozen_text = candidate_frozen_at.isoformat().replace(
+            "+00:00", "Z"
+        )
+        experiment_state["candidate_frozen_at"] = candidate_frozen_text
+    else:
+        if not isinstance(candidate_frozen_text, str) or not candidate_frozen_text.strip():
+            raise ValueError("candidate frozen timestamp is invalid")
+        candidate_frozen_at = parse_timestamp(
+            candidate_frozen_text,
+            "candidate_frozen_at",
+        ).astimezone(timezone.utc)
+        if candidate_frozen_at < reviewed_at:
+            raise ValueError("candidate frozen timestamp precedes evidence readiness")
+        if candidate_frozen_at > current + timedelta(minutes=5):
+            raise ValueError("candidate frozen timestamp is in the future")
     store.save_state(experiment_state)
     sync_linked_hypothesis(store, experiment_state)
 
     lead_time_seconds = math.ceil(
-        max(0.0, (current - reviewed_at).total_seconds())
+        max(0.0, (candidate_frozen_at - reviewed_at).total_seconds())
     )
-    registered_within_sla = current <= reviewed_at + timedelta(hours=24)
+    registered_within_sla = candidate_frozen_at <= reviewed_at + timedelta(hours=24)
     trigger_state["status"] = "CLOSED"
     trigger_state["hypothesis_id"] = hypothesis_id
     trigger_state["next_review_at"] = None
+    trigger_state["candidate_frozen_at"] = candidate_frozen_text
     trigger_state["candidate_lead_time_seconds"] = lead_time_seconds
     trigger_state["candidate_lead_time_sla"] = (
         "PASS" if registered_within_sla else "BREACH"
@@ -932,6 +1016,7 @@ def register_candidate_bundle(
     registration_event = _candidate_registration_event_detail(
         hypothesis_id=hypothesis_id,
         experiment_id=manifest.experiment_id,
+        candidate_frozen_at=candidate_frozen_text,
         lead_time_seconds=lead_time_seconds,
         lead_time_sla=trigger_state["candidate_lead_time_sla"],
         candidate_bundle_sha256=bundle_sha256,
@@ -943,17 +1028,22 @@ def register_candidate_bundle(
         identity_fields={
             "hypothesis_id",
             "experiment_id",
+            "candidate_frozen_at",
             "candidate_bundle_sha256",
         },
     )
+    sealed_frozen_at = sealed_registration_event.get("candidate_frozen_at")
     sealed_lead_time = sealed_registration_event.get("lead_time_seconds")
     sealed_lead_time_sla = sealed_registration_event.get("lead_time_sla")
     if (
-        not isinstance(sealed_lead_time, int)
+        not isinstance(sealed_frozen_at, str)
+        or parse_timestamp(sealed_frozen_at, "candidate_frozen_at") != candidate_frozen_at
+        or not isinstance(sealed_lead_time, int)
         or sealed_lead_time < 0
         or sealed_lead_time_sla not in {"PASS", "BREACH"}
     ):
         raise ValueError("candidate registration audit SLA is invalid")
+    trigger_state["candidate_frozen_at"] = sealed_frozen_at
     trigger_state["candidate_lead_time_seconds"] = sealed_lead_time
     trigger_state["candidate_lead_time_sla"] = sealed_lead_time_sla
     store.save_evidence_trigger_state(trigger_state)
@@ -963,6 +1053,7 @@ def register_candidate_bundle(
         "hypothesis_id": hypothesis_id,
         "experiment_id": manifest.experiment_id,
         "experiment_stage": experiment_state["stage"],
+        "candidate_frozen_at": trigger_state["candidate_frozen_at"],
         "lead_time_seconds": trigger_state["candidate_lead_time_seconds"],
         "lead_time_sla": trigger_state["candidate_lead_time_sla"],
         "candidate_bundle_sha256": bundle_sha256,

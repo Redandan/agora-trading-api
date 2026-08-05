@@ -1612,6 +1612,10 @@ class EvidenceManifestContractTest(unittest.TestCase):
         self.assertEqual(result["lead_time_sla"], "PASS")
         self.assertEqual(result["lead_time_seconds"], 86400)
         self.assertEqual(result["experiment_stage"], "PREREGISTERED")
+        self.assertEqual(
+            result["candidate_frozen_at"],
+            (ready_at + timedelta(hours=24)).isoformat().replace("+00:00", "Z"),
+        )
         state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
         self.assertEqual(state["status"], "CLOSED")
         canonical = status_payload(
@@ -1625,6 +1629,10 @@ class EvidenceManifestContractTest(unittest.TestCase):
             if item["trigger_id"] == self.trigger["trigger_id"]
         )
         self.assertEqual(trigger_status["candidate_registration_sla"]["status"], "PASS")
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"]["candidate_frozen_at"],
+            result["candidate_frozen_at"],
+        )
         with self._eligible_forward_test_adapter():
             repeated = register_candidate_bundle(
                 self.store,
@@ -1678,24 +1686,34 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 self.trigger["trigger_id"]
             )
             self.assertEqual(interrupted["status"], "READY_FOR_HYPOTHESIS")
+            partial_experiment = self.store.load_state(
+                bundle["manifest"]["experiment_id"]
+            )
+            self.assertEqual(
+                partial_experiment["candidate_frozen_at"],
+                (ready_at + timedelta(minutes=2)).isoformat().replace(
+                    "+00:00", "Z"
+                ),
+            )
             recovered = register_candidate_bundle(
                 self.store,
                 policy,
                 bundle,
                 current_policy_hash=policy_sha256(policy_path),
-                now=ready_at + timedelta(minutes=3),
+                now=ready_at + timedelta(days=3),
             )
             repeated = register_candidate_bundle(
                 self.store,
                 policy,
                 bundle,
                 current_policy_hash=policy_sha256(policy_path),
-                now=ready_at + timedelta(minutes=4),
+                now=ready_at + timedelta(days=4),
             )
 
         self.assertEqual(recovered["status"], "CANDIDATE_BUNDLE_REGISTERED")
         self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
         self.assertEqual(recovered["lead_time_seconds"], 120)
+        self.assertEqual(recovered["lead_time_sla"], "PASS")
         self.assertEqual(repeated["lead_time_seconds"], 120)
         event_path = self.store.evidence_trigger_dir(
             self.trigger["trigger_id"]
@@ -1715,6 +1733,10 @@ class EvidenceManifestContractTest(unittest.TestCase):
             recovered["candidate_bundle_sha256"],
         )
         self.assertEqual(registrations[0]["detail"]["lead_time_seconds"], 120)
+        self.assertEqual(
+            registrations[0]["detail"]["candidate_frozen_at"],
+            partial_experiment["candidate_frozen_at"],
+        )
 
     def test_candidate_registration_status_breaches_immediately_after_deadline(self) -> None:
         _bundle, policy = self._ready_candidate_bundle()
@@ -1746,6 +1768,45 @@ class EvidenceManifestContractTest(unittest.TestCase):
         self.assertEqual(exact["seconds_remaining"], 0)
         self.assertEqual(late["status"], "BREACH_PENDING_REGISTRATION")
         self.assertEqual(late["seconds_remaining"], -1)
+
+    def test_candidate_registration_status_blocks_frozen_time_drift(self) -> None:
+        bundle, policy = self._ready_candidate_bundle()
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
+
+        with self._eligible_forward_test_adapter():
+            register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=ready_at + timedelta(minutes=2),
+            )
+
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        state["candidate_frozen_at"] = (
+            ready_at + timedelta(minutes=3)
+        ).isoformat().replace("+00:00", "Z")
+        self.store.save_evidence_trigger_state(state)
+        canonical = status_payload(
+            self.store,
+            policy,
+            now=ready_at + timedelta(minutes=4),
+        )
+        trigger_status = next(
+            item
+            for item in canonical["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"]["status"],
+            "INTEGRITY_BLOCKED",
+        )
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"]["reason"],
+            "CANDIDATE_FROZEN_SLA_MISMATCH",
+        )
 
     def test_candidate_bundle_rejects_readiness_timestamp_drift(self) -> None:
         bundle, policy = self._ready_candidate_bundle()
@@ -1887,15 +1948,49 @@ class EvidenceManifestContractTest(unittest.TestCase):
                         current_policy_hash="6" * 64,
                         now=current,
                     )
+            original_save = self.store.save_evidence_trigger_state
+
+            def interrupt_discovery_finalize(value: dict[str, object]) -> None:
+                if (
+                    value.get("trigger_id") == self.trigger["trigger_id"]
+                    and value.get("status") == "CLOSED"
+                ):
+                    raise RuntimeError("simulated discovery finalize interruption")
+                original_save(value)
+
+            with patch.object(
+                self.store,
+                "save_evidence_trigger_state",
+                side_effect=interrupt_discovery_finalize,
+            ):
+                with self.assertRaisesRegex(
+                    RuntimeError, "discovery finalize interruption"
+                ):
+                    register_candidate_bundle(
+                        self.store,
+                        policy,
+                        bundle,
+                        current_policy_hash="6" * 64,
+                        now=current,
+                    )
+            partial_experiment = self.store.load_state(
+                bundle["manifest"]["experiment_id"]
+            )
+            self.assertEqual(
+                partial_experiment["candidate_frozen_at"],
+                current.isoformat().replace("+00:00", "Z"),
+            )
             result = register_candidate_bundle(
                 self.store,
                 policy,
                 bundle,
                 current_policy_hash="6" * 64,
-                now=current,
+                now=current + timedelta(days=3),
             )
 
         self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertEqual(result["lead_time_seconds"], 120)
+        self.assertEqual(result["lead_time_sla"], "PASS")
         self.assertIsNotNone(result["oos_evidence_trigger_id"])
         experiment_state = self.store.load_state(result["experiment_id"])
         oos_id = experiment_state["oos_evidence_trigger_id"]

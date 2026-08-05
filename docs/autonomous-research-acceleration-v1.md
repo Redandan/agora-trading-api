@@ -140,6 +140,11 @@ Partial registration is resumable only when every sealed identity still
 matches. Candidate OOS remains opaque until its full window is sealed.
 Canonical status exposes the exact registration deadline and signed seconds
 remaining before submission, then preserves the measured `PASS` or `BREACH`.
+After the experiment and candidate-bound OOS source contract are fully frozen,
+their state also preserves `candidate_frozen_at`. Recovery from a later
+discovery-finalize interruption validates the original context against that
+time and derives the lead from it, so elapsed retry time cannot rewrite the
+24-hour result or shift the OOS window.
 
 The queue accepts only `RESEARCH_HEARTBEAT` and
 `REGISTER_CANDIDATE_BUNDLE`. It exposes no shell command, environment override,

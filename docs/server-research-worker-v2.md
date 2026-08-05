@@ -104,6 +104,13 @@ creates and source-binds a separate future 90-day `CANDIDATE_OOS` trigger.
 Interrupted registration resumes only when the hypothesis, manifest, policy,
 candidate binding, OOS window, and source contract remain identical; otherwise
 it fails closed.
+Once those artifacts and the candidate-bound OOS source contract are fully
+frozen, the experiment state records `candidate_frozen_at`. A later interruption
+while closing the discovery trigger must reuse that timestamp and its original
+candidate context, so retry delay cannot create a false SLA breach or move the
+already frozen OOS window. Canonical status recomputes the lead time from the
+sealed readiness timestamp and fails closed if the stored time, lead, or
+`PASS`/`BREACH` result disagree.
 
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical
@@ -241,8 +248,9 @@ The systemd path unit is an event consumer, not an additional schedule.
 - canonical status exposes the exact versioned cloud Ops schedule contract,
   and a missing, altered, or mismatched contract attestation blocks both write
   operations before queue mutation;
-- an accepted candidate bundle records the evidence-ready lead time and whether
-  the 24-hour SLA passed;
+- an accepted candidate bundle records the exact candidate frozen time,
+  evidence-ready lead time, and whether the 24-hour SLA passed; retry after a
+  post-freeze finalize interruption preserves all three values;
 - a parity, diagnostic-only, OOS-less, or closed historical adapter cannot be
   registered as a forward-evidence strategy candidate;
 - the eligible adapter accepts only canonical `candidate_context`, creates a

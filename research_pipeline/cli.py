@@ -49,7 +49,12 @@ from .hypotheses import (
     select_next,
     sync_hypothesis_record,
 )
-from .heartbeat import parse_heartbeat_now, record_heartbeat_failure, run_heartbeat_cycle
+from .heartbeat import (
+    load_heartbeat_request_payload,
+    parse_heartbeat_now,
+    record_heartbeat_failure,
+    run_heartbeat_cycle,
+)
 from .models import ExperimentManifest, Stage, is_terminal_stage, parse_timestamp
 from .policy import load_policy, policy_sha256
 from .report import monthly_report, weekly_report
@@ -103,6 +108,7 @@ def parser() -> argparse.ArgumentParser:
     tick.add_argument("--dry-run", action="store_true")
     heartbeat = commands.add_parser("heartbeat")
     heartbeat.add_argument("--now")
+    heartbeat.add_argument("--request-payload", type=Path)
     report = commands.add_parser("weekly-report")
     report.add_argument("--days", type=int, default=7)
     report.add_argument("--output", type=Path)
@@ -1726,6 +1732,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "heartbeat":
             heartbeat_now = parse_heartbeat_now(args.now)
+            coach_delivery_receipts = load_heartbeat_request_payload(args.request_payload)
             tick_preview = None
             exit_code = 0
             with store.lock():
@@ -1753,6 +1760,7 @@ def main(argv: list[str] | None = None) -> int:
                         now=heartbeat_now,
                         tick_preview=tick_preview,
                         tick_result=tick_result,
+                        coach_delivery_receipts=coach_delivery_receipts,
                     )
                 except Exception as heartbeat_error:
                     payload = record_heartbeat_failure(

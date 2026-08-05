@@ -35,11 +35,11 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v2.json"
+    "research_pipeline/cloud-ops-schedule-contract.v3.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
-    "schema_version": "2",
-    "contract_id": "CLOUD_OPS_SCHEDULE_V2",
+    "schema_version": "3",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V3",
     "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
     "timer_authority": "CODEX_CLOUD_OPS_ONLY",
     "state_authority": "SERVER_CANONICAL",
@@ -68,15 +68,21 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
         "required": True,
     },
     "coach_delivery": {
-        "contract_id": "SEALED_COACH_THREAD_DELIVERY_V1",
+        "contract_id": "SEALED_COACH_THREAD_DELIVERY_V2",
         "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
         "delivery_id_source": "SEALED_ARTIFACT_SHA256",
         "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
+        "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
         "preflight": "READ_TARGET_THREAD_AND_SKIP_IF_DELIVERY_ID_PRESENT",
         "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
         "verification": "READ_TARGET_THREAD_AND_REQUIRE_DELIVERY_ID",
         "retry": "RETRY_ONLY_WHEN_DELIVERY_ID_IS_ABSENT",
-        "canonical_ack": "NONE_READ_ONLY_OUTBOX",
+        "canonical_ack": "VERIFIED_THREAD_READBACK_RECEIPT_ON_NEXT_DUE_HEARTBEAT",
+        "receipt_parameter": "coach_delivery_receipts",
+        "verified_receipt_statuses": [
+            "DELIVERED_TO_COACH_TASK_VERIFIED",
+            "ALREADY_DELIVERED_TO_COACH_TASK",
+        ],
     },
     "required_guards": [
         "WORKER_RELEASE_READY",
@@ -87,9 +93,11 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
         "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
         "DISTINCT_SEALED_CANDIDATE_OOS",
         "HASH_VERIFIED_COACH_OUTBOX",
+        "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
         "COACH_THREAD_READ_BEFORE_SEND",
         "COACH_DELIVERY_ID_DEDUPLICATION",
         "COACH_THREAD_POST_SEND_READBACK",
+        "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
         "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE",
     ],
     "forbidden_actions": [
@@ -98,12 +106,17 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
         "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
         "OOS_REOPEN_OR_GATE_RELAXATION",
         "UNVERIFIED_COACH_DELIVERY_CLAIM",
+        "ACK_WITHOUT_THREAD_READBACK",
     ],
 }
 RUN_ID = re.compile(r"^[a-f0-9]{32}$")
 TERMINAL_RUN_STATUSES = {"COMPLETED", "FAILED", "STALE_RECOVERED"}
 MAX_CANDIDATE_BUNDLE_BYTES = 128 * 1024
 MAX_COACH_DELIVERY_PROMPT_BYTES = 64 * 1024
+MAX_COACH_PENDING_EVENTS = 32
+MAX_COACH_OUTBOX_BATCH = 8
+MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
+MAX_COACH_DELIVERED_RECEIPTS = 256
 CANDIDATE_AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
 COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
 COACH_EVENT_TYPES = {
@@ -175,7 +188,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V2 semantics",
+            "reason": "cloud Ops schedule contract does not match the frozen V3 semantics",
         }
     recurrence = value["recurrence"]
     return {
@@ -296,21 +309,37 @@ def _worker_release_summary() -> dict[str, Any]:
     return {"status": "RELEASE_PROVENANCE_INVALID", "reason": reason}
 
 
-def _coach_outbox(latest: dict[str, Any] | None) -> dict[str, Any]:
-    if not latest or latest.get("should_notify_coach") is not True:
+def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:
+    if coach_delivery is None:
         return {"status": "IDLE", "coach_task_id": COACH_TASK_ID}
-    raw_events = latest.get("events")
-    if isinstance(raw_events, list) and raw_events:
-        events = raw_events
-    elif latest.get("event_type"):
-        events = [{field: latest.get(field) for field in COACH_EVENT_FIELDS}]
-    else:
+    if not isinstance(coach_delivery, dict) or coach_delivery.get("schema_version") != "1":
         return {
             "status": "COACH_OUTBOX_INVALID",
             "coach_task_id": COACH_TASK_ID,
-            "reason": "notification requested without a structured event",
+            "reason": "canonical coach delivery state is invalid",
         }
-    if len(events) > 8:
+    events = coach_delivery.get("pending_events")
+    receipts = coach_delivery.get("delivered_receipts")
+    if not isinstance(events, list) or not isinstance(receipts, list):
+        return {
+            "status": "COACH_OUTBOX_INVALID",
+            "coach_task_id": COACH_TASK_ID,
+            "reason": "canonical coach delivery lists are invalid",
+        }
+    receipt_ids, receipt_error = _canonical_delivered_receipt_ids(receipts)
+    if receipt_error:
+        return {
+            "status": "COACH_OUTBOX_INVALID",
+            "coach_task_id": COACH_TASK_ID,
+            "reason": receipt_error,
+        }
+    if not events:
+        return {
+            "status": "IDLE",
+            "coach_task_id": COACH_TASK_ID,
+            "delivered_receipt_count": len(receipts),
+        }
+    if len(events) > MAX_COACH_PENDING_EVENTS:
         return {
             "status": "COACH_OUTBOX_INVALID",
             "coach_task_id": COACH_TASK_ID,
@@ -336,6 +365,8 @@ def _coach_outbox(latest: dict[str, Any] | None) -> dict[str, Any]:
             return _coach_outbox_error(index, "artifact hash is invalid")
         if expected_hash in delivery_ids:
             return _coach_outbox_error(index, "delivery id is duplicated")
+        if expected_hash in receipt_ids:
+            return _coach_outbox_error(index, "delivery id is both pending and delivered")
         artifact = (STATE_DIR / relative).resolve()
         try:
             artifact.relative_to(state_root)
@@ -357,6 +388,8 @@ def _coach_outbox(latest: dict[str, Any] | None) -> dict[str, Any]:
             if not isinstance(raw_event.get(field), str) or not raw_event[field].strip():
                 return _coach_outbox_error(index, f"{field} is missing")
         delivery_ids.add(expected_hash)
+        if index >= MAX_COACH_OUTBOX_BATCH:
+            continue
         verified_event = {
             field: raw_event.get(field) for field in COACH_EVENT_FIELDS
         }
@@ -365,7 +398,7 @@ def _coach_outbox(latest: dict[str, Any] | None) -> dict[str, Any]:
             "schema_version": "1",
             "message_type": "SEALED_RESEARCH_COACH_EVENT",
             "source": "AGORA_RESEARCH_CANONICAL_COACH_OUTBOX",
-            "delivery_contract_id": "SEALED_COACH_THREAD_DELIVERY_V1",
+            "delivery_contract_id": "SEALED_COACH_THREAD_DELIVERY_V2",
             "delivery_id": expected_hash,
             "delivery_token": delivery_token,
             "target_thread_id": COACH_TASK_ID,
@@ -403,8 +436,49 @@ def _coach_outbox(latest: dict[str, Any] | None) -> dict[str, Any]:
         "delivery_semantics": "AT_LEAST_ONCE_DEDUPED_BY_SEALED_ARTIFACT_SHA256",
         "delivery_contract": {"status": "READY", **delivery_contract},
         "event_count": len(verified),
+        "pending_count": len(events),
+        "delivered_receipt_count": len(receipts),
         "events": verified,
     }
+
+
+def _canonical_delivered_receipt_ids(receipts: list[Any]) -> tuple[set[str], str | None]:
+    if len(receipts) > MAX_COACH_DELIVERED_RECEIPTS:
+        return set(), "delivered receipt count exceeds the bounded limit"
+    required = {
+        "schema_version",
+        "delivery_id",
+        "delivery_token",
+        "target_thread_id",
+        "delivery_status",
+        "acknowledged_at",
+    }
+    allowed_statuses = set(
+        EXPECTED_OPS_SCHEDULE_CONTRACT["coach_delivery"]["verified_receipt_statuses"]
+    )
+    delivery_ids: set[str] = set()
+    for receipt in receipts:
+        if not isinstance(receipt, dict) or set(receipt) != required:
+            return set(), "canonical delivered receipt fields are invalid"
+        delivery_id = str(receipt.get("delivery_id", ""))
+        if not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
+            return set(), "canonical delivered receipt id is invalid"
+        if delivery_id in delivery_ids:
+            return set(), "canonical delivered receipt id is duplicated"
+        if receipt.get("schema_version") != "1":
+            return set(), "canonical delivered receipt schema_version is invalid"
+        if receipt.get("delivery_token") != f"SEALED_RESEARCH_DELIVERY:{delivery_id}":
+            return set(), "canonical delivered receipt token is invalid"
+        if receipt.get("target_thread_id") != COACH_TASK_ID:
+            return set(), "canonical delivered receipt target is invalid"
+        if receipt.get("delivery_status") not in allowed_statuses:
+            return set(), "canonical delivered receipt status is invalid"
+        if not isinstance(receipt.get("acknowledged_at"), str) or not receipt[
+            "acknowledged_at"
+        ].endswith("Z"):
+            return set(), "canonical delivered receipt time is invalid"
+        delivery_ids.add(delivery_id)
+    return delivery_ids, None
 
 
 def _coach_outbox_error(index: int, reason: str) -> dict[str, Any]:
@@ -916,6 +990,7 @@ def _enqueue_request(
 
 def request_heartbeat(
     ops_schedule_contract_sha256: str | None,
+    coach_delivery_receipts: list[dict[str, Any]] | None = None,
     *,
     now: datetime | None = None,
 ) -> dict[str, Any]:
@@ -930,11 +1005,12 @@ def request_heartbeat(
     contract_block, _ = _ops_schedule_contract_gate(ops_schedule_contract_sha256)
     if contract_block:
         return contract_block
+    payload, payload_sha256 = _validated_heartbeat_payload(coach_delivery_receipts)
     REQUEST_DIR.mkdir(parents=True, exist_ok=True)
     recovered = _recover_stale_queue(current)
     active = _active_queue_response(
         "RESEARCH_HEARTBEAT",
-        payload_sha256=None,
+        payload_sha256=payload_sha256,
         recovered=recovered,
     )
     if active:
@@ -947,9 +1023,94 @@ def request_heartbeat(
         "RESEARCH_HEARTBEAT",
         current=current,
         recovered=recovered,
+        payload=payload,
+        payload_sha256=payload_sha256,
     )
     result["evidence_capture"] = evidence_capture
     return result
+
+
+def _validated_heartbeat_payload(
+    raw_receipts: list[dict[str, Any]] | None,
+) -> tuple[dict[str, Any], str]:
+    receipts = [] if raw_receipts is None else raw_receipts
+    if not isinstance(receipts, list):
+        raise ValueError("coach_delivery_receipts must be a list")
+    if len(receipts) > MAX_COACH_RECEIPTS_PER_HEARTBEAT:
+        raise ValueError("coach delivery receipt count exceeds the bounded limit")
+
+    state = _read_json(STATE_DIR / "heartbeat" / "state.json") or {}
+    delivery = state.get("coach_delivery")
+    if delivery is None:
+        pending_events: list[Any] = []
+        delivered_receipts: list[Any] = []
+    elif not isinstance(delivery, dict) or delivery.get("schema_version") != "1":
+        raise ValueError("canonical coach delivery state is invalid")
+    else:
+        pending_events = delivery.get("pending_events")
+        delivered_receipts = delivery.get("delivered_receipts")
+        if not isinstance(pending_events, list) or not isinstance(delivered_receipts, list):
+            raise ValueError("canonical coach delivery lists are invalid")
+
+    canonical_ids: set[str] = set()
+    for event in pending_events:
+        if not isinstance(event, dict) or not re.fullmatch(
+            r"[0-9a-f]{64}", str(event.get("sha256", ""))
+        ):
+            raise ValueError("canonical coach pending event is invalid")
+        canonical_ids.add(str(event["sha256"]))
+    for receipt in delivered_receipts:
+        if not isinstance(receipt, dict) or not re.fullmatch(
+            r"[0-9a-f]{64}", str(receipt.get("delivery_id", ""))
+        ):
+            raise ValueError("canonical coach delivered receipt is invalid")
+        canonical_ids.add(str(receipt["delivery_id"]))
+
+    normalized_receipts: list[dict[str, str]] = []
+    seen: set[str] = set()
+    required = {
+        "schema_version",
+        "delivery_id",
+        "delivery_token",
+        "target_thread_id",
+        "delivery_status",
+    }
+    verified_statuses = set(
+        EXPECTED_OPS_SCHEDULE_CONTRACT["coach_delivery"]["verified_receipt_statuses"]
+    )
+    for raw in receipts:
+        if not isinstance(raw, dict) or set(raw) != required:
+            raise ValueError("coach delivery receipt fields are invalid")
+        delivery_id = str(raw.get("delivery_id", ""))
+        if not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
+            raise ValueError("coach delivery receipt id is invalid")
+        if delivery_id in seen:
+            raise ValueError("coach delivery receipts contain a duplicate delivery id")
+        seen.add(delivery_id)
+        if raw.get("schema_version") != "1":
+            raise ValueError("coach delivery receipt schema_version must be 1")
+        if raw.get("delivery_token") != f"SEALED_RESEARCH_DELIVERY:{delivery_id}":
+            raise ValueError("coach delivery receipt token is invalid")
+        if raw.get("target_thread_id") != COACH_TASK_ID:
+            raise ValueError("coach delivery receipt target is invalid")
+        if raw.get("delivery_status") not in verified_statuses:
+            raise ValueError("coach delivery receipt status is not verified")
+        if delivery_id not in canonical_ids:
+            raise ValueError("coach delivery receipt does not match canonical state")
+        normalized_receipts.append({key: str(raw[key]) for key in required})
+
+    payload = {
+        "schema_version": "1",
+        "coach_delivery_receipts": normalized_receipts,
+    }
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return json.loads(encoded.decode("utf-8")), hashlib.sha256(encoded).hexdigest()
 
 
 def _validated_candidate_payload(bundle: dict[str, Any]) -> tuple[dict[str, Any], str]:
@@ -1100,6 +1261,7 @@ def research_status() -> dict[str, Any]:
             queue = {"status": state, **value}
             break
     latest = _read_json(INBOX_DIR / "latest.json")
+    heartbeat_state = _read_json(STATE_DIR / "heartbeat" / "state.json") or {}
     result = _pipeline(["status", "--json"])
     registry: dict[str, Any]
     if result.returncode == 0:
@@ -1156,7 +1318,7 @@ def research_status() -> dict[str, Any]:
         "latest_evidence_capture": source_latest,
         "latest_evidence_ingest": ingest_latest,
         "latest_heartbeat": latest,
-        "coach_outbox": _coach_outbox(latest),
+        "coach_outbox": _coach_outbox(heartbeat_state.get("coach_delivery")),
         "registry": registry,
     }
 

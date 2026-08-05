@@ -145,6 +145,11 @@ with open(sys.argv[1], "w", encoding="utf-8") as stream:
             "requested_at": "2026-08-05T00:00:00Z",
             "source": "CODEX_CLOUD_OPS",
             "operation": "RESEARCH_HEARTBEAT",
+            "payload": {
+                "schema_version": "1",
+                "coach_delivery_receipts": [],
+            },
+            "payload_sha256": "844e4eb3a0ea121e02459ca1fd683b480756e9155b07b8490aa8467a0ac8461b",
             "status": "RUNNING",
             "started_at": "2026-08-05T00:00:01Z",
             "resume_count": 0,

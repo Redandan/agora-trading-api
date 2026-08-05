@@ -1333,6 +1333,84 @@ class EvidenceManifestContractTest(unittest.TestCase):
         self.assertEqual(heartbeat["event_type"], "INTEGRITY_ALERT")
         self.assertEqual(heartbeat["research_status"], "EVIDENCE_SOURCE_UNBOUND")
 
+        delivery_id = heartbeat["sha256"]
+        state_path = self.store.root / heartbeat["heartbeat_state"]
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertTrue(
+            {"WEEKLY_BRIEF_READY", "MONTHLY_REVIEW_READY"}.issubset(
+                {
+                    event["event_type"]
+                    for event in state["coach_delivery"]["pending_events"]
+                }
+            )
+        )
+        self.assertIn(
+            delivery_id,
+            [event["sha256"] for event in state["coach_delivery"]["pending_events"]],
+        )
+
+        routine = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2025, 12, 31, 13, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertFalse(routine["should_notify_coach"])
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertIn(
+            delivery_id,
+            [event["sha256"] for event in state["coach_delivery"]["pending_events"]],
+        )
+
+        receipt = {
+            "schema_version": "1",
+            "delivery_id": delivery_id,
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+            "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+        }
+        acknowledged = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2025, 12, 31, 14, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+            coach_delivery_receipts=[receipt],
+        )
+        self.assertIn(delivery_id, acknowledged["coach_delivery"]["acknowledged_delivery_ids"])
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertNotIn(
+            delivery_id,
+            [event["sha256"] for event in state["coach_delivery"]["pending_events"]],
+        )
+
+        repeated = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2025, 12, 31, 15, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+            coach_delivery_receipts=[receipt],
+        )
+        self.assertIn(delivery_id, repeated["coach_delivery"]["acknowledged_delivery_ids"])
+
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            run_heartbeat_cycle(
+                self.store,
+                {"policy_id": "TEST_RESEARCH_ONLY"},
+                now=datetime(2025, 12, 31, 16, tzinfo=timezone.utc),
+                tick_preview=tick,
+                tick_result=tick,
+                coach_delivery_receipts=[
+                    {
+                        **receipt,
+                        "delivery_id": "f" * 64,
+                        "delivery_token": f"SEALED_RESEARCH_DELIVERY:{'f' * 64}",
+                    }
+                ],
+            )
+
     def test_candidate_bundle_registers_atomically_with_24h_sla(self) -> None:
         bundle, policy = self._ready_candidate_bundle()
         policy_path = Path(__file__).parents[1] / "policy.v3.json"

@@ -7,15 +7,24 @@ INBOX_DIR="${AGORA_RESEARCH_INBOX_DIR:-/var/lib/agora-research/inbox}"
 POLICY_FILE="${AGORA_RESEARCH_POLICY_FILE:-$APP_DIR/research_pipeline/policy.v3.json}"
 PYTHON_BIN="${PYTHON_BIN:-/usr/bin/python3}"
 LOCK_FILE="${AGORA_RESEARCH_HEARTBEAT_LOCK:-/run/agora-research/heartbeat.lock}"
+REQUEST_PAYLOAD=""
 
 fail() {
   echo "[research-heartbeat] FAIL: $*" >&2
   exit 1
 }
 
+if [ "${1:-}" = "--request-payload" ]; then
+  [ "$#" = "2" ] || fail "--request-payload requires exactly one path"
+  REQUEST_PAYLOAD="$2"
+elif [ "$#" != "0" ]; then
+  fail "unsupported heartbeat launcher arguments"
+fi
+
 [ -d "$APP_DIR/research_pipeline" ] || fail "pipeline missing: $APP_DIR/research_pipeline"
 [ -f "$POLICY_FILE" ] || fail "policy missing: $POLICY_FILE"
 [ -x "$PYTHON_BIN" ] || fail "python is not executable: $PYTHON_BIN"
+[ -z "$REQUEST_PAYLOAD" ] || [ -f "$REQUEST_PAYLOAD" ] || fail "request payload is unavailable"
 
 umask 077
 mkdir -p "$STATE_DIR" "$INBOX_DIR" "$(dirname "$LOCK_FILE")"
@@ -38,10 +47,16 @@ trap cleanup EXIT
 set +e
 (
   cd "$APP_DIR"
-  "$PYTHON_BIN" -m research_pipeline \
-    --state-dir "$STATE_DIR" \
-    --policy "$POLICY_FILE" \
+  heartbeat_args=(
+    "$PYTHON_BIN" -m research_pipeline
+    --state-dir "$STATE_DIR"
+    --policy "$POLICY_FILE"
     heartbeat
+  )
+  if [ -n "$REQUEST_PAYLOAD" ]; then
+    heartbeat_args+=(--request-payload "$REQUEST_PAYLOAD")
+  fi
+  "${heartbeat_args[@]}"
 ) >"$payload_tmp" 2>"$stderr_tmp"
 exit_code=$?
 set -e

@@ -94,9 +94,10 @@ def get_research_status() -> dict[str, Any]:
 )
 def request_research_heartbeat(
     ops_schedule_contract_sha256: str,
+    coach_delivery_receipts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Queue one due bounded heartbeat after attesting the deployed Ops contract."""
-    return request_heartbeat(ops_schedule_contract_sha256)
+    """Queue one due bounded heartbeat and verified Coach delivery receipts."""
+    return request_heartbeat(ops_schedule_contract_sha256, coach_delivery_receipts)
 
 
 @mcp.tool(

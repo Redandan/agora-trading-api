@@ -16,12 +16,37 @@ HEARTBEAT_HOUR = 9
 WEEKLY_PREFIX = "weekly-learning-brief-"
 MONTHLY_PREFIX = "monthly-learning-review-"
 REPORT_DATE = re.compile(r"^(?:weekly-learning-brief|monthly-learning-review)-(\d{4}-\d{2}-\d{2})(?:[-.].*)?\.md$")
+COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+COACH_DELIVERY_TOKEN_PREFIX = "SEALED_RESEARCH_DELIVERY:"
+COACH_DELIVERY_STATUSES = {
+    "DELIVERED_TO_COACH_TASK_VERIFIED",
+    "ALREADY_DELIVERED_TO_COACH_TASK",
+}
+MAX_COACH_PENDING_EVENTS = 32
+MAX_COACH_DELIVERED_RECEIPTS = 256
+MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
 
 
 def parse_heartbeat_now(value: str | None) -> datetime:
     if value is None:
         return datetime.now(timezone.utc)
     return parse_timestamp(value, "--now").astimezone(timezone.utc)
+
+
+def load_heartbeat_request_payload(path: Path | None) -> list[dict[str, Any]]:
+    if path is None:
+        return []
+    payload = read_json(path)
+    if set(payload) != {"schema_version", "coach_delivery_receipts"}:
+        raise ValueError("heartbeat request payload fields are invalid")
+    if payload.get("schema_version") != "1":
+        raise ValueError("heartbeat request payload schema_version must be 1")
+    receipts = payload.get("coach_delivery_receipts")
+    if not isinstance(receipts, list):
+        raise ValueError("coach_delivery_receipts must be a list")
+    if len(receipts) > MAX_COACH_RECEIPTS_PER_HEARTBEAT:
+        raise ValueError("coach delivery receipt count exceeds the bounded limit")
+    return receipts
 
 
 def run_heartbeat_cycle(
@@ -31,6 +56,7 @@ def run_heartbeat_cycle(
     now: datetime,
     tick_preview: dict[str, Any],
     tick_result: dict[str, Any],
+    coach_delivery_receipts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     state = _load_state(store)
     _adopt_existing_reports(store, state)
@@ -106,6 +132,14 @@ def run_heartbeat_cycle(
         )
     events.extend(report_events)
 
+    events.sort(key=lambda event: _event_priority(str(event["event_type"])))
+    coach_delivery = _advance_coach_delivery(
+        state,
+        receipts=coach_delivery_receipts or [],
+        new_events=events,
+        now=now,
+    )
+
     post_schedule = _schedule(now, state, tick_result)
     state.update(
         {
@@ -131,7 +165,6 @@ def run_heartbeat_cycle(
     )
     _write_state(store, state)
 
-    events.sort(key=lambda event: _event_priority(str(event["event_type"])))
     primary = events[0] if events else None
     return {
         "status": "HEARTBEAT_OK",
@@ -149,6 +182,7 @@ def run_heartbeat_cycle(
         "concept_to_teach": None if primary is None else primary["concept_to_teach"],
         "should_notify_coach": bool(events),
         "events": events,
+        "coach_delivery": coach_delivery,
         "heartbeat_state": _relative(store, _state_path(store)),
         "next_due": state["next_due"],
         "consecutive_failures": 0,
@@ -191,6 +225,12 @@ def record_heartbeat_failure(
         "next_action": "INSPECT_FAILURE_ARTIFACT_WITHOUT_ADVANCING_RESEARCH",
         "concept_to_teach": "A control-plane failure is not strategy evidence and cannot justify relaxing a gate.",
     }
+    coach_delivery = _advance_coach_delivery(
+        state,
+        receipts=[],
+        new_events=[event],
+        now=now,
+    )
     daily = _next_daily(now)
     state.update(
         {
@@ -213,6 +253,7 @@ def record_heartbeat_failure(
         **event,
         "should_notify_coach": True,
         "events": [event],
+        "coach_delivery": coach_delivery,
         "heartbeat_state": _relative(store, _state_path(store)),
         "next_due": state["next_due"],
         "consecutive_failures": failures,
@@ -233,12 +274,159 @@ def _load_state(store: ResearchStore, *, verify_schema: bool = True) -> dict[str
             "last_failure": None,
             "last_research_fingerprint": None,
             "announced_closed_evidence_reviews": {},
+            "coach_delivery": _empty_coach_delivery_state(),
             "last_result": None,
         }
     state = read_json(path)
     if verify_schema and state.get("schema_version") != "1":
         raise ValueError("heartbeat state schema_version must be 1")
     return state
+
+
+def _empty_coach_delivery_state() -> dict[str, Any]:
+    return {
+        "schema_version": "1",
+        "pending_events": [],
+        "delivered_receipts": [],
+    }
+
+
+def _advance_coach_delivery(
+    heartbeat_state: dict[str, Any],
+    *,
+    receipts: list[dict[str, Any]],
+    new_events: list[dict[str, Any]],
+    now: datetime,
+) -> dict[str, Any]:
+    if len(receipts) > MAX_COACH_RECEIPTS_PER_HEARTBEAT:
+        raise ValueError("coach delivery receipt count exceeds the bounded limit")
+    raw = heartbeat_state.get("coach_delivery")
+    if raw is None:
+        delivery = _empty_coach_delivery_state()
+    elif not isinstance(raw, dict) or raw.get("schema_version") != "1":
+        raise ValueError("coach delivery state is invalid")
+    else:
+        delivery = {
+            "schema_version": "1",
+            "pending_events": list(raw.get("pending_events", [])),
+            "delivered_receipts": list(raw.get("delivered_receipts", [])),
+        }
+    pending = delivery["pending_events"]
+    delivered = delivery["delivered_receipts"]
+    if not isinstance(pending, list) or not isinstance(delivered, list):
+        raise ValueError("coach delivery state lists are invalid")
+    if len(pending) > MAX_COACH_PENDING_EVENTS:
+        raise ValueError("coach delivery pending event count exceeds the bounded limit")
+    if len(delivered) > MAX_COACH_DELIVERED_RECEIPTS:
+        raise ValueError("coach delivered receipt count exceeds the bounded limit")
+
+    pending_by_id = {_event_delivery_id(event): event for event in pending}
+    delivered_by_id = {_receipt_delivery_id(receipt): receipt for receipt in delivered}
+    if len(pending_by_id) != len(pending) or len(delivered_by_id) != len(delivered):
+        raise ValueError("coach delivery state contains duplicate delivery ids")
+    if set(pending_by_id).intersection(delivered_by_id):
+        raise ValueError("coach delivery id cannot be both pending and delivered")
+
+    acknowledged: list[str] = []
+    receipt_ids: set[str] = set()
+    for raw_receipt in receipts:
+        receipt = _validate_coach_delivery_receipt(raw_receipt)
+        delivery_id = receipt["delivery_id"]
+        if delivery_id in receipt_ids:
+            raise ValueError("coach delivery receipts contain a duplicate delivery id")
+        receipt_ids.add(delivery_id)
+        if delivery_id in delivered_by_id:
+            acknowledged.append(delivery_id)
+            continue
+        if delivery_id not in pending_by_id:
+            raise ValueError("coach delivery receipt does not match a canonical pending event")
+        pending = [event for event in pending if _event_delivery_id(event) != delivery_id]
+        pending_by_id.pop(delivery_id)
+        sealed_receipt = {
+            **receipt,
+            "acknowledged_at": _iso_utc(now),
+        }
+        delivered.append(sealed_receipt)
+        delivered_by_id[delivery_id] = sealed_receipt
+        acknowledged.append(delivery_id)
+
+    for event in new_events:
+        delivery_id = _event_delivery_id(event)
+        if delivery_id in delivered_by_id:
+            continue
+        existing = pending_by_id.get(delivery_id)
+        if existing is not None:
+            if _canonical_json(existing) != _canonical_json(event):
+                raise ValueError("coach pending event changed under the same delivery id")
+            continue
+        if len(pending) >= MAX_COACH_PENDING_EVENTS:
+            raise ValueError("coach delivery pending event count exceeds the bounded limit")
+        sealed_event = dict(event)
+        pending.append(sealed_event)
+        pending_by_id[delivery_id] = sealed_event
+
+    if len(delivered) > MAX_COACH_DELIVERED_RECEIPTS:
+        delivered = delivered[-MAX_COACH_DELIVERED_RECEIPTS:]
+    delivery = {
+        "schema_version": "1",
+        "pending_events": pending,
+        "delivered_receipts": delivered,
+    }
+    heartbeat_state["coach_delivery"] = delivery
+    return {
+        "status": "PENDING" if pending else "IDLE",
+        "pending_count": len(pending),
+        "delivered_receipt_count": len(delivered),
+        "acknowledged_delivery_ids": acknowledged,
+    }
+
+
+def _validate_coach_delivery_receipt(raw: Any) -> dict[str, str]:
+    if not isinstance(raw, dict):
+        raise ValueError("coach delivery receipt must be an object")
+    required = {
+        "schema_version",
+        "delivery_id",
+        "delivery_token",
+        "target_thread_id",
+        "delivery_status",
+    }
+    if set(raw) != required:
+        raise ValueError("coach delivery receipt fields are invalid")
+    delivery_id = str(raw.get("delivery_id", ""))
+    if not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
+        raise ValueError("coach delivery receipt id is invalid")
+    if raw.get("schema_version") != "1":
+        raise ValueError("coach delivery receipt schema_version must be 1")
+    if raw.get("delivery_token") != f"{COACH_DELIVERY_TOKEN_PREFIX}{delivery_id}":
+        raise ValueError("coach delivery receipt token is invalid")
+    if raw.get("target_thread_id") != COACH_TASK_ID:
+        raise ValueError("coach delivery receipt target is invalid")
+    if raw.get("delivery_status") not in COACH_DELIVERY_STATUSES:
+        raise ValueError("coach delivery receipt status is not verified")
+    return {key: str(raw[key]) for key in required}
+
+
+def _event_delivery_id(event: Any) -> str:
+    if not isinstance(event, dict):
+        raise ValueError("coach pending event must be an object")
+    delivery_id = event.get("sha256")
+    if not isinstance(delivery_id, str) or not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
+        raise ValueError("coach pending event artifact hash is invalid")
+    return delivery_id
+
+
+def _receipt_delivery_id(receipt: Any) -> str:
+    if not isinstance(receipt, dict):
+        raise ValueError("coach delivered receipt must be an object")
+    delivery_id = receipt.get("delivery_id")
+    if not isinstance(delivery_id, str) or not re.fullmatch(r"[0-9a-f]{64}", delivery_id):
+        raise ValueError("coach delivered receipt id is invalid")
+    return delivery_id
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True)
 
 
 def _write_state(store: ResearchStore, state: dict[str, Any]) -> None:

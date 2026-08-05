@@ -96,8 +96,8 @@ IFS=$'\t' read -r request_id operation <<<"$request_metadata"
 status_file="$REQUEST_DIR/runs/$request_id.json"
 log_file="$REQUEST_DIR/runs/$request_id.log"
 
-if [ "$operation" = "REGISTER_CANDIDATE_BUNDLE" ]; then
-  payload_file="$RUNTIME_DIR/candidate-$request_id.json"
+if [ "$operation" = "REGISTER_CANDIDATE_BUNDLE" ] || [ "$operation" = "RESEARCH_HEARTBEAT" ]; then
+  payload_file="$RUNTIME_DIR/request-payload-$request_id.json"
   result_file="$RUNTIME_DIR/result-$request_id.json"
   python3 - "$RUNNING" "$payload_file" <<'PY'
 import hashlib
@@ -110,7 +110,7 @@ with open(sys.argv[1], encoding="utf-8") as stream:
     request = json.load(stream)
 payload = request.get("payload")
 if not isinstance(payload, dict):
-    raise SystemExit("candidate request payload must be an object")
+    raise SystemExit("research request payload must be an object")
 encoded = json.dumps(
     payload,
     ensure_ascii=False,
@@ -120,9 +120,9 @@ encoded = json.dumps(
 ).encode("utf-8")
 expected = str(request.get("payload_sha256", ""))
 if not re.fullmatch(r"[a-f0-9]{64}", expected):
-    raise SystemExit("candidate request payload hash is invalid")
+    raise SystemExit("research request payload hash is invalid")
 if hashlib.sha256(encoded).hexdigest() != expected:
-    raise SystemExit("candidate request payload hash mismatch")
+    raise SystemExit("research request payload hash mismatch")
 temporary = sys.argv[2] + ".tmp"
 with open(temporary, "w", encoding="utf-8") as stream:
     json.dump(payload, stream, ensure_ascii=False, indent=2, sort_keys=True)
@@ -158,7 +158,8 @@ PY
 
 set +e
 if [ "$operation" = "RESEARCH_HEARTBEAT" ]; then
-  APP_DIR="$APP_DIR" "$APP_DIR/scripts/research-worker/run-heartbeat.sh" >"$log_file" 2>&1
+  APP_DIR="$APP_DIR" "$APP_DIR/scripts/research-worker/run-heartbeat.sh" \
+    --request-payload "$payload_file" >"$log_file" 2>&1
 else
   python3 -m research_pipeline \
     --state-dir "${AGORA_RESEARCH_STATE_DIR:-/var/lib/agora-research/state}" \

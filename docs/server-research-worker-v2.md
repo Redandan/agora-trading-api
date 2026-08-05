@@ -39,7 +39,7 @@ or dirty provenance fails closed: both server write operations return
 `WORKER_RELEASE_INTEGRITY_BLOCKED` before touching either queue. This never adds
 a new MCP operation or exposes a server filesystem path.
 
-The same status exposes the active frozen `CLOUD_OPS_SCHEDULE_V2` contract and its
+The same status exposes the active frozen `CLOUD_OPS_SCHEDULE_V3` contract and its
 byte-level SHA-256. The two write operations require that hash in the
 `ops_schedule_contract_sha256` argument. A missing or changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
@@ -151,19 +151,24 @@ remain observable; terminal failure, stalled dispatch, or any correlation
 mismatch fails closed immediately. No second heartbeat, source timer, upload,
 or backfill operation is introduced.
 
-Canonical status derives a read-only `coach_outbox` from the latest heartbeat.
-For every material event it confines the relative path to canonical state,
+Canonical status derives `coach_outbox` from durable server heartbeat state,
+not from whichever heartbeat happened to run most recently. For every material
+event it confines the relative path to canonical state,
 re-hashes the artifact, rejects missing or duplicate delivery ids, and returns
 the complete structured event under `EVENTS_PENDING_EXTERNAL_DELIVERY`. The
-sealed artifact SHA-256 is the delivery id. Routine heartbeats return an idle
-outbox. Each verified event also includes a deterministic delivery token and
-exact canonical delivery prompt. The V2 schedule contract permits only task
+sealed artifact SHA-256 is the delivery id. Routine heartbeats leave older
+pending events intact. Each verified event also includes a deterministic
+delivery token and exact canonical delivery prompt. The V3 schedule contract
+permits only task
 list/read/send operations for this handoff: the cloud cycle reads the exact
 Coach task before sending, deduplicates by artifact SHA-256, sends once, and
 reads back before claiming verified delivery. If the target host is unavailable,
-the event remains pending. This adds no Worker write operation or canonical
-acknowledgement claim; an unavailable or mismatched artifact makes the entire
-outbox `COACH_OUTBOX_INVALID`.
+the event remains pending. A bounded exact receipt for a preflight or post-send
+readback may be carried only by the next normally due heartbeat. The queue and
+Worker both validate the receipt schema, target, token, status, and canonical
+delivery id before removing the pending event. Repeated verified receipts are
+idempotent; unverified or unknown receipts fail closed. An unavailable or
+mismatched artifact makes the outbox `COACH_OUTBOX_INVALID`.
 
 The dispatch path watches both `pending.json` and an interrupted
 `running.json`. The oneshot restarts only after an abnormal process stop and
@@ -222,11 +227,12 @@ The systemd path unit is an event consumer, not an additional schedule.
   request id without waiting for the next daily cloud wake;
 - every MCP briefing returns a sealed artifact id and SHA-256;
 - canonical status exposes every pending Coach event through a bounded,
-  hash-verified, read-only outbox;
+  hash-verified, durable outbox that survives later routine heartbeats;
 - the active schedule contract binds Coach delivery to exact task discovery,
   read-before-send deduplication, canonical prompt copying, and post-send
-  readback, while target unavailability remains pending rather than adding a
-  timer or messenger;
+  readback, while only a verified receipt on the next due heartbeat can
+  acknowledge it and target unavailability remains pending rather than adding
+  a timer or messenger;
 - canonical status returns a clean, hash-verified Worker release and Git commit;
 - server verification proves the unprivileged Worker identity can read and
   validate that release provenance;

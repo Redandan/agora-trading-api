@@ -111,9 +111,15 @@ class DurableQueueContractTest(unittest.TestCase):
         target.write_bytes(source.read_bytes())
         return hashlib.sha256(target.read_bytes()).hexdigest()
 
-    def _request_heartbeat(self, *, now: datetime) -> dict[str, object]:
+    def _request_heartbeat(
+        self,
+        *,
+        now: datetime,
+        coach_delivery_receipts: list[dict[str, object]] | None = None,
+    ) -> dict[str, object]:
         return queue.request_heartbeat(
             self.ops_schedule_contract_sha256,
+            coach_delivery_receipts,
             now=now,
         )
 
@@ -218,6 +224,57 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(first["status"], "QUEUED")
         self.assertEqual(second["request_id"], first["request_id"])
         self.assertEqual(queue.get_run(first["request_id"])["status"], "QUEUED")
+
+    def test_due_heartbeat_seals_verified_coach_receipts_in_hashed_payload(self) -> None:
+        delivery_id = "d" * 64
+        heartbeat = self.state / "heartbeat" / "state.json"
+        heartbeat.parent.mkdir(parents=True, exist_ok=True)
+        heartbeat.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "next_due": "2026-01-01T00:00:00Z",
+                    "coach_delivery": {
+                        "schema_version": "1",
+                        "pending_events": [{"sha256": delivery_id}],
+                        "delivered_receipts": [],
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        receipt = {
+            "schema_version": "1",
+            "delivery_id": delivery_id,
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+            "target_thread_id": queue.COACH_TASK_ID,
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+        }
+        now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        first = self._request_heartbeat(now=now, coach_delivery_receipts=[receipt])
+        second = self._request_heartbeat(now=now, coach_delivery_receipts=[receipt])
+        self.assertEqual(first["status"], "QUEUED")
+        self.assertEqual(second["request_id"], first["request_id"])
+        self.assertEqual(first["payload"]["coach_delivery_receipts"], [receipt])
+        self.assertRegex(first["payload_sha256"], r"^[a-f0-9]{64}$")
+
+    def test_coach_receipt_must_match_canonical_pending_or_delivered_state(self) -> None:
+        self._heartbeat_state("2026-01-01T00:00:00Z")
+        delivery_id = "e" * 64
+        receipt = {
+            "schema_version": "1",
+            "delivery_id": delivery_id,
+            "delivery_token": f"SEALED_RESEARCH_DELIVERY:{delivery_id}",
+            "target_thread_id": queue.COACH_TASK_ID,
+            "delivery_status": "DELIVERED_TO_COACH_TASK_VERIFIED",
+        }
+        with self.assertRaisesRegex(ValueError, "does not match canonical state"):
+            self._request_heartbeat(
+                now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                coach_delivery_receipts=[receipt],
+            )
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
 
     def test_due_heartbeat_queues_one_deterministic_companion_capture(self) -> None:
         self._heartbeat_state("2026-01-02T00:00:00Z")
@@ -372,12 +429,12 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V2")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V3")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
         self.assertEqual(
             contract["coach_delivery"]["contract_id"],
-            "SEALED_COACH_THREAD_DELIVERY_V1",
+            "SEALED_COACH_THREAD_DELIVERY_V2",
         )
 
     def test_status_exposes_correlated_sealed_capture_health(self) -> None:
@@ -569,9 +626,19 @@ class DurableQueueContractTest(unittest.TestCase):
             "next_action": "PROPOSE_AT_MOST_ONE_CAUSAL_HYPOTHESIS",
             "concept_to_teach": "Discovery evidence and OOS are different roles.",
         }
-        self.inbox.mkdir(parents=True, exist_ok=True)
-        (self.inbox / "latest.json").write_text(
-            json.dumps({"should_notify_coach": True, "events": [event]}),
+        heartbeat_state = self.state / "heartbeat" / "state.json"
+        heartbeat_state.parent.mkdir(parents=True, exist_ok=True)
+        heartbeat_state.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "coach_delivery": {
+                        "schema_version": "1",
+                        "pending_events": [event],
+                        "delivered_receipts": [],
+                    },
+                }
+            ),
             encoding="utf-8",
         )
         pipeline_result = subprocess.CompletedProcess(
@@ -584,7 +651,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(outbox["event_count"], 1)
         self.assertEqual(
             outbox["delivery_contract"]["contract_id"],
-            "SEALED_COACH_THREAD_DELIVERY_V1",
+            "SEALED_COACH_THREAD_DELIVERY_V2",
         )
         self.assertEqual(
             outbox["delivery_contract"]["target_thread_id"],
@@ -609,8 +676,9 @@ class DurableQueueContractTest(unittest.TestCase):
 
         oversized = queue._coach_outbox(
             {
-                "should_notify_coach": True,
-                "events": [{**event, "material_conclusion": "x" * 70000}],
+                "schema_version": "1",
+                "pending_events": [{**event, "material_conclusion": "x" * 70000}],
+                "delivered_receipts": [],
             }
         )
         self.assertEqual(oversized["status"], "COACH_OUTBOX_INVALID")
@@ -618,7 +686,11 @@ class DurableQueueContractTest(unittest.TestCase):
 
         artifact.write_text("tampered\n", encoding="utf-8")
         invalid = queue._coach_outbox(
-            {"should_notify_coach": True, "events": [event]}
+            {
+                "schema_version": "1",
+                "pending_events": [event],
+                "delivered_receipts": [],
+            }
         )
         self.assertEqual(invalid["status"], "COACH_OUTBOX_INVALID")
         self.assertIn("does not match", invalid["reason"])

@@ -139,8 +139,8 @@ must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
 The active sole cloud Ops schedule semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v2.json`; V1 remains immutable
-historical contract evidence. Canonical status must
+`research_pipeline/cloud-ops-schedule-contract.v3.json`; V1 and V2 remain
+immutable historical contract evidence. Canonical status must
 expose its contract id and byte-level SHA-256. Both MCP write operations require
 the caller to attest that exact deployed hash and must fail before queue
 mutation when the contract is missing, altered, or mismatched. This binds the
@@ -232,6 +232,13 @@ Every heartbeat or candidate write must include the canonical
 `ops_schedule_contract.sha256` as `ops_schedule_contract_sha256`; absence or
 mismatch is an operational integrity alert and cannot be bypassed by a local
 state fallback.
+The same heartbeat request may carry only bounded, schema-validated Coach
+delivery receipts whose sealed artifact ids already exist in canonical pending
+or delivered state. A material event, weekly brief, or monthly review remains
+in the server heartbeat outbox across routine heartbeats until the cloud task
+proves the exact delivery token by task readback. An unavailable task or an
+unverified send cannot acknowledge or remove the event, and receipts wait for
+the next normal due heartbeat rather than creating another writer or timer.
 Canonical status supplies the exact 24-hour registration deadline, signed time
 remaining, and the preserved measured result, so the cloud task never derives
 the SLA from conversation history or its own clock.

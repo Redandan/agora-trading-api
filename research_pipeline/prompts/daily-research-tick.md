@@ -20,9 +20,9 @@ a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
 Continue only when canonical `ops_schedule_contract.status=READY`,
-`contract_id=CLOUD_OPS_SCHEDULE_V2`, `schedule_count=1`,
+`contract_id=CLOUD_OPS_SCHEDULE_V3`, `schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`, and
-`sha256=656faefca560a263b9d6e86b300ca215955371a7f84bc244592b7cc35fd83625`.
+`sha256=2d66149bee9e6b44e139fe471bd32dc10a8afa13e7c47d12b2e165f2a3456e8b`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
@@ -79,9 +79,12 @@ same cloud cycle. `BREACH_PENDING_REGISTRATION` is an operational alert but
 does not authorize dropping evidence or relaxing a scientific gate; submit the
 still-valid bounded bundle once and preserve the measured `BREACH` result.
 
-Create a Coach handoff only when a sealed server heartbeat returns
-`should_notify_coach=true`. Require canonical `coach_outbox.status` to be
-`EVENTS_PENDING_EXTERNAL_DELIVERY` and use only its hash-verified events. Treat
+At the start of every cloud cycle, inspect canonical `coach_outbox` even when
+the latest heartbeat is routine or has `should_notify_coach=false`. Pending
+events live in durable server heartbeat state until a verified receipt is
+accepted; a later routine heartbeat must never erase them. Create a Coach
+handoff only for canonical `coach_outbox.status=EVENTS_PENDING_EXTERNAL_DELIVERY`
+and use only its hash-verified events. Treat
 `COACH_OUTBOX_INVALID` as an integrity alert and do not infer or repair missing
 fields from chat history. Include at least `event_type`, `artifact_path`,
 `sha256`, `research_status`, `material_conclusion`, `pnl_drawdown_evidence`,
@@ -90,7 +93,7 @@ Use the sealed SHA-256 as `delivery_id` and target Coach task
 `019fca63-4f8f-71e3-9d88-297bca468eb9`.
 
 Require `coach_outbox.delivery_contract.status=READY` and
-`contract_id=SEALED_COACH_THREAD_DELIVERY_V1`. For each event, copy the exact
+`contract_id=SEALED_COACH_THREAD_DELIVERY_V2`. For each event, copy the exact
 canonical `delivery_prompt`; do not reconstruct it from chat or edit its JSON.
 Use `list_threads` to resolve the exact Coach task and its current host id, then
 use `read_thread` before sending. If the exact `delivery_token` is already in
@@ -109,6 +112,21 @@ complete handoff in the scheduled result with
 `delivery_status=CROSS_TASK_DELIVERY_PENDING`. Never describe Scheduled,
 Activity, push/email/SMS, same-chat output, or manual copying as Coach-task
 delivery. On a later cycle, retry only when `read_thread` still proves that the
-delivery token is absent. The outbox is read-only and has no canonical ACK, so
-thread readback plus the sealed artifact hash are the deduplication evidence.
-Do not ask the Coach or sponsor to operate research or alter frozen gates.
+delivery token is absent. Canonical acknowledgement is allowed only through a
+verified receipt on the next due heartbeat; thread readback plus the sealed
+artifact hash are the deduplication evidence. Do not ask the Coach or sponsor to
+operate research or alter frozen gates.
+
+For every event whose exact token is proven by preflight or post-send readback,
+build one exact receipt object with only `schema_version=1`, `delivery_id`,
+`delivery_token`, `target_thread_id`, and `delivery_status`. The only permitted
+receipt statuses are `DELIVERED_TO_COACH_TASK_VERIFIED` and
+`ALREADY_DELIVERED_TO_COACH_TASK`; never acknowledge
+`QUEUED_TO_COACH_TASK_UNVERIFIED` or `CROSS_TASK_DELIVERY_PENDING`. Pass the
+bounded verified receipt list as `coach_delivery_receipts` on the next due
+`request_research_heartbeat` call. If the heartbeat is not due, leave the
+canonical events pending; do not add a timer or make an early write call. After
+the heartbeat completes, read canonical status again and deliver any newly
+created pending events in the same cloud cycle. Their receipts wait for the
+next due heartbeat. The server must match each receipt to a pending or already
+acknowledged delivery id before mutating either queue.

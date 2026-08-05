@@ -11,6 +11,13 @@ request, otherwise inspect the durable result on the next cloud cycle. Do not
 invent a candidate, change runtime code, widen permissions, or report routine
 progress.
 
+Treat Worker provenance as a hard integrity gate. Continue only when canonical
+`worker_release.status=READY`, `source_git_dirty=false`, `source_git_commit` is
+exactly 40 lowercase hexadecimal characters, and `source_manifest_sha256` is
+exactly 64 lowercase hexadecimal characters. Missing, invalid, tampered, or
+dirty provenance is an operational alert; do not enqueue a heartbeat or submit
+a candidate until a clean release is deployed.
+
 The fixed forward-source companion captures only the next complete UTC day.
 When the final required day is canonically ingested, the deterministic pipeline
 seals the mechanism-neutral dataset, diagnostic, typed evidence manifest, and

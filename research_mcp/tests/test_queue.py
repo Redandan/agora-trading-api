@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 import unittest
-import hashlib
+from unittest.mock import patch
 
 from research_mcp import queue
 from research_pipeline.evidence import register_evidence_source_contract
@@ -26,7 +28,9 @@ class DurableQueueContractTest(unittest.TestCase):
         self.source_requests = self.root / "source-requests"
         self.source_drop = self.root / "source-drop"
         self.inbox = self.root / "inbox"
+        self.app = self.root / "app"
         self.policy = self.root / "policy.json"
+        self.app.mkdir()
         policy_source = Path(queue.__file__).resolve().parents[1] / "research_pipeline" / "policy.v3.json"
         policy_value = json.loads(policy_source.read_text(encoding="utf-8"))
         policy_value["budget"]["lock_stale_seconds"] = 60
@@ -38,6 +42,7 @@ class DurableQueueContractTest(unittest.TestCase):
             queue.SOURCE_DROP_DIR,
             queue.INBOX_DIR,
             queue.POLICY_FILE,
+            queue.APP_DIR,
         )
         queue.STATE_DIR = self.state
         queue.REQUEST_DIR = self.requests
@@ -45,6 +50,7 @@ class DurableQueueContractTest(unittest.TestCase):
         queue.SOURCE_DROP_DIR = self.source_drop
         queue.INBOX_DIR = self.inbox
         queue.POLICY_FILE = self.policy
+        queue.APP_DIR = self.app
 
     def tearDown(self) -> None:
         (
@@ -54,6 +60,7 @@ class DurableQueueContractTest(unittest.TestCase):
             queue.SOURCE_DROP_DIR,
             queue.INBOX_DIR,
             queue.POLICY_FILE,
+            queue.APP_DIR,
         ) = self.previous
         self.temporary.cleanup()
 
@@ -72,6 +79,25 @@ class DurableQueueContractTest(unittest.TestCase):
             "manifest": {"experiment_id": "candidate-test"},
             "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
         }
+
+    def _release_provenance(self, *, dirty: bool = False) -> dict[str, object]:
+        release_dir = self.app / ".release"
+        release_dir.mkdir(parents=True, exist_ok=True)
+        manifest = b"fixture.py  fixture.py\n"
+        (release_dir / "source.sha256").write_bytes(manifest)
+        value: dict[str, object] = {
+            "schema_version": "1",
+            "release_id": "20260805T120000Z",
+            "source_git_commit": "a" * 40,
+            "source_git_branch": "codex/autonomous-research-control-plane-v3",
+            "source_git_dirty": dirty,
+            "source_manifest_sha256": hashlib.sha256(manifest).hexdigest(),
+            "installed_at": "2026-08-05T12:00:00Z",
+        }
+        (release_dir / "provenance.json").write_text(
+            json.dumps(value), encoding="utf-8"
+        )
+        return value
 
     def _forward_trigger(self, *, with_source_contract: bool = True) -> None:
         store = ResearchStore(self.state, lock_stale_seconds=60)
@@ -230,6 +256,43 @@ class DurableQueueContractTest(unittest.TestCase):
         recovered = queue.get_run(stale_id)
         self.assertEqual(recovered["status"], "STALE_RECOVERED")
         self.assertEqual(recovered["prior_status"], "RUNNING")
+
+    def test_status_exposes_verified_clean_worker_release(self) -> None:
+        expected = self._release_provenance()
+        pipeline_result = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
+            stderr="",
+        )
+        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+            result = queue.research_status()
+        release = result["worker_release"]
+        self.assertEqual(release["status"], "READY")
+        self.assertEqual(release["source_git_commit"], expected["source_git_commit"])
+        self.assertEqual(
+            release["source_manifest_sha256"], expected["source_manifest_sha256"]
+        )
+
+    def test_dirty_worker_release_fails_closed_but_remains_attributable(self) -> None:
+        self._release_provenance(dirty=True)
+        release = queue._worker_release_summary()
+        self.assertEqual(release["status"], "DIRTY_SOURCE")
+        self.assertTrue(release["source_git_dirty"])
+        self.assertRegex(release["source_git_commit"], r"^[0-9a-f]{40}$")
+
+    def test_missing_or_tampered_release_provenance_fails_closed(self) -> None:
+        missing = queue._worker_release_summary()
+        self.assertEqual(missing["status"], "RELEASE_PROVENANCE_READ_FAILED")
+        self.assertNotIn(str(self.app), json.dumps(missing))
+
+        self._release_provenance()
+        (self.app / ".release" / "source.sha256").write_text(
+            "tampered", encoding="utf-8"
+        )
+        tampered = queue._worker_release_summary()
+        self.assertEqual(tampered["status"], "RELEASE_PROVENANCE_INVALID")
+        self.assertIn("does not match", tampered["reason"])
 
     def test_briefing_is_sealed_with_hash_and_artifact_id(self) -> None:
         report = self.state / "reports" / "weekly-learning-brief-2026-01-01.md"

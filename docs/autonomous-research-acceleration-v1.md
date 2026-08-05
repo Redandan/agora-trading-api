@@ -91,6 +91,12 @@ relative path, and SHA-256 for the Coach handoff. Their response keeps the
 artifact's embedded policy separate from the current canonical policy so a
 pre-cutover report remains immutable but is visibly historical.
 
+Canonical status also binds every decision to the deployed Worker release. It
+must report a clean Git source commit plus a verified source-manifest hash from
+the immutable release. Missing, malformed, tampered, or dirty release
+provenance is an integrity blocker, not permission to continue from local
+assumptions.
+
 ### Evidence-ready candidate registration
 
 After canonical status reaches `READY_FOR_HYPOTHESIS`, Codex may submit exactly
@@ -178,6 +184,8 @@ database query, or backfill.
 - an abnormal stop or host reboot resumes the same in-flight request through
   the existing dispatch path, with bounded retries and no second timer;
 - generated Coach briefings include an immutable artifact id and SHA-256;
+- Worker release id, clean Git commit, and verified source-manifest hash are
+  visible through the existing canonical status operation;
 - evidence-ready Codex output can register one frozen candidate within 24 hours
   without a manual local task;
 - the candidate path rejects tampered evidence, omitted performance metrics,

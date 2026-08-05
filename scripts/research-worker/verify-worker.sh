@@ -91,6 +91,22 @@ ok "canonical research registry is readable"
   cd "$current"
   sudo -u "$WORKER_USER" env \
     PYTHONDONTWRITEBYTECODE=1 \
+    "$WORKER_ROOT/venv/bin/python" - <<'PY'
+from research_mcp.queue import _worker_release_summary
+
+release = _worker_release_summary()
+if release.get("status") != "READY":
+    raise SystemExit(f"worker release provenance is not ready: {release.get('status')}")
+if release.get("source_git_dirty") is not False:
+    raise SystemExit("worker release provenance is dirty")
+PY
+)
+ok "worker identity can verify clean release provenance"
+
+(
+  cd "$current"
+  sudo -u "$WORKER_USER" env \
+    PYTHONDONTWRITEBYTECODE=1 \
     "$WORKER_ROOT/venv/bin/python" -m unittest \
     research_pipeline.tests.test_evidence \
     research_pipeline.tests.test_storage \

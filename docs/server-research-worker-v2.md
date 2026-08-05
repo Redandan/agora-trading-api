@@ -31,6 +31,13 @@ either the same deterministic heartbeat launcher used by V1 or the bounded
 `register-candidate-bundle` pipeline command. It cannot dispatch arbitrary
 commands or caller-selected paths.
 
+The existing status operation also reads the immutable release provenance next
+to the deployed source. It exposes the release id, Git commit and branch, dirty
+flag, install time, and the SHA-256 of the installed source manifest. The
+manifest hash is rechecked on every status read. Missing, malformed, tampered,
+or dirty provenance fails closed and blocks cloud heartbeat/candidate actions;
+it never adds a new MCP operation or exposes a server filesystem path.
+
 ## OAuth contract
 
 The private connector uses dynamic client registration, authorization code with
@@ -148,6 +155,9 @@ The systemd path unit is an event consumer, not an additional schedule.
 - a hard-stopped or reboot-interrupted running request resumes under the same
   request id without waiting for the next daily cloud wake;
 - every MCP briefing returns a sealed artifact id and SHA-256;
+- canonical status returns a clean, hash-verified Worker release and Git commit;
+- server verification proves the unprivileged Worker identity can read and
+  validate that release provenance;
 - canonical status exposes the forward-day count, lag, hash-chain head, and
   next capture deadline, and a missed day becomes an integrity alert;
 - the last canonical day produces one typed manifest, mechanism-neutral

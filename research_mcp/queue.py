@@ -70,6 +70,84 @@ def _policy_summary() -> dict[str, Any]:
     }
 
 
+def _worker_release_summary() -> dict[str, Any]:
+    release_dir = APP_DIR / ".release"
+    try:
+        raw = (release_dir / "provenance.json").read_bytes()
+    except OSError:
+        return {
+            "status": "RELEASE_PROVENANCE_READ_FAILED",
+            "reason": "release provenance is unavailable",
+        }
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {
+            "status": "RELEASE_PROVENANCE_INVALID",
+            "reason": "release provenance is not valid UTF-8 JSON",
+        }
+    if not isinstance(value, dict) or value.get("schema_version") != "1":
+        return {
+            "status": "RELEASE_PROVENANCE_INVALID",
+            "reason": "release provenance schema is invalid",
+        }
+
+    release_id = value.get("release_id")
+    source_git_commit = value.get("source_git_commit")
+    source_git_branch = value.get("source_git_branch")
+    source_git_dirty = value.get("source_git_dirty")
+    source_manifest_sha256 = value.get("source_manifest_sha256")
+    installed_at = _parse_time(value.get("installed_at"))
+    if not isinstance(release_id, str) or not re.fullmatch(
+        r"[A-Za-z0-9][A-Za-z0-9._-]*", release_id
+    ):
+        reason = "release id is invalid"
+    elif not isinstance(source_git_commit, str) or not re.fullmatch(
+        r"[0-9a-f]{40}", source_git_commit
+    ):
+        reason = "source Git commit is invalid"
+    elif not isinstance(source_git_branch, str) or not re.fullmatch(
+        r"[A-Za-z0-9][A-Za-z0-9._/-]*", source_git_branch
+    ):
+        reason = "source Git branch is invalid"
+    elif (
+        source_git_branch.endswith("/")
+        or ".." in source_git_branch
+        or "//" in source_git_branch
+    ):
+        reason = "source Git branch is unsafe"
+    elif not isinstance(source_git_dirty, bool):
+        reason = "source Git dirty flag is invalid"
+    elif not isinstance(source_manifest_sha256, str) or not re.fullmatch(
+        r"[0-9a-f]{64}", source_manifest_sha256
+    ):
+        reason = "source manifest hash is invalid"
+    elif installed_at is None:
+        reason = "install timestamp is invalid"
+    else:
+        try:
+            manifest_sha256 = hashlib.sha256(
+                (release_dir / "source.sha256").read_bytes()
+            ).hexdigest()
+        except OSError:
+            reason = "installed source manifest is unavailable"
+        else:
+            if manifest_sha256 != source_manifest_sha256:
+                reason = "installed source manifest hash does not match provenance"
+            else:
+                return {
+                    "status": "DIRTY_SOURCE" if source_git_dirty else "READY",
+                    "schema_version": "1",
+                    "release_id": release_id,
+                    "source_git_commit": source_git_commit,
+                    "source_git_branch": source_git_branch,
+                    "source_git_dirty": source_git_dirty,
+                    "source_manifest_sha256": source_manifest_sha256,
+                    "installed_at": _now(installed_at),
+                }
+    return {"status": "RELEASE_PROVENANCE_INVALID", "reason": reason}
+
+
 def _atomic_write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
@@ -564,6 +642,7 @@ def research_status() -> dict[str, Any]:
         "timer_authority": "CODEX_CLOUD_OPS_ONLY",
         "state_authority": "SERVER_CANONICAL",
         "policy": _policy_summary(),
+        "worker_release": _worker_release_summary(),
         "queue": queue,
         "evidence_capture_queue": _source_active() or {"status": "IDLE"},
         "latest_evidence_capture": _read_json(SOURCE_REQUEST_DIR / "latest.json"),

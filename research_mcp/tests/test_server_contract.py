@@ -49,6 +49,8 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
         self.assertIn("source_git_dirty=false", prompt)
+        self.assertIn("delivery_status=CROSS_TASK_DELIVERY_PENDING", prompt)
+        self.assertIn("not proof of Coach-thread delivery", prompt)
         self.assertIn("019fca63-4f8f-71e3-9d88-297bca468eb9", prompt)
         self.assertNotIn("read_research_worker_inbox_ssh", prompt)
         self.assertNotIn("Seal the evidence under `.research-state`", prompt)

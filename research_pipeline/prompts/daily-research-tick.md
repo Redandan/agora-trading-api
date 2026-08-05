@@ -32,10 +32,18 @@ schema-bound bundle through `submit_research_candidate_bundle`. The discovery
 window is not clean OOS. The server must reverify all sealed evidence and stop
 at `PREREGISTERED`; do not execute or promote the experiment in the same step.
 
-Notify the Coach task only when a sealed server heartbeat returns
-`should_notify_coach=true`. Send the sealed structured event to task
-`019fca63-4f8f-71e3-9d88-297bca468eb9` with at least `event_type`,
-`artifact_path`, `sha256`, `research_status`, `material_conclusion`,
-`pnl_drawdown_evidence`, `evidence_diagnostic`, `uncertainty`, `next_action`,
-and `concept_to_teach`. Do not ask the Coach or sponsor to operate research or
-alter frozen gates.
+Create a Coach handoff only when a sealed server heartbeat returns
+`should_notify_coach=true`. Include at least `event_type`, `artifact_path`,
+`sha256`, `research_status`, `material_conclusion`, `pnl_drawdown_evidence`,
+`evidence_diagnostic`, `uncertainty`, `next_action`, and `concept_to_teach`.
+Use the sealed SHA-256 as `delivery_id` and target Coach task
+`019fca63-4f8f-71e3-9d88-297bca468eb9`.
+
+Direct delivery is valid only when the scheduled surface exposes a supported
+tool that writes to that exact existing Codex task and the call succeeds. If no
+such tool is available, return the complete handoff in the scheduled result
+with `delivery_status=CROSS_TASK_DELIVERY_PENDING`; never describe Scheduled,
+Activity, push/email/SMS, same-chat output, or manual copying as delivery to the
+Coach task. Do not repeat a `delivery_id` already present in the scheduled chat.
+This is a user-visible sealed outbox, not proof of Coach-thread delivery. Do not
+ask the Coach or sponsor to operate research or alter frozen gates.

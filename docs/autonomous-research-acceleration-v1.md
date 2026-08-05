@@ -1,6 +1,6 @@
 # Autonomous Research Acceleration V1
 
-Status: `FORWARD_SOURCE_ACTIVE_AWAITING_FIRST_CANONICAL_DAY_UNDER_POLICY_V3`
+Status: `FORWARD_SOURCE_ACTIVE_AWAITING_FIRST_CANONICAL_DAY_AND_COACH_DELIVERY_PROOF`
 
 This plan defines how the research program shortens the path to a credible
 strategy candidate without weakening the V3 scientific or runtime boundaries.
@@ -20,6 +20,14 @@ The program targets:
 - one active experiment and at most three interpretable variants;
 - zero gate relaxation, sealed-OOS reopening, or hidden terminal inventory;
 - zero Trading runtime, database, order, fund, SHADOW, PAPER, or LIVE changes.
+
+The first target is implemented and tested as a deterministic pipeline SLA but
+still awaits a real evidence-ready trigger. The second target is proven through
+sealed report/event construction, but direct delivery into the separate Coach
+Codex task is not currently available from the cloud Work surface. Material
+events remain visible in the one scheduled chat as a hash-identified
+`CROSS_TASK_DELIVERY_PENDING` outbox. This is not counted as Coach-thread
+delivery and does not authorize a second schedule or external messenger.
 
 The 24-hour target starts only after the frozen evidence trigger is actually
 ready. It does not convert a 90-day prospective evidence requirement into a
@@ -185,6 +193,9 @@ database query, or backfill.
 - an abnormal stop or host reboot resumes the same in-flight request through
   the existing dispatch path, with bounded retries and no second timer;
 - generated Coach briefings include an immutable artifact id and SHA-256;
+- when direct cross-task delivery is unavailable, the single scheduled result
+  exposes a complete hash-identified `CROSS_TASK_DELIVERY_PENDING` handoff and
+  never claims it reached the Coach task;
 - Worker release id, clean Git commit, and verified source-manifest hash are
   visible through the existing canonical status operation;
 - either MCP write operation fails before queue mutation when release provenance

@@ -212,6 +212,17 @@ Research MCP and systemd path consumer do not select hypotheses or interpret
 results; Codex performs that reasoning, while they only validate, transport,
 and execute the frozen pipeline contract. No Spring scheduler is permitted.
 
+The scheduled Work surface currently has no supported tool that can write into
+an arbitrary existing Codex task id. A material sealed event must therefore be
+returned in the single scheduled chat as a user-visible outbox with
+`delivery_status=CROSS_TASK_DELIVERY_PENDING`, the Coach task id, and the sealed
+artifact hash as its delivery id. Scheduled/Activity output or a device
+notification is not direct Coach-task delivery. The Coach task re-verifies the
+canonical event and artifact hash when it next runs. Until a supported
+cross-task delivery tool exists and succeeds, the next-cycle Coach-thread SLA
+remains `MISSING_PROOF`; this gap must not be hidden by adding a second timer or
+an unapproved messaging service.
+
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,
 mechanism-neutral diagnostic, evidence manifest, and ready review immediately

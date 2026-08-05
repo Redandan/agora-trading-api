@@ -34,8 +34,10 @@ commands or caller-selected paths.
 The existing status operation also reads the immutable release provenance next
 to the deployed source. It exposes the release id, Git commit and branch, dirty
 flag, install time, and the SHA-256 of the installed source manifest. The
-manifest hash is rechecked on every status read. Missing, malformed, tampered,
-or dirty provenance fails closed: both server write operations return
+manifest hash, every listed source-file hash, and the exact installed source
+file inventory are rechecked on every status read and before either write.
+Missing, extra, malformed, tampered, or dirty source/provenance fails closed:
+both server write operations return
 `WORKER_RELEASE_INTEGRITY_BLOCKED` before touching either queue. This never adds
 a new MCP operation or exposes a server filesystem path.
 
@@ -240,7 +242,8 @@ The systemd path unit is an event consumer, not an additional schedule.
   a timer or messenger;
 - canonical status returns a clean, hash-verified Worker release and Git commit;
 - server verification proves the unprivileged Worker identity can read and
-  validate that release provenance;
+  validate that release provenance, every manifest-listed file, and the exact
+  installed source inventory;
 - canonical status exposes the forward-day count, lag, hash-chain head, and
   next capture deadline, and a missed day becomes an integrity alert;
 - the last canonical day produces one typed manifest, mechanism-neutral

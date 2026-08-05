@@ -51,8 +51,8 @@ class DurableQueueContractTest(unittest.TestCase):
         queue.INBOX_DIR = self.inbox
         queue.POLICY_FILE = self.policy
         queue.APP_DIR = self.app
-        self._release_provenance()
         self.ops_schedule_contract_sha256 = self._ops_schedule_contract()
+        self._release_provenance()
 
     def tearDown(self) -> None:
         (
@@ -85,7 +85,20 @@ class DurableQueueContractTest(unittest.TestCase):
     def _release_provenance(self, *, dirty: bool = False) -> dict[str, object]:
         release_dir = self.app / ".release"
         release_dir.mkdir(parents=True, exist_ok=True)
-        manifest = b"fixture.py  fixture.py\n"
+        (self.app / "fixture.py").write_text("fixture source\n", encoding="utf-8")
+        manifest_lines = []
+        for path in sorted(
+            (
+                item
+                for item in self.app.rglob("*")
+                if item.is_file() and ".release" not in item.relative_to(self.app).parts
+            ),
+            key=lambda item: item.relative_to(self.app).as_posix(),
+        ):
+            relative = path.relative_to(self.app).as_posix()
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            manifest_lines.append(f"{digest}  {relative}")
+        manifest = ("\n".join(manifest_lines) + "\n").encode("utf-8")
         (release_dir / "source.sha256").write_bytes(manifest)
         value: dict[str, object] = {
             "schema_version": "1",
@@ -425,6 +438,8 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(
             release["source_manifest_sha256"], expected["source_manifest_sha256"]
         )
+        self.assertTrue(release["source_tree_verified"])
+        self.assertEqual(release["source_file_count"], 2)
         self.assertEqual(result["coach_outbox"]["status"], "IDLE")
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
@@ -801,6 +816,53 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(tampered["status"], "RELEASE_PROVENANCE_INVALID")
         self.assertIn("does not match", tampered["reason"])
 
+    def test_modified_or_extra_installed_source_fails_release_integrity(self) -> None:
+        (self.app / "fixture.py").write_text("modified\n", encoding="utf-8")
+        modified = queue._worker_release_summary()
+        self.assertEqual(modified["status"], "RELEASE_SOURCE_INTEGRITY_FAILED")
+        self.assertIn("fixture.py", modified["reason"])
+        self._heartbeat_state("2026-01-01T00:00:00Z")
+        heartbeat = self._request_heartbeat(
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc)
+        )
+        candidate = self._request_candidate_bundle(self._candidate_bundle())
+        self.assertEqual(heartbeat["status"], "WORKER_RELEASE_INTEGRITY_BLOCKED")
+        self.assertEqual(candidate["status"], "WORKER_RELEASE_INTEGRITY_BLOCKED")
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
+
+        self._release_provenance()
+        (self.app / "unexpected.py").write_text("unexpected\n", encoding="utf-8")
+        extra = queue._worker_release_summary()
+        self.assertEqual(extra["status"], "RELEASE_SOURCE_INTEGRITY_FAILED")
+        self.assertIn("unexpected.py", extra["reason"])
+
+        (self.app / "unexpected.py").unlink()
+        self._release_provenance()
+        (self.app / "fixture.py").unlink()
+        missing = queue._worker_release_summary()
+        self.assertEqual(missing["status"], "RELEASE_SOURCE_INTEGRITY_FAILED")
+        self.assertIn("fixture.py", missing["reason"])
+
+    def test_installed_source_manifest_rejects_unsafe_or_duplicate_paths(self) -> None:
+        unsafe = queue._installed_source_tree_summary(
+            f"{'a' * 64}  ../outside.py\n".encode("utf-8")
+        )
+        self.assertEqual(unsafe["status"], "RELEASE_SOURCE_INTEGRITY_FAILED")
+        self.assertIn("unsafe", unsafe["reason"])
+
+        fixture_hash = hashlib.sha256(
+            (self.app / "fixture.py").read_bytes()
+        ).hexdigest()
+        duplicate = queue._installed_source_tree_summary(
+            (
+                f"{fixture_hash}  fixture.py\n"
+                f"{fixture_hash}  fixture.py\n"
+            ).encode("utf-8")
+        )
+        self.assertEqual(duplicate["status"], "RELEASE_SOURCE_INTEGRITY_FAILED")
+        self.assertIn("duplicated", duplicate["reason"])
+
     def test_invalid_release_blocks_both_write_operations_without_queue_mutation(self) -> None:
         shutil.rmtree(self.app / ".release")
         self._heartbeat_state("2026-01-01T00:00:00Z")
@@ -816,6 +878,7 @@ class DurableQueueContractTest(unittest.TestCase):
     def test_invalid_ops_contract_blocks_both_writes_without_queue_mutation(self) -> None:
         contract = self.app / queue.OPS_SCHEDULE_CONTRACT_RELATIVE_PATH
         contract.unlink()
+        self._release_provenance()
         self._heartbeat_state("2026-01-01T00:00:00Z")
         heartbeat = self._request_heartbeat(
             now=datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -834,6 +897,7 @@ class DurableQueueContractTest(unittest.TestCase):
         value = json.loads(contract.read_text(encoding="utf-8"))
         value["schedule_count"] = 2
         contract.write_text(json.dumps(value), encoding="utf-8")
+        self._release_provenance()
         invalid = queue._ops_schedule_contract_summary()
         self.assertEqual(invalid["status"], "OPS_SCHEDULE_CONTRACT_INVALID")
 

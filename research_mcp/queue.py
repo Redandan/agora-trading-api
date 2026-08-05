@@ -9,7 +9,7 @@ import subprocess
 import sys
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from research_pipeline.evidence import evidence_progress
@@ -288,15 +288,17 @@ def _worker_release_summary() -> dict[str, Any]:
         reason = "install timestamp is invalid"
     else:
         try:
-            manifest_sha256 = hashlib.sha256(
-                (release_dir / "source.sha256").read_bytes()
-            ).hexdigest()
+            manifest_bytes = (release_dir / "source.sha256").read_bytes()
+            manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
         except OSError:
             reason = "installed source manifest is unavailable"
         else:
             if manifest_sha256 != source_manifest_sha256:
                 reason = "installed source manifest hash does not match provenance"
             else:
+                source_tree = _installed_source_tree_summary(manifest_bytes)
+                if source_tree["status"] != "READY":
+                    return source_tree
                 return {
                     "status": "DIRTY_SOURCE" if source_git_dirty else "READY",
                     "schema_version": "1",
@@ -305,9 +307,100 @@ def _worker_release_summary() -> dict[str, Any]:
                     "source_git_branch": source_git_branch,
                     "source_git_dirty": source_git_dirty,
                     "source_manifest_sha256": source_manifest_sha256,
+                    "source_tree_verified": True,
+                    "source_file_count": source_tree["source_file_count"],
                     "installed_at": _now(installed_at),
                 }
     return {"status": "RELEASE_PROVENANCE_INVALID", "reason": reason}
+
+
+def _installed_source_tree_summary(manifest_bytes: bytes) -> dict[str, Any]:
+    def failed(reason: str) -> dict[str, Any]:
+        return {
+            "status": "RELEASE_SOURCE_INTEGRITY_FAILED",
+            "reason": reason,
+        }
+
+    try:
+        manifest_text = manifest_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        return failed("installed source manifest is not valid UTF-8")
+    lines = manifest_text.splitlines()
+    if not lines:
+        return failed("installed source manifest is empty")
+
+    try:
+        release_root = APP_DIR.resolve(strict=True)
+    except OSError:
+        return failed("installed source root is unavailable")
+    expected_paths: dict[str, str] = {}
+    for line_number, line in enumerate(lines, start=1):
+        match = re.fullmatch(r"([0-9a-f]{64})  (.+)", line)
+        if match is None:
+            return failed(f"installed source manifest line {line_number} is invalid")
+        expected_sha256, relative_text = match.groups()
+        relative = PurePosixPath(relative_text)
+        if (
+            relative.is_absolute()
+            or "\\" in relative_text
+            or not relative.parts
+            or relative.parts[0] == ".release"
+            or any(part in {"", ".", ".."} for part in relative.parts)
+        ):
+            return failed(f"installed source manifest path is unsafe: {relative_text}")
+        normalized = relative.as_posix()
+        if normalized in expected_paths:
+            return failed(
+                f"installed source manifest path is duplicated: {normalized}"
+            )
+        expected_paths[normalized] = expected_sha256
+
+        candidate = APP_DIR.joinpath(*relative.parts)
+        try:
+            resolved = candidate.resolve(strict=True)
+            resolved.relative_to(release_root)
+        except (FileNotFoundError, OSError, ValueError):
+            return failed(
+                f"installed source file is missing or escapes release: {normalized}"
+            )
+        if candidate.is_symlink() or not resolved.is_file():
+            return failed(f"installed source path is not a regular file: {normalized}")
+        try:
+            actual_sha256 = sha256_file(resolved)
+        except OSError:
+            return failed(f"installed source file cannot be hashed: {normalized}")
+        if actual_sha256 != expected_sha256:
+            return failed(f"installed source hash mismatch: {normalized}")
+
+    actual_paths: set[str] = set()
+    try:
+        candidates = list(release_root.rglob("*"))
+    except OSError:
+        return failed("installed source inventory cannot be enumerated")
+    for candidate in candidates:
+        try:
+            relative = candidate.relative_to(release_root)
+        except ValueError:
+            return failed("installed source inventory escapes release")
+        if relative.parts and relative.parts[0] == ".release":
+            continue
+        relative_text = relative.as_posix()
+        if candidate.is_symlink():
+            return failed(
+                f"installed source inventory contains a symlink: {relative_text}"
+            )
+        if candidate.is_file():
+            actual_paths.add(relative_text)
+    unexpected = sorted(actual_paths.difference(expected_paths))
+    if unexpected:
+        return failed(f"installed source inventory has unexpected file: {unexpected[0]}")
+    missing = sorted(set(expected_paths).difference(actual_paths))
+    if missing:
+        return failed(f"installed source inventory is missing file: {missing[0]}")
+    return {
+        "status": "READY",
+        "source_file_count": len(expected_paths),
+    }
 
 
 def _coach_outbox(coach_delivery: Any) -> dict[str, Any]:

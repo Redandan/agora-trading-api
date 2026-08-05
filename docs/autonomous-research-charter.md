@@ -232,6 +232,11 @@ Every heartbeat or candidate write must include the canonical
 `ops_schedule_contract.sha256` as `ops_schedule_contract_sha256`; absence or
 mismatch is an operational integrity alert and cannot be bypassed by a local
 state fallback.
+Canonical Worker `READY` also requires the deployed manifest hash, every
+manifest-listed source-file hash, and the exact installed source inventory to
+match immutable release provenance on each status/read-write preflight. A
+modified, missing, extra, or symlinked source path fails closed before either
+queue can change.
 The same heartbeat request may carry only bounded, schema-validated Coach
 delivery receipts whose sealed artifact ids already exist in canonical pending
 or delivered state. A material event, weekly brief, or monthly review remains

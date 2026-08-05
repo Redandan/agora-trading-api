@@ -99,6 +99,13 @@ if release.get("status") != "READY":
     raise SystemExit(f"worker release provenance is not ready: {release.get('status')}")
 if release.get("source_git_dirty") is not False:
     raise SystemExit("worker release provenance is dirty")
+if release.get("source_tree_verified") is not True:
+    raise SystemExit("worker release source tree was not verified")
+if (
+    not isinstance(release.get("source_file_count"), int)
+    or release["source_file_count"] < 1
+):
+    raise SystemExit("worker release source file count is invalid")
 PY
 )
 ok "worker identity can verify clean release provenance"

@@ -38,6 +38,26 @@ RUN_ID = re.compile(r"^[a-f0-9]{32}$")
 TERMINAL_RUN_STATUSES = {"COMPLETED", "FAILED", "STALE_RECOVERED"}
 MAX_CANDIDATE_BUNDLE_BYTES = 128 * 1024
 CANDIDATE_AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
+COACH_EVENT_TYPES = {
+    "MATERIAL_LEARNING",
+    "WEEKLY_BRIEF_READY",
+    "MONTHLY_REVIEW_READY",
+    "EVIDENCE_REVIEW_DUE",
+    "INTEGRITY_ALERT",
+}
+COACH_EVENT_FIELDS = (
+    "event_type",
+    "artifact_path",
+    "sha256",
+    "research_status",
+    "material_conclusion",
+    "pnl_drawdown_evidence",
+    "evidence_diagnostic",
+    "uncertainty",
+    "next_action",
+    "concept_to_teach",
+)
 
 
 def _now(value: datetime | None = None) -> str:
@@ -146,6 +166,92 @@ def _worker_release_summary() -> dict[str, Any]:
                     "installed_at": _now(installed_at),
                 }
     return {"status": "RELEASE_PROVENANCE_INVALID", "reason": reason}
+
+
+def _coach_outbox(latest: dict[str, Any] | None) -> dict[str, Any]:
+    if not latest or latest.get("should_notify_coach") is not True:
+        return {"status": "IDLE", "coach_task_id": COACH_TASK_ID}
+    raw_events = latest.get("events")
+    if isinstance(raw_events, list) and raw_events:
+        events = raw_events
+    elif latest.get("event_type"):
+        events = [{field: latest.get(field) for field in COACH_EVENT_FIELDS}]
+    else:
+        return {
+            "status": "COACH_OUTBOX_INVALID",
+            "coach_task_id": COACH_TASK_ID,
+            "reason": "notification requested without a structured event",
+        }
+    if len(events) > 8:
+        return {
+            "status": "COACH_OUTBOX_INVALID",
+            "coach_task_id": COACH_TASK_ID,
+            "reason": "event count exceeds the bounded outbox limit",
+        }
+
+    verified: list[dict[str, Any]] = []
+    delivery_ids: set[str] = set()
+    state_root = STATE_DIR.resolve()
+    for index, raw_event in enumerate(events):
+        if not isinstance(raw_event, dict):
+            return _coach_outbox_error(index, "event is not an object")
+        event_type = raw_event.get("event_type")
+        if event_type not in COACH_EVENT_TYPES:
+            return _coach_outbox_error(index, "event type is not allowed")
+        relative = raw_event.get("artifact_path")
+        expected_hash = raw_event.get("sha256")
+        if not isinstance(relative, str) or not relative.strip():
+            return _coach_outbox_error(index, "artifact path is missing")
+        if not isinstance(expected_hash, str) or not re.fullmatch(
+            r"[0-9a-f]{64}", expected_hash
+        ):
+            return _coach_outbox_error(index, "artifact hash is invalid")
+        if expected_hash in delivery_ids:
+            return _coach_outbox_error(index, "delivery id is duplicated")
+        artifact = (STATE_DIR / relative).resolve()
+        try:
+            artifact.relative_to(state_root)
+        except ValueError:
+            return _coach_outbox_error(index, "artifact path escapes canonical state")
+        try:
+            actual_hash = sha256_file(artifact)
+        except OSError:
+            return _coach_outbox_error(index, "artifact is unavailable")
+        if actual_hash != expected_hash:
+            return _coach_outbox_error(index, "artifact hash does not match the sealed event")
+        for field in (
+            "research_status",
+            "material_conclusion",
+            "uncertainty",
+            "next_action",
+            "concept_to_teach",
+        ):
+            if not isinstance(raw_event.get(field), str) or not raw_event[field].strip():
+                return _coach_outbox_error(index, f"{field} is missing")
+        delivery_ids.add(expected_hash)
+        verified.append(
+            {
+                **{field: raw_event.get(field) for field in COACH_EVENT_FIELDS},
+                "delivery_id": expected_hash,
+                "artifact_verified": True,
+            }
+        )
+    return {
+        "status": "EVENTS_PENDING_EXTERNAL_DELIVERY",
+        "coach_task_id": COACH_TASK_ID,
+        "delivery_semantics": "READ_ONLY_NO_ACK",
+        "event_count": len(verified),
+        "events": verified,
+    }
+
+
+def _coach_outbox_error(index: int, reason: str) -> dict[str, Any]:
+    return {
+        "status": "COACH_OUTBOX_INVALID",
+        "coach_task_id": COACH_TASK_ID,
+        "event_index": index,
+        "reason": reason,
+    }
 
 
 def _atomic_write_json(path: Path, value: dict[str, Any]) -> None:
@@ -660,6 +766,7 @@ def research_status() -> dict[str, Any]:
         "latest_evidence_capture": _read_json(SOURCE_REQUEST_DIR / "latest.json"),
         "latest_evidence_ingest": _read_json(SOURCE_DROP_DIR / "latest.json"),
         "latest_heartbeat": latest,
+        "coach_outbox": _coach_outbox(latest),
         "registry": registry,
     }
 

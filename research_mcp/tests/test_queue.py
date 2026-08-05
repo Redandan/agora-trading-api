@@ -274,6 +274,46 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(
             release["source_manifest_sha256"], expected["source_manifest_sha256"]
         )
+        self.assertEqual(result["coach_outbox"]["status"], "IDLE")
+
+    def test_status_exposes_hash_verified_canonical_coach_outbox(self) -> None:
+        artifact = self.state / "events" / "material-learning.json"
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        artifact.write_text('{"sealed":true}\n', encoding="utf-8")
+        event = {
+            "event_type": "MATERIAL_LEARNING",
+            "artifact_path": str(artifact.relative_to(self.state)),
+            "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+            "research_status": "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS",
+            "material_conclusion": "A sealed evidence review is ready.",
+            "pnl_drawdown_evidence": None,
+            "evidence_diagnostic": {"observation_count": 90},
+            "uncertainty": "The discovery window is not clean OOS.",
+            "next_action": "PROPOSE_AT_MOST_ONE_CAUSAL_HYPOTHESIS",
+            "concept_to_teach": "Discovery evidence and OOS are different roles.",
+        }
+        self.inbox.mkdir(parents=True, exist_ok=True)
+        (self.inbox / "latest.json").write_text(
+            json.dumps({"should_notify_coach": True, "events": [event]}),
+            encoding="utf-8",
+        )
+        pipeline_result = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout='{"research_status":"READY"}', stderr=""
+        )
+        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+            result = queue.research_status()
+        outbox = result["coach_outbox"]
+        self.assertEqual(outbox["status"], "EVENTS_PENDING_EXTERNAL_DELIVERY")
+        self.assertEqual(outbox["event_count"], 1)
+        self.assertEqual(outbox["events"][0]["delivery_id"], event["sha256"])
+        self.assertTrue(outbox["events"][0]["artifact_verified"])
+
+        artifact.write_text("tampered\n", encoding="utf-8")
+        invalid = queue._coach_outbox(
+            {"should_notify_coach": True, "events": [event]}
+        )
+        self.assertEqual(invalid["status"], "COACH_OUTBOX_INVALID")
+        self.assertIn("does not match", invalid["reason"])
 
     def test_dirty_worker_release_fails_closed_but_remains_attributable(self) -> None:
         self._release_provenance(dirty=True)

@@ -196,6 +196,8 @@ database query, or backfill.
 - when direct cross-task delivery is unavailable, the single scheduled result
   exposes a complete hash-identified `CROSS_TASK_DELIVERY_PENDING` handoff and
   never claims it reached the Coach task;
+- canonical status supplies that handoff through a bounded read-only outbox and
+  fails closed when any event artifact path or hash cannot be re-verified;
 - Worker release id, clean Git commit, and verified source-manifest hash are
   visible through the existing canonical status operation;
 - either MCP write operation fails before queue mutation when release provenance

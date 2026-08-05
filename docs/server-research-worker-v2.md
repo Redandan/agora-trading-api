@@ -111,6 +111,14 @@ embedded in that immutable report from the currently active canonical policy;
 an older artifact is labelled `SEALED_HISTORICAL_POLICY` rather than silently
 presented as a current-policy briefing.
 
+Canonical status derives a read-only `coach_outbox` from the latest heartbeat.
+For every material event it confines the relative path to canonical state,
+re-hashes the artifact, rejects missing or duplicate delivery ids, and returns
+the complete structured event under `EVENTS_PENDING_EXTERNAL_DELIVERY`. The
+sealed artifact SHA-256 is the delivery id. Routine heartbeats return an idle
+outbox. This adds no write operation or acknowledgement claim; an unavailable
+or mismatched artifact makes the entire outbox `COACH_OUTBOX_INVALID`.
+
 The dispatch path watches both `pending.json` and an interrupted
 `running.json`. The oneshot restarts only after an abnormal process stop and
 resumes the same schema-bound request idempotently, preserving its original
@@ -158,6 +166,8 @@ The systemd path unit is an event consumer, not an additional schedule.
 - a hard-stopped or reboot-interrupted running request resumes under the same
   request id without waiting for the next daily cloud wake;
 - every MCP briefing returns a sealed artifact id and SHA-256;
+- canonical status exposes every pending Coach event through a bounded,
+  hash-verified, read-only outbox;
 - canonical status returns a clean, hash-verified Worker release and Git commit;
 - server verification proves the unprivileged Worker identity can read and
   validate that release provenance;

@@ -33,7 +33,10 @@ window is not clean OOS. The server must reverify all sealed evidence and stop
 at `PREREGISTERED`; do not execute or promote the experiment in the same step.
 
 Create a Coach handoff only when a sealed server heartbeat returns
-`should_notify_coach=true`. Include at least `event_type`, `artifact_path`,
+`should_notify_coach=true`. Require canonical `coach_outbox.status` to be
+`EVENTS_PENDING_EXTERNAL_DELIVERY` and use only its hash-verified events. Treat
+`COACH_OUTBOX_INVALID` as an integrity alert and do not infer or repair missing
+fields from chat history. Include at least `event_type`, `artifact_path`,
 `sha256`, `research_status`, `material_conclusion`, `pnl_drawdown_evidence`,
 `evidence_diagnostic`, `uncertainty`, `next_action`, and `concept_to_teach`.
 Use the sealed SHA-256 as `delivery_id` and target Coach task

@@ -19,8 +19,11 @@ def weekly_report(
     state_root: Path,
     hypotheses: list[dict[str, Any]],
     evidence_triggers: list[tuple[dict[str, Any], dict[str, Any]]],
+    as_of: datetime | None = None,
+    report_period: str | None = None,
 ) -> str:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    current = (as_of or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    cutoff = current - timedelta(days=days)
     recent: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for manifest, state in entries:
         updated = datetime.fromisoformat(str(state["updated_at"]).replace("Z", "+00:00"))
@@ -36,6 +39,7 @@ def weekly_report(
         "# Autonomous Trading Research Weekly Brief",
         "",
         f"- Policy: `{policy_id}`",
+        *([f"- Report period: `{report_period}`"] if report_period else []),
         f"- Window: last `{days}` days",
         f"- Registered experiments: `{len(entries)}`",
         f"- Active/OOS-ready: `{counts.get('PREREGISTERED', 0) + counts.get('OOS_READY', 0)}`",
@@ -176,9 +180,12 @@ def monthly_report(
     state_root: Path,
     hypotheses: list[dict[str, Any]],
     evidence_triggers: list[tuple[dict[str, Any], dict[str, Any]]],
+    as_of: datetime | None = None,
+    report_period: str | None = None,
 ) -> str:
     """Render a program-level learning audit without aggregating unlike PnL ledgers."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    current = (as_of or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    cutoff = current - timedelta(days=days)
     recent = [
         (manifest, state)
         for manifest, state in entries
@@ -224,6 +231,7 @@ def monthly_report(
         "# Autonomous Trading Research Monthly Learning Review",
         "",
         f"- Policy: `{policy_id}`",
+        *([f"- Report period: `{report_period}`"] if report_period else []),
         f"- Window: last `{days}` days",
         f"- Experiments changed: `{len(recent)}`",
         f"- Program-wide terminal experiments: `{len(terminal)}`",

@@ -1431,6 +1431,88 @@ class EvidenceManifestContractTest(unittest.TestCase):
                 ],
             )
 
+    def test_heartbeat_recovers_sealed_reports_after_state_commit_interruption(self) -> None:
+        tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+        initial = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2025, 11, 24, 1, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+
+        with patch(
+            "research_pipeline.heartbeat._write_state",
+            side_effect=RuntimeError("simulated heartbeat state commit interruption"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "state commit interruption"):
+                run_heartbeat_cycle(
+                    self.store,
+                    {"policy_id": "TEST_RESEARCH_ONLY"},
+                    now=datetime(2025, 12, 1, 1, tzinfo=timezone.utc),
+                    tick_preview=tick,
+                    tick_result=tick,
+                )
+
+        recovered = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2025, 12, 2, 1, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        recovered_types = {event["event_type"] for event in recovered["events"]}
+        self.assertEqual(
+            recovered_types,
+            {"MONTHLY_REVIEW_READY", "WEEKLY_BRIEF_READY"},
+        )
+        self.assertTrue(recovered["should_notify_coach"])
+        reports = self.store.root / "reports"
+        self.assertEqual(
+            len(list(reports.glob("monthly-learning-review-2025-12-01.md"))),
+            1,
+        )
+        self.assertEqual(
+            len(list(reports.glob("weekly-learning-brief-2025-12-01.md"))),
+            1,
+        )
+        state = json.loads(
+            (self.store.root / recovered["heartbeat_state"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        recovered_hashes = {event["sha256"] for event in recovered["events"]}
+        initial_report_hashes = {
+            event["sha256"]
+            for event in initial["events"]
+            if event["event_type"] in {"MONTHLY_REVIEW_READY", "WEEKLY_BRIEF_READY"}
+        }
+        self.assertTrue(recovered_hashes.isdisjoint(initial_report_hashes))
+        self.assertIn(
+            "- Report period: `2025-12`",
+            (reports / "monthly-learning-review-2025-12-01.md").read_text(
+                encoding="utf-8"
+            ),
+        )
+        self.assertIn(
+            "- Report period: `2025-W49`",
+            (reports / "weekly-learning-brief-2025-12-01.md").read_text(
+                encoding="utf-8"
+            ),
+        )
+        pending = [
+            event
+            for event in state["coach_delivery"]["pending_events"]
+            if event["sha256"] in recovered_hashes
+        ]
+        self.assertEqual(len(pending), 2)
+        self.assertTrue(
+            all(
+                event["delivery_queued_at"] == "2025-12-02T01:00:00Z"
+                for event in pending
+            )
+        )
+
     def test_coach_delivery_proof_sla_breach_and_legacy_are_preserved(self) -> None:
         target = "019fca63-4f8f-71e3-9d88-297bca468eb9"
         delivery_id = "a" * 64

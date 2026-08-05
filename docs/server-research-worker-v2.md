@@ -191,6 +191,13 @@ completion window, PASS/BREACH labels, and legacy missing-proof labels inside
 the V4 write attestation. A V3 caller hash therefore fails before queue mutation
 instead of silently opting out of delivery measurement.
 
+Weekly and monthly report content binds the exact reporting period before its
+artifact hash is calculated. A crash after report sealing but before heartbeat
+state commit is recovered by adopting the newer current-period artifact on the
+next normal heartbeat and placing it in the durable Coach outbox exactly once.
+The Worker never overwrites the sealed report, and byte-identical quiet-period
+summaries cannot collide under one pending delivery id.
+
 The dispatch path watches both `pending.json` and an interrupted
 `running.json`. The oneshot restarts only after an abnormal process stop and
 resumes the same schema-bound request idempotently, preserving its original
@@ -247,6 +254,9 @@ The systemd path unit is an event consumer, not an additional schedule.
 - a hard-stopped or reboot-interrupted running request resumes under the same
   request id without waiting for the next daily cloud wake;
 - every MCP briefing returns a sealed artifact id and SHA-256;
+- a weekly or monthly artifact sealed before an interrupted heartbeat-state
+  commit is adopted and queued exactly once on recovery, with its reporting
+  period bound into the artifact hash;
 - canonical status exposes every pending Coach event through a bounded,
   hash-verified, durable outbox that survives later routine heartbeats;
 - the active schedule contract binds Coach delivery to exact task discovery,

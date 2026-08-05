@@ -65,7 +65,9 @@ def run_heartbeat_cycle(
     coach_delivery_receipts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     state = _load_state(store)
-    _adopt_existing_reports(store, state)
+    _verify_report_record(store, state.get("last_weekly"))
+    _verify_report_record(store, state.get("last_monthly"))
+    adopted_reports = _adopt_existing_reports(store, state, now=now)
     _verify_report_record(store, state.get("last_weekly"))
     _verify_report_record(store, state.get("last_monthly"))
 
@@ -95,8 +97,17 @@ def run_heartbeat_cycle(
     events.extend(review_events)
 
     due = _schedule(now, state, tick_result)
-    report_events: list[dict[str, Any]] = []
+    report_events = [
+        _report_event_for_kind(
+            store,
+            record,
+            kind=kind,
+            research_status=research_status,
+        )
+        for kind, record in adopted_reports
+    ]
     if due["monthly_due"]:
+        local_date = now.astimezone(TAIPEI).date()
         content = monthly_report(
             store.entries(),
             days=30,
@@ -104,19 +115,21 @@ def run_heartbeat_cycle(
             state_root=store.root,
             hypotheses=store.hypothesis_entries(),
             evidence_triggers=store.evidence_trigger_entries(),
+            as_of=now,
+            report_period=local_date.strftime("%Y-%m"),
         )
         record = _seal_report(store, MONTHLY_PREFIX, now, content, "monthly")
         state["last_monthly"] = record
         report_events.append(
-            _report_event(
+            _report_event_for_kind(
                 store,
                 record,
-                event_type="MONTHLY_REVIEW_READY",
+                kind="monthly",
                 research_status=research_status,
-                conclusion="A deterministic thirty-day program review was sealed.",
             )
         )
     if due["weekly_due"]:
+        local_date = now.astimezone(TAIPEI).date()
         content = weekly_report(
             store.entries(),
             days=7,
@@ -124,16 +137,17 @@ def run_heartbeat_cycle(
             state_root=store.root,
             hypotheses=store.hypothesis_entries(),
             evidence_triggers=store.evidence_trigger_entries(),
+            as_of=now,
+            report_period=_weekly_period(local_date),
         )
         record = _seal_report(store, WEEKLY_PREFIX, now, content, "weekly")
         state["last_weekly"] = record
         report_events.append(
-            _report_event(
+            _report_event_for_kind(
                 store,
                 record,
-                event_type="WEEKLY_BRIEF_READY",
+                kind="weekly",
                 research_status=research_status,
-                conclusion="A deterministic seven-day learning brief was sealed.",
             )
         )
     events.extend(report_events)
@@ -564,12 +578,44 @@ def _state_path(store: ResearchStore) -> Path:
     return store.root / "heartbeat" / "state.json"
 
 
-def _adopt_existing_reports(store: ResearchStore, state: dict[str, Any]) -> None:
+def _adopt_existing_reports(
+    store: ResearchStore,
+    state: dict[str, Any],
+    *,
+    now: datetime,
+) -> list[tuple[str, dict[str, Any]]]:
     reports = store.root / "reports"
-    if state.get("last_weekly") is None:
-        state["last_weekly"] = _latest_report_record(store, reports, WEEKLY_PREFIX, "weekly")
-    if state.get("last_monthly") is None:
-        state["last_monthly"] = _latest_report_record(store, reports, MONTHLY_PREFIX, "monthly")
+    local = now.astimezone(TAIPEI)
+    current_periods = {
+        "monthly": local.strftime("%Y-%m"),
+        "weekly": _weekly_period(local.date()),
+    }
+    adopted: list[tuple[str, dict[str, Any]]] = []
+    for kind, state_field, prefix in (
+        ("monthly", "last_monthly", MONTHLY_PREFIX),
+        ("weekly", "last_weekly", WEEKLY_PREFIX),
+    ):
+        latest = _latest_report_record(store, reports, prefix, kind)
+        if latest is None:
+            continue
+        current = state.get(state_field)
+        current_date = _report_record_date(current)
+        latest_date = _report_record_date(latest)
+        if current_date is not None and latest_date <= current_date:
+            continue
+        state[state_field] = latest
+        if _record_period(latest) == current_periods[kind]:
+            adopted.append((kind, latest))
+    return adopted
+
+
+def _report_record_date(record: Any) -> date | None:
+    if not isinstance(record, dict):
+        return None
+    try:
+        return date.fromisoformat(str(record.get("report_date", "")))
+    except ValueError:
+        return None
 
 
 def _latest_report_record(
@@ -597,7 +643,13 @@ def _verify_report_record(store: ResearchStore, record: Any) -> None:
         raise ValueError("heartbeat report record must be an object")
     relative = record.get("artifact_path")
     expected_hash = record.get("sha256")
-    if not isinstance(relative, str) or not isinstance(expected_hash, str):
+    report_date = _report_record_date(record)
+    if (
+        not isinstance(relative, str)
+        or not isinstance(expected_hash, str)
+        or report_date is None
+        or not isinstance(record.get("period"), str)
+    ):
         raise ValueError("heartbeat report record is incomplete")
     path = (store.root / relative).resolve()
     try:
@@ -997,6 +1049,32 @@ def _report_event(
         "next_action": "COACH_THE_SPONSOR_FROM_THE_SEALED_REPORT_WITHOUT_CHANGING_FROZEN_GATES",
         "concept_to_teach": "Research quality improves when rejected mechanisms and opportunity costs remain visible.",
     }
+
+
+def _report_event_for_kind(
+    store: ResearchStore,
+    record: dict[str, Any],
+    *,
+    kind: str,
+    research_status: str,
+) -> dict[str, Any]:
+    if kind == "monthly":
+        return _report_event(
+            store,
+            record,
+            event_type="MONTHLY_REVIEW_READY",
+            research_status=research_status,
+            conclusion="A deterministic thirty-day program review was sealed.",
+        )
+    if kind == "weekly":
+        return _report_event(
+            store,
+            record,
+            event_type="WEEKLY_BRIEF_READY",
+            research_status=research_status,
+            conclusion="A deterministic seven-day learning brief was sealed.",
+        )
+    raise ValueError(f"unsupported heartbeat report kind: {kind}")
 
 
 def _performance_evidence(store: ResearchStore, experiment_id: str | None = None) -> Any:

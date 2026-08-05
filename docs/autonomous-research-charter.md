@@ -217,6 +217,14 @@ The deterministic reporting entrypoints are:
   hypothesis tree, stop rules, sealed-learning coverage, and remaining evidence
   gaps.
 
+Every heartbeat-sealed weekly or monthly artifact includes its exact reporting
+period in the content, so two quiet periods cannot share one delivery id merely
+because their summaries are otherwise byte-identical. If the artifact is
+sealed but the atomic heartbeat-state commit is interrupted, the next normal
+heartbeat adopts that current-period artifact, verifies its hash, and queues
+the briefing once instead of overwriting it or silently marking the period
+complete.
+
 One scheduled task in the Codex cloud Ops task is the routine research clock.
 It reads canonical MCP status, enqueues at most one due heartbeat, observes
 durable results, and produces sponsor briefings. When a sealed review reports

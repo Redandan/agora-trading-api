@@ -148,6 +148,17 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn('value["resume_count"]', runner)
         self.assertNotIn(".timer", path_unit)
 
+    def test_server_verifier_runs_forward_candidate_and_corpus_contracts(self) -> None:
+        verifier = (
+            Path(__file__).resolve().parents[2]
+            / "scripts"
+            / "research-worker"
+            / "verify-worker.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("research_pipeline.tests.test_corpus", verifier)
+        self.assertIn("research_pipeline.tests.test_forward_candidate", verifier)
+
     def test_charter_keeps_coach_outbox_read_only_without_denying_verified_receipts(self) -> None:
         charter = (
             Path(__file__).resolve().parents[2]

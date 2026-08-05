@@ -115,7 +115,9 @@ ok "worker identity can verify clean release provenance"
   sudo -u "$WORKER_USER" env \
     PYTHONDONTWRITEBYTECODE=1 \
     "$WORKER_ROOT/venv/bin/python" -m unittest \
+    research_pipeline.tests.test_corpus \
     research_pipeline.tests.test_evidence \
+    research_pipeline.tests.test_forward_candidate \
     research_pipeline.tests.test_storage \
     research_mcp.tests.test_queue \
     research_mcp.tests.test_server_contract \

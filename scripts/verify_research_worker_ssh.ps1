@@ -2,7 +2,7 @@ param(
     [string]$SshHost = $env:AGORA_SSH_HOST,
     [string]$SshKey = $env:AGORA_SSH_KEY,
     [ValidateSet("disabled", "active")]
-    [string]$ExpectTimer = "active",
+    [string]$ExpectTimer = "disabled",
     [switch]$RunHeartbeat,
     [switch]$RunSourceProbe
 )

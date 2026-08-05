@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Autonomous Research Evidence Trigger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trigger_id",
+    "title",
+    "rationale",
+    "source",
+    "evidence_start",
+    "review_not_before",
+    "minimum_observations",
+    "observation_unit",
+    "required_integrity_checks",
+    "prohibited_inferences",
+    "excluded_branches",
+    "created_at",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "trigger_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"},
+    "title": {"type": "string", "minLength": 1},
+    "rationale": {"type": "string", "minLength": 1},
+    "source": {"type": "string", "minLength": 1},
+    "evidence_start": {"type": "string", "format": "date-time"},
+    "review_not_before": {"type": "string", "format": "date-time"},
+    "minimum_observations": {"type": "integer", "minimum": 1},
+    "observation_unit": {"type": "string", "minLength": 1},
+    "required_integrity_checks": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "prohibited_inferences": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "excluded_branches": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  }
+}

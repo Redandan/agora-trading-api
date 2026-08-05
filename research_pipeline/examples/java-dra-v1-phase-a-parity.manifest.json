@@ -1,0 +1,25 @@
+{
+  "schema_version": "1",
+  "experiment_id": "java-dra-v1-phase-a-parity",
+  "title": "Java DRA V1 Phase-A exact checkpoint parity",
+  "thesis": "The existing Java BtcDraShadowEngine can reproduce the sealed Python DRA V1 Design and Validation economic checkpoints exactly without starting Spring or using a database.",
+  "economic_rationale": "Exact shared-kernel parity prevents false research gains caused by clock, fill, fee, quantity, inventory, or drawdown drift before future candidates reach sealed OOS.",
+  "hypothesis_source": "SYSTEM_JAVA_CONVERGENCE_ROADMAP",
+  "parent": "PYTHON_DRA_V1_SEALED_CHECKPOINTS",
+  "adapter": "java-dra-v1-parity",
+  "created_at": "2026-08-04T05:00:00Z",
+  "selection_cutoff": "2025-01-01T00:00:00Z",
+  "oos_cutoff": null,
+  "max_variants": 1,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "objective": {
+    "primary_metric": "exact_design_and_validation_checkpoint_parity",
+    "constraints": [
+      "no_spring_application_context",
+      "no_database_or_network_in_java_cli",
+      "sealed_canonical_input_and_output",
+      "java_21_required",
+      "phase_a_not_yet_mandatory_for_candidate_research"
+    ]
+  }
+}

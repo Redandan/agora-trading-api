@@ -1,0 +1,28 @@
+{
+  "schema_version": "1",
+  "experiment_id": "one-slot-profitable-incumbent-signal-rotation-v1",
+  "title": "One-slot profitable-incumbent fresh-signal rotation",
+  "thesis": "In the fixed 30 USDT one-slot DRA lane, when a fresh confirmed DRA signal arrives while the incumbent lot already satisfies the existing +1% estimated-net next-open safety floor, conditionally selling that incumbent and replacing it with the fresh signal will reduce blocked opportunity cost and improve fee-adjusted total PnL without increasing capital or drawdown.",
+  "economic_rationale": "The frozen one-slot baseline is near fully utilized and records repeated capacity blocks. Event-driven rotation tests whether already-profitable inventory is consuming opportunity without adding a threshold, loss sale, capital, or intrabar information.",
+  "hypothesis_source": "AUTONOMOUS_ONE_SLOT_BLOCKED_OPPORTUNITY_AUDIT_AFTER_PHASE_B",
+  "parent": "BTC_DAILY_REVERSAL_ACCUMULATION_V1_ONE_SLOT_30_USDT",
+  "adapter": "one-slot-signal-rotation-v1",
+  "created_at": "2026-08-04T05:10:00Z",
+  "selection_cutoff": "2025-01-01T00:00:00Z",
+  "oos_cutoff": null,
+  "max_variants": 1,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "objective": {
+    "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_30_usdt_capital",
+    "constraints": [
+      "exact_one_slot_parent_parity",
+      "next_open_sell_before_replacement_buy",
+      "unchanged_one_percent_realized_net_floor",
+      "no_loss_sale_or_added_capital",
+      "no_drawdown_or_holding_deterioration",
+      "annual_total_and_drawdown_stability",
+      "post_hoc_historical_no_clean_oos",
+      "reported_not_activated"
+    ]
+  }
+}

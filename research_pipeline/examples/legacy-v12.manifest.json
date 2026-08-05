@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "experiment_id": "legacy-v12-adapter-validation",
+  "title": "Legacy V12 adapter validation",
+  "thesis": "The orchestration adapter can preserve the existing V12 preregistration, selection, and sealed OOS behavior without changing its economic logic.",
+  "economic_rationale": "Proving adapter parity prevents the control-plane migration from creating a false strategy improvement or changing drawdown and inventory accounting.",
+  "hypothesis_source": "SYSTEM_BOOTSTRAP",
+  "parent": "BTC_DRA_V3C_PRE_PARTIAL_ONE_R_PROMOTION_EXIT_V7_RESEARCH",
+  "adapter": "legacy-v12",
+  "created_at": "2026-08-04T00:00:00Z",
+  "selection_cutoff": "2025-01-01T00:00:00Z",
+  "oos_cutoff": "2026-08-04T00:00:00Z",
+  "max_variants": 2,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "objective": {
+    "primary_metric": "exact_legacy_artifact_and_status_parity",
+    "constraints": [
+      "no_runner_source_change",
+      "no_production_or_database_mutation",
+      "sealed_outputs_only"
+    ]
+  }
+}

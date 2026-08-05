@@ -1,0 +1,10 @@
+[Unit]
+Description=Dispatch one sealed forward-evidence intake
+Documentation=file:/opt/agora-research-worker/current/docs/server-forward-evidence-source-v1.md
+
+[Path]
+PathExists=/var/lib/agora-research/source-drop/pending.json
+Unit=agora-research-evidence-ingest.service
+
+[Install]
+WantedBy=multi-user.target

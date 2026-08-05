@@ -35,6 +35,49 @@ Allowed dependency shapes:
 
 Direct database reads against the marketplace database are not allowed after the split.
 
+## Offline Research Control Plane
+
+`research_pipeline` and the repository skill under
+`.agents/skills/autonomous-trading-research` are offline, research-only tooling
+governed by `docs/autonomous-research-charter.md`. They may orchestrate sealed
+research artifacts and approved read-only runner adapters, but they are not a
+Trading runtime strategy-orchestration framework.
+
+`com.agora.research.BtcDraResearchCli` and
+`com.agora.research.BtcDraEconomicLedgerParityCli` are offline parity
+entrypoints over the existing deterministic DRA engine. They may be launched
+only as plain Java 21 classes with explicit local input/output; they must never
+start Spring, access a repository/database/network, or become runtime beans or
+application entrypoints.
+
+The research control plane must not be imported by Spring runtime code,
+registered as a Trading runtime scheduler, write into strategy/runtime tables,
+place an order, or promote a result to SHADOW/PAPER/LIVE. A passing research
+result ends at `REPORTED_NOT_ACTIVATED`. The only inbound exception is the
+independent OAuth Research MCP below; it is not part of Trading Spring and can
+enqueue only two fixed operations: the deterministic heartbeat and one bounded,
+evidence-bound candidate bundle that may end only at an offline
+`PREREGISTERED` experiment. Neither operation accepts a command or server path.
+
+One Codex cloud Ops schedule may enqueue the deterministic research heartbeat
+and, only after canonical `READY_FOR_HYPOTHESIS`, submit the one frozen candidate
+bundle under `docs/server-research-worker-v2.md`. The OAuth MCP binds loopback behind a
+fixed nginx route, writes only its request queue and OAuth store, and cannot
+write canonical research state or inbox. A systemd path unit dispatches queued
+requests; it is not a timer. The Worker has a separate Unix identity,
+root-owned code, isolated durable state, no Production secrets, and no database
+or exchange authority. It cannot invoke Spring or any Trading runtime action.
+
+The same heartbeat call may automatically enqueue one deterministic companion
+forward-evidence request only when canonical progress is `CAPTURE_DUE`. A
+separate credential-free `agora-evidence-source` identity can call only the
+fixed public OKX `BTC-USDT` 1-hour candle endpoint and write a hash-bound
+one-way drop. It cannot read canonical state or Trading secrets. A second
+network-denied `agora-research` path consumer independently reconstructs and
+validates the day before extending the canonical evidence chain. These path
+units are event consumers, not timers; all other external imports and every
+backfill remain forbidden.
+
 ## First Internal API
 
 The first required internal API is exchange rates:

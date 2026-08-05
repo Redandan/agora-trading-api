@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Autonomous Research Forward Evidence Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_type",
+    "trigger_id",
+    "trigger_fingerprint",
+    "source",
+    "observation_unit",
+    "coverage_start",
+    "coverage_end",
+    "observations",
+    "dataset_artifact",
+    "diagnostic_artifact",
+    "integrity_checks",
+    "created_at",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "manifest_type": {"const": "FORWARD_EVIDENCE_MANIFEST"},
+    "trigger_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"},
+    "trigger_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {"type": "string", "minLength": 1},
+    "observation_unit": {"type": "string", "minLength": 1},
+    "coverage_start": {"type": "string", "format": "date-time"},
+    "coverage_end": {"type": "string", "format": "date-time"},
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["observation_id", "start_at", "end_at", "source_row_count"],
+        "properties": {
+          "observation_id": {"type": "string", "minLength": 1},
+          "start_at": {"type": "string", "format": "date-time"},
+          "end_at": {"type": "string", "format": "date-time"},
+          "source_row_count": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "dataset_artifact": {"$ref": "#/$defs/artifact"},
+    "diagnostic_artifact": {"$ref": "#/$defs/artifact"},
+    "integrity_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "evidence"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "status": {"const": "PASS"},
+          "evidence": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

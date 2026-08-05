@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "contract_type": "FORWARD_EVIDENCE_SOURCE_CONTRACT",
+  "trigger_id": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1",
+  "trigger_fingerprint": "0e5a4675e937613202f0a4a243360a405e9ace1823c4b999edb5d479849d2589",
+  "source": "server-local read-only OKX BTCUSDT complete 1h bars aggregated into complete UTC days",
+  "producer": "agora-okx-forward-source-v1",
+  "transport": "SEALED_ONE_WAY_DROP_V1",
+  "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+  "worker_network_access": "DENY",
+  "worker_database_access": "DENY",
+  "backfill": "DENY",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "flat-veto-cooldown-route-substitution-v2b",
+  "title": "Cooldown-preserving flat veto route-substitution test",
+  "thesis": "When a frozen flat-regime stale-inventory veto rejects an otherwise valid signal, reserving the same seven-day cooldown timestamp will prevent unintended substitution into non-flat DRA inventory and improve matched-capital inventory risk without sacrificing total PnL.",
+  "mechanism": "The quality veto currently changes the shared reservation calendar; preserving the rejected signal's cooldown isolates signal quality from route timing and removes replacement entries caused only by the veto.",
+  "economic_rationale": "The predecessor changed the intended stale-inventory mechanism but failed because route substitution added non-flat inventory. Holding the reservation calendar fixed tests the causal source of that opportunity cost without scanning thresholds.",
+  "source": "BTC_DRA_FLAT_REGIME_STALE_INVENTORY_ADMISSION_VETO_V2_RESULT_NEXT_DEFENSIBLE_HYPOTHESIS",
+  "parent": "BTC_DRA_FLAT_REGIME_STALE_INVENTORY_ADMISSION_VETO_V2_RESEARCH",
+  "required_capability": "flat-veto-cooldown-v2b",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "maximum_drawdown",
+    "realized_pnl",
+    "unrealized_pnl",
+    "terminal_open_inventory",
+    "route_substitution_count",
+    "reservation_calendar_parity"
+  ],
+  "ranking": {
+    "economic_mechanism": 5,
+    "interpretability": 5,
+    "evidence_readiness": 4,
+    "opportunity_cost_reduction": 4
+  },
+  "research_cycle_id": "2026-08-04-autonomous-cycle-1",
+  "created_at": "2026-08-04T05:00:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

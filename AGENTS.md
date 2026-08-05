@@ -24,6 +24,30 @@ Default workflow:
 7. Deploy and run `scripts/verify_server.sh` only when runtime/API behavior changed
    and the requested scope permits it.
 
+Autonomous research workflow:
+
+- Read `docs/autonomous-research-charter.md` before changing or advancing the
+  research control plane.
+- Use the repository skill at
+  `.agents/skills/autonomous-trading-research/SKILL.md` and the
+  `python -m research_pipeline` CLI for registered experiments.
+- Keep mutable runs, artifacts, registry state, and generated reports under
+  `.research-state/`; never overwrite a sealed artifact.
+- Launch the offline Java DRA research CLIs only through the approved
+  `java-dra-v1-parity` / `java-dra-v1-economic-ledger` adapters or an
+  equivalent direct Java 21 classpath invocation. Do not use the repository
+  Maven exec main-class configuration; it targets `TradingApiApplication` and
+  would start Spring.
+- Treat the control plane as offline research tooling. It must not become a
+  Spring bean, Trading runtime scheduler, strategy catalog entry, database
+  writer, or SHADOW/PAPER/LIVE promotion path. The sole control-plane exception
+  is the independent OAuth Research Worker defined in
+  `docs/server-research-worker-v2.md`; one Codex cloud Ops schedule may enqueue
+  its fixed deterministic heartbeat and one bounded evidence-ready candidate
+  registration while the server path unit dispatches those fixed operations.
+- Use `research_pipeline/policy.v3.json` for new control-plane work. Preserve
+  prior policy hashes embedded in already sealed historical experiments.
+
 Standing boundaries:
 
 - Do not import AgoraMarketAPI marketplace entities, repositories, controllers,
@@ -34,7 +58,7 @@ Standing boundaries:
   product requirement explicitly authorizes a DTO-only design.
 - Do not run DB migrations, baseline regeneration, extra-table cleanup, or table
   drops unless explicitly authorized for the shared-DB split state.
-- Pause before live strategy, OCO/grid, order, fund, Earn, scheduler enablement,
+- Pause before live strategy, OCO/grid, order, fund, Earn, Trading scheduler enablement,
   Telegram-send, external-backfill/import, or production mutation changes unless
   explicitly authorized.
 - Treat extra marketplace/shared tables in `agora_market` as expected while DB

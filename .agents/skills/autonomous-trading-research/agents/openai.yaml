@@ -1,0 +1,4 @@
+interface:
+  display_name: "Autonomous Trading Research"
+  short_description: "Autonomous sealed trading research reports"
+  default_prompt: "Use $autonomous-trading-research to advance one safe research step and report only material learning."

@@ -1,0 +1,78 @@
+{
+  "research_identity": "BTC_DRA_V7_PROFIT_PEAK_DELAYED_FAILED_RECLAIM_EXIT_V12_RESEARCH",
+  "status_before_outcome": "PREREGISTERED_RESEARCH_ONLY",
+  "parent": "BTC_DRA_V3C_PRE_PARTIAL_ONE_R_PROMOTION_EXIT_V7_RESEARCH",
+  "selection": {
+    "source": "server-local read-only OKX BTCUSDT complete 1h bars",
+    "cutoff": "2025-01-01T00:00:00Z",
+    "rows": 52608,
+    "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd",
+    "design": "2019-01-01T00:00:00Z/2023-01-01T00:00:00Z",
+    "validation": "2023-01-01T00:00:00Z/2025-01-01T00:00:00Z",
+    "fair_reset_folds": [2020, 2021, 2022, 2023, 2024]
+  },
+  "frozen_parent_contract": {
+    "entry_arm_expiry_cooldown": "DRA_V1_UNCHANGED",
+    "lot_cost_usdt": "30",
+    "reference_cap_usdt": "250",
+    "fee_per_side": "0.001",
+    "adverse_slippage_per_side": "0.0005",
+    "fill": "NEXT_HOURLY_OPEN",
+    "profit_only": true,
+    "forced_loss_exit": false,
+    "time_exit": false,
+    "final_liquidation": false,
+    "v7_promotion_monotonic": true,
+    "v2a_same_hour_precedence": true
+  },
+  "manager_arm": {
+    "runner_path": "initial FULL_V2A or V7 promoted",
+    "formula": "first complete hour peakEstimatedFullNetPnl >= entryATR14 * originalFilledQuantity",
+    "act_on_arm_bar": false
+  },
+  "fresh_break": {
+    "lookback_complete_hours": 24,
+    "break_level": "min(low[b-24..b-1])",
+    "formula": "close[b] < breakLevel",
+    "one_active_attempt_per_lot": true,
+    "same_bar_restart_after_classification": false
+  },
+  "candidates": {
+    "POST_1R_PRIOR24_LOW_BREAK_12H_FAILED_RECLAIM": {
+      "wait_complete_hours": 12,
+      "confirm": "all close[b+1..b+12] <= breakLevel and close[b+12] <= close[b]"
+    },
+    "POST_1R_PRIOR24_LOW_BREAK_24H_FAILED_RECLAIM": {
+      "wait_complete_hours": 24,
+      "confirm": "all close[b+1..b+24] <= breakLevel and close[b+24] <= close[b]"
+    }
+  },
+  "classification": {
+    "reclaimed": "any post-break close before or at decision > breakLevel",
+    "cancelled_no_down_confirm": "decision close > break close without reclaim",
+    "confirmed_positive": "no reclaim and decision close <= break close and estimated net PnL > 0",
+    "confirmed_nonpositive": "no reclaim and decision close <= break close and estimated net PnL <= 0"
+  },
+  "gates": {
+    "design_total_strictly_greater_than_v7": "94.90277533",
+    "validation_realized_strictly_greater_than_v7": "96.02789691",
+    "validation_total_strictly_greater_than_v7": "95.38625667",
+    "validation_unrealized_at_least_v7": "-0.64164024",
+    "validation_drawdown_at_most_v7_pct": "6.832349",
+    "validation_median_at_most_dra_v1_hours": "182.5",
+    "validation_median_strictly_less_than_v7_hours": "192",
+    "validation_p90_at_most_v7_hours": "836",
+    "validation_harvest_efficiency_strictly_greater_than_v7": true,
+    "manager_completed_exits_minimum_each_design_validation": 3,
+    "manager_fills_strictly_less_than_v9_design_validation": [27, 23],
+    "annual_total_wins_vs_v7_minimum": 3,
+    "annual_median_hold_wins_vs_v7_minimum": 3,
+    "all_audits": true
+  },
+  "oos": {
+    "sealed_during_selection": true,
+    "open_once_only_after_candidate_frozen": true,
+    "one_slot_only_after_candidate_frozen": true
+  },
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

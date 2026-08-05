@@ -1,0 +1,33 @@
+{
+  "schema_version": "1",
+  "trigger_id": "prospective-mechanism-neutral-evidence-refresh-2026q4-r1",
+  "title": "Prospective mechanism-neutral evidence refresh R1",
+  "rationale": "The current hypothesis tree has exhausted several interpretations of the same pre-2025 history. The next hypothesis should be generated only after a new untouched observation window can support a mechanism-neutral diagnostic, rather than by relaxing a failed gate or scanning a neighboring threshold.",
+  "source": "server-local read-only OKX BTCUSDT complete 1h bars aggregated into complete UTC days",
+  "evidence_start": "2026-08-06T00:00:00Z",
+  "review_not_before": "2026-11-04T00:00:00Z",
+  "minimum_observations": 90,
+  "observation_unit": "COMPLETE_UTC_DAY",
+  "required_integrity_checks": [
+    "closed_bar_causality",
+    "no_gap_or_duplicate_complete_hours",
+    "immutable_row_count_and_sha256",
+    "mechanism_neutral_diagnostic_before_strategy_mapping",
+    "new_hypothesis_fingerprint_not_in_closed_tree"
+  ],
+  "prohibited_inferences": [
+    "the accumulation window is not OOS for a hypothesis derived from it",
+    "no strategy performance selection before a later hypothesis and manifest are frozen",
+    "no reopening or retuning a closed branch",
+    "no SHADOW PAPER LIVE Production order database scheduler or deployment implication"
+  ],
+  "excluded_branches": [
+    "ordinary EMA5 downturn or simple post-1R peak giveback",
+    "V10 V11 V12 failed-reclaim variants",
+    "flat-regime stale-inventory veto and cooldown route substitution",
+    "one-slot profitable-incumbent fresh-signal rotation",
+    "flat-range upper-touch qualification and neighboring threshold scans"
+  ],
+  "created_at": "2026-08-04T05:30:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

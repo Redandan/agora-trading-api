@@ -1,0 +1,79 @@
+# Project-scoped Codex app policy for the trusted agora-trading-api checkout.
+#
+# The connected AgoraMarket app still advertises legacy Trading tools that were
+# removed from the AgoraMarketAPI MCP after the service split. Keep unclassified
+# app tools approval-gated, approve only the confirmed read-only KB search, and
+# hide the known stale Trading names.
+
+[apps.asdk_app_6a10fe1ec9dc8191923d925d82d45d2c]
+default_tools_approval_mode = "writes"
+
+[apps.asdk_app_6a10fe1ec9dc8191923d925d82d45d2c.tools."agoramarket.kbSearch"]
+approval_mode = "approve"
+
+[apps.asdk_app_6a10fe1ec9dc8191923d925d82d45d2c.tools."agoramarket.getTradingManagerDigest"]
+enabled = false
+
+[apps.asdk_app_6a10fe1ec9dc8191923d925d82d45d2c.tools."agoramarket.verifyStrategyExecution"]
+enabled = false
+
+[apps.asdk_app_6a10fe1ec9dc8191923d925d82d45d2c.tools."agoramarket.analyzeBlockedSignalOutcomes"]
+enabled = false
+
+[apps.asdk_app_6a10fe1ec9dc8191923d925d82d45d2c.tools."agoramarket.getSignalAccuracyReport"]
+enabled = false
+
+# Dedicated Trading read-only MCP. The bridge and this config independently
+# enforce the same exact ten-tool allowlist. Every listed tool has an explicit
+# approval; future or accidental additions retain the prompt default.
+
+[mcp_servers.agora_trading_readonly]
+command = "node"
+args = ["C:\\Users\\Redan\\.codex\\skills\\mcp-triage-orchestrator\\scripts\\trading-readonly-mcp-bridge.mjs"]
+env_vars = ["AGORA_SSH_HOST", "AGORA_SSH_KEY"]
+enabled = true
+enabled_tools = [
+  "getOwner509RuntimeStatus",
+  "getOkxNativeSpotGridStatus",
+  "getExecutionSafetyStatus",
+  "getStrategyRuntimeCatalog",
+  "analyzeBtcDonchianShadowGoldenParity",
+  "getMcpRegistryVersion",
+  "getOpenSpotPositions",
+  "getOkxNativeSpotGridAcceptanceEvidence",
+  "getExchangeAccountSafetySnapshot",
+  "getBtcDonchianShadowReadiness",
+]
+default_tools_approval_mode = "prompt"
+startup_timeout_sec = 20
+tool_timeout_sec = 90
+
+[mcp_servers.agora_trading_readonly.tools.getOwner509RuntimeStatus]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getOkxNativeSpotGridStatus]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getExecutionSafetyStatus]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getStrategyRuntimeCatalog]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.analyzeBtcDonchianShadowGoldenParity]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getMcpRegistryVersion]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getOpenSpotPositions]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getOkxNativeSpotGridAcceptanceEvidence]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getExchangeAccountSafetySnapshot]
+approval_mode = "approve"
+
+[mcp_servers.agora_trading_readonly.tools.getBtcDonchianShadowReadiness]
+approval_mode = "approve"

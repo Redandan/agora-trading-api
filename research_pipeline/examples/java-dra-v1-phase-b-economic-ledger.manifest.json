@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "experiment_id": "java-dra-v1-phase-b-economic-ledger",
+  "title": "Java/Python DRA V1 Phase-B economic-ledger parity",
+  "thesis": "If Java is suitable as a shared DRA economic kernel, the existing Java engine and frozen Python V1 reference must produce identical ordered events, fills, hourly economic states, and terminal lot books in both Design and Validation.",
+  "economic_rationale": "Exact ledger parity prevents false performance gains caused by clock, fee, fill, quantity, inventory, or lifecycle drift before translating a complex research overlay into Java.",
+  "hypothesis_source": "SYSTEM_JAVA_CONVERGENCE_ROADMAP",
+  "parent": "java-dra-v1-phase-a-parity",
+  "adapter": "java-dra-v1-economic-ledger",
+  "created_at": "2026-08-04T04:52:00Z",
+  "selection_cutoff": "2025-01-01T00:00:00Z",
+  "oos_cutoff": null,
+  "max_variants": 1,
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "objective": {
+    "primary_metric": "exact_cross_language_event_fill_state_and_lot_parity",
+    "constraints": [
+      "exact_phase_a_checkpoint_parity",
+      "no_spring_application_context",
+      "no_database_or_network_in_java_cli",
+      "sealed_canonical_input_and_outputs",
+      "java_21_direct_launcher_only",
+      "phase_b_not_yet_mandatory_for_candidate_research"
+    ]
+  }
+}

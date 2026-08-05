@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Autonomous Research Evidence Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trigger_id",
+    "reviewed_at",
+    "outcome",
+    "conclusion",
+    "evidence_artifacts",
+    "authorization"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "trigger_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"},
+    "reviewed_at": {"type": "string", "format": "date-time"},
+    "outcome": {"enum": ["WAIT", "READY_FOR_HYPOTHESIS", "CLOSE"]},
+    "conclusion": {"type": "string", "minLength": 1},
+    "evidence_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "artifact_type": {
+            "enum": ["SUPPORTING_ARTIFACT", "FORWARD_EVIDENCE_MANIFEST"]
+          }
+        }
+      }
+    },
+    "next_review_at": {"type": "string", "format": "date-time"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"}
+  }
+}

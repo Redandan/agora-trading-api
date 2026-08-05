@@ -1,0 +1,10 @@
+[Unit]
+Description=Dispatch one authorized public forward-evidence capture
+Documentation=file:/opt/agora-research-worker/current/docs/server-forward-evidence-source-v1.md
+
+[Path]
+PathExists=/var/lib/agora-research/source-requests/pending.json
+Unit=agora-research-source.service
+
+[Install]
+WantedBy=multi-user.target

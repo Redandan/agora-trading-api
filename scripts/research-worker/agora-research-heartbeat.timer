@@ -1,0 +1,13 @@
+[Unit]
+Description=Legacy rollback timer for Agora autonomous research heartbeat
+Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 Asia/Taipei
+Persistent=true
+AccuracySec=1min
+RandomizedDelaySec=0
+Unit=agora-research-heartbeat.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,56 @@
+[Unit]
+Description=OAuth-protected Agora autonomous research MCP
+Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
+After=network.target
+
+[Service]
+Type=simple
+User=agora-research
+Group=agora-research
+SupplementaryGroups=agora-evidence
+WorkingDirectory=/opt/agora-research-worker/current
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=AGORA_RESEARCH_APP_DIR=/opt/agora-research-worker/current
+Environment=AGORA_RESEARCH_STATE_DIR=/var/lib/agora-research/state
+Environment=AGORA_RESEARCH_INBOX_DIR=/var/lib/agora-research/inbox
+Environment=AGORA_RESEARCH_REQUEST_DIR=/var/lib/agora-research/requests
+Environment=AGORA_RESEARCH_SOURCE_REQUEST_DIR=/var/lib/agora-research/source-requests
+Environment=AGORA_RESEARCH_SOURCE_DROP_DIR=/var/lib/agora-research/source-drop
+Environment=AGORA_RESEARCH_AUTH_DIR=/var/lib/agora-research/auth
+Environment=AGORA_RESEARCH_POLICY_FILE=/opt/agora-research-worker/current/research_pipeline/policy.v3.json
+Environment=AGORA_RESEARCH_MCP_ISSUER=https://agoratradingapi.purrtechllc.com
+Environment=AGORA_RESEARCH_MCP_RESOURCE=https://agoratradingapi.purrtechllc.com/research/mcp
+ExecStart=/opt/agora-research-worker/venv/bin/uvicorn research_mcp.server:app --host 127.0.0.1 --port 8092 --no-server-header --no-date-header
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+ProcSubset=pid
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+IPAddressAllow=localhost
+IPAddressDeny=any
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadOnlyPaths=/var/lib/agora-research/state /var/lib/agora-research/inbox /var/lib/agora-research/source-drop
+ReadWritePaths=/var/lib/agora-research/auth /var/lib/agora-research/requests /var/lib/agora-research/source-requests
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+TimeoutStartSec=30
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

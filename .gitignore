@@ -12,3 +12,6 @@ app.commit
 .env.*
 !.env.example
 !.env.trading.secrets.example
+.research-state/
+__pycache__/
+*.py[cod]

@@ -1,0 +1,34 @@
+{
+  "schema_version": "1",
+  "hypothesis_id": "one-slot-profitable-incumbent-signal-rotation-v1",
+  "title": "One-slot profitable-incumbent fresh-signal rotation",
+  "thesis": "In the fixed 30 USDT one-slot DRA lane, when a fresh confirmed DRA signal arrives while the incumbent lot already satisfies the existing +1% estimated-net next-open safety floor, conditionally selling that incumbent and replacing it with the fresh signal will reduce blocked opportunity cost and improve fee-adjusted total PnL without increasing capital or drawdown.",
+  "mechanism": "The one-slot parent repeatedly blocks fresh DRA signals while profitable-but-subtarget inventory occupies the only slot. The candidate reserves the fresh signal only when the incumbent is already at the existing +1% net floor, attempts the incumbent sale first at the next hourly open under the unchanged +1% realized-net floor, buys the replacement at that same open only after a successful sale, and otherwise cancels the replacement without adding exposure.",
+  "economic_rationale": "The frozen one-slot baseline is near fully utilized and recorded 273 blocked Design confirmations and 117 blocked Validation confirmations. Event-driven rotation tests whether some of that opportunity cost comes from retaining already-profitable inventory rather than from genuinely underwater capital, while preserving the 30 USDT cap, profit-only boundary, fees, adverse slippage, and next-open execution.",
+  "source": "AUTONOMOUS_ONE_SLOT_BLOCKED_OPPORTUNITY_AUDIT_AFTER_PHASE_B",
+  "parent": "BTC_DAILY_REVERSAL_ACCUMULATION_V1_ONE_SLOT_30_USDT",
+  "required_capability": "one-slot-signal-rotation-v1",
+  "data_readiness": "READY",
+  "expected_metrics": [
+    "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "maximum_drawdown",
+    "realized_pnl",
+    "unrealized_pnl",
+    "terminal_open_inventory",
+    "independent_fresh_signal_count",
+    "blocked_confirmation_count",
+    "rotation_attempt_fill_cancel_count",
+    "capital_utilization",
+    "holding_age",
+    "annual_total_and_drawdown_stability"
+  ],
+  "ranking": {
+    "economic_mechanism": 5,
+    "interpretability": 5,
+    "evidence_readiness": 5,
+    "opportunity_cost_reduction": 5
+  },
+  "research_cycle_id": "2026-08-04-autonomous-cycle-2",
+  "created_at": "2026-08-04T05:10:00Z",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+}

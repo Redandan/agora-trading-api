@@ -1,0 +1,42 @@
+{
+  "schema_version": "1",
+  "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "objective": {
+    "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "required_metrics": [
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "blocked_entries",
+      "holding_age"
+    ],
+    "constraints": [
+      "causal_point_in_time_data",
+      "positive_incremental_validation_and_oos_evidence",
+      "no_material_drawdown_deterioration",
+      "no_hidden_terminal_inventory_loss",
+      "stable_neighboring_behavior",
+      "year_and_regime_concentration_visible"
+    ]
+  },
+  "budget": {
+    "max_active_experiments": 1,
+    "max_new_hypotheses_per_cycle": 1,
+    "max_candidate_variants": 3,
+    "runner_timeout_seconds": 7200,
+    "lock_stale_seconds": 21600
+  },
+  "hard_boundaries": [
+    "NO_PRODUCTION_MUTATION",
+    "NO_DATABASE_MUTATION",
+    "NO_ORDER_OR_TRANSFER",
+    "NO_SHADOW_PAPER_LIVE_PROMOTION",
+    "NO_SCHEDULER_OR_RUNTIME_ENABLEMENT",
+    "NO_OOS_REOPEN",
+    "NO_POST_OUTCOME_GATE_CHANGE",
+    "NO_RETIRED_AI_AUTOPILOT_RESTORATION"
+  ]
+}

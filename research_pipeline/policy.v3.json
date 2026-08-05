@@ -1,0 +1,84 @@
+{
+  "schema_version": "1",
+  "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "objective": {
+    "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "required_metrics": [
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "blocked_entries",
+      "holding_age"
+    ],
+    "constraints": [
+      "causal_point_in_time_data",
+      "positive_incremental_validation_and_oos_evidence",
+      "no_material_drawdown_deterioration",
+      "no_hidden_terminal_inventory_loss",
+      "stable_neighboring_behavior",
+      "year_and_regime_concentration_visible"
+    ]
+  },
+  "budget": {
+    "max_active_experiments": 1,
+    "max_new_hypotheses_per_cycle": 1,
+    "max_candidate_variants": 3,
+    "runner_timeout_seconds": 7200,
+    "lock_stale_seconds": 21600
+  },
+  "evidence": {
+    "capture_max_lag_seconds": 21600,
+    "daily_observation_unit": "COMPLETE_UTC_DAY",
+    "backfill": "DENY",
+    "sealed_day_chain": "SHA256"
+  },
+  "server_worker": {
+    "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+    "state_authority": "SINGLE_SERVER_WRITER",
+    "request_transport": "OAUTH_MCP_DURABLE_QUEUE",
+    "dispatch": "SYSTEMD_PATH_EVENT_NOT_TIMER",
+    "allowed_operations": [
+      "RESEARCH_HEARTBEAT",
+      "REGISTER_CANDIDATE_BUNDLE"
+    ],
+    "max_candidate_bundle_bytes": 131072,
+    "network_access": "LOOPBACK_MCP_INGRESS_ONLY",
+    "production_credentials": "DENY",
+    "spring_runtime_dependency": "DENY",
+    "database_access": "DENY",
+    "event_output": "SEALED_LOCAL_INBOX"
+  },
+  "forward_evidence_source": {
+    "status": "AUTHORIZED",
+    "clock": "CODEX_CLOUD_HEARTBEAT_COMPANION",
+    "producer": "agora-okx-forward-source-v1",
+    "transport": "SEALED_ONE_WAY_DROP_V1",
+    "public_origin": "https://www.okx.com",
+    "endpoint": "/api/v5/market/candles",
+    "instrument": "BTC-USDT",
+    "bar": "1H",
+    "confirm": "1",
+    "max_response_bytes": 1048576,
+    "source_identity": "agora-evidence-source",
+    "worker_network_access": "DENY",
+    "worker_database_access": "DENY",
+    "producer_credentials": "DENY",
+    "backfill": "DENY",
+    "timer": "DENY"
+  },
+  "hard_boundaries": [
+    "NO_PRODUCTION_APPLICATION_MUTATION",
+    "NO_DATABASE_MUTATION",
+    "NO_ORDER_OR_TRANSFER",
+    "NO_SHADOW_PAPER_LIVE_PROMOTION",
+    "NO_TRADING_RUNTIME_SCHEDULER",
+    "NO_SERVER_RESEARCH_TIMER_AFTER_CUTOVER",
+    "SINGLE_RESEARCH_STATE_WRITER",
+    "NO_OOS_REOPEN",
+    "NO_POST_OUTCOME_GATE_CHANGE",
+    "NO_RETIRED_AI_AUTOPILOT_RESTORATION"
+  ]
+}

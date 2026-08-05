@@ -1,0 +1,10 @@
+[Unit]
+Description=Dispatch queued Agora autonomous research requests
+Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
+
+[Path]
+PathExists=/var/lib/agora-research/requests/pending.json
+Unit=agora-research-dispatch.service
+
+[Install]
+WantedBy=multi-user.target

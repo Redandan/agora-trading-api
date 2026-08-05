@@ -1,0 +1,732 @@
+from __future__ import annotations
+
+from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal, InvalidOperation
+import hashlib
+import json
+from pathlib import Path
+import re
+from typing import Any
+
+from .models import RESEARCH_AUTHORIZATION, parse_timestamp
+from .storage import ResearchStore, atomic_write_json, read_json, sha256_file
+
+
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+MANIFEST_TYPE = "FORWARD_EVIDENCE_MANIFEST"
+DAILY_BUNDLE_TYPE = "FORWARD_EVIDENCE_DAY"
+SOURCE_CONTRACT_TYPE = "FORWARD_EVIDENCE_SOURCE_CONTRACT"
+EMPTY_CHAIN_HEAD = "0" * 64
+
+
+def register_evidence_source_contract(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    value: dict[str, Any],
+    *,
+    registered_at: datetime | None = None,
+) -> dict[str, Any]:
+    current = (registered_at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    if state.get("evidence_source_contract"):
+        raise ValueError("evidence source contract is already sealed")
+    contract = validate_evidence_source_contract(value, trigger, registered_at=current)
+    directory = store.evidence_trigger_dir(str(trigger["trigger_id"]))
+    path = directory / "source-contract.json"
+    if path.exists():
+        raise ValueError("sealed evidence source contract already exists")
+    atomic_write_json(path, contract)
+    reference = {
+        "path": str(path.relative_to(store.root)),
+        "sha256": sha256_file(path),
+        "producer": contract["producer"],
+        "registered_at": contract["registered_at"],
+    }
+    state["evidence_source_contract"] = reference
+    store.save_evidence_trigger_state(state)
+    store.append_evidence_trigger_event(
+        str(trigger["trigger_id"]),
+        "EVIDENCE_SOURCE_CONTRACT_REGISTERED",
+        reference,
+    )
+    return reference
+
+
+def validate_evidence_source_contract(
+    value: dict[str, Any],
+    trigger: dict[str, Any],
+    *,
+    registered_at: datetime,
+) -> dict[str, Any]:
+    required = {
+        "schema_version",
+        "contract_type",
+        "trigger_id",
+        "trigger_fingerprint",
+        "source",
+        "producer",
+        "transport",
+        "artifact_format",
+        "worker_network_access",
+        "worker_database_access",
+        "backfill",
+        "authorization",
+    }
+    missing = sorted(required.difference(value))
+    if missing:
+        raise ValueError(f"evidence source contract missing fields: {', '.join(missing)}")
+    if value["schema_version"] != "1" or value["contract_type"] != SOURCE_CONTRACT_TYPE:
+        raise ValueError("evidence source contract schema/type is invalid")
+    if value["authorization"] != RESEARCH_AUTHORIZATION:
+        raise ValueError("evidence source contract must remain research-only")
+    if value["trigger_id"] != trigger["trigger_id"]:
+        raise ValueError("evidence source contract trigger_id mismatch")
+    if value["trigger_fingerprint"] != trigger["fingerprint"]:
+        raise ValueError("evidence source contract trigger fingerprint mismatch")
+    if value["source"] != trigger["source"]:
+        raise ValueError("evidence source contract source mismatch")
+    producer = str(value["producer"]).strip()
+    transport = str(value["transport"]).strip()
+    if not producer or not transport:
+        raise ValueError("evidence source contract producer and transport are required")
+    if value["artifact_format"] != "FORWARD_EVIDENCE_DAY_V1":
+        raise ValueError("evidence source contract artifact_format is invalid")
+    if value["worker_network_access"] != "DENY":
+        raise ValueError("Research Worker network access must remain denied")
+    if value["worker_database_access"] != "DENY":
+        raise ValueError("Research Worker database access must remain denied")
+    if value["backfill"] != "DENY":
+        raise ValueError("evidence source contract must deny backfill")
+    evidence_start = parse_timestamp(str(trigger["evidence_start"]), "evidence_start").astimezone(
+        timezone.utc
+    )
+    current = registered_at.astimezone(timezone.utc)
+    if current >= evidence_start:
+        raise ValueError("evidence source contract must be sealed before evidence_start")
+    return {
+        "schema_version": "1",
+        "contract_type": SOURCE_CONTRACT_TYPE,
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "producer": producer,
+        "transport": transport,
+        "artifact_format": "FORWARD_EVIDENCE_DAY_V1",
+        "worker_network_access": "DENY",
+        "worker_database_access": "DENY",
+        "backfill": "DENY",
+        "registered_at": _iso_utc(current),
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def seal_daily_evidence(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    value: dict[str, Any],
+    *,
+    received_at: datetime | None = None,
+    capture_max_lag_seconds: int = 21600,
+) -> dict[str, Any]:
+    current = (received_at or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    source_contract = verify_evidence_source_contract(store, trigger, state)
+    if source_contract is None:
+        raise ValueError("evidence source contract is not registered")
+    progress = evidence_progress(
+        store,
+        trigger,
+        state,
+        now=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    if progress["status"] == "COMPLETE":
+        raise ValueError("evidence trigger already has the required observations")
+    observations = state.setdefault("evidence_observations", [])
+    if not isinstance(observations, list):
+        raise ValueError("evidence trigger state observations must be a list")
+    existing_ref = next(
+        (item for item in observations if item.get("day") == str(value.get("day", ""))),
+        None,
+    )
+    if existing_ref is not None:
+        existing_path = (store.root / str(existing_ref.get("path", ""))).resolve()
+        existing_value = read_json(existing_path) if existing_path.is_file() else None
+        candidate = {**value, "received_at": existing_value.get("received_at")} if existing_value else value
+        normalized = validate_daily_evidence_bundle(
+            candidate,
+            trigger,
+            received_at=current,
+            capture_max_lag_seconds=capture_max_lag_seconds,
+            verify_stored=True,
+        )
+        if (
+            not existing_path.is_file()
+            or sha256_file(existing_path) != existing_ref.get("sha256")
+            or existing_value != normalized
+        ):
+            raise ValueError("sealed evidence day idempotency check failed")
+        return {
+            "status": "EVIDENCE_DAY_ALREADY_SEALED",
+            "observation": existing_ref,
+            "progress": progress,
+        }
+    normalized = validate_daily_evidence_bundle(
+        value,
+        trigger,
+        received_at=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    if normalized["source_provenance"]["producer"] != source_contract["producer"]:
+        raise ValueError("daily evidence producer does not match the sealed source contract")
+    expected_day = str(progress["next_observation_day"])
+    if normalized["day"] != expected_day:
+        raise ValueError(
+            f"evidence day must be the next untouched day {expected_day}; got {normalized['day']}"
+        )
+
+    directory = store.evidence_trigger_dir(str(trigger["trigger_id"])) / "observations"
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / f"{normalized['day']}.json"
+    if path.exists():
+        existing = read_json(path)
+        if existing != normalized:
+            raise ValueError(f"sealed evidence day already exists with different content: {path}")
+    else:
+        atomic_write_json(path, normalized)
+    artifact_hash = sha256_file(path)
+    relative = str(path.relative_to(store.root))
+    previous_chain = str(state.get("evidence_chain_head") or EMPTY_CHAIN_HEAD)
+    if not SHA256.fullmatch(previous_chain):
+        raise ValueError("evidence chain head is invalid")
+    chain_head = hashlib.sha256(
+        f"{previous_chain}:{normalized['day']}:{artifact_hash}".encode("utf-8")
+    ).hexdigest()
+    reference = {
+        "day": normalized["day"],
+        "path": relative,
+        "sha256": artifact_hash,
+        "chain_head": chain_head,
+        "received_at": normalized["received_at"],
+    }
+    observations.append(reference)
+    state["evidence_chain_head"] = chain_head
+    state["evidence_observation_count"] = len(observations)
+    store.save_evidence_trigger_state(state)
+    store.append_evidence_trigger_event(
+        str(trigger["trigger_id"]),
+        "EVIDENCE_DAY_SEALED",
+        reference,
+    )
+    updated_progress = evidence_progress(
+        store,
+        trigger,
+        state,
+        now=current,
+        capture_max_lag_seconds=capture_max_lag_seconds,
+    )
+    return {
+        "status": "EVIDENCE_DAY_SEALED",
+        "observation": reference,
+        "progress": updated_progress,
+    }
+
+
+def validate_daily_evidence_bundle(
+    value: dict[str, Any],
+    trigger: dict[str, Any],
+    *,
+    received_at: datetime,
+    capture_max_lag_seconds: int = 21600,
+    verify_stored: bool = False,
+) -> dict[str, Any]:
+    required = {
+        "schema_version",
+        "bundle_type",
+        "trigger_id",
+        "trigger_fingerprint",
+        "source",
+        "day",
+        "bars",
+        "source_provenance",
+        "authorization",
+    }
+    missing = sorted(required.difference(value))
+    if missing:
+        raise ValueError(f"daily evidence bundle missing fields: {', '.join(missing)}")
+    if value["schema_version"] != "1" or value["bundle_type"] != DAILY_BUNDLE_TYPE:
+        raise ValueError("daily evidence bundle schema/type is invalid")
+    if value["authorization"] != RESEARCH_AUTHORIZATION:
+        raise ValueError("daily evidence authorization must remain research-only")
+    if value["trigger_id"] != trigger["trigger_id"]:
+        raise ValueError("daily evidence trigger_id mismatch")
+    if value["trigger_fingerprint"] != trigger["fingerprint"]:
+        raise ValueError("daily evidence trigger fingerprint mismatch")
+    if value["source"] != trigger["source"]:
+        raise ValueError("daily evidence source mismatch")
+    if trigger["observation_unit"] != "COMPLETE_UTC_DAY":
+        raise ValueError("daily evidence ingestion requires COMPLETE_UTC_DAY")
+    if capture_max_lag_seconds < 1:
+        raise ValueError("capture_max_lag_seconds must be positive")
+
+    try:
+        day = date.fromisoformat(str(value["day"]))
+    except ValueError as error:
+        raise ValueError("daily evidence day must be YYYY-MM-DD") from error
+    day_start = datetime.combine(day, time.min, tzinfo=timezone.utc)
+    day_end = day_start + timedelta(days=1)
+    evidence_start = parse_timestamp(str(trigger["evidence_start"]), "evidence_start").astimezone(
+        timezone.utc
+    )
+    review_not_before = parse_timestamp(
+        str(trigger["review_not_before"]), "review_not_before"
+    ).astimezone(timezone.utc)
+    if evidence_start.time() != time.min:
+        raise ValueError("COMPLETE_UTC_DAY evidence_start must be UTC midnight")
+    if day_start < evidence_start or day_end > review_not_before:
+        raise ValueError("daily evidence day falls outside the frozen discovery window")
+    received = received_at.astimezone(timezone.utc)
+    stored_received = value.get("received_at")
+    if verify_stored:
+        if stored_received is None:
+            raise ValueError("stored daily evidence is missing received_at")
+        received = parse_timestamp(str(stored_received), "received_at").astimezone(timezone.utc)
+    elif stored_received is not None:
+        raise ValueError("received_at is assigned by the canonical server writer")
+    if received < day_end:
+        raise ValueError("daily evidence cannot be sealed before the complete UTC day closes")
+    if received > day_end + timedelta(seconds=capture_max_lag_seconds):
+        raise ValueError("daily evidence capture window expired; backfill is prohibited")
+
+    bars = value["bars"]
+    if not isinstance(bars, list) or len(bars) != 24:
+        raise ValueError("daily evidence requires exactly 24 complete hourly bars")
+    normalized_bars: list[dict[str, str]] = []
+    for index, item in enumerate(bars):
+        if not isinstance(item, dict):
+            raise ValueError(f"bars[{index}] must be an object")
+        start = parse_timestamp(str(item.get("interval_start", "")), f"bars[{index}].interval_start")
+        end = parse_timestamp(str(item.get("interval_end", "")), f"bars[{index}].interval_end")
+        expected_start = day_start + timedelta(hours=index)
+        if start.astimezone(timezone.utc) != expected_start:
+            raise ValueError(f"bars[{index}] is off the frozen hourly grid")
+        if end.astimezone(timezone.utc) != expected_start + timedelta(hours=1):
+            raise ValueError(f"bars[{index}] is not one complete hour")
+        open_price = _decimal(item, "open", index, positive=True)
+        high_price = _decimal(item, "high", index, positive=True)
+        low_price = _decimal(item, "low", index, positive=True)
+        close_price = _decimal(item, "close", index, positive=True)
+        volume = _decimal(item, "volume", index, positive=False)
+        if low_price > min(open_price, close_price) or high_price < max(open_price, close_price):
+            raise ValueError(f"bars[{index}] OHLC bounds are invalid")
+        if high_price < low_price:
+            raise ValueError(f"bars[{index}] high is below low")
+        normalized_bar = {
+            "interval_start": _iso_utc(expected_start),
+            "interval_end": _iso_utc(expected_start + timedelta(hours=1)),
+            "open": _decimal_text(open_price),
+            "high": _decimal_text(high_price),
+            "low": _decimal_text(low_price),
+            "close": _decimal_text(close_price),
+            "volume": _decimal_text(volume),
+        }
+        canonical = json.dumps(
+            normalized_bar, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+        normalized_bar["row_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        normalized_bars.append(normalized_bar)
+
+    provenance = value["source_provenance"]
+    if not isinstance(provenance, dict):
+        raise ValueError("source_provenance must be an object")
+    producer = str(provenance.get("producer", "")).strip()
+    artifact_id = str(provenance.get("artifact_id", "")).strip()
+    artifact_hash = str(provenance.get("sha256", "")).strip().lower()
+    if not producer or not artifact_id or not SHA256.fullmatch(artifact_hash):
+        raise ValueError("source_provenance requires producer, artifact_id, and sha256")
+    return {
+        "schema_version": "1",
+        "bundle_type": DAILY_BUNDLE_TYPE,
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "day": day.isoformat(),
+        "bars": normalized_bars,
+        "source_provenance": {
+            "producer": producer,
+            "artifact_id": artifact_id,
+            "sha256": artifact_hash,
+        },
+        "received_at": _iso_utc(received),
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def evidence_progress(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+    *,
+    now: datetime | None = None,
+    capture_max_lag_seconds: int = 21600,
+) -> dict[str, Any]:
+    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    evidence_start = parse_timestamp(str(trigger["evidence_start"]), "evidence_start").astimezone(
+        timezone.utc
+    )
+    minimum = int(trigger["minimum_observations"])
+    observations = state.get("evidence_observations", [])
+    if not isinstance(observations, list):
+        raise ValueError("evidence trigger state observations must be a list")
+    previous_chain = EMPTY_CHAIN_HEAD
+    for index, reference in enumerate(observations):
+        if not isinstance(reference, dict):
+            raise ValueError(f"evidence observation reference {index} must be an object")
+        expected_day = (evidence_start + timedelta(days=index)).date().isoformat()
+        if reference.get("day") != expected_day:
+            raise ValueError(f"evidence observation {index} breaks the frozen day sequence")
+        path = (store.root / str(reference.get("path", ""))).resolve()
+        try:
+            path.relative_to(store.root)
+        except ValueError as error:
+            raise ValueError("evidence observation path escapes research state") from error
+        if not path.is_file() or sha256_file(path) != reference.get("sha256"):
+            raise ValueError(f"sealed evidence observation changed or disappeared: {expected_day}")
+        stored = read_json(path)
+        normalized = validate_daily_evidence_bundle(
+            stored,
+            trigger,
+            received_at=current,
+            capture_max_lag_seconds=capture_max_lag_seconds,
+            verify_stored=True,
+        )
+        if stored != normalized:
+            raise ValueError(f"sealed evidence observation is not canonical: {expected_day}")
+        chain_head = hashlib.sha256(
+            f"{previous_chain}:{expected_day}:{reference['sha256']}".encode("utf-8")
+        ).hexdigest()
+        if reference.get("chain_head") != chain_head:
+            raise ValueError(f"evidence observation chain mismatch: {expected_day}")
+        previous_chain = chain_head
+    if observations and state.get("evidence_chain_head") != previous_chain:
+        raise ValueError("evidence trigger state chain head mismatch")
+    if int(state.get("evidence_observation_count", len(observations))) != len(observations):
+        raise ValueError("evidence trigger observation count mismatch")
+
+    source_contract = verify_evidence_source_contract(store, trigger, state)
+
+    count = len(observations)
+    next_start = evidence_start + timedelta(days=count)
+    next_close = next_start + timedelta(days=1)
+    deadline = next_close + timedelta(seconds=capture_max_lag_seconds)
+    lifecycle_status = str(state.get("status"))
+    if lifecycle_status == "CLOSED":
+        status = "CLOSED"
+    elif lifecycle_status == "READY_FOR_HYPOTHESIS":
+        status = "READY_FOR_HYPOTHESIS"
+    elif source_contract is None:
+        status = "SOURCE_UNBOUND"
+    elif count >= minimum:
+        status = "COMPLETE"
+    elif current < evidence_start:
+        status = "NOT_STARTED"
+    elif current < next_close:
+        status = "AWAITING_DAY_CLOSE"
+    elif current <= deadline:
+        status = "CAPTURE_DUE"
+    else:
+        status = "MISSED_CAPTURE_WINDOW"
+    complete_days = max(0, int((current - evidence_start).total_seconds() // 86400))
+    expected = min(minimum, complete_days)
+    accepting = lifecycle_status not in {"CLOSED", "READY_FOR_HYPOTHESIS"} and count < minimum
+    return {
+        "status": status,
+        "observation_count": count,
+        "minimum_observations": minimum,
+        "expected_observations": expected,
+        "lag_observations": max(0, expected - count),
+        "chain_head": previous_chain,
+        "next_observation_day": next_start.date().isoformat() if accepting else None,
+        "next_capture_deadline": _iso_utc(deadline) if accepting else None,
+        "coverage_start": _iso_utc(evidence_start) if count else None,
+        "coverage_end": _iso_utc(next_start) if count else None,
+        "source_contract": (
+            None
+            if source_contract is None
+            else {
+                "producer": source_contract["producer"],
+                "transport": source_contract["transport"],
+                "sha256": state["evidence_source_contract"]["sha256"],
+            }
+        ),
+    }
+
+
+def verify_evidence_source_contract(
+    store: ResearchStore,
+    trigger: dict[str, Any],
+    state: dict[str, Any],
+) -> dict[str, Any] | None:
+    reference = state.get("evidence_source_contract")
+    if reference is None:
+        return None
+    if not isinstance(reference, dict):
+        raise ValueError("evidence source contract state reference must be an object")
+    path = (store.root / str(reference.get("path", ""))).resolve()
+    try:
+        path.relative_to(store.root)
+    except ValueError as error:
+        raise ValueError("evidence source contract path escapes research state") from error
+    if not path.is_file() or sha256_file(path) != reference.get("sha256"):
+        raise ValueError("sealed evidence source contract changed or disappeared")
+    contract = read_json(path)
+    registered_at = parse_timestamp(str(contract.get("registered_at")), "registered_at")
+    normalized = validate_evidence_source_contract(
+        {key: value for key, value in contract.items() if key != "registered_at"},
+        trigger,
+        registered_at=registered_at,
+    )
+    if normalized != contract:
+        raise ValueError("sealed evidence source contract is not canonical")
+    if reference.get("producer") != contract["producer"]:
+        raise ValueError("evidence source contract producer reference mismatch")
+    return contract
+
+
+def validate_evidence_manifest(
+    value: dict[str, Any],
+    trigger: dict[str, Any],
+    store: ResearchStore,
+) -> dict[str, Any]:
+    required = {
+        "schema_version",
+        "manifest_type",
+        "trigger_id",
+        "trigger_fingerprint",
+        "source",
+        "observation_unit",
+        "coverage_start",
+        "coverage_end",
+        "observations",
+        "dataset_artifact",
+        "diagnostic_artifact",
+        "integrity_checks",
+        "created_at",
+        "authorization",
+    }
+    missing = sorted(required.difference(value))
+    if missing:
+        raise ValueError(f"evidence manifest missing fields: {', '.join(missing)}")
+    if value["schema_version"] != "1":
+        raise ValueError("evidence manifest schema_version must be 1")
+    if value["manifest_type"] != MANIFEST_TYPE:
+        raise ValueError(f"evidence manifest manifest_type must be {MANIFEST_TYPE}")
+    if value["authorization"] != RESEARCH_AUTHORIZATION:
+        raise ValueError("evidence manifest authorization must remain research-only")
+    if value["trigger_id"] != trigger["trigger_id"]:
+        raise ValueError("evidence manifest trigger_id mismatch")
+    if value["trigger_fingerprint"] != trigger["fingerprint"]:
+        raise ValueError("evidence manifest trigger fingerprint mismatch")
+    if value["source"] != trigger["source"]:
+        raise ValueError("evidence manifest source mismatch")
+    if value["observation_unit"] != trigger["observation_unit"]:
+        raise ValueError("evidence manifest observation_unit mismatch")
+
+    coverage_start = parse_timestamp(str(value["coverage_start"]), "coverage_start")
+    coverage_end = parse_timestamp(str(value["coverage_end"]), "coverage_end")
+    evidence_start = parse_timestamp(str(trigger["evidence_start"]), "evidence_start")
+    review_not_before = parse_timestamp(
+        str(trigger["review_not_before"]), "review_not_before"
+    )
+    created_at = parse_timestamp(str(value["created_at"]), "created_at")
+    if coverage_start != evidence_start:
+        raise ValueError("evidence manifest coverage_start must equal trigger evidence_start")
+    if coverage_end < review_not_before:
+        raise ValueError("evidence manifest does not reach trigger review_not_before")
+    if coverage_end <= coverage_start:
+        raise ValueError("evidence manifest coverage_end must follow coverage_start")
+    if created_at < coverage_end:
+        raise ValueError("evidence manifest created_at must not precede coverage_end")
+    if created_at > datetime.now(timezone.utc) + timedelta(minutes=5):
+        raise ValueError("evidence manifest created_at must not be in the future")
+
+    observations = value["observations"]
+    if not isinstance(observations, list):
+        raise ValueError("evidence manifest observations must be a list")
+    minimum = int(trigger["minimum_observations"])
+    if len(observations) < minimum:
+        raise ValueError(
+            f"evidence manifest has {len(observations)} observations; {minimum} required"
+        )
+    normalized_observations = _validate_observations(
+        observations,
+        observation_unit=str(trigger["observation_unit"]),
+        coverage_start=coverage_start,
+        coverage_end=coverage_end,
+    )
+
+    dataset_artifact = _validate_artifact(
+        value["dataset_artifact"], "dataset_artifact", store
+    )
+    diagnostic_artifact = _validate_artifact(
+        value["diagnostic_artifact"], "diagnostic_artifact", store
+    )
+    integrity_checks = _validate_integrity_checks(
+        value["integrity_checks"], trigger["required_integrity_checks"]
+    )
+    return {
+        "schema_version": "1",
+        "manifest_type": MANIFEST_TYPE,
+        "trigger_id": trigger["trigger_id"],
+        "trigger_fingerprint": trigger["fingerprint"],
+        "source": trigger["source"],
+        "observation_unit": trigger["observation_unit"],
+        "coverage_start": str(value["coverage_start"]),
+        "coverage_end": str(value["coverage_end"]),
+        "observation_count": len(normalized_observations),
+        "minimum_observations": minimum,
+        "dataset_artifact": dataset_artifact,
+        "diagnostic_artifact": diagnostic_artifact,
+        "integrity_checks": integrity_checks,
+        "created_at": str(value["created_at"]),
+        "authorization": RESEARCH_AUTHORIZATION,
+    }
+
+
+def _validate_observations(
+    observations: list[Any],
+    *,
+    observation_unit: str,
+    coverage_start: datetime,
+    coverage_end: datetime,
+) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    previous_end: datetime | None = None
+    for index, item in enumerate(observations):
+        if not isinstance(item, dict):
+            raise ValueError(f"observations[{index}] must be an object")
+        observation_id = str(item.get("observation_id", "")).strip()
+        if not observation_id:
+            raise ValueError(f"observations[{index}].observation_id must not be blank")
+        if observation_id in seen:
+            raise ValueError(f"duplicate observation_id: {observation_id}")
+        seen.add(observation_id)
+        start = parse_timestamp(str(item.get("start_at", "")), f"observations[{index}].start_at")
+        end = parse_timestamp(str(item.get("end_at", "")), f"observations[{index}].end_at")
+        try:
+            source_row_count = int(item["source_row_count"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError(
+                f"observations[{index}].source_row_count must be a positive integer"
+            ) from error
+        if source_row_count < 1:
+            raise ValueError(f"observations[{index}].source_row_count must be positive")
+        if start < coverage_start or end > coverage_end or end <= start:
+            raise ValueError(f"observations[{index}] falls outside manifest coverage")
+        if previous_end is not None and start != previous_end:
+            raise ValueError(f"observations[{index}] is not contiguous with its predecessor")
+        if observation_unit == "COMPLETE_UTC_DAY":
+            if start.tzinfo != timezone.utc or end.tzinfo != timezone.utc:
+                raise ValueError(f"observations[{index}] must use UTC timestamps")
+            if start.time() != datetime.min.time() or end - start != timedelta(days=1):
+                raise ValueError(f"observations[{index}] is not one complete UTC day")
+            if source_row_count != 24:
+                raise ValueError(
+                    f"observations[{index}] must contain 24 complete source hours"
+                )
+        normalized.append(
+            {
+                "observation_id": observation_id,
+                "start_at": str(item.get("start_at")),
+                "end_at": str(item.get("end_at")),
+                "source_row_count": source_row_count,
+            }
+        )
+        previous_end = end
+    if normalized:
+        first = parse_timestamp(normalized[0]["start_at"], "first observation start")
+        last = parse_timestamp(normalized[-1]["end_at"], "last observation end")
+        if first != coverage_start or last != coverage_end:
+            raise ValueError("observations must exactly cover the declared coverage window")
+    return normalized
+
+
+def _validate_artifact(value: Any, field: str, store: ResearchStore) -> dict[str, str]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{field} must be an object")
+    relative = str(value.get("path", "")).strip()
+    expected_hash = str(value.get("sha256", "")).strip().lower()
+    if not relative or not SHA256.fullmatch(expected_hash):
+        raise ValueError(f"{field} requires path and lowercase sha256")
+    path = (store.root / relative).resolve()
+    try:
+        path.relative_to(store.root)
+    except ValueError as error:
+        raise ValueError(f"{field} must stay inside research state") from error
+    if not path.is_file():
+        raise ValueError(f"{field} does not exist: {relative}")
+    if sha256_file(path) != expected_hash:
+        raise ValueError(f"{field} hash mismatch: {relative}")
+    return {"path": relative, "sha256": expected_hash}
+
+
+def _validate_integrity_checks(
+    value: Any, required_checks: list[Any]
+) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        raise ValueError("integrity_checks must be a list")
+    normalized: list[dict[str, str]] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise ValueError(f"integrity_checks[{index}] must be an object")
+        name = str(item.get("name", "")).strip()
+        status = str(item.get("status", "")).strip()
+        evidence = str(item.get("evidence", "")).strip()
+        if not name or status != "PASS" or not evidence:
+            raise ValueError(
+                f"integrity_checks[{index}] requires name, PASS status, and evidence"
+            )
+        normalized.append({"name": name, "status": "PASS", "evidence": evidence})
+    names = [item["name"] for item in normalized]
+    required = [str(item) for item in required_checks]
+    if len(names) != len(set(names)):
+        raise ValueError("integrity_checks must not contain duplicate names")
+    if set(names) != set(required):
+        missing = sorted(set(required).difference(names))
+        extra = sorted(set(names).difference(required))
+        raise ValueError(
+            f"integrity_checks must exactly match trigger requirements; missing={missing} extra={extra}"
+        )
+    return normalized
+
+
+def _decimal(
+    item: dict[str, Any],
+    field: str,
+    index: int,
+    *,
+    positive: bool,
+) -> Decimal:
+    try:
+        value = Decimal(str(item[field]))
+    except (KeyError, InvalidOperation, ValueError) as error:
+        raise ValueError(f"bars[{index}].{field} must be a finite decimal") from error
+    if not value.is_finite():
+        raise ValueError(f"bars[{index}].{field} must be finite")
+    if positive and value <= 0:
+        raise ValueError(f"bars[{index}].{field} must be positive")
+    if not positive and value < 0:
+        raise ValueError(f"bars[{index}].{field} must not be negative")
+    return value
+
+
+def _decimal_text(value: Decimal) -> str:
+    text = format(value, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def _iso_utc(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")

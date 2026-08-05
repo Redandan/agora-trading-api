@@ -1,0 +1,46 @@
+[Unit]
+Description=Validate and seal one forward-evidence day without network access
+Documentation=file:/opt/agora-research-worker/current/docs/server-forward-evidence-source-v1.md
+After=local-fs.target
+
+[Service]
+Type=oneshot
+User=agora-research
+Group=agora-research
+SupplementaryGroups=agora-evidence
+WorkingDirectory=/opt/agora-research-worker/current
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=AGORA_RESEARCH_STATE_DIR=/var/lib/agora-research/state
+Environment=AGORA_RESEARCH_SOURCE_REQUEST_DIR=/var/lib/agora-research/source-requests
+Environment=AGORA_RESEARCH_SOURCE_DROP_DIR=/var/lib/agora-research/source-drop
+Environment=AGORA_RESEARCH_POLICY_FILE=/opt/agora-research-worker/current/research_pipeline/policy.v3.json
+ExecStart=/opt/agora-research-worker/venv/bin/python -m research_source ingest
+Restart=on-failure
+RestartSec=15
+SuccessExitStatus=65
+UMask=0027
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+ProcSubset=pid
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+IPAddressDeny=any
+RestrictAddressFamilies=AF_UNIX
+ReadOnlyPaths=/var/lib/agora-research/source-requests
+ReadWritePaths=/var/lib/agora-research/state /var/lib/agora-research/source-drop
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+TimeoutStartSec=5min

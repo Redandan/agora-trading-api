@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import shlex
 import sys
 from pathlib import Path
@@ -160,6 +161,7 @@ def checked_evidence_triggers(
 
 
 def _candidate_registration_sla(
+    store: ResearchStore,
     state: dict[str, Any],
     *,
     now: datetime,
@@ -170,6 +172,15 @@ def _candidate_registration_sla(
     ready_at = parse_timestamp(ready_text, "evidence_ready_at")
     deadline = ready_at + timedelta(hours=24)
     deadline_text = deadline.isoformat(timespec="seconds").replace("+00:00", "Z")
+    integrity_reason = _ready_review_timestamp_integrity(store, state, ready_at)
+    if integrity_reason is not None:
+        return {
+            "status": "INTEGRITY_BLOCKED",
+            "reason": integrity_reason,
+            "deadline": deadline_text,
+            "lead_time_seconds": None,
+            "seconds_remaining": None,
+        }
     recorded_status = state.get("candidate_lead_time_sla")
     recorded_seconds = state.get("candidate_lead_time_seconds")
     if recorded_status in {"PASS", "BREACH"} and isinstance(recorded_seconds, int):
@@ -190,6 +201,46 @@ def _candidate_registration_sla(
         "lead_time_seconds": None,
         "seconds_remaining": seconds_remaining,
     }
+
+
+def _ready_review_timestamp_integrity(
+    store: ResearchStore,
+    state: dict[str, Any],
+    ready_at: datetime,
+) -> str | None:
+    reviews = state.get("reviews")
+    if not isinstance(reviews, list) or not reviews:
+        return "SEALED_READY_REVIEW_REFERENCE_MISSING"
+    reference = reviews[-1]
+    if not isinstance(reference, dict):
+        return "SEALED_READY_REVIEW_REFERENCE_INVALID"
+    relative = str(reference.get("path", ""))
+    expected_hash = str(reference.get("sha256", ""))
+    if not relative or not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+        return "SEALED_READY_REVIEW_REFERENCE_INVALID"
+    path = (store.root / relative).resolve()
+    try:
+        path.relative_to(store.root.resolve())
+    except ValueError:
+        return "SEALED_READY_REVIEW_PATH_REJECTED"
+    try:
+        if sha256_file(path) != expected_hash:
+            return "SEALED_READY_REVIEW_HASH_MISMATCH"
+        review = json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return "SEALED_READY_REVIEW_UNAVAILABLE"
+    if not isinstance(review, dict) or review.get("outcome") != "READY_FOR_HYPOTHESIS":
+        return "SEALED_READY_REVIEW_INVALID"
+    try:
+        reviewed_at = parse_timestamp(
+            str(review.get("reviewed_at", "")),
+            "sealed review reviewed_at",
+        )
+    except ValueError:
+        return "SEALED_READY_REVIEW_TIMESTAMP_INVALID"
+    if reviewed_at != ready_at:
+        return "READY_TIMESTAMP_MISMATCH"
+    return None
 
 
 def status_payload(
@@ -240,6 +291,11 @@ def status_payload(
     )
     trigger_records = []
     for trigger, state in checked_evidence_triggers(store):
+        candidate_registration_sla = _candidate_registration_sla(
+            store,
+            state,
+            now=current,
+        )
         record = {
             "trigger_id": trigger["trigger_id"],
             "title": trigger["title"],
@@ -250,18 +306,20 @@ def status_payload(
             "review_count": state.get("review_count", 0),
             "evidence_ready_at": state.get("evidence_ready_at"),
             "oos_ready_at": state.get("oos_ready_at"),
-            "candidate_registration_sla": _candidate_registration_sla(
-                state,
-                now=current,
-            ),
+            "candidate_registration_sla": candidate_registration_sla,
             "diagnostic_summary": (state.get("detail") or {}).get(
                 "diagnostic_summary"
             ),
-            "candidate_context": discovery_candidate_context(
-                store,
-                trigger,
-                state,
-                now=current,
+            "candidate_context": (
+                None
+                if candidate_registration_sla
+                and candidate_registration_sla.get("status") == "INTEGRITY_BLOCKED"
+                else discovery_candidate_context(
+                    store,
+                    trigger,
+                    state,
+                    now=current,
+                )
             ),
             "progress": evidence_progress(
                 store,

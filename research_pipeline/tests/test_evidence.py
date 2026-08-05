@@ -1196,6 +1196,26 @@ class EvidenceManifestContractTest(unittest.TestCase):
         ).isoformat()
         self.store.save_evidence_trigger_state(state)
 
+        canonical = status_payload(
+            self.store,
+            policy,
+            now=sealed_ready_at + timedelta(minutes=2),
+        )
+        trigger_status = next(
+            item
+            for item in canonical["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"]["status"],
+            "INTEGRITY_BLOCKED",
+        )
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"]["reason"],
+            "READY_TIMESTAMP_MISMATCH",
+        )
+        self.assertIsNone(trigger_status["candidate_context"])
+
         with self._eligible_forward_test_adapter():
             with self.assertRaisesRegex(
                 ValueError,
@@ -1213,6 +1233,37 @@ class EvidenceManifestContractTest(unittest.TestCase):
             self.store.experiment_dir(bundle["manifest"]["experiment_id"]).exists()
         )
         self.assertEqual(self.store.hypothesis_entries(), [])
+
+    def test_candidate_registration_status_blocks_tampered_ready_review(self) -> None:
+        _bundle, policy = self._ready_candidate_bundle()
+        state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
+        review_path = self.root / state["reviews"][-1]["path"]
+        review_path.write_text("tampered\n", encoding="utf-8")
+
+        canonical = status_payload(
+            self.store,
+            policy,
+            now=datetime.now(timezone.utc),
+        )
+        trigger_status = next(
+            item
+            for item in canonical["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )
+        self.assertEqual(
+            trigger_status["candidate_registration_sla"],
+            {
+                "status": "INTEGRITY_BLOCKED",
+                "reason": "SEALED_READY_REVIEW_HASH_MISMATCH",
+                "deadline": (
+                    datetime.fromisoformat(str(state["evidence_ready_at"]))
+                    + timedelta(hours=24)
+                ).isoformat(timespec="seconds").replace("+00:00", "Z"),
+                "lead_time_seconds": None,
+                "seconds_remaining": None,
+            },
+        )
+        self.assertIsNone(trigger_status["candidate_context"])
 
     def test_supported_forward_candidate_registers_with_separate_sealed_oos(self) -> None:
         contract = diagnostic_contract_status()

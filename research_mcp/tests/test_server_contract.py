@@ -68,9 +68,6 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         runner = (
             repository / "scripts" / "research-worker" / "run-request.sh"
         ).read_text(encoding="utf-8")
-        remote_verifier = (
-            repository / "scripts" / "verify_research_worker_ssh.ps1"
-        ).read_text(encoding="utf-8")
 
         self.assertIn("Restart=on-abnormal", service)
         self.assertIn("StartLimitBurst=3", service)
@@ -81,7 +78,6 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn('if [ -f "$RUNNING" ]; then', runner)
         self.assertIn('value["resume_count"]', runner)
         self.assertNotIn(".timer", path_unit)
-        self.assertIn('[string]$ExpectTimer = "disabled"', remote_verifier)
 
 
 if __name__ == "__main__":

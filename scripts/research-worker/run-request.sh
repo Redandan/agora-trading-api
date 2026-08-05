@@ -66,8 +66,15 @@ PY
 }
 trap finalize_failed_request EXIT
 
-[ -f "$PENDING" ] || exit 0
-mv -- "$PENDING" "$RUNNING"
+if [ -f "$RUNNING" ]; then
+  if [ -f "$PENDING" ]; then
+    echo "both pending and running research requests exist; preserving pending and failing the running request" >&2
+    exit 75
+  fi
+else
+  [ -f "$PENDING" ] || exit 0
+  mv -- "$PENDING" "$RUNNING"
+fi
 
 request_metadata="$(python3 - "$RUNNING" <<'PY'
 import json
@@ -133,13 +140,20 @@ import sys
 
 with open(sys.argv[1], encoding="utf-8") as stream:
     value = json.load(stream)
-value["status"] = "RUNNING"
-value["started_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-temporary = sys.argv[2] + ".tmp"
-with open(temporary, "w", encoding="utf-8") as stream:
-    json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
-    stream.write("\n")
-os.replace(temporary, sys.argv[2])
+now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+if value.get("status") == "RUNNING":
+    value["resume_count"] = int(value.get("resume_count", 0)) + 1
+    value["last_resumed_at"] = now
+else:
+    value["status"] = "RUNNING"
+    value["started_at"] = now
+    value["resume_count"] = 0
+for path in sys.argv[1:3]:
+    temporary = path + ".tmp"
+    with open(temporary, "w", encoding="utf-8") as stream:
+        json.dump(value, stream, ensure_ascii=False, indent=2, sort_keys=True)
+        stream.write("\n")
+    os.replace(temporary, path)
 PY
 
 set +e

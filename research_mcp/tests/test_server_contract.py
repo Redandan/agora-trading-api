@@ -51,6 +51,34 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertNotIn("read_research_worker_inbox_ssh", prompt)
         self.assertNotIn("Seal the evidence under `.research-state`", prompt)
 
+    def test_dispatch_recovers_an_inflight_request_without_an_extra_timer(self) -> None:
+        repository = Path(__file__).resolve().parents[2]
+        service = (
+            repository
+            / "scripts"
+            / "research-worker"
+            / "agora-research-dispatch.service"
+        ).read_text(encoding="utf-8")
+        path_unit = (
+            repository
+            / "scripts"
+            / "research-worker"
+            / "agora-research-dispatch.path"
+        ).read_text(encoding="utf-8")
+        runner = (
+            repository / "scripts" / "research-worker" / "run-request.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Restart=on-abnormal", service)
+        self.assertIn("StartLimitBurst=3", service)
+        self.assertIn(
+            "PathExists=/var/lib/agora-research/requests/running.json",
+            path_unit,
+        )
+        self.assertIn('if [ -f "$RUNNING" ]; then', runner)
+        self.assertIn('value["resume_count"]', runner)
+        self.assertNotIn(".timer", path_unit)
+
 
 if __name__ == "__main__":
     unittest.main()

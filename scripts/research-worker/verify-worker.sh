@@ -100,6 +100,69 @@ ok "canonical research registry is readable"
 )
 ok "deployed research contracts verified in isolated temporary state"
 
+resume_probe="$(mktemp -d)"
+case "$resume_probe" in
+  /tmp/*) ;;
+  *) fail "resume probe escaped /tmp: $resume_probe" ;;
+esac
+resume_app="$resume_probe/app"
+resume_requests="$resume_probe/requests"
+resume_inbox="$resume_probe/inbox"
+resume_runtime="$resume_probe/runtime"
+mkdir -p "$resume_app/scripts/research-worker" "$resume_requests" "$resume_inbox" "$resume_runtime"
+printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'set -euo pipefail' \
+  'mkdir -p "$AGORA_RESEARCH_INBOX_DIR"' \
+  'printf '\''%s\n'\'' '\''{"status":"HEARTBEAT_OK","research_status":"WAITING_FOR_EVIDENCE"}'\'' > "$AGORA_RESEARCH_INBOX_DIR/latest.json"' \
+  > "$resume_app/scripts/research-worker/run-heartbeat.sh"
+chmod 0700 "$resume_app/scripts/research-worker/run-heartbeat.sh"
+python3 - "$resume_requests/running.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "w", encoding="utf-8") as stream:
+    json.dump(
+        {
+            "schema_version": "1",
+            "request_id": "a" * 32,
+            "requested_at": "2026-08-05T00:00:00Z",
+            "source": "CODEX_CLOUD_OPS",
+            "operation": "RESEARCH_HEARTBEAT",
+            "status": "RUNNING",
+            "started_at": "2026-08-05T00:00:01Z",
+            "resume_count": 0,
+        },
+        stream,
+        sort_keys=True,
+    )
+    stream.write("\n")
+PY
+APP_DIR="$resume_app" \
+AGORA_RESEARCH_REQUEST_DIR="$resume_requests" \
+AGORA_RESEARCH_INBOX_DIR="$resume_inbox" \
+AGORA_RESEARCH_RUNTIME_DIR="$resume_runtime" \
+  bash "$current/scripts/research-worker/run-request.sh"
+python3 - "$resume_requests" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+if (root / "running.json").exists() or (root / "pending.json").exists():
+    raise SystemExit("resumed request was not finalized")
+with (root / "runs" / ("a" * 32 + ".json")).open(encoding="utf-8") as stream:
+    result = json.load(stream)
+if result.get("status") != "COMPLETED":
+    raise SystemExit(f"resumed request did not complete: {result.get('status')}")
+if result.get("started_at") != "2026-08-05T00:00:01Z":
+    raise SystemExit("resumed request lost its original started_at")
+if result.get("resume_count") != 1 or not result.get("last_resumed_at"):
+    raise SystemExit("resumed request did not record its recovery")
+PY
+rm -rf -- "$resume_probe"
+ok "hard-stop durable request resumes idempotently in isolated state"
+
 systemctl cat agora-research-heartbeat.service >/dev/null
 systemctl cat agora-research-heartbeat.timer >/dev/null
 systemctl cat agora-research-dispatch.service >/dev/null
@@ -120,6 +183,13 @@ systemd-analyze verify \
   /etc/systemd/system/agora-research-evidence-ingest.service \
   /etc/systemd/system/agora-research-evidence-ingest.path
 ok "systemd units verified"
+
+[ "$(systemctl show agora-research-dispatch.service --property=Restart --value)" = "on-abnormal" ] \
+  || fail "dispatch service does not restart after an abnormal stop"
+systemctl show agora-research-dispatch.path --property=Paths --value \
+  | grep -Fq '/var/lib/agora-research/requests/running.json' \
+  || fail "dispatch path does not watch an interrupted running request"
+ok "dispatch hard-stop and reboot recovery contract verified"
 
 systemctl is-active --quiet agora-research-mcp.service || fail "Research MCP is not active"
 systemctl is-active --quiet agora-research-dispatch.path || fail "dispatch path is not active"

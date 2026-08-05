@@ -175,6 +175,8 @@ database query, or backfill.
 - an early heartbeat returns `NOT_DUE` without creating `pending.json`;
 - a repeated due heartbeat returns the same queued/running request;
 - a stale queue item remains auditable through a terminal run record;
+- an abnormal stop or host reboot resumes the same in-flight request through
+  the existing dispatch path, with bounded retries and no second timer;
 - generated Coach briefings include an immutable artifact id and SHA-256;
 - evidence-ready Codex output can register one frozen candidate within 24 hours
   without a manual local task;

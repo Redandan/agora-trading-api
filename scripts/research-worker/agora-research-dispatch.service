@@ -2,6 +2,8 @@
 Description=Run one queued fixed Agora research-control operation
 Documentation=file:/opt/agora-research-worker/current/docs/server-research-worker-v2.md
 After=local-fs.target
+StartLimitIntervalSec=8h
+StartLimitBurst=3
 
 [Service]
 Type=oneshot
@@ -41,3 +43,5 @@ ReadWritePaths=/var/lib/agora-research /run/agora-research
 CapabilityBoundingSet=
 SystemCallArchitectures=native
 TimeoutStartSec=2h15min
+Restart=on-abnormal
+RestartSec=5s

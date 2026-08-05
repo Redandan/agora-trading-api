@@ -103,6 +103,15 @@ embedded in that immutable report from the currently active canonical policy;
 an older artifact is labelled `SEALED_HISTORICAL_POLICY` rather than silently
 presented as a current-policy briefing.
 
+The dispatch path watches both `pending.json` and an interrupted
+`running.json`. The oneshot restarts only after an abnormal process stop and
+resumes the same schema-bound request idempotently, preserving its original
+`started_at` plus a recovery count. This also recovers an in-flight request
+after a host reboot without waiting for the next cloud day. Restart attempts
+are bounded; ordinary nonzero exits are sealed as `FAILED`, while the older
+lease-based `STALE_RECOVERED` path remains the final fail-closed fallback. This
+is event recovery, not a second research clock or timer.
+
 ## Cutover
 
 1. Deploy the V2 release, OAuth MCP, request directories, dispatch path, and
@@ -136,6 +145,8 @@ The systemd path unit is an event consumer, not an additional schedule.
   the 24-hour SLA passed;
 - a crashed queue lease remains auditable and can no longer block the queue
   indefinitely;
+- a hard-stopped or reboot-interrupted running request resumes under the same
+  request id without waiting for the next daily cloud wake;
 - every MCP briefing returns a sealed artifact id and SHA-256;
 - canonical status exposes the forward-day count, lag, hash-chain head, and
   next capture deadline, and a missed day becomes an integrity alert;

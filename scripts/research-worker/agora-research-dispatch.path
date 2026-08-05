@@ -4,6 +4,7 @@ Documentation=file:/opt/agora-research-worker/current/docs/server-research-worke
 
 [Path]
 PathExists=/var/lib/agora-research/requests/pending.json
+PathExists=/var/lib/agora-research/requests/running.json
 Unit=agora-research-dispatch.service
 
 [Install]

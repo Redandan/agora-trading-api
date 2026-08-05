@@ -87,6 +87,18 @@ ok "public source identity cannot read Trading secrets or canonical state"
 )
 ok "canonical research registry is readable"
 
+(
+  cd "$current"
+  sudo -u "$WORKER_USER" env \
+    PYTHONDONTWRITEBYTECODE=1 \
+    "$WORKER_ROOT/venv/bin/python" -m unittest \
+    research_pipeline.tests.test_evidence \
+    research_mcp.tests.test_queue \
+    research_mcp.tests.test_server_contract \
+    research_source.tests.test_forward_source >/dev/null
+)
+ok "deployed research contracts verified in isolated temporary state"
+
 systemctl cat agora-research-heartbeat.service >/dev/null
 systemctl cat agora-research-heartbeat.timer >/dev/null
 systemctl cat agora-research-dispatch.service >/dev/null

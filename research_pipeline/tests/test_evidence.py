@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -481,6 +483,52 @@ class EvidenceManifestContractTest(unittest.TestCase):
             current_policy_hash=policy_sha256(policy_path),
         )
         self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
+
+    def test_candidate_bundle_cli_boundary_stops_at_preregistered(self) -> None:
+        bundle, _policy = self._ready_candidate_bundle()
+        bundle_path = self.root / "candidate-bundle.json"
+        bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+        policy_path = Path(__file__).parents[1] / "policy.v3.json"
+        repository = Path(__file__).resolve().parents[2]
+        command = [
+            sys.executable,
+            "-m",
+            "research_pipeline",
+            "--state-dir",
+            str(self.root),
+            "--policy",
+            str(policy_path),
+            "register-candidate-bundle",
+            str(bundle_path),
+        ]
+
+        first = subprocess.run(
+            command,
+            cwd=repository,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        self.assertEqual(first.returncode, 0, msg=first.stderr)
+        result = json.loads(first.stdout)
+        self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
+        self.assertEqual(result["experiment_stage"], "PREREGISTERED")
+        self.assertEqual(result["lead_time_sla"], "PASS")
+
+        repeated = subprocess.run(
+            command,
+            cwd=repository,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        self.assertEqual(repeated.returncode, 0, msg=repeated.stderr)
+        self.assertEqual(
+            json.loads(repeated.stdout)["status"],
+            "CANDIDATE_BUNDLE_ALREADY_REGISTERED",
+        )
 
     def test_candidate_bundle_rejects_missing_performance_metric(self) -> None:
         bundle, policy = self._ready_candidate_bundle()

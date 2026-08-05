@@ -15,8 +15,10 @@ from .adapters import (
     classify_result,
     execute,
     next_action,
+    require_adapter,
     validate_adapter_manifest,
 )
+from .corpus import SELECTION_CORPUS_ID, selection_corpus_status
 from .evidence import (
     MANIFEST_TYPE,
     evidence_progress,
@@ -188,6 +190,36 @@ def status_payload(
     capture_max_lag_seconds = int(
         policy.get("evidence", {}).get("capture_max_lag_seconds", 21600)
     )
+    repo_root = Path(__file__).resolve().parents[1]
+    corpus = selection_corpus_status(store.root)
+    declared_candidate_adapters = sorted(
+        key for key, spec in ADAPTERS.items() if spec.forward_candidate_eligible
+    )
+    candidate_adapters: list[str] = []
+    candidate_blockers: list[dict[str, str]] = []
+    for key in declared_candidate_adapters:
+        spec = ADAPTERS[key]
+        if not spec.supports_oos:
+            candidate_blockers.append({"adapter": key, "reason": "OOS_UNSUPPORTED"})
+        elif not (repo_root / "research" / spec.runner).is_file():
+            candidate_blockers.append({"adapter": key, "reason": "RUNNER_MISSING"})
+        elif spec.required_corpus_id == SELECTION_CORPUS_ID and corpus["status"] != "READY":
+            candidate_blockers.append(
+                {"adapter": key, "reason": f"CANONICAL_CORPUS_{corpus['status']}"}
+            )
+        elif spec.required_corpus_id not in {None, SELECTION_CORPUS_ID}:
+            candidate_blockers.append({"adapter": key, "reason": "UNKNOWN_CANONICAL_CORPUS"})
+        else:
+            candidate_adapters.append(key)
+    readiness_status = (
+        "READY"
+        if candidate_adapters
+        else (
+            "FORWARD_CANDIDATE_ADAPTER_BLOCKED"
+            if declared_candidate_adapters
+            else "NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER"
+        )
+    )
     return {
         "state_dir": str(store.root),
         "experiments": [
@@ -226,6 +258,13 @@ def status_payload(
             }
             for trigger, state in checked_evidence_triggers(store)
         ],
+        "forward_candidate_readiness": {
+            "status": readiness_status,
+            "eligible_adapters": candidate_adapters,
+            "declared_adapters": declared_candidate_adapters,
+            "blockers": candidate_blockers,
+            "historical_selection_corpus": corpus,
+        },
     }
 
 
@@ -374,7 +413,24 @@ def register_candidate_bundle(
         manifest_value,
         max_variants=int(policy["budget"]["max_candidate_variants"]),
     )
+    adapter_spec = require_adapter(manifest.adapter)
+    if not adapter_spec.forward_candidate_eligible:
+        raise ValueError(
+            f"adapter is not eligible for forward-evidence candidate registration: {manifest.adapter}"
+        )
     validate_adapter_manifest(manifest.to_dict())
+    if not adapter_spec.supports_oos or manifest.oos_cutoff is None:
+        raise ValueError(
+            "forward-evidence candidate registration requires an adapter and manifest with sealed OOS"
+        )
+    if adapter_spec.required_corpus_id is not None:
+        if adapter_spec.required_corpus_id != SELECTION_CORPUS_ID:
+            raise ValueError("forward candidate adapter names an unknown canonical corpus")
+        corpus = selection_corpus_status(store.root)
+        if corpus["status"] != "READY":
+            raise ValueError(
+                f"forward candidate canonical corpus is not ready: {corpus['status']}"
+            )
     hypothesis_id = str(hypothesis["hypothesis_id"])
     if manifest.experiment_id != hypothesis_id:
         raise ValueError("candidate experiment_id must equal hypothesis_id")

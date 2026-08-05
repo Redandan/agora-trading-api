@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -9,7 +10,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
+from research_pipeline.adapters import ADAPTERS
 from research_pipeline.cli import (
     register_candidate_bundle,
     run_tick,
@@ -246,7 +249,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
             "adapter": "java-dra-v1-parity",
             "created_at": created_at,
             "selection_cutoff": "2025-01-01T00:00:00Z",
-            "oos_cutoff": None,
+            "oos_cutoff": "2027-01-01T00:00:00Z",
             "max_variants": 1,
             "authorization": RESEARCH_AUTHORIZATION,
             "objective": {
@@ -261,6 +264,19 @@ class EvidenceManifestContractTest(unittest.TestCase):
             "manifest": manifest,
             "authorization": RESEARCH_AUTHORIZATION,
         }, policy
+
+    def _eligible_forward_test_adapter(self):
+        spec = ADAPTERS["java-dra-v1-parity"]
+        return patch.dict(
+            ADAPTERS,
+            {
+                "java-dra-v1-parity": replace(
+                    spec,
+                    supports_oos=True,
+                    forward_candidate_eligible=True,
+                )
+            },
+        )
 
     def test_valid_manifest_derives_observation_count(self) -> None:
         summary = validate_evidence_manifest(self.manifest, self.trigger, self.store)
@@ -481,6 +497,14 @@ class EvidenceManifestContractTest(unittest.TestCase):
         )
         self.assertEqual(
             trigger_status["diagnostic_summary"], ready_state["detail"]["diagnostic_summary"]
+        )
+        self.assertEqual(
+            canonical["forward_candidate_readiness"]["status"],
+            "NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER",
+        )
+        self.assertEqual(
+            canonical["forward_candidate_readiness"]["historical_selection_corpus"]["status"],
+            "MISSING",
         )
         tick = run_tick(
             self.store,
@@ -778,13 +802,14 @@ class EvidenceManifestContractTest(unittest.TestCase):
         policy_path = Path(__file__).parents[1] / "policy.v3.json"
         state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
         ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
-        result = register_candidate_bundle(
-            self.store,
-            policy,
-            bundle,
-            current_policy_hash=policy_sha256(policy_path),
-            now=ready_at + timedelta(hours=24),
-        )
+        with self._eligible_forward_test_adapter():
+            result = register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=ready_at + timedelta(hours=24),
+            )
         self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
         self.assertEqual(result["lead_time_sla"], "PASS")
         self.assertEqual(result["lead_time_seconds"], 86400)
@@ -802,12 +827,13 @@ class EvidenceManifestContractTest(unittest.TestCase):
             if item["trigger_id"] == self.trigger["trigger_id"]
         )
         self.assertEqual(trigger_status["candidate_registration_sla"]["status"], "PASS")
-        repeated = register_candidate_bundle(
-            self.store,
-            policy,
-            bundle,
-            current_policy_hash=policy_sha256(policy_path),
-        )
+        with self._eligible_forward_test_adapter():
+            repeated = register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+            )
         self.assertEqual(repeated["status"], "CANDIDATE_BUNDLE_ALREADY_REGISTERED")
 
     def test_candidate_bundle_preserves_a_measured_24h_sla_breach(self) -> None:
@@ -816,19 +842,20 @@ class EvidenceManifestContractTest(unittest.TestCase):
         state = self.store.load_evidence_trigger_state(self.trigger["trigger_id"])
         ready_at = datetime.fromisoformat(str(state["evidence_ready_at"]))
 
-        result = register_candidate_bundle(
-            self.store,
-            policy,
-            bundle,
-            current_policy_hash=policy_sha256(policy_path),
-            now=ready_at + timedelta(hours=24, seconds=1),
-        )
+        with self._eligible_forward_test_adapter():
+            result = register_candidate_bundle(
+                self.store,
+                policy,
+                bundle,
+                current_policy_hash=policy_sha256(policy_path),
+                now=ready_at + timedelta(hours=24, seconds=1),
+            )
 
         self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
         self.assertEqual(result["lead_time_sla"], "BREACH")
         self.assertEqual(result["lead_time_seconds"], 86401)
 
-    def test_candidate_bundle_cli_boundary_stops_at_preregistered(self) -> None:
+    def test_candidate_bundle_cli_rejects_parity_as_a_strategy_candidate(self) -> None:
         bundle, _policy = self._ready_candidate_bundle()
         bundle_path = self.root / "candidate-bundle.json"
         bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
@@ -854,25 +881,11 @@ class EvidenceManifestContractTest(unittest.TestCase):
             text=True,
             timeout=30,
         )
-        self.assertEqual(first.returncode, 0, msg=first.stderr)
-        result = json.loads(first.stdout)
-        self.assertEqual(result["status"], "CANDIDATE_BUNDLE_REGISTERED")
-        self.assertEqual(result["experiment_stage"], "PREREGISTERED")
-        self.assertEqual(result["lead_time_sla"], "PASS")
-
-        repeated = subprocess.run(
-            command,
-            cwd=repository,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        self.assertEqual(repeated.returncode, 0, msg=repeated.stderr)
-        self.assertEqual(
-            json.loads(repeated.stdout)["status"],
-            "CANDIDATE_BUNDLE_ALREADY_REGISTERED",
-        )
+        self.assertEqual(first.returncode, 2)
+        result = json.loads(first.stderr)
+        self.assertEqual(result["status"], "PIPELINE_ERROR")
+        self.assertIn("not eligible", result["detail"])
+        self.assertFalse(self.store.hypothesis_path("forward-candidate-test").exists())
 
     def test_candidate_bundle_rejects_missing_performance_metric(self) -> None:
         bundle, policy = self._ready_candidate_bundle()

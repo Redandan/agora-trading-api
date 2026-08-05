@@ -79,6 +79,14 @@ seconds remaining while pending, and the immutable measured `PASS` or `BREACH`
 after registration, so the 24-hour SLA is server-observable rather than inferred
 by the cloud prompt.
 
+Canonical status also exposes `forward_candidate_readiness`. A forward-evidence
+bundle may use only an explicitly eligible strategy adapter whose runner is
+installed, whose required sealed corpus is hash-verified, and whose contract
+retains OOS. Parity, diagnostic-only, and closed historical adapters are not
+candidate capabilities. If no eligible adapter exists, status reports
+`NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER`; this is an honest capability gap, not
+permission to relabel old work to satisfy the 24-hour metric.
+
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical
 progress is `CAPTURE_DUE`, the same MCP operation creates one deterministic
@@ -165,6 +173,10 @@ The systemd path unit is an event consumer, not an additional schedule.
   operations before any request or evidence-capture file is created;
 - an accepted candidate bundle records the evidence-ready lead time and whether
   the 24-hour SLA passed;
+- a parity, diagnostic-only, OOS-less, or closed historical adapter cannot be
+  registered as a forward-evidence strategy candidate;
+- canonical status exposes the exact hash and row readiness of the retained
+  pre-2025 selection corpus without importing or recomputing it;
 - a crashed queue lease remains auditable and can no longer block the queue
   indefinitely;
 - a hard-stopped or reboot-interrupted running request resumes under the same

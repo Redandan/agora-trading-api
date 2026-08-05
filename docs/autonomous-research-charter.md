@@ -206,6 +206,11 @@ the server re-verifies all sealed evidence and policy gates before registration.
 Canonical status supplies the exact 24-hour registration deadline, signed time
 remaining, and the preserved measured result, so the cloud task never derives
 the SLA from conversation history or its own clock.
+The same status must report whether a genuinely forward-candidate-eligible
+adapter and its required sealed corpus are ready. A Java parity adapter,
+diagnostic-only adapter, or closed historical branch cannot be submitted merely
+to make the registration SLA appear green; absence of an eligible adapter is a
+capability-readiness failure and must stay visible.
 The server rejects early
 heartbeats, converges concurrent calls on one request id, and preserves stale
 queue leases as terminal audit records before recovery. Weekly and monthly MCP

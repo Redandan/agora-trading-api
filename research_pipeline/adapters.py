@@ -18,6 +18,8 @@ class AdapterSpec:
     selection_cutoff: str
     candidate_variants: int
     description: str
+    forward_candidate_eligible: bool = False
+    required_corpus_id: str | None = None
 
 
 ADAPTERS = {

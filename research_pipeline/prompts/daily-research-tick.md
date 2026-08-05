@@ -31,6 +31,12 @@ hypothesis and its matching frozen experiment manifest. Submit exactly one
 schema-bound bundle through `submit_research_candidate_bundle`. The discovery
 window is not clean OOS. The server must reverify all sealed evidence and stop
 at `PREREGISTERED`; do not execute or promote the experiment in the same step.
+Require canonical `registry.forward_candidate_readiness.status=READY` and use
+only one adapter listed in `eligible_adapters`. If readiness reports
+`NO_ELIGIBLE_FORWARD_CANDIDATE_ADAPTER`, emit a capability-readiness alert and
+do not repurpose a parity adapter, diagnostic-only adapter, or closed historical
+branch as a strategy candidate. A submitted forward candidate must retain a
+sealed OOS cutoff; registration readiness is not permission to omit OOS.
 Use canonical `candidate_registration_sla`, not chat-side time arithmetic, to
 observe the 24-hour contract. `PENDING_WITHIN_SLA` requires submission in the
 same cloud cycle. `BREACH_PENDING_REGISTRATION` is an operational alert but

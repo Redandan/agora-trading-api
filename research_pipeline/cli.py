@@ -36,7 +36,7 @@ from .heartbeat import parse_heartbeat_now, record_heartbeat_failure, run_heartb
 from .models import ExperimentManifest, Stage, is_terminal_stage, parse_timestamp
 from .policy import load_policy, policy_sha256
 from .report import monthly_report, weekly_report
-from .storage import ResearchStore, atomic_write_json, sha256_file
+from .storage import ResearchStore, atomic_write_json, atomic_write_text, sha256_file
 from .waiting import (
     build_evidence_review,
     build_evidence_trigger,
@@ -1202,7 +1202,7 @@ def main(argv: list[str] | None = None) -> int:
                 if args.output.exists():
                     raise ValueError(f"sealed report already exists: {args.output}")
                 args.output.parent.mkdir(parents=True, exist_ok=True)
-                args.output.write_text(content + "\n", encoding="utf-8")
+                atomic_write_text(args.output, content + "\n")
             print(content)
             return 0
         if args.command == "monthly-report":
@@ -1220,7 +1220,7 @@ def main(argv: list[str] | None = None) -> int:
                 if args.output.exists():
                     raise ValueError(f"sealed report already exists: {args.output}")
                 args.output.parent.mkdir(parents=True, exist_ok=True)
-                args.output.write_text(content + "\n", encoding="utf-8")
+                atomic_write_text(args.output, content + "\n")
             print(content)
             return 0
         raise AssertionError(args.command)

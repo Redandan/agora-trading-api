@@ -94,27 +94,28 @@ class ForwardSourceContractTest(unittest.TestCase):
             / "prospective-mechanism-neutral-evidence-refresh-2026q4-r1.trigger.json"
         )
         trigger = build_evidence_trigger(json.loads(trigger_path.read_text(encoding="utf-8")))
-        with tempfile.TemporaryDirectory() as directory:
-            store = ResearchStore(Path(directory), lock_stale_seconds=21600)
-            store.register_evidence_trigger(trigger)
-            state = store.load_evidence_trigger_state(trigger["trigger_id"])
-            request = build_capture_request(
-                trigger=trigger,
-                state=state,
-                progress={
-                    "status": "CAPTURE_DUE",
-                    "next_observation_day": "2026-08-06",
-                    "next_capture_deadline": "2026-08-07T06:00:00Z",
-                    "source_contract": {
-                        "producer": PRODUCER,
-                        "transport": TRANSPORT,
-                        "sha256": (
-                            "5473210ab96b5f102a63c989a8dcab609b70c093e3e16804272b2be3de0a426e"
-                        ),
-                    },
-                },
-                requested_at=datetime(2026, 8, 7, 1, tzinfo=timezone.utc),
+        state = {
+            "trigger_sha256": (
+                "e8e9af37368c64d88d95f9739c6927ece462a2413dc923874abd488812cfc6a7"
             )
+        }
+        request = build_capture_request(
+            trigger=trigger,
+            state=state,
+            progress={
+                "status": "CAPTURE_DUE",
+                "next_observation_day": "2026-08-06",
+                "next_capture_deadline": "2026-08-07T06:00:00Z",
+                "source_contract": {
+                    "producer": PRODUCER,
+                    "transport": TRANSPORT,
+                    "sha256": (
+                        "5473210ab96b5f102a63c989a8dcab609b70c093e3e16804272b2be3de0a426e"
+                    ),
+                },
+            },
+            requested_at=datetime(2026, 8, 7, 1, tzinfo=timezone.utc),
+        )
 
         self.assertEqual(
             trigger["fingerprint"],

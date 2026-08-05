@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -9,7 +8,7 @@ from typing import Any
 
 from .models import parse_timestamp
 from .report import load_result, monthly_report, performance_lines, weekly_report
-from .storage import ResearchStore, atomic_write_json, read_json, sha256_file
+from .storage import ResearchStore, atomic_write_json, atomic_write_text, read_json, sha256_file
 
 
 TAIPEI = timezone(timedelta(hours=8), name="Asia/Taipei")
@@ -296,7 +295,7 @@ def _seal_report(
     path = store.root / "reports" / f"{prefix}{local_date.isoformat()}.md"
     if path.exists():
         raise ValueError(f"sealed report already exists: {path}")
-    _atomic_write_text(path, content + "\n")
+    atomic_write_text(path, content + "\n")
     return _report_record(store, path, local_date, kind)
 
 
@@ -308,13 +307,6 @@ def _report_record(store: ResearchStore, path: Path, report_date: date, kind: st
         "artifact_path": _relative(store, path),
         "sha256": sha256_file(path),
     }
-
-
-def _atomic_write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + f".{os.getpid()}.tmp")
-    temporary.write_text(content, encoding="utf-8")
-    os.replace(temporary, path)
 
 
 def _schedule(now: datetime, state: dict[str, Any], tick_result: dict[str, Any]) -> dict[str, Any]:

@@ -93,6 +93,7 @@ ok "canonical research registry is readable"
     PYTHONDONTWRITEBYTECODE=1 \
     "$WORKER_ROOT/venv/bin/python" -m unittest \
     research_pipeline.tests.test_evidence \
+    research_pipeline.tests.test_storage \
     research_mcp.tests.test_queue \
     research_mcp.tests.test_server_contract \
     research_source.tests.test_forward_source >/dev/null

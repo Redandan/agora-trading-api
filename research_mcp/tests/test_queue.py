@@ -144,6 +144,38 @@ class DurableQueueContractTest(unittest.TestCase):
                 registered_at=datetime(2025, 12, 31, 12, tzinfo=timezone.utc),
             )
 
+    def _r1_forward_trigger(self) -> None:
+        examples = (
+            Path(queue.__file__).resolve().parents[1]
+            / "research_pipeline"
+            / "examples"
+        )
+        trigger = build_evidence_trigger(
+            json.loads(
+                (
+                    examples
+                    / "prospective-mechanism-neutral-evidence-refresh-2026q4-r1.trigger.json"
+                )
+                .read_text(encoding="utf-8")
+            )
+        )
+        source_contract = json.loads(
+            (
+                examples
+                / "prospective-mechanism-neutral-evidence-refresh-2026q4-r1.source-contract.json"
+            ).read_text(encoding="utf-8")
+        )
+        store = ResearchStore(self.state, lock_stale_seconds=60)
+        store.register_evidence_trigger(trigger)
+        state = store.load_evidence_trigger_state(trigger["trigger_id"])
+        register_evidence_source_contract(
+            store,
+            trigger,
+            state,
+            source_contract,
+            registered_at=datetime(2026, 8, 4, 12, tzinfo=timezone.utc),
+        )
+
     def test_not_due_does_not_enqueue(self) -> None:
         self._heartbeat_state("2026-01-02T00:00:00Z")
         result = queue.request_heartbeat(
@@ -174,6 +206,41 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(pending["request_id"], capture["request_id"])
         self.assertNotIn("url", pending)
         self.assertNotIn("instrument", pending)
+
+    def test_r1_daily_cycles_wait_then_queue_first_complete_day_once(self) -> None:
+        self._r1_forward_trigger()
+        self._heartbeat_state("2026-08-06T01:00:00Z")
+
+        preclose = queue.request_heartbeat(
+            now=datetime(2026, 8, 6, 1, tzinfo=timezone.utc)
+        )
+        self.assertEqual(preclose["status"], "QUEUED")
+        self.assertEqual(preclose["evidence_capture"]["status"], "NOT_CAPTURE_DUE")
+        self.assertFalse((self.source_requests / "pending.json").exists())
+
+        (self.requests / "pending.json").unlink()
+        self._heartbeat_state("2026-08-07T01:00:00Z")
+        first_due = queue.request_heartbeat(
+            now=datetime(2026, 8, 7, 1, tzinfo=timezone.utc)
+        )
+        due_epoch = datetime(2026, 8, 7, 1, tzinfo=timezone.utc).timestamp()
+        os.utime(self.requests / "pending.json", (due_epoch, due_epoch))
+        source_pending = (self.source_requests / "pending.json").read_bytes()
+        repeated = queue.request_heartbeat(
+            now=datetime(2026, 8, 7, 1, tzinfo=timezone.utc)
+        )
+
+        self.assertEqual(first_due["status"], "QUEUED")
+        self.assertEqual(first_due["evidence_capture"]["status"], "QUEUED")
+        self.assertEqual(first_due["evidence_capture"]["day"], "2026-08-06")
+        self.assertEqual(
+            first_due["evidence_capture"]["capture_deadline"],
+            "2026-08-07T06:00:00Z",
+        )
+        self.assertEqual(repeated["request_id"], first_due["request_id"])
+        self.assertEqual(
+            (self.source_requests / "pending.json").read_bytes(), source_pending
+        )
 
     def test_preclose_unbound_and_expired_days_never_queue_capture(self) -> None:
         for label, current, with_source in (

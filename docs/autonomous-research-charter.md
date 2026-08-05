@@ -234,6 +234,11 @@ timer and prior desktop heartbeat must both remain disabled after cutover. The
 Research MCP and systemd path consumer do not select hypotheses or interpret
 results; Codex performs that reasoning, while they only validate, transport,
 and execute the frozen pipeline contract. No Spring scheduler is permitted.
+After a companion capture is queued, the same cloud cycle must boundedly
+observe canonical `evidence_capture_health`. A correlated `SEALED` result is
+routine; terminal source/intake failure, stalled dispatch, or hash/identity
+mismatch is an integrity alert. Observation never authorizes a second enqueue,
+backfill, or additional timer.
 
 The scheduled Work surface currently has no supported tool that can write into
 an arbitrary existing Codex task id. A material sealed event must therefore be

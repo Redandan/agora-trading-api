@@ -136,6 +136,14 @@ embedded in that immutable report from the currently active canonical policy;
 an older artifact is labelled `SEALED_HISTORICAL_POLICY` rather than silently
 presented as a current-policy briefing.
 
+Canonical status also exposes `evidence_capture_health`, which correlates the
+asynchronous source request and network-denied ingest by deterministic request,
+request hash, and bundle hash. The cloud run that queued a capture observes the
+field for a bounded interval in the same cycle. `SEALED` stays quiet; retries
+remain observable; terminal failure, stalled dispatch, or any correlation
+mismatch fails closed immediately. No second heartbeat, source timer, upload,
+or backfill operation is introduced.
+
 Canonical status derives a read-only `coach_outbox` from the latest heartbeat.
 For every material event it confines the relative path to canonical state,
 re-hashes the artifact, rejects missing or duplicate delivery ids, and returns

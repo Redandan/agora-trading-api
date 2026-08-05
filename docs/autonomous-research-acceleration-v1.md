@@ -198,6 +198,12 @@ database query, or backfill.
   cannot enter the evidence chain;
 - canonical status exposes sealed count, lag, chain head, and next capture
   deadline before the 90-day review;
+- canonical status correlates source capture and network-denied intake as one
+  `evidence_capture_health` state, including retries, terminal failures,
+  dispatch stalls, matched hashes, and sealed completion;
+- after queueing a companion capture, the same cloud cycle observes that
+  canonical health for a bounded interval, remains silent on `SEALED`, and
+  surfaces a fail-closed alert without adding a timer or attempting backfill;
 - an unbound producer is visible before evidence starts and cannot submit a day;
 - an early heartbeat returns `NOT_DUE` without creating `pending.json`;
 - a repeated due heartbeat returns the same queued/running request;

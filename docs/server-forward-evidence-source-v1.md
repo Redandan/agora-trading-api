@@ -66,6 +66,13 @@ atomically enqueues one fixed companion request. Repeated calls converge on the
 same trigger/day fingerprint. This avoids a sixth MCP operation and keeps one
 routine clock.
 
+The existing status operation correlates the source request, one-way drop, and
+canonical ingest as `evidence_capture_health`. The cloud cycle that queues a
+capture observes this field for a bounded interval: a hash-correlated `SEALED`
+result is quiet, while a terminal source/intake failure, stalled dispatch, or
+identity/hash mismatch is immediately fail-closed. This observation adds no
+timer, acknowledgement write, retry command, or backfill path.
+
 The source must reject:
 
 - any caller-provided URL, host, symbol, interval, output path, or shell value;

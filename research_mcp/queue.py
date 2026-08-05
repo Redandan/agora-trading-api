@@ -445,6 +445,191 @@ def _source_active() -> dict[str, Any] | None:
     return None
 
 
+def _capture_request(value: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    nested = value.get("request")
+    return nested if isinstance(nested, dict) else value
+
+
+def _capture_health_summary(
+    *,
+    now: datetime,
+    source_active: dict[str, Any] | None,
+    ingest_pending: dict[str, Any] | None,
+    source_latest: dict[str, Any] | None,
+    ingest_latest: dict[str, Any] | None,
+    source_pending_invalid: bool = False,
+    ingest_pending_invalid: bool = False,
+) -> dict[str, Any]:
+    """Correlate the asynchronous source and canonical-ingest legs fail closed."""
+
+    def blocked(reason: str, request_id: Any = None) -> dict[str, Any]:
+        result: dict[str, Any] = {
+            "status": "INTEGRITY_BLOCKED",
+            "integrity_blocking": True,
+            "reason": reason,
+        }
+        if isinstance(request_id, str) and RUN_ID.fullmatch(request_id):
+            result["request_id"] = request_id
+        return result
+
+    def request_id(value: dict[str, Any] | None) -> str | None:
+        if not isinstance(value, dict):
+            return None
+        candidate = value.get("request_id")
+        return candidate if isinstance(candidate, str) and RUN_ID.fullmatch(candidate) else None
+
+    def timing(value: dict[str, Any] | None) -> dict[str, Any]:
+        request = _capture_request(value)
+        if not request:
+            return {}
+        result: dict[str, Any] = {}
+        day = request.get("day")
+        if isinstance(day, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+            result["day"] = day
+        deadline_text = request.get("capture_deadline")
+        deadline = _parse_time(deadline_text)
+        if deadline is not None:
+            result["capture_deadline"] = _now(deadline)
+            result["seconds_to_deadline"] = int((deadline - now).total_seconds())
+        return result
+
+    if source_pending_invalid:
+        return blocked("source capture queue record is unreadable or invalid")
+    if ingest_pending_invalid:
+        return blocked("evidence ingest queue record is unreadable or invalid")
+
+    active_id = request_id(source_active)
+    if source_active:
+        if active_id is None:
+            return blocked("active source capture request id is invalid")
+        latest_id = request_id(source_latest)
+        if latest_id == active_id and source_latest.get("status") == "RETRYING":
+            return {
+                "status": "SOURCE_CAPTURE_RETRYING",
+                "integrity_blocking": False,
+                "request_id": active_id,
+                **timing(source_active),
+                "error_type": source_latest.get("error_type"),
+                "detail": source_latest.get("detail"),
+            }
+        return {
+            "status": "SOURCE_CAPTURE_RUNNING" if source_active.get("status") == "RUNNING" else "SOURCE_CAPTURE_QUEUED",
+            "integrity_blocking": False,
+            "request_id": active_id,
+            **timing(source_active),
+        }
+
+    ingest_id = request_id(ingest_pending)
+    if ingest_pending:
+        if ingest_id is None:
+            return blocked("active evidence ingest request id is invalid")
+        source_id = request_id(source_latest)
+        if source_id != ingest_id or source_latest.get("status") != "COMPLETED":
+            return blocked("evidence ingest request is not bound to one completed source capture", ingest_id)
+        latest_ingest_id = request_id(ingest_latest)
+        if latest_ingest_id == ingest_id and ingest_latest.get("status") == "RETRYING":
+            return {
+                "status": "EVIDENCE_INGEST_RETRYING",
+                "integrity_blocking": False,
+                "request_id": ingest_id,
+                **timing(source_latest),
+                "error_type": ingest_latest.get("error_type"),
+                "detail": ingest_latest.get("detail"),
+            }
+        return {
+            "status": "EVIDENCE_INGEST_RUNNING",
+            "integrity_blocking": False,
+            "request_id": ingest_id,
+            **timing(source_latest),
+        }
+
+    if source_latest:
+        source_id = request_id(source_latest)
+        if source_id is None:
+            return blocked("latest source capture request id is invalid")
+        source_status = source_latest.get("status")
+        if source_status == "FAILED":
+            return {
+                "status": "SOURCE_CAPTURE_FAILED",
+                "integrity_blocking": True,
+                "request_id": source_id,
+                **timing(source_latest),
+                "error_type": source_latest.get("error_type"),
+                "detail": source_latest.get("detail"),
+            }
+        if source_status == "RETRYING":
+            return {
+                "status": "SOURCE_CAPTURE_RETRY_STALLED",
+                "integrity_blocking": True,
+                "request_id": source_id,
+                "error_type": source_latest.get("error_type"),
+                "detail": source_latest.get("detail"),
+            }
+        if source_status != "COMPLETED":
+            return blocked("latest source capture status is invalid", source_id)
+
+        ingest_id = request_id(ingest_latest)
+        if ingest_id != source_id:
+            completed_at = _parse_time(source_latest.get("completed_at"))
+            dispatch_age = int((now - completed_at).total_seconds()) if completed_at else None
+            status = (
+                "EVIDENCE_INGEST_DISPATCH_PENDING"
+                if dispatch_age is not None and dispatch_age <= 60
+                else "EVIDENCE_INGEST_DISPATCH_STALLED"
+            )
+            result = {
+                "status": status,
+                "integrity_blocking": status.endswith("STALLED"),
+                "request_id": source_id,
+                **timing(source_latest),
+            }
+            if dispatch_age is not None:
+                result["dispatch_age_seconds"] = dispatch_age
+            return result
+
+        ingest_status = ingest_latest.get("status")
+        if ingest_status == "FAILED":
+            return {
+                "status": "EVIDENCE_INGEST_FAILED",
+                "integrity_blocking": True,
+                "request_id": source_id,
+                **timing(source_latest),
+                "error_type": ingest_latest.get("error_type"),
+                "detail": ingest_latest.get("detail"),
+            }
+        if ingest_status == "RETRYING":
+            return {
+                "status": "EVIDENCE_INGEST_RETRY_STALLED",
+                "integrity_blocking": True,
+                "request_id": source_id,
+                **timing(source_latest),
+                "error_type": ingest_latest.get("error_type"),
+                "detail": ingest_latest.get("detail"),
+            }
+        if ingest_status != "COMPLETED":
+            return blocked("latest evidence ingest status is invalid", source_id)
+        for field in ("request_sha256", "bundle_sha256"):
+            if source_latest.get(field) != ingest_latest.get(field):
+                return blocked(f"source and ingest {field} do not match", source_id)
+        if not isinstance(ingest_latest.get("result"), dict):
+            return blocked("completed evidence ingest has no canonical result", source_id)
+        return {
+            "status": "SEALED",
+            "integrity_blocking": False,
+            "request_id": source_id,
+            **timing(source_latest),
+            "completed_at": ingest_latest.get("completed_at"),
+            "bundle_sha256": ingest_latest.get("bundle_sha256"),
+            "result": ingest_latest.get("result"),
+        }
+
+    if ingest_latest:
+        return blocked("latest evidence ingest has no matching source capture", request_id(ingest_latest))
+    return {"status": "IDLE", "integrity_blocking": False}
+
+
 def _enqueue_evidence_capture(now: datetime) -> dict[str, Any]:
     try:
         plan = _evidence_capture_plan(now)
@@ -731,6 +916,7 @@ def _pipeline(command: list[str], *, timeout: int = 30) -> subprocess.CompletedP
 
 
 def research_status() -> dict[str, Any]:
+    current = datetime.now(timezone.utc)
     queue: dict[str, Any] = {"status": "IDLE"}
     for path, state in (
         (REQUEST_DIR / "running.json", "RUNNING"),
@@ -755,16 +941,46 @@ def research_status() -> dict[str, Any]:
             "exit_code": result.returncode,
             "detail": result.stderr[-1000:],
         }
+    source_pending_path = SOURCE_REQUEST_DIR / "pending.json"
+    source_running_path = SOURCE_REQUEST_DIR / "running.json"
+    ingest_pending_path = SOURCE_DROP_DIR / "pending.json"
+    source_active = _source_active()
+    source_latest = _read_json(SOURCE_REQUEST_DIR / "latest.json")
+    ingest_pending = _read_json(ingest_pending_path)
+    ingest_latest = _read_json(SOURCE_DROP_DIR / "latest.json")
+    source_pending_invalid = (
+        (source_pending_path.exists() or source_running_path.exists())
+        and source_active is None
+    )
+    ingest_pending_invalid = ingest_pending_path.exists() and ingest_pending is None
+    capture_health = _capture_health_summary(
+        now=current,
+        source_active=source_active,
+        ingest_pending=ingest_pending,
+        source_latest=source_latest,
+        ingest_latest=ingest_latest,
+        source_pending_invalid=source_pending_invalid,
+        ingest_pending_invalid=ingest_pending_invalid,
+    )
     return {
-        "server_time": _now(),
+        "server_time": _now(current),
         "timer_authority": "CODEX_CLOUD_OPS_ONLY",
         "state_authority": "SERVER_CANONICAL",
         "policy": _policy_summary(),
         "worker_release": _worker_release_summary(),
         "queue": queue,
-        "evidence_capture_queue": _source_active() or {"status": "IDLE"},
-        "latest_evidence_capture": _read_json(SOURCE_REQUEST_DIR / "latest.json"),
-        "latest_evidence_ingest": _read_json(SOURCE_DROP_DIR / "latest.json"),
+        "evidence_capture_queue": (
+            source_active
+            or ({"status": "INVALID"} if source_pending_invalid else {"status": "IDLE"})
+        ),
+        "evidence_ingest_queue": (
+            {"status": "QUEUED_OR_RUNNING", "request_id": ingest_pending.get("request_id")}
+            if ingest_pending
+            else ({"status": "INVALID"} if ingest_pending_invalid else {"status": "IDLE"})
+        ),
+        "evidence_capture_health": capture_health,
+        "latest_evidence_capture": source_latest,
+        "latest_evidence_ingest": ingest_latest,
         "latest_heartbeat": latest,
         "coach_outbox": _coach_outbox(latest),
         "registry": registry,

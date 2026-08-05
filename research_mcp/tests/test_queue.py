@@ -342,6 +342,181 @@ class DurableQueueContractTest(unittest.TestCase):
             release["source_manifest_sha256"], expected["source_manifest_sha256"]
         )
         self.assertEqual(result["coach_outbox"]["status"], "IDLE")
+        self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
+        self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
+
+    def test_status_exposes_correlated_sealed_capture_health(self) -> None:
+        request_id = "b" * 32
+        request = {
+            "request_id": request_id,
+            "day": "2026-08-06",
+            "capture_deadline": "2026-08-07T06:00:00Z",
+        }
+        source = {
+            "request_id": request_id,
+            "request": request,
+            "status": "COMPLETED",
+            "completed_at": "2026-08-07T01:00:10Z",
+            "request_sha256": "c" * 64,
+            "bundle_sha256": "d" * 64,
+        }
+        ingest = {
+            "request_id": request_id,
+            "status": "COMPLETED",
+            "completed_at": "2026-08-07T01:00:20Z",
+            "request_sha256": "c" * 64,
+            "bundle_sha256": "d" * 64,
+            "result": {"artifact_path": "evidence/day.json", "sha256": "e" * 64},
+        }
+        self.source_requests.mkdir(parents=True)
+        self.source_drop.mkdir(parents=True)
+        (self.source_requests / "latest.json").write_text(
+            json.dumps(source), encoding="utf-8"
+        )
+        (self.source_drop / "latest.json").write_text(
+            json.dumps(ingest), encoding="utf-8"
+        )
+        pipeline_result = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
+            stderr="",
+        )
+        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+            result = queue.research_status()
+        health = result["evidence_capture_health"]
+        self.assertEqual(health["status"], "SEALED")
+        self.assertFalse(health["integrity_blocking"])
+        self.assertEqual(health["request_id"], request_id)
+
+    def test_status_fails_closed_on_terminal_source_or_hash_mismatch(self) -> None:
+        request_id = "b" * 32
+        self.source_requests.mkdir(parents=True)
+        failed = {
+            "request_id": request_id,
+            "status": "FAILED",
+            "error_type": "SourceIntegrityError",
+            "detail": "malformed source response",
+        }
+        (self.source_requests / "latest.json").write_text(
+            json.dumps(failed), encoding="utf-8"
+        )
+        pipeline_result = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
+            stderr="",
+        )
+        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+            failed_status = queue.research_status()
+        self.assertEqual(
+            failed_status["evidence_capture_health"]["status"],
+            "SOURCE_CAPTURE_FAILED",
+        )
+        self.assertTrue(
+            failed_status["evidence_capture_health"]["integrity_blocking"]
+        )
+
+        source = {
+            "request_id": request_id,
+            "request": {"request_id": request_id},
+            "status": "COMPLETED",
+            "completed_at": "2026-08-07T01:00:10Z",
+            "request_sha256": "c" * 64,
+            "bundle_sha256": "d" * 64,
+        }
+        ingest = {
+            "request_id": request_id,
+            "status": "COMPLETED",
+            "request_sha256": "c" * 64,
+            "bundle_sha256": "f" * 64,
+            "result": {},
+        }
+        self.source_drop.mkdir(parents=True)
+        (self.source_requests / "latest.json").write_text(
+            json.dumps(source), encoding="utf-8"
+        )
+        (self.source_drop / "latest.json").write_text(
+            json.dumps(ingest), encoding="utf-8"
+        )
+        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+            mismatched = queue.research_status()
+        self.assertEqual(
+            mismatched["evidence_capture_health"]["status"], "INTEGRITY_BLOCKED"
+        )
+        self.assertIn(
+            "bundle_sha256", mismatched["evidence_capture_health"]["reason"]
+        )
+
+    def test_capture_health_distinguishes_retry_ingest_and_dispatch_stall(self) -> None:
+        current = datetime(2026, 8, 7, 1, 2, tzinfo=timezone.utc)
+        request_id = "b" * 32
+        request = {
+            "request_id": request_id,
+            "day": "2026-08-06",
+            "capture_deadline": "2026-08-07T06:00:00Z",
+        }
+        retrying = queue._capture_health_summary(
+            now=current,
+            source_active={"status": "QUEUED", **request},
+            ingest_pending=None,
+            source_latest={
+                "request_id": request_id,
+                "status": "RETRYING",
+                "error_type": "TemporarySourceError",
+                "detail": "temporary endpoint failure",
+            },
+            ingest_latest=None,
+        )
+        self.assertEqual(retrying["status"], "SOURCE_CAPTURE_RETRYING")
+        self.assertFalse(retrying["integrity_blocking"])
+
+        completed_source = {
+            "request_id": request_id,
+            "request": request,
+            "status": "COMPLETED",
+            "completed_at": "2026-08-07T01:00:00Z",
+            "request_sha256": "c" * 64,
+            "bundle_sha256": "d" * 64,
+        }
+        ingest_retrying = queue._capture_health_summary(
+            now=current,
+            source_active=None,
+            ingest_pending={"request_id": request_id},
+            source_latest=completed_source,
+            ingest_latest={
+                "request_id": request_id,
+                "status": "RETRYING",
+                "error_type": "TemporarySourceError",
+                "detail": "pipeline is locked",
+            },
+        )
+        self.assertEqual(
+            ingest_retrying["status"], "EVIDENCE_INGEST_RETRYING"
+        )
+        self.assertFalse(ingest_retrying["integrity_blocking"])
+
+        stalled = queue._capture_health_summary(
+            now=current,
+            source_active=None,
+            ingest_pending=None,
+            source_latest=completed_source,
+            ingest_latest=None,
+        )
+        self.assertEqual(stalled["status"], "EVIDENCE_INGEST_DISPATCH_STALLED")
+        self.assertTrue(stalled["integrity_blocking"])
+        self.assertEqual(stalled["dispatch_age_seconds"], 120)
+
+        invalid = queue._capture_health_summary(
+            now=current,
+            source_active=None,
+            ingest_pending=None,
+            source_latest=None,
+            ingest_latest=None,
+            source_pending_invalid=True,
+        )
+        self.assertEqual(invalid["status"], "INTEGRITY_BLOCKED")
+        self.assertTrue(invalid["integrity_blocking"])
 
     def test_status_exposes_hash_verified_canonical_coach_outbox(self) -> None:
         artifact = self.state / "events" / "material-learning.json"

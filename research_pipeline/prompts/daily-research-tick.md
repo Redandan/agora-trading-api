@@ -25,6 +25,19 @@ seals the mechanism-neutral dataset, diagnostic, typed evidence manifest, and
 review date arrives while the final day is still `CAPTURE_DUE`, capture remains
 the next action; never skip it, backfill it, or write the review locally.
 
+If the heartbeat response queues or resumes a companion capture, poll
+`get_research_status` for a bounded part of the same cloud cycle and use only
+canonical `evidence_capture_health`. Do not enqueue the heartbeat or capture a
+second time. `SOURCE_CAPTURE_RETRYING`, `EVIDENCE_INGEST_RUNNING`, and
+`EVIDENCE_INGEST_RETRYING` may be observed briefly; a terminal `SEALED` result
+is routine and remains silent. `SOURCE_CAPTURE_FAILED`,
+`SOURCE_CAPTURE_RETRY_STALLED`, `EVIDENCE_INGEST_FAILED`,
+`EVIDENCE_INGEST_RETRY_STALLED`, `EVIDENCE_INGEST_DISPATCH_STALLED`, or
+`INTEGRITY_BLOCKED` is an immediate integrity alert. If the bounded observation
+ends before a terminal state, report `CAPTURE_OBSERVATION_PENDING` with the
+canonical request id and deadline; never guess success, backfill, or add a
+second schedule.
+
 When canonical status becomes `EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS`, use
 the matching canonical evidence trigger's `candidate_context`. Require
 `candidate_context.status=READY`, exactly one item in `eligible_mechanisms`, and

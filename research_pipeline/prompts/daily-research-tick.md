@@ -28,6 +28,19 @@ Pass that exact hash as `ops_schedule_contract_sha256` on every
 Missing, invalid, or mismatched contract/attestation is an operational alert;
 fail closed without queueing either operation.
 
+Inspect canonical `candidate_registration_recovery` before formulating or
+submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
+`EXACT_REPLAY_REQUIRED` means a prior candidate request left hash-verified
+partial canonical registration: require queue `IDLE`, copy the canonical
+`bundle` byte-for-value without changing its timestamp, text, mechanism, OOS
+window, or any other field, and call `submit_research_candidate_bundle` exactly
+once with the normal V4 attestation. Verify that the canonical
+`payload_sha256` is unchanged and poll that replay's run. This is recovery of
+the same logical candidate, not permission for a second candidate. If recovery
+is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state
+payload drift, do not retry, regenerate, or relax a gate; emit the exact
+canonical reason as an operational integrity alert.
+
 The fixed forward-source companion captures only the next complete UTC day.
 When the final required day is canonically ingested, the deterministic pipeline
 seals the mechanism-neutral dataset, diagnostic, typed evidence manifest, and

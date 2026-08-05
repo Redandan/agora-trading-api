@@ -261,6 +261,13 @@ If final discovery-state commit is interrupted, recovery reuses that frozen
 timestamp and original candidate context; it never substitutes retry time or
 moves the sealed OOS window. A mismatch among readiness time, frozen time,
 integer lead time, and `PASS`/`BREACH` is an integrity block.
+Canonical status also owns cross-cycle candidate-request recovery. It may expose
+exactly one hash-verified original bundle only when a failed run matches partial
+canonical hypothesis or preregistered experiment state. The cloud task may
+replay that exact bundle once; it must not reconstruct timestamps or content.
+Repeated replay failure, more than one recoverable bundle, or payload/state
+drift is an integrity block rather than an invitation to generate another
+candidate.
 The same status must report whether a genuinely forward-candidate-eligible
 adapter and its required sealed corpus are ready. A Java parity adapter,
 diagnostic-only adapter, or closed historical branch cannot be submitted merely

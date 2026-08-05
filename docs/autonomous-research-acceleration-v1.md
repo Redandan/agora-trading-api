@@ -145,6 +145,10 @@ their state also preserves `candidate_frozen_at`. Recovery from a later
 discovery-finalize interruption validates the original context against that
 time and derives the lead from it, so elapsed retry time cannot rewrite the
 24-hour result or shift the OOS window.
+The same canonical status exposes `candidate_registration_recovery` when one
+failed request matches partial canonical registration. It returns the exact
+hash-verified bundle for one replay; a repeated failure, multiple recoverable
+payloads, or partial-state drift fails closed and withholds the bundle.
 
 The queue accepts only `RESEARCH_HEARTBEAT` and
 `REGISTER_CANDIDATE_BUNDLE`. It exposes no shell command, environment override,

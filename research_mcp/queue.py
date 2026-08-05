@@ -129,6 +129,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
     ],
 }
 RUN_ID = re.compile(r"^[a-f0-9]{32}$")
+CANDIDATE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{2,79}$")
 TERMINAL_RUN_STATUSES = {"COMPLETED", "FAILED", "STALE_RECOVERED"}
 MAX_CANDIDATE_BUNDLE_BYTES = 128 * 1024
 MAX_COACH_DELIVERY_PROMPT_BYTES = 64 * 1024
@@ -1476,6 +1477,213 @@ def _completed_candidate(payload_sha256: str) -> dict[str, Any] | None:
     return None
 
 
+def _candidate_partial_registration(
+    bundle: dict[str, Any],
+    payload_sha256: str,
+) -> dict[str, Any]:
+    trigger_id = str(bundle.get("trigger_id", ""))
+    hypothesis = bundle.get("hypothesis")
+    manifest = bundle.get("manifest")
+    hypothesis_id = (
+        str(hypothesis.get("hypothesis_id", ""))
+        if isinstance(hypothesis, dict)
+        else ""
+    )
+    experiment_id = (
+        str(manifest.get("experiment_id", ""))
+        if isinstance(manifest, dict)
+        else ""
+    )
+    if (
+        not CANDIDATE_ID.fullmatch(trigger_id)
+        or not CANDIDATE_ID.fullmatch(hypothesis_id)
+        or not CANDIDATE_ID.fullmatch(experiment_id)
+        or hypothesis_id != experiment_id
+    ):
+        return {"status": "INVALID_CANDIDATE_IDENTITIES"}
+
+    trigger_state = _read_json(
+        STATE_DIR / "evidence-triggers" / trigger_id / "state.json"
+    )
+    if not trigger_state:
+        return {"status": "NO_CANONICAL_TRIGGER_STATE"}
+    lifecycle_status = str(trigger_state.get("status", ""))
+    if lifecycle_status not in {"READY_FOR_HYPOTHESIS", "CLOSED"}:
+        return {
+            "status": "TRIGGER_NOT_RECOVERABLE",
+            "trigger_status": lifecycle_status,
+        }
+    bound_sha256 = trigger_state.get("candidate_bundle_sha256")
+    if bound_sha256 is not None and bound_sha256 != payload_sha256:
+        return {"status": "CANDIDATE_BUNDLE_HASH_MISMATCH"}
+
+    hypothesis_path = STATE_DIR / "hypotheses" / f"{hypothesis_id}.json"
+    experiment_dir = STATE_DIR / "experiments" / experiment_id
+    manifest_path = experiment_dir / "manifest.json"
+    experiment_state_path = experiment_dir / "state.json"
+    stored_hypothesis = _read_json(hypothesis_path)
+    stored_manifest = _read_json(manifest_path)
+    stored_experiment_state = _read_json(experiment_state_path)
+
+    hypothesis_exists = hypothesis_path.exists()
+    experiment_exists = experiment_dir.exists()
+    if hypothesis_exists:
+        if not stored_hypothesis or any(
+            stored_hypothesis.get(key) != value for key, value in hypothesis.items()
+        ):
+            return {"status": "PARTIAL_HYPOTHESIS_MISMATCH"}
+    if experiment_exists:
+        run_count = (
+            stored_experiment_state.get("run_count")
+            if stored_experiment_state
+            else None
+        )
+        if (
+            not stored_manifest
+            or stored_manifest != manifest
+            or not stored_experiment_state
+            or stored_experiment_state.get("stage") != "PREREGISTERED"
+            or not isinstance(run_count, int)
+            or isinstance(run_count, bool)
+            or run_count != 0
+            or stored_experiment_state.get("artifacts") not in ({}, None)
+            or stored_experiment_state.get("hypothesis_id")
+            not in {None, hypothesis_id}
+        ):
+            return {"status": "PARTIAL_EXPERIMENT_MISMATCH"}
+    if lifecycle_status == "CLOSED" and not (
+        hypothesis_exists and experiment_exists and bound_sha256 == payload_sha256
+    ):
+        return {"status": "CLOSED_TRIGGER_REGISTRATION_INCOMPLETE"}
+    if not hypothesis_exists and not experiment_exists:
+        return {"status": "NO_PARTIAL_REGISTRATION_PROOF"}
+    if experiment_exists and not hypothesis_exists:
+        return {"status": "EXPERIMENT_WITHOUT_HYPOTHESIS"}
+    return {
+        "status": "PARTIAL_REGISTRATION_VERIFIED",
+        "trigger_status": lifecycle_status,
+        "hypothesis_registered": hypothesis_exists,
+        "experiment_preregistered": experiment_exists,
+        "candidate_frozen_at": (
+            stored_experiment_state.get("candidate_frozen_at")
+            if stored_experiment_state
+            else None
+        ),
+    }
+
+
+def _candidate_registration_recovery() -> dict[str, Any]:
+    runs = REQUEST_DIR / "runs"
+    try:
+        paths = sorted(
+            runs.glob("*.json"),
+            key=lambda item: item.stat().st_mtime,
+            reverse=True,
+        )
+    except OSError:
+        return {
+            "status": "INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_RUN_INVENTORY_UNREADABLE",
+        }
+
+    completed_hashes: set[str] = set()
+    failed_by_hash: dict[str, list[tuple[dict[str, Any], dict[str, Any]]]] = {}
+    for path in paths:
+        value = _read_json(path)
+        if not value or value.get("operation") != "REGISTER_CANDIDATE_BUNDLE":
+            continue
+        status = str(value.get("status", ""))
+        if status not in TERMINAL_RUN_STATUSES:
+            continue
+        request_id = str(value.get("request_id", ""))
+        payload = value.get("payload")
+        try:
+            normalized, payload_sha256 = _validated_candidate_payload(payload)
+        except ValueError:
+            return {
+                "status": "INTEGRITY_BLOCKED",
+                "reason": "CANDIDATE_RUN_PAYLOAD_INVALID",
+                "request_id": request_id if RUN_ID.fullmatch(request_id) else None,
+            }
+        if (
+            not RUN_ID.fullmatch(request_id)
+            or value.get("payload_sha256") != payload_sha256
+        ):
+            return {
+                "status": "INTEGRITY_BLOCKED",
+                "reason": "CANDIDATE_RUN_PAYLOAD_HASH_MISMATCH",
+                "request_id": request_id if RUN_ID.fullmatch(request_id) else None,
+            }
+        if status == "COMPLETED":
+            completed_hashes.add(payload_sha256)
+        else:
+            failed_by_hash.setdefault(payload_sha256, []).append((value, normalized))
+
+    recoverable: list[
+        tuple[str, list[tuple[dict[str, Any], dict[str, Any]]], dict[str, Any]]
+    ] = []
+    blocked: list[dict[str, Any]] = []
+    for payload_sha256, failures in failed_by_hash.items():
+        if payload_sha256 in completed_hashes:
+            continue
+        partial = _candidate_partial_registration(
+            failures[0][1],
+            payload_sha256,
+        )
+        if partial["status"] == "PARTIAL_REGISTRATION_VERIFIED":
+            recoverable.append((payload_sha256, failures, partial))
+        elif partial["status"] not in {
+            "NO_CANONICAL_TRIGGER_STATE",
+            "TRIGGER_NOT_RECOVERABLE",
+            "NO_PARTIAL_REGISTRATION_PROOF",
+        }:
+            blocked.append(
+                {
+                    "payload_sha256": payload_sha256,
+                    "reason": partial["status"],
+                }
+            )
+
+    if blocked:
+        return {
+            "status": "INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_PARTIAL_STATE_MISMATCH",
+            "details": blocked[:4],
+        }
+    if not recoverable:
+        return {"status": "IDLE"}
+    if len(recoverable) != 1:
+        return {
+            "status": "INTEGRITY_BLOCKED",
+            "reason": "MULTIPLE_RECOVERABLE_CANDIDATE_BUNDLES",
+            "payload_sha256s": sorted(item[0] for item in recoverable),
+        }
+
+    payload_sha256, failures, partial = recoverable[0]
+    latest, bundle = failures[0]
+    if len(failures) > 1:
+        return {
+            "status": "INTEGRITY_BLOCKED",
+            "reason": "CANDIDATE_EXACT_REPLAY_ALREADY_FAILED",
+            "payload_sha256": payload_sha256,
+            "failed_attempt_count": len(failures),
+            "partial_registration": partial,
+        }
+    return {
+        "status": "EXACT_REPLAY_REQUIRED",
+        "required_action": "SUBMIT_EXACT_CANDIDATE_BUNDLE_ONCE",
+        "request_id": latest["request_id"],
+        "failed_status": latest["status"],
+        "failed_at": latest.get("completed_at") or latest.get("recovered_at"),
+        "exit_code": latest.get("exit_code"),
+        "payload_sha256": payload_sha256,
+        "failed_attempt_count": 1,
+        "retry_limit": 1,
+        "bundle": bundle,
+        "partial_registration": partial,
+    }
+
+
 def request_candidate_bundle(
     bundle: dict[str, Any],
     ops_schedule_contract_sha256: str | None,
@@ -1613,6 +1821,7 @@ def research_status() -> dict[str, Any]:
         "worker_release": _worker_release_summary(),
         "ops_schedule_contract": _ops_schedule_contract_summary(),
         "queue": queue,
+        "candidate_registration_recovery": _candidate_registration_recovery(),
         "evidence_capture_queue": (
             source_active
             or ({"status": "INVALID"} if source_pending_invalid else {"status": "IDLE"})

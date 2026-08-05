@@ -82,6 +82,81 @@ class DurableQueueContractTest(unittest.TestCase):
             "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
         }
 
+    def _candidate_run(
+        self,
+        bundle: dict[str, object],
+        *,
+        request_id: str,
+        status: str,
+    ) -> tuple[dict[str, object], str]:
+        payload, payload_sha256 = queue._validated_candidate_payload(bundle)
+        value: dict[str, object] = {
+            "schema_version": "1",
+            "request_id": request_id,
+            "requested_at": "2026-01-01T00:00:00Z",
+            "source": "CODEX_CLOUD_OPS",
+            "operation": "REGISTER_CANDIDATE_BUNDLE",
+            "payload": payload,
+            "payload_sha256": payload_sha256,
+            "status": status,
+            "completed_at": "2026-01-01T00:01:00Z",
+            "exit_code": 2 if status == "FAILED" else 0,
+        }
+        path = self.requests / "runs" / f"{request_id}.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value), encoding="utf-8")
+        return value, payload_sha256
+
+    def _partial_candidate_registration(
+        self,
+        bundle: dict[str, object],
+        *,
+        candidate_frozen_at: str | None = "2026-01-01T00:00:30Z",
+    ) -> None:
+        trigger_id = str(bundle["trigger_id"])
+        hypothesis = dict(bundle["hypothesis"])
+        manifest = dict(bundle["manifest"])
+        hypothesis_id = str(hypothesis["hypothesis_id"])
+        experiment_id = str(manifest["experiment_id"])
+        trigger_dir = self.state / "evidence-triggers" / trigger_id
+        trigger_dir.mkdir(parents=True, exist_ok=True)
+        (trigger_dir / "state.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "1",
+                    "trigger_id": trigger_id,
+                    "status": "READY_FOR_HYPOTHESIS",
+                }
+            ),
+            encoding="utf-8",
+        )
+        hypothesis_dir = self.state / "hypotheses"
+        hypothesis_dir.mkdir(parents=True, exist_ok=True)
+        (hypothesis_dir / f"{hypothesis_id}.json").write_text(
+            json.dumps({**hypothesis, "status": "REGISTERED"}),
+            encoding="utf-8",
+        )
+        experiment_dir = self.state / "experiments" / experiment_id
+        experiment_dir.mkdir(parents=True, exist_ok=True)
+        (experiment_dir / "manifest.json").write_text(
+            json.dumps(manifest),
+            encoding="utf-8",
+        )
+        experiment_state: dict[str, object] = {
+            "schema_version": "1",
+            "experiment_id": experiment_id,
+            "stage": "PREREGISTERED",
+            "run_count": 0,
+            "artifacts": {},
+            "hypothesis_id": hypothesis_id,
+        }
+        if candidate_frozen_at is not None:
+            experiment_state["candidate_frozen_at"] = candidate_frozen_at
+        (experiment_dir / "state.json").write_text(
+            json.dumps(experiment_state),
+            encoding="utf-8",
+        )
+
     def _release_provenance(self, *, dirty: bool = False) -> dict[str, object]:
         release_dir = self.app / ".release"
         release_dir.mkdir(parents=True, exist_ok=True)
@@ -492,6 +567,84 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(repeated["request_id"], first["request_id"])
         self.assertFalse(pending.exists())
 
+    def test_status_exposes_one_hash_verified_partial_candidate_for_exact_replay(self) -> None:
+        bundle = self._candidate_bundle()
+        self._partial_candidate_registration(bundle)
+        failed, payload_sha256 = self._candidate_run(
+            bundle,
+            request_id="c" * 32,
+            status="FAILED",
+        )
+
+        recovery = queue._candidate_registration_recovery()
+
+        self.assertEqual(recovery["status"], "EXACT_REPLAY_REQUIRED")
+        self.assertEqual(
+            recovery["required_action"],
+            "SUBMIT_EXACT_CANDIDATE_BUNDLE_ONCE",
+        )
+        self.assertEqual(recovery["request_id"], failed["request_id"])
+        self.assertEqual(recovery["payload_sha256"], payload_sha256)
+        self.assertEqual(recovery["bundle"], failed["payload"])
+        self.assertEqual(recovery["retry_limit"], 1)
+        self.assertTrue(
+            recovery["partial_registration"]["experiment_preregistered"]
+        )
+        self.assertEqual(
+            recovery["partial_registration"]["candidate_frozen_at"],
+            "2026-01-01T00:00:30Z",
+        )
+        replayed = self._request_candidate_bundle(recovery["bundle"])
+        self.assertEqual(replayed["status"], "QUEUED")
+        self.assertEqual(replayed["payload_sha256"], payload_sha256)
+        self.assertEqual(replayed["payload"], failed["payload"])
+
+    def test_status_blocks_a_second_failed_exact_candidate_replay(self) -> None:
+        bundle = self._candidate_bundle()
+        self._partial_candidate_registration(bundle)
+        self._candidate_run(bundle, request_id="c" * 32, status="FAILED")
+        self._candidate_run(bundle, request_id="d" * 32, status="FAILED")
+
+        recovery = queue._candidate_registration_recovery()
+
+        self.assertEqual(recovery["status"], "INTEGRITY_BLOCKED")
+        self.assertEqual(
+            recovery["reason"],
+            "CANDIDATE_EXACT_REPLAY_ALREADY_FAILED",
+        )
+        self.assertEqual(recovery["failed_attempt_count"], 2)
+        self.assertNotIn("bundle", recovery)
+
+    def test_status_blocks_failed_candidate_payload_drift_from_partial_state(self) -> None:
+        bundle = self._candidate_bundle()
+        self._partial_candidate_registration(bundle)
+        changed = json.loads(json.dumps(bundle))
+        changed["manifest"]["title"] = "changed after partial registration"
+        self._candidate_run(changed, request_id="c" * 32, status="FAILED")
+
+        recovery = queue._candidate_registration_recovery()
+
+        self.assertEqual(recovery["status"], "INTEGRITY_BLOCKED")
+        self.assertEqual(
+            recovery["reason"],
+            "CANDIDATE_PARTIAL_STATE_MISMATCH",
+        )
+        self.assertEqual(
+            recovery["details"][0]["reason"],
+            "PARTIAL_EXPERIMENT_MISMATCH",
+        )
+        self.assertNotIn("bundle", recovery)
+
+    def test_completed_exact_candidate_clears_failed_recovery_surface(self) -> None:
+        bundle = self._candidate_bundle()
+        self._partial_candidate_registration(bundle)
+        self._candidate_run(bundle, request_id="c" * 32, status="FAILED")
+        self._candidate_run(bundle, request_id="d" * 32, status="COMPLETED")
+
+        recovery = queue._candidate_registration_recovery()
+
+        self.assertEqual(recovery, {"status": "IDLE"})
+
     def test_candidate_request_rejects_oversized_payload(self) -> None:
         bundle = self._candidate_bundle()
         bundle["hypothesis"]["padding"] = "x" * queue.MAX_CANDIDATE_BUNDLE_BYTES
@@ -537,6 +690,10 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertTrue(release["source_tree_verified"])
         self.assertEqual(release["source_file_count"], 2)
         self.assertEqual(result["coach_outbox"]["status"], "IDLE")
+        self.assertEqual(
+            result["candidate_registration_recovery"],
+            {"status": "IDLE"},
+        )
         self.assertEqual(
             result["coach_outbox"]["delivery_proof_sla"],
             {

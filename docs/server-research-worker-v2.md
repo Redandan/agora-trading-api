@@ -111,6 +111,13 @@ candidate context, so retry delay cannot create a false SLA breach or move the
 already frozen OOS window. Canonical status recomputes the lead time from the
 sealed readiness timestamp and fails closed if the stored time, lead, or
 `PASS`/`BREACH` result disagree.
+If the request itself ended `FAILED` after writing matching partial canonical
+state, `get_research_status` exposes one bounded
+`candidate_registration_recovery` with the exact hash-verified original bundle.
+The next cloud cycle may replay it once without changing any field. A second
+failed replay, multiple recoverable payloads, a run-payload hash mismatch, or
+drift from the stored hypothesis/manifest becomes `INTEGRITY_BLOCKED` and never
+authorizes bundle regeneration.
 
 The heartbeat also verifies the prospective evidence progress contract. It
 does not fetch market data itself. When a heartbeat is due and canonical
@@ -255,6 +262,8 @@ The systemd path unit is an event consumer, not an additional schedule.
   registered as a forward-evidence strategy candidate;
 - the eligible adapter accepts only canonical `candidate_context`, creates a
   separate candidate-bound OOS trigger, and recovers interrupted registration;
+- a failed candidate request with matching partial state is visible through one
+  exact canonical replay bundle; repeated failure or payload drift blocks it;
 - canonical status exposes the exact hash and row readiness of the retained
   pre-2025 selection corpus without importing or recomputing it;
 - a crashed queue lease remains auditable and can no longer block the queue

@@ -454,12 +454,28 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V3")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V4")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)
         self.assertEqual(
             contract["coach_delivery"]["contract_id"],
-            "SEALED_COACH_THREAD_DELIVERY_V2",
+            "SEALED_COACH_THREAD_DELIVERY_V3",
+        )
+        self.assertEqual(
+            contract["coach_delivery"]["delivery_proof_sla"],
+            {
+                "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+                "queued_at_source": "CANONICAL_OUTBOX_INSERT_TIMESTAMP",
+                "deadline_rule": "NEXT_NORMAL_CLOUD_CYCLE_PLUS_COMPLETION_WINDOW",
+                "completion_window_seconds": 10800,
+                "pending_status": "PENDING_WITHIN_SLA",
+                "breach_status": "BREACH_PENDING_DELIVERY_PROOF",
+                "terminal_statuses": ["PASS", "BREACH"],
+                "legacy_missing_proof_statuses": [
+                    "MISSING_PROOF_LEGACY_EVENT",
+                    "MISSING_PROOF_LEGACY_RECEIPT",
+                ],
+            },
         )
 
     def test_status_exposes_correlated_sealed_capture_health(self) -> None:
@@ -761,7 +777,7 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(outbox["event_count"], 1)
         self.assertEqual(
             outbox["delivery_contract"]["contract_id"],
-            "SEALED_COACH_THREAD_DELIVERY_V2",
+            "SEALED_COACH_THREAD_DELIVERY_V3",
         )
         self.assertEqual(
             outbox["delivery_contract"]["target_thread_id"],
@@ -996,6 +1012,33 @@ class DurableQueueContractTest(unittest.TestCase):
             self._candidate_bundle(),
             "0" * 64,
         )
+        self.assertEqual(
+            heartbeat["status"], "OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED"
+        )
+        self.assertEqual(
+            candidate["status"], "OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED"
+        )
+        self.assertFalse((self.requests / "pending.json").exists())
+        self.assertFalse((self.source_requests / "pending.json").exists())
+
+    def test_historical_v3_attestation_cannot_opt_out_of_delivery_sla(self) -> None:
+        historical = (
+            Path(queue.__file__).resolve().parents[1]
+            / "research_pipeline"
+            / "cloud-ops-schedule-contract.v3.json"
+        ).read_bytes()
+        historical_sha256 = hashlib.sha256(historical).hexdigest()
+        self._heartbeat_state("2026-01-01T00:00:00Z")
+
+        heartbeat = queue.request_heartbeat(
+            historical_sha256,
+            now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        )
+        candidate = queue.request_candidate_bundle(
+            self._candidate_bundle(),
+            historical_sha256,
+        )
+
         self.assertEqual(
             heartbeat["status"], "OPS_SCHEDULE_CONTRACT_ATTESTATION_BLOCKED"
         )

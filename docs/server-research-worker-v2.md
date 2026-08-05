@@ -41,7 +41,7 @@ both server write operations return
 `WORKER_RELEASE_INTEGRITY_BLOCKED` before touching either queue. This never adds
 a new MCP operation or exposes a server filesystem path.
 
-The same status exposes the active frozen `CLOUD_OPS_SCHEDULE_V3` contract and its
+The same status exposes the active frozen `CLOUD_OPS_SCHEDULE_V4` contract and its
 byte-level SHA-256. The two write operations require that hash in the
 `ops_schedule_contract_sha256` argument. A missing or changed contract returns
 `OPS_SCHEDULE_CONTRACT_INTEGRITY_BLOCKED`; a missing or mismatched caller
@@ -165,7 +165,7 @@ re-hashes the artifact, rejects missing or duplicate delivery ids, and returns
 the complete structured event under `EVENTS_PENDING_EXTERNAL_DELIVERY`. The
 sealed artifact SHA-256 is the delivery id. Routine heartbeats leave older
 pending events intact. Each verified event also includes a deterministic
-delivery token and exact canonical delivery prompt. The V3 schedule contract
+delivery token and exact canonical delivery prompt. The V4 schedule contract
 permits only task
 list/read/send operations for this handoff: the cloud cycle reads the exact
 Coach task before sending, deduplicates by artifact SHA-256, sends once, and
@@ -186,6 +186,10 @@ task-readback receipt, canonical state preserves the queue time, deadline,
 acknowledgement time, integer lead time, and `PASS` or `BREACH`. Untimed legacy
 events or receipts remain explicit `MISSING_PROOF`; no task output or chat
 history may synthesize the missing clock.
+`SEALED_COACH_THREAD_DELIVERY_V3` freezes the same basis, 10,800-second
+completion window, PASS/BREACH labels, and legacy missing-proof labels inside
+the V4 write attestation. A V3 caller hash therefore fails before queue mutation
+instead of silently opting out of delivery measurement.
 
 The dispatch path watches both `pending.json` and an interrupted
 `running.json`. The oneshot restarts only after an abnormal process stop and

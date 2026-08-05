@@ -13,6 +13,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from research_pipeline.evidence import evidence_progress
+from research_pipeline.heartbeat import COACH_DELIVERY_PROOF_CYCLE_WINDOW
 from research_pipeline.storage import ResearchStore, sha256_file
 from research_source.contract import (
     PRODUCER as FORWARD_SOURCE_PRODUCER,
@@ -36,11 +37,11 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v3.json"
+    "research_pipeline/cloud-ops-schedule-contract.v4.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
-    "schema_version": "3",
-    "contract_id": "CLOUD_OPS_SCHEDULE_V3",
+    "schema_version": "4",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V4",
     "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
     "timer_authority": "CODEX_CLOUD_OPS_ONLY",
     "state_authority": "SERVER_CANONICAL",
@@ -69,7 +70,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
         "required": True,
     },
     "coach_delivery": {
-        "contract_id": "SEALED_COACH_THREAD_DELIVERY_V2",
+        "contract_id": "SEALED_COACH_THREAD_DELIVERY_V3",
         "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
         "delivery_id_source": "SEALED_ARTIFACT_SHA256",
         "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
@@ -84,6 +85,21 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
             "DELIVERED_TO_COACH_TASK_VERIFIED",
             "ALREADY_DELIVERED_TO_COACH_TASK",
         ],
+        "delivery_proof_sla": {
+            "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+            "queued_at_source": "CANONICAL_OUTBOX_INSERT_TIMESTAMP",
+            "deadline_rule": "NEXT_NORMAL_CLOUD_CYCLE_PLUS_COMPLETION_WINDOW",
+            "completion_window_seconds": int(
+                COACH_DELIVERY_PROOF_CYCLE_WINDOW.total_seconds()
+            ),
+            "pending_status": "PENDING_WITHIN_SLA",
+            "breach_status": "BREACH_PENDING_DELIVERY_PROOF",
+            "terminal_statuses": ["PASS", "BREACH"],
+            "legacy_missing_proof_statuses": [
+                "MISSING_PROOF_LEGACY_EVENT",
+                "MISSING_PROOF_LEGACY_RECEIPT",
+            ],
+        },
     },
     "required_guards": [
         "WORKER_RELEASE_READY",
@@ -99,6 +115,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
         "COACH_DELIVERY_ID_DEDUPLICATION",
         "COACH_THREAD_POST_SEND_READBACK",
         "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
+        "COACH_DELIVERY_PROOF_SLA_CANONICAL",
         "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE",
     ],
     "forbidden_actions": [
@@ -108,6 +125,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
         "OOS_REOPEN_OR_GATE_RELAXATION",
         "UNVERIFIED_COACH_DELIVERY_CLAIM",
         "ACK_WITHOUT_THREAD_READBACK",
+        "INFERRED_COACH_DELIVERY_TIMING",
     ],
 }
 RUN_ID = re.compile(r"^[a-f0-9]{32}$")
@@ -120,7 +138,6 @@ MAX_COACH_RECEIPTS_PER_HEARTBEAT = 8
 MAX_COACH_DELIVERED_RECEIPTS = 256
 CANDIDATE_AUTHORIZATION = "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
 COACH_TASK_ID = "019fca63-4f8f-71e3-9d88-297bca468eb9"
-COACH_DELIVERY_PROOF_CYCLE_WINDOW = timedelta(hours=3)
 COACH_EVENT_TYPES = {
     "MATERIAL_LEARNING",
     "WEEKLY_BRIEF_READY",
@@ -190,7 +207,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V3 semantics",
+            "reason": "cloud Ops schedule contract does not match the frozen V4 semantics",
         }
     recurrence = value["recurrence"]
     return {
@@ -534,7 +551,9 @@ def _coach_outbox(
             "schema_version": "1",
             "message_type": "SEALED_RESEARCH_COACH_EVENT",
             "source": "AGORA_RESEARCH_CANONICAL_COACH_OUTBOX",
-            "delivery_contract_id": "SEALED_COACH_THREAD_DELIVERY_V2",
+            "delivery_contract_id": EXPECTED_OPS_SCHEDULE_CONTRACT[
+                "coach_delivery"
+            ]["contract_id"],
             "delivery_id": expected_hash,
             "delivery_token": delivery_token,
             "target_thread_id": COACH_TASK_ID,

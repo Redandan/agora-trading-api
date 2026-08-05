@@ -139,7 +139,7 @@ must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
 The active sole cloud Ops schedule semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v3.json`; V1 and V2 remain
+`research_pipeline/cloud-ops-schedule-contract.v4.json`; V1 through V3 remain
 immutable historical contract evidence. Canonical status must
 expose its contract id and byte-level SHA-256. Both MCP write operations require
 the caller to attest that exact deployed hash and must fail before queue
@@ -298,6 +298,11 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 `BREACH`; untimed legacy events and receipts remain explicit `MISSING_PROOF`
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
+
+The V4 Ops contract and `SEALED_COACH_THREAD_DELIVERY_V3` bind that basis,
+10,800-second completion window, pending/breach labels, terminal labels, and
+legacy missing-proof labels into the same caller attestation required by both
+write operations. V3 remains sealed history and cannot attest the SLA.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,

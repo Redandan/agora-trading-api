@@ -65,17 +65,29 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         contract = (
             Path(__file__).resolve().parents[2]
             / "research_pipeline"
-            / "cloud-ops-schedule-contract.v3.json"
+            / "cloud-ops-schedule-contract.v4.json"
         ).read_bytes()
         contract_sha256 = hashlib.sha256(contract).hexdigest()
+        historical_v3 = (
+            Path(__file__).resolve().parents[2]
+            / "research_pipeline"
+            / "cloud-ops-schedule-contract.v3.json"
+        ).read_bytes()
+        historical_v3_sha256 = hashlib.sha256(historical_v3).hexdigest()
+        self.assertEqual(
+            historical_v3_sha256,
+            "2d66149bee9e6b44e139fe471bd32dc10a8afa13e7c47d12b2e165f2a3456e8b",
+        )
 
         self.assertIn("get_research_status", prompt)
         self.assertIn("submit_research_candidate_bundle", prompt)
         self.assertIn("evidence_diagnostic", prompt)
         self.assertIn("worker_release.status=READY", prompt)
         self.assertIn("ops_schedule_contract.status=READY", prompt)
-        self.assertIn("CLOUD_OPS_SCHEDULE_V3", prompt)
+        self.assertIn("CLOUD_OPS_SCHEDULE_V4", prompt)
         self.assertIn(contract_sha256, prompt)
+        self.assertNotIn("CLOUD_OPS_SCHEDULE_V3", prompt)
+        self.assertNotIn(historical_v3_sha256, prompt)
         self.assertIn("ops_schedule_contract_sha256", prompt)
         self.assertIn("evidence_capture_health", prompt)
         self.assertIn("CAPTURE_OBSERVATION_PENDING", prompt)
@@ -95,7 +107,8 @@ class ResearchMcpServerContractTest(unittest.TestCase):
         self.assertIn("list_threads", prompt)
         self.assertIn("read_thread", prompt)
         self.assertIn("send_message_to_thread", prompt)
-        self.assertIn("SEALED_COACH_THREAD_DELIVERY_V2", prompt)
+        self.assertIn("SEALED_COACH_THREAD_DELIVERY_V3", prompt)
+        self.assertIn("delivery_proof_sla.completion_window_seconds=10800", prompt)
         self.assertIn("DELIVERED_TO_COACH_TASK_VERIFIED", prompt)
         self.assertIn("QUEUED_TO_COACH_TASK_UNVERIFIED", prompt)
         self.assertIn("ALREADY_DELIVERED_TO_COACH_TASK", prompt)

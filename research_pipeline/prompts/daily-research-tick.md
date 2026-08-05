@@ -20,9 +20,9 @@ a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
 Continue only when canonical `ops_schedule_contract.status=READY`,
-`contract_id=CLOUD_OPS_SCHEDULE_V3`, `schedule_count=1`,
+`contract_id=CLOUD_OPS_SCHEDULE_V4`, `schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`, and
-`sha256=2d66149bee9e6b44e139fe471bd32dc10a8afa13e7c47d12b2e165f2a3456e8b`.
+`sha256=f03b8a22542f07256a9ba483c336e55d1e46626ce4ed9a59a41ae1b0f2ac95de`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
@@ -104,7 +104,9 @@ seconds and the eventual `PASS` or `BREACH` lead time. Treat
 never infer timing from chat history.
 
 Require `coach_outbox.delivery_contract.status=READY` and
-`contract_id=SEALED_COACH_THREAD_DELIVERY_V2`. For each event, copy the exact
+`contract_id=SEALED_COACH_THREAD_DELIVERY_V3`. Require its canonical
+`delivery_proof_sla.completion_window_seconds=10800` and never substitute a
+chat-side clock. For each event, copy the exact
 canonical `delivery_prompt`; do not reconstruct it from chat or edit its JSON.
 Use `list_threads` to resolve the exact Coach task and its current host id, then
 use `read_thread` before sending. If the exact `delivery_token` is already in

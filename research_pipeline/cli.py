@@ -205,7 +205,7 @@ def status_payload(
             {
                 "trigger_id": trigger["trigger_id"],
                 "title": trigger["title"],
-                "status": effective_trigger_status(state),
+                "status": effective_trigger_status(state, now=current),
                 "next_review_at": state.get("next_review_at"),
                 "review_count": state.get("review_count", 0),
                 "evidence_ready_at": state.get("evidence_ready_at"),

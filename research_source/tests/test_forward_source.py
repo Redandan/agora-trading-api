@@ -8,8 +8,10 @@ import tempfile
 import unittest
 from urllib.error import URLError
 
+from research_pipeline.cli import status_payload
 from research_pipeline.evidence import evidence_progress, register_evidence_source_contract
 from research_pipeline.models import RESEARCH_AUTHORIZATION
+from research_pipeline.policy import load_policy
 from research_pipeline.storage import ResearchStore
 from research_pipeline.waiting import build_evidence_trigger
 from research_source.contract import (
@@ -261,6 +263,29 @@ class ForwardSourceEndToEndTest(unittest.TestCase):
         self.assertEqual(sealed["evidence_observation_count"], 1)
         self.assertRegex(sealed["evidence_chain_head"], r"^[a-f0-9]{64}$")
         self.assertFalse((self.drop / "pending.json").exists())
+
+        canonical = status_payload(
+            self.store,
+            load_policy(self.policy),
+            now=now,
+        )
+        trigger_status = next(
+            item
+            for item in canonical["evidence_triggers"]
+            if item["trigger_id"] == self.trigger["trigger_id"]
+        )
+        progress = trigger_status["progress"]
+        self.assertEqual(trigger_status["status"], "WAITING")
+        self.assertEqual(progress["status"], "AWAITING_DAY_CLOSE")
+        self.assertEqual(progress["observation_count"], 1)
+        self.assertEqual(progress["expected_observations"], 1)
+        self.assertEqual(progress["lag_observations"], 0)
+        self.assertEqual(progress["chain_head"], sealed["evidence_chain_head"])
+        self.assertNotEqual(progress["chain_head"], "0" * 64)
+        self.assertEqual(progress["coverage_start"], "2026-01-01T00:00:00Z")
+        self.assertEqual(progress["coverage_end"], "2026-01-02T00:00:00Z")
+        self.assertEqual(progress["next_observation_day"], "2026-01-02")
+        self.assertEqual(progress["next_capture_deadline"], "2026-01-03T06:00:00Z")
 
 
 if __name__ == "__main__":

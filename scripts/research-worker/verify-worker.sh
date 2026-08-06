@@ -414,7 +414,7 @@ if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
     || fail "microstructure binding ownership is incorrect"
   [ "$(stat -c '%a' "$MICROSTRUCTURE_BINDING")" = "640" ] \
     || fail "microstructure binding mode is incorrect"
-  python3 - "$MICROSTRUCTURE_BINDING" "$current" <<'PY'
+  sudo python3 - "$MICROSTRUCTURE_BINDING" "$current" <<'PY'
 from datetime import date, datetime, timezone
 import hashlib
 import json

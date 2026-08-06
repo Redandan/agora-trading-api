@@ -97,18 +97,21 @@ esac
 [ -s "$current/.release/provenance.json" ] || fail "release provenance missing"
 legacy_microstructure_inventory="$(snapshot_legacy_microstructure)" \
   || fail "legacy V1/V2 inventory is ambiguous"
-if [ -e "$LEGACY_MICROSTRUCTURE_PRESERVATION" ] \
-    || [ -L "$LEGACY_MICROSTRUCTURE_PRESERVATION" ]; then
-  [ -f "$LEGACY_MICROSTRUCTURE_PRESERVATION" ] \
-    && [ ! -L "$LEGACY_MICROSTRUCTURE_PRESERVATION" ] \
+if sudo test -e "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
+    || sudo test -L "$LEGACY_MICROSTRUCTURE_PRESERVATION"; then
+  sudo test -f "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
+    && ! sudo test -L "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
     || fail "legacy V1/V2 preservation seal is not a regular file"
   [ "$(sudo stat -c '%U:%G:%a' "$LEGACY_MICROSTRUCTURE_PRESERVATION")" = "root:root:400" ] \
     || fail "legacy V1/V2 preservation seal metadata changed"
   [ "$(sudo cat "$LEGACY_MICROSTRUCTURE_PRESERVATION")" = "$legacy_microstructure_inventory" ] \
     || fail "legacy V1/V2 bytes no longer match their cutover seal"
-elif [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ] \
-    || [ -e "$LEGACY_MICROSTRUCTURE_BINDING" ] \
-    || [ -e "$LEGACY_MICROSTRUCTURE_STATE" ]; then
+elif sudo test -e "$MICROSTRUCTURE_BINDING" \
+    || sudo test -L "$MICROSTRUCTURE_BINDING" \
+    || sudo test -e "$LEGACY_MICROSTRUCTURE_BINDING" \
+    || sudo test -L "$LEGACY_MICROSTRUCTURE_BINDING" \
+    || sudo test -e "$LEGACY_MICROSTRUCTURE_STATE" \
+    || sudo test -L "$LEGACY_MICROSTRUCTURE_STATE"; then
   fail "legacy V1/V2 preservation seal is missing"
 fi
 while IFS= read -r legacy_line; do

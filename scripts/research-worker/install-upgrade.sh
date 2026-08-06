@@ -463,14 +463,14 @@ PY
     "$MICROSTRUCTURE_STATE"/[a-z0-9]*.json) ;;
     *) fail "validated microstructure state escaped dedicated namespace" ;;
   esac
-  [ -f "$validated_state_file" ] && [ ! -L "$validated_state_file" ] \
+  sudo test -f "$validated_state_file" && ! sudo test -L "$validated_state_file" \
     || fail "validated microstructure state is missing, non-regular, or symlinked"
   state_name="$(basename "$validated_state_file")"
   state_lock="$MICROSTRUCTURE_STATE/.${state_name}.lock"
   state_temp="$MICROSTRUCTURE_STATE/.${state_name}.tmp"
-  [ ! -e "$state_lock" ] && [ ! -L "$state_lock" ] \
+  ! sudo test -e "$state_lock" && ! sudo test -L "$state_lock" \
     || fail "microstructure state lock requires manual recovery"
-  [ ! -e "$state_temp" ] && [ ! -L "$state_temp" ] \
+  ! sudo test -e "$state_temp" && ! sudo test -L "$state_temp" \
     || fail "microstructure state temp requires manual recovery"
   sudo chown "$WORKER_USER:$WORKER_GROUP" "$validated_state_file"
   sudo chmod 0600 "$validated_state_file"

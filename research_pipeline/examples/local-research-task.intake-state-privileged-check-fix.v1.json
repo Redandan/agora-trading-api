@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-intake-state-privileged-check-fix-v1",
+  "issued_at": "2026-08-06T13:05:24Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Fix the smallest installer privilege-boundary defect exposed by the second fail-closed Linux attempt. The root-run Python validator successfully created and validated the microstructure state inside an agora-research-owned 0700 directory, but the following unprivileged shell file, symlink, lock, and temp checks could not traverse that directory and falsely reported the state missing. Make those exact post-validation checks privileged without changing state bytes, ownership handoff, binding, release packaging, units, or any other behavior.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "7da1fa36fd087858997e705afbed8346680d4bd7256049c9fcd77444b3b02287"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Live evidence: release 20260806T130310Z and binding/state were created, initialize returned WAITING_FOR_DAY, and state exists root:root 0600 at the exact dedicated path. The installer then failed at unprivileged -f/-L checks because the parent state directory is agora-research:agora-research 0700. Current was atomically rolled back to known-good 20260806T014804Z; MCP remains active; heartbeat timer disabled; no microstructure units installed.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "EDIT_INSTALLER_PRIVILEGED_STATE_CHECKS",
+    "RUN_EMBEDDED_PYTHON_PARSE_CHECKS",
+    "RUN_LOCAL_SCRIPT_SYNTAX_CHECKS",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SECOND_TIMER_OR_LIFECYCLE_WRITER",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_ENABLE_START_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "OTHER_FILE_EDIT",
+    "SERVER_STAGE_OR_RELEASE_CLEANUP"
+  ],
+  "expected_outputs": [
+    "EXACT_ONE_FILE_CHANGESET",
+    "PRIVILEGED_STATE_FILE_CHECK",
+    "PRIVILEGED_LOCK_AND_TEMP_ABSENCE_CHECKS",
+    "SYMLINK_FAIL_CLOSED_PRESERVED",
+    "OWNERSHIP_HANDOFF_PRESERVED",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly scripts/research-worker/install-upgrade.sh and no other file. Preserve the Manager-created task file and every unrelated path.",
+    "After the existing sudo Python validation returns the exact state path, replace only the unprivileged regular-file, symlink, lock, and temp existence checks with sudo test equivalents that can traverse the agora-research-owned 0700 state root.",
+    "The state check must still require a regular file and reject a symlink. Lock/temp checks must still reject both existing objects and dangling symlinks. Keep the exact namespace case guard before these checks and the existing chown/chmod handoff after them.",
+    "Do not change Python intake logic, state or binding bytes, root paths, modes, identities, capabilities, package closure, release symlink sequence, units, timers, service enablement, or producer state.",
+    "Run only task validation, shell static assertions, embedded Python parse checks, bash -n when Bash exists, and git diff --check for the one file. No PackageOnly, Maven, SSH, server, systemd, cleanup, or deployment action is authorized.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json with exactly one files_changed/artifact entry and all safety assertions false. Clean commit, PackageOnly, orphan cleanup, and Linux redeployment remain separate Manager actions."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 1,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

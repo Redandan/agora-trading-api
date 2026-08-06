@@ -25,7 +25,15 @@ final class OkxMicrostructureCanonicalDrop {
     static final String SOURCE_CONTRACT_SHA256 =
             "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e";
     static final String V3_SOURCE_CONTRACT_SHA256 =
-            "bfd60eb1cff322f93155133c036433d867d1112114d99f15d17c94d612389fd2";
+            "66db4e6b624a6a2e0ee8f444b6e81518054142a6bc30f37123f0e21e7fafe28d";
+    static final String DROP_ENVELOPE_SCHEMA_VERSION =
+            "OKX_MICROSTRUCTURE_DROP_ENVELOPE_V1";
+    static final String V3_DROP_ENVELOPE_SCHEMA_VERSION =
+            "OKX_MICROSTRUCTURE_DROP_ENVELOPE_V3";
+    static final String V3_DROP_ENVELOPE_SCHEMA_ID =
+            "https://agora.local/research/okx-microstructure-drop-envelope.v3.schema.json";
+    static final String V3_DROP_ENVELOPE_SCHEMA_SHA256 =
+            "695d1e1d9ea89bbfa40ba29088bc1af4703ce6ebbb682739995c66d8dcbf64d3";
     static final String DAY_CANONICALIZATION =
             "UTF-8 compact JSON excluding seal; object keys sorted lexicographically";
     static final String ENVELOPE_CANONICALIZATION =
@@ -61,7 +69,8 @@ final class OkxMicrostructureCanonicalDrop {
                 producerReleaseId,
                 producerManifestSha256,
                 publishedAt,
-                SOURCE_CONTRACT_SHA256);
+                SOURCE_CONTRACT_SHA256,
+                DROP_ENVELOPE_SCHEMA_VERSION);
     }
 
     static DropDocuments createV3(
@@ -82,7 +91,8 @@ final class OkxMicrostructureCanonicalDrop {
                 producerReleaseId,
                 producerManifestSha256,
                 publishedAt,
-                V3_SOURCE_CONTRACT_SHA256);
+                V3_SOURCE_CONTRACT_SHA256,
+                V3_DROP_ENVELOPE_SCHEMA_VERSION);
     }
 
     private static DropDocuments createWithSourceContract(
@@ -94,7 +104,8 @@ final class OkxMicrostructureCanonicalDrop {
             String producerReleaseId,
             String producerManifestSha256,
             Instant publishedAt,
-            String sourceContractSha256) {
+            String sourceContractSha256,
+            String envelopeSchemaVersion) {
         try {
             Map<String, Object> bundle = new LinkedHashMap<>(dayPayload);
             byte[] payloadBytes = canonicalBytes(bundle);
@@ -119,7 +130,7 @@ final class OkxMicrostructureCanonicalDrop {
             delivery.put("candle_chain_reuse", false);
 
             Map<String, Object> envelope = new LinkedHashMap<>();
-            envelope.put("schema_version", "OKX_MICROSTRUCTURE_DROP_ENVELOPE_V1");
+            envelope.put("schema_version", envelopeSchemaVersion);
             envelope.put("envelope_type", "IMMUTABLE_ONE_WAY_MICROSTRUCTURE_DAY");
             envelope.put("authorization", OkxMicrostructureCollector.AUTHORIZATION);
             envelope.put("diagnostic_id", diagnosticId);

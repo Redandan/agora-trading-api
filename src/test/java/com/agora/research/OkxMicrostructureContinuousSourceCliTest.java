@@ -164,6 +164,8 @@ class OkxMicrostructureContinuousSourceCliTest {
         Map<String, Object> envelope = mapper.readValue(
                 documents.envelopeBytes(), new TypeReference<>() { });
         assertEquals("OKX_MICROSTRUCTURE_FORWARD_DAY_V3", bundle.get("schema_version"));
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_DROP_ENVELOPE_SCHEMA_VERSION,
+                envelope.get("schema_version"));
         assertEquals(OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256,
                 envelope.get("source_contract_sha256"));
         Map<String, Object> source = castMap(bundle.get("source"));
@@ -269,13 +271,29 @@ class OkxMicrostructureContinuousSourceCliTest {
     void v3SourceContractAndFrozenBindingsMatchExactRepositoryBytes() throws Exception {
         Path contractPath = Path.of(
                 "research_pipeline/okx-microstructure-continuous-source-contract.v3.json");
+        Path v3EnvelopeSchemaPath = Path.of(
+                "research_pipeline/okx-microstructure-drop-envelope.v3.schema.json");
+        Path v1EnvelopeSchemaPath = Path.of(
+                "research_pipeline/okx-microstructure-drop-envelope.v1.schema.json");
         byte[] contractBytes = Files.readAllBytes(contractPath);
+        byte[] v3EnvelopeSchemaBytes = Files.readAllBytes(v3EnvelopeSchemaPath);
         Map<String, Object> contract = mapper.readValue(contractBytes, new TypeReference<>() { });
+        Map<String, Object> v3EnvelopeSchema = mapper.readValue(
+                v3EnvelopeSchemaBytes, new TypeReference<>() { });
+        Map<String, Object> v1EnvelopeSchema = mapper.readValue(
+                Files.readAllBytes(v1EnvelopeSchemaPath), new TypeReference<>() { });
         Map<String, Object> eventTimeJoin = castMap(contract.get("event_time_join"));
         Map<String, Object> bindings = castMap(contract.get("bindings"));
+        Map<String, Object> v3EnvelopeProperties = castMap(v3EnvelopeSchema.get("properties"));
 
+        assertEquals("66db4e6b624a6a2e0ee8f444b6e81518054142a6bc30f37123f0e21e7fafe28d",
+                OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256);
         assertEquals(OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256,
                 OkxMicrostructureCanonicalDrop.sha256(contractBytes));
+        assertEquals("695d1e1d9ea89bbfa40ba29088bc1af4703ce6ebbb682739995c66d8dcbf64d3",
+                OkxMicrostructureCanonicalDrop.V3_DROP_ENVELOPE_SCHEMA_SHA256);
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_DROP_ENVELOPE_SCHEMA_SHA256,
+                OkxMicrostructureCanonicalDrop.sha256(v3EnvelopeSchemaBytes));
         assertEquals("OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V3", contract.get("contract_id"));
         assertEquals("LATEST_BOOKS5_AT_OR_BEFORE_TRADE", eventTimeJoin.get("book_reference"));
         assertEquals(10_000, ((Number) eventTimeJoin.get(
@@ -284,6 +302,25 @@ class OkxMicrostructureContinuousSourceCliTest {
                 bindings.get("day_schema_sha256"));
         assertEquals(OkxMicrostructureContinuousSourceCli.DIAGNOSTIC_CONTRACT_SHA256,
                 bindings.get("diagnostic_contract_sha256"));
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_DROP_ENVELOPE_SCHEMA_ID,
+                v3EnvelopeSchema.get("$id"));
+        assertEquals(v3EnvelopeSchema.get("$id"), bindings.get("drop_envelope_schema_id"));
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_DROP_ENVELOPE_SCHEMA_VERSION,
+                castMap(v3EnvelopeProperties.get("schema_version")).get("const"));
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256,
+                castMap(v3EnvelopeProperties.get("source_contract_sha256")).get("const"));
+
+        Map<String, Object> normalizedV3Schema = mapper.readValue(
+                v3EnvelopeSchemaBytes, new TypeReference<>() { });
+        normalizedV3Schema.put("$id", v1EnvelopeSchema.get("$id"));
+        normalizedV3Schema.put("title", v1EnvelopeSchema.get("title"));
+        Map<String, Object> normalizedProperties = castMap(
+                normalizedV3Schema.get("properties"));
+        castMap(normalizedProperties.get("schema_version")).put(
+                "const", OkxMicrostructureCanonicalDrop.DROP_ENVELOPE_SCHEMA_VERSION);
+        castMap(normalizedProperties.get("source_contract_sha256")).put(
+                "const", OkxMicrostructureCanonicalDrop.SOURCE_CONTRACT_SHA256);
+        assertEquals(v1EnvelopeSchema, normalizedV3Schema);
     }
 
     @Test
@@ -409,6 +446,8 @@ class OkxMicrostructureContinuousSourceCliTest {
                         START_DAY.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC));
         Map<String, Object> envelope = mapper.readValue(
                 documents.envelopeBytes(), new TypeReference<>() { });
+        assertEquals(OkxMicrostructureCanonicalDrop.DROP_ENVELOPE_SCHEMA_VERSION,
+                envelope.get("schema_version"));
         assertEquals(OkxMicrostructureCanonicalDrop.SOURCE_CONTRACT_SHA256,
                 envelope.get("source_contract_sha256"));
     }

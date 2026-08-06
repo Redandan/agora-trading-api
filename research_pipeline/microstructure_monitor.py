@@ -8,7 +8,7 @@ import re
 import stat
 from typing import Any
 
-from .microstructure_intake import load_canonical_state_bytes
+from .microstructure_intake import load_canonical_v3_state_bytes
 from .microstructure_source_contract import ContractViolation
 
 
@@ -29,9 +29,9 @@ def microstructure_diagnostic_status(
     if now.tzinfo is None:
         raise ValueError("microstructure monitor time must be timezone-aware")
     root = Path(state_root)
-    namespace = root / "microstructure"
+    namespace = root / "microstructure-v3"
     if not os.path.lexists(namespace):
-        return _summary("NOT_CONFIGURED", "NOT_CONFIGURED")
+        return _summary("RECOVERY_BLOCKED", "RECOVERY_BLOCKED")
     if namespace.is_symlink() or not namespace.is_dir():
         return _summary("RECOVERY_BLOCKED", "RECOVERY_BLOCKED")
 
@@ -53,7 +53,7 @@ def microstructure_diagnostic_status(
     state_path = namespace / state_names[0]
     try:
         raw_bytes = _read_stable_regular_bytes(state_path)
-        state = load_canonical_state_bytes(raw_bytes)
+        state = load_canonical_v3_state_bytes(raw_bytes)
         if state_path.name != f"{state['diagnostic_id']}.json":
             raise ValueError("microstructure state filename does not match diagnostic_id")
         after = _namespace_snapshot(namespace)

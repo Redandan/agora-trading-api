@@ -4,16 +4,20 @@ from dataclasses import dataclass
 from datetime import date
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .microstructure_source_contract import (
     ContractViolation,
     accept_intake_day,
+    accept_v3_intake_day,
     block_intake_state,
+    block_v3_intake_state,
     canonical_json_bytes,
     initial_intake_state,
+    initial_v3_intake_state,
     load_json_bytes_strict,
     validate_intake_state,
+    validate_v3_intake_state,
 )
 
 
@@ -70,33 +74,96 @@ class RecoveryBlocked(RuntimeError):
     pass
 
 
+@dataclass(frozen=True, slots=True)
+class _IntakeProfile:
+    initial: Callable[..., dict[str, Any]]
+    validate: Callable[[Any], dict[str, Any]]
+    accept: Callable[..., dict[str, Any]]
+    block: Callable[..., dict[str, Any]]
+
+
+_V2_INTAKE = _IntakeProfile(
+    initial=initial_intake_state,
+    validate=validate_intake_state,
+    accept=accept_intake_day,
+    block=block_intake_state,
+)
+_V3_INTAKE = _IntakeProfile(
+    initial=initial_v3_intake_state,
+    validate=validate_v3_intake_state,
+    accept=accept_v3_intake_day,
+    block=block_v3_intake_state,
+)
+
+
 def initial_state_bytes(
     diagnostic_id: str,
     start_day: date,
     *,
     as_of_day: date,
 ) -> bytes:
-    state = initial_intake_state(
+    return _initial_state_bytes(
+        _V2_INTAKE, diagnostic_id, start_day, as_of_day=as_of_day
+    )
+
+
+def initial_v3_state_bytes(
+    diagnostic_id: str,
+    start_day: date,
+    *,
+    as_of_day: date,
+) -> bytes:
+    return _initial_state_bytes(
+        _V3_INTAKE, diagnostic_id, start_day, as_of_day=as_of_day
+    )
+
+
+def _initial_state_bytes(
+    profile: _IntakeProfile,
+    diagnostic_id: str,
+    start_day: date,
+    *,
+    as_of_day: date,
+) -> bytes:
+    state = profile.initial(
         diagnostic_id,
         start_day,
         as_of_day=as_of_day,
     )
-    return canonical_state_bytes(state)
+    return _canonical_state_bytes(profile, state)
 
 
 def canonical_state_bytes(state: Any) -> bytes:
-    validated = validate_intake_state(state)
+    return _canonical_state_bytes(_V2_INTAKE, state)
+
+
+def canonical_v3_state_bytes(state: Any) -> bytes:
+    return _canonical_state_bytes(_V3_INTAKE, state)
+
+
+def _canonical_state_bytes(profile: _IntakeProfile, state: Any) -> bytes:
+    validated = profile.validate(state)
     return canonical_json_bytes(validated)
 
 
 def load_canonical_state_bytes(raw_bytes: bytes) -> dict[str, Any]:
+    return _load_canonical_state_bytes(_V2_INTAKE, raw_bytes)
+
+
+def load_canonical_v3_state_bytes(raw_bytes: bytes) -> dict[str, Any]:
+    return _load_canonical_state_bytes(_V3_INTAKE, raw_bytes)
+
+
+def _load_canonical_state_bytes(
+    profile: _IntakeProfile, raw_bytes: bytes
+) -> dict[str, Any]:
     state = load_json_bytes_strict(raw_bytes, "microstructure intake state")
     if raw_bytes != canonical_json_bytes(state):
         raise ContractViolation(
             "HASH_MISMATCH",
             "intake state bytes must be compact sorted-key canonical JSON",
         )
-    return validate_intake_state(state)
+    return profile.validate(state)
 
 
 def apply_observed_delivery(
@@ -107,13 +174,50 @@ def apply_observed_delivery(
     observed: ObservedDelivery,
     accepted_at: str,
 ) -> IntakeResult:
-    state = load_canonical_state_bytes(state_bytes)
+    return _apply_observed_delivery(
+        _V2_INTAKE,
+        state_bytes,
+        envelope_bytes,
+        bundle_bytes,
+        observed=observed,
+        accepted_at=accepted_at,
+    )
+
+
+def apply_observed_v3_delivery(
+    state_bytes: bytes,
+    envelope_bytes: bytes,
+    bundle_bytes: bytes,
+    *,
+    observed: ObservedDelivery,
+    accepted_at: str,
+) -> IntakeResult:
+    return _apply_observed_delivery(
+        _V3_INTAKE,
+        state_bytes,
+        envelope_bytes,
+        bundle_bytes,
+        observed=observed,
+        accepted_at=accepted_at,
+    )
+
+
+def _apply_observed_delivery(
+    profile: _IntakeProfile,
+    state_bytes: bytes,
+    envelope_bytes: bytes,
+    bundle_bytes: bytes,
+    *,
+    observed: ObservedDelivery,
+    accepted_at: str,
+) -> IntakeResult:
+    state = _load_canonical_state_bytes(profile, state_bytes)
     failure_day = _expected_failure_day(state)
     try:
         observed.validate()
         envelope = load_json_bytes_strict(envelope_bytes, "drop envelope")
         bundle = load_json_bytes_strict(bundle_bytes, "day bundle")
-        next_state = accept_intake_day(
+        next_state = profile.accept(
             state,
             envelope,
             bundle,
@@ -130,7 +234,7 @@ def apply_observed_delivery(
                 observed.research_lifecycle_action_requested
             ),
         )
-        next_bytes = canonical_state_bytes(next_state)
+        next_bytes = _canonical_state_bytes(profile, next_state)
         if next_bytes == state_bytes:
             disposition = "IDEMPOTENT_DUPLICATE"
         else:
@@ -138,13 +242,13 @@ def apply_observed_delivery(
         return IntakeResult(disposition=disposition, state_bytes=next_bytes)
     except ContractViolation as error:
         detail = str(error).strip() or error.code
-        blocked = block_intake_state(
+        blocked = profile.block(
             state,
             code=error.code,
             day=failure_day,
             detail=detail[:500],
         )
-        validate_intake_state(blocked)
+        profile.validate(blocked)
         return IntakeResult(
             disposition="INTEGRITY_BLOCKED",
             state_bytes=canonical_json_bytes(blocked),

@@ -41,11 +41,11 @@ from research_pipeline.heartbeat import (
     record_heartbeat_failure,
     run_heartbeat_cycle,
 )
-from research_pipeline.microstructure_intake import canonical_state_bytes
+from research_pipeline.microstructure_intake import canonical_v3_state_bytes
 from research_pipeline.microstructure_monitor import microstructure_diagnostic_status
 from research_pipeline.microstructure_source_contract import (
-    block_intake_state,
-    initial_intake_state,
+    block_v3_intake_state,
+    initial_v3_intake_state,
 )
 from research_pipeline.policy import load_policy, policy_sha256
 from research_pipeline.storage import ResearchStore, atomic_write_json, sha256_file
@@ -83,6 +83,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
         self.dataset.write_text("sealed dataset\n", encoding="utf-8")
         self.diagnostic.write_text('{"diagnostic":"mechanism-neutral"}\n', encoding="utf-8")
         self.manifest = self._manifest()
+        self._write_microstructure_state()
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -92,9 +93,11 @@ class EvidenceManifestContractTest(unittest.TestCase):
         *,
         accepted_day_count: int = 0,
         blocked: bool = False,
+        store: ResearchStore | None = None,
     ) -> tuple[Path, dict[str, object]]:
+        target_store = self.store if store is None else store
         start_day = date(2026, 8, 8)
-        state = initial_intake_state(
+        state = initial_v3_intake_state(
             "microstructure-status-test",
             start_day,
             as_of_day=date(2026, 8, 7),
@@ -132,33 +135,40 @@ class EvidenceManifestContractTest(unittest.TestCase):
             state["status"] = "DIAGNOSTIC_READY"
             state["next_expected_day"] = None
             state["readiness"]["disposition"] = (
-                "FROZEN_V2_DISCOVERY_ANALYSIS_ONLY"
+                "FROZEN_V3_DISCOVERY_ANALYSIS_ONLY"
             )
         else:
             state["next_expected_day"] = (
                 start_day + timedelta(days=accepted_day_count)
             ).isoformat()
         if blocked:
-            state = block_intake_state(
+            state = block_v3_intake_state(
                 state,
                 code="STREAM_GAP",
                 day=start_day + timedelta(days=accepted_day_count),
                 detail="deterministic monitor fixture integrity block",
             )
-        namespace = self.store.root / "microstructure"
+        namespace = target_store.root / "microstructure-v3"
         namespace.mkdir(parents=True, exist_ok=True)
         path = namespace / "microstructure-status-test.json"
-        path.write_bytes(canonical_state_bytes(state))
+        path.write_bytes(canonical_v3_state_bytes(state))
         return path, state
 
     def test_microstructure_monitor_is_read_only_bounded_and_fail_closed(self) -> None:
+        initial_path = (
+            self.store.root
+            / "microstructure-v3"
+            / "microstructure-status-test.json"
+        )
+        initial_path.unlink()
+        initial_path.parent.rmdir()
         absent = microstructure_diagnostic_status(
             self.store.root,
             now=datetime(2026, 8, 7, tzinfo=timezone.utc),
         )
-        self.assertEqual(absent["status"], "NOT_CONFIGURED")
+        self.assertEqual(absent["status"], "RECOVERY_BLOCKED")
 
-        namespace = self.store.root / "microstructure"
+        namespace = self.store.root / "microstructure-v3"
         namespace.mkdir()
         empty = microstructure_diagnostic_status(
             self.store.root,
@@ -200,7 +210,10 @@ class EvidenceManifestContractTest(unittest.TestCase):
         )
         self.assertEqual(ready["status"], "DIAGNOSTIC_READY")
         self.assertEqual(ready["accepted_day_count"], 14)
-        self.assertEqual(ready["artifact_path"], "microstructure/microstructure-status-test.json")
+        self.assertEqual(
+            ready["artifact_path"],
+            "microstructure-v3/microstructure-status-test.json",
+        )
         self.assertEqual(ready["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
 
         path, _state = self._write_microstructure_state(
@@ -243,10 +256,11 @@ class EvidenceManifestContractTest(unittest.TestCase):
 
     def test_heartbeat_routes_microstructure_once_through_existing_outbox(self) -> None:
         tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+        self._write_microstructure_state()
         run_heartbeat_cycle(
             self.store,
             {"policy_id": "TEST_RESEARCH_ONLY"},
-            now=datetime(2026, 8, 22, 12, tzinfo=timezone.utc),
+            now=datetime(2026, 8, 7, 12, tzinfo=timezone.utc),
             tick_preview=tick,
             tick_result=tick,
         )
@@ -336,7 +350,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
             lock_stale_seconds=60,
         )
         recovery_store.bootstrap()
-        (recovery_store.root / "microstructure").mkdir()
+        (recovery_store.root / "microstructure-v3").mkdir()
         with self.assertRaisesRegex(ValueError, "safely hashable") as raised:
             run_heartbeat_cycle(
                 recovery_store,
@@ -936,6 +950,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
         trigger = build_evidence_trigger(value)
         store = ResearchStore(self.root / "ninety-day-state", lock_stale_seconds=60)
         store.register_evidence_trigger(trigger)
+        self._write_microstructure_state(store=store)
         state = store.load_evidence_trigger_state(trigger["trigger_id"])
         register_evidence_source_contract(
             store,
@@ -1060,6 +1075,7 @@ class EvidenceManifestContractTest(unittest.TestCase):
         trigger = build_evidence_trigger(value)
         store = ResearchStore(self.root / "ready-candidate-e2e", lock_stale_seconds=60)
         store.register_evidence_trigger(trigger)
+        self._write_microstructure_state(store=store)
         state = store.load_evidence_trigger_state(trigger["trigger_id"])
         register_evidence_source_contract(
             store,

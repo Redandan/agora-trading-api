@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 import hashlib
@@ -60,6 +61,35 @@ SOURCE_CONTRACT_PATH = (
 )
 DROP_SCHEMA_PATH = PACKAGE_DIR / "okx-microstructure-drop-envelope.v1.schema.json"
 INTAKE_SCHEMA_PATH = PACKAGE_DIR / "okx-microstructure-intake-state.v1.schema.json"
+
+V3_SOURCE_CONTRACT_ID = "OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V3"
+V3_SOURCE_CONTRACT_SHA256 = (
+    "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422"
+)
+V3_DROP_SCHEMA_VERSION = "OKX_MICROSTRUCTURE_DROP_ENVELOPE_V3"
+V3_DROP_ENVELOPE_SCHEMA_SHA256 = (
+    "ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418"
+)
+V3_INTAKE_SCHEMA_VERSION = "OKX_MICROSTRUCTURE_INTAKE_STATE_V3"
+V3_INTAKE_STATE_SCHEMA_SHA256 = (
+    "935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc"
+)
+V3_DAY_SCHEMA_VERSION = "OKX_MICROSTRUCTURE_FORWARD_DAY_V3"
+V3_DAY_SCHEMA_SHA256 = (
+    "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+)
+V3_DIAGNOSTIC_CONTRACT_SHA256 = (
+    "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+)
+V3_SOURCE_CONTRACT_PATH = (
+    PACKAGE_DIR / "okx-microstructure-continuous-source-contract.v3.json"
+)
+V3_DROP_SCHEMA_PATH = PACKAGE_DIR / "okx-microstructure-drop-envelope.v3.schema.json"
+V3_INTAKE_SCHEMA_PATH = PACKAGE_DIR / "okx-microstructure-intake-state.v3.schema.json"
+V3_DAY_SCHEMA_PATH = PACKAGE_DIR / "okx-microstructure-forward-day.v3.schema.json"
+V3_DIAGNOSTIC_CONTRACT_PATH = (
+    PACKAGE_DIR / "okx-microstructure-forward-diagnostic-contract.v3.json"
+)
 
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 DIAGNOSTIC_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{2,79}$")
@@ -221,6 +251,21 @@ MINUTE_KEYS = {
     "first_book_at",
     "last_book_at",
 }
+V3_DAY_SOURCE_KEYS = DAY_SOURCE_KEYS | {
+    "midline_formula",
+    "midline_reference",
+    "unreferenced_trade_disposition",
+}
+V3_INTEGRITY_KEYS = INTEGRITY_KEYS | {
+    "midline_unreferenced_trade_count",
+    "crossed_book_count",
+}
+V3_MINUTE_KEYS = MINUTE_KEYS | {
+    "midline_reference_count",
+    "above_mid_buy_quote_notional",
+    "below_mid_sell_quote_notional",
+    "midline_other_quote_notional",
+}
 
 STATE_KEYS = {
     "schema_version",
@@ -284,6 +329,55 @@ FAILURE_CODES = {
     "CANDLE_CHAIN_REUSE_FORBIDDEN",
     "LIFECYCLE_CLOCK_FORBIDDEN",
 }
+
+
+@dataclass(frozen=True)
+class _ContractProfile:
+    source_contract_sha256: str
+    drop_schema_version: str
+    drop_envelope_schema_sha256: str
+    intake_schema_version: str
+    day_schema_version: str
+    day_schema_sha256: str
+    diagnostic_contract_sha256: str
+    state_type: str
+    ready_disposition: str
+    day_source_keys: frozenset[str]
+    integrity_keys: frozenset[str]
+    minute_keys: frozenset[str]
+    v3_midline: bool
+
+
+_V2_PROFILE = _ContractProfile(
+    source_contract_sha256=SOURCE_CONTRACT_SHA256,
+    drop_schema_version=DROP_SCHEMA_VERSION,
+    drop_envelope_schema_sha256=DROP_ENVELOPE_SCHEMA_SHA256,
+    intake_schema_version=INTAKE_SCHEMA_VERSION,
+    day_schema_version=DAY_SCHEMA_VERSION,
+    day_schema_sha256=DAY_SCHEMA_SHA256,
+    diagnostic_contract_sha256=DIAGNOSTIC_CONTRACT_SHA256,
+    state_type="SERVER_CANONICAL_MICROSTRUCTURE_INTAKE",
+    ready_disposition="FROZEN_V2_DISCOVERY_ANALYSIS_ONLY",
+    day_source_keys=frozenset(DAY_SOURCE_KEYS),
+    integrity_keys=frozenset(INTEGRITY_KEYS),
+    minute_keys=frozenset(MINUTE_KEYS),
+    v3_midline=False,
+)
+_V3_PROFILE = _ContractProfile(
+    source_contract_sha256=V3_SOURCE_CONTRACT_SHA256,
+    drop_schema_version=V3_DROP_SCHEMA_VERSION,
+    drop_envelope_schema_sha256=V3_DROP_ENVELOPE_SCHEMA_SHA256,
+    intake_schema_version=V3_INTAKE_SCHEMA_VERSION,
+    day_schema_version=V3_DAY_SCHEMA_VERSION,
+    day_schema_sha256=V3_DAY_SCHEMA_SHA256,
+    diagnostic_contract_sha256=V3_DIAGNOSTIC_CONTRACT_SHA256,
+    state_type="SERVER_CANONICAL_MICROSTRUCTURE_V3_INTAKE",
+    ready_disposition="FROZEN_V3_DISCOVERY_ANALYSIS_ONLY",
+    day_source_keys=frozenset(V3_DAY_SOURCE_KEYS),
+    integrity_keys=frozenset(V3_INTEGRITY_KEYS),
+    minute_keys=frozenset(V3_MINUTE_KEYS),
+    v3_midline=True,
+)
 
 PRODUCER_TRANSITIONS = {
     ("UNBOUND", "BIND_FUTURE_WINDOW"): "ARMED_FUTURE",
@@ -635,6 +729,68 @@ def validate_frozen_contract_files() -> dict[str, str]:
     return {path.name: expected_hash for path, expected_hash in expected.items()}
 
 
+def validate_v3_frozen_contract_files() -> dict[str, str]:
+    expected = {
+        V3_SOURCE_CONTRACT_PATH: V3_SOURCE_CONTRACT_SHA256,
+        V3_DROP_SCHEMA_PATH: V3_DROP_ENVELOPE_SCHEMA_SHA256,
+        V3_INTAKE_SCHEMA_PATH: V3_INTAKE_STATE_SCHEMA_SHA256,
+        V3_DAY_SCHEMA_PATH: V3_DAY_SCHEMA_SHA256,
+        V3_DIAGNOSTIC_CONTRACT_PATH: V3_DIAGNOSTIC_CONTRACT_SHA256,
+    }
+    for path, expected_hash in expected.items():
+        if file_sha256(path) != expected_hash:
+            _reject("CONTRACT_HASH_MISMATCH", f"{path.name} hash changed")
+
+    source = load_json_strict(V3_SOURCE_CONTRACT_PATH)
+    if (
+        source.get("schema_version") != "3"
+        or source.get("contract_id") != V3_SOURCE_CONTRACT_ID
+        or source.get("authorization") != AUTHORIZATION
+        or source.get("purpose") != PURPOSE
+    ):
+        _reject("CONTRACT_HASH_MISMATCH", "V3 source identity changed")
+    bindings = _object(source.get("bindings"), "V3 source bindings")
+    if (
+        bindings.get("day_schema_sha256") != V3_DAY_SCHEMA_SHA256
+        or bindings.get("diagnostic_contract_sha256")
+        != V3_DIAGNOSTIC_CONTRACT_SHA256
+        or bindings.get("drop_envelope_schema_id")
+        != "https://agora.local/research/okx-microstructure-drop-envelope.v3.schema.json"
+        or bindings.get("intake_state_schema_id")
+        != "https://agora.local/research/okx-microstructure-intake-state.v3.schema.json"
+    ):
+        _reject("CONTRACT_HASH_MISMATCH", "V3 source binding hashes changed")
+
+    schema_versions = {
+        V3_DROP_SCHEMA_PATH: V3_DROP_SCHEMA_VERSION,
+        V3_INTAKE_SCHEMA_PATH: V3_INTAKE_SCHEMA_VERSION,
+        V3_DAY_SCHEMA_PATH: V3_DAY_SCHEMA_VERSION,
+    }
+    for path, version in schema_versions.items():
+        schema = load_json_strict(path)
+        if schema.get("additionalProperties") is not False:
+            _reject("CONTRACT_HASH_MISMATCH", f"{path.name} is not exact-key closed")
+        if (
+            _object(schema.get("properties"), f"{path.name} properties")
+            .get("schema_version", {})
+            .get("const")
+            != version
+        ):
+            _reject("CONTRACT_HASH_MISMATCH", f"{path.name} version changed")
+    diagnostic = load_json_strict(V3_DIAGNOSTIC_CONTRACT_PATH)
+    if (
+        diagnostic.get("schema_version") != "3"
+        or diagnostic.get("contract_id")
+        != "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3"
+        or _object(diagnostic.get("input"), "V3 diagnostic input").get(
+            "bundle_schema_version"
+        )
+        != V3_DAY_SCHEMA_VERSION
+    ):
+        _reject("CONTRACT_HASH_MISMATCH", "V3 diagnostic binding changed")
+    return {path.name: expected_hash for path, expected_hash in expected.items()}
+
+
 def _transition(
     transitions: dict[tuple[str, str], str], state: str, event: str, label: str
 ) -> str:
@@ -656,13 +812,15 @@ def transition_intake(state: str, event: str) -> str:
     return _transition(INTAKE_TRANSITIONS, state, event, "intake")
 
 
-def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
+def _validate_day_bundle(
+    profile: _ContractProfile, value: Any, *, raw_bytes: bytes
+) -> dict[str, Any]:
     bundle = _object(value, "day bundle")
     verified_raw_bytes = _verify_canonical_document_bytes(
         bundle, raw_bytes, "day bundle"
     )
     _exact_keys(bundle, DAY_KEYS, "day bundle")
-    if bundle["schema_version"] != DAY_SCHEMA_VERSION:
+    if bundle["schema_version"] != profile.day_schema_version:
         _reject("CONTRACT_HASH_MISMATCH", "day schema version changed")
     if bundle["bundle_type"] != "FORWARD_MICROSTRUCTURE_DAY_RESEARCH_ONLY":
         _reject("CONTRACT_HASH_MISMATCH", "day bundle type changed")
@@ -670,8 +828,8 @@ def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
         _reject("CONTRACT_HASH_MISMATCH", "day authorization changed")
 
     source = _object(bundle["source"], "day source")
-    _exact_keys(source, DAY_SOURCE_KEYS, "day source")
-    if source != {
+    _exact_keys(source, profile.day_source_keys, "day source")
+    expected_source = {
         "venue": "OKX",
         "instrument": "BTC-USDT",
         "channels": ["trades", "books5"],
@@ -679,7 +837,16 @@ def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
         "historical_backfill": False,
         "raw_messages_persisted": False,
         "aggregation_timezone": "UTC",
-    }:
+    }
+    if profile.v3_midline:
+        expected_source.update(
+            {
+                "midline_formula": "BEST_BID_1_PLUS_BEST_ASK_1_DIVIDED_BY_2",
+                "midline_reference": "LATEST_BOOKS5_AT_OR_BEFORE_TRADE",
+                "unreferenced_trade_disposition": "INTEGRITY_ANOMALY",
+            }
+        )
+    if source != expected_source:
         code = (
             "BACKFILL_FORBIDDEN"
             if source.get("historical_backfill") is not False
@@ -700,18 +867,36 @@ def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
         _reject("STREAM_GAP", "both channels must be acknowledged")
 
     integrity = _object(bundle["integrity"], "integrity")
-    _exact_keys(integrity, INTEGRITY_KEYS, "integrity")
+    _exact_keys(integrity, profile.integrity_keys, "integrity")
     if integrity["status"] != "CLEAN" or integrity["anomaly_count"] != 0:
         _reject("INTEGRITY_NOT_CLEAN", "day integrity must be CLEAN with zero anomalies")
     _integer(integrity["raw_message_count"], "integrity.raw_message_count", minimum=1)
     _sha256(integrity["arrival_chain_sha256"], "integrity.arrival_chain_sha256")
+    if profile.v3_midline and (
+        _integer(
+            integrity["midline_unreferenced_trade_count"],
+            "integrity.midline_unreferenced_trade_count",
+            minimum=0,
+        )
+        != 0
+        or _integer(
+            integrity["crossed_book_count"],
+            "integrity.crossed_book_count",
+            minimum=0,
+        )
+        != 0
+    ):
+        _reject(
+            "INTEGRITY_NOT_CLEAN",
+            "V3 day must contain zero unreferenced trades and crossed books",
+        )
 
     minutes = bundle["minutes"]
     if not isinstance(minutes, list) or len(minutes) != MINUTES_PER_DAY:
         _reject("INCOMPLETE_DAY", "day must contain exactly 1440 minutes")
     for index, raw_minute in enumerate(minutes):
         minute = _object(raw_minute, f"minutes[{index}]")
-        _exact_keys(minute, MINUTE_KEYS, f"minutes[{index}]")
+        _exact_keys(minute, profile.minute_keys, f"minutes[{index}]")
         expected_at = day_start + timedelta(minutes=index)
         minute_at = _timestamp(minute["minute"], f"minutes[{index}].minute")
         if minute_at != expected_at or minute_at.second or minute_at.microsecond:
@@ -726,6 +911,15 @@ def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
         )
         if match_count < trade_records:
             _reject("INCOMPLETE_DAY", "match_count is below trade_record_count")
+        if profile.v3_midline and _integer(
+            minute["midline_reference_count"],
+            f"minutes[{index}].midline_reference_count",
+            minimum=1,
+        ) != trade_records:
+            _reject(
+                "INTEGRITY_NOT_CLEAN",
+                "midline_reference_count must equal trade_record_count",
+            )
         if _integer(
             minute["book_sample_count"],
             f"minutes[{index}].book_sample_count",
@@ -739,6 +933,31 @@ def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
         net = _decimal(minute["net_taker_quote_notional"], "net_taker_quote_notional")
         if buy < 0 or sell < 0 or total <= 0 or total != buy + sell or net != buy - sell:
             _reject("INCOMPLETE_DAY", "trade quote notional identities are invalid")
+        if profile.v3_midline:
+            above = _decimal(
+                minute["above_mid_buy_quote_notional"],
+                "above_mid_buy_quote_notional",
+            )
+            below = _decimal(
+                minute["below_mid_sell_quote_notional"],
+                "below_mid_sell_quote_notional",
+            )
+            other = _decimal(
+                minute["midline_other_quote_notional"],
+                "midline_other_quote_notional",
+            )
+            if (
+                above < 0
+                or below < 0
+                or other < 0
+                or above > buy
+                or below > sell
+                or above + below + other != total
+            ):
+                _reject(
+                    "INTEGRITY_NOT_CLEAN",
+                    "V3 midline quote buckets do not reconcile",
+                )
 
         open_price = _decimal(minute["trade_open_price"], "trade_open_price")
         high_price = _decimal(minute["trade_high_price"], "trade_high_price")
@@ -803,7 +1022,16 @@ def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
     }
 
 
-def validate_drop_envelope(
+def validate_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
+    return _validate_day_bundle(_V2_PROFILE, value, raw_bytes=raw_bytes)
+
+
+def validate_v3_day_bundle(value: Any, *, raw_bytes: bytes) -> dict[str, Any]:
+    return _validate_day_bundle(_V3_PROFILE, value, raw_bytes=raw_bytes)
+
+
+def _validate_drop_envelope(
+    profile: _ContractProfile,
     value: Any,
     bundle: Any,
     *,
@@ -846,7 +1074,7 @@ def validate_drop_envelope(
         envelope, raw_envelope_bytes, "drop envelope"
     )
     _exact_keys(envelope, ENVELOPE_KEYS, "drop envelope")
-    if envelope["schema_version"] != DROP_SCHEMA_VERSION:
+    if envelope["schema_version"] != profile.drop_schema_version:
         _reject("CONTRACT_HASH_MISMATCH", "drop schema version changed")
     if envelope["envelope_type"] != "IMMUTABLE_ONE_WAY_MICROSTRUCTURE_DAY":
         _reject("CONTRACT_HASH_MISMATCH", "drop envelope type changed")
@@ -854,7 +1082,7 @@ def validate_drop_envelope(
         _reject("CONTRACT_HASH_MISMATCH", "drop authorization changed")
     if _diagnostic_id(envelope["diagnostic_id"]) != expected_diagnostic_id:
         _reject("CONTRACT_HASH_MISMATCH", "diagnostic binding changed")
-    if envelope["source_contract_sha256"] != SOURCE_CONTRACT_SHA256:
+    if envelope["source_contract_sha256"] != profile.source_contract_sha256:
         _reject("CONTRACT_HASH_MISMATCH", "source contract hash changed")
     if envelope["producer_identity"] != "agora-evidence-source":
         _reject("WRONG_IDENTITY", "declared producer identity is not authorized")
@@ -883,7 +1111,9 @@ def validate_drop_envelope(
     ):
         _reject("PREDECESSOR_MISMATCH", "predecessor binding does not match intake")
 
-    validated_bundle = validate_day_bundle(bundle, raw_bytes=raw_bundle_bytes)
+    validated_bundle = _validate_day_bundle(
+        profile, bundle, raw_bytes=raw_bundle_bytes
+    )
     if validated_bundle["day"] != expected_day:
         _reject("WRONG_DAY", "bundle day does not match envelope day")
     bundle_hash = validated_bundle["bundle_sha256"]
@@ -947,6 +1177,90 @@ def validate_drop_envelope(
     }
 
 
+def validate_drop_envelope(
+    value: Any,
+    bundle: Any,
+    *,
+    raw_envelope_bytes: bytes,
+    raw_bundle_bytes: bytes,
+    expected_diagnostic_id: str,
+    expected_day: date,
+    expected_predecessor_day: date | None,
+    expected_predecessor_bundle_sha256: str | None,
+    observed_producer_identity: str,
+    delivered_via_atomic_rename: bool,
+    source_path_is_symlink: bool,
+    overwrite_attempted: bool,
+    destination_existed: bool = False,
+    existing_bundle_sha256: str | None = None,
+    historical_backfill_requested: bool = False,
+    candle_chain_reuse_requested: bool = False,
+    research_lifecycle_action_requested: bool = False,
+) -> dict[str, Any]:
+    return _validate_drop_envelope(
+        _V2_PROFILE,
+        value,
+        bundle,
+        raw_envelope_bytes=raw_envelope_bytes,
+        raw_bundle_bytes=raw_bundle_bytes,
+        expected_diagnostic_id=expected_diagnostic_id,
+        expected_day=expected_day,
+        expected_predecessor_day=expected_predecessor_day,
+        expected_predecessor_bundle_sha256=expected_predecessor_bundle_sha256,
+        observed_producer_identity=observed_producer_identity,
+        delivered_via_atomic_rename=delivered_via_atomic_rename,
+        source_path_is_symlink=source_path_is_symlink,
+        overwrite_attempted=overwrite_attempted,
+        destination_existed=destination_existed,
+        existing_bundle_sha256=existing_bundle_sha256,
+        historical_backfill_requested=historical_backfill_requested,
+        candle_chain_reuse_requested=candle_chain_reuse_requested,
+        research_lifecycle_action_requested=research_lifecycle_action_requested,
+    )
+
+
+def validate_v3_drop_envelope(
+    value: Any,
+    bundle: Any,
+    *,
+    raw_envelope_bytes: bytes,
+    raw_bundle_bytes: bytes,
+    expected_diagnostic_id: str,
+    expected_day: date,
+    expected_predecessor_day: date | None,
+    expected_predecessor_bundle_sha256: str | None,
+    observed_producer_identity: str,
+    delivered_via_atomic_rename: bool,
+    source_path_is_symlink: bool,
+    overwrite_attempted: bool,
+    destination_existed: bool = False,
+    existing_bundle_sha256: str | None = None,
+    historical_backfill_requested: bool = False,
+    candle_chain_reuse_requested: bool = False,
+    research_lifecycle_action_requested: bool = False,
+) -> dict[str, Any]:
+    return _validate_drop_envelope(
+        _V3_PROFILE,
+        value,
+        bundle,
+        raw_envelope_bytes=raw_envelope_bytes,
+        raw_bundle_bytes=raw_bundle_bytes,
+        expected_diagnostic_id=expected_diagnostic_id,
+        expected_day=expected_day,
+        expected_predecessor_day=expected_predecessor_day,
+        expected_predecessor_bundle_sha256=expected_predecessor_bundle_sha256,
+        observed_producer_identity=observed_producer_identity,
+        delivered_via_atomic_rename=delivered_via_atomic_rename,
+        source_path_is_symlink=source_path_is_symlink,
+        overwrite_attempted=overwrite_attempted,
+        destination_existed=destination_existed,
+        existing_bundle_sha256=existing_bundle_sha256,
+        historical_backfill_requested=historical_backfill_requested,
+        candle_chain_reuse_requested=candle_chain_reuse_requested,
+        research_lifecycle_action_requested=research_lifecycle_action_requested,
+    )
+
+
 def _chain_hash(
     previous_chain_sha256: str,
     day_text: str,
@@ -976,7 +1290,8 @@ def _readiness(disposition: str) -> dict[str, Any]:
     }
 
 
-def initial_intake_state(
+def _initial_intake_state(
+    profile: _ContractProfile,
     diagnostic_id: str,
     start_day: date,
     *,
@@ -986,14 +1301,14 @@ def initial_intake_state(
     if start_day <= as_of_day:
         _reject("BACKFILL_FORBIDDEN", "start_day must be an untouched future UTC day")
     state = {
-        "schema_version": INTAKE_SCHEMA_VERSION,
-        "state_type": "SERVER_CANONICAL_MICROSTRUCTURE_INTAKE",
+        "schema_version": profile.intake_schema_version,
+        "state_type": profile.state_type,
         "authorization": AUTHORIZATION,
         "diagnostic_id": diagnostic_id,
-        "source_contract_sha256": SOURCE_CONTRACT_SHA256,
-        "drop_envelope_schema_sha256": DROP_ENVELOPE_SCHEMA_SHA256,
-        "day_schema_sha256": DAY_SCHEMA_SHA256,
-        "diagnostic_contract_sha256": DIAGNOSTIC_CONTRACT_SHA256,
+        "source_contract_sha256": profile.source_contract_sha256,
+        "drop_envelope_schema_sha256": profile.drop_envelope_schema_sha256,
+        "day_schema_sha256": profile.day_schema_sha256,
+        "diagnostic_contract_sha256": profile.diagnostic_contract_sha256,
         "state_authority": "SERVER_CANONICAL",
         "intake_identity": "agora-research",
         "network_access": "DENY",
@@ -1012,21 +1327,23 @@ def initial_intake_state(
         "failure": None,
         "readiness": _readiness("NOT_READY"),
     }
-    validate_intake_state(state)
+    _validate_intake_state(profile, state)
     return state
 
 
-def validate_intake_state(value: Any) -> dict[str, Any]:
+def _validate_intake_state(
+    profile: _ContractProfile, value: Any
+) -> dict[str, Any]:
     state = _object(value, "intake state")
     _exact_keys(state, STATE_KEYS, "intake state")
     expected_constants = {
-        "schema_version": INTAKE_SCHEMA_VERSION,
-        "state_type": "SERVER_CANONICAL_MICROSTRUCTURE_INTAKE",
+        "schema_version": profile.intake_schema_version,
+        "state_type": profile.state_type,
         "authorization": AUTHORIZATION,
-        "source_contract_sha256": SOURCE_CONTRACT_SHA256,
-        "drop_envelope_schema_sha256": DROP_ENVELOPE_SCHEMA_SHA256,
-        "day_schema_sha256": DAY_SCHEMA_SHA256,
-        "diagnostic_contract_sha256": DIAGNOSTIC_CONTRACT_SHA256,
+        "source_contract_sha256": profile.source_contract_sha256,
+        "drop_envelope_schema_sha256": profile.drop_envelope_schema_sha256,
+        "day_schema_sha256": profile.day_schema_sha256,
+        "diagnostic_contract_sha256": profile.diagnostic_contract_sha256,
         "state_authority": "SERVER_CANONICAL",
         "intake_identity": "agora-research",
         "network_access": "DENY",
@@ -1122,8 +1439,15 @@ def validate_intake_state(value: Any) -> dict[str, Any]:
             _reject("INCOMPLETE_DAY", "14 accepted days must be DIAGNOSTIC_READY")
         if state["next_expected_day"] is not None or failure is not None:
             _reject("INTEGRITY_NOT_CLEAN", "ready state cannot expect or report failure")
-        if readiness != _readiness("FROZEN_V2_DISCOVERY_ANALYSIS_ONLY"):
-            _reject("LIFECYCLE_CLOCK_FORBIDDEN", "ready state exceeds V2 discovery")
+        if readiness != _readiness(profile.ready_disposition):
+            _reject(
+                "LIFECYCLE_CLOCK_FORBIDDEN",
+                (
+                    "ready state exceeds V3 discovery"
+                    if profile.v3_midline
+                    else "ready state exceeds V2 discovery"
+                ),
+            )
     else:
         expected_next = (start_day + timedelta(days=len(accepted_days))).isoformat()
         if state["status"] != "WAITING_FOR_DAY":
@@ -1135,14 +1459,15 @@ def validate_intake_state(value: Any) -> dict[str, Any]:
     return state
 
 
-def block_intake_state(
+def _block_intake_state(
+    profile: _ContractProfile,
     state: Any,
     *,
     code: str,
     day: date,
     detail: str,
 ) -> dict[str, Any]:
-    validate_intake_state(state)
+    _validate_intake_state(profile, state)
     if state["status"] != "WAITING_FOR_DAY":
         _reject("LIFECYCLE_CLOCK_FORBIDDEN", "only waiting intake can fail closed")
     if code not in FAILURE_CODES or not 1 <= len(detail) <= 500:
@@ -1152,11 +1477,12 @@ def block_intake_state(
     blocked["next_expected_day"] = None
     blocked["failure"] = {"code": code, "day": day.isoformat(), "detail": detail}
     blocked["readiness"] = _readiness("INTEGRITY_BLOCKED")
-    validate_intake_state(blocked)
+    _validate_intake_state(profile, blocked)
     return blocked
 
 
-def accept_intake_day(
+def _accept_intake_day(
+    profile: _ContractProfile,
     state: Any,
     envelope: Any,
     bundle: Any,
@@ -1172,7 +1498,7 @@ def accept_intake_day(
     candle_chain_reuse_requested: bool = False,
     research_lifecycle_action_requested: bool = False,
 ) -> dict[str, Any]:
-    validate_intake_state(state)
+    _validate_intake_state(profile, state)
     if state["status"] != "WAITING_FOR_DAY":
         _reject("LIFECYCLE_CLOCK_FORBIDDEN", "intake is terminal")
     envelope_obj = _object(envelope, "drop envelope")
@@ -1186,7 +1512,8 @@ def accept_intake_day(
             _reject("BACKFILL_FORBIDDEN", "prior unaccepted day is backfill")
         existing = state["accepted_days"][index]
         previous = None if index == 0 else state["accepted_days"][index - 1]
-        validated = validate_drop_envelope(
+        validated = _validate_drop_envelope(
+            profile,
             envelope,
             bundle,
             raw_envelope_bytes=raw_envelope_bytes,
@@ -1216,7 +1543,8 @@ def accept_intake_day(
         _reject("NONCONTIGUOUS_DAY", "intake day skips the next expected day")
 
     previous_record = state["accepted_days"][-1] if state["accepted_days"] else None
-    validated = validate_drop_envelope(
+    validated = _validate_drop_envelope(
+        profile,
         envelope,
         bundle,
         raw_envelope_bytes=raw_envelope_bytes,
@@ -1267,11 +1595,133 @@ def accept_intake_day(
             "WAITING_FOR_DAY", "FOURTEENTH_DAY_ACCEPTED"
         )
         updated["next_expected_day"] = None
-        updated["readiness"] = _readiness("FROZEN_V2_DISCOVERY_ANALYSIS_ONLY")
+        updated["readiness"] = _readiness(profile.ready_disposition)
     else:
         updated["status"] = transition_intake("WAITING_FOR_DAY", "DAY_ACCEPTED")
         updated["next_expected_day"] = (
             expected_day + timedelta(days=1)
         ).isoformat()
-    validate_intake_state(updated)
+    _validate_intake_state(profile, updated)
     return updated
+
+
+def initial_intake_state(
+    diagnostic_id: str,
+    start_day: date,
+    *,
+    as_of_day: date,
+) -> dict[str, Any]:
+    return _initial_intake_state(
+        _V2_PROFILE, diagnostic_id, start_day, as_of_day=as_of_day
+    )
+
+
+def initial_v3_intake_state(
+    diagnostic_id: str,
+    start_day: date,
+    *,
+    as_of_day: date,
+) -> dict[str, Any]:
+    return _initial_intake_state(
+        _V3_PROFILE, diagnostic_id, start_day, as_of_day=as_of_day
+    )
+
+
+def validate_intake_state(value: Any) -> dict[str, Any]:
+    return _validate_intake_state(_V2_PROFILE, value)
+
+
+def validate_v3_intake_state(value: Any) -> dict[str, Any]:
+    return _validate_intake_state(_V3_PROFILE, value)
+
+
+def block_intake_state(
+    state: Any,
+    *,
+    code: str,
+    day: date,
+    detail: str,
+) -> dict[str, Any]:
+    return _block_intake_state(
+        _V2_PROFILE, state, code=code, day=day, detail=detail
+    )
+
+
+def block_v3_intake_state(
+    state: Any,
+    *,
+    code: str,
+    day: date,
+    detail: str,
+) -> dict[str, Any]:
+    return _block_intake_state(
+        _V3_PROFILE, state, code=code, day=day, detail=detail
+    )
+
+
+def accept_intake_day(
+    state: Any,
+    envelope: Any,
+    bundle: Any,
+    *,
+    raw_envelope_bytes: bytes,
+    raw_bundle_bytes: bytes,
+    accepted_at: str,
+    observed_producer_identity: str,
+    delivered_via_atomic_rename: bool,
+    source_path_is_symlink: bool,
+    overwrite_attempted: bool,
+    historical_backfill_requested: bool = False,
+    candle_chain_reuse_requested: bool = False,
+    research_lifecycle_action_requested: bool = False,
+) -> dict[str, Any]:
+    return _accept_intake_day(
+        _V2_PROFILE,
+        state,
+        envelope,
+        bundle,
+        raw_envelope_bytes=raw_envelope_bytes,
+        raw_bundle_bytes=raw_bundle_bytes,
+        accepted_at=accepted_at,
+        observed_producer_identity=observed_producer_identity,
+        delivered_via_atomic_rename=delivered_via_atomic_rename,
+        source_path_is_symlink=source_path_is_symlink,
+        overwrite_attempted=overwrite_attempted,
+        historical_backfill_requested=historical_backfill_requested,
+        candle_chain_reuse_requested=candle_chain_reuse_requested,
+        research_lifecycle_action_requested=research_lifecycle_action_requested,
+    )
+
+
+def accept_v3_intake_day(
+    state: Any,
+    envelope: Any,
+    bundle: Any,
+    *,
+    raw_envelope_bytes: bytes,
+    raw_bundle_bytes: bytes,
+    accepted_at: str,
+    observed_producer_identity: str,
+    delivered_via_atomic_rename: bool,
+    source_path_is_symlink: bool,
+    overwrite_attempted: bool,
+    historical_backfill_requested: bool = False,
+    candle_chain_reuse_requested: bool = False,
+    research_lifecycle_action_requested: bool = False,
+) -> dict[str, Any]:
+    return _accept_intake_day(
+        _V3_PROFILE,
+        state,
+        envelope,
+        bundle,
+        raw_envelope_bytes=raw_envelope_bytes,
+        raw_bundle_bytes=raw_bundle_bytes,
+        accepted_at=accepted_at,
+        observed_producer_identity=observed_producer_identity,
+        delivered_via_atomic_rename=delivered_via_atomic_rename,
+        source_path_is_symlink=source_path_is_symlink,
+        overwrite_attempted=overwrite_attempted,
+        historical_backfill_requested=historical_backfill_requested,
+        candle_chain_reuse_requested=candle_chain_reuse_requested,
+        research_lifecycle_action_requested=research_lifecycle_action_requested,
+    )

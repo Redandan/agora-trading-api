@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-python-intake-isolation-v1",
+  "issued_at": "2026-08-06T15:13:47Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the bounded offline Python V3 intake/state/monitor isolation slice against the final frozen V3 contract graph. Preserve every existing V1/V2 public constant, function, byte contract, CLI behavior, and historical namespace; add explicit V3-only validation and intake entry points backed by shared private primitives; make the read-only canonical monitor select only state/microstructure-v3 and fail closed on ambiguity or contract drift. Prove exact V3 acceptance, cross-version rejection, 14-day state behavior, V2/V3 coexistence, monitor/heartbeat compatibility, and unchanged V2 tests. Do not edit live CLI/package/deployment surfaces, deploy, start, collect, migrate, or claim strategy value.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_intake.py",
+      "sha256": "a2ddfd7f50b823e51245da247086667a28f2bcb92891c53afe05acb9f19da7f8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_monitor.py",
+      "sha256": "6b10eaae75515fcdf3d0c2af56063b5e8e0fe7ea4169e6802378a598af2506de"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_evidence.py",
+      "sha256": "afe51c1353f06daeb3427a96637671a217000dddf04752b8b017b01c6ad78bd8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v3.json",
+      "sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-drop-envelope.v3.schema.json",
+      "sha256": "ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v3.schema.json",
+      "sha256": "935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v3.schema.json",
+      "sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_source_contract.py",
+      "sha256": "009c2b9d25980e25be298756b19a12a9bc73be96137d3e978a4fafecb3dbce46"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_intake.py",
+      "sha256": "54bd90ad8965d1ef3d00316b914359af1ae2e1a6da5ff9014bd6504c6fe1b753"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_intake_cli.py",
+      "sha256": "78add839f4d5858650b03267fc682800c2c50acd6871678bbe4b697b55bc850b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_diagnostic.py",
+      "sha256": "6a83e290e680e50a2b0673ae5a8493c66024759bd2ff971bf2e323b9187ef08e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-intake-isolation-audit.v1.json",
+      "sha256": "e780b02968cf38dd7130b76d19c7a4af6605286eac8b803be8714b29a6a0734f"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Final V3 contract graph committed at 005e3cdd; source intentionally stopped; preserved V2 0/14 state is immutable non-countable history; no V3 canonical state is deployed or authorized by this offline task",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "PROFILE_PARAMETERIZE_PRIVATE_VALIDATION_PRIMITIVES",
+    "ADD_EXPLICIT_V3_VALIDATION_ENTRY_POINTS",
+    "ADD_EXPLICIT_V3_INTAKE_STATE_ENTRY_POINTS",
+    "SWITCH_READ_ONLY_MONITOR_TO_V3_NAMESPACE",
+    "ADD_FOCUSED_V3_ISOLATION_TEST",
+    "UPDATE_EXISTING_MONITOR_HEARTBEAT_TEST",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_UNCHANGED_V2_REGRESSION_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_STOP_START_ENABLE_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "MICROSTRUCTURE_INTAKE_CLI_EDIT",
+    "HEARTBEAT_QUEUE_PACKAGE_OR_DEPLOYMENT_EDIT",
+    "V1_V2_SCHEMA_CONTRACT_TEST_OR_BEHAVIOR_EDIT",
+    "V2_STATE_MIGRATION_DELETE_RELABEL_OR_COUNT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_JAVA_OR_SPRING_EXECUTION",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_FIVE_FILE_CHANGESET",
+    "EXPLICIT_V3_CONTRACT_PROFILE",
+    "EXPLICIT_V3_INTAKE_STATE_API",
+    "FIXED_MICROSTRUCTURE_V3_MONITOR_SELECTION",
+    "V1_V2_PUBLIC_API_AND_TEST_PRESERVATION",
+    "CROSS_VERSION_REJECTION_PROOF",
+    "FOURTEEN_DAY_AND_DUPLICATE_PROOF",
+    "MONITOR_HEARTBEAT_COMPATIBILITY_PROOF",
+    "FOCUSED_OFFLINE_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly five implementation files: edit microstructure_source_contract.py, microstructure_intake.py, microstructure_monitor.py, and tests/test_evidence.py; add tests/test_microstructure_v3_intake_isolation.py. Preserve this task and every other path.",
+    "Keep all existing public V1/V2 constants, paths, function signatures, return bytes, transitions, and CLI behavior unchanged. Add explicitly V3-named public entry points; callers must never select a version through an unvalidated string, fallback, accepted hash set, or implicit auto-detection.",
+    "Share private canonical JSON, decimal, timestamp, exact-key, chain, duplicate, transition, and observed-delivery primitives through an immutable internal profile. Do not copy the whole validator or mutate V2 globals while validating V3.",
+    "V3 frozen-file validation must bind only source 8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422, envelope ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418, state 935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc, day 205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709, and diagnostic 7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a.",
+    "V3 day/envelope validation must enforce canonical bytes, exact V3 schema versions and source fields, 1440 complete minutes, predecessor/seal/hash identities, CLEAN integrity, zero unreferenced/crossed counts, reference_count equality, and exact quote-bucket reconciliation. Reject every V2/V3 cross-pair in both directions.",
+    "Add V3 initial/validate/block/accept functions and V3 canonical byte/apply-delivery wrappers. The state must stay SERVER_CANONICAL_MICROSTRUCTURE_V3_INTAKE, 14 contiguous days, V3 hashes only, idempotent for exact duplicate, blocked for conflicting duplicate, and terminal only at FROZEN_V3_DISCOVERY_ANALYSIS_ONLY with all authority flags false.",
+    "Change microstructure_diagnostic_status to select only state_root/microstructure-v3 and an explicit V3 loader. Absent, empty, multiple, symlink, directory, lock/temp, noncanonical, unstable, filename mismatch, wrong version, or wrong hash must return RECOVERY_BLOCKED. An existing state_root/microstructure V2 sibling is ignored and never counted.",
+    "Keep the monitor function signature and result shape stable so heartbeat.py and queue.py need no edit. Update only test_evidence fixtures/assertions to use V3 state and prove the existing one-time hash-backed heartbeat route remains unchanged.",
+    "The new focused test must prove unchanged V2 corpus tests, exact V3-only acceptance, both cross-version rejections, 14 contiguous days, exact/idempotent duplicate, conflicting duplicate, isolated V2/V3 coexistence, fixed V3 monitor selection, and every specified recovery-blocked path.",
+    "If exact behavior requires editing CLI, heartbeat.py, queue.py, package/deploy files, existing V2 test modules, a sixth implementation file, schemas/contracts, or any runtime state, stop BLOCKED and report the precise missing proof; do not broaden scope or weaken checks.",
+    "Run exact task validation; Python compile checks; unchanged V2 source/intake/CLI tests; new V3 isolation tests; test_evidence and test_microstructure_diagnostic; and git diff --check. No Java, Maven, network, server, service, source, evidence, or deployment action is allowed.",
+    "Return one valid local-research-result JSON with exact task SHA, exactly five implementation files_changed/artifacts, all safety assertions false, concrete test counts, and MISSING_PROOF for live server bytes, CLI binding, package/deploy, liveness, 14-day evidence, predictive value, fees, slippage, PnL, and drawdown.",
+    "Stop after offline V3 intake/state/monitor proof. Manager review and commit are separate. Historical V2 server-byte capture, package/verifier work, deployment, fresh future-start binding, source start, handoff, and evidence collection remain later bounded gates."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

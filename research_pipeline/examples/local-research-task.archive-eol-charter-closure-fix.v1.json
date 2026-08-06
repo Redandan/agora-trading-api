@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-archive-eol-charter-closure-fix-v1",
+  "issued_at": "2026-08-06T13:13:37Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Fix the two exact release-verifier defects exposed after successful disabled-producer installation. On Windows with core.autocrlf=true, git archive exported a historical JSON contract with CRLF bytes instead of its committed LF blob, breaking its frozen SHA-256. The deployed server-contract suite also requires docs/autonomous-research-charter.md, while the hermetic closure intentionally removed the broad docs root. Force archive export to preserve committed blob bytes and include exactly that one committed charter file, with matching installer/verifier closure gates and documentation.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/deploy_research_worker_upgrade_ssh.ps1",
+      "sha256": "aa2d0a181ed34d2dd83f76974b3e329511e57ccfb9ebdaa7d7ad0156c854d9ca"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "17d8bfd650c23832ddd36cc899286528ef477584e14d87053bb9bc879fdb7557"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "343f16f0ecc90fcbc27ec4f585d4285343a34d0865065aaaa1875fc7c230ef0a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "8939581ca5489227e8d9d40a3a48e461bf5b6501f4398e0d4d0d9e309f29a310"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/deploy-runbook.md",
+      "sha256": "cbd44dd4782f03cefe84a3d5109ab75d6cd9152411589bd5a4ece0070a44dd25"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Live verifier evidence on release 20260806T130958Z: hermetic runtime, Java distribution, binding, canonical authority, identity boundaries, and clean provenance passed. Deployed contract tests then failed because docs/autonomous-research-charter.md was absent and cloud-ops-schedule-contract.v3.json SHA was 3e05f19d... instead of frozen 2d66149b.... A local controlled archive proved default git archive produced CRLF hash 3e05..., while git -c core.autocrlf=false archive produced exact committed LF hash 2d66149b.... Producer remains disabled/inactive and server timer disabled.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "EDIT_DEPLOYMENT_PACKAGER",
+    "EDIT_RESEARCH_WORKER_INSTALLER",
+    "EDIT_STATIC_WORKER_VERIFIER",
+    "UPDATE_DEPLOYMENT_DOCUMENTATION",
+    "RUN_LOCAL_GIT_ARCHIVE_BYTE_CHECK",
+    "RUN_LOCAL_POWERSHELL_SYNTAX_CHECK",
+    "RUN_EMBEDDED_PYTHON_PARSE_CHECKS",
+    "RUN_STATIC_RELEASE_CLOSURE_CHECKS",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SECOND_TIMER_OR_LIFECYCLE_WRITER",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_ENABLE_START_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "BROAD_DOCS_OR_SRC_CLOSURE",
+    "SERVER_STAGE_OR_RELEASE_CLEANUP"
+  ],
+  "expected_outputs": [
+    "EXACT_FIVE_FILE_CHANGESET",
+    "COMMITTED_LF_BLOB_PRESERVATION",
+    "EXACT_SINGLE_CHARTER_DOC_CLOSURE",
+    "INSTALLER_VERIFIER_CLOSURE_PARITY",
+    "HISTORICAL_V3_HASH_PROOF",
+    "UPDATED_DEPLOYMENT_BOUNDARIES",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly five files: scripts/deploy_research_worker_upgrade_ssh.ps1; scripts/research-worker/install-upgrade.sh; scripts/research-worker/verify-worker.sh; docs/server-research-worker-v2.md; docs/deploy-runbook.md. Preserve the Manager-created task file and every other path.",
+    "Force the committed-source archive command to ignore the host core.autocrlf setting and export exact HEAD blob bytes. Preserve the existing clean-worktree, explicit committed allowlist, private staging, manifest, archive roundtrip, and pre-network PackageOnly gates.",
+    "Add only docs/autonomous-research-charter.md as a committed package input. The package top-level may add docs only when it is a regular directory containing exactly autonomous-research-charter.md as a regular non-symlink file. Do not include any other docs file or broaden to the docs directory tree.",
+    "Installer and verifier must independently accept exactly the docs parent plus charter file, reject every docs sibling/descendant, include the charter in exact manifest coverage, and preserve every existing source root, scripts, target, distribution, provenance, forbidden-path, symlink, and hash gate.",
+    "Run a bounded local archive byte check proving the exported cloud-ops-schedule-contract.v3.json hash is exactly 2d66149bee9e6b44e139fe471bd32dc10a8afa13e7c47d12b2e165f2a3456e8b with zero CRLF pairs. Use only disposable temporary or ignored target output and do not alter tracked files.",
+    "Run task validation, PowerShell parser checks, embedded Python parse/static closure checks, bash -n when Bash exists, and git diff --check for the five files. Do not run PackageOnly in the dirty worktree, Maven, SSH, server, systemd, cleanup, or deployment.",
+    "Do not change research logic, historical contract bytes or expected hash, task/result schemas, Java, Maven, services, capabilities, state, binding, schedule ownership, timer state, or producer behavior.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json with exactly five files_changed/artifacts and all safety assertions false. Clean commit, PackageOnly, redeployment, complete verifier, and orphan cleanup remain separate Manager actions."
+  ],
+  "limits": {
+    "timeout_seconds": 3600,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

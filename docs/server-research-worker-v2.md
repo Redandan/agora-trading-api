@@ -249,10 +249,15 @@ runtime jars under `target/microstructure-dist`. The Research Worker packager
 requires a clean commit and builds a private package tree from `git archive`
 bytes at that exact `HEAD`. Its committed runtime allowlist is only
 `research_pipeline`, `research_mcp`, `research_source`, `research`, and
-`scripts/research-worker`; `docs`, `src`, `pom.xml`, the live worktree, and all
-other roots are excluded. The only non-Git input is the fresh offline profile
-output, whose exact closure is the canonical microstructure jar plus the three
-Jackson jars. Extra files or directories, links/reparse points, nested Git or
+`scripts/research-worker`, plus the single committed file
+`docs/autonomous-research-charter.md`. It invokes Git archive with
+`core.autocrlf=false`, so package bytes are the committed `HEAD` blob bytes
+independent of the Windows checkout setting. The broad `docs` tree, `src`,
+`pom.xml`, the live worktree, and all other roots are excluded. Package closure
+allows the `docs` parent only when its sole child is that regular non-symlink
+charter file. The only non-Git input is the fresh offline profile output, whose
+exact closure is the canonical microstructure jar plus the three Jackson jars.
+Extra files or directories, links/reparse points, nested Git or
 `.research-state`, Python bytecode/cache, and environment, credential, or
 secret material fail closed.
 
@@ -263,7 +268,8 @@ installer repeats the fixed-root, exact-distribution, no-link, and complete
 manifest checks before creating a release. `verify-worker.sh` independently
 requires the same installed runtime closure plus only the generated
 `.release/source.sha256` and `.release/provenance.json`; the source manifest
-must cover every pre-install package file and no metadata or unknown path.
+must cover every pre-install package file, including the exact charter, and no
+metadata, documentation sibling, or unknown path.
 
 `scripts/deploy_research_worker_upgrade_ssh.ps1 -PackageOnly` performs the same
 clean-commit gate, offline build, private staging, manifest, archive, extraction,

@@ -64,9 +64,10 @@ $committedRoots = @(
     "research_mcp",
     "research_source",
     "research",
-    "scripts/research-worker"
+    "scripts/research-worker",
+    "docs/autonomous-research-charter.md"
 )
-$expectedTopLevels = @("research", "research_mcp", "research_pipeline", "research_source", "scripts", "target")
+$expectedTopLevels = @("docs", "research", "research_mcp", "research_pipeline", "research_source", "scripts", "target")
 $distJarName = "agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
 
 function Test-ForbiddenPackagePath {
@@ -104,6 +105,8 @@ function Test-AllowedPackagePath {
     return $path -eq "scripts" -or
         $path -eq "scripts/research-worker" -or
         $path.StartsWith("scripts/research-worker/", [System.StringComparison]::Ordinal) -or
+        $path -eq "docs" -or
+        $path -eq "docs/autonomous-research-charter.md" -or
         $path -eq "target" -or
         $path -eq "target/microstructure-dist" -or
         $path.StartsWith("target/microstructure-dist/", [System.StringComparison]::Ordinal)
@@ -170,6 +173,14 @@ function Assert-PackageTree {
     Assert-ExactNames -Actual @(
         Get-ChildItem -LiteralPath (Join-Path $PackageRoot "target") -Force | ForEach-Object Name
     ) -Expected @("microstructure-dist") -Label "Package target inventory"
+    Assert-ExactNames -Actual @(
+        Get-ChildItem -LiteralPath (Join-Path $PackageRoot "docs") -Force | ForEach-Object Name
+    ) -Expected @("autonomous-research-charter.md") -Label "Package documentation inventory"
+    $charter = Get-Item -LiteralPath (Join-Path $PackageRoot "docs/autonomous-research-charter.md") -Force
+    if ($charter.PSIsContainer -or
+            ($charter.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "Research charter must be a regular non-reparse file."
+    }
 
     foreach ($entry in @(Get-ChildItem -LiteralPath $PackageRoot -Force -Recurse)) {
         $relative = $entry.FullName.Substring($PackageRoot.Length + 1).Replace('\', '/')
@@ -234,7 +245,7 @@ try {
         & git -C $repoRoot cat-file -e ("HEAD:{0}" -f $root)
         if ($LASTEXITCODE -ne 0) { throw "Required committed worker root is missing from HEAD: $root" }
     }
-    & git -C $repoRoot archive --format=tar -o $headArchive HEAD -- @committedRoots
+    & git -c core.autocrlf=false -C $repoRoot archive --format=tar -o $headArchive HEAD -- @committedRoots
     if ($LASTEXITCODE -ne 0) { throw "HEAD-only worker archive failed" }
     $headEntries = @(& tar -tf $headArchive)
     if ($LASTEXITCODE -ne 0) { throw "HEAD-only worker archive inventory failed" }

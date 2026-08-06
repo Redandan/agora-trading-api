@@ -51,7 +51,7 @@ import sys
 
 root = Path(sys.argv[1])
 source_roots = {"research_pipeline", "research_mcp", "research_source", "research"}
-expected_top = source_roots | {"scripts", "target", ".release"}
+expected_top = source_roots | {"docs", "scripts", "target", ".release"}
 dist_jar = "agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
 
 
@@ -84,7 +84,12 @@ def allowed_runtime(relative: str) -> bool:
         return False
     if parts[0] in source_roots:
         return True
-    if parts in {("scripts",), ("target",)}:
+    if parts in {
+        ("docs",),
+        ("docs", "autonomous-research-charter.md"),
+        ("scripts",),
+        ("target",),
+    }:
         return True
     if parts[:2] == ("scripts", "research-worker"):
         return True
@@ -96,11 +101,14 @@ for required_path in (
     "scripts/research-worker/x",
     "target",
     "target/microstructure-dist/x",
+    "docs",
+    "docs/autonomous-research-charter.md",
 ):
     if forbidden(required_path) or not allowed_runtime(required_path):
         fail(f"closure predicate rejected required path: {required_path}")
 for rejected_path in (
-    "docs",
+    "docs/other.md",
+    "docs/autonomous-research-charter.md/other",
     "src",
     "pom.xml",
     "scripts/other",
@@ -129,6 +137,11 @@ if any(entry.is_symlink() or not entry.is_dir(follow_symlinks=False) for entry i
 exact_directory(root / "scripts", {"research-worker"}, "installed scripts inventory")
 exact_directory(root / "target", {"microstructure-dist"}, "installed target inventory")
 exact_directory(
+    root / "docs",
+    {"autonomous-research-charter.md"},
+    "installed documentation inventory",
+)
+exact_directory(
     root / ".release",
     {"source.sha256", "provenance.json"},
     "installed release metadata inventory",
@@ -141,6 +154,10 @@ for required_directory in (
     details = required_directory.lstat()
     if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
         fail(f"installed path is not a regular directory: {required_directory.name}")
+charter = root / "docs" / "autonomous-research-charter.md"
+charter_details = charter.lstat()
+if stat.S_ISLNK(charter_details.st_mode) or not stat.S_ISREG(charter_details.st_mode):
+    fail("installed research charter is not a regular non-symlink file")
 
 dist = root / "target" / "microstructure-dist"
 exact_directory(dist, {dist_jar, "lib"}, "installed microstructure distribution root")

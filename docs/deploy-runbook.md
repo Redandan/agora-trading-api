@@ -196,10 +196,14 @@ build or deployment test.
 Worker packager. It refuses a dirty worktree, performs the offline profile
 build, and obtains committed runtime bytes only from the exact `HEAD` through
 the fixed Git allowlist `research_pipeline`, `research_mcp`, `research_source`,
-`research`, and `scripts/research-worker`. It never recursively packages the
-live worktree and excludes `docs`, `src`, `pom.xml`, and every unknown root.
-The only generated input is `target/microstructure-dist`, which must contain
-exactly the canonical narrow jar and the Jackson annotations, core, and
+`research`, and `scripts/research-worker`, plus exactly the committed
+`docs/autonomous-research-charter.md` file required by the server contract
+suite. Git archive runs with `core.autocrlf=false`, preserving committed blob
+bytes regardless of Windows checkout conversion. It never recursively packages
+the live worktree or broad `docs` tree and excludes `src`, `pom.xml`, and every
+unknown root. The `docs` parent must contain only the regular non-symlink
+charter. The only generated input is `target/microstructure-dist`, which must
+contain exactly the canonical narrow jar and the Jackson annotations, core, and
 databind jars with no other file, directory, link, or reparse point.
 
 The packager constructs a private tree, generates `source.sha256` from it,
@@ -207,7 +211,8 @@ archives that same tree, extracts the archive into a second private directory,
 and requires exact relative-path and SHA-256 equality before any upload. Both
 the installer and server verifier independently enforce the same runtime roots,
 exact four-file distribution, no-link/no-secret/no-cache boundary, and complete
-manifest coverage. The installed release may add only
+manifest coverage, including the exact charter and excluding every other docs
+path. The installed release may add only
 `.release/source.sha256` and `.release/provenance.json`; those metadata files
 are not pre-install package inputs.
 

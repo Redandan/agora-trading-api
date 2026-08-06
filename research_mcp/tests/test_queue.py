@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import hashlib
 import json
 import os
@@ -13,6 +13,8 @@ from unittest.mock import patch
 
 from research_mcp import queue
 from research_pipeline.evidence import register_evidence_source_contract
+from research_pipeline.microstructure_intake import canonical_state_bytes
+from research_pipeline.microstructure_source_contract import initial_intake_state
 from research_pipeline.models import RESEARCH_AUTHORIZATION
 from research_pipeline.storage import ResearchStore
 from research_pipeline.waiting import build_evidence_trigger
@@ -851,6 +853,10 @@ class DurableQueueContractTest(unittest.TestCase):
         )
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
+        self.assertEqual(
+            result["microstructure_diagnostic"]["status"],
+            "NOT_CONFIGURED",
+        )
         self.assertEqual(contract["status"], "READY")
         self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V6")
         self.assertEqual(contract["schedule_count"], 1)
@@ -900,6 +906,37 @@ class DurableQueueContractTest(unittest.TestCase):
                 ],
             },
         )
+
+    def test_status_exposes_microstructure_diagnostic_separately(self) -> None:
+        namespace = self.state / "microstructure"
+        namespace.mkdir(parents=True)
+        state = initial_intake_state(
+            "microstructure-status-test",
+            date(2099, 1, 1),
+            as_of_day=date(2098, 12, 31),
+        )
+        artifact = namespace / "microstructure-status-test.json"
+        artifact.write_bytes(canonical_state_bytes(state))
+        pipeline_result = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"research_status":"WAITING_FOR_EVIDENCE"}',
+            stderr="",
+        )
+        with patch.object(queue, "_pipeline", return_value=pipeline_result):
+            result = queue.research_status()
+        summary = result["microstructure_diagnostic"]
+        self.assertEqual(summary["status"], "WAITING_FOR_DAY")
+        self.assertEqual(summary["lag_classification"], "PRE_START")
+        self.assertEqual(summary["diagnostic_id"], "microstructure-status-test")
+        self.assertEqual(summary["accepted_day_count"], 0)
+        self.assertEqual(summary["required_day_count"], 14)
+        self.assertEqual(
+            summary["artifact_path"],
+            "microstructure/microstructure-status-test.json",
+        )
+        self.assertEqual(summary["sha256"], hashlib.sha256(artifact.read_bytes()).hexdigest())
+        self.assertEqual(result["registry"]["research_status"], "WAITING_FOR_EVIDENCE")
 
     def test_status_exposes_correlated_sealed_capture_health(self) -> None:
         request_id = "b" * 32

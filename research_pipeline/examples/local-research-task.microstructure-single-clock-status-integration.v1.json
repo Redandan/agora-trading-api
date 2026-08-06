@@ -1,0 +1,118 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-single-clock-status-integration-v1",
+  "issued_at": "2026-08-06T13:37:57Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Close the smallest remaining cloud-to-local orchestration gap for the live 14-day OKX BTC-USDT microstructure diagnostic. Add one read-only, deterministic monitor for the dedicated Server Canonical intake state; expose its bounded progress through get_research_status; and let the existing single daily heartbeat enqueue exactly one hash-backed Coach event when discovery analysis becomes due or integrity is blocked. The performance thesis is operational rather than alpha: remove manual discovery and reduce evidence-to-diagnostic dispatch delay to the next existing cloud cycle while preserving MISSING_PROOF for predictive value, PnL, drawdown, fees, slippage, and strategy usefulness.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/heartbeat.py",
+      "sha256": "beddf6f9e69ae8fa4bae803868a69deb8bc50cc4283ff7c66a977047b1173b09"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_evidence.py",
+      "sha256": "d2cda12ead76befb29ec224e489f76ff5d2d49671d9f07d6d138faf26c2f0f72"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/queue.py",
+      "sha256": "8cb6d5e1fc4e1dae6b27b4d5f664e04288c483255f6d5aa593bf5bdf8d2b7cc1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_mcp/tests/test_queue.py",
+      "sha256": "6c1c245a7decf66962be5824471cc2cb5df8e24166a9bcb5bfd9fd39a066ab10"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "4f2434f0e1c55c95fc888f0e182cef264defc6ab55bbe6d399cea6bd5eb9bf98"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-06T13:30Z; worker release 20260806T132639Z; microstructure state WAITING_FOR_DAY; start 2026-08-08; accepted 0/14; source active but static and not enabled; queue IDLE; canonical research WAITING_FOR_EVIDENCE; exactly one Codex Cloud Ops schedule; get_research_status currently omits microstructure progress",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "ADD_READ_ONLY_MICROSTRUCTURE_MONITOR",
+    "EDIT_EXISTING_HEARTBEAT_EVENT_ROUTING",
+    "EDIT_CANONICAL_STATUS_RESPONSE",
+    "ADD_FOCUSED_OFFLINE_TESTS",
+    "UPDATE_SERVER_WORKER_DOCUMENTATION",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_PYTHON_UNIT_TESTS",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "CANONICAL_MICROSTRUCTURE_STATE_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_STOP_START_ENABLE_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "CANDIDATE_REGISTRATION_OR_HYPOTHESIS_SELECTION",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_SIX_FILE_CHANGESET",
+    "READ_ONLY_MICROSTRUCTURE_STATUS_SUMMARY",
+    "BOUNDED_LAG_CLASSIFICATION",
+    "ONE_TIME_HASH_BACKED_READY_EVENT",
+    "ONE_TIME_HASH_BACKED_INTEGRITY_EVENT",
+    "EXISTING_COACH_OUTBOX_REUSE",
+    "NO_SECOND_CLOCK_OR_WRITER_PROOF",
+    "FOCUSED_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly six files and no others: add research_pipeline/microstructure_monitor.py; edit research_pipeline/heartbeat.py, research_pipeline/tests/test_evidence.py, research_mcp/queue.py, research_mcp/tests/test_queue.py, and docs/server-research-worker-v2.md. Preserve this Manager-created task file and every unrelated path.",
+    "The monitor is read-only and bounded to state_root/microstructure. It must reject symlinks, non-regular state files, ambiguous multiple JSON states, noncanonical bytes, invalid contract state, and present lock/temp recovery markers fail closed. It must never read the evidence drop, binding secrets, network, processes, systemd, Trading runtime, DB, orders, or funds.",
+    "Expose a compact microstructure_diagnostic object with status, diagnostic_id, start_day, accepted_day_count, required_day_count, next_expected_day, artifact_path, SHA-256, and a date-derived lag classification. No configured directory is NOT_CONFIGURED; a configured empty or corrupt namespace is RECOVERY_BLOCKED rather than silently idle.",
+    "For a valid WAITING_FOR_DAY state classify pre-start/current-day normally and classify next_expected_day earlier than the current UTC day as CAPTURE_OVERDUE. DIAGNOSTIC_READY remains discovery-analysis-only. INTEGRITY_BLOCKED, recovery failure, and overdue capture are integrity conditions; no retry, repair, backfill, source restart, or lifecycle write is permitted.",
+    "Integrate through the existing run_heartbeat_cycle only. A changed DIAGNOSTIC_READY fingerprint emits exactly one EVIDENCE_REVIEW_DUE event with next_action DISPATCH_VALIDATED_LOCAL_MICROSTRUCTURE_DIAGNOSTIC_TASK. A changed INTEGRITY_BLOCKED or CAPTURE_OVERDUE fingerprint emits exactly one INTEGRITY_ALERT. Repeated unchanged heartbeats must not duplicate events, while the existing durable Coach outbox retains unacknowledged events.",
+    "Every emitted event must reference an existing canonical artifact path inside the ResearchStore and its exact SHA-256. If a recovery fault has no safely hashable microstructure artifact, fail the heartbeat through the existing failure-record path rather than inventing evidence or following a symlink.",
+    "Keep the primary candle research_status and 90-day trigger unchanged. Add the monitor summary as a separate field in heartbeat results and get_research_status. Never merge microstructure days into candle observations, register a candidate, select a hypothesis, open OOS, claim alpha/PnL/DD value, or update the V6 schedule contract.",
+    "Tests must cover not configured, pre-start, capturing, progress, overdue, ready, intake-integrity-blocked, recovery-blocked, exact artifact hash, get_research_status exposure, one-time event dedupe, durable outbox retention, and strict separation from the candle status. Keep tests temporary and offline.",
+    "Run only exact task validation, python -m unittest research_pipeline.tests.test_evidence research_mcp.tests.test_queue, focused monitor checks within those modules, and git diff --check for the six authorized files. Do not run PackageOnly, Maven, SSH, server, systemd, network, source, cleanup, evidence capture, or deployment.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json with exact task_sha256, exactly six files_changed/artifacts, concrete PASS/MISSING_PROOF checks, and all safety assertions false. Manager review, commit, PackageOnly, deployment, live status readback, and source continuity verification remain separate actions."
+  ],
+  "limits": {
+    "timeout_seconds": 2400,
+    "max_files_changed": 6,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

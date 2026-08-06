@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import hashlib
 import json
@@ -36,7 +36,17 @@ from research_pipeline.forward_candidate import (
     discovery_candidate_context,
 )
 from research_pipeline.models import RESEARCH_AUTHORIZATION
-from research_pipeline.heartbeat import _advance_coach_delivery, run_heartbeat_cycle
+from research_pipeline.heartbeat import (
+    _advance_coach_delivery,
+    record_heartbeat_failure,
+    run_heartbeat_cycle,
+)
+from research_pipeline.microstructure_intake import canonical_state_bytes
+from research_pipeline.microstructure_monitor import microstructure_diagnostic_status
+from research_pipeline.microstructure_source_contract import (
+    block_intake_state,
+    initial_intake_state,
+)
 from research_pipeline.policy import load_policy, policy_sha256
 from research_pipeline.storage import ResearchStore, atomic_write_json, sha256_file
 from research_pipeline.waiting import build_evidence_review, build_evidence_trigger
@@ -76,6 +86,277 @@ class EvidenceManifestContractTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
+
+    def _write_microstructure_state(
+        self,
+        *,
+        accepted_day_count: int = 0,
+        blocked: bool = False,
+    ) -> tuple[Path, dict[str, object]]:
+        start_day = date(2026, 8, 8)
+        state = initial_intake_state(
+            "microstructure-status-test",
+            start_day,
+            as_of_day=date(2026, 8, 7),
+        )
+        previous_bundle: str | None = None
+        previous_chain = "0" * 64
+        accepted_days: list[dict[str, object]] = []
+        for index in range(accepted_day_count):
+            day = start_day + timedelta(days=index)
+            bundle_hash = hashlib.sha256(f"bundle-{index}".encode()).hexdigest()
+            envelope_hash = hashlib.sha256(f"envelope-{index}".encode()).hexdigest()
+            cumulative = hashlib.sha256(
+                (
+                    f"{previous_chain}\n{day.isoformat()}\n"
+                    f"{bundle_hash}\n{envelope_hash}"
+                ).encode("utf-8")
+            ).hexdigest()
+            accepted_days.append(
+                {
+                    "day": day.isoformat(),
+                    "bundle_sha256": bundle_hash,
+                    "envelope_sha256": envelope_hash,
+                    "predecessor_bundle_sha256": previous_bundle,
+                    "accepted_at": (
+                        f"{(day + timedelta(days=1)).isoformat()}T01:00:00Z"
+                    ),
+                    "cumulative_chain_sha256": cumulative,
+                }
+            )
+            previous_bundle = bundle_hash
+            previous_chain = cumulative
+        state["accepted_days"] = accepted_days
+        state["chain_head_sha256"] = previous_chain if accepted_days else None
+        if accepted_day_count == 14:
+            state["status"] = "DIAGNOSTIC_READY"
+            state["next_expected_day"] = None
+            state["readiness"]["disposition"] = (
+                "FROZEN_V2_DISCOVERY_ANALYSIS_ONLY"
+            )
+        else:
+            state["next_expected_day"] = (
+                start_day + timedelta(days=accepted_day_count)
+            ).isoformat()
+        if blocked:
+            state = block_intake_state(
+                state,
+                code="STREAM_GAP",
+                day=start_day + timedelta(days=accepted_day_count),
+                detail="deterministic monitor fixture integrity block",
+            )
+        namespace = self.store.root / "microstructure"
+        namespace.mkdir(parents=True, exist_ok=True)
+        path = namespace / "microstructure-status-test.json"
+        path.write_bytes(canonical_state_bytes(state))
+        return path, state
+
+    def test_microstructure_monitor_is_read_only_bounded_and_fail_closed(self) -> None:
+        absent = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 7, tzinfo=timezone.utc),
+        )
+        self.assertEqual(absent["status"], "NOT_CONFIGURED")
+
+        namespace = self.store.root / "microstructure"
+        namespace.mkdir()
+        empty = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 7, tzinfo=timezone.utc),
+        )
+        self.assertEqual(empty["status"], "RECOVERY_BLOCKED")
+        self.assertIsNone(empty["artifact_path"])
+
+        path, _state = self._write_microstructure_state()
+        pre_start = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 7, tzinfo=timezone.utc),
+        )
+        self.assertEqual(pre_start["status"], "WAITING_FOR_DAY")
+        self.assertEqual(pre_start["lag_classification"], "PRE_START")
+        capturing = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 8, tzinfo=timezone.utc),
+        )
+        self.assertEqual(capturing["lag_classification"], "CURRENT_UTC_DAY")
+
+        path, _state = self._write_microstructure_state(accepted_day_count=1)
+        progress = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 9, tzinfo=timezone.utc),
+        )
+        self.assertEqual(progress["accepted_day_count"], 1)
+        self.assertEqual(progress["status"], "WAITING_FOR_DAY")
+        overdue = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 10, tzinfo=timezone.utc),
+        )
+        self.assertEqual(overdue["status"], "CAPTURE_OVERDUE")
+
+        path, _state = self._write_microstructure_state(accepted_day_count=14)
+        ready = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 22, tzinfo=timezone.utc),
+        )
+        self.assertEqual(ready["status"], "DIAGNOSTIC_READY")
+        self.assertEqual(ready["accepted_day_count"], 14)
+        self.assertEqual(ready["artifact_path"], "microstructure/microstructure-status-test.json")
+        self.assertEqual(ready["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+
+        path, _state = self._write_microstructure_state(
+            accepted_day_count=2,
+            blocked=True,
+        )
+        blocked = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 10, tzinfo=timezone.utc),
+        )
+        self.assertEqual(blocked["status"], "INTEGRITY_BLOCKED")
+
+        lock = path.with_name(f".{path.name}.lock")
+        lock.mkdir()
+        recovery = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 10, tzinfo=timezone.utc),
+        )
+        self.assertEqual(recovery["status"], "RECOVERY_BLOCKED")
+        self.assertEqual(recovery["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+        lock.rmdir()
+
+        second = path.with_name("second-diagnostic.json")
+        second.write_bytes(path.read_bytes())
+        ambiguous = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 10, tzinfo=timezone.utc),
+        )
+        self.assertEqual(ambiguous["status"], "RECOVERY_BLOCKED")
+        self.assertIsNone(ambiguous["artifact_path"])
+        second.unlink()
+
+        path.write_bytes(path.read_bytes() + b"\n")
+        noncanonical = microstructure_diagnostic_status(
+            self.store.root,
+            now=datetime(2026, 8, 10, tzinfo=timezone.utc),
+        )
+        self.assertEqual(noncanonical["status"], "RECOVERY_BLOCKED")
+        self.assertIsNone(noncanonical["sha256"])
+
+    def test_heartbeat_routes_microstructure_once_through_existing_outbox(self) -> None:
+        tick = {"status": "IDLE_NO_ACTIONABLE_EXPERIMENT"}
+        run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 8, 22, 12, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+
+        ready_path, _state = self._write_microstructure_state(accepted_day_count=14)
+        ready = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 8, 22, 13, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        ready_events = [
+            event
+            for event in ready["events"]
+            if event["research_status"] == "DIAGNOSTIC_READY"
+        ]
+        self.assertEqual(len(ready_events), 1)
+        self.assertEqual(ready_events[0]["event_type"], "EVIDENCE_REVIEW_DUE")
+        self.assertEqual(
+            ready_events[0]["next_action"],
+            "DISPATCH_VALIDATED_LOCAL_MICROSTRUCTURE_DIAGNOSTIC_TASK",
+        )
+        self.assertEqual(ready_events[0]["sha256"], sha256_file(ready_path))
+        self.assertEqual(ready["research_status"], tick["status"])
+        self.assertEqual(ready["microstructure_diagnostic"]["status"], "DIAGNOSTIC_READY")
+
+        repeated = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 8, 22, 14, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertFalse(
+            any(
+                event["research_status"] == "DIAGNOSTIC_READY"
+                for event in repeated["events"]
+            )
+        )
+        state = json.loads(
+            (self.store.root / repeated["heartbeat_state"]).read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            sha256_file(ready_path),
+            [event["sha256"] for event in state["coach_delivery"]["pending_events"]],
+        )
+
+        overdue_path, _state = self._write_microstructure_state(accepted_day_count=1)
+        overdue = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 8, 22, 15, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        overdue_events = [
+            event
+            for event in overdue["events"]
+            if event["research_status"] == "CAPTURE_OVERDUE"
+        ]
+        self.assertEqual(len(overdue_events), 1)
+        self.assertEqual(overdue_events[0]["event_type"], "INTEGRITY_ALERT")
+        self.assertEqual(overdue_events[0]["sha256"], sha256_file(overdue_path))
+
+        self._write_microstructure_state(accepted_day_count=2, blocked=True)
+        blocked = run_heartbeat_cycle(
+            self.store,
+            {"policy_id": "TEST_RESEARCH_ONLY"},
+            now=datetime(2026, 8, 22, 16, tzinfo=timezone.utc),
+            tick_preview=tick,
+            tick_result=tick,
+        )
+        self.assertEqual(
+            len(
+                [
+                    event
+                    for event in blocked["events"]
+                    if event["research_status"] == "INTEGRITY_BLOCKED"
+                ]
+            ),
+            1,
+        )
+
+        recovery_store = ResearchStore(
+            self.root / "recovery-heartbeat",
+            lock_stale_seconds=60,
+        )
+        recovery_store.bootstrap()
+        (recovery_store.root / "microstructure").mkdir()
+        with self.assertRaisesRegex(ValueError, "safely hashable") as raised:
+            run_heartbeat_cycle(
+                recovery_store,
+                {"policy_id": "TEST_RESEARCH_ONLY"},
+                now=datetime(2026, 8, 22, 17, tzinfo=timezone.utc),
+                tick_preview=tick,
+                tick_result=tick,
+            )
+        failed = record_heartbeat_failure(
+            recovery_store,
+            now=datetime(2026, 8, 22, 17, tzinfo=timezone.utc),
+            error=raised.exception,
+            tick_preview=tick,
+        )
+        self.assertEqual(failed["status"], "HEARTBEAT_FAILED_CLOSED")
+        self.assertEqual(failed["event_type"], "INTEGRITY_ALERT")
+        self.assertEqual(
+            sha256_file(recovery_store.root / failed["artifact_path"]),
+            failed["sha256"],
+        )
 
     def _manifest(self) -> dict[str, object]:
         evidence_dir = self.store.evidence_trigger_dir(self.trigger["trigger_id"])

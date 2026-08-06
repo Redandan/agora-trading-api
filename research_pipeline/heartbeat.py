@@ -7,6 +7,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from .microstructure_monitor import microstructure_diagnostic_status
 from .models import parse_timestamp
 from .report import load_result, monthly_report, performance_lines, weekly_report
 from .storage import ResearchStore, atomic_write_json, atomic_write_text, read_json, sha256_file
@@ -71,9 +72,19 @@ def run_heartbeat_cycle(
     _verify_report_record(store, state.get("last_weekly"))
     _verify_report_record(store, state.get("last_monthly"))
 
+    microstructure_diagnostic = microstructure_diagnostic_status(store.root, now=now)
     previous_research_fingerprint = state.get("last_research_fingerprint")
     research_fingerprint = _research_fingerprint(tick_result)
     research_changed = research_fingerprint != previous_research_fingerprint
+    previous_microstructure_fingerprint = state.get(
+        "last_microstructure_fingerprint"
+    )
+    microstructure_fingerprint = _microstructure_fingerprint(
+        microstructure_diagnostic
+    )
+    microstructure_changed = (
+        microstructure_fingerprint != previous_microstructure_fingerprint
+    )
     events: list[dict[str, Any]] = []
 
     tick_executed = tick_preview.get("status") == "DRY_RUN"
@@ -92,6 +103,15 @@ def run_heartbeat_cycle(
         events.append(_evidence_due_event(store, tick_result))
     elif research_changed and research_status == "EVIDENCE_READY_REQUIRES_CODEX_HYPOTHESIS":
         events.append(_evidence_ready_event(store, tick_result))
+
+    microstructure_status = str(microstructure_diagnostic["status"])
+    if microstructure_changed and microstructure_status in {
+        "DIAGNOSTIC_READY",
+        "INTEGRITY_BLOCKED",
+        "CAPTURE_OVERDUE",
+        "RECOVERY_BLOCKED",
+    }:
+        events.append(_microstructure_event(store, microstructure_diagnostic))
 
     review_events, announced_reviews = _new_closed_evidence_review_events(store, state)
     events.extend(review_events)
@@ -174,6 +194,7 @@ def run_heartbeat_cycle(
             },
             "consecutive_failures": 0,
             "last_research_fingerprint": research_fingerprint,
+            "last_microstructure_fingerprint": microstructure_fingerprint,
             "announced_closed_evidence_reviews": announced_reviews,
             "last_result": {
                 "research_status": research_status,
@@ -191,6 +212,7 @@ def run_heartbeat_cycle(
         "research_status": research_status,
         "tick_preview": tick_preview,
         "tick_result": tick_result,
+        "microstructure_diagnostic": microstructure_diagnostic,
         "event_type": None if primary is None else primary["event_type"],
         "artifact_path": None if primary is None else primary["artifact_path"],
         "sha256": None if primary is None else primary["sha256"],
@@ -293,6 +315,7 @@ def _load_state(store: ResearchStore, *, verify_schema: bool = True) -> dict[str
             "consecutive_failures": 0,
             "last_failure": None,
             "last_research_fingerprint": None,
+            "last_microstructure_fingerprint": None,
             "announced_closed_evidence_reviews": {},
             "coach_delivery": _empty_coach_delivery_state(),
             "last_result": None,
@@ -771,6 +794,82 @@ def _research_fingerprint(result: dict[str, Any]) -> str:
         ),
     }
     return json.dumps(material, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _microstructure_fingerprint(summary: dict[str, Any]) -> str:
+    return json.dumps(
+        summary,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def _microstructure_event(
+    store: ResearchStore,
+    summary: dict[str, Any],
+) -> dict[str, Any]:
+    relative = summary.get("artifact_path")
+    expected_hash = summary.get("sha256")
+    if not isinstance(relative, str) or not isinstance(expected_hash, str):
+        raise ValueError(
+            "microstructure recovery has no safely hashable canonical artifact"
+        )
+    path = store.root / relative
+    resolved = path.resolve(strict=True)
+    try:
+        resolved.relative_to(store.root)
+    except ValueError as error:
+        raise ValueError(
+            "microstructure event artifact escapes canonical state"
+        ) from error
+    if path.is_symlink() or not path.is_file() or sha256_file(path) != expected_hash:
+        raise ValueError("microstructure event artifact changed or disappeared")
+
+    status = str(summary["status"])
+    if status == "DIAGNOSTIC_READY":
+        return {
+            "event_type": "EVIDENCE_REVIEW_DUE",
+            "artifact_path": relative,
+            "sha256": expected_hash,
+            "research_status": status,
+            "material_conclusion": (
+                "The frozen 14-day microstructure intake is ready for "
+                "discovery-only diagnostic analysis."
+            ),
+            "pnl_drawdown_evidence": None,
+            "evidence_diagnostic": summary,
+            "uncertainty": (
+                "Predictive value, PnL, drawdown, fees, slippage, and strategy "
+                "usefulness remain MISSING_PROOF."
+            ),
+            "next_action": "DISPATCH_VALIDATED_LOCAL_MICROSTRUCTURE_DIAGNOSTIC_TASK",
+            "concept_to_teach": (
+                "A complete discovery diagnostic is not candidate evidence or OOS."
+            ),
+        }
+
+    conclusion = (
+        "The dedicated microstructure intake state is integrity blocked."
+        if status in {"INTEGRITY_BLOCKED", "RECOVERY_BLOCKED"}
+        else "The next expected microstructure UTC day is overdue."
+    )
+    return {
+        "event_type": "INTEGRITY_ALERT",
+        "artifact_path": relative,
+        "sha256": expected_hash,
+        "research_status": status,
+        "material_conclusion": conclusion,
+        "pnl_drawdown_evidence": None,
+        "evidence_diagnostic": summary,
+        "uncertainty": (
+            "No retry, repair, backfill, source restart, or lifecycle write is authorized."
+        ),
+        "next_action": "INSPECT_MICROSTRUCTURE_INTEGRITY_WITHOUT_MUTATING_EVIDENCE",
+        "concept_to_teach": (
+            "A capture or recovery failure is an integrity condition, not alpha evidence."
+        ),
+    }
 
 
 def _material_learning_event(store: ResearchStore, result: dict[str, Any]) -> dict[str, Any]:

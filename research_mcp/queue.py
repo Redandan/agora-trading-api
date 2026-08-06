@@ -14,6 +14,7 @@ from typing import Any
 
 from research_pipeline.evidence import evidence_progress
 from research_pipeline.heartbeat import COACH_DELIVERY_PROOF_CYCLE_WINDOW
+from research_pipeline.microstructure_monitor import microstructure_diagnostic_status
 from research_pipeline.storage import ResearchStore, sha256_file
 from research_source.contract import (
     PRODUCER as FORWARD_SOURCE_PRODUCER,
@@ -1977,6 +1978,10 @@ def research_status() -> dict[str, Any]:
         source_pending_invalid=source_pending_invalid,
         ingest_pending_invalid=ingest_pending_invalid,
     )
+    microstructure_diagnostic = microstructure_diagnostic_status(
+        STATE_DIR,
+        now=current,
+    )
     return {
         "server_time": _now(current),
         "timer_authority": "CODEX_CLOUD_OPS_ONLY",
@@ -1996,6 +2001,7 @@ def research_status() -> dict[str, Any]:
             else ({"status": "INVALID"} if ingest_pending_invalid else {"status": "IDLE"})
         ),
         "evidence_capture_health": capture_health,
+        "microstructure_diagnostic": microstructure_diagnostic,
         "latest_evidence_capture": source_latest,
         "latest_evidence_ingest": ingest_latest,
         "latest_heartbeat": latest,

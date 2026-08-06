@@ -351,6 +351,28 @@ value, fees, slippage, drawdown, and PnL remain `MISSING_PROOF`. Cloud Ops remai
 the sole research lifecycle clock, Server Canonical remains the sole research
 state writer, and the candle evidence chain remains byte-separated.
 
+The existing daily heartbeat also reads, but never writes, the dedicated
+`state/microstructure` namespace through one strict monitor. `get_research_status`
+and heartbeat results expose a separate `microstructure_diagnostic` object with
+the frozen diagnostic identity, start and next day, accepted/required counts,
+canonical state artifact path and SHA-256, and UTC-date lag classification. An
+absent namespace is `NOT_CONFIGURED`; an empty, ambiguous, symlinked,
+noncanonical, invalid, or recovery-marker namespace is `RECOVERY_BLOCKED`.
+`WAITING_FOR_DAY` becomes `CAPTURE_OVERDUE` only when its next expected UTC day
+is earlier than the heartbeat day. These values never change the candle
+research status or its 90-day trigger.
+
+On a changed canonical-state fingerprint, `DIAGNOSTIC_READY` adds exactly one
+`EVIDENCE_REVIEW_DUE` item to the existing durable Coach outbox with next action
+`DISPATCH_VALIDATED_LOCAL_MICROSTRUCTURE_DIAGNOSTIC_TASK`; `INTEGRITY_BLOCKED`,
+`CAPTURE_OVERDUE`, or safely hash-backed recovery adds one `INTEGRITY_ALERT`.
+The unchanged fingerprint is not re-enqueued, while an unacknowledged event
+remains in the existing outbox. Every direct event uses the canonical state
+file and its verified SHA-256. Recovery ambiguity without a safely hashable
+state artifact raises into the existing heartbeat failure record. No monitor
+artifact, timer, schedule change, retry, repair, backfill, source restart,
+candidate action, OOS access, or second writer is introduced.
+
 ## Cutover
 
 1. Deploy the V2 release, OAuth MCP, request directories, dispatch path, and

@@ -622,7 +622,7 @@ systemctl is-active --quiet "$MICROSTRUCTURE_INTAKE_PATH" \
   || fail "microstructure state-root metadata is incorrect"
 [ "$(sudo stat -c '%d' "$MICROSTRUCTURE_STAGING")" = "$(sudo stat -c '%d' "$MICROSTRUCTURE_DROP")" ] \
   || fail "microstructure staging and drop are not on the same filesystem"
-microstructure_free_bytes="$(df -PB1 --output=avail "$MICROSTRUCTURE_DROP" | tail -n 1 | tr -d ' ')"
+microstructure_free_bytes="$(df -B1 --output=avail "$MICROSTRUCTURE_DROP" | tail -n 1 | tr -d ' ')"
 [[ "$microstructure_free_bytes" =~ ^[0-9]+$ ]] \
   && [ "$microstructure_free_bytes" -ge 2147483648 ] \
   || fail "microstructure drop has less than 2 GiB free"

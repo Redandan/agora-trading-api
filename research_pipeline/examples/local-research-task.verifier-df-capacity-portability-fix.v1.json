@@ -1,0 +1,74 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-verifier-df-capacity-portability-fix-v1",
+  "issued_at": "2026-08-06T13:22:13Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Fix one Ubuntu coreutils portability defect in the installed Research Worker verifier. The full verifier passed hermetic release, provenance, binding, authority, identity isolation, 89 deployed contract tests, durable resume, and systemd validation, then stopped because df rejects combining POSIX -P with --output. Remove only the incompatible -P flag while preserving byte units, the exact filesystem target, numeric parsing, and the 2 GiB capacity threshold.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "ee74f700dcb37ddb1e542f9e69f38d1d20c96f7eb716ca14853b171e9318e4ad"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Live Ubuntu 24.04 verifier evidence: all checks through systemd units and 89 tests passed. The next command failed exactly with df: options -P and --output are mutually exclusive. Current release 20260806T132050Z remains installed; producer disabled/inactive; server timer disabled.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "EDIT_VERIFIER_DF_INVOCATION",
+    "RUN_LOCAL_SCRIPT_SYNTAX_CHECKS",
+    "RUN_STATIC_CAPACITY_CHECK_ASSERTIONS",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SECOND_TIMER_OR_LIFECYCLE_WRITER",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_ENABLE_START_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "OTHER_FILE_EDIT",
+    "CAPACITY_THRESHOLD_CHANGE"
+  ],
+  "expected_outputs": [
+    "EXACT_ONE_FILE_CHANGESET",
+    "PORTABLE_DF_INVOCATION",
+    "BYTE_UNIT_PRESERVED",
+    "TWO_GIB_GATE_PRESERVED",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly scripts/research-worker/verify-worker.sh and no other file. Preserve the Manager-created task file and every unrelated path.",
+    "Change only df -PB1 --output=avail to the Ubuntu-compatible df -B1 --output=avail form. Preserve the fixed microstructure drop target, tail/tr parsing, numeric validation, and the exact 2147483648-byte minimum.",
+    "Do not change installer, packager, docs, research logic, schemas, services, identities, capabilities, filesystem paths, schedule/timer state, producer behavior, or any other verifier gate.",
+    "Run only task validation, exact static command/threshold assertions, embedded Python parse checks, bash -n when Bash exists, and git diff --check for the one file. No PackageOnly, Maven, SSH, server, systemd, cleanup, or deployment action is authorized.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json with exactly one files_changed/artifact entry and all safety assertions false. Commit, PackageOnly, redeployment, and complete verifier rerun remain separate Manager actions."
+  ],
+  "limits": {
+    "timeout_seconds": 900,
+    "max_files_changed": 1,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

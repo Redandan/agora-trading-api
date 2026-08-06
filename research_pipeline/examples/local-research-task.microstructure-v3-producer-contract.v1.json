@@ -1,0 +1,135 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-producer-contract-v1",
+  "issued_at": "2026-08-06T14:15:24Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the first offline repair slice for the pre-evidence OKX BTC-USDT microstructure V2/V3 mismatch. Preserve every existing V1/V2 projection and the frozen V2 source contract, add a distinct continuous-source V3 contract, and make the existing Java continuous producer emit deterministic DAY_V3 bundles whose per-trade price is joined to the latest books5 mid at or before that trade. This slice proves producer bytes and fail-closed event-time semantics only; it must not change Python intake/state, migrate the preserved 0/14 V2 state, package, deploy, start a service, collect evidence, transfer evidence, or claim predictive/PnL/drawdown value.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCollector.java",
+      "sha256": "3c7d2abda4ac9254c584ef581d271e2bfeaae6c2e06a1a9761028737445ad7fa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCanonicalDrop.java",
+      "sha256": "0a8224d0f919f8db99fbbd9d032eb500c274fcca50d31f3448901bcd0b9a77c8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureContinuousSourceCli.java",
+      "sha256": "bdaf7665ebe57af226de36d2b05d1807c9ffb2924023462fcd23f1baec67e231"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureForwardSourceCliTest.java",
+      "sha256": "3a201a6685169514865ea7ca3fae95256890fc8cf4cb4c17200cf500e573a6f5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureContinuousSourceCliTest.java",
+      "sha256": "3bbc563531f343c18693ef24ff4e2c052cc843d52fa993d7fdfab45327622a7a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v3.schema.json",
+      "sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v2-v3-binding-mismatch-audit.v1.json",
+      "sha256": "610c46afdf53119d4e1194c6506e373174e560981a1df6c0c95b6d7aff2166c1"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-06T14:01Z; preserved V2 state WAITING_FOR_DAY 0/14, start 2026-08-08; source intentionally stopped before evidence; no microstructure timer; existing V2 binding and state must remain byte-for-byte history",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "ADD_VERSIONED_V3_SOURCE_CONTRACT",
+    "EDIT_SHARED_JAVA_COLLECTOR",
+    "ADD_DETERMINISTIC_EVENT_TIME_JOIN",
+    "ADD_V3_CANONICAL_DROP_PROJECTION",
+    "BIND_CONTINUOUS_JAVA_PRODUCER_TO_V3",
+    "PRESERVE_V1_V2_PROJECTIONS",
+    "ADD_FOCUSED_OFFLINE_JAVA_TESTS",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_MAVEN_TESTS",
+    "RUN_OFFLINE_JAVA_PACKAGE_BUILD",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_STOP_START_ENABLE_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PYTHON_INTAKE_STATE_OR_MONITOR_EDIT",
+    "V2_STATE_MIGRATION_OR_RELABEL",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_SIX_FILE_CHANGESET",
+    "FROZEN_V3_SOURCE_CONTRACT",
+    "DETERMINISTIC_LATEST_BOOK_EVENT_TIME_JOIN",
+    "COMPLETE_DAY_V3_MINUTE_PROJECTION",
+    "V1_V2_REGRESSION_PRESERVATION",
+    "V3_CANONICAL_BUNDLE_AND_ENVELOPE_BYTES",
+    "FAIL_CLOSED_UNREFERENCED_AND_BUFFER_OVERFLOW",
+    "FOCUSED_OFFLINE_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly six files: edit the three named Java main files and two named Java test files; add research_pipeline/okx-microstructure-continuous-source-contract.v3.json. Preserve this task, the audit task, and every other path.",
+    "Do not alter the V1 source contract, V2/V3 day schemas, V2/V3 diagnostic contracts, Python intake/state/monitor, scripts, service units, pom.xml, .research-state, sealed artifacts, or runtime files. If another file is required, stop BLOCKED.",
+    "Keep all existing V1 and V2 collector/drop projections and regression tests byte-compatible. The new source contract must bind DAY_V3 205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709 and DIAGNOSTIC_V3 7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a without relabeling V2.",
+    "Production continuous main must use a new fixed /etc/agora-research/okx-microstructure-continuous-source-v3.json binding and V3 hashes only. It must emit buildV3Payload bytes; no caller may select V2, an endpoint, instrument, channel, contract, start, window, identity, or drop root.",
+    "For V3, classify every trade by the latest valid books5 snapshot whose timestamp is less than or equal to the trade timestamp. For equal book timestamps, the last observed snapshot at that timestamp is latest; do not use a later-timestamp book for an earlier trade.",
+    "Resolve cross-channel arrival order deterministically: retain unresolved trades only until the books stream advances strictly past their timestamp or the day finalizes. Preserve per-stream regression detection. A trade with no eligible book is an integrity anomaly and makes the day non-publishable.",
+    "Cap unresolved trades at exactly 10000 records. Overflow must fail the frozen window closed with no truncation, sampling, classification, backfill, retry, start shift, or partial publication. Raw messages must remain unpersisted and a full raw day must not be retained.",
+    "For referenced trades, above_mid_buy is buy with price greater than mid; below_mid_sell is sell with price less than mid; every other referenced trade goes to midline_other. The three quote buckets must exactly equal total_quote_notional and reference_count must equal trade_record_count.",
+    "V3 source and integrity fields must exactly match the frozen V3 schema: midline formula/reference/disposition, zero unreferenced trades, zero crossed books, CLEAN status, and all existing raw-arrival, regression, reconnect, minute-completeness, predecessor, and exclusive-publication gates.",
+    "Add deterministic tests for earlier/equal/later books, equal-mid and opposite-side other classification, pre-first-book trade rejection, interleaved channel arrival, same-timestamp books, regressions, crossed books, 10000/10001 pending boundary, bucket identities, exact V3 seals/hashes, and V1/V2 regression.",
+    "Run only exact task validation; mvn -o focused on OkxMicrostructureForwardSourceCliTest and OkxMicrostructureContinuousSourceCliTest; mvn -o -DskipTests package; and git diff --check. Never use Maven exec, run a main, connect to a network, package a server release, or deploy.",
+    "Return one valid local-research-result JSON with exact task SHA, exactly six files_changed/artifacts, all safety assertions false, concrete test evidence, and MISSING_PROOF for live liveness, memory capacity, 14-day evidence, predictive value, fees, slippage, PnL, and drawdown.",
+    "Stop after offline producer proof. Manager review and commit are separate. Python V3 intake/state isolation, historical V2 byte/hash preservation, monitor selection, package/verifier changes, deployment, future-start binding, and evidence handoff are later bounded tasks."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 6,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

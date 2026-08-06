@@ -24,6 +24,8 @@ final class OkxMicrostructureCanonicalDrop {
 
     static final String SOURCE_CONTRACT_SHA256 =
             "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e";
+    static final String V3_SOURCE_CONTRACT_SHA256 =
+            "bfd60eb1cff322f93155133c036433d867d1112114d99f15d17c94d612389fd2";
     static final String DAY_CANONICALIZATION =
             "UTF-8 compact JSON excluding seal; object keys sorted lexicographically";
     static final String ENVELOPE_CANONICALIZATION =
@@ -50,6 +52,49 @@ final class OkxMicrostructureCanonicalDrop {
             String producerReleaseId,
             String producerManifestSha256,
             Instant publishedAt) {
+        return createWithSourceContract(
+                dayPayload,
+                day,
+                predecessorDay,
+                predecessorBundleSha256,
+                diagnosticId,
+                producerReleaseId,
+                producerManifestSha256,
+                publishedAt,
+                SOURCE_CONTRACT_SHA256);
+    }
+
+    static DropDocuments createV3(
+            Map<String, Object> dayPayload,
+            LocalDate day,
+            LocalDate predecessorDay,
+            String predecessorBundleSha256,
+            String diagnosticId,
+            String producerReleaseId,
+            String producerManifestSha256,
+            Instant publishedAt) {
+        return createWithSourceContract(
+                dayPayload,
+                day,
+                predecessorDay,
+                predecessorBundleSha256,
+                diagnosticId,
+                producerReleaseId,
+                producerManifestSha256,
+                publishedAt,
+                V3_SOURCE_CONTRACT_SHA256);
+    }
+
+    private static DropDocuments createWithSourceContract(
+            Map<String, Object> dayPayload,
+            LocalDate day,
+            LocalDate predecessorDay,
+            String predecessorBundleSha256,
+            String diagnosticId,
+            String producerReleaseId,
+            String producerManifestSha256,
+            Instant publishedAt,
+            String sourceContractSha256) {
         try {
             Map<String, Object> bundle = new LinkedHashMap<>(dayPayload);
             byte[] payloadBytes = canonicalBytes(bundle);
@@ -78,7 +123,7 @@ final class OkxMicrostructureCanonicalDrop {
             envelope.put("envelope_type", "IMMUTABLE_ONE_WAY_MICROSTRUCTURE_DAY");
             envelope.put("authorization", OkxMicrostructureCollector.AUTHORIZATION);
             envelope.put("diagnostic_id", diagnosticId);
-            envelope.put("source_contract_sha256", SOURCE_CONTRACT_SHA256);
+            envelope.put("source_contract_sha256", sourceContractSha256);
             envelope.put("producer_release_id", producerReleaseId);
             envelope.put("producer_manifest_sha256", producerManifestSha256);
             envelope.put("producer_identity", "agora-evidence-source");

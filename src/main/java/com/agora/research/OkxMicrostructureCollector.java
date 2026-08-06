@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-/** Shared deterministic parser and minute aggregator for bounded V1 and continuous V2 capture. */
+/** Shared deterministic parser and minute aggregator for bounded V1 and continuous V2/V3 capture. */
 final class OkxMicrostructureCollector {
 
     static final String ENDPOINT = "wss://ws.okx.com:8443/ws/v5/public";
@@ -34,9 +34,12 @@ final class OkxMicrostructureCollector {
     private static final Set<String> EXPECTED_CHANNELS = Set.of("trades", "books5");
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
     private static final BigDecimal TEN_THOUSAND = BigDecimal.valueOf(10_000);
+    static final int MAX_UNRESOLVED_TRADES = 10_000;
 
     private final ObjectMapper mapper;
     private final TreeMap<Instant, MinuteAccumulator> minutes = new TreeMap<>();
+    private final TreeMap<Long, BigDecimal> v3BookMidByTimestamp = new TreeMap<>();
+    private final TreeMap<Long, List<TradeRecord>> unresolvedV3Trades = new TreeMap<>();
     private final Map<String, Integer> sourceCounts = new TreeMap<>();
     private final Set<String> acknowledgedChannels = new HashSet<>();
     private byte[] arrivalChain = INITIAL_CHAIN.clone();
@@ -57,6 +60,11 @@ final class OkxMicrostructureCollector {
     private Long lastBookSequence;
     private Long lastTradeId;
     private BigDecimal lastBidDepthQuote;
+    private BigDecimal lastBookMidPrice;
+    private Long v3BookWatermarkTimestamp;
+    private int unresolvedV3TradeCount;
+    private long midlineUnreferencedTradeCount;
+    private boolean unresolvedV3TradeOverflow;
 
     OkxMicrostructureCollector(ObjectMapper mapper) {
         this(mapper, Continuity.empty());
@@ -70,6 +78,11 @@ final class OkxMicrostructureCollector {
         this.lastBookSequence = continuity.lastBookSequence();
         this.lastTradeId = continuity.lastTradeId();
         this.lastBidDepthQuote = continuity.lastBidDepthQuote();
+        this.lastBookMidPrice = continuity.lastBookMidPrice();
+        if (lastBookTimestamp != null && lastBookMidPrice != null) {
+            v3BookMidByTimestamp.put(lastBookTimestamp, lastBookMidPrice);
+            v3BookWatermarkTimestamp = lastBookTimestamp;
+        }
     }
 
     synchronized void acceptRaw(String raw) {
@@ -129,7 +142,8 @@ final class OkxMicrostructureCollector {
                 lastTradeSequence,
                 lastBookSequence,
                 lastTradeId,
-                lastBidDepthQuote);
+                lastBidDepthQuote,
+                lastBookMidPrice);
     }
 
     synchronized long anomalyCount() {
@@ -145,6 +159,36 @@ final class OkxMicrostructureCollector {
 
     synchronized int minuteCount() {
         return minutes.size();
+    }
+
+    synchronized int unresolvedV3TradeCount() {
+        return unresolvedV3TradeCount;
+    }
+
+    synchronized long midlineUnreferencedTradeCount() {
+        return midlineUnreferencedTradeCount;
+    }
+
+    synchronized boolean unresolvedV3TradeOverflowed() {
+        return unresolvedV3TradeOverflow;
+    }
+
+    synchronized String v3IntegrityFailureReason() {
+        if (unresolvedV3TradeOverflow) {
+            return "UNRESOLVED_TRADE_BUFFER_OVERFLOW";
+        }
+        if (midlineUnreferencedTradeCount != 0) {
+            return "MIDLINE_UNREFERENCED_TRADE";
+        }
+        return null;
+    }
+
+    synchronized Map<String, Object> v3MinuteOutput(Instant minute) {
+        MinuteAccumulator accumulator = minutes.get(minute.truncatedTo(ChronoUnit.MINUTES));
+        if (accumulator == null) {
+            throw new IllegalArgumentException("minute is not present");
+        }
+        return accumulator.v3Output(minute.truncatedTo(ChronoUnit.MINUTES));
     }
 
     synchronized Map<String, Object> buildV1Bundle(
@@ -262,6 +306,73 @@ final class OkxMicrostructureCollector {
 
         Map<String, Object> output = new LinkedHashMap<>();
         output.put("schema_version", "OKX_MICROSTRUCTURE_FORWARD_DAY_V2");
+        output.put("bundle_type", "FORWARD_MICROSTRUCTURE_DAY_RESEARCH_ONLY");
+        output.put("authorization", AUTHORIZATION);
+        output.put("source", source);
+        output.put("day", day.toString());
+        output.put("capture", capture);
+        output.put("integrity", integrity);
+        output.put("minutes", minuteOutput);
+        return output;
+    }
+
+    synchronized Map<String, Object> buildV3Payload(LocalDate day) {
+        if (unresolvedV3TradeOverflow) {
+            throw new IllegalStateException(
+                    "UNRESOLVED_TRADE_BUFFER_OVERFLOW: more than 10000 unresolved trades");
+        }
+        resolveAllV3Trades();
+        if (!acknowledgedChannels.containsAll(EXPECTED_CHANNELS)) {
+            throw new IllegalStateException("STREAM_GAP: both channel acknowledgements are required");
+        }
+        if (anomalyCount() != 0) {
+            throw new IllegalStateException("INTEGRITY_NOT_CLEAN: anomaly count is nonzero");
+        }
+        if (midlineUnreferencedTradeCount != 0) {
+            throw new IllegalStateException(
+                    "MIDLINE_UNREFERENCED_TRADE: every trade requires an eligible books5 reference");
+        }
+        if (!isExactFullUtcDay(day)) {
+            throw new IllegalStateException("INCOMPLETE_DAY: exactly 1440 complete UTC minutes are required");
+        }
+
+        List<Map<String, Object>> minuteOutput = new ArrayList<>(minutes.size());
+        minutes.forEach((minute, accumulator) -> {
+            if (!accumulator.v3BucketsComplete()) {
+                throw new IllegalStateException(
+                        "MIDLINE_BUCKET_MISMATCH: references and quote buckets must reconcile");
+            }
+            minuteOutput.add(accumulator.v3Output(minute));
+        });
+
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("venue", "OKX");
+        source.put("instrument", INSTRUMENT);
+        source.put("channels", List.of("trades", "books5"));
+        source.put("mode", "FORWARD_ONLY");
+        source.put("historical_backfill", false);
+        source.put("raw_messages_persisted", false);
+        source.put("aggregation_timezone", "UTC");
+        source.put("midline_formula", "BEST_BID_1_PLUS_BEST_ASK_1_DIVIDED_BY_2");
+        source.put("midline_reference", "LATEST_BOOKS5_AT_OR_BEFORE_TRADE");
+        source.put("unreferenced_trade_disposition", "INTEGRITY_ANOMALY");
+
+        Instant dayStart = day.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Map<String, Object> capture = new LinkedHashMap<>();
+        capture.put("started_at", dayStart.toString());
+        capture.put("ended_at", dayStart.plus(1, ChronoUnit.DAYS).toString());
+        capture.put("acknowledged_channels", List.of("books5", "trades"));
+
+        Map<String, Object> integrity = new LinkedHashMap<>();
+        integrity.put("status", "CLEAN");
+        integrity.put("anomaly_count", 0);
+        integrity.put("raw_message_count", rawMessageCount);
+        integrity.put("arrival_chain_sha256", HexFormat.of().formatHex(arrivalChain));
+        integrity.put("midline_unreferenced_trade_count", 0);
+        integrity.put("crossed_book_count", 0);
+
+        Map<String, Object> output = new LinkedHashMap<>();
+        output.put("schema_version", "OKX_MICROSTRUCTURE_FORWARD_DAY_V3");
         output.put("bundle_type", "FORWARD_MICROSTRUCTURE_DAY_RESEARCH_ONLY");
         output.put("authorization", AUTHORIZATION);
         output.put("source", source);
@@ -400,6 +511,7 @@ final class OkxMicrostructureCollector {
         minute.tradeLowPrice = min(minute.tradeLowPrice, trade.price());
         minute.tradeClosePrice = trade.price();
         minute.lastTradeAt = trade.timestamp();
+        retainOrResolveV3Trade(trade);
     }
 
     private void acceptBook(BookRecord book) {
@@ -442,6 +554,94 @@ final class OkxMicrostructureCollector {
         minute.midPriceLow = min(minute.midPriceLow, mid);
         minute.midPriceEnd = mid;
         minute.lastBookAt = book.timestamp();
+
+        lastBookMidPrice = mid;
+        v3BookMidByTimestamp.put(book.timestamp(), mid);
+        v3BookWatermarkTimestamp = v3BookWatermarkTimestamp == null
+                ? book.timestamp()
+                : Math.max(v3BookWatermarkTimestamp, book.timestamp());
+        if (!unresolvedV3TradeOverflow) {
+            resolveV3TradesBefore(book.timestamp());
+            pruneV3BookReferences();
+        }
+    }
+
+    private void retainOrResolveV3Trade(TradeRecord trade) {
+        if (unresolvedV3TradeOverflow) {
+            return;
+        }
+        if (v3BookWatermarkTimestamp != null
+                && v3BookWatermarkTimestamp > trade.timestamp()) {
+            classifyV3Trade(trade);
+            pruneV3BookReferences();
+            return;
+        }
+        if (unresolvedV3TradeCount == MAX_UNRESOLVED_TRADES) {
+            unresolvedV3TradeOverflow = true;
+            return;
+        }
+        unresolvedV3Trades
+                .computeIfAbsent(trade.timestamp(), ignored -> new ArrayList<>())
+                .add(trade);
+        unresolvedV3TradeCount++;
+        pruneV3BookReferences();
+    }
+
+    private void resolveV3TradesBefore(long exclusiveBookTimestamp) {
+        List<Long> readyTimestamps = new ArrayList<>(
+                unresolvedV3Trades.headMap(exclusiveBookTimestamp, false).keySet());
+        for (Long timestamp : readyTimestamps) {
+            List<TradeRecord> ready = unresolvedV3Trades.remove(timestamp);
+            unresolvedV3TradeCount -= ready.size();
+            ready.forEach(this::classifyV3Trade);
+        }
+    }
+
+    private void resolveAllV3Trades() {
+        if (unresolvedV3TradeOverflow) {
+            return;
+        }
+        List<List<TradeRecord>> pending = new ArrayList<>(unresolvedV3Trades.values());
+        unresolvedV3Trades.clear();
+        unresolvedV3TradeCount = 0;
+        pending.forEach(trades -> trades.forEach(this::classifyV3Trade));
+        pruneV3BookReferences();
+    }
+
+    private void classifyV3Trade(TradeRecord trade) {
+        Map.Entry<Long, BigDecimal> reference = v3BookMidByTimestamp.floorEntry(trade.timestamp());
+        if (reference == null) {
+            midlineUnreferencedTradeCount++;
+            return;
+        }
+        BigDecimal quoteNotional = trade.price().multiply(trade.size());
+        MinuteAccumulator minute = minute(trade.timestamp());
+        minute.midlineReferenceCount++;
+        int priceToMid = trade.price().compareTo(reference.getValue());
+        if ("buy".equals(trade.side()) && priceToMid > 0) {
+            minute.aboveMidBuyQuoteNotional =
+                    minute.aboveMidBuyQuoteNotional.add(quoteNotional);
+        } else if ("sell".equals(trade.side()) && priceToMid < 0) {
+            minute.belowMidSellQuoteNotional =
+                    minute.belowMidSellQuoteNotional.add(quoteNotional);
+        } else {
+            minute.midlineOtherQuoteNotional =
+                    minute.midlineOtherQuoteNotional.add(quoteNotional);
+        }
+    }
+
+    private void pruneV3BookReferences() {
+        if (lastTradeTimestamp == null || v3BookMidByTimestamp.size() < 2) {
+            return;
+        }
+        long earliestNeeded = lastTradeTimestamp;
+        if (!unresolvedV3Trades.isEmpty()) {
+            earliestNeeded = Math.min(earliestNeeded, unresolvedV3Trades.firstKey());
+        }
+        Map.Entry<Long, BigDecimal> anchor = v3BookMidByTimestamp.floorEntry(earliestNeeded);
+        if (anchor != null) {
+            v3BookMidByTimestamp.headMap(anchor.getKey(), false).clear();
+        }
     }
 
     private MinuteAccumulator minute(long timestamp) {
@@ -638,6 +838,10 @@ final class OkxMicrostructureCollector {
         private BigDecimal sellQuoteNotional = BigDecimal.ZERO;
         private BigDecimal totalBaseQuantity = BigDecimal.ZERO;
         private BigDecimal totalQuoteNotional = BigDecimal.ZERO;
+        private long midlineReferenceCount;
+        private BigDecimal aboveMidBuyQuoteNotional = BigDecimal.ZERO;
+        private BigDecimal belowMidSellQuoteNotional = BigDecimal.ZERO;
+        private BigDecimal midlineOtherQuoteNotional = BigDecimal.ZERO;
         private BigDecimal tradeOpenPrice;
         private BigDecimal tradeHighPrice;
         private BigDecimal tradeLowPrice;
@@ -711,6 +915,23 @@ final class OkxMicrostructureCollector {
             return value;
         }
 
+        private Map<String, Object> v3Output(Instant minute) {
+            Map<String, Object> value = v2Output(minute);
+            value.put("midline_reference_count", midlineReferenceCount);
+            value.put("above_mid_buy_quote_notional", decimal(aboveMidBuyQuoteNotional));
+            value.put("below_mid_sell_quote_notional", decimal(belowMidSellQuoteNotional));
+            value.put("midline_other_quote_notional", decimal(midlineOtherQuoteNotional));
+            return value;
+        }
+
+        private boolean v3BucketsComplete() {
+            return midlineReferenceCount == tradeRecordCount
+                    && totalQuoteNotional.compareTo(
+                            aboveMidBuyQuoteNotional
+                                    .add(belowMidSellQuoteNotional)
+                                    .add(midlineOtherQuoteNotional)) == 0;
+        }
+
         private static String average(BigDecimal sum, long count) {
             return count == 0
                     ? null
@@ -781,10 +1002,11 @@ final class OkxMicrostructureCollector {
             Long lastTradeSequence,
             Long lastBookSequence,
             Long lastTradeId,
-            BigDecimal lastBidDepthQuote) {
+            BigDecimal lastBidDepthQuote,
+            BigDecimal lastBookMidPrice) {
 
         static Continuity empty() {
-            return new Continuity(null, null, null, null, null, null);
+            return new Continuity(null, null, null, null, null, null, null);
         }
     }
 

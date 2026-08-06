@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +51,7 @@ class OkxMicrostructureContinuousSourceCliTest {
         assertEquals(14, OkxMicrostructureContinuousSourceCli.REQUIRED_DAYS);
         assertEquals("agora-evidence-source", OkxMicrostructureContinuousSourceCli.PRODUCER_IDENTITY);
         assertEquals(
-                "/etc/agora-research/okx-microstructure-continuous-source-v1.json",
+                "/etc/agora-research/okx-microstructure-continuous-source-v3.json",
                 OkxMicrostructureContinuousSourceCli.FIXED_BINDING_PATH.toString().replace('\\', '/'));
         assertTrue(OkxMicrostructureContinuousSourceCli.PRIVATE_STAGING_ROOT.toString()
                 .contains("microstructure"));
@@ -130,7 +133,7 @@ class OkxMicrostructureContinuousSourceCliTest {
     }
 
     @Test
-    void v2ProjectionCanonicalHashesUtcRolloverAndNextDayRetentionAreDeterministic() throws Exception {
+    void v3ProjectionCanonicalHashesUtcRolloverAndNextDayRetentionAreDeterministic() throws Exception {
         MutableClock clock = new MutableClock(Instant.parse("2026-08-06T10:00:00Z"));
         ExclusiveFakeSink sink = new ExclusiveFakeSink();
         OkxMicrostructureContinuousSourceCli.Producer producer = producer(clock, listener -> { }, sink);
@@ -160,6 +163,29 @@ class OkxMicrostructureContinuousSourceCliTest {
                 documents.bundleBytes(), new TypeReference<>() { });
         Map<String, Object> envelope = mapper.readValue(
                 documents.envelopeBytes(), new TypeReference<>() { });
+        assertEquals("OKX_MICROSTRUCTURE_FORWARD_DAY_V3", bundle.get("schema_version"));
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256,
+                envelope.get("source_contract_sha256"));
+        Map<String, Object> source = castMap(bundle.get("source"));
+        Map<String, Object> integrity = castMap(bundle.get("integrity"));
+        assertEquals(Set.of(
+                "venue",
+                "instrument",
+                "channels",
+                "mode",
+                "historical_backfill",
+                "raw_messages_persisted",
+                "aggregation_timezone",
+                "midline_formula",
+                "midline_reference",
+                "unreferenced_trade_disposition"), source.keySet());
+        assertEquals(Set.of(
+                "status",
+                "anomaly_count",
+                "raw_message_count",
+                "arrival_chain_sha256",
+                "midline_unreferenced_trade_count",
+                "crossed_book_count"), integrity.keySet());
         assertArrayEquals(documents.bundleBytes(), OkxMicrostructureCanonicalDrop.canonicalBytes(bundle));
         assertArrayEquals(documents.envelopeBytes(), OkxMicrostructureCanonicalDrop.canonicalBytes(envelope));
 
@@ -182,26 +208,209 @@ class OkxMicrostructureContinuousSourceCliTest {
         List<Map<String, Object>> minutes = castList(bundle.get("minutes"));
         assertEquals(1_440, minutes.size());
         Map<String, Object> first = minutes.getFirst();
+        assertEquals(Set.of(
+                "minute",
+                "trade_record_count",
+                "match_count",
+                "midline_reference_count",
+                "buy_quote_notional",
+                "sell_quote_notional",
+                "total_quote_notional",
+                "net_taker_quote_notional",
+                "above_mid_buy_quote_notional",
+                "below_mid_sell_quote_notional",
+                "midline_other_quote_notional",
+                "trade_open_price",
+                "trade_high_price",
+                "trade_low_price",
+                "trade_close_price",
+                "trade_vwap_price",
+                "first_trade_at",
+                "last_trade_at",
+                "book_sample_count",
+                "average_top5_bid_quote_depth",
+                "average_top5_ask_quote_depth",
+                "average_book_imbalance",
+                "average_spread_bps",
+                "bid_replenishment_quote_proxy",
+                "mid_price_start",
+                "mid_price_high",
+                "mid_price_low",
+                "mid_price_end",
+                "first_book_at",
+                "last_book_at"), first.keySet());
         assertEquals("305", first.get("buy_quote_notional"));
-        assertEquals("110", first.get("sell_quote_notional"));
-        assertEquals("415", first.get("total_quote_notional"));
-        assertEquals("195", first.get("net_taker_quote_notional"));
+        assertEquals("209", first.get("sell_quote_notional"));
+        assertEquals("514", first.get("total_quote_notional"));
+        assertEquals("96", first.get("net_taker_quote_notional"));
+        assertEquals(4, ((Number) first.get("midline_reference_count")).intValue());
+        assertEquals("105", first.get("above_mid_buy_quote_notional"));
+        assertEquals("99", first.get("below_mid_sell_quote_notional"));
+        assertEquals("310", first.get("midline_other_quote_notional"));
         assertEquals("100", first.get("trade_open_price"));
         assertEquals("110", first.get("trade_high_price"));
-        assertEquals("100", first.get("trade_low_price"));
-        assertEquals("105", first.get("trade_close_price"));
-        assertEquals("103.75", first.get("trade_vwap_price"));
+        assertEquals("99", first.get("trade_low_price"));
+        assertEquals("99", first.get("trade_close_price"));
+        assertEquals("102.8", first.get("trade_vwap_price"));
         assertEquals(START_DAY + "T00:00:01Z", first.get("first_trade_at"));
-        assertEquals(START_DAY + "T00:00:03Z", first.get("last_trade_at"));
+        assertEquals(START_DAY + "T00:00:03.500Z", first.get("last_trade_at"));
         assertEquals("100", first.get("mid_price_start"));
         assertEquals("102", first.get("mid_price_high"));
         assertEquals("100", first.get("mid_price_low"));
         assertEquals("102", first.get("mid_price_end"));
         assertEquals("105", first.get("bid_replenishment_quote_proxy"));
-        assertEquals(START_DAY + "T00:00:04Z", first.get("first_book_at"));
-        assertEquals(START_DAY + "T00:00:05Z", first.get("last_book_at"));
+        assertEquals(START_DAY + "T00:00:00.500Z", first.get("first_book_at"));
+        assertEquals(START_DAY + "T00:00:04Z", first.get("last_book_at"));
 
         assertThrows(Exception.class, () -> sink.publish(documents));
+    }
+
+    @Test
+    void v3SourceContractAndFrozenBindingsMatchExactRepositoryBytes() throws Exception {
+        Path contractPath = Path.of(
+                "research_pipeline/okx-microstructure-continuous-source-contract.v3.json");
+        byte[] contractBytes = Files.readAllBytes(contractPath);
+        Map<String, Object> contract = mapper.readValue(contractBytes, new TypeReference<>() { });
+        Map<String, Object> eventTimeJoin = castMap(contract.get("event_time_join"));
+        Map<String, Object> bindings = castMap(contract.get("bindings"));
+
+        assertEquals(OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256,
+                OkxMicrostructureCanonicalDrop.sha256(contractBytes));
+        assertEquals("OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V3", contract.get("contract_id"));
+        assertEquals("LATEST_BOOKS5_AT_OR_BEFORE_TRADE", eventTimeJoin.get("book_reference"));
+        assertEquals(10_000, ((Number) eventTimeJoin.get(
+                "maximum_unresolved_trade_records")).intValue());
+        assertEquals(OkxMicrostructureContinuousSourceCli.DAY_SCHEMA_SHA256,
+                bindings.get("day_schema_sha256"));
+        assertEquals(OkxMicrostructureContinuousSourceCli.DIAGNOSTIC_CONTRACT_SHA256,
+                bindings.get("diagnostic_contract_sha256"));
+    }
+
+    @Test
+    void eventTimeJoinUsesLastEqualTimestampBookAndNeverTheLaterBook() {
+        OkxMicrostructureCollector collector = collectorWithAcks();
+        long base = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        collector.acceptRaw(bookMessage(base + 1_000, "99", "1", "101", "1", 1));
+        collector.acceptRaw(tradeMessage(base + 2_000, "103", "1", "buy", 1, 1));
+        collector.acceptRaw(tradeMessage(base + 2_000, "101.5", "1", "buy", 2, 2));
+        collector.acceptRaw(bookMessage(base + 2_000, "100", "1", "102", "1", 2));
+        collector.acceptRaw(bookMessage(base + 2_000, "101", "1", "103", "1", 3));
+
+        assertEquals(2, collector.unresolvedV3TradeCount());
+        collector.acceptRaw(bookMessage(base + 3_000, "199", "1", "201", "1", 4));
+
+        Map<String, Object> minute = collector.v3MinuteOutput(
+                Instant.ofEpochMilli(base));
+        assertEquals(0, collector.unresolvedV3TradeCount());
+        assertEquals(0L, collector.midlineUnreferencedTradeCount());
+        assertEquals(2L, minute.get("midline_reference_count"));
+        assertEquals("103", minute.get("above_mid_buy_quote_notional"));
+        assertEquals("0", minute.get("below_mid_sell_quote_notional"));
+        assertEquals("101.5", minute.get("midline_other_quote_notional"));
+    }
+
+    @Test
+    void v3BucketsPutEqualMidAndOppositeSidesInOtherAndReconcileExactly() {
+        OkxMicrostructureCollector collector = collectorWithAcks();
+        long base = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        collector.acceptRaw(bookMessage(base + 1_000, 1));
+        collector.acceptRaw("{\"arg\":{\"channel\":\"trades\",\"instId\":\"BTC-USDT\"},\"data\":["
+                + tradeRecord(base + 2_000, "101", "1", "buy", 1, 1) + ","
+                + tradeRecord(base + 2_000, "99", "1", "sell", 2, 2) + ","
+                + tradeRecord(base + 2_000, "100", "1", "buy", 3, 3) + ","
+                + tradeRecord(base + 2_000, "101", "1", "sell", 4, 4) + ","
+                + tradeRecord(base + 2_000, "99", "1", "buy", 5, 5) + "]}");
+        collector.acceptRaw(bookMessage(base + 3_000, 2));
+
+        Map<String, Object> minute = collector.v3MinuteOutput(Instant.ofEpochMilli(base));
+        assertEquals(5L, minute.get("trade_record_count"));
+        assertEquals(5L, minute.get("midline_reference_count"));
+        assertEquals("500", minute.get("total_quote_notional"));
+        assertEquals("101", minute.get("above_mid_buy_quote_notional"));
+        assertEquals("99", minute.get("below_mid_sell_quote_notional"));
+        assertEquals("300", minute.get("midline_other_quote_notional"));
+    }
+
+    @Test
+    void preFirstBookTradeAndPerStreamRegressionsRemainFailClosed() {
+        long base = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        OkxMicrostructureCollector unreferenced = collectorWithAcks();
+        unreferenced.acceptRaw(tradeMessage(base + 1_000, "100", "1", "buy", 1, 1));
+        unreferenced.acceptRaw(bookMessage(base + 2_000, 1));
+        assertEquals(1L, unreferenced.midlineUnreferencedTradeCount());
+        assertEquals("MIDLINE_UNREFERENCED_TRADE", unreferenced.v3IntegrityFailureReason());
+
+        OkxMicrostructureCollector regressed = collectorWithAcks();
+        regressed.acceptRaw(bookMessage(base + 2_000, 2));
+        regressed.acceptRaw(bookMessage(base + 1_000, 1));
+        assertEquals(2L, regressed.anomalyCount());
+    }
+
+    @Test
+    void unresolvedTradeBufferAcceptsExactly10000ThenBlocksWithoutTruncation() {
+        OkxMicrostructureCollector collector = collectorWithAcks();
+        long base = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        StringBuilder raw = new StringBuilder(
+                "{\"arg\":{\"channel\":\"trades\",\"instId\":\"BTC-USDT\"},\"data\":[");
+        for (int index = 0; index < OkxMicrostructureCollector.MAX_UNRESOLVED_TRADES; index++) {
+            if (index != 0) {
+                raw.append(',');
+            }
+            raw.append(tradeRecord(
+                    base + index + 1L,
+                    "100",
+                    "1",
+                    "buy",
+                    index + 1L,
+                    index + 1L));
+        }
+        raw.append("]}");
+        collector.acceptRaw(raw.toString());
+
+        assertEquals(10_000, collector.unresolvedV3TradeCount());
+        assertFalse(collector.unresolvedV3TradeOverflowed());
+        collector.acceptRaw(tradeMessage(
+                base + 10_001L, "100", "1", "buy", 10_001L, 10_001L));
+
+        assertEquals(10_000, collector.unresolvedV3TradeCount());
+        assertTrue(collector.unresolvedV3TradeOverflowed());
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class,
+                () -> collector.buildV3Payload(START_DAY));
+        assertTrue(failure.getMessage().contains("UNRESOLVED_TRADE_BUFFER_OVERFLOW"));
+    }
+
+    @Test
+    void legacyV2PayloadAndDropContractRemainUnchanged() throws Exception {
+        OkxMicrostructureCollector collector = collectorWithAcks();
+        long dayStart = START_DAY.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        for (int minute = 0; minute < 1_440; minute++) {
+            long start = dayStart + minute * 60_000L;
+            long sequence = minute + 1L;
+            collector.acceptRaw(tradeMessage(
+                    start + 1_000, "100", "1", "buy", sequence, sequence));
+            collector.acceptRaw(bookMessage(start + 2_000, sequence));
+        }
+
+        Map<String, Object> payload = collector.buildV2Payload(START_DAY);
+        assertEquals("OKX_MICROSTRUCTURE_FORWARD_DAY_V2", payload.get("schema_version"));
+        Map<String, Object> first = castList(payload.get("minutes")).getFirst();
+        assertFalse(first.containsKey("midline_reference_count"));
+        assertFalse(first.containsKey("above_mid_buy_quote_notional"));
+        OkxMicrostructureCanonicalDrop.DropDocuments documents =
+                OkxMicrostructureCanonicalDrop.create(
+                        payload,
+                        START_DAY,
+                        null,
+                        null,
+                        "okx-microstructure-forward-diagnostic-v2",
+                        "legacy-release-fixture",
+                        "b".repeat(64),
+                        START_DAY.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC));
+        Map<String, Object> envelope = mapper.readValue(
+                documents.envelopeBytes(), new TypeReference<>() { });
+        assertEquals(OkxMicrostructureCanonicalDrop.SOURCE_CONTRACT_SHA256,
+                envelope.get("source_contract_sha256"));
     }
 
     @Test
@@ -352,9 +561,9 @@ class OkxMicrostructureContinuousSourceCliTest {
         value.put("authorization", "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE");
         value.put("forward_start_day", startDay.toString());
         value.put("required_complete_utc_days", 14);
-        value.put("diagnostic_id", "okx-microstructure-forward-diagnostic-v2");
+        value.put("diagnostic_id", "okx-microstructure-forward-diagnostic-v3");
         value.put("source_contract_sha256",
-                OkxMicrostructureCanonicalDrop.SOURCE_CONTRACT_SHA256);
+                OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256);
         value.put("day_schema_sha256", OkxMicrostructureContinuousSourceCli.DAY_SCHEMA_SHA256);
         value.put("diagnostic_contract_sha256",
                 OkxMicrostructureContinuousSourceCli.DIAGNOSTIC_CONTRACT_SHA256);
@@ -366,6 +575,13 @@ class OkxMicrostructureContinuousSourceCliTest {
     private static void acknowledgeBoth(OkxMicrostructureContinuousSourceCli.Producer producer) {
         producer.onRaw(acknowledgement("trades"));
         producer.onRaw(acknowledgement("books5"));
+    }
+
+    private OkxMicrostructureCollector collectorWithAcks() {
+        OkxMicrostructureCollector collector = new OkxMicrostructureCollector(mapper);
+        collector.acceptRaw(acknowledgement("trades"));
+        collector.acceptRaw(acknowledgement("books5"));
+        return collector;
     }
 
     private static String acknowledgement(String channel) {
@@ -380,17 +596,27 @@ class OkxMicrostructureContinuousSourceCliTest {
         for (int minute = 0; minute < 1_440; minute++) {
             long start = dayStart + minute * 60_000L;
             if (minute == 0) {
+                producer.onRaw("{\"arg\":{\"channel\":\"books5\",\"instId\":\"BTC-USDT\"},\"data\":["
+                        + bookRecord(start + 500, "99", "2", "101", "1", 1) + "]}");
                 producer.onRaw("{\"arg\":{\"channel\":\"trades\",\"instId\":\"BTC-USDT\"},\"data\":["
                         + tradeRecord(start + 1_000, "100", "2", "buy", 1, 1) + ","
                         + tradeRecord(start + 2_000, "110", "1", "sell", 2, 2) + ","
-                        + tradeRecord(start + 3_000, "105", "1", "buy", 3, 3) + "]}");
+                        + tradeRecord(start + 3_000, "105", "1", "buy", 3, 3) + ","
+                        + tradeRecord(start + 3_500, "99", "1", "sell", 4, 4) + "]}");
                 producer.onRaw("{\"arg\":{\"channel\":\"books5\",\"instId\":\"BTC-USDT\"},\"data\":["
-                        + bookRecord(start + 4_000, "99", "2", "101", "1", 1) + ","
-                        + bookRecord(start + 5_000, "101", "3", "103", "1", 2) + "]}");
+                        + bookRecord(start + 4_000, "101", "3", "103", "1", 2) + "]}");
             } else {
-                long sequence = minute + 10L;
-                producer.onRaw(tradeMessage(start + 1_000, "100", "1", "buy", sequence, sequence));
-                producer.onRaw(bookMessage(start + 2_000, sequence));
+                long bookSequence = minute * 2L + 10L;
+                long tradeSequence = minute + 10L;
+                producer.onRaw(bookMessage(start + 500, bookSequence));
+                producer.onRaw(tradeMessage(
+                        start + 1_000,
+                        "100",
+                        "1",
+                        "buy",
+                        tradeSequence,
+                        tradeSequence));
+                producer.onRaw(bookMessage(start + 2_000, bookSequence + 1));
             }
         }
     }
@@ -398,10 +624,11 @@ class OkxMicrostructureContinuousSourceCliTest {
     private static void sendOneCompleteMinute(
             OkxMicrostructureContinuousSourceCli.Producer producer,
             LocalDate day,
-            long sequence) {
+        long sequence) {
         long start = day.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        producer.onRaw(bookMessage(start + 500, sequence * 2));
         producer.onRaw(tradeMessage(start + 1_000, "100", "1", "buy", sequence, sequence));
-        producer.onRaw(bookMessage(start + 2_000, sequence));
+        producer.onRaw(bookMessage(start + 2_000, sequence * 2 + 1));
     }
 
     private static String tradeMessage(
@@ -429,8 +656,18 @@ class OkxMicrostructureContinuousSourceCliTest {
     }
 
     private static String bookMessage(long timestamp, long sequence) {
+        return bookMessage(timestamp, "99", "2", "101", "1", sequence);
+    }
+
+    private static String bookMessage(
+            long timestamp,
+            String bid,
+            String bidSize,
+            String ask,
+            String askSize,
+            long sequence) {
         return "{\"arg\":{\"channel\":\"books5\",\"instId\":\"BTC-USDT\"},\"data\":["
-                + bookRecord(timestamp, "99", "2", "101", "1", sequence) + "]}";
+                + bookRecord(timestamp, bid, bidSize, ask, askSize, sequence) + "]}";
     }
 
     private static String bookRecord(

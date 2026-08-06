@@ -1,0 +1,102 @@
+{
+  "schema_version": "3",
+  "contract_id": "OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V3",
+  "supersedes": "OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V1_BEFORE_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "HYPOTHESIS_DISCOVERY_ONLY",
+  "deployment_status": "OFFLINE_PRODUCER_CONTRACT_ONLY_NOT_DEPLOYED",
+  "source": {
+    "producer_type": "CONTINUOUS_SUPERVISED_DATA_PLANE",
+    "producer_identity": "agora-evidence-source",
+    "endpoint": "wss://ws.okx.com:8443/ws/v5/public",
+    "venue": "OKX",
+    "instrument": "BTC-USDT",
+    "channels": [
+      "trades",
+      "books5"
+    ],
+    "aggregation_timezone": "UTC",
+    "mode": "FORWARD_ONLY",
+    "historical_backfill": false,
+    "credentials": "NONE",
+    "raw_messages_persisted": false,
+    "network_scope": "FIXED_PUBLIC_ENDPOINT_ONLY"
+  },
+  "event_time_join": {
+    "midline_formula": "BEST_BID_1_PLUS_BEST_ASK_1_DIVIDED_BY_2",
+    "book_reference": "LATEST_BOOKS5_AT_OR_BEFORE_TRADE",
+    "equal_timestamp_book_selection": "LAST_OBSERVED_SNAPSHOT_AT_TIMESTAMP",
+    "cross_channel_resolution": "RETAIN_UNRESOLVED_TRADE_UNTIL_BOOKS5_ADVANCES_STRICTLY_PAST_TRADE_OR_DAY_FINALIZES",
+    "unreferenced_trade_disposition": "INTEGRITY_ANOMALY_BLOCK_DAY",
+    "maximum_unresolved_trade_records": 10000,
+    "overflow_disposition": "BLOCK_WINDOW_NO_TRUNCATION_SAMPLING_RETRY_START_SHIFT_OR_PARTIAL_PUBLICATION",
+    "full_raw_day_retained": false
+  },
+  "collection": {
+    "required_complete_utc_days": 14,
+    "minutes_per_day": 1440,
+    "day_policy": "EXPLICIT_FUTURE_START_EXACTLY_14_CONTIGUOUS_UTC_DAYS",
+    "seal_trigger": "FIRST_VALID_NEXT_UTC_DAY_MESSAGE",
+    "bundle_document_canonicalization": "UTF-8 compact JSON including seal; object keys sorted lexicographically",
+    "envelope_document_canonicalization": "UTF-8 compact JSON including envelope_seal; object keys sorted lexicographically",
+    "gap_policy": "REJECT_DAY_AND_BLOCK_DIAGNOSTIC",
+    "reconnect_policy": "CONTINUE_ONLY_IF_NO_STREAM_OR_MINUTE_GAP",
+    "predecessor_binding_required": true,
+    "raw_arrival_chain_required": true
+  },
+  "bindings": {
+    "day_schema_path": "research_pipeline/okx-microstructure-forward-day.v3.schema.json",
+    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "diagnostic_contract_path": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+    "drop_envelope_schema_id": "https://agora.local/research/okx-microstructure-drop-envelope.v1.schema.json",
+    "intake_state_schema_id": "NOT_FROZEN_IN_THIS_PRODUCER_SLICE"
+  },
+  "lifecycle": {
+    "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+    "cloud_schedule_count": 1,
+    "state_authority": "SERVER_CANONICAL",
+    "supervision_role": "DATA_PLANE_PROCESS_RECOVERY_ONLY",
+    "server_intake_network_access": "DENY",
+    "producer_canonical_state_access": false,
+    "producer_canonical_state_write": false,
+    "producer_can_enqueue_research_actions": false,
+    "producer_can_select_research_actions": false,
+    "producer_can_retry_research_actions": false,
+    "producer_can_time_research_actions": false
+  },
+  "separation": {
+    "transport": "IMMUTABLE_MICROSTRUCTURE_ONLY_ONE_WAY_DROP",
+    "canonical_namespace": "FUTURE_SEPARATE_MICROSTRUCTURE_V3_14_DAY_CHAIN",
+    "preserved_v2_state_migration": false,
+    "candle_chain_reuse": false,
+    "candle_trigger_reuse": false,
+    "advances_candle_evidence": false,
+    "trading_runtime_access": false,
+    "database_access": false,
+    "order_or_fund_access": false
+  },
+  "terminal_readiness": {
+    "status": "OFFLINE_V3_PRODUCER_CONTRACT_ONLY",
+    "accepted_day_count": 0,
+    "authorizes": "OFFLINE_V3_PRODUCER_BYTES_ONLY",
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "pnl_claim_authorized": false,
+    "promotion_authorized": false,
+    "missing_proof": [
+      "v3_intake_state_binding",
+      "historical_v2_byte_hash_preservation",
+      "monitor_selection",
+      "installed_release",
+      "live_liveness",
+      "memory_capacity",
+      "fourteen_day_evidence",
+      "fees",
+      "slippage",
+      "drawdown_effect",
+      "predictive_value",
+      "strategy_usefulness"
+    ]
+  }
+}

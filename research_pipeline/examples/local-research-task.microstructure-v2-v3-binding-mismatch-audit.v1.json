@@ -1,0 +1,138 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v2-v3-binding-mismatch-audit-v1",
+  "issued_at": "2026-08-06T14:01:34Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Audit a pre-evidence contract mismatch that can invalidate the live 14-day microstructure window. The deployed continuous producer and canonical intake are frozen to DAY_V2 and DIAGNOSTIC_V2, while the only executable diagnostic analyzer accepts DAY_V3 and DIAGNOSTIC_V3 and the V3 contract says it superseded V2 before evidence. Prove whether the current window can produce an analyzable discovery result, identify every exact binding and field incompatibility, and specify the smallest fail-closed V3 producer/intake/state migration and local evidence-handoff closure before a new untouched future start. This task is diagnostic only and must not edit, deploy, reconnect, collect evidence, or change canonical state.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCollector.java",
+      "sha256": "3c7d2abda4ac9254c584ef581d271e2bfeaae6c2e06a1a9761028737445ad7fa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureContinuousSourceCli.java",
+      "sha256": "bdaf7665ebe57af226de36d2b05d1807c9ffb2924023462fcd23f1baec67e231"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+      "sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v3.schema.json",
+      "sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+      "sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_diagnostic.py",
+      "sha256": "f8227dda823a1bd276353f3d9c8cfd0a57e3aa2f087c4a2a4bc2576997314d82"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-price-midline-diagnostic-v3.md",
+      "sha256": "16ac07719bd15c02002ab50263e64386009d6ef101a472e68c2faac97358f348"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "e24cb52d3c20a73fe87bdf86c75ac5b393b3b4ced15cea5825e395592a8f0b84"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-06T14:01Z; release 20260806T135412Z; active state okx-btcusdt-microstructure-forward-v3-20260808 WAITING_FOR_DAY 0/14, start 2026-08-08, state binds DAY_V2 hash 916525... and DIAGNOSTIC_V2 hash b58ae6...; source stopped after exact pre-start zero-evidence readback; server heartbeat timer inactive; no microstructure timer",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "COMPARE_FROZEN_SCHEMA_AND_CONTRACT_HASHES",
+    "TRACE_JAVA_PRODUCER_OUTPUT_FIELDS",
+    "TRACE_PYTHON_INTAKE_BINDINGS",
+    "TRACE_DIAGNOSTIC_ANALYZER_INPUTS",
+    "AUDIT_PRESTART_STATE_MIGRATION_OPTIONS",
+    "AUDIT_LOCAL_EVIDENCE_HANDOFF_REQUIREMENTS",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_READ_ONLY_STATIC_SEARCH",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "REPOSITORY_FILE_EDIT",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_START_STOP_ENABLE_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_ANALYZER_EXECUTION",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION"
+  ],
+  "expected_outputs": [
+    "EXACT_V2_V3_MISMATCH_MATRIX",
+    "CURRENT_WINDOW_GO_NO_GO",
+    "V3_FIELD_AVAILABILITY_PROOF",
+    "MINIMAL_V3_IMPLEMENTATION_CLOSURE",
+    "PRESTART_STATE_PRESERVATION_AND_REBIND_PLAN",
+    "LOCAL_EVIDENCE_HANDOFF_CLOSURE",
+    "FAIL_CLOSED_TEST_MATRIX",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Make no file changes. Preserve the Manager-created task file and every repository, local state, server, and external path byte-for-byte.",
+    "Prove the exact producer bundle schema version and fields, intake day/diagnostic hashes, state readiness label, analyzer accepted schema/contract, and V2 versus V3 contract hashes. Do not infer compatibility from names or the diagnostic id.",
+    "Determine whether DAY_V2 contains every primitive required to calculate V3 above-mid buy and below-mid sell quote notional with the frozen latest-books5-at-or-before-trade reference. If any primitive or temporal linkage is absent, current V2 window is NO_GO for V3 and must stay stopped.",
+    "Map the smallest code, schema, contract, Java distribution, installer, verifier, monitor, test, and documentation closure required for a true V3 end-to-end path. Reject any partial change that leaves producer, intake, state, analyzer, package manifest, or live binding on different versions.",
+    "Specify a fail-closed disposition for the existing pre-start 0/14 V2 state and binding. Preserve its bytes and hash; do not overwrite, delete, relabel, backfill, or count it. A replacement must use a new diagnostic id and strictly future untouched start, and the active monitor must not become ambiguous when historical state is preserved.",
+    "Specify how Manager can transfer exactly 14 immutable accepted V3 bundles to the Local Session without exposing arbitrary server paths, granting canonical writes, using paid APIs, calling Research MCP writes, or letting the Local Session infer work. The handoff must bind canonical state hash, per-day bundle/envelope hashes, contiguous dates, diagnostic contract hash, and create-only local output.",
+    "Define focused offline tests for trade-to-book midline reference semantics, unreferenced trades, crossed books, reconnect/gap behavior, V3 canonical bytes and hashes, V3 intake acceptance, V2 rejection, state migration preservation, multi-state monitor selection, handoff tamper/path/symlink rejection, and analyzer execution against exactly 14 verified V3 days.",
+    "Run only task validation and read-only static inspection. Do not run Python tests, Java, Maven, collectors, analyzers, adapters, SSH, deployment, systemd, network, cleanup, source, heartbeat, candidate, OOS, or Trading actions.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json with exact task_sha256, zero files_changed/artifacts, concrete PASS/MISSING_PROOF checks, and all safety assertions false."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

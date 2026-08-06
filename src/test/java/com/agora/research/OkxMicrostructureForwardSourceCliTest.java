@@ -65,6 +65,10 @@ class OkxMicrostructureForwardSourceCliTest {
                 "mid_price_start",
                 "mid_price_end"), minute.keySet());
         assertFalse(minute.containsKey("total_quote_notional"));
+        assertFalse(minute.containsKey("midline_reference_count"));
+        assertFalse(minute.containsKey("above_mid_buy_quote_notional"));
+        assertFalse(minute.containsKey("below_mid_sell_quote_notional"));
+        assertFalse(minute.containsKey("midline_other_quote_notional"));
         assertEquals(2L, minute.get("trade_record_count"));
         assertEquals(3L, minute.get("match_count"));
         assertEquals("200", minute.get("buy_quote_notional"));

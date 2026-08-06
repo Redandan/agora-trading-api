@@ -33,11 +33,11 @@ public final class OkxMicrostructureContinuousSourceCli {
     static final int REQUIRED_DAYS = 14;
     static final String PRODUCER_IDENTITY = "agora-evidence-source";
     static final String DAY_SCHEMA_SHA256 =
-            "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1";
+            "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709";
     static final String DIAGNOSTIC_CONTRACT_SHA256 =
-            "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c";
+            "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a";
     static final Path FIXED_BINDING_PATH =
-            Path.of("/etc/agora-research/okx-microstructure-continuous-source-v1.json");
+            Path.of("/etc/agora-research/okx-microstructure-continuous-source-v3.json");
     static final Path PRIVATE_STAGING_ROOT =
             Path.of("/var/lib/agora-evidence-source/microstructure-private-staging");
     static final Path MICROSTRUCTURE_DROP_ROOT =
@@ -134,7 +134,7 @@ public final class OkxMicrostructureContinuousSourceCli {
                     || requiredDaysNode.intValue() != REQUIRED_DAYS) {
                 throw new IllegalArgumentException("BINDING_REQUIRED_DAYS_MISMATCH");
             }
-            if (!OkxMicrostructureCanonicalDrop.SOURCE_CONTRACT_SHA256.equals(
+            if (!OkxMicrostructureCanonicalDrop.V3_SOURCE_CONTRACT_SHA256.equals(
                     requiredText(root, "source_contract_sha256"))) {
                 throw new IllegalArgumentException("BINDING_SOURCE_CONTRACT_HASH_MISMATCH");
             }
@@ -310,6 +310,11 @@ public final class OkxMicrostructureContinuousSourceCli {
                 block("INTEGRITY_NOT_CLEAN");
                 throw new IllegalStateException(blockedReason);
             }
+            String v3IntegrityFailure = collector.v3IntegrityFailureReason();
+            if (v3IntegrityFailure != null) {
+                block(v3IntegrityFailure);
+                throw new IllegalStateException(blockedReason);
+            }
         }
 
         @Override
@@ -396,8 +401,8 @@ public final class OkxMicrostructureContinuousSourceCli {
             }
             try {
                 OkxMicrostructureCanonicalDrop.DropDocuments documents =
-                        OkxMicrostructureCanonicalDrop.create(
-                                collector.buildV2Payload(activeDay),
+                        OkxMicrostructureCanonicalDrop.createV3(
+                                collector.buildV3Payload(activeDay),
                                 activeDay,
                                 predecessorDay,
                                 predecessorBundleSha256,

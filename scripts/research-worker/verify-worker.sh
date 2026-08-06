@@ -14,10 +14,13 @@ MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
-MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
+MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
 MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
 MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
-MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
+MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
+LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
+LEGACY_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
+LEGACY_MICROSTRUCTURE_PRESERVATION="$DATA_ROOT/microstructure-v3-cutover/legacy-v2.sha256"
 MICROSTRUCTURE_DIST=target/microstructure-dist
 MICROSTRUCTURE_JAR="$MICROSTRUCTURE_DIST/agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
 
@@ -30,6 +33,58 @@ ok() {
   echo "[research-worker-verify] OK: $*"
 }
 
+require_sha256() {
+  local path="$1"
+  local expected="$2"
+  [ -f "$path" ] && [ ! -L "$path" ] \
+    || fail "frozen V3 contract missing or symlinked: $path"
+  [ "$(sha256sum "$path" | awk '{print $1}')" = "$expected" ] \
+    || fail "frozen V3 contract hash mismatch: $path"
+}
+
+snapshot_legacy_microstructure() {
+  sudo python3 - "$LEGACY_MICROSTRUCTURE_BINDING" "$LEGACY_MICROSTRUCTURE_STATE" <<'PY'
+import hashlib
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+binding, state_root = map(Path, sys.argv[1:])
+lines = []
+if os.path.lexists(binding):
+    details = binding.lstat()
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+        raise SystemExit("legacy V1 binding is not a regular non-symlink file")
+    lines.append(f"binding {hashlib.sha256(binding.read_bytes()).hexdigest()}")
+else:
+    lines.append("binding ABSENT")
+if os.path.lexists(state_root):
+    details = state_root.lstat()
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
+        raise SystemExit("legacy V2 state root is not a regular non-symlink directory")
+    entries = sorted(os.scandir(state_root), key=lambda entry: entry.name)
+    if len(entries) > 1:
+        raise SystemExit("legacy V2 state inventory is not singular")
+    if not entries:
+        lines.append("state EMPTY")
+    for entry in entries:
+        details = entry.stat(follow_symlinks=False)
+        if (
+            entry.is_symlink()
+            or not stat.S_ISREG(details.st_mode)
+            or re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}\.json", entry.name) is None
+        ):
+            raise SystemExit("legacy V2 state inventory contains a symlink, lock, temp, or noncanonical entry")
+        path = Path(entry.path)
+        lines.append(f"state/{entry.name} {hashlib.sha256(path.read_bytes()).hexdigest()}")
+else:
+    lines.append("state ABSENT")
+print("\n".join(lines))
+PY
+}
+
 [ -L "$WORKER_ROOT/current" ] || fail "current release symlink missing"
 current="$(readlink -f "$WORKER_ROOT/current")"
 case "$current" in
@@ -40,6 +95,25 @@ esac
 [ -d "$current/research_source" ] || fail "forward evidence source missing"
 [ -s "$current/.release/source.sha256" ] || fail "release source manifest missing"
 [ -s "$current/.release/provenance.json" ] || fail "release provenance missing"
+legacy_microstructure_inventory="$(snapshot_legacy_microstructure)" \
+  || fail "legacy V1/V2 inventory is ambiguous"
+if [ -e "$LEGACY_MICROSTRUCTURE_PRESERVATION" ] \
+    || [ -L "$LEGACY_MICROSTRUCTURE_PRESERVATION" ]; then
+  [ -f "$LEGACY_MICROSTRUCTURE_PRESERVATION" ] \
+    && [ ! -L "$LEGACY_MICROSTRUCTURE_PRESERVATION" ] \
+    || fail "legacy V1/V2 preservation seal is not a regular file"
+  [ "$(sudo stat -c '%U:%G:%a' "$LEGACY_MICROSTRUCTURE_PRESERVATION")" = "root:root:400" ] \
+    || fail "legacy V1/V2 preservation seal metadata changed"
+  [ "$(sudo cat "$LEGACY_MICROSTRUCTURE_PRESERVATION")" = "$legacy_microstructure_inventory" ] \
+    || fail "legacy V1/V2 bytes no longer match their cutover seal"
+elif [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ] \
+    || [ -e "$LEGACY_MICROSTRUCTURE_BINDING" ] \
+    || [ -e "$LEGACY_MICROSTRUCTURE_STATE" ]; then
+  fail "legacy V1/V2 preservation seal is missing"
+fi
+while IFS= read -r legacy_line; do
+  ok "legacy V1/V2 preserved: $legacy_line"
+done <<< "$legacy_microstructure_inventory"
 python3 - "$current" <<'PY'
 import hashlib
 import json
@@ -256,6 +330,18 @@ if provenance["source_manifest_sha256"] != manifest_hash:
 PY
 ok "hermetic installed runtime, source manifest, and provenance verified"
 
+require_sha256 "$current/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
+  8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
+require_sha256 "$current/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
+  ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418
+require_sha256 "$current/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
+  935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc
+require_sha256 "$current/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
+  205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
+require_sha256 "$current/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
+  7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a
+ok "frozen V3 source, envelope, state, day, and diagnostic hashes verified"
+
 [ -f "$current/$MICROSTRUCTURE_JAR" ] && [ ! -L "$current/$MICROSTRUCTURE_JAR" ] \
   || fail "narrow microstructure producer jar missing or symlinked"
 [ -d "$current/$MICROSTRUCTURE_DIST/lib" ] \
@@ -333,8 +419,36 @@ from pathlib import Path
 import sys
 
 binding_path, current = map(Path, sys.argv[1:])
-with binding_path.open(encoding="utf-8") as stream:
-    binding = json.load(stream)
+
+def reject_duplicates(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise SystemExit(f"duplicate binding key: {key}")
+        value[key] = item
+    return value
+
+raw_binding = binding_path.read_bytes()
+binding = json.loads(raw_binding, object_pairs_hook=reject_duplicates)
+canonical = json.dumps(binding, separators=(",", ":"), sort_keys=True).encode("utf-8")
+if raw_binding != canonical:
+    raise SystemExit("binding bytes are not canonical")
+expected = {
+    "schema_version": "1",
+    "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+    "required_complete_utc_days": 14,
+    "source_contract_sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422",
+    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
+}
+expected_keys = set(expected) | {
+    "forward_start_day",
+    "diagnostic_id",
+    "producer_release_id",
+    "producer_manifest_sha256",
+}
+if set(binding) != expected_keys or any(binding.get(key) != value for key, value in expected.items()):
+    raise SystemExit("binding keys or frozen V3 values changed")
 with (current / ".release" / "provenance.json").open(encoding="utf-8") as stream:
     provenance = json.load(stream)
 manifest_hash = hashlib.sha256(
@@ -548,6 +662,12 @@ ok "systemd units verified"
 if systemctl show "$MICROSTRUCTURE_UNIT" --property=EnvironmentFiles --value | grep -q .; then
   fail "microstructure source must not load an environment file"
 fi
+source_read_only="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadOnlyPaths --value)"
+echo "$source_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
+  || fail "microstructure source does not read only the fixed V3 binding"
+if echo "$source_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
+  fail "microstructure source can select the legacy V1 binding"
+fi
 if systemctl list-unit-files 'agora-research-microstructure*.timer' --no-legend | grep -q .; then
   fail "a microstructure timer exists"
 fi
@@ -595,6 +715,12 @@ done
 intake_read_only="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadOnlyPaths --value)"
 echo "$intake_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
   || fail "microstructure binding is not read-only to intake"
+if echo "$intake_read_only" | grep -Fq "$LEGACY_MICROSTRUCTURE_BINDING"; then
+  fail "microstructure intake can select the legacy V1 binding"
+fi
+systemctl cat "$MICROSTRUCTURE_INTAKE_UNIT" \
+  | grep -Fxq 'ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_intake_cli ingest-v3' \
+  || fail "microstructure intake does not execute the fixed ingest-v3 command"
 intake_writes="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadWritePaths --value)"
 python3 - "$intake_writes" "$MICROSTRUCTURE_DROP" "$MICROSTRUCTURE_STATE" <<'PY'
 import sys
@@ -604,6 +730,9 @@ expected = set(sys.argv[2:])
 if actual != expected:
     raise SystemExit(f"intake writable paths are not exact: {sorted(actual)}")
 PY
+intake_inaccessible="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=InaccessiblePaths --value)"
+echo "$intake_inaccessible" | grep -Fq "$LEGACY_MICROSTRUCTURE_STATE" \
+  || fail "microstructure intake can access the legacy V2 state namespace"
 systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" \
   | grep -Fxq "PathChanged=$MICROSTRUCTURE_DROP" \
   || fail "microstructure path does not watch the fixed drop root"
@@ -730,11 +859,11 @@ if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
     cd "$current"
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
 from research_pipeline.microstructure_intake_cli import (
-    fixed_runtime_paths,
-    validate_existing_installation,
+    fixed_v3_runtime_paths,
+    validate_existing_v3_installation,
 )
 
-validate_existing_installation(paths=fixed_runtime_paths())
+validate_existing_v3_installation(paths=fixed_v3_runtime_paths())
 PY
   )
   microstructure_state_file="$(sudo find "$MICROSTRUCTURE_STATE" -mindepth 1 -maxdepth 1 -type f -name '*.json' -print)"
@@ -759,6 +888,9 @@ case "$EXPECT_MICROSTRUCTURE_SOURCE" in
         fail "microstructure source is enabled before intake readiness"
         ;;
     esac
+    if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
+      fail "microstructure source retains a failed status; explicit read-only review and reset-failed are required"
+    fi
     ok "microstructure source is disabled and inactive"
     ;;
   active)

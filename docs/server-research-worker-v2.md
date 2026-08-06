@@ -293,12 +293,16 @@ never invokes Maven, Maven exec, Spring, or the Trading application.
 An optional binding is installed only when both a strictly future UTC start day
 and frozen diagnostic id are explicitly supplied to the upgrade. The fixed
 path is
-`/etc/agora-research/okx-microstructure-continuous-source-v1.json`; it is
+`/etc/agora-research/okx-microstructure-continuous-source-v3.json`; it is
 atomically written as `root:agora-evidence` mode `0640`. Its
 `producer_release_id` is the installed release id and its
 `producer_manifest_sha256` is the actual installed source-manifest hash, never
-a task hash. An existing binding may be replaced only while
-`agora-research-microstructure-source.service` is disabled and inactive.
+a task hash. An existing V3 binding is accepted only when its canonical bytes,
+fixed V3 contract hashes, release identity, manifest hash, ownership, and mode
+are already exact; it is never replaced. The source service must be disabled,
+inactive, and not retain a failed state. A prior expected stop recorded as
+failed must be reviewed and cleared through a separate explicit preflight,
+never silently normalized by the upgrade.
 Ordinary upgrades without both parameters do not create or replace it.
 
 The dedicated source unit runs as credential-free `agora-evidence-source`, has
@@ -309,14 +313,19 @@ the unit disabled and inactive. The legacy candle source and evidence-ingest
 units retain their existing `pending.json` paths and are never reused.
 
 The separate microstructure intake preparation is
-`research_pipeline.microstructure_intake_cli`. Its only production commands are
-`initialize` and `ingest`; neither accepts a caller-selected path, identity,
-endpoint, lifecycle, or policy. Both bind the fixed installed release manifest,
-future diagnostic binding, microstructure drop, and dedicated
-`/var/lib/agora-research/state/microstructure` namespace. `initialize` is an
-installer-only future-window operation. It never overwrites state. `ingest`
-requires that state and advances it only through the frozen canonical validator
-and atomic commit APIs. Invalid contract bytes seal `INTEGRITY_BLOCKED`; stale
+`research_pipeline.microstructure_intake_cli`. The historical V2 commands
+`initialize` and `ingest` retain their fixed V1-named binding, state namespace,
+public API, validation, and byte transitions. Deployment uses only the explicit
+V3 commands `initialize-v3` and `ingest-v3`; no command accepts a
+caller-selected version, path, identity, endpoint, lifecycle, or policy. The V3
+profile binds the fixed installed release manifest,
+`/etc/agora-research/okx-microstructure-continuous-source-v3.json`, the five
+exact frozen V3 contract hashes, the microstructure drop, and dedicated
+`/var/lib/agora-research/state/microstructure-v3` namespace. `initialize-v3` is
+an installer-only future-window operation. It never overwrites state. `ingest`
+and `ingest-v3` each require their own versioned state and advance it only
+through the corresponding frozen canonical validator and atomic commit APIs.
+Invalid contract bytes seal `INTEGRITY_BLOCKED`; stale
 locks, temporary files, symlinks, ambiguous structures, capacity failure, or
 filesystem mismatch stop for manual recovery without moving or deleting bytes.
 
@@ -338,10 +347,24 @@ capability set is `CAP_DAC_READ_SEARCH`, `CAP_CHOWN`, and `CAP_FOWNER`; it has n
 `CAP_DAC_OVERRIDE`. The drop is exposed writable in the mount namespace only so
 those metadata calls can succeed. Ordinary DAC denies this identity creation,
 content writes, rename, and unlink. Only its dedicated state root is a data-write
-target. `agora-research-microstructure-intake.path` watches the fixed drop root
+target. The V3 intake unit executes only `ingest-v3`, sees only the V3 binding
+and current release, writes only the shared drop metadata and
+`state/microstructure-v3`, and makes the historical `state/microstructure`
+namespace inaccessible. `agora-research-microstructure-intake.path` watches the fixed drop root
 and is the only microstructure event trigger; it is not a timer or lifecycle
 clock. The installer enables this intake path but leaves the producer disabled
 and inactive.
+
+Before any V3 installation step, the installer inventories the optional legacy
+V1-named binding and the optional singular V2 state JSON as regular non-symlink
+files and records their exact SHA-256 values without parsing or reinterpreting
+their contents. A symlink, lock, temp, additional entry, or noncanonical state
+filename blocks cutover. The identical path/type/byte/hash inventory is required
+after all V3 steps and is sealed create-only outside both state namespaces;
+later verification recomputes and compares it. Installer, V3 service, and
+verifier never overwrite, delete, move, relabel, `chmod`, or `chown` those
+legacy paths. V1 and V2 therefore remain byte-preserved historical inputs, not
+fallbacks or selectable runtime profiles.
 
 This remains deployment preparation, not deployment authorization. A separate
 server preflight must still prove installed identities and capabilities,
@@ -352,7 +375,7 @@ the sole research lifecycle clock, Server Canonical remains the sole research
 state writer, and the candle evidence chain remains byte-separated.
 
 The existing daily heartbeat also reads, but never writes, the dedicated
-`state/microstructure` namespace through one strict monitor. `get_research_status`
+`state/microstructure-v3` namespace through one strict monitor. `get_research_status`
 and heartbeat results expose a separate `microstructure_diagnostic` object with
 the frozen diagnostic identity, start and next day, accepted/required counts,
 canonical state artifact path and SHA-256, and UTC-date lag classification. An

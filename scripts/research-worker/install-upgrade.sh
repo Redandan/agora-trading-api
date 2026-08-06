@@ -17,13 +17,24 @@ MICROSTRUCTURE_DIAGNOSTIC_ID="${MICROSTRUCTURE_DIAGNOSTIC_ID:-}"
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
-MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
+MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
 MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
 MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
-MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
+MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
+LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
+LEGACY_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
+LEGACY_MICROSTRUCTURE_PRESERVATION="$DATA_ROOT/microstructure-v3-cutover/legacy-v2.sha256"
 
 fail() { echo "[research-worker-upgrade] FAIL: $*" >&2; exit 1; }
 ok() { echo "[research-worker-upgrade] OK: $*"; }
+require_sha256() {
+  local path="$1"
+  local expected="$2"
+  [ -f "$path" ] && [ ! -L "$path" ] \
+    || fail "frozen V3 contract missing or symlinked: $path"
+  [ "$(sha256sum "$path" | awk '{print $1}')" = "$expected" ] \
+    || fail "frozen V3 contract hash mismatch: $path"
+}
 
 case "$STAGING_DIR" in /home/ubuntu/.cache/agora-research-upgrade/*) ;; *) fail "unsupported staging path" ;; esac
 case "$RELEASE_ID" in *[!A-Za-z0-9._-]*|'') fail "invalid release id" ;; esac
@@ -60,12 +71,67 @@ esac
 if systemctl is-active --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
   fail "microstructure source unit must be inactive before upgrade"
 fi
+if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
+  fail "microstructure source has a lingering failed state; explicit read-only review and reset-failed are required before upgrade"
+fi
 binding_present=false
 if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
   [ -f "$MICROSTRUCTURE_BINDING" ] && [ ! -L "$MICROSTRUCTURE_BINDING" ] \
     || fail "microstructure binding must be a regular non-symlink file"
   binding_present=true
 fi
+
+snapshot_legacy_microstructure() {
+  sudo python3 - "$LEGACY_MICROSTRUCTURE_BINDING" "$LEGACY_MICROSTRUCTURE_STATE" <<'PY'
+import hashlib
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+binding, state_root = map(Path, sys.argv[1:])
+lines = []
+
+if os.path.lexists(binding):
+    details = binding.lstat()
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+        raise SystemExit("legacy V1 binding is not a regular non-symlink file")
+    lines.append(f"binding {hashlib.sha256(binding.read_bytes()).hexdigest()}")
+else:
+    lines.append("binding ABSENT")
+
+if os.path.lexists(state_root):
+    details = state_root.lstat()
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
+        raise SystemExit("legacy V2 state root is not a regular non-symlink directory")
+    entries = sorted(os.scandir(state_root), key=lambda entry: entry.name)
+    if len(entries) > 1:
+        raise SystemExit("legacy V2 state inventory is not singular")
+    if not entries:
+        lines.append("state EMPTY")
+    for entry in entries:
+        details = entry.stat(follow_symlinks=False)
+        if (
+            entry.is_symlink()
+            or not stat.S_ISREG(details.st_mode)
+            or re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}\.json", entry.name) is None
+        ):
+            raise SystemExit("legacy V2 state inventory contains a symlink, lock, temp, or noncanonical entry")
+        path = Path(entry.path)
+        lines.append(f"state/{entry.name} {hashlib.sha256(path.read_bytes()).hexdigest()}")
+else:
+    lines.append("state ABSENT")
+
+print("\n".join(lines))
+PY
+}
+
+legacy_microstructure_before="$(snapshot_legacy_microstructure)" \
+  || fail "legacy V1/V2 inventory could not be sealed"
+while IFS= read -r legacy_line; do
+  ok "legacy V1/V2 before: $legacy_line"
+done <<< "$legacy_microstructure_before"
 
 if ! getent group "$EVIDENCE_GROUP" >/dev/null; then
   sudo groupadd --system "$EVIDENCE_GROUP"
@@ -274,6 +340,17 @@ PY
 (cd "$SOURCE_DIR" && sha256sum -c "$SOURCE_MANIFEST" >/dev/null) || fail "source manifest verification failed"
 sudo test -f "$DATA_ROOT/state/authority.json" || fail "canonical state missing"
 
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
+  8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
+  ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
+  935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
+  205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
+require_sha256 "$SOURCE_DIR/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
+  7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a
+
 MICROSTRUCTURE_DIST="$SOURCE_DIR/target/microstructure-dist"
 MICROSTRUCTURE_JAR="$MICROSTRUCTURE_DIST/agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
 [ -f "$MICROSTRUCTURE_JAR" ] && [ ! -L "$MICROSTRUCTURE_JAR" ] \
@@ -416,13 +493,26 @@ payload = {
     "forward_start_day": start_day,
     "required_complete_utc_days": 14,
     "diagnostic_id": diagnostic_id,
-    "source_contract_sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e",
-    "day_schema_sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1",
-    "diagnostic_contract_sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c",
+    "source_contract_sha256": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422",
+    "day_schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709",
+    "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
     "producer_release_id": release_id,
     "producer_manifest_sha256": manifest_hash,
 }
 data = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+if os.path.lexists(path):
+    details = path.lstat()
+    expected_gid = grp.getgrnam(group_name).gr_gid
+    if (
+        not path.is_file()
+        or path.is_symlink()
+        or path.read_bytes() != data
+        or details.st_uid != 0
+        or details.st_gid != expected_gid
+        or (details.st_mode & 0o7777) != 0o640
+    ):
+        raise SystemExit("existing V3 binding conflicts with requested canonical binding")
+    raise SystemExit(0)
 descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
 try:
     with os.fdopen(descriptor, "wb") as stream:
@@ -431,7 +521,20 @@ try:
         os.fsync(stream.fileno())
     os.chown(temporary, 0, grp.getgrnam(group_name).gr_gid)
     os.chmod(temporary, 0o640)
-    os.replace(temporary, path)
+    try:
+        os.link(temporary, path, follow_symlinks=False)
+    except FileExistsError:
+        details = path.lstat()
+        if (
+            path.is_symlink()
+            or not path.is_file()
+            or path.read_bytes() != data
+            or details.st_uid != 0
+            or details.st_gid != grp.getgrnam(group_name).gr_gid
+            or (details.st_mode & 0o7777) != 0o640
+        ):
+            raise SystemExit("concurrent V3 binding conflicts with requested bytes")
+    temporary.unlink()
     directory = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
     try:
         os.fsync(directory)
@@ -447,7 +550,7 @@ if [ "$binding_requested" = true ]; then
   (
     cd "$RELEASE_DIR"
     sudo bash -c \
-      'umask 077; cd "$1"; exec env PYTHONDONTWRITEBYTECODE=1 "$2" -m research_pipeline.microstructure_intake_cli initialize' \
+      'umask 077; cd "$1"; exec env PYTHONDONTWRITEBYTECODE=1 "$2" -m research_pipeline.microstructure_intake_cli initialize-v3' \
       -- "$RELEASE_DIR" "$WORKER_ROOT/venv/bin/python"
   )
   ok "microstructure intake state initialized or exactly validated"
@@ -459,20 +562,20 @@ if [ "$binding_requested" = true ] || [ "$binding_present" = true ]; then
     sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
 from datetime import datetime, timezone
 from research_pipeline.microstructure_intake_cli import (
-    _load_binding,
-    _load_matching_state,
+    _load_matching_v3_state,
+    _load_v3_binding,
     _state_path,
-    fixed_runtime_paths,
+    fixed_v3_runtime_paths,
 )
 
-paths = fixed_runtime_paths()
-binding = _load_binding(
+paths = fixed_v3_runtime_paths()
+binding = _load_v3_binding(
     paths,
     require_future=False,
     today=datetime.now(timezone.utc).date(),
 )
 state_path = _state_path(paths.state_root, binding.diagnostic_id)
-_load_matching_state(state_path, binding)
+_load_matching_v3_state(state_path, binding)
 print(state_path)
 PY
   )"
@@ -528,6 +631,62 @@ sudo systemctl restart agora-research-mcp.service
 if systemctl is-active --quiet "$MICROSTRUCTURE_UNIT"; then
   fail "microstructure source unit became active"
 fi
+if systemctl is-failed --quiet "$MICROSTRUCTURE_UNIT" 2>/dev/null; then
+  fail "microstructure source ended upgrade in a failed state"
+fi
+
+legacy_microstructure_after="$(snapshot_legacy_microstructure)" \
+  || fail "legacy V1/V2 inventory could not be reverified"
+[ "$legacy_microstructure_after" = "$legacy_microstructure_before" ] \
+  || fail "legacy V1/V2 path, type, bytes, or SHA-256 changed during V3 cutover"
+while IFS= read -r legacy_line; do
+  ok "legacy V1/V2 preserved: $legacy_line"
+done <<< "$legacy_microstructure_after"
+
+sudo install -d -o root -g root -m 0700 \
+  "$(dirname "$LEGACY_MICROSTRUCTURE_PRESERVATION")"
+sudo python3 - \
+  "$LEGACY_MICROSTRUCTURE_PRESERVATION" \
+  "$legacy_microstructure_after" <<'PY'
+import os
+from pathlib import Path
+import stat
+import sys
+
+path = Path(sys.argv[1])
+data = (sys.argv[2] + "\n").encode("utf-8")
+if os.path.lexists(path):
+    details = path.lstat()
+    if (
+        stat.S_ISLNK(details.st_mode)
+        or not stat.S_ISREG(details.st_mode)
+        or details.st_uid != 0
+        or details.st_gid != 0
+        or (details.st_mode & 0o7777) != 0o400
+        or path.read_bytes() != data
+    ):
+        raise SystemExit("legacy V1/V2 preservation seal conflicts")
+    raise SystemExit(0)
+temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
+descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o400)
+try:
+    with os.fdopen(descriptor, "wb") as stream:
+        stream.write(data)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.chown(temporary, 0, 0)
+    os.chmod(temporary, 0o400)
+    os.link(temporary, path, follow_symlinks=False)
+    temporary.unlink()
+    directory = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+finally:
+    if temporary.exists():
+        temporary.unlink()
+PY
 SNIPPET_SOURCE="$RELEASE_DIR/scripts/research-worker/nginx-research-mcp.conf" \
   bash "$RELEASE_DIR/scripts/research-worker/install-nginx-route.sh"
 

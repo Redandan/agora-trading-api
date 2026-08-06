@@ -3,7 +3,7 @@ set -euo pipefail
 
 WORKER_ROOT=/opt/agora-research-worker
 CURRENT_LINK="$WORKER_ROOT/current"
-BINDING_PATH=/etc/agora-research/okx-microstructure-continuous-source-v1.json
+BINDING_PATH=/etc/agora-research/okx-microstructure-continuous-source-v3.json
 JAVA_BIN=/usr/bin/java
 MAIN_CLASS=com.agora.research.OkxMicrostructureContinuousSourceCli
 DIST_JAR=target/microstructure-dist/agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar
@@ -11,6 +11,14 @@ DIST_JAR=target/microstructure-dist/agora-trading-api-1.0-SNAPSHOT-microstructur
 fail() {
   echo "[microstructure-source] BLOCKED: $*" >&2
   exit 2
+}
+
+require_sha256() {
+  local path="$1"
+  local expected="$2"
+  [ -f "$path" ] && [ ! -L "$path" ] || fail "frozen V3 contract missing or symlinked: $path"
+  [ "$(/usr/bin/sha256sum "$path" | awk '{print $1}')" = "$expected" ] \
+    || fail "frozen V3 contract hash mismatch: $path"
 }
 
 [ "$#" -eq 0 ] || fail "caller arguments are forbidden"
@@ -30,6 +38,17 @@ for path in "$BINDING_PATH" "$manifest" "$provenance" "$jar_path"; do
   [ -f "$path" ] && [ ! -L "$path" ] || fail "required regular file missing or symlinked: $path"
 done
 [ -d "$lib_dir" ] && [ ! -L "$lib_dir" ] || fail "runtime dependency directory missing or symlinked"
+
+require_sha256 "$current/research_pipeline/okx-microstructure-continuous-source-contract.v3.json" \
+  8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422
+require_sha256 "$current/research_pipeline/okx-microstructure-drop-envelope.v3.schema.json" \
+  ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418
+require_sha256 "$current/research_pipeline/okx-microstructure-intake-state.v3.schema.json" \
+  935da25d8f5e66bb4ec13625ff2e8eb7480e503f8c4d580abd41514ee90aa7fc
+require_sha256 "$current/research_pipeline/okx-microstructure-forward-day.v3.schema.json" \
+  205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709
+require_sha256 "$current/research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json" \
+  7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a
 
 [ "$(stat -c '%U:%G' "$BINDING_PATH")" = "root:agora-evidence" ] \
   || fail "binding owner must be root:agora-evidence"
@@ -84,11 +103,11 @@ if binding["authorization"] != "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE":
     raise SystemExit("binding authorization mismatch")
 if binding["required_complete_utc_days"] != 14:
     raise SystemExit("binding day count mismatch")
-if binding["source_contract_sha256"] != "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e":
+if binding["source_contract_sha256"] != "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422":
     raise SystemExit("source contract hash mismatch")
-if binding["day_schema_sha256"] != "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1":
+if binding["day_schema_sha256"] != "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709":
     raise SystemExit("day schema hash mismatch")
-if binding["diagnostic_contract_sha256"] != "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c":
+if binding["diagnostic_contract_sha256"] != "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a":
     raise SystemExit("diagnostic contract hash mismatch")
 if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,79}", str(binding["diagnostic_id"])):
     raise SystemExit("diagnostic id is invalid")

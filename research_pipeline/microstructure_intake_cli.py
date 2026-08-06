@@ -16,10 +16,14 @@ from .microstructure_intake import (
     ObservedDelivery,
     RecoveryBlocked,
     apply_observed_delivery,
+    apply_observed_v3_delivery,
     canonical_state_bytes,
+    canonical_v3_state_bytes,
     commit_canonical_state,
     initial_state_bytes,
+    initial_v3_state_bytes,
     load_canonical_state_bytes,
+    load_canonical_v3_state_bytes,
     state_lock_path,
     state_temp_path,
 )
@@ -30,8 +34,14 @@ from .microstructure_source_contract import (
     DROP_ENVELOPE_SCHEMA_SHA256,
     REQUIRED_DAYS,
     SOURCE_CONTRACT_SHA256,
+    V3_DAY_SCHEMA_SHA256,
+    V3_DIAGNOSTIC_CONTRACT_SHA256,
+    V3_DROP_ENVELOPE_SCHEMA_SHA256,
+    V3_INTAKE_STATE_SCHEMA_SHA256,
+    V3_SOURCE_CONTRACT_SHA256,
     ContractViolation,
     block_intake_state,
+    block_v3_intake_state,
     canonical_json_bytes,
     load_json_bytes_strict,
 )
@@ -40,11 +50,15 @@ from .microstructure_source_contract import (
 BINDING_PATH = Path(
     "/etc/agora-research/okx-microstructure-continuous-source-v1.json"
 )
+V3_BINDING_PATH = Path(
+    "/etc/agora-research/okx-microstructure-continuous-source-v3.json"
+)
 DROP_ROOT = Path("/var/lib/agora-evidence-source/microstructure-drop")
 STAGING_ROOT = Path(
     "/var/lib/agora-evidence-source/microstructure-private-staging"
 )
 STATE_ROOT = Path("/var/lib/agora-research/state/microstructure")
+V3_STATE_ROOT = Path("/var/lib/agora-research/state/microstructure-v3")
 CURRENT_RELEASE = Path("/opt/agora-research-worker/current")
 MINIMUM_FREE_BYTES = 2 * 1024 * 1024 * 1024
 
@@ -112,6 +126,49 @@ FreeBytes = Callable[[Path], int]
 DeviceId = Callable[[Path], int]
 
 
+@dataclass(frozen=True, slots=True)
+class _CliProfile:
+    source_contract_sha256: str
+    drop_envelope_schema_sha256: str
+    intake_state_schema_sha256: str
+    day_schema_sha256: str
+    diagnostic_contract_sha256: str
+    initial_state: Callable[..., bytes]
+    canonical_state: Callable[[object], bytes]
+    load_state: Callable[[bytes], dict[str, object]]
+    apply_delivery: Callable[..., object]
+    block_state: Callable[..., dict[str, object]]
+    commit_state: Callable[[Path, bytes], None]
+
+
+_V2_CLI = _CliProfile(
+    source_contract_sha256=SOURCE_CONTRACT_SHA256,
+    drop_envelope_schema_sha256=DROP_ENVELOPE_SCHEMA_SHA256,
+    intake_state_schema_sha256="",
+    day_schema_sha256=DAY_SCHEMA_SHA256,
+    diagnostic_contract_sha256=DIAGNOSTIC_CONTRACT_SHA256,
+    initial_state=initial_state_bytes,
+    canonical_state=canonical_state_bytes,
+    load_state=load_canonical_state_bytes,
+    apply_delivery=apply_observed_delivery,
+    block_state=block_intake_state,
+    commit_state=commit_canonical_state,
+)
+_V3_CLI = _CliProfile(
+    source_contract_sha256=V3_SOURCE_CONTRACT_SHA256,
+    drop_envelope_schema_sha256=V3_DROP_ENVELOPE_SCHEMA_SHA256,
+    intake_state_schema_sha256=V3_INTAKE_STATE_SCHEMA_SHA256,
+    day_schema_sha256=V3_DAY_SCHEMA_SHA256,
+    diagnostic_contract_sha256=V3_DIAGNOSTIC_CONTRACT_SHA256,
+    initial_state=initial_v3_state_bytes,
+    canonical_state=canonical_v3_state_bytes,
+    load_state=load_canonical_v3_state_bytes,
+    apply_delivery=apply_observed_v3_delivery,
+    block_state=block_v3_intake_state,
+    commit_state=lambda path, raw: _commit_v3_canonical_state(path, raw),
+)
+
+
 def fixed_runtime_paths() -> RuntimePaths:
     try:
         release = CURRENT_RELEASE.resolve(strict=True)
@@ -129,6 +186,23 @@ def fixed_runtime_paths() -> RuntimePaths:
     )
 
 
+def fixed_v3_runtime_paths() -> RuntimePaths:
+    try:
+        release = CURRENT_RELEASE.resolve(strict=True)
+    except OSError as error:
+        raise RecoveryBlocked("RECOVERY_BLOCKED_INSTALLED_RELEASE") from error
+    expected_parent = Path("/opt/agora-research-worker/releases")
+    if release.parent != expected_parent or not release.is_dir() or release.is_symlink():
+        raise RecoveryBlocked("RECOVERY_BLOCKED_INSTALLED_RELEASE")
+    return RuntimePaths(
+        binding=V3_BINDING_PATH,
+        drop_root=DROP_ROOT,
+        staging_root=STAGING_ROOT,
+        state_root=V3_STATE_ROOT,
+        release=release,
+    )
+
+
 def run(
     command: str,
     *,
@@ -140,27 +214,76 @@ def run(
 ) -> str:
     if command not in {"initialize", "ingest"}:
         raise RecoveryBlocked("RECOVERY_BLOCKED_COMMAND")
+    return _run_profile(
+        _V2_CLI,
+        command,
+        paths=paths,
+        clock=clock,
+        free_bytes=free_bytes,
+        device_id=device_id,
+        freezer=freezer,
+    )
+
+
+def run_v3(
+    command: str,
+    *,
+    paths: RuntimePaths,
+    clock: Clock | None = None,
+    free_bytes: FreeBytes | None = None,
+    device_id: DeviceId | None = None,
+    freezer: Freezer | None = None,
+) -> str:
+    if command not in {"initialize-v3", "ingest-v3"}:
+        raise RecoveryBlocked("RECOVERY_BLOCKED_COMMAND")
+    action = command.removesuffix("-v3")
+    return _run_profile(
+        _V3_CLI,
+        action,
+        paths=paths,
+        clock=clock,
+        free_bytes=free_bytes,
+        device_id=device_id,
+        freezer=freezer,
+    )
+
+
+def _run_profile(
+    profile: _CliProfile,
+    command: str,
+    *,
+    paths: RuntimePaths,
+    clock: Clock | None,
+    free_bytes: FreeBytes | None,
+    device_id: DeviceId | None,
+    freezer: Freezer | None,
+) -> str:
     utc_now = _utc_now(clock)
-    binding = _load_binding(paths, require_future=command == "initialize", today=utc_now.date())
+    binding = _load_binding_profile(
+        profile,
+        paths,
+        require_future=command == "initialize",
+        today=utc_now.date(),
+    )
     state_path = _state_path(paths.state_root, binding.diagnostic_id)
 
     if command == "initialize":
         _storage_gates(paths, free_bytes=free_bytes, device_id=device_id)
         _scan_drop(paths.drop_root, binding)
         if os.path.lexists(state_path):
-            state = _load_matching_state(state_path, binding)
+            state = _load_matching_state_profile(profile, state_path, binding)
             return str(state["status"])
-        state_bytes = initial_state_bytes(
+        state_bytes = profile.initial_state(
             binding.diagnostic_id,
             binding.forward_start_day,
             as_of_day=utc_now.date(),
         )
-        commit_canonical_state(state_path, state_bytes)
+        profile.commit_state(state_path, state_bytes)
         return "WAITING_FOR_DAY"
 
     if not os.path.lexists(state_path):
         raise RecoveryBlocked("RECOVERY_BLOCKED_STATE_MISSING")
-    state = _load_matching_state(state_path, binding)
+    state = _load_matching_state_profile(profile, state_path, binding)
     if state["status"] in _TERMINAL_STATES:
         return str(state["status"])
 
@@ -174,18 +297,18 @@ def run(
     for published in published_days:
         bundle_bytes, envelope_bytes = freeze(published)
         if not _envelope_matches_binding(envelope_bytes, binding):
-            blocked = block_intake_state(
-                load_canonical_state_bytes(state_bytes),
+            blocked = profile.block_state(
+                profile.load_state(state_bytes),
                 code="CONTRACT_HASH_MISMATCH",
                 day=published.day,
                 detail="drop envelope producer release identity does not match binding",
             )
-            next_bytes = canonical_state_bytes(blocked)
-            commit_canonical_state(state_path, next_bytes)
+            next_bytes = profile.canonical_state(blocked)
+            profile.commit_state(state_path, next_bytes)
             state_bytes = next_bytes
             disposition = "INTEGRITY_BLOCKED"
             break
-        result = apply_observed_delivery(
+        result = profile.apply_delivery(
             state_bytes,
             envelope_bytes,
             bundle_bytes,
@@ -193,10 +316,10 @@ def run(
             accepted_at=accepted_at,
         )
         if result.state_bytes != state_bytes:
-            commit_canonical_state(state_path, result.state_bytes)
+            profile.commit_state(state_path, result.state_bytes)
             state_bytes = result.state_bytes
         disposition = result.disposition
-        current = load_canonical_state_bytes(state_bytes)
+        current = profile.load_state(state_bytes)
         if current["status"] in _TERMINAL_STATES:
             break
     return disposition
@@ -209,6 +332,18 @@ def validate_existing_installation(*, paths: RuntimePaths) -> str:
         today=datetime.now(timezone.utc).date(),
     )
     state = _load_matching_state(
+        _state_path(paths.state_root, binding.diagnostic_id), binding
+    )
+    return str(state["status"])
+
+
+def validate_existing_v3_installation(*, paths: RuntimePaths) -> str:
+    binding = _load_v3_binding(
+        paths,
+        require_future=False,
+        today=datetime.now(timezone.utc).date(),
+    )
+    state = _load_matching_v3_state(
         _state_path(paths.state_root, binding.diagnostic_id), binding
     )
     return str(state["status"])
@@ -262,11 +397,15 @@ def freeze_published_day(published: PublishedDay) -> tuple[bytes, bytes]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
-    if len(arguments) != 1 or arguments[0] not in {"initialize", "ingest"}:
-        print("usage: python -m research_pipeline.microstructure_intake_cli {initialize|ingest}", file=sys.stderr)
+    commands = {"initialize", "ingest", "initialize-v3", "ingest-v3"}
+    if len(arguments) != 1 or arguments[0] not in commands:
+        print("usage: python -m research_pipeline.microstructure_intake_cli {initialize|ingest|initialize-v3|ingest-v3}", file=sys.stderr)
         return 2
     try:
-        status = run(arguments[0], paths=fixed_runtime_paths())
+        if arguments[0].endswith("-v3"):
+            status = run_v3(arguments[0], paths=fixed_v3_runtime_paths())
+        else:
+            status = run(arguments[0], paths=fixed_runtime_paths())
     except (ContractViolation, RecoveryBlocked, OSError, ValueError) as error:
         print(str(error) or error.__class__.__name__, file=sys.stderr)
         return 2
@@ -275,6 +414,26 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _load_binding(paths: RuntimePaths, *, require_future: bool, today: date) -> Binding:
+    return _load_binding_profile(
+        _V2_CLI, paths, require_future=require_future, today=today
+    )
+
+
+def _load_v3_binding(
+    paths: RuntimePaths, *, require_future: bool, today: date
+) -> Binding:
+    return _load_binding_profile(
+        _V3_CLI, paths, require_future=require_future, today=today
+    )
+
+
+def _load_binding_profile(
+    profile: _CliProfile,
+    paths: RuntimePaths,
+    *,
+    require_future: bool,
+    today: date,
+) -> Binding:
     raw = _read_regular_bytes(paths.binding, "RECOVERY_BLOCKED_BINDING")
     value = load_json_bytes_strict(raw, "microstructure binding")
     if raw != canonical_json_bytes(value) or set(value) != _BINDING_KEYS:
@@ -283,9 +442,9 @@ def _load_binding(paths: RuntimePaths, *, require_future: bool, today: date) -> 
         "schema_version": "1",
         "authorization": AUTHORIZATION,
         "required_complete_utc_days": REQUIRED_DAYS,
-        "source_contract_sha256": SOURCE_CONTRACT_SHA256,
-        "day_schema_sha256": DAY_SCHEMA_SHA256,
-        "diagnostic_contract_sha256": DIAGNOSTIC_CONTRACT_SHA256,
+        "source_contract_sha256": profile.source_contract_sha256,
+        "day_schema_sha256": profile.day_schema_sha256,
+        "diagnostic_contract_sha256": profile.diagnostic_contract_sha256,
     }
     if any(value.get(key) != expected_value for key, expected_value in expected.items()):
         raise RecoveryBlocked("RECOVERY_BLOCKED_BINDING")
@@ -335,20 +494,34 @@ def _state_path(state_root: Path, diagnostic_id: str) -> Path:
 
 
 def _load_matching_state(state_path: Path, binding: Binding) -> dict[str, object]:
+    return _load_matching_state_profile(_V2_CLI, state_path, binding)
+
+
+def _load_matching_v3_state(
+    state_path: Path, binding: Binding
+) -> dict[str, object]:
+    return _load_matching_state_profile(_V3_CLI, state_path, binding)
+
+
+def _load_matching_state_profile(
+    profile: _CliProfile, state_path: Path, binding: Binding
+) -> dict[str, object]:
     if state_path.is_symlink() or not state_path.is_file():
         raise RecoveryBlocked("RECOVERY_BLOCKED_STATE_FILE")
     if os.path.lexists(state_lock_path(state_path)):
         raise RecoveryBlocked("RECOVERY_BLOCKED_LOCK_PRESENT")
     if os.path.lexists(state_temp_path(state_path)):
         raise RecoveryBlocked("RECOVERY_BLOCKED_STALE_TEMP")
-    state = load_canonical_state_bytes(state_path.read_bytes())
+    state = profile.load_state(state_path.read_bytes())
     if (
         state["diagnostic_id"] != binding.diagnostic_id
         or state["start_day"] != binding.forward_start_day.isoformat()
-        or state["source_contract_sha256"] != SOURCE_CONTRACT_SHA256
-        or state["drop_envelope_schema_sha256"] != DROP_ENVELOPE_SCHEMA_SHA256
-        or state["day_schema_sha256"] != DAY_SCHEMA_SHA256
-        or state["diagnostic_contract_sha256"] != DIAGNOSTIC_CONTRACT_SHA256
+        or state["source_contract_sha256"] != profile.source_contract_sha256
+        or state["drop_envelope_schema_sha256"]
+        != profile.drop_envelope_schema_sha256
+        or state["day_schema_sha256"] != profile.day_schema_sha256
+        or state["diagnostic_contract_sha256"]
+        != profile.diagnostic_contract_sha256
     ):
         raise RecoveryBlocked("RECOVERY_BLOCKED_STATE_BINDING")
     return state
@@ -596,6 +769,54 @@ def _read_regular_bytes(path: Path, code: str) -> bytes:
 
 def _file_digest(path: Path) -> str:
     return hashlib.sha256(_read_regular_bytes(path, "RECOVERY_BLOCKED_EVIDENCE_READ")).hexdigest()
+
+
+def _commit_v3_canonical_state(state_path: Path, next_state_bytes: bytes) -> None:
+    load_canonical_v3_state_bytes(next_state_bytes)
+    state_path = Path(state_path)
+    state_directory = state_path.parent
+    if not state_directory.is_dir() or state_directory.is_symlink():
+        raise RecoveryBlocked("RECOVERY_BLOCKED_STATE_DIRECTORY")
+    if state_path.is_symlink():
+        raise RecoveryBlocked("RECOVERY_BLOCKED_STATE_SYMLINK")
+
+    lock_path = state_lock_path(state_path)
+    temp_path = state_temp_path(state_path)
+    try:
+        lock_path.mkdir(mode=0o700)
+    except FileExistsError as error:
+        raise RecoveryBlocked("RECOVERY_BLOCKED_LOCK_PRESENT") from error
+    except OSError as error:
+        raise RecoveryBlocked("RECOVERY_BLOCKED_LOCK_CREATE") from error
+    if os.path.lexists(temp_path):
+        raise RecoveryBlocked("RECOVERY_BLOCKED_STALE_TEMP")
+
+    try:
+        with temp_path.open("xb") as stream:
+            stream.write(next_state_bytes)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_path, state_path)
+        _fsync_directory(state_directory)
+        lock_path.rmdir()
+        _fsync_directory(state_directory)
+    except FileExistsError as error:
+        raise RecoveryBlocked("RECOVERY_BLOCKED_TEMP_PRESENT") from error
+    except OSError as error:
+        raise RecoveryBlocked("RECOVERY_BLOCKED_ATOMIC_COMMIT") from error
+
+
+def _fsync_directory(directory: Path) -> None:
+    if os.name == "nt":
+        return
+    descriptor = os.open(
+        directory,
+        os.O_RDONLY | getattr(os, "O_DIRECTORY", 0),
+    )
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 if __name__ == "__main__":

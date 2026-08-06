@@ -1,0 +1,122 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-v3-intake-state-binding-refreeze-v1",
+  "issued_at": "2026-08-06T15:03:20Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Complete the final offline transitive contract refreeze required before Python V3 intake implementation. Add a distinct exact-key V3 intake-state schema, replace the V3 source contract's temporary intake-state placeholder with that schema ID, recompute the final V3 source identity, propagate it into the V3 envelope and state schemas plus the Java producer, and freeze the resulting V3 envelope/state hashes in the focused test. Preserve V1/V2 bytes and behavior. This task defines contracts only; it must not implement Python intake/state/monitor, package, deploy, start, collect, migrate, or claim strategy value.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v3.json",
+      "sha256": "66db4e6b624a6a2e0ee8f444b6e81518054142a6bc30f37123f0e21e7fafe28d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-drop-envelope.v3.schema.json",
+      "sha256": "695d1e1d9ea89bbfa40ba29088bc1af4703ce6ebbb682739995c66d8dcbf64d3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCanonicalDrop.java",
+      "sha256": "7342b40d6a843263593d5cacb17d5f3bf50eabfc34e27a1cc5f04546c3216fb7"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureContinuousSourceCliTest.java",
+      "sha256": "d9c1e766eb816b3eff7828d6d9b3b2159155cc0a441d3a9d8e0913f62965a9cf"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-intake-isolation-audit.v1.json",
+      "sha256": "e780b02968cf38dd7130b76d19c7a4af6605286eac8b803be8714b29a6a0734f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-v3-envelope-producer-refreeze.v1.json",
+      "sha256": "a88121cf4fc851b5085cec70a47ab1409575746d895b403064f4da6c307af542"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Offline producer closure committed at e5624a53; V3 intake-state binding remains the explicit NOT_FROZEN_IN_THIS_PRODUCER_SLICE placeholder; source is stopped and preserved V2 state remains immutable non-countable history",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "ADD_VERSIONED_V3_INTAKE_STATE_SCHEMA",
+    "EDIT_V3_SOURCE_CONTRACT_BINDING",
+    "REFREEZE_V3_SOURCE_CONTRACT_HASH",
+    "EDIT_V3_ENVELOPE_HASH_BINDING",
+    "EDIT_JAVA_V3_HASH_CONSTANTS",
+    "STRENGTHEN_FOCUSED_OFFLINE_JAVA_TEST",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_MAVEN_TESTS",
+    "RUN_OFFLINE_JAVA_PACKAGE_BUILD",
+    "RUN_READ_ONLY_SCHEMA_VALIDATION",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_STOP_START_ENABLE_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PYTHON_SOURCE_INTAKE_MONITOR_OR_CLI_EDIT",
+    "V1_V2_CONTRACT_SCHEMA_OR_BEHAVIOR_EDIT",
+    "V2_STATE_MIGRATION_OR_RELABEL",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_FIVE_FILE_CHANGESET",
+    "IMMUTABLE_V3_INTAKE_STATE_SCHEMA",
+    "FINAL_TRANSITIVE_V3_SOURCE_HASH",
+    "FINAL_V3_ENVELOPE_AND_STATE_HASHES",
+    "JAVA_PRODUCER_FINAL_HASH_CLOSURE",
+    "V1_V2_BYTE_AND_BEHAVIOR_PRESERVATION",
+    "FOCUSED_OFFLINE_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly five implementation files: add research_pipeline/okx-microstructure-intake-state.v3.schema.json; edit the V3 source contract, V3 envelope schema, OkxMicrostructureCanonicalDrop.java, and OkxMicrostructureContinuousSourceCliTest.java. Preserve this task and every other path.",
+    "Copy the V1 intake-state structure without weakening it, but freeze id/title/schema version OKX_MICROSTRUCTURE_INTAKE_STATE_V3, state type SERVER_CANONICAL_MICROSTRUCTURE_V3_INTAKE, V3 contract/schema hashes, and readiness FROZEN_V3_DISCOVERY_ANALYSIS_ONLY. Keep 14-day chain fields and all authority flags exact.",
+    "Replace only the V3 source contract intake_state_schema_id placeholder with the exact V3 state schema id. Keep the V3 day and diagnostic hashes and envelope id unchanged. Compute the source SHA-256 from final source-contract repository bytes.",
+    "Freeze the final source hash in both V3 envelope and V3 state schemas. Compute the final envelope schema SHA-256 after that update, freeze it in the V3 state schema, and update Java V3 source/envelope hash constants. No accepted hash set or compatibility fallback is allowed.",
+    "The V3 state schema must retain exact canonical state fields, 14 contiguous accepted days, chain/predecessor identities, status transitions, failure object, candidate/OOS/PnL/promotion false, and performance MISSING_PROOF. V1 state schema bytes must remain unchanged.",
+    "Strengthen the focused Java test to prove final source/envelope/state schema IDs, versions, hashes, transitive constants, repository bytes, emitted V3 envelope, and normalized V1 structural preservation. Preserve existing V1/V2 assertions.",
+    "If exact closure requires a sixth implementation file, Python module edit, CLI/package/deployment edit, V1/V2 byte change, compatibility fallback, or schema weakening, stop BLOCKED and report the precise missing proof.",
+    "Run exact task validation; both focused offline Java test classes; mvn -o -DskipTests package; Draft 2020-12 validation for V1/V3 envelope and intake schemas; and git diff --check. Never run a main, network, server, service, evidence, or deployment command.",
+    "Return one valid local-research-result JSON with exact task SHA, exactly five implementation files_changed/artifacts, all safety assertions false, final V3 source/envelope/state hashes, tests, and MISSING_PROOF for Python intake, live release, 14-day evidence, predictive value, fees, slippage, PnL, and drawdown.",
+    "Stop after final offline contract closure. Manager review and commit are separate. The next bounded task edits only Python V3 intake/state/monitor primitives and tests; deployment, V2 server-byte capture, future-start binding, and evidence collection remain later gates."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

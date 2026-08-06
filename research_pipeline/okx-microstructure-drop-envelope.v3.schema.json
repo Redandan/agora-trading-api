@@ -39,7 +39,7 @@
       "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"
     },
     "source_contract_sha256": {
-      "const": "66db4e6b624a6a2e0ee8f444b6e81518054142a6bc30f37123f0e21e7fafe28d"
+      "const": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422"
     },
     "producer_release_id": {
       "type": "string",

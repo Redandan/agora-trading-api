@@ -25,7 +25,7 @@ final class OkxMicrostructureCanonicalDrop {
     static final String SOURCE_CONTRACT_SHA256 =
             "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e";
     static final String V3_SOURCE_CONTRACT_SHA256 =
-            "66db4e6b624a6a2e0ee8f444b6e81518054142a6bc30f37123f0e21e7fafe28d";
+            "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422";
     static final String DROP_ENVELOPE_SCHEMA_VERSION =
             "OKX_MICROSTRUCTURE_DROP_ENVELOPE_V1";
     static final String V3_DROP_ENVELOPE_SCHEMA_VERSION =
@@ -33,7 +33,7 @@ final class OkxMicrostructureCanonicalDrop {
     static final String V3_DROP_ENVELOPE_SCHEMA_ID =
             "https://agora.local/research/okx-microstructure-drop-envelope.v3.schema.json";
     static final String V3_DROP_ENVELOPE_SCHEMA_SHA256 =
-            "695d1e1d9ea89bbfa40ba29088bc1af4703ce6ebbb682739995c66d8dcbf64d3";
+            "ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418";
     static final String DAY_CANONICALIZATION =
             "UTF-8 compact JSON excluding seal; object keys sorted lexicographically";
     static final String ENVELOPE_CANONICALIZATION =

@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-intake-state.v3.schema.json",
+  "title": "Server Canonical OKX Microstructure Intake State V3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state_type",
+    "authorization",
+    "diagnostic_id",
+    "source_contract_sha256",
+    "drop_envelope_schema_sha256",
+    "day_schema_sha256",
+    "diagnostic_contract_sha256",
+    "state_authority",
+    "intake_identity",
+    "network_access",
+    "historical_backfill",
+    "candle_chain_reuse",
+    "candle_trigger_reuse",
+    "research_lifecycle_clock",
+    "cloud_schedule_count",
+    "chain_algorithm",
+    "start_day",
+    "required_day_count",
+    "accepted_days",
+    "status",
+    "next_expected_day",
+    "chain_head_sha256",
+    "failure",
+    "readiness"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OKX_MICROSTRUCTURE_INTAKE_STATE_V3"
+    },
+    "state_type": {
+      "const": "SERVER_CANONICAL_MICROSTRUCTURE_V3_INTAKE"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "diagnostic_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"
+    },
+    "source_contract_sha256": {
+      "const": "8a581cc03eb9381af4bfecddb8f40c7d23759ce239647447bc37351e4f293422"
+    },
+    "drop_envelope_schema_sha256": {
+      "const": "ad6e23797240a9e4a86affff40e801d7d659a8a408ffad65270a42dec2b46418"
+    },
+    "day_schema_sha256": {
+      "const": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+    },
+    "diagnostic_contract_sha256": {
+      "const": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    "state_authority": {
+      "const": "SERVER_CANONICAL"
+    },
+    "intake_identity": {
+      "const": "agora-research"
+    },
+    "network_access": {
+      "const": "DENY"
+    },
+    "historical_backfill": {
+      "const": false
+    },
+    "candle_chain_reuse": {
+      "const": false
+    },
+    "candle_trigger_reuse": {
+      "const": false
+    },
+    "research_lifecycle_clock": {
+      "const": "CODEX_CLOUD_OPS_ONLY"
+    },
+    "cloud_schedule_count": {
+      "const": 1
+    },
+    "chain_algorithm": {
+      "const": "SHA-256(UTF-8(previous_chain_sha256 + LF + day + LF + bundle_sha256 + LF + envelope_sha256)); first previous is 64 zeroes"
+    },
+    "start_day": {
+      "type": "string",
+      "format": "date"
+    },
+    "required_day_count": {
+      "const": 14
+    },
+    "accepted_days": {
+      "type": "array",
+      "maxItems": 14,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "bundle_sha256",
+          "envelope_sha256",
+          "predecessor_bundle_sha256",
+          "accepted_at",
+          "cumulative_chain_sha256"
+        ],
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date"
+          },
+          "bundle_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "envelope_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "predecessor_bundle_sha256": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            ]
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cumulative_chain_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "WAITING_FOR_DAY",
+        "INTEGRITY_BLOCKED",
+        "DIAGNOSTIC_READY"
+      ]
+    },
+    "next_expected_day": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        }
+      ]
+    },
+    "chain_head_sha256": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "failure": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "day",
+            "detail"
+          ],
+          "properties": {
+            "code": {
+              "enum": [
+                "CONTRACT_HASH_MISMATCH",
+                "WRONG_IDENTITY",
+                "SYMLINK_REJECT",
+                "OVERWRITE_REJECT",
+                "NON_ATOMIC_DELIVERY",
+                "WRONG_DAY",
+                "NONCONTIGUOUS_DAY",
+                "INCOMPLETE_DAY",
+                "INTEGRITY_NOT_CLEAN",
+                "STREAM_GAP",
+                "HASH_MISMATCH",
+                "PREDECESSOR_MISMATCH",
+                "CONFLICTING_DUPLICATE",
+                "BACKFILL_FORBIDDEN",
+                "CANDLE_CHAIN_REUSE_FORBIDDEN",
+                "LIFECYCLE_CLOCK_FORBIDDEN"
+              ]
+            },
+            "day": {
+              "type": "string",
+              "format": "date"
+            },
+            "detail": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        }
+      ]
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "disposition",
+        "candidate_authorized",
+        "oos_authorized",
+        "pnl_claim_authorized",
+        "promotion_authorized",
+        "performance_value"
+      ],
+      "properties": {
+        "disposition": {
+          "enum": [
+            "NOT_READY",
+            "FROZEN_V3_DISCOVERY_ANALYSIS_ONLY",
+            "INTEGRITY_BLOCKED"
+          ]
+        },
+        "candidate_authorized": {
+          "const": false
+        },
+        "oos_authorized": {
+          "const": false
+        },
+        "pnl_claim_authorized": {
+          "const": false
+        },
+        "promotion_authorized": {
+          "const": false
+        },
+        "performance_value": {
+          "const": "MISSING_PROOF"
+        }
+      }
+    }
+  }
+}

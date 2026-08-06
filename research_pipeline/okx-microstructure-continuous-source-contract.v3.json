@@ -50,7 +50,7 @@
     "diagnostic_contract_path": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v3.json",
     "diagnostic_contract_sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a",
     "drop_envelope_schema_id": "https://agora.local/research/okx-microstructure-drop-envelope.v3.schema.json",
-    "intake_state_schema_id": "NOT_FROZEN_IN_THIS_PRODUCER_SLICE"
+    "intake_state_schema_id": "https://agora.local/research/okx-microstructure-intake-state.v3.schema.json"
   },
   "lifecycle": {
     "timer_authority": "CODEX_CLOUD_OPS_ONLY",

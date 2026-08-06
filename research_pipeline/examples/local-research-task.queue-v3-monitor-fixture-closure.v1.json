@@ -1,0 +1,77 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-queue-v3-monitor-fixture-closure-v1",
+  "issued_at": "2026-08-06T16:15:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Close the two known out-of-scope queue regression fixture failures exposed after the immutable V3 microstructure monitor cutover. Change only research_mcp/tests/test_queue.py: make an absent V3 namespace assert the frozen fail-closed RECOVERY_BLOCKED status, and make the configured diagnostic fixture write canonical V3 state under state/microstructure-v3 with a V3 artifact path. This is test-contract alignment only; do not change runtime code, monitor behavior, research state, schedules, server state, evidence, or Trading behavior.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {"kind":"REPOSITORY_PATH","locator":"research_mcp/tests/test_queue.py","sha256":"7176efaa1d3db0ffe6df481ec8ba61351f5d9ce61be9215ca294cd6dc6f7dbe9"},
+    {"kind":"REPOSITORY_PATH","locator":"research_pipeline/microstructure_monitor.py","sha256":"dc3b31556052dede42525ac2aa75c2e034c2c8493fab763dae1cab18bf78ebf0"},
+    {"kind":"REPOSITORY_PATH","locator":"research_pipeline/microstructure_intake.py","sha256":"08b2638999f9d321bac31c35e1a1a3bde4be998e92972def5ccae989486f9395"},
+    {"kind":"REPOSITORY_PATH","locator":"research_pipeline/tests/test_evidence.py","sha256":"02110335350fbfa90716c8deb9dad50d85bd2e5382fa093ab152a86902ad6edd"},
+    {"kind":"REPOSITORY_PATH","locator":"research_pipeline/tests/test_microstructure_diagnostic.py","sha256":"6a83e290e680e50a2b0673ae5a8493c66024759bd2ff971bf2e323b9187ef08e"},
+    {"kind":"CANONICAL_STATUS","locator":"Manager read-only status remains WAITING_FOR_EVIDENCE; queue IDLE; V6 is the sole clock; this task is offline test-only and must not inspect or mutate live state","sha256":null}
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "VALIDATE_INPUT_HASHES",
+    "UPDATE_QUEUE_TEST_FIXTURE",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_OFFLINE_PYTHON_TESTS",
+    "RUN_PYTHON_COMPILE_CHECK",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_STOP_START_ENABLE_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_ANALYZER_EXECUTION",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "DROP_ROOT_CONTENT_CREATION_OR_MUTATION",
+    "HEARTBEAT_QUEUE_OR_CANDIDATE_WRITE",
+    "JAVA_MAIN_OR_MAVEN_EXEC_EXECUTION",
+    "HANDOFF_EXPORT_TRANSFER_OR_LOCAL_ANALYSIS",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "RUNTIME_CODE_EDIT",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_ONE_FILE_CHANGESET",
+    "ABSENT_V3_FAIL_CLOSED_ASSERTION",
+    "CANONICAL_V3_QUEUE_FIXTURE",
+    "QUEUE_REGRESSION_PROOF",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly one file: research_mcp/tests/test_queue.py. Preserve this task and every runtime or unrelated path.",
+    "Replace only the stale V2 monitor fixture imports, namespace, canonical-state writer, and artifact-path expectation needed by the two failing tests. Do not weaken RECOVERY_BLOCKED behavior and do not add monitor fallback or version selection.",
+    "The clean-worker status test must assert RECOVERY_BLOCKED when the frozen V3 namespace is absent. The configured diagnostic test must use initial_v3_intake_state, canonical_v3_state_bytes, state/microstructure-v3, and artifact path microstructure-v3/microstructure-status-test.json.",
+    "Run exact task validation, Python compile, research_mcp.tests.test_queue, the V3 diagnostic/heartbeat regression modules, and git diff --check. Stop if any fix requires a runtime file or a second changed file.",
+    "Return one valid local-research-result JSON bound to the exact task SHA with exactly one files_changed/artifact entry, concrete before/after regression evidence, all safety assertions false, and MISSING_PROOF for Linux deployment, future evidence, predictive value, fees, slippage, PnL, and drawdown.",
+    "Stop after offline test-fixture closure. Manager review, commit, package, live preflight, deployment, source start, evidence collection, handoff, candidate registration, and OOS remain later gates."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 1,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

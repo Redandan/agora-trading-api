@@ -130,9 +130,35 @@ def allowed(relative: str) -> bool:
         return False
     if parts[0] in source_roots:
         return True
+    if parts in {("scripts",), ("target",)}:
+        return True
     if parts[:2] == ("scripts", "research-worker"):
         return True
     return parts[:2] == ("target", "microstructure-dist")
+
+
+for required_path in (
+    "scripts",
+    "scripts/research-worker/x",
+    "target",
+    "target/microstructure-dist/x",
+):
+    if forbidden(required_path) or not allowed(required_path):
+        fail(f"closure predicate rejected required path: {required_path}")
+for rejected_path in (
+    "docs",
+    "src",
+    "pom.xml",
+    "scripts/other",
+    "target/other",
+    ".research-state",
+    "research_pipeline/.env",
+    "research_pipeline/secret.json",
+    "research_pipeline/__pycache__",
+    "research_pipeline/module.pyc",
+):
+    if allowed(rejected_path) and not forbidden(rejected_path):
+        fail(f"closure predicate accepted forbidden path: {rejected_path}")
 
 
 def exact_directory(path: Path, names: set[str], label: str) -> None:

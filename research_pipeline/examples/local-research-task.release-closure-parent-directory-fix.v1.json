@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-release-closure-parent-directory-fix-v1",
+  "issued_at": "2026-08-06T12:57:28Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Fix the fail-closed Research Worker closure validators after the first Linux deployment attempt correctly stopped but exposed one implementation defect: the allowed-path predicates accept scripts/research-worker and target/microstructure-dist descendants but reject their required scripts and target parent directories during recursive walking. Make the smallest two-file correction, add direct embedded self-checks for required parents and forbidden siblings, and preserve every other release, research, service, and security boundary.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "01762471cefb19a0cf5206d8da9944a02d9dd4cb848cb374b7f346043c9e5fa3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "7b7068c06845c3a40bdb2477022583a958efe10cfdde74f16b247219c2570b32"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Live fail-closed evidence: package and upload succeeded, installer rejected staged package contains a forbidden path target before release creation. Current symlink remains /opt/agora-research-worker/releases/20260806T014804Z; Research MCP active; heartbeat timer disabled; no microstructure units; worker persistent evidence-group membership was removed as intended. Failed stage 20260806T125614Z remains for bounded later cleanup.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "EDIT_INSTALLER_ALLOWED_PATH_PREDICATE",
+    "EDIT_VERIFIER_ALLOWED_PATH_PREDICATE",
+    "ADD_EMBEDDED_STATIC_SELF_CHECKS",
+    "RUN_EMBEDDED_PYTHON_PARSE_CHECKS",
+    "RUN_LOCAL_SCRIPT_SYNTAX_CHECKS",
+    "RUN_GIT_DIFF_CHECK",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SECOND_TIMER_OR_LIFECYCLE_WRITER",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_ENABLE_START_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "PACKAGER_OR_DOCUMENTATION_EDIT",
+    "FAILED_SERVER_STAGE_CLEANUP"
+  ],
+  "expected_outputs": [
+    "EXACT_TWO_FILE_CHANGESET",
+    "REQUIRED_PARENT_DIRECTORY_ACCEPTANCE",
+    "FORBIDDEN_SIBLING_REJECTION",
+    "INSTALLER_VERIFIER_PREDICATE_PARITY",
+    "EMBEDDED_PYTHON_PARSE_PASS",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly scripts/research-worker/install-upgrade.sh and scripts/research-worker/verify-worker.sh. Do not edit the PowerShell packager, docs, task schemas, service units, research code, contracts, Java, Maven, or any other path.",
+    "In installer allowed() and verifier allowed_runtime(), accept exactly the required parent directories scripts and target in addition to the already accepted committed research roots, scripts/research-worker subtree, and target/microstructure-dist subtree. Do not broaden any other root or descendant.",
+    "Keep exact_directory checks requiring scripts to contain only research-worker and target to contain only microstructure-dist. Preserve every forbidden-path, symlink, manifest-coverage, hash, distribution, provenance, identity, capability, service, timer, and disabled-producer gate.",
+    "Add or run direct local assertions against both embedded predicates: scripts, scripts/research-worker/x, target, and target/microstructure-dist/x must be allowed; docs, src, pom.xml, scripts/other, target/other, .research-state, and secret/cache/bytecode paths must remain rejected.",
+    "Run only exact task validation, embedded Python parse/static predicate assertions, bash -n when Bash exists, and git diff --check for the two files. No PackageOnly, Maven, SSH, server, systemd, service, network, deployment, or cleanup action is authorized in this task.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json with exactly two files_changed/artifacts on success and all safety assertions false. The clean commit, PackageOnly rerun, bounded failed-stage cleanup, and Linux redeployment remain separate Manager actions."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 2,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

@@ -139,16 +139,22 @@ must be exactly one writable authority. A second timer or writer is an
 integrity defect and must fail closed.
 
 The active sole cloud Ops schedule semantics are frozen in
-`research_pipeline/cloud-ops-schedule-contract.v5.json`; V1 through V4 remain
-immutable historical contract evidence. V5 records the platform-readback
-metadata `09:00 Asia/Taipei` (UTC 01:00), correcting V4's equivalent UTC time
-but nonmatching `08:00 Asia/Bangkok` representation. Canonical status must
-expose its contract id and byte-level SHA-256. Both MCP write operations require
-the caller to attest that exact deployed hash and must fail before queue
-mutation when the contract is missing, altered, or mismatched. This binds the
-scheduled caller to one versioned contract; it does not make an unobservable UI
-prompt cryptographically self-verifying, so the live schedule definition still
-requires platform-side readback after each contract change.
+`research_pipeline/cloud-ops-schedule-contract.v6.json`; V1 through V5 remain
+immutable historical contract evidence. V6 keeps the canonical heartbeat due
+boundary at `09:00 Asia/Taipei` but schedules the sole cloud recurrence at
+`09:05 Asia/Taipei`. The frozen 300-second nominal delay tolerates small
+platform early-fire jitter without weakening the server's `NOT_DUE` gate or
+adding a catch-up timer. It was introduced after the nominal 09:00 cycle on
+2026-08-06 was read back at 08:59:24.393178 while canonical `next_due` was still
+09:00; the task correctly made no early write, which skipped that day's only
+scheduled call. Canonical status must expose
+the contract id, due boundary, dispatch margin, and byte-level SHA-256. Both MCP
+write operations require the caller to attest that exact deployed hash and must
+fail before queue mutation when the contract is missing, altered, or
+mismatched. This binds the scheduled caller to one versioned contract; it does
+not make an unobservable UI prompt cryptographically self-verifying, so the
+live schedule definition still requires platform-side readback after each
+contract change.
 
 ## State machine
 
@@ -330,11 +336,11 @@ preserves queue, deadline, acknowledgement, integer lead time, and `PASS` or
 instead of being reconstructed. This measurement does not replace the required
 first-real-event proof.
 
-The V5 Ops contract and `SEALED_COACH_THREAD_DELIVERY_V3` bind that basis,
+The V6 Ops contract and `SEALED_COACH_THREAD_DELIVERY_V3` bind that basis,
 10,800-second completion window, pending/breach labels, terminal labels, and
 legacy missing-proof labels into the same caller attestation required by both
-write operations. V3 and V4 remain sealed history and cannot attest the active
-schedule.
+write operations. V3 through V5 remain sealed history and cannot attest the
+active schedule.
 
 For a frozen `COMPLETE_UTC_DAY` trigger whose integrity checks are supported by
 the deterministic contract, the canonical intake may create the typed dataset,

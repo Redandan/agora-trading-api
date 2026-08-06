@@ -37,11 +37,11 @@ POLICY_FILE = Path(
     os.environ.get("AGORA_RESEARCH_POLICY_FILE", str(APP_DIR / "research_pipeline/policy.v3.json"))
 )
 OPS_SCHEDULE_CONTRACT_RELATIVE_PATH = Path(
-    "research_pipeline/cloud-ops-schedule-contract.v5.json"
+    "research_pipeline/cloud-ops-schedule-contract.v6.json"
 )
 EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
-    "schema_version": "5",
-    "contract_id": "CLOUD_OPS_SCHEDULE_V5",
+    "schema_version": "6",
+    "contract_id": "CLOUD_OPS_SCHEDULE_V6",
     "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
     "timer_authority": "CODEX_CLOUD_OPS_ONLY",
     "state_authority": "SERVER_CANONICAL",
@@ -49,8 +49,18 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
     "recurrence": {
         "frequency": "DAILY",
         "timezone": "Asia/Taipei",
-        "local_time": "09:00",
+        "local_time": "09:05",
         "end": "NEVER",
+    },
+    "canonical_heartbeat_due": {
+        "timezone": "Asia/Taipei",
+        "local_time": "09:00",
+    },
+    "dispatch_margin": {
+        "scheduled_seconds_after_canonical_due": 300,
+        "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
+        "early_call_behavior": "NOT_DUE",
+        "additional_timer": "DENY",
     },
     "first_operation": "get_research_status",
     "allowed_mcp_operations": [
@@ -104,6 +114,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
     "required_guards": [
         "WORKER_RELEASE_READY",
         "POLICY_V3_READY",
+        "CLOUD_DISPATCH_AFTER_CANONICAL_DUE_MARGIN",
         "HEARTBEAT_DUE_AND_QUEUE_IDLE",
         "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
         "CANDIDATE_REGISTRATION_SLA_CANONICAL",
@@ -120,6 +131,7 @@ EXPECTED_OPS_SCHEDULE_CONTRACT: dict[str, Any] = {
     ],
     "forbidden_actions": [
         "SECOND_TIMER_OR_WRITER",
+        "EARLY_HEARTBEAT_OR_CATCHUP_TIMER",
         "LOCAL_RESEARCH_STATE_FALLBACK",
         "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
         "OOS_REOPEN_OR_GATE_RELAXATION",
@@ -208,7 +220,7 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
     if value != EXPECTED_OPS_SCHEDULE_CONTRACT:
         return {
             "status": "OPS_SCHEDULE_CONTRACT_INVALID",
-            "reason": "cloud Ops schedule contract does not match the frozen V5 semantics",
+            "reason": "cloud Ops schedule contract does not match the frozen V6 semantics",
         }
     recurrence = value["recurrence"]
     return {
@@ -220,6 +232,8 @@ def _ops_schedule_contract_summary() -> dict[str, Any]:
         "state_authority": value["state_authority"],
         "schedule_count": value["schedule_count"],
         "recurrence": recurrence,
+        "canonical_heartbeat_due": value["canonical_heartbeat_due"],
+        "dispatch_margin": value["dispatch_margin"],
         "attestation_parameter": value["write_attestation"]["parameter"],
         "coach_delivery": value["coach_delivery"],
         "sha256": hashlib.sha256(raw).hexdigest(),

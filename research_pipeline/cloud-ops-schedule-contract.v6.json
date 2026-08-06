@@ -1,0 +1,102 @@
+{
+  "schema_version": "6",
+  "contract_id": "CLOUD_OPS_SCHEDULE_V6",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "state_authority": "SERVER_CANONICAL",
+  "schedule_count": 1,
+  "recurrence": {
+    "frequency": "DAILY",
+    "timezone": "Asia/Taipei",
+    "local_time": "09:05",
+    "end": "NEVER"
+  },
+  "canonical_heartbeat_due": {
+    "timezone": "Asia/Taipei",
+    "local_time": "09:00"
+  },
+  "dispatch_margin": {
+    "scheduled_seconds_after_canonical_due": 300,
+    "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
+    "early_call_behavior": "NOT_DUE",
+    "additional_timer": "DENY"
+  },
+  "first_operation": "get_research_status",
+  "allowed_mcp_operations": [
+    "get_research_status",
+    "request_research_heartbeat",
+    "submit_research_candidate_bundle",
+    "get_research_run",
+    "get_research_briefing"
+  ],
+  "allowed_codex_operations": [
+    "list_threads",
+    "read_thread",
+    "send_message_to_thread"
+  ],
+  "write_attestation": {
+    "parameter": "ops_schedule_contract_sha256",
+    "required": true
+  },
+  "coach_delivery": {
+    "contract_id": "SEALED_COACH_THREAD_DELIVERY_V3",
+    "target_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+    "delivery_id_source": "SEALED_ARTIFACT_SHA256",
+    "dedupe_token_prefix": "SEALED_RESEARCH_DELIVERY:",
+    "durability": "SERVER_HEARTBEAT_STATE_UNTIL_VERIFIED_ACK",
+    "preflight": "READ_TARGET_THREAD_AND_SKIP_IF_DELIVERY_ID_PRESENT",
+    "send": "SEND_EXACT_CANONICAL_DELIVERY_PROMPT",
+    "verification": "READ_TARGET_THREAD_AND_REQUIRE_DELIVERY_ID",
+    "retry": "RETRY_ONLY_WHEN_DELIVERY_ID_IS_ABSENT",
+    "canonical_ack": "VERIFIED_THREAD_READBACK_RECEIPT_ON_NEXT_DUE_HEARTBEAT",
+    "receipt_parameter": "coach_delivery_receipts",
+    "verified_receipt_statuses": [
+      "DELIVERED_TO_COACH_TASK_VERIFIED",
+      "ALREADY_DELIVERED_TO_COACH_TASK"
+    ],
+    "delivery_proof_sla": {
+      "basis": "CANONICAL_VERIFIED_RECEIPT_ACKNOWLEDGEMENT",
+      "queued_at_source": "CANONICAL_OUTBOX_INSERT_TIMESTAMP",
+      "deadline_rule": "NEXT_NORMAL_CLOUD_CYCLE_PLUS_COMPLETION_WINDOW",
+      "completion_window_seconds": 10800,
+      "pending_status": "PENDING_WITHIN_SLA",
+      "breach_status": "BREACH_PENDING_DELIVERY_PROOF",
+      "terminal_statuses": [
+        "PASS",
+        "BREACH"
+      ],
+      "legacy_missing_proof_statuses": [
+        "MISSING_PROOF_LEGACY_EVENT",
+        "MISSING_PROOF_LEGACY_RECEIPT"
+      ]
+    }
+  },
+  "required_guards": [
+    "WORKER_RELEASE_READY",
+    "POLICY_V3_READY",
+    "CLOUD_DISPATCH_AFTER_CANONICAL_DUE_MARGIN",
+    "HEARTBEAT_DUE_AND_QUEUE_IDLE",
+    "CAPTURE_HEALTH_BOUNDED_SAME_CYCLE",
+    "CANDIDATE_REGISTRATION_SLA_CANONICAL",
+    "FORWARD_CANDIDATE_CONTEXT_EXACT_COPY",
+    "DISTINCT_SEALED_CANDIDATE_OOS",
+    "HASH_VERIFIED_COACH_OUTBOX",
+    "DURABLE_COACH_OUTBOX_UNTIL_VERIFIED_ACK",
+    "COACH_THREAD_READ_BEFORE_SEND",
+    "COACH_DELIVERY_ID_DEDUPLICATION",
+    "COACH_THREAD_POST_SEND_READBACK",
+    "COACH_RECEIPT_SCHEMA_AND_PENDING_ID_MATCH",
+    "COACH_DELIVERY_PROOF_SLA_CANONICAL",
+    "CROSS_TASK_DELIVERY_PENDING_IF_TARGET_UNAVAILABLE"
+  ],
+  "forbidden_actions": [
+    "SECOND_TIMER_OR_WRITER",
+    "EARLY_HEARTBEAT_OR_CATCHUP_TIMER",
+    "LOCAL_RESEARCH_STATE_FALLBACK",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_REOPEN_OR_GATE_RELAXATION",
+    "UNVERIFIED_COACH_DELIVERY_CLAIM",
+    "ACK_WITHOUT_THREAD_READBACK",
+    "INFERRED_COACH_DELIVERY_TIMING"
+  ]
+}

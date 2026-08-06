@@ -20,15 +20,26 @@ a candidate until a clean release is deployed.
 
 Treat the versioned cloud Ops schedule contract as a caller-attestation gate.
 Continue only when canonical `ops_schedule_contract.status=READY`,
-`contract_id=CLOUD_OPS_SCHEDULE_V5`, `schedule_count=1`,
+`contract_id=CLOUD_OPS_SCHEDULE_V6`, `schedule_count=1`,
 `timer_authority=CODEX_CLOUD_OPS_ONLY`,
-`recurrence.timezone=Asia/Taipei`, `recurrence.local_time=09:00`,
-`recurrence.end=NEVER`, and
-`sha256=404311088765a1b27062d6492f6c54c46723537d48269367d6e90b26c7d48933`.
+`recurrence.timezone=Asia/Taipei`, `recurrence.local_time=09:05`,
+`recurrence.end=NEVER`,
+`canonical_heartbeat_due.timezone=Asia/Taipei`,
+`canonical_heartbeat_due.local_time=09:00`,
+`dispatch_margin.scheduled_seconds_after_canonical_due=300`,
+`dispatch_margin.early_call_behavior=NOT_DUE`,
+`dispatch_margin.additional_timer=DENY`, and
+`sha256=d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85`.
 Pass that exact hash as `ops_schedule_contract_sha256` on every
 `request_research_heartbeat` and `submit_research_candidate_bundle` call.
 Missing, invalid, or mismatched contract/attestation is an operational alert;
 fail closed without queueing either operation.
+
+V6 intentionally places the one cloud recurrence five minutes after the
+unchanged 09:00 canonical heartbeat due boundary so a small platform early-fire
+jitter cannot skip the only daily cycle. This margin never authorizes an early
+heartbeat: always compare canonical `next_due`, preserve `NOT_DUE`, and never
+add a catch-up call, retry timer, or second schedule.
 
 Inspect canonical `candidate_registration_recovery` before formulating or
 submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
@@ -36,7 +47,7 @@ submitting any new candidate. `IDLE` permits the normal evidence-ready flow.
 partial canonical registration: require queue `IDLE`, copy the canonical
 `bundle` byte-for-value without changing its timestamp, text, mechanism, OOS
 window, or any other field, and call `submit_research_candidate_bundle` exactly
-once with the normal V5 attestation. Verify that the canonical
+once with the normal V6 attestation. Verify that the canonical
 `payload_sha256` is unchanged and poll that replay's run. This is recovery of
 the same logical candidate, not permission for a second candidate. If recovery
 is `INTEGRITY_BLOCKED`, including repeated replay failure or partial-state

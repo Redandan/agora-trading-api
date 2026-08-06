@@ -852,15 +852,31 @@ class DurableQueueContractTest(unittest.TestCase):
         self.assertEqual(result["evidence_capture_health"]["status"], "IDLE")
         self.assertEqual(result["evidence_ingest_queue"]["status"], "IDLE")
         self.assertEqual(contract["status"], "READY")
-        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V5")
+        self.assertEqual(contract["contract_id"], "CLOUD_OPS_SCHEDULE_V6")
         self.assertEqual(contract["schedule_count"], 1)
         self.assertEqual(
             contract["recurrence"],
             {
                 "frequency": "DAILY",
                 "timezone": "Asia/Taipei",
-                "local_time": "09:00",
+                "local_time": "09:05",
                 "end": "NEVER",
+            },
+        )
+        self.assertEqual(
+            contract["canonical_heartbeat_due"],
+            {
+                "timezone": "Asia/Taipei",
+                "local_time": "09:00",
+            },
+        )
+        self.assertEqual(
+            contract["dispatch_margin"],
+            {
+                "scheduled_seconds_after_canonical_due": 300,
+                "purpose": "PLATFORM_EARLY_FIRE_TOLERANCE",
+                "early_call_behavior": "NOT_DUE",
+                "additional_timer": "DENY",
             },
         )
         self.assertEqual(contract["sha256"], self.ops_schedule_contract_sha256)

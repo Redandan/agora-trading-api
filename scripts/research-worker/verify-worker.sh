@@ -9,6 +9,17 @@ EVIDENCE_GROUP="${EVIDENCE_GROUP:-agora-evidence}"
 EXPECT_TIMER="${EXPECT_TIMER:-disabled}"
 RUN_HEARTBEAT="${RUN_HEARTBEAT:-0}"
 RUN_SOURCE_PROBE="${RUN_SOURCE_PROBE:-0}"
+EXPECT_MICROSTRUCTURE_SOURCE="${EXPECT_MICROSTRUCTURE_SOURCE:-disabled}"
+MICROSTRUCTURE_INTAKE_PREFLIGHT="${MICROSTRUCTURE_INTAKE_PREFLIGHT:-0}"
+MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
+MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
+MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
+MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
+MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
+MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
+MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
+MICROSTRUCTURE_DIST=target/microstructure-dist
+MICROSTRUCTURE_JAR="$MICROSTRUCTURE_DIST/agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
 
 fail() {
   echo "[research-worker-verify] FAIL: $*" >&2
@@ -29,23 +40,280 @@ esac
 [ -d "$current/research_source" ] || fail "forward evidence source missing"
 [ -s "$current/.release/source.sha256" ] || fail "release source manifest missing"
 [ -s "$current/.release/provenance.json" ] || fail "release provenance missing"
-(cd "$current" && sha256sum -c .release/source.sha256 >/dev/null) \
-  || fail "installed release differs from its source manifest"
-python3 - "$current/.release/provenance.json" <<'PY'
+python3 - "$current" <<'PY'
+import hashlib
 import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import stat
+import sys
+
+root = Path(sys.argv[1])
+source_roots = {"research_pipeline", "research_mcp", "research_source", "research"}
+expected_top = source_roots | {"scripts", "target", ".release"}
+dist_jar = "agora-trading-api-1.0-SNAPSHOT-microstructure-research.jar"
+
+
+def fail(message: str) -> None:
+    raise SystemExit(message)
+
+
+def forbidden(relative: str) -> bool:
+    path = PurePosixPath(relative)
+    if any(ord(character) < 32 or ord(character) == 127 for character in relative):
+        return True
+    if path.is_absolute() or ".." in path.parts:
+        return True
+    if any(part in {".git", ".research-state", "__pycache__"} for part in path.parts):
+        return True
+    name = path.name
+    return bool(
+        re.search(r"(?i)\.(pyc|pyo|pyd|pem|p12|pfx|key)$", name)
+        or re.search(r"(?i)^\.env(?:\.|$)", name)
+        or re.search(
+            r"(?i)(?:^|[._-])(secret|secrets|credential|credentials)(?:[._-]|$)",
+            name,
+        )
+    )
+
+
+def allowed_runtime(relative: str) -> bool:
+    parts = PurePosixPath(relative).parts
+    if not parts:
+        return False
+    if parts[0] in source_roots:
+        return True
+    if parts[:2] == ("scripts", "research-worker"):
+        return True
+    return parts[:2] == ("target", "microstructure-dist")
+
+
+def exact_directory(path: Path, names: set[str], label: str) -> None:
+    entries = list(os.scandir(path))
+    if {entry.name for entry in entries} != names:
+        fail(f"{label} differs from the frozen closure")
+
+
+top_entries = list(os.scandir(root))
+if {entry.name for entry in top_entries} != expected_top:
+    fail("installed release top-level inventory differs from the frozen closure")
+if any(entry.is_symlink() or not entry.is_dir(follow_symlinks=False) for entry in top_entries):
+    fail("installed release top level must contain regular directories only")
+exact_directory(root / "scripts", {"research-worker"}, "installed scripts inventory")
+exact_directory(root / "target", {"microstructure-dist"}, "installed target inventory")
+exact_directory(
+    root / ".release",
+    {"source.sha256", "provenance.json"},
+    "installed release metadata inventory",
+)
+for required_directory in (
+    root / "scripts" / "research-worker",
+    root / "target" / "microstructure-dist",
+    root / ".release",
+):
+    details = required_directory.lstat()
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISDIR(details.st_mode):
+        fail(f"installed path is not a regular directory: {required_directory.name}")
+
+dist = root / "target" / "microstructure-dist"
+exact_directory(dist, {dist_jar, "lib"}, "installed microstructure distribution root")
+jar_entry = next(entry for entry in os.scandir(dist) if entry.name == dist_jar)
+lib_entry = next(entry for entry in os.scandir(dist) if entry.name == "lib")
+if jar_entry.is_symlink() or not jar_entry.is_file(follow_symlinks=False):
+    fail("installed microstructure producer jar is not a regular file")
+if lib_entry.is_symlink() or not lib_entry.is_dir(follow_symlinks=False):
+    fail("installed microstructure library root is not a regular directory")
+libraries = list(os.scandir(dist / "lib"))
+library_names = sorted(entry.name for entry in libraries)
+if len(libraries) != 3 or any(
+    entry.is_symlink() or not entry.is_file(follow_symlinks=False)
+    for entry in libraries
+):
+    fail("installed distribution must contain exactly three library files")
+patterns = (
+    r"jackson-annotations-.+\.jar",
+    r"jackson-core-.+\.jar",
+    r"jackson-databind-.+\.jar",
+)
+if any(re.fullmatch(pattern, name) is None for pattern, name in zip(patterns, library_names)):
+    fail("installed distribution contains unexpected libraries")
+
+runtime_files: dict[str, Path] = {}
+release_files: dict[str, Path] = {}
+
+
+def walk(directory: Path, prefix: str = "") -> None:
+    for entry in os.scandir(directory):
+        relative = f"{prefix}/{entry.name}" if prefix else entry.name
+        details = entry.stat(follow_symlinks=False)
+        if entry.is_symlink() or stat.S_ISLNK(details.st_mode):
+            fail(f"installed release contains a symlink: {relative}")
+        is_release = relative == ".release" or relative.startswith(".release/")
+        if forbidden(relative) or (not is_release and not allowed_runtime(relative)):
+            fail(f"installed release contains a forbidden path: {relative}")
+        if stat.S_ISDIR(details.st_mode):
+            walk(Path(entry.path), relative)
+        elif stat.S_ISREG(details.st_mode):
+            (release_files if is_release else runtime_files)[relative] = Path(entry.path)
+        else:
+            fail(f"installed release contains a non-regular entry: {relative}")
+
+
+walk(root)
+if set(release_files) != {".release/source.sha256", ".release/provenance.json"}:
+    fail("installed release metadata closure is invalid")
+manifest = release_files[".release/source.sha256"]
+raw_manifest = manifest.read_bytes()
+if b"\r" in raw_manifest or not raw_manifest.endswith(b"\n"):
+    fail("installed source manifest must be canonical LF-terminated UTF-8")
+try:
+    manifest_lines = raw_manifest.decode("utf-8").splitlines()
+except UnicodeDecodeError as error:
+    fail(f"installed source manifest is not UTF-8: {error}")
+if not manifest_lines or manifest_lines != sorted(manifest_lines):
+    fail("installed source manifest must be nonempty and sorted")
+listed: dict[str, str] = {}
+for line in manifest_lines:
+    match = re.fullmatch(r"([0-9a-f]{64})  ([^\r\n]+)", line)
+    if match is None:
+        fail("installed source manifest contains a malformed line")
+    digest, relative = match.groups()
+    if relative in listed or forbidden(relative) or not allowed_runtime(relative):
+        fail("installed source manifest contains a duplicate or forbidden path")
+    listed[relative] = digest
+if set(listed) != set(runtime_files):
+    fail("installed source manifest has omissions or extra paths")
+for relative, expected in listed.items():
+    if hashlib.sha256(runtime_files[relative].read_bytes()).hexdigest() != expected:
+        fail(f"installed source hash mismatch: {relative}")
+
+with release_files[".release/provenance.json"].open(encoding="utf-8") as stream:
+    provenance = json.load(stream)
+expected_provenance_keys = {
+    "schema_version",
+    "release_id",
+    "source_git_commit",
+    "source_git_branch",
+    "source_git_dirty",
+    "source_manifest_sha256",
+    "installed_at",
+}
+if set(provenance) != expected_provenance_keys or provenance["schema_version"] != "1":
+    fail("invalid release provenance schema")
+if provenance["release_id"] != root.name:
+    fail("release provenance id does not match installed directory")
+if not re.fullmatch(r"[0-9a-f]{40}", str(provenance["source_git_commit"])):
+    fail("invalid release source commit")
+if provenance["source_git_dirty"] is not False:
+    fail("installed release provenance is dirty")
+manifest_hash = hashlib.sha256(raw_manifest).hexdigest()
+if provenance["source_manifest_sha256"] != manifest_hash:
+    fail("release provenance manifest hash does not match installed bytes")
+PY
+ok "hermetic installed runtime, source manifest, and provenance verified"
+
+[ -f "$current/$MICROSTRUCTURE_JAR" ] && [ ! -L "$current/$MICROSTRUCTURE_JAR" ] \
+  || fail "narrow microstructure producer jar missing or symlinked"
+[ -d "$current/$MICROSTRUCTURE_DIST/lib" ] \
+  && [ ! -L "$current/$MICROSTRUCTURE_DIST/lib" ] \
+  || fail "microstructure runtime dependency directory missing or symlinked"
+if find "$current/$MICROSTRUCTURE_DIST" -type l -print -quit | grep -q .; then
+  fail "microstructure distribution contains a symlink"
+fi
+mapfile -t microstructure_libraries < <(
+  find "$current/$MICROSTRUCTURE_DIST/lib" -maxdepth 1 -type f -printf '%f\n' | sort
+)
+[ "${#microstructure_libraries[@]}" = 3 ] \
+  || fail "microstructure distribution must contain exactly three runtime libraries"
+[[ "${microstructure_libraries[0]}" == jackson-annotations-*.jar ]] \
+  && [[ "${microstructure_libraries[1]}" == jackson-core-*.jar ]] \
+  && [[ "${microstructure_libraries[2]}" == jackson-databind-*.jar ]] \
+  || fail "microstructure distribution contains unexpected runtime libraries"
+
+java_version="$(java -XshowSettings:properties -version 2>&1 \
+  | awk -F'= ' '/java.specification.version/ { print $2; exit }')"
+[ "$java_version" = "21" ] || fail "Java 21 is required for microstructure source"
+microstructure_inventory="$(mktemp)"
+cleanup_microstructure_inventory() {
+  rm -f -- "$microstructure_inventory"
+}
+trap cleanup_microstructure_inventory EXIT
+jar tf "$current/$MICROSTRUCTURE_JAR" > "$microstructure_inventory"
+if grep -Evq '^(META-INF(/.*)?|com/|com/agora/|com/agora/research/|com/agora/research/OkxMicrostructure[^/]*\.class)$' \
+    "$microstructure_inventory"; then
+  fail "microstructure jar contains a class outside the frozen package prefix"
+fi
+grep -Fxq 'com/agora/research/OkxMicrostructureContinuousSourceCli.class' \
+  "$microstructure_inventory" \
+  || fail "continuous source main class missing"
+cleanup_microstructure_inventory
+trap - EXIT
+
+python3 - "$current" <<'PY'
+from pathlib import Path
 import re
 import sys
 
-with open(sys.argv[1], encoding="utf-8") as stream:
-    value = json.load(stream)
-if value.get("schema_version") != "1":
-    raise SystemExit("invalid release provenance schema")
-if not re.fullmatch(r"[0-9a-f]{40}", str(value.get("source_git_commit", ""))):
-    raise SystemExit("invalid release source commit")
-if not re.fullmatch(r"[0-9a-f]{64}", str(value.get("source_manifest_sha256", ""))):
-    raise SystemExit("invalid release source manifest hash")
+current = Path(sys.argv[1])
+manifest = current / ".release" / "source.sha256"
+entries = {}
+for line in manifest.read_text(encoding="utf-8").splitlines():
+    match = re.fullmatch(r"([0-9a-f]{64})  (.+)", line)
+    if not match or match.group(2) in entries:
+        raise SystemExit("installed source manifest is malformed")
+    entries[match.group(2)] = match.group(1)
+dist = current / "target" / "microstructure-dist"
+actual = {
+    path.relative_to(current).as_posix()
+    for path in dist.rglob("*")
+    if path.is_file() and not path.is_symlink()
+}
+listed = {path for path in entries if path.startswith("target/microstructure-dist/")}
+if actual != listed:
+    raise SystemExit("microstructure distribution is not exactly covered by manifest")
 PY
-ok "release source manifest and provenance verified"
+ok "sealed direct-Java-21 microstructure distribution verified"
+
+if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
+  [ -f "$MICROSTRUCTURE_BINDING" ] && [ ! -L "$MICROSTRUCTURE_BINDING" ] \
+    || fail "microstructure binding is missing, non-regular, or symlinked"
+  [ "$(stat -c '%U:%G' "$MICROSTRUCTURE_BINDING")" = "root:$EVIDENCE_GROUP" ] \
+    || fail "microstructure binding ownership is incorrect"
+  [ "$(stat -c '%a' "$MICROSTRUCTURE_BINDING")" = "640" ] \
+    || fail "microstructure binding mode is incorrect"
+  python3 - "$MICROSTRUCTURE_BINDING" "$current" <<'PY'
+from datetime import date, datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+binding_path, current = map(Path, sys.argv[1:])
+with binding_path.open(encoding="utf-8") as stream:
+    binding = json.load(stream)
+with (current / ".release" / "provenance.json").open(encoding="utf-8") as stream:
+    provenance = json.load(stream)
+manifest_hash = hashlib.sha256(
+    (current / ".release" / "source.sha256").read_bytes()
+).hexdigest()
+if binding.get("producer_release_id") != current.name:
+    raise SystemExit("binding release id does not match installed release")
+if binding.get("producer_manifest_sha256") != manifest_hash:
+    raise SystemExit("binding manifest hash does not match installed manifest")
+if provenance.get("release_id") != current.name:
+    raise SystemExit("provenance release id does not match installed release")
+if provenance.get("source_manifest_sha256") != manifest_hash:
+    raise SystemExit("provenance manifest hash does not match installed manifest")
+try:
+    start_day = date.fromisoformat(binding["forward_start_day"])
+except (KeyError, TypeError, ValueError) as error:
+    raise SystemExit("binding forward start day is invalid") from error
+if start_day <= datetime.now(timezone.utc).date():
+    raise SystemExit("binding forward start day is not strictly future")
+PY
+  ok "optional microstructure binding matches installed release"
+fi
 sudo test -f "$DATA_ROOT/state/authority.json" || fail "state authority missing"
 [ "$(sudo stat -c '%U:%G' "$DATA_ROOT/state")" = "$WORKER_USER:$WORKER_USER" ] \
   || fail "canonical state owner is incorrect"
@@ -74,6 +342,14 @@ fi
 if sudo -u "$SOURCE_USER" test -w "$DATA_ROOT/state"; then
   fail "public source identity can write canonical research state"
 fi
+if id -nG "$WORKER_USER" | tr ' ' '\n' | grep -Fxq "$EVIDENCE_GROUP"; then
+  fail "canonical worker account inherits the publisher group"
+fi
+for evidence_reader_unit in agora-research-mcp.service agora-research-evidence-ingest.service; do
+  systemctl show "$evidence_reader_unit" --property=SupplementaryGroups --value \
+    | tr ' ' '\n' | grep -Fxq "$EVIDENCE_GROUP" \
+    || fail "$evidence_reader_unit lost its explicit evidence-group access"
+done
 ok "public source identity cannot read Trading secrets or canonical state"
 
 (
@@ -202,6 +478,9 @@ systemctl cat agora-research-source.service >/dev/null
 systemctl cat agora-research-source.path >/dev/null
 systemctl cat agora-research-evidence-ingest.service >/dev/null
 systemctl cat agora-research-evidence-ingest.path >/dev/null
+systemctl cat "$MICROSTRUCTURE_UNIT" >/dev/null
+systemctl cat "$MICROSTRUCTURE_INTAKE_UNIT" >/dev/null
+systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" >/dev/null
 systemd-analyze verify \
   /etc/systemd/system/agora-research-heartbeat.service \
   /etc/systemd/system/agora-research-heartbeat.timer \
@@ -211,8 +490,245 @@ systemd-analyze verify \
   /etc/systemd/system/agora-research-source.service \
   /etc/systemd/system/agora-research-source.path \
   /etc/systemd/system/agora-research-evidence-ingest.service \
-  /etc/systemd/system/agora-research-evidence-ingest.path
+  /etc/systemd/system/agora-research-evidence-ingest.path \
+  "/etc/systemd/system/$MICROSTRUCTURE_UNIT" \
+  "/etc/systemd/system/$MICROSTRUCTURE_INTAKE_UNIT" \
+  "/etc/systemd/system/$MICROSTRUCTURE_INTAKE_PATH"
 ok "systemd units verified"
+
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=User --value)" = "$SOURCE_USER" ] \
+  || fail "microstructure source identity is incorrect"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=Group --value)" = "$EVIDENCE_GROUP" ] \
+  || fail "microstructure source group is incorrect"
+[ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=Restart --value)" = "no" ] \
+  || fail "microstructure source restart policy is not fail-closed"
+if systemctl show "$MICROSTRUCTURE_UNIT" --property=EnvironmentFiles --value | grep -q .; then
+  fail "microstructure source must not load an environment file"
+fi
+if systemctl list-unit-files 'agora-research-microstructure*.timer' --no-legend | grep -q .; then
+  fail "a microstructure timer exists"
+fi
+microstructure_writes="$(systemctl show "$MICROSTRUCTURE_UNIT" --property=ReadWritePaths --value)"
+echo "$microstructure_writes" \
+  | grep -Fq '/var/lib/agora-evidence-source/microstructure-private-staging' \
+  || fail "microstructure private staging is not writable"
+echo "$microstructure_writes" \
+  | grep -Fq '/var/lib/agora-evidence-source/microstructure-drop' \
+  || fail "microstructure drop is not writable"
+if echo "$microstructure_writes" | grep -Fq '/var/lib/agora-research/source-drop'; then
+  fail "microstructure source can write the candle drop"
+fi
+
+[ "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=User --value)" = "$WORKER_USER" ] \
+  || fail "microstructure intake identity is incorrect"
+[ "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=Group --value)" = "$WORKER_USER" ] \
+  || fail "microstructure intake primary group is incorrect"
+[ -z "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=SupplementaryGroups --value)" ] \
+  || fail "microstructure intake inherits a supplementary group"
+[ "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=Restart --value)" = "no" ] \
+  || fail "microstructure intake restart policy is not fail-closed"
+case "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=IPAddressDeny --value)" in
+  any|'::/0 0.0.0.0/0'|'0.0.0.0/0 ::/0') ;;
+  *) fail "microstructure intake is not network denied" ;;
+esac
+[ "$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=RestrictAddressFamilies --value)" = "AF_UNIX" ] \
+  || fail "microstructure intake address families exceed AF_UNIX"
+if systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=EnvironmentFiles --value | grep -q .; then
+  fail "microstructure intake must not load an environment file"
+fi
+for capability_property in CapabilityBoundingSet AmbientCapabilities; do
+  capability_value="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" \
+    --property="$capability_property" --value)"
+  python3 - "$capability_property" "$capability_value" <<'PY'
+import sys
+
+name, raw = sys.argv[1:]
+actual = {item.upper() for item in raw.split()}
+expected = {"CAP_DAC_READ_SEARCH", "CAP_CHOWN", "CAP_FOWNER"}
+if actual != expected:
+    raise SystemExit(f"{name} is not the exact bounded intake set: {sorted(actual)}")
+PY
+done
+intake_read_only="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadOnlyPaths --value)"
+echo "$intake_read_only" | grep -Fq "$MICROSTRUCTURE_BINDING" \
+  || fail "microstructure binding is not read-only to intake"
+intake_writes="$(systemctl show "$MICROSTRUCTURE_INTAKE_UNIT" --property=ReadWritePaths --value)"
+python3 - "$intake_writes" "$MICROSTRUCTURE_DROP" "$MICROSTRUCTURE_STATE" <<'PY'
+import sys
+
+actual = set(sys.argv[1].split())
+expected = set(sys.argv[2:])
+if actual != expected:
+    raise SystemExit(f"intake writable paths are not exact: {sorted(actual)}")
+PY
+systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" \
+  | grep -Fxq "PathChanged=$MICROSTRUCTURE_DROP" \
+  || fail "microstructure path does not watch the fixed drop root"
+[ "$(systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" | grep -Ec '^Path(Changed|Exists|Modified|DirectoryNotEmpty)=')" = 1 ] \
+  || fail "microstructure path has more than one trigger"
+systemctl is-enabled --quiet "$MICROSTRUCTURE_INTAKE_PATH" \
+  || fail "microstructure intake path is not enabled"
+systemctl is-active --quiet "$MICROSTRUCTURE_INTAKE_PATH" \
+  || fail "microstructure intake path is not active"
+
+[ "$(sudo stat -c '%U:%G:%a' "$MICROSTRUCTURE_STAGING")" = "$SOURCE_USER:$EVIDENCE_GROUP:700" ] \
+  || fail "microstructure staging metadata is incorrect"
+[ "$(sudo stat -c '%U:%G:%a' "$MICROSTRUCTURE_DROP")" = "root:$EVIDENCE_GROUP:1770" ] \
+  || fail "microstructure sticky drop-parent metadata is incorrect"
+[ "$(sudo stat -c '%U:%G:%a' "$MICROSTRUCTURE_STATE")" = "$WORKER_USER:$WORKER_USER:700" ] \
+  || fail "microstructure state-root metadata is incorrect"
+[ "$(sudo stat -c '%d' "$MICROSTRUCTURE_STAGING")" = "$(sudo stat -c '%d' "$MICROSTRUCTURE_DROP")" ] \
+  || fail "microstructure staging and drop are not on the same filesystem"
+microstructure_free_bytes="$(df -PB1 --output=avail "$MICROSTRUCTURE_DROP" | tail -n 1 | tr -d ' ')"
+[[ "$microstructure_free_bytes" =~ ^[0-9]+$ ]] \
+  && [ "$microstructure_free_bytes" -ge 2147483648 ] \
+  || fail "microstructure drop has less than 2 GiB free"
+
+sudo python3 - "$MICROSTRUCTURE_DROP" "$WORKER_USER" <<'PY'
+from datetime import date
+import grp
+import os
+from pathlib import Path
+import pwd
+import re
+import stat
+import sys
+
+root = Path(sys.argv[1])
+research_uid = pwd.getpwnam(sys.argv[2]).pw_uid
+research_gid = grp.getgrnam(sys.argv[2]).gr_gid
+days = {}
+reservations = {}
+for entry in os.scandir(root):
+    if entry.is_symlink():
+        raise SystemExit("microstructure drop contains a symlink")
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", entry.name) and entry.is_dir(follow_symlinks=False):
+        day = date.fromisoformat(entry.name)
+        if day.isoformat() != entry.name:
+            raise SystemExit("noncanonical microstructure day name")
+        days[day] = Path(entry.path)
+        continue
+    match = re.fullmatch(r"\.(\d{4}-\d{2}-\d{2})\.publish-reserved", entry.name)
+    if match and entry.is_file(follow_symlinks=False):
+        day = date.fromisoformat(match.group(1))
+        details = entry.stat(follow_symlinks=False)
+        if details.st_size != 0:
+            raise SystemExit("microstructure reservation is not empty")
+        reservations[day] = Path(entry.path)
+        continue
+    raise SystemExit(f"unexpected microstructure drop entry: {entry.name}")
+if len(days) > 14 or len(reservations) > 14 or set(days) != set(reservations):
+    raise SystemExit("microstructure drop retention/reservation bound failed")
+for day, directory in days.items():
+    details = directory.lstat()
+    if details.st_uid != 0 or details.st_gid != research_gid or stat.S_IMODE(details.st_mode) != 0o550:
+        raise SystemExit(f"published day metadata is not frozen: {day}")
+    expected = {
+        f"okx-btc-usdt-microstructure-{day}.json",
+        f"okx-btc-usdt-microstructure-{day}.envelope.json",
+    }
+    children = list(os.scandir(directory))
+    if {child.name for child in children} != expected:
+        raise SystemExit(f"published day shape changed: {day}")
+    for child in children:
+        child_details = child.stat(follow_symlinks=False)
+        if child.is_symlink() or not child.is_file(follow_symlinks=False):
+            raise SystemExit(f"published evidence file is ambiguous: {child.name}")
+        if child_details.st_uid != 0 or child_details.st_gid != research_gid or stat.S_IMODE(child_details.st_mode) != 0o440:
+            raise SystemExit(f"published evidence metadata is not frozen: {child.name}")
+    reservation_details = reservations[day].lstat()
+    if reservation_details.st_uid != 0 or reservation_details.st_gid != research_gid or stat.S_IMODE(reservation_details.st_mode) != 0o440:
+        raise SystemExit(f"reservation metadata is not frozen: {day}")
+PY
+
+microstructure_probe=""
+microstructure_probe_renamed=""
+cleanup_microstructure_probe() {
+  for candidate in "$microstructure_probe" "$microstructure_probe_renamed"; do
+    case "$candidate" in
+      "$MICROSTRUCTURE_DROP"/.verify-intake-boundary.*)
+        sudo rm -rf -- "$candidate"
+        ;;
+      '') ;;
+      *) fail "microstructure verifier probe escaped fixed drop root" ;;
+    esac
+  done
+}
+trap cleanup_microstructure_probe EXIT
+microstructure_probe="$(sudo -u "$SOURCE_USER" \
+  mktemp -d "$MICROSTRUCTURE_DROP/.verify-intake-boundary.XXXXXX")"
+microstructure_probe_renamed="${microstructure_probe}.renamed"
+sudo -u "$SOURCE_USER" sh -c 'umask 027; printf "%s\n" probe > "$1/probe"' \
+  -- "$microstructure_probe"
+sudo chown root:"$WORKER_USER" "$microstructure_probe" "$microstructure_probe/probe"
+sudo chmod 0550 "$microstructure_probe"
+sudo chmod 0440 "$microstructure_probe/probe"
+if sudo -u "$SOURCE_USER" test -r "$microstructure_probe/probe"; then
+  fail "source can read a frozen microstructure probe"
+fi
+if sudo -u "$SOURCE_USER" sh -c 'printf x >> "$1"' -- "$microstructure_probe/probe" 2>/dev/null; then
+  fail "source can modify a frozen microstructure probe"
+fi
+if sudo -u "$SOURCE_USER" mv -- "$microstructure_probe" "$microstructure_probe_renamed" 2>/dev/null; then
+  fail "source can rename a frozen microstructure probe"
+fi
+if sudo -u "$SOURCE_USER" rm -rf -- "$microstructure_probe" 2>/dev/null; then
+  fail "source can delete a frozen microstructure probe"
+fi
+sudo test -d "$microstructure_probe" || fail "frozen verifier probe disappeared"
+cleanup_microstructure_probe
+microstructure_probe=""
+microstructure_probe_renamed=""
+trap - EXIT
+ok "microstructure sticky publication and immutable freeze boundary verified"
+
+if [ -e "$MICROSTRUCTURE_BINDING" ] || [ -L "$MICROSTRUCTURE_BINDING" ]; then
+  (
+    cd "$current"
+    sudo env PYTHONDONTWRITEBYTECODE=1 "$WORKER_ROOT/venv/bin/python" - <<'PY'
+from research_pipeline.microstructure_intake_cli import (
+    fixed_runtime_paths,
+    validate_existing_installation,
+)
+
+validate_existing_installation(paths=fixed_runtime_paths())
+PY
+  )
+  microstructure_state_file="$(sudo find "$MICROSTRUCTURE_STATE" -mindepth 1 -maxdepth 1 -type f -name '*.json' -print)"
+  [ -n "$microstructure_state_file" ] \
+    && [ "$(printf '%s\n' "$microstructure_state_file" | wc -l)" = 1 ] \
+    || fail "microstructure state file is not singular"
+  [ "$(sudo stat -c '%U:%G:%a' "$microstructure_state_file")" = "$WORKER_USER:$WORKER_USER:600" ] \
+    || fail "microstructure state file metadata is incorrect"
+else
+  [ -z "$(sudo find "$MICROSTRUCTURE_STATE" -mindepth 1 -maxdepth 1 -print -quit)" ] \
+    || fail "microstructure state exists without a binding"
+fi
+ok "microstructure intake state namespace and static gates verified"
+
+case "$EXPECT_MICROSTRUCTURE_SOURCE" in
+  disabled)
+    if systemctl is-active --quiet "$MICROSTRUCTURE_UNIT"; then
+      fail "microstructure source is active before intake readiness"
+    fi
+    case "$(systemctl is-enabled "$MICROSTRUCTURE_UNIT" 2>/dev/null || true)" in
+      enabled|enabled-runtime|linked|linked-runtime|alias)
+        fail "microstructure source is enabled before intake readiness"
+        ;;
+    esac
+    ok "microstructure source is disabled and inactive"
+    ;;
+  active)
+    [ "$MICROSTRUCTURE_INTAKE_PREFLIGHT" = 1 ] \
+      || fail "active source expectation requires explicit intake preflight"
+    systemctl is-active --quiet agora-research-microstructure-intake.path \
+      || fail "microstructure intake path is not active"
+    systemctl is-active --quiet "$MICROSTRUCTURE_UNIT" \
+      || fail "microstructure source is not active"
+    ok "microstructure source active only with explicit intake preflight"
+    ;;
+  *) fail "unsupported EXPECT_MICROSTRUCTURE_SOURCE: $EXPECT_MICROSTRUCTURE_SOURCE" ;;
+esac
 
 [ "$(systemctl show agora-research-dispatch.service --property=Restart --value)" = "on-abnormal" ] \
   || fail "dispatch service does not restart after an abnormal stop"

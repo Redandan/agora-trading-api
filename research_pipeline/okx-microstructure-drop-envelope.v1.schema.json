@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-drop-envelope.v1.schema.json",
+  "title": "OKX Microstructure Immutable One-Way Drop Envelope V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_type",
+    "authorization",
+    "diagnostic_id",
+    "source_contract_sha256",
+    "producer_release_id",
+    "producer_manifest_sha256",
+    "producer_identity",
+    "day",
+    "predecessor_day",
+    "predecessor_bundle_sha256",
+    "bundle_name",
+    "bundle_size_bytes",
+    "bundle_sha256",
+    "published_at",
+    "idempotency_key",
+    "delivery_semantics",
+    "envelope_seal"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "OKX_MICROSTRUCTURE_DROP_ENVELOPE_V1"
+    },
+    "envelope_type": {
+      "const": "IMMUTABLE_ONE_WAY_MICROSTRUCTURE_DAY"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "diagnostic_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"
+    },
+    "source_contract_sha256": {
+      "const": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    "producer_release_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "producer_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "producer_identity": {
+      "const": "agora-evidence-source"
+    },
+    "day": {
+      "type": "string",
+      "format": "date"
+    },
+    "predecessor_day": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "date"
+        }
+      ]
+    },
+    "predecessor_bundle_sha256": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "bundle_name": {
+      "type": "string",
+      "pattern": "^okx-btc-usdt-microstructure-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.json$"
+    },
+    "bundle_size_bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,79}:[0-9]{4}-[0-9]{2}-[0-9]{2}:[0-9a-f]{64}$"
+    },
+    "delivery_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "bundle_document_canonicalization",
+        "envelope_document_canonicalization",
+        "atomic_rename",
+        "overwrite",
+        "source_read_after_publish",
+        "symlinks",
+        "canonical_state_access",
+        "candle_chain_reuse"
+      ],
+      "properties": {
+        "transport": {
+          "const": "MICROSTRUCTURE_ONLY_ONE_WAY_DROP"
+        },
+        "bundle_document_canonicalization": {
+          "const": "UTF-8 compact JSON including seal; object keys sorted lexicographically"
+        },
+        "envelope_document_canonicalization": {
+          "const": "UTF-8 compact JSON including envelope_seal; object keys sorted lexicographically"
+        },
+        "atomic_rename": {
+          "const": true
+        },
+        "overwrite": {
+          "const": false
+        },
+        "source_read_after_publish": {
+          "const": false
+        },
+        "symlinks": {
+          "const": false
+        },
+        "canonical_state_access": {
+          "const": false
+        },
+        "candle_chain_reuse": {
+          "const": false
+        }
+      }
+    },
+    "envelope_seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "payload_sha256",
+        "canonicalization",
+        "sealed_at"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "SHA-256"
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "canonicalization": {
+          "const": "UTF-8 compact JSON excluding envelope_seal; object keys sorted lexicographically"
+        },
+        "sealed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

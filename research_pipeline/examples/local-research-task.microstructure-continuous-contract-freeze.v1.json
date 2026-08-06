@@ -1,0 +1,113 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-continuous-contract-freeze-v1",
+  "issued_at": "2026-08-06T10:05:03Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Freeze and test the offline contract boundary for a continuous credential-free OKX BTC-USDT trades/books5 producer, immutable microstructure-only drop envelope, and network-denied Server Canonical intake state machine. The slice must make gaps, tampering, out-of-order days, conflicting duplicates, backfill, candle-chain reuse, and lifecycle-clock behavior fail closed before any service implementation or deployment is considered.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/examples/local-research-task.microstructure-continuous-contract-audit.v1.json",
+      "sha256": "e186de2c006d77599bfff0204fd82e915a72a89dbb035c16dcdc56701802ca82"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-source-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-diagnostic-v2.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+      "sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+      "sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The preceding static audit passed 19 Manager checks with files_changed empty and every safety assertion false. Freeze only the five named offline files. The source is a continuously supervised data-plane service, not a research lifecycle timer. Bind the public endpoint already present in the repository, but do not execute it.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "ADD_FROZEN_SOURCE_CONTRACT",
+    "ADD_STRICT_DROP_ENVELOPE_SCHEMA",
+    "ADD_STRICT_INTAKE_STATE_SCHEMA",
+    "ADD_DETERMINISTIC_OFFLINE_VALIDATOR",
+    "ADD_DETERMINISTIC_FIXTURE_TESTS",
+    "RUN_FOCUSED_PYTHON_TESTS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SYSTEMD_OR_SCHEDULE_CHANGE",
+    "SERVICE_IMPLEMENTATION_OR_DEPLOYMENT",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_MUTATION",
+    "EXISTING_V1_V2_V3_OR_V6_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "FROZEN_CONTINUOUS_SOURCE_CONTRACT",
+    "STRICT_IMMUTABLE_DROP_ENVELOPE_SCHEMA",
+    "STRICT_SERVER_INTAKE_STATE_SCHEMA",
+    "DETERMINISTIC_VALIDATOR_AND_STATE_MACHINE",
+    "FAIL_CLOSED_NEGATIVE_TESTS",
+    "PERFORMANCE_LEARNING_BOUNDARY",
+    "FIVE_FILE_CHANGESET",
+    "VERIFICATION_RESULTS"
+  ],
+  "stop_conditions": [
+    "Change exactly these five new files and no others: research_pipeline/okx-microstructure-continuous-source-contract.v1.json, research_pipeline/okx-microstructure-drop-envelope.v1.schema.json, research_pipeline/okx-microstructure-intake-state.v1.schema.json, research_pipeline/microstructure_source_contract.py, and research_pipeline/tests/test_microstructure_source_contract.py.",
+    "Do not modify the existing collector, analyzer, V1/V2/V3 data contracts, V6 schedule contract, server scripts, systemd units, deployment files, .research-state, candle evidence chain, or canonical state.",
+    "Bind the source to authorization RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE, purpose HYPOTHESIS_DISCOVERY_ONLY, endpoint wss://ws.okx.com:8443/ws/v5/public, OKX BTC-USDT, channels trades and books5, UTC, forward-only, no credentials, no historical backfill, no raw-message persistence, no canonical-state access, no research-action selection, exactly 14 contiguous future UTC days, the frozen V2 day schema hash, and the frozen V2 diagnostic contract hash.",
+    "Define exact-key validation and deterministic transition rules for producer, immutable one-way drop, and Server Canonical intake. Reject changed contract hashes, wrong identities, symlinks, overwrite semantics, non-atomic delivery, wrong or noncontiguous days, incomplete 1,440-minute bundles, non-CLEAN integrity, stream gaps, bad hashes, predecessor mismatch, conflicting duplicates, and any attempted backfill.",
+    "Treat continuous source supervision and first-valid-next-day-message sealing as data-plane behavior only. The contract must state that exactly one Codex Cloud Ops schedule remains the sole research lifecycle clock and that the producer cannot enqueue, select, retry, or time research actions.",
+    "Keep the 90-day candle chain and trigger byte-separate and semantically separate. No field or transition may claim that a microstructure day advances candle evidence.",
+    "The only successful terminal readiness is DIAGNOSTIC_READY after exactly 14 accepted contiguous future days. This authorizes frozen V2 discovery analysis only; it is not a candidate, OOS opening, PnL claim, or promotion. Fees, slippage, drawdown effect, predictive value, and strategy usefulness remain MISSING_PROOF.",
+    "Use only Python standard-library code and deterministic offline fixtures. Run only the focused new test file plus task/result validation; do not run Java, Maven, adapters, collectors, analyzers, SSH, deployment scripts, systemd, or network requests.",
+    "If exact source/drop/intake behavior cannot be frozen within five files without editing an existing file, stop BLOCKED and report the missing proof instead of expanding scope.",
+    "Do not request additional permission. Do not create a service, path unit, timer, schedule, canonical writer, candidate, manifest, or experiment."
+  ],
+  "limits": {
+    "timeout_seconds": 3600,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

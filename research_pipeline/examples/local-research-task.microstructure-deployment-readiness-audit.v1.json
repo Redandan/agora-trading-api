@@ -1,0 +1,162 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-deployment-readiness-audit-v1",
+  "issued_at": "2026-08-06T11:22:15Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "READ_ONLY",
+  "objective": "Determine whether the frozen continuous Java microstructure producer and offline Python Server Canonical intake are ready for a separately authorized deployment slice. Statically map the exact binding and release-manifest requirements, service identities, directory ownership and permissions, source egress and intake network denial, atomic-filesystem assumptions, capacity and retention, crash recovery, installation and verification seams, and the one-clock boundary. Produce the smallest phased deployment changeset and explicit Go/No-Go gates without editing, deploying, connecting to the server, or creating a timer.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureContinuousSourceCli.java",
+      "sha256": "bdaf7665ebe57af226de36d2b05d1807c9ffb2924023462fcd23f1baec67e231"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCollector.java",
+      "sha256": "3c7d2abda4ac9254c584ef581d271e2bfeaae6c2e06a1a9761028737445ad7fa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCanonicalDrop.java",
+      "sha256": "0a8224d0f919f8db99fbbd9d032eb500c274fcca50d31f3448901bcd0b9a77c8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_intake.py",
+      "sha256": "a2ddfd7f50b823e51245da247086667a28f2bcb92891c53afe05acb9f19da7f8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-source.service",
+      "sha256": "e03c4ce3c33d21a8e4b787384880355f8286e481f22bd3eff9ec0bcf8fb72f0f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-source.path",
+      "sha256": "4f63ce9f079f90f0d9e7ac684b6300379328d6739dae94da13247f9d9f215136"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-evidence-ingest.service",
+      "sha256": "909525bea874ec348573012cf3c0d755fb467528199636b9f9f53857ad7de03d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-evidence-ingest.path",
+      "sha256": "e77cc00c285dc9d825deaf6d20fb9dfa5db7b3ae4f58a93eb7fd7ca5896af9ff"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "b2551185c2a85ac2e9e9957e7c955eaeeb14bda4bd1da03be183735c9043e336"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "1dc7d886e2a649c6849b38bd696d62e335cff7054d3bdb96d95f03adc01fbea3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "4b257beb9c9b125a5ec16500591481e56e013955e8807262be2f91eb1b2d913f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/deploy-runbook.md",
+      "sha256": "86d4fe6b7b9644e5066dc726b79471238f62ae28bb185f1a0e6a4d7848c253f2"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "pom.xml",
+      "sha256": "36edea64057794ae49ba0c4cc47385afe2410fbdd9fa9d61b0c1c57f74104235"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The continuous producer passed 16 focused Java tests and an offline package build; the canonical intake passed 10 focused tests plus 12 frozen-contract regressions. Both remain undeployed. This audit must identify exact deployment prerequisites and a bounded next changeset only. The source service is continuous data-plane supervision; it is not a research lifecycle timer. The sole Codex Cloud Ops schedule must remain the only lifecycle clock and Server Canonical must remain the only research-state writer.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "READ_DEPLOYMENT_SCRIPTS_AND_UNITS",
+    "MAP_SERVICE_IDENTITY_AND_FILESYSTEM_BOUNDARIES",
+    "MAP_BINDING_AND_RELEASE_MANIFEST_REQUIREMENTS",
+    "DEFINE_NETWORK_AND_SANDBOX_GATES",
+    "DEFINE_CAPACITY_RETENTION_AND_RECOVERY_GATES",
+    "DEFINE_PHASED_DEPLOYMENT_CHANGESET",
+    "DEFINE_DEPLOYMENT_ACCEPTANCE_MATRIX",
+    "ASSESS_PERFORMANCE_TIME_TO_EVIDENCE",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SYSTEMD_OR_SCHEDULE_CHANGE",
+    "SERVICE_IMPLEMENTATION_OR_DEPLOYMENT",
+    "SSH_OR_SERVER_CONNECTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_MUTATION",
+    "JAVA_MAVEN_PYTHON_TEST_OR_RUNNER_EXECUTION",
+    "WORKTREE_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "DEPLOYMENT_GO_NO_GO",
+    "BINDING_AND_RELEASE_MANIFEST_MATRIX",
+    "SERVICE_IDENTITY_AND_DIRECTORY_MATRIX",
+    "NETWORK_AND_SANDBOX_MATRIX",
+    "CAPACITY_RETENTION_AND_ATOMICITY_GATES",
+    "CRASH_RECOVERY_AND_ROLLBACK_GATES",
+    "ONE_CLOCK_AND_ONE_WRITER_ASSERTIONS",
+    "EXACT_PHASED_NEXT_FILE_SLICE",
+    "DEPLOYMENT_ACCEPTANCE_MATRIX",
+    "PERFORMANCE_TIME_TO_EVIDENCE_THESIS",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Perform static local inspection only. Do not edit files or execute Java, Maven, Python tests, collectors, analyzers, adapters, runners, systemd, SSH, deployment scripts, or network requests.",
+    "Classify current readiness as Go, Conditional Go, or No-Go for a later deployment slice. A Go classification must still not authorize deployment in this task.",
+    "Trace the current producer's fixed binding path and fields to an exact root-owned binding and release-manifest design. Identify how producer_release_id and producer_manifest_sha256 are generated from deployed bytes without using the task hash, and fail closed on mismatch.",
+    "Define distinct Unix identities and directory ownership for the public-egress source and network-denied Server Canonical intake. The source must not read canonical state or published drop bytes after atomic delivery; the intake must not access network, choose research tasks, or become a second lifecycle writer.",
+    "Determine whether existing source and evidence-ingest service/path units can be safely adapted or must remain separate from the new continuous producer and microstructure intake. Do not reuse a path unit if it would mix candle evidence or trigger research lifecycle actions.",
+    "Require a microstructure-only immutable drop, source-private staging directory, canonical intake-state directory, same-filesystem atomic rename/replace proof, symlink and overwrite rejection, disk-capacity threshold, bounded retention, and manual recovery for stale locks or temporary files.",
+    "Keep the continuous producer supervised by a service without any timer. The sole Codex Cloud Ops schedule remains the only research lifecycle clock; no local timer, heartbeat, research selector, retry scheduler, or candidate writer may be proposed.",
+    "Define crash, restart, disconnect, day rollover, day-14 stop, duplicate delivery, conflicting delivery, storage-full, permission failure, stale lock/temp, binding mismatch, and release mismatch acceptance behavior. Any unproved active-window interval or mutation ambiguity must fail the frozen window closed without backfill or automatic start-day shift.",
+    "Propose the smallest phased repository changeset. Keep the first deployment-preparation write slice at no more than eight files, with exact paths and verification commands. Split source service, intake service, install/verify wiring, and documentation if eight files are insufficient.",
+    "State the performance thesis only as reduced time-to-valid-future-evidence and faster rejection or promotion of mechanisms after later gates. Predictive value, fees, slippage, drawdown, strategy usefulness, installed permissions, server capacity, production liveness, real reconnect reliability, future completeness, and PnL remain MISSING_PROOF.",
+    "Return one result JSON with files_changed empty and every safety assertion false. Do not request permissions."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

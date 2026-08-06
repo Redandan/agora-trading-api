@@ -1,0 +1,85 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-contract-hardening-v1",
+  "issued_at": "2026-08-06T09:36:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Harden the existing OKX BTC-USDT microstructure forward bundle into a strict, deterministic, offline-verifiable tooling contract, while keeping every bundle non-canonical until a separately reviewed continuous producer, one-way transport, and server intake contract exists.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-source-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-bundle.schema.json",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cli.py",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureForwardSourceCli.java",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The validated read-only audit concluded that the portable bundle schema is permissive, the seal lacks an independent validator, and the current bounded collector is smoke tooling only. Implement the smallest offline contract-hardening slice; source-to-canonical binding and continuous operation remain MISSING_PROOF and out of scope.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "EDIT_MICROSTRUCTURE_BUNDLE_SCHEMA",
+    "ADD_OFFLINE_BUNDLE_VALIDATOR",
+    "ADD_DETERMINISTIC_CONTRACT_TESTS",
+    "UPDATE_MICROSTRUCTURE_SOURCE_DOC",
+    "RUN_FOCUSED_OFFLINE_TESTS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION"
+  ],
+  "expected_outputs": [
+    "STRICT_BUNDLE_SCHEMA",
+    "DETERMINISTIC_SEAL_VALIDATION",
+    "FAIL_CLOSED_NEGATIVE_TESTS",
+    "SMOKE_ONLY_ELIGIBILITY_DISPOSITION",
+    "SINGLE_CLOCK_BOUNDARY_DOCUMENTATION",
+    "VERIFIED_RESULT"
+  ],
+  "stop_conditions": [
+    "Modify at most the bundle schema, one offline validator module, research_pipeline/cli.py, one focused test module, and the microstructure source document; preserve every other existing worktree change.",
+    "Do not edit the Java collector, the V6 cloud contract, deployment files, schedules, server state, canonical research state, or .research-state.",
+    "Do not run the collector, Maven, Java, an adapter, a strategy runner, or any network request; use deterministic non-network fixtures only.",
+    "The validator must independently recompute the declared seal and fail closed on unknown fields, malformed types, non-contiguous minutes, stream gaps, integrity anomalies, inconsistent eligibility, or an altered payload.",
+    "Do not claim that strict local validation makes a bundle canonical; report source identity, continuous UTC-day operation, one-way transport, server intake, predecessor binding, and prospective performance value as MISSING_PROOF.",
+    "Stop without widening scope if implementation would require a second timer, local canonical writer, historical backfill, paid API, OOS, Trading access, or strategy activation."
+  ],
+  "limits": {
+    "timeout_seconds": 3600,
+    "max_files_changed": 5,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

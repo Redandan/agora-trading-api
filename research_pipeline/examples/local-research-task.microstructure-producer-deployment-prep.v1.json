@@ -1,0 +1,144 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-producer-deployment-prep-v1",
+  "issued_at": "2026-08-06T11:31:30Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the first deployment-preparation slice for the frozen Java continuous microstructure producer: build a narrow direct-Java-21 distribution, include it in the sealed Research Worker release, optionally generate a root-owned binding tied to the actual installed release manifest, add a hardened credential-free service that remains disabled and inactive, and extend offline/static verification and documentation. Do not deploy, connect to a server, create a timer, start the producer, or implement intake in this task.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "pom.xml",
+      "sha256": "36edea64057794ae49ba0c4cc47385afe2410fbdd9fa9d61b0c1c57f74104235"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/deploy_research_worker_upgrade_ssh.ps1",
+      "sha256": "b1739ae6e84fa71146397d8a6f41f9044c196b3d4ac19839f1dc27bf199d74ca"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "b2551185c2a85ac2e9e9957e7c955eaeeb14bda4bd1da03be183735c9043e336"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "1dc7d886e2a649c6849b38bd696d62e335cff7054d3bdb96d95f03adc01fbea3"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "4b257beb9c9b125a5ec16500591481e56e013955e8807262be2f91eb1b2d913f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/deploy-runbook.md",
+      "sha256": "86d4fe6b7b9644e5066dc726b79471238f62ae28bb185f1a0e6a4d7848c253f2"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureContinuousSourceCli.java",
+      "sha256": "bdaf7665ebe57af226de36d2b05d1807c9ffb2924023462fcd23f1baec67e231"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCollector.java",
+      "sha256": "3c7d2abda4ac9254c584ef581d271e2bfeaae6c2e06a1a9761028737445ad7fa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCanonicalDrop.java",
+      "sha256": "0a8224d0f919f8db99fbbd9d032eb500c274fcca50d31f3448901bcd0b9a77c8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureForwardSourceCli.java",
+      "sha256": "6b87bb9a6e498ea9548c8e7dc7237080164e92530e3ef634507e9208447efa11"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureContinuousSourceCliTest.java",
+      "sha256": "3bbc563531f343c18693ef24ff4e2c052cc843d52fa993d7fdfab45327622a7a"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureForwardSourceCliTest.java",
+      "sha256": "3a201a6685169514865ea7ca3fae95256890fc8cf4cb4c17200cf500e573a6f5"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Static deployment review is No-Go now. The SSH release excludes target, the installer does not build Java, the binding is not checked against the installed release manifest, and no dedicated continuous source unit exists. This task fixes only producer packaging and binding preparation. The unit must be installed disabled and inactive; intake remains a later separate slice.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "EDIT_MAVEN_PROFILE_WITHOUT_NEW_DEPENDENCIES",
+    "EDIT_RESEARCH_WORKER_RELEASE_PACKAGING",
+    "ADD_FIXED_PRODUCER_LAUNCH_WRAPPER",
+    "ADD_DISABLED_HARDENED_SOURCE_SERVICE",
+    "ADD_OPTIONAL_ROOT_OWNED_BINDING_INSTALL",
+    "EXTEND_STATIC_WORKER_VERIFICATION",
+    "UPDATE_DEPLOYMENT_DOCUMENTATION",
+    "RUN_FOCUSED_OFFLINE_JAVA_TESTS",
+    "RUN_OFFLINE_DISTRIBUTION_BUILD",
+    "RUN_LOCAL_SCRIPT_SYNTAX_CHECKS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SYSTEMD_ENABLE_START_OR_SCHEDULE_CHANGE",
+    "SERVICE_DEPLOYMENT_OR_EXECUTION",
+    "SSH_OR_SERVER_CONNECTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_MUTATION",
+    "MAVEN_EXEC_OR_SPRING_START",
+    "PYTHON_INTAKE_IMPLEMENTATION",
+    "EXISTING_JAVA_PRODUCER_OR_TEST_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_EIGHT_FILE_CHANGESET",
+    "NARROW_MICROSTRUCTURE_JAVA_DISTRIBUTION",
+    "SEALED_RELEASE_PACKAGE_INCLUSION",
+    "INSTALLED_MANIFEST_BOUND_BINDING",
+    "DIRECT_JAVA_21_LAUNCH_WRAPPER",
+    "DISABLED_HARDENED_SOURCE_SERVICE",
+    "OFFLINE_AND_STATIC_VERIFICATION_RESULTS",
+    "UPDATED_DEPLOYMENT_BOUNDARIES",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly these eight files and no others: pom.xml; scripts/deploy_research_worker_upgrade_ssh.ps1; scripts/research-worker/install-upgrade.sh; scripts/research-worker/run-microstructure-continuous-source.sh; scripts/research-worker/agora-research-microstructure-source.service; scripts/research-worker/verify-worker.sh; docs/server-research-worker-v2.md; docs/deploy-runbook.md. The wrapper and service are new; the other six are existing. Stop BLOCKED if this is insufficient.",
+    "Do not edit any Java producer or Java test source. Preserve the already accepted producer hashes and behavior.",
+    "Add an inactive-by-default Maven profile named microstructure-research-dist. It must package only com/agora/research/OkxMicrostructure*.class and the minimum already-declared Jackson runtime dependencies required by the producer into target/microstructure-dist. It must not change the default Spring Boot main class, add a dependency, invoke Maven exec, or start Spring.",
+    "Update the SSH upgrade packager to require a clean Git worktree before release packaging, run the offline microstructure distribution profile, verify the expected narrow jar and dependency directory, include only target/microstructure-dist under the sealed release archive, and include those exact bytes in source.sha256. Do not execute SSH in this task.",
+    "Add optional explicit deployment parameters for preparing a future microstructure source binding. They must be all-or-none, validate a strictly future UTC start day and a frozen diagnostic id, and pass fixed values to install-upgrade.sh. Ordinary Research Worker upgrades must not silently replace an existing active binding or restart the source.",
+    "In install-upgrade.sh, verify the distribution through source.sha256 and install nothing from network. On explicit request, atomically create the fixed binding as root:agora-evidence and non-world-readable. Its release id is RELEASE_ID; its manifest hash is the hash of installed .release/source.sha256, never the task hash. Refuse overwrite unless the source unit is disabled and inactive. Never enable or start it.",
+    "The wrapper must use fixed paths, require Java 21, reject symlinks, validate binding ownership/mode and exact keys, and compare its release id and manifest hash to installed provenance and the actual .release/source.sha256 hash. Verify the narrow jar/dependencies are covered by that manifest, then exec only OkxMicrostructureContinuousSourceCli with an explicit classpath. Accept no caller paths/main classes; never invoke Spring or Maven.",
+    "The source service runs only when explicitly started, as agora-evidence-source, with no EnvironmentFile, credentials, timer, or Install enablement. Require Restart=no, bounded RuntimeMaxSec, canonical state and Trading secrets inaccessible, only AF_UNIX/AF_INET/AF_INET6, and write access limited to fixed microstructure staging and drop roots. Never access candle paths.",
+    "Extend verify-worker.sh without starting the source. Default expectation is disabled and inactive. Verify the new unit identity, no timer, Restart=no, no environment files, Java 21, sealed distribution, binding-to-release match when binding is present, canonical-state denial for the source identity, and the legacy server heartbeat timer still disabled. Permit a later explicit active expectation only after the separate intake and server preflight gates exist.",
+    "Document that this phase prepares but does not deploy or activate collection; the second phase must add a separate network-denied microstructure intake CLI/service/path and immutable retention/capacity/recovery checks before the source can be started. Cloud Ops remains the sole lifecycle clock and Server Canonical remains the sole research-state writer.",
+    "Run only: task validation; the two focused Java test classes offline; mvn -o -Pmicrostructure-research-dist -DskipTests package; PowerShell parser validation of the deployment script; bash -n for the installer and wrapper when bash is locally available; and git diff --check for the eight files. Do not execute any main class, wrapper, service, deployment script, SSH, collector, network request, or Python intake.",
+    "Stop after offline preparation. Actual clean-release packaging, server Java 21, systemd verification, installed identities/permissions, storage capacity, same-filesystem atomicity, real binding installation, source liveness, reconnect reliability, future completeness, intake, predictive value, drawdown and PnL remain MISSING_PROOF."
+  ],
+  "limits": {
+    "timeout_seconds": 5400,
+    "max_files_changed": 8,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

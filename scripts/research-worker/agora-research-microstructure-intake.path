@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch immutable microstructure drops for canonical intake
+
+[Path]
+PathChanged=/var/lib/agora-evidence-source/microstructure-drop
+Unit=agora-research-microstructure-intake.service
+
+[Install]
+WantedBy=multi-user.target

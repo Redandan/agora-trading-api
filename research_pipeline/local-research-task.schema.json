@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Codex Research Task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "issued_at",
+    "manager_thread_id",
+    "task_type",
+    "execution_mode",
+    "objective",
+    "canonical_research_status",
+    "authorization",
+    "state_authority",
+    "timer_authority",
+    "inputs",
+    "allowed_actions",
+    "forbidden_actions",
+    "expected_outputs",
+    "stop_conditions",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "task_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,79}$"},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "manager_thread_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "task_type": {
+      "enum": [
+        "CAPABILITY_READINESS",
+        "TOOLING_VERTICAL_SLICE",
+        "ADAPTER_IMPLEMENTATION",
+        "EVIDENCE_DIAGNOSTIC",
+        "REGISTERED_EXPERIMENT_STEP"
+      ]
+    },
+    "execution_mode": {"enum": ["READ_ONLY", "WORKTREE_WRITE"]},
+    "objective": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "canonical_research_status": {"type": "string", "minLength": 1, "maxLength": 128},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "state_authority": {"const": "SERVER_CANONICAL"},
+    "timer_authority": {"const": "CODEX_CLOUD_OPS_ONLY"},
+    "inputs": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "locator", "sha256"],
+        "properties": {
+          "kind": {
+            "enum": ["REPOSITORY_PATH", "SEALED_ARTIFACT", "CANONICAL_STATUS", "TASK_MESSAGE"]
+          },
+          "locator": {"type": "string", "minLength": 1, "maxLength": 1000},
+          "sha256": {
+            "oneOf": [
+              {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              {"type": "null"}
+            ]
+          }
+        }
+      }
+    },
+    "allowed_actions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,80}$"}
+    },
+    "forbidden_actions": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"}
+    },
+    "expected_outputs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z0-9_]{3,100}$"}
+    },
+    "stop_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 500}
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeout_seconds",
+        "max_files_changed",
+        "max_candidate_variants",
+        "network_access"
+      ],
+      "properties": {
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 7200},
+        "max_files_changed": {"type": "integer", "minimum": 0, "maximum": 100},
+        "max_candidate_variants": {"type": "integer", "minimum": 0, "maximum": 3},
+        "network_access": {"enum": ["NONE", "PUBLIC_READ_ONLY"]}
+      }
+    }
+  }
+}

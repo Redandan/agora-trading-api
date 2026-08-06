@@ -68,6 +68,12 @@ requests; it is not a timer. The Worker has a separate Unix identity,
 root-owned code, isolated durable state, no Production secrets, and no database
 or exchange authority. It cannot invoke Spring or any Trading runtime action.
 
+An optional local Codex research task may consume a schema-bound task package as
+described in `docs/local-codex-research-node-v1.md`. It is a non-authoritative
+execution node, not a scheduler or state writer. Its results return to the
+Manager/Coach task and cannot call the Research MCP write surface, mutate
+canonical state, open OOS, or activate any Trading path.
+
 The same heartbeat call may automatically enqueue one deterministic companion
 forward-evidence request only when canonical progress is `CAPTURE_DUE`. A
 separate credential-free `agora-evidence-source` identity can call only the

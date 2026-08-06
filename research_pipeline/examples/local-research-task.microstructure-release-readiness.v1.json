@@ -1,0 +1,163 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-release-readiness-v1",
+  "issued_at": "2026-08-06T12:24:22Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Independently audit the completed Local Research Node microstructure producer and intake implementation as one deployable research-only release. Reconcile the corrected least-privilege intake boundary, prove the exact Git/release closure and offline build/test readiness, and return a fail-closed GO or NO_GO recommendation for a later clean commit and Linux server preflight. Do not edit files, commit, deploy, connect to a server, start either service, create a timer, or collect evidence.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "SERVICE_BOUNDARY.md",
+      "sha256": "584da5b7fac21ba4a8ded695dbebbcd34a30b5d9cea69c2840c102249205f3dd"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "58877b4371ffaed9f76ba80d0d02171bf889a90a845d46d8f978a424a4757336"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "3abbd91b398307b358eaf31072a3af714256af6ffb5011883bb3936f398df279"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/deploy-runbook.md",
+      "sha256": "ee51c3e0afc6ee7d27ba7bbbab40bb02686c4eea9e4433333a0f8c703f369a0e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "pom.xml",
+      "sha256": "26c39c531ab2310fad3a6ee7b36e95599044122852bbca33dd7e6f5fe1c07828"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_intake_cli.py",
+      "sha256": "c4982129aa37bf395b7d9c0ec3198eb3301b7ed558ac83a071a624efb0997794"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_intake_cli.py",
+      "sha256": "78add839f4d5858650b03267fc682800c2c50acd6871678bbe4b697b55bc850b"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/deploy_research_worker_upgrade_ssh.ps1",
+      "sha256": "9bcf53ecc13fb91dee9380e20b267b26193aab0ab75c2423c3beb12eaba3f148"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "ad5afd2213ebf3801d6bdc6c7e31f9500fff2646d52a76a68ff272aadb3fd2f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "13a3d01bf69e77d986a0176fd98a89899ada9f66ef8ba65b2c8c6896e7f5afe0"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-microstructure-intake.service",
+      "sha256": "c5f2da998b6cad67b6ed7fb32bc40989f45371ba966687fdc80bda78862a75cb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-microstructure-intake.path",
+      "sha256": "ec77af90a21b35c03752097434987fdb1d9aec1e609038e4dd1c049990058530"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-microstructure-source.service",
+      "sha256": "8a99a0658475bf72b613d290e140c72e18ca29f489b8c428f1c06a56bd6566eb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/run-microstructure-continuous-source.sh",
+      "sha256": "443f7e6e33d0b8ce2f5bdf23a36d80c0b06af8d58998b4056e25c39929bc3407"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Manager correction: the final intake identity is not a persistent member of agora-evidence and has no SupplementaryGroups entry. The fixed drop parent is root:agora-evidence mode 1770. Intake receives exactly CAP_DAC_READ_SEARCH, CAP_CHOWN, and CAP_FOWNER, with no CAP_DAC_OVERRIDE, and may mutate metadata only through fixed drop/state paths. This corrected least-privilege model supersedes the obsolete supplementary-group sentence in the earlier preparation task; the earlier task bytes remain unchanged for auditability.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "VERIFY_INPUT_HASHES",
+    "INSPECT_GIT_CHANGESET",
+    "INSPECT_RELEASE_ARCHIVE_CLOSURE",
+    "AUDIT_LEAST_PRIVILEGE_STATIC_BOUNDARY",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_FOCUSED_OFFLINE_JAVA_TESTS",
+    "RUN_OFFLINE_DISTRIBUTION_BUILD",
+    "RUN_LOCAL_SCRIPT_SYNTAX_CHECKS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS",
+    "REPORT_MISSING_PROOF"
+  ],
+  "forbidden_actions": [
+    "FILE_OR_WORKTREE_EDIT",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SECOND_TIMER_OR_LIFECYCLE_WRITER",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_ENABLE_START_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "EVIDENCE_FILE_CONTENT_MUTATION_OR_DELETION"
+  ],
+  "expected_outputs": [
+    "CORRECTED_INTAKE_BOUNDARY_VERDICT",
+    "EXACT_RESEARCH_CHANGESET_INVENTORY",
+    "RELEASE_ARCHIVE_CLOSURE_MANIFEST",
+    "OFFLINE_BUILD_AND_TEST_MATRIX",
+    "CLEAN_COMMIT_SCOPE_RECOMMENDATION",
+    "LINUX_PREFLIGHT_CHECKLIST",
+    "GO_OR_NO_GO_VERDICT",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task before inspection. Record source commit and dirty state before and after. Any tracked or untracked file mutation other than ignored build output is a task failure; do not repair, revert, delete, stage, or commit anything.",
+    "Treat the corrected intake boundary in TASK_MESSAGE as authoritative. Verify the worker is not persistently a member of agora-evidence, the intake unit declares no SupplementaryGroups, the drop parent contract is root:agora-evidence 1770 sticky, and the intake capability sets contain exactly CAP_DAC_READ_SEARCH, CAP_CHOWN, and CAP_FOWNER with no CAP_DAC_OVERRIDE.",
+    "Verify the intake unit has Restart=no, IPAddressDeny=any, RestrictAddressFamilies=AF_UNIX, no EnvironmentFile, fixed read-only binding/current-release paths, and exactly the fixed drop plus dedicated microstructure-state writable paths. Verify the path unit is event-driven only and no microstructure timer is present in the release closure.",
+    "Verify installer and verifier preserve existing explicit evidence-reader groups only where documented, remove the worker's persistent evidence-group membership, initialize the fixed state under installer privilege, leave the validated state file agora-research:agora-research 0600, enable only the intake path, and leave the producer disabled/inactive.",
+    "Inventory every tracked modification and untracked file in the working tree. Classify each as goal-owned research release input, unrelated user/concurrent work, ignored build output, or unsafe/unknown. A later clean commit is GO only if every included path is explicitly classified and no unrelated or unsafe path must be staged.",
+    "Reconstruct the deploy script's archive inclusion rules without creating or uploading an archive. List all source roots and identify whether .research-state, secrets, Git metadata, caches, compiled Python files, unrelated project files, or untracked research inputs would be included. Return NO_GO if the closure is ambiguous or contains a forbidden input.",
+    "Run only offline verification: task validation; focused Python microstructure/local-node suites; focused Java microstructure tests; mvn -o -Pmicrostructure-research-dist -DskipTests package; PowerShell parser checks; bash -n only when Bash is locally available; and git diff --check. Do not invoke a Java main, Maven exec, collector, service, network endpoint, SSH, or server.",
+    "Inspect the generated ignored microstructure distribution only for exact jar/library inventory and manifest coverage. Do not delete or modify source files. Generated target output does not count as a worktree change but must be reported.",
+    "A release-readiness GO means only that the exact local changes can be prepared as a clean reviewable Git commit and sent to a separate Linux preflight. It is not authorization to commit, deploy, initialize binding, enable the producer, collect evidence, register a candidate, or change canonical research state.",
+    "Bash syntax when unavailable, Linux identities and capabilities, sticky-directory behavior, same-filesystem atomicity, capacity, systemd path retrigger behavior, binding initialization, producer isolation, liveness, reconnects, 14 future UTC days, predictive independence, fees, slippage, drawdown, and PnL remain MISSING_PROOF. Do not infer them from local static checks.",
+    "Return exactly one JSON object conforming to local-research-result.schema.json, with files_changed empty and all safety assertions false. Give a single GO or NO_GO recommendation and a precise next action; do not write the result into the repository."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

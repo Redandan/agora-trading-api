@@ -1,0 +1,110 @@
+{
+  "schema_version": "3",
+  "contract_id": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3",
+  "supersedes": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V2_BEFORE_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "HYPOTHESIS_DISCOVERY_ONLY",
+  "input": {
+    "bundle_schema_version": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3",
+    "required_complete_utc_days": 14,
+    "minutes_per_day": 1440,
+    "historical_backfill": false,
+    "required_channels": [
+      "trades",
+      "books5"
+    ],
+    "required_integrity_status": "CLEAN"
+  },
+  "feature": {
+    "name": "ABOVE_MID_BUY_TO_BELOW_MID_SELL_QUOTE_RATIO",
+    "price_midline_formula": "(best_bid_price_1 + best_ask_price_1) / 2",
+    "book_reference": "LATEST_BOOKS5_AT_OR_BEFORE_TRADE",
+    "numerator": "SUM_QUOTE_NOTIONAL_WHERE_TAKER_SIDE_BUY_AND_TRADE_PRICE_GT_REFERENCE_MID",
+    "denominator": "SUM_QUOTE_NOTIONAL_WHERE_TAKER_SIDE_SELL_AND_TRADE_PRICE_LT_REFERENCE_MID",
+    "ratio_threshold": "1.50",
+    "zero_denominator_disposition": "NO_EVENT",
+    "equal_or_cross_classified_quote_disposition": "MIDLINE_OTHER_NOTIONAL",
+    "minute_completion_required": true
+  },
+  "tiers": [
+    {
+      "key": "MIDLINE_RATIO_1_5_ONLY",
+      "conditions": [
+        "below_mid_sell_quote_notional_gt_0",
+        "midline_buy_sell_ratio_gte_1_50"
+      ]
+    },
+    {
+      "key": "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+      "conditions": [
+        "below_mid_sell_quote_notional_gt_0",
+        "midline_buy_sell_ratio_gte_1_50",
+        "net_taker_quote_notional_gt_0"
+      ]
+    },
+    {
+      "key": "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT",
+      "conditions": [
+        "below_mid_sell_quote_notional_gt_0",
+        "midline_buy_sell_ratio_gte_1_50",
+        "net_taker_quote_notional_gt_0",
+        "average_book_imbalance_gt_0",
+        "bid_replenishment_quote_proxy_gt_0"
+      ]
+    }
+  ],
+  "event_sampling": {
+    "cooldown_minutes_per_tier": 60,
+    "overlapping_horizon_labels_allowed": true,
+    "overlap_must_be_reported": true
+  },
+  "entry_reference": {
+    "timing": "NEXT_COMPLETE_MINUTE_OPEN",
+    "field": "trade_open_price",
+    "signal_minute_price_is_prohibited": true
+  },
+  "response": {
+    "horizons_minutes": [
+      5,
+      15,
+      60,
+      240,
+      1440
+    ],
+    "metrics": [
+      "return_bps",
+      "mfe_bps",
+      "mae_bps",
+      "positive_return_share_pct",
+      "matched_median_return_delta_bps"
+    ],
+    "fees_and_slippage": "NOT_APPLIED_DIAGNOSTIC_NOT_PNL"
+  },
+  "matched_control": {
+    "event_condition": "below_mid_sell_quote_notional_gt_0_and_midline_buy_sell_ratio_lt_1_50",
+    "same_utc_minute_of_day": true,
+    "strictly_earlier_than_event": true,
+    "selection": "CLOSEST_UNUSED_EARLIER_DAY",
+    "minimum_match_coverage_pct": "80.00"
+  },
+  "readiness_gates": {
+    "minimum_labeled_events_per_tier": 30,
+    "minimum_events_per_seven_day_half": 10,
+    "minimum_match_coverage_pct": "80.00",
+    "all_14_days_complete_and_contiguous": true,
+    "all_input_seals_valid": true,
+    "zero_integrity_anomalies": true,
+    "zero_unreferenced_trades": true,
+    "zero_crossed_books": true
+  },
+  "guardrails": [
+    "v2_total_volume_ratio_was_superseded_before_evidence",
+    "diagnostic_is_not_a_strategy",
+    "diagnostic_is_not_candidate_or_oos_evidence",
+    "no_tier_selection_or_threshold_change_after_outcome_access",
+    "no_buy_sell_order_or_runtime_action",
+    "no_historical_backfill",
+    "no_canonical_90_day_evidence_mutation",
+    "insufficient_evidence_is_a_valid_result"
+  ]
+}

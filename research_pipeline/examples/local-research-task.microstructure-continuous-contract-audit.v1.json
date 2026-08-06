@@ -1,0 +1,125 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-continuous-contract-audit-v1",
+  "issued_at": "2026-08-06T09:54:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "READ_ONLY",
+  "objective": "Define the smallest safe continuous OKX microstructure producer, immutable one-way transport, and server intake contract that can supply the frozen 14-day V2 diagnostic while preserving the sole Codex Cloud Ops lifecycle clock, the single Server Canonical writer, and the existing candle evidence chain.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-diagnostic-v2.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-forward-evidence-source-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": "d58468b509ffce9f26af2d631a67c97d97f23c8aee369a1c7a3dafbee7959c85"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-source.service",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-source.path",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-evidence-ingest.service",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-evidence-ingest.path",
+      "sha256": null
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-06T09:53:13Z;CLOUD_OPS_SCHEDULE_V6;WAITING_FOR_EVIDENCE;existing candle trigger 0/90;queue IDLE;evidence capture and ingest IDLE;microstructure source and intake absent",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The V2 diagnostic requires 14 contiguous future UTC days of public OKX trades/books5 minute data. It is discovery-only and must remain separate from the canonical 90-day candle chain. A continuous supervised source may be a data-plane service but must not become a second research lifecycle timer or canonical writer.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "MAP_EXISTING_SINGLE_CLOCK_TOPOLOGY",
+    "ASSESS_CONTINUOUS_SERVICE_SEMANTICS",
+    "DEFINE_SOURCE_INTAKE_STATE_MACHINE",
+    "DEFINE_PRODUCER_AND_TRANSPORT_FIELDS",
+    "IDENTIFY_SINGLE_SCHEDULE_V7_DELTA",
+    "ASSESS_PERFORMANCE_LEARNING_PATH",
+    "IDENTIFY_MINIMUM_SAFE_NEXT_SLICE",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION"
+  ],
+  "expected_outputs": [
+    "ARCHITECTURE_DECISION",
+    "CURRENT_TOPOLOGY_REUSE_MATRIX",
+    "PRODUCER_INTAKE_CONTRACT_FIELDS",
+    "SOURCE_INTAKE_STATE_MACHINE",
+    "SINGLE_SCHEDULE_V7_DELTA",
+    "DEPLOYMENT_AND_ROLLBACK_GATES",
+    "PERFORMANCE_LEARNING_PATH",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Perform only static repository analysis; do not execute the collector, analyzer, Java, Maven, adapters, runners, systemd, SSH, deployment scripts, or network requests.",
+    "Do not edit V2 originating-task files, V6, server scripts, Research Worker code, .research-state, or any other file.",
+    "Do not merge microstructure days into the existing 90-day candle evidence trigger or claim the V2 diagnostic is candidate or OOS evidence.",
+    "Reject any design that needs a second Codex schedule, systemd timer, local canonical writer, source access to canonical state, Worker network access, credentials, or historical backfill.",
+    "A continuous supervised source is acceptable only as a credential-free public data-plane service whose UTC-day sealing is message-driven and whose output is an immutable one-way drop; it must not select research actions.",
+    "Stop with MISSING_PROOF for installed service state, production liveness, storage capacity, reconnect reliability, source identity, or performance value that static inputs cannot establish."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

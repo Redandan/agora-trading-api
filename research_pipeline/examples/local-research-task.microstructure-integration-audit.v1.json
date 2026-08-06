@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-integration-audit-v1",
+  "issued_at": "2026-08-06T09:30:40Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "READ_ONLY",
+  "objective": "Audit the existing uncommitted OKX BTC-USDT trades/books5 forward-source vertical slice and define the smallest safe path for using it in performance research through the sole Codex Cloud Ops clock, without treating the smoke capture as canonical evidence or creating a second timer or writer.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/okx-microstructure-forward-source-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-bundle.schema.json",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureForwardSourceCli.java",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureForwardSourceCliTest.java",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/cloud-ops-schedule-contract.v6.json",
+      "sha256": null
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "WAITING_FOR_EVIDENCE;0/90;queue=IDLE;next_observation_day=2026-08-06;next_capture_deadline=2026-08-07T06:00:00Z",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The user authorized public forward-only OKX BTC-USDT trades and books5 research data, but not historical backfill, deployment, a second schedule, orders, or strategy activation.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "STATIC_REVIEW_CURRENT_WORKTREE",
+    "VERIFY_SOURCE_CONTRACT_CONSISTENCY",
+    "MAP_SINGLE_CLOCK_INTEGRATION",
+    "ASSESS_PERFORMANCE_EVIDENCE_VALUE",
+    "IDENTIFY_MINIMUM_SAFE_NEXT_SLICE",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION"
+  ],
+  "expected_outputs": [
+    "IMPLEMENTATION_READINESS_MATRIX",
+    "SINGLE_CLOCK_INTEGRATION_PLAN",
+    "PERFORMANCE_EVIDENCE_GAP",
+    "FAIL_CLOSED_FINDINGS",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Do not execute Maven, Java, an adapter, a runner, or a network capture; use only static repository evidence and the task-supplied canonical snapshot.",
+    "Stop and report MISSING_PROOF if a conclusion requires deployment state, live canonical mutation, historical backfill, OOS, credentials, Trading access, or a new scheduler.",
+    "Do not modify or normalize the existing uncommitted microstructure files; attribute them to their originating task and preserve them byte-for-byte."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

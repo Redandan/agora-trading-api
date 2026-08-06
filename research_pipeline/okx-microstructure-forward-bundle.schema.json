@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-forward-bundle.schema.json",
+  "title": "OKX BTC-USDT Microstructure Forward Bundle V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "authorization",
+    "canonical_evidence_eligible",
+    "source",
+    "capture",
+    "integrity",
+    "eligibility",
+    "metric_semantics",
+    "minutes",
+    "seal"
+  ],
+  "$defs": {
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decimal": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+    },
+    "nonNegativeDecimal": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+    },
+    "positiveDecimal": {
+      "type": "string",
+      "pattern": "^(?:0\\.[0-9]*[1-9][0-9]*|[1-9][0-9]*(?:\\.[0-9]+)?)$"
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "OKX_MICROSTRUCTURE_FORWARD_BUNDLE_V1"},
+    "status": {
+      "enum": [
+        "CAPTURE_COMPLETE_RESEARCH_ONLY",
+        "DATA_REJECT_INCOMPLETE_CAPTURE"
+      ]
+    },
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "canonical_evidence_eligible": {"const": false},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "venue",
+        "endpoint",
+        "instrument",
+        "channels",
+        "mode",
+        "historical_backfill",
+        "raw_messages_persisted",
+        "minute_aggregation_timezone"
+      ],
+      "properties": {
+        "venue": {"const": "OKX"},
+        "endpoint": {"const": "wss://ws.okx.com:8443/ws/v5/public"},
+        "instrument": {"const": "BTC-USDT"},
+        "channels": {
+          "const": ["trades", "books5"]
+        },
+        "mode": {"const": "FORWARD_ONLY_BOUNDED_CAPTURE"},
+        "historical_backfill": {"const": false},
+        "raw_messages_persisted": {"const": false},
+        "minute_aggregation_timezone": {"const": "UTC"}
+      }
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_duration_seconds",
+        "started_at",
+        "ended_at",
+        "acknowledged_channels",
+        "trade_payloads",
+        "books5_payloads",
+        "listener_error"
+      ],
+      "properties": {
+        "requested_duration_seconds": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 86400
+        },
+        "started_at": {"$ref": "#/$defs/utcTimestamp"},
+        "ended_at": {"$ref": "#/$defs/utcTimestamp"},
+        "acknowledged_channels": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"enum": ["books5", "trades"]}
+        },
+        "trade_payloads": {"type": "integer", "minimum": 0},
+        "books5_payloads": {"type": "integer", "minimum": 0},
+        "listener_error": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string", "minLength": 1, "maxLength": 2000}
+          ]
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "raw_message_count",
+        "arrival_chain_algorithm",
+        "arrival_chain_sha256",
+        "malformed_record_count",
+        "exchange_error_count",
+        "crossed_book_count",
+        "trade_timestamp_regression_count",
+        "book_timestamp_regression_count",
+        "trade_sequence_regression_count",
+        "book_sequence_regression_count",
+        "trade_id_non_increasing_count",
+        "trade_source_record_counts"
+      ],
+      "properties": {
+        "status": {"enum": ["CLEAN", "ANOMALIES_PRESENT"]},
+        "raw_message_count": {"type": "integer", "minimum": 0},
+        "arrival_chain_algorithm": {
+          "const": "SHA-256(previous_digest || raw_utf8_message)"
+        },
+        "arrival_chain_sha256": {"$ref": "#/$defs/sha256"},
+        "malformed_record_count": {"type": "integer", "minimum": 0},
+        "exchange_error_count": {"type": "integer", "minimum": 0},
+        "crossed_book_count": {"type": "integer", "minimum": 0},
+        "trade_timestamp_regression_count": {"type": "integer", "minimum": 0},
+        "book_timestamp_regression_count": {"type": "integer", "minimum": 0},
+        "trade_sequence_regression_count": {"type": "integer", "minimum": 0},
+        "book_sequence_regression_count": {"type": "integer", "minimum": 0},
+        "trade_id_non_increasing_count": {"type": "integer", "minimum": 0},
+        "trade_source_record_counts": {
+          "type": "object",
+          "propertyNames": {"minLength": 1, "maxLength": 128},
+          "additionalProperties": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "full_utc_day_1440_contiguous_minutes",
+        "integrity_clean",
+        "both_channels_acknowledged",
+        "both_streams_observed",
+        "note"
+      ],
+      "properties": {
+        "full_utc_day_1440_contiguous_minutes": {"type": "boolean"},
+        "integrity_clean": {"type": "boolean"},
+        "both_channels_acknowledged": {"type": "boolean"},
+        "both_streams_observed": {"type": "boolean"},
+        "note": {
+          "const": "A short smoke capture is diagnostic only and cannot enter canonical evidence."
+        }
+      }
+    },
+    "metric_semantics": {
+      "const": {
+        "net_taker_quote_notional": "buy_quote_notional minus sell_quote_notional; side is taker side",
+        "book_imbalance": "(top5_bid_quote_depth - top5_ask_quote_depth) / total_top5_quote_depth",
+        "bid_replenishment_quote_proxy": "sum of positive changes in total top5 bid quote depth; price-level shifts can confound it"
+      }
+    },
+    "minutes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1440,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "minute",
+          "trade_record_count",
+          "match_count",
+          "buy_base_quantity",
+          "sell_base_quantity",
+          "buy_quote_notional",
+          "sell_quote_notional",
+          "net_taker_quote_notional",
+          "book_sample_count",
+          "average_top5_bid_quote_depth",
+          "average_top5_ask_quote_depth",
+          "average_book_imbalance",
+          "average_spread_bps",
+          "bid_replenishment_quote_proxy",
+          "mid_price_start",
+          "mid_price_end"
+        ],
+        "properties": {
+          "minute": {
+            "allOf": [
+              {"$ref": "#/$defs/utcTimestamp"},
+              {"pattern": ":00Z$"}
+            ]
+          },
+          "trade_record_count": {"type": "integer", "minimum": 0},
+          "match_count": {"type": "integer", "minimum": 0},
+          "buy_base_quantity": {"$ref": "#/$defs/nonNegativeDecimal"},
+          "sell_base_quantity": {"$ref": "#/$defs/nonNegativeDecimal"},
+          "buy_quote_notional": {"$ref": "#/$defs/nonNegativeDecimal"},
+          "sell_quote_notional": {"$ref": "#/$defs/nonNegativeDecimal"},
+          "net_taker_quote_notional": {"$ref": "#/$defs/decimal"},
+          "book_sample_count": {"type": "integer", "minimum": 0},
+          "average_top5_bid_quote_depth": {
+            "oneOf": [
+              {"$ref": "#/$defs/nonNegativeDecimal"},
+              {"type": "null"}
+            ]
+          },
+          "average_top5_ask_quote_depth": {
+            "oneOf": [
+              {"$ref": "#/$defs/nonNegativeDecimal"},
+              {"type": "null"}
+            ]
+          },
+          "average_book_imbalance": {
+            "oneOf": [
+              {"$ref": "#/$defs/decimal"},
+              {"type": "null"}
+            ]
+          },
+          "average_spread_bps": {
+            "oneOf": [
+              {"$ref": "#/$defs/nonNegativeDecimal"},
+              {"type": "null"}
+            ]
+          },
+          "bid_replenishment_quote_proxy": {
+            "$ref": "#/$defs/nonNegativeDecimal"
+          },
+          "mid_price_start": {
+            "oneOf": [
+              {"$ref": "#/$defs/positiveDecimal"},
+              {"type": "null"}
+            ]
+          },
+          "mid_price_end": {
+            "oneOf": [
+              {"$ref": "#/$defs/positiveDecimal"},
+              {"type": "null"}
+            ]
+          }
+        }
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "payload_sha256",
+        "canonicalization",
+        "sealed_at"
+      ],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"$ref": "#/$defs/sha256"},
+        "canonicalization": {
+          "const": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"
+        },
+        "sealed_at": {"$ref": "#/$defs/utcTimestamp"}
+      }
+    }
+  }
+}

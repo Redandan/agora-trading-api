@@ -1,0 +1,98 @@
+{
+  "schema_version": "2",
+  "contract_id": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V2",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "HYPOTHESIS_DISCOVERY_ONLY",
+  "input": {
+    "bundle_schema_version": "OKX_MICROSTRUCTURE_FORWARD_DAY_V2",
+    "required_complete_utc_days": 14,
+    "minutes_per_day": 1440,
+    "historical_backfill": false,
+    "required_channels": [
+      "trades",
+      "books5"
+    ],
+    "required_integrity_status": "CLEAN"
+  },
+  "feature": {
+    "name": "MINUTE_QUOTE_NOTIONAL_TO_PRIOR_20M_MEDIAN",
+    "lookback_complete_minutes": 20,
+    "volume_ratio_threshold": "1.50",
+    "minute_completion_required": true
+  },
+  "tiers": [
+    {
+      "key": "VOLUME_1_5_ONLY",
+      "conditions": [
+        "volume_ratio_gte_1_50"
+      ]
+    },
+    {
+      "key": "VOLUME_1_5_PLUS_TAKER_BUY",
+      "conditions": [
+        "volume_ratio_gte_1_50",
+        "net_taker_quote_notional_gt_0"
+      ]
+    },
+    {
+      "key": "VOLUME_1_5_PLUS_TAKER_BUY_PLUS_BOOK_SUPPORT",
+      "conditions": [
+        "volume_ratio_gte_1_50",
+        "net_taker_quote_notional_gt_0",
+        "average_book_imbalance_gt_0",
+        "bid_replenishment_quote_proxy_gt_0"
+      ]
+    }
+  ],
+  "event_sampling": {
+    "cooldown_minutes_per_tier": 60,
+    "overlapping_horizon_labels_allowed": true,
+    "overlap_must_be_reported": true
+  },
+  "entry_reference": {
+    "timing": "NEXT_COMPLETE_MINUTE_OPEN",
+    "field": "trade_open_price",
+    "signal_minute_price_is_prohibited": true
+  },
+  "response": {
+    "horizons_minutes": [
+      5,
+      15,
+      60,
+      240,
+      1440
+    ],
+    "metrics": [
+      "return_bps",
+      "mfe_bps",
+      "mae_bps",
+      "positive_return_share_pct",
+      "matched_median_return_delta_bps"
+    ],
+    "fees_and_slippage": "NOT_APPLIED_DIAGNOSTIC_NOT_PNL"
+  },
+  "matched_control": {
+    "event_condition": "volume_ratio_lt_1_50",
+    "same_utc_minute_of_day": true,
+    "strictly_earlier_than_event": true,
+    "selection": "CLOSEST_UNUSED_EARLIER_DAY",
+    "minimum_match_coverage_pct": "80.00"
+  },
+  "readiness_gates": {
+    "minimum_labeled_events_per_tier": 30,
+    "minimum_events_per_seven_day_half": 10,
+    "minimum_match_coverage_pct": "80.00",
+    "all_14_days_complete_and_contiguous": true,
+    "all_input_seals_valid": true,
+    "zero_integrity_anomalies": true
+  },
+  "guardrails": [
+    "diagnostic_is_not_a_strategy",
+    "diagnostic_is_not_candidate_or_oos_evidence",
+    "no_tier_selection_or_threshold_change_after_outcome_access",
+    "no_buy_sell_order_or_runtime_action",
+    "no_historical_backfill",
+    "no_canonical_90_day_evidence_mutation",
+    "insufficient_evidence_is_a_valid_result"
+  ]
+}

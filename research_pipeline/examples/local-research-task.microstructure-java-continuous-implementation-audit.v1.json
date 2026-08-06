@@ -1,0 +1,131 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-java-continuous-implementation-audit-v1",
+  "issued_at": "2026-08-06T10:29:54Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "READ_ONLY",
+  "objective": "Determine the smallest safe local worktree slice that can turn the frozen continuous microstructure contracts into a deterministic Java 21 forward producer and offline Server Canonical intake implementation without deployment. Assess whether the existing bounded OKX Java collector can be refactored or reused without duplicating parsing and aggregation logic, and define exact files, interfaces, failure behavior, tests, opportunity cost, and stop gates for the next task.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureForwardSourceCli.java",
+      "sha256": "867224b491e9e71e992718a6a7a119f41f93640029fc3e882dc205414845d15c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureForwardSourceCliTest.java",
+      "sha256": "dbc89ac605c2732bb8330f2665c00950f61654901f2719dac4664f032710b3f1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "pom.xml",
+      "sha256": "36edea64057794ae49ba0c4cc47385afe2410fbdd9fa9d61b0c1c57f74104235"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-source.service",
+      "sha256": "e03c4ce3c33d21a8e4b787384880355f8286e481f22bd3eff9ec0bcf8fb72f0f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-evidence-ingest.service",
+      "sha256": "909525bea874ec348573012cf3c0d755fb467528199636b9f9f53857ad7de03d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+      "sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+      "sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-drop-envelope.v1.schema.json",
+      "sha256": "285a3f12094c24365304a73a0a1e48c921fca78e21c6a3a799912f1dd7133234"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The five-file offline contract slice passed 12 focused tests and Manager validation, including exact raw-byte identity. This audit must choose the next implementation slice, not implement or deploy it. The continuous producer is data-plane supervision only; the sole Codex Cloud Ops schedule remains the only research lifecycle clock.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "READ_JAVA_SOURCE_AND_TESTS",
+    "MAP_REUSABLE_COLLECTOR_COMPONENTS",
+    "DEFINE_CONTINUOUS_PRODUCER_INTERFACE",
+    "DEFINE_OFFLINE_INTAKE_INTERFACE",
+    "DEFINE_EXACT_NEXT_FILE_SLICE",
+    "DEFINE_FAILURE_AND_RECOVERY_GATES",
+    "ASSESS_PERFORMANCE_TIME_TO_EVIDENCE",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SYSTEMD_OR_SCHEDULE_CHANGE",
+    "SERVICE_IMPLEMENTATION_OR_DEPLOYMENT",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_MUTATION",
+    "JAVA_MAVEN_ADAPTER_OR_RUNNER_EXECUTION",
+    "WORKTREE_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "JAVA_REUSE_DECISION",
+    "EXACT_NEXT_FILE_SLICE",
+    "CONTINUOUS_PRODUCER_INTERFACE",
+    "OFFLINE_INTAKE_INTERFACE",
+    "FAILURE_AND_RECOVERY_MATRIX",
+    "TEST_AND_ACCEPTANCE_MATRIX",
+    "PERFORMANCE_TIME_TO_EVIDENCE_THESIS",
+    "IMPLEMENTATION_STOP_GATES",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Perform static local inspection only. Do not edit files or execute Java, Maven, Python tests, collectors, analyzers, adapters, runners, systemd, SSH, deployment scripts, or network requests.",
+    "Do not design a second timer, source-side canonical writer, source-side research selector, Worker network access, credentials, backfill, candle-chain reuse, or Trading integration.",
+    "Prefer refactoring a reusable deterministic parser/aggregator/sealer from the existing Java collector if and only if the audit can preserve the current bounded source behavior and tests. Do not recommend copying the full collector into a second implementation without a concrete reason.",
+    "The proposed next worktree slice must be bounded to at most six files and must separate source data-plane production from Server Canonical intake. If both cannot be safely implemented and verified in six files, split the recommendation into producer-first and intake-second tasks with an explicit boundary.",
+    "Require deterministic offline fixtures for UTC rollover, reconnect without gap, reconnect with gap, missing trades, missing books5, duplicate day, conflicting bytes, wrong predecessor, noncanonical bytes, process restart, and day-14 readiness.",
+    "The source may use Java 21 standard HttpClient/WebSocket and Jackson already present in the repository, but must not add a new dependency or start Spring. Any direct execution must remain an explicit Java classpath invocation in a later authorized task.",
+    "Define fixed production inputs and the minimum local-test seams. The endpoint, instrument, channels, contract hashes, canonicalization, future-only start, 14-day window, drop identity, and output namespace may not be caller-selectable in production mode.",
+    "State the performance thesis only as reduced time-to-evidence for the frozen V2 discovery diagnostic. Predictive value, fees, slippage, drawdown effect, and strategy usefulness remain MISSING_PROOF until future data and later economic testing exist.",
+    "Stop with MISSING_PROOF for installed service identity, server storage/capacity, production liveness, reconnect reliability, filesystem permissions, deployed intake state, or performance value.",
+    "Return one result JSON with files_changed empty and every safety assertion false. Do not request permissions."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

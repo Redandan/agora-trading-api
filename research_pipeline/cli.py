@@ -42,6 +42,11 @@ from .forward_candidate import (
     validate_forward_adapter_config,
 )
 from .learning import build_learning
+from .local_node import (
+    validate_local_research_result,
+    validate_local_research_task,
+)
+from .microstructure import validate_okx_microstructure_bundle_file
 from .hypotheses import (
     build_hypothesis,
     build_imported_hypothesis,
@@ -137,6 +142,15 @@ def parser() -> argparse.ArgumentParser:
     link_trigger = commands.add_parser("link-evidence-trigger")
     link_trigger.add_argument("trigger_id")
     link_trigger.add_argument("hypothesis_id")
+    validate_local_task = commands.add_parser("validate-local-research-task")
+    validate_local_task.add_argument("task", type=Path)
+    validate_local_result = commands.add_parser("validate-local-research-result")
+    validate_local_result.add_argument("result", type=Path)
+    validate_local_result.add_argument("--task", type=Path, required=True)
+    validate_microstructure = commands.add_parser(
+        "validate-okx-microstructure-bundle"
+    )
+    validate_microstructure.add_argument("bundle", type=Path)
     return result
 
 
@@ -1392,6 +1406,40 @@ def run_tick(
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command == "validate-local-research-task":
+            value = json.loads(args.task.read_text(encoding="utf-8"))
+            task = validate_local_research_task(value)
+            print(
+                json.dumps(
+                    {
+                        "status": "VALID",
+                        "task_id": task["task_id"],
+                        "task_sha256": sha256_file(args.task),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return 0
+        if args.command == "validate-local-research-result":
+            task_value = json.loads(args.task.read_text(encoding="utf-8"))
+            task = validate_local_research_task(task_value)
+            result_value = json.loads(args.result.read_text(encoding="utf-8"))
+            result = validate_local_research_result(
+                result_value,
+                task=task,
+                task_sha256=sha256_file(args.task),
+            )
+            print(
+                json.dumps(
+                    {"status": "VALID", "task_id": result["task_id"]},
+                    ensure_ascii=False,
+                )
+            )
+            return 0
+        if args.command == "validate-okx-microstructure-bundle":
+            validation = validate_okx_microstructure_bundle_file(args.bundle)
+            print(json.dumps(validation, ensure_ascii=False))
+            return 0
         policy = load_policy(args.policy)
         store = ResearchStore(
             args.state_dir,

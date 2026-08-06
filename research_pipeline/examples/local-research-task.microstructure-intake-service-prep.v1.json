@@ -1,0 +1,145 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-intake-service-prep-v1",
+  "issued_at": "2026-08-06T12:00:00Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement the second deployment-preparation slice for the frozen continuous microstructure evidence path: add a fixed, network-denied Python intake CLI; initialize and atomically advance only its dedicated canonical namespace; freeze structurally complete published day bytes against producer read/write; add an event-driven service/path with bounded recovery and capacity gates; install and verify it while leaving the producer disabled and inactive. Do not deploy, connect to a server, start the producer, create a timer, or perform strategy analysis in this task.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_intake.py",
+      "sha256": "a2ddfd7f50b823e51245da247086667a28f2bcb92891c53afe05acb9f19da7f8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_intake.py",
+      "sha256": "54bd90ad8965d1ef3d00316b914359af1ae2e1a6da5ff9014bd6504c6fe1b753"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-drop-envelope.v1.schema.json",
+      "sha256": "285a3f12094c24365304a73a0a1e48c921fca78e21c6a3a799912f1dd7133234"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "8a473685aceb933cf20f54fbd41cb4ac0dd55690ff9226e4517dab55511227ee"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "ce018e4367001ecd931eec2dc5e189f678380ab6e59ef0d31fbd45bb4ac981c1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-microstructure-source.service",
+      "sha256": "8a99a0658475bf72b613d290e140c72e18ca29f489b8c428f1c06a56bd6566eb"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "17327b0cf47b93fd913ad532ba76dfb1ae4c3e70b303772deb6e0293afb1151e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/deploy-runbook.md",
+      "sha256": "57e99a1084c75449d96387d87200c9ddbb140e0d631b2009fd642165a55f8512"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "Phase 1 produced a sealed direct-Java-21 source distribution and an inactive source service. This task adds only the separate network-denied intake path and recovery gates. It must preserve Cloud Ops as the sole lifecycle clock, Server Canonical as the sole research-state writer, and all accepted source/intake contract hashes.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "ADD_FIXED_MICROSTRUCTURE_INTAKE_CLI",
+    "ADD_OFFLINE_INTAKE_TESTS",
+    "ADD_NETWORK_DENIED_INTAKE_SERVICE",
+    "ADD_EVENT_DRIVEN_INTAKE_PATH",
+    "EDIT_RESEARCH_WORKER_INSTALLER",
+    "EXTEND_STATIC_WORKER_VERIFICATION",
+    "UPDATE_DEPLOYMENT_DOCUMENTATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_LOCAL_SCRIPT_SYNTAX_CHECKS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "CANONICAL_SERVER_STATE_WRITE_DURING_TASK",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SECOND_TIMER_OR_LIFECYCLE_WRITER",
+    "SOURCE_ENABLE_START_OR_EXECUTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SSH_OR_SERVER_CONNECTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_REUSE",
+    "JAVA_PRODUCER_OR_TEST_EDIT",
+    "MAVEN_EXEC_SPRING_OR_JAVA_MAIN_EXECUTION",
+    "EVIDENCE_FILE_CONTENT_MUTATION_OR_DELETION",
+    "AUTOMATIC_RECOVERY_OR_RETENTION_CLEANUP"
+  ],
+  "expected_outputs": [
+    "EXACT_EIGHT_FILE_CHANGESET",
+    "FIXED_MICROSTRUCTURE_INTAKE_CLI",
+    "DETERMINISTIC_OFFLINE_INTAKE_TESTS",
+    "NETWORK_DENIED_ONESHOT_INTAKE_SERVICE",
+    "EVENT_DRIVEN_NON_TIMER_PATH",
+    "IMMUTABLE_DROP_FREEZE_BOUNDARY",
+    "CAPACITY_RETENTION_AND_RECOVERY_GATES",
+    "INSTALL_AND_STATIC_VERIFY_INTEGRATION",
+    "UPDATED_DEPLOYMENT_BOUNDARIES",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly these eight files and no others: research_pipeline/microstructure_intake_cli.py; research_pipeline/tests/test_microstructure_intake_cli.py; scripts/research-worker/agora-research-microstructure-intake.service; scripts/research-worker/agora-research-microstructure-intake.path; scripts/research-worker/install-upgrade.sh; scripts/research-worker/verify-worker.sh; docs/server-research-worker-v2.md; docs/deploy-runbook.md. Stop BLOCKED if this is insufficient.",
+    "Do not edit microstructure_intake.py, microstructure_source_contract.py, schemas, contracts, any Java source/test, Maven packaging, deployment packager, producer wrapper, or source service. Reuse the frozen Python validation and atomic state APIs without changing their behavior or hashes.",
+    "The CLI has exactly initialize and ingest commands and accepts no caller path, identity, endpoint, lifecycle, or policy argument. It uses only the fixed binding, drop root, and state root. Derive the state filename only from the strictly validated diagnostic_id. Load JSON with duplicate-key rejection and exact binding keys/constants, including installed release and manifest identity.",
+    "initialize is installer-only and strictly future-window only. It creates canonical state with initial_state_bytes and commit_canonical_state, never overwrites state, and validates an existing state only when its diagnostic id/start day and frozen contract hashes exactly match the fixed binding. ingest requires existing state and never initializes, replaces, repairs, or selects a research action.",
+    "ingest scans ISO UTC day directories in sorted order. Ignore only exact zero-byte .YYYY-MM-DD.publish-reserved regular files; reject symlinks and any other root entry. Each day directory must be a real directory containing exactly the expected bundle and envelope names for that day, both regular non-symlink files, and raw bytes must be passed unchanged to apply_observed_delivery.",
+    "Use the fixed observed delivery: agora-research intake, DENY network, agora-evidence-source producer, atomic rename true, symlink/overwrite/backfill/candle/lifecycle flags false. accepted_at is current UTC and must not regress from prior state. Duplicates are idempotent. Contract-invalid bytes atomically commit a validated INTEGRITY_BLOCKED state; terminal states perform no further intake.",
+    "Before parsing an exactly two-file structurally shaped day, freeze metadata without changing bytes: root:agora-research, directories 0550, files 0440. The operation is idempotent and leaves intake readable while removing agora-evidence-source access. The service may receive only bounded CAP_CHOWN and CAP_FOWNER needed for this; tests must inject a harmless freezer on Windows. Incomplete, extra, symlinked, or ambiguous structures are RECOVERY_BLOCKED and preserved for manual review.",
+    "All state commits remain atomic through the frozen API. Any stale lock/temp, state symlink, filesystem/capacity failure, impossible ownership transition, or structural ambiguity is RECOVERY_BLOCKED with no automatic repair, retry loop, deletion, quarantine move, backfill, or state overwrite. Preserve all drop bytes. Never modify a terminal DIAGNOSTIC_READY or INTEGRITY_BLOCKED state.",
+    "Enforce at least 2 GiB free on the drop filesystem before initialize/ingest, require private staging and drop roots on the same filesystem, and allow at most 14 day directories plus at most 14 matching reservation files. No retention deletion is authorized; excess, stale, or unmatched entries stop for manual recovery.",
+    "The oneshot intake service runs as agora-research with agora-evidence supplementary group, Restart=no, IPAddressDeny=any, RestrictAddressFamilies=AF_UNIX, no EnvironmentFile, read-only drop and binding, write access only to the dedicated intake-state root, and bounded capabilities. The path watches only the fixed microstructure-drop directory, is event-driven, and has no timer or lifecycle authority.",
+    "The installer creates the dedicated state root with strict ownership/mode, installs and validates both units, initializes only on explicit binding preparation, enables the intake path before any later producer start can be allowed, leaves the source disabled/inactive, and never creates a microstructure timer. Ordinary upgrades validate rather than overwrite an existing state.",
+    "Extend verify-worker.sh to prove fixed unit identities, network denial, Restart=no, capability bounds, fixed read/write paths, active intake path, no microstructure timer, strict state/drop metadata, same-filesystem and 2 GiB capacity, bounded entry counts, frozen published-day ownership/modes, source denial on frozen bytes, and producer disabled/inactive unless the existing explicit active preflight is selected.",
+    "Tests must cover initialization/restart, duplicate delivery, invalid evidence fail-closed, 14-day readiness, terminal no-op, sorted scanning, reservation handling, extra/incomplete/symlink rejection, stale lock/temp, capacity and same-filesystem gates, entry bounds, metadata freeze idempotency, and unchanged evidence bytes. Use temporary directories and fake metadata operations; no network, service, installer, or server execution.",
+    "Run only: task validation; python -m unittest research_pipeline.tests.test_microstructure_intake_cli; the existing microstructure_intake and microstructure_source_contract suites; bash -n for the two modified shell scripts when Bash is locally available; and git diff --check for the exact eight files. No Java/Maven/main/service/systemd/deployment/SSH/network command is authorized.",
+    "Stop after offline intake preparation. Bash syntax when unavailable, installed identities/capabilities, same-filesystem atomicity, real capacity, path retrigger behavior, binding initialization, source denial, liveness, reconnects, 14 future days, predictive value, fees, slippage, drawdown and PnL remain MISSING_PROOF until separate server preflight and future evidence tasks."
+  ],
+  "limits": {
+    "timeout_seconds": 5400,
+    "max_files_changed": 8,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

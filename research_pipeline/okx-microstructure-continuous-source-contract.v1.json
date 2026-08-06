@@ -1,0 +1,83 @@
+{
+  "schema_version": "1",
+  "contract_id": "OKX_MICROSTRUCTURE_CONTINUOUS_SOURCE_V1",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "HYPOTHESIS_DISCOVERY_ONLY",
+  "deployment_status": "OFFLINE_CONTRACT_ONLY_NOT_DEPLOYED",
+  "source": {
+    "producer_type": "CONTINUOUS_SUPERVISED_DATA_PLANE",
+    "producer_identity": "agora-evidence-source",
+    "endpoint": "wss://ws.okx.com:8443/ws/v5/public",
+    "venue": "OKX",
+    "instrument": "BTC-USDT",
+    "channels": [
+      "trades",
+      "books5"
+    ],
+    "aggregation_timezone": "UTC",
+    "mode": "FORWARD_ONLY",
+    "historical_backfill": false,
+    "credentials": "NONE",
+    "raw_messages_persisted": false,
+    "network_scope": "FIXED_PUBLIC_ENDPOINT_ONLY"
+  },
+  "collection": {
+    "required_complete_utc_days": 14,
+    "minutes_per_day": 1440,
+    "day_policy": "EXPLICIT_FUTURE_START_EXACTLY_14_CONTIGUOUS_UTC_DAYS",
+    "seal_trigger": "FIRST_VALID_NEXT_UTC_DAY_MESSAGE",
+    "bundle_document_canonicalization": "UTF-8 compact JSON including seal; object keys sorted lexicographically",
+    "envelope_document_canonicalization": "UTF-8 compact JSON including envelope_seal; object keys sorted lexicographically",
+    "gap_policy": "REJECT_DAY_AND_BLOCK_DIAGNOSTIC",
+    "reconnect_policy": "CONTINUE_ONLY_IF_NO_STREAM_OR_MINUTE_GAP",
+    "predecessor_binding_required": true,
+    "raw_arrival_chain_required": true
+  },
+  "bindings": {
+    "day_schema_path": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+    "day_schema_sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1",
+    "diagnostic_contract_path": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+    "diagnostic_contract_sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c",
+    "drop_envelope_schema_id": "https://agora.local/research/okx-microstructure-drop-envelope.v1.schema.json",
+    "intake_state_schema_id": "https://agora.local/research/okx-microstructure-intake-state.v1.schema.json"
+  },
+  "lifecycle": {
+    "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+    "cloud_schedule_count": 1,
+    "state_authority": "SERVER_CANONICAL",
+    "supervision_role": "DATA_PLANE_PROCESS_RECOVERY_ONLY",
+    "server_intake_network_access": "DENY",
+    "producer_canonical_state_access": false,
+    "producer_canonical_state_write": false,
+    "producer_can_enqueue_research_actions": false,
+    "producer_can_select_research_actions": false,
+    "producer_can_retry_research_actions": false,
+    "producer_can_time_research_actions": false
+  },
+  "separation": {
+    "transport": "IMMUTABLE_MICROSTRUCTURE_ONLY_ONE_WAY_DROP",
+    "canonical_namespace": "SEPARATE_MICROSTRUCTURE_14_DAY_CHAIN",
+    "candle_chain_reuse": false,
+    "candle_trigger_reuse": false,
+    "advances_candle_evidence": false,
+    "trading_runtime_access": false,
+    "database_access": false,
+    "order_or_fund_access": false
+  },
+  "terminal_readiness": {
+    "status": "DIAGNOSTIC_READY",
+    "accepted_day_count": 14,
+    "authorizes": "FROZEN_V2_DISCOVERY_ANALYSIS_ONLY",
+    "candidate_authorized": false,
+    "oos_authorized": false,
+    "pnl_claim_authorized": false,
+    "promotion_authorized": false,
+    "missing_proof": [
+      "fees",
+      "slippage",
+      "drawdown_effect",
+      "predictive_value",
+      "strategy_usefulness"
+    ]
+  }
+}

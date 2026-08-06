@@ -120,6 +120,14 @@ The control plane is deliberately outside the Spring Boot runtime:
   fills, fees, ledger state, metrics, and hashes; Python remains authoritative
   for overlays until each overlay passes the frozen cross-language ledgers.
 
+An optional local Codex Research task may provide bounded read-only analysis or
+worktree implementation capacity under
+`docs/local-codex-research-node-v1.md`. It receives a validated task package and
+returns a task-hash-bound result to the Manager/Coach. It has no routine wake-up,
+cannot become a second writer, and cannot call Research MCP writes or mutate
+canonical server state. The V1 pilot is manually message-dispatched and leaves
+the sole V6 cloud schedule unchanged.
+
 The generic Spring strategy runtime must not depend on `research_pipeline`.
 
 The only remote control-plane exception is the independently deployed Research

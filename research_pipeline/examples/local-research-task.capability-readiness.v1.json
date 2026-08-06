@@ -1,0 +1,63 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-capability-readiness-v1",
+  "issued_at": "2026-08-06T08:04:28Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "CAPABILITY_READINESS",
+  "execution_mode": "READ_ONLY",
+  "objective": "Verify that this local Codex host can act as a non-authoritative research node without API billing or canonical writes.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": null
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": null
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "WAITING_FOR_EVIDENCE;0/90;next_review=2026-11-04T00:00:00Z",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "INSPECT_LOCAL_TOOLCHAIN",
+    "VERIFY_APPROVED_ADAPTER_INVENTORY",
+    "VERIFY_SEALED_CORPUS_HASHES",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION"
+  ],
+  "expected_outputs": [
+    "LOCAL_CAPABILITY_MATRIX",
+    "TASK_CONTRACT_VALIDATION",
+    "SAFETY_ASSERTIONS",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Stop immediately if any check would require canonical state, server MCP write, paid API, external backfill, OOS access, or Trading action.",
+    "Return MISSING_PROOF instead of escalating permissions or mutating state."
+  ],
+  "limits": {
+    "timeout_seconds": 1200,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-python-intake-v1",
+  "issued_at": "2026-08-06T11:11:04Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement and verify the separate offline Python Server Canonical intake boundary for frozen microstructure day drops. Reuse the existing raw-byte validator and state machine without duplication, produce canonical next-state bytes, fail invalid evidence into an immutable INTEGRITY_BLOCKED state, and provide exclusive lock plus atomic state-commit primitives that are testable only in temporary directories. Do not deploy, create a service, write real canonical state, or connect this intake to a lifecycle clock.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-drop-envelope.v1.schema.json",
+      "sha256": "285a3f12094c24365304a73a0a1e48c921fca78e21c6a3a799912f1dd7133234"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+      "sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+      "sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/tests/test_microstructure_source_contract.py",
+      "sha256": "009c2b9d25980e25be298756b19a12a9bc73be96137d3e978a4fafecb3dbce46"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCollector.java",
+      "sha256": "3c7d2abda4ac9254c584ef581d271e2bfeaae6c2e06a1a9761028737445ad7fa"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureCanonicalDrop.java",
+      "sha256": "0a8224d0f919f8db99fbbd9d032eb500c274fcca50d31f3448901bcd0b9a77c8"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureContinuousSourceCli.java",
+      "sha256": "bdaf7665ebe57af226de36d2b05d1807c9ffb2924023462fcd23f1baec67e231"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The corrected producer passed 16 focused Java tests, offline package build, and 12 existing Python contract tests under both Local and Manager verification. This task adds only the two-file offline intake implementation and tests. Binding creation, systemd, deployment, real canonical state, network, and collection remain later gates.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "ADD_PYTHON_INTAKE_MODULE",
+    "ADD_DETERMINISTIC_INTAKE_TESTS",
+    "REUSE_EXISTING_RAW_BYTE_VALIDATOR",
+    "REUSE_EXISTING_INTAKE_STATE_MACHINE",
+    "ADD_EXCLUSIVE_OFFLINE_STATE_LOCK",
+    "ADD_ATOMIC_OFFLINE_STATE_COMMIT",
+    "RUN_FOCUSED_PYTHON_TESTS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SYSTEMD_OR_SCHEDULE_CHANGE",
+    "SERVICE_DEPLOYMENT_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_MUTATION",
+    "JAVA_PRODUCER_OR_POM_EDIT",
+    "EXISTING_CONTRACT_OR_VALIDATOR_EDIT"
+  ],
+  "expected_outputs": [
+    "TWO_FILE_CHANGESET",
+    "CANONICAL_STATE_BYTE_INTERFACE",
+    "STRICT_OBSERVED_DELIVERY_INTERFACE",
+    "IDEMPOTENT_OR_BLOCKED_INTAKE_RESULT",
+    "EXCLUSIVE_LOCK_AND_ATOMIC_COMMIT",
+    "RESTART_AND_STALE_TEMP_FAIL_CLOSED",
+    "DAY14_DISCOVERY_ONLY_READINESS",
+    "DETERMINISTIC_OFFLINE_TEST_RESULTS",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly two new files: research_pipeline/microstructure_intake.py and research_pipeline/tests/test_microstructure_intake.py. Do not edit any existing file; stop BLOCKED if an existing seam is insufficient.",
+    "Import and call microstructure_source_contract.py for strict JSON loading, canonical bytes, initial state, state validation, drop/bundle validation, accept_intake_day, block_intake_state, idempotency, predecessor checks, and day-14 readiness. Do not duplicate those rules.",
+    "Define an exact observed-delivery value with intake identity, network policy, producer identity, atomic-rename observation, symlink observation, overwrite attempt, backfill request, candle-chain request, and lifecycle-action request. Reject anything except agora-research, DENY, agora-evidence-source, atomic true, symlink false, overwrite false, and all forbidden requests false.",
+    "Require existing state bytes to be strict canonical compact sorted-key JSON with no trailing newline. Initial state bytes must come only from initial_intake_state with an explicitly future start and remain discovery-only. Return canonical next-state bytes plus disposition; never return a candidate, OOS, PnL, or promotion authorization.",
+    "For a valid next day call accept_intake_day using the exact raw envelope and bundle bytes. Identical duplicate returns byte-identical state. Conflicting bytes, wrong predecessor/day, noncanonical bytes, malformed evidence, backfill, candle reuse, lifecycle action, wrong identity, or transport violation must produce and validate an INTEGRITY_BLOCKED next state when a valid current state exists.",
+    "Filesystem helpers may operate only on caller-supplied temporary test paths in this task. Implement an exclusive lock using atomic directory creation; a present lock or orphaned temp is RECOVERY_BLOCKED and must never be auto-deleted. Do not create, write, rename, or delete any real server or .research-state path.",
+    "Atomic commit must write canonical bytes to a CREATE_NEW temp file in the state directory, flush and fsync the file, atomically replace the canonical state file, fsync the directory, and remove the lock only after a clean commit. No non-atomic fallback, overwrite of temp, or silent stale recovery is allowed.",
+    "Do not delete or mutate immutable drop bytes after intake. A later path service may re-observe the same day; identical duplicates must remain idempotent. This module must not scan candle paths, access network, choose research tasks, or create a timer.",
+    "Tests must use temporary directories and deterministic fixtures only. Cover future initialization, canonical state-byte rejection, first-day acceptance, exact duplicate, conflicting duplicate, wrong predecessor/day, noncanonical bundle/envelope, identity/transport/backfill/candle/lifecycle failures, atomic commit, stale lock/temp, restart reload, days 1-13 WAITING_FOR_DAY, and day 14 DIAGNOSTIC_READY with all promotion flags false.",
+    "Run only python -m research_pipeline validate-local-research-task for this task, python -m unittest research_pipeline.tests.test_microstructure_intake, and python -m unittest research_pipeline.tests.test_microstructure_source_contract. Do not run Java, Maven, adapters, collectors, analyzers, systemd, SSH, deployment, or network.",
+    "Stop after offline intake verification. Binding files, service units, deployment, V7 schedule, server storage/permissions, cross-language deployed fixture, live collection, predictive value, fees, slippage, drawdown, strategy usefulness, and PnL remain MISSING_PROOF."
+  ],
+  "limits": {
+    "timeout_seconds": 3600,
+    "max_files_changed": 2,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

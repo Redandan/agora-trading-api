@@ -1,0 +1,130 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-java-continuous-producer-v1",
+  "issued_at": "2026-08-06T10:35:51Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Implement and verify the producer-first Java 21 slice for the frozen continuous OKX BTC-USDT trades/books5 forward diagnostic. Refactor the current bounded V1 collector into shared deterministic parsing and aggregation primitives, preserve its behavior, add all frozen V2 minute fields, generate canonical bundle and envelope bytes, and model fixed-input continuous UTC rollover and fail-closed reconnect/restart behavior without deployment, network execution, Server Canonical intake, or a second research lifecycle clock.",
+  "canonical_research_status": "WAITING_FOR_EVIDENCE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/main/java/com/agora/research/OkxMicrostructureForwardSourceCli.java",
+      "sha256": "867224b491e9e71e992718a6a7a119f41f93640029fc3e882dc205414845d15c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "src/test/java/com/agora/research/OkxMicrostructureForwardSourceCliTest.java",
+      "sha256": "dbc89ac605c2732bb8330f2665c00950f61654901f2719dac4664f032710b3f1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "pom.xml",
+      "sha256": "36edea64057794ae49ba0c4cc47385afe2410fbdd9fa9d61b0c1c57f74104235"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-day.v2.schema.json",
+      "sha256": "916525b47fcd7f8862522ca740bf987cbb5d5082237d94d8814087b8b3853fc1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-forward-diagnostic-contract.v2.json",
+      "sha256": "b58ae60f76bcdb7c60114c0b076730225056e11ca5cfe604fe7415b4e41ffe6c"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-continuous-source-contract.v1.json",
+      "sha256": "f2b353fc211d86755488bb7d9ee63057c6def8b9cd5353b86f7514981cc3e51e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-drop-envelope.v1.schema.json",
+      "sha256": "285a3f12094c24365304a73a0a1e48c921fca78e21c6a3a799912f1dd7133234"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intake-state.v1.schema.json",
+      "sha256": "2a8e42f8e0358dcc84d63a3472860ed956f739990c7c9ecba94764a7be2b1995"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/microstructure_source_contract.py",
+      "sha256": "a6da90b42aa88d4d451bcad78f63f6ef2b71c0451a76a73ce8801858d5f385a9"
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The static Java audit chose producer-first refactor-and-reuse. The exact six-file slice is frozen below. The current bounded CLI emits V1 pretty JSON and lacks V2 total quote, trade OHLC/VWAP, first/last trade timestamps, mid high/low, and first/last books5 timestamps. Preserve V1 while enriching the shared core for V2. Python intake is a separate later task.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_REPOSITORY_CONTRACTS",
+    "REFACTOR_SHARED_JAVA_COLLECTOR",
+    "PRESERVE_BOUNDED_V1_PROJECTION",
+    "ADD_V2_MINUTE_AGGREGATES",
+    "ADD_CANONICAL_ATOMIC_DROP_WRITER",
+    "ADD_CONTINUOUS_DATA_PLANE_ORCHESTRATOR",
+    "ADD_DETERMINISTIC_OFFLINE_JAVA_TESTS",
+    "RUN_FOCUSED_OFFLINE_MAVEN_TESTS",
+    "RUN_OFFLINE_JAVA_PACKAGE_BUILD",
+    "RUN_EXISTING_PYTHON_CONTRACT_TESTS",
+    "VALIDATE_TASK_AND_RESULT_CONTRACTS"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "SYSTEMD_OR_SCHEDULE_CHANGE",
+    "SERVICE_DEPLOYMENT_OR_EXECUTION",
+    "NETWORK_OR_PUBLIC_ENDPOINT_EXECUTION",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "CANDLE_CHAIN_OR_TRIGGER_MUTATION",
+    "SPRING_OR_MAVEN_EXEC_MAIN_LAUNCH",
+    "POM_OR_DEPENDENCY_CHANGE",
+    "PYTHON_INTAKE_IMPLEMENTATION"
+  ],
+  "expected_outputs": [
+    "SIX_FILE_CHANGESET",
+    "SHARED_JAVA_COLLECTOR",
+    "PRESERVED_V1_BEHAVIOR",
+    "COMPLETE_V2_MINUTE_PROJECTION",
+    "CANONICAL_ATOMIC_DROP_WRITER",
+    "CONTINUOUS_DATA_PLANE_ORCHESTRATOR",
+    "FAIL_CLOSED_RECOVERY_BEHAVIOR",
+    "DETERMINISTIC_OFFLINE_TEST_RESULTS",
+    "PERFORMANCE_TIME_TO_EVIDENCE_BOUNDARY",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Change exactly six files: edit OkxMicrostructureForwardSourceCli.java and its test; add OkxMicrostructureCollector.java, OkxMicrostructureCanonicalDrop.java, OkxMicrostructureContinuousSourceCli.java, and OkxMicrostructureContinuousSourceCliTest.java under their existing src/main/java/com/agora/research and src/test/java/com/agora/research packages.",
+    "Do not edit pom.xml, Python contracts or validators, V1/V2/V3 schemas, V6 schedule, service/systemd/deployment scripts, .research-state, candle evidence, or any runtime file. If a seventh file or dependency is required, stop BLOCKED.",
+    "Extract and reuse one package-private deterministic collector core. Do not copy the full existing parser/aggregator into the continuous CLI. Preserve all current bounded V1 fields, seal behavior, CLI arguments, pretty output, safety assertions, and regression tests unless the existing test proves a defect; any V1 regression is a stop condition.",
+    "The shared collector must add the V2 fields total_quote_notional, trade_open_price, trade_high_price, trade_low_price, trade_close_price, trade_vwap_price, first_trade_at, last_trade_at, mid_price_high, mid_price_low, first_book_at, and last_book_at with canonical decimal/timestamp semantics. It must preserve raw arrival chaining, anomaly counters, strict trade/books5 parsing, and one minute per exact UTC boundary.",
+    "Freeze production to the public OKX endpoint, BTC-USDT, trades/books5, UTC, forward-only, no credentials, no raw persistence/backfill, 14 future contiguous days, agora-evidence-source, and frozen source/day/diagnostic/drop contracts. Main may not accept caller-selected endpoint, instrument, channel, contract hash, start day, window length, identity, drop root, or research action.",
+    "Use package-private injectable Clock, WebSocket transport, and DropSink seams for offline tests only. Production main must use Java 21 HttpClient/WebSocket directly and must not start Spring. No test may contact OKX or another network endpoint.",
+    "On the first valid next-UTC-day message, finalize the prior day before applying that message to the new day. Publish only if the prior day has exactly 1,440 contiguous minutes, at least one trade and one books5 sample in every minute, both channel acknowledgements, CLEAN integrity, zero anomalies, valid predecessor binding, canonical payload seal, and the frozen 14-day window position.",
+    "Canonical drop output must be compact UTF-8 JSON with recursively sorted keys and no trailing newline for both the complete bundle and envelope. Compute size and SHA-256 from those exact bytes. Write to a source-private staging path, force bytes, then use an exclusive atomic move into a microstructure-only drop. Reject existing targets, symlinks, overwrite, non-atomic fallback, hash drift, read-back dependence, candle path reuse, or caller-selected destination.",
+    "Identical duplicate handling belongs to the later intake, not the producer. The producer never overwrites or republishes an existing day. It cannot read Server Canonical state or the published drop after delivery.",
+    "Reconnect is data-plane process recovery only. Continue only when the in-memory day remains structurally complete and no message/minute/anomaly gap is detected. Any disconnect that creates an unproved interval, missing stream/minute, malformed/exchange error, regression, crossed book, active-window process restart, or publication failure must fail the entire frozen window closed with no backfill or automatic start-day shift.",
+    "The orchestrator must never enqueue, select, retry, schedule, or time research actions. The sole Codex Cloud Ops schedule remains the only research lifecycle clock. Service supervision is not implemented in this task.",
+    "Add deterministic offline tests for current V1 projection, V2 field calculations, canonical full-document bytes, exact hashes, UTC rollover and next-day message retention, reconnect without structural loss, reconnect/gap failure, missing trades, missing books5, malformed/anomaly failure, fixed production inputs, exclusive atomic publication behavior through a fake sink, and restart fail-closed semantics.",
+    "Run only offline verification: python -m research_pipeline validate-local-research-task on this task; mvn -o with only OkxMicrostructureForwardSourceCliTest and OkxMicrostructureContinuousSourceCliTest; mvn -o -DskipTests package; and python -m unittest research_pipeline.tests.test_microstructure_source_contract. Never use Maven exec and never launch a main class.",
+    "Stop after producer tests and package verification. Do not implement Python intake, service units, deployment, V7 schedule, live collection, candidate, experiment, OOS, Trading, database, orders, or funds.",
+    "Report predictive value, fees, slippage, drawdown effect, strategy usefulness, production liveness, filesystem enforcement, capacity, real reconnect reliability, and future 14-day completeness as MISSING_PROOF. The only supported performance thesis is reduced time-to-evidence."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 6,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

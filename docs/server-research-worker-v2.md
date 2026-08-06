@@ -239,6 +239,112 @@ are bounded; ordinary nonzero exits are sealed as `FAILED`, while the older
 lease-based `STALE_RECOVERED` path remains the final fail-closed fallback. This
 is event recovery, not a second research clock or timer.
 
+## Continuous microstructure producer preparation
+
+The continuous OKX microstructure producer is packaged as a separate,
+non-Spring Java 21 distribution. The inactive-by-default Maven profile
+`microstructure-research-dist` emits only
+`com/agora/research/OkxMicrostructure*.class` plus the three required Jackson
+runtime jars under `target/microstructure-dist`. The Research Worker packager
+requires a clean commit and builds a private package tree from `git archive`
+bytes at that exact `HEAD`. Its committed runtime allowlist is only
+`research_pipeline`, `research_mcp`, `research_source`, `research`, and
+`scripts/research-worker`; `docs`, `src`, `pom.xml`, the live worktree, and all
+other roots are excluded. The only non-Git input is the fresh offline profile
+output, whose exact closure is the canonical microstructure jar plus the three
+Jackson jars. Extra files or directories, links/reparse points, nested Git or
+`.research-state`, Python bytecode/cache, and environment, credential, or
+secret material fail closed.
+
+The packager hashes every file in that private tree, creates the archive from
+the same tree, extracts it into a second private directory, and requires exact
+path-and-SHA-256 equality before either package-only success or upload. The
+installer repeats the fixed-root, exact-distribution, no-link, and complete
+manifest checks before creating a release. `verify-worker.sh` independently
+requires the same installed runtime closure plus only the generated
+`.release/source.sha256` and `.release/provenance.json`; the source manifest
+must cover every pre-install package file and no metadata or unknown path.
+
+`scripts/deploy_research_worker_upgrade_ssh.ps1 -PackageOnly` performs the same
+clean-commit gate, offline build, private staging, manifest, archive, extraction,
+and equality proof, prints only commit/count/hash provenance, and exits before
+SSH or SCP. It is the immediate post-commit release gate and must not be run as
+a workaround from a dirty worktree. Successful local package-only validation
+still leaves Linux installation, systemd, identity/capability, filesystem,
+liveness, and future-evidence proof pending.
+
+The fixed launcher is
+`scripts/research-worker/run-microstructure-continuous-source.sh`. Before it
+executes Java, it requires Java 21, resolves `current` inside the immutable
+release tree, rejects symlinked binding/distribution files, verifies the whole
+installed source manifest, and proves that the binding release id and manifest
+hash equal installed provenance and the byte-level SHA-256 of
+`.release/source.sha256`. It then uses a fixed classpath and the sole main class
+`com.agora.research.OkxMicrostructureContinuousSourceCli`. It accepts no
+caller-selected path, class, endpoint, instrument, channel, or argument and
+never invokes Maven, Maven exec, Spring, or the Trading application.
+
+An optional binding is installed only when both a strictly future UTC start day
+and frozen diagnostic id are explicitly supplied to the upgrade. The fixed
+path is
+`/etc/agora-research/okx-microstructure-continuous-source-v1.json`; it is
+atomically written as `root:agora-evidence` mode `0640`. Its
+`producer_release_id` is the installed release id and its
+`producer_manifest_sha256` is the actual installed source-manifest hash, never
+a task hash. An existing binding may be replaced only while
+`agora-research-microstructure-source.service` is disabled and inactive.
+Ordinary upgrades without both parameters do not create or replace it.
+
+The dedicated source unit runs as credential-free `agora-evidence-source`, has
+`Restart=no`, a bounded runtime, no `EnvironmentFile`, no timer, no `[Install]`
+enablement, no canonical-state or Trading-secret access, and write access only
+to its fixed private staging and microstructure-drop roots. Installation leaves
+the unit disabled and inactive. The legacy candle source and evidence-ingest
+units retain their existing `pending.json` paths and are never reused.
+
+The separate microstructure intake preparation is
+`research_pipeline.microstructure_intake_cli`. Its only production commands are
+`initialize` and `ingest`; neither accepts a caller-selected path, identity,
+endpoint, lifecycle, or policy. Both bind the fixed installed release manifest,
+future diagnostic binding, microstructure drop, and dedicated
+`/var/lib/agora-research/state/microstructure` namespace. `initialize` is an
+installer-only future-window operation. It never overwrites state. `ingest`
+requires that state and advances it only through the frozen canonical validator
+and atomic commit APIs. Invalid contract bytes seal `INTEGRITY_BLOCKED`; stale
+locks, temporary files, symlinks, ambiguous structures, capacity failure, or
+filesystem mismatch stop for manual recovery without moving or deleting bytes.
+
+Every accepted day has one matching zero-byte publication reservation and
+exactly one canonical bundle plus envelope. The envelope release id and
+manifest hash must equal the installed binding. The drop and private staging
+roots must share a filesystem, at least 2 GiB must remain free, and no more than
+14 day/reservation pairs are allowed. The drop parent is
+`root:agora-evidence` mode `1770`: the publisher group can create a new atomic
+entry, while the sticky root-owned parent prevents it from removing a day after
+intake first changes the day directory to `root:agora-research` mode `0550` and
+then changes its reservation and files to mode `0440`. Byte hashes are checked
+before and after that idempotent metadata-only freeze. Already-correct metadata
+causes no `chown` or `chmod`, so a duplicate path event cannot retrigger itself.
+
+`agora-research-microstructure-intake.service` is a network-denied oneshot with
+`Restart=no`, no environment file, and no evidence-group membership. Its exact
+capability set is `CAP_DAC_READ_SEARCH`, `CAP_CHOWN`, and `CAP_FOWNER`; it has no
+`CAP_DAC_OVERRIDE`. The drop is exposed writable in the mount namespace only so
+those metadata calls can succeed. Ordinary DAC denies this identity creation,
+content writes, rename, and unlink. Only its dedicated state root is a data-write
+target. `agora-research-microstructure-intake.path` watches the fixed drop root
+and is the only microstructure event trigger; it is not a timer or lifecycle
+clock. The installer enables this intake path but leaves the producer disabled
+and inactive.
+
+This remains deployment preparation, not deployment authorization. A separate
+server preflight must still prove installed identities and capabilities,
+same-filesystem atomicity, real capacity, path retrigger and crash behavior,
+source denial, liveness, reconnects, and 14 complete future days. Predictive
+value, fees, slippage, drawdown, and PnL remain `MISSING_PROOF`. Cloud Ops remains
+the sole research lifecycle clock, Server Canonical remains the sole research
+state writer, and the candle evidence chain remains byte-separated.
+
 ## Cutover
 
 1. Deploy the V2 release, OAuth MCP, request directories, dispatch path, and

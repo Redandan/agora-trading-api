@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agora.local/research/okx-microstructure-forward-day.v2.schema.json",
+  "title": "OKX BTC-USDT Microstructure Forward Day V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_type",
+    "authorization",
+    "source",
+    "day",
+    "capture",
+    "integrity",
+    "minutes",
+    "seal"
+  ],
+  "properties": {
+    "schema_version": {"const": "OKX_MICROSTRUCTURE_FORWARD_DAY_V2"},
+    "bundle_type": {"const": "FORWARD_MICROSTRUCTURE_DAY_RESEARCH_ONLY"},
+    "authorization": {"const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "venue",
+        "instrument",
+        "channels",
+        "mode",
+        "historical_backfill",
+        "raw_messages_persisted",
+        "aggregation_timezone"
+      ],
+      "properties": {
+        "venue": {"const": "OKX"},
+        "instrument": {"const": "BTC-USDT"},
+        "channels": {"const": ["trades", "books5"]},
+        "mode": {"const": "FORWARD_ONLY"},
+        "historical_backfill": {"const": false},
+        "raw_messages_persisted": {"const": false},
+        "aggregation_timezone": {"const": "UTC"}
+      }
+    },
+    "day": {"type": "string", "format": "date"},
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started_at", "ended_at", "acknowledged_channels"],
+      "properties": {
+        "started_at": {"type": "string", "format": "date-time"},
+        "ended_at": {"type": "string", "format": "date-time"},
+        "acknowledged_channels": {"const": ["books5", "trades"]}
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "anomaly_count",
+        "raw_message_count",
+        "arrival_chain_sha256"
+      ],
+      "properties": {
+        "status": {"const": "CLEAN"},
+        "anomaly_count": {"const": 0},
+        "raw_message_count": {"type": "integer", "minimum": 1},
+        "arrival_chain_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "minutes": {
+      "type": "array",
+      "minItems": 1440,
+      "maxItems": 1440,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "minute",
+          "trade_record_count",
+          "match_count",
+          "buy_quote_notional",
+          "sell_quote_notional",
+          "total_quote_notional",
+          "net_taker_quote_notional",
+          "trade_open_price",
+          "trade_high_price",
+          "trade_low_price",
+          "trade_close_price",
+          "trade_vwap_price",
+          "first_trade_at",
+          "last_trade_at",
+          "book_sample_count",
+          "average_top5_bid_quote_depth",
+          "average_top5_ask_quote_depth",
+          "average_book_imbalance",
+          "average_spread_bps",
+          "bid_replenishment_quote_proxy",
+          "mid_price_start",
+          "mid_price_high",
+          "mid_price_low",
+          "mid_price_end",
+          "first_book_at",
+          "last_book_at"
+        ],
+        "properties": {
+          "minute": {"type": "string", "format": "date-time"},
+          "trade_record_count": {"type": "integer", "minimum": 1},
+          "match_count": {"type": "integer", "minimum": 1},
+          "buy_quote_notional": {"type": "string"},
+          "sell_quote_notional": {"type": "string"},
+          "total_quote_notional": {"type": "string"},
+          "net_taker_quote_notional": {"type": "string"},
+          "trade_open_price": {"type": "string"},
+          "trade_high_price": {"type": "string"},
+          "trade_low_price": {"type": "string"},
+          "trade_close_price": {"type": "string"},
+          "trade_vwap_price": {"type": "string"},
+          "first_trade_at": {"type": "string", "format": "date-time"},
+          "last_trade_at": {"type": "string", "format": "date-time"},
+          "book_sample_count": {"type": "integer", "minimum": 1},
+          "average_top5_bid_quote_depth": {"type": "string"},
+          "average_top5_ask_quote_depth": {"type": "string"},
+          "average_book_imbalance": {"type": "string"},
+          "average_spread_bps": {"type": "string"},
+          "bid_replenishment_quote_proxy": {"type": "string"},
+          "mid_price_start": {"type": "string"},
+          "mid_price_high": {"type": "string"},
+          "mid_price_low": {"type": "string"},
+          "mid_price_end": {"type": "string"},
+          "first_book_at": {"type": "string", "format": "date-time"},
+          "last_book_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "payload_sha256", "canonicalization", "sealed_at"],
+      "properties": {
+        "algorithm": {"const": "SHA-256"},
+        "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "canonicalization": {"const": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"},
+        "sealed_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

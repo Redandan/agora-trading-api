@@ -174,6 +174,89 @@ $errors = $null
 $errors
 ```
 
+### Offline microstructure producer distribution
+
+The continuous research source is outside the Trading runtime and is not
+installed or activated by the normal Trading deployment. Its inactive Maven
+profile builds a narrow direct-Java-21 distribution without changing the
+Spring Boot main class:
+
+```powershell
+mvn -o "-Dtest=OkxMicrostructureContinuousSourceCliTest,OkxMicrostructureForwardSourceCliTest" test
+mvn -o -Pmicrostructure-research-dist -DskipTests package
+```
+
+The expected output is one classified jar containing only
+`com/agora/research/OkxMicrostructure*.class` and exactly the Jackson
+annotations, core, and databind runtime jars under
+`target/microstructure-dist/lib`. Do not run the jar or either source main as a
+build or deployment test.
+
+`scripts/deploy_research_worker_upgrade_ssh.ps1` is the separate Research
+Worker packager. It refuses a dirty worktree, performs the offline profile
+build, and obtains committed runtime bytes only from the exact `HEAD` through
+the fixed Git allowlist `research_pipeline`, `research_mcp`, `research_source`,
+`research`, and `scripts/research-worker`. It never recursively packages the
+live worktree and excludes `docs`, `src`, `pom.xml`, and every unknown root.
+The only generated input is `target/microstructure-dist`, which must contain
+exactly the canonical narrow jar and the Jackson annotations, core, and
+databind jars with no other file, directory, link, or reparse point.
+
+The packager constructs a private tree, generates `source.sha256` from it,
+archives that same tree, extracts the archive into a second private directory,
+and requires exact relative-path and SHA-256 equality before any upload. Both
+the installer and server verifier independently enforce the same runtime roots,
+exact four-file distribution, no-link/no-secret/no-cache boundary, and complete
+manifest coverage. The installed release may add only
+`.release/source.sha256` and `.release/provenance.json`; those metadata files
+are not pre-install package inputs.
+
+Immediately after creating the clean reviewed commit, run the same closure
+without any network action:
+
+```powershell
+.\scripts\deploy_research_worker_upgrade_ssh.ps1 -PackageOnly
+```
+
+`PackageOnly` performs the clean-commit gate, offline build, staging, manifest,
+archive, extraction, and equality checks, then exits before SSH/SCP. Do not run
+it in a dirty worktree; failure there is intentional, and the task that prepares
+the commit may use only static parser/closure checks. A successful package-only
+result is still not Linux/server/deployment proof.
+
+Optional
+`MicrostructureForwardStartDay` and `MicrostructureDiagnosticId` parameters
+must be supplied together. They prepare a root-owned future binding tied to the
+actual installed release manifest; they do not start collection.
+
+The corresponding installer places
+`agora-research-microstructure-source.service` as disabled and inactive. The
+unit has no `[Install]` section and no timer. It also installs and enables only
+the event-driven `agora-research-microstructure-intake.path` and its
+network-denied oneshot service. An explicit future binding preparation runs the
+fixed `initialize` operation in the privileged installer context, validates the
+exact derived state file, and leaves it `agora-research:agora-research` mode
+`0600`. Ordinary upgrades validate that same file without overwriting it.
+
+The fixed drop parent is `root:agora-evidence` mode `1770`. The source group can
+publish a new reserved day, but the sticky parent prevents rename or deletion
+after intake freezes the day directory to `root:agora-research` mode `0550` and
+its two files plus matching reservation to mode `0440`. The intake account is
+not persistently in `agora-evidence`; only the legacy units that explicitly
+declare `SupplementaryGroups=agora-evidence` retain that access. Intake receives
+only `CAP_DAC_READ_SEARCH`, `CAP_CHOWN`, and `CAP_FOWNER`, with no content-write
+override. The drop mount is metadata-capable for those calls, while DAC denies
+intake create/write/unlink and denies the source read/modify/rename/delete after
+freeze.
+
+Before any separately authorized source start, server preflight must prove the
+active intake path, no microstructure timer, fixed release/binding identity,
+same-filesystem staging/drop, at least 2 GiB free, at most 14 exact
+day/reservation pairs, clean recovery sidecars, frozen ownership/modes, and the
+publisher create-versus-frozen-denial boundary. Do not manually start the source
+from this preparation alone. Never reuse the candle `agora-research-source` or
+`agora-research-evidence-ingest` paths for this microstructure chain.
+
 ## Bootstrap
 
 On the server:

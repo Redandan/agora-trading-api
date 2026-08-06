@@ -47,6 +47,10 @@ Autonomous research workflow:
   registration while the server path unit dispatches those fixed operations.
 - Use `research_pipeline/policy.v3.json` for new control-plane work. Preserve
   prior policy hashes embedded in already sealed historical experiments.
+- For local Codex research-node work, read
+  `docs/local-codex-research-node-v1.md` and validate the exact task package
+  before execution. The local node is message-dispatched, non-authoritative,
+  and must not add a timer, call Research MCP writes, or write canonical state.
 
 Standing boundaries:
 

@@ -1,0 +1,140 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-microstructure-60m-friction-hurdle-audit-v1",
+  "issued_at": "2026-08-07T11:31:29Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "EVIDENCE_DIAGNOSTIC",
+  "execution_mode": "READ_ONLY",
+  "objective": "Perform one bounded mechanism-neutral historical hurdle audit for the frozen standalone microstructure economic route. Performance hypothesis: the pre-2025 BTC-USDT H1 corpus cannot prove microstructure alpha, but its consecutive one-hour open-to-open distribution can quantify the exact market hurdle imposed by the frozen 60-minute hold and 30-bps planning friction. Measure how often an unconditioned long hour clears the exact frozen fee/slippage ledger, the minimum positive-share enrichment needed to exceed the frozen greater-than-50-percent trade gate, annual breadth, and the theoretical maximum friction-clearing opportunities per 14-day stage. Use the result only to assess whether waiting for the 14-day forward microstructure screen and later 42-day route is economically plausible or obviously opportunity-starved. Do not condition on a signal, formulate or tune a hypothesis, recompute any strategy, compare to closed branches, create a candidate, or access OOS.",
+  "canonical_research_status": "WAITING;GENERAL_1_90;MICROSTRUCTURE_PRE_START_0_14;QUEUES_IDLE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "AGENTS.md",
+      "sha256": "acae1925d4f2247dc8ffbd60efd7d9bd86844ef6ce9bf8f3b5bdf57906177e50"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/local-codex-research-node-v1.md",
+      "sha256": "1c438bca305a4195aa16cd08d70eb535770092b45bd6acd3ea4cf21d6643830f"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": ".agents/skills/autonomous-trading-research/SKILL.md",
+      "sha256": "7627a7b10d3a4d70ec6e1453a6c1f75fcf22249faaa6283855bc24dd82e6be65"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/policy.v3.json",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/okx-microstructure-intraday-economic-route-contract.v1.json",
+      "sha256": "33fdef52654845911eda5f9f0dc9a3d1281ae6a6e0d4c0aab1bc93b51f34304e"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local-research-result.schema.json",
+      "sha256": "baeb8d3c61dd685234ac24d1f5211199af47398702f076a347f7a4e807f97659"
+    },
+    {
+      "kind": "SEALED_ARTIFACT",
+      "locator": ".research-state/java-parity/selection-2019-2024.tsv",
+      "sha256": "e436a5a2b093365886464dd3e471cc5cd55c54bd2c06ceaa898ac218c45436dd"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "Manager read canonical status at 2026-08-07T11:25:44Z: one V6 cloud schedule, Server Canonical authority, queues IDLE, general forward evidence 1/90, microstructure V3 PRE_START 0/14 for 2026-08-08, and no actionable candidate. Do not refresh or mutate server state in this Local task.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The sealed TSV has exactly 52,608 headerless UTC H1 rows for 2019-01-01 through 2024-12-31 and seven tab-separated fields: open_time, close_time, open, high, low, close, volume. Treat each contiguous row pair as one context-only 60-minute open-to-next-open long opportunity. This is an H1 proxy, not the exact m+2 to m+62 minute route and not signal-conditioned evidence.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_POLICY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "READ_LISTED_SEALED_CORPUS",
+    "VALIDATE_H1_ROW_AND_CLOCK_INTEGRITY",
+    "COMPUTE_EXACT_FROZEN_FRICTION_HURDLE",
+    "COMPUTE_CONTEXT_ONLY_60M_RETURN_DISTRIBUTION",
+    "COMPUTE_ANNUAL_HURDLE_BREADTH",
+    "COMPUTE_THEORETICAL_14_DAY_UPPER_BOUND",
+    "ASSESS_FORWARD_ROUTE_OPPORTUNITY_COST",
+    "VALIDATE_LOCAL_TASK",
+    "RUN_GIT_DIFF_CHECK",
+    "RETURN_LOCAL_RESEARCH_RESULT"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "STRATEGY_HYPOTHESIS_OR_MANIFEST_AUTHORING",
+    "SIGNAL_CONDITIONING_OR_TIER_SELECTION",
+    "PARAMETER_THRESHOLD_HOLD_OR_COST_TUNING",
+    "ADAPTER_RUNNER_OR_STRATEGY_EXECUTION",
+    "STRATEGY_PNL_OR_DRAWDOWN_RECOMPUTATION",
+    "CLOSED_BRANCH_COMPARISON_OR_REOPENING",
+    "FUTURE_EVIDENCE_OR_OUTCOME_ACCESS",
+    "UNLISTED_ARTIFACT_OR_DATA_ACCESS",
+    "REPOSITORY_OR_RESEARCH_STATE_WRITE",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "NETWORK_ACCESS",
+    "CANDIDATE_REGISTRATION_OR_OOS_INFERENCE",
+    "SECOND_LOCAL_TIMER",
+    "JAVA_MAVEN_SPRING_OR_EXTERNAL_PROCESS_START"
+  ],
+  "expected_outputs": [
+    "EXACT_INPUT_HASH_VALIDATION",
+    "H1_CORPUS_INTEGRITY",
+    "EXACT_RAW_BREAK_EVEN_HURDLE_BPS",
+    "AGGREGATE_NET_POSITIVE_SHARE",
+    "ANNUAL_NET_POSITIVE_SHARE_BREADTH",
+    "NET_RETURN_BPS_QUANTILES",
+    "MINIMUM_SHARE_ENRICHMENT_TO_FROZEN_GATE",
+    "THEORETICAL_14_DAY_FRICTION_CLEARING_UPPER_BOUND",
+    "HURDLE_CONTEXT_DISPOSITION",
+    "PERFORMANCE_AND_DRAWDOWN_BOUNDARY",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null input SHA-256 before reading the corpus. Any missing file, hash mismatch, duplicate locator, link, reparse point, wrong type, or dirty pre-task worktree is BLOCKED with no partial economic conclusion.",
+    "Read only the listed files. Do not inspect Local inbox/outbox, adjacent .research-state content, current server state, future evidence, OOS, network, or any unlisted artifact.",
+    "Require exactly 52,608 rows, seven fields per row, finite positive OHLC and nonnegative volume, close_time strictly after open_time by one hour, and every next open_time equal to the prior close_time. Any failure makes the whole audit MISSING_PROOF_INVALID_CORPUS.",
+    "Use Decimal arithmetic and the exact frozen ledger: entry raw open times 1.0005; gross base 30 divided by entry price; buy fee removes 0.0010 base; exit raw next open times 0.9995; exit fee removes 0.0010 quote; net PnL is final quote minus 30. Do not substitute a rounded 30-bps subtraction.",
+    "For every contiguous pair, report net return bps and nearest-rank P05, P25, P50, P75, P90, P95, and P99. Group annual results by the entry row UTC year and report pair count, strictly positive net count/share, and median net return bps for every year 2019 through 2024.",
+    "Derive the exact raw exit/open break-even ratio from the frozen ledger. Aggregate strictly positive net share is context only. Minimum enrichment is max(0, 50.00 minus aggregate share) percentage points; the actual gate is strict greater-than 50 percent and is not changed by this audit.",
+    "The theoretical 14-day upper bound equals aggregate strictly positive net share times 336 non-overlapping hourly slots. Compare it with the frozen minimum 30 trades only as a necessary market-opportunity check, not as event-cadence, matched-control, predictive, or profitability evidence.",
+    "Return HURDLE_CONTEXT_OPPORTUNITY_NOT_SCARCE only when aggregate and each entry-year positive-net share imply at least 30 friction-clearing hours per 336 slots; otherwise return HURDLE_CONTEXT_OPPORTUNITY_SPARSE. Either disposition remains CONTEXT_ONLY_NOT_ALPHA and cannot change the forward screen or 42-day gates.",
+    "Do not compute a strategy equity curve, aggregate all-hour PnL, drawdown, Sharpe, Sortino, signal precision, event frequency, matched-control economics, selected-tier performance, candidate readiness, or OOS value. Mark each MISSING_PROOF.",
+    "Return exactly one schema-valid local-research-result JSON tied to the exact task SHA-256, with no artifacts, zero files changed, all safety assertions false, concrete PASS or MISSING_PROOF checks, and one bounded next action. Do not request permissions."
+  ],
+  "limits": {
+    "timeout_seconds": 1800,
+    "max_files_changed": 0,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

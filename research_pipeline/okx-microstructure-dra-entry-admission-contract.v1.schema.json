@@ -1,0 +1,649 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agora:research:okx-microstructure-dra-entry-admission-contract:v1",
+  "title": "OKX Microstructure DRA Entry Admission Contract V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "status",
+    "authorization",
+    "purpose",
+    "file_scope",
+    "frozen_sources",
+    "selected_tier_binding",
+    "clock",
+    "tier_feature_projection",
+    "admission",
+    "data_integrity",
+    "matched_parent",
+    "evidence_boundary",
+    "performance_hypothesis",
+    "missing_proof",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "contract_id": {
+      "const": "OKX_MICROSTRUCTURE_DRA_ENTRY_ADMISSION_V1"
+    },
+    "status": {
+      "const": "PREOUTCOME_DESIGN_ONLY_NOT_ADAPTER_NOT_CANDIDATE"
+    },
+    "authorization": {
+      "const": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE"
+    },
+    "purpose": {
+      "const": "CAUSAL_DRA_V1_ENTRY_ADMISSION_CONTRACT_FREEZE_ONLY"
+    },
+    "file_scope": {
+      "const": {
+        "maximum_files": 4,
+        "exact_files": [
+          "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.json",
+          "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.schema.json",
+          "research_pipeline/tests/test_microstructure_dra_entry_admission_contract.py",
+          "docs/okx-microstructure-dra-entry-admission-v1.md"
+        ]
+      }
+    },
+    "frozen_sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task",
+        "prior_clock_audit_task",
+        "policy",
+        "microstructure_day",
+        "microstructure_diagnostic",
+        "microstructure_interpretation",
+        "microstructure_hypothesis_design",
+        "dra_parent",
+        "existing_volume_range_adapter"
+      ],
+      "properties": {
+        "task": {
+          "$ref": "#/$defs/taskSource"
+        },
+        "prior_clock_audit_task": {
+          "$ref": "#/$defs/taskSource"
+        },
+        "policy": {
+          "$ref": "#/$defs/namedHashSource"
+        },
+        "microstructure_day": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_version",
+            "schema_sha256"
+          ],
+          "properties": {
+            "schema_version": {
+              "const": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3"
+            },
+            "schema_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "microstructure_diagnostic": {
+          "$ref": "#/$defs/contractHashSource"
+        },
+        "microstructure_interpretation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "contract_id",
+            "sha256",
+            "result_schema_sha256"
+          ],
+          "properties": {
+            "contract_id": {
+              "const": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "result_schema_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "microstructure_hypothesis_design": {
+          "$ref": "#/$defs/contractHashSource"
+        },
+        "dra_parent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "runtime_contract_sha256",
+            "python_economic_engine_sha256",
+            "java_research_cli_sha256",
+            "java_policy_sha256",
+            "java_engine_sha256"
+          ],
+          "properties": {
+            "key": {
+              "const": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH"
+            },
+            "runtime_contract_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "python_economic_engine_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "java_research_cli_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "java_policy_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "java_engine_sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "existing_volume_range_adapter": {
+          "const": {
+            "adapter_id": "dra-forward-entry-admission-v1",
+            "sha256": "87237cd2bdff64e4b603beae52ee83b63a7eaa048d8cd2032765dc90dfbcb9d9",
+            "directly_compatible": false,
+            "disposition": "DO_NOT_RELABEL_OR_REUSE_AS_MICROSTRUCTURE_ADAPTER"
+          }
+        }
+      }
+    },
+    "selected_tier_binding": {
+      "const": {
+        "source": "VALIDATED_INTERPRETATION_SELECTED_SIMPLEST_SUFFICIENT_TIER",
+        "required_interpretation_disposition": "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+        "selection_rule": "FIRST_TIER_CLASSIFIED_PASS_IN_FROZEN_ORDER",
+        "pass_rule": "15m=POSITIVE AND 60m=POSITIVE",
+        "tier_order": [
+          "MIDLINE_RATIO_1_5_ONLY",
+          "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+          "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+        ],
+        "non_positive_dispositions": [
+          "NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE",
+          "AMBIGUOUS_NO_HYPOTHESIS",
+          "INSUFFICIENT_FORWARD_EVIDENCE"
+        ],
+        "non_positive_action": "CLOSE_WITHOUT_ADMISSION_DESIGN",
+        "caller_selected_tier_authorized": false,
+        "fallback_tier_authorized": false,
+        "threshold_change_authorized": false,
+        "magnitude_selection_authorized": false,
+        "more_complex_tier_escalation_authorized": false
+      }
+    },
+    "clock": {
+      "const": {
+        "timezone": "UTC",
+        "parent_signal_bar": "[23:00:00,24:00:00)",
+        "parent_decision": "AFTER_CLOSED_23_00_HOURLY_BAR",
+        "parent_fill": "NEXT_1H_OPEN_AT_00:00:00",
+        "minute_bucket": "[minute,minute+60s)",
+        "minute_available_at": "minute+60s",
+        "eligible_minute_start_first": "23:00:00",
+        "eligible_minute_start_last": "23:58:00",
+        "eligible_minute_count": 59,
+        "strict_cutoff_rule": "minute+60s < parent_next_1h_open",
+        "excluded_fill_boundary_minute_start": "23:59:00",
+        "excluded_reason": "BUCKET_COMPLETES_AT_00:00:00_FILL_BOUNDARY_NOT_STRICTLY_EARLIER"
+      }
+    },
+    "tier_feature_projection": {
+      "const": {
+        "common_columns": [
+          "minute",
+          "above_mid_buy_quote_notional",
+          "below_mid_sell_quote_notional"
+        ],
+        "additional_columns_by_tier": {
+          "MIDLINE_RATIO_1_5_ONLY": [],
+          "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY": [
+            "net_taker_quote_notional"
+          ],
+          "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT": [
+            "net_taker_quote_notional",
+            "average_book_imbalance",
+            "bid_replenishment_quote_proxy"
+          ]
+        },
+        "ratio_formula": "above_mid_buy_quote_notional / below_mid_sell_quote_notional",
+        "ratio_threshold": "1.50",
+        "zero_denominator_disposition": "NO_EVENT",
+        "projection_rule": "VALIDATE_FULL_V3_DAY_THEN_PROJECT_ONLY_SELECTED_TIER_COLUMNS",
+        "forbidden_admission_inputs": [
+          "NEXT_COMPLETE_MINUTE_OPEN",
+          "trade_open_price",
+          "return_bps",
+          "mfe_bps",
+          "mae_bps",
+          "positive_return_share_pct",
+          "matched_median_return_delta_bps",
+          "matched_control",
+          "cooldown_minutes_per_tier",
+          "observed_magnitude_rank"
+        ]
+      }
+    },
+    "admission": {
+      "const": {
+        "direction": "ENTRY_ADMISSION_ONLY",
+        "aggregation": "ANY_ELIGIBLE_COMPLETED_MINUTE_SATISFIES_SELECTED_TIER",
+        "parent_entry_required": true,
+        "admit_rule": "parent_entry_eligible AND valid_complete_59_minute_window AND any_selected_tier_event",
+        "veto_rule": "parent_entry_eligible AND valid_complete_59_minute_window AND no_selected_tier_event",
+        "invalid_data_disposition": "INVALID_COMPARISON_DATA_REJECT",
+        "invalid_data_can_admit": false,
+        "invalid_data_can_veto": false,
+        "microstructure_can_create_parent_entry": false,
+        "diagnostic_cooldown_applied": false,
+        "future_response_labels_applied": false,
+        "diagnostic_next_minute_price_applied": false,
+        "matched_diagnostic_control_applied": false
+      }
+    },
+    "data_integrity": {
+      "$ref": "#/$defs/dataIntegrity"
+    },
+    "matched_parent": {
+      "$ref": "#/$defs/matchedParent"
+    },
+    "evidence_boundary": {
+      "$ref": "#/$defs/evidenceBoundary"
+    },
+    "performance_hypothesis": {
+      "$ref": "#/$defs/performanceHypothesis"
+    },
+    "missing_proof": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9_]+$"
+      }
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "taskSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "sha256"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "namedHashSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "sha256"
+      ],
+      "properties": {
+        "policy_id": {
+          "const": "AUTONOMOUS_TRADING_RESEARCH_V3"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "contractHashSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "sha256"
+      ],
+      "properties": {
+        "contract_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "dataIntegrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "day_validation",
+        "required_schema_version",
+        "required_integrity_status",
+        "required_eligible_minute_count",
+        "required_eligible_minute_sequence",
+        "required_source",
+        "required_seal",
+        "failure_conditions",
+        "failure_disposition",
+        "exclude_invalid_date_from_both_parent_and_candidate",
+        "silent_admit_or_veto_authorized"
+      ],
+      "properties": {
+        "day_validation": {
+          "const": "FULL_DOCUMENT_MUST_VALIDATE_AGAINST_EXACT_FROZEN_V3_DAY_SCHEMA_AND_SEAL"
+        },
+        "required_schema_version": {
+          "const": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3"
+        },
+        "required_integrity_status": {
+          "const": "CLEAN"
+        },
+        "required_eligible_minute_count": {
+          "const": 59
+        },
+        "required_eligible_minute_sequence": {
+          "const": "CONTIGUOUS_60_SECOND_UTC_STARTS_23:00:00_THROUGH_23:58:00"
+        },
+        "required_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "venue",
+            "instrument",
+            "channels",
+            "mode",
+            "historical_backfill",
+            "aggregation_timezone",
+            "midline_reference"
+          ],
+          "properties": {
+            "venue": {
+              "const": "OKX"
+            },
+            "instrument": {
+              "const": "BTC-USDT"
+            },
+            "channels": {
+              "const": [
+                "trades",
+                "books5"
+              ]
+            },
+            "mode": {
+              "const": "FORWARD_ONLY"
+            },
+            "historical_backfill": {
+              "const": false
+            },
+            "aggregation_timezone": {
+              "const": "UTC"
+            },
+            "midline_reference": {
+              "const": "LATEST_BOOKS5_AT_OR_BEFORE_TRADE"
+            }
+          }
+        },
+        "required_seal": {
+          "const": {
+            "algorithm": "SHA-256",
+            "canonicalization": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"
+          }
+        },
+        "failure_conditions": {
+          "type": "array",
+          "minItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "failure_disposition": {
+          "const": "INVALID_COMPARISON_DATA_REJECT"
+        },
+        "exclude_invalid_date_from_both_parent_and_candidate": {
+          "const": true
+        },
+        "silent_admit_or_veto_authorized": {
+          "const": false
+        }
+      }
+    },
+    "matchedParent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_key",
+        "candidate_difference",
+        "same_parent_decisions",
+        "same_eligible_dates",
+        "reference_capital_usdt",
+        "lot_notional_usdt",
+        "fee_rate_per_side",
+        "adverse_slippage_rate_per_side",
+        "fill_timing",
+        "unchanged_semantics",
+        "required_parity_ledgers",
+        "required_reports",
+        "fold_boundary_rule"
+      ],
+      "properties": {
+        "parent_key": {
+          "const": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH"
+        },
+        "candidate_difference": {
+          "const": "ONLY_ENTRY_ADMISSION_VETO_FROM_SELECTED_TIER"
+        },
+        "same_parent_decisions": {
+          "const": true
+        },
+        "same_eligible_dates": {
+          "const": true
+        },
+        "reference_capital_usdt": {
+          "const": "250.00"
+        },
+        "lot_notional_usdt": {
+          "const": "30.00"
+        },
+        "fee_rate_per_side": {
+          "const": "0.0010"
+        },
+        "adverse_slippage_rate_per_side": {
+          "const": "0.0005"
+        },
+        "fill_timing": {
+          "const": "NEXT_1H_OPEN"
+        },
+        "unchanged_semantics": {
+          "type": "array",
+          "minItems": 11,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_parity_ledgers": {
+          "const": [
+            "ORDERED_EVENT_LEDGER",
+            "ORDERED_FILL_LEDGER",
+            "HOURLY_ECONOMIC_STATE_LEDGER",
+            "TERMINAL_LOT_LEDGER"
+          ]
+        },
+        "required_reports": {
+          "type": "array",
+          "minItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "fold_boundary_rule": {
+          "const": "IDENTICAL_PARENT_AND_CANDIDATE_BOUNDARIES_FROZEN_IN_FUTURE_ECONOMIC_MANIFEST"
+        }
+      }
+    },
+    "evidenceBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "existing_14_day_window_role",
+        "existing_14_day_window_reuse_as_candidate_validation",
+        "existing_14_day_window_reuse_as_oos",
+        "future_prerequisites",
+        "adapter_run_authorized",
+        "economic_evaluation_authorized",
+        "hypothesis_registration_authorized",
+        "candidate_registration_authorized",
+        "oos_access_authorized",
+        "runtime_integration_authorized",
+        "state_write_authorized"
+      ],
+      "properties": {
+        "existing_14_day_window_role": {
+          "const": "TIER_SELECTION_DISCOVERY_ONLY"
+        },
+        "existing_14_day_window_reuse_as_candidate_validation": {
+          "const": false
+        },
+        "existing_14_day_window_reuse_as_oos": {
+          "const": false
+        },
+        "future_prerequisites": {
+          "const": [
+            "SEPARATELY_FROZEN_PROSPECTIVE_JOINT_DRA_PLUS_MICROSTRUCTURE_CORPUS",
+            "SEPARATELY_FROZEN_ECONOMIC_MANIFEST",
+            "OFFLINE_ADAPTER_IMPLEMENTATION_AND_PARITY_TESTS"
+          ]
+        },
+        "adapter_run_authorized": {
+          "const": false
+        },
+        "economic_evaluation_authorized": {
+          "const": false
+        },
+        "hypothesis_registration_authorized": {
+          "const": false
+        },
+        "candidate_registration_authorized": {
+          "const": false
+        },
+        "oos_access_authorized": {
+          "const": false
+        },
+        "runtime_integration_authorized": {
+          "const": false
+        },
+        "state_write_authorized": {
+          "const": false
+        }
+      }
+    },
+    "performanceHypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "thesis",
+        "drawdown_risk",
+        "opportunity_cost",
+        "immediate_pnl_effect",
+        "immediate_drawdown_effect",
+        "performance_claim_authorized"
+      ],
+      "properties": {
+        "thesis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "drawdown_risk": {
+          "type": "string",
+          "minLength": 1
+        },
+        "opportunity_cost": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "immediate_pnl_effect": {
+          "const": "ZERO_CONTRACT_ONLY"
+        },
+        "immediate_drawdown_effect": {
+          "const": "ZERO_CONTRACT_ONLY"
+        },
+        "performance_claim_authorized": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_state_write_authorized",
+        "research_state_write_authorized",
+        "server_research_mcp_write_authorized",
+        "second_timer_or_writer_authorized",
+        "adapter_or_runner_execution_authorized",
+        "hypothesis_or_candidate_registration_authorized",
+        "oos_access_authorized",
+        "trading_database_order_fund_action_authorized",
+        "shadow_paper_live_authorized",
+        "paid_api_authorized"
+      ],
+      "properties": {
+        "canonical_state_write_authorized": {
+          "const": false
+        },
+        "research_state_write_authorized": {
+          "const": false
+        },
+        "server_research_mcp_write_authorized": {
+          "const": false
+        },
+        "second_timer_or_writer_authorized": {
+          "const": false
+        },
+        "adapter_or_runner_execution_authorized": {
+          "const": false
+        },
+        "hypothesis_or_candidate_registration_authorized": {
+          "const": false
+        },
+        "oos_access_authorized": {
+          "const": false
+        },
+        "trading_database_order_fund_action_authorized": {
+          "const": false
+        },
+        "shadow_paper_live_authorized": {
+          "const": false
+        },
+        "paid_api_authorized": {
+          "const": false
+        }
+      }
+    }
+  }
+}

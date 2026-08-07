@@ -1,0 +1,287 @@
+{
+  "schema_version": "1",
+  "contract_id": "OKX_MICROSTRUCTURE_DRA_ENTRY_ADMISSION_V1",
+  "status": "PREOUTCOME_DESIGN_ONLY_NOT_ADAPTER_NOT_CANDIDATE",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "purpose": "CAUSAL_DRA_V1_ENTRY_ADMISSION_CONTRACT_FREEZE_ONLY",
+  "file_scope": {
+    "maximum_files": 4,
+    "exact_files": [
+      "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.json",
+      "research_pipeline/okx-microstructure-dra-entry-admission-contract.v1.schema.json",
+      "research_pipeline/tests/test_microstructure_dra_entry_admission_contract.py",
+      "docs/okx-microstructure-dra-entry-admission-v1.md"
+    ]
+  },
+  "frozen_sources": {
+    "task": {
+      "task_id": "local-node-microstructure-dra-admission-contract-freeze-v1",
+      "sha256": "cc2d4330b7c77ee37c95f5639a616c4d1c94b0aba21e6e723f5cd888bc93ce84"
+    },
+    "prior_clock_audit_task": {
+      "task_id": "local-node-microstructure-dra-clock-compatibility-audit-v1",
+      "sha256": "458a56f4836a821dc0408aaf3078f0bde1a5dd497a5dd1e5c726c1747274414c"
+    },
+    "policy": {
+      "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
+      "sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6"
+    },
+    "microstructure_day": {
+      "schema_version": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3",
+      "schema_sha256": "205c1da492e9e463f2d06e38b38697232fffd6117c8dead54d036e3dbd849709"
+    },
+    "microstructure_diagnostic": {
+      "contract_id": "OKX_MICROSTRUCTURE_FORWARD_DIAGNOSTIC_V3",
+      "sha256": "7f9bad3a2165cdde653e3a2d0ecd64c56ade520e7327353e9339a441c9bfee1a"
+    },
+    "microstructure_interpretation": {
+      "contract_id": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1",
+      "sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509",
+      "result_schema_sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564"
+    },
+    "microstructure_hypothesis_design": {
+      "contract_id": "OKX_MICROSTRUCTURE_HYPOTHESIS_DESIGN_V1",
+      "sha256": "d3e3df7d629938a33cddec00f251bbaaefb4ce17b51eb0b0b558061c692f6948"
+    },
+    "dra_parent": {
+      "key": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "runtime_contract_sha256": "eddff4af35c9f46b6487297feb64cfd7ceedf6a829aa7981c407f5479b889b60",
+      "python_economic_engine_sha256": "7b17f1acc591b571ed238b5d8141d0bc2b2ebd4bde860273db23c17398e05e37",
+      "java_research_cli_sha256": "0175f65fc277160461423d382da55d694866741e670518c54da9338e2590338f",
+      "java_policy_sha256": "bdc100c84306ac64826b601d01ff2b86e2741763067bffe9014fc1eaf6241463",
+      "java_engine_sha256": "a6b60d084cc6decb29e3640e851f7f2ef0579b92c05dd36ad70b2b41c2e62dde"
+    },
+    "existing_volume_range_adapter": {
+      "adapter_id": "dra-forward-entry-admission-v1",
+      "sha256": "87237cd2bdff64e4b603beae52ee83b63a7eaa048d8cd2032765dc90dfbcb9d9",
+      "directly_compatible": false,
+      "disposition": "DO_NOT_RELABEL_OR_REUSE_AS_MICROSTRUCTURE_ADAPTER"
+    }
+  },
+  "selected_tier_binding": {
+    "source": "VALIDATED_INTERPRETATION_SELECTED_SIMPLEST_SUFFICIENT_TIER",
+    "required_interpretation_disposition": "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+    "selection_rule": "FIRST_TIER_CLASSIFIED_PASS_IN_FROZEN_ORDER",
+    "pass_rule": "15m=POSITIVE AND 60m=POSITIVE",
+    "tier_order": [
+      "MIDLINE_RATIO_1_5_ONLY",
+      "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY",
+      "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT"
+    ],
+    "non_positive_dispositions": [
+      "NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE",
+      "AMBIGUOUS_NO_HYPOTHESIS",
+      "INSUFFICIENT_FORWARD_EVIDENCE"
+    ],
+    "non_positive_action": "CLOSE_WITHOUT_ADMISSION_DESIGN",
+    "caller_selected_tier_authorized": false,
+    "fallback_tier_authorized": false,
+    "threshold_change_authorized": false,
+    "magnitude_selection_authorized": false,
+    "more_complex_tier_escalation_authorized": false
+  },
+  "clock": {
+    "timezone": "UTC",
+    "parent_signal_bar": "[23:00:00,24:00:00)",
+    "parent_decision": "AFTER_CLOSED_23_00_HOURLY_BAR",
+    "parent_fill": "NEXT_1H_OPEN_AT_00:00:00",
+    "minute_bucket": "[minute,minute+60s)",
+    "minute_available_at": "minute+60s",
+    "eligible_minute_start_first": "23:00:00",
+    "eligible_minute_start_last": "23:58:00",
+    "eligible_minute_count": 59,
+    "strict_cutoff_rule": "minute+60s < parent_next_1h_open",
+    "excluded_fill_boundary_minute_start": "23:59:00",
+    "excluded_reason": "BUCKET_COMPLETES_AT_00:00:00_FILL_BOUNDARY_NOT_STRICTLY_EARLIER"
+  },
+  "tier_feature_projection": {
+    "common_columns": [
+      "minute",
+      "above_mid_buy_quote_notional",
+      "below_mid_sell_quote_notional"
+    ],
+    "additional_columns_by_tier": {
+      "MIDLINE_RATIO_1_5_ONLY": [],
+      "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY": [
+        "net_taker_quote_notional"
+      ],
+      "MIDLINE_RATIO_1_5_PLUS_NET_TAKER_BUY_PLUS_BOOK_SUPPORT": [
+        "net_taker_quote_notional",
+        "average_book_imbalance",
+        "bid_replenishment_quote_proxy"
+      ]
+    },
+    "ratio_formula": "above_mid_buy_quote_notional / below_mid_sell_quote_notional",
+    "ratio_threshold": "1.50",
+    "zero_denominator_disposition": "NO_EVENT",
+    "projection_rule": "VALIDATE_FULL_V3_DAY_THEN_PROJECT_ONLY_SELECTED_TIER_COLUMNS",
+    "forbidden_admission_inputs": [
+      "NEXT_COMPLETE_MINUTE_OPEN",
+      "trade_open_price",
+      "return_bps",
+      "mfe_bps",
+      "mae_bps",
+      "positive_return_share_pct",
+      "matched_median_return_delta_bps",
+      "matched_control",
+      "cooldown_minutes_per_tier",
+      "observed_magnitude_rank"
+    ]
+  },
+  "admission": {
+    "direction": "ENTRY_ADMISSION_ONLY",
+    "aggregation": "ANY_ELIGIBLE_COMPLETED_MINUTE_SATISFIES_SELECTED_TIER",
+    "parent_entry_required": true,
+    "admit_rule": "parent_entry_eligible AND valid_complete_59_minute_window AND any_selected_tier_event",
+    "veto_rule": "parent_entry_eligible AND valid_complete_59_minute_window AND no_selected_tier_event",
+    "invalid_data_disposition": "INVALID_COMPARISON_DATA_REJECT",
+    "invalid_data_can_admit": false,
+    "invalid_data_can_veto": false,
+    "microstructure_can_create_parent_entry": false,
+    "diagnostic_cooldown_applied": false,
+    "future_response_labels_applied": false,
+    "diagnostic_next_minute_price_applied": false,
+    "matched_diagnostic_control_applied": false
+  },
+  "data_integrity": {
+    "day_validation": "FULL_DOCUMENT_MUST_VALIDATE_AGAINST_EXACT_FROZEN_V3_DAY_SCHEMA_AND_SEAL",
+    "required_schema_version": "OKX_MICROSTRUCTURE_FORWARD_DAY_V3",
+    "required_integrity_status": "CLEAN",
+    "required_eligible_minute_count": 59,
+    "required_eligible_minute_sequence": "CONTIGUOUS_60_SECOND_UTC_STARTS_23:00:00_THROUGH_23:58:00",
+    "required_source": {
+      "venue": "OKX",
+      "instrument": "BTC-USDT",
+      "channels": [
+        "trades",
+        "books5"
+      ],
+      "mode": "FORWARD_ONLY",
+      "historical_backfill": false,
+      "aggregation_timezone": "UTC",
+      "midline_reference": "LATEST_BOOKS5_AT_OR_BEFORE_TRADE"
+    },
+    "required_seal": {
+      "algorithm": "SHA-256",
+      "canonicalization": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically"
+    },
+    "failure_conditions": [
+      "MISSING_ELIGIBLE_MINUTE",
+      "DUPLICATE_ELIGIBLE_MINUTE",
+      "NONCONTIGUOUS_ELIGIBLE_MINUTE",
+      "MINUTE_NOT_STRICTLY_BEFORE_FILL",
+      "INCOMPLETE_MINUTE_BUCKET",
+      "DAY_INTEGRITY_NOT_CLEAN",
+      "INTEGRITY_ANOMALY_PRESENT",
+      "UNSEALED_OR_HASH_INVALID_DAY",
+      "SOURCE_OR_PROVENANCE_MISMATCH",
+      "SCHEMA_OR_CONTRACT_HASH_MISMATCH"
+    ],
+    "failure_disposition": "INVALID_COMPARISON_DATA_REJECT",
+    "exclude_invalid_date_from_both_parent_and_candidate": true,
+    "silent_admit_or_veto_authorized": false
+  },
+  "matched_parent": {
+    "parent_key": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+    "candidate_difference": "ONLY_ENTRY_ADMISSION_VETO_FROM_SELECTED_TIER",
+    "same_parent_decisions": true,
+    "same_eligible_dates": true,
+    "reference_capital_usdt": "250.00",
+    "lot_notional_usdt": "30.00",
+    "fee_rate_per_side": "0.0010",
+    "adverse_slippage_rate_per_side": "0.0005",
+    "fill_timing": "NEXT_1H_OPEN",
+    "unchanged_semantics": [
+      "ENTRY_SIGNAL",
+      "ARMING_AND_COOLDOWN",
+      "POSITION_SIZING",
+      "CAPITAL_LIMIT",
+      "EXIT_LOGIC",
+      "FEES",
+      "ADVERSE_SLIPPAGE",
+      "FILL_PRICE_SOURCE",
+      "FINAL_VALUATION",
+      "TERMINAL_INVENTORY",
+      "FOLD_BOUNDARIES"
+    ],
+    "required_parity_ledgers": [
+      "ORDERED_EVENT_LEDGER",
+      "ORDERED_FILL_LEDGER",
+      "HOURLY_ECONOMIC_STATE_LEDGER",
+      "TERMINAL_LOT_LEDGER"
+    ],
+    "required_reports": [
+      "REALIZED_PNL",
+      "UNREALIZED_PNL",
+      "TOTAL_PNL",
+      "MAXIMUM_DRAWDOWN_AND_PATH",
+      "CAPITAL_UTILIZATION",
+      "BLOCKED_ENTRIES",
+      "HOLDING_AGE",
+      "YEAR_AND_REGIME_CONCENTRATION",
+      "TERMINAL_INVENTORY",
+      "DATA_EXCLUSIONS"
+    ],
+    "fold_boundary_rule": "IDENTICAL_PARENT_AND_CANDIDATE_BOUNDARIES_FROZEN_IN_FUTURE_ECONOMIC_MANIFEST"
+  },
+  "evidence_boundary": {
+    "existing_14_day_window_role": "TIER_SELECTION_DISCOVERY_ONLY",
+    "existing_14_day_window_reuse_as_candidate_validation": false,
+    "existing_14_day_window_reuse_as_oos": false,
+    "future_prerequisites": [
+      "SEPARATELY_FROZEN_PROSPECTIVE_JOINT_DRA_PLUS_MICROSTRUCTURE_CORPUS",
+      "SEPARATELY_FROZEN_ECONOMIC_MANIFEST",
+      "OFFLINE_ADAPTER_IMPLEMENTATION_AND_PARITY_TESTS"
+    ],
+    "adapter_run_authorized": false,
+    "economic_evaluation_authorized": false,
+    "hypothesis_registration_authorized": false,
+    "candidate_registration_authorized": false,
+    "oos_access_authorized": false,
+    "runtime_integration_authorized": false,
+    "state_write_authorized": false
+  },
+  "performance_hypothesis": {
+    "thesis": "A causally available selected-tier veto may reduce adverse DRA entries and underwater inventory under matched capital.",
+    "drawdown_risk": "Avoided adverse entries may reduce drawdown, but the effect is MISSING_PROOF and remaining DRA lots retain unchanged exit and holding risk.",
+    "opportunity_cost": [
+      "FALSE_VETO_OF_PROFITABLE_PARENT_ENTRY",
+      "LOWER_CAPITAL_UTILIZATION",
+      "FEWER_PROFITABLE_ENTRIES",
+      "GREATER_YEAR_OR_REGIME_CONCENTRATION",
+      "UNCHANGED_LONG_HOLDING_RISK_FOR_ADMITTED_LOTS"
+    ],
+    "immediate_pnl_effect": "ZERO_CONTRACT_ONLY",
+    "immediate_drawdown_effect": "ZERO_CONTRACT_ONLY",
+    "performance_claim_authorized": false
+  },
+  "missing_proof": [
+    "INTERPRETATION_SELECTED_TIER_NOT_ACCESSED",
+    "PROSPECTIVE_JOINT_CORPUS",
+    "FUTURE_ECONOMIC_MANIFEST_AND_FOLD_DATES",
+    "OFFLINE_ADAPTER_IMPLEMENTATION",
+    "PARENT_PARITY_ON_JOINT_CORPUS",
+    "EVENT_AND_VETO_FREQUENCY",
+    "FALSE_VETO_RATE",
+    "REALIZED_UNREALIZED_AND_TOTAL_PNL",
+    "DRAWDOWN_PATH",
+    "UTILIZATION_BLOCKED_ENTRIES_AND_HOLDING_AGE",
+    "YEAR_AND_REGIME_STABILITY",
+    "FEES_SLIPPAGE_FILLS_AND_CAPACITY_VALUE",
+    "CANDIDATE_READINESS",
+    "OOS_VALUE",
+    "ACTIVATION"
+  ],
+  "safety": {
+    "canonical_state_write_authorized": false,
+    "research_state_write_authorized": false,
+    "server_research_mcp_write_authorized": false,
+    "second_timer_or_writer_authorized": false,
+    "adapter_or_runner_execution_authorized": false,
+    "hypothesis_or_candidate_registration_authorized": false,
+    "oos_access_authorized": false,
+    "trading_database_order_fund_action_authorized": false,
+    "shadow_paper_live_authorized": false,
+    "paid_api_authorized": false
+  }
+}

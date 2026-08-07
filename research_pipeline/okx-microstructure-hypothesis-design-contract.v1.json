@@ -1,0 +1,122 @@
+{
+  "schema_version": "1",
+  "contract_id": "OKX_MICROSTRUCTURE_HYPOTHESIS_DESIGN_V1",
+  "status": "FROZEN_PRETHESIS_RESEARCH_ONLY",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "source_interpretation": {
+    "result_type": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_RESULT_V1",
+    "result_schema_sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564",
+    "contract_id": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1",
+    "contract_sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509",
+    "validation": "VALIDATE_CANONICAL_SEALED_BYTES_BEFORE_DESIGN"
+  },
+  "branches": {
+    "non_positive_dispositions": [
+      "NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE",
+      "AMBIGUOUS_NO_HYPOTHESIS",
+      "INSUFFICIENT_FORWARD_EVIDENCE"
+    ],
+    "non_positive_status": "CLOSED_NO_HYPOTHESIS_DESIGN",
+    "positive_disposition": "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+    "positive_status": "DESIGN_ONLY_NOT_REGISTERED",
+    "maximum_positive_designs": 1
+  },
+  "positive_design": {
+    "coach_proposal_fields": [
+      "design_id",
+      "created_at",
+      "title",
+      "thesis",
+      "economic_rationale",
+      "performance_thesis",
+      "drawdown_thesis",
+      "opportunity_cost"
+    ],
+    "proposed_parent": {
+      "key": "BTC_DRA_V1_BASELINE_250_USDT_RESEARCH",
+      "status": "PROPOSED_PENDING_CLOCK_AND_FEATURE_COMPATIBILITY"
+    },
+    "required_capability": "DRA_MICROSTRUCTURE_ENTRY_ADMISSION_ADAPTER_V1_NOT_IMPLEMENTED",
+    "proposed_mechanism": {
+      "mechanism_id": "DRA_SELECTED_MICROSTRUCTURE_TIER_ENTRY_ADMISSION_V1",
+      "direction": "ENTRY_ADMISSION_ONLY",
+      "source": "INTERPRETATION_SELECTED_SIMPLEST_SUFFICIENT_TIER",
+      "threshold_tuning_authorized": false,
+      "magnitude_claim_authorized": false,
+      "more_complex_tier_selection_authorized": false
+    },
+    "maximum_candidate_variants": 1,
+    "existing_dra_forward_entry_admission_adapter_compatible": false
+  },
+  "policy_binding": {
+    "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
+    "policy_sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6",
+    "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "required_metrics": [
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "blocked_entries",
+      "holding_age"
+    ],
+    "constraints": [
+      "causal_point_in_time_data",
+      "positive_incremental_validation_and_oos_evidence",
+      "no_material_drawdown_deterioration",
+      "no_hidden_terminal_inventory_loss",
+      "stable_neighboring_behavior",
+      "year_and_regime_concentration_visible"
+    ]
+  },
+  "evidence_plan": {
+    "discovery_window_role": "DISCOVERY_ONLY_NOT_OOS",
+    "discovery_window_reuse_as_oos": false,
+    "hypothesis_and_manifest_freeze_before_future_oos_start": true,
+    "future_candidate_oos_window": "SEPARATELY_FROZEN_AFTER_DESIGN_AND_MANIFEST",
+    "exact_oos_dates": "MISSING_PROOF_PENDING_CANONICAL_REGISTRATION",
+    "required_future_evaluations": [
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "drawdown_path",
+      "capital_utilization",
+      "blocked_entries",
+      "holding_age",
+      "year_and_regime_breadth",
+      "terminal_inventory",
+      "fees",
+      "slippage",
+      "fills",
+      "capacity"
+    ]
+  },
+  "missing_proof": [
+    "strategy_pnl",
+    "drawdown",
+    "capital_utilization",
+    "holding_risk",
+    "fees_slippage_fills_capacity",
+    "dra_clock_compatibility",
+    "adapter_readiness",
+    "candidate_readiness",
+    "oos_value"
+  ],
+  "safety": {
+    "canonical_state_write_authorized": false,
+    "research_state_write_authorized": false,
+    "candidate_registration_authorized": false,
+    "oos_access_authorized": false,
+    "activation_authorized": false,
+    "second_timer_or_writer_authorized": false,
+    "trading_database_order_fund_action_authorized": false,
+    "paid_api_authorized": false
+  },
+  "result_contract": {
+    "result_type": "OKX_MICROSTRUCTURE_HYPOTHESIS_DESIGN_RESULT_V1",
+    "schema_sha256": "af82d3aa81257eb74cf04026fc9a43ae5c0576049d850b3263b90b7f2930e63d",
+    "canonicalization": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically",
+    "seal": "SHA-256"
+  }
+}

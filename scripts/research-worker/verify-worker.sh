@@ -16,10 +16,14 @@ EXPECTED_DATA_RELEASE_ID="${EXPECTED_DATA_RELEASE_ID:?EXPECTED_DATA_RELEASE_ID i
 MICROSTRUCTURE_UNIT=agora-research-microstructure-source.service
 MICROSTRUCTURE_INTAKE_UNIT=agora-research-microstructure-intake.service
 MICROSTRUCTURE_INTAKE_PATH=agora-research-microstructure-intake.path
+MICROSTRUCTURE_EXPORT_UNIT=agora-research-microstructure-handoff-export.service
 MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v3.json
 MICROSTRUCTURE_DROP=/var/lib/agora-evidence-source/microstructure-drop
 MICROSTRUCTURE_STAGING=/var/lib/agora-evidence-source/microstructure-private-staging
 MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure-v3"
+MICROSTRUCTURE_LOCAL_TASK=/etc/agora-research/local-tasks/microstructure-v3-evidence-diagnostic.v1.json
+MICROSTRUCTURE_HANDOFF_STAGING="$DATA_ROOT/microstructure-v3-handoff-staging"
+MICROSTRUCTURE_HANDOFF_FINAL="$DATA_ROOT/microstructure-v3-handoff-export"
 LEGACY_MICROSTRUCTURE_BINDING=/etc/agora-research/okx-microstructure-continuous-source-v1.json
 LEGACY_MICROSTRUCTURE_STATE="$DATA_ROOT/state/microstructure"
 LEGACY_MICROSTRUCTURE_PRESERVATION="$DATA_ROOT/microstructure-v3-cutover/legacy-v2.sha256"
@@ -740,6 +744,7 @@ systemctl cat agora-research-evidence-ingest.path >/dev/null
 systemctl cat "$MICROSTRUCTURE_UNIT" >/dev/null
 systemctl cat "$MICROSTRUCTURE_INTAKE_UNIT" >/dev/null
 systemctl cat "$MICROSTRUCTURE_INTAKE_PATH" >/dev/null
+systemctl cat "$MICROSTRUCTURE_EXPORT_UNIT" >/dev/null
 for control_unit in \
   agora-research-mcp.service \
   agora-research-dispatch.service \
@@ -751,6 +756,16 @@ for control_unit in \
     fail "$control_unit still references the data-current lane"
   fi
 done
+export_unit_text="$(systemctl cat "$MICROSTRUCTURE_EXPORT_UNIT")"
+echo "$export_unit_text" \
+  | grep -Fxq 'Documentation=file:/opt/agora-research-worker/control-current/docs/server-research-worker-v2.md' \
+  || fail "microstructure handoff exporter documentation does not use control-current"
+echo "$export_unit_text" \
+  | grep -Fxq 'WorkingDirectory=/opt/agora-research-worker/control-current' \
+  || fail "microstructure handoff exporter working directory does not use control-current"
+echo "$export_unit_text" \
+  | grep -Fxq 'ExecStart=/opt/agora-research-worker/venv/bin/python -m research_pipeline.microstructure_handoff_export' \
+  || fail "microstructure handoff exporter does not execute the fixed zero-argument module"
 for data_unit in \
   agora-research-source.service \
   agora-research-evidence-ingest.service \
@@ -776,8 +791,75 @@ systemd-analyze verify \
   /etc/systemd/system/agora-research-evidence-ingest.path \
   "/etc/systemd/system/$MICROSTRUCTURE_UNIT" \
   "/etc/systemd/system/$MICROSTRUCTURE_INTAKE_UNIT" \
-  "/etc/systemd/system/$MICROSTRUCTURE_INTAKE_PATH"
+  "/etc/systemd/system/$MICROSTRUCTURE_INTAKE_PATH" \
+  "/etc/systemd/system/$MICROSTRUCTURE_EXPORT_UNIT"
 ok "systemd units verified"
+
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=User --value)" = "$WORKER_USER" ] \
+  || fail "microstructure handoff exporter identity is incorrect"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=Group --value)" = "$WORKER_USER" ] \
+  || fail "microstructure handoff exporter primary group is incorrect"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=SupplementaryGroups --value)" = "$EVIDENCE_GROUP" ] \
+  || fail "microstructure handoff exporter supplementary group is not exact"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=Restart --value)" = "no" ] \
+  || fail "microstructure handoff exporter restart policy is not fail-closed"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=Type --value)" = "oneshot" ] \
+  || fail "microstructure handoff exporter is not oneshot"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=NoNewPrivileges --value)" = "yes" ] \
+  || fail "microstructure handoff exporter permits privilege gain"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=PrivateDevices --value)" = "yes" ] \
+  || fail "microstructure handoff exporter can access host devices"
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=ProtectHome --value)" = "yes" ] \
+  || fail "microstructure handoff exporter can access home directories"
+case "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=IPAddressDeny --value)" in
+  any|'::/0 0.0.0.0/0'|'0.0.0.0/0 ::/0') ;;
+  *) fail "microstructure handoff exporter is not network denied" ;;
+esac
+[ "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=RestrictAddressFamilies --value)" = "AF_UNIX" ] \
+  || fail "microstructure handoff exporter address families exceed AF_UNIX"
+if systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=EnvironmentFiles --value | grep -q .; then
+  fail "microstructure handoff exporter must not load an environment file"
+fi
+[ -z "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=Environment --value)" ] \
+  || fail "microstructure handoff exporter accepts environment selection"
+for capability_property in CapabilityBoundingSet AmbientCapabilities; do
+  [ -z "$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" \
+    --property="$capability_property" --value)" ] \
+    || fail "microstructure handoff exporter retains $capability_property"
+done
+export_read_only="$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=ReadOnlyPaths --value)"
+python3 - "$export_read_only" \
+  "$MICROSTRUCTURE_BINDING" \
+  "$MICROSTRUCTURE_STATE" \
+  "$MICROSTRUCTURE_DROP" \
+  "$MICROSTRUCTURE_LOCAL_TASK" \
+  "$WORKER_ROOT/current" \
+  "$WORKER_ROOT/control-current" <<'PY'
+import sys
+
+actual = set(sys.argv[1].split())
+expected = set(sys.argv[2:])
+if actual != expected:
+    raise SystemExit(f"exporter read-only paths are not exact: {sorted(actual)}")
+PY
+export_writes="$(systemctl show "$MICROSTRUCTURE_EXPORT_UNIT" --property=ReadWritePaths --value)"
+python3 - "$export_writes" "$MICROSTRUCTURE_HANDOFF_STAGING" "$MICROSTRUCTURE_HANDOFF_FINAL" <<'PY'
+import sys
+
+actual = set(sys.argv[1].split())
+expected = set(sys.argv[2:])
+if actual != expected:
+    raise SystemExit(f"exporter writable paths are not exact: {sorted(actual)}")
+PY
+export_active="$(systemctl is-active "$MICROSTRUCTURE_EXPORT_UNIT" 2>/dev/null || true)"
+[ "$export_active" = inactive ] \
+  || fail "microstructure handoff exporter is not cleanly inactive outside an explicit handoff request"
+case "$(systemctl is-enabled "$MICROSTRUCTURE_EXPORT_UNIT" 2>/dev/null || true)" in
+  enabled|enabled-runtime|linked|linked-runtime|alias)
+    fail "microstructure handoff exporter is enabled"
+    ;;
+esac
+ok "microstructure handoff exporter identity, confinement, and inactive state verified"
 
 [ "$(systemctl show "$MICROSTRUCTURE_UNIT" --property=User --value)" = "$SOURCE_USER" ] \
   || fail "microstructure source identity is incorrect"

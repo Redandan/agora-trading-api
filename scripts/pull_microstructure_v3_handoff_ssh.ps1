@@ -13,6 +13,8 @@ $stagingRoot = Join-Path (Join-Path $localNodeRoot "staging") $taskId
 $finalRoot = Join-Path (Join-Path $localNodeRoot "inbox") $taskId
 $archivePath = Join-Path $transportParent "$taskId.tar"
 $remoteCommand = @(
+    "sudo -n systemctl start agora-research-microstructure-handoff-export.service",
+    "&&",
     "sudo -n tar --format=ustar --numeric-owner",
     "-C '/var/lib/agora-research/microstructure-v3-handoff-export'",
     "-cf - 'local-node-microstructure-v3-evidence-diagnostic-v1'"

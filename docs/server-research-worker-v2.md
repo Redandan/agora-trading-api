@@ -458,6 +458,30 @@ state artifact raises into the existing heartbeat failure record. No monitor
 artifact, timer, schedule change, retry, repair, backfill, source restart,
 candidate action, OOS access, or second writer is introduced.
 
+The fixed handoff exporter is
+`agora-research-microstructure-handoff-export.service`, a disabled and inactive
+network-denied oneshot with no timer, path unit, restart loop, environment
+selection, or canonical-state write. Its documentation, working directory,
+and zero-argument Python module come only from `control-current`; the immutable
+V3 binding, canonical state, retained 14-day evidence, and installed producer
+release remain read-only data-current inputs. It runs as `agora-research` with
+the command-scoped supplementary group `agora-evidence`, while the account is
+not added to that publisher group globally. Capabilities are empty, address
+families are limited to `AF_UNIX`, and only the pre-provisioned handoff staging
+and final roots are writable. The unchanged exporter module remains
+create-once and fail closed.
+
+`scripts/pull_microstructure_v3_handoff_ssh.ps1` makes one fixed remote call:
+it starts exactly that oneshot and streams the fixed final package with
+`sudo -n tar` only after the start succeeds. An early `NOT_READY` may therefore
+end without a package; the pull does not retry, backfill, synthesize readiness,
+or change state. A completed local retry validates its existing archive or
+inbox without another remote call. Installation places and statically verifies
+the unit in ordinary and `-PreserveBoundDataPlane` modes but never enables or
+starts it. Real systemd execution, `NOT_READY` no-write behavior,
+`DIAGNOSTIC_READY` export, transfer, Local diagnostic and interpretation, and
+all economic or activation claims remain separate proof gates.
+
 ## Cutover
 
 1. Deploy the V2 release, OAuth MCP, request directories, dispatch path, and

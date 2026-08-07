@@ -5,6 +5,7 @@ import io
 import json
 import os
 from pathlib import Path, PurePosixPath
+import subprocess
 import tarfile
 from tempfile import TemporaryDirectory
 import unittest
@@ -32,6 +33,9 @@ from research_pipeline.microstructure_handoff_runner import (
 from research_pipeline.tests.test_microstructure_handoff_runner import _Fixture
 
 
+FROZEN_TRANSFER_DOCUMENT_COMMIT = "81ac790aa65642b06130c24992d4bd6ed38c8b35"
+
+
 class HandoffReceiveTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -48,9 +52,24 @@ class HandoffReceiveTest(unittest.TestCase):
         required.add(TRANSFER_TASK_RELATIVE)
         for relative_name in sorted(required):
             source = REPOSITORY_ROOT.joinpath(*PurePosixPath(relative_name).parts)
+            if relative_name == "docs/server-research-worker-v2.md":
+                raw = subprocess.run(
+                    [
+                        "git",
+                        "-c",
+                        f"safe.directory={REPOSITORY_ROOT.as_posix()}",
+                        "show",
+                        f"{FROZEN_TRANSFER_DOCUMENT_COMMIT}:{relative_name}",
+                    ],
+                    cwd=REPOSITORY_ROOT,
+                    check=True,
+                    stdout=subprocess.PIPE,
+                ).stdout
+            else:
+                raw = source.read_bytes()
             self._write(
                 repository_root.joinpath(*PurePosixPath(relative_name).parts),
-                source.read_bytes(),
+                raw,
             )
         local_root = base / "local-node"
         transport_parent = local_root / "transport"
@@ -350,6 +369,9 @@ class HandoffReceiveTest(unittest.TestCase):
             REPOSITORY_ROOT / "scripts" / "pull_microstructure_v3_handoff_ssh.ps1"
         ).read_text(encoding="utf-8")
         required = (
+            "sudo -n systemctl start "
+            "agora-research-microstructure-handoff-export.service",
+            "&&",
             "/var/lib/agora-research/microstructure-v3-handoff-export",
             "local-node-microstructure-v3-evidence-diagnostic-v1",
             "--format=ustar",
@@ -381,6 +403,21 @@ class HandoffReceiveTest(unittest.TestCase):
         self.assertEqual(top_level_parameters.count("[string]$"), 2)
         self.assertIn("[string]$SshHost", top_level_parameters)
         self.assertIn("[string]$SshKey", top_level_parameters)
+        start = script.index(
+            "sudo -n systemctl start "
+            "agora-research-microstructure-handoff-export.service"
+        )
+        stream = script.index("sudo -n tar --format=ustar --numeric-owner")
+        self.assertLess(start, stream)
+        remote_section = script[
+            script.index("$remoteCommand = @("):
+            script.index("$repositoryRoot =", script.index("$remoteCommand = @("))
+        ]
+        self.assertEqual(remote_section.count("sudo -n systemctl start"), 1)
+        self.assertEqual(remote_section.count("sudo -n tar"), 1)
+        self.assertIn('"&&"', remote_section)
+        self.assertNotIn("$SshHost", remote_section)
+        self.assertNotIn("$SshKey", remote_section)
 
 
 if __name__ == "__main__":

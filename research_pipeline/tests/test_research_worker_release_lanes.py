@@ -12,7 +12,9 @@ CONTROL_UNITS = (
     "agora-research-mcp.service",
     "agora-research-dispatch.service",
     "agora-research-heartbeat.service",
+    "agora-research-microstructure-handoff-export.service",
 )
+EXPORT_UNIT = "agora-research-microstructure-handoff-export.service"
 DATA_UNITS = {
     "agora-research-source.service":
         "e03c4ce3c33d21a8e4b787384880355f8286e481f22bd3eff9ec0bcf8fb72f0f",
@@ -42,11 +44,12 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             with self.subTest(unit=name):
                 value = text(WORKER / name)
                 self.assertIn("/opt/agora-research-worker/control-current", value)
-                self.assertNotIn("/opt/agora-research-worker/current", value)
                 self.assertIn(
                     "Documentation=file:/opt/agora-research-worker/control-current/",
                     value,
                 )
+                if name != EXPORT_UNIT:
+                    self.assertNotIn("/opt/agora-research-worker/current", value)
                 self.assertIn(
                     "WorkingDirectory=/opt/agora-research-worker/control-current",
                     value,
@@ -59,6 +62,58 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
         self.assertIn(
             "Environment=AGORA_RESEARCH_APP_DIR=/opt/agora-research-worker/control-current",
             text(WORKER / "agora-research-mcp.service"),
+        )
+
+    def test_exporter_is_fixed_control_lane_and_exactly_confined(self) -> None:
+        value = text(WORKER / EXPORT_UNIT)
+        self.assertIn("Type=oneshot", value)
+        self.assertIn("User=agora-research", value)
+        self.assertIn("Group=agora-research", value)
+        self.assertIn("SupplementaryGroups=agora-evidence", value)
+        self.assertIn("Restart=no", value)
+        self.assertIn("IPAddressDeny=any", value)
+        self.assertIn("RestrictAddressFamilies=AF_UNIX", value)
+        self.assertIn("CapabilityBoundingSet=\n", value)
+        self.assertIn("AmbientCapabilities=\n", value)
+        self.assertIn("ProtectHome=yes", value)
+        self.assertIn("PrivateDevices=yes", value)
+        self.assertIn("NoNewPrivileges=yes", value)
+        self.assertIn(
+            "ExecStart=/opt/agora-research-worker/venv/bin/python "
+            "-m research_pipeline.microstructure_handoff_export",
+            value,
+        )
+        self.assertNotIn("Environment=", value)
+        self.assertNotIn("[Install]", value)
+        self.assertNotIn("ExecStart=/bin/", value)
+        read_only = {
+            line.removeprefix("ReadOnlyPaths=")
+            for line in value.splitlines()
+            if line.startswith("ReadOnlyPaths=")
+        }
+        self.assertEqual(
+            read_only,
+            {
+                "/etc/agora-research/okx-microstructure-continuous-source-v3.json",
+                "/var/lib/agora-research/state/microstructure-v3",
+                "/var/lib/agora-evidence-source/microstructure-drop",
+                "/etc/agora-research/local-tasks/"
+                "microstructure-v3-evidence-diagnostic.v1.json",
+                "/opt/agora-research-worker/current",
+                "/opt/agora-research-worker/control-current",
+            },
+        )
+        writes = {
+            line.removeprefix("ReadWritePaths=")
+            for line in value.splitlines()
+            if line.startswith("ReadWritePaths=")
+        }
+        self.assertEqual(
+            writes,
+            {
+                "/var/lib/agora-research/microstructure-v3-handoff-staging",
+                "/var/lib/agora-research/microstructure-v3-handoff-export",
+            },
         )
 
     def test_data_plane_units_are_byte_preserved_on_fixed_data_lane(self) -> None:
@@ -177,6 +232,22 @@ class ResearchWorkerReleaseLanesTest(unittest.TestCase):
             self.assertIn(name, preserve_units)
         for name in DATA_UNITS:
             self.assertNotIn(name, preserve_units)
+
+    def test_exporter_is_installed_verified_but_never_enabled_or_started(self) -> None:
+        self.assertIn(EXPORT_UNIT, self.installer)
+        self.assertIn(f"/etc/systemd/system/{EXPORT_UNIT}", self.installer)
+        for command in (
+            f"systemctl enable {EXPORT_UNIT}",
+            f"systemctl enable --now {EXPORT_UNIT}",
+            f"systemctl start {EXPORT_UNIT}",
+            f"systemctl restart {EXPORT_UNIT}",
+        ):
+            self.assertNotIn(command, self.installer)
+        self.assertIn('systemctl cat "$MICROSTRUCTURE_EXPORT_UNIT"', self.verifier)
+        self.assertIn(
+            "microstructure handoff exporter is not cleanly inactive outside an explicit handoff request",
+            self.verifier,
+        )
 
     def test_preserve_has_exact_post_install_invariants(self) -> None:
         required = (

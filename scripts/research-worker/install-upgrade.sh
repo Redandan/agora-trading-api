@@ -813,6 +813,7 @@ if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
     agora-research-heartbeat.service
     agora-research-dispatch.service
     agora-research-mcp.service
+    agora-research-microstructure-handoff-export.service
   )
 else
   units_to_install=(
@@ -823,6 +824,7 @@ else
     agora-research-microstructure-source.service
     agora-research-microstructure-intake.service
     agora-research-microstructure-intake.path
+    agora-research-microstructure-handoff-export.service
   )
 fi
 for unit in "${units_to_install[@]}"; do
@@ -842,7 +844,8 @@ sudo systemd-analyze verify \
   /etc/systemd/system/agora-research-evidence-ingest.path \
   /etc/systemd/system/agora-research-microstructure-source.service \
   /etc/systemd/system/agora-research-microstructure-intake.service \
-  /etc/systemd/system/agora-research-microstructure-intake.path
+  /etc/systemd/system/agora-research-microstructure-intake.path \
+  /etc/systemd/system/agora-research-microstructure-handoff-export.service
 if [ "$PRESERVE_BOUND_DATA_PLANE" = 1 ]; then
   sudo systemctl enable --now agora-research-mcp.service agora-research-dispatch.path >/dev/null
 else

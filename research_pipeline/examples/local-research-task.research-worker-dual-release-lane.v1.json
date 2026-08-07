@@ -1,0 +1,153 @@
+{
+  "schema_version": "1",
+  "task_id": "local-node-research-worker-dual-release-lane-v1",
+  "issued_at": "2026-08-07T04:55:36Z",
+  "manager_thread_id": "019fca63-4f8f-71e3-9d88-297bca468eb9",
+  "task_type": "TOOLING_VERTICAL_SLICE",
+  "execution_mode": "WORKTREE_WRITE",
+  "objective": "Decouple Research Worker control-plane upgrades from the immutable release currently bound to active forward-evidence data planes. Introduce one fixed /opt/agora-research-worker/control-current symlink for OAuth MCP, dispatch, and heartbeat while preserving /opt/agora-research-worker/current as the sealed data-plane release for public candle source/ingest and microstructure source/intake. Add an explicit preserve-bound-data-plane deployment mode that may switch only control-current, must keep the active microstructure PID and bound release unchanged, and must run exact post-install verification. Do not deploy, connect to the server, touch canonical state, stop or restart a source, create a timer, or execute any research outcome in this task.",
+  "canonical_research_status": "HEARTBEAT_FAILED_CLOSED_WHILE_MICROSTRUCTURE_PRE_START",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "state_authority": "SERVER_CANONICAL",
+  "timer_authority": "CODEX_CLOUD_OPS_ONLY",
+  "inputs": [
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/deploy_research_worker_upgrade_ssh.ps1",
+      "sha256": "139701c8c3c6a23425230fabd060626616f6e3ea6988c88f3c35ec9b8c1e908d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/install-upgrade.sh",
+      "sha256": "ed58e205e71119c3044d4ac9169ea1445958315c591f14867494dcd37a6b14e5"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/verify-worker.sh",
+      "sha256": "560f9a09f39571bd1071ddd0dcd84336ecd010389bb9d61a197a8e33afc9c4f1"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-mcp.service",
+      "sha256": "954b64d60573eb85e15d02687ee22f766169abf21ac3ae823ce9c1cd181bb9be"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-dispatch.service",
+      "sha256": "2f59af2e3a90d1203ae60bf40efdee9b3bbcf4d28868f800377d1e01453a7d3d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "scripts/research-worker/agora-research-heartbeat.service",
+      "sha256": "f9bae0fc9c5b8e7876802ada8fe7f879fbdcacab79a36f5d1d718e0d4af5f29d"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/server-research-worker-v2.md",
+      "sha256": "476d8feb0a410d9bd069844c33e6f9b1194951313f7b1f63aaccdd12f3680605"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "research_pipeline/local_node.py",
+      "sha256": "b824b431a92cbcab5609b04e80f446c17518d712192aee0e23cd3b37ea2512ed"
+    },
+    {
+      "kind": "REPOSITORY_PATH",
+      "locator": "docs/autonomous-research-charter.md",
+      "sha256": "1b85f68f6fe27d15fe0496eee98374ec73a710e1dad15a2ba789b54bd1c6cea1"
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T04:51:35Z; policy and worker READY; sole CLOUD_OPS_SCHEDULE_V6; queue IDLE; heartbeat failure artifact 40185e435049e96b68f0647203fb522a0e1d69a240e0a10f2e47b16f0e8be2ad is the already-fixed legacy backslash reference defect; microstructure diagnostic okx-btcusdt-microstructure-forward-v3-20260808 remains PRE_START/WAITING_FOR_DAY 0/14, start 2026-08-08; candle capture request cd3076eebd380bdd59c8be742659797a is queued before its deadline.",
+      "sha256": null
+    },
+    {
+      "kind": "CANONICAL_STATUS",
+      "locator": "2026-08-07T04:54Z read-only server preflight: /opt/agora-research-worker/current -> releases/20260806T162152Z; /opt/agora-research-worker/control-current ABSENT; agora-research-microstructure-source.service active MainPID 3240239; binding producer release 20260806T162152Z, manifest 7da844cd3df39777880ed32d6d655ad0cb3ed609e83b827b9f8e2608233306f2, diagnostic okx-btcusdt-microstructure-forward-v3-20260808, start 2026-08-08; canonical state SHA256 0dcacac1db13c3cf9003b16ae57a28f61e3344848c0f30e182c00b5c8819e557; research request inventory empty.",
+      "sha256": null
+    },
+    {
+      "kind": "TASK_MESSAGE",
+      "locator": "The first ordinary upgrade to commit 5bafb8e576eb6b75a42db60e54b5d99bfb374a2d was correctly rejected because the microstructure source was active. The installed release did not switch. Implement a future explicit preserve-bound-data-plane upgrade path; do not weaken the default active-source rejection or execute that path in this task.",
+      "sha256": null
+    }
+  ],
+  "allowed_actions": [
+    "READ_FROZEN_REPOSITORY_CONTRACTS",
+    "VERIFY_ALL_NON_NULL_INPUT_HASHES",
+    "ADD_FIXED_CONTROL_CURRENT_RELEASE_LANE",
+    "PRESERVE_FIXED_DATA_CURRENT_RELEASE_LANE",
+    "ADD_EXPLICIT_PRESERVE_BOUND_DATA_PLANE_DEPLOYMENT_MODE",
+    "VERIFY_BOUND_RELEASE_MANIFEST_AND_ACTIVE_SOURCE_PID",
+    "ROUTE_CONTROL_SERVICES_TO_CONTROL_CURRENT",
+    "KEEP_DATA_PLANE_SERVICES_ON_CURRENT",
+    "ADD_EXACT_POST_INSTALL_VERIFICATION",
+    "ADD_FOCUSED_OFFLINE_TESTS",
+    "UPDATE_RESEARCH_WORKER_DOCUMENTATION",
+    "RUN_LOCAL_TASK_VALIDATION",
+    "RUN_FOCUSED_OFFLINE_PYTHON_TESTS",
+    "RUN_SHELL_AND_POWERSHELL_SYNTAX_CHECKS",
+    "RUN_PACKAGE_ONLY_VALIDATION",
+    "RUN_GIT_DIFF_CHECK"
+  ],
+  "forbidden_actions": [
+    "CANONICAL_STATE_WRITE",
+    "SERVER_RESEARCH_MCP_WRITE",
+    "SECOND_TIMER_OR_WRITER",
+    "CLOUD_SCHEDULE_CREATE_UPDATE_OR_DELETE",
+    "SSH_OR_SERVER_CONNECTION",
+    "SERVICE_DEPLOYMENT_OR_SYSTEMD_EXECUTION",
+    "SOURCE_STOP_START_RESTART_OR_SIGNAL",
+    "BINDING_OR_STATE_REWRITE_DELETE_MOVE_OR_REPAIR",
+    "SEALED_RELEASE_OR_ARTIFACT_MUTATION",
+    "EVIDENCE_COLLECTION_OR_BACKFILL",
+    "EXTERNAL_BACKFILL_OR_IMPORT",
+    "TRADING_DB_ORDERS_FUNDS_SHADOW_PAPER_LIVE",
+    "OOS_OPEN_OR_GATE_RELAXATION",
+    "PAID_API_OR_API_KEY",
+    "PRODUCTION_OR_DATABASE_MUTATION",
+    "MAVEN_EXEC_SPRING_OR_TRADING_EXECUTION",
+    "CANDIDATE_OR_HYPOTHESIS_REGISTRATION",
+    "GIT_STAGE_COMMIT_PUSH_OR_RESET",
+    "OTHER_FILE_EDIT"
+  ],
+  "expected_outputs": [
+    "EXACT_EIGHT_FILE_CHANGESET",
+    "ATOMIC_CONTROL_CURRENT_LINK",
+    "UNCHANGED_BOUND_DATA_CURRENT_LINK",
+    "DEFAULT_ACTIVE_SOURCE_REJECTION",
+    "EXPLICIT_PRESERVE_MODE_WITH_STRICT_PREFLIGHT",
+    "SAME_ACTIVE_SOURCE_PID_POSTCONDITION",
+    "CONTROL_SERVICE_PATH_ISOLATION",
+    "DATA_PLANE_PATH_ISOLATION",
+    "POST_INSTALL_DUAL_RELEASE_VERIFIER",
+    "FOCUSED_FAIL_CLOSED_TEST_EVIDENCE",
+    "MISSING_PROOF_REGISTER",
+    "RECOMMENDED_NEXT_ACTION"
+  ],
+  "stop_conditions": [
+    "Validate this exact task and every non-null repository input SHA-256 before editing. Any drift is BLOCKED and MISSING_PROOF.",
+    "Change exactly these seven existing files and add exactly one test file: scripts/deploy_research_worker_upgrade_ssh.ps1, scripts/research-worker/install-upgrade.sh, scripts/research-worker/verify-worker.sh, scripts/research-worker/agora-research-mcp.service, scripts/research-worker/agora-research-dispatch.service, scripts/research-worker/agora-research-heartbeat.service, docs/server-research-worker-v2.md, and research_pipeline/tests/test_research_worker_release_lanes.py. Change no other byte.",
+    "Define exactly two fixed release lanes: /opt/agora-research-worker/control-current for OAuth MCP, request dispatch, and heartbeat; /opt/agora-research-worker/current remains the data-plane release used by public candle source/ingest and microstructure source/intake. Do not add an environment-selectable or caller-selectable path.",
+    "The three control service units must use control-current consistently for Documentation, WorkingDirectory, policy/app paths, launchers, and an explicit APP_DIR where a launcher supports it. No control service may execute Python or a script from current. Existing data-plane unit files must remain unchanged and must never reference control-current.",
+    "Add one explicit PowerShell switch named PreserveBoundDataPlane. It may pass only a fixed PRESERVE_BOUND_DATA_PLANE=1 installer attestation. Default behavior must continue to reject an active microstructure source; the explicit mode is not inferred from status or an environment default.",
+    "Installer preserve mode must reject binding creation/replacement parameters, missing/noncanonical/symlinked binding, missing/non-symlink current, current outside the immutable release root, binding/current release mismatch, binding/manifest/provenance mismatch, enabled source, missing/invalid active PID, failed source, or a changed source unit state. It must not stop, restart, signal, reset-failed, enable, disable, or reload the source process.",
+    "Before any release or link mutation, preserve mode must seal the resolved data-current path, binding bytes and SHA-256, state bytes and SHA-256, active/inactive state, MainPID when active, and source unit properties needed to prove no lifecycle change. Never print binding contents or sensitive paths beyond fixed research provenance.",
+    "Install the immutable new release as today, then atomically create or replace only control-current with the new release. In preserve mode, never move, relink, overwrite, delete, chmod, chown, or otherwise mutate current, the bound release tree, binding, microstructure state, drop, source private staging, public source request/drop, or any sealed artifact.",
+    "Outside preserve mode, retain fail-closed active-source rejection and ordinary installation behavior, but ensure both current and control-current converge to the new release so first install and inactive no-binding upgrades remain compatible.",
+    "After daemon reload and control MCP restart, preserve mode must require the source active/inactive state to equal preflight, require the exact same nonzero MainPID when it was active, require current/binding/state bytes and hashes unchanged, require the source unit not failed or enabled, and require control-current to resolve to the new release. Any mismatch fails the upgrade without claiming success.",
+    "Update verify-worker.sh to accept exact expected control and data release ids, validate both symlinks beneath the immutable releases root, validate worker provenance and policy against control-current, validate binding/distribution/intake/source evidence against current, and prove control units use only control-current while all data-plane units still use only current.",
+    "The deployment wrapper preserve mode must run the installed dual-release verifier after installation with exact expected control/data release ids, active source expectation, and intake preflight. It must print control/data release provenance only after verifier success. Ordinary PackageOnly must remain network-free and require no host/key.",
+    "Do not weaken manifest inventory, source contract, binding, state, identity, capability, network denial, timer denial, or canonical writer checks. Do not introduce automatic retries, rollback guesses, source lifecycle recovery, another symlink selector, another service, another path unit, another timer, or an alternate execution entrypoint.",
+    "Focused tests must parse the deployment scripts and all six relevant control/data unit files, prove exact lane ownership, explicit-only preserve attestation, default rejection, pre/post PID and hash gates, atomic link behavior, no source lifecycle commands in preserve branch, verifier dual-id checks, PackageOnly isolation, and unchanged data-plane unit bytes through exact baseline SHA-256 constants.",
+    "Run exact task validation, python -m unittest research_pipeline.tests.test_research_worker_release_lanes, python -m unittest research_pipeline.tests.test_microstructure_intake_cli, bash -n for install-upgrade.sh and verify-worker.sh, PowerShell AST syntax parsing for deploy_research_worker_upgrade_ssh.ps1, python compile for the new test, deploy_research_worker_upgrade_ssh.ps1 -PackageOnly with empty binding parameters, and git diff --check.",
+    "Return one valid local-research-result JSON tied to this exact task SHA with exactly eight files_changed/artifacts, all safety assertions false, concrete test evidence, and MISSING_PROOF for real server installation, same live PID after deployment, next heartbeat recovery, candle capture completion, microstructure day acceptance, strategy performance, PnL, drawdown, OOS, and activation. Do not stage, commit, or push.",
+    "Stop after the offline dual-release vertical slice. Manager review, commit, explicit preserve-mode deployment, live read-only pre/post proof, Coach delivery receipt, local evidence handoff, diagnostic, hypothesis design, OOS, and Trading remain separate gates."
+  ],
+  "limits": {
+    "timeout_seconds": 7200,
+    "max_files_changed": 8,
+    "max_candidate_variants": 0,
+    "network_access": "NONE"
+  }
+}

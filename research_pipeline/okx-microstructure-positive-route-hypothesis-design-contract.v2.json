@@ -1,0 +1,177 @@
+{
+  "schema_version": "2",
+  "contract_id": "OKX_MICROSTRUCTURE_POSITIVE_ROUTE_HYPOTHESIS_DESIGN_V2",
+  "status": "FROZEN_PREOUTCOME_ROUTE_SELECTION_DESIGN_ONLY",
+  "authorization": "RESEARCH_ONLY_NOT_SHADOW_PAPER_OR_LIVE",
+  "source_interpretation": {
+    "result_type": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_RESULT_V1",
+    "result_schema_sha256": "58b704babf80ed381d2cf1c50afb61cf9e5e73e8eac43fa88d0f26c7f724f564",
+    "contract_id": "OKX_MICROSTRUCTURE_FORWARD_INTERPRETATION_V1",
+    "contract_sha256": "b3230b0b5e07a7cdf12b4e057c5e01a11c2ba36c8f2271d52552ceafec97b509",
+    "validation": "VALIDATE_CANONICAL_SEALED_BYTES_BEFORE_DESIGN"
+  },
+  "branches": {
+    "non_positive_dispositions": [
+      "NO_CANDIDATE_SHORT_HORIZON_BUY_PRESSURE",
+      "AMBIGUOUS_NO_HYPOTHESIS",
+      "INSUFFICIENT_FORWARD_EVIDENCE"
+    ],
+    "non_positive_status": "CLOSED_NO_HYPOTHESIS_DESIGN",
+    "positive_disposition": "READY_FOR_ONE_HYPOTHESIS_DESIGN",
+    "positive_status": "DESIGN_ONLY_NOT_REGISTERED",
+    "maximum_positive_designs": 1
+  },
+  "positive_route_selection": {
+    "route_id": "OKX_MICROSTRUCTURE_INTRADAY_ECONOMIC_ROUTE_V1",
+    "route_contract_sha256": "33fdef52654845911eda5f9f0dc9a3d1281ae6a6e0d4c0aab1bc93b51f34304e",
+    "priority": "SOLE_PRIMARY",
+    "tier_binding": "INTERPRETATION_SELECTED_FIRST_PASS",
+    "maximum_routes": 1,
+    "maximum_designs": 1,
+    "maximum_eventual_candidate_variants": 1,
+    "caller_override_authorized": false,
+    "multiple_routes_authorized": false,
+    "dra_fallback_authorized": false,
+    "route_switch_after_design_outcome_authorized": false,
+    "route_switch_after_validation_outcome_authorized": false,
+    "route_switch_after_oos_outcome_authorized": false
+  },
+  "positive_design": {
+    "coach_proposal_fields": [
+      "design_id",
+      "created_at",
+      "title",
+      "thesis",
+      "economic_rationale",
+      "performance_thesis",
+      "drawdown_thesis",
+      "opportunity_cost"
+    ],
+    "required_capability": "MICROSTRUCTURE_STANDALONE_INTRADAY_ECONOMIC_ADAPTER_V1_NOT_IMPLEMENTED",
+    "proposed_mechanism": {
+      "mechanism_id": "SELECTED_MICROSTRUCTURE_TIER_STANDALONE_60M_LONG_V1",
+      "route_id": "OKX_MICROSTRUCTURE_INTRADAY_ECONOMIC_ROUTE_V1",
+      "source": "INTERPRETATION_SELECTED_SIMPLEST_SUFFICIENT_TIER",
+      "market": "OKX_BTC_USDT_SPOT",
+      "direction": "LONG_ONLY",
+      "holding_period_minutes": 60,
+      "threshold_tuning_authorized": false,
+      "magnitude_claim_authorized": false,
+      "more_complex_tier_selection_authorized": false
+    },
+    "maximum_routes": 1,
+    "maximum_designs": 1,
+    "maximum_candidate_variants": 1
+  },
+  "policy_binding": {
+    "policy_id": "AUTONOMOUS_TRADING_RESEARCH_V3",
+    "policy_sha256": "a82ccff13c13765d1e94a29698a43b35b847ed19190965590fa72e9a102981f6",
+    "primary_metric": "fee_adjusted_total_pnl_delta_under_equal_capital",
+    "required_metrics": [
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "blocked_entries",
+      "holding_age"
+    ],
+    "constraints": [
+      "causal_point_in_time_data",
+      "positive_incremental_validation_and_oos_evidence",
+      "no_material_drawdown_deterioration",
+      "no_hidden_terminal_inventory_loss",
+      "stable_neighboring_behavior",
+      "year_and_regime_concentration_visible"
+    ]
+  },
+  "evidence_plan": {
+    "discovery_window_role": "DISCOVERY_ONLY_NOT_ECONOMIC_EVIDENCE_OR_OOS",
+    "discovery_complete_utc_days": 14,
+    "discovery_window_reuse_as_economic_evidence": false,
+    "future_stage_order": [
+      "V4_SOURCE_AND_ECONOMIC_MANIFEST_FREEZE",
+      "OFFLINE_ADAPTER_AND_LEDGER_PARITY",
+      "DESIGN",
+      "VALIDATION",
+      "CANONICAL_CANDIDATE_PATH",
+      "SEALED_OOS"
+    ],
+    "v4_source_instance": "BYTE_SEPARATED_SINGLE_ACTIVE_V4_REQUIRED_LATER",
+    "economic_manifest": "EXACT_DATES_AND_CONTRACT_INSTANCE_REQUIRED_BEFORE_ANY_ECONOMIC_BYTE",
+    "total_new_complete_utc_days": 42,
+    "design_complete_utc_days": 14,
+    "validation_complete_utc_days": 14,
+    "sealed_oos_complete_utc_days": 14,
+    "stages_consecutive": true,
+    "exact_stage_dates": "MISSING_PROOF",
+    "adapter_and_ledger_parity_required_before_evaluation": true,
+    "design_and_validation_must_pass_before_candidate_path": true,
+    "canonical_candidate_path_before_oos_open": true,
+    "oos_server_sealed": true,
+    "oos_nondisclosure_until_design_validation_pass_and_route_frozen": true,
+    "stage_skip_or_collapse_authorized": false,
+    "required_future_evaluations": [
+      "realized_pnl",
+      "unrealized_pnl",
+      "total_pnl",
+      "maximum_drawdown",
+      "capital_utilization",
+      "holding_age",
+      "terminal_inventory",
+      "fees",
+      "adverse_slippage",
+      "round_trip_friction",
+      "matched_control_coverage",
+      "matched_control_breadth",
+      "year_and_regime_concentration",
+      "event_cadence",
+      "capacity"
+    ]
+  },
+  "performance_boundary": {
+    "immediate_pnl_effect": "ZERO_CONTRACT_ONLY",
+    "immediate_drawdown_effect": "ZERO_CONTRACT_ONLY",
+    "route_decision_latency": "REDUCED_BY_PREOUTCOME_SINGLE_ROUTE_FREEZE",
+    "avoided_default_detour_audit_range_months": "10.59_TO_22.50_NOT_A_FORECAST",
+    "standalone_planning_round_trip_friction_bps": "30.00",
+    "performance_claim_authorized": false
+  },
+  "missing_proof": [
+    "v4_source_instance",
+    "exact_dates_and_manifest",
+    "event_cadence",
+    "matched_control_coverage",
+    "source_reliability",
+    "adapter_and_ledger_parity",
+    "fees_slippage_friction_value",
+    "strategy_pnl",
+    "drawdown",
+    "capital_utilization",
+    "holding_risk",
+    "capacity",
+    "candidate_readiness",
+    "oos_value",
+    "activation"
+  ],
+  "safety": {
+    "canonical_state_write_authorized": false,
+    "research_state_write_authorized": false,
+    "source_instantiation_authorized": false,
+    "manifest_creation_authorized": false,
+    "adapter_implementation_authorized": false,
+    "hypothesis_registration_authorized": false,
+    "candidate_registration_authorized": false,
+    "oos_access_authorized": false,
+    "activation_authorized": false,
+    "second_timer_or_writer_authorized": false,
+    "trading_database_order_fund_action_authorized": false,
+    "paid_api_authorized": false
+  },
+  "result_contract": {
+    "result_type": "OKX_MICROSTRUCTURE_POSITIVE_ROUTE_HYPOTHESIS_DESIGN_RESULT_V2",
+    "schema_sha256": "1c829c05288d7a4d5a925cad1b1738eb5fe156f4f6ed2babc423efd4b4a9cb94",
+    "canonicalization": "UTF-8 compact JSON excluding seal; object keys sorted lexicographically",
+    "seal": "SHA-256"
+  }
+}
